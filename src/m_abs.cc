@@ -664,7 +664,7 @@ void lines_per_tgCreateFromLines(// WS Output:
     For each line at frequency +f in lines_per_tg a corresponding entry at
     frequency -f is added to lines_per_tg.
 
-    \retval lines_per_tg The array of arrays of lines for each tag group.
+    \param lines_per_tg Output: The array of arrays of lines for each tag group.
     
     \author Axel von Engeln and Stefan Buehler */
 void lines_per_tgAddMirrorLines(// WS Output:
@@ -706,7 +706,7 @@ void lines_per_tgAddMirrorLines(// WS Output:
     It should be particularly useful to call this method after
     lines_per_tgAddMirrorLines.
 
-    \retval lines_per_tg the old and newly compacted line list
+    \param lines_per_tg Output: the old and newly compacted line list
     \param  lineshape the lineshape spceifications
     \param  f_mono the frequency grid
 
@@ -1781,8 +1781,8 @@ void n2_absSet(
    cross sections per tag group and then the absorption from the cross
    sections.
 
-   \retval   abs            absorption coefficients
-   \retval   abs_per_tg     absorption coefficients per tag group
+   \param   abs Output:            absorption coefficients
+   \param   abs_per_tg Output:     absorption coefficients per tag group
 
    \param    tgs     the list of tag groups 
    \param    f_mono         monochromatic frequency grid
@@ -1865,8 +1865,8 @@ void absCalc(// WS Output:
    that the vmrs are in the order of the cross sections, only the
    dimension is checked.
 
-   \retval   abs            absorption coefficients
-   \retval   abs_per_tg     absorption coefficients per tag group
+   \param   abs Output:            absorption coefficients
+   \param   abs_per_tg Output:     absorption coefficients per tag group
    \param    xsec_per_tg    cross sections per tag group
    \param    vmrs           volume mixing ratios per tag group
 
@@ -1944,7 +1944,7 @@ void absCalcFromXsec(// WS Output:
    necessary, because methods `xsec_per_tgAddLines'
    and `xsec_per_tgAddConts' just add to xsec_per_tg.
 
-   \retval   xsec_per_tg    cross section per tag group
+   \param   xsec_per_tg Output:    cross section per tag group
    \param    tgs            the list of tag groups
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
@@ -1982,7 +1982,7 @@ void xsec_per_tgInit(// WS Output:
    Calculates the line spectrum for each tag group and adds it to
    xsec_per_tg. 
 
-   \retval   xsec_per_tg    cross section per tag group
+   \param   xsec_per_tg Output:    cross section per tag group
    \param    tgs            the list of tag groups
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
@@ -2189,7 +2189,7 @@ void xsec_per_tgAddLines(// WS Output:
    Calculates the continuum for each tag group and adds it to
    xsec_per_tg. 
 
-   \retval   xsec_per_tg    cross section per tag group
+   \param   xsec_per_tg Output:    cross section per tag group
    \param    tgs            the list of tag groups
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
@@ -2381,7 +2381,7 @@ void xsec_per_tgAddConts(// WS Output:
 /** Reduces the size of abs_per_tg.  Only absorption coefficients for
     which weighting functions are calculated are kept in memory.
     
-    \retval abs_per_tg absorption coefficients
+    \param abs_per_tg Output: absorption coefficients
     \param  tgs        all selected tag groups
     \param  wfs_tgs    the tag groups for which we want weighting functions.
 

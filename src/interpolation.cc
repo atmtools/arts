@@ -41,6 +41,18 @@
 #include "check_input.h"
 #include "logic.h"
 
+//! Macro for interpolation weight loops.
+/*!
+  We use the macro LOOPIT to make the notation for the nested for
+  loops in the interpweights functions more concise, and to avoid
+  typing errors.
+
+  Should resolve to something like:
+
+  for ( const Numeric* p=&tp.fd[1]; p>=&tp.fd[0]; --p )
+*/
+#define LOOPIT(x) for ( const Numeric* x=&t##x##.fd[1]; x>=&t##x##.fd[0]; --x )
+
 
 //! Output operator for GridPos.
 /*!
@@ -334,20 +346,41 @@ void interpweights( MatrixView itw,
       // Current grid positions:
       const GridPos& tc = cgp[i];
 
-      // Current row of interpolation weight matrix:
-      VectorView ti = itw(i,Range(joker));
-
       // Interpolation weights are stored in this order (l=lower
       // u=upper, c=column):
       // 1. l-c
       // 2. u-c
 
       Index iti = 0;
-	for ( Index c=1; c>=0; --c )
-	  {
-	    ti[iti] = tc.fd[c];
-	    ++iti;
-	  }
+
+      // We could use a straight-forward for loop here:
+      //
+      //       for ( Index c=1; c>=0; --c )
+      // 	{
+      // 	  ti[iti] = tc.fd[c];
+      // 	  ++iti;
+      // 	}
+      //
+      // However, it is slightly faster to use pointers (I tried it,
+      // the speed gain is about 20%). So we should write something
+      // like:
+      //
+      //       for ( const Numeric* c=&tc.fd[1]; c>=&tc.fd[0]; --c )
+      // 	{
+      // 	  ti[iti] = *c;
+      // 	  ++iti;
+      // 	}
+      //
+      // For higher dimensions we have to nest these loops. To avoid
+      // typos and safe typing, I use the LOOPIT macro, which expands
+      // to the for loop above. Note: NO SEMICOLON AFTER THE LOOPIT
+      // COMMAND! 
+
+      LOOPIT(c)
+	{
+	  itw(i,iti) = *c;
+	  ++iti;
+	}
     }
 }
 
@@ -386,9 +419,6 @@ void interpweights( MatrixView itw,
       const GridPos& tr = rgp[i];
       const GridPos& tc = cgp[i];
 
-      // Current row of interpolation weight matrix:
-      VectorView ti = itw(i,Range(joker));
-
       // Interpolation weights are stored in this order (l=lower
       // u=upper, r=row, c=column):
       // 1. l-r l-c
@@ -397,13 +427,616 @@ void interpweights( MatrixView itw,
       // 4. u-r u-c
 
       Index iti = 0;
-      // FIXME: Is there a speed gain if I use int in these loops,
-      // instead of Index?
-      for ( Index r=1; r>=0; --r )
-	for ( Index c=1; c>=0; --c )
+
+      LOOPIT(r)
+      LOOPIT(c)
 	  {
-	    ti[iti] = tr.fd[r] * tc.fd[c];
+	    itw(i,iti) = (*r) * (*c);
 	    ++iti;
 	  }
+    }
+}
+
+//! Compute 3D interpolation weights for a sequence of positions.
+/*! 
+ Compute the weights for a "blue" type interpolation of the field,
+ that means that the grid position Arrays are interpreted as defining
+ a sequence of positions. ALL GRID POSITION ARRAYS MUST HAVE THE SAME LENGTH! 
+
+ The dimensions of itw must be also consistent with this.
+
+ Note that we still do not need the actual field for this step.
+
+ This function can be easily distinguished from the other
+ interpweights function (for "green" interpolation), because the
+ output is a Matrix, whereas in the other case it is a Tensor with one
+ more dimension than there are input grid position Arrays.
+
+ \param itw Output: Interpolation weights.
+ \param pgp The grid position Array for the page dimension.
+ \param rgp The grid position Array for the row dimension.
+ \param cgp The grid position Array for the column dimension.
+ */
+void interpweights( MatrixView itw,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp )
+{
+  Index n = cgp.nelem();
+  assert(is_size(pgp,n));	// pgp must have same size as cgp.
+  assert(is_size(rgp,n));	// rgp must have same size as cgp.
+  assert(is_size(itw,n,8));	// We must store 8 interpolation
+				// weights for each position.
+
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPos& tp = pgp[i];
+      const GridPos& tr = rgp[i];
+      const GridPos& tc = cgp[i];
+
+      Index iti = 0;
+      LOOPIT(p)
+      LOOPIT(r)
+      LOOPIT(c)
+	{
+	  itw(i,iti) = (*p) * (*r) * (*c);
+	  ++iti;
+	}
+    }
+}
+
+//! Compute 4D interpolation weights for a sequence of positions.
+/*! 
+ Compute the weights for a "blue" type interpolation of the field,
+ that means that the grid position Arrays are interpreted as defining
+ a sequence of positions. ALL GRID POSITION ARRAYS MUST HAVE THE SAME LENGTH! 
+
+ The dimensions of itw must be also consistent with this.
+
+ Note that we still do not need the actual field for this step.
+
+ This function can be easily distinguished from the other
+ interpweights function (for "green" interpolation), because the
+ output is a Matrix, whereas in the other case it is a Tensor with one
+ more dimension than there are input grid position Arrays.
+
+ \param itw Output: Interpolation weights.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+ */
+void interpweights( MatrixView itw,
+               	    const ArrayOfGridPos& bgp,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp )
+{
+  Index n = cgp.nelem();
+  assert(is_size(bgp,n));	// bgp must have same size as cgp.
+  assert(is_size(pgp,n));	// pgp must have same size as cgp.
+  assert(is_size(rgp,n));	// rgp must have same size as cgp.
+  assert(is_size(itw,n,16));	// We must store 16 interpolation
+				// weights for each position.
+
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPos& tb = bgp[i];
+      const GridPos& tp = pgp[i];
+      const GridPos& tr = rgp[i];
+      const GridPos& tc = cgp[i];
+
+      Index iti = 0;
+      LOOPIT(b)
+      LOOPIT(p)
+      LOOPIT(r)
+      LOOPIT(c)
+	{
+	  itw(i,iti) = (*b) * (*p) * (*r) * (*c);
+	  ++iti;
+	}
+    }
+}
+
+//! Compute 5D interpolation weights for a sequence of positions.
+/*! 
+ Compute the weights for a "blue" type interpolation of the field,
+ that means that the grid position Arrays are interpreted as defining
+ a sequence of positions. ALL GRID POSITION ARRAYS MUST HAVE THE SAME LENGTH! 
+
+ The dimensions of itw must be also consistent with this.
+
+ Note that we still do not need the actual field for this step.
+
+ This function can be easily distinguished from the other
+ interpweights function (for "green" interpolation), because the
+ output is a Matrix, whereas in the other case it is a Tensor with one
+ more dimension than there are input grid position Arrays.
+
+ \param itw Output: Interpolation weights.
+ \param sgp The grid position Array for the shelf   dimension.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+ */
+void interpweights( MatrixView itw,
+               	    const ArrayOfGridPos& sgp,
+               	    const ArrayOfGridPos& bgp,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp )
+{
+  Index n = cgp.nelem();
+  assert(is_size(sgp,n));	// sgp must have same size as cgp.
+  assert(is_size(bgp,n));	// bgp must have same size as cgp.
+  assert(is_size(pgp,n));	// pgp must have same size as cgp.
+  assert(is_size(rgp,n));	// rgp must have same size as cgp.
+  assert(is_size(itw,n,32));	// We must store 32 interpolation
+				// weights for each position.
+
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPos& ts = sgp[i];
+      const GridPos& tb = bgp[i];
+      const GridPos& tp = pgp[i];
+      const GridPos& tr = rgp[i];
+      const GridPos& tc = cgp[i];
+
+      Index iti = 0;
+      LOOPIT(s)
+      LOOPIT(b)
+      LOOPIT(p)
+      LOOPIT(r)
+      LOOPIT(c)
+	{
+	  itw(i,iti) = (*s) * (*b) * (*p) * (*r) * (*c);
+	  ++iti;
+	}
+    }
+}
+
+//! Compute 6D interpolation weights for a sequence of positions.
+/*! 
+ Compute the weights for a "blue" type interpolation of the field,
+ that means that the grid position Arrays are interpreted as defining
+ a sequence of positions. ALL GRID POSITION ARRAYS MUST HAVE THE SAME LENGTH! 
+
+ The dimensions of itw must be also consistent with this.
+
+ Note that we still do not need the actual field for this step.
+
+ This function can be easily distinguished from the other
+ interpweights function (for "green" interpolation), because the
+ output is a Matrix, whereas in the other case it is a Tensor with one
+ more dimension than there are input grid position Arrays.
+
+ \param itw Output: Interpolation weights.
+ \param vgp The grid position Array for the vitrine dimension.
+ \param sgp The grid position Array for the shelf   dimension.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+ */
+void interpweights( MatrixView itw,
+               	    const ArrayOfGridPos& vgp,
+               	    const ArrayOfGridPos& sgp,
+               	    const ArrayOfGridPos& bgp,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp )
+{
+  Index n = cgp.nelem();
+  assert(is_size(vgp,n));	// vgp must have same size as cgp.
+  assert(is_size(sgp,n));	// sgp must have same size as cgp.
+  assert(is_size(bgp,n));	// bgp must have same size as cgp.
+  assert(is_size(pgp,n));	// pgp must have same size as cgp.
+  assert(is_size(rgp,n));	// rgp must have same size as cgp.
+  assert(is_size(itw,n,64));	// We must store 64 interpolation
+				// weights for each position.
+
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPos& tv = vgp[i];
+      const GridPos& ts = sgp[i];
+      const GridPos& tb = bgp[i];
+      const GridPos& tp = pgp[i];
+      const GridPos& tr = rgp[i];
+      const GridPos& tc = cgp[i];
+
+      Index iti = 0;
+      LOOPIT(v)
+      LOOPIT(s)
+      LOOPIT(b)
+      LOOPIT(p)
+      LOOPIT(r)
+      LOOPIT(c)
+	{
+	  itw(i,iti) = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
+	  ++iti;
+	}
+    }
+}
+
+//! Interpolate 1D field.
+/*! 
+  For this 1D case there is no distinction between "blue" and "green"
+  type interpolation.
+
+  The output vector ia must have the same length as the grid position
+  vector cgp. And the dimension of itw must be consistent with
+  this.
+
+  \param ia  Output: Vector containing the interpolated field values.
+  \param itw Interpolation weights.
+  \param a   The field to interpolate.
+  \param cgp The grid position Array for the column dimension.
+*/
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstVectorView 	   a,    
+             const ArrayOfGridPos& cgp)
+{
+  Index n = cgp.nelem();
+  assert(is_size(ia,n));	//  ia must have same size as cgp.
+  assert(is_size(itw,n,2));	// We need 2 interpolation
+				// weights for each position.
+  
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPos& tc = cgp[i];
+
+      // Get handle to current element of output vector and initialize
+      // it to zero:
+      Numeric& tia = ia[i];
+      tia = 0;
+
+      Index iti = 0;
+      for ( Index c=0; c<2; ++c )
+	{
+	  tia += a[tc.idx+c] * itw(i,iti);
+	  ++iti;
+	}
+    }
+}
+
+//! Interpolate 2D field to a sequence of positions.
+/*! 
+ This performs a "blue" type interpolation of the field, that means
+ that the grid position Arrays are interpreted as defining a sequence
+ of positions. ALL GRID POSITION ARRAYS MUST HAVE THE SAME LENGTH! 
+
+ The output vector ia also must have the same length. And the
+ dimension of itw must be consistent with this.
+
+ This function can be easily distinguished from the other
+ interpolation function (that creates an entire field of interpolated
+ values), because of the dimension of ia and itw.
+
+ \param ia  Output: Vector containing the interpolated field values.
+ \param itw Interpolation weights.
+ \param a   The field to interpolate.
+ \param rgp The grid position Array for the row    dimension.
+ \param cgp The grid position Array for the column dimension.
+*/
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstMatrixView 	   a,    
+             const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp)
+{
+  Index n = cgp.nelem();
+  assert(is_size(ia,n));	//  ia must have same size as cgp.
+  assert(is_size(rgp,n));	// rgp must have same size as cgp.
+  assert(is_size(itw,n,4));	// We need 4 interpolation
+				// weights for each position.
+  
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPos& tr = rgp[i];
+      const GridPos& tc = cgp[i];
+
+      // Get handle to current element of output vector and initialize
+      // it to zero:
+      Numeric& tia = ia[i];
+      tia = 0;
+
+      Index iti = 0;
+      for ( Index r=0; r<2; ++r )
+	for ( Index c=0; c<2; ++c )
+	  {
+	    tia += a(tr.idx+r,
+		     tc.idx+c) * itw(i,iti);
+	    ++iti;
+	  }
+    }
+}
+
+//! Interpolate 3D field to a sequence of positions.
+/*! 
+ This performs a "blue" type interpolation of the field, that means
+ that the grid position Arrays are interpreted as defining a sequence
+ of positions. ALL GRID POSITION ARRAYS MUST HAVE THE SAME LENGTH! 
+
+ The output vector ia also must have the same length. And the
+ dimension of itw must be consistent with this.
+
+ This function can be easily distinguished from the other
+ interpolation function (that creates an entire field of interpolated
+ values), because of the dimension of ia and itw.
+
+ \param ia  Output: Vector containing the interpolated field values.
+ \param itw Interpolation weights.
+ \param a   The field to interpolate.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+*/
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstTensor3View 	   a,    
+	     const ArrayOfGridPos& pgp,
+             const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp)
+{
+  Index n = cgp.nelem();
+  assert(is_size(ia,n));	//  ia must have same size as cgp.
+  assert(is_size(pgp,n));	// pgp must have same size as cgp.
+  assert(is_size(rgp,n));	// rgp must have same size as cgp.
+  assert(is_size(itw,n,8));	// We need 8 interpolation
+				// weights for each position.
+  
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPos& tp = pgp[i];
+      const GridPos& tr = rgp[i];
+      const GridPos& tc = cgp[i];
+
+      // Get handle to current element of output vector and initialize
+      // it to zero:
+      Numeric& tia = ia[i];
+      tia = 0;
+
+      Index iti = 0;
+      for ( Index p=0; p<2; ++p )
+	for ( Index r=0; r<2; ++r )
+	  for ( Index c=0; c<2; ++c )
+	    {
+	      tia += a(tp.idx+p,
+		       tr.idx+r,
+		       tc.idx+c) * itw(i,iti);
+	      ++iti;
+	    }
+    }
+}
+
+//! Interpolate 4D field to a sequence of positions.
+/*! 
+ This performs a "blue" type interpolation of the field, that means
+ that the grid position Arrays are interpreted as defining a sequence
+ of positions. ALL GRID POSITION ARRAYS MUST HAVE THE SAME LENGTH! 
+
+ The output vector ia also must have the same length. And the
+ dimension of itw must be consistent with this.
+
+ This function can be easily distinguished from the other
+ interpolation function (that creates an entire field of interpolated
+ values), because of the dimension of ia and itw.
+
+ \param ia  Output: Vector containing the interpolated field values.
+ \param itw Interpolation weights.
+ \param a   The field to interpolate.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+*/
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstTensor4View 	   a,    
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+             const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp)
+{
+  Index n = cgp.nelem();
+  assert(is_size(ia,n));	//  ia must have same size as cgp.
+  assert(is_size(bgp,n));	// bgp must have same size as cgp.
+  assert(is_size(pgp,n));	// pgp must have same size as cgp.
+  assert(is_size(rgp,n));	// rgp must have same size as cgp.
+  assert(is_size(itw,n,16));	// We need 16 interpolation
+				// weights for each position.
+  
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPos& tb = bgp[i];
+      const GridPos& tp = pgp[i];
+      const GridPos& tr = rgp[i];
+      const GridPos& tc = cgp[i];
+
+      // Get handle to current element of output vector and initialize
+      // it to zero:
+      Numeric& tia = ia[i];
+      tia = 0;
+
+      Index iti = 0;
+      for ( Index b=0; b<2; ++b )
+	for ( Index p=0; p<2; ++p )
+	  for ( Index r=0; r<2; ++r )
+	    for ( Index c=0; c<2; ++c )
+	      {
+		tia += a(tb.idx+b,
+			 tp.idx+p,
+			 tr.idx+r,
+			 tc.idx+c) * itw(i,iti);
+		++iti;
+	      }
+    }
+}
+
+//! Interpolate 5D field to a sequence of positions.
+/*! 
+ This performs a "blue" type interpolation of the field, that means
+ that the grid position Arrays are interpreted as defining a sequence
+ of positions. ALL GRID POSITION ARRAYS MUST HAVE THE SAME LENGTH! 
+
+ The output vector ia also must have the same length. And the
+ dimension of itw must be consistent with this.
+
+ This function can be easily distinguished from the other
+ interpolation function (that creates an entire field of interpolated
+ values), because of the dimension of ia and itw.
+
+ \param ia  Output: Vector containing the interpolated field values.
+ \param itw Interpolation weights.
+ \param a   The field to interpolate.
+ \param sgp The grid position Array for the shelf   dimension.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+*/
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstTensor5View 	   a,    
+	     const ArrayOfGridPos& sgp,
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+             const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp)
+{
+  Index n = cgp.nelem();
+  assert(is_size(ia,n));	//  ia must have same size as cgp.
+  assert(is_size(sgp,n));	// sgp must have same size as cgp.
+  assert(is_size(bgp,n));	// bgp must have same size as cgp.
+  assert(is_size(pgp,n));	// pgp must have same size as cgp.
+  assert(is_size(rgp,n));	// rgp must have same size as cgp.
+  assert(is_size(itw,n,32));	// We need 32 interpolation
+				// weights for each position.
+  
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPos& ts = sgp[i];
+      const GridPos& tb = bgp[i];
+      const GridPos& tp = pgp[i];
+      const GridPos& tr = rgp[i];
+      const GridPos& tc = cgp[i];
+
+      // Get handle to current element of output vector and initialize
+      // it to zero:
+      Numeric& tia = ia[i];
+      tia = 0;
+
+      Index iti = 0;
+      for ( Index s=0; s<2; ++s )
+	for ( Index b=0; b<2; ++b )
+	  for ( Index p=0; p<2; ++p )
+	    for ( Index r=0; r<2; ++r )
+	      for ( Index c=0; c<2; ++c )
+		{
+		  tia += a(ts.idx+s,
+			   tb.idx+b,
+			   tp.idx+p,
+			   tr.idx+r,
+			   tc.idx+c) * itw(i,iti);
+		  ++iti;
+		}
+    }
+}
+
+//! Interpolate 6D field to a sequence of positions.
+/*! 
+ This performs a "blue" type interpolation of the field, that means
+ that the grid position Arrays are interpreted as defining a sequence
+ of positions. ALL GRID POSITION ARRAYS MUST HAVE THE SAME LENGTH! 
+
+ The output vector ia also must have the same length. And the
+ dimension of itw must be consistent with this.
+
+ This function can be easily distinguished from the other
+ interpolation function (that creates an entire field of interpolated
+ values), because of the dimension of ia and itw.
+
+ \param ia  Output: Vector containing the interpolated field values.
+ \param itw Interpolation weights.
+ \param a   The field to interpolate.
+ \param vgp The grid position Array for the vitrine dimension.
+ \param sgp The grid position Array for the shelf   dimension.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+*/
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstTensor6View 	   a,    
+	     const ArrayOfGridPos& vgp,
+	     const ArrayOfGridPos& sgp,
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+             const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp)
+{
+  Index n = cgp.nelem();
+  assert(is_size(ia,n));	//  ia must have same size as cgp.
+  assert(is_size(vgp,n));	// vgp must have same size as cgp.
+  assert(is_size(sgp,n));	// sgp must have same size as cgp.
+  assert(is_size(bgp,n));	// bgp must have same size as cgp.
+  assert(is_size(pgp,n));	// pgp must have same size as cgp.
+  assert(is_size(rgp,n));	// rgp must have same size as cgp.
+  assert(is_size(itw,n,64));	// We need 64 interpolation
+				// weights for each position.
+  
+  // We have to loop all the points in the sequence:
+  for ( Index i=0; i<n; ++i )
+    {
+      // Current grid positions:
+      const GridPos& tv = vgp[i];
+      const GridPos& ts = sgp[i];
+      const GridPos& tb = bgp[i];
+      const GridPos& tp = pgp[i];
+      const GridPos& tr = rgp[i];
+      const GridPos& tc = cgp[i];
+
+      // Get handle to current element of output vector and initialize
+      // it to zero:
+      Numeric& tia = ia[i];
+      tia = 0;
+
+      Index iti = 0;
+      for ( Index v=0; v<2; ++v )
+	for ( Index s=0; s<2; ++s )
+	  for ( Index b=0; b<2; ++b )
+	    for ( Index p=0; p<2; ++p )
+	      for ( Index r=0; r<2; ++r )
+		for ( Index c=0; c<2; ++c )
+		  {
+		    tia += a(tv.idx+v,
+			     ts.idx+s,
+			     tb.idx+b,
+			     tp.idx+p,
+			     tr.idx+r,
+			     tc.idx+c) * itw(i,iti);
+		    ++iti;
+		  }
     }
 }

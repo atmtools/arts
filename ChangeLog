@@ -1,3 +1,43 @@
+2002-05-07  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-64
+
+	* src/interpolation.cc: Finished all blue interpolation functions
+	(interpweights and interp functions).
+
+	* src/interpolation.h: Added headers for the new functions.
+
+	* src/test_interpolation.cc: Some testing for the blue
+	interpolation functions. They are fast! Turning assertions off
+	gives a significant further speed increase, so the default for
+	"real" calculations should be -O2 optimization and disabled
+	assertions. (The speed impact of assertions is mainly due to the
+	assertions inside the index operators, which are called a lot if
+	tensor dimensions are looped.)
+
+	* absorption.cc,
+	atm_funcs.cc,
+	continua.cc,
+	file.cc,
+	lineshapes.cc,
+	m_abs.cc,
+	m_hdf.cc,
+	math_funcs.cc,
+	matpackI.h,
+	matpackIII.h,
+	matpackIV.h,
+	matpackV.h,
+	matpackVI.h,
+	matpackVII.h,
+	ppath.cc: Changed "\retval x" to "\param x Output:". The use of
+	retval for output parameters was a misunderstanding on my side and
+	lead to spurious doxygen warning messages. Output parameters
+	should be documented like this:
+	\param A Output: Describe A here.
+
+	* doc/uguide/development.tex: Updated instructions for Doxygen
+	headers. 
+
 2002-05-06  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-63

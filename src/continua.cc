@@ -20,7 +20,7 @@
    \file   continua.cc
 
 
-   \retval xsec  Absorption cross section, defined such that the
+   \param xsec Output:  Absorption cross section, defined such that the
                  absorption coefficient alpha is:<br>
                  alpha [1/m] = xsec * VMR.<br>
 		 The functions adds to xsec, rather than replacing the
@@ -272,7 +272,7 @@ const Numeric VMRCalcLimit = 1.000e-25;
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM87 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the H2O-line strengths [1]
@@ -465,7 +465,7 @@ void MPM87H2OAbsModel( MatrixView        xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM89 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -652,7 +652,7 @@ void MPM89H2OAbsModel( MatrixView        xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to MPM93 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -888,7 +888,7 @@ void MPM93H2OAbsModel( MatrixView        xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to P. W. Rosenkranz, 1998 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -1093,7 +1093,7 @@ void PWR98H2OAbsModel( MatrixView        xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             H2O (lines+continuum) according to Cruz-Pol 1998 [1/m]
    \param    CCin           scaling factor for the H2O-continuum  [1]
    \param    CLin           scaling factor for the line strengths [1]
@@ -1223,7 +1223,7 @@ void CP98H2OAbsModel( MatrixView        xsec,
 // #################################################################################
 //
 /**
-   \retval    xsec          cross section (absorption/volume mixing ratio) of the 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of the 
                             H2O-H2O continuum [1/m]
    \param    C              constant absorption strength    [1/m / (Hz*Pa)²]
    \param    x              temperature exponent of (300/T) [1]
@@ -1343,7 +1343,7 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
 // #################################################################################
 //
 /**
-   \retval   xsec           cross section (absorption/volume mixing ratio) of the 
+   \param   xsec Output:           cross section (absorption/volume mixing ratio) of the 
                             H2O-dry air continuum [1/m]
    \param    C              constant absorption strength [1/m / (Hz*Pa)²]
    \param    x              temperature exponent         [1] 
@@ -1470,7 +1470,7 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             H2O according to MPM87 [1/m]
    \param    fcenter        continuum pseudo-line center frequency [Hz]
    \param    b1             continuum pseudo-line line strength [Hz/Pa]
@@ -1612,7 +1612,7 @@ void MPM93_H2O_continuum( MatrixView          xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             O2 according to MPM93 [1/m]
    \param    CCin           scaling factor for the O2-continuum   [1]
    \param    CLin           scaling factor for the O2-line strengths [1]
@@ -1868,7 +1868,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             O2 according to the P. W. Rosenkranz, 1993 [1/m]
    \param    CCin           O2-continuum scale factor  [1]
    \param    CLin           O2 line strength scale factor [1]
@@ -2122,7 +2122,7 @@ void PWR93O2AbsModel( MatrixView        xsec,
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to MPM93 [1/m]
    \param    S0in           O2-continuum strength [1/Pa]
    \param    G0in           O2-continuum width [Hz/Pa]
@@ -2262,7 +2262,7 @@ void MPM93_O2_continuum( MatrixView          xsec,
 //               Default continuum parameters are  C=1.6E-17*10E-9,  x=0.8
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to Rosenkranz 1993 [1/m]
    \param    S0in           line strength [K²/(Hz*Pa*m)]
    \param    G0in           line width [Hz/Pa]
@@ -2384,7 +2384,7 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
 // #################################################################################
 //
 /**
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to Rosenkranz 1993 [1/m]
    \param    S0in           line strength                             [1/(Hz*Pa*m)]
    \param    G0in           line width                                [Hz/Pa]
@@ -2552,7 +2552,7 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to MPM93 [1/m]
    \param    Cin            continuum strength [ppm/GHz]
    \param    Gin            width parameter [Hz/Pa]
@@ -2681,7 +2681,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
 // #################################################################################
 //
 /** 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xTin           continuum strength temperature exponent [1]
@@ -2782,7 +2782,7 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xfin           continuum frequency exponent [1]
@@ -2896,7 +2896,7 @@ void Standard_N2_self_continuum( MatrixView          xsec,
 // #################################################################################
 //
 /** 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             CO2-CO2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            continuum temperature exponent [1]
@@ -2994,7 +2994,7 @@ void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             CO2-N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
    \param    xin            continuum temperature exponent [1]
@@ -3095,7 +3095,7 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             water clouds according to MPM93 [1/m]
    \param    CCin           scaling parameter of the calculated cross section [1]
    \param    CGin           scaling parameter of the first relaxation frequency 
@@ -3265,7 +3265,7 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
 //
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             ice clouds according to MPM93 [1/m]
    \param    CCin           scaling parameter of the calculated cross section [1]
    \param    CAin           scaling parameter of the permittivity function a
@@ -3429,7 +3429,7 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
 //
 /** 
 
-   \retval   MPMLineShapeFunction  H2O-line shape function value     [1/Hz]  
+   \param   MPMLineShapeFunction Output:  H2O-line shape function value     [1/Hz]  
    \param    gamma                 H2O-line width                    [Hz]
    \param    fl                    H2O-line central frequency        [Hz]
    \param    f                     frequency position of calculation [Hz]
@@ -3485,7 +3485,7 @@ Numeric MPMLineShapeFunction( const Numeric gamma,
 //
 /** 
 
-   \retval   MPMLineShapeO2Function  O2-line shape function value         [1]  
+   \param   MPMLineShapeO2Function Output:  O2-line shape function value         [1]  
    \param    gamma                   O2-line width                        [Hz]
    \param    fl                      H2O-line central frequency of the    [Hz]
    \param    f                       frequency position of calculation    [Hz]
@@ -3544,7 +3544,7 @@ Numeric MPMLineShapeO2Function( const Numeric gamma,
 //
 /** 
 
-   \retval   WVSatPressureLiquidWater     water vapor saturation pressure over liquid water [Pa]  
+   \param   WVSatPressureLiquidWater Output:     water vapor saturation pressure over liquid water [Pa]  
    \param    t                            temperature                                       [K]
 
    \note     This function calculates the water vapor saturation pressure 
@@ -3602,7 +3602,7 @@ Numeric WVSatPressureLiquidWater(const Numeric t)
 //
 /** 
 
-   \retval   WVSatPressureIce     water vapor saturation pressure over liquid water [Pa]  
+   \param   WVSatPressureIce Output:     water vapor saturation pressure over liquid water [Pa]  
    \param    t                    temperature                                       [K]
 
    \note     This function calculates the water vapor saturation pressure 
@@ -3659,7 +3659,7 @@ Numeric WVSatPressureIce(const Numeric t)
     multiply this with the VMR in order to get the absorption
     coefficient in units of 1/m.
 
-    \retval xsec       Cross section of one continuum tag,<br> 
+    \param xsec Output:       Cross section of one continuum tag,<br> 
                        xsec = alpha / VMR  [1/m * 1]
 
     \param  name       The name of the model to calculate (derived from the tag name)

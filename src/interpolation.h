@@ -97,5 +97,64 @@ void interpweights( MatrixView itw,
                	    const ArrayOfGridPos& rgp,
                	    const ArrayOfGridPos& cgp );
 
+void interpweights( MatrixView itw,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp );
+
+void interpweights( MatrixView itw,
+               	    const ArrayOfGridPos& vgp,
+               	    const ArrayOfGridPos& sgp,
+               	    const ArrayOfGridPos& bgp,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp );
+
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstVectorView 	   a,    
+             const ArrayOfGridPos& cgp);
+
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstMatrixView 	   a,    
+             const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp);
+
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstTensor3View 	   a,    
+	     const ArrayOfGridPos& pgp,
+             const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp);
+
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstTensor4View 	   a,    
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+             const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp);
+
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstTensor5View 	   a,    
+	     const ArrayOfGridPos& sgp,
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+             const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp);
+
+void interp( VectorView      	   ia,
+             ConstMatrixView 	   itw,
+             ConstTensor6View 	   a,    
+	     const ArrayOfGridPos& vgp,
+	     const ArrayOfGridPos& sgp,
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+             const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp);
+
+
 
 #endif // interpolation_h

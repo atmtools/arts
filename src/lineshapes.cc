@@ -40,8 +40,8 @@
     continuum tags. It has to have the same arguments as all the other
     lineshapes, though...
 
-    \retval ls            The shape function.
-    \retval X             Auxillary parameter, only used in Voigt fct.
+    \param ls Output:            The shape function.
+    \param X Output:             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
@@ -70,8 +70,8 @@ void lineshape_no_shape(  Vector&       ls,
 
 /*! The Lorentz line shape. This is a quick and dirty implementation.
 
-    \retval ls            The shape function.
-    \retval X             Auxillary parameter, only used in Voigt fct.
+    \param ls Output:            The shape function.
+    \param X Output:             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
@@ -109,8 +109,8 @@ void lineshape_lorentz(Vector&       ls,
 
 /*! The Doppler line shape.
 
-    \retval ls            The shape function.
-    \retval x             Auxillary parameter, only used in Voigt fct.
+    \param ls Output:            The shape function.
+    \param x Output:             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter. (Not used.)
     \param  sigma         The Doppler broadening parameter.
@@ -179,8 +179,8 @@ long bfun6_(Numeric y, Numeric x)
 /*! The Voigt line shape. Kuntz approximation of the Voigt line
   shape. 
 
-    \retval ls            The shape function.
-    \retval x             Auxillary parameter to store frequency grid.
+    \param ls Output:            The shape function.
+    \param x Output:             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
@@ -595,8 +595,8 @@ long int bfun3_(Numeric y, Numeric x)
 /*! The Voigt line shape. Kuntz approximation of the Voigt line
   shape. 
 
-    \retval ls            The shape function.
-    \retval x             Auxillary parameter to store frequency grid.
+    \param ls Output:            The shape function.
+    \param x Output:             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
@@ -970,8 +970,8 @@ long bfun4_(Numeric y, Numeric x)
 /*! The Voigt line shape. Kuntz approximation of the Voigt line
   shape. 
 
-    \retval ls            The shape function.
-    \retval x             Auxillary parameter to store frequency grid.
+    \param ls Output:            The shape function.
+    \param x Output:             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
@@ -1368,8 +1368,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
 /*! The Voigt line shape. Drayson approximation of the Voigt line
   shape.
 
-    \retval ls            The shape function.
-    \retval x             Auxillary parameter to store frequency grid.
+    \param ls Output:            The shape function.
+    \param x Output:             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
@@ -1557,8 +1557,8 @@ L104: for (K=0; K<(int) nf; K++)
   (kuntz6) for high altitudes and a lorentz one with overlap
   correction for lower altitudes.
 
-  \retval ls            The shape function.
-  \retval x             Auxillary parameter to store frequency grid.
+  \param ls Output:            The shape function.
+  \param x Output:             Auxillary parameter to store frequency grid.
                         Here used as well to pass parameters.
   \param  f0            Line center frequency.
   \param  gamma         The pressure broadening parameter.
@@ -1665,8 +1665,8 @@ void lineshape_rosenkranz_voigt_kuntz6(Vector&       ls,
   (drayson) for high altitudes and a lorentz one with overlap
   correction for lower altitudes.
 
-  \retval ls            The shape function.
-  \retval x             Auxillary parameter to store frequency grid.
+  \param ls Output:            The shape function.
+  \param x Output:             Auxillary parameter to store frequency grid.
                         Here used as well to pass parameters.
   \param  f0            Line center frequency.
   \param  gamma         The pressure broadening parameter.
@@ -1792,7 +1792,7 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
 
 /*!  No normalization of the lineshape function.
 
-    \retval fac    Normalization factor to the lineshape function.
+    \param fac Output:    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
     \param  nf     Dimension of f_mono.
@@ -1818,7 +1818,7 @@ void lineshape_norm_no_norm(Vector&       fac,
 
 /*!  Linear normalization factor of the lineshape function with f/f0.
 
-    \retval fac    Normalization factor to the lineshape function.
+    \param fac Output:    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
     \param  nf     Dimension of f_mono.
@@ -1842,7 +1842,7 @@ void lineshape_norm_linear(Vector&       fac,
 
 /*!  Quadratic normalization factor of the lineshape function with (f/f0)^2.
 
-    \retval fac    Normalization factor to the lineshape function.
+    \param fac Output:    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
     \param  nf     Dimension of f_mono.

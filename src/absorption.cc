@@ -109,8 +109,8 @@ ostream& operator << (ostream& os, const LineRecord& lr)
 /** Extract something from a catalogue line. This is just a small helper
     function to safe some typing. 
 
-    \retval x    What was extracted from the beginning of the line.
-    \retval line What was extracted is also cut away from line.
+    \param x Output:    What was extracted from the beginning of the line.
+    \param line Output: What was extracted is also cut away from line.
     \param n     The width of the stuff to extract.
 
     \author Stefan Buehler */
@@ -1533,7 +1533,7 @@ ostream& operator << (ostream& os, const OneTag& ot)
    @exception runtime_error  Some String is not a valid tag item.
    @exception runtime_error  Not all Strings are not found among the tags.
 
-   \retval tags1_index     Index in tags1 for tags2_Strings
+   \param tags1_index Output:     Index in tags1 for tags2_Strings
    \param  tags1           The tags to search in.
    \param  tags2_Strings   The tag Strings for which indeces shall be found.
 
@@ -1591,7 +1591,7 @@ void get_tagindex_for_Strings(
    
     @exception runtime_error  Could not find tg2 in tgs1.
    
-    \retval tgs1_index     Index in tgs1 for tg2
+    \param tgs1_index Output:     Index in tgs1 for tg2
     \param  tgs1           The tags groups to search in.
     \param  tg2            The tag group for which the index shall be found.
     
@@ -1667,7 +1667,7 @@ String get_tag_group_name( const Array<OneTag>& tg )
 
 /** A helper function that writes lines in a line list to a stream. 
 
-    \retval os      The stream to write to.
+    \param os Output:      The stream to write to.
     \param  lines   The line list to write.
 
     \date 2000-06-12 
@@ -1706,7 +1706,7 @@ void write_lines_to_stream(ostream& os,
     Continua are not handled by this function, you have to call
     xsec_continuum_tag for those.
 
-    \retval xsec   Cross section of one tag group.
+    \param xsec Output:   Cross section of one tag group.
     \param f_mono  Frequency grid.
     \param p_abs   Pressure grid.
     \param t_abs   Temperatures associated with p_abs.
@@ -2084,7 +2084,7 @@ void xsec_species( MatrixView               xsec,
 
    The atmosphere is assumed to have no water vapour.
 
-   \retval   refr_index  refractive index
+   \param   refr_index Output:  refractive index
    \param    p_abs       absorption pressure grid
    \param    t_abs       temperatures at p_abs
 
@@ -2115,7 +2115,7 @@ void refr_index_BoudourisDryAir (
 
    The expression is also found in Chapter 5 of the Janssen book.
 
-   \retval   refr_index  refractive index
+   \param   refr_index Output:  refractive index
    \param    p_abs       absorption pressure grid
    \param    t_abs       temperatures at p_abs
    \param    h2o_abs     H2O vmr at p_abs

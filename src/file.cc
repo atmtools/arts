@@ -55,7 +55,7 @@
 
    The default name is only used if the file name is empty.
 
-   \retval   filename     file name
+   \param   filename Output:     file name
    \param    varname      variable name
 
    \author Patrick Eriksson              
@@ -461,7 +461,7 @@ void read_array_of_matrix_from_file(ArrayOfMatrix& am,
 /**
    A helper function that writes an array of String to a stream. 
 
-   \retval   os           the stream to write to
+   \param   os Output:           the stream to write to
    \param    as           the String array to write
 
    \author Patrick Eriksson              
@@ -489,7 +489,7 @@ void write_array_of_String_to_stream(
 /**
    A help function that writes an array of String to a file.
 
-   \retval filename    The name of the file.  
+   \param filename Output:    The name of the file.  
    \param  as          The array of String to write.  
 
    \author Patrick Eriksson              
@@ -514,7 +514,7 @@ void write_array_of_String_to_file(
 /**
    A help function to read an array of String from a stream.
 
-   \retval as   The array of String to read
+   \param as Output:   The array of String to read
    \param  is   The input stream
 
    \author Patrick Eriksson              
@@ -574,7 +574,7 @@ void read_array_of_String_from_stream(
 /**
    A help function to read an array of String from a file.
 
-   \retval as        The array of String to read
+   \param as Output:        The array of String to read
    \param  filename  The name of the file to read
 
    \author Patrick Eriksson              

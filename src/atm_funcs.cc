@@ -65,7 +65,7 @@ extern const Numeric BOLTZMAN_CONST;
     Each row of the returned matrix corresponds to a frequency, while each
     column corresponds to a temperature.
 
-    \retval B       output: the blackbody radiation
+    \param B Output: the blackbody radiation
     \param  f       a frequency grid
     \param  t       a temperature profile
 
@@ -104,7 +104,7 @@ void planck (
 //
 /** Calculates the Planck function for a single temperature.
 
-    \retval B       output: the blackbody radiation
+    \param B Output: the blackbody radiation
     \param  f       a frequency grid
     \param  t       a temperature value
 
@@ -135,7 +135,7 @@ void planck (
 //
 /** Converts a vector with radiances to Plack brightness temperatures.
 
-    \retval y       spectrum vector       
+    \param y Output:       spectrum vector       
     \param  f       frequencies
     \param  za      zenith angles
 
@@ -192,7 +192,7 @@ void invplanck (
 //
 /** Converts a vector with radiances to Rayleigh-Jean brightness temperatures.
 
-    \retval y       spectrum vector       
+    \param y Output:       spectrum vector       
     \param  f       frequencies
     \param  za      zenith angles
 
@@ -329,7 +329,7 @@ Numeric g_of_z (
 
       p = exp(interp1(z0,log(p0),z,'linear'))
 
-    \retval p       output: the pressures at z
+    \param p Output: the pressures at z
     \param  z0      original altitude grid
     \param  p0      original pressure grid
     \param  z       new altitude grid
@@ -366,7 +366,7 @@ void z2p(
 
       p = interp1(log(p0),x,log(p),'linear')
 
-    \retval x       output: the interpolated values at p
+    \param x Output: the interpolated values at p
     \param  p0      original pressure grid
     \param  x0      the profile to be interpolated
     \param  p       new pressure grid
@@ -413,7 +413,7 @@ void interpp_cloud(
 
       A = interp1(log(p0),A0,log(p),'linear')
 
-    \retval A       output: the interpolated values at p
+    \param A Output: the interpolated values at p
     \param  p0      original pressure grid
     \param  A0      the matrix to be interpolated
     \param  p       new pressure grid
@@ -447,7 +447,7 @@ void interpp(
 
     See the vector version.
 
-    \retval x       output: the interpolated values at p
+    \param x Output: the interpolated values at p
     \param  p0      original pressure grid
     \param  x0      the profile to be interpolated
     \param  p       a pressure level
@@ -481,7 +481,7 @@ Numeric interpp(
 
     Used mainly for LOS calculations with refraction.
 
-    \retval x       output: the interpolated values at z
+    \param x Output: the interpolated values at z
     \param  p0      original pressure grid
     \param  z0      original vertical altitude grid
     \param  x0      the profile to be interpolated
@@ -517,7 +517,7 @@ void interpz(
 
     Used mainly for LOS calculations with refraction.
 
-    \retval x       output: the interpolated values at z
+    \param x Output: the interpolated values at z
     \param  p0      original pressure grid
     \param  z0      original vertical altitude grid
     \param  x0      the profile to be interpolated

@@ -24,11 +24,11 @@ Joker joker;
 
 void test01()
 {
-  cout << "Simple 1D interpolation case\n"
-       << "----------------------------\n";
+  cout << "Simple interpolation cases\n"
+       << "--------------------------\n";
   //  Vector og(5,5,-1);		// 5,4,3,2,1
   Vector og(1,5,+1);		// 1, 2, 3, 4, 5
-  Vector ng(1,5,0.25);		// 1.0, 1,25, 1.5, 1.75, 2.0
+  Vector ng(2,5,0.25);		// 2.0, 2,25, 2.5, 2.75, 3.0
 
   cout << "og:\n" << og << "\n";
   cout << "ng:\n" << ng << "\n";
@@ -39,10 +39,76 @@ void test01()
   gridpos(gp,og,ng);
   cout << "gp:\n" << gp << "\n";
 
-  // To store interpolation weights:
-  Matrix itw(gp.nelem(),2);
-  interpweights(itw,gp);
-  cout << "itw:\n" << itw << "\n";
+  cout << "1D:\n"
+       << "---\n";
+  {
+    // To store interpolation weights:
+    Matrix itw(gp.nelem(),2);
+    interpweights(itw,gp);
+    
+    cout << "itw:\n" << itw << "\n";
+
+    // Original field:
+    Vector of(og.nelem(),0);
+    of[2] = 10;			// 0, 0, 10, 0, 0
+
+    cout << "of:\n" << of << "\n";
+
+    // Interpolated field:
+    Vector nf(ng.nelem());
+
+    interp(nf, itw, of, gp);
+
+    cout << "nf:\n" << nf << "\n";
+  }
+
+  cout << "2D:\n"
+       << "---\n";
+  {
+    // To store interpolation weights:
+    Matrix itw(gp.nelem(),4);
+    interpweights(itw,gp,gp);
+    
+    cout << "itw:\n" << itw << "\n";
+
+    // Original field:
+    Matrix of(og.nelem(),og.nelem(),0);
+    of(2,2) = 10;			// 0 Matrix with 10 in the middle
+
+    cout << "of:\n" << of << "\n";
+
+    // Interpolated field:
+    Vector nf(ng.nelem());
+
+    interp(nf, itw, of, gp, gp);
+
+    cout << "nf:\n" << nf << "\n";
+  }
+
+  cout << "6D:\n"
+       << "---\n";
+  {
+    // To store interpolation weights:
+    Matrix itw(gp.nelem(),64);
+    interpweights(itw,gp,gp,gp,gp,gp,gp);
+    
+    //    cout << "itw:\n" << itw << "\n";
+
+    // Original field:
+    Index n = og.nelem();
+    Tensor6 of(n,n,n,n,n,n,0);
+    of(2,2,2,2,2,2) = 10;			// 0 Tensor with 10 in the middle
+
+    //    cout << "of:\n" << of << "\n";
+
+    // Interpolated field:
+    Vector nf(ng.nelem());
+
+    interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
+
+    cout << "nf:\n" << nf << "\n";
+  }
+
 }
 
 void test02(Index n)

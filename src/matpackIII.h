@@ -1280,9 +1280,9 @@ inline Tensor3::~Tensor3()
     The two views may be the same one, in which case the
     conversion happens in place. 
 
-    \retval   y   the results of the function acting on each element of x
-    \param    my_func a function (e.g., sqrt)
-    \param    x   a tensor */
+    \param   y Output:   The results of the function acting on each element of x.
+    \param    my_func A function (e.g., sqrt).
+    \param    x   A tensor. */
 inline void transform( Tensor3View y,
                        double (&my_func)(double),
                        ConstTensor3View x )

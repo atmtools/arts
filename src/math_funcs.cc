@@ -141,7 +141,7 @@ bool any( const ArrayOfIndex& x )
 
     Size of result is adjusted within this function!
 
-    \retval   x       linearly spaced vector
+    \param   x Output:       linearly spaced vector
     \param    start   first value in x
     \param    stop    last value of x <= stop
     \param    step    distance between values in x
@@ -170,7 +170,7 @@ void linspace(
 
     The length must be > 1.
 
-    \retval   x       linearly spaced vector
+    \param   x Output:       linearly spaced vector
     \param    start   first value in x
     \param    stop    last value of x <= stop
     \param    n       length of x
@@ -200,7 +200,7 @@ void nlinspace(
 
     The length must be > 1.
 
-    \retval   x       logarithmically spaced vector
+    \param   x Output:       logarithmically spaced vector
     \param    start   first value in x
     \param    stop    last value of x <= stop
     \param    n       length of x
@@ -320,7 +320,7 @@ Index interp_check( ConstVectorView  x,
 
     The size of yi has to be the same as for xi.
 
-    \retval  yi      interpolated values 
+    \param  yi Output:      interpolated values 
     \param   x       the x grid
     \param   y       the function to interpolate
     \param   xi      interpolation points
@@ -360,7 +360,7 @@ void interp_lin_vector( VectorView       yi,
 
     The vector x specifies the points at which the data y is given. 
 
-    \retval  Yi      interpolated values (matrix)
+    \param  Yi Output:      interpolated values (matrix)
     \param   x       the x grid (vector)
     \param   Y       the function to interpolate (matrix)
     \param   xi      interpolation points (vector)

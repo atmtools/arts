@@ -2435,9 +2435,9 @@ inline MatrixView transpose(MatrixView m)
     The two views may be the same one, in which case the
     conversion happens in place. 
 
-    \retval   y   the results of the function acting on each element of x
-    \param    my_func a function (e.g., sqrt)
-    \param    x   a vector */
+    \param   y Output:   The results of the function acting on each element of x.
+    \param    my_func A function (e.g., sqrt).
+    \param    x   A vector. */
 inline void transform( VectorView y,
 		       double (&my_func)(double),
 		       ConstVectorView x )
@@ -2467,9 +2467,9 @@ inline void transform( VectorView y,
     The two Matrix views may be the same one, in which case the
     conversion happens in place. 
 
-   \retval   y   the results of the function acting on each element of x
-   \param    my_func a function (e.g., sqrt)
-   \param    x   a matrix */
+   \param   y Output:   The results of the function acting on each element of x.
+   \param    my_func A function (e.g., sqrt).
+   \param    x   A matrix. */
 inline void transform( MatrixView y,
 		       double (&my_func)(double),
 		       ConstMatrixView x )

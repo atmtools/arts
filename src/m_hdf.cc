@@ -61,7 +61,7 @@
 
    The default name is only used if the file name is empty.
 
-   \retval   filename     file name
+   \param   filename Output:     file name
    \param    varname      variable name
 
    \author Patrick Eriksson              
@@ -109,7 +109,7 @@ void check_data_types()
 /**
    Opens a binary file for writing.
 
-   \retval   fid          file identifier
+   \param   fid Output:          file identifier
    \param    filename     file name
 
    @exception runtime_error  The file cannot be opened.
@@ -148,7 +148,7 @@ void binfile_open_out(
 /**
    Opens a binary file for reading.
 
-   \retval   fid          file identifier
+   \param   fid Output:          file identifier
    \param    filename     file name
 
    @exception runtime_error  The file is not a HDF file.
@@ -196,7 +196,7 @@ void binfile_open_in(
 /**
    Closes a binary file.
 
-   \retval   fid          file identifier
+   \param   fid Output:          file identifier
    \param    filename     file name
 
    @exception runtime_error  Cannot close the VS interface.
@@ -275,9 +275,9 @@ void binfile_write_size(
    The function returns an identifier for the data and the data size. 
    The size is also compared to the expected size.
 
-   \retval   vdata_id     identifier for the Vdata
-   \retval   nrows        number of data rows
-   \retval   ncols        number of data columns
+   \param   vdata_id Output:     identifier for the Vdata
+   \param   nrows Output:        number of data rows
+   \param   ncols Output:        number of data columns
    \param    fid          file identifier
    \param    filename     file name
    \param    dataname     name on the data
@@ -367,7 +367,7 @@ void binfile_read_init(
 /**
    Closes a binary data field for reading.
 
-   \retval   vdata_id     identifier for the Vdata
+   \param   vdata_id Output:     identifier for the Vdata
    \param    filename     file name
    \param    dataname     name on the data
 
@@ -395,7 +395,7 @@ void binfile_read_end(
 /**
    Gets the data type of the file data.
 
-   \retval  type_in_file   data type String (e.g. "DOUBLE")
+   \param  type_in_file Output:   data type String (e.g. "DOUBLE")
    \param   vdata_id       identifier for the Vdata
 
    \author Patrick Eriksson              
@@ -561,7 +561,7 @@ void binfile_write(
 
    The reading is splitted to several files as type conversions can be needed.
 
-   \retval   x            the index array to read
+   \param   x Output:            the index array to read
    \param    vdata_id     data identifier
    \param    nrows        number of values
    \param    filename     file name
@@ -625,7 +625,7 @@ void binfile_read1(
 
    The reading is splitted to several files as type conversions can be needed.
 
-   \retval   x            the matrix to read
+   \param   x Output:            the matrix to read
    \param    vdata_id     data identifier
    \param    nrows        number of data rows
    \param    ncols        number of data columns
@@ -723,7 +723,7 @@ void binfile_read2(
 
    The reading is splitted to several files as type conversions can be needed.
 
-   \retval   x            the String to read
+   \param   x Output:            the String to read
    \param    vdata_id     data identifier
    \param    nrows        number of values
    \param    filename     file name

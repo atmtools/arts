@@ -189,7 +189,7 @@ Numeric geomppath_r2psi (
    The structure is then basicfally empty. The field *background* is set to
    ""Cosmic background radiation".
 
-   \retval   ppath   A Ppath structure.
+   \param   ppath Output:   A Ppath structure.
    \param    dim     The atmospheric dimensionality.
 
    \author Patrick Eriksson
@@ -241,12 +241,12 @@ void empty_Ppath(
    this function is discussed. The function is listed as a subentry to
    "internal ARTS functions".
 
-   \retval   r            Radius for the points along the path.
-   \retval   l_step       The distance along the path between the points.
-   \retval   psi          Zenith angle for the points along the path.
-   \retval   alpha        The angular distance for the points along the path.
+   \param   r Output:            Radius for the points along the path.
+   \param   l_step Output:       The distance along the path between the points.
+   \param   psi Output:          Zenith angle for the points along the path.
+   \param   alpha Output:        The angular distance for the points along the path.
                           Calculated with respect to the lowest point.
-   \retval   gridindex    Grid index for the points along the path.
+   \param   gridindex Output:    Grid index for the points along the path.
    \param    ppc          The ppath constant.
    \param    r_start      Radius for the starting point of the path.
    \param    psi_start    Zenith angle at the starting point of the path.
@@ -387,7 +387,7 @@ void ppath_1d_geom_upward (
    The actual calculations are mainly performed by ppath_1d_geom_upward and
    ppath_1d_refr_upward.
 
-   \retval   ppath          Propagation path structure with all fields set.
+   \param   ppath Output:          Propagation path structure with all fields set.
    \param    p_grid         Pressure grid.
    \param    z_field        The geometricalk altitude of the pressure surfaces.
    \param    r_greoid       Geoid radius.
@@ -732,7 +732,7 @@ void ppath_1d (
 
    The main task of this function is to check the input.
 
-   \retval   ppath          Propagation path structure with all fields set.
+   \param   ppath Output:          Propagation path structure with all fields set.
    \param    dim            Atmospheric dimensionality.
    \param    p_grid         Pressure grid.
    \param    alpha_grid     Latitude grid.
