@@ -40,9 +40,6 @@
 #ifndef matpackII_h
 #define matpackII_h
 
-#include <vector>
-#include <algorithm>
-#include <set>
 #include "matpackI.h"
 #include "mystring.h"
 
@@ -83,6 +80,9 @@ public:
   Numeric& rw(Index r, Index c);
   Numeric  ro(Index r, Index c) const;
   Numeric  operator() (Index r, Index c) const;
+
+  // Assignment Operator:
+  Sparse& operator=(const Sparse& m);
 
   // Friends:
   friend std::ostream& operator<<(std::ostream& os, const Sparse& v);

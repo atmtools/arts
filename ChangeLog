@@ -1,3 +1,19 @@
+2003-08-08  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-637
+
+	* src/matpackII.cc: Moved inclusion of <set> here from matpackII.h.
+	(operator=): Added this assignment operator for Sparse to fix a
+	bug found by Mattias. It was a familiar problem (though it was
+	still hard to find, because I had forgotten about it): If no
+	assignment operator is defined explicitly, the compiler will
+	automatically generate one, which does not do the right thing.
+
+	* src/matpackII.h: Removed some unnecessary #includes.
+	Added assignment operator.
+
+	* src/test_sparse.cc: Added a test for sparse copying.
+
 2003-08-07  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-636

@@ -38,9 +38,9 @@
 */
 
 // #include <vector>
-// #include <iostream>
 // #include <algorithm>
-// #include <set>
+#include <set>
+#include <iostream>             // For debugging.
 #include "matpackII.h"
 
 
@@ -258,6 +258,7 @@ Sparse::Sparse(const Sparse& m) :
   mcr(m.mcr)
 {
   // Nothing to do here. 
+  //  cout << "Copied:\n" << *this << "\n";
 }
 
 
@@ -304,6 +305,33 @@ void Sparse::resize(Index r, Index c)
       mrr = r;
       mcr = c;
     }
+}
+
+//! Assignment from another Sparse.
+/*!
+  It is crucial that we implement this, otherwise the compiler creates
+  a default assignment operator which does not do the right thing. (It
+  will lead to segmentation faults).
+
+  The dimensions of the target sparse matrix are adjusted
+  automatically. This is important, so that structures containing
+  Sparse are copied correctly.
+
+  \param m The other Sparse to copy to this one.
+
+  \return This Sparse, by tradition, to allow assignment chains.
+
+  \author Stefan Buehler
+  \date   2002-12-19
+*/
+Sparse& Sparse::operator=(const Sparse& m)
+{
+  mdata   = new std::vector<Numeric>(*m.mdata);
+  mrowind = new std::vector<Index>(*m.mrowind);
+  mcolptr = new std::vector<Index>(*m.mcolptr);
+  mrr     = m.mrr;
+  mcr     = m.mcr;
+  return *this;
 }
 
 //! Output operator for Sparse.

@@ -241,14 +241,34 @@ void test42()
   cout << "A:\n" << A << "\n";
 }
 
+void test43()
+{
+  cout << "Testing sparse copying:\n";
+  
+  Sparse B(4,5);
+  Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
+  Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
+  for ( Index i=0; i<9; i++ )
+    B.rw(r[i],c[i]) = i+1;
+
+  cout << "B:\n" << B << "\n";
+
+  Sparse A;
+  
+  A = B;
+
+  cout << "A:\n" << A << "\n";
+}
+
 int main()
 {
   //  test3();
   //  test38();
   //  test39();
   //  test40();
-  test41();
+  //  test41();
   //  test42();
+  test43();
 
   return 0;
 }
