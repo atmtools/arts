@@ -1,3 +1,14 @@
+2002-05-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-56
+
+	* src/lin_alg.cc/h: Created this file for the linear algebra
+	functions we need for the radiative transfer
+	calculations. Implemented functions to solve linear equation
+	systems using the LU decomposition method.
+
+	* src/test_linalg.cc: test the functions in lin_alg.cc
+
 2002-04-25  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-55
