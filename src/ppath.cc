@@ -1866,17 +1866,23 @@ void do_gridcell_3d(
   //
   if( r_start == rlow )
     {
+// FIXME only needed for assertion
+#ifndef NDEBUG
       const double c = psurface_slope_3d( lat1, lat3, lon5, lon6, 
                       r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
       const double tilt = psurface_angletilt( r_start, c );
+#endif
 
       assert( !is_los_downwards( za_start, tilt ) );
     }
   else if( r_start == rupp )
     {
+// FIXME only needed for assertion
+#ifndef NDEBUG
       const double c = psurface_slope_3d( lat1, lat3, lon5, lon6, 
                       r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
       const double tilt = psurface_angletilt( r_start, c );
+#endif
 
       assert( is_los_downwards( za_start, tilt ) );
     }
@@ -2790,16 +2796,28 @@ void ppath_start_1d(
               double&     za_start,
               Index&      ip,
         const Ppath&      ppath,
+// FIXME only needed for assertion
+#ifndef NDEBUG
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         const double&     r_geoid,
-        const double&     z_ground )
+        const double&     z_ground
+#else
+        ConstVectorView,
+        ConstVectorView,
+        const double&,
+        const double&
+#endif
+        )
 {
   // Number of points in the incoming ppath
   const Index   imax = ppath.np - 1;
 
+// FIXME only needed for assertion
+#ifndef NDEBUG
   // Number of pressure levels
   const Index   npl = p_grid.nelem();
+#endif
 
   // Extract starting radius, zenith angle and latitude
   r_start   = ppath.pos(imax,0);
@@ -2928,18 +2946,27 @@ void ppath_start_2d(
               double&     rground1,
               double&     rground3,
         const Ppath&      ppath,
+// FIXME only used for assertion
+#ifndef NDEBUG
         ConstVectorView   p_grid,
+#else
+        ConstVectorView,
+#endif
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
-        ConstVectorView   z_ground )
+        ConstVectorView   z_ground
+        )
 {
   // Number of points in the incoming ppath
   const Index imax = ppath.np - 1;
 
+// FIXME only needed for assertion
+#ifndef NDEBUG
   // Number of pressure levels and latitudes
   const Index npl = p_grid.nelem();
   const Index nlat = lat_grid.nelem();
+#endif
 
   // Extract starting radius, zenith angle and latitude
   r_start   = ppath.pos(imax,0);
@@ -3142,18 +3169,26 @@ void ppath_start_3d(
               double&     rground36,
               double&     rground16,
               Ppath&      ppath,
-        ConstVectorView   p_grid,
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid,
-        ConstTensor3View  z_field,
-        ConstMatrixView   r_geoid,
-        ConstMatrixView   z_ground )
+// FIXME only used for assertion
+#ifndef NDEBUG
+              ConstVectorView   p_grid,
+#else
+              ConstVectorView,
+#endif
+              ConstVectorView   lat_grid,
+              ConstVectorView   lon_grid,
+              ConstTensor3View  z_field,
+              ConstMatrixView   r_geoid,
+              ConstMatrixView   z_ground )
 {
   // Number of points in the incoming ppath
   const Index imax = ppath.np - 1;
 
+// FIXME only needed for assertion
+#ifndef NDEBUG
   // Number of pressure levels and latitudes
   const Index npl = p_grid.nelem();
+#endif
   const Index nlat = lat_grid.nelem();
   const Index nlon = lon_grid.nelem();
 
@@ -4666,11 +4701,13 @@ void ppath_step_refr_1d(
             r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid + z_ground, 
                                 r_geoid, p_grid, z_field, t_field, vmr_field );
     }
+#ifndef NDEBUG
   else
     {
       bool   known_ray_trace_method = false;
       assert( known_ray_trace_method );
     }
+#endif
 
 
   // Interpolate the radii, zenith angles and latitudes to a set of points
@@ -4812,11 +4849,13 @@ void ppath_step_refr_2d(
                           lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3,
                       p_grid, lat_grid, r_geoid, z_field, t_field, vmr_field );
     }
+#ifndef NDEBUG
   else
     {
       bool   known_ray_trace_method = false;
       assert( known_ray_trace_method );
     }
+#endif
 
 
   // Interpolate the radii, zenith angles and latitudes to a set of points
@@ -4975,11 +5014,13 @@ void ppath_step_refr_3d(
                                 p_grid, lat_grid, lon_grid, 
                                 r_geoid, z_field, t_field, vmr_field );
     }
+#ifndef NDEBUG
   else
     {
       bool   known_ray_trace_method = false;
       assert( known_ray_trace_method );
     }
+#endif
 
 
   // Interpolate the radii, zenith angles and latitudes to a set of points
