@@ -51,10 +51,12 @@
   ===========================================================================*/
 
 void antenna_transfer_matrix(
-           Sparse&      H,
-      ConstVectorView   m_za,
-      ConstMatrixView   srm,
-      ConstVectorView   x_f );
+                      Sparse&   H,
+              ConstVectorView   m_za,
+  const ArrayOfArrayOfMatrix&   diag,
+              ConstVectorView   x_f,
+              ConstVectorView   ant_za,
+                 const Index&   n_pol );
 
 void mixer_transfer_matrix(
               Sparse&   H,
@@ -80,13 +82,15 @@ void sensor_summation_vector(
            VectorView   h,
         const Numeric   f,
       ConstVectorView   f_grid,
-	    const Numeric   lo,
+        const Numeric   lo,
       ConstMatrixView   sfrm );
 
 void spectrometer_transfer_matrix(
-           Sparse&      H,
-      ConstMatrixView   srm,
-      ConstVectorView   x_s,
-      ConstVectorView   x_f );
+              Sparse&   H,
+ const ArrayOfMatrix&   ch_response,
+      ConstVectorView   ch_f,
+      ConstVectorView   sensor_f,
+         const Index&   n_za,
+         const Index&   n_pol );
 
 #endif  // sensor_h

@@ -230,6 +230,10 @@ template void
 xml_read_from_file<ArrayOfMatrix> (const String&, ArrayOfMatrix&);
 
 template void
+xml_read_from_file<ArrayOfArrayOfMatrix> 
+(const String&, ArrayOfArrayOfMatrix&);
+
+template void
 xml_read_from_file<ArrayOfSpeciesTag> (const String&, ArrayOfSpeciesTag&);
 
 template void
@@ -264,6 +268,10 @@ xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&, FileType);
 template void
 xml_write_to_file<ArrayOfMatrix> (const String&, const ArrayOfMatrix&,
                                   FileType);
+                                  
+template void
+xml_write_to_file<ArrayOfArrayOfMatrix> 
+(const String&, const ArrayOfArrayOfMatrix&, FileType);
 
 template void
 xml_write_to_file<ArrayOfTensor3> (const String&, const ArrayOfTensor3&,

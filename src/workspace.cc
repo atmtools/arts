@@ -272,6 +272,30 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "antenna_diagram" ),
+      DESCRIPTION
+      (
+       "The antenna diagram.\n"
+       "\n"
+       "The diagram is described by an ArrayOfArrayOfMatrix. The highest\n"
+       "level corresponds to different viewing angles of an multiple antenna\n"
+       "array or multiple beam antenna. The next level, i.e. the elements\n"
+       "of the different ArrayOfMatrix corresponds to different polarisations.\n"
+       "The individual matrices then describes the antenna diagrams, with the\n"
+       "first column describing a relative angle grid and the antenna gain\n"
+       "given for different frequencies in the consecutive columns.\n"
+       "\n"
+       "For each level in the antenna diagram there is a choice to provide\n"
+       "a single ArrayOfMatrix/Matrix/column that will be used for all\n"
+       "existing viewing angles/polarisations/frequencies, or to provide a\n"
+       "full description for each viewing angle/polarisation/frequency.\n"
+       "\n"
+       "Usage:      Set by the user."
+       ),
+      GROUP( ArrayOfArrayOfMatrix_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "antenna_dim" ),
       DESCRIPTION
       (
@@ -285,6 +309,21 @@ void define_wsv_data()
        "Usage:      Set by the user."
        ),
       GROUP( Index_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "arrayofmatrix_1" ),
+      DESCRIPTION
+      (
+       "An arbitrary array of matrices.\n"
+       "\n"
+       "This variable shall be treated as a general variable of type\n"
+       "ArrayOfMatrix. It can be used, for example, when some intermediate\n"
+       "data must be generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user."
+       ),
+      GROUP( ArrayOfMatrix_ )));
 
   wsv_data.push_back
    (WsvRecord

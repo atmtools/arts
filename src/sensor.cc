@@ -66,7 +66,7 @@
     ncols = x_f.nelem() * m_za.nelem()
 
    The number of line-of-sights is determined by the length of the
-   measurement block zenith angle grid. The number of sensor response 
+   measurement block zenith angle grid. The number of sensor response
    matrix rows don't need to match the number of frequency grid points.
 
    The antenna diagram must either have two columns or x_f.nelem()+1
@@ -77,59 +77,111 @@
    \param   m_za   The measurement block grid of zenith angles.
    \param   srm	   The sensor response matrix, i.e. the antenna diagram
    \param   x_f    The frequency grid points.
+   \param   n_ant  The number of antennas/beams to consider.
+   \param   n_pol  The number of polarisations to consider.
 
    \author Mattias Ekström
    \date   2003-04-09
 */
 void antenna_transfer_matrix( Sparse&   H,
-                              ConstVectorView   m_za,
-                              ConstMatrixView   srm,
-                              ConstVectorView   x_f )
+                      ConstVectorView   m_za,
+          const ArrayOfArrayOfMatrix&   diag,
+                      ConstVectorView   x_f,
+                      ConstVectorView   ant_za,
+                         const Index&   n_pol )
 {
+  // Calculate number of antennas/beams
+  const Index n_ant = ant_za.nelem();
+  
   // Check that the output matrix the right size
-  assert(H.nrows()==x_f.nelem());
+  assert(H.nrows()==x_f.nelem()*n_ant*n_pol);
   assert(H.ncols()==m_za.nelem()*x_f.nelem());
 
-  // Check the size of the antenna diagram matrix and set a flag if single
-  // antenna diagram is used.
-  assert(srm.ncols()==2 || srm.ncols()==x_f.nelem()+1);
-  bool is_single = false;
-  if (srm.ncols()==2)
-    is_single = true;
+  // Check the size of the antenna diagram array of arrays and set a flag
+  // if only one angle is given or if there is a complete set for each
+  // angle. Initialise also flags for polarisation and frequency.
+  assert(diag.nelem()==1 || diag.nelem()==n_ant);
+  Index a_step = 0;
+  Index p_step = 0;
+  Index f_step = 0;
+  if (diag.nelem()>1)
+    a_step = 1;
 
-  // Allocate a temporary vector to keep values before storing them in the
-  // final sparse matrix. The size of this vector equals the number of
-  // columns in the output matrix.
+  // Initialise variables that will store the angle, polarisation and
+  // frequency grid points, so that we can check if the same antenna
+  // diagram is used in succeding loops. We need the variables to
+  // start with values out of the range of the different grids, therefore
+  // we initialise them to their respective grid number of elements plus
+  // one.
+  Index a_old = n_ant;
+  Index p_old = n_pol;
+  Index f_old = x_f.nelem()+1;
+
+  // Initialise temporary vectors for storing integration vector values
+  // before storing them in the final sparse matrix and start looping
+  // through the viewing angles.
   Vector temp(H.ncols(), 0.0);
+  Vector temp_za(m_za.nelem(), 0.0);
+  for (Index a=0; a<n_ant; a++) {
+  Index a_this = a*a_step;
 
-  // Loop through x_f and calculate the sensor integration vector for each
-  // frequency and put values in the temp vector. For this we use
-  // vectorviews where the elements are separated by number of frequencies
-  // in x_f. Store the vector as rows in the output matrix.
-  // Since we only want to perform calculations if the antenna diagram
-  // changes we first check if is_single is true.
-  if (is_single) {
-    // If we only need to perform the calculations once, we create a new
-    // temporary vector which will contain the values from the integration
-    // vector in a compact form.
-    Vector temp_za(m_za.nelem(), 0.0);
-    sensor_integration_vector(temp_za,srm(joker,1),srm(joker,0),m_za);
+    // Check the size of this element of diag and set a flag if only one
+    // polarisation is given or if there is a complete set for each
+    // polarisation.
+    assert(diag[a_this].nelem()==1 || diag[a_this].nelem()==n_pol);
+    if (diag[a_this].nelem()>1)
+      p_step = 1;
 
-    // Then we loop through the frequencies and distribute the temp_za
-    // elements into temp, where they will be spread with the number of
-    // frequencies.
-    for (Index i=0;i<x_f.nelem();i++) {
-      temp[Range(i,m_za.nelem(),x_f.nelem())] = temp_za;
-      H.insert_row(i,temp);
-      temp = 0.0;
-    }
-  } else {
-    for (Index i=0;i<x_f.nelem();i++) {
-      // Here we perform the calculations for each frequency.
-      sensor_integration_vector(temp[Range(i,m_za.nelem(),x_f.nelem())],
-        srm(joker,1+i),srm(joker,0),m_za);
-      H.insert_row(i,temp);
-      temp = 0.0;
+    // Loop through the polarisation antenna diagrams.
+    for (Index p=0; p<diag[a_this].nelem(); p++) {
+
+      // Check the number of columns in this matrix and set flag if one
+      // column is given or if there is a complete set for each frequency.
+      assert((diag[a_this])[p].ncols()==2 ||
+             (diag[a_this])[p].ncols()==x_f.nelem()+1);
+      if ((diag[a_this])[p].ncols()!=2)
+        f_step = 1;
+
+      // Loop through x_f and calculate the sensor integration vector
+      // for each frequency and put values in the temp vector. For this
+      // we use vectorviews where the elements are separated by number
+      // of frequencies in x_f.
+      for (Index f=0; f<x_f.nelem(); f++) {
+        // Update the antenna diagram grid points
+        Index p_this = p*p_step;
+        Index f_this = f*f_step;
+
+        // Check if the antenna pointer still points to the same antenna
+        //diagram, if so don't recalculate the integration vector.
+        // Add the angle offset of this antenna/beam.
+        Vector za_rel = (diag[a_this])[p_this](joker, 0);
+        za_rel += ant_za[a];
+        if (a_this!=a_old || p_this!=p_old || f_this!=f_old)
+          sensor_integration_vector(temp_za,
+            (diag[a_this])[p_this](joker, 1+f_this),
+            za_rel, m_za);
+
+        // Now distribute the temp_za elements into temp, where they will
+        // be spread with the number of frequencies. Then insert the
+        // vector into the output matrix at the specific row corresponding
+        // to this frequency, polarisation and viewing direction. To do
+        // we first check if the same antenna diagram applies for all
+        // polarisations, i.e. p_step = 0, if so insert it n_pol times.
+        Index p_step_tmp = p_this;
+        Index p_tmp = p_this;
+        if (p_step==0)
+          p_step_tmp = n_pol-1;
+        temp[Range(f,m_za.nelem(),x_f.nelem())] = temp_za;
+        for (p_tmp; p_tmp<=p_step_tmp; p_tmp++)
+          H.insert_row(a*n_pol*x_f.nelem()+f*n_pol+p_tmp, temp);
+        temp = 0.0;
+
+        // Store antenna diagram index for this loop so that we can
+        // compare it with next step.
+        a_old = a;
+        p_old = p;
+        f_old = f;
+      }
     }
   }
 }
@@ -473,60 +525,109 @@ void sensor_summation_vector(
 
 //! spectrometer_transfer_matrix
 /*!
-   Constructs the sparse matrix that multiplied with the spectral values.
-   There are no dependency on line-of-sights, therefor the antenna transfer
-   matrix has to be applied before the spectrometer.
+   Constructs the sparse matrix that multiplied with the spectral values
+   gives the spectra from the spectrometer.
 
    The size of the spectrometer transfer matrix has to be set by the calling
    function, and the number of rows must match the number of spectrometer
-   channels while the number of columns must match the number of frequency
-   grid points.
+   channels times the number of viewing angles and polarisations while the
+   number of columns must match the number of frequency grid points times 
+   the number of viewing angles and polarisations.
 
-   The spectrometer response matrix decribes how the spectrometer behaves on a
-   relative frequency grid. The first column contains the relative grid points
-   and the second holds the response values.
-   NB:(FIXME?) The same spectrometer response is used for all channels, it is only
-   shifted to the corresponding centre frequency.
+   The spectrometer response ArrayOfMatrix decribes how the spectrometer
+   behaves on a relative frequency grid for each polarisation. Each element
+   corresponds to a polarisation and in the matrices the first column 
+   contains the relative grid points and the following holds the response
+   values. Both the array and the individual matrices work on the 
+   single/full principle, which means that either only one element/column
+   is given and used for all polarisations/channel frequencies or every
+   polarisation/frequency is given its individual response.
 
-   \param   H      The transfer matrix.
-   \param   srm    The spectrometer response matrix.
-   \param   x_s    The spectrometer channel centre frequencies.
-   \param   x_f    The frequency grid points.
+   \param   H             The transfer matrix.
+   \param   ch_response   The spectrometer response matrix.
+   \param   ch_f          The spectrometer channel centre frequencies.
+   \param   sensor_f      The frequency grid points.
+   \param   n_za          The number of viewing angles
+   \param   n_pol         The number of polarisations
 
    \author Mattias Ekström
-   \date   2003-05-12
+   \date   2003-08-26
 */
-void spectrometer_transfer_matrix( Sparse&           H,
-                                   ConstMatrixView   srm,
-                                   ConstVectorView   x_s,
-                                   ConstVectorView   x_f )
+void spectrometer_transfer_matrix( Sparse&                H,
+                                   const ArrayOfMatrix&   ch_response,
+                                   ConstVectorView        ch_f,
+                                   ConstVectorView        sensor_f,
+                                   const Index&           n_za,
+                                   const Index&           n_pol)
 {
   // Check that the transfer matrix has the right size
-  assert (H.nrows()==x_s.nelem());
-  assert (H.ncols()==x_f.nelem());
+  assert (H.nrows()==ch_f.nelem()*n_za*n_pol);
+  assert (H.ncols()==sensor_f.nelem()*n_za*n_pol);
 
-  // Check that the channel response has the right size and if the same
-  // response will be used for all frequencies or if there is one response
-  // for each frequency.
-  assert (srm.ncols()==2 || srm.ncols()==x_s.nelem()+1);
-  Index is_full = 1;
-  if (srm.ncols()==2)
-    is_full = 0;
+  // Check that the channel response has the right number of elements
+  // and if the same response will be used for all frequencies or if
+  // there is one response for each frequency.
+  assert (ch_response.nelem()==1 || ch_response.nelem()==n_pol);
+  Index pol_single = 0;
+  if (ch_response.nelem()==1)
+    pol_single = 1;
 
-  // Allocate memory for temporary vectors, temp is used to store the
-  // result from sensor_integration_vector before inserting them in
-  // the transfer matrix. The second vector is used to store the shifted
-  Vector temp(x_f.nelem(), 0.0);
-  Vector x_srm(srm.nrows());
+  // Allocate memory for temporary vectors, temp_long is used to store the
+  // expanded result from sensor_integration_vector before inserting them in
+  // the transfer matrix. The second vector, temp, is used for the output
+  // from sensor_integration_vector.
+  Vector temp_long(sensor_f.nelem()*n_za*n_pol, 0.0);
+  Vector temp(sensor_f.nelem(), 0.0);
 
-  //Calculate the sensor integration vector and put values in the temporary
-  //vector, then copy vector to the transfer matrix
-  for (Index i=0; i<x_s.nelem(); i++) {
-    //The spectrometer response is shifted for each centre frequency step
-    x_srm = srm(joker,0);
-    x_srm += x_s[i];
-    sensor_integration_vector(temp,srm(joker,1+i*is_full),x_srm,x_f);
-    H.insert_row(i,temp);
+  // Loop over elements in ch_response and calculate responses, if the same
+  // response applies to all polarisations run inner loop once and
+  // distribute values. Initialise a temporary vector for the frequency
+  // grid shifted by channel frequency
+  for (Index p=0;p<ch_response.nelem();p++) {
+    Vector ch_response_f(ch_response[p].nrows());
+
+    //Check if matrix has one frequency column or one for every channel
+    // frequency
+    assert (ch_response[p].ncols()==2 ||
+            ch_response[p].ncols()==ch_f.nelem()+1);
+    Index freq_full = 1;
+    if (ch_response[p].ncols()==2)
+      freq_full = 0;
+
+    //Calculate the sensor integration vector and put values in the temporary
+    //vector, then copy vector to the transfer matrix
+    for (Index i=0; i<ch_f.nelem(); i++) {
+      //The spectrometer response is shifted for each centre frequency step
+      ch_response_f = ch_response[p](joker,0);
+      ch_response_f += ch_f[i];
+
+      // Call sensor_integration_vector and store it in the temp vector
+      sensor_integration_vector(temp,ch_response[p](joker,1+i*freq_full),
+        ch_response_f,sensor_f);
+
+      // Loop over the viewing angles, here we only need on computation
+      // which is then copied to all angles.
+      for (Index za=0;za<n_za;za++) {
+        // Here we loop if pol_single == 1, that is if the same response
+        // apply to all polarisations. If pol_single == 0 the outermost
+        // loop over polarisations take care of this.
+        for (Index p_tmp=0;p_tmp<=n_pol*pol_single;p_tmp++) {
+          // Get the current polarisation index, this works since
+          // either we are looping over p_tmp or pol_single is zero
+          // and we are looping over p.
+          Index p_this = p_tmp+p*(1-pol_single);
+
+          // Distribute the compact temp vector into temp_long
+          temp_long[Range(n_pol*sensor_f.nelem()*za+p_this,
+            sensor_f.nelem(),n_pol)] = temp;
+
+          // Insert temp_long into H at the correct row
+          H.insert_row(n_pol*ch_f.nelem()*za+i*n_pol+p_this,temp_long);
+
+          // Reset temp_long to zero.
+          temp_long = 0.0;
+        }
+      }
+    }
   }
 }
-

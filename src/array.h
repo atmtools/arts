@@ -15,7 +15,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/** 
+/**
     \file   array.h
 
    This file contains the definition of Array.
@@ -56,6 +56,8 @@ typedef Array<Vector> ArrayOfVector;
 /** An array of matrices. */
 typedef Array<Matrix> ArrayOfMatrix;
 
+typedef Array<ArrayOfMatrix> ArrayOfArrayOfMatrix;
+
 /** An array of Tensor3. */
 typedef Array<Tensor3> ArrayOfTensor3;
 
@@ -76,7 +78,7 @@ typedef Array<ArrayOfTensor6> ArrayOfArrayOfTensor6;
 typedef Array<Tensor7> ArrayOfTensor7;
 
 
-/** This can be used to make arrays out of anything. 
+/** This can be used to make arrays out of anything.
 
     A simple #define does not do for this, since I have to implement
     member functions like nelem, in order to be consistent with

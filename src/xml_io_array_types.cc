@@ -938,6 +938,87 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+//=== ArrayOfArrayOfMatrix====================================================
+
+//! Reads ArrayOfArrayOfMatrix from XML input stream
+/*!
+  \param is_xml     XML Input stream
+  \param aamatrix   ArrayOfArrayOfMatrix return value
+  \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfArrayOfMatrix& aamatrix,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "ArrayOfMatrix");
+
+  tag.get_attribute_value ("nelem", nelem);
+  aamatrix.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, aamatrix[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfArrayOfMatrix: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfArrayOfMatrix to XML output stream
+/*!
+  \param os_xml     XML Output stream
+  \param aamatrix   ArrayOfArrayOfMatrix
+  \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+  \param name       Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfArrayOfMatrix& aamatrix,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("type", "ArrayOfMatrix");
+  open_tag.add_attribute ("nelem", aamatrix.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < aamatrix.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, aamatrix[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+
 //=== ArrayOfSpeciesTag ================================================
 
 //! Reads ArrayOfSpeciesTag from XML input stream

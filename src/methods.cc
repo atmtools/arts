@@ -414,6 +414,26 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("antenna_diagramAppendArray"),
+        DESCRIPTION
+        (
+         "Appends a ArrayOfMatrix to *antenna_diagram*.\n"
+         "\n"
+         "This method can be used both to initialise and expand\n"
+         "the viewing angles of *antenna_diagram*. At least one viewing\n"
+         "angle must be given in *antenna_diagram*, and the array that\n"
+         "is appended must have at least one element but not more than\n"
+         "the number of polarisation given by *sensor_pol*."
+        ),
+        OUTPUT( antenna_diagram_ ),
+        INPUT( sensor_pol_ ),
+        GOUTPUT(),
+        GINPUT( ArrayOfMatrix_ ),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("AntennaSet1D"),
         DESCRIPTION
         (
@@ -447,6 +467,25 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES()));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ArrayOfMatrixAppend"),
+        DESCRIPTION
+        (
+         "Appends a Matrix to an ArrayOfMatrix.\n"
+         "\n"
+         "Generic output:\n"
+         "  ArrayOfMatrix : The array to be expanded.\n"
+         "\n"
+         "Generic input:\n"
+         "         Matrix : The matrix to append."
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( ArrayOfMatrix_ ),
+        GINPUT( Matrix_ ),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3221,7 +3260,7 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS(),
         TYPES()));
- 
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("sensor_responseAntenna1D"),
@@ -3230,34 +3269,36 @@ md_data_raw.push_back
          "Returns the response block matrix after it has been modified by\n"
          "a 1D antenna response.\n"
          "\n"
-         "The antenna diagram patterns is given as the generic input matrix,\n"
-         "where the first column describes a relative grid of angles and the\n"
-         "following column(s) describe the antenna diagram.\n"
-         "Combined with the keyword \"diagram_type\", 3 cases are possible:\n"
-         "  \"single\" - The same antenna gain is used for all frequencies. In\n"
-         "             this case the matrix must be a two column matrix.\n"
-         "             Keyword f_ref can be set to an arbitrary value.\n"
-         "  \"scale\"  - The antenna gain is scaled with frequency, the keyword\n"
-         "             f_ref denotes the reference frequency for which the\n"
-         "             antenna diagram is given.\n"
-         "  \"full\"   - The antenna diagram are given for each frequency. In\n"
-         "             this case the number of columns in the input matrix\n"
-         "             must equal the number of frequencies in\n"
-         "             *sensor_response_f* plus one (for the relative grid).\n"
-         "             Keyword f_ref can be set to an arbitrary value.\n"
+         "The antenna diagram patterns are given as the generic input\n"
+         "ArrayOfArrayOfMatrix. The structure of this variable is that\n"
+         "the Matrix describes the antenna diagram values by a relative\n"
+         "zenith angle grid, the ArrayOfMatrix then contains antenna\n"
+         "diagrams for each polarisation given by the rows of *sensor_pol*\n"
+         "and at the top level, the ArrayOfArrayOfMatrix contains antenna\n"
+         "diagrams for each viewing angle of the antennas/beams described\n"
+         "by the generic input Vector.\n"
+         "\n"
+         "The individual antenna diagrams, described by the matrices,\n"
+         "contain at least two columns where the first column describes a\n"
+         "relative grid of angles and the following column(s) describe\n"
+         "the antenna diagram.\n"
+         "\n"
+         "For each level in the antenna diagram there exist two cases,\n"
+         "either only one element/column of antenna gain values are given,\n"
+         "this element/column will then be used for all directions/-\n"
+         "polarisations/frequencies. Or else each direction/polarisation/-\n"
+         "frequency is given its individual element/column.\n"
          "\n"
          "Generic Input: \n"
-         "      Matrix : The antenna response matrix.\n"
-         "Keywords: \n"
-         "diagram_type : \"single\", \"scale\" and \"full\".\n"
-         "       f_ref : The reference frequency used when scaling."
+         "ArrayOfArrayOfMatrix : The antenna diagram(s).\n"
+         "              Vector : The antenna/beam zenith angle grid."
         ),
-        OUTPUT( sensor_response_ ),
+        OUTPUT( sensor_response_, sensor_response_za_ ),
         INPUT( f_grid_, mblock_za_grid_, antenna_dim_, sensor_pol_ ),
         GOUTPUT( ),
-        GINPUT( Matrix_ ),
-        KEYWORDS( "diagram_type", "f_ref" ),
-        TYPES( String_t, Numeric_t )));
+        GINPUT( ArrayOfArrayOfMatrix_, Vector_ ),
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3267,31 +3308,30 @@ md_data_raw.push_back
          "Returns the response block matrix after it has been modified by\n"
          "a spectrometer backend response.\n"
          "\n"
-         "The channel response is given as the generic input matrix, where the\n"
-         "first column describes a relative grid of frequencies and the rest of\n"
-         "the columns describes the backend response. The are two possible setups\n"
-         "for this, either the same response is used for all channels or each\n"
-         "channel is given a specific response. This is set by the keyword;\n"
-         "  \"single\" - The same response is used for all channels. In this\n"
-         "             case the matrix should only contain one column of\n"
-         "             response values.\n"
-         "  \"full\"   - Each channel has it own response. The matrix must\n"
-         "             contain as many columns of response data as there are\n"
-         "             frequencies.\n"
-         "Note that for both cases there must also be a column, the first, of\n"
-         "relative frequency grid.\n"
+         "The channel response is given as the generic input array of matrices,\n"
+         "where each element in the array represent different polarisations\n"
+         "given by *sensor_pol*. The individual matrices describe the channel\n"
+         "responses as function of frequency, where the first column describes\n"
+         "a relative grid of frequencies and the rest of the columns describe\n"
+         "the backend response.\n"
+         "\n"
+         "For each level, the response can be described in two ways. Either one\n"
+         "single array element/matrix column is given and then used for each\n"
+         "polarisation/frequency. Or a complete set of array elements/matrix\n"
+         "columns covering all polarisations/frequencies are given and in each\n"
+         "case a individual response will be used.\n"
+         "Note that for both cases there must allways be a column in the\n"
+         "matrices, the first, of a relative frequency grid.\n"
          "\n"
          "Generic Input: \n"
-         "       Matrix : The backend response matrix.\n"
-         "Keyword: \n"
-         "response_type : \"single\" or \"full\"."
+         "  ArrayOfMatrix : The backend channel response."
         ),
-        OUTPUT( sensor_response_ ),
-        INPUT( f_backend_, f_mixer_ ),
+        OUTPUT( sensor_response_, sensor_response_f_ ),
+        INPUT( f_backend_, sensor_pol_, sensor_response_za_ ),
         GOUTPUT( ),
-        GINPUT( Matrix_ ),
-        KEYWORDS( "response_type" ),
-        TYPES( String_t )));
+        GINPUT( ArrayOfMatrix_ ),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord

@@ -1,3 +1,51 @@
+2003-08-26  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-675
+
+	* arts/src/test_sensor.cc: Changes made to test1, test2 and test6 which
+	test the functionality of antenna_transfer_matrix and
+	spectrometer_transfer_matrix.
+
+	* arts/src/methods.cc: Added WSM antenna_diagramAppendArray and
+	ArrayOfMatrixAppend. Changed input and comments for WSM
+	sensor_responseAntenna1D and sensor_responseBackend.
+
+	* arts/src/m_sensor.cc: Major changes in input to methods
+	sensor_responseAntenna1D and sensor_responseBackend. The antenna
+	method now takes WSV antenna_diagram and a vector as input. The vector
+	describes the viewing angles of a multiple antenna/multiple beam
+	antenna. The backend method takes a ArrayOfMatrix as input.
+	For more information, see arts -d FUNCTION.
+	Also added tests to check the input and to call underlying functions
+	in the right way. Added function antenna_diagramAppendArray which
+	appends a ArrayOfMatrix to WSV antenna_diagram.
+
+	* arts/src/sensor.cc: Made changes to antenna_transfer_matrix
+	and backend_transfer_matrix according to the corresponding WSM.
+	They now use ArrayOfArrayOfMatrix for the antenna, and ArrayOfMatrix
+	for the backend as input.
+
+	* arts/src/workspace.cc: Added WSV antenna_diagram, which is of type
+	ArrayOfArrayOfMatrix. Also added arrayomatrix_1 which is an arbitrary
+	ArrayOfMatrix and can be used to store intermediate data for example
+	to put in antenna_diagram or it can describe the backend channel
+	response.
+
+	* arts/src/m_basic_types.cc: Added WSM ArrayOfMatrixAppend to be able
+	to append matrices to an array. This can be used to set the response
+	for the spectrometer or as an intermediate in setting the antenna
+	diagram.
+
+	* arts/src/array.h: Added typedefs for ArrayOfArrayOfMatrix.
+
+	* arts/src/groups.cc: Added ArrayOfArrayOfMatrix (inspired by Claudias
+	GridPos arrays :)
+
+	* arts/src/xml_io_array_types.{h,cc}: Added XML read and write methods
+	for ArrayOfArrayOfMatrix.
+
+	* arts/src/xml_io_instantiation.h: Added templates for the xml methods.
+
 2003-08-26  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-674

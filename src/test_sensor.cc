@@ -57,7 +57,7 @@ void antenna_diagram_gaussian(
   
   //Initialise variables
   Numeric ln2 = log(2.0);
-  
+
   //Loop over grid points to calculate antenna diagram
   for( Index i=0; i<srm.nrows(); i++ )
     srm(i,1)=exp(-4*ln2*pow(srm(i,0)*DEG2RAD/theta,2));
@@ -65,24 +65,53 @@ void antenna_diagram_gaussian(
 
 void test1()
 {
-  //Test antenna_transfer_matrix with sparse matrix
+  //Test antenna_transfer_matrix with ArrayOfArrayOfMatrix
   cout << "\nTest 1:\n";
 
-  Sparse H(3,15);
-  Vector m_za(-8,5,4);
-  Matrix srm(21,2);
-  Vector a_grid(-10,21,1);
-  srm(Range(joker),0) = a_grid;
-  Vector f_grid(2,3,2);
+  Vector ant_za(-10,3,10);
+  Vector f(1,5,1);
+  Vector m_za(-18,13,3);
+  Vector a_grid(-7.5,7,2.5);
+  ArrayOfMatrix adiag1, adiag2, adiag3;
+  ArrayOfArrayOfMatrix aadiag;
+  Index n_pol = 2;
 
-  antenna_diagram_gaussian(srm, 2);
+  Matrix diag1(7,6);
+  diag1(joker,0) = a_grid;
+  antenna_diagram_gaussian(diag1(joker,Range(0,2,1)),1.8);
+  antenna_diagram_gaussian(diag1(joker,Range(0,2,2)),1.9);
+  antenna_diagram_gaussian(diag1(joker,Range(0,2,3)),2.0);
+  antenna_diagram_gaussian(diag1(joker,Range(0,2,4)),2.1);
+  antenna_diagram_gaussian(diag1(joker,Range(0,2,5)),2.2);
 
-  antenna_transfer_matrix( H, m_za, srm, f_grid );
+  Matrix diag2(7,6);
+  diag2(joker,0) = a_grid;
+  antenna_diagram_gaussian(diag2(joker,Range(0,2,1)),2.3);
+  antenna_diagram_gaussian(diag2(joker,Range(0,2,2)),2.4);
+  antenna_diagram_gaussian(diag2(joker,Range(0,2,3)),2.5);
+  antenna_diagram_gaussian(diag2(joker,Range(0,2,4)),2.6);
+  antenna_diagram_gaussian(diag2(joker,Range(0,2,5)),2.7);
 
-  cout << "H:\n" << H << "\n";
-  cout << "m_za:\n" << m_za << "\n";
-  cout << "srm:\n" << srm << "\n";
-  cout << "f_grid:\n" << f_grid << "\n";
+  Matrix diag3(7,6);
+  diag3(joker,0) = a_grid;
+  antenna_diagram_gaussian(diag3(joker,Range(0,2,1)),2.8);
+  antenna_diagram_gaussian(diag3(joker,Range(0,2,2)),2.9);
+  antenna_diagram_gaussian(diag3(joker,Range(0,2,3)),3.0);
+  antenna_diagram_gaussian(diag3(joker,Range(0,2,4)),3.1);
+  antenna_diagram_gaussian(diag3(joker,Range(0,2,5)),3.2);
+
+  adiag1.push_back(diag1);
+  adiag2.push_back(diag2);
+  adiag3.push_back(diag3);
+  aadiag.push_back(adiag1);
+  aadiag.push_back(adiag2);
+  aadiag.push_back(adiag3);
+
+  Sparse H(f.nelem()*ant_za.nelem()*n_pol,m_za.nelem()*f.nelem());
+
+  antenna_transfer_matrix(H,m_za,aadiag,f,ant_za,n_pol);
+
+  cout << "H:["<<H.nrows()<<","<<H.ncols()<<"]:"<<H<<"\n";
 }
 
 void test2()
@@ -90,24 +119,36 @@ void test2()
   //Test spectrometer_transfer_matrix
   cout << "\nTest 2:\n";
 
-  Sparse H(4,5);
-  Matrix srm(7,2);
-  Vector x_srm(-3,7,1);
-//  Vector values_srm(x_srm.nelem());
-//  antenna_diagram_gaussian(values_srm, x_srm, 2);
-  srm(Range(joker),0) = x_srm;
-  antenna_diagram_gaussian(srm, 2);
-//  srm(Range(joker),2) = values_srm;
-  Vector f_grid(1,5,2);
-  Vector cf_grid(2,4,2);
+  Vector sensor_f(10,5,10);
+  Vector ch_f(15,3,15);
+  Vector a_grid(-5,11,1);
+  Index n_za = 3;
+  Index n_pol = 2;
+  ArrayOfMatrix aresp;
 
-  spectrometer_transfer_matrix( H, srm, cf_grid, f_grid);
+  Matrix ch_response1(11,4);
+  ch_response1(joker,0) = a_grid;
+  antenna_diagram_gaussian(ch_response1(joker,Range(0,2,1)),0.09);
+  antenna_diagram_gaussian(ch_response1(joker,Range(0,2,2)),0.1);
+  antenna_diagram_gaussian(ch_response1(joker,Range(0,2,3)),0.11);
+
+  Matrix ch_response2(11,4);
+  ch_response2(joker,0) = a_grid;
+  antenna_diagram_gaussian(ch_response2(joker,Range(0,2,1)),0.14);
+  antenna_diagram_gaussian(ch_response2(joker,Range(0,2,2)),0.15);
+  antenna_diagram_gaussian(ch_response2(joker,Range(0,2,3)),0.16);
+
+  aresp.push_back(ch_response1);
+  aresp.push_back(ch_response2);
+
+  Sparse H(ch_f.nelem()*n_za*n_pol,sensor_f.nelem()*n_za*n_pol);
+
+  spectrometer_transfer_matrix(H,aresp,ch_f,sensor_f,n_za,n_pol);
 
   cout << "H:\n" << H << "\n";
-  cout << "srm:\n" << srm << "\n";
-  cout << "cf_grid:\n" << cf_grid << "\n";
-  cout << "f_grid:\n" << f_grid << "\n";
+//  cout << "ch_response1:\n" << ch_response1 << "\n";
 }
+
 
 void test3()
 {
@@ -178,45 +219,44 @@ void test5()
 
 void test6()
 {
-  //Test backend_transfer_matrix
+  // Test spectrometer_transfer_matrix with one polarisation and
+  // one viewing angle
   cout << "\nTest 6:\n";
 
-  Vector f_mixer(11,7,1);
-  Vector f_backend(12,5,1);
-  /*
-  f_backend[0]=1;
-  f_backend[1]=2;
-  f_backend[2]=4;
-  f_backend[3]=5;
-  f_backend[4]=7;
-  */
+  Vector sensor_f(10,5,10);
+  Vector ch_f(15,3,15);
+  Vector a_grid(-5,11,1);
+  Index n_za = 1;
+  Index n_pol = 1;
+  ArrayOfMatrix aresp;
 
-  Sparse H(f_backend.nelem() ,f_mixer.nelem());
-  Matrix srm(3,2,0.0);
-  srm(0,0)=-4;
-  srm(2,0)=4;
-  srm(1,1)=0.25;
+  Matrix ch_response(11,2);
+  ch_response(joker,0) = a_grid;
+//  antenna_diagram_gaussian(ch_response(joker,Range(0,2,2)),1.9);
+  antenna_diagram_gaussian(ch_response(joker,Range(0,2,1)),2.0);
+//  antenna_diagram_gaussian(ch_response(joker,Range(0,2,4)),2.1);
 
-  spectrometer_transfer_matrix( H, srm, f_backend, f_mixer);
+  aresp.push_back(ch_response);
 
-  cout << "f_mixer:\n" << f_mixer << "\n";
-  cout << "f_backend:\n" << f_backend << "\n";
-  cout << "srm:\n" << srm << "\n";
-  cout << "H:\n" << H << "\n";
+  Sparse H(ch_f.nelem()*n_za*n_pol,sensor_f.nelem()*n_za*n_pol);
+
+  spectrometer_transfer_matrix(H,aresp,ch_f,sensor_f,n_za,n_pol);
+
+  cout << "H["<<H.nrows()<<","<<H.ncols()<<"]:\n" << H << "\n";
 }
 
 void test7()
 {
   //Test sensor_integration_vector
   cout << "\nTest 7:\n";
-  
+
   //Calculate a gaussian response
   Matrix srm(17,2);
   for( Index i=0; i<srm.nrows(); i++ ) {
     srm(i,0)=3+i*0.25;
-	srm(i,1)=1/(0.5*sqrt(2*PI))*exp(-pow(srm(i,0)-5,2.0)/(2*pow(0.5,2.0)));
+    srm(i,1)=1/(0.5*sqrt(2*PI))*exp(-pow(srm(i,0)-5,2.0)/(2*pow(0.5,2.0)));
   }
-  
+
   Vector h(10), f_grid(1,10,1);
 
   sensor_integration_vector(h, srm(joker,1), srm(joker,0), f_grid);
@@ -226,14 +266,14 @@ void test7()
   cout << "h:\n" << h << "\n";
 
   h*=f_grid;
-  
+
   cout << "h*g:\n" << h.sum() << "\n";
 }
 
 int main()
 {
-  test1();
-//  test2();
+//  test1();
+  test2();
 //  test3();
 //  test4();
 //  test5();
