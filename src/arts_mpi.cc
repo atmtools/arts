@@ -29,12 +29,14 @@
 #ifdef HAVE_MPI
 
 #include "arts_mpi.h"
+#include <iostream>
+using namespace std;
 
 /** Global MPI Manager */
 MpiManager mpi_manager;
 
 
-MpiManager::MpiManager () : initialized (false)
+MpiManager::MpiManager () : initialized (false), nprocs (0), rank (0)
 {
 }
 
@@ -50,6 +52,9 @@ void MpiManager::startup (int &argc, char **&argv)
 {
   MPI::Init (argc, argv);
   initialized = true;
+
+  nprocs = MPI::COMM_WORLD.Get_size ();
+  rank = MPI::COMM_WORLD.Get_rank ();
 }
 
 #endif
