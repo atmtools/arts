@@ -1,13 +1,12 @@
-%
-% To start the document, use
-%  \levela{...}
-% For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
-%
+
 \levela{Data types, math operations and file formats}
  \label{sec:formats}
  
+\starthistory
+  001027 & Started by Patrick Eriksson. \\
+  010904 & Started new text about handmade matrix/vector package.\\
+\stophistory
+
  This section defines the data types, basic mathematical operations
  and file formats supported by ARTS. The implementation of vectors,
  matrices, and sparse matrices is based on the handmade MATPACK
@@ -15,46 +14,17 @@
  matpackII.h, matpackI.cc, and matpackII.cc). The implementation of
  arrays is based on the Standard Template Library (STL).
  
- FIXME: Add something about the ASCII IO format.
+ You can read ARTS variables from Ascii or Binary files, and also
+ write them to Ascii or Binary files. The Ascii file format is very
+ simple and explained in the online help %
+ (\verb|arts -d ArrayOfMatrixWriteAscii|).  Binary files are created
+ and read by using the Hierarchical Data Format (HDF). Some
+ information and help how to install HDF is given below.
 
- Binary files are created and read by using the Hierarchical Data
- Format (HDF). Some information and help to install these packages is
- given below.
-
-%
-% Document history, format:
-%  \starthistory
-%    date1 & text .... \\
-%    date2 & text .... \\
-%    ....
-%  \stophistory
-%
-\starthistory
-  001027 & Started by Patrick Eriksson. \\
-  010904 & Started new text about handmade matrix/vector package.\\
-%  00???? & First version finished by ??.\\
-\stophistory
 
 
 \levelb{Data types}
  \label{sec:formats:datatypes}
-
- \begin{table}[t]
-  \begin{tabular}{p{4cm} p{4cm} p{4cm}}
-   \verb|Numeric|        & \verb|Index|         & \verb|String|         \\
-  \end{tabular}
-  \caption{The atomic data types of ARTS.}
-  \label{table:format:atomic}
- \end{table}
-
- \begin{table}[t]
-  \begin{tabular}{p{4cm} p{4cm} p{4cm}}
-   \verb|Vector|         & \verb|Matrix|         & \verb|Sparse|    \\
-  \end{tabular}
-  \caption{Numeric vector and matrix types in ARTS for which mathematical 
-           operations are defined.}
-  \label{table:format:nummath}
- \end{table}
 
  \begin{table}[t]
   \begin{tabular}{p{4cm} p{4cm} p{4cm}}
@@ -78,24 +48,33 @@
 \levelc{Atomic types}
 \label{sec:formats:atomic}
  
-The most basic, the atomic, data types of ARTS are shown in Table
-\ref{table:format:atomic}. The \verb|Numeric| data type is either set
-to be double or float in \verb|arts.h|. If \verb|Numeric| is set to be
-double, the calculations will be more accurate and there is a smaller
-risk to encounter numerical problems in e.g. matrix inversions.  On
-the other hand, when \verb|Numeric| is set to be float the
-calculations will be more rapid (about double as fast), and the
-program will need only half as much memory. The type selected for
-\verb|Numeric| is also reflected in the size of output files.
+The most basic, the atomic, data types of ARTS are:
+
+\begin{itemize}
+\item \verb|Index|
+\item \verb|Numeric|
+\item \verb|String|
+\end{itemize}
 
 A variable of type \verb|Index| is a positive or negative integer.
-Internally this type is set to the C data type long int.  This type is
-used for indexing e.g. vectors and matrices. The type is also used for
-all function flags, i.e. to make a selction among a limited number of
-choices. Accordingly, characters or strings shall not be used as
+\verb|Index| is the general purpose integer type of ARTS.  Internally
+this type is set to the C data type \verb|long int|. \verb|Index| is
+used for indexing vectors, matrices, and arrays. The type is also used
+for all function flags, i.e., to make a selction among a limited number
+of choices. Accordingly, characters or strings shall not be used as
 flags.
 
-A \verb|String| is not a true ``atomic'' data type as it consists of a
+A variable of type \verb|Numeric| is a floating point number.
+Internally, it is either set to be double or float by
+\verb|configure|. If \verb|Numeric| is set to be double, the
+calculations will be more accurate and there is a smaller risk to
+encounter numerical problems in, e.g., matrix inversions.  On the
+other hand, when \verb|Numeric| is set to be float the calculations
+will be more rapid (about twice as fast), and the program will need
+only half as much memory. The type selected for \verb|Numeric| is also
+reflected in the size of output files.
+
+A \verb|String| is not a true `atomic' data type as it consists of a
 number of characters, but as characters are not used in ARTS, strings
 are the most basic text type in ARTS.
   
@@ -103,15 +82,21 @@ are the most basic text type in ARTS.
 \levelc{Numeric mathematical types}
 \label{sec:formats:nummath}
  
-Numeric values can be stored in vectors or matrices (Table
-\ref{table:format:nummath}) for which mathematical operations are
-possible. The allowed operations are given in Section
-\ref{sec:formats:maths}.  The vectors are treated in mathematical
-operations as column vectors.
+Numeric values can be stored in vectors or matrices for which
+mathematical operations like computing a matrix/vector product are
+possible. ARTS uses the following types:
 
-A \verb|Matrix| is a general matrix and a \verb|Sparse| is a general
-sparse matrix. 
+\begin{itemize}
+\item \verb|Vector|
+\item \verb|Matrix|
+\end{itemize}
 
+Because these types are quite powerfull, they are described in more
+detail in the next two section.
+
+\leveld{Vectors}
+
+\leveld{Matrices}
 
 
 \levelc{Arrays based on atomic types}

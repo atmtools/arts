@@ -1,3 +1,14 @@
+2001-09-24  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-226
+
+	* src/Makefile.am: Removed outdated comment about doxygen docu.
+
+	* doc/uguide/formats.tex: Worked a bit on this section of AUG. 
+
+	* TODO: Cleaned up a bit.
+
+
 2001-09-24  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-225
@@ -67,6 +78,7 @@
 	
 	* src/methods.cc: Updated online docs for binary
 	read-write methods.
+
 
 2001-09-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 

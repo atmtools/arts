@@ -78,13 +78,6 @@ matpackI.cc
 
 arts_CLEAN=auto_md.cc
 
-# Is this still valid? (PE 2001-09-19)
-#
-# When making changes to the list of sources above, please remember to
-# also change the lists in the files:
-#       doc/doxygen/Makefile.am
-
-
 noinst_PROGRAMS = \
 test_matpack \
 make_auto_wsv_groups_h make_auto_wsv_h make_auto_wsv_pointers_cc make_auto_md_h make_auto_md_cc

@@ -1,30 +1,5 @@
-SAB 2000-01-30: Turn off all debugging options with ./configure flag.
+SAB 2000-01-30: Oliver: Turn off all debugging options with ./configure flag.
                 (Do not give the -g flag to the compiler, set NDEBUG.)
-SAB 2000-03-27: Add an author field to MdRecord?
-SAB 2000-08-21: Some ideas for absorption:
-                - Method lines_per_tgAddMirrorLines
-                  Adds mirror lines for those transitions for which
-                  the calculation frequency would be inside the
-                  cutoff. 
-		  Requires the lineshapes and the frequency grid as
-                  input. 
-		  This would remove the need for a special
-                  implementation of the VVW line shape, only
-		  Lorentz-type lineshape would be needed.
-
-                - Method lines_per_tgRemoveOutsideCutoff
-		  Remove all lines which would not contribute anything
-                  due to lineshape frequency cutoff. Saves unnecessary
-                  calls to lineshape function, which would only return
-                  0.
-		  Needs lineshapes and frequency grid as input.
-
-		- Should it be enforced that the frequency grid is
-                  sorted? If not, this must be done by the above
-                  methods. 
-
-		- Make a method to set the lineshape functions. (All
-                  the rest is already there!)
 
 AvE 2000-08-22: Check that partition funciton coefficients are valid, 
                 some species are not defined, nevertheless a dummy
@@ -40,16 +15,12 @@ AvE 04.09.2000: Agnes Perrin mentioned that the simple scheme to calculate
 
 		Q_rot(T')=Q_rot(T)*(T'/T)**1.5 for non linear molecule  
 		and
-		Q_rot(T')=Q_rot)*(T'/T)   for a linear molecule
+		Q_rot(T')=Q_rot(T)*(T'/T)   for a linear molecule
 
 		This way might be more efficient timewise.
 
 AvE 2000-09-27: There is optimization potential in the lineshape.cc file,
 		read FIXME comments over there.
-
-SAB 2000-10-05: Make a first release.
-
-SAB 2000-10-05: Set up ARTS web page. (Oliver)
 
 PE  2000-11-11: Write the workspace variables in alphabetical order to 
                 wsv.txt.
@@ -60,52 +31,10 @@ SAB 2000-11-08: Send information about ARTS to Gerald Nedolua for
 SAB 2000-11-10: Adapt sample control file in user guide to new method
                 and WSV names.  
 
-AvE 2000-11-30: Check that assert does not have a negative impact on
-                the calculation time if compilation flags avoid assert
-                calls, this can be done in the lineshape.cc file,
-                where assert is called for each lineshape function and
-                lineshape normalization factor.
-
 SAB 2000-12-04: Make WSV groups (groups.cc) and Token types (token.h,
-                token.cc) consistent.
-
-SAB 2000-12-04: 
-Implement this method:
-  md_data.push_back
-    ( MdRecord
-      ( NAME("raw_vmrs_1dReadFromFiles"),
-  	DESCRIPTION(
-	  "Read the individual VMR profile for each TAGS from the list of\n"
-	  "files given as keyword parameters. One file name must be specified for\n"
-	  "each TAGS. The name may include a path."
-	  ),
-	OUTPUT(   raw_vmrs_1d_         ),
-	INPUT(    tag_groups_          ),
-	GOUTPUT(                       ),
-	GINPUT(                        ),
-	KEYWORDS( "filenames"          ),
-	TYPES(    ARRAY_string_t       )));
-
-SAB 2000-12-13: Find a solution how to remove WSVs (as if they had not
-                been created). Best would be a *general* method (which
-                is more than generic, since it should work for *any*
-                WSV type). Second best would be any other way to get
-                rid of WSVs. Add the moment this is not possible at
-                all. :-(
-
-
-SAB 2001-01-05: More clearly separate between WS methods and other
-                functions. Should be always clear from the docu
-                header. WS methods should also be listed in a separate
-                section of the doxygen docu.
-
-SAB 2001-01-05: Write to MTL Siek about adding to vectors?
-
-SAB 2001-03-12: Rename `resize' to `replace'.
-
-SAB 2001-03-12: Implement `conglomerates', a mechanism of binding a
-                couple of WSVs together. Based on this, implement more
-                logical ASCII I/O formats.
+                token.cc) consistent. (Do this after online doc in
+                methods.cc is updated to avoid conflicts when people
+                check in.) 
 
 AvE 2001-04-03: I just tried to run some calculations with arts and the 
                 new hitran 2000 edition, and of course, ran into problems. 
@@ -116,7 +45,8 @@ AvE 2001-04-03: I just tried to run some calculations with arts and the
 		Somebody has to update arts to the 2000 edition. 
 
 SAB 2001-09-18: Thomas, please move cloud water vapor saturation
-		adjustment out of AtmFromRaw1D as soon as possible. Make a standalone
+		adjustment out of AtmFromRaw1D as soon as
+                possible. Make a standalone
 		method out of this. Use only lowercase letters for keywords, to be
 		consistent with other methods.
 
@@ -124,27 +54,13 @@ SAB 2001-09-18: Thomas, please rename seltags to seltgs. Tgs means
 		"tag groups", not "tags". (Each element of seltgs is a tag group,
 		consisting of one or more tags.)
 
-
-PE 2001-09-19:  The standard extension for the atmospheric profiles is .am.
-		This is a remainder from old days. The extension shall be .aa
-		(ARTS ASCII). All atmospheric files in arts-data must be 
-		renamed.
-
 PE 2001-09-19:  All: WRITE GOOD AND DETAILED ON-LINE INFORMATION.
 
 PE 2001-09-19:  All: The consistency of function input should be checked. 
                 I will make some functions to faciliate this.
 
-PE 2001-09-19:  All: remove old and outdated points from this file. 
-
 PE 2001-09-19:  All: remove old pieces of code in the files that no longer
 		is of any interest.
-
-PE 2001-09-19:  There is a comment in src/Makefile.am that changes must also
-		be done in doxygen/Makefile.am. Is this still valid?
-
-PE 2001-09-19:  Remove 1d from WSV names. The 2d WSV are not used, or?
-                Remove these if not used. 
 
 OLE 2001-09-21: Make the HDF part optional. Let the configure script determine
                 whether HDF is installed or not and depending on that include the
@@ -153,3 +69,12 @@ OLE 2001-09-21: Make the HDF part optional. Let the configure script determine
 
 SAB 2001-09-24: Thomas: Please put in detailed online documentation
                 for cont_description_names.  
+
+SAB 2001-09-24: Automatically remove WSVs that are no longer
+                needed. (Do this after the workshop, though, seems to
+                be not too urgent.) 
+
+SAB 2001-09-24: After the workshop, implement a new ASCII output
+                format. Think about consistant naming of
+                methods. Don't forget los, lines, lines_per_tg, and
+                raw_vmrs read/write.
