@@ -456,13 +456,13 @@ public:
 // Function declarations:
 // ----------------------
 
-inline void copy(ConstIterator5D origin,
-                 const ConstIterator5D& end,
-                 Iterator5D target);
+void copy(ConstIterator5D origin,
+          const ConstIterator5D& end,
+          Iterator5D target);
 
-inline void copy(Numeric x,
-                 Iterator5D target,
-                 const Iterator5D& end);
+void copy(Numeric x,
+          Iterator5D target,
+          const Iterator5D& end);
 
 void transform( Tensor5View y,
                 double (&my_func)(double),

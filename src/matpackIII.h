@@ -352,13 +352,13 @@ public:
 // Function declarations:
 // ----------------------
 
-inline void copy(ConstIterator3D origin,
-                 const ConstIterator3D& end,
-                 Iterator3D target);
+void copy(ConstIterator3D origin,
+          const ConstIterator3D& end,
+          Iterator3D target);
 
-inline void copy(Numeric x,
-                 Iterator3D target,
-                 const Iterator3D& end);
+void copy(Numeric x,
+          Iterator3D target,
+          const Iterator3D& end);
 
 void transform( Tensor3View y,
                 double (&my_func)(double),

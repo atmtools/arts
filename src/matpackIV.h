@@ -387,13 +387,13 @@ public:
 // Function declarations:
 // ----------------------
 
-inline void copy(ConstIterator4D origin,
-                 const ConstIterator4D& end,
-                 Iterator4D target);
+void copy(ConstIterator4D origin,
+          const ConstIterator4D& end,
+          Iterator4D target);
 
-inline void copy(Numeric x,
-                 Iterator4D target,
-                 const Iterator4D& end);
+void copy(Numeric x,
+          Iterator4D target,
+          const Iterator4D& end);
 
 void transform( Tensor4View y,
                 double (&my_func)(double),

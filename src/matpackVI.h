@@ -956,13 +956,13 @@ public:
 // Function declarations:
 // ----------------------
 
-inline void copy(ConstIterator6D origin,
-                 const ConstIterator6D& end,
-                 Iterator6D target);
+void copy(ConstIterator6D origin,
+          const ConstIterator6D& end,
+          Iterator6D target);
 
-inline void copy(Numeric x,
-                 Iterator6D target,
-                 const Iterator6D& end);
+void copy(Numeric x,
+          Iterator6D target,
+          const Iterator6D& end);
 
 void transform( Tensor6View y,
                 double (&my_func)(double),

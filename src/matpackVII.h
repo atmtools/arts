@@ -1935,13 +1935,13 @@ public:
 // Function declarations:
 // ----------------------
 
-inline void copy(ConstIterator7D origin,
-                 const ConstIterator7D& end,
-                 Iterator7D target);
+void copy(ConstIterator7D origin,
+          const ConstIterator7D& end,
+          Iterator7D target);
 
-inline void copy(Numeric x,
-                 Iterator7D target,
-                 const Iterator7D& end);
+void copy(Numeric x,
+          Iterator7D target,
+          const Iterator7D& end);
 
 void transform( Tensor7View y,
                 double (&my_func)(double),
