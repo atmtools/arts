@@ -1,3 +1,13 @@
+2003-11-28  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-723
+
+	* src/Makefile.am: Added dependencies needed for xml reading to
+	test_sparse_SOURCES.
+
+	* src/test_sparse.cc: Uncommented xml_read_from_file.
+	Added try/catch block around calls to xml_read_from_file.
+
 2003-11-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-722
