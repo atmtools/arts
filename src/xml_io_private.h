@@ -153,150 +153,150 @@ xml_set_stream_precision (ostream &os);
 ////////////////////////////////////////////////////////////////////////////
 
 void
-xml_read_from_stream (istream& is_xml, ArrayOfArrayOfSpeciesTag& aastag, bifstream *pbifs);
+xml_read_from_stream (istream&, ArrayOfArrayOfSpeciesTag&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const ArrayOfArrayOfSpeciesTag& aastag, bofstream *pbofs);
+xml_write_to_stream (ostream&, const ArrayOfArrayOfSpeciesTag&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, ArrayOfArrayOfTensor3& aatensor3, bifstream *pbifs);
+xml_read_from_stream (istream&, ArrayOfArrayOfTensor3&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const ArrayOfArrayOfTensor3& aatensor3, bofstream *pbofs);
+xml_write_to_stream (ostream&, const ArrayOfArrayOfTensor3&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, ArrayOfArrayOfTensor6& aatensor6, bifstream *pbifs);
+xml_read_from_stream (istream&, ArrayOfArrayOfTensor6&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const ArrayOfArrayOfTensor6& aatensor6, bofstream *pbofs);
+xml_write_to_stream (ostream&, const ArrayOfArrayOfTensor6&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, ArrayOfGridPos& agpos, bifstream *pbifs);
+xml_read_from_stream (istream&, ArrayOfGridPos&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const ArrayOfGridPos& agpos, bofstream *pbofs);
+xml_write_to_stream (ostream&, const ArrayOfGridPos&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, ArrayOfIndex& aindex, bifstream *pbifs);
+xml_read_from_stream (istream&, ArrayOfIndex&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const ArrayOfIndex& aindex, bofstream *pbofs);
+xml_write_to_stream (ostream&, const ArrayOfIndex&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, ArrayOfMatrix& amatrix, bifstream *pbifs);
+xml_read_from_stream (istream&, ArrayOfMatrix&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const ArrayOfMatrix& amatrix, bofstream *pbofs);
+xml_write_to_stream (ostream&, const ArrayOfMatrix&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, ArrayOfSpeciesTag& astag, bifstream *pbifs);
+xml_read_from_stream (istream&, ArrayOfSpeciesTag&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const ArrayOfSpeciesTag& astag, bofstream *pbofs);
+xml_write_to_stream (ostream&, const ArrayOfSpeciesTag&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, ArrayOfTensor3& atensor3, bifstream *pbifs);
+xml_read_from_stream (istream&, ArrayOfTensor3&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const ArrayOfTensor3& atensor3, bofstream *pbofs);
+xml_write_to_stream (ostream&, const ArrayOfTensor3&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, ArrayOfTensor6& atensor6, bifstream *pbifs);
+xml_read_from_stream (istream&, ArrayOfTensor6&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const ArrayOfTensor6& atensor6, bofstream *pbofs);
+xml_write_to_stream (ostream&, const ArrayOfTensor6&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, ArrayOfVector& avector, bifstream *pbifs);
+xml_read_from_stream (istream&, ArrayOfVector&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const ArrayOfVector& avector, bofstream *pbofs);
+xml_write_to_stream (ostream&, const ArrayOfVector&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, GasAbsLookup& gal, bifstream *pbifs);
+xml_read_from_stream (istream&, GasAbsLookup&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const GasAbsLookup& gal, bofstream *pbofs);
+xml_write_to_stream (ostream&, const GasAbsLookup&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, GridPos& gp, bifstream *pbifs);
+xml_read_from_stream (istream&, GridPos&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const GridPos& gp, bofstream *pbofs);
+xml_write_to_stream (ostream&, const GridPos&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, Index& index, bifstream *pbifs);
+xml_read_from_stream (istream&, Index&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const Index& index, bofstream *pbofs);
+xml_write_to_stream (ostream&, const Index&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, Matrix& matrix, bifstream *pbifs);
+xml_read_from_stream (istream&, Matrix&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const Matrix& matrix, bofstream *pbofs);
+xml_write_to_stream (ostream&, const Matrix&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, Numeric& numeric, bifstream *pbifs);
+xml_read_from_stream (istream&, Numeric&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const Numeric& numeric, bofstream *pbofs);
+xml_write_to_stream (ostream&, const Numeric&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, SingleScatteringData& ssdata,
-                      bifstream *pbifs);
+xml_read_from_stream (istream&, SingleScatteringData&,
+                      bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const SingleScatteringData& ssdata,
-                     bofstream *pbofs);
+xml_write_to_stream (ostream&, const SingleScatteringData&,
+                     bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, SpeciesTag& stag, bifstream *pbifs);
+xml_read_from_stream (istream&, SpeciesTag&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const SpeciesTag& stag, bofstream *pbofs);
+xml_write_to_stream (ostream&, const SpeciesTag&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, String& str, bifstream *pbifs);
+xml_read_from_stream (istream&, String&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const String& str, bofstream *pbofs);
+xml_write_to_stream (ostream&, const String&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, Tensor3& tensor, bifstream *pbifs);
+xml_read_from_stream (istream&, Tensor3&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const Tensor3& tensor, bofstream *pbofs);
+xml_write_to_stream (ostream&, const Tensor3&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, Tensor4& tensor, bifstream *pbifs);
+xml_read_from_stream (istream&, Tensor4&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const Tensor4& tensor, bofstream *pbofs);
+xml_write_to_stream (ostream&, const Tensor4&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, Tensor5& tensor, bifstream *pbifs);
+xml_read_from_stream (istream&, Tensor5&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const Tensor5& tensor, bofstream *pbofs);
+xml_write_to_stream (ostream&, const Tensor5&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, Tensor6& tensor, bifstream *pbifs);
+xml_read_from_stream (istream&, Tensor6&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const Tensor6& tensor, bofstream *pbofs);
+xml_write_to_stream (ostream&, const Tensor6&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, Tensor7& tensor, bifstream *pbifs);
+xml_read_from_stream (istream&, Tensor7&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const Tensor7& tensor, bofstream *pbofs);
+xml_write_to_stream (ostream&, const Tensor7&, bofstream *);
 
 void
-xml_read_from_stream (istream& is_xml, Vector& vector, bifstream *pbifs);
+xml_read_from_stream (istream&, Vector&, bifstream *);
 
 void
-xml_write_to_stream (ostream& os_xml, const Vector& vector, bofstream *pbofs);
+xml_write_to_stream (ostream&, const Vector&, bofstream *);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -307,7 +307,8 @@ template void
 xml_read_from_file<Agenda> (const String&, Agenda&);
 
 template void
-xml_read_from_file<ArrayOfArrayOfSpeciesTag> (const String&, ArrayOfArrayOfSpeciesTag&);
+xml_read_from_file<ArrayOfArrayOfSpeciesTag> (const String&,
+                                              ArrayOfArrayOfSpeciesTag&);
 
 template void
 xml_read_from_file<ArrayOfArrayOfTensor3> (const String&,
@@ -390,33 +391,41 @@ template void
 xml_write_to_file<Agenda> (const String&, const Agenda&, FileType);
 
 template void
-xml_write_to_file<ArrayOfGridPos> (const String&, const ArrayOfGridPos&, FileType);
+xml_write_to_file<ArrayOfGridPos> (const String&, const ArrayOfGridPos&,
+                                   FileType);
 
 template void
 xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&, FileType);
 
 template void
-xml_write_to_file<ArrayOfMatrix> (const String&, const ArrayOfMatrix&, FileType);
+xml_write_to_file<ArrayOfMatrix> (const String&, const ArrayOfMatrix&,
+                                  FileType);
 
 template void
-xml_write_to_file<ArrayOfTensor3> (const String&, const ArrayOfTensor3&, FileType);
+xml_write_to_file<ArrayOfTensor3> (const String&, const ArrayOfTensor3&,
+                                   FileType);
 
 template void
 xml_write_to_file<ArrayOfArrayOfTensor3> (const String&,
-                                          const ArrayOfArrayOfTensor3&, FileType);
+                                          const ArrayOfArrayOfTensor3&,
+                                          FileType);
 
 template void
-xml_write_to_file<ArrayOfTensor6> (const String&, const ArrayOfTensor6&, FileType);
+xml_write_to_file<ArrayOfTensor6> (const String&, const ArrayOfTensor6&,
+                                   FileType);
 
 template void
 xml_write_to_file<ArrayOfArrayOfTensor6> (const String&,
-                                          const ArrayOfArrayOfTensor6&, FileType);
+                                          const ArrayOfArrayOfTensor6&,
+                                          FileType);
 
 template void
-xml_write_to_file<ArrayOfString> (const String&, const ArrayOfString&, FileType);
+xml_write_to_file<ArrayOfString> (const String&, const ArrayOfString&,
+                                  FileType);
 
 template void
-xml_write_to_file<ArrayOfVector> (const String&, const ArrayOfVector&, FileType);
+xml_write_to_file<ArrayOfVector> (const String&, const ArrayOfVector&,
+                                  FileType);
 
 template void
 xml_write_to_file<GasAbsLookup> (const String&, const GasAbsLookup&, FileType);
@@ -465,6 +474,8 @@ template void
 xml_write_to_file<Vector> (const String&, const Vector&, FileType);
 
 template void
-xml_write_to_file<ArrayOfArrayOfSpeciesTag> (const String&, const ArrayOfArrayOfSpeciesTag&, FileType);
+xml_write_to_file<ArrayOfArrayOfSpeciesTag> (const String&,
+                                             const ArrayOfArrayOfSpeciesTag&,
+                                             FileType);
 
 #endif  /* xml_io_private_h */
