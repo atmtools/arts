@@ -1,3 +1,27 @@
+2002-11-15  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-1-0-54
+
+	* src/absorption.h
+	* src/absorption.cc
+	* Added new fields to LineRecord to read into spectroscopic
+	parameters accuracies. For the moment the uncertainties are stored
+	in Hz for the line position, and in relative difference for the
+	other parameters ( such as line intensity, pressure broadening
+	parameters, and pressure shift). The fields for the spectroscopic
+	uncertainties are implemented for all available catalogs: HITRAN,
+	MYTRAN, JPL, and ARTS. The old ARTS catalogs are also valid. If an
+	uncertainty is missing then this is set to -1 (thanks to Stefan
+	suggestion). 
+	
+	Added functions: 
+ 	- convHitranIERF: convert HITRAN index for frequency accuracy, to
+	 accuracy in ARTS units (Hz). 
+	 - convHitranIERFSH: convert HITRAN index for intensity and
+	halfwidth, to accuracy in ARTS units (relative difference).
+	- convMytranIER: convert MYTRAN index for the intensity and
+	halfwidth accuracy to ARTS units (relative difference). 
+     
 2002-11-13  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-1-0-53

@@ -98,9 +98,16 @@ ostream& operator << (ostream& os, const LineRecord& lr)
      << " " << lr.Nair  ()
      << " " << lr.Nself ()
      << " " << lr.Tgam  ()
-     << " " << lr.Naux  ();
-  // FIXME: Carmen, add more lines for accuracies here.
-
+     << " " << lr.Naux  ()
+     << " " << lr.dF    ()
+     << " " << lr.dI0   ()
+     << " " << lr.dAgam ()
+     << " " << lr.dSgam ()
+     << " " << lr.dNair ()
+     << " " << lr.dNself()
+     << " " << lr.dPsf  ();  
+  
+   // Added new lines for the spectroscopic parameters accuracies.
   for ( Index i=0; i<lr.Naux(); ++i )
     os << " " << lr.Aux()[i];
 
@@ -484,7 +491,65 @@ bool LineRecord::ReadFromHitranStream(istream& is)
     // ARTS value in Hz/Pa
     mpsf = d * hi2arts;
   }
+  // Set the accuracies using the definition of HITRAN 
+  // indices. If some are missing, they are set to -1.
 
+  //Skip upper state global quanta index
+  {
+    Index eu;
+    extract(eu,line,3);
+  }
+
+ //Skip lower state global quanta index
+  {
+    Index el;
+    extract(el,line,3);
+  }
+
+  //Skip upper state local quanta 
+  {
+    Index eul;
+    extract(eul,line,9);
+  }
+
+  //Skip lower state local quanta 
+  {
+    Index ell;
+    extract(ell,line,9);
+  }
+
+  // Accuracy index for frequency reference
+  {
+  Index df;
+  // Extract HITRAN value:
+  extract(df,line,1);
+  // Convert it to ARTS units (Hz)
+  convHitranIERF(mdf,df);
+  }
+
+  // Accuracy index for intensity reference
+  {
+  Index di0;
+  // Extract HITRAN value:
+    extract(di0,line,1);
+    convHitranIERSH(mdi0,di0);
+  }
+
+  // Accuracy index for halfwidth reference
+  {
+    Index dgam;
+    // Extract HITRAN value:
+    extract(dgam,line,1);
+    //Convert to ARTS units (%)
+    convHitranIERSH(mdagam,dgam);
+    // convHitranIERSH(mdsgam,dgam);
+    // convHitranIERSH(mdnair,dgam);
+    // convHitranIERSH(mdnself,dgam);
+  }
+
+  // Accuracy for pressure shift
+  // This is missing in HITRAN catalogue and it is set to -1.
+    mdpsf =-1;
 
   // These were all the parameters that we can extract from
   // HITRAN. However, we still have to set the reference temperatures
@@ -497,18 +562,6 @@ bool LineRecord::ReadFromHitranStream(istream& is)
   // Reference temperature for AGAM and SGAM in K.
   // (This is also fix for HITRAN)
   mtgam = 296.0;
-
-  // FIXME: Carmen, set those accuracies that you can, using the
-  // definition of HITRAN accuracy indices. If some are missing, set
-  // to -1.
-  //
-  // Note: You have to first read in the accuracies! (This might mean
-  // that you have to skip some other fields, such as quantum
-  // numbers.)
-  //
-  // You can do the skipping using the trick that I used to skip the
-  // frequency accuracy in the JPL routine. (Extracting quantum
-  // numbers to a local variable.)
 
   // That's it!
   return false;
@@ -733,13 +786,16 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 
     // ARTS position in Hz:
     mf = v * 1E6;
-//    cout << "mf = " << mf << endl;
+    //    cout << "mf = " << mf << endl;
   }
 
-  // skip transition frequency error
+  // Accuracy for line position
   {
-    Numeric r;
-    extract(r,line,8);
+    // Extract MYTRAN postion accuracy:
+    Numeric df;
+    extract(df,line,8);
+    //  ARTS accuracy of line position  in Hz:
+    mdf = df * 1E6;
   } 
   
   // Intensity.
@@ -837,6 +893,58 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
     // ARTS value in Hz/Pa
     mpsf = d * 1E6 / TORR2PA;
   }
+  // Set the accuracies using the definition of MYTRAN accuracy
+  // indices. If some are missing, they are set to -1.
+
+  //Skip upper state global quanta index
+  {
+    Index eu;
+    extract(eu,line,3);
+  }
+
+ //Skip lower state global quanta index
+  {
+    Index el;
+    extract(el,line,3);
+  }
+
+  //Skip upper state local quanta 
+  {
+    Index eul;
+    extract(eul,line,9);
+  }
+
+  //Skip lower state local quanta 
+  {
+    Index ell;
+    extract(ell,line,9);
+  }
+ // Accuracy index for intensity
+  {
+  Index di0;
+  // Extract MYTRAN value:
+  extract(di0,line,1);
+  //convert to ARTS units (%)
+  convMytranIER(mdi0,di0);
+  }
+
+  // Accuracy index for AGAM
+  {
+  Index dgam;
+  // Extract MYTRAN value:
+  extract(dgam,line,1);
+  //convert to ARTS units (%)
+  convMytranIER(mdagam,dgam);
+  }
+
+  // Accuracy index for NAIR 
+  {
+  Index dnair;
+  // Extract MYTRAN value:
+  extract(dnair,line,1); 
+  //convert to ARTS units (%);
+  convMytranIER(mdnair,dnair);
+  }
 
 
   // These were all the parameters that we can extract from
@@ -847,10 +955,6 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
   // (This is fix for MYTRAN2)
   mti0 = 296.0;
 
-  // FIXME: Carmen, implement reading of accuracy parameters, in
-  // similar style as for HITRAN. (But note that the meaning of the
-  // accuracy index is not exactly the same, if I remember correctly.
-  //
   // It is important that you intialize here all the new parameters that
   // you added to the line record. (This applies to all the reading
   // functions, also for ARTS, JPL, and HITRAN format.) Parameters
@@ -961,13 +1065,12 @@ bool LineRecord::ReadFromJplStream(istream& is)
 	}
     }
 
-
-  // skip transition frequency error
+  // Accuracy for line position 
   {
-    // FIXME: Carmen, put the frequency error in mdf, instead of
-    // throwing it away.
-    Numeric r;
-    extract(r,line,8);
+    Numeric df;
+    extract(df,line,8);
+    //convert to ARTS units (Hz)
+    mdf = df * 1E6; 
   } 
   
   // Intensity.
@@ -1097,11 +1200,6 @@ bool LineRecord::ReadFromJplStream(istream& is)
   // Reference temperature for Intensity in K.
   // (This is fix for JPL)
   mti0 = 300.0;
-
-  // FIXME: Carmen, set those accuracies that you can, using the
-  // definition of JPL accuracies. For example, I think JPL contains
-  // the accuracy of the line center frequency in frequency units. If
-  // some are missing, set to -1.
 
   // That's it!
   return false;
@@ -1266,24 +1364,30 @@ bool LineRecord::ReadFromArtsStream(istream& is)
 	  //cout << "maux" << i << " = " << maux[i] << "\n";
 	}
 
-//       // Extract accuracies:
-//       try
-//         {
-//           icecream >> mdf;
-//           icecream >> mdi0;
-//           // FIXME: Carmen, add more lines here for the other paramters.
-//         }
-//       catch (runtime_error x)
-//         {
-//           // Nothing to do here, the accuracies are optional, so we
-//           // just set them to -1 and continue reading the next line of
-//           // the catalogue
-//           mdf  = -1;
-//           mdi0 = -1;
-//           // FIXME: Carmen, add more lines here for the other paramters.
-            
-//         }
-
+      // Extract accuracies:
+      try
+        {
+          icecream >> mdf;
+          icecream >> mdi0;
+	  icecream >> mdagam;
+	  icecream >> mdsgam;
+	  icecream >> mdnair;
+	  icecream >> mdnself;
+	  icecream >> mdpsf;
+        }
+      catch (runtime_error x)
+        {
+          // Nothing to do here, the accuracies are optional, so we
+          // just set them to -1 and continue reading the next line of
+          // the catalogue
+          mdf      = -1;
+          mdi0     = -1;
+	  mdagam   = -1;
+	  mdsgam   = -1;
+	  mdnair   = -1;
+	  mdnself  = -1;
+	  mdpsf    = -1;            
+        }
     }
 
   // That's it!
@@ -2257,3 +2361,179 @@ Numeric wavenumber_to_joule(Numeric e)
 
   return e*lower_energy_const; 
 }
+
+//======================================================================
+//        Functions to convert the accuracy index to ARTS units
+//======================================================================
+
+// ********* for HITRAN database *************
+//convert HITRAN index for line position accuracy to ARTS
+//units (Hz).
+
+void convHitranIERF(     
+		    Numeric&     mdf,
+	      const Index&       df 
+		    )
+{
+  switch ( df )
+    {
+    case 0:
+      { 
+	mdf = -1;
+	break; 
+      }
+    case 1:
+      {
+	mdf = 30*1E9;
+	break; 
+      }
+    case 2:
+      {
+	mdf = 3*1E9;
+	break; 
+      }
+    case 3:
+      {
+	mdf = 300*1E6;
+	break; 
+      }
+    case 4:
+      {
+	mdf = 30*1E6;
+	break; 
+      }
+    case 5:
+      {
+	mdf = 3*1E6;
+	break; 
+      }
+    case 6:
+      {
+	mdf = 0.3*1E6;
+	break; 
+      }
+    }
+}
+		    
+//convert HITRAN index for intensity and halfwidth accuracy to ARTS
+//units (relative difference).
+void convHitranIERSH(     
+		    Numeric&     mdh,
+	      const Index&       dh 
+		    )
+{
+  switch ( dh )
+    {
+    case 0:
+      { 
+	mdh = -1;
+	break; 
+      }
+    case 1:
+      {
+	mdh = -1;
+	break; 
+      }
+    case 2:
+      {
+	mdh = -1;
+	break; 
+      }
+    case 3:
+      {
+	mdh = 30;
+	break; 
+      }
+    case 4:
+      {
+	mdh = 20;
+	break; 
+      }
+    case 5:
+      {
+	mdh = 10;
+	break; 
+      }
+    case 6:
+      {
+	mdh =5;
+	break; 
+      }
+    case 7:
+      {
+	mdh =2;
+	break; 
+      }
+    case 8:
+      {
+	mdh =1;
+	break; 
+      }
+    }
+  mdh=mdh/100;		    
+}
+
+// ********* for MYTRAN database ************* 
+//convert MYTRAN index for intensity and halfwidth accuracy to ARTS
+//units (relative difference).
+void convMytranIER(     
+		    Numeric&     mdh,
+	      const Index  &      dh 
+		    )
+{
+  switch ( dh )
+    {
+    case 0:
+      { 
+	mdh = 200;
+	break; 
+      }
+    case 1:
+      {
+	mdh = 100;
+	break; 
+      }
+    case 2:
+      {
+	mdh = 50;
+	break; 
+      }
+    case 3:
+      {
+	mdh = 30;
+	break; 
+      }
+    case 4:
+      {
+	mdh = 20;
+	break; 
+      }
+    case 5:
+      {
+	mdh = 10;
+	break; 
+      }
+    case 6:
+      {
+	mdh =5;
+	break; 
+      }
+    case 7:
+      {
+	mdh = 2;
+	break; 
+      }
+    case 8:
+      {
+	mdh = 1;
+	break; 
+      }
+    case 9:
+      {
+	mdh = 0.5;
+	break; 
+      }
+    }
+  mdh=mdh/100;		    
+}
+

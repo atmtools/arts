@@ -469,7 +469,14 @@ public:
       mnair    (0.     ),
       mnself   (0.     ),
       mtgam    (0.     ),
-      maux     (       )
+      maux     (       ),
+      mdf      (-1.    ),
+      mdi0     (-1.    ),
+      mdagam   (-1.    ),
+      mdsgam   (-1.    ),
+      mdnair   (-1.    ),
+      mdnself  (-1.    ),
+      mdpsf    (-1.    )
  { /* Nothing to do here. */ }
 
   /** Constructor that sets all data elements explicitly. If
@@ -488,7 +495,14 @@ public:
 	      Numeric 	     	    nair,
 	      Numeric 	     	    nself,
 	      Numeric 	     	    tgam,
-	      const ArrayOfNumeric& aux       )
+	      const ArrayOfNumeric& aux,
+	      Numeric 	     	    df,
+	      Numeric 	     	    di0,
+	      Numeric 	     	    dagam,
+	      Numeric 	     	    dsgam,
+	      Numeric 	     	    dnair,
+	      Numeric 	     	    dnself,
+	      Numeric 	     	    dpsf)
     : mspecies (species	   ),
       misotope (isotope	   ),
       mf       (f      	   ),
@@ -500,7 +514,7 @@ public:
       msgam    (sgam   	   ),
       mnair    (nair   	   ),
       mnself   (nself  	   ),
-      mtgam    (tgam   	   ),  
+      mtgam    (tgam   	   ), 
       maux     (aux        )
   {
     // Thanks to Matpack, initialization of misotope with isotope
@@ -629,7 +643,7 @@ public:
   Numeric Nself() const { return mnself; }
 
  /** Set SGAM temperature exponent (dimensionless): */
- void setNself( Numeric new_mnself ) { mnself = new_mnself; }
+  void setNself( Numeric new_mnself ) { mnself = new_mnself; }
 
   /** Reference temperature for AGAM and SGAM in <b> K</b>: */
   Numeric Tgam() const  { return mtgam; }
@@ -643,8 +657,29 @@ public:
 
   /** Auxiliary parameters. */
   const ArrayOfNumeric& Aux() const { return maux; }
+  //
 
-  // FIXME: Carmen, add functions returning accuracies here.
+  /** Accuracy for line position in <b> Hz </b>: */
+  Numeric dF() const  { return mdf; }
+
+  /** Accuracy for line intensity in <b> relative value </b>: */
+  Numeric dI0() const  { return mdi0; }
+
+ /** Accuracy for air broadened width in <b> relative value </b>: */
+  Numeric dAgam() const  { return mdagam; }
+
+  /** Accuracy for self broadened width in <b> relative value </b>: */
+  Numeric dSgam() const  { return mdsgam; }
+
+  /** Accuracy for AGAM temperature exponent in <b> relative value </b>: */
+  Numeric dNair() const  { return mdnair; }
+
+  /** Accuracy for SGAM temperature exponent in <b> relative value</b>: */
+  Numeric dNself() const { return mdnself; }
+
+ /** Accuracy for pressure shift in <b> relative value </b>: */
+  Numeric dPsf() const { return mdpsf; }
+
 
   /** Read one line from a stream associated with a HITRAN file. The HITRAN
     format is as follows (directly from the HITRAN documentation):
@@ -888,8 +923,23 @@ private:
   Numeric mtgam;
   // Array to hold auxiliary parameters:
   ArrayOfNumeric maux;
-
-  // FIXME: Carmen, add fields for accuracies here.
+  //
+  // Fields for the spectroscopic parameters accuracies
+  //
+  // Accuracy for line center frequency in Hz:
+  Numeric mdf;
+  // Accuracy for line intensity in %:
+  Numeric mdi0;
+  // Accuracy for air broadened width in %:
+  Numeric mdagam;
+  // Accuracy for self broadened width in %:
+  Numeric mdsgam;
+  // Accuracy for AGAM temperature exponent in %:
+  Numeric mdnair;
+  //  Accuracy for SGAM temperature exponent in %:
+  Numeric mdnself;
+ //  Accuracy for pressure shift in %:
+  Numeric mdpsf;
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotope data within arts
@@ -1060,5 +1110,30 @@ void refr_index_Boudouris (
               ConstVectorView   p_abs,
               ConstVectorView   t_abs,
 	      ConstVectorView   h2o_abs );
+
+//======================================================================
+//             Functions to convert the accuracy index
+//======================================================================
+
+// ********* for HITRAN database *************
+// convert index for the frequency accuracy.
+void convHitranIERF(     
+		    Numeric&     mdf,
+	      const Index&       df 
+		    );
+
+// convert to percents index for intensity and halfwidth accuracy.
+
+void convHitranIERSH(     
+		    Numeric&     mdh,
+	      const Index&       dh 
+		    );
+
+// ********* for MYTRAN database *************
+// convert index for the halfwidth accuracy.
+void convMytranIER(     
+		    Numeric&     mdh,
+	      const Index  &      dh 
+		    );
 
 #endif // absorption_h
