@@ -1,0 +1,58 @@
+# Absorption
+VectorLinSpace (z_abs)     { start = 0
+                             stop  = 100e3
+                             step  = 500 }
+VectorNLogSpace (p_abs)    { start = 1.013300e+05
+                             stop  = 3.206078e-02
+                             n     = 201 }
+VectorReadFromFile (t_abs) {""}   
+VectorReadFromFile (f_abs) {""}   
+MatrixReadFromFile (abs)   {""}   
+
+# Refraction
+IntSet     (refr)        { 0 }
+NumericSet (l_step_refr) { 1.0e3 }
+VectorSet  (refr_index)  { length = 201
+                           value  = 1.0 }
+
+# The ground
+NumericSet (z_ground) { 0.0e3 }
+NumericSet (t_ground) { 290.0 }
+VectorSet  (e_ground) { length = 1164
+                        value  = 0.5 } 
+
+# Observation geometry
+NumericSet (z_plat) { 20e3 }
+VectorSet  (view1)  { length = 1
+                      value  = 45 }
+NumericSet (l_step) { 0.5e3 }
+
+# Cosmic radiation
+y_spaceStd{0}
+#y_spacePlanck{300}
+
+
+# Line of sight (LOS)
+los1d{}
+# A function assuming no refraction
+#los1dNoRefraction{}
+# A function assuming no refraction and no ground intersection
+#los1dUpward{}
+source1d{}
+trans1d{}
+
+# Calculate and save spectra
+yRte{}
+#yRteNoGround{}
+#yBl{}
+#yBlNoGround{}
+VectorWriteToFile(y){""}
+
+# Calculate species weighting function matrx and save
+klos1d{}
+VectorNLogSpace (k_grid) { start = 1.013300e+05
+                           stop  = 3.206078e-02
+                           n     = 100 }
+kSpecies1d{}
+MatrixWriteToFile(k){""}  
+
