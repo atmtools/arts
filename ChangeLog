@@ -1,3 +1,22 @@
+2002-11-05  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-275
+
+	* autogen.sh: Cleanup. Added --gnu option to automake.
+
+	* configure.in: Added AM_MAINTAINER_MODE.
+
+	* absorption.h, m_abs.cc, old_absorption.cc, workspace.cc, xml_io.cc:
+	Renamed OneTag to SpeciesTag.
+
+	* absorption.h, gas_abs_lookup.h, groups.cc, m_abs.cc,
+	m_clonesize.cc, old_absorption.cc, workspace.cc, xml_io.cc:
+	Renamed TagGroups to ArrayOfArrayOfSpeciesTag.
+
+	* src/m_xml.h, src/xml_io.h: Cleanup.
+
+	* src/xml_io.cc: Started to add io routines for GasAbsLookup.
+
 2002-11-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-274
