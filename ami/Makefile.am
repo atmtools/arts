@@ -14,6 +14,7 @@ SUBDIRS        = arts file hmatrix math path physics plot retrieval
 amidir        = $(pkgdatadir)/ami
 
 ami_DATA = \
+README \
 init.m \
 startup.m 
 
