@@ -1,0 +1,9 @@
+% This file just contains the ARTS release number. Nice, isn't it?
+% Stefan Buehler 14.06.2000
+%
+@VERSION@
+%
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End:

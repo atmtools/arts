@@ -1,6 +1,32 @@
+2004-06-29  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-839
+
+	* You might have to re-run autogen.sh after this update.
+
+	* Started to split the workspace reference from the user guide
+	into a separate document. This is just an intermediate commit,
+	please don't look at it yet.
+
+	* doc/uguide/Makefile.am: Removed outdated comment about uguide.dvi
+	dependency.
+
+	* configure.in: Added doc/reference/{Makefile,auto_version.tex}.
+
+	* doc/Makefile.am: Added reference to SUBDIRS.
+
+	* doc/reference/{Makefile.am,.cvsignore,arts_groups_to_latex.sh,
+	arts_methods_to_latex.sh}: Copied from uguide.
+
+	* doc/reference/reference.tex: Copied and adapted from uguide.tex.
+
+	* doc/reference/main.tex: Copied and adapted from uguide.
+
+	* doc/reference/arts_methods_to_latex.sh: Sort methods.
+
 2004-06-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-838	
+	* arts-1-1-838
 
 	IMPORTANT: Temperature dependance for *SingleScatteringData* class is 
 	included now, but it is not yet included into all 
