@@ -23,6 +23,8 @@ vecmat.h \
 exceptions.h \
 file.h \
 workspace.h \
+wsv_group.h \
+wsv_aux.h \
 methods.h \
 token.h \
 parser.h \
@@ -32,10 +34,13 @@ make_array.h \
 math_funcs.h \
 atm_funcs.h \
 absorption.h \
+los.h \
 constants.cc \
 getopt.c \
 getopt1.c \
 main.cc \
+globals_1.cc \
+globals_2.cc \
 version.cc \
 messages.cc \
 parameters.cc \
@@ -43,6 +48,7 @@ file.cc \
 workspace.cc \
 workspace_aux.cc \
 methods.cc \
+methods_aux.cc \
 token.cc \
 parser.cc \
 md.cc \
@@ -59,13 +65,19 @@ absorption.cc
 noinst_PROGRAMS = make_wsv_h make_md_h
 
 make_wsv_h_SOURCES = \
-arts.h vecmat.h messages.h file.h workspace.h \
+arts.h vecmat.h messages.h file.h absorption.h los.h \
+workspace.h wsv_group.h wsv_aux.h \
+globals_1.cc \
 messages.cc file.cc workspace.cc workspace_aux.cc make_wsv_h.cc version.cc
 
 make_md_h_SOURCES = \
-arts.h vecmat.h wsv.h token.h messages.h file.h workspace.h methods.h make_array.h \
-token.cc messages.cc file.cc workspace.cc workspace_aux.cc methods.cc \
-make_md_h.cc version.cc
+arts.h vecmat.h wsv.h token.h messages.h file.h \
+absorption.h los.h \
+workspace.h wsv_group.h wsv_aux.h \
+methods.h make_array.h \
+globals_1.cc globals_2.cc \
+token.cc messages.cc file.cc workspace.cc workspace_aux.cc \
+methods.cc methods_aux.cc make_md_h.cc version.cc
 
 wsv.h: make_wsv_h
 	./make_wsv_h

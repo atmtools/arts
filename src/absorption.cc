@@ -15,14 +15,11 @@
 #define TAGS	     make_array<int>
 
 
-/** The lookup information for all the different species. */
-ARRAY<SpeciesRecord> species_data;
-
-/** The map associated with species_data. */
-std::map<string, size_t> SpeciesMap;
 
 void define_species_data()
 {
+  extern ARRAY<SpeciesRecord> species_data;
+
   // Initialize to zero, just in case:
   species_data.clear();
 

@@ -86,17 +86,7 @@ Numeric min( const VECTOR& x );
     @author Stefan Buehler 08.05.2000 */
 Numeric min( const MATRIX& A );
 
-/** Gives the minimum value of an array, v = min(x).
-
-    @param   v   Returns: the minimum value of x
-    @param   x   The input array
-
-    @author Stefan Buehler 08.05.2000 */
-template<class T>
-T min( const ARRAY<T>& x );
-
-
-/** Gives the maximum value of a vector, v = min(x).
+/** Gives the maximum value of a vector, v = max(x).
 
     @param   v   Returns: the maximum value of x
     @param   x   The input vector
@@ -129,6 +119,28 @@ T max( const ARRAY<T>& x )
   for ( size_t i=2; i<=n; i++ )
   {
     if ( x(i) > y )
+      y = x(i);
+  }
+  return y; 
+}
+
+
+/** Gives the minimum value of an array, v = min(x). Because this is a
+    template function, the definition has to be also in the header
+    file, and not in file math_func.cc.
+
+    @param   v   Returns: the minimum value of x
+    @param   x   The input array
+
+    @author Stefan Buehler 08.05.2000 */
+template<class T>
+T min( const ARRAY<T>& x )
+{
+  size_t n = x.dim();
+  T y=x(1);
+  for ( size_t i=2; i<=n; i++ )
+  {
+    if ( x(i) < y )
       y = x(i);
   }
   return y; 

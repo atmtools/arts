@@ -35,6 +35,7 @@ HISTORY:   27.06.99 Created by Patrick Eriksson.
 #include "workspace.h"          
 #include "math_funcs.h"          
 #include "atm_funcs.h"          
+#include "los.h"
 
 
 extern const Numeric EARTH_RADIUS;

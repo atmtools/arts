@@ -144,19 +144,6 @@ Numeric min( const MATRIX& A )
   return y; 
 }
 
-template<class T>
-T min( const ARRAY<T>& x )
-{
-  int n = x.dim();
-  Numeric y=x(1);
-  for ( int i=2; i<=n; i++ )
-  {
-    if ( x(i) < y )
-      y = x(i);
-  }
-  return y; 
-}
-
 Numeric max( const VECTOR& x )
 {
   int n = x.dim();

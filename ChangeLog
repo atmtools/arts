@@ -1,3 +1,32 @@
+2000-06-10  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-28
+
+	* The new compiler (g++-2.95.2) is more fuzzy about redeclaration
+  	of variables. Therefore all global variables had to be moved to
+	two separate files.
+
+	* Rearranged workspace and methods data, so that workspace.h,
+	workspace.cc, and methods.cc contain only the data itself.
+	
+	* globals_1.cc: Global variables that do NOT depend on wsv.h.
+
+        * globals_2.cc: Global variables that DO depend on wsv.h.
+
+	* workspace_aux.cc: Auxiliary stuff that used to be in workspace.cc.
+
+        * methods_aux.cc: Auxiliary stuff that used to be in methods.cc.
+
+	* los.h: Declaration of the Los data type. Moved there from
+	workspace.h 
+
+	* wsv_groups.h: Everything related to WSV groups.
+
+	* wsv_aux.h: Auxiliary stuff for the workspace.
+	
+	* I do not get any warning messages. Patrick, do you still get
+	them? 
+	
 2000-06-09  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-27

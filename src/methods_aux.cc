@@ -8,9 +8,6 @@ INCLUDES:  This file contains auxiliary material for the workspace
            new method is added. See methods.h for more
 	   documentation. 
 
-GLOBALS:   md_data
-           MdMap
-
 FUNCTIONS: void define_md_map()
            ostream& MdRecord::PrintTemplate(ostream& os,
 	                                    bool show_description=true) const
@@ -25,17 +22,10 @@ HISTORY:   10.06.2000 Created by Stefan Buehler
 #include "methods.h"
 
 
-/** The lookup information for the workspace methods. */
-ARRAY<MdRecord> md_data;
-
-/** The map associated with md_data. */
-std::map<string, size_t> MdMap;
-
 void define_md_map()
 {
-  // These are defined just above:
-  //  extern const ARRAY<MdRecord> md_data;
-  //  extern std::map<string, size_t> MdMap;
+  extern const ARRAY<MdRecord> md_data;
+  extern std::map<string, size_t> MdMap;
 
   for ( size_t i=0 ; i<md_data.size() ; ++i)
     {
