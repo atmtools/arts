@@ -1596,7 +1596,7 @@ void CloudboxGetIncoming(// WS Output:
                scat_i_lon_dummy, scat_za_grid, scat_aa_grid, sensor_pos, 
                sensor_los, f_grid, stokes_dim, antenna_dim_dummy, 
                mblock_za_grid_dummy, mblock_aa_grid_dummy, check_input );
-           cout << "error 2" << endl;
+     
           check_input = false;
      
           scat_i_p( Range(joker), 0, 0, 0, 

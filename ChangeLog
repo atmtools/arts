@@ -1,3 +1,15 @@
+2003-05-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-558
+
+	* src/gas_abs_lookup.cc (GasAbsLookup::Extract): Fixed a bug here.
+	For the monochromatic calculations (inside the cloudbox) only the 
+	first frequency in the frequency grid was calculated.
+
+	* src/m_cloudbox.cc: Removed debugging output.
+
+	* src/m_optproperties.cc: Only minor modification.
+	
 2003-05-27  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
 
 	* arts-1-1-557

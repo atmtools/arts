@@ -580,7 +580,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
                            ) );
 
           // Loop over frequency:
-          for ( Index s=f_start; s<f_extent; ++s )
+          for ( Index s=0; s<f_extent; ++s )
             {
               // Loop over species:
               for ( Index i=0; i<n_species; ++i )
@@ -588,10 +588,10 @@ void GasAbsLookup::Extract( Matrix&         sga,
                   // Get the right view on xsec. (Only a vector of
                   // pressure for this particular species and
                   // frequency):
-                  ConstVectorView this_xsec = xsec( 0,      // T
-                                                    i,      // species
-                                                    s,      // frequency
-                                                    joker   // p
+                  ConstVectorView this_xsec = xsec( 0,         // T
+                                                    i,         // species
+                                                    f_start+s, // frequency
+                                                    joker      // p
                                                     );
 
                   // Get the right view on our result variable,
@@ -662,7 +662,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
               interpweights(titw,tgp);
 
               // Loop over frequency:
-              for ( Index s=f_start; s<f_extent; ++s )
+              for ( Index s=0; s<f_extent; ++s )
                 {
                   // Loop over species:
                   for ( Index i=0; i<n_species; ++i )
@@ -672,7 +672,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
                       // level, species and frequency):
                       ConstVectorView this_xsec = xsec( joker,      // T
                                                         i,          // species
-                                                        s,          // frequency
+                                                        f_start+s,  // frequency
                                                         pi+pgp.idx  // p
                                                         );
 
@@ -697,7 +697,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
           pgp.idx = 0;
 
           // Loop over frequency:
-          for ( Index s=f_start; s<f_extent; ++s )
+          for ( Index s=0; s<f_extent; ++s )
             {
               // Loop over species:
               for ( Index i=0; i<n_species; ++i )

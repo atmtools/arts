@@ -337,14 +337,13 @@ void pha_mat_sptFromData( // Output:
                 }
             }
         }
-      // xml_write_to_file("pha_mat_data_unspr.xml", pha_mat_data);
-      // xml_write_to_file("pha_mat_data_int.xml", pha_mat_data_int);
+       xml_write_to_file("pha_mat_data_unspr.xml", pha_mat_data);
+       xml_write_to_file("pha_mat_data_int.xml", pha_mat_data_int);
                           
        
        Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);
        
-       //Initialize pha_mat_spt
-       pha_mat_spt = 0.;
+      
 
        // Do the transformation into the laboratory coordinate system.
        for (Index j = 0; j < scat_za_grid.nelem(); j ++)
@@ -435,6 +434,11 @@ void opt_prop_sptFromData( // Output and Input:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
   Tensor3 ext_mat_data_int;
   Tensor3 abs_vec_data_int;
+  
+   // Initialisation
+  ext_mat_spt = 0.;
+  abs_vec_spt = 0.;
+
 
   // Loop over the included particle_types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
@@ -515,9 +519,7 @@ void opt_prop_sptFromData( // Output and Input:
       //
       // Extinction matrix:
       //
-      // Initialisation
-      ext_mat_spt = 0.;
-      abs_vec_spt = 0.;
+     
   
       ext_matTransform(ext_mat_spt(i_pt, joker, joker),
                        ext_mat_data_int,
