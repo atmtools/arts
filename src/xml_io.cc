@@ -1775,7 +1775,14 @@ xml_read_from_stream (istream& is,
                           is >> tensor (v, s, b, p, r, c);
                           if (is.fail ())
                             {
-                              xml_parse_error ("Error while reading data");
+                              ostringstream ostr;
+                              ostr << "Expected " << nvitrines * nshelves
+                                * nbooks * npages * nrows * ncols
+                                   << " elements, error after reading "
+                                   << v * s * b * p * r * c
+                                   << " elements.";
+                              xml_parse_error ("Error while reading data: "
+                                               + ostr.str());
                             }
                         }
                     }
