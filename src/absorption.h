@@ -852,13 +852,19 @@ private:
 ostream& operator << (ostream& os, const SpeciesTag& ot);
 
 
+/** This type is not directly used in arts currently. Just added for
+    consistency. Used to define ArrayOfArrayOfSpeciesTag.
+
+    \author Oliver Lemke */
+typedef  Array<SpeciesTag> ArrayOfSpeciesTag;
+
 /** Contains the available tag groups. Contrary to the Bredbeck
     definition, tag groups may only consist of tags belonging to the
     same species. The reason for this is that there is one VMR profile
     associated with each tag group.
 
     \author Stefan Buehler */
-typedef  Array< Array<SpeciesTag> > ArrayOfArrayOfSpeciesTag;
+typedef  Array<ArrayOfSpeciesTag> ArrayOfArrayOfSpeciesTag;
 
 
 void get_tagindex_for_Strings( 
