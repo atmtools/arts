@@ -21,7 +21,8 @@ arts_examples_in = \
 	cont_example.arts.in \
 	fullmodels_example.arts.in \
 	radiosonde_example.arts.in \
-	rt_example.arts.in
+	rt_example.arts.in \
+	wfs_spectro_example.arts.in
 
 arts_examples = \
 	absorption_example.arts \
@@ -31,7 +32,8 @@ arts_examples = \
 	cont_example.arts \
 	fullmodels_example.arts \
 	radiosonde_example.arts \
-	rt_example.arts
+	rt_example.arts \
+	wfs_spectro_example.arts
 
 examplesdoc_DATA = $(arts_examples)
 
