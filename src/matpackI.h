@@ -181,11 +181,13 @@ public:
   friend class Tensor7View;
   friend class Tensor7;
   friend class Sparse;
-  friend std::ostream& operator<<(std::ostream& os, const SparseView& v);
-  friend void mult (VectorView y, const SparseView& M, const ConstVectorView& x );
-  friend void mult (MatrixView A, const SparseView B, const MatrixView C );
-  friend void transpose ( SparseView A, const SparseView B );
-  friend void mult( SparseView A, const SparseView B, const SparseView C );
+
+  /** Returns the start index of the range. */
+  Index get_start () const { return mstart; }
+  /** Returns the extent of the range. */
+  Index get_extent () const { return mextent; }
+  /** Returns the stride of the range. */
+  Index get_stride () const { return mstride; }
 
 private:
   /** The start index. */
@@ -593,7 +595,7 @@ public:
   friend class ConstTensor7View;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend int poly_root_solve (Matrix &roots, Vector &coeffs);
-  friend void mult (MatrixView A, const SparseView B, const MatrixView C );
+  //friend void mult (MatrixView A, const SparseView B, const MatrixView C );
 
 protected:
   // Constructors:
