@@ -54,8 +54,8 @@ raw_vmrs_1dReadFromScenario
 # Create the pressure grid `p_abs':
 VectorNLogSpace(p_abs){
         start = 100000
-        stop  = 100
-        n     = 4
+        stop  = 10
+        n     = 140
 }
 
 VectorWriteToFile(p_abs){""}
