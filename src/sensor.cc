@@ -90,13 +90,12 @@ void antenna_transfer_matrix( Sparse&   H,
   assert(H.nrows()==x_f.nelem());
   assert(H.ncols()==m_za.nelem()*x_f.nelem());
 
-  // Check the size of the antenna diagram matrix.
+  // Check the size of the antenna diagram matrix and set a flag if single
+  // antenna diagram is used.
   assert(srm.ncols()==2 || srm.ncols()==x_f.nelem()+1);
-  Index srm_step;
+  bool is_single = false;
   if (srm.ncols()==2)
-    srm_step = 0;
-  else
-    srm_step = 1;
+    is_single = true;
 
   // Allocate a temporary vector to keep values before storing them in the
   // final sparse matrix. The size of this vector equals the number of
@@ -104,14 +103,34 @@ void antenna_transfer_matrix( Sparse&   H,
   Vector temp(H.ncols(), 0.0);
 
   // Loop through x_f and calculate the sensor integration vector for each
-  // frequency and put values in the temp vector. For this we use 
+  // frequency and put values in the temp vector. For this we use
   // vectorviews where the elements are separated by number of frequencies
   // in x_f. Store the vector as rows in the output matrix.
-  for (Index i=0;i<x_f.nelem();i++) {
-    sensor_integration_vector(temp[Range(i,m_za.nelem(),x_f.nelem())],
-      srm(joker,1+i*srm_step),srm(joker,0),m_za);
-    H.insert_row(i,temp);
-    temp = 0.0;
+  // Since we only want to perform calculations if the antenna diagram
+  // changes we first check if is_single is true.
+  if (is_single) {
+    // If we only need to perform the calculations once, we create a new
+    // temporary vector which will contain the values from the integration
+    // vector in a compact form.
+    Vector temp_za(m_za.nelem(), 0.0);
+    sensor_integration_vector(temp_za,srm(joker,1),srm(joker,0),m_za);
+
+    // Then we loop through the frequencies and distribute the temp_za
+    // elements into temp, where they will be spread with the number of
+    // frequencies.
+    for (Index i=0;i<x_f.nelem();i++) {
+      temp[Range(i,m_za.nelem(),x_f.nelem())] = temp_za;
+      H.insert_row(i,temp);
+      temp = 0.0;
+    }
+  } else {
+    for (Index i=0;i<x_f.nelem();i++) {
+      // Here we perform the calculations for each frequency.
+      sensor_integration_vector(temp[Range(i,m_za.nelem(),x_f.nelem())],
+        srm(joker,1+i),srm(joker,0),m_za);
+      H.insert_row(i,temp);
+      temp = 0.0;
+    }
   }
 }
 
@@ -477,39 +496,37 @@ void sensor_summation_vector(
    \author Mattias Ekström
    \date   2003-05-12
 */
-void spectrometer_transfer_matrix( Sparse&   H,
+void spectrometer_transfer_matrix( Sparse&           H,
                                    ConstMatrixView   srm,
                                    ConstVectorView   x_s,
                                    ConstVectorView   x_f )
 {
-  //Assert that the transfer matrix and the sensor response matrix has the
-  //right size
-  assert( H.nrows()==x_s.nelem() && H.ncols()==x_f.nelem() );
-  assert( srm.ncols()==2 );
-  
-  //Allocate memory for temporary vectors
-  Vector temp(x_f.nelem()*x_s.nelem(), 0.0);
+  // Check that the transfer matrix has the right size
+  assert (H.nrows()==x_s.nelem());
+  assert (H.ncols()==x_f.nelem());
+
+  // Check that the channel response has the right size and if the same
+  // response will be used for all frequencies or if there is one response
+  // for each frequency.
+  assert (srm.ncols()==2 || srm.ncols()==x_s.nelem()+1);
+  Index is_full = 1;
+  if (srm.ncols()==2)
+    is_full = 0;
+
+  // Allocate memory for temporary vectors, temp is used to store the
+  // result from sensor_integration_vector before inserting them in
+  // the transfer matrix. The second vector is used to store the shifted
+  Vector temp(x_f.nelem(), 0.0);
   Vector x_srm(srm.nrows());
 
   //Calculate the sensor integration vector and put values in the temporary
   //vector, then copy vector to the transfer matrix
   for (Index i=0; i<x_s.nelem(); i++) {
     //The spectrometer response is shifted for each centre frequency step
-	x_srm = srm(joker,0);
-	x_srm += x_s[i];
-    sensor_integration_vector( temp[Range(i*x_f.nelem(), x_f.nelem())],
-	                           srm(joker,1), x_srm, x_f);
-	//cout << "temp:\n" << temp[Range(i*x_f.nelem(), x_f.nelem())] << "\n";
-	//cout << "x_srm:\n" << x_srm << "\n";
-  }
-
-  //FIXME: Should be fixed by a SparseView(Range, Range) -> VectorView
-  //This might take more time than needed
-  for (Index j=0; j<x_f.nelem(); j++) {
-    for (Index i=0; i<x_s.nelem(); i++) {
-      if (temp[i+j*x_s.nelem()]!=0)
-	    H.rw(i,j) = temp[i+j*x_s.nelem()];
-	}
+    x_srm = srm(joker,0);
+    x_srm += x_s[i];
+    sensor_integration_vector(temp,srm(joker,1+i*is_full),x_srm,x_f);
+    H.insert_row(i,temp);
   }
 }
 

@@ -3195,17 +3195,17 @@ md_data_raw.push_back
          "where the first column describes a relative grid of angles and the\n"
          "following column(s) describe the antenna diagram.\n"
          "Combined with the keyword \"diagram_type\", 3 cases are possible:\n"
-         "   \"single\" - The same antenna gain is used for all frequencies. In\n"
-         "               this case the matrix must be a two column matrix.\n"
-         "               Keyword f_ref can be set to an arbitrary value.\n"
-         "   \"scale\"  - The antenna gain is scaled with frequency, the keyword\n"
-         "               f_ref denotes the reference frequency for which the\n"
-         "               antenna diagram is given.\n"
-         "   \"full\"   - The antenna diagram are given for each frequency. In\n"
-         "               this case the number of columns in the input matrix\n"
-         "               must equal the number of frequencies in\n"
-         "               *sensor_response_f* plus one (for the relative grid).\n"
-         "               Keyword f_ref can be set to an arbitrary value.\n"
+         "  \"single\" - The same antenna gain is used for all frequencies. In\n"
+         "             this case the matrix must be a two column matrix.\n"
+         "             Keyword f_ref can be set to an arbitrary value.\n"
+         "  \"scale\"  - The antenna gain is scaled with frequency, the keyword\n"
+         "             f_ref denotes the reference frequency for which the\n"
+         "             antenna diagram is given.\n"
+         "  \"full\"   - The antenna diagram are given for each frequency. In\n"
+         "             this case the number of columns in the input matrix\n"
+         "             must equal the number of frequencies in\n"
+         "             *sensor_response_f* plus one (for the relative grid).\n"
+         "             Keyword f_ref can be set to an arbitrary value.\n"
          "\n"
          "Generic Input: \n"
          "      Matrix : The antenna response matrix.\n"
@@ -3226,22 +3226,33 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Returns the response block matrix after it has been modified by\n"
-	 "a spectrometer backend response.\n"
+         "a spectrometer backend response.\n"
          "\n"
-         "The generic input matrix is a two-column matrix where the first\n"
-	 "column describes a relative grid of frequencies and the second\n"
-	 "column desrcibes the backend response. Such a matrix can be set up\n"
-	 "by *GaussianResponse*.\n"
-	 "\n"
-	 "Generic Input: \n"
-	 "   Matrix : The backend response matrix."
+         "The channel response is given as the generic input matrix, where the\n"
+         "first column describes a relative grid of frequencies and the rest of\n"
+         "the columns describes the backend response. The are two possible setups\n"
+         "for this, either the same response is used for all channels or each\n"
+         "channel is given a specific response. This is set by the keyword;\n"
+         "  \"single\" - The same response is used for all channels. In this\n"
+         "             case the matrix should only contain one column of\n"
+         "             response values.\n"
+         "  \"full\"   - Each channel has it own response. The matrix must\n"
+         "             contain as many columns of response data as there are\n"
+         "             frequencies.\n"
+         "Note that for both cases there must also be a column, the first, of\n"
+         "relative frequency grid.\n"
+         "\n"
+         "Generic Input: \n"
+         "       Matrix : The backend response matrix.\n"
+         "Keyword: \n"
+         "response_type : \"single\" or \"full\"."
         ),
         OUTPUT( sensor_response_ ),
         INPUT( f_backend_, f_mixer_ ),
         GOUTPUT( ),
         GINPUT( Matrix_ ),
-        KEYWORDS( ),
-        TYPES( )));
+        KEYWORDS( "response_type" ),
+        TYPES( String_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3251,12 +3262,12 @@ md_data_raw.push_back
          "Initialises the response block matrix to an identity matrix.\n"
          "\n"
          "The initialised matrix is a quadratic matrix with sidelength equal\n"
-	 "to the product of the length of *f_grid*, *mblock_za_grid*,\n"
-	 "*mblock_aa_grid* and the columns of *sensor_pol*."
+         "to the product of the length of *f_grid*, *mblock_za_grid*,\n"
+         "*mblock_aa_grid* and the columns of *sensor_pol*."
         ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
                 sensor_response_aa_  ),
-        INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_, 
+        INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
                sensor_pol_, atmosphere_dim_, stokes_dim_ ),
         GOUTPUT( ),
         GINPUT( ),

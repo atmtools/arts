@@ -329,6 +329,13 @@ void sensor_responseAntenna1D(// WS Output:
        << "x" << sensor_response.ncols() << "\n";
 }
 
+//! sensor_responseBackend
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-08-15
+*/
 void sensor_responseBackend(// WS Output:
                             Sparse&         sensor_response,
                             // WS Input:
@@ -337,36 +344,81 @@ void sensor_responseBackend(// WS Output:
                             // WS Generic Input:
                             const Matrix&   srm,
                             // WS Generic Input Names:
-                            const String&   srm_name)
+                            const String&   srm_name,
+                            // Control Parameters:
+                            const String&   response_type )
 {
-  //Check that sensor_response has the right size, i.e. has been initialised
+  // Check that sensor_response has the right size for the multiplication with
+  // the spectrometer response.
   if( sensor_response.nrows() != f_mixer.nelem()) {
     ostringstream os;
-    os << "The sensor block response matrix *sensor_response* has not been\n"
-       << "initialised or some sensor in front of the backend has not been\n"
-       << "considered.";
+    os << "The sensor block response matrix *sensor_response* does not have\n"
+       << "right size. Either it has not been initialised or some sensor in\n"
+       << "front of the backend has not been considered.";
     throw runtime_error( os.str());
   }
 
-  //Check that the backend response matrix has been initialised
-  if( srm.ncols()!=2 ) {
+  // Check that the backend channel response matrix has the right size in 
+  // combination with the keyword 'response_type'.
+  if (response_type=="single") {
+    if (srm.ncols()!=2) {
+      ostringstream os;
+      os << "The backend channel response *" << srm_name << "* must have "
+         << "two columns.";
+      throw runtime_error( os.str() );
+    }
+  } else if (response_type=="full") {
+    if (srm.ncols()!=f_backend.nelem()+1) {
+      ostringstream os;
+      os << "The backend channel response *" << srm_name << "* must have "
+         << f_backend.nelem()+1 << " columns,\n the first containing a "
+         << "relative frequency grid and the rest containing\n response "
+         << "elements for each backend channel frequency.";
+      throw runtime_error(os.str());
+    }
+  } else {
     ostringstream os;
-    os << "The backend response response matrix *" << srm_name << "* has not"
-       << " been\n correctly initialised. A two column matrix is expected,\n"
-       << "and can be created by *GaussianResponse*.\n";
-    throw runtime_error( os.str() );
+    os << "The keyword response_type must be either \"single\" or \"full\".";
+    throw runtime_error(os.str());
   }
 
+  // Check that the channel frequencies together with the relative frequency
+  // grid does not expand outside the frequency grid of the sensor_response
+  // matrix (FIXME: Fuzzy explanation, change to sensor_response_f?)
+  Numeric diff_low = (f_backend[0]+srm(0,0))-f_mixer[0];
+  Numeric diff_high = f_mixer[0]-(last(f_backend)+last(srm(0,joker)));
+  if (diff_low<0) {
+    ostringstream os;
+    os << "There is a " << -diff_low << " Hz overlap in the lower end between the\n"
+       << "channel response " << srm_name << " and the frequency grid of\n"
+       << "*sensor_reponse*. The frequency grid must be expanded by this amount to\n"
+       << "meet the channel response.";
+    throw runtime_error(os.str());
+  } else if (diff_high<0) {
+    ostringstream os;
+    os << "There is a " << -diff_high << " Hz overlap in the higher end between the\n"
+       << "channel response " << srm_name << " and the frequency grid of\n"
+       << "*sensor_reponse*. The frequency grid must be expanded by this amount to\n"
+       << "meet the channel response.";
+    throw runtime_error(os.str());
+  }
+
+  // Give some output to the user.
   out2 << "  Calculating the backend response using values and grid from *"
        << srm_name << "*.\n";
 
-  Sparse backend_response( f_backend.nelem(), f_mixer.nelem());
-  spectrometer_transfer_matrix( backend_response, srm, f_backend, f_mixer);
+  // Call the function that calculates the sensor transfer matrix.
+  Sparse backend_response(f_backend.nelem(),f_mixer.nelem());
+  spectrometer_transfer_matrix(backend_response,srm,f_backend,f_mixer);
 
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
   Sparse sensor_response_tmp = sensor_response;
-  sensor_response.resize( f_backend.nelem(), f_mixer.nelem());
-  mult( sensor_response, backend_response, sensor_response_tmp);
-  
+  sensor_response.resize(f_backend.nelem(),f_mixer.nelem());
+  mult(sensor_response,backend_response,sensor_response_tmp);
+
+  // Some extra output.
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
        << "x" << sensor_response.ncols() << "\n";
 }
@@ -493,97 +545,3 @@ void sensor_responseMixer(// WS Output:
        << "x" << sensor_response.ncols() << "\n";
 }
 
-
-/*===========================================================================
-  === Obsolete functions?
-  ===========================================================================*/
-
-//! SensorIntegrationVector
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-02-13
-*/
-/*
-void SensorIntegrationVector(
-        // WS Generic Output:
-              Vector&   h_out,
-        // WS Generic Output Names:
-        const String&   h_out_name,
-        // WS Generic Input:
-        const Vector&   f_values,
-        const Vector&   f_grid,
-        const Vector&   g_grid,
-        // WS Generic Input Names:
-        const String&   f_values_name,
-        const String&   f_grid_name,
-        const String&   g_grid_name )
-{
-  //Call sensor_integration_vector in sensor.cc
-  h_out.resize(g_grid.nelem());
-  sensor_integration_vector( h_out, f_values, f_grid, g_grid);
-
-}
-*/
-
-//! AntennaTransferMatrix
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-03-06
-*/
-/*
-void AntennaTransferMatrix(// WS Generic Output:
-                                 Matrix&    Hb,
-                           // WS Generic Output Names:
-                           const String&    Hb_name,
-                           // WS Generic Input:
-                           const Vector&    mblock_za_grid,
-                           const Matrix&    a,
-                           const Vector&    a_grid,
-                           const Vector&    f_grid,
-                           // WS Generic Input Names:
-                           const String&    mblock_za_grid_name,
-                           const String&    a_name,
-                           const String&    a_grid_name,
-                           const String&    f_grid_name)
-{
-  //Call antenna_transfer_matrix in sensor.cc
-  Hb.resize( f_grid.nelem(), mblock_za_grid.nelem() * f_grid.nelem() );
-  antenna_transfer_matrix( Hb, mblock_za_grid, a, a_grid, f_grid );
-
-}
-*/
-
-//! AntennaTest
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date  2003-03-10
-*/
-/*
-void AntennaTest(// WS Generic Output:
-                 Vector&          a,
-                 // WS Generic Output Names:
-                 const String&    a_name)
-{
-  //Set variables
-  Vector a_grid(181);
-  nlinspace(a_grid,-90,90,181);
-  Numeric theta = 3;
-
-  //Set size of a
-  a.resize( a_grid.nelem() );
-
-  //Call function
-  antenna_diagram_gaussian(a, a_grid, theta);
-
-  //Set up new vector and scale antenna diagram
-  Vector a_new = scale_antenna_diagram(a, 1, 100);
-
-  a = a_new;
-}
-*/

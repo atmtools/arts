@@ -1,3 +1,18 @@
+2003-08-15  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-649
+
+	* arts/src/sensor.cc: Changed antenna_transfer_matrix so that calls
+	to sensor_integration_vector is only done for changing antenna diagram.
+	For spectrometer_transfer_matrix changes are made to incorporate the
+	changes in sensor_responseBackend.
+	Removed obsolete functions at end of file.
+
+	* arts/src/m_sensor.cc:  Added some extra input tests to
+	sensor_responseBackend and also the possibility to use one channel
+	reponse for all channels or individual ones, in analogy with
+	sensor_responseAntenna1D.
+
 2003-08-15  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-648
