@@ -16,7 +16,7 @@
    USA. */
 
 #include "sensor.h"
-//#include <cmath>
+#include <cmath>
 #include <iostream>
 #include "matpackI.h"
 //#include "array.h"
@@ -25,7 +25,9 @@
 //#include "make_vector.h"
 //#include "math_funcs.h"
 //#include "describe.h"
-//#include "matpackII.cc"
+//#include "matpackII.h"
+
+extern const Numeric PI;
 
 void test1()
 {
@@ -73,10 +75,136 @@ void test2()
   cout << "f_grid:\n" << f_grid << "\n";
 }
 
+void test3()
+{
+  //Actually a test for Sparse resize function
+  cout << "\nTest 3:\n";
+
+  Sparse H(3,3);
+  for( Index i=0; i<H.nrows(); i++) {
+    H.rw(i,i) = i+1;
+  }
+
+  cout << "H initial:\n" << H << "\n";
+
+  H.resize(4,4);
+
+  cout << "H resized:\n" << H << "\n";
+
+  for( Index i=0; i<H.nrows(); i++ ) {
+   H.rw(i,i) = 4-i;
+  }
+
+  cout << "H refilled:\n" << H << "\n";
+}
+
+void test4()
+{
+  //Test string comparison
+  cout << "\nTest 4:\n";
+
+  String s1="test";
+
+  if( s1=="test" ) {
+    cout << "ok!\n";
+  } else {
+    cout << "not equal!\n";
+  }
+}
+
+void test5()
+{
+  //Test mixer_transfer_matrix
+  cout << "\nTest 5:\n";
+
+  Sparse H(1,1);
+  Vector f_mixer(1);
+  Vector f_grid(7);
+  f_grid[0]=2;
+  f_grid[1]=4;
+  f_grid[2]=6;
+  f_grid[3]=8;
+  f_grid[4]=13;
+  f_grid[5]=15;
+  f_grid[6]=17;
+  bool is_upper=true;
+  Numeric lo=10;
+  Matrix sfrm(2,2);
+  sfrm(0,0)=0;
+  sfrm(1,0)=20;
+  sfrm(0,1)=0;
+  sfrm(1,1)=2;
+
+  mixer_transfer_matrix( H, f_mixer, f_grid, is_upper, lo, sfrm);
+
+  cout << "H:\n" << H << "\n";
+
+  cout << "f_mixer:\n" << f_mixer << "\n";
+}
+
+void test6()
+{
+  //Test backend_transfer_matrix
+  cout << "\nTest 6:\n";
+
+  Vector f_mixer(11,7,1);
+  Vector f_backend(12,5,1);
+  /*
+  f_backend[0]=1;
+  f_backend[1]=2;
+  f_backend[2]=4;
+  f_backend[3]=5;
+  f_backend[4]=7;
+  */
+
+  Sparse H(f_backend.nelem() ,f_mixer.nelem());
+  Matrix srm(3,2,0.0);
+  srm(0,0)=-4;
+  srm(2,0)=4;
+  srm(1,1)=0.25;
+
+  spectrometer_transfer_matrix( H, srm, f_backend, f_mixer);
+
+  cout << "f_mixer:\n" << f_mixer << "\n";
+  cout << "f_backend:\n" << f_backend << "\n";
+  cout << "srm:\n" << srm << "\n";
+  cout << "H:\n" << H << "\n";
+}
+
+void test7()
+{
+  //Test sensor_integration_vector
+  cout << "\nTest 7:\n";
+  
+  //Calculate a gaussian response
+  Matrix srm(17,2);
+  for( Index i=0; i<srm.nrows(); i++ ) {
+    srm(i,0)=3+i*0.25;
+	srm(i,1)=1/(0.5*sqrt(2*PI))*exp(-pow(srm(i,0)-5,2.0)/(2*pow(0.5,2.0)));
+  }
+  
+  Vector h(10), f_grid(1,10,1);
+
+  sensor_integration_vector(h, srm(joker,1), srm(joker,0), f_grid);
+
+  cout << "srm:\n" << srm << "\n";
+
+  cout << "h:\n" << h << "\n";
+
+  h*=f_grid;
+  
+  cout << "h*g:\n" << h.sum() << "\n";
+}
+
 int main()
 {
-  test1();
-  test2();
+//  test1();
+//  test2();
+//  test3();
+//  test4();
+//  test5();
+//  test6();
+  test7();
 
   return 0;
 }

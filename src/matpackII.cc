@@ -239,6 +239,32 @@ Sparse::~Sparse()
   delete mcolptr;
 }
 
+/** Resize function. If the size is already correct this function does
+    nothing. All data is lost after resizing! The new Sparse is not
+    initialised so it will be empty.*/
+void Sparse::resize(Index r, Index c)
+{
+  assert( 0<=r );
+  assert( 0<=c );
+  if ( mrr.mextent!=r || mcr.mextent!=c )
+    {
+      delete mdata;
+      mdata = new std::vector<Numeric>;
+      delete mrowind;
+      mrowind = new std::vector<Index>;
+      delete mcolptr;
+      mcolptr = new std::vector<Index>(c+1,0);
+
+      mrr.mstart = 0;
+      mrr.mextent = r;
+      mrr.mstride = c;
+
+      mcr.mstart = 0;
+      mcr.mextent = c;
+      mcr.mstride = 1;
+    }
+}
+
 // Output operator for SparseView:
 
 std::ostream& operator<<(std::ostream& os, const SparseView& v)

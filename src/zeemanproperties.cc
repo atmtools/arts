@@ -444,7 +444,7 @@ void Zeeman (Vector& f_grid,
 	  abs_vec_zee(f_grid_index,0) = 0.5*(2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]));
 	  abs_vec_zee(f_grid_index,1) = -0.5*(2.*real(G_s[f_grid_index*4+3]) - 2.*real(G_s[f_grid_index*4+0]));
 	  abs_vec_zee(f_grid_index,2) = 0.5*(2.*real(G_s[f_grid_index*4+1]) + 2.*real(G_s[f_grid_index*4+2]));
-	  abs_vec_zee(f_grid_index,3) = 0.0 
+	  abs_vec_zee(f_grid_index,3) = 0.0;
 	  
 	  
 	}

@@ -576,10 +576,24 @@ test_sensor_SOURCES = \
 	arts_mpi.cc \
 	arts_mpi.h \
 	constants.cc \
-	matpackI.h \
+	interpolation.cc \
+	interpolation.h \
+	logic.cc \
+	logic.h \
 	matpackI.cc \
-	matpackII.h \
+	matpackI.h \
 	matpackII.cc \
+	matpackII.h \
+	matpackIII.cc\
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc\
+	matpackVI.h \
+	matpackVII.cc\
+	matpackVII.h \
 	sensor.h \
 	sensor.cc \
 	test_sensor.cc

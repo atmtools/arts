@@ -1277,25 +1277,25 @@ void define_md_data_raw()
          "Creates a matrix with a relative grid and a gaussian response.\n"
          "\n"
          "The grid is a relative grid so therefore it is centred around\n"
-		 "zero, the TotWidth keyword describes the difference between the\n"
-		 "maximum grid point and the minimum. The grid range is then divided\n"
-		 "into grid points equally spaced with max distance equal or less\n"
-		 "than MaxSpacing. The results are the stored in columns in the matrix.\n"
-		 "Grid points in the first and values in the second column.\n"
-		 "\n"
+         "zero, the TotWidth keyword describes the difference between the\n"
+         "maximum grid point and the minimum. The grid range is then divided\n"
+         "into grid points equally spaced with max distance equal or less\n"
+         "than MaxSpacing. The results are the stored in columns in the matrix.\n"
+         "Grid points in the first and values in the second column.\n"
+         "\n"
          "Generic output: \n"
          "   Matrix     : The matrix containing the grid and response values.\n"
          "\n"
          "Keywords:\n"
-         "   FWHM       : The Full Width at Half Mean value for the response.\n"
-		 "   TotWidth   : The total width of the relative grid.\n"
-		 "   MaxSpacing : The maximum step between grid points."
+         "   fwhm       : The Full Width at Half Mean value for the response.\n"
+         "   tot_width   : The total width of the relative grid.\n"
+         "   max_spacing : The maximum step between grid points."
          ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
         GINPUT(),
-        KEYWORDS( "FWHM", "TotWidth", "MaxSpacing" ),
+        KEYWORDS( "fwhm", "tot_width", "max_spacing" ),
         TYPES( Numeric_t, Numeric_t, Numeric_t )));
 
   md_data_raw.push_back
@@ -3165,7 +3165,7 @@ void define_md_data_raw()
 		 "   Matrix : The backend response matrix."
         ),
         OUTPUT( sensor_response_ ),
-        INPUT( f_grid_, f_sensor_ ),
+        INPUT( f_backend_, f_mixer_ ),
         GOUTPUT( ),
         GINPUT( Matrix_ ),
         KEYWORDS( ),
@@ -3188,6 +3188,32 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("sensor_responseMixer"),
+        DESCRIPTION
+        (
+         "Returns the response block matrix after it has been modified by\n"
+         "the mixer and sideband filter.\n"
+         "\n"
+         "The generic input matrix is a two-column matrix where the first\n"
+         "column should be equal to *f_grid* and the second column desrcibes\n"
+         "the sideband filter function.\n"
+         "\n"
+         "Generic Input: \n"
+         "       Matrix : The sideband filter response matrix.\n"
+         "\n"
+         "Keywords:\n"
+         "           lo : The LO frequency.\n"
+         " primary_band : \"upper\" or \"lower\"."
+        ),
+        OUTPUT( sensor_response_, f_mixer_ ),
+        INPUT( f_grid_ ),
+        GOUTPUT( ),
+        GINPUT( Matrix_ ),
+        KEYWORDS( "lo", "primary_band" ),
+        TYPES( Numeric_t, String_t )));
 
   md_data_raw.push_back
     ( MdRecord

@@ -97,6 +97,9 @@ public:
   Sparse(Index r, Index c);
   Sparse(const Sparse& m);
 
+  // Resize function:
+  void resize(Index r, Index c);
+
   // Destructor:
   ~Sparse();
 
@@ -104,9 +107,6 @@ public:
     { return SparseView::operator() (r, c); }
   Numeric operator() (Index r, Index c) const
     { return SparseView::operator() (r, c); }
-
-  void resize (Index r, Index c) { /* FIXME: Delete me and put resize
-                                      code in cc file */ };
 };
 
 

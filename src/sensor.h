@@ -36,13 +36,13 @@
 #ifndef sensor_h
 #define sensor_h
 
-
+#include "arts.h"
 #include "matpackI.h"
 #include "matpackII.h"
+#include "interpolation.h"
 //#include "agenda_class.h"
 //#include "array.h"
-//#include "arts.h"
-//#include "interpolation.h"
+#include "math_funcs.h"
 //#include "mystring.h"
 
 
@@ -50,11 +50,9 @@
   === Functions from sensor.cc
   ===========================================================================*/
 
-void sensor_integration_vector(
-           VectorView   h,
-      ConstVectorView   f,
-      ConstVectorView   x_ftot,
-      ConstVectorView   x_g );
+void antenna_diagram_gaussian(
+           MatrixView   srm,
+       const Numeric&   theta );
 
 void antenna_transfer_matrix(
            SparseView   H,
@@ -62,15 +60,32 @@ void antenna_transfer_matrix(
       ConstMatrixView   srm,
       ConstVectorView   x_f );
 
-void antenna_diagram_gaussian(
-           MatrixView   srm,
-       const Numeric&   theta );
-
-Vector scale_antenna_diagram(
+void mixer_transfer_matrix(
+               Sparse&   H,
+               Vector&   f_mixer,
+      ConstVectorView   f_grid,
+		   const bool   is_upper,
+	    const Numeric   lo,
+      ConstMatrixView   sfrm );
+	  
+Matrix scale_antenna_diagram(
       ConstMatrixView   srm,
        const Numeric&   f_ref,
        const Numeric&   f_new );
-	   
+
+void sensor_integration_vector(
+           VectorView   h,
+      ConstVectorView   f,
+      ConstVectorView   x_ftot,
+      ConstVectorView   x_g );
+
+void sensor_summation_vector(
+           VectorView   h,
+        const Numeric   f,
+      ConstVectorView   f_grid,
+	    const Numeric   lo,
+      ConstMatrixView   sfrm );
+
 void spectrometer_transfer_matrix(
            SparseView   H,
       ConstMatrixView   srm,

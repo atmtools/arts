@@ -669,6 +669,19 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "f_backend" ),
+       DESCRIPTION
+       (
+        "The frequency grid of the backend channels.\n"
+        "\n"
+        "Usage:      Input to *sensor_responseBackend*.\n "
+        "\n"
+        "Unit:       Hz"
+        ),
+        GROUP( Vector_ )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "f_grid" ),
        DESCRIPTION
        (
@@ -708,12 +721,12 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "f_sensor" ),
+     ( NAME( "f_mixer" ),
        DESCRIPTION
        (
-        "The frequency grid for sensor channels.\n"
+        "The frequency grid of output from the mixer.\n"
         "\n"
-        "Usage:      Input to *sensor_responseBackend*.\n "
+        "Usage:      Input and output in *sensor_responseMixer*.\n "
         "\n"
         "Unit:       Hz"
         ),

@@ -236,7 +236,8 @@ void refr_indexIR(
 		const Numeric&                  a_temperature,
 		const Vector&					a_vmr_list )
 {
-  // touch( a_vmr_list );
+  //To suppress warning about unused parameter
+  a_vmr_list.nelem();
 
   refr_index_ir( refr_index, a_pressure, a_temperature );
 }

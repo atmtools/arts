@@ -1,3 +1,30 @@
+2003-06-11  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-573
+
+	* src/m_refraction.cc: Removed compilation warning from Oliver's list.
+
+	* src/m_sensor.cc: Added WSM sensor_responseMixer and made changes to
+	sensor_responseBackend.
+
+	* src/methods.cc: Changed input to GaussianResponse and added
+	sensor_responseMixer.
+    
+	* src/sensor.{cc,h}: Added calculating methods for the mixer and backend
+	response WSM.
+
+	* src/workspace.cc: Added f_mixer and f_backend as WSV groups and removed
+	previously added f_sensor.
+    
+	* src/matpackII.cc: Added resize function for sparse matrices.
+    
+	* src/test_sensor.cc: Added various test functions.
+    
+	* src/Makefile.am: Added constants, matpacks and interpolation to the
+    test_sensor compilation group(?).
+    
+	* src/zeemanproperties.cc: Fixed compilation error (missing ;)
+
 2003-06-11  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-572
@@ -299,23 +326,23 @@
 2003-05-26  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-552
-	
+
 	* src/groups.cc: Added new WSV group Sparse. The group has not yet
 	been fully implemented, the code compiles as long as no WSV beolngs
 	to the group. This has to be fixed.
-	
+
 	* src/make_auto_wsv_h.cc: Include matpackII.h in auto_wsv.h
-	
+
 	* src/methods.cc: Added three new WSM; sensor_responseAntenna1D,
 	sensor_responseBackend and sensor_responseInit.
-	
+
 	* src/m_sensor.cc: Implementation of the sensor_responseAntenna1D,
 	sensor_responseBackend and sensor_responseInit which sets up the
 	sensor_response matrix or modifies it with the antenna/backend
 	response.
 
 	* src/workspace.cc: Added two new WSV; sensor_response and f_sensor
-	that are used in sensor modelling. The sensor_response is a matrix 
+	that are used in sensor modelling. The sensor_response is a matrix
 	that describes the whole sensor block response and f_sensor is a
 	vector that describes the sensor channel frequencies.
 
@@ -325,8 +352,8 @@
 
 2003-05-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-551	
-	
+	* arts-1-1-551
+
 	* src/methods.cc: Included documentation for recently added
 	methods related to the new database format.
 

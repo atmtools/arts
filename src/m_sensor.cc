@@ -39,6 +39,7 @@
   ===========================================================================*/
 
 #include <cmath>
+#include <string>
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
@@ -95,33 +96,42 @@ void GaussianResponse(// WS Generic Output:
 }
 
 void sensor_responseAntenna1D(// WS Output:
-                   			  Sparse&			sensor_response,
-                   			  // WS Input:
-                   			  const Vector&		f_grid,
-                   			  const Vector&		mblock_za_grid,
-							  const Index&		antenna_dim,
-         					  // WS Generic Input:
-                   			  const Matrix&		srm,
-                   			  // WS Generic Input Names:
-                   			  const String&		srm_name )
+                              Sparse&           sensor_response,
+                              // WS Input:
+                              const Vector&     f_grid,
+                              const Vector&     mblock_za_grid,
+                              const Index&      antenna_dim,
+                              // WS Generic Input:
+                              const Matrix&     srm,
+                              // WS Generic Input Names:
+                              const String&     srm_name )
 {
   //Check that the antenna has the right dimension
   assert(antenna_dim==1);
 
   //Check that sensor_response has the right size, i.e. has been initialised
   Index n = f_grid.nelem() * mblock_za_grid.nelem();
-  if( sensor_response.ncols() != n ) {
+  if( sensor_response.nrows() != n ) {
     ostringstream os;
     os << "The sensor block response matrix *sensor_response* has not been\n"
-	   << "initialised or some sensor in front of the antenna has not been\n"
+       << "initialised or some sensor in front of the antenna has not been\n"
        << "considered.";
+    throw runtime_error( os.str() );
+  }
+
+
+  //Check that the backend response matrix has been initialised
+  if( srm.ncols()!=2 ) {
+    ostringstream os;
+    os << "The antenna response matrix *" << srm_name << "* has not"
+       << " been\n correctly initialised. A two column matrix is expected,\n"
+       << "and can be created by *GaussianResponse*.\n";
     throw runtime_error( os.str() );
   }
 
   out2 << "   Calculating the antenna response using values and grid from *"
        << srm_name << "*.\n";
 
-  //FIXME: Temporary solution, change when Sparse has been added to groups
   Sparse antenna_response( f_grid.nelem(), n);
   antenna_transfer_matrix( antenna_response, mblock_za_grid, srm, f_grid);
 
@@ -131,44 +141,51 @@ void sensor_responseAntenna1D(// WS Output:
 }
 
 void sensor_responseBackend(// WS Output:
-                 			Sparse&			sensor_response,
-                 			// WS Input:
-                 			const Vector&	f_grid,
-                 			const Vector&	f_grid_backend,
-                 			// WS Generic Input:
-                 			const Matrix&	srm,
-                 			// WS Generic Input Names:
-                 			const String&	srm_name)
+                            Sparse&         sensor_response,
+                            // WS Input:
+                            const Vector&   f_backend,
+                            const Vector&   f_mixer,
+                            // WS Generic Input:
+                            const Matrix&   srm,
+                            // WS Generic Input Names:
+                            const String&   srm_name)
 {
   //Check that sensor_response has the right size, i.e. has been initialised
-  if( sensor_response.nrows() != f_grid_backend.nelem() ||
-      sensor_response.ncols() != f_grid.nelem()) {
+  if( sensor_response.nrows() != f_mixer.nelem()) {
     ostringstream os;
     os << "The sensor block response matrix *sensor_response* has not been\n"
-	   << "initialised or some sensor in front of the backend has not been\n"
-	   << "considered.";
+       << "initialised or some sensor in front of the backend has not been\n"
+       << "considered.";
     throw runtime_error( os.str());
+  }
+
+  //Check that the backend response matrix has been initialised
+  if( srm.ncols()!=2 ) {
+    ostringstream os;
+    os << "The backend response response matrix *" << srm_name << "* has not"
+       << " been\n correctly initialised. A two column matrix is expected,\n"
+       << "and can be created by *GaussianResponse*.\n";
+    throw runtime_error( os.str() );
   }
 
   out2 << "   Calculating the backend response using values and grid from *"
        << srm_name << "*.\n";
 
-  //FIXME: Temporary solution, change when Sparse has been added to groups
-  Sparse backend_response( f_grid_backend.nelem(), f_grid.nelem());
-  spectrometer_transfer_matrix( backend_response, srm, f_grid_backend, f_grid);
+  Sparse backend_response( f_backend.nelem(), f_mixer.nelem());
+  spectrometer_transfer_matrix( backend_response, srm, f_backend, f_mixer);
 
   Sparse sensor_response_tmp = sensor_response;
-  sensor_response.resize( f_grid_backend.nelem(), f_grid.nelem());
+  sensor_response.resize( f_backend.nelem(), f_mixer.nelem());
   mult( sensor_response, backend_response, sensor_response_tmp);
 }
 
 void sensor_responseInit(// WS Output:
-              			 Sparse&			sensor_response,
-              			 // WS Input:
-              			 const Vector&		f_grid,
-              			 const Vector&		mblock_za_grid,
-              			 const Vector&		mblock_aa_grid,
-              			 const Index&		antenna_dim )
+                         Sparse&            sensor_response,
+                         // WS Input:
+                         const Vector&      f_grid,
+                         const Vector&      mblock_za_grid,
+                         const Vector&      mblock_aa_grid,
+                         const Index&       antenna_dim )
 {
   //FIXME: Check the antenna dimension??
   assert( antenna_dim == 1);
@@ -179,8 +196,63 @@ void sensor_responseInit(// WS Output:
   sensor_response.resize(n,n);
 
   for( Index i=0; i<n; i++) {
-  	sensor_response(i,i) = 1;
+    sensor_response(i,i) = 1;
   }
+}
+
+void sensor_responseMixer(// WS Output:
+                          Sparse&           sensor_response,
+                          Vector&           f_mixer,
+                          // WS Input:
+                          const Vector&     f_grid,
+                          // WS Generic Input:
+                          const Matrix&     sfrm,
+                          // WS Generic Input Names:
+                          const String&     sfrm_name,
+                          // Control Parameters:
+                          const Numeric&    lo,
+                          const String&     primary_band)
+{
+  //Check that sensor_response has the right size, i.e. has been initialised
+  if( sensor_response.nrows() != f_grid.nelem()) {
+    ostringstream os;
+    os << "The sensor block response matrix *sensor_response* has not been\n"
+       << "initialised or some sensor in front of the mixer has not been\n"
+       << "considered.";
+    throw runtime_error( os.str() );
+  }
+
+  //Check that the sideband filter matrix has been initialised
+  if( sfrm.ncols()!=2 ) {
+    ostringstream os;
+    os << "The sideband filter response matrix *" << sfrm_name << "* has not"
+       << " been\n correctly initialised. A two column matrix is expected.";
+    throw runtime_error( os.str() );
+  }
+
+  //Determine if primary band is upper or not.
+  bool is_upper;
+  if( primary_band=="upper" ) {
+    is_upper = true;
+  } else if ( primary_band=="lower" ) {
+    is_upper = false;
+  } else {
+    ostringstream os;
+    os << "The primary band has to be specified by either \"upper\" or \"lower\".\n";
+    throw runtime_error( os.str());
+  }
+
+  out2 << "   Calculating the mixer and sideband filter response using values\n"
+       << "   and grid from *" << sfrm_name << "*.\n";
+
+  //Call to calculating function
+  Sparse mixer_response(1,1);
+  mixer_transfer_matrix( mixer_response, f_mixer, f_grid, is_upper, lo, sfrm );
+
+  Sparse sensor_response_tmp = sensor_response;
+  sensor_response.resize( f_mixer.nelem(), f_grid.nelem());
+  mult( sensor_response, mixer_response, sensor_response_tmp);
+
 }
 
 
