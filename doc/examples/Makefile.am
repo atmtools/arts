@@ -13,11 +13,8 @@ examplesdocdir = $(artsdocdir)/examples
 
 arts_examples = \
 	example1.arts \
-	full.arts \
-	h2o.arts \
-	h2o.abs.am \
-	h2o.f_mono.am \
-	h2o.t_abs.am
+	cont.arts \
+	amsu.arts
 
 artsdata_examples_in = \
 	auto_full.arts.in

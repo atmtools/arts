@@ -1,3 +1,17 @@
+2001-10-04  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-262
+
+	* Removed some old control files in doc/example. The remaining examples
+	are: auto_full, example1 and amsu. (I will update auto_full ASAP).
+
+	* Worked on the sensor, data reduction and utility chapters in AUG.
+	The calibration section is removed as the calibration can be done
+	in a better way than I realised. It is possible to do the inversions 
+	with Rayleigh-Jean temperatures if the calibration is performed
+	correctly. 
+	
+
 2001-10-04  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-261
