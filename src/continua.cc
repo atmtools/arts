@@ -1852,8 +1852,11 @@ Numeric XINT_FUN( const Numeric V1A,
   //     FROM V1A TO V2A IN INCREMENTS OF DVA INTO XINT
 // ----------------------------------------------------------------------
 
-  // Numeric ONEPL  = 1.001;
-  Numeric ONEPL  = 0.001;
+  const Numeric ONEPL  = 1.001;     // original value given in F77 code
+  const Numeric ONEMI  = 0.999;     // original value given in F77 code
+
+  //const Numeric ONEPL  = 0.001;  // modified value for C/C++ code
+
   Numeric RECDVA = 1.00e0/DVA;
     
   int J      = (int) ((VI-V1A)*RECDVA + ONEPL) ; 
@@ -14515,8 +14518,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.13 $ */
-/*     created:	        $Date: 2003/09/09 14:55:48 $ */
+/*     revision:	        $Revision: 1.26.2.14 $ */
+/*     created:	        $Date: 2003/10/09 08:57:21 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

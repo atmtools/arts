@@ -1,3 +1,11 @@
+2003-10-09  Thomas Kuhn <tkuhn@uni-bremen.de>
+
+	* arts-1-0-132
+
+	* src/continua.cc (XINT_FUN): bug fix for the interpolation of
+	the CKD continua. Now the previously detected discontinuous steps
+	are removewd. Checks showed no such steps anymore.
+
 2003-10-08  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-131

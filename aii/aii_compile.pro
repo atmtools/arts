@@ -64,6 +64,10 @@ print, ' '
 .COMPILE aii_plot_legend
 .COMPILE aii_plot_file
 
+;; water vapor saturation pressure calculation
+.COMPILE WaterVaporSatPressure
+.COMPILE RH_test
+
 ;; plotting absorption, TB, transmission or VMRs
 .COMPILE plot_abs_per_tg
 .COMPILE plot_abs_per_tg_2
@@ -73,16 +77,12 @@ print, ' '
 .COMPILE showme
 
 ;; creating an ARTS control file
-.COMPILE CreateArtsControlFile
+;;.COMPILE CreateArtsControlFile
 
 
 ;; fit of H2O continuum parameters
-.COMPILE WVContParamFit
+;;.COMPILE WVContParamFit
 
-
-;; water vapor saturation pressure calculation
-.COMPILE WaterVaporSatPressure
-.COMPILE RH_test
 
 
 print, ' '
