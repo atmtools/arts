@@ -1,3 +1,21 @@
+2003-08-20  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-659
+
+	* src/Makefile.am: Added sorting.h and target test_sorting.
+
+	* src/sorting.h: Template function to get the sorted indexes for a
+	simple container type like Array or Vector.
+
+	* src/test_sorting.cc: Added for testing and as an example for sorting
+	a Vector and an Array.
+
+	* src/matpackI.h: Added typedefs for iterators to class for
+	compatibility with STL.
+
+	* src/.cvsignore: Added test_sorting.
+
+	* ChangeLog: Cleanup.
 
 2003-08-19  Cory Davis    <cory@met.ed.ac.uk>>
 
@@ -13,8 +31,6 @@
 
 	* src/montecarlo.cc (Cloudbox_ppath_rteCalc): changed call to 
 	shift_rte_pos
-
-
 
 2003-08-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
@@ -32,7 +48,6 @@
 	
 	* src/m_optproperties.cc: Included defines.
 
-
 2003-08-19  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-656
@@ -40,7 +55,6 @@
 	* src/test_legendre.cc: Added function
 	(legendre_poly_norm_schmidt_deriv) to test the derivative of the
 	Schmidt quasi-normalized Legendre polynomials.
-	
 
 2003-08-19  Oliver Lemke  <olemke@uni-bremen.de>
 
