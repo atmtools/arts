@@ -1,3 +1,10 @@
+2003-11-27  Oliver Lemke  <olemke@uni-bremen.de>
+
+        * arts-1-0-139
+
+	* reconf: Output message telling the user to use autogen.sh. Makes
+	build steps consistent with arts-1.1.
+
 2003-11-22  Oliver Lemke  <olemke@uni-bremen.de>
 
         * arts-1-0-138
