@@ -191,6 +191,7 @@ noinst_PROGRAMS = \
 	test_sensor \
 	test_xml \
 	test_complex \
+	test_mpi \
 	test_zeemanproperties \
 	test_integration
 
@@ -579,6 +580,15 @@ test_complex_SOURCES = \
 	complex.h \
 	complex.cc \
 	test_complex.cc
+
+test_mpi_SOURCES = \
+	arts.cc \
+	arts.h \
+	arts_mpi.cc \
+	arts_mpi.h \
+	matpackI.cc \
+	matpackI.h \
+	test_mpi.cc
 
 test_sensor_SOURCES = \
 	arts.cc \
