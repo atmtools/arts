@@ -177,16 +177,16 @@ void define_basic_species_data()
       ( NAME("H2O"),
 	DEGFR(3),
 	ISOTOPES
-	(//   Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
-	 //		|		|	|	|	|
-	 REC( "161"	,0.99731702	,18.	,11	,11	,TAGS(18003, 18005) ),
-	 REC( "181"	,0.00199983	,20.	,12	,12	,TAGS(20003) ),
-	 REC( "171"	,0.00037200	,19.	,13	,13	,TAGS(19003) ),
-	 REC( "162"	,0.00031069	,19.	,14	,14	,TAGS(19002) ),
-	 REC( "182"	,6.1070746E-07	,21.	,-1	,-1	,TAGS(21001) ),
-	 REC( "262"	,2.2430204E-08	,20.	,-1	,-1	,TAGS(20001) ),
-	 REC( "HITRAN96Self"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "HITRAN96Foreign"	,-1.	,-1.	,-1	,-1	,TAGS()      )
+	(//   Name,		Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
+	 //			|		|	|	|	|
+	 REC( "161"		,0.99731702	,18.	,11	,11	,TAGS(18003, 18005) ),
+	 REC( "181"		,0.00199983	,20.	,12	,12	,TAGS(20003) ),
+	 REC( "171"		,0.00037200	,19.	,13	,13	,TAGS(19003) ),
+	 REC( "162"		,0.00031069	,19.	,14	,14	,TAGS(19002) ),
+	 REC( "182"		,6.1070746E-07	,21.	,-1	,-1	,TAGS(21001) ),
+	 REC( "262"		,2.2430204E-08	,20.	,-1	,-1	,TAGS(20001) ),
+	 REC( "ContRosenkranzSelf"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "ContRosenkranzForeign"	,-1.	,-1.	,-1	,-1	,TAGS()      )
 	 ) ) );
 
   // CO2 

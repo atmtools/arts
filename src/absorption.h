@@ -946,6 +946,8 @@ void get_tag_group_index_for_tag_group(
         const TagGroups&      tags1, 
         const ARRAY<OneTag>&  tags2 );
 
+string get_tag_group_name( const ARRAY<OneTag>& tg );
+
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,
 			   const ARRAYofLineRecord& lines);

@@ -236,8 +236,8 @@ void define_partition_species_data()
   iso(it_isotope,	"162",	Qcoeff(	-2.3916E+01	,1.3793E+00	,6.1246E-03	,-2.1530E-06) );
   iso(it_isotope,	"182",	Qcoeff(	-5.1056E+00	,2.4408E-01	,1.0230E-03	,-4.2596E-07) );
   iso(it_isotope,	"262",	Qcoeff(	-3.6689E+01	,1.7119E+00	,7.2123E-03	,-3.0200E-06) );
-  iso(it_isotope,	"HITRAN96Self",	   Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"HITRAN96Foreign", Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"ContRosenkranzSelf",    Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"ContRosenkranzForeign", Qcoeff( 0	,0		,0		,0          ) );
 
 
 

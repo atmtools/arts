@@ -50,9 +50,9 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
 {
   extern const ARRAY<string> wsv_group_names;
 
-  os << "Name = "        << wr.Name() << '\n'
-     << "Description = " << wr.Description() << '\n'
-     <<	"Group = "       << wsv_group_names[wr.Group()];
+  os << "Name = "         << wr.Name() << '\n'
+     << "Description =\n" << wr.Description() << '\n'
+     <<	"Group = "        << wsv_group_names[wr.Group()];
 
   return os;
 }

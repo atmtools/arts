@@ -9,6 +9,7 @@
 
 #include "vecmat.h"
 #include "absorption.h"
+#include "messages.h"
 
 /**
    Calculates the self broadened continuum according to the simple
@@ -98,53 +99,60 @@ void simple_empirical_self_continuum( MATRIX&           xsec,
 
     alpaha [1/m] = xsec * VMR
 
-    \retval xsec    Cross section of one continuum tag.
-    \param  tag     The tag for which to do the calculation.
-    \param  f_mono  Frequency grid.
-    \param  p_abs   Pressure grid.
-    \param  t_abs   Temperatures associated with p_abs.
-    \param  h2o_abs Total volume mixing ratio of water vapor. This
-                    will be needed only for the oxygen continuum
-    \param  vmr     Volume mixing ratio of the calculated species.
+    \retval xsec       Cross section of one continuum tag.
+    \param  name       The name of the continuum to calculate.
+    \param  parameters Continuum model parameters, as defined in
+                       cont_description_parameters. 
+    \param  f_mono     Frequency grid.
+    \param  p_abs      Pressure grid.
+    \param  t_abs      Temperatures associated with p_abs.
+    \param  h2o_abs    Total volume mixing ratio of water vapor. This
+                       will be needed only for the oxygen continuum
+    \param  vmr        Volume mixing ratio of the calculated species.
 
     \date   2001-01-16
     \author Stefan Buehler */
 void xsec_continuum_tag( MATRIX&                    xsec,
-			 const OneTag&              tag,
+			 const string&              name,
+			 const VECTOR&              parameters,
 			 const VECTOR&  	    f_mono,
 			 const VECTOR&  	    p_abs,
 			 const VECTOR&  	    t_abs,
 			 const VECTOR&  	    h2o_abs,
 			 const VECTOR&              vmr )
 {
-  extern const ARRAY<SpeciesRecord> species_data;
+  out3 << "  Continuum paramters are: " << parameters << "\n";
 
-  // Get only the continuum name. The full tag name is something like:
-  // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
-  const string name =
-    species_data[tag.Species()].Name() + "-"
-    + species_data[tag.Species()].Isotope()[tag.Isotope()].Name();
-  
   // A simple switch statement does not work here, because the
   // switching condition is not a simple value. So we need to use a
   // chain of if-else statements.
-  if ( "H2O-HITRAN96Self"==name )
+  if ( "H2O-ContRosenkranzSelf"==name )
     {
-      // FIXME: Thomas, the values for C and x are just my guess from the
-      // Rosenkranz paper. You have to put in the right ones. Note
-      // that xsec is in [1/m], f_mono is in [Hz], p_abs is in [Pa], and t_abs is in
-      // [K]. Therefor, the exponent in C is very different from
-      // Rosenkranz's paper. I probably have not got it right, I did
-      // this very quickly. You have to find out the right exponent yourself.
+      // Check if the right number of paramters has been specified:
+      if ( 2 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "Continuum model " << name << " requires two input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	}
+      
+      // The first parameter should be the continuum coefficient, the
+      // second one the temperature exponent.
+      //
+      // Note that xsec is in [1/m], f_mono is in [Hz], p_abs is in
+      // [Pa], and t_abs is in [K]. Therefore, the exponent in C is
+      // very different from Rosenkranz's paper. 
       simple_empirical_self_continuum( xsec,
-				       7.8e-27,
-				       4.5,
+				       parameters[0],
+				       parameters[1],
 				       f_mono,
 				       p_abs,
 				       t_abs,
 				       vmr );
     }
-  else if ( "H2O-HITRAN96Foreign"==name )
+  else if ( "H2O-ContRosenkranzForeign"==name )
     {
       // FIXME: Thomas, you have to fill in this one! You should implement a
       // function simple_empirical_foreign_continuum, similar to my
@@ -158,3 +166,90 @@ void xsec_continuum_tag( MATRIX&                    xsec,
     }
 }
 
+
+
+/**
+   An auxiliary functions that checks if a given continuum model is
+   listed in species_data. This is just in order to verify that this
+   really represent a valid continuum model.
+
+   The given name should be something like
+   `H2O-ContRosenkranzSelf'. The function simply checks if there is a
+   species H2O with an isotope ContRosenkranzSelf.
+
+   For user-friendliness, the function also compiles a list of allowed
+   continuum models and gives this as an error message if the model is
+   not found. 
+
+   The function has no return value, since, if the name does not match
+   a valid model an error is thrown anyway.
+
+   \param name The name of the continuum model to check.
+
+   \throw runtime_error The model does not exist.
+
+   \author Stefan Buehler
+   \date   2001-03-12
+*/
+void check_continuum_model(const string& name)
+{
+  // The species lookup data:
+  extern const ARRAY<SpeciesRecord> species_data;
+
+  // For the list of valid continuum models:
+  ARRAY<string> valid_models;
+
+  bool found = false;
+
+  // Loop all species:
+  for ( ARRAY<SpeciesRecord>::const_iterator i=species_data.begin();
+	i<species_data.end();
+	++i )
+    {
+      string specnam = i->Name();
+
+      // Loop all isotopes:
+      for ( ARRAY<IsotopeRecord>::const_iterator j=i->Isotope().begin();
+	    j<i->Isotope().end();
+	    ++j )
+	{
+	  string isonam = j->Name();
+
+	  // The specified name consists of a species part and an
+	  // isotope part, e.g., H2O-ContRosenkranzSelf. We need to
+	  // construct a similar string from the species lookup data
+	  // by concatenating species name and isotope name.
+
+	  string fullnam = specnam + "-" + isonam;
+	  //	  cout << fullnam << "\n";
+
+	  // See if this is a continuum tag, so that we can add it to
+	  // the list:
+	  if ( 0 > j->Abundance() )
+	    {
+	      valid_models.push_back(fullnam);	      
+	    }
+	  
+	  if ( name == fullnam )
+	    {
+	      //	      cout << "Bingo!\n";
+	      found = true;
+	    }
+	}
+    }
+
+  // Have we found it?
+  if (!found)
+    {
+      ostringstream os;
+      os << "The string `" << name << "' matches none of the known\n"
+	 << "continuum models. Known continuum models are:";
+      for ( ARRAY<string>::const_iterator i=valid_models.begin();
+	    i<valid_models.end();
+	    ++i )
+	{
+	  os << "\n" << *i;
+	}      
+      throw runtime_error(os.str());
+    }
+}

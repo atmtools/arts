@@ -2,10 +2,6 @@ SAB 2000-01-30: Turn off all debugging options with ./configure flag.
                 (Do not give the -g flag to the compiler, set NDEBUG.)
 SAB 2000-03-27: Add an author field to MdRecord?
 SAB 2000-06-17: Change interpolation in absorption part to interpp.
-SAB 2000-08-16: - Implement abs_tags and wf_tags, also
-                  abs_tagsDefine and wf_tagsDefine.
-                - Change absComp to return absorption matrices only for 
-                  wf_tags
 SAB 2000-08-21: Some ideas for absorption:
                 - Method lines_per_tgAddMirrorLines
                   Adds mirror lines for those transitions for which
@@ -56,29 +52,12 @@ SAB 2000-09-13: Change names of automatically generated files to _auto...
 AvE 2000-09-27: There is optimization potential in the lineshape.cc file,
 		read FIXME comments over there.
 
-SAB 2000-10-05: Implement a mechanism for `meta-methods', i.e.,
-                methods that can execute parts of the controlfile with
-                changed parameters in a private copy of the
-                workspace. 
-
-SAB 2000-10-05: Implement sparse matrices and multiplication of sparse
-                matrix with a sparse matrix, matrix, or vector.
-
 SAB 2000-10-05: Implement sensor model by sparse matrix. (Needs sparse
                 matrix first)
 
-SAB 2000-10-05: Implement optimization algorithms. (Needs meta-methods
-                first.) 
-
 SAB 2000-10-05: Make a first release.
 
-SAB 2000-10-05: Set up ARTS mailing list. (Oliver)
-
 SAB 2000-10-05: Set up ARTS web page. (Oliver)
-
-SAB 2000-10-05: Create IDL version of AMI. (Wolfram)
-
-SAB 2000-10-05: Fix pdf version of Uguide. (Oliver)
 
 PE  2000-11-02: Change some data types as follows:
                   Numeric       -> NUMERIC
@@ -147,10 +126,6 @@ SAB 2000-12-13: Find a solution how to remove WSVs (as if they had not
                 rid of WSVs. Add the moment this is not possible at
                 all. :-(
 
-PE 2000-12-14:  Spectroscopic data should be converted to SI units when doing
-                the reading. No conversion should be needed in the absorption
-                routines.
-
 PE 2000-12-14:  Interpolation in m_abs is not done using the standard 
                 function (interpp). (Oooops, it is also mentioned above, 
                 15/12 PE).
@@ -165,3 +140,9 @@ SAB 2001-01-05: More clearly separate between WS methods and other
 SAB 2001-01-05: Write to MTL Siek about adding to vectors?
 
 PE 2001-02-14:  Contact MTL about banded symmetric matrices.
+
+SAB 2001-03-12: Rename `resize' to `replace'.
+
+SAB 2001-03-12: Implement `conglomerates', a mechanism of binding a
+                couple of WSVs together. Based on this, implement more
+                logical ASCII I/O formats.

@@ -1,4 +1,7 @@
-/* Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2000 Stefan Buehler   <sbuehler@uni-bremen.de>
+                      Patrick Eriksson <patrick@rss.chalmers.se>
+		      Axel von Engeln  <engeln@uni-bremen.de>
+		      Thomas Kuhn      <tkuhn@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -15,7 +18,17 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-// Stuff related to the calculation of absorption coefficients.
+// 
+
+/**
+   \file   m_abs.cc
+
+   Stuff related to the calculation of absorption coefficients.
+
+   \author Stefan Buehler
+   \date   2001-03-12
+*/
+
 
 #include "arts.h"
 #include "vecmat.h"
@@ -221,14 +234,14 @@ void linesReadFromArts(// WS Output:
 void lines_per_tgReadFromCatalogues(// WS Output:
 				    ARRAYofARRAYofLineRecord& lines_per_tg,
 				    // WS Input:
-				    const TagGroups& tag_groups,
+				    const TagGroups& tgs,
                                     // Control Parameters:
                                     const ARRAY<string>& filenames,
                                     const ARRAY<string>& formats,
                                     const VECTOR& fmin,
                                     const VECTOR& fmax)
 {
-  const size_t n_tg   = tag_groups.size();	// # tag groups
+  const size_t n_tg   = tgs.size();	// # tag groups
   const size_t n_cat = filenames.size();	// # tag Catalogues
 
   // Check that dimensions of the keyword parameters are consistent
@@ -259,7 +272,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 	 << "catalugues than you have tag groups.\n"
 	 << "You specified:\n"
 	 << "Catalogues: " << n_cat << "\n"
-	 << "tag_groups: " << n_tg;
+	 << "tgs: " << n_tg;
       throw runtime_error(os.str());
     }
 
@@ -273,7 +286,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 	 << "least one catalogue and at least one tag group.\n"
 	 << "You specified:\n"
 	 << "Catalogues: " << n_cat << "\n"
-	 << "tag_groups: " << n_tg;
+	 << "tgs: " << n_tg;
       throw runtime_error(os.str());
     }
 
@@ -353,7 +366,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
   size_t n_real_cat = real_filenames.size(); // # real catalogues to read
 
   // Some output to low priority stream:
-  out3 << "  Catalogues to read and tag_groups for which these will be used:\n";
+  out3 << "  Catalogues to read and tgs for which these will be used:\n";
   for ( size_t i=0; i<n_real_cat; ++i )
     {
       out3 << "  " << real_filenames[i] << ":";
@@ -363,7 +376,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
     }
 
   // Make lines_per_tg the right size:
-  resize( lines_per_tg, tag_groups.size() );
+  resize( lines_per_tg, tgs.size() );
 
   // Loop through the catalogues to read:
   for ( size_t i=0; i<n_real_cat; ++i )
@@ -397,12 +410,12 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 	  throw runtime_error(os.str());
 	}
 
-      // We need to make subset tag_groups for the groups that should
+      // We need to make subset tgs for the groups that should
       // be read from this catalogue.
       TagGroups  these_tgs(real_tgs[i].size());
       for ( size_t s=0; s<real_tgs[i].size(); ++s )
 	{
-	  these_tgs[s] = tag_groups[real_tgs[i][s]];
+	  these_tgs[s] = tgs[real_tgs[i][s]];
 	}
 
       // Create these_lines_per_tg:
@@ -422,7 +435,7 @@ void lines_per_tgCreateFromLines(// WS Output:
                                   ARRAYofARRAYofLineRecord& lines_per_tg,
                                   // WS Input:
                                   const ARRAYofLineRecord&   lines,
-                                  const TagGroups&           tag_groups)
+                                  const TagGroups&           tgs)
 {
   // The species lookup data:
   extern const ARRAY<SpeciesRecord> species_data;
@@ -439,7 +452,7 @@ void lines_per_tgCreateFromLines(// WS Output:
   std::vector<bool> species_used (species_data.size(),false);
       
   // Make lines_per_tg the right size:
-  lines_per_tg = ARRAYofARRAYofLineRecord(tag_groups.size());
+  lines_per_tg = ARRAYofARRAYofLineRecord(tgs.size());
 
   // Unfortunately, MTL conatains a bug that leads to all elements of
   // the outer ARRAY of an ARRAY<ARRAY>> pointing to the same data
@@ -465,14 +478,14 @@ void lines_per_tgCreateFromLines(// WS Output:
       size_t j;
 
       // Loop the tag groups:
-      for ( j=0; j<tag_groups.size() && !found ; ++j ) 
+      for ( j=0; j<tgs.size() && !found ; ++j ) 
 	{
 	  // A tag group can contain several tags:
-	  for ( size_t k=0; k<tag_groups[j].size() && !found; ++k )
+	  for ( size_t k=0; k<tgs[j].size() && !found; ++k )
 	    {
 	      // Get a reference to the current tag (not really
 	      // necessary, but makes for nicer notation below):
-	      const OneTag& this_tag = tag_groups[j][k];
+	      const OneTag& this_tag = tgs[j][k];
 
 	      // Now we will test different attributes of the line
 	      // against matching attributes of the tag. If any
@@ -544,12 +557,12 @@ void lines_per_tgCreateFromLines(// WS Output:
    }
 
   // Write some information to the lowest priority output stream.
-  for (size_t i=0; i<tag_groups.size(); ++i)
+  for (size_t i=0; i<tgs.size(); ++i)
     {
 	out3 << "  " << i << ":";
 
-	for (size_t s=0; s<tag_groups[i].size(); ++s)
-	  out3 << " " << tag_groups[i][s].Name();
+	for (size_t s=0; s<tgs[i].size(); ++s)
+	  out3 << " " << tgs[i][s].Name();
 
 	out3 << ": " << lines_per_tg[i].size() << " lines\n";
     }
@@ -701,11 +714,11 @@ void lines_per_tgWriteToFile(// WS Input:
 
 
 void tgsDefine(// WS Output:
-	       TagGroups& tag_groups,
+	       TagGroups& tgs,
 	       // Control Parameters:
 	       const ARRAYofstring& tags)
 {
-  tag_groups = TagGroups(tags.size());
+  tgs = TagGroups(tags.size());
 
   //  cout << "Tags: " << tags << "\n";
 
@@ -743,7 +756,7 @@ void tgsDefine(// WS Output:
       // Unfortunately, MTL conatains a bug that leads to all elements of
       // the outer ARRAY of an ARRAY<ARRAY>> pointing to the same data
       // after creation. So we need to fix this explicitly:
-      tag_groups[i] = ARRAY<OneTag>();
+      tgs[i] = ARRAY<OneTag>();
 
       for ( size_t s=0; s<tag_def.size(); ++s )
 	{
@@ -755,26 +768,26 @@ void tgsDefine(// WS Output:
 
 	  // Safety check: For s>0 check that the tags belong to the same species.
 	  if (s>0)
-	    if ( tag_groups[i][0].Species() != this_tag.Species() )
+	    if ( tgs[i][0].Species() != this_tag.Species() )
 	      throw runtime_error("Tags in a tag group must belong to the same species.");
 
-	  tag_groups[i].push_back(this_tag);
+	  tgs[i].push_back(this_tag);
 	}
     }
 
   // Print list of tag groups to the most verbose output stream:
   out3 << "  Defined tag groups:";
-  for ( size_t i=0; i<tag_groups.size(); ++i )
+  for ( size_t i=0; i<tgs.size(); ++i )
     {
       out3 << "\n  " << i << ":";
-      for ( size_t s=0; s<tag_groups[i].size(); ++s )
+      for ( size_t s=0; s<tgs[i].size(); ++s )
 	{
-	  out3 << " " << tag_groups[i][s].Name();
+	  out3 << " " << tgs[i][s].Name();
 	}
     }
   out3 << '\n';
 
-//  cout << endl << endl << tag_groups << endl;
+//  cout << endl << endl << tgs << endl;
 }
 
 
@@ -782,7 +795,7 @@ void tgsDefine(// WS Output:
 void lineshapeDefine(// WS Output:
 		     ARRAYofLineshapeSpec&    lineshape,
 		     // WS Input:
-		     const TagGroups&         tag_groups,
+		     const TagGroups&         tgs,
 		     const string&            shape,
 		     const string&            normalizationfactor,
 		     const Numeric&           cutoff)
@@ -793,7 +806,7 @@ void lineshapeDefine(// WS Output:
 
 
   // generate the right number of elements
-  size_t tag_sz = tag_groups.size();
+  size_t tag_sz = tgs.size();
   resize(lineshape,tag_sz);
 
   // Is this lineshape available?
@@ -844,7 +857,7 @@ void lineshapeDefine(// WS Output:
 void lineshape_per_tgDefine(// WS Output:
 			    ARRAYofLineshapeSpec& lineshape,
 			    // WS Input:
-			    const TagGroups&      tag_groups,
+			    const TagGroups&      tgs,
 			    const ARRAYofstring&  shape,
 			    const ARRAYofstring&  normalizationfactor,
 			    const VECTOR&         cutoff )
@@ -854,7 +867,7 @@ void lineshape_per_tgDefine(// WS Output:
   extern const ARRAY<LineshapeNormRecord> lineshape_norm_data;
 
   // check that the number of elements are equal
-  size_t tg_sz = tag_groups.size();
+  size_t tg_sz = tgs.size();
   if ( (tg_sz != shape.size()) ||
        (tg_sz != normalizationfactor.size()) || 
        (tg_sz != cutoff.size()) )
@@ -879,9 +892,9 @@ void lineshape_per_tgDefine(// WS Output:
 	  if (str == shape[k]) 
 	    {
 	      out2 << "  Tag Group: [";
-	      for (size_t s=0; s<tag_groups[k].size()-1; ++s)
-		out2 << tag_groups[k][s].Name() << ", "; 
-	      out2 << tag_groups[k][tag_groups[k].size()-1].Name() << "]\n";
+	      for (size_t s=0; s<tgs[k].size()-1; ++s)
+		out2 << tgs[k][s].Name() << ", "; 
+	      out2 << tgs[k][tgs[k].size()-1].Name() << "]\n";
 	      out2 << "  Selected lineshape: " << str << "\n";
 	      found0=i;
 	    }
@@ -930,7 +943,7 @@ void lineshape_per_tgDefine(// WS Output:
 void raw_vmrs_1dReadFromScenario(// WS Output:
                                  ARRAYofMATRIX&   raw_vmrs_1d,
                                  // WS Input:
-                                 const TagGroups& tag_groups,
+                                 const TagGroups& tgs,
                                  // Control Parameters:
                                  const string&    basename)
 {
@@ -938,12 +951,12 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
   extern const ARRAY<SpeciesRecord> species_data;
 
   // We need to read one profile for each tag group.
-  for ( size_t i=0; i<tag_groups.size(); ++i )
+  for ( size_t i=0; i<tgs.size(); ++i )
     {
       // Determine the name.
       string name =
 	basename + "." +
-	species_data[tag_groups[i][0].Species()].Name() + ".am";
+	species_data[tgs[i][0].Species()].Name() + ".am";
 
       // Add an element for this tag group to the vmr profiles:
       raw_vmrs_1d.push_back(MATRIX());
@@ -1227,16 +1240,16 @@ void z_absHydrostatic(
 */
 void h2o_absSet(
               VECTOR&          h2o_abs,
-        const TagGroups&       tag_groups,
+        const TagGroups&       tgs,
         const ARRAYofVECTOR&   vmrs )
 {
-  const INDEX   n = tag_groups.size();
+  const INDEX   n = tgs.size();
         int     found = -1;
         string  s;
 
   for( INDEX i=0; i<n && found<0; i++ ) 
   {
-    s = tag_groups[i][0].Name();
+    s = tgs[i][0].Name();
     
     if ( s.substr(0,3) == "H2O" )
       found = int(i);
@@ -1261,7 +1274,7 @@ void h2o_absSet(
    \retval   abs            absorption coefficients
    \retval   abs_per_tg     absorption coefficients per tag group
 
-   \param    tag_groups     the list of tag groups 
+   \param    tgs     the list of tag groups 
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
    \param    t_abs          temperature at pressure level
@@ -1269,43 +1282,64 @@ void h2o_absSet(
    \param    vmrs           volume mixing ratios per tag group
    \param    lines_per_tg   transition lines per tag group
    \param    lineshape      lineshape specifications to use per tag group
-
+   \param    cont_description_names names of different continuum
+                                    models
+   \param    cont_description_parameters continuum parameters for the
+                                         models listed in
+					 cont_description_names 
 
    \author Axel von Engeln
-   \date 2001-01-11 */
+   \date 2001-01-11
+
+   \author Stefan Buehler
+   \date 2001-03-13
+ */
 void absCalc(// WS Output:
              MATRIX&        		     abs,
              ARRAYofMATRIX& 		     abs_per_tg,
              // WS Input:		  
-	     const TagGroups&                tag_groups,
+	     const TagGroups&                tgs,
              const VECTOR&  		     f_mono,
              const VECTOR&  		     p_abs,
              const VECTOR&  		     t_abs,
 	     const VECTOR&  		     h2o_abs,
              const ARRAYofVECTOR&            vmrs,
              const ARRAYofARRAYofLineRecord& lines_per_tg,
-	     const ARRAYofLineshapeSpec&     lineshape)
+	     const ARRAYofLineshapeSpec&     lineshape,
+	     const ARRAYofstring&            cont_description_names,
+	     const ARRAYofVECTOR& 	     cont_description_parameters)
 {
   // Dimension checks are performed in the executed functions
 
   // allocate local variable to hold the cross sections per tag group
   ARRAYofMATRIX xsec_per_tg;
 
-  xsec_per_tgCalc( xsec_per_tg,
-		  tag_groups,
-		  f_mono,
-		  p_abs,
-		  t_abs,
-		  h2o_abs,
-		  vmrs,
-		  lines_per_tg,
-		  lineshape );
+  xsec_per_tgInit( xsec_per_tg, tgs, f_mono, p_abs );
 
+  xsec_per_tgAddLines( xsec_per_tg,
+		       tgs,
+		       f_mono,
+		       p_abs,
+		       t_abs,
+		       h2o_abs,
+		       vmrs,
+		       lines_per_tg,
+		       lineshape );
+
+  xsec_per_tgAddConts( xsec_per_tg,
+		       tgs,
+		       f_mono,
+		       p_abs,
+		       t_abs,
+		       h2o_abs,
+		       vmrs,
+		       cont_description_names,
+		       cont_description_parameters );
 
   absCalcFromXsec(abs,
 		  abs_per_tg,
 		  xsec_per_tg,
-		  vmrs);
+		  vmrs );
 
 }
 
@@ -1362,6 +1396,8 @@ void absCalcFromXsec(// WS Output:
   setto( abs, 0);
   resize( abs_per_tg, xsec_per_tg.size() );
 
+  out2 << "  Computing abs and abs_per_tg from xsec_per_tg.\n";
+
   // Loop through all tag groups
   for ( INDEX i=0; i<xsec_per_tg.size(); ++i )
     {
@@ -1388,12 +1424,51 @@ void absCalcFromXsec(// WS Output:
 }
 
 
-
 /**
-   Calculates the cross section for each tag group.
+   Initialize xsec_per_tg. The initialization is
+   necessary, because methods `xsec_per_tgAddLines'
+   and `xsec_per_tgAddConts' just add to xsec_per_tg.
 
    \retval   xsec_per_tg    cross section per tag group
-   \param    tag_groups     the list of tag groups
+   \param    tgs            the list of tag groups
+   \param    f_mono         monochromatic frequency grid
+   \param    p_abs          pressure levels 
+
+   \author Stefan Buehler
+   \date   2001-03-12
+*/
+void xsec_per_tgInit(// WS Output:
+		     ARRAYofMATRIX&   xsec_per_tg,
+		     // WS Input:
+		     const TagGroups& tgs,
+		     const VECTOR&    f_mono,
+		     const VECTOR&    p_abs
+		     )
+{
+  // Initialize xsec_per_tg. The array dimension of xsec_per_tg
+  // is the same as that of lines_per_tg.
+  resize( xsec_per_tg, tgs.size() );
+
+  // Loop xsec_per_tg and make each matrix the right size,
+  // initializing to zero:
+  for ( size_t i=0; i<tgs.size(); ++i )
+    {
+      // Make this element of abs_per_tg the right size:
+      resize( xsec_per_tg[i], f_mono.size(), p_abs.size() );
+      setto(  xsec_per_tg[i], 0 );
+    }
+
+  out2 << "  Initialized xsec_per_tg.\n"
+       << "  Number of frequencies        : " << f_mono.size() << "\n"
+       << "  Number of pressure levels    : " << p_abs.size() << "\n";
+}
+
+/**
+   Calculates the line spectrum for each tag group and adds it to
+   xsec_per_tg. 
+
+   \retval   xsec_per_tg    cross section per tag group
+   \param    tgs            the list of tag groups
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
    \param    t_abs          temperature at pressure level
@@ -1405,144 +1480,272 @@ void absCalcFromXsec(// WS Output:
    \author Stefan Bühler and Axel von Engeln
    \date   2001-01-11
 */
-void xsec_per_tgCalc(// WS Output:
-		    ARRAYofMATRIX& 		     xsec_per_tg,
-		    // WS Input:		  
-		    const TagGroups&                 tag_groups,
-		    const VECTOR&  		     f_mono,
-		    const VECTOR&  		     p_abs,
-		    const VECTOR&  		     t_abs,
-		    const VECTOR&  		     h2o_abs,
-		    const ARRAYofVECTOR&             vmrs,
-		    const ARRAYofARRAYofLineRecord&  lines_per_tg,
-		    const ARRAYofLineshapeSpec&      lineshape)
+void xsec_per_tgAddLines(// WS Output:
+			 ARRAYofMATRIX& 		  xsec_per_tg,
+			 // WS Input:		  
+			 const TagGroups&                 tgs,
+			 const VECTOR&  		  f_mono,
+			 const VECTOR&  		  p_abs,
+			 const VECTOR&  		  t_abs,
+			 const VECTOR&  		  h2o_abs,
+			 const ARRAYofVECTOR&             vmrs,
+			 const ARRAYofARRAYofLineRecord&  lines_per_tg,
+			 const ARRAYofLineshapeSpec&      lineshape)
 {
-  // Check that vmrs and lines_per_tg really have compatible
-  // dimensions. In vmrs there should be one VECTOR for each tg:
-  if ( vmrs.size() != lines_per_tg.size() )
-    {
-      ostringstream os;
-      os << "Variable vmrs must have compatible dimension to lines_per_tg.\n"
-	 << "vmrs.size() = " << vmrs.size() << '\n'
-	 << "lines_per_tg.size() = " << lines_per_tg.size();
-      throw runtime_error(os.str());
-    }
-  
-  // Initialize xsec_per_tg. The array dimension of xsec_per_tg
-  // is the same as that of lines_per_tg.
-  resize( xsec_per_tg, lines_per_tg.size() );
+  // Check that all paramters that should have the number of tag
+  // groups as a dimension are consistent.
+  {
+    const size_t n_tgs    = tgs.size();
+    const size_t n_xsec   = xsec_per_tg.size();
+    const size_t n_vmrs   = vmrs.size();
+    const size_t n_lines  = lines_per_tg.size();
+    const size_t n_shapes = lineshape.size();
 
-  // Print information
-  out3 << "  Transitions to do: \n";
-  size_t nlines = 0;
-  string funit;
-  Numeric ffac;
-  if ( f_mono[0] < 3e12 )
+    if ( n_tgs != n_xsec  ||
+	 n_tgs != n_vmrs  ||
+	 n_tgs != n_lines ||
+	 n_tgs != n_shapes   )
+      {
+	ostringstream os;
+	os << "The following variables must all have the same dimension:\n"
+	   << "tgs:          " << tgs.size() << '\n'
+	   << "xsec_per_tg:  " << xsec_per_tg.size() << '\n'
+	   << "vmrs:         " << vmrs.size() << '\n'
+	   << "lines_per_tg: " << lines_per_tg.size() << '\n'
+	   << "lineshape:    " << lineshape.size();
+	throw runtime_error(os.str());
+      }
+  }  
+
+  // Print information:
   {
-    funit = "GHz"; ffac = 1e9;
+    // The variables defined here (in particular the frequency
+    // conversion) are just to make the output nice. They are not used
+    // in subsequent calculations.
+    out2 << "  Calculating line spectra.\n";
+    out3 << "  Transitions to do: \n";
+    size_t nlines = 0;
+    string funit;
+    Numeric ffac;
+    if ( f_mono[0] < 3e12 )
+      {
+	funit = "GHz"; ffac = 1e9;
+      }
+    else
+      {
+	extern const Numeric SPEED_OF_LIGHT;
+	funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
+      }
+    for ( size_t i=0; i<lines_per_tg.size(); ++i )
+      {
+	for ( size_t l=0; l<lines_per_tg[i].size(); ++l )
+	  {
+	    out3 << "    " << lines_per_tg[i][l].Name() << " @ " 
+		 << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
+		 << lines_per_tg[i][l].I0() << ")\n"; 
+	    nlines++;
+	  }
+      }
+    out2 << "  Total number of transistions : " << nlines << "\n";
   }
-  else
-  {
-    extern const Numeric SPEED_OF_LIGHT;
-    funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
-  }
-  for ( size_t i=0; i<lines_per_tg.size(); ++i )
-  {
-    for ( size_t l=0; l<lines_per_tg[i].size(); ++l )
-    {
-      out3 << "    " << lines_per_tg[i][l].Name() << " @ " 
-           << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
-           << lines_per_tg[i][l].I0() << ")\n"; 
-      nlines++;
-    }
-  }
-  out2 << "  Number of frequencies     : " << f_mono.size() << "\n";
-  out2 << "  Number of pressure levels : " << p_abs.size() << "\n";
-  out2 << "  Number of transistions    : " << nlines << "\n";
 
   // Call xsec_species for each tag group.
-  for ( size_t i=0; i<lines_per_tg.size(); ++i )
+  for ( size_t i=0; i<tgs.size(); ++i )
     {
-      extern const ARRAY<SpeciesRecord> species_data; 
-
-      out2 << "  Tag group " << i << '\n';
+      out2 << "  Tag group " << i
+	   << " (" << get_tag_group_name(tgs[i]) << "): ";
       
-      // 1. Handle line absorption
-      // -------------------------
-
-      // Make this element of abs_per_tg the right size:
-      resize( xsec_per_tg[i], f_mono.size(), p_abs.size() );
-      setto( xsec_per_tg[i], 0 );
-
-      xsec_species( xsec_per_tg[i],
-		    f_mono,
-		    p_abs,
-		    t_abs,
-		    h2o_abs,
-		    vmrs[i],
-		    lines_per_tg[i],
-		    lineshape[i].Ind_ls(),
-		    lineshape[i].Ind_lsn(),
-		    lineshape[i].Cutoff());
-
-      // 2. Handle continuum absorption
-      // ------------------------------
-
-	// Go through the tags in the current tag group to see if they
-	// are continuum tags:  
-	for ( size_t s=0; s<tag_groups[i].size(); ++s )
-	  {
-	    // First of all, we have to make sure that this is not a
-	    // tag that means `all isotopes', because this should not
-	    // include continuum. For such tags, tag.Isotope() will
-	    // return the number of isotopes (i.e., one more than the
-	    // allowed index range).
-	    if ( tag_groups[i][s].Isotope() <
-		 species_data[tag_groups[i][s].Species()].Isotope().size() )
-	      {
-		// If we get here, it means that the tag describes a
-		// specific isotope. Could be a continuum tag!
-		
-		// The if clause below checks whether the abundance of this tag
-		// is negative. (Negative abundance marks continuum tags.)
-		// It does the following:
-		//
-		// 1. species_data contains the lookup table of species
-		// 	  specific data. We need the right entry in this
-		// 	  table. The index of this is obtained by calling member function
-		// 	  Species() on the tag. Thus we have:
-		// 	  species_data[tag_groups[i][s].Species()].
-		//
-		// 2. Member function Isotope() on the above biest gives
-		//    us the array of isotope specific data. This we have
-		//    to subscribe with the right isotope index, which we
-		//    get by calling member function Isotope on the
-		//    tag. Thus we have:
-		//    Isotope()[tag_groups[i][s].Isotope()]
-		//
-		// 3. Finally, from the isotope data we need to get the mixing
-		//    ratio by calling the member function Abundance().
-		if ( 0 >
-		     species_data[tag_groups[i][s].Species()].Isotope()[tag_groups[i][s].Isotope()].Abundance() )
-		  {
-		    // We have identified a continuum tag. Add the
-		    // continuum for this tag. The parameters in this call
-		    // should be clear. The vmr is in vmrs[i]. The other
-		    // vmr variable, `h2o_abs' contains the real H2O vmr,
-		    // which is needed for the oxygen continuum.
-		    xsec_continuum_tag( xsec_per_tg[i],
-					tag_groups[i][s],
-					f_mono,
-					p_abs,
-					t_abs,
-					h2o_abs,
-					vmrs[i] );
-		  }
-	      }
-	  }
+      // Skip the call to xsec_per_tg if the line list is empty.
+      if ( 0 < lines_per_tg[i].size() )
+	{
+	  out2 << lines_per_tg[i].size() << " transitions\n";
+	  xsec_species( xsec_per_tg[i],
+			f_mono,
+			p_abs,
+			t_abs,
+			h2o_abs,
+			vmrs[i],
+			lines_per_tg[i],
+			lineshape[i].Ind_ls(),
+			lineshape[i].Ind_lsn(),
+			lineshape[i].Cutoff());
+	}
+      else
+	{
+	  out2 << lines_per_tg[i].size() << " transitions, skipping\n";
+	}
     }
 }
 
+/**
+   Calculates the continuum for each tag group and adds it to
+   xsec_per_tg. 
+
+   \retval   xsec_per_tg    cross section per tag group
+   \param    tgs            the list of tag groups
+   \param    f_mono         monochromatic frequency grid
+   \param    p_abs          pressure levels 
+   \param    t_abs          temperature at pressure level
+   \param    h2o_abs        total volume mixing ratio of water vapor
+   \param    vmrs           volume mixing ratios per tag group
+   \param    cont_description_names names of different continuum
+                                    models
+   \param    cont_description_parameters continuum parameters for the
+                                         models listed in
+					 cont_description_names 
+
+   \throw runtime_error something went wrong
+
+   \author Stefan Bühler
+   \date   2001-03-12
+*/
+void xsec_per_tgAddConts(// WS Output:
+			 ARRAYofMATRIX& 		  xsec_per_tg,
+			 // WS Input:		  
+			 const TagGroups&                 tgs,
+			 const VECTOR&  		  f_mono,
+			 const VECTOR&  		  p_abs,
+			 const VECTOR&  		  t_abs,
+			 const VECTOR&  		  h2o_abs,
+			 const ARRAYofVECTOR&             vmrs,
+                         const ARRAYofstring&             cont_description_names,
+                         const ARRAYofVECTOR& 		  cont_description_parameters )
+{
+  // Check that all paramters that should have the number of tag
+  // groups as a dimension are consistent.
+  {
+    const size_t n_tgs    = tgs.size();
+    const size_t n_xsec   = xsec_per_tg.size();
+    const size_t n_vmrs   = vmrs.size();
+
+    if ( n_tgs != n_xsec || n_tgs != n_vmrs )
+      {
+	ostringstream os;
+	os << "The following variables must all have the same dimension:\n"
+	   << "tgs:          " << tgs.size() << '\n'
+	   << "xsec_per_tg:  " << xsec_per_tg.size() << '\n'
+	   << "vmrs:         " << vmrs.size();
+	throw runtime_error(os.str());
+      }
+  }
+
+  // Check, that dimensions of cont_description_names and
+  // cont_description_parameters are consistent...
+  if ( cont_description_names.size() !=
+       cont_description_parameters.size() )
+    {
+	ostringstream os;
+	os << "The following variables must have the same dimension:\n"
+	   << "cont_description_names:      " << cont_description_names.size() << '\n'
+	   << "cont_description_parameters: " << cont_description_parameters.size();
+	throw runtime_error(os.str());
+    }
+
+  // ...and that indeed the names match valid continuum models:
+  for ( size_t i=0; i<cont_description_names.size(); ++i )
+    {
+      check_continuum_model(cont_description_names[i]);
+    }
+
+  out2 << "  Calculating continuum spectra.\n";
+
+  // Loop tag groups:
+  for ( size_t i=0; i<tgs.size(); ++i )
+    {
+      extern const ARRAY<SpeciesRecord> species_data; 
+
+      // Go through the tags in the current tag group to see if they
+      // are continuum tags:  
+      for ( size_t s=0; s<tgs[i].size(); ++s )
+	{
+	  // First of all, we have to make sure that this is not a
+	  // tag that means `all isotopes', because this should not
+	  // include continuum. For such tags, tag.Isotope() will
+	  // return the number of isotopes (i.e., one more than the
+	  // allowed index range).
+	  if ( tgs[i][s].Isotope() <
+	       species_data[tgs[i][s].Species()].Isotope().size() )
+	    {
+	      // If we get here, it means that the tag describes a
+	      // specific isotope. Could be a continuum tag!
+		
+	      // The if clause below checks whether the abundance of this tag
+	      // is negative. (Negative abundance marks continuum tags.)
+	      // It does the following:
+	      //
+	      // 1. species_data contains the lookup table of species
+	      // 	  specific data. We need the right entry in this
+	      // 	  table. The index of this is obtained by calling member function
+	      // 	  Species() on the tag. Thus we have:
+	      // 	  species_data[tgs[i][s].Species()].
+	      //
+	      // 2. Member function Isotope() on the above biest gives
+	      //    us the array of isotope specific data. This we have
+	      //    to subscribe with the right isotope index, which we
+	      //    get by calling member function Isotope on the
+	      //    tag. Thus we have:
+	      //    Isotope()[tgs[i][s].Isotope()]
+	      //
+	      // 3. Finally, from the isotope data we need to get the mixing
+	      //    ratio by calling the member function Abundance().
+	      if ( 0 >
+		   species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].Abundance() )
+		{
+		  // We have identified a continuum tag!
+
+		  // Get only the continuum name. The full tag name is something like:
+		  // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
+		  const string name =
+		    species_data[tgs[i][s].Species()].Name() + "-"
+		    + species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].Name();
+  
+		  // Check that this corresponds to a valid continuum
+		  // model:
+		  check_continuum_model(name);
+
+		  // Check, if we have parameters for this model. For
+		  // this, the model name must be listed in
+		  // cont_description_names.
+		  const size_t n =
+		    find( cont_description_names.begin(),
+			  cont_description_names.end(),
+			  name ) - cont_description_names.begin();
+
+		  // n==cont_description_names.size() indicates that
+		  // the name was not found.
+		  if ( n==cont_description_names.size() )
+		    {
+		      ostringstream os;
+		      os << "Cannot find model " << name
+			 << " in cont_description_names.";
+		      throw runtime_error(os.str());		      
+		    }
+
+		  // Ok, the tag specifies a valid continuum model and
+		  // we have continuum parameters.
+		  
+		  out2 << "  Adding " << name
+		       << " to tag group " << i << ".\n";
+
+		  // Add the continuum for this tag. The parameters in
+		  // this call should be clear. The vmr is in
+		  // vmrs[i]. The other vmr variable, `h2o_abs'
+		  // contains the real H2O vmr, which is needed for
+		  // the oxygen continuum.
+		  xsec_continuum_tag( xsec_per_tg[i],
+				      name,
+				      cont_description_parameters[n],
+				      f_mono,
+				      p_abs,
+				      t_abs,
+				      h2o_abs,
+				      vmrs[i] );
+		}
+	    }
+	}
+    }
+
+}
 
 /** Reduces absorption coefficients.
     \verbatim
@@ -1553,42 +1756,42 @@ void xsec_per_tgCalc(// WS Output:
 void abs_per_tgReduce(// WS Output:
                       ARRAYofMATRIX&         abs_per_tg,
                       // WS Input:
-                      const TagGroups&       tag_groups,
-                      const TagGroups&       wfs_tag_groups)
+                      const TagGroups&       tgs,
+                      const TagGroups&       wfs_tgs)
 {
 
-  // make a safety check that the dimensions of tag_groups and
+  // make a safety check that the dimensions of tgs and
   // abs_per_tg are the same (could happen that we call this workspace
   // method twice by accident)
-  if ( abs_per_tg.size()!=tag_groups.size() )
-    throw(runtime_error("The variables abs_per_tg and tag_groups must\n"
+  if ( abs_per_tg.size()!=tgs.size() )
+    throw(runtime_error("The variables abs_per_tg and tgs must\n"
 			"have the same dimension."));
 
-  // index to the elements of wfs_tag_groups in tag_groups
+  // index to the elements of wfs_tgs in tgs
   size_t index;
 
   // dimension of output abs_per_tg
-  ARRAYofMATRIX abs_per_tg_out( wfs_tag_groups.size() );
+  ARRAYofMATRIX abs_per_tg_out( wfs_tgs.size() );
 
-  // make a copy of tag_groups, where we operate on
-  TagGroups copy_of_tag_groups( tag_groups.size() );
-  copy( tag_groups, copy_of_tag_groups );
+  // make a copy of tgs, where we operate on
+  TagGroups copy_of_tgs( tgs.size() );
+  copy( tgs, copy_of_tgs );
 
   // now copy the right elements in the right order and delete the
   // copied matrix from abs_per_tg to save memory
-  for (size_t i=0; i<wfs_tag_groups.size(); i++)
+  for (size_t i=0; i<wfs_tgs.size(); i++)
     {
-      get_tag_group_index_for_tag_group(index, copy_of_tag_groups, wfs_tag_groups[i] );
+      get_tag_group_index_for_tag_group(index, copy_of_tgs, wfs_tgs[i] );
 
       abs_per_tg_out[i] = abs_per_tg[ index ];
 
       erase_vector_element( abs_per_tg, index );
-      erase_vector_element( copy_of_tag_groups, index );
+      erase_vector_element( copy_of_tgs, index );
 
     }
 
   // copy the generated matrix back to abs_per_tg
-  resize( abs_per_tg, wfs_tag_groups.size() );
+  resize( abs_per_tg, wfs_tgs.size() );
   copy( abs_per_tg_out, abs_per_tg );
 }
 
@@ -1701,4 +1904,61 @@ void refr_indexBoudouris (
   setto( dummy, 1.0 );
   add(dummy, refr_index);
   */
+}
+
+
+//======================================================================
+//             Methods related to continua
+//======================================================================
+
+/**
+   Initializes the two continuum description WSVs,
+   `cont_description_names' and `cont_description_parameters'.  
+
+   This method does not really do anything, except setting the two
+   variables to empty ARRAYs. It is just necessary because the method
+   `cont_descriptionAppend' wants to append to the variables.
+
+   Formally, the continuum description WSVs are required by the
+   absorption calculation methods (e.g., `absCalc'). Therefore you
+   always have to call `cont_descriptionInit'.
+
+   Usage example: cont_descriptionInit{}
+
+   \author Stefan Buehler
+   \date 2001-03-12 */
+void cont_descriptionInit(// WS Output:
+                          ARRAYofstring& names,
+                          ARRAYofVECTOR& parameters)
+{
+  resize(names,0);
+  resize(parameters,0);
+  out2 << "  Initialized cont_description_names and cont_description_parameters.\n";
+}
+
+
+/**
+   Append a continuum description to `cont_description_names' and
+   `cont_description_parameters'. 
+
+   It is checked that the name given is indeed the name of an allowed
+   continuum model. This is done by looking in the species_data
+   lookup table.
+
+   \author Stefan Buehler
+   \date 2001-03-12 */
+void cont_descriptionAppend(// WS Output:
+		       ARRAYofstring& cont_description_names,
+		       ARRAYofVECTOR& cont_description_parameters,
+		       // Control Parameters:
+		       const string& name,
+		       const VECTOR& parameters)
+{
+
+  // First we have to check that name matches a continuum species tag.
+  check_continuum_model(name);
+
+  // Add name and parameters to the apropriate variables:
+  cont_description_names.push_back(name);
+  cont_description_parameters.push_back(parameters);
 }

@@ -547,6 +547,8 @@ void ybatchAbsAndRte(
         const Numeric&                    t_ground,
         const string&                     batchname,
         const TagGroups&                  tgs,
+	const ARRAYofstring&              cont_description_names,
+	const ARRAYofVECTOR& 		  cont_description_parameters,
       // Control Parameters:
         const int&                        ncalc,
         const int&                        do_t,
@@ -689,7 +691,9 @@ void ybatchAbsAndRte(
 
 
     if ( (i==0) || do_t || ndo || do_f )
-      absCalc( abs, abs_per_tag, tgs, f, p_abs, t, h2o_abs, vs, lines_per_tag, lineshape);
+      absCalc( abs, abs_per_tag, tgs, f, p_abs, t, h2o_abs, vs,
+	       lines_per_tag, lineshape, cont_description_names,
+	       cont_description_parameters);
 
     if ( (i==0) || do_z || do_za )   
       losCalc( los, z_plat, za, l_step, p_abs, z, refr, refr_lfac, 

@@ -1392,6 +1392,11 @@ void k_contabs (
    \param    trans             transmissions         
    \param    e_ground          ground emissivity
    \param    k_grid            retrieval grid
+   \param    cont_description_names names of different continuum
+                                    models
+   \param    cont_description_parameters continuum parameters for the
+                                         models listed in
+					 cont_description_names 
 
    \author Patrick Eriksson
    \date   2000-09-15
@@ -1413,7 +1418,9 @@ void k_temp_nohydro (
 		     const MATRIX&                        abs,            
 		     const ARRAYofMATRIX&                 trans,
 		     const VECTOR&                        e_ground,
-		     const VECTOR&                        k_grid )
+		     const VECTOR&                        k_grid,
+		     const ARRAYofstring&                 cont_description_names,
+                     const ARRAYofVECTOR& 		  cont_description_parameters )
 {
   // Main sizes
   const size_t  nza = los.start.size();     // number of zenith angles  
@@ -1468,7 +1475,7 @@ void k_temp_nohydro (
     VECTOR dummy(t_abs.size(),1.0);
     add(t_abs,dummy);
     absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, h2o_abs, vmrs, 
-             lines_per_tg, lineshape );
+             lines_per_tg, lineshape, cont_description_names, cont_description_parameters );
   }
   resize(abs_dummy,0);
   //
@@ -1872,11 +1879,14 @@ void kTempNoHydro (
 		    const MATRIX&                   abs,            
 		    const ARRAYofMATRIX&            trans,
 		    const VECTOR&                   e_ground,
-		    const VECTOR&                   k_grid )
+		    const VECTOR&                   k_grid,
+		    const ARRAYofstring&            cont_description_names,
+		    const ARRAYofVECTOR& 	    cont_description_parameters )
 {
   k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs,
                   t_abs, h2o_abs, vmrs, lines_per_tg, lineshape, 
-                  abs, trans, e_ground, k_grid );
+                  abs, trans, e_ground, k_grid,
+		  cont_description_names, cont_description_parameters );  
 }
 
 

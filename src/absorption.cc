@@ -1628,6 +1628,34 @@ void get_tag_group_index_for_tag_group(
 }
 
 
+/**
+   Print the name of a tag group. 
+
+   A tag group consists of several elementary OneTags. This functions
+   returns a string with the name of the entire tag group. This is
+   nice for informational output messages, for example in the
+   absorption routines.
+
+   \param  tg  The tag group in question.
+   \return The full name of the tag group, as it could occur in the controlfile.
+
+   \author Stefan Buehler
+   \date   2001-03-13
+*/
+string get_tag_group_name( const ARRAY<OneTag>& tg )
+{
+  string name;
+  size_t i;
+  
+  for ( i=0; i<tg.size()-1; ++i )
+    {
+      name += tg[i].Name() + ", ";
+    }
+  name += tg[i].Name();
+
+  return name;
+}
+
 
 /** A helper function that writes lines in a line list to a stream. 
 

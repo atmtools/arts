@@ -12,12 +12,16 @@
 
 
 void xsec_continuum_tag( MATRIX&                    xsec,
-			 const OneTag&              tag,
+			 const string&              name,
+			 const VECTOR&              parameters,
 			 const VECTOR&  	    f_mono,
 			 const VECTOR&  	    p_abs,
 			 const VECTOR&  	    t_abs,
 			 const VECTOR&  	    h2o_abs,
 			 const VECTOR&              vmr );
+
+
+void check_continuum_model(const string& name);
 
 
 #endif // contiua_h

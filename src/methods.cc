@@ -1252,6 +1252,45 @@ void define_md_data()
 	TYPES(   ARRAY_string_t,         ARRAY_string_t,        VECTOR_t )));
 
 
+//=== Continuum methods ============================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("cont_descriptionInit"),
+  	DESCRIPTION(
+          "Initializes the two continuum description WSVs,\n"
+	  "`cont_description_names' and `cont_description_parameters'.\n"  
+	  "\n"
+	  "This method does not really do anything, except setting the two\n"
+	  "variables to empty ARRAYs. It is just necessary\n"
+	  "because the method `cont_descriptionAppend' wants to append to the\n"
+	  "variables.\n"
+	  "\n"
+	  "Formally, the continuum description WSVs are required by the\n"
+	  "absorption calculation methods (e.g., `absCalc'). Therefore you\n"
+	  "always have to call `cont_descriptionInit'.\n"
+	  "\n"
+	  "Usage example: cont_descriptionInit{}"),
+	OUTPUT( cont_description_names_, cont_description_parameters_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("cont_descriptionAppend"),
+  	DESCRIPTION(
+          ""),
+	OUTPUT( cont_description_names_, cont_description_parameters_ ),
+	INPUT(  cont_description_names_, cont_description_parameters_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "name",   "parameters" ),
+	TYPES(    string_t, VECTOR_t     )));
+
+
 //=== Input Atmosphere methods ===========================================
 
   md_data.push_back
@@ -1376,7 +1415,8 @@ void define_md_data()
 		    "absorption per tag group."),
 	OUTPUT(	    abs_  , abs_per_tg_                         ),
 	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
-		    lineshape_ ),
+		    lineshape_,
+		    cont_description_names_, cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1397,11 +1437,37 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("xsec_per_tgCalc"),
-	DESCRIPTION("Calculate cross sections per tag group."),
+      ( NAME("xsec_per_tgInit"),
+	DESCRIPTION("Initialize xsec_per_tg. The initialization is\n"
+		    "necessary, because methods `xsec_per_tgAddLines'\n"
+		    "and `xsec_per_tgAddConts' just add to xsec_per_tg.\n"
+		    "The size is determined from `tgs'."),
+	OUTPUT(	    xsec_per_tg_                             ),
+	INPUT(      tgs_, f_mono_, p_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("xsec_per_tgAddLines"),
+	DESCRIPTION("Calculate cross sections per tag group for line spectra."),
 	OUTPUT(	    xsec_per_tg_                             ),
 	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
 		    lines_per_tg_, lineshape_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("xsec_per_tgAddConts"),
+	DESCRIPTION("Calculate cross sections per tag group for continua."),
+	OUTPUT(	    xsec_per_tg_                             ),
+	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_,
+		    cont_description_names_, cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1802,7 +1868,8 @@ void define_md_data()
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( tgs_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, 
                h2o_abs_, vmrs_, lines_per_tg_, lineshape_, 
-               abs_, trans_, e_ground_, k_grid_ ),
+               abs_, trans_, e_ground_, k_grid_,
+	       cont_description_names_, cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2611,7 +2678,7 @@ void define_md_data()
                // Additional variables for yRte
 	       y_space_, e_ground_, t_ground_,
                // Additional variables needed for this function
-               batchname_, tgs_ ),
+               batchname_, tgs_, cont_description_names_, cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS("ncalc", "do_t", "t_file", "do_z", "z_file",

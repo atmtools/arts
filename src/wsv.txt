@@ -35,6 +35,27 @@ each abs_tag, not for each species. This means if you have several
 abs_tags for different isotopes or transitions of a species, you
 may use different lineshapes.
 
+VARIABLE : cont_description_names
+DATA TYPE: ARRAYofstring
+DESCRIPTION:
+Continuum model names. This variable should contain a list of
+names of continuum models. Associated with this WSV is the WSV
+`cont_description_parameters' which should contain continuum
+parameters for each model. Allowed models currently are:
+
+H2O-ContRosenkranzSelf: Self component of a simple empirical
+   continuum model a la Liebe/Rosenkranz. Needs two parameters.
+H2O-ContRosenkranzForeign: Foreign component of a simple empirical
+   continuum model a la Liebe/Rosenkranz. Needs two parameters.
+
+VARIABLE : cont_description_parameters
+DATA TYPE: ARRAYofVECTOR
+DESCRIPTION:
+Continuum model parameters. See the WSV `cont_description_names'
+for a detailed description of the allowed continuum models. There
+should be one parameter vector here for each entry in
+`cont_description_names'.
+
 VARIABLE : raw_ptz_1d
 DATA TYPE: MATRIX
 DESCRIPTION:

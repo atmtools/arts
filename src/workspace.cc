@@ -91,6 +91,32 @@ void define_wsv_data()
       "may use different lineshapes.",
       ARRAYofLineshapeSpec_));
 
+
+  //--------------------< Continuum Stuff >--------------------
+  //                     -----------------
+  wsv_data.push_back
+    (WsvRecord
+     ("cont_description_names",
+      "Continuum model names. This variable should contain a list of\n"
+      "names of continuum models. Associated with this WSV is the WSV\n"
+      "`cont_description_parameters' which should contain continuum\n"
+      "parameters for each model. Allowed models currently are:\n\n"
+      "H2O-ContRosenkranzSelf: Self component of a simple empirical\n"
+      "   continuum model a la Liebe/Rosenkranz. Needs two parameters.\n"
+      "H2O-ContRosenkranzForeign: Foreign component of a simple empirical\n"
+      "   continuum model a la Liebe/Rosenkranz. Needs two parameters.",
+      ARRAYofstring_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("cont_description_parameters",
+      "Continuum model parameters. See the WSV `cont_description_names'\n"
+      "for a detailed description of the allowed continuum models. There\n"
+      "should be one parameter vector here for each entry in\n"
+      "`cont_description_names'.",
+      ARRAYofVECTOR_));
+
+
   //--------------------< 1D Input Atmosphere Stuff >--------------------
   //                     ---------------------------
   wsv_data.push_back

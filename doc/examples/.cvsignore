@@ -49,3 +49,12 @@ h2o.y.am
 nohup.out
 sparse.rep
 example1.abs.ab
+cont.rep
+cont.lines_per_tg.al
+cont.p_abs.aa
+cont.t_abs.aa
+cont.z_abs.aa
+cont.vmrs.aa
+cont.f_mono.aa
+cont.abs.aa
+cont.abs_per_tg.aa          

@@ -137,7 +137,7 @@ class Out3 {
 template<class T>
 Out0& operator<<(Out0& os, const T& t)
 {
-  MessagePrint(cerr,1,t);
+  MessagePrint(cerr,0,t);
   return os;
 }
 
