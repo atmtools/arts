@@ -1043,7 +1043,10 @@ void PWR98H2OAbsModel( MatrixView        xsec,
       // rho       =   (M_H2O / R)   *  (P_H2O / T)
       // rho       =      2.1667     *  p_abs * vmr / t_abs
       // den       = 3.335e16 * rho
-      Numeric den        = 3.335e16 * (2.1667 * p_abs[i] * vmr[i] / t_abs[i]);
+
+      //      Numeric den        = 3.335e16 * (2.1667 * p_abs[i] * vmr[i] / t_abs[i]);
+      // FIXME: SAB+TKS: Commented this out, den_dummy is used currently.
+
       Numeric den_dummy  = 3.335e16 * (2.1667 * p_abs[i] / t_abs[i]);
       // inverse relative temperature [1]
       Numeric ti         = (300.0 / t_abs[i]);
@@ -2666,7 +2669,10 @@ void MPM93_N2_continuum( MatrixView          xsec,
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  Numeric f = f_mono[s] * Hz_to_GHz; // frequency in GHz
+
+          //	  Numeric f = f_mono[s] * Hz_to_GHz; // frequency in GHz
+          // FIXME: SAB+TKS: Commented this out, f_mono is used directly
+
 	  // the vmr of N2 will be multiplied at the stage of absorption calculation:
 	  // abs / vmr * xsec.
 	  xsec(s,i) += fac * strength *                              // strength

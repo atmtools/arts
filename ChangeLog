@@ -1,3 +1,36 @@
+2002-12-02  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-327
+
+	* Fixed bug reported by Patrick. It took a while to find this. The
+	problem was that agendas were not copied correctly. Tracked the
+	problem down to the copying of MRecords, which are a part of
+	Agenda. The problem is that STRUCTURES CONTAINING ARRAYS ALWAYS
+	MUST DEFINE THE ASSIGNMENT OPERATOR. Otherwise copying the
+	structure will trigger an assertion unless all arrays have the
+	same size in original and target structure. That is of course not
+	what we want, normally.
+
+	* src/agenda_class.cc: (MRecord::operator=): Added. This is the
+	bug fix.
+	Also added output operator for MRecord and Agenda for
+	debugging purposes. The implementation resides in .print() member
+	functions for both classes.
+	(Agenda::print): Added.
+	(MRecord::print): Added.  Output operators and print functions are
+	not tested!
+
+	* src/agenda_class.h: Updated.
+
+	* src/token.cc (operator<<): Fixed output format to look like the
+	tokens are given in the controlfile. (Not tested, needed only for
+	debugging.)
+
+	* src/continua.cc (MPM93_N2_continuum): Commented out one line to
+	remove unused variable warning.
+	(PWR98H2OAbsModel): Commented out one line to remove unused
+	variable warning.
+
 2002-12-02  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-326

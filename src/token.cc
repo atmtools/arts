@@ -64,10 +64,13 @@ TokVal::operator Vector() const {
 
 ostream& operator<<(ostream& os, const TokVal& a)
 {
+  // This is needed for nice formating:
+  bool first = true;
+
   switch (a.mtype)
     {
     case String_t:
-      os << a.ms;
+      os << "\"" << a.ms << "\"";
       break;
     case Index_t:
       os << a.mn;
@@ -76,13 +79,36 @@ ostream& operator<<(ostream& os, const TokVal& a)
       os << a.mx;
       break;
     case Array_String_t:
-      os << a.msv;
+      os << "[";
+      for ( Index i=0; i<a.msv.nelem(); ++i )
+        {
+          if (first) first=false;
+          else os << ",";
+          os << "\"" << a.msv[i] << "\"";
+        }
+      os << "]";
       break;
     case Array_Index_t:
-      os << a.mnv;
+      os << "[";
+      for ( Index i=0; i<a.mnv.nelem(); ++i )
+        {
+          if (first) first=false;
+	  else os << ",";
+
+          os << a.mnv[i];
+        }
+      os << "]";
       break;
     case Vector_t:
-      os << a.mxv;
+      os << "[";
+      for ( Index i=0; i<a.mxv.nelem(); ++i )
+        {
+          if (first) first=false;
+	  else os << ",";
+
+          os << a.mxv[i];
+        }
+      os << "]";
       break;
     default:
       out0 << "Undefined token type.\n";

@@ -52,10 +52,16 @@ public:
   bool is_output(Index var) const;
   void set_name(const String& nname);
   String name() const;
+  void print( ostream& os,
+              const String& indent ) const;
 private:
   String         mname;	/*!< Agenda name. */
   Array<MRecord> mml;	/*!< The actual list of methods to execute. */
 };
+
+// Documentation with implementation.
+ostream& operator<<(ostream& os, const Agenda& a);
+
 
 /** Method runtime data. In contrast to MdRecord, an object of this
     class contains the runtime information for one method: The method
@@ -88,6 +94,12 @@ public:
   const ArrayOfIndex&  Input()    const { return minput;  }
   const Agenda&        Tasks()    const { return mtasks;  }
 
+  // Assignment operator:
+  MRecord& operator=(const MRecord& x);
+
+  // Output operator:
+  void                 print( ostream& os,
+                              const String& indent ) const;
 private:
   /** Method id. */
   Index mid;
@@ -102,5 +114,10 @@ private:
       keywords. */
   Agenda mtasks;
 };
+
+// Documentation is with implementation.
+ostream& operator<<(ostream& os, const MRecord& a);
+
+
 
 #endif
