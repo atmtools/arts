@@ -42,7 +42,7 @@ print, ' '
 set_plot, 'PS'  ; setting graphics device (= WIN,MAC,X,PS,PRINTER,METAFILE,Z,...)
 DEVICE,/PORTRAIT
 DEVICE, /COLOR
-DEVICE, SET_FONT='Times'
+DEVICE, /helvetica
 
 
 ; --- path ----------------------------------------------------------------------
@@ -101,7 +101,6 @@ print, ' '
 ;; #########################################################################
 
 ;; compiling all aii procedures/function:
-@aii_compile
 @aii_compile
 
 ;; #########################################################################

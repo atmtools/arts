@@ -130,7 +130,8 @@ void define_md_data()
         (
 	 "Outputs a string.\n"
          "\n"
-         "A detailed description of the function. Please, try to be as \n"
+         "Output the given message string, level follows the same convention as the -r\n"
+         "command line flag of arts.\n"
          "\n"
          "Keywords:\n"
          "   message   : Message for output on screen.\n"
@@ -2506,6 +2507,48 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("hseSetFromLatitude"),
+	DESCRIPTION(
+          "Sets the vector of parameters for calculation of hydrostatic \n"
+          "equilibrium (*hse*). The on/off flag is set to 1. The gravitational\n"
+          "acceleration is calculated following the international gravity formula.\n"
+          "\n"
+          "Type \"arts -d hse\" for more information. \n"
+          "\n"
+          "Keywords \n"
+          "  pref     : Pressure of the reference point. \n"
+          "  zref     : The geometrical altitude at pref. \n"
+          "  latitude : Geocentric latitude of observation point (-90 to 90 Degree).\n"
+          "  niter    : Number of iterations (1-2 should suffice normally)."),
+	OUTPUT( hse_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "pref",    "zref",    "latitude", "niter" ),
+	TYPES(    Numeric_t, Numeric_t, Numeric_t,  Index_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("hseSetFromLatitudeIndex"),
+	DESCRIPTION(
+          "As hseSetFromLatitude, but sets pref, zref to the values given by index \n"
+          "from vectors p_abs, z_abs (e.g. 0 = ground).\n"
+          "\n"
+          "Type \"arts -d hse\" for more information. \n"
+          "\n"
+          "Keywords \n"
+          "  latitude : Geocentric latitude of observation point (-90 to 90 Degree).\n"
+          "  index    : Reference index within p_abs, z_abs for setting pref, zref.\n"
+          "  niter    : Number of iterations (1-2 should suffice normally)."),
+	OUTPUT( hse_ ),
+	INPUT(p_abs_, z_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "latitude", "index", "niter" ),
+	TYPES(    Numeric_t,  Index_t, Index_t   )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("hseFromBottom"),
 	DESCRIPTION(
           "As hseSet but uses the first values of p_abs and z_abs for pref\n"
@@ -2952,7 +2995,7 @@ void define_md_data()
     ( MdRecord
       ( NAME("sourceCalc"),
   	DESCRIPTION(
-          "Calculates source function values valid between the points of"
+          "Calculates source function values valid between the points "
           "of the LOS.\n"
           "\n" 
           "No scattering and local thermodynamic equilibrium are assumed,\n"

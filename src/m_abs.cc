@@ -1555,6 +1555,55 @@ void hseSet(
   hse[4] = Numeric( niter );
 }
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Axel von Engeln
+   \date   2003-07-23
+*/
+void hseSetFromLatitude(
+                        Vector&    hse,
+                const Numeric&   pref,
+                const Numeric&   zref,
+                const Numeric&   latitude,
+                const Index&     niter )
+{
+
+  hse.resize( 5 );
+  
+  hse[0] = 1;
+  hse[1] = pref;
+  hse[2] = zref;
+  hse[3] = g_of_lat(latitude);
+  hse[4] = Numeric( niter );
+}
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Axel von Engeln
+   \date   2003-07-24
+*/
+void hseSetFromLatitudeIndex(
+                              Vector&    hse,
+                      const Vector&    p_abs,
+                      const Vector&    z_abs,
+                      const Numeric&   latitude,
+                      const Index&     index,
+                      const Index&     niter )
+{
+
+  /* check index range */
+  check_if_in_range( 0, p_abs.nelem()-1, index, "index" );
+
+  hse.resize( 5 );
+  
+  hse[0] = 1;
+  hse[1] = p_abs[index];
+  hse[2] = z_abs[index];
+  hse[3] = g_of_lat(latitude);
+  hse[4] = Numeric( niter );
+}
 
 
 /**

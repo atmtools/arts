@@ -1,3 +1,42 @@
+2003-07-25  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-1-0-103
+
+	* aii/aii_compile: moved to aii_compile.pro, thus is found in IDL
+	path
+
+	* aii/aii_startup: moved to aii_startup.pro, thus is found in IDL
+	path. Modified slightly the device font
+
+	* aii/myregress.pro: added, TKS routine missing in aii directory.
+
+	* aii/plot_abs_per_tg_2.pro: implemented um keyword for frequeny
+	range in um, removed some unnecessary for loops, removed explicit
+	settings of system variables, plotting part simplified, legend
+	modified 
+
+	* aux/part_fct/partition_function.pro: included the possibility to
+	interpolate partition fcts in ln coordinates, as suggested by
+	D. Feist during Bredbeck. This first quick hack shows better
+	results in linear space.
+
+	* src/constants.cc: added EARTH_EQUATORIAL_RADIUS and
+	EARTH_POLAR_RADIUS. along these lines: it seems strange that the
+	EARTH_RADIUS itself is almost the equatorial one, shouldn't that
+	be a mean one?
+
+	* src/m_abs.cc: added:
+	- hseSetFromLatitude, calculates gravity in hse vector following
+	international gravity formula. 
+	- hseSetFromLatitudeIndex, requires p_abs, z_abs and sets hse vector
+	entries pref, zref according to index, thus more flexible than
+	hseFromBottom. Otherwise as hseSetFromLatitude.
+
+	* src/methods.cc: see src/m_abs.cc
+
+	* src/atm_funcs.cc, atm_funcs.h: added g_of_lat, calculates gravity using
+	international gravity formula as function of lat.
+
 2003-07-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-102

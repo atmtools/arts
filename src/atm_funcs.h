@@ -77,6 +77,8 @@ Numeric g_of_z (
        const Numeric   g0,
        const Numeric   z );
 
+Numeric g_of_lat (const Numeric   latitude);
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   Core functions for RTE and BL

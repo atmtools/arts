@@ -327,6 +327,36 @@ Numeric g_of_z (
   return g0 * pow( r_geoid/(r_geoid+z), 2 );
 }
 
+//// g_of_lat ////////////////////////////////////////
+//
+/** Calculates the gravitational accelaration for a geocentric latitude.
+
+    \return           the gravitational constant
+    \param  lat       geocentric latitude
+
+    \author Axel von Engeln
+    \date   2003-07-24
+*/
+Numeric g_of_lat (Numeric   latitude)
+{
+  extern const Numeric EARTH_EQUATORIAL_RADIUS;
+  extern const Numeric EARTH_POLAR_RADIUS;
+  extern const Numeric DEG2RAD;
+
+  /* check latitude range */
+  check_if_in_range( -90, 90, latitude, "latitude" );
+
+  /* convert from geocentric to geographic */
+  Numeric latG = atan( (EARTH_EQUATORIAL_RADIUS*EARTH_EQUATORIAL_RADIUS) /
+                       (EARTH_POLAR_RADIUS*EARTH_POLAR_RADIUS) * tan(latitude*DEG2RAD));
+
+  /* calculate in geographic coordinates */
+  return 9.7803267714 * ( ( 1.0 + 0.0019318514 * sin(latG) * sin(latG) ) /
+                          sqrt( 1.0 - 0.00669438 * sin(latG) * sin(latG) ) );
+}
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////

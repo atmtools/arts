@@ -57,6 +57,20 @@
 */
 extern const Numeric EARTH_RADIUS   = 6.378e6;
 
+/** Global constant, the equatorial radius of the Earth [m], from
+    WGS84.
+    \author Axel von Engeln
+    \date   2003-07-23
+*/
+extern const Numeric EARTH_EQUATORIAL_RADIUS   = 6.378137e6;
+
+/** Global constant, the polar radius of the Earth [m], from
+    WGS84.
+    \author Axel von Engeln
+    \date   2003-07-23
+*/
+extern const Numeric EARTH_POLAR_RADIUS   = 6.3567523e6;
+
 /** Global constant, conversion from radians to degrees
 
     Multiply your value in radians by this constant to get 

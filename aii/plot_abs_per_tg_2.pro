@@ -12,6 +12,7 @@ PRO plot_abs_per_tg_2, jobname,                          $
                        avoid_tg=avoid_tg,                $
                        color=color,                      $
                        cm=cm,                            $
+                       um=um,                            $
                        xrange=xrange,                    $
                        yrange=yrange,                    $
                        nostamp=nostamp,                  $
@@ -47,7 +48,8 @@ PRO plot_abs_per_tg_2, jobname,                          $
 ;;     avoid_tg        : array of strings-which tag groups to plot
 ;;     color           : int-make color plot (actually always color)
 ;;     cm              : int-use cm^-1 instead of GHz
-;;     xrange          : array of double-plot range, considers cm^-1 setting
+;;     um              : int-use um instead of GHz
+;;     xrange          : array of double-plot range, considers cm^-1, um setting
 ;;     yrange          : array of double-plot range
 ;;     nostamp         : int-produce no stamp info on output
 ;;     jobdir          : sting containing the directory where the
@@ -188,12 +190,21 @@ string_title_alt = string(alt[ialtitude]/1000.0,format='(F5.1)')+' km'
 ;; frequency unit selection
 if keyword_set(cm) then begin
     unit=2.9979E10
+    pow=1.0
     unitstr='[cm!u-1!n]'
 endif else begin
     unit=1E9
+    pow=1.0
     unitstr='[GHz]'
 endelse
-for i = 0,N_ELEMENTS(f)-1 do f[i] = f[i] / unit
+if keyword_set(um) then begin
+    unit=2.9979E14
+    pow=-1.0
+    unitstr='[!9m!3m]'
+endif 
+
+f = (f / unit)^pow
+
 
 ;; absorption unit selection
 if keyword_set(absunit) then begin
@@ -223,13 +234,7 @@ endif else begin
     absscale = 1.000000
     absunit = 'm!U-1!N'
 endelse
-for i = 0,nmats-1 do begin 
-    for j = 0,nrows-1 do begin 
-        for k = 0,ncols-1 do begin 
-            abs[i,j,k] = abs[i,j,k] * absscale
-        endfor
-    endfor
-endfor
+abs = abs * absscale
 
 
 ;; pressure unit selection
@@ -261,7 +266,7 @@ if keyword_set(pressure) then begin
                  punit = 'Pa'
                  end
     endcase
-    for i = 0,N_ELEMENTS(p)-1 do p[i] = p[i] * pscale
+    p = p * pscale
     string_title_p = string(p[ialtitude],format='(F7.2)')+punit
 endif
 
@@ -283,7 +288,7 @@ if keyword_set(temperature) then begin
               Tunit = 'K'
               end
     endcase
-    for i = 0,N_ELEMENTS(T)-1 do T[i] = T[i]-Tsub
+    T = T - Tsub
     string_title_T = string(T[ialtitude],format='(F5.1)')+Tunit
 endif
 
@@ -334,23 +339,8 @@ for i = 0,tag_index_max-1 do print, ' ',i,': ',tg[tag_index[i]]
 
 
 ;; settings for the plot
-!X.MARGIN   = [0,0]
-!Y.MARGIN   = [0,0]
-!X.OMARGIN  = [0,0]
-!Y.OMARGIN  = [0,0]
-!P.REGION   = [0.0, 0.0, 0.0, 0.0]
-!P.POSITION = [0.1, 0.1, 0.7, 0.9]
-plotpos = !P.POSITION
-!P.CHARTHICK = 5.0
-!P.FONT      = 1
-!P.CHARSIZE  = 1.5
-!X.CHARSIZE  = 1
-!Y.CHARSIZE  = 1
-!P.THICK = 5
-thick = !P.THICK
-!X.THICK = 5
-!Y.THICK = 5
-
+plotpos = [0.1, 0.1, 0.75, 0.9]
+thick = 5
  
 ;; get datum to write it on the top of the plot:
 spawn,'date +"%y"',year
@@ -465,12 +455,9 @@ if NOT keyword_set(plotyaxis) then plotyaxis='lin'
 if ((plotyaxis NE 'lin') AND (plotyaxis NE 'log')) then plotyaxis='lin'
 
 ;; set frame of the plot
-IF (plotyaxis EQ 'lin') then begin
-    plot, f[0:nrows-1] , abs[0,0:nrows-1,ialtitude], $
+plot, f[0:nrows-1] , abs[0,0:nrows-1,ialtitude], $
           /NORMAL, $
           title=total_title,                         $
-;          xcharsize=1.25,                            $
-;          ycharsize=1.25,                            $
           xrange=[xmin, xmax],                       $
           yrange=[ymin, ymax],                       $
           xtitle='frequency '+unitstr,               $
@@ -479,25 +466,10 @@ IF (plotyaxis EQ 'lin') then begin
           linestyle=ls[0],                           $
           xstyle=1,                                  $
           ystyle=1,                                  $
-          /nodata
-endif
-IF (plotyaxis EQ 'log') then begin
-;; set frame of the plot
-    plot, /YLOG, f[0:nrows-1] , abs[0,0:nrows-1,ialtitude], $
-          /NORMAL, $
-          title=total_title,                         $
-;          xcharsize=1.25,                            $
-;          ycharsize=1.25,                            $
-          xrange=[xmin, xmax],                       $
-          yrange=[ymin, ymax],                       $
-          xtitle='frequency '+unitstr,               $
-          ytitle='absorption ['+absunit+']',         $
-          color=colors[0],                           $
-          linestyle=ls[0],                           $
-          xstyle=1,                                  $
-          ystyle=1,                                  $
-          /nodata
-endif
+          /nodata,                                   $
+          charthick=thick,xthick=thick,ythick=thick, $
+          font=1,charsize=1.5,position=plotpos,      $
+          ylog=(plotyaxis eq 'log')
 
 ;; scale absorption with apropriate unit factor and summ up all
 ;; tag absorption to total absorption if plotsum=0
@@ -536,8 +508,8 @@ ch_length = N_ELEMENTS(charlegendarray)
 aii_plot_legend, charlegendarray, $
                box=0,$
                usersym=usersym, $
-               spacing=2.0,$
-               pspacing=2.0, $
+               spacing=1.8,$
+               pspacing=1.8, $
                psym=intarr(ch_length), $
                colors=colors[0:ch_length-1],$
                line=ls[0:ch_length-1], $
