@@ -79,7 +79,8 @@ void PrintArrayOfIndex(
 {
   cout << "  *" << x_name <<"* =";
   for( Index i=0; i<x.nelem(); i++ )
-    cout << " " << x[i] << "\n";
+    cout << " " << x[i];
+  cout << "\n";
 }
 
 

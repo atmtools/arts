@@ -441,8 +441,9 @@ void ppath_start_stepping(
 		ppath_set_background( ppath, 2 );
 	    }
 
-	  // Check sensor position with respect to cloud box, if activated.
-	  if( cloudbox_on )
+	  // Check sensor position with respect to cloud box, if activated
+          // and not background set to blackbody ground
+	  if( cloudbox_on && !ppath_what_background(ppath) )
 	    {
 	      // Radius of lower and upper limit of the cloud box
 	      Numeric r_low = r_geoid(0,0) + z_field(cloudbox_limits[0],0,0);
@@ -456,11 +457,13 @@ void ppath_start_stepping(
 		}
 
 	      // Is the sensor on the surface of cloud box and looks into box?
-	      if((ppath.z[0]==z_field(cloudbox_limits[0],0,0) && a_los[0]<=90)
-                               || 
-		 (ppath.z[0]==z_field(cloudbox_limits[1],0,0) && a_los[0]>90))
+	      if( ( ppath.z[0] == z_field(cloudbox_limits[0],0,0) && 
+                                                        ppath.los(0,0) <= 90 )
+                     || 
+		  ( ppath.z[0] == z_field(cloudbox_limits[1],0,0) && 
+                                                        ppath.los(0,0) > 90 ) )
 		{
-		  ppath_set_background( ppath, 4 );
+		  ppath_set_background( ppath, 3 );
 		}
 	    }
 	}
@@ -522,4 +525,77 @@ void ppath_start_stepping(
       if( atmosphere_dim == 3 )
 	gridpos( ppath.gp_lon, lon_grid, ppath.pos(Range(joker),2) );
     }
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//   Core functions for *ppath_step* functions
+///////////////////////////////////////////////////////////////////////////////
+
+//// ppath_step_1d_geom ///////////////////////////////////////////////////////
+
+void ppath_step_1d_geom(
+	      Ppath&      ppath,
+        const Index&      atmosphere_dim,
+        ConstVectorView   p_grid,
+        ConstVectorView   z_grid,
+        const Numeric&    r_geoid,
+        const Numeric&    z_ground,
+        const Index&      blackbody_ground,
+	const Numeric&    lmax )
+{
+  // Number of points in the incoming ppath
+  const Index imax = ppath.np - 1;
+
+  // First asserts (more below)
+  assert( ppath.dim == atmosphere_dim );
+  assert( ppath.np >= 1 );
+  assert( ppath.gp_p[imax].idx >= 0 );
+  assert( ppath.gp_p[imax].idx <= (p_grid.nelem()-1) );
+  assert( ppath.gp_p[imax].fd[0] >= 0 );
+  assert( ppath.gp_p[imax].fd[0] < 1 );
+
+  // Start and end point mean here the point where the calculations start and
+  // end (which is the reversed order compared to definition of a path).
+
+  // Extract starting radius and zenith angle
+  const Numeric r_start  = ppath.pos(imax,0);
+  const Numeric za_start = ppath.los(imax,0);
+
+  // More asserts (checking not at end point of grid and looks out)
+  assert( !( ppath.gp_p[imax].idx == 0 && za_start > 90 ) );
+  assert( !( ppath.gp_p[imax].idx == (p_grid.nelem()-1) && za_start <= 90 ) );
+
+  // Tangent altitude, if downward obervation
+  Numeric r_tan;
+  if( za_start > 90 )
+    r_tan = geometrical_tangent_radius( r_start, za_start );
+
+  // Create a vector with a minimum set of radii 
+  //
+  Vector rs;
+  //
+  // Upward
+  if( za_start >= 90 )
+    {
+      rs.resize(2);
+      rs[0] = r_start;
+      rs[1] = r_geoid + z_grid[ ppath.gp_p[imax].idx + 1 ];
+    }
+  // Looking down but not crossing the pressure surface below
+  else if( r_tan >= ( r_geoid + z_grid[ppath.gp_p[imax].idx-1] ) )
+    {
+    }
+
+
+  // Determine end radius 
+  Numeric r_end;
+  if( za_start >= 90 || r_tan >= ( r_geoid + z_grid[ppath.gp_p[imax].idx] ) )
+    r_end = r_geoid + z_grid[ ppath.gp_p[imax].idx + 1 ];
+  else if( r_tan >= ( r_geoid + z_grid[ppath.gp_p[imax].idx-1] ) )
+    r_end = r_geoid + z_grid[ ppath.gp_p[imax].idx ];
+  else
+    r_end = r_geoid + z_grid[ ppath.gp_p[imax].idx - 1 ];
+
 }

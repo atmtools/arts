@@ -1,3 +1,13 @@
+2002-05-20  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-88
+
+	* src/m_ppath.cc (ppathCalc): The function should now be ready, but
+	no bigger test runs yet. Tests for 2D cannot be made before a
+	*ppath_step* function covering 2D exists.
+
+	* src/ppath.cc (ppath_step_1d_geom): Started on this function.
+
 2002-05-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-87

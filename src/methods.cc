@@ -412,6 +412,50 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "cloudboxSetManually" ),
+	DESCRIPTION
+        (
+	 "Sets the cloud box to encompass the given positions.\n"
+	 "\n"
+         "The function sets *cloudbox_on* to 1 and sets *cloudbox_limits*\n"
+	 "following the given pressure, latitude and longitude positions.\n"
+	 "The index limits in *cloudbox_limits* are selected to give the\n" 
+         "smallest possible cloud box that encompass the given points. \n"
+         "\n"
+	 "The points must be given in the same order as used in\n"
+	 "*cloudbox_limits*. That means that the first keyword argument \n"
+         "shall be a higher pressure than argument two, while the latitude\n"
+         "and longitude points are given in increasing order. Positions\n"
+         "given for dimensions not used by the selected atmospheric\n"
+         "dimensionality are ignored.\n"
+	 "\n"
+	 "The given pressure points can be outside the range of *p_grid*.\n"
+         "The pressure limit is then set to the end point of *p_grid*.\n"
+         "The given latitude and longitude points must be inside the range\n"
+         "of the corresponding grid. In addition, the latitude and longitude\n"
+         "points cannot be inside the outermost grid ranges as the latitude\n"
+         "and longitude limits in *cloudbox_limits* are not allowed to be\n"
+         "grid end points.\n"
+         "\n"
+         "Keywords: \n"
+         "   p1   : Upper pressure point.\n"
+         "   p2   : Lower pressure point.\n"
+         "   lat1 : Lower latitude point.\n"
+         "   lat2 : Upper latitude point.\n"
+         "   lon1 : Lower longitude point.\n"
+         "   lon2 : Upper longitude point."
+        ),
+	OUTPUT( cloudbox_on_, cloudbox_limits_ ),
+	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+               blackbody_ground_ ),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( "p1", "p2", "lat1", "lat2", "lon1", "lon2" ),
+	TYPES( Numeric_t, Numeric_t, Numeric_t, Numeric_t, Numeric_t, 
+               Numeric_t )));
+
   md_data.push_back     
     ( MdRecord
       ( NAME("PrintArrayOfIndex"),

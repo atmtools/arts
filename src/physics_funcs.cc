@@ -23,7 +23,7 @@
 //   File description
 ////////////////////////////////////////////////////////////////////////////
 /**
-   \file   physics.cc
+   \file   physics_funcs.cc
 
    This file contains the code of functions of physical character.
 

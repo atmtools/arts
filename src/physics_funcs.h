@@ -22,7 +22,7 @@
 //   File description
 ////////////////////////////////////////////////////////////////////////////
 /**
-   \file   physics.h
+   \file   physics_funcs.h
 
    This file contains declerations of functions of physical character.
 

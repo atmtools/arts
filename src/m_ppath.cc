@@ -217,20 +217,96 @@ void ppathCalc(
   // are stored as an array of Ppath structures.
   //
   Array<Ppath>   ppath_array;
-         Index   np = ppath_partial.np;     // Counter for number of points of 
-  //                                           the path
   ppath_array.push_back( ppath_partial );
+  // 
+  Index   np = ppath_partial.np;   // Counter for number of points of the path
+  //
+  const Index imax_p   = p_grid.nelem() - 1;
+  const Index imax_lat = lat_grid.nelem() - 1;
+  const Index imax_lon = lon_grid.nelem() - 1;
   //
   /*
   while( !ppath_what_background( ppath_partial ) )
     {
       // Call ppath_step
 
-      np += ppath_partial.np;
+      const Index n = ppath_partial.np;
+
+      np += n;
 
       // Put new ppath_partial in ppath_array
       ppath_array.push_back( ppath_partial );
-    }
+
+      // Check if the top of the atmosphere is reached
+      if( ppath_partial.gp_p[n].idx == imax_p )
+	ppath_set_background( ppath, 1 );
+
+      // Check that path does not exit at a latitude or longitude end face
+      if( atmosphere_dim >= 2 )
+	{
+	  if( ( Numeric(ppath_partial.gp_lat[n].idx) +
+ 		                         ppath_partial.gp_lat[n].fd[0] ) == 0 )
+	    {
+	      ostringstream os;
+	      os << "The path enters the atmosphere through the lower latitude"
+		 << "end face,\nat altitude " << ppath_partial.z[n]/1e3 
+                 << " km.";
+	      throw runtime_error( os.str() );
+	    }
+	  if( ppath_partial.gp_lat[n].idx == imax_lat )
+	    {
+	      ostringstream os;
+	      os << "The path enters the atmosphere through the upper latitude"
+		 << "end face,\nat altitude " << ppath_partial.z[n]/1e3 
+                 << " km.";
+	      throw runtime_error( os.str() );
+	    }
+
+	  if( atmosphere_dim == 3 )
+	    {
+	      if( ( Numeric(ppath_partial.gp_lon[n].idx) +
+		                         ppath_partial.gp_lon[n].fd[0] ) == 0 )
+		{
+		  ostringstream os;
+		  os << "The path enters the atmosphere through the lower " 
+		     << "longitude end face,\nat altitude " 
+		     << ppath_partial.z[n]/1e3 << " km.";
+		  throw runtime_error( os.str() );
+		}
+	      if( ppath_partial.gp_lon[n].idx == imax_lon )
+		{
+		  ostringstream os;
+		  os << "The path enters the atmosphere through the upper "
+                     << "longitude end face,\nat altitude " 
+                     << ppath_partial.z[n]/1e3 << " km.";
+		  throw runtime_error( os.str() );
+		}
+	    }
+	}
+
+      // Check if there is an intersection with an active cloud box
+      if( cloudbox_on )
+	{
+	  if( ppath_partial.gp_p[n].idx >= cloudbox_limits[0] &&
+	           ( Numeric(ppath_partial.gp_p[n].idx) + 
+                           ppath_partial.gp_p[n].fd[0]) <= cloudbox_limits[1] )
+	    {
+	      if( atmosphere_dim == 1 )
+		ppath_set_background( ppath, 3 );
+	      else if( ppath_partial.gp_lat[n].idx >= cloudbox_limits[2] &&
+	              ( Numeric(ppath_partial.gp_lat[n].idx) + 
+                         ppath_partial.gp_lat[n].fd[0]) <= cloudbox_limits[3] )
+		{
+		  if( atmosphere_dim == 2 )
+		    ppath_set_background( ppath, 3 );
+		  else if ( ppath_partial.gp_lon[n].idx >= cloudbox_limits[4]&&
+	              ( Numeric(ppath_partial.gp_lon[n].idx) + 
+                         ppath_partial.gp_lon[n].fd[0]) <= cloudbox_limits[5] )
+		    ppath_set_background( ppath, 3 );
+		}
+	    }
+	}
+    } // End path steps
   */
   
   // Combine all structures in ppath_array to form the return Ppath structure.
@@ -251,14 +327,17 @@ void ppathCalc(
 	  for( Index j=0; j<n; j++ )
 	    {
 	      ppath.gp_p[np+j]                = ppath_array[i].gp_p[j];
+  	      ppath.los(np+j,0)               = 180 - ppath_array[i].los(j,0);
 	      if( atmosphere_dim >= 2 )
 		{
 		  ppath.gp_lat[np+j]          = ppath_array[i].gp_lat[j];
 		  if( atmosphere_dim == 3 )
-		    ppath.gp_lon[np+j]        = ppath_array[i].gp_lon[j];
+		    {
+		      ppath.gp_lon[np+j]      = ppath_array[i].gp_lon[j];
+		      ppath.los(np+j,1)       = 180 - ppath_array[i].los(j,1);
+		    }
 		}
 	    }
-	  ppath.los( Range(np,n), Range(joker) ) = ppath_array[i].los;
 	  if( ppath_array[i].ground )
 	    {
 	      ppath.ground                    = ppath_array[i].ground;
