@@ -1,3 +1,11 @@
+2002-11-07  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-277
+
+	* src/xml_io.cc (ArtsXMLTag::read_from_stream): Skip
+	<comment></comment> blocks. Comments are only allowed to be put
+	directly after the <arts> tag or in front of the </arts> tag.
+
 2002-11-06  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-276
