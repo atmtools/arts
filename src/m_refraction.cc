@@ -43,6 +43,7 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "matpackI.h"
+#include "refraction.h"
 
 
 
@@ -64,15 +65,13 @@ void refr_indexThayer(
        const Vector&                     a_vmr_list,
        const ArrayOfArrayOfSpeciesTag&   gas_species )
 {
-  refr_index = 1.0 + 77.6e-8 * a_pressure / a_temperature;
+  Index   firstH2O = find_first_species_tg( gas_species, 
+                                      species_index_from_species_name("H2O") );
+  IndexPrint( firstH2O, "firstH2O" );
+  if( firstH2O < 0 )
+    throw runtime_error( 
+       "Water vapour is a requiered (must be a tag group in *gas_species*)." );
 
-  //  for ( Index i=0; i<n; i++ )
-  //{
-  // e = p_abs[i] * h2o_abs[i];
-  //  p = p_abs[i] - e;
-  //
-  //  refr_index[i] = 1.0 + 77.6e-8 * p / t_abs[i] + 
-  //                        72e-8 * e / t_abs[i] +
-  //                        3.754e-3 * e / (t_abs[i]*t_abs[i]);
-  //}
+  refr_index_thayer_1974( refr_index, a_pressure, a_temperature, 
+                                                        a_vmr_list[firstH2O] );
 }

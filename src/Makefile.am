@@ -97,6 +97,8 @@ arts_SOURCES = \
 	poly_roots.cc \
 	physics_funcs.cc \
 	physics_funcs.h \
+	refraction.h \
+	refraction.cc \
 	rte.cc \
 	rte.h \
 	special_interp.cc \

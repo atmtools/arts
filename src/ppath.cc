@@ -51,6 +51,7 @@
 #include "logic.h"
 #include "poly_roots.h"
 #include "ppath.h"
+#include "refraction.h"
 #include "special_interp.h"
 
 extern const Numeric DEG2RAD;
@@ -2893,110 +2894,6 @@ Numeric refraction_ppc(
 
 
 
-//! get_refr_index_1d
-/*! 
-   A temporary function to get refractive index for 1D cases.
-
-   See the code fo details.
-
-   \author Patrick Eriksson
-   \date   2002-11-13
-*/
-void get_refr_index_1d(
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
-              Numeric&    refr_index,
-        const Agenda&     refr_index_agenda,
-        ConstVectorView   p_grid,
-        ConstVectorView   z_field,
-        ConstVectorView   t_field,
-        ConstMatrixView   vmr_field,
-        const Numeric&    z )
-{ 
-  // Altitude (equal to pressure) grid position
-  ArrayOfGridPos   gp(1);
-  gridpos( gp, z_field, Vector(1,z) );
-
-  // Altitude interpolation weights
-  Matrix   itw(1,2);
-  interpweights( itw, gp );
-
-  // Pressure
-  Vector   dummy(1);
-  itw2p( dummy, p_grid, gp, itw );
-  a_pressure = dummy[0];
-
-  // Temperature
-  interp( dummy, itw, t_field, gp );
-  a_temperature = dummy[0];
-
-  // VMR
-  const Index   ns = vmr_field.nrows();
-  //
-  a_vmr_list.resize(ns);
-  //
-  for( Index is=0; is<ns; is++ )
-    {
-      interp( dummy, itw, vmr_field(is,joker), gp );
-      a_vmr_list[is] = dummy[0];
-    }
-
-  refr_index_agenda.execute();
-}
-
-
-
-//! get_refr_index_2d
-/*! 
-   A temporary function to get refractive index for 2D cases.
-
-   See the code fo details.
-
-   \author Patrick Eriksson
-   \date   2002-11-18
-*/
-Numeric get_refr_index_2d(
-        ConstVectorView    p_grid,
-        ConstVectorView    lat_grid,
-        ConstVectorView    r_geoid,
-        ConstMatrixView    z_field,
-        ConstMatrixView    t_field,
-        const Numeric&     r,
-        const Numeric&     lat )
-{     
-  const Index   np = p_grid.nelem();
-  GridPos       gp_p, gp_lat;
-  Numeric       rg, p_value, t_value;
-  Vector        z_grid(np);
-  Vector        itw(2);
-
-  gridpos( gp_lat, lat_grid, lat );
-  interpweights( itw, gp_lat );
-  rg = interp( itw, r_geoid, gp_lat );
-
-  z_at_lat_2d( z_grid, p_grid, lat_grid, z_field, gp_lat );
-
-  gridpos( gp_p, z_grid, r - rg );
-  ArrayOfGridPos   agp_p(1);
-  gridpos_copy( agp_p[0], gp_p );
-  Matrix   itw2(1,2);
-  interpweights( itw, agp_p );
-  itw2p( p_value, p_grid, agp_p, itw2 );
-
-  itw.resize(4);
-  interpweights( itw, gp_p, gp_lat );
-  t_value = interp( itw, t_field, gp_p, gp_lat );
-
-  Vector refr_index(1);
-
-  //  refr_index_BoudourisDryAir( refr_index, p_value, t_value );
-
-  return refr_index[0];
-}
-
-
-
 
 
 /*===========================================================================
@@ -4194,13 +4091,20 @@ void raytrace_1d_linear_euler(
       
       const Numeric   ppc_local = ppc / refr_index; 
 
-      if( ppc_local < r_new )
+      if( ready  &&  endface == 8 )
+        { za = 90; }
+      else if( ppc_local < r_new )
         { za = geompath_za_at_r( ppc_local, za, r_new ); }
       else
-        {                   // If we end up here, then numerical inaccuracy
-          za      = 90;     // has brought us below the true tangent point.  
-          ready   = 1;      // We save this situation by setting this point
-          endface = 8;      // to be a tangent point.
+        {                   
+          // If this error happens, activate the old code
+          // I am not sure that this can happen (PE 030117)
+          throw logic_error(
+            "Error in raytrace_1d_linear_euler. Report this error to Patrick");
+                              // If we end up here, then numerical inaccuracy
+          //za      = 90;     // has brought us below the true tangent point.  
+          //ready   = 1;      // We save this situation by setting this point
+          //endface = 8;      // to be a tangent point.
         }
   
       r   = r_new;
@@ -4270,6 +4174,7 @@ void raytrace_2d_linear_euler(
               Numeric&          a_temperature,
               Vector&           a_vmr_list,
               Numeric&          refr_index,
+        const Agenda&           refr_index_agenda,
         const Numeric&          lraytrace,
         const Numeric&          lat1,
         const Numeric&          lat3,
@@ -4602,9 +4507,9 @@ void ppath_step_refr_2d(
         { method = "2D linear Euler, with length criterion"; }
 
       raytrace_2d_linear_euler( r_array, lat_array, za_array, l_array, endface,
-                 r_start, lat_start, za_start, a_pressure, a_temperature, 
-                                a_vmr_list, refr_index, lraytrace, lat1, lat3, 
-                                      r1a, r3a, r3b, r1b, rground1, rground3 );
+                    r_start, lat_start, za_start, a_pressure, a_temperature, 
+                    a_vmr_list, refr_index, refr_index_agenda, lraytrace, 
+                          lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3 );
     }
   else
     {
@@ -5989,24 +5894,13 @@ void ppath_calc(
 
   // If refraction has been considered, make a simple check that the
   // refraction at the top of the atmosphere is sufficiently close to 1.
-  if( ppath.refraction )
+  if( ppath.refraction  &&  min( z_field(np-1,0,0) ) < 60e3 )
     {
-            Numeric                     refr_local;
-      const Index                       np = p_grid.nelem();
-      const ArrayOfArrayOfSpeciesTag    species_local(0);
-
-      refr_indexThayer( refr_local, p_grid[np-1], t_field(np-1,0,0), 
-                                                    Vector(0), species_local );
-
-      if( (refr_local-1) > 1e-6 )
-        {
-          out2 << "  *** WARNING****\n" << 
-            "  The calculated propagation path can "
-            "be inexact as the refractive index\n  at the top of the "
-            "atmosphere deviates significantly from 1\n" << "     n-1 = " <<
-            refr_local-1 << "\n  However, the importance of this depends on "
-            "the observation geometry.\n";
-        } 
+      out2 << "  *** WARNING****\n" << 
+      "  The calculated propagation path can be inexact as the atmosphere" <<
+      "\n  only extends to " <<  min( z_field(np-1,0,0) )/1e3 << " km. \n" <<
+      "  The importance of this depends on the observation geometry.\n" <<
+      "  It is recommended that the top of the atmosphere is not below 60 km.";
     }
 }
 

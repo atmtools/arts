@@ -1,3 +1,19 @@
+2003-01-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-388
+
+	* src/m_refraction.cc (refr_indexThayer): Finished this function and
+	moved some code to refr_index_thayer_1974.
+
+	* src/refraction.h: Created this file. 
+
+	* src/refraction.cc: Added this file and moved get_refr_index_1d to
+	to this file. Made new version of get_refr_index_2d. Created the
+	function refr_index_thayer_1974.
+
+	* src/ppath.cc: Added input arguments to some function as a preperation
+	for 2D with refrcation.
+
 2003-01-13  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-387
