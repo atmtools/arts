@@ -54,10 +54,10 @@
 % FORMAT:  [H,f_y,za_y,Hd] = hRedKx(Q,Hd,f_y,za_y,Hd)
 %
 % RETURN:  Q           Q structure
-%          H           total H matrix after binning
+%          H           total H matrix after reduction
 %          f_y         new frequency vector
 %          za_y        new zenith angle vector 
-%          Hd          data reduction H matrix after binning
+%          Hd          data reduction H matrix after reduction
 % IN:      H           total H matrix before reduction
 %          f_y         input frequency vector 
 %          za_y        input zenith angle vector

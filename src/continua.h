@@ -112,6 +112,16 @@ void Rosenkranz_N2_self_continuum( MATRIX&           xsec,
 				   const VECTOR&     t_abs,
 				   const VECTOR&     vmr    );
 
+void General_N2_self_continuum(    MATRIX&           xsec,
+                                   Numeric           C,
+                                   Numeric           xf,
+                                   Numeric           xt,
+                                   Numeric           xp,
+				   const VECTOR&     f_mono,
+				   const VECTOR&     p_abs,
+				   const VECTOR&     t_abs,
+				   const VECTOR&     vmr    );
+
 //////////////////////////////////////////////////////////////////////////// 
 // carbon dioxide absorption continua / models
 //////////////////////////////////////////////////////////////////////////// 

@@ -1689,6 +1689,42 @@ void h2o_absSet(
 
 /**
    See the the online help (arts -d FUNCTION_NAME)
+
+   \author Carlos Jimenez 
+   \date   2001-08-14
+*/
+void vmrsScale(
+        ARRAYofVECTOR&         vmrs,
+        const TagGroups&       tgs,
+        const ARRAY<string>&   scaltgs,
+        const VECTOR&          scalfac)
+{
+  INDEX                            itag;
+  ARRAYofsizet                     tagindex;      
+
+  if ( scalfac.size() != scaltgs.size()  )
+    throw runtime_error("vmrScale: Number of tgs and fac are different!");
+  
+  get_tagindex_for_strings( tagindex, tgs, scaltgs );
+
+  const INDEX   n = tagindex.size();
+
+  for ( itag=0; itag<n; itag++ )
+    {
+      //out2 << scalfac[itag] << ".\n";
+      copy(scaled(vmrs[tagindex[itag]],scalfac[itag]),vmrs[tagindex[itag]]);
+      //out2 << vmrs[tagindex[itag]] << ".\n";
+    }
+}
+
+
+
+
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
    Just a copy of the function 'h2o_absSet' 
    but now for nitrogen.
 

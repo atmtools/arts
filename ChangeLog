@@ -1,3 +1,11 @@
+2001-08-22  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-0-195
+
+	* fixing bug in method zaFromDeltat after
+	validation of refaction calculations by Patrick
+	
+
 2001-08-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-194

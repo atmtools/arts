@@ -1556,6 +1556,20 @@ void define_md_data()
 	TYPES()));
 
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("vmrsScale"),
+	DESCRIPTION(
+          "Scales the vmr input of the tgs given in scaltgs by the\n"
+	  "factors given in scalfac."),
+	OUTPUT(	vmrs_ ),
+	INPUT( 	tgs_, vmrs_  ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "scaltgs", "scalfac"),
+	TYPES( ARRAY_string_t, VECTOR_t)));
+
+
 //=== 1D absorption methods ===============================================
 
   md_data.push_back

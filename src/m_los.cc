@@ -1594,8 +1594,8 @@ void zaFromDeltat(
     const Numeric psitop = psizb[n-1];
     const Numeric psibot = psizb[0];       
 
-    // 2 * vel * deltat as the receiver is assumed without motion
-    const Numeric ang_step = RAD2DEG *2 * delta_t * sqrt (EARTH_GRAV_CONST / pow(r_geoid + z_plat,3));
+    // vel * deltat 
+    const Numeric ang_step = RAD2DEG * delta_t * sqrt (EARTH_GRAV_CONST / pow(r_geoid + z_plat,3));
 
     // number of cross links in the ztan range specified for the given deltat
     if (((psibot-psitop)/ang_step)<=0)

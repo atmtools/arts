@@ -743,6 +743,57 @@ void Rosenkranz_N2_self_continuum( MATRIX&           xsec,
 //
 // #################################################################################
 //
+// 4) N2-N2  : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
+//    "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
+//
+void General_N2_self_continuum(    MATRIX&           xsec,
+                                   Numeric           C,
+                                   Numeric           xf,
+                                   Numeric           xt,
+                                   Numeric           xp,
+				   const VECTOR&     f_mono,
+				   const VECTOR&     p_abs,
+				   const VECTOR&     t_abs,
+				   const VECTOR&     vmr	 )
+{
+  // C default: 1.05*10^-38 1/(Pa^2*Hz^2*m)
+  // xf default: 2
+  // xt default: 3.55
+  // xp default: 2
+
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+  
+  // Loop over pressure/temperature grid:
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      // Dummy scalar holds everything except the quadratic frequency dependence.
+      // The second vmr of N2 will be multiplied at the stage of absorption 
+      // calculation: abs = vmr * xsec.
+      Numeric dummy =
+	C * pow( 300./t_abs[i], xt ) * pow( p_abs[i], xp ) * vmr[i];
+
+      // Loop over frequency grid:
+      for ( size_t s=0; s<n_f; ++s )
+	{
+	    xsec[s][i] += dummy * pow( f_mono[s], xf );
+          
+	  //  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	}
+    }
+}
+//
+// #################################################################################
+//
 // 5) CO2-CO2: P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
@@ -2432,6 +2483,50 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //			    parameters[0], // coefficient
       //			    parameters[1], // temp. exponent
       Rosenkranz_N2_self_continuum( xsec,
+				    f_mono,
+				    p_abs,
+				    t_abs,
+				    vmr );
+    }  
+ else if ( "N2-SelfCont"==name ) // -------------------------------------
+    {
+      // data information about this continuum: 
+      // A completely general expression for the N2 continuum
+
+      // Check if the right number of paramters has been specified:
+      if ( 4 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "GEN N2 continuum model " << name << " requires zero input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      // specific continuum parameters:
+      // parameters[0] : continuum coefficient (C)
+      // parameters[1] : frequency exponent    (xf)
+      // parameters[1] : temperature exponent  (xt)
+      // parameters[1] : pressure exponent     (xp)
+      //
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [1/(Hz^2*Pa^2*m)]
+      //     parameters[1] : [1]
+      //     parameters[2] : [1]
+      //     parameters[3] : [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     vmr           : [1]
+      General_N2_self_continuum( xsec,
+				    parameters[0],
+                                    parameters[1],
+                                    parameters[2],
+                                    parameters[3],
 				    f_mono,
 				    p_abs,
 				    t_abs,

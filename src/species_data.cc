@@ -545,6 +545,7 @@ void define_basic_species_data()
 	 REC("44"	,0.9926874	,28.	,-1	,221	,TAGS( )),
 	 REC( "SelfContMPM93"	        ,-1.	,-1.	,-1	,-1	,TAGS()),
 	 REC( "SelfContPWR93"	        ,-1.	,-1.	,-1	,-1	,TAGS()),
+	 REC( "SelfCont"	        ,-1.	,-1.	,-1	,-1	,TAGS()),
 	 REC( "SelfContBorysow"	        ,-1.	,-1.	,-1	,-1	,TAGS())
 	 ) ) );
 
