@@ -696,7 +696,7 @@ void y_rte (
   assert (z_end < n);
 
   // Resize y
-  y.resize( nf*n );
+  y.resize( nf* (z_end - z_start + 1) );
         
   // Set up vector for ground blackbody radiation if any ground intersection
   // Check also if the ground emission vector has the correct length
@@ -718,7 +718,7 @@ void y_rte (
 
   // Loop zenith angles
   out3 << "    Zenith angle nr:      ";
-  for ( Index i = z_start; i < z_end; i++ )
+  for ( Index i = z_start; i <= z_end; i++ )
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
@@ -778,7 +778,7 @@ void y_tau (
         
   // Loop zenith angles
   out3 << "    Zenith angle nr:     ";
-  for ( Index i = z_start; i < z_end; i++ )
+  for ( Index i = z_start; i <= z_end; i++ )
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
@@ -1431,19 +1431,25 @@ void sourcetransyCalcSaveMemory(
 
   assert (f_chunksize > 0);
 
+  Index chunksize;
+  if (f_chunksize > nf) chunksize=nf;
+  else chunksize=f_chunksize;
+
   // make y the right size
   y.resize(  nf*n );
 
-  for (Index i = 0; i < nf / f_chunksize + 1; i++)
+  for (Index i = 0; i < nf / chunksize + 1; i++)
     {
       Index nf_local;
 
-      if (i * f_chunksize <= nf)
-        nf_local = f_chunksize;
+      if ((i+1) * chunksize <= nf)
+        nf_local = chunksize;
       else
-        nf_local = nf % (i * f_chunksize);
+        nf_local = nf % (i * chunksize);
 
-      Range r (i * f_chunksize, nf_local);
+      if (! nf_local) break;
+
+      Range r (i * chunksize, nf_local);
 
       ConstVectorView f_monolocal (f_mono [r]);
       ConstVectorView e_groundlocal (e_ground [r]);
@@ -1470,26 +1476,24 @@ void sourcetransyCalcSaveMemory(
                 p_abs,
                 abslocal);
 
+      // Check input
+      // (ground emission and temperature are checked in the sub-functions)
+      //
+      check_if_bool( emission, "emission" );
+      if ( los.p.nelem() != translocal.nelem() )
+        throw runtime_error( "The number of zenith angles of *los* and "
+                             "*translocal* are different.");
+      if ( emission )
+        {
+          if ( los.p.nelem() != sourcelocal.nelem() )
+            throw runtime_error( "The number of zenith angles of *los* "
+                                 "and *sourcelocal* are different.");
+        }
+
       for (Index j = 0; j < n; j++)
         {
           // Calculate Spectrum:
           Vector ylocal;
-
-          // Check input
-          // (ground emission and temperature are checked in the sub-functions)
-          //
-          check_if_bool( emission, "emission" );
-          if ( los.p.nelem() != translocal.nelem() )
-            throw runtime_error( "The number of zenith angles of *los* and "
-                                 "*translocal* are different.");
-          if ( emission )
-            {
-              check_lengths( f_monolocal, "f_monolocal",
-                             y_spacelocal, "y_spacelocal" );
-              if ( los.p.nelem() != sourcelocal.nelem() )
-                throw runtime_error( "The number of zenith angles of *los* "
-                                     "and *sourcelocal* are different.");
-            }
 
           if ( emission == 0 )
             y_tau( ylocal, los, translocal, e_groundlocal, j, j );
@@ -1498,7 +1502,7 @@ void sourcetransyCalcSaveMemory(
                    translocal, e_groundlocal, t_ground, j, j );
 
           // Move values to output vector
-          y[Range(i * f_chunksize + j * nf, nf_local)] = ylocal;
+          y[Range(i * chunksize + j * nf, nf_local)] = ylocal;
         }
     }
 
