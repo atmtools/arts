@@ -135,8 +135,12 @@ void open_input_file(ifstream& file, const String& name)
   // valid. We don't want either to happen!
   // On the other hand, end of file will not lead to an exception, you
   // have to check this manually!
-  file.exceptions(ios::badbit |
-		  ios::failbit);
+  //  file.exceptions(ios::badbit |
+  //	  ios::failbit);
+
+  // Only set badbit otherwise eof throws exception as well and that
+  // is not what we want
+  file.exceptions(ios::badbit);
 
   // c_str explicitly converts to c String.
   file.open(name.c_str() );
@@ -173,11 +177,11 @@ void read_text_from_stream(ArrayOfString& text, istream& is)
   // Contary to what I understood from the book, the explicit check
   // for eof is necessary here, otherwise the last line is read twice
   // if it is not terminated by a newline character!
-  while (is && !is.eof())
+  while (is && is.good() && !is.eof())
     {
       // Read line from file into linebuffer:
       getline(is,linebuffer);
-
+      
       // Append to end of text:
       text.push_back(linebuffer);
     }
