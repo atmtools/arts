@@ -59,7 +59,7 @@
          "The names of workspace variables and other methods are marked by\n"
          "stars, for example *z_plat*.\n"
          "\n"
-         "Global input and output, and keywords shall be described \n"
+         "Generic input and output, and keywords shall be described \n"
          "as exemplified below. If there is no variables of a group, \n"
          "(e.g. global input) remove that part totally. Note that the \n"
          "on-line help just gives the type of global input/output and the \n"
@@ -68,11 +68,11 @@
          "Leave space and brake lines when listing input and output \n"
          "variabales to make the code easier to read. See example below. \n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Vector : Vector giving some very important input. Don't \n"
          "            be too short. Use the type of indention used here. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Vector : Return vector for the zenith angles. The normal \n"
          "            options are ZA_PENCIL and ZA_SENSOR. \n"
          "\n"
@@ -98,10 +98,10 @@
         (
 	 "\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   \n"
          "\n"
          "Keywords:\n"
@@ -223,7 +223,7 @@ void define_md_data()
          "If the filename is omitted, the index array is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   ArrayOfIndex : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -248,7 +248,7 @@ void define_md_data()
          "If the filename is omitted, the index array is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   ArrayOfIndex : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -274,7 +274,7 @@ void define_md_data()
          "If the filename is omitted, the array of matrices is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   ArrayOfMatrix : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -299,7 +299,7 @@ void define_md_data()
          "If the filename is omitted, the array of matrices is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   ArrayOfMatrix : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -339,7 +339,7 @@ void define_md_data()
          "If the filename is omitted, the string is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   ArrayOfString : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -381,7 +381,7 @@ void define_md_data()
          "\n"
          "The format is as follows:\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   ArrayOfString : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -407,7 +407,7 @@ void define_md_data()
          "If the filename is omitted, the array of vectors is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   ArrayOfVector : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -432,7 +432,7 @@ void define_md_data()
          "If the filename is omitted, the array of vectors is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   ArrayOfVector : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -766,7 +766,7 @@ void define_md_data()
          "If the filename is omitted, the index is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Index : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -786,7 +786,7 @@ void define_md_data()
         (
          "Sets an index workspace variable to the given value. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Index : The index variable to be set. \n"
          "\n"
          "Keywords:\n"
@@ -811,7 +811,7 @@ void define_md_data()
          "If the filename is omitted, the index is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Index : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -886,6 +886,81 @@ void define_md_data()
   
   md_data.push_back
     ( MdRecord
+      ( NAME("lsLorentz"),
+	DESCRIPTION
+        (
+	 "The Lorentz lineshape.\n"
+	 "\n"
+	 "This computes the simple Lorentz lineshape as:\n"
+	 "\n"
+	 "ls[i] = 1/PI * gamma / ( (f[i]-f0)^2 + gamma^2 )\n"
+	 "\n"
+	 "Output:\n"
+	 "   ls : The lineshape function [1/Hz]\n"
+	 "\n"
+	 "Input:\n"
+	 "   ls_f0     : Line center frequency [Hz].\n"
+	 "   ls_gamma  : Line width [Hz].\n"
+	 "   ls_f_mono : Frequency grid [Hz]."
+        ),
+	OUTPUT( ls_ ),
+	INPUT(  ls_f0_, ls_gamma_, ls_f_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("lsWithCutoffAdd"),
+	DESCRIPTION
+        (
+	 "Adds lineshape with cutoff to ls.\n"
+	 "\n"
+	 "The output variable ls has to exist before and has to have the correct\n"
+	 "size. Use this method only if you want to have a cutoff, otherwise use\n"
+	 "the simpler method lsAdd. What this method does is the following:\n"
+	 "\n"
+	 "0. Check if any part of f_grid is inside the cutoff. If not, return\n"
+	 "   immediately. \n"
+	 "\n"
+	 "1. Create ls_f_grid from f_grid. Only frequencies inside the cutoff\n"
+	 "   are used, but the cutoff frequency itself is also added.\n"
+	 "\n"
+	 "1. Use elem_ls_agenda to compute a lineshape. (This\n"
+	 "   should be something very simple, e.g., Lorentz or Voigt.)\n"
+	 "\n"
+	 "2. Subtract the value at the cutoff.\n"
+	 "\n"
+	 "3. Add to ls.\n"
+	 "\n"
+	 "Output:\n"
+	 "   ls        : The lineshape added to previous content.\n"
+	 "   ls_f_grid : The frequency grid for the elementary\n"
+	 "               lineshape. (Comunication variable with called agenda.) \n"
+	 "\n"
+	 "Input:\n"
+	 "   ls             : The lineshape to add to.\n"
+	 "   elem_ls_agenda : Used to comute lineshape.\n"
+	 "   ls_cutoff      : Cutoff frequency (must be > 0).\n"
+	 "   ls_f0     	    : Line center frequency (may be < 0).\n"
+	 "   ls_gamma  	    : The pressure broadening parameter (must be > 0).\n"
+	 "   ls_sigma  	    : The Doppler broadening parameter (must be > 0).\n"
+	 "   f_grid    	    : Global frequency grid."
+        ),
+	OUTPUT( ls_,
+		ls_f_grid_ ),
+	INPUT(  ls_,
+		elem_ls_agenda_,
+		ls_cutoff_,
+		ls_f0_, ls_gamma_, ls_sigma_, f_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("Main"),
   	DESCRIPTION
 	( 
@@ -908,10 +983,10 @@ void define_md_data()
         (
          "Creates a copy of a matrix. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Matrix : The matrix to be created. \n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Matrix : The matrix to be copied. "
         ),
 	OUTPUT(),
@@ -937,10 +1012,10 @@ void define_md_data()
 	 "\n"
 	 "One, but only one, keyword argument must be 0.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Matrix : The matrix to be created. \n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Vector : The vector to be copied. \n"
          "\n"
          "Keyword: \n"
@@ -981,7 +1056,7 @@ void define_md_data()
          "If the filename is omitted, the matrix is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Matrix : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -1003,10 +1078,10 @@ void define_md_data()
          "\n"
          "The result can either be stored in the same or another matrix. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Matrix : Return matrix. \n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Matrix : Original matrix. \n"
          "\n"
          "Keywords: \n"
@@ -1027,7 +1102,7 @@ void define_md_data()
          "Creates a workspace matrix with the specified size and sets \n"
          "all values of the matrix to the specified value. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Matrix : The matrix to be created. \n"
          "\n"
          "Keywords:\n"
@@ -1054,7 +1129,7 @@ void define_md_data()
          "If the filename is omitted, the matrix is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Matrix : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -1094,7 +1169,7 @@ void define_md_data()
          "If the filename is omitted, the numeric is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Numeric : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -1114,7 +1189,7 @@ void define_md_data()
         (
          "Sets a numeric workspace variable to the given value. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Numeric : The numeric variable to be set. \n"
          "\n"
          "Keywords:\n"
@@ -1139,7 +1214,7 @@ void define_md_data()
          "If the filename is omitted, the numeric is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Numeric : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -1266,7 +1341,7 @@ void define_md_data()
 	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
                t_field_, r_geoid_, z_ground_, t_ground_, e_ground_, 
                blackbody_ground_, cloudbox_on_,  cloudbox_limits_, f_grid_, 
-               i_space_, abs_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_,
+               i_space_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_,
                stokes_dim_, sensor_pos_, sensor_los_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1353,7 +1428,7 @@ void define_md_data()
          "If the filename is omitted, the string is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   String : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -1392,7 +1467,7 @@ void define_md_data()
          "If the filename is omitted, the string is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   String : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -1420,10 +1495,10 @@ void define_md_data()
 	 "\n"
 	 "One, but only one, keyword argument must be 0.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Tensor3 : The tensor to be created. \n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Vector : The vector to be copied. \n"
          "Keyword: \n"
          "   npages : Number of pages in the tensor.\n"
@@ -1450,7 +1525,7 @@ void define_md_data()
          "If the filename is omitted, the tensor3 is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Tensor3 : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -1499,7 +1574,7 @@ void define_md_data()
          "If the filename is omitted, the tensor3 is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Tensor3 : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -1525,7 +1600,7 @@ void define_md_data()
          "If the filename is omitted, the tensor4 is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Tensor4 : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -1575,7 +1650,7 @@ void define_md_data()
          "If the filename is omitted, the tensor4 is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Tensor4 : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -1601,7 +1676,7 @@ void define_md_data()
          "If the filename is omitted, the tensor5 is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Tensor5 : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -1652,7 +1727,7 @@ void define_md_data()
          "If the filename is omitted, the tensor5 is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Tensor5 : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -1678,7 +1753,7 @@ void define_md_data()
          "If the filename is omitted, the tensor6 is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Tensor6 : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -1732,7 +1807,7 @@ void define_md_data()
          "If the filename is omitted, the tensor6 is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Tensor6 : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -1758,7 +1833,7 @@ void define_md_data()
          "If the filename is omitted, the tensor7 is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Tensor7 : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -1813,7 +1888,7 @@ void define_md_data()
          "If the filename is omitted, the tensor7 is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Tensor7 : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -1854,10 +1929,10 @@ void define_md_data()
          "\n"
          "The result can either be stored in the same or another vector. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Vector : Return vector. \n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Vector : Original vector. \n"
          "\n"
          "Keywords:\n"
@@ -1877,10 +1952,10 @@ void define_md_data()
         (
          "Creates a copy of a vector. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Vector : The vector to be created. \n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Vector : The vector to be copied. "
         ),
 	OUTPUT(),
@@ -1903,7 +1978,7 @@ void define_md_data()
          "and negative. \n"
          "   The vector is [start, start+step, start+2*step, ...]\n "  
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Vector : The vector to be created. \n"
          "\n"
          "Keywords:\n"
@@ -1928,7 +2003,7 @@ void define_md_data()
          "\n"
 	 "The length must be larger than 1. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Vector : The vector to be created. \n"
          "\n"
          "Keywords:\n"
@@ -1953,7 +2028,7 @@ void define_md_data()
          "\n"
 	 "The length must be larger than 1. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Vector : The vector to be created. \n"
          "\n"
          "Keywords:\n"
@@ -1995,7 +2070,7 @@ void define_md_data()
          "If the filename is omitted, the vector is read\n"
          "from <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Vector : Name of the workspace variable to read.\n"
          "\n"
          "Keywords: \n"
@@ -2017,10 +2092,10 @@ void define_md_data()
          "\n"
          "The result can either be stored in the same or another vector. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Vector : Return vector. \n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Vector : Original vector. \n"
          "\n"
          "Keywords:\n"
@@ -2041,7 +2116,7 @@ void define_md_data()
          "Creates a workspace vector with the specified length and sets \n"
          "all values of the vector to the specified value. \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Vector : The vector to be created. \n"
          "\n"
          "Keywords:\n"
@@ -2066,10 +2141,10 @@ void define_md_data()
          "A common usage of the function should be: \n"
          "  VectorSetLengthFromVector(e_ground,f_mono){value=0.75} \n"
          "\n"
-         "Global output: \n"
+         "Generic output: \n"
          "   Vector : The vector to be created. \n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Vector : The vector specifying the length.. \n"
          "\n"
          "Keywords:\n"
@@ -2094,7 +2169,7 @@ void define_md_data()
          "If the filename is omitted, the vector is written\n"
          "to <basename>.<variable_name>.xml.\n"
          "\n"
-         "Global input: \n"
+         "Generic input: \n"
          "   Vector : Name of the workspace variable to write.\n"
          "\n"
          "Keywords: \n"
@@ -2143,7 +2218,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   Index : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords: \n"
@@ -2170,7 +2245,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   Index : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords: \n"
@@ -2194,7 +2269,7 @@ void define_md_data()
 		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-		    "Global input: \n"
+		    "Generic input: \n"
 		    "   Index : Name of the workspace variable to write.\n"
 		    "\n"
                     "Keywords:\n"
@@ -2218,7 +2293,7 @@ void define_md_data()
 		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
 		    "\n"
-		    "Global output: \n"
+		    "Generic output: \n"
 		    "   Index : Name of the workspace variable to read.\n"
 		    "\n"
 		    "Keywords:\n"
@@ -2247,7 +2322,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   Numeric : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords: \n"
@@ -2274,7 +2349,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   Numeric : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords: \n"
@@ -2298,7 +2373,7 @@ void define_md_data()
 		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
 		    "\n"
-		    "Global input: \n"
+		    "Generic input: \n"
 		    "   Numeric : Name of the workspace variable to write.\n"
 		    "\n"
 		    "Keywords:\n"
@@ -2321,7 +2396,7 @@ void define_md_data()
 		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
 		    "\n"
-		    "Global output: \n"
+		    "Generic output: \n"
 		    "   Numeric : Name of the workspace variable to read.\n"
 		    "\n"
 		    "Keywords:\n"
@@ -2353,7 +2428,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   Vector : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords: \n"
@@ -2380,7 +2455,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   Vector : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords: \n"
@@ -2404,7 +2479,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   Vector : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
@@ -2427,7 +2502,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n" 
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   Vector : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
@@ -2460,7 +2535,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   Matrix : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords: \n"
@@ -2487,7 +2562,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   Matrix : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords: \n"
@@ -2511,7 +2586,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   Matrix : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
@@ -2534,7 +2609,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   Matrix : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
@@ -2567,7 +2642,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   ArrayOfIndex : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords: \n"
@@ -2594,7 +2669,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   ArrayOfIndex : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords: \n"
@@ -2618,7 +2693,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   ArrayOfIndex : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
@@ -2641,7 +2716,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   ArrayOfIndex : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
@@ -2671,7 +2746,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   ArrayOfVector : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords: \n"
@@ -2698,7 +2773,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   ArrayOfVector : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords: \n"
@@ -2722,7 +2797,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   ArrayOfVector : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
@@ -2745,7 +2820,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global output:  \n"
+                    "Generic output:  \n"
                     "   ArrayOfVector : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
@@ -2795,7 +2870,7 @@ void define_md_data()
                     "yy yy\n"
                     "yy yy"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   ArrayOfMatrix : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords: \n"
@@ -2822,7 +2897,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfMatrixWriteAscii* for file format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   ArrayOfMatrix : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords: \n"
@@ -2846,7 +2921,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   ArrayOfMatrix : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
@@ -2869,7 +2944,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   ArrayOfMatrix : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
@@ -2899,7 +2974,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfStringWriteAscii* for file format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   String : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords: \n"
@@ -2926,7 +3001,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfStringWriteAscii* for file format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   String : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords: \n"
@@ -2950,7 +3025,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   String : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
@@ -2973,7 +3048,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   String : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
@@ -3016,7 +3091,7 @@ void define_md_data()
                     "A String\n"
                     "Another String\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   ArrayOfString : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords: \n"
@@ -3043,7 +3118,7 @@ void define_md_data()
                     "\n"
                     "See *ArrayOfStringWriteAscii* for file format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   ArrayOfString : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords: \n"
@@ -3067,7 +3142,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global input: \n"
+                    "Generic input: \n"
                     "   ArrayOfString : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
@@ -3090,7 +3165,7 @@ void define_md_data()
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
 		    "File is in HDF4 format.\n"
                     "\n"
-                    "Global output: \n"
+                    "Generic output: \n"
                     "   ArrayOfString : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
@@ -3112,793 +3187,793 @@ void define_md_data()
 
 //=== Spectroscopic methods ============================================
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("lines_per_tgSetEmpty"),
-  	DESCRIPTION
-	(
-	 "Sets lines_per_tg to empty line lists.\n"
-	 "\n"
-	 "You can use this method to set lines per tag if you do not reall want\n"
-	 "to compute line spectra. Formally, absCalc will still require\n"
-	 "lines_per_tg to be set.\n"
-	 ),
-	OUTPUT(   lines_per_tg_      ),
-	INPUT(    tgs_        ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(  ),
-	TYPES(    )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("lines_per_tgSetEmpty"),
+//   	DESCRIPTION
+// 	(
+// 	 "Sets lines_per_tg to empty line lists.\n"
+// 	 "\n"
+// 	 "You can use this method to set lines per tag if you do not reall want\n"
+// 	 "to compute line spectra. Formally, absCalc will still require\n"
+// 	 "lines_per_tg to be set.\n"
+// 	 ),
+// 	OUTPUT(   lines_per_tg_      ),
+// 	INPUT(    tgs_        ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(  ),
+// 	TYPES(    )));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("lines_per_tgReadFromCatalogues"),
-  	DESCRIPTION(
-		    "This method can read lines from different line \n"
-		    "catalogues.\n"
-		    "\n"
-		    "For each tag group, you can specify which catalogue\n"
-		    "to use. Because the method creates lines_per_tg directly,\n"
-		    "it replaces for example thefollowing two method calls:\n"
-		    "  - linesReadFromHitran\n"
-		    "  - lines_per_tgCreateFromLines\n"
-		    "   This method needs as input WSVs the list of tag \n"
-		    "groups. Keyword parameters must specify the names of\n"
-		    "the catalogue files to use and the matching formats.\n"
-		    "Names can be anything, formats can currently be \n"
-		    "HITRAN96, MYTRAN2, JPL, or ARTS. Furthermore, keyword\n"
-		    "parameters have to specify minimum and maximum \n"
-		    "frequency for each tag group. To safe typing, if there\n"
-		    "are less elements in the keyword parameters than there\n"
-		    "are tag groups, the last parameters are applied to all\n"
-		    "following tag groups.\n"
-		    "\n"
-		    "Example usage:\n"
-		    "\n"
-		    "lines_per_tgReadFromCatalogues{\n"
-		    "  filenames = [ \"../data/cat1.dat\", \"../data/cat2.dat\" ]\n"
-		    "  formats   = [ \"MYTRAN2\",          \"HITRAN96\"         ]\n"
-		    "  fmin      = [ 0,                  0                  ]\n"
-		    "  fmax      = [ 2000e9,             100e9              ]\n"
-		    "}\n"
-		    "   In this example, lines for the first tag group will\n"
-		    "be taken from cat1, lines for all other tag groups \n"
-		    "will be taken from cat2.\n"
-		    "   This methods allows you for example to use a \n"
-		    "special line file just for water vapor lines. This\n"
-		    "could be the  improved water vapor line file \n"
-		    "generated by Thomas Kuhn.\n"
-		    "   Catalogues are only read once, even if several tag\n"
-		    "groups have the same catalogue. However, in that case\n"
-		    "the frequency ranges MUST be the same. (If you want \n"
-		    "to do fine-tuning of the frequency ranges, you can do \n"
-		    "this inside the tag definitions, e.g., \"H2O-*-0-2000e9\".)\n"
-		    "   This function uses the various reading routines\n"
-		    "(linesReadFromHitran, etc.), as well as\n"
-		    "lines_per_tgCreateFromLines.\n"
-		    "\n"
-		    "Keywords: \n"
-		    "   filenames = Name (and path) of the catalogue files.\n"
-		    "   formats   = allowed formats are HITRAN96,MYTRAN2,JPL,ARTS \n"
-		    "   fmin      = Minimum frequency for lines to read in Hz.\n"
-		    "   fmax      = Maximum frequency for lines to read in Hz.\n"),
-	OUTPUT(   lines_per_tg_      ),
-	INPUT(    tgs_        ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "filenames",    "formats",      "fmin",   "fmax" ),
-	TYPES(    Array_String_t, Array_String_t, Vector_t, Vector_t)));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("lines_per_tgReadFromCatalogues"),
+//   	DESCRIPTION(
+// 		    "This method can read lines from different line \n"
+// 		    "catalogues.\n"
+// 		    "\n"
+// 		    "For each tag group, you can specify which catalogue\n"
+// 		    "to use. Because the method creates lines_per_tg directly,\n"
+// 		    "it replaces for example thefollowing two method calls:\n"
+// 		    "  - linesReadFromHitran\n"
+// 		    "  - lines_per_tgCreateFromLines\n"
+// 		    "   This method needs as input WSVs the list of tag \n"
+// 		    "groups. Keyword parameters must specify the names of\n"
+// 		    "the catalogue files to use and the matching formats.\n"
+// 		    "Names can be anything, formats can currently be \n"
+// 		    "HITRAN96, MYTRAN2, JPL, or ARTS. Furthermore, keyword\n"
+// 		    "parameters have to specify minimum and maximum \n"
+// 		    "frequency for each tag group. To safe typing, if there\n"
+// 		    "are less elements in the keyword parameters than there\n"
+// 		    "are tag groups, the last parameters are applied to all\n"
+// 		    "following tag groups.\n"
+// 		    "\n"
+// 		    "Example usage:\n"
+// 		    "\n"
+// 		    "lines_per_tgReadFromCatalogues{\n"
+// 		    "  filenames = [ \"../data/cat1.dat\", \"../data/cat2.dat\" ]\n"
+// 		    "  formats   = [ \"MYTRAN2\",          \"HITRAN96\"         ]\n"
+// 		    "  fmin      = [ 0,                  0                  ]\n"
+// 		    "  fmax      = [ 2000e9,             100e9              ]\n"
+// 		    "}\n"
+// 		    "   In this example, lines for the first tag group will\n"
+// 		    "be taken from cat1, lines for all other tag groups \n"
+// 		    "will be taken from cat2.\n"
+// 		    "   This methods allows you for example to use a \n"
+// 		    "special line file just for water vapor lines. This\n"
+// 		    "could be the  improved water vapor line file \n"
+// 		    "generated by Thomas Kuhn.\n"
+// 		    "   Catalogues are only read once, even if several tag\n"
+// 		    "groups have the same catalogue. However, in that case\n"
+// 		    "the frequency ranges MUST be the same. (If you want \n"
+// 		    "to do fine-tuning of the frequency ranges, you can do \n"
+// 		    "this inside the tag definitions, e.g., \"H2O-*-0-2000e9\".)\n"
+// 		    "   This function uses the various reading routines\n"
+// 		    "(linesReadFromHitran, etc.), as well as\n"
+// 		    "lines_per_tgCreateFromLines.\n"
+// 		    "\n"
+// 		    "Keywords: \n"
+// 		    "   filenames = Name (and path) of the catalogue files.\n"
+// 		    "   formats   = allowed formats are HITRAN96,MYTRAN2,JPL,ARTS \n"
+// 		    "   fmin      = Minimum frequency for lines to read in Hz.\n"
+// 		    "   fmax      = Maximum frequency for lines to read in Hz.\n"),
+// 	OUTPUT(   lines_per_tg_      ),
+// 	INPUT(    tgs_        ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "filenames",    "formats",      "fmin",   "fmax" ),
+// 	TYPES(    Array_String_t, Array_String_t, Vector_t, Vector_t)));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("linesReadFromHitran"),
-  	DESCRIPTION(
-		    "Read all the lines from a HITRAN catalogue file in the \n"
-		    "given frequency range. Otherwise a runtime error will be\n"
-		    "thrown\n"
-		    "\n"
-		    "Please note that all lines must correspond\n"
-		    "to the legal species / isotope combinations\n"
-		    "\n"
-		    "Keywords: \n"
-		    "   filename = Name (and path) of the catalogue file.\n"
-		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
-		    "   fmax     = Maximum frequency for lines to read in Hz."),
-	OUTPUT(   lines_   ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "filename",  "fmin",    "fmax"),
-	TYPES(    String_t,    Numeric_t, Numeric_t)));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("linesReadFromHitran"),
+//   	DESCRIPTION(
+// 		    "Read all the lines from a HITRAN catalogue file in the \n"
+// 		    "given frequency range. Otherwise a runtime error will be\n"
+// 		    "thrown\n"
+// 		    "\n"
+// 		    "Please note that all lines must correspond\n"
+// 		    "to the legal species / isotope combinations\n"
+// 		    "\n"
+// 		    "Keywords: \n"
+// 		    "   filename = Name (and path) of the catalogue file.\n"
+// 		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
+// 		    "   fmax     = Maximum frequency for lines to read in Hz."),
+// 	OUTPUT(   lines_   ),
+// 	INPUT(),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "filename",  "fmin",    "fmax"),
+// 	TYPES(    String_t,    Numeric_t, Numeric_t)));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("linesReadFromMytran2"),
-  	DESCRIPTION(
-		    "Read all the lines from a MYTRAN2 catalogue file in the \n"
-		    "given frequency range. Otherwise a runtime error will be\n"
-		    "thrown\n"
-		    "\n"
-		    "Please note that all lines must correspond\n"
-		    "to the legal species / isotope combinations\n"
-		    "\n"
-		    "Keywords: \n"
-		    "   filename = Name (and path) of the catalogue file.\n"
-		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
-		    "   fmax     = Maximum frequency for lines to read in Hz."),
-	OUTPUT(   lines_   ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "filename",  "fmin",    "fmax"),
-	TYPES(    String_t,    Numeric_t, Numeric_t)));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("linesReadFromMytran2"),
+//   	DESCRIPTION(
+// 		    "Read all the lines from a MYTRAN2 catalogue file in the \n"
+// 		    "given frequency range. Otherwise a runtime error will be\n"
+// 		    "thrown\n"
+// 		    "\n"
+// 		    "Please note that all lines must correspond\n"
+// 		    "to the legal species / isotope combinations\n"
+// 		    "\n"
+// 		    "Keywords: \n"
+// 		    "   filename = Name (and path) of the catalogue file.\n"
+// 		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
+// 		    "   fmax     = Maximum frequency for lines to read in Hz."),
+// 	OUTPUT(   lines_   ),
+// 	INPUT(),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "filename",  "fmin",    "fmax"),
+// 	TYPES(    String_t,    Numeric_t, Numeric_t)));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("linesReadFromJpl"),
-  	DESCRIPTION(
-		    "Read all the lines from a JPL catalogue file in the \n"
-		    "given frequency range. Otherwise a runtime error will be\n"
-		    "thrown\n"
-		    "\n"
-		    "Please note that all lines must correspond\n"
-		    "to the legal species / isotope combinations.\n"
-		    "\n"
-		    "Keywords: \n"
-		    "   filename = Name (and path) of the catalogue file.\n"
-		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
-		    "   fmax     = Maximum frequency for lines to read in Hz."),
-	OUTPUT(   lines_   ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "filename",  "fmin",    "fmax"),
-	TYPES(    String_t,    Numeric_t, Numeric_t)));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("linesReadFromJpl"),
+//   	DESCRIPTION(
+// 		    "Read all the lines from a JPL catalogue file in the \n"
+// 		    "given frequency range. Otherwise a runtime error will be\n"
+// 		    "thrown\n"
+// 		    "\n"
+// 		    "Please note that all lines must correspond\n"
+// 		    "to the legal species / isotope combinations.\n"
+// 		    "\n"
+// 		    "Keywords: \n"
+// 		    "   filename = Name (and path) of the catalogue file.\n"
+// 		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
+// 		    "   fmax     = Maximum frequency for lines to read in Hz."),
+// 	OUTPUT(   lines_   ),
+// 	INPUT(),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "filename",  "fmin",    "fmax"),
+// 	TYPES(    String_t,    Numeric_t, Numeric_t)));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("linesReadFromArts"),
-  	DESCRIPTION(
-		    "Read all the lines from an Arts catalogue file in the \n"
-		    "given frequency range. Otherwise a runtime error will be\n"
-		    "thrown \n"
-		    "\n"
-		    "Please note that all lines must correspond\n"
-		    "to the legal species / isotope combinations\n"
-		    "\n"
-		    "Keywords: \n"
-		    "   filename = Name (and path) of the catalogue file.\n"
-		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
-		    "   fmax     = Maximum frequency for lines to read in Hz."),
-	OUTPUT(   lines_   ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "filename",  "fmin",    "fmax"),
-	TYPES(    String_t,    Numeric_t, Numeric_t)));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("linesReadFromArts"),
+//   	DESCRIPTION(
+// 		    "Read all the lines from an Arts catalogue file in the \n"
+// 		    "given frequency range. Otherwise a runtime error will be\n"
+// 		    "thrown \n"
+// 		    "\n"
+// 		    "Please note that all lines must correspond\n"
+// 		    "to the legal species / isotope combinations\n"
+// 		    "\n"
+// 		    "Keywords: \n"
+// 		    "   filename = Name (and path) of the catalogue file.\n"
+// 		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
+// 		    "   fmax     = Maximum frequency for lines to read in Hz."),
+// 	OUTPUT(   lines_   ),
+// 	INPUT(),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "filename",  "fmin",    "fmax"),
+// 	TYPES(    String_t,    Numeric_t, Numeric_t)));
   
-  // FIXME: Remove this one.
-  md_data.push_back
-    ( MdRecord
-      ( NAME("linesElowToJoule"),
-  	DESCRIPTION(
-		    "Just a little helper to convert the lower state energy from cm^-1\n"
-		    "(ARTSCAT-2) to Joule (ARTSCAT-3). This should be removed soon\n"),
-	OUTPUT(   lines_   ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( ),
-	TYPES(    )));
+//   // FIXME: Remove this one.
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("linesElowToJoule"),
+//   	DESCRIPTION(
+// 		    "Just a little helper to convert the lower state energy from cm^-1\n"
+// 		    "(ARTSCAT-2) to Joule (ARTSCAT-3). This should be removed soon\n"),
+// 	OUTPUT(   lines_   ),
+// 	INPUT(),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( ),
+// 	TYPES(    )));
       
-  md_data.push_back
-    ( MdRecord
-      ( NAME("lines_per_tgCreateFromLines"),
-  	DESCRIPTION(
-		    "Split lines up into the different tag groups.\n"
-		    "\n"
-		    "The tag groups are tested in the order in which they are\n" 
-		    "specified in the controlfile. The lines are assigned to \n"
-		    "the tag groups in the order as the groups  are specified.\n"
-		    "That means if you do [\"O3-666\",\"O3\"],the last group O3 \n"
-		    "gets assigned all the O3 lines that do not fit in the first group."),
-	OUTPUT(   lines_per_tg_      ),
-	INPUT(    lines_, tgs_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("lines_per_tgCreateFromLines"),
+//   	DESCRIPTION(
+// 		    "Split lines up into the different tag groups.\n"
+// 		    "\n"
+// 		    "The tag groups are tested in the order in which they are\n" 
+// 		    "specified in the controlfile. The lines are assigned to \n"
+// 		    "the tag groups in the order as the groups  are specified.\n"
+// 		    "That means if you do [\"O3-666\",\"O3\"],the last group O3 \n"
+// 		    "gets assigned all the O3 lines that do not fit in the first group."),
+// 	OUTPUT(   lines_per_tg_      ),
+// 	INPUT(    lines_, tgs_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("lines_per_tgAddMirrorLines"),
-  	DESCRIPTION(
-		    "Adds mirror lines at negative frequencies to the *lines_per_tg*.\n"
-		    "\n"
-		    "For each line at frequency +f in *lines_per_tg* a corresponding\n"
-		    "entry at frequency -f is added to *lines_per_tg*.The mirror \n"
-		    "lines are appended to the line lists after the original lines."),
-	OUTPUT(   lines_per_tg_      ),
-	INPUT(    lines_per_tg_      ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("lines_per_tgAddMirrorLines"),
+//   	DESCRIPTION(
+// 		    "Adds mirror lines at negative frequencies to the *lines_per_tg*.\n"
+// 		    "\n"
+// 		    "For each line at frequency +f in *lines_per_tg* a corresponding\n"
+// 		    "entry at frequency -f is added to *lines_per_tg*.The mirror \n"
+// 		    "lines are appended to the line lists after the original lines."),
+// 	OUTPUT(   lines_per_tg_      ),
+// 	INPUT(    lines_per_tg_      ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("lines_per_tgCompact"),
-  	DESCRIPTION(
-		    "Removes all lines outside the defined lineshape cutoff frequency\n"
-		    "from the *lines_per_tg*. This can save computation time.\n"
-		    "It should be particularly useful to call this method after\n"
-		    "*lines_per_tgAddMirrorLines*."),
-	OUTPUT(   lines_per_tg_      ),
-	INPUT(    lines_per_tg_, lineshape_, f_mono_  ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("lines_per_tgCompact"),
+//   	DESCRIPTION(
+// 		    "Removes all lines outside the defined lineshape cutoff frequency\n"
+// 		    "from the *lines_per_tg*. This can save computation time.\n"
+// 		    "It should be particularly useful to call this method after\n"
+// 		    "*lines_per_tgAddMirrorLines*."),
+// 	OUTPUT(   lines_per_tg_      ),
+// 	INPUT(    lines_per_tg_, lineshape_, f_mono_  ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("linesWriteAscii"),
-  	DESCRIPTION(
-                    "Writes the workspace variable *lines* to an ASCII file.\n"
-                    "\n"
-		    "The content of the workspace variable 'lines`\n"
-		    "The content of the workspace variable *lines*\n"
-		    "is written in ARTS line format to the file with\n"
-                    "the specified name. If the filename is omitted, the\n"
-                    "lines are written to <basename>.lines.aa.\n"
-                    "\n"
-                    "Keywords: \n"
-                    "   filename : Name of the output file.\n"
-                    ), 
-	OUTPUT(),
-	INPUT( lines_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("linesWriteAscii"),
+//   	DESCRIPTION(
+//                     "Writes the workspace variable *lines* to an ASCII file.\n"
+//                     "\n"
+// 		    "The content of the workspace variable 'lines`\n"
+// 		    "The content of the workspace variable *lines*\n"
+// 		    "is written in ARTS line format to the file with\n"
+//                     "the specified name. If the filename is omitted, the\n"
+//                     "lines are written to <basename>.lines.aa.\n"
+//                     "\n"
+//                     "Keywords: \n"
+//                     "   filename : Name of the output file.\n"
+//                     ), 
+// 	OUTPUT(),
+// 	INPUT( lines_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "filename" ),
+// 	TYPES(    String_t   )));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("lines_per_tgWriteAscii"),
-  	DESCRIPTION(
-                    "Writes the workspace variable *lines_per_tg* to an ASCII file.\n"
-                    "\n"
-                    "The content of the workspace variable *lines_per_tg*\n"
-                    "is written in ARTS line format to the file with\n"
-                    "the specified name. If the filename is omitted, the\n"
-                    "lines are written to <basename>.lines_per_tg.aa.\n"
-                    "\n"
-                    "The array dimension is handled in a similar way as by the\n"
-                    "array of vector and matrix output functions:\n"
-                    "First an integer stating the number of tag groups.\n"
-                    "Then an integer specifying the number of lines for the\n"
-                    "first group. Then the other groups in similar fashion."
-                    "\n"
-                    "Keywords: \n"
-                    "   filename : Name of the output file.\n"
-                    ),
-	OUTPUT(),
-	INPUT( lines_per_tg_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("lines_per_tgWriteAscii"),
+//   	DESCRIPTION(
+//                     "Writes the workspace variable *lines_per_tg* to an ASCII file.\n"
+//                     "\n"
+//                     "The content of the workspace variable *lines_per_tg*\n"
+//                     "is written in ARTS line format to the file with\n"
+//                     "the specified name. If the filename is omitted, the\n"
+//                     "lines are written to <basename>.lines_per_tg.aa.\n"
+//                     "\n"
+//                     "The array dimension is handled in a similar way as by the\n"
+//                     "array of vector and matrix output functions:\n"
+//                     "First an integer stating the number of tag groups.\n"
+//                     "Then an integer specifying the number of lines for the\n"
+//                     "first group. Then the other groups in similar fashion."
+//                     "\n"
+//                     "Keywords: \n"
+//                     "   filename : Name of the output file.\n"
+//                     ),
+// 	OUTPUT(),
+// 	INPUT( lines_per_tg_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "filename" ),
+// 	TYPES(    String_t   )));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("tgsDefine"),
-  	DESCRIPTION(
-		    "Set up the list of tag groups.\n"
-		    "\n"
-		    "The workspace variable *tgs* contains several tag groups. Each \n"
-		    "tag group contain one or more tags. This method converts \n"
-		    "description of tag groups  given in the keyword to the internal \n"
-		    "representation *tgs*. A tag group selects spectral features which \n"
-		    "belong to the same species. \n"
-		    "   A tag group can contain a mixture of general and special \n"
-		    "tags.  All the continuum tags belong to the special tags and \n"
-		    "the rest come under the general tags.\n"
-		    "   A general tag is defined in terms of the name of the species,\n"
-		    "isotope and a range of frequencies. Species are named after the \n"
-		    "standard chemical names,e.g., \"O3\".  Isotopes are given by the \n"
-		    "last digit of the atomic weight, i.e., \"O3-668\" for the \n"
-		    "asymmetric ozone molecule including an oxygen 18 atom.  Groups\n"
-		    "of transitions are specified by giving a lower and upper limit \n"
-		    "of a frequency range,\"O3-666-500e9-501e9\".Moreover the symbol\n"
-		    "'*' acts as a wild card. Furthermore, frequency range or frequency\n"
-		    "range and isotope may be omitted.\n"
-		    "Example for some tag groups containing only general tags:\n"
-		    "tags = [\"O3-666-500e9-501e9, O3-686\",\"O3\"]\n"
-		    "The first tag group consist of all O3-666 lines between 500 and\n"
-		    "501 GHz plus all O3-686 lines.  The second tag group will contain\n"
-		    "all remaining O3 transitions.\n"
-		    "\n"
-		    "Keywords:\n"
-		    "   tags : Specify one String for each tag group that you want to create.\n"
-		    "   Inside the String, separate the tags by comma (plus optional blanks).\n"
-		    "   Example:\n"
-		    "   tag = [\"O3-686\",\"H2O\"]"),
-	OUTPUT( tgs_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "tags" ),
-	TYPES(    Array_String_t   )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("tgsDefine"),
+//   	DESCRIPTION(
+// 		    "Set up the list of tag groups.\n"
+// 		    "\n"
+// 		    "The workspace variable *tgs* contains several tag groups. Each \n"
+// 		    "tag group contain one or more tags. This method converts \n"
+// 		    "description of tag groups  given in the keyword to the internal \n"
+// 		    "representation *tgs*. A tag group selects spectral features which \n"
+// 		    "belong to the same species. \n"
+// 		    "   A tag group can contain a mixture of general and special \n"
+// 		    "tags.  All the continuum tags belong to the special tags and \n"
+// 		    "the rest come under the general tags.\n"
+// 		    "   A general tag is defined in terms of the name of the species,\n"
+// 		    "isotope and a range of frequencies. Species are named after the \n"
+// 		    "standard chemical names,e.g., \"O3\".  Isotopes are given by the \n"
+// 		    "last digit of the atomic weight, i.e., \"O3-668\" for the \n"
+// 		    "asymmetric ozone molecule including an oxygen 18 atom.  Groups\n"
+// 		    "of transitions are specified by giving a lower and upper limit \n"
+// 		    "of a frequency range,\"O3-666-500e9-501e9\".Moreover the symbol\n"
+// 		    "'*' acts as a wild card. Furthermore, frequency range or frequency\n"
+// 		    "range and isotope may be omitted.\n"
+// 		    "Example for some tag groups containing only general tags:\n"
+// 		    "tags = [\"O3-666-500e9-501e9, O3-686\",\"O3\"]\n"
+// 		    "The first tag group consist of all O3-666 lines between 500 and\n"
+// 		    "501 GHz plus all O3-686 lines.  The second tag group will contain\n"
+// 		    "all remaining O3 transitions.\n"
+// 		    "\n"
+// 		    "Keywords:\n"
+// 		    "   tags : Specify one String for each tag group that you want to create.\n"
+// 		    "   Inside the String, separate the tags by comma (plus optional blanks).\n"
+// 		    "   Example:\n"
+// 		    "   tag = [\"O3-686\",\"H2O\"]"),
+// 	OUTPUT( tgs_ ),
+// 	INPUT(),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "tags" ),
+// 	TYPES(    Array_String_t   )));
   
-  md_data.push_back
-    ( MdRecord
-      ( NAME("tgsDefineAllInScenario"),
-  	DESCRIPTION
-	(
-	 "Define one tag group for each species known to ARTS and included in an\n"
-	 "atmospheric scenario.\n"
-	 "\n"
-	 "You can use this as an alternative to tgsDefine if you want to make an\n"
-	 "absorption calculation that is as complete as possible. The method\n"
-	 "goes through all defined species and tries to open the VMR file. If\n"
-	 "this works the tag is included, otherwise it is skipped.\n"
-	 "\n"
-	 "Keywords:\n"
-	 "   basename : The name and path of a particular atmospheric scenario.\n"
-	 "              For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical"
-           ),
-	OUTPUT( tgs_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "basename" ),
-	TYPES(    String_t   )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("tgsDefineAllInScenario"),
+//   	DESCRIPTION
+// 	(
+// 	 "Define one tag group for each species known to ARTS and included in an\n"
+// 	 "atmospheric scenario.\n"
+// 	 "\n"
+// 	 "You can use this as an alternative to tgsDefine if you want to make an\n"
+// 	 "absorption calculation that is as complete as possible. The method\n"
+// 	 "goes through all defined species and tries to open the VMR file. If\n"
+// 	 "this works the tag is included, otherwise it is skipped.\n"
+// 	 "\n"
+// 	 "Keywords:\n"
+// 	 "   basename : The name and path of a particular atmospheric scenario.\n"
+// 	 "              For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical"
+//            ),
+// 	OUTPUT( tgs_ ),
+// 	INPUT(),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "basename" ),
+// 	TYPES(    String_t   )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("lineshapeDefine"),
-  	DESCRIPTION(
-          "Sets the lineshape for all calculated lines.\n\n"
-          "\n"
-          "   A general lineshape profile is specified, according to a given  \n"
-          "approximation. Alongside a normalization factor is to be set - a  \n"
-          "multiplicative forefactor through which the profile can be \n"
-          "modified. This factor is just the 0th or 1st, or 2nd power of the \n"
-          "ratio between the frequency of calculation f and the center frequency\n"
-          "for a specific line f0. A cutoff frequency must also be specified in\n"
-          "order to restrict the calculation within a desired frequency region or\n"
-          "not, when there's no such region.\n"
-          "   The general lineshape profile is given by the keyword shape,\n"
-          "while the normalization factor and the cutoff frequency by\n"
-          "normalizationfactor and cutoff respectively.\n"
-          "\n"
-          "   The available values for these keywords are given below.\n"
-          "shape - \"no_shape\" : no specified shape\n"
-          "        \"Doppler\" : Doppler lineshape\n"
-          "        \"Lorentz\" : Lorentz lineshape\n"
-          "        \"Voigt_Kuntz3\" : Kuntz approximation to the Voigt profile,\n"
-          "                         accuracy > 2x10^(-3)\n"
-          "        \"Voigt_Kuntz4\" : Kuntz approximation to the Voigt profile,\n"
-          "                         accuracy > 2x10^(-4)\n"
-          "        \"Voigt_Kuntz6\" : Kuntz approximation to the Voigt profile,\n"
-          "                         accuracy > 2x10^(-6)\n"   
-          "        \"Voigt_Drayson\" : Drayson approximation to the Voigt profile \n"
-          "        \"Rosenkranz_Voigt_Drayson\" : Rosenkrantz oxygen absortion with overlap correction\n" 
-          "                                     on the basis of Drayson routine\n"                                    
-          "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
-          "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
-          "normalizationfactor - \"no_norm\": 1\n"
-          "                      \"linear\": f/f0\n" 
-          "                      \"quadratic\": (f/f0)^2.\n"
-          "cutoff - \" -1\" : no cutoff\n"
-          "         \"Number\": positive cutoff frequency in Hz.\n"
-          "\n"
-          "Example usage:\n"
-   	  "shape=[\"Lorentz\"]\n"
-          "normalizationfactor=[\"linear\"]\n"
-          "cutoff= [650e9]"
-          "\n"
-          "Keywords:\n"
-          "   shape               : The general profile according to an approximation.\n"
-          "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
-          "   cutoff              : The frequency at which a cutoff can be made.\n"),
-	OUTPUT( lineshape_ ),
-	INPUT( tgs_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(  "shape",    "normalizationfactor",  "cutoff" ),
-	TYPES(     String_t,        String_t,         Numeric_t )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("lineshapeDefine"),
+//   	DESCRIPTION(
+//           "Sets the lineshape for all calculated lines.\n\n"
+//           "\n"
+//           "   A general lineshape profile is specified, according to a given  \n"
+//           "approximation. Alongside a normalization factor is to be set - a  \n"
+//           "multiplicative forefactor through which the profile can be \n"
+//           "modified. This factor is just the 0th or 1st, or 2nd power of the \n"
+//           "ratio between the frequency of calculation f and the center frequency\n"
+//           "for a specific line f0. A cutoff frequency must also be specified in\n"
+//           "order to restrict the calculation within a desired frequency region or\n"
+//           "not, when there's no such region.\n"
+//           "   The general lineshape profile is given by the keyword shape,\n"
+//           "while the normalization factor and the cutoff frequency by\n"
+//           "normalizationfactor and cutoff respectively.\n"
+//           "\n"
+//           "   The available values for these keywords are given below.\n"
+//           "shape - \"no_shape\" : no specified shape\n"
+//           "        \"Doppler\" : Doppler lineshape\n"
+//           "        \"Lorentz\" : Lorentz lineshape\n"
+//           "        \"Voigt_Kuntz3\" : Kuntz approximation to the Voigt profile,\n"
+//           "                         accuracy > 2x10^(-3)\n"
+//           "        \"Voigt_Kuntz4\" : Kuntz approximation to the Voigt profile,\n"
+//           "                         accuracy > 2x10^(-4)\n"
+//           "        \"Voigt_Kuntz6\" : Kuntz approximation to the Voigt profile,\n"
+//           "                         accuracy > 2x10^(-6)\n"   
+//           "        \"Voigt_Drayson\" : Drayson approximation to the Voigt profile \n"
+//           "        \"Rosenkranz_Voigt_Drayson\" : Rosenkrantz oxygen absortion with overlap correction\n" 
+//           "                                     on the basis of Drayson routine\n"                                    
+//           "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
+//           "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
+//           "normalizationfactor - \"no_norm\": 1\n"
+//           "                      \"linear\": f/f0\n" 
+//           "                      \"quadratic\": (f/f0)^2.\n"
+//           "cutoff - \" -1\" : no cutoff\n"
+//           "         \"Number\": positive cutoff frequency in Hz.\n"
+//           "\n"
+//           "Example usage:\n"
+//    	  "shape=[\"Lorentz\"]\n"
+//           "normalizationfactor=[\"linear\"]\n"
+//           "cutoff= [650e9]"
+//           "\n"
+//           "Keywords:\n"
+//           "   shape               : The general profile according to an approximation.\n"
+//           "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
+//           "   cutoff              : The frequency at which a cutoff can be made.\n"),
+// 	OUTPUT( lineshape_ ),
+// 	INPUT( tgs_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(  "shape",    "normalizationfactor",  "cutoff" ),
+// 	TYPES(     String_t,        String_t,         Numeric_t )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("lineshape_per_tgDefine"),
-  	DESCRIPTION(
-          "Sets the lineshape per tag group for all calculated lines.\n\n"
-          "\n" 
-          "   A general lineshape profile is specified, according to a given  \n"
-          "approximation for each tag group. Alongside a normalization factor\n" 
-          "is to be set also for each tag group - a multiplicative forefactor through\n"
-          "which the profile can be modified. This factor is just the 0th or 1st,\n"
-          "or 2nd power of the ratio between the frequency of calculation f and\n"
-          "the center frequency for a specific line f0. A cutoff frequency must also be\n"
-          "specified for each of the tags in  order to restrict the calculation within\n" 
-          "a desired region or not, when there's no such region.\n"
-          "   The general lineshape profile is given by the keyword shape,\n"
-          "while the normalization factor and the cutoff frequency by\n"
-          "normalizationfactor and cutoff respectively.\n"
-          "\n"
-          "   The available values for these keywords are given below.\n"
-          "shape - \"no_shape\" : no specified shape\n"
-          "        \"Doppler\" : Doppler lineshape\n"
-          "        \"Lorentz\" : Lorentz lineshape\n"
-          "        \"Voigt_Kuntz3\" : Kuntz approximation to the Voigt profile,\n"
-          "                        accuracy > 2x10^(-3)\n"
-          "        \"Voigt_Kuntz4\" : Kuntz approximation to the Voigt profile,\n"
-          "                         accuracy > 2x10^(-4)\n"
-          "        \"Voigt_Kuntz6\" : Kuntz approximation to the Voigt profile,\n"
-          "                         accuracy > 2x10^(-6)\n"   
-          "        \"Voigt_Drayson\" : Drayson approximation to the Voigt profile \n"
-          "        \"Rosenkranz_Voigt_Drayson\" : Rosenkrantz oxygen absortion with overlap correction\n" 
-          "                                     on the basis of Drayson routine\n"                                    
-          "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
-          "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
-          "normalizationfactor - \"no_norm\": 1\n"
-          "                      \"linear\": f/f0\n" 
-          "                      \"quadratic\": (f/f0)^2.\n"
-          "cutoff - \" -1\" : no cutoff\n"
-          "           \"Number\": positive cutoff frequency in Hz.\n"
-          "\n"
-          "Example usage:\n"
-	  "shape = [\"Lorentz\",\"Voigt_Kuntz6\"] \n"
-	  "normalizationfactor= [\"linear\", \"quadratic\"] \n"
-	  "cutoff = [ 650e9, -1 ]"
-          "\n"
-          "Keywords:\n"
-          "   shape               : The general profile according to an approximation.\n"
-          "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
-          "   cutoff              : The frequency at which a cutoff can be made.\n"),
-	OUTPUT( lineshape_ ),
-	INPUT( tgs_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(  "shape",           "normalizationfactor",    "cutoff" ),
-	TYPES(   Array_String_t,         Array_String_t,        Vector_t )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("lineshape_per_tgDefine"),
+//   	DESCRIPTION(
+//           "Sets the lineshape per tag group for all calculated lines.\n\n"
+//           "\n" 
+//           "   A general lineshape profile is specified, according to a given  \n"
+//           "approximation for each tag group. Alongside a normalization factor\n" 
+//           "is to be set also for each tag group - a multiplicative forefactor through\n"
+//           "which the profile can be modified. This factor is just the 0th or 1st,\n"
+//           "or 2nd power of the ratio between the frequency of calculation f and\n"
+//           "the center frequency for a specific line f0. A cutoff frequency must also be\n"
+//           "specified for each of the tags in  order to restrict the calculation within\n" 
+//           "a desired region or not, when there's no such region.\n"
+//           "   The general lineshape profile is given by the keyword shape,\n"
+//           "while the normalization factor and the cutoff frequency by\n"
+//           "normalizationfactor and cutoff respectively.\n"
+//           "\n"
+//           "   The available values for these keywords are given below.\n"
+//           "shape - \"no_shape\" : no specified shape\n"
+//           "        \"Doppler\" : Doppler lineshape\n"
+//           "        \"Lorentz\" : Lorentz lineshape\n"
+//           "        \"Voigt_Kuntz3\" : Kuntz approximation to the Voigt profile,\n"
+//           "                        accuracy > 2x10^(-3)\n"
+//           "        \"Voigt_Kuntz4\" : Kuntz approximation to the Voigt profile,\n"
+//           "                         accuracy > 2x10^(-4)\n"
+//           "        \"Voigt_Kuntz6\" : Kuntz approximation to the Voigt profile,\n"
+//           "                         accuracy > 2x10^(-6)\n"   
+//           "        \"Voigt_Drayson\" : Drayson approximation to the Voigt profile \n"
+//           "        \"Rosenkranz_Voigt_Drayson\" : Rosenkrantz oxygen absortion with overlap correction\n" 
+//           "                                     on the basis of Drayson routine\n"                                    
+//           "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
+//           "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
+//           "normalizationfactor - \"no_norm\": 1\n"
+//           "                      \"linear\": f/f0\n" 
+//           "                      \"quadratic\": (f/f0)^2.\n"
+//           "cutoff - \" -1\" : no cutoff\n"
+//           "           \"Number\": positive cutoff frequency in Hz.\n"
+//           "\n"
+//           "Example usage:\n"
+// 	  "shape = [\"Lorentz\",\"Voigt_Kuntz6\"] \n"
+// 	  "normalizationfactor= [\"linear\", \"quadratic\"] \n"
+// 	  "cutoff = [ 650e9, -1 ]"
+//           "\n"
+//           "Keywords:\n"
+//           "   shape               : The general profile according to an approximation.\n"
+//           "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
+//           "   cutoff              : The frequency at which a cutoff can be made.\n"),
+// 	OUTPUT( lineshape_ ),
+// 	INPUT( tgs_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(  "shape",           "normalizationfactor",    "cutoff" ),
+// 	TYPES(   Array_String_t,         Array_String_t,        Vector_t )));
 
 
-//=== Continuum methods ============================================
+// //=== Continuum methods ============================================
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("cont_descriptionInit"),
-  	DESCRIPTION
-	(
-	 "Initializes the two workspace variables for the continuum description,\n"
-	 "*cont_description_names* and *cont_description_parameters*.\n"
-	 " \n"
-	 "This method does not really do anything, except setting the two\n"
-	 "variables to empty Arrays. It is just necessary because the method\n"
-	 "*cont_descriptionAppend* wants to append to the variables.\n"
-	 "   Formally, the continuum description workspace variables are required\n"
-	 "by the absorption calculation methods (e.g., *absCalc*). Therefore you\n"
-	 "always have to call at least *cont_descriptionInit*, even if you do\n"
-	 "not want to use any continua."
-	 ),
-	OUTPUT( cont_description_names_, 
-                cont_description_models_,
-                cont_description_parameters_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("cont_descriptionInit"),
+//   	DESCRIPTION
+// 	(
+// 	 "Initializes the two workspace variables for the continuum description,\n"
+// 	 "*cont_description_names* and *cont_description_parameters*.\n"
+// 	 " \n"
+// 	 "This method does not really do anything, except setting the two\n"
+// 	 "variables to empty Arrays. It is just necessary because the method\n"
+// 	 "*cont_descriptionAppend* wants to append to the variables.\n"
+// 	 "   Formally, the continuum description workspace variables are required\n"
+// 	 "by the absorption calculation methods (e.g., *absCalc*). Therefore you\n"
+// 	 "always have to call at least *cont_descriptionInit*, even if you do\n"
+// 	 "not want to use any continua."
+// 	 ),
+// 	OUTPUT( cont_description_names_, 
+//                 cont_description_models_,
+//                 cont_description_parameters_ ),
+// 	INPUT(),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("cont_descriptionAppend"),
-  	DESCRIPTION
-	(
-	 "Appends the description of a continuum model or a complete absorption\n"
-	 "model to *cont_description_names* and *cont_description_parameters*.\n"
-	 "\n"
-	 "See online documentation for *cont_description_names* for a list of\n"
-	 "allowed models and for information what parameters they require. See\n"
-	 "file cont.arts in the doc/examples directory for usage examples and\n"
-	 "default parameters for the various models. \n"
-	 "\n"
-	 "Keywords:\n"
-	 "   name       : The name of a continuum model. Must match one of the models\n"
-	 "                implemented in ARTS. \n"
-         "   option     : give here the option of this continuum/full model.\n"
-	 "   parameters : A Vector containing the required number of parameters\n"
-	 "                for the model given. The meaning of the parameters and\n"
-	 "                how many parameters are required depends on the model.\n"
-	 ),
-	OUTPUT( cont_description_names_, 
-                cont_description_models_,
-                cont_description_parameters_ ),
-	INPUT(  cont_description_names_, 
-                cont_description_models_,
-                cont_description_parameters_),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "tagname",  "model",   "userparameters" ),
-	TYPES(    String_t,   String_t,   Vector_t         )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("cont_descriptionAppend"),
+//   	DESCRIPTION
+// 	(
+// 	 "Appends the description of a continuum model or a complete absorption\n"
+// 	 "model to *cont_description_names* and *cont_description_parameters*.\n"
+// 	 "\n"
+// 	 "See online documentation for *cont_description_names* for a list of\n"
+// 	 "allowed models and for information what parameters they require. See\n"
+// 	 "file cont.arts in the doc/examples directory for usage examples and\n"
+// 	 "default parameters for the various models. \n"
+// 	 "\n"
+// 	 "Keywords:\n"
+// 	 "   name       : The name of a continuum model. Must match one of the models\n"
+// 	 "                implemented in ARTS. \n"
+//          "   option     : give here the option of this continuum/full model.\n"
+// 	 "   parameters : A Vector containing the required number of parameters\n"
+// 	 "                for the model given. The meaning of the parameters and\n"
+// 	 "                how many parameters are required depends on the model.\n"
+// 	 ),
+// 	OUTPUT( cont_description_names_, 
+//                 cont_description_models_,
+//                 cont_description_parameters_ ),
+// 	INPUT(  cont_description_names_, 
+//                 cont_description_models_,
+//                 cont_description_parameters_),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "tagname",  "model",   "userparameters" ),
+// 	TYPES(    String_t,   String_t,   Vector_t         )));
 
 
 //=== Input Atmosphere methods ===========================================
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("raw_vmrsReadFromFiles"),
-        DESCRIPTION(
-          "Reads the individual VMR profile for each TAGS from file.\n"
-          "\n"
-          "Using this function one can read VMRs of specific TAGS from\n"
-          "explicitly specified files and the remaing from a scenario.\n"
-          "The filenames and the base name of atmospheric scenario\n"
-          "should be specified as keywords. One file name must\n"
-          "be specified for each tag group(each element of *tgs*).\n"
-          "The name may include a path.\n"
-	  "\n"
-	  "Keywords:\n"
-	  "   seltags   : Must be a sub group of tags which should be read from files.\n"
-	  "   filenames : Names of the files containing VMR profiles of seltags.\n"
-	  "   basename  : The name of a particular atmospheric scenario.\n"
-	  "               See *raw_vmrsReadFromScenario* for details. Remaining\n"
-	  "               VMRs will be read from the scenario.\n"
-	  "\n"
-          ),
-        OUTPUT(   raw_vmrs_         ),
-        INPUT(    tgs_                 ),
-        GOUTPUT(                       ),
-        GINPUT(                        ),
-        KEYWORDS( "seltags",       "filenames",    "basename"),
-        TYPES(    Array_String_t,  Array_String_t, String_t)));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("raw_vmrsReadFromFiles"),
+//         DESCRIPTION(
+//           "Reads the individual VMR profile for each TAGS from file.\n"
+//           "\n"
+//           "Using this function one can read VMRs of specific TAGS from\n"
+//           "explicitly specified files and the remaing from a scenario.\n"
+//           "The filenames and the base name of atmospheric scenario\n"
+//           "should be specified as keywords. One file name must\n"
+//           "be specified for each tag group(each element of *tgs*).\n"
+//           "The name may include a path.\n"
+// 	  "\n"
+// 	  "Keywords:\n"
+// 	  "   seltags   : Must be a sub group of tags which should be read from files.\n"
+// 	  "   filenames : Names of the files containing VMR profiles of seltags.\n"
+// 	  "   basename  : The name of a particular atmospheric scenario.\n"
+// 	  "               See *raw_vmrsReadFromScenario* for details. Remaining\n"
+// 	  "               VMRs will be read from the scenario.\n"
+// 	  "\n"
+//           ),
+//         OUTPUT(   raw_vmrs_         ),
+//         INPUT(    tgs_                 ),
+//         GOUTPUT(                       ),
+//         GINPUT(                        ),
+//         KEYWORDS( "seltags",       "filenames",    "basename"),
+//         TYPES(    Array_String_t,  Array_String_t, String_t)));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("raw_vmrsReadFromScenario"),
-  	DESCRIPTION(
-	  "Reads the individual VMR profile for each tag group from a standard\n"
-	  "atmospheric scenario.\n" 
-	  "\n"
-          "Five different atmospheric scenarios are available in arts data:\n"
-          "tropical, midlatitude-summer, midlatitude-winter, subartic-summer\n"
-          "and subartic-winter.\n"
-	  "\n"
-	  "   Files in the scenarios look like this: tropical.H2O.aa\n"
-	  "\n"
-	  "   The basename must include the path, i.e., the files can be anywhere,\n"
-	  "but they must be all in the same directory.\n"
-	  "   The profile is chosen by the species name. If you have more than one\n"
-	  "tag group for the same species, the same profile will be used.\n"
-	  "\n"
-	  "Keywords:\n"
-	  "   basename :The name and path of a particular atmospheric scenario.\n"
-	  "   For example:\n"
-	  "   /pool/lookup2/arts-data/atmosphere/fascod/tropical\n"
-	  "\n"
-	  ),
-	OUTPUT(   raw_vmrs_    ),
-	INPUT(    tgs_                 ),
-	GOUTPUT(                       ),
-	GINPUT(                        ),
-	KEYWORDS( "basename"           ),
-	TYPES(    String_t             )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("raw_vmrsReadFromScenario"),
+//   	DESCRIPTION(
+// 	  "Reads the individual VMR profile for each tag group from a standard\n"
+// 	  "atmospheric scenario.\n" 
+// 	  "\n"
+//           "Five different atmospheric scenarios are available in arts data:\n"
+//           "tropical, midlatitude-summer, midlatitude-winter, subartic-summer\n"
+//           "and subartic-winter.\n"
+// 	  "\n"
+// 	  "   Files in the scenarios look like this: tropical.H2O.aa\n"
+// 	  "\n"
+// 	  "   The basename must include the path, i.e., the files can be anywhere,\n"
+// 	  "but they must be all in the same directory.\n"
+// 	  "   The profile is chosen by the species name. If you have more than one\n"
+// 	  "tag group for the same species, the same profile will be used.\n"
+// 	  "\n"
+// 	  "Keywords:\n"
+// 	  "   basename :The name and path of a particular atmospheric scenario.\n"
+// 	  "   For example:\n"
+// 	  "   /pool/lookup2/arts-data/atmosphere/fascod/tropical\n"
+// 	  "\n"
+// 	  ),
+// 	OUTPUT(   raw_vmrs_    ),
+// 	INPUT(    tgs_                 ),
+// 	GOUTPUT(                       ),
+// 	GINPUT(                        ),
+// 	KEYWORDS( "basename"           ),
+// 	TYPES(    String_t             )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("AtmFromRaw"),
-  	DESCRIPTION(
-	  "Interpolates temperature, altitude, and VMRs to the pressure grid\n"
-	  "given by p_abs.\n" 
-	  "\n"
-          "The altitude is not used by the absorption routines,\n"
-	  "but later on by the RT routines.\n"
-	  "\n"
-	  "Interpolations used: \n"
-	  "\n"
-	  "Temperature      : Linear interpolation in ln(p)\n"
-	  "Altitude         : Linear interpolation in ln(p)\n"
-	  "VMRs             : Linear interpolation in ln(p)\n"
-	  "Cloud Parameters : Linear interpolation in ln(p)\n"
-	  "\n"
-	  ),
-	OUTPUT(   t_abs_    , z_abs_   , vmrs_           ),
-	INPUT(    tgs_, p_abs_    , raw_ptz_ , raw_vmrs_ ),
-	GOUTPUT(                       			 ),         
-	GINPUT(                        			 ),
-	KEYWORDS(                             		 ),
-	TYPES(                          		 )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("AtmFromRaw"),
+//   	DESCRIPTION(
+// 	  "Interpolates temperature, altitude, and VMRs to the pressure grid\n"
+// 	  "given by p_abs.\n" 
+// 	  "\n"
+//           "The altitude is not used by the absorption routines,\n"
+// 	  "but later on by the RT routines.\n"
+// 	  "\n"
+// 	  "Interpolations used: \n"
+// 	  "\n"
+// 	  "Temperature      : Linear interpolation in ln(p)\n"
+// 	  "Altitude         : Linear interpolation in ln(p)\n"
+// 	  "VMRs             : Linear interpolation in ln(p)\n"
+// 	  "Cloud Parameters : Linear interpolation in ln(p)\n"
+// 	  "\n"
+// 	  ),
+// 	OUTPUT(   t_abs_    , z_abs_   , vmrs_           ),
+// 	INPUT(    tgs_, p_abs_    , raw_ptz_ , raw_vmrs_ ),
+// 	GOUTPUT(                       			 ),         
+// 	GINPUT(                        			 ),
+// 	KEYWORDS(                             		 ),
+// 	TYPES(                          		 )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("WaterVaporSaturationInClouds"),
-  	DESCRIPTION(
-	  "Calculates the water vapor saturation volume mixing ratio (VMR) in the\n"
-	  "vertical range where liquid or ice clouds are in the atmosphere.\n"
-	  "At the pressure/altitude grid points where the liquid water content (LWC)\n"
-	  "or ice water content (IWC) of the clouds (tags 'liquidcloud' and 'icecloud')\n"
-          "is larger than zero the H2O-VMR is set to liquid water/ice saturation VMR.\n"
-          "The saturation pressure is calculated according to Goff-Gratch equations.\n"
-	  ),
-	OUTPUT(   vmrs_ , p_abs_                         ),
-	INPUT(    vmrs_ , p_abs_ , t_abs_ , tgs_         ),
-	GOUTPUT(                       			 ),         
-	GINPUT(                        			 ),
-	KEYWORDS(                             		 ),
-	TYPES(                          		 )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("WaterVaporSaturationInClouds"),
+//   	DESCRIPTION(
+// 	  "Calculates the water vapor saturation volume mixing ratio (VMR) in the\n"
+// 	  "vertical range where liquid or ice clouds are in the atmosphere.\n"
+// 	  "At the pressure/altitude grid points where the liquid water content (LWC)\n"
+// 	  "or ice water content (IWC) of the clouds (tags 'liquidcloud' and 'icecloud')\n"
+//           "is larger than zero the H2O-VMR is set to liquid water/ice saturation VMR.\n"
+//           "The saturation pressure is calculated according to Goff-Gratch equations.\n"
+// 	  ),
+// 	OUTPUT(   vmrs_ , p_abs_                         ),
+// 	INPUT(    vmrs_ , p_abs_ , t_abs_ , tgs_         ),
+// 	GOUTPUT(                       			 ),         
+// 	GINPUT(                        			 ),
+// 	KEYWORDS(                             		 ),
+// 	TYPES(                          		 )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("vmrsScale"),
-	DESCRIPTION(
-          "Scales the vmr input of the tgs given in scaltgs by the\n"
-	  "factors given in scalfac.\n"
-	  "\n"
-	  "Keywords:\n"
-	  "   scaltgs : subgroup of tags which has to be scaled.\n"
-	  "   scalfac : the factor with which vmr to be scaled.\n"
-	  "\n"
-	  ),
-	OUTPUT(	vmrs_ ),
-	INPUT( 	tgs_, vmrs_  ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "scaltgs", "scalfac"),
-	TYPES( Array_String_t, Vector_t)));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("vmrsScale"),
+// 	DESCRIPTION(
+//           "Scales the vmr input of the tgs given in scaltgs by the\n"
+// 	  "factors given in scalfac.\n"
+// 	  "\n"
+// 	  "Keywords:\n"
+// 	  "   scaltgs : subgroup of tags which has to be scaled.\n"
+// 	  "   scalfac : the factor with which vmr to be scaled.\n"
+// 	  "\n"
+// 	  ),
+// 	OUTPUT(	vmrs_ ),
+// 	INPUT( 	tgs_, vmrs_  ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "scaltgs", "scalfac"),
+// 	TYPES( Array_String_t, Vector_t)));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("h2o_absSet"),
-	DESCRIPTION(
-          "Sets h2o_abs to the profile of the first tag group containing\n"
-	  "water.\n" 
-	  "\n"
-          "This is necessary, because for example *absCalc* requires h2o_abs\n"
-	  "to contain the water vapour profile(the reason for this is the\n"
-          "calculation of oxygen line brodening requires water vapour profile).\n"
-	  "Then this function can be used to copy the profile of the first tag\n"
-          "group of water.\n"
-	  "\n"
-	  ),
-	OUTPUT(	h2o_abs_ ),
-	INPUT( 	tgs_, vmrs_  ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("h2o_absSet"),
+// 	DESCRIPTION(
+//           "Sets h2o_abs to the profile of the first tag group containing\n"
+// 	  "water.\n" 
+// 	  "\n"
+//           "This is necessary, because for example *absCalc* requires h2o_abs\n"
+// 	  "to contain the water vapour profile(the reason for this is the\n"
+//           "calculation of oxygen line brodening requires water vapour profile).\n"
+// 	  "Then this function can be used to copy the profile of the first tag\n"
+//           "group of water.\n"
+// 	  "\n"
+// 	  ),
+// 	OUTPUT(	h2o_abs_ ),
+// 	INPUT( 	tgs_, vmrs_  ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("n2_absSet"),
-	DESCRIPTION(
-          "Sets n2_abs to the profile of the first tag group containing\n"
-	  "molecular nitrogen. See *h2o_absSet* for more details.\n"
-	  "\n"
-	  ),
-	OUTPUT(	    n2_abs_ ),
-	INPUT( 	tgs_, vmrs_  ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("n2_absSet"),
+// 	DESCRIPTION(
+//           "Sets n2_abs to the profile of the first tag group containing\n"
+// 	  "molecular nitrogen. See *h2o_absSet* for more details.\n"
+// 	  "\n"
+// 	  ),
+// 	OUTPUT(	    n2_abs_ ),
+// 	INPUT( 	tgs_, vmrs_  ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
 
 
-//=== Absorption methods ===============================================
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME( "absCalc" ),
-	DESCRIPTION(
-	   "Calculate absorption coefficients. \n"
-	   "\n"
-	   "This function calculates both, the total absorption (*abs*)\n"
-	   "and the absorption per tag group (*abs_per_tg*).\n"
-            ) ,
-	OUTPUT(abs_  , abs_per_tg_ ),
-	INPUT(tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, 
-              lines_per_tg_, lineshape_,
-	      cont_description_names_, cont_description_models_, 
-              cont_description_parameters_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("absCalcFromXsec"),
-	DESCRIPTION(
-		    "Calculate absorption coefficients from cross sections.\n"
-		    "\n"
-		    "This calculates both the total absorption and the\n"
-		    "absorption per tag group. \n"
-		    "This method calls three other  methods:\n"
-		    "1. *xsec_per_tgInit* - initialize *xsec_per_tg* \n"
-		    "2. *xsec_per_tgAddLine* - calculate cross sections per \n"
-		    "                   tag group for line spectra.\n"
-		    "3. *xsec_per_tgAddConts* - calculate cross sections per \n"
-		    "                   tag group for continua.\n"
-		    "Then it calculates the absorption coefficient by multiplying\n"
-		    "the cross section by VMR.\n"
-                    "This is done once for each tag group (output: *abs_per_tg*)\n"
-		    "and for the sum of all tag group to get the total absorption\n"
-		    "coefficient (output: *abs*)\n"
-		    ),
-	OUTPUT(	    abs_  , abs_per_tg_ ),
-	INPUT( 	    xsec_per_tg_, vmrs_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME( "xsec_per_tgInit" ),
-	DESCRIPTION(
-	   "Initialize *xsec_per_tg*.\n"
-	   "\n"
-	   "The initialization is\n"
-	   "necessary, because methods *xsec_per_tgAddLines*\n"
-	   "and *xsec_per_tgAddConts* just add to *xsec_per_tg*.\n"
-	   "The size is determined from *tgs*.\n"
-	   ),
-	OUTPUT( xsec_per_tg_ ),
-	INPUT(tgs_, f_mono_, p_abs_),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("xsec_per_tgAddLines"),
-	DESCRIPTION(
-		    "Calculate cross sections per tag group for line spectra.\n"
-		   ),
-	OUTPUT(	    xsec_per_tg_                             ),
-	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
-		    lines_per_tg_, lineshape_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("xsec_per_tgAddConts"),
-	DESCRIPTION(
-		    "Calculate cross sections per tag group for continua.\n"
-                     ),
-	OUTPUT(	    xsec_per_tg_                             ),
-	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_,
-		    cont_description_names_, cont_description_parameters_,
-                    cont_description_models_),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
 
 
-//=== Methods operating on absorption ========================================
+// //=== Absorption methods ===============================================
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("abs_per_tgReduce"),
-	DESCRIPTION(
-		    "Reduces absorption coefficients. Only absorption\n"
-		    "coefficients for which weighting functions are\n"
-		    "calculated are kept in memory.\n"
-		    ),
-	OUTPUT(	    abs_per_tg_ ),
-	INPUT( 	    abs_per_tg_, tgs_, wfs_tgs_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME( "absCalc" ),
+// 	DESCRIPTION(
+// 	   "Calculate absorption coefficients. \n"
+// 	   "\n"
+// 	   "This function calculates both, the total absorption (*abs*)\n"
+// 	   "and the absorption per tag group (*abs_per_tg*).\n"
+//             ) ,
+// 	OUTPUT(abs_  , abs_per_tg_ ),
+// 	INPUT(tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, 
+//               lines_per_tg_, lineshape_,
+// 	      cont_description_names_, cont_description_models_, 
+//               cont_description_parameters_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
+
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("absCalcFromXsec"),
+// 	DESCRIPTION(
+// 		    "Calculate absorption coefficients from cross sections.\n"
+// 		    "\n"
+// 		    "This calculates both the total absorption and the\n"
+// 		    "absorption per tag group. \n"
+// 		    "This method calls three other  methods:\n"
+// 		    "1. *xsec_per_tgInit* - initialize *xsec_per_tg* \n"
+// 		    "2. *xsec_per_tgAddLine* - calculate cross sections per \n"
+// 		    "                   tag group for line spectra.\n"
+// 		    "3. *xsec_per_tgAddConts* - calculate cross sections per \n"
+// 		    "                   tag group for continua.\n"
+// 		    "Then it calculates the absorption coefficient by multiplying\n"
+// 		    "the cross section by VMR.\n"
+//                     "This is done once for each tag group (output: *abs_per_tg*)\n"
+// 		    "and for the sum of all tag group to get the total absorption\n"
+// 		    "coefficient (output: *abs*)\n"
+// 		    ),
+// 	OUTPUT(	    abs_  , abs_per_tg_ ),
+// 	INPUT( 	    xsec_per_tg_, vmrs_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
+
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME( "xsec_per_tgInit" ),
+// 	DESCRIPTION(
+// 	   "Initialize *xsec_per_tg*.\n"
+// 	   "\n"
+// 	   "The initialization is\n"
+// 	   "necessary, because methods *xsec_per_tgAddLines*\n"
+// 	   "and *xsec_per_tgAddConts* just add to *xsec_per_tg*.\n"
+// 	   "The size is determined from *tgs*.\n"
+// 	   ),
+// 	OUTPUT( xsec_per_tg_ ),
+// 	INPUT(tgs_, f_mono_, p_abs_),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
+
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("xsec_per_tgAddLines"),
+// 	DESCRIPTION(
+// 		    "Calculate cross sections per tag group for line spectra.\n"
+// 		   ),
+// 	OUTPUT(	    xsec_per_tg_                             ),
+// 	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
+// 		    lines_per_tg_, lineshape_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
+
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("xsec_per_tgAddConts"),
+// 	DESCRIPTION(
+// 		    "Calculate cross sections per tag group for continua.\n"
+//                      ),
+// 	OUTPUT(	    xsec_per_tg_                             ),
+// 	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_,
+// 		    cont_description_names_, cont_description_parameters_,
+//                     cont_description_models_),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
+
+
+// //=== Methods operating on absorption ========================================
+
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("abs_per_tgReduce"),
+// 	DESCRIPTION(
+// 		    "Reduces absorption coefficients. Only absorption\n"
+// 		    "coefficients for which weighting functions are\n"
+// 		    "calculated are kept in memory.\n"
+// 		    ),
+// 	OUTPUT(	    abs_per_tg_ ),
+// 	INPUT( 	    abs_per_tg_, tgs_, wfs_tgs_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
 
 
 

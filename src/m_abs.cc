@@ -20,6 +20,11 @@
 
 // 
 
+//----------------------------------------------------------------------
+// This file is obsolete and should be removed after function have
+// been moved to m_absorption.cc!
+//----------------------------------------------------------------------
+
 /**
    \file   m_abs.cc
 

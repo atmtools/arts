@@ -1,5 +1,5 @@
-/* Copyright (C) 2000, 2001 Axel von Engeln <engeln@uni-bremen.de>
-                            Stefan Buehler  <sbuehler@uni-bremen.de>
+/* Copyright (C) 2000, 2001, 2002 Axel von Engeln <engeln@uni-bremen.de>
+                                  Stefan Buehler  <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -15,6 +15,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
+
+//----------------------------------------------------------------------
+// This file is obsolete and should be removed after function have
+// been moved to m_absorption.cc!
+//----------------------------------------------------------------------
 
 /*!
   \file   lineshapes.cc

@@ -1,149 +1,24 @@
 # An example ARTS controlfile that calculates absorption
 # coefficients. 
-# SAB 16.06.2000
 #
-# Also the first example file using Agendas
-# SAB 14.03.2002
+# Uses Agendas.
+#
+# SAB 30.05.2002
 
 Main {
 
-# --------------------< A specific method >--------------------
-#                      -------------------
-# Read the spectroscopic line data from the HITRAN catalogue and
-# create the workspace variable `lines':
-linesReadFromHitran {
-   filename = "@ac_arts_data@/spectroscopy/hitran96/hitran96_lowfreq.par"
-   fmin     = 1e9
-   fmax     = 200e9
+NumericSet(ls_f0){183e9}
+
+NumericSet(ls_gamma){1e9}
+
+VectorNLinSpace(ls_f_grid){
+  start = 160e9
+  stop  = 200e9
+  n     = 100
 }
 
-# Optionally write the line list to a file:
-# linesWriteAscii{""} 
+lsLorentz{}
 
- 
-# This defines the list of tag groups (`tag_groups'). Absorption
-# coefficients will be calculated separately for each tag group. This
-# is necessary in order to calculate weighting functions later on.
-# The lines are assigned to the tag groups in the order as the groups
-# are specified here. That means if you do ["H2O-181","H2O"], the last
-# group H2O gets assigned all the H2O lines that do not fit in the
-# first group.
-#
-# The continuum tags are special, since continua are not added by
-# default. Thus, just selecting "H2O" will give you no continuum. 
-#tgsDefine{
-#      [ "H2O",
-#        "O3",
-#        "N2" ] 
-#}
-
-# Select all species that we can find in the scenario:
-tgsDefineAllInScenario{"@ac_arts_data@/atmosphere/fascod/midlatitude-summer"}
-
-# define the tag groups for which weighting functions will be calculated
-# must be a subgroup of tgsDefine tag groups
-wfs_tgsDefine{
-      [ "H2O",
-        "O3" ] 
-             }
-
-# This separates the lines into the different tag groups and creates
-# the workspace variable `lines_per_tg':
-lines_per_tgCreateFromLines{}
-
-# read the different defined tag groups from individual catalogues
-# these are the tgsDefine tag groups
-# lines_per_tgReadFromCatalogues{
-#   filenames = ["@ac_arts_data@/spectroscopy/jpl00/jpl00.cat",
-#                "@ac_arts_data@/spectroscopy/hitran96/hitran96_lowfreq.par"]
-#   formats = [ "JPL", "HITRAN96" ]
-#   fmin    = [ 0,         0      ]       
-#   fmax    = [ 200e9,     200e9  ]   
-# }
-
-lines_per_tgWriteAscii{""} 
-
-
-# --------------------< A generic method >--------------------
-#                      ------------------
-# Read the pressure, temperature, and altitude profiles and create 
-# the workspace variable `raw_ptz':
-MatrixReadAscii (raw_ptz) 
-        {"@ac_arts_data@/atmosphere/fascod/midlatitude-summer.tz.aa"}
-
-# The same for the input VMR profiles:
-raw_vmrsReadFromScenario
-        {"@ac_arts_data@/atmosphere/fascod/midlatitude-summer"}
-
-# Optionally write this to a file:
-#ArrayOfMatrixWriteAscii (raw_vmrs) {""}
-
-
-# Create the pressure grid `p_abs':
-VectorNLogSpace(p_abs){
-        start = 100000
-        stop  = 10
-        n     = 10
-}
-
-VectorWriteAscii(p_abs){""}
-
-
-# Now interpolate all the raw atmospheric input onto the pressure 
-# grid and create the atmospheric variables `t_abs', `z_abs', `vmrs'
-AtmFromRaw{}
-
-# Set the physical H2O profile from the H2O profile in vmrs:
-h2o_absSet{}
-
-# N2 likewise:
-n2_absSet{}
-
-# Optionally write these to files:
-VectorWriteAscii (t_abs) {""}
-VectorWriteAscii (z_abs) {""}
-MatrixWriteAscii (vmrs)  {""}
-
-
-# Create the frequency grid `f_mono':
-VectorNLinSpace(f_mono){
-        start = 50e9
-        stop  = 150e9
-        n     = 100    
-}
-
-# Write frequency grid to file:
-VectorWriteAscii (f_mono) {""}
-
-# set the lineshape function for all calculated tags
-lineshapeDefine{
-              shape = "Voigt_Kuntz6" 
-              normalizationfactor = "linear"
-              cutoff = -1
-              }
-
-# or set it separately for each tag
-# lineshape_per_tgDefine{
-# 	shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6","Voigt_Kuntz6"]
-# 	normalizationfactor = ["quadratic","no_norm","linear","linear"]
-# 	cutoff = [-1,-1,-1,-1]
-# }
-
-# Formally, we also have to set ContDescription, even though we don't
-# have a continuum:
-cont_descriptionInit{}
-
-# Calculate absorption coefficients, both total (`abs') and 
-# separately for each tag group (`abs_per_tg'):
-absCalc{}
-
-# reduce the abs_per_tg variable (dimension number of tag groups) to the 
-# tag groups for which we want to calculate weighting functions (new
-# dimension number of wfs tag groups)
-# abs_per_tgReduce{}
-
-# These we definitely want to write to files!
-MatrixWriteAscii (abs) {""}
-ArrayOfMatrixWriteAscii (abs_per_tg) {""}
+VectorWriteXML(ls){""}
 
 }

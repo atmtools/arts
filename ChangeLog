@@ -1,3 +1,38 @@
+2002-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-110
+
+	* Uff. I had some trouble resolving conflicts in workspace.cc. I
+	seems that resorting this file (and methods.cc) was not such a
+	great idea, since it leads to a lot of conflicts.
+	
+	* Started to work out agenda examples for lineshapes. Ran into a
+	lot of problems (not so much related to the agendas, more to the
+	lineshapes themselves). Nothing's working yet.
+
+	* src/m_lineshapes.cc: Added.
+
+	* src/workspace.cc: Added some lineshape variables.
+
+	* src/methods.cc: Added some lineshape related methods. 
+	(define_md_data): Removed abs_ from RteCalc input, following
+	advice by Patrick. 
+	(define_md_data): Replace "Global" by "Generic" everywhere.
+
+	* src/groups.cc (define_wsv_group_names): Removed ArrayOfLineshapeSpec.
+
+	* src/absorption.h: Removed all lineshape stuff.
+
+	* src/absorption.cc: Removed all contents to old_absorption.cc.
+
+	* src/Makefile.am: Added new source files.
+
+	* doc/examples/absorption_example.arts.in: My playing field for
+	agenda based absorption routines.
+
+	* src/m_rte.cc (RteCalc): Removed abs input, following advice by
+	Patrick. 
+
 2002-05-31  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-109

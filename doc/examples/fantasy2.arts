@@ -18,7 +18,7 @@
 # specific thing. Convention: Try to define an agenda with AgendaSet,
 # just before it is used.
 
-AgendaSet(main_agenda) {
+Main {
 
    # Rename tgs to gas_tgs, to make the distinction from
    # particles. Furthermore, we introduce a new tag atribute "-nl", which

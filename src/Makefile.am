@@ -40,8 +40,7 @@ arts_SOURCES = \
 	interpolation.cc \
 	interpolation.h \
 	iotraits.h \
-	lineshapes.cc \
-	m_abs.cc \
+	m_lineshapes.cc \
 	m_agenda.cc \
         m_atmosphere.cc \
 	m_basic_types.cc \

@@ -106,7 +106,6 @@ void RteCalc(
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         f_grid,
         const Vector&         i_space,
-	const Matrix&         abs,
         const Index&          antenna_dim,
         const Vector&         mblock_za_grid,
         const Vector&         mblock_aa_grid,
