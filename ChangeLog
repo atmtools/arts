@@ -1,3 +1,24 @@
+2003-06-04  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-562
+	
+	* src/scatrte{.cc,.h}: Added. This file contains functions related 
+	to radiative transfer calculations in the cloudbox. 
+	
+	* src/scatrte.cc (cloud_ppath_update1D): Included this function. It
+	is used in the sequential update of the radiation field. Before this
+	function was part of (i_fieldUpdate1D).
+	(cloud_fieldsCalc): Added this function to calculate optical properties
+	fields (absorption vector, extinction matrix) for all points in the
+	cloudbox. Has also been part of (i_fieldUpdate1D) and 
+	(i_fieldUpdate3D).
+
+	* src/m_scatrte (i_fieldUpdate1D) and (i_fieldUpdate3D): Separated the 
+	function into subfunctions defined in scvatrte.cc to make the code
+	clearer. 
+		
+	* src/Makefile.am: Included new files.	
+	
 2003-06-04  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
 
 	* arts-1-1-561

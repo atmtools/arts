@@ -118,6 +118,8 @@ arts_SOURCES = \
 	rte.h \
 	sensor.cc \
 	sensor.h \
+	scatrte.cc \
+	scatrte.h \
 	special_interp.cc \
 	special_interp.h \
 	species_data.cc \
@@ -497,6 +499,8 @@ test_zeemanproperties_SOURCES = \
 	rte.h \
 	sensor.cc \
 	sensor.h \
+	scatrte.cc \
+	scatrte.h \
 	special_interp.cc \
 	special_interp.h \
 	species_data.cc \

@@ -1,0 +1,88 @@
+/* Copyright (C) 2003 Claudia Emde <claudia@sat.physik.uni-bremen.de>
+
+   This program is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the
+   Free Software Foundation; either version 2, or (at your option) any
+   later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+   USA. */
+
+
+
+/*===========================================================================
+  ===  File description 
+  ===========================================================================*/
+
+/*!
+  \file   scatrte.h
+  \author Claudia Emde <claudia@sat.physik.uni-bremen.de>
+  \date   2003-06-03
+  
+  \brief  Radiative transfer in cloudbox.
+  
+  This file contains functions related to the radiative transfer in the 
+  cloudbox.
+*/
+
+
+#ifndef scatrte_h
+#define scatrte_h
+
+void cloud_fieldsCalc(// Output:
+                   Tensor5View ext_mat_field,
+                   Tensor4View abs_vec_field,
+                   Index& scat_p_index,
+                   Index& scat_lat_index,
+                   Index& scat_lon_index,
+                   Tensor3& ext_mat,
+                   Matrix& abs_vec, 
+                   // Input:
+                   const Index& scat_za_index,
+                   const Index& scat_aa_index,
+                   const Agenda& spt_calc_agenda,
+                   const Agenda& opt_prop_part_agenda,
+                   const ArrayOfIndex& cloudbox_limits);
+
+void cloud_ppath_update1D(
+                  Tensor6& i_field,
+                  Vector& stokes_vec,
+                   // scalar_gas_abs_agenda:
+                  Numeric& a_pressure,
+                  Numeric& a_temperature,
+                  Vector& a_vmr_list,
+                  // opt_prop_xxx_agenda:
+                  Tensor3& ext_mat,
+                  Matrix& abs_vec,  
+                  // ppath_step_agenda:
+                  Ppath& ppath_step, 
+                  const Index& p_index,
+                  const Index& scat_za_index,
+                  const Vector& scat_za_grid,
+                  const ArrayOfIndex& cloudbox_limits,
+                  const Tensor6& scat_field,
+                  // Calculate scalar gas absorption:
+                  const Agenda& scalar_gas_absorption_agenda,
+                  const Tensor4& vmr_field,
+                  // Gas absorption:
+                  const Agenda& opt_prop_gas_agenda,
+                  // Propagation path calculation:
+                  const Agenda& ppath_step_agenda,
+                  const Vector& p_grid,
+                  const Tensor3& z_field,
+                  const Matrix& r_geoid,
+                  // Calculate thermal emission:
+                  const Tensor3& t_field,
+                  const Vector& f_grid,
+                  const Index& f_index,
+                  ConstTensor5View ext_mat_field,
+                  ConstTensor4View abs_vec_field
+                  );
+#endif //scatrte_h
