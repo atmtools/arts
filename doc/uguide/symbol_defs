@@ -103,6 +103,9 @@
 % Differential d
 \newcommand{\DiffD}         {\ensuremath{\mathrm{d}}}  
 
+% Partial d
+\newcommand{\PartD}         {\ensuremath{\partial}}  
+
 % Real and Imaginary part
 \renewcommand{\Re}            {\ensuremath{\mathrm{Re}}}
 \renewcommand{\Im}            {\ensuremath{\mathrm{Im}}}

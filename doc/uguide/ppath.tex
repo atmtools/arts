@@ -1067,64 +1067,149 @@ algorithms.\footnote{The expressions mentioned can be extracted from
 %===================
 \label{sec:ppath:refreuler}
 
-
-  Refraction affects the radiative transfer in several ways. The
-  distance through a layer of a fixed vertical thickness will be
-  changed, and for a limb sounding observation the tangent point is
-  moved both vertically and horizontally. If the atmosphere is assumed
-  to be horizontally stratified, as done here (1D), a horizontal
-  displacement is of no importance but for 2D calculations this effect
-  must be considered. For limb sounding and a fixed zenith angle, the
-  tangent point is moved downwards compared to the pure geometrical
-  case, resulting in that inclusion of refraction in general gives
-  higher intensities. However, the LOS is still symmetric around
-  tangent and ground points.
-
- \levelc{General theory}
-  \label{sec:ppath:reftheory}
-
-   When determining the LOS through the atmosphere geometrical optics 
-   can be applied because the change of the refractive index over a
-   wavelength can be neglected. Applying Snell's law to the geometry 
-   shown in Figure \ref{fig:los:snell} gives
-   \begin{equation}
-     n_i \sin (\theta_i) = n_{i+1} \sin (\theta_i')
-   \end{equation}
-   \begin{figure}
-    \begin{center}
-      \includegraphics*{Figs/ppath/snell}
-      \caption{Geometry to derive Snell's law for a spherical atmosphere. 
-               The Earth radius is $R_e$, the vertical
-               altitude $z$, the refractive index $n$ and the angle
-               between the LOS and the vector to the Earth center $\theta$.}
-      \label{fig:los:snell} 
-    \end{center} 
-  \end{figure}
-  Using the same figure, the law of sines gives the relationship
-  \begin{equation}
-    \frac{\sin(\theta_{i+1})}{R_e+z_i} = 
-    \frac{\sin(180^\circ-\theta_{i+1}')}{R_e+z_{i+1}} =
-    \frac{\sin(\theta_i')}{R_e+z_{i+1}} 
-  \end{equation}
-  By combining the two equations above, the Snell's law for a spherical
-  atmosphere (i.e. 1D) is derived \citep[e.g.][]{kyle:91,balluch:97}:
-  \begin{equation}
-    c = (R_e+z_i) n_i \sin(\theta_i) = (R_e+z_{i+1}) n_{i+1}\sin(\theta_{i+1}) 
-   \label{eq:los:snellspherical}
-  \end{equation}
-  where $c$ is a constant. With other words, the Snell's law for spherical
-  atmospheres states that the product of $n$, $(R_e+z)$ and $\sin(\theta)$ is
-  constant along the LOS.
+Refraction affects the radiative transfer in several ways. The
+distance through a layer of a fixed vertical thickness will be
+changed, and for a limb sounding observation the tangent point is
+moved both vertically and horizontally. If the atmosphere is assumed
+to be horizontally stratified (1D), a horizontal displacement is of no
+importance but for 2D and 3D calculations this effect must be
+considered. For limb sounding and a fixed zenith angle, the tangent
+point is moved downwards compared to the pure geometrical case
+(Figure~\ref{fig:ppath:ppath_refr1}), resulting in that inclusion of
+refraction in general gives higher intensities. However, the LOS is
+still symmetric around tangent and ground points.
 
 \begin{figure}[!t]
  \begin{center}
   \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_refr1}
-  \caption{}
+  \caption{Comparison of propagation paths calculated geometrically and 
+    with refraction considered, for the same zenith angle of the
+    sensor line-of-sight. The figure include two pair of paths, with
+    refracted tangent altitude of about 0 and 10~km, respectively.
+    The horisontal coordinate is the latitude distance from the point
+    where the path exits the model atmosphere (at 80~km). The model
+    atmosphere used had a spherical symmetry (that is, 1 D case, but
+    the calculations were performed in 2D mode).}
   \label{fig:ppath:ppath_refr1}  
  \end{center}
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_refraction
 
+
+The refraction gives a bending of the path, which gives a deviation
+from the geometrical approximation of propagation along a straight
+line. The bending of the path is 
+\begin{equation}
+  \frac{\DiffD x}{\DiffD l} = \frac{1}{n} \left( \frac{\PartD n}{\PartD y} \right)_x
+  \label{eq:ppath:refrbend}
+\end{equation}
+where $x$ is the direction of propagation, $l$ the distance along the
+path, $n$ the refractive index, and $y$ is the coordinate
+perpendicular to the path. See further Section~9.4 in
+\citet{rodgers:00}.
+
+The workspace method \wsmindex{ppath\_stepRefractionEuler} solves the
+problem of considering refraction in probably the most simple way
+possible, from the viewpoint of implementation. This does not mean
+that it is the best way to consider refraction, it is rather
+inefficient regarding computational burden, and if the step length
+for ray tracing (see below) is made very small, the result can be
+completely wrong due to numerical problems.
+
+The approach taken in \artsstyle{ppath\_stepRefractionEuler} is to
+take a geometrical step from the present point of the path (and in the
+direction of present line-of-sight) to determine the position of next
+point to describe the path. Refraction is considered only when the
+line-of-sight at the new point is determined (Figure~[**]). The found
+line-of-sight is used to calculate path step etc. This can be seen as
+an Euler solution to the differential problem given by
+Equation~\ref{eq:ppath:refrbend}. The main difference between handling
+1D, 2D or 3D cases is how the line-of-sight for the new point is
+corrected to compensate for the bending due to refraction.
+
+[* Comment ray tracing step length *]
+
+
+\levelc{1D}
+\label{sec:ppath:refr1D}
+%-----------------------
+When determining the propagation path through the atmosphere
+geometrical optics can be applied because the change of the refractive
+index over a wavelength can be neglected. Applying Snell's law to the
+geometry shown in Figure \ref{fig:ppath:snell} gives
+\begin{equation}
+  n_i \sin (\aZntAng{i}) = n_{i+1} \sin (\aZntAng{i'})
+\end{equation}
+\begin{figure}
+  \begin{center}
+    \includegraphics*{Figs/ppath/snell}
+    \caption{Geometry to derive Snell's law for a spherical atmosphere. }
+    \label{fig:ppath:snell} 
+  \end{center} 
+\end{figure}
+Using the same figure, the law of sines gives the relationship
+\begin{equation}
+  \frac{\sin(\aZntAng{i+1})}{\aRds{i}} = 
+  \frac{\sin(180^\circ-\aZntAng{i+1}')}{\aRds{i+1}} =
+  \frac{\sin(\aZntAng{i'})}{\aRds{i+1}} 
+\end{equation}
+By combining the two equations above, the Snell's law for a spherical
+atmosphere (that is, 1D cases) is derived
+\citep[e.g.][]{kyle:91,balluch:97}:
+\begin{equation}
+  p_c = \aRds{i} n_i \sin(\aZntAng{i}) = \aRds{i+1} n_{i+1}\sin(\aZntAng{i+1}) 
+ \label{eq:ppath:snellspherical}
+\end{equation}
+where $c$ is a constant. With other words, the Snell's law for
+spherical atmospheres states that the product of $n$, \Rds\ and
+$\sin(\ZntAng)$ is constant along the LOS. It is noteworthy that with
+$n=1$, Equations~\ref{eq:ppath:geomconst} and
+\ref{eq:ppath:snellspherical} are identical.
+
+The Snell's law for a spherical atmosphere makes it very easy to
+determine the zenith angle of the path for a given radius. A
+rearrangement of Equation~\ref{eq:ppath:snellspherical} gives
+\begin{equation}
+  \ZntAng = \arcsin( \Rds n / p_c )
+ \label{eq:ppath:za1D}
+\end{equation}
+This relationship makes it possible to handle refraction for 1D
+without calculating any gradients of the refractive index, which is
+the case for 2D and 3D. These calculations are implemented in
+the function \funcindex{raytrace\_1d\_linear\_euler}.
+
+
+\levelc{2D}
+\label{sec:ppath:refr2D}
+%-----------------------
+It can be shown that the vertical and horisontal gradients of the
+refractive index affects the sum of the zenith angle and the latitude
+\citet[Eq. 9.30]{rodgers:00}:
+\begin{equation}
+  \frac{\DiffD(\Lat+\ZntAng)}{\DiffD l} = 
+    -\frac{\sin\ZntAng}{n} \left( \frac{\PartD n}{\PartD \Rds} \right)_\Lat
+    +\frac{\cos\ZntAng}{n\Rds} \left( \frac{\PartD n}{\PartD \Lat} \right)_\Rds
+  \label{eq:ppath:refrbend2d}
+\end{equation}
+If the gradients are zero (corresponding to the geometrical case) we
+find that the sum of the zenith angle and the latitude is constant
+along a geometrical path, which is already noticed by
+Equation~\ref{eq:ppath:za2lat}.
+
+This fact is used when calculating the the zenith angle at the
+position found after a ray tracing step. The latitude of the found
+point is kept, and the influence of refraction is considered to only
+influence the zenith angle. The zenith angle obtained by the
+geometrical calculations, \aZntAng{g}, is corrected as  
+
+
+\funcindex{raytrace\_2d\_linear\_euler}
+
+\levelc{3D}
+\label{sec:ppath:refr3D}
+%-----------------------
+
+\funcindex{raytrace\_3d\_linear\_euler}
 
 
 
@@ -1163,8 +1248,11 @@ shape of a reference ellipsoid. This is achieved by setting
 curvature radius differs from the local radius except at the equator
 and an east-west direction. For example, at the equator and a
 north-south direction, the curvature radius is smaller then the local
-radius, while at the poles (for all directions) it is greater
-(see further Figure~\ref{fig:ppath:wgs84radii}). 
+radius, while at the poles (for all directions) it is greater (see
+further Figure~\ref{fig:ppath:wgs84radii}). The implications of
+approximating the geoid by the local curvature radius, instead of
+using a complete representation, is exemplified in
+Figure~\ref{fig:ppath:wgs84_dz}.
 
 The \textindex{curvature radius}, \aRds{c}, of an ellipsoid is 
 \citep{rodgers:00}
@@ -1228,6 +1316,20 @@ shall rather be valid for a middle point of the propagation paths
  \end{minipage}%
 \end{figure}   
 
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.80\hsize]{Figs/ppath/wgs84_dz}
+  \caption{The altitude above the geoid as a function of latitude
+    when using the WGS84 reference ellipsiod (solid line) and when
+    using a spherical geoid (dashed line). The radius in the latter
+    case is set to the curvature radius of WGS84 at 45\degree. The
+    measurement is simulated to be performed in the north-south
+    direction. The two propagation paths share the same tangent
+    point. }
+  \label{fig:ppath:wgs84_dz}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_geoid
 
 
 \levelc{Geocentric and geodetic latitudes}
@@ -1271,16 +1373,6 @@ definitions on the zenith direction is proportional to the deviation
 between geocentric and geodetic latitude (Equation~\ref{eq:ppath:lats}).
 For an altitude of 100~km around $\Lat=45\degree$, the difference is
 about 350~m.
-
-
-\begin{figure}[!t]
- \begin{center}
-  \includegraphics*[width=0.80\hsize]{Figs/ppath/wgs84_dz}
-  \caption{}
-  \label{fig:ppath:wgs84_dz}  
- \end{center}
-\end{figure}
-% This figure was produced by the Matlab function mkfigs_geoid
 
 
 \levelc{Geodetic datums}

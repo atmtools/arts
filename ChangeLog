@@ -1,3 +1,11 @@
+2003-03-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-483
+
+	* doc/uguide/ppath.tex: Started writing on refraction.
+
+	* doc/uguide/symbol_defs: Added symbol for partil deravitive (\PartD)
+
 2003-03-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-482

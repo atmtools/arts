@@ -38,16 +38,18 @@ a_los = 99
 %
 P = arts_ppath( dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, ...
                                        a_pos, a_los, -1, z_ground, [] );
-plot( P.pos(:,2)-P.pos(1,2), P.z/1e3, 'r--' );
+h(1) = plot( P.pos(:,2)-P.pos(1,2), P.z/1e3, 'r--' );
 %
 hold on
 %
 P = arts_ppath( dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, ...
              a_pos, a_los, -1, z_ground, [], 2e3, 200+z_field*0, 0+z_field*0 );
-plot( P.pos(:,2)-P.pos(1,2), P.z/1e3, 'r-' );
+h(2) = plot( P.pos(:,2)-P.pos(1,2), P.z/1e3, 'r-' );
+%
+hl = legend(h,'Geometric calculations','With refraction');
+scale_axes( hl, 1.2 );
 
-
-
+keyboard
 
 
 if yes_or_no('Print figures')
