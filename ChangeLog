@@ -10,6 +10,8 @@
 
 	* Fixed an incorrect error message when a variable of incorrect type
 	is selected as global input or output. 
+
+	* Updated read_datafile to handle ArrayOfIndex (instead of ArrayOfSizet).
 	
 
 2001-09-28  Patrick Eriksson  <patrick@rss.chalmers.se>

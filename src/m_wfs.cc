@@ -1406,8 +1406,8 @@ void k_contabs (
   const Index  nv  = f_mono.nelem();        // number of frequencies
 
   // Check given frequency limits
-  assert( flow < 0 );
-  assert( fhigh < 0 );
+  assert( flow >= 0 );
+  assert( fhigh >= 0 );
   if ( flow >= fhigh )
     throw runtime_error(
              "The lower frequency limit equals or is above the upper limit." );

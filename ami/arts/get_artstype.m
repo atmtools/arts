@@ -19,7 +19,7 @@ function typename = get_artstype(varname)
 
 
 %=== Open the file wsv.txt
-fid = fopen('wsv.txt','r');
+fid = fopen('auto_wsv.txt','r');
 if fid < 0
   error('Error while opening wsv.txt. Does the file exist?');
 end

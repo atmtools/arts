@@ -127,8 +127,8 @@ void define_md_data()
 	 "Stops the execution and exits ARTS.\n"
 	 "\n"
 	 "This method is handy if you want to debug one of your\n"
-	 "controlfiles. You can insert it anywhere in the controlfile. When it\n"
-	 "is reached, it will terminate the program."
+	 "controlfiles. You can insert it anywhere in the controlfile. When\n"
+	 "it is reached, it will terminate the program."
 	 ),
 	OUTPUT( ),
 	INPUT( ),
@@ -144,9 +144,10 @@ void define_md_data()
 	(
 	 "A dummy method that can be used for test purposes.\n"
 	 "\n"
-	 "This method can be used by ARTS developers to quickly test stuff. The\n"
-	 "implementation is in file m_io.cc. This just saves you the trouble of\n"
-	 "adding a dummy method everytime you want to try something out quickly."
+	 "This method can be used by ARTS developers to quickly test stuff.\n"
+	 "The implementation is in file m_io.cc. This just saves you the \n"
+         "trouble of adding a dummy method everytime you want to try \n"
+         "something out quickly."
 	 ),
 	OUTPUT( ),
 	INPUT( ),
@@ -163,8 +164,6 @@ void define_md_data()
 //======================================================================
 
 //=== Index ============================================================
-
- // These functions should be changed to handle Index
 
   md_data.push_back     
     ( MdRecord
@@ -2645,7 +2644,7 @@ void define_md_data()
           "The *wfs_tgs* are specified exactly as *tgs* (see tgsDefine). \n"
           "The selected tag groups must be a subgroup of the absorption \n"
           "tags (*tgs*). \n"
-	  "   See the functions abs_per_tgReduce and kSpeciesAll for futher \n"
+	  "   See the functions abs_per_tgReduce and kSpecies for some more \n"
           "information around *wfs_tgs*. \n"
           "\n"
           "Keywords \n"
@@ -2680,9 +2679,12 @@ void define_md_data()
   	DESCRIPTION(
           "Calculates species weighting functions (WFs) for all *wfs_tgs*.\n"
           "\n"
-          "The WFs are calculated by (semi-)analytical expressions, where it\n"
-          "is assumed that there is a linear relationship between the amount\n"
-          "of the species and the absorption, and that the LOS is not \n"
+          "This function is the simplest option if a single retrieval grid \n"
+          "and a single retrieval unit are used for all species. If this is \n"
+          "not the case, the function kSpeciesSingle must be used.\n"
+          "   The WFs are calculated by (semi-)analytical expressions, where\n"
+          "it is assumed that there is a linear relationship between the \n"
+          "amount of the species and the absorption, and that the LOS is not\n"
           "affected by changes of the species. These assumtions should be\n"
           "valid generally for observations above the tropopause (as long \n"
           "LTE applies), but is not true for tropospheric water vapor. \n"

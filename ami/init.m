@@ -28,7 +28,7 @@ addpath([pwd,'/retrieval']);
 
 
 %=== Copy the file src/wsv.txt to ami
-eval('!cp ../src/wsv.txt arts');
+eval('!cp ../src/auto_wsv.txt arts');
 
 
 %=== Define global physical constants

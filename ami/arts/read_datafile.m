@@ -101,11 +101,11 @@ if isascii
       error('You wanted a scalar, but the file contains a vector or matrix.')
     end
 
-  %=== VECTOR, MATRIX and AOSIZET and SYMMETRIC
+  %=== VECTOR, MATRIX and AOINDEX
   elseif strcmp(artstype,'VECTOR') | strcmp(artstype,'MATRIX') | ...
-         strcmp(artstype,'AOSIZET') | strcmp(artstype,'SYMMETRIC')  
+         strcmp(artstype,'AOINDEX')
     if nmat > 1
-      if ~strcmp(artstype,'AOSIZET')
+      if ~strcmp(artstype,'AOINDEX')
         error('You wanted a vector/matrix, but the file contains an array.')
       else
         error(...
@@ -118,7 +118,7 @@ if isascii
         error('You wanted a vector, but the file contains a matrix.')
       end
       x = vec2col(x);
-    elseif strcmp(artstype,'AOSIZET') 
+    elseif strcmp(artstype,'AOINDEX') 
       if min(size(x)) > 1
         error('You wanted an index array, but the file contains a matrix.')
       end
@@ -189,8 +189,8 @@ else
   if strcmp(artstype,'INDEX')
     x = binfile_read_numeric(filename,fid,'INDEX','SCALAR',1,1);
 
-  %=== AOSIZET
-  elseif strcmp(artstype,'AOSIZET') 
+  %=== AOINDEX
+  elseif strcmp(artstype,'AOINDEX') 
     x = binfile_read_numeric(filename,fid,'INDEXARRAY','ARRAY',0,1);
     %a = binfile_read_numeric(filename,fid,'INDEXARRAY','ARRAY',0,1);
     %n = length(a);

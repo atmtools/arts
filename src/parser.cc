@@ -760,11 +760,12 @@ bool parse_method(Index& id,
 	  // Check that this Wsv belongs to the correct group:
 	  if ( wsv_data[wsvid].Group() != md_data[id].GOutput()[j] )
 	    {
-	      throw WrongWsvGroup( wsvname+"Group should be "+
-				   wsv_group_names[md_data[id].GOutput()[j]],
-				   text.File(),
-				   text.Line(),
-				   text.Column() );
+       	    throw WrongWsvGroup( wsvname+" is not "+
+	                wsv_group_names[md_data[id].GOutput()[j]]+", it is "+ 
+                        wsv_group_names[wsv_data[wsvid].Group()],
+				 text.File(),
+				 text.Line(),
+				 text.Column() );
 	    }
 
 	  // Add this one to the list of output workspace variables:
@@ -797,15 +798,12 @@ bool parse_method(Index& id,
 
 	    wsvid = i->second;
 	  }
-// 	  cout << "wsvid = " << wsvid << endl;
-// 	  cout << "Variable: " << wsv_data[wsvid].Name() << '\n';
-// 	  cout << "wsv_data[wsvid].Group() = " << wsv_data[wsvid].Group() << endl;
-// 	  cout << "md_data[id].Input()"    << md_data[id].Input() << endl;
 
 	  // Check that this Wsv belongs to the correct group:
 	  if ( wsv_data[wsvid].Group() != md_data[id].GInput()[j] )
-	    throw WrongWsvGroup( wsvname+"Group should be "+
-				 wsv_group_names[md_data[id].GInput()[j]],
+       	    throw WrongWsvGroup( wsvname+" is not "+
+	                wsv_group_names[md_data[id].GInput()[j]]+", it is "+ 
+                        wsv_group_names[wsv_data[wsvid].Group()],
 				 text.File(),
 				 text.Line(),
 				 text.Column() );
