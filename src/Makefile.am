@@ -60,6 +60,7 @@ arts_SOURCES = \
 	m_basic_types.cc \
 	m_cloudbox.cc \
 	m_general.cc \
+	m_general.h \
 	m_hdf.cc \
 	m_io.cc \
 	m_optproperties.cc \
@@ -479,6 +480,7 @@ test_zeemanproperties_SOURCES = \
 	m_basic_types.cc \
 	m_cloudbox.cc \
 	m_general.cc \
+	m_general.h \
 	m_hdf.cc \
 	m_io.cc \
 	m_montecarlo.cc \
