@@ -38,6 +38,7 @@
 #include "sstream.h"
 #endif
 #include "exceptions.h"
+#include <cmath>
 
 #include "math_funcs.h"
 
