@@ -1,5 +1,16 @@
 2005-02-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-918
+
+	* src/m_cloudbox.cc (cloudboxSetManuallyAltitude): The code allowed 
+	that given altitudes were outside *z_field*, but run time errors were
+	still issued. Removed these run time errors to more easily extend the
+	cloud box to the atmospheric vertical limits (surface and TOA).
+
+2005-02-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* src/m_cloudbox.cc (cloudboxSetManuallyAltitude): 
+
 	* arts-1-1-917
 
 	* src/ppath.cc (ppath_start_stepping): Included RTOL when comparing

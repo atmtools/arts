@@ -295,12 +295,14 @@ void cloudboxSetManuallyAltitude(
   if( z1 >= z2 )
     throw runtime_error( 
                         "The altitude in *z1* must be smaller than the altitude in *z2*." );
+  /* These cases are in fact handled
   if( z1 <= z_field(0, 0, 0) )
     throw runtime_error( "The altitude in *z1* must be larger than the "
                          "first value in *z_field*." );
   if( z2 >= z_field(z_field.npages()-1, 0, 0) )
     throw runtime_error( "The altitude in *z2* must be smaller than the "
                          "last value in *z_field*." );
+  */
   if( atmosphere_dim == 3 )
     {
       if( lat2 <= lat1 )
