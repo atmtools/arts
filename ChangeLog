@@ -1,3 +1,38 @@
+2004-10-07  Cory Davis  <cory@fog>
+
+	* arts-1-1-896
+
+	* tests/simpleMC.arts: Changed the scenario to one that is similar
+	to a scenario that failed yesterday due to a problem with
+	ppath_calc.  This problem has been temporarily fixed by reverting
+	to Cloudbox_ppathCalc, so the tests described below now pass.
+
+	* tests/data: removed files associated with the previous MC
+	scenario and replaced them with new ones.  This has involved
+	including a single p30 scattering data file, which is quite large
+	(4MB). Oliver, can you suggest a way to mitigate any slow-down
+	this will cause CVS? (admin -kb ?). Although this large file is a
+	bit of a pain, I think it is vital to include a p30 test case
+	because it really tests the polarization performance of arts.
+
+	* tests/testall.py: Changed accuracy thresholds for new scenario.
+	Here is the new output:
+
+	[cory@fog tests]$ python testall.py -v
+        Simple Monte Carlo test should run with no errors ... ok
+        Total radiance should be close to 201.8 K ... ok
+        Polarization difference should be close to 7.6 K ... ok
+        
+        ----------------------------------------------------------------------
+        Ran 3 tests in 39.393s
+ 
+        OK
+
+	Can I ask that people please run this before
+	committing to arts?  If you are uncomfortable with the length of
+	time the test takes (40s), we can reduce the photon numbers and
+	increase the accuracy tolerance. 
+
 2004-10-07  Cory Davis  <cory@localhost.localdomain>
 
 	* arts-1-1-895

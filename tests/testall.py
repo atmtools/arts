@@ -29,13 +29,13 @@ class MonteCarloTest(unittest.TestCase):
         self.MCrun.run()
         assert self.MCrun.error=='','Error running simpleMC.arts: '+self.MCrun.error
     def test2(self):
-        """Total radiance should be close to 142K"""
+        """Total radiance should be close to 201.8 K"""
         I=self.MCrun.get_val('y')[0]
-        assert abs(I-140) < 4, 'I (='+str(I)+'K) is too far away from 140K'
+        assert abs(I-201.8) < 4, 'I (='+str(I)+'K) is too far away from 201.8 K'
     def test3(self):
-        """Polarization difference should be close to 0 K"""
+        """Polarization difference should be close to 7.6 K"""
         Q=self.MCrun.get_val('y')[1]
-        assert abs(Q) < 1, 'Q (='+str(Q)+'K) is too far away from 0K'
+        assert abs(Q-7.6) < 1, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
         
 
 
