@@ -1,3 +1,17 @@
+2001-09-21  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-214
+	
+	* doc/uguide/Makefile.am (MAINTAINERCLEANFILES): Changed
+	version.tex to auto_version.tex
+
+	* configure.in: Changed version.tex to auto_version.tex
+
+	* doc/uguide/main.tex: Changed version.tex to auto_version.tex
+
+	* doc/uguide/auto_version.tex.in: Renamed version.tex.in
+	
+
 2001-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-213
