@@ -1,6 +1,22 @@
+2002-11-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-308
+
+	* src/gas_abs_lookup.h (class GasAbsLookup): Don't use
+	qualified names in member function definition.
+
+	* src/matpack*.{cc,h}: Reverted to version 1-1-303. "using" statement
+	in class definition is not supported in gcc < 3.x. :-(
+	Moved back iterator stuff into header after reverting.
+	Moved all operators returning Numeric elements also to header files
+	for performance reasons.
+
+	* configure.in: Add "-ansi -pedantic" to compiler flags when gcc is
+	in charge.
+
 2002-11-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-307	
+	* arts-1-1-307
 	
 	* src/m_scatrte.cc (i_fieldUpdate1D): Included arguments to agendas
 	to suppress output.
