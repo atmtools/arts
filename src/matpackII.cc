@@ -289,6 +289,8 @@ std::ostream& operator<<(std::ostream& os, const SparseView& v)
           Index ra = (r-v.mrr.get_start ())/v.mrr.get_stride ();
           Index ca = (c-v.mcr.get_start ())/v.mcr.get_stride ();
 
+          // FIXME: There should be a check for fractional values here!
+
           // Are the apparent row ra and column ca inside the active range?
           if ( 0 <= ra &&
                ra < v.mrr.get_extent () &&

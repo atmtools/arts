@@ -93,6 +93,9 @@ protected:
   Range mcr;
 };
 
+// FIXME: Optionally reserve the number of nonzero elements?
+
+
 /** The Sparse class. This is a SparseView that also allocates storage
     automatically, and deallocates it when it is destroyed. We take
     all the functionality from SparseView. Just the constructors and
