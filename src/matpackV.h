@@ -30,9 +30,6 @@
 #ifndef matpackV_h
 #define matpackV_h
 
-#include <iomanip>
-#include "matpackI.h"
-#include "matpackIII.h"
 #include "matpackIV.h"
 
 /** The outermost iterator class for rank 5 tensors. This takes into

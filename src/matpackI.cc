@@ -23,7 +23,6 @@
 */
 
 #include "matpackI.h"
-#include "array.h"
 
 
 // Functions for Range:

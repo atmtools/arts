@@ -28,7 +28,6 @@
 #ifndef matpackVI_h
 #define matpackVI_h
 
-#include <iomanip>
 #include "matpackV.h"
 
 #define CHECK(x)   assert( 0 <= x ); assert( x < m ## x ## r.mextent )

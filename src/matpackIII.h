@@ -27,7 +27,6 @@
 #ifndef matpackIII_h
 #define matpackIII_h
 
-#include <iomanip>
 #include "matpackI.h"
 
 /** The outermost iterator class for rank 3 tensors. This takes into

@@ -28,7 +28,6 @@ USA. */
 #ifndef matpackVII_h
 #define matpackVII_h
 
-#include <iomanip>
 #include "matpackVI.h"
 
 /** The outermost iterator class for rank 7 tensors. This takes into

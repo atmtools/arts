@@ -30,8 +30,6 @@
 #ifndef matpackIV_h
 #define matpackIV_h
 
-#include <iomanip>
-#include "matpackI.h"
 #include "matpackIII.h"
 
 /** The outermost iterator class for rank 4 tensors. This takes into

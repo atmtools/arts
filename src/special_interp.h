@@ -26,7 +26,6 @@
 #ifndef special_interp_h
 #define special_interp_h
 
-#include "arts.h"
 #include "interpolation.h"
 
 
