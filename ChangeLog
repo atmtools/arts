@@ -1,16 +1,25 @@
+2001-10-24  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-25
+
+	* doc/uguide/matrix_vector.tex: Started Matrix part.
+	
+
 2001-10-23  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-0-1-24
 
-	* ami/physics/za2geomtan.m adde to ami directory. This function
-	converts the zenith angles to tangent altitudes
+	* ami/physics/za2geomtan.m: added. This function converts the
+	zenith angles to tangent altitudes
 
+	
 2001-10-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-1-23
 
 	* doc/uguide/absrption.tex: editing and resolving warnings in the Tex
 	code.
+
 	
 2001-10-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
