@@ -30,3 +30,8 @@ examplesdoc_DATA = $(arts_examples)
 endif
 
 EXTRA_DIST   = $(arts_examples) $(artsdata_examples_in)
+
+check:	$(top_srcdir)/src/arts $(arts_examples)
+	$(top_srcdir)/src/arts cont.arts
+	$(top_srcdir)/src/arts auto_full.arts
+
