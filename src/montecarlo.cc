@@ -88,21 +88,21 @@ void Cloudbox_ppath_rteCalc(
                              ArrayOfMatrix&        ext_matArray,
                              ArrayOfVector&        abs_vecArray,
                              Vector&               t_ppath,
-                             Vector&               scat_za_grid,
-                             Vector&               scat_aa_grid,
+                             //Vector&               scat_za_grid,
+                             //Vector&               scat_aa_grid,
                              Tensor3&              ext_mat,
                              Matrix&               abs_vec,
                              Numeric&              rte_pressure,
                              Numeric&              rte_temperature,
                              Vector&               rte_vmr_list,
-                             Matrix&               i_rte,
+                             Matrix&               iy,
                              GridPos&              rte_gp_p,
                              GridPos&              rte_gp_lat,
                              GridPos&              rte_gp_lon,
-                             Matrix&               i_space,
-                             Matrix&               ground_emission,
-                             Matrix&               ground_los, 
-                             Tensor4&              ground_refl_coeffs,
+                             //Matrix&               i_space,
+                             //Matrix&               ground_emission,
+                             //Matrix&               ground_los, 
+                             //Tensor4&              ground_refl_coeffs,
                              Index&                f_index,
                              Matrix&               pnd_ppath,
                              const Agenda&         ppath_step_agenda,
@@ -112,7 +112,7 @@ void Cloudbox_ppath_rteCalc(
                              const Vector&         lon_grid,
                              const Tensor3&        z_field,
                              const Matrix&         r_geoid,
-                             const Matrix&         z_ground,
+                             const Matrix&         z_surface,
                              const ArrayOfIndex&   cloudbox_limits,
                              const Index&          record_ppathcloud,
                              const Index&          record_ppath,
@@ -122,8 +122,9 @@ void Cloudbox_ppath_rteCalc(
                              const Tensor3&        t_field,
                              const Tensor4&        vmr_field,
                              const Agenda&         rte_agenda,
-                             const Agenda&         i_space_agenda,
-                             const Agenda&         ground_refl_agenda,
+                             const Agenda&         iy_space_agenda,
+                             const Agenda&         iy_surface_agenda,
+			     const Agenda&         iy_cloudbox_agenda,
                              const Vector&         f_grid,
                              const Index&          photon_number,
                              const Index&          scattering_order,
@@ -136,7 +137,7 @@ void Cloudbox_ppath_rteCalc(
   Vector   mblock_za_grid_dummy(1);
            mblock_za_grid_dummy[0] = 0;
   Vector   mblock_aa_grid_dummy(0);
-  Index    antenna_dim_dummy = 1;
+  //Index    antenna_dim_dummy = 1;
   Sparse   sensor_response_dummy;
 
   // Dummy for measurement vector
@@ -150,9 +151,13 @@ void Cloudbox_ppath_rteCalc(
   Tensor7 scat_i_lon_dummy;
  
   //  cout << "Cloudbox_ppathCalc\n";
-  Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-                     p_grid,lat_grid,lon_grid,z_field,r_geoid,z_ground,
-                     cloudbox_limits, rte_pos,rte_los);
+  //Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+  //                   p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
+  //                 cloudbox_limits, rte_pos,rte_los);
+  
+  ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+			 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
+			 cloudbox_limits, rte_pos,rte_los,0);
   if (record_ppathcloud)
     {
       //Record ppathcloud.  This is useful for debugging and educational 
@@ -178,25 +183,30 @@ void Cloudbox_ppath_rteCalc(
   //Calculate contribution from the boundary of the cloud box
   //changed to dummy_rte_pos to see if rte_pos was causing assertion failure at ppath.cc:1880
   //it appears that this was not the case
-  Vector dummy_rte_pos = rte_pos;
-  Vector dummy_rte_los = rte_los;
-  rte_posShift(dummy_rte_pos,dummy_rte_los,rte_gp_p, rte_gp_lat,
+  Vector pos = rte_pos;
+  Vector los = rte_los;
+  rte_posShift(pos,los,rte_gp_p, rte_gp_lat,
             rte_gp_lon,ppathcloud, atmosphere_dim);
-  sensor_pos(0,joker)=dummy_rte_pos;
-  sensor_los(0,joker)=dummy_rte_los;
+  //sensor_pos(0,joker)=dummy_rte_pos;
+  //sensor_los(0,joker)=dummy_rte_los;
   //call rte_calc without input checking, sensor stuff, or verbosity
-  rte_calc_old( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, 
-            rte_gp_lat,
-            rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
-            ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, 
-            atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
-            r_geoid, z_ground, cloudbox_on_dummy, cloudbox_limits, 
-            scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
-            scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
-            f_grid,stokes_dim, antenna_dim_dummy,
-            mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
-  
-  for (Index i = 0;i<stokes_dim;i++){assert(!isnan(i_rte(0,i)));}
+  //  rte_calc_old( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, 
+  //         rte_gp_lat,
+  //         rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
+  //         ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, 
+  //         atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+  //         r_geoid, z_ground, cloudbox_on_dummy, cloudbox_limits, 
+  //         scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
+  //         scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
+  //         f_grid,stokes_dim, antenna_dim_dummy,
+  //         mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
+  iy_calc(iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
+	  rte_gp_lon,rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
+	  iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, 
+	  lon_grid, z_field,r_geoid, z_surface, cloudbox_on_dummy, cloudbox_limits,
+	  pos, los, f_grid,stokes_dim, 1);
+
+  for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
   
   if (record_ppath)
     {
@@ -695,7 +705,7 @@ Used in ScatteringMonteCarlo.
 */
 
 void montecarloGetIncoming(
-                           Matrix&               i_rte,
+                           Matrix&               iy,
                            Vector&               rte_pos,
                            Vector&               rte_los,
                            GridPos&              rte_gp_p,
@@ -703,23 +713,24 @@ void montecarloGetIncoming(
                            GridPos&              rte_gp_lon,
                            Ppath&                ppath,
                            Ppath&                ppath_step,
-                           Matrix&               i_space,
-                           Matrix&               ground_emission,
-                           Matrix&               ground_los, 
-                           Tensor4&              ground_refl_coeffs,
-                           Vector&               scat_za_grid,
-                           Vector&               scat_aa_grid,
+                           //Matrix&               i_space,
+                           //Matrix&               ground_emission,
+                           //Matrix&               ground_los, 
+                           //Tensor4&              ground_refl_coeffs,
+                           //Vector&               scat_za_grid,
+                           //Vector&               scat_aa_grid,
                            const Agenda&         ppath_step_agenda,
                            const Agenda&         rte_agenda,
-                           const Agenda&         i_space_agenda,
-                           const Agenda&         ground_refl_agenda,
-                           const Tensor3&        t_field,
+                           const Agenda&         iy_space_agenda,
+                           const Agenda&         iy_surface_agenda,
+			   const Agenda&         iy_cloudbox_agenda,
+                           //const Tensor3&        t_field,
                            const Vector&         p_grid,
                            const Vector&         lat_grid,
                            const Vector&         lon_grid,
                            const Tensor3&        z_field,
                            const Matrix&         r_geoid,
-                           const Matrix&         z_ground,
+                           const Matrix&         z_surface,
                            const ArrayOfIndex&   cloudbox_limits,
                            const Ppath&          ppathcloud,
                            const Index&          atmosphere_dim,
@@ -733,7 +744,7 @@ void montecarloGetIncoming(
   Vector   mblock_za_grid_dummy(1);
   mblock_za_grid_dummy[0] = 0;
   Vector   mblock_aa_grid_dummy(0);
-  Index    antenna_dim_dummy = 1;
+  //Index    antenna_dim_dummy = 1;
   Sparse   sensor_response_dummy;
   
   // Dummy for measurement vector
@@ -746,25 +757,30 @@ void montecarloGetIncoming(
   Tensor7 scat_i_lat_dummy;
   Tensor7 scat_i_lon_dummy;
   
-  Vector dummy_rte_pos = rte_pos;
-  Vector dummy_rte_los = rte_los;
-  rte_posShift(dummy_rte_pos,dummy_rte_los,rte_gp_p, rte_gp_lat,
+  Vector pos = rte_pos;
+  Vector los = rte_los;
+  rte_posShift(pos,los,rte_gp_p, rte_gp_lat,
                rte_gp_lon,ppathcloud, atmosphere_dim);
-  sensor_pos(0,joker)=dummy_rte_pos;
-  sensor_los(0,joker)=dummy_rte_los;
+  sensor_pos(0,joker)=pos;
+  sensor_los(0,joker)=los;
   //call rte_calc without input checking, sensor stuff, or verbosity
-  rte_calc_old( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, 
-            rte_gp_lat,
-            rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
-            ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, 
-            atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
-            r_geoid, z_ground, cloudbox_on_dummy, cloudbox_limits, 
-            scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
-            scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
-            f_grid,stokes_dim, antenna_dim_dummy,
-            mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
+  //rte_calc_old( y_dummy, ppath, ppath_step, iy, rte_pos, rte_los, rte_gp_p, 
+  //          rte_gp_lat,
+  //          rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
+  //          ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, 
+  //          atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+  //          r_geoid, z_ground, cloudbox_on_dummy, cloudbox_limits, 
+  //          scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
+  //          scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
+  //          f_grid,stokes_dim, antenna_dim_dummy,
+  //        mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
+  iy_calc(iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
+	  rte_gp_lon,rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
+	  iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, 
+	  lon_grid, z_field,r_geoid, z_surface, cloudbox_on_dummy, cloudbox_limits,
+	  pos, los, f_grid,stokes_dim, 1);
   
-  for (Index i = 0;i<stokes_dim;i++){assert(!isnan(i_rte(0,i)));}
+  for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
 }
 
 

@@ -75,6 +75,7 @@ extern const Numeric PI;
 \date 2003-06-19
   
 */
+/*
 void Cloudbox_ppathCalc(
         // WS Output:
               Ppath&          ppath,
@@ -303,7 +304,7 @@ void Cloudbox_ppathCalc(
            << "is not below 60 km.\n";
     }
 }
-
+*/
 
 //! scat_iPutMonteCarlo
 /*! 
@@ -388,13 +389,13 @@ void ScatteringMonteCarlo (
                            GridPos&              rte_gp_p,
                            GridPos&              rte_gp_lat,
                            GridPos&              rte_gp_lon,
-                           Matrix&               i_space,
-                           Matrix&               surface_emission,
-                           Matrix&               surface_los, 
-                           Tensor4&              surface_refl_coeffs,
-                           Matrix&               i_rte,
-                           Vector&               scat_za_grid,
-                           Vector&               scat_aa_grid,
+			   // Matrix&               i_space,
+                           //Matrix&               surface_emission,
+                           //Matrix&               surface_los, 
+                           //Tensor4&              surface_refl_coeffs,
+                           Matrix&               iy,
+                           //Vector&               scat_za_grid,
+                           //Vector&               scat_aa_grid,
                            Numeric&              rte_pressure,
                            Numeric&              rte_temperature,
                            Vector&               rte_vmr_list,
@@ -416,8 +417,8 @@ void ScatteringMonteCarlo (
                            const Index&          stokes_dim,
                            //Stuff needed by RteCalc
                            const Agenda&         rte_agenda,
-                           const Agenda&         i_space_agenda,
-                           const Agenda&         surface_agenda,
+                           const Agenda&         iy_space_agenda,
+                           const Agenda&         iy_surface_agenda,
                            const Tensor3&        t_field,
                            const Vector&         f_grid,
                            //Stuff needed by TArrayCalc
@@ -511,24 +512,22 @@ void ScatteringMonteCarlo (
 
   //if rng_seed is < 0, keep time based seed, otherwise...
   if(rng_seed>=0){rng.seed(rng_seed);}
-  
+  Agenda iy_cloudbox_agenda;
   Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, rte_pos, rte_los, 
                          cum_l_stepLOS, TArrayLOS, ext_matArrayLOS, 
-                         abs_vecArrayLOS,t_ppathLOS, scat_za_grid, 
-                         scat_aa_grid, ext_mat, abs_vec, rte_pressure, 
-                         rte_temperature, rte_vmr_list, i_rte, rte_gp_p, 
-                         rte_gp_lat, rte_gp_lon, i_space, surface_emission, 
-                         surface_los, surface_refl_coeffs, f_index, pnd_ppathLOS, 
+                         abs_vecArrayLOS,t_ppathLOS, ext_mat, abs_vec, rte_pressure, 
+                         rte_temperature, rte_vmr_list, iy, rte_gp_p, 
+                         rte_gp_lat, rte_gp_lon, f_index, pnd_ppathLOS, 
                          ppath_step_agenda, atmosphere_dim, 
                          p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                          cloudbox_limits, record_ppathcloud, record_ppath, 
                          opt_prop_gas_agenda, 
                          scalar_gas_absorption_agenda, stokes_dim, t_field, 
-                         vmr_field, rte_agenda, i_space_agenda, 
-                         surface_agenda, f_grid, 0, 0,pnd_field,scat_data_mono);
-  
-
-  mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],i_rte(0,joker));
+                         vmr_field, rte_agenda, iy_space_agenda, 
+                         iy_surface_agenda, iy_cloudbox_agenda,f_grid, 0, 0,
+			 pnd_field,scat_data_mono);
+ 
+  mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],iy(0,joker));
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(IboundaryLOScontri[i]));}
   
   //Begin Main Loop
@@ -557,9 +556,13 @@ void ScatteringMonteCarlo (
             {
               //We need to calculate a new propagation path. In the future, we may be 
               //able to take some shortcuts here
-              Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-                                 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
-                                 cloudbox_limits, rte_pos,rte_los);
+              //Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+              //                   p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
+	      //                    cloudbox_limits, rte_pos,rte_los);
+	      ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+			 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
+			 cloudbox_limits, rte_pos,rte_los,0);
+	      
               if (record_ppathcloud){ppathRecordMC(ppathcloud,"ppathcloud",
                                                    photon_number,scattering_order);}
                               
@@ -592,11 +595,11 @@ void ScatteringMonteCarlo (
               assert (scattering_order>0); //scattering/emission should be 
                                            //forced in original line of sight
               //Get incoming//////
-              montecarloGetIncoming(i_rte,rte_pos,rte_los,rte_gp_p,
-                        rte_gp_lat,rte_gp_lon,ppath,ppath_step,i_space,
-                        surface_emission,surface_los,surface_refl_coeffs,
-                        scat_za_grid,scat_aa_grid,ppath_step_agenda,
-                        rte_agenda,i_space_agenda,surface_agenda,t_field,
+              montecarloGetIncoming(iy,rte_pos,rte_los,rte_gp_p,
+                        rte_gp_lat,rte_gp_lon,ppath,ppath_step,
+			ppath_step_agenda,
+                        rte_agenda,iy_space_agenda,iy_surface_agenda,
+				    iy_cloudbox_agenda,
                         p_grid,lat_grid,lon_grid,z_field,r_geoid,
                         z_surface,cloudbox_limits,ppathcloud,atmosphere_dim,
                         f_grid,stokes_dim);
@@ -607,7 +610,7 @@ void ScatteringMonteCarlo (
                 }
               
               f_index=0;//For some strange reason f_index is set to -1 in RteStandard
-              Iboundary=i_rte(0,joker);
+              Iboundary=iy(0,joker);
               ////////////////////
               T=TArray[ppathcloud.np-1];
               mult(boundarycontri,T,Iboundary);
@@ -688,7 +691,7 @@ void ScatteringMonteCarlo (
     }
   
   I+=IboundaryLOScontri;
-  i_rte(0,joker)=I;
+  iy(0,joker)=I;
 }               
 
 

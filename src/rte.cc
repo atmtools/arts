@@ -133,10 +133,15 @@ void get_radiative_background(
       {
         chk_not_empty( "iy_space_agenda", iy_space_agenda );
         iy_space_agenda.execute( agenda_verb );
+	 
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
-          throw runtime_error( "The size of *iy* returned from "
+	  {
+	    out1 << "nf = " << nf << ", stokes_dim = " << stokes_dim<<"\n";//Added by cory
+	    out1 << "iy size = [" << iy.nrows() << ", "<< iy.ncols()<<"]\n";
+	    throw runtime_error( "The size of *iy* returned from "
                                           "*iy_space_agenda* is not correct.");
+	  }
       }
       break;
 

@@ -1092,29 +1092,6 @@ void define_md_data_raw()
         TYPES( Numeric_t, Numeric_t, Numeric_t, Numeric_t, Numeric_t, 
                Numeric_t )));
 
-md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "Cloudbox_ppathCalc" ),
-        DESCRIPTION
-        (
-         "Main function for calculation of propagation paths within the \n"
-           "cloud box. This function will be used in *ScatteringMonteCarlo*\n"
-         "\n"
-         "\n"
-         "The definition of a propgation path cannot be accomodated here.\n"
-         "For more information read the chapter on propagation paths in the\n"
-         "ARTS user guide and read the  on-line information for\n"
-         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
-        ),
-        OUTPUT( ppath_, ppath_step_ ),
-        INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, r_geoid_, z_surface_, 
-               cloudbox_limits_, rte_pos_, rte_los_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("convergence_flagAbs"),
@@ -3580,15 +3557,13 @@ md_data_raw.push_back
           "if keyword parameter silent is non-zero iterative output showing the photon\n"
          "number and scattering order are suppressed" ),
         OUTPUT(ppath_, ppath_step_, i_montecarlo_error_, rte_pos_, rte_los_,
-               rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_, surface_emission_,
-               surface_los_, surface_refl_coeffs_, i_rte_, 
-               scat_za_grid_,scat_aa_grid_, rte_pressure_, rte_temperature_, 
+               rte_gp_p_, rte_gp_lat_, rte_gp_lon_, iy_, 
+               rte_pressure_, rte_temperature_, 
                rte_vmr_list_, ext_mat_, abs_vec_, f_index_),
         INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
               lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_limits_,
-              stokes_dim_, rte_agenda_, i_space_agenda_, surface_agenda_,
-              t_field_, scat_za_grid_,
-              scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
+              stokes_dim_, rte_agenda_, iy_space_agenda_, iy_surface_agenda_,
+              t_field_, f_grid_, opt_prop_gas_agenda_,
               scalar_gas_absorption_agenda_, vmr_field_,
               scat_data_mono_, pnd_field_),
         GOUTPUT(),
