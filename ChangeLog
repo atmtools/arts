@@ -1,10 +1,17 @@
+2002-09-10  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-236
+	
+	* src/m_scatrte.cc (scat_fieldCalc): Sorry that the last version
+	didn't compile. I have fixed it now.   
+	
 2002-09-10  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-235
 	
 	* src/xml_io.cc: Improved error output if reading fails. Added
 	output of column, row, page... of the erroneous element.
-
+	
 2002-09-10  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-234
