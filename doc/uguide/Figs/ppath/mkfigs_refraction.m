@@ -34,7 +34,7 @@ P = arts_ppath( dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, ...
              a_pos, a_los, -1, z_ground, [], 2e3, 200+z_field*0, 0+z_field*0 );
 plot( P.pos(:,2)-P.pos(1,2), P.z/1e3, '-' );
 %
-a_los = 99
+a_los = 99;
 %
 P = arts_ppath( dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, ...
                                        a_pos, a_los, -1, z_ground, [] );
@@ -53,9 +53,6 @@ scale_axes( hl, 1.2 );
 
 
 %- Gradients of refraction
-%
-figure(1)
-clf
 %
 nz       = 33;
 nlat     = 91;
@@ -131,9 +128,6 @@ xlabel('Latitude [degree]');
 ylabel('Pressure [hPa]');
 set_labels( gca, 'FontSize', 12, 'FontWeight', 'bold' );
 
-keyboard
-
-return
 
 if yes_or_no('Print figures')
   print ppath_dndlat.eps -depsc
@@ -175,7 +169,7 @@ S = { ...
 'AgendaSet( refr_index_agenda ) {', ...
 '    refr_indexThayer{}', ...
 '}', ...
-'RefrIndexFieldAndGradients(tensor4_1,vector_1,vector_2,vector_1){}', ...
+'refr_indexFieldAndGradients(tensor4_1,vector_1,vector_2,vector_1){}', ...
 'WriteXML(tensor4_1){"$Q.TMPFOLDER$$Q.FILESEP$G.xml"}', ...
 '}'
 };

@@ -1,3 +1,10 @@
+2004-06-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-831
+
+	* doc/uguide/Figs/ppath/mkfigs_refraction.m: Small modification 
+	following variable name changes in ARTS.
+
 2004-06-09  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-830
