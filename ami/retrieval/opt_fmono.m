@@ -62,11 +62,23 @@ function f_mono = opt_fmono( Y, ftest, prec, f_order, prec_unit, do_plot )
 if ~exist('prec_unit'),  prec_unit = 1; end
 if ~exist('do_plot'),    do_plot   = 1; end
 
-%== Check F_ORDER
+
+% Size of Y: frequnecy, za_pencil, set-up atmosphere  
+[nf, nza, nsu] = size( Y );
+
+
+
+%== Checks
 %
 if f_order ~= 1 & f_order ~= 3
   error('F_ORDER must be 1 or 3.');
 end
+%
+if nf ~= length(ftest)
+  error('The length of FTEST is not consistent to that of Y.');
+end
+
+
 
 out(1,1);
 %
@@ -79,9 +91,9 @@ else
 end
 %
 if prec_unit
-  out(1,sprintf('Required precision (absolute) %.5f',prec));
+  out(1,sprintf('Required precision (absolute) %.3e',prec));
 else
-  out(1,sprintf('Required precision (relative) %.5f',prec));
+  out(1,sprintf('Required precision (relative) %.3e',prec));
 end 
 %
 if do_plot
@@ -90,16 +102,11 @@ end
 %
 out(2,0);
 
-%
+
 f_mono = [];
-%
+ftest  = vec2col( ftest );
 
-% Size of Y: frequnecy, za_pencil, set-up atmosphere  
-[nf, nza, nsu] = size( Y );
 
-if nf ~= length(ftest)
-  error('The length of FTEST is not consistent to that of Y.');
-end
 
 %
 if f_order == 1
@@ -141,10 +148,10 @@ while emax > prec
   end
   %
   if emax > prec
-    out(3,sprintf('Error=%.5f, adding %.6f GHz, nr=%d',...
-                                        emax, ftest(imax)/1e9,length(ind)+1));
+    out(3,sprintf('Error=%.5f, adding %.6e Hz, nr=%d',...
+                                            emax, ftest(imax),length(ind)+1));
   else
-      out(3,sprintf('Error=%.5f',emax));
+      out(3,sprintf('Error=%.3e',emax));
   end
 end
 
@@ -152,36 +159,34 @@ end
 %
 if do_plot
   %
-i1 = ceil(nza/2); 
+  i1 = ceil(nza/2); 
   %
   figure(1), clf
-  plot( ftest/1e9, Y(:,i1,nsu), '-', ftest(ind)/1e9, Y(ind,i1,nsu), '.' );
-  xlabel('Frequency [GHz]');
-  ylabel('Tb [K]');
-  title( sprintf( ...
-        'Last test atmosphere, %dth zenith angle', i1));
+  plot( ftest, Y(:,i1,nsu), '-', ftest(ind), Y(ind,i1,nsu), '.' );
+  xlabel('Frequency');
+  ylabel('Spectrum');
+  title( sprintf('Last test atmosphere, %dth zenith angle', i1));
   %
   figure(2), clf
   xlabel('Frequency [GHz]');
   % 
   if prec_unit 
-    plot( ftest/1e9, (Y2(:,i1) - Y(:,i1,nsu))*1e3, '-' );
-    ylabel('Interpolation error [mK]');
+    plot( ftest, (Y2(:,i1) - Y(:,i1,nsu)), '-' );
+    xlabel('Frequency');
+    ylabel('Interpolation error');
   else
-    plot( ftest/1e9, (Y2(:,i1) - Y(:,i1,nsu))./Y(:,i1,nsu)*1e2, '-' );
+    plot( ftest, (Y2(:,i1) - Y(:,i1,nsu))./Y(:,i1,nsu)*1e2, '-' );
+    xlabel('Frequency');
     ylabel('Interpolation error [%]');
   end 
   % 
-  title( sprintf( ...
-        'Last test atmosphere, %dth zenith angle', i1));
+  title( sprintf('Last test atmosphere, %dth zenith angle', i1));
   %
 end
 
-f_mono = [ f_mono; ftest(ind) ];
-
 %=== Sort and remove duplicates of frequencies
 %
-f_mono = unique( f_mono );
+f_mono = unique( ftest(ind) );
 
 out(2,0);
 out(1, sprintf('No.of F_MONO before optimization = %d', nf));

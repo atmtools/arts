@@ -1,3 +1,13 @@
+2003-09-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-129
+
+	* ami/retrieval/opt_fmono.m: Smaller changes of text and figure 
+	output, to make the function more general. Made sure that ftest
+	is column vector.
+
+	* ami/physics/doppler_fwhm.m: Added this function.
+
 2003-09-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-128
