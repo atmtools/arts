@@ -80,8 +80,9 @@ ARRAY<SpeciesRecord> species_data;
        <table>
        <tr>
        <td> 1: <td> hitran 96 isotopic ratio, taken from cd: file
-          	    software/generic/tables_96.txt (default, even if jpl and
-          	    hitran isotopic ratios are available).
+          	    software/generic/tables_96.txt or HITRAN 2000 edition
+                    (default, even if jpl and hitran isotopic ratios are 
+		    available).
        <tr>
        <td >2: <td> jpl isotopic ratio, taken from the documentation coming
           	    along with the catalogue. latest catalogue version
@@ -447,6 +448,14 @@ void define_basic_species_data()
 
   // OCS
   // Isotopic Ratios: 1 1 1 1
+  // Note: OCS-623 is new in Hitran 2000, and it is not the at least
+  // abundant isotope. So what actually happend with the following
+  // one, is that numbers changed in the hitran edition? I had a
+  // look at the two editions, and they actually changed them, stupid
+  // idiots. So what used to be 194 (hitran 96) is now 195 (hitran
+  // 2000). This messes up the whole concept of reading a catalogue,
+  // because the species depends now on the edition of the
+  // catalogue.
   species_data.push_back
     ( SpeciesRecord
       ( NAME("OCS"),
@@ -457,7 +466,8 @@ void define_basic_species_data()
 	 REC("622"	,0.93739	,60.	,191	,191	,TAGS(60001)),
 	 REC("624"	,0.04158	,62.	,192	,192	,TAGS(62001)),
 	 REC("632"	,0.01053	,61.	,193	,193	,TAGS(61001)),
-	 REC("822"	,0.0018797	,62.	,194	,194	,TAGS(62002))
+	 REC("623"	,.739908E-02	,61.	,-1	,194	,TAGS( )),
+	 REC("822"	,0.0018797	,62.	,194	,195	,TAGS(62002))
 	 ) ) );
 
   // H2CO
@@ -767,6 +777,34 @@ void define_basic_species_data()
 	 //		|		|	|	|	|
 	 REC("565"	,0.57016427	,102.	,491	,-1	,TAGS(102001)),
 	 REC("765"	,0.36982818	,104.	,492	,-1	,TAGS(104001))
+	 ) ) );
+
+  // HOBr
+  // Isotopic Ratios: 1 1
+  // Note: latest addtion to Hitran 2000, DEGFR guessed
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("HOBr"),
+	DEGFR(3),
+	ISOTOPES
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
+	 //		|		|	|	|	|
+	 REC("169"	,.505579E+00	,96.	,-1	,371	,TAGS( )),
+	 REC("161"	,.491894E+00	,98.	,-1	,372	,TAGS( ))
+	 ) ) );
+
+  // C2H4
+  // Isotopic Ratios: 1 1
+  // Note: latest addtion to Hitran 2000, DEGFR guessed
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("C2H4"),
+	DEGFR(3),
+	ISOTOPES
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
+	 //		|		|	|	|	|
+	 REC("221"	,.977294E+00	,28.	,-1	,381	,TAGS( )),
+	 REC("231"	,.219595E-01	,29.	,-1	,382	,TAGS( ))
 	 ) ) );
 
 

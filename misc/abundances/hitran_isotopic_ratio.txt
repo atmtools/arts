@@ -1,5 +1,9 @@
 # just taken from table_96.txt of the hitran 96 edition
 # AvE 20.7.00
+#
+# AvE 16.02.01 Added new hitran 2000 species HOBr, C2H4, OCS-623
+#
+#
 #                ** Isotopic Abundances Used for HITRAN **
 #      [based on P. De Bievre, M. Gallet, N.E. Holden, and I.L. Barnes,
 #         "Isotopic Abundances and Atomic Weights of the Elements,"
@@ -101,6 +105,7 @@
                  622     0.93739
                  624     0.04158
                  632     0.01053
+                 623     .739908E-02
                  822     0.0018797
 
      H2CO (20)
@@ -163,4 +168,10 @@
 
      NO+ (36)
                   46     0.993974
+     HOBr (37)
+                 169     .505579E+00
+                 161     .491894E+00
+     C2H4 (38)
+                 221     .977294E+00
+                 231     .219595E-01
 

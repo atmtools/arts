@@ -116,7 +116,11 @@
   program with a partition function equals -1 for all temperatures,
   meaning a polynomial fit is not applicable. These species are:
 
-  HNO3, SF6, O, ClONO2, C2H6
+  HNO3, SF6, O, ClONO2, C2H6, HOBr, C2H4, OCS-623
+
+  The latter 3 are not present in tips, but are available in the new
+  HITRAN 2000 edition. No partition function data could be found for
+  these in the new hitran edition.
 
   HNO3 and ClONO2 are covered in the JPL database, and a polynomial
   fit to the partition function calculated with the recommended scheme
@@ -124,8 +128,8 @@
   partition function was used for these 2 molecules. 
 
   The other molecules (SF6, C2H6) and atom (O) were marked as not
-  appropriate for a polynomial fit following the tips convention, e.g.,
-  first coefficient is -1, all others are zero.
+  appropriate for a polynomial fit following the tips convention,
+  e.g., first coefficient is -1, all others are zero.
 
   HCOOH is the only species that shows errors of up to 7 % for the
   polynomial fit to the JPL partition functions, where the partition
@@ -437,7 +441,7 @@ void define_partition_species_data()
 
   // ClO
   // Coeff:       1      1
-  // Quality:   19.45  19.46
+  // Quality:    1.94   1.96
   spec(it_species, it_isotope, "ClO");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -447,14 +451,15 @@ void define_partition_species_data()
 
 
   // OCS
-  // Coeff:       1      1      1      1
-  // Quality:    1.49   1.66   2.43   2.15
+  // Coeff:       1      1      1      1      1
+  // Quality:    1.49   1.66   2.43   ---   2.15
   spec(it_species, it_isotope, "OCS");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"622",	Qcoeff(	-9.3697E-01	,3.6090E+00	,-3.4552E-03	,1.7462E-05) );
   iso(it_isotope,	"624",	Qcoeff(	-1.1536E+00	,3.7028E+00	,-3.5582E-03	,1.7922E-05) );
   iso(it_isotope,	"632",	Qcoeff(	-6.1015E-01	,7.2200E+00	,-7.0044E-03	,3.6708E-05) );
+  iso(it_isotope,	"623",	Qcoeff(	-1.0000E+00	,0.0000E+00	,0.0000E+00	,0.0000E+00) );
   iso(it_isotope,	"822",	Qcoeff(	-2.1569E-01	,3.8332E+00	,-3.6783E-03	,1.9177E-05) );
 
 
@@ -686,6 +691,29 @@ void define_partition_species_data()
   //			|		|		|		|		|
   iso(it_isotope,	"565",	Qcoeff(	-1.6546E+04	,7.0845E+02	,2.9249E+00	,-1.2097E-03) );
   iso(it_isotope,	"765",	Qcoeff(	-1.6893E+04	,7.2651E+02	,3.0185E+00	,-1.2520E-03) );
+
+
+
+  // HOBr
+  // Coeff:       2      2
+  // Quality:    0.36   0.37
+  spec(it_species, it_isotope, "HOBr");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"169",	Qcoeff(	-5.1671E+02	,2.2261E+01	,9.3769E-02	,-3.9223E-05) );
+  iso(it_isotope,	"161",	Qcoeff(	-5.1818E+02	,2.2340E+01	,9.4261E-02	,-3.9488E-05) );
+
+
+
+  // C2H4
+  // Coeff:       1      1
+  // Quality:    ---    ---
+  spec(it_species, it_isotope, "C2H4");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"221",	Qcoeff(	-1.0000E+00	,0.0000E+00	,0.0000E+00	,0.0000E+00) );
+  iso(it_isotope,	"231",	Qcoeff(	-1.0000E+00	,0.0000E+00	,0.0000E+00	,0.0000E+00) );
+
 
 
 }

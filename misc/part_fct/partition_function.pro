@@ -1,5 +1,5 @@
 ;
-; $Id: partition_function.pro,v 1.6 2001/01/10 15:29:08 axel Exp $
+; $Id: partition_function.pro,v 1.7 2001/02/22 15:21:10 axel Exp $
 ;
 pro HAK, dummy, mesg=mesg
 ; NAME:
@@ -406,113 +406,194 @@ species_arr  = replicate({species},200)
 
 ;; put the data into structure use gis procedure, not too elegant, I
 ;; must admitt. data is extracted from arts program
-gis, species_arr, 'H2O',   161,   161,    11, 3,  long([18003, 18005])
-gis, species_arr, 'H2O',   181,   181,    12, 3,  long([20003])
-gis, species_arr, 'H2O',   171,   171,    13, 3,  long([19003])
-gis, species_arr, 'H2O',   162,   162,    14, 3,  long([19002])
-gis, species_arr, 'H2O',   182,    -1,    -1, 3,  long([21001])
-gis, species_arr, 'H2O',   262,    -1,    -1, 3,  long([20001])
-gis, species_arr, 'CO2',   626,   626,    21, 2
-gis, species_arr, 'CO2',   636,   636,    22, 2
-gis, species_arr, 'CO2',   628,   628,    23, 2,  long([46013])
-gis, species_arr, 'CO2',   627,   627,    24, 2,  long([45012])
-gis, species_arr, 'CO2',   638,   638,    25, 2
-gis, species_arr, 'CO2',   637,   637,    26, 2
-gis, species_arr, 'CO2',   828,   828,    27, 2
-gis, species_arr, 'CO2',   728,   728,    28, 2
-gis, species_arr, 'O3',    666,   666,    31, 3,  long([48004, 48005, 48006, 48007, 48008])
-gis, species_arr, 'O3',    668,   668,    32, 3,  long([50004, 50006])
-gis, species_arr, 'O3',    686,   686,    33, 3,  long([50003, 50005])
-gis, species_arr, 'O3',    667,   667,    34, 3,  long([49002])
-gis, species_arr, 'O3',    676,   676,    35, 3,  long([49001])
-gis, species_arr, 'N2O',   446,   446,    41, 2,  long([44004, 44009, 44012])
-gis, species_arr, 'N2O',   456,   456,    42, 2,  long([45007])
-gis, species_arr, 'N2O',   546,   546,    43, 2,  long([45008])
-gis, species_arr, 'N2O',   448,   448,    44, 2,  long([46007])
-gis, species_arr, 'N2O',   447,   447,    45, 2
-gis, species_arr, 'CO',     26,   26,     51, 2,  long([28001])
-gis, species_arr, 'CO',     36,   36,     52, 2,  long([29001])
-gis, species_arr, 'CO',     28,   28,     53, 2,  long([30001])
-gis, species_arr, 'CO',     27,   27,     54, 2,  long([29006])
-gis, species_arr, 'CO',     38,   38,     55, 2
-gis, species_arr, 'CO',     37,   37,     56, 2
-gis, species_arr, 'CH4',   211,   211,    61, 3
-gis, species_arr, 'CH4',   311,   311,    62, 3
-gis, species_arr, 'CH4',   212,   212,    63, 3,  long([17003])
-gis, species_arr, 'O2',     66,   66,     71, 2,  long([32001, 32002])
-gis, species_arr, 'O2',     68,   68,     72, 2,  long([34001])
-gis, species_arr, 'O2',     67,   67,     73, 2,  long([33002])
-gis, species_arr, 'NO',     46,   46,     81, 2,  long([30008])
-gis, species_arr, 'NO',     56,   56,     82, 2
-gis, species_arr, 'NO',     48,   48,     83, 2
-gis, species_arr, 'SO2',   626,   626,    91, 3,  long([64002, 64005])
-gis, species_arr, 'SO2',   646,   646,    92, 3,  long([66002])
-gis, species_arr, 'SO2',   636,    -1,    -1, 3,  long([65001])
-gis, species_arr, 'SO2',   628,    -1,    -1, 3,  long([66004])
-gis, species_arr, 'NO2',   646,   646,   101, 3,  long([46006])
-gis, species_arr, 'NH3',  4111,   4111,  111, 3,  long([17002, 17004])
-gis, species_arr, 'NH3',  5111,   5111,  112, 3,  long([18002])
-gis, species_arr, 'NH3',  4112,     -1,   -1, 3,  long([18004])
-gis, species_arr, 'HNO3',  146,   146,   121, 3,  long([63001, 63002, 63003, 63004, 63005, 63006])
-gis, species_arr, 'OH',     61,   61,    131, 2,  long([17001])
-gis, species_arr, 'OH',     81,   81,    132, 2,  long([19001])
-gis, species_arr, 'OH',     62,   62,    133, 2,  long([18001])
-gis, species_arr, 'HF',     19,   19,    141, 2,  long([20002])
-gis, species_arr, 'HF',     29,   -1,     -1, 2,  long([21002])
-gis, species_arr, 'HCl',    15,   15,    151, 2,  long([36001])
-gis, species_arr, 'HCl',    17,   17,    152, 2,  long([38001])
-gis, species_arr, 'HCl',    25,   -1,     -1, 2,  long([37001])
-gis, species_arr, 'HCl',    27,   -1,     -1, 2,  long([39004])
-gis, species_arr, 'HBr',    19,   19,    161, 2,  long([80001])
-gis, species_arr, 'HBr',    11,   11,    162, 2,  long([82001])
-gis, species_arr, 'HI',     17,   17,    171, 2
-gis, species_arr, 'ClO',    56,   56,    181, 2,  long([51002, 51003])
-gis, species_arr, 'ClO',    76,   76,    182, 2,  long([53002, 53006])
-gis, species_arr, 'OCS',   622,   622,   191, 2,  long([60001])
-gis, species_arr, 'OCS',   624,   624,   192, 2,  long([62001])
-gis, species_arr, 'OCS',   632,   632,   193, 2,  long([61001])
-gis, species_arr, 'OCS',   822,   822,   194, 2,  long([62002])
-gis, species_arr, 'H2CO', 1126,   126,   201, 3,  long([30004])
-gis, species_arr, 'H2CO', 1136,   136,   202, 3,  long([31002])
-gis, species_arr, 'H2CO', 1128,   128,   203, 3,  long([32004])
-gis, species_arr, 'H2CO', 1226,    -1,    -1, 3,  long([31003])
-gis, species_arr, 'H2CO', 2226,    -1,    -1, 3,  long([32006])
-gis, species_arr, 'HOCl',  165,   165,   211, 3,  long([52006])
-gis, species_arr, 'HOCl',  167,   167,   212, 3,  long([54005])
-gis, species_arr, 'N2',     44,   44,    221, 2
-gis, species_arr, 'HCN',   124,   124,   231, 3,  long([27001, 27003])
-gis, species_arr, 'HCN',   134,   134,   232, 3,  long([28002])
-gis, species_arr, 'HCN',   125,   125,   233, 3,  long([28003])
-gis, species_arr, 'HCN',   224,    -1,    -1, 3,  long([28004])
-gis, species_arr, 'CH3Cl', 215,   215,   241, 3,  long([50007])
-gis, species_arr, 'CH3Cl', 217,   217,   242, 3,  long([52009])
-gis, species_arr, 'H2O2', 1661,   1661,  251, 3,  long([34004])
-gis, species_arr, 'C2H2', 1221,   1221,  261, 3
-gis, species_arr, 'C2H2', 1231,   1231,  262, 3
-gis, species_arr, 'C2H6', 1221,   1221,  271, 3
-gis, species_arr, 'PH3',  1111,   1111,  281, 3,  long([34003])
-gis, species_arr, 'COF2',  269,   269,   291, 3,  long([66001])
-gis, species_arr, 'SF6',    29,   29,    301, 3
-gis, species_arr, 'H2S',   121,   121,   311, 3,  long([34002])
-gis, species_arr, 'H2S',   141,   141,   312, 3
-gis, species_arr, 'H2S',   131,   131,   313, 3
-gis, species_arr, 'H2S',   122,    -1,    -1, 3,  long([35001])
-gis, species_arr, 'HCOOH', 1261,  126,   321, 3,  long([46005])
-gis, species_arr, 'HCOOH', 1361,   -1,    -1, 3,  long([47002])
-gis, species_arr, 'HCOOH', 2261,   -1,    -1, 3,  long([47003])
-gis, species_arr, 'HCOOH', 1262,   -1,    -1, 3,  long([47004])
-gis, species_arr, 'HO2',   166,   166,   331, 3,  long([33001])
-gis, species_arr, 'O',        6,   6,    341, 0,  long([16001])
-gis, species_arr, 'ClONO2',5646, 5646,   351, 3,  long([97002])
-gis, species_arr, 'ClONO2',7646, 7646,   352, 3,  long([99001])
-gis, species_arr, 'NO+',     46,   46,   361, 2,  long([30011])
-gis, species_arr, 'OClO'   ,656,    -1,   -1, 3,  long([67001])
-gis, species_arr, 'OClO',   676,    -1,   -1, 3,  long([69001])
-gis, species_arr, 'BrO',     96,    -1,   -1, 2,  long([95001])
-gis, species_arr, 'BrO',     16,    -1,   -1, 2,  long([97001])
-gis, species_arr, 'H2SO4',  126,    -1,   -1, 3,  long([98001])
-gis, species_arr, 'Cl2O2',  565,    -1,   -1, 3,  long([102001])
-gis, species_arr, 'Cl2O2',  765,    -1,   -1, 3,  long([104001])
+gis, species_arr, 'H2O',      161,   161,    11, 3,  long([18003, 18005])
+gis, species_arr, 'H2O',      181,   181,    12, 3,  long([20003])
+gis, species_arr, 'H2O',      171,   171,    13, 3,  long([19003])
+gis, species_arr, 'H2O',      162,   162,    14, 3,  long([19002])
+gis, species_arr, 'H2O',      182,    -1,    -1, 3,  long([21001])
+gis, species_arr, 'H2O',      262,    -1,    -1, 3,  long([20001])
+gis, species_arr, 'CO2',      626,   626,    21, 2
+gis, species_arr, 'CO2',      636,   636,    22, 2
+gis, species_arr, 'CO2',      628,   628,    23, 2,  long([46013])
+gis, species_arr, 'CO2',      627,   627,    24, 2,  long([45012])
+gis, species_arr, 'CO2',      638,   638,    25, 2
+gis, species_arr, 'CO2',      637,   637,    26, 2
+gis, species_arr, 'CO2',      828,   828,    27, 2
+gis, species_arr, 'CO2',      728,   728,    28, 2
+gis, species_arr, 'O3',       666,   666,    31, 3,  long([48004, 48005, 48006, 48007, 48008])
+gis, species_arr, 'O3',       668,   668,    32, 3,  long([50004, 50006])
+gis, species_arr, 'O3',       686,   686,    33, 3,  long([50003, 50005])
+gis, species_arr, 'O3',       667,   667,    34, 3,  long([49002])
+gis, species_arr, 'O3',       676,   676,    35, 3,  long([49001])
+gis, species_arr, 'N2O',      446,   446,    41, 2,  long([44004, 44009, 44012])
+gis, species_arr, 'N2O',      456,   456,    42, 2,  long([45007])
+gis, species_arr, 'N2O',      546,   546,    43, 2,  long([45008])
+gis, species_arr, 'N2O',      448,   448,    44, 2,  long([46007])
+gis, species_arr, 'N2O',      447,   447,    45, 2
+gis, species_arr, 'CO',        26,   26,     51, 2,  long([28001])
+gis, species_arr, 'CO',        36,   36,     52, 2,  long([29001])
+gis, species_arr, 'CO',        28,   28,     53, 2,  long([30001])
+gis, species_arr, 'CO',        27,   27,     54, 2,  long([29006])
+gis, species_arr, 'CO',        38,   38,     55, 2
+gis, species_arr, 'CO',        37,   37,     56, 2
+gis, species_arr, 'CH4',      211,   211,    61, 3
+gis, species_arr, 'CH4',      311,   311,    62, 3
+gis, species_arr, 'CH4',      212,   212,    63, 3,  long([17003])
+gis, species_arr, 'O2',        66,   66,     71, 2,  long([32001, 32002])
+gis, species_arr, 'O2',        68,   68,     72, 2,  long([34001])
+gis, species_arr, 'O2',        67,   67,     73, 2,  long([33002])
+gis, species_arr, 'NO',        46,   46,     81, 2,  long([30008])
+gis, species_arr, 'NO',        56,   56,     82, 2
+gis, species_arr, 'NO',        48,   48,     83, 2
+gis, species_arr, 'SO2',      626,   626,    91, 3,  long([64002, 64005])
+gis, species_arr, 'SO2',      646,   646,    92, 3,  long([66002])
+gis, species_arr, 'SO2',      636,    -1,    -1, 3,  long([65001])
+gis, species_arr, 'SO2',      628,    -1,    -1, 3,  long([66004])
+gis, species_arr, 'NO2',      646,   646,   101, 3,  long([46006])
+gis, species_arr, 'NH3',     4111,   4111,  111, 3,  long([17002, 17004])
+gis, species_arr, 'NH3',     5111,   5111,  112, 3,  long([18002])
+gis, species_arr, 'NH3',     4112,     -1,   -1, 3,  long([18004])
+gis, species_arr, 'HNO3',     146,   146,   121, 3,  long([63001, 63002, 63003, 63004, 63005, 63006])
+gis, species_arr, 'OH',        61,   61,    131, 2,  long([17001])
+gis, species_arr, 'OH',        81,   81,    132, 2,  long([19001])
+gis, species_arr, 'OH',        62,   62,    133, 2,  long([18001])
+gis, species_arr, 'HF',        19,   19,    141, 2,  long([20002])
+gis, species_arr, 'HF',        29,   -1,     -1, 2,  long([21002])
+gis, species_arr, 'HCl',       15,   15,    151, 2,  long([36001])
+gis, species_arr, 'HCl',       17,   17,    152, 2,  long([38001])
+gis, species_arr, 'HCl',       25,   -1,     -1, 2,  long([37001])
+gis, species_arr, 'HCl',       27,   -1,     -1, 2,  long([39004])
+gis, species_arr, 'HBr',       19,   19,    161, 2,  long([80001])
+gis, species_arr, 'HBr',       11,   11,    162, 2,  long([82001])
+gis, species_arr, 'HI',        17,   17,    171, 2
+gis, species_arr, 'ClO',       56,   56,    181, 2,  long([51002, 51003])
+gis, species_arr, 'ClO',       76,   76,    182, 2,  long([53002, 53006])
+gis, species_arr, 'OCS',      622,   622,   191, 2,  long([60001])
+gis, species_arr, 'OCS',      624,   624,   192, 2,  long([62001])
+gis, species_arr, 'OCS',      632,   632,   193, 2,  long([61001])
+gis, species_arr, 'OCS',      623,   623,   194, 2
+gis, species_arr, 'OCS',      822,   822,   195, 2,  long([62002])
+gis, species_arr, 'H2CO',    1126,   126,   201, 3,  long([30004])
+gis, species_arr, 'H2CO',    1136,   136,   202, 3,  long([31002])
+gis, species_arr, 'H2CO',    1128,   128,   203, 3,  long([32004])
+gis, species_arr, 'H2CO',    1226,    -1,    -1, 3,  long([31003])
+gis, species_arr, 'H2CO',    2226,    -1,    -1, 3,  long([32006])
+gis, species_arr, 'HOCl',     165,   165,   211, 3,  long([52006])
+gis, species_arr, 'HOCl',     167,   167,   212, 3,  long([54005])
+gis, species_arr, 'N2',        44,   44,    221, 2
+gis, species_arr, 'HCN',      124,   124,   231, 3,  long([27001, 27003])
+gis, species_arr, 'HCN',      134,   134,   232, 3,  long([28002])
+gis, species_arr, 'HCN',      125,   125,   233, 3,  long([28003])
+gis, species_arr, 'HCN',      224,    -1,    -1, 3,  long([28004])
+gis, species_arr, 'CH3Cl',    215,   215,   241, 3,  long([50007])
+gis, species_arr, 'CH3Cl',    217,   217,   242, 3,  long([52009])
+gis, species_arr, 'H2O2',    1661,   1661,  251, 3,  long([34004])
+gis, species_arr, 'C2H2',    1221,   1221,  261, 3
+gis, species_arr, 'C2H2',    1231,   1231,  262, 3
+gis, species_arr, 'C2H6',    1221,   1221,  271, 3
+gis, species_arr, 'PH3',     1111,   1111,  281, 3,  long([34003])
+gis, species_arr, 'COF2',     269,   269,   291, 3,  long([66001])
+gis, species_arr, 'SF6',       29,   29,    301, 3
+gis, species_arr, 'H2S',      121,   121,   311, 3,  long([34002])
+gis, species_arr, 'H2S',      141,   141,   312, 3
+gis, species_arr, 'H2S',      131,   131,   313, 3
+gis, species_arr, 'H2S',      122,    -1,    -1, 3,  long([35001])
+gis, species_arr, 'HCOOH',    1261,  126,   321, 3,  long([46005])
+gis, species_arr, 'HCOOH',    1361,   -1,    -1, 3,  long([47002])
+gis, species_arr, 'HCOOH',    2261,   -1,    -1, 3,  long([47003])
+gis, species_arr, 'HCOOH',    1262,   -1,    -1, 3,  long([47004])
+gis, species_arr, 'HO2',      166,   166,   331, 3,  long([33001])
+gis, species_arr, 'O',           6,   6,    341, 0,  long([16001])
+gis, species_arr, 'ClONO2',   5646, 5646,   351, 3,  long([97002])
+gis, species_arr, 'ClONO2',   7646, 7646,   352, 3,  long([99001])
+gis, species_arr, 'NO+',        46,   46,   361, 2,  long([30011])
+gis, species_arr, 'OClO'   ,   656,    -1,   -1, 3,  long([67001])
+gis, species_arr, 'OClO',      676,    -1,   -1, 3,  long([69001])
+gis, species_arr, 'BrO',        96,    -1,   -1, 2,  long([95001])
+gis, species_arr, 'BrO',        16,    -1,   -1, 2,  long([97001])
+gis, species_arr, 'H2SO4',     126,    -1,   -1, 3,  long([98001])
+gis, species_arr, 'Cl2O2',     565,    -1,   -1, 3,  long([102001])
+gis, species_arr, 'Cl2O2',     765,    -1,   -1, 3,  long([104001])
+gis, species_arr, 'HOBr',      169,   169,  371, 3,  long([96001])
+gis, species_arr, 'HOBr',      161,   161,  372, 3,  long([98002])
+gis, species_arr, 'C2H4',      221,   221,  381, 3
+gis, species_arr, 'C2H4',      231,   231,  382, 3
+gis, species_arr, 'OBrO',      696,    -1,   -1, 3,  long([111001])
+gis, species_arr, 'OBrO',      616,    -1,   -1, 3,  long([113001])
+gis, species_arr, 'ClNO2',    5466,    -1,   -1, 3,  long([81001])
+gis, species_arr, 'HOONO2',   1646,    -1,   -1, 3,  long([79001])
+gis, species_arr, 'PO2',       166,    -1,   -1, 3,  long([63008])
+gis, species_arr, 'PS',         12,    -1,   -1, 2,  long([63007])
+gis, species_arr, 'C2S',       222,    -1,   -1, 2,  long([56007])
+gis, species_arr, 'C2S',       322,    -1,   -1, 2,  long([57001])
+gis, species_arr, 'C2S',       232,    -1,   -1, 2,  long([57002])
+gis, species_arr, 'C2S',       224,    -1,   -1, 2,  long([58001])
+gis, species_arr, 'C3O',      2226,    -1,   -1, 2,  long([52008])
+gis, species_arr, 'C3O',      3226,    -1,   -1, 2,  long([53003])
+gis, species_arr, 'C3O',      2326,    -1,   -1, 2,  long([53004])
+gis, species_arr, 'C3O',      2236,    -1,   -1, 2,  long([53005])
+gis, species_arr, 'C3O',      2228,    -1,   -1, 2,  long([54006])
+gis, species_arr, 'HCCCN',   12224,    -1,   -1, 2,  long([51001])
+gis, species_arr, 'HCCCN',   12234,    -1,   -1, 2,  long([52001])
+gis, species_arr, 'HCCCN',   12324,    -1,   -1, 2,  long([52002])
+gis, species_arr, 'HCCCN',   13224,    -1,   -1, 2,  long([52003])
+gis, species_arr, 'HCCCN',   12225,    -1,   -1, 2,  long([52004])
+gis, species_arr, 'HCCCN',   22224,    -1,   -1, 2,  long([52005])
+gis, species_arr, 'HNC3',    14222,    -1,   -1, 2,  long([51008])
+gis, species_arr, 'HC2NC',   12242,    -1,   -1, 2,  long([51004,51005,51006,51007])
+gis, species_arr, 'C3N',      2224,    -1,   -1, 2,  long([50008])
+gis, species_arr, 'NS',         42,    -1,   -1, 2,  long([46010])
+gis, species_arr, 'NS',         44,    -1,   -1, 2,  long([48009])
+gis, species_arr, 'H2CS',     1122,    -1,   -1, 3,  long([46003])
+gis, species_arr, 'H2CS',     1132,    -1,   -1, 3,  long([47001])
+gis, species_arr, 'H2CS',     1124,    -1,   -1, 3,  long([48003])
+gis, species_arr, 'PO',         16,    -1,   -1, 2,  long([47006])
+gis, species_arr, 'CS',         22,    -1,   -1, 2,  long([44001])
+gis, species_arr, 'CS',         32,    -1,   -1, 2,  long([45001])
+gis, species_arr, 'CS',         24,    -1,   -1, 2,  long([46001])
+gis, species_arr, 'PN',         14,    -1,   -1, 2,  long([45013])
+gis, species_arr, 'HNCO',     1426,    -1,   -1, 3,  long([43002])
+gis, species_arr, 'HNCO',     2426,    -1,   -1, 3,  long([44006])
+gis, species_arr, 'HNCO',     1526,    -1,   -1, 3,  long([44007])
+gis, species_arr, 'HNCO',     1436,    -1,   -1, 3,  long([44008])
+gis, species_arr, 'HNCO',     1428,    -1,   -1, 3,  long([45006])
+gis, species_arr, 'HCP',       121,    -1,   -1, 2,  long([44010])
+gis, species_arr, 'HCP',       221,    -1,   -1, 2,  long([45009])
+gis, species_arr, 'CP',         21,    -1,   -1, 2,  long([43004])
+gis, species_arr, 'CH2CO',   21126,    -1,   -1, 3,  long([42002])
+gis, species_arr, 'CH2CO',   21226,    -1,   -1, 3,  long([43001])
+gis, species_arr, 'CH3CN',  211124,    -1,   -1, 3,  long([41001])
+gis, species_arr, 'CH3CN',  211125,    -1,   -1, 3,  long([42001])
+gis, species_arr, 'CH3CN',  311124,    -1,   -1, 3,  long([42006])
+gis, species_arr, 'CH3CN',  211134,    -1,   -1, 3,  long([42007])
+gis, species_arr, 'CH3CN',  211224,    -1,   -1, 3,  long([42008])
+gis, species_arr, 'NH2CN',   41124,    -1,   -1, 3,  long([42003])
+gis, species_arr, 'CH3C2H',2111221,    -1,   -1, 3,  long([40001])
+gis, species_arr, 'CH3C2H',2111231,    -1,   -1, 3,  long([41002])
+gis, species_arr, 'CH3C2H',2111321,    -1,   -1, 3,  long([41003])
+gis, species_arr, 'CH3C2H',3111221,    -1,   -1, 3,  long([41004])
+gis, species_arr, 'CH3C2H',2111222,    -1,   -1, 3,  long([41005])
+gis, species_arr, 'CH3C2H',2112221,    -1,   -1, 3,  long([41006])
+gis, species_arr, 'SH',         21,    -1,   -1, 2,  long([33003])
+gis, species_arr, 'SH',         22,    -1,   -1, 2,  long([34005])
+gis, species_arr, 'HNO',       146,    -1,   -1, 3,  long([31005])
+gis, species_arr, 'HNO',       246,    -1,   -1, 3,  long([32007])
+gis, species_arr, 'CH2NH',   21141,    -1,   -1, 3,  long([29003])
+gis, species_arr, 'CH2NH',   31141,    -1,   -1, 3,  long([30005])
+gis, species_arr, 'CH2NH',   21151,    -1,   -1, 3,  long([30006])
+gis, species_arr, 'CH2NH',   21142,    -1,   -1, 3,  long([30007])
+gis, species_arr, 'HCO',       126,    -1,   -1, 3,  long([29004])
+gis, species_arr, 'HNC',       142,    -1,   -1, 2,  long([27002])
+gis, species_arr, 'HNC',       143,    -1,   -1, 2,  long([28005])
+gis, species_arr, 'HNC',       152,    -1,   -1, 2,  long([28006])
+gis, species_arr, 'HNC',       242,    -1,   -1, 2,  long([28007])
+gis, species_arr, 'CN',         24,    -1,   -1, 2,  long([26001])
+gis, species_arr, 'CN',         34,    -1,   -1, 2,  long([27004])
+gis, species_arr, 'C2H',       221,    -1,   -1, 2,  long([25001])
+gis, species_arr, 'NH',         41,    -1,   -1, 2,  long([15001])
+gis, species_arr, 'CH',         21,    -1,   -1, 2,  long([13002])
+
+
 
 ;; resize array
 ind=where(species_arr[*].name ne '',count)
@@ -669,9 +750,9 @@ if keyword_set(make_arts_entry) then begin
                  quality  : strarr(10), $ ;  quality of fit
                  iso      : strarr(10)}   ;  isotope records
 
-    ;; replicate the structure, currently there are not more than 200
+    ;; replicate the structure, currently there are not more than 300
     ;; species/isotopes. will be reduced to actual size later.
-    arts_arr  = replicate({arts},200)
+    arts_arr  = replicate({arts},300)
 
 endif
 
@@ -1102,6 +1183,7 @@ for ii=0,n_elements(loop_index)-1 do begin
         ;; make the entry for the arts program
         ;;------------------------------------
 
+        arts_ent=''
 
         ;; check wether we still have the same molecule
         if last_mol eq species_arr[loop_index[ii]].name then begin
@@ -1161,7 +1243,7 @@ for ii=0,n_elements(loop_index)-1 do begin
               strip(string(hit_coeff[3],format='(E11.4)'))+') );'
         endif
 
-        if jpl and jpl_ok and not hitran then begin
+        if jpl and jpl_ok and not hit_ok then begin
             sr=2
 
             ;; quality

@@ -1,4 +1,71 @@
-Function where_str,str1,str2,dim
+function aii_file_exists, filename
+;; checks whether the file filename exists and returns 1 for yes and 0
+;; for no
+
+YES = 1
+NO  = 0
+
+get_lun,unit
+openr,unit,filename,error=err
+free_lun,unit
+
+if (err ne 0) then return,NO   $
+else return,YES
+end
+
+
+PRO aii_readfile,filename,output
+;; checks whether the is file present by using aii_file_exists,
+;; compressed, or gzipped, and reads it if possible by using
+;; read_datafile into output variable
+
+;; do we have to uncompress?
+com=-1
+
+;; uncompressed
+if aii_file_exists(filename) then begin
+    filename = filename
+    com = 0
+endif 
+
+;; compressed
+if aii_file_exists(filename+'.Z') then begin
+    filename = filename+'.Z'
+    com = 1
+endif 
+
+;; gzipped
+if aii_file_exists(filename+'.gz') then begin
+    filename = filename+'.gz'
+    com = 1
+endif 
+
+;; file not found
+if com eq -1 then begin
+    print,'Error: File not found: '+filename
+    stop
+endif
+
+; read the file
+if ( com ) then begin
+	dummyname = './'+filename+'.arts.dummy.this.should.not.be.here'	
+	print,'  decompressing...'
+	spawn,'zcat '+filename+' > '+dummyname
+
+	; read in from dummyname
+        output=read_datafile(dummyname, /optimize)
+
+	;remove the dummy matrix file
+	spawn,'rm '+dummyname
+endif else begin
+	; read in from filename
+        output=read_datafile(filename, /optimize)
+endelse
+
+end
+
+
+Function aii_where_str,str1,str2,dim
 ;; similar to where, but works for string array str1 and str2
 ;;
 ;; returns -1 if not found, otherwise the index of str1 where entries
@@ -32,12 +99,14 @@ PRO plot_abs_per_tg, jobname, f, abs, alt, altitude=altitude,read=read,$
                      epsfile=epsfile,psfile=psfile,$
                      add_to_title=add_to_title,$
                      avoid_tg=avoid_tg,color=color,cm=cm,$
-                     xrange=xrange,yrange=yrange
+                     xrange=xrange,yrange=yrange,$
+                     nostamp=nostamp
 
-;; reads an arts abs_per_tg file, and plots the different tag group
-;; absorption, the tag groups are identified by reading the arts
-;; controlfile. procedure does not plot zero absorption of tag
-;; groups.
+;; reads an arts abs_per_tg file, frequency file, and altitude file ,
+;; and plots the different tag group absorption, the tag groups are
+;; identified by reading the arts controlfile. procedure does not plot
+;; zero absorption of tag groups. Procedure can handle compressed and
+;; gzipped files without uncompressing them.
 ;;
 ;; INPUT:
 ;;     jobname         : jobname of calculation
@@ -48,17 +117,18 @@ PRO plot_abs_per_tg, jobname, f, abs, alt, altitude=altitude,read=read,$
 ;;     alt             : altitude grid
 ;;
 ;; KEYWORDS:
-;;     altitude        : make abs plot near that altitude, 
+;;     altitude        : double-make abs plot near that altitude, 
 ;;                       default: 25 km
-;;     read            : do not read the f, abs, alt again
+;;     read            : int-do not read the f, abs, alt again
 ;;     epsfile         : string-name of eps file to generate
 ;;     psfile          : string-name of ps file to generate
 ;;     add_to_title    : string-is added to default title
 ;;     avoid_tg        : array of strings-which tag groups to plot
-;;     color           : make color plot (actually always color)
-;;     cm              : use cm^-1 instead of GHz
-;;     xrange          : array of double-plot range
+;;     color           : int-make color plot (actually always color)
+;;     cm              : int-use cm^-1 instead of GHz
+;;     xrange          : array of double-plot range, considers cm^-1 setting
 ;;     yrange          : array of double-plot range
+;;     nostamp         : int-produce no stamp info on output
 ;;
 ;; HISTORY:
 ;;     2001-01-25 : Created Ave
@@ -66,7 +136,7 @@ PRO plot_abs_per_tg, jobname, f, abs, alt, altitude=altitude,read=read,$
 
 
 ;; read the tag groups from controlfile
-read_tag_groups,jobname+'.arts','tag_groupsDefine',tg
+read_tag_groups,jobname+'.arts','tgsDefine',tg
 
 ;; total number of tag groups
 tot_tg= (size(tg,/DIMENSIONS))[0]
@@ -74,10 +144,10 @@ tot_tg= (size(tg,/DIMENSIONS))[0]
 ;; now reads the absorption per tag, and the altitudes and
 ;; frequencies, only ascii arrays are allowed currently
 if not keyword_set(read) then begin
-    print,'Reading data'
-    f=read_datafile(jobname+'.f_mono.aa', /optimize)
-    abs=read_datafile(jobname+'.abs_per_tg.aa', /optimize)
-    alt=read_datafile(jobname+'.z_abs.aa', /optimize)
+    print,'Reading data...'
+    aii_readfile,jobname+'.f_mono.aa',f
+    aii_readfile,jobname+'.abs_per_tg.aa',abs
+    aii_readfile,jobname+'.z_abs.aa',alt
 endif
 
 ;; check that the tag groups and the absoprtion per tag group have the
@@ -102,7 +172,7 @@ sort_abs,abs,tg,altitude,abs1,tg1,max_arr,min_arr
 ;; are certain tag groups selected or should all be plotted?
 ;; we use min_arr values of zero for avoiding
 if keyword_set(avoid_tg) then begin
-    avoid_tg_in = where_str(tg1,avoid_tg,dim)
+    avoid_tg_in = aii_where_str(tg1,avoid_tg,dim)
     if dim eq 0 then begin
         print,'Error: No matching avoid_tg found.'
     endif else begin
@@ -127,13 +197,13 @@ if not keyword_set(xrange) then $
 
 ;; check for eps output
 if keyword_set(epsfile) then begin
-    if epsfile eq 1 then filename = jobname $ 
-    else filename=epsfile
+    if (strlen( strcompress(strtrim(epsfile,2)) ) ne 1) then filename = epsfile $ 
+    else filename=jobname
     ps=2
 endif else begin
     if keyword_set(psfile) then begin
-        if psfile eq 1 then filename = jobname $ 
-          else filename=psfile
+        if (strlen( strcompress(strtrim(psfile,2)) ) ne 1) then filename = psfile $ 
+          else filename=jobname
         ps=1
     endif else begin
         filename=jobname
@@ -194,16 +264,16 @@ endfor
 !X.margin = [-20,0]
 !Y.margin = [4,4]
 plot,[0,0],xstyle=4,ystyle=4,/nodata,/noerase,/noclip
-klegend_d,tg1[where(min_arr ne 0)],/fill,box=0,$
+aii_klegend_d,tg1[where(min_arr ne 0)],/fill,box=0,$
   usersym=usersym,charsize=1.1*!P.charsize,spacing=3.2,$
   psym=intarr(index),colors=colors[0:index-1],$
   line=ls[0:index-1],position=[0.6,0.5+index*0.03], $
-  thick=2*thick;,textcolors=colors
+  thick=2*thick                 ;,textcolors=colors
 
 !P.multi=0
 
 ;; close file/plot
-aii_epilogue, filename, ps, /nostamp
+aii_epilogue, filename, ps, nostamp=keyword_set(nostamp)
 ;; restore settings
 P_ini = !P    
 

@@ -1,12 +1,11 @@
-PRO jpl_scaling,tag_arr,abun,index,count,for_species,hit_arr1,hit_arr2,hit_arr3,$
-                scaled_abun
+PRO jpl_scaling,tag_arr,index,count,for_species,hit_arr1,hit_arr2,hit_arr3
 ; checks whether the jpl isotopic ratios must be scaled (maximum isotopic ratio
 ; given in jpl catalogue eq 1). Performs the scaling with the maximum
 ; hitran isotopic ratio found for that species. gives back the original jpl
 ; isotopic ratio if the species in not present in hitran or no max
 ; isotopic ratio with 1 was found in jpl cat
 
-i = where(abun[index] eq 1,counter)
+i = where(tag_arr[index].tag_abun eq 1,counter)
 
 if counter gt 0 then begin
 
@@ -15,10 +14,10 @@ if counter gt 0 then begin
     if counter1 gt 0 then fac=max(double(hit_arr3[j])) else fac = 1.0
 
     for k=0,count-1 do begin
-        scaled_abun[k] = abun[index[k]] * fac
+        tag_arr[index[k]].tag_abun_s = tag_arr[index[k]].tag_abun * fac
     endfor
 
-endif else for k=0,count-1 do scaled_abun[k] = abun[index[k]]
+endif else for k=0,count-1 do tag_arr[index[k]].tag_abun_s = tag_arr[index[k]].tag_abun
 
 end
 
@@ -27,92 +26,40 @@ end
 
 PRO cat_isotopic_ratio,output=output
 
-; reads a file which connects the jpl tag numbers with the species 
-; name we use, this file is extracted from the jpl catalogue,
-; currently placed at:
+; generates an output about found isotopic ratios from JPL and
+; HITRAN. Several files are read in order to do this:
 ;
-; arts/aux/abundancies/tag_species.jpl 
+; tag_species.jpl : refers the jpl tag number to the ARTS names (only
+;                   the names species are separated in the listing)
+; hitran_isotopic_ratio.txt : isotopic ratios from hitran species
 ;
-; opens then the corresponding jpl catalogue tag info
-; file to read the isotopic ratios, these files are extracted from the jpl
-; web server
+; jpl files c+tag number+.cat files for isotopic rations
+; jpl files d+tag number+.cat files for degrees of freedom
+;
+; The directories where these files can be found are given below.
+;
+; For further info refer to the README file.
+;
 ;
 ; keywords:
 ;        output    : string, if present writes output to the filename given,
 ;                    otherwise to screen
 
 
-if n_elements(output) gt 0 then begin
-    unit=3
-    openw,3,output
-    print,'Generating output file: ',output
-endif else unit=-1
+;; EDIT THIS:
 
-; array to hold tag numbers, jpl name, our name , resize array later
-tag_arr=strarr(3,1000)
+;;---------------------------------------------------------------------------
 
-
-; everything with a # at the beginning is a comment, skip all of them
-str='#'
-openr,1,'tag_species.jpl'
-while strpos(str,'#') ge 0 do begin
-    readf,1,str
-end
-
-; read the first entry into tag_arr
-i=0
-str=str_sep(strtrim(strcompress(str),2),' ')
-tag_arr[0,i]=str[0] & tag_arr[1,i]=str[1] & tag_arr[2,i]=str[2]
-
-; now read the complete file into tag_arr
-while not eof(1) do begin
-    str=''
-    readf,1,str
-    str=str_sep(strtrim(strcompress(str),2),' ')
-    i=i+1
-    tag_arr[0,i]=str[0] & tag_arr[1,i]=str[1] & tag_arr[2,i]=str[2]
-end
-
-close,1
-
-; resize the tag_arr
-tag_arr=tag_arr[*,0:i]
-
-; generate the isotopic ratio array
-abun=dblarr(i)
-for j=0,i-1 do abun[j]=100
-
-; start reading the isotopic ratios from d tag .cat files
-
-for j=0,i-1 do begin
-    str=''
-    openr,1,'/pool/lookup/jpl/cat7_00/doc/d'+string(tag_arr[0,j],format='(I6.6)')+'.cat'
-    while strpos(str,'Isotope Corr.') lt 0 do readf,1,str
-
-    ; extract the isotope correction
-    str=str_sep(str,'&')
-
-    ; some of the isotope corrections are empty, check that first
-    str=strtrim(strcompress(str[1]),2)
-
-    ; calculate the isotopic ratio and write into abun array
-    if strlen(str) eq 0 then abun[j]=100 $
-    else begin
-        m=double(str)
-        if m ge 0 then m=m*(-1)
-        abun[j] = 10.0^m
-    endelse
-
-    close,1
-endfor
-
-
-
-
-
-; species available in the forward program, taken form glob_def.c
-; file
-; species 44: clono2 is specified in jpl as clno3, changed name to clono2
+;; where to find the jpl catalogue files
+d_tag_files='/pool/lookup/jpl/cat7_00/doc/'  ; description jpl files
+c_tag_files='/smiles_local/axel/'             ; line jpl files
+         
+; all species available in the forward program, taken from glob_def.c
+; file + several other new ones.
+; species 44: clono2 is specified in jpl as clno3, changed name to
+; clono2
+; add new species (in agreement with the tag_species.jpl file to this
+; array. 
 
 
 for_species=['H2O','CO2','O3','N2O','CO','CH4','O2','NO',$
@@ -121,7 +68,106 @@ for_species=['H2O','CO2','O3','N2O','CO','CH4','O2','NO',$
              'H2O2','C2H2','C2H6','PH3','COF2','SF6','H2S','HCOOH',$
              'HO2','O','ClONO2','NO+','null','null','null','null',$
              'null','null','OClO','null','null','BrO','null','H2SO4',$ 
-             'Cl2O2']
+             'Cl2O2','HOBr','C2H4','OBrO','ClNO2','HOONO2','PO2','PS',$
+            'C2S','C3O','HC3N','HNC3','HC2NC','C3N','NS','H2CS','PO','CS',$
+            'PN','HNCO','HCP','CP','CH2CO','CH3CN','NH2CN','CH3C2H','SH',$
+            'HNO','CH2NH','HCO','HNC','CN','C2H','NH','CH']
+
+;;---------------------------------------------------------------------------
+
+
+if n_elements(output) gt 0 then begin
+    unit=3
+    openw,3,output
+    print,'Generating output file: ',output
+endif else unit=-1
+
+; structure to hold tag numbers, jpl name, our name, abundance,
+; degrees of freedom
+; initialize large, resize later
+jpl_str={jpl_entries,$
+         tag_nr      : ' ',$        ;; jpl tag number
+         tag_name    : ' ',$        ;; jpl name to the tag number
+         tag_arts    : ' ',$        ;; tag in arts name convention
+         tag_abun    : 100.0,$      ;; abundance of the species
+         tag_abun_s : 100.0,$      ;; scaled abundance of the species
+         tag_dfr     : -1}          ;; degrees of freedom 
+
+tag_arr = replicate({jpl_entries},1000)
+
+
+;; read the jpl tag number, name, and the corresponding arts name
+
+; everything with a # at the beginning is a comment, skip all of them
+str='#'
+openr,1,'tag_species.jpl'
+while strpos(str,'#') ge 0 do begin
+    readf,1,str
+end
+
+; read the first entry into tag_arr, currently present in str
+i=0
+str=str_sep(strtrim(strcompress(str),2),' ')
+tag_arr[i].tag_nr=str[0] & tag_arr[i].tag_name=str[1] & tag_arr[i].tag_arts=str[2]
+
+; now read the complete file into tag_arr
+while not eof(1) do begin
+    str=''
+    readf,1,str
+    str=str_sep(strtrim(strcompress(str),2),' ')
+    i=i+1
+    tag_arr[i].tag_nr=str[0] & tag_arr[i].tag_name=str[1] & tag_arr[i].tag_arts=str[2]
+end
+close,1
+
+; resize the tag_arr
+tag_arr=tag_arr[0:i]
+
+; start reading the isotopic ratios from d tag .cat files
+for j=0,i-1 do begin
+    str=''
+    openr,1,d_tag_files+'d'+string(tag_arr[j].tag_nr,format='(I6.6)')+'.cat'
+    while strpos(str,'Isotope Corr.') lt 0 do readf,1,str
+
+    ; extract the isotope correction
+    str=str_sep(str,'&')
+
+    ; some of the isotope corrections are empty, check that first
+    str=strtrim(strcompress(str[1]),2)
+
+    ; calculate the isotopic ratio and write into abun
+    if strlen(str) eq 0 then tag_arr[j].tag_abun=100 $
+    else begin
+        m=double(str)
+        if m ge 0 then m=m*(-1)
+        tag_arr[j].tag_abun = 10.0^m
+    endelse
+
+    close,1
+endfor
+
+
+; start reading the degrees of freedom from c tag .cat files
+; and perform a check with all data in this tag file, whether the dfr
+; are identical
+for j=0,i-1 do begin
+    str=''
+    openr,1,c_tag_files+'c'+string(tag_arr[j].tag_nr,format='(I6.6)')+'.cat'
+    repeat begin
+        readf,1,str
+        tag_arr[j].tag_dfr=fix(strmid(str,29,2))
+        chk=tag_arr[j].tag_dfr
+        if not (tag_arr[j].tag_dfr eq chk) then begin
+            print,'Error: Found degrees of freedom for one tag not identical.'
+            print,'       Tag Nr: :'+tag_arr[j].tag_nr
+            stop
+        endif
+    endrep until eof(1)
+    close,1
+endfor
+
+
+
 
 
 ; initialize the hitran array, well well well, could have been
@@ -131,22 +177,7 @@ hit_arr2=intarr(1000)
 hit_arr3=strarr(1000)
 k=0
 
-;; jpl catalogue files
-jpl_cat=['/pool/lookup/jpl/newcat/cat00100.tag',$
-         '/pool/lookup/jpl/newcat/cat00200.tag',$
-         '/pool/lookup/jpl/newcat/cat00300.tag',$
-         '/pool/lookup/jpl/newcat/cat00400.tag',$
-         '/pool/lookup/jpl/newcat/cat00500.tag',$
-         '/pool/lookup/jpl/newcat/cat00600.tag',$
-         '/pool/lookup/jpl/newcat/cat00700.tag',$
-         '/pool/lookup/jpl/newcat/cat00800.tag',$
-         '/pool/lookup/jpl/newcat/cat00900.tag',$
-         '/pool/lookup/jpl/newcat/cat01000.tag',$
-         '/pool/lookup/jpl/newcat/cat01500.tag',$
-         '/pool/lookup/jpl/newcat/cat02000.tag',$
-         '/pool/lookup/jpl/newcat/cat03000.tag',$
-         '/pool/lookup/jpl/newcat/cat05000.tag']
-         
+
 
 ; cycle through all the species defined in the forward model, and
 ; check whether they are given in hitran and jpl catalogue
@@ -157,36 +188,14 @@ for j=0,n_elements(for_species)-1 do begin
         ; output the species:
         printf,unit,'Species: ',for_species[j]
 
-        ; give the mytran tag
-        printf,unit,'Mytran Tag: ',j+1
-
-
-        ; get the degrees of freedom from jpl cataolgue
-
+        ; print the degrees of freedom from jpl cataolgue
         ; find the array elements of the current forward species
-        index=where(for_species[j] eq tag_arr[2,*],count)
-
-        if count ne 0 then begin
-            for l=0, n_elements(jpl_cat) - 1 do begin
-                str=''
-                openr,1,jpl_cat[l]
-                repeat begin
-                    readf,1,str
-                endrep until (strtrim(strmid(str,45,6),2) eq tag_arr[0,index[0]]) or eof(1)
-                close,1
-                if (strtrim(strmid(str,45,6),2) eq tag_arr[0,index[0]]) then begin
-                    ; extract the degrees of freedom
-                    printf,unit,'Degrees of Freedom: ',strmid(str,29,2)
-                    printf,unit,'Cat Line: ',str
-                    printf,unit,''
-                    goto, shit
-                endif
-            end
-        endif
-
-        shit:printf,unit,''
-
-        ; read the hitran database, this file is just a copy of the hitran
+        index=where(for_species[j] eq tag_arr[*].tag_arts,count)
+        if count ne 0 then printf,unit,'Degrees of freedom: '+$
+          string(tag_arr[index[0]].tag_dfr,format='(I2)')$
+          else printf,unit,'Degrees of freedom: Not available in JPL'
+        
+        ; read the hitran database, this file is mainly a copy of the hitran
         ; isotopic ratios given in cdrom: hitran92/tables.3 file. 
 
         ; Comments at the beginning of the file are identified with a # sign
@@ -252,7 +261,7 @@ for j=0,n_elements(for_species)-1 do begin
         ; now do the jpl cat
 
         ; find the array elements of the current forward species
-        index=where(for_species[j] eq tag_arr[2,*],count)
+        index=where(for_species[j] eq tag_arr[*].tag_arts,count)
 
         ; does this species exists?
         if count eq 0 then begin
@@ -269,13 +278,12 @@ for j=0,n_elements(for_species)-1 do begin
             printf,unit,'JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species'
 
             ; check whether scaling of jpl isotopic ratios is necessary
-            scaled_abun=dblarr(count)
-            jpl_scaling,tag_arr,abun,index,count,for_species[j],hit_arr1,hit_arr2,hit_arr3,scaled_abun
+            jpl_scaling,tag_arr,index,count,for_species[j],hit_arr1,hit_arr2,hit_arr3
 
             ; output the species, found and calculated isotopic ratios
             for k=0,count-1 do begin
-                printf,unit,tag_arr[0,index[k]],tag_arr[1,index[k]],$
-                  abun[index[k]],scaled_abun[k],format='(A8,A15,G15.8,G15.8)'
+                printf,unit,tag_arr[index[k]].tag_nr,tag_arr[index[k]].tag_name,$
+                  tag_arr[index[k]].tag_abun,tag_arr[index[k]].tag_abun_s,format='(A8,A15,G15.8,G15.8)'
             endfor
             printf,unit,''
             printf,unit,'------------------------------------------------------------'

@@ -1,3 +1,16 @@
+2001-02-22  Axel von Engeln  <engeln@uni-bremen.de>
+
+	* version-0-0-129
+
+	* two new species implemented, which are new in Hitran 2000, 
+	additionally put some more species into the partition function
+	calculation, and the abundance calculation. These additional
+	species are not implemented in arts yet.
+
+	* math_funcs.h: output error corrected
+
+	* aii_klegend_d.pro: klegend_d file, needed in plot_abs_per_tg.pro
+
 2001-02-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-128

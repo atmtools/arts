@@ -39,7 +39,7 @@
  21002  DF             HF
  25001  CCH            C2H
  25002  NaH            NaH
- 26001  CN, v = 0, 1   CN
+ 26001  CN_v=0,1       CN
  27001  HCN            HCN
  27002  HNC            HNC
  27003  HCN-v2         HCN
@@ -98,16 +98,16 @@
  37002  C3H            C3H
  37003  c-C3H          c-C3H
  38001  HCl-37         HCl
- 38002  c-C3H2         C3H2
+ 38002  c-C3H2         c-C3H2
  38003  C3D            C3H
- 38004  CCC13H         c-C3H
- 38005  C13CCH         c-C3H
+ 38004  CCC13H         C3H
+ 38005  C13CCH         C3H
  38006  c-C3D          c-C3H
  39001  c-HC-13-CCH    C3H2
  39002  c-HCC-13-CH    C3H2
  39003  c-C3HD         C3H2
  39004  DCl-37         HCl
- 40001  CH3CCH         CH3CCH
+ 40001  CH3CCH         CH3C2H
  40002  NaOH           NaOH
  40003  SiC            SiC
  40004  SiC-v1         SiC
@@ -115,11 +115,11 @@
  40006  C2O            C2O
  40007  MgO            MgO
  41001  CH3CN          CH3CN
- 41002  CH3CC-13-H     CH3CCH
- 41003  CH3C-13-CH     CH3CCH
- 41004  C-13-H3CCH     CH3CCH
- 41005  CH3CCD         CH3CCH
- 41006  CH2DCCH        CH3CCH
+ 41002  CH3CC-13-H     CH3C2H
+ 41003  CH3C-13-CH     CH3C2H
+ 41004  C-13-H3CCH     CH3C2H
+ 41005  CH3CCD         CH3C2H
+ 41006  CH2DCCH        CH3C2H
  41007  SiC-13         SiC
  41008  CaH            CaH
  41009  CH3NC          CH3NC
@@ -204,22 +204,22 @@
  50008  C3N            C3N
  50009  MgCN           MgCN
  50010  MgNC           MgNC
- 51001  HCCCN          HCCCN
+ 51001  HCCCN          HC3N
  51002  ClO            ClO
  51003  ClO-v1         ClO
- 51004  HCCNC          HCCNC
- 51005  HCCNC-v7       HCCNC
- 51006  HCCNC-v6       HCCNC
- 51007  HCCNC-v5       HCCNC
- 51008  HNCCC          HNCCC
- 52001  HCCC-13-N      HCCCN
- 52002  HCC-13-CN      HCCCN
- 52003  HC-13-CCN      HCCCN
- 52004  HCCCN-15       HCCCN
- 52005  DCCCN          HCCCN
+ 51004  HCCNC          HC2NC
+ 51005  HCCNC-v7       HC2NC
+ 51006  HCCNC-v6       HC2NC
+ 51007  HCCNC-v5       HC2NC
+ 51008  HNCCC          HNC3
+ 52001  HCCC-13-N      HC3N
+ 52002  HCC-13-CN      HC3N
+ 52003  HC-13-CCN      HC3N
+ 52004  HCCCN-15       HC3N
+ 52005  DCCCN          HC3N
  52006  HOCl           HOCl
  52007  SiCC           SiCC
- 52008  CCCO           CCCO
+ 52008  CCCO           C3O
  52009  CH3Cl-37       CH3Cl
  52010  CH2F2          CH2F2
  52011  CH2F2-v4       CH2F2
@@ -227,9 +227,9 @@
  52013  CNCN           CNCN
  53001  C2H3CN         C2H3CN
  53002  Cl-37-O        ClO
- 53003  C-13-CCO       CCCO
- 53004  CC-13-CO       CCCO
- 53005  CCC-13-O       CCCO
+ 53003  C-13-CCO       C3O
+ 53004  CC-13-CO       C3O
+ 53005  CCC-13-O       C3O
  53006  Cl-37-O-v1     ClO
  53007  C2H3NC         C2H3NC
  53008  HNCCN+         HNCCN+
@@ -238,7 +238,7 @@
  54003  C-13-H2CHCN    CH2CHCN
  54004  CH2CDCN        CH2CHCN
  54005  HOCl-37        HOCl
- 54006  CCCO-18        CCCO
+ 54006  CCCO-18        C3O
  54007  HCCCHO         HCCCHO
  55001  C2H5CN         C2H5CN
  56001  CH3CH2C-13-N   CH3CH2CN
@@ -247,12 +247,12 @@
  56004  C2H5CN-15      C2H5CN
  56005  CH2DCH2CN-s    CH3CH2CN
  56006  CH2DCH2CN-a    CH3CH2CN
- 56007  CCS            CCS
+ 56007  CCS            C2S
  56008  C2H3CHO        C2H3CHO
  56009  MgS            MgS
- 57001  C-13CS         CCS
- 57002  CC-13S         CCS
- 58001  CCS-34         CCS
+ 57001  C-13CS         C2S
+ 57002  CC-13S         C2S
+ 58001  CCS-34         C2S
  58002  NaCl           NaCl
  60001  OCS            OCS
  60002  SiS            SiS

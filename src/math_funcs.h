@@ -280,8 +280,8 @@ int interp_check( const X&  x,
     {
       ostringstream os;
       os << "Interpolation points must be inside the original range.\n"
-	 << "Int.:  xi[0] = " << xi[0] << ", xi[ni] = " << xi[ni] << '\n'
-	 << "Orig.: x[0]  = " << x[0]  << ", x[n]   = " << x[n];
+	 << "Int.:  xi[0] = " << xi[0] << ", xi[ni-1] = " << xi[ni-1] << '\n'
+	 << "Orig.: x[0]  = " << x[0]  << ", x[n-1]   = " << x[n-1];
       throw runtime_error(os.str());
     }
 
