@@ -18,7 +18,10 @@
 using namespace std;
 
 int main(void)
-{//Output  
+{//Input & Output
+  Vector f_grid;         // Frequency grid.
+
+  //Output
   Tensor3 ext_mat_zee;   // Tensor3 of the Extinction Matrix for the specified frequency grid. 
   Matrix abs_vec_zee;    // Matrix of the Absorption Vector for the specified frequency grid.
   Matrix xi_mat;         // Matrix of the relative intensities of the Zeeman components.
@@ -30,11 +33,9 @@ int main(void)
   Numeric BN_r;      // Number of the split components for a given polarization.
   Numeric AN_r;      // Maximum value of the magnetic quantum number for a given polarization.
   Numeric f_c;       // Central frequency of the unsplit line [GHz].
-  Numeric a1;        // Intensity coeficient of of the unsplit line.
-  Numeric a2;        // Intensity coeficient of of the unsplit line.
-
-  //Input & Output
-  Vector f_grid;         // Frequency grid.
+  Numeric a1;        // First intensity coeficient of the unsplit line.
+  Numeric a2;        // Second intensity coeficient of the unsplit line.
+  Numeric a3;        // Third intensity coeficient of the unsplit line.
 
 
 
@@ -47,13 +48,13 @@ int main(void)
       N_r = N(i,0); 
       a1 = N(i,2);
       a2 = N(i,3);
-      f_c = N(i,1)*1e9; // Reding in and converitng the central frequency to SI unit [Hz].
+      f_c = N(i,1)*1e9; // Reading in and converitng the central frequency to SI unit [Hz].
       cout.precision(10);
       cout << "central frequency = " << f_c << " Hz"<<endl;
       
       // Frequency grid range around the central frequency of the unsplit line.
       Numeric range; 
-      range = 6e-3; // dummy value
+      range = 6e+6; // dummy value of 6 MHz around the central line
       
       // Starting point of the frequency grid.
       Numeric f_start;
@@ -71,7 +72,7 @@ int main(void)
       Vector f_grid(f_start, n_f, f_step);
 
       // Calling the function defined in zeemanproperties.cc .
-      Zeeman(f_grid, ext_mat_zee, abs_vec_zee, xi_mat, f_z_mat, N_r, AN_r, BN_r, f_c, a1, a2);
+      Zeeman(f_grid , ext_mat_zee, abs_vec_zee, xi_mat, f_z_mat, N_r, BN_r, AN_r, f_c, a1, a2, a3);
  
 
       // Defining a base string for the names of the output files.
@@ -83,6 +84,10 @@ int main(void)
       else if (N_r<0)
 	{
 	  os << abs(N_r) << "-" << "_" << n_f << ".xml"; 
+	}
+      else
+	{
+	  cout << "Rotational number is wrong!" << endl;
 	}
       string basestring=os.str();
       

@@ -113,9 +113,9 @@ legendre_poly (Index l, Index m, Numeric x)
 }
 
 
-//! legendre_poly_norm
+//! legendre_poly_norm_schmidt
 /*!
-    Returns the normalized associated Legendre polynomial Plm(x).
+    Returns the Schmidt quasi-normalized associated Legendre polynomial Plm(x).
 
     The input parameters must fulfill the following conditions:
     0 <= m <= l and |x| <= 1
@@ -133,7 +133,7 @@ legendre_poly (Index l, Index m, Numeric x)
     \date   2003-08-15
 */
 Numeric
-legendre_poly_norm (Index l, Index m, Numeric x)
+legendre_poly_norm_schmidt (Index l, Index m, Numeric x)
 {
   return (sqrt (2.0 * fac (1 - m) / fac (1 + m))
           * legendre_poly (l, m, x));
@@ -171,3 +171,33 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
           / ((2*l + 1) * (1 - x * x)));
 }
 
+//! legendre_poly_norm_schmidt_deriv
+/*!
+  Returns the derivative of the Schmidt quasi-normalized associated Legendre polynomial Plm(x).
+
+  The input parameters must fulfill the following conditions:
+  0 <= m <= l and |x| < 1
+  
+  \return      dPlm
+  \param   l   Index
+  \param   m   Index
+  \param   x   Value
+  
+  \author Nikolay Koulev
+  \date   2003-08-18
+*/
+Numeric
+legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
+{
+  assert (x != 1.);
+  if (x == 1.)
+    {
+      ostringstream os;
+      os << "legendre_poly_deriv: Condition x != 1 failed"
+	 << endl << "  x = " << x << endl;
+      throw runtime_error (os.str ());
+    }
+  return (((l + 1) * (l + m) + legendre_poly_norm_schmidt (l, m-1, x)
+           - l * (l - m + 1) * legendre_poly_norm_schmidt (l+1, m, x))
+          / ((2*l + 1) * (1 - x * x)));
+}

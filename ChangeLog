@@ -1,3 +1,28 @@
+2003-08-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-652
+
+	* src/legendre.cc (legendre_poly_norm_schmidt_deriv): Added this
+	funtion for calculating the drivative of the Schmidt
+	quasi-normalized Legendre polynomials.
+	
+	* src/legendre.cc (legendre_poly_norm_schmidt): Changed the name
+	of (legendre_poly_norm) to (legendre_poly_norm_schmidt) in order
+	to reflect the fact that it is a quasi-normalisation in terms of
+	Schmidt's defition. Due to this normalization the partial order
+	sum of the squares of the two polynomial coeffcicients for a
+	given degree remains invariant under an arbitrary rotation of the
+	(theta, phi) coordinate system in the description of the scalar
+	potential, and thus of the magnetic field B.
+	[Peddie, N. W., International Geomagnetic Reference Field: The
+	Third Generation, J. Geomag. Geoelectr., 34, pp. 309-326, 1985.;
+	Langel, R. A., Main Field, Chapter Four in Geomagnetism,
+	ed. J. A. Jacobs, Academic Press, London, 1987.]
+
+	* src/zeemanpoppertis.{cc,h}: Minor changes. Still being updated.
+
+	* src/test_zeemanpoppertis.{cc,h}: Minor changes. Still being updated.
+	
 2003-08-18  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-651
