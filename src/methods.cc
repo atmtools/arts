@@ -1992,6 +1992,59 @@ md_data_raw.push_back
         KEYWORDS( "nrows", "ncols", "value"   ),
         TYPES(    Index_t, Index_t, Numeric_t )));
 
+   md_data_raw.push_back
+    ( MdRecord
+      ( NAME("MatrixSetElement"),
+        DESCRIPTION
+        (
+         "Sets the selected matrix element to the given value.\n"
+         "\n"
+         "The matrix must be initiated before calling the function. An error\n"
+         "is issued if a column or row outside the range of the matrix is\n"
+         "selected.\n"
+         "\n"
+         "Note that the indexing is zero based. That is, the first column \n"
+         "or row has index 0.\n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix : The matrix to be modified. \n"
+         "\n"
+         "Keywords:\n"
+         "   row   : Row of the matrix element to set. \n"
+         "   col   : Column of the matrix element to set. \n"
+         "   value : The value of the matrix elements. " 
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT(),
+        KEYWORDS( "row",   "col",   "value"   ),
+        TYPES(    Index_t, Index_t, Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("MatrixSetTakingSizeFromMatrix"),
+        DESCRIPTION
+        (
+         "Creates a workspace vector with the same size as another matrix,\n"
+         "and sets all values of the new matrix to the specified value. \n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Generic input: \n"
+         "   Matrix : The matrix specifying the size. \n"
+         "\n"
+         "Keywords:\n"
+         "   value  : The value of the matrix elements. " 
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT( Matrix_ ),
+        KEYWORDS( "value"   ),
+        TYPES(    Numeric_t )));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "MatrixToTbByPlanck" ),
@@ -2996,6 +3049,34 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "length", "value"   ),
         TYPES(    Index_t,    Numeric_t )));
+
+   md_data_raw.push_back
+    ( MdRecord
+      ( NAME("VectorSetElement"),
+        DESCRIPTION
+        (
+         "Sets the selected vector element to the given value.\n"
+         "\n"
+         "The vector must be initiated before calling the function. An error\n"
+         "is issued if a position outside the range of the vector is\n"
+         "selected.\n"
+         "\n"
+         "Note that the indexing is zero based. That is, the first element \n"
+         "has index 0.\n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix : The vector to be modified. \n"
+         "\n"
+         "Keywords:\n"
+         "   pos   : Column of the position element to set. \n"
+         "   value : The value of the vector element. " 
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Vector_ ),
+        GINPUT(),
+        KEYWORDS( "pos",   "value"   ),
+        TYPES(    Index_t, Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord

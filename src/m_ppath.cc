@@ -806,7 +806,7 @@ void sensor_posAddGeoidWGS84(
     throw runtime_error("The number of positions is 0, must be at least 1.");
 
   // The function *r_geoidWGS84 is used to get the geoid radius, but some
-  // tricks are needed as this a WSF to set *r_geoid* for all crossings of the
+  // tricks are needed as this WSM sets *r_geoid* for all crossings of the
   // latitude and longitude grids.
   // For 2D and 3D, the function is always called with the atmospheric 
   // dimensionality set to 2, and the latitudes of concern are put into 
@@ -827,26 +827,30 @@ void sensor_posAddGeoidWGS84(
 
   else
     {
-      Vector lats;
-      if( npos == 1 )
-        {
-          lats.resize(2);
-          lats[0] = sensor_pos(0,1);
-          lats[1] = lats[0] + 1;
-        }
-      else
-        {
-          lats.resize(npos);
-          lats = sensor_pos( Range(joker), 1 );
-        }
-
-      // The size of the r-matrix is set inside the function.
-      Matrix r;
-      r_geoidWGS84( r, 2, lats, Vector(0), -999, -999 );
-      
-      // Add the geoid radius to the geometric altitudes
       for( Index i=0; i<npos; i++ )
-        sensor_pos(i,0) += r(i,0);
+        {
+          Vector lats(2);
+          Index  pos_used;
+
+          if( sensor_pos(i,1) < 90 )
+            {
+              lats[0]  = sensor_pos(i,1);
+              lats[1]  = 90;
+              pos_used = 0;
+            }
+          else
+            {
+              lats[0]  = -90;
+              lats[1]  = sensor_pos(i,1);
+              pos_used = 1;
+            }
+
+          // The size of the r-matrix is set inside the function.
+          Matrix r;
+          r_geoidWGS84( r, 2, lats, Vector(0), -999, -999 );
+          
+          sensor_pos(i,0) += r(i,pos_used);
+        }
     }
 }
 

@@ -256,6 +256,58 @@ void MatrixSet(           Matrix&    x,
 
 
 
+//! MatrixSetElement
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2003-01-07
+*/
+void MatrixSetElement(
+            Matrix&    x, 
+      const String&    x_name,
+      const Index&     row,
+      const Index&     col,
+      const Numeric&   value )
+{
+  if( col > x.ncols() -1 )
+    throw runtime_error(
+        "You have selected a column that is outside the range of the matrix" );
+  if( row > x.nrows() -1 )
+    throw runtime_error(
+           "You have selected a row that is outside the range of the matrix" );
+
+  x(row,col) = value;
+  out2 << "  " << x_name << "(" << row << "," << col << ") = " << value <<"\n";
+}
+
+
+
+//! MatrixSetTakingSizeFromMatrix
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2003-01-07
+*/
+void MatrixSetTakingSizeFromMatrix(
+              Matrix&    x, 
+        const String&    x_name,
+        const Matrix&    z,
+        const String&    z_name,
+        const Numeric&   value )
+{
+  const Index  ncol = z.ncols();
+  const Index  nrow = z.nrows();
+  x.resize(nrow,ncol);
+  x = value;            
+  out2 << "  Creating " << x_name << " as a constant matrix.\n"; 
+  out3 << "             nrows : " << nrow << "\n";
+  out3 << "             ncols : " << ncol << "\n";
+}
+
+
+
 //! NumericSet
 /*!
    See the the online help (arts -d FUNCTION_NAME)
@@ -681,6 +733,29 @@ void VectorSet(           Vector&    x,
   out2 << "  Creating " << x_name << " as a constant vector.\n"; 
   out3 << "            length : " << n << "\n";
   out3 << "             value : " << value << "\n";
+}
+
+
+
+//! VectorSetElement
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2003-01-07
+*/
+void VectorSetElement(
+            Vector&    x, 
+      const String&    x_name,
+      const Index&     pos,
+      const Numeric&   value )
+{
+  if( pos > x.nelem() -1 )
+    throw runtime_error(
+     "You have selected a position that is outside the range of the vector." );
+
+  x[pos] = value;            
+  out2 << "  " << x_name << "(" << pos << ") = " << value <<"\n";
 }
 
 

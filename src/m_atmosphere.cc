@@ -494,7 +494,7 @@ void GroundNoScatteringSingleEmissivity(
           ground_emission(i,is) = 0; 
           ground_refl_coeffs(0,i,is,is) = 1 - e;
         }
-      // Note that other elements of ground_feld_coeffs are set to 0 above.
+      // Note that other elements of ground_refl_coeffs are set to 0 above.
     }
 
   // Calculate LOS for downwelling radiation

@@ -1433,7 +1433,7 @@ void psurface_crossing_3d(
 
   const Numeric   rmin = min( rvalues );
   const Numeric   rmax = max( rvalues );
-        Numeric   ntest;
+        Index     ntest;
         Vector    rtest;
 
   if( rmax > rmin )
@@ -2172,28 +2172,52 @@ void do_gridcell_3d(
       if( za_start > 0  &&  ( rground1a >= r1a  ||  rground2a >= r2a  ||  
 			             rground1b >= r1b  ||  rground2b >= r2b ) )
 	{
-	  psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, 
-                       lon5, lon6, rground1a, rground2a, rground2b, rground1b,
-                                                         x, y, z, dx, dy, dz );
-	  if( debug )
-	    {
-	      IndexPrint( 6, "face" );
-	      NumericPrint( r_try, "r_try" );
-	      if( r_try > 0 )
-		{
-		  NumericPrint( lat_try, "lat_try" );
-		  NumericPrint( lon_try, "lon_try" );
-		  NumericPrint( l_try, "l_try" );
-		}
-	    }
-	  if( r_try > 0  &&  l_try <= l_best )
-	    {
-	      r_best   = r_try;
-	      lat_best = lat_try;
-	      lon_best = lon_try;
-	      l_best   = l_try;
-	      endface  = 7;
-	    }
+          // Numerical inaccuarcy can give problems if
+          // *psurface_crossing_3d* is called blindly when *r_start*
+          // equals the ground radius. So it is better to check if the
+          // zenith angle is downwards with respect to the ground tilt 
+          // to check in more detail if there can be a ground crossing.
+
+          // Ground radius
+          const Numeric   r_ground = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+	                          rground1a, rground2a, rground2b, rground1b, 
+                                                        lat_start, lon_start );
+
+          // Ground slope [m/deg]
+          const Numeric   slope = psurface_slope_3d( lat1, lat3, lon5, lon6, 
+                                 rground1a, rground2a, rground2b, rground1b, 
+                                              lat_start, lon_start, aa_start );
+
+          // Calculate ground (angular) tilt [deg].
+          const Numeric   tilt = psurface_angletilt( r_ground, slope );
+
+          // Check that a_los contains a downward LOS
+          if( is_los_downwards( za_start, tilt ) )
+            {
+
+              psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
+                               lat1, lat3, lon5, lon6, rground1a, rground2a, 
+                                   rground2b, rground1b, x, y, z, dx, dy, dz );
+              if( debug )
+                {
+                  IndexPrint( 6, "face" );
+                  NumericPrint( r_try, "r_try" );
+                  if( r_try > 0 )
+                    {
+                      NumericPrint( lat_try, "lat_try" );
+                      NumericPrint( lon_try, "lon_try" );
+                      NumericPrint( l_try, "l_try" );
+                    }
+                }
+              if( r_try > 0  &&  l_try <= l_best )
+                {
+                  r_best   = r_try;
+                  lat_best = lat_try;
+                  lon_best = lon_try;
+                  l_best   = l_try;
+                  endface  = 7;
+                }
+            }
 	}
 
 

@@ -1,3 +1,20 @@
+2003-01-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-362
+
+	* src/ppath.cc (do_gridcell_3d): A start point, with a radius equal
+	to the ground radius, could result in an intersection with the ground
+	even if the zenith angle is upwards. Fixed (hopefully).
+
+	* src/m_ppath.cc (sensor_posAddGeoidWGS84): Changed the code for 2D
+	and 3D as the old version did not work when the latitudes are not
+	sorted. 
+
+	* src/m_basic_types.cc 
+	(VectorSetElement): Created this WSM.
+	(MatrixSetElement): Created this WSM.
+	(MatrixSetTakingSizeFromMatrix): Created this WSM.
+	
 2003-01-07  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-361
