@@ -1,5 +1,11 @@
 2002-06-27  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-0-34
+	
+	* src/main.cc (main): Output precision with -v.
+	
+2002-06-27  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-0-33
 	
 	* src/m_los.cc (r_geoidWGS84), src/absorption.cc (xsec_species),
