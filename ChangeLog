@@ -1,5 +1,12 @@
 2002-10-14  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-258
+	
+	* doc/uguide/arts_methods_to_latex.sh: Added missing backslash in
+	front of levelb.
+
+2002-10-14  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-257
 	
 	* autogen.sh: Renamed reconf for GNU compliance.
