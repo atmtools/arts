@@ -701,7 +701,8 @@ int main (int argc, char **argv)
 #ifdef HDF_SUPPORT
         " with HDF support." <<
 #endif // HDF_SUPPORT
-        '\n';
+        '\n' <<
+        "Compiled on " << OS_NAME << " " << OS_VERSION << '\n';
       return(0);
     }
 
