@@ -1,3 +1,17 @@
+2002-06-24  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-160
+
+	* src/m_scatrte.cc (scat_integralCalc): Added the workspace
+	variables pha_mat_spt and pnd_field as input to this method.
+	Earlier pha_mat_part was directly given as input, but now we
+	calculate pha_mat_part inside the method from pha_mat_spt 
+	and pnd_field.  
+
+	* src/methods.cc: The inputs are changed here also. The 
+	documentation is also modified.
+	
+	
 2002-06-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-159
