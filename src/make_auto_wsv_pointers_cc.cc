@@ -62,7 +62,7 @@ int main()
 	  << "    This can be used to access a WSV by its index. */\n"
 	  << "Array<WsvP*> wsv_pointers;\n\n";
       
-      ofs << "void define_wsv_pointers(Array<WsvP*>&    wsv_pointers,\n"
+      ofs << "void define_wsv_pointers(Array<WsvP*>&    ref_wsv_pointers,\n"
 	  << "                         WorkSpace&       workspace)\n"
 	  << "{\n\n";
 
@@ -78,7 +78,7 @@ int main()
 	      << wr.Name()
 	      << ");\n";
 
-	  ofs << "    wsv_pointers.push_back(&p);\n"
+	  ofs << "    ref_wsv_pointers.push_back(&p);\n"
 	      << "  }\n\n";
 	}
 
