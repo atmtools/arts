@@ -819,7 +819,37 @@ md_data_raw.push_back
          "calculations performed by *rte_agenda*. Then this is copied to\n"
          "the interface variable. \n"
          "\n"
-         "This is implemented only for the case of 1D atmosphere at present\n"
+         ),
+        OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_,
+               i_rte_, i_space_, ground_emission_, ground_los_,
+               ground_refl_coeffs_,
+               rte_los_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_),
+        INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
+                scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
+                i_space_agenda_, ground_refl_agenda_, p_grid_, lat_grid_,
+                lon_grid_, z_field_, t_field_, r_geoid_, z_ground_),
+
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "CloudboxGetIncoming1DAtm" ),
+        DESCRIPTION
+        (
+         "This method gives the intensity field on the boundary of the\n"
+         "cloudbox for a spherically symmetric clearsky atmosphere.\n"
+         "\n"
+         "The method uses *PpathCalc* and *rte_agenda*.  The input to\n"
+         "this method is the position of the cloudbox given by the \n"
+         "variable *cloudbox_limits*. Then for each propagation direction\n"
+         "it calls the function *PpathCalc* and executes the agenda \n"
+         "*rte_agenda*.  This gives *i_rte* which holds the Stokes vector\n"
+         "for all frequencies btained by the monochromatic pencil beam \n"
+         "calculations performed by *rte_agenda*. Then this is copied to\n"
+         "the interface variable. \n"
          "\n"
          ),
         OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_,
