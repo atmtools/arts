@@ -1,3 +1,15 @@
+2002-03-07  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-18
+
+	* src/poly_roots.{h,cc}: Added functions to determine roots of
+	polynomials. Taken from gsl and still some porting to be done.
+
+	* src/test_poly.cc: Small prog to test poly_roots.
+
+	* src/Makefile.am: Added poly_roots.{c,hh} to arts_SOURCES. Added
+	target to create test_poly.
+
 2002-03-05  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-17
