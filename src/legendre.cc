@@ -61,8 +61,7 @@
 Numeric
 legendre_polynomial (Index l, Index m, Numeric x)
 {
-  Numeric fact, pll, pmm, pmmp1, somx2;
-  Index i, ll;
+  Numeric pmm;
   Numeric result;
 
   if (m < 0 || m > l || abs (x) > 1.0)
@@ -76,9 +75,11 @@ legendre_polynomial (Index l, Index m, Numeric x)
   pmm = 1.0;
   if (m > 0)
     {
+      Numeric fact, somx2;
+
       somx2 = sqrt ((1.0 - x) * (1.0 + x));
       fact = 1.0;
-      for (i = 1; i <= m; i++)
+      for (Index i = 1; i <= m; i++)
         {
           pmm *= -fact * somx2;
           fact += 2.0;
@@ -86,27 +87,25 @@ legendre_polynomial (Index l, Index m, Numeric x)
     }
 
   if (l == m)
-    {
-      result = pmm;
-    }
+    result = pmm;
   else
     {
+      Numeric pmmp1;
+
       pmmp1 = x * (2*m + 1) * pmm;
       if (l == (m+1))
-        {
-          result = pmmp1;
-        }
+        result = pmmp1;
       else
         {
-          for (ll = m+2; ll <= l; ll++)
+          for (Index ll = m+2; ll <= l; ll++)
             {
-              pll = (x * (2*ll - 1) * pmmp1 - (ll + m - 1) * pmm) / (ll - m);
+              result = (x * (2*ll - 1) * pmmp1 - (ll + m - 1) * pmm) / (ll - m);
               pmm = pmmp1;
-              pmmp1 = pll;
+              pmmp1 = result;
             }
-          result = pll;
         }
     }
+
   return (result);
 }
 
