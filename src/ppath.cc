@@ -830,9 +830,10 @@ void gridcell_crossing_3d(
           const Numeric   latrad = DEG2RAD * rlatlon;
                 Numeric   t2     = tan( latrad );
                           t2     = t2 * t2;
-          const Numeric   p      = ( x*dx + z*dz -y*dy/t2 ) * t2;
-          const Numeric   pp     = p * p;
-          const Numeric   q      = ( x*x + z*z - y*y/t2 ) * t2;
+      	  const Numeric   a      = dx*dx + dz*dz - dy*dy/t2;
+      	  const Numeric   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
+      	  const Numeric   pp     = p * p;
+      	  const Numeric   q      = ( x*x + z*z - y*y/t2 ) / a;
 
           const Numeric   l1 = -p + sqrt( pp - q );
           const Numeric   l2 = -p - sqrt( pp - q );
@@ -3753,6 +3754,57 @@ void from_raytracingarrays_to_ppath_vectors_1d_and_2d(
 
 
 
+//! from_raytracingarrays_to_ppath_vectors_3d
+/*! 
+   A small help function to convert arrays with ray tracing points to
+   interpolated values along the path.
+
+   \author Patrick Eriksson
+   \date   2003-01-18
+*/
+void from_raytracingarrays_to_ppath_vectors_3d(
+             Vector&           r_v,
+             Vector&           lat_v,
+             Vector&           lon_v,
+             Vector&           za_v,
+             Vector&           aa_v,
+             Numeric&          lstep,
+       const Array<Numeric>&   r_array,
+       const Array<Numeric>&   lat_array,
+       const Array<Numeric>&   lon_array,
+       const Array<Numeric>&   za_array,
+       const Array<Numeric>&   aa_array,
+       const Array<Numeric>&   l_array,
+       const Numeric&          lmax )
+{
+  // Copy arrays to vectors for later interpolation
+  //
+  // Number of ray tracing points
+  const Index   nrt=r_array.nelem();
+  //
+  Vector    r_rt(nrt), lat_rt(nrt), lon_rt(nrt);
+  Vector    za_rt(nrt), aa_rt(nrt),l_rt(nrt-1);    
+  //
+  for( Index i=0; i<nrt; i++ )
+    {
+      r_rt[i]   = r_array[i];
+      lat_rt[i] = lat_array[i]; 
+      lon_rt[i] = lon_array[i]; 
+      za_rt[i]  = za_array[i];
+      aa_rt[i]  = aa_array[i];
+      if( i < (nrt-1) )
+        { l_rt[i]   = l_array[i]; }
+    }
+
+  // Interpolate the radii, zenith angles and latitudes to a set of points
+  // linearly spaced along the path. If *lmax* <= 0, then only the end points
+  //
+  interpolate_raytracing_points( r_v, lat_v, lon_v, za_v, aa_v, lstep,
+                              r_rt, lat_rt, lon_rt, za_rt, aa_rt, l_rt, lmax );
+}
+
+
+
 /*===========================================================================
   === Core functions for geometrical *ppath_step* functions
   ===========================================================================*/
@@ -4368,6 +4420,160 @@ void raytrace_2d_linear_euler(
 
 
 
+//! raytrace_3d_linear_euler
+/*! 
+   Performs ray tracing for 3D with linear Euler steps.
+
+   A geometrical step with length of *lraytrace* is taken from each
+   point. The zenith angle for the end point of that step is
+   calculated considering the gradient of the refractive index. The
+   length of the last ray tracing step to reach the end radius is
+   adopted to the distance to the end radius.
+
+   The refractive index is assumed to vary linearly along the pressure
+   surfaces and the latitude grid points.
+
+   For more information read the chapter on propagation paths in AUG.
+   The algorithm used is described in that part of AUG.
+
+   The array variables *r_array*, *lat_array*, *lon_array*, *za_array*
+   and *aa_array* shall include the start position when calling the
+   function. The length of *l_array* will be one smaller than the
+   length of the other arrays.
+
+   \param   r_array      Out: Radius of ray tracing points.
+   \param   lat_array    Out: Latitude of ray tracing points.
+   \param   lon_array    Out: Longitude of ray tracing points.
+   \param   za_array     Out: LOS zenith angle at ray tracing points.
+   \param   aa_array     Out: LOS azimuth angle at ray tracing points.
+   \param   l_array      Out: Distance along the path between ray tracing 
+                         points.
+   \param   r            Start radius for ray tracing.
+   \param   lat          Start latitude for ray tracing.
+   \param   lon          Start longitude for ray tracing.
+   \param   za           Start zenith angle for ray tracing.
+   \param   aa           Start azimuth angle for ray tracing.
+   \param   lraytrace    Maximum allowed length for ray tracing steps.
+   \param   lat1         Latitude of left end face (face 1) of the grid cell.
+   \param   lat3         Latitude of right end face (face 3) of the grid cell.
+   \param   lon5         Lower longitude of the grid cell.
+   \param   lon6         Upper longitude of the grid cell.
+   
+   to be continied ...
+
+   \author Patrick Eriksson
+   \date   2003-01-18
+*/
+void raytrace_3d_linear_euler(
+              Array<Numeric>&   r_array,
+              Array<Numeric>&   lat_array,
+              Array<Numeric>&   lon_array,
+              Array<Numeric>&   za_array,
+              Array<Numeric>&   aa_array,
+              Array<Numeric>&   l_array,
+              Index&            endface,
+              Index&            tanpoint,
+              Numeric           r,
+              Numeric           lat,
+              Numeric           lon,
+              Numeric           za,
+              Numeric           aa,
+              Numeric&          a_pressure,
+              Numeric&          a_temperature,
+              Vector&           a_vmr_list,
+              Numeric&          refr_index,
+        const Agenda&           refr_index_agenda,
+        const Numeric&          lraytrace,
+        const Numeric&          lat1,
+        const Numeric&          lat3,
+        const Numeric&          lon5,
+        const Numeric&          lon6,
+        const Numeric&          r15a,
+        const Numeric&          r35a,
+        const Numeric&          r36a,
+        const Numeric&          r16a,
+        const Numeric&          r15b,
+        const Numeric&          r35b,
+        const Numeric&          r36b,
+        const Numeric&          r16b,
+        const Numeric&          rground15,
+        const Numeric&          rground35,
+        const Numeric&          rground36,
+        const Numeric&          rground16,
+        const Numeric&          r_geoid15,
+        const Numeric&          r_geoid35,
+        const Numeric&          r_geoid36,
+        const Numeric&          r_geoid16,
+        ConstVectorView         p_grid,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+        ConstTensor3View        z_field,
+        ConstTensor3View        t_field,
+        ConstTensor4View        vmr_field )
+{
+  // Loop boolean
+  bool ready = false;
+
+  // Variables for output from do_gridcell_2d
+  Vector    r_v, lat_v, lon_v, za_v, aa_v;
+  Numeric   lstep;
+
+  while( !ready )
+    {
+      // Constant for the geometrical step to make
+      const Numeric   ppc_step = geometrical_ppc( r, za );
+
+      // Where will a geometric path exit the grid cell?
+      do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface, tanpoint,
+                    r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6, 
+                    r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                                  rground15, rground35, rground36, rground16 );
+
+      assert( r_v.nelem() == 2 );
+
+      // If *lstep* is < *lraytrace*, extract the found end point and
+      // we are ready.
+      // Otherwise, we make a geometrical step with length *lraytrace*.
+
+      if( lstep <= lraytrace )
+        {
+          r     = r_v[1];
+          lat   = lat_v[1];
+          lat   = lon_v[1];
+          ready = true;
+        }
+      else
+        {
+        }
+
+      // Calculate LOS zenith angle at found point.
+      if( ready  &&  tanpoint )
+        { za = 90; }
+      else
+        {
+          Numeric   dndr, dndlat, dndlon, r_geoid;
+
+          r_geoid = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                        r_geoid15, r_geoid35, r_geoid36, r_geoid16, lat, lon );
+
+          refr_gradients_3d( refr_index, dndr, dndlat, dndlon, a_pressure, 
+                             a_temperature, a_vmr_list, refr_index_agenda, 
+                             p_grid, lat_grid, lon_grid, z_field, t_field, 
+                             vmr_field, r - r_geoid, lat, lon );
+        }
+
+      // Store found point
+      r_array.push_back( r );
+      lat_array.push_back( lat );
+      lon_array.push_back( lon );
+      za_array.push_back( za );
+      aa_array.push_back( aa );
+      l_array.push_back( lstep );
+    }  
+}
+
+
+
 
 
 /*===========================================================================
@@ -4719,6 +4925,125 @@ void ppath_step_refr_3d(
         const Numeric&    lraytrace,
         const Numeric&    lmax )
 {
+  // Radius, zenith angle and latitude of start point.
+  Numeric   r_start, lat_start, lon_start, za_start, aa_start;
+
+  // Lower grid index for the grid cell of interest.
+  Index   ip, ilat, ilon;
+
+  // Number of input path points
+  Index   np = ppath.np;
+
+  // Radius for corner points, latitude and longitude of the grid cell
+  //
+  Numeric   lat1, lat3, lon5, lon6;
+  Numeric   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b;
+  Numeric   rground15, rground35, rground36, rground16;
+
+  // Determine the variables defined above and make all possible asserts
+  ppath_start_3d( r_start, lat_start, lon_start, za_start, aa_start, 
+                  ip, ilat, ilon, lat1, lat3, lon5, lon6,
+                  r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b, 
+                  rground15, rground35, rground36, rground16,
+               ppath, p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground );
+
+  // Assert not done for geometrical calculations
+  assert( t_field.nrows() == p_grid.nelem() );
+  assert( t_field.ncols() == lat_grid.nelem() );
+  assert( vmr_field.nrows() == p_grid.nelem() );
+  assert( vmr_field.ncols() == lat_grid.nelem() );
+
+  // No constant for the path is valid here.
+
+  // Geoid radius at *lat1*, *lat3*, *lon5* and *lon6*
+  const Numeric   r_geoid15 = r_geoid(ilat,ilon);
+  const Numeric   r_geoid35 = r_geoid(ilat+1,ilon);
+  const Numeric   r_geoid36 = r_geoid(ilat+1,ilon+1);
+  const Numeric   r_geoid16 = r_geoid(ilat,ilon+1);
+
+  // Perform the ray tracing
+  //
+  // Arrays to store found ray tracing points
+  // (Vectors don't work here as we don't know how many points there will be)
+  Array<Numeric>   r_array, lat_array, lon_array, za_array, aa_array, l_array;
+  //
+  // Store the start point
+  r_array.push_back( r_start );
+  lat_array.push_back( lat_start );
+  lon_array.push_back( lon_start );
+  za_array.push_back( za_start );
+  aa_array.push_back( aa_start );
+  //
+  // String to store description of ray tracing method
+  String   method;
+  //
+  // Number coding for end face
+  Index   endface, tanpoint;
+  //
+  if( rtrace_method  == "linear_euler" )
+    {
+      if( lmax < 0 )
+        { method = "3D linear Euler"; }
+      else
+        { method = "3D linear Euler, with length criterion"; }
+
+      raytrace_3d_linear_euler( r_array, lat_array, lon_array, za_array, 
+                                aa_array, l_array, endface, tanpoint, r_start,
+                                lat_start, lon_start, za_start, aa_start, 
+                                a_pressure, a_temperature, a_vmr_list, 
+                                refr_index, refr_index_agenda, lraytrace, 
+                                lat1, lat3, lon5, lon6, 
+                                r15a, r35a, r36a, r15a, r15b, r35b, r36b, r15b,
+                                rground15, rground35, rground36, rground16,
+                                r_geoid15, r_geoid35, r_geoid36, r_geoid16, 
+                                p_grid, lat_grid, lon_grid, 
+                                                 z_field, t_field, vmr_field );
+    }
+  else
+    {
+      bool   known_ray_trace_method = false;
+      assert( known_ray_trace_method );
+    }
+
+
+  // Interpolate the radii, zenith angles and latitudes to a set of points
+  // linearly spaced along the path. 
+  //
+  Vector    r_v, lat_v, lon_v, za_v, aa_v;
+  Numeric   lstep;
+  //
+  from_raytracingarrays_to_ppath_vectors_3d( r_v, lat_v, lon_v, za_v, aa_v, 
+                                        lstep, r_array, lat_array, lon_array, 
+                                           za_array, aa_array, l_array, lmax );
+
+
+  // Fill *ppath*
+  ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
+                lon_grid, z_field, r_geoid, ip, ilat, ilon, endface, tanpoint,
+                                                               method, 1, -1 );
+
+
+  // Make part after a tangent point.
+  //
+  if( endface == 0  &&  tanpoint )
+    {
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      out3 << "  --- Recursive step to include tangent point --------\n"; 
+
+      // Call this function recursively
+      ppath_step_refr_3d( ppath2, a_pressure, a_temperature, a_vmr_list,
+                          refr_index, refr_index_agenda, p_grid, lat_grid, 
+                          lon_grid, z_field, t_field, vmr_field, 
+                          r_geoid, z_ground, rtrace_method, lraytrace, lmax );
+
+      out3 << "  ----------------------------------------------------\n"; 
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
 }
 
 

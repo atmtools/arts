@@ -1,5 +1,16 @@
 2003-01-18  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-401
+
+	* src/ppath.cc (gridcell_crossing_3d): Found a bug that affected the
+	calculated length to a crossing of a given latitude. The original
+	code was correct, but I later removed the calculation of 
+	(dx^2+dy^2+dz^2) as this term is always 1. I was then too quick and 
+	made a mistake. This bug fix solves the problem discussed for 
+	version 1-1-393. Great!
+
+2003-01-18  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-400
 	
 	* src/m_cloudbox.cc (CloudboxGetIncoming): Some temporary messages
