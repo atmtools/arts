@@ -355,7 +355,7 @@ int dummy(int& a, int b);
   This file states which source files are needed for arts. Should be
   self-explanatory where you have to add your file. The above goes for
   source (\verb|.cc|) and header (\verb|.h|) files likewise.
-\item Then go to the top level arts directory and run: \verb|reconf|.
+\item Then go to the top level arts directory and run: \verb|autogen.sh|.
 \item Go to \verb|src| and run: \verb|cvs add <my_file>| to make your
   file known to CVS.
 \end{enumerate}
@@ -480,7 +480,7 @@ documentation or our own CVS Howto on:
   top-level ARTS directory. (The line that you have to change is the
   one with \verb|AM_INIT_AUTOMAKE|.) Omit the subversion number (last digit).
 \item Commit your changes (see other howto). 
-\item In the top-level ARTS directory, run \verb|reconf|.
+\item In the top-level ARTS directory, run \verb|autogen.sh|.
 \item In the top-level ARTS directory, run \verb|make distcheck|. This
   will not only cut the release, but also immediately try to build
   it, to see if it works. Unless you are on a very fast machine, this
