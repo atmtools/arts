@@ -30,9 +30,9 @@
 #include "arts.h"
 #include "vecmat.h"
 
-/*! The names associated with Wsv groups as strings.
+/*! The names associated with Wsv groups as Strings.
   See function define_wsv_group_names for more information. */
-Array<string> wsv_group_names;
+Array<String> wsv_group_names;
 
 
 //! Define the array of workspace variable group names.
@@ -54,14 +54,14 @@ void define_wsv_group_names()
   // Initialize to empty, just in case.
   resize(wsv_group_names,0);
 
-  wsv_group_names.push_back("string");
+  wsv_group_names.push_back("String");
   wsv_group_names.push_back("size_t");
   wsv_group_names.push_back("int");
   wsv_group_names.push_back("Numeric");
   wsv_group_names.push_back("Vector");
   wsv_group_names.push_back("Matrix");
   wsv_group_names.push_back("SYMMETRIC");
-  wsv_group_names.push_back("Arrayofstring");
+  wsv_group_names.push_back("ArrayofString");
   wsv_group_names.push_back("Arrayofsizet");
   wsv_group_names.push_back("ArrayofVector");
   wsv_group_names.push_back("ArrayofMatrix");

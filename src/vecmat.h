@@ -382,7 +382,7 @@ void resize(Array<T>& x, Index n)
 }
 
 void resize(Vector& x, 	  Index n);
-void resize(string& x,    Index n);
+void resize(String& x,    Index n);
 
 void resize(Matrix& x, 	  Index r, Index c);
 void resize(SPARSE& x, 	  Index r, Index c);
@@ -484,8 +484,8 @@ typedef Array<Vector> ArrayofVector;
 /** An array of integers. */
 typedef Array<size_t> Arrayofsizet;
 
-/** An array of strings. */
-typedef Array<string> Arrayofstring;
+/** An array of Strings. */
+typedef Array<String> ArrayofString;
 
 
 

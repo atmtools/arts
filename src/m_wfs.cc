@@ -73,11 +73,11 @@ extern const Numeric BOLTZMAN_CONST;
 */
 void k_append (
 		    Matrix&          kx,
-		    Arrayofstring&   kx_names,
+		    ArrayofString&   kx_names,
 		    Arrayofsizet&    kx_lengths,
 		    Matrix&          kx_aux,
               const Matrix&          k,
-              const Arrayofstring&   k_names,
+              const ArrayofString&   k_names,
               const Matrix&          k_aux )
 {
   // Size of Kx and K
@@ -90,7 +90,7 @@ void k_append (
         size_t  iri;
 
          Matrix   ktemp(ny1,nx1), ktemp_aux(nx1,2);
-  Arrayofstring   ktemp_names(nri1);
+  ArrayofString   ktemp_names(nri1);
    Arrayofsizet   ktemp_lengths(nri1);
   
   if ( nx1 > 0 )
@@ -1148,7 +1148,7 @@ void sourceloswfs (
 */
 void k_species (
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
               const ArrayofMatrix&   absloswfs,
@@ -1159,7 +1159,7 @@ void k_species (
               const ArrayofVector&   vmrs,
               const Vector&          k_grid,
               const Arrayofsizet&    tg_nr,
-              const string&          unit )
+              const String&          unit )
 {
   // Main sizes
   const size_t  nza = los.start.size();      // number of zenith angles  
@@ -1356,7 +1356,7 @@ void k_species (
 */
 void k_contabs (
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
               const ArrayofMatrix&   absloswfs,
@@ -1568,7 +1568,7 @@ void k_contabs (
 */
 void k_temp_nohydro (
 		           Matrix&                        k,
-		           Arrayofstring&                 k_names,
+		           ArrayofString&                 k_names,
 		           Matrix&                        k_aux,
 		     const TagGroups&                     tag_groups,
 		     const LOS&                           los,           
@@ -1585,7 +1585,7 @@ void k_temp_nohydro (
 		     const ArrayofMatrix&                 trans,
 		     const Vector&                        e_ground,
 		     const Vector&                        k_grid,
-		     const Arrayofstring&         cont_description_names,
+		     const ArrayofString&         cont_description_names,
                      const ArrayofVector& 	  cont_description_parameters )
 {
   // Main sizes
@@ -1749,20 +1749,20 @@ void k_temp_nohydro (
 void wfs_tgsDefine(// WS Output:
 		   TagGroups& wfs_tag_groups,
 		   // Control Parameters:
-		   const Arrayofstring& tags)
+		   const ArrayofString& tags)
 {
   wfs_tag_groups = TagGroups(tags.size());
 
-  // Each element of the array of strings tags defines one tag
+  // Each element of the array of Strings tags defines one tag
   // group. Let's work through them one by one.
   for ( size_t i=0; i<tags.size(); ++i )
     {
       // There can be a comma separated list of tag definitions, so we
-      // need to break the string apart at the commas.
-      Array<string> tag_def;
+      // need to break the String apart at the commas.
+      Array<String> tag_def;
 
       bool go_on = true;
-      string these_tags = tags[i];
+      String these_tags = tags[i];
       while (go_on)
 	{
 	  size_t n = these_tags.find(',');
@@ -1900,7 +1900,7 @@ void absloswfsTau (
 */
 void kSpecies (
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
               const ArrayofMatrix&   absloswfs,
@@ -1910,17 +1910,17 @@ void kSpecies (
               const ArrayofMatrix&   abs_per_tg,
               const ArrayofVector&   vmrs,
               const Vector&          k_grid,
-              const string&          tag,
-              const string&          unit )
+              const String&          tag,
+              const String&          unit )
 {
   if ( wfs_tgs.size() != abs_per_tg.size() )
     throw runtime_error( "Lengths of wfs_tgs and abs_per_tg do not match." ); 
 
-  Arrayofstring  tag_name(1);
+  ArrayofString  tag_name(1);
   tag_name[0] = tag;
 
   Arrayofsizet   tg_nr; 
-  get_tagindex_for_strings( tg_nr, wfs_tgs, tag_name );
+  get_tagindex_for_Strings( tg_nr, wfs_tgs, tag_name );
   
   k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
                               wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
@@ -1936,7 +1936,7 @@ void kSpecies (
 */
 void kSpeciesAll (
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
               const ArrayofMatrix&   absloswfs,
@@ -1946,7 +1946,7 @@ void kSpeciesAll (
               const ArrayofMatrix&   abs_per_tg,
               const ArrayofVector&   vmrs,
               const Vector&          k_grid,
-              const string&          unit )
+              const String&          unit )
 {
   const size_t  ntg = wfs_tgs.size();     // number of retrieval tags
   Arrayofsizet  tg_nr(ntg);
@@ -1971,7 +1971,7 @@ void kSpeciesAll (
 */
 void kContAbs (
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
               const ArrayofMatrix&   absloswfs,
@@ -1993,7 +1993,7 @@ void kContAbs (
 */
 void kContAbsSpecifiedLimits (
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
               const ArrayofMatrix&   absloswfs,
@@ -2017,7 +2017,7 @@ void kContAbsSpecifiedLimits (
 */
 void kTemp (
                 Matrix&                   k,
-                Arrayofstring&            k_names,
+                ArrayofString&            k_names,
                 Matrix&                   k_aux,
           const TagGroups&                tgs,
           const Vector&                   f_mono,
@@ -2032,7 +2032,7 @@ void kTemp (
           const Vector&                   e_ground,
           const int&                      emission,
           const Vector&                   k_grid,
-          const Arrayofstring&            cont_description_names,
+          const ArrayofString&            cont_description_names,
           const ArrayofVector& 	          cont_description_parameters,
     	  const Numeric&    		  z_plat,
     	  const Vector&     		  za,
@@ -2164,7 +2164,7 @@ void kTemp (
 */
 void kTempFast (
                 Matrix&                   k,
-                Arrayofstring&            k_names,
+                ArrayofString&            k_names,
                 Matrix&                   k_aux,
           const TagGroups&                tgs,
           const Vector&                   f_mono,
@@ -2179,7 +2179,7 @@ void kTempFast (
           const Vector&                   e_ground,
           const int&                      emission,
           const Vector&                   k_grid,
-          const Arrayofstring&            cont_description_names,
+          const ArrayofString&            cont_description_names,
           const ArrayofVector& 	          cont_description_parameters,
     	  const Numeric&    		  z_plat,
     	  const Vector&     		  za,
@@ -2324,7 +2324,7 @@ void kTempFast (
 */
 void kTempNoHydro (
                   Matrix&                   k,
-                  Arrayofstring&            k_names,
+                  ArrayofString&            k_names,
                   Matrix&                   k_aux,
             const TagGroups&                tag_groups,
 	    const LOS&                      los,           
@@ -2341,7 +2341,7 @@ void kTempNoHydro (
 	    const ArrayofMatrix&            trans,
 	    const Vector&                   e_ground,
 	    const Vector&                   k_grid,
-	    const Arrayofstring&            cont_description_names,
+	    const ArrayofString&            cont_description_names,
             const ArrayofVector& 	    cont_description_parameters )
 {
   k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs,
@@ -2360,7 +2360,7 @@ void kTempNoHydro (
  */
 void kPointingOffSet(
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const Numeric&         z_plat,
               const Vector&          za_pencil,
@@ -2436,11 +2436,11 @@ void kPointingOffSet(
  */
 void kCalibration(
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const Vector&          y,
               const Vector&          y_ref,
-       	      const string&          name )
+       	      const String&          name )
 {
   const Index   ny = y.size();
   const Index   nf = y_ref.size();
@@ -2481,11 +2481,11 @@ void kCalibration(
  */
 void kManual(
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const Vector&          y0,      
               const Vector&          y,
-              const string&          name,
+              const String&          name,
               const Numeric&         delta,
               const Numeric&         grid,
               const Numeric&         apriori )
@@ -2523,12 +2523,12 @@ void kManual(
  */
 void kDiffHSmall(
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const Hmatrix&         h1,      
               const Hmatrix&         h2,      
               const Vector&          y,
-              const string&          name,
+              const String&          name,
               const Numeric&         delta,
               const Numeric&         grid,
               const Numeric&         apriori )
@@ -2569,12 +2569,12 @@ void kDiffHSmall(
  */
 void kDiffHFast(
                     Matrix&          k,
-                    Arrayofstring&   k_names,
+                    ArrayofString&   k_names,
                     Matrix&          k_aux,
               const Hmatrix&         h1,      
               const Hmatrix&         h2,      
               const Vector&          y,
-              const string&          name,
+              const String&          name,
               const Numeric&         delta,
               const Numeric&         grid,
               const Numeric&         apriori )
@@ -2607,7 +2607,7 @@ void kDiffHFast(
 */
 void kxInit (
                     Matrix&          kx,
-                    Arrayofstring&   kx_names,
+                    ArrayofString&   kx_names,
                     Arrayofsizet&    kx_lengths,
                     Matrix&          kx_aux )
 {
@@ -2627,7 +2627,7 @@ void kxInit (
 */
 void kbInit (
                     Matrix&          kb,
-                    Arrayofstring&   kb_names,
+                    ArrayofString&   kb_names,
                     Arrayofsizet&    kb_lengths,
                     Matrix&          kb_aux )
 {
@@ -2644,11 +2644,11 @@ void kbInit (
 */
 void kxAppend (
 		    Matrix&          kx,
-		    Arrayofstring&   kx_names,
+		    ArrayofString&   kx_names,
 		    Arrayofsizet&    kx_lengths,
 		    Matrix&          kx_aux,
               const Matrix&          k,
-              const Arrayofstring&   k_names,
+              const ArrayofString&   k_names,
               const Matrix&          k_aux )
 {
   k_append( kx, kx_names, kx_lengths, kx_aux, k, k_names, k_aux );
@@ -2664,11 +2664,11 @@ void kxAppend (
 */
 void kbAppend (
 		    Matrix&          kb,
-		    Arrayofstring&   kb_names,
+		    ArrayofString&   kb_names,
 		    Arrayofsizet&    kb_lengths,
 		    Matrix&          kb_aux,
               const Matrix&          k,
-              const Arrayofstring&   k_names,
+              const ArrayofString&   k_names,
               const Matrix&          k_aux )
 {
   k_append( kb, kb_names, kb_lengths, kb_aux, k, k_names, k_aux );
@@ -2684,11 +2684,11 @@ void kbAppend (
 */
 void kxAllocate (
                     Matrix&          kx,
-                    Arrayofstring&   kx_names,
+                    ArrayofString&   kx_names,
                     Arrayofsizet&    kx_lengths,
                     Matrix&          kx_aux,
               const Vector&          y,
-              const string&          y_name,
+              const String&          y_name,
               const int&             ni,
               const int&             nx )
 {
@@ -2718,11 +2718,11 @@ void kxAllocate (
 */
 void kbAllocate (
                     Matrix&          kb,
-                    Arrayofstring&   kb_names,
+                    ArrayofString&   kb_names,
                     Arrayofsizet&    kb_lengths,
                     Matrix&          kb_aux,
               const Vector&          y,
-              const string&          y_name,
+              const String&          y_name,
               const int&             ni,
               const int&             nx )
 {
@@ -2739,11 +2739,11 @@ void kbAllocate (
 */
 void kxPutInK (
 		    Matrix&          kx,
-		    Arrayofstring&   kx_names,
+		    ArrayofString&   kx_names,
 		    Arrayofsizet&    kx_lengths,
 		    Matrix&          kx_aux,
               const Matrix&          k,
-              const Arrayofstring&   k_names,
+              const ArrayofString&   k_names,
               const Matrix&          k_aux )
 {
   const Index  ny  = kx.nrows();
@@ -2805,11 +2805,11 @@ void kxPutInK (
 */
 void kbPutInK (
 		    Matrix&          kb,
-		    Arrayofstring&   kb_names,
+		    ArrayofString&   kb_names,
 		    Arrayofsizet&    kb_lengths,
 		    Matrix&          kb_aux,
               const Matrix&          k,
-              const Arrayofstring&   k_names,
+              const ArrayofString&   k_names,
               const Matrix&          k_aux )
 {
   kxPutInK( kb, kb_names, kb_lengths, kb_aux, k, k_names, k_aux );
@@ -2818,7 +2818,7 @@ void kbPutInK (
 void LinAltsFromPres(// WS Generic Output:
                      Vector&         p,
                      // WS Generic Output Names:
-                     const string&   p_name,
+                     const String&   p_name,
                      // WS Input:
                      const Vector&   p_abs,
                      const Vector&   z_abs,

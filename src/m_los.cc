@@ -927,7 +927,7 @@ void emissionOff( int&   emission )
 void zaFromZtan(
         // WS Goutput
               Vector&       za,
-        const string&       za_name,
+        const String&       za_name,
 	 // WS input
 	const Vector&       z_tan,
         const Numeric&      z_plat,
@@ -1197,7 +1197,7 @@ void transCalc(
 void y_spaceStd(
                     Vector&   y_space,
               const Vector&   f,
-              const string&   choice )
+              const String&   choice )
 {
   resize( y_space, f.size() );
 
@@ -1399,14 +1399,14 @@ void yTRJ (
 void MatrixTRJ (// WS Generic Output:
                 Matrix& kout,
                 // WS Generic Output Names:
-                const string& kout_name,
+                const String& kout_name,
                 // WS Input:
                 const Vector& f_sensor,
                 const Vector& za_sensor,
                 // WS Generic Input:
                 const Matrix& kin,
                 // WS Generic Input Names:
-                const string& kin_name)
+                const String& kin_name)
 {
   // Resize kout if necessary:
   if (kout.nrows()!=kin.nrows() ||
@@ -1432,14 +1432,14 @@ void MatrixTRJ (// WS Generic Output:
 void MatrixTB (// WS Generic Output:
                 Matrix& kout,
                 // WS Generic Output Names:
-                const string& kout_name,
+                const String& kout_name,
                 // WS Input:
                 const Vector& f_sensor,
                 const Vector& za_sensor,
                 // WS Generic Input:
                 const Matrix& kin,
                 // WS Generic Input Names:
-                const string& kin_name)
+                const String& kin_name)
 {
   // Resize kout if necessary:
   if (kout.nrows()!=kin.nrows() ||
@@ -1512,7 +1512,7 @@ void zaFromDeltat(
         // WS Generic Output:
         Vector&             za,
         // WS Generic Output Names:
-        const string&       za_name,
+        const String&       za_name,
         // WS Input:
         const Numeric&      z_plat,
         const Vector&       p_abs,
@@ -1544,7 +1544,7 @@ void zaFromDeltat(
     // Geometric calculations
     Vector phi(2);
     Vector za_lim(2);
-    string zastr = "za_lim";
+    String zastr = "za_lim";
 
     zaFromZtan(za_lim, zastr, z_tan_lim, z_plat, p_abs, z_abs, refr, refr_index, r_geoid, z_ground);
 
@@ -1578,7 +1578,7 @@ void zaFromDeltat(
       z_tan_1[j]=z_tan_lim[0]+j*ztanstep;
     
     // corresponding zenith angles
-    string za_str = "za";
+    String za_str = "za";
     zaFromZtan(za, za_str, z_tan_1, z_plat, p_abs, z_abs, refr, refr_index, r_geoid, z_ground);
     
     // corresponding psi

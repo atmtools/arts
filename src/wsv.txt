@@ -36,7 +36,7 @@ abs_tags for different isotopes or transitions of a species, you
 may use different lineshapes.
 
 VARIABLE : cont_description_names
-DATA TYPE: Arrayofstring
+DATA TYPE: ArrayofString
 DESCRIPTION:
 Continuum model names. This variable should contain a list of
 names of continuum models. Associated with this WSV is the WSV
@@ -239,9 +239,9 @@ Accordingly, this factor gives how many ray tracing steps that are
 performed for each step of the LOS.
 
 VARIABLE : refr_model
-DATA TYPE: string
+DATA TYPE: String
 DESCRIPTION:
-A string giving what refraction model (or parameterization) to use
+A String giving what refraction model (or parameterization) to use
 for the calculation of refractive index.
 
 VARIABLE : refr_index
@@ -320,7 +320,7 @@ DESCRIPTION:
 The weighting functions (WFs) for a single retrieval/error identity.
 
 VARIABLE : k_names
-DATA TYPE: Arrayofstring
+DATA TYPE: ArrayofString
 DESCRIPTION:
 Name(s) on the retrieval identity associated with k.
 
@@ -340,7 +340,7 @@ DESCRIPTION:
 The state weighting function matrix.
 
 VARIABLE : kx_names
-DATA TYPE: Arrayofstring
+DATA TYPE: ArrayofString
 DESCRIPTION:
 Names on the retrieval identities associated with kx.
 
@@ -361,7 +361,7 @@ DESCRIPTION:
 The model parameters weighting function matrix.
 
 VARIABLE : kb_names
-DATA TYPE: Arrayofstring
+DATA TYPE: ArrayofString
 DESCRIPTION:
 Names on the model parameter identities associated with kb.
 
@@ -469,7 +469,7 @@ DESCRIPTION:
 The covariance matrix associated with kb.
 
 VARIABLE : batchname
-DATA TYPE: string
+DATA TYPE: String
 DESCRIPTION:
 Default basename for batch data.
 

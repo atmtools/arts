@@ -107,9 +107,9 @@ void resize(Vector& x, Index n)
     x = Vector(n);
 }
 
-// Resize function for string. This is just for consistent notation within ARTS.
+// Resize function for String. This is just for consistent notation within ARTS.
 
-void resize(string& x, Index n)
+void resize(String& x, Index n)
 {
   if ( n!=x.size() )
     x.resize(n);

@@ -46,7 +46,7 @@ void define_wsv_pointers(Array<WsvP*>&    wsv_pointers,
 
 
 /** Print the error message and exit. */
-void give_up(const string& message)
+void give_up(const String& message)
 {
   out0 << message << '\n';
   exit(1);
@@ -214,14 +214,14 @@ void set_reporting_level(int r)
 
     \param methods All or name of a variable.
     \author Stefan Buehler */
-void option_methods(const string& methods)
+void option_methods(const String& methods)
 {
   // Make global data visible:
   extern const Array<MdRecord>  md_data;
   extern const Array<WsvRecord> wsv_data;
-  //  extern const std::map<string, size_t> MdMap;
-  extern const std::map<string, size_t> WsvMap;
-  extern const Array<string> wsv_group_names;
+  //  extern const std::map<String, size_t> MdMap;
+  extern const std::map<String, size_t> WsvMap;
+  extern const Array<String> wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -243,7 +243,7 @@ void option_methods(const string& methods)
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<string, size_t>::const_iterator mi =
+  map<String, size_t>::const_iterator mi =
     WsvMap.find(methods);
   if ( mi != WsvMap.end() )
     {
@@ -343,14 +343,14 @@ void option_methods(const string& methods)
     \param methods Name of a variable.
     \author Stefan Buehler
     \date   2001-07-24 */
-void option_input(const string& input)
+void option_input(const String& input)
 {
   // Make global data visible:
   extern const Array<MdRecord>  md_data;
   extern const Array<WsvRecord> wsv_data;
-  //  extern const std::map<string, size_t> MdMap;
-  extern const std::map<string, size_t> WsvMap;
-  extern const Array<string> wsv_group_names;
+  //  extern const std::map<String, size_t> MdMap;
+  extern const std::map<String, size_t> WsvMap;
+  extern const Array<String> wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -360,7 +360,7 @@ void option_input(const string& input)
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<string, size_t>::const_iterator mi =
+  map<String, size_t>::const_iterator mi =
     WsvMap.find(input);
   if ( mi != WsvMap.end() )
     {
@@ -460,14 +460,14 @@ void option_input(const string& input)
 
     \param  workspacevariables All or name of a method.
     \author Stefan Buehler */
-void option_workspacevariables(const string& workspacevariables)
+void option_workspacevariables(const String& workspacevariables)
 {
   // Make global data visible:
   extern const Array<MdRecord>  md_data;
   extern const Array<WsvRecord> wsv_data;
-  extern const std::map<string, size_t> MdMap;
-  //  extern const std::map<string, size_t> WsvMap;
-  extern const Array<string> wsv_group_names;
+  extern const std::map<String, size_t> MdMap;
+  //  extern const std::map<String, size_t> WsvMap;
+  extern const Array<String> wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -487,7 +487,7 @@ void option_workspacevariables(const string& workspacevariables)
 
 
   // Now check if the user gave the name of a method.
-  map<string, size_t>::const_iterator mi =
+  map<String, size_t>::const_iterator mi =
     MdMap.find(workspacevariables);
   if ( mi != MdMap.end() )
     {
@@ -530,24 +530,24 @@ void option_workspacevariables(const string& workspacevariables)
 
 
 /** React to option `describe'. This should print the description
-    string of the given workspace variable or method.
+    String of the given workspace variable or method.
 
     \param describe What to describe.
     \author Stefan Buehler */
-void option_describe(const string& describe)
+void option_describe(const String& describe)
 {
   // Make global data visible:
   extern const Array<MdRecord>  md_data;
   extern const Array<WsvRecord> wsv_data;
-  extern const std::map<string, size_t> MdMap;
-  extern const std::map<string, size_t> WsvMap;
-  //  extern const Array<string> wsv_group_names;
+  extern const std::map<String, size_t> MdMap;
+  extern const std::map<String, size_t> WsvMap;
+  //  extern const Array<String> wsv_group_names;
 
   // Let's first assume it is a method that the user wants to have
   // described.
 
   // Find method id:
-  map<string, size_t>::const_iterator i =
+  map<String, size_t>::const_iterator i =
     MdMap.find(describe);
   if ( i != MdMap.end() )
     {
@@ -591,7 +591,7 @@ void check_built_headers()
 {
   // Make lookup data visible:
   //  extern const Array<MdRecord>  md_data;
-  extern const Array<string> wsv_group_names;
+  extern const Array<String> wsv_group_names;
   extern const Array<WsvRecord> wsv_data;
 
   // Checks:
@@ -637,7 +637,7 @@ int main (int argc, char **argv)
 
   if (parameters.version)
     {
-      extern const string full_name;
+      extern const String full_name;
       // Just print version information and then exit.
       cerr << "This is " << full_name << '\n';
       return(0);
@@ -692,9 +692,9 @@ int main (int argc, char **argv)
   // Make all these data visible:
   //  extern const Array<MdRecord>  md_data;
   //  extern const Array<WsvRecord> wsv_data;
-  //  extern const std::map<string, size_t> MdMap;
-  //  extern const std::map<string, size_t> WsvMap;
-  extern const Array<string> wsv_group_names;
+  //  extern const std::map<String, size_t> MdMap;
+  //  extern const std::map<String, size_t> WsvMap;
+  extern const Array<String> wsv_group_names;
 
   // Now we are set to deal with the more interesting command line
   // switches. 
@@ -730,7 +730,7 @@ int main (int argc, char **argv)
     }
 
   // React to option `describe'. This should print the description
-  // string of the given workspace variable or method.
+  // String of the given workspace variable or method.
   if ( "" != parameters.describe )
     {
       option_describe(parameters.describe);
@@ -765,10 +765,10 @@ int main (int argc, char **argv)
   // explicitly specified.
   if ( "" == parameters.basename )
     {
-      extern string basename;
+      extern String basename;
       basename = parameters.controlfiles[0];
       // Find the last . in the name
-      string::size_type p = basename.rfind('.');
+      String::size_type p = basename.rfind('.');
       // Kill everything starting from the `.'
       basename.erase(p);
     }
@@ -784,7 +784,7 @@ int main (int argc, char **argv)
   // will not exist.
   try
     {
-      extern const string basename;     // Basis for file name
+      extern const String basename;     // Basis for file name
       extern ofstream report_file;	// Report file pointer
 
       //      cout << "rep = " << basename+".rep" << '\n';
@@ -817,7 +817,7 @@ int main (int argc, char **argv)
 	// The subminor number is set in version.cc, which is linked with
 	// arts.
 
-	extern const string subversion;
+	extern const String subversion;
   
 	out1 << PACKAGE << " " << VERSION << "." << subversion << '\n';
       }

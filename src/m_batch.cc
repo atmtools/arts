@@ -61,9 +61,9 @@
    \date   2000-12-06
 */
 void filename_batch(
-              string&  filename,
-        const string&  batchname,
-        const string&  varname )
+              String&  filename,
+        const String&  batchname,
+        const String&  varname )
 {
   if ( "" == filename )
     filename = batchname+"."+varname+".ab";
@@ -87,13 +87,13 @@ void filename_batch(
 */
 void read_batchdata( 
               Matrix&   x, 
-        const string&   batchname, 
-        const string&   filename, 
-        const string&   varname,
+        const String&   batchname, 
+        const String&   filename, 
+        const String&   varname,
         const size_t&   length,
         const size_t&   n )
 {
-  string fname = filename;
+  String fname = filename;
   filename_batch( fname, batchname, varname );
   MatrixReadBinary( x, "", fname );
   if ( x.nrows() != length )
@@ -124,10 +124,10 @@ void read_batchdata(
 // Part common for both versions of BatchdataGaussianTemperatureProfiles
 void temperature_profiles(
               Matrix&   t,
-              string&   fname,
+              String&   fname,
         const Vector&   t_abs,
         const SYMMETRIC&   s,
-        const string&   batchname,
+        const String&   batchname,
         const int&      n )
 {
   fname = "";
@@ -152,17 +152,17 @@ void temperature_profiles(
 */
 void BatchdataGaussianNoiseNoCorrelation(
      // WS Input
-        const string&   batchname,
+        const String&   batchname,
      // GInput
         const Vector&   grid1,
         const Vector&   grid2,
-        const string&   grid1_name,
-        const string&   grid2_name,
+        const String&   grid1_name,
+        const String&   grid2_name,
      // Control Parameters
         const int&      n,
         const Numeric&  stddev)
 {
-  string fname = "";
+  String fname = "";
   Matrix m(grid1.size()*grid2.size(),n);
   setto( m, 0);
 
@@ -182,14 +182,14 @@ void BatchdataGaussianNoiseNoCorrelation(
 */
 void BatchdataGaussianZeroMean(
       // WS Input:
-        const string&   batchname,
+        const String&   batchname,
         const SYMMETRIC&   s,
       // Control Parameters:
         const int&      n,
-        const string&   varname )
+        const String&   varname )
 {
   const size_t   l = s.nrows();
-        string   fname = "";
+        String   fname = "";
         Matrix   zs;
 
   filename_batch( fname, batchname, varname );
@@ -215,12 +215,12 @@ void BatchdataGaussianTemperatureProfiles(
         const Vector&    z_abs,
         const Vector&    h2o_abs,
         const SYMMETRIC& s,
-        const string&    batchname,
+        const String&    batchname,
         const Numeric&   r_geoid,
         const Vector&    hse,
         const int&       n )
 {
-  string fname;
+  String fname;
   Matrix ts;
   temperature_profiles( ts, fname, t_abs, s, batchname, n );
   Matrix zs(t_abs.size(),n);
@@ -257,10 +257,10 @@ void BatchdataGaussianTemperatureProfiles(
 void BatchdataGaussianTemperatureProfilesNoHydro(
         const Vector&     t_abs,
         const SYMMETRIC&  s,
-        const string&     batchname,
+        const String&     batchname,
         const int&        n )
 {
-  string fname;
+  String fname;
   Matrix t;
   temperature_profiles( t, fname, t_abs, s, batchname, n );
 }
@@ -280,22 +280,22 @@ void BatchdataGaussianSpeciesProfiles(
         const Vector&          p_abs,
         const Vector&          t_abs,
         const SYMMETRIC&          s,
-        const string&          batchname,
+        const String&          batchname,
       // Control Parameters:
         const int&             n,
-        const Arrayofstring&   do_tags,
-        const string&          unit )
+        const ArrayofString&   do_tags,
+        const String&          unit )
 {
   const size_t   ntags = do_tags.size();    // Number of tags to do here 
   Arrayofsizet   tagindex;                  // Index in tags for do_tags 
-        string   fname;
+        String   fname;
         Matrix   x;
    
   // Check if do_tags can be found in tag_groups and store indeces
   if ( ntags == 0 )
     throw runtime_error("No tags specified, no use in calling this function.");
   else
-    get_tagindex_for_strings( tagindex, tgs, do_tags );
+    get_tagindex_for_Strings( tagindex, tgs, do_tags );
   
   // Loop the tags
   for ( size_t itag=0; itag<ntags; itag++ )
@@ -303,7 +303,7 @@ void BatchdataGaussianSpeciesProfiles(
     // Determine the name of the molecule for itag
     // The species lookup data:
     extern const Array<SpeciesRecord> species_data;
-    string molname = species_data[tgs[tagindex[itag]][0].Species()].Name();
+    String molname = species_data[tgs[tagindex[itag]][0].Species()].Name();
 
     // Create filename
     fname = "";
@@ -368,11 +368,11 @@ void BatchdataGaussianSpeciesProfiles(
 */
 void BatchdataGaussianOffSets(
       // WS Input:
-        const string&  batchname,
+        const String&  batchname,
       // WS Generic Input:
         const Vector&  z0,
       // WS Generic Input Names:
-        const string&  z_name,
+        const String&  z_name,
       // Control Parameters:
         const int&     n,
         const Numeric& stddev)
@@ -380,7 +380,7 @@ void BatchdataGaussianOffSets(
   Vector   r(n);
   Matrix   a(1,n);
 
-  string fname = "";
+  String fname = "";
   filename_batch( fname, batchname, z_name );
   out2 << "  Creating a vector with " << n << " off-sets with gaussian PDF.\n";
 
@@ -399,11 +399,11 @@ void BatchdataGaussianOffSets(
 */
 void BatchdataUniformOffSets(
       // WS Input:
-        const string&  batchname,
+        const String&  batchname,
       // WS Generic Input:
         const Vector&  z0,
       // WS Generic Input Names:
-        const string&  z_name,
+        const String&  z_name,
       // Control Parameters:
         const int&     n,
         const Numeric& low,
@@ -412,7 +412,7 @@ void BatchdataUniformOffSets(
   Vector   r(n);
   Matrix   a(1,n);
 
-  string fname = "";
+  String fname = "";
   filename_batch( fname, batchname, z_name );
   out2 << "  Creating a vector with " << n << " off-sets with uniform PDF.\n";
 
@@ -431,19 +431,19 @@ void BatchdataUniformOffSets(
 */
 void BatchdataSinusoidalRippleNoCorrelations(
       // WS Input:
-        const string&    batchname,
+        const String&    batchname,
       // WS Generic Input:
         const Vector&    f,
         const Vector&    za,
       // WS Generic Input Names:
-        const string&    f_name,
-        const string&    za_name,
+        const String&    f_name,
+        const String&    za_name,
       // Control Parameters:
         const int&       n,
         const Numeric&   period,
         const Numeric&   amplitude,
-        const string&    pdf,
-        const string&    varname )
+        const String&    pdf,
+        const String&    varname )
 {
   extern const Numeric PI;
   const size_t   nza = za.size();
@@ -494,7 +494,7 @@ void BatchdataSinusoidalRippleNoCorrelations(
   }
 
   // Write data 
-  string fname = "";
+  String fname = "";
   filename_batch( fname, batchname, varname );
   MatrixWriteBinary( rs, "", fname );
 }
@@ -532,22 +532,22 @@ void ybatchAbsAndRte(
         const Vector&                     y_space,
         const Vector&                     e_ground,
         const Numeric&                    t_ground,
-        const string&                     batchname,
+        const String&                     batchname,
         const TagGroups&                  tgs,
-	const Arrayofstring&              cont_description_names,
+	const ArrayofString&              cont_description_names,
 	const ArrayofVector& 		  cont_description_parameters,
       // Control Parameters:
         const int&                        ncalc,
         const int&                        do_t,
-        const string&                     t_file,
+        const String&                     t_file,
         const int&                        do_z,
-        const string&                     z_file,
-        const Arrayofstring&              do_tags,
-        const Arrayofstring&              tag_files,
+        const String&                     z_file,
+        const ArrayofString&              do_tags,
+        const ArrayofString&              tag_files,
         const int&                        do_f,
-        const string&                     f_file,
+        const String&                     f_file,
         const int&                        do_za,
-        const string&                     za_file )
+        const String&                     za_file )
 {
   const size_t   np = p_abs.size();         // Number of pressure levels
   const size_t   ntgs = tgs.size();         // Number of absorption tags
@@ -564,7 +564,7 @@ void ybatchAbsAndRte(
 
   // Check if do_tags can be found in tgs and store indeces
   if ( ndo > 0 )
-    get_tagindex_for_strings( tagindex, tgs, do_tags );
+    get_tagindex_for_Strings( tagindex, tgs, do_tags );
 
   out2 << "  Reading data from files.\n";
 
@@ -614,7 +614,7 @@ void ybatchAbsAndRte(
   for ( itag=0; itag<ndo; itag++ )
   {
     // Determine the name of the molecule for itag
-    string molname = species_data[tgs[tagindex[itag]][0].Species()].Name();
+    String molname = species_data[tgs[tagindex[itag]][0].Species()].Name();
     read_batchdata( VMRs[itag], batchname, tag_files[itag], molname, np, ncalc );
   }
 
@@ -723,8 +723,8 @@ void ybatchLoadCalibration (
 */
 void ybatchAdd (
                     Matrix&    ybatch,
-              const string&    batchname,
-              const string&    varname )
+              const String&    batchname,
+              const String&    varname )
 {
   const size_t   l = ybatch.nrows();
   const size_t   n = ybatch.ncols();
@@ -743,8 +743,8 @@ void ybatchAdd (
 */
 void ybatchAddScaled (
                     Matrix&    ybatch,
-              const string&    batchname,
-              const string&    varname,
+              const String&    batchname,
+              const String&    varname,
               const Numeric&   scalefac )
 {
   const size_t   l = ybatch.nrows();

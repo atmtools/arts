@@ -36,7 +36,7 @@
 void define_md_map()
 {
   extern const Array<MdRecord> md_data;
-  extern std::map<string, size_t> MdMap;
+  extern std::map<String, size_t> MdMap;
 
   for ( size_t i=0 ; i<md_data.size() ; ++i)
     {
@@ -48,11 +48,11 @@ void define_md_map()
 ostream& MdRecord::PrintTemplate(ostream& os,
 				 bool show_description=true) const
 {
-  extern const  Array<string> wsv_group_names;
+  extern const  Array<String> wsv_group_names;
 
   if (show_description)
     {
-      // FIXME: Print description string!
+      // FIXME: Print description String!
     }
   
   os << Name();
@@ -109,8 +109,8 @@ ostream& MdRecord::PrintTemplate(ostream& os,
 ostream& operator<<(ostream& os, const MdRecord& mdr)
 {
   extern const Array<WsvRecord> wsv_data;
-  extern const Array<string> wsv_group_names;
-  extern const string TokValTypeName[];
+  extern const Array<String> wsv_group_names;
+  extern const String TokValTypeName[];
   bool first;
 
   os << "Name = " << mdr.Name() << '\n'

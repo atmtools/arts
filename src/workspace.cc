@@ -105,7 +105,7 @@ void define_wsv_data()
       "   continuum model a la Liebe/Rosenkranz. Needs two parameters.\n"
       "H2O-ContStandardForeign: Foreign component of a simple empirical\n"
       "   continuum model a la Liebe/Rosenkranz. Needs two parameters.",
-      Arrayofstring_));
+      ArrayofString_));
 
   wsv_data.push_back
     (WsvRecord
@@ -349,9 +349,9 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("refr_model",
-      "A string giving what refraction model (or parameterization) to use\n"
+      "A String giving what refraction model (or parameterization) to use\n"
       "for the calculation of refractive index.",
-      string_));
+      String_));
 
   wsv_data.push_back
     (WsvRecord
@@ -448,7 +448,7 @@ void define_wsv_data()
     (WsvRecord
      ("k_names",
       "Name(s) on the retrieval identity associated with k.",
-      Arrayofstring_));
+      ArrayofString_));
 
   wsv_data.push_back
     (WsvRecord
@@ -471,7 +471,7 @@ void define_wsv_data()
     (WsvRecord
      ("kx_names",
       "Names on the retrieval identities associated with kx.",
-      Arrayofstring_));
+      ArrayofString_));
 
   wsv_data.push_back
     (WsvRecord
@@ -496,7 +496,7 @@ void define_wsv_data()
     (WsvRecord
      ("kb_names",
       "Names on the model parameter identities associated with kb.",
-      Arrayofstring_));
+      ArrayofString_));
 
   wsv_data.push_back
     (WsvRecord
@@ -632,7 +632,7 @@ void define_wsv_data()
     (WsvRecord
      ("batchname",
       "Default basename for batch data.",
-      string_));
+      String_));
 
   wsv_data.push_back
     (WsvRecord

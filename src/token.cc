@@ -23,15 +23,15 @@
     has to be the name exactly as it appears in declarations of these
     variables in the program, because it is used by make_md_h.cc to
     automatically generate declarations for method functions. */
-string TokValTypeName[7] = {"string", "int", "Numeric",
-			    "Array<string>", "Array<int>", "Vector",
+String TokValTypeName[7] = {"String", "int", "Numeric",
+			    "Array<String>", "Array<int>", "Vector",
                             "undefined"};
 
 
 // Conversion functions to read TokVal for the 6 different types: 
   
-TokVal::operator string() const {
-  assert (mtype == string_t);
+TokVal::operator String() const {
+  assert (mtype == String_t);
   return ms;
 }
 
@@ -46,8 +46,8 @@ TokVal::operator Numeric() const {
 }
 
 
-TokVal::operator Array<string>() const {
-  assert (mtype == Array_string_t);
+TokVal::operator Array<String>() const {
+  assert (mtype == Array_String_t);
   return msv;
 }
 
@@ -66,7 +66,7 @@ ostream& operator<<(ostream& os, const TokVal& a)
 {
   switch (a.mtype)
     {
-    case string_t:
+    case String_t:
       os << a.ms;
       break;
     case int_t:
@@ -75,7 +75,7 @@ ostream& operator<<(ostream& os, const TokVal& a)
     case Numeric_t:
       os << a.mx;
       break;
-    case Array_string_t:
+    case Array_String_t:
       print_vector(os,a.msv);
       break;
     case Array_int_t:
@@ -94,10 +94,10 @@ ostream& operator<<(ostream& os, const TokVal& a)
 
 // main()
 // {
-//   string a("Test");
+//   String a("Test");
 //   TokVal tv(a);
 
-//   string b=tv;
+//   String b=tv;
 //   cout << b << '\n';
 //   Numeric c = 3.8;
 //   TokVal tvtv(c);

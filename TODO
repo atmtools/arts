@@ -152,3 +152,5 @@ AvE 2001-04-03: I just tried to run some calculations with arts and the
 
 PE 2001-04-04:  When optional input parameters are implemented, go through
                 the function and put in checks for consistency of input.
+
+SAB 2001-09-04: Find a better solution where to put the subversion (now in version.cc). 

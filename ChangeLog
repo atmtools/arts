@@ -1,3 +1,16 @@
+2001-09-05  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-202
+
+	* doc/uguide/formats.tex: Started to update this part of the User
+	Guide to the new math package and data types.
+
+	* src/arts.h: Added typedef for String.
+
+	* globally: Replaced string by String, so that all atomic types
+	have consistent notation.
+
+
 2001-09-04  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-201

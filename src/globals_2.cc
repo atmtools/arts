@@ -51,6 +51,6 @@ WorkSpace workspace;
 Array<MdRecord> md_data;
 
 /** The map associated with md_data. */
-std::map<string, size_t> MdMap;
+std::map<String, size_t> MdMap;
 
 

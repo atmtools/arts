@@ -47,12 +47,12 @@
 ////////////////////////////////////////////////////////////////////////////
 
 void filename_ascii(
-              string&  filename,
-        const string&  varname );
+              String&  filename,
+        const String&  varname );
 
 void filename_bin(
-              string&  filename,
-        const string&  varname );
+              String&  filename,
+        const String&  varname );
 
 
 
@@ -60,15 +60,15 @@ void filename_bin(
 //   Functions to open and read ASCII files
 ////////////////////////////////////////////////////////////////////////////
 
-void open_output_file(ofstream& file, const string& name);
+void open_output_file(ofstream& file, const String& name);
 
-void open_input_file(ifstream& file, const string& name);
+void open_input_file(ifstream& file, const String& name);
 
-void read_text_from_stream(Array<string>& text, istream& is);
+void read_text_from_stream(Array<String>& text, istream& is);
 
-void read_text_from_file(Array<string>& text, const string& name);
+void read_text_from_file(Array<String>& text, const String& name);
 
-void replace_all(string& s, const string& what, const string& with);
+void replace_all(String& s, const String& what, const String& with);
 
 
 
@@ -79,14 +79,14 @@ void replace_all(string& s, const string& what, const string& with);
 void write_array_of_matrix_to_stream(ostream& os,
                                      const ArrayofMatrix& am);
 
-void write_array_of_matrix_to_file(const string& filename,
+void write_array_of_matrix_to_file(const String& filename,
                                    const ArrayofMatrix& am);
 
 void read_array_of_matrix_from_stream(ArrayofMatrix& am,
                                       istream& is);
 
 void read_array_of_matrix_from_file(ArrayofMatrix& am,
-                                    const string& filename);
+                                    const String& filename);
 
 
 
@@ -94,21 +94,21 @@ void read_array_of_matrix_from_file(ArrayofMatrix& am,
 //   STRING IO routines for ASCII files
 ////////////////////////////////////////////////////////////////////////////
 
-void write_array_of_string_to_stream(
+void write_array_of_String_to_stream(
               ostream&         os,
-        const Arrayofstring&   as );
+        const ArrayofString&   as );
 
-void write_array_of_string_to_file(
-        const string&          filename,
-        const Arrayofstring&   as );
+void write_array_of_String_to_file(
+        const String&          filename,
+        const ArrayofString&   as );
 
-void read_array_of_string_from_stream(
-        Arrayofstring&   as,
+void read_array_of_String_from_stream(
+        ArrayofString&   as,
         istream&         is );
 
-void read_array_of_string_from_file(
-           Arrayofstring&   as,
-     const string&          filename );
+void read_array_of_String_from_file(
+           ArrayofString&   as,
+     const String&          filename );
 
 
 
@@ -118,15 +118,15 @@ void read_array_of_string_from_file(
 
 void binfile_open_out(
               int&      fid,
-        const string&   filename );
+        const String&   filename );
 
 void binfile_open_in(
               int&      fid,
-        const string&   filename );
+        const String&   filename );
 
 void binfile_close(
               int&      fid,
-        const string&   filename );
+        const String&   filename );
 
 
 
@@ -135,112 +135,112 @@ void binfile_close(
 ////////////////////////////////////////////////////////////////////////////
 
 void binfile_write_index(
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
         const size_t&   x,
-        const string&   dataname );
+        const String&   dataname );
 
 void binfile_read_index(
               size_t&   x,
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
-        const string&   dataname );
+        const String&   dataname );
 
 void binfile_write_numeric(
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
         const Numeric&  x,
-        const string&   dataname );
+        const String&   dataname );
 
 void binfile_read_numeric(
               Numeric&  x,
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
-        const string&   dataname );
+        const String&   dataname );
 
 void binfile_write_vector(
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
         const Vector&   x,
-        const string&   dataname );
+        const String&   dataname );
 
 void binfile_read_vector(
               Vector&   x,
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
-        const string&   dataname );
+        const String&   dataname );
 
 void binfile_write_matrix(
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
         const Matrix&   x,
-        const string&   dataname );
+        const String&   dataname );
 
 void binfile_read_matrix(
               Matrix&   x,
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
-        const string&   dataname );
+        const String&   dataname );
 
 void binfile_write_indexarray(
-        const string&         filename,
+        const String&         filename,
         const int&            fid,
         const Arrayofsizet&   x,
-        const string&         dataname );
+        const String&         dataname );
 
 void binfile_read_indexarray(
               Arrayofsizet&   x,
-        const string&         filename,
+        const String&         filename,
         const int&            fid,
-        const string&         dataname );
+        const String&         dataname );
 
 void binfile_write_vectorarray(
-        const string&          filename,
+        const String&          filename,
         const int&             fid,
         const ArrayofVector&   x,
-        const string&          dataname );
+        const String&          dataname );
 
 void binfile_read_vectorarray(
               ArrayofVector&   x,
-        const string&          filename,
+        const String&          filename,
         const int&             fid,
-	const string&          dataname );
+	const String&          dataname );
 
 void binfile_write_matrixarray(
-        const string&          filename,
+        const String&          filename,
         const int&             fid,
         const ArrayofMatrix&   x,
-        const string&          dataname );
+        const String&          dataname );
 
 void binfile_read_matrixarray(
               ArrayofMatrix&   x,
-        const string&          filename,
+        const String&          filename,
         const int&             fid,
-        const string&          dataname );
+        const String&          dataname );
 
-void binfile_write_string(
-        const string&   filename,
+void binfile_write_String(
+        const String&   filename,
         const int&      fid,
-        const string&   s,
-        const string&   dataname );
+        const String&   s,
+        const String&   dataname );
 
-void binfile_read_string(
-              string&   x,
-        const string&   filename,
+void binfile_read_String(
+              String&   x,
+        const String&   filename,
         const int&      fid,
-        const string&   dataname );
+        const String&   dataname );
 
-void binfile_write_stringarray(
-        const string&          filename,
+void binfile_write_Stringarray(
+        const String&          filename,
         const int&             fid,
-        const Arrayofstring&   x,
-        const string&          dataname );
+        const ArrayofString&   x,
+        const String&          dataname );
 
-void binfile_read_stringarray(
-              Arrayofstring&   x,
-        const string&          filename,
+void binfile_read_Stringarray(
+              ArrayofString&   x,
+        const String&          filename,
         const int&             fid,
-        const string&          dataname );
+        const String&          dataname );
 
 
 #endif

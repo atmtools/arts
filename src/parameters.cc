@@ -127,7 +127,7 @@ bool get_parameters(int argc, char **argv)
     "                    it simply prints a list of all variables.\n"
     "                    If it is given the name of a method, it\n"
     "                    prints all variables needed by this method.\n"
-    "-d, --describe      Print the description string of the given\n"
+    "-d, --describe      Print the description String of the given\n"
     "                    workspace variable or method.\n"
     "-g  --groups        List all workspace variable groups.";
 
@@ -140,7 +140,7 @@ bool get_parameters(int argc, char **argv)
   // getopt. But since the GNU getopt source code is included with
   // ARTS, why not use this feature?)
   //
-  string shortopts;
+  String shortopts;
   {
     int i=0;
     while (NULL != longopts[i].name )
@@ -229,7 +229,7 @@ bool get_parameters(int argc, char **argv)
   // Get them one by one.
   while ( optind < argc )
     {
-      string dummy=argv[optind];
+      String dummy=argv[optind];
       parameters.controlfiles.push_back(dummy);
       optind++;
     }

@@ -8,7 +8,7 @@ int main()
   try
     {
       // We need group names and WSV data:
-      extern const Array<string> wsv_group_names;
+      extern const Array<String> wsv_group_names;
       extern const Array<WsvRecord> wsv_data;
 
       // Initialize:

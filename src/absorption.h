@@ -51,22 +51,22 @@ public:
   LineshapeRecord(){};
 
   /** Initializing constructor, used to build the lookup table. */
-  LineshapeRecord(const string& name,
-		  const string& description,
+  LineshapeRecord(const String& name,
+		  const String& description,
 		  lsf_type      function)
     : mname(name),
       mdescription(description),
       mfunction(function)
   { /* Nothing to do here. */ }
   /** Return the name of this lineshape. */
-  const string&  Name()        const { return mname;        }   
+  const String&  Name()        const { return mname;        }   
   /** Return the description text. */
-  const string&  Description() const { return mdescription; }
+  const String&  Description() const { return mdescription; }
   /** Return pointer to lineshape function. */
   lsf_type Function() const { return mfunction; }
 private:	
-  string  mname;        ///< Name of the function (e.g., Lorentz).
-  string  mdescription; ///< Short description.
+  String  mname;        ///< Name of the function (e.g., Lorentz).
+  String  mdescription; ///< Short description.
   lsf_type mfunction;   ///< Pointer to lineshape function.
 
 };
@@ -91,22 +91,22 @@ public:
   LineshapeNormRecord(){};
 
   /** Initializing constructor, used to build the lookup table. */
-  LineshapeNormRecord(const string& name,
-		      const string& description,
+  LineshapeNormRecord(const String& name,
+		      const String& description,
 		      lsnf_type      function)
     : mname(name),
       mdescription(description),
       mfunction(function)
   { /* Nothing to do here. */ }
   /** Return the name of this lineshape. */
-  const string&  Name()        const { return mname;        }   
+  const String&  Name()        const { return mname;        }   
   /** Return the description text. */
-  const string&  Description() const { return mdescription; }
+  const String&  Description() const { return mdescription; }
   /** Return pointer to lineshape normalization function. */
   lsnf_type Function() const { return mfunction; }
 private:	
-  string  mname;        ///< Name of the function (e.g., linear).
-  string  mdescription; ///< Short description.
+  String  mname;        ///< Name of the function (e.g., linear).
+  String  mdescription; ///< Short description.
   lsnf_type mfunction;  ///< Pointer to lineshape normalization function.
 };
 
@@ -165,7 +165,7 @@ public:
   /** Default constructor. Needed by make_array. */
   IsotopeRecord() { /* Nothing to do here */ }
   /** Constructor that sets the values. */
-  IsotopeRecord(const string&  	  name,
+  IsotopeRecord(const String&  	  name,
 		const Numeric& 	  abundance,
 		const Numeric& 	  mass,
 		const int&     	  mytrantag,
@@ -196,7 +196,7 @@ public:
   }
 
   /** Isotope name. */
-  const string&       Name()         const { return mname;  }
+  const String&       Name()         const { return mname;  }
   /** Normal abundance ( = isotopic ratio). (Absolute number.) */
   const Numeric&      Abundance()    const { return mabundance; }
   /** Mass of the isotope. (In unified atomic mass units u)
@@ -245,7 +245,7 @@ private:
   // this is only the prototyping
   Numeric CalculatePartitionFctAtTemp( Numeric temperature ) const;
 
-  string mname;
+  String mname;
   Numeric mabundance;
   Numeric mmass;
   int mmytrantag;
@@ -313,14 +313,14 @@ public:
 #endif // #ifndef NDEBUG
   }
 
-  const string&               Name()     const { return mname;     }   
+  const String&               Name()     const { return mname;     }   
   int                         Degfr()    const { return mdegfr;    }
   const Array<IsotopeRecord>& Isotope()  const { return misotope;  }
   Array<IsotopeRecord>&       Isotope()        { return misotope;  }
   
 private:
   /** Species name. */
-  string mname;
+  String mname;
   /** Degrees of freedom. */
   int mdegfr;
   /** Isotope data. */
@@ -334,7 +334,7 @@ private:
     file must start with ARTSCAT-x. The current version is x=2. Files
     with different or missing version will be rejected. The current
     version is stored in the private member variable mversion. It can
-    be read with member function Version, which returns a string
+    be read with member function Version, which returns a String
     `ARTSCAT-x'. 
 
     After the version tag (ARTSCAT-x), ARTS outputs the number of
@@ -400,7 +400,7 @@ private:
 
     For the error fields (15-21), a -1 means that no value exist.
 
-    Fields 22-29 are string inside quotes ("") for maximum flexibility.
+    Fields 22-29 are String inside quotes ("") for maximum flexibility.
 
     A valid ARTS line file would be:
     \verbatim
@@ -497,8 +497,8 @@ public:
     species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 ) ;
   }
 
-  /** Return the version string. */
-  string Version() const
+  /** Return the version String. */
+  String Version() const
   {
     ostringstream os;
     os << "ARTSCAT-" << mversion;
@@ -517,7 +517,7 @@ public:
   /** The full name of the species and isotope. E.g., `O3-666'. The
       name is found by looking up the information in species_data,
       using the species and isotope index. */
-  string Name() const {
+  String Name() const {
     // The species lookup data:
     extern const Array<SpeciesRecord> species_data;
     const SpeciesRecord& sr = species_data[mspecies];
@@ -679,7 +679,7 @@ public:
     The MYTRAN format is as follows (FORTRAN notation):
     FORMAT(I2,I1,F13.4,1PE10.3,0P2F5.2,F10.4,2F4.2,F8.6,F6.4,2I3,2A9,4I1,3I2)
    
-    Each item is defined below, with its FORMAT string shown in
+    Each item is defined below, with its FORMAT String shown in
     parenthesis.
    
        MO  (I2)      = molecule number
@@ -912,12 +912,12 @@ public:
   /** Default constructor. */
   OneTag() { /* Nothing to be done here. */ }
 
-  /** Constructor from a tag definition string (Bredbeck
+  /** Constructor from a tag definition String (Bredbeck
       notation). For examples see member function Name(). 
 
-      \exception runtime_error The given string could not be mapped to
+      \exception runtime_error The given String could not be mapped to
       a sensible tag description. */
-  OneTag(string def); 
+  OneTag(String def); 
 
   /** Return the full name of this tag according to Bredbeck
       convention. Examples:
@@ -926,7 +926,7 @@ public:
       O3-666-*-*       : All O3-666 lines
       O3-*-500e9-501e9 : All O3 lines between 500 and 501 GHz.
       \endverbatim */
-  string Name() const;
+  String Name() const;
     
   /** Molecular species index. */
   size_t Species() const { return mspecies; }
@@ -975,17 +975,17 @@ ostream& operator << (ostream& os, const OneTag& ot);
 typedef  Array< Array<OneTag> > TagGroups;
 
 
-void get_tagindex_for_strings( 
+void get_tagindex_for_Strings( 
               Arrayofsizet&   tags1_index, 
         const TagGroups&      tags1, 
-        const Arrayofstring&  tags2_strings );
+        const ArrayofString&  tags2_Strings );
 
 void get_tag_group_index_for_tag_group( 
               size_t&         tags1_index, 
         const TagGroups&      tags1, 
         const Array<OneTag>&  tags2 );
 
-string get_tag_group_name( const Array<OneTag>& tg );
+String get_tag_group_name( const Array<OneTag>& tg );
 
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,

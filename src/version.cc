@@ -22,11 +22,10 @@
    commit', however minor your change may be.
  */
 
-#include <string>
-#include "config.h"
-#define SUBVERSION "201"
+#include "arts.h"
+#define SUBVERSION "202"
 
-string subversion = SUBVERSION;
-string full_name  = static_cast<string>(PACKAGE)
+String subversion = SUBVERSION;
+String full_name  = static_cast<String>(PACKAGE)
   + "-" + VERSION + "." + SUBVERSION;
 

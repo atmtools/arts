@@ -8,7 +8,7 @@ int
 main()
 {
   Index n = 5;
-  Array<string> a(n);
+  Array<String> a(n);
   Array<bool>   b(n);
 
   cout << "Int limits: " << INT_MIN << ", " << INT_MAX << "\n";
@@ -57,7 +57,7 @@ main()
   cout << "a: " << a << "\n";
 
   // Copy a:
-  Array<string> aa(n);
+  Array<String> aa(n);
   copy(a,aa);
   cout << "aa: " << aa << "\n";
   

@@ -121,10 +121,10 @@ void Test( )
 // This function shall be modified to handle Index
 void IndexWriteAscii(
         const int&      v,
-        const string&   v_name,
-	const string&   f )
+        const String&   v_name,
+	const String&   f )
 {
-  string filename = f;
+  String filename = f;
 
   // Create default filename if empty  
   filename_ascii( filename, v_name );
@@ -140,10 +140,10 @@ void IndexWriteAscii(
 // This function shall be modified to handle Index
 void IndexReadAscii(
 	      int&      v,
-        const string&   v_name,
-	const string&   f )
+        const String&   v_name,
+	const String&   f )
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, v_name );
@@ -179,11 +179,11 @@ void IndexReadAscii(
 // This function shall be modified to handle Index
 void IndexWriteBinary(
 	const int&      v,
-        const string&   var_name,
-	const string&   f )
+        const String&   var_name,
+	const String&   f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
   binfile_write_index( filename, fid, v, "Index" );
@@ -201,12 +201,12 @@ void IndexWriteBinary(
 // This function shall be modified to handle Index
 void IndexReadBinary(
 	      int&      v,
-        const string&   var_name,
-	const string&   f )
+        const String&   var_name,
+	const String&   f )
 {
   size_t vtemp;  //To be removed
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
   binfile_read_index( vtemp, filename, fid, "Index" );
@@ -220,10 +220,10 @@ void IndexReadBinary(
 
 void NumericWriteAscii(
         const Numeric&  v,
-        const string&   v_name,
-	const string&   f )
+        const String&   v_name,
+	const String&   f )
 {
-  string filename = f;
+  String filename = f;
 
   // Create default filename if empty  
   filename_ascii( filename, v_name );
@@ -238,10 +238,10 @@ void NumericWriteAscii(
 
 void NumericReadAscii(
 	      Numeric&  v,
-        const string&   v_name,
-	const string&   f )
+        const String&   v_name,
+	const String&   f )
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, v_name );
@@ -269,11 +269,11 @@ void NumericReadAscii(
 */
 void NumericWriteBinary(
         const Numeric&  v,
-        const string&   var_name,
-	const string&   f )
+        const String&   var_name,
+	const String&   f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
   binfile_write_numeric( filename, fid, v, "NUMERIC" );
@@ -290,11 +290,11 @@ void NumericWriteBinary(
 */
 void NumericReadBinary(
 	      Numeric&  v,
-        const string&   var_name,
-	const string&   f )
+        const String&   var_name,
+	const String&   f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
   binfile_read_numeric( v, filename, fid, "NUMERIC" );
@@ -308,11 +308,11 @@ void NumericReadBinary(
 void VectorWriteAscii(// WS Output:
 		       const Vector& v,
 		       // WS Variable Names:
-		       const string& v_name,
+		       const String& v_name,
 		       // Control Parameters:
-		       const string& f)
+		       const String& f)
 {
-  string filename = f;
+  String filename = f;
 
   // Create default filename if empty  
   filename_ascii( filename, v_name );
@@ -334,11 +334,11 @@ void VectorWriteAscii(// WS Output:
 void VectorReadAscii(// WS Generic Output:
 			Vector& v,
 			// WS Generic Output Names:
-			const string& v_name,
+			const String& v_name,
 			// Control Parameters:
-			const string& f)
+			const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, v_name );
@@ -367,11 +367,11 @@ void VectorReadAscii(// WS Generic Output:
 */
 void VectorWriteBinary(
         const Vector&  v,
-        const string&  var_name,
-	const string&  f )
+        const String&  var_name,
+	const String&  f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
   binfile_write_vector( filename, fid, v, "Vector" );
@@ -388,11 +388,11 @@ void VectorWriteBinary(
 */
 void VectorReadBinary(
 	      Vector&  v,
-        const string&  var_name,
-	const string&  f )
+        const String&  var_name,
+	const String&  f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
   binfile_read_vector( v, filename, fid, "Vector" );
@@ -406,11 +406,11 @@ void VectorReadBinary(
 void MatrixWriteAscii(// WS Generic Input:
 		       const Matrix& m,
 		       // WS Generic Input Names:
-		       const string& m_name,
+		       const String& m_name,
 		       // Control Parameters:
-		       const string& f)
+		       const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, m_name );
@@ -427,11 +427,11 @@ void MatrixWriteAscii(// WS Generic Input:
 void MatrixReadAscii(// WS Generic Output:
 			Matrix& m,
 			// WS Generic Output Names:
-			const string& m_name,
+			const String& m_name,
 			// Control Parameters:
-			const string& f)
+			const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, m_name );
@@ -460,11 +460,11 @@ void MatrixReadAscii(// WS Generic Output:
 */
 void MatrixWriteBinary(
         const Matrix&  v,
-        const string&  var_name,
-	const string&  f )
+        const String&  var_name,
+	const String&  f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
   binfile_write_matrix( filename, fid, v, "Matrix" );
@@ -481,11 +481,11 @@ void MatrixWriteBinary(
 */
 void MatrixReadBinary(
 	      Matrix&  v,
-        const string&  var_name,
-	const string&  f )
+        const String&  var_name,
+	const String&  f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
   binfile_read_matrix( v, filename, fid, "Matrix" );
@@ -499,10 +499,10 @@ void MatrixReadBinary(
 // This function shall be modified to handle ArrayofIndex
 void ArrayOfIndexWriteAscii(
         const Arrayofsizet&   v,
-        const string&         v_name,
-	const string&         f )
+        const String&         v_name,
+	const String&         f )
 {
-  string filename = f;
+  String filename = f;
 
   // Create default filename if empty  
   filename_ascii( filename, v_name );
@@ -520,10 +520,10 @@ void ArrayOfIndexWriteAscii(
 // This function shall be modified to handle Index
 void ArrayOfIndexReadAscii(
 	      Arrayofsizet&   v,
-        const string&         v_name,
-	const string&         f )
+        const String&         v_name,
+	const String&         f )
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, v_name );
@@ -563,11 +563,11 @@ void ArrayOfIndexReadAscii(
 */
 void ArrayOfIndexWriteBinary(
         const Arrayofsizet&  v,
-        const string&        var_name,
-	const string&        f )
+        const String&        var_name,
+	const String&        f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
   binfile_write_indexarray( filename, fid, v, "IndexArray" );
@@ -584,11 +584,11 @@ void ArrayOfIndexWriteBinary(
 */
 void ArrayOfIndexReadBinary(
 	      Arrayofsizet&  v,
-        const string&        var_name,
-	const string&        f )
+        const String&        var_name,
+	const String&        f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
   binfile_read_indexarray( v, filename, fid, "IndexArray" );
@@ -602,11 +602,11 @@ void ArrayOfIndexReadBinary(
 void ArrayOfVectorWriteAscii(// WS Output:
 			      const ArrayofVector& av,
 			      // WS Variable Names:
-			      const string& av_name,
+			      const String& av_name,
 			      // Control Parameters:
-			      const string& f)
+			      const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, av_name );
@@ -629,11 +629,11 @@ void ArrayOfVectorWriteAscii(// WS Output:
 void ArrayOfVectorReadAscii(// WS Generic Output:
 			       ArrayofVector& av,
 			       // WS Generic Output Names:
-			       const string& av_name,
+			       const String& av_name,
 			       // Control Parameters:
-			       const string& f)
+			       const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, av_name );
@@ -660,11 +660,11 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
 */
 void ArrayOfVectorWriteBinary(
         const ArrayofVector&  v,
-        const string&         var_name,
-	const string&         f )
+        const String&         var_name,
+	const String&         f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
   binfile_write_vectorarray( filename, fid, v, "Vector" );
@@ -681,11 +681,11 @@ void ArrayOfVectorWriteBinary(
 */
 void ArrayOfVectorReadBinary(
 	      ArrayofVector&  v,
-        const string&         var_name,
-	const string&         f )
+        const String&         var_name,
+	const String&         f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
   binfile_read_vectorarray( v, filename, fid, "Vector" );
@@ -699,11 +699,11 @@ void ArrayOfVectorReadBinary(
 void ArrayOfMatrixWriteAscii(// WS Generic Input:
 			      const ArrayofMatrix& am,
 			      // WS Generic Input Names:
-			      const string& am_name,
+			      const String& am_name,
 			      // Control Parameters:
-			      const string& f)
+			      const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, am_name );
@@ -717,11 +717,11 @@ void ArrayOfMatrixWriteAscii(// WS Generic Input:
 void ArrayOfMatrixReadAscii(// WS Generic Output:
 			       ArrayofMatrix& am,
 			       // WS Generic Output Names:
-			       const string& am_name,
+			       const String& am_name,
 			       // Control Parameters:
-			       const string& f)
+			       const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, am_name );
@@ -740,11 +740,11 @@ void ArrayOfMatrixReadAscii(// WS Generic Output:
 */
 void ArrayOfMatrixWriteBinary(
         const ArrayofMatrix&  v,
-        const string&         var_name,
-	const string&         f )
+        const String&         var_name,
+	const String&         f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
   binfile_write_matrixarray( filename, fid, v, "Matrix" );
@@ -761,11 +761,11 @@ void ArrayOfMatrixWriteBinary(
 */
 void ArrayOfMatrixReadBinary(
 	      ArrayofMatrix&  v,
-        const string&         var_name,
-	const string&         f )
+        const String&         var_name,
+	const String&         f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
   binfile_read_matrixarray( v, filename, fid, "Matrix" );
@@ -777,46 +777,46 @@ void ArrayOfMatrixReadBinary(
 //=== STRING ===============================================================
 
 void StringWriteAscii( // WS Generic Input:
-		       const string& s,
+		       const String& s,
 		       // WS Generic Input Names:
-		       const string& s_name,
+		       const String& s_name,
 		       // Control Parameters:
-		       const string& f)
+		       const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, s_name );
 
-  // Convert the string to an array of string:
-  Arrayofstring as(1);
+  // Convert the String to an array of String:
+  ArrayofString as(1);
   as[0] = s;
 
   // Write the array of matrix to the file.
-  write_array_of_string_to_file(filename,as);
+  write_array_of_String_to_file(filename,as);
 }
 
 
 
 void StringReadAscii(   // WS Generic Output:
-			string& s,
+			String& s,
 			// WS Generic Output Names:
-			const string& s_name,
+			const String& s_name,
 			// Control Parameters:
-			const string& f)
+			const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, s_name );
 
   // Read the array of matrix from the file:
-  Arrayofstring as;
-  read_array_of_string_from_file(as,filename);
+  ArrayofString as;
+  read_array_of_String_from_file(as,filename);
 
-  // Convert the array of string to a string.
+  // Convert the array of String to a String.
   if ( 1 != as.size() )
-   throw runtime_error("You tried to convert an array of string to a string,\n"
+   throw runtime_error("You tried to convert an array of String to a String,\n"
                        "but the dimension of the array is not 1.");
 
   s = as[0];
@@ -831,15 +831,15 @@ void StringReadAscii(   // WS Generic Output:
    \date   2000-?-?
 */
 void StringWriteBinary(
-        const string&  v,
-        const string&  var_name,
-	const string&  f )
+        const String&  v,
+        const String&  var_name,
+	const String&  f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_string( filename, fid, v, "STRING" );
+  binfile_write_String( filename, fid, v, "STRING" );
   binfile_close( fid, filename );
 }
 
@@ -852,54 +852,54 @@ void StringWriteBinary(
    \date   2000-?-?
 */
 void StringReadBinary(
-	      string&  v,
-        const string&  var_name,
-	const string&  f )
+	      String&  v,
+        const String&  var_name,
+	const String&  f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_string( v, filename, fid, "STRING" );
+  binfile_read_String( v, filename, fid, "STRING" );
   binfile_close( fid, filename );
 }
 
 
 
-//=== Arrayofstring ====================================================
+//=== ArrayofString ====================================================
 
 void ArrayOfStringWriteAscii( // WS Generic Input:
-			      const Arrayofstring& as,
+			      const ArrayofString& as,
 			      // WS Generic Input Names:
-			      const string& as_name,
+			      const String& as_name,
 			      // Control Parameters:
-			      const string& f)
+			      const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, as_name );
 
   // Write the array of matrix to the file.
-  write_array_of_string_to_file(filename,as);
+  write_array_of_String_to_file(filename,as);
 }
 
 
 
 void ArrayOfStringReadAscii(   // WS Generic Output:
-			       Arrayofstring& as,
+			       ArrayofString& as,
 			       // WS Generic Output Names:
-			       const string& as_name,
+			       const String& as_name,
 			       // Control Parameters:
-			       const string& f)
+			       const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, as_name );
 
   // Read the array of matrix from the file:
-  read_array_of_string_from_file(as,filename);
+  read_array_of_String_from_file(as,filename);
 }
 
 
@@ -911,15 +911,15 @@ void ArrayOfStringReadAscii(   // WS Generic Output:
    \date   2000-?-?
 */
 void ArrayOfStringWriteBinary(
-        const Arrayofstring&  v,
-        const string&         var_name,
-	const string&         f )
+        const ArrayofString&  v,
+        const String&         var_name,
+	const String&         f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_stringarray( filename, fid, v, "STRING" );
+  binfile_write_Stringarray( filename, fid, v, "STRING" );
   binfile_close( fid, filename );
 }
 
@@ -932,15 +932,15 @@ void ArrayOfStringWriteBinary(
    \date   2000-?-?
 */
 void ArrayOfStringReadBinary(
-	      Arrayofstring&  v,
-        const string&         var_name,
-	const string&         f )
+	      ArrayofString&  v,
+        const String&         var_name,
+	const String&         f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_stringarray( v, filename, fid, "STRING" );
+  binfile_read_Stringarray( v, filename, fid, "STRING" );
   binfile_close( fid, filename );
 }
 
@@ -951,9 +951,9 @@ void ArrayOfStringReadBinary(
 void SymmetricWriteAscii(// WS Generic Input:
 		       const SYMMETRIC& m,
 		       // WS Generic Input Names:
-		       const string& m_name,
+		       const String& m_name,
 		       // Control Parameters:
-		       const string& f)
+		       const String& f)
 {
   const Index   n = m.nrows();
   
@@ -969,9 +969,9 @@ void SymmetricWriteAscii(// WS Generic Input:
 void SymmetricReadAscii(// WS Generic Output:
 			SYMMETRIC& m,
 			// WS Generic Output Names:
-			const string& m_name,
+			const String& m_name,
 			// Control Parameters:
-			const string& f)
+			const String& f)
 {
   Matrix   x;
 
@@ -989,9 +989,9 @@ void SymmetricReadAscii(// WS Generic Output:
 void SymmetricWriteBinary(// WS Generic Input:
 		       const SYMMETRIC& m,
 		       // WS Generic Input Names:
-		       const string& m_name,
+		       const String& m_name,
 		       // Control Parameters:
-		       const string& f)
+		       const String& f)
 {
   const Index   n = m.nrows();
   
@@ -1007,9 +1007,9 @@ void SymmetricWriteBinary(// WS Generic Input:
 void SymmetricReadBinary(// WS Generic Output:
 			SYMMETRIC& m,
 			// WS Generic Output Names:
-			const string& m_name,
+			const String& m_name,
 			// Control Parameters:
-			const string& f)
+			const String& f)
 {
   Matrix   x;
 
@@ -1035,11 +1035,11 @@ void SymmetricReadBinary(// WS Generic Output:
 void HmatrixReadAscii(// WS Generic Output:
 			Hmatrix& h,
 			// WS Generic Output Names:
-			const string& h_name,
+			const String& h_name,
 			// Control Parameters:
-			const string& f)
+			const String& f)
 {
-  string filename = f;
+  String filename = f;
  
   // Create default filename if empty  
   filename_ascii( filename, h_name );
@@ -1065,11 +1065,11 @@ void HmatrixReadAscii(// WS Generic Output:
 */
 void LosWriteBinary(
         const LOS&      los,
-        const string&   var_name,
-	const string&   f )
+        const String&   var_name,
+	const String&   f )
 {
   int    fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
 
   binfile_open_out( fid, filename );
@@ -1093,11 +1093,11 @@ void LosWriteBinary(
 */
 void LosReadBinary(
 	      LOS&      los,
-        const string&   var_name,
-	const string&   f )
+        const String&   var_name,
+	const String&   f )
 {
   int   fid;
-  string filename = f;
+  String filename = f;
   filename_bin( filename, var_name );
 
   binfile_open_in( fid, filename );
@@ -1132,7 +1132,7 @@ void LosReadBinary(
 void IntSet(// WS Generic Output:
             int& x,
             // WS Generic Output Names:
-            const string& x_name,
+            const String& x_name,
             // Control Parameters:
             const int& value)
 {
@@ -1153,7 +1153,7 @@ void IntSet(// WS Generic Output:
 void NumericSet(// WS Generic Output:
                 Numeric& x,
                 // WS Generic Output Names:
-                const string& x_name,
+                const String& x_name,
                 // Control Parameters:
                 const Numeric& value)
 {
@@ -1172,10 +1172,10 @@ void NumericCopyFirstOfVector(
                 // WS Generic Output:
                       Numeric&  x,
                 // WS Generic Output Names:
-                const string&   x_name,
+                const String&   x_name,
                 // Control Parameters:
                 const Vector&   v,
-                const string&   v_name )
+                const String&   v_name )
 {
   x = v[0];
   out3 << "  Setting " << x_name << " to the first value of " << v_name << ".\n";
@@ -1192,7 +1192,7 @@ void NumericCopyFirstOfVector(
    \date   2000-?-?
 */
 void VectorSet(           Vector&  x, 
-                    const string&  x_name,
+                    const String&  x_name,
                     const int&     n,
                     const Numeric& value )
 {
@@ -1213,9 +1213,9 @@ void VectorSet(           Vector&  x,
 */
 void VectorSetLengthFromVector(
               Vector&  x, 
-        const string&  x_name,
+        const String&  x_name,
         const Vector&  z,
-        const string&  z_name,
+        const String&  z_name,
         const Numeric& value )
 {
   const size_t  n = z.size();
@@ -1235,7 +1235,7 @@ void VectorSetLengthFromVector(
    \date   2000-?-?
 */
 void VectorLinSpace(      Vector&  x, 
-                    const string&  x_name,
+                    const String&  x_name,
                     const Numeric& start,
                     const Numeric& stop,
                     const Numeric& step )
@@ -1260,7 +1260,7 @@ void VectorLinSpace(      Vector&  x,
    \date   2000-?-?
 */
 void VectorNLinSpace(     Vector&  x, 
-                    const string&  x_name,
+                    const String&  x_name,
                     const Numeric& start,
                     const Numeric& stop,
                     const int& n )
@@ -1285,7 +1285,7 @@ void VectorNLinSpace(     Vector&  x,
    \date   2000-?-?
 */
 void VectorNLogSpace(     Vector&  x, 
-                    const string&  x_name,
+                    const String&  x_name,
                     const Numeric& start,
                     const Numeric& stop,
                     const int&     n )
@@ -1302,9 +1302,9 @@ void VectorNLogSpace(     Vector&  x,
 
 void VectorCopy(
                       Vector&   y2,
-                const string&   name_y2,
+                const String&   name_y2,
                 const Vector&   y1,
-                const string&   name_y1 )
+                const String&   name_y1 )
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
   resize( y2, y1.size() );
@@ -1320,9 +1320,9 @@ void VectorCopy(
    \date   2001-06-12
 */void VectorFlip(
                       Vector&   y2,
-                const string&   name_y2,
+                const String&   name_y2,
                 const Vector&   y1,
-                const string&   name_y1 )
+                const String&   name_y1 )
 {
   out2 << "  Flips " << name_y2 << " to create " << name_y1 << "\n";
 
@@ -1340,9 +1340,9 @@ void VectorCopy(
 
 void VectorCopyFromArrayOfVector(
                       Vector&          v,
-                const string&          v_name,
+                const String&          v_name,
                 const ArrayofVector&   va,
-                const string&          va_name,
+                const String&          va_name,
                 const int&             i )
 {
   if ( i < 0 )
@@ -1370,9 +1370,9 @@ void VectorCopyFromArrayOfVector(
 */
 void VectorPlanck(
                     Vector&   y,
-              const string&   y_name,
+              const String&   y_name,
               const Vector&   f,
-              const string&   f_name,
+              const String&   f_name,
               const Numeric&  t )
 {
   if ( t > 0 )
@@ -1395,9 +1395,9 @@ void VectorPlanck(
 */
 void VectorCalcLog10(
                     Vector&   out,
-              const string&   out_name,
+              const String&   out_name,
               const Vector&   in,
-              const string&   in_name )
+              const String&   in_name )
 {
   out2<<"  " << out_name << " = log10( " << in_name << " )\n";
 
@@ -1415,9 +1415,9 @@ void VectorCalcLog10(
 */
 void VectorAdd(
                     Vector&   out,
-              const string&   out_name,
+              const String&   out_name,
               const Vector&   in,
-              const string&   in_name,
+              const String&   in_name,
               const Numeric&  value )
 {
   out2<<"  " << out_name << " = " << in_name << " + " << value << "\n";
@@ -1441,9 +1441,9 @@ void VectorAdd(
 */
 void VectorScale(
                     Vector&   out,
-              const string&   out_name,
+              const String&   out_name,
               const Vector&   in,
-              const string&   in_name,
+              const String&   in_name,
               const Numeric&  value )
 {
   out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
@@ -1468,7 +1468,7 @@ void VectorScale(
 */
 void VectorRandUniform(
                     Vector&   y,
-              const string&   y_name,
+              const String&   y_name,
               const Numeric&  x_low,
               const Numeric&  x_high,
               const int&      n )
@@ -1488,7 +1488,7 @@ void VectorRandUniform(
 */
 void VectorRandGaussian(
                     Vector&   y,
-              const string&   y_name,
+              const String&   y_name,
               const Numeric&  stddev,
               const int&      n )
 {
@@ -1508,7 +1508,7 @@ void VectorRandGaussian(
    \date   2001-02-21
 */
 void MatrixSet(           Matrix&  x, 
-                    const string&  x_name,
+                    const String&  x_name,
                     const int&     nrows,
                     const int&     ncols,
                     const Numeric& value )
@@ -1525,9 +1525,9 @@ void MatrixSet(           Matrix&  x,
 
 void MatrixCopy(
               Matrix&   y2,
-        const string&   name_y2,
+        const String&   name_y2,
         const Matrix&   y1,
-        const string&   name_y1 )
+        const String&   name_y1 )
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
   resize( y2, y1.nrows(), y1.ncols() );
@@ -1538,9 +1538,9 @@ void MatrixCopy(
 
 void MatrixFillWithVector(
               Matrix&   m,
-        const string&   name_m,
+        const String&   name_m,
         const Vector&   y,
-        const string&   name_y,
+        const String&   name_y,
         const int&      n )
 {
   out2 << "  Creates" << name_m << " by copying " << name_y << n << "times.\n";
@@ -1560,9 +1560,9 @@ void MatrixFillWithVector(
 */
 void MatrixScale(
                     Matrix&   out,
-              const string&   out_name,
+              const String&   out_name,
               const Matrix&   in,
-              const string&   in_name,
+              const String&   in_name,
               const Numeric&  value )
 {
   out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
@@ -1592,9 +1592,9 @@ void MatrixScale(
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void StringSet(           string&  s, 
-                    const string&  s_name,
-                    const string&  s2 )
+void StringSet(           String&  s, 
+                    const String&  s_name,
+                    const String&  s2 )
 {
   s = s2;
   out3 << "  Setting " << s_name << " to " << s2 << "\n"; 
@@ -1611,9 +1611,9 @@ void StringSet(           string&  s,
    \date   2000-?-?
 */
 void ArrayOfStringSet(    
-              Arrayofstring&  sa, 
-        const string&         sa_name,
-        const Arrayofstring&  sa2 )
+              ArrayofString&  sa, 
+        const String&         sa_name,
+        const ArrayofString&  sa2 )
 {
   resize(sa,sa2.size());
   copy(sa2,sa);
@@ -1632,7 +1632,7 @@ void ArrayOfStringSet(
 */
 void SymmetricDiagonal(
                           SYMMETRIC&  x, 
-                    const string&     x_name,
+                    const String&     x_name,
                     const int&        nrows,
                     const Numeric&    value )
 {
@@ -1647,9 +1647,9 @@ void SymmetricDiagonal(
 
 void SymmetricCopy(
            SYMMETRIC&   y2,
-        const string&   name_y2,
+        const String&   name_y2,
      const SYMMETRIC&   y1,
-        const string&   name_y1 )
+        const String&   name_y1 )
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
   resize( y2, y1.nrows(), y1.ncols() );

@@ -1879,7 +1879,7 @@ void PWR93O2AbsModel( Matrix&           xsec,
     \date   2001-01-16
     \author Stefan Buehler */
 void xsec_continuum_tag( Matrix&                    xsec,
-			 const string&              name,
+			 const String&              name,
 			 const Vector&              parameters,
 			 const Vector&  	    f_mono,
 			 const Vector&  	    p_abs,
@@ -2771,13 +2771,13 @@ void xsec_continuum_tag( Matrix&                    xsec,
    \author Stefan Buehler
    \date   2001-03-12
 */
-void check_continuum_model(const string& name)
+void check_continuum_model(const String& name)
 {
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
 
   // For the list of valid continuum models:
-  Array<string> valid_models;
+  Array<String> valid_models;
 
   bool found = false;
 
@@ -2786,21 +2786,21 @@ void check_continuum_model(const string& name)
 	i<species_data.end();
 	++i )
     {
-      string specnam = i->Name();
+      String specnam = i->Name();
 
       // Loop all isotopes:
       for ( Array<IsotopeRecord>::const_iterator j=i->Isotope().begin();
 	    j<i->Isotope().end();
 	    ++j )
 	{
-	  string isonam = j->Name();
+	  String isonam = j->Name();
 
 	  // The specified name consists of a species part and an
 	  // isotope part, e.g., H2O-ContStandardSelf. We need to
-	  // construct a similar string from the species lookup data
+	  // construct a similar String from the species lookup data
 	  // by concatenating species name and isotope name.
 
-	  string fullnam = specnam + "-" + isonam;
+	  String fullnam = specnam + "-" + isonam;
 	  //	  cout << fullnam << "\n";
 
 	  // See if this is a continuum tag, so that we can add it to
@@ -2822,9 +2822,9 @@ void check_continuum_model(const string& name)
   if (!found)
     {
       ostringstream os;
-      os << "The string `" << name << "' matches none of the known\n"
+      os << "The String `" << name << "' matches none of the known\n"
 	 << "continuum models. Known continuum models are:";
-      for ( Array<string>::const_iterator i=valid_models.begin();
+      for ( Array<String>::const_iterator i=valid_models.begin();
 	    i<valid_models.end();
 	    ++i )
 	{

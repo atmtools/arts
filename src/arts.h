@@ -96,6 +96,11 @@ typedef double Numeric;
     reason. Always use this type instead.  */
 typedef size_t Index;
 
+//--------------------< Set string type >--------------------
+/** The type to use for all strings. This is just to have consistent
+    notation for all the atomic ARTS types. */ 
+typedef string String;
+
 
 //--------------------< Set NDEBUG? >--------------------
 /* Define this in order to turn off all debuggin features (TNT range

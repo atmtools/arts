@@ -203,10 +203,10 @@
 
 void spec(Array<SpeciesRecord>::iterator& is,
 	  Array<IsotopeRecord>::iterator& ii,
-	  string name);
+	  String name);
 
 void iso(Array<IsotopeRecord>::iterator& ii,
-	 string name,
+	 String name,
 	 const Array<Numeric>& coeff);
 
 
@@ -756,7 +756,7 @@ void define_partition_species_data()
 
 void spec(Array<SpeciesRecord>::iterator& is,
 	  Array<IsotopeRecord>::iterator& ii,
-	  string name)
+	  String name)
 {
   
 #ifndef NDEBUG
@@ -773,7 +773,7 @@ void spec(Array<SpeciesRecord>::iterator& is,
 
 
 void iso(Array<IsotopeRecord>::iterator& ii,
-	 string name,
+	 String name,
 	 const Array<Numeric>& coeff)
 {
 #ifndef NDEBUG

@@ -238,7 +238,7 @@ void sDiagonal(
 void sDiagonalLengthFromVector(
         SYMMETRIC&          s,
         const Vector&    grid,
-        const string&    grid_name,
+        const String&    grid_name,
         const Numeric&   stddev)
 {
   const Vector   sdev(2,stddev);
@@ -266,8 +266,8 @@ void sDiagonalLengthFromVectors(
         SYMMETRIC&          s,
         const Vector&    grid1,
         const Vector&    grid2,
-        const string&    grid1_name,
-        const string&    grid2_name,
+        const String&    grid1_name,
+        const String&    grid2_name,
         const Numeric&   stddev)
 {
   const Vector   sdev(2,stddev);
@@ -316,7 +316,7 @@ void sSimple(
 void sSimpleLengthFromVector(
            SYMMETRIC&    s,
         const Vector&    grid,
-        const string&    grid_name,
+        const String&    grid_name,
         const Numeric&   stddev,
         const int&       corrfun,
         const Numeric&   cutoff,
@@ -343,8 +343,8 @@ void sSimpleLengthFromVectors(
            SYMMETRIC&    s,
         const Vector&    grid1,
         const Vector&    grid2,
-        const string&    grid1_name,
-        const string&    grid2_name,
+        const String&    grid1_name,
+        const String&    grid2_name,
         const Numeric&   stddev,
         const int&       corrfun,
         const Numeric&   cutoff,
@@ -385,8 +385,8 @@ void sSimpleLengthFromVectors(
 void sFromFile(
            SYMMETRIC&    s,
         const Vector&    grid,
-        const string&    grid_name,
-        const string&    filename )
+        const String&    grid_name,
+        const String&    filename )
 {
   ArrayofMatrix   am;
          Vector   kp, sdev, clength;
@@ -450,7 +450,7 @@ void sFromFile(
 */
 void CovmatrixInit(
            SYMMETRIC&   s,
-        const string&   s_name)
+        const String&   s_name)
 {
   out2 << " Initializes " << s_name << "\n";
   resize(s,0,0);

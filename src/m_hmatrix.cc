@@ -182,11 +182,11 @@ void h_diff (
 
 void VectorApplyH(
               Vector&     y2, 
-        const string&     name_y2,
+        const String&     name_y2,
         const Hmatrix&    h,
         const Vector&     y1,
-        const string&     name_h,
-        const string&     name_y1 )
+        const String&     name_h,
+        const String&     name_y1 )
 {
   out2<<"  "<<name_y2<<"="<<name_h<<"*"<<name_y1<<"\n";
 
@@ -215,11 +215,11 @@ void VectorApplyH(
 
 void MatrixApplyH(
               Matrix&     k2, 
-        const string&     name_k2,
+        const String&     name_k2,
         const Hmatrix&    h,
         const Matrix&     k1,
-        const string&     name_h,
-        const string&     name_k1 )
+        const String&     name_h,
+        const String&     name_k1 )
 {
   out2<<"  "<<name_k2<<"="<<name_h<<"*"<<name_k1<<"\n";
 

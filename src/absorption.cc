@@ -35,7 +35,7 @@
 
 
 /** The map associated with species_data. */
-std::map<string, size_t> SpeciesMap;
+std::map<String, size_t> SpeciesMap;
 
 
 // member fct of isotoperecord, calculates the partition fct at the
@@ -60,7 +60,7 @@ Numeric IsotopeRecord::CalculatePartitionFctAtTemp( Numeric
 void define_species_map()
 {
   extern const Array<SpeciesRecord> species_data;
-  extern std::map<string, size_t> SpeciesMap;
+  extern std::map<String, size_t> SpeciesMap;
 
   for ( size_t i=0 ; i<species_data.size() ; ++i)
     {
@@ -113,16 +113,16 @@ ostream& operator << (ostream& os, const LineRecord& lr)
     \author Stefan Buehler */
 template<class T>
 void extract(T&      x,
-	     string& line,
+	     String& line,
 	     size_t  n)
 {
   // Initialize output to zero! This is important, because otherwise
   // the output variable could `remember' old values.
   x = T(0);
   
-  // This will contain the short substring with the item to extract.
-  // Make it a string stream, for easy parsing,
-  // extracting substring of width n from line:
+  // This will contain the short subString with the item to extract.
+  // Make it a String stream, for easy parsing,
+  // extracting subString of width n from line:
   istringstream item( line.substr(0,n) );
 
 //  cout << "line = '" << line << "'\n";
@@ -133,7 +133,7 @@ void extract(T&      x,
   line.erase(0,n);
 //  cout << "line = " << line << endl;
 
-  // Convert with the aid of string stream item:
+  // Convert with the aid of String stream item:
   item >> x;
 }
 
@@ -231,9 +231,9 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 	{
 	  if ( missing != hspec[i] )
 	    {
-	      // The explicit conversion of Name to a c-string is
+	      // The explicit conversion of Name to a c-String is
 	      // necessary, because setw does not work correctly for
-	      // stl strings.
+	      // stl Strings.
 	      out3 << "  mo = " << i << "   Species = "
 		   << setw(10) << setiosflags(ios::left)
 		   << species_data[hspec[i]].Name().c_str()
@@ -256,7 +256,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
   // extract stuff from the beginning.
-  string line;
+  String line;
 
   // The first item is the molecule number:
   size_t mo;
@@ -594,9 +594,9 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 	{
 	  if ( missing != hspec[i] )
 	    {
-	      // The explicit conversion of Name to a c-string is
+	      // The explicit conversion of Name to a c-String is
 	      // necessary, because setw does not work correctly for
-	      // stl strings.
+	      // stl Strings.
 	      out3 << "  mo = " << i << "   Species = "
 		   << setw(10) << setiosflags(ios::left)
 		   << species_data[hspec[i]].Name().c_str()
@@ -619,7 +619,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
   // extract stuff from the beginning.
-  string line;
+  String line;
 
   // The first item is the molecule number:
   size_t mo;
@@ -880,9 +880,9 @@ bool LineRecord::ReadFromJplStream(istream& is)
 		  JplMap[sr.Isotope()[j].JplTags()[k]] = indicies;
 
 		  // Print the generated data structures (for debugging):
-		  // The explicit conversion of Name to a c-string is
+		  // The explicit conversion of Name to a c-String is
 		  // necessary, because setw does not work correctly for
-		  // stl strings.
+		  // stl Strings.
 		  const size_t& i1 = JplMap[sr.Isotope()[j].JplTags()[k]].Speciesindex();
 		  const size_t& i2 = JplMap[sr.Isotope()[j].JplTags()[k]].Isotopeindex();
 					 
@@ -903,7 +903,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
   // This contains the rest of the line to parse. At the beginning the
   // entire line. Line gets shorter and shorter as we continue to
   // extract stuff from the beginning.
-  string line;
+  String line;
 
 
 
@@ -1104,8 +1104,8 @@ bool LineRecord::ReadFromArtsStream(istream& is)
 
   // We need a species index sorted by Arts identifier. Keep this in a
   // static variable, so that we have to do this only once.  The ARTS
-  // species index is ArtsMap[<Arts string>]. 
-  static map<string, SpecIsoMap> ArtsMap;
+  // species index is ArtsMap[<Arts String>]. 
+  static map<String, SpecIsoMap> ArtsMap;
 
   // Remeber if this stuff has already been initialized:
   static bool hinit = false;
@@ -1124,14 +1124,14 @@ bool LineRecord::ReadFromArtsStream(istream& is)
 	    {
 	      
 	      SpecIsoMap indicies(i,j);
-	      string buf = sr.Name()+"-"+sr.Isotope()[j].Name();
+	      String buf = sr.Name()+"-"+sr.Isotope()[j].Name();
 	      
 	      ArtsMap[buf] = indicies;
 	      
 	      // Print the generated data structures (for debugging):
-	      // The explicit conversion of Name to a c-string is
+	      // The explicit conversion of Name to a c-String is
 	      // necessary, because setw does not work correctly for
-	      // stl strings.
+	      // stl Strings.
 	      const size_t& i1 = ArtsMap[buf].Speciesindex();
 	      const size_t& i2 = ArtsMap[buf].Isotopeindex();
 					 
@@ -1151,7 +1151,7 @@ bool LineRecord::ReadFromArtsStream(istream& is)
   // This always contains the rest of the line to parse. At the
   // beginning the entire line. Line gets shorter and shorter as we
   // continue to extract stuff from the beginning.
-  string line;
+  String line;
 
   // Look for more comments?
   bool comment = true;
@@ -1182,10 +1182,10 @@ bool LineRecord::ReadFromArtsStream(istream& is)
     }
 
 
-  // read the arts identifier string
+  // read the arts identifier String
   istringstream icecream(line);
 
-  string artsid;
+  String artsid;
   icecream >> artsid;
 
   if (artsid.length() != 0)
@@ -1193,7 +1193,7 @@ bool LineRecord::ReadFromArtsStream(istream& is)
 
       // ok, now for the cool index map:
       // is this arts identifier valid?
-      const map<string, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
+      const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
       if ( i == ArtsMap.end() )
 	{
 	  ostringstream os;
@@ -1269,14 +1269,14 @@ bool LineRecord::ReadFromArtsStream(istream& is)
 
 
 
-OneTag::OneTag(string def) 
+OneTag::OneTag(String def) 
 {
   // Species lookup data:
   extern const Array<SpeciesRecord> species_data;
   // The species map. This is used to find the species id.
-  extern std::map<string, size_t> SpeciesMap;
+  extern std::map<String, size_t> SpeciesMap;
   // Name of species and isotope (aux variables):
-  string name, isoname;
+  String name, isoname;
   // Aux index:
   size_t n;
 
@@ -1310,7 +1310,7 @@ OneTag::OneTag(string def)
 //  cout << "name / def = " << name << " / " << def << endl;
 
   // Look for species name in species map:
-  map<string, size_t>::const_iterator mi = SpeciesMap.find(name);
+  map<String, size_t>::const_iterator mi = SpeciesMap.find(name);
   if ( mi != SpeciesMap.end() )
     {
       // Ok, we've found the species. Set mspecies.
@@ -1362,7 +1362,7 @@ OneTag::OneTag(string def)
   else
     {
       // Make an array containing the isotope names:
-      Array<string> ins;
+      Array<String> ins;
       for ( size_t i=0; i<spr.Isotope().size(); ++i )
 	ins.push_back( spr.Isotope()[i].Name() );
 
@@ -1402,8 +1402,8 @@ OneTag::OneTag(string def)
   n    = def.find('-');    // find the '-'
   if (n < def.size() )
     {
-      // Frequency as a string:
-      string fname;
+      // Frequency as a String:
+      String fname;
       fname = def.substr(0,n);              // Extract before '-'
       def.erase(0,n+1);		      // Remove from def
 
@@ -1445,7 +1445,7 @@ OneTag::OneTag(string def)
 }
 
 
-string OneTag::Name() const 
+String OneTag::Name() const 
 {
   // Species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -1513,40 +1513,40 @@ ostream& operator << (ostream& os, const OneTag& ot)
 
 
 /** 
-   Returns the index among some tag groups for an array of tag strings. 
+   Returns the index among some tag groups for an array of tag Strings. 
    
    \begin{verbatim}
    For example, if tags1 correspond to the definition
      ["O3","H2O-161,H2O-162"]
-   and the tag strings are
+   and the tag Strings are
      ["H2O-161,H2O-162","O3"]
    the tags1_index becomes
      [2,1]
    \end{verbatim}
 
-   @exception runtime_error  Some string is not a valid tag item.
-   @exception runtime_error  Not all strings are not found among the tags.
+   @exception runtime_error  Some String is not a valid tag item.
+   @exception runtime_error  Not all Strings are not found among the tags.
 
-   \retval tags1_index     Index in tags1 for tags2_strings
+   \retval tags1_index     Index in tags1 for tags2_Strings
    \param  tags1           The tags to search in.
-   \param  tags2_strings   The tag strings for which indeces shall be found.
+   \param  tags2_Strings   The tag Strings for which indeces shall be found.
 
    \author Patrick Eriksson 
    \date 2000-12-06
 */
-void get_tagindex_for_strings( 
+void get_tagindex_for_Strings( 
               Arrayofsizet&   tags1_index, 
         const TagGroups&      tags1, 
-	const Arrayofstring&  tags2_strings )
+	const ArrayofString&  tags2_Strings )
 {
   const size_t   n1 = tags1.size();
-  const size_t   n2 = tags2_strings.size();
-     TagGroups   tags2;                // Internal tag names for tag_strings
+  const size_t   n2 = tags2_Strings.size();
+     TagGroups   tags2;                // Internal tag names for tag_Strings
         size_t   i1, i2, nj, j, found, ok;
 
   resize(tags1_index,n2);
-  //  cout << "tags2_strings: " << tags2_strings << "\n";
-  tgsDefine( tags2, tags2_strings );
+  //  cout << "tags2_Strings: " << tags2_Strings << "\n";
+  tgsDefine( tags2, tags2_Strings );
 
   for ( i2=0; i2<n2; i2++ )
   {
@@ -1572,7 +1572,7 @@ void get_tagindex_for_strings(
     if ( !found )
     {
       ostringstream os;
-      os << "The tag string \"" << tags2_strings[i2] << 
+      os << "The tag String \"" << tags2_Strings[i2] << 
             "\" does not match any of the given tags.\n";
       throw runtime_error(os.str());
     }
@@ -1581,7 +1581,7 @@ void get_tagindex_for_strings(
 
 
 /** Returns the index of the tag group tg2 within the array of tag
-    groups tgs1. Slightly modified copy of get_tagindex_for_strings.
+    groups tgs1. Slightly modified copy of get_tagindex_for_Strings.
    
     @exception runtime_error  Could not find tg2 in tgs1.
    
@@ -1623,7 +1623,7 @@ void get_tag_group_index_for_tag_group( size_t&               tgs1_index,
   if ( !found )
     {
       ostringstream os;
-      os << "The tag string \"" << tg2 << 
+      os << "The tag String \"" << tg2 << 
 	"\" does not match any of the given tags.\n";
       throw runtime_error(os.str());
     }
@@ -1634,7 +1634,7 @@ void get_tag_group_index_for_tag_group( size_t&               tgs1_index,
    Print the name of a tag group. 
 
    A tag group consists of several elementary OneTags. This functions
-   returns a string with the name of the entire tag group. This is
+   returns a String with the name of the entire tag group. This is
    nice for informational output messages, for example in the
    absorption routines.
 
@@ -1644,9 +1644,9 @@ void get_tag_group_index_for_tag_group( size_t&               tgs1_index,
    \author Stefan Buehler
    \date   2001-03-13
 */
-string get_tag_group_name( const Array<OneTag>& tg )
+String get_tag_group_name( const Array<OneTag>& tg )
 {
-  string name;
+  String name;
   size_t i;
   
   for ( i=0; i<tg.size()-1; ++i )
@@ -1674,7 +1674,7 @@ void write_lines_to_stream(ostream& os,
   // version tag from dummy.Version, even if the line list is empty.
   LineRecord dummy;
 
-  // Output version string first, followed by number of lines:
+  // Output version String first, followed by number of lines:
   os << dummy.Version() << " " << lines.size() << "\n";
 
   // Now output the line data:

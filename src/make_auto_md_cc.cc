@@ -24,7 +24,7 @@
 
 
 /* Adds commas and indentation to parameter lists. */
-void align(ofstream& ofs, bool& is_first_parameter, const string& indent)
+void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
 {
   // Add comma and line break, if not first element:
   if (is_first_parameter)
@@ -43,7 +43,7 @@ int main()
     {
       // Make the global data visible:
       extern Array<MdRecord> md_data;
-      extern const Array<string> wsv_group_names;
+      extern const Array<String> wsv_group_names;
       extern const Array<WsvRecord> wsv_data;
 
       // Initialize method data.
@@ -100,9 +100,9 @@ int main()
 	  // This is needed to flag the first function parameter, which 
 	  // needs no line break before being written:
 	  bool is_first_parameter = true;
-	  // The string indent is needed to achieve the correct
+	  // The String indent is needed to achieve the correct
 	  // indentation of the functin parameters:
-	  string indent = string(md_data[i].Name().size()+3,' ');;
+	  String indent = String(md_data[i].Name().size()+3,' ');;
 	  
 	  // There are four lists of parameters that we have to
 	  // write. 
@@ -237,7 +237,7 @@ int main()
 
       // Add getaways, the array that hold pointers to the getaway functions:
       {
-	string indent = "     ";
+	String indent = "     ";
 	bool is_first_parameter = true;
 
 	ofs << "// The array holding the pointers to the getaway functions.\n"

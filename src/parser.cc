@@ -23,7 +23,7 @@
 #include "methods.h"
 #include "parser.h"
 
-void SourceText::AppendFile(const string& name) 
+void SourceText::AppendFile(const String& name) 
 {
   mSfLine.push_back(mText.size());
   mSfName.push_back(name);
@@ -82,7 +82,7 @@ void SourceText::AdvanceLine()
 }
 
 
-const string& SourceText::File()
+const String& SourceText::File()
 {
   size_t i    = 0;
   bool   stop = false;
@@ -231,7 +231,7 @@ void eat_whitespace(SourceText& text)
   
     Whitespace has to have been eaten before. Scanns text for the
     name, starting at position specified by line and column. */
-void read_name(string& name, SourceText& text)
+void read_name(String& name, SourceText& text)
 {
   bool stop = false;
   name = "";
@@ -276,15 +276,15 @@ void assertain_character(char c, SourceText& text)
   text.AdvanceChar();
 }
 
-/** Reads a string, complete with quotation marks. Whitespace has to
+/** Reads a String, complete with quotation marks. Whitespace has to
     have been eaten before, that is, the current character must be
     the quotation mark (").
-    Quotation marks inside strings are currently not possible.
+    Quotation marks inside Strings are currently not possible.
   
-    Line breaks inside strings are not allowed. 
+    Line breaks inside Strings are not allowed. 
 
     @exception IllegalLinebreak An illegal linebreak has occured. */
-void parse_string(string& res, SourceText& text)
+void parse_String(String& res, SourceText& text)
 {
   bool stop = false;
   res = "";
@@ -292,7 +292,7 @@ void parse_string(string& res, SourceText& text)
   text.LineBreak() = false;
   assertain_character('"',text);
   if ( text.LineBreak() )
-    throw IllegalLinebreak( "Line break before end of string.",
+    throw IllegalLinebreak( "Line break before end of String.",
 			    text.File(),
 			    text.Line(),
 			    text.Column() ); 
@@ -306,7 +306,7 @@ void parse_string(string& res, SourceText& text)
 	  text.AdvanceChar();
 
 	  if ( text.LineBreak() )
-	    throw IllegalLinebreak( "Line break before end of string.",
+	    throw IllegalLinebreak( "Line break before end of String.",
 				    text.File(),
 				    text.Line(),
 				    text.Column() ); 
@@ -329,7 +329,7 @@ void parse_string(string& res, SourceText& text)
 
     @exception IllegalLinebreak An illegal linebreak has occured. 
     @exception UnexpectedChar Unexpected character encountered. */
-void read_integer(string& res, SourceText& text)
+void read_integer(String& res, SourceText& text)
 {
   bool stop = false;
   res = "";
@@ -387,7 +387,7 @@ void read_integer(string& res, SourceText& text)
 
     @exception IllegalLinebreak Illegal line break.
     @exception ParseError Cannot parse this as a number. */
-void read_numeric(string& res, SourceText& text)
+void read_numeric(String& res, SourceText& text)
 {
   bool stop;
   res = "";
@@ -488,46 +488,46 @@ void read_numeric(string& res, SourceText& text)
       
       // Now there must be an integer (with optional sign)
       {
-	string s;
+	String s;
 	read_integer(s,text);
 	res += s;
       }
     }
 }
 
-/** Use a string stream to parse an integer number. */
+/** Use a String stream to parse an integer number. */
 void parse_integer(int& n, SourceText& text)
 {
-  string res;
+  String res;
   read_integer(res, text);
   istringstream is(res);
   is >> n;
 }
 
-/** Use a string stream to parse a floating point number. */
+/** Use a String stream to parse a floating point number. */
 void parse_numeric(Numeric& n, SourceText& text)
 {
-  string res;
+  String res;
   read_numeric(res, text);
   istringstream is(res);
   is >> n;
 }
 
-/** Read a vector of strings. This looks as follows in the control
-    file: ["string1","string2"]
+/** Read a vector of Strings. This looks as follows in the control
+    file: ["String1","String2"]
 
     Whitespace has to have been eaten before, that is, the current
     character must be `['.
   
     The empty vector is allowed.
   
-    Quotation marks inside strings are currently not possible.
+    Quotation marks inside Strings are currently not possible.
   
-    Line breaks are allowed before and after each string. Line breaks
-    inside strings are not allowed. 
+    Line breaks are allowed before and after each String. Line breaks
+    inside Strings are not allowed. 
    
-    @see parse_string */
-void parse_stringvector(Array<string>& res, SourceText& text)
+    @see parse_String */
+void parse_Stringvector(Array<String>& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
   resize(res,0);			// Clear the result vector (just in case).
@@ -542,7 +542,7 @@ void parse_stringvector(Array<string>& res, SourceText& text)
   // reached the end):
   while ( ']' != text.Current() )
     {
-      string dummy;
+      String dummy;
 
       if (first)
 	first = false;
@@ -552,7 +552,7 @@ void parse_stringvector(Array<string>& res, SourceText& text)
 	  eat_whitespace(text);
 	}
 
-      parse_string(dummy, text);
+      parse_String(dummy, text);
       res.push_back(dummy);
       eat_whitespace(text);
     }
@@ -662,10 +662,10 @@ void parse_numvector(Vector& res, SourceText& text)
     @see read_name
     @see eat_whitespace
     @see assertain_character
-    @see parse_string
+    @see parse_String
     @see parse_integer
     @see parse_numeric
-    @see parse_stringvector
+    @see parse_Stringvector
     @see parse_intvector
     @see parse_numvector
    
@@ -680,12 +680,12 @@ bool parse_method(size_t& id,
 		  Array<size_t>& output,
 		  Array<size_t>& input,
 		  SourceText& text,
-		  const std::map<string, size_t> MdMap,
-		  const std::map<string, size_t> WsvMap)
+		  const std::map<String, size_t> MdMap,
+		  const std::map<String, size_t> WsvMap)
 {
   extern const Array<WsvRecord> wsv_data;
   extern const Array<MdRecord> md_data;
-  extern const Array<string> wsv_group_names;
+  extern const Array<String> wsv_group_names;
 
   size_t wsvid;			// Workspace variable id, is used to
 				// access data in wsv_data.
@@ -697,12 +697,12 @@ bool parse_method(size_t& id,
   resize( input,  0 );
 
   {
-    string methodname;
+    String methodname;
     read_name(methodname, text);
 
     {
       // Find method id:
-      const map<string, size_t>::const_iterator i = MdMap.find(methodname);
+      const map<String, size_t>::const_iterator i = MdMap.find(methodname);
       if ( i == MdMap.end() )
 	throw UnknownMethod(methodname,
 			    text.File(),
@@ -722,7 +722,7 @@ bool parse_method(size_t& id,
   if ( 0 < md_data[id].GOutput().size() + md_data[id].GInput().size() )
     {
       //      cout << "Generic!" << id << md_data[id].Name() << '\n';
-      string wsvname;
+      String wsvname;
       bool first = true;	// To skip the first comma.
 
       assertain_character('(',text);
@@ -743,7 +743,7 @@ bool parse_method(size_t& id,
 
 	  {
 	    // Find Wsv id:
-	    const map<string, size_t>::const_iterator i = WsvMap.find(wsvname);
+	    const map<String, size_t>::const_iterator i = WsvMap.find(wsvname);
 	    if ( i == WsvMap.end() )
 	      throw UnknownWsv( wsvname,
 				text.File(),
@@ -784,7 +784,7 @@ bool parse_method(size_t& id,
 
 	  {
 	    // Find Wsv id:
-	    const map<string, size_t>::const_iterator i = WsvMap.find(wsvname);
+	    const map<String, size_t>::const_iterator i = WsvMap.find(wsvname);
  	    if ( i == WsvMap.end() )
  	      throw UnknownWsv( wsvname,
  				text.File(),
@@ -842,7 +842,7 @@ bool parse_method(size_t& id,
       else  
 	{      // Look for the keywords and read the parameters:
 	  
-	  string keyname;
+	  String keyname;
 	  read_name(keyname,text);
 
 	  // Is the keyname the expected keyname?
@@ -862,14 +862,14 @@ bool parse_method(size_t& id,
 	}
 
       // Now parse the key value. This can be:
-      // string_t,    int_t,    Numeric_t,
-      // Array_string_t, Array_int_t, Vector_t,
+      // String_t,    int_t,    Numeric_t,
+      // Array_String_t, Array_int_t, Vector_t,
       switch (md_data[id].Types()[i]) 
 	{
-	case string_t:
+	case String_t:
 	  {
-	    string dummy;
-	    parse_string(dummy, text);
+	    String dummy;
+	    parse_String(dummy, text);
 	    values.push_back(dummy);
 	    break;
 	  }
@@ -887,10 +887,10 @@ bool parse_method(size_t& id,
 	    values.push_back(n);
 	    break;
 	  }
-	case Array_string_t:
+	case Array_String_t:
 	  {
-	    Array<string> dummy;
-	    parse_stringvector(dummy, text);
+	    Array<String> dummy;
+	    parse_Stringvector(dummy, text);
 	    values.push_back(dummy);
 	    break;
 	  }
@@ -950,8 +950,8 @@ bool parse_method(size_t& id,
    @author Stefan Buehler */
 void parse(Array<MRecord>& tasklist,
 	   SourceText& text,
-	   const std::map<string, size_t> MdMap,
-	   const std::map<string, size_t> WsvMap)
+	   const std::map<String, size_t> MdMap,
+	   const std::map<String, size_t> WsvMap)
 {
   extern const Array<MdRecord> md_data;
   bool last = false;
@@ -1028,8 +1028,8 @@ void parse_main(Array<MRecord>& tasklist, SourceText& text)
 {
   //  extern const Array<MdRecord> md_data;
   //  extern const Array<WsvRecord> wsv_data;
-  extern const std::map<string, size_t> MdMap;
-  extern const std::map<string, size_t> WsvMap;
+  extern const std::map<String, size_t> MdMap;
+  extern const std::map<String, size_t> WsvMap;
 
   try 
     {

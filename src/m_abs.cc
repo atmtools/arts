@@ -45,7 +45,7 @@
 void linesReadFromHitran(// WS Output:
                          ArrayofLineRecord& lines,
                           // Control Parameters:
-                         const string& filename,
+                         const String& filename,
                          const Numeric& fmin,
                          const Numeric& fmax)
 {
@@ -82,7 +82,7 @@ void linesReadFromHitran(// WS Output:
 void linesReadFromMytran2(// WS Output:
 			  ArrayofLineRecord& lines,
                           // Control Parameters:
-			  const string& filename,
+			  const String& filename,
 			  const Numeric& fmin,
 			  const Numeric& fmax)
 {
@@ -115,7 +115,7 @@ void linesReadFromMytran2(// WS Output:
 void linesReadFromJpl(// WS Output:
 		      ArrayofLineRecord& lines,
 		      // Control Parameters:
-		      const string& filename,
+		      const String& filename,
 		      const Numeric& fmin,
 		      const Numeric& fmax)
 {
@@ -153,7 +153,7 @@ void linesReadFromJpl(// WS Output:
 void linesReadFromArts(// WS Output:
 		       ArrayofLineRecord& lines,
 		       // Control Parameters:
-		       const string& filename,
+		       const String& filename,
 		       const Numeric& fmin,
 		       const Numeric& fmax)
 {
@@ -169,13 +169,13 @@ void linesReadFromArts(// WS Output:
 
   // Get version tag and check that it corresponds to the current version.
   {
-    string v;
+    String v;
     is >> v;
     if ( v!=lr.Version() )
       {
 	ostringstream os;
 	
-	// If what we read is the version string, it should have at elast 9 characters.
+	// If what we read is the version String, it should have at elast 9 characters.
 	if ( 9 <= v.size() )
 	  {
 	    if ( "ARTSCAT" == v.substr(0,7) )
@@ -276,8 +276,8 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 				    // WS Input:
 				    const TagGroups& tgs,
                                     // Control Parameters:
-                                    const Array<string>& filenames,
-                                    const Array<string>& formats,
+                                    const Array<String>& filenames,
+                                    const Array<String>& formats,
                                     const Vector& fmin,
                                     const Vector& fmax)
 {
@@ -335,8 +335,8 @@ void lines_per_tgReadFromCatalogues(// WS Output:
   // real catalogues, along with an data structure that tells us which
   // tag groups should use this catalogue.
 
-  Array< string > real_filenames ( 1, filenames[0]    );
-  Array< string > real_formats   ( 1, formats[0]      );
+  Array< String > real_filenames ( 1, filenames[0]    );
+  Array< String > real_formats   ( 1, formats[0]      );
   Vector real_fmin               ( 1, fmin[0]         );
   Vector real_fmax               ( 1, fmax[0]         );
 
@@ -728,14 +728,14 @@ void lines_per_tgCompact(// WS Output:
 void linesWriteAscii(// WS Input:
 		      const ArrayofLineRecord& lines,
 		      // Control Parameters:
-		      const string& f)
+		      const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // If filename is empty then set the default filename:
   if ( "" == filename )
     {
-      extern const string basename;                       
+      extern const String basename;                       
       filename = basename+".lines.aa";
     }
 
@@ -751,14 +751,14 @@ void linesWriteAscii(// WS Input:
 void lines_per_tgWriteAscii(// WS Input:
 			      const ArrayofArrayofLineRecord& lines_per_tg,
 			      // Control Parameters:
-			      const string& f)
+			      const String& f)
 {
-  string filename = f;
+  String filename = f;
   
   // If filename is empty then set the default filename:
   if ( "" == filename )
     {
-      extern const string basename;                       
+      extern const String basename;                       
       filename = basename+".lines_per_tg.aa";
     }
 
@@ -780,22 +780,22 @@ void lines_per_tgWriteAscii(// WS Input:
 void tgsDefine(// WS Output:
 	       TagGroups& tgs,
 	       // Control Parameters:
-	       const Arrayofstring& tags)
+	       const ArrayofString& tags)
 {
   tgs = TagGroups(tags.size());
 
   //  cout << "Tags: " << tags << "\n";
 
-  // Each element of the array of strings tags defines one tag
+  // Each element of the array of Strings tags defines one tag
   // group. Let's work through them one by one.
   for ( size_t i=0; i<tags.size(); ++i )
     {
       // There can be a comma separated list of tag definitions, so we
-      // need to break the string apart at the commas.
-      Array<string> tag_def;
+      // need to break the String apart at the commas.
+      Array<String> tag_def;
 
       bool go_on = true;
-      string these_tags = tags[i];
+      String these_tags = tags[i];
       while (go_on)
 	{
 	  size_t n = these_tags.find(',');
@@ -813,7 +813,7 @@ void tgsDefine(// WS Output:
 	    }
 	}
 
-      // tag_def now holds the different tag strings for this group.
+      // tag_def now holds the different tag Strings for this group.
       //      cout << "tag_def =\n" << tag_def << endl;
 
 
@@ -860,8 +860,8 @@ void lineshapeDefine(// WS Output:
 		     ArrayofLineshapeSpec&    lineshape,
 		     // WS Input:
 		     const TagGroups&         tgs,
-		     const string&            shape,
-		     const string&            normalizationfactor,
+		     const String&            shape,
+		     const String&            normalizationfactor,
 		     const Numeric&           cutoff)
 {
   // Make lineshape and normalization factor data visible:
@@ -877,7 +877,7 @@ void lineshapeDefine(// WS Output:
   int found0=-1;
   for ( size_t i=0; i<lineshape_data.size() && (found0 == -1) ; ++i )
     {
-      const string& str = lineshape_data[i].Name();
+      const String& str = lineshape_data[i].Name();
       if (str == shape) 
 	{
 	  out2 << "  Selected lineshape: " << str << "\n";
@@ -889,7 +889,7 @@ void lineshapeDefine(// WS Output:
   int found1=-1;
   for ( size_t i=0; i<lineshape_norm_data.size() && (found1 == -1); ++i )
     {
-      const string& str = lineshape_norm_data[i].Name();
+      const String& str = lineshape_norm_data[i].Name();
       if (str == normalizationfactor) 
 	{
 	  out2 << "  Selected normalization factor  : " << normalizationfactor << "\n";
@@ -922,8 +922,8 @@ void lineshape_per_tgDefine(// WS Output:
 			    ArrayofLineshapeSpec& lineshape,
 			    // WS Input:
 			    const TagGroups&      tgs,
-			    const Arrayofstring&  shape,
-			    const Arrayofstring&  normalizationfactor,
+			    const ArrayofString&  shape,
+			    const ArrayofString&  normalizationfactor,
 			    const Vector&         cutoff )
 {
   // Make lineshape and normalization factor data visible:
@@ -952,7 +952,7 @@ void lineshape_per_tgDefine(// WS Output:
       int found0=-1;
       for ( size_t i=0; i<lineshape_data.size() && (found0 == -1); ++i )
 	{
-	  const string& str = lineshape_data[i].Name();
+	  const String& str = lineshape_data[i].Name();
 	  if (str == shape[k]) 
 	    {
 	      out2 << "  Tag Group: [";
@@ -968,7 +968,7 @@ void lineshape_per_tgDefine(// WS Output:
       int found1=-1;
       for ( size_t i=0; i<lineshape_norm_data.size() && (found1 == -1); ++i )
 	{
-	  const string& str = lineshape_norm_data[i].Name();
+	  const String& str = lineshape_norm_data[i].Name();
 	  if (str == normalizationfactor[k]) 
 	    {
 	      out2 << "  Selected normalization factor: " << normalizationfactor[k] << "\n";
@@ -1009,7 +1009,7 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
                                  // WS Input:
                                  const TagGroups&     tgs,
                                  // Control Parameters:
-                                 const string&    basename)
+                                 const String&    basename)
 {
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -1018,7 +1018,7 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
   for ( size_t i=0; i<tgs.size(); ++i )
     {
       // Determine the name.
-      string name =
+      String name =
 	basename + "." +
 	species_data[tgs[i][0].Species()].Name() + ".am";
       
@@ -1052,21 +1052,21 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
 			      // WS Input:
 			      const TagGroups& tgs,
 			      // Control Parameters:
-			      const Arrayofstring&  seltags,
-			      const Arrayofstring&  filenames,
-			      const string&         basename)
+			      const ArrayofString&  seltags,
+			      const ArrayofString&  filenames,
+			      const String&         basename)
 {
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
   //int isoflag = 0;  // wilde card set for isotope -> all isotopes
-  const string wildcard = "*";
+  const String wildcard = "*";
 
-  // check size of input string vectors.
+  // check size of input String vectors.
   assert ( filenames.size() == seltags.size() ); 
 
   for ( size_t i=0; i<tgs.size(); ++i )
     {
-      string tname = species_data[tgs[i][0].Species()].Name();
+      String tname = species_data[tgs[i][0].Species()].Name();
 
       // loop over tags.
       int flagtag = 1;
@@ -1080,15 +1080,15 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
 	      //assert ( seltags[s].find("-*") == seltags[s].rfind("-*"));
 	  
 	      // species name of actual seltags.
-	      string sname = seltags[s];
-	      string iname =  wildcard;
+	      String sname = seltags[s];
+	      String iname =  wildcard;
 	      if ((sname.find("-") > 0) && (sname.find("-") < sname.length()))
 		{
 		  sname.erase(sname.find("-"),sname.length()-1);
 		  //cout << "sname = " << sname << "\n";
 		  
 		  // species isotope name of actual seltags.
-		  string iname = seltags[s];
+		  String iname = seltags[s];
 		  iname.erase(0,iname.find("-")+1);
 		  //cout << "iname = " << iname << "\n";
 		}
@@ -1110,7 +1110,7 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
 		  //    species_data[tgs[i][0].Species()].Isotope()[k].Name() << "\n";
 		  //	}
 		  
-		  string fname = filenames[s];
+		  String fname = filenames[s];
 		  // Add an element for this tag group to the vmr profiles:
 		  raw_vmrs_1d.push_back(Matrix());
 		  
@@ -1127,7 +1127,7 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
 	{
 	  // read from base name if seltags is not find 
 	  // Determine the name.
-	  string aname = basename + "." + tname + ".am";
+	  String aname = basename + "." + tname + ".am";
 	  // Add an element for this tag group to the vmr profiles:
 	  raw_vmrs_1d.push_back(Matrix());
 	  
@@ -1176,7 +1176,7 @@ size_t WVsatinClouds( ArrayofVector&    vmrs,  // manipulates this array
   size_t u = 0;
   for ( size_t i=0; i<tgs.size(); ++i )
     {
-      string tag_name = species_data[tgs[i][0].Species()].Name();
+      String tag_name = species_data[tgs[i][0].Species()].Name();
       if (tag_name == "liquidcloud")
 	{
 	  liquid_index = i;
@@ -1373,7 +1373,7 @@ void AtmFromRaw1D(// WS Output:
 		  const Matrix&  	 raw_ptz_1d,
 		  const ArrayofMatrix&   raw_vmrs_1d,
 		  // Control Parameters:
-		  const string&          CloudSatWV)
+		  const String&          CloudSatWV)
 {
   
   //---------------< 1. Interpolation of temperature and altitude >---------------
@@ -1434,7 +1434,7 @@ void AtmFromRaw1D(// WS Output:
     // The species lookup data
     extern const Array<SpeciesRecord> species_data;
 
-    // check size of input string vectors.
+    // check size of input String vectors.
     assert ( tgs.size() == raw_vmrs_1d.size() ); 
 
     // Make vmrs the right size:
@@ -1470,7 +1470,7 @@ void AtmFromRaw1D(// WS Output:
 	resize( vmrs[j], p_abs.size() );
 	
 	// interpolation of the profiles on the predefined pressure grid
-	string tag_name = species_data[tgs[j][0].Species()].Name(); // name of the tag
+	String tag_name = species_data[tgs[j][0].Species()].Name(); // name of the tag
 	if ( (tag_name == "liquidcloud") || (tag_name == "icecloud") )
 	  {
 	    // Interpolate linearly the cloud profiles
@@ -1666,7 +1666,7 @@ void h2o_absSet(
 {
   const Index   n = tgs.size();
   int   found = -1;
-  string  s;
+  String  s;
 
   for( Index i=0; i<n && found<0; i++ ) 
   {
@@ -1695,7 +1695,7 @@ void h2o_absSet(
 void vmrsScale(
         ArrayofVector&         vmrs,
         const TagGroups&       tgs,
-        const Array<string>&   scaltgs,
+        const Array<String>&   scaltgs,
         const Vector&          scalfac)
 {
   Index                            itag;
@@ -1704,7 +1704,7 @@ void vmrsScale(
   if ( scalfac.size() != scaltgs.size()  )
     throw runtime_error("vmrScale: Number of tgs and fac are different!");
   
-  get_tagindex_for_strings( tagindex, tgs, scaltgs );
+  get_tagindex_for_Strings( tagindex, tgs, scaltgs );
 
   const Index   n = tagindex.size();
 
@@ -1737,7 +1737,7 @@ void n2_absSet(
 {
   const Index   n = tgs.size();
   int     found = -1;
-  string  s;
+  String  s;
 
   for( Index i=0; i<n && found<0; i++ ) 
   {
@@ -1795,7 +1795,7 @@ void absCalc(// WS Output:
              const ArrayofVector&            vmrs,
              const ArrayofArrayofLineRecord& lines_per_tg,
 	     const ArrayofLineshapeSpec&     lineshape,
-	     const Arrayofstring&            cont_description_names,
+	     const ArrayofString&            cont_description_names,
 	     const ArrayofVector& 	     cont_description_parameters)
 {
   // Dimension checks are performed in the executed functions
@@ -2015,7 +2015,7 @@ void xsec_per_tgAddLines(// WS Output:
     out2 << "  Calculating line spectra.\n";
     out3 << "  Transitions to do: \n";
     size_t nlines = 0;
-    string funit;
+    String funit;
     Numeric ffac;
     if ( f_mono[0] < 3e12 )
       {
@@ -2063,7 +2063,7 @@ void xsec_per_tgAddLines(// WS Output:
 	  // from the LineRecord member function Species(), and then
 	  // use this to look up the species name in species_data.
 	  extern const Array<SpeciesRecord> species_data;
-	  string species_name = species_data[ll[0].Species()].Name();
+	  String species_name = species_data[ll[0].Species()].Name();
 
 	  // Get the name of the lineshape. For that we use the member
 	  // function Ind_ls() to the lineshape data ls, which returns
@@ -2071,7 +2071,7 @@ void xsec_per_tgAddLines(// WS Output:
 	  // to get the name.
 	  // We will need this for safety checks later on.
 	  extern const Array<LineshapeRecord> lineshape_data;
-	  string lineshape_name = lineshape_data[ls.Ind_ls()].Name();
+	  String lineshape_name = lineshape_data[ls.Ind_ls()].Name();
 
 
 	  // The use of overlap parameters for oxygen lines only makes
@@ -2190,7 +2190,7 @@ void xsec_per_tgAddConts(// WS Output:
 			 const Vector&  		  n2_abs,
 			 const Vector&  		  h2o_abs,
 			 const ArrayofVector&             vmrs,
-                         const Arrayofstring&             cont_description_names,
+                         const ArrayofString&             cont_description_names,
                          const ArrayofVector& 		  cont_description_parameters )
 {
   // Check that all paramters that should have the number of tag
@@ -2277,7 +2277,7 @@ void xsec_per_tgAddConts(// WS Output:
 
 		  // Get only the continuum name. The full tag name is something like:
 		  // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
-		  const string name =
+		  const String name =
 		    species_data[tgs[i][s].Species()].Name() + "-"
 		    + species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].Name();
   
@@ -2392,9 +2392,9 @@ void abs_per_tgReduce(// WS Output:
 void refrSet( 
               int&      refr,
               int&      refr_lfac,
-              string&   refr_model,
+              String&   refr_model,
         const int&      on,
-        const string&   model,
+        const String&   model,
         const int&      lfac )
 {
   if ( !isbool( on ) )  
@@ -2418,7 +2418,7 @@ void refrSet(
 void refrOff( 
               int&      refr,
               int&      refr_lfac,
-              string&   refr_model )
+              String&   refr_model )
 {
   refrSet( refr, refr_lfac, refr_model, 0, "", 1 );
   refr_lfac = 0;
@@ -2438,7 +2438,7 @@ void refrCalc (
               const Vector&   t_abs,
               const Vector&   h2o_abs,
               const int&      refr,
-              const string&   refr_model )
+              const String&   refr_model )
 {
   if ( !isbool( refr ) )  
     throw runtime_error("The refraction flag must either be 0 or 1.");
@@ -2495,7 +2495,7 @@ void refrCalc (
    \author Stefan Buehler
    \date 2001-03-12 */
 void cont_descriptionInit(// WS Output:
-                          Arrayofstring& names,
+                          ArrayofString& names,
                           ArrayofVector& parameters)
 {
   resize(names,0);
@@ -2515,10 +2515,10 @@ void cont_descriptionInit(// WS Output:
    \author Stefan Buehler
    \date 2001-03-12 */
 void cont_descriptionAppend(// WS Output:
-		       Arrayofstring& cont_description_names,
+		       ArrayofString& cont_description_names,
 		       ArrayofVector& cont_description_parameters,
 		       // Control Parameters:
-		       const string& name,
+		       const String& name,
 		       const Vector& parameters)
 {
 

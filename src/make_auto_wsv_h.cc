@@ -45,7 +45,7 @@ int main()
 
       // Make the data visible.
       extern const Array<WsvRecord> wsv_data;
-      extern const Array<string> wsv_group_names;
+      extern const Array<String> wsv_group_names;
 
       const size_t n_wsv = wsv_data.size();
 
@@ -102,8 +102,8 @@ int main()
 	  // indendation and put everything starting from the second
 	  // sentence into a verbatim environment.  
 	  {
-	    // Local copy of the description string:
-	    string s = wsv_data[i].Description();
+	    // Local copy of the description String:
+	    String s = wsv_data[i].Description();
 
 	    // Add indentation:
 	    replace_all(s,"\n","\n    "); 
@@ -113,8 +113,8 @@ int main()
 	    // environment. Not earlier, because the first sentence
 	    // has a special meaning.
 	    size_t full_stop = s.find('.') + 1;
-	    string first(s,0,full_stop);
-	    string rest (s,full_stop);
+	    String first(s,0,full_stop);
+	    String rest (s,full_stop);
 
 	    // Remove leading whitespace and linebreaks in rest:
 	    while (

@@ -22,8 +22,8 @@
 
 /** The different token value types. These are the types that keyword
     parameters in the controlfile can have. */
-enum TokValType { string_t,    int_t,    Numeric_t,
-	          Array_string_t, Array_int_t, Vector_t,
+enum TokValType { String_t,    int_t,    Numeric_t,
+	          Array_String_t, Array_int_t, Vector_t,
                   undefined_t };
 
 /** This stores arbitrary token values and remembers the type. Only
@@ -36,15 +36,15 @@ public:
     mtype = undefined_t;
   }
 
-  /** To set TokVal from string (C - style). */
+  /** To set TokVal from String (C - style). */
   TokVal(const char s[]) {
-    mtype = string_t;
+    mtype = String_t;
     ms = s;
   }
 
-  /** To set TokVal from string (C++ - style). */
-  TokVal(const string& s) {
-    mtype = string_t;
+  /** To set TokVal from String (C++ - style). */
+  TokVal(const String& s) {
+    mtype = String_t;
     ms = s;
   }
 
@@ -60,10 +60,10 @@ public:
     mx = x;
   }
 
-  /** To set TokVal from an array of strings. */
-  TokVal(Array<string> sv) : msv(sv.size())
+  /** To set TokVal from an array of Strings. */
+  TokVal(Array<String> sv) : msv(sv.size())
   {
-    mtype = Array_string_t;
+    mtype = Array_String_t;
     copy(sv, msv);
   }
 
@@ -83,15 +83,15 @@ public:
 
   // Conversion functions to return TokVal for the 6 different types: 
   
-  /** Return string. */
-  operator string() const;
+  /** Return String. */
+  operator String() const;
   /** Return int. */
   operator int() const;
   /** Return Numeric. */
   operator Numeric() const;
 
-  /** Return array of strings. */
-  operator Array<string>() const;
+  /** Return array of Strings. */
+  operator Array<String>() const;
   /** Return array of integers. */
   operator Array<int>() const;
   /** Return Vector. */
@@ -102,10 +102,10 @@ public:
 
 private:
   TokValType mtype;
-  string       ms;
+  String       ms;
   int          mn;
   Numeric      mx;   
-  Array<string>  msv;
+  Array<String>  msv;
   Array<int>     mnv;
   Vector         mxv;
 };

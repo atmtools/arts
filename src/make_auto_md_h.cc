@@ -74,7 +74,7 @@
 
 
 /* Adds commas and indentation to parameter lists. */
-void align(ofstream& ofs, bool& is_first_parameter, const string& indent)
+void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
 {
   // Add comma and line break, if not first element:
   if (is_first_parameter)
@@ -93,7 +93,7 @@ int main()
     {
       // Make the global data visible:
       extern Array<MdRecord> md_data;
-      extern const Array<string> wsv_group_names;
+      extern const Array<String> wsv_group_names;
       extern const Array<WsvRecord> wsv_data;
 
       // Initialize method data.
@@ -159,9 +159,9 @@ int main()
 	  // needs no line break before being written:
 	  bool is_first_parameter = true;
 
-	  // The string indent is needed to achieve the correct
+	  // The String indent is needed to achieve the correct
 	  // indentation of the functin parameters:
-	  string indent(md_data[i].Name().size()+6,' ');
+	  String indent(md_data[i].Name().size()+6,' ');
 
 	  // There are four lists of parameters that we have to
 	  // write. 
@@ -261,7 +261,7 @@ int main()
 		    is_first_of_these = false;
 		  }
 
-		  ofs << "const string&";
+		  ofs << "const String&";
 	      }
 	  }
 
@@ -329,7 +329,7 @@ int main()
 		    is_first_of_these = false;
 		  }
 
-		  ofs << "const string&";
+		  ofs << "const String&";
 	      }
 	  }
 
@@ -354,7 +354,7 @@ int main()
 		    is_first_of_these = false;
 		  }
 
-		extern string TokValTypeName[];
+		extern String TokValTypeName[];
 		ofs << "const " << TokValTypeName[md_data[i].Types()[j]] << "& "
 		    << md_data[i].Keywords()[j];
 	      }

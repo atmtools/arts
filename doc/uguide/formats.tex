@@ -10,10 +10,16 @@
  
  This section defines the data types, basic mathematical operations
  and file formats supported by ARTS. The implementation of vectors,
- matrices and arrays are based on the Matrix Template Library (MTL)
- package, while files are created and read by using the Hierarchical
- Data Format (HDF). Some information and help to install these packages
- is given below.
+ matrices, and sparse matrices is based on the handmade MATPACK
+ package, which is part of the ARTS source code (files matpackI.h,
+ matpackII.h, matpackI.cc, and matpackII.cc). The implementation of
+ arrays is based on the Standard Template Library (STL).
+ 
+ FIXME: Add something about the ASCII IO format.
+
+ Binary files are created and read by using the Hierarchical Data
+ Format (HDF). Some information and help to install these packages is
+ given below.
 
 %
 % Document history, format:
@@ -25,6 +31,7 @@
 %
 \starthistory
   001027 & Started by Patrick Eriksson. \\
+  010904 & Started new text about handmade matrix/vector package.\\
 %  00???? & First version finished by ??.\\
 \stophistory
 
@@ -33,18 +40,16 @@
  \label{sec:formats:datatypes}
 
  \begin{table}[t]
-  \begin{tabular}{p{4.5cm} p{4.5cm} p{4.5cm}}
-   \verb|NUMERIC|        & \verb|INDEX|         & \verb|STRING|         \\
+  \begin{tabular}{p{4cm} p{4cm} p{4cm}}
+   \verb|Numeric|        & \verb|Index|         & \verb|String|         \\
   \end{tabular}
   \caption{The atomic data types of ARTS.}
   \label{table:format:atomic}
  \end{table}
 
  \begin{table}[t]
-  \begin{tabular}{p{4.5cm} p{4.5cm} p{4.5cm}}
-   \verb|MATRIX|         & \verb|SPARSE|         & \verb|MAYBESPARSE|    \\
-   \verb|SYMMETRIC|      & \verb|BANDEDSYM|      & \verb|COVARMATRIX|    \\
-   \verb|VECTOR|         &                       &                       \\
+  \begin{tabular}{p{4cm} p{4cm} p{4cm}}
+   \verb|Vector|         & \verb|Matrix|         & \verb|Sparse|    \\
   \end{tabular}
   \caption{Numeric vector and matrix types in ARTS for which mathematical 
            operations are defined.}
@@ -52,72 +57,73 @@
  \end{table}
 
  \begin{table}[t]
-  \begin{tabular}{p{4.5cm} p{4.5cm} p{4.5cm}}
-   \verb|ARRAYofVECTOR|  & \verb|ARRAYofMATRIX|  & \verb|ARRAYofINDEX|   \\
-   \verb|ARRAYofSTRING|  &                       &                        \\
+  \begin{tabular}{p{4cm} p{4cm} p{4cm}}
+   \verb|VectorView|         & \verb|MatrixView|         \\
+   \verb|ConstVectorView|    & \verb|ConstMatrixView|    \\
+   \verb|Range|              & \verb|Joker| \\
+  \end{tabular}
+  \caption{Auxiliary numeric data types.}
+  \label{table:format:numaux}
+ \end{table}
+
+ \begin{table}[t]
+  \begin{tabular}{p{4cm} p{4cm} p{4cm}}
+   \verb|ArrayofVector|  & \verb|ArrayofMatrix|  & \verb|ArrayofIndex|   \\
+   \verb|ArrayofString|  &                       &                        \\
   \end{tabular}
   \caption{Array containers for the atomic types.}
   \label{table:format:atomicarrays}
  \end{table}
 
 \levelc{Atomic types}
- \label{sec:formats:atomic}
-
- The most basic, the atomic, data types of ARTS are shown in Table
- \ref{table:format:atomic}. The \verb|NUMERIC| data type is either
- set to be double or float in \verb|arts.h|. If \verb|NUMERIC| is set
- to be double, the calculations will be more accurate and there is a
- smaller risk to encounter numerical problems in e.g. matrix inversions.
- On the other hand, when \verb|NUMERIC| is set to be float the calculations
- will be more rapid (about double as fast). The type selected for
- \verb|NUMERIC| is also reflected in the size of output files.
+\label{sec:formats:atomic}
  
- A variable of type \verb|INDEX| is a positive integer. This type is
- used for indexing e.g. vectors and matrices. The type is also used
- for all functions flags, i.e. to make a selction among a limited number of
- choices. Accordingly, characters or strings shall not be used flags. 
+The most basic, the atomic, data types of ARTS are shown in Table
+\ref{table:format:atomic}. The \verb|Numeric| data type is either set
+to be double or float in \verb|arts.h|. If \verb|Numeric| is set to be
+double, the calculations will be more accurate and there is a smaller
+risk to encounter numerical problems in e.g. matrix inversions.  On
+the other hand, when \verb|Numeric| is set to be float the
+calculations will be more rapid (about double as fast), and the
+program will need only half as much memory. The type selected for
+\verb|Numeric| is also reflected in the size of output files.
 
- A string is not a true ``atomic'' data type as it consists of a number
- of characters, but as characters are not used in ARTS, strings are
- the most basic text type in ARTS.
+A variable of type \verb|Index| is a positive or negative integer.
+Internally this type is set to the C data type long int.  This type is
+used for indexing e.g. vectors and matrices. The type is also used for
+all function flags, i.e. to make a selction among a limited number of
+choices. Accordingly, characters or strings shall not be used as
+flags.
+
+A \verb|String| is not a true ``atomic'' data type as it consists of a
+number of characters, but as characters are not used in ARTS, strings
+are the most basic text type in ARTS.
   
 
-
 \levelc{Numeric mathematical types}
- \label{sec:formats:nummath}
+\label{sec:formats:nummath}
  
- Numeric values can be stored in vectors or a number of matrix types
- (Table \ref{table:format:nummath}) for which mathematical operations
- are possible. The allowed operations are given in Section 
- \ref{sec:formats:maths}.
- The vectors are treated in mathematical operations as column vectors.
- 
- A \verb|MATRIX| is a general matrix and a \verb|SPARSE| is a general
- sparse matrix. The type \verb|MAYBESPARSE| is a structure type that
- allows a matrix to be either sparse or ``full''. 
- 
- Two types exist for symmetric matrices, where \verb|SYMMETRIC| is the
- general type. The banded-symmetric type (\verb|BANDEDSYM|) is
- intended for matrices where all the non-zero elements are close to
- the diagonal of the matrix. Diagonal matrices are treated as a
- special case of banded-symmetric matrices. Covariance matrices are
- symmetric matrices. The type \verb|COVARMATRIX| is a structure that
- covers both general and banded symmetric matrices and can thus be
- used efficently for most covariance matrices.
+Numeric values can be stored in vectors or matrices (Table
+\ref{table:format:nummath}) for which mathematical operations are
+possible. The allowed operations are given in Section
+\ref{sec:formats:maths}.  The vectors are treated in mathematical
+operations as column vectors.
 
- !! Write something about indexing when the switch to MTL is ready. !!
+A \verb|Matrix| is a general matrix and a \verb|Sparse| is a general
+sparse matrix. 
+
 
 
 \levelc{Arrays based on atomic types}
  \label{sec:formats:atomic_arrays}
  
- Arrays correspond to vectors but are not treated as mathematical
- objects, they are only used as containers to hold different data.
- The arrays (as vectors and matrices) have 0-based indexing, that is,
- the first element has index 0 (not 1). The existing arrays for the
- atomic data types are listed in Table \ref{table:format:atomicarrays}.
- A \verb|MATRIX| is basically an array of vectors, but if the vectors
- have different length they must be stored as an \verb|ARRAYofVECTOR|.
+Arrays correspond to vectors but are not treated as mathematical
+objects, they are only used as containers to hold different data.
+The arrays (as vectors and matrices) have 0-based indexing, that is,
+the first element has index 0 (not 1). The existing arrays for the
+atomic data types are listed in Table \ref{table:format:atomicarrays}.
+A \verb|Matrix| is basically an array of vectors, but if the vectors
+have different length they must be stored as an \verb|ARRAYofVECTOR|.
 
 
 \levelc{Other data types}
@@ -133,16 +139,16 @@
   \label{table:format:structures}
  \end{table}
  
- !! Stefan or Axel can you check Table \ref{table:format:structures} and
- write something here !!
- 
- The \verb|LOS| is a structure to describe the line of sight (LOS).
- The structure holds for example the pressures along the LOS. To make the
- calculations more efficient for 1D calulations, only one half of the
- LOS is stored.  For this reason, the LOS structure includes indecies
- to describe the iteration order. The structure also contains the
- index for ground reflections and the geometrical step length along
- the LOS. The LOS is further described in Section \ref{sec:los}.
+!! Stefan or Axel can you check Table \ref{table:format:structures} and
+write something here !!
+
+The \verb|LOS| is a structure to describe the line of sight (LOS).
+The structure holds for example the pressures along the LOS. To make the
+calculations more efficient for 1D calulations, only one half of the
+LOS is stored.  For this reason, the LOS structure includes indecies
+to describe the iteration order. The structure also contains the
+index for ground reflections and the geometrical step length along
+the LOS. The LOS is further described in Section \ref{sec:los}.
 
 
 \levelb{Mathematical and logical operations}
@@ -151,7 +157,7 @@
  \levelc{The atomic types} 
  All standard mathermatical (\verb|+|,\verb|-|,\verb|*|,\verb|/| etc.)
  and logical operations (\verb|==|, \verb|!=| etc.) of C++ can of
- course be used for \verb|NUMERIC| and \verb|INDEX|. Among the C++
+ course be used for \verb|Numeric| and \verb|Index|. Among the C++
  standard operations for strings, comparation using \verb|==| and
  \verb|!=| are probably the most important.
 
@@ -179,8 +185,8 @@
  \levelc{ASCII}
   \label{sec:formats:file:ascii}
   
-  All data types based on \verb|NUMERIC| and \verb|INDEX| that can be
-  represented by \verb|ARRAYofMATRIX| are stored using a common ASCII
+  All data types based on \verb|Numeric| and \verb|Index| that can be
+  represented by \verb|ARRAYofMatrix| are stored using a common ASCII
   file format. Table \ref{table:format:aa} contains the data types that
   fulfills this criteria. Numeric ASCII files have the following 
   structure: \\
@@ -200,12 +206,12 @@
 }
 
  \noindent
- Index arrays (\verb|ARRAYofINDEX|) are stored as integer vectors to
+ Index arrays (\verb|ARRAYofIndex|) are stored as integer vectors to
  make the files easier to inspect.
      
  The sizes given in the file must be compatible with the data type
  of the variable that is read. Vectors can be given both as
- columns or row matrices. When reading varaibles of INDEX type,
+ columns or row matrices. When reading varaibles of Index type,
  the data is checked to only contain non-negative integers.
  
  The types \verb|STRING| and \verb|ARRAYofSTRING| are stored using a
@@ -224,9 +230,9 @@ String 3
 
  \begin{table}[t]
   \begin{tabular}{p{4.5cm} p{4.5cm} p{4.5cm}}
-   \verb|NUMERIC|        & \verb|VECTOR|         & \verb|MATRIX|          \\
-   \verb|ARRAYofVECTOR|  & \verb|ARRAYofMATRIX|  &                        \\
-   \verb|INDEX|          & \verb|ARRAYofINDEX|  &                        \\
+   \verb|Numeric|        & \verb|VECTOR|         & \verb|Matrix|          \\
+   \verb|ARRAYofVECTOR|  & \verb|ARRAYofMatrix|  &                        \\
+   \verb|Index|          & \verb|ARRAYofIndex|  &                        \\
    \verb|STRING|          & \verb|ARRAYofSTRING|  &                        \\
   \end{tabular}
   \caption{ARTS data types that can be stored using the ASCII
@@ -268,7 +274,7 @@ String 3
  treated as column objects (i.e. 1 column).
  
  The data type of the file data is indicated by the class name of the
- Vdata. \verb|INDEX| data are stored as 4 byte unsigned integers and
+ Vdata. \verb|Index| data are stored as 4 byte unsigned integers and
  the class name is set to \verb|UINT| (= HDF type \verb|DFNT_UINT32|).
  The class name for characters of strings is \verb|CHAR| and the file
  data type is 1 byte characters (= HDF type \verb|DFNT_CHAR|).
@@ -276,13 +282,13 @@ String 3
  The record size for floating point values can either be 4 or 8 bytes.
  The corrresponding class names are \verb|FLOAT| and \verb|DOUBLE|
  (= HDF type \verb|DFNT_FLOAT32| and \verb|DFNT_FLOAT64|, respectively).
- The type of \verb|NUMERIC| determines the file type when writing from
- ARTS. Data is automatically converted to the type of \verb|NUMERIC|
+ The type of \verb|Numeric| determines the file type when writing from
+ ARTS. Data is automatically converted to the type of \verb|Numeric|
  when reading file data.
  
  The field name of a Vdata (remember that a Vdata has here only a
  singel field) describe the structure of the data. Treated structure
- types are \verb|SCALAR|, \verb|VECTOR|, \verb|MATRIX| and \verb|STRING|.
+ types are \verb|SCALAR|, \verb|VECTOR|, \verb|Matrix| and \verb|STRING|.
  The following combinations of data structure and data type are allowed:
  \begin{verbatim}
     SCALAR: UINT, FLOAT, DOUBLE 
@@ -292,7 +298,7 @@ String 3
  \end{verbatim} 
  The Vdata name is used to handle arrays. However, for simplicity
  reasons and for consistency with the ASCII format, index arrays
- (\verb|ARRAYofINDEX|) are stored as index vectors (field name
+ (\verb|ARRAYofIndex|) are stored as index vectors (field name
  \verb|VECTOR| and Vdata class \verb|UINT|). For other type of
  arrays, the Vdata name is set to the data structure name followed
  by a sequential number (starting at 1). The length of the array

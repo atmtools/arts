@@ -59,12 +59,12 @@
    \date   2000-11-01
 */
 void filename_ascii(
-              string&  filename,
-        const string&  varname )
+              String&  filename,
+        const String&  varname )
 {
   if ( "" == filename )
   {
-    extern const string basename;                       
+    extern const String basename;                       
     filename = basename+"."+varname+".aa";
   }
 }
@@ -84,12 +84,12 @@ void filename_ascii(
    \date   2000-11-01
 */
 void filename_bin(
-              string&  filename,
-        const string&  varname )
+              String&  filename,
+        const String&  varname )
 {
   if ( "" == filename )
   {
-    extern const string basename;                       
+    extern const String basename;                       
     filename = basename+"."+varname+".ab";
   }
 }
@@ -110,7 +110,7 @@ void filename_bin(
    @version   1
    @exception ios_base::failure Could for example mean that the
                       directory is read only. */
-void open_output_file(ofstream& file, const string& name)
+void open_output_file(ofstream& file, const String& name)
 {
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted, failbit means
@@ -120,7 +120,7 @@ void open_output_file(ofstream& file, const string& name)
   file.exceptions(ios::badbit |
 		  ios::failbit);
   
-  // c_str explicitly converts to c string.
+  // c_str explicitly converts to c String.
   file.open(name.c_str() );
 
   // See if the file is ok.
@@ -149,7 +149,7 @@ void open_output_file(ofstream& file, const string& name)
    @author    Stefan Buehler
    @version   1
    @exception ios_base::failure Somehow the file cannot be opened. */
-void open_input_file(ifstream& file, const string& name)
+void open_input_file(ifstream& file, const String& name)
 {
   // Tell the stream that it should throw exceptions.
   // Badbit means that the entire stream is corrupted, failbit means
@@ -160,7 +160,7 @@ void open_input_file(ifstream& file, const string& name)
   file.exceptions(ios::badbit |
 		  ios::failbit);
 
-  // c_str explicitly converts to c string.
+  // c_str explicitly converts to c String.
   file.open(name.c_str() );
 
   // See if the file is ok.
@@ -179,7 +179,7 @@ void open_input_file(ifstream& file, const string& name)
 
 //// read_text_from_stream /////////////////////////////////////////////////
 /**
-   Read an ASCII stream and append the contents to the string array
+   Read an ASCII stream and append the contents to the String array
    text.  TEXT IS NOT OVERWRITTEN, BUT APPENDED!
 
    @param text Output. The contents fo the file
@@ -187,9 +187,9 @@ void open_input_file(ifstream& file, const string& name)
    @exception IOError Some error occured during the read
    @version   1
    @author Stefan Buehler */
-void read_text_from_stream(Array<string>& text, istream& is)
+void read_text_from_stream(Array<String>& text, istream& is)
 {
-  string linebuffer;
+  String linebuffer;
 
   // Read as long as `is' is good.
   // Contary to what I understood from the book, the explicit check
@@ -219,7 +219,7 @@ void read_text_from_stream(Array<string>& text, istream& is)
 
 //// read_text_from_file ////////////////////////////////////////////////////
 /**
-   Reads an ASCII file and appends the contents to the string vector
+   Reads an ASCII file and appends the contents to the String vector
    text. This uses the function @see read_text_from_stream. TEXT IS
    NOT OVERWRITTEN, BUT APPENDED!  
 
@@ -228,7 +228,7 @@ void read_text_from_stream(Array<string>& text, istream& is)
    @exception IOError
    @version   1
    @author Stefan Buehler */
-void read_text_from_file(Array<string>& text, const string& name)
+void read_text_from_file(Array<String>& text, const String& name)
 {
   ifstream ifs;
 
@@ -259,15 +259,15 @@ void read_text_from_file(Array<string>& text, const string& name)
 /** 
     Replace all occurances of `what' in `s' with `with'.
 
-    @param s Output. The string to act on.
-    @param what The string to replace.
+    @param s Output. The String to act on.
+    @param what The String to replace.
     @param with The replacement.
     
     @author Stefan Buehler */
-void replace_all(string& s, const string& what, const string& with)
+void replace_all(String& s, const String& what, const String& with)
 {
-  string::size_type j = s.find(what);
-  while ( j != string::npos )
+  String::size_type j = s.find(what);
+  while ( j != String::npos )
     {
       s.replace(j,1,with);
       j = s.find(what,j+with.size());
@@ -293,7 +293,7 @@ void replace_all(string& s, const string& what, const string& with)
 void write_array_of_matrix_to_stream(ostream& os,
                                      const ArrayofMatrix& am)
 {
-  extern const string full_name;
+  extern const String full_name;
 
   // Determine the precision, depending on whether Numeric is double
   // or float:  
@@ -344,7 +344,7 @@ void write_array_of_matrix_to_stream(ostream& os,
     @param am          The array of matrix to write.
 
     @author Stefan Buehler */
-void write_array_of_matrix_to_file(const string& filename,
+void write_array_of_matrix_to_file(const String& filename,
                                    const ArrayofMatrix& am)
 {
   ofstream of;
@@ -372,7 +372,7 @@ void read_array_of_matrix_from_stream(ArrayofMatrix& am,
   // preceded by whitespace.)
   bool comments=true;
   char c;
-  string linebuffer;
+  String linebuffer;
   while (comments)
     {
       is >> ws;
@@ -419,7 +419,7 @@ void read_array_of_matrix_from_stream(ArrayofMatrix& am,
 
     @author Stefan Buehler */
 void read_array_of_matrix_from_file(ArrayofMatrix& am,
-                                    const string& filename)
+                                    const String& filename)
 {
   ifstream ifs;
 
@@ -454,19 +454,19 @@ void read_array_of_matrix_from_file(ArrayofMatrix& am,
 
 //// write_array_of_string_to_stream ///////////////////////////////////////
 /**
-   A helper function that writes an array of string to a stream. 
+   A helper function that writes an array of String to a stream. 
 
    \retval   os           the stream to write to
-   \param    as           the string array to write
+   \param    as           the String array to write
 
    \author Patrick Eriksson              
    \date   2000-11-04
 */
-void write_array_of_string_to_stream(
+void write_array_of_String_to_stream(
               ostream&         os,
-        const Arrayofstring&   as )
+        const ArrayofString&   as )
 {
-  extern const string full_name;
+  extern const String full_name;
 
   os << "# Generated by " << full_name << "\n";
 
@@ -480,50 +480,50 @@ void write_array_of_string_to_stream(
 
 
 
-//// write_array_of_string_to_file /////////////////////////////////////////
+//// write_array_of_String_to_file /////////////////////////////////////////
 /**
-   A help function that writes an array of string to a file.
+   A help function that writes an array of String to a file.
 
    \retval filename    The name of the file.  
-   \param  as          The array of string to write.  
+   \param  as          The array of String to write.  
 
    \author Patrick Eriksson              
    \date   2000-11-04
 */
-void write_array_of_string_to_file(
-        const string&          filename,
-        const Arrayofstring&   as )
+void write_array_of_String_to_file(
+        const String&          filename,
+        const ArrayofString&   as )
 {
   ofstream of;
 
   out2 << "  Writing " << filename << '\n';
   open_output_file(of, filename);
 
-  // Write the array of string to the stream:
-  write_array_of_string_to_stream(of,as);
+  // Write the array of String to the stream:
+  write_array_of_String_to_stream(of,as);
 }
 
 
 
-//// read_array_of_string_from_stream ///////////////////////////////////////
+//// read_array_of_String_from_stream ///////////////////////////////////////
 /**
-   A help function to read an array of string from a stream.
+   A help function to read an array of String from a stream.
 
-   \retval as   The array of string to read
+   \retval as   The array of String to read
    \param  is   The input stream
 
    \author Patrick Eriksson              
    \date   2000-11-04
 */
-void read_array_of_string_from_stream(
-        Arrayofstring&   as,
+void read_array_of_String_from_stream(
+        ArrayofString&   as,
         istream&         is )
 {
   // First, skip all the lines that have a # at the beginning. (Maybe
   // preceded by whitespace.)
   bool comments=true;
   char c;
-  string linebuffer;
+  String linebuffer;
   while (comments)
     {
       is >> ws;
@@ -556,17 +556,17 @@ void read_array_of_string_from_stream(
 
 //// read_array_of_matrix_from_file /////////////////////////////////////////
 /**
-   A help function to read an array of string from a file.
+   A help function to read an array of String from a file.
 
-   \retval as        The array of string to read
+   \retval as        The array of String to read
    \param  filename  The name of the file to read
 
    \author Patrick Eriksson              
    \date   2000-11-04
 */
-void read_array_of_string_from_file(
-           Arrayofstring&   as,
-     const string&          filename )
+void read_array_of_String_from_file(
+           ArrayofString&   as,
+     const String&          filename )
 {
   ifstream ifs;
 
@@ -582,7 +582,7 @@ void read_array_of_string_from_file(
   // filename.
   try
     {
-      read_array_of_string_from_stream(as,ifs);
+      read_array_of_String_from_stream(as,ifs);
     }
   catch (runtime_error x)
     {
@@ -639,7 +639,7 @@ void check_data_types()
 */
 void binfile_open_out(
               int&      fid,
-        const string&   filename )
+        const String&   filename )
 {
   // Open the file for writing (deleting an old file with same name)
   fid = Hopen( filename.c_str(), DFACC_CREATE, 0 );
@@ -679,7 +679,7 @@ void binfile_open_out(
 */
 void binfile_open_in(
               int&      fid,
-        const string&   filename )
+        const String&   filename )
 {
   // Check if the file is HDF
   if ( Hishdf( filename.c_str() ) < 0 )
@@ -726,7 +726,7 @@ void binfile_open_in(
 */
 void binfile_close(
               int&      fid,
-        const string&   filename )
+        const String&   filename )
 {
   // Terminate access to the VS interface
   if ( Vend( fid ) < 0 )
@@ -767,8 +767,8 @@ void binfile_close(
    \date   2000-11-09
 */
 void binfile_write_size( 
-        const string&   filename, 
-        const string&   dataname,
+        const String&   filename, 
+        const String&   dataname,
         const int&      vdata_id,
         const size_t&   nrows,
         const size_t&   ncols )
@@ -814,9 +814,9 @@ void binfile_read_init(
               size_t&   nrows,
               size_t&   ncols,
         const int&      fid,
-        const string&   filename,
-        const string&   dataname,
-        const string&   storagetype,
+        const String&   filename,
+        const String&   dataname,
+        const String&   storagetype,
         const size_t&   nrows0,
         const size_t&   ncols0 )
 {
@@ -897,8 +897,8 @@ void binfile_read_init(
 */
 void binfile_read_end(
               int&      vdata_id,
-        const string&   filename,
-        const string&   dataname )
+        const String&   filename,
+        const String&   dataname )
 {
   if ( VSdetach( vdata_id ) < 0 )
   {
@@ -914,14 +914,14 @@ void binfile_read_end(
 /**
    Gets the data type of the file data.
 
-   \retval  type_in_file   data type string (e.g. "DOUBLE")
+   \retval  type_in_file   data type String (e.g. "DOUBLE")
    \param   vdata_id       identifier for the Vdata
 
    \author Patrick Eriksson              
    \date   2000-11-07
 */
 void binfile_get_datatype(
-              string&   type_in_file,
+              String&   type_in_file,
         const int&      vdata_id )
 {
   char   c[50];
@@ -957,10 +957,10 @@ void binfile_get_datatype(
 */
 void binfile_write(
         const int&      fid,
-        const string&   filename,
-        const string&   dataname,
-        const string&   storagetype,
-        const string&   atomictype,
+        const String&   filename,
+        const String&   dataname,
+        const String&   storagetype,
+        const String&   atomictype,
         const size_t&   nrows,
         const size_t&   ncols,
         const uint8*    dpointer )
@@ -1095,8 +1095,8 @@ void binfile_read1(
               Arrayofsizet&   x,
         const int&            vdata_id,
         const size_t&         n,
-        const string&         filename,
-        const string&         dataname )
+        const String&         filename,
+        const String&         dataname )
 {
   // Check that data types have expected length
   check_data_types();
@@ -1104,7 +1104,7 @@ void binfile_read1(
   out3 << "    Reading: " << dataname << "\n";
 
   // Get the data type of the data to read
-  string type_in_file;
+  String type_in_file;
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
@@ -1165,8 +1165,8 @@ void binfile_read2(
         const int&      vdata_id,
         const size_t&   nrows,
         const size_t&   ncols,
-        const string&   filename,
-        const string&   dataname )
+        const String&   filename,
+        const String&   dataname )
 {
   // Check that data types have expected length
   check_data_types();
@@ -1174,7 +1174,7 @@ void binfile_read2(
   out3 << "    Reading: " << dataname << "\n";
 
   // Get the data type of the data to read
-  string type_in_file;
+  String type_in_file;
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
@@ -1238,11 +1238,11 @@ void binfile_read2(
 /**
    Core function for reading text from binary files.
 
-   The data is read a string.
+   The data is read a String.
 
    The reading is splitted to several files as type conversions can be needed.
 
-   \retval   x            the string to read
+   \retval   x            the String to read
    \param    vdata_id     data identifier
    \param    nrows        number of values
    \param    filename     file name
@@ -1254,11 +1254,11 @@ void binfile_read2(
    \date   2000-11-07
 */
 void binfile_read3(
-              string&   x,
+              String&   x,
         const int&      vdata_id,
         const size_t&   n,
-        const string&   filename,
-        const string&   dataname )
+        const String&   filename,
+        const String&   dataname )
 {
   // Check that data types have expected length
   check_data_types();
@@ -1266,7 +1266,7 @@ void binfile_read3(
   out3 << "    Reading: " << dataname << "\n";
 
   // Get the data type of the data to read
-  string type_in_file;
+  String type_in_file;
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
@@ -1315,10 +1315,10 @@ void binfile_read3(
    \date   2000-11-01
 */
 void binfile_write_index(
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
         const size_t&   x,
-        const string&   dataname )
+        const String&   dataname )
 {
   /*
   size_t  a[1];
@@ -1346,9 +1346,9 @@ void binfile_write_index(
 */
 void binfile_read_index(
               size_t&   x,
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
-        const string&   dataname )
+        const String&   dataname )
 {
   int     vdata_id;
   size_t  nrows, ncols;
@@ -1376,10 +1376,10 @@ void binfile_read_index(
    \date   2000-11-01
 */
 void binfile_write_numeric(
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
         const Numeric&  x,
-        const string&   dataname )
+        const String&   dataname )
 {
   //Numeric  a[1];
   //a[0] = x;
@@ -1403,9 +1403,9 @@ void binfile_write_numeric(
 */
 void binfile_read_numeric(
               Numeric&  x,
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
-        const string&   dataname )
+        const String&   dataname )
 {
   int     vdata_id;
   size_t  nrows, ncols;
@@ -1433,10 +1433,10 @@ void binfile_read_numeric(
    \date   2000-11-01
 */
 void binfile_write_vector(
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
         const Vector&   x,
-        const string&   dataname )
+        const String&   dataname )
 {
   const size_t  n = x.size();
   /*
@@ -1464,9 +1464,9 @@ void binfile_write_vector(
 */
 void binfile_read_vector(
               Vector&   x,
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
-        const string&   dataname )
+        const String&   dataname )
 {
   int     vdata_id;
   size_t  nrows, ncols;
@@ -1500,10 +1500,10 @@ void binfile_read_vector(
    \author Stefan Buehler
 */
 void binfile_write_matrix(
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
         const Matrix&   x,
-        const string&   dataname )
+        const String&   dataname )
 {
   const size_t  nrows = x.nrows();
   const size_t  ncols = x.ncols();
@@ -1528,9 +1528,9 @@ void binfile_write_matrix(
 */
 void binfile_read_matrix(
               Matrix&   x,
-        const string&   filename,
+        const String&   filename,
         const int&      fid,
-        const string&   dataname )
+        const String&   dataname )
 {
   int     vdata_id;
   size_t  nrows, ncols;
@@ -1556,10 +1556,10 @@ void binfile_read_matrix(
    \date   2000-11-01
 */
 void binfile_write_indexarray(
-        const string&         filename,
+        const String&         filename,
         const int&            fid,
         const Arrayofsizet&   x,
-        const string&         dataname )
+        const String&         dataname )
 {
   const size_t  n = x.size();
 
@@ -1590,9 +1590,9 @@ void binfile_write_indexarray(
 */
 void binfile_read_indexarray(
               Arrayofsizet&   x,
-        const string&         filename,
+        const String&         filename,
         const int&            fid,
-        const string&         dataname )
+        const String&         dataname )
 {
   int     vdata_id;
   size_t  nrows, ncols;
@@ -1618,10 +1618,10 @@ void binfile_read_indexarray(
    \date   2000-11-01
 */
 void binfile_write_vectorarray(
-        const string&          filename,
+        const String&          filename,
         const int&             fid,
         const ArrayofVector&   x,
-        const string&          dataname )
+        const String&          dataname )
 {
   const size_t  n = x.size();
 
@@ -1653,9 +1653,9 @@ void binfile_write_vectorarray(
 */
 void binfile_read_vectorarray(
               ArrayofVector&   x,
-        const string&          filename,
+        const String&          filename,
         const int&             fid,
-        const string&          dataname )
+        const String&          dataname )
 {
   // Read the number of vectors
   size_t  n;
@@ -1686,10 +1686,10 @@ void binfile_read_vectorarray(
    \date   2000-11-01
 */
 void binfile_write_matrixarray(
-        const string&          filename,
+        const String&          filename,
         const int&             fid,
         const ArrayofMatrix&   x,
-        const string&          dataname )
+        const String&          dataname )
 {
   const size_t  n = x.size();
 
@@ -1721,9 +1721,9 @@ void binfile_write_matrixarray(
 */
 void binfile_read_matrixarray(
               ArrayofMatrix&   x,
-        const string&          filename,
+        const String&          filename,
         const int&             fid,
-        const string&          dataname )
+        const String&          dataname )
 {
   // Read the number of matrices
   size_t  n;
@@ -1741,23 +1741,23 @@ void binfile_read_matrixarray(
 
 
 
-//// binfile_write_string ///////////////////////////////////////////////////
+//// binfile_write_String ///////////////////////////////////////////////////
 /**
-   Writes a string to a binary file.
+   Writes a String to a binary file.
 
    \param    fname        file name
    \param    fid          file identifier
-   \param    s            the string to store
+   \param    s            the String to store
    \param    dataname     name to give the data set
 
    \author Patrick Eriksson              
    \date   2000-11-01
 */
-void binfile_write_string(
-        const string&   filename,
+void binfile_write_String(
+        const String&   filename,
         const int&      fid,
-        const string&   s,
-        const string&   dataname )
+        const String&   s,
+        const String&   dataname )
 {
   const size_t  n = s.length();
 
@@ -1767,11 +1767,11 @@ void binfile_write_string(
 
 
 
-//// binfile_read_string ////////////////////////////////////////////////////
+//// binfile_read_String ////////////////////////////////////////////////////
 /**
-   Reads a string from a binary file.
+   Reads a String from a binary file.
 
-   \param    x            the read string
+   \param    x            the read String
    \param    filename     file name
    \param    fid          file identifier
    \param    dataname     name of the data set
@@ -1779,11 +1779,11 @@ void binfile_write_string(
    \author Patrick Eriksson              
    \date   2000-11-01
 */
-void binfile_read_string(
-              string&   x,
-        const string&   filename,
+void binfile_read_String(
+              String&   x,
+        const String&   filename,
         const int&      fid,
-        const string&   dataname )
+        const String&   dataname )
 {
   int     vdata_id;
   size_t  nrows, ncols;
@@ -1796,7 +1796,7 @@ void binfile_read_string(
 
 
 
-//// binfile_write_stringarray //////////////////////////////////////////////
+//// binfile_write_Stringarray //////////////////////////////////////////////
 /**
    Writes an ArrayofSTRING to a binary file.
 
@@ -1808,33 +1808,33 @@ void binfile_read_string(
    \author Patrick Eriksson              
    \date   2000-11-01
 */
-void binfile_write_stringarray(
-        const string&          filename,
+void binfile_write_Stringarray(
+        const String&          filename,
         const int&             fid,
-        const Arrayofstring&   x,
-        const string&          dataname )
+        const ArrayofString&   x,
+        const String&          dataname )
 {
   const size_t  n = x.size();
 
   // Write number of matrices
   binfile_write_index( filename, fid, n, "N_"+dataname );  
 
-  // Write each string seperately
+  // Write each String seperately
   for ( size_t i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
-    binfile_write_string( filename, fid, x[i], os.str() );    
+    binfile_write_String( filename, fid, x[i], os.str() );    
   }
 }
 
 
 
-//// binfile_read_stringarray ///////////////////////////////////////////////
+//// binfile_read_Stringarray ///////////////////////////////////////////////
 /**
    Reads a ArrayofSTRING from a binary file.
 
-   \param    x            the read string array
+   \param    x            the read String array
    \param    filename     file name
    \param    fid          file identifier
    \param    dataname     name of the data set
@@ -1842,11 +1842,11 @@ void binfile_write_stringarray(
    \author Patrick Eriksson              
    \date   2000-11-01
 */
-void binfile_read_stringarray(
-              Arrayofstring&   x,
-        const string&          filename,
+void binfile_read_Stringarray(
+              ArrayofString&   x,
+        const String&          filename,
         const int&             fid,
-        const string&          dataname )
+        const String&          dataname )
 {
   // Read the number of matrices
   size_t  n;
@@ -1858,6 +1858,6 @@ void binfile_read_stringarray(
   {
     ostringstream os;
     os << dataname << i;
-    binfile_read_string( x[i], filename, fid, os.str() );    
+    binfile_read_String( x[i], filename, fid, os.str() );    
   }
 }
