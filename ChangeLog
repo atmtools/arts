@@ -1,3 +1,19 @@
+2002-09-10  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-234
+	
+	* src/m_scatproperties.cc : Included stokes_dim as input to
+	methods calculating scattering properties.  Earlier stokes_dim was
+	taken from inputs themselves. Now more checks are also included.  
+
+	* src/methods.cc : Adapted all the methods calculating scattering
+	properties to include stokes_dima as input.   
+
+	* src/agendas.cc : Changed the online documentation for
+	ext_mat_agenda and abs_vec_agenda.  Earlier there was a
+	misunderstanding because they were not looking like examples.
+	Patrick had pointed out this some time back.
+
 2002-09-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-233
