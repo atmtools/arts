@@ -52,14 +52,34 @@
  *** The functions (in alphabetical order)
  *****************************************************************************/
 
-//! cloudboxSetManually
+
+
+//! CloudboxOff
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-11
+*/
+void CloudboxOff(
+        // WS Output:
+        Index&          cloudbox_on,
+        ArrayOfIndex&   cloudbox_limits )
+{
+  cloudbox_on = 0;
+  cloudbox_limits.resize(0);
+}
+
+
+
+//! CloudboxSetManually
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-19
 */
-void cloudboxSetManually(
+void CloudboxSetManually(
         // WS Output:
         Index&          cloudbox_on,
         ArrayOfIndex&   cloudbox_limits,
@@ -170,20 +190,5 @@ void cloudboxSetManually(
 
 
 
-//! NoCloudbox
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-11
-*/
-void NoCloudbox(
-        // WS Output:
-        Index&          cloudbox_on,
-        ArrayOfIndex&   cloudbox_limits )
-{
-  cloudbox_on = 0;
-  cloudbox_limits.resize(0);
-}
 
 

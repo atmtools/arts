@@ -67,7 +67,7 @@ void a_posAddGeoidWGS84(
         // WS Input:
         const Index&     atmosphere_dim,
         const Numeric&   latitude_1d,
-        const Numeric&   azimuth_angle_1d )
+        const Numeric&   meridian_angle_1d )
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -76,7 +76,7 @@ void a_posAddGeoidWGS84(
   // Use *sensor_posAddGeoidWGS84* to perform the calculations.
   Matrix m(1,a_pos.nelem());
   m(0,Range(joker)) = a_pos;
-  sensor_posAddGeoidWGS84( m, atmosphere_dim, latitude_1d, azimuth_angle_1d);
+  sensor_posAddGeoidWGS84( m, atmosphere_dim, latitude_1d, meridian_angle_1d);
   a_pos[0] = m(0,0);
 }
 
@@ -405,30 +405,6 @@ void ppathCalc(
   ppath.refraction = ppath_step.refraction;
   ppath.constant   = ppath_step.constant;
   ppath.background = ppath_step.background;
-
-
-  // Print the structure
-  if( 1 )
-    {
-      PrintIndex( ppath.dim, "dim" );
-      PrintIndex( ppath.np, "np" );
-      PrintString( ppath.method, "method" );
-      PrintIndex( ppath.refraction, "refraction" );
-      PrintNumeric( ppath.constant, "constant" );
-      PrintString( ppath.background, "background" );
-      PrintIndex( ppath.ground, "ground" );
-      if( ppath.ground )
-        PrintIndex( ppath.i_ground, "i_ground" );
-      PrintIndex( ppath.symmetry, "symmetry" );
-      if( ppath.symmetry )
-        PrintIndex( ppath.i_symmetry, "i_symmetry" );
-      if( ppath.tan_pos.nelem() )
-	PrintVector( ppath.tan_pos, "tan_pos" );
-      PrintMatrix( ppath.pos, "pos" );
-      PrintVector( ppath.z, "z" );
-      PrintVector( ppath.l_step, "l_step" );
-      PrintMatrix( ppath.los, "los" );
-    }
 }
 
 
@@ -514,6 +490,42 @@ void ppath_stepGeometricWithLmax(
 
 
 
+//! PpathPrint
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void PpathPrint(
+        // WS Generic Input:
+        const Ppath&     ppath,
+        // WS Generic Input Names:
+        const String&    ppath_name )
+{
+  cout << "  The fields, beside grid positions, of *" << ppath_name <<"*:\n";
+  IndexPrint( ppath.dim, "dim" );
+  IndexPrint( ppath.np, "np" );
+  StringPrint( ppath.method, "method" );
+  IndexPrint( ppath.refraction, "refraction" );
+  NumericPrint( ppath.constant, "constant" );
+  StringPrint( ppath.background, "background" );
+  IndexPrint( ppath.ground, "ground" );
+  if( ppath.ground )
+    IndexPrint( ppath.i_ground, "i_ground" );
+  IndexPrint( ppath.symmetry, "symmetry" );
+  if( ppath.symmetry )
+    IndexPrint( ppath.i_symmetry, "i_symmetry" );
+  if( ppath.tan_pos.nelem() )
+    VectorPrint( ppath.tan_pos, "tan_pos" );
+  MatrixPrint( ppath.pos, "pos" );
+  VectorPrint( ppath.z, "z" );
+  VectorPrint( ppath.l_step, "l_step" );
+  MatrixPrint( ppath.los, "los" );
+}
+
+
+
 //! sensor_posAddGeoidWGS84
 /*!
    See the the online help (arts -d FUNCTION_NAME)
@@ -527,7 +539,7 @@ void sensor_posAddGeoidWGS84(
         // WS Input:
         const Index&     atmosphere_dim,
         const Numeric&   latitude_1d,
-        const Numeric&   azimuth_angle_1d )
+        const Numeric&   meridian_angle_1d )
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -552,7 +564,7 @@ void sensor_posAddGeoidWGS84(
 
       // The size of the r-matrix is set inside the function.
       Matrix r;
-      r_geoidWGS84( r, 1, lats, Vector(0), latitude_1d, azimuth_angle_1d );
+      r_geoidWGS84( r, 1, lats, Vector(0), latitude_1d, meridian_angle_1d );
       
       // Add the geoid radius to the geometric altitudes
       sensor_pos(Range(joker),0) += r(0,0);

@@ -37,6 +37,7 @@
 #define ppath_h
 
 
+#include "array.h"
 #include "arts.h"
 #include "interpolation.h"
 #include "matpackI.h"

@@ -139,33 +139,6 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME( "a_posAddGeoidWGS84" ),
-	DESCRIPTION
-        (
-	 "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
-         "\n"
-         "This function assumes that the first element of *a_pos* is set\n"
-         "to the geometric altitude for the position of the sensor. \n"
-         "The variable *a_pos* shall contain the radius instead of the\n"
-         "altitude and that can be achieved by this function. The function\n"
-         "adds a geoid radius to the given altitude. The geoid radius is\n"
-         "taken from the WGS-84 reference ellipsiod.\n"
-         "\n"
-         "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsiod for the position and observation direction \n"
-         "described with *latitude_1d* and *azimuth_angle_1d*.\n"
-         "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
-         "ellipsiod for the latitude value in *a_pos*."
-        ),
-	OUTPUT( a_pos_ ),
-	INPUT( a_pos_, atmosphere_dim_, latitude_1d_, azimuth_angle_1d_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
       ( NAME("AgendaDefine"),
   	DESCRIPTION
 	( 
@@ -190,6 +163,51 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES(),
 	AGENDAMETHOD( true )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("AntennaSet1D"),
+	DESCRIPTION
+        (
+         "Sets *antenna_dim* to 1 and sets *aa_mblock_grid* to be empty."
+        ),
+	OUTPUT( antenna_dim_, aa_mblock_grid_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("AntennaSet2D"),
+	DESCRIPTION
+        (
+         "Sets *antenna_dim* to 2.\n"
+	 "\n"
+	 "It is only allowed to set *antenna_dim* to 2 when *atmosphere_dim*\n"
+	 "equals 3."
+        ),
+	OUTPUT( antenna_dim_ ),
+	INPUT( atmosphere_dim_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("ArrayOfIndexPrint"),
+	DESCRIPTION
+	(
+	 "Prints the value of an ArrayOfIndex variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( ArrayOfIndex_ ),
+	KEYWORDS( ),
+	TYPES( )));
 
   md_data.push_back
     ( MdRecord
@@ -293,6 +311,20 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("ArrayOfStringPrint"),
+	DESCRIPTION
+	(
+	 "Prints the value of an ArrayOfString variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( ArrayOfString_ ),
+	KEYWORDS( ),
+	TYPES( )));
+ 
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfStringReadXML"),
@@ -414,7 +446,102 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME( "cloudboxSetManually" ),
+      ( NAME( "a_posAddGeoidWGS84" ),
+	DESCRIPTION
+        (
+	 "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
+         "\n"
+         "This function assumes that the first element of *a_pos* is set\n"
+         "to the geometric altitude for the position of the sensor. \n"
+         "The variable *a_pos* shall contain the radius instead of the\n"
+         "altitude and that can be achieved by this function. The function\n"
+         "adds a geoid radius to the given altitude. The geoid radius is\n"
+         "taken from the WGS-84 reference ellipsiod.\n"
+         "\n"
+         "For 1D, the geoid radius is set to the radius of curvature of the\n"
+         "WGS-84 ellipsiod for the position and observation direction \n"
+         "described with *lat_1d* and *meridian_angle_1d*.\n"
+         "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
+         "ellipsiod for the latitude value in *a_pos*."
+        ),
+	OUTPUT( a_pos_ ),
+	INPUT( a_pos_, atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("AtmosphereSet1D"),
+	DESCRIPTION
+        (
+         "Sets *atmosphere_dim* to 1 and gives some variables dummy values.\n"
+         "\n"
+         "The latitude and longitude grids are set to be empty."
+        ),
+	OUTPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("AtmosphereSet2D"),
+	DESCRIPTION
+        (
+         "Sets *atmosphere_dim* to 2 and gives some variables dummy values.\n"
+         "\n"
+         "The longitude grid is set to be empty. The variables *lat_1d*\n"
+         "and *meridian_angle_1d* are given values that cause an error\n"
+         "message if used."
+        ),
+	OUTPUT( atmosphere_dim_, lon_grid_, lat_1d_, meridian_angle_1d_),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("AtmosphereSet3D"),
+	DESCRIPTION
+        (
+         "Sets *atmosphere_dim* to 3 and gives some variables dummy values.\n"
+         "\n"
+         "The variables *lat_1d* and *meridian_angle_1d* are given\n"
+         "values that cause an error message if used."
+        ),
+	OUTPUT( atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("CloudboxOff"),
+	DESCRIPTION
+        (
+         "Deactivates the cloud box. \n"
+         "\n"
+         "The function sets *cloudbox_on* to 0, and *cloudbox_limits* to be\n"
+         "a an empty vector."
+        ),
+	OUTPUT( cloudbox_on_, cloudbox_limits_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "CloudboxSetManually" ),
 	DESCRIPTION
         (
 	 "Sets the cloud box to encompass the given positions.\n"
@@ -458,101 +585,26 @@ void define_md_data()
 
   md_data.push_back     
     ( MdRecord
-      ( NAME("PrintArrayOfIndex"),
+      ( NAME("e_groundSet"),
 	DESCRIPTION
 	(
-	 "Prints the value of an ArrayOfIndex variable onto the screen."
+	 "Sets the ground emissivity to a constant value.\n"
+	 "\n"
+	 "The size of *e_ground* is automatically determined by the\n"
+	 "latitaude , longitude and frequency grids.\n"
+	 "\n"
+	 "If the ground shall be treated as a blackbody, use the\n"
+	 "function *SetBlackbodyGround*.\n"
+	 "\n"
+         "Keywords: \n"
+         "   value : The ground emissivity."
 	),
-	OUTPUT( ),
-	INPUT( ),
+	OUTPUT( e_ground_ ),
+	INPUT( atmosphere_dim_, lat_grid_, lon_grid_, f_grid_ ),
 	GOUTPUT( ),
-	GINPUT( ArrayOfIndex_ ),
-	KEYWORDS( ),
-	TYPES( )));
-
-  md_data.push_back     
-    ( MdRecord
-      ( NAME("PrintArrayOfString"),
-	DESCRIPTION
-	(
-	 "Prints the value of an ArrayOfString variable onto the screen."
-	),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( ),
-	GINPUT( ArrayOfString_ ),
-	KEYWORDS( ),
-	TYPES( )));
- 
- md_data.push_back     
-    ( MdRecord
-      ( NAME("PrintIndex"),
-	DESCRIPTION
-	(
-	 "Prints the value of an Index variable onto the screen."
-	),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( ),
-	GINPUT( Index_ ),
-	KEYWORDS( ),
-	TYPES( )));
-
-  md_data.push_back     
-    ( MdRecord
-      ( NAME("PrintMatrix"),
-	DESCRIPTION
-	(
-	 "Prints a matrix varaible onto the screen."
-	),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( ),
-	GINPUT( Matrix_ ),
-	KEYWORDS( ),
-	TYPES( )));
-
-  md_data.push_back     
-    ( MdRecord
-      ( NAME("PrintNumeric"),
-	DESCRIPTION
-	(
-	 "Prints the value of a Numeric variable onto the screen."
-	),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( ),
-	GINPUT( Numeric_ ),
-	KEYWORDS( ),
-	TYPES( )));
-
-  md_data.push_back     
-    ( MdRecord
-      ( NAME("PrintString"),
-	DESCRIPTION
-	(
-	 "Prints the value of a String variable onto the screen."
-	),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( ),
-	GINPUT( String_ ),
-	KEYWORDS( ),
-	TYPES( )));
-
-  md_data.push_back     
-    ( MdRecord
-      ( NAME("PrintVector"),
-	DESCRIPTION
-	(
-	 "Prints a vector varaible onto the screen."
-	),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( ),
-	GINPUT( Vector_ ),
-	KEYWORDS( ),
-	TYPES( )));
+	GINPUT( ),
+	KEYWORDS( "value" ),
+	TYPES(    Numeric_t )));
 
   md_data.push_back     
     ( MdRecord
@@ -569,6 +621,77 @@ void define_md_data()
 	INPUT( ),
 	GOUTPUT( ),
 	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("FlagOff"),
+	DESCRIPTION
+	(
+	 "Sets an index variable that acts as an on/off flag to 0."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( Index_ ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("FlagOn"),
+	DESCRIPTION
+	(
+	 "Sets an index variable that acts as an on/off flag to 1."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( Index_ ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("GroundSetToBlackbody"),
+	DESCRIPTION
+        (
+         "Sets *blackbody_ground* to 1 and creates *e_ground* as a tensor\n"
+	 "with size [1,1,1] having the value 1."
+        ),
+	OUTPUT( blackbody_ground_, e_ground_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("i_spaceCBR"),
+	DESCRIPTION
+	(
+	 "Sets *i_space* to hold cosmic background radiation."
+	),
+	OUTPUT( i_space_ ),
+	INPUT( f_grid_ ),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
+ md_data.push_back     
+    ( MdRecord
+      ( NAME("IndexPrint"),
+	DESCRIPTION
+	(
+	 "Prints the value of an Index variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( Index_ ),
 	KEYWORDS( ),
 	TYPES( )));
 
@@ -598,6 +721,26 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("IndexSet"),
+	DESCRIPTION
+        (
+         "Sets an index workspace variable to the given value. \n"
+         "\n"
+         "Global output: \n"
+         "   Index : The index variable to be set. \n"
+         "\n"
+         "Keywords:\n"
+         "   value : A positive integer." 
+        ),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( Index_ ),
+	GINPUT( ),
+	KEYWORDS( "value" ),
+	TYPES(     Index_t   )));
+
   md_data.push_back
     ( MdRecord
       ( NAME("IndexWriteXML"),
@@ -622,26 +765,6 @@ void define_md_data()
 	GINPUT( Index_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
-
-  md_data.push_back     
-    ( MdRecord
-      ( NAME("IndexSet"),
-	DESCRIPTION
-        (
-         "Sets an index workspace variable to the given value. \n"
-         "\n"
-         "Global output: \n"
-         "   Index : The index variable to be set. \n"
-         "\n"
-         "Keywords:\n"
-         "   value : A positive integer." 
-        ),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( Index_ ),
-	GINPUT( ),
-	KEYWORDS( "value" ),
-	TYPES(     Index_t   )));
 
 /*  md_data.push_back
     ( MdRecord
@@ -747,6 +870,7 @@ void define_md_data()
          "\n"
          "Global input: \n"
          "   Vector : The vector to be copied. \n"
+         "\n"
          "Keyword: \n"
          "   nrows : Number of rows in the matrix.\n"
          "   ncols : Number of columns in the matrix. "
@@ -757,6 +881,20 @@ void define_md_data()
 	GINPUT( Vector_ ),
 	KEYWORDS( "nrows", "ncols"   ),
 	TYPES(    Index_t, Index_t )));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("MatrixPrint"),
+	DESCRIPTION
+	(
+	 "Prints a matrix varaible onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( Matrix_ ),
+	KEYWORDS( ),
+	TYPES( )));
 
   md_data.push_back
     ( MdRecord
@@ -857,22 +995,19 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data.push_back     
     ( MdRecord
-      ( NAME("NoCloudbox"),
+      ( NAME("NumericPrint"),
 	DESCRIPTION
-        (
-         "Deactivates the cloud box. \n"
-         "\n"
-         "The function sets *cloudbox_on* to 0, and *cloudbox_limits* to be\n"
-         "a an empty vector."
-        ),
-	OUTPUT( cloudbox_on_, cloudbox_limits_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+	(
+	 "Prints the value of a Numeric variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( Numeric_ ),
+	KEYWORDS( ),
+	TYPES( )));
 
   md_data.push_back
     ( MdRecord
@@ -950,11 +1085,11 @@ void define_md_data()
       ( NAME( "ppathCalc" ),
 	DESCRIPTION
         (
-	 "Main function for calculation of propagation paths..\n"
+	 "Main function for calculation of propagation paths.\n"
 	 "\n"
 	 "There exists only one function to calculate total propagation\n"
 	 "paths and this is that function. The function is normally not\n"
-	 "visible in the control file, it is called from inside *rteCalc*.\n"
+	 "visible in the control file, it is called from inside *RteCalc*.\n"
 	 "A reason to call this function directly would be to plot a\n"
 	 "propgation path.\n"
 	 "\n"
@@ -971,6 +1106,20 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("PpathPrint"),
+	DESCRIPTION
+	(
+	 "Prints a variable of type Ppath onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( Ppath_ ),
+	KEYWORDS( ),
+	TYPES( )));
 
   md_data.push_back
     ( MdRecord
@@ -997,8 +1146,8 @@ void define_md_data()
 	 "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
         ),
 	OUTPUT( ppath_step_ ),
-	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               r_geoid_, z_ground_, blackbody_ground_ ),
+	INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+	       z_field_, r_geoid_, z_ground_, blackbody_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1025,12 +1174,32 @@ void define_md_data()
          "   lmax : Maximum allowed length between path points.\n"
         ),
 	OUTPUT( ppath_step_ ),
-	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               r_geoid_, z_ground_, blackbody_ground_ ),
+	INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+	       z_field_, r_geoid_, z_ground_, blackbody_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "lmax"),
 	TYPES(    Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "RteCalc" ),
+	DESCRIPTION
+        (
+	 "Main function for calculation of spectra and WFs.\n"
+         "\n"
+         "Text will be written (PE)."
+        ),
+	OUTPUT( y_ ),
+	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
+               t_field_, r_geoid_, z_ground_, t_ground_, e_ground_, 
+               blackbody_ground_, cloudbox_on_,  cloudbox_limits_, f_grid_, 
+               i_space_, abs_, antenna_dim_, za_mblock_grid_, aa_mblock_grid_,
+               stokes_dim_, sensor_pos_, sensor_los_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
 
   md_data.push_back
     ( MdRecord
@@ -1041,7 +1210,7 @@ void define_md_data()
          "\n"
          "For 1D, the geoid radius is set to the radius of curvature of the\n"
          "WGS-84 ellipsiod for the position and observation direction \n"
-         "described with *latitude_1d* and *azimuth_angle_1d*.\n"
+         "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, *r_geoid* is set to the radius of the WGS-84\n"
          "ellipsiod for the crossing points of the latitude and longitude\n"
          "grids.\n"
@@ -1051,8 +1220,8 @@ void define_md_data()
          "orbit angles which is allowed for 2D cases."
         ),
 	OUTPUT( r_geoid_ ),
-	INPUT( atmosphere_dim_, lat_grid_, lon_grid_, latitude_1d_,
-               azimuth_angle_1d_ ),
+	INPUT( atmosphere_dim_, lat_grid_, lon_grid_, lat_1d_,
+               meridian_angle_1d_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1074,83 +1243,30 @@ void define_md_data()
          "\n"
          "For 1D, the geoid radius is set to the radius of curvature of the\n"
          "WGS-84 ellipsiod for the position and observation direction \n"
-         "described with *latitude_1d* and *azimuth_angle_1d*.\n"
+         "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
          "ellipsiod for the latitude values in *sensor_pos*."
         ),
 	OUTPUT( sensor_pos_ ),
-	INPUT( sensor_pos_, atmosphere_dim_, latitude_1d_, 
-                                                         azimuth_angle_1d_ ),
+	INPUT( sensor_pos_, atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data.push_back     
     ( MdRecord
-      ( NAME("SetAtmosphere1D"),
+      ( NAME("StringPrint"),
 	DESCRIPTION
-        (
-         "Sets *atmosphere_dim* to 1 and gives some variables dummy values.\n"
-         "\n"
-         "The latitude and longitude grids are set to be empty."
-        ),
-	OUTPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("SetAtmosphere2D"),
-	DESCRIPTION
-        (
-         "Sets *atmosphere_dim* to 2 and gives some variables dummy values.\n"
-         "\n"
-         "The longitude grid is set to be empty. The variables *latitude_1d*\n"
-         "and *azimuth_angle_1d* are given values that cause an error\n"
-         "message if used."
-        ),
-	OUTPUT( atmosphere_dim_, lon_grid_, latitude_1d_, azimuth_angle_1d_),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("SetAtmosphere3D"),
-	DESCRIPTION
-        (
-         "Sets *atmosphere_dim* to 3 and gives some variables dummy values.\n"
-         "\n"
-         "The variables *latitude_1d* and *azimuth_angle_1d* are given\n"
-         "values that cause an error message if used."
-        ),
-	OUTPUT( atmosphere_dim_, latitude_1d_, azimuth_angle_1d_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("SetBlackbodyGround"),
-	DESCRIPTION
-        (
-         "Sets *blackbody_ground* to 1 and creates *e_ground* as a tensor\n"
-	 "with size [1,1,1] having the value 1."
-        ),
-	OUTPUT( blackbody_ground_, e_ground_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+	(
+	 "Prints the value of a String variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( String_ ),
+	KEYWORDS( ),
+	TYPES( )));
 
   md_data.push_back
     ( MdRecord
@@ -1645,6 +1761,20 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "start",   "stop",    "n"   ),
 	TYPES(    Numeric_t, Numeric_t, Index_t )));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("VectorPrint"),
+	DESCRIPTION
+	(
+	 "Prints a vector variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( Vector_ ),
+	KEYWORDS( ),
+	TYPES( )));
 
   md_data.push_back
     ( MdRecord

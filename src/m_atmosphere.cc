@@ -44,6 +44,7 @@
 #include "arts.h"
 #include "check_input.h"
 #include "matpackI.h"
+#include "messages.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -53,6 +54,130 @@ extern const Numeric RAD2DEG;
 /*****************************************************************************
  *** The functions (in alphabetical order)
  *****************************************************************************/
+
+//! AtmosphereSet1D
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-11
+*/
+void AtmosphereSet1D(
+        // WS Output:
+              Index&    atmosphere_dim,
+              Vector&   lat_grid,
+              Vector&   lon_grid )
+{
+  atmosphere_dim = 1;
+  lat_grid.resize(0);
+  lon_grid.resize(0);
+}
+
+
+
+//! AtmosphereSet2D
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-11
+*/
+void AtmosphereSet2D(
+        // WS Output:
+              Index&    atmosphere_dim,
+              Vector&   lon_grid,
+              Numeric&  latitude_1d,
+              Numeric&  meridian_angle_1d )
+{
+  atmosphere_dim = 2;
+  lon_grid.resize(0);
+  latitude_1d = -999;
+  meridian_angle_1d = -999;
+}
+
+
+
+//! AtmosphereSet3D
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-11
+*/
+void AtmosphereSet3D(
+        // WS Output:
+              Index&    atmosphere_dim,
+              Numeric&  latitude_1d,
+              Numeric&  meridian_angle_1d )
+{
+  atmosphere_dim = 3;
+  latitude_1d = -999;
+  meridian_angle_1d = -999;
+}
+
+
+
+//! e_groundSet
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-29
+*/
+void e_groundSet(
+        // WS Output:
+              Tensor3&   e_ground,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Vector&    f_grid,
+        // Control Parameters:
+        const Numeric& value )
+{
+  // Check input (use dummy for *p_grid*).
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, Vector(2,2,-1), lat_grid, lon_grid );
+  if( f_grid.nelem() == 0 )
+    throw runtime_error( "The frequency grid is empty." );
+  chk_if_increasing( "f_grid", f_grid );
+
+  Index nlat = lat_grid.nelem();
+  Index nlon = lon_grid.nelem();
+  if( atmosphere_dim < 2 )
+    { nlat = 1; }
+  if( atmosphere_dim < 3 )
+    { nlon = 1; }
+
+  out2 << "  Setting *e_ground* to the value " << value << ".\n";
+  out3 << "          npages : " << f_grid.nelem() << "\n";
+  out3 << "          nrows  : " << nlat << "\n";
+  out3 << "          ncols  : " << nlon << "\n";
+
+  e_ground.resize( f_grid.nelem(), nlat, nlon );
+  e_ground = value;
+}
+
+
+
+//! GroundSetToBlackbody
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-27
+*/
+void GroundSetToBlackbody(
+        // WS Output:
+              Index&     blackbody_ground,
+              Tensor3&   e_ground )
+{
+  blackbody_ground = 1;
+  e_ground.resize(1,1,1);
+  e_ground(0,0,0) = 1;
+}
+
+
 
 //! r_geoidWGS84
 /*!
@@ -148,19 +273,3 @@ void r_geoidWGS84(
 
 
 
-//! SetBlackbodyGround
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-27
-*/
-void SetBlackbodyGround(
-        // WS Output:
-              Index&     blackbody_ground,
-              Tensor3&   e_ground )
-{
-  blackbody_ground = 1;
-  e_ground.resize(1,1,1);
-  e_ground(0,0,0) = 1;
-}

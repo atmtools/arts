@@ -41,6 +41,7 @@
  *** External declarations
  *****************************************************************************/
 
+#include <stdexcept>
 #include "array.h"
 #include "arts.h"
 #include "check_input.h"
@@ -52,6 +53,86 @@
 /*****************************************************************************
  *** The functions (in alphabetical order)
  *****************************************************************************/
+
+//! AntennaSet1D
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void AntennaSet1D(
+        // WS Output:
+              Index&    antenna_dim,
+              Vector&   aa_mblock_grid )
+{
+  antenna_dim = 1;
+  aa_mblock_grid.resize(0);
+}
+
+
+
+//! AntennaSet2D
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void AntennaSet2D(
+        // WS Output:
+              Index&   antenna_dim,
+        // WS Input:
+        const Index&   atmosphere_dim )
+{
+  if( atmosphere_dim != 3 )
+    throw runtime_error("Antenna dimensionality 2 is only allowed when the "
+                                          "atmospheric dimensionality is 3." );
+  antenna_dim = 2;
+}
+
+
+
+//! ArrayOfIndexPrint
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-18
+*/
+void ArrayOfIndexPrint(
+        // WS Generic Input:
+        const ArrayOfIndex&   x,
+        // WS Generic Input Names:
+        const String&         x_name )
+{
+  cout << "  *" << x_name <<"* =";
+  for( Index i=0; i<x.nelem(); i++ )
+    cout << " " << x[i];
+  cout << "\n";
+}
+
+
+
+//! ArrayOfStringPrint
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-18
+*/
+void ArrayOfStringPrint(
+        // WS Generic Input:
+        const ArrayOfString&   x,
+        // WS Generic Input Names:
+        const String&          x_name )
+{
+  cout << "  *" << x_name <<"*:\n";
+  for( Index i=0; i<x.nelem(); i++ )
+    cout << "     " << x[i] << "\n";
+}
+
+
 
 //! Exit
 /*!
@@ -68,55 +149,14 @@ void Exit()
 
 
 
-//! PrintArrayOfIndex
+//! IndexPrint
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-18
 */
-void PrintArrayOfIndex(
-        // WS Generic Input:
-        const ArrayOfIndex&   x,
-        // WS Generic Input Names:
-        const String&         x_name )
-{
-  cout << "  *" << x_name <<"* =";
-  for( Index i=0; i<x.nelem(); i++ )
-    cout << " " << x[i];
-  cout << "\n";
-}
-
-
-
-//! PrintArrayOfString
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-18
-*/
-void PrintArrayOfString(
-        // WS Generic Input:
-        const ArrayOfString&   x,
-        // WS Generic Input Names:
-        const String&          x_name )
-{
-  cout << "  *" << x_name <<"*:\n";
-  for( Index i=0; i<x.nelem(); i++ )
-    cout << "     " << x[i] << "\n";
-}
-
-
-
-//! PrintIndex
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-18
-*/
-void PrintIndex(
+void IndexPrint(
         // WS Generic Input:
         const Index&   x,
         // WS Generic Input Names:
@@ -127,14 +167,14 @@ void PrintIndex(
 
 
 
-//! PrintMatrix
+//! MatrixPrint
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-16
 */
-void PrintMatrix(
+void MatrixPrint(
         // WS Generic Input:
         const Matrix&   x,
         // WS Generic Input Names:
@@ -152,14 +192,14 @@ void PrintMatrix(
 
 
 
-//! PrintNumeric
+//! NumericPrint
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-18
 */
-void PrintNumeric(
+void NumericPrint(
         // WS Generic Input:
         const Numeric&   x,
         // WS Generic Input Names:
@@ -170,101 +210,20 @@ void PrintNumeric(
 
 
 
-//! PrintString
+//! StringPrint
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-18
 */
-void PrintString(
+void StringPrint(
         // WS Generic Input:
         const String&  x,
         // WS Generic Input Names:
         const String&  x_name )
 {
   cout << "  *" << x_name <<"* = " << x << "\n";;
-}
-
-
-
-//! PrintVector
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-16
-*/
-void PrintVector(
-        // WS Generic Input:
-        const Vector&   x,
-        // WS Generic Input Names:
-        const String&   x_name )
-{
-  cout << "  *" << x_name <<"*:\n";
-  for( Index i=0; i<x.nelem(); i++ )
-    cout << "     " << x[i] << "\n";
-}
-
-
-//! SetAtmosphere1D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-11
-*/
-void SetAtmosphere1D(
-        // WS Output:
-              Index&    atmosphere_dim,
-              Vector&   lat_grid,
-              Vector&   lon_grid )
-{
-  atmosphere_dim = 1;
-  lat_grid.resize(0);
-  lon_grid.resize(0);
-}
-
-
-
-//! SetAtmosphere2D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-11
-*/
-void SetAtmosphere2D(
-        // WS Output:
-              Index&    atmosphere_dim,
-              Vector&   lon_grid,
-              Numeric&  latitude_1d,
-              Numeric&  azimuth_angle_1d )
-{
-  atmosphere_dim = 2;
-  lon_grid.resize(0);
-  latitude_1d = -999;
-  azimuth_angle_1d = -999;
-}
-
-
-
-//! SetAtmosphere3D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-11
-*/
-void SetAtmosphere3D(
-        // WS Output:
-              Index&    atmosphere_dim,
-              Numeric&  latitude_1d,
-              Numeric&  azimuth_angle_1d )
-{
-  atmosphere_dim = 3;
-  latitude_1d = -999;
-  azimuth_angle_1d = -999;
 }
 
 
@@ -281,3 +240,26 @@ void Test( )
   // This function can be used to test stuff.
 
 }
+
+
+
+//! VectorPrint
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-16
+*/
+void VectorPrint(
+        // WS Generic Input:
+        const Vector&   x,
+        // WS Generic Input Names:
+        const String&   x_name )
+{
+  cout << "  *" << x_name <<"*:\n";
+  for( Index i=0; i<x.nelem(); i++ )
+    cout << "     " << x[i] << "\n";
+}
+
+
+

@@ -73,7 +73,41 @@ void ArrayOfStringSet(
 {
   sa.resize(sa2.nelem());
   sa = sa2;
-  out3 << "  Setting " << sa_name << "\n"; 
+  out2 << "  Setting " << sa_name << " to the given string array.\n"; 
+}
+
+
+
+//! FlagOff
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void FlagOff(    
+            Index&    x,
+      const String&   x_name )
+{
+  x = 0;
+  out2 << "  " << x_name << " = 0\n";
+}
+
+
+
+//! FlagOn
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void FlagOn(      
+             Index&    x,
+       const String&   x_name )
+{
+  x = 1;
+  out2 << "  " << x_name << " = 1.\n";
 }
 
 
@@ -90,7 +124,7 @@ void IndexSet(    Index&    x,
             const Index&    value )
 {
   x = value;
-  out3 << "  Setting " << x_name << " to " << value << ".\n";
+  out3 << "  " << x_name << " = " << value << "\n";
 }
 
 
@@ -144,8 +178,8 @@ void MatrixFillWithVector(
     {
       out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
            << " as rows.\n";
-      out3 << "          nrows : " << nrows << "\n";
-      out3 << "          ncols : " << nv << "\n";
+      out3 << "        nrows : " << nrows << "\n";
+      out3 << "        ncols : " << nv << "\n";
       m.resize( nrows, nv );
       for( Index i=0; i<nrows; i++ )
         m(i,Range(joker)) = v;
@@ -154,8 +188,8 @@ void MatrixFillWithVector(
     {
       out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
            << " as columns.\n";
-      out3 << "          nrows : " << nv << "\n";
-      out3 << "          ncols : " << ncols << "\n";
+      out3 << "        nrows : " << nv << "\n";
+      out3 << "        ncols : " << ncols << "\n";
       m.resize( nv, ncols );
       for( Index i=0; i<ncols; i++ )
         m(Range(joker),i) = v;
@@ -215,10 +249,10 @@ void MatrixSet(           Matrix&    x,
 {
   x.resize( nrows, ncols );
   x = value;
-  out2 << "  Creating " << x_name << " as a constant matrix\n"; 
-  out3 << "          nrows : " << nrows << "\n";
-  out3 << "          ncols : " << ncols << "\n";
-  out3 << "          value : " << value << "\n";
+  out2 << "  Creating " << x_name << " as a constant matrix.\n"; 
+  out3 << "        nrows : " << nrows << "\n";
+  out3 << "        ncols : " << ncols << "\n";
+  out3 << "        value : " << value << "\n";
 }
 
 
@@ -235,7 +269,7 @@ void NumericSet(      Numeric&   x,
                 const Numeric&   value )
 {
   x = value;
-  out3 << "  Setting " << x_name << " to " << value << ".\n";
+  out3 << "  " << x_name << " = " << value << "\n";
 }
 
 
@@ -252,7 +286,7 @@ void StringSet(           String&  s,
                     const String&  s2 )
 {
   s = s2;
-  out3 << "  Setting " << s_name << " to " << s2 << "\n"; 
+  out3 << "  " << s_name << " = " << s2 << "\n"; 
 }
 
 

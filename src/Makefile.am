@@ -78,6 +78,8 @@ arts_SOURCES = \
 	poly_roots.cc \
 	physics_funcs.cc \
 	physics_funcs.h \
+	rte.cc \
+	rte.h \
 	species_data.cc \
 	sstream.h \
 	token.cc \

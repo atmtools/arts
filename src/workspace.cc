@@ -98,6 +98,28 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ("aa_mblock_grid",
+     "The azimuthal angle grid for each measurement block.\n"
+     "\n"
+     "Text will be written (PE).\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Unit:       degrees ",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("antenna_dim",
+     "The dimensionality of the antenna pattern (1-2).\n"
+     "\n"
+     "Text will be written (PE).\n"
+     "\n"
+     "Usage:      Set by the user.",
+     Index_ ));
+
+  wsv_data.push_back
+   (WsvRecord
     ("atmosphere_dim",
      "The atmospheric dimensionality (1-3).\n"
      "\n"
@@ -119,10 +141,10 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ("azimuth_angle_1d",
-     "The azimuthal angle for a 1D observation.\n"
+    ("meridian_angle_1d",
+     "The meridian angle for a 1D observation.\n"
      "\n"
-     "This variable is onlyu used when calculating a curvature radius of the\n"
+     "This variable is only used when calculating a curvature radius of the\n"
      "geoid for 1D cases. The given value shall be the angle between the\n"
      "observation and meridian plane where 0 degrees means an observation in\n"
      "the N-S direction.\n"
@@ -131,7 +153,7 @@ void define_wsv_data()
      "\n"
      "Usage:      Set by the user.\n"
      "\n"
-     "Units:      degrees",
+     "Unit:       degrees",
      Numeric_ ));
 
   wsv_data.push_back
@@ -200,9 +222,7 @@ void define_wsv_data()
      "this variable is discussed. The variable is listed as a subentry to\n"
      "\"workspace variables\".\n"
      "\n"
-     "Usage:      Set by user.\n"
-     "\n"
-     "Units:      boolean",
+     "Usage:      Set by user.",
      Index_ ));
 
   wsv_data.push_back
@@ -219,9 +239,7 @@ void define_wsv_data()
      "this variable is discussed. The variable is listed as a subentry to\n"
      "\"workspace variables\".\n"
      "\n"
-     "Usage:      Set by the user.\n"
-     "\n"
-     "Units:      boolean",
+     "Usage:      Set by the user.",
      Index_ ));
 
   wsv_data.push_back
@@ -264,7 +282,7 @@ void define_wsv_data()
      "Usage:      Set by the user, either directly or using a function\n"
      "            checking the extension of scattering particles.\n"
      "\n"
-     "Units:      Index values.\n"
+     "Unit:       Index values.\n"
      "\n"
      "Dimensions: [ 2 * atmosphere_dim ]",
      ArrayOfIndex_ ));
@@ -295,10 +313,52 @@ void define_wsv_data()
      "\n"
      "Usage:      Set by user.\n"
      "\n"
-     "Units:      - (0-1)\n"
+     "Unit:       - (0-1)\n"
      "\n"
      "Dimensions: [ f_grid, lat_grid, lon_grid ]",
      Tensor3_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("f_grid",
+     "The frequency grid for monochromatic pencil beam calculations.\n"
+     "\n"
+     "Text will be written (PE).\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Unit:       Hz",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("i_rte",
+     "The spectrum produced by *rte_agenda*.\n"
+     "\n"
+     "Text will be written (PE).\n"
+     "\n"
+     "Usage:      Output from *rte_agenda*.\n"
+     "\n"
+     "Unit:       W / (m^2 Hz sr) or optical thickness \n"
+     "\n"
+     "Dimensions: [ f_grid, stokes_dim ]",
+     Matrix_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("i_space",
+     "The monochromatic intensity entering at the top of the atmosphere.\n"
+     "\n"
+     "Text will be written (PE).\n"
+     "\n"
+     "This radiation is assumed to un-polarised, and a vector suffice.\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Unit:       W / (m^2 Hz sr) \n"
+     "\n"
+     "Dimensions: [ f_grid ]",
+     Vector_ ));
 
   wsv_data.push_back
    (WsvRecord
@@ -327,12 +387,12 @@ void define_wsv_data()
      "\n"
      "Usage:      Set by the user.\n"
      "\n"
-     "Units:      degrees",
+     "Unit:       degrees",
      Vector_ ));
 
   wsv_data.push_back
    (WsvRecord
-    ("latitude_1d",
+    ("lat_1d",
      "The latitude for a 1D observation.\n"
      "\n"
      "This variable is used to assign a latitude valid for a 1D case. A\n"
@@ -347,7 +407,7 @@ void define_wsv_data()
      "\n"
      "Usage:      Set by the user.\n"
      "\n"
-     "Units:      degrees",
+     "Unit:       degrees",
      Numeric_ ));
 
   wsv_data.push_back
@@ -371,7 +431,7 @@ void define_wsv_data()
      "\n"
      "Usage:      Set by the user.\n"
      "\n"
-     "Units: degrees",
+     "Unit:       degrees",
      Vector_ ));
 
   wsv_data.push_back
@@ -400,7 +460,7 @@ void define_wsv_data()
      "\n"
      "Usage:      Set by the user.\n"
      "\n"
-     "Units:      Pa",
+     "Unit:       Pa",
      Vector_ ));
 
   wsv_data.push_back
@@ -419,7 +479,7 @@ void define_wsv_data()
      "find where the data structure, Ppath, for propagation paths is \n"
      "discussed. It is listed as a subentry to \"data structures\".\n"
      "\n"
-     "Usage:      Output from functions of the type *ppathCalc*.\n"
+     "Usage:      Output from the function *ppathCalc*.\n"
      "\n"
      "Members:    To be written.",
      Ppath_ ));
@@ -437,7 +497,7 @@ void define_wsv_data()
      "paths. Or read the chapter on propgation paths in the ARTS user\n"
      "guide.\n"
      "\n"
-     "Usage:      In/output to/from the agenda *ppath_step*.\n"
+     "Usage:      In/output to/from *ppath_step_agenda*.\n"
      "\n"
      "Members:    To be written.",
      Ppath_ ));
@@ -504,6 +564,15 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ("rte_agenda",
+     "Calculation of monochromatic pencil beam spectra and absorption WFs."
+     "\n"
+     "Text will be written (PE).\n"
+     "",
+     Agenda_ ));
+
+  wsv_data.push_back
+   (WsvRecord
     ("r_geoid",
      "Geoid radius.\n"
      "\n"
@@ -527,9 +596,23 @@ void define_wsv_data()
      "\n"
      "Usage:      Set by using a function for a geodetic datum.\n"
      "\n"
-     "Units:      m\n"
+     "Unit:       m\n"
      "\n"
      "Dimensions: [ lat_grid, lon_grid ]",
+     Matrix_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("sensor_los",
+     "The sensor line-of-sight for each measurement block.\n"
+     "\n"
+     "Text will be written (PE).\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Unit:       [ degrees, degrees ]\n"
+     "\n"
+     "Dimensions: [ number of measurement blocks, 1 or 2 ]",
      Matrix_ ));
 
   wsv_data.push_back
@@ -537,14 +620,27 @@ void define_wsv_data()
     ("sensor_pos",
      "The sensor position for each measurement block.\n"
      "\n"
-     "Text will be written. Right now I just want to make WSF for this\n"
-     "variable, that also will be used for other purposes.\n"
+     "Text will be written (PE).\n"
      "\n"
      "Range for zenith angles is [0,180] beside for 2D where it\n"
      "is [-180,180].\n"
      "\n"
-     "Dimensions: [ number of measurement blocks, atmospheric dimensionality ]",
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Unit:       [ m, degrees, degrees ]\n"
+     "\n"
+     "Dimensions: [ number of measurement blocks, atmosphere_dim ]",
      Matrix_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("stokes_dim",
+     "The dimensionality of the Stokes vector (1-4).\n"
+     "\n"
+     "Text will be written (Claudia?).\n"
+     "\n"
+     "Usage:      Set by the user.",
+     Index_ ));
 
   wsv_data.push_back
    (WsvRecord
@@ -563,7 +659,7 @@ void define_wsv_data()
      "\n"
      "Usage:      Set by the user by interpolation of a climatology.\n"
      "\n"
-     "Units:      K\n"
+     "Unit:       K\n"
      "\n"
      "Dimensions: [ p_grid, lat_grid, lon_grid ]",
      Tensor3_ ));
@@ -589,7 +685,7 @@ void define_wsv_data()
      "\n"
      "Usage:      Set by user.\n"
      "\n"
-     "Units:      K\n"
+     "Unit:       K\n"
      "\n"
      "Dimensions: [ lat_grid, lon_grid ]",
      Matrix_ ));
@@ -620,6 +716,32 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ("y",
+     "The measurement vector.\n"
+     "\n"
+     "Text will be written (PE).\n"
+     "\n"
+     "Usage:      Output from *rteCalc* and functions to apply sensor\n"
+     "            characteristics.\n"
+     "\n"
+     "Unit:       Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
+     "            optical thickness.",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("za_mblock_grid",
+     "The zenith angle grid for each measurement block.\n"
+     "\n"
+     "Text will be written (PE).\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Unit:       degrees ",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
     ("z_field",
      "The field of geometrical altitudes.\n"
      "\n"
@@ -645,7 +767,7 @@ void define_wsv_data()
      "Usage:      Set by the user by interpolation of a climatology, or set\n"
      "            by a function for applying hydrostatic equilibrium.\n"
      "\n"
-     "Units:      m\n"
+     "Unit:       m\n"
      "\n"
      "Dimensions: [ p_grid, lat_grid, lon_grid ]",
      Tensor3_ ));
@@ -673,7 +795,7 @@ void define_wsv_data()
      "\n"
      "Usage:      Set by user.\n"
      "\n"
-     "Units:      m\n"
+     "Unit:       m\n"
      "\n"
      "Dimensions: [ lat_grid, lon_grid ]",
      Matrix_ ));
