@@ -1,3 +1,13 @@
+2004-08-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-851
+	
+	* src/m_optproperties.cc (opt_prop_sptFromData) 
+	(opt_prop_sptFromMonoData), (pha_mat_sptFromDataDOITOpt), 
+	(pha_mat_sptFromMonoData): Included a switches. If the temperature 
+	grid in the single scattering data has only one element, no 
+	temperature interpolation is performed.
+
 2004-08-04  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-850
