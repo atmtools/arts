@@ -102,7 +102,10 @@ void cloud_fieldsCalc(// Output:
   out3 << "Calculate scattering properties in cloudbox \n";
   
   const Index atmosphere_dim = cloudbox_limits.nelem()/2;
+// FIXME only used for assertion
+#ifndef NDEBUG
   const Index stokes_dim = ext_mat_field.ncols();
+#endif
   
   assert( atmosphere_dim == 1 || atmosphere_dim ==3 );
   
