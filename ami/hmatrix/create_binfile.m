@@ -1,7 +1,7 @@
 %------------------------------------------------------------------------
 % NAME:    create_binfile
 %
-%          Generates a binning file. The bining is based on the derivatives 
+%          Generates a binning file. The binning is based on the derivatives 
 %          in the spectra, a low intensity difference between neighbouring
 %          channels results in a high binning and vice versa.
 %          NOUT can be a scalar or a vector. If NOUT is a scalar, the number

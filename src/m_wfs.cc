@@ -1329,9 +1329,8 @@ void k_species (
    "Atmospheric WFs".
 
    The continuum is fitted be determining an off-set at a number of
-   points (order+1) that are evenly spread between the frequencies
-   specified by the two index given. The weighting functions are zero
-   outside these limits.
+   points (order+1) that are evenly spread between the given frequencies.
+   The weighting functions are zero outside these limits.
 
    \retval   k            weighting function matrix
    \retval   k_names      identity name(s)
@@ -1341,8 +1340,8 @@ void k_species (
    \param    f_mono       frequency absoprtion grid
    \param    k_grid       retrieval grid
    \param    order        polynomial order
-   \param    ilow         index for lower frequency limit
-   \param    iupp         index for upper frequency limit
+   \param    flow         lower frequency limit of fit
+   \param    fhigh        upper frequency limit of fit
 
    \author Patrick Eriksson
    \date   2000-09-15
@@ -1351,7 +1350,7 @@ void k_species (
    \date   2001-01-05
    \author Stefan Buehler
 
-   Made it possible to have arbitrary frequency limits (ilow and iupp).
+   Made it possible to have arbitrary frequency limits.
    \date   2001-01-21
    \author Patrick Eriksson
 */
@@ -1364,8 +1363,8 @@ void k_contabs (
               const VECTOR&          f_mono,
               const VECTOR&          k_grid,
               const size_t&          order,
-              const size_t&          ilow,
-              const size_t&          iupp )
+              const Numeric&         flow,
+              const Numeric&         fhigh )
 {
   // Main sizes
   const size_t  nza = los.start.size();     // number of zenith angles  
@@ -1375,7 +1374,6 @@ void k_contabs (
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
-  //  const VECTOR  lgrid=-1.0*log(k_grid);
   VECTOR  lgrid;
   p2grid( lgrid, k_grid );
   VECTOR  lplos;                      // -log of the LOS pressures
@@ -1388,14 +1386,23 @@ void k_contabs (
         size_t  iv, iv0;                   // Frequency indices
         size_t  i1, iw;                    // weight indices
 
-  // Frequency limits
-  if ( ilow > iupp )
-    throw logic_error("The frequency limits must be ordered.");
-  if ( ilow < 0 )
-    throw logic_error("The index for the lower limit must be >=0.");
-  if ( iupp >= nv )
-    throw logic_error(
-                   "The index for the upper limit is above length of f_mono.");
+  // Check given frequency limits
+  if ( flow >= fhigh )
+    throw runtime_error(
+       "The lower frequency limit equals or is above the upper limit." ); 
+  if ( flow >= f_mono[nv-1] )
+    throw runtime_error(
+       "The lower frequency limit is above all values of f_mono." ); 
+  if ( fhigh <= f_mono[0] )
+    throw runtime_error(
+       "The upper frequency limit is below all values of f_mono." ); 
+
+  // Determine first and last frequency index inside given limits
+  INDEX   ilow, ihigh;
+  for( ilow=0; ilow<nv && f_mono[ilow] < flow; ilow++ )
+    {}
+  for( ihigh=ilow; ihigh<nv && f_mono[ihigh] <= fhigh; ihigh++ )
+    {}
 
   // Other variables
         VECTOR  fpoints;                   // frequencies of the off-set points
@@ -1416,11 +1423,11 @@ void k_contabs (
 
   // Calculate the frequencies of the off-set points
   if ( npoints > 1 )
-    nlinspace( fpoints, f_mono[ilow], f_mono[iupp], npoints );
+    nlinspace( fpoints, f_mono[ilow], f_mono[ihigh], npoints );
   else
   {
     resize( fpoints, 1 );
-    fpoints[0] = ( f_mono[ilow] + f_mono[iupp] ) / 2.0;
+    fpoints[0] = ( f_mono[ilow] + f_mono[ihigh] ) / 2.0;
   }  
 
   // The calculations
@@ -1459,7 +1466,7 @@ void k_contabs (
       {
         if ( ip != ipoint )
 	{ 
-          for ( iv=ilow; iv<=iupp; iv++ )
+          for ( iv=ilow; iv<=ihigh; iv++ )
             b[iv] *= (f_mono[iv]-fpoints[ip]) / ( fpoints[ipoint]-fpoints[ip]);
 	}
       }
@@ -1499,7 +1506,7 @@ void k_contabs (
             // This is possible as the columns of dkappa/dkp are identical.  
             setto( a, 0.0 );                     
             i1 = (size_t)is[ip][0];       // first LOS point to consider
-            for ( iv=ilow; iv<=iupp; iv++ )
+            for ( iv=ilow; iv<=ihigh; iv++ )
 	    {
               for ( iw=i1; iw<=(size_t)is[ip][1]; iw++ )
                 a[iv] += absloswfs[iza][iv][iw] * w[iw-i1];
@@ -1973,7 +1980,7 @@ void kContAbs (
               const int&             order )
 {
   k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order,
-                                                          0, f_mono.size()-1 );
+                                                first(f_mono), last(f_mono) );
 }
 
 
@@ -1996,27 +2003,8 @@ void kContAbsSpecifiedLimits (
               const Numeric&         f_low,
               const Numeric&         f_high )
 {
-  if ( f_low > f_high )
-    throw runtime_error(
-       "The lower frequency limit has a higher value than the upper limit." ); 
-
-  const INDEX   nf = f_mono.size();
-        INDEX   i_low, i_high;
-  for( i_low=0; i_low<nf && f_mono[i_low] < f_low; i_low++ )
-    {}
-  if ( i_low == nf )
-    throw runtime_error(
-       "The lower frequency limit is above all values of f_mono." ); 
-
-  for( i_high=i_low; i_high<nf && f_mono[i_high] <= f_high; i_high++ )
-    {}
-  if ( i_high == 0 )
-    throw runtime_error(
-       "The upper frequency limit is below all values of f_mono." ); 
-  i_high--;
-
   k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order,
-                                                              i_low, i_high );
+                                                              f_low, f_high );
 }
 
 

@@ -969,7 +969,7 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
       MatrixReadAscii(raw_vmrs_1d[i],"",name);
       
       // state the source of profile.
-      cout << species_data[tgs[i][0].Species()].Name() << " profile read from file: " << name << "\n";
+      //cout << species_data[tgs[i][0].Species()].Name() << " profile read from file: " << name << "\n";
     }
 }
 

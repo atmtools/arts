@@ -1116,7 +1116,7 @@ void CP98H2OAbsModel( MATRIX&           xsec,
 	  // continuum term
 	  Numeric TC    = CC * pwv * pow(theta, 3.0) * 1.000e-7 * 
 	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta,7.5)) );
-	  cout << "CP98:  TC =" << TC << "\n";
+	  //cout << "CP98:  TC =" << TC << "\n";
 	  // Loop over input frequency
 	  for ( size_t s=0; s<n_f; ++s )
 	    {

@@ -1313,6 +1313,31 @@ void VectorCopy(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-06-12
+*/void VectorFlip(
+                      VECTOR&   y2,
+                const string&   name_y2,
+                const VECTOR&   y1,
+                const string&   name_y1 )
+{
+  out2 << "  Flips " << name_y2 << " to create " << name_y1 << "\n";
+
+  INDEX n = y1.size();
+
+  VECTOR dum( n );
+  for ( INDEX i=0; i<n; i++ )
+    dum[n-1-i] = y1[i];
+
+  resize( y2, n );
+  copy( dum, y2 );
+}
+
+
+
 void VectorCopyFromArrayOfVector(
                       VECTOR&          v,
                 const string&          v_name,

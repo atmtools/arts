@@ -327,6 +327,18 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("VectorFlip"),
+	DESCRIPTION(
+           "Flips a vector. The result is the vector in reversed order"),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( VECTOR_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("VectorCopyFromArrayOfVector"),
 	DESCRIPTION("Copies a vector from a vector array.\n"
           "\n"
