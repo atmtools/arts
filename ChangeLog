@@ -1,5 +1,21 @@
 2001-08-22  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
+	* arts-0-0-196
+
+	* partition_function_data.cc, species_data.cc,
+	continua.cc and continua.h, adding a new N2 continua 
+	parameterization called N2-SelfCont following
+	Rosenkranz 93 but with the strength constant C and 
+	all exponents ( Xt temp, Xp pres, Xf freq) as parameters.
+	Implemented to have at least a continua term where the
+	frequency dependence can be suppressed so one can
+	play around. So far used e.g. to simulate the defocusing
+	effect on a satellite-satellite transmission link at
+	low altitudes, that seems to correspond to an attenuation
+	in the signal independent of frequency.
+	
+2001-08-22  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
 	* arts-0-0-195
 
 	* fixing bug in method zaFromDeltat after
