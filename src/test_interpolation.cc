@@ -20,9 +20,6 @@
 #include "matpackVII.h"
 #include "interpolation.h"
 
-/** Define the global joker objekt. */
-Joker joker;
-
 void test01()
 {
   cout << "Simple interpolation cases\n"
