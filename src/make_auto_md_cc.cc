@@ -88,6 +88,8 @@ int main()
 	  << "#include \"auto_md.h\"\n"
 	  << "#include \"auto_wsv_groups.h\"\n"
 	  << "#include \"wsv_aux.h\"\n"
+	  << "#include \"m_copy.h\"\n"
+	  << "#include \"m_ignore.h\"\n"
 	  << "\n";
 
       // Declare wsv_data:
@@ -141,9 +143,19 @@ int main()
 	  // vector as generic output, this does not mean that it is
 	  // the same vector!
 
-	  ofs << "void " << mdd.Name()
-	      << "_g(WorkSpace& ws, const MRecord& mr)\n";
-	  ofs << "{\n";
+	  if ( mdd.Supergeneric() )
+	    {
+	      ofs << "void " << mdd.Name()
+		  << "_sg_" << wsv_group_names[mdd.ActualGroup()]
+		  << "_g(WorkSpace& ws, const MRecord& mr)\n"
+		  << "{\n";
+	    }
+	  else
+	    {
+	      ofs << "void " << mdd.Name()
+		  << "_g(WorkSpace& ws, const MRecord& mr)\n"
+		  << "{\n";
+	    }
 
 	  // Define generic output pointers
 	  for (Index j=0; j<vgo.nelem(); ++j)
@@ -262,7 +274,16 @@ int main()
 	    // Add comma and line break, if not first element:
 	    align(ofs,is_first_parameter,indent);
 
-	    ofs << mdd.Name() << "_g";
+	    if ( mdd.Supergeneric() )
+	      {
+		ofs << mdd.Name()
+		    << "_sg_" << wsv_group_names[mdd.ActualGroup()]
+		    << "_g";
+	      }
+	    else
+	      {
+		ofs << mdd.Name() << "_g";
+	      }
 	  }
 	ofs << "};\n\n";
       }

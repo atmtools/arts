@@ -708,6 +708,10 @@ void parse_method(Index& id,
   const MdRecord* mdd;		// Handle on the method record. Needed here,
 				// because it is modified.
 
+  bool still_supergeneric=true; // Flag that our MdRecord still is
+				// from md_data_raw, not from
+				// md_data. 
+
   // Clear all output variables:
   id = 0;
   values.resize( 0 );
@@ -747,6 +751,8 @@ void parse_method(Index& id,
 	  id = i->second;	      
 	  
 	  mdd = &md_data[id];
+
+	  still_supergeneric = false;
 
 // 	  cout << "Adjusted id=" << id << '\n';   
 // 	  cout << "Adjusted Method: " << mdd->Name() << '\n';
@@ -794,7 +800,7 @@ void parse_method(Index& id,
 
 	  // If this is a supergeneric method, now is the time to find
 	  // out the actual group of the argument(s)!
-	  if ( mdd->Supergeneric() )
+	  if ( still_supergeneric )
 	    {
 // 	      cout << "wsvid = " << wsvid << "\n";
 // 	      cout << "wsv_group_names[wsv_data[wsvid].Group()] = "
@@ -810,6 +816,8 @@ void parse_method(Index& id,
 	      id = i->second;	      
 	      
 	      mdd = &md_data[id];
+
+	      still_supergeneric = false;
 
 // 	      cout << "Adjusted id=" << id << '\n';   
 // 	      cout << "Adjusted Method: " << mdd->Name() << '\n';
@@ -864,7 +872,7 @@ void parse_method(Index& id,
 	  // Is the method data record still supergeneric? This could
 	  // be the case if there are no output arguments, only input
 	  // arguments. In that case, let's find out the actual group!
-	  if ( mdd->Supergeneric() )
+	  if ( still_supergeneric )
 	    {
 	      ostringstream os;
 	      os << mdd->Name() << "_sg_"
@@ -877,6 +885,8 @@ void parse_method(Index& id,
 	      id = i->second;	      
 
 	      mdd = &md_data[id];
+
+	      still_supergeneric = false;
 
 // 	      cout << "Adjusted id=" << id << '\n';   
 // 	      cout << "Adjusted Method: " << mdd->Name() << '\n';

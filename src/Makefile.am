@@ -53,7 +53,8 @@ arts_SOURCES = \
 	m_scatproperties.cc \
 	m_xml.cc \
 	m_clonesize.cc \
-	m_copy.cc \
+	m_copy.h \
+	m_ignore.h \
 	main.cc \
 	make_array.h \
 	make_vector.cc \

@@ -51,7 +51,8 @@ MdRecord::MdRecord(const char 		        name[],
 		   const MakeArray<Index>&      ginput,   
 		   const MakeArray<String>&     keywords,
 		   const MakeArray<TokValType>& types,
-		   bool                         agenda_method) :
+		   bool                         agenda_method,
+		   bool                         suppress_header ) :
     mname(          name            	  ),
     mdescription(   description     	  ),    
     moutput(        output       	  ),  
@@ -60,8 +61,10 @@ MdRecord::MdRecord(const char 		        name[],
     mginput(        ginput       	  ),   
     mkeywords(      keywords     	  ),
     mtypes(         types        	  ),
-    magenda_method( agenda_method         ),
-    msupergeneric(  false                 )
+    magenda_method(   agenda_method       ),
+    msupergeneric(    false               ),
+    msuppress_header( suppress_header     ),
+    mactual_group( -1 )
     { 
       // Initializing the various arrays with input data should now
       // work correctly.  
@@ -121,26 +124,31 @@ void MdRecord::subst_any_with_group( Index g )
   extern const ArrayOfString wsv_group_names;
 
   // Make sure they are initialized:
-  assert( 0!=wsv_group_names.nelem() );
+  assert( 0 != wsv_group_names.nelem() );
+
+  // Make sure that g is in the allowed range, which means
+  // 0<=g<wsv_group_names.nelem() and g != Any_
+  assert( 0 <= g );
+  assert( Any_ != g );
+  assert( g < wsv_group_names.nelem() );
 
   // Make sure that this really is a supergeneric method:
   assert( Supergeneric() );
 
   // Modify the name:
-  {
-    ostringstream os;
-    os << mname << "_sg_" << wsv_group_names[g];
-    mname = os.str();
-  }
+//   {
+//     ostringstream os;
+//     os << mname << "_sg_" << wsv_group_names[g];
+//     mname = os.str();
+//   }
   
   for ( Index j=0; j<mgoutput.nelem(); ++j )
     if ( Any_ == mgoutput[j] )		mgoutput[j] = g;
   for ( Index j=0; j<mginput.nelem(); ++j )
     if ( Any_ == mginput[j] )		mginput[j] = g;
 
-  // After supstitution, the record is no longer supergeneric, it is
-  // just a normal method data record:
-  msupergeneric = false;
+  // Set the field for the actual group:
+  mactual_group = g;
 }
 
 //! Expand supergeneric methods.
@@ -208,10 +216,37 @@ void define_md_map()
 {
   extern const Array<MdRecord> md_data;
   extern std::map<String, Index> MdMap;
+  extern const ArrayOfString wsv_group_names;
+
+  // Check that md_data and wsv_group_names have already be defined:
+  assert( 0 != md_data.nelem() );
+  assert( 0 != wsv_group_names.nelem() );
 
   for ( Index i=0 ; i<md_data.nelem() ; ++i)
     {
-      MdMap[md_data[i].Name()] = i;
+      const MdRecord& mdd = md_data[i];
+
+//       cout << "mdd.ActualGroup() = "
+// 	   << mdd.ActualGroup() << "\n";
+
+//       cout << "wsv_group_names[mdd.ActualGroup()] = "
+// 	   << wsv_group_names[mdd.ActualGroup()] << "\n";
+
+      // For supergeneric methods, add group to method name
+      String methodname;
+      ostringstream os;
+      if ( mdd.Supergeneric() )
+	{
+	  os << mdd.Name() << "_sg_"
+	     << wsv_group_names[mdd.ActualGroup()];
+	}
+      else
+	{
+	  os << mdd.Name();
+	}
+      methodname = os.str();
+
+      MdMap[methodname] = i;
     }
 }
 
@@ -220,6 +255,9 @@ void define_md_map()
   MdRawMap can be used to find method data by method name. In the
   md_data_raw lookup table. This is the method table before expansion
   of supergeneric methods.
+
+  We add the _sg_Type string to the methodname here, so that
+  supergeneric methods can be picked out for the right type.
 */
 void define_md_raw_map()
 {

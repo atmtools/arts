@@ -44,7 +44,7 @@
 #include "agenda_class.h"
 #include "auto_md.h"
 
-void CloneSize_sg_Index(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Index& out,
                // WS Generic Output Names:
                const String& outname,
@@ -56,7 +56,7 @@ void CloneSize_sg_Index(// WS Generic Output:
   out2 << "  Nothing to do for this group.\n";
 }
 
-void CloneSize_sg_Numeric(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Numeric& out,
                // WS Generic Output Names:
                const String& outname,
@@ -68,7 +68,7 @@ void CloneSize_sg_Numeric(// WS Generic Output:
   out2 << "  Nothing to do for this group.\n";
 }
 
-void CloneSize_sg_String(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                String& out,
                // WS Generic Output Names:
                const String& outname,
@@ -80,7 +80,7 @@ void CloneSize_sg_String(// WS Generic Output:
   out2 << "  Nothing to do for this group.\n";  
 }
 
-void CloneSize_sg_Vector(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Vector& out,
                // WS Generic Output Names:
                const String& outname,
@@ -89,11 +89,12 @@ void CloneSize_sg_Vector(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out = 0;
 }
 
-void CloneSize_sg_Matrix(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Matrix& out,
                // WS Generic Output Names:
                const String& outname,
@@ -107,7 +108,7 @@ void CloneSize_sg_Matrix(// WS Generic Output:
   out = 0;
 }
 
-void CloneSize_sg_Tensor3(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Tensor3& out,
                // WS Generic Output Names:
                const String& outname,
@@ -122,7 +123,7 @@ void CloneSize_sg_Tensor3(// WS Generic Output:
   out = 0;
 }
 
-void CloneSize_sg_Tensor4(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Tensor4& out,
                // WS Generic Output Names:
                const String& outname,
@@ -138,7 +139,7 @@ void CloneSize_sg_Tensor4(// WS Generic Output:
   out = 0;
 }
 
-void CloneSize_sg_Tensor5(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Tensor5& out,
                // WS Generic Output Names:
                const String& outname,
@@ -155,7 +156,7 @@ void CloneSize_sg_Tensor5(// WS Generic Output:
   out = 0;
 }
 
-void CloneSize_sg_Tensor6(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Tensor6& out,
                // WS Generic Output Names:
                const String& outname,
@@ -173,7 +174,7 @@ void CloneSize_sg_Tensor6(// WS Generic Output:
   out = 0;
 }
 
-void CloneSize_sg_Tensor7(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Tensor7& out,
                // WS Generic Output Names:
                const String& outname,
@@ -192,7 +193,7 @@ void CloneSize_sg_Tensor7(// WS Generic Output:
   out = 0;
 }
 
-void CloneSize_sg_ArrayOfIndex(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                ArrayOfIndex& out,
                // WS Generic Output Names:
                const String& outname,
@@ -205,7 +206,7 @@ void CloneSize_sg_ArrayOfIndex(// WS Generic Output:
   out = 0;
 }
 
-void CloneSize_sg_ArrayOfString(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                ArrayOfString& out,
                // WS Generic Output Names:
                const String& outname,
@@ -218,7 +219,7 @@ void CloneSize_sg_ArrayOfString(// WS Generic Output:
   out = "";
 }
 
-void CloneSize_sg_ArrayOfVector(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                ArrayOfVector& out,
                // WS Generic Output Names:
                const String& outname,
@@ -231,7 +232,7 @@ void CloneSize_sg_ArrayOfVector(// WS Generic Output:
   out2 << "  Created an Array of empty Vectors.\n";
 }
 
-void CloneSize_sg_ArrayOfMatrix(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                ArrayOfMatrix& out,
                // WS Generic Output Names:
                const String& outname,
@@ -244,7 +245,7 @@ void CloneSize_sg_ArrayOfMatrix(// WS Generic Output:
   out2 << "  Created an Array of empty Matrices.\n";
 }
 
-void CloneSize_sg_ArrayOfLineRecord(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                ArrayOfLineRecord& out,
                // WS Generic Output Names:
                const String& outname,
@@ -256,7 +257,7 @@ void CloneSize_sg_ArrayOfLineRecord(// WS Generic Output:
   out.resize( in.nelem() );
 }
 
-void CloneSize_sg_ArrayOfArrayOfLineRecord(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                ArrayOfArrayOfLineRecord& out,
                // WS Generic Output Names:
                const String& outname,
@@ -269,7 +270,7 @@ void CloneSize_sg_ArrayOfArrayOfLineRecord(// WS Generic Output:
   out2 << "  Created an Array of empty ArrayOfLineRecords.\n";
 }
 
-void CloneSize_sg_TagGroups(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                TagGroups& out,
                // WS Generic Output Names:
                const String& outname,
@@ -282,7 +283,7 @@ void CloneSize_sg_TagGroups(// WS Generic Output:
   out2 << "  Created an Array of empty TagGroups.\n";
 }
 
-void CloneSize_sg_Ppath(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Ppath& out,
                // WS Generic Output Names:
                const String& outname,
@@ -294,7 +295,7 @@ void CloneSize_sg_Ppath(// WS Generic Output:
   out2 << "  Nothing to do for this group.\n";
 }
 
-void CloneSize_sg_Agenda(// WS Generic Output:
+void CloneSize(// WS Generic Output:
                Agenda& out,
                // WS Generic Output Names:
                const String& outname,

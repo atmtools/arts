@@ -21,12 +21,10 @@ VectorNLinSpace(f_grid){
 
 VectorWriteXML(f_grid){""}
 
-Copy(ls,f_grid){}
-
-VectorWriteXML(ls){""}
+CloneSize(ls,f_grid){}
 
 AgendaSet(els_agenda){
-  NumericWriteXML(ls_sigma){""}
+  Ignore(ls_sigma){}
   elsLorentz{}
 }
 

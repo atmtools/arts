@@ -46,7 +46,9 @@ public:
     mginput(      0       	  ),   
     mkeywords(    0     	  ),
     mtypes(       0        	  ),
-    magenda_method(false)
+    magenda_method(false),
+    msupergeneric(false),
+    msuppress_header(false)
   {};
 
   // Initializing constructor. Implementation in methods_aux.cc.
@@ -58,19 +60,23 @@ public:
 	   const MakeArray<Index>&      ginput,   
 	   const MakeArray<String>&     keywords,
 	   const MakeArray<TokValType>& types,
-	   bool                         agenda_method = false);
+	   bool                         agenda_method   = false,
+	   bool                         suppress_header = false
+	   );
 
   // Methods returning the lookup information:
-  const String&            Name()         const { return mname;        	 }   
-  const String&            Description()  const { return mdescription; 	 }
-  const ArrayOfIndex&      Output()       const { return moutput;      	 }
-  const ArrayOfIndex&      Input()        const { return minput;       	 }
-  const ArrayOfIndex&      GOutput()      const { return mgoutput;     	 }
-  const ArrayOfIndex&      GInput()       const { return mginput;      	 }
-  const Array<String>&     Keywords()     const { return mkeywords;    	 }
-  const Array<TokValType>& Types()        const { return mtypes;       	 }
-  bool                     AgendaMethod() const { return magenda_method; }
-  bool                     Supergeneric() const { return msupergeneric;  }
+  const String&            Name()           const { return mname;        	 }   
+  const String&            Description()    const { return mdescription; 	 }
+  const ArrayOfIndex&      Output()         const { return moutput;      	 }
+  const ArrayOfIndex&      Input()          const { return minput;       	 }
+  const ArrayOfIndex&      GOutput()        const { return mgoutput;     	 }
+  const ArrayOfIndex&      GInput()         const { return mginput;      	 }
+  const Array<String>&     Keywords()       const { return mkeywords;    	 }
+  const Array<TokValType>& Types()          const { return mtypes;       	 }
+  bool                     AgendaMethod()   const { return magenda_method;       }
+  bool                     Supergeneric()   const { return msupergeneric;        }
+  bool                     SuppressHeader() const { return msuppress_header;     }
+  Index                    ActualGroup()    const { return mactual_group;        }
 
   // Expand supergeneric method record to an actual group
   // (documentation with implementation in method_aux.cc):
@@ -137,6 +143,18 @@ private:
   */ 
   bool msupergeneric;
 
+  //! Flag, whether method header should be suppressed.
+  /*!
+    If we want to implement a supergeneric method by a template
+    function, we must not include method headers in auto_md.h.
+  */ 
+  bool msuppress_header;
+
+  //! The actual group of a supergeneric method.
+  /*! 
+    This holds the actual group after expansion of a supergeneric method.
+  */
+  Index mactual_group;
 };
 
 void define_md_data_raw();

@@ -1,3 +1,37 @@
+2002-06-18  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-150
+
+	* src/parser.cc: Fixed handling of supergeneric methods. 
+
+	* src/methods_aux.cc: Fixed handling of supergeneric methods. 
+
+	* src/methods.h: Fixed handling of supergeneric methods. 
+
+	* src/make_auto_md_h.cc: Fixed handling of supergeneric methods. 
+
+	* src/make_auto_md_cc.cc: Fixed handling of supergeneric methods. 
+
+	* src/methods.h: Added field mactual_group and function
+	ActualGroup to MdRecord.
+
+	* src/m_clonesize.cc: Name no longer contains group.
+
+	* src/methods.cc: Added Ignore.
+
+	* src/m_ignore.h: Added. Implementation of supergeneric Ignore
+	method. 
+
+	* src/m_copy.cc: Removed.
+
+	* src/m_copy.h: Added. Implementation of supergeneric Copy method
+	is now a template function here.
+
+	* src/Makefile.am: Added m_copy.h, m_ignore.h, remove m_copy.cc.
+
+	* doc/examples/absorption_example.arts.in: Example uses now
+	CloneSize and Ignore.
+
 2002-06-18  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-149

@@ -50,6 +50,7 @@
 #define KEYWORDS MakeArray<String>
 #define TYPES    MakeArray<TokValType>
 #define AGENDAMETHOD(x) x   
+#define SUPPRESSHEADER(x) x   
 
 
 /* Here's a template record entry:  (PE 2001-09-18)
@@ -791,7 +792,9 @@ void define_md_data_raw()
 	GOUTPUT( Any_ ),
 	GINPUT(  Any_ ),
 	KEYWORDS(),
-	TYPES()));
+	TYPES(),
+	AGENDAMETHOD(   false ),
+	SUPPRESSHEADER( true  )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -964,6 +967,43 @@ void define_md_data_raw()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Ignore"),
+	DESCRIPTION
+        (
+	 "Ignore a workspace variable.\n"
+	 "\n"
+	 "This method is handy for use in agendas in order to suppress warnings\n"
+	 "about unused input workspace variables. What it does is: Nothing!\n"
+	 "In other words, it just ignores the variable it is called on.\n"
+	 "\n"
+	 "This is a supergeneric method. It can ignore any workspace variable\n"
+	 "you want.\n"
+	 "\n"
+	 "Usage example:\n"
+	 "\n"
+	 "AgendaSet(els_agenda){\n"
+	 "  Ignore(ls_sigma){}\n"
+	 "  elsLorentz{}\n"
+	 "}\n"
+	 "\n"
+	 "Without Ignore you would get an error message, because els_agenda is\n"
+	 "supposed to use the Doppler width *ls_sigma*, but the Lorentz lineshape\n"
+	 "*elsLorentz* does not need it.\n"
+	 "\n"
+	 "Supergeneric input:\n"
+	 "   Any_ : The input variable."
+	 ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(  Any_ ),
+	KEYWORDS(),
+	TYPES(),
+	AGENDAMETHOD(   false ),
+	SUPPRESSHEADER( true  )));
 
   md_data_raw.push_back
     ( MdRecord

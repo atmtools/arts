@@ -88,8 +88,9 @@ void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
 }
 
 //! Write a method header.
-/*! 
+/*!
   \param ofs The stream to write to.
+  \param mdd Method lookup data.
 */
 void write_method_header( ofstream& ofs,
 			  const MdRecord& mdd )
@@ -97,13 +98,23 @@ void write_method_header( ofstream& ofs,
   extern const ArrayOfString wsv_group_names;
   extern const Array<WsvRecord> wsv_data;
 
+//   // Work out the full name to use:
+//   String fullname;
+//   {
+//     ostringstream os;
+//     os << mdd.Name() << add_to_name;
+//     fullname = os.str();
+//   }
+
+  String fullname = mdd.Name();
+
   // This is needed to flag the first function parameter, which 
   // needs no line break before being written:
   bool is_first_parameter = true;
 
   // The String indent is needed to achieve the correct
   // indentation of the functin parameters:
-  String indent(mdd.Name().nelem()+6,' ');
+  String indent(fullname.nelem()+6,' ');
 
   // There are four lists of parameters that we have to
   // write. 
@@ -140,7 +151,7 @@ void write_method_header( ofstream& ofs,
 
 	      
   // Start with the name of the method:
-  ofs << "void " << mdd.Name() << "(";
+  ofs << "void " << fullname << "(";
 
   // Write the Output workspace variables:
   {
@@ -389,7 +400,11 @@ int main()
       ofs << "// Method function declarations:\n\n";
       for (Index i=0; i<n_md; ++i)
 	{
-	  write_method_header( ofs, md_data[i] );
+	  const MdRecord& mdd = md_data[i];
+	  if ( !mdd.SuppressHeader() )
+	    {
+	      write_method_header( ofs, mdd );
+	    }
 	}
 
       // Add all the get-away function declarations:
@@ -397,8 +412,17 @@ int main()
       for (Index i=0; i<n_md; ++i)
 	{
 	  const MdRecord& mdd = md_data[i];
-	  ofs << "void " << mdd.Name()
-	      << "_g(WorkSpace& ws, const MRecord& mr);\n";
+	  if ( mdd.Supergeneric() )
+		{
+		  ofs << "void " << mdd.Name()
+		      << "_sg_" << wsv_group_names[mdd.ActualGroup()]
+		      << "_g(WorkSpace& ws, const MRecord& mr);\n";
+		}
+	      else
+		{
+		  ofs << "void " << mdd.Name()
+		      << "_g(WorkSpace& ws, const MRecord& mr);\n";
+		}
 	}
       ofs << "\n";
 
