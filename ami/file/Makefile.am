@@ -18,4 +18,7 @@ EXTRA_DIST = \
 	filedate.m \
 	filter_lines.m \
 	read_linefile.m \
+	read_verdandi.m \
+	vtag2arts.data \
+	vtag2arts.m \
 	write_linefile.m

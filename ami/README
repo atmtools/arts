@@ -14,7 +14,8 @@ The functions are sorted as:
 
 arts/      : Interface functions to ARTS.
 file/      : Functions to get file information or to create files. 
-             This includes manipulation of transition arrays.
+             This folder contains also functions to manipulate data read
+             from linefiles (spectroscopic data).
 hmatrix/   : Functions to set up the H transfer matrix.
 math/      : Various math functions.
 path/      : Functions to handle paths and directories.

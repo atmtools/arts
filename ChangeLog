@@ -1,3 +1,11 @@
+2002-01-25  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-6
+
+	* ami: Moved functions to read linefiles in the Verdandi
+	format. These functions are needed for Qpack and will be used to
+	convert Verdandi to the ARTS format (to be included in arts-data).
+
 2002-01-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-5
