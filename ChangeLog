@@ -1,6 +1,12 @@
+2003-03-10  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-493
+
+	* doc/index.html.in: Removed link to ps uguide.
+
 2003-03-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-491
+	* arts-1-1-492
 
 	* doc/uguide/main.tex: Updated author list.
 	
