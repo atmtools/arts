@@ -1,12 +1,21 @@
 2002-06-21  Sreerekha T.R.  <rekha@uni-bremen.de>
 
+	* arts-1-1-158
+	
+	* src/m_scatrte.cc : Added the method scat_integralCalc which
+	computes the scattering integral.
+
+	* src/methods.cc : Added the method scat_integralCalc.
+	
+2002-06-21  Sreerekha T.R.  <rekha@uni-bremen.de>
+
 	* arts-1-1-157
 	
 	* src/m_scatproperties.cc (abs_vec_partCalc): Changed the inputs
 	to methods abs_vec_partCalc, ext_mat_partCalc, pha_mat_partCalc.
 
-	* src/mehods.cc : changed the inputs for the above methods.
-	
+	* src/methods.cc : Changed the inputs for the above methods.
+
 
 2002-06-20  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
