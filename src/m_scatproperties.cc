@@ -875,7 +875,7 @@ void amp_matCalc(Tensor6& amp_mat,
   \param cloudbox_limits Input : Limits of the cloud box
   \param atmospere_dim Input : dimension of atmosphere
 */
-void i_fieldSet(Tensor6& i_field,
+void i_fieldSetClearsky(Tensor6& i_field,
 		const Tensor7& scat_i_p,
 		const Tensor7& scat_i_lat,
 		const Tensor7& scat_i_lon,
@@ -887,6 +887,7 @@ void i_fieldSet(Tensor6& i_field,
 		const ArrayOfIndex& cloudbox_limits,
 		const Index& atmosphere_dim )
 {
+ 
   if(atmosphere_dim == 1)
     {
       Index  N_f = scat_i_p.nlibraries();
@@ -1202,4 +1203,81 @@ void i_fieldSet(Tensor6& i_field,
       //end of interpolation
     }//ends atmosphere_dim = 3
 }
+
+
       
+//! Set constant initial field
+
+/*! 
+  This method sets the initial field inside the cloudbox to a constant value.
+  
+  \param i_field Output : Intensity field
+  \param scat_i_p Input : Intensity field on cloudbox boundary 
+  (equal pressure surfaces)
+  \param scat_i_lat Input : Intensity field on cloudbox boundary 
+  (equal latitude surfaces)
+  \param scat_i_lon Input : Intensity field on cloudbox boundary
+  (equal longitude surfaces)
+  \param f_grid Input : frequency grid
+  \param scat_f_index Input : the frequency index for scattering calculation
+  \param p_grid Input : the pressure grid
+  \param lat_grid Input : the latitude grid
+  \param lon_grid Input : the longitude grid
+  \param cloudbox_limits Input : Limits of the cloud box
+  \param atmospere_dim Input : dimension of atmosphere
+  \param i_field_value Keyword: value of the constant initial field 
+
+  \author Claudia Emde
+  \date 2002-08-26
+  
+*/
+void i_fieldSetConst(//WS Output:
+                        Tensor6& i_field,
+                        //WS Input:
+                        const Tensor7& scat_i_p,
+                        const Tensor7& scat_i_lat,
+                        const Tensor7& scat_i_lon,
+                        const Vector& f_grid,
+                        const Index& scat_f_index,
+                        const Vector& p_grid,
+                        const Vector& lat_grid,
+                        const Vector& lon_grid,
+                        const ArrayOfIndex& cloudbox_limits,
+                        const Index& atmosphere_dim,
+                        // Keyword       
+                        const Numeric& i_field_value)
+{
+  if(atmosphere_dim == 1)
+  {
+    // In the 1D case the atmospheric layers are defined by p_grid and the
+    // required interface is scat_i_p.
+    Index N_za = scat_i_p.npages();
+    Index N_p = p_grid.nelem();
+   
+    // Define the size of i_field.
+    i_field.resize((cloudbox_limits[1] - cloudbox_limits[0])+1, 1, 1,  N_za,
+                   1, 1);
+
+    // Loop over all zenith angle directions.
+    for (Index za_index = 0; za_index < N_za; za_index++)
+      {
+        i_field(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index, 0, 0) = 
+          scat_i_p(0, 1, 0, 0, za_index, 0, 0);
+        i_field(0, 0, 0, za_index, 0, 0) = 
+          scat_i_p(0, 0, 0, 0, za_index, 0, 0);
+        for (Index scat_p_index = 1; scat_p_index < cloudbox_limits[1] - 
+               cloudbox_limits[0] ; scat_p_index++ )
+          // The field inside the cloudbox is set to some arbitrary value.
+          i_field(scat_p_index, 0, 0, za_index, 0, 0) =  i_field_value;
+      }    
+         
+  }
+
+  if(atmosphere_dim == 3)
+    {
+      throw runtime_error(
+                          "i_fieldSetConst for 3D atmosphere will be \n"
+                          "implemented soon."
+                          );
+    }
+}

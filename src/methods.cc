@@ -970,7 +970,7 @@ void define_md_data_raw()
 
  md_data_raw.push_back
     ( MdRecord
-      ( NAME( "i_fieldSet" ),
+      ( NAME( "i_fieldSetClearsky" ),
 	DESCRIPTION
         (
 	 "This method uses a linear 3D interpolation scheme to obtain the\n"
@@ -996,6 +996,33 @@ void define_md_data_raw()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "i_fieldSetConst" ),
+	DESCRIPTION
+        (
+	 "This method can be used to set the initial field inside the \n"
+         "cloudbox to a constant value. \n"
+         "The value can be given by the user .\n"
+	 "\n"
+	 "The inputs to this method are *scat_i_p*[ N_f, 2, N_lat, N_lon,\n"
+	 "N_za, N_aa, stokes_dim], *scat_i_lat*[ N_f, N_p, 2, N_lon, \n"
+	 "N_za, N_aa, stokes_dim] and *scat_i_lon*[ N_f, N_p, N_lat, 2,\n"
+	 "N_za, N_aa, stokes_dim].  The method has to pick the \n"
+	 "monochromatic radiation field out of these variables.  The \n"
+	 "output of the method is the initial field stored in the \n"
+	 "workspace variable *i_field*[ N_p, N_lat, N_lon, N_za, N_aa,\n"
+	 "stokes_dim].\n"
+	 ),
+	OUTPUT(i_field_),
+	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, f_grid_, 
+	       scat_f_index_, p_grid_, lat_grid_, lon_grid_, 
+	       cloudbox_limits_, atmosphere_dim_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS("value"),
+	TYPES(Numeric_t)));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2029,6 +2056,39 @@ md_data_raw.push_back
 		  "nrows", "ncols", "value" ),
 	TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, 
 	       Index_t, Numeric_t )));
+
+ md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("Tensor6WriteIteration"),
+	DESCRIPTION
+	(
+       "Write iterated fields.\n"
+       "\n"
+       "This function writes intermediate resultes, the iterations of \n"
+       "fields to xml files. It can be used to check the solution method \n"
+       "for the RTE with scattering integral, which is an iterative \n"
+       "numerical method. It is useful to look how the radiation field \n"
+       "*i_field* and the scattered field *scat_field* behave. \n"
+       "\n"
+       "The user can give an array containing the iterations which shall \n"
+       "be written to files as a keyword to the method. E.g. if \n"
+       "'iterations = [3, 6, 9]', the 3rd, 6th and 9th iterations are \n"
+       "stored in the files 'iteration_field_3.xml', \n"
+       "'iteration_field_6.xml' ...\n"
+       "\n"
+       "If you want to save all the iterations the array has to contain \n"
+       "just one element set to 0: 'iterations = [0]'.\n" 
+       "\n"           
+       "Note: The workspace variable iteration_counter has to be set as 0 \n"
+       "in the control file before using this method.\n"
+       "\n"
+	),
+	OUTPUT(iteration_counter_),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT(Tensor6_),
+	KEYWORDS("iterations"),
+	TYPES(Array_Index_t )));
 
   md_data_raw.push_back     
     ( MdRecord

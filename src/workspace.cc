@@ -806,6 +806,22 @@ void define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "iteration_counter" ),
+      DESCRIPTION
+      (
+       "Counter for iterations.\n"
+       "\n"
+       "This variable holds the number of iterations which have been \n"
+       "while solving the RTE with scattering. \n"
+       "It is used in the method *Tensor6WriteIteration* and has to be set \n"
+       "0 in the control file if this method is used.\n"
+       "\n"
+  ),
+      GROUP( Index_ )));
+
+
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "lat_grid" ),
       DESCRIPTION
       (

@@ -125,17 +125,6 @@ void convergence_flagAbs(//WS Output:
                         "have *stokes_dim* elements!"
                         );
   
-  static Index counter = 0;
-  counter = counter+1;
-  cout << "Number of iterations:   "<< counter << endl;
-  
-  ostringstream os;
-
-  os << counter;
-  xml_write_to_file("i_field_" + os.str() + ".xml", i_field);
-
-  cout<< "i_field    " << i_field << endl;
-
   Index N_scat_za = scat_za_grid.nelem();
   Index N_scat_aa = scat_aa_grid.nelem();
 
@@ -1379,3 +1368,66 @@ scat_fieldCalc(//WS Output:
  
 }
   
+
+
+//! Write iterated fields.
+/*!
+  This function writed intermediate resultes, the iterations of fields to xml 
+  files. It can be used to check the solution method for the RTE with 
+  scattering integral, which is an iterative numerical method. It is useful
+  to look how the radiation field *i_field* and the scattered field
+  *scat_field* behave.
+
+  The user can give an array containing the iterations which shall be written 
+  to files as a keyword to the method. E.g. if "iterations = [3, 6, 9]",
+  the 3rd, 6th and 9th iterations are stored in the files
+  "iteration_field_3.xml",  "iteration_field_6.xml" ...
+  
+  If you want to save all the iterations the array has to contain 
+  just one element set to 0: "iterations = [0]". 
+  
+  Note: The workspace variable iteration_counter has to be set as 0 in the
+  control file before using this method.
+      
+  WS Input/Output: 
+  \param iteration_counter Counter for the iterations. 
+  \param field Iterated field
+  \param iterations Array containing the iteration numbers to be written
+
+  \author Claudia Emde
+  \date 2002-08-26
+     
+*/ 
+void Tensor6WriteIteration(//WS input and output
+                           Index& iteration_counter,
+                           //Global input:
+                           const Tensor6& field,
+                           const String& field_name,
+                           //Keyword:
+                           const ArrayOfIndex& iterations)
+{
+  // FIXME: There should be a check, whether iteration_counter = 0 when the
+  // function is called for the first time.
+
+  //Increase the counter 
+ iteration_counter = iteration_counter+1;
+ cout << "Number of iterations:   "<< iteration_counter << endl;
+ 
+ ostringstream os;
+ os << iteration_counter;
+
+ // All iterations are written to files
+ if( iterations[0] == 0 )
+   {
+     xml_write_to_file("iteration_field_" + os.str() + ".xml", field);  
+   }
+ // Only the iterations given by the keyword are written to a file
+ else
+   {
+     for (Index i = 0; i<iterations.nelem(); i++)
+       {
+         if (iteration_counter == iterations[i])
+           xml_write_to_file("iteration_field_"+ os.str() + ".xml", field);  
+       }
+   }
+}
