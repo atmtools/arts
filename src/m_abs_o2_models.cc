@@ -1363,6 +1363,9 @@ void PWRO2VoigtMixing(//output
 {
 
 
+  // coonstant = sqrt(ln(2) / pi)
+  const Numeric lnpi = 0.4697186e0;
+
   // variables for complex error function / Faddeeva function
   Vector  FX;
   FX.resize(1);
@@ -1382,7 +1385,7 @@ void PWRO2VoigtMixing(//output
   FY    = 0.8325546e0 * DF / gamma_D;
   HUMLIK_Faddeeva_Wells( FX, FY, FK, FL );
 
-  Numeric SF1 = FX[0] + FL[0]*Y;
+  Numeric SF1 = (lnpi / gamma_D * FX[0]) + FL[0]*Y;
 
 
   // complex error function / Faddeeva function
@@ -1391,7 +1394,7 @@ void PWRO2VoigtMixing(//output
   FY    = 0.8325546e0 * DF / gamma_D;
   HUMLIK_Faddeeva_Wells( FX, FY, FK, FL );
 
-  Numeric SF2 = FX[0] + FL[0]*Y;
+  Numeric SF2 = (lnpi / gamma_D * FX[0]) + FL[0]*Y;
 
   /*
   cout << "2******************************************************2 \n";
