@@ -1137,7 +1137,7 @@ void define_md_data()
 	  "together with a normalization factor.\n"
 	  "Normalization Factors: no_norm: 1 linear: f/f0  quadratic: (f/f0)^2.\n"
 	  "Example:\n"
-	  "lineshape=[\"Lorentz\",\"Voigt_Kuntz6\"] \n"
+	  "shape=[\"Lorentz\",\"Voigt_Kuntz6\"] \n"
 	  "normalizationfactor=[\"linear\", \"quadratic\"]"),
 	OUTPUT( lineshape_ , lineshape_norm_ ),
 	INPUT( tag_groups_ ),

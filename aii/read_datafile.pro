@@ -16,6 +16,7 @@
 ; Output:   x             the data  
 ;
 ; History:  13.11.00  Wolfram Haas
+;           25.01.01  Axel von Engeln: changed matrix index from 1 to 0
 ;******************************************************************************
 
 FUNCTION read_datafile, filename, optimize = optimize
@@ -118,10 +119,10 @@ ENDFOR
 IF nmat EQ 1 THEN mat = *pa(0) ELSE BEGIN  ; create structure
   s1 = 'mat = {' & s2 = ''
   FOR i = 0, nmat - 1 DO BEGIN
-    s1 = s1 + 'mat' + string(i + 1, format = '(I0)') $
+    s1 = s1 + 'mat' + string(i, format = '(I0)') $
             + ': dblarr(' + string(ncol(i), format = '(I0)') + ', ' $      
                           + string(nrow(i), format = '(I0)') + '), '
-    s2 = s2 + 'mat.mat' + string(i + 1, format = '(I0)') $ 
+    s2 = s2 + 'mat.mat' + string(i, format = '(I0)') $ 
             + ' = *pa(' + string(i, format = '(I0)') + ') & '
   ENDFOR
   s1 = strmid(s1, 0, strlen(s1) - 2) + '}'

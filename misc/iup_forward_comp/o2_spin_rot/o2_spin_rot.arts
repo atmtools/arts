@@ -7,7 +7,7 @@
 # Read the spectroscopic line data from the ARTS catalogue and
 # create the workspace variable `lines':
 linesReadFromArts {
-   filename = "../../../data/spectroscopy/arts/o2_spin_rot_pwr_2.al"
+   filename = "../../../data/spectroscopy/arts/o2_spin_rot_pwr_3.al"
    fmin     = 40e9
    fmax     = 120e9
 }

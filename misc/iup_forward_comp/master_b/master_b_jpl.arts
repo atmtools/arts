@@ -122,6 +122,9 @@ lineshapeDefine {shape="Voigt_Kuntz6"
                  normalizationfactor="quadratic"
                 }
 
+# define the water vapor vmr
+VectorCopyFromArrayOfVector ( h2o_abs, vmrs ) { 0 } 
+
 # Calculate absorption coefficients, both total (`abs') and 
 # separately for each tag group (`abs_per_tg'):
 absCalc{}

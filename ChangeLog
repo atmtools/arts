@@ -1,3 +1,27 @@
+2001-01-30  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-115
+
+	* aii_prologue_l.pro: Arts IDL Interface plot prologue, landscape
+	
+	* aii_epilogue.pro: Arts IDL Interface plot epilogue, landscape
+
+	* plot_abs_per_tg.pro: makes a nice color plot of the absorption
+	per tag group
+
+	* read_datafile.pro: indicees changed from 1 to 0
+
+	* read_tag_groups.pro: reads the tag group names out of a
+	controlfile, is for example used by plot_abs_per_tg
+
+	* sort_abs.pro: sorts the absorption per tag group according to
+	magnitude at a certain altitude level, is used by plot_abs_per_tg
+
+	* arts/o2_spin_rot_pwr_3.al: arts catalogue file of the oxygen
+	spin rot spectrum, see file for more info
+
+	* methods.cc: updated some info.
+
 2001-01-26  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-114
