@@ -1,20 +1,31 @@
+2001-12-05  Nikolay Koulev  <nkoulev@uni-bremen.de>
+   
+	* arts-0-1-64
+
+	* doc/uguide/absorption.tex: Editted some parts. 
+	
 2001-12-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
- 
-        * arts-0-1-63
- 
-        * changes: - Update MPM93 N2 continuum, now now 
-                     underflow is possible due to zero vmr
+
+	* arts-0-1-63
+
+	* src/continua.cc: Update MPM93 N2 continuum, now no 
+                           underflow is possible due to zero vmr.
 
 2001-12-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
- 
-        * arts-0-1-62
- 
-        * changes: - Update the H2O continuum parameter n_s of MPM 
-                     from 7.5 to 7.8.
-                   - Update the uiguide for the isotopic ratio introduced 
-                     in the MPm93 lines at 547 and 556 GHz in the line strength.
-                   - update the IDL procedures aii_color_table.pro and 
-                     aii_plot_file.pro
+
+	* arts-0-1-62
+
+	* src/continua.cc: Update the H2O continuum parameter n_s of MPM 
+                           from 7.5 to 7.8.
+
+	* doc/uguide/absorption.tex: Update the uiguide for the 
+	                             isotopic ratio introduced 
+                                     in the MPm93 lines at 547 and 556 GHz
+                                     in the line strength.
+
+	* aii/aii_color_table.pro: update the IDL procedures.
+        
+	* aii/aii_plot_file.pro:    update the IDL procedures.
 
 2001-11-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
