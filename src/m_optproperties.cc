@@ -205,6 +205,7 @@ void pha_mat_sptCalc(
                           Range(joker), Range(joker)),
               amp_coeffs); 
     }
+  xml_write_to_file("pha_mat_spt.xml", pha_mat_spt); 
 }
 
 //! Calculates phase matrix for the single particle types.
@@ -226,6 +227,7 @@ void pha_mat_sptFromData( // Output:
                          )
 {
 
+ 
   out3 << "Calculate *pha_mat_spt* from database\n";
 
   const Index N_pt = scat_data_raw.nelem();
@@ -239,7 +241,7 @@ void pha_mat_sptFromData( // Output:
   }
   
   assert( pha_mat_spt.nshelves() == N_pt );
-
+  
   SingleScatteringData single_scattering_data;
 
   PType part_type;
@@ -247,10 +249,11 @@ void pha_mat_sptFromData( // Output:
   Vector za_datagrid;
   Vector aa_datagrid;
   Tensor6 pha_mat_data;
-  
+  Tensor4 ext_mat_data;
+
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
-    Tensor5 pha_mat_data_int;
+  Tensor5 pha_mat_data_int;
   
 
   // Loop over the included particle_types
@@ -265,8 +268,6 @@ void pha_mat_sptFromData( // Output:
       aa_datagrid = single_scattering_data.aa_grid;
       pha_mat_data = single_scattering_data.pha_mat_data;
       
-      
-
       // First we have to transform the data from the coordinate system 
       // used in the database (depending on the kind of particle type 
       // specified by *ptype*) to the laboratory coordinate sytem. 
@@ -277,7 +278,9 @@ void pha_mat_sptFromData( // Output:
       pha_mat_data_int.resize(pha_mat_data.nshelves(), pha_mat_data.nbooks(),
                               pha_mat_data.npages(), pha_mat_data.nrows(), 
                               pha_mat_data.ncols());
-      
+
+      Numeric ext_mat_data_int = 0.;
+
       // Gridpositions:
       GridPos freq_gp;
       gridpos(freq_gp, f_datagrid, f_grid[f_index]); 
@@ -286,7 +289,6 @@ void pha_mat_sptFromData( // Output:
       Vector itw(2);
       interpweights(itw, freq_gp);
      
-
       for (Index i_za_sca = 0; i_za_sca < pha_mat_data.nshelves() ; i_za_sca++)
         {
           for (Index i_aa_sca = 0; i_aa_sca < pha_mat_data.nbooks(); i_aa_sca++)
@@ -304,37 +306,49 @@ void pha_mat_sptFromData( // Output:
                                                 i_aa_inc, i) =
                             interp(itw,
                                    pha_mat_data(joker,i_za_sca, 
-                                                   i_aa_sca, i_za_inc, 
-                                                   i_aa_inc, i),
+                                                i_aa_sca, i_za_inc, 
+                                                i_aa_inc, i),
                                    freq_gp);
                         }
                     }
                 }
             }
         }
-      //      xml_write_to_file("pha_mat_data_unspr.xml", pha_mat_data);
+      // xml_write_to_file("pha_mat_data_unspr.xml", pha_mat_data);
       // xml_write_to_file("pha_mat_data_int.xml", pha_mat_data_int);
                           
+       
+       Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);
+       
+       //Initialize pha_mat_spt
+       pha_mat_spt = 0.;
 
-                          
-      // Do the transformation into the laboratory coordinate system.
-      for (Index j = 0; j < scat_za_grid.nelem(); j ++)
-        {
-          for (Index k = 0; k < scat_aa_grid.nelem(); k ++) 
-            {
-              Numeric za_inc = scat_za_grid[j]; 
-              Numeric aa_inc = scat_aa_grid[k];
-              //
-              pha_matTransform(pha_mat_spt(i_pt, j, k, joker, joker),
-                               pha_mat_data_int,
-                               za_datagrid, aa_datagrid,
-                               part_type, za_sca, aa_sca, za_inc, aa_inc); 
-            }
-        }
+       // Do the transformation into the laboratory coordinate system.
+       for (Index j = 0; j < scat_za_grid.nelem(); j ++)
+         {
+           for (Index k = 0; k < scat_aa_grid.nelem(); k ++) 
+             {
+               Numeric za_inc = scat_za_grid[j]; 
+               Numeric aa_inc = scat_aa_grid[k];
+               
+               //  pha_matTransform(pha_mat_spt(i_pt, j, k, joker, joker),
+               pha_matTransform(pha_mat_lab,
+                                pha_mat_data_int, 
+                                za_datagrid, aa_datagrid,
+                                part_type, za_sca, aa_sca, za_inc, aa_inc);
+               //  xml_write_to_file("pha_mat_lab.xml", Matrix(pha_mat_lab));
+               pha_mat_spt(i_pt, j, k, joker, joker) = pha_mat_lab;
+               // cout << "pha_mat_spt " <<  pha_mat_spt(i_pt, j, k, 0, 0) << endl;
+             }
+
+
+         }
+        xml_write_to_file("pha_mat_spt.xml", pha_mat_spt);
       
     }
 
-  //  xml_write_to_file("pha_mat_spt.xml", pha_mat_spt);
+
+    
 }
   
     
@@ -357,7 +371,6 @@ void opt_prop_sptFromData( // Output and Input:
                          const Vector& f_grid
                          )
 {
-  
   const Index N_pt = scat_data_raw.nelem();
   const Index stokes_dim = ext_mat_spt.ncols();
   const Numeric za_sca = scat_za_grid[scat_za_index];
@@ -464,6 +477,10 @@ void opt_prop_sptFromData( // Output and Input:
       //
       // Extinction matrix:
       //
+      // Initialisation
+      ext_mat_spt = 0.;
+      abs_vec_spt = 0.;
+  
       ext_matTransform(ext_mat_spt(i_pt, joker, joker),
                        ext_mat_data_int,
                        za_datagrid, aa_datagrid, part_type,
@@ -557,7 +574,7 @@ void abs_vec_sptCalc(
               scat_za_grid,
               scat_aa_grid);
      
-    }      
+    }
 }
 
 

@@ -3284,8 +3284,12 @@ scat_fieldCalc(//WS Output:
     
   }//end atmosphere_dim = 1
 
+
+  // xml_write_to_file("scat_field.xml", scat_field);       
+
   //cout<<"scat_field"<<scat_field<<"\n";       
   //arts_exit ();
+
   
   
   //When atmospheric dimension , atmosphere_dim = 3
@@ -3574,7 +3578,7 @@ scat_fieldCalcFromAmpMat(//WS Output:
       }//end p_index loop
     
   }//end atmosphere_dim = 1
-
+  xml_write_to_file("scat_field.xml", scat_field);    
   //cout<<"scat_field"<<scat_field<<"\n";	
   //arts_exit ();
   
@@ -3739,7 +3743,7 @@ void ScatteringInit(
   scat_lon_index = 0;
   scat_za_index = 0;
   scat_aa_index = 0;
-  iteration_counter = 0;
+  //  iteration_counter = 0;
 
   // Number of particle types:
   const Index N_pt = scat_data_raw.nelem();
