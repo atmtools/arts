@@ -1,3 +1,10 @@
+2001-12-18  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-70
+
+	* src/math_funcs.cc (interp_lin_vector): Put in an assertion to
+	check that no two x values are the same.
+
 2001-12-17  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-0-1-69
@@ -13,7 +20,6 @@
 
 		The p_abs grid is created using the first and last values
 	of pressure grids spaced logrithmically over 100 steps.
-	
 
 2001-12-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 

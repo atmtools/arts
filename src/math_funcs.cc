@@ -299,7 +299,9 @@ Index interp_check( ConstVectorView  x,
     you can use matrix rows or columns, or vector sub-ranges inside
     the argument of this function.
 
-    The vector x specifies the points at which the data y is given. 
+    The vector x specifies the points at which the data y is given. It
+    must be strictly monotonically increasing. (No two x values must
+    be the same.)
 
     The size of yi has to be the same as for xi.
 
@@ -328,7 +330,10 @@ void interp_lin_vector( VectorView       yi,
 
   for ( i=0; i<n; i++ )
   {
-    for( ;  order*x[j+1] < order*xi[i]; j++ ) {}
+    // Find right place:
+    for( ;  order*x[j+1] < order*xi[i]; j++ );
+    
+    assert( x[j+1]!=x[j] );
     w = (xi[i]-x[j]) / (x[j+1]-x[j]);
     yi[i] = y[j] + w * (y[j+1]-y[j]); 
   }
