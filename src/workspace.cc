@@ -131,6 +131,29 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "abs_vec_gas" ),
+       DESCRIPTION
+       (
+	"Absorption Vector for gaseous species.\n"
+	"\n"
+	"This workspace variable represents the absorption vector of the\n"
+	"gaseous species specified for the study.  It can either be\n"
+	"calculated in the method *abs_vec_gasCalc* or can be read in from\n"
+	"from a file.  The method *abs_vec_gasCalc* is not yet implemented.\n"
+	"\n"
+	"There will be for sure more documentation on this.\n"
+	"\n"
+	"Usage:      Input to the method abs_vecCalc\n"
+	"\n"
+	"Unit:        m^2\n"
+	"\n"
+	"Dimensions: [ stokes_dim ]\n"
+	),
+      GROUP( Vector_ )));
+  
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "abs_vec_part" ),
        DESCRIPTION
        (
@@ -556,6 +579,28 @@ void define_wsv_data()
       GROUP( Matrix_ )));
 
 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "ext_mat_gas" ),
+       DESCRIPTION
+       (
+	"Extinction matrix for gaseous species.\n"
+	"\n"
+	"This workspace variable represents the extinction matrix of the\n"
+	"gaseous species specified for the study.  It can either be\n"
+	"calculated in the method *ext_mat_gasCalc* or can be read in from\n"
+	"a file.  The method *ext_mat_gasCalc* is not yet implemented. \n"
+	"\n"
+	"There will be for sure more documentation on this.\n"
+	"\n"
+	"Usage:      Input to the method ext_matCalc\n"
+	"\n"
+	"Unit:        m^2\n"
+	"\n"
+	"Dimensions: [ stokes_dim, stokes_dim ]\n"
+	),
+      GROUP( Matrix_ )));
+	
   wsv_data.push_back
     (WsvRecord
      ( NAME( "ext_mat_part" ),

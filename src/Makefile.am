@@ -184,6 +184,8 @@ test_scatproperties_SOURCES = \
 	scatproperties.cc\
 	constants.cc\
 	logic.h\
+	math_funcs.cc\
+	math_funcs.h\
 	logic.cc
 
 test_poly_SOURCES = \

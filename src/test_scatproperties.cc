@@ -6,6 +6,8 @@
 
 #include <iostream>
 #include "scatproperties.h"
+#include "math_funcs.h"
+
 extern const Numeric DEG2RAD;
 int main(void)
 {

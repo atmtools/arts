@@ -77,5 +77,9 @@ Vector nlogspace(
 		 const Numeric     stop,  
 		 const Index         n );
 
+Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
+			       ConstVectorView za_grid,
+			       ConstVectorView aa_grid);
+
 
 #endif  // math_funcs_h

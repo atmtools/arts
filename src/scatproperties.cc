@@ -10,6 +10,8 @@
 
 #include <iostream>
 #include "scatproperties.h"  
+#include "math_funcs.h"
+
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric SPEED_OF_LIGHT; 
@@ -425,46 +427,5 @@ void amp2abs(VectorView abs,
   // if stokes_dim =4 all 4 elements need be evaluated.
 }
 
-/** 
- * 
- * 
- * @param Integrand The Matrix to be integrated
- * @param za_grid Input : The zenith angle grid 
- * @param aa_grid Input : The azimuth angle grid 
- * 
- * @return The resulting integral
- */
-Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
-			       ConstVectorView za_grid,
-			       ConstVectorView aa_grid)
-{
-  //is_size(za_grid.nelem(),aa_grid.nelem());
-  
-  Index n = za_grid.nelem();
-  Index m = aa_grid.nelem();
-  Vector res1(n);
-  assert (is_size(Integrand, n, m));
-  for (Index i = 0; i < n ; ++i)
-    {
-      res1[i] = 0.0;
-      Numeric sintheta = sin(za_grid[i] * DEG2RAD);
-      
-      for (Index j = 0; j < m - 1; ++j)
-	{
-	  res1[i] +=  0.5 * (Integrand(i, j) + Integrand(i, j + 1)) *
-	    (aa_grid[j + 1] - aa_grid[j]) * sintheta;
-	}
-    }
-  
-  Numeric res = 0.0;
-  for (Index i = 0; i < n - 1; ++i)
-    {
-      res += 0.5 *  (res1[i] + res1[i + 1]) * 
-	(za_grid[i + 1] - za_grid[i]);
-    }
-  
-  cout<<res<<"\n";
-  return res;
-}
 
 

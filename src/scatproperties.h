@@ -30,8 +30,6 @@ void amp2abs(VectorView abs,
 	     ConstVectorView aa_grid);
 
 
-Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
-			       ConstVectorView za_grid,
-			       ConstVectorView aa_grid);
+
 
 #endif    // scatproperties_h

@@ -17,7 +17,7 @@
 #include "matpackVII.h"
 #include "scatproperties.h"
 #include "logic.h"
-
+#include "auto_md.h"
 
 //! This method computes the extinction matrix for a single particle type
 //  from teh amplitude matrix.
@@ -82,7 +82,6 @@ void ext_mat_sptCalc(Tensor3& ext_mat_spt,
   
 */
 
-
 void pha_mat_sptCalc(Tensor5& pha_mat_spt,
 		     const Tensor6& amp_mat,
 		     const Index& scat_za_index,
@@ -129,7 +128,6 @@ void pha_mat_sptCalc(Tensor5& pha_mat_spt,
   \param pha_mat_spt  Input : phase matrix for  a single particle type
  
 */
-
 void abs_vec_sptCalc(Matrix& abs_vec_spt,
 		     const Tensor3& ext_mat_spt,
 		     const Tensor5& pha_mat_spt,
@@ -344,6 +342,7 @@ void abs_vec_partCalc(Vector& abs_vec_part,
     }
 } 
 
+
 //! Phase Matrix for the particle 
 /*! 
   
@@ -357,6 +356,7 @@ void abs_vec_partCalc(Vector& abs_vec_part,
   \param cloudbox_limits Input : the limits of the cloud box.
   \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
 */
+
 void pha_mat_partCalc(Tensor4& pha_mat_part,
 		      const Tensor5& pha_mat_spt,
 		      const Tensor4& pnd_field,
@@ -441,19 +441,15 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
 			    {
 			      
 			      // now the last two loops over the stokes dimension.
-			      for (Index stokes_index = 0; 
-				   stokes_index < N_i; ++  stokes_index)
+			      for (Index i = 0;  i < N_i; ++  i)
 				{
-				  for (Index stokes_index = 0; 
-				       stokes_index < N_i; ++ stokes_index)
+				  for (Index j = 0; j < N_i; ++ j)
 				    {
 				      
 				      pha_mat_part(za_index, aa_index, 
-						   stokes_index, 
-						   stokes_index) += 
+						   i,j ) += 
 					(pha_mat_spt(pt_index, za_index, 
-						     aa_index, stokes_index,
-						     stokes_index) * 
+						     aa_index, i, j) * 
 					 pnd_field(p_index, lat_index, 
 						   lon_index, pt_index));
 				      
@@ -466,5 +462,50 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
 	    } 
 	}
     }
+
+}
+
+
+//! Total extinction matrix
+/*! 
+  
+  This method sums up the extinction  matrices for  particle 
+  and gas
+  \param ext_mat Output : Total extinction matrix  
+  \param ext_mat_part Input : extinction matrix for particle
+  \param ext_mat_part Input : extinction matrix for gas
+*/
+
+void ext_matCalc(Matrix& ext_mat,
+		  const Matrix& ext_mat_part,
+		  const Matrix& ext_mat_gas
+		  )
+{
+  Index N_i = ext_mat_part.nrows(); 
+  //CloneSize(ext_mat_gas, ext_mat_part){}
+  ext_mat = ext_mat_part;
+  ext_mat += ext_mat_gas;
+
+}
+
+//! Total Absorption Vector
+/*! 
+  
+  This method sums up the absorption vectors for  particle 
+  and gas
+  \param abs_vec Output : Total absorption vector  
+  \param abs_vec_part Input : absorption vector for particle
+  \param abs_vec_gas Input : absorption vector for gas
+*/
+
+void abs_vecCalc(Vector& abs_vec,
+		  const Vector& abs_vec_part,
+		  const Vector& abs_vec_gas
+		  )
+{
+  Index N_i = abs_vec_part.nelem(); 
+  //CloneSize(abs_vec_gas, abs_vec_part){}
+  abs_vec = abs_vec_part;
+  abs_vec += abs_vec_gas;
 
 }

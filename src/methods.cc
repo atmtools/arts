@@ -204,6 +204,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("abs_vecCalc"),
+  	DESCRIPTION
+	(
+	 "This function sums up the absorption vectors of particle and gas\n"
+	 "and gives the total absorption vector.\n"
+	 "\n"
+	 "The method *abs_vec_partCalc* calculates the particle absorption\n"
+	 "vector *abs_vec_part*.  In the case of gases it can either be \n"
+	 "calculated using a similar method *abs_vec_gasCalc* or can be \n"
+	 "be read in from a file.  The second option can really save some\n"
+	 "computation time.\n"
+	 "\n"
+	 "The output of this method is *abs_vec* (stokes_dim). The inputs\n"
+	 "the particle absorption vector *abs_vec_part*( stokes_dim )\n"
+	 "and the gaseous absorption vector *abs_vec_gas* ( stokes_dim )\n"
+	 ),
+	OUTPUT( abs_vec_  ),
+        INPUT( abs_vec_part_, abs_vec_gas_  ),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("AgendaSet"),
   	DESCRIPTION
 	( 
@@ -864,6 +889,33 @@ void define_md_data_raw()
 	KEYWORDS( "value" ),
 	TYPES(    Numeric_t )));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ext_matCalc"),
+  	DESCRIPTION
+	(
+	 "This function sums up the extinction matrices of particle and gas\n"
+	 "and gives the total extinction matrix.\n"
+	 "\n"
+	 "The extinction due to particle is the sum of scattering and \n"
+	 "absorption whereas the extinction due to gas is due only to \n"
+	 "absorption. The method *ext_mat_partCalc* calculates the particle\n" 
+	 "extinction matrix *ext_mat_part*. In the case of gases it can\n"
+	 "either be calculated in a similar method *ext_mat_gasCalc* or\n"
+	 "can be read in from a file.  The second option can really save\n"
+	 "some computation time.\n"
+	 "\n"
+	 "The output of this method is *ext_mat* (stokes_dim, stokes_dim).\n"
+	 "The inputs are the particle extinction matrix *ext_mat_part*\n"
+	 "(stokes_dim,  stokes_dim) and the gaseous extinction matrix \n"
+	 "*ext_mat_gas* (stokes_dim,  stokes_dim).\n"
+	 ),
+	OUTPUT( ext_mat_  ),
+        INPUT( ext_mat_part_, ext_mat_gas_  ),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
