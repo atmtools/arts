@@ -1,3 +1,9 @@
+2002-04-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-47
+
+	* configure.in: Added doc/uguide/Figs/ppath/Makefile.am
+
 2002-04-05  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-46
