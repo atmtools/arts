@@ -1,3 +1,20 @@
+/* Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
+
+   This program is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the
+   Free Software Foundation; either version 2, or (at your option) any
+   later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+   USA. */
+
 // Stuff related to the calculation of absorption coefficients.
 
 #include "arts.h"
@@ -11,8 +28,6 @@
 
 void linesReadFromHitran(// WS Output:
                          ARRAYofLineRecord& lines,
-                        // WS Generic Output Names:
-                         const string& lines_name,
                           // Control Parameters:
                          const string& filename,
                          const Numeric& fmin,
@@ -561,3 +576,15 @@ void AllAbsExample(// WS Output:
 }
 
 
+void absCalc(// WS Output:
+             MATRIX&        		     abs,
+             ARRAYofMATRIX& 		     abs_per_tg,
+             // WS Input:		  
+             const VECTOR&  		     f_abs,
+             const VECTOR&  		     p_abs,
+             const VECTOR&  		     t_abs,           
+             const ARRAYofVECTOR&            vmrs,
+             const ARRAYofARRAYofLineRecord& lines_per_tg)
+{
+
+}

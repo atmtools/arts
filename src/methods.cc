@@ -1,3 +1,21 @@
+/* Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
+                      Patrick Eriksson <patrick@rss.chalmers.se>
+
+   This program is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the
+   Free Software Foundation; either version 2, or (at your option) any
+   later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+   USA. */
+
 /*-----------------------------------------------------------------------
 FILE:      methods.cc
 
@@ -300,9 +318,9 @@ void define_md_data()
 	  "filename = Name (and path) of the catalogue file.\n"
 	  "fmin     = Minimum frequency for lines to read in Hz.\n"
 	  "fmax     = Maximum frequency for lines to read in Hz."),
-	OUTPUT(),
+	OUTPUT(   lines_   ),
 	INPUT(),
-	GOUTPUT( ARRAYofLineRecord_ ),
+	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "filename",  "fmin",    "fmax"),
 	TYPES(    string_t,    Numeric_t, Numeric_t)));
@@ -455,6 +473,23 @@ void define_md_data()
 		    "given files."),
 	OUTPUT(f_abs_, p_abs_, t_abs_, abs_),
 	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("absCalc"),
+	DESCRIPTION("Calculate absorption coefficients. This\n"
+		    "calculates both the total absorption and the\n"
+		    "absorption per tag group"
+		    "\n"
+		    "Line shape function is hardwired, and temperature\n"
+		    "dependence is not calculated. This method is\n"
+		    "really only for demonstration."),
+	OUTPUT(	    abs_  , abs_per_tg_                         ),
+	INPUT( 	    f_abs_, p_abs_, t_abs_, vmrs_, lines_per_tg_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

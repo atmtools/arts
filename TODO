@@ -7,3 +7,4 @@ SAB 27.03.2000 Add an author field to MdRecord?
 SAB 15.06.2000 Rename data to artsdata, so that paths in example
                control files work both in the source tree and in the
                installed version. 
+SAB 16.06.2000 Move uguide to doc/uguide.

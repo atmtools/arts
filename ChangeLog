@@ -1,3 +1,19 @@
+2000-06-16  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-33
+
+	* Added section `The ARTS concept' to user guide.
+
+	* Filled in section development/organization
+	
+	* Added prototype for method absCalc{} which will calculate
+	absorption in a rather simplified way for demonstration.
+
+	* example1.arts: Made this file a lot nicer with comments and
+	such. 
+
+	* Added GNU license everywhere in arts and arts/src.
+
 
 2000-06-15  Stefan Buehler  <sbuehler@uni-bremen.de>
 

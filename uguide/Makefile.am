@@ -27,7 +27,7 @@ EXTRA_DIST = \
 	sensor.tex \
 	wfuns_atm.tex \
 	wfuns_sensor.tex
-	
+
 thisdoc_DATA = \
 	main.dvi \
 	main.ps
@@ -45,10 +45,10 @@ main.dvi: agu.bst \
 	  wfuns_atm.tex \
 	  wfuns_sensor.tex \
 	  version.tex
-	latex  artsref 
-	bibtex artsref
-	latex  artsref 
-	latex  artsref 
+	latex  main 
+	bibtex main
+	latex  main 
+	latex  main 
 
 main.ps: main.dvi
 	dvips main

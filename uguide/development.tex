@@ -42,13 +42,41 @@ detailed instructions how to make extensions.
 %====================
  \label{sec:development:org}
 
-FIXME: This still needs to be written.
+ARTS is written in C++ with the help of the GNU development tools
+(Autoconf, Automake, etc.). It is organized in a similar manner as
+most GNU packages. The top-level ARTS directory (simply called \verb|arts|)
+contains various sub-directories, notably \verb|doc| for
+documentation, \verb|src| for the C++ source code, and \verb|data| for
+auxiliary data, such as model atmospheres. This document, the ARTS
+User Guide, is at the moment located in \verb|arts/uguide|, but will
+be moved to \verb|arts/doc/uguide|. FIXME: Update this after \verb|uguide|
+has been moved.
+
+In the future, there will be two different versions of the ARTS
+package: The developers version and the end-user version. Both will
+contain the complete source code, the only difference is that the
+developers version also includes the CVS housekeeping data. If you
+want to join in the ARTS development (which we of course encourage you
+to do), you should write an email to the authors to obtain access to
+the developers version, which makes it easier to merge your changes
+with the `official' ARTS program. Furthermore, for serious development
+work you need a computer running Unix, the GNU development tools,
+LaTeX, and the DOC++ program. All this is freely and easily available
+on the Internet.
+
+The end-user version contains everything that you need in order to
+compile and install ARTS in a fairly automatic manner. The only
+thing you should need is an ANSI-C++ compiler and the standard Unix
+\verb|make| utility. Please see files \verb|arts/README| and
+\verb|arts/INSTALL| for installation instructions. We are developing
+with the GNU C++ compiler, no other compilers have been tried so
+far. FIXME: Update this also.
 
 \levelb{Conventions}
 %===================
  \label{sec:development:conv}
 
-here are some general rules for ARTS programming:
+Here are some general rules for ARTS programming:
 
 \levelc{} Never use \verb|float| or \verb|double| explicitly, use the type \verb|Numeric|
 instead.  This is set in \verb|arts.h| (to \verb|double| by default). Thus, it is
@@ -68,9 +96,8 @@ Calculations are carried out in the so called workspace (WS), on
 workspace variables (WSVs). A WSV is for example the variable
 containing the absorption coefficients. The WSVs are manipulated by 
 workspace methods (WSMs). The WSMs to use are specified in the
-contollfile in the same order in which they will be
-executed. (FIXME: This should be explained somewhere else. Delete
-it here, then.)
+controlfile in the same order in which they will be
+executed. 
 
 \levelc{Global variables}
    Are not visible by default. To use them you have to declare them
@@ -103,7 +130,7 @@ it here, then.)
 \levelc{Files}
 Always use the \verb|open_output_file| and \verb|open_input_file|
 functions to open files. This switches on exceptions, so that any
-error occuring later on with this file will result in an
+error occurring later on with this file will result in an
 exception. (Currently not really implemented in the GNU compiler,
 but please use it anyway.)
 
@@ -169,9 +196,9 @@ DOC++ user manual there. Generated are HTML and TeX documentation.
 \item Create an entry in \verb|md_data| in file \verb|methods.cc|.
   (Make a copy of an existing entry (one of the
   \verb|md_data.push_back(...)| blocks) and edit it to fit your new
-  method.) Don't forget the dokumentation string! It should contain
+  method.) Don't forget the documentation string! It should contain
   line breaks and even double line breaks (= blank lines) in
-  apropriate places.
+  appropriate places.
   
   For the future, maybe also an \verb|author| field would be nice
   here. (FIXME: Update this.)
@@ -265,7 +292,7 @@ documentation.
 \item Make sure that you have saved all your files. Go to the top
   level ARTS directory and run: \verb|cvs commit|.
 \item This will pop up an editor. Use the mouse to cut and paste the
-  ChangeLog message also to this editor window. Safe the file and exit
+  Change-Log message also to this editor window. Safe the file and exit
   the editor. If you made changes in different directories, another
   editor will pop up, already containing your message. Save again and
   exit. Do this until no more editors come up. (Note: This works well
@@ -390,7 +417,7 @@ commands to navigate the stack. For more information, see the GDB
 documentation or type \verb|help| at the prompt of gdb.
 
 For ARTS, the assertion failures mostly happen inside the matrix /
-vector package TNT (usually because you trigered a range check error,
+vector package TNT (usually because you triggered a range check error,
 i.e., you tried to read or write beyond array bounds). In this case the
 \verb|up| command of GDB is particularly useful. If you give this a
 couple of times you will finally end up in the part of your code that

@@ -1,4 +1,9 @@
-Authors of arts.
+Authors of ARTS.
 See also the files THANKS and ChangeLog.
 
-Stefan Buehler designed and implemented the art engine.
+Stefan Buehler <sbuehler@uni-bremen.de> 
+designed and implemented the art engine. 
+
+Patrick Eriksson <patrick@rss.chalmers.se>
+designed and implemented the radiative transfer part, including the
+computation of weighting functions.
