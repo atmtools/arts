@@ -1,0 +1,81 @@
+# This control file can be used to compute AMSU radiances for
+# radiosonde profile.  
+# 2001-11-06 Stefan Buehler <sbuehler@uni-bremen.de>
+
+tgsDefine           { [
+         "H2O-PWR98",
+	 "O2-PWR93",
+	 "N2-SelfContStandardType"   ] }
+
+# Set the lineshape function for all calculated tags
+lineshapeDefine     { shape               = "Voigt_Kuntz6"
+                      normalizationfactor = "linear"
+                      cutoff              = -1 } 
+
+lines_per_tgSetEmpty {}
+
+
+#continum: The following are the continum models chosed for the tag groups.
+
+cont_descriptionInit{}  
+
+cont_descriptionAppend{
+    tagname        = "H2O-PWR98"
+    model          = "Rosenkranz"
+    userparameters = [ ]
+}
+cont_descriptionAppend{
+    tagname        = "O2-PWR93"
+    model          = "Rosenkranz"
+    userparameters = [ ]
+}
+cont_descriptionAppend{
+    tagname        = "N2-SelfContStandardType" 
+    model          = "Rosenkranz"
+    userparameters = [ ]
+}
+
+# Read frequency grid from file
+VectorReadAscii(f_mono){"f_mono.aa"} 
+
+### The ground ################################################################
+# Set the ground emissivity
+VectorSetLengthFromVector(e_ground,f_mono){value = 0.6 }
+
+### The geoid #################################################################
+# Set r_geoid to EARTH_RADIUS
+r_geoidStd{}
+
+### Observation geometry ######################################################
+
+NumericSet (z_plat) { 833e3 }
+
+VectorSet  (za_pencil) { length = 1
+                         value  = 180.0 }
+
+NumericSet (l_step) { 20 }
+				
+### Cosmic radiation ##########################################################
+
+y_spaceStd{ "cbgr" }
+
+### Refraction ################################################################
+
+# For nadir calculations, refraction can be set to Off
+refrOff{}
+
+### Emission ##################################################################
+emissionOn {}
+
+### Read radiosonde data ######################################################
+ArrayOfMatrixReadAscii(radiosonde_data){"radiosondes.aa"}
+
+### Calculate all Radiances ###################################################
+ybatchFromRadiosonde {}
+
+### Convert to brightness temperatures ########################################
+# MatrixTB(ybatch,ybatch) {}  
+
+### Output ybatch #############################################################
+MatrixWriteAscii(ybatch){""}
+

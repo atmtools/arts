@@ -1,0 +1,366 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Measurement errors}
+ \label{sec:measerr}
+
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  000315 & Created and written by Patrick Eriksson.\\
+\stophistory
+
+
+%
+% Symbol table, format:
+%  \startsymbols
+%    ... & \verb|...| & text ... \\
+%    ... & \verb|...| & text ... \\
+%    ....
+%  \stopsymbols
+%
+%
+%\startsymbols
+%  -- & -- & -- \\
+% \label{symtable:measerr}     
+%\stopsymbols
+
+
+
+%
+% Introduction
+%
+Following Equation \ref{eq:formalism:fm},
+\begin{eqnarray}
+   \y = \fm + \merr, \nonumber
+\end{eqnarray}
+measurement errors, \merr\, are here defined as errors that are
+additive to the spectrum, that is, not dependent on the actual spectrum.
+Error sources falling into this category are thermal noise and
+baseline ripples (there is a small influence of the magnitude of the
+spectrum on the thermal noise but this effect is normally totally
+negligible).
+
+The term baseline ripple is used here as a common name for all instrumental
+imperfections causing a distortion of the spectra, for example,
+reflections inside the receiver, adding theoretically a sinusoidal term
+to the spectrum.
+
+{\it The content of this chapter is so far only handled by Qpack.}
+
+
+\levelb{General}
+ \label{sec:measerr:general}
+ 
+ The sensor transfer matrix can be neglected when treating measurement
+ errors as these errors are assumed to be additive to the spectra. On
+ the other hand, a possible data reduction must be considered. This
+ fact can also be understood by Equation \ref{eq:formalism:datared}:
+ \begin{eqnarray}
+   \y = \Hd \y' = \Hd (\Hs \iv + \merr') = \Hm \iv + \merr \nonumber
+ \end{eqnarray}
+ Using this equation, a measurement error WF can be
+ written as
+ \begin{equation}
+    \K_{\xt}^p = \frac{\partial \y}{\partial \xt^p} 
+               = \frac{\partial \merr}{\partial \xt^p}
+               =  \Hd \frac{\partial \merr'}{\partial \xt^p}
+  \label{eq:measerr:kx}
+ \end{equation}
+ Accordingly, quantities connected with the measurement errors shall be
+ multiplicated with the data reduction matrix \Hd, this in contrast to
+ the atmospheric WFs where the total reduction sensor matrix must be applied
+ (Eq. \ref{eq:formalism:kx2}).
+
+
+
+\levelb{Thermal noise}
+ \label{sec:measerr:tn}
+ 
+ The nature of the thermal noise differs from all other variables and
+ error sources. The most distinct feature of the thermal noise is the
+ low correlation between the measurements channels, in fact, the
+ thermal noise is normally assumed to be totally uncorrelated. Such an
+ assumption results in that a variable for each channel would be
+ needed to model, or to fit, the measurement noise, and this is not a
+ practical solution. In addition, it is not even of interest to know
+ the actual magnitude of the thermal noise for each single
+ measurement, we are instead interested in the statistical
+ characteristics of the thermal noise.  The special nature of the
+ thermal noise has the consequence that this term is treated
+ differently than the other variables, no weighting
+ functions are calculated, only the covariance matrix is produced.
+ 
+ Thermal noise is introduced in two ways, by the observation of the
+ atmosphere, and by the calibration process. The first part is here
+ denoted as measurement thermal noise, while the latter is denoted as
+ calibration thermal noise. In many cases, there is no practical
+ difference between the two terms and they can together be treated as
+ measurement thermal noise. However, if a single calibration
+ measurement is used for a number of atmospheric spectra that are
+ inverted jointly, as is the normal case for limb sounding, the error
+ introduced by the calibration is totally correlated between the
+ different viewing angles and it could be of importance to consider
+ this fact.
+ 
+
+ \levelc{Measurement thermal noise}
+ \label{sec:measerr:mtn}
+ 
+ The thermal noise is often assumed to be uncorrelated between the
+ measurement channels, and the corresponding covariance matrix,
+ $\mat{S}$ is then diagonal, where the diagonal elements are
+ \begin{equation}
+   \mat{S}_{tn}^{ii} = \left( \sigma_{tn}^i \right)^2
+  \label{eq:measerr:Stn_diag}
+ \end{equation}
+ where $\mat{S}^{ii}$ is element $(i,i)$ of the matrix.
+ 
+ However, for most spectrometer types there exist in fact some
+ correlation of the noise between the channels as there is an overlap
+ of the channel frequency responses.  The inter-channel correlation of
+ the thermal noise can be modeled by three
+ different correlation functions: \\ \noindent (1) gaussian
+ \begin{equation}
+  c^{ij} = exp\left(-\left(\frac{\f_i-\f_j}{f_c}\right)^2\right)
+ \end{equation}
+ (2) exponential
+ \begin{equation}
+  c^{ij} = exp\left(-\frac{|\f_i-\f_j|}{f_c}\right)
+ \end{equation}
+ and (3) tenth
+ \begin{eqnarray}
+  c^{ij} &=& 1-\frac{|\f_i-\f_j|(1-e^{-1})}{\f_c}, \quad 
+            |\f_i-\f_j| < \frac{\f_c}{(1-e^{-1})} \nonumber \\
+  c^{ij} &=& 0, \quad |\f_i-\f_j| \geq \frac{\f_c}{(1-e^{-1})}
+ \end{eqnarray}
+ where $\f_c$ is the frequency distance where the correlation has
+ declined to $e^{-1}$, the frequency correlation length, and $\f_i$
+ the middle frequency of channel $i$ (Fig. \ref{fig:measerr:cfuns}).
+ The numbers given above are used to select the correlation function
+ when specifying the the covariance matrix for thermal noise. A
+ diagonal matrix is flagged as correlation function 0. It is also
+ possible to apply a threshold for the correlation, where all $c^{ij}$
+ below the threshold value are set to 0.
+
+ \begin{figure}
+  \begin{center}
+   \begin{minipage}[c]{0.65\textwidth}
+    \centering
+    \includegraphics*[width=0.99\hsize]{Figs/fig_corrfuns}
+   \end{minipage}%
+   \hspace{0.03\textwidth}%
+   \begin{minipage}[c]{0.30\textwidth}
+    \centering
+    \caption{The frequency correlation functions. The frequency is scaled to
+             the correlation length as $(\f_i-\f_j)/\f_c$.}
+    \label{fig:measerr:cfuns}
+   \end{minipage}
+  \end{center}
+ \end{figure}           
+ 
+ The covariance matrix for one viewing angle with inter-channel
+ correlation is
+ \begin{equation}
+   \mat{S}_{tn}^{ij} = c^{ij} \sigma_{tn}^i \sigma_{tn}^j
+  \label{eq:measerr:Stn}
+ \end{equation}
+ The correlation between different viewing angles is set to 0.
+
+ To include the effect of data reduction, the covariance matrix is
+ multiplicated with \Hd\ as
+ \begin{equation}
+   \mat{S}_{tn} = \Hd \mat{S}_{tn}' \Hm_d^T 
+   \label{eq:measerr:HSH}
+ \end{equation}
+ where $\mat{S}_{tn}'$ is the covariance matrix before data reduction.
+
+
+ \levelc{Calibration thermal noise}
+ \label{sec:measerr:ctn}
+ 
+ In contrast to the measurement thermal noise, the calibration thermal
+ noise is assumed to be totally correlated between the different
+ viewing angles. This latter noise as assumed to be identical between the
+ channels.
+ The correlation functions used for the measurement thermal noise can
+ also be applied for the calibration thermal noise.  
+ Data reduction is considered by Equation \ref{eq:measerr:HSH}.
+ 
+
+
+%\levelb{Sinusoidal baseline ripple}
+% \label{sec:measerr:sin}
+% 
+% Reflections inside the receiver give theoretically rise to a
+% sinusoidal baseline ripple. The relationship between the period
+% length in the spectrum, $\Delta \f_{2\pi}$, and the physical distance
+% between the reflecting objects, $l$, is \citep{rohlfs:86} 
+% \begin{equation}
+%   \Delta \f_{2\pi} = \frac{c}{2l}
+% \end{equation}
+% where $c$ is the speed of light.
+% 
+% This type of baseline ripple is retrieved by expressing the sine
+% functions, with unknown amplitude and phase, as a sum of sine and
+% cosine functions \citep{kuntz:97}
+% \begin{equation}
+%   \merr_{sin} = \sum_{i=1}^n \left( 
+%          x_i sin\left(2\pi\frac{\f-\bar{\f}}{\Delta \f_{2\pi}^i}\right) +
+%          x_{i+n} cos\left(2\pi\frac{\f-\bar{\f}}{\Delta \f_{2\pi}^i}\right) \right)
+%  \label{eq:measerr:sines}
+% \end{equation}
+% where $n$ is the number of ripple terms, $\bar{\f}$ the mean
+% frequency, $\f_{2\pi}^i$ the period length of ripple $i$ and $x_i$
+% are the amplitude of the sine and cosine functions to be determined.
+% The length of the part of \xt\ used to fit sinusoidal baseline
+% ripples is accordingly $2n$. The mean frequency is defined below by
+% Equation \ref{eq:measerr:fmean}.
+% 
+% Using Equation \ref{eq:measerr:kx}, the
+% WFs for the sine and cosine terms can be determined to be
+% \begin{equation}
+%   \K_{\xt}^p = \Hd \mat{a}_p
+% \end{equation}
+% and
+% \begin{equation}
+%   \K_{\xt}^p = \Hd \mat{b}_p
+% \end{equation}
+% respectively, where the elements of the vectors $\mat{a}_p$ and
+% $\mat{b}_p$ are
+% \begin{equation}
+%   \mat{a}_p^i = sin\left(2\pi\frac{\f^i-\bar{\f}}{\Delta \f_{2\pi}^p}\right) 
+% \end{equation}
+% and
+% \begin{equation}
+%   \mat{b}_p^i = cos\left(2\pi\frac{\f^i-\bar{\f}}{\Delta \f_{2\pi}^p}\right),
+% \end{equation}
+% where $\f^i$ is the frequency for channel $i$.
+% 
+% It should be noted that the treatment of baseline ripple neglects the
+% effect of the spectrometer and Equation \ref{eq:measerr:sines} assumes
+% that the widths of the spectrometer channels are much smaller than
+% the period length of the ripple. However, this should be the
+% situation found for most practical situations.
+
+
+
+\levelb{Polynomial baseline ripple}
+ \label{sec:measerr:pol}
+ 
+ \begin{figure}
+  \begin{center}
+   \begin{minipage}[c]{0.62\textwidth}
+    \centering
+    \includegraphics*[width=0.99\hsize]{Figs/kpol}
+   \end{minipage}%
+   \hspace{0.03\textwidth}%
+   \begin{minipage}[c]{0.35\textwidth}
+    \centering
+    \caption{Polynomial WFs of order 0, 1 and 2. The scaled frequency is 
+             $f'=(\f-\bar{\f})/\Delta \f$.}
+    \label{fig:measerr:kpol}
+   \end{minipage}
+  \end{center}
+ \end{figure}           
+
+ A polynomial representation of the baseline ripple can be suitable
+ at many occasions. One example is when a sinusoidal baseline ripple 
+ has a period that exceeds significantly the total frequency coverage
+ of the receiver and the exact period length is not known. A baseline
+ polynomial can also be used to fit continuum absorption for linear
+ situations, e.g. to fit the unknown emission from the troposphere
+ for ground-based observations.
+
+ The polynomial measurement error is modeled as
+ \begin{equation}
+   \merr_{pol} = x_0 + \sum_{i=1}^{n_{pol}} x_i \left( 
+                      \frac{\f-\bar{\f}}{\Delta \f} \right)^i
+ \end{equation}
+ where $n_{pol}$ is the polynomial order selected, $x_i$ are the 
+ polynomial coefficients to be determined, and $\bar{\f}$ and
+ $\Delta \f$ normalization factors. The part of \xt\ corresponding
+ to the polynomial fit of the baseline is accordingly
+ \begin{equation}
+   \xt = \left[ \begin{array}{c} \vdots \\ x_0\\ x_1 \\ \vdots \\ x_{n_{pol}} \\ \vdots \end{array} \right]
+ \end{equation}
+ The normalization factors are needed to avoid extreme values (without
+ the factors the quantity $\f^i$ would have been calculated),
+ resulting in that the magnitudes of the coefficients $x_i$ will not
+ deviate too strongly. The factors are calculated as
+ \begin{eqnarray}
+   \bar{\f} &=& \frac{\f_{min}+\f_{max}}{2} \\
+   \label{eq:measerr:fmean}
+   \Delta \f &=& \frac{\f_{max}-\f_{min}}{2}
+ \end{eqnarray}
+ where $\f_{min}$ and $\f_{max}$ are the minimum and maximum value,
+ respectively, of the frequency grid given by the spectrometer. These
+ definitions of the normalization factors give a scaled frequency grid
+ extending from -1 to 1.
+
+ The polynomial WFs are
+ \begin{equation}
+   \K_{\xt}^p = \Hd \mat{a}_p
+ \end{equation}
+ where the elements of $\mat{a}_p$ are
+ \begin{equation}
+   \mat{a}_p^i = \left( \frac{\f^i-\bar{\f}}{\Delta \f} \right)^p
+  \label{eq:measerr:kpol}
+ \end{equation}
+ Note that for $p=0$, $\mat{a}_p=1$. 
+ 
+ Examples on polynomial weighting functions are shown is Figure 
+ \ref{fig:measerr:kpol}.
+
+
+
+\levelb{Piecewise polynomial baseline ripple}
+ \label{sec:measerr:ppol}
+ 
+ If the spectrum is recorded with a number of spectrometers (or
+ individual spectrometer parts) there could be a difference in the
+ level between the different parts of the spectrum. Figure
+ \ref{fig:wfuns:baselinefit} shows an example on such a spectrum.
+ 
+ The baseline for such cases can be retrieved by piecewise polynomials
+ where an individual polynomial is applied for each part of the
+ spectrum. For frequencies inside the part of concern the WFs are
+ given by Equation \ref{eq:measerr:kpol}, while for remaining
+ frequencies the WFs are 0.  
+
+ \begin{figure}[t]
+  \begin{center}
+   \includegraphics*[width=0.72\hsize]{Figs/fig_baselinefit}
+   \caption{Example on fit of baseline with piecewise polynomials.
+     The top figure shows a (poor!) test measurement with the 22.2 GHz
+     water vapor radiometer at Onsala Space Observatory, Sweden.  The
+     spectrum was recorded by an auto-correlator spectrometer having
+     four 20 MHz wide individual parts, clearly seen in the spectrum.
+     The middle figure shows the measurement spectrum after a
+     correction based on the retrieved baseline variables, and the
+     simulated spectrum corresponding to the retrieved profile. The
+     baseline is fitted by 3:rd order polynomial over the whole
+     frequency range, and a 2:nd oder polynomial inside each 20 MHz
+     range. The lower figure shows the difference between the spectra
+     in the middle figure, the residual.}
+   \label{fig:wfuns:baselinefit}
+  \end{center}
+ \end{figure}
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "uguide"
+%%% End: 

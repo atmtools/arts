@@ -1,0 +1,360 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Basic radiative transfer}
+ \label{sec:rte}
+
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  000307 & Started by Patrick Eriksson. \\
+  000908 & First version finished by Patrick Eriksson. \\
+\stophistory
+
+
+
+%
+% Symbol table, format:
+%  \startsymbols
+%    ... & \verb|...| & text ... \\
+%    ... & \verb|...| & text ... \\
+%    ....
+%  \stopsymbols
+%
+%
+%\startsymbols
+%  \mpbi     & \verb|y|       & monochromatic pencil beam intensity      \\
+%  $\mpbi_1$ & \verb|y_cbgr|          & cosmic background radiation      \\
+%  $\mpbi_1$ & \verb|y_ground|        & ground blackbody radiation       \\
+%  $S$       & \verb|S|               & source function                  \\
+%  $k$       & \verb|Abs|             & total absorption                 \\
+%  $T$       & \verb|t|               & temperature                      \\
+%  \f        & \verb|f|               & frequency                        \\
+%  $h$       & \verb|PLANCK_CONST|    & the Planck constant              \\ 
+%  $c$       & \verb|SPEED_OF_LIGHT|  & speed of light                   \\
+%  $k_B$     & \verb|BOLTZMAN_CONST|  & the Boltzmann constant           \\
+%  $\tau$    & -                      & optical thickness                \\
+%  $\zeta$   & \verb|Tr|              & transmission between LOS points  \\
+%  $\zeta^{atm} $& \verb|y|           & total atmospheric transmission   \\
+%  $l$       & \verb|l|               & distance along LOS               \\
+%  $\Delta l$ &\verb|lstep|           & step length along LOS            \\
+%  $e$       & \verb|e_ground|        & ground emissivity                \\
+%  $T_{ground} $&\verb|t_ground|      & physical temperature of the ground\\
+%  $T_{cbgr}$  &\verb|COSMIC_BG_TEMP| & temperature representing cosmic  \\ 
+%         &                &        background radiation                 \\
+% \label{symtable:rte}     
+%\stopsymbols
+
+
+
+%
+% Introduction
+%
+This section discusses the solution of the atmospheric radiative
+transfer equation (RTE). A non-scattering atmosphere in local
+thermodynamic equilibrium is assumed. 
+The radiative transfer equation gives the
+monochromatic (infinite frequency resolution) pencil beam (infinite
+spatial resolution) spectrum. The main problem here is
+how to practically and accurately estimate the (continuous) integral
+in the discrete forward model.
+ 
+The discussion treats mainly measurements of atmospheric emission. The
+forward model can also handle pure absorption measurements (that is,
+emission is neglected) and such observations are discussed last in the
+section.
+
+The equations of this section are valid for monochromatic pencil beam
+spectra, no effects of the sensor are considered. How to
+incorporate sensor effects in the spectra is discussed separately
+(Sec. \ref{sec:sensor}).
+
+
+
+\levelb{Introduction}
+ \label{sec:rte:intro}
+ 
+ Atmospheric radiative transfer can be expressed generally as
+ \begin{equation}
+   I = I_1e^{-\int_{l_1}^{l_2}{\kappa(l)dl}} +
+        \int_{l_1}^{l_2}{\kappa(l)\sigma(l)e^{-\int_{l}^{l_2}{\kappa(l')dl'}}dl}
+    \label{eq:rte:rte}
+ \end{equation}
+ where $I$ is the monochromatic pencil beam intensity, $l$ distance
+ along the line of sight (LOS), $l_1$ the point of the considered part
+ of the LOS furthest away from the sensor, $l_2$ the closest point of
+ the LOS, $I_1$ the intensity at $l_1$, $\kappa$ the total absorption
+ along the LOS and $\sigma$ the source function.\footnote{The symbols
+   $\kappa$ and $\sigma$ are used here for the absorption and the source 
+   function \emph{along} the LOS. The more commonly used symbols, $k$ and
+   $S$, respectively, are used below to express the variables as
+   functions of altitude.}
+  
+ Equation \ref{eq:rte:rte} is of general validity if $\sigma$ and $\kappa$
+ consider the relevant effects, for example, scattering. However, below in
+ this section it is assumed that there is no scattering and the
+ atmosphere is in local thermodynamic equilibrium.
+  
+ Note that Eq. \ref{eq:rte:rte} is valid both for the case when the LOS is
+ determined by geometrical calculations and when refraction is
+ considered (the refraction changes however the LOS).
+  
+ With the assumptions of no scattering and local thermodynamic
+ equilibrium, $\kappa$ is the summed gaseous absorption, and the source
+ function equals the Planck function, $B$:
+ \begin{equation}
+    \sigma = B(\f,T) = \frac{2h\f^3}{c^2} \frac{1}{e^{h\f/k_B T}-1}
+    \label{eq:rte:planck}
+ \end{equation}
+ giving the blackbody radiation for a temperature $T$ and frequency
+ $\f$.
+  
+ If $\sigma$ is constant along the considered part of the LOS, that is, the
+ temperature is constant for the case $\sigma=B$, the RTE can be solved
+ analytically to give
+ \begin{equation}
+   I = I_1e^{-\tau} + \sigma\left(1-e^{-\tau}\right)
+  \label{eq:rte:step}
+ \end{equation}
+ where $\tau$ is the optical thickness
+ \begin{equation}
+   \tau = \int_{l_1}^{l_2}{\kappa(l)dl}
+ \end{equation}
+ The transmission corresponding to $\tau$ is
+ \begin{equation}
+   \zeta = e^{-\tau}
+ \end{equation}  
+
+
+
+\levelb{Practical considerations}
+ \label{sec:rte:practical}
+ 
+ The LOS can be divided into parts in several ways. As absorption and
+ temperature most likely are avaliable at some vertical grid, the most
+ natural choice would be to define the LOS using this vertical grid.
+ This solution is problematic for limb sounding as the ratio between
+ the distance along LOS and the corresponding vertical distance
+ becomes infinite at the tangent point. Another solution would be to
+ base the division on $\tau$, but such a division does not guarantee
+ that $T$ is close to constant inside the slabs as the vertical
+ extension in some cases could be very large, and each combination of
+ frequency and viewing angle should require a specific division.
+  
+ As a practical compromise, it was here decided to divide LOS into
+ equal long geometrical steps. With this scheme the division is
+ identical for all frequency components, but changes between the
+ viewing angles, and should give relatively fast and straightforward
+ calculations, maintaining a good accuracy. This approach has
+ been applied successfully in the Odin sub-mm forward model 
+ \citep{eriksson:97a,eriksson:00a}.
+  
+ The next question is when and how to calculate LOS and the associated
+ variables. As the determination of weighting functions associated
+ with the absorption needs basically the same
+ quantities as RTE, it is most efficient to do this procedure only
+ once and in such way that the values are suitable for both RTE and
+ the weighting functions. Hence, the LOS calculations shall be a
+ separate part, not included in the RTE functions. The standard use of
+ the forward model should then be:
+  \begin{enumerate}
+    \item Calculation of absorption coefficients.
+    \item Determination of LOS.
+    \item Calculation of the source function and transmissions along LOS.
+    \item Iteration to solve RTE.
+    \item Calculation of weighting functions.
+    \item Saving etc.
+  \end{enumerate}
+ The determination of LOS is described separately in Section \ref {sec:los}. 
+  
+
+  
+\levelb{Practical solution}
+ \label{sec:rte:iter}
+ 
+ The LOS is here assumed to be defined with $n$ points where the
+ distance between the points is constant (see Fig \ref{fig:rte:los}).
+ There are at least two definition points of the LOS ($n\geq1$). The
+ absorption and the source function are determined at the points of
+ the LOS, and these values are used to calculate the transmission and a
+ mean source function value for the distances between the LOS points.
+ Only the later two quantities are stored.
+
+  \begin{figure}
+    \includegraphics*[width=0.98\hsize]{Figs/los}
+    \caption{Schematic description of the LOS and associated variables.
+      The absorption and the source function at the LOS points are
+      denoted $\kappa_i$ and $\sigma_i$, respectively, while $\zeta_i$
+      is the transmission between the points and $\Psi_i$ is the mean
+      of neighbouring source function values. Only $\zeta$ and $\Psi$
+      are stored for the later calculations. All the points are
+      separated by the distance $\Delta l$ (along the LOS). The distance
+      between point $i$ and $i+1$ is denoted as step $i$ of the LOS. }
+    \label{fig:rte:los}  
+  \end{figure}
+
+ \levelc{Absorption and transmission}  
+  \label{sec:rte:abs}
+  
+  The absorption is treated to vary linearly between the LOS points.
+  As mentioned above, the transmission values shall be valid between the
+  LOS points. With these definitions, the optical thickness associated with 
+  step $i$ is
+ \begin{equation}
+    \tau_i = \frac{\Delta l}{2} \left( \kappa_i+\kappa_{i+1} \right),
+                             \quad 1\leq i < n 
+  \label{eq:rte:tau}
+ \end{equation}
+ The relationship between the optical thicknesses and
+ the transmission is
+ \begin{equation}
+   \zeta_i = e^{-\tau_i}
+ \end{equation}
+ Note that
+ \begin{equation}
+   e^{-\left(\tau_1+\tau_2\dots\tau_n\right)}=\zeta_1\zeta_2\dots\zeta_n
+ \end{equation}
+ The absorption at the LOS points is determined from the absorption
+ matrix provided by the absorption module by linear interpolation,
+ using the logarithm of the pressure as altitude
+ coordinate\footnote{The logarithm of the pressure is throughout the
+   basic altitude coordinate in ARTS.}.
+
+
+ \levelc{The source function}  
+  \label{sec:rte:source}
+  The source function is also basically assumed to vary linearly
+  between the LOS points, but for simplicity reasons, a single
+  source function value is assigned to the LOS steps:
+  \begin{equation}
+    \Psi_i = \frac{\sigma_i+\sigma_{i+1}}{2}, \quad 1\leq i < n
+   \label{eq:rte:smean}
+  \end{equation}   
+  The source function at the LOS points ($\sigma$) is simply by
+  interpolating linearly the temperature profile, and calculating the
+  Planck function (Eq. \ref{eq:rte:planck}) for the obtained
+  temperatures.
+  
+  To fully model that the absorption and the source function have a
+  simultanous linear variation between the LOS points would give much
+  more complicated analytical expressions than presented here (if even
+  possible to derive?). However, the simplified approach used here
+  should not influence the accuracy in any important way. This as the
+  source function has, compared to the absorption, a relatively low
+  variation and it can be treated to be piecewise constant when solving
+  the raqdiative transfer.
+  
+  If long wavelengths are assumed and the source function equals the
+  Planck function (Eq.  \ref{eq:rte:planck}), $\sigma$ should
+  maximally vary with about a factor of 2 as the minimum and the
+  maximum temperature in the atmosphere are about 150 and 300 K,
+  respectively, and the relationship between $\sigma$ and temperature
+  is close to linear.  This should be compared to the absorption that,
+  even for a single frequency, often varies with many orders of
+  magnitude.
+
+
+ \levelc{Solving the radiative transfer equation}  
+  \label{sec:rte:solving}
+  
+  With the definitions given above, the intensity at point $n$ can be
+  expressed as
+ \begin{equation}
+   I = I_1 \prod_{j=1}^{n-1}\zeta_j + 
+       \sum_{i=1}^{n-1}\left[\Psi_i(1-\zeta_i)\prod_{j=i+1}^{n-1}\zeta_j\right]
+  \label{eq:rte:rteprod}
+ \end{equation}
+ However, an alternative approach, requiring less computer memory, is
+ to follow the radiation from one slab of the atmosphere to next, and
+ is the method of choice here. Following Equation \ref{eq:rte:step},
+ the following iterative expression can be determined
+ \citep{eriksson:97a}
+ \begin{equation}
+   I_{i+1} = I_i\zeta_i + \Psi_i\left(1-\zeta_i\right)\qquad i=1,2,...,n-1
+  \label{eq:rte:iteration}
+ \end{equation}
+ where $I_i$ is the intensity reaching point $i$.
+ The iteration is started by setting $I_1$ to the intensity at the 
+ atmospheric limit, that is, cosmic background radiation or correspondingly.
+
+
+ \levelc{Considering ground reflection}  
+  \label{sec:rte:ground}
+
+ The effect of a ground reflection is modeled as
+ \begin{equation}
+   I^{after} = I^{before}(1-e) + eB(\f,T_{ground})
+  \label{eq:rte:ground}
+ \end{equation} 
+ where $e$ is the ground emission factor and $I^{before}$ and
+ $I^{after}$ is the intensity before and after the reflection,
+ respectively. See further Section \ref{sec:los:ground}.
+
+
+\levelb{Optical thicknesses}
+ \label{sec:rte:trans}
+  
+ The atmospheric emission can be neglected if the observation is
+ performed towards a sufficiently strong source, such as the Sun, and
+ the measurement gives then the total atmospheric transmission,
+ $\zeta^{tot}$. When inverting such observations, the standard
+ approach is to invert the optical thicknesses $(\tau)$ to obtain a
+ more linear inversion problem. For this reason, the output from
+ ARTS when neglecting emission was selected to be optical thicknesses
+ instead of transmission values. However, as the transmission for
+ each step along the LOS is stored for the emission calculations, 
+ ARTS calculates internally transmission spectra that are converted
+ to optical thicknesses.
+
+ This transmission is
+ \begin{equation}
+   \zeta^{tot} = e^{-\int_{l_1}^{l_2}{\kappa(l)dl}}
+  \label{eq:rte:tottrans}
+ \end{equation}
+ The corresponding iterative formula used in the forward model is
+ simply (cf. Eq. \ref{eq:rte:iteration})
+ \begin{equation}
+   \zeta^{tot} = \prod_{i=1}^{n-1}\zeta_{i}
+ \end{equation} 
+ It is noteworthy that the multiplication order
+ is of no importance, a fact that can be used for 1D limb sounding where
+ the conditions are assumed to be symmetrical around the tangent point and
+ only one half of the line of sight is stored. 
+
+ If there is a ground reflection, it is considered as
+ \begin{equation}
+   \zeta^{tot} = (1-e)\prod_{i=1}^{n-1}\zeta_{i}
+  \label{eq:rte:tground}
+ \end{equation} 
+ where $e$ is the ground emission factor. 
+
+ The optical thicknesses are finally calculated as
+ \begin{equation}
+   \tau^{tot} = -\ln(\zeta^{tot})
+  \label{eq:rte:odepth}
+ \end{equation} 
+
+ 
+
+ \levelb{Control file examples}
+  \label{sec:rte:cfe}
+ 
+  See Section \ref{sec:los:cfe}.
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

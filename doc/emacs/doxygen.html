@@ -1,0 +1,177 @@
+<HTML>
+<HEAD>
+<!-- This HTML file has been created by texi2html 1.51
+     from doxygen.texi on 10 July 2000 -->
+
+<TITLE>Doxygen Utilities</TITLE>
+</HEAD>
+<BODY>
+<H1>Doxygen Utilities</H1>
+<P>
+<P><HR><P>
+
+
+
+<H1><A NAME="SEC1" HREF="doxygen_toc.html#TOC1">Creating Function Comments</A></H1>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>doxygen-insert-comment</B>
+<DD><A NAME="IDX1"></A>
+<CODE>doxygen-insert-comment</CODE> inserts a comment block at point, placing the cursor inside.
+
+</P>
+
+<PRE>
+/**
+
+*/
+</PRE>
+
+</DL>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>doxygen-insert-function-comment</B>
+<DD><A NAME="IDX2"></A>
+<CODE>doxygen-insert-function-comment</CODE> inserts a comment block
+for the function whose declaration is on the line with point. The
+comment block includes <CODE>\param</CODE> lines for each function
+argument, and if the function has a return value, a
+<CODE>\return</CODE> line is also included. The cursor is placed
+inside the comment.
+
+</P>
+<P>
+For example, running <CODE>doxygen-insert-function-comment</CODE> on the function
+
+</P>
+
+<PRE>
+int add(int a, int b)
+{
+    return a + b;
+}
+</PRE>
+
+<P>
+generates the comment block
+
+</P>
+
+<PRE>
+/**
+
+
+   \param a
+   \param b
+   \return 
+*/
+</PRE>
+
+</DL>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>doxygen-insert-member-group-region</B> <I>start end</I>
+<DD><A NAME="IDX3"></A>
+<CODE>doxygen-insert-member-group-region</CODE> adds the appropriate comments to make the current region a member group. For example, given a region containing
+
+</P>
+
+<PRE>
+    foo = 1,
+    bar,
+    baz
+</PRE>
+
+<P>
+(part of an <CODE>enum</CODE>), <CODE>doxygen-insert-member-group-region</CODE> generates
+
+</P>
+
+<PRE>
+//@{
+    foo = 1,
+    bar,
+    baz
+//@}
+</PRE>
+
+</DL>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>doxygen-insert-compound-comment</B>
+<DD><A NAME="IDX4"></A>
+<CODE>doxygen-insert-compound-comment</CODE> inserts a right margin Doxygen "compound" comment (indented using the current mode's value of <VAR>comment-column</VAR>) on the current line. For example, using this command on the definition of foo in
+
+</P>
+
+<PRE>
+enum {
+    foo = 1
+}
+</PRE>
+
+<P>
+yields
+
+</P>
+
+<PRE>
+enum {
+    foo = 1                                  //!&#60; 
+};
+</PRE>
+
+<P>
+with the point immediately after the comment.
+
+</P>
+</DL>
+
+
+
+<H1><A NAME="SEC2" HREF="doxygen_toc.html#TOC2">Creating File-level Comments</A></H1>
+
+<P>
+<DL>
+<DT><U>Command:</U> <B>doxygen-insert-file-comment</B>
+<DD><A NAME="IDX5"></A>
+<CODE>doxygen-insert-file-comment</CODE> inserts a comment-block containing information about the current file. The filename, author, and date are generated based on current values on the system.
+
+</P>
+
+<PRE>
+/*!
+  \file   foo.c
+  
+  
+
+  \author Tom Emerson
+  \date   2000-07-10
+*/
+</PRE>
+
+</DL>
+
+
+
+<H1><A NAME="SEC3" HREF="doxygen_toc.html#TOC3">User-Settable Options</A></H1>
+
+<P>
+<DL>
+<DT><U>User Option:</U> <B>doxygen-date-format</B>
+<DD><A NAME="IDX6"></A>
+<VAR>doxygen-date-format</VAR> is a <CODE>format-time-string</CODE> format string used to format dates used with the Doxygen <CODE>\date</CODE> directive.
+</DL>
+
+</P>
+
+<P><HR><P>
+This document was generated on 10 July 2000 using the
+<A HREF="http://wwwcn.cern.ch/dci/texi2html/">texi2html</A>
+translator version 1.51.</P>
+</BODY>
+</HTML>

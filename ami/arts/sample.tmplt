@@ -1,0 +1,123 @@
+# Examples on if-statement and inline functions is found at the end of 
+# the file.
+
+### Spectroscopy: ############################################################
+tgsDefine { 
+   [$Q.TARGET_SPECIES$,$Q.SECONDARY_SPECIES$,$Q.BACKGROUND_SPECIES$] 
+}
+wfs_tgsDefine { 
+   [$Q.TARGET_SPECIES$,$Q.SECONDARY_SPECIES$] 
+}
+lineshapeDefine { 
+   shape               = "$Q.LINESHAPE$"
+   normalizationfactor = "$Q.LINESHAPE_FACTOR$" 
+   cutoff              = -1
+} 
+linesReadFromHitran { 
+   filename = "$Q.LINEFILE_DIR$/$Q.LINEFILE$"
+   fmin     = 0
+   fmax     = 10e12 
+}
+lines_per_tgCreateFromLines {
+}  
+
+
+### p_abs ####################################################################
+VectorReadBinary( p_abs ) { 
+   "$Q.MODEDIR$/p_abs.ab" 
+}
+
+
+### Monochromatic frequency grid #############################################
+VectorReadBinary( f_mono ) { 
+   "$Q.MODEDIR$/f_mono.ab" 
+}
+
+
+### The atmosphere ###########################################################
+MatrixReadAscii (raw_ptz_1d) { 
+   filename = "$QE.ATMOSPHERE$.tz.am" 
+}
+raw_vmrs_1dReadFromScenario {
+   basename = "$QE.ATMOSPHERE$" 
+}
+AtmFromRaw1D {
+}
+h2o_absSet {
+}
+
+
+
+### Absorption ################################################################
+absCalc {
+}
+abs_per_tgReduce {
+}
+
+
+### Refraction ################################################################
+IntSet( refr ) {
+   value = 1
+}
+IntSet ( refr_lfac ) { 
+   value = $Q.REFR_LFAC$
+}
+refr_indexBoudouris {
+}
+
+
+
+### The ground ###############################################################
+r_geoidStd {}
+NumericSet (z_ground) { 
+   value = $Q.GROUND_ALTITUDE$
+}
+NumericSet (t_ground) { 
+   value = $Q.GROUND_TEMPERATURE$
+}
+VectorSetLengthFromVector( e_ground, f_mono ) {
+   value = $Q.GROUND_EMISSION$
+}
+
+
+### Observation geometry ######################################################
+NumericSet ( z_plat ) { 
+   value = $Q.PLATFORM_ALTITUDE$
+}
+VectorReadBinary (za_pencil) { 
+   "$Q.MODEDIR$/za_pencil.ab" 
+}
+VectorWriteBinary (za_pencil) { "" }
+NumericSet ( l_step ) { 
+   value = $Q.STEPLENGTH_RTE$ 
+}
+
+
+### LOS and RTE ##############################################################
+y_spaceStd { "cbgr" }
+losCalc    {}
+sourceCalc {}
+transCalc  {}
+yRte       {}
+VectorWriteBinary( y ) { "" }
+
+
+
+### KX ########################################################################
+§qsmr_Kx
+
+
+IF QE.DO_NONLIN
+
+### DO SOME SAVING IF NON-LINEAR ##############################################
+VectorWriteBinary( t_abs ) { "" }
+VectorWriteBinary( z_abs ) { "" }
+MatrixWriteBinary( abs ) { "" }  
+ArrayOfMatrixWriteBinary( abs_per_tg ) { "" }  
+VectorWriteBinary( za_pencil ) { "" }
+VectorWriteBinary( refr_index) { "" }
+VectorWriteBinary( y_space ) { "" }
+VectorWriteBinary( e_ground ) { "" }
+ArrayOfVectorWriteBinary( vmrs ) { "" }
+
+END

@@ -1,0 +1,50 @@
+#
+# Template to use with fig_refrtest.m
+#
+
+### P_ABS #####################################################################
+VectorNLogSpace (p_abs)    { start = 1.01300e+05
+                             stop  = 0.1
+                             n     = 201 }
+
+### Tags (water is needed #####################################################
+tgsDefine{ [ "H2O" ] }
+
+
+### Load an atmosphere ########################################################
+MatrixReadAscii (raw_ptz_1d) { "$Q.ATM$.tz.am" }
+raw_vmrs_1dReadFromScenario  { "$Q.ATM$" }
+AtmFromRaw1D {CloudSatWV = "no"}
+h2o_absSet {}
+
+
+### The ground ################################################################
+r_geoidStd {}
+groundOff {}
+
+
+### Refraction ################################################################
+refrSet{
+  on    = 1
+  model = "Boudouris"
+  lfac  = 1
+}
+refrCalc {}
+
+
+### Observation geometry ######################################################
+NumericSet (z_plat) { 750e3 }
+NumericSet (l_step) { $Q.L_STEP$ }
+VectorLinSpace( z_tan ) {
+   start = 50
+   stop  = 40e3
+   step  = 500 
+}
+zaFromZtan( za_pencil ) {}
+VectorWriteAscii( z_tan ) {""}
+VectorWriteAscii( za_pencil ) {""}
+
+
+### Calculate LOS #############################################################
+losCalc {}
+LosWriteBinary( los ) {""}

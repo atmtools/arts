@@ -1,0 +1,973 @@
+Species: H2O
+Degrees of freedom:  3
+Hitran Tag:        1
+
+Hitran species/tag/Isotopic Ratio for species: 
+     161            H2O       0.997317
+     181            H2O     0.00199983
+     171            H2O       0.000372
+     162            H2O     0.00031069
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   18003            H2O      1.0000000     0.99731702
+   18005         H2O-v2      1.0000000     0.99731702
+   19002            HDO  0.00029991625  0.00029911159
+   19003         H2O-17  0.00036982817  0.00036883593
+   20001            D2O  2.2490546E-08  2.2430203E-08
+   20003         H2O-18   0.0020417380   0.0020362600
+   21001         HDO-18  6.1235039E-07  6.1070745E-07
+
+------------------------------------------------------------
+
+Species: CO2
+Degrees of freedom:  2
+Hitran Tag:        2
+
+Hitran species/tag/Isotopic Ratio for species: 
+     626            CO2        0.98420
+     636            CO2        0.01106
+     628            CO2      0.0039471
+     627            CO2       0.000734
+     638            CO2     0.00004434
+     637            CO2     0.00000825
+     828            CO2   0.0000039573
+     728            CO2     0.00000147
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   45012        O-17-CO  0.00074816949  0.00074816949
+   46013        O-18-CO   0.0040738028   0.0040738028
+
+------------------------------------------------------------
+
+Species: O3
+Degrees of freedom:  3
+Hitran Tag:        3
+
+Hitran species/tag/Isotopic Ratio for species: 
+     666             O3       0.992901
+     668             O3     0.00398194
+     686             O3     0.00199097
+     667             O3       0.000740
+     676             O3       0.000370
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   48004             O3      1.0000000     0.99290103
+   48005          O3-v2      1.0000000     0.99290103
+   48006        O3-v1,3      1.0000000     0.99290103
+   48007         O3-2v2      1.0000000     0.99290103
+   48008     O3-v1,3+v2      1.0000000     0.99290103
+   49001    O3-sym-O-17  0.00036982817  0.00036720277
+   49002   O3-asym-O-17  0.00073960528  0.00073435484
+   50003    O3-sym-O-18   0.0020417380   0.0020272436
+   50004   O3-asym-O-18   0.0040831938   0.0040542074
+   50005    O3-s-O18-v2   0.0020417380   0.0020272436
+   50006    O3-a-O18-v2      100.00000      99.290100
+
+------------------------------------------------------------
+
+Species: N2O
+Degrees of freedom:  2
+Hitran Tag:        4
+
+Hitran species/tag/Isotopic Ratio for species: 
+     446            N2O       0.990333
+     456            N2O      0.0036409
+     546            N2O      0.0036409
+     448            N2O     0.00198582
+     447            N2O       0.000369
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   44004            N2O      1.0000000     0.99033302
+   44009         N2O-v2      1.0000000     0.99033302
+   44012        N2O-2v2      1.0000000     0.99033302
+   45007        NN-15-O   0.0036982817   0.0036625303
+   45008        N-15-NO   0.0036982817   0.0036625303
+   46007         N2O-18   0.0020417380   0.0020220005
+
+------------------------------------------------------------
+
+Species: CO
+Degrees of freedom:  2
+Hitran Tag:        5
+
+Hitran species/tag/Isotopic Ratio for species: 
+      26             CO        0.98654
+      36             CO        0.01108
+      28             CO      0.0019782
+      27             CO       0.000368
+      38             CO     0.00002222
+      37             CO     0.00000413
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   28001             CO      1.0000000     0.98654002
+   29001         C-13-O    0.011091748    0.010942454
+   29006          CO-17  0.00036982817  0.00036485028
+   30001          CO-18   0.0020417380   0.0020142563
+
+------------------------------------------------------------
+
+Species: CH4
+Degrees of freedom:  3
+Hitran Tag:        6
+
+Hitran species/tag/Isotopic Ratio for species: 
+     211            CH4        0.98827
+     311            CH4        0.01110
+     212            CH4     0.00061575
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   17003           CH3D  0.00014996849  0.00014996849
+
+------------------------------------------------------------
+
+Species: O2
+Degrees of freedom:  2
+Hitran Tag:        7
+
+Hitran species/tag/Isotopic Ratio for species: 
+      66             O2       0.995262
+      68             O2     0.00399141
+      67             O2       0.000742
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   32001             O2      1.0000000     0.99526203
+   32002          O2-v1      1.0000000     0.99526203
+   33002         O-17-O  0.00073960528  0.00073610101
+   34001         O-18-O   0.0040831938   0.0040638475
+
+------------------------------------------------------------
+
+Species: NO
+Degrees of freedom:  2
+Hitran Tag:        8
+
+Hitran species/tag/Isotopic Ratio for species: 
+      46             NO       0.993974
+      56             NO      0.0036543
+      48             NO     0.00199312
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   30008             NO      1.0000000     0.99397397
+
+------------------------------------------------------------
+
+Species: SO2
+Degrees of freedom:  3
+Hitran Tag:        9
+
+Hitran species/tag/Isotopic Ratio for species: 
+     626            SO2        0.94568
+     646            SO2        0.04195
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   64002            SO2     0.95060480     0.95060480
+   64005         SO2-v2     0.95060480     0.95060480
+   65001        S-33-O2   0.0074989423   0.0074989423
+   66002        OS-34-O    0.042072661    0.042072661
+   66004         SOO-18   0.0020417380   0.0020417380
+
+------------------------------------------------------------
+
+Species: NO2
+Degrees of freedom:  3
+Hitran Tag:       10
+
+Hitran species/tag/Isotopic Ratio for species: 
+     646            NO2       0.991616
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   46006            NO2      1.0000000     0.99161601
+
+------------------------------------------------------------
+
+Species: NH3
+Degrees of freedom:  3
+Hitran Tag:       11
+
+Hitran species/tag/Isotopic Ratio for species: 
+    4111            NH3      0.9958715
+    5111            NH3      0.0036613
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   17002            NH3      1.0000000     0.99587148
+   17004         NH3-v2      100.00000      99.587151
+   18002        N-15-H3   0.0036982817   0.0036830134
+   18004           NH2D  0.00044977985  0.00044792294
+
+------------------------------------------------------------
+
+Species: HNO3
+Degrees of freedom:  3
+Hitran Tag:       12
+
+Hitran species/tag/Isotopic Ratio for species: 
+     146           HNO3       0.989110
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   63001           HNO3      1.0000000     0.98910999
+   63002        HNO3-v7      1.0000000     0.98910999
+   63003        HNO3-v9      1.0000000     0.98910999
+   63004        HNO3-v6      1.0000000     0.98910999
+   63005        HNO3-v8      1.0000000     0.98910999
+   63006        HNO3-v5      1.0000000     0.98910999
+
+------------------------------------------------------------
+
+Species: OH
+Degrees of freedom:  2
+Hitran Tag:       13
+
+Hitran species/tag/Isotopic Ratio for species: 
+      61             OH       0.997473
+      81             OH     0.00200014
+      62             OH     0.00015537
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   17001             OH      1.0000000     0.99747300
+   18001             OD  0.00014996849  0.00014958951
+   19001          HO-18   0.0020417380   0.0020365785
+
+------------------------------------------------------------
+
+Species: HF
+Degrees of freedom:  2
+Hitran Tag:       14
+
+Hitran species/tag/Isotopic Ratio for species: 
+      19             HF     0.99984425
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   20002             HF      1.0000000     0.99984425
+   21002             DF  0.00014996849  0.00014994513
+
+------------------------------------------------------------
+
+Species: HCl
+Degrees of freedom:  2
+Hitran Tag:       15
+
+Hitran species/tag/Isotopic Ratio for species: 
+      15            HCl       0.757587
+      17            HCl       0.242257
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   36001            HCl     0.75509220     0.75509220
+   37001            DCl  0.00011324004  0.00011324004
+   38001         HCl-37     0.24490632     0.24490632
+   39004         DCl-37  3.6728230E-05  3.6728230E-05
+
+------------------------------------------------------------
+
+Species: HBr
+Degrees of freedom:  2
+Hitran Tag:       16
+
+Hitran species/tag/Isotopic Ratio for species: 
+      19            HBr        0.50678
+      11            HBr        0.49306
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   80001         HBr-79     0.50582469     0.50582469
+   82001         HBr-81     0.49431068     0.49431068
+
+------------------------------------------------------------
+
+Species: HI
+Degrees of freedom: Not available in JPL
+Hitran Tag:       17
+
+Hitran species/tag/Isotopic Ratio for species: 
+      17             HI     0.99984425
+
+Missing in JPL catalogue
+
+------------------------------------------------------------
+Species: ClO
+Degrees of freedom:  2
+Hitran Tag:       18
+
+Hitran species/tag/Isotopic Ratio for species: 
+      56            ClO        0.75591
+      76            ClO        0.24172
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   51002            ClO     0.75509220     0.75509220
+   51003         ClO-v1     0.75509220     0.75509220
+   53002        Cl-37-O     0.24490632     0.24490632
+   53006     Cl-37-O-v1     0.24490632     0.24490632
+
+------------------------------------------------------------
+
+Species: OCS
+Degrees of freedom:  2
+Hitran Tag:       19
+
+Hitran species/tag/Isotopic Ratio for species: 
+     622            OCS        0.93739
+     624            OCS        0.04158
+     632            OCS        0.01053
+     623            OCS    .739908E-02
+     822            OCS      0.0018797
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   60001            OCS     0.95060480     0.95060480
+   61001        OC-13-S    0.010543869    0.010543869
+   62001        OC-34-S    0.042072661    0.042072661
+   62002        O-18-CS   0.0019408859   0.0019408859
+
+------------------------------------------------------------
+
+Species: H2CO
+Degrees of freedom:  3
+Hitran Tag:       20
+
+Hitran species/tag/Isotopic Ratio for species: 
+     126           H2CO        0.98624
+     136           H2CO        0.01108
+     128           H2CO      0.0019776
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   30004           H2CO      1.0000000     0.98624003
+   31002       H2C-13-O    0.010115795   0.0099766012
+   31003           HDCO  0.00029991625  0.00029578942
+   32004        H2CO-18      1.0000000     0.98624003
+   32006           D2CO  2.2490546E-08  2.2181077E-08
+
+------------------------------------------------------------
+
+Species: HOCl
+Degrees of freedom:  3
+Hitran Tag:       21
+
+Hitran species/tag/Isotopic Ratio for species: 
+     165           HOCl        0.75579
+     167           HOCl        0.24168
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   52006           HOCl     0.75509220     0.75509220
+   54005        HOCl-37     0.24490632     0.24490632
+
+------------------------------------------------------------
+
+Species: N2
+Degrees of freedom: Not available in JPL
+Hitran Tag:       22
+
+Hitran species/tag/Isotopic Ratio for species: 
+      44             N2      0.9926874
+
+Missing in JPL catalogue
+
+------------------------------------------------------------
+Species: HCN
+Degrees of freedom:  2
+Hitran Tag:       23
+
+Hitran species/tag/Isotopic Ratio for species: 
+     124            HCN        0.98511
+     134            HCN        0.01107
+     125            HCN      0.0036217
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   27001            HCN      1.0000000     0.98510998
+   27003         HCN-v2      1.0000000     0.98510998
+   28002        HC-13-N    0.011091748    0.010926592
+   28003         HCN-15   0.0036982817   0.0036432142
+   28004            DCN  0.00014996849  0.00014773545
+
+------------------------------------------------------------
+
+Species: CH3Cl
+Degrees of freedom:  3
+Hitran Tag:       24
+
+Hitran species/tag/Isotopic Ratio for species: 
+     215          CH3Cl        0.74894
+     217          CH3Cl        0.23949
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   50007       CH3Cl-35     0.75509220     0.75509220
+   52009       CH3Cl-37     0.24490632     0.24490632
+
+------------------------------------------------------------
+
+Species: H2O2
+Degrees of freedom:  3
+Hitran Tag:       25
+
+Hitran species/tag/Isotopic Ratio for species: 
+    1661           H2O2       0.994952
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   34004           H2O2      1.0000000     0.99495202
+
+------------------------------------------------------------
+
+Species: C2H2
+Degrees of freedom: Not available in JPL
+Hitran Tag:       26
+
+Hitran species/tag/Isotopic Ratio for species: 
+    1221           C2H2        0.97760
+    1231           C2H2        0.02197
+
+Missing in JPL catalogue
+
+------------------------------------------------------------
+Species: C2H6
+Degrees of freedom: Not available in JPL
+Hitran Tag:       27
+
+Hitran species/tag/Isotopic Ratio for species: 
+    1221           C2H6        0.97699
+
+Missing in JPL catalogue
+
+------------------------------------------------------------
+Species: PH3
+Degrees of freedom:  3
+Hitran Tag:       28
+
+Hitran species/tag/Isotopic Ratio for species: 
+    1111            PH3     0.99953283
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   34003            PH3      1.0000000     0.99953282
+
+------------------------------------------------------------
+
+Species: COF2
+Degrees of freedom:  3
+Hitran Tag:       29
+
+Hitran species/tag/Isotopic Ratio for species: 
+     269           COF2        0.98654
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   66001           COF2      1.0000000     0.98654002
+
+------------------------------------------------------------
+
+Species: SF6
+Degrees of freedom: Not available in JPL
+Hitran Tag:       30
+
+Hitran species/tag/Isotopic Ratio for species: 
+      29            SF6        0.95018
+
+Missing in JPL catalogue
+
+------------------------------------------------------------
+Species: H2S
+Degrees of freedom:  3
+Hitran Tag:       31
+
+Hitran species/tag/Isotopic Ratio for species: 
+     121            H2S        0.94988
+     141            H2S        0.04214
+     131            H2S       0.007498
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   34002            H2S     0.95060480     0.95060480
+   35001            HDS  0.00029991625  0.00029991625
+
+------------------------------------------------------------
+
+Species: HCOOH
+Degrees of freedom:  3
+Hitran Tag:       32
+
+Hitran species/tag/Isotopic Ratio for species: 
+     126          HCOOH       0.983898
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   46005          HCOOH      1.0000000     0.98389798
+   47002      HC-13-OOH    0.011091748    0.010913149
+   47003          DCOOH  0.00014996849  0.00014755370
+   47004          HCOOD  0.00014996849  0.00014755370
+
+------------------------------------------------------------
+
+Species: HO2
+Degrees of freedom:  3
+Hitran Tag:       33
+
+Hitran species/tag/Isotopic Ratio for species: 
+     166            HO2       0.995107
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   33001            HO2      1.0000000     0.99510700
+
+------------------------------------------------------------
+
+Species: O
+Degrees of freedom:  0
+Hitran Tag:       34
+
+Hitran species/tag/Isotopic Ratio for species: 
+       6              O       0.997628
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   16001         O-atom      1.0000000     0.99762797
+
+------------------------------------------------------------
+
+Species: ClONO2
+Degrees of freedom:  3
+Hitran Tag:       35
+
+Hitran species/tag/Isotopic Ratio for species: 
+    5646         ClONO2        0.74957
+    7646         ClONO2        0.23970
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   97002      Cl-35-NO3     0.75509220     0.75509220
+   99001      Cl-37-NO3     0.24490632     0.24490632
+
+------------------------------------------------------------
+
+Species: NO+
+Degrees of freedom:  2
+Hitran Tag:       36
+
+Hitran species/tag/Isotopic Ratio for species: 
+      46            NO+       0.993974
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   30011            NO+      1.0000000     0.99397397
+
+------------------------------------------------------------
+
+Species: OClO
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   67001       OCl-35-O     0.75509220     0.75509220
+   69001       OCl-37-O     0.24490632     0.24490632
+
+------------------------------------------------------------
+
+Species: BrO
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   95001        Br-79-O     0.50582469     0.50582469
+   97001        Br-81-O     0.49431068     0.49431068
+
+------------------------------------------------------------
+
+Species: H2SO4
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   98001          H2SO4     0.95060480     0.95060480
+
+------------------------------------------------------------
+
+Species: Cl2O2
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+  102001         ClOOCl     0.57016426     0.57016426
+  104001     Cl-37-OOCl     0.36982819     0.36982819
+
+------------------------------------------------------------
+
+Species: HOBr
+Degrees of freedom:  3
+Hitran Tag:       37
+
+Hitran species/tag/Isotopic Ratio for species: 
+     169           HOBr    .505579E+00
+     161           HOBr    .491894E+00
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   96001        HOBr-79     0.50535899     0.50535899
+   98002        HOBr-81     0.49465227     0.49465227
+
+------------------------------------------------------------
+
+Species: C2H4
+Degrees of freedom: Not available in JPL
+Hitran Tag:       38
+
+Hitran species/tag/Isotopic Ratio for species: 
+     221           C2H4    .977294E+00
+     231           C2H4    .219595E-01
+
+Missing in JPL catalogue
+
+------------------------------------------------------------
+Species: OBrO
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+  111001       OBr-79-O     0.50582469     0.50582469
+  113001       OBr-81-O     0.49431068     0.49431068
+
+------------------------------------------------------------
+
+Species: ClNO2
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   81001      Cl-35-NO2     0.75509220     0.75509220
+
+------------------------------------------------------------
+
+Species: HOONO2
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   79001         HOONO2      1.0000000      1.0000000
+
+------------------------------------------------------------
+
+Species: PO2
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   63008            PO2      100.00000      100.00000
+
+------------------------------------------------------------
+
+Species: PS
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   63007             PS     0.95060480     0.95060480
+
+------------------------------------------------------------
+
+Species: C2S
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   56007            CCS      1.0000000      1.0000000
+   57001         C-13CS    0.011091748    0.011091748
+   57002         CC-13S    0.011091748    0.011091748
+   58001         CCS-34    0.042072661    0.042072661
+
+------------------------------------------------------------
+
+Species: C3O
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   52008           CCCO      1.0000000      1.0000000
+   53003       C-13-CCO    0.011091748    0.011091748
+   53004       CC-13-CO    0.011091748    0.011091748
+   53005       CCC-13-O    0.011091748    0.011091748
+   54006        CCCO-18   0.0020417380   0.0020417380
+
+------------------------------------------------------------
+
+Species: HC3N
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   51001          HCCCN      1.0000000      1.0000000
+   52001      HCCC-13-N    0.011091748    0.011091748
+   52002      HCC-13-CN    0.011091748    0.011091748
+   52003      HC-13-CCN    0.011091748    0.011091748
+   52004       HCCCN-15   0.0036982817   0.0036982817
+   52005          DCCCN  0.00014996849  0.00014996849
+
+------------------------------------------------------------
+
+Species: HNC3
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   51008          HNCCC      1.0000000      1.0000000
+
+------------------------------------------------------------
+
+Species: HC2NC
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   51004          HCCNC      1.0000000      1.0000000
+   51005       HCCNC-v7      1.0000000      1.0000000
+   51006       HCCNC-v6      1.0000000      1.0000000
+   51007       HCCNC-v5      1.0000000      1.0000000
+
+------------------------------------------------------------
+
+Species: C3N
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   50008            C3N      100.00000      100.00000
+
+------------------------------------------------------------
+
+Species: NS
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   46010             NS      1.0000000      1.0000000
+   48009          NS-34    0.042072661    0.042072661
+
+------------------------------------------------------------
+
+Species: H2CS
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   46003           H2CS     0.95060480     0.95060480
+   47001       H2C-13-S    0.010543869    0.010543869
+   48003        H2CS-34    0.042072661    0.042072661
+
+------------------------------------------------------------
+
+Species: PO
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   47006             P0      1.0000000      1.0000000
+
+------------------------------------------------------------
+
+Species: CS
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   44001             CS     0.95060480     0.95060480
+   45001         C-13-S    0.010543869    0.010543869
+   46001          CS-34    0.042072661    0.042072661
+
+------------------------------------------------------------
+
+Species: PN
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   45013             PN      1.0000000      1.0000000
+
+------------------------------------------------------------
+
+Species: HNCO
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   43002           HNCO      1.0000000      1.0000000
+   44006           DNCO  0.00014996849  0.00014996849
+   44007       HN-15-CO   0.0036982817   0.0036982817
+   44008       HNC-13-O    0.011091748    0.011091748
+   45006        HNCO-18   0.0020417380   0.0020417380
+
+------------------------------------------------------------
+
+Species: HCP
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   44010            HCP      1.0000000      1.0000000
+   45009            DCP  0.00014996849  0.00014996849
+
+------------------------------------------------------------
+
+Species: CP
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   43004             CP      1.0000000      1.0000000
+
+------------------------------------------------------------
+
+Species: CH2CO
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   42002          CH2CO      1.0000000      1.0000000
+   43001          CHDCO  0.00029991625  0.00029991625
+
+------------------------------------------------------------
+
+Species: CH3CN
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   41001          CH3CN      1.0000000      1.0000000
+   42001       CH3CN-15   0.0036982817   0.0036982817
+   42006      C-13-H3CN    0.011091748    0.011091748
+   42007      CH3C-13-N    0.011091748    0.011091748
+   42008         CH2DCN  0.00044977985  0.00044977985
+
+------------------------------------------------------------
+
+Species: NH2CN
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   42003          NH2CN      1.0000000      1.0000000
+
+------------------------------------------------------------
+
+Species: CH3C2H
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   40001         CH3CCH      1.0000000      1.0000000
+   41002     CH3CC-13-H    0.011091748    0.011091748
+   41003     CH3C-13-CH    0.011091748    0.011091748
+   41004     C-13-H3CCH    0.011091748    0.011091748
+   41005         CH3CCD  0.00014996849  0.00014996849
+   41006        CH2DCCH  0.00044977985  0.00044977985
+
+------------------------------------------------------------
+
+Species: SH
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   33003             SH     0.95060480     0.95060480
+   34005             SD     0.95060480     0.95060480
+
+------------------------------------------------------------
+
+Species: HNO
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   31005            HNO      100.00000      100.00000
+   32007            DNO  0.00014996849  0.00014996849
+
+------------------------------------------------------------
+
+Species: CH2NH
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   29003          CH2NH      1.0000000      1.0000000
+   30005      C-13-H2NH      1.0000000      1.0000000
+   30006      CH2N-15-H   0.0036982817   0.0036982817
+   30007          CH2ND  0.00014996849  0.00014996849
+
+------------------------------------------------------------
+
+Species: HCO
+Degrees of freedom:  3
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   29004            HCO      1.0000000      1.0000000
+
+------------------------------------------------------------
+
+Species: HNC
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   27002            HNC      1.0000000      1.0000000
+   28005         HNC-13    0.011091748    0.011091748
+   28006        HN-15-C   0.0036982817   0.0036982817
+   28007            DNC  0.00014996849  0.00014996849
+
+------------------------------------------------------------
+
+Species: CN
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   26001       CN_v=0,1     0.98627949     0.98627949
+   27004         C-13-N    0.011040786    0.011040786
+
+------------------------------------------------------------
+
+Species: C2H
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   25001            CCH      1.0000000      1.0000000
+
+------------------------------------------------------------
+
+Species: NH
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   15001             NH      1.0000000      1.0000000
+
+------------------------------------------------------------
+
+Species: CH
+Degrees of freedom:  2
+
+Missing in hitran
+
+JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species
+   13002             CH      1.0000000      1.0000000
+
+------------------------------------------------------------
+

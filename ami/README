@@ -1,0 +1,38 @@
+======================================================================
+===                              AMI                               ===
+======================================================================
+
+README for AMI (ARTS Matlab interface). AMI is a set of Matlab
+functions for communication with ARTS, and other functions to make
+your Matlab life simpler.
+
+The core of the interface to ARTS is found in the folders arts/ and
+hmatrix/, while the other folders contain different handy Matlab
+functions of more general character.
+
+The functions are sorted as:
+
+arts/      : Interface functions to ARTS.
+file/      : Functions to get file information or to create files. 
+             This includes manipulation of transition arrays.
+hmatrix/   : Functions to set up the H transfer matrix.
+math/      : Various math functions.
+path/      : Functions to handle paths and directories.
+physics/   : Physical and geometrical functions.
+plot/      : Functions for plotting and printing.
+retrieval/ : Help functions for retrieval, e.g. to set up grids.
+
+Information for the individual functions are obtained by reading
+the functions headings, or by using help in Matlab, e.g.:
+
+help vec2col
+
+You add the AMI folders to your search path and sets some global
+constants by running init.m.
+
+
+Good luck,
+
+Patrick Eriksson
+
+patrick@rss.chalmers.se

@@ -1,0 +1,47 @@
+\levela{Workspace variables}
+ \label{app:wsv}
+
+
+\starthistory
+  001110 & Created by Patrick Eriksson. \\
+%  00???? & First version finished by ??.\\
+\stophistory
+
+ This appendix reports the existing ARTS workspace variables. The
+ data type of the variables and the on-line text description are also
+ given. For an on-line list of all workspace variables, type\\
+
+ \verb|arts -w all| \\
+
+ \noindent
+ To get a description of a specific workspace variable, type\\
+
+ \verb|arts -d |{\it variable} \\
+
+ \noindent
+ where {\it variable} is the name of the variable of interest. To list
+ all methods that can be used to create or calculate a workspace variable,
+ type \\
+
+ \verb|arts -m |{\it variable} \\
+
+ \noindent
+ To list all methods that need a given workspace variable as input,
+ type \\
+
+ \verb|arts -i |{\it variable} \\
+
+ \noindent
+ For a complete list of online help options, type\\ 
+
+ \verb|arts -h| \\
+ 
+ {\footnotesize
+ \verbatiminput{../../src/auto_wsv.txt} }
+
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "uguide" 
+%%% End:
+

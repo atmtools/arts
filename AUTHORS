@@ -1,0 +1,14 @@
+Authors of ARTS.
+See also the files THANKS and ChangeLog.
+
+Stefan Buehler <sbuehler@uni-bremen.de> 
+designed and implemented the ARTS engine. 
+
+Patrick Eriksson <patrick@rss.chalmers.se>
+designed and implemented the radiative transfer part, including the
+computation of weighting functions.
+
+Axel von Engeln <engeln@uni-bremen.de> 
+did a lot of work on the absorption part of ARTS, in particular on the
+species data. He also designed and implemented the partition functions
+for the absorption part.

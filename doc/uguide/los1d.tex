@@ -1,0 +1,759 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Line of sight, 1D}
+ \label{sec:los}
+
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  000307 & Started by Patrick Eriksson. \\
+  010219 & First version finished by Patrick Eriksson.\\
+\stophistory
+
+
+%
+% Symbol table, format:
+%  \startsymbols
+%    ... & \verb|...| & text ... \\
+%    ... & \verb|...| & text ... \\
+%    ....
+%  \stopsymbols
+%
+%
+%\startsymbols
+%  \view     & \verb|view|     & zenith angle from zenith                  \\
+%  $z$       & \verb|z|       & vertical altitude                          \\
+%  $z_p$     & \verb|z_plat|  & platform altitude                          \\
+%  $z_t$     & \verb|z_tan|   & tangent altitude                           \\
+%  $z_g$     & \verb|z_ground|& altitude of the ground                     \\
+%  $z_{lim}$ & \verb|z_abs_max|& practical upper limit of the atmosphere   \\
+%  $l$       & \verb|l|       & distance along LOS                         \\
+%  $e$       & \verb|gr_emiss|& ground emissivity                          \\
+%  $\Delta l$& \verb|l_step|  & step length along LOS                      \\
+%  $l_{lim}$ & \verb|llim|    & distance from lowest LOS point to $z_{lim}$\\
+%  $l_p$     & \verb|l1|      & distance used for downward observation     \\
+%  $i_p$     & -              & index for platform altitude for downward obs.\\
+% \label{symtable:los}     
+%\stopsymbols
+
+
+
+%
+% Introduction
+%
+This section describes how the line of sight (LOS) is determined
+for situations where the atmosphere is assumed to be horizontally
+stratified, a 1D atmosphere. Expressions are given both for pure
+geometrical calculations and when considering refraction.
+
+
+
+\levelb{Definitions}
+ \label{sec:los:defs}
+ 
+ Vertical (geometrical) altitudes are denoted as $z$, pressures as $p$
+ and distances along the LOS are denoted as $l$. Vertical distances
+ are measured from the geoid and $l$ is the distance from the lowest
+ point of the LOS. 
+ 
+ As a 1D atmosphere is assumed here, the conditions are symmetrical
+ around tangent points and points of ground reflection, and, for such
+ cases, only one half of the LOS is stored for efficiency reasons.
+ The points of the LOS are stored by increasing vertical altitude
+ point. Index 1 corresponds accordingly to either the platform, the
+ tangent point or the ground.  The internal description of the LOS is
+ further described in the file \verb|los.h|.
+  
+ The line of sight is defined by two variables, the platform altitude,
+ $z_p$, and the zenith angle, $\view$, (see Fig. \ref{fig:los1d:geoms}):
+
+ \begin{description}
+  \item[The platform altitude] is the altitude above the geoid of the
+       sensor used to detect the spectrum simulated.
+  \item[The zenith angle] is the angle between the zenith
+       direction and the direction of observation. As an 1D atmosphere is
+       assumed, there is no difference between positive and negative
+       zenith angles.
+  \end{description}
+
+  \noindent
+  The lower limit of the atmosphere is given by the ground altitude,
+  $z_g$. The practical upper limit of the atmosphere is denoted
+  $z_{lim}$ and is in the forward model determined by the highest
+  point of the absorption grid. The absorption grid can
+  extend below $z_g$. On the other hand, it is not allowed that any
+  part of the LOS is between the lowest absorption altitude and the ground.
+ 
+  If $\view>90^{\circ}$ the lowest point of the LOS is not the platform
+  altitude, and this point is denoted as the tangent point, $z_t$. The
+  angle between the LOS and the vector to the Earth center is at the
+  tangent point $90^\circ$. If the tangent point is below ground
+  level, $z_t$ is determined by an imaginary geometric prolonging of
+  the LOS inside the Earth.
+
+  \begin{figure}[tb]
+   \begin{center}
+    \includegraphics*[width=0.95\hsize]{Figs/geoms}
+    \caption{Schematic description of the main variables of the 
+             observation geometry and the LOS. $R_e$ is the Earth
+             radius. Other variables are defined in the text.}  
+    \label{fig:los1d:geoms}  
+   \end{center}
+  \end{figure}
+  
+  The forward model uses internally three main observation geometries:
+
+  \begin{description}
+  \item[Limb sounding] covers here all observations from a point
+    outside the atmosphere ($z_p \geq z_{lim}$). All zenith angles are
+    covered, and, for example, nadir looking observations
+    ($\view=180$) are treated as limb sounding in the forward model.
+    If the LOS does not pass the atmosphere ($z_{tan} \geq z_{lim}$),
+    cosmic background radiation, or correspondingly, is returned.
+  \item[Upward looking] signifies observation from
+    within the atmosphere in an upward direction ($z_p<z_{lim}$ and
+    $\view\leq90^{\circ}$). 
+  \item[Downward looking] is observation from within the atmosphere in
+    a downward direction ($z_p<z_{lim}$ and $\view>90^{\circ}$).
+  \end{description}
+ 
+
+\levelb{Outlook towards 2D}
+ \label{sec:los:2d}
+ So far ARTS is only capable of calculating spectra for 1D cases.
+ It is planned to also handle satellite measurements with atmospheric 
+ horizontal variations, but limited to observations in the orbit
+ plane, here denoted as 2D observations. 
+ 
+ For 2D observations there is no symmetry to be used, each point of
+ the LOS is unique. This is also the case for 1D upward looking
+ observations, and it is planned that 2D and 1D upward calculations of
+ radiative transfer and weighting functions shall be performed with
+ the same general functions.  The 2D case exhibits however one
+ difference compared to the 1D upward case. For 2D cases there could
+ be a ground reflection along the LOS, which is never the case for 1D
+ upward looking observations by definition.  Note that if the 1D
+ upward functions are used for 2D simulations, the point of LOS
+ closest to the sensor will throughout have index 1.
+
+ As a first preparation for the 2D calculations, the angular distances
+ between the sensor and the points of the LOS, $\psi$, are stored
+ beside the pressure and vertical altitudes of the points. The
+ variable $\psi$ is defined to be the angle between the vectors going
+ from the Earth's center to the sensor and the LOS point,
+ respectively.  For cases with symmetry, the angles are valid for the
+ part of the LOS furthest away from the sensor.
+ 
+
+
+\levelb{The step length}
+ \label{sec:rte:stepl}
+ 
+ As described in Section \ref{sec:rte}, the LOS is divided into equal
+ long geometrical steps, $\Delta l$. The user gives an upper limit for
+ this step length. A point of the LOS is always placed at the sensor
+ (if inside the atmosphere), tangent points and points of ground
+ reflection, but no adjustment to the upper atmospheric limit is made.
+ This gives a single fixed point for limb sounding and upward looking
+ observation and $\Delta l$ is set to the value given by the user if
+ the LOS has at least two definition points. If the LOS gets only one
+ point with the user defined value, for example when the tangent point
+ is just below the atmospheric limit, the step length is adjusted to
+ the length from the fixed point of the LOS (the sensor or the tangent 
+ point) and the atmospheric limit.
+ 
+ In contrast to upward and limb sounding observations, for downward
+ observations there are two fixed points inside the atmosphere (the
+ platform and the tangent point, or the point of ground reflection)
+ and $\Delta l$ is here adjusted according to the the distance between
+ these two points. See further Section \ref{sec:los:down}.
+
+
+
+\levelb{Geometrical calculations}
+ 
+ \levelc{General expressions}
+  \label{sec:los:general}
+
+  The relationship between vertical altitude ($z$) and distance along
+  LOS ($l$) can be found be the law of cosines, giving
+  \begin{equation}
+    (R_e+z)^2 = (R_e+z_0)^2 + l^2 + 2l(R_e+z_0)\cos(\view)
+  \end{equation}
+  where $z_0$ is the lowest point of the LOS (where $l=0$) and \view\
+  is the angle between the LOS and zenith at $z_0$. This equation 
+  gives
+  \begin{equation}
+    z = \sqrt{ (R_e+z_0)^2 + l^2 + 2l(R_e+z_0)\cos(\view) } - R_e
+   \label{eq:los:geom:z}
+  \end{equation}
+  The distance between the sensor and the limit of the atmosphere is
+  \begin{equation}
+      l_{lim} = \sqrt{ (R_e+z_{lim})^2 - (R_e+z_0)^2\sin^2(\view) } - 
+                                       (R_e+z_0)\cos(\view)
+   \label{eq:los:geom:llim}
+  \end{equation}
+  The angle $\psi$ between the point corresponding to $z_0$ and
+  some altitude $z$ is
+  \begin{equation}
+      \psi = \cos^{-1}\left( \frac{(R_e+z_0)^2 + (R_e+z)^2 - l^2}
+                                                   {2(R_e+z_0)(R_e+z)} \right) 
+   \label{eq:los:geom:psi}
+  \end{equation} 
+
+
+
+ \levelc{Limb sounding}
+  \label{sec:los:limb}
+  
+  For limb sounding the lowest point of the LOS is (by definition) the
+  tangent point, and it is given by the expression
+  \begin{equation}
+    z_t = (R_e+z_p)\sin(\view) - R_e \qquad  \view\geq90^\circ
+   \label{eq:los:ztan}
+  \end{equation}
+  This relationship holds even if $z_t<z_g$. Note that
+  $\sin(180^\circ-\view)=\sin(\view)$ and it must be checked that
+  $\view\geq90^\circ$. Zenith angles $<90^\circ$ correspond to an
+  imaginary tangent point behind the sensor, and are treated as
+  observations into the space.
+
+  The LOS starting at the tangent point is then calculated by 
+  Equations \ref{eq:los:geom:z} -- \ref{eq:los:geom:psi} with $z_0 = z_t$
+  and $\view = 90^\circ$. The angle between the vectors going from the
+  Earth's center and the sensor and the tangent point, respectively,
+  is
+  \begin{equation}
+    \psi_0 = \view - 90^\circ
+  \end{equation}
+  The value of $\psi_0$ is added to the angles given by Equation 
+  \ref{eq:los:geom:psi} as the equation in this case gives the angles 
+  from the tangent point instead from the sensor.
+
+  If the tangent point is below ground, $z_0$ is set to $z_g$ and \view\
+  to $\view_g$ where
+  \begin{equation}
+    \view_g = \sin^{-1} \left( \frac{R_e+z_t}{R_e+z_g} \right)
+  \end{equation}
+  The correction term for $\psi$ is here
+  \begin{equation}
+    \psi_0 =  \view + \view_g - 180^\circ
+  \end{equation}
+
+
+
+ \levelc{Upward looking}   
+  \label{sec:los:up}
+
+  The LOS for upward looking observations is given by Equations 
+  \ref{eq:los:geom:z} -- \ref{eq:los:geom:psi} where $z_0$ is set to
+  the platform altitude and \view\ to the observation zenith angle.
+
+
+
+ \levelc{Downward looking}
+  \label{sec:los:down}
+
+  The altitude of the tangent point is given by Equation \ref
+  {eq:los:ztan}. As both the sensor and the tangent point (or the
+  ground) are treated to be fixed points of the LOS, the step length
+  must be adjusted. The distance between the sensor and a tangent point is
+  \begin{equation}
+    l_p = \sqrt{ (R_e+z_p)^2 - (R_e+z_t)^2 } \qquad  z_t \geq z_g
+  \end{equation}
+  and the distance between the sensor and a point of ground
+  reflection is
+  \begin{equation}
+    l_p = \sqrt{ (R_e+z_p)^2 - (R_e+z_t)^2 } - \sqrt{ (R_e+z_g)^2-(R_e+z_t)^2}
+            \qquad z_t < z_g
+  \end{equation}
+  The part of the LOS between the sensor and the tangent or ground
+  point gets the following number of points:
+  \begin{equation}
+     m = 1 + \mathbf{ ceil}(l_{lim}/\Delta l_{max})
+   \label{eq:los:m}
+  \end{equation}
+  where $\Delta l_{max}$ is the upper limit for $\Delta l$ specified by
+  the user, and $\mathbf{ ceil}$ is a function giving the first integer
+  larger than the argument. The step length is accordingly
+  \begin{equation}
+     \Delta l = \frac{l_{lim}}{m-1}
+   \label{eq:los:dl}
+  \end{equation} 
+  The LOS is determined in the same manner as for limb sounding
+  described above, but with the adjusted value for $\Delta l$.
+  The angular distance between the the tangent point, or the ground.
+  and the sensor $(\psi_0)$ is value $m$ of the angle vector given by 
+  Equation \ref{eq:los:geom:psi}.
+
+  
+
+ \levelb{With refraction}
+  \label{sec:los:refraction}
+  
+  Refraction affects the radiative transfer in several ways. The
+  distance through a layer of a fixed vertical thickness will be
+  changed, and for a limb sounding observation the tangent point is
+  moved both vertically and horizontally. If the atmosphere is assumed
+  to be horizontally stratified, as done here (1D), a horizontal
+  displacement is of no importance but for 2D calculations this effect
+  must be considered. For limb sounding and a fixed zenith angle, the
+  tangent point is moved downwards compared to the pure geometrical
+  case, resulting in that inclusion of refraction in general gives
+  higher intensities. However, the LOS is still symmetric around
+  tangent and ground points.
+
+ \levelc{General theory}
+  \label{sec:los:reftheory}
+
+   When determining the LOS through the atmosphere geometrical optics 
+   can be applied because the change of the refractive index over a
+   wavelength can be neglected. Applying Snell's law to the geometry 
+   shown in Figure \ref{fig:los:snell} gives
+   \begin{equation}
+     n_i \sin (\theta_i) = n_{i+1} \sin (\theta_i')
+   \end{equation}
+   \begin{figure}
+    \begin{center}
+      \includegraphics*{Figs/snell}
+      \caption{Geometry to derive Snell's law for a spherical atmosphere. 
+               The Earth radius is $R_e$, the vertical
+               altitude $z$, the refractive index $n$ and the angle
+               between the LOS and the vector to the Earth center $\theta$.}
+      \label{fig:los:snell} 
+    \end{center} 
+  \end{figure}
+  Using the same figure, the law of sines gives the relationship
+  \begin{equation}
+    \frac{\sin(\theta_{i+1})}{R_e+z_i} = 
+    \frac{\sin(180^\circ-\theta_{i+1}')}{R_e+z_{i+1}} =
+    \frac{\sin(\theta_i')}{R_e+z_{i+1}} 
+  \end{equation}
+  By combining the two equations above, the Snell's law for a spherical
+  atmosphere (i.e. 1D) is derived \citep[e.g.][]{kyle:91,balluch:97}:
+  \begin{equation}
+    c = (R_e+z_i) n_i \sin(\theta_i) = (R_e+z_{i+1}) n_{i+1}\sin(\theta_{i+1}) 
+   \label{eq:los:snellspherical}
+  \end{equation}
+  where $c$ is a constant. With other words, the Snell's law for spherical
+  atmospheres states that the product of $n$, $(R_e+z)$ and $\sin(\theta)$ is
+  constant along the LOS.
+
+  The radiative transfer is evaluated along the LOS, while Equation 
+  \ref{eq:los:snellspherical} is expressed for vertical altitudes.
+  The relationship between a change in vertical altitude and the
+  corresponding change along the LOS is here denoted as the geometrical term
+  and it is
+  \begin{equation}
+    g(z) = \frac{1}{\cos(\theta)}
+  \end{equation}
+  which can be rewritten using trigonometric identities and Equation
+  \ref{eq:los:snellspherical}:
+  \begin{equation}
+    g(z) = \frac {(R_e+z)n(z)} {\sqrt{ (R_e+z)^2n^2(z) - c^2 }}
+   \label{eq:los:gterm}
+  \end{equation}
+
+
+ \levelc{Practical solution}
+  A possible solution for calculating the LOS with refraction would be to 
+  integrate numerically the geometrical term \citep{eriksson:00a} but 
+  this approach is problematic for limb sounding as the geometric factor is
+  singular at the tangent point (Figure \ref{fig:los:gfac}).
+  \begin{figure}
+   \begin{center}
+    \includegraphics*[width=0.7\hsize]{Figs/fig_geomfac}
+     \caption{The geometrical factor, as a function of altitude, for limb 
+              sounding and three tangent altitudes. Taken from
+              \citet{eriksson:97a}}.
+    \label{fig:los:gfac}
+   \end{center} 
+  \end{figure}
+  Further, Equation \ref{eq:los:gterm} cannot be solved analytically 
+  for the simple reason that no general analytical expression for 
+  $n$ exists. A possible solution would be to assume that $n$ is a
+  piecewise linear function but the solution of Equation \ref{eq:los:gterm}
+  is then unfortunately a very lengthy expression (at least the one provided 
+  by Mathematica!). However, for a piecewise constant $n$ it is very simple
+  to derive a solution of the integral, and thus avoiding the problem
+  with singularities:
+  \begin{equation}
+    \Delta l = \sqrt{(R_e+z_2)^2 - \left( \frac{c}{\bar{n}} \right)^2} -
+                     \sqrt{(R_e+z_1)^2 - \left( \frac{c}{\bar{n}} \right)^2}
+  \end{equation}
+  where $z_1$ and $z_2$ are two vertical altitudes, $\Delta l$ the length
+  along the LOS between these two altitudes and $\bar{n}$ a mean value of
+  the refractive index between $z_1$ and $z_2$. The calculations are 
+  performed along the LOS and the follwing expression is used in practice
+  \begin{equation}
+     z_2 = \sqrt{ \left( \Delta l + 
+           \sqrt{(R_e+z_1)^2 - \left( \frac{c}{\bar{n}} \right)^2}\, \right)^2
+                                  + \left( \frac{c}{\bar{n}} \right)^2 } - R_e 
+   \label{eq:los:refr:deltal}
+  \end{equation}
+  The angular distance between the points corresponding to $z_1$ and $z_2$
+  is
+  \begin{equation}
+   \Delta \psi = \cos^{-1}\left( \frac{(R_e+z_1)^2 + (R_e+z_2)^2 - l^2}
+                                                 {2(R_e+z_1)(R_e+z_2)} \right) 
+   \label{eq:los:refr:deltapsi}
+  \end{equation}
+  The practical calculations are performed as follows:
+  \begin{enumerate}
+    \item The lowest point of the LOS is determined and the ``zenith
+          angle'' at this point. 
+    \item The ray tracing step length is set to the LOS step length divided
+          by the factor given by the user (\verb|refr_lfac|).
+    \item The ray tracing is performed from the lowest altitude of the LOS
+          until the upper limit of the atmosphere is reached.
+  \end{enumerate}
+
+  \noindent
+  Each ray tracing step is performed as
+  \begin{enumerate}
+    \item The refractive index $(\bar{n})$ is set to the value at $z_1$.
+    \item The altitude of the other end of the ray tracing step is calculated
+          by Equation \ref{eq:los:refr:deltal}.
+    \item The refractive index at $z_2$ is determined by an interpolation
+          and $(\bar{n})$ is set to the mean value of the refractive index at
+          $z_1$ and $z_2$.
+    \item Step 2 and 3 are repeated two times.
+    \item The change in the angle $\psi$ is calculated by Equation
+          \ref{eq:los:refr:deltapsi}.
+  \end{enumerate}
+  The number of iterations of step 2 and 3 is hard coded. A practical
+  test showed a clear improvement when going from 1 to 2 iterations, a
+  small improvement when going from 2 to 3 iterations and no practical
+  improvement when going from 3 to 4 iterations. Accordingly, 3
+  iterations are needed to reach convergence, but as the estimated
+  accuracy for 2 iterations was judged to be sufficient 2 iterations
+  was selected as a compremise between speed and accuracy. However,
+  if the best accuracy possible is wanted, the number of iterations
+  can easily be changed in the code.
+
+  This calculation scheme has the advantage of always starting from the 
+  lowest point of the LOS which should be beneficial for the calculation
+  accuracy. How the tangent altitude is determined for limb sounding is 
+  described below. 
+  
+
+ \levelc{Limb sounding}
+    
+   \begin{figure}
+    \begin{center}
+      \includegraphics*[width=0.8\hsize]{Figs/fig_bendingangle}
+      \caption{Bending angle as a function of tangent altitude. The bending
+        angle is the angle between the line from the tangent point and
+        the sensor and the LOS tangent at the tangent point (see also
+        \citet[][Figure 1]{kursinski:97}). Calculated for the FASCODE
+        mid-latitude summer atmosphere. The figure can be compared to
+        \citet[][Figure 3]{kursinski:97} and the agreeemnt is as good as
+        expected.}
+      \label{fig:los:bendingangle} 
+    \end{center} 
+  \end{figure}
+
+  The most important factor for limb sounding is to get a correct
+  tangent altitude. Fortunately, there is a way to determine the
+  tangent altitude directly for 1D cases, without following the LOS
+  from the top of the atmosphere.
+
+  The tangent altitude is given by the relationship
+  \begin{equation}
+    (R_e+z_t)n(z_t) = (R_e+z_p)\sin(\view) = c
+   \label{eq:los:ztan_ref}
+  \end{equation}
+  as $\sin(\theta)=1$ at tangent points, the refractive index in space
+  is 1 and $sin(180^{\circ}-\view)=sin(\view)$. The tangent altitude
+  is practically determined by finding the highest altitude where
+  $(R_e+z)n(z)$ exceeds the value of $c$, followed by an interpolation
+  of the product $(R_e+z)n(z)$ between the found altitude and the
+  altitude above to find the altitude fulfilling Equation
+  \ref{eq:los:ztan_ref}.
+ 
+  For cases with ground reflections, a similar relationship,
+  \begin{equation}
+    (R_e+z_g)n(z_g)sin(\theta_g) = (R_e+z_p)\sin(\view) = c,
+  \end{equation}
+  gives the angle between the LOS and the ground normal.
+
+  The angular distance between the tangent point and the sensor $(\psi_0)$
+  is calculated as
+  \begin{equation}
+    \psi_0 = \theta_{z_{max}} + \view  - 180^\circ + \psi_{z_{max}}
+  \end{equation}
+  where $\theta_{z_{max}}$ and $\psi_{z_{max}}$ are the angles for the
+  highest point of the LOS ($\theta$ defined in Figure \ref{fig:los:snell}).
+  
+  Figure \ref{fig:los:bendingangle} gives a good confirmation of the
+  implemented refraction ray tracing scheme.
+
+  
+  
+ \levelb{Ground intersections}
+  \label{sec:los:ground}
+  
+  Ground reflections are indicated by a special flag. This flag is
+  zero when there is no ground intersection or gives the index of the
+  LOS point corresponding to the ground, $i_g$ (for 1-based indexing).
+  For 1D calculations, $i_g$ is either 0 or 1, as index 1 is here
+  defined to always be the lowest altitude of the LOS. However, to
+  pave the way for 2D calculations, cases where the ground is placed
+  at other positions than index 1 are handled.
+  
+  For 1D cases, where only half of the total LOS is stored and the
+  ground can only have index 1 ($i_g=1$), the effect of a ground
+  reflection (Eq. \ref{eq:rte:ground}) is put in when reversing the
+  loop order. Accordingly, the calculation order is: ... step2, step
+  1, ground, step 1, step 2, ... Ground reflections for 1D cases are
+  treated internally in ARTS by the limb sounding functions.
+  
+  \begin{figure}
+   \begin{center}
+     \includegraphics*[width=0.75\hsize]{Figs/ground}
+    \caption{Schematic of ground reflections for 2D cases. The index 
+             of the point corresponding to the ground is $i_g$. Point 1
+             of the LOS is the point closest to the sensor. }  
+    \label{fig:los1d:ground}  
+   \end{center}
+  \end{figure}
+
+ 
+\levelb{Inclusion of hydrostatic equilibrium}
+ \label{sec:los:hse}
+
+ The pressure in the atmosphere changes as
+ \begin{equation}
+   \Delta P = -\rho g \Delta z
+ \end{equation}
+ where $\Delta P$ is the change in pressure for an altitude change of
+ $\Delta z$, $\rho$ is the air density and $g$ the gravitational 
+ acceleration. If this expression is combined by the ideal gas law, the
+ hypsometric equation is obtained:
+ \begin{equation}
+   z_2 - z_1 = \frac{R_d\bar{T}_v}{g}ln\Big( \frac{P_1}{P_2} \Big)
+ \end{equation}
+ where the indeces 1 and 2 indicate two close altitudes, $R_d$ is the
+ gas constant for dry air (287.053 JK$^{-1}$kg$^{-1}$) and $\bar{T}_v$
+ the average virtual temperature between the altitudes $z_1$ and
+ $z_2$.  The virtual temperature is introduced to include effects of
+ the variable amount of water vapor. If no liquid water is present, the
+ virtual temperature can be calculated as
+ \begin{equation}
+   T_v = T \Big( 1+0.379\frac{x_{H2O}}{1-x_{H2O}}  \Big)
+ \end{equation}
+ where $x_{H2O}$ is the volume mixing ratio of water vapor. 
+ 
+ The practical calculations take into account that the gravitational
+ acceleration and the average molecular weight changes with altitude.
+ As the exalt altitudes not are known when starting the calculations,
+ and thus there exists some uncertainty for the gravitational
+ acceleration and the average molecular weight, the calculations can
+ be iterated to improve the accuracy. Type \verb|arts -d hseCalc| for
+ some more information.
+
+
+
+
+\levelb{Control file examples}
+ \label{sec:los:cfe}
+ 
+ The practical calculations are performed by a set of functions
+ \verb|refrCalc|, \verb|losCalc|, \verb|sourceCalc|, \verb|transCalc|
+ and \verb|yCalc|. All these functions have no global input/output or
+ keyword arguments, and the main task is to define the input for the
+ functions. The sequence {\footnotesize \begin{verbatim}
+refrCalc{}
+losCalc{}
+sourceCalc{}
+transCalc{}
+yCalc{} 
+\end{verbatim} 
+} 
+\noindent 
+must always be used as, for example, the variable \verb|refr_index|
+must be set when calling \verb|losCalc| and \verb|source|
+must be set when calculating spectra by \verb|yCalc|. If refraction
+is not considered, \verb|refrCalc| sets \verb|refr_index| to be empty
+and \verb|sourceCalc| does the same with \verb|source| for transmission
+calculations (\verb|emission| = 0).
+
+
+ \levelc{Ground-based observation}
+
+ The following control file excerpt shows a typical example for
+ simulating a ground-based observation:
+
+ {\footnotesize
+ \begin{verbatim}
+# Set the radius of the geoid to a standard value
+r_geoidStd{
+}
+
+# Set the platform altitude to 50 m
+NumericSet( z_plat ) { 
+   value = 50 
+}
+
+# Measurement in the zenith direction
+VectorSet( za_pencil ) {
+   length = 1
+   value = 0
+} 
+
+# A step length for LOS of 500 m
+NumericSet( l_step ) { 
+   500 
+}
+
+# Here we don't need to care about the ground and refraction
+groundOff{
+}
+refrOff{
+}
+
+# Cosmic radiation
+y_spaceStd{ "cbgr" }
+
+# An emission measurement
+emissionOn {}
+
+# Do the actual calculations 
+refrCalc{
+}
+losCalc{
+}
+sourceCalc{
+}
+transCalc{
+}
+yCalc{
+}
+
+# Convert to Rayleigh-Jean temperature
+yTRJ{}
+
+# Save the spectra
+VectorWriteBinary( y ) { 
+   ""
+}
+
+ \end{verbatim}
+ }
+
+
+
+ \levelc{Limb sounding}
+
+ The following control file excerpt shows a typical example for
+ limb sounding:
+
+ {\footnotesize
+ \begin{verbatim}
+# Set the geoid radius for observation in the S-N direction
+# at latitude 45 degrees 
+r_geoidWGS84{
+   latitude     = 45
+   obsdirection = 0
+}
+
+# Set the platform altitude to 620 km
+NumericSet( z_plat ) { 
+   value = 620e3 
+}
+
+# Five zenith angles between 113.5 and 114.0
+VectorNLinSpace (za_pencil) {
+   start = 113.5
+   stop  = 114.0
+   n     = 5 
+}
+
+# A step length for LOS of 10 km
+NumericSet( l_step ) { 
+   10e3
+}
+
+# A blackbody ground at 200 m
+groundSet{
+   z = 200
+   e = 1
+}
+
+# Turn on refraction, select parameterization for refractive
+# index and set ray tracing step length to 2.5 km
+refrSet{
+  on    = 1
+  model = "Boudouris"
+  lfac  = 4
+}
+
+# An emission measurement
+emissionOn {}
+
+# Cosmic radiation
+y_spaceStd{ "cbgr" }
+
+# Do the actual calculations 
+refrCalc{
+}
+losCalc{
+}
+sourceCalc{
+}
+transCalc{
+}
+yCalc{
+}
+
+# Convert to Rayleigh-Jean temperature
+yTRJ{}
+
+# Save the spectra
+VectorWriteBinary( y ) { 
+   ""
+}
+ \end{verbatim}
+ }
+
+
+
+ \levelc{Limb transmission calculations}
+
+ Simulation of transmission measurements is performed in the same way
+ as emission observations. Compared to the example above, beside that
+ converion to brightness temperatures shall not be done, the only
+ changes are:
+ {\footnotesize
+ \begin{verbatim}
+...
+# Turn off emission
+emissionOff {}
+
+# We don't need y_space here, set to be empty
+VectorSet( y_space ) {
+   length = 0
+   value = 0
+}
+...
+ \end{verbatim}
+ }
+\noindent
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "uguide"
+%%% End: 

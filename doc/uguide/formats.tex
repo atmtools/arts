@@ -1,0 +1,305 @@
+
+\levela{Workspace variable groups and file formats}
+ \label{sec:formats}
+ 
+\starthistory
+  001027 & Started by Patrick Eriksson. \\
+  010904 & Started new text about handmade matrix/vector package. Stefan B\"uhler.\\
+\stophistory
+
+This section defines the data types, basic mathematical operations
+and file formats supported by ARTS. The implementation of vectors,
+matrices, and sparse matrices is based on the handmade MATPACK
+package, which is part of the ARTS source code (files matpackI.h,
+matpackII.h, matpackI.cc, and matpackII.cc). The implementation of
+arrays is based on the Standard Template Library (STL).
+
+You can read ARTS variables from Ascii or Binary files, and also
+write them to Ascii or Binary files. The Ascii file format is very
+simple and explained in the online help %
+(\verb|arts -d ArrayOfMatrixWriteAscii|).  Binary files are created
+and read by using the Hierarchical Data Format (HDF). Some
+information and help how to install HDF is given below.
+
+ARTS workspace variables are organized in \emph{groups}. Such a group
+is similar to a type in C or C++. For example, \verb|String| and
+\verb|Vector| are both groups. To get a complete list of workspace
+variable groups, call ARTS like this: \verb|arts -g|.
+
+\levelb{Important workspace variable groups}
+ \label{sec:formats:datatypes}
+
+\levelc{Atomic groups}
+\label{sec:formats:atomic}
+ 
+The most basic, the atomic, groups of ARTS are:
+
+\begin{itemize}
+\item \verb|Index|
+\item \verb|Numeric|
+\item \verb|String|
+\end{itemize}
+A variable of group \verb|Index| is a positive or negative integer.
+\verb|Index| is the general purpose integer type of ARTS.  Internally
+this type is set to the C data type \verb|long int|. \verb|Index| is
+used for indexing vectors, matrices, and arrays. The type is also used
+for all function flags, i.e., to make a selction among a limited number
+of choices. Accordingly, characters or strings shall not be used as
+flags.
+
+A variable of group \verb|Numeric| is a floating point number.
+Internally, it is either set to be double or float by
+\verb|configure|. If \verb|Numeric| is set to be double, the
+calculations will be more accurate and there is a smaller risk to
+encounter numerical problems in, e.g., matrix inversions.  On the
+other hand, when \verb|Numeric| is set to be float the calculations
+will be more rapid (about twice as fast), and the program will need
+only half as much memory. The type selected for \verb|Numeric| is also
+reflected in the size of output files.
+
+A variable of group \verb|String| is not a true `atomic' variable, as
+it consists of a number of characters, but as characters are not used
+in ARTS, strings are the most basic text type in ARTS.
+  
+
+\levelc{Numeric groups}
+\label{sec:formats:nummath}
+ 
+Numeric values can be stored in vectors or matrices for which
+mathematical operations like computing a matrix/vector product are
+possible. ARTS uses the following types:
+
+\begin{itemize}
+\item \verb|Vector|
+\item \verb|Matrix|
+\end{itemize}
+Both of these use 0-based indexing, i.e., \verb|a[0]| is the first
+element of the \verb|Vector| \verb|a|.  Because these types are quite
+powerfull, they are described in more detail in a separate section,
+which you should read if you want to do ARTS development (to be written). 
+%[FIXME: Put reference here.]
+
+\levelc{Arrays based on atomic and numeric groups}
+ \label{sec:formats:atomic_arrays}
+ 
+Arrays correspond to vectors but are not treated as mathematical
+objects, they are only used as containers to hold different data.
+The arrays (as vectors and matrices) have 0-based indexing, that is,
+the first element has index 0 (not 1). Some examples for \verb|Array|s
+are:
+
+\begin{itemize}
+\item ArrayOfIndex
+\item ArrayOfString
+\item ArrayOfVector
+\item ArrayOfMatrix
+\end{itemize}
+
+\levelc{Structures based on atomic and numeric groups}
+
+The \verb|Los| is a structure to describe the line of sight (LOS).
+The structure holds for example the pressures along the LOS. To make the
+calculations more efficient for 1D calulations, only one half of the
+LOS is stored.  For this reason, the LOS structure includes indecies
+to describe the iteration order. The structure also contains the
+index for ground reflections and the geometrical step length along
+the LOS. The structure is defined in \verb|los.h|.
+The LOS calculations are further described in Section \ref{sec:los}.
+
+
+
+\levelb{File formats}
+ \label{sec:formats:files}
+ 
+ All ARTS data, beside the spectroscopic variables, can be stored to,
+ or loaded from, binary files using HDF.  For some data types an ASCII
+ file format also exists (Table \ref{table:format:aa}). The default
+ extension for ASCCI files is \verb|.aa| (ARTS ASCII) and for binary
+ files it is \verb|.ab| (ARTS binary).
+ 
+ \levelc{ASCII}
+  \label{sec:formats:file:ascii}
+  
+  All data types based on \verb|Numeric| and \verb|Index| that can be
+  represented by an \verb|ArrayOfMatrix| are stored using a common ASCII
+  file format. Table \ref{table:format:aa} contains the data types that
+  fulfills this criteria. Numeric ASCII files have the following 
+  structure: \\
+  {\footnotesize \begin{verbatim} 
+# The file can start with an arbitrary number of comment lines.  
+# These lines starts with the hash symbol (#) 
+# The first row after the comment lines give the number of matrices 
+# in the array. After this follows, for each matrix, a row giving 
+# the matrix size followed by the data in row order.  
+2 
+2 3 
+1.1 2.2 3.3 
+4.4 5.5 6.6 
+1 1 
+3.1415
+ \end{verbatim} 
+}
+
+ \noindent
+ Index arrays (\verb|ArrayOfIndex|) are stored as integer vectors to
+ make the files easier to inspect.
+     
+ The sizes given in the file must be compatible with the data type
+ of the variable that is read. Vectors can be given both as
+ columns or row matrices.
+ 
+ The types \verb|STRING| and \verb|ArrayOfSTRING| are stored using a
+ similar file format. String ASCII files have the following structure:
+ {\footnotesize \begin{verbatim} 
+# The file can start with an arbitrary number of comment lines.
+# These lines starts with the hash symbol (#)
+# The first row after the comment lines give the number of strings
+# in the array, followed by the strings (one on each row).  
+3
+String 1
+String 2
+String 3
+ \end{verbatim} 
+}
+
+ \begin{table}[t]
+  \begin{tabular}{p{4cm} p{4cm} p{4cm}}
+   \verb|Numeric|        & \verb|Vector|         & \verb|Matrix|          \\
+   \verb|ArrayOfVector|  & \verb|ArrayOfMatrix|  &                        \\
+   \verb|Index|          & \verb|ArrayOfIndex|  &                        \\
+   \verb|String|          & \verb|ArrayOfString|  &                        \\
+  \end{tabular}
+  \caption{ARTS data types that can be stored using the ASCII
+           file formats (.aa).}
+  \label{table:format:aa}
+ \end{table}
+ 
+
+\levelc{Binary}
+ \label{sec:formats:file:binary}
+  
+ Binary files are created and read by using HDF 4 (Sec.
+ \ref{sec:formats:hdf}). Hence, HDF must be installed to use binary
+ files. The Vdata format is applied. Most data types are stored using
+ a common approach but for some data types a special format is used.
+ The existing solution is temporary and the file format file will be
+ changed.
+
+
+\leveld{General binary file format}
+ \label{sec:formats:file:binary:general}
+ 
+ The binary files for data types that can be treated as special cases
+ of a matrix or can be broken down to a number of matrices have a
+ common layout. In this context strings are treated as vectors of
+ characters and scalars as 1x1 matrices. For example, the data types
+ in Table \ref{table:format:aa} meat this criteria.
+ 
+ A Vdata contains only a single scalar, vector or matrix. The file for
+ an array contains thus a number of Vdatas. The fields of a Vdata
+ contains a single number or character. The field order for the common
+ format is thus throughout 1. Matrices are in row order, that is, 
+ the data order is (1,1), (1,2), (1,3),\dots,(2,1),(2,2),\dots.
+ 
+ The matrix dimensions are stored as an attribute to each Vdata. The
+ name of the attribute is \verb|SIZE|. The order of \verb|SIZE| is 2
+ where the first value is the number of rows and the second value is
+ the number of columns. The data type of \verb|SIZE| is unsigned 4 byte
+ integers (= HDF type \verb|DFNT_UINT32|). Vectors and strings are
+ treated as column objects (i.e. 1 column).
+ 
+ The data type of the file data is indicated by the class name of the
+ Vdata. \verb|Index| data are stored as 4 byte unsigned integers and
+ the class name is set to \verb|UINT| (= HDF type \verb|DFNT_UINT32|).
+ The class name for characters of strings is \verb|CHAR| and the file
+ data type is 1 byte characters (= HDF type \verb|DFNT_CHAR|).
+
+ The record size for floating point values can either be 4 or 8 bytes.
+ The corrresponding class names are \verb|FLOAT| and \verb|DOUBLE|
+ (= HDF type \verb|DFNT_FLOAT32| and \verb|DFNT_FLOAT64|, respectively).
+ The type of \verb|Numeric| determines the file type when writing from
+ ARTS. Data is automatically converted to the type of \verb|Numeric|
+ when reading file data.
+ 
+ The field name of a Vdata (remember that a Vdata has here only a
+ singel field) describe the structure of the data. Treated structure
+ types are \verb|SCALAR|, \verb|VECTOR|, \verb|Matrix| and \verb|STRING|.
+ The following combinations of data structure and data type are allowed:
+ \begin{verbatim}
+    SCALAR: UINT, FLOAT, DOUBLE 
+    VECTOR: UINT, FLOAT, DOUBLE 
+    MATRIX: FLOAT, DOUBLE 
+    STRING: CHAR
+ \end{verbatim} 
+ The Vdata name is used to handle arrays. However, for simplicity
+ reasons and for consistency with the ASCII format, index arrays
+ (\verb|ArrayOfIndex|) are stored as index vectors (field name
+ \verb|VECTOR| and Vdata class \verb|UINT|). For other type of
+ arrays, the Vdata name is set to the data structure name followed
+ by a sequential number (starting at 1). The length of the array
+ is given by a seperate Vdata holding an index number (\verb|SCALAR|,
+ \verb|UINT|), named as \verb|N_|{\it string\_type}. An example should
+ clarify this. A file holding a matrix array of length 3 has the
+ the Vdatas \verb|N_MATRIX|, \verb|MATRIX1|, \verb|MATRIX2| and
+ \verb|MATRIX3|.
+
+ The described approach to store binary data results in that each
+ ARTS data type has a corresponding format for binary files. This 
+ gives an automatic check that a file matches the data type of
+ an ARTS variable when reading from a binary file. The drawback
+ is that, for example, a file holding a matrix cannot be read to create
+ an matrix array of length 1, which is possible for the ASCII format,
+ but consistency was emphasized when designing the binary format.
+ In addition, the size attribute is used to check that the data
+ have the expected size, for example, vectors are expected to only
+ have one column.
+ 
+
+\leveld{Display tools}
+ \label{sec:formats:file:binary:display}
+
+ The content of the binary files can be displayed using some command
+ line HDF utilities. A first utility is
+ \verb|vshow|. The syntax is \\
+
+ \verb|vshow |{\it filename}\verb| +| \\
+
+ \noindent
+ where {\it filename} is the binary file of interest. The final \verb|+|
+ indicates that the values of the stored data shall be displayed. Without
+ the \verb|+| symbol, only the data structure is reported.
+
+ Another utility is \verb|hdp|. Type \verb|hdp -h| for some on-line help.
+ To display the values of the stored data, type\\
+ 
+ \verb|hdp dumpvd |{\it filename}
+
+
+
+\levelb{HDF}
+ \label{sec:formats:hdf}
+
+ The HDF home page is found at \\
+
+ \verb|http://hdf.ncsa.uiuc.edu/| \\
+
+ \noindent
+ The HDF 4 data format is used. The present version of ARTS has been
+ tested with HDF 4.1r3. The precompiled binaries were used.
+ 
+ HDF is not supplied with ARTS, it must be installed seperately as a
+ library. For example, to install HDF on a Linux system, try the
+ following:
+ \begin{itemize}
+  \item[1] Download the precompiled version for your system. Unpack.
+  \item[2] Copy the contents of /bin, /include, /man and /lib to the 
+           corresponding sub-directories of /usr/local. You need to be 
+           superuser to do this.  
+ \end{itemize}
+
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "uguide" 
+%%% End:
+

@@ -1,0 +1,252 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Utilities}
+ \label{sec:utilities}
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  001101 & Started by Stefan Buehler.\\
+  000228 & Wolfram Haas
+\stophistory
+
+
+This section will describe the utility programs and functions that are
+distributed along with ARTS. So far only the IDl interface is
+described.  However, the described read and write functions also exist
+for Matlab.  Type \verb|help| {\it function\_name} (in Matlab) to get
+some information about the functions.
+
+
+
+\levelb{The ARTS-IDL interface: AII}
+\label{sec:utilities:aii}
+
+\levelc{Introduction}
+The following sections show the usage of the IDL reading and writing
+routines.
+\levelc{IDL reading routines}
+\leveld{read\_datafile}
+This function reads data from a file in ARTS ASCII data format.
+\begin{center}
+\begin{tabular}{|l|ll|}
+  \hline
+  \textbf{Calling Sequence} &
+  \multicolumn{2}{l|}{\textit{x} = %
+  {\ttfamily read\_datafile(\textnormal{\textit{filename}})}}     \\ 
+  \textbf{Argument} & \textit{filename} & full file name          \\
+  \textbf{Keyword}  & check             & flag to check the data  \\
+  \textbf{Output}   & \textit{x}        & the data                \\
+  \hline
+\end{tabular}
+\end{center}
+Depending on the number of stored matrices the data are returned as an
+array or a structure of arrays.
+
+If there is only one matrix in the file, just type \hspace{1ex}
+\texttt{print, x} \hspace{1ex} at the IDL prompt to get it. If there
+are several matrices in the file, type \hspace{1ex} \texttt{print, 
+x.mat}\textit{n} \hspace{1ex} to get the matrix with the number $n +
+1\;( n = 0, 1, 2, \ldots)$ or make an assignment like \hspace{1ex}
+\texttt{mat = x.mat}\textit{n}.
+
+In order to make a check of consistency of the stored data, i.~e.\ 
+the correctness of the indicated dimension of each matrix in reference
+to the  number of actually available matrix values, you can set the
+keyword 'check'. In this case the reading process will be considerably
+slower. \\
+\textbf{Example} \hspace{1ex} Reading the file \texttt{test.dat} (see
+\ref{writing})
+\begin{verbatim}
+IDL> x = read_datafile('test.dat')
+\end{verbatim}
+The variable x is a structure of matrices. The first matrix is
+\texttt{x.mat0}. In order to get the first three matrices, enter
+\begin{verbatim}
+IDL> print, x.mat0
+       1.2340000       2.3450000       3.4560000
+       4.5670000       5.6780000       6.7890000
+IDL> print, x.mat1
+       3.1415930
+IDL> print, x.mat2
+      -1.3467120       2.4578230
+       3.5689340      -4.6790450
+\end{verbatim}
+\levele{Error messages}
+\begin{itemize}
+  \item \texttt{Blank lines are not allowed.}
+        \begin{enumerate}
+          \item The message appears if there are blank lines at the
+                beginning of the file or blank lines between the
+                number of matrices and the size of the following
+                matrix or between a matrix and the size of the
+                following matrix in case of several matrices.
+          \item The number of matrices is greater than the actually
+                available number of matrices and there are blanks or
+                blank lines at the end of the file.
+        \end{enumerate}
+  \item \texttt{Missing number of matrices.}
+  \item \texttt{Could not read number of matrices.} \\
+        The number of matrices is less than one.
+  \item \texttt{Wrong number of matrices.} \\
+        The number of matrices is greater than the number of matrices
+        in the file.
+  \item \texttt{Could not read matrix size.} \\
+        The line in which the size of the matrix should be contains
+        more than two numbers. Possibly the size of the matrix is
+        completely missing.
+  \item \texttt{There is some garbage at the end of the file.}
+        \begin{enumerate}
+          \item There are additional numbers and symbols at the end of
+                the file.
+          \item The number of matrices is less than the number of
+                matrices in the file.
+          \item The size of the matrix can be wrong if there is only
+                one matrix in the file and if you use the keyword
+                'optimize'.
+        \end{enumerate}
+\end{itemize}
+If the 'check'-keyword is set, the following error messages can occur:
+\begin{itemize}
+  \item \texttt{One or more rows are missing.}
+  \item \texttt{Blank lines are not allowed within a matrix.}
+        \begin{enumerate}
+          \item The message appears if there are blank lines between
+                the size of a matrix and the following rows. Possibly
+                matrix values are missing.
+          \item If it is only one matrix stored in the file one or
+                more rows can miss and instead of these rows one or
+                more blank lines are there.
+        \end{enumerate}
+  \item \texttt{Wrong number of column elements.} \\
+        The number of columns indicated in the file is larger or
+        smaller than the actually available number of columns.
+\end{itemize}
+\leveld{read\_artsvar}
+This function reads an ARTS variable.
+\begin{center}
+\begin{tabular}{|l|ll|}
+  \hline
+  \textbf{Calling Sequence} &
+  \multicolumn{2}{l|}{\textit{x} = %
+  {\ttfamily read\_artsvar(\textnormal{\textit{basename}, %
+                                       \textit{varname}})}}        \\
+  \textbf{Arguments} & \textit{basename} & the ARTS basename       \\
+                     & \textit{varname}  & variable name           \\
+  \textbf{Keyword}   & check             & flag to check the data  \\
+  \textbf{Output}    & \textit{x}        & the data                \\
+  \hline
+\end{tabular}
+\end{center}
+The data is read from the file '\textit{basename.varname.}am'. For
+details see 'read\_datafile'.
+\levelc{IDL writing routines} \label{writing}
+\leveld{write\_datafile}
+This procedure writes data to a file in ARTS format.
+\begin{center}
+\begin{tabular}{|l|ll|}
+  \hline
+  \textbf{Calling Sequence} &
+  \multicolumn{2}{l|}{\texttt{write\_datafile}, %
+                      \textit{filename}, \textit{x}, %
+                      \textit{heading [}, \textit{prec]}}    \\
+  \textbf{Arguments} & \textit{filename} & full file name    \\
+                     & \textit{x}        & the data to store \\
+                     & \textit{heading}  & heading text      \\
+  Optional           & \textit{prec}     &
+                       number of decimals to use, default 6  \\
+  \hline
+\end{tabular}
+\end{center}
+The data can be transferred to the procedure in form of an array or a
+structure of arrays. See also 'read\_datafile'.
+
+You can create a structure in this way:
+\begin{displaymath}
+  \mbox{\textit{VariableName}} = 
+  \{
+  \mbox{\textit{Tag\_Name}}_1 : \mbox{\textit{Tag\_Definition}}_1,
+  \ldots,
+  \mbox{\textit{Tag\_Name}}_n : \mbox{\textit{Tag\_Definition}}_n
+  \}
+\end{displaymath}
+
+If \textit{prec} is equal to zero, integer values are assumed. \\
+\textbf{Example} \hspace{1ex} Creating a file of matrices, vectors and
+scalars.
+\begin{verbatim}
+IDL> m = {a: dblarr(3, 2), b: dblarr(1, 1), c: dblarr(2, 2),
+d: 0., e: dblarr(3, 1), f: dblarr(1, 3)}
+IDL> m.a = [[1.234, 2.345, 3.456], [4.567, 5.678, 6.789]]
+IDL> m.b = [3.1415926536]
+IDL> m.c = [[-1.346712, 2.457823], [3.568934, -4.679045]]
+IDL> m.d = 2.718281828
+IDL> m.e = [1, 5, 8]
+IDL> m.f = [[1.2], [2.3], [3.4]]
+\end{verbatim}
+In order to write the structure m to  the file 'test.dat', type at the
+IDL prompt
+\begin{verbatim}
+IDL> write_datafile, 'test.dat', m, 'File test.dat'
+\end{verbatim}
+An empty heading text is made by typing '' instead of 'File test.dat'.
+\\
+The result is:
+\begin{verbatim}
+# File test.dat
+#
+# This file is created by IDL.
+6
+2  3
+1.234000e+00 2.345000e+00 3.456000e+00
+4.567000e+00 5.678000e+00 6.789000e+00
+1  1
+3.141593e+00
+2  2
+-1.346712e+00 2.457823e+00
+3.568934e+00 -4.679045e+00
+1  1
+2.718282e+00
+1  3
+1.000000e+00 5.000000e+00 8.000000e+00
+3  1
+1.200000e+00
+2.300000e+00
+3.400000e+00
+\end{verbatim}
+\leveld{write\_artsvar}
+This procedure writes an ARTS variable to a file in ARTS format.
+\begin{center}
+\begin{tabular}{|l|ll|}
+  \hline
+  \textbf{Calling Sequence} &
+  \multicolumn{2}{l|}{\texttt{write\_artsvar}, %
+                      \textit{basename}, \textit{varname}, %
+                      \textit{x [}, \textit{prec]}}          \\
+  \textbf{Arguments} & \textit{basename} & the ARTS basename \\
+                     & \textit{varname}  & variable name     \\
+                     & \textit{x}        & the data to store \\
+  Optional           & \textit{prec}     &
+                       number of digits to use, default 6    \\
+  \hline
+\end{tabular}
+\end{center}
+The data is written to a file called '\textit{basename.varname.}am'.
+See also 'write\_datafile'. 
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "uguide" 
+%%% End:
+

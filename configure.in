@@ -1,0 +1,367 @@
+# Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
+#                    Patrick Eriksson <patrick@rss.chalmers.se>
+#
+# This file is free software; as a special exception the author gives
+# unlimited permission to copy and/or distribute it, with or without 
+# modifications, as long as this notice is preserved.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
+AC_INIT(reconf)
+AM_CONFIG_HEADER(config.h)
+
+# The ARTS release number must go here:
+AM_INIT_AUTOMAKE(arts,1.0.0)
+
+
+#
+# First of all set the default PREFIX if not given
+# (needed for arts data path later)
+#
+if test x${prefix} = xNONE; then
+  prefix="/usr/local"
+fi
+
+# C Compiler:
+AC_PROG_CC
+AC_PROG_CPP
+# C++ Compiler:
+AC_PROG_CXX
+# C++ Preprocessor:
+AC_PROG_CXXCPP
+
+# LF_CONFIGURE_CC
+
+# Configure the C++ Compiler
+# LF_CONFIGURE_CXX
+# LF_HOST_TYPE
+
+# Allow --with-warnings flag to configure:
+#LF_SET_WARNINGS
+
+# Determine the name of the ranlib program
+AC_PROG_RANLIB
+
+# What's used by make install:
+AC_PROG_INSTALL
+
+# Provide standard headers:
+AC_STDC_HEADERS
+
+# Check compiler characteristics
+AC_C_INLINE
+AC_C_CONST
+AC_TYPE_SIZE_T
+AC_CHECK_SIZEOF(float, 8)
+AC_CHECK_SIZEOF(double, 16)
+AC_CHECK_SIZEOF(int, 4)
+AC_CHECK_SIZEOF(long, 8)
+AC_CHECK_SIZEOF(size_t, 8)
+
+# Special headers that we need:
+# AC_HAVE_HEADERS(getopt.h) (now included in the source)
+AC_CHECK_HEADER(math.h, , AC_MSG_ERROR(required header file <math.h> missing))
+
+
+#
+# Check for math library
+#
+AC_CHECK_LIB(m, sin, ,
+  AC_MSG_ERROR(function $func not found in math library) )
+
+
+#
+# HDF support
+#
+AC_ARG_WITH(hdf,
+[  --with-hdf              HDF binary file support (default=autodetect)],
+[case "${withval}" in
+  autodetect) ac_hdf_support=autodetect ;;
+  yes) ac_hdf_support=yes ;;
+   no) ac_hdf_support=no ;;
+    *) AC_MSG_ERROR(bad value ${withval} for --with-hdf) ;;
+esac],[ ac_hdf_support=autodetect ])
+
+if test x$ac_hdf_support = xno; then
+  ac_hdf=no
+else
+  AC_CHECK_LIB(jpeg, jpeg_start_compress,, ac_hdf=no, -lmfhdf -ldf -lz )
+  AC_CHECK_HEADER(hdf.h, ac_hdf=yes, ac_hdf=no)
+  AC_CHECK_LIB(mfhdf, Hopen,, ac_hdf=no, -ldf -ljpeg -lz )
+  AC_CHECK_LIB(df, DFopen,, ac_hdf=no, -lmfhdf -ljpeg -lz )
+  AC_CHECK_LIB(z, gzopen,, ac_hdf=no, -lmfhdf -ldf -ljpeg )
+fi
+
+if test x$ac_hdf = xyes; then
+  AC_DEFINE_UNQUOTED(HDF_SUPPORT, , Compile with HDF support)
+fi
+
+AM_CONDITIONAL(HDF_SUPPORT, test x$ac_hdf_support = xyes)
+
+#
+# Default floating-point type
+#
+AC_ARG_WITH(numeric-type,
+[  --with-numeric-type=ARG    Set floating-point type (default=double)],
+[case "${withval}" in
+  double) ac_numeric_type=double ;;
+   float) ac_numeric_type=float ;;
+       *) AC_MSG_ERROR(bad value ${withval} for --with-numeric-type) ;;
+esac],[ ac_numeric_type=double ])
+
+AC_MSG_RESULT(Setting floating-point type to $ac_numeric_type)
+AC_DEFINE_UNQUOTED(NUMERIC, $ac_numeric_type, Default floating-point type)
+
+
+#
+# Default integer type
+#
+AC_ARG_WITH(integer-type,
+[  --with-integer-type=ARG    Set integer type (default=long)],
+[case "${withval}" in
+  short) ac_integer_type=short ;;
+  int)  ac_integer_type=int ;;
+  long)  ac_integer_type=long ;;
+  size_t)  ac_integer_type=size_t ;;
+    *) AC_MSG_ERROR(bad value ${withval} for --with-integer-type) ;;
+esac],[ ac_integer_type=long ])
+
+AC_MSG_RESULT(Setting integer type to $ac_integer_type)
+AC_DEFINE_UNQUOTED(INDEX, $ac_integer_type, Default integer type)
+
+
+#
+# This is needed to put the corrects data paths into the example files
+# in doc/examples:
+#
+AC_ARG_WITH(arts-data,
+[  --with-arts-data=ARG       Set path to the arts data files]
+[                             (default=$PREFIX/share/arts-data)],
+[case "${withval}" in
+  yes) ac_arts_data=default ;;
+   no) ac_arts_data=no ;;
+    *) ac_arts_data=${withval};;
+esac], [ac_arts_data=default])
+
+if test x$ac_arts_data = xdefault; then
+  if test "`hostname | grep smiles`"; then
+    ac_arts_data="/pool/lookup2/arts-data"
+  else
+    ac_arts_data="${prefix}/share/arts-data"
+  fi
+fi
+
+if test ! x$ac_arts_data = xno; then
+  #
+  # Simple check to see whether the arts-data package exists
+  # at the given location
+  #
+  AC_MSG_CHECKING(for arts data in $ac_arts_data)
+  if test -d "${ac_arts_data}"; then
+    AC_MSG_RESULT(found)
+  else
+    AC_MSG_RESULT(not found)
+    ac_arts_data=no
+  fi
+
+  AC_MSG_CHECKING(for atmospheric data in $ac_arts_data)
+  if test -d "${ac_arts_data}/atmosphere"; then
+    AC_MSG_RESULT(found)
+  else
+    AC_MSG_RESULT(not found)
+    ac_arts_data=no
+  fi
+  
+  AC_MSG_CHECKING(for spectroscopy data in $ac_arts_data)
+  if test -d ${ac_arts_data}/spectroscopy; then
+    AC_MSG_RESULT(found)
+  else
+    AC_MSG_RESULT(not found)
+    ac_arts_data=no
+  fi
+
+  if test ! x$ac_arts_data = xno; then
+    AM_CONDITIONAL(ARTS_DATA_PATH, test ! x$ac_arts_data = xno)
+    AC_DEFINE_UNQUOTED(ARTS_DATA_PATH, "$ac_arts_data", ARTS data path)
+    AC_SUBST(ac_arts_data)
+  fi
+fi
+
+
+#
+# Enable/disable maintainer-mode
+#
+AC_MSG_CHECKING(whether maintainer-mode should be activated)
+AC_ARG_ENABLE(maintainer-mode,
+[  --enable-maintainer-mode   Activate maintainer-mode (default=no)],
+[case "${enableval}" in
+  yes) ac_maintainer_mode=yes ;;
+   no) ac_maintainer_mode=no ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-maintainer-mode) ;;
+esac],[ ac_maintainer_mode=no ])
+AM_CONDITIONAL(ARTS_MAINTAINER_MODE, test x$ac_maintainer_mode = xyes)
+AC_MSG_RESULT([$ac_maintainer_mode])
+
+
+#
+# Enable/disable debugging
+#
+AC_MSG_CHECKING(whether debugging should be activated)
+AC_ARG_ENABLE(debug,
+[  --enable-debug   Activate debugging mode (default=yes)],
+[case "${enableval}" in
+  yes) ac_debug=yes ;;
+   no) ac_debug=no ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+esac],[ ac_debug=yes ])
+AM_CONDITIONAL(DEBUGGING, test x$ac_debug = xyes)
+AC_MSG_RESULT([$ac_debug])
+
+
+#
+# Enable/disable warnings
+#
+AC_MSG_CHECKING(whether warnings should be enabled)
+AC_ARG_ENABLE(more-warnings,
+[  --enable-more-warnings   Enable more warnings (default=no)],
+[case "${enableval}" in
+  yes) ac_more_warnings=yes ;;
+   no) ac_more_warnings=no ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-more-warnings) ;;
+esac],[ ac_more_warnings=no ])
+AC_MSG_RESULT([$ac_more_warnings])
+
+
+#
+# Toggle documentation
+#
+if test x$ac_maintainer_mode = xyes; then
+  ac_docgen=yes
+else
+  ac_docgen=no
+fi
+AC_MSG_CHECKING(whether documentation should be generated)
+AM_CONDITIONAL(ARTS_GENDOCS, test x$ac_docgen = xyes)
+AC_MSG_RESULT([$ac_docgen])
+
+
+#
+# Check for the required tools to build the docs
+#
+if test x$ac_docgen = xyes; then
+    AC_CHECK_PROG(ac_doxygen, doxygen, yes, no)
+    if test x$ac_doxygen = xno; then
+        AC_MSG_ERROR(Doxygen is required to build the documentation - Get it from http://www.doxygen.org/)
+    fi
+
+    AC_CHECK_PROG(ac_latex, latex, yes, no)
+    if test x$ac_latex = xno; then
+        AC_MSG_ERROR(LaTeX is required to build the documentation!!!)
+    fi
+
+    AC_CHECK_PROG(ac_pdflatex, pdflatex, yes, no)
+    if test x$ac_pdflatex = xno; then
+        AC_MSG_ERROR(pdfLaTeX is required to build the documentation!!!)
+    fi
+
+fi
+
+if test x$ac_more_warnings = xyes; then
+  WARNING_FLAGS="-W -Wall"
+else
+  WARNING_FLAGS=
+fi
+
+if test x$ac_maintainer_mode = xyes; then
+  CFLAGS="$WARNING_FLAGS"
+  CXXFLAGS="-ftemplate-depth-20 $WARNING_FLAGS"
+  CXXFLAGS_FIXED="$CXXFLAGS"
+else
+  CFLAGS="$CFLAGS $WARNING_FLAGS"
+  CXXFLAGS="$CXXFLAGS -ftemplate-depth-20 $WARNING_FLAGS"
+  CXXFLAGS_FIXED="-ftemplate-depth-20 $WARNING_FLAGS"
+fi
+	
+if test x$ac_debug = xyes; then
+  CFLAGS="$CFLAGS -g"
+  CXXFLAGS="$CXXFLAGS -g"
+  CXXFLAGS_FIXED="$CXXFLAGS_FIXED -g"
+else
+  CFLAGS="$CFLAGS -DNDEBUG"
+  CXXFLAGS="$CXXFLAGS -DNDEBUG"
+  CXXFLAGS_FIXED="$CXXFLAGS_FIXED -DNDEBUG"
+fi
+
+AC_SUBST(CXXFLAGS_FIXED)
+
+
+AC_OUTPUT([
+arts.spec
+Makefile 
+   ami/Makefile 
+      ami/arts/Makefile
+      ami/file/Makefile
+      ami/general/Makefile
+      ami/hmatrix/Makefile 
+      ami/math/Makefile
+      ami/path/Makefile
+      ami/physics/Makefile
+      ami/plot/Makefile
+      ami/retrieval/Makefile
+   aii/Makefile 
+   doc/Makefile 
+   doc/index.html
+      doc/icons/Makefile 
+      doc/doxygen/Makefile
+      doc/doxygen/Doxyfile
+      doc/doxygen/html/Makefile
+      doc/uguide/Makefile 
+      doc/uguide/auto_version.tex 
+         doc/uguide/Figs/Makefile 
+      doc/examples/Makefile 
+         doc/examples/absorption_example.arts
+         doc/examples/amsu_example.arts
+         doc/examples/batch_example.arts
+         doc/examples/clouds_example.arts
+         doc/examples/cont_example.arts
+         doc/examples/fullmodels_example.arts
+         doc/examples/radiosonde_example.arts
+         doc/examples/rt_example.arts
+      doc/emacs/Makefile
+   m4/Makefile 
+   src/Makefile
+])
+
+AC_MSG_RESULT()
+AC_MSG_RESULT([*******************************************************])
+AC_MSG_RESULT([              ARTS configuration summary])
+AC_MSG_RESULT()
+AC_MSG_RESULT([  Maintainer mode          : $ac_maintainer_mode])
+AC_MSG_RESULT([  Debugging                : $ac_debug])
+AC_MSG_RESULT([  Floating-point type      : $ac_numeric_type])
+AC_MSG_RESULT([  Integer type             : $ac_integer_type])
+AC_MSG_RESULT([  Regenerate documentation : $ac_docgen])
+if test $ac_hdf_support = autodetect; then
+  AC_MSG_RESULT([  HDF support              : $ac_hdf (autodetected)])
+else
+  AC_MSG_RESULT([  HDF support              : $ac_hdf])
+fi
+if test $ac_hdf = no; then
+  AC_MSG_RESULT([  WARNING: Without HDF you cannot use Qpack!!!])
+fi
+AC_MSG_RESULT()
+AC_MSG_RESULT([  CPPFLAGS : $CPPFLAGS])
+AC_MSG_RESULT([  CFLAGS   : $CFLAGS])
+AC_MSG_RESULT([  CXXFLAGS : $CXXFLAGS])
+AC_MSG_RESULT()
+if test $ac_arts_data = no; then
+  AC_MSG_RESULT([  ARTS data path : not installed])
+else
+  AC_MSG_RESULT([  ARTS data path : $ac_arts_data])
+fi
+AC_MSG_RESULT([*******************************************************])
+AC_MSG_RESULT()
+

@@ -1,0 +1,27 @@
+this directory contains several files that were used to produce the
+molecular entries in the arts program:
+
+cat_abundancies.pro: idl routine that reads the jpl and hitran
+                     abundancies and outputs the results for
+		     each species. latest output file:
+                     compilation.txt
+		     this routine reads the hitran abundancies 
+		     from file hitran_abundancies.txt, the jpl
+		     abundancies from directory ../doc/, where
+		     the latest (7/00) files of the jpl cat
+		     are stored, and the jpl tags and names from
+		     file tag_species.jpl
+
+compilation.txt:     output of cat_abundancies.pro
+
+glob_def.c:          extracted from the forward_4_96 release (7/00),
+                     used to get info on species 
+
+hitran_abundancies.txt: hitran abundancies as found in the 96 release 
+                        and 2000 release
+
+tag_species.jpl:     all species in jpl and their name in the mytran/
+		     arts catalogue
+
+
+AvE 8/00
