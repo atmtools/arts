@@ -1,3 +1,15 @@
+2003-03-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-472
+
+	* doc/uguide/fm_definitions.tex: Included figure for 3D atmosphere 
+	and modified figure text for 1D and 2D atmospheres.
+
+	* src/XXXX: Fixed warnings about unused variables in "my" parts.
+	
+	* src/m_refraction.cc (refr_indexUnit): Removed input arguments not 
+	used. The function must now be combined by Ignore calls.
+
 2003-03-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-471

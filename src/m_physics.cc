@@ -80,6 +80,9 @@ void MatrixCBR(
         // WS Generic Input Names:
         const String&   f_name )
 {
+  // To avoid compiler warnings
+  String s = f_name;
+
   const Index n = f.nelem();
 
   if( n == 0 )
@@ -118,6 +121,9 @@ void MatrixPlanck(
         // Control Parameters:
         const Numeric&  t )
 {
+  // To avoid compiler warnings
+  String s = f_name;
+
   const Index n = f.nelem();
 
   if( n == 0 )

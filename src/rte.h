@@ -64,7 +64,6 @@ void get_radiative_background(
               Matrix&         ground_los, 
               Tensor4&        ground_refl_coeffs,
         const Ppath&          ppath,
-        const Index&          mblock_index,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         i_space_agenda,

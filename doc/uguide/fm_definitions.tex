@@ -101,6 +101,38 @@ dimensionality are checked, when used, to have a size consistent with
 easily set by the functions \wsmindex{AtmosphereSet1D},
 \wsmindex{AtmosphereSet2D} and \wsmindex{AtmosphereSet3D}.
 
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.98\hsize]{Figs/fm_definitions/atm_dim_1d}
+  \caption{Schematic of a 1D atmosphere. The atmosphere is 
+    here spherically symmetric. This means that the radius of the
+    geoid, the ground and all the pressure surfaces are constant. The
+    black dots indicate how the atmsopheric fields are defined. The
+    fields are specified by a value for each pressure surface. The
+    extension of the cloud box is either from the ground up to a
+    pressure surface, or between two pressure surfaces (which is the
+    case shown in the figure.}
+  \label{fig:fm_defs:1d}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_atm_dims.
+
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.98\hsize]{Figs/fm_definitions/atm_dim_2d}
+  \caption{Schematic of a 2D atmosphere. Plotting symbols as in 
+    Figure~\ref{fig:fm_defs:1d}. The radii (for the geoid, the ground
+    and the pressure surfaces) vary here linear between the latitude
+    grid points. The atmospheric fields vary linearly along the
+    pressure surfaces and the latitude grid points (that is, along the
+    dotted lines). Inside the grid cells, the fields have a bi-linear
+    variation. The vertical extension of the cloud box is as for 1D.
+    The horisontal extension is between two latitude grid points.  }
+  \label{fig:fm_defs:2d}
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_atm_dims.
+
 \begin{description}
   
 \item[\textindex{3D}\,\,\,] In this, the most general, case, the
@@ -164,29 +196,22 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
 
 \begin{figure}[!t]
  \begin{center}
-  \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/atm_dim_1d}
-  \caption{A schematic cross-section of a 1D atmosphere. The atmosphere is 
-    here spherically symmetric. This means that the radius of the
-    geoid, the ground and all the pressure surfaces are constant. The
-    cloud box extends here from the ground up to the thin solid line. 
-    The upper limit of the cloud box
-    coincides always with a pressure surface. }
-  \label{fig:fm_defs:1d}  
+  \includegraphics*[angle=-90,width=0.98\hsize]{Figs/fm_definitions/atm_dim_3d}
+  \vspace*{-15mm}
+  \caption{Schematic of a 3D atmosphere. Plotting symbols as in 
+    Figure~\ref{fig:fm_defs:1d}, but the cloud box is here not
+    included. Radii and fields are here defined to vary linearly along
+    the latitude and longitude grid points. This means that surfaces
+    (such as the radius of the ground) have a bi-linear variation
+    inside the area limited by two latitude and longitude grid values,
+    while the atmospheric fields have a tri-linear variation inside
+    the grid cells. A 3D cloud box is defined as for 2D, but has also
+    a longitude extension, between two grid points.}
+  \label{fig:fm_defs:3d}
  \end{center}
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_atm_dims.
 
-\begin{figure}[!t]
- \begin{center}
-  \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/atm_dim_2d}
-  \caption{ Schematic of a 2D atmosphere. The radii of the geoid, the ground
-    and all the pressure surfaces are for 2D atmospheres allowed to
-    have a latitude variation. The limits of the cloud box coincide
-    always with grid box boundaries. }
-  \label{fig:fm_defs:2d}
- \end{center}
-\end{figure}
-% This figure was produced by the Matlab function mkfigs_atm_dims.
 
 
 \levelc{Altitude coordinates}

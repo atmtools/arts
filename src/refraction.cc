@@ -61,7 +61,6 @@ extern const Numeric RAD2DEG;
    longitude dimensions are removed from the atmospheric fields. For
    example, the temperature is given as a vector (the vertical profile).
 
-   \param   refr_index          Output: As the WSV with the same name.
    \param   a_pressure          Output: As the WSV with the same name.
    \param   a_temperature       Output: As the WSV with the same name.
    \param   a_vmr_list          Output: As the WSV with the same name.
@@ -79,7 +78,6 @@ extern const Numeric RAD2DEG;
    \date   2003-01-16
 */
 void get_refr_index_1d(
-              Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
@@ -137,7 +135,6 @@ void get_refr_index_1d(
    dimension is removed from the atmospheric fields. For example,
    the temperature is given as a matrix.
 
-   \param   refr_index          Output: As the WSV with the same name.
    \param   a_pressure          Output: As the WSV with the same name.
    \param   a_temperature       Output: As the WSV with the same name.
    \param   a_vmr_list          Output: As the WSV with the same name.
@@ -158,7 +155,6 @@ void get_refr_index_1d(
    \date   2003-01-14
 */
 void get_refr_index_2d(
-              Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
@@ -229,7 +225,6 @@ void get_refr_index_2d(
    calls *refr_index_agenda* to determine the refractive index for the
    given point.
 
-   \param   refr_index          Output: As the WSV with the same name.
    \param   a_pressure          Output: As the WSV with the same name.
    \param   a_temperature       Output: As the WSV with the same name.
    \param   a_vmr_list          Output: As the WSV with the same name.
@@ -251,7 +246,6 @@ void get_refr_index_2d(
    \date   2003-01-17
 */
 void get_refr_index_3d(
-              Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
@@ -367,13 +361,13 @@ void refr_gradients_1d(
         ConstMatrixView   vmr_field,
         const Numeric&    r )
 { 
-   get_refr_index_1d( refr_index, a_pressure,  a_temperature, a_vmr_list, 
+   get_refr_index_1d( a_pressure,  a_temperature, a_vmr_list, 
                       refr_index_agenda, agenda_verb, p_grid, 
                       r_geoid, z_field, t_field, vmr_field, r );
 
    const Numeric   n0 = refr_index;
 
-   get_refr_index_1d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_1d( a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, 
                       r_geoid, z_field, t_field, vmr_field, r+1 );
 
@@ -442,13 +436,13 @@ void refr_gradients_2d(
         const Numeric&    r,
         const Numeric&    lat )
 { 
-   get_refr_index_2d( refr_index, a_pressure,  a_temperature, a_vmr_list, 
+   get_refr_index_2d( a_pressure,  a_temperature, a_vmr_list, 
                       refr_index_agenda, agenda_verb, p_grid, lat_grid,
                       r_geoid, z_field, t_field, vmr_field, r, lat );
 
    const Numeric   n0 = refr_index;
 
-   get_refr_index_2d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_2d( a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, lat_grid, r_geoid, 
                       z_field, t_field, vmr_field, r+1, lat );
 
@@ -456,7 +450,7 @@ void refr_gradients_2d(
 
    const Numeric   dlat = 1e-4;
 
-   get_refr_index_2d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_2d( a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, lat_grid, r_geoid, 
                       z_field, t_field, vmr_field, r, lat+dlat );
 
@@ -527,13 +521,13 @@ void refr_gradients_3d(
         const Numeric&    lat,
         const Numeric&    lon )
 { 
-   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_3d( a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, agenda_verb, p_grid, lat_grid, 
                  lon_grid, r_geoid, z_field, t_field, vmr_field, r, lat, lon );
 
    const Numeric   n0 = refr_index;
 
-   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_3d( a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, lat_grid, 
                lon_grid, r_geoid, z_field, t_field, vmr_field, r+1, lat, lon );
 
@@ -541,7 +535,7 @@ void refr_gradients_3d(
 
    const Numeric   dlat = 1e-4;
 
-   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_3d( a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, lat_grid, 
                       lon_grid, r_geoid, z_field, t_field, vmr_field, 
                       r, lat+dlat, lon );
@@ -550,7 +544,7 @@ void refr_gradients_3d(
 
    const Numeric   dlon = 1e-4;
 
-   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+   get_refr_index_3d( a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, 1, p_grid, lat_grid, 
                       lon_grid, r_geoid, z_field, t_field, vmr_field, 
                       r, lat, lon+dlon);

@@ -149,7 +149,6 @@ void RteEmissionStd(
              Numeric&   a_temperature,
              Vector&    a_vmr_list,
              Index&     f_index,
-             Matrix&    abs_scalar_gas,
        // WS Input:
        const Ppath&     ppath,
        const Vector&    f_grid,

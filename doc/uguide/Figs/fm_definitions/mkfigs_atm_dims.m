@@ -63,7 +63,7 @@ cb_lims  = [];
 figure(3)
 clf
 [h,hs] = arts_plot_atmgrids( dim, lat_grid, lon_grid, z_field,...
-                                               r_geoid, z_ground, cb_lims, 0 );
+                                               r_geoid, z_ground, cb_lims, 1 );
 axes_frame( gca, 'off' )
 axis tight
 %hl = legend( h, hs );

@@ -90,8 +90,6 @@ Numeric interp_atmfield_by_gp(
 void interp_atmsurface_gp2itw( 
               Matrix&           itw, 
         const Index&            atmosphere_dim,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon );
 

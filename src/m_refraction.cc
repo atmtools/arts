@@ -43,6 +43,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "matpackI.h"
+#include "messages.h"
 #include "refraction.h"
 #include "special_interp.h"
 
@@ -85,8 +86,8 @@ void RefrIndexFieldAndGradients(
       const Vector&                     lon_values,
       // WS Generic Input Names:
       const String&                     p_name,
-      const String&                     lat_names,
-      const String&                     lon_names )
+      const String&                     lat_name,
+      const String&                     lon_name )
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -99,11 +100,14 @@ void RefrIndexFieldAndGradients(
   chk_atm_field( "first book of vmr_field", vmr_field(0,joker,joker,joker), 
                                   atmosphere_dim, p_grid, lat_grid, lon_grid );
 
+  out2 << "   Fills " << outname << " with information on the field of\n"
+       << "   refractive index, using " << p_name << "," << lat_name << "\n"
+       << "   and " << lon_name << " as atmospheric grids.\n"; 
 
   // Common variables
   const Index     np = p_values.nelem(), npgrid = p_grid.nelem(); 
         Index     nlat=1, nlon=1, nlatgrid = 1, nlongrid = 1;
-        Numeric   r, dndr, dndlat, dndlon;
+        Numeric   dndr, dndlat, dndlon;
 
   if( atmosphere_dim == 1 )
     {
@@ -258,11 +262,7 @@ void refr_indexThayer(
    \date   2003-01-18
 */
 void refr_indexUnit(
-	     Numeric&                    refr_index,
-       const Numeric&                    a_pressure,
-       const Numeric&                    a_temperature,
-       const Vector&                     a_vmr_list,
-       const ArrayOfArrayOfSpeciesTag&   gas_species )
+	     Numeric&                    refr_index )
 {
   refr_index = 1;
 }

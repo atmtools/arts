@@ -345,8 +345,6 @@ Numeric interp_atmfield_by_gp(
 void interp_atmsurface_gp2itw( 
               Matrix&           itw, 
         const Index&            atmosphere_dim,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
         const ArrayOfGridPos&   gp_lat,
         const ArrayOfGridPos&   gp_lon )
 {
@@ -481,8 +479,7 @@ void interp_atmsurface_by_gp(
 {
   Matrix itw;
 
-  interp_atmsurface_gp2itw( itw, atmosphere_dim, lat_grid, 
-                                                    lon_grid, gp_lat, gp_lon );
+  interp_atmsurface_gp2itw( itw, atmosphere_dim, gp_lat, gp_lon );
 
   interp_atmsurface_by_itw( x, atmosphere_dim, lat_grid, lon_grid, 
                               x_surface, x_surface_name, gp_lat, gp_lon, itw );

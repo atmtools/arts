@@ -2498,10 +2498,14 @@ void define_md_data_raw()
          "Sets the refractive index to 1.\n"
          "\n"
          "If this method is used, the obtained path should be identical to\n"
-         "the geomtrical path."
+         "the geomtrical path.\n"
+         "\n"
+         "As this function does not need any input, you have to include call\n"
+         "of *Ignore* for all variables expected to be used by\n"
+         "*refr_index_agenda*."
         ),
         OUTPUT( refr_index_ ),
-        INPUT( a_pressure_, a_temperature_, a_vmr_list_, gas_species_ ),
+        INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -2549,7 +2553,7 @@ void define_md_data_raw()
          "two successive propagation path points. \n"
         ),
         OUTPUT( i_rte_, abs_vec_, ext_mat_, a_pressure_, a_temperature_,
-                a_vmr_list_, f_index_, abs_scalar_gas_),
+                a_vmr_list_, f_index_ ),
         INPUT( i_rte_, ppath_, f_grid_, stokes_dim_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_,
                vmr_field_, scalar_gas_absorption_agenda_, 

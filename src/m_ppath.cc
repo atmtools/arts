@@ -586,6 +586,9 @@ void ZaSatOccultation(
   const Numeric     r_recieve = r_geoid(0,0) + z_recieve;
   const Numeric     r_send = r_geoid(0,0) + z_send;
 
+  out2 << "  Setting " << za_out_name << " to hold zenith angles matching an\n"
+       << "  occultation between to satellites.\n";
+
   //Extend upper and lower scan limits to include the limits
   //and convert to radius
   const Numeric     d = 3e3;

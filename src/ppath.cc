@@ -1325,7 +1325,6 @@ void psurface_crossing_3d(
        const double     lat_start,       // variables are the same as the
        const double     lon_start,       // output ones.
        const double     za_start,
-       const double     aa_start,
        const double&    x,
        const double&    y,
        const double&    z,
@@ -3734,9 +3733,6 @@ void ppath_step_geom_2d(
   // Lower grid index for the grid cell of interest.
   Index   ip, ilat;
 
-  // Number of input path points
-  Index   np = ppath.np;
-
   // Radii and latitudes set by *ppath_start_2d*.
   double   lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3;
 
@@ -3834,9 +3830,6 @@ void ppath_step_geom_3d(
 
   // Lower grid index for the grid cell of interest.
   Index   ip, ilat, ilon;
-
-  // Number of input path points
-  Index   np = ppath.np;
 
   // Radius for corner points, latitude and longitude of the grid cell
   //
@@ -4033,7 +4026,7 @@ void raytrace_1d_linear_euler(
       // Calculate LOS zenith angle at found point.
       //
       // Refractive index at *r*
-      get_refr_index_1d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+      get_refr_index_1d( a_pressure, a_temperature, a_vmr_list, 
                          refr_index_agenda, agenda_verb, p_grid, r_geoid, 
                          z_field, t_field, vmr_field, r );
 
@@ -4598,7 +4591,7 @@ void ppath_step_refr_1d(
   double ppc;
   if( ppath.constant < 0 )
     { 
-      get_refr_index_1d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+      get_refr_index_1d( a_pressure, a_temperature, a_vmr_list, 
                          refr_index_agenda, 1, p_grid, r_geoid, z_field, 
                          t_field, vmr_field, r_start );
       ppc = refraction_ppc( r_start, za_start, refr_index ); 
@@ -4735,9 +4728,6 @@ void ppath_step_refr_2d(
 
   // Lower grid index for the grid cell of interest.
   Index   ip, ilat;
-
-  // Number of input path points
-  Index   np = ppath.np;
 
   // Radii and latitudes set by *ppath_start_2d*.
   double   lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3;
@@ -4887,9 +4877,6 @@ void ppath_step_refr_3d(
 
   // Lower grid index for the grid cell of interest.
   Index   ip, ilat, ilon;
-
-  // Number of input path points
-  Index   np = ppath.np;
 
   // Radius for corner points, latitude and longitude of the grid cell
   //
@@ -5852,7 +5839,7 @@ void ppath_start_stepping(
               double   r_top, lat_top, lon_top, l_top;
               psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
                                     rtopmin, a_pos[0], a_pos[1], a_pos[2], 
-                                    a_los[0], a_los[1], x, y, z, dx, dy, dz );
+                                    a_los[0], x, y, z, dx, dy, dz );
 
               // If no crossing was found for min radius, or it is outside
               // covered lat and lon ranges, try max radius and make the same
@@ -5862,7 +5849,7 @@ void ppath_start_stepping(
                 {
                   psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
                                      rtopmax, a_pos[0], a_pos[1], a_pos[2], 
-                                     a_los[0], a_los[1], x, y, z, dx, dy, dz );
+                                     a_los[0], x, y, z, dx, dy, dz );
 
                   if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
                       lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
@@ -5900,7 +5887,7 @@ void ppath_start_stepping(
                   double   lat_top2, lon_top2;
                   psurface_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
                                      r_top, a_pos[0], a_pos[1], a_pos[2], 
-                                     a_los[0], a_los[1], x, y, z, dx, dy, dz );
+                                     a_los[0], x, y, z, dx, dy, dz );
                   
                   // Check if new position is sufficiently close to old
                   if( abs( lat_top2 - lat_top ) < 1e-6  &&  

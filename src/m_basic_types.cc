@@ -411,7 +411,8 @@ void MatrixSetTakingSizeFromMatrix(
   const Index  nrow = z.nrows();
   x.resize(nrow,ncol);
   x = value;            
-  out2 << "  Creating " << x_name << " as a constant matrix.\n"; 
+  out2 << "  Creating " << x_name << " as a constant matrix,\n"
+       << "  with the sime size as " << z_name << ".\n"; 
   out3 << "             nrows : " << nrow << "\n";
   out3 << "             ncols : " << ncol << "\n";
 }
@@ -1029,7 +1030,8 @@ void VectorSetTakingLengthFromVector(
   const Index  n = z.nelem();
   x.resize(n);
   x = value;            
-  out2 << "  Creating " << x_name << " as a constant vector.\n"; 
+  out2 << "  Creating " << x_name << " as a constant vector,\n"
+       << "  with the same length as " << z_name << ".\n"; 
   out3 << "            length : " << n << "\n";
   out3 << "             value : " << value << "\n";
 }
