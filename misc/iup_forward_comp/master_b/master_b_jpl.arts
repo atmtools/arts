@@ -119,6 +119,11 @@ VectorNLinSpace(f_mono){
 # Write frequency grid to file:
 VectorWriteAscii (f_mono) {""}
 
+# define the lineshape to use
+lineshapeDefine {shape="Voigt_Kuntz6"
+                 normalizationfactor="quadratic"
+                }
+
 # Calculate absorption coefficients, both total (`abs') and 
 # separately for each tag group (`abs_per_tg'):
 absCalc{}

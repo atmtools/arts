@@ -17,7 +17,7 @@
 # create the workspace variable `lines':
 # Note: Catalogue contains only species known to arts!
 #linesReadFromJpl {
-#   filename = "../../../data/spectroscopy/jpl00/jpl_catalogue.cat"
+#   filename = "../../../data/spectroscopy/jpl00/jjpl00.cat"
 #   fmin     = 200e9
 #   fmax     = 400e9
 #}
@@ -118,6 +118,11 @@ VectorNLinSpace(f_mono){
 
 # Write frequency grid to file:
 VectorWriteAscii (f_mono) {""}
+
+# define the lineshape to use
+lineshapeDefine {shape="Voigt_Kuntz6"
+                 normalizationfactor="quadratic"
+                }
 
 # Calculate absorption coefficients, both total (`abs') and 
 # separately for each tag group (`abs_per_tg'):

@@ -35,6 +35,7 @@
 /*! The Lorentz line shape. This is a quick and dirty implementation.
 
     \retval ls            The shape function.
+    \retval X             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
@@ -44,6 +45,7 @@
     \author Stefan Buehler 
     \date 2000-06-16 */
 void lineshape_lorentz(VECTOR&       ls,
+		       VECTOR&       X,
 		       Numeric	     f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
@@ -67,6 +69,7 @@ void lineshape_lorentz(VECTOR&       ls,
 /*! The Doppler line shape.
 
     \retval ls            The shape function.
+    \retval x             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter. (Not used.)
     \param  sigma         The Doppler broadening parameter.
@@ -76,6 +79,7 @@ void lineshape_lorentz(VECTOR&       ls,
     \author Axel von Engeln
     \date 2000-12-06 */
 void lineshape_doppler(VECTOR&       ls,
+		       VECTOR&       x,
 		       Numeric	     f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
@@ -130,6 +134,7 @@ long bfun_(Numeric y, Numeric x)
   shape. 
 
     \retval ls            The shape function.
+    \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
@@ -184,7 +189,8 @@ long bfun_(Numeric y, Numeric x)
     \author Oliver Lemke and Axel von Engeln
     \date 2000-09-27 */ 
 
-void lineshape_voigt_kuntz1(VECTOR&       ls,
+void lineshape_voigt_kuntz6(VECTOR&       ls,
+			    VECTOR&       x,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
@@ -227,7 +233,6 @@ void lineshape_voigt_kuntz1(VECTOR&       ls,
   Numeric y = gamma / sigma;
 
   // frequency in units of Doppler 
-  VECTOR x( nf ); 
   for (i1=0; i1< (int) nf; i1++)
     {
       x[i1] = (f_mono[i1] - f0) / sigma;
@@ -529,6 +534,7 @@ long int bfun3_(Numeric y, Numeric x)
   shape. 
 
     \retval ls            The shape function.
+    \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
@@ -584,6 +590,7 @@ long int bfun3_(Numeric y, Numeric x)
     \author Oliver Lemke and Axel von Engeln
     \date 2000-12-07 */ 
 void lineshape_voigt_kuntz3(VECTOR&       ls,
+			    VECTOR&       x,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
@@ -625,7 +632,6 @@ void lineshape_voigt_kuntz3(VECTOR&       ls,
   Numeric y = gamma / sigma;
 
   // frequency in units of Doppler 
-  VECTOR x( nf ); 
   for (i1=0; i1< (int) nf; i1++)
     {
       x[i1] = (f_mono[i1] - f0) / sigma;
@@ -887,6 +893,7 @@ long bfun4_(Numeric y, Numeric x)
   shape. 
 
     \retval ls            The shape function.
+    \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
@@ -941,6 +948,7 @@ long bfun4_(Numeric y, Numeric x)
     \author Oliver Lemke and Axel von Engeln
     \date 2000-12-07 */ 
 void lineshape_voigt_kuntz4(VECTOR&       ls,
+			    VECTOR&       x,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
@@ -981,7 +989,6 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
   Numeric y = gamma / sigma;
 
   // frequency in units of Doppler 
-  VECTOR x( nf ); 
   for (i1=0; i1< (int) nf; i1++)
     {
       x[i1] = (f_mono[i1] - f0) / sigma;
@@ -1267,6 +1274,7 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
   shape.
 
     \retval ls            The shape function.
+    \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
@@ -1302,13 +1310,14 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
 
     23.02.98 AvE
 
-    Replaced nx by nf, Z by ls.
+    Replaced nx by nf, Z by ls. X by x.
     \author Axel von Engeln
     \date 2000-12-06 */ 
 
 /***  ROUTINE COMPUTES THE VOIGT FUNCTION Y/PI*INTEGRAL FROM ***/
 /***   - TO + INFINITY OF EXP(-T*T)/(Y*Y+(X-T)*(X-T)) DT     ***/
 void lineshape_drayson(VECTOR&       ls,
+		       VECTOR&       x,
 		       Numeric	     f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
@@ -1348,10 +1357,9 @@ void lineshape_drayson(VECTOR&       ls,
 
       // frequency in units of Doppler, Note: Drayson accepts only
       // positive values
-      VECTOR X( nf ); 
       for (i1=0; i1< (int) nf; i1++)
 	{
-	  X[i1] = fabs( (f_mono[i1] - f0) )/ sigma;
+	  x[i1] = fabs( (f_mono[i1] - f0) )/ sigma;
 	}
 
 
@@ -1374,60 +1382,60 @@ void lineshape_drayson(VECTOR&       ls,
       }
 L104: for (K=0; K<(int) nf; K++)
   {
-    if ((X[K]-5.) < 0.) goto L105; else goto L112;
+    if ((x[K]-5.) < 0.) goto L105; else goto L112;
   L105: if ((Y-1.) <= 0.) goto L110; else goto L106;
-  L106: if (X[K] > 1.85*(3.6-Y)) goto L112;
+  L106: if (x[K] > 1.85*(3.6-Y)) goto L112;
       /***  REGION II: CONTINUED FRACTION. COMPUTE NUMBER OF TERMS NEEDED. ***/
       if (Y < 1.45) goto L107;
       I = (int) (Y+Y);
       goto L108;
   L107: I = (int) (11.*Y);
-  L108: J = (int) (X[K]+X[K]+1.85);
+  L108: J = (int) (x[K]+x[K]+1.85);
       MAX = (int) (XN[J]*YN[I]+.46);
       MIN = (int) ( (16 < 21-2*MAX) ? 16 : 21-2*MAX );
       /***  EVALUATE CONTINUED FRACTION ***/
       UU = Y;
-      VV = X[K];
+      VV = x[K];
       for (J=MIN; J <= 19; J++)
 	{
 	  U = NBY2[J]/(UU*UU+VV*VV);
 	  UU = Y+U*UU;
-	  VV = X[K]-U*VV;
+	  VV = x[K]-U*VV;
 	}
       ls[K] = UU/(UU*UU+VV*VV)/1.772454;
       continue;
   L110: Y2 = Y*Y;
-      if (X[K]+Y >= 5.) goto L113;
+      if (x[K]+Y >= 5.) goto L113;
       /***  REGION I. COMPUTE DAWSON'S FUNCTION AT X FROM TAYLOR SERIES. ***/
-      N = (int) (X[K]/H);
-      DX = X[K]-HN[N+1];
+      N = (int) (x[K]/H);
+      DX = x[K]-HN[N+1];
       U = (((D4[N+1]*DX+D3[N+1])*DX+D2[N+1])*DX+D1[N+1])*DX+D0[N+1];
-      V = 1.-2.*X[K]*U;
+      V = 1.-2.*x[K]*U;
       /***  TAYLOR SERIES EXPANSION ABOUT Y=0.0 ***/
-      VV = exp(Y2-X[K]*X[K])*cos(2.*X[K]*Y)/1.128379-Y*V;
+      VV = exp(Y2-x[K]*x[K])*cos(2.*x[K]*Y)/1.128379-Y*V;
       UU = -Y;
-      MAX = (int) (5.+(12.5-X[K])*.8*Y);
+      MAX = (int) (5.+(12.5-x[K])*.8*Y);
       for (I=2; I<=MAX; I+=2)
 	{
-	  U = (X[K]*V+U)/RI[I];
-	  V = (X[K]*U+V)/RI[I+1];
+	  U = (x[K]*V+U)/RI[I];
+	  V = (x[K]*U+V)/RI[I+1];
 	  UU = -UU*Y2;
 	  VV = VV+V*UU;
 	}
       ls[K] = 1.128379*VV;
       continue;
   L112: Y2 = Y*Y;
-      if (Y < 11.-.6875*X[K]) goto L113;
+      if (Y < 11.-.6875*x[K]) goto L113;
       /***  REGION IIIB: 2-POINT GAUSS-HERMITE QUADRATURE. ***/
-      U = X[K]-XX[3];
-      V = X[K]+XX[3];
+      U = x[K]-XX[3];
+      V = x[K]+XX[3];
       ls[K] = Y*(HH[3]/(Y2+U*U)+HH[3]/(Y2+V*V));
       continue;
       /***  REGION IIIA: 4-POINT GAUSS-HERMITE QUADRATURE. ***/
-  L113: U = X[K]-XX[1];
-      V = X[K]+XX[1];
-      UU = X[K]-XX[2];
-      VV = X[K]+XX[2];
+  L113: U = x[K]-XX[1];
+      V = x[K]+XX[1];
+      UU = x[K]-XX[2];
+      VV = x[K]+XX[2];
       ls[K] = Y*(HH[1]/(Y2+U*U)+HH[1]/(Y2+V*V)+HH[2]/(Y2+UU*UU)+HH[2]/(Y2+
 								      VV*VV));
       continue;
@@ -1542,10 +1550,10 @@ void define_lineshape_data()
 
   lineshape_data.push_back
     (LineshapeRecord
-     ("Voigt_Kuntz1",
+     ("Voigt_Kuntz6",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-6",
       -1,
-      lineshape_voigt_kuntz1));
+      lineshape_voigt_kuntz6));
 
   lineshape_data.push_back
     (LineshapeRecord

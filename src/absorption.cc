@@ -1649,6 +1649,13 @@ void abs_species( MATRIX&                  abs,
   VECTOR ls(nf);
   VECTOR fac(nf);
 
+  // Voigt generally needs a different frequency grid. If we allocate
+  // that in the outer loop, insted of in voigt, we don't have the free
+  // store allocation at each lineshape call. Calculation is still
+  // done in the voigt routine itself, this is just an auxillary
+  // parameter, passed to lineshape.
+  VECTOR aux(nf);
+
   // Check that p_abs, t_abs, and vmr all have the same
   // dimension. This could be a user error, so we throw a
   // runtime_error. 
@@ -1779,6 +1786,7 @@ void abs_species( MATRIX&                  abs,
 
 	// Calculate the line shape:
 	lineshape_data[ind_ls].Function()(ls,
+					  aux,
 					  l_l.F(),
 					  gamma,
 					  sigma,

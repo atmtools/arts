@@ -32,6 +32,7 @@
 /** The type that is used to store pointers to lineshape
     functions.  */
 typedef void (*lsf_type)(VECTOR&,
+			 VECTOR&,
 			 Numeric,
 			 Numeric,
 			 Numeric,

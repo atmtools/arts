@@ -1,5 +1,12 @@
 2000-12-15  Axel von_Engeln  <engeln@uni-bremen.de>
 
+	* arts-0-0-93
+
+	* Voigt_Kuntz1 is now called Voigt_Kuntz6, done some speeding up
+	in linesphape (with no great success)
+
+2000-12-15  Axel von_Engeln  <engeln@uni-bremen.de>
+
 	* arts-0-0-92
 
 	* arts can now read its own catalogue files.
