@@ -381,18 +381,24 @@ void geompath_from_r1_to_r2(
   lat[0] = lat1;
   za[0]  = za1;
 
-  // Loop steps (beside last) and calculate 
+  // Loop steps (beside last) and calculate radius and zenith angle
   for( Index i=1; i<n; i++ )
     {
       r[i]   = geompath_r_at_l( ppc, l1 + lstep * i );
       za[i]  = geompath_za_at_r( ppc, za1, r[i] );
-      lat[i] = geompath_lat_at_za( za1, lat1, za[i] );
     }
 
   // For maximum accuracy, set last radius to be exactly r2.
   r[n]   = r2;
   za[n]  = geompath_za_at_r( ppc, za1, r[n] );
-  lat[n] = geompath_lat_at_za( za1, lat1, za[n] );
+
+  // Ensure that zenith and nadir observations keep their zenith angle
+  if( za1 == 0  ||  fabs(za1) == 180 )
+    { za = za1; }
+
+  // Calculate latitudes
+  for( Index i=1; i<=n; i++ )
+    { lat[i] = geompath_lat_at_za( za1, lat1, za[i] ); }
 
   // Take absolute value of lstep
   lstep = fabs( lstep );
@@ -591,8 +597,8 @@ bool is_los_downwards_2d(
    value of the zenith angle is < 90, no crossing will be found (if
    not the slope of the pressure surface happen to be very strong).
    
-   If the given path point is on the pressure surface (r=r1), the
-   solution of an angular distance of 0 is rejected.
+   If the given path point is on the pressure surface (r=r1), 
+   all solution with a value < 1e-6 are rejected.
  
    The latitude difference is set to 999 of no possible value is found, but
    there will normally be some value < 360 degrees. 
@@ -614,6 +620,31 @@ Numeric psurface_crossing_2d(
               Numeric    c )
 {
   assert( fabs(za) <= 180 );
+
+  // Handle the cases of za=0 and za=180. 
+  if( za == 0 )
+    {
+      if( r < r1 )
+	{ return 0; }
+      else
+	{ return 999; }
+    }
+  if( fabs(za) == 180 )
+    {
+      if( r > r1 )
+	{ return 0; }
+      else
+	{ return 999; }
+    }
+
+  // Check if the given LOS goes in the direction towards the pressure surface.
+  // If not, return 999.
+  //
+  const bool downwards = is_los_downwards_2d( za, psurface_tilt_2d( r1, c ) );
+  //
+  if( ( r < r1  &&  downwards )  ||  ( r >= r1  &&  !downwards ) )
+    { return 999; }
+
 
   // The nadir angle in radians, and cosine and sine of that angle
   const Numeric   beta = DEG2RAD * ( 180 - fabs(za) );
@@ -647,13 +678,14 @@ Numeric psurface_crossing_2d(
   poly_root_solve( roots, p );
 
   // Find first root with imaginary part = 0, and real part > 0 or >= 0.
-  // The solution r=0 is not of interest if r = r1.
+  // The solution r < 1e-6 is not of interest if r = r1.
   Numeric dlat = 999;
   for( Index i=0; i<n-1; i++ )
     {
       if( roots(i,1) == 0  &&   roots(i,0) >= 0 )
 	{
-	  if( ( roots(i,0) > 0 || r != r1 )  &&  RAD2DEG * roots(i,0) < dlat )
+	  if( ( r != r1  ||  roots(i,0) > 1e-6 )  &&  
+                                                  RAD2DEG * roots(i,0) < dlat )
 	    { dlat = RAD2DEG * roots(i,0); }
 	}
     }  
@@ -933,6 +965,11 @@ void ppath_copy(
     {
       ppath1.tan_pos.resize( ppath2.tan_pos.nelem() );
       ppath1.tan_pos = ppath2.tan_pos; 
+    }
+  if( ppath2.geom_tan_pos.nelem() )
+    {
+      ppath1.geom_tan_pos.resize( ppath2.geom_tan_pos.nelem() );
+      ppath1.geom_tan_pos = ppath2.geom_tan_pos; 
     }
   ppath1.symmetry = ppath2.symmetry;
   if( ppath1.symmetry )
@@ -2105,8 +2142,8 @@ void ppath_step_geom_2d(
   // the ground and tangent points) the end point is found. This is needed to
   // set values for the end point is most accurate way.
   //
-  Numeric dlat2end;
-  Index   endface;   
+  Numeric dlat2end = 999;
+  Index   endface  = 999;   
 
 
   // --- Lower face (pressure surface ip).
@@ -2118,7 +2155,7 @@ void ppath_step_geom_2d(
   // determine if there is a crossing or not. Instead we have to call 
   // psurface_crossing_2d for all cases to test if there is a crossing.
   // We don't need to consider the face if we are standing on the pressure 
-  // surface (or is below due to numerical inaccuracy).
+  // surface.
   //
   Numeric a_r = r1+c2*dlat_left;   // A variable used for varoius radii
   //
@@ -2138,14 +2175,15 @@ void ppath_step_geom_2d(
   //
   a_r = rground1+cground*dlat_left;
   //
-  assert( r_start > a_r );
+  assert( r_start >= a_r );
   //
-  // Is the ground at least partly inside the grid cell
-  if( rground1 >= r1  ||  rground2 >= r2 )
+  // Is the ground at least partly inside the grid cell, and we are not 
+  // standing on the ground?
+  if( ( rground1 >= r1  ||  rground2 >= r2 )  &&  r_start > a_r )
     {
       Numeric dlat2ground = psurface_crossing_2d( r_start, za_start, a_r,
                                                                      cground );
-      if( fabs(dlat2ground) < fabs(dlat2end) )
+      if( fabs(dlat2ground) <= fabs(dlat2end) )
 	{
 	  dlat2end = dlat2ground;
 	  endface  = 5;
@@ -2170,7 +2208,7 @@ void ppath_step_geom_2d(
       Numeric r_tmp = r_start;
       if( r_tmp > a_r )
 	{ r_tmp = a_r; }
-      
+
       if( ( za_start >= 0  &&  
             za_start <= za_geom2other_point( r_tmp, lat_start, r3, lat3 ) )  
                  ||
@@ -2194,7 +2232,6 @@ void ppath_step_geom_2d(
   // Check if a tangent point is passed before dlat2end is reached.
   if( fabs(za_start) > 90  &&  ( fabs(za_start) - fabs(dlat2end) ) < 90 ) 
     { endface  = 6; }
-
 
   // Calculate radius for end point
   //
@@ -2279,7 +2316,6 @@ void ppath_step_geom_2d(
   else if( endface == 6 )
     { ppath.los(ilast,0) = sign(za_start)*90; }
 
-
   // Make second part if not ready with path step:
   if( endface == 6  ||  ( endface == 5  &&  !blackbody_ground ) )
     {
@@ -2287,7 +2323,7 @@ void ppath_step_geom_2d(
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
-      // Adjust end zenith angle if ground reflection
+      // Adjust zenith angle and path constant if ground reflection
       if( endface == 5 )
 	{
 	  // Calculate angular tilt of the ground
@@ -2296,12 +2332,19 @@ void ppath_step_geom_2d(
 
 	  // Angle after ground reflection
 	  angle_after_ground_2d( ppath2.los(ilast,0), gtilt );
-	  
-	  out3 << "  --- Imaginary step to handle ground reflection -----\n"; 
+
+	  // New propagation path constant. It must be put copied to ppath as
+	  // the path constant is taken from this structure when appending
+	  // ppath and ppath2.
+	  ppath2.constant = geometrical_ppc( ppath2.pos(ilast,0), 
+                                                         ppath2.los(ilast,0) );
+	  ppath.constant  = ppath2.constant; 
+
+	  out3 << "  --- Recursive step to handle ground reflection -----\n"; 
 	}
       else
 	{
-	  out3 << "  --- Imaginary step to include tangent point --------\n"; 
+	  out3 << "  --- Recursive step to include tangent point --------\n"; 
 	}
 
       // Call this function recursively
@@ -2312,8 +2355,5 @@ void ppath_step_geom_2d(
 
       // Combine ppath and ppath2
       ppath_append( ppath, ppath2 );
-
-      PpathPrint(ppath,"ppath");
-      Exit();
     }
 }

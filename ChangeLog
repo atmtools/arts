@@ -1,3 +1,11 @@
+2002-07-05  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-187
+
+	* src/ppath.cc: The story continues. Things work much better now. A 
+	number of problems fixed. There is code for all parts, but there are 
+	still some wormholes for more rare cases that must be fixed.
+
 2002-07-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-186

@@ -374,17 +374,17 @@ void ppathCalc(
 	  if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], 0 ) )
 	    {
 	      ostringstream os;
-	      os << "The path enters the atmosphere through the lower latitude"
-		 << "end face,\nat altitude " << ppath_step.z[n-1]/1e3 
-                 << " km.";
+	      os << "The path exits the atmosphere through the lower latitude"
+		 << " end face.\nThe exit point is at an altitude of " 
+                 << ppath_step.z[n-1]/1e3 << " km.";
 	      throw runtime_error( os.str() );
 	    }
 	  if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
 	    {
 	      ostringstream os;
-	      os << "The path enters the atmosphere through the upper latitude"
-		 << "end face,\nat altitude " << ppath_step.z[n-1]/1e3 
-                 << " km.";
+	      os << "The path exits the atmosphere through the upper latitude"
+		 << " end face.\nThe exit point is at an altitude of " 
+                 << ppath_step.z[n-1]/1e3 << " km.";
 	      throw runtime_error( os.str() );
 	    }
 
@@ -393,17 +393,17 @@ void ppathCalc(
 	      if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 ) )
 		{
 		  ostringstream os;
-		  os << "The path enters the atmosphere through the lower " 
-		     << "longitude end face,\nat altitude " 
-		     << ppath_step.z[n-1]/1e3 << " km.";
+		  os << "The path exits the atmosphere through the lower " 
+		     << "longitude end face.\nThe exit point is at an altitude"
+		     << "of " << ppath_step.z[n-1]/1e3 << " km.";
 		  throw runtime_error( os.str() );
 		}
 	      if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ))
 		{
 		  ostringstream os;
-		  os << "The path enters the atmosphere through the upper "
-                     << "longitude end face,\nat altitude " 
-                     << ppath_step.z[n-1]/1e3 << " km.";
+		  os << "The path exits the atmosphere through the upper "
+		     << "longitude end face.\nThe exit point is at an altitude"
+		     << "of " << ppath_step.z[n-1]/1e3 << " km.";
 		  throw runtime_error( os.str() );
 		}
 	    }
@@ -502,6 +502,11 @@ void ppathCalc(
 	    {
 	      ppath.tan_pos.resize( ppath_array[i].tan_pos.nelem() );
 	      ppath.tan_pos                   = ppath_array[i].tan_pos; 
+	    }
+	  if( ppath_array[i].geom_tan_pos.nelem() )
+	    {
+	      ppath.geom_tan_pos.resize( ppath_array[i].tan_pos.nelem() );
+	      ppath.geom_tan_pos              = ppath_array[i].geom_tan_pos; 
 	    }
 	  if( ppath_array[i].symmetry )
 	    {
