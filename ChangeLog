@@ -1,5 +1,16 @@
 2004-09-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-879
+
+	* src/m_atmosphere.cc (surfaceFlat): Further work on this WSM. Not yet
+	ready. Dielectric constant for "water-liebe93" checked against
+	epswater93.m in Atmlab.
+
+	* src/physics_funcs.cc (fresnel): Created this function. Checked
+	against Atmlab function with same name.
+
+2004-09-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-878
 
 	* Surface part slightly changed. Basically the same scheme as used

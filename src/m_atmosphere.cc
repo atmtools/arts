@@ -44,6 +44,7 @@
 #include "agenda_class.h"
 #include "arts.h"
 #include "check_input.h"
+#include "complex.h"          
 #include "physics_funcs.h"
 #include "matpackIII.h"
 #include "messages.h"
@@ -861,20 +862,20 @@ void surfaceFlat(
   for( Index iv=0; iv<nf; iv++ )
     { 
       // Calculate dielectric constant
+      Complex   eps;
       if( epsmodel == "water-liebe93" )
         {
           // Values from epswater93.m (by C. Mätzler), part of Atmlab.
           // The constant e2 is here set to 3.52, which according to Mätzler 
           // corresponds to Liebe 1993.
-          /*
-          const Numeric   theta = 1 - 300 / t_ground;
+          const Numeric   theta = 1 - 300 / surface_skin_t;
           const Numeric   e0    = 77.66 - 103.3 * theta;
           const Numeric   e1    = 0.0671 * e0;
           const Numeric   f1    = 20.2 + 146.4 * theta + 316 * theta * theta;
           const Numeric   e2    = 3.52;  
           const Numeric   f2    = 39.8 * f1;
-          */
-          // To be continued
+          const Complex  ifGHz( 0.0, f_grid[iv]/1e9 );
+          eps = e2 + (e1-e2) / (1.0-ifGHz/f2) + (e0-e1) / (1.0-ifGHz/f1);
         }
       else
         {
@@ -884,9 +885,18 @@ void surfaceFlat(
           throw runtime_error( os.str() );
         }
 
-      // Convert dielectric constant to Rv and Rh by Fresnel equations
+      // Amplitude reflection coefficients
+      Complex  Rv, Rh;
+      //
+      fresnel( Rv, Rh, Numeric(1.0), sqrt(eps), 180.0-abs(rte_los[0]) );
 
-      // Create reflection matrix and b vector based on Rh and Rv.
+      cout << "f   = " << f_grid[iv]/1e9 << "\n";
+      cout << "t   = " << surface_skin_t << "\n";
+      cout << "the = " << 180.0-rte_los[0] << "\n";
+      cout << "eps = " << eps << "\n";
+      cout << "Rv  = " << Rv << "\n";
+      cout << "Rh  = " << Rh << "\n";
+      exit(0);
     }
 }
 

@@ -4244,6 +4244,40 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "surfaceFlat" ),
+        DESCRIPTION
+        (
+         "Creates variables to mimic specular reflection by a surface with\n"
+         "dielectric constant following an intrnal model.\n"
+         "\n"
+         "The method results in that the reflection properties differ\n"
+         "between frequencies and polarisations. The properties of the\n"
+         "surface medium are dtermined by the model for dielectric constant\n"
+         "selected. Thermodynamic equilibrium is assumed, which in the\n"
+         "corresponds to the reflection and emission coefficients add up\n"
+         "to 1.\n"
+         "\n"
+         "Available dielectric models:\n"
+         "\n"
+         " \"water-liebe93\"\n"
+         "   Treats liquid water without salt. Not valid below 10 GHz.\n"
+         "   Upper frequency limit not known. Model parameters taken from\n"
+         "   Atmlab function epswater93 (by C. Mätzler), which refer to\n"
+         "   Liebe 93 without closer specifications.\n"
+         "\n"
+         "Keyword: \n"
+         "   epsmodel : Name of model for dielectric constant."
+        ),
+        OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
+        INPUT( f_grid_, stokes_dim_, atmosphere_dim_, rte_los_, 
+               surface_skin_t_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "epsmodel" ),
+        TYPES(    String_t   )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Tensor3FillWithVector"),
         DESCRIPTION
         (

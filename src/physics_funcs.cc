@@ -45,15 +45,57 @@
 #include "mystring.h"
 #include "physics_funcs.h"
 
+extern const Numeric BOLTZMAN_CONST;
+extern const Numeric DEG2RAD;
 extern const Numeric PLANCK_CONST;
 extern const Numeric SPEED_OF_LIGHT;
-extern const Numeric BOLTZMAN_CONST;
 
 
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
+
+//! fresnel
+/*!
+    Calculates complex AMPLITUDE reflection coeffcients for a specular
+    reflection
+
+    The properties of the two involved media are given as the complex
+    refractive index, n. A dielectric constant, eps, is converted as 
+    n = sqrt( eps ). The power reflection coefficient, r, for one 
+    polarisation is r = abs(R)^2.
+
+    \param  Rv    Out: Reflection coefficient for vertical polarisation
+    \param  Rh    Out: Reflection coefficient for vertical polarisation
+    \param  n1    In: Refractive index of medium where radiation propagates
+    \param  n2    In: Refractive index of reflecting medium 
+    \param  theta In: Propagation angle from normal of radiation to be 
+                      reflected
+
+    \author Patrick Eriksson 
+    \date   2004-09-21
+*/
+void fresnel(
+             Complex&   Rv,
+             Complex&   Rh,
+       const Complex&   n1,
+       const Complex&   n2,
+       const Numeric&   theta )
+{
+  const Numeric theta1 = DEG2RAD * theta;
+  const Numeric costheta1 = cos( theta1 );
+  const Numeric costheta2 = cos( asin( n1.real() * sin(theta1) / n2.real() ) );
+
+  Complex a, b;
+  a  = n2 * costheta1;
+  b  = n1 * costheta2;
+  Rv = ( a - b ) / ( a + b );
+  a  = n1 * costheta1;
+  b  = n2 * costheta2;
+  Rh = ( a - b ) / ( a + b );
+}
+
 
 //! invplanck
 /*!

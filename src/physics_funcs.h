@@ -39,6 +39,7 @@
   ===========================================================================*/
 
 #include "arts.h"
+#include "complex.h"          
 #include "matpackI.h"
 
 
@@ -46,6 +47,13 @@
 /*===========================================================================
   === Functions in physics_funcs.h
   ===========================================================================*/
+
+void fresnel(
+             Complex&   Rv,
+             Complex&   Rh,
+       const Complex&   n1,
+       const Complex&   n2,
+       const Numeric&   theta );
 
 Numeric invplanck(
         const Numeric&  i,
