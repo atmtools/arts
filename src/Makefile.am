@@ -18,6 +18,7 @@ arts_SOURCES = \
 	absorption.cc \
 	absorption.h \
 	array.h \
+	arts.cc \
 	arts.h \
 	auto_md.cc \
 	auto_md.h \
@@ -228,6 +229,7 @@ test_interpolation_SOURCES = \
 	make_vector.h
 
 test_linalg_SOURCES = \
+	arts.cc \
 	arts.h \
 	matpackI.cc \
 	matpackI.h \
@@ -250,6 +252,7 @@ test_linalg_SOURCES = \
 	logic.cc
 
 test_scatproperties_SOURCES = \
+	arts.cc \
 	arts.h \
 	matpackI.cc \
 	matpackI.h \
@@ -276,6 +279,7 @@ test_scatproperties_SOURCES = \
 
 test_poly_SOURCES = \
 	array.h \
+	arts.cc \
 	arts.h \
 	make_array.h \
 	matpackI.cc \
@@ -286,6 +290,7 @@ test_poly_SOURCES = \
 
 test_tensor_SOURCES = \
 	array.h \
+	arts.cc \
 	arts.h \
 	make_array.h \
 	make_vector.cc \
@@ -307,6 +312,7 @@ test_tensor_SOURCES = \
 
 test_matpack_SOURCES = \
 	array.h \
+	arts.cc \
 	arts.h \
 	make_array.h \
 	make_vector.cc \
@@ -361,6 +367,7 @@ test_zeemanproperties_SOURCES = \
 	absorption.cc \
 	absorption.h \
 	array.h \
+	arts.cc \
 	arts.h \
 	auto_md.cc \
 	auto_md.h \
@@ -483,18 +490,20 @@ test_zeemanproperties_SOURCES = \
 	scatproperties.cc \
 	scatproperties.h \
 	supergeneric.h \
-        zeemanproperties.cc \
+	zeemanproperties.cc \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc \
 	test_zeemanproperties.cc
 
 test_complex_SOURCES = \
+	arts.cc \
 	arts.h \
 	complex.h \
 	complex.cc \
 	test_complex.cc
 
 test_sensor_SOURCES = \
+	arts.cc \
 	arts.h \
 	constants.cc \
 	matpackI.h \
@@ -506,6 +515,7 @@ test_sensor_SOURCES = \
 	test_sensor.cc
 
 make_auto_wsv_groups_h_SOURCES = \
+	arts.cc \
 	arts.h \
 	file.cc \
 	file.h \
@@ -518,6 +528,7 @@ make_auto_wsv_groups_h_SOURCES = \
 
 make_auto_wsv_h_SOURCES = \
 	absorption.h \
+	arts.cc \
 	arts.h \
 	auto_wsv_groups.h \
 	file.cc \
@@ -533,6 +544,7 @@ make_auto_wsv_h_SOURCES = \
 	wsv_aux.h
 
 make_auto_wsv_pointers_cc_SOURCES = \
+	arts.cc \
 	arts.h \
 	auto_wsv_groups.h \
 	file.cc \
@@ -548,6 +560,7 @@ make_auto_wsv_pointers_cc_SOURCES = \
 
 make_auto_md_h_SOURCES = \
 	absorption.h \
+	arts.cc \
 	arts.h \
 	auto_wsv.h \
 	auto_wsv_groups.h \
@@ -584,6 +597,7 @@ make_auto_md_h_SOURCES = \
 
 make_auto_md_cc_SOURCES = \
 	absorption.h \
+	arts.cc \
 	arts.h \
 	auto_wsv.h \
 	auto_wsv_groups.h \
