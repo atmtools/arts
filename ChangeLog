@@ -1,3 +1,13 @@
+2003-03-10  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-491
+
+	* src/xml_io.cc: Cleanup.
+	Added check for matching frequency dimensions in f_grid and
+	pha_mat_data.
+
+	* src/xml_io_private.h: Cleanup.
+
 2003-03-08  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-490
