@@ -25,6 +25,18 @@ There are some ARTS specific configure options:
 autodetects the HDF library. Note: Without HDF you will not be able to
 use Qpack.
 
+If autodetection of HDF fails, it is probably installed in a non-default
+location on your system.
+To make arts aware of the location of the HDF header files, try adding
+'-I PATHTOHDFHEADERS' to CPPFLAGS before calling configure.
+
+E.g.: export CPPFLAGS="-I/usr/include/hdf/"
+      ./configure
+
+Accordingly for hdf libraries:
+export LDFLAGS="-L/usr/lib/hdf/"
+or wherever hdf is located on your system.
+
 --with-numeric-type=ARG : ARG could be double or float. Double is the
 default. At the moment, there is no guaranty that ARTS works correctly
 with float.
