@@ -1,3 +1,17 @@
+2002-10-14  Sreerekha T.R.  <rekha@uni-bremen.de>
+        
+	* arts-1-1-260
+	
+	* src/m_cloudbox.cc: The method CloudboxGetIncoming is modified
+	for using the method RteCalc.  The inputs and outputs of this
+	method has to be changed quite lot.
+        
+	* src/m_scatrte.cc: The method ScatteringMain also had to be
+	modified as it calls CloudboxGetIncoming.
+
+	* src/methods.cc: Modified the inputs and outputs to the above
+	mentioned methods.
+	
 2002-10-14  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-259
