@@ -1,3 +1,13 @@
+2002-01-25  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-2
+	
+	* src/m_batch.cc (ybatchFromRadiosondeGlobal): Added message which
+	profile is being processed.
+
+	* src/m_batch.cc (ybatchFromRadiosonde): Added message which
+	profile is being processed.
+
 2002-01-22  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-1

@@ -359,6 +359,10 @@ void ybatchFromRadiosonde(// WS Output:
   // Loop over all radiosonde profiles:
   for ( Index i=0; i<radiosonde_data.nelem(); ++i )
     {
+      
+      out2 << "  Processing sonde profile " << i
+	   << " of " << radiosonde_data.nelem() << "\n";
+
       const Matrix& rd = radiosonde_data[i];
 
       // Create p_abs, t_abs, z_abs:
@@ -502,6 +506,9 @@ void ybatchFromRadiosondeGlobal(// WS Output:
   // Loop over all radiosonde profiles:
   for ( Index i=0; i<radiosonde_data.nelem(); ++i )
     {
+      out2 << "  Processing sonde profile " << i
+	   << " of " << radiosonde_data.nelem() << "\n";
+
       const Matrix& rd = radiosonde_data[i];
 
       // Create t_abs, z_abs:
