@@ -1,3 +1,9 @@
+2003-08-29  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-1-0-122
+
+	* doc/uguide/absorption.tex: just small corrections for a few isotopic ratios.
+
 2003-08-29  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-1-0-121
@@ -78,7 +84,7 @@
 
 	* doc/uguide/absorption.tex: updated the table listing the species
 	implemented and the isotopic ratios according to the new updates
-	included in species_data.cc. Now all the species, continua,
+	included in species_data.cc. Now all the species, continua, and 
 	clouds, are consistently listed in tables. 
 
 2003-08-13  Oliver Lemke  <olemke@uni-bremen.de>
