@@ -944,4 +944,30 @@ Numeric min(const ConstTensor3View& x)
 }
 
 
+////////////////////////////////
+// Helper function for debugging
+#ifndef NDEBUG
+
+/** Helper function to access tensor elements.
+
+    Because of function inlining the operator() is not
+    accessible from the debuggger. This function helps to access
+    Tensor elements from within the debugger.
+
+    \param tv TensorView
+    \param p  Page index
+    \param r  Row index
+    \param c  Column index
+
+    \author Oliver Lemke
+    \date   2004-05-10
+*/
+Numeric debug_tensor3view_get_elem (Tensor3View &tv,
+                                    Index p, Index r, Index c)
+{
+  return tv(p, r, c);
+}
+
+#endif
+////////////////////////////////
 

@@ -1797,6 +1797,19 @@ Numeric min(const ConstMatrixView& x)
 // Helper function for debugging
 #ifndef NDEBUG
 
+/** Helper function to access matrix elements.
+
+    Because of function inlining the operator() is not
+    accessible from the debuggger. This function helps to access
+    Matrix elements from within the debugger.
+
+    \param mv MatrixView
+    \param r  Row index
+    \param c  Column index
+
+    \author Oliver Lemke
+    \date   2004-05-10
+*/
 Numeric debug_matrixview_get_elem (MatrixView &mv, Index r, Index c)
 {
   return mv(r, c);

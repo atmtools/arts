@@ -1,3 +1,10 @@
+2004-05-10  Oliver Lemke  <olemke@linux.net>
+
+        * arts-1-1-815
+
+	* src/matpack{I,III,IV,V,VI,VII}.{h,cc}: Completed work on
+	debug_{tensor,matrix}view_get_elem functions.
+
 2004-05-06  Oliver Lemke  <olemke@linux.net>
 
         * arts-1-1-814

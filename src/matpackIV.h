@@ -403,5 +403,14 @@ Numeric min(const ConstTensor4View& x);
 
 ostream& operator<<(ostream& os, const ConstTensor4View& v);
 
+////////////////////////////////
+// Helper function for debugging
+#ifndef NDEBUG
+
+Numeric debug_tensor4view_get_elem (Tensor4View &tv,
+                                    Index b, Index p, Index r, Index c);
+
+#endif
+////////////////////////////////
 
 #endif    // matpackIV_h
