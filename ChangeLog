@@ -1,3 +1,23 @@
+2002-12-16 Stefan Buehler <sbuehler@uni-bremen.de>
+
+	* arts-1-1-335
+
+	* src/complex.h: Complex numbers for ARTS. This is a quick
+	implementation of complex numbers. I think most of the basic
+	features are there. The operators += and + are already implemented
+	as examples for the other operators.
+
+	Have I forgotten anything important? Documentation for AUG must
+	still be written!
+	
+	* src/complex.cc: Source file for complex numbers. At the moment
+	only the output operator is here, all member function
+	implementations are in the class declaration in complex.h.
+
+	* src/test_complex.cc: Test complex numbers.
+
+	* src/Makefile.am: Added new target test_complex.
+
 2002-12-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-334

@@ -158,7 +158,8 @@ noinst_PROGRAMS = \
 	test_linalg \
 	test_interpolation \
 	test_scatproperties\
-	test_xml
+	test_xml \
+	test_complex
 
 test_interpolation_SOURCES = \
 	array.h \
@@ -299,6 +300,12 @@ test_xml_SOURCES = \
 	xml_io.cc \
 	messages.cc \
 	test_xml.cc
+
+test_complex_SOURCES = \
+	arts.h \
+	complex.h \
+	complex.cc \
+	test_complex.cc
 
 make_auto_wsv_groups_h_SOURCES = \
 	arts.h \
