@@ -1,3 +1,9 @@
+2003-05-05  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-76
+
+	* src/absorption.cc: Try to work around a bug in older compilers.
+
 2003-04-23  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-0-75
