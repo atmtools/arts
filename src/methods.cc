@@ -443,34 +443,7 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ArrayOfIndexPrint"),
-        DESCRIPTION
-        (
-         "Prints the value of an ArrayOfIndex variable on the screen."
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( ArrayOfIndex_ ),
-        KEYWORDS( ),
-        TYPES( )));
 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("ArrayOfStringPrint"),
-        DESCRIPTION
-        (
-         "Prints the value of an ArrayOfString variable on the screen."
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( ArrayOfString_ ),
-        KEYWORDS( ),
-        TYPES( )));
- 
   md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfStringSet"),
@@ -1582,22 +1555,6 @@ md_data_raw.push_back
         TYPES()));
 
 
-
-
- md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("IndexPrint"),
-        DESCRIPTION
-        (
-         "Prints the value of an Index variable on the screen."
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( Index_ ),
-        KEYWORDS( ),
-        TYPES( )));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("IndexSet"),
@@ -2116,19 +2073,6 @@ md_data_raw.push_back
         KEYWORDS( "t" ),
         TYPES(    Numeric_t )));
 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("MatrixPrint"),
-        DESCRIPTION
-        (
-         "Prints a matrix variable on the screen."
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( Matrix_ ),
-        KEYWORDS( ),
-        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2254,19 +2198,6 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("NumericPrint"),
-        DESCRIPTION
-        (
-         "Prints the value of a Numeric variable on the screen."
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( Numeric_ ),
-        KEYWORDS( ),
-        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2573,19 +2504,6 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("PpathPrint"),
-        DESCRIPTION
-        (
-         "Prints a variable of type Ppath on the screen."
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( Ppath_ ),
-        KEYWORDS( ),
-        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3324,33 +3242,6 @@ md_data_raw.push_back
         KEYWORDS( "lo", "primary_band" ),
         TYPES( Numeric_t, String_t )));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("SparsePrint"),
-        DESCRIPTION
-        (
-         "Prints the value of a Sparse variable on the screen."
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( Sparse_ ),
-        KEYWORDS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("StringPrint"),
-        DESCRIPTION
-        (
-         "Prints the value of a String variable on the screen."
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( String_ ),
-        KEYWORDS( ),
-        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3840,17 +3731,23 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("VectorPrint"),
+      ( NAME("Print"),
         DESCRIPTION
         (
-         "Prints a vector variable on the screen."
+         "Prints a variable on the screen."
+         "\n"
+         "Keywords:\n"
+         "   level : Output level to use. \n"
         ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
-        GINPUT( Vector_ ),
-        KEYWORDS( ),
-        TYPES( )));
+        GINPUT( Any_ ),
+        KEYWORDS( "level" ),
+        TYPES( Index_t ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
 
   md_data_raw.push_back
     ( MdRecord
