@@ -8,7 +8,7 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
-SUBDIRS        = arts file hmatrix math path physics plot retrieval
+SUBDIRS        = arts file general hmatrix math path physics plot retrieval
 
 
 amidir        = $(pkgdatadir)/ami
