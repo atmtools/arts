@@ -13,8 +13,4 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-EXTRA_DIST = \
-	delete_tmp_dir.m \
-	dir_in_dir.m \
-	subfolders.m \
-	temporary_directory.m 
+EXTRA_DIST = *.m

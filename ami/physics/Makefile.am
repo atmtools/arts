@@ -13,12 +13,4 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-EXTRA_DIST = \
-	geomtan2za.m \
-	hseCalc.m \
-	invplanck.m \
-	invrayjean.m \
-	nd2vmr.m \
-	planck.m \
-	vmr2nd.m \
-	za2geomtan.m 
+EXTRA_DIST = *.m

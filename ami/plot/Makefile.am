@@ -13,18 +13,4 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-EXTRA_DIST = \
-	ax_set.m \
-	axes_1xn.m \
-	axes_nx1.m \
-	fig_size.m \
-	lpr.m \
-	pline.m \
-	plineleg.m \
-	suptitle.m \
-	text2.m \
-	text3.m \
-	title2.m \
-	xlabel2.m \
-	ylabel2.m \
-	zlabel2.m
+EXTRA_DIST = *.m

@@ -13,33 +13,4 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-EXTRA_DIST = \
-        create_binfile.m \
-	gaussian_response.m \
-	hAntennaFromFile.m \
-	hAntennaFromFileAdv.m \
-	hAntennaGauss.m \
-	hAntennaGaussAdv.m \
-	hBackendFromFile.m \
-	hBackendGauss.m \
-	hBinView.m \
-	hBinfile.m \
-	hEigs.m \
-	hFreqSwitch.m \
-	hHdFromFile.m \
-	hHsFromFile.m \
-	hInit.m \
-	hLoad.m \
-	hMixerConst.m \
-	hMixerFromFile.m \
-	hSave.m \
-	hTb.m \
-	h_antenna.m \
-	h_backend.m \
-	h_fix_ys.m \
-	h_mixer.m \
-	h_weights_integr.m \
-	h_x_h.m \
-        pbasis.m  \
-        pbasis_integrate.m \
-        pbasis_x_pol.m
+EXTRA_DIST = *.m

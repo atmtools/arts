@@ -14,14 +14,5 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EXTRA_DIST = \
-        arts.m \
-	get_artstype.m \
-        qtool.m \
-        read_artsvar.m \
-        read_datafile.m \
-        sample.tmplt \
-        sstring_get_i.m \
-        sstring_length.m \
-        tag2mo.m \
-	write_artsvar.m \
-	write_datafile.m
+	*.m \
+        sample.tmplt

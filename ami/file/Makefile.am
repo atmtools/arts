@@ -13,9 +13,4 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-EXTRA_DIST = \
-	combine_lines.m \
-	filedate.m \
-	filter_lines.m \
-	read_linefile.m \
-	write_linefile.m
+EXTRA_DIST = *.m
