@@ -80,7 +80,7 @@ WriteXML(p_grid){""}
 # data has to be in XML-format.
 
   AtmRawRead{
-	basename = "/smiles_local/arts-xml-data/atmosphere/fascod/tropical"
+	basename = "@ac_arts_xml_data@/atmosphere/fascod/tropical"
 	}
 
 # Create workspace variables, which are used in the program. 
@@ -195,8 +195,8 @@ ParticleTypeInit{}
 # Read amplitude matrix from database
 
 #ParticleTypeAdd{
-#  filename_amp_mat = "/smiles_local/arts-xml-data/scattering/cyl_s200_f318-324_ar0.5_o0.0_ampmat.xml"
-##filename_amp_mat = "/smiles_local/arts-data/scattering/sph_s200_f318-324_ampmat.xml" 
+#  filename_amp_mat = "@ac_arts_xml_data@/scattering/cyl_s200_f318-324_ar0.5_o0.0_ampmat.xml"
+##filename_amp_mat = "@ac_arts_xml_data@/scattering/sph_s200_f318-324_ampmat.xml" 
 #filename_pnd_field = "  "
 #}
 

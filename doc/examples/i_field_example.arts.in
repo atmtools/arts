@@ -139,7 +139,7 @@ NumericSet( t_ground ) {
 #ParticleTypeInit{}
 #
 #ParticleTypeAdd{
-#        filename_amp_mat = "/smiles_local/arts-data/scattering/sph_200_ampmat.xml" 
+#        filename_amp_mat = "@ac_arts_xml_data@/scattering/sph_200_ampmat.xml" 
 #        filename_pnd_field = "  "
 #        }       
 
