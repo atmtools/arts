@@ -174,7 +174,7 @@ version_check autoconf AUTOCONF 'autoconf2.50 autoconf autoconf-2.53' $REQUIRED_
     "http://ftp.gnu.org/pub/gnu/autoconf/autoconf-$REQUIRED_AUTOCONF_VERSION.tar.gz" || DIE=1
 AUTOHEADER=`echo $AUTOCONF | sed s/autoconf/autoheader/`
 
-automake_progs="automake-1.7 automake-1.6 automake-1.5 automake"
+automake_progs="automake-1.8 automake-1.7 automake-1.6 automake-1.5 automake"
 
 version_check automake AUTOMAKE "$automake_progs" $REQUIRED_AUTOMAKE_VERSION \
     "http://ftp.gnu.org/pub/gnu/automake/automake-$REQUIRED_AUTOMAKE_VERSION.tar.gz" || DIE=1
