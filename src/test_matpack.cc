@@ -24,7 +24,7 @@
 #include "make_vector.h"
 #include "math_funcs.h"
 #include "describe.h"
-#include "matpackII.cc"
+#include "matpackII.h"
 
 /** Define the global joker objekt. */
 Joker joker;
