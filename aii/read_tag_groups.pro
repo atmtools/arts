@@ -92,34 +92,39 @@ END
 
 
 PRO READ_TAG_GROUPS, controlfile, searchpattern, tg
-
-;; opens an arts controlfile and returns the tag groups found after
-;; the searchpattern in the string array tg. This version is not dummy
-;; approved, but can handle comment lines, varies definition of tag
-;; groups.
-;;
-;; Example: read_tag_groups,'example.arts','tag_groupsDefine',tg
-;; 
-;;          gives back all the tag groups defined in
-;;          tag_groups_Define, the syntax expected is something like:
-;;          tag_groupsDefine{ ["tag group1", "tag group2",
-;;                             "tag group1" ] }
-;;          where the [ ] brackets are used to search for all tag
-;;          groups. 
-;;
-;; INPUT:
-;;        controlfile    : String-Arts controlfile name (including .arts)
-;;        searchpattern  : String-generally the name of a workspace method
-;;                         that defines tag groups
-;;
-;; OUTPUT:
-;;        tg             : string array-all found tag groups
-;;
-;;
-;; HISTORY:
-;; 2001-01-22 Ave Created.
-;;
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;+
+;NAME:
+;        read_tag_groups
+;
+;Purpose:
+;    opens an arts controlfile and returns the tag groups found after
+;    the searchpattern in the string array tg. This version is not dummy
+;    approved, but can handle comment lines, varies definition of tag
+;    groups.
+;   
+; Example: read_tag_groups,'example.arts','tag_groupsDefine',tg
+; 
+;          gives back all the tag groups defined in
+;          tag_groups_Define, the syntax expected is something like:
+;          tag_groupsDefine{ ["tag group1", "tag group2",
+;                             "tag group1" ] }
+;          where the [ ] brackets are used to search for all tag
+;          groups. 
+;
+; INPUT:
+;        controlfile    : String-Arts controlfile name (including .arts)
+;        searchpattern  : String-generally the name of a workspace method
+;                         that defines tag groups
+;
+; OUTPUT:
+;        tg             : string array-all found tag groups
+;
+;
+; HISTORY:
+; 2001-01-22 Ave Created.
+;-
+;;;;;;;;;;;;;;;;;;;;;;;;;;
 print,' '
 print,'READ_TAG_GROUPS> controlfile  ='+controlfile
 print,'READ_TAG_GROUPS> searchpattern='+searchpattern

@@ -1,6 +1,8 @@
 ;******************************************************************************
-; Name:     write_datafile
-;
+;+
+;NAME:
+;           write_datafile
+;Purpose:
 ;           Writes data to a file in ARTS format.
 ;
 ;           See also read_datafile.
@@ -18,6 +20,7 @@
 ; Output:   -
 ;
 ; History:  28.02.01  Wolfram Haas
+;- 
 ;******************************************************************************
 
 PRO write_mat, unit, x, prec

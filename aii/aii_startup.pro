@@ -1,15 +1,20 @@
 ;; ==========================================================================
 ;; ####################### ARTS IDL INTERFACE PROCEDURE #####################
 ;; ==========================================================================
-;;
-;; NAME    : aii_startup
-;;
-;; PURPOSE : this batch file sets the frame for an ARTS IDL session
-;;
-;; CALLING : in the IDL session type '@aii_startup'
-;;
-;; HISTORY : alpha verison 2003-04-03, Thomas Kuhn, iup Bremen
-;;
+;+
+;NAME:
+;           aii_startup
+;
+;PURPOSE : this batch file sets the frame for an ARTS IDL session
+;
+;CALLING : in the IDL session type '@aii_startup'
+;
+;HISTORY : alpha version 2003-04-03, Thomas Kuhn, iup Bremen
+
+;          added automatic creation of HTML documentation of aii
+;          routines,  2003-09-08, Christian Melsheimer, iup Bremen     
+;           
+;-
 ;;
 ;; #########################################################################
 
@@ -93,8 +98,15 @@ print, ' !X.charsize               =',!X.charsize
 print, ' !Y.charsize               =',!Y.charsize
 
 print, ' !PATH                     =',!PATH
-
 print, ' '
+
+; generating HTML help file with documentation of all aii files
+helpfile='aii_help.html'
+print,'Generating HTML documentation of AII procedures/functions'
+mk_html_help, '.', helpfile, TITLE = "Arts IDL Interface Documentation"
+print,'Documentation written to ' + helpfile
+;
+print,''
 print,'======================< end of AII_STARTUP >======================'
 print, ' '
 
@@ -104,3 +116,4 @@ print, ' '
 @aii_compile
 
 ;; #########################################################################
+

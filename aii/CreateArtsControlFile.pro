@@ -5,7 +5,9 @@
 ; ########################### INTERNAL FUNCTIONS ########################### 
 ;
 ; **************************************************************************
-; Name:     addfields2vector
+;
+;NAME:
+;           addfields2vector
 ;
 ; Purpose:  adds one field to a 1D vector
 ;
@@ -35,7 +37,9 @@ RETURN, a
 END
 ;
 ; **************************************************************************
-; Name:     list_arts_tag
+;
+;NAME:    
+;           list_arts_tag
 ;
 ; Purpose:  check if the arts tag exists. These tags need additional
 ;           information in the arts control file.
@@ -240,7 +244,9 @@ list_arts_tag_end:
 END
 ;
 ; **************************************************************************
-; Name:     ckeck_arts_tag
+;
+;NAME:
+;           ckeck_arts_tag
 ;
 ; Purpose:  check if the arts tag exists
 ;
@@ -353,7 +359,9 @@ RETURN, 0 ; default number of tags found with this name
 END
 ;
 ; **************************************************************************
-; Name:     write_arts_control_file_tag
+;
+;NAME:
+;           write_arts_control_file_tag
 ;
 ; Purpose:  writes appropriate arts tag information into a arts control file
 ;
@@ -402,7 +410,9 @@ END
 ;
 ;
 ; **************************************************************************
-; Name:     write_arts_control_file_contdescription
+;
+;NAME:
+;           write_arts_control_file_contdescription
 ;
 ; Purpose:  writes appropriate arts tag information into a arts control file
 ;
@@ -511,7 +521,9 @@ RETURN, flag
 END
 ;
 ; **************************************************************************
-; Name:     write_arts_control_file_lineshape
+;
+;NAME:
+;           write_arts_control_file_lineshape
 ;
 ; Purpose:  writes appropriate arts tag information into a arts control file
 ;
@@ -600,7 +612,9 @@ RETURN, flag
 END
 ;
 ; **************************************************************************
-; Name:     write_arts_control_file_vmr
+;
+;NAME:
+;           write_arts_control_file_vmr
 ;
 ; Purpose:  writes appropriate VMR information into the arts control
 ;           file with the arts method raw_vmrsReadFromFiles. 
@@ -692,7 +706,9 @@ END
 ;
 ;
 ; **************************************************************************
-; Name:     CreateArtsControlFile
+;+
+;NAME:   
+;           CreateArtsControlFile
 ;
 ; Purpose:  the bunch of procedures and functions built up an arts
 ;           control file and makes simultaneously some consistency checks.
@@ -749,7 +765,7 @@ END
 ;                               1=error, the arts control file is not correctly created
 ;
 ; History:  2001-01-04    Thomas Kuhn, iup Bremen
-;
+;-
 ; **************************************************************************
 ; 
 PRO CreateArtsControlFile, flag=flag,                             $

@@ -1,43 +1,48 @@
 ;;#################################################################################
 ;; 
 FUNCTION WVSatPressureLiquidWater, TK, punit
-;; 
-;; The recommended formulas for the calculation of equilibrium water vapor pressure 
-;; in the pure phase (no other gases present) over a plane surface of liquid water 
-;; or ice are those of Sonntag, 1994. (References below.) The formulas are quoted 
-;; also in the papers of Leiterer et al., 1997 and Helten et al., 1999. I have 
-;; verified that they are exactly the same in all three papers. (Sonntag gives 
-;; the formulas for partial pressure in Pa and hPa, Leiterer et al. for hPa, 
-;; Helten et al. for Pa.)
-;; 
-;; The equation and coefficients below are for the equilibrium water vapor pressure 
-;; in Pa/hPa and the temperature in K.
-;; 
-;; The temperature of 0C corresponds to 273.15K. (Not 273.16K, as stated in the 
-;; Leiterer paper.)
-;;
-;; References:
-;; Sonntag, D., Advancements in the field of hygrometry, 
-;; Meteorologische Zeitschrift, 3, 51-66, 1994.
-;;
-;; Helten, M. et al, In-flight comparison of MOZAIC and POLINAT water
-;; vapor measurements, JGR, 104, 26.087-26.096, 1999.
-;;
-;; Leiterer U. et al, Improvements in Radiosonde Humidity Profiles 
-;; Using RS80/RS90 Radiosondes of Vaisala, 
-;; Beitr. Phys. Atmosph., 70(4), 319-336, 1997.
-
-;; ---------------------------------------------------------------------
-;; INPUT  :  TK      DOUBLE  temperature [K]
-;;           punit   STRING  pressure unit 'Pa' or 'hPa'     
-;;
-;; OUTPUT :  equilibrium water vapor pressure in the pure phase 
-;;           (no other gases present) over a plane surface of 
-;;           liquid water                                          [Pa]
-;;
-;; HISTORY:  alpha version,  2003-04-02, TKS
-;; ---------------------------------------------------------------------
-
+;+
+;NAME:
+;      WVSatPressureLiquidWater
+;
+;PURPOSE:
+; The recommended formulas for the calculation of equilibrium water vapor pressure 
+; in the pure phase (no other gases present) over a plane surface of liquid water 
+; or ice are those of Sonntag, 1994. (References below.) The formulas are quoted 
+; also in the papers of Leiterer et al., 1997 and Helten et al., 1999. I have 
+; verified that they are exactly the same in all three papers. (Sonntag gives 
+; the formulas for partial pressure in Pa and hPa, Leiterer et al. for hPa, 
+; Helten et al. for Pa.)
+; 
+; The equation and coefficients below are for the equilibrium water vapor pressure 
+; in Pa/hPa and the temperature in K.
+; 
+; The temperature of 0C corresponds to 273.15K. (Not 273.16K, as stated in the 
+; Leiterer paper.)
+;
+; References:
+; Sonntag, D., Advancements in the field of hygrometry, 
+; Meteorologische Zeitschrift, 3, 51-66, 1994.
+;
+; Helten, M. et al, In-flight comparison of MOZAIC and POLINAT water
+; vapor measurements, JGR, 104, 26.087-26.096, 1999.
+;
+; Leiterer U. et al, Improvements in Radiosonde Humidity Profiles 
+; Using RS80/RS90 Radiosondes of Vaisala, 
+; Beitr. Phys. Atmosph., 70(4), 319-336, 1997.
+;
+; ---------------------------------------------------------------------
+; INPUT  :  TK      DOUBLE  temperature [K]
+;           punit   STRING  pressure unit 'Pa' or 'hPa'     
+;
+; OUTPUT :  equilibrium water vapor pressure in the pure phase 
+;           (no other gases present) over a plane surface of 
+;           liquid water                                          [Pa]
+;
+; HISTORY:  alpha version,  2003-04-02, TKS
+; ---------------------------------------------------------------------
+;-
+;######################################################################
 a  = DOUBLE(-6096.9385)
 if (STRUPCASE(punit) EQ 'PA') then begin
     b  = DOUBLE(21.2409642)
@@ -61,42 +66,47 @@ end
 ;; #################################################################################
 ;;
 FUNCTION WVSatPressureIce, TK, punit
-;;
-;; The recommended formulas for the calculation of equilibrium water vapor pressure 
-;; in the pure phase (no other gases present) over a plane surface of liquid water 
-;; or ice are those of Sonntag, 1994. (References below.) The formulas are quoted 
-;; also in the papers of Leiterer et al., 1997 and Helten et al., 1999. I have 
-;; verified that they are exactly the same in all three papers. (Sonntag gives 
-;; the formulas for partial pressure in Pa and hPa, Leiterer et al. for hPa, 
-;; Helten et al. for Pa.)
-;; 
-;; The equation and coefficients below are for the equilibrium water vapor pressure 
-;; in Pa/hPa and the temperature in K.
-;; 
-;; The temperature of 0C corresponds to 273.15K. (Not 273.16K, as stated in the 
-;; Leiterer paper.)
-;;
-;; References:
-;; Sonntag, D., Advancements in the field of hygrometry, 
-;; Meteorologische Zeitschrift, 3, 51-66, 1994.
-;;
-;; Helten, M. et al, In-flight comparison of MOZAIC and POLINAT water
-;; vapor measurements, JGR, 104, 26.087-26.096, 1999.
-;;
-;; Leiterer U. et al, Improvements in Radiosonde Humidity Profiles 
-;; Using RS80/RS90 Radiosondes of Vaisala, 
-;; Beitr. Phys. Atmosph., 70(4), 319-336, 1997.
+;+
+;NAME:
+;     WVSatPressureIce
+;      
+;PURPOSE:
+; The recommended formulas for the calculation of equilibrium water vapor pressure 
+; in the pure phase (no other gases present) over a plane surface of liquid water 
+; or ice are those of Sonntag, 1994. (References below.) The formulas are quoted 
+; also in the papers of Leiterer et al., 1997 and Helten et al., 1999. I have 
+; verified that they are exactly the same in all three papers. (Sonntag gives 
+; the formulas for partial pressure in Pa and hPa, Leiterer et al. for hPa, 
+; Helten et al. for Pa.)
+; 
+; The equation and coefficients below are for the equilibrium water vapor pressure 
+; in Pa/hPa and the temperature in K.
+; 
+; The temperature of 0C corresponds to 273.15K. (Not 273.16K, as stated in the 
+; Leiterer paper.)
+;
+; References:
+; Sonntag, D., Advancements in the field of hygrometry, 
+; Meteorologische Zeitschrift, 3, 51-66, 1994.
+;
+; Helten, M. et al, In-flight comparison of MOZAIC and POLINAT water
+; vapor measurements, JGR, 104, 26.087-26.096, 1999.
+;
+; Leiterer U. et al, Improvements in Radiosonde Humidity Profiles 
+; Using RS80/RS90 Radiosondes of Vaisala, 
+; Beitr. Phys. Atmosph., 70(4), 319-336, 1997.
 
-;; ---------------------------------------------------------------------
-;; INPUT  :  TK      DOUBLE  temperature [K]
-;;           punit   STRING  pressure unit 'Pa' or 'hPa'     
-;;
-;; OUTPUT :  equilibrium water vapor pressure in the pure phase 
-;;           (no other gases present) over ice                     [Pa]
-;;
-;; HISTORY:  alpha version,  2003-04-02, TKS
-;; ---------------------------------------------------------------------
-
+; ---------------------------------------------------------------------
+; INPUT  :  TK      DOUBLE  temperature [K]
+;           punit   STRING  pressure unit 'Pa' or 'hPa'     
+;
+; OUTPUT :  equilibrium water vapor pressure in the pure phase 
+;           (no other gases present) over ice                     [Pa]
+;
+; HISTORY:  alpha version,  2003-04-02, TKS
+; ---------------------------------------------------------------------
+;-
+;######################################################################
 a  = DOUBLE(-6024.5282)
 if (STRUPCASE(punit) EQ 'PA') then begin
     b  = DOUBLE(29.32707)
@@ -120,15 +130,15 @@ end
 ;; #################################################################################
 ;;
 FUNCTION AirCorrFunWater, P, TK
-;;
-;; ----------------------------------------------------------------
-;; INPUT
-;;       P    DOUBLE   total pressure  [Pa]
-;;       TK   DOUBLE   temperature  [K]
-;;
-;; OUTPUT
-;;       fw   DOUBLE   correction function for moist air over water
-;; ----------------------------------------------------------------
+;
+; ----------------------------------------------------------------
+; INPUT
+;       P    DOUBLE   total pressure  [Pa]
+;       TK   DOUBLE   temperature  [K]
+;
+; OUTPUT
+;       fw   DOUBLE   correction function for moist air over water
+; ----------------------------------------------------------------
 
 P  = (P * 1.00000E-2)     ;; pressure in hPa 
 TC = DOUBLE(TK - 273.15)  ;; temperature in Celsius
@@ -148,15 +158,15 @@ END
 ;;#################################################################################
 ;;
 FUNCTION AirCorrFunIce, P, TK
-;;
-;; --------------------------------------------------------------
-;; INPUT
-;;       P    DOUBLE   total pressure  [Pa]
-;;       TK   DOUBLE   temperature  [K]
-;;
-;; OUTPUT
-;;       fi   DOUBLE   correction function for moist air over ice
-;; --------------------------------------------------------------
+;
+; --------------------------------------------------------------
+; INPUT
+;       P    DOUBLE   total pressure  [Pa]
+;       TK   DOUBLE   temperature  [K]
+;
+; OUTPUT
+;       fi   DOUBLE   correction function for moist air over ice
+; --------------------------------------------------------------
 
 P  = (P * 1.00000E-2)     ;; pressure in hPa 
 TC = DOUBLE(TK - 273.15)  ;; temperature in Celsius
@@ -176,41 +186,46 @@ END
 ;;
 FUNCTION WaterVaporSatPressure, TK, PTOT=PTOT, $
                                 phase=phase, punit=punit, corr=corr
-;;
-;; ---------------------------------------------------------------------
-;; INPUT:
-;;     ESSENTIAL INPUT PARAMETERS:
-;;        TK     DBLE    temperature [T]
-;;     OPTIONAL INPUT PARAMETERS:
-;;        PTOT   DBLE    total pressure [Pa]
-;;                       PTOT has to be given if the correction for
-;;                       moist air should be done, i.e. corr='yes'
-;;        phase  STRING  water phase, possible phases are 'water' and
-;;                       'ice', default phase is liquid water.
-;;        punit  STRING  pressure unit of the saturation pressure
-;;                       possible units are 'Pa' and 'hPa' and 'mbar'
-;;        corr   STRING  consider/not consider the correction term for
-;;                       moist air instead of pure water vapor over
-;;                       waterr/ice possible values are 'yes' and 'no'.
-;;                       The default is 'no', i.e. no correction calculation.
-;;
-;; OUTPUT:
-;;        es     DBLE    water vapor saturtation pressure [Pa, hPa, or mbar].
-;;                       If no unit is specified by the input
-;;                       parameter 'punit' es is given in units of [Pa] 
-;;                       If the calculation had some error detected, 
-;;                       the return value is es = -9.99999e9
-;;
-;; COMMENT:
-;;        formula taken from:
-;;        Sonntag, D., Advancements in the field of hygrometry, 
-;;        Meteorologische Zeitschrift, 3, 51-66, 1994.
-;;
-;; HISTORY:  
-;;        2003-04-02, TKS:     alpha version,  
-;;        2003-04-04, TKS:     added PTOT as optional if corr='no' no
-;;                             PTOT is needed  
-;; ---------------------------------------------------------------------
+;
+; ---------------------------------------------------------------------
+;+
+;NAME:
+;     WaterVaporSatPressure   
+;
+; INPUT:
+;     ESSENTIAL INPUT PARAMETERS:
+;        TK     DBLE    temperature [T]
+;     OPTIONAL INPUT PARAMETERS (KEYWORDS):
+;        PTOT   DBLE    total pressure [Pa]
+;                       PTOT has to be given if the correction for
+;                       moist air should be done, i.e. corr='yes'
+;        phase  STRING  water phase, possible phases are 'water' and
+;                       'ice', default phase is liquid water.
+;        punit  STRING  pressure unit of the saturation pressure
+;                       possible units are 'Pa' and 'hPa' and 'mbar'
+;        corr   STRING  consider/not consider the correction term for
+;                       moist air instead of pure water vapor over
+;                       waterr/ice possible values are 'yes' and 'no'.
+;                       The default is 'no', i.e. no correction calculation.
+;
+; OUTPUT:
+;        es     DBLE    water vapor saturtation pressure [Pa, hPa, or mbar].
+;                       If no unit is specified by the input
+;                       parameter 'punit' es is given in units of [Pa] 
+;                       If the calculation had some error detected, 
+;                       the return value is es = -9.99999e9
+;
+; COMMENT:
+;        formula taken from:
+;        Sonntag, D., Advancements in the field of hygrometry, 
+;        Meteorologische Zeitschrift, 3, 51-66, 1994.
+;
+; HISTORY:  
+;        2003-04-02, TKS:     alpha version,  
+;        2003-04-04, TKS:     added PTOT as optional if corr='no' no
+;                             PTOT is needed
+;-  
+; ---------------------------------------------------------------------
 
 ;; default value (return value for erroneous calculation)
 es = -9.99999e9

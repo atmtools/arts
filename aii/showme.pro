@@ -10,8 +10,8 @@ PRO showme, jobname=jobname,          $
             avoid_tg=avoid_tg 
 ;
 ;==========================================================================
-;
-; NAME:
+;+
+;NAME:
 ;       showme
 ; PURPOSE:
 ;       provide a simple call routine to plot the absorption per tag group
@@ -48,7 +48,7 @@ PRO showme, jobname=jobname,          $
 ; MODIFICATION HISTORY:
 ;       04-27-2001  TKS  alpha version created 
 ;       03-04-2003  TKS  update of plotting actions
-;
+;-
 ; ==========================================================================
 
 close, /all

@@ -5,17 +5,21 @@
 FUNCTION PSPlotOpen, text, n
 ;;
 ;; ---------------------------------------------------------------------
-;; NAME    : PSPlotOpen
-;; PURPOSE : opens a postscript file for IDL plots
-;; EXTERNAL: calls procedure aii_plot_file
-;; INPUT   : text  STRING   postscript file name (without extension) 
-;;           n     INTEGER  postscript format 
-;;                          1: postscript portrait
-;;                          2: postscript landscape
-;;                          3: encapsulated postscript portrait
-;;                          4: encapsulated postscript landscape
-;; OUTPUT  : ok    INTEGER  flag if everything went well (0=ok, 1=error)
-;; ---------------------------------------------------------------------
+;+
+;NAME: 
+;      PSPlotOpen
+;
+; PURPOSE : opens a postscript file for IDL plots
+; EXTERNAL: calls procedure aii_plot_file
+; INPUT   : text  STRING   postscript file name (without extension) 
+;           n     INTEGER  postscript format 
+;                          1: postscript portrait
+;                          2: postscript landscape
+;                          3: encapsulated postscript portrait
+;                          4: encapsulated postscript landscape
+; OUTPUT  : ok    INTEGER  flag if everything went well (0=ok, 1=error)
+;-
+; ---------------------------------------------------------------------
 ;;
 ;; flag: 0=ok, 1=error occured
 ok = 1
@@ -53,15 +57,18 @@ END
 FUNCTION PSPlotClose, a, b, c
 ;;
 ;; ------------------------------------------------------------------------
-;; NAME    : PSPlotClose
-;; PURPOSE : close a postscript file for IDL plots
-;; EXTERNAL: calls procedure aii_plot_file
-;; INPUT   : a  STRING  open postscript file with ghostview a='yes' or 'no'
-;;           b  STRING  send postscript file to printer     b='yes' or 'no'
-;;           c  STRING  move postscript file to directory   c="DIRNAME"
-;;           d  STRING  write datum lower left corner       d='yes' or 'no'
-;; OUTPUT  : ok INTEGER flag if everything went well (0=ok, 1=error)
-;; ------------------------------------------------------------------------
+;+
+;NAME:
+;      PSPlotClose
+; PURPOSE : close a postscript file for IDL plots
+; EXTERNAL: calls procedure aii_plot_file
+; INPUT   : a  STRING  open postscript file with ghostview a='yes' or 'no'
+;           b  STRING  send postscript file to printer     b='yes' or 'no'
+;           c  STRING  move postscript file to directory   c="DIRNAME"
+;           d  STRING  write datum lower left corner       d='yes' or 'no'
+; OUTPUT  : ok INTEGER flag if everything went well (0=ok, 1=error)
+;-
+; ------------------------------------------------------------------------
 ;;
 ok = 1  ;; flag: 0=ok, 1=error occured
 aii_plot_file, action='end', $
@@ -88,7 +95,7 @@ pro aii_plot_file, action=action,      $
                    writedate=writedate
 ;
 ;==========================================================================
-;
+;+
 ; NAME:
 ;       aii_plot_file
 ; PURPOSE:
@@ -141,7 +148,7 @@ pro aii_plot_file, action=action,      $
 ;
 ; MODIFICATION HISTORY:
 ;       03/04/01  TKS  alpha version created 
-;
+;-
 ; ==========================================================================
 ; ##########################################################################
 ; ==========================================================================

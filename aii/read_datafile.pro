@@ -1,6 +1,8 @@
 ;******************************************************************************
-; Name:     read_datafile
-;
+;+
+;NAME:
+;           read_datafile
+;Purpose:
 ;           Reads data from a file in ARTS data format.
 ;
 ;           The data is returned as an array or a structure of arrays.
@@ -16,6 +18,7 @@
 ; Output:   x             the data  
 ;
 ; History:  28.02.00  Wolfram Haas
+;-
 ;******************************************************************************
 
 FUNCTION read_datafile, filename, check = check

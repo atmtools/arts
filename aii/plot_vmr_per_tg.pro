@@ -17,43 +17,48 @@ PRO plot_vmr_per_tg, jobname=jobname, $
                      altunit=altunit, $
                      plotfilename=plotfilename,$
                      plotfileformat=plotfileformat
-
-;; reads an arts abs_per_tg file, frequency file, and altitude file ,
-;; and plots the different tag group absorption, the tag groups are
-;; identified by reading the arts controlfile. procedure does not plot
-;; zero absorption of tag groups. Procedure can handle compressed and
-;; gzipped files without uncompressing them.
-;;
-;; INPUT KEYWORDS:
-;;
-;;     jobname         : jobname of calculation
-;;     jobdir          : sting containing the directory where the
-;;                       jobfiles are located 
-;;     add_to_title    : string-is added to default title
-;;     avoid_tg        : array of strings-which tag groups to plot
-;;     color           : int-make color plot (actually always color)
-;;     nostamp         : int-produce no stamp info on output
-;;     pressure        : selects pressure information
-;;                       Possible values are: hPa, mbar, bar, Pa
-;;     altunit        :  selects altitude information
-;;                       Possible values are: km, m
-;;     temperature     : selects temperature information
-;;                       Possible values are: K, C
-;;     vmrunit         : selection of the absorption units
-;;                       Possible units are:
-;;                       VMR, kg/m3
-;;     plotfilename    : string containing output file name
-;;     plotfileformat  : integer variable for the output file format.
-;;                       Possible output files formats are
-;;                          1: Postscript portrait mode, 
-;;                          2: Postscript landscape mode, 
-;;                          3: encapsulated Postscript portrait mode,
-;;                          4: encapsulated Postscript landscape mode,
-;;                          5: window
-;; HISTORY:
-;;     2001-06-04 : 1. version TKS
-;;
-;;
+;;;;;;;;;;;;;;;;;
+;+
+;NAME:
+;      plot_vmr_per_tg.pro
+;
+;PURPOSE:
+; reads an arts abs_per_tg file, frequency file, and altitude file ,
+; and plots the different tag group absorption, the tag groups are
+; identified by reading the arts controlfile. procedure does not plot
+; zero absorption of tag groups. Procedure can handle compressed and
+; gzipped files without uncompressing them.
+;
+; INPUT KEYWORDS:
+;
+;     jobname         : jobname of calculation
+;     jobdir          : sting containing the directory where the
+;                       jobfiles are located 
+;     add_to_title    : string-is added to default title
+;     avoid_tg        : array of strings-which tag groups to plot
+;     color           : int-make color plot (actually always color)
+;     nostamp         : int-produce no stamp info on output
+;     pressure        : selects pressure information
+;                       Possible values are: hPa, mbar, bar, Pa
+;     altunit        :  selects altitude information
+;                       Possible values are: km, m
+;     temperature     : selects temperature information
+;                       Possible values are: K, C
+;     vmrunit         : selection of the absorption units
+;                       Possible units are:
+;                       VMR, kg/m3
+;     plotfilename    : string containing output file name
+;     plotfileformat  : integer variable for the output file format.
+;                       Possible output files formats are
+;                          1: Postscript portrait mode, 
+;                          2: Postscript landscape mode, 
+;                          3: encapsulated Postscript portrait mode,
+;                          4: encapsulated Postscript landscape mode,
+;                          5: window
+; HISTORY:
+;     2001-06-04 : 1. version TKS
+;-
+;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; read the tag groups from controlfile
 read_tag_groups,jobdir+jobname+'.arts','tgsDefine',tg
 ;; total number of tag groups

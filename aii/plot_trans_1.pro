@@ -137,57 +137,61 @@ end
 ; ==========================================================================
 ; ##########################################################################
 ; ==========================================================================
+;+
+;NAME:
+;      plot_trans_1
 ;
-;; reads an arts abs_per_tg file, frequency file, and altitude file ,
-;; and plots the different tag group absorption, the tag groups are
-;; identified by reading the arts controlfile. procedure does not plot
-;; zero absorption of tag groups. Procedure can handle compressed and
-;; gzipped files without uncompressing them.
-;;
-;; INPUT:
-;;     jobname         : jobname of calculation
-;; 
-;; OUTPUT: (only needed to use the read keyword)
-;;     f               : frequency grid
-;;     abs             : altitude per tag group
-;;     alt             : altitude grid
-;;
-;; KEYWORDS:
-;;     altitude        : double-make abs plot near that altitude, 
-;;                       default: lowest altitude
-;;     read            : int-do not read the f, abs, alt again
-;;     add_to_title    : string-is added to default title
-;;     avoid_tg        : array of strings-which tag groups to plot
-;;     color           : int-make color plot (actually always color)
-;;     cm              : int-use cm^-1 instead of GHz
-;;     xrange          : array of double-plot range, considers cm^-1 setting
-;;     yrange          : array of double-plot range
-;;     nostamp         : int-produce no stamp info on output
-;;     jobdir          : sting containing the directory where the
-;;                       jobfiles are located 
-;;     pressure        : selects pressure information
-;;                       Possible values are: hPa, mbar, bar, Pa
-;;     temperature     : selects temperature information
-;;                       Possible values are: K, C
-;;     absunit         : selection of the absorption units
-;;                       Possible units are:
-;;                       1/m, 1/cm, 1/km, dB/km, Np/km
-;;     plotfilename    : string containing output file name
-;;     plotfileformat  : integer variable for the output file format.
-;;                       Possible output files formats are
-;;                          1: Postscript portrait mode, 
-;;                          2: Postscript landscape mode, 
-;;                          3: encapsulated Postscript portrait mode,
-;;                          4: encapsulated Postscript landscape mode,
-;;                          5: window
-;;     plotsum         : flag for plotting in addition the total
-;;                       absorption:
-;;                       Possible values are:
+;PURPOSE:
+; reads an arts abs_per_tg file, frequency file, and altitude file ,
+; and plots the different tag group absorption, the tag groups are
+; identified by reading the arts controlfile. procedure does not plot
+; zero absorption of tag groups. Procedure can handle compressed and
+; gzipped files without uncompressing them.
+;
+; INPUT:
+;     jobname         : jobname of calculation
+; 
+; OUTPUT: (only needed to use the read keyword)
+;     f               : frequency grid
+;     abs             : altitude per tag group
+;     alt             : altitude grid
+;
+; KEYWORDS:
+;     altitude        : double-make abs plot near that altitude, 
+;                       default: lowest altitude
+;     read            : int-do not read the f, abs, alt again
+;     add_to_title    : string-is added to default title
+;     avoid_tg        : array of strings-which tag groups to plot
+;     color           : int-make color plot (actually always color)
+;     cm              : int-use cm^-1 instead of GHz
+;     xrange          : array of double-plot range, considers cm^-1 setting
+;     yrange          : array of double-plot range
+;     nostamp         : int-produce no stamp info on output
+;     jobdir          : sting containing the directory where the
+;                       jobfiles are located 
+;     pressure        : selects pressure information
+;                       Possible values are: hPa, mbar, bar, Pa
+;     temperature     : selects temperature information
+;                       Possible values are: K, C
+;     absunit         : selection of the absorption units
+;                       Possible units are:
+;                       1/m, 1/cm, 1/km, dB/km, Np/km
+;     plotfilename    : string containing output file name
+;     plotfileformat  : integer variable for the output file format.
+;                       Possible output files formats are
+;                          1: Postscript portrait mode, 
+;                          2: Postscript landscape mode, 
+;                          3: encapsulated Postscript portrait mode,
+;                          4: encapsulated Postscript landscape mode,
+;                          5: window
+;     plotsum         : flag for plotting in addition the total
+;                       absorption:
+;                       Possible values are:
 ;,                          1: plot additionally the total absorption
-;;                          2: plot only tag absorption
-;; HISTORY:
-;;     2001-12-04 TKS  alpha version created 
-;;
+;                          2: plot only tag absorption
+; HISTORY:
+;     2001-12-04 TKS  alpha version created 
+;-
 ;***************************************************************************
 ;
 PRO plot_trans_1, jobname, f, abs, alt, $

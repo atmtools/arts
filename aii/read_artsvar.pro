@@ -1,6 +1,8 @@
 ;******************************************************************************
-; Name:     read_artsvar
-;
+;+
+;NAME:
+;           read_artsvar
+;PURPOSE:
 ;           Reads a ARTS variable.
 ;
 ;           The data is read from the file
@@ -18,6 +20,7 @@
 ; Output:   x           the data
 ;
 ; History:  28.02.01  Wolfram Haas
+;-
 ;******************************************************************************
 
 FUNCTION read_artsvar, basename, varname, check = check

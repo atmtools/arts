@@ -8,7 +8,7 @@
 
 
 ;+
-; Name:
+; NAME:
 ;	aii_klegend_d
 ; Purpose:
 ;	This procedure makes a legend for a plot.  The legend can contain

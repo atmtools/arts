@@ -1,24 +1,25 @@
 ;; ==========================================================================
 ;; ####################### ARTS IDL INTERFACE PROCEDURE #####################
 ;; ==========================================================================
-;;
-;; NAME    : aii_compile
-;;
-;; PURPOSE : this batch file sets the frame for an ARTS IDL session using
-;;           the functions and procedures of the aii directory and some
-;;           external libraries 
-;;
-;; CALLING : in the IDL session type '@aii_compile'
-;;
-;; EXTERNAL: external libraries are 
-;;           TeXtoIDL (http://physweb.mnstate.edu/mcraig/TeXtoIDL/)
-;;           astron   (http://idlastro.gsfc.nasa.gov/homepage.html)
-;;           idlps    (ftp.astro.washington.edu)
-;;           users not from iup-sat need to download the files and to 
-;;           upodate the !PATH global variable below
-;; 
-;; HISTORY : alpha verison 2003-04-03, Thomas Kuhn, iup Bremen
-;;
+;+
+;NAME:
+;           aii_compile
+;
+; PURPOSE : this batch file sets the frame for an ARTS IDL session using
+;           the functions and procedures of the aii directory and some
+;           external libraries 
+;
+; CALLING : in the IDL session type '@aii_compile'
+;
+; EXTERNAL: external libraries are 
+;           TeXtoIDL (http://physweb.mnstate.edu/mcraig/TeXtoIDL/)
+;           astron   (http://idlastro.gsfc.nasa.gov/homepage.html)
+;           idlps    (ftp.astro.washington.edu)
+;           users not from iup-sat need to download the files and to 
+;           upodate the !PATH global variable below
+; 
+; HISTORY : alpha version 2003-04-03, Thomas Kuhn, iup Bremen
+;-
 ;;
 ;; #########################################################################
 

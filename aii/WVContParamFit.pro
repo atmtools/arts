@@ -10,7 +10,7 @@
 ; Name:     WVCONTABSCALC
 ;
 ; Purpose:  calculate water vapor continuum absorption according to
-;           Rosenkrtanz, Radio Science, 1998, parameterization.
+;           Rosenkranz, Radio Science, 1998, parameterization.
 ;
 ; Inputs:   scalar  PWV    H2O pressure             [hPa]
 ;           scalar  PF     foreign pressure         [hPa]
@@ -808,12 +808,12 @@ endfor
 END
 ;
 ; **************************************************************************
-;$Id: WVContParamFit.pro,v 1.1.2.2 2002/12/20 15:08:30 tkuhn Exp $
+;$Id: WVContParamFit.pro,v 1.1.2.3 2003/09/08 13:11:36 cmels Exp $
 ;
 ; Copyright (c) 1994-1998, Research Systems, Inc.  All rights reserved.
 ;       Unauthorized reproduction prohibited.
 ;+
-; NAME:
+;NAME:
 ;       LINFIT
 ;
 ; PURPOSE:
@@ -893,7 +893,7 @@ END
 ;
 ;         2002-06-19
 ;         TKS copy of LINFIT of IDL resource to modidy it for fit purposes
-;
+;-
 ; --------------------------------------------------------------------------
 ; 
 FUNCTION MyLinFit, x, y, chisqr = chisqr, Double = Double, prob = prob, $
@@ -2109,7 +2109,9 @@ END
 ;
 ;
 ; ***************************************************************************
-; Name:     WVContParamFit
+;+
+;NAME:
+;           WVContParamFit
 ;
 ; Purpose:  perform the fit of water vapor continuum parameters
 ;           according to the input data. The H2O continuum is
@@ -2144,7 +2146,7 @@ END
 ;                    artspath='/home/home01/tkuhn/ARTS/arts/'
 ;
 ; History:  2002-01-04    Thomas Kuhn, iup Bremen
-;
+;-
 ; **************************************************************************
 ;
 PRO WVContParamFit, datafile=datafile,             $

@@ -3,16 +3,18 @@
 ;; ==========================================================================
 ;;
 ;###########################################################################
-;; Name:     aa_read_general
-;;
-;; Purpose:  Reads data from a file ARTS data format file into a matrix.
-;;
-;; Inputs:   filename      full file name
-;;
-;; Output:   matrix        the data matrix
-;;
-;; History:  2001-12-04    Thomas Kuhn, iup Bremen
-;;
+;+
+; NAME:
+;       aa_read_general
+;
+; Purpose:  Reads data from a file ARTS data format file into a matrix.
+;
+; Inputs:   filename      full file name
+;
+; Output:   matrix        the data matrix
+;
+; History:  2001-12-04    Thomas Kuhn, iup Bremen
+;-
 ;***************************************************************************
 
  

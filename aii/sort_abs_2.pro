@@ -1,22 +1,26 @@
 PRO sort_abs_2,absin,tgin,alt,absout,tgout,max_arr1,min_arr1
-;; rearrange the absorption and tag groups according to their
-;; absorption magnitude at altitude alt
-;;
-;; INPUT:
-;;     absin      : structure-absorption per tag group structure
-;;     tgin       : string array-names of tag groups
-;;     alt        : integer-index to altitude level
-;;
-;; OUTPUT:
-;;     absout     : structure-sorted absin
-;;     tgin       : string array-sorted tgin
-;;     max_arr1   : double array-maximum values found
-;;     min_arr1   : double array-minimum values found
-;;
-;; HISTORY:
-;;     2001-01-22 AvE created
-;;     2001-12-18 TKS adaption to plot_abs_per_tg_2
-;;
+;+
+;NAME: 
+;      sort_abs_2.pro
+;PURPOSE:
+; rearrange the absorption and tag groups according to their
+; absorption magnitude at altitude alt
+;
+; INPUT:
+;     absin      : structure-absorption per tag group structure
+;     tgin       : string array-names of tag groups
+;     alt        : integer-index to altitude level
+;
+; OUTPUT:
+;     absout     : structure-sorted absin
+;     tgin       : string array-sorted tgin
+;     max_arr1   : double array-maximum values found
+;     min_arr1   : double array-minimum values found
+;
+; HISTORY:
+;     2001-01-22 AvE created
+;     2001-12-18 TKS adaption to plot_abs_per_tg_2
+;-
 
 ;; dimension of structure
 dim=(size(tgin,/DIMENSIONS))[0]

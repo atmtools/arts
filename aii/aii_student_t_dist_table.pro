@@ -3,7 +3,9 @@
 ; ==========================================================================
 ;
 ; **************************************************************************
-; Name:     aii_student_t_dist_95_table
+;+
+;NAME: 
+;       aii_student_t_dist_95_table
 ;
 ; Purpose:  table of Student t-distribution for a 5% significance level.
 ;           Thus for a double sided test a confidence level of 97.5%
@@ -21,7 +23,7 @@
 ;               http://www.itl.nist.gov/div898/handbook/, date.
 ;
 ; History:  2002-10-08    Thomas Kuhn, iup Bremen
-;
+;-
 ; **************************************************************************
 ;
 FUNCTION aii_student_t_dist_95_table, i
@@ -59,7 +61,9 @@ END
 ;
 ;
 ; **************************************************************************
-; Name:     aii_student_t_dist_table
+;+
+;NAME:
+;        aii_student_t_dist_table
 ;
 ; Purpose:  table of Student t-distribution.
 ;
@@ -74,7 +78,7 @@ END
 ; Source:   http://www.itl.nist.gov/div898/handbook/eda/section3/eda3672.htm
 ;
 ; History:  2002-10-08    Thomas Kuhn, iup Bremen
-;
+;-
 ; **************************************************************************
 ;
 ;

@@ -4,7 +4,9 @@
 ;
 ;
 ; **************************************************************************
-; Name:     check_backslash
+;+
+; NAME:
+;        check_backslash
 ;
 ; Purpose:  checks if the specified path name has a backslash at the
 ;           end or not. If  not the backslash will be added.
@@ -14,7 +16,7 @@
 ; Output:   pathname+'/'  path name with backslash at the end
 ;
 ; History:  2001-01-04    Thomas Kuhn, iup Bremen
-;
+;-
 ; **************************************************************************
 ; 
 FUNCTION check_backslash, pathname

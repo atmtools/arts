@@ -7,8 +7,8 @@ FUNCTION aii_plotsymbols, i
 ;--------------------------
 ;
 ;==========================================================================
-;
-; NAME:
+;+
+;NAME:
 ;       aii_plotsymbols
 ; PURPOSE:
 ;       defines user defined plotting symbol USERSYM (PSYM=8) 
@@ -36,7 +36,7 @@ FUNCTION aii_plotsymbols, i
 ;
 ; MODIFICATION HISTORY:
 ;       03/04/01  TKS  alpha version created 
-;
+;-
 ; ==========================================================================
 ;
 ;

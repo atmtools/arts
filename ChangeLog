@@ -1,3 +1,50 @@
+2003-09-08  Christian Melsheimer  <melsheimer@uni-bremen.de>
+
+	* arts-1-0-125
+
+	* aii/aii_writedatum.pro: applied a 'strcompress' to ouput of 
+	systime; otherwise the double blank between month name and single
+	digit days (e.g., Sep  8) messed up the result.
+
+	* aii/aii_aa_read_general.pro, aii/aii_checks.pro,
+	aii/aii_color_table.pro, aii/aii_compile.pro,
+	aii/aii_get_hostname.pro, aii/aii_klegend_d.pro,
+	aii/aii_plotsymbols.pro, aii/aii_readfile.pro,
+	aii/aii_startup.pro, aii/aii_student_t_dist_table.pro,
+	aii/aii_where_str.pro, aii/aii_writedatum.pro,
+	aii/CreateArtsControlFile.pro, aii/plot_abs_per_tg_2.pro,
+	aii/plot_abs_per_tg_2.pro, aii/plot_RT_1.pro,
+	aii/plot_trans_1.pro, aii/plot_vmr_per_tg.pro,
+	aii/read_artsvar.pro, aii/read_datafile.pro,
+	aii/read_tag_groups.pro, aii/showme.pro, aii/sort_abs_2.pro,
+	aii/sort_abs.pro, aii/WaterVaporSatPressure.pro,
+	aii/write_artsvar.pro, aii/write_datafile.pro
+	aii/WVContParamFit.pro:
+	Inserted one line containing just ';+' and one line containing just
+	';-' before/after the descriptive comments of routines in each file
+	(also slightly extended some descriptions).  This way, the idl
+	routines doc_library and mk_html_help can read the info and
+	display it.
+	If you type, in IDL, e.g.:
+       	 doc_library,'aii_read_general' 
+	the lines between ';+' and ';-' will be displayed on your IDL console.
+	If you type
+	 mk_html_help,'<path-to-arts>/aii','help.html'
+	
+	(of course replace <path-to-arts> with the path to arts!), a nice
+	documentation in html format of all idl programs in the 'aii'
+	directory will be written to the file help.html.  If there is a
+	line containing ';NAME:' the following line is taken as the name of
+	the routine. Therefore I changed ';Name:' and ';name:' into ;NAME:
+	where necessary.  Look up 'mk_html_help' in IDL online help to
+	know more...
+
+	* aii/aii_startup.pro: Added a line to generate HTML documentation
+	of procedures/functions in aii; documentation will be written to
+	'aii_help.html' 
+
+	* aii/.cvsignore: added aii_help.html
+
 2003-09-08  Sho  <sho@sat.physik.uni-bremen.de>
 
 	* arts-1-0-124

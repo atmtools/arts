@@ -1,6 +1,8 @@
 ;******************************************************************************
-; Name:     write_artsvar
-;
+;+
+;NAME:
+;           write_artsvar
+;Purpose:
 ;           Writes a ARTS variable to a file in ARTS format.
 ;           The data is written to a file called
 ;              basename.varname.am
@@ -17,6 +19,7 @@
 ; Output:   -
 ;
 ; History:  13.11.00  Wolfram Haas
+;-
 ;******************************************************************************
 
 PRO write_artsvar, basename, varname, x, prec

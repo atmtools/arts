@@ -4,10 +4,20 @@
 ;
 
 Function aii_where_str,str1,str2,dim
-;; similar to where, but works for string array str1 and str2
-;;
-;; returns -1 if not found, otherwise the index of str1 where entries
-;; of str2 were found
+;+
+;NAME:
+;      aii_where_str
+;PURPOSE:
+;      similar to where, but works for string array str1 and str2,
+;      returns -1 if not found, otherwise the index of str1 where entries
+;      of str2 were found
+;USAGE: 
+;      result = aii_where_str(str1,str2,dim)
+;ARGUMENTS:
+;      str1,str2: string arrays; occurrences of str2 elements in
+;                 str1 are looked for
+;      dim: variable that contains the number of occurrences 
+;-
 
 ;; size of str1, str2
 ns1=(size(str1,/dime))[0]

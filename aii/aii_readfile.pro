@@ -3,8 +3,12 @@
 ; ==========================================================================
 ;
 function aii_file_exists, filename
-;; checks whether the file filename exists and returns 1 for yes and 0
-;; for no
+;+
+;NAME:
+;      aii_file_exists
+; checks whether the file filename exists and returns 1 for yes and 0
+; for no
+;-
 
 YES = 1
 NO  = 0
@@ -24,9 +28,16 @@ end
 
 
 PRO aii_readfile,filename,output
-;; checks whether the is file present by using aii_file_exists,
-;; compressed, or gzipped, and reads it if possible by using
-;; read_datafile into output variable
+;+
+;NAME:
+;      aii_readfile
+;PURPOSE: 
+;      checks whether the is file present by using aii_file_exists,
+;      compressed, or gzipped, and reads it if possible by using
+;      read_datafile into output variable
+;USAGE: 
+;      aii_readfile, filename, output
+;-
 
 ;; do we have to uncompress?
 com=-1
