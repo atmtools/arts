@@ -1,8 +1,13 @@
+*.eps
 *.gif
 *.png
 *.html
+*.map
+*.md5
+*.ps
 Makefile
 Makefile.in
 doxygen.css
 formula.repository
+_formulas.*
 graph_legend.dot
