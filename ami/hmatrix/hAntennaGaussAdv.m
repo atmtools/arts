@@ -38,14 +38,13 @@ function [H,f_y,za_y,za_sensor] = hAntennaGaussAdv(...
  H,f_sensor,za_sensor,za_obs,fwhm,width,spacing,o_ant,o_y,fscale,f0,move,dza)
 
 
-%=== Convert FWHM and WIDTH to a standard deviation values
+%=== Calculate the "standard deviation" corresponding to FWHM 
 si     = fwhm/sqrt(2*log(2))/2;
-nsi    = width/sqrt(2*log(2))/2;
 
 
 %=== Set up zenith angle grid for antenna pattern
-npoints = 2*ceil(width/spacing) + 1;
-za_ant  = linspace(-nsi,nsi,npoints);
+npoints = ceil(width/spacing) + 1;
+za_ant  = linspace( -width/2, width/2, npoints );
 
 
 %=== Calculate antenna pattern at ZA_ANT

@@ -34,14 +34,13 @@ function [H,f_y,za_y,f_sensor] = ...
       hBackendGauss(H,f_sensor,za_sensor,f_centre,fwhm,width,spacing,o_ch,o_y)
 
 
-%=== Convert FWHM and WIDTH to a standard deviation values
+%=== Calculate the "standard deviation" corresponding to FWHM 
 si     = fwhm/sqrt(2*log(2))/2;
-nsi    = width/sqrt(2*log(2))/2;
 
 
-%=== Set up grid for channel response
-npoints = 2*ceil(width/spacing) + 1;
-f_back  = linspace(-nsi,nsi,npoints);
+%=== Set up zenith angle grid for antenna pattern
+npoints = ceil(width/spacing) + 1;
+f_back  = linspace( -width/2, width/2, npoints );
 
 
 %=== Calculate channel response at F_BACK

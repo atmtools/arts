@@ -1,3 +1,13 @@
+2001-11-27  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-1-58
+
+	* ami/hmatrix/hAntennaGaussAdv.m: The width of the produced
+	antenna pattern did not match the specified width. Fixed.
+	
+	* ami/hmatrix/hAntennaGaussAdv.m: The width of the produced
+	channel response did not match the specified width. Fixed.
+
 2001-11-26  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-1-57
