@@ -22,9 +22,9 @@ public:
   void Adapt();
 
   // Documentation is with the implementation!
-  void Extract( Matrix sga,
-		Numeric p,
-		Numeric T);
+  void Extract( Tensor3 sga,
+		ConstVectorView& p,
+		ConstVectorView& T);
 private:
 
   //! This contains the tag groups for which the table is valid:
@@ -92,9 +92,9 @@ private:
 
   //! Absorption coefficients.
   /*! Physical unit: 1/m
-    Dimension: [ N_gas_tgs (N_gas_tgs+N_h2o_pert if special treatment for H2O),
-    N_t_pert (or 1 if N_t_pert=0),
-    N_p_grid,
+    Dimension: [ N_gas_tgs (N_gas_tgs+N_h2o_pert-1 if special treatment for H2O),<br>
+    N_t_pert (or 1 if N_t_pert=0),<br>
+    N_p_grid,<br>
     N_f_grid] */
   Tensor4 abs;
 

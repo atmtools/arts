@@ -1,3 +1,39 @@
+2002-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-245
+
+	* src/matpackI.h: Added Constructors to make a ConstVectorView and
+	VectorView of a scalar. The conversion of a Vector to a 1-column
+	matrix was already implemented.
+
+	* src/matpackIII.h: Added Constructors to make a Tensor3View from
+	a MatrixView. (Also constant versions.)
+
+	* src/matpackIV.h: Added Constructors to make a Tensor4View from
+	a Tensor3View. (Also constant versions.)
+
+	* src/matpackV.h: Added Constructors to make a Tensor5View from
+	a Tensor4View. (Also constant versions.)
+
+	* src/matpackVI.h: Added Constructors to make a Tensor6View from
+	a Tensor5View. (Also constant versions.)
+
+	* src/matpackVII.h: Added Constructors to make a Tensor7View from
+	a Tensor6View. (Also constant versions.)
+
+	* doc/uguide/matrix_vector.tex: Put in documentation for the new
+	matpack feature to make things appear of larger dimension than they
+	are.
+
+	* src/test_matpack.cc (test33): Added this test for the new
+	capability to make things look bigger than they are.
+
+	* src/gas_abs_lookup.cc (Extract): Continued to work on this
+	function.  
+
+	* src/gas_abs_lookup.h: Changed argument type of extract to allow
+	vectors of pressure and temperature.
+
 2002-09-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-244

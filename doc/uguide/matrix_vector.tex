@@ -711,6 +711,58 @@ cout << min(a);
 
 The function \funcindex{transform} works just like for Vector.
 
+\levelc{Making things appear larger than they are}
+
+Assume that you have written a function that performs some calculation
+for a \artsstyle{Tensor5}:
+\begin{verbatim}
+void my_function(Tensor5View x);
+\end{verbatim}
+
+\noindent Can you call this function with a \artsstyle{Tensor4}? Yes, you can:
+\begin{verbatim}
+Tensor4 a;                      
+Tensor5View b = a;              // The extent of the first
+                                // dimension of b will be 1.
+my_function(b);                 // Call the function.
+\end{verbatim}
+
+In general, you can always create a view that is one dimension bigger
+than what you have. The leading dimension then has extent 1. There is
+one important exception: If you interpret a \artsstyle{Vector} as a
+\artsstyle{Matrix}, the trailing dimension will be 1, not the leading
+dimension. This is necessary, because the vector has to act like a
+column vector, so that matrix-vector products work in the normal way.
+Of course you can use telescoping to blow up anything to
+\artsstyle{Tensor7}: 
+
+\begin{verbatim}
+Numeric b = 3.1415;             // Just any number here.
+Tensor7View bt7 =
+  Tensor6View(
+     Tensor5View(
+        Tensor4View(
+           Tensor3View(
+              MatrixView(
+                 VectorView(b)
+              )
+           )
+        )
+     )
+  );                 // All dimensions of bt7 will be 1!
+\end{verbatim}
+
+This kind of conversion works also implicitly. So, instead of the
+first example, you could have simply written:
+\begin{verbatim}
+my_function(a);
+\end{verbatim}
+
+The purpose of this feature is to avoid having to make special
+versions of auxiliary functions for all different tensor
+dimensions. Use it wisely! There is very little runtime overhead for
+this, since the data itself is not copied.
+
 \levelc{Summary}
 
 This is all. In particular, we have no tensor products, since they

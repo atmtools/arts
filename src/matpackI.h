@@ -271,6 +271,9 @@ public:
   friend class ConstTensor6View;
   friend class ConstTensor7View;
   friend int poly_root_solve (Matrix &roots, Vector &coeffs);
+  
+  // A special constructor, that allows to make a ConstVectorView of a scalar.
+  ConstVectorView(const Numeric& a);
 
 protected:
   // Constructors:
@@ -344,6 +347,9 @@ public:
   friend class Tensor5View;
   friend class Tensor6View;
   friend class Tensor7View;
+
+  // A special constructor, that allows to make a VectorView of a scalar.
+  VectorView(Numeric& a);
 
 protected:
   // Constructors:
@@ -1024,6 +1030,19 @@ inline ConstVectorView::operator ConstMatrixView() const
   return ConstMatrixView(mdata,mrange,Range(mrange.mstart,1));
 }
 
+/** A special constructor, which allows to make a ConstVectorView from
+    a scalar.
+
+    This one is a bit tricky: We have to cast away the arguments const
+    qualifier, because mdata is not const. This should be safe, since
+    there are no non-const methods for ConstVectorView.
+*/
+inline ConstVectorView::ConstVectorView(const Numeric& a) :
+  mrange(0,1), mdata(&const_cast<Numeric&>(a))
+{
+  // Nothing to do here.
+}
+
 /** Default constructor. This is necessary, so that we can have a
     default constructor for the derived class Vector. */
 inline ConstVectorView::ConstVectorView() :
@@ -1307,6 +1326,15 @@ inline VectorView VectorView::operator-=(const ConstVectorView& x)
 inline VectorView::operator MatrixView()
 {
   return MatrixView(mdata,mrange,Range(mrange.mstart,1));
+}
+
+/** A special constructor, which allows to make a VectorView from
+    a scalar.
+*/
+inline VectorView::VectorView(Numeric& a) :
+  ConstVectorView(a)
+{
+  // Nothing to do here.
 }
 
 /** Default constructor. This is necessary, so that we can have a

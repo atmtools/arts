@@ -122,6 +122,8 @@ public:
   friend class ConstTensor6View;
   friend class ConstTensor7View;
 
+  // Special constructor to make a Tensor3 view of a matrix.
+  ConstTensor3View(const ConstMatrixView& a);
 
 protected:
   // Constructors:
@@ -208,14 +210,14 @@ public:
   Tensor3View& operator-=(const ConstTensor3View& x);
 
   // Friends:
-//   friend class VectorView;
-//   friend ConstTensor3View transpose(ConstTensor3View m);
-//   friend Tensor3View transpose(Tensor3View m);
   friend class Iterator4D;
   friend class Tensor4View;
   friend class Tensor5View;
   friend class Tensor6View;
   friend class Tensor7View;
+
+  // Special constructor to make a Tensor3 view of a matrix.
+  Tensor3View(const MatrixView& a);
 
 protected:
   // Constructors:
@@ -559,6 +561,13 @@ inline ConstIterator3D ConstTensor3View::end() const
                                           mrr,
                                           mcr),
                           mpr.mstride );
+}
+
+/** Special constructor to make a Tensor3 view of a matrix. */
+inline ConstTensor3View::ConstTensor3View(const ConstMatrixView& a) :
+  mpr(0,1,a.mrr.mextent*a.mcr.mextent), mrr(a.mrr), mcr(a.mcr), mdata(a.mdata) 
+{
+  // Nothing to do here.
 }
 
 /** Default constructor. This is necessary, so that we can have a
@@ -1044,6 +1053,16 @@ inline Tensor3View& Tensor3View::operator-=(const ConstTensor3View& x)
       *p -= *xp;
     }
   return *this;
+}
+
+/** Special constructor to make a Tensor3 view of a matrix. */
+inline Tensor3View::Tensor3View(const MatrixView& a) :
+  ConstTensor3View( a.mdata,
+		    Range(0,1,a.mrr.mextent*a.mcr.mextent),
+		    a.mrr,
+		    a.mcr )
+{
+  // Nothing to do here.
 }
 
 /** Default constructor. This is necessary, so that we can have a

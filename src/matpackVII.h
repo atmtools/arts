@@ -641,6 +641,8 @@ public:
   // Friends:
   friend class Tensor7View;
 
+  // Special constructor to make a Tensor7 view of a Tensor6.
+  ConstTensor7View(const ConstTensor6View& a);
 
 protected:
   // Constructors:
@@ -1776,6 +1778,9 @@ public:
   Tensor7View& operator-=(const ConstTensor7View& x);
 
   // Friends:
+
+  // Special constructor to make a Tensor7 view of a Tensor6.
+  Tensor7View(const Tensor6View& a);
 
 protected:
   // Constructors:
@@ -3858,6 +3863,26 @@ inline ConstIterator7D ConstTensor7View::end() const
 					   mrr,
 					   mcr),
                           mlr.mstride );
+}
+
+/** Special constructor to make a Tensor7 view of a Tensor6. */
+inline ConstTensor7View::ConstTensor7View(const ConstTensor6View& a) :
+  mlr(0,1,
+      a.mvr.mextent*
+      a.msr.mextent*
+      a.mbr.mextent*
+      a.mpr.mextent*
+      a.mrr.mextent*
+      a.mcr.mextent),
+  mvr(a.mvr),
+  msr(a.msr),
+  mbr(a.mbr),
+  mpr(a.mpr),
+  mrr(a.mrr),
+  mcr(a.mcr),
+  mdata(a.mdata) 
+{
+  // Nothing to do here.
 }
 
 /** Default constructor. This is necessary, so that we can have a
@@ -7075,6 +7100,26 @@ inline Tensor7View& Tensor7View::operator-=(const ConstTensor7View& x)
       *p -= *xp;
     }
   return *this;
+}
+
+/** Special constructor to make a Tensor7 view of a Tensor6. */
+inline Tensor7View::Tensor7View(const Tensor6View& a) :
+  ConstTensor7View( a.mdata,
+		    Range(0,1,
+			  a.mvr.mextent*
+			  a.msr.mextent*
+			  a.mbr.mextent*
+			  a.mpr.mextent*
+			  a.mrr.mextent*
+			  a.mcr.mextent),
+		    a.mvr,
+		    a.msr,
+		    a.mbr,
+		    a.mpr,
+		    a.mrr,
+		    a.mcr )
+{
+  // Nothing to do here.
 }
 
 /** Default constructor. This is necessary, so that we can have a
