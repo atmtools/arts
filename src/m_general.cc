@@ -63,14 +63,30 @@
 
 void Print(
         // WS Generic Input:
+        const ArrayOfGridPos&   x,
+        // WS Generic Input Names:
+        const String&           x_name,
+        // Keywords:
+        const Index             level )
+{
+  ostringstream os;
+  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
+  for( Index i=0; i<x.nelem(); i++ )
+    os << "     " << x[i].idx << "  " << x[i].fd[0] << "  " << x[i].fd[1]
+         << "\n";
+  SWITCH_OUTPUT (level, os.str ())
+}
+
+
+void Print(
+        // WS Generic Input:
         const ArrayOfIndex&   x,
         // WS Generic Input Names:
         const String&         x_name,
         // Keywords:
-        const Index&          level )
+        const Index           level )
 {
   ostringstream os;
-  cout << "  *" << x_name <<"* =";
   SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
   for( Index i=0; i<x.nelem(); i++ )
     os << x[i];
@@ -84,10 +100,9 @@ void Print(
         // WS Generic Input Names:
         const String&          x_name,
         // Keywords:
-        const Index&           level )
+        const Index            level )
 {
   ostringstream os;
-  cout << "  *" << x_name <<"* =";
   SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
   for( Index i=0; i<x.nelem(); i++ )
     os << x[i] << '\n';
@@ -102,7 +117,7 @@ Print(
       // WS Generic Input Names:
       const String&   x_name,
       // Keywords:
-      const Index&    level )
+      const Index     level )
 {
   SWITCH_OUTPUT (level, "  The fields of *" << x_name << "*:\n")
   Print( x.dim, "dim", level );
@@ -113,11 +128,11 @@ Print(
   Print( x.pos, "pos", level );
   Print( x.z, "z", level );
   Print( x.l_step, "l_step", level );
-  ArrayOfGridPosPrint( x.gp_p, "gp_p" );
+  Print( x.gp_p, "gp_p", level );
   if( x.dim >= 2 )
-    ArrayOfGridPosPrint( x.gp_lat, "gp_lat" );
+    Print( x.gp_lat, "gp_lat", level );
   if( x.dim == 3 )
-    ArrayOfGridPosPrint( x.gp_lon, "gp_lon" );
+    Print( x.gp_lon, "gp_lon", level );
   Print( x.los, "los", level );
   Print( x.background, "background", level );
   if( x.tan_pos.nelem() )
@@ -133,7 +148,7 @@ void Print(
         // WS Generic Input Names:
         const String&  /* x_name */,
         // Keywords:
-        const Index&   /* level */ )
+        const Index    /* level */ )
 {
 /*  ostringstream os;
   cout << "  *" << x_name <<"* =";

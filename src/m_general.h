@@ -72,10 +72,19 @@ Print(
       // WS Generic Input Names:
       const String&   x_name,
       // Keywords:
-      const Index&    level )
+      const Index    level )
 {
   SWITCH_OUTPUT (level, "  *" << x_name << "*:\n" << x << '\n')
 }
+
+void
+Print(
+      // WS Generic Input:
+      const ArrayOfGridPos&   x,
+      // WS Generic Input Names:
+      const String&           x_name,
+      // Keywords:
+      const Index              level );
 
 void
 Print(
@@ -84,7 +93,7 @@ Print(
         // WS Generic Input Names:
         const String&         x_name,
         // Keywords:
-        const Index&          level );
+        const Index           level );
 
 void
 Print(
@@ -93,7 +102,7 @@ Print(
         // WS Generic Input Names:
         const String&          x_name,
         // Keywords:
-        const Index&           level );
+        const Index            level );
 
 void
 Print(
@@ -102,7 +111,7 @@ Print(
       // WS Generic Input Names:
       const String&   x_name,
       // Keywords:
-      const Index&    level );
+      const Index     level );
 
 void
 Print(
@@ -111,7 +120,7 @@ Print(
       // WS Generic Input Names:
       const String&  x_name,
       // Keywords:
-      const Index&   level);
+      const Index    level);
 
 #endif /* m_general_h */
 
