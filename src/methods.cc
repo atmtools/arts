@@ -1057,7 +1057,7 @@ void define_md_data_raw()
 	 "Sets *i_space* to hold cosmic background radiation."
 	),
 	OUTPUT( i_space_ ),
-	INPUT( f_grid_ ),
+	INPUT( f_grid_, stokes_dim_ ),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( ),
@@ -1413,9 +1413,9 @@ void define_md_data_raw()
 	 "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
         ),
 	OUTPUT( ppath_, ppath_step_ ),
-	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               r_geoid_, z_ground_, blackbody_ground_, cloudbox_on_, 
-               cloudbox_limits_, ppath_step_agenda_, a_pos_, a_los_ ),
+	INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
+               lon_grid_, z_field_, r_geoid_, z_ground_, blackbody_ground_, 
+	       cloudbox_on_, cloudbox_limits_, a_pos_, a_los_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1534,14 +1534,15 @@ void define_md_data_raw()
         (
 	 "Main function for calculation of spectra and WFs.\n"
          "\n"
-         "Text will be written (PE)."
+         "More text will be written (PE)."
         ),
-	OUTPUT( y_, ppath_step_ ),
-	INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
-               r_geoid_, z_ground_,
-               blackbody_ground_, cloudbox_on_,  cloudbox_limits_, f_grid_, 
-               antenna_dim_, mblock_za_grid_, mblock_aa_grid_,
-               stokes_dim_, sensor_pos_, sensor_los_ ),
+	OUTPUT( y_rte_, ppath_, ppath_step_, i_rte_ ),
+	INPUT( ppath_step_agenda_, rte_agenda_, 
+	       atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
+               r_geoid_, z_ground_, blackbody_ground_, cloudbox_on_,  
+	       cloudbox_limits_, sensor_pos_, sensor_los_, f_grid_, 
+	       stokes_dim_,
+               antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

@@ -65,17 +65,19 @@ extern const Numeric COSMIC_BG_TEMP;
 */
 void i_spaceCBR(
         // WS Output:
-              Vector&         i_space,
+              Matrix&         i_space,
         // WS Input:
-	const Vector&         f_grid )
+	      const Vector&   f_grid,
+              const Index&    stokes_dim )
 {
   const Index n = f_grid.nelem();
   if( n == 0 )
     throw runtime_error( "The frequency grid is empty." );
-  i_space.resize(n);
-  out2 << "  Setting i_space to hold cosmic background radiation.\n";
+  out2 << "  Setting *i_space* to hold cosmic background radiation.\n";
+  i_space.resize(n,stokes_dim);
+  i_space = 0;
   for( Index i=0; i<n; i++ )
-    {i_space[i] = planck( f_grid[i], COSMIC_BG_TEMP ); }
+    { i_space(i,0) = planck( f_grid[i], COSMIC_BG_TEMP ); }
 }
 
 
@@ -89,10 +91,13 @@ void i_spaceCBR(
 */
 void RteCalc(
         // WS Output:
-              Vector&         y,
+              Matrix&         y_rte,
+	      Ppath&          ppath,
 	      Ppath&          ppath_step,
+	      Matrix&         i_rte,
         // WS Input:
 	const Agenda&         ppath_step_agenda,
+	const Agenda&         rte_agenda,
         const Index&          atmosphere_dim,
         const Vector&         p_grid,
         const Vector&         lat_grid,
@@ -103,13 +108,13 @@ void RteCalc(
         const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
+        const Matrix&         sensor_pos,
+	const Matrix&         sensor_los,
         const Vector&         f_grid,
+	const Index&          stokes_dim,
         const Index&          antenna_dim,
         const Vector&         mblock_za_grid,
-        const Vector&         mblock_aa_grid,
-	const Index&          stokes_dim,
-        const Matrix&         sensor_pos,
-        const Matrix&         sensor_los )
+	const Vector&         mblock_aa_grid )
 {
 
   // Some sizes
@@ -226,25 +231,23 @@ void RteCalc(
   //--- End: Check input ------------------------------------------------------
 
 
-  // More sizes
+  // Number of azimuthal direction for pencil beam calculations
   //
   Index naa = mblock_aa_grid.nelem();
   if( antenna_dim == 1 )
     { naa = 1; }
   
-  // Matrix all the return from RTE function. 
-  // This matrix must hold all Stokes elements.
+  // Resize *y_rte* to have the correct size.
   //
-  Matrix i_total( nmblock * nf * nza * naa, stokes_dim );
+  y_rte.resize( nmblock * nf * nza * naa, stokes_dim );
 
   // Variables needed below
   //
-  Ppath  ppath;
-  Vector los( sensor_los.ncols() );   // LOS for a MPB direction
+  Vector los( sensor_los.ncols() );   // LOS for a MPB calculation
   Index  nfdone=0;                    // Number of frequencies done
 
 
-  // Loop:  measurement block / azimuthal angle / zenith angle
+  // Loop:  measurement block / zenith angle / azimuthal angle
   //
   for( Index imblock=0; imblock<nmblock; imblock++ )
     {
@@ -259,36 +262,20 @@ void RteCalc(
 		{ los[1] += mblock_aa_grid[iaa]; }
 
 	      // Determine propagation path
-	      ppathCalc( ppath, ppath_step, atmosphere_dim, p_grid, lat_grid, 
-                        lon_grid, z_field, r_geoid, z_ground, blackbody_ground,
-                             cloudbox_on, cloudbox_limits, ppath_step_agenda, 
-                                       sensor_pos(imblock,Range(joker)), los );
+	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
+		        p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground,
+			    blackbody_ground, cloudbox_on, cloudbox_limits, 
+			               sensor_pos(imblock,Range(joker)), los );
 
-	      // Calculate spectra and WFs
-	      // (this will be an agenda)
-	      Matrix i_rte;
-	      //rte_emission( i_rte, 
+	      // Execute the *rte_agenda*
+	      rte_agenda.execute();
 	      
-
-	      // Copy i_rte to i_total
-	      //
-	      assert( i_rte.nrows() == nf );
-	      assert( i_rte.ncols() == stokes_dim );
-	      //
-	      i_total(Range(nfdone,nf),Range(joker)) = i_rte;
+	      // Copy i_rte to y_rte
+	      y_rte(Range(nfdone,nf),Range(joker)) = i_rte;
 
 	      // Increase nfdone
 	      nfdone += nf;
 	    }
 	}
     } 
-
-
-  // Apply the polarisation of the sensor
-  // (so far a temporary solution)
-  //
-  y.resize( nmblock * nf * nza * naa );
-  //
-  y = i_total( Range(joker), 0 );
-
 }

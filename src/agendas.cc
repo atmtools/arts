@@ -174,6 +174,23 @@ void define_agenda_data()
        INPUT(  ext_mat_spt_,
 	       pnd_field_  )));
 
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "i_space_agenda" ),
+       DESCRIPTION
+       (
+	"Sets the workspace variable *i_space* for the specified propagation\n"
+	"path.\n"
+	"\n"
+	"If the radiation entering the atmosphere has some direction\n"
+	"dependency, such as when radiation from the sun is considered, the\n"
+	"last point in *ppath* is used to determine the direction for which\n"
+	"incoming radiation shall be calculated. Specific workspace methods\n"
+	"for this agenda check that the propagation path really starts at\n"
+	"the top of the atmosphere."
+	),
+       OUTPUT(  i_space_ ),
+       INPUT(  ppath_  )));
 
   agenda_data.push_back
     (AgRecord
@@ -282,13 +299,14 @@ void define_agenda_data()
      ( NAME( "rte_agenda" ),
        DESCRIPTION
        (
-       "Calculation of monochromatic pencil beam spectra and absorption WFs."
+	"Performs monochromatic pencil beam calculations for a single\n"
+	"propagation path."
        "\n"
-       "Text will be written (PE).\n"
+       "More text will be written (PE).\n"
        ""
 	),
-       OUTPUT(),
-       INPUT()));
+       OUTPUT( i_rte_ ),
+       INPUT(  ppath_ )));
 
  agenda_data.push_back
     (AgRecord

@@ -186,6 +186,7 @@ void ppathCalc(
               Ppath&          ppath,
 	      Ppath&          ppath_step,
         // WS Input:
+	const Agenda&         ppath_step_agenda,
         const Index&          atmosphere_dim,
         const Vector&         p_grid,
         const Vector&         lat_grid,
@@ -196,7 +197,6 @@ void ppathCalc(
         const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
-	const Agenda&         ppath_step_agenda,
         const Vector&         a_pos,
         const Vector&         a_los )
 {

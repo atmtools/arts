@@ -400,7 +400,7 @@ void chk_atm_grids(
     {
       if( lat_grid.nelem() < 2 )
 	throw runtime_error(
-                         "For dim>1, the length of *lat_grid* must be >=2.");
+                         "For dim>1, the length of *lat_grid* must be >= 2.");
       chk_if_increasing( "lat_grid", lat_grid );
     }
 
@@ -415,7 +415,7 @@ void chk_atm_grids(
     {
       if( lon_grid.nelem() < 2 )
 	throw runtime_error(
-                          "For dim=3, the length of *lon_grid* must be >=2.");
+                          "For dim=3, the length of *lon_grid* must be >= 2.");
       chk_if_increasing( "lon_grid", lon_grid );
     }
 

@@ -748,9 +748,11 @@ void define_wsv_data()
     ( NAME( "i_rte" ),
       DESCRIPTION
       (
-       "The spectrum produced by *rte_agenda*.\n"
+       "One spectrum calculated by *rte_agenda*.\n"
        "\n"
-       "Text will be written (PE).\n"
+       "This matrix holds the Stokes vector for all frequencies obtained\n"
+       "by the monochromatic pencil beam calculations performed by\n"
+       "*rte_agenda*. The unit depends on if emission is considered or not."
        "\n"
        "Usage:      Output from *rte_agenda*.\n"
        "\n"
@@ -765,20 +767,29 @@ void define_wsv_data()
     ( NAME( "i_space" ),
       DESCRIPTION
       (
-       "The monochromatic intensity entering at the top of the atmosphere.\n"
+       "Monochromatic intensities at the top of the atmosphere.\n"
        "\n"
-       "Text will be written (PE).\n"
+       "The matrix holds the intensity entering the atmosphere from above\n"
+       "along a propagation path. This should normally correspond to cosmic\n"
+       "background radiation, but could also be radiation from the sun. \n"
        "\n"
-       "This radiation is assumed to un-polarised, and a vector suffice.\n"
-       "\n"
-       "Usage:      Set by the user.\n"
+       "Usage:      Output from *i_space_agenda*.\n"
        "\n"
        "Unit:       W / (m^2 Hz sr) \n"
        "\n"
-       "Dimensions: [ f_grid ]"
+       "Dimensions: [ f_grid, stokes_dim ]"
        ),
-      GROUP( Vector_ )));
+      GROUP( Matrix_ )));
 
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "i_space_agenda" ),
+       DESCRIPTION
+       (
+	"See agendas.cc."
+	),
+       GROUP(  Agenda_ )));
+  
  wsv_data.push_back
    (WsvRecord
     ( NAME( "l_step" ),
@@ -1741,13 +1752,29 @@ void define_wsv_data()
        "\n"
        "Text will be written (PE).\n"
        "\n"
-       "Usage:      Output from *rteCalc* and methods to apply sensor\n"
-       "            characteristics.\n"
+       "Usage:      Output from methods to apply sensor characteristics.\n"
        "\n"
        "Unit:       Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
        "            optical thickness."
        ),
       GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "y_rte" ),
+      DESCRIPTION
+      (
+       "The measurement vector produced by *RteCalc*..\n"
+       "\n"
+       "More text will be written (PE).\n"
+       "\n"
+       "Usage:      Output from *RteCalc*.\n"
+       "\n"
+       "Unit:       W/(m^2 Hz sr) or optical thickness.\n"
+       "\n"
+       "Dimensions: [ ?, stokes_dim ]"
+       ),
+      GROUP( Matrix_ )));
 
   wsv_data.push_back
    (WsvRecord

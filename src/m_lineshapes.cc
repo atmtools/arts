@@ -25,9 +25,11 @@
   
 */
 
+#include <cmath>
 #include "auto_md.h"
 #include "make_vector.h"
 #include "messages.h"
+
 
 //! The Lorentz line shape.
 /*! 
