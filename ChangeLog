@@ -1,3 +1,14 @@
+2001-04-11  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-0-155
+
+	* methods.cc, md.h, m_loc.cc: added a workspace method called
+	zaFromDeltat to calculate the zenith angles for a LEO-LEO cross
+	-link geometry corresponding to a given increment in time in 
+	the motion of the LEOs. The LEOs are supposed to be moving in
+	opposite directions in nearly identical orbits (but not \n"
+        "colliding!).
+
 2001-04-09  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-154

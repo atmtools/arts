@@ -816,6 +816,9 @@ void NoRefraction(
 }
 
 
+
+
+
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
@@ -1312,5 +1315,135 @@ void yLoadCalibration (
     }
   }
 }
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Carlos Jimenez
+   \date   2000-04-09
+*/
+
+void zaFromDeltat(
+        // WS Generic Output:
+        VECTOR&             za,
+        // WS Generic Output Names:
+        const string&       za_name,
+        // WS Input:
+	const VECTOR&       z_tan,
+        const Numeric&      z_plat,
+        const VECTOR&       p_abs,
+        const VECTOR&       z_abs,
+        const Numeric&      l_step,
+	const int&          refr,
+	const int&          refr_lfac,
+	const VECTOR&       refr_index,
+	const Numeric&      r_geoid,
+        const Numeric&      z_ground,
+        // Control Parameters:
+        const Numeric&      delta_t,
+        const VECTOR&       z_tan_lim )
+
+{
+ 
+  // Earth gravitational constant
+  const   Numeric mu   = 3.98601e14;   
+  
+  // Checking stuff
+
+  if (z_tan_lim[0]>z_tan_lim[1])
+    throw runtime_error("The lower tangent latitude is larger than the higher in z_tan_lim");
+
+
+  // No refraction
+
+  if (!refr)     
+  {
+
+    // Geometric calculations
+    VECTOR phi(2);
+    VECTOR za_lim(2);
+    string zastr = "za_lim";
+
+    zaFromZtan(za_lim, zastr, z_tan_lim, z_plat, p_abs, z_abs, refr, refr_index, r_geoid, z_ground);
+
+    phi[0] = za_lim[0] - 90;
+    phi[1] = za_lim[1] - 90;
+
+    const Numeric ang_step  = RAD2DEG * delta_t * sqrt (mu / pow(r_geoid + z_plat,3));
+
+    if (((phi[0]-phi[1])/ang_step) <=0)
+      throw runtime_error("The time given is too large to have any cross-link in the given altitude range");     
+
+    const INDEX n=INDEX(floor((phi[0]-phi[1])/ang_step));
+
+    resize(za,n);
+    for ( INDEX j=0;j<n;j++ )
+      za[j] = 90 + phi[0] - (j * ang_step);
+  }
+  // Refraction
+  else
+  {  
+  
+    const INDEX ztanstep = 100;  // 100 meters step
+    const INDEX n=INDEX(floor((z_tan_lim[1]-z_tan_lim[0])/ztanstep));
+    
+    VECTOR z_tan_1(n);
+    VECTOR z_tan_2(n);
+    resize(za,n);
+
+    // ztan altitudes for later doing the interpolation
+    for ( INDEX j=0;j<n;j++ )
+      z_tan_1[j]=z_tan_lim[0]+j*ztanstep;
+    
+    // corresponding zenith angles
+    string za_str = "za";
+    zaFromZtan(za, za_str, z_tan_1, z_plat, p_abs, z_abs, refr, refr_index, r_geoid, z_ground);
+    
+    // corresponding psi
+    LOS los;
+    resize( los.p,      n	);
+    resize( los.psi,    n	);
+    resize( los.z,      n	);
+    resize( los.l_step, n	);
+    resize( los.ground, n	);
+    resize( los.start,  n	);
+    resize( los.stop,   n	);
+    losCalc(los,z_tan_2,z_plat,za,l_step,p_abs,z_abs,refr,refr_lfac,refr_index,z_ground,r_geoid);   
+    // psi corresponding to the ztan defined for interpolation
+    VECTOR psizb(n);
+    for ( INDEX j=0;j<n;j++ )
+      psizb[j]=los.psi[j][0];
+    // lower and higer psi
+    const Numeric psitop = psizb[n-1];
+    const Numeric psibot = psizb[0];       
+
+    // 2 * vel * deltat as the receiver is assumed without motion
+    const Numeric ang_step = RAD2DEG *2 * delta_t * sqrt (mu / pow(r_geoid + z_plat,3));
+
+    // number of cross links in the ztan range specified for the given deltat
+    if (((psibot-psitop)/ang_step)<=0)
+      throw runtime_error("The time given is too large to have any cross-link in the given altitude range");  
+    const INDEX np=INDEX(floor((psibot-psitop)/ang_step));
+    // corresponding psi (in that z_tan_lim[1]-z_tan_lim[0])
+    VECTOR psit(n);
+    for ( INDEX j=0;j<np;j++ )
+      psit[j]=psibot-j*ang_step;
+
+
+    // ztan for psi for deltat from  psi and ztan for interpolation        
+    resize(z_tan_1,np);
+    for ( INDEX j=0;j<np;j++ )
+    {
+      z_tan_1[j]=interp_lin(psizb,z_tan_2,psit[j]);
+    }
+ 
+    // corresponding zenith angles
+    zaFromZtan(za, za_str, z_tan_1, z_plat, p_abs, z_abs, refr, refr_index, r_geoid, z_ground);
+
+  }
+
+}
+
 
 

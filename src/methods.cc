@@ -1577,6 +1577,32 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("zaFromDeltat"),
+	DESCRIPTION(
+           "Calculates the zenith angles for a LEO-LEO cross-link\n"
+           "geometry corresponding to a given increment in time in the\n"
+           "motion of the LEOs. The LEOs are supposed to be moving\n"
+           "in opposite directions in nearly identical orbits (but not \n"
+           "colliding!). The time window where the LEOs are interacting is \n"
+           "defined by a start and stop tangent altitudes.\n"
+           "To estimate a time interval think about the angular velocity of\n"
+           "the LEOs and the psi angle corresponding to the given z_tan\n"
+           "range. Remember that the angular velocity in an orbit of\n"
+           "radius h is given by sqrt(mu/h^3) where mu=3.98e14 m3/s.\n" 
+           "Keywords:\n"
+           "     delta_t   : time difference\n"
+           "     z_tan_lim : vector with start and stop tangent altitudes"  ),
+	OUTPUT(),
+	INPUT( z_tan_, z_plat_ , p_abs_, z_abs_, l_step_, refr_, refr_lfac_, refr_index_, r_geoid_,
+               z_ground_ ),
+	GOUTPUT(VECTOR_ ),
+	GINPUT(),
+	KEYWORDS("delta_t","z_tan_lim"),
+	TYPES(   Numeric_t, VECTOR_t )));
+
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("r_geoidStd"),
   	DESCRIPTION(
           "Sets the geoid radius to the Earth radius defined in\n"
