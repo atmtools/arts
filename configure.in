@@ -13,7 +13,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.207)
+AM_INIT_AUTOMAKE(arts,0.0.209)
 
 # Maintainer mode switch. DOC++, as well as all LaTeX documents (DOC++
 # and AUG) are only processed in maintainer mode. This is necessary so
@@ -88,7 +88,7 @@ AC_ARG_WITH(numeric-type,
        *) AC_MSG_ERROR(bad value ${withval} for --with-numeric-type) ;;
 esac],[ ac_numeric_type=double ])
 
-AC_VERBOSE(Setting floating-point type to $ac_numeric_type)
+AC_MSG_RESULT(Setting floating-point type to $ac_numeric_type)
 AC_DEFINE_UNQUOTED(NUMERIC, $ac_numeric_type, Default floating-point type)
 
 #
@@ -104,7 +104,7 @@ AC_ARG_WITH(integer-type,
     *) AC_MSG_ERROR(bad value ${withval} for --with-integer-type) ;;
 esac],[ ac_integer_type=long ])
 
-AC_VERBOSE(Setting integer type to $ac_integer_type)
+AC_MSG_RESULT(Setting integer type to $ac_integer_type)
 AC_DEFINE_UNQUOTED(INDEX, $ac_integer_type, Default integer type)
 
 # This is needed to put the corrects data paths into the example files
@@ -213,19 +213,19 @@ Makefile
    src/Makefile 
 )
 
-AC_VERBOSE()
-AC_VERBOSE([*******************************************************])
-AC_VERBOSE([              ARTS configuration summary])
-AC_VERBOSE()
-AC_VERBOSE([  Maintainer mode          : $ac_maintainer_mode])
-AC_VERBOSE([  Floating-point type      : $ac_numeric_type])
-AC_VERBOSE([  Integer type             : $ac_integer_type])
-AC_VERBOSE([  Regenerate documentation : $ac_docgen])
-AC_VERBOSE()
-AC_VERBOSE([  CPPFLAGS : $CPPFLAGS])
-AC_VERBOSE([  CFLAGS   : $CFLAGS])
-AC_VERBOSE([  CXXFLAGS : $CXXFLAGS])
-AC_VERBOSE()
-AC_VERBOSE([*******************************************************])
-AC_VERBOSE()
+AC_MSG_RESULT()
+AC_MSG_RESULT([*******************************************************])
+AC_MSG_RESULT([              ARTS configuration summary])
+AC_MSG_RESULT()
+AC_MSG_RESULT([  Maintainer mode          : $ac_maintainer_mode])
+AC_MSG_RESULT([  Floating-point type      : $ac_numeric_type])
+AC_MSG_RESULT([  Integer type             : $ac_integer_type])
+AC_MSG_RESULT([  Regenerate documentation : $ac_docgen])
+AC_MSG_RESULT()
+AC_MSG_RESULT([  CPPFLAGS : $CPPFLAGS])
+AC_MSG_RESULT([  CFLAGS   : $CFLAGS])
+AC_MSG_RESULT([  CXXFLAGS : $CXXFLAGS])
+AC_MSG_RESULT()
+AC_MSG_RESULT([*******************************************************])
+AC_MSG_RESULT()
 
