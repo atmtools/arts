@@ -12,6 +12,10 @@ INCLUDES       = -I$(top_srcdir)/src/tnt
 bin_PROGRAMS   = arts
 SUBDIRS        = tnt
 
+# Set libraries:
+LDADD = -lhdf5 -lz 
+# not needed at the moment: -ljpeg -lnsl -lm
+
 #$(top_srcdir)/config.h \
 # Does not work (source file in separate dir)
 

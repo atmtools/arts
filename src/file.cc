@@ -18,6 +18,7 @@
 #include "arts.h"
 #include "messages.h"
 #include "file.h"
+#include <hdf5.h>
 
 void open_output_file(ofstream& file, const string& name)
 {
@@ -282,3 +283,16 @@ void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
     }
 }
 
+void open_hdf()
+{
+  char name[] = "dummy.h5";
+
+  hid_t       file_id;   /* file identifier */
+  herr_t      status;
+
+  /* Create a new file using default properties. */
+  file_id = H5Fcreate(name, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+  /* Terminate access to the file. */
+  status = H5Fclose(file_id); 
+}
