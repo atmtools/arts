@@ -1,3 +1,9 @@
+2002-12-19  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-348
+
+	* src/test_complex.cc: Minor changes.
+	
 2002-12-20  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-347

@@ -41,7 +41,7 @@ void test01()
   a = Complex (1., 1.);
   cout << "a = " << a << "\n";
   cout << "a.abs() = " << abs (a) << "\n";
-  cout << "a.arg()= "<< arg (a) <<"°"<< "\n";
+  cout << "a.arg()= "<< arg (a)*57.2957914331333 <<"°"<< "\n";
   
 
   Complex c;
@@ -62,6 +62,15 @@ void test01()
    Complex e;
    e = a / b;
    cout << "e = " << e << "\n";
+   Complex f;
+   f = pow(a,0)+pow(b,0);
+   cout << "f = " << f << "\n";
+   Complex g;
+   g = pow(a,1)+pow(b,1);
+   cout << "g = " << g << "\n";
+   Complex h;
+   h=pow(a,2)+pow(b,2)+pow(a,3)+pow(b,3);
+   cout << "h = " << h << "\n";
 }
 
 int main()
