@@ -54,10 +54,10 @@ void define_md_data()
 	DESCRIPTION("Sets an integer workspace variable to the given value."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT(int_),
+	GOUTPUT(int_t),
 	GINPUT(),
 	KEYWORDS("value"),
-	TYPES(int_)));
+	TYPES(int_t)));
 
   md_data.push_back
     ( MdRecord
@@ -68,7 +68,7 @@ void define_md_data()
 	GOUTPUT(Numeric_),
 	GINPUT(),
 	KEYWORDS("value"),
-	TYPES(num_)));
+	TYPES(Numeric_t)));
 
 
 
@@ -86,7 +86,7 @@ void define_md_data()
 	GOUTPUT(VECTOR_),
 	GINPUT(),
 	KEYWORDS("length", "value"),
-	TYPES(int_, num_)));
+	TYPES(int_t, Numeric_t)));
 
   md_data.push_back
     ( MdRecord
@@ -102,7 +102,7 @@ void define_md_data()
 	GOUTPUT(VECTOR_),
 	GINPUT(),
 	KEYWORDS("start", "stop", "step"),
-	TYPES(num_, num_, num_)));
+	TYPES(Numeric_t, Numeric_t, Numeric_t)));
 
   md_data.push_back
     ( MdRecord
@@ -114,7 +114,7 @@ void define_md_data()
 	GOUTPUT(VECTOR_),
 	GINPUT(),
 	KEYWORDS("start", "stop", "n"),
-	TYPES(num_, num_, int_)));
+	TYPES(Numeric_t, Numeric_t, int_t)));
 
   md_data.push_back
     ( MdRecord
@@ -126,7 +126,7 @@ void define_md_data()
 	GOUTPUT(VECTOR_),
 	GINPUT(),
 	KEYWORDS("start", "stop", "n"),
-	TYPES(num_, num_, int_)));
+	TYPES(Numeric_t, Numeric_t, int_t)));
 
 
 
@@ -144,13 +144,13 @@ void define_md_data()
 		    //		    "\"<variable_name>\"\n\n"
 		    "<n_elements> 1\n\n"
 		    "<elements>"),
-	OUTPUT(),
+	OUTPUT(), 
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(VECTOR_),
 	KEYWORDS(),
 	TYPES()));
-  /*
+  
   md_data.push_back
     ( MdRecord
       ( NAME("VectorWriteToNamedFile"),
@@ -167,7 +167,7 @@ void define_md_data()
 	GOUTPUT(),
 	GINPUT(VECTOR_),
 	KEYWORDS("filename"),
-	TYPES(str_)));
+	TYPES(string_t)));
 
   md_data.push_back
     ( MdRecord
@@ -201,8 +201,8 @@ void define_md_data()
 	GOUTPUT(),
 	GINPUT(MATRIX_),
 	KEYWORDS("filename"),
-	TYPES(str_)));
-*/
+	TYPES(string_t)));
+
 
 
 //
@@ -226,7 +226,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-  /*
+  
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixReadFromFile"),
@@ -243,13 +243,13 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-*/
+
 
 
 //======================================================================
 //=== Absorption methods
 //======================================================================
-  /*
+  
   md_data.push_back
     ( MdRecord
       ( NAME("AllAbsExample"),
@@ -261,7 +261,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-  */
+  
 
 
 //======================================================================

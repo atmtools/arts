@@ -5,11 +5,6 @@
 #include "vecmat.h"
 
 
-//
-// Temporary solution to avoid crash between definition of int_ in token.h and here.
-typedef int Integer;
-
-
 /** Define the enum type that identifies wsv groups.
     This is used to group workspace variables of the same type
     together, so that generic methods can operate on any of them. 
@@ -22,7 +17,7 @@ typedef int Integer;
     \end{verbatim} */
 enum WsvGroup{
   string_,
-  Integer_,
+  int_,
   Numeric_,
   VECTOR_,
   MATRIX_,
@@ -82,9 +77,9 @@ public:
   VECTOR  view1;
   Numeric z_plat;
   Numeric l_step;
-  Integer refr;
+  int refr;
   Numeric l_step_refr;
-  Integer cbgr;
+  int cbgr;
   Numeric z_ground;
   Numeric t_ground;
   VECTOR  e_ground;
@@ -103,7 +98,7 @@ public:
 class WsvP {
 public:
   virtual operator string*()  { safety(); return NULL; };
-  virtual operator Integer*() { safety(); return NULL; };
+  virtual operator int*()     { safety(); return NULL; };
   virtual operator Numeric*() { safety(); return NULL; };
   virtual operator VECTOR*()  { safety(); return NULL; };
   virtual operator MATRIX*()  { safety(); return NULL; };

@@ -5,59 +5,59 @@
 
 /** The different token value types. These are the types that keyword
     parameters in the controlfile can have. */
-enum TokValType { str_,    int_,    num_,
-	          strvec_, intvec_, numvec_,
-                  undefined_ };
+enum TokValType { string_t,    int_t,    Numeric_t,
+	          ARRAY_string_t, ARRAY_int_t, ARRAY_Numeric_t,
+                  undefined_t };
 
 /** This stores arbitrary token values and remembers the type. Only
     the correct type can be extracted again. */
 class TokVal {
 public:
 
-  /** Default Constructor. (Sets type to undefined_) */
+  /** Default Constructor. (Sets type to undefined_t) */
   TokVal() {
-    mtype = undefined_;
+    mtype = undefined_t;
   }
 
   /** To set TokVal from string (C - style). */
   TokVal(const char s[]) {
-    mtype = str_;
+    mtype = string_t;
     ms = s;
   }
 
   /** To set TokVal from string (C++ - style). */
   TokVal(const string& s) {
-    mtype = str_;
+    mtype = string_t;
     ms = s;
   }
 
   /** To set TokVal from an integer. */
   TokVal(int n) {
-    mtype = int_;
+    mtype = int_t;
     mn = n;
   }
 
   /** To set TokVal from a Numeric. */
   TokVal(Numeric x) {
-    mtype = num_;
+    mtype = Numeric_t;
     mx = x;
   }
 
   /** To set TokVal from an array of strings. */
   TokVal(ARRAY<string> sv) {
-    mtype = strvec_;
+    mtype = ARRAY_string_t;
     msv = sv;
   }
 
   /** To set TokVal from an array of integers. */
   TokVal(ARRAY<int> nv) {
-    mtype = intvec_;
+    mtype = ARRAY_int_t;
     mnv = nv;
   }
 
   /** To set TokVal from an array of Numerics. */
   TokVal(ARRAY<Numeric> xv) {
-    mtype = numvec_;
+    mtype = ARRAY_Numeric_t;
     mxv = xv;
   }
 

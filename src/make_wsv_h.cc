@@ -20,7 +20,7 @@ int main()
       define_wsv_data();
 
       // Make wsv data visible.
-      extern ARRAY<WsvRecord> wsv_data;
+      extern const ARRAY<WsvRecord> wsv_data;
 
       const size_t n_wsv = wsv_data.size();
 

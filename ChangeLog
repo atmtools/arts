@@ -1,3 +1,29 @@
+2000-04-10  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-13
+
+	* Renamed token types to 
+	enum TokValType { string_t,    int_t,    Numeric_t,
+	                  ARRAY_string_t, ARRAY_int_t, ARRAY_Numeric_t,
+                          undefined_t };
+	This is now consistent with the token type names in token.cc.
+
+	* Removed Integer type, since it is no longer necessary.
+
+	* notes.txt: Updated with respect to global constants.
+
+	* notes.txt: Added howto about switching off optimization.
+
+	* Everywhere: Changed const extern to extern const. This is just
+	for nicety, the two are the same thing.
+
+	* vecmat.h: Moved Patricks vector/scalar operations here from
+	tnt/vec.h.
+
+	* Compiling without optimization is really much much faster. I
+	wish I had realized this before!
+	
+
 2000-04-06  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-12

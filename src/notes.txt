@@ -29,9 +29,9 @@ Some notes about the art of programing on ARTS:
    Are not visible by default. To use them you have to declare them
    like this:
 
-   const external Numeric Pi;
+   extern const Numeric PI;
 
-   which will make the global constant Pi=3.14... available.
+   which will make the global constant PI=3.14... available.
 
    Other important globals:
    full_name:   The full name of the program, including version number.
@@ -324,6 +324,23 @@ Build stuff:
 
 5. The global header file arts.h *must* be included by every file, for
    example because it turns on or off assert.
+
+6. Compilation with optimization may be very slow. You can turn off
+   optimization as follows:
+
+   1. On the shell, type:
+   $ export CXXFLAGS="-g -O0"
+   
+   2. Then, in the arts directory, run
+   $ ./configure (or just configure, if `.' is in your path.)
+
+   If you work on the program a lot, you probably want to put the
+   first of the two commands in your .profile. 
+
+   There probably is a much more elegant solution, maybe to switch off
+   optimization by default. If you know or find one, please let us
+   know. 
+
 ----------------------------------------------------------------------
 
 TNT stuff:

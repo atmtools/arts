@@ -190,7 +190,7 @@ void NumericSet(// WS Generic Output:
 
 void VectorSet(           VECTOR&  x, 
                     const string&  x_name,
-                    const Integer& n,
+                    const int& n,
                     const Numeric& value )
 {
   x.newsize(n);
@@ -221,7 +221,7 @@ void VectorNLinSpace(     VECTOR&  x,
                     const string&  x_name,
                     const Numeric& start,
                     const Numeric& stop,
-                    const Integer& n )
+                    const int& n )
 {
   x = nlinspace(start,stop,n);
   out3 << "Creating " << x_name << " as linearly spaced vector\n";
@@ -238,7 +238,7 @@ void VectorNLogSpace(     VECTOR&  x,
                     const string&  x_name,
                     const Numeric& start,
                     const Numeric& stop,
-                    const Integer& n )
+                    const int& n )
 {
   x = nlogspace(start,stop,n);
   out3 << "Creating " << x_name << " as logarithmically spaced vector\n";
@@ -259,7 +259,7 @@ void VectorWriteToFile(// WS Generic Input:
                        // WS Generic Input Names:
                        const string& v_name)
 {
-  const extern string basename;                       
+  extern const string basename;                       
   string filename = basename+"."+v_name+".a";
 
   // Convert the vector to a matrix:
@@ -275,7 +275,7 @@ void MatrixWriteToFile(// WS Generic Input:
                        // WS Generic Input Names:
                        const string& m_name)
 {
-  const extern string basename;                       
+  extern const string basename;                       
   string filename = basename+"."+m_name+".a";
 
   // Write the matrix to the file.
@@ -321,7 +321,7 @@ void VectorReadFromFile(// WS Generic Output:
                         // WS Generic Output Names:
                         const string& v_name)
 {
-  const extern string basename;                       
+  extern const string basename;                       
   string filename = basename+"."+v_name+".a";
 
   // Read a matrix from the file:
@@ -338,7 +338,7 @@ void MatrixReadFromFile(// WS Generic Output:
                         // WS Generic Output Names:
                         const string& m_name)
 {
-  const extern string basename;                       
+  extern const string basename;                       
   string filename = basename+"."+m_name+".a";
 
   // Read the matrix from the file:

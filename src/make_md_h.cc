@@ -78,10 +78,10 @@ int main()
       define_wsv_data();
   
       // Make wsv data visible.
-      const extern ARRAY<WsvRecord> wsv_data;
+      extern const ARRAY<WsvRecord> wsv_data;
 
       // The names of the types of workspace variables.
-      const extern ARRAY<string> wsv_group_names;
+      extern const ARRAY<string> wsv_group_names;
 
       const size_t n_md  = md_data.size();
       const size_t n_wsv = wsv_data.size();
@@ -390,7 +390,7 @@ int main()
 	  << "\n";
 
       // Declare wsv_data:
-      ofs << "const extern ARRAY<WsvRecord> wsv_data;\n\n";
+      ofs << "extern const ARRAY<WsvRecord> wsv_data;\n\n";
 
 
       // Write all get-away functions:

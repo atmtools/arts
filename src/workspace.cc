@@ -37,7 +37,7 @@ void define_wsv_data()
      needs these enums.
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
   wsv_group_names.push_back("string");
-  wsv_group_names.push_back("Integer");
+  wsv_group_names.push_back("int");
   wsv_group_names.push_back("Numeric");
   wsv_group_names.push_back("VECTOR");
   wsv_group_names.push_back("MATRIX");
@@ -132,12 +132,12 @@ void define_wsv_data()
   }
 
   {
-    static WsvPointer<Integer> p(&workspace.refr);
+    static WsvPointer<int> p(&workspace.refr);
     wsv_data.push_back
       (WsvRecord
        ("refr",
 	"Boolean to consider refraction (0=no refraction).",
-	Integer_,
+	int_,
 	&p));
   }
 
@@ -152,12 +152,12 @@ void define_wsv_data()
   }
 
   {
-    static WsvPointer<Integer> p(&workspace.cbgr);
+    static WsvPointer<int> p(&workspace.cbgr);
     wsv_data.push_back
       (WsvRecord
        ("cbgr",
 	"Boolean to consider cosmic background radiation (0=no cbgr).",
-	Integer_,
+	int_,
 	&p));
   }
 

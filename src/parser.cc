@@ -673,9 +673,9 @@ bool parse_method(size_t& id,
 		  const std::map<string, size_t> MdMap,
 		  const std::map<string, size_t> WsvMap)
 {
-  const extern ARRAY<WsvRecord> wsv_data;
-  const extern ARRAY<MdRecord> md_data;
-  const extern ARRAY<string> wsv_group_names;
+  extern const ARRAY<WsvRecord> wsv_data;
+  extern const ARRAY<MdRecord> md_data;
+  extern const ARRAY<string> wsv_group_names;
 
   size_t wsvid;			// Workspace variable id, is used to
 				// access data in wsv_data.
@@ -850,46 +850,46 @@ bool parse_method(size_t& id,
 	}
 
       // Now parse the key value. This can be:
-      // str_,    int_,    num_,
-      // strvec_, intvec_, numvec_,
+      // string_t,    int_t,    Numeric_t,
+      // ARRAY_string_t, ARRAY_int_t, ARRAY_Numeric_t,
       switch (md_data[id].Types()[i]) 
 	{
-	case str_:
+	case string_t:
 	  {
 	    string dummy;
 	    parse_string(dummy, text);
 	    values.push_back(dummy);
 	    break;
 	  }
-	case int_:
+	case int_t:
 	  {
 	    int n;
 	    parse_integer(n, text);
 	    values.push_back(n);
 	    break;
 	  }
-	case num_:
+	case Numeric_t:
 	  {
 	    Numeric n;
 	    parse_numeric(n, text);
 	    values.push_back(n);
 	    break;
 	  }
-	case strvec_:
+	case ARRAY_string_t:
 	  {
 	    ARRAY<string> dummy;
 	    parse_stringvector(dummy, text);
 	    values.push_back(dummy);
 	    break;
 	  }
-	case intvec_:
+	case ARRAY_int_t:
 	  {
 	    ARRAY<int> dummy;
 	    parse_intvector(dummy, text);
 	    values.push_back(dummy);
 	    break;
 	  }
-	case numvec_:
+	case ARRAY_Numeric_t:
 	  {
 	    ARRAY<Numeric> dummy;
 	    parse_numvector(dummy, text);
@@ -966,7 +966,7 @@ void parse(ARRAY<MRecord>& tasklist,
       {
 	// Everything in this block is just to generate some
 	// informative output.  
-	const extern ARRAY<WsvRecord> wsv_data;
+	extern const ARRAY<WsvRecord> wsv_data;
 
 	out3 << "- " << md_data[id].Name() << "\n";
 

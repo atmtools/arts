@@ -31,13 +31,13 @@ void give_up(const string& message)
 void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
 {
   // The method description lookup table:
-  const extern ARRAY<MdRecord> md_data;
+  extern const ARRAY<MdRecord> md_data;
 
   // The workspace variable lookup table:
-  const extern ARRAY<WsvRecord> wsv_data;
+  extern const ARRAY<WsvRecord> wsv_data;
   
   // The array holding the pointers to the getaway functions:
-  const extern void (*getaways[])(WorkSpace&, const MRecord&);
+  extern const void (*getaways[])(WorkSpace&, const MRecord&);
 
   // We need a place to remember which workspace variables are
   // occupied and which aren't.
@@ -164,7 +164,7 @@ int main (int argc, char **argv)
   // will not exist.
   try
     {
-      const extern string basename;     // Basis for file name
+      extern const string basename;     // Basis for file name
       extern ofstream report_file;	// Report file pointer
 
       //      cout << "rep = " << basename+".rep" << '\n';

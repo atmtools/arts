@@ -7,39 +7,40 @@
     variables in the program, because it is used by make_md_h.cc to
     automatically generate declarations for method functions. */
 string TokValTypeName[6] = {"string", "int", "Numeric",
-			    "ARRAY<String>", "ARRAY<Int>", "VECTOR"};
+			    "ARRAY<String>", "ARRAY<Int>", "VECTOR",
+                            "undefined"};
 
 
 // Conversion functions to read TokVal for the 6 different types: 
   
 TokVal::operator string() const {
-  assert (mtype == str_);
+  assert (mtype == string_t);
   return ms;
 }
 
 TokVal::operator int() const {
-  assert (mtype == int_);
+  assert (mtype == int_t);
   return mn;
 }
   
 TokVal::operator Numeric() const {
-  assert (mtype == num_);
+  assert (mtype == Numeric_t);
   return mx;
 }
 
 
 TokVal::operator ARRAY<string>() const {
-  assert (mtype == strvec_);
+  assert (mtype == ARRAY_string_t);
   return msv;
 }
 
 TokVal::operator ARRAY<int>() const {
-  assert (mtype == intvec_);
+  assert (mtype == ARRAY_int_t);
   return mnv;
 }
   
 TokVal::operator ARRAY<Numeric>() const {
-  assert (mtype == numvec_);
+  assert (mtype == ARRAY_Numeric_t);
   return mxv;
 }
 
@@ -48,22 +49,22 @@ ostream& operator<<(ostream& os, const TokVal& a)
 {
   switch (a.mtype)
     {
-    case str_:
+    case string_t:
       os << a.ms;
       break;
-    case int_:
+    case int_t:
       os << a.mn;
       break;
-    case num_:
+    case Numeric_t:
       os << a.mx;
       break;
-    case strvec_:
+    case ARRAY_string_t:
       os << a.msv;
       break;
-    case intvec_:
+    case ARRAY_int_t:
       os << a.mnv;
       break;
-    case numvec_:
+    case ARRAY_Numeric_t:
       os << a.mxv;
       break;
     default:

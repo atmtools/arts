@@ -258,7 +258,7 @@ void losGeneral(
               const Numeric&    l_step,
               const VECTOR&     p_abs,
               const VECTOR&     z_abs,
-              const Integer&    refr,
+              const int&    refr,
               const Numeric&    l_step_refr,
               const Numeric&    z_ground,
               const VECTOR&     e_ground )
