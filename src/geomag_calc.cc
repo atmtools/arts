@@ -35,6 +35,8 @@ void magfield_nk(  // Output
 {
   
   Numeric a; // mean radius of the Earth in [km].
+  Numeric Phi = phi * DEG2RAD; // Longitude angle in radian.
+  Numeric Theta = PI/2 - theta * DEG2RAD; // Colatitude angle in radian.
     
   // Initializing values of the magnetic field components.
   B_r = 0;
@@ -60,35 +62,36 @@ void magfield_nk(  // Output
 	  
 	  // Relating the row index in M to the coresponding 
 	  // degree number n and order number l.
-	  Index	  j = l * (l + 1) / 2 + m - 1; 
+ 	  Index	  j = l * (l + 1) / 2 + m - 1; 
 
 	  // Calculating the associated Schmidt quasi-normalized Legendre 
 	  // polynomial for a degree number l and order number m.
 	  Numeric P_lm = 
-	    legendre_poly_norm_schmidt (l, m, cos(PI/2 - theta * DEG2RAD));
+	    legendre_poly_norm_schmidt (l, m, cos(Theta));
 
 	  // Calculating the derivative of the associated Schmidt quasi-normalized 
 	  // Legendre polynomial for a degree number l and order number m.
 	  Numeric dP_lm = 
-	    legendre_poly_norm_schmidt_deriv (l, m, cos(PI/2 - theta * DEG2RAD));
+	    legendre_poly_norm_schmidt_deriv (l, m, cos(Theta));
 	  
 	  // Calculating the radial (upward) component of the magnetic field.
-	  B_r +=  pow(l + 2, a / r) * (l + 1) * 
-	    ((M(j,0) + Ny * M(j,2)) * cos(m * phi * DEG2RAD) 
-	     + (M(j,1) + Ny * M(j,3)) * sin(m * phi * DEG2RAD)) * P_lm;
+	  B_r += pow(l + 2, a / r) * (l + 1) * 
+	    ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
+	     + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) 
+	       * P_lm;
 	  
-	  // Calculating the latitudinal (nortward) component of the magnetic field. 
-	  B_th += - pow(l + 2, a / r) * 
-	    ((M(j,0) + Ny * M(j,2)) * cos(m * phi * DEG2RAD) 
-	     + (M(j,1) + Ny * M(j,3)) * sin(m * phi * DEG2RAD)) *
-	    DEG2RAD * sin(PI/2 - theta * DEG2RAD) * dP_lm;
+	  // Calculating the latitudinal (southward) component of the magnetic field. 
+	  B_th += pow(l + 2, a / r) * 
+	    ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
+	     + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) *
+	      dP_lm * sin(Theta);
       
       
           // Calculating the longitudinal (eastward) component of the magnetic field.
-          B_ph += - pow(l + 2, a / r) * m * DEG2RAD *
-	   ((M(j,0) + Ny * M(j,2)) * cos(m * phi * DEG2RAD) 
-	    - (M(j,1) + Ny * M(j,3)) * sin(m * phi * DEG2RAD)) *
-	   P_lm / sin(PI/2 - theta * DEG2RAD);
+          B_ph += pow(l + 2, a / r) * m *
+	   ((M(j,0) + Ny * M(j,2)) * sin(m * Phi) 
+	    - (M(j,1) + Ny * M(j,3)) * cos(m * Phi)) *
+	     P_lm / sin(Theta);
       
 	  
 	}

@@ -1,3 +1,14 @@
+2003-08-28  Nikolay Koulev  <nkoulev@bremen.de>
+
+	* arts-1-1-680
+
+	* src/legendre.cc: Changed the derivative expression for one of
+	the cases in (legendre_poly_deriv) and
+	(legendre_poly_norm_schmidt_deriv).
+
+	* src/geomag_calc.cc: Changed the component definitions of the
+	magnetic field.
+
 2003-08-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-679

@@ -204,9 +204,9 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-          result= (((l + 1) * (l + m) + legendre_poly (l-1, m, x)
-                    - l * (l - m + 1) * legendre_poly (l+1, m, x))
-                   / ((2*l + 1) * (1 - x * x)));
+	  result = ((l + m) * legendre_poly (l-1, m, x) - 
+		    l * x * legendre_poly (l, m, x)) /
+	             (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -290,9 +290,9 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-          result = ((l + 1) * (l + m) + legendre_poly_norm_schmidt (l-1, m, x)
-                    - l * (l - m + 1) * legendre_poly_norm_schmidt (l+1, m, x))
-            / ((2*l + 1) * (1 - x * x));
+	  result = ((l + m) * legendre_poly_norm_schmidt (l-1, m, x) - 
+		    l * x * legendre_poly_norm_schmidt (l, m, x)) /
+	             (1 - x * x);
         }
       catch (runtime_error e)
         {
