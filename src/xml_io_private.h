@@ -96,6 +96,12 @@ void
 xml_write_to_stream (ostream& os, const ArrayOfArrayOfTensor6& aatensor6);
 
 void
+xml_read_from_stream (istream& is, ArrayOfGridPos& agpos);
+
+void
+xml_write_to_stream (ostream& os, const ArrayOfGridPos& agpos);
+
+void
 xml_read_from_stream (istream& is, ArrayOfIndex& aindex);
 
 void
@@ -229,6 +235,9 @@ xml_read_from_file<ArrayOfArrayOfTensor6> (const String&,
                                            ArrayOfArrayOfTensor6&);
 
 template void
+xml_read_from_file<ArrayOfGridPos> (const String&, ArrayOfGridPos&);
+
+template void
 xml_read_from_file<ArrayOfIndex> (const String&, ArrayOfIndex&);
 
 template void
@@ -293,6 +302,9 @@ xml_read_from_file<Vector> (const String&, Vector&);
 
 template void
 xml_write_to_file<Agenda> (const String&, const Agenda&);
+
+template void
+xml_write_to_file<ArrayOfGridPos> (const String&, const ArrayOfGridPos&);
 
 template void
 xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&);

@@ -935,7 +935,84 @@ xml_write_to_stream (ostream&             os,
 }
 
 
-//=== ArrayOfIndex ==========================================================
+//=== ArrayOfGridPos =========================================================
+
+//! Reads ArrayOfGridPos from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Array type="GridPos">
+  and if so, write the values to 'agpos' parameter.
+
+  \param is    Input stream
+  \param agpos ArrayOfGridPos return value
+*/
+void
+xml_read_from_stream (istream&        is,
+                      ArrayOfGridPos& agpos)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "GridPos");
+
+  tag.get_attribute_value ("nelem", nelem);
+  agpos.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is, agpos[n]);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfGridPos: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfGridPos to XML output stream
+/*!
+  \param os    Output stream
+  \param agpos ArrayOfGridPos
+*/
+void
+xml_write_to_stream (ostream&              os,
+                     const ArrayOfGridPos& agpos)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+
+  open_tag.add_attribute ("type", "GridPos");
+  open_tag.add_attribute ("nelem", agpos.nelem ());
+
+  open_tag.write_to_stream (os);
+  os << '\n';
+
+  for (Index n = 0; n < agpos.nelem (); n++)
+    {
+      xml_write_to_stream (os, agpos[n]);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os);
+
+  os << '\n';
+}
+
+
+//=== ArrayOfIndex ===========================================================
 
 //! Reads ArrayOfIndex from XML input stream
 /*!
@@ -1535,6 +1612,59 @@ xml_write_to_stream (ostream&            os,
 }
 
 
+//=== GridPos =====================================================
+
+//! Reads GridPos from XML input stream
+/*!
+  Checks whether the next tag in input stream is <GridPos>
+  and if so, write the values to 'gpos' parameter.
+
+  \param is   Input stream
+  \param gpos GridPos return value
+*/
+void
+xml_read_from_stream (istream& is,
+                      GridPos& gpos)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is);
+  tag.check_name ("GridPos");
+
+  xml_read_from_stream (is, gpos.idx);
+  xml_read_from_stream (is, gpos.fd[0]);
+  xml_read_from_stream (is, gpos.fd[1]);
+
+  tag.read_from_stream (is);
+  tag.check_name ("/GridPos");
+}
+
+//! Writes GridPos to XML output stream
+/*!
+  \param os    Output stream
+  \param gpos  GridPos
+*/
+void
+xml_write_to_stream (ostream&       os,
+                     const GridPos& gpos)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("GridPos");
+  open_tag.write_to_stream (os);
+
+  xml_write_to_stream (os, gpos.idx);
+  xml_write_to_stream (os, gpos.fd[0]);
+  xml_write_to_stream (os, gpos.fd[1]);
+
+  close_tag.set_name ("/GridPos");
+  close_tag.write_to_stream (os);
+  os << '\n';
+}
+
+
+
 //=== Index ==================================================================
 
 //! Reads Index from XML input stream
@@ -1728,6 +1858,82 @@ xml_write_to_stream (ostream&       os,
   os << numeric;
 
   close_tag.set_name ("/Numeric");
+  close_tag.write_to_stream (os);
+  os << '\n';
+}
+
+
+//=== Ppath =====================================================
+
+//! Reads Ppath from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Ppath>
+  and if so, write the values to 'ppath' parameter.
+
+  \param is    Input stream
+  \param ppath Ppath return value
+*/
+void
+xml_read_from_stream (istream& is,
+                      Ppath& ppath)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Ppath");
+
+  xml_read_from_stream (is, ppath.dim);
+  xml_read_from_stream (is, ppath.np);
+  xml_read_from_stream (is, ppath.refraction);
+  xml_read_from_stream (is, ppath.method);
+  xml_read_from_stream (is, ppath.constant);
+  xml_read_from_stream (is, ppath.pos);
+  xml_read_from_stream (is, ppath.z);
+  xml_read_from_stream (is, ppath.l_step);
+  xml_read_from_stream (is, ppath.gp_p);
+  xml_read_from_stream (is, ppath.gp_lat);
+  xml_read_from_stream (is, ppath.gp_lon);
+  xml_read_from_stream (is, ppath.los);
+  xml_read_from_stream (is, ppath.background);
+  xml_read_from_stream (is, ppath.tan_pos);
+  xml_read_from_stream (is, ppath.geom_tan_pos);
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Ppath");
+}
+
+//! Writes Ppath to XML output stream
+/*!
+  \param os    Output stream
+  \param ppath Ppath
+*/
+void
+xml_write_to_stream (ostream&     os,
+                     const Ppath& ppath)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Ppath");
+  open_tag.write_to_stream (os);
+
+  xml_write_to_stream (os, ppath.dim);
+  xml_write_to_stream (os, ppath.np);
+  xml_write_to_stream (os, ppath.refraction);
+  xml_write_to_stream (os, ppath.method);
+  xml_write_to_stream (os, ppath.constant);
+  xml_write_to_stream (os, ppath.pos);
+  xml_write_to_stream (os, ppath.z);
+  xml_write_to_stream (os, ppath.l_step);
+  xml_write_to_stream (os, ppath.gp_p);
+  xml_write_to_stream (os, ppath.gp_lat);
+  xml_write_to_stream (os, ppath.gp_lon);
+  xml_write_to_stream (os, ppath.los);
+  xml_write_to_stream (os, ppath.background);
+  xml_write_to_stream (os, ppath.tan_pos);
+  xml_write_to_stream (os, ppath.geom_tan_pos);
+
+  close_tag.set_name ("/Ppath");
   close_tag.write_to_stream (os);
   os << '\n';
 }
@@ -2484,20 +2690,6 @@ xml_write_to_stream (ostream&     os,
 
 void
 xml_read_from_stream (istream& is,
-                      Ppath& ppath)
-{
-  throw runtime_error("Method not implemented!");
-}
-
-void
-xml_write_to_stream (ostream&     os,
-                     const Ppath& ppath)
-{
-  throw runtime_error("Method not implemented!");
-}
-
-void
-xml_read_from_stream (istream& is,
                       Agenda& agenda)
 {
   throw runtime_error("Method not implemented!");
@@ -2509,19 +2701,4 @@ xml_write_to_stream (ostream&     os,
 {
   throw runtime_error("Method not implemented!");
 }
-
-void
-xml_read_from_stream (istream& is,
-                      GridPos& gp)
-{
-  throw runtime_error("Method not implemented!");
-}
-
-void
-xml_write_to_stream (ostream&     os,
-                     const GridPos& gp)
-{
-  throw runtime_error("Method not implemented!");
-}
-
 
