@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.631)
+AM_INIT_AUTOMAKE(arts,1.1.632)
 
 AM_MAINTAINER_MODE
 
@@ -411,8 +411,8 @@ Makefile
       doc/icons/Makefile 
       doc/doxygen/Makefile
       doc/doxygen/Doxyfile
-      doc/doxygen/html/Makefile
-      doc/doxygen/latex/Makefile
+         doc/doxygen/html/Makefile
+         doc/doxygen/latex/Makefile
       doc/uguide/Makefile 
       doc/uguide/auto_version.tex 
          doc/uguide/Figs/Makefile 
