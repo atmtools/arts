@@ -3,6 +3,9 @@
 	* arts-0-0-77
 
 	* Very small changes to documentation in several places.
+
+	* Sample control file in AUG still needs to be adapted to new
+	method and WSV names.
 	
 
 2000-11-10  Patrick Eriksson  <patrick@rss.chalmers.se>
