@@ -1,9 +1,22 @@
 2004-03-26  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
+	* arts-1-1-804
+
+	* doc/uguide/uguide.tex: Commented out the
+	\includeonly{polarization} again...
+
+	* doc/uguide/polarization.tex: Fixed some small error (undefined
+	control sequence) that prevented uguide from being pdflatex'ed...
+	should work now.
+	
+2004-03-26  Christian Melsheimer  <melsheimer@uni-bremen.de>
+
+	* doc/uguide/polarization.tex: 
+
 	* arts-1-1-803
 	
 	* doc/uguide/polarization.tex: Corrected some minor errors, and
-	added new subsection on antenna (sensor) polarization.
+	added new subsection on antenna (sensor) polarization. 
 
 2004-03-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
