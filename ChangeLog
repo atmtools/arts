@@ -1,3 +1,15 @@
+2003-03-17  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-499
+
+	* src/bifstream.h, src/bofstream.h: Implemented putRaw/getRaw. 
+
+	* src/binio.{cc,h}: Added pure virtual functions putRaw to binostream
+	and getRaw to binostream/binistream. Modified writeFloat/readFloat to
+	use putRaw/getRaw. Raw reading/writing is used instead of the byte-wise
+	conversion-enabled routines when the data type size and endianness of
+	the host machine matches the data file. Increases speed on pcs by 3.5.
+
 2003-03-17  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-498
