@@ -27,6 +27,8 @@
   equation. 
 */
 
+#include <math.h>
+
 #include "lin_alg.h"
 
 
