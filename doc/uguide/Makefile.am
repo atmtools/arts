@@ -40,8 +40,7 @@ texfiles = \
 	utilities.tex \
 	wfuns_atm.tex \
 	wfuns_sensor.tex \
-	app_wsv.tex \
-	app_math.tex
+	app_wsv.tex
 
 EXTRA_DIST = \
 	$(texfiles) \

@@ -1,5 +1,18 @@
 2001-10-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0-0-266
+
+	* doc/uguide/Makefile.am: Remove app_math.txt.
+
+	* doc/examples/Makefile.am: Changed example1.arts to auto_example1.arts.
+
+
+2001-10-05  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* doc/uguide/Makefile.am: Remove app_math.txt.
+
+	* doc/examples/Makefile.am: Changed example1.arts to auto_example1.arts.
+
 	* arts-0-0-265
 
 	* doc/index.html: Changed names of example1.arts and full.arts to

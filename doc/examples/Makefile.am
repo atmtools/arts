@@ -12,14 +12,15 @@ artsdocdir = $(pkgdatadir)/doc
 examplesdocdir = $(artsdocdir)/examples
 
 arts_examples = \
-	example1.arts \
 	cont.arts \
 	amsu.arts
 
 artsdata_examples_in = \
+	auto_example1.arts.in \
 	auto_full.arts.in
 
 artsdata_examples = \
+	auto_example1.arts \
 	auto_full.arts
 
 if ARTS_DATA_PATH
