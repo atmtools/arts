@@ -42,39 +42,9 @@
 #include "abs_o2_models.h"
 #include "auto_md.h"
 
-// =================================================================================
-
-
-
-// prototypes of internal functions
-/*
-Numeric LagrangeInterpol4( ConstVectorView x,
-			   ConstVectorView y,
-			   const Numeric a);
-
-void HUMLIK_vec_Wells ( ConstVectorView X, 
-			Numeric Y, 
-			Vector& K, 
-			Vector& L );
-
-int absPWRO2Model(// WS Output:
-		  Vector&         abs_f_grid,           // absorption coefficient       [1/m]
-		  // WS Input:
-		  const Numeric   geomag_strength,      // mag. field strength          [Gauss]
-		  const Numeric   geomag_angle,         // mag. field orientation angle [radians]
-		  const bool      flag_zeeman,          // Zeeman splitting on or off
-		  const Vector&   f_grid,               // frequency vector             [Hz]
-		  const Numeric   p,                    // pressure                     [Pa]
-		  const Numeric   t,                    // temperature                  [K]
-		  const Numeric   vmro2,                // O2 vmr                       [1]
-		  const Numeric   vmrh2o,               // H2O vmr                      [1]
-		  const String&   abs_model,            // model selection string
-		  const Vector&   abs_user_parameters );// scaling factor(s)
-*/
 
 
 // =================================================================================
-
 
 
 // arts defined constants
@@ -225,10 +195,12 @@ Numeric LagrangeInterpol4( ConstVectorView x,
   \date   2003-11-30
 */
 
-void HUMLIK_Faddeeva_Wells ( ConstVectorView X, 
-			     Numeric Y, 
-			     Vector& K, 
-			     Vector& L )
+void HUMLIK_Faddeeva_Wells ( // Input
+		       ConstVectorView X, 
+		       Numeric Y, 
+                       // Output
+		       Vector& K, 
+		       Vector& L )
 {
 
   /*
@@ -951,24 +923,33 @@ void ZeemanO2 (// WS Output:
  ******************************************************************************************** */
 
 
-Complex CEF( const Complex zeta, 
-	     const Numeric gamma )
+void CEF( // Input
+	 const Complex zeta, 
+	 const Numeric Gamma_D,
+	 //oUTPUT
+	 Numeric& Re_CEF,
+	 Numeric& Im_CEF )
 {
 
   // The special line shape, Complex Error Function.
   // see P. W. Rosenkranz Chapter 2 of the Janssen book
 
-  Complex retval = (1/(sqrt(PI)*gamma)) *
-             (  122.60793178 * pow(zeta,0) 
-	      + 214.38238869 * pow(zeta,1) + 181.92853309 * pow(zeta,2) 
-	      +  93.15558046 * pow(zeta,3) +  30.18014220 * pow(zeta,4)
-	      +   5.91262621 * pow(zeta,5) +   0.56418958 * pow(zeta,6)) /
-             (  122.60793178 * pow(zeta,0) + 352.73062511 * pow(zeta,1)
-              + 457.33447878 * pow(zeta,2) + 348.70391772 * pow(zeta,3) 
-              + 170.35400182 * pow(zeta,4) +  53.99290691 * pow(zeta,5)
-              +  10.47985711 * pow(zeta,6) +   1.00000000 * pow(zeta,7));
-  
-  return retval;
+  Complex retval;
+
+  retval = (1.000e0 / sqrt(PI) /  Gamma_D) *
+             (  122.60793178 * pow(zeta,0.) 
+	      + 214.38238869 * pow(zeta,1.) + 181.92853309 * pow(zeta,2.) 
+	      +  93.15558046 * pow(zeta,3.) +  30.18014220 * pow(zeta,4.)
+	      +   5.91262621 * pow(zeta,5.) +   0.56418958 * pow(zeta,6.)) /
+             (  122.60793178 * pow(zeta,0.) + 352.73062511 * pow(zeta,1.)
+              + 457.33447878 * pow(zeta,2.) + 348.70391772 * pow(zeta,3.) 
+              + 170.35400182 * pow(zeta,4.) +  53.99290691 * pow(zeta,5.)
+              +  10.47985711 * pow(zeta,6.) +   1.00000000 * pow(zeta,7.));
+    
+  Re_CEF = real( retval );
+  Im_CEF = imag( retval );
+
+  return;
 };
 
 
@@ -1200,24 +1181,44 @@ void Zeeman_o2_line_splitting(// Output:
 
 	  // Center frequency of the individual Zeeman components
 	  Numeric f_z;
-	  f_z = f_c + 28.03e+9 * eta * B_field;
+	  f_z = f_c + 28.03e0 * eta * B_field;  // [GHz]
 	  
 	  // Complex argument of the special line shape (CEF), 
 	  // used in the case of Zeeman splitting.
-	  Numeric Gamma_D = gamma_D * f_z;
+	  Numeric Gamma_D = gamma_D * f_z;  // [GHz]
 	  
 	  // complex error function / Faddeeva function
 	  // (SQRT(ln(2)) = 0.8325546e0)
 	  FX[0] = 0.8325546e0 * (f_grid_point - f_z) / Gamma_D;
 	  FY    = 0.8325546e0 * gamma_L / Gamma_D;
 	  HUMLIK_Faddeeva_Wells( FX, FY, FK, FL );
+	  Re_N_s +=  S * xi * FL[0]; // real      part of complex refractive index
+	  Im_N_s += -S * xi * FK[0]; // imaginary part of complex refractive index
+	  cout << "1******************************************************1 \n";
+	  cout << "f_z=" << f_z << ", f_grid_point="      << f_grid_point << "\n"  
+               << "Gamma_D=" << Gamma_D << ", gamma_L="   << gamma_L      << "\n";
+	  cout << "WEL:   X=" << FX    << ", Y=" << FY    << "\n";
+	  cout << "WEL:   K=" << FK[0] << ", L=" << FL[0] << "\n";
+	  cout << "1******************************************************1 \n";
 
 	  // The complex refractive index.
-	  // Complex zeta = (gamma_L/gamma_D + complex_i*(f_grid_point - f_z)/gamma_D);
-	  // N_s += S * xi * (-1) * complex_i*CEF(zeta, gamma_D);
-	  Re_N_s += S * xi * FK[0]; // real      part of complex refractive index
-	  Im_N_s += S * xi * FL[0]; // imaginary part of complex refractive index
-	  
+	  // Complex zeta = Complex(gamma_L/Gamma_D, ((f_grid_point - f_z)/Gamma_D));
+	  Complex zeta = Complex((gamma_L/Gamma_D),((f_grid_point - f_z)/Gamma_D) );
+	  /*
+	  cout << "f_z=" << f_z << ", f_grid_point=" << f_grid_point 
+               << ", Re(zeta)=" << real(zeta) << ", Im(zeta)=" << imag(zeta) << "\n" 
+               << "gamma_D=" << gamma_D << ", Gamma_D=" << Gamma_D 
+               << ", gamma_L=" << gamma_L << "\n";
+	  */
+
+	  Numeric KK;
+	  Numeric LL;
+	  CEF( zeta, Gamma_D, KK, LL );
+	  // cout << "CEF:   KK=" << KK << ", LL=" << LL << "\n";
+	  // Dummy = S * xi * (-1) * complex_i*
+	  // Re_N_s +=  S * xi * LL; // real      part of complex refractive index
+	  //Im_N_s += -S * xi * KK; // imaginary part of complex refractive index
+
 	  // Calculating the halved value of magnetic susceptibility tensor 
 	  // at given frequency. It's in the form of an array because 
 	  // complex matrices or tensors cannot be handled by ARTS.		
@@ -1313,6 +1314,91 @@ void PWRO2Mixing(//output
   // Zeeman splitting.
   Numeric SF1      = ( DF + (ff-FO)*Y ) / ( (ff-FO)*(ff-FO) + DF*DF );
   Numeric SF2      = ( DF - (ff+FO)*Y ) / ( (ff+FO)*(ff+FO) + DF*DF );
+
+  // sum the line absorption part for a specific spectral line on the frequency grid
+  Numeric SUM      = STR * (SF1+SF2) * (ff/FO) * (ff/FO);
+
+  // O2 absorption [1/m] -----------------------------------------------------
+  // Rosenkranz uses the factor 0.5034e12 in the calculation of the abs coeff.
+  // This factor is the product of several terms:
+  // 0.5034e12 = ISORATIO *   VMR   * (Hz/GHz) * (k_B*300K)^-1 
+  //           = 0.995262 * 0.20946 *   10^-9  * 2.414322e21(hPa*cm^2*km)^-1
+  //             |---- 0.2085 ----|   |---- 2.414322e12(hPa*cm^2*km)^-1 ---|
+  //             |---- 0.2085 ----|   |---- 2.414322e10( Pa*cm^2*km)^-1 ---|
+  // O2ABS = 2.4143e12 * SUM * PRESDA * pow(TH, 3.0) / PI;
+  // O2ABS = CONT + (2.414322e10 * SUM * p[i] * pow(TH, 3.0) / PI);
+  // unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3 
+  // therefore 2.414322e10 --> 2.414322e7
+  // absorption coefficient [1/m] 
+  Numeric abs_line = 2.414322e7 / PI * vmro2   * p * pow(TH, (Numeric)3.0) * SUM;
+
+  // fill I/O extinction matrix and absorption vector properly
+  abs_vec_tmp[0]   +=  abs_line;
+  for (Index k=0; k<4; ++k) ext_mat_tmp(k,k) +=  abs_vec_tmp[0];
+    
+  return;
+}
+
+
+
+// #################################################################################
+
+
+
+void PWRO2VoigtMixing(//output
+		      Matrix& ext_mat_tmp, 
+		      Vector& abs_vec_tmp,
+		      // Input
+		      Numeric STR,
+		      Numeric Y,
+		      Numeric DF,
+		      Numeric gamma_D,
+		      Numeric FO,
+		      Numeric ff,
+		      Numeric vmro2,
+		      Numeric p,
+		      Numeric TH)
+{
+
+
+  // variables for complex error function / Faddeeva function
+  Vector  FX;
+  FX.resize(1);
+  FX=0.00e0;
+  Numeric FY=0.00e0;
+  Vector  FK;
+  FK.resize(1);
+  FK=0.00e0;
+  Vector  FL; 
+  FL.resize(1);
+  FL=0.00e0;
+
+
+  // complex error function / Faddeeva function
+  // (SQRT(ln(2)) = 0.8325546e0)
+  FX[0] = 0.8325546e0 * (ff - FO) / gamma_D;
+  FY    = 0.8325546e0 * DF / gamma_D;
+  HUMLIK_Faddeeva_Wells( FX, FY, FK, FL );
+
+  Numeric SF1 = FX[0] + FL[0]*Y;
+
+
+  // complex error function / Faddeeva function
+  // (SQRT(ln(2)) = 0.8325546e0)
+  FX[0] = 0.8325546e0 * (ff + FO) / gamma_D;
+  FY    = 0.8325546e0 * DF / gamma_D;
+  HUMLIK_Faddeeva_Wells( FX, FY, FK, FL );
+
+  Numeric SF2 = FX[0] + FL[0]*Y;
+
+  /*
+  cout << "2******************************************************2 \n";
+  cout << "FO="       << FO      << ", ff=" << ff    << "\n"  
+       << "gamma_D="  << gamma_D << ", DF=" << DF    << "\n";
+  cout << "WEL:   X=" << FX[0]   << ", Y="  << FY    << "\n";
+  cout << "WEL:   K=" << FK[0]   << ", L="  << FL[0] << "\n";
+  cout << "2******************************************************2 \n";
+  */  
 
   // sum the line absorption part for a specific spectral line on the frequency grid
   Numeric SUM      = STR * (SF1+SF2) * (ff/FO) * (ff/FO);
@@ -1875,7 +1961,7 @@ Index absPWRO2Model(// WS Output:
 	};
       
       // --- Doppler line broadening part [1] ----------------------------
-      Numeric gamma_D = 1.09600e3 / sqrt(TH);
+      Numeric gamma_D = 1.09600e-6 / sqrt(TH);
       
       // --- line mixing parameter [1] -----------------------------------
       Numeric Y       = CO * 0.001e0 * 0.010e0 * p * B * ( Y300[l] + V[l]*TH1 );
@@ -1909,13 +1995,21 @@ Index absPWRO2Model(// WS Output:
 	  PWRO2Mixing(ext_mat_tmp, abs_vec_tmp,	
                       STR, Y, DF, F[l], ff,
 		      (ISORATIO * vmro2), p,  TH);
+	  cout << "***  PWRO2Mixing abs=" << abs_vec_tmp[0] << "\n";
+	  PWRO2VoigtMixing(ext_mat_tmp, abs_vec_tmp,	
+			   STR, Y, DF, (gamma_D*F[l]), 
+                           F[l], f_grid_point,
+			   (ISORATIO * vmro2), p,  TH);
+	  cout << "***  PWRO2VoigtMixing abs=" << abs_vec_tmp[0] << "\n";
 	};
     };
   
+  /*
   cout << "ext_mat_tmp(0,0)=" << ext_mat_tmp(0,0) << "\n"
        << "ext_mat_tmp(0,1)=" << ext_mat_tmp(0,1) << "\n"
        << "ext_mat_tmp(0,2)=" << ext_mat_tmp(0,2) << "\n"
        << "ext_mat_tmp(0,3)=" << ext_mat_tmp(0,3) << "\n";
+  */
 
   return retval;  // 1=true, 0=false
 };

@@ -1,3 +1,28 @@
+2003-12-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-1-1-742
+
+	* src/m_rte.cc: added the zeeman splitting part into 
+	RT calculation in method RteEmissionStd. HOWEVER, SINCE 
+	THE O2 ZEEMAN SPLITTING STILL PRODUCES NON-SENSE TURN THE 
+	ZEEMAN OFF IN YOUR CONTROL FILE. This can be done by setting 
+	# 0=false 1=true
+          ZeemanO2Settings{
+              ZeemanO2OnOff = 0
+              ZeemanO2PressureLimit = 1.000e3
+          }
+        in your control file.
+	
+	* src/methods.cc added the agenda zeeman_prop_agenda and 
+       	workspace variables zeeman_o2_onoff (Index) and 
+        zeeman_o2_pressure_limit (Numeric) to the method RteEmissionStd.
+
+	* src/m_abs_o2_models.cc: bug fix in functions absPWRO2Model and 
+	ZeemanO2Settings. Additionally started to use Faddeeva function
+	for line mixing stuff (function PWRO2VoigtMixing, but not 
+	working yet).
+
+	
 2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-741
