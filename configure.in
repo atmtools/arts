@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.305)
+AM_INIT_AUTOMAKE(arts,1.1.306)
 
 AM_MAINTAINER_MODE
 
@@ -294,7 +294,8 @@ esac
 if test x$ac_debug = xyes; then
   DEBUG_FLAGS="-g"
 else
-  DEBUG_FLAGS="-DNDEBUG"
+  DEBUG_FLAGS=""
+  CPPFLAGS="$CPPFLAGS -DNDEBUG"
 fi
 
 CFLAGS="$CFLAGS $DEBUG_FLAGS $WARNING_FLAGS"
