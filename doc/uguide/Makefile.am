@@ -14,7 +14,7 @@ artsdocdir = $(pkgdatadir)/doc
 
 uguidedocdir = $(artsdocdir)/uguide
 
-uguidedoc_DATA = uguide.ps uguide_pdf.pdf
+uguidedoc_DATA = uguide.ps uguide.pdf
 
 artsexecutable = $(top_builddir)/src/arts
 
@@ -44,7 +44,6 @@ texfiles = \
 	scattering.tex \
 	sensor.tex \
 	uguide.tex \
-	uguide_pdf.tex \
 	utilities.tex \
 	wfuns_atm.tex \
 	wfuns_sensor.tex \
@@ -68,7 +67,7 @@ EXTRA_DIST = \
 	$(autotexfiles) \
 	uguide.dvi \
 	uguide.ps \
-	uguide_pdf.pdf
+	uguide.pdf
 
 if MAINTAINER_MODE
 
@@ -87,18 +86,18 @@ uguide.dvi: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.
 	bibtex uguide
 	latex  uguide
 	latex  uguide
-	rm -f  *.aux
+	rm -f  *.aux uguide.toc
 
 uguide.ps: uguide.dvi
-	dvips -f uguide > uguide.ps
+	dvips -o uguide.ps uguide
 
-uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.tex
-	pdflatex uguide_pdf
-	makeindex uguide_pdf.idx
-	bibtex uguide_pdf
-	pdflatex  uguide_pdf
-	pdflatex  uguide_pdf
-	rm -f  *.aux
+uguide.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.tex
+	pdflatex uguide
+	makeindex uguide.idx
+	bibtex uguide
+	pdflatex  uguide
+	pdflatex  uguide
+	rm -f  *.aux uguide.toc
 
 
 #html: main.ps
@@ -114,18 +113,21 @@ auto_groups.tex: arts_groups_to_latex.sh $(artsexecutable)
 auto_methods.tex: arts_methods_to_latex.sh $(artsexecutable)
 	./arts_methods_to_latex.sh $(artsexecutable) > auto_methods.tex
 
-CLEANFILES = *.aux *.log
+CLEANFILES = *.aux \
+	     *.log \
+	     uguide.bbl \
+	     uguide.blg \
+	     uguide.idx \
+	     uguide.ilg \
+	     uguide.ind \
+	     uguide.out \
+	     uguide.toc
 
 MAINTAINERCLEANFILES = \
 	$(autotexfiles) \
-	uguide_pdf.bbl \
-	uguide_pdf.blg \
-	uguide.bbl \
-	uguide.blg \
-	uguide.dvi \
 	uguide.ps \
-	uguide_pdf.pdf \
-	main.toc \
+	uguide.pdf \
+	uguide.dvi \
 	auto_version.tex
 
 else
@@ -152,7 +154,7 @@ uguide.ps: uguide.dvi
 	@echo "=========================================================="
 	@echo
 
-uguide_pdf.pdf:
+uguide.pdf:
 	@echo
 	@echo "=========================================================="
 	@echo
