@@ -92,23 +92,22 @@ void ppath_set_background(
 	      Ppath&      ppath,
         const Index&      case_nr );
 
-Index ppath_what_background( 
-	      Ppath&      ppath );
+Index ppath_what_background( const Ppath&   ppath );
 
 void ppath_start_stepping(
               Ppath&          ppath,
         const Index&          atmosphere_dim,
-        const Vector&         p_grid,
-        const Vector&         lat_grid,
-        const Vector&         lon_grid,
-        const Tensor3&        z_field,
-        const Matrix&         r_geoid,
-        const Matrix&         z_ground,
+        ConstVectorView       p_grid,
+        ConstVectorView       lat_grid,
+        ConstVectorView       lon_grid,
+        ConstTensor3View      z_field,
+        ConstMatrixView       r_geoid,
+        ConstMatrixView       z_ground,
         const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         sensor_pos,
-	const Vector&         sensor_los );
+        ConstVectorView       sensor_pos,
+	ConstVectorView       sensor_los );
 
 void ppath_step_geom_1d(
 	      Ppath&      ppath,
@@ -126,8 +125,8 @@ void ppath_step_geom_2d(
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
-        const Vector&     r_geoid,
-        const Vector&     z_ground,
+        ConstVectorView   r_geoid,
+        ConstVectorView   z_ground,
         const Index&      blackbody_ground,
 	const Numeric&    lmax );
 

@@ -1,3 +1,18 @@
+2002-07-04  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-184
+
+	* src/ppath.cc: More work on 2D geoemtrical propagation paths. 
+	A first version ready, but all bugs must be fixed and probelms with
+	numerical inaccuracies must be handled (tricky, tricky).
+	New functions:
+	   geompath_from_r1_to_r2
+	   za_geom2other_point
+	   psurface_r_at_lat_2d
+	   ppath_copy
+	   ppath_append
+	   ppath_fill_2d
+	
 2002-07-03  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-183

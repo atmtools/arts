@@ -343,7 +343,7 @@ void ppathCalc(
     {
       // Call ppath_step agenda
       ppath_step_agenda.execute();
-
+      PpathPrint(ppath_step,"ppath_step");
       // Number of points in returned path step
       const Index n = ppath_step.np;
 
@@ -615,29 +615,29 @@ void PpathPrint(
   cout << "  The fields of *" << ppath_name <<"*:\n";
   IndexPrint( ppath.dim, "dim" );
   IndexPrint( ppath.np, "np" );
-  StringPrint( ppath.method, "method" );
   IndexPrint( ppath.refraction, "refraction" );
+  StringPrint( ppath.method, "method" );
   NumericPrint( ppath.constant, "constant" );
-  StringPrint( ppath.background, "background" );
-  IndexPrint( ppath.ground, "ground" );
-  if( ppath.ground )
-    IndexPrint( ppath.i_ground, "i_ground" );
-  IndexPrint( ppath.symmetry, "symmetry" );
-  if( ppath.symmetry )
-    IndexPrint( ppath.i_symmetry, "i_symmetry" );
-  if( ppath.tan_pos.nelem() )
-    VectorPrint( ppath.tan_pos, "tan_pos" );
-  if( ppath.geom_tan_pos.nelem() )
-    VectorPrint( ppath.geom_tan_pos, "geom_tan_pos" );
   MatrixPrint( ppath.pos, "pos" );
+  VectorPrint( ppath.z, "z" );
+  VectorPrint( ppath.l_step, "l_step" );
   ArrayOfGridPosPrint( ppath.gp_p, "gp_p" );
   if( ppath.dim >= 2 )
     ArrayOfGridPosPrint( ppath.gp_lat, "gp_lat" );
   if( ppath.dim == 3 )
     ArrayOfGridPosPrint( ppath.gp_lon, "gp_lon" );
-  VectorPrint( ppath.z, "z" );
-  VectorPrint( ppath.l_step, "l_step" );
   MatrixPrint( ppath.los, "los" );
+  StringPrint( ppath.background, "background" );
+  IndexPrint( ppath.ground, "ground" );
+  if( ppath.ground )
+    IndexPrint( ppath.i_ground, "i_ground" );
+  if( ppath.tan_pos.nelem() )
+    VectorPrint( ppath.tan_pos, "tan_pos" );
+  if( ppath.geom_tan_pos.nelem() )
+    VectorPrint( ppath.geom_tan_pos, "geom_tan_pos" );
+  IndexPrint( ppath.symmetry, "symmetry" );
+  if( ppath.symmetry )
+    IndexPrint( ppath.i_symmetry, "i_symmetry" );
 }
 
 
