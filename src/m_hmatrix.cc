@@ -40,7 +40,6 @@
 #include "messages.h"          
 #include "wsv.h"          
 #include "file.h"
-#include "hdf5.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Math with H matrices

@@ -1,3 +1,7 @@
+2000-11-09  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* src/m_hmatrix.cc file had still hdf5 included, removed.
+
 2000-11-08  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-73
