@@ -86,7 +86,7 @@ uguide.dvi: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.
 	bibtex uguide
 	latex  uguide
 	latex  uguide
-	rm -f  *.aux uguide.toc
+	rm -f  *.aux uguide.toc uguide.ind
 
 uguide.ps: uguide.dvi
 	dvips -o uguide.ps uguide
@@ -97,7 +97,7 @@ uguide.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.
 	bibtex uguide
 	pdflatex  uguide
 	pdflatex  uguide
-	rm -f  *.aux uguide.toc
+	rm -f  *.aux uguide.toc uguide.ind
 
 
 #html: main.ps
