@@ -74,6 +74,14 @@ void h_apply (
   {
     if ( h.full.ncols() != y1.size() )
       throw  runtime_error("Size of h and length of y do not match.");
+    if ( h.full.nrows() != y2.size() )
+      {
+	ostringstream os;
+	os << "Size of h and length of output y do not match.\n"
+	   << "H.nrows() = " << h.full.nrows() << "\n"
+	   << "y.size()  = " << y2.size();
+	throw  runtime_error(os.str());
+      }
     mult( h.full, y1, y2 ); 	    //    y2 = h.full * y1;
   }
 
@@ -109,6 +117,8 @@ void h_apply (
   {
     if ( h.full.ncols() != k1.nrows() )
       throw runtime_error("Sizes of h and k do not match.");
+    if ( h.full.nrows() != k2.nrows() )
+      throw  runtime_error("Sizes of h and output k do not match.");
     mult( h.full, k1, k2 );	    //    k2 = h.full * k1;
   }
 
@@ -142,6 +152,10 @@ void h_diff (
         const Hmatrix&    h2,
         const Hmatrix&    h1 )
 {
+
+  // FIXME: There probably also should be a safety check here that hd
+  // has the correct dimension.
+
   if ( (h1.issparse==0) && (h2.issparse==0) )
   {
     if ( (h1.full.nrows()!=h2.full.nrows()) || (h1.full.ncols()!=h2.full.ncols()) )
@@ -178,7 +192,8 @@ void VectorApplyH(
 
   if ( name_y1 == name_y2 )
   {
-    VECTOR y;
+    VECTOR y(h.full.nrows());
+    // FIXME: This has to be adapted for sparse matrices!
     h_apply( y, h, y1 );
     y2 = y;
   }
@@ -200,7 +215,8 @@ void MatrixApplyH(
 
   if ( name_k1 == name_k2 )
   {
-    MATRIX k;
+    MATRIX k(h.full.nrows(),k1.ncols());
+    // FIXME: This has to be adapted for sparse matrices!
     h_apply( k, h, k1 );
     k2 = k;
   }

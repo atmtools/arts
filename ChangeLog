@@ -1,3 +1,16 @@
+2001-04-18  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-157
+
+	* ami/arts/.cvsignore: Added wsv.txt.
+
+	* h_matrix.cc: Fixed bug in VectorApplyH and MatrixApplyH
+	(dimension of output variable was not set). Also added safety
+	check of output variable dimension to h_apply functions. Probably,
+	there should be similar checks in h_diff, but I did not touch
+	this.  
+
+	
 2001-04-11  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-156
