@@ -336,6 +336,32 @@ MATRIX interp_lin_row(
         const VECTOR&  xi );
 
 
+/** Linear interpolation of the columns of a matrix.  This is a direct
+    adaptation of Patrick Eriksson's function interp_lin_row.  Both
+    return and parameter versions exist:
+
+    interp_lin_col(Yi,x,Y,xi)
+
+    Yi = interp_lin_col(x,Y,xi)
+
+    The vector x specifies the points at which the data y is given. 
+
+    @param   Yi      Output: interpolated values 
+    @param   x       The x grid
+    @param   Y       The functions to interpolate
+    @param   xi      Interpolation points
+
+    @author Stefan Buehler 11.06.2000 */
+void interp_lin_col(    
+              MATRIX&  Yi,
+        const VECTOR&  x, 
+        const MATRIX&  Y, 
+        const VECTOR&  xi );
+MATRIX interp_lin_col(      
+        const VECTOR&  x, 
+        const MATRIX&  Y, 
+        const VECTOR&  xi );
+
 
 //
 // Integration functions for vectors and matrices
@@ -405,6 +431,7 @@ MATRIX to_matrix(const VECTOR& x);
 
 /** Conversion of a matrix to a vector.
     The matrix can either be a column (n x 1) or row (1 x n) vector.
+    Uses the functions row and col.
     Both return and parameter versions exist:
 
     to_vector(x,W)
@@ -416,9 +443,102 @@ MATRIX to_matrix(const VECTOR& x);
 
     @exception runtime_error None of the dimensions of W was 1.
 
+    @see row col
+
     @author Stefan Buehler */
 void to_vector(VECTOR& x, const MATRIX& W);
 VECTOR to_vector(const MATRIX& W);
+
+
+//----------------------------------------------------------------------
+//    x = row(i,A), row(x,i,A)
+//             Generates a vector which contains row i of A.
+//
+//    x = col(i,A), col(x,i,A)
+//             Generates a vector which contains column i of A.
+//----------------------------------------------------------------------
+
+
+/** Extracts row i of MATRIX A.
+    Both return and parameter versions exist:
+
+    row(x,i,A)
+
+    x = row(i,A)
+
+    @param x Output. The extracted data.
+    @param i Which row to extract.
+    @param A The input matrix.
+
+    @author Stefan Buehler 11.06.2000 */
+void row(VECTOR& x,
+	 size_t i,
+	 const MATRIX& A);
+VECTOR row(size_t i,
+	   const MATRIX& A);
+
+/** Extracts column i of MATRIX A.
+    Both return and parameter versions exist:
+
+    col(x,i,A)
+
+    x = col(i,A)
+
+    @param x Output. The extracted data.
+    @param i Which column to extract.
+    @param A The input matrix.
+
+    @author Stefan Buehler 11.06.2000 */
+void col(VECTOR& x,
+	 size_t i,
+	 const MATRIX& A);
+VECTOR col(size_t i,
+	   const MATRIX& A);
+
+
+/** Extracts rows i to k of MATRIX A.
+    Both return and parameter versions exist:
+
+    row(X,i,A)
+
+    X = row(i,A)
+
+    @param X Output. The extracted data.
+    @param i First row to extract.
+    @param k Last row to extract.
+    @param A The input matrix.
+
+    @author Stefan Buehler 11.06.2000 */
+void row(MATRIX& X,
+	 size_t i,
+	 size_t k,
+	 const MATRIX& A);
+MATRIX row(size_t i,
+	   size_t k,
+	   const MATRIX& A);
+
+
+/** Extracts columns i to k of MATRIX A.
+    Both return and parameter versions exist:
+
+    col(X,i,A)
+
+    X = col(i,A)
+
+    @param X Output. The extracted data.
+    @param i First column to extract.
+    @param k Last column to extract.
+    @param A The input matrix.
+
+    @author Stefan Buehler 11.06.2000 */
+void col(MATRIX& X,
+	 size_t i,
+	 size_t k,
+	 const MATRIX& A);
+MATRIX col(size_t i,
+	   size_t k,
+	   const MATRIX& A);
+
 
 
 #endif  // math_funcs_h

@@ -50,9 +50,26 @@ using namespace TNT;
     @see VECTOR ARRAY */
 typedef TNT::Matrix<Numeric> MATRIX;
 
+/** Regions for matrices.
+    @author Stefan Buehler 11.06.2000. */
+typedef TNT::Region2D<MATRIX> REGION2D;
+
+/** Regions for const matrices.
+    @author Stefan Buehler 11.06.2000. */
+typedef TNT::const_Region2D<MATRIX> const_REGION2D;
+
 /** For numeric vectors.
     @see MATRIX ARRAY */
 typedef TNT::Vector<Numeric> VECTOR;
+
+/** Regions for vectors.
+    @author Stefan Buehler 11.06.2000. */
+typedef TNT::Region2D<VECTOR> REGION1D;
+
+/** Regions for const vectors.
+    @author Stefan Buehler 11.06.2000. */
+typedef TNT::const_Region2D<VECTOR> const_REGION1D;
+
 
 /** For arrays. This can be used in the same way as VECTOR, but can
     store arbitrary elements. Furthermore, this has the
@@ -218,6 +235,12 @@ public:
     x = to_vector(A), to_vector(x,A)
              Converts a matrix to a vector. The matrix can either be a 
              column (n x 1) or row (1 x n) vector.
+
+    x = row(i,A), row(x,i,A)
+             Generates a vector which contains row i of A.
+
+    x = col(i,A), col(x,i,A)
+             Generates a vector which contains column i of A.
 
     A = to_matrix(x), A = to_matrix(x)
              Converts a vector of length n to a matrix of size (n x 1),

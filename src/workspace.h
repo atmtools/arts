@@ -26,11 +26,25 @@ HISTORY:   ??.??.???? Created by Stefan Buehler
     @author Stefan Buehler */
 class WorkSpace {
 public:
+  //                  < Spectroscopy Stuff >
+  ARRAYofLineRecord   lines;
+  TagGroups           tag_groups;
+  //                  < 1D Input Atmosphere Stuff >
+  MATRIX              raw_ptz_1d;
+  ARRAYofMATRIX       raw_vmrs_1d;
+  //                  < General Absorption Stuff >
   VECTOR              p_abs;
+  VECTOR              f_abs;
+  //                  < 2D Absorption Stuff >
+  ARRAYofVECTOR       t_abs_2d;
+  ARRAYofVECTOR       z_abs_2d;
+  ARRAYofMATRIX       vmrs_2d;
+  ARRAYofMATRIX       abs_2d;
+  //                  < 1D Absorption Stuff >
   VECTOR              t_abs;
   VECTOR              z_abs;
-  VECTOR              f_abs;
   MATRIX              abs;
+  //                  < RT Stuff >
   VECTOR              view1;
   Numeric             z_plat;
   Numeric             l_step;
@@ -46,12 +60,6 @@ public:
   VECTOR              y_space;
   VECTOR              y;
   ARRAYofMATRIX       klos;
-  ARRAYofLineRecord   lines;
-  TagGroups           tag_groups;
-  int                 n_profiles;
-  ARRAYofMATRIX       ptz;
-  ARRAYofMATRIX       raw_vmr_profiles;
-  ARRAYofMATRIX	      t_and_all_vmrs;
 };
 
 

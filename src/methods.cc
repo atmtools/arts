@@ -279,19 +279,11 @@ void define_md_data()
 //======================================================================
 //=== Absorption methods
 //======================================================================
-  
-  md_data.push_back
-    ( MdRecord
-      ( NAME("AllAbsExample"),
-	DESCRIPTION("Reads all important absorption related variables from the\n"
-		    "given files."),
-	OUTPUT(f_abs_, p_abs_, t_abs_, abs_),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
 
+
+//
+//=== Spectroscopic methods
+//
   md_data.push_back
     ( MdRecord
       ( NAME("linesReadFromHitran"),
@@ -344,9 +336,12 @@ void define_md_data()
 	KEYWORDS( "tags" ),
 	TYPES(    ARRAY_string_t   )));
   
+//
+//=== 1D Input Atmosphere methods
+//
   md_data.push_back
     ( MdRecord
-      ( NAME("raw_vmr_profilesReadFromScenario"),
+      ( NAME("raw_vmrs_1dReadFromScenario"),
   	DESCRIPTION(
 	  "Read the individual VMR profile for each tag group from a standard\n"
 	  "atmospheric scenario. Files must look like this example:\n"
@@ -358,12 +353,54 @@ void define_md_data()
 	  "The profile is chosen by the species name. If you have more than one\n"
 	  "tag group for the same species, the same profile will be used."
 	  ),
-	OUTPUT(   raw_vmr_profiles_    ),
+	OUTPUT(   raw_vmrs_1d_    ),
 	INPUT(    tag_groups_          ),
 	GOUTPUT(                       ),
 	GINPUT(                        ),
 	KEYWORDS( "basename"           ),
 	TYPES(    string_t             )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Atm2dFromRaw1D"),
+  	DESCRIPTION(
+	  "Interpolates temperature, altitude, and VMRs to the pressure grid\n"
+	  "given by p_abs. The altitude is not used by the absorption routines,\n"
+	  "But later on by the RT routines."
+	  "\n"
+	  "Interpolations used: FIXME: Add these.f\n"
+	  "Temperature [K]: \n"
+	  "Altitude    [m]: \n"
+	  "VMRs        [1]: \n"
+	  "\n"
+	  "Uses interp_lin(...)."
+	  ),
+	OUTPUT(   t_abs_2d_ , z_abs_2d_   , vmrs_2d_     ),
+	INPUT(    p_abs_    , raw_ptz_1d_ , raw_vmrs_1d_ ),
+	GOUTPUT(                       			 ),         
+	GINPUT(                        			 ),
+	KEYWORDS(                      			 ),
+	TYPES(                         			 )));
+
+//
+//=== 2D absorption methods
+//
+
+//
+//=== 1D absorption methods
+//
+  md_data.push_back
+    ( MdRecord
+      ( NAME("AllAbsExample"),
+	DESCRIPTION("Reads all important absorption related variables from the\n"
+		    "given files."),
+	OUTPUT(f_abs_, p_abs_, t_abs_, abs_),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
   
 
 

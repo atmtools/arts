@@ -16,14 +16,6 @@
 
 #ArrayOfMatrixWriteToFile(source){"dummy.source.a"}
 
-#VectorLinSpace(p_abs){
-#	start = 0
-#	stop  = 10
-#	step  = .1
-#}
-
-#VectorWriteToFile(p_abs){""}
-
 linesReadFromHitran(lines){
 #	filename = "/pool/lookup/hitran92/hitran92_h2o_le160.dat"
 #	filename = "/cdrom/hitran96/hitran96.par"
@@ -40,9 +32,26 @@ tag_groupsDefine{
 	"CO2-*-*-*" ] 
 }
 
-IntSet(n_profiles){1}
-
-ArrayOfMatrixReadFromFile (ptz) 
+MatrixReadFromFile (raw_ptz_1d) 
 {"../data/atmosphere/fascod/midlatitude-summer.tz.am"}
 
-raw_vmr_profilesReadFromScenario{"../data/atmosphere/fascod/midlatitude-summer"}
+raw_vmrs_1dReadFromScenario{"../data/atmosphere/fascod/midlatitude-summer"}
+
+ArrayOfMatrixWriteToFile (raw_vmrs_1d) {""}
+
+VectorLinSpace(p_abs){
+	start = 1000
+	stop  = 1
+	step  = -1
+}
+
+VectorWriteToFile(p_abs){""}
+
+Atm2dFromRaw1D{}
+
+ArrayOfVectorWriteToFile (t_abs_2d) {""}
+
+ArrayOfVectorWriteToFile (z_abs_2d) {""}
+
+ArrayOfMatrixWriteToFile (vmrs_2d)  {""}
+

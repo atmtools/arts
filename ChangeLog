@@ -1,3 +1,27 @@
+2000-06-11  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-29
+	
+	* Input Atmosphere stuff is 1D (so is RTE). Only the absorption
+	coefficient calculation itself is already 2D, since this is
+	practically no extra effort.
+
+	Reason for 1D input: It is not enough to just read a list of
+	profiles. They could be on different horizontal grids. In fact one
+	must somehow specify the horizontal coordinate to do proper horizontal
+	interpolation. 
+
+	* Added row and col functions which extract a row (or column) from
+	a matrix. The output can be a vector or a matrix. For a matrix the
+	first and the last row (or column) to extract have to be
+	specified. I was really missing this, many times you have a
+	function that can act on a vector, so you want to apply it to a
+	row or column of your matrix.
+
+	* Atm2dFromRaw1D: This method interpolates the raw atmospheric
+	inputs onto the absorption grid.
+
+	
 2000-06-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-28

@@ -408,6 +408,39 @@ MATRIX interp_lin_row(       // As above but return version
 }        
 
 
+void interp_lin_col(    
+              MATRIX&  Yi,
+        const VECTOR&  x, 
+        const MATRIX&  Y, 
+        const VECTOR&  xi )
+{
+  // Check grids and get order of grids
+  int order = interp_check( x, xi, Y.dim(1) ); 
+
+  int        k, j=1, n=xi.dim(), ncol=Y.dim(2);
+  Numeric    w;
+  Yi.newsize( n, ncol ); 
+
+  for (int i=1; i<=n; i++ )
+  {
+    for( ;  order*x(j+1) < order*xi(i); j++ ) {}
+    w = (xi(i)-x(j)) / (x(j+1)-x(j));
+    for( k=1; k<=ncol; k++ )
+      Yi(i,k) = Y(j,k) + w * (Y(j+1,k)-Y(j,k)); 
+  }
+}        
+
+MATRIX interp_lin_col(       // As above but return version
+        const VECTOR&  x, 
+        const MATRIX&  Y, 
+        const VECTOR&  xi )
+{
+  MATRIX Yi; 
+  interp_lin_col( Yi, x, Y, xi );
+  return Yi;
+}        
+
+
 
 //
 // Integration functions for vectors and matrices
@@ -491,11 +524,8 @@ void to_matrix(MATRIX& W, const VECTOR& x)
 
 MATRIX to_matrix(const VECTOR& x)
 {
-  // FIXME: I'm sure this can be made more efficient when TNT has more
-  // functionality.
-  MATRIX W(x.dim(),1);
-  for (size_t i=1; i<=x.dim() ; ++i)
-    W(i,1) = x(i);
+  MATRIX W;
+  to_matrix(W,x);
   return W;
 }
 
@@ -514,15 +544,11 @@ void to_vector(VECTOR& x, const MATRIX& W)
   // Check if one of the dimensions of W is 1:
   if ( 1 == W.dim(2) )
     {
-      x.newsize(W.dim(1));
-      for (size_t i=1; i<=x.dim() ; ++i)
-	x(i) = W(i,1);
+      col(x,1,W);
     }
   else if ( 1 == W.dim(1) )
     {
-      x.newsize(W.dim(2));
-      for (size_t i=1; i<=x.dim() ; ++i)
-	x(i) = W(1,i);
+      row(x,1,W);
     }
   else
     throw runtime_error("You tried to convert a matrix to a vector,\n"
@@ -531,29 +557,120 @@ void to_vector(VECTOR& x, const MATRIX& W)
 
 VECTOR to_vector(const MATRIX& W)
 {
-  // FIXME: I'm sure this can be made more efficient when TNT has more
-  // functionality.
-
   VECTOR x;
-
-  // Check if one of the dimensions of W is 1:
-  if ( 1 == W.dim(2) )
-    {
-      x.newsize(W.dim(1));
-      for (size_t i=1; i<=x.dim() ; ++i)
-	x(i) = W(i,1);
-    }
-  else if ( 1 == W.dim(1) )
-    {
-      x.newsize(W.dim(2));
-      for (size_t i=1; i<=x.dim() ; ++i)
-	x(i) = W(1,i);
-    }
-  else
-    throw runtime_error("You tried to convert a matrix to a vector,\n"
-			"but none of the dimensions is 1.");
-
+  to_vector(x,W);
   return x;
 }
 
+
+void row(VECTOR& x,
+	 size_t i,
+	 const MATRIX& A)
+{
+  // Make sure that i is legal:
+  assert ( i >  0        );
+  assert ( i <= A.dim(1) );
+
+  const size_t n = A.dim(2);
+  x.newsize(n);
+  for ( size_t j=1; j<=n; ++j )
+    {
+      x(j) = A(i,j);
+    }
+}
+
+VECTOR row(size_t i,
+	   const MATRIX& A)
+{
+  VECTOR x;
+  row(x,i,A);
+  return x;
+}
+
+void col(VECTOR& x,
+	 size_t i,
+	 const MATRIX& A)
+{
+  // Make sure that i is legal:
+  assert ( i >  0        );
+  assert ( i <= A.dim(2) );
+
+  const size_t n = A.dim(1);
+  x.newsize(n);
+  for ( size_t j=1; j<=n; ++j )
+    {
+      x(j) = A(j,i);
+    }
+}
+
+VECTOR col(size_t i,
+	   const MATRIX& A)
+{
+  VECTOR x;
+  col(x,i,A);
+  return x;
+}
+
+
+void row(MATRIX& X,
+	 size_t i,
+	 size_t k,
+	 const MATRIX& A)
+{
+  // Make sure that i and k are legal:
+  assert ( i >  0        );
+  assert ( i <= A.dim(1) );
+  assert ( k >  0        );
+  assert ( k <= A.dim(1) );
+  assert ( k >= i        );
+
+  const size_t n = A.dim(2);
+  const size_t m = k-i + 1;
+  X.newsize(m,n);
+  for ( size_t j=0; j<n; ++j )
+    for ( size_t l=0; l<m; ++l )
+      {
+	X[l][j] = A(i+l,j+1);
+      }
+}
+
+MATRIX row(size_t i,
+	    size_t k,
+	    const MATRIX& A)
+{
+  MATRIX X;
+  row(X,i,k,A);
+  return X;
+}
+
+void col(MATRIX& X,
+	  size_t i,
+	  size_t k,
+	  const MATRIX& A)
+{
+  // Make sure that i and k are legal:
+  assert ( i >  0        );
+  assert ( i <= A.dim(2) );
+  assert ( k >  0        );
+  assert ( k <= A.dim(2) );
+  assert ( k >= i        );
+
+  const size_t n = A.dim(1);
+  const size_t m = k-i + 1;
+  X.newsize(n,m);
+  for ( size_t j=0; j<n; ++j )
+    for ( size_t l=0; l<m; ++l )
+      {
+	X[j][l] = A(j+1,i+l);
+      }
+}
+
+MATRIX col(size_t i,
+	    size_t k,
+	    const MATRIX& A)
+{
+  MATRIX X;
+  col(X,i,k,A);
+  return X;
+}
 

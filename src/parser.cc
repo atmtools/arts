@@ -738,11 +738,13 @@ bool parse_method(size_t& id,
 
 	  // Check that this Wsv belongs to the correct group:
 	  if ( wsv_data[wsvid].Group() != md_data[id].GOutput()[j] )
-	    throw WrongWsvGroup( wsvname+"Group should be "+
-				 wsv_group_names[md_data[id].Output()[j]],
-				 text.File(),
-				 text.Line(),
-				 text.Column() );
+	    {
+	      throw WrongWsvGroup( wsvname+"Group should be "+
+				   wsv_group_names[md_data[id].GOutput()[j]],
+				   text.File(),
+				   text.Line(),
+				   text.Column() );
+	    }
 
 	  // Add this one to the list of output workspace variables:
 	  output.push_back(wsvid);

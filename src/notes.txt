@@ -353,3 +353,21 @@ Documentation:
 DOC++ is used to generate automatic documentation. See
 https://zeus.imaginator.com/doc++ for information. There is a complete 
 DOC++ User Manual there. Generated are HTML and TeX documentation.
+
+
+
+
+----------------------------------------------------------------------
+
+Absorption Stuff:
+
+1D / 2D:
+
+Input Atmosphere stuff is 1D, so is RTE. Only the absorption
+coefficient calculation itself is already 2D, since this is
+practically no extra effort.
+
+Reason for 1D input: It is not enough to just read a list of
+profiles. They could be on different horizontal grids. In fact one
+must somehow specify the horizontal coordinate to do proper horizontal
+interpolation. 
