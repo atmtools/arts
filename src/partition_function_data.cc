@@ -794,6 +794,14 @@ void define_partition_species_data()
   //                    |               |               |               |               |
   iso(it_isotope,       "MPM93",Qcoeff( 0              ,0               ,0              ,0  ) );
 
+  // particle
+  // Coeff:       1      1
+  // Quality:    ---    ---
+  spec(it_species, it_isotope, "rain");
+  //                    Name            c0              c1              c2              c3
+  //                    |               |               |               |               |
+  iso(it_isotope,       "MPM93",Qcoeff( 0              ,0               ,0              ,0  ) );
+
 }
 
 

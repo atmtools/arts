@@ -230,6 +230,22 @@ void define_wsv_data()
       "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
       "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
       "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
+      "\n"
+      "The following rain extinction model is implemented:\n"
+      "Rain extinction parameterization ('rain-MPM93') from the\n"
+      "   MPM93 model, described in:\n" 
+      "   H. J. Liebe,\n" 
+      "   MPM - An Atmospheric Millimeter-Wave Propagation Model,\n"
+      "   Int. J. Infrared and Millimeter Waves, vol. 10(6),\n"
+      "   pp. 631-650, 1989;\n"
+      "   and based on:\n" 
+      "   Olsen, R.L., D.V. Rogers, and D. B. Hodge,\n"
+      "   The aR^b relation in the calculation of rain attenuation,\n"
+      "   IEEE Trans. Antennas Propagat., vol. AP-26, pp. 318-329, 1978.\n"
+      "   IMPORTANT NOTE: rain-MPM93 parameterizes the EXTINCTION by rain,\n"
+      "    not just the absorption. Therefore it is not suitable for \n"
+      "    calculating thermal emission by rain!\n"
+      "    Please use rain-MPM93 only for calculation of attenuation.\n"
       "\n",
       ArrayOfString_));
   

@@ -84,7 +84,10 @@ if keyword_set(jobdir) then begin
     outdir     = jobdir
 endif else begin
     jobdirname = jobname
-    outdir     = '/home/home01/tkuhn/ARTS'
+;    outdir     = '/home/home01/tkuhn/ARTS'
+;;set outdir to current dir
+    cd, current=currentdir  ;
+    outdir    =  currentdir
 endelse
 
 
@@ -97,7 +100,7 @@ endelse
 
 
 ;; read the tag groups from controlfile
-read_tag_groups,jobdir+jobname+'.arts','tgsDefine',tg
+read_tag_groups,jobdirname+'.arts','tgsDefine',tg
 
 
 ;; total number of tag groups
@@ -223,7 +226,7 @@ endelse
 for i = 0,nmats-1 do begin 
     for j = 0,nrows-1 do begin 
         for k = 0,ncols-1 do begin 
-            abs[i,j,k] = abs[i,j,k] / absscale
+            abs[i,j,k] = abs[i,j,k] * absscale
         endfor
     endfor
 endfor
@@ -264,6 +267,7 @@ endif
 
 
 ;; temperature unit selection
+string_title_T = ' '
 if keyword_set(temperature) then begin
     case temperature of
         'K' : begin

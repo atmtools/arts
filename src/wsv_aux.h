@@ -37,7 +37,7 @@
     This makes it possible to store arbitrary pointers in an array of
     pointers to WsvP.
 
-    /author Stefan Buehler */
+    \author Stefan Buehler */
 template<class T>
 class WsvPointer : public WsvP {
 public:

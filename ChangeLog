@@ -1,3 +1,54 @@
+2003-05-30  Christian Melsheimer  <melsheimer@uni-bremen.de>
+
+	* arts-1-0-82
+	
+	* aii/plot_abs_per_tg_2.pro: In line 100, replaced jobdir+jobname
+	by jobdirname, otherwise you get an error if the keyword jobname
+	is not set.
+	
+	Set outdir to current working dir in absence of keyword jobdir.
+
+	Added missing initialisation of string_title_T to empty string.
+
+	Corrected bug in scaling of y-axis (... * absscale)
+	
+	* doc/uguide/absorption.tex: Fixed typos in equations
+	eq:comp_perm_lwc (complex permittivity of suspended water
+	droplets), and eq:comp_perm_iwc_a (parameter a in complex
+	permitt. of ice crystals).
+
+	* src/continua.cc: 
+	Created function MPM93RainExt to include parameterization of
+	extinction by rain. It is formally based on the functions
+	absorption by suspended water droplets (MPM93WaterDropletAbs) and
+	ice crystals (MPM93IceCrystalAbs). All three functions are
+	formally treated as a special case of water vapour continuum absorption, but
+	the volume mixing ratio vmr has the meaning of a rain rate in
+	MPM93 RainExt, and of liquid or ice water content in
+	MPM93WaterDropletAbs and MPM93IceCrystalAbs.  The parameterization
+	of the rain extinction is based on a paper by Olsen, R.L.,
+	D.V. Rogers, and D. B. Hodge, "The aR^b relation in the
+	calculation of rain attenuation", IEEE Trans. Antennas Propagat.,
+	vol. AP-26, pp. 318-329, 1978, and part of it is also in the
+	original MPM93 model source code by Liebe et al.
+	Note that this is EXTINCTION by rain, not just ABSORPTION, so it
+	is not appropriate for the calculation of thermal emission by
+	rain!
+		
+	* src/continua.cc (xsec_continuum_tag): Added "rain-MPM93" and
+	relevant information and parameter check.
+	
+	* src/continua.h: Added the prototype of the new function MPM93RainExt
+
+	* src/partition_function_data.cc (define_partition_species_data):
+	Added record for "rain"
+
+	* src/species_data.cc (define_basic_species_data): Added record
+	"rain" (which, by the way, has neither degrees of freedom nor isotopes)
+ 
+	* src/workspace.cc (define_wsv_data): Added information about rain
+	extinction parameterization.
+
 2003-05-28  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-0-81

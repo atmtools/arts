@@ -380,6 +380,16 @@ void MPM93IceCrystalAbs( MatrixView        xsec,       // calculated x-section
 			 ConstVectorView   t_abs,      // temperature vector
 			 ConstVectorView   vmr	 );    // suspended ice particle density vector, 
 
+void MPM93RainExt( MatrixView        xsec,       // calculated x-section
+		   const Numeric     CE,         // model parameter
+		   const Numeric     CA,         // model parameter
+		   const Numeric     CB,         // model parameter
+		   const String&     model,      // model option
+		   ConstVectorView   f_mono,     // frequency vector
+		   ConstVectorView   p_abs,      // pressure vector
+		   ConstVectorView   t_abs,      // temperature vector
+		   ConstVectorView   vmr   );    // rain rate vector, 
+
 //////////////////////////////////////////////////////////////////////////// 
 // help functions
 //////////////////////////////////////////////////////////////////////////// 

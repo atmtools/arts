@@ -5228,7 +5228,7 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
 }
 //
 // #################################################################################
-// ################################### CLOUD MODELS ################################
+// ################################### CLOUD AND RAIN MODELS #######################
 // #################################################################################
 //
 /** 
@@ -5571,6 +5571,288 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
 }
 //
 // #################################################################################
+//
+/** 
+
+   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+                            water clouds according to MPM93 [1/m]
+   \param    CEin           scaling parameter of the calculated cross section [1]
+   \param    CAin           scaling parameter of the factor a_rain [1]
+   \param    CBin           scaling parameter of the exponent b_rain [1]
+   \param    model          allows user defined input parameter 
+                            (CEin, CAin, CBin)<br> or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid       [Hz]
+   \param    p_abs          predefined pressure grid        [Pa]
+   \param    t_abs          predefined temperature grid     [K] 
+   \param    vmr            rain rate vector (i.e. vertical profile),
+                            (valid range: 0-150) [mm/h]
+
+   \note     Except for  model 'user' the input parameters CEin, CAin, and CBin 
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'MPM93' and 'user'. 
+             See the user guide for detailed explanations.
+
+   \remark   Reference:  R. L. Olsen and D.V. Rogers and D. B. Hodge,<br>
+             <i> The aR^b relation in the calculation of rain attenuation</i>,<br>
+	     IEEE Trans. Antennas Propagat., vol. AP-26, pp. 318-329, 1978.
+
+   \author Christian Melsheimer
+   \date 2003-22-05
+ */ 
+
+void MPM93RainExt( MatrixView         xsec,
+		   const Numeric      CEin,   // input parameter
+		   const Numeric      CAin,   // input parameter
+		   const Numeric      CBin,   // input parameter
+		   const String&      model, // model
+		   ConstVectorView    f_mono, // frequency vector
+		   ConstVectorView    p_abs,  // pressure vector
+		   ConstVectorView    t_abs,  // temperature vector
+		   ConstVectorView    vmr)    // rain rate profile [mm/h]
+{
+
+  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
+  // standard values for the MPM93 model based on Olsen, R.L.,
+  // D.V. Rogers, and D. B. Hodge, "The aR^b relation in the
+  // calculation of rain attenuation", IEEE Trans. Antennas Propagat.,
+  // vol. AP-26, pp. 318-329, 1978,
+  const Numeric CE_MPM93 = 1.00000;
+  const Numeric CA_MPM93 = 1.00000;
+  const Numeric CB_MPM93 = 1.00000;
+  // ---------------------------------------------------------------------------------------
+
+
+  // select the parameter set (!!model dominates values!!):
+  Numeric CE, CA, CB;
+  if ( model == "MPM93" )
+    {
+      CE = CE_MPM93;
+      CA = CA_MPM93;
+      CB = CB_MPM93;
+    }
+  else if ( model == "user" )
+    {
+      CE = CEin;
+      CA = CAin;
+      CB = CBin;
+    }
+  else
+    {
+      ostringstream os;
+      os << "rain-MPM93: ERROR! Wrong model values given.\n"
+	 << "Valid models are: 'MPM93' and 'user'" << '\n';
+      throw runtime_error(os.str());
+    }
+  out3  << "rain-MPM93: (model=" << model << ") parameter values in use:\n" 
+	<< " CE = " << CE << "\n"
+	<< " CA = " << CA << "\n"
+	<< " CB = " << CB << "\n";
+  
+  
+  const Numeric low_lim_rr  =  0.000;   // lower limit of allowed rain rate  [mm/h]
+  const Numeric high_lim_rr = 150.000;  // upper limit of allowed rain rate  [mm/h]
+
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+  
+  // Loop pressure/temperature:
+  for ( Index i=0; i<n_p; ++i )
+    {
+      // Extinction by rain is parameterized as:
+      //  ext_rain = a_rain * rr ^ b_rain
+      // a_rain and b_rain each depend on frequency by  power laws:
+      //  a_rain = Ga * freq ^ Ea
+      //  b_rain = Gb * freq ^ Eb
+      Numeric Ga;
+      Numeric Ea;
+      Numeric Gb;
+      Numeric Eb;
+      Numeric a_rain;
+      Numeric b_rain;
+      Numeric ext_rain;
+
+      // Check limits of rain rate ("vmr") [mm/h]
+      if ( (vmr[i] >= low_lim_rr) && (vmr[i] < high_lim_rr) ) 
+	{
+	  // Loop frequency:
+	  for ( Index s=0; s<n_f; ++s )
+	    {
+	      // for rain rate < 25 mm/h, take parameters from Olsen et al.'s
+	      // own power law fit to their Laws-Parsons-Low data;
+	      // for rain rate > 25 mm/h, take C. Melsheimer's power law fit
+	      // to Olsen et al.'s Laws-Parson-High data
+	      if ( vmr[i] <= 25 ) 
+		{	      
+		  // power law coeff. Ga and exponent Ea for a, piecewise:
+		  if ( f_mono[s] <= 2.9e9 ) 
+		    {
+		      Ga = 6.39e-5;
+		      Ea = 2.03;
+		    }
+		  else if ( f_mono[s] <= 54.0e9 )
+		    {
+		      Ga = 4.21e-5;
+		      Ea = 2.42;
+		    }
+		  else if ( f_mono[s] <= 180e9 )
+		    {
+		      Ga = 4.09e-2;
+		      Ea = 0.699;
+		    }
+		  else if ( f_mono[s] <= 1000e9 )
+		    {
+		      Ga = 3.38;
+		      Ea = -0.151;
+		    }
+		  else 
+		    {
+		      ostringstream os;
+		      os << "ERROR in MPM93RainExt:\n"
+			 << " frequency (valid range 0-1000 GHz):" << f_mono[s]*Hz_to_GHz << "\n"
+			 << " ==> no calculation performed!\n";
+		      throw runtime_error(os.str());
+		    }
+		  // power law coeff. Gb and exponent Eb for b, piecewise:
+		  if ( f_mono[s] <= 8.5e9 ) 
+		    {
+		      Gb = 0.851;
+		      Eb = 0.158;
+		    }
+		  else if ( f_mono[s] <= 25.0e9 )
+		    {
+		      Gb = 1.41;	   
+		      Eb = -0.0779;
+		    }
+		  else if ( f_mono[s] <= 164.0e9 )
+		    {
+		      Gb = 2.63;	  
+		      Eb = -0.272;
+		    }
+		  else if ( f_mono[s] <= 1000e9 )
+		    {
+		      Gb = 0.616;
+		      Eb = 0.0126;
+		    }
+		  else 
+		    {
+		      ostringstream os;
+		      os << "ERROR in MPM93RainExt:\n"
+			 << " frequency (valid range 0-1000 GHz):" << f_mono[s]*Hz_to_GHz << "\n"
+			 << " ==> no calculation performed!\n";
+		      throw runtime_error(os.str());
+		    }
+		  
+		}
+	      else if (vmr[i] > 25)
+		{
+		  // power law coeff. Ga and exponent Ea for a, piecewise:
+		  if ( f_mono[s] <= 4.9e9 ) 
+		    {
+		      Ga = 5.30e-5;
+		      Ea = 1.87;
+		    }
+		  else if ( f_mono[s] <= 10.7e9 )
+		    {
+		      Ga = 5.03e-6;
+		      Ea = 3.35;
+		    }
+		  else if ( f_mono[s] <= 40.1e9 )
+		    {
+		      Ga = 2.53e-5;
+		      Ea = 2.67;
+		    }
+		  else if ( f_mono[s] <= 59.1e9 )
+		    {
+		      Ga = 3.58e-3;
+		      Ea = 1.33;
+		    }
+		  else if ( f_mono[s] <= 100e9 )
+		    {
+		      Ga = 0.143;
+		      Ea = 0.422;
+		    }
+		  else 
+		    {
+		      ostringstream os;
+		      os << "ERROR in MPM93RainExt:\n"
+			 << " frequency (valid range for rain rate > 25mm/h: 0-100 GHz):" << f_mono[s]*Hz_to_GHz << "\n"
+			 << " ==> no calculation performed!\n";
+		      throw runtime_error(os.str());
+		    }
+		  // power law coeff. Gb and exponent Eb for b, piecewise:
+		  if ( f_mono[s] <= 6.2e9 ) 
+		    {
+		      Gb = 0.911;
+		      Eb = 0.190;
+		    }
+		  else if ( f_mono[s] <= 23.8e9 )
+		    {
+		      Gb = 1.71;	   
+		      Eb = -0.156;
+		    }
+		  else if ( f_mono[s] <= 48.4e9 )
+		    {
+		      Gb = 3.08;	  
+		      Eb = -0.342;
+		    }
+		  else if ( f_mono[s] <= 68.2e9 )
+		    {
+		      Gb = 1.28;
+		      Eb = -0.116;
+		    }
+		  else if ( f_mono[s] <= 100e9 )
+		    {
+		      Gb =  0.932;
+		      Eb =  -0.0408;
+		    }
+		  else 
+		    {
+		      ostringstream os;
+		      os << "ERROR in MPM93RainExt:\n"
+			 << " frequency (valid range for rain rate > 25mm/h: 0-100 GHz):" << f_mono[s]*Hz_to_GHz << "\n"
+			 << " ==> no calculation performed!\n";
+		      throw runtime_error(os.str());
+		    }
+		}
+	      //Factor a_rain
+	      Numeric a_rain = Ga * pow((f_mono[s]*Hz_to_GHz),Ea);
+	      //Factor b_rain
+	      Numeric b_rain = Gb * pow((f_mono[s]*Hz_to_GHz),Eb);
+	      // Extinction coefficient [dB/km], with scaling
+	      // parameters CA and CB
+	      Numeric ext_rain = CA * a_rain * pow(vmr[i],(CB*b_rain));
+	      // rain extinction cross section [1/m]
+	      // The vmr will be multiplied at the stage of extinction
+	      // calculation: ext = vmr * xsec.
+	      // xsec = ext/vmr [1/m] but MPM93 is in [dB/km] --> conversion necessary
+	      xsec(s,i) += CE * dB_km_to_1_m * ext_rain / vmr[i];
+	    }
+	} else
+	  {
+	    if ( (vmr[i] < low_lim_rr) || (vmr[i] > high_lim_rr) ) 
+	      {
+		ostringstream os;
+		os << "ERROR in MPM93RainExt:\n"
+		   << " rain rate (valid range 0.00-150.00 mm/h):" << vmr[i] << "\n"
+		   << " ==> no calculation performed!\n";
+		throw runtime_error(os.str());
+	      }
+	  }
+    }
+  
+}
+//
+// #################################################################################
 // ################################# HELP FUNCTIONS ################################
 // #################################################################################
 //
@@ -5886,6 +6168,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
   *CONTAGMODINFO*   CO2-ForeignContPWR93:    Rosenkranz, user
   *CONTAGMODINFO*   liquidcloud-MPM93:       MPM93, user
   *CONTAGMODINFO*   icecloud-MPM93:          MPM93, user
+  *CONTAGMODINFO*   rain-MPM93:              MPM93, user
   ----------------------------------------------------------------------------------------------------
   */
   // ============= H2O continuum ========================================================
@@ -5946,7 +6229,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -6009,7 +6292,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	}
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -6070,7 +6353,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	}
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -6149,7 +6432,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters. " << "\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -6213,7 +6496,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters. " << "\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -6281,7 +6564,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
        }
     }
@@ -6348,7 +6631,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	}
     }
@@ -6413,7 +6696,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	}
     }
@@ -6478,7 +6761,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-	     << "Please see the arts user guide chapter 2.\n";
+	     << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -6544,7 +6827,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -6610,7 +6893,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-	     << "Please see the arts user guide chapter 2.\n";
+	     << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -6675,7 +6958,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -6765,7 +7048,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -6841,7 +7124,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -6915,7 +7198,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7002,7 +7285,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7082,7 +7365,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7168,7 +7451,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7245,7 +7528,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7321,7 +7604,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7396,7 +7679,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7475,7 +7758,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7550,7 +7833,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7653,7 +7936,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7720,7 +8003,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7787,7 +8070,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7857,7 +8140,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7909,7 +8192,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters. " << "\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -7976,7 +8259,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters. " << "\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -8046,7 +8329,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters. " << "\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 3.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -8127,7 +8410,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 4.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -8208,7 +8491,89 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	     << "parameters for the model " << model << ",\n"
 	     << "but you specified " << parameters.nelem() << " parameters.\n"
 	     << "This ambiguity can not be solved by arts.\n"
-             << "Please see the arts user guide chapter 2.\n";
+             << "Please see the arts user guide chapter 4.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+    }
+  // ============= rain extinction from MPM93 ===========================================
+  else if ( "rain-MPM93"==name )
+    {
+      // Rain extinction parameterization from MPM93 model, described in
+      //  H. J. Liebe, 
+      //  "MPM - An Atmospheric Millimeter-Wave Propagation Model",
+      //  Int. J. Infrared and Millimeter Waves, vol. 10(6),
+      //  pp. 631-650, 1989
+      // and based on 
+      //  Olsen, R.L., D.V. Rogers, and D. B. Hodge, "The aR^b relation in the
+      //  calculation of rain attenuation", IEEE Trans. Antennas Propagat.,
+      // vol. AP-26, pp. 318-329, 1978.
+      //
+      // specific continuum parameters and units:
+      //  OUTPUT 
+      //     xsec          : [1/m],
+      //  INPUT	
+      //     parameters[0] : [1]
+      //     parameters[1] : [1]
+      //     parameters[2] : [1]
+      //     model         : [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     vmr           : [mm/h]
+      //
+      // rain parameters:
+      // rain rate                         range: 0-150 mm/h
+      //
+      // valid atmospheric condition:
+      // temperature      : (preferably above 273 K...)
+      // 
+      const int Nparam = 3; 
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "MPM93 rain extinction model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  MPM93RainExt(xsec,
+		       parameters[0],     // scaling factror
+		       parameters[1],     // scaling factror
+		       parameters[2],     // scaling factror
+		       model,             // model option
+		       f_mono,
+		       p_abs,
+		       t_abs,
+		       vmr );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "MPM93 rain extinction model  " << name << " requires \n"
+             << Nparam << " input parameter for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "MPM93 rain extinction model " << name << " running with \n" 
+               << "the parameter for model " << model << ".\n";
+	 MPM93RainExt(xsec,
+		      0.000,       // scaling factror
+		      0.000,       // scaling factror
+		      0.000,       // scaling factror
+		      model,       // model option
+		      f_mono,
+		      p_abs,
+		      t_abs,
+		      vmr );
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "ERROR: MPM93 rain extinction model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters.\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 4.\n";
 	  throw runtime_error(os.str());
 	  return;
 	}
@@ -11804,8 +12169,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.8 $ */
-/*     created:	        $Date: 2003/04/03 14:22:14 $ */
+/*     revision:	        $Revision: 1.26.2.9 $ */
+/*     created:	        $Date: 2003/05/30 09:52:56 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

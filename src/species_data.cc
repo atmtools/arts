@@ -908,4 +908,16 @@ void define_basic_species_data()
          REC( "MPM93"           ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      )
          ) ) );
 
+  // You also have to change the entry in the file
+  // partition_function_data.cc consistently! 
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("rain"),
+        DEGFR(0),
+        ISOTOPES
+        (//   Name,             Isotopic Ratio, Mass,   MY-tag, HI-tag, JPL-tag
+         //                     |               |       |       |       |
+         REC( "MPM93"           ,-1.    ,-1.    ,-1     ,-1     ,TAGS()      )
+         ) ) );
+
 }
