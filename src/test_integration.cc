@@ -48,9 +48,6 @@ void init_xy(float stepsize, int frequency,
 void init_x(int vsize, float stepsize, int frequency,
             Vector &Integrand, Vector &Theta);
 
-Numeric get_stepsize(ConstVectorView za_grid,
-                     ConstVectorView aa_grid);
-
 Numeric AngIntegrate_trapezoid_original(MatrixView Integrand,
                                         ConstVectorView za_grid,
                                         ConstVectorView aa_grid);
@@ -164,20 +161,6 @@ void init_x(int vsize, float stepsize, int frequency,
        << "Theta: von " << Theta[0] << " bis "
        << Theta[Theta.nelem() - 1] << endl;
 }
-
-//! get_stepsize
-/*!
-  calculates the fixed stepsize between the grid points
-  \return The stepsize or -1 if the stepsize isn't constant
- */
-Numeric get_stepsize(ConstVectorView za_grid,
-                     ConstVectorView aa_grid)
-{
-
-
-
-}
-
 
 
 //! init_xy
