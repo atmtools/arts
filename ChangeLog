@@ -1,9 +1,20 @@
+2003-05-15  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-550
+	
+	* doc/doxygen/html/.cvsignore: Added graph_legend.dot.
+
+	* src/m_sensor (GaussianResponse): Cast ceil return value to Index
+	before assigning to nrows avoids warning message.
+	Use log(2.) instead of log(2) because log is not overloaded for int
+	and gcc cannot decide whether to cast to float or double.
+
 2003-05-21  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-549
 	
-	* src/m_sensor.cc: Added WSM GaussianResponse to set up a sensor response
-	matrix with gaussian distribution.
+	* src/m_sensor.cc: Added WSM GaussianResponse to set up a sensor
+	response matrix with gaussian distribution.
 
 2003-05-20  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
@@ -32,7 +43,8 @@
 	calculates refraction index in the IR region, using formula from
 	Michael Höpfner, Forchungszentrum Karlsruhe.
 	
-	* src/m_refraction.cc: Added refr_indexIR to interface with refr_index_ir.
+	* src/m_refraction.cc: Added refr_indexIR to interface with
+	refr_index_ir.
 	
 	* src/methods.cc: Added refr_indexIR entry.
 
@@ -102,7 +114,6 @@
 	to be added again later when mpi is more and more integrated into
 	arts.
 	(xml_io.o): Must depend on xml_io.c.
-
 
 2003-05-14  Oliver Lemke  <olemke@uni-bremen.de>
 
@@ -506,7 +517,6 @@
 	radiance fields to brightness temperature. This is because 
 	Planck is non-linear for small radiances
      
->>>>>>> 1.897
 2003-03-31  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
         * arts-1-1-514
