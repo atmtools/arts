@@ -1,0 +1,213 @@
+# This control file can be used to find brightness temperatures
+# and weighting functions for AMSU-Channels.
+# Viju Oommen John<vojohn@uni-bremen.de> 01-10-2001
+
+### Spectroscopy: ############################################################
+# Choose the species that can contribute towards AMSU frequencies.
+# We take the complete absorption models for H2O, O2 and N2.
+
+tgsDefine           { [
+       	
+         "H2O-PWR98",
+	 "O2-PWR93",
+	 "N2-SelfContPWR93"  ] }
+
+# Let's compute weighting function only for H2O.
+wfs_tgsDefine{["H2O-PWR98"]}
+
+
+# Set the lineshape function for all calculated tags
+lineshapeDefine     { shape               = "Voigt_Kuntz6"
+                      normalizationfactor = "linear"
+                      cutoff              = -1 } 
+
+# read the different defined tag groups from individual catalogues
+# these are the tgsDefine tag groups
+
+lines_per_tgSetEmpty {}
+
+
+#continum: The following are the continum models chosed for the tag groups.
+
+cont_descriptionInit{}  
+
+cont_descriptionAppend{
+    name       = "H2O-PWR98"
+    parameters = [ ]
+}
+cont_descriptionAppend{
+    name       = "O2-PWR93"
+    parameters = [ ]
+}
+cont_descriptionAppend{
+    name       = "N2-SelfContPWR93"
+    parameters = [ ]
+}
+
+
+
+
+### Load an atmosphere ########################################################
+
+#Read Pressure, Temperature and altitude for a particular 
+#atmospheric scenario.
+
+MatrixReadAscii (raw_ptz) { "@ac_arts_data@/atmosphere/fascod/tropical.tz.aa" }
+
+#Read The VMRs 
+raw_vmrsReadFromScenario { "@ac_arts_data@/atmosphere/fascod/tropical" }
+
+
+# Reading frequency grid from the file
+
+VectorReadAscii(f_mono){"f_mono.out"} 
+
+# Write frequency grid to file:
+
+VectorWriteAscii (f_mono) {""}
+
+
+
+### Vertical profiles #########################################################
+# Generating the pressure for calculations
+
+VectorNLogSpace (p_abs)    { start = 1.01300e+05
+                             stop  = 10
+                             n     = 100  }
+
+#Interpolate the atmospheric variables to the above pressure grid.
+
+AtmFromRaw  {""}
+
+
+# Set the physical H2O profile from the H2O profile in vmrs:
+
+h2o_absSet{}
+
+# Set the physical N2 profile from the N2 profile in vmrs:
+
+n2_absSet{}
+
+# Write the values of pressure, temperature, altitude and VMRs into files.
+
+VectorWriteAscii (p_abs)  {""}
+VectorWriteAscii (t_abs)  {""}
+VectorWriteAscii (z_abs)  {""}
+MatrixWriteAscii (vmrs) {""}
+
+### Calculate absorption ######################################################
+
+absCalc           {}
+MatrixWriteAscii (abs) {""}
+ArrayOfMatrixWriteAscii (abs_per_tg) {""}
+
+# reduce the abs_per_tg variable (dimension number of tag groups) to the 
+# tag groups for which we want to calculate weighting functions (new
+# dimension number of wfs tag groups)
+abs_per_tgReduce{}
+
+### The ground ################################################################
+# Set the values for ground
+
+NumericSet (z_ground) {2.18}
+NumericSet (t_ground) { 255.37  } 
+VectorSetLengthFromVector(e_ground,f_mono){value = 0.6 }
+
+
+### The geoid #################################################################
+# Set r_geoid to EARTH_RADIUS
+r_geoidStd{}
+
+### Observation geometry ######################################################
+
+NumericSet (z_plat) { 833e3 }
+
+VectorSet  (za_pencil) { length = 1
+                         value  = 180.0 }
+
+NumericSet (l_step) { 20 }
+				
+
+### Cosmic radiation ##########################################################
+
+y_spaceStd{ "cbgr" }
+
+### Hydrostatic Equilibrium ##################################
+ 
+hseSet   {
+        pref = 100000.
+        zref = 0.
+        g0   = 9.8
+        niter= 1
+         }
+hseCalc{}
+
+### Refraction ################################################################
+
+# For nadir calculations, refraction can be set to Off
+refrOff{}
+refrCalc{}
+
+
+### Emission ##################################################################
+emissionOn {}
+
+### Line of sight (LOS) #######################################################
+
+losCalc{}
+sourceCalc{}
+transCalc{}
+
+
+### Calculate spectra #########################################################
+
+yCalc{}
+
+### Calculate Kx ##############################################################
+absloswfsCalc{}
+### Init ###
+kxInit{}
+kbInit{}
+VectorCopy( k_grid, p_abs ){}
+VectorWriteAscii (k_grid)  {""}
+kSpecies{ unit  = "vmr" }
+kxAppend{}
+####### For Temperature ##################################################
+
+
+kTemp { hse = 0 
+	fast= 0}
+
+### Save monochromatic spectra and K #####################################
+
+VectorWriteAscii( y ) {"amsu_y_mono.aa"}
+
+### Conversion to different temperature scales ################################
+
+yTB {}
+
+# To convert Weighting function in the units of Brightness Temperature.
+
+MatrixTRJ(kx,kx){}
+MatrixTRJ(k,k){}
+
+### Save f_sensor#############################################################
+
+#VectorWriteAscii( f_sensor ) {""}
+
+### Save spectra #############################################################
+
+VectorWriteAscii( y ) {""}
+
+###Save Weighting function Matrix#############################################
+## kx is the weighting function for H2O and K is the weighting function 
+## for temperature.
+
+MatrixWriteAscii( kx ){""}
+MatrixWriteAscii(k){""}
+
+
+
+
+
+
