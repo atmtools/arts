@@ -33,6 +33,9 @@
 #ifndef sorting_h
 #define sorting_h
 
+#include <algorithm>
+using namespace std;
+
 #include "arts.h"
 #include "array.h"
 
