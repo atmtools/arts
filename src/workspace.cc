@@ -516,4 +516,14 @@ void define_wsv_data()
       "pressure [Pa] temperature [K] altitude [m] VMR [1]",
       ArrayOfMatrix_));
 
+  //-------------------< Methods as variables >-----------------------
+  //                     --------------------
+
+  wsv_data.push_back
+    (WsvRecord
+     ("method_list",
+      "A list of methods. See \"arts -d MethodListDefine\"\n"
+      "for an explanation what a method list is.",
+      ArrayOfIndex_));
+
 }

@@ -73,7 +73,7 @@ arts_SOURCES = \
 	workspace.cc \
 	workspace_aux.cc \
 	wsv_aux.h \
-        methods_as_wsv_h
+	m_method_list.cc
 
 
 arts_DEPENDENCIES= \

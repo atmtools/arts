@@ -16,7 +16,7 @@
    USA. */
 
 /**
-   \file   methods_as_wsv.h
+   \file   method_list.h
 
    This file contains all declarations necessary to have WSVs contain WSMs. 
 
@@ -24,19 +24,11 @@
    \date   2001-11-02
 */
 
-#ifndef methods_as_wsv_h
-#define methods_as_wsv_h
+#ifndef method_list_h
+#define method_list_h
 
 #include "arts.h"
 
-/** A batch of methods. 
 
 
-
-*/
-class MethodBatch {
-
-
-}
-
-#endif // methods_as_wsv_h
+#endif // method_list_h

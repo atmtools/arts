@@ -1,3 +1,25 @@
+2001-11-19  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-46
+
+	* src/methods.cc (define_md_data): Added method MethodListDefine,
+	which sets up a method list from method names given by the
+	ArrayOfString keyword parameter.
+
+	* src/m_method_list.cc: Added this file, which will contain
+	methods related to method lists.
+	(MethodListDefine): Added implementation of this method here.
+
+	* src/method_list.h: Added this file, which might contain
+	declarations related to method lists in the future. At the moment
+	it is empty.
+
+	* src/Makefile.am (arts_SOURCES): Added m_method_list.cc, but not
+	method_list.h, since the latter is not yet used.
+
+	* src/workspace.cc (define_wsv_data): Added WSV method_list, which
+	can hold a generic method list, as the name says.
+
 2001-11-16  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-1-45

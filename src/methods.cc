@@ -3514,6 +3514,33 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES(     )));
 
+//======================================================================
+//=== Methods as Workspace Variables
+//======================================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MethodListDefine"),
+  	DESCRIPTION
+	( "Set up a method list.\n"
+	  "\n"
+	  "A method list just contains indices (in md_data) of methods\n"
+	  "intended for sequential execution. Only methods without keyword\n"
+	  "arguments are allowed. It is the task of this method to\n"
+	  "set this up. For example, it must be checked, whether the given\n"
+	  "names really correspond to methods.\n"
+	  "\n"
+	  "Global Output:\n"
+	  "   ArrayOfIndex : The newly generated method list.\n"
+	  "\n"
+	  "Keywords:\n"
+	  "   methods      : An array of names of methods." ),
+	OUTPUT(  ),
+        INPUT(  ),
+	GOUTPUT( ArrayOfIndex_ ),
+	GINPUT(),
+	KEYWORDS( "methods" ),
+	TYPES(    Array_String_t )));
 
 }
 
