@@ -1,3 +1,16 @@
+2003-07-03  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-598
+	
+	* doc/uguide/scattering.tex: Updated parts of the text and took out
+	the parts which are not up to date. Unfortunately there is still a lot
+	of documentation missing for the new functions.
+
+	* doc/uguide/integration.tex: Removed a reference to a section which
+	no longer exists.
+
+	* doc/uguide/references.bib: Included Mishchenkho's new book.
+
 2003-07-02  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-597
