@@ -1,3 +1,10 @@
+2001-07-26  Oliver Lemke  <olemke@core-dump.net>
+
+	* arts-0-0-189
+
+	* doc/doxygen/Makefile.am: Renamed make_* source files to make_auto_*.
+	
+
 2001-07-24  Oliver Lemke  <olemke@core-dump.net>
 
 	* arts-0-0-188
