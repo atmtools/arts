@@ -9,16 +9,53 @@
 #include "parser.h"
 #include "md.h"
 
-/*
-   This is the main function of ARTS. (You never guessed that, did you?)
-   The getopt_long function is used to parse the command line parameters.
 
-   @return    0=ok, 1=error
-   @param     argc Number of command line parameters 
-   @param     argv Values of command line parameters
-   @author    Stefan Buehler
-   @version   1
-*/
+/** The arts executor. This executes the methods specified in tasklist
+    on the given workspace. It also checks for errors during the
+    method execution and stops the program if an error has
+    occured. FIXME: Eventually, it should do a good housekeeping of
+    which variables are occupied and which are not.
+
+    @param workspace Output. The workspace to act on.
+    @param tasklist The list of methods to execute (including keyword data).
+
+    @authore Stefan Buehler  */
+void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
+{
+  // The method description lookup table:
+  const extern ARRAY<MdRecord> md_data;
+  
+  // The array holding the pointers to the getaway functions:
+  const extern void (*getaways[])(WorkSpace&, const MRecord&);
+
+  out3 << "\nExecuting methods:\n";
+
+  for (size_t i=0; i<tasklist.size(); ++i)
+    try
+      {
+	out1 << "- " << md_data[tasklist[i].Id()].Name() << '\n';
+
+	getaways[tasklist[i].Id()]
+	  ( workspace, tasklist[i] );
+      }
+    catch (runtime_error x)
+      {
+	out0 << "Error in method: " << md_data[tasklist[i].Id()].Name() << '\n'
+	     << x.what() << '\n';
+	exit(1);
+      }
+}
+
+
+
+
+/** This is the main function of ARTS. (You never guessed that, did you?)
+    The getopt_long function is used to parse the command line parameters.
+ 
+    @return    0=ok, 1=error
+    @param     argc Number of command line parameters 
+    @param     argv Values of command line parameters
+    @author    Stefan Buehler */
 int main (int argc, char **argv)
 {
   extern const Parameters parameters; // Global variable that holds
@@ -76,7 +113,7 @@ int main (int argc, char **argv)
       // Some global variables that we need:
       extern WorkSpace workspace;
       //      extern ARRAY<WsvRecord> wsv_data;
-      extern ARRAY<MdRecord> md_data;
+      //      extern ARRAY<MdRecord> md_data;
 
       {
 	// Output program name and version number: 
@@ -134,25 +171,9 @@ int main (int argc, char **argv)
       // Call the parser to parse the control text:
       parse_main(tasklist, text);
 
-      // Execute the methods in tasklist.
-      out3 << "\nExecuting methods:\n";
-      for (size_t i=0; i<tasklist.size(); ++i)
-	try
-	  {
-	    // The array holding the pointers to the getaway functions:
-	    extern void (*getaways[])(WorkSpace&, const ARRAY<TokVal>&);
+      // Call the executor:
+      executor(workspace, tasklist);
 
-	    out1 << "- " << md_data[tasklist[i].Id()].Name() << '\n';
-	    
-	    getaways[tasklist[i].Id()]
-	      ( workspace, tasklist[i].Values() );
-	  }
-	catch (runtime_error x)
-	  {
-	    out0 << "Error in method: " << md_data[tasklist[i].Id()].Name() << '\n'
-		 << x.what() << '\n';
-	    exit(1);
-	  }
     }
   catch (runtime_error x)
     {

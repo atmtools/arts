@@ -33,7 +33,8 @@
 #include <map>
 #include <stdarg.h>
 #include <math.h>
-//#include <typeinfo>
+#include <cfloat>
+#include <typeinfo>
 #include <stdexcept>
 //#include <algorithm>
 #include <ctype.h>

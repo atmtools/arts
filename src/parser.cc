@@ -665,18 +665,18 @@ void parse_numvector(ARRAY<Numeric>& res, SourceText& text)
    @exception UnexpectedKeyword
 
    @author Stefan Buehler  */
-bool parse_method(int& id, 
+bool parse_method(size_t& id, 
 		  ARRAY<TokVal>& values,
 		  ARRAY<size_t>& output,
 		  ARRAY<size_t>& input,
 		  SourceText& text,
-		  const std::map<string, int> MdMap,
-		  const std::map<string, int> WsvMap)
+		  const std::map<string, size_t> MdMap,
+		  const std::map<string, size_t> WsvMap)
 {
-  extern ARRAY<WsvRecord> wsv_data;
-  extern ARRAY<MdRecord> md_data;
+  const extern ARRAY<WsvRecord> wsv_data;
+  const extern ARRAY<MdRecord> md_data;
 
-  int wsvid;			// Workspace variable id, is used to
+  size_t wsvid;			// Workspace variable id, is used to
 				// access data in wsv_data.
 
   // Clear all output variables:
@@ -691,7 +691,7 @@ bool parse_method(int& id,
 
     {
       // Find method id:
-      const map<string, int>::const_iterator i = MdMap.find(methodname);
+      const map<string, size_t>::const_iterator i = MdMap.find(methodname);
       if ( i == MdMap.end() )
 	throw UnknownMethod(methodname,
 			    text.File(),
@@ -710,7 +710,7 @@ bool parse_method(int& id,
   // to be parsed (given in round brackets).
   if ( md_data[id].Generic() )
     {
-      cout << "Generic!" << id << md_data[id].Name() << '\n';
+      //      cout << "Generic!" << id << md_data[id].Name() << '\n';
       string wsvname;
       bool first = true;	// To skip the first comma.
 
@@ -732,7 +732,7 @@ bool parse_method(int& id,
 
 	  {
 	    // Find Wsv id:
-	    const map<string, int>::const_iterator i = WsvMap.find(wsvname);
+	    const map<string, size_t>::const_iterator i = WsvMap.find(wsvname);
 	    if ( i == WsvMap.end() )
 	      throw UnknownWsv( wsvname,
 				text.File(),
@@ -770,18 +770,22 @@ bool parse_method(int& id,
 
 	  {
 	    // Find Wsv id:
-	    const map<string, int>::const_iterator i = WsvMap.find(wsvname);
-	    if ( i == WsvMap.end() )
-	      throw UnknownWsv( wsvname,
-				text.File(),
-				text.Line(),
-				text.Column() );
+	    const map<string, size_t>::const_iterator i = WsvMap.find(wsvname);
+ 	    if ( i == WsvMap.end() )
+ 	      throw UnknownWsv( wsvname,
+ 				text.File(),
+ 				text.Line(),
+ 				text.Column() );
 
 	    wsvid = i->second;
 	  }
+// 	  cout << "wsvid = " << wsvid << endl;
+// 	  cout << "Variable: " << wsv_data[wsvid].Name() << '\n';
+// 	  cout << "wsv_data[wsvid].Group() = " << wsv_data[wsvid].Group() << endl;
+// 	  cout << "md_data[id].Input()"    << md_data[id].Input() << endl;
 
 	  // Check that this Wsv belongs to the correct group:
-	  if ( wsv_data[wsvid].Group() != md_data[id].Output()[j] )
+	  if ( wsv_data[wsvid].Group() != md_data[id].Input()[j] )
 	    throw WrongWsvGroup( wsvname,
 				 text.File(),
 				 text.Line(),
@@ -922,13 +926,13 @@ bool parse_method(int& id,
    @author Stefan Buehler */
 void parse(ARRAY<MRecord>& tasklist,
 	   SourceText& text,
-	   const std::map<string, int> MdMap,
-	   const std::map<string, int> WsvMap)
+	   const std::map<string, size_t> MdMap,
+	   const std::map<string, size_t> WsvMap)
 {
   extern const ARRAY<MdRecord> md_data;
   bool last = false;
   // For method ids:
-  int id;		
+  size_t id;		
  // For keyword parameter values:
   ARRAY<TokVal> values;
   // Output workspace variables (for generic methods):
@@ -936,7 +940,7 @@ void parse(ARRAY<MRecord>& tasklist,
   // Input workspace variables (for generic methods):
   ARRAY<size_t> input;
 
-  out3 << "\nParsing, tasklist:\n";
+  out3 << "\nParsing:\n";
 
   eat_whitespace(text);
 
@@ -947,7 +951,38 @@ void parse(ARRAY<MRecord>& tasklist,
       // Append taks to task list:
       tasklist.push_back(MRecord(id,values,output,input));
 
-      out3 << "- " << md_data[id].Name() << "\n";
+      {
+	// Everything in this block is just to generate some
+	// informative output.  
+	const extern ARRAY<WsvRecord> wsv_data;
+
+	out3 << "- " << md_data[id].Name() << "\n";
+
+	for ( size_t j=0 ; j<values.size() ; ++j )
+	  {
+	    out3 << "   " 
+		 << md_data[id].Keywords()[j] << ": "
+		 << values[j] << '\n';
+	  }
+	  
+	// Output workspace variables for generic methods:
+	if (md_data[id].Generic())
+	  {
+	    out3 << "   Output: ";
+	    for ( size_t j=0 ; j<output.size() ; ++j )
+	      {
+		out3 << wsv_data[output[j]].Name() << " ";
+	      }
+	    out3 << "\n";
+
+	    out3 << "   Input: ";
+	    for ( size_t j=0 ; j<input.size() ; ++j )
+	      {
+		out3 << wsv_data[input[j]].Name() << " ";
+	      }
+	    out3 << "\n";
+	  }
+      }
 
       // If last is set, then we have anyway reached the end of the
       // text, so we don't have to eat whitespace.
@@ -965,8 +1000,8 @@ void parse(ARRAY<MRecord>& tasklist,
 
 void parse_main(ARRAY<MRecord>& tasklist, SourceText& text)
 {
-  std::map<string, int> MdMap;
-  std::map<string, int> WsvMap;
+  std::map<string, size_t> MdMap;
+  std::map<string, size_t> WsvMap;
   extern const ARRAY<MdRecord> md_data;
   extern const ARRAY<WsvRecord> wsv_data;
 
@@ -986,20 +1021,6 @@ void parse_main(ARRAY<MRecord>& tasklist, SourceText& text)
     {
       text.Init();
       parse(tasklist,text,MdMap,WsvMap);
-
-      for ( ARRAY<MRecord>::iterator i=tasklist.begin();
-	    i<tasklist.end();
-	    ++i )
-	{
-	  //	  cout << md_data[i->Id()].Name() << '\n';
-	  for ( size_t j=0 ; j<i->Values().size() ; ++j )
-	    {
-	      cout << "   " 
-		   << md_data[i->Id()].Keywords()[j] << ": "
-		   << i->Values()[j] << '\n';
-	    }
-	}
-      
     }
   catch (const Eot x)
     {

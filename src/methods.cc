@@ -2,7 +2,7 @@
    records. See methods.h for more documentation. */
 
 #include "arts.h"
-#include "make_vector.h"
+#include "make_array.h"
 #include "workspace.h"
 #include "methods.h"
 
@@ -53,53 +53,68 @@ void define_md_data()
     ( MdRecord
       ( NAME("VectorWriteToFile"),
 	DESCRIPTION("Writes a workspace variable that is a vector to a file.\n"
+		    "The filename is <basename>.<variable_name>.\n"
 		    "The format is exactly the same as for matrices, with the\n"
 		    "second dimension given as zero. Explicitly:\n\n"
 		    "# <comments>\n\n"
-		    "\"<variable_name>\"\n\n"
-		    "<precision>\n\n"
+		    //		    "\"<variable_name>\"\n\n"
 		    "<n_elements> 0\n\n"
 		    "<elements>"),
 	GENERIC(true),
-	OUTPUT(VECTOR_),
-	INPUT(),
+	OUTPUT(),
+	INPUT(VECTOR_),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixWriteToFile"),
+	DESCRIPTION("Writes a workspace variable that is a matrix to a file.\n"
+		    "The filename is <basename>.<variable_name>.\n"
+		    "The format is as follows:\n\n"
+		    "# <comments>\n\n"
+		    //		    "\"<variable_name>\"\n\n"
+		    "<n_rows> <n_columns>\n\n"
+		    "<elements>"),
+	GENERIC(true),
+	OUTPUT(),
+	INPUT(MATRIX_),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorWriteToNamedFile"),
+	DESCRIPTION("Writes a workspace variable that is a vector to a file.\n"
+		    "The filename has to be specified.\n"
+		    "The format is exactly the same as for matrices, with the\n"
+		    "second dimension given as zero. Explicitly:\n\n"
+		    "# <comments>\n\n"
+		    //		    "\"<variable_name>\"\n\n"
+		    "<n_elements> 0\n\n"
+		    "<elements>"),
+	GENERIC(true),
+	OUTPUT(),
+	INPUT(VECTOR_),
+	KEYWORDS("filename"),
+	TYPES(str_)));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixWriteToNamedFile"),
+	DESCRIPTION("Writes a workspace variable that is a matrix to a file.\n"
+		    "The filename has to be specified.\n"
+		    "The format is as follows:\n\n"
+		    "# <comments>\n\n"
+		    //		    "\"<variable_name>\"\n\n"
+		    "<n_rows> <n_columns>\n\n"
+		    "<elements>"),
+	GENERIC(true),
+	OUTPUT(),
+	INPUT(MATRIX_),
 	KEYWORDS("filename"),
 	TYPES(str_)));
 
   
-// MdRecord md_data[] = {
-//   MdRecord,
-//   MdRecord("SomeMethod",
-// 	   "Do whatever it takes to fulfil the expectations that have\n"
-// 	   "been put in you.",
-// 	   false,
-// 	   make_array<size_t>(abs_),
-// 	   make_array<size_t>(p_abs_, t_abs_, f_abs_),
-// 	   make_array<string>("sample","ints","numm"),
-// 	   make_array<TokValType>(strvec_,intvec_,numvec_),
-// 	   make_array<TokVal>(make_array<string>("ab","cd"),
-// 			      make_array<int>(1,2),
-// 			      make_array<Numeric>(1.2,2.3)
-// 			     )
-//           ),
-//   MdRecord("WriteVectorToFile",
-// 	   "This writes any vector to an ASCI File.\n"
-// 	   "The filename is given by the basename plus the name\n"
-// 	   "of the workspace variable as the extension.",
-// 	   true,
-// 	   make_array<size_t>(),
-// 	   make_array<size_t>(NumVector_),
-// 	   make_array<string>(),
-// 	   make_array<TokValType>(),
-// 	   make_array<TokVal>()),
-//   MdRecord("End",
-// 	   "This method terminates the program.",
-// 	   false,
-// 	   make_array<size_t>(),
-// 	   make_array<size_t>(),
-// 	   make_array<string>(),
-// 	   make_array<TokValType>(),
-// 	   make_array<TokVal>())  
-// };
 
 }

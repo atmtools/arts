@@ -129,7 +129,7 @@ Build stuff:
    system call:
 
       (gdb) file arts
-      (gdb) break exit
+      (gdb) break exit (or break __assert_fail)
 
    Now run the program: 
 
@@ -154,7 +154,18 @@ Build stuff:
    This way if assertions are enabled, the program will stop and
    the stack will be retained. Otherwise the program will simply exit.
 
-4. The global header file arts.h *must* be included by every file, for
+4. Assertion failures may occur in the ARRAY and VECTOR
+   functions. Sometimes it helps to temporarily add the following cody
+   immediately in front of the failed assertion:
+
+	cout << "i = " << i << endl;
+	cout << "dim() = " << dim() << endl;
+	cout << "typeid = " << typeid(v_[0]).name() << endl;
+        assert(i<dim());
+
+   This way one can see, what kind of array has caused the failure.
+
+5. The global header file arts.h *must* be included by every file, for
    example because it turns on or off assert.
 ----------------------------------------------------------------------
 

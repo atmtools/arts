@@ -123,6 +123,14 @@ private:
   WsvP* mpointer;
 };
 
+
+/** Used to pass the actual workspace variable names to generic methods. */
+struct WsvActualGenericNames {
+  ARRAY<string> output;
+  ARRAY<string> input;
+};
+
+
 /** Define the lookup data for the workspace variables. The array
     wsv_data contains all that we need to know about each workspace
     variable. The array WsvGroupName contains the names of the work

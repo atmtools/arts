@@ -1,3 +1,12 @@
+2000-03-29  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0.0.4
+	* Now we can parse and execute specific and generic
+  	methods. However, I want to re-structure the method lookup data
+	(add explicit fields for generic I/O, so that a method can have
+	both generic and specific I/O). So this commit is mainly to save
+	the state of the work before I start with this complicated task.
+
 2000-03-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0.0.3.

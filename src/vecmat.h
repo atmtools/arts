@@ -1,6 +1,10 @@
 #ifndef vecmat_h
 #define vecmat_h
 
+//--------------------< Global ARTS header >--------------------
+// Defines for example the type Numeric.
+#include "arts.h"
+
 //--------------------< STL headers: >--------------------
 #include <vector>		// Vektor class from the STL
 

@@ -24,6 +24,8 @@ token.h \
 parser.h \
 md.h \
 math_funcs.h \
+make_vector.h \
+make_array.h \
 getopt.c \
 getopt1.c \
 main.cc \
@@ -36,6 +38,7 @@ token.cc \
 parser.cc \
 md.cc \
 math_funcs.cc \
+make_vector.cc \
 m_abs.cc \
 m_io.cc
 
@@ -46,7 +49,7 @@ arts.h vecmat.h messages.h file.h workspace.h \
 messages.cc file.cc workspace.cc make_wsv_h.cc
 
 make_md_h_SOURCES = \
-arts.h vecmat.h wsv.h token.h messages.h file.h workspace.h methods.h \
+arts.h vecmat.h wsv.h token.h messages.h file.h workspace.h methods.h make_array.h \
 token.cc messages.cc file.cc workspace.cc methods.cc make_md_h.cc
 
 wsv.h: make_wsv_h

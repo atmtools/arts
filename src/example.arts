@@ -14,3 +14,7 @@
 #End{}
 
 AllAbsExample{}
+
+VectorWriteToNamedFile(p_abs){filename="p_abs.dat"}
+
+MatrixWriteToNamedFile(abs){"abs.dat"}

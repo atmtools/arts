@@ -11,7 +11,7 @@
    have the same arguments:
 
    void get_away_example_g(WorkSpace& ws,
-			   const ARRAY<TokVal>& tv);
+			   const MRecord& mr);
 
    Their names all have the extension _g
 
@@ -35,6 +35,9 @@
    to the absorption coefficients. IN THAT CASE THE VARIABLE IS ADDED
    TO THE LIST ONLY ONCE, namely among the OUTPUT variables.
 
+   For generic methods the names of the actual workspace variables are
+   also passed on to the method function.
+
    History:
    SAB 29.07.99 Created.  */
 
@@ -45,6 +48,21 @@
 #include "wsv.h"
 #include "workspace.h"
 #include "methods.h"
+
+
+/* Adds commas and indentation to parameter lists. */
+void align(ofstream& ofs, bool& is_first_parameter, const string& indent)
+{
+  // Add comma and line break, if not first element:
+  if (is_first_parameter)
+    is_first_parameter = false;
+  else
+    {
+      ofs << ",\n";
+      // Make proper indentation:
+      ofs << indent;
+    }
+}
 
 int main()
 {
@@ -60,7 +78,10 @@ int main()
       define_wsv_data();
   
       // Make wsv data visible.
-      extern ARRAY<WsvRecord> wsv_data;
+      const extern ARRAY<WsvRecord> wsv_data;
+
+      // The names of the types of workspace variables.
+      const extern ARRAY<string> wsv_group_names;
 
       const size_t n_md  = md_data.size();
       const size_t n_wsv = wsv_data.size();
@@ -91,7 +112,7 @@ int main()
 
       ofs << "#include \"vecmat.h\"\n"
 	  << "#include \"workspace.h\"\n"
-	  << "#include \"token.h\"\n"
+	  << "#include \"parser.h\"\n"
 	  << "\n";
 
       ofs << "// This is only used for a consistency check. You can get the\n"
@@ -131,9 +152,6 @@ int main()
 	    ofs << "/** " << s << " */\n";
 	  }
 
-	  // The names of the types of workspace variables.
-	  extern ARRAY<string> wsv_group_names;
-
 	  // This is needed to flag the first function parameter, which 
 	  // needs no line break before being written:
 	  bool is_first_parameter = true;
@@ -168,17 +186,10 @@ int main()
 	    // Flag first parameter of this sort:
 	    bool is_first_of_these = true;
 
-	    for (ARRAY<size_t>::const_iterator j=vo.begin(); j!=vo.end(); ++j)
+	    for (size_t j=0; j<vo.size(); ++j)
 	      {
 		// Add comma and line break, if not first element:
-		if (is_first_parameter)
-		  is_first_parameter = false;
-		else
-		  {
-		    ofs << ",\n";
-		    // Make proper indentation:
-		    ofs << indent;
-		  }
+		align(ofs,is_first_parameter,indent);
 
 		// Add comment if this is the first of this sort
 		if (is_first_of_these)
@@ -188,7 +199,10 @@ int main()
 		    is_first_of_these = false;
 		  }
 
-		ofs << wsv_group_names[wsv_data[*j].Group()] << "&";
+		if (!md_data[i].Generic())
+		  ofs << wsv_group_names[wsv_data[vo[j]].Group()] << "&";
+		else
+		  ofs << wsv_group_names[md_data[i].Output()[j]]   << "&";
 	      }
 	  }
 
@@ -197,17 +211,10 @@ int main()
 	    // Flag first parameter of this sort.
 	    bool is_first_of_these = true;
 
-	    for (ARRAY<size_t>::const_iterator j=vi.begin(); j!=vi.end(); ++j)
+	    for (size_t j=0; j<vi.size(); ++j)
 	      {
 		// Add comma and line break, if not first element:
-		if (is_first_parameter)
-		  is_first_parameter = false;
-		else
-		  {
-		    ofs << ",\n";
-		    // Make proper indentation:
-		    ofs << indent;
-		  }
+		align(ofs,is_first_parameter,indent);
 		    
 		// Add type if this is the first of this sort.
 		if (is_first_of_these)
@@ -216,10 +223,27 @@ int main()
 		    ofs << indent;		  
 		    is_first_of_these = false;
 		  }
-
-		ofs << "const ws." << wsv_group_names[wsv_data[*j].Group()] << "&";
+		
+		if (!md_data[i].Generic())
+		  ofs << "const "
+		      << wsv_group_names[wsv_data[vi[j]].Group()] << "&";
+		else
+		  ofs << "const "
+		      << wsv_group_names[md_data[i].Input()[j]]   << "&";
 	      }
 	  }
+
+	  // Write the workspace variable names (only for generic methods):
+	  if (md_data[i].Generic())
+	    {
+	      // Add comma and line break, if not first element:
+	      align(ofs,is_first_parameter,indent);
+
+	      ofs << "// WS Variable Names:\n";
+	      ofs << indent;		  
+
+	      ofs << "const WsvActualGenericNames& ws_var_names";
+	    }
 
 	  // Write the control parameters:
 	  {
@@ -227,19 +251,12 @@ int main()
 	    bool is_first_of_these = true;
 
 	    // Number of keyword parameters.
-	    size_t n_tv = md_data[i].Keywords().size();
+	    size_t n_mr = md_data[i].Keywords().size();
 
-	    for (size_t j=0; j!=n_tv; ++j)
+	    for (size_t j=0; j!=n_mr; ++j)
 	      {
 		// Add comma and line break, if not first element:
-		if (is_first_parameter)
-		  is_first_parameter = false;
-		else
-		  {
-		    ofs << ",\n";
-		    // Make proper indentation:
-		    ofs << indent;
-		  }
+		align(ofs,is_first_parameter,indent);
 		    
 		// Add type if this is the first of this sort.
 		if (is_first_of_these)
@@ -262,7 +279,7 @@ int main()
       ofs << "// Get-away function declarations:\n\n";
       for (size_t i=0; i<n_md; ++i)
 	ofs << "void " << md_data[i].Name()
-	    << "_g(WorkSpace& ws, const ARRAY<TokVal>& tv);\n";
+	    << "_g(WorkSpace& ws, const MRecord& mr);\n";
 
       ofs << "\n";
 
@@ -282,6 +299,7 @@ int main()
 	  << __TIME__ << "\n\n";
 
       ofs << "#include \"arts.h\"\n"
+	  << "#include \"make_array.h\"\n"
 	  << "#include \"md.h\"\n"
 	  << "\n";
 
@@ -291,11 +309,10 @@ int main()
 	{
 	  // This is needed to flag the first function parameter, which 
 	  // needs no line break before being written:
-	  bool is_first_parameter = true;
+	  bool is_first_parameter;
 	  // The string indent is needed to achieve the correct
 	  // indentation of the functin parameters:
-	  string indent(md_data[i].Name().size()+3,' ');
-
+	  string indent;
 	  
 	  // There are two lists of parameters that we have to
 	  // write: 
@@ -317,98 +334,95 @@ int main()
 		}
 
 	  ofs << "void " << md_data[i].Name()
-	      << "_g(WorkSpace& ws, const ARRAY<TokVal>& tv)\n";
+	      << "_g(WorkSpace& ws, const MRecord& mr)\n";
 	  ofs << "{\n";
+
+	  // Some special stuff for generic methods:
+	  if (md_data[i].Generic())
+	    {
+	      // Only for generic methods, we need to pass on the actual
+	      // names of the workspace variables in the structure ws_var_names.
+	      ofs << "  const extern ARRAY<WsvRecord> wsv_data;\n"
+		  << "  WsvActualGenericNames ws_var_names;\n"
+		  << "  for ( size_t i=0 ; i<mr.Output().size() ; ++i )\n"
+		  << "    ws_var_names.output.push_back(wsv_data[mr.Output()[0]].Name());\n"
+		  << "  for ( size_t i=0 ; i<mr.Input().size() ; ++i )\n"
+		  << "    ws_var_names.input.push_back(wsv_data[mr.Input()[0]].Name());\n";
+	      //  << "\n"
+	      //  << "  cout << \"ws_var_names.output = \" << ws_var_names.output << endl;\n"
+	      //  << "  cout << \"ws_var_names.input = \" << ws_var_names.input << endl;\n";
+
+	      // The actual workspace variables have to be transfered
+	      // with the pointers stored in wsv_data:
+
+	      // Write the Output workspace variables:
+	      for (size_t j=0; j<vo.size(); ++j)
+		{
+		  ofs << "  " << wsv_group_names[md_data[i].Output()[j]]
+		      << " *O" << j << " = *wsv_data[mr.Output()[" << j
+		      << "]].Pointer();\n";
+		}
+
+	      // Write the Input workspace variables:
+	      for (size_t j=0; j<vi.size(); ++j)
+		{
+		  ofs << "  " << wsv_group_names[md_data[i].Input()[j]]
+		      << " *I" << j << " = *wsv_data[mr.Input()[" << j
+		      << "]].Pointer();\n";
+		}
+	    }
+
+	  // Re-set is_first_parameter and indent:
+	  is_first_parameter = true;
+	  indent = string(md_data[i].Name().size()+3,' ');
+
 	  ofs << "  " << md_data[i].Name() << "(";
 
 	  // Write the Output workspace variables:
-	  {
-	    // Flag first parameter of this type:
-	    // 	    bool is_first_of_these = true;
+	  for (size_t j=0; j<vo.size(); ++j)
+	    {
+	      // Add comma and line break, if not first element:
+	      align(ofs,is_first_parameter,indent);
 
-	    for (ARRAY<size_t>::const_iterator j=vo.begin(); j!=vo.end(); ++j)
-	      {
-		// Add comma and line break, if not first element:
-		if (is_first_parameter)
-		  is_first_parameter = false;
-		else
-		  {
-		    ofs << ",\n";
-		    // Make proper indentation:
-		    ofs << indent;
-		  }
-
-		// Add type if this is the first of this type
-		// 		if (is_first_of_these)
-		// 		  {
-		// 		    ofs << "// WS Output:\n";
-		// 		    ofs << indent;
-		// 		    is_first_of_these = false;
-		// 		  }
-		    
-		ofs << "ws." << wsv_data[*j].Name();
-	      }
-	  }
+	      if (!md_data[i].Generic())
+		ofs << "ws." << wsv_data[vo[j]].Name();
+	      else
+		ofs << "*O" << j;
+	    }
 
 	  // Write the Input workspace variables:
-	  {
-	    // Flag first parameter of this type:
-	    // 	    bool is_first_of_these = true;
+	  for (size_t j=0; j<vi.size(); ++j)
+	    {
+	      // Add comma and line break, if not first element:
+	      align(ofs,is_first_parameter,indent);
 
-	    for (ARRAY<size_t>::const_iterator j=vi.begin(); j!=vi.end(); ++j)
-	      {
-		// Add comma and line break, if not first element:
-		if (is_first_parameter)
-		  is_first_parameter = false;
-		else
-		  {
-		    ofs << ",\n";
-		    // Make proper indentation:
-		    ofs << indent;
-		  }
-		    
-		// Add type if this is the first of this type
-		// 		if (is_first_of_these)
-		// 		  {
-		// 		    ofs << "// WS Input:\n";
-		// 		    ofs << indent;		  
-		// 		    is_first_of_these = false;
-		// 		  }
+	      if (!md_data[i].Generic())
+		ofs << "ws." << wsv_data[vi[j]].Name();
+	      else
+		ofs << "*I" << j;
+	    }
 
-		ofs << "ws." << wsv_data[*j].Name();
-	      }
-	  }
+	  // Write the workspace variable names (only for generic methods):
+	  if (md_data[i].Generic())
+	    {
+	      // Add comma and line break, if not first element:
+	      align(ofs,is_first_parameter,indent);
+
+	      ofs << "ws_var_names";
+	    }
 
 	  // Write the control parameters:
 	  {
-	    // Flag first parameter of this type:
-	    // 	    bool is_first_of_these = true;
-
-	    // The tv parameters look all the same (tv[i]), so we just
+	    // The mr parameters look all the same (mr[i]), so we just
 	    // need to know the number of them: 
-	    size_t n_tv = md_data[i].Keywords().size();
+	    size_t n_mr = md_data[i].Keywords().size();
 
-	    for (size_t j=0; j!=n_tv; ++j)
+	    for (size_t j=0; j!=n_mr; ++j)
 	      {
 		// Add comma and line break, if not first element:
-		if (is_first_parameter)
-		  is_first_parameter = false;
-		else
-		  {
-		    ofs << ",\n";
-		    // Make proper indentation:
-		    ofs << indent;
-		  }
-		    
-		// Add type if this is the first of this type
-		// 		if (is_first_of_these)
-		// 		  {
-		// 		    ofs << "// Control Parameters:\n";
-		// 		    ofs << indent;		  
-		// 		    is_first_of_these = false;
-		// 		  }
+		align(ofs,is_first_parameter,indent);
 
-		ofs << "tv[" << j << "]";
+		ofs << "mr.Values()[" << j << "]";
 	      }
 	  }
 
@@ -421,20 +435,14 @@ int main()
 	string indent = "     ";
 	bool is_first_parameter = true;
 
-	ofs << "/** The array holding the pointers to the getaway functions. */"
-	    << "void (*getaways[])(WorkSpace&, const ARRAY<TokVal>&)\n"
+	ofs << "/** The array holding the pointers to the getaway functions. */\n"
+	    << "void (*getaways[])(WorkSpace&, const MRecord&)\n"
 	    << "  = {";
 	for (size_t i=0; i<n_md; ++i)
 	  {
 	    // Add comma and line break, if not first element:
-	    if (is_first_parameter)
-	      is_first_parameter = false;
-	    else
-	      {
-		ofs << ",\n";
-		// Make proper indentation:
-		ofs << indent;
-	      }
+	    align(ofs,is_first_parameter,indent);
+
 	    ofs << md_data[i].Name() << "_g";
 	  }
 	ofs << "};\n\n";
