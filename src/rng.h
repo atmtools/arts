@@ -106,7 +106,7 @@
 
 #ifndef __GSL_RNG_H__
 #define __GSL_RNG_H__
-#include <stdlib.h>
+#include <cstdlib>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
@@ -317,8 +317,8 @@ __END_DECLS
 #ifndef __GSL_ERRNO_H__
 #define __GSL_ERRNO_H__
 
-#include <stdio.h>
-#include <errno.h>
+#include <cstdio>
+#include <cerrno>
 
 #undef __BEGIN_DECLS
 #undef __END_DECLS
