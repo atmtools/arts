@@ -2101,13 +2101,24 @@ xml_write_to_stream (ostream& os_xml,
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      SingleScatteringData&,
-                      bifstream * = NULL)
+                      SingleScatteringData &ssdata,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
+  Index ptype;
 
   tag.read_from_stream (is_xml);
   tag.check_name ("SingleScatteringData");
+
+  xml_read_from_stream (is_xml, ptype, pbifs);
+  ssdata.ptype = PType (ptype);
+  xml_read_from_stream (is_xml, ssdata.description, pbifs);
+  xml_read_from_stream (is_xml, ssdata.f_grid, pbifs);
+  xml_read_from_stream (is_xml, ssdata.za_grid, pbifs);
+  xml_read_from_stream (is_xml, ssdata.aa_grid, pbifs);
+  xml_read_from_stream (is_xml, ssdata.pha_mat_data, pbifs);
+  xml_read_from_stream (is_xml, ssdata.ext_mat_data, pbifs);
+  xml_read_from_stream (is_xml, ssdata.abs_vec_data, pbifs);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/SingleScatteringData");
@@ -2122,14 +2133,23 @@ xml_read_from_stream (istream& is_xml,
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const SingleScatteringData&,
-                     bofstream * = NULL)
+                     const SingleScatteringData &ssdata,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("SingleScatteringData");
   open_tag.write_to_stream (os_xml);
+
+  xml_write_to_stream (os_xml, Index (ssdata.ptype), pbofs);
+  xml_write_to_stream (os_xml, ssdata.description, pbofs);
+  xml_write_to_stream (os_xml, ssdata.f_grid, pbofs);
+  xml_write_to_stream (os_xml, ssdata.za_grid, pbofs);
+  xml_write_to_stream (os_xml, ssdata.aa_grid, pbofs);
+  xml_write_to_stream (os_xml, ssdata.pha_mat_data, pbofs);
+  xml_write_to_stream (os_xml, ssdata.ext_mat_data, pbofs);
+  xml_write_to_stream (os_xml, ssdata.abs_vec_data, pbofs);
 
   close_tag.set_name ("/SingleScatteringData");
   close_tag.write_to_stream (os_xml);
