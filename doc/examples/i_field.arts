@@ -135,11 +135,12 @@ VectorSet( scat_aa_grid ) {
 
 #---< Define particle properties >-------------
 
-ParticleTypeInit{1}
+ParticleTypeInit{}
 
 ParticleTypeAdd{
-	["sph_200"]
-	}	
+        filename_amp_mat = "/smiles_local/arts-data/scattering/sph_200_ampmat.xml" 
+        filename_pnd_field = "  "
+        }       
 
  #---- <amp_mat> --------------
 	
