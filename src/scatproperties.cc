@@ -8,9 +8,11 @@
   from amplitude matrix 
 */
 
+#include <stdexcept>
 #include <iostream>
 #include "scatproperties.h"  
 #include "math_funcs.h"
+#include "logic.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
