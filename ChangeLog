@@ -1,3 +1,16 @@
+2002-05-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-78
+		
+	* src/lin_alg.cc/.h Modified function norm_inf and changed
+	interface of exp_matrix.
+
+	* doc/uguide/scattering.tex: Added this file to document the
+	scattering part.
+
+	* doc/uguide/referencec.bib: Added some references for the linear
+	algebra part. 
+
 2002-05-14  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-77
