@@ -1,5 +1,20 @@
+2002-08-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-206	
+		
+	* src/m_scatrte.cc (i_fieldUpdate1D): Included cloudbox boundary 
+		conditions. Radiation travelling out of the cloudbox is 
+		defined to be 0 as it is not needed for the iterations.
+		
+	* src/m_scatrte.cc (stokes_vecGeneral): Bug fixed.
+
+	* src/test_linalg.cc (test_lusolve1D): Added this function to see
+		if the LU decomposition also works for scalar equations.
+	
 2002-08-16  Sreerekha T.R.  <rekha@uni-bremen.de>
 
+	* arts-1-1-205		
+		
 	* configure.in: While checking in last time, I edited  cd .. in
 	this file by mistake.  
 
