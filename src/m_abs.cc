@@ -1486,9 +1486,6 @@ void AtmFromRaw(// WS Output:
 
   //---------------< 2. Interpolation of VMR profiles >---------------
   {
-    // The species lookup data
-    extern const Array<SpeciesRecord> species_data;
-
     // check size of input String vectors.
     assert ( tgs.nelem() == raw_vmrs.nelem() ); 
 
