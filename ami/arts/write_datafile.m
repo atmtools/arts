@@ -149,7 +149,7 @@ if toascii
   end
   
   %=== Print heading
-  if ~isempty(heading)
+  if exist('heading','var') & ~isempty(heading)
     for i = 1:size(heading,1)
       fprintf(fid,'# %s\n',heading(i,:));
     end

@@ -1,3 +1,15 @@
+2001-12-10  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-1-66
+
+	* ami/hmatrix/hFreqSwitch.m: Made this function for creating the
+	transfer matrix to inclide the effect of frequency switching. 
+	Please note that frequency switching is not included in Qpack.
+
+	* ami/arts/write_datafile.m: The conflict between the local
+	variable heading and a file with the same name was not fixed
+	properly. That should hopefully be the case now.
+
 2001-12-10  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-65

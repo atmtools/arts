@@ -7,14 +7,14 @@
 %            Response of image band = RATIO
 %            Response of primary bad = 1 - RATIO
 %
-% FORMAT:  [H,f_y,za_y,f_sensor] = hMixerFromFileAdv(H,f_sensor,za_sensor,
-%                                                          lo,fprimary,ratio)
+% FORMAT:  [H,f_y,za_y,f_sensor] = hMixerConst(H,f_sensor,za_sensor,
+%                                                       lo,fprimary,ratio,o_y )
 %
 % RETURN:  H           H matrix after antenna
 %          f_y         new frequency vector
 %          za_y        new zenith angle vector 
 %          f_sensor    new frequency grid 
-% IN:      H           H matrix after the mixer
+% IN:      H           H matrix before the mixer
 %          f_sensor    input frequency grid
 %          za_sensor   zenith angles
 %          lo          LO frequency
@@ -27,7 +27,7 @@
 
 
 function [H,f_y,za_y,f_sensor] = ...
-                 hMixerFromFileAdv(H,f_sensor,za_sensor,lo,fprimary,ratio,o_y)
+                      hMixerConst(H,f_sensor,za_sensor,lo,fprimary,ratio,o_y)
 
 
 %=== Get H
@@ -41,7 +41,7 @@ else
 end
 
 
-%=== Include Hant in H
+%=== Include Hmix in H
 H = h_x_h(Hmix,H);
 
 
