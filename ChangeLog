@@ -1,3 +1,9 @@
+2003-03-10  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-496
+
+	* doc/doxygen/html/Makefile.am: Include png images.
+
 2003-03-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-495
