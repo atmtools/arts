@@ -165,12 +165,6 @@ void montecarloGetIncoming(
 			   const Index&          stokes_dim
 			   );
 
-Numeric p_from_belowCscaCalc(
-			  const Numeric& za_scat,
-			  const Tensor3& montecarlo_p_from_belowCsca,
-			  const VectorView& pnd_vec,
-			  const VectorView& za_grid
-			  );
 void pha_mat_singleCalc(
 			MatrixView& Z,			
 			Numeric za_scat, 
@@ -194,13 +188,6 @@ void ppathRecordMC(
 
 
 void Sample_los (
-		 VectorView& rte_los,
-		 Numeric& g_los_csc_theta,
-		 Rng& rng,
-		 const Index& sampling_method
-		 );
-
-void Sample_los_Z (
 		   VectorView& new_rte_los,
 		   Numeric& g_los_csc_theta,
 		   MatrixView& Z,
@@ -220,12 +207,10 @@ void Sample_los_Z (
 void Sample_ppathlength (
 			 Numeric& pathlength, 
 			 Numeric& g,
-			 //Numeric& K11,
 			 Rng& rng,
 			 const ArrayOfMatrix& ext_matArray,
 			 const ArrayOfMatrix& TArray,
-			 const ConstVectorView& cum_l_step,
-			 Index method
+			 const ConstVectorView& cum_l_step
 			 );
 
 void Sample_ppathlengthLOS (
@@ -234,8 +219,7 @@ void Sample_ppathlengthLOS (
 			 Rng& rng,
 			 const ArrayOfMatrix& ext_matArray,
 			 const ArrayOfMatrix& TArray,
-			 const ConstVectorView& cum_l_step,
-			 Index method
+			 const ConstVectorView& cum_l_step
 			 );
 
 

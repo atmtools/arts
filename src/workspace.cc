@@ -1378,28 +1378,6 @@ wsv_data.push_back
        ),
       GROUP( Matrix_ )));
  
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "montecarlo_p_from_belowCsca" ),
-      DESCRIPTION
-      (
-       "Renormalisation factor used when stratified sampling is enabled in" 
-       "Monte Carlo scattering simulations\n"
-       "\n"
-       "Physically this represents the probability that after a scattering\n"
-       "event a given photon with propagation direction za_sca had an upwards\n"
-       "direction before scattering. This probability is multiplied by the\n "
-       "scattering cross-section.\n"
-       "\n"
-       "Usage: precalculated and imported by XMLRead\n"
-       "\n"
-       "Unit: m^2\n"
-       "\n"
-       "Size: [number of particle types, number of frequencies, number of \n"
-       "         zenith angles]\n"
-       ),
-      GROUP( Tensor3_ )));
- 
  wsv_data.push_back
    (WsvRecord
     ( NAME( "opt_prop_gas_agenda" ),

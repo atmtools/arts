@@ -774,47 +774,6 @@ void pha_mat_singleCalc(
     }
 }
 
-//! ppathRecordMC
-/*!
-  interpolates montecarlo_p_from_belowCsca by za_scat, and adds over particle
-types
-
-\param p_from_belowCsca  Output: p_from_belowCsca summed over particle types
-                                 for a given scatterd zenith angle
-\param za_scat           scattered zenith angle
-\param montecarlo_p_from_belowCsca workspace variable
-\param pnd_vec           Vector of particle number densities at the point in 
-                         question
-\param za_grid           The zenith angle grid used in scattering data files
-
- \author Cory Davis
- \date   2003-12-04
-
-*/
-
-Numeric p_from_belowCscaCalc(
-			  const Numeric& za_scat,
-			  const Tensor3& montecarlo_p_from_belowCsca,
-			  const VectorView& pnd_vec,
-			  const VectorView& za_grid
-			  )
-
-{
-  Index N_pt=pnd_vec.nelem();
-  Numeric p_from_belowCsca=0;
-  GridPos gp;
-  Vector itw(2);
-  gridpos(gp,za_grid,za_scat);
-  interpweights(itw,gp);
-  for (Index pt_index=0;pt_index<N_pt;pt_index++)
-    {
-      p_from_belowCsca+=pnd_vec[pt_index]*
-	interp(itw,montecarlo_p_from_belowCsca(pt_index,0,joker),gp);
-    }
-  return p_from_belowCsca;
-}
-
-
 
 //! ppathRecordMC
 /*!
@@ -873,32 +832,6 @@ void ppathRecordMC(
    \date   2003-06-19
 */
 
-		
-void Sample_los (
-		 VectorView& rte_los,
-		 Numeric& g_los_csc_theta,
-		 Rng& rng,
-		 const Index& sampling_method
-		 )
-{
- rte_los[1] = rng.draw()*360-180;
- if (sampling_method == 1)
-   {
-     rte_los[0] = acos(1-2*sqrt(rng.draw()));
-     g_los_csc_theta = 0.25*(1-cos(rte_los[0]))/PI;
-   }
- else if (sampling_method == 2)
-   {
-     rte_los[0] = acos(1-2*rng.draw());
-     g_los_csc_theta = 0.25/PI;
-   }
- else
-   {
-     throw runtime_error( "Invalid value for sampling_method. "
-                          "sampling_method\n must be 1,2, or 3." );
-   }
- rte_los[0]*=RAD2DEG;
-}
 
 //! Sample_los_Z
 /*!
@@ -925,7 +858,7 @@ void Sample_los (
  \author Cory Davis
  \date   2003-11-27
 */
-void Sample_los_Z (
+void Sample_los (
 		   VectorView& new_rte_los,
 		   Numeric& g_los_csc_theta,
 		   MatrixView& Z,
@@ -1016,77 +949,50 @@ void Sample_los_Z (
 void Sample_ppathlength (
 			 Numeric& pathlength, 
 			 Numeric& g,
-			 // Numeric& K11,
 			 Rng& rng,
 			 const ArrayOfMatrix& ext_matArray,
 			 const ArrayOfMatrix& TArray,
-			 const ConstVectorView& cum_l_step,
-			 Index method
+			 const ConstVectorView& cum_l_step
 			 )
 {
   Index npoints=cum_l_step.nelem();
-  Numeric dist_to_boundary=cum_l_step[npoints-1];	
-  Numeric K11;
   assert(ext_matArray.nelem()==npoints);
   assert(TArray.nelem()==npoints);
 
-  if(method==1)
+
+  
+  //assert(false);
+  Numeric r = rng.draw();
+  //inefficient first effort
+  Vector T11vector(npoints);
+  for (Index i=0;i<npoints;i++)
     {
-      //Since we already have an array 
-      //of extinction matrix elements we could choose a number of ways
-      //to sample the pathlength.  To start with we'll try using the mean 
-      //extinction matrix along the line of sight.
-      Matrix K = ext_matArray[0];
-      for (Index i=1;i<npoints;i++){
-	K+=ext_matArray[i];
-      }
-      K/=ext_matArray.nelem();
-      K11 = K(0,0);
-      pathlength = -log(rng.draw())/K11;
-      
-      if(pathlength>dist_to_boundary)
-	{
-	  g=exp(-dist_to_boundary*K11);//probability of leaving the cloudbox
-	}
-      else
-	{
-	  g=K11*exp(-pathlength*K11);//probability density at the chosen pathlength
-	}
+      T11vector[i]=TArray[i](0,0);
+    }
+  GridPos gp;
+  //  Vector itw(2);
+  if(r < T11vector[npoints-1])
+    {
+      //Do something appropriate. photon has left the building.
+      pathlength=1e9;
+      g=T11vector[npoints-1];
     }
   else
     {
-      //assert(false);
-      Numeric r = rng.draw();
-      //inefficient first effort
-      Vector T11vector(npoints);
-      for (Index i=0;i<npoints;i++)
-	{
-	  T11vector[i]=TArray[i](0,0);
-	}
-      GridPos gp;
-      Vector itw(2);
-      if(r < T11vector[npoints-1])
-	{
-	  //Do something appropriate. photon has left the building.
-	  pathlength=1e9;
-	  g=T11vector[npoints-1];
-	}
-      else
-	{
-	  gridpos(gp,T11vector,r);
-	  interpweights(itw,gp);
-	  Numeric T11,T11A,T11B,sA,sB,K;
-	  T11=interp(itw,T11vector,gp);
-	  T11A=T11vector[gp.idx];
-	  T11B=T11vector[gp.idx+1];
-	  sA=cum_l_step[gp.idx];
-	  sB=cum_l_step[gp.idx+1];
-	  K=log(T11A/T11B)/(sB-sA);//K=K11 only for diagonal ext_mat
-	  pathlength=sA+log(T11A/T11)/K;
-	  g=K*T11;
-	}
-    }	
-}		
+      gridpos(gp,T11vector,r);
+      //interpweights(itw,gp);
+      Numeric T11,T11A,T11B,sA,sB,K;
+      T11=r;//interp(itw,T11vector,gp);
+      T11A=T11vector[gp.idx];
+      T11B=T11vector[gp.idx+1];
+      sA=cum_l_step[gp.idx];
+      sB=cum_l_step[gp.idx+1];
+      K=log(T11A/T11B)/(sB-sA);//K=K11 only for diagonal ext_mat
+      pathlength=sA+log(T11A/T11)/K;
+      g=K*T11;
+    }
+}	
+		
 
 //! Sample_ppathlengthLOS
 
@@ -1109,59 +1015,34 @@ void Sample_ppathlengthLOS (
 			 Rng& rng,
 			 const ArrayOfMatrix& ext_matArray,
 			 const ArrayOfMatrix& TArray,
-			 const ConstVectorView& cum_l_step,
-			 Index method
+			 const ConstVectorView& cum_l_step
 			 )
 {
   Index npoints=cum_l_step.nelem();
-  Numeric dist_to_boundary=cum_l_step[npoints-1];	
-  Numeric K11;
   assert(ext_matArray.nelem()==npoints);
   assert(TArray.nelem()==npoints);
 	
-  if(method==1)
+  
+  Numeric r = rng.draw();
+  //inefficient first effort
+  Vector T11vector(npoints);
+  for (Index i=0;i<npoints;i++)
     {
-      //Since we already have an array 
-      //of extinction matrix elements we could choose a number of ways
-      //to sample the pathlength.  To start with we'll try using the mean 
-      //extinction matrix along the line of sight.
-      Matrix K = ext_matArray[0];
-      for (Index i=1;i<ext_matArray.nelem();i++){
-	K+=ext_matArray[i];
-      }
-      K/=ext_matArray.nelem();
-      K11 = K(0,0);
-      //	cout << "K11 = "<< K11 <<"\n";
-      Numeric r=rng.draw();
-      
-      pathlength = -log(exp(-K11*dist_to_boundary)*(1-r)+r)/K11;
-      
-      g=K11*exp(-pathlength*K11)/(1-exp(-K11*dist_to_boundary));
+      T11vector[i]=TArray[i](0,0);
     }
-  else
-    {
-      Numeric r = rng.draw();
-      //inefficient first effort
-      Vector T11vector(npoints);
-      for (Index i=0;i<npoints;i++)
-	{
-	  T11vector[i]=TArray[i](0,0);
-	}
-      GridPos gp;
-      Vector itw(2);
-      gridpos(gp,T11vector,1-r*(1-T11vector[npoints-1]));
-      interpweights(itw,gp);
-      Numeric T11,T11A,T11B,sA,sB,K;
-      T11=interp(itw,T11vector,gp);
-      T11A=T11vector[gp.idx];
-      T11B=T11vector[gp.idx+1];
-      sA=cum_l_step[gp.idx];
-      sB=cum_l_step[gp.idx+1];
-      K=log(T11A/T11B)/(sB-sA);//K=K11 only for diagonal ext_mat
-      pathlength=sA+log(T11A/T11)/K;
-      g=K*T11/(1-T11vector[npoints-1]);
-    }
-  assert(pathlength<=dist_to_boundary);
+  GridPos gp;
+  //Vector itw(2);
+  gridpos(gp,T11vector,1-r*(1-T11vector[npoints-1]));
+  //interpweights(itw,gp);
+  Numeric T11,T11A,T11B,sA,sB,K;
+  T11=1-r*(1-T11vector[npoints-1]);
+  T11A=T11vector[gp.idx];
+  T11B=T11vector[gp.idx+1];
+  sA=cum_l_step[gp.idx];
+  sB=cum_l_step[gp.idx+1];
+  K=log(T11A/T11B)/(sB-sA);//K=K11 only for diagonal ext_mat
+  pathlength=sA+log(T11A/T11)/K;
+  g=K*T11/(1-T11vector[npoints-1]);
 }		
 
 //!  TArrayCalc

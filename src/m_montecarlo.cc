@@ -305,52 +305,6 @@ void Cloudbox_ppathCalc(
 }
 
 
-//! montecarlo_p_from_belowCscaAdapt
-/*! 
-Reduces the montecarlo_p_from_belowCsca Tensor to the frequency of the 
-Monte Carlo simulation.
-   
-\author Cory Davis
-\date 2003-12-4
-  
-*/
-
-void montecarlo_p_from_belowCscaAdapt(
-                                      Tensor3& montecarlo_p_from_belowCsca,
-                                      const Vector& f_grid,
-                                      const Index& f_index,
-                                      const ArrayOfSingleScatteringData& scat_data_raw
-                                      )
-{
-  Index N_pt=montecarlo_p_from_belowCsca.npages();
-  //  N_f = montecarlo_p_from_belowCsca.ncols();
-  Index N_za=montecarlo_p_from_belowCsca.ncols();
-  Tensor3 new_p_from_belowCsca=Tensor3(N_pt,1,N_za);
-  Numeric freq=f_grid[f_index];
-  GridPos gp;
-  Vector itw(2);
-  Vector old_grid=scat_data_raw[0].f_grid;
-  for(Index pt_index=0;pt_index<N_pt;pt_index++)
-    {
-      for (Index za_index=0;za_index<N_za;za_index++)
-        {
-          gridpos(gp,old_grid,freq);
-          interpweights(itw,gp);
-          new_p_from_belowCsca(pt_index,0,za_index)=interp(itw,
-                 montecarlo_p_from_belowCsca(pt_index,Range(joker),za_index),gp);
-        }
-    }
-  montecarlo_p_from_belowCsca=new_p_from_belowCsca;
-}
-
-
-
-
-
-
-
-
-
 //! scat_iPutMonteCarlo
 /*! 
 calculates interface Tensors scat_i_p, scat_i_lat, and scat_i_lon.  This is
@@ -481,17 +435,14 @@ void ScatteringMonteCarlo (
                            const Tensor4& scat_theta, // CE: Included 
                            const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
                            const Tensor5& scat_theta_itws,
-                           const Tensor3& montecarlo_p_from_belowCsca,
-                            // Control Parameters:
+                             // Control Parameters:
                            const Index& maxiter,
                            const Index& rng_seed,
                            const Index& record_ppathcloud,
                            const Index& record_ppath,
                            const Index& silent,
                            const Index& record_histdata,
-                           const String& histdata_filename,
-                           const Index& los_sampling_method,
-                           const Index& strat_sampling
+                           const String& histdata_filename
                            )
 
 {               
@@ -544,22 +495,9 @@ void ScatteringMonteCarlo (
   Numeric g_los_csc_theta;
   Numeric albedo;
   Numeric dist_to_boundary;
-  // (ole) FIXME: Numeric K11;
   Index N_pt=pnd_field.nbooks();
   Vector pnd_vec(N_pt);
   time_t start_time=time(NULL);
-  //Stratified sampling variables//////////
-  Numeric p_from_below;
-  Vector I_from_below_sum(stokes_dim,0.0);
-  Vector I_from_below_squaredsum(stokes_dim,0.0);
-  Index I_from_below_N=0;
-  Vector I_from_above_sum(stokes_dim,0.0);
-  Vector I_from_above_squaredsum(stokes_dim,0.0);
-  Index I_from_above_N=0;
-  Vector I_emission_sum(stokes_dim,0.0);
-  Vector I_emission_squaredsum(stokes_dim,0.0);
-  Vector pathI_e(stokes_dim);
-  //Index I_emission_N=0;
   Numeric za_scat;
   Vector za_grid=scat_data_mono[0].za_grid;
   /////////////////////////////////////////
@@ -609,7 +547,6 @@ void ScatteringMonteCarlo (
       pathI=0.0;
       boundarycontri=0.0;
       pathinc=0.0;
-      pathI_e=0.0;
       //while the reversed traced photon path remains in the cloud box
       //
       TArray=TArrayLOS;
@@ -650,11 +587,11 @@ void ScatteringMonteCarlo (
               dist_to_boundary=cum_l_step[ppathcloud.np-1];
          
               //              Iboundary=i_rte(0,joker);
-              Sample_ppathlength (pathlength,g,rng,ext_matArray,TArray,cum_l_step,2);
+              Sample_ppathlength (pathlength,g,rng,ext_matArray,TArray,cum_l_step);
             }
           else
             {
-              Sample_ppathlengthLOS (pathlength,g,rng,ext_matArray,TArray,cum_l_step,2);
+              Sample_ppathlengthLOS (pathlength,g,rng,ext_matArray,TArray,cum_l_step);
             }
           assert(cum_l_step.nelem()==ppathcloud.np);
           assert(TArray.nelem()==ppathcloud.np);
@@ -686,43 +623,6 @@ void ScatteringMonteCarlo (
               mult(pathinc,Q,boundarycontri);
               pathI = pathinc;
               pathI/=g;//*=exp(K11*dist_to_boundary);
-              if(strat_sampling)
-                {
-                  p_from_below=p_from_belowCscaCalc(za_scat,
-                                                    montecarlo_p_from_belowCsca,
-                                                    pnd_vec,za_grid)/(K(0,0)-K_abs[0]);
-                  
-                  if(rte_los[0]>90)
-                    {
-                      pathI*=p_from_below;//Needs to be renormalised
-                      I_from_below_sum+=pathI;
-                      I_from_below_N+=1;
-                      for(Index j=0; j<stokes_dim; j++)
-                        {
-                          assert(!isnan(pathI[j]));
-                          I_from_below_squaredsum[j] += pathI[j]*pathI[j];
-                        }
-                    }
-                  else
-                    {
-                      pathI*=(1-p_from_below);//Needs to be renormalised
-                      I_from_above_sum+=pathI;
-                      I_from_above_N+=1;
-                      for(Index j=0; j<stokes_dim; j++)
-                        {
-                          assert(!isnan(pathI[j]));
-                          I_from_above_squaredsum[j] += pathI[j]*pathI[j];
-                        }
-                    }
-                  I_emission_sum+=pathI_e;
-                  for(Index j=0; j<stokes_dim; j++)
-                        {
-                          assert(!isnan(pathI_e[j]));
-                          I_emission_squaredsum[j] += pathI_e[j]*pathI_e[j];
-                        }
-                  assert(photon_number==I_from_below_N+I_from_above_N);
-                      
-                }
               keepgoing=false; //stop here. New photon.
             }
           else
@@ -738,7 +638,7 @@ void ScatteringMonteCarlo (
               albedo=1-K_abs[0]/K(0,0);
               //cout<<"albedo = "<<albedo<<" K(0,0) = "<<K(0,0)<<" K_abs[0] = "<<K_abs[0]<<"\n";
               //determine whether photon is emitted or scattered
-              if ((rng.draw()>albedo)||strat_sampling)
+              if (rng.draw()>albedo)
                 {
                   //Calculate emission
                   Numeric planck_value = planck( f_grid[f_index], temperature );
@@ -749,51 +649,20 @@ void ScatteringMonteCarlo (
                   emissioncontri/=(g*(1-albedo));//yuck!
                   mult(pathinc,Q,emissioncontri);
                   pathI = pathinc;
-                  if(strat_sampling)
-                    {
-                      if(albedo<1e-5)
-                        {
-                          throw runtime_error("albedo too low for stratified sampling");
-                        }
-                      pathI*=1-albedo;
-                      pathI_e+=pathI;
-                    }
-                  else
-                    {
-                      keepgoing=false;
-                    }
+                  keepgoing=false;
+                   
                 }
-              if ((rng.draw()<=albedo)||strat_sampling)
+              else
                 {
                   //Sample new line of sight.
-                  if (los_sampling_method==3)
-                    {
-                      Sample_los_Z (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
-                                    scat_data_mono,stokes_dim,scat_theta,
-				    scat_theta_gps,scat_theta_itws,
-                                    pnd_vec,anyptype30,Z11maxvector,K(0,0)-K_abs[0]);
-                    }
-                  else
-                    {
-                      Sample_los(new_rte_los,g_los_csc_theta,rng, los_sampling_method);
-                      
-                      //Calculate Phase matrix////////////////////////////////
-                      Numeric aa_scat = (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
-                      Numeric aa_inc= (new_rte_los[1]>=0) ?
-                        -180+new_rte_los[1]:180+new_rte_los[1];
-                      
-                      pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-                                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,scat_theta,
-					 scat_theta_gps,scat_theta_itws);
-                    }
-                  if(strat_sampling)
-                    {
-                      Z/=g*g_los_csc_theta;
-                    }
-                  else
-                    {
-                      Z/=g*g_los_csc_theta*albedo;
-                    }
+                  
+		  Sample_los (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
+				scat_data_mono,stokes_dim,scat_theta,
+				scat_theta_gps,scat_theta_itws,
+				pnd_vec,anyptype30,Z11maxvector,K(0,0)-K_abs[0]);
+                                           
+		  Z/=g*g_los_csc_theta*albedo;
+                  
                   mult(q,T,Z);
                   mult(newQ,Q,q);
                   Q=newQ;
@@ -807,16 +676,14 @@ void ScatteringMonteCarlo (
             }
  
         }
-      if (!strat_sampling)
-        {
-          Isum += pathI;
-          if (record_histdata==1){histfile << pathI << "\n";}
-          for(Index j=0; j<stokes_dim; j++)
-            {
-              assert(!isnan(pathI[j]));
-              Isquaredsum[j] += pathI[j]*pathI[j];
-            }
-        }
+      Isum += pathI;
+      if (record_histdata==1){histfile << pathI << "\n";}
+      for(Index j=0; j<stokes_dim; j++)
+	{
+	  assert(!isnan(pathI[j]));
+	  Isquaredsum[j] += pathI[j]*pathI[j];
+	}
+      
       
       if (photon_number==500)
         {
@@ -824,40 +691,14 @@ void ScatteringMonteCarlo (
             (Numeric)(time(NULL)-start_time)*maxiter/500 <<" seconds.\n";
         }
     }
-  if (strat_sampling)
+  
+  I=Isum;
+  I/=maxiter;
+  for(Index j=0; j<stokes_dim; j++) 
     {
-      Vector I_emission=I_emission_sum;
-      I_emission/=maxiter;
-      cout<<I_emission<<"\n";
-      Vector I_from_below=I_from_below_sum;
-      I_from_below/=I_from_below_N;
-      cout<<I_from_below<<"\n";
-      Vector I_from_above=I_from_above_sum;
-      I_from_above/=I_from_above_N;
-      cout<<I_from_above<<"\n";
-      for(Index j=0; j<stokes_dim; j++) 
-        {
-          I[j]=I_emission[j]+I_from_below[j]+I_from_above[j];
-          i_montecarlo_error[j]=sqrt((I_from_below_squaredsum[j]/I_from_below_N-
-                                      I_from_below[j]*I_from_below[j])
-                                     /I_from_below_N+
-                                     (I_from_above_squaredsum[j]/I_from_above_N-
-                                      I_from_above[j]*I_from_above[j])
-                                     /I_from_above_N+
-                                     (I_emission_squaredsum[j]/maxiter-
-                                      I_emission[j]*I_emission[j])
-                                     /maxiter);
-        }
+      i_montecarlo_error[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
     }
-  else
-    {
-      I=Isum;
-      I/=maxiter;
-      for(Index j=0; j<stokes_dim; j++) 
-        {
-          i_montecarlo_error[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
-        }
-    }
+  
   I+=IboundaryLOScontri;
   i_rte(0,joker)=I;
 }               
