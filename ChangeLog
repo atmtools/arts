@@ -1,3 +1,39 @@
+2002-05-03  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-57
+
+	* src/logic.cc: New file. Contains all logical functions, i.e.,
+	function called is_something that return bool. 
+	These functions are intended to be used either inside "if"
+	statements or inside "assert" statements.
+	The condition should have a simple and intuitive meaning!
+
+	* src/logic.h: New file, headers for logic.cc.
+
+	* src/check_input.cc: Now includes logic.h.
+
+	* src/ppath.cc: Now includes logic.h.
+
+	* src/math_funcs.h: Removed is_something function headers.
+
+	* src/math_funcs.cc: Moved is_something functions to logic.cc.
+
+	* src/interpolation.cc: New file: Interpolation routines. 
+	(grid_pos): I just started with this, it is not yet complete. Will
+	probably continue tomorrow.
+
+	* src/interpolation.h: New file: Header file for interpolation.cc.
+
+	* src/test_interpolation.cc: Test program for interpolation
+	functions. 
+
+	* src/Makefile.am: Added test_interpolation.
+
+	* doc/index.html.in: Removed the paragraph about the old Emacs
+	doxygen macros, since they are no longer there.
+
+	* configure.in: Removed output target doc/emacs/Makefile.
+
 2002-05-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-56

@@ -64,8 +64,8 @@ arts_SOURCES = \
 	parser.cc \
 	parser.h \
 	partition_function_data.cc \
-	ppath.h \\
-	ppath.cc \\
+	ppath.h \
+	ppath.cc \
 	poly_roots.h \
 	poly_roots.cc \
 	species_data.cc \
@@ -80,8 +80,9 @@ arts_SOURCES = \
 	m_method_list.cc \
 	agenda.h \
 	agenda.cc \
-	m_agenda.cc
-
+	m_agenda.cc \
+	logic.h \
+	logic.cc
 
 arts_DEPENDENCIES= \
 	auto_md.cc \
@@ -110,8 +111,41 @@ noinst_PROGRAMS = \
 	make_auto_wsv_pointers_cc \
 	test_matpack \
 	test_poly \
+	test_tensor \
 	test_linalg \
-	test_tensor 
+	test_interpolation
+
+test_interpolation_SOURCES = \
+	array.h \
+	arts.h \
+	make_array.h \
+	make_vector.cc \
+	make_vector.h \
+	matpackI.cc \
+	matpackI.h \
+	matpackIII.h \
+	matpackIV.h \
+	matpackV.h \
+	matpackVI.h \
+	matpackVII.h \
+	mystring.h \
+	logic.h \
+	logic.cc \
+	check_input.h \
+	check_input.cc \
+	interpolation.h \
+	interpolation.cc \
+	test_interpolation.cc
+
+test_linalg_SOURCES = \
+	arts.h \
+	matpackI.h \
+	matpackI.cc \
+	make_vector.h\
+	make_vector.cc\
+	lin_alg.cc \
+	lin_alg.h \
+	test_linalg.cc
 
 test_poly_SOURCES = \
 	array.h \
@@ -150,16 +184,6 @@ test_matpack_SOURCES = \
 	matpackIII.h \
 	mystring.h \
 	test_matpack.cc
-
-test_linalg_SOURCES = \
-	arts.h \
-	matpackI.h \
-	matpackI.cc \
-	make_vector.h\
-	make_vector.cc\
-	lin_alg.cc \
-	lin_alg.h \
-	test_linalg.cc
 
 make_auto_wsv_groups_h_SOURCES = \
 	arts.h \

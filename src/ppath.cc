@@ -44,6 +44,8 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "ppath.h"
+#include "logic.h"
+
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 

@@ -44,21 +44,7 @@
 #include "matpackI.h"
 #include "mystring.h"
 
-
-
-Index is_bool( 
-       const Index&    x );
-
 Numeric last( ConstVectorView x );
-
-Index is_sorted( 
-       ConstVectorView&    x );
-
-Index is_increasing( 
-        ConstVectorView&    x );
-
-Index is_decreasing( 
-        ConstVectorView&    x );
 
 Index last( const ArrayOfIndex& x );
 

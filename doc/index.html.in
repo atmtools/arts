@@ -60,14 +60,6 @@
 <!-- 	from a LaTeX source). -->
     </ul>
 
-    <p>
-      For convenience, we have also added emacs macros that can be
-      used to automatically insert documentation headers. A
-      description can be found 	
-      <a href="emacs/doxygen_toc.html"> here</a>. These macros were
-      originally written by <a href="mailto:tree@basistech.com"> Tom
-      Emerson</a>, and slightly adapted for ARTS.
-
     
     <h2> Example ARTS control files</h2>
 
