@@ -17,7 +17,8 @@
 %  \stophistory
 %
 \starthistory
-  020626 & Created and written by Christian Melsheimer.\\
+  040524 & Section scattering matrices by Patrick Eriksson. \\
+  040426 & Created and written by Christian Melsheimer.\\
 %   260304 & Subsection on antenna added by Christian Melsheimer.\\
 %   180404 & Subsection on polarization directions added by Christian Melsheimer.\\
 \stophistory
@@ -1105,8 +1106,8 @@ nomenclature, the equation above becomes
    g(r)\MtrStl{F}
    \left[ \begin{array}{c} I^0\\Q^0\\U^0\\V^0 \end{array} \right],
 \end{equation}
-where all distance effects are put into the function $f(r)$ and the
-transformation matrix \MtrStl{F} can be expressed as
+where all distance effects are put into the function $g(r)$ and the
+transformation matrix \MtrStl{F} can be expressed as \citep[Sec.\ 5.4.3]{liou:02}.
 \begin{equation}
   \label{eq:polarisation:Fmatrix}
   \MtrStl{F} = \left[ \begin{array}{cccc} 
@@ -1129,7 +1130,33 @@ expressions:
   S_{kj} = S_{jk} &=& (S_jS_k^\ast+S_kS_j^\ast)/2, \\
   -D_{kj} = D_{jk} &=& i(S_jS_k^\ast-S_kS_j^\ast)/2, \qquad j,k= 1, 2, 3, 4.
 \end{eqnarray}
-This section is based on \citet[Sec.\ 5.4.3]{liou:02}.
+Depending on the properties of the scattering event, the structure of
+the matrix \MtrStl{F} differs. Two special cases are:
+\begin{eqnarray}
+  \label{eq:Fcase1}
+  S_1=S2,\quad S_3=S_4=0 &\to&    \MtrStl{F} =
+      \left[\begin{array}{cccc}
+        x&0&0&0\\
+        0&x&0&0\\
+        0&0&x&0\\
+        0&0&0&x
+      \end{array}
+      \right], \\
+  \label{eq:Fcase2}
+  S_3=S_4=0 &\to&    \MtrStl{F} =
+      \left[\begin{array}{cccc}
+        x&x&0&0\\
+        x&x&0&0\\
+        0&0&x&x\\
+        0&0&x&x
+      \end{array}
+      \right],
+\end{eqnarray}
+where $x$ indicates elements deviating from 0. Many (most?)  natural
+materials have the property that $S_4$ is the complex conjugate of
+$S_3$ $(S_3=S_4^\ast)$ and this results in that \MtrStl{F} is a
+symmetric matrix (in general with all element positions filled).
+
 
 
 %%% Local Variables: 

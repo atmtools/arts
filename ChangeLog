@@ -1,3 +1,10 @@
+2004-05-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+        * arts-1-1-823
+
+	* doc/uguide/polarization.tex: Made an extension of the scattering
+	matrices part.
+
 2004-05-19  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
         * arts-1-1-822
