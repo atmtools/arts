@@ -1,3 +1,11 @@
+2002-08-20  Stefan Buehler  <sbuehler@uni-bremen.de> (working under Arashs account)
+
+	* arts-1-0-41
+
+	* src/absorption.cc (xsec_species): Fixed yet another bug: The aux
+	variable was too small by 1. This lead to a crash in the VoigtKunz
+	lineshape functions.
+
 2002-08-14  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-40

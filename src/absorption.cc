@@ -1818,7 +1818,7 @@ void xsec_species( MatrixView               xsec,
   // the lineshape (e.g., overlap, ...). Consequently we have to
   // assure that aux has a dimension not less then the number of
   // parameters passed.
-  Index ii = (nf < 10) ? 10 : nf;
+  Index ii = (nf+1 < 10) ? 10 : nf+1;
   Vector aux(ii);
 
   // Check that p_abs, t_abs, and h2o_abs all have the same
