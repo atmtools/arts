@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.1.30)
+AM_INIT_AUTOMAKE(arts,0.1.31)
 
 
 #
@@ -88,10 +88,10 @@ esac],[ ac_hdf_support=autodetect ])
 if test x$ac_hdf_support = xno; then
   ac_hdf=no
 else
+  AC_CHECK_LIB(jpeg, jpeg_start_compress,, ac_hdf=no, -lmfhdf -ldf -lz )
   AC_CHECK_HEADER(hdf.h, ac_hdf=yes, ac_hdf=no)
   AC_CHECK_LIB(mfhdf, Hopen,, ac_hdf=no, -ldf -ljpeg -lz )
   AC_CHECK_LIB(df, DFopen,, ac_hdf=no, -lmfhdf -ljpeg -lz )
-  AC_CHECK_LIB(jpeg, jpeg_start_compress,, ac_hdf=no, -lmfhdf -ldf -lz )
   AC_CHECK_LIB(z, gzopen,, ac_hdf=no, -lmfhdf -ldf -ljpeg )
 fi
 
