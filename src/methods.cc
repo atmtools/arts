@@ -3397,7 +3397,7 @@ md_data_raw.push_back
        "\n"
          ),
         OUTPUT( scat_za_interp_ ),
-        INPUT(),
+        INPUT(atmosphere_dim_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("interp_method"),

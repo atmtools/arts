@@ -97,7 +97,7 @@ void cloudboxOff(
 }
 
 
-//! cloudboxOff
+//! cloudboxSetEmpty
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
@@ -1101,16 +1101,15 @@ void ParticleTypeAddAll( //WS Output:
                  const ArrayOfString& scat_data_files,
                  const String& pnd_field_file)
 {
-  SingleScatteringData scat_data;
+ 
+  scat_data_raw.resize(scat_data_files.nelem());
   
   for (Index i = 0; i<scat_data_files.nelem(); i++)
-    {  
-      // Append *scat_data_raw*:
-      scat_data_raw.push_back(scat_data);
+    {
       
       out2 << "Read single scattering data\n";
       xml_read_from_file( scat_data_files[i], 
-                          scat_data_raw[scat_data_raw.nelem()-1]);
+                          scat_data_raw[i]);
     }
   
   out2 << "Read particle number density date \n";

@@ -44,6 +44,8 @@ extern const Numeric RAD2DEG;
 #define pha_mat_data_raw scat_data_raw[i_pt].pha_mat_data  //CPD: changed from pha_mat_data
 #define ext_mat_data_raw scat_data_raw[i_pt].ext_mat_data  //which wouldn't let me play with
 #define abs_vec_data_raw scat_data_raw[i_pt].abs_vec_data  //scat_data_mono.
+#define pnd_limit 1e-12 // If particle number density is below this value, 
+                        // no transformations will be performed
 
 
 //! Calculates phase matrix for the single particle types.
@@ -94,7 +96,7 @@ void pha_mat_sptFromData( // Output:
     {
       // If the particle number density at a specific point in the atmosphere for 
       // the i_pt particle type is zero, we don't need to do the transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) < 0.001)
+      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) < pnd_limit)
         return;
 
       // First we have to transform the data from the coordinate system 
@@ -248,13 +250,17 @@ void pha_mat_sptFromDataDOITOpt( // Output:
   GridPos T_gp;
   Vector itw(2);
 
+  
+  // Initialisation
+  pha_mat_spt = 0.;
+
   // Do the transformation into the laboratory coordinate system.
   for (Index i_pt = 0; i_pt < N_pt; i_pt ++)
     {
       // If the particle number density at a specific point in the atmosphere  
       // for the i_pt particle type is zero, we don't need to do the 
       // transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index)< 0.001)
+      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index)< pnd_limit)
         {
          pha_mat_spt = 0.;
          return;
@@ -280,8 +286,6 @@ void pha_mat_sptFromDataDOITOpt( // Output:
         }
       
 
-      // Initialisation
-      pha_mat_spt = 0.;
       
       for (Index za_inc_idx = 0; za_inc_idx < za_grid_size;
            za_inc_idx ++)
@@ -402,7 +406,7 @@ void opt_prop_sptFromData( // Output and Input:
       // If the particle number density at a specific point in the atmosphere for 
       // the i_pt particle type is zero, we don't need to do the transfromation
 
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) < 0.001)
+      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) < pnd_limit)
         return;
       
       
@@ -1462,7 +1466,7 @@ void opt_prop_sptFromMonoData( // Output and Input:
     {
      // If the particle number density at a specific point in the atmosphere for 
       // the i_pt particle type is zero, we don't need to do the transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) < 0.001)
+      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) < pnd_limit)
         return;
  
       // First we have to transform the data from the coordinate system 
@@ -1600,13 +1604,16 @@ void pha_mat_sptFromMonoData( // Output:
   GridPos T_gp;
   Vector itw(2);
 
+  // Initialisation
+  pha_mat_spt = 0.;
+  
   for (Index i_pt = 0; i_pt < N_pt; i_pt ++)
     { 
       // If the particle number density at a specific point in the atmosphere 
       // for the i_pt particle type is zero, we don't need to do the 
       // transfromation!
       if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) <
-          0.001)
+          pnd_limit)
         { 
           pha_mat_spt = 0.;
           return;
@@ -1630,10 +1637,6 @@ void pha_mat_sptFromMonoData( // Output:
           // Interpolationweights:
           interpweights(itw, T_gp);
         }
-      
-     
-      // Initialisation
-      pha_mat_spt = 0.;
       
       // Do the transformation into the laboratory coordinate system.
       for (Index za_inc_idx = 0; za_inc_idx < za_grid_size;

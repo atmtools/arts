@@ -3627,10 +3627,20 @@ void scat_za_gridOptimize(//WS Output
 */ 
 void scat_za_interpSet(
                        Index& scat_za_interp,
+                       const Index& atmosphere_dim,
                        //Keyword
                        const String& method
+                       
                        )
 {
+  if (atmosphere_dim != 1 && method == "cubic")
+    throw runtime_error(
+                        "Cubic interpolation is only implemented for 1D DOIT\n"
+                        "calculations as"   
+                        "in 3D, there can be numerical problems.\n"
+                        "Please use 'linear' interpolation method."
+                        );
+
   if(method == "linear")
     scat_za_interp = 0;
   else if (method == "cubic")
