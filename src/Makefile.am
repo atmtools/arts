@@ -77,6 +77,7 @@ partition_function_data.cc \
 lineshapes.cc \
 vecmat.cc
 
+arts_CLEAN=auto_md.cc
 
 # When making changes to the list of sources above, please remember to
 # also change the lists in the files:
@@ -85,64 +86,64 @@ vecmat.cc
 
 noinst_PROGRAMS = \
 demonstrate_vecmat \
-make_wsv_groups_h make_wsv_h make_wsv_pointers_cc make_md_h make_md_cc
+make_auto_wsv_groups_h make_auto_wsv_h make_auto_wsv_pointers_cc make_auto_md_h make_auto_md_cc
 
 demonstrate_vecmat_SOURCES = \
 arts.h vecmat.h \
 demonstrate_vecmat.cc vecmat.cc math_funcs.cc make_vector.cc
 
-make_wsv_groups_h_SOURCES = \
+make_auto_wsv_groups_h_SOURCES = \
 arts.h vecmat.h file.h \
-vecmat.cc version.cc file.cc messages.cc groups.cc make_wsv_groups_h.cc
+vecmat.cc version.cc file.cc messages.cc groups.cc make_auto_wsv_groups_h.cc
 
-make_wsv_h_SOURCES = \
+make_auto_wsv_h_SOURCES = \
 arts.h vecmat.h file.h absorption.h los.h hmatrix.h \
 auto_wsv_groups.h wsv_aux.h \
 vecmat.cc version.cc groups.cc \
-messages.cc file.cc workspace.cc workspace_aux.cc make_wsv_h.cc
+messages.cc file.cc workspace.cc workspace_aux.cc make_auto_wsv_h.cc
 
-make_wsv_pointers_cc_SOURCES = \
+make_auto_wsv_pointers_cc_SOURCES = \
 arts.h vecmat.h file.h wsv_aux.h \
-vecmat.cc version.cc groups.cc messages.cc file.cc workspace.cc make_wsv_pointers_cc.cc
+vecmat.cc version.cc groups.cc messages.cc file.cc workspace.cc make_auto_wsv_pointers_cc.cc
 
-make_md_h_SOURCES = \
+make_auto_md_h_SOURCES = \
 arts.h vecmat.h auto_wsv.h token.h messages.h file.h \
 absorption.h los.h hmatrix.h \
 auto_wsv_groups.h wsv_aux.h \
 methods.h make_array.h \
 vecmat.cc version.cc globals_2.cc \
 token.cc messages.cc file.cc groups.cc workspace.cc workspace_aux.cc \
-methods.cc methods_aux.cc make_md_h.cc
+methods.cc methods_aux.cc make_auto_md_h.cc
 
-make_md_cc_SOURCES = \
+make_auto_md_cc_SOURCES = \
 arts.h vecmat.h auto_wsv.h token.h messages.h file.h \
 absorption.h los.h hmatrix.h \
 auto_wsv_groups.h wsv_aux.h \
 methods.h make_array.h \
 vecmat.cc version.cc globals_2.cc \
 token.cc messages.cc file.cc groups.cc workspace.cc workspace_aux.cc \
-methods.cc methods_aux.cc make_md_cc.cc
+methods.cc methods_aux.cc make_auto_md_cc.cc
 
-# make_wsv_h_DEPENDENCIES = auto_wsv_groups.h
+# make_auto_wsv_h_DEPENDENCIES = auto_wsv_groups.h
 
-# make_wsv_pointers_cc_DEPENDENCIES  = auto_wsv_groups.h auto_wsv.h
+# make_auto_wsv_pointers_cc_DEPENDENCIES  = auto_wsv_groups.h auto_wsv.h
 
-# make_md_h_DEPENDENCIES  = auto_wsv.h
+# make_auto_md_h_DEPENDENCIES  = auto_wsv.h
 
-auto_wsv_groups.h: make_wsv_groups_h
-	$(top_builddir)/src/make_wsv_groups_h
+auto_wsv_groups.h: make_auto_wsv_groups_h
+	$(top_builddir)/src/make_auto_wsv_groups_h
 
-auto_wsv.h: make_wsv_h
-	$(top_builddir)/src/make_wsv_h
+auto_wsv.h: make_auto_wsv_h
+	$(top_builddir)/src/make_auto_wsv_h
 
-auto_wsv_pointers.cc: make_wsv_pointers_cc
-	$(top_builddir)/src/make_wsv_pointers_cc
+auto_wsv_pointers.cc: make_auto_wsv_pointers_cc
+	$(top_builddir)/src/make_auto_wsv_pointers_cc
 
-auto_md.h: make_md_h
-	$(top_builddir)/src/make_md_h
+auto_md.h: make_auto_md_h
+	$(top_builddir)/src/make_auto_md_h
 
-auto_md.cc: make_md_cc
-	$(top_builddir)/src/make_md_cc
+auto_md.cc: make_auto_md_cc
+	$(top_builddir)/src/make_auto_md_cc
 
 BUILT_SOURCES = \
 auto_wsv_groups.h auto_wsv.h auto_wsv_pointers.cc auto_md.h auto_md.cc
