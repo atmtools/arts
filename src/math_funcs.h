@@ -40,6 +40,8 @@
 
 
 
+Numeric fac(const Index n);
+
 Index integer_div( const Index& x, const Index& y );
 
 Numeric last( ConstVectorView x );

@@ -51,6 +51,33 @@ extern const Numeric PI;
  *** The functions (in alphabetical order)
  *****************************************************************************/
 
+//! fac
+/*!
+    Calculates the factorial.
+
+    The function asserts that n must be >= 0
+
+    \return      The factorial
+    \param   n   Nominator
+
+    \author Oliver Lemke
+    \date   2003-08-15
+*/
+Numeric fac(const Index n)
+{
+  Index i;
+  Numeric sum;
+
+  if ( n == 0) return (1.0);
+
+  sum = 1.0;
+  for (i = 1; i <= n; i++)
+    sum = sum * Numeric(i);
+
+  return(sum);
+}
+
+
 //! integer_div
 /*! 
     Performs an integer division.
