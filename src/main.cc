@@ -577,8 +577,8 @@ int main (int argc, char **argv)
   if (parameters.help)
     {
       // Just print a help message and then exit.
-      cerr << '\n' << parameters.usage << "\n\n";
-      cerr << parameters.helptext << "\n\n";
+      cout << '\n' << parameters.usage << "\n\n";
+      cout << parameters.helptext << "\n\n";
       return(0);
     }
 
@@ -586,7 +586,7 @@ int main (int argc, char **argv)
     {
       extern const String full_name;
       // Just print version information and then exit.
-      cerr << "This is " << full_name << 
+      cout << full_name << 
 #ifdef HDF_SUPPORT
         " with HDF support." <<
 #endif // HDF_SUPPORT

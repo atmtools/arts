@@ -39,42 +39,42 @@ arbitrary type can be constructed and used.
 %-------------------------------------------------------------------------
 \label{sec:matpack:files}
 
-The \verb|Matrix| and \verb|Vector| classes described below reside in the files:
+The \artsstyle{Matrix} and \artsstyle{Vector} classes described below reside in the files:
 \begin{itemize}
-\item \verb|matpackI.h|
-\item \verb|make_vector.h|
-\item \verb|matpackI.cc|
-\item \verb|make_vector.cc|
+\item \fileindex{matpackI.h}
+\item \fileindex{make\_vector.h}
+\item \fileindex{matpackI.cc}
+\item \fileindex{make\_vector.cc}
 \end{itemize}
 
 Tensors of order 3 to 7 reside in the files:
 \begin{itemize}
-\item \verb|matpackIII.h|
-\item \verb|matpackIV.h|
-\item \verb|matpackV.h|
-\item \verb|matpackVI.h|
-\item \verb|matpackVII.h|
+\item \fileindex{matpackIII.h}
+\item \fileindex{matpackIV.h}
+\item \fileindex{matpackV.h}
+\item \fileindex{matpackVI.h}
+\item \fileindex{matpackVII.h}
 \end{itemize}
 
-There is also a file \verb|matpackII.h|, which contains the draft of a sparse
+There is also a file \fileindex{matpackII.h}, which contains the draft of a sparse
 matrix class, but this is at the moment not used. The template class
-\verb|Array| (also described below) is implemented in the files:
+\artsstyle{Array} (also described below) is implemented in the files:
 \begin{itemize}
-\item \verb|array.h|
-\item \verb|make_array.h|
+\item \fileindex{array.h}
+\item \fileindex{make\_array.h}
 \end{itemize}
 
-The file \verb|test_matpack.cc| contains test cases and usage
+The file \fileindex{test\_matpack.cc} contains test cases and usage
 examples. 
 
 \levelb{Vectors}
 %-------------------------------------------------------------------------
 \label{sec:matpack:vectors}
 
-The class \verb|Vector| implements the mathematical concept of a
+The class \typeindex{Vector} implements the mathematical concept of a
 vector. (Surprise, surprise.) This means that:
 \begin{itemize}
-\item A Vector contains a list of floating point values of type \verb|Numeric|.
+\item A Vector contains a list of floating point values of type \typeindex{Numeric}.
 \item A Vector can be multiplied with another Vector (scalar product),
   or with a Matrix.
 \item Sub-ranges of a Vector can easily be accessed, and used as if
@@ -124,12 +124,12 @@ Vectors.
 %-------------------------------------------------------------------------
 \label{sec:vector_views}
 
-An object of class \verb|VectorView| is, like the name says, just
+An object of class \typeindex{VectorView} is, like the name says, just
 another view on an existing Vector. It does not have its own
 data. This has the important consequence that it cannot be resized,
 since that would mess up the original Vector that the view is
 referring to. You can create VectorViews from Vectors using the index
-operator `[]', the class \verb|Range|, and the special \verb|joker|
+operator `[]', the class \typeindex{Range}, and the special \artsstyle{joker}
 object. Examples:
 
 \begin{verbatim}
@@ -152,8 +152,8 @@ select `extent' elements from the Vector, starting with index `start',
 with a step-width of stride. Note that indices are 0-based, so 0
 refers to the first element. The last argument, `stride', can be
 omitted, in that case the default of 1 is assumed. As a special case,
-`extent'==\verb|joker| means `to the end', and calling Range with only one
-argument \verb|joker| means `all elements'.
+`extent'==\artsstyle{joker} means `to the end', and calling Range with only one
+argument \artsstyle{joker} means `all elements'.
 
 Usually, you will not have to use VectorView explicitly, because you
 can use expressions like:
@@ -163,8 +163,8 @@ Vector a(1,5,1);                // a = 1,2,3,4,5
 Vector b = a[Range(1,3)];       // b = 2,3,4
 \end{verbatim}
 
-However, \verb|VectorView| and the related class
-\verb|ConstVectorView| are extremely useful as the argument types of
+However, \artsstyle{VectorView} and the related class
+\typeindex{ConstVectorView} are extremely useful as the argument types of
 functions operating on Vectors. You should define your functions like
 this:
 
@@ -196,20 +196,20 @@ silly_function(b,a[Range(0,3)]);  // Call fuction with
 \end{verbatim}
 
 An exception to this rule are workspace methods, which use
-conventional argument types \verb|const Vector&| for input and
-\verb|Vector&| for output.
+conventional argument types \artsstyle{const Vector\&} for input and
+\artsstyle{Vector\&} for output.
 
 \levelc{What you can do with a Vector (or VectorView)}
 %-------------------------------------------------------------------------
 
-All examples below (except for the first) assume that \verb|a| is a
+All examples below (except for the first) assume that \artsstyle{a} is a
 Vector, MakeVector, or VectorView.
 
 \leveld{Resize (only for Vector, not for VectorView!):}
 \begin{verbatim}
 a.resize(5);
 \end{verbatim}
-This makes \verb|a| a 5 element vector. The new Vector is not
+This makes \artsstyle{a} a 5 element vector. The new Vector is not
 initialized (i.e., the contents will be unpredictable). Also, note
 that the previous content will be completely lost. Appending to a
 Vector is not possible.
@@ -231,7 +231,7 @@ a[0] = 3.5;     // Assign 3.5 to first element.
 \end{verbatim}
 
 Note that we use 0-based indexing! Furthermore note that the operator
-`[]' can be also used with \verb|Range|, as explained above.
+`[]' can be also used with \artsstyle{Range}, as explained above.
 
 \leveld{Copying Vectors:}
 \begin{verbatim}
@@ -287,7 +287,7 @@ a += a;                  // a = 6,10,14
 \end{verbatim}
 
 All these operate element-wise.  Note, that there are no return
-versions of these operators (i.e., expressions like \verb|b = a+1| are
+versions of these operators (i.e., expressions like \artsstyle{b = a+1} are
 not possible). This is again for efficiency reasons. It is currently
 an active area of research in programming techniques how to make this
 kind of expression efficient. None of the available solutions works,
@@ -316,20 +316,20 @@ transform(b,cos,b);  // b = sin(b)
                      // So b can appear on both sides.
 \end{verbatim}
 
-The transform function operates on each element of \verb|a| with the
-function you specify and puts the result in \verb|b|. Note that the
+The transform function operates on each element of \artsstyle{a} with the
+function you specify and puts the result in \artsstyle{b}. Note that the
 order of the arguments is swapped compared to the old function
-\verb|trans| that we had in the pre-Matpack era.
+\artsstyle{trans} that we had in the pre-Matpack era.
 
 
 \levelb{Matrices}
 %-------------------------------------------------------------------------
 \label{sec:matpack:matrices}
 
-The class \verb|Matrix| implements the mathematical concept of a
+The class \typeindex{Matrix} implements the mathematical concept of a
 matrix. (Who would have guessed this?) This means that:
 \begin{itemize}
-\item A Matrix contains floating point values of type \verb|Numeric|.
+\item A Matrix contains floating point values of type \artsstyle{Numeric}.
 \item The values are arranged in rows and columns and can be accessed
   by indices. The first index is the row, the second the column. In
   other words, we use \emph{row-major} order, similar to C, Matlab,
@@ -359,14 +359,14 @@ Matrix d=c;        // Make d a copy of c.
 \end{verbatim}
 
 That is all. More fancy constructors, like for Vector, do not exist
-for Matrix. There is also no equivalent to the \verb|MakeVector|
+for Matrix. There is also no equivalent to the \artsstyle{MakeVector}
 class. 
 
 \levelc{MatrixViews}
 %-------------------------------------------------------------------------
 
-A \verb|MatrixView| is a view on an existing Matrix, in the same way
-as a \verb|VectorView| is a view on an existing Vector. Like a
+A \typeindex{MatrixView} is a view on an existing Matrix, in the same way
+as a \artsstyle{VectorView} is a view on an existing Vector. Like a
 VectorView, a MatrixView cannot be resized and does not contain the
 actual data. A view is generated by using Ranges:
 
@@ -383,29 +383,29 @@ MatrixView c = x[Range(0,2),Range(0,2)];
 You probably get the idea. Note that the second argument of Range gives
 the number of elements to take, not the index of the last element. See
 the section about Vectors for more examples how to use Range. You can
-use \verb|joker|, and also the third argument of Range to select only
+use \artsstyle{joker}, and also the third argument of Range to select only
 every nth row, or column, or reverse the order of the rows or columns. 
 
 In analogy to the Vector case, you should use the two classes
-\verb|MatrixView| and \verb|ConstMatrixView| as function arguments.
+\artsstyle{MatrixView} and \typeindex{ConstMatrixView} as function arguments.
 Please refer to the discussion in the Vector section for details. As
 in the case of VectorViews, all arguments of these types should be
 passed by value, not by reference. Also, similar to the Vector case,
 workspace methods are the exception, because they have to use the
-conventional \verb|const Matrix&| or \verb|Matrix&| as input/output
+conventional \artsstyle{const Matrix\&} or \artsstyle{Matrix\&} as input/output
 arguments.
 
 \levelc{What you can do with a Matrix (or MatrixView)}
 %-------------------------------------------------------------------------
 
-All examples below (except for the first) assume that \verb|a| is a
+All examples below (except for the first) assume that \artsstyle{a} is a
 Matrix or MatrixView.
 
 \leveld{Resize (only for Matrix, not for MatrixView!):}
 \begin{verbatim}
 a.resize(5,10);
 \end{verbatim}
-This makes \verb|a| a 5x10 Matrix (5 rows, 10 columns). The new Matrix
+This makes \artsstyle{a} a 5x10 Matrix (5 rows, 10 columns). The new Matrix
 is not initialized (i.e., the contents will be unpredictable). Also,
 note that the previous content will be completely lost.
 
@@ -423,7 +423,7 @@ Vector y = a(Range(joker),a.ncols()-1); // Last column.
 
 Of course, you can use more complicated Range expressions to refer to
 only parts of a row or column. Technically, expressions of this kind
-return the type \verb|VectorView|. This means, they can be used
+return the type \artsstyle{VectorView}. This means, they can be used
 in all cases where an object of that type is expected, for example
 with the function defined in Section \ref{sec:vector_views}:
 
@@ -441,14 +441,14 @@ a(0,0) = 3.5;   // Assign 3.5 to the top-left element
 \end{verbatim}
 
 Note that we use 0-based indexing! Furthermore note that the operator
-`()' can be also used with one or two \verb|Range| arguments, as
+`()' can be also used with one or two \artsstyle{Range} arguments, as
 explained above. To summarize:
 
 \begin{itemize}
-\item (\verb|Index|,\verb|Index|) returns \verb|Numeric| (element access).
-\item (\verb|Index|,\verb|Range|) or (\verb|Range|,\verb|Index|) returns
-  \verb|VectorView| (row or column access).
-\item (\verb|Range|,\verb|Range|) returns \verb|MatrixView|
+\item (\artsstyle{Index},\artsstyle{Index}) returns \artsstyle{Numeric} (element access).
+\item (\artsstyle{Index},\artsstyle{Range}) or (\artsstyle{Range},\artsstyle{Index}) returns
+  \artsstyle{VectorView} (row or column access).
+\item (\artsstyle{Range},\artsstyle{Range}) returns \artsstyle{MatrixView}
   (sub-matrix access).
 \end{itemize}
 
@@ -505,18 +505,18 @@ cout << min(a);
 
 \leveld{Arbitrary single-argument math functions:}
 
-The function \verb|transform| works just like for Vector.
+The function \funcindex{transform} works just like for Vector.
 
 \leveld{Transpose:}
 \begin{verbatim}
 Matrix b = transpose(a); // Make b the transpose of a.
 \end{verbatim}
 
-The function \verb|transpose| creates a MatrixView, for which rows and
+The function \funcindex{transpose} creates a MatrixView, for which rows and
 columns are interchanged. Note, that only the way the data is accessed
-is changed, not the data itself. So Matrix \verb|a| in the example
+is changed, not the data itself. So Matrix \artsstyle{a} in the example
 above is not changed. For this reason, transposing is very efficient.
-You can use \verb|transpose(a)| instead of \verb|a| in any matrix
+You can use \artsstyle{transpose(a)} instead of \artsstyle{a} in any matrix
 expression practically without additional cost. (This is not strictly
 true, after all, the view has to be generated and passed. But that
 cost should be negligible except for very small matrices.)
@@ -569,13 +569,14 @@ mult(transpose(c),transpose(b),a);           // c' = b' * a
 %-------------------------------------------------------------------------
 \label{sec:matpack:tensors}
 
-ARTS has tensors with rank 3 to 7. They are called \verb|Tensor3|
-\ldots \verb|Tensor7|, and work very much like matrices, just with
-more dimensions. Some properties:
+ARTS has tensors with rank 3 to 7. They are called
+\typeindex{Tensor3}, \typeindex{Tensor4}, \typeindex{Tensor5},
+\typeindex{Tensor6}, \typeindex{Tensor7}, and work very much like
+matrices, just with more dimensions. Some properties:
 \begin{itemize}
-\item A Tensor contains floating point values of type \verb|Numeric|.
+\item A Tensor contains floating point values of type \artsstyle{Numeric}.
 \item The \emph{rank} of a tensor means the number of dimensions, so a
-  \verb|Tensor4| has 4 dimensions. Tensors of different rank are
+  \artsstyle{Tensor4} has 4 dimensions. Tensors of different rank are
   different classes. That means, the rank is fixed at compile time and
   cannot be changed at runtime. We will use rank and dimension as
   synonyms. 
@@ -589,9 +590,9 @@ more dimensions. Some properties:
 \item Row
 \item Column
 \end{itemize}
-For example, \verb|Tensor3 b(2,4,3)| defines a third order tensor with 2
+For example, \artsstyle{Tensor3 b(2,4,3)} defines a third order tensor with 2
 pages, 4 rows, and 3 columns. Note that the column dimension is always
-last. (Incidentally, a \verb|Matrix| behaves exactly like a second
+last. (Incidentally, a \artsstyle{Matrix} behaves exactly like a second
 order tensor, except that it has some additional features.) 
 \item A sub-range of a tensor in all dimensions (sub tensor) can
   easily be accessed, and used as if it was just a normal tensor.
@@ -626,7 +627,7 @@ Tensor3View b = a(3,Range(joker),Range(joker),Range(joker));
 
 This is what is meant by slicing: You can easily create a
 view of a tensor that picks out an object of lower dimension. Note
-that you can use either an \verb|Index| or a \verb|Range| argument for
+that you can use either an \artsstyle{Index} or a \artsstyle{Range} argument for
 any of the dimensions. The dimensionality of the result will adjust
 accordingly, as in the example above.
 
@@ -636,14 +637,14 @@ here. In particular, please always use views as function arguments.
 \levelc{What you can do with a tensor (or tensor view)}
 %-------------------------------------------------------------------------
 
-All examples below (except for the first) assume that \verb|a| is a
+All examples below (except for the first) assume that \artsstyle{a} is a
 Tensor7 or Tensor7View.
 
 \leveld{Resize (only for tensors, not for views):}
 \begin{verbatim}
 a.resize(5, 10, 4, 5, 3, 6, 8);
 \end{verbatim}
-This makes \verb|a| the requested size. The new tensor is not
+This makes \artsstyle{a} the requested size. The new tensor is not
 initialized (i.e., the contents will be unpredictable). Also, note
 that the previous content will be completely lost.
 
@@ -659,8 +660,8 @@ Index nc = a.ncols();
 \end{verbatim}
 
 Which of these functions are available depends on the dimension of
-your tensor. For example, \verb|nlibraries()| is only available for
-\verb|Tensor7|. Note, that I took care that the first letters of the
+your tensor. For example, \artsstyle{nlibraries()} is only available for
+\artsstyle{Tensor7}. Note, that I took care that the first letters of the
 dimension names are unique, which is very convenient if you prefer short
 names for your variables that refer so some dimension of a tensor.
 
@@ -676,7 +677,7 @@ Vector x = a(0,2,1,8,3,4,Range(joker));
 // and copy it to the Vector x.
 \end{verbatim}
 
-Any \verb|Range| or \verb|Index| expression is allowed in any of the
+Any \artsstyle{Range} or \artsstyle{Index} expression is allowed in any of the
 arguments, of course.
 
 \leveld{Element access:}
@@ -708,7 +709,7 @@ cout << min(a);
 
 \leveld{Arbitrary single-argument math functions:}
 
-The function \verb|transform| works just like for Vector.
+The function \funcindex{transform} works just like for Vector.
 
 \levelc{Summary}
 
@@ -723,18 +724,18 @@ Chapter \ref{sec:interpolation}.
 %-------------------------------------------------------------------------
 \label{sec:matpack:arrays}
 
-The template class \verb|Array| can be used to make arrays out of
+The template class \typeindex{Array} can be used to make arrays out of
 anything. I do not know a good definition for `array', but I guess
 anybody who has written a computer program in any programming language
 is familiar with the concept. Of course, it is rather similar to the
 concept of a Vector, just missing all the mathematical functionality
 like Matrix-Vector multiplication and sub-range access.
 
-The implementation of our \verb|Array| class is based on the STL class
-\verb|std::vector|, whereas the implementation of our \verb|Vector|
+The implementation of our \artsstyle{Array} class is based on the STL class
+\artsstyle{std::vector}, whereas the implementation of our \artsstyle{Vector}
 class is done from scratch. So the two implementations are completely
-independent. Nevertheless, I tried to make \verb|Array| behave
-consistently with \verb|Vector|, as much as possible. There are a number
+independent. Nevertheless, I tried to make \artsstyle{Array} behave
+consistently with \artsstyle{Vector}, as much as possible. There are a number
 of important differences, though, hopefully sufficiently explained in
 this part. A short summary of important differences:
 
@@ -743,10 +744,10 @@ this part. A short summary of important differences:
   always contains elements of type Numeric.
 \item No mathematical functionality for Array (no sub-ranges (nothing
   like VectorView); no +=, -=, *=, /=; no scalar product; no
-  \verb|transform| function; no \verb|mult| function; no
-  \verb|transpose| function).
+  \artsstyle{transform} function; no \artsstyle{mult} function; no
+  \artsstyle{transpose} function).
 \item On the other hand, resizing (for example adding to the end) of
-  an Array is ok. (See the \verb|push_back| method below.) It is still
+  an Array is ok. (See the \artsstyle{push\_back} method below.) It is still
   rather expensive, though, at least for large Arrays. 
 \end{itemize}
 
@@ -766,7 +767,7 @@ Array<Index>  d=a;      // Make d a copy of a;
 \end{verbatim}
 
 There are already a lot of predefined Array classes. The naming
-convention for them is: \verb|ArrayOfIndex|, \verb|ArrayOfString|,
+convention for them is: \typeindex{ArrayOfIndex}, \typeindex{ArrayOfString},
 etc.. Normally you should use these predefined classes. But if you want
 to define an Array of some uncommon type, you can do it with `$<>$',
 as in the above examples. 
@@ -784,14 +785,14 @@ MakeArray<String> a("ARTS",
 \levelc{What you can do with an Array}
 %-------------------------------------------------------------------------
 
-All examples below assume that \verb|a| is an ArrayOfString.
+All examples below assume that \artsstyle{a} is an ArrayOfString.
 
 \leveld{Resize:}
 \begin{verbatim}
 a.resize(5);
 \end{verbatim}
 
-This adjusts the size of \verb|a| to 5. Resizing is more efficiently
+This adjusts the size of \artsstyle{a} to 5. Resizing is more efficiently
 implemented than for Vector, but still expensive.
 
 \leveld{Get the number of elements:}
@@ -800,9 +801,9 @@ cout << a.nelem();  // Just as for Vector.
 \end{verbatim}
 
 In particular, note that the return type of this method is
-\verb|Index|, just as for Vector. This is an extension compared to
-std::vector, which just has a method \verb|size()| that returns the
-positive integer type \verb|size_t|.
+\artsstyle{Index}, just as for Vector. This is an extension compared to
+std::vector, which just has a method \artsstyle{size()} that returns the
+positive integer type \artsstyle{size\_t}.
 
 \leveld{Element access:}
 \begin{verbatim}
@@ -830,10 +831,10 @@ a.push_back("Hello"); // Adds this new element at the
 \end{verbatim}
 
 This can be an expensive operation, especially for large Arrays.
-Therefore, use it with care. Actually, the \verb|push_back| method
-comes from the \verb|std::vector| class that Array is based on. You
-can do a lot more with \verb|std::vector|, all of which also works
-with \verb|Array|. However, to explain the Standard Template Library
+Therefore, use it with care. Actually, the \funcindex{push\_back} method
+comes from the \artsstyle{std::vector} class that Array is based on. You
+can do a lot more with \artsstyle{std::vector}, all of which also works
+with \artsstyle{Array}. However, to explain the Standard Template Library
 is beyond the scope of this text. You can read about it in C++ or even
 dedicated STL textbooks.
 

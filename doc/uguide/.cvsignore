@@ -3,6 +3,7 @@
 Makefile
 Makefile.in
 auto
+auto_groups.tex
 auto_version.tex
 confdefs.h
 config.cache

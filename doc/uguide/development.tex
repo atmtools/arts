@@ -21,14 +21,14 @@
   011005 & Stefan Buehler: Fixed TeX warnings, updated. \\
   000728 & Stefan Buehler: Added stuff about build system and howto cut a release. \\
   000615 & Created by Stefan Buehler. For now, this is basically the
-  former content of the file \verb|notes.txt|. \\
+  former content of the file \artsstyle{notes.txt}. \\
 \stophistory
 
 %
 % Symbol table, format:
 %  \startsymbols
-%    ... & \verb|...| & text ... \\
-%    ... & \verb|...| & text ... \\
+%    ... & \artsstyle{...} & text ... \\
+%    ... & \artsstyle{...} & text ... \\
 %    ....
 %  \stopsymbols
 %
@@ -52,12 +52,12 @@ want to use ARTS, you should not need to read it. \textbf{But if you
 ARTS is written in C++ with the help of the GNU development tools
 (Autoconf, Automake, etc.). It is organized in a similar manner as
 most GNU packages. The top-level ARTS directory is either called
-\verb|arts| or \verb|arts-x.y|, where x.y is the release number.
-It contains various sub-directories, notably \verb|doc| for
-documentation, \verb|src| for the C++ source code, \verb|ami| for the
-MATLAB interface, and \verb|aii| for the IDL interface. The document
+\artsstyle{arts} or \artsstyle{arts-x.y}, where x.y is the release number.
+It contains various sub-directories, notably \artsstyle{doc} for
+documentation, \artsstyle{src} for the C++ source code, \artsstyle{ami} for the
+MATLAB interface, and \artsstyle{aii} for the IDL interface. The document
 that you are reading right now, the ARTS User Guide, is located in
-\verb|doc/uguide|.
+\artsstyle{doc/uguide}.
 
 There are two different versions of the ARTS package: The developers
 version and the end-user version. Both contain the complete source
@@ -75,8 +75,8 @@ distributions like Suse and Redhat.
 The end-user version contains everything that you need in order to
 compile and install ARTS in a fairly automatic manner. The only
 thing you should need is an ANSI-C++ compiler and the standard Unix
-\verb|make| utility. Please see files \verb|arts/README| and
-\verb|arts/INSTALL| for installation instructions. We are developing
+\artsstyle{make} utility. Please see files \fileindex{arts/README} and
+\fileindex{arts/INSTALL} for installation instructions. We are developing
 with the GNU C++ compiler, no other compilers have been tried so
 far.
 
@@ -87,7 +87,7 @@ As mentioned above, GNU tools are used to construct the ARTS
 build system. A good introduction to the GNU build system can be found in:
 \begin{quote}
   \footnotesize
-  \verb|http://www.amath.washington.edu/~lf/tutorials/autoconf/|
+  \artsstyle{http://www.amath.washington.edu/~lf/tutorials/autoconf/}
 \end{quote}
 Using these tools makes a lot of things very easy, but also some
 things slightly more complicated.
@@ -98,7 +98,7 @@ special make target `dist' that you can use to cut a release. How this
 is done in detail is described in Section \ref{sec:release}. Mostly,
 the GNU tools are smart enough to figure out automatically what should
 go into the release. However, this can be controlled by editing the
-\verb|Makefile.am| files which can be found in almost all directories.
+\fileindex{Makefile.am} files which can be found in almost all directories.
 
 The support for documentation other than info and man pages is not
 very good in the GNU system, so we had to use some tricks to make sure
@@ -111,13 +111,13 @@ should.
 % FIXME: Oliver, please put in a part here about the different
 % ARTS specific configure options. (Particularly maintainer-mode.)
 
-% Here are some interesting options for \verb|configure|:
+% Here are some interesting options for \artsstyle{configure}:
 %
 %\begin{description}
 %\item[--disable-warnings:] 
-%  Compile without \verb|-Wall| on g++ compilers (by default warnings are on).
-%\item[--disable-assert:] Include \verb|#define NDEBUG 1| in
-%  \verb|config.h|.  The central switch to turn off all debugging
+%  Compile without \artsstyle{-Wall} on g++ compilers (by default warnings are on).
+%\item[--disable-assert:] Include \artsstyle{#define NDEBUG 1} in
+%  \fileindex{config.h}.  The central switch to turn off all debugging
 %  features (index range checking for vectors, the trace facility,
 %  assertions,...) \textbf{Not yet implemented.}
 %
@@ -131,7 +131,7 @@ If you add directories or just files, you have to make sure that they
 also go into the distribution. In some cases (e.g., program source
 code files) this is done automatically. But if you add any other kind
 of file, for example a data or a documentation file, you have to edit
-the \verb|Makefile.am| file in that directory to make sure that your
+the \fileindex{Makefile.am} file in that directory to make sure that your
 stuff goes into the distribution. It is a good idea to always check
 the release in order to see if the things you added are really there.
 
@@ -141,21 +141,21 @@ the release in order to see if the things you added are really there.
 
 Here are some general rules for ARTS programming:
 
-\levelc{} Never use \verb|float| or \verb|double| explicitly, use the
-type \verb|Numeric| instead.  This is set by \verb|configure| (to
-\verb|double| by default). Thus, it is possible to compile the program
-for \verb|float| by simply running configure with a different option.
+\levelc{} Never use \artsstyle{float} or \artsstyle{double} explicitly, use the
+type \typeindex{Numeric} instead.  This is set by \artsstyle{configure} (to
+\artsstyle{double} by default). Thus, it is possible to compile the program
+for \artsstyle{float} by simply running configure with a different option.
 %
 % FIXME: Oliver, please say how.
 %
-In the same way, use Index for all integers. It can take on positive
+In the same way, use \typeindex{Index} for all integers. It can take on positive
 or negative values.
 
-\levelc{} Use \verb|Vector| and \verb|Matrix| for mathematical vectors
-and matrices (with elements of type \verb|Numeric|). Use
-\verb|Array<something>| to create an array of \verb|something|s. Commonly
+\levelc{} Use \artsstyle{Vector} and \artsstyle{Matrix} for mathematical vectors
+and matrices (with elements of type \artsstyle{Numeric}). Use
+\artsstyle{Array<something>} to create an array of \artsstyle{something}s. Commonly
 used Arrays have been predefined, they have names like
-\verb|ArrayOfString|, \verb|ArrayOfMatrix|, and so forth.
+\artsstyle{ArrayOfString}, \artsstyle{ArrayOfMatrix}, and so forth.
 
 \levelc{Terminology}
 Calculations are carried out in the so called workspace (WS), on
@@ -169,39 +169,39 @@ executed.
    Are not visible by default. To use them you have to declare them
    like this:
    \begin{quote}
-   \verb|extern const Numeric PI;|
+   \artsstyle{extern const Numeric PI;}
    \end{quote}
    which will make the global constant PI=3.14... available. Other important globals are:
 
    \begin{quote}
    \begin{tabular}{ll}
-   \verb|full_name|&         Full name of the program, including version.\\
-   \verb|parameters|&        All command line parameters.\\
-   \verb|basename|&          Used to construct output file names.\\
-   \verb|out_path|&          Output path.\\
-   \verb|messages|&          Controls the verbosity level.\\
-   \verb|wsv_data|&          WSV lookup data.\\
-   \verb|wsv_group_names|&   Lookup table for the names of \emph{types} of WSVs.\\
-   \verb|WsvMap|&            The map associated with \verb|wsv_data|. \\
-   \verb|md_data|&           WSM lookup data.\\
-   \verb|MdMap|&             The map associated with \verb|md_data|. \\
-   \verb|workspace|&         The workspace itself.\\
-   \verb|species_data|&      Lookup information for spectroscopic species.\\
-   \verb|SpeciesMap|&        The map associated with \verb|species_data|.
+   \artsstyle{full\_name}&         Full name of the program, including version.\\
+   \artsstyle{parameters}&        All command line parameters.\\
+   \artsstyle{basename}&          Used to construct output file names.\\
+   \artsstyle{out\_path}&          Output path.\\
+   \artsstyle{messages}&          Controls the verbosity level.\\
+   \artsstyle{wsv\_data}&          WSV lookup data.\\
+   \artsstyle{wsv\_group\_names}&   Lookup table for the names of \emph{types} of WSVs.\\
+   \artsstyle{WsvMap}&            The map associated with \artsstyle{wsv\_data}. \\
+   \artsstyle{md\_data}&           WSM lookup data.\\
+   \artsstyle{MdMap}&             The map associated with \artsstyle{md\_data}. \\
+   \artsstyle{workspace}&         The workspace itself.\\
+   \artsstyle{species\_data}&      Lookup information for spectroscopic species.\\
+   \artsstyle{SpeciesMap}&        The map associated with \artsstyle{species\_data}.
    \end{tabular}
    \end{quote}
-   The only exception from this rule are the output streams \verb|out0| to
-   \verb|out3|, which are visible by default.
+   The only exception from this rule are the output streams \artsstyle{out0} to
+   \artsstyle{out3}, which are visible by default.
 
 \levelc{Files}
-Always use the \verb|open_output_file| and \verb|open_input_file|
+Always use the \artsstyle{open\_output\_file} and \artsstyle{open\_input\_file}
 functions to open files. This switches on exceptions, so that any
 error occurring later on with this file will result in an
 exception. (Currently not really implemented in the GNU compiler,
 but please use it anyway.)
 
 \levelc{Version numbers} 
-The package version number is set in file \verb|configure.in| in the
+The package version number is set in file \fileindex{configure.in} in the
 top level ARTS directory. Always increase this when you do a CVS
 commit, even for small changes. in such cases increase the last digit
 by one. If you make a new distribution, increase the middle digit by
@@ -209,7 +209,7 @@ one and omit the last digit. If you make a bug-fix distribution, you
 can add the last digit to indicate this. 
 
 \levelc{Header files} 
-The global header file \verb|arts.h| \emph{must} be included by every
+The global header file \fileindex{arts.h} \emph{must} be included by every
 file. Apart from that you have to see yourself what header files you
 need. If you use functions from the C or C++ standard library, you
 have to also include the appropriate header file.
@@ -217,7 +217,7 @@ have to also include the appropriate header file.
 \levelc{Documentation}
 Doxygen is used to generate automatic source code documentation. See
 \begin{quote}
-  \verb|http://www.stack.nl/~dimitri/doxygen/|
+  \artsstyle{http://www.stack.nl/~dimitri/doxygen/}
 \end{quote}
 for information. There is a complete User manual there. At the moment
 we only generate the output as HTML, although latex, man-page, and rtf
@@ -234,13 +234,13 @@ should add Doxygen headers to the following:
 
 The documentation headers are comment blocks that look like the
 examples below. They should be put above the \emph{definition} of a
-function, i.e., in the \verb|.cc| file.  Some functions are defined in
-the \verb|.h| file (e.g., inline member functions). In that case the
-comment can be put in the \verb|.h| file.
+function, i.e., in the \artsstyle{.cc} file.  Some functions are defined in
+the \artsstyle{.h} file (e.g., inline member functions). In that case the
+comment can be put in the \artsstyle{.h} file.
 
 There is an Emacs package (Doxymacs) that makes the insertion of
 documentation headers particularly easy. You can find documentation of
-this on the Doxymacs webpage: \verb|http://doxymacs.sourceforge.net/|.
+this on the Doxymacs webpage: \artsstyle{http://doxymacs.sourceforge.net/}.
 To use it for ARTS (provided you have it), put the following in your
 Emacs initialization file:
 
@@ -280,11 +280,11 @@ standard key-bindings are:
 \texttt{C-c d @} & insert grouping comments around the current region.\\
 \end{tabularx}
 \end{quote}
-You can call the macros also by name, e.g., \verb|doxymacs-insert-file-comment|.
+You can call the macros also by name, e.g., \artsstyle{doxymacs-insert-file-comment}.
 
 \leveld{File comment:}
 
-Generated by \verb|doxymacs-insert-file-comment|.
+Generated by \artsstyle{doxymacs-insert-file-comment}.
 
 \begin{verbatim}
 /*!
@@ -301,10 +301,10 @@ Generated by \verb|doxymacs-insert-file-comment|.
 
 \leveld{Function comment:}
 
-Generated by \verb|doxymacs-insert-function-comment|.
+Generated by \artsstyle{doxymacs-insert-function-comment}.
 If arguments are modified by the function you should
-add `Output:' after the \verb|\param| command, just like for the
-parameter \verb|a| in the example below. If a parameter is both input
+add `Output:' after the \artsstyle{\\param} command, just like for the
+parameter \artsstyle{a} in the example below. If a parameter is both input
 and output, you should say `Output and Input:'. The documentation for
 each parameter should start with a capital letter and end with a
 period, like in the example below.
@@ -329,7 +329,7 @@ int dummy(int& a, int b);
 
 \leveld{Generic multi-line comment:}
 
-Generated by \verb|doxymacs-insert-blank-multiline-comment|.
+Generated by \artsstyle{doxymacs-insert-blank-multiline-comment}.
 
 \begin{verbatim}
 //! A dummy comment.
@@ -341,7 +341,7 @@ Generated by \verb|doxymacs-insert-blank-multiline-comment|.
 
 \leveld{Generic single-line comment:}
 
-Generated by \verb|doxymacs-insert-blank-singleline-comment|.
+Generated by \artsstyle{doxymacs-insert-blank-singleline-comment}.
 
 \begin{verbatim}
 //! Short comment here.
@@ -360,8 +360,8 @@ variables are. Here is just the practical description how a new
 variable can be added.
 
 \begin{enumerate}
-\item Create a record entry in file \verb|workspace.cc|. (Just add
-  another one of the \verb|wsv_data.push_back| blocks.) Take the
+\item Create a record entry in file \fileindex{workspace.cc}. (Just add
+  another one of the \artsstyle{wsv\_data.push\_back} blocks.) Take the
   already existing entries as templates. The ARTS concept works best
   if WSVs are only of a rather limited number of different types, so
   that generic WSMs can be used extensively, for example for IO.
@@ -374,7 +374,7 @@ variable can be added.
     dimensions (in the case of matrices) and the units!} This string
   is used for the online documentation. Please take some time to write
   it carefully. Use the template at the beginning of function
-  \verb|define_wsv_data()| in file \verb|workspace.cc| as a
+  \artsstyle{define\_wsv\_data()} in file \artsstyle{workspace.cc} as a
   guideline. 
 
 \item That's it!
@@ -389,8 +389,8 @@ variable groups are. Here is just the practical description how a new
 group can be added.
 
 \begin{enumerate}
-\item Add a \verb|wsv_group_names.push_back("your_type")| function to
-  the function \verb|define_wsv_group_names()| in \verb|groups.cc|. The
+\item Add a \artsstyle{wsv\_group\_names.push\_back("your\_type")} function to
+  the function \artsstyle{define\_wsv\_group\_names()} in \fileindex{groups.cc}. The
   name must be \emph{exactly} like you use it in the source code,
   because this is used to generate interface functions.
 \item That's it! (But as stated above, use this feature wisely)
@@ -406,24 +406,24 @@ methods are. Here is just the practical description how a new
 method can be added.
 
 \begin{enumerate}
-\item Create an entry in the function \verb|define_md_data| in file
-  \verb|methods.cc|.  (Make a copy of an existing entry (one of the
-  \verb|md_data.push_back(...)| blocks) and edit it to fit your new
+\item Create an entry in the function \funcindex{define\_md\_data} in file
+  \fileindex{methods.cc}.  (Make a copy of an existing entry (one of the
+  \artsstyle{md\_data.push\_back(...)} blocks) and edit it to fit your new
   method.) Don't forget the documentation string! Please refer to the
   example at the beginning of the file to see how to format it.
 \item Run:
-  \verb|make|.
-\item Look in \verb|auto_md.h|. There is a new function prototype
+  \artsstyle{make}.
+\item Look in \fileindex{auto\_md.h}. There is a new function prototype
   \begin{quote}
-    \verb|void <YourNewMethod>(...)|
+    \artsstyle{void <YourNewMethod>(...)}
   \end{quote}
-\item Add your function to one of the \verb|.cc| files which contain method
-  functions. Such files must have names starting with \verb|m_|. (See
+\item Add your function to one of the \artsstyle{.cc} files which contain method
+  functions. Such files must have names starting with \artsstyle{m\_}. (See
   separate HowTo if you want to create a new source file.) The header
-  of your function must be compatible with the prototype in \verb|md.h|.
+  of your function must be compatible with the prototype in \artsstyle{auto\_md.h}.
 \item Check that everything looks nice by running 
   \begin{quote}
-    \verb|arts -d YourNewMethod|
+    \artsstyle{arts -d YourNewMethod}
   \end{quote}
   If necessary, change the documentation string.
 
@@ -435,13 +435,13 @@ method can be added.
 %---------------------------------------
 \begin{enumerate}
 \item Create your file. Names of files containing workspace methods should
-  start with \verb|m_|.
-\item You have to register your file in the file \verb|src/Makefile.am|.
+  start with \artsstyle{m\_}.
+\item You have to register your file in the file \fileindex{src/Makefile.am}.
   This file states which source files are needed for arts. Should be
   self-explanatory where you have to add your file. The above goes for
-  source (\verb|.cc|) and header (\verb|.h|) files likewise.
-\item Then go to the top level arts directory and run: \verb|reconf|.
-\item Go to \verb|src| and run: \verb|cvs add <my_file>| to make your
+  source (\artsstyle{.cc}) and header (\artsstyle{.h}) files likewise.
+\item Then go to the top level arts directory and run: \artsstyle{reconf}.
+\item Go to \artsstyle{src} and run: \artsstyle{cvs add <my\_file>} to make your
   file known to CVS.
 \end{enumerate}
 
@@ -450,16 +450,16 @@ method can be added.
 %---------------------------------------
 \begin{enumerate}
 \item Create your own example file. The filename should end with
-  \verb|_example.arts.in|.
+  \artsstyle{\_example.arts.in}.
 \item If your example uses files from the arts-data package, replace
-  the path to the data package (e.g. \verb|/pool/lookup2/arts-data|)
-  with \verb|@ac_arts_data@|. Configure will replace this with the
+  the path to the data package (e.g. \artsstyle{/pool/lookup2/arts-data})
+  with \artsstyle{@ac\_arts\_data@}. Configure will replace this with the
   correct path.
-\item Add your file to the variable \verb|arts_examples| in the file\newline
-  \verb|doc/examples/Makefile.am|.
+\item Add your file to the variable \artsstyle{arts\_examples} in the file\newline
+  \fileindex{doc/examples/Makefile.am}.
 \item Add your file to the AC\_OUTPUT list near the end of configure.in.
-\item The next time when you call \verb|make| the \verb|.arts.in| file will
-  be automatically converted to \verb|.arts|.
+\item The next time when you call \artsstyle{make} the \artsstyle{.arts.in} file will
+  be automatically converted to \artsstyle{.arts}.
 \end{enumerate}
 
 
@@ -471,7 +471,7 @@ The arts project is controlled by CVS. This section describes some
 basic CVS commands. For more information see the extensive CVS
 documentation or our own CVS Howto on:
 \begin{quote}
-  \verb|http://www.sat.uni-bremen.de/docs/|
+  \artsstyle{http://www.sat.uni-bremen.de/docs/}
 \end{quote}
 
 
@@ -481,15 +481,15 @@ documentation or our own CVS Howto on:
 %-----------------------------
 \begin{enumerate}
 \item Go to a temporary directory.
-\item Run: \verb|cvs co -P arts|.
+\item Run: \artsstyle{cvs co -P arts}.
 \end{enumerate}
 
 
 \levelc{How to update (if you already have a copy)}
 %--------------------------------------------------
 \begin{enumerate}
-\item Go to the top ARTS directory (called simply \verb|arts|).
-\item Run: \verb|cvs update -P|
+\item Go to the top ARTS directory (called simply \artsstyle{arts}).
+\item Run: \artsstyle{cvs update -P}
    
   \textbf{IMPORTANT!} Always update, before you start to make changes
   to the program, especially after a longer pause. If you edit an
@@ -504,25 +504,25 @@ documentation or our own CVS Howto on:
 \item You should make sure that the program compiles and runs without
   obvious errors before you commit.
 \item If you have created a new source file, make it known to CVS by
-  running the command \verb|cvs add <my_file>| in the directory where
+  running the command \artsstyle{cvs add <my\_file>} in the directory where
   the file resides.
   
-  In general, when you run \verb|cvs update|, it will warn you about
-  any files it doesn't know by marking them with a \verb|?|. Files
+  In general, when you run \artsstyle{cvs update}, it will warn you about
+  any files it doesn't know by marking them with a \artsstyle{?}. Files
   that are created during the compilation process, but should not be
-  part of the package are listed in the \verb|.cvsignore| files in
+  part of the package are listed in the \fileindex{.cvsignore} files in
   each directory.
 \item Have you added the documentation for your new features?
-\item Increase the subversion number in file \verb|configure.in| in
+\item Increase the subversion number in file \fileindex{configure.in} in
   the top level ARTS directory.
-\item Open the file \verb|ChangeLog| in the top level ARTS directory
+\item Open the file \fileindex{ChangeLog} in the top level ARTS directory
   with your favorite editor.
   
   With Emacs, you can very easily add an entry by typing either
   \begin{quote}
-    \verb|M-x add-change-log-entry|
+    \artsstyle{M-x add-change-log-entry}
   \end{quote}
-  or \verb|C-x 4 a|.
+  or \artsstyle{C-x 4 a}.
   
   Specify the new version number and describe your changes.
 
@@ -531,7 +531,7 @@ documentation or our own CVS Howto on:
     already while you work on a file}. Whenever you make a change to a
   file, there should be a ChangeLog Entry!
 \item Make sure that you have saved all your files. Go to the top
-  level ARTS directory and run: \verb|cvs commit|.
+  level ARTS directory and run: \artsstyle{cvs commit}.
 \item This will pop up an editor. Use the mouse to cut and paste the
   Change-Log message also to this editor window. Safe the file and exit
   the editor. If you made changes in different directories, another
@@ -539,7 +539,7 @@ documentation or our own CVS Howto on:
   exit. Do this until no more editors come up. (Note: This works well
   if you set
   \begin{quote}
-    \verb|export EDITOR=xedit|
+    \artsstyle{export EDITOR=xedit}
   \end{quote}
   in you shell startup file.
  
@@ -548,11 +548,11 @@ documentation or our own CVS Howto on:
   xedit you just have to push the save button twice to override.
 \item You have to give your version of the program a symbolic name, so
   that it can be retrieved later on if necessary. Do this by running:
-  \verb|cvs tag arts-x-y-z| where x,y,z must be replace by the version
+  \artsstyle{cvs tag arts-x-y-z} where x,y,z must be replace by the version
   numbers. You have to use dashes to separate the numbers, a point
-  (\verb|.|) will not work.
+  (\artsstyle{.}) will not work.
 \item Tell the other developers about it. The best way to do this is
-  to send an email to \verb|arts-dev@sat.physik.uni-bremen.de|.
+  to send an email to \artsstyle{arts-dev@sat.physik.uni-bremen.de}.
 \end{enumerate}
 
 
@@ -560,17 +560,17 @@ documentation or our own CVS Howto on:
 %----------------------------
 \label{sec:release}
 \begin{enumerate}
-\item Change the release number in the file \verb|configure.in| in the
+\item Change the release number in the file \fileindex{configure.in} in the
   top-level ARTS directory. (The line that you have to change is the
-  one with \verb|AM_INIT_AUTOMAKE|.) Omit the subversion number (last digit).
+  one with \artsstyle{AM\_INIT\_AUTOMAKE}.) Omit the subversion number (last digit).
 \item Commit your changes (see other howto). 
-\item In the top-level ARTS directory, run \verb|reconf|.
-\item In the top-level ARTS directory, run \verb|make distcheck|. This
+\item In the top-level ARTS directory, run \artsstyle{reconf}.
+\item In the top-level ARTS directory, run \artsstyle{make distcheck}. This
   will not only cut the release, but also immediately try to build
   it, to see if it works. Unless you are on a very fast machine, this
   may take a while. Maybe you should go and have a cup of coffee.
 \item If all goes well, you can find the release inside the top-level
-  ARTS directory as a file \verb|arts-x.y.tar.gz|, where x.y is the
+  ARTS directory as a file \fileindex{arts-x.y.tar.gz}, where x.y is the
   release number.
 \item Check the release carefully by trying to build and install the
   program. 
@@ -583,9 +583,9 @@ documentation or our own CVS Howto on:
 \begin{enumerate}
 \item Commit your changes.
 \item Go \emph{above} the top level ARTS directory.
-\item Run: \verb|cvs release -d arts|.
+\item Run: \artsstyle{cvs release -d arts}.
   
-  This will ask for confirmation, and if you say \verb|y| delete your
+  This will ask for confirmation, and if you say \artsstyle{y} delete your
   working copy of arts.
 \item Go to the directory where you want to have your ARTS copy in the
   future.
@@ -600,7 +600,7 @@ This section is taken more or less literally from the GNU tools manual
 of Eleftherios Gkioulekas:
 \begin{quote}
 {\footnotesize
-\verb|http://www.amath.washington.edu/~lf/tutorials/autoconf/|}
+\artsstyle{http://www.amath.washington.edu/~lf/tutorials/autoconf/}}
 \end{quote}
 
 The idea behind assert is simple. Suppose that at a certain point in
@@ -609,20 +609,20 @@ is a precondition that must be satisfied in order for the subsequent
 code to execute correctly, you must assert it with a statement like
 this:
 \begin{quote}
-\verb|assert(var1 == var2);|
+\artsstyle{assert(var1 == var2);}
 \end{quote}
 
 In general assert takes as argument a boolean expression. If the
 boolean expression is true, execution continues. Otherwise the
-\verb|abort| system call is invoked and the program execution is
+\artsstyle{abort} system call is invoked and the program execution is
 stopped. If a bug prevents the precondition from being true, then you
 can trace the bug at the point where the precondition breaks down
-instead of further down in execution or not at all.  The \verb|assert| call
+instead of further down in execution or not at all.  The \artsstyle{assert} call
 is implemented as a C preprocessor macro, so it can be enabled or
 disabled at will. One way to enable assertions is to include
-\verb|assert.h|.
+\artsstyle{assert.h}.
 \begin{quote}
-  \verb|#include <assert.h>|
+  \artsstyle{\#include <assert.h>}
 \end{quote}
 Then it's possible to disable them by defining the `NDEBUG' macro.
 
@@ -631,43 +631,43 @@ Then it's possible to disable them by defining the `NDEBUG' macro.
 %
 %In ARTS, assertions are turned on and off with the global NDEBUG
 %preprocessor macro, which can be set or unset in file
-%\verb|arts.h|. In the future there will be also a configure option to
+%\fileindex{arts.h}. In the future there will be also a configure option to
 %achieve this (FIXME: Update this).
 
 During debugging and testing it is a good idea to leave assertions
 enabled. However, for production runs it's best to disable them. If
 your program crashes at an assertion, then the first thing you should
 do is to find out where the error happens. To do this, run the program
-under the \verb|gdb| debugger. First invoke the debugger:
+under the \artsstyle{gdb} debugger. First invoke the debugger:
 \begin{quote}
-\verb|gdb|
+\artsstyle{gdb}
 \end{quote}
-Then load the executable and set a breakpoint at the \verb|exit|
+Then load the executable and set a breakpoint at the \artsstyle{exit}
 system call:
 \begin{quote}
-  \verb|(gdb) file arts|\\
-  \verb|(gdb) break exit| (or \verb|break __assert_fail|)
+  \artsstyle{(gdb) file arts}\\
+  \artsstyle{(gdb) break exit} (or \artsstyle{break \_\_assert\_fail})
 \end{quote}
 Now run the program: 
 \begin{quote}
-  \verb|(gdb) run|
+  \artsstyle{(gdb) run}
 \end{quote}
 
 Instead of crashing, under the debugger the program will be paused
-when the \verb|exit| system call is invoked, and you will get back the
+when the \artsstyle{exit} system call is invoked, and you will get back the
 debugger prompt. Now type:
 \begin{quote}
-  \verb|(gdb) where| 
+  \artsstyle{(gdb) where} 
 \end{quote}  
-to see where the crash happened. You can use the \verb|print| command to
-look at the contents of variables and you can use the \verb|up| and \verb|down|
+to see where the crash happened. You can use the \artsstyle{print} command to
+look at the contents of variables and you can use the \artsstyle{up} and \artsstyle{down}
 commands to navigate the stack. For more information, see the GDB
-documentation or type \verb|help| at the prompt of gdb.
+documentation or type \artsstyle{help} at the prompt of gdb.
 
 For ARTS, the assertion failures mostly happen inside the Matrix /
 Vector package (usually because you triggered a range check error,
 i.e., you tried to read or write beyond array bounds). In this case the
-\verb|up| command of GDB is particularly useful. If you give this a
+\artsstyle{up} command of GDB is particularly useful. If you give this a
 couple of times you will finally end up in the part of your code that
 caused the error.
 
