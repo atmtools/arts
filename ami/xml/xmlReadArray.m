@@ -20,28 +20,6 @@ ne = str2num (xmlGetAttrValue (attrlist, 'nelem'));
 
 e = 0;
 while e ~= ne
-  s = fscanf (fid, '%s', 1);
-  
-  if ~size (s)
-    break
-  end
-  
-  %=== Tag has to start with bracket
-  if s(1) == '<'
-    %=== Do we have an opening tag here?
-    if s(2) ~= '/'
-      l = size(s);
-      tag = s(2:l(2));
-      
-      attrlist2 = xmlReadAttributes (fid);
-
-      switch tag
-      otherwise
-         e=e+1;
-         func = str2func (strcat ('xmlRead', tag));
-         result{e} = feval (func, fid, attrlist2);
-      end
-    else %=== or is it a closing tag
-    end
-  end
+  e = e + 1;
+  result{e} = xmlReadTag(fid);
 end
