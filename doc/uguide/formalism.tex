@@ -24,51 +24,17 @@
 
 
 %
-% Symbol table, format:
-%  \startsymbols
-%    ... & \verb|...| & text ... \\
-%    ... & \verb|...| & text ... \\
-%    ....
-%  \stopsymbols
-%
-%
-%\startsymbols
-%  \mpbi   & \verb|y|      & monochromatic pencil beam intensity      \\
-%  \f      & \verb|f_mono| & monochromatic frequency                  \\
-%  \view   & \verb|za_pencil| & pencil beam zenith angle              \\
-%  \iv     & \verb|y|      & vector of monochromatic pencil beam intensities \\
-%  \y      & \verb|y|      & spectrum recorded by a sensor            \\
-%  \fm     & \verb|-|      & forward model                            \\
-%  \fma    & \verb|-|      & atmospheric part of \fm                  \\
-%  \fms    & \verb|-|      & sensor part of \fm                       \\
-%  \xt     & \verb|-|      & state vector (variables to be retrieved) \\
-%  $\xt_r$ & \verb|-|      & atmospheric part of \xt                  \\
-%  $\xt_s$ & \verb|-|      & sensor part of \xt                       \\
-%  $\xt_\merr$& \verb|-|   & part of \xt\ describing measurement errors   \\
-%  \bt     & \verb|-|      & forward model parameter vector           \\
-%  $\bt_r$ & \verb|-|      & atmospheric part of \bt                  \\
-%  $\bt_s$ & \verb|-|      & sensor part of \bt                       \\
-%  $\bt_\merr$& \verb|-|   & part of \bt\ describing measurement errors   \\
-%  \Kx     & \verb|k|      & state weighting function matrix          \\
-%  \Kb     & \verb|k|      & model parameter weighting function matrix\\  
-% \label{symtable:formalism}     
-%\stopsymbols
-
-
-
-%
 % Introduction
 %
-In this section a theoretical framework for the forward model is
+In this section a theoretical framework the forward model is
 presented. The presentation follows \citet{rodgers:90}, but some
 extensions are made, for example, the distinction between the
 atmospheric and sensor parts of the forward model is also discussed.
 After this chapter was written, C.D. Rodgers published a textbook
 \citep{rodgers:00} presenting the formalism in more detail than
 \citet{rodgers:90}. Modelling of sensor characteristics is not yet
-included in ARTS (this part is so far covered by AMI, see Section
-\ref{sec:concept:scope}), but treatment of the sensor is here included
-for completness.
+included in ARTS (this part is so far covered by AMI), but treatment
+of the sensor is here included for completness.
 
 
 
@@ -175,8 +141,7 @@ for completness.
  \end{equation}
  where \Hd\ is the reduction matrix, \Hs\ the sensor matrix, and $\y'$
  and $\merr'$ are the measurement vector and the measurement errors,
- respectively, before data reduction. The matrices \Hd\ and \Hs\ are
- described in Section \ref{sec:sensor} and \ref{sec:red}, respectively.
+ respectively, before data reduction. 
 
 
 

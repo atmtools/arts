@@ -14,6 +14,10 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EXTRA_DIST = \
+	atm_dim_1d.ps \
+	atm_dim_1d.pdf \
+	atm_dim_2d.ps \
+	atm_dim_2d.pdf \
 	contfit.eps \
 	contfit.pdf \
 	contfit.fig \
@@ -53,6 +57,7 @@ EXTRA_DIST = \
 	los.pdf \
 	method.eps \
 	method.pdf \
+	mkfigs_atm_dims.m \
 	sideband.eps \
 	sideband.fig \
 	sideband.pdf \

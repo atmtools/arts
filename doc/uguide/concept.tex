@@ -1,11 +1,11 @@
-%
+a%
 % To start the document, use
 %  \levela{...}
 % For lover level, sections use
 %  \levelb{...}
 %  \levelc{...}
 %
-\levela{The ARTS concept}
+\levela{ARTS: concept and the programme}
  \label{sec:concept}
 
 %
@@ -34,80 +34,11 @@
 %
 % Introduction
 %
-This section describes the basic ideas underlying ARTS. It also
-introduces some terminology. You should read it if you want
-to understand how the program works and how it can be used
-efficiently. At the end of the chapter, there is also some practical
-information about useful command line parameters and such things. 
-
-
-\levelb{Introduction}
-%====================
-\label{sec:concept:intro}
-
-The number of satellite sensors in the millimeter and sub-millimeter
-spectral range is rapidly growing. They use various frequency
-bands and observation geometries. Two important groups of
-sensors are for example the nadir viewing millimeter wave
-sensors like AMSU\footnote{The \textbf{A}dvanced
-  \textbf{M}icrowave \textbf{S}ounding \textbf{U}nit is a
-  sensor on board the polar orbiting satellites of the
-  US-American National Aeronautics and Space Administration.}
-and the limb viewing sub-millimeter wave sensors like the
-planned SMILES\footnote{The \textbf{S}uperconducting
-  Sub-\textbf{Mi}llimeter Wave \textbf{L}imb \textbf{E}mission
-  \textbf{S}ounder is a Japanese Sensor which will be flown
-  for the first time on the International Space Station.}.
-
-For the data analysis all such sensors require accurate and
-fast forward models, which can simulate measurements for a
-given atmospheric (and maybe ground) state. Depending on the
-objective of the sensor, the measurement will depend for
-example on the distribution of atmospheric temperature, water
-vapor, ozone, and many other trace gases.
-
-So far, a lot of effort has been wasted in developing
-dedicated forward models for different sensors, although all
-these models have many features in common. Moreover, existing
-models were not easily modifiable and extendable. Hence, it
-was decided to develop a new model which emphasizes
-modularity, extendibility, and generality.
-
-
-\levelb{The scope of ARTS}
-%====================
-\label{sec:concept:scope}
-
-The present version of ARTS is limited to cases where scattering can
-be neglected and local thermodynamic equilibrium applies. ARTS has
-been developed having passive emission measurements in mind, put pure
-transmission (that is, the emission is neglected) observations are
-also handled. The forward model can be used to simulate measurements
-for all (normal?)  observation geometries: ground-based, nadir
-looking, limb sounding and balloon/aircraft measurements. It can be
-noted that ARTS handles measurements from a point inside the
-atmosphere, such as an aircraft or a balloon, in a downward direction.
-ARTS covers so far only monochromatic pencil beam calculations, that
-is, no sensor characteristics can be included. This part is presently
-covered by the AMI (ARTS Matlab interface) set of Matlab functions 
-(see below). Sensor characteristics will be included in ARTS.
-
-Beside providing set of spectra, ARTS calculates weighting functions
-for a number of variables. Analytical expressions for the weighting
-functions are used for species, continuum absorption and ground
-emission, and for temperature if hydrostatic equilibrium is \emph{not}
-assumed. Weighting functions are also provided for pointing off-sets,
-calibration and temperature (with hydrostatic equilibrium).
-
-For Matlab users there are two accompanying packages called AMI and
-Qpack\footnote{AMI is distrubuted by ARTS, while Qpack is a separate
-  package} which extends the usage of ARTS considerably. First of all,
-AMI has functions to include sensor characteristics in the
-calculations. AMI has further functions to read and write ARTS data
-file, and various functions that are of general usage. Qpack is an
-Matlab environment to perform OEM inversions and producing set of
-spectra to test the inversions, where ARTS is used as calculating
-engine.
+This section describes the basic ideas underlying the ARTS programme.
+It also introduces some terminology. You should read it if you want to
+understand how the program works and how it can be used efficiently.
+At the end of the chapter, there is also some practical information
+about useful command line parameters and such things.
 
 
 

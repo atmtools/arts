@@ -1,0 +1,74 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Forward model concepts and definitions}
+ \label{sec:fm_defs}
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  02xxxx & xxx.\\
+\stophistory
+
+This chapter introduces terms and concepts of ARTS as a forward model,
+in contrast to the previous chapter that describes ARTS as a computer
+programme. While the content of the previous chapter is specific for
+ARTS, as the way to use a forward model programme differ normally
+significantly from one implementation to another, this chapter is of
+more general nature. Most of the quantities treated here should be
+part of any forward model of the same complexity as ARTS, where only
+details regarding the definition should differ. The aim of this chapter
+is to describe important terms and concepts in such way that the 
+content of this user guide can be fully appreciated and that you shall
+understand how to generate a control file for your simulation problem. 
+
+
+
+
+\levelb{Defining the atmosphere}
+%===================
+\label{sec:fm_defs:atmosphere}
+
+
+ \begin{figure}
+  \begin{center}
+   \includegraphics*[width=0.95\hsize]{Figs/atm_dim_1d}
+   \caption{ Schematic of a 1D atmosphere. The atmosphere is here circularly
+     symmetric. This means that the radius of the geoid, the ground
+     and all the pressure surfaces is constant. The cloud box extends
+     from the ground up to the thin solid line. The upper limit of
+     the cloud box coincides always with a pressure surface. }
+   \label{fig:fm_defs:1d}  
+  \end{center}
+ \end{figure}
+ % This figure was produced by the Matlab function mkfigs_atm_dims.
+
+ \begin{figure}
+  \begin{center}
+   \includegraphics*[width=0.95\hsize]{Figs/atm_dim_2d}
+   \caption{ Schematic of a 2D atmosphere. The radii of the geoid, the ground
+     and all the pressure surfaces are for 2D atmospheres allowed to have a
+     latitude variation. The limits of
+     the cloud box coincide always with grid box boundaries. Plotting
+     symbols as in Figure~\ref{fig:fm_defs:1d}. }
+   \label{fig:fm_defs:2d}  
+  \end{center}
+ \end{figure}
+ % This figure was produced by the Matlab function mkfigs_atm_dims.
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "uguide"
+%%% End: 

@@ -1,3 +1,18 @@
+2002-03-11  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-22
+
+	* doc/uguide: Restart of the user guide for the new version.
+	First of all, I have commented out most of the chapters (done in 
+	main.tex). The idea is to enforce that the user guide only contains 
+	stuff that is consistent with the new version. So before a chapter is 
+	re-introduced, all its content shall be checked and the text shall be 
+	changed where needed. Please, remember to also check the figure folder
+	and to remove figures not used any longer. 
+
+	Two new introduction chapters added. See notes in introduction.tex.
+	Some text written and two figures included.
+
 2002-03-11  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-21

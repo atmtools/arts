@@ -26,8 +26,10 @@ texfiles = \
 	references.bib \
 	chapter_template.tex \
 	concept.tex \
+	fm_definitions.tex \
 	formalism.tex \
 	development.tex \
+	introduction.tex \
 	matrix_vector.tex \
 	formats.tex \
 	los1d.tex \

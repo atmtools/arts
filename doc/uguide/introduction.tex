@@ -1,0 +1,142 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Introduction}
+ \label{sec:intro}
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  02xxxx & xxx.\\
+\stophistory
+
+
+Some nice welcome text ...
+
+\levelb{Temporary internal notes}
+
+I have started to prepare the user guide for the new arts version.
+First of all, I have commented out most of the chapters (done in main.tex). 
+The idea is to enforce that the user guide only contains stuff that is 
+consistent with the new version. So before a chapter is re-introduced, all
+its content shall be checked and the text shall be changed where needed.
+Please, remember to also check the figure folder and to remove figures
+not used any longer. 
+
+In addition, I have re-arranged the introductory part. Before we had
+only one chapter, and it described mainly the programme ARTS. As the
+scoope of ARTS was the same as most forward models, this was OK.
+However, now when ARTS will be extended, I think we need to descibe
+and define the concepts and terms we use in the forward model. That
+is, things that are not directly connected with the practical use of
+the programme, but needed to understand this user guide and to set-up
+a control file. So, I suggest these introductory chapters:
+
+{\bf 1. Introduction} History, scope etc. of ARTS.
+
+{\bf 2. ARTS: concept and the programme} A description of how to use ARTS
+as a computer programme. Basically the old introduction chapter.
+
+{\bf 3. Forward model concepts and definitions} Stuff needed to
+understand ARTS as a forward model. For example, to describe what we
+mean with 1D, 2d and 3D.
+ 
+
+Patrick 2002-03-09
+
+
+\levelb{Background}
+%====================
+\label{sec:intro:background}
+
+The number of satellite sensors in the millimeter and sub-millimeter
+spectral range is rapidly growing. They use various frequency
+bands and observation geometries. Two important groups of
+sensors are for example the nadir viewing millimeter wave
+sensors like AMSU\footnote{The \textbf{A}dvanced
+  \textbf{M}icrowave \textbf{S}ounding \textbf{U}nit is a
+  sensor on board the polar orbiting satellites of the
+  US-American National Aeronautics and Space Administration.}
+and the limb viewing sub-millimeter wave sensors like the
+planned SMILES\footnote{The \textbf{S}uperconducting
+  Sub-\textbf{Mi}llimeter Wave \textbf{L}imb \textbf{E}mission
+  \textbf{S}ounder is a Japanese Sensor which will be flown
+  for the first time on the International Space Station.}.
+
+For the data analysis all such sensors require accurate and
+fast forward models, which can simulate measurements for a
+given atmospheric (and maybe ground) state. Depending on the
+objective of the sensor, the measurement will depend for
+example on the distribution of atmospheric temperature, water
+vapor, ozone, and many other trace gases.
+
+So far, a lot of effort has been wasted in developing dedicated
+forward models for different sensors, although all these models have
+many features in common. Moreover, existing models were not easily
+modifiable and extendable. Hence, it was decided to develop a new
+model which emphasizes modularity, extendibility, and generality.
+
+[* Describe how ARTS was initiated and started. Release of version 1. *]
+
+
+\levelb{The scope of ARTS}
+%====================
+\label{sec:intro:scope}
+
+[* Update old text and add new stuff. *]
+
+%The present version of ARTS is limited to cases where scattering can
+%be neglected and local thermodynamic equilibrium applies. ARTS has
+%been developed having passive emission measurements in mind, put pure
+%transmission (that is, the emission is neglected) observations are
+%also handled. The forward model can be used to simulate measurements
+%for all (normal?)  observation geometries: ground-based, nadir
+%looking, limb sounding and balloon/aircraft measurements. It can be
+%noted that ARTS handles measurements from a point inside the
+%atmosphere, such as an aircraft or a balloon, in a downward direction.
+%ARTS covers so far only monochromatic pencil beam calculations, that
+%is, no sensor characteristics can be included. This part is presently
+%covered by the AMI (ARTS Matlab interface) set of Matlab functions 
+%(see below). Sensor characteristics will be included in ARTS.
+
+%Beside providing set of spectra, ARTS calculates weighting functions
+%for a number of variables. Analytical expressions for the weighting
+%functions are used for species, continuum absorption and ground
+%emission, and for temperature if hydrostatic equilibrium is \emph{not}
+%assumed. Weighting functions are also provided for pointing off-sets,
+%calibration and temperature (with hydrostatic equilibrium).
+
+
+
+\levelb{Additional tools}
+%====================
+\label{sec:intro:tools}
+
+[* Update old text and add new stuff. *]
+
+%For Matlab users there are two accompanying packages called AMI and
+%Qpack\footnote{AMI is distrubuted by ARTS, while Qpack is a separate
+%  package} which extends the usage of ARTS considerably. First of all,
+%AMI has functions to include sensor characteristics in the
+%calculations. AMI has further functions to read and write ARTS data
+%file, and various functions that are of general usage. Qpack is an
+%Matlab environment to perform OEM inversions and producing set of
+%spectra to test the inversions, where ARTS is used as calculating
+%engine.
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "uguide"
+%%% End: 
