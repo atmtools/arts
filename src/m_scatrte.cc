@@ -399,8 +399,14 @@ i_fieldIterate(
                const Agenda& scat_field_agenda,
                const Agenda& scat_rte_agenda,
                const Agenda& convergence_test_agenda,
+// FIXME only used in assertion
+#ifndef NDEBUG
                const Vector& f_grid,
                const Index& f_index
+#else
+               const Vector&,
+               const Index&
+#endif
                )
 {
  
@@ -2787,9 +2793,17 @@ scat_fieldCalc(//WS Output:
                const Tensor4& pnd_field,
                const Vector& scat_za_grid,
                const Vector& scat_aa_grid,
+// FIXME parameters only used for assertions
+#ifndef NDEBUG
                const Vector& p_grid,
                const Vector& lat_grid,
                const Vector& lon_grid,
+#else
+               const Vector&,
+               const Vector&,
+               const Vector&,
+#endif
+
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
                const Index& za_grid_size
@@ -2799,7 +2813,10 @@ scat_fieldCalc(//WS Output:
   Index stokes_dim = scat_field.ncols();
 
   // Some useful indices :
+// FIXME variable only used for assertion
+#ifndef NDEBUG
   Index N_pt = pha_mat_spt.nshelves();
+#endif
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
@@ -3068,9 +3085,16 @@ scat_fieldCalcLimb(//WS Output:
                const Tensor4& pnd_field,
                const Vector& scat_za_grid,
                const Vector& scat_aa_grid,
+// FIXME parameters only used in assertions
+#ifndef NDEBUG
                const Vector& p_grid,
                const Vector& lat_grid,
                const Vector& lon_grid,
+#else
+               const Vector&,
+               const Vector&,
+               const Vector&,
+#endif
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
                const Index& za_grid_size
@@ -3080,7 +3104,10 @@ scat_fieldCalcLimb(//WS Output:
   Index stokes_dim = scat_field.ncols();
 
   // Some useful indices :
+// FIXME variable only used in assertion
+#ifndef NDEBUG
   Index N_pt = pha_mat_spt.nshelves();
+#endif
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
@@ -3385,26 +3412,36 @@ angles.
 
 void
 scat_fieldCalcFromAmpMat(//WS Output:
-	       Tensor6& scat_field,
-	       Tensor4& pha_mat,
+         Tensor6& scat_field,
+         Tensor4& pha_mat,
          Tensor5& pha_mat_spt,
-	       //WS Input: 
+         //WS Input: 
          const Tensor6& amp_mat,
          const Tensor6& i_field,
          const Tensor4& pnd_field,
          const Vector& scat_za_grid,
          const Vector& scat_aa_grid,
-	       const Vector& p_grid,
-	       const Vector& lat_grid,
-	       const Vector& lon_grid,
+// FIXME parameters only used in assertions
+#ifndef NDEBUG
+         const Vector& p_grid,
+         const Vector& lat_grid,
+         const Vector& lon_grid,
+#else
+         const Vector&,
+         const Vector&,
+         const Vector&,
+#endif
          const Index& atmosphere_dim,
-	       const ArrayOfIndex& cloudbox_limits,
+         const ArrayOfIndex& cloudbox_limits,
          const Vector& grid_stepsize
-	       )
+        )
   
 {
   // Some useful indices :
+// FIXME variable only used in assertion
+#ifndef NDEBUG
   Index N_pt = pha_mat_spt.nshelves();
+#endif
   Index Nza = scat_za_grid.nelem();
   Index Nza_prop = i_field.npages();
   Index Naa = scat_aa_grid.nelem();
