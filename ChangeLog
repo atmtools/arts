@@ -1,3 +1,25 @@
+2003-03-10  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-494
+	
+	* doc/uguide/absorption.tex: Added Section about the absorption
+	lookup table.
+
+	* doc/uguide/symbol_defs: Renamed to symbol_defs.tex.
+
+	* doc/uguide/symbol_defs.tex: What used to be symbol_defs.
+
+	* doc/uguide/uguide.tex: Fixed the "destination with the same
+	identifier has been already used" warning. (At least mostly.) The
+	warning comes from incompatibilities of hyperref with other
+	packages.  Remaining problem: Algorithm and hyperref do not seem
+	to agree very well. But I managed to remover all warnings except
+	two.
+
+	* doc/uguide/main.tex: Fixed the "destination with the same
+	identifier has been already used" warning. All package includes
+	are now in uguide.tex!
+
 2003-03-10  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-493

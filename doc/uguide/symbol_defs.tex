@@ -319,64 +319,90 @@
 %
 
 % Total extinction matrix
-\newcommand{\ExtMat}	{\ensuremath{{\bf K}}}
+\newcommand{\ExtMat}    {\ensuremath{{\bf K}}}
 \newcommand{\aExtMat}[1]{\ensuremath{{\bf K}^{#1}}}
 
 % Total absorption vector
-\newcommand{\AbsVec} 	{\ensuremath{{\bf a}}}
-\newcommand{\aAbsVec}[1]{\ensuremath{{\bf a}^{#1}}}	
+\newcommand{\AbsVec}    {\ensuremath{{\bf a}}}
+\newcommand{\aAbsVec}[1]{\ensuremath{{\bf a}^{#1}}}     
 
 % Scattering efficiency matrix
-\newcommand{\SEfMat}	{\ensuremath{{\bf Y}}}
+\newcommand{\SEfMat}    {\ensuremath{{\bf Y}}}
 
 % Stokes vector
-\newcommand{\StoVec} 	{\ensuremath{{\bf I}}}
+\newcommand{\StoVec}    {\ensuremath{{\bf I}}}
 \newcommand{\aStoVec}[1]{\ensuremath{{\bf I}^{#1}}}
 
 % Propagation direction
-\newcommand{\PDir}  	{\ensuremath{{\bf n}}}
+\newcommand{\PDir}      {\ensuremath{{\bf n}}}
 
 % Particle density
-\newcommand{\PDen} 	{\ensuremath{n^p}}
+\newcommand{\PDen}      {\ensuremath{n^p}}
 
 % Phase matrix
-\newcommand{\PhaMat} 	{\ensuremath{{\bf Z}}}
+\newcommand{\PhaMat}    {\ensuremath{{\bf Z}}}
 
 % Radiation field
-\newcommand{\IFld}	{\ensuremath{{\mathcal I}}}
+\newcommand{\IFld}      {\ensuremath{{\mathcal I}}}
 % Radiation field index
-\newcommand{\aIFld}[1]	{\ensuremath{{\mathcal I}^{(#1)}}}
+\newcommand{\aIFld}[1]  {\ensuremath{{\mathcal I}^{(#1)}}}
 
 % Scattered field
-\newcommand{\SFld}	{\ensuremath{{\mathcal S}}}
+\newcommand{\SFld}      {\ensuremath{{\mathcal S}}}
 % Scattered field index
-\newcommand{\aSFld}[1]	{\ensuremath{{\mathcal S}^{(#1)}}}
+\newcommand{\aSFld}[1]  {\ensuremath{{\mathcal S}^{(#1)}}}
 
 % Amplitude matrix
-\newcommand{\AmpMat} 	{\ensuremath{{\bf S}}}
+\newcommand{\AmpMat}    {\ensuremath{{\bf S}}}
 % Amplitude matrix index
-\newcommand{\IAmp} 	{\ensuremath{i_{amp}}}
+\newcommand{\IAmp}      {\ensuremath{i_{amp}}}
 
 % Single extinction matrix
-\newcommand{\SExMat} 	{\ensuremath{{\bf L}}}
-\newcommand{\aSExMat}[1]{\ensuremath{{\bf L}^{#1}}}	
+\newcommand{\SExMat}    {\ensuremath{{\bf L}}}
+\newcommand{\aSExMat}[1]{\ensuremath{{\bf L}^{#1}}}     
 
 % Single absorption vector
-\newcommand{\SAbVec} 	{\ensuremath{{\bf b}}}
+\newcommand{\SAbVec}    {\ensuremath{{\bf b}}}
 \newcommand{\aSAbVec}[1]{\ensuremath{{\bf b}^{#1}}}
 
 % Scattered field
-\newcommand{\ScaInt} 	{\ensuremath{{\bf S}}}
+\newcommand{\ScaInt}    {\ensuremath{{\bf S}}}
 
 % Identity matrix
-\newcommand{\IdnMat} 	{\ensuremath{{\bf E}}}
+\newcommand{\IdnMat}    {\ensuremath{{\bf E}}}
 
 % Scattering zenith angle
-\newcommand{\ScaZa} 	{\ensuremath{{\psi_s}}}
+\newcommand{\ScaZa}     {\ensuremath{{\psi_s}}}
 
 % Scattering azimuth angle
-\newcommand{\ScaAa} 	{\ensuremath{{\omega_s}}}
+\newcommand{\ScaAa}     {\ensuremath{{\omega_s}}}
 
 % Particle type index
-\newcommand{\IPart} 	{\ensuremath{{i_{part}}}}
+\newcommand{\IPart}     {\ensuremath{{i_{part}}}}
 
+
+% --- Quantities concerning scalar gas absorption  -------------------
+%
+
+% Absorption coefficient
+\newcommand{\AbsCoef}    {\ensuremath{{\alpha}}}
+\newcommand{\aAbsCoef}[1]{\ensuremath{{\alpha}_{#1}}}
+
+% Total absorption coefficient
+\newcommand{\AbsCoefTot} {\aAbsCoef{\mbox{\footnotesize total}}}
+
+% Absorption cross section
+\newcommand{\AbsXsec}    {\ensuremath{{\kappa}}}
+\newcommand{\aAbsXsec}[1]{\ensuremath{{\kappa}_{#1}}}
+
+% Number density:
+\newcommand{\Den}    {\ensuremath{{n}}}
+\newcommand{\aDen}[1]{\ensuremath{{n}_{#1}}}
+
+
+
+
+%%% Local Variables: 
+%%% mode: plain-tex
+%%% TeX-master: "uguide"
+%%% End: 
