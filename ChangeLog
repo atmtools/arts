@@ -1,3 +1,17 @@
+2001-03-28  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-0-143
+
+	* methods.cc, md.h, m_loc.cc: added a workspace method called
+	zaFromZtan to calculate the zenith angles from a given set of
+	tangent altitudes in z_tan
+
+	* atm_funcs.cc, atm_func.h, m_loc.cc : functions n_for_z and
+	refr_constant moved from m_loc.cc to atm_func.cc
+
+	* atm_funcs.cc: ztan_refrac modified to do calculations using
+	n_for_z.
+
 2001-03-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-142
@@ -22,7 +36,6 @@
 	line catalog.
 
 	
-
 2001-03-27  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-141

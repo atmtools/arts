@@ -163,6 +163,22 @@ Numeric ztan_geom(
         const Numeric&   z_plat,
         const Numeric&   r_geoid );
 
+Numeric n_for_z(
+        const Numeric&      z,
+        const VECTOR&       p_abs,
+        const VECTOR&       z_abs,
+        const VECTOR&       refr_index,
+        const Numeric&      atm_limit );
+
+Numeric refr_constant( 
+        const Numeric&      r_geoid,
+        const Numeric&      za,
+        const Numeric&      z_plat,
+        const VECTOR&       p_abs,
+        const VECTOR&       z_abs,
+        const Numeric&      atm_limit,
+        const VECTOR&       refr_index );
+
 Numeric ztan_refr(
         const Numeric&   c,
         const Numeric&   za,

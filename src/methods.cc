@@ -1536,6 +1536,19 @@ void define_md_data()
 //=== LOS/RTE methods
 //======================================================================
 
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("zaFromZtan"),
+	DESCRIPTION("Calculates the zenith angles from a set of tangent\n"
+                    "altitudes and a given LOS geometry."),
+	OUTPUT(),
+	INPUT( z_tan_, z_plat_ , p_abs_, z_abs_, refr_, refr_index_, r_geoid_, z_ground_ ),
+	GOUTPUT(VECTOR_ ),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
   md_data.push_back
     ( MdRecord
       ( NAME("r_geoidStd"),

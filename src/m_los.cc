@@ -89,75 +89,6 @@ bool any_ground( const ARRAYofsizet& ground )
 
 
 
-//// n_for_z /////////////////////////////////////////////////////////////////
-/**
-   Returns the refractive index for a vertical altitude.
-
-   The refractive index is set to 1 if the given altitude is above the
-   atmospheric limit.
-
-   \return               the refrcative index
-   \param    z           the vertical altitude
-   \param    p_abs       absorption pressure grid
-   \param    z_abs       absorption altitude grid
-   \param    refr_index  refrective index corresponding to p_refr
-   \param    atm_limit   the upper atmospheric limit
-
-   \author Patrick Eriksson
-   \date   2001-02-18
-*/
-Numeric n_for_z(
-        const Numeric&      z,
-        const VECTOR&       p_abs,
-        const VECTOR&       z_abs,
-        const VECTOR&       refr_index,
-        const Numeric&      atm_limit )
-
-{
-  if ( z > atm_limit )
-    return 1.0;
-  else
-    return interpz( p_abs, z_abs, refr_index, z );
-}
-
-
-//// refr_constant ///////////////////////////////////////////////////////////
-/**
-   Determines the constant for a refractive LOS.
-
-   Calculates (Re+z)*n(z)*sin(theta) at the platform.
-
-   All observations geometries are handled. The variables za and z_plat
-   shall be treated as the "zenith angle" and the vertical altitude of
-   the lowest point of the LOS.
-
-   \return               LOS constant
-   \param    r_geoid     local geoid curvature
-   \param    za          zenith angle
-   \param    z_plat      platform altitude
-   \param    p_abs       absorption pressure grid
-   \param    z_abs       absorption altitude grid
-   \param    atm_limit   the upper atmospheric limit
-   \param    refr_index  refrective index corresponding to p_refr
-
-   \author Patrick Eriksson
-   \date   2001-02-18
-*/
-Numeric refr_constant( 
-        const Numeric&      r_geoid,
-        const Numeric&      za,
-        const Numeric&      z_plat,
-        const VECTOR&       p_abs,
-        const VECTOR&       z_abs,
-        const Numeric&      atm_limit,
-        const VECTOR&       refr_index )
-{
-  Numeric n_plat = n_for_z( z_plat, p_abs, z_abs, refr_index, atm_limit );
-
-  return (r_geoid + z_plat) * sin(DEG2RAD*za) * n_plat;
-}
-
-
 
 //// los_geometric /////////////////////////////////////////////////////////
 /**
@@ -700,7 +631,6 @@ void r_geoidStd( Numeric&    r_geoid )
 }
 
 
-
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
@@ -762,6 +692,72 @@ void NoRefraction(
   refr = 0;
   resize( refr_index, 0 );
   refr_lfac = 0;
+}
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Carlos Jimenez
+   \date   2000-03-27
+*/
+void zaFromZtan(
+        // WS Goutput
+              VECTOR&       za,
+        const string&       za_name,
+	 // WS input
+	const VECTOR&       z_tan,
+        const Numeric&      z_plat,
+        const VECTOR&       p_abs,
+        const VECTOR&       z_abs,
+	const int&          refr,
+	const VECTOR&       refr_index,
+	const Numeric&      r_geoid,
+        const Numeric&      z_ground )
+{
+
+  
+  const Numeric atm_limit = last(z_abs);
+  const size_t         nz = z_tan.size();
+
+  resize(za,nz);
+
+  for (size_t i=0; i<nz; i++)
+  {
+
+    if (za[i]>z_plat)
+      throw runtime_error("Tangent altitude larger than the platform altitude")      
+
+    // No refraction
+
+    if (!refr)    
+       za[i] = 90 + RAD2DEG * acos ( (r_geoid + z_tan[i]) / (r_geoid + z_plat) );
+ 
+    // Refraction
+
+    else
+    {
+      Numeric nz_plat =  n_for_z(z_plat,p_abs,z_abs,refr_index,atm_limit);  
+      if (z_tan[i]>=0)
+        { 
+	// Calculating constant
+        Numeric nza =  n_for_z(z_tan[i],p_abs,z_abs,refr_index,atm_limit);
+        Numeric c   = (r_geoid + z_tan[i]) * nza;
+        za[i]       =  180 - RAD2DEG * asin( c / nz_plat / (r_geoid + z_plat));
+        }
+      else
+        {
+	// inside the Earth, looking for hitting point
+	Numeric ze  = RAD2DEG * acos((r_geoid + z_tan[i]) / r_geoid);
+        // from hitting point to platform
+        Numeric nze =  n_for_z(z_ground,p_abs,z_abs,refr_index,atm_limit);
+        Numeric c   =  r_geoid * sin(DEG2RAD * (90-ze)) * nze;
+        za[i]       =  180 - RAD2DEG * asin( c / nz_plat / (r_geoid + z_plat));
+     
+        } 
+    }  
+
+  }
 }
 
 

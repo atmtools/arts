@@ -165,7 +165,8 @@ the matrix format is the same as that of abs
 VARIABLE : z_tan
 DATA TYPE: VECTOR
 DESCRIPTION:
-Tangent altitudes for the LOS [m]
+Tangent altitudes for the LOS [m]. 
+More info when updating the LOS functions.
 
 VARIABLE : za_pencil
 DATA TYPE: VECTOR

@@ -675,6 +675,76 @@ Numeric ztan_geom(
 
 
 
+//// n_for_z /////////////////////////////////////////////////////////////////
+/**
+   Returns the refractive index for a vertical altitude.
+
+   The refractive index is set to 1 if the given altitude is above the
+   atmospheric limit.
+
+   \return               the refrcative index
+   \param    z           the vertical altitude
+   \param    p_abs       absorption pressure grid
+   \param    z_abs       absorption altitude grid
+   \param    refr_index  refrective index corresponding to p_refr
+   \param    atm_limit   the upper atmospheric limit
+
+   \author Patrick Eriksson
+   \date   2001-02-18
+*/
+Numeric n_for_z(
+        const Numeric&      z,
+        const VECTOR&       p_abs,
+        const VECTOR&       z_abs,
+        const VECTOR&       refr_index,
+        const Numeric&      atm_limit )
+
+{
+  if ( z > atm_limit )
+    return 1.0;
+  else
+    return interpz( p_abs, z_abs, refr_index, z );
+}
+
+
+//// refr_constant ///////////////////////////////////////////////////////////
+/**
+   Determines the constant for a refractive LOS.
+
+   Calculates (Re+z)*n(z)*sin(theta) at the platform.
+
+   All observations geometries are handled. The variables za and z_plat
+   shall be treated as the "zenith angle" and the vertical altitude of
+   the lowest point of the LOS.
+
+   \return               LOS constant
+   \param    r_geoid     local geoid curvature
+   \param    za          zenith angle
+   \param    z_plat      platform altitude
+   \param    p_abs       absorption pressure grid
+   \param    z_abs       absorption altitude grid
+   \param    atm_limit   the upper atmospheric limit
+   \param    refr_index  refrective index corresponding to p_refr
+
+   \author Patrick Eriksson
+   \date   2001-02-18
+*/
+Numeric refr_constant( 
+        const Numeric&      r_geoid,
+        const Numeric&      za,
+        const Numeric&      z_plat,
+        const VECTOR&       p_abs,
+        const VECTOR&       z_abs,
+        const Numeric&      atm_limit,
+        const VECTOR&       refr_index )
+{
+  Numeric n_plat = n_for_z( z_plat, p_abs, z_abs, refr_index, atm_limit );
+
+  return (r_geoid + z_plat) * sin(DEG2RAD*za) * n_plat;
+}
+
+
+
 //// ztan_refr //////////////////////////////////////////////////////////////
 //
 /** Calculates the tangent altitude with refraction.
@@ -701,6 +771,7 @@ Numeric ztan_refr(
         const VECTOR&    refr_index,
         const Numeric&   r_geoid )
 {
+  const Numeric atm_limit = last(z_abs);
   if ( za < 90 )   //=== Upward ==========================================
     return ztan_geom( za, z_plat, r_geoid );
   else
@@ -712,7 +783,7 @@ Numeric ztan_refr(
     {
       if ( z_abs[i] <= z_ground ) //=== Ground intersection ==============
       {
-        Numeric n_ground = interpz( p_abs, z_abs, refr_index, z_ground );
+        Numeric n_ground =  n_for_z(z_ground,p_abs,z_abs,refr_index,atm_limit);
         Numeric theta = RAD2DEG*asin(c/n_ground/(r_geoid+z_ground));
         return ztan_geom( 180-theta, z_ground, r_geoid );
       }
