@@ -1,3 +1,9 @@
+2002-10-14  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-257
+	
+	* autogen.sh: Renamed reconf for GNU compliance.
+
 2002-10-10  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-1-256
