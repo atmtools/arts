@@ -1,3 +1,16 @@
+2003-12-01  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-731
+
+	* src/workspace.cc: Added documentation for *geomag_los*,
+	*ext_mat_zeeman*, *abs_vec_zeeman*.
+
+	* src/agendas.cc: Added documentation for *zeeman_prop_agenda* and
+	*geomag_calc_los_agenda*.
+
+	* src/methods.cc: Added documentation for (ext_matAddGasZeeman) and
+	(abs_vecAddGasZeeman).	
+
 2003-12-01  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-730
