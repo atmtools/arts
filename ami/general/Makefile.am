@@ -15,15 +15,5 @@
 
 EXTRA_DIST = \
         amenu.m \
-        filedate.m \
-        geomtan2za.m \
-        invplanck.m \
-        invrayjean.m \
-        isinteger.m \
-        isodd.m \
-        last.m \
         out.m \
-        planck.m \
-        vec2col.m \
-        vec2row.m \
 	whoami.m
