@@ -1,5 +1,19 @@
 2003-12-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-0-142
+
+	* src/m_los.cc (CoolingRates): It seems that the cooling rates
+	calculations now work. Obtained test results are very close to
+	what reported by Clough et al 1995, but only a narrow band has been
+	tested.
+
+	The WSM is called CoolingRates. Two new WSV are introduced: coolrate
+	and p_coolrate.
+
+	Documentation for CoolingRates is so far missing. Will be written.
+
+2003-12-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-0-141
 
 	* src/m_los.cc (CoolingRates): A quick commit, to get a backup. More

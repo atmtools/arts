@@ -1705,13 +1705,22 @@ void CoolingRates(
           const Numeric sinv = sin( DEG2RAD*za_pencil[iza] );
 
           for( Index iv=0; iv<nf; iv++ )
-            {
-              const Numeric bb_eff = source[0](iv,los.stop[0]);
+            { 
+              Numeric bb_eff;
+              if( los.stop[0] == 0)
+                { bb_eff = source[0](iv,los.stop[0]); }
+              else
+                { bb_eff = source[0](iv,los.stop[0]-1); }
+
               intgrmatrix(iv,iza) = (bb_eff-y[iv])*abs_coolrate(iv,ip)*sinv;
             }
         }
-      //MatrixWriteBinary( intgrmatrix, "I", "" );
-      //Exit();
+      if( 0  &&  ip == 1 )
+        {
+          MatrixWriteBinary( intgrmatrix, "I", "" );
+          LosWriteBinary( los, "los", "" );
+          Exit();
+        }
 
       // Loop zenith angles and make integration
       //
