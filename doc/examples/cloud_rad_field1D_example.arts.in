@@ -1,0 +1,311 @@
+#
+#  cloud_rad_field.arts
+#
+# This file demonstrates how a 1D scattering calculation for one specified 
+# frequency can be performed. The radiation field inside the cloudbox is
+# calculated and all iterations are written into files which can be plotted
+# using the MATLAB plotting scripts (set_plot.m, plot_rad.m).
+
+Main
+{
+##############################
+#     General settings       #
+##############################
+
+# The frequency grid has to contain at least two frequencies.
+# For a monochromatic calculation you have to set the first frequency value
+# to the value you want to calculate. For the second frequency, the
+# scattering calculations will not be performed.  
+
+  VectorNLinSpace( f_grid ) {
+      start = 3.18e11
+      stop  = 3.19015e11
+      n     = 2	
+  }
+
+# You do the scalar calculation ( stokes_dim = 1 ) or the vector 
+# calculation for a arbitrary number of components ( stokes_dim = 2, 3 or 4).
+
+  IndexSet( stokes_dim ) {
+      value = 4
+  }
+
+AntennaSet1D{}
+
+ 
+
+##############################
+#    Atmosphere              #
+##############################
+	
+# Set the atmospheric dimension.
+
+  AtmosphereSet1D {
+  }
+
+# Definition of the pressure grid.
+
+  VectorNLogSpace( p_grid ) {
+     start = 1000e2
+     stop  = 100e2
+     n     = 20
+  }	
+
+# Latitude for a 1D observation.
+	
+  NumericSet( lat_1d ) {
+     value = 45
+  }
+  
+#The meridian angle for a 1D observation.
+
+  NumericSet( meridian_angle_1d ) {
+    value = 0
+  }
+
+# Define a set of gas species for the atmosphere.
+ 
+ gas_speciesSet{
+	species = [ "H2O",
+	 	"O3",
+		"O2", 
+		"N2" ]
+	 }		
+	
+# Read atmospheric profiles (temperature, pressure, altitude, vmrs).
+# You have to specify the path for the scenario you want to have. The 
+# data has to be in XML-format.
+ 
+ AtmRawRead{
+	basename = "/smiles_local/arts-data/atmosphere/fascod/xml/tropical"
+	}
+
+# Create workspace variables, which are used in the program. 
+ 
+ AtmFieldsCalc{}
+
+# Write the created workspace variables. 
+ 
+ WriteXML(t_field){""}
+ WriteXML(vmr_field){""}
+
+####################################
+#  ground setup                    #
+####################################
+
+   r_geoidWGS84 {
+  }
+
+  MatrixSet( z_ground ) {
+     nrows = 1
+     ncols = 1
+     value = 0.5e3
+  }
+
+  AgendaSet( ground_refl_agenda ) {
+    Ignore( a_los ) {
+    }
+    Ignore( r_geoid ) {
+    }
+    Ignore( z_ground ) {
+    }	
+    GroundTreatAsBlackbody {
+    }
+  }
+
+
+################################
+#    Gaseous absorption        #
+################################
+
+# Initialize the lookup table workspace variable.
+
+ gas_abs_lookupInit{}
+
+# Read a pre-calculated lookup table from a file.
+	
+ReadXML(gas_abs_lookup){"/home/home02/sbuehler/arts_calc/abs_lookup/lookup_01_table.xml"}
+
+
+# Adapt the lookup table. In the varible *gas_abs_lookup* holds only the 
+# specified frequencies and species.
+
+gas_abs_lookupAdapt{}
+
+# Write the lookup table.
+
+WriteXML(gas_abs_lookup){""}
+
+# Agenda for scalar gas absorption calculation.
+
+AgendaSet( scalar_gas_absorption_agenda ){
+	abs_scalar_gasExtractFromLookup{}	
+	}
+
+# Agenda for calculating optical properties of gaseous species
+# (extinction matrix and absorption vector)
+
+  AgendaSet( opt_prop_gas_agenda ) {
+	ext_matInit{}
+	abs_vecInit{}
+      ext_matAddGas{}		 
+      abs_vecAddGas{}
+   }
+
+
+###################################
+#     Scattering                  #
+###################################
+
+# Angular grids for scattering calculation.
+
+  VectorNLinSpace( scat_za_grid ) {
+     start = 0
+     stop  = 180	
+     n     = 30
+  } 
+
+ VectorNLinSpace( scat_aa_grid ) {
+    start = 0
+   stop  = 360
+  n     = 30
+}
+ 
+# Define the scattering region (cloudbox)
+ 
+  CloudboxSetManually {
+      p1   = 335e2
+      p2   = 265e2
+      lat1 = 0
+      lat2 = 0
+      lon1 = 0
+      lon2 = 0
+  }
+
+  ArrayOfIndexPrint( cloudbox_limits ) {
+   }
+
+# Specification of particle properties.
+
+ParticleTypeInit{}
+
+# Read amplitude matrix from database
+
+ParticleTypeAdd{
+   filename_amp_mat = "@ac_arts_data@/scattering/cyl_s200_f318-324_ar0.5_o0.0_ampmat.xml"
+  filename_pnd_field = "  "
+}
+
+# Preliminary pnd_field (instead of data_file).
+# Constant particles number density of 1297 particles/m^3.
+
+  Tensor4Set (pnd_field){
+	nbooks = 1
+	npages = 20
+	nrows = 1
+	ncols = 1
+	value = 1297
+  }
+
+# Only one particle type.
+
+  VectorSet (part_types){
+	length = 1
+	value = 1
+  }
+
+# Calculate single particle optical properties
+ 
+ AgendaSet(spt_calc_agenda){
+      pha_mat_sptCalc{}
+      ext_mat_sptCalc{}
+      abs_vec_sptCalc{}
+  }
+
+# Calculate opticle properties of particles and add particle absorption
+# and extiction to the gaseous properties to get total extinction and
+# absorption.
+
+ AgendaSet( opt_prop_part_agenda ){
+	ext_matAddPart{}
+	abs_vecAddPart{}
+  }
+
+
+
+#####################################
+#    Radiative Transfer             #
+#####################################
+
+
+#  Cosmic background 
+
+  AgendaSet( i_space_agenda ) {
+    Ignore( a_pos ) {
+    }
+    Ignore( a_los ) {
+    }
+    MatrixCBR( i_space, f_grid ) {
+    }
+ #   MatrixPrint( sensor_pos ) {
+ #   }
+  }
+
+
+#  Standard radiative transfer function.
+AgendaSet( rte_agenda ){
+	RteEmissionStd{}
+}
+ 	
+# Calculation of propagation path
+
+  AgendaSet( ppath_step_agenda ) { 
+	ppath_stepGeometric{
+	       lmax = -1
+		}
+#	PpathPrint(ppath_step){}
+	 } 
+
+# The vector RTE is solved using an iterative method. To look at each 
+# iteration seperately, the *iteration_couter* can be used and has to 
+# be initialized to 0.
+
+ IndexSet( iteration_counter ){
+	value = 0
+  }	
+
+# Agenda for a monochromatic scattering calculation: 
+#   1. Calculatate amplitude matrix from raw data.
+#   2. Set the boundary condition (Clearsky field)
+#   3. Iterate the radiation field and the scatering integral.
+#   4. Put the obtained solution in boundary variables (for further 
+#           use in the clearsky part)
+
+ AgendaSet(scat_mono_agenda){
+  amp_matCalc{}
+  i_fieldSetClearsky{}
+  WriteXML(i_field){"initial_field.xml"}	
+  i_fieldIterate{}
+  scat_iPut{} 
+ }		
+
+# Define the convergence test method.
+
+  AgendaSet( convergence_test_agenda) {
+	Tensor6WriteIteration( i_field ) {
+	     iterations = [0]
+  	}
+	convergence_flagAbs{
+	epsilon = [1e-17, 1e-19, 1e-21, 1e-21] 
+#	epsilon = [1e-17, 1e-20 ]
+#	epsilon = [1e-17]
+	}
+  }
+  
+
+# This function actually starts the calculations and requires all the 
+# definitions above.
+				
+ScatteringMain{}
+	
+}	

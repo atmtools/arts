@@ -1,3 +1,26 @@
+2003-01-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-373
+
+	* src/m_atmosphere.cc (AtmFieldsCalc): Added checks for the 
+	consistency of input variables.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Fixed a bug in the
+	3D part of the function.
+	The sensor azimuth angle grid goes from -180° to + 180° whereas 
+	the scattering azimuth angle grid is defined from 0° to 360°. 
+	This caused a problem when calling RteCalc for all directions.
+
+	* src/m_scatrte.cc (i_fieldUpdate3D): Minor modification.
+
+	* doc/examples/cloud_rad_field1D_example.arts.in: Added this example 
+	control file for a 1D scattering calculation. The radiation field
+	inside the cloudbox is calculated and all iterations are written
+	into files.
+
+	* doc/examples/Makefile.am: Included example above.
+	
+	
 2003-01-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-372

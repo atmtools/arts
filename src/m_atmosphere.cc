@@ -52,6 +52,7 @@
 #include "absorption.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
+#include "logic.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -139,6 +140,64 @@ void AtmFieldsCalc(//WS Output:
                    const Index& atmosphere_dim
                    )
 {
+
+  // Basic checks of input variables
+  //
+  // Atmosphere
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  //
+  // Raw data
+  //
+  if( (is_size(t_field_raw[0], p_grid.nelem(), 1, 1)) 
+      &&(is_size(t_field_raw[1], 1, lat_grid.nelem(), 1)) 
+      &&(is_size(t_field_raw[2], 1, 1, lon_grid.nelem() ))
+      &&(is_size(t_field_raw[3], p_grid.nelem(), lat_grid.nelem(),
+                 lon_grid.nelem() )))
+  {
+      throw runtime_error(
+                          "The raw data for the temperature field"
+                          "has wrong dimensions."
+                          "If you use 1D scenarios and want to do a "
+                          "3D calculation you have to use the method"
+                          "*AtmFieldCalcExpand1D*");
+  }
+  
+  if( (is_size(z_field_raw[0], p_grid.nelem(), 1, 1))
+      && (is_size(z_field_raw[1], 1, lat_grid.nelem(), 1))
+      && (is_size(z_field_raw[2], 1, 1, lon_grid.nelem() ))
+      && (is_size(z_field_raw[3], p_grid.nelem(), lat_grid.nelem(),
+                  lon_grid.nelem() )))
+    {
+      throw runtime_error(
+                          "The raw data for the altitude field"
+                          "has wrong dimensions."
+                          "If you use 1D scenarios and want to do a "
+                          "3D calculation you have to use the method"
+                          "*AtmFieldCalcExpand1D*");
+    }
+
+  // Check vmr_field raw data for all species:
+
+  for (Index is = 0; is < vmr_field_raw.nelem(); is ++)
+    {
+      if( (is_size(vmr_field_raw[is][0], p_grid.nelem(), 1, 1))
+          && (is_size(vmr_field_raw[is][1], 1, lat_grid.nelem(), 1))
+          && (is_size(vmr_field_raw[is][2], 1, 1, lon_grid.nelem() ))
+          && (is_size(vmr_field_raw[is][3], p_grid.nelem(), lat_grid.nelem(),
+                      lon_grid.nelem() )))
+        {
+          throw runtime_error(
+                              "The raw data for the VMR field"
+                              "has wrong dimensions."
+                              "If you use 1D scenarios and want to do a "
+                              "3D calculation you have to use the method"
+                              "*AtmFieldCalcExpand1D*");
+        }
+    }
+  
+  // End of checks.
+
   //==========================================================================
   if ( atmosphere_dim == 1)
     {

@@ -1220,7 +1220,7 @@ i_fieldUpdate3D(// WS Output:
 		      scat_za_grid.nelem(), 
 		      scat_aa_grid.nelem(),
 		      stokes_dim));
-  
+   
   assert( is_size( stokes_vec, stokes_dim));
   
   assert( is_size( sca_vec, stokes_dim));
@@ -1462,10 +1462,10 @@ i_fieldUpdate3D(// WS Output:
                     ppath_step.gp_lon[0].fd[1] = 1.;
               
                     // Call ppath_step_agenda: 
-                    ppath_step_agenda.execute(scat_za_index ||
-                                              scat_aa_index ||
-                                              p_index - cloudbox_limits[0] ||
-                                              lat_index - cloudbox_limits[1]||
+                    ppath_step_agenda.execute(scat_za_index &&
+                                              scat_aa_index &&
+                                              p_index - cloudbox_limits[0] &&
+                                              lat_index - cloudbox_limits[1]&&
                                               lon_index - cloudbox_limits[2]);
               
                     // Length of the path between the two layers.

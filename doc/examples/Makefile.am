@@ -23,7 +23,8 @@ arts_examples_in = \
 	radiosonde_example.arts.in \
 	rt_example.arts.in \
 	scatproperties_example.arts.in \
-	i_field_example.arts.in
+	i_field_example.arts.in\
+	cloud_rad_field1D_example.arts.in
 
 arts_examples = \
 	absorption_example.arts \
@@ -35,7 +36,8 @@ arts_examples = \
 	radiosonde_example.arts \
 	rt_example.arts \
 	scatproperties_example.arts \
-	i_field_example.arts.in
+	i_field_example.arts.in\
+	cloud_rad_field1D_example.arts.in
 
 examplesdoc_DATA = $(arts_examples)
 
@@ -52,4 +54,5 @@ check:	$(arts) $(arts_examples)
 	$(arts) fullmodels_example.arts
 	$(arts) radiosonde_example.arts
 	$(arts) rt_example.arts
+	$(arts) cloud_rad_field1D_example.arts	
 
