@@ -57,7 +57,7 @@ xml_read_from_stream (istream& is_xml,
 
   tag.read_from_stream (is_xml);
   tag.check_name ("Array");
-  tag.check_attribute ("type", "SpeciesRecord");
+  tag.check_attribute ("type", "SpeciesData");
 
   tag.get_attribute_value ("nelem", nelem);
   asrecord.resize (nelem);
