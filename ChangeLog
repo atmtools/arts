@@ -1,3 +1,11 @@
+2002-06-17  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-0-32
+
+	* src/absorption.cc (xsec_species): Fixed bug reported by
+	Thomas Kuhn: An assertion failure in the case of lineshape with
+	cutoff. Does it work correctly now?
+
 2002-06-14  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-31

@@ -1774,7 +1774,7 @@ void xsec_species( MatrixView               xsec,
 					// the call to the lineshape
 					// functions later on.
 
-  Vector f_local( nfl );
+  Vector f_local( nf + 1 );
   f_local[Range(0,nf)] = f_mono; // Copy f_mono to the beginning of
 				 // f_local. There could be one
 				 // element left at the end of f_local.
@@ -2001,6 +2001,7 @@ void xsec_species( MatrixView               xsec,
 	      // Nothing to do here. Note that nfl and nfls are both still set to nf.
 	    }
 
+	  //	  cout << "nf, nfl, nlfs = " << nf << ", " << nfl << ", " << nfls << ".\n";
 	
 	  // Maybe there are no frequencies left to compute?  Note that
 	  // the number that counts here is nfl, since only these are
@@ -2010,12 +2011,12 @@ void xsec_species( MatrixView               xsec,
 	    {
 	      // Calculate the line shape:
 	      lineshape_data[ind_ls].Function()(ls,aux,F0,gamma,sigma,
-						f_local[Range(i_f_min,nfl)],
+						f_local[Range(i_f_min,nfls)],
 						nfls);
 
 	      // Calculate the chosen normalization factor:
 	      lineshape_norm_data[ind_lsn].Function()(fac,F0,
-						      f_local[Range(i_f_min,nfl)],
+						      f_local[Range(i_f_min,nfls)],
 						      nfls);
 
 	      // Get a handle on the range of xsec that we want to change.
