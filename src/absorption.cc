@@ -1367,6 +1367,7 @@ void get_tagindex_for_strings(
 
   tags1_index.resize(n2);
   tag_groupsDefine( tags2, tags2_strings );
+
   for ( i2=0; i2<n2; i2++ )
   {
     found = 0;

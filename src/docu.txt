@@ -42,6 +42,21 @@ MTL installation (for MTL-2.1.2-19):
 
 5. Go back to top directory, become root, type make install.
 
+(PE: This didn't work for me. I did instead the following
+
+2. Go to the mtl subdirectory
+
+3. In file mtl_config.h.in, comment out all lines which define PACKAGE
+   and VERSION (4 lines altogether, because the #defines occur twice).
+
+4. In the top directory, type ./configure
+
+5. Become root, type make install.
+
+i.e. I changed instead mtl_config.h.in. )
+
+
+
 
 VEC: (description also valid for ARRAY!)
 =======

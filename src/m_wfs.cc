@@ -46,6 +46,7 @@
 #include "math_funcs.h"          
 #include "atm_funcs.h"          
 #include "hmatrix.h"
+#include "los.h"
 extern const Numeric PLANCK_CONST;
 extern const Numeric BOLTZMAN_CONST;
 
@@ -80,14 +81,15 @@ void k_append (
               const MATRIX&          k_aux )
 {
   // Size of Kx and K
-  const size_t  ny1 = kx.dim(1);        // length of measurement vector (y)
-  const size_t  nx1 = kx.dim(2);        // length of state vector (x)
-  const size_t  nri1 = kx_names.size();  // number of retrieval identities
-  const size_t  ny2 = k.dim(1);  
-  const size_t  nx2 = k.dim(2);  
+  const size_t  ny1  = kx.dim(1);         // length of measurement vector (y)
+  const size_t  nx1  = kx.dim(2);         // length of state vector (x)
+  const size_t  nri1 = kx_names.size();   // number of retrieval identities
+  const size_t  ny2  = k.dim(1);  
+  const size_t  nx2  = k.dim(2);  
   const size_t  nri2 = k_names.size();
         size_t  iy, ix, iri;
 
+  // !!copy!! a lot of matrix copying must be fixed here
 
   MATRIX ktemp, ktemp_index, ktemp_aux;
   ARRAYofstring ktemp_names;
@@ -116,38 +118,38 @@ void k_append (
   // Move Kx to Ktot
   if ( nx1 > 0 )
   {
-    for ( ix=1; ix<=nx1; ix++ )
+    for ( ix=0; ix<nx1; ix++ )
     {
-      for ( iy=1; iy<=ny1; iy++ )
-        kx(iy,ix)  = ktemp(iy,ix);
-      kx_aux(ix,1) = ktemp_aux(ix,1);
-      kx_aux(ix,2) = ktemp_aux(ix,2);
-      kx_aux(ix,3) = ktemp_aux(ix,3);
+      for ( iy=0; iy<ny1; iy++ )
+        kx[iy][ix] = ktemp[iy][ix];
+      kx_aux[ix][0] = ktemp_aux[ix][0];
+      kx_aux[ix][1] = ktemp_aux[ix][1];
+      kx_aux[ix][2] = ktemp_aux[ix][2];
     }    
-    for ( iri=1; iri<=nri1; iri++ )
+    for ( iri=0; iri<nri1; iri++ )
     {
-      kx_names[iri-1]   = ktemp_names[iri-1];
-      kx_index(iri,1) = ktemp_index(iri,1);
-      kx_index(iri,2) = ktemp_index(iri,2);
+      kx_names[iri-1]  = ktemp_names[iri-1];
+      kx_index[iri][0] = ktemp_index[iri][0];
+      kx_index[iri][1] = ktemp_index[iri][1];
     } 
   }
 
   // Move K to Ktot
-  for ( ix=1; ix<=nx2; ix++ )
+  for ( ix=0; ix<nx2; ix++ )
   {
-    for ( iy=1; iy<=ny2; iy++ )
-      kx(iy,nx1+ix)  = k(iy,ix);
-    kx_aux(nx1+ix,1) = k_aux(ix,1);
-    kx_aux(nx1+ix,2) = k_aux(ix,2);
-    kx_aux(nx1+ix,3) = k_aux(ix,3);
+    for ( iy=0; iy<ny2; iy++ )
+      kx[iy][nx1+ix]  = k[iy][ix];
+    kx_aux[nx1+ix][0] = k_aux[ix][0];
+    kx_aux[nx1+ix][1] = k_aux[ix][1];
+    kx_aux[nx1+ix][2] = k_aux[ix][2];
   }    
   // Calculate the vector length for each identity in K
   size_t l = (size_t) floor(nx2/nri2);
-  for ( iri=1; iri<=nri2; iri++ )
+  for ( iri=0; iri<nri2; iri++ )
   {
-    kx_names[nri1+iri-1]   = k_names[iri-1];
-    kx_index(nri1+iri,1) = nx1 + (iri-1)*l + 1;
-    kx_index(nri1+iri,2) = nx1 + iri*l;
+    kx_names[nri1+iri-1]  = k_names[iri-1];
+    kx_index[nri1+iri][0] = nx1 + (iri-1)*l;
+    kx_index[nri1+iri][1] = nx1 + iri*l - 1;
   } 
 }
 
@@ -164,7 +166,7 @@ void k_append (
    This function gives the indeces of the grid points affected by a change at 
    a set of retrieval points. That is, a first step to calculate dkappa/dkp
    (see Equation 4 of the AUG section on "Basic atmospheric WFs). The second
-   stap is performed by the function GRID2GRID_WEIGHTS found below.
+   step is performed by the function GRID2GRID_WEIGHTS found below.
   
    This function can be used to convert LOS WFs to WFs for vertical altitudes.
    
@@ -174,7 +176,7 @@ void k_append (
 
    The function returns a 2 column matrix, where column 1 is the lowest
    index affected and column 2 the highest index. If no points are affected
-   0's are returned. 
+   -1 are returned. 
   
    An example:
 
@@ -182,17 +184,17 @@ void k_append (
 
    xp = [0 1 2 3 4.5 5 5.5 6 8] gives
 
-   Is = [ 0     0
-          1     1
-          2     2
-          3     4
-          4     4
-          5     5
+   Is = [-1    -1
           0     0
-          6     7
-          7     7 ]
+          1     1
+          2     3
+          3     3
+          4     4
+         -1    -1
+          5     6
+          6     6 ]
 
-   Note that the XP point 5.5 gives 0 as this point not embraces any point 
+   Note that the XP point 5.5 gives -1 as this point not embraces any point 
    of X0 as there are retrieval points at the neighbouring X0 points.
    
    X0 is the original grid. For example, the LOS grid. 
@@ -219,61 +221,61 @@ void grid2grid_index (
 {
   const size_t n0 = x0.size();        // length of original grid
   const size_t np = xp.size();        // length if retrieval grid
-        size_t i0, ip;               // counter for each grid
+        size_t i0, ip;                // counter for each grid
 
-  // Resize is and set all values to 0
+  // Resize is and set all values to -1
   is.resize(np,2);
-  is = 0.0;
+  is = -1.0;
  
   // Some checks
   if ( np < 2 )
     throw logic_error("The retrieval grid must have a length > 1.");
-  for ( i0=2; i0<=n0; i0++ )
+  for ( i0=1; i0<n0; i0++ )
   {
-    if ( x0(i0-1) >= x0(i0) )
+    if ( x0[i0-1] >= x0[i0] )
       throw logic_error("The grids must be sorted with increasing values.");
   }
-  for ( ip=2; ip<=np; ip++ )
+  for ( ip=1; ip<np; ip++ )
   {
-    if ( xp(ip-1) >= xp(ip) )
+    if ( xp[ip-1] >= xp[ip] )
       throw logic_error("The grids must be sorted with increasing values.");
   }
 
   // Do something only if at least one point of X0 is inside XP
-  if ( !( (x0(1)>xp(np)) || (x0(n0)<xp(1)) ) )
+  if ( !( (x0[0]>xp[np-1]) || (x0[n0-1]<xp[0]) ) )
   {
 
     // First point of XP
-    i0 = 1;
-    for ( ; x0(i0) < xp(1); i0++ ) {}
-    if ( x0(i0) < xp(2) )
+    i0 = 0;
+    for ( ; x0[i0] < xp[0]; i0++ ) {}
+    if ( x0[i0] < xp[1] )
     {
-      is(1,1) = (Numeric) i0;
-      for ( ; (i0<=n0) && (x0(i0)<xp(2)); i0++ ) {}
-      is(1,2) = (Numeric) (i0 - 1);
+      is[0][0] = (Numeric) i0;
+      for ( ; (i0<n0) && (x0[i0]<xp[1]); i0++ ) {}
+      is[0][1] = (Numeric) (i0 - 1);
     }
 
     // Points inside XP
-    for ( ip=2; ip<np; ip++ )
+    for ( ip=1; ip<(np-1); ip++ )
     {
-      i0 = 1;
-      for ( ; (i0<=n0) && (x0(i0)<=xp(ip-1)); i0++ ) {}
-      if ( (i0<=n0) && (x0(i0)<xp(ip+1)) )
+      i0 = 0;
+      for ( ; (i0<n0) && (x0[i0]<=xp[ip-1]); i0++ ) {}
+      if ( (i0<n0) && (x0[i0]<xp[ip+1]) )
       {
-        is(ip,1) = (Numeric) i0;
-        for ( ; (i0<=n0) && (x0(i0)<xp(ip+1)); i0++ ) {}
-        is(ip,2) = (Numeric) (i0 - 1);
+        is[ip][0] = (Numeric) i0;
+        for ( ; (i0<n0) && (x0[i0]<xp[ip+1]); i0++ ) {}
+        is[ip][1] = (Numeric) (i0 - 1);
       }
     }
 
     // Last point of XP
-    i0 = 1;
-    for ( ; (i0<=n0) && (x0(i0)<=xp(np-1)); i0++ ) {}
-    if ( (i0<=n0) && (x0(i0)<=xp(np)) )
+    i0 = 0;
+    for ( ; (i0<n0) && (x0[i0]<=xp[np-2]); i0++ ) {}
+    if ( (i0<n0) && (x0[i0]<=xp[np-1]) )
     {
-      is(np,1) = (Numeric) i0;
-      for ( ; (i0<=n0) && (x0(i0)<=xp(np)); i0++ ) {}
-      is(np,2) = (Numeric) (i0 - 1);
+      is[np-1][0] = (Numeric) i0;
+      for ( ; (i0<n0) && (x0[i0]<=xp[np-1]); i0++ ) {}
+      is[np-1][1] = (Numeric) (i0 - 1);
     }
   }
 }
@@ -316,35 +318,35 @@ void grid2grid_weights (
               const VECTOR&   xp,
               const size_t&   ip )
 {
-  const size_t   np =xp.size();        // number of retrieval points
-  const size_t   nw = i2-i1+1;        // number of LOS points affected
+  const size_t   np = xp.size();        // number of retrieval points
+  const size_t   nw = i2-i1+1;          // number of LOS points affected
         size_t   i;
 
   // Reallocate w
   w.resize(nw);
 
   // First point of the retrieval grid
-  if ( ip == 1 )
+  if ( ip == 0 )
   {
     for ( i=0; i<nw; i++ )
-      w(i+1) = ( xp(2)- x0(i1+i) ) / ( xp(2) - xp(1) );
+      w[i] = ( xp[1] - x0[i1+i] ) / ( xp[1] - xp[0] );
   }
   // Points inside the retrieval grid
-  else if ( ip < np )  
+  else if ( ip < (np-1) )  
   {
     for ( i=0; i<nw; i++ )
     {
-      if ( x0(i1+i) <= xp(ip) )
-        w(i+1) = ( x0(i1+i) - xp(ip-1) ) / ( xp(ip) - xp(ip-1) );
+      if ( x0[i1+i] <= xp[ip] )
+        w[i] = ( x0[i1+i] - xp[ip-1] ) / ( xp[ip] - xp[ip-1] );
       else
-        w(i+1) = ( xp(ip+1) - x0(i1+i) ) / ( xp(ip+1) - xp(ip) );
+        w[i] = ( xp[ip+1] - x0[i1+i] ) / ( xp[ip+1] - xp[ip] );
     }
   }
   // Last point of the retrieval grid
   else
   {
     for ( i=0; i<nw; i++ )
-      w(i+1) = ( x0(i1+i) - xp(np-1) ) / ( xp(np) - xp(np-1) );
+      w[i] = ( x0[i1+i] - xp[np-2] ) / ( xp [np-1] - xp[np-2] );
   }
 }
 
@@ -383,8 +385,8 @@ void grid2grid_weights (
 void absloswfs_1pass (
                     MATRIX&   k,
                     VECTOR    y,
-              const int&      start_index,
-	      const int&      stop_index,   // this variable is used by 1D down
+              const size_t&   start_index,
+	      const size_t&   stop_index,   // this variable is used by 1D down
               const Numeric&  lstep,
               const MATRIX&   tr,
               const MATRIX&   s,
@@ -395,9 +397,9 @@ void absloswfs_1pass (
   const size_t   nf = tr.dim(1);      // number of frequencies
         size_t   iv;                  // frequency index
         VECTOR   t(nf,1.0);           // transmission to the sensor
-           int   q;                   // LOS index (same notation as in AUG)
+        size_t   q;                   // LOS index (same notation as in AUG)
 
-  if ( (ground==1) || (ground==start_index) )
+  if ( (ground==0) || (ground==int(start_index)) )
     throw logic_error("The ground cannot be at one of the end points."); 
 
   // Resize K
@@ -408,25 +410,25 @@ void absloswfs_1pass (
 
   // The LOS point closest to the sensor 
   q  = stop_index;
-  for ( iv=1; iv<=nf; iv++ )    
+  for ( iv=0; iv<nf; iv++ )    
   {
-    t(iv)   *= tr(iv,q);
-    y(iv)    = (y(iv)-s(iv,q)*(1.0-tr(iv,q)))/tr(iv,q);
-    k(iv,q)  = -lstep*(y(iv)-s(iv,q))*t(iv)/2;
+    t[iv]   *= tr[iv][q];
+    y[iv]    = (y[iv]-s[iv][q]*(1.0-tr[iv][q]))/tr[iv][q];
+    k[iv][q] = -lstep*(y[iv]-s[iv][q])*t[iv]/2;
   }
 
   // Points inside the LOS
   for ( q=stop_index+1; q<start_index; q++ )
   {
     // Not a ground point
-    if ( q != ground )
+    if ( int(q) != ground )
     {
-      for ( iv=1; iv<=nf; iv++ )    
+      for ( iv=0; iv<nf; iv++ )    
       {
-        y(iv)   = (y(iv)-s(iv,q)*(1.0-tr(iv,q)))/tr(iv,q);
-        k(iv,q) = -lstep*( 2*(y(iv)-s(iv,q))*tr(iv,q) + s(iv,q) - s(iv,q-1) )
-                                                                 *t(iv)/2;
-        t(iv)  *= tr(iv,q); 
+        y[iv]    = (y[iv]-s[iv][q]*(1.0-tr[iv][q]))/tr[iv][q];
+        k[iv][q] = -lstep*( 2*(y[iv]-s[iv][q])*tr[iv][q] + s[iv][q] - 
+                                                         s[iv][q-1]) *t[iv]/2;
+        t[iv]   *= tr[iv][q]; 
       }
     }
     // A ground point
@@ -434,23 +436,23 @@ void absloswfs_1pass (
     {
       out1 <<
         "WARNING: The function absloswfs_1pass not tested for ground reflections\n";
-      for ( iv=1; iv<=nf; iv++ )    
+      for ( iv=0; iv<nf; iv++ )    
       {
-        y(iv)   = ( y(iv) - e_ground(iv)*y_ground(iv) - 
-                            s(iv,q)*(1.0-tr(iv,q))*(1-e_ground(iv)) ) / 
-                  tr(iv,q) / (1-e_ground(iv));
-        k(iv,q) = -lstep*( 2*(y(iv)-s(iv,q))*tr(iv,q)*(1-e_ground(iv)) + 
-                           s(iv,q)*(1-e_ground(iv)) + 
-                           e_ground(iv)*y_ground(iv) - s(iv,q-1) ) * t(iv) / 2;
-        t(iv)  *= tr(iv,q)*(1-e_ground(iv)); 
+        y[iv]    = ( y[iv] - e_ground[iv]*y_ground[iv] - 
+                            s[iv][q]*(1.0-tr[iv][q])*(1-e_ground[iv]) ) / 
+                                                 tr[iv][q] / (1-e_ground[iv]);
+        k[iv][q] = -lstep*( 2*(y[iv]-s[iv][q])*tr[iv][q]*(1-e_ground[iv]) + 
+                           s[iv][q]*(1-e_ground[iv]) + 
+                          e_ground[iv]*y_ground[iv] - s[iv][q-1] ) * t[iv] / 2;
+        t[iv]   *= tr[iv][q] * (1-e_ground[iv]); 
       }
     }
   }
 
   // The LOS point furthest away from the sensor
   q = start_index;
-  for ( iv=1; iv<=nf; iv++ )    
-    k(iv,q)  = -lstep*(y(iv)-s(iv,q-1))*t(iv)/2;
+  for ( iv=0; iv<nf; iv++ )    
+    k[iv][q]  = -lstep*(y[iv]-s[iv][q-1])*t[iv]/2;
 
   // To check the function: Y shall now be equal to the radiation entering 
   // the atmosphere and T the total transmission
@@ -484,7 +486,7 @@ void absloswfs_limb (
                     MATRIX&   k,
                     VECTOR    y,              // = y_q^q
                     VECTOR    yn,             // = y_space
-              const int&      start_index,
+              const size_t&   start_index,
               const Numeric&  lstep,
               const MATRIX&   tr,
               const MATRIX&   s,
@@ -495,7 +497,7 @@ void absloswfs_limb (
         size_t   iv;                  // frequency index
         VECTOR   t1q;                 // transmission tangent point - q
         VECTOR   tqn(nf,1);           // transmission q - sensor
-        int      q;                   // LOS index (same notation as in AUG)
+        size_t   q;                   // LOS index (same notation as in AUG)
         Numeric  tv, tv1;             // transmission value for q and q-1
 
   // Calculate the square root of the total transmission
@@ -507,37 +509,37 @@ void absloswfs_limb (
 
   // We start at the outermost point
   q  = start_index;       
-  for ( iv=1; iv<=nf; iv++ )    
+  for ( iv=0; iv<nf; iv++ )    
   {
-    tv1      = tr(iv,q-1);
-    t1q(iv) /= tv1;
-    tqn(iv) *= tv1;
-    y(iv)    = ( y(iv) - s(iv,q-1)*(1-tv1)*(1+t1q(iv)*t1q(iv)*tv1) ) / tv1;
-    k(iv,q)  = -lstep*( ( 2*yn(iv) + s(iv,q-1)*(1-2*tv1) )*t1q(iv)*t1q(iv)*tv1 
-                        + y(iv) - s(iv,q-1) )*tv1/2;
+    tv1      = tr[iv][q-1];
+    t1q[iv] /= tv1;
+    tqn[iv] *= tv1;
+    y[iv]    = ( y[iv] - s[iv][q-1]*(1-tv1)*(1+t1q[iv]*t1q[iv]*tv1) ) / tv1;
+    k[iv][q]  = -lstep*( ( 2*yn[iv] + s[iv][q-1]*(1-2*tv1) ) * 
+                              t1q[iv]*t1q[iv]*tv1 + y[iv] - s[iv][q-1] )*tv1/2;
   }
 
   // Points inside the LOS
-  for ( q=start_index-1; q>1; q-- )
+  for ( q=start_index-1; q>0; q-- )
   {
-    for ( iv=1; iv<=nf; iv++ )    
+    for ( iv=0; iv<nf; iv++ )    
     {
-      tv1      = tr(iv,q-1);    
-      tv       = tr(iv,q);
-      t1q(iv) /= tv1;
-      y(iv)    = ( y(iv) - s(iv,q-1)*(1-tv1)*(1+t1q(iv)*t1q(iv)*tv1) ) / tv1;
-      k(iv,q)  = -lstep*( ( 4*(yn(iv)-s(iv,q)) + 3*(s(iv,q)-s(iv,q-1)) + 
-                            2*s(iv,q-1) )*t1q(iv)*t1q(iv)*tv1 + 
-                     2*(y(iv)-s(iv,q-1))*tv1 + s(iv,q-1) - s(iv,q) )*tqn(iv)/2;
-      tqn(iv) *= tv1;
-      yn(iv)   = yn(iv)*tv + s(iv,q)*(1-tv);
+      tv1      = tr[iv][q-1];    
+      tv       = tr[iv][q];
+      t1q[iv] /= tv1;
+      y[iv]    = ( y[iv] - s[iv][q-1]*(1-tv1)*(1+t1q[iv]*t1q[iv]*tv1) ) / tv1;
+      k[iv][q] = -lstep*( ( 4*(yn[iv]-s[iv][q]) + 3*(s[iv][q]-s[iv][q-1]) + 
+                            2*s[iv][q-1] )*t1q[iv]*t1q[iv]*tv1 + 
+                  2*(y[iv]-s[iv][q-1])*tv1 + s[iv][q-1] - s[iv][q] )*tqn[iv]/2;
+      tqn[iv] *= tv1;
+      yn[iv]   = yn[iv]*tv + s[iv][q]*(1-tv);
     } 
   }
 
   // The tangent or ground point
-  for ( iv=1; iv<=nf; iv++ )    
-    k(iv,q)  = -lstep*( (2*yn(iv)*tv+s(iv,1)*(1-2*tv))*t1q(iv)*t1q(iv) +
-                       yn(iv) - s(iv,1) ) * tqn(iv) / 2;
+  for ( iv=0; iv<nf; iv++ )    
+    k[iv][q]  = -lstep*( (2*yn[iv]*tv+s[iv][1]*(1-2*tv))*t1q[iv]*t1q[iv] +
+                       yn[iv] - s[iv][1] ) * tqn[iv] / 2;
 
   // To check the function
   // Without ground reflection: T1Q=1 and Y=0
@@ -574,8 +576,8 @@ void absloswfs_down (
                     MATRIX&   k,
               const VECTOR    y,
               const VECTOR    y_space,
-              const int&      start_index,
-              const int&      stop_index,
+              const size_t&   start_index,
+              const size_t&   stop_index,
               const Numeric&  lstep,
               const MATRIX&   tr,
               const MATRIX&   s,
@@ -585,7 +587,7 @@ void absloswfs_down (
 {
   const size_t   nf = tr.dim(1); // number of frequencies
         size_t   iv;             // frequency index
-           int   q;              // LOS index (same notation as in AUG)
+        size_t   q;              // LOS index (same notation as in AUG)
         VECTOR   y0;             // see below
         MATRIX   k2;             // matrix for calling other LOS WFs functions
         VECTOR   tr0;            // see below
@@ -606,20 +608,20 @@ void absloswfs_down (
   // The indeces below STOP_INDEX are handled by the limb sounding function.
   // The limb function is given Y0 instead of cosmic radiation 
   absloswfs_limb( k2, y, y0, stop_index, lstep, tr, s, ground, e_ground );  
-  for ( iv=1; iv<=nf; iv++ )
+  for ( iv=0; iv<nf; iv++ )
   {
-    for ( q=1; q<stop_index; q++ )
-      k(iv,q) = k2(iv,q);
+    for ( q=0; q<stop_index; q++ )
+      k[iv][q] = k2[iv][q];
   }
 
   // The indeces above STOP_INDEX are handled by the 1pass function.
   // The transmission below STOP_INDEX must here be considered.
   absloswfs_1pass( k2, y0, start_index, stop_index, lstep, tr, s, 
                      ground, e_ground, y_ground );
-  for ( iv=1; iv<=nf; iv++ )
+  for ( iv=0; iv<nf; iv++ )
   {
     for ( q=stop_index+1; q<=start_index; q++ )
-      k(iv,q) = k2(iv,q)*tr0(iv);
+      k[iv][q] = k2[iv][q]*tr0[iv];
   }
 
   // The platform altitude must be treated seperately
@@ -631,13 +633,13 @@ void absloswfs_down (
   //
   // Y0 is moved one step upwards and TR0 one step downwards
   q = stop_index; 
-  for ( iv=1; iv<=nf; iv++ )
+  for ( iv=0; iv<nf; iv++ )
   {
-    tr0(iv) /= tr(iv,q-1)*tr(iv,q-1);    
-    y0(iv)   = ( y0(iv) - s(iv,q)*(1-tr(iv,q)) ) / tr(iv,q);
-    k(iv,q)  = -lstep*( (3*(y0(iv)-s(iv,q))*tr(iv,q-1)*tr(iv,q) + 
-                      2*(s(iv,q)-s(iv,q-1))*tr(iv,q-1) + s(iv,q-1) )*tr0(iv) + 
-                                           yqq(iv) - s(iv,q-1) )*tr(iv,q-1)/2;
+    tr0[iv] /= tr[iv][q-1]*tr[iv][q-1];    
+    y0[iv]   = ( y0[iv] - s[iv][q]*(1-tr[iv][q]) ) / tr[iv][q];
+    k[iv][q] = -lstep*( (3*(y0[iv]-s[iv][q])*tr[iv][q-1]*tr[iv][q] + 
+                  2*(s[iv][q]-s[iv][q-1])*tr[iv][q-1] + s[iv][q-1] )*tr0[iv] + 
+                                         yqq[iv] - s[iv][q-1] )*tr[iv][q-1]/2;
   }
 }
 
@@ -671,8 +673,8 @@ void absloswfs_down (
 */
 void sourceloswfs_1pass (
                     MATRIX&   k,
-              const int&      start_index,
-	      const int&      stop_index,   // this variable is used by 1D down
+              const size_t&   start_index,
+	      const size_t&   stop_index,   // this variable is used by 1D down
               const MATRIX&   tr,
               const int&      ground,
               const VECTOR&   e_ground )
@@ -680,9 +682,9 @@ void sourceloswfs_1pass (
   const size_t   nf = tr.dim(1);      // number of frequencies
         size_t   iv;                  // frequency index
         VECTOR   t(nf,1.0);           // transmission to the sensor
-           int   q;                   // LOS index (same notation as in AUG) 
+        size_t   q;                   // LOS index (same notation as in AUG) 
 
-  if ( (ground==1) || (ground==start_index) )
+  if ( (ground==0) || (ground==int(start_index)) )
     throw logic_error("The ground cannot be at one of the end points."); 
 
   // Resize K
@@ -693,19 +695,19 @@ void sourceloswfs_1pass (
 
   // The LOS point closest to the sensor 
   q  = stop_index;
-  for ( iv=1; iv<=nf; iv++ )    
-    k(iv,q)  = ( 1 - tr(iv,q) ) / 2;
+  for ( iv=0; iv<nf; iv++ )    
+    k[iv][q]  = ( 1 - tr[iv][q] ) / 2;
 
   // Points inside the LOS
   for ( q=stop_index+1; q<start_index; q++ )
   {
     // Not a ground point
-    if ( q != ground )
+    if ( int(q) != ground )
     {
-      for ( iv=1; iv<=nf; iv++ )    
+      for ( iv=0; iv<nf; iv++ )    
       {
-        k(iv,q) = ( 1 - tr(iv,q-1)*tr(iv,q) ) * t(iv) / 2;
-        t(iv)  *= tr(iv,q); 
+        k[iv][q] = ( 1 - tr[iv][q-1]*tr[iv][q] ) * t[iv] / 2;
+        t[iv]  *= tr[iv][q]; 
       }
     }
     // A ground point
@@ -713,19 +715,19 @@ void sourceloswfs_1pass (
     {
       out1 <<
         "WARNING: The function sourceloswfs_1pass not tested for ground reflections\n";
-      for ( iv=1; iv<=nf; iv++ )    
+      for ( iv=0; iv<nf; iv++ )    
       {
-        k(iv,q) = ( (1-tr(iv,q))*(1-e_ground(iv))*tr(iv,q-1) + 1 - tr(iv,q-1) )
-                                                            * t(iv) / 2;
-        t(iv)  *= tr(iv,q)*(1-e_ground(iv)); 
+        k[iv][q] = ( (1-tr[iv][q])*(1-e_ground[iv])*tr[iv][q-1] + 1 - 
+                                                     tr[iv][q-1] ) * t[iv] / 2;
+        t[iv]  *= tr[iv][q]*(1-e_ground[iv]); 
       }
     }
   }
 
   // The LOS point furthest away from the sensor
   q = start_index;
-  for ( iv=1; iv<=nf; iv++ )    
-    k(iv,q)  = ( 1 - tr(iv,q-1) ) * t(iv) / 2;
+  for ( iv=0; iv<nf; iv++ )    
+    k[iv][q]  = ( 1 - tr[iv][q-1] ) * t[iv] / 2;
 }
 
 
@@ -750,7 +752,7 @@ void sourceloswfs_1pass (
 */
 void sourceloswfs_limb (
                     MATRIX&   k,
-              const int&      start_index,
+              const size_t&   start_index,
               const MATRIX&   tr,
               const int&      ground,
               const VECTOR&   e_ground )
@@ -759,7 +761,7 @@ void sourceloswfs_limb (
         size_t   iv;                  // frequency index
         VECTOR   t1q;                 // transmission tangent point - q
         VECTOR   tqn(nf,1);           // transmission q - sensor
-        int      q;                   // LOS index (same notation as in AUG)
+        size_t   q;                   // LOS index (same notation as in AUG)
 
   // Calculate the square root of the total transmission
   bl( t1q, start_index, start_index, tr, ground, e_ground );
@@ -770,27 +772,28 @@ void sourceloswfs_limb (
 
   // We start at the outermost point
   q  = start_index;       
-  for ( iv=1; iv<=nf; iv++ )    
+  for ( iv=0; iv<nf; iv++ )    
   {
-    t1q(iv) /= tr(iv,q-1);
-    k(iv,q)  = ( (1-tr(iv,q-1))*t1q(iv)*t1q(iv)*tr(iv,q-1) + 1 -tr(iv,q-1) )/2;
+    t1q[iv] /= tr[iv][q-1];
+    k[iv][q]  = ( (1-tr[iv][q-1])*t1q[iv]*t1q[iv]*tr[iv][q-1] + 1 - 
+                                                              tr[iv][q-1] )/2;
   }
 
   // Points inside the LOS
-  for ( q=start_index-1; q>1; q-- )
+  for ( q=start_index-1; q>0; q-- )
   {
-    for ( iv=1; iv<=nf; iv++ )    
+    for ( iv=0; iv<nf; iv++ )    
     {
-      t1q(iv) /= tr(iv,q-1);
-      k(iv,q)  = ( (1-tr(iv,q-1)*tr(iv,q))*t1q(iv)*t1q(iv)*tr(iv,q-1)*tr(iv,q)+
-                   (1-tr(iv,q-1))*tr(iv,q) + 1 - tr(iv,q) ) * tqn(iv) / 2;
-      tqn(iv) *= tr(iv,q-1);
+      t1q[iv]  /= tr[iv][q-1];
+      k[iv][q]  = ( (1-tr[iv][q-1]*tr[iv][q])*t1q[iv]*t1q[iv]*tr[iv][q-1]*
+         tr[iv][q] + (1-tr[iv][q-1])*tr[iv][q] + 1 - tr[iv][q] ) * tqn[iv] / 2;
+      tqn[iv]  *= tr[iv][q-1];
     } 
   }
 
   // The tangent or ground point
-  for ( iv=1; iv<=nf; iv++ )    
-    k(iv,q)  = ( (1-tr(iv,1))*(1+t1q(iv)*t1q(iv)*tr(iv,q)) ) * tqn(iv) / 2;
+  for ( iv=0; iv<nf; iv++ )    
+    k[iv][q]  = ( (1-tr[iv][q])*(1+t1q[iv]*t1q[iv]*tr[iv][q]) ) * tqn[iv] / 2;
 }
 
 
@@ -816,15 +819,15 @@ void sourceloswfs_limb (
 */
 void sourceloswfs_down (
                     MATRIX&   k,
-              const int&      start_index,
-              const int&      stop_index,
+              const size_t&   start_index,
+              const size_t&   stop_index,
               const MATRIX&   tr,
               const int&      ground,
               const VECTOR&   e_ground )
 {
   const size_t   nf = tr.dim(1); // number of frequencies
         size_t   iv;             // frequency index
-           int   q;              // LOS index (same notation as in AUG)
+        size_t   q;              // LOS index (same notation as in AUG)
         MATRIX   k2;             // matrix for calling other LOS WFs functions
         VECTOR   tr0;            // see below
 
@@ -837,30 +840,30 @@ void sourceloswfs_down (
 
   // The indeces below STOP_INDEX are handled by the limb sounding function.
   sourceloswfs_limb( k2, stop_index, tr, ground, e_ground );  
-  for ( iv=1; iv<=nf; iv++ )
+  for ( iv=0; iv<nf; iv++ )
   {
-    for ( q=1; q<stop_index; q++ )
-      k(iv,q) = k2(iv,q);
+    for ( q=0; q<stop_index; q++ )
+      k[iv][q] = k2[iv][q];
   }
 
   // The indecies above STOP_INDEX are handled by the 1pass function.
   // The transmission below STOP_INDEX must here be considered.
   sourceloswfs_1pass( k2, start_index, stop_index, tr, ground, e_ground );
-  for ( iv=1; iv<=nf; iv++ )
+  for ( iv=0; iv<nf; iv++ )
   {
     for ( q=stop_index+1; q<=start_index; q++ )
-      k(iv,q) = k2(iv,q)*tr0(iv);
+      k[iv][q] = k2[iv][q]*tr0[iv];
   }
 
   // The platform altitude must be treated seperately
   //
   // TR0 is moved one step downwards
   q = stop_index; 
-  for ( iv=1; iv<=nf; iv++ )
+  for ( iv=0; iv<nf; iv++ )
   {
-    tr0(iv) /= tr(iv,q-1)*tr(iv,q-1);    
-    k(iv,q)  = ( (1-tr(iv,q-1)*tr(iv,q))*tr0(iv)*tr0(iv)*tr(iv,q-1) + 1 - 
-                 tr(iv,q-1) ) / 2;
+    tr0[iv] /= tr[iv][q-1]*tr[iv][q-1];    
+    k[iv][q]  = ( (1-tr[iv][q-1]*tr[iv][q])*tr0[iv]*tr0[iv]*tr[iv][q-1] + 1 - 
+                 tr[iv][q-1] ) / 2;
   }
 }
 
@@ -911,8 +914,8 @@ void sourceloswfs (
       // The calculations are performed in 3 sub-functions
       //
       // Upward looking (=single pass)
-      if ( los.stop[i]==1 )
-        sourceloswfs_1pass( sourceloswfs[i], los.start[i], 1, trans[i], 
+      if ( los.stop[i]==0 )
+        sourceloswfs_1pass( sourceloswfs[i], los.start[i], 0, trans[i], 
                                                      los.ground[i], e_ground );
       //
       // 1D limb sounding
@@ -986,11 +989,11 @@ void k_species (
               const ARRAYofVECTOR&   vmrs,
               const VECTOR&          k_grid,
               const ARRAYofsizet&    tg_nr,
-              const size_t&          unit )
+              const string&          unit )
 {
   // Main sizes
   const size_t  nza = los.start.size();     // number of zenith angles  
-  const size_t  nv  = abs_per_tg[0].dim(1);// number of frequencies
+  const size_t  nv  = abs_per_tg[0].dim(1); // number of frequencies
   const size_t  ntg = tg_nr.size();         // number of retrieval tags to do
   const size_t  np  = k_grid.size();        // number of retrieval altitudes
 
@@ -1050,42 +1053,43 @@ void k_species (
 
     // Interpolate to get the total absorption and the VMR values at the 
     // retrieval points and scale the absorption to the selected unit:
-    //   1 normalised to a mean profile
-    //   2 VMR
-    //   3 number density
+    //   frac : fractions of the linearisation profile
+    //   vmr  : VMR
+    //   nd   : number density
     interpp( abs, p_abs, abs_per_tg[tg], k_grid );
     interpp( vmr, p_abs, vmrs[tg], k_grid ); 
-    if ( unit == 1 )
-      for ( ip=1; ip<=np; ip++ )
-        k_aux(ip0+ip,2) = 1.0;
-    else if ( unit == 2 )
+    if ( unit == "frac" )
+      for ( ip=0; ip<np; ip++ )
+        k_aux[ip0+ip][1] = 1.0;
+    else if ( unit == "vmr" )
     {
-      for ( ip=1; ip<=np; ip++ )
+      for ( ip=0; ip<np; ip++ )
       {
-        for ( iv=1; iv<=nv; iv++ )
-          abs(iv,ip) /= vmr(ip);
-        k_aux(ip0+ip,2) = vmr(ip);
+        for ( iv=0; iv<nv; iv++ )
+          abs[iv][ip]   /= vmr[ip];
+        k_aux[ip0+ip][1] = vmr[ip];
       }
     }  
-    else if ( unit == 3 )
+    else if ( unit == "nd" )
     {
       interpp(  nd, p_abs, number_density(p_abs,t_abs), k_grid );
       nd = emult( vmr, nd );
-      for ( ip=1; ip<=np; ip++ )
+      for ( ip=0; ip<np; ip++ )
       {
-        for ( iv=1; iv<=nv; iv++ )
-          abs(iv,ip) /= nd(ip);
-        k_aux(ip0+ip,2) = nd(ip);
+        for ( iv=0; iv<nv; iv++ )
+          abs[iv][ip]   /= nd[ip];
+        k_aux[ip0+ip][1] = nd[ip];
       }
     }
     else
-      throw runtime_error("Allowed retrieval units are 1-3."); 
+      throw runtime_error(
+        "Allowed retrieval units are \"frac\", \"vmr\" and \"nd\"."); 
 
-    // Fill column 2 and 3 of K_AUX
-    for ( ip=1; ip<=np; ip++ )
+    // Fill column 0 and 2 of K_AUX
+    for ( ip=0; ip<np; ip++ )
     {
-       k_aux(ip0+ip,1) = k_grid(ip);
-       k_aux(ip0+ip,3) = vmr(ip);
+       k_aux[ip0+ip][0] = k_grid[ip];
+       k_aux[ip0+ip][2] = vmr[ip];
     }
 
     // Set frequency zenith angle index off-set to 0
@@ -1107,25 +1111,25 @@ void k_species (
         grid2grid_index( is, lplos, lgrid );
 
         // Loop retrieval points
-        for ( ip=1; ip<=np; ip++ ) 
+        for ( ip=0; ip<np; ip++ ) 
         {
           // Check if there is anything to do
-          if ( is(ip,1) > 0 )
+          if ( is[ip][0] >= 0 )
           {
             // Get the weights for the LOS points
-	    grid2grid_weights( w, lplos, (size_t)is(ip,1), (size_t) is(ip,2), 
+	    grid2grid_weights( w, lplos, (size_t)is[ip][0], (size_t)is[ip][1], 
                                                                  lgrid, ip );
 
             // Calculate the WFs.
             // A is di/dkappa*dkappa/dkp in a compact form.
             // This is possible as the columns of dkappa/dkp are identical.  
             a = 0.0;                     
-            i1 = (size_t)is(ip,1);       // first LOS point to consider
-            for ( iv=1; iv<=nv; iv++ )
+            i1 = (size_t)is[ip][0];       // first LOS point to consider
+            for ( iv=0; iv<nv; iv++ )
 	    {
-              for ( iw=i1; iw<=(size_t)is(ip,2); iw++ )
-                a(iv) += absloswfs[iza](iv,iw) * w(iw-i1+1);
-              k(iv0+iv,ip0+ip) = a(iv) * abs(iv,ip);                    
+              for ( iw=i1; iw<=(size_t)is[ip][1]; iw++ )
+                a[iv] += absloswfs[iza][iv][iw] * w[iw-i1];
+              k[iv0+iv][ip0+ip] = a[iv] * abs[iv][ip];                    
 	    }
           }            
         }
@@ -1185,7 +1189,7 @@ void k_contabs (
   const size_t  nza = los.start.size();     // number of zenith angles  
   const size_t  nv  = f_mono.size();        // number of frequencies
   const size_t  np  = k_grid.size();        // number of retrieval altitudes
-  const size_t  npoints = order+1;         // number of off-set points
+  const size_t  npoints = order+1;          // number of off-set points
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
@@ -1219,7 +1223,7 @@ void k_contabs (
   k_aux.resize(npoints*np,3);
 
   // Calculate the frequencies of the off-set points
-  nlinspace( fpoints, f_mono(1), f_mono(nv), npoints );
+  nlinspace( fpoints, f_mono[0], f_mono[nv-1], npoints );
 
   // The calculations
   // Loop order:
@@ -1242,11 +1246,11 @@ void k_contabs (
       os << "Continuum absorption, point " << ipoint;
       k_names[ipoint] = os.str();
     }
-    for ( ip=1; ip<=np; ip++ )
+    for ( ip=0; ip<np; ip++ )
     {
-       k_aux(ip0+ip,1) = k_grid(ip);
-       k_aux(ip0+ip,2) = 0.0;
-       k_aux(ip0+ip,3) = 0.0;
+       k_aux[ip0+ip][0] = k_grid[ip];
+       k_aux[ip0+ip][1] = 0.0;
+       k_aux[ip0+ip][2] = 0.0;
     }
 
     // Set-up base vector for the present fit point 
@@ -1282,25 +1286,25 @@ void k_contabs (
         grid2grid_index( is, lplos, lgrid );
 
         // Loop retrieval points
-        for ( ip=1; ip<=np; ip++ ) 
+        for ( ip=0; ip<np; ip++ ) 
         {
           // Check if there is anything to do
-          if ( is(ip,1) > 0 )
+          if ( is[ip][0] >= 0 )
           {
             // Get the weights for the LOS points
-	    grid2grid_weights( w, lplos, (size_t)is(ip,1), (size_t) is(ip,2), 
+	    grid2grid_weights( w, lplos, (size_t)is[ip][0], (size_t) is[ip][1],
                                                                  lgrid, ip );
 
             // Calculate the WFs.
             // A is di/dkappa*dkappa/dkp in a compact form.
             // This is possible as the columns of dkappa/dkp are identical.  
             a = 0.0;                     
-            i1 = (size_t)is(ip,1);       // first LOS point to consider
-            for ( iv=1; iv<=nv; iv++ )
+            i1 = (size_t)is[ip][0];       // first LOS point to consider
+            for ( iv=0; iv<nv; iv++ )
 	    {
-              for ( iw=i1; iw<=(size_t)is(ip,2); iw++ )
-                a(iv) += absloswfs[iza](iv,iw) * w(iw-i1+1);
-              k(iv0+iv,ip0+ip) = a(iv) * b(iv);                    
+              for ( iw=i1; iw<=(size_t)is[ip][1]; iw++ )
+                a[iv] += absloswfs[iza][iv][iw] * w[iw-i1];
+              k[iv0+iv][ip0+ip] = a[iv] * b[iv];                    
 	    }
           }            
         }
@@ -1343,7 +1347,7 @@ void k_contabs (
    \param    vmrs              VMR profiles at p_abs
    \param    lines_per_tg      lines tag sorted
    \param    lineshape         index to lineshape function per tag
-   \param    lineshape_norm    index to lineshape normalization function per tag
+   \param    lineshape_norm    index to lineshape normalization function
    \param    abs               total absorption
    \param    trans             transmissions         
    \param    e_ground          ground emissivity
@@ -1354,9 +1358,9 @@ void k_contabs (
    \date   2000-09-15
 */
 void k_temp_nohydro (
-		     MATRIX&          k,
-		     ARRAYofstring&   k_names,
-		     MATRIX&          k_aux,
+		           MATRIX&          k,
+		           ARRAYofstring&   k_names,
+		           MATRIX&          k_aux,
 		     const LOS&             los,           
 		     const ARRAYofMATRIX&   absloswfs,
 		     const VECTOR&          f_mono,
@@ -1408,11 +1412,11 @@ void k_temp_nohydro (
   k_names[0] = "Temperature";
   k_aux.resize(np,3);
   interpp( t, p_abs, t_abs, k_grid ); 
-  for ( ip=1; ip<=np; ip++ )
+  for ( ip=0; ip<np; ip++ )
   {
-     k_aux(ip,1) = k_grid(ip);
-     k_aux(ip,2) = t(ip);
-     k_aux(ip,3) = 0.0;
+     k_aux[ip][0] = k_grid[ip];
+     k_aux[ip][1] = t[ip];
+     k_aux[ip][2] = 0.0;
   }
 
   // Calculate absorption for t_abs + 1K to estimate the temperature derivative
@@ -1460,13 +1464,13 @@ void k_temp_nohydro (
       grid2grid_index( is, lplos, lgrid );
 
       // Loop retrieval points
-      for ( ip=1; ip<=np; ip++ ) 
+      for ( ip=0; ip<np; ip++ ) 
       {
         // Check if there is anything to do
-        if ( is(ip,1) > 0 )
+        if ( is[ip][0] >= 0 )
         {
           // Get the weights for the LOS points
-	  grid2grid_weights( w, lplos, (size_t)is(ip,1), (size_t) is(ip,2), 
+	  grid2grid_weights( w, lplos, (size_t)is[ip][0], (size_t) is[ip][1], 
                                                                  lgrid, ip );
 
           // Calculate the WFs.
@@ -1478,20 +1482,20 @@ void k_temp_nohydro (
 	  // PL is the Planck function for the present temperature value
 	  //
           a  = b = 0.0;                    
-          c  = PLANCK_CONST / BOLTZMAN_CONST / t(ip);
-          planck( pl, f_mono, t(ip) );
-          i1 = (size_t)is(ip,1);       // first LOS point to consider
+          c  = PLANCK_CONST / BOLTZMAN_CONST / t[ip];
+          planck( pl, f_mono, t[ip] );
+          i1 = (size_t)is[ip][0];       // first LOS point to consider
           //
-          for ( iv=1; iv<=nv; iv++ )
+          for ( iv=0; iv<nv; iv++ )
 	  {
-            for ( iw=i1; iw<=(size_t)is(ip,2); iw++ )
+            for ( iw=i1; iw<=(size_t)is[ip][1]; iw++ )
 	    {
-              a(iv) += sloswfs[iza](iv,iw) * w(iw-i1+1);
-              b(iv) += absloswfs[iza](iv,iw) * w(iw-i1+1);
+              a[iv] += sloswfs[iza][iv][iw] * w[iw-i1];
+              b[iv] += absloswfs[iza][iv][iw] * w[iw-i1];
 	    }
-            d = c * f_mono(iv);
-            k(iv0+iv,ip) = a(iv) * d/t(ip) / (1-exp(-d)) * pl(iv) +
-                                                      b(iv) * dabs_dt(iv,ip);
+            d = c * f_mono[iv];
+            k[iv0+iv][ip] = a[iv] * d/t[ip] / (1-exp(-d)) * pl[iv] +
+                                                      b[iv] * dabs_dt[iv][ip];
 	  }
         }            
       }
@@ -1523,12 +1527,12 @@ void absloswfsCalc (
 {
   const size_t  nza = los.start.size();   // number of zenith angles  
   const size_t  nf  = f_mono.size();      // number of frequencies  
-        VECTOR  yp(nf);                  // part of Y
-        size_t  iy, iy0=0;               // y indices
+        VECTOR  yp(nf);                   // part of Y
+        size_t  iy, iy0=0;                // y indices
 
   // Set up vector for ground blackbody radiation
   VECTOR   y_ground; 
-  if ( any(los.ground) )
+  if ( any_ground(los.ground) )
     planck( y_ground, f_mono, t_ground );
 
   // Resize the LOS WFs array
@@ -1584,7 +1588,7 @@ void absloswfsNoGround (
               const VECTOR&          y_space,
               const VECTOR&          f_mono )
 {
-  if ( any(los.ground) )  
+  if ( any_ground(los.ground) )  
     throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
 
   absloswfsCalc( absloswfs, los,source, trans, y, y_space, f_mono, VECTOR(0), 
@@ -1606,7 +1610,7 @@ void kSpecies (
               const ARRAYofVECTOR&   vmrs,
               const VECTOR&          k_grid,
               const int&             nr,
-              const int&             unit )
+              const string&          unit )
 {
   ARRAYofsizet  tg_nr(1,nr);
   
@@ -1628,7 +1632,7 @@ void kSpeciesAll (
               const ARRAYofMATRIX&   abs_per_tg,
               const ARRAYofVECTOR&   vmrs,
               const VECTOR&          k_grid,
-              const int&             unit )
+              const string&          unit )
 {
   const size_t  ntg = abs_per_tg.size();     // number of retrieval tags
   ARRAYofsizet  tg_nr;
@@ -1685,9 +1689,9 @@ void kTempNoHydro (
 
 
 void kTempNoHydroNoGround (
-			   MATRIX&          k,
-			   ARRAYofstring&   k_names,
-			   MATRIX&          k_aux,
+			         MATRIX&          k,
+			         ARRAYofstring&   k_names,
+			         MATRIX&          k_aux,
 			   const LOS&             los,           
 			   const ARRAYofMATRIX&   absloswfs,
 			   const VECTOR&          f_mono,
@@ -1721,9 +1725,9 @@ void kManual(
   k_names.resize(1);
   k_names[0] = name;
   k_aux.resize(1,3);
-  k_aux(1,1) = grid;
-  k_aux(1,1) = apriori;
-  k_aux(1,1) = 0.0;  
+  k_aux[0][0] = grid;
+  k_aux[0][1] = apriori;
+  k_aux[0][2] = 0.0;  
 }
 
 
@@ -1747,9 +1751,9 @@ void kDiffHSmall(
   k_names.resize(1);
   k_names[0] = name;
   k_aux.resize(1,3);
-  k_aux(1,1) = grid;
-  k_aux(1,1) = apriori;
-  k_aux(1,1) = 0.0;  
+  k_aux[0][0] = grid;
+  k_aux[0][1] = apriori;
+  k_aux[0][2] = 0.0;  
 }
 
 
@@ -1774,9 +1778,10 @@ void kDiffHFast(
   k_names.resize(1);
   k_names[0] = name;
   k_aux.resize(1,3);
-  k_aux(1,1) = grid;
-  k_aux(1,1) = apriori;
-  k_aux(1,1) = 0.0;  
+  k_aux[0][0] = grid;
+  k_aux[0][1] = apriori;
+  k_aux[0][2] = 0.0;  
+
 }
 
 

@@ -321,11 +321,6 @@ DESCRIPTION:
 The centre zenith angle for the spectra recorded by the sensor [deg].
 That is, the zenith angle vector before any data reduction.
 
-VARIABLE : noise_width
-DATA TYPE: VECTOR
-DESCRIPTION:
-The noise width of the sensor's backend channels [Hz].
-
 VARIABLE : f_y
 DATA TYPE: VECTOR
 DESCRIPTION:

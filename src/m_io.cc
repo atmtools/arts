@@ -26,8 +26,9 @@
    This file contains IO workspace methods. 
 
    The functions are of two types:
-     1. Reading and writing to/from files.
-     2. Creation by workspace method keywords and generic input
+     1. Functions with overall influence on ARTS
+     2. Reading and writing to/from files.
+     3. Creation by workspace method keywords and generic input
 
    \author Patrick Eriksson
    \date 2000-11-01 
@@ -51,7 +52,21 @@
 
 //**************************************************************************
 //
-//  1. File functions
+//  1. Overall ARTS functions
+//
+//**************************************************************************
+
+void Exit()
+{
+  out1 << "  Forced exit.\n";
+  exit(1);
+}
+
+
+
+//**************************************************************************
+//
+//  2. File functions
 //
 //**************************************************************************
 
@@ -812,10 +827,17 @@ void LosWriteBinary(
   int    fid;
   string filename = f;
   filename_bin( filename, var_name );
+
+  // Handle ground by adding 1 and handle as INDEX
+  const size_t   n = los.ground.size();
+  ARRAYofsizet   ground(n);
+  for ( size_t i=0; i<n; i++ )
+    ground[i] = size_t( los.ground[i] + 1 );
+
   binfile_open_out( fid, filename );
   binfile_write_vectorarray( filename, fid, los.p, "LOS.P" );
   binfile_write_vector( filename, fid, los.l_step, "LOS.L_STEP" );
-  binfile_write_indexarray( filename, fid, los.ground, "LOS.GROUND" );
+  binfile_write_indexarray( filename, fid, ground, "LOS.GROUND" );
   binfile_write_indexarray( filename, fid, los.start, "LOS.START" );
   binfile_write_indexarray( filename, fid, los.stop, "LOS.STOP" );
   binfile_close( fid, filename );
@@ -831,13 +853,22 @@ void LosReadBinary(
   int   fid;
   string filename = f;
   filename_bin( filename, var_name );
+
+  // Ground is stored as 1-based
+  ARRAYofsizet   ground;
+
   binfile_open_in( fid, filename );
   binfile_read_vectorarray( los.p, filename, fid, "LOS.P" );
   binfile_read_vector( los.l_step, filename, fid, "LOS.L_STEP" );
-  binfile_read_indexarray( los.ground, filename, fid, "LOS.GROUND" );
+  binfile_read_indexarray( ground, filename, fid, "LOS.GROUND" );
   binfile_read_indexarray( los.start, filename, fid, "LOS.START" );
   binfile_read_indexarray( los.stop, filename, fid, "LOS.STOP" );
   binfile_close( fid, filename );
+
+  const size_t   n = ground.size();
+  los.ground.resize(n);
+  for ( size_t i=0; i<n; i++ )
+    los.ground[i] = int ( ground[i] - 1 );
 }
 
 
@@ -846,7 +877,7 @@ void LosReadBinary(
 
 //**************************************************************************
 //
-//   2. Creation by workspace method keywords
+//   3. Creation by workspace method keywords
 //
 //**************************************************************************
 
@@ -890,24 +921,25 @@ void VectorSet(           VECTOR&  x,
   x.resize(n);
   x = value;
   out2 << "  Creating " << x_name << " as a constant vector\n"; 
-  out3 << "         length: " << n << "\n";
-  out3 << "          value: " << value << "\n";
+  out3 << "         length : " << n << "\n";
+  out3 << "          value : " << value << "\n";
 }
 
 
 
-void VectorSet2(          VECTOR&  x, 
-                    const string&  x_name,
-                    const VECTOR&  z,
-                    const string&  z_name,
-                    const Numeric& value )
+void VectorSetLengthFromVector(
+              VECTOR&  x, 
+        const string&  x_name,
+        const VECTOR&  z,
+        const string&  z_name,
+        const Numeric& value )
 {
   const size_t  n = z.size();
   x.resize(n);
   x = value;
   out2 << "  Creating " << x_name << " as a constant vector\n"; 
-  out3 << "         length: " << n << "\n";
-  out3 << "          value: " << value << "\n";
+  out3 << "         length : " << n << "\n";
+  out3 << "          value : " << value << "\n";
 }
 
 
@@ -1047,13 +1079,35 @@ void VectorRandGaussian(
 //=== MATRIX ==========================================================
 
 void MatrixCopy(
-                      MATRIX&   y2,
-                const string&   name_y2,
-                const MATRIX&   y1,
-                const string&   name_y1 )
+              MATRIX&   y2,
+        const string&   name_y2,
+        const MATRIX&   y1,
+        const string&   name_y1 )
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
   y2 = y1;
+}
+
+
+
+void MatrixFillWithVector(
+              MATRIX&   m,
+        const string&   name_m,
+        const VECTOR&   y,
+        const string&   name_y,
+        const int&      n )
+{
+  out2 << "  Creates" << name_m << " by copying " << name_y << n << "times.\n";
+  const size_t nrows = y.dim();
+  m.resize(nrows,n);
+  size_t row, col;
+  Numeric a;
+  for ( row=1; row<=nrows; row++ ) 
+  {
+    a = y(row);
+    for ( col=1; col<=size_t(n); col++ ) 
+      m(row,col) = a;
+  }
 }
 
 

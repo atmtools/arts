@@ -77,16 +77,16 @@ Numeric g_of_z (
 
 void rte_iterate (
              VECTOR&   y,
-       const int&      start_index,
-       const int&      stop_index,
+       const size_t&   start_index,
+       const size_t&   stop_index,
        const MATRIX&   Tr,
        const MATRIX&   S,
        const size_t    n_f );
 
 void rte (
              VECTOR&   y,
-       const int&      start_index,
-       const int&      stop_index,
+       const size_t&   start_index,
+       const size_t&   stop_index,
        const MATRIX&   Tr,
        const MATRIX&   S,
        const VECTOR&   y_space,
@@ -96,15 +96,15 @@ void rte (
 
 void bl_iterate (
              VECTOR&   y,
-       const int&      start_index,
-       const int&      stop_index,
+       const size_t&   start_index,
+       const size_t&   stop_index,
        const MATRIX&   Tr,
        const size_t    n_f );
 
 void bl (
              VECTOR&   y,
-       const int&      start_index,
-       const int&      stop_index,
+       const size_t&   start_index,
+       const size_t&   stop_index,
        const MATRIX&   Tr,
        const int&      ground,
        const VECTOR&   e_ground );

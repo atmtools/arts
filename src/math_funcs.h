@@ -367,14 +367,14 @@ void rand_gaussian(
         const Numeric&   s );
 
 void rand_matrix_uniform(
-              VECTOR&    m,
+              MATRIX&    m,
         const size_t&    nrows,
         const size_t&    ncols,
         const Numeric&   x_low,
         const Numeric&   x_high );
 
 void rand_matrix_gaussian(
-              VECTOR&    r,
+              MATRIX&    r,
         const size_t&    nrows,
         const size_t&    ncols,
         const Numeric&   s );

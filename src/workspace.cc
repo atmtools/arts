@@ -449,12 +449,6 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("noise_width",
-      "The noise width of the sensor's backend channels [Hz].",
-      VECTOR_));
-
-  wsv_data.push_back
-    (WsvRecord
      ("f_y",
       "The frequency for every element of y [Hz]. This vector has the same\n"
       "length as y and is mainly for display purposes.\n"

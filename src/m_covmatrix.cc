@@ -109,6 +109,18 @@ void setup_covmatrix(
   if ( cutoff >= 1 )
     throw runtime_error("The correlation cut-off must be < 1.");
 
+  if ( !corrfun )
+    out2 << "  Creating a diagonal covariance matrix.\n";
+  else
+    out2 << "  Creating a simple covariance matrix.\n";
+  out3 << "    Size                : " << n << "\n";
+  out3 << "    Standard deviation  : " << sdev << "\n";
+  if ( corrfun )
+  {
+    out3 << "    Correlation length  : " << clength << "\n";
+    out3 << "    Correlation cut-off : " << cutoff << "\n";
+  }
+
   // Interpolate to get standard deviation and correlation length at
   // each point of k_grid
   interp_lin( sd, kp, sdev, kg );
@@ -121,22 +133,22 @@ void setup_covmatrix(
   // Diagonal matrix
   if ( corrfun == 0 )
   {
-    for ( row=1; row<=n; row++ )
-      s(row,row) = sd(row)*sd(row); 
+    for ( row=0; row<n; row++ )
+      s[row][row] = sd[row]*sd[row]; 
   }
 
   // Linearly decreasing (tenth function)
   else if ( corrfun == 1 )
   {
-    for ( row=1; row<=n; row++ )
+    for ( row=0; row<n; row++ )
     {
-      for ( col=row; col<=n; col++ )
+      for ( col=row; col<n; col++ )
       {
-        c = 1 - 2*(1-exp(-1))*abs(kg(row)-kg(col))/(cl(row)+cl(col));
+        c = 1 - 2*(1-exp(-1))*abs(kg[row]-kg[col])/(cl[row]+cl[col]);
         if ( (c>0) && (c>cutoff) )
 	{
-          s(row,col) = c*sd(row)*sd(col); 
-          s(col,row) = s(row,col);
+          s[row][col] = c*sd[row]*sd[col]; 
+          s[col][row] = s[row][col];
         } 
       }
     }
@@ -145,15 +157,15 @@ void setup_covmatrix(
   // Exponential
   else if ( corrfun == 2 )
   {
-    for ( row=1; row<=n; row++ )
+    for ( row=0; row<n; row++ )
     {
-      for ( col=row; col<=n; col++ )
+      for ( col=row; col<n; col++ )
       {
-        c = exp(-abs(kg(row)-kg(col))/((cl(row)+cl(col))/2));
+        c = exp(-abs(kg[row]-kg[col])/((cl[row]+cl[col])/2));
         if ( c > cutoff )
 	{
-          s(row,col) = c*sd(row)*sd(col); 
-          s(col,row) = s(row,col);
+          s[row][col] = c*sd[row]*sd[col]; 
+          s[col][row] = s[row][col];
         } 
       }
     }
@@ -162,15 +174,15 @@ void setup_covmatrix(
   // Gaussian
   else if ( corrfun == 3 )
   {
-    for ( row=1; row<=n; row++ )
+    for ( row=0; row<n; row++ )
     {
-      for ( col=row; col<=n; col++ )
+      for ( col=row; col<n; col++ )
       {
-        c = exp( -1.0 * pow( (kg(row)-kg(col))/((cl(row)+cl(col))/2), 2 ) );
+        c = exp( -1.0 * pow( (kg[row]-kg[col])/((cl[row]+cl[col])/2), 2 ) );
         if ( c > cutoff )
 	{
-          s(row,col) = c*sd(row)*sd(col); 
-          s(col,row) = s(row,col);
+          s[row][col] = c*sd[row]*sd[col]; 
+          s[col][row] = s[row][col];
         } 
       }
     }
@@ -195,6 +207,22 @@ void setup_covmatrix(
 
 void sDiagonal(
         MATRIX&          s,
+        const int&       n,
+        const Numeric&   stddev)
+{
+  const VECTOR   sdev(2,stddev);
+  const VECTOR   clength(2,0.0);
+        VECTOR   kp(2);
+
+  kp(1) = 0.0;
+  kp(2) = 1.0;
+  setup_covmatrix( s, VECTOR(n,0.5), 0, 0, kp, sdev, clength );
+}
+
+
+
+void sDiagonalLengthFromVector(
+        MATRIX&          s,
         const VECTOR&    grid,
         const string&    grid_name,
         const Numeric&   stddev)
@@ -204,21 +232,62 @@ void sDiagonal(
         VECTOR   kp(2);
 
   kp(1) = grid(1);
-  kp(2) = grid(grid.size());
+  kp(2) = grid(grid.dim());
+
   out2 << "  Creating a diagonal covariance matrix.\n";
   out3 << "    Standard deviation = " << stddev << "\n";
+
   setup_covmatrix( s, grid, 0, 0, kp, sdev, clength );
+}
+
+
+
+void sDiagonalLengthFromVectors(
+        MATRIX&          s,
+        const VECTOR&    grid1,
+        const VECTOR&    grid2,
+        const string&    grid1_name,
+        const string&    grid2_name,
+        const Numeric&   stddev)
+{
+  const VECTOR   sdev(2,stddev);
+  const VECTOR   clength(2,0.0);
+        VECTOR   kp(2);
+
+  kp(1) = 0.0;
+  kp(2) = 1.0;
+  setup_covmatrix( s, VECTOR(grid1.dim()*grid2.dim(),0.5), 0, 0, kp, sdev, 
+                                                                    clength );
 }
 
 
 
 void sSimple(
               MATRIX&    s,
-        const VECTOR&    grid,
-        const string&    grid_name,
+        const int&       n,
+        const Numeric&   stddev,
         const int&       corrfun,
         const Numeric&   cutoff,
+        const Numeric&   corrlength )
+{
+  const VECTOR   sdev(2,stddev);
+  const VECTOR   clength(2,corrlength);
+        VECTOR   kp(2);
+
+  kp(1) = 1;
+  kp(2) = n;
+  setup_covmatrix( s, linspace(1.0,n,1.0), corrfun, cutoff, kp, sdev, clength);
+}
+
+
+
+void sSimpleLengthFromVector(
+              MATRIX&    s,
+        const VECTOR&    grid,
+        const string&    grid_name,
         const Numeric&   stddev,
+        const int&       corrfun,
+        const Numeric&   cutoff,
         const Numeric&   corrlength )
 {
   const VECTOR   sdev(2,stddev);
@@ -226,13 +295,46 @@ void sSimple(
         VECTOR   kp(2);
 
   kp(1) = grid(1);
-  kp(2) = grid(grid.size());
-  out2 << "  Creating a simple covariance matrix.\n";
-  out3 << "    Standard deviation   = " << stddev << "\n";
-  out3 << "    Correlation function = " << corrfun << "\n";
-  out3 << "    Correlation length   = " << corrlength << "\n";
-  out3 << "    Correlation cut-off  = " << cutoff << "\n";
+  kp(2) = grid(grid.dim());
   setup_covmatrix( s, grid, corrfun, cutoff, kp, sdev, clength );
+}
+
+
+
+void sSimpleLengthFromVectors(
+              MATRIX&    s,
+        const VECTOR&    grid1,
+        const VECTOR&    grid2,
+        const string&    grid1_name,
+        const string&    grid2_name,
+        const Numeric&   stddev,
+        const int&       corrfun,
+        const Numeric&   cutoff,
+        const Numeric&   corrlength )
+{
+  // Get matrix for one repitition of the vector
+  MATRIX   s0;
+  sSimpleLengthFromVector( s0, grid1, grid1_name, stddev, corrfun, cutoff, 
+                                                                 corrlength );
+  // Create the total matrix
+  const size_t   n1 = grid1.dim(); 
+  const size_t   n2 = grid2.dim();
+        size_t   row, col, i, i0;
+  
+  s.resize( n1*n2, n1*n2 );
+  s = 0.0;
+  for ( i=0; i<n2; i++ )
+  {
+    i0 = (i-1)*n1;
+    for ( row=0; row<n1; row++ )
+    {
+      for ( col=row; col<n1; col++ )
+      {
+        s(i0+row,i0+col) = s0[row][col];
+        s(i0+col,i0+row) = s0[row][col];
+      }
+    }
+  } 
 }
 
 
@@ -264,10 +366,10 @@ void sFromFile(
   out3 << "    Summing " << n << " matrices.\n";
   
   // Loop the different covariance matrices
-  for ( i=1; i<=n; i++ )
+  for ( i=0; i<n; i++ )
   {
     // Check if the corrfun flag is an integer
-    if ( (am[0](1,i)-floor(am[0](1,i))) != 0 )
+    if ( (am[0][0][i]-floor(am[0][0][i])) != 0 )
       throw runtime_error("The first row of matrix 1 shall only contain integers..");
 
     // Move definition values to vectors
@@ -275,21 +377,21 @@ void sFromFile(
     kp.resize(np);
     sdev.resize(np);
     clength.resize(np);
-    for ( j=1; j<=np; j++ )
+    for ( j=0; j<np; j++ )
     {
-      kp(j)      = am[i](j,1);
-      sdev(j)    = am[i](j,2);
-      clength(j) = am[i](j,3);
+      kp[j]      = am[i][j][0];
+      sdev[j]    = am[i][j][1];
+      clength[j] = am[i][j][2];
     }
 
     if ( i == 1 )
-      setup_covmatrix( s, grid, size_t(am[0](1,i)), am[0](2,i), kp, 
+      setup_covmatrix( s, grid, size_t(am[0][0][i]), am[0][1][i], kp, 
                                                               sdev, clength );
       
     else
     {
       MATRIX stmp;
-      setup_covmatrix( stmp, grid, size_t(am[0](1,i)), am[0](2,i), kp, 
+      setup_covmatrix( stmp, grid, size_t(am[0][0][i]), am[0][1][i], kp, 
                                                               sdev, clength );
       s = s + stmp;
     }
@@ -302,6 +404,7 @@ void CovmatrixInit(
               MATRIX&   s,
         const string&   s_name)
 {
+  out2 << " Initializes " << s_name;
   s.resize(0,0);
 }
 
@@ -322,15 +425,15 @@ void sxAppend(
   stmp = sx;
   sx.resize(nsx+ns,nsx+ns);
   sx = 0;
-  for ( row=1; row<=nsx; row++ )
+  for ( row=0; row<nsx; row++ )
   {
-    for ( col=1; col<=nsx; col++ )
-      sx(row,col) = stmp(row,col);
+    for ( col=0; col<nsx; col++ )
+      sx[row][col] = stmp[row][col];
   }
-  for ( row=1; row<=ns; row++ )
+  for ( row=0; row<ns; row++ )
   {
-    for ( col=1; col<=ns; col++ )
-      sx(nsx+row,nsx+col) = s(row,col);
+    for ( col=0; col<ns; col++ )
+      sx[nsx+row][nsx+col] = s[row][col];
   }
 }
 

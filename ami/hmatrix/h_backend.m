@@ -50,12 +50,19 @@ H      = sparse(nza*nf2,nza*nf1);
 f_new  = vec2col(f2);
 
 
+%=== Convert to GHz to avoid numerical problems
+f1     = f1/1e9;
+f2     = f2/1e9;
+f_back = f_back/1e9;
+
+
+
 %=== Check if backend channels totally inside frequency grid
 if f1(1) > f2(1)+f_back(1)
-  error(sprintf('You must increase your frequency grid downwards with %.3e Hz',f1(1)-(f2(1)+f_back(1))));
+  error(sprintf('You must increase your frequency grid downwards with %.3e GHz',f1(1)-(f2(1)+f_back(1))));
 end
 if f1(nf1) < f2(nf2)+f_back(nback)
-  error(sprintf('You must increase your frequency grid upwards with %.3e Hz',(f2(nf2)+f_back(nback))-f1(nf1)));
+  error(sprintf('You must increase your frequency grid upwards with %.3e GHz',(f2(nf2)+f_back(nback))-f1(nf1)));
 end
 
 

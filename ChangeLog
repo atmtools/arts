@@ -1,3 +1,33 @@
+2000-12-13  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-88
+
+	* Changed indexing from 1-based to 0-based in the following files:
+	    m_wfs.cc
+	    m_los.cc
+	    m_hmatrix.cc
+	    m_covmatrix.cc
+	    m_batch.cc
+	    atm_funcs.cc
+	I did not change math_funcs.cc as there could be side effects. For 
+	example, the function col causes problems.
+	(This was heavy work, it took 5-6 hours despite I did it basically
+	as quyickly as possible).
+	Some changes were needed. The ground flags are now int's instead of 
+	INDEX. No ground is now flagged as -1. When storing in file, the ground
+	flags are increased with the value 1, so the falgs can be stored as
+	INDEX (ints are not handled in binary files so far).
+	The program compiles but I have not made any more detailed bug search.
+	I wait with this until the switch to MTL is complete. The WFs have now
+	probably a lot of bugs as those functions have a lot of indexing (and
+	I that had tested that so carefully -:( ).
+
+	* First version of batch and covariance parts ready. However, they
+	cannot be completed before sprse matrices and Cholesky function are
+	aviliable. I have done rather carefully function descriptions so have a
+	look in methods.cc.
+	
+
 2000-Dec-12  Oliver Lemke  <oliver@uni-bremen.de>
 
 	* arts-0-0-87

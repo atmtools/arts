@@ -1333,7 +1333,7 @@ void rand_gaussian(
         const Numeric&   s )
 {
   VECTOR  z;    // A vector of length 2 with uniform PDF between -1 and 1
-  Numeric rad;  // The radiues cooresponding to z
+  Numeric rad;  // The radius cooresponding to z
   Numeric fac;  // Normalisation factor
  
   r.resize(n);
@@ -1345,10 +1345,10 @@ void rand_gaussian(
     {
       fac = sqrt( -2*log(rad)/rad );
       i++;
-      r(i) = fac*z(1);
+      r(i) = s*fac*z(1);
       i++;
       if ( i <=n )
-        r(i) = fac*z(2);        
+        r(i) = s*fac*z(2);        
     }
   }
 }

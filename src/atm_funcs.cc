@@ -80,12 +80,12 @@ void planck (
   Numeric       c, d;
   B.resize(n_f,n_t);
   
-  for ( i_f=1; i_f<=n_f; i_f++ )
+  for ( i_f=0; i_f<n_f; i_f++ )
   {
-    c = a * f(i_f)*f(i_f)*f(i_f);
-    d = b * f(i_f);
-    for ( i_t=1; i_t<=n_t; i_t++ )
-      B(i_f,i_t) = c / (exp(d/t(i_t)) - 1.0);
+    c = a * f[i_f]*f[i_f]*f[i_f];
+    d = b * f[i_f];
+    for ( i_t=0; i_t<n_t; i_t++ )
+      B[i_f][i_t] = c / (exp(d/t[i_t]) - 1.0);
   }
 }
 
@@ -203,14 +203,14 @@ Numeric g_of_z (
 */
 void rte_iterate (
              VECTOR&   y,
-       const int&      start_index,
-       const int&      stop_index,
+       const size_t&   start_index,
+       const size_t&   stop_index,
        const MATRIX&   tr,
        const MATRIX&   s,
        const size_t    n_f )
 {
         size_t   i_f;        // frequency index
-           int   i_z;        // LOS index
+        size_t   i_z;        // LOS index
            int   i_step;     // step order, -1 or 1
 
   if ( start_index >= stop_index )
@@ -220,8 +220,8 @@ void rte_iterate (
 
   for ( i_z=start_index; i_z!=(stop_index+i_step); i_z+=i_step ) 
   {
-    for ( i_f=1; i_f<=n_f; i_f++ )    
-      y(i_f) = y(i_f)*tr(i_f,i_z) + s(i_f,i_z) * ( 1.0-tr(i_f,i_z) );
+    for ( i_f=0; i_f<n_f; i_f++ )    
+      y[i_f] = y[i_f]*tr[i_f][i_z] + s[i_f][i_z] * ( 1.0-tr[i_f][i_z] );
   }
 }
 
@@ -249,8 +249,8 @@ void rte_iterate (
 */
 void rte (
              VECTOR&   y,
-       const int&      start_index,
-       const int&      stop_index,
+       const size_t&   start_index,
+       const size_t&   stop_index,
        const MATRIX&   tr,
        const MATRIX&   s,
        const VECTOR&   y_space,
@@ -258,10 +258,10 @@ void rte (
        const VECTOR&   e_ground,
        const VECTOR&   y_ground )
 {
-  const int   n_f = tr.dim(1);               // number of frequencies
-        int   i_f;                           // frequency index
-        int   i_break;                       // break index for looping
-        int   i_start;                       // variable for second loop
+  const size_t   n_f = tr.dim(1);               // number of frequencies
+        size_t   i_f;                           // frequency index
+        size_t   i_break;                       // break index for looping
+        size_t   i_start;                       // variable for second loop
 
   // Init Y with Y_SPACE
   y = y_space;
@@ -270,18 +270,18 @@ void rte (
   if ( start_index > 0 )
   {
     // Determine break index for looping, either 1 or the ground
-    if ( ground > 0 )
+    if ( ground >= 0 )
       i_break = ground;
     else
-      i_break = 1;       
+      i_break = 0;       
 
     // Make first loop
     rte_iterate( y, start_index-1, i_break, tr, s, n_f );
 
     // We are now at the sensor, the ground or the tangent point
     // We are ready only if we are at the sensor.
-    // If at sensor, we have that STOP_INDEX=1 and not GROUND
-    if ( !(stop_index==1 && !ground) )
+    // If at sensor, we have that STOP_INDEX=0 and GROUND<0
+    if ( !(stop_index==0 && ground<0) )
     {
       // Set most common values for I_START and I_BREAK
       i_start = 1;
@@ -289,12 +289,12 @@ void rte (
       
       // If at the ground, include ground reflection. 
       // The loop can continue both downwards or upwards
-      if ( ground )
+      if ( ground >= 0 )
       {            
-        for ( i_f=1; i_f<=n_f; i_f++ )    
-          y(i_f) = y(i_f)*(1.0-e_ground(i_f)) + y_ground(i_f)*e_ground(i_f);
+        for ( i_f=0; i_f<n_f; i_f++ )    
+          y[i_f] = y[i_f]*(1.0-e_ground[i_f]) + y_ground[i_f]*e_ground[i_f];
         
-        if ( ground != 1 )  // 2D case, loop downwards
+        if ( ground != 0 )  // 2D case, loop downwards
 	{
          i_start = ground - 1;
          i_break = 1;
@@ -332,14 +332,14 @@ void rte (
 */
 void bl_iterate (
              VECTOR&   y,
-       const int&      start_index,
-       const int&      stop_index,
+       const size_t&   start_index,
+       const size_t&   stop_index,
        const MATRIX&   tr,
        const size_t    n_f )
 {
-        size_t   i_f;        // frequency index
-           int   i_z;        // LOS index
-           int   i_step;     // step order, -1 or 1
+  size_t   i_f;        // frequency index
+  size_t   i_z;        // LOS index
+     int   i_step;     // step order, -1 or 1
 
   if ( start_index >= stop_index )
     i_step = -1;
@@ -348,8 +348,8 @@ void bl_iterate (
 
   for ( i_z=start_index; i_z!=(stop_index+i_step); i_z+=i_step ) 
   {
-    for ( i_f=1; i_f<=n_f; i_f++ )    
-      y(i_f) *= tr(i_f,i_z);
+    for ( i_f=0; i_f<n_f; i_f++ )    
+      y[i_f] *= tr[i_f][i_z];
   }
 }
 
@@ -374,14 +374,14 @@ void bl_iterate (
 */
 void bl (
              VECTOR&   y,
-       const int&      start_index,
-       const int&      stop_index,
+       const size_t&   start_index,
+       const size_t&   stop_index,
        const MATRIX&   tr,
        const int&      ground,
        const VECTOR&   e_ground )
 {
-  const int   nf = tr.dim(1);          // number of frequencies
-        int   iy;                      // frequency index
+  const size_t   nf = tr.dim(1);          // number of frequencies
+        size_t   iy;                      // frequency index
 
   // Init Y
   y.resize(nf);
@@ -399,10 +399,10 @@ void bl (
     bl_iterate( y, stop_index, start_index-1, tr, nf );
 
   // Include effect of ground reflection
-  if ( ground )
+  if ( ground >= 0 )
   {
-    for ( iy=1; iy<=nf; iy++ )    
-      y(iy) *= ( 1.0 - e_ground(iy) );
+    for ( iy=0; iy<nf; iy++ )    
+      y[iy] *= ( 1.0 - e_ground[iy] );
   }
 }
 
@@ -519,7 +519,7 @@ Numeric interpp(
 {
   VECTOR  x, pv(1,p);
   interp_lin( x, log(p0), x0, log(pv) );
-  return x(1);
+  return x[0];
 }
 
 
@@ -588,7 +588,7 @@ Numeric interpz(
 {
   VECTOR x;
   interpz( x, p0, z0, x0, VECTOR(1,z) );
-  return x(1);
+  return x[0];
 }
 
 
@@ -654,24 +654,24 @@ Numeric ztan_refr(
     const size_t  n = z_abs.size();
           size_t  i;
 
-    for ( i=n; (i>0) && (EARTH_RADIUS+z_abs(i))*refr_index(i)>c; i-- ) 
+    for ( i=(n-1); (i>=0) && (EARTH_RADIUS+z_abs[i])*refr_index[i]>c; i-- ) 
     {
-      if ( z_abs(i) <= z_ground ) //=== Ground intersection ==============
+      if ( z_abs[i] <= z_ground ) //=== Ground intersection ==============
       {
         Numeric n_ground = interpz( p_abs, z_abs, refr_index, z_ground );
         Numeric theta = RAD2DEG*asin(c/n_ground/(EARTH_RADIUS+z_ground));
         return ztan_geom( 180-theta, z_ground );
       }
     }
-    if ( i == n )      //=== outside the atmosphere ======================
+    if ( i == (n-1) )  //=== outside the atmosphere ======================
       return ztan_geom( za, z_plat);
     else               //=== z_tan inside the atmosphere =================
     {
       VECTOR zs(2), cs(2);
-      zs(1) = z_abs(i);
-      zs(2) = z_abs(i+1);
-      cs(1) = (EARTH_RADIUS+z_abs(i))*refr_index(i);
-      cs(2) = (EARTH_RADIUS+z_abs(i+1))*refr_index(i+1);  
+      zs[0] = z_abs[i];
+      zs[1] = z_abs[i+1];
+      cs[0] = (EARTH_RADIUS+z_abs[i])*refr_index[i];
+      cs[1] = (EARTH_RADIUS+z_abs[i+1])*refr_index[i+1];  
       return interp_lin( cs, zs, c ); 
     }
   }

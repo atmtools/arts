@@ -59,6 +59,24 @@ void define_md_data()
 
 
 //======================================================================
+//=== Overall ARTS functions
+//======================================================================
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("Exit"),
+	DESCRIPTION("Stops the execution and exits ARTS."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+
+
+
+//======================================================================
 //=== IO methods
 //======================================================================
 
@@ -75,7 +93,7 @@ void define_md_data()
 	GOUTPUT( int_ ),
 	GINPUT(),
 	KEYWORDS( "value" ),
-	TYPES( int_t )));
+	TYPES(    int_t   )));
 
   md_data.push_back
     ( MdRecord
@@ -124,8 +142,7 @@ void define_md_data()
       ( NAME("IndexReadBinary"),
 	DESCRIPTION("Reads an index from a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( int_ ),
@@ -144,8 +161,8 @@ void define_md_data()
 	INPUT(),
 	GOUTPUT( Numeric_ ),
 	GINPUT(),
-	KEYWORDS( "value" ),
-	TYPES( Numeric_t )));
+	KEYWORDS( "value"   ),
+	TYPES(    Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -180,8 +197,7 @@ void define_md_data()
       ( NAME("NumericWriteBinary"),
 	DESCRIPTION("Writes a numeric value to a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -194,8 +210,7 @@ void define_md_data()
       ( NAME("NumericReadBinary"),
 	DESCRIPTION("Reads a numeric from a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Numeric_ ),
@@ -214,24 +229,24 @@ void define_md_data()
                     "and initializes the vector with the given value."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT(VECTOR_),
+	GOUTPUT( VECTOR_ ),
 	GINPUT(),
-	KEYWORDS("length", "value"),
-	TYPES(int_t, Numeric_t)));
+	KEYWORDS( "length", "value"   ),
+	TYPES(    int_t,    Numeric_t )));
 
   md_data.push_back
     ( MdRecord
-      ( NAME("VectorSet2"),
+      ( NAME("VectorSetLengthFromVector"),
 	DESCRIPTION("Creates a workspace vector with the same length as the\n"
                     "given vector and initializes the new vector with the\n"
                     "given value. For example\n"
-                    "   VectorSet2(i_cal1,y_cal1){78}"),
+                    " VectorSetLengthFromVector(e_ground,f_mono){value=0.75}"),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT(VECTOR_),
-	GINPUT(VECTOR_),
-	KEYWORDS("value"),
-	TYPES(Numeric_t)));
+	GOUTPUT( VECTOR_ ),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "value"   ),
+	TYPES(    Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -244,10 +259,10 @@ void define_md_data()
 		    "The step can be both positive and negative."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT(VECTOR_),
+	GOUTPUT( VECTOR_ ),
 	GINPUT(),
-	KEYWORDS("start", "stop", "step"),
-	TYPES(Numeric_t, Numeric_t, Numeric_t)));
+	KEYWORDS( "start",   "stop",    "step"    ),
+	TYPES(    Numeric_t, Numeric_t, Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -259,8 +274,8 @@ void define_md_data()
 	INPUT(),
 	GOUTPUT(VECTOR_),
 	GINPUT(),
-	KEYWORDS("start", "stop", "n"),
-	TYPES(Numeric_t, Numeric_t, int_t)));
+	KEYWORDS( "start",   "stop",    "n"   ),
+	TYPES(    Numeric_t, Numeric_t, int_t )));
 
   md_data.push_back
     ( MdRecord
@@ -272,8 +287,8 @@ void define_md_data()
 	INPUT(),
 	GOUTPUT(VECTOR_),
 	GINPUT(),
-	KEYWORDS("start", "stop", "n"),
-	TYPES(Numeric_t, Numeric_t, int_t)));
+	KEYWORDS( "start",   "stop",    "n"   ),
+	TYPES(    Numeric_t, Numeric_t, int_t )));
 
   md_data.push_back
     ( MdRecord
@@ -333,8 +348,7 @@ void define_md_data()
       ( NAME("VectorWriteBinary"),
 	DESCRIPTION("Writes a vector to a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -347,8 +361,7 @@ void define_md_data()
       ( NAME("VectorReadBinary"),
 	DESCRIPTION("Reads a vector from a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( VECTOR_ ),
@@ -367,8 +380,8 @@ void define_md_data()
 	INPUT( ),
 	GOUTPUT( VECTOR_ ),
 	GINPUT( VECTOR_ ),
-	KEYWORDS( "temp" ),
-	TYPES( Numeric_t) ));
+	KEYWORDS( "temp"    ),
+	TYPES(    Numeric_t )));
 
 
 
@@ -384,6 +397,18 @@ void define_md_data()
 	GINPUT( MATRIX_ ),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixFillWithVector"),
+	DESCRIPTION("Forms a vector with n columns, and put the given.\n"
+                    "in each column."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( MATRIX_ ),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "n"   ),
+	TYPES(    int_t )));
 
   md_data.push_back
     ( MdRecord
@@ -418,8 +443,7 @@ void define_md_data()
       ( NAME("MatrixWriteBinary"),
 	DESCRIPTION("Writes a matrix to a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -432,8 +456,7 @@ void define_md_data()
       ( NAME("MatrixReadBinary"),
 	DESCRIPTION("Reads a matrix from a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( MATRIX_ ),
@@ -478,8 +501,7 @@ void define_md_data()
       ( NAME("ArrayOfIndexWriteBinary"),
 	DESCRIPTION("Writes an index array to a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -492,8 +514,7 @@ void define_md_data()
       ( NAME("ArrayOfIndexReadBinary"),
 	DESCRIPTION("Reads an index array from a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ARRAYofsizet_ ),
@@ -538,8 +559,7 @@ void define_md_data()
       ( NAME("ArrayOfVectorWriteBinary"),
 	DESCRIPTION("Writes a vector array to a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -552,8 +572,7 @@ void define_md_data()
       ( NAME("ArrayOfVectorReadBinary"),
 	DESCRIPTION("Reads a vector array from a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ARRAYofVECTOR_ ),
@@ -616,8 +635,7 @@ void define_md_data()
       ( NAME("ArrayOfMatrixWriteBinary"),
 	DESCRIPTION("Writes a matrix array to a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -630,8 +648,7 @@ void define_md_data()
       ( NAME("ArrayOfMatrixReadBinary"),
 	DESCRIPTION("Reads a matrix array from a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ARRAYofMATRIX_ ),
@@ -650,8 +667,8 @@ void define_md_data()
 	INPUT(),
 	GOUTPUT( string_ ),
 	GINPUT(),
-	KEYWORDS( "text" ),
-	TYPES( string_t )));
+	KEYWORDS( "text"   ),
+	TYPES(    string_t )));
 
   md_data.push_back
     ( MdRecord
@@ -719,8 +736,8 @@ void define_md_data()
 	INPUT(),
 	GOUTPUT( ARRAYofstring_ ),
 	GINPUT(),
-	KEYWORDS( "text" ),
-	TYPES( ARRAY_string_t )));
+	KEYWORDS( "text"         ),
+	TYPES(    ARRAY_string_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1102,8 +1119,8 @@ void define_md_data()
 	INPUT( z_abs_, p_abs_, t_abs_, h2o_abs_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "g0", "pref", "zref", "niter" ),
-	TYPES( Numeric_t, Numeric_t, Numeric_t, int_t )));
+	KEYWORDS( "g0",      "pref",    "zref",    "niter" ),
+	TYPES(    Numeric_t, Numeric_t, Numeric_t, int_t   )));
 
 
 
@@ -1164,7 +1181,7 @@ void define_md_data()
   	DESCRIPTION(
           "Sets the geoid radius according to WGS-84. See the Rodgers book \n"
           "Sec. 9.4.1. The observation direction is given as the angle to\n"
-          "the meridian plane (i.e. S=N=0, W=E=90)\n"
+          "the meridian plane (i.e. S=N=0, W=E=90).\n"
           "\n"
           "Keywords \n"
           "      latitude : Latitude at the measurement.\n"
@@ -1174,7 +1191,7 @@ void define_md_data()
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "latitude", "obsdirection" ),
-	TYPES( Numeric_t, Numeric_t )));
+	TYPES(    Numeric_t,  Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1259,22 +1276,22 @@ void define_md_data()
     ( MdRecord
       ( NAME("y_spaceStd"),
   	DESCRIPTION(
-          "Standard selection for the radiation entering the atmosphere at\n"
+          "Standard choices for the radiation entering the atmosphere at\n"
           "the start of the LOS. The selections are:\n"
-          "  0 no radiation\n"
-          "  1 cosmic background radiation (planck for COSMIC_BG_TEMP)\n"
-          "  2 solar radiation (planck for SUN_TEMP)\n"
+          "  zero : no radiation\n"
+          "  cbgr : cosmic background radiation (planck for COSMIC_BG_TEMP)\n"
+          "  sun  : solar radiation (planck for SUN_TEMP)\n"
           "COSMIC_BG_TEMP and SUN_TEMP are global variables, defined in\n"
           "constants.cc.\n"
           "\n"
           "Keywords \n"
-          "  nr : Selection number."),
+          "  choice : Selection string (see above)."),
 	OUTPUT( y_space_ ),
 	INPUT( f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "nr" ),
-	TYPES( int_t )));
+	KEYWORDS( "nr"  ),
+	TYPES(    string_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1426,20 +1443,20 @@ void define_md_data()
           "The tag is selected by the parameter nr, which is the position\n"
           "for the tag in abs_per_tg.\n"
           "The avaliable units are\n"
-          "  1 fractions of linearisation state \n"
-          "  2 volume mixing ratio \n"
-          "  3 number density\n"
+          "  frac : fractions of linearisation profile \n"
+          "  vmr  : volume mixing ratio \n"
+          "  nd   : number density\n"
           "\n"
           "Keywords \n"
           "  nr   : Tag number\n"
-          "  unit : Retrieval unit."),
+          "  unit : Retrieval unit string."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
                                                               vmrs_, k_grid_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "nr",   "unit"  ),
-	TYPES(    int_t,  int_t )));
+	TYPES(    int_t,  string_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1449,14 +1466,14 @@ void define_md_data()
           "are included in abs_per_tg. Units as for kSpecies.\n"
           "\n"
           "Keywords \n"
-          "  unit : Retrieval unit."),
+          "  unit : Retrieval unit string."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
                                                               vmrs_, k_grid_),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "unit"  ),
-	TYPES(    int_t )));
+	KEYWORDS( "unit"   ),
+	TYPES(    string_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1523,8 +1540,8 @@ void define_md_data()
 	INPUT( y0_, y_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "name", "delta", "grid", "apriori" ),
-	TYPES( string_t, Numeric_t, Numeric_t, Numeric_t )));
+	KEYWORDS( "name",   "delta",   "grid",    "apriori" ),
+	TYPES(    string_t, Numeric_t, Numeric_t, Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1546,8 +1563,8 @@ void define_md_data()
 	INPUT( h1_, h2_, y_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "name", "delta", "grid", "apriori" ),
-	TYPES( string_t, Numeric_t, Numeric_t, Numeric_t )));
+	KEYWORDS( "name",   "delta",   "grid",   "apriori"  ),
+	TYPES(    string_t, Numeric_t, Numeric_t, Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1562,8 +1579,8 @@ void define_md_data()
 	INPUT( h1_, h2_, y_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "name", "delta", "grid", "apriori" ),
-	TYPES( string_t, Numeric_t, Numeric_t, Numeric_t )));
+	KEYWORDS( "name",   "delta",   "grid",   "apriori"  ),
+	TYPES(    string_t, Numeric_t, Numeric_t, Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1687,8 +1704,24 @@ void define_md_data()
     ( MdRecord
       ( NAME("sDiagonal"),
   	DESCRIPTION(
-          "Creates a diagonal covariance matrix. The size of s is determined\n"
-          "of the length of the given vector.\n"
+          "Creates a diagonal covariance matrix.\n"
+          "\n"
+          "Keywords \n"
+          "       n : Size of covariance matrix.\n"
+          "  stddev : Standard deviation."),
+	OUTPUT( s_ ),
+        INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "n",   "stddev"  ),
+	TYPES(    int_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("sDiagonalLengthFromVector"),
+  	DESCRIPTION(
+          "Creates a diagonal covariance matrix matching a vector.\n"
+          "The size of s is determined of the length of the given vector.\n"
           "\n"
           "Keywords \n"
           "  stddev : Standard deviation."),
@@ -1701,30 +1734,112 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("sDiagonalLengthFromVectors"),
+  	DESCRIPTION(
+          "Creates a diagonal covariance matrix matching 2 vectors.\n"
+          "This function can be used to create a covariance matrix for all\n"
+          "combinations between the values in the two vectors. For example,\n"
+          "   sDiagonalLengthFromVectors(f_sensor,za_sensor){2}\n"
+          "gives a covariance matrix for uncorrelated thermal noise with a\n"
+          "magnitude of 2 (probably Kelvins).\n"
+          "The size of s is the product of the length of the given vectors.\n"
+          "\n"
+          "Keywords \n"
+          "  stddev : Standard deviation."),
+	OUTPUT( s_ ),
+        INPUT(),
+	GOUTPUT(),
+	GINPUT( VECTOR_, VECTOR_ ),
+	KEYWORDS( "stddev"  ),
+	TYPES(    Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("sSimple"),
+  	DESCRIPTION(
+          "Creates a covariance matrix where the standard deviation and\n"
+          "correlation length are constant.\n"
+          "The abscissa is set to 1,2,3,...,n. The correlation length shall\n"
+          "accordingly be treated as a index distance.\n"
+          "\n"
+          "Keywords \n"
+          "  n          : Size of covariance matrix.\n"
+          "  stddev     : Standard deviation.\n"
+          "  corrfun    : The correlation function: \n"
+          "               0  no correlation, diagonal matrix. The corrlength\n"
+          "                  and cutoff are of no importance here.\n"
+          "               1  linearly decreasing to 0 (tenth function) \n"
+          "               2  exponential \n"
+          "               3  gaussian \n"
+          "  cutoff     : Correlations below this value are set to 0.\n"
+          "               This variable can be used to make s more sparse.\n"
+          "  corrlength : Correlation length (in index). The length where\n"
+          "               the correlation has decreased to exp(-1)."),
+	OUTPUT( s_ ),
+        INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "n",   "stddev",  "corrfun", "cutoff",  "corrlength" ),
+	TYPES(    int_t, Numeric_t, int_t,     Numeric_t, Numeric_t  )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("sSimpleLengthFromVector"),
   	DESCRIPTION(
           "Creates a covariance matrix where the standard deviation and\n"
           "correlation length are constant. The size of s is determined of\n"
           "the length of the given vector.\n"
+          "The given vector is also used as abscissa when calulating \n"
+          "correlation values. \n"
           "\n"
           "Keywords \n"
-          "  corrfun    : The correlation function: \n"
-          "                0 no correlation, diagonal matrix. The corrlength\n"
-          "                  and cutoff are of no importance here.\n"
-          "                1 linearly decreasing to 0 (tenth)\n"
-          "                2 exponential\n"
-          "                3 gaussian\n"
+          "  stddev     : Standard deviation.\n"
+          "  corrfun    : The correlation function. See sSimple. \n"
           "  cutoff     : Correlations below this value are set to 0.\n"
           "               This variable can be used to make s more sparse.\n"
-          "  stddev     : Standard deviation.\n"
           "  corrlength : Correlation length. The length where the corre-\n"
           "               lation has decreased to exp(-1)."),
 	OUTPUT( s_ ),
         INPUT(),
 	GOUTPUT(),
 	GINPUT( VECTOR_ ),
-	KEYWORDS( "corrfun", "cutoff", "stddev", "corrlength" ),
-	TYPES(    int_t,     Numeric_t, Numeric_t, Numeric_t  )));
+	KEYWORDS( "stddev",  "corrfun", "cutoff",  "corrlength" ),
+	TYPES(    Numeric_t, int_t,     Numeric_t, Numeric_t  )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("sSimpleLengthFromVectors"),
+  	DESCRIPTION(
+          "Creates a covariance matrix where the standard deviation and\n"
+          "correlation length are constant.\n"
+          "The size of s is the product of the length of the two given\n"
+          "vectors. See further sDiagonalLengthFromVectors.\n"
+          "The vector corresponding to s is assumed to have the structure\n"
+          "   [vector1,vector1,...,vector1]\n"
+          "where vector1 is the first of the two input vectors. The number \n"
+          "of repititions of vector1 equals the length of the second vector.\n"
+          "The correlation between each repitition of vector 1 is set to 0.\n"
+          "The total covariance matrix has accordingly the structure:\n"
+          "   s1  0  0 \n"
+          "    0 s1  0 \n"
+          "    0  0 s1 \n"
+          "where s1 is the matrix given by sSimpleLengthFromVector for\n"
+          "vector 1.\n"
+          "\n"
+          "Keywords \n"
+          "  stddev     : Standard deviation.\n"
+          "  corrfun    : The correlation function. See sSimple. \n"
+          "  cutoff     : Correlations below this value are set to 0.\n"
+          "               This variable can be used to make s more sparse.\n"
+          "  corrlength : Correlation length in units of the first of the\n"
+          "               given vectors. This is the length where the corre-\n"
+          "               lation has decreased to exp(-1)."),
+	OUTPUT( s_ ),
+        INPUT(),
+	GOUTPUT(),
+	GINPUT( VECTOR_, VECTOR_ ),
+	KEYWORDS( "stddev",  "corrfun", "cutoff",  "corrlength" ),
+	TYPES(    Numeric_t, int_t,  Numeric_t, Numeric_t  )));
 
   md_data.push_back
     ( MdRecord
@@ -1830,8 +1945,8 @@ void define_md_data()
 	INPUT(),
 	GOUTPUT( VECTOR_ ),
 	GINPUT(),
-	KEYWORDS( "low", "high", "n" ),
-	TYPES( Numeric_t, Numeric_t, int_t )));
+	KEYWORDS( "low",     "high", "  n" ),
+	TYPES(    Numeric_t, Numeric_t, int_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1844,14 +1959,34 @@ void define_md_data()
 	INPUT(),
 	GOUTPUT( VECTOR_ ),
 	GINPUT(),
-	KEYWORDS( "stddev", "n" ),
-	TYPES( Numeric_t, int_t )));
+	KEYWORDS( "stddev",  "n" ),
+	TYPES(    Numeric_t, int_t )));
 
 
 
 //======================================================================
 //=== Batch Calculation Methods
 //======================================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("BatchdataGaussianZeroMean"),
+  	DESCRIPTION(
+          "Creates a set of vectors suitable for batch calculations.\n"
+          "The produced vectors have zero mean and its statistics match the\n"           "given covariance matrix.\n"
+          "The vectors are written to the file\n"
+          "   batchname.varname.ab  \n"
+          "where varname is the given keyword string.\n"
+          "\n"
+          "Keywords \n"
+          "  n       : Number of random vectors to produce.\n"
+          "  varname : Variable name."),
+	OUTPUT(),
+	INPUT( batchname_, s_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "n",   "varname"  ),
+	TYPES(    int_t, string_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1863,9 +1998,9 @@ void define_md_data()
           "correlations follow the covariance matrix s.\n"
           "The corresponding altitudes are calculated by z_absHydrostatic\n"
           "and are stored in a seperate file.\n"
-          "The files are named as:\n"
-          "   batchdir.t_abs.ab  \n"
-          "   batchdir.z_abs.ab  \n"
+          "The data are stored to the files:\n"
+          "   batchname.t_abs.ab  \n"
+          "   batchname.z_abs.ab  \n"
           "\n"
           "Keywords \n"
           "  n        : Number of random vectors to produce.\n"
@@ -1886,8 +2021,8 @@ void define_md_data()
   	DESCRIPTION(
           "As BatchdataGaussianTemperatureProfiles but no altitudes are\n"
           "calculated.\n"
-          "The temperature profiles are stored in the file\n"
-          "   batchdir.t_abs.ab  \n"
+          "The data are stored to the file:\n"
+          "   batchname.t_abs.ab  \n"
           "\n"
           "Keywords \n"
           "  n        : Number of random vectors to produce."),
@@ -1908,8 +2043,8 @@ void define_md_data()
           "Standard dev. and correlations follow the covariance matrix s.\n"
           "Profiles for several species can be produced if s is valid for\n"
           "all the species.\n"
-          "The profiles are stored in files named as:\n"
-          "   batchdir.XXX.ab  \n"
+          "The data are stored to the files:\n"
+          "   batchname.XXX.ab  \n"
           "where XX is the molecule name.\n"
           "\n"
           "Keywords \n"
@@ -1917,14 +2052,99 @@ void define_md_data()
           "  do_tags : This string array gives the tags for which profiles\n"
           "            shall be generated, e.g. [\"H2O\",\"O3\"].\n"
           "            These tags must match some tag in tags.\n"
-          "  unit    : Unit for the given standard deviation. Unit coding as\n"
-          "            for kSpecies."),
+          "  unit    : Unit string for the given standard deviation. Unit\n"
+          "            coding as for kSpecies."),
 	OUTPUT(),
 	INPUT( tag_groups_, vmrs_, p_abs_, t_abs_, s_, batchname_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "n",   "do_tags",      "unit"   ),
-	TYPES(    int_t, ARRAY_string_t, int_t    )));
+	TYPES(    int_t, ARRAY_string_t, string_t    )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("BatchdataGaussianOffSets"),
+  	DESCRIPTION(
+          "Creates a set of vectors suitable for batch calculations.\n"
+          "The produced vectors are shifted, having off-sets, compared\n"
+          "to the given vector where the off-sets have gaussian PDF.\n"
+          "There is no correlation between the off-sets.\n"
+          "The vectors are written to the file\n"
+          "   batchname.varname.ab  \n"
+          "where varname is the workspace name of the reference vector.\n"
+          "\n"
+          "Keywords \n"
+          "  n        : Number of random vectors to produce.\n"
+          "  stddev   : Standard deviation for the off-sets."),
+	OUTPUT(),
+	INPUT( batchname_ ),
+	GOUTPUT(),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "n",   "stddev"  ),
+	TYPES(    int_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("BatchdataUniformOffSets"),
+  	DESCRIPTION(
+          "Creates a set of vectors suitable for batch calculations.\n"
+          "The produced vectors are shifted, having off-sets, compared\n"
+          "to the given vector where the off-sets have uniform PDF\n"
+          "between low and high.\n"
+          "Note that the off-set range (low to high) can be strictly\n"
+          "negative or positive.\n"
+          "There is no correlation between the off-sets.\n"
+          "The vectors are written to the file\n"
+          "   batchname.varname.ab  \n"
+          "where varname is the workspace name of the reference vector.\n"
+          "\n"
+          "Keywords \n"
+          "  n    : Number of random vectors to produce.\n"
+          "  low  : Lowest limit for the off-sets.\n"
+          "  high : Upper limit for the off-sets." ),
+	OUTPUT(),
+	INPUT( batchname_ ),
+	GOUTPUT(),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "n",   "low",    "high"     ),
+	TYPES(    int_t, Numeric_t, Numeric_t )));
+
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("BatchdataSinusoidalRippleNoCorrelations"),
+  	DESCRIPTION(
+          "Creates a batch of sinusoidal baseline ripples. \n"
+          "The ripple is modelled as\n"
+          "   a*sin(2*pi*f/period+phase)  \n"
+          "The frequency period is kept constant to the selected value.\n"
+          "The phase is given a uniform PDF between 0 and 2*pi.\n"
+          "The amplitude can be modelled in three different ways by the\n"
+          "keyword pdf. The choices for pdf are:\n"
+          "  none     : The amplitude is kept constant to the selected value\n"
+          "  gaussian : The selected value is used as standard deviation.\n"
+          "  uniform  : Uniform PDF between -+amplitude.\n"
+          "The phase and amplitude variations are uncorrelated, both\n"
+          "mutually and between different spectra.\n"
+          "The first input vector is used as frequency vector.\n"
+          "The second input vector is treated as the zenith angle grid.\n"
+          "The vectors are written to the file\n"
+          "   batchname.varname.ab  \n"
+          "where varname is the given keyword string.\n"
+          "\n"
+          "Keywords \n"
+          "  n         : Number of random vectors to produce.\n"
+          "  period    : The frequency period.\n"
+          "  amplitude : Amplitude of the ripple (see above).\n"
+          "  pdf       : Probability density function. Possible choices:\n"
+          "                \"none\", \"gaussian\" and \"uniform\" \n"
+          "  varname   : Variable name."),
+	OUTPUT(),
+	INPUT( batchname_ ),
+	GOUTPUT(),
+	GINPUT( VECTOR_, VECTOR_ ),
+	KEYWORDS( "n",   "period", "amplitude", "pdf",    "varname" ),
+	TYPES(    int_t, Numeric_t, Numeric_t,  string_t, string_t  )));
 
   md_data.push_back
     ( MdRecord
@@ -1994,5 +2214,87 @@ void define_md_data()
 	TYPES(   int_t,   int_t,  string_t, int_t,  string_t, 
                  ARRAY_string_t, ARRAY_string_t,
                  int_t,  string_t, int_t,   string_t  )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ybatchTB"),
+  	DESCRIPTION(
+          "Converts a batch of spectra from intensity to brightness\n"
+          "temperature. The used frequency vector is f_sensor."),
+	OUTPUT( ybatch_ ),
+	INPUT( ybatch_, f_sensor_, za_sensor_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ybatchTRJ"),
+  	DESCRIPTION(
+          "Converts a batch of spectra from intensity to Rayleigh-Jeans\n"
+          "temperature. The used frequency vetor is f_sensor."),
+	OUTPUT( ybatch_ ),
+	INPUT( ybatch_, f_sensor_, za_sensor_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ybatchLoadCalibration"),
+  	DESCRIPTION(
+          "Applies load switching calibration on a batch of spectra.\n"
+          "See further yLoadCalibration."),
+	OUTPUT( ybatch_ ),
+	INPUT( ybatch_, i_cal1_, i_cal2_, y_cal1_, y_cal2_, za_sensor_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ybatchAdd"),
+  	DESCRIPTION(
+          "Loads batch data from a file and adds the data to ybatch.\n"
+          "The data to add are read from the file\n"
+          "   batchname.varname.ab  \n"
+          "where varname is the given keyword string.\n"
+          "The file can contain data for more spectra than the number of\n"
+          "spectra in ybatch (n). In such cases, the only first n columns of\n"
+          "the file data is considered.\n"
+          "\n"
+          "Keywords \n"
+          "  n       : Number of random vectors to produce.\n"
+          "  varname : Variable name."),
+	OUTPUT( ybatch_ ),
+	INPUT( ybatch_, batchname_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "varname" ),
+	TYPES(    string_t  )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ybatchAddScaled"),
+  	DESCRIPTION(
+          "Loads batch data from a file and adds the data to ybatch.\n"
+          "The file data can be scaled by scalefac. By setting the scalfac\n"
+          "to -1.0, for example, thermal noise can be removed from a batch\n"
+          "of spectra.\n"
+          "See also ybatchAdd.\n"
+          "\n"
+          "Keywords \n"
+          "  varname  : Variable name.\n"
+          "  scalefac : Scale factor for data. Can be negative."),
+	OUTPUT( ybatch_ ),
+	INPUT( ybatch_, batchname_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "varname", "scalefac" ),
+	TYPES(    string_t,  Numeric_t)));
+
 
 }

@@ -66,6 +66,29 @@ extern const Numeric SPEED_OF_LIGHT;
 //   LOS help functions 
 ////////////////////////////////////////////////////////////////////////////
 
+//// any_ground /////////////////////////////////////////////////////////////
+/**
+   Checks if any of the pencil beam spectra corresponds to a ground reflection.
+
+   This function is most likely called as any_ground( los.ground )
+
+   \return           1 if any ground intersection, 0 otherwise
+   \param    ground  array of ground index/flag values
+
+   \author Patrick Eriksson
+   \date   2000-12-12
+*/
+bool any_ground( const ARRAY<int>& ground )  
+{
+  for ( size_t i=0; i<ground.size(); i++ )
+  {
+    if ( ground[i] >= 0 )
+      return 1;
+  }  
+  return 0;
+}
+
+
 //// geom2refr /////////////////////////////////////////////////////////////
 /**
    Determines a refractive LOS using the prolongation factor.
@@ -117,24 +140,24 @@ void geom2refr(
   r = emult( n, sqrt(a-(c*c/n(1)/n(1))) );
   r = ediv( r, sqrt( emult(a,emult(n,n))-c*c ) );
   // Handle tangent points
-  if ( abs(zs(1)-z_tan) < 0.01 )
-    r(1) = sqrt(n(1)/(n(1)+(r_geoid+zs(1))*(n(2)-n(1))/(zs(2)-zs(1))));
+  if ( abs(zs[0]-z_tan) < 0.01 )
+    r[0] = sqrt(n[0]/(n[0]+(r_geoid+zs[0])*(n[1]-n[0])/(zs[1]-zs[0])));
 
   // Safety check
-  if ( isnan(r(2)) != 0 )
+  if ( isnan(r[1]) != 0 )
     throw logic_error(
         "NaN obtained for the prolongation factor (check consistency for c!)");
 
   // Calculate distance from the lowest altitude along the LOS using r
-  l(1) = 0.0;
-  for( size_t i=2; i<=nz; i++ )
-    l(i) = l(i-1) + l_step_refr * (r(i-1)+r(i))/2;
+  l[0] = 0.0;
+  for ( size_t i=1; i<nz; i++ )
+    l[i] = l[i-1] + l_step_refr * (r[i-1]+r[i])/2;
   
   // Interpolate to get LOS with steps of L_STEP
-  if ( l(nz)<l_step )
-    l_step = l(nz);
+  if ( l[nz-1]<l_step )
+    l_step = l[nz-1];
   z2p( ps, z_abs, p_abs, zs );
-  interp_lin( p, l, ps, linspace(0,l(nz),l_step) );
+  interp_lin( p, l, ps, linspace(0,l[nz-1],l_step) );
 }
 
 
@@ -470,12 +493,12 @@ void los_space(
       z2p( los.p[i], z_abs, p_abs, los.p[i] );
     }
 
-    los.start[i]  = los.p[i].size();
+    los.start[i]  = los.p[i].size() - 1;
     los.stop[i]   = los.start[i];
     if ( z_tan >= z_ground )
-      los.ground[i] = 0;          // no ground intersection
+      los.ground[i] = -1;          // no ground intersection
     else
-      los.ground[i] = 1;          // ground at index 1
+      los.ground[i] = 0;           // ground at index 0
   }
 }
 
@@ -541,9 +564,9 @@ void los_inside(
       else
         upward_geom( los.p[i], los.l_step[i], r_geoid, z_plat, za[i], 
                                                                atm_limit, 0 );
-      los.start[i]  = los.p[i].size();   // length of LOS
-      los.stop[i]   = 1;                // stop index here always 1
-      los.ground[i] = 0;                // no ground intersection
+      los.start[i]  = los.p[i].size() - 1;   // length of LOS
+      los.stop[i]   = 0;                     // stop index here always 0
+      los.ground[i] = -1;                    // no ground intersection
     }
 
     // Downward
@@ -580,16 +603,16 @@ void los_inside(
         }
 
 	// Adjust l_step downwards to get an integer number of steps
-	los.stop[i]   = (size_t) ceil( l1 / l_step + 1.0 );  
-	los.l_step[i] = l1 / ( (Numeric)los.stop[i] - 1.0 );
+	los.stop[i]   = (size_t) ceil( l1 / l_step + 1.0 ) - 1;  
+	los.l_step[i] = l1 / ( (Numeric)los.stop[i] );
         if ( refr )
 	  space_refr( los.p[i], los.l_step[i], c, z_tan, r_geoid, atm_limit, 
                              z_ground, p_abs, z_abs, refr_index, l_step_refr );
 	else
 	  space_geom( los.p[i], los.l_step[i], z_tan, r_geoid, atm_limit, 0, 
                                                                     z_ground );
-        los.start[i]  = los.p[i].size();
-        los.ground[i] = 0;                // no gound intersection
+        los.start[i]  = los.p[i].size() - 1;
+        los.ground[i] = -1;                // no gound intersection
       }   
     
       // Intersection with the ground
@@ -618,16 +641,16 @@ void los_inside(
 	  l1     = sqrt(b*b-c*c) - sqrt(a*a-c*c); // distance platform-ground
         }
         // Adjust l_step downwards to get an integer number of steps
-	los.stop[i]   = 1 + (size_t) ceil( l1 / l_step );
-	los.l_step[i] = l1 / ( (double)los.stop[i] - 1.0 );
+	los.stop[i]   = (size_t) ceil( l1 / l_step );
+	los.l_step[i] = l1 / ( (double)los.stop[i] );
         if ( refr )
 	  upward_refr( los.p[i], los.l_step[i], c, z_ground, za_ground, 
                    r_geoid, atm_limit, p_abs, z_abs, refr_index, l_step_refr );
         else
           upward_geom( los.p[i], los.l_step[i], r_geoid, z_ground, 
                                              RAD2DEG*asin(c/a), atm_limit, 0 );
-        los.start[i]  = los.p[i].size();
-        los.ground[i] = 1;                // ground at index 1
+        los.start[i]  = los.p[i].size() - 1;
+        los.ground[i] = 0;                // ground at index 0
       }
     }
 
@@ -687,12 +710,12 @@ void losCalc(       LOS&        los,
   size_t n = za.size();  // number of zenith angles
 
   // Some checks                                                      
-  if ( z_ground < z_abs(1) )
+  if ( z_ground < z_abs[0] )
     throw runtime_error(
       "There is a gap between the ground and the lowest absorption altitude");
   if ( z_plat < z_ground )
     throw runtime_error("Your platform altitude is below the ground");
-  if ( z_plat < z_abs(1) )  
+  if ( z_plat < z_abs[0] )  
     throw runtime_error(
       "The platform cannot be below the lowest absorption altitude");
 
@@ -712,7 +735,7 @@ void losCalc(       LOS&        los,
     throw runtime_error("The refraction flag can only be 0 or 1.");
   out3 << "     z_plat: " << z_plat/1e3 << " km\n";
   if ( n == 1 )
-    out3 << "         za: " << za(1) << " degs.\n";
+    out3 << "         za: " << za[0] << " degs.\n";
   else
   {
     out3 << "     min za: " << min(za) << " degs.\n";
@@ -774,12 +797,12 @@ void sourceCalc(
               const VECTOR&          t_abs,
               const VECTOR&          f_mono )
 {     
-        VECTOR   tlos;                 // temperatures along the LOS
+        VECTOR   tlos;                  // temperatures along the LOS
   const size_t   nza=los.start.size();  // the number of zenith angles  
   const size_t   nf=f_mono.size();      // the number of frequencies
-        size_t   nlos;                 // the number of pressure points
-        MATRIX   b;                    // the Planck function for TLOS  
-        size_t   iv, ilos;             // frequency and LOS point index
+        size_t   nlos;                  // the number of pressure points
+        MATRIX   b;                     // the Planck function for TLOS  
+        size_t   iv, ilos;              // frequency and LOS point index
 
   out2 << "  Calculating the source function for LTE and no scattering.\n";
  
@@ -803,10 +826,10 @@ void sourceCalc(
       nlos = tlos.size();
       planck( b, f_mono, tlos );
       source[i].resize(nf,nlos-1);
-      for ( ilos=1; ilos<nlos; ilos++ )
+      for ( ilos=0; ilos<(nlos-1); ilos++ )
       {
-        for ( iv=1; iv<=nf; iv++ )
-          source[i](iv,ilos) = ( b(iv,ilos) + b(iv,ilos+1) ) / 2.0;
+        for ( iv=0; iv<nf; iv++ )
+          source[i][iv][ilos] = ( b[iv][ilos] + b[iv][ilos+1] ) / 2.0;
       }
     }
   }  
@@ -850,10 +873,10 @@ void transCalc(
       interp_lin_row( abs2, p_abs, abs, los.p[i] );
       trans[i].resize( nf, np-1 );
       w  =  -0.5*los.l_step[i];
-      for ( row=1; row<=nf; row++ )
+      for ( row=0; row<nf; row++ )
       {
-        for ( col=1; col<np; col++ )
-          trans[i](row,col) = exp( w * ( abs2(row,col)+abs2(row,col+1)) );
+        for ( col=0; col<(np-1); col++ )
+          trans[i][row][col] = exp( w * ( abs2[row][col]+abs2[row][col+1]) );
       }
     }
   }    
@@ -865,26 +888,27 @@ void transCalc(
 void y_spaceStd(
                     VECTOR&   y_space,
               const VECTOR&   f,
-              const int&      nr )
+              const string&   choice )
 {
-  if ( nr == 0 )
+  if ( choice == "zero" )
   {
     y_space.resize(f.size());
     y_space = 0.0;
     out2 << "  Setting y_space to zero.\n";
   }
-  else if ( nr == 1 )
+  else if ( choice == "cbgr" )
   {
     planck( y_space, f, COSMIC_BG_TEMP );
     out2 << "  Setting y_space to cosmic background radiation.\n";
   }
-  else if ( nr == 2 )
+  else if ( choice == "sun" )
   {
     planck( y_space, f, SUN_TEMP );
     out2 << "  Setting y_space to blackbody radiation corresponding to the Sun temperature\n";
   }
   else
-    throw runtime_error("Possible choices for Y_SPACE are 0 - 2.");
+    throw runtime_error(
+      "Possible choices for Y_SPACE are \"zero\", \"cbgr\" and \"sun\".");
 
 }
 
@@ -902,10 +926,10 @@ void yRte (
 {
   // Some variables
   const size_t   n=los.start.size();  // Number of zenith angles 
-  const size_t   nf=f_mono.size();   // Number of frequencies 
-        VECTOR   y_tmp;              // Temporary storage for spectra
-        size_t   iy0=0;              // Reference index for output vector
-        size_t   iy;                 // Frequency index
+  const size_t   nf=f_mono.size();    // Number of frequencies 
+        VECTOR   y_tmp;               // Temporary storage for spectra
+        size_t   iy0=0;               // Reference index for output vector
+        size_t   iy;                  // Frequency index
 
   out2 << "  Integrating the radiative transfer eq. WITHOUT scattering.\n";
 
@@ -915,7 +939,7 @@ void yRte (
   // Set up vector for ground blackbody radiation if any ground intersection
   // Check also if the ground emission vector has the correct length
   VECTOR   y_ground; 
-  if ( any(los.ground) )  
+  if ( any_ground(los.ground) )  
   {
     out2 << "  There are intersections with the ground.\n";
     planck( y_ground, f_mono, t_ground );
@@ -936,8 +960,8 @@ void yRte (
                  source[i], y_space, los.ground[i], e_ground, y_ground);
 
     // Move values to output vector
-    for ( iy=1; iy<=nf; iy++ )    
-      y(iy0+iy) = y_tmp(iy);
+    for ( iy=0; iy<nf; iy++ )    
+      y[iy0+iy] = y_tmp[iy];
     iy0 += nf;                    // update iy0
   }
   out3 << "\n";
@@ -953,7 +977,7 @@ void yRteNoGround (
               const ARRAYofMATRIX&   source,
               const ARRAYofMATRIX&   trans )
 {
-  if ( any(los.ground) )  
+  if ( any_ground(los.ground) )  
     throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
 
   yRte( y, los, f_mono, y_space, source, trans, 0.0, 0.0 );
@@ -969,10 +993,10 @@ void yBl (
 {
   // Some variables
   const size_t   n=los.start.size();    // Number of zenith angles 
-  const size_t   nf=trans[0].dim(1);   // Number of frequencies 
-        size_t   iy0=0;                // Reference index for output vector
-        size_t   iy;                   // Frequency index
-        VECTOR   y_tmp;              // Temporary storage for spectra
+  const size_t   nf=trans[0].dim(1);    // Number of frequencies 
+        size_t   iy0=0;                 // Reference index for output vector
+        size_t   iy;                    // Frequency index
+        VECTOR   y_tmp;                 // Temporary storage for spectra
 
   out2 << "  Calculating total transmission WITHOUT scattering.\n";
 
@@ -981,7 +1005,7 @@ void yBl (
   y = 1.0;
 
   // Check if the ground emission vector has the correct length
-  if ( any(los.ground) )  
+  if ( any_ground(los.ground) )  
   {
     out2 << "  There are intersections with the ground.\n";
     if ( e_ground.size() != nf )
@@ -990,7 +1014,7 @@ void yBl (
         
   // Loop zenith angles
   out3 << "    Zenith angle nr:\n      ";
-  for ( size_t i=1; i<=n; i++ )
+  for ( size_t i=0; i<n; i++ )
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
@@ -1000,8 +1024,8 @@ void yBl (
     bl( y_tmp, los.start[i], los.stop[i], trans[i], los.ground[i], e_ground );
 
     // Move values to output vector
-    for ( iy=1; iy<=nf; iy++ )    
-      y(iy0+iy) = y_tmp(iy);
+    for ( iy=0; iy<nf; iy++ )    
+      y[iy0+iy] = y_tmp[iy];
     iy0 += nf;                    // update iy0
   }
   out3 << "\n";
@@ -1014,7 +1038,7 @@ void yBlNoGround (
               const LOS&             los,   
               const ARRAYofMATRIX&   trans )
 {
-  if ( any(los.ground) )  
+  if ( any_ground(los.ground) )  
     throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
 
   yBl( y, los, trans, VECTOR(0) );
