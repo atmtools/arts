@@ -1931,6 +1931,406 @@ void do_gridcell_2d(
    \author Patrick Eriksson
    \date   2002-11-28
 */
+void do_gridcell_3d_try(
+              Vector&    r_v,
+              Vector&    lat_v,
+              Vector&    lon_v,
+              Vector&    za_v,
+              Vector&    aa_v,
+              Numeric&   lstep,
+              Index&     endface,
+              Index&     tanpoint,
+        const Numeric&   r_start,
+        const Numeric&   lat_start,
+        const Numeric&   lon_start,
+        const Numeric&   za_start,
+        const Numeric&   aa_start,
+        const Numeric&   ppc,
+        const Numeric&   lmax,
+        const Numeric&   lat1,
+        const Numeric&   lat3,
+        const Numeric&   lon5,
+        const Numeric&   lon6,
+        const Numeric&   r15a,
+        const Numeric&   r35a,
+        const Numeric&   r36a,
+        const Numeric&   r16a,
+        const Numeric&   r15b,
+        const Numeric&   r35b,
+        const Numeric&   r36b,
+        const Numeric&   r16b,
+        const Numeric&   rground15,
+        const Numeric&   rground35,
+        const Numeric&   rground36,
+        const Numeric&   rground16 )
+{
+  // Assert latitude and longitude
+  assert( lat_start >= lat1 );
+  assert( lat_start <= lat3 );
+  assert( !( abs( lat_start) < 90  &&  lon_start < lon5 ) );
+  assert( !( abs( lat_start) < 90  &&  lon_start > lon6 ) );
+
+  // Radius of lower and upper pressure surface at the start position
+  Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15a, r35a, r36a, r16a, lat_start, lon_start );
+  Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15b, r35b, r36b, r16b, lat_start, lon_start );
+
+  // Assert radius
+  assert( r_start >= rlow );
+  assert( r_start <= rupp );
+  assert( r_start >= ppc );
+
+  // Assert that not standing at the edge looking out.
+  // As these asserts are rather costly, they should maybe be removed
+  // when everything is carefully tested.
+  assert( !( lat_start==lat1 && lat_start!=-90 && abs( aa_start ) > 90 ) );
+  assert( !( lat_start==lat3 && lat_start!= 90 && abs( aa_start ) < 90 ) );
+  assert( !( lon_start==lon5 && abs(lat_start)!=90 &&  aa_start < 0 ) );
+  assert( !( lon_start==lon6 && abs(lat_start)!=90 &&  aa_start > 0 ) );
+  //
+  if( r_start == rlow )
+    {
+      const Numeric c = psurface_slope_3d( lat1, lat3, lon5, lon6, 
+                      r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
+      const Numeric tilt = psurface_angletilt( r_start, c );
+
+      assert( !is_los_downwards( za_start, tilt ) );
+    }
+  else if( r_start == rupp )
+    {
+      const Numeric c = psurface_slope_3d( lat1, lat3, lon5, lon6, 
+                      r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
+      const Numeric tilt = psurface_angletilt( r_start, c );
+
+      assert( is_los_downwards( za_start, tilt ) );
+    }
+
+  // Position and LOS in cartesian coordinates
+  double   x, y, z, dx, dy, dz;
+  poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
+                                                          za_start, aa_start );
+
+
+  // ???
+  //
+  endface  = 0;
+  tanpoint = 0;
+  //
+  double   r_end, lat_end, lon_end, l_end;
+
+  // Local debug option
+  const bool   debug = true;
+  //
+  if( debug )
+    {
+      NumericPrint( lat1, "lat1" );
+      NumericPrint( lat3, "lat3" );
+      NumericPrint( lon5, "lon5" );
+      NumericPrint( lon6, "lon6" );
+      NumericPrint( rlow, "rlow" );
+      NumericPrint( rupp, "rupp" );
+    }
+
+
+  // Zenith looking
+  if( za_start == 0 )
+    {
+      r_end   = rupp;
+      lat_end = lat_start;
+      lon_end = lon_start;
+      l_end   = rupp - r_start;
+      endface  = 4;
+      if( debug )
+        {
+          IndexPrint( 4, "face" );
+          NumericPrint( r_end, "r_end" );
+          NumericPrint( lat_end, "lat_end" );
+          NumericPrint( lon_end, "lon_end" );
+          NumericPrint( l_end, "l_end" );
+        }
+    }
+
+  // Nadir looking
+  else if( za_start == 180 )
+    {
+      const Numeric   rground = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                   rground15, rground35, rground36, rground16, 
+                                                        lat_start, lon_start );
+      
+      if( rlow > rground )
+        {
+          r_end  = rlow;
+          endface = 2;
+        }
+      else
+        {
+          r_end  = rground;
+          endface = 7;
+        }
+      lat_end = lat_start;
+      lon_end = lon_start;
+      l_end   = r_start - r_end;
+      if( debug )
+        {
+          IndexPrint( 4, "face" );
+          NumericPrint( r_end, "r_end" );
+          NumericPrint( lat_end, "lat_end" );
+          NumericPrint( lon_end, "lon_end" );
+          NumericPrint( l_end, "l_end" );
+        }
+    }
+
+  // Check faces in number order
+  else
+    {
+      // Calculate correction terms for the position to compensate for
+      // numerical inaccuracy
+      //
+      double   r_corr, lat_corr, lon_corr;
+      //
+      cart2sph( r_corr, lat_corr, lon_corr, x, y, z );
+      //
+      r_corr   -= r_start;
+      lat_corr -= lat_start;
+      lon_corr -= lon_start;
+
+      if( debug )
+        {
+          NumericPrint( r_corr, "r_corr" );
+          NumericPrint( lat_corr, "lat_corr" );
+          NumericPrint( lon_corr, "lon_corr" );
+        }
+
+      double   l_in = 0, l_out;
+               l_end = 1;
+      bool     ready = false, startup = true;
+
+      Numeric   l_tan = 99e6;
+      if( za_start > 90 )
+        { l_tan = sqrt( r_start*r_start - ppc*ppc ); }
+
+
+      while( !ready )
+        {
+          cart2sph( r_end, lat_end, lon_end, 
+                                          x+dx*l_end, y+dy*l_end, z+dz*l_end );
+          r_end   -= r_corr;
+          lat_end -= lat_corr;
+          lon_end -= lon_corr;
+          
+          if( debug )
+            {
+              NumericPrint( l_end, "l_end" );
+              NumericPrint( r_end, "r_end" );
+              NumericPrint( lat_end, "lat_end" );
+              NumericPrint( lon_end, "lon_end" );
+            }
+
+          bool   inside = true;
+
+          if( lat_end < lat1 )
+            { inside = false;   endface = 1; }
+          else if( lat_end > lat3 )
+            { inside = false;   endface = 3; }
+          else if( lon_end < lon5 )
+            { inside = false;   endface = 5; }
+          else if( lon_end > lon6 )
+            { inside = false;   endface = 6; }
+
+          if( inside )
+            {
+              rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                    r15a, r35a, r36a, r16a, lat_end, lon_end );
+              rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                    r15b, r35b, r36b, r16b, lat_end, lon_end );
+              
+              if( r_end < rlow )
+                { inside = false;   endface = 2; }
+              else if( r_end > rupp )
+                { inside = false;   endface = 4; }
+            }              
+             
+          if( startup )
+            {
+              if( inside )
+                { 
+                  if( l_end < l_tan  &&  l_end*10 > l_tan )
+                    { l_end = l_tan; }
+                  else
+                    { l_end *= 10; }
+                }
+              else
+                { 
+                  l_out = l_end;   
+                  l_end = ( l_out + l_in ) / 2;
+                  startup = false; 
+                }
+            }
+          else
+            {
+              if( inside )
+                { l_in = l_end; }
+              else
+                { l_out = l_end; }
+              
+              l_end = ( l_out + l_in ) / 2;
+              
+              if( ( l_out - l_in ) < 1e-3 )
+                { ready = true; }
+            }
+
+          if( debug )
+            {
+              IndexPrint( inside, "inside" );
+              IndexPrint( endface, "endface" );
+              IndexPrint( startup, "startup" );
+              NumericPrint( l_in, "l_in" );
+              NumericPrint( l_out, "l_out" );
+            }
+        }
+      //
+      if( endface == 1 )
+        { lat_end = lat1; }
+      else if( endface == 2 )
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                  r15a, r35a, r36a, r16a, lat_end, lon_end ); }
+      else if( endface == 3 )
+        { lat_end = lat3; }
+      else if( endface == 4 )
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                  r15b, r35b, r36b, r16b, lat_end, lon_end ); }
+      else if( endface == 5 )
+        { lon_end = lon5; }
+      else if( endface == 6 )
+        { lon_end = lon6; }
+
+
+      //--- Tangent point?
+      //
+      if( za_start > 90 )
+        {
+          if( l_tan < l_end )
+            {
+              // We seperate here float/double to avoid unnecessary
+              // copying for Numeric=double. A solution like this is
+              // needed to avoid compiler warnings.
+
+#ifdef USE_DOUBLE
+              geompath_tanpos_3d( r_end, lat_end, lon_end, l_end,
+                                  r_start, lat_start, lon_start, 
+                                  za_start, aa_start, ppc );
+#else
+              Numeric   rtmp, lattmp, lontmp, ltmp;
+              geompath_tanpos_3d( rtmp, lattmp, lontmp, ltmp,
+                                  r_start, lat_start, lon_start, 
+                                  za_start, aa_start, ppc );
+              r_end   = rtmp;
+              lat_end = lattmp;
+              lon_end = lontmp;
+              l_end   = ltmp;
+#endif
+              endface  = 0;
+              tanpoint = 1;
+            }
+          else if( l_tan == l_end )
+            { tanpoint = 1; }
+        }
+     }
+
+  if( debug )
+    {
+      IndexPrint( endface, "endface" );
+      IndexPrint( tanpoint, "tanpoint" );
+      if( endface )
+        {
+          NumericPrint( r_end, "r_end" );
+          NumericPrint( lat_end, "lat_end" );
+          NumericPrint( lon_end, "lon_end" );
+          NumericPrint( l_end, "l_end" );
+        }
+    }
+
+
+  //--- Create return vectors
+  //
+  Index n = 1;
+  //
+  if( lmax > 0 )
+    {
+      n = Index( ceil( abs( l_end / lmax ) ) );
+      if( n < 1 )
+        { n = 1; }
+    }
+  //
+  r_v.resize( n+1 );
+  lat_v.resize( n+1 );
+  lon_v.resize( n+1 );
+  za_v.resize( n+1 );
+  aa_v.resize( n+1 );
+  //
+  r_v[0]   = r_start;
+  lat_v[0] = lat_start;
+  lon_v[0] = lon_start;
+  za_v[0]  = za_start;
+  aa_v[0]  = aa_start;
+  //
+  double  ldouble = l_end / n;
+  lstep = ldouble;
+  // 
+  for( Index j=1; j<=n; j++ )
+    {
+      const double   l  = ldouble * j;
+
+      // We seperate here float/double to avoid unnecessary copying for
+      // Numeric=double. A solution like this is needed to avoid compiler
+      // warnings.
+
+#ifdef USE_DOUBLE
+
+      cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j],
+                                          x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
+#else
+      double   rtmp, lattmp, lontmp, zatmp, aatmp;
+      cart2poslos( rtmp, lattmp, lontmp, zatmp, aatmp,
+                                          x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
+      r_v[j]   = rtmp;
+      lat_v[j] = lattmp;
+      lon_v[j] = lontmp;
+      za_v[j]  = zatmp;
+      aa_v[j]  = aatmp;
+#endif
+   }
+
+
+  //--- Set last point especially, which should improve the accuracy
+  r_v[n]   = r_end;
+  lat_v[n] = lat_end;
+  lon_v[n] = lon_end;
+
+  //--- Set last zenith angle to be as accurate as possible
+  if( za_start == 0  ||  za_start == 180 )
+    { za_v[n] = za_start; }
+  else if( tanpoint )
+    { za_v[n] = 90; }
+  else
+    { za_v[n] = geompath_za_at_r( ppc, za_start, r_v[n] ); }
+
+  //--- Set last azimuth angle and lon. to be as accurate as possible for
+  //    zenith and nadir observations
+  if( abs( lat_start ) < 90  &&  ( aa_start == 0  ||  abs( aa_start) == 180 ) )
+    { 
+      aa_v[n] = aa_start; 
+      lon_v[n] = lon_start;
+    }
+
+  // Shall lon values be shifted (value 0 and n+1 are already OK)?
+  for( Index j=1; j<n; j++ )
+    { resolve_lon( lon_v[j], lon5, lon6 ); }
+}
+
+
+
 void do_gridcell_3d(
               Vector&    r_v,
               Vector&    lat_v,
@@ -2446,9 +2846,7 @@ void do_gridcell_3d(
   lon_v[n] = lon_best;
 
   //--- Set last zenith angle to be as accurate as possible
-  if( za_start == 0 )
-    { za_v[n] = 0; }
-  else if( za_start == 180 )
+  if( za_start == 0  ||  za_start == 180 )
     { za_v[n] = za_start; }
   else if( tanpoint )
     { za_v[n] = 90; }
@@ -4282,10 +4680,13 @@ void raytrace_1d_linear_euler(
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is < *lraytrace*, extract the found end point and
-      // we are ready.
+      // we are ready. 
       // Otherwise, we make a geometrical step with length *lraytrace*.
+      // To avoid that the refrcation calculations end up outside the grid
+      // cell when *lstep* is just below *lraytrace*, we allow *lstep*
+      // to be somewhat larger than *lraytrace*.
 
-      if( lstep <= lraytrace )
+      if( lstep <= 1.01 * lraytrace )
         {
           r     = r_v[1];
           dlat  = lat_v[1] - lat;
@@ -4453,8 +4854,11 @@ void raytrace_2d_linear_euler(
       // If *lstep* is < *lraytrace*, extract the found end point and
       // we are ready.
       // Otherwise, we make a geometrical step with length *lraytrace*.
+      // To avoid that the refrcation calculations end up outside the grid
+      // cell when *lstep* is just below *lraytrace*, we allow *lstep*
+      // to be somewhat larger than *lraytrace*.
 
-      if( lstep <= lraytrace )
+      if( lstep <= 1.01 * lraytrace )
         {
           r_new   = r_v[1];
           dlat    = lat_v[1] - lat;
@@ -4661,8 +5065,11 @@ void raytrace_3d_linear_euler(
       // If *lstep* is < *lraytrace*, extract the found end point and
       // we are ready.
       // Otherwise, we make a geometrical step with length *lraytrace*.
+      // To avoid that the refrcation calculations end up outside the grid
+      // cell when *lstep* is just below *lraytrace*, we allow *lstep*
+      // to be somewhat larger than *lraytrace*.
 
-      if( lstep <= lraytrace )
+      if( lstep <= 1.01 * lraytrace )
         {
           r_new   = r_v[1];
           lat_new = lat_v[1];

@@ -1,3 +1,18 @@
+2003-01-28  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-436
+	
+	* src/ppath.cc (do_gridcell_3d_try): I have worked on another scheme
+	for this function. The new scheme is based on testing different step
+	lengths, in a hopefully intelegent way, and simply test if the end
+	point is inside or outside the grid cell. This scheme is slower than
+	using a pure analytical solution, but it allows to compensate for
+	numerical problems with float, and works for tilted pressure surfaces,
+	So, if this is a success, both my present problems are solved. 
+
+	I am now trying to stress the new scheme to make it 100% safe. 
+	You will not use this new scheme when you compile. 
+
 2003-01-28  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-435
