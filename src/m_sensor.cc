@@ -95,7 +95,7 @@ void GaussianResponse(// WS Generic Output:
 }
 
 void sensor_responseAntenna1D(// WS Output:
-                   			  Matrix&			sensor_response,
+                   			  Sparse&			sensor_response,
                    			  // WS Input:
                    			  const Vector&		f_grid,
                    			  const Vector&		mblock_za_grid,
@@ -125,13 +125,13 @@ void sensor_responseAntenna1D(// WS Output:
   Sparse antenna_response( f_grid.nelem(), n);
   antenna_transfer_matrix( antenna_response, mblock_za_grid, srm, f_grid);
 
-  Matrix sensor_response_tmp = sensor_response;
+  Sparse sensor_response_tmp = sensor_response;
   sensor_response.resize( f_grid.nelem(), n);
   mult( sensor_response, antenna_response, sensor_response_tmp);
 }
 
 void sensor_responseBackend(// WS Output:
-                 			Matrix&			sensor_response,
+                 			Sparse&			sensor_response,
                  			// WS Input:
                  			const Vector&	f_grid,
                  			const Vector&	f_grid_backend,
@@ -157,13 +157,13 @@ void sensor_responseBackend(// WS Output:
   Sparse backend_response( f_grid_backend.nelem(), f_grid.nelem());
   spectrometer_transfer_matrix( backend_response, srm, f_grid_backend, f_grid);
 
-  Matrix sensor_response_tmp = sensor_response;
+  Sparse sensor_response_tmp = sensor_response;
   sensor_response.resize( f_grid_backend.nelem(), f_grid.nelem());
   mult( sensor_response, backend_response, sensor_response_tmp);
 }
 
 void sensor_responseInit(// WS Output:
-              			 Matrix&			sensor_response,
+              			 Sparse&			sensor_response,
               			 // WS Input:
               			 const Vector&		f_grid,
               			 const Vector&		mblock_za_grid,
