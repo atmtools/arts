@@ -1,3 +1,14 @@
+2002-04-02  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-43
+
+	* aii/Makefile.am, ami/arts/Makefile.am, ami/file/Makefile.am,
+        ami/general/Makefile.am, ami/hmatrix/Makefile.am,
+	ami/math/Makefile.am, ami/path/Makefile.am, ami/physics/Makefile.am,
+        ami/plot/Makefile.am, ami/retrieval/Makefile.am,
+	doc/uguide/Figs/Makefile.am: Use wildcards for EXTRA_DIST so we
+	don't have to add each new file to Makefile.am.
+
 2002-04-01  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-42
