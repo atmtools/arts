@@ -136,6 +136,8 @@ Some notes about the art of programing on ARTS:
       $ cvs add <my_file>
       to make your file known to CVS.
 
+
+
 ----------------------------------------------------------------------
 CVS stuff:
 
@@ -160,6 +162,16 @@ CVS stuff:
 
    a) You should make sure that the program compiles and runs without
       obvious errors before you commit.
+
+   a1) If you have created a new source file, make it known to CVS by
+      running:
+      $ cvs add <my_file>
+      in the directory where the file resides.
+
+      In general, when you run cvs update, it will warn you about any files
+      it doesn't know by marking them with a `?'. Files that are created
+      during the compilation process, but should not be part of the package
+      are listed in the .cvsignore files in each directory. 
 
    b) Have you added the documentation for your new features? :-)
 
