@@ -29,27 +29,10 @@
 %    ....
 %  \stopsymbols
 %
-%
-%\startsymbols
-%  \Ind           & -                 & vector/matrix/tensor index           \\
-%  \aInd{\Lat}    & -                 & the \Ind:th latitude                 \\
-%  \VctLng        & -                 & vector length or size of matrix/tensor for a dimension \\
-%  \aVctLng{\Lat} & -                 & length of the latitude grid \\
-%  \Prs           & \artsstyle{p}     & pressure                             \\
-%  \PrsAlt        & \artsstyle{pz}    & pressure altitude                    \\
-%  \Rds           & \artsstyle{r}     & radius from the geoid centre         \\
-%  \Alt           & \artsstyle{z}     & geometrical altitude above the geoid \\
-%  \Lat           & \artsstyle{alpha} & latitude                             \\
-%  \Lon           & \artsstyle{beta}  & longitude                            \\
-%  \ZntAng        & \artsstyle{psi}   & zenith angle                         \\
-%  \AzmAng        & \artsstyle{omega} & azimuthal angle                      \\
-% \label{symtable:ppath_defs}     
-%\stopsymbols
-
 \startsymbols
 \StoVec       & \artsstyle{i\_field}       & monochromatic intensity field\/ Stokes Vector\\
-              & \artsstyle{i\_field\_old}  & needed only internally
-              for the iteration\\
+              & \artsstyle{i\_field\_old}  & needed for the iteration\\
+i$_I$         &                             & Stokes component \\
 \ExtMat       & -                        & total extinction matrix \\
 \SExMat        & \artsstyle{ext\_mat} & extinction martrix for a
 single particle type\\
@@ -80,13 +63,20 @@ box\\
 \Planck       &                             & Planck function
 \label{symtable:scattering}
 \stopsymbols
+%=====================================================================
 
+
+%=====================================================================
+% Definition of new commands:
+% ====================================================================
 \newcommand{\DirFre} {(\PDir, \Frq)}
 \newcommand{\DirFrePr} {\ensuremath{(\PDir^\prime, \Frq)}}
 
 
+
+
 \levelb{General radiative transfer equation}
-%===================
+%=====================================================================
 \label{sec:scattering:general_rte}
  
 
@@ -572,7 +562,7 @@ matrix are needed. So it is obligatory to execute the agendas
 
 
 
-\levelb{Methods and agendas for the RT inside the cloudbox}
+\levelb{Radiative transfer inside the cloudbox}
 %==============================================================
 \label{sec:scattering:scat_meth_rt}
 
@@ -588,26 +578,26 @@ limited only to a small part of the atmosphere defined by the cloud box.
 %==========================================
 
 The concept of a cloud box is explained in
-\ref{sec:fm_defs:cloudbox}. It is activated by setting the variable
+\ref{sec:fm_defs:cloudbox}. It is activated by setting the flag
 \wsvindex{cloudbox\_on} to 1. The
 limits of the cloud box are stored in \wsvindex{cloudbox\_limits}
 which in an array of indices, containing the lower and the upper
-pressure index, the upper and lower latitude index and the lower and
+pressure index, the lower and upper latitude index and the lower and
 upper longitude index. 
 
-The calculations inside the cloud box are performed an the common 
+The calculations inside the cloudbox are performed on the common 
 atmospheric grids: the pressure grid
 \wsvindex{p\_grid}, the latitude grid  \wsvindex{lat\_grid}
 and the longitude grid \wsvindex{lon\_grid}. 
 Furthermore angle grids have to be defined for the scattering calculations  
 as the radiation field, the scattering efficiency matrix etc. depend
-on the direction. For this purpose  the workspace  
+on the propagation and incident directions. For this purpose  the workspace  
 variables \wsvindex{scat\_za\_grid} and \wsvindex{scat\_aa\_grid}
 have to be defined.
 
 The interface between the clear sky RT calculation and the cloudbox RT
-calculation is the radiation field on the boundary of the scattering
-box. The radiation field \StoVec\ on the boundary of the scattering box is stored
+calculation is the radiation field on the boundary of the cloudbox
+which is stored
 in the variables \wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
 \wsvindex{scat\_i\_lon}. The dimensions are 
 \begin{center}
@@ -617,13 +607,31 @@ in the variables \wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
  \artsstyle{scat\_i\_lon} = \artsstyle{scat\_i\_lon} (\Frq, \Prs, \Lat, 2(two surfaces), \ScaZa,
 \ScaAa, i$_I$).
 \end{center}
+where \Frq\ is the frequency, \Prs\ the pressure, \Lat\ the latitude,
+\Lon\ the longitude, \ScaZa\ and \ScaAa\  the zenith of the propagation
+the azimuthal angles of the propagation direction respectively and
+i$_I$ is the Stokes component. 
+
+In 3D geometry the variable  \wsvindex{scat\_i\_p} for example has the
+size:
+\begin{center}
+  N(\artsstyle{scat\_i\_p}) = $[N_\Frq, 2, N_\Lat, N_\Lon, N_\ScaZa,
+  N_\ScaAa, N_I]$
+\end{center}  
+
 
 \leveld{1D geometry}
 %=========================================================
-For 1D scattering calculations the same workspace variables are 
-used as for the 3D calculations. The dimensions which are not needed are empty. 
-As special grid inside the scattering box we need to specify only  
-\wsvindex{scat\_za\_grid}. 
+There are no special workspace variables for 1D calculations. The
+variables which are not needed, e.g. \wsvindex{scat\_i\_lat} and
+\wsvindex{scat\_i\_lon}, are still in the workspace but they are
+empty. For the interface only \wsvindex{scat\_i\_p} is needed and its
+size is in the 1D case
+\begin{center}
+N( \artsstyle{scat\_i\_p} ) = $[N_\Frq, 2, 1, 1,  N_\ScaZa, 1,  N_I]$
+\end{center}  
+Inside the scattering box we need to specify only  
+\wsvindex{scat\_za\_grid} (???? really ????). 
 
 As interface between the clear sky calculation and the cloud box calculation only 
   \begin{center}
@@ -636,63 +644,78 @@ is required. The other interface variables are empty.
 %=====================================
 \label{sec:scattering:main_function}
 
-The scattering main function \wsmindex{scat\_iterateCalc} requires the clear sky radiation 
+The scattering main function \wsmindex{scatCalc} requires the clear sky radiation 
 field on the cloud box boundary as input.
 It loops over the frequencies and in each loop it executes the agenda 
 \wsvindex{scat\_mono\_agenda}
 (see Section \ref{sec:scattering:scat_mono_ag}).\\
 Output of \wsmindex{ScatCalc} is the scattered radiation field on the
-boundary also stored in the variables \wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
-\wsvindex{scat\_i\_lon}.
+boundary also stored in the variables \wsvindex{scat\_i\_p},
+\wsvindex{scat\_i\_lat}
+and \wsvindex{scat\_i\_lon}.
 
-\levelc{Agenda \wsvindex{scat\_mono\_agenda}}
-%===================================
+
+\levelc{Solution of the monochromatic RTE}
+%========================================================================
 \label{sec:scattering:scat_mono_ag}
 
-The iteration scheme outlined in \ref{sec:scattering:solution_rte} is
-performed by \wsvindex{scat\_mono\_agenda} for one frequency specified
-by the frequency index \artsstyle{scat\_f\_index}. 
+The agenda \wsvindex{scat\_mono\_agenda} solves the radiative transfer
+equation inside the cloudbox for one frequency specified
+by the frequency index \wsvindex{scat\_f\_index}. 
 The agenda consists of a number of methods which have to be executed in
 the correct order.
+The agenda is set in the control file. To solve the RTE iteratively it
+is set in the following manner: \\ \\
+\artsstyle{ AgendaSet(scat\_mono\_agenda) \{\\
+i\_fieldSet\{\}\\
+i\_fieldIterate\{\}\\
+scat\_iPut\{\}\\
+\} }
+\\ \\
+The methods used by this agenda are described below.
 
-
+ 
 \leveld{Initial field}
-Input to the agenda is the radiation field on the cloud
-box boundary.
-Using a linear 3D interpolation scheme, we obtain a
-radiation field on all grid points inside the cloud box.
-This can be taken as a first guess for the iteration. The method
-\funcindex{i\_fieldInterpolateFromBoundary} performs this
-interpolation. It picks only the monochromatic radiation field
+%=======================================================================
+The workspace method \wsmindex{i\_fieldSet} 
+uses a linear 3D interpolation scheme to obtain the 
+radiation field on all grid points inside the cloud box from the clear
+sky field on the cloudbox boundary.
+This can be taken as a first guess for the iterative solution method
+of the RTE.  The method picks only the monochromatic radiation field
 corresponding to the actual frequency out of the variables
 \wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
 \wsvindex{scat\_i\_lon}. Output of the method is the initial field 
-which is stored in the internal variable
+which is stored in the workspace variable
 \begin{center}
-  \artsstyle{i\_field} $\in$ (\Prs, \Lat, \Lon, \ScaZa,
-\ScaAa). 
+ \wsvindex{i\_field} = \wsvindex{i\_field} (\Prs, \Lat, \Lon, \ScaZa,
+\ScaAa, i$_I$). 
 \end{center}
 
-\leveld{Iteration}
 
-The method \funcindex{i\_fieldCalc} performs the following steps 
-until convergence is obtained. As input the initial field stored in
-\artsstyle{i\_field} is required. Furthermore the method needs two
-agendas, the \wsvindex{scattered\_field\_agenda} and the
-\wsvindex{i\_field\_update\_agenda}.
+\leveld{Iteration}
+%=====================================================================
+The method \wsmindex{i\_fieldIterate} solves the RTE using the
+iterative method.  The function has
+inculded switches to adapt automatically to the atmospheric
+dimensionality specified
+in the workspace variable \wsvindex{atmosphere\_dim}. Note that only
+1D or 3D scattering calculations are possible. 
+The following steps are performed in each iteration until the solution
+of the radiation field converges.
 
 \begin{itemize}
 \item \artsstyle{i\_field} is copied to \artsstyle{i\_field\_old}.
-\item The scattered field is calculated using
-  \wsvindex{scattered\_field\_agenda}
-    (see Sections \ref{sec:scattering:scat_field_ag} and
+\item The scattered field is calculated using the method
+  \wsmindex{sca\_fieldCalc}
+    (see Sections \ref{sec:scattering:sca_fieldCalc} and
     \ref{sec:scattering:scat_int}).
 \item Calculate the new radiation field using
-  \wsvindex{i\_field\_update\_agenda}
- (see Sections \ref{sec:scattering:RT_ag} and
+  \wsmindex{i\_fieldUpdate1D} or \wsmindex{i\_fieldUpdate3D}.
+ (see Sections \ref{sec:scattering:RT_methods} and
   \ref{sec:scattering:RTE}).
 \item Do the convergence test (see Sections
-  \ref{sec:scattering:conv_method} and \ref{sec:scattering:conv})
+  \ref{sec:scattering:conv_method} and \ref{sec:scattering:conv}).
 \end{itemize}
 The solution of the radiative transfer equation is returned as output
 using the variable \artsstyle{i\_field}. 
@@ -702,52 +725,84 @@ The variable \artsstyle{i\_field} contains the radiation field only
 for one frequency. So there has to be a method which puts
 \artsstyle{i\_field} into the variables \wsvindex{scat\_i\_p},
 \wsvindex{scat\_i\_lat} and \wsvindex{scat\_i\_lon}. The method
-\funcindex{scat\_iPutIn} is doing this task.
-Of course it has to use the frequency index to know where
+\funcindex{scat\_iPut} is doing this task.
+It has to use the frequency index to know where
 to put \artsstyle{i\_field}.
  
 
-\levelc{Agenda to compute the scattered field}
+\levelc{Method to compute the scattered field}
 %=========================================
-\label{sec:scattering:scat_field_ag}
+\label{sec:scattering:sca_fieldCalc}
 
-\levelc{Agenda for RT with fixed scattering integral}
-%=====================================
-\label{sec:scattering:RT_ag}
-The \wsvindex{i\_field\_update\_agenda} needs the variables
-\artsstyle{i\_field\_old}, \artsstyle{scattered\_field}, \wsvindex{ext\_mat}
-and  \wsvindex{abs\_vec} as input.\\ 
-According to Equation(\ref{eq:scattering:RTE_sol}) it computes the new
-radiation field. The agenda starts with a loop over all grid points
-inside the scattering box. Then for each grid point the new intensity
-vector
- \StoVec\  is obtained for all directions by calculating the
-radiative transfer through the adjacent grid cells. We consider paths
-starting at the grid point into all directions and ending at the next
-intersection points with a grid cell boundary. The paths are calculated
-using the method \ref{sec:ppath}.\\
- The intensity vector at
-the intersection points \StoVec{0} is obtained by linear interpolation
-between the grid points using the interpolation routine (*** give 
-reference to section here ***)
-%\ref{sec:interpolation}. \\
-Computing the matrix exponential is done using the method
-\funcindex{matrix\_exp} explained in Section
-\ref{sec:lin_alg:mat_exp}.\\
- The term
-\ExtMat$^{-1}$[\AbsVec\Planck+\ScaInt] can be computed numerically  
-performing a LU decomposition. This is implemented in the workspace
-methods \wsmindex{ludcmp} and \wsmindex{lubacksub} which are described
-in the Sections \ref{sec:lin_alg:backsub} and
-\ref{sec:lin_alg:lu_decomp}. 
+\levelc{Methods for solving the RT with fixed scattering integral}
+%==================================================================
+\label{sec:scattering:RT_methods}
 
-{\Large \bf FIXME: Are these realle WSVs? In that case the names are
-  not according to the convention. SAB 04.06.2002}
+\leveld{Workspace method \artsstyle{i\_fieldUpdate1D}}
+%===================================================================
+For a 1D atmosphere the method  \wsmindex{i\_fieldUpdate1D} is used to
+evalutate the RT Equation (\ref{eq:scattering:RTE_sol}) and update the
+radiation field \wsvindex{i\_field} for each iteration. 
+The function loops over pressures given in \wsvindex{p\_grid} and
+propagation directions given in \wsvindex{scat\_za\_grid}.  
+The lower and upper indices for the loop over pressures are passed
+into the function by the workspace variable
+\wsvindex{cloudbox\_limits}. Inside the loops the following steps are
+performed:
+\begin{itemize}
+\item Calculate the coefficients of the RT Equation using appropriate agendas 
+  (\ref{eq:scattering:RTE_sol}):
+  \begin{itemize}
+  \item Extinction coefficient matrix: Execute \wsvindex{ext\_mat\_agenda} (see
+    Section \ref{sec:scattering:ext_mat_agenda}).
+  \item Scattering efficiency matrix: Execute \wsvindex{sca\_matCalc} (see
+    Section \ref{sec:scattering:sca_mat}).
+  \item Absorption coefficient vector:  Execute \wsvindex{abs\_vec\_agenda} (see
+    Section \ref{sec:scattering:abs_vec_agenda}).
+  \end{itemize}
+\item A  propagation path starting at the current point specified by
+  the internal variable \artsstyle{p\_index} is initialized. Its
+  direction is specified by \artsstyle{scat\_za\_index}. Using the
+  \wsvindex{ppath\_step\_agenda} (cp. Section
+  \ref{sec:ppath:stepcalc}) 
+  the intersection point with the next
+  layer is determined as well as the pathlength d{\bf s} from the starting
+  point to the intersection point.  
+\item Solve Equation (\ref{eq:scattering:RTE_sol}) using either the
+  method \artsstyle{sto\_vecCalc} if the Stokes dimension
+  \wsvindex{stokes\_dim} is greater
+  than one or \artsstyle{sto\_vec1dCalc} if  \wsvindex{stokes\_dim}
+  equals one, i.e. if the scalar case is considered. The two methods
+  are described below. The workspace
+  method adjusts automatically to the Stokes dimension which has to be
+  defined in the control file before doing scattering calculations. 
+\end{itemize}
 
-Output of the \wsvindex{i\_field\_update\_agenda} is the variable 
-\artsstyle{i\_field} which contains the new radiation field at all
-grid points in the cloudbox for all directions defined by 
-\wsvindex{scat\_za\_grid} and \wsvindex{scat\_aa\_grid}.
+\leveld{Method \artsstyle{sto\_vecCalc}}
+%================================================================
+There are two terms in the radiative transfer equation
+\ref{eq:scattering:RTE_sol} which are
+computed separately using different functions. The first term 
+\begin{equation}
+ e^{-\ExtMat s}\cdot\StoVec_0
+\end{equation}
+includes the matrix exponential function. This is solved numerically
+using the Pad\'e approximation as implemented in the function 
+\artsstyle{matrix\_exp} (see Section \ref{sec:lin_alg:mat_exp}).
+The second term 
+\begin{equation}
+(\IdnMat - e^{-\ExtMat
+    s}) \ExtMat\Inv (\AbsVec \Planck + \ScaInt_0)
+\end{equation}
+includes the inverse of \ExtMat\ multiplied with a vector. This is
+computed numerically by a LU decomposition as described in the
+Sections \ref{sec:lin_alg:backsub} and
+\ref{sec:lin_alg:lu_decomp}. The functions used here are
+\wsmindex{ludcmp} and \wsmindex{lubacksub}. The matrix emponential is
+computed using again \artsstyle{matrix\_exp}.
+
+Finally the method sums up the two terms to get the updated Stokes Vector. 
+ 
 
 \levelc{Convergence test method}
 %====================================

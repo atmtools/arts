@@ -22,24 +22,24 @@ for other purposes than the radiative transfer calculations.
 
 All the functions described below can be found in the files:
 \begin{itemize}
-\item \verb|lin_alg.h|
-\item \verb|lin_alg.cc|
+\item \artsstyle{lin\_alg.h}
+\item \artsstyle{lin\_alg.cc}
 \end{itemize}
-The template class \verb|Array| and the classes \verb|Matrix| and
-\verb|Vector| are used, therefore the linear algebra functions require
+The template class \artsstyle{Array} and the classes \artsstyle{Matrix} and
+\artsstyle{Vector} are used, therefore the linear algebra functions require
 the files:
 \begin{itemize}
-\item \verb|matpackI.h|
-\item \verb|make_vector.h|
-\item \verb|array.h|
-\item \verb|matpackI.cc|
-\item \verb|make_vector.cc|
-\item \verb|array.cc|
+\item \artsstyle{matpackI.h}
+\item \artsstyle{make\_vector.h}
+\item \artsstyle{array.h}
+\item \artsstyle{matpackI.cc}
+\item \artsstyle{make\_vector.cc}
+\item \artsstyle{array.cc}
 \end{itemize}
 Furthermore logical functions contained in
 \begin{itemize}
-\item \verb|logic.h|
-\item \verb|logic.cc|
+\item \artsstyle{logic.h}
+\item \artsstyle{logic.cc}
 \end{itemize}
 are used to check the dimensions of input matrices for various functions.
 
@@ -60,7 +60,7 @@ of the algorithm described in
 is the Gauss-Jordan elimination, but this method is three times
 slower than the LU decomposition method
 [\cite{numerical_recipes_C:97}, p.36]. The LU decomposition method
-reqires two functions, \wsmindex{ludcmp} and \wsmindex{lubacksub},
+reqires two functions, \artsstyle{ludcmp} and \artsstyle{lubacksub},
 which will be decribed below.
 \vspace{0.5cm}\\
 The following example for a three dimensional equation sytem 
@@ -69,24 +69,24 @@ equation sytem of the type
 (\ref{eq:lin_equ_sys}):
 \begin{itemize}
 \item Create matrix A, vector b: \\
-  \verb|A = Matrix(3,3);| \\
-  \verb|A(1,1) = 4;|\\
-  \verb|A(2,1) = 3;|\\
+  \artsstyle{A = Matrix(3,3);} \\
+  \artsstyle{A(1,1) = 4;}\\
+  \artsstyle{A(2,1) = 3;}\\
   $\cdots$\\
-  \verb|b = Vector(3);|\\
-  \verb|b(1) = 7;|\\
+  \artsstyle{b = Vector(3);}\\
+  \artsstyle{b(1) = 7;}\\
   $\cdots$
 \item Initialize solution vector x and two other variables needed for
   storing intermediate results:\\
-  \verb|x = Vector(3);|\\
-  \verb|LU = Matrix(3,3);|\\
-  \verb|indx = ArrayOfIndex(3);|
+  \artsstyle{x = Vector(3);}\\
+  \artsstyle{LU = Matrix(3,3);}\\
+  \artsstyle{indx = ArrayOfIndex(3);}
 \item Call LU decomposition function (see Section \ref{sec:lin_alg:lu_decomp}): \\
-  \verb|ludcmp(LU, indx, A);|
+  \artsstyle{ludcmp(LU, indx, A);}
 \item Call LU backsubstitution function (see Section \ref{sec:lin_alg:backsub}): \\
-  \verb|lubacksub(x, LU, b, indx);|
+  \artsstyle{lubacksub(x, LU, b, indx);}
 \item Print the solution vector:\\
-  \verb|cout << x;|
+  \artsstyle{cout << x;}
 \end{itemize}
 
 \levelc{LU Decomposition}
@@ -308,24 +308,24 @@ q & $\epsilon$(q,q) \\ \hline
 \hline
 \end{tabular}
 \vspace{0.5cm}\\
-The algorithm is implemented in the function \wsmindex{matrix\_exp}. Input
+The algorithm is implemented in the function \artsstyle{matrix\_exp}. Input
 to this function is the matrix ${\bf A}$ and the parameter $q$. As output
 it gives the matrix ${\bf F}$ which is defined above.\\
-The following example shows how to use the \verb|matrix_exp| function:
+The following example shows how to use the \artsstyle{matrix\_exp} function:
 \begin{itemize}
 \item Initialize {\bf A} and assign values:\\
-  \verb|Matrix A(3,3);|\\
-  \verb|A(1,1) = 45;|\\
-  \verb|A(1,2) = 3;|\\
+  \artsstyle{Matrix A(3,3);}\\
+  \artsstyle{A(1,1) = 45;}\\
+  \artsstyle{A(1,2) = 3;}\\
 $\cdots$ 
 \item Initialize {\bf F}:\\
-  \verb|Matrix F(3,3);|
+  \artsstyle{Matrix F(3,3);}
 \item Give a paramater for the accuracy:\\
-  \verb|Index q=6;|
+  \artsstyle{Index q=6;}
 \item Call the matrix exponential function:\\
-  \verb|matrix_exp(F,A,q);|
+  \artsstyle{matrix\_exp(F,A,q);}
 \item Print the result: \\
-  \verb|cout << "exp(A) = " << F;|
+  \artsstyle{cout << "exp(A) = " << F;}
 \end{itemize}
 
 
