@@ -1,0 +1,330 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Vectors, matrices, and arrays}
+%-------------------------------------------------------------------------
+\label{sec:matpack}
+
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  011018 & Created and written by Stefan Buehler.\\
+\stophistory
+
+
+
+
+%
+% Introduction
+%
+
+This section describes how vectors and matrices are implemented in
+ARTS and how they are used. Furthermore it describes how arrays of
+arbitrary type can be constructed and used.
+
+
+\levelb{Implementation files}
+%-------------------------------------------------------------------------
+\label{sec:matpack:files}
+
+The \verb|Matrix| and \verb|Vector| classes described below reside in the files:
+\begin{itemize}
+\item \verb|matpackI.h|
+\item \verb|make_vector.h|
+\item \verb|matpackI.cc|
+\item \verb|make_vector.cc|
+\end{itemize}
+
+There is also a file \verb|matpackII.h|, which contains the draft of a sparse
+matrix class, but this is at the moment not used. The template class
+\verb|Array| (also described below) is implemented in the files:
+\begin{itemize}
+\item \verb|array.h|
+\item \verb|make_array.h|
+\end{itemize}
+
+The file \verb|test_matpack.cc| contains test cases and usage
+examples. 
+
+\levelb{Vectors}
+%-------------------------------------------------------------------------
+\label{sec:matpack:vectors}
+
+The class \verb|Vector| implements the mathematical concept of a
+vector. (Surprise, surprise.) This means that:
+\begin{itemize}
+\item A Vector contains a list of floating point values of type \verb|Numeric|.
+\item A Vector can be multiplied with another vector (scalar product),
+  or with a Matrix.
+\item Sub-ranges of a Vector can easily be accessed, and used as if
+  they were Vectors.
+\item Resizing a Vector is expensive and should be avoided.
+\end{itemize}
+
+\levelc{Constructing a Vector}
+%-------------------------------------------------------------------------
+You can construct an object of class Vector in any of these ways:
+
+\begin{verbatim}
+Vector a;         // Create empty Vector.
+Vector b(3);      // Create Vector of length 3, if
+                  // created like this it will contain
+                  // arbitrary values.
+Vector c(3,0.0);  // Create Vector of length 3, and
+                  // fill it with 0.
+
+Vector d=c;       // Make d a copy of c.
+
+Vector e(1,5,1);  // 1, 2, 3, 4, 5
+Vector f(1,5,.5); // 1, 1.5, 2, 2.5, 3
+Vector g(5,5,-1); // 5, 4, 3, 2, 1
+\end{verbatim}
+
+The last three examples all use the same constructor, which takes
+the three arguments `start', `extent', and `stride'. It will create a
+Vector containing `extent' elements, starting with `start', with a
+step of `stride'.
+
+There also exists a special sub-class of Vector that can be initialized
+explicitly. This must be a special class in order to avoid ambiguities
+with the standard constructors. Usage:
+
+\begin{verbatim}
+MakeVector a(1.0,2.0,3.0);  // Creates a vector of length 3 
+                            // containing the values 
+                            // 1.0, 2.0, and 3.0.
+\end{verbatim}
+
+You can use MakeVectors just like Vectors, except that the
+constructors are different. Otherwise you can mix them freely with
+Vectors. 
+
+\levelc{VectorViews}
+%-------------------------------------------------------------------------
+
+An object of class \verb|VectorView| is, like the name says, just
+another view on an existing Vector. It does not have its own
+data. This has the important consequence that it cannot be resized,
+since that would mess up the original Vector that the view is
+referring to. You can create VectorViews from Vectors using the index
+operator `[]', the class \verb|Range|, and the special \verb|joker|
+object. Examples:
+
+\begin{verbatim}
+MakeVector x(1,2,3,4,5,6,7); 
+VectorView a = x;                 // Now a refers to the 
+                                  // whole of x;
+VectorView b = x[Range(joker)];   // Same effect.
+VectorView c = x[Range(0,2)];     // Take 2 elements of x, 
+                                  // starting at the 
+                                  // beginning,
+                                  // in this case: 1,2.
+VectorView d = x[Range(0,3,2)];   // In this case: 1,3,5.
+VectorView e = x[Range(3,joker)]; // In this case: 4,5,6,7.
+\end{verbatim}
+
+As you can see, most useful ways to create VectorViews involve the
+Range class. The general constructor to this class takes three
+arguments, `start', `extent', and `stride'. This means that you will
+select `extent' elements from the Vector, starting with index `start',
+with a step-width of stride. Note that indices are 0-based, so 0
+refers to the first element. The last argument, `stride', can be
+omitted, in that case the default of 1 is assumed. As a special case,
+`extent'==\verb|joker| means `to the end', and calling Range with only one
+argument \verb|joker| means `all elements'.
+
+Usually, you will not have to use VectorView explicitly, because you
+can use expressions like:
+
+\begin{verbatim}
+Vector a(1,5,1);                // a = 1,2,3,4,5
+Vector b = a[Range(1,3)];       // b = 2,3,4
+\end{verbatim}
+
+However, \verb|VectorView| and the related class
+\verb|ConstVectorView| are extremely useful as the argument types of
+functions operating on Vectors. You should define your functions like
+this:
+
+\begin{verbatim}
+void silly_function(VectorView a,      // Output argument
+                    ConstVectorView b  // Input argument
+                                       // (read only)
+                   )
+{
+   // Do some silly stuff with a and b.
+}
+\end{verbatim}
+
+Note that there must not be any `\&' after VectorView or
+ConstVectorView. In other words they have to be passed by value, not
+by reference. This is ok, since they do not contain the actual
+data, so that passing by value is efficient. Passing VectorViews by
+reference is forbidden.
+
+You should use these kind of arguments for all input Vectors, and also
+for the output if you have a function that does not resize the output
+Vector. This has the great advantage that you can call the function
+with Vector sub-ranges, e.g., 
+\begin{verbatim}
+Vector a(1,5,1);                  // a = 1,2,3,4,5
+Vector b(3);                      // Set size of b.
+silly_function(b,a[Range(0,3)]);  // Call fuction with
+                                  // sub-range of a.
+\end{verbatim}
+
+An exception to this rule are workspace methods, which use
+conventional argument types \verb|const Vector&| for input and
+\verb|Vector&| for output.
+
+\levelc{What you can do with a Vector (or VectorView)}
+%-------------------------------------------------------------------------
+
+All examples below (except for the first) assume that \verb|a| is a
+Vector, MakeVector, or VectorView.
+
+\leveld{Resize (only for Vector, not for VectorView!)}
+\begin{verbatim}
+a.resize(5);
+\end{verbatim}
+This makes \verb|a| a 5 element vector. The new Vector is not
+initialized (i.e., the contents will be unpredictable). Also, note
+that the previous content will be completely lost. Appending to a
+Vector is not possible.
+
+\leveld{Get the number of elements:}
+\begin{verbatim}
+cout << a.nelem();
+\end{verbatim}
+
+\leveld{Sum up all elements:}
+\begin{verbatim}
+cout << a.sum();
+\end{verbatim}
+
+\leveld{Element access:}
+\begin{verbatim}
+cout << a[3];   // Print 4th element.
+a[0] = 3.5;     // Assign 3.5 to first element.
+\end{verbatim}
+
+Note that we use 0-based indexing! Furthermore note that the operator
+`[]' can be also used with \verb|Range|, as explained above.
+
+\leveld{Copying Vectors:}
+\begin{verbatim}
+Vector b;
+b.resize(a.nelem());
+b = a;
+\end{verbatim}
+
+This one is a bit tricky. The `=' operator always copies the
+\emph{contents}, so the sizes of the left-hand and right-hand argument
+must match. Vector internally uses assertions to make sure of
+this. So, if you get an assertion failure one reason could be that you
+forgot to make b the correct size.
+
+The reason for this behavior is to preserve computational
+efficiency. Resizing Vectors is expensive, so it is never done
+automatically. Another reason is, that this way sub-ranges can be used
+to full advantage, e.g.:
+
+\begin{verbatim}
+b[Range(5,5,-1)] = a[Range(3,5)];  // Copy 5 elements from 
+                                   // a to b, reversing 
+                                   // the order and starting
+                                   // with index 3 in a.
+\end{verbatim}
+
+Maybe you have noticed that there is a way to formulate the first
+example above in a much shorter fashion:
+
+\begin{verbatim}
+Vector b = a;
+\end{verbatim}
+
+The result is exactly the same. Note, though, that in this case b is
+\emph{constructed} from a, not copied (see section about constructing
+Vectors above). The Vector b is just generated in this case, therefore
+its size can be adjusted to that of a automatically.
+
+\leveld{Assigning a scalar:}
+\begin{verbatim}
+a = 1.0;                        // Assign 1 to all elements.
+\end{verbatim}
+
+\leveld{Mathematical operators;}
+\begin{verbatim}
+Vector a(1,3,1), b(3,1); // a = 1,2,3; b = 1,1,1
+a *= 2;                  // a = 2,4,6
+                         // Similarly, /=, +=, -=
+a += b;                  // a = 3,5,7
+                         // Similarly, -=, *=, /=
+a += a;                  // a = 6,10,14
+                         // So a can appear on both sides.
+\end{verbatim}
+
+All these operate element-wise.  Note, that there are no return
+versions of these operators (i.e., expressions like \verb|b = a+1| are
+not possible). This is again for efficiency reasons. It is currently
+an active area of research in programming techniques how to make this
+kind of expression efficient. None of the available solutions works,
+so ARTS has to live without it.
+
+\leveld{Maximum and minimum:}
+\begin{verbatim}
+cout << max(a);
+cout << min(a);
+\end{verbatim}
+
+\leveld{Scalar product:}
+\begin{verbatim}
+cout << a*a;
+\end{verbatim}
+
+This is an exception to the rule not to have return versions of
+operators. The reason is quite obvious: The return value is only a
+scalar. 
+
+\leveld{Arbitrary single-argument math functions:}
+\begin{verbatim}
+Vector b(a.nelem());
+transform(b,sin,a);  // b = sin(a)
+transform(b,cos,b);  // b = sin(b)
+                     // So b can appear on both sides.
+\end{verbatim}
+
+The transform function operates on each element of \verb|a| with the
+function you specify and puts the result in \verb|b|. Note that the
+order of the arguments is swapped compared to the old function
+\verb|trans| that we had in the pre-Matpack era.
+
+\leveld{}
+\begin{verbatim}
+
+\end{verbatim}
+
+\leveld{}
+\begin{verbatim}
+
+\end{verbatim}
+
+
+
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "uguide" 
+%%% End:
+

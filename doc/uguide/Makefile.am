@@ -26,8 +26,9 @@ texfiles = \
 	references.bib \
 	chapter_template.tex \
 	concept.tex \
-	development.tex \
 	formalism.tex \
+	development.tex \
+	matrix_vector.tex \
 	formats.tex \
 	los1d.tex \
 	main.tex \
