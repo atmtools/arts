@@ -1,3 +1,11 @@
+2001-07-11  Oliver Lemke  <olemke@core-dump.net>
+
+	* arts-0-0-185
+
+	* data: Data directory and all subdirectories removed.
+	Use package arts-data!!!!
+	
+
 2001-07-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-184
