@@ -47,6 +47,7 @@
 #include "check_input.h"
 #include "math_funcs.h"
 #include "mystring.h"
+#include "logic.h"
 #include "interpolation.h"
 #include "ppath.h"
 
@@ -416,7 +417,7 @@ Index ppath_what_background(
 
    All input variables are identical with the WSV with the same name.
    The output variable is here called ppath for simplicity, but is in
-   fact *ppath_partial*.
+   fact *ppath_step*.
 
    \param   ppath             Output: A Ppath structure.
    \param   atmosphere_dim    The atmospheric dimensionality.
@@ -577,9 +578,19 @@ void ppath_start_stepping(
 
 //! ppath_step_geom_1d
 /*! 
- This is just a test text.
+   Calculates 1D geometrical propagation path steps.
 
- Some more text.
+   This is the core function to determine 1D propagation path steps by pure
+   geometrical calculations. Path points are included for crossings with the 
+   grids, tangent points and points of ground intersections. In addition,
+   points are included in the propgation path to ensure that the distance
+   along the path between the points does not exceed the selected maximum 
+   length (lmax).
+
+   Note that the input variables are here compressed to only hold data for
+   a 1D atmosphere. For example, z_grid is z_field(:,0,0).
+
+   For more information read the chapter on propagation paths in AUG.
 
    \param   ppath             Output: A Ppath structure.
    \param   atmosphere_dim    The atmospheric dimensionality.
@@ -607,6 +618,12 @@ void ppath_step_geom_1d(
   const Index imax = ppath.np - 1;
 
   // First asserts (more below)
+  assert( p_grid.nelem() == z_grid.nelem() );
+  assert( p_grid.nelem() >= 2 );
+  assert( r_geoid > 0 );
+  assert( is_bool( blackbody_ground ) );
+  assert( lmax > 0 );
+  //
   assert( ppath.dim == atmosphere_dim );
   assert( ppath.np >= 1 );
   assert( ppath.gp_p[imax].idx >= 0 );
@@ -828,30 +845,4 @@ void ppath_step_geom_1d(
 	    }
 	}
     }
-}
-
-
-
-
-
-/*****************************************************************************
- *** Lo
- *****************************************************************************/
-
-//! ppath_step_geom
-/*! 
-
-   \author Patrick Eriksson
-   \date   2002-05-27
-*/
-void ppath_step_geom(
-	      Ppath&      ppath,
-        const Index&      atmosphere_dim,
-        ConstVectorView   p_grid,
-        ConstVectorView   z_grid,
-        const Numeric&    r_geoid,
-        const Numeric&    z_ground,
-        const Index&      blackbody_ground,
-	const Numeric&    lmax )
-{
 }

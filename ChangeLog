@@ -1,3 +1,18 @@
+2002-05-28  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-96
+
+	* doc/uguide/fm_definitions.tex: Updated the text to follow some 
+	changes regarding definitions and the name of variables. The parts
+	on sensor variables and RTE calculations not yet ready.
+
+	* src/m_ppath.cc and src/methods.cc: Added the functions:
+	   ppath_stepGeometric
+	   ppath_stepGeometricWithLmax
+
+	* src/workspace.cc: The variable ppath_partial is re-named to 
+	ppath_step.
+
 2002-05-27  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-95

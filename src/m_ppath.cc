@@ -206,92 +206,92 @@ void ppathCalc(
 
 
   // Initiate the partial Ppath structure. 
-  // The function doing the work sets ppath_partial to the last point of the
+  // The function doing the work sets ppath_step to the last point of the
   // path inside the atmosphere, if the path is at all inside the atmosphere.
   // If the background field is set by the function this flags that there is no
   // path to follow (for example when the sensor is inside the cloud box).
   // The function checks also that the sensor and the last point of the path 
   // are at allowed locations.
   //
-  Ppath ppath_partial;
+  Ppath ppath_step;
   //
-  ppath_start_stepping( ppath_partial, atmosphere_dim, p_grid, lat_grid, 
+  ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
                         lon_grid, z_field, r_geoid, z_ground, blackbody_ground,
                         cloudbox_on, cloudbox_limits, a_pos, a_los );
 
   // Perform propagation path steps until the starting point is found, which
   // is flagged by ppath_step by setting the background field.
   //
-  // The results of each step, returned by ppath_step as a new ppath_partial,
-  // are stored as an array of Ppath structures.
+  // The results of each step, returned by ppath_step_agenda as a new 
+  // ppath_step, are stored as an array of Ppath structures.
   //
   Array<Ppath>   ppath_array;
-  ppath_array.push_back( ppath_partial );
+  ppath_array.push_back( ppath_step );
   // 
-  Index   np = ppath_partial.np;   // Counter for number of points of the path
+  Index   np = ppath_step.np;   // Counter for number of points of the path
   //
   const Index imax_p   = p_grid.nelem() - 1;
   const Index imax_lat = lat_grid.nelem() - 1;
   const Index imax_lon = lon_grid.nelem() - 1;
   //
-  while( !ppath_what_background( ppath_partial ) )
+  while( !ppath_what_background( ppath_step ) )
     {
       // Call ppath_step agenda
 
       // For the moment, a hard-coded version:
-      ppath_step_geom_1d( ppath_partial, atmosphere_dim, p_grid, 
-                    z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), 
-                                                     blackbody_ground, 50e3 );
+      ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid, lat_grid, 
+		      lon_grid, z_field, r_geoid, z_ground, blackbody_ground );
+
 
       // Number of points in returned path step
-      const Index n = ppath_partial.np;
+      const Index n = ppath_step.np;
 
       // Increase the total number
       np += n - 1;
 
-      // Put new ppath_partial in ppath_array
-      ppath_array.push_back( ppath_partial );
+      // Put new ppath_step in ppath_array
+      ppath_array.push_back( ppath_step );
 
       // Check if the top of the atmosphere is reached
-      if( is_gridpos_at_index_i( ppath_partial.gp_p[n-1], imax_p ) )
-	{ ppath_set_background( ppath_partial, 1 ); }
+      if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
+	{ ppath_set_background( ppath_step, 1 ); }
 
       // Check that path does not exit at a latitude or longitude end face
       if( atmosphere_dim >= 2 )
 	{
-	  if( is_gridpos_at_index_i( ppath_partial.gp_lat[n-1], 0 ) )
+	  if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], 0 ) )
 	    {
 	      ostringstream os;
 	      os << "The path enters the atmosphere through the lower latitude"
-		 << "end face,\nat altitude " << ppath_partial.z[n-1]/1e3 
+		 << "end face,\nat altitude " << ppath_step.z[n-1]/1e3 
                  << " km.";
 	      throw runtime_error( os.str() );
 	    }
-	  if( is_gridpos_at_index_i( ppath_partial.gp_lat[n-1], imax_lat ) )
+	  if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
 	    {
 	      ostringstream os;
 	      os << "The path enters the atmosphere through the upper latitude"
-		 << "end face,\nat altitude " << ppath_partial.z[n-1]/1e3 
+		 << "end face,\nat altitude " << ppath_step.z[n-1]/1e3 
                  << " km.";
 	      throw runtime_error( os.str() );
 	    }
 
 	  if( atmosphere_dim == 3 )
 	    {
-	      if( is_gridpos_at_index_i( ppath_partial.gp_lon[n-1], 0 ) )
+	      if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 ) )
 		{
 		  ostringstream os;
 		  os << "The path enters the atmosphere through the lower " 
 		     << "longitude end face,\nat altitude " 
-		     << ppath_partial.z[n-1]/1e3 << " km.";
+		     << ppath_step.z[n-1]/1e3 << " km.";
 		  throw runtime_error( os.str() );
 		}
-	      if( is_gridpos_at_index_i( ppath_partial.gp_lon[n-1], imax_lon ))
+	      if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ))
 		{
 		  ostringstream os;
 		  os << "The path enters the atmosphere through the upper "
                      << "longitude end face,\nat altitude " 
-                     << ppath_partial.z[n-1]/1e3 << " km.";
+                     << ppath_step.z[n-1]/1e3 << " km.";
 		  throw runtime_error( os.str() );
 		}
 	    }
@@ -300,29 +300,29 @@ void ppathCalc(
       // Check if there is an intersection with an active cloud box
       if( cloudbox_on )
 	{
-	  Numeric ipos = Numeric( ppath_partial.gp_p[n-1].idx ) + 
-                                                 ppath_partial.gp_p[n-1].fd[0];
+	  Numeric ipos = Numeric( ppath_step.gp_p[n-1].idx ) + 
+                                                    ppath_step.gp_p[n-1].fd[0];
 	  if( ipos >= Numeric( cloudbox_limits[0] )  && 
 	                                ipos <= Numeric( cloudbox_limits[1] ) )
 	    {
 	      if( atmosphere_dim == 1 )
-		{ ppath_set_background( ppath_partial, 3 ); }
+		{ ppath_set_background( ppath_step, 3 ); }
 	      else
 		{
-		  ipos = Numeric( ppath_partial.gp_lat[n-1].idx ) + 
-                                               ppath_partial.gp_lat[n-1].fd[0];
+		  ipos = Numeric( ppath_step.gp_lat[n-1].idx ) + 
+                                                  ppath_step.gp_lat[n-1].fd[0];
 		  if( ipos >= Numeric( cloudbox_limits[2] )  && 
 	                                ipos <= Numeric( cloudbox_limits[3] ) )
 		    {
 		      if( atmosphere_dim == 2 )
-			{ ppath_set_background( ppath_partial, 3 ); }
+			{ ppath_set_background( ppath_step, 3 ); }
 		      else
 			{
-			  ipos = Numeric( ppath_partial.gp_lon[n-1].idx ) + 
-                                               ppath_partial.gp_lon[n-1].fd[0];
+			  ipos = Numeric( ppath_step.gp_lon[n-1].idx ) + 
+                                                  ppath_step.gp_lon[n-1].fd[0];
 			  if( ipos >= Numeric( cloudbox_limits[4] )  && 
 	                                ipos <= Numeric( cloudbox_limits[5] ) )
-			    { ppath_set_background( ppath_partial, 3 ); } 
+			    { ppath_set_background( ppath_step, 3 ); } 
 			}
 		    }
 		}
@@ -401,10 +401,10 @@ void ppathCalc(
 	  np += n - i1;
 	}
     }  
-  ppath.method     = ppath_partial.method;
-  ppath.refraction = ppath_partial.refraction;
-  ppath.constant   = ppath_partial.constant;
-  ppath.background = ppath_partial.background;
+  ppath.method     = ppath_step.method;
+  ppath.refraction = ppath_step.refraction;
+  ppath.constant   = ppath_step.constant;
+  ppath.background = ppath_step.background;
 
 
   // Print the structure
@@ -428,6 +428,87 @@ void ppathCalc(
       PrintVector( ppath.z, "z" );
       PrintVector( ppath.l_step, "l_step" );
       PrintMatrix( ppath.los, "los" );
+    }
+}
+
+
+
+//! ppath_stepGeometric
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void ppath_stepGeometric(
+        // WS Output:
+              Ppath&     ppath_step,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Vector&    p_grid,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Tensor3&   z_field,
+        const Matrix&    r_geoid,
+        const Matrix&    z_ground,
+        const Index&     blackbody_ground )
+{
+  // Input checks here would be rather costly as this function is called
+  // many times. So we perform asserts in the sub-functions, but no checks 
+  // here. This commented in the on-line information.
+
+  // Note that lmax is here set to 9999 km
+
+  if( atmosphere_dim == 1 )
+    { ppath_step_geom_1d( ppath_step, atmosphere_dim, p_grid, 
+               z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0),
+                                                    blackbody_ground, 9999e3 );
+    }
+  else
+    {
+      throw runtime_error(
+                     "2D and 3D propagation path steps are not yet handled." );
+    }
+}
+
+
+
+//! ppath_stepGeometricWithLmax
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void ppath_stepGeometricWithLmax(
+        // WS Output:
+              Ppath&     ppath_step,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Vector&    p_grid,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Tensor3&   z_field,
+        const Matrix&    r_geoid,
+        const Matrix&    z_ground,
+        const Index&     blackbody_ground,
+        // Control Parameters:
+        const Numeric&   lmax)
+
+{
+  // Input checks here would be rather costly as this function is called
+  // many times. So we perform asserts in the sub-functions, but no checks 
+  // here. This commented in the on-line information for ppath_stepGeometric.
+
+  if( atmosphere_dim == 1 )
+    { ppath_step_geom_1d( ppath_step, atmosphere_dim, p_grid, 
+               z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0),
+                                                      blackbody_ground, lmax );
+    }
+  else
+    {
+      throw runtime_error(
+                     "2D and 3D propagation path steps are not yet handled." );
     }
 }
 

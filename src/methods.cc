@@ -950,8 +950,18 @@ void define_md_data()
       ( NAME( "ppathCalc" ),
 	DESCRIPTION
         (
-	 "To be written. The function is being implemented.\n"
-         ""
+	 "Main function for calculation of propagation paths..\n"
+	 "\n"
+	 "There exists only one function to calculate total propagation\n"
+	 "paths and this is that function. The function is normally not\n"
+	 "visible in the control file, it is called from inside *rteCalc*.\n"
+	 "A reason to call this function directly would be to plot a\n"
+	 "propgation path.\n"
+	 "\n"
+	 "The definition of a propgation path cannot be accomodated here.\n"
+	 "For more information read the chapter on propagation paths in the\n"
+	 "ARTS user guide and read the  on-line information for\n"
+	 "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
         ),
 	OUTPUT( ppath_ ),
 	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -961,6 +971,66 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "ppath_stepGeometric" ),
+	DESCRIPTION
+        (
+	 "Calculates a geometrical propagation path step.\n"
+	 "\n"
+	 "This function determines a propagation path step by pure\n"
+         "geometrical calculations. That is, refraction is neglected. Path\n"
+         "points are included for crossings with the grids, tangent points\n"
+	 "and points of ground intersections.\n"
+	 "\n"
+	 "Functions to determine propagation path steps, as this function,\n"
+	 "are normally not called directly. They are instead normally part\n"
+	 "of *ppath_step_agenda* and then called from *ppathCalc*.\n"
+	 "\n"
+	 "As functions of this kind should very seldom be called directly,\n"
+	 "and that the functions can be called a high number of times, these\n"
+	 "functions do not perform any checks of the input that give\n" 
+	 "detailed error messages, but asserts are performed (if turned on).\n"
+	 "\n"
+         "For further information, type see the on-line information for\n"
+	 "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
+        ),
+	OUTPUT( ppath_step_ ),
+	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+               r_geoid_, z_ground_, blackbody_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "ppath_stepGeometricWithLmax" ),
+	DESCRIPTION
+        (
+	 "As *ppath_stepGeometric* but with a length criterion for the\n"
+         "distance between the path points.\n"
+	 "\n"
+	 "This function works as *ppath_stepGeometric* but additional points\n"
+	 "are included in the propagation path to ensure that the distance\n"
+	 "along the path between the points does not exceed the selected\n"
+	 "maximum length. The length criterion is set by the keyword\n"
+	 "argument.\n"
+	 "\n"
+         "See further the on-line information for *ppath_stepGeometric*\n"
+	 "(type \"arts -d ppath_stepGeometric\").\n"
+	 "\n"
+         "Keywords: \n"
+         "   lmax : Maximum allowed length between path points.\n"
+        ),
+	OUTPUT( ppath_step_ ),
+	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+               r_geoid_, z_ground_, blackbody_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "lmax"),
+	TYPES(    Numeric_t )));
 
   md_data.push_back
     ( MdRecord

@@ -484,7 +484,7 @@ imaginary sensor with infinite frequency and angular resolution. The
 workspace variables for the sensor that always must be specified are
 \artsstyle{sensor\_pos}, \artsstyle{sensor\_los},
 \artsstyle{sensor\_pol}, \artsstyle{antenna\_dim},
-\artsstyle{psi\_block\_grid}, \artsstyle{omega\_block\_grid} and
+\artsstyle{za\_block\_grid}, \artsstyle{aa\_block\_grid} and
 \artsstyle{Hb}. These variables are presented separately below in this
 section. The discussion of sensor workspace variables is continued in
 Section~\ref{sec:fm_defs:sensor2}. The Section~\ref{sec:fm_defs:rte}
@@ -541,12 +541,13 @@ path taken by the observed radiation
 (Section~\ref{sec:fm_defs:ppaths}).  The zenith and azimuthal angles
 are defined identical in these two contexts. This is expected as the
 position of the sensor is the end point of the propagation path. The
-line-of-sight of \textindex{propagation path}s is defined in the
-direction the radiation travels to reach the sensor, while the sensor
-line-of-sight is the direction the antenna is pointed to receive the
-radiation. This means that the sensor and path line-of-sights (at the
-sensor) are parallel but go in opposite directions. As a true sensor
-has a limited spatial resolution (described by the antenna pattern),
+sensor line-of-sight is the direction the antenna is pointed to
+receive the radiation. The line-of-sight for propagation paths is
+defined liekwise, it is the direction in which a hypothetical sensor
+must be placed to recieve the radiation along the propagation path at
+the point of interest. This means that the line-of-sight and the
+photons are going in opposite directions. As a true sensor has a
+limited spatial resolution (described by the antenna pattern),
 theoretically there are an infinite number of line-of-sights
 associated with the sensor, but in the forward model spectra are only
 calculated for a discrete set of directions. If a sensor line-of-sight
@@ -585,16 +586,14 @@ the centre of the antenna pattern is directed.
 The \textindex{zenith angle}, \ZntAng, is simply the angle between the
 line-of-sight and the zenith direction (Figure~\ref{fig:fm_defs:los}).
 The valid range for 1D and 3D cases is $[0,180\degree]$. In the case
-of 2D, zenith angles down to -180\degree are also allowed, where the
-distinction is that positive angles mean a viewing direction is
-towards higher latitudes, and vice versa. It should be mentioned that
-the zenith and nadir directions are here defined to be along the line
+of 2D, zenith angles down to -180\degree\ are also allowed, where the
+distinction is that positive angles mean a viewing direction towards
+higher latitudes, and vice versa. It should be mentioned that the
+zenith and nadir directions are here defined to be along the line
 passing the centre of the coordinate system and the point of concern
 (Section~\ref{sec:ppath:geoid}). A nadir observation,
 $\ZntAng=180\degree$, is thus a measurement towards the centre of the
-coordinate system. The maximum absolute value of a zenith angle is
-180\degree. For 1D and 3D, positive and negative zenith angles are
-treated identically, while for 2D a distinction is made.
+coordinate system.
 
 The \textindex{azimuthal angle}, \AzmAng, is given with respect to the
 \textindex{meridian plane}, that is, the plane going through the north
@@ -618,7 +617,7 @@ number of rows for \artsstyle{sensor\_los} must be the same as for
 %===================
 \label{sec:fm_defs:sensorpol}
 
-[* How shall this be handled? Can a transfer matrix be used?
+[* How shall this be handled? A transfer matrix cannot be used?
 \wsvindex{sensor\_pol} *]
 
 
@@ -656,8 +655,8 @@ There is only one compulsory transfer matrix and it is \aSnsMtr{b}
 (\wsvindex{Hb}), where the subscript $b$ stands for block (see further
 Section~\ref{sec:fm_defs:seqsandblocks}). There are several workspace
 variables associated with this transfer matrix where
-\wsvindex{antenna\_dim}, \wsvindex{psi\_block\_grid} and
-\wsvindex{omega\_block\_grid} are the compulsory ones.
+\wsvindex{antenna\_dim}, \wsvindex{za\_block\_grid} and
+\wsvindex{aa\_block\_grid} are the compulsory ones.
 
 The variable \artsstyle{antenna\_dim} gives the dimensionality of the
 antenna pattern\index{antenna pattern dimensionality}, where the
@@ -668,7 +667,7 @@ of the response. A 2D antenna pattern is converted to a 1D pattern by
 integrating the azimuthal response for each zenith angle. ARTS handles
 not yet 2D antenna patterns, the only allowed choice for
 \artsstyle{antenna\_dim} is 1, and the variable
-\artsstyle{omega\_block\_grid} has yet no importance (but it must be
+\artsstyle{aa\_block\_grid} has yet no importance (but it must be
 initiated, to be empty, before calling \artsstyle{rteCalc}). The
 presentation below assumes that the 2D option is implemented.
 
@@ -677,7 +676,7 @@ spectra are calculated. The monochromatic frequencies are given by
 \artsstyle{f\_grid} (Section~\ref{sec:fm_defs:absorption}). The pencil
 beam directions are obtained by summing the line-of-sight angles
 (\artsstyle{sensor\_los}) for the position and the values of
-\artsstyle{psi\_block\_grid} and \artsstyle{omega\_block\_grid}. For
+\artsstyle{za\_block\_grid} and \artsstyle{aa\_block\_grid}. For
 example, pencil beam zenith angle $i$ is calculated as
 \begin{equation}
   \aZntAng{i} = \aZntAng{0} + \Delta\aZntAng{i}
@@ -685,11 +684,11 @@ example, pencil beam zenith angle $i$ is calculated as
 \end{equation}
 where \aZntAng{0} is the sensor line-of-sight for the position of
 concern and $\Delta\aZntAng{i}$ is value $i$ of
-\artsstyle{psi\_block\_grid}.  With other words,
-\artsstyle{psi\_block\_grid} and \artsstyle{omega\_block\_grid} give
+\artsstyle{za\_block\_grid}.  With other words,
+\artsstyle{za\_block\_grid} and \artsstyle{aa\_block\_grid} give
 the grid (relative to the sensor line-of-sight) for the calculation of
 the intensity field that will be weighted with the antenna response.
-For cases with 1D antenna patterns, \artsstyle{omega\_block\_grid}
+For cases with 1D antenna patterns, \artsstyle{aa\_block\_grid}
 must be set to be an empty vector.
 
 
@@ -710,7 +709,7 @@ normally to each unique sensor position of the sequence.
 
 A measurement block cover one or several recorded spectra, depending
 on the measurement conditions and the atmospheric dimensionality. A
-block can consists of several spectra when there is no effective
+block can consist of several spectra when there is no effective
 motion of the sensor with respect to the atmospheric fields. It should
 be noted that for 1D cases, a motion along a constant radius has no
 influence on the simulated spectra as the same atmospheric fields are
@@ -743,8 +742,8 @@ be applied for all blocks as done in Equation~\ref{eq:fm_defs:measseq}.
 
 For each block, pencil beam spectra are calculated for the
 line-of-sights obtained when summing \wsvindex{sensor\_los} and
-\wsvindex{psi\_block\_grid} (and possibly
-\wsvindex{omega\_block\_grid}), as described in
+\wsvindex{za\_block\_grid} (and possibly
+\wsvindex{aa\_block\_grid}), as described in
 Section~\ref{sec:fm_defs:sensorchar}. The pencil beam spectra for each
 line-of-sight are appended vertically to form a common vector,
 \aMpiVct{b}. Values are put in following the order in
@@ -753,18 +752,18 @@ line-of-sight are appended vertically to form a common vector,
   \aMpiVct{b} = 
   \left[ \begin{array}{c} 
      \left[
-          \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{{n_\Frq}} \end{array} 
+          \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{n} \end{array} 
      \right] \\
      \vdots \\
      \left[
-          \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{{n_\Frq}} \end{array} 
+          \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{n} \end{array} 
      \right]
      \end{array} \right]
   \label{eq:fm_defs:freqs_of_ib}
 \end{equation}
-where \aFrq{i} is element $i$ of \artsstyle{f\_grid} and $n_\Frq$ the length of
-the same vector. The order of the angles inside \artsstyle{psi\_block\_grid}
-and \artsstyle{omega\_block\_grid} is followed when looping the pencil beam
+where \aFrq{i} is element $i$ of \artsstyle{f\_grid} and $n$ the length of
+the same vector. The order of the angles inside \artsstyle{za\_block\_grid}
+and \artsstyle{aa\_block\_grid} is followed when looping the pencil beam
 directions, where the zenith angle direction is the innermost loop.
 That is, for 2D antenna patterns all zenith angles are looped for the
 first azimuthal angle etc. 
@@ -796,7 +795,7 @@ corrected accordingly. For example, if the simulations deal with limb
 sounding and a 1D atmosphere, where normally a single block should be
 used despite a number of spectra are recorded, it could be practical
 to set the line-of-sight to the viewing direction of the uppermost or
-lowermost spectrum, and the zenith angles in \artsstyle{psi\_block\_grid}
+lowermost spectrum, and the zenith angles in \artsstyle{za\_block\_grid}
 will not be centred around zero which is the case when the ``true''
 line-of-sight is used.
 
@@ -806,7 +805,7 @@ clear which parts and features the block transfer matrix covers. If
 \artsstyle{Hb} only incorporates the antenna pattern, the result is a set
 of hypothetical spectra corresponding to a point inside the sensor. On
 the other hand, if \artsstyle{Hb} includes the whole of the sensor and an
-eigenvector data reduction, the result is not even a spectrum is
+eigenvector data reduction, the result is not even a spectrum in
 traditional way, it is just a row of coefficients with a vague
 physical meaning. To handle quantities appearing at a stage between
 monochromatic pencil beam intensities and the final representation of
@@ -961,29 +960,21 @@ Section~\ref{sec:fm_defs:wfs}.
 
 A pencil beam path through the atmosphere to reach a specified
 position from a specified line-of-sight is denoted as the
-\textindex{propagation path}. The forward direction of the propagation
-paths is towards the position for which the radiative intensity will
-be calculated. It should be noted that with scattering there exist an
-infinite number of propagation paths for a given combination of
-observation point and line-of-sight.
-
-Propagation paths are described by a set of points on the path, and
-the distance along the path between the points. These quantities, and
-a number of auxiliary variables, are stored together in a structure
-described in Section~[**]. The path points are primarily placed at the
-crossings of the path with the atmospheric grids (\artsstyle{p\_grid},
-\artsstyle{lat\_grid} and \artsstyle{lon\_grid}). A path point is
-also placed at the sensor if it is placed inside the atmosphere.
-Ground reflections and tangent points are also included if such exist.
-There exists also the possibility to set an upper limit for the
-distance along the path between the points by the workspace variable
-\wsvindex{ppath\_lmax}. If \artsstyle{ppath\_lmax} is set to a value $\leq 0$
-then no points are added to the path, otherwise points are included to
-fulfil the length criterion.
+\textindex{propagation path}. Propagation paths are described by a set
+of points on the path, and the distance along the path between the
+points. These quantities, and a number of auxiliary variables, are
+stored together in a structure described in Section~[**]. The path
+points are primarily placed at the crossings of the path with the
+atmospheric grids (\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
+\artsstyle{lon\_grid}). A path point is also placed at the sensor if
+it is placed inside the atmosphere.  Ground reflections and tangent
+points are also included if such exist.  There exists also the
+possibility to set an upper limit for the distance along the path
+between the points by [*??*].
 
 The propagation paths are determined basically by starting at the
 sensor and following the path backwards by some \textindex{ray tracing}
-technique.  If the sensor is placed above the model atmosphere,
+technique. If the sensor is placed above the model atmosphere,
 geometrical calculations are used (as there is no refraction in space)
 to find the crossing between the path and the top of the atmosphere
 where the ray tracing then starts. If there is no cloud box and the
@@ -1043,6 +1034,17 @@ and longitude limits of the model atmosphere. All combinations of
 sensor position and sensor line-of-sight result in an allowed
 propagation path for 1D atmospheres. 
 
+Propagation paths are determined by the function \wsfindex{ppathCalc}.
+This function is normally only called from \artsstyle{rteCalc}, but it
+can be called seperately if needed. The calculation of the path from
+one crossing of the grids to next crossing is defined by
+\wsvindex{ppath\_step\_agenda}. Depending on which function that is
+selected for \artsstyle{ppath\_step\_agenda}, refraction will be
+considered or not, a length criterion between the path points will be
+applied etc. Functions intended for \artsstyle{ppath\_step\_agenda}
+include \wsfindex{ppath\_step\_geometric} and
+\wsfindex{ppath\_step\_refraction}.
+
 
 \levelc{Solving the radiative transfer equation}
 %===================
@@ -1066,8 +1068,7 @@ is only reflected in a single direction, with the normal assumption
 that the angle to the surface normal is equal for the incoming and
 outgoing line-of-sight. If there is slope of the ground\index{ground
   slope} (a variation of the ground radius), this slope is considered
-when determining the line-of-sight for the incoming radiation
-(remember that propagation paths are followed backwards). This is
+when determining the line-of-sight for the incoming radiation. This is
 exemplified in Figure~\ref{fig:fm_defs:ppath_cases2}, for a case with
 a very strong ground slope.
 
@@ -1117,9 +1118,7 @@ influence the accuracy of the results too seriously. With a high or
 moderate optical thickness of the lower troposphere, the emission
 reaching the ground will have brightness temperature close to the
 physical temperatures of the lower troposphere, with a relatively low
-angular variation. [* Does anybody know of important the scattering of
-the ground is for nadir observations? For example, how large is the
-scattering of the sea surface? *]
+angular variation.
 
 
 
