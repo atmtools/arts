@@ -473,8 +473,8 @@ void pha_mat_labCalc(//Output:
         const Numeric C1 = 2 * cos_sigma1 * cos_sigma1 - 1;
         const Numeric C2 = 2 * cos_sigma2 * cos_sigma2 - 1;
         
-        const Numeric S1 = 2 * sqrt(1 - cos_sigma1) * cos_sigma1;
-        const Numeric S2 = 2 * sqrt(1 - cos_sigma2) * cos_sigma2;
+        const Numeric S1 = 2 * sqrt(1 - cos_sigma1 * cos_sigma1) * cos_sigma1;
+        const Numeric S2 = 2 * sqrt(1 - cos_sigma2 * cos_sigma2) * cos_sigma2;
         
         pha_mat_lab(0,1) = C1 * F12;
         pha_mat_lab(1,0) = C2 * F12;

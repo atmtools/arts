@@ -1,3 +1,17 @@
+2003-06-27  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-592
+
+	* src/m_scatrte.cc (i_fieldUpdateSeq1D): Included a special case for
+	limb looking. Without this I missed some points while doing the 
+	sequential update. This modification has no effect on the nadir
+	simulations.
+
+	* src/optproperties.cc (pha_mat_labCalc): Fixed a bug in the 
+	formula for the transformation of the phase matrix. The formula I 
+	fixed is only used for polarized calculations, so the intensity 
+	simulations (stokes_dim = 1)  we have already done are still correct. 
+
 2003-06-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-591

@@ -81,7 +81,7 @@ extern const Numeric RAD2DEG;
   Then convergence_flag is set to 1. 
 
   WS Output:
-  \param convergence_flag Fag for convergence test.
+  \param convergence_flag Flag for convergence test.
   WS Input:
   \param i_field Radiation field.
   \param i_field_old Old radiation field.
@@ -368,7 +368,7 @@ i_fieldIterate(
  
   // Is the frequency index valid?
   assert( f_index <= f_grid.nelem() );
-
+  cout << "Frequency: " << f_grid[f_index] << endl;
   
   // if ( !is_size( amp_mat, 
 //                    part_types.nelem(), scat_za_grid.nelem(), 
@@ -1123,7 +1123,7 @@ i_fieldUpdateSeq1D(// WS Output:
                                      (r_geoid(0,0)+z_field(p_up,0,0)))*RAD2DEG;
 
       // Sequential update for uplooking angles
-      if ( scat_za_grid[scat_za_index] <= theta_lim) 
+      if ( scat_za_grid[scat_za_index] <= 90) 
         {
           
           // Loop over all positions inside the cloud box defined by the 
@@ -1166,6 +1166,31 @@ i_fieldUpdateSeq1D(// WS Output:
                                    abs_vec_field); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
+      //
+      // Limb looking:
+      // We hav eto include a special case here, as we may miss the endpoints
+      // when the intersection point is at the same level as the aactual point.
+      // To be save we loop over the full cloudbox. Inside the function 
+      // cloud_ppath_update1D it is checked whether th intersection point is 
+      // inside the cloudbox or not.
+      else if (  scat_za_grid[scat_za_index] > 90 &&
+                 scat_za_grid[scat_za_index] < theta_lim ) 
+        {
+          for(Index p_index = cloudbox_limits[0]; p_index
+                <= cloudbox_limits[1]; p_index ++)
+            {
+              cloud_ppath_update1D(i_field,  
+                                   a_pressure, a_temperature, a_vmr_list,
+                                   ext_mat, abs_vec, ppath_step, 
+                                   p_index, scat_za_index, scat_za_grid,
+                                   cloudbox_limits, scat_field,
+                                   scalar_gas_absorption_agenda, vmr_field,
+                                   opt_prop_gas_agenda, ppath_step_agenda,
+                                   p_grid,  z_field, r_geoid, t_field, 
+                                   f_grid, f_index, ext_mat_field, 
+                                   abs_vec_field);
+            }
+        } 
     }// Closes loop over scat_za_grid.
 } // End of the function.
 
