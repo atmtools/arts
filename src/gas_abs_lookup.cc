@@ -411,12 +411,14 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   the table.
 
   \retval sga A Matrix with scalar gas absorption coefficients
-  [1/m]. Dimension is adjusted automatically to [n_f_grid,n_species]!
+  [1/m]. Dimension is adjusted automatically to either
+  [1,n_species] or [n_f_grid,n_species]!
 
   \param f_index The frequency index. If this is >=0, it means that
   absorption for this frequency will be extracted. (The leading
-  dimension of sga must be 1.) If this is <0, it means that absorption
-  for ALL frequencies is extracted.
+  dimension of sga will be 1.) If this is <0, it means that absorption
+  for ALL frequencies is extracted. (The leading dimension of sga will
+  be n_f_grid.)
 
   \param p The pressures [Pa].
 

@@ -1,5 +1,11 @@
 2002-12-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-1-1-334
+
+	* src/gas_abs_lookup.cc (Extract): Cosmetic changes to Doxygen header.
+
+2002-12-12  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-1-1-333
 
 	* I think all methods for using gas lookup tables are there now,
