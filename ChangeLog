@@ -1,3 +1,38 @@
+2003-04-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-531
+
+	* src/m_cloudbox.cc: Changed names of reading routines for amplitude 
+	matrix data.
+	These are now called *ParticleTypeInitAmpl* and 
+	*ParticleTypeAddAmpl*.
+	The old names *ParticleTypeInit* and *ParticleTypeAdd* are now 
+	used for new methods which read the single scattering data from the 
+	new database format.
+
+	* src/m_optproperties.cc: Completed *pha_mat_sptFromData* and 
+	*opt_prop_sptFromData*. The functions are ready but not tested yet.
+
+	* src/optproperties.h: Typedef for  ArrayOfSingleScatteringData.
+	
+	* src/groups.cc: Added ArrayOfSingleScatteringData.
+
+	* src/workspace.cc: Added
+	*scat_data_raw* : Variable of type ArrayOfSingleScatteringData which 
+	contains the scattering properties of all considered hydro-meteor
+	species.
+
+	* src/methods.cc: Included *ParticleTypeInitAmpl* and 
+	*ParticleTypeAddAmpl*. Modified *ParticleTypeInit* and 
+	*ParticleTypeAdd*.
+
+	* src/xml_io.cc: Included reading and writing routines for 
+	*ArrayOfSingleScatteringData*.
+
+	* src/xml_io_private.h: Included *ArrayOfSingleScatteringData*.
+
+	* src/m_clonesize.cc: Included *ArrayOfSingleScatteringData*.
+	
 2003-04-25  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-530

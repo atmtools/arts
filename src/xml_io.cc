@@ -1304,6 +1304,86 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+//=== ArrayOfSingleScatteringData===========================================
+
+//! Reads ArrayOfSingleScatteringData from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Array type="SpeciesTag">
+  and if so, write the values to 'astag' parameter.
+
+  \param is_xml  XML Input stream
+  \param assdata ArrayOfSingleScatteringData return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfSingleScatteringData& assdata,
+                      bifstream *pbifs = NULL)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "SingleScatteringData");
+
+  tag.get_attribute_value ("nelem", nelem);
+  assdata.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, assdata[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfSingleScatteringData: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfSpeciesTag to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param assdata ArrayOfSpeciesTag
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfSingleScatteringData& assdata,
+                     bofstream *pbofs = NULL)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+
+  open_tag.add_attribute ("type", "SingleScatteringData");
+  open_tag.add_attribute ("nelem", assdata.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < assdata.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, assdata[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+
 //=== ArrayOfTensor3=========================================================
 
 //! Reads ArrayOfTensor3 from XML input stream

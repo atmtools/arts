@@ -159,6 +159,13 @@ void
 xml_write_to_stream (ostream&, const ArrayOfArrayOfSpeciesTag&, bofstream *);
 
 void
+xml_read_from_stream (istream&, ArrayOfSingleScatteringData&, bifstream *);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfSingleScatteringData&,
+                     bofstream *);
+
+void
 xml_read_from_stream (istream&, ArrayOfArrayOfTensor3&, bifstream *);
 
 void
@@ -311,6 +318,9 @@ xml_read_from_file<ArrayOfArrayOfSpeciesTag> (const String&,
                                               ArrayOfArrayOfSpeciesTag&);
 
 template void
+xml_read_from_file<ArrayOfSingleScatteringData> (const String&,
+                                              ArrayOfSingleScatteringData&);
+template void
 xml_read_from_file<ArrayOfArrayOfTensor3> (const String&,
                                            ArrayOfArrayOfTensor3&);
 
@@ -394,6 +404,10 @@ template void
 xml_write_to_file<ArrayOfGridPos> (const String&, const ArrayOfGridPos&,
                                    FileType);
 
+template void
+xml_write_to_file<ArrayOfSingleScatteringData> (const String&,
+                                            const ArrayOfSingleScatteringData&,
+                                                FileType);
 template void
 xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&, FileType);
 

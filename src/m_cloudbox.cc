@@ -820,6 +820,23 @@ void i_fieldSetConst(//WS Output:
 }
 
 
+//! Initialize variables containing information about the particles.
+/*! 
+ 
+  WS Output:
+  \param scat_data_raw  Single scattering data.
+  \param pnd_field_raw  Particle number density field data.
+
+*/
+void ParticleTypeInit( //WS Output:
+                      ArrayOfSingleScatteringData& scat_data_raw,
+                      ArrayOfArrayOfTensor3& pnd_field_raw
+                      )
+{
+  scat_data_raw.reserve(20);
+  pnd_field_raw.reserve(20); 
+}
+
 
 //! Initialize variables containing information about the particles.
 /*! 
@@ -829,7 +846,7 @@ void i_fieldSetConst(//WS Output:
   \param pnd_field_raw  Particle number density field data.
 
 */
-void ParticleTypeInit( //WS Output:
+void ParticleTypeInitAmpl( //WS Output:
                       ArrayOfArrayOfTensor6& amp_mat_raw,
                       ArrayOfArrayOfTensor3& pnd_field_raw
                       )
@@ -837,6 +854,46 @@ void ParticleTypeInit( //WS Output:
   amp_mat_raw.reserve(20);
   pnd_field_raw.reserve(20); 
 }
+
+
+//! Read single scattering data and particle number density field from 
+//  data base.
+/*! 
+  This method allows the user to chose hydro-meteor species and particle
+  number density fields. 
+  There is one database for particle number density fields ( ....),
+  which includes the following particle types:
+
+  Another database (....) contains the single scattering properties for 
+  hydro-meteor species.
+  
+  \param scat_data_raw Single scattering data.
+  \param pnd_field_raw Particle number density field data.
+  \param scat_data_file Filename for scattering data.
+  \param pnd_field_file Filename for pnd field data.
+*/
+void ParticleTypeAdd( //WS Output:
+                 ArrayOfSingleScatteringData& scat_data_raw,
+                 ArrayOfArrayOfTensor3& pnd_field_raw,
+                 // Keyword:
+                 const String& scat_data_file,
+                 const String& pnd_field_file)
+{
+
+  // Append *amp_mat_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
+  SingleScatteringData scat_data;
+  scat_data_raw.push_back(scat_data);
+  
+  //ArrayOfTensor3 pnd_field_data;
+  //pnd_field_raw.push_back(pnd_field_data);
+    
+  // Read amplitude matrix data:
+  out2 << "Read single scattering data\n";
+  xml_read_from_file( scat_data_file, scat_data_raw[scat_data_raw.nelem()-1]);
+  //read_gridded_tensor3 (pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1]);
+       
+}
+
 
 
 //! Read amplitute matrix and particle number density field from data base.
@@ -854,7 +911,7 @@ void ParticleTypeInit( //WS Output:
   \param amp_mat_file Filename for amplitude matrix data.
   \param pnd_field_file Filename for pnd field data.
 */
-void ParticleTypeAdd( //WS Output:
+void ParticleTypeAddAmpl( //WS Output:
                  ArrayOfArrayOfTensor6& amp_mat_raw,
                  ArrayOfArrayOfTensor3& pnd_field_raw,
                  // Keyword:

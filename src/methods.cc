@@ -2261,8 +2261,9 @@ void define_md_data_raw()
          "To be written by CE."
         ),
         OUTPUT( pha_mat_spt_, ext_mat_spt_, abs_vec_spt_ ),
-        INPUT( pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_za_grid_, 
-               scat_aa_grid_, scat_za_index_, scat_aa_index_, part_types_,
+        INPUT( pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_data_raw_,
+               scat_za_grid_, 
+               scat_aa_grid_, scat_za_index_, scat_aa_index_, 
                f_index_, f_grid_),
         GOUTPUT( ),
         GINPUT( ),
@@ -2272,6 +2273,31 @@ void define_md_data_raw()
  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ParticleTypeAdd" ),
+        DESCRIPTION
+        (
+         "This method reads single scattering data and particle number\n"
+         "density fields from a data base. \n"
+         "\n"
+         "The method allows the user to chose hydro-meteor species and \n"
+         "particle \n"
+         "number density fields. The methods reads from the chosen files \n"
+         "and appends the variables *scat_data_raw* and *pnd_field_raw*. \n"
+         "There is one database for particle number density fields ( ....),\n"
+         "which includes the following particle types:\n"
+         "\n"
+         "Another database (....) containes the scattering properties for \n"
+         "those particle types. \n"
+         ),
+        OUTPUT(scat_data_raw_, pnd_field_raw_),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("filename_scat_data", "filename_pnd_field"),
+        TYPES(String_t, String_t)));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ParticleTypeAddAmpl" ),
         DESCRIPTION
         (
          "This method reads the amplitute matrix and the particle number\n"
@@ -2294,9 +2320,29 @@ void define_md_data_raw()
         KEYWORDS("filename_amp_mat", "filename_pnd_field"),
         TYPES(String_t, String_t)));
 
+ md_data_raw.push_back
+   ( MdRecord
+     ( NAME( "ParticleTypeInit" ),
+       DESCRIPTION
+       (
+        "This method initializes variables containing data about the \n"
+        "optical properties of particles (*scat_data_raw*) and about the \n"
+        "particle number distribution (*pnd_field_raw*)\n"
+        "\n"
+        "*ParticleTypeInit* has to be executed before executing \n"
+        "*ParticleTypeAdd*.\n"
+        ),
+       OUTPUT(scat_data_raw_, pnd_field_raw_),
+       INPUT(),
+       GOUTPUT(),
+       GINPUT(),
+       KEYWORDS(), 
+       TYPES())); 
+
+
    md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ParticleTypeInit" ),
+      ( NAME( "ParticleTypeInitAmpl" ),
         DESCRIPTION
         (
          "This method initializes variables containing data about the \n"
@@ -2313,7 +2359,7 @@ void define_md_data_raw()
         KEYWORDS(), 
         TYPES())); 
 
-    md_data_raw.push_back
+   md_data_raw.push_back
     ( MdRecord
       ( NAME( "pha_matCalc" ),
         DESCRIPTION
@@ -2382,8 +2428,8 @@ void define_md_data_raw()
          "\n"
          ),
 	OUTPUT(pha_mat_spt_),
-        INPUT(pha_mat_spt_, scat_za_grid_, scat_aa_grid_, scat_za_index_,
-              scat_aa_index_, part_types_, f_index_, f_grid_),
+        INPUT(pha_mat_spt_, scat_data_raw_, scat_za_grid_, scat_aa_grid_, 
+              scat_za_index_, scat_aa_index_, f_index_, f_grid_),
 	GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

@@ -80,6 +80,8 @@ struct SingleScatteringData {
   Tensor4   abs_vec_data;
 };
 
+typedef Array<SingleScatteringData> ArrayOfSingleScatteringData;
+
 
 void abs_vecTransform(//Output and Input
                       VectorView abs_vec_lab,

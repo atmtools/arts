@@ -1636,6 +1636,33 @@ wsv_data.push_back
      GROUP( Index_ ))); 
 
    wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_data_file" ),
+        DESCRIPTION
+        (
+         "Filename foe single scattering data"
+         "\n"
+         "Usage: As keyword in *ParticleTypeAdd*. \n"
+         "\n"
+         ),
+        GROUP( String_ ))); 
+
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "scat_data_raw" ),
+        DESCRIPTION
+        (
+         "Raw data of single scattering data.\n"
+         "\n"
+         "This variable holds the single scattering properties for all \n"
+         "hydrometeor species included in a calculation by using the \n"
+         "method *ParticleTypeAdd*.\n"
+         "\n"
+         ),
+        GROUP( ArrayOfSingleScatteringData_ ))); 
+
+
+   wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_field" ),
       DESCRIPTION

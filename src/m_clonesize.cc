@@ -435,3 +435,15 @@ void CloneSize(// WS Generic Output:
   out2 << "  Nothing to do for this group.\n";
 }
 
+void CloneSize(// WS Generic Output:
+               ArrayOfSingleScatteringData&,
+               // WS Generic Output Names:
+               const String& outname,
+               // WS Generic Input:
+               const ArrayOfSingleScatteringData&,
+               // WS Generic Input Names:
+               const String& inname)
+{
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
+  out2 << "  Nothing to do for this group.\n";
+}

@@ -216,17 +216,17 @@ Documentation will be written (CE).
 void pha_mat_sptFromData( // Output:
                          Tensor5& pha_mat_spt,
                          // Input:
+                         const ArrayOfSingleScatteringData& scat_data_raw,
                          const Vector& scat_za_grid,
                          const Vector& scat_aa_grid,
                          const Index& scat_za_index, // propagation directions
                          const Index& scat_aa_index,
-                         const ArrayOfString& part_types,
                          const Index& f_index,
                          const Vector& f_grid
                          )
 {
   
-  const Index N_pt = part_types.nelem();
+  const Index N_pt = scat_data_raw.nelem();
   const Index stokes_dim = pha_mat_spt.ncols();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
@@ -254,8 +254,8 @@ void pha_mat_sptFromData( // Output:
   // Loop over the included particle_types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      // Read SingleScatteringData from file.
-      xml_read_from_file( part_types[i_pt], single_scattering_data);
+      // Extract SingleScatteringData from raw data.
+      single_scattering_data = scat_data_raw[N_pt];
       
       part_type = single_scattering_data.ptype;
       f_datagrid = single_scattering_data.f_grid;
@@ -344,17 +344,17 @@ void opt_prop_sptFromData( // Output and Input:
                          Tensor3& ext_mat_spt,
                          Matrix& abs_vec_spt,
                          // Input:
+                         const ArrayOfSingleScatteringData& scat_data_raw,
                          const Vector& scat_za_grid,
                          const Vector& scat_aa_grid,
                          const Index& scat_za_index, // propagation directions
                          const Index& scat_aa_index,
-                         const ArrayOfString& part_types,
                          const Index& f_index,
                          const Vector& f_grid
                          )
 {
   
-  const Index N_pt = part_types.nelem();
+  const Index N_pt = scat_data_raw.nelem();
   const Index stokes_dim = pha_mat_spt.ncols();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
@@ -387,8 +387,8 @@ void opt_prop_sptFromData( // Output and Input:
   // Loop over the included particle_types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      // Read SingleScatteringData from file.
-      xml_read_from_file( part_types[i_pt], single_scattering_data);
+      //  Extract SingleScatteringData from raw data.
+      single_scattering_data = scat_data_raw[N_pt];
       
       part_type = single_scattering_data.ptype;
       f_datagrid = single_scattering_data.f_grid;
@@ -698,7 +698,7 @@ void ext_matAddPart(
   \param abs_vec_spt Input : absorption for the single particle type
   \param pnd_field Input : particle number density givs the local 
   concentration for all particles.
-  \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
+  \param atmosphere_dim Input : the atmospheric dimensionality (now 1 or 3)
   \param scat_p_index Input : Pressure index for scattering calculations.
   \param scat_lat_index Input : Latitude index for scattering calculations.
   \param scat_lon_index Input : Longitude index for scattering calculations.
