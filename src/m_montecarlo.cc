@@ -93,9 +93,12 @@ void mc_errorApplySensor(
   for( Index j=0; j<n; j++ )
     { i[j] = mc_error[j]*mc_error[j]; }
   mc_error.resize( sensor_response.nrows() );
-  Sparse H(sensor_response);
-  // Here it shall be abs(H)
-  mult( mc_error, H, i );
+  mc_error = 0.0;
+  for( Index irow=0; irow<sensor_response.nrows(); irow++ )
+    {
+      for( Index icol=0; icol<n; icol++ )
+        { mc_error[irow] += pow( sensor_response(irow,icol), 2.0 ) * i[icol]; }
+    }
   transform( mc_error, sqrt, mc_error );
 }
 

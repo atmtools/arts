@@ -1,3 +1,9 @@
+2005-03-22  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-933
+
+	* src/m_montecarlo.cc (mc_errorApplySensor): Finished this function.
+
 2005-03-21  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-932
