@@ -300,7 +300,7 @@ void cloud_ppath_update1D(
   if((cloudbox_limits[0] <= ppath_step.gp_p[1].idx) &&
      cloudbox_limits[1] > ppath_step.gp_p[1].idx ||
      (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
-      fabs(ppath_step.gp_p[1].fd[0]) < 1e-6))
+      abs(ppath_step.gp_p[1].fd[0]) < 1e-6))
     {
       
       // Gridpositions inside the cloudbox.
@@ -1264,17 +1264,17 @@ bool is_inside_cloudbox(const Ppath& ppath_step,
       (p_low <= ppath_step.gp_p[1].idx) &&
       (p_up > ppath_step.gp_p[1].idx ||
        (p_up == ppath_step.gp_p[1].idx &&
-        fabs(ppath_step.gp_p[1].fd[0]) < TOL)) &&
+        abs(ppath_step.gp_p[1].fd[0]) < TOL)) &&
       // inside latitude boundaries 
       (lat_low <= ppath_step.gp_lat[1].idx) &&
       (lat_up > ppath_step.gp_lat[1].idx ||
        (lat_up == ppath_step.gp_lat[1].idx &&
-        fabs(ppath_step.gp_lat[1].fd[0]) < TOL)) &&
+        abs(ppath_step.gp_lat[1].fd[0]) < TOL)) &&
       // inside longitude boundaries 
       (lon_low <= ppath_step.gp_lon[1].idx) &&
       (lon_up > ppath_step.gp_lon[1].idx ||
        (lon_up == ppath_step.gp_lon[1].idx &&
-        fabs(ppath_step.gp_lon[1].fd[0]) < TOL )) 
+        abs(ppath_step.gp_lon[1].fd[0]) < TOL )) 
       )
     {
       return true;
@@ -1416,7 +1416,7 @@ void cloud_ppath_update1D_planeparallel(
 		}
 	      Numeric dz = (z_field_above -  z_field_0);
 	      
-	      l_step =  fabs(dz/cos_theta) ;
+	      l_step =  abs(dz/cos_theta) ;
 	      
 	      // Average temperature
 	      rte_temperature =   0.5 * (t_field(p_index,0,0) + t_field(p_index + 1,0,0));
@@ -1520,7 +1520,7 @@ void cloud_ppath_update1D_planeparallel(
 		  cos_theta = cos(scat_za_grid[scat_za_index]* PI/180.0);
 		}
 	      Numeric dz = ( z_field_0 - z_field_below);
-	      l_step =  fabs(dz/cos_theta) ;
+	      l_step =  abs(dz/cos_theta) ;
 	      
 	      // Average temperature
 	      rte_temperature =   0.5 * (t_field(p_index,0,0) + t_field(p_index - 1,0,0));
@@ -1709,7 +1709,7 @@ void cloud_ppath_update1D_planeparallel(
 	    }
 	  Numeric dz = (z_field_above -  z_field_0);
 	  
-	  Numeric l_step =  fabs(dz/cos_theta) ;
+	  Numeric l_step =  abs(dz/cos_theta) ;
 	  
 	  // Average temperature
 	  rte_temperature =   0.5 * (t_field(p_index,0,0) + t_field(p_index + 1,0,0));

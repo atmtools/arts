@@ -1225,18 +1225,26 @@ i_fieldUpdateSeq1D(// WS Output:
           for(Index p_index = cloudbox_limits[0]; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              cloud_ppath_update1D(i_field,  
-                                   rte_pressure, rte_temperature, rte_vmr_list,
-                                   ext_mat, abs_vec, ground_los,
-                                    ground_emission, ground_refl_coeffs,
-                                    rte_los, rte_pos, rte_gp_p, ppath_step, 
-                                   p_index, scat_za_index, scat_za_grid,
-                                   cloudbox_limits, scat_field,
-                                   scalar_gas_absorption_agenda, vmr_field,
-                                   opt_prop_gas_agenda, ppath_step_agenda,
-                                   p_grid,  z_field, r_geoid, t_field, 
-                                   f_grid, f_index, ext_mat_field, 
-                                   abs_vec_field,ground_refl_agenda);
+              // For this case the cloudbox goes down to the ground an we
+              // look downwards. These cases are outside the cloudbox and 
+              // not needed. Switch is included here, as ppath_step_agenda 
+              // gives an error for such cases.
+              if (!(p_index == 0 && scat_za_grid[scat_za_index] > 90.))
+                {
+                  cloud_ppath_update1D(i_field,  
+                                       rte_pressure, rte_temperature, 
+                                       rte_vmr_list,
+                                       ext_mat, abs_vec, ground_los,
+                                       ground_emission, ground_refl_coeffs,
+                                       rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                       p_index, scat_za_index, scat_za_grid,
+                                       cloudbox_limits, scat_field,
+                                       scalar_gas_absorption_agenda, vmr_field,
+                                       opt_prop_gas_agenda, ppath_step_agenda,
+                                       p_grid,  z_field, r_geoid, t_field, 
+                                       f_grid, f_index, ext_mat_field, 
+                                       abs_vec_field,ground_refl_agenda);
+                }
             }
         } 
     }// Closes loop over scat_za_grid.
@@ -2144,28 +2152,42 @@ void i_fieldUpdateSeq3D(// WS Output:
             {
               for(Index p_index = p_low; p_index <= p_up; p_index ++)
                 {
-                  for(Index lat_index = lat_low; lat_index <= lat_up; 
-                      lat_index ++)
+                  // For this case the cloudbox goes down to the ground an we
+                  // look downwards. These cases are outside the cloudbox and 
+                  // not needed. Switch is included here, as ppath_step_agenda 
+                  // gives an error for such cases.
+                  if (!(p_index == 0 && scat_za_grid[scat_za_index] > 90.))
                     {
-                      for(Index lon_index = lon_low; lon_index <= lon_up; 
-                          lon_index ++)
+                      for(Index lat_index = lat_low; lat_index <= lat_up; 
+                          lat_index ++)
                         {
-                          cloud_ppath_update3D(i_field, 
-                                               rte_pressure, rte_temperature, 
-                                               rte_vmr_list, ext_mat, abs_vec,
-                                               ppath_step, p_index, lat_index, 
-                                               lon_index, scat_za_index, 
-                                               scat_aa_index, scat_za_grid, 
-                                               scat_aa_grid, cloudbox_limits, 
-                                               scat_field, 
-                                               scalar_gas_absorption_agenda,
-                                               vmr_field, 
-                                               opt_prop_gas_agenda,
-                                               ppath_step_agenda, p_grid, 
-                                               lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid,
-                                               f_index,
-                                               ext_mat_field, abs_vec_field); 
+                          for(Index lon_index = lon_low; lon_index <= lon_up; 
+                              lon_index ++)
+                            {
+                              cloud_ppath_update3D(i_field, 
+                                                   rte_pressure,
+                                                   rte_temperature, 
+                                                   rte_vmr_list,
+                                                   ext_mat, abs_vec,
+                                                   ppath_step, p_index, 
+                                                   lat_index, 
+                                                   lon_index, scat_za_index, 
+                                                   scat_aa_index,
+                                                   scat_za_grid, 
+                                                   scat_aa_grid,
+                                                   cloudbox_limits, 
+                                                   scat_field, 
+                                                   scalar_gas_absorption_agenda,
+                                                   vmr_field, 
+                                                   opt_prop_gas_agenda,
+                                                   ppath_step_agenda, p_grid, 
+                                                   lat_grid, lon_grid,
+                                                   z_field, 
+                                                   r_geoid, t_field, f_grid,
+                                                   f_index,
+                                                   ext_mat_field,
+                                                   abs_vec_field); 
+                            }
                         }
                     }
                 }
@@ -3043,13 +3065,12 @@ scat_fieldCalcLimb(//WS Output:
               }//end lon loop
           }//end lat loop
       }// end p loop
+    scat_field(joker, joker, joker, joker, 0, joker) =
+      scat_field(joker, joker, joker, joker, Naa-1, joker);
   }// end atm_dim=3
 
   
 
-  scat_field(joker, joker, joker, joker, 0, joker) = 
-    scat_field(joker, joker, joker, joker, Naa-1, joker); 
-    
     out2 << "Finished scattered field.\n"; 
  
 }

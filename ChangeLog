@@ -1,3 +1,14 @@
+2003-12-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-767
+		
+	* src/m_scatrte.cc(i_fieldUpdateSeq1D) and (i_fieldUpdateSeq3D): Fixed 
+	bug reported by Sreerekha. When cloudbox extends to ground level and 
+	the zenith propagation angle is above 90° (downlooking), 
+	ppath_step_agenda gives an error. Included a switch to avoid this case.
+
+	* src/scatrte.cc: Replaced fabs with abs.
+
 2003-12-19  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-766
