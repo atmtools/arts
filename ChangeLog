@@ -1,5 +1,11 @@
 2001-10-04  Viju O.-J.  <vojohn@uni-bremen.de>
 
+	* arts-0-0-258
+	
+	* doc/examples/amsu.arts: Minor changes in amsu.arts
+
+2001-10-04  Viju O.-J.  <vojohn@uni-bremen.de>	
+
 	* arts-0-0-257
 	
 	* doc/examples/f_mono.out: Included monochromatic frequency file
