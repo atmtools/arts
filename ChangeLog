@@ -1,5 +1,15 @@
 2002-11-08  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-279
+
+	* src/Makefile.am: Append $(EXEEXT) to overridden targets. This
+	prevents automake 1.5/1.6 from outputting errors but leads to
+	warnings emitted by automake 1.4. But hey, a warning is better than
+	an error, right? ;-) And it has the advantage that 'make' stops on
+	errors but continues on warnings. automake 1.7 also just work fine.
+
+2002-11-08  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-278
 
 	* configure.in: Use AM_MAINTAINER_MODE macro from automake instead
