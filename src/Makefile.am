@@ -132,6 +132,9 @@ test_tensor_SOURCES = \
 	matpackI.h \
 	matpackIII.h \
 	matpackIV.h \
+	matpackV.h \
+	matpackVI.h \
+	matpackVII.h \
 	mystring.h \
 	test_tensor.cc
 

@@ -17,10 +17,7 @@
    USA. */
 
 #include "array.h"
-#include "matpackI.h"
-#include "matpackIII.h"
-#include "matpackIV.h"
-#include "matpackV.h"
+#include "matpackVI.h"
 
 /** Define the global joker objekt. */
 Joker joker;
@@ -198,8 +195,57 @@ void test5()
        << "u =\n" << u << '\n';
 }
 
+/*********************
+ * Tests for Tensor6 *
+ *********************/
+
+void fill_tensor6(Tensor6& x,
+		  Index v, Index s, Index b,
+		  Index p, Index r, Index c)
+{
+  // Lets fill the tensor with special values, so that we can
+  // immediately see the vitrine, shelf, etc.
+  // 345123 shall mean vitrine 3, shelf 4, book 5, and so on.
+  //
+  // Will work only if all dimensions are smaller 10.
+
+  x.resize(v,s,b,p,r,c);
+
+  for (Index is = 0; is < s; is++)
+    for (Index iv = 0; iv < v; iv++)
+      for (Index ib = 0; ib < b; ib++)
+	for (Index ip = 0; ip < p; ip++)
+	  for (Index ir = 0; ir < r; ir++)
+	    for (Index ic = 0; ic < c; ic++)
+	      x(iv, is, ib, ip, ir, ic)
+		= ic + ir*10 + ip*100 + ib*1000 + is*10000 + iv*100000;
+}
+
+void test6()
+{
+  cout << "Test Tensor6:\n\n";
+
+  Tensor6 a;
+  fill_tensor6(a,
+	       3, 2, 2, 3, 3, 4);  // 3 vitrines, 2 shelves,
+                                   // 2 books, 3 pages,
+                                   // 3 rows, 4 columns
+
+  cout << "Dimensions of tensor a:\n"
+       << "vitrine = " << a.nvitrines() << "\n"
+       << "shelf   = " << a.nshelves()  << "\n"
+       << "book    = " << a.nbooks()    << "\n"
+       << "page    = " << a.npages()    << "\n"
+       << "row     = " << a.nrows()     << "\n"
+       << "column  = " << a.ncols()     << "\n\n";
+
+  cout << "a(1,1,1,1,1,1) = " << a(1,1,1,1,1,1) << "\n\n";
+
+  cout << "a(1,1,1,1,Range(joker),1) = " << a(1,1,1,1,Range(joker),1) << "\n\n";
+}
+
 int main()
 {
-  test1();
+  test6();
   return 0;
 }

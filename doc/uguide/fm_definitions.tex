@@ -568,7 +568,48 @@ Tags, line-by-line, absorption models etc. *]
 %==============================================================================
 \label{sec:fm_defs:rte}
 
-[* Approach for solving the radiative transfer problem without scattering. *]
+\newcommand{\Int}{{\bf I}}
+\newcommand{\Ext}{{\bf K}}
+\newcommand{\Abs}{{\bf a}}
+\newcommand{\Sca}{{\bf Y}}
+\newcommand{\Dir}{{\bf n}}
+\newcommand{\Path}{{\bf s}}
+\newcommand{\Planck}{{\bf B}}
+\newcommand{\Freq}{\nu}
+\newcommand{\Dep}{(\Dir,\Freq)}
+
+\startsymbols
+  \Ind           & -                 & vector/matrix/tensor index           \\
+  \Int           & 
+ \label{symtable:fm_defs_rt}     
+\stopsymbols
+
+
+
+\levelc{Radiative transfer equation and important quantities}
+
+The radiative transfer equation in the absence of cloud particles is
+\citep{mishchenko00:_light_scatt_nonsp_partic}: 
+
+\begin{equation}
+  \label{eq:rte_4stokes_no_scat}
+  \frac{d\Int\Dep}{d\Path} = - \Ext\Dep \Int\Dep + \Abs\Dep\Planck(T)
+\end{equation}
+where the meaning of the quantities in this equation is as follows:
+
+\leveld{The specific intensity vector $\Int$}
+
+
+
+ where $I$ is the monochromatic pencil beam intensity, $l$ distance
+ along the line of sight (LOS), $l_1$ the point of the considered part
+ of the LOS furthest away from the sensor, $l_2$ the closest point of
+ the LOS, $I_1$ the intensity at $l_1$, $\kappa$ the total absorption
+ along the LOS and $\sigma$ the source function.\footnote{The symbols
+   $\kappa$ and $\sigma$ are used here for the absorption and the source 
+   function \emph{along} the LOS. The more commonly used symbols, $k$ and
+   $S$, respectively, are used below to express the variables as
+   functions of altitude.}
 
 
 \levelc{Ground reflections}

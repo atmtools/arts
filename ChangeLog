@@ -1,3 +1,22 @@
+2002-03-20  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-35
+
+	* src/matpackVI.h: Added. Implementation of Tensor6. A first
+	version of this is complete. 
+
+	* src/matpackVII.h: Added. Implementation of Tensor7. This is
+	still under construction.
+
+	* src/Makefile.am: Added matpackVI and VII to test_tensor sources.
+
+	* src/test_tensor.cc: Added some tests for Tensor6.
+
+	* doc/uguide/references.bib: Added Mishchenko book.
+
+	* doc/uguide/fm_definitions.tex: Started to write on the clear sky
+	RT section.
+
 2002-03-20  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-34

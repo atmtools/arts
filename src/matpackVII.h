@@ -16,53 +16,54 @@
    USA. */
 
 /**
-  Implementation of Tensors of Rank 3.
+  Implementation of Tensors of Rank 7.
 
-  The three dimensions are called: page, row, column.
+  Dimensions are called: library, vitrine, shelf, book, page, row, column.
+  or short:              l,       v,       s,     b,    p,    r,   c
   
   \author Stefan Buehler
   \date   2001-11-22
  */
 
-#ifndef matpackIII_h
-#define matpackIII_h
+#ifndef matpackVII_h
+#define matpackVII_h
 
 #include <iomanip>
 #include "matpackI.h"
 
-/** The outermost iterator class for rank 3 tensors. This takes into
+/** The outermost iterator class for rank 7 tensors. This takes into
     account the defined strided. */
-class Iterator3D {
+class Iterator7D {
 public:
   // Constructors:
-  Iterator3D();
-  Iterator3D(const Iterator3D& o);
-  Iterator3D(const MatrixView& x, Index stride);
+  Iterator7D();
+  Iterator7D(const Iterator7D& o);
+  Iterator7D(const Tensor6View& x, Index stride);
 
   // Operators:
-  Iterator3D& operator++();
-  bool operator!=(const Iterator3D& other) const;
+  Iterator7D& operator++();
+  bool operator!=(const Iterator7D& other) const;
   MatrixView* const operator->();
   MatrixView& operator*();
   
 private:
   /** Current position. */
-  MatrixView msv;
+  Tensor6View msv;
   /** Stride. */
   Index mstride;
 };
 
-/** Const version of Iterator3D. */
-class ConstIterator3D {
+/** Const version of Iterator7D. */
+class ConstIterator7D {
 public:
   // Constructors:
-  ConstIterator3D();
-  ConstIterator3D(const ConstIterator3D& o);
-  ConstIterator3D(const ConstMatrixView& x, Index stride);
+  ConstIterator7D();
+  ConstIterator7D(const ConstIterator7D& o);
+  ConstIterator7D(const ConstTensor6View& x, Index stride);
 
   // Operators:
-  ConstIterator3D& operator++();
-  bool operator!=(const ConstIterator3D& other) const;
+  ConstIterator7D& operator++();
+  bool operator!=(const ConstIterator7D& other) const;
   const ConstMatrixView* operator->() const;
   const ConstMatrixView& operator*() const;
 
@@ -74,31 +75,36 @@ private:
 };
 
 
-// Declare class Tensor3:
-class Tensor3;
+// Declare class Tensor7:
+class Tensor7;
 
 
-/** A constant view of a Tensor3.
+/** A constant view of a Tensor7.
 
-    This, together with the derived class Tensor3View, contains the
-    main implementation of a Tensor3. It defines the concepts of
-    Tensor3View. Plus additionally the recursive subrange operator,
-    which makes it possible to create a Tensor3View from a subrange of
-    a Tensor3View.
+    This, together with the derived class Tensor7View, contains the
+    main implementation of a Tensor7. It defines the concepts of
+    Tensor7View. Plus additionally the recursive subrange operator,
+    which makes it possible to create a Tensor7View from a subrange of
+    a Tensor7View.
 
-    The three dimensions of the tensor are called: page, row, column.
+    Dimensions are called: library, vitrine, shelf, book, page, row, column.
+    or short:              l,       v,       s,     b,    p,    r,   c
 
-    The class Tensor3 is just a special case of a Tensor3View
+    The class Tensor7 is just a special case of a Tensor7View
     which also allocates storage. */
-class ConstTensor3View {
+class ConstTensor7View {
 public:
   // Member functions:
-  Index npages() const;
-  Index nrows() const;
-  Index ncols() const;
+  Index nlibraries() const;
+  Index nvitrines()  const;
+  Index nshelves()   const;
+  Index nbooks()     const;
+  Index npages()     const;
+  Index nrows()      const;
+  Index ncols()      const;
 
   // Const index operators:
-  ConstTensor3View operator()( const Range& p, const Range& r, const Range& c ) const;
+  ConstTensor7View operator()( const Range& p, const Range& r, const Range& c ) const;
 
   ConstMatrixView  operator()( const Range& p, const Range& r, Index c        ) const;
   ConstMatrixView  operator()( const Range& p, Index r,        const Range& c ) const;
@@ -111,29 +117,35 @@ public:
   Numeric          operator()( Index p,        Index r,        Index c        ) const;
 
   // Functions returning iterators:
-  ConstIterator3D begin() const;
-  ConstIterator3D end() const;
+  ConstIterator7D begin() const;
+  ConstIterator7D end() const;
   
   // Friends:
-  friend class Tensor3View;
+  friend class Tensor7View;
   friend class ConstIterator4D;
   friend class ConstTensor4View;
   friend class ConstTensor5View;
-  friend class ConstTensor6View;
-  friend class ConstTensor7View;
 
 
 protected:
   // Constructors:
-  ConstTensor3View();
-  ConstTensor3View(Numeric *data,
+  ConstTensor7View();
+  ConstTensor7View(Numeric *data,
                    const Range& p, const Range& r, const Range& c);
-  ConstTensor3View(Numeric *data,
+  ConstTensor7View(Numeric *data,
                    const Range& pp, const Range& pr, const Range& pc,
                    const Range& np, const Range& nr, const Range& nc);
 
   // Data members:
   // -------------
+  /** The library range of mdata that is actually used. */
+  Range mlr;
+  /** The vitrine range of mdata that is actually used. */
+  Range mvr;
+  /** The shelf range of mdata that is actually used. */
+  Range msr;
+  /** The book range of mdata that is actually used. */
+  Range mbr;
   /** The page range of mdata that is actually used. */
   Range mpr;
   /** The row range of mdata that is actually used. */
@@ -144,20 +156,20 @@ protected:
   Numeric *mdata;
 };
 
-/** The Tensor3View class
+/** The Tensor7View class
 
-    This contains the main implementation of a Tensor3. It defines
-    the concepts of Tensor3View. Plus additionally the recursive
-    subrange operator, which makes it possible to create a Tensor3View
-    from a subrange of a Tensor3View. 
+    This contains the main implementation of a Tensor7. It defines
+    the concepts of Tensor7View. Plus additionally the recursive
+    subrange operator, which makes it possible to create a Tensor7View
+    from a subrange of a Tensor7View. 
 
-    The class Tensor3 is just a special case of a Tensor3View
+    The class Tensor7 is just a special case of a Tensor7View
     which also allocates storage. */
-class Tensor3View : public ConstTensor3View {
+class Tensor7View : public ConstTensor7View {
 public:
 
   // Const index operators:
-  ConstTensor3View operator()( const Range& p, const Range& r, const Range& c ) const;
+  ConstTensor7View operator()( const Range& p, const Range& r, const Range& c ) const;
 
   ConstMatrixView  operator()( const Range& p, const Range& r, Index c        ) const;
   ConstMatrixView  operator()( const Range& p, Index r,        const Range& c ) const;
@@ -171,7 +183,7 @@ public:
 
   // Non-const index operators:
 
-  Tensor3View operator()( const Range& p, const Range& r, const Range& c );
+  Tensor7View operator()( const Range& p, const Range& r, const Range& c );
 
   MatrixView  operator()( const Range& p, const Range& r, Index c        );
   MatrixView  operator()( const Range& p, Index r,        const Range& c );
@@ -184,87 +196,85 @@ public:
   Numeric&    operator()( Index p,        Index r,        Index c        );
 
   // Functions returning const iterators:
-  ConstIterator3D begin() const;
-  ConstIterator3D end() const;
+  ConstIterator7D begin() const;
+  ConstIterator7D end() const;
   // Functions returning iterators:
-  Iterator3D begin();
-  Iterator3D end();
+  Iterator7D begin();
+  Iterator7D end();
   
   // Assignment operators:
-  Tensor3View& operator=(const ConstTensor3View& v);
-  Tensor3View& operator=(const Tensor3View& v);
-  Tensor3View& operator=(const Tensor3& v);
-  Tensor3View& operator=(Numeric x);
+  Tensor7View& operator=(const ConstTensor7View& v);
+  Tensor7View& operator=(const Tensor7View& v);
+  Tensor7View& operator=(const Tensor7& v);
+  Tensor7View& operator=(Numeric x);
 
   // Other operators:
-  Tensor3View& operator*=(Numeric x);
-  Tensor3View& operator/=(Numeric x);
-  Tensor3View& operator+=(Numeric x);
-  Tensor3View& operator-=(Numeric x);
+  Tensor7View& operator*=(Numeric x);
+  Tensor7View& operator/=(Numeric x);
+  Tensor7View& operator+=(Numeric x);
+  Tensor7View& operator-=(Numeric x);
 
-  Tensor3View& operator*=(const ConstTensor3View& x);
-  Tensor3View& operator/=(const ConstTensor3View& x);
-  Tensor3View& operator+=(const ConstTensor3View& x);
-  Tensor3View& operator-=(const ConstTensor3View& x);
+  Tensor7View& operator*=(const ConstTensor7View& x);
+  Tensor7View& operator/=(const ConstTensor7View& x);
+  Tensor7View& operator+=(const ConstTensor7View& x);
+  Tensor7View& operator-=(const ConstTensor7View& x);
 
   // Friends:
 //   friend class VectorView;
-//   friend ConstTensor3View transpose(ConstTensor3View m);
-//   friend Tensor3View transpose(Tensor3View m);
+//   friend ConstTensor7View transpose(ConstTensor7View m);
+//   friend Tensor7View transpose(Tensor7View m);
   friend class Iterator4D;
   friend class Tensor4View;
   friend class Tensor5View;
-  friend class Tensor6View;
-  friend class Tensor7View;
 
 protected:
   // Constructors:
-  Tensor3View();
-  Tensor3View(Numeric *data, const Range& p, const Range& r, const Range& c);
-  Tensor3View(Numeric *data,
+  Tensor7View();
+  Tensor7View(Numeric *data, const Range& p, const Range& r, const Range& c);
+  Tensor7View(Numeric *data,
 	      const Range& pp, const Range& pr, const Range& pc,
 	      const Range& np, const Range& nr, const Range& nc);
 };
 
-/** The Tensor3 class. This is a Tensor3View that also allocates storage
+/** The Tensor7 class. This is a Tensor7View that also allocates storage
     automatically, and deallocates it when it is destroyed. We take
-    all the functionality from Tensor3View. Additionally defined here
+    all the functionality from Tensor7View. Additionally defined here
     are: 
 
     1. Constructors and destructor.
     2. Assignment operators.
     3. Resize function. */
-class Tensor3 : public Tensor3View {
+class Tensor7 : public Tensor7View {
 public:
   // Constructors:
-  Tensor3();
-  Tensor3(Index p, Index r, Index c);
-  Tensor3(Index p, Index r, Index c, Numeric fill);
-  Tensor3(const ConstTensor3View& v);
-  Tensor3(const Tensor3& v);
+  Tensor7();
+  Tensor7(Index p, Index r, Index c);
+  Tensor7(Index p, Index r, Index c, Numeric fill);
+  Tensor7(const ConstTensor7View& v);
+  Tensor7(const Tensor7& v);
 
   // Assignment operators:
-  Tensor3& operator=(const Tensor3& x);
-  Tensor3& operator=(Numeric x);
+  Tensor7& operator=(const Tensor7& x);
+  Tensor7& operator=(Numeric x);
 
   // Resize function:
   void resize(Index p, Index r, Index c);
 
   // Destructor:
-  ~Tensor3();
+  ~Tensor7();
 };
 
 
 // Function declarations:
 // ----------------------
 
-inline void copy(ConstIterator3D origin,
-                 const ConstIterator3D& end,
-                 Iterator3D target);
+inline void copy(ConstIterator7D origin,
+                 const ConstIterator7D& end,
+                 Iterator7D target);
 
 inline void copy(Numeric x,
-                 Iterator3D target,
-                 const Iterator3D& end);
+                 Iterator7D target,
+                 const Iterator7D& end);
 
 
 
@@ -272,49 +282,60 @@ inline void copy(Numeric x,
 template<class base>
 class Array;
 
-/** An array of Tensor3. */
-typedef Array<Tensor3> ArrayOfTensor3;
+/** An array of Tensor7. */
+typedef Array<Tensor7> ArrayOfTensor7;
 
 
 
-// Functions for Iterator3D
+// Functions for Iterator7D
 // ------------------------
 
 /** Default constructor. */
-inline Iterator3D::Iterator3D()
+inline Iterator7D::Iterator7D()
 {
   // Nothing to do here.
 }
 
 /** Copy constructor. */
-inline Iterator3D::Iterator3D(const Iterator3D& o) :
+inline Iterator7D::Iterator7D(const Iterator7D& o) :
   msv(o.msv), mstride(o.mstride)
 {
   // Nothing to do here.
 }
 
 /** Explicit constructor. */
-inline Iterator3D::Iterator3D(const MatrixView& x, Index stride) :
+inline Iterator7D::Iterator7D(const Tensor6View& x, Index stride) :
   msv(x), mstride(stride)
 {
   // Nothing to do here. 
 }
 
 /** Prefix increment operator. */
-inline Iterator3D& Iterator3D::operator++()
+inline Iterator7D& Iterator7D::operator++()
 {
   msv.mdata += mstride;
   return *this;
 }
 
-/** Not equal operator, needed for algorithms like copy. */
-inline bool Iterator3D::operator!=(const Iterator3D& other) const
+/** Not equal operator, needed for algorithms like copy. 
+    FIXME: Is it really necessary to have such a complicated check
+    here? It could be sufficient to just test
+    msv.mdata!=other.msv.mdata. */
+inline bool Iterator7D::operator!=(const Iterator7D& other) const
 {
   if ( msv.mdata +
+       msv.mvr.mstart +
+       msv.msr.mstart +
+       msv.mbr.mstart +
+       msv.mpr.mstart +
        msv.mrr.mstart +
        msv.mcr.mstart 
        !=
        other.msv.mdata +
+       other.msv.mvr.mstart +
+       other.msv.msr.mstart +
+       other.msv.mbr.mstart +
+       other.msv.mpr.mstart +
        other.msv.mrr.mstart +
        other.msv.mcr.mstart )
     return true;
@@ -324,55 +345,66 @@ inline bool Iterator3D::operator!=(const Iterator3D& other) const
 
 /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-inline MatrixView* const Iterator3D::operator->()
+inline MatrixView* const Iterator7D::operator->()
 {
   return &msv;
 }
 
 /** Dereferencing. */
-inline MatrixView& Iterator3D::operator*()
+inline MatrixView& Iterator7D::operator*()
 {
   return msv;
 }
 
-// Functions for ConstIterator3D
+// Functions for ConstIterator7D
 // -----------------------------
 
 /** Default constructor. */
-inline ConstIterator3D::ConstIterator3D()
+inline ConstIterator7D::ConstIterator7D()
 {
   // Nothing to do here.
 }
 
 /** Copy constructor. */
-inline ConstIterator3D::ConstIterator3D(const ConstIterator3D& o) :
+inline ConstIterator7D::ConstIterator7D(const ConstIterator7D& o) :
   msv(o.msv), mstride(o.mstride)
 {
   // Nothing to do here.
 }
 
 /** Explicit constructor. */
-inline ConstIterator3D::ConstIterator3D(const ConstMatrixView& x, Index stride) :
+inline ConstIterator7D::ConstIterator7D(const ConstTensor6View& x, Index stride) :
   msv(x), mstride(stride)
 {
   // Nothing to do here. 
 }
 
 /** Prefix increment operator. */
-inline ConstIterator3D& ConstIterator3D::operator++()
+inline ConstIterator7D& ConstIterator7D::operator++()
 {
   msv.mdata += mstride;
   return *this;
 }
 
-/** Not equal operator, needed for algorithms like copy. */
-inline bool ConstIterator3D::operator!=(const ConstIterator3D& other) const
+/** Not equal operator, needed for algorithms like copy. 
+    FIXME: Is it really necessary to have such a complicated check
+    here? It could be sufficient to just test
+    msv.mdata!=other.msv.mdata. */
+inline bool ConstIterator7D::operator!=(const ConstIterator7D& other) const
 {
   if ( msv.mdata +
+       msv.mvr.mstart +
+       msv.msr.mstart +
+       msv.mbr.mstart +
+       msv.mpr.mstart +
        msv.mrr.mstart +
        msv.mcr.mstart
        !=
        other.msv.mdata +
+       other.msv.mvr.mstart +
+       other.msv.msr.mstart +
+       other.msv.mbr.mstart +
+       other.msv.mpr.mstart +
        other.msv.mrr.mstart +
        other.msv.mcr.mstart )
     return true;
@@ -382,53 +414,77 @@ inline bool ConstIterator3D::operator!=(const ConstIterator3D& other) const
 
 /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-inline const ConstMatrixView* ConstIterator3D::operator->() const
+inline const ConstMatrixView* ConstIterator7D::operator->() const
 {
   return &msv;
 }
 
 /** Dereferencing. */
-inline const ConstMatrixView& ConstIterator3D::operator*() const
+inline const ConstMatrixView& ConstIterator7D::operator*() const
 {
   return msv;
 }
 
 
 
-// Functions for ConstTensor3View:
+// Functions for ConstTensor7View:
 // ------------------------------
 
+/** Returns the number of libraries. */
+inline Index ConstTensor7View::nlibraries() const
+{
+  return mlr.mextent;
+}
+
+/** Returns the number of vitrines. */
+inline Index ConstTensor7View::nvitrines() const
+{
+  return mvr.mextent;
+}
+
+/** Returns the number of shelves. */
+inline Index ConstTensor7View::nshelves() const
+{
+  return msr.mextent;
+}
+
+/** Returns the number of books. */
+inline Index ConstTensor7View::nbooks() const
+{
+  return mbr.mextent;
+}
+
 /** Returns the number of pages. */
-inline Index ConstTensor3View::npages() const
+inline Index ConstTensor7View::npages() const
 {
   return mpr.mextent;
 }
 
 /** Returns the number of rows. */
-inline Index ConstTensor3View::nrows() const
+inline Index ConstTensor7View::nrows() const
 {
   return mrr.mextent;
 }
 
 /** Returns the number of columns. */
-inline Index ConstTensor3View::ncols() const
+inline Index ConstTensor7View::ncols() const
 {
   return mcr.mextent;
 }
 
 /** Const index operator for subrange. We have to also account for the
-    case, that *this is already a subrange of a Tensor3. This allows
+    case, that *this is already a subrange of a Tensor7. This allows
     correct recursive behavior.  */
-inline ConstTensor3View ConstTensor3View::operator()(const Range& p,
+inline ConstTensor7View ConstTensor7View::operator()(const Range& p,
                                                      const Range& r,
                                                      const Range& c) const
 {
-  return ConstTensor3View(mdata, mpr, mrr, mcr, p, r, c);
+  return ConstTensor7View(mdata, mpr, mrr, mcr, p, r, c);
 }
 
 /** Const index operator returning an object of type
     ConstMatrixView. (Reducing the dimension by one.) */
-inline ConstMatrixView ConstTensor3View::operator()(const Range& p,
+inline ConstMatrixView ConstTensor7View::operator()(const Range& p,
                                                     const Range& r,
                                                     Index c) const
 {
@@ -443,7 +499,7 @@ inline ConstMatrixView ConstTensor3View::operator()(const Range& p,
 
 /** Const index operator returning an object of type
     ConstMatrixView. (Reducing the dimension by one.) */
-inline ConstMatrixView ConstTensor3View::operator()(const Range& p,
+inline ConstMatrixView ConstTensor7View::operator()(const Range& p,
                                                     Index        r,
                                                     const Range& c) const
 {
@@ -458,7 +514,7 @@ inline ConstMatrixView ConstTensor3View::operator()(const Range& p,
 
 /** Const index operator returning an object of type
     ConstMatrixView. (Reducing the dimension by one.) */
-inline ConstMatrixView ConstTensor3View::operator()(Index p,
+inline ConstMatrixView ConstTensor7View::operator()(Index p,
                                                     const Range& r,
                                                     const Range& c) const
 {
@@ -473,7 +529,7 @@ inline ConstMatrixView ConstTensor3View::operator()(Index p,
 
 /** Const index operator returning an object of type
     ConstVectorView. (Reducing the dimension by two.) */
-inline ConstVectorView ConstTensor3View::operator()(Index p,
+inline ConstVectorView ConstTensor7View::operator()(Index p,
                                                     Index r,
                                                     const Range& c) const
 {
@@ -491,7 +547,7 @@ inline ConstVectorView ConstTensor3View::operator()(Index p,
 
 /** Const index operator returning an object of type
     ConstVectorView. (Reducing the dimension by two.) */
-inline ConstVectorView ConstTensor3View::operator()(Index p,
+inline ConstVectorView ConstTensor7View::operator()(Index p,
                                                     const Range& r,
                                                     Index c) const
 {
@@ -509,7 +565,7 @@ inline ConstVectorView ConstTensor3View::operator()(Index p,
 
 /** Const index operator returning an object of type
     ConstVectorView. (Reducing the dimension by two.) */
-inline ConstVectorView ConstTensor3View::operator()(const Range& p,
+inline ConstVectorView ConstTensor7View::operator()(const Range& p,
                                                     Index r,
                                                     Index c) const
 {
@@ -526,7 +582,7 @@ inline ConstVectorView ConstTensor3View::operator()(const Range& p,
 }
 
 /** Plain const index operator. */
-inline Numeric ConstTensor3View::operator()(Index p, Index r, Index c) const
+inline Numeric ConstTensor7View::operator()(Index p, Index r, Index c) const
 {
   // Check if indices are valid:
   assert( 0<=p );
@@ -543,18 +599,18 @@ inline Numeric ConstTensor3View::operator()(Index p, Index r, Index c) const
 }
 
 /** Return const iterator to first page. */
-inline ConstIterator3D ConstTensor3View::begin() const
+inline ConstIterator7D ConstTensor7View::begin() const
 {
-  return ConstIterator3D(ConstMatrixView(mdata+mpr.mstart,
+  return ConstIterator7D(ConstMatrixView(mdata+mpr.mstart,
                                          mrr,
                                          mcr),
                          mpr.mstride);
 }
 
 /** Return const iterator behind last page. */
-inline ConstIterator3D ConstTensor3View::end() const
+inline ConstIterator7D ConstTensor7View::end() const
 {
-  return ConstIterator3D( ConstMatrixView(mdata + mpr.mstart +
+  return ConstIterator7D( ConstMatrixView(mdata + mpr.mstart +
                                           (mpr.mextent)*mpr.mstride,
                                           mrr,
                                           mcr),
@@ -563,17 +619,17 @@ inline ConstIterator3D ConstTensor3View::end() const
 
 /** Default constructor. This is necessary, so that we can have a
     default constructor for derived classes. */
-inline ConstTensor3View::ConstTensor3View() :
+inline ConstTensor7View::ConstTensor7View() :
   mpr(0,0,1), mrr(0,0,1), mcr(0,0,1), mdata(NULL)
 {
   // Nothing to do here.
 }
 
-/** Explicit constructor. This one is used by Tensor3 to initialize
-    its own Tensor3View part. The row range rr must have a stride to
+/** Explicit constructor. This one is used by Tensor7 to initialize
+    its own Tensor7View part. The row range rr must have a stride to
     account for the length of one row. The page range pr must have a
     stride to account for the length of one page. */
-inline ConstTensor3View::ConstTensor3View(Numeric *data,
+inline ConstTensor7View::ConstTensor7View(Numeric *data,
                                           const Range& pr,
                                           const Range& rr,
                                           const Range& cr) :
@@ -592,7 +648,7 @@ inline ConstTensor3View::ConstTensor3View(Numeric *data,
     The new ranges may contain -1 for the extent which acts as a
     joker. However, the used Range constructor converts this to an
     explicit range, consistent with the original Range. */
-inline ConstTensor3View::ConstTensor3View(Numeric *data,
+inline ConstTensor7View::ConstTensor7View(Numeric *data,
                                           const Range& pp,
                                           const Range& pr,
                                           const Range& pc,
@@ -610,11 +666,11 @@ inline ConstTensor3View::ConstTensor3View(Numeric *data,
 /** Output operator. This demonstrates how iterators can be used to
     traverse the tensor. We use the standard output operator for
     Matrix to print each page in turn. */
-inline std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v)
+inline std::ostream& operator<<(std::ostream& os, const ConstTensor7View& v)
 {
   // Page iterators:
-  ConstIterator3D ip=v.begin();
-  const ConstIterator3D end_page=v.end();
+  ConstIterator7D ip=v.begin();
+  const ConstIterator7D end_page=v.end();
 
   if ( ip!=end_page )
     {
@@ -632,106 +688,106 @@ inline std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v)
 }
 
 
-// Functions for Tensor3View:
+// Functions for Tensor7View:
 // -------------------------
 
 /** Const index operator for subrange. We have to also account for the
-    case, that *this is already a subrange of a Tensor3. This allows
+    case, that *this is already a subrange of a Tensor7. This allows
     correct recursive behavior. Has to be redefined here, since it is
     hiden by the non-const operator of the derived class. */
-inline ConstTensor3View Tensor3View::operator()(const Range& p,
+inline ConstTensor7View Tensor7View::operator()(const Range& p,
 						const Range& r,
 						const Range& c) const
 {
-  return ConstTensor3View::operator()(p,r,c);  
+  return ConstTensor7View::operator()(p,r,c);  
 }
 
 /** Const index operator returning an object of type
     ConstMatrixView. (Reducing the dimension by one.) Has to be
     redefined here, since it is hiden by the non-const operator of the
     derived class. */
-inline ConstMatrixView Tensor3View::operator()(const Range& p,
+inline ConstMatrixView Tensor7View::operator()(const Range& p,
                                                     const Range& r,
                                                     Index c) const
 {
-  return ConstTensor3View::operator()(p,r,c);  
+  return ConstTensor7View::operator()(p,r,c);  
 }
 
 /** Const index operator returning an object of type
     ConstMatrixView. (Reducing the dimension by one.) Has to be
     redefined here, since it is hiden by the non-const operator of the
     derived class. */
-inline ConstMatrixView Tensor3View::operator()(const Range& p,
+inline ConstMatrixView Tensor7View::operator()(const Range& p,
                                                     Index        r,
                                                     const Range& c) const
 {
-  return ConstTensor3View::operator()(p,r,c);  
+  return ConstTensor7View::operator()(p,r,c);  
 }
 
 /** Const index operator returning an object of type
     ConstMatrixView. (Reducing the dimension by one.) Has to be
     redefined here, since it is hiden by the non-const operator of the
     derived class. */
-inline ConstMatrixView Tensor3View::operator()(Index p,
+inline ConstMatrixView Tensor7View::operator()(Index p,
                                                     const Range& r,
                                                     const Range& c) const
 {
-  return ConstTensor3View::operator()(p,r,c);  
+  return ConstTensor7View::operator()(p,r,c);  
 }
 
 /** Const index operator returning an object of type
     ConstVectorView. (Reducing the dimension by two.) Has to be
     redefined here, since it is hiden by the non-const operator of the
     derived class. */
-inline ConstVectorView Tensor3View::operator()(Index p,
+inline ConstVectorView Tensor7View::operator()(Index p,
                                                     Index r,
                                                     const Range& c) const
 {
-  return ConstTensor3View::operator()(p,r,c);  
+  return ConstTensor7View::operator()(p,r,c);  
 }
 
 /** Const index operator returning an object of type
     ConstVectorView. (Reducing the dimension by two.) Has to be
     redefined here, since it is hiden by the non-const operator of the
     derived class. */
-inline ConstVectorView Tensor3View::operator()(Index p,
+inline ConstVectorView Tensor7View::operator()(Index p,
                                                     const Range& r,
                                                     Index c) const
 {
-  return ConstTensor3View::operator()(p,r,c);  
+  return ConstTensor7View::operator()(p,r,c);  
 }
 
 /** Const index operator returning an object of type
     ConstVectorView. (Reducing the dimension by two.) Has to be
     redefined here, since it is hiden by the non-const operator of the
     derived class. */
-inline ConstVectorView Tensor3View::operator()(const Range& p,
+inline ConstVectorView Tensor7View::operator()(const Range& p,
                                                     Index r,
                                                     Index c) const
 {
-  return ConstTensor3View::operator()(p,r,c);  
+  return ConstTensor7View::operator()(p,r,c);  
 }
 
 /** Plain const index operator. Has to be redefined here, since it is
     hiden by the non-const operator of the derived class. */
-inline Numeric Tensor3View::operator()(Index p, Index r, Index c) const
+inline Numeric Tensor7View::operator()(Index p, Index r, Index c) const
 {
-  return ConstTensor3View::operator()(p,r,c);  
+  return ConstTensor7View::operator()(p,r,c);  
 }
 
 /** Index operator for subrange. We have to also account for the
-    case, that *this is already a subrange of a Tensor3. This allows
+    case, that *this is already a subrange of a Tensor7. This allows
     correct recursive behavior.  */
-inline Tensor3View Tensor3View::operator()(const Range& p,
+inline Tensor7View Tensor7View::operator()(const Range& p,
 					   const Range& r,
 					   const Range& c) 
 {
-  return Tensor3View(mdata, mpr, mrr, mcr, p, r, c);
+  return Tensor7View(mdata, mpr, mrr, mcr, p, r, c);
 }
 
 /** Index operator returning an object of type
     MatrixView. (Reducing the dimension by one.) */
-inline MatrixView Tensor3View::operator()(const Range& p,
+inline MatrixView Tensor7View::operator()(const Range& p,
 					  const Range& r,
 					  Index c)
 {
@@ -746,7 +802,7 @@ inline MatrixView Tensor3View::operator()(const Range& p,
 
 /** Index operator returning an object of type
     MatrixView. (Reducing the dimension by one.) */
-inline MatrixView Tensor3View::operator()(const Range& p,
+inline MatrixView Tensor7View::operator()(const Range& p,
 					  Index        r,
 					  const Range& c) 
 {
@@ -761,7 +817,7 @@ inline MatrixView Tensor3View::operator()(const Range& p,
 
 /** Index operator returning an object of type
     MatrixView. (Reducing the dimension by one.) */
-inline MatrixView Tensor3View::operator()(Index p,
+inline MatrixView Tensor7View::operator()(Index p,
 					  const Range& r,
 					  const Range& c) 
 {
@@ -776,7 +832,7 @@ inline MatrixView Tensor3View::operator()(Index p,
 
 /** Index operator returning an object of type
     VectorView. (Reducing the dimension by two.) */
-inline VectorView Tensor3View::operator()(Index p,
+inline VectorView Tensor7View::operator()(Index p,
 					  Index r,
 					  const Range& c) 
 {
@@ -794,7 +850,7 @@ inline VectorView Tensor3View::operator()(Index p,
 
 /** Index operator returning an object of type
     VectorView. (Reducing the dimension by two.) */
-inline VectorView Tensor3View::operator()(Index p,
+inline VectorView Tensor7View::operator()(Index p,
 					  const Range& r,
 					  Index c) 
 {
@@ -812,7 +868,7 @@ inline VectorView Tensor3View::operator()(Index p,
 
 /** Index operator returning an object of type
     VectorView. (Reducing the dimension by two.) */
-inline VectorView Tensor3View::operator()(const Range& p,
+inline VectorView Tensor7View::operator()(const Range& p,
 					  Index r,
 					  Index c)
 {
@@ -829,7 +885,7 @@ inline VectorView Tensor3View::operator()(const Range& p,
 }
 
 /** Plain non-const index operator. */
-inline Numeric& Tensor3View::operator()(Index p, Index r, Index c) 
+inline Numeric& Tensor7View::operator()(Index p, Index r, Index c) 
 {
   // Check if indices are valid:
   assert( 0<=p );
@@ -847,41 +903,41 @@ inline Numeric& Tensor3View::operator()(Index p, Index r, Index c)
 
 /** Return const iterator to first row. Has to be redefined here, since it is
     hiden by the non-const operator of the derived class.*/
-inline ConstIterator3D Tensor3View::begin() const
+inline ConstIterator7D Tensor7View::begin() const
 {
-  return ConstTensor3View::begin();
+  return ConstTensor7View::begin();
 }
 
 /** Return const iterator behind last row. */
-inline ConstIterator3D Tensor3View::end() const
+inline ConstIterator7D Tensor7View::end() const
 {
-  return ConstTensor3View::end();
+  return ConstTensor7View::end();
 }
 
 /** Return iterator to first page. */
-inline Iterator3D Tensor3View::begin()
+inline Iterator7D Tensor7View::begin()
 {
-  return Iterator3D(MatrixView(mdata+mpr.mstart,
+  return Iterator7D(MatrixView(mdata+mpr.mstart,
 			       mrr,
 			       mcr),
 		    mpr.mstride);
 }
 
 /** Return iterator behind last page. */
-inline Iterator3D Tensor3View::end()
+inline Iterator7D Tensor7View::end()
 {
-  return Iterator3D( MatrixView(mdata + mpr.mstart +
+  return Iterator7D( MatrixView(mdata + mpr.mstart +
 				(mpr.mextent)*mpr.mstride,
 				mrr,
 				mcr),
 		     mpr.mstride );
 }
 
-/** Assignment operator. This copies the data from another Tensor3View
-    to this Tensor3View. Dimensions must agree! Resizing would destroy
-    the selection that we might have done in this Tensor3View by
+/** Assignment operator. This copies the data from another Tensor7View
+    to this Tensor7View. Dimensions must agree! Resizing would destroy
+    the selection that we might have done in this Tensor7View by
     setting its range. */
-inline Tensor3View& Tensor3View::operator=(const ConstTensor3View& m)
+inline Tensor7View& Tensor7View::operator=(const ConstTensor7View& m)
 {
   // Check that sizes are compatible:
   assert(mpr.mextent==m.mpr.mextent);
@@ -892,12 +948,12 @@ inline Tensor3View& Tensor3View::operator=(const ConstTensor3View& m)
   return *this;
 }
 
-/** Assignment from Tensor3View to Tensor3View. This is a tricky
-    one. The problem is that since Tensor3View is derived from
-    ConstTensor3View, a default = operator is generated by the
+/** Assignment from Tensor7View to Tensor7View. This is a tricky
+    one. The problem is that since Tensor7View is derived from
+    ConstTensor7View, a default = operator is generated by the
     compiler, which does not do what we want. So we need this one to
     override the default. */
-inline Tensor3View& Tensor3View::operator=(const Tensor3View& m)
+inline Tensor7View& Tensor7View::operator=(const Tensor7View& m)
 {
   // Check that sizes are compatible:
   assert(mpr.mextent==m.mpr.mextent);
@@ -908,10 +964,10 @@ inline Tensor3View& Tensor3View::operator=(const Tensor3View& m)
   return *this;
 }
 
-/** Assignment from a Tensor3. This must exist to overide the
+/** Assignment from a Tensor7. This must exist to overide the
     automatically generated assignment operators, which don't copy the
     contents! */
-inline Tensor3View& Tensor3View::operator=(const Tensor3& m)
+inline Tensor7View& Tensor7View::operator=(const Tensor7& m)
 {
   // Check that sizes are compatible:
   assert(mpr.mextent==m.mpr.mextent);
@@ -922,9 +978,9 @@ inline Tensor3View& Tensor3View::operator=(const Tensor3& m)
   return *this;
 }
 
-/** Assigning a scalar to a Tensor3View will set all elements to this
+/** Assigning a scalar to a Tensor7View will set all elements to this
     value. */
-inline Tensor3View& Tensor3View::operator=(Numeric x)
+inline Tensor7View& Tensor7View::operator=(Numeric x)
 {
   copy( x, begin(), end() );
   return *this;
@@ -939,10 +995,10 @@ inline Numeric add(Numeric x, Numeric y)
 }
 
 /** Multiplication by scalar. */
-inline Tensor3View& Tensor3View::operator*=(Numeric x)
+inline Tensor7View& Tensor7View::operator*=(Numeric x)
 {
-  const Iterator3D ep=end();  
-  for ( Iterator3D p=begin(); p!=ep ; ++p )
+  const Iterator7D ep=end();  
+  for ( Iterator7D p=begin(); p!=ep ; ++p )
   {
     *p *= x;
   }
@@ -950,10 +1006,10 @@ inline Tensor3View& Tensor3View::operator*=(Numeric x)
 }
 
 /** Division by scalar. */
-inline Tensor3View& Tensor3View::operator/=(Numeric x)
+inline Tensor7View& Tensor7View::operator/=(Numeric x)
 {
-  const Iterator3D ep=end();  
-  for ( Iterator3D p=begin(); p!=ep ; ++p )
+  const Iterator7D ep=end();  
+  for ( Iterator7D p=begin(); p!=ep ; ++p )
   {
     *p /= x;
   }
@@ -961,10 +1017,10 @@ inline Tensor3View& Tensor3View::operator/=(Numeric x)
 }
 
 /** Addition of scalar. */
-inline Tensor3View& Tensor3View::operator+=(Numeric x)
+inline Tensor7View& Tensor7View::operator+=(Numeric x)
 {
-  const Iterator3D ep=end();  
-  for ( Iterator3D p=begin(); p!=ep ; ++p )
+  const Iterator7D ep=end();  
+  for ( Iterator7D p=begin(); p!=ep ; ++p )
   {
     *p += x;
   }
@@ -972,25 +1028,25 @@ inline Tensor3View& Tensor3View::operator+=(Numeric x)
 }
 
 /** Subtraction of scalar. */
-inline Tensor3View& Tensor3View::operator-=(Numeric x)
+inline Tensor7View& Tensor7View::operator-=(Numeric x)
 {
-  const Iterator3D ep=end();  
-  for ( Iterator3D p=begin(); p!=ep ; ++p )
+  const Iterator7D ep=end();  
+  for ( Iterator7D p=begin(); p!=ep ; ++p )
   {
     *p -= x;
   }
   return *this;
 }
 
-/** Element-vise multiplication by another Tensor3. */
-inline Tensor3View& Tensor3View::operator*=(const ConstTensor3View& x)
+/** Element-vise multiplication by another Tensor7. */
+inline Tensor7View& Tensor7View::operator*=(const ConstTensor7View& x)
 {
   assert( npages() == x.npages() );
   assert( nrows()  == x.nrows()	 );
   assert( ncols()  == x.ncols()	 );
-  ConstIterator3D  xp = x.begin();
-  Iterator3D        p = begin();
-  const Iterator3D ep = end();
+  ConstIterator7D  xp = x.begin();
+  Iterator7D        p = begin();
+  const Iterator7D ep = end();
   for ( ; p!=ep ; ++p,++xp )
     {
       *p *= *xp;
@@ -998,15 +1054,15 @@ inline Tensor3View& Tensor3View::operator*=(const ConstTensor3View& x)
   return *this;
 }
 
-/** Element-vise division by another Tensor3. */
-inline Tensor3View& Tensor3View::operator/=(const ConstTensor3View& x)
+/** Element-vise division by another Tensor7. */
+inline Tensor7View& Tensor7View::operator/=(const ConstTensor7View& x)
 {
   assert( npages() == x.npages() );
   assert( nrows()  == x.nrows()	 );
   assert( ncols()  == x.ncols()	 );
-  ConstIterator3D  xp = x.begin();
-  Iterator3D        p = begin();
-  const Iterator3D ep = end();
+  ConstIterator7D  xp = x.begin();
+  Iterator7D        p = begin();
+  const Iterator7D ep = end();
   for ( ; p!=ep ; ++p,++xp )
     {
       *p /= *xp;
@@ -1014,15 +1070,15 @@ inline Tensor3View& Tensor3View::operator/=(const ConstTensor3View& x)
   return *this;
 }
 
-/** Element-vise addition of another Tensor3. */
-inline Tensor3View& Tensor3View::operator+=(const ConstTensor3View& x)
+/** Element-vise addition of another Tensor7. */
+inline Tensor7View& Tensor7View::operator+=(const ConstTensor7View& x)
 {
   assert( npages() == x.npages() );
   assert( nrows()  == x.nrows()	 );
   assert( ncols()  == x.ncols()	 );
-  ConstIterator3D  xp = x.begin();
-  Iterator3D        p = begin();
-  const Iterator3D ep = end();
+  ConstIterator7D  xp = x.begin();
+  Iterator7D        p = begin();
+  const Iterator7D ep = end();
   for ( ; p!=ep ; ++p,++xp )
     {
       *p += *xp;
@@ -1030,15 +1086,15 @@ inline Tensor3View& Tensor3View::operator+=(const ConstTensor3View& x)
   return *this;
 }
 
-/** Element-vise subtraction of another Tensor3. */
-inline Tensor3View& Tensor3View::operator-=(const ConstTensor3View& x)
+/** Element-vise subtraction of another Tensor7. */
+inline Tensor7View& Tensor7View::operator-=(const ConstTensor7View& x)
 {
   assert( npages() == x.npages() );
   assert( nrows()  == x.nrows()	 );
   assert( ncols()  == x.ncols()	 );
-  ConstIterator3D  xp = x.begin();
-  Iterator3D        p = begin();
-  const Iterator3D ep = end();
+  ConstIterator7D  xp = x.begin();
+  Iterator7D        p = begin();
+  const Iterator7D ep = end();
   for ( ; p!=ep ; ++p,++xp )
     {
       *p -= *xp;
@@ -1047,21 +1103,21 @@ inline Tensor3View& Tensor3View::operator-=(const ConstTensor3View& x)
 }
 
 /** Default constructor. This is necessary, so that we can have a
-    default constructor for the derived class Tensor3. */
-inline Tensor3View::Tensor3View() :
-  ConstTensor3View()
+    default constructor for the derived class Tensor7. */
+inline Tensor7View::Tensor7View() :
+  ConstTensor7View()
 {
   // Nothing to do here.
 }
 
-/** Explicit constructor. This one is used by Tensor3 to initialize its
-    own Tensor3View part. The row range rr must have a
+/** Explicit constructor. This one is used by Tensor7 to initialize its
+    own Tensor7View part. The row range rr must have a
     stride to account for the length of one row. */
-inline Tensor3View::Tensor3View(Numeric *data,
+inline Tensor7View::Tensor7View(Numeric *data,
 				const Range& pr,
 				const Range& rr,
 				const Range& cr) :
-  ConstTensor3View(data, pr, rr, cr)
+  ConstTensor7View(data, pr, rr, cr)
 {
   // Nothing to do here.
 }
@@ -1077,14 +1133,14 @@ inline Tensor3View::Tensor3View(Numeric *data,
     \param *data The actual data.
     \param p Previous range.
     \param n New Range.  */
-inline Tensor3View::Tensor3View(Numeric *data,
+inline Tensor7View::Tensor7View(Numeric *data,
 				const Range& pp,
 				const Range& pr,
 				const Range& pc,
 				const Range& np,
 				const Range& nr,
 				const Range& nc) :
-  ConstTensor3View(data,pp,pr,pc,np,nr,nc)
+  ConstTensor7View(data,pp,pr,pc,np,nr,nc)
 {
   // Nothing to do here.
 }
@@ -1093,9 +1149,9 @@ inline Tensor3View::Tensor3View(Numeric *data,
     area of memory. Note that the strides in the iterators can be
     different, so that we can copy data between different
     kinds of subtensors. */
-inline void copy(ConstIterator3D origin,
-                 const ConstIterator3D& end,
-                 Iterator3D target)
+inline void copy(ConstIterator7D origin,
+                 const ConstIterator7D& end,
+                 Iterator7D target)
 {
   for ( ; origin!=end ; ++origin,++target )
     {
@@ -1109,8 +1165,8 @@ inline void copy(ConstIterator3D origin,
 
 /** Copy a scalar to all elements. */
 inline void copy(Numeric x,
-                 Iterator3D target,
-                 const Iterator3D& end)
+                 Iterator7D target,
+                 const Iterator7D& end)
 {
   for ( ; target!=end ; ++target )
     {
@@ -1121,23 +1177,23 @@ inline void copy(Numeric x,
 }
 
 
-// Functions for Tensor3:
+// Functions for Tensor7:
 // ---------------------
 
 /** Default constructor. */
-inline Tensor3::Tensor3() :
-  Tensor3View::Tensor3View()
+inline Tensor7::Tensor7() :
+  Tensor7View::Tensor7View()
 {
   // Nothing to do here. However, note that the default constructor
-  // for Tensor3View has been called in the initializer list. That is
+  // for Tensor7View has been called in the initializer list. That is
   // crucial, otherwise internal range objects will not be properly
   // initialized. 
 }
 
 /** Constructor setting size. This constructor has to set the strides
     in the page and row ranges correctly! */
-inline Tensor3::Tensor3(Index p, Index r, Index c) :
-  Tensor3View( new Numeric[p*r*c],
+inline Tensor7::Tensor7(Index p, Index r, Index c) :
+  Tensor7View( new Numeric[p*r*c],
              Range(0,p,r*c),
              Range(0,r,c),
              Range(0,c))
@@ -1146,8 +1202,8 @@ inline Tensor3::Tensor3(Index p, Index r, Index c) :
 }
 
 /** Constructor setting size and filling with constant value. */
-inline Tensor3::Tensor3(Index p, Index r, Index c, Numeric fill) :
-  Tensor3View( new Numeric[p*r*c],
+inline Tensor7::Tensor7(Index p, Index r, Index c, Numeric fill) :
+  Tensor7View( new Numeric[p*r*c],
               Range(0,p,r*c),
               Range(0,r,c),
               Range(0,c))
@@ -1158,10 +1214,10 @@ inline Tensor3::Tensor3(Index p, Index r, Index c, Numeric fill) :
     *x = fill;
 }
 
-/** Copy constructor from Tensor3View. This automatically sets the size
+/** Copy constructor from Tensor7View. This automatically sets the size
     and copies the data. */
-inline Tensor3::Tensor3(const ConstTensor3View& m) :
-  Tensor3View( new Numeric[m.npages()*m.nrows()*m.ncols()],
+inline Tensor7::Tensor7(const ConstTensor7View& m) :
+  Tensor7View( new Numeric[m.npages()*m.nrows()*m.ncols()],
              Range( 0, m.npages(), m.nrows()*m.ncols() ),
              Range( 0, m.nrows(), m.ncols() ),
              Range( 0, m.ncols() ) )
@@ -1169,10 +1225,10 @@ inline Tensor3::Tensor3(const ConstTensor3View& m) :
   copy(m.begin(),m.end(),begin());
 }
 
-/** Copy constructor from Tensor3. This automatically sets the size
+/** Copy constructor from Tensor7. This automatically sets the size
     and copies the data. */
-inline Tensor3::Tensor3(const Tensor3& m) :
-  Tensor3View( new Numeric[m.npages()*m.nrows()*m.ncols()],
+inline Tensor7::Tensor7(const Tensor7& m) :
+  Tensor7View( new Numeric[m.npages()*m.nrows()*m.ncols()],
              Range( 0, m.npages(), m.nrows()*m.ncols() ),
              Range( 0, m.nrows(), m.ncols() ),
              Range( 0, m.ncols() ) )
@@ -1195,9 +1251,9 @@ inline Tensor3::Tensor3(const Tensor3& m) :
     classes that use the assignment operator to initialize their
     data). 
 */
-inline Tensor3& Tensor3::operator=(const Tensor3& m)
+inline Tensor7& Tensor7::operator=(const Tensor7& m)
 {
-  //  cout << "Tensor3 copy: m = " << m.nrows() << " " << m.ncols() << "\n";
+  //  cout << "Tensor7 copy: m = " << m.nrows() << " " << m.ncols() << "\n";
   //  cout << "             n = " << nrows() << " " << ncols() << "\n";
 
   // None of the extents can be zero for a valid tensor, so we just
@@ -1221,7 +1277,7 @@ inline Tensor3& Tensor3::operator=(const Tensor3& m)
 
 /** Assignment operator from scalar. Assignment operators are not
     inherited. */
-inline Tensor3& Tensor3::operator=(Numeric x)
+inline Tensor7& Tensor7::operator=(Numeric x)
 {
   copy( x, begin(), end() );
   return *this;
@@ -1230,7 +1286,7 @@ inline Tensor3& Tensor3::operator=(Numeric x)
 /** Resize function. If the size is already correct this function does
     nothing. All data is lost after resizing! The new tensor is not
     initialized, so it will contain random values.*/
-inline void Tensor3::resize(Index p, Index r, Index c)
+inline void Tensor7::resize(Index p, Index r, Index c)
 {
   assert( 0<=p );
   assert( 0<=r );
@@ -1257,11 +1313,11 @@ inline void Tensor3::resize(Index p, Index r, Index c)
     }
 }
 
-/** Destructor for Tensor3. This is important, since Tensor3 uses new to
+/** Destructor for Tensor7. This is important, since Tensor7 uses new to
     allocate storage. */
-inline Tensor3::~Tensor3()
+inline Tensor7::~Tensor7()
 {
-//   cout << "Destroying a Tensor3:\n"
+//   cout << "Destroying a Tensor7:\n"
 //        << *this << "\n........................................\n";
   delete mdata;
 }
@@ -1282,18 +1338,18 @@ inline Tensor3::~Tensor3()
     \retval   y   the results of the function acting on each element of x
     \param    my_func a function (e.g., sqrt)
     \param    x   a tensor */
-inline void transform( Tensor3View y,
+inline void transform( Tensor7View y,
                        double (&my_func)(double),
-                       ConstTensor3View x )
+                       ConstTensor7View x )
 {
   // Check dimensions:
   assert( y.npages() ==	x.npages() );
   assert( y.nrows()  ==	x.nrows()  );
   assert( y.ncols()  ==	x.ncols()  );
 
-  const ConstIterator3D xe = x.end();
-  ConstIterator3D       xi = x.begin();
-  Iterator3D            yi = y.begin();
+  const ConstIterator7D xe = x.end();
+  ConstIterator7D       xi = x.begin();
+  Iterator7D            yi = y.begin();
   for ( ; xi!=xe; ++xi, ++yi )
     {
       // Use the transform function of lower dimensional tensors
@@ -1303,10 +1359,10 @@ inline void transform( Tensor3View y,
 }
 
 /** Max function, tensor version. */
-inline Numeric max(const ConstTensor3View& x)
+inline Numeric max(const ConstTensor7View& x)
 {
-  const ConstIterator3D xe = x.end();
-  ConstIterator3D       xi = x.begin();
+  const ConstIterator7D xe = x.end();
+  ConstIterator7D       xi = x.begin();
 
   // Initial value for max:
   Numeric themax = max(*xi);
@@ -1325,10 +1381,10 @@ inline Numeric max(const ConstTensor3View& x)
 }
 
 /** Min function, tensor version. */
-inline Numeric min(const ConstTensor3View& x)
+inline Numeric min(const ConstTensor7View& x)
 {
-  const ConstIterator3D xe = x.end();
-  ConstIterator3D       xi = x.begin();
+  const ConstIterator7D xe = x.end();
+  ConstIterator7D       xi = x.begin();
 
   // Initial value for min:
   Numeric themin = min(*xi);
@@ -1348,4 +1404,4 @@ inline Numeric min(const ConstTensor3View& x)
 
 
 
-#endif    // matpackIII_h
+#endif    // matpackVII_h

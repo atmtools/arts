@@ -149,6 +149,8 @@ public:
 
   // Friends:
   friend class Tensor5View;
+  friend class ConstIterator6D;
+  friend class ConstTensor6View;
 
 protected:
   // Constructors:
@@ -294,6 +296,9 @@ public:
   // friend class VectorView;
   // friend ConstTensor5View transpose(ConstTensor5View m);
   // friend Tensor5View transpose(Tensor5View m);
+  friend class Iterator6D;
+  friend class Tensor6View;
+  friend class Tensor7View;
 
 protected:
   // Constructors:
@@ -481,7 +486,7 @@ inline const ConstTensor4View& ConstIterator5D::operator*() const
 // Functions for ConstTensor5View:
 // ------------------------------
 
-/** Returns the number of shelfs. */
+/** Returns the number of shelves. */
 inline Index ConstTensor5View::nshelves() const
 {
   return msr.mextent;

@@ -152,10 +152,14 @@ public:
   friend class Iterator3D;
   friend class Iterator4D;
   friend class Iterator5D;
+  friend class Iterator6D;
+  friend class Iterator7D;
   friend class ConstIterator2D;
   friend class ConstIterator3D;
   friend class ConstIterator4D;
   friend class ConstIterator5D;
+  friend class ConstIterator6D;
+  friend class ConstIterator7D;
   friend class SparseMatrixView;
   friend class ConstTensor3View;
   friend class Tensor3View;
@@ -166,6 +170,12 @@ public:
   friend class ConstTensor5View;
   friend class Tensor5View;
   friend class Tensor5;
+  friend class ConstTensor6View;
+  friend class Tensor6View;
+  friend class Tensor6;
+  friend class ConstTensor7View;
+  friend class Tensor7View;
+  friend class Tensor7;
   friend std::ostream& operator<<(std::ostream& os, const SparseMatrixView& v);
 
 
@@ -258,6 +268,8 @@ public:
   friend class ConstTensor3View;
   friend class ConstTensor4View;
   friend class ConstTensor5View;
+  friend class ConstTensor6View;
+  friend class ConstTensor7View;
   friend int poly_root_solve (Matrix &roots, Vector &coeffs);
 
 protected:
@@ -330,6 +342,8 @@ public:
   friend class Tensor3View;
   friend class Tensor4View;
   friend class Tensor5View;
+  friend class Tensor6View;
+  friend class Tensor7View;
 
 protected:
   // Constructors:
@@ -449,12 +463,14 @@ public:
   ConstIterator2D end() const;
   
   // Friends:
-  friend class ConstVectorView;
   friend class MatrixView;
   friend class ConstIterator3D;
+  friend class ConstVectorView;
   friend class ConstTensor3View;
   friend class ConstTensor4View;
   friend class ConstTensor5View;
+  friend class ConstTensor6View;
+  friend class ConstTensor7View;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend int poly_root_solve (Matrix &roots, Vector &coeffs);
 
@@ -535,6 +551,8 @@ public:
   friend class Tensor3View;
   friend class Tensor4View;
   friend class Tensor5View;
+  friend class Tensor6View;
+  friend class Tensor7View;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend MatrixView transpose(MatrixView m);
 
