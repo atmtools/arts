@@ -1,3 +1,10 @@
+2000-05-11  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-19
+
+	* Added the implementation of the --methods (-m) dommand line
+	option. Seems to work beautifully!
+
 2000-05-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-18

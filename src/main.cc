@@ -219,7 +219,7 @@ int main (int argc, char **argv)
   extern const ARRAY<WsvRecord> wsv_data;
   extern const std::map<string, size_t> MdMap;
   extern const std::map<string, size_t> WsvMap;
-
+  extern const ARRAY<string> wsv_group_names;
 
   // Now we are set to deal with the more interesting command line
   // switches. 
@@ -231,8 +231,109 @@ int main (int argc, char **argv)
   // variable as output.
   if ( "" != parameters.methods )
     {
-      cerr << "Option `methods' is not yet implemented, sorry.\n";
-      return(1);
+      // This is used to count the number of matches to a query, so
+      // that `none' can be output if necessary
+      size_t hitcount;
+
+      if ( "all" == parameters.methods )
+	{
+	  cout << "Complete list of ARTS methods:\n";
+	  for ( size_t i=0; i<md_data.size(); ++i )
+	    {
+	      cout << "- " << md_data[i].Name() << '\n';
+	    }
+	}
+      else
+	{
+	  // Check if the user gave the name of a specific variable.
+	  map<string, size_t>::const_iterator i =
+	    WsvMap.find(parameters.methods);
+	  if ( i != WsvMap.end() )
+	    {
+	      // If we are here, then the given name matches a variable.
+	      size_t wsv_key = i->second;
+
+	      // List generic methods:
+	      hitcount = 0;
+	      cout << "Generic methods that can generate " << wsv_data[wsv_key].Name() << ":\n";
+	      for ( size_t i=0; i<md_data.size(); ++i )
+		{
+		  // This if statement checks whether GOutput, the list
+		  // of output variable types contains the group of the
+		  // requested variable.
+		  if ( count( md_data[i].GOutput().begin(),
+			      md_data[i].GOutput().end(),
+			      wsv_data[wsv_key].Group() ) )
+		    {
+		      cout << "- " << md_data[i].Name() << '\n';
+		      ++hitcount;
+		    }
+		}
+	      if ( 0==hitcount )
+		cout << "none\n";
+
+	      // List specific methods:
+	      hitcount = 0;
+	      cout << "Specific methods that can generate " << wsv_data[wsv_key].Name() << ":\n";
+	      for ( size_t i=0; i<md_data.size(); ++i )
+		{
+		  // This if statement checks whether Output, the list
+		  // of output variables contains the workspace
+		  // variable key.
+		  if ( count( md_data[i].Output().begin(),
+			      md_data[i].Output().end(),
+			      wsv_key ) ) 
+		    {
+		      cout << "- " << md_data[i].Name() << '\n';
+		      ++hitcount;
+		    }
+		}
+	      if ( 0==hitcount )
+		cout << "none\n";
+	    }
+	  else
+	    {
+	      // Check if the user gave the name of a variable group.
+
+	      // We use the find algorithm from the STL to do this. It
+	      // returns an iterator, so to get the index we take the
+	      // difference to the begin() iterator.
+	      size_t group_key =
+		find( wsv_group_names.begin(),
+		      wsv_group_names.end(),
+		      parameters.methods ) - wsv_group_names.begin();
+
+	      // group_key == wsv_goup_names.size() indicates that a
+	      // group with this name was not found.
+	      if ( group_key != wsv_group_names.size() )
+		{
+		  // List generic methods:
+		  hitcount = 0;
+		  cout << "Generic methods that can generate variables "
+		       << "of group " << wsv_group_names[group_key] << ":\n";
+		  for ( size_t i=0; i<md_data.size(); ++i )
+		    {
+		      // This if statement checks whether GOutput, the list
+		      // of output variable types contains the
+		      // requested group.
+		      if ( count( md_data[i].GOutput().begin(),
+				  md_data[i].GOutput().end(),
+				  group_key ) )
+			{
+			  cout << "- " << md_data[i].Name() << '\n';
+			  ++hitcount;
+			}
+		    }
+		  if ( 0==hitcount )
+		    cout << "none\n";
+		}
+	    }
+	  
+	}
+
+
+
+      return(0);
     }
   
   // React to option `workspacevariables'. If given the argument `all',

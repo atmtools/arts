@@ -140,16 +140,49 @@ int main()
 
 	    // Add indentation:
 	    replace_all(s,"\n","\n    "); 
-	    // Replace special latex characters:
-	    replace_all(s,"#","\\#");      
-	    replace_all(s,"$","\\$");      
-	    replace_all(s,"%","\\%");      
-	    replace_all(s,"&","\\&");      
-	    replace_all(s,"_","\\_");      
-	    replace_all(s,"{","\\{");      
-	    replace_all(s,"}","\\}");      
+	    // Replace special latex characters.
+	    // Not necessary any more, because we use a verbatim
+	    // environment.  
+// 	    replace_all(s,"#","\\#");      
+// 	    replace_all(s,"$","\\$");      
+// 	    replace_all(s,"%","\\%");      
+// 	    replace_all(s,"&","\\&");      
+// 	    replace_all(s,"_","\\_");      
+// 	    replace_all(s,"{","\\{");      
+// 	    replace_all(s,"}","\\}");      
 
-	    ofs << "/** " << s << " */\n";
+	    // Look for the end of the first sentence. There we have
+	    // to include the beginning of the verbatim
+	    // environment. Not earlier, because the first sentence
+	    // has a special meaning.
+	    size_t full_stop = s.find('.') + 1;
+	    string first(s,0,full_stop);
+	    string rest (s,full_stop);
+// 	    cout << '!' << first << '!' << endl
+// 		 << '!' << rest << '!' << endl
+// 		 << "-----------------\n";
+
+	    // Remove leading whitespace and linebreaks in rest:
+	    while (
+		   0 < rest.size() &&
+		   ( ' ' == rest[0] || '\n' == rest[0] )
+		   )
+	      {
+		rest.erase(0,1);
+	      }
+
+	    ofs << "/** " << first;
+	    if ( 0==rest.size() )
+	      {
+		ofs << " */\n";
+	      }
+	    else
+	      {
+		ofs << '\n'
+		    << "    \\begin{verbatim}\n"
+		    << "    " << rest << '\n'
+		    << "    \\end{verbatim} */\n";
+	      }
 	  }
 
 	  // This is needed to flag the first function parameter, which 

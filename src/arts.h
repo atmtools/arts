@@ -36,7 +36,7 @@
 #include <cfloat>
 #include <typeinfo>
 #include <stdexcept>
-//#include <algorithm>
+#include <algorithm>
 #include <ctype.h>
 // #include <valarray>		// Valarray class from the STL
                                 // This should not be needed explicitly
