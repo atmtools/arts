@@ -69,8 +69,8 @@ box\\
 %=====================================================================
 % Definition of new commands:
 % ====================================================================
-\newcommand{\DirFre} {(\PDir, \Frq)}
-\newcommand{\DirFrePr} {\ensuremath{(\PDir^\prime, \Frq)}}
+\newcommand{\DirFre} {(\PDir, \Frq, \Tmp)}
+\newcommand{\DirFrePr} {\ensuremath{(\PDir^\prime, \PDir, \Frq, \Tmp)}}
 
 
 \levelb{General radiative transfer equation}
@@ -148,7 +148,8 @@ into direction \PDir.  The scattering efficiency matrix
 \SEfMat is the sum of products  
 of the particle densities \PDen\  and the phase matrices \PhaMat
 \begin{eqnarray}
-\SEfMat(\PDir, \PDir', \Frq) = \sum_i{\PDen_i\PhaMat_i(\PDir, \PDir', \Frq)}.
+\SEfMat(\PDir, \PDir', \Frq, \Tmp) = \sum_i{\PDen_i\PhaMat_i(\PDir,
+  \PDir', \Frq, \Tmp)}.
 \end{eqnarray}
 
 Molecular scattering is neglected as it is not important in the 
@@ -158,134 +159,216 @@ considered frequency range from 10 to 1000 GHz.
 %======================================================
 \label{sec:scattering:scalar_rte}
 
-If we are not interested in polarization effects we may use the scalar
+If we know that the radiation field is unpolarized we may use the scalar
 radiative transfer equation, which is easier to handle than the vector
-equation. It follows directly from the general equation. The scalar
-extinction coefficient is the first element of the extinction matrix
-$K_{11}$, the scalar absorption coefficient is given by the first
+equation. It can directly be derived from the general equation
+provided that there are no nonspherical particles in the scattering
+medium. If there are nonspherical particles the polarization state of
+the radiation will be changed, in this case the medium is called
+dichroistic.
+For spherical particles the extinction matrix has only elements on the
+diagonal and all of them have equal values. Only the first component
+of the absorption vector will be nonzero. Instead of taking the
+full scattering 
+matrix, commonly only its first element, which is usually called the
+phase function, is used although there is no physical justification for
+doing this.
+
+Thus to write down the scalar radiative transfer equation the
+extinction matrix in (\ref{eq:scattering:RTE}) is replaced by the
+first element of the extinction matrix
+$K_{11}$, the scalar absorption coefficient is replaced by the first
 element of the absorption vector $a_1$ and the scalar scattering
-coefficient is the first element of the scattering efficiency matrix
-$Y_{11}$.\\
-Substituting these definitions the scalar radiative transfer equation
-into (\ref{eq:scattering:RTE}) is obtained:
+coefficient by the first element of the scattering efficiency matrix
+$Y_{11}$:
 \begin{eqnarray}
   \label{eq:scattering:scalar_rte}
 \frac{\DiffD I}{\DiffD s} (\PDir, \Frq, \Tmp) = -K_{11}(\PDir, \Frq)I
 (\PDir, \Frq, \Tmp) + a_1(\PDir, \Frq)\Planck(\Tmp,\Frq) + \\ \nonumber
- +\int_{4\pi} \DiffD \PDir^\prime Y_{11}\DirFrePr I(\PDir^\prime, \Frq, \Tmp)
+ +\int_{4\pi} \DiffD \PDir^\prime Y_{11}\DirFrePr I(\PDir^\prime,
+  \Frq, \Tmp)
 \end{eqnarray}
 
-\levelb{Iteration scheme for solving the RTE}
+\levelb{Iteration scheme for solving the vector RTE}
 %===============================
 \label{sec:scattering:solution_rte}
 
 It is not possible to find an analytical solution to the general
 radiative transfer equation. We use an iterative method to find a
-numerical solution.
+numerical solution. For this purpose the radiation field has to be
+discretised. This is done by defining cloudbox (cp. Section
+\ref{sec:fm_defs:cloudbox}). In the 3D atmosphere the cloudbox
+consists of a specific number of grid points which are the corners of
+the so called grid cells. Inside the grid cells we assume that the
+extinction matrix, the absorption vector and the scattering matrix are
+constant. 
 
-\levelc{Scattering integral}
-%===================================
-\label{sec:scattering:scat_int}
+\begin{itemize}
+\item {\bf Scattering integral}
 
-The first step is solving the scattering integral
+The first step  of the iterative method is solving the scattering integral
 \begin{eqnarray}
-  \ScaInt_0 \DirFrePr  = \int_{4\pi} \DiffD \PDir^\prime
-  \SEfMat\DirFre \StoVec_0(\PDir^\prime, \Frq, T) 
+  \ScaInt^{(0)} = \int_{4\pi} \DiffD \PDir^\prime
+  \SEfMat \StoVec^{(0)}
 \end{eqnarray}
-using a first guess initial field for \StoVec$_0$\DirFrePr . The integration
-has to be performed over all incident directions $\PDir^\prime$ for each
-propagation direction \PDir{}. The result is the first guess scattered field $\ScaInt_0\DirFre$
-which has the same dimension as the intensity field \StoVec$_0$\DirFrePr. 
+using a first guess initial field \StoVec$^{(0)}$. To do the
+integration we also need a discretised angular grid to define the
+directions. The initial field depends on the
+position inside the cloudbox and on the incident direction of the
+radiation. For
+convenience the frequency and temperature dependence is omitted in
+this equation and in the following equations. 
 
-In analogy the scalar scattering integral is obtained:
+The integration has to be performed over all incident directions
+$\PDir^\prime$ for each 
+propagation direction \PDir{}. The evaluation of the scattering
+integral is done for all grid points inside the cloudbox. The result
+is the first guess scattered field $\ScaInt^{(0)}$
+which has the same dimension as the intensity field \StoVec$^{(0)}$. 
+
+
+
+
+\item{\bf Radiative transfer with fixed scattered field}
+
+We can substitute  $\ScaInt^{(0)}$ as a fixed scattered field into the
+radiative transfer 
+Equation (\ref{eq:scattering:RTE}):   
 \begin{eqnarray}
-  S_0^{int} \DirFrePr  = \int_{4\pi} \DiffD \PDir^\prime Y_{11}\DirFre I_0(\PDir^\prime, \Frq, T) 
-\end{eqnarray}
-As first guess field only the first Stokes component of the clear sky
-field is needed.
-
-
-\levelc{Radiative transfer with fixed scattered field}
-%======================================
-\label{sec:scattering:RTE}
-With a fixed scattered field \ScaInt\DirFre{} the radiative transfer
-Equation (\ref{eq:scattering:RTE}) can be written as
-\begin{eqnarray}
-     \frac{\DiffD \StoVec}{\DiffD s}(\PDir, \Frq, \Tmp) =
-     -\ExtMat\DirFre\StoVec + \AbsVec\DirFre \Planck(\Tmp, \Frq)
-     +\ScaInt_0(\PDir^\prime, \Frq, \Tmp)
+     \frac{\DiffD \StoVec^{(1)}}{\DiffD s} =
+     -\ExtMat \StoVec^{(1)} + \AbsVec \Planck
+     +\ScaInt^{(0)}
 \label{eq:rad_fs_sol}
 \end{eqnarray} 
-
-Inside a  grid box (see Section
-\ref{sec:fm_defs:grids}) we assume that all
-coefficients and the Planck function are constant. Then inside one
-grid box Equation (\ref{eq:rad_fs_sol}) is a linear differential
+As the coefficients are constant in each
+grid cell Equation (\ref{eq:rad_fs_sol}) is formally a linear differential
 equation with constant coefficients which can be solved analytically
-leading to the result  
+leading to the result (cp. FIXME Appendix: exact solution method) 
 \begin{eqnarray}
   \label{eq:scattering:RTE_sol}
-  \StoVec_1 = e^{-\ExtMat s}\cdot\StoVec_0 + (\IdnMat - e^{-\ExtMat
-    s}) \ExtMat\Inv (\AbsVec \Planck + \ScaInt_0)
+  \StoVec^{(1)} = e^{-\ExtMat s}\cdot\StoVec^{(0)} + (\IdnMat - e^{-\ExtMat
+    s}) \ExtMat\Inv (\AbsVec \Planck + \ScaInt^{(0)})
 \end{eqnarray}
-where \StoVec$_0$ is given by the initial condition
-\begin{eqnarray}
-  \StoVec_0 =  \StoVec(s = 0).
-\end{eqnarray}
-Here we take for \StoVec$_0$ the initial field and we find the first
-iteration radiation field \StoVec$_1$.
+Here \IdnMat\ denotes the identity matrix. 
+$\StoVec^{(0)}$ is given by the initial condition, which in this
+case is given by the first guess initial field. For each grid
+point inside the cloudbox the intersection points with the adjacent
+grid cell boundaries are calculated and then the initial field is
+interpolated on these points.
 
-The scalar radiative transfer equation
-(\ref{eq:scattering:scalar_rte})  with fixed scattering integral
-is accordingly
+$\StoVec^{(1)}$ is called the first iteration field.
+
+
+\item {\bf Iteration}
+
+The first iteration field $\StoVec^{(1)}$ is used to evaluate the
+scattered field \ScaInt\ again at all grid points inside the cloudbox:
 \begin{eqnarray}
-  \label{eq:scattering:scalar_rte_scatint}
-\frac{\DiffD I}{\DiffD s} (\PDir, \Frq, \Tmp) = -K_{11}(\PDir, \Frq)I
-(\PDir, \Frq, \Tmp) + a_1(\PDir, \Frq)\Planck(\Tmp,\Frq) + S_0^{int}
-(\PDir, \Frq, \Tmp).
+  \ScaInt^{(1)} = \int_{4\pi} \DiffD \PDir^\prime
+  \SEfMat \StoVec^{(1)} 
+\end{eqnarray}
+Now $\ScaInt^{(1)}$ is used as fixed scattering term in the radiative
+transfer equation for the second iteration field $\StoVec^{(2)}$
+\begin{eqnarray}
+     \frac{\DiffD \StoVec^{(2)}}{\DiffD s} =
+     -\ExtMat \StoVec^{(2)} + \AbsVec \Planck
+     +\ScaInt^{(1)}
 \end{eqnarray} 
-Assuming constant coefficients the analytical solution is
+which is solved by
 \begin{eqnarray}
-   \label{eq:scattering:scalar_rte_sol}
-I_1 = I_0 e^{-K_{11}s} + \frac{a_1
-  B + S_0^{int}}{K_11}\left(1-e^{-K_{11}s}\right)
+   \StoVec^{(2)} = e^{-\ExtMat s}\cdot\StoVec^{(1)} + (\IdnMat - e^{-\ExtMat
+    s}) \ExtMat\Inv (\AbsVec \Planck + \ScaInt^{(1)})
 \end{eqnarray}
-where $I_0$ again is specified by the initial condition:
+After that the scattering integral and higher order iteration fields
+are calculated alternately. We can formulate a differential equation
+for the $n$-th order iteration field. The fixed scattering integral
+term in this equation is 
+ \begin{eqnarray}
+  \ScaInt^{(n-1)} = \int_{4\pi} \DiffD \PDir^\prime
+  \SEfMat \StoVec^{(n-1)}
+\end{eqnarray}
+and the differential equation is given by
 \begin{eqnarray}
-  I_0 = I(s=0)
+     \frac{\DiffD \StoVec^{(n)}}{\DiffD s} =
+     -\ExtMat \StoVec^{(n)} + \AbsVec \Planck
+     +\ScaInt^{(n-1)}.
+\end{eqnarray} 
+So the  $n$-th order iteration field is given by:
+\begin{eqnarray}
+   \StoVec^{(n)} = e^{-\ExtMat s}\cdot\StoVec^{(n-1)} + (\IdnMat - e^{-\ExtMat
+    s}) \ExtMat\Inv (\AbsVec \Planck + \ScaInt^{(n-1)})
 \end{eqnarray}
-Applying this equation leads to first iteration scalar intensity
-field.  
 
 
+\item {\bf Convergence test}
 
-\levelc{Iteration and Convergence}
-%===============================
-\label{sec:scattering:conv}
-
-The procedure above is repeated, i.e. \StoVec$_1$ is taken to evaluate
-the scattering integral leading to the first iterated scattered field
-$\ScaInt_1$. Then Equation (\ref{eq:scattering:RTE_sol}) is again used to
-compute the
-second iteration field \StoVec$_2$. \\
 After each iteration the convergence is checked. If 
 \begin{eqnarray}
-|\StoVec_m \DirFre -  \StoVec_{m-1} \DirFre| < {\bf \epsilon}
+|\StoVec^{(m)} \DirFre -  \StoVec^{(m-1)} \DirFre| < {\bf \epsilon}
 \end{eqnarray}
 a solution to the vector radiative transfer Equation (\ref{eq:scattering:RTE})
 has been
-found. An analogous convergence test is done for the scalar case.
+found. 
+\end{itemize}
 
+
+\levelb{Iteration scheme for solving the scalar RTE}
+%===============================
+\label{sec:scattering:solution_rte_scalar}
+
+\begin{itemize}
+\item {\bf Scattering integral}
+
+In analogy to the scattering integral vector field the scalar
+scattering integral field is obtained:
+\begin{eqnarray}
+  S^{(0)}  = \int_{4\pi} \DiffD \PDir^\prime Y_{11} I^{(0)} 
+\end{eqnarray}
+As first guess field only the first Stokes component of the initial
+field is needed.
+
+\item{\bf Radiative transfer with fixed scattered field}
+
+The scalar radiative transfer equation
+(\ref{eq:scattering:scalar_rte})  with fixed scattering integral
+is 
+\begin{eqnarray}
+  \label{eq:scattering:scalar_rte_scatint}
+\frac{\DiffD I^{(1)}}{\DiffD s} = -K_{11} I^{(1)}
+ + a_1 \Planck + S^{(0)}.
+\end{eqnarray} 
+Assuming constant coefficients this equation is solved analytically
+leading to the result
+\begin{eqnarray}
+   \label{eq:scattering:scalar_rte_sol}
+I^{(1)} = I^{(0)} e^{-K_{11}s} + \frac{a_1
+  B + S^{(0)}}{K_{11}}\left(1-e^{-K_{11}s}\right)
+\end{eqnarray}
+where $I^{(0)}$ again is specified by the initial field.
+
+Applying this equation leads to first iteration scalar intensity
+field  $I^{(1)}$.  
+
+\item{\bf Iteration and Convergence}
+
+As the solution to the vector radiative transfer
+equation the solution to the scalar radiative transfer equation is
+found numerically by iterations. 
+
+The convergence test for the scalar equation compares the values
+of the calculated intensities of two successive radiation fields.
+
+\end{itemize}
 \levelb{Scattering databases}
 %============================================================
 \label{sec:scattering:database}
 
-There are two databases which are reqired for scattering calculations
+There are two databases which are required for scattering calculations
 inside the cloudbox. One contains the optical properties of different
-partical types and the other contains the corresponding particle
+particle types and the other contains the corresponding particle
 number density fields.
 
-\levelc{Database for opticle properties}
+\levelc{Database for optical properties}
 %============================================================
 \label{sec:scattering:amp_mat_data}
 
@@ -428,7 +511,7 @@ data is stored in xml-format. The datatype contained in each file is a
 3D gridded field. It contains three elements corresponding to 
 pressure, latitude and longitude grid. The forth element contains the
 data for the particle number density. As for the amplitude matrix data
-base, the particle number density database contains one file foreach
+base, the particle number density database contains one file for each
 particle type which can be considered.
 
 \levelc{Reading the databases}
@@ -448,7 +531,7 @@ to the number of
 elements of the amplitude matrix (i.e. 8) and the seventh element 
 contains the data itself.
 
-The analogeous workspace variable for the particle number density
+The analogous workspace variable for the particle number density
 field is called \wsvindex{pnd\_field\_raw} which as well is an array of
 gridded fields containing one element for each particle type. The
 first three elements of each gridded field contain the pressure, the
@@ -460,7 +543,7 @@ The workspace method \wsmindex{ParticleTypeInit} is used for initializing
 The method \wsmindex{ParticleTypeAdd} puts the data for one particle
 type into \wsvindex{amp\_mat\_raw} and \wsvindex{pnd\_field\_raw}. The
 filenames are passed into the methods by keywords which are specified
-in the controlfile.
+in the control file.
 
 The following example shows a part of a control file where
 \wsvindex{amp\_mat\_raw} and \wsvindex{pnd\_field\_raw}  are created
@@ -488,7 +571,7 @@ ParticleTypeAdd{
 
 \end{verbatim}
  
-There is no convention for the filenames. The datafiles contain more 
+There is no convention for the filenames. The data files contain more 
 information about the particles, for example the particle shape, the
 particle shape and the aspect ratio for non-spherical particles.
 
@@ -991,13 +1074,13 @@ of the radiation field converges.
 \item The scattered field is calculated using the method
   \wsmindex{sca\_fieldCalc}
     (see Sections \ref{sec:scattering:sca_fieldCalc} and
-    \ref{sec:scattering:scat_int}).
+    \ref{sec:scattering:solution_rte}).
 \item Calculate the new radiation field using\\
   \wsmindex{i\_fieldUpdate1D} or \wsmindex{i\_fieldUpdate3D}.
  (see Sections \ref{sec:scattering:RT_methods} and
-  \ref{sec:scattering:RTE}).
+  \ref{sec:scattering:solution_rte}).
 \item Do the convergence test (see Sections
-  \ref{sec:scattering:conv_method} and \ref{sec:scattering:conv}).
+  \ref{sec:scattering:conv_method} and \ref{sec:scattering:solution_rte}).
 \end{itemize}
 The solution of the radiative transfer equation is returned as output
 using the variable \artsstyle{i\_field}. 
@@ -1017,7 +1100,7 @@ to put \artsstyle{i\_field}.
 \label{sec:scattering:sca_fieldCalc}
 The method \wsmindex{scat\_integralCalc} does exactly what is
 described in Section 
-\ref{sec:scattering:scat_int}.  The output of this method is
+\ref{sec:scattering:solution_rte}.  The output of this method is
 \wsvindex{scat\_field} which has the same dimension as
 \artsstyle{i\_field}.  This is generated by integrating the product of
 intensity field \artsstyle{i\_field} and phase matrix
@@ -1132,7 +1215,7 @@ used:
 \item {\bf Method \artsstyle{convergence\_flagAbs}:}\\
 The function calculates the absolute differences for two successive
 iteration fields. It picks out the maximum values for each Stokes 
-component separately. The convergence test is fullfilled under the
+component separately. The convergence test is fulfilled under the
 following conditions:
 \begin{eqnarray}
 |I_{m+1} - I_m| < \epsilon_1    \\
@@ -1141,7 +1224,7 @@ following conditions:
 |V_{m+1} - V_m| < \epsilon_4     
 \end{eqnarray}
 
-The limits for convergence have to be set in the controlfile by 
+The limits for convergence have to be set in the control file by 
 setting the vector \artsstyle{epsilon} as a keyword 
 to appropriate values.
 The conditions have to be valid for all positions in the cloudbox 

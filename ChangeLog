@@ -1,3 +1,15 @@
+2002-07-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-188
+
+	* doc/uguide/scattering.tex: Rewritten the explaination of the
+	iteration scheme. More detailed now.
+
+	* doc/uguide/main.tex: Renamed part III. Now it is "Matematical
+	functions" instead of "Linear algebra functions". 
+	Added a new part "Theoretical background". Included chapter about
+	polarization there. 
+
 2002-07-05  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-187

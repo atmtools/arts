@@ -353,7 +353,7 @@
 \newcommand{\aSAbVec}[1]{\ensuremath{{\bf b}^{#1}}}
 
 % Scattered field
-\newcommand{\ScaInt} 	{\ensuremath{{\bf S}^{int}}}
+\newcommand{\ScaInt} 	{\ensuremath{{\bf S}}}
 
 % Identity matrix
 \newcommand{\IdnMat} 	{\ensuremath{{\bf E}}}
