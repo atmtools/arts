@@ -1,5 +1,22 @@
 2002-05-13  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-75
+	
+	* src/mystring.h: Include system sstream if available otherwise use our
+	own.
+	
+	* src/arts.h: Include sstream moved to mystring.h.
+
+	* configure.in: Added check for sstream header file. If it is not
+	found, we use our own sstream.h.
+
+	* src/make_auto_wsv_groups_h.cc (main): Include iostream in
+	auto_wsv_groups.h.
+
+	* src/make_auto_wsv_h.cc: Include iostream.
+
+2002-05-13  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-74
 	
 	* src/test_linalg.cc: Include iostream.
@@ -10,11 +27,14 @@
 
 	* src/methods.cc (define_md_data): Added xml workspace methods.
 
-	* src/m_xml.cc: New file. XML io workspace methods. Only dummys at the moment.
+	* src/m_xml.cc: New file. XML io workspace methods. Only dummys at
+	the moment.
 	
-	* src/xml_io.{h,cc}: New files. XML io functions. Only dummys at the moment.
+	* src/xml_io.{h,cc}: New files. XML io functions. Only dummys at
+	the moment.
 
-	* src/Makefile.am (arts_SOURCES): Added xml_io.h, xml_io.cc and m_xml.cc.
+	* src/Makefile.am (arts_SOURCES): Added xml_io.h, xml_io.cc and
+	m_xml.cc.
 
 2002-05-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
