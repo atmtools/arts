@@ -39,7 +39,8 @@ texfiles = \
 	main.tex \
 	montecarlo.tex \
 	measerr.tex \
-        ppath.tex \
+    ppath.tex \
+    batch.tex \
 	polarization.tex \
 	reduction.tex \
 	rte.tex \
