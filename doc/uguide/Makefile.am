@@ -88,7 +88,7 @@ uguide.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.
 	bibtex uguide
 	pdflatex  uguide
 	pdflatex  uguide
-	pdflatex  uguide
+	pdflatex  uguide | tee make.log
 
 
 auto_groups.tex: arts_groups_to_latex.sh $(artsexecutable)
@@ -99,6 +99,7 @@ auto_methods.tex: arts_methods_to_latex.sh $(artsexecutable)
 
 CLEANFILES = *.aux \
 	     *.log \
+	     make.log \
 	     uguide.bbl \
 	     uguide.blg \
 	     uguide.idx \
