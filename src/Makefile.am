@@ -205,48 +205,6 @@ make_auto_md_cc_SOURCES = \
 	workspace_aux.cc \
 	wsv_aux.h
 
-make_auto_wsv_h_DEPENDENCIES = auto_wsv_groups.h
-
-make_auto_wsv_groups_h_DEPENDENCIES = 
-
-make_auto_wsv_pointers_cc_DEPENDENCIES = auto_wsv_groups.h
-
-make_auto_md_h_DEPENDENCIES = auto_wsv.h auto_wsv_groups.h
-
-make_auto_md_cc_DEPENDENCIES = auto_wsv.h auto_wsv_groups.h
-
-make_auto_wsv_h($EXEEXT): $(make_auto_wsv_h_DEPENDENCIES) $(make_auto_wsv_h_OBJECTS)
-	@rm -f make_auto_wsv_h$(EXEEXT)
-	$(CXXLINK) $(make_auto_wsv_h_LDFLAGS) \
-	           $(make_auto_wsv_h_OBJECTS) \
-	           $(make_auto_wsv_h_LDADD) $(LIBS)
-
-make_auto_wsv_groups_h$(EXEEXT): $(make_auto_wsv_group_h_DEPENDENCIES) \
-                        $(make_auto_wsv_groups_h_OBJECTS)
-	@rm -f make_auto_wsv_groups_h$(EXEEXT)
-	$(CXXLINK) $(make_auto_wsv_groups_h_LDFLAGS) \
-	           $(make_auto_wsv_groups_h_OBJECTS) \
-	           $(make_auto_wsv_groups_h_LDADD) $(LIBS)
-
-make_auto_wsv_pointers_cc$(EXEEXT): $(make_auto_wsv_pointers_cc_DEPENDENCIES) \
-                           $(make_auto_wsv_pointers_cc_OBJECTS)
-	@rm -f make_auto_wsv_pointers_cc$(EXEEXT)
-	$(CXXLINK) $(make_auto_wsv_pointers_cc_LDFLAGS) \
-	           $(make_auto_wsv_pointers_cc_OBJECTS) \
-	           $(make_auto_wsv_pointers_cc_LDADD) $(LIBS)
-
-make_auto_md_h$(EXEEXT): $(make_auto_md_h_DEPENDENCIES) $(make_auto_md_h_OBJECTS)
-	@rm -f make_auto_md_h$(EXEEXT)
-	$(CXXLINK) $(make_auto_md_h_LDFLAGS) \
-	           $(make_auto_md_h_OBJECTS) \
-	           $(make_auto_md_h_LDADD) $(LIBS)
-
-make_auto_md_cc$(EXEEXT): $(make_auto_md_cc_DEPENDENCIES) $(make_auto_md_cc_OBJECTS)
-	@rm -f make_auto_md_cc$(EXEEXT)
-	$(CXXLINK) $(make_auto_md_cc_LDFLAGS) \
-	           $(make_auto_md_cc_OBJECTS) \
-	           $(make_auto_md_cc_LDADD) $(LIBS)
-
 auto_wsv.h: make_auto_wsv_h$(EXEEXT)
 	$(top_builddir)/src/make_auto_wsv_h$(EXEEXT)
 
@@ -261,6 +219,13 @@ auto_md.h: make_auto_md_h$(EXEEXT)
 
 auto_md.cc: make_auto_md_cc$(EXEEXT)
 	$(top_builddir)/src/make_auto_md_cc$(EXEEXT)
+
+BUILT_SOURCES = \
+	auto_wsv_groups.h \
+	auto_wsv.h \
+	auto_wsv_pointers.cc \
+	auto_md.h \
+	auto_md.cc
 
 CLEANFILES = \
 	auto_wsv.h \
