@@ -34,9 +34,9 @@ noinst_DATA = doxyfied
 
 toexamine = \
 $(top_srcdir)/configure.in \
-$(top_srcdir)/src/make_wsv_groups_h.cc \
-$(top_srcdir)/src/make_wsv_h.cc \
-$(top_srcdir)/src/make_md_h.cc \
+$(top_srcdir)/src/make_auto_wsv_groups_h.cc \
+$(top_srcdir)/src/make_auto_wsv_h.cc \
+$(top_srcdir)/src/make_auto_md_h.cc \
 $(top_srcdir)/src/arts.h \
 $(top_srcdir)/src/getopt.h \
 $(top_srcdir)/src/sstream.h \
