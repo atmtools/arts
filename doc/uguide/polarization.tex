@@ -204,7 +204,9 @@ the vector $\VctStl{\tilde{E}}$ describes a circle for $\beta = \pm
 45\degree$ (circular polarization), oscillates along the $h$-axis for
 $\beta = 0$ (linear polarization) and else describes an ellipse (cf.
 Figure~\ref{fig:polarization:ellipse_aligned}). The sense of rotation
-is counterclockwise for positive and clockwise for negative $\beta$.
+is counterclockwise for positive $\beta$ and clockwise for negative
+$\beta$.
+%which corresponds to left-handed
 Since $|\tan\beta|$ is the ratio of the semi-minor and semi-major axes
 of the ellipse (the ellipticity), $\beta$ is called the ellipticity
 angle.
@@ -469,46 +471,46 @@ Therefore (cf. Eq.~\ref{eq:polarization:stokesparam_U})
 \end{equation}
 Thus if we measure $I_{+45\degree}$ and $I_{-45\degree}$ using -- for
 optical wavelengths -- a polarizer aligned at $+45\degree$ and
-$+45\degree$ with respect to the $h$-axis, respectively, or using --
+$-45\degree$ with respect to the $h$-axis, respectively, or using --
 for microwaves -- two appropriately aligned dipole antennas, we can
 directly obtain $U$ by taking their difference.
 
 In order to see how to measure the fourth Stokes parameter, $V$, we
-have to transform to the circular basis, i.e. express \VctStl{E} by a
-left-hand and a right-hand circularly polarized component. The
+have to transform to the circular basis, i.e.\ express \VctStl{E} by a
+left-hand ($LH$) and a right-hand ($RH$) circularly polarized component. The
 relevant equations:
 
 Basis vectors
 \begin{eqnarray}
-  \label{eq:polarization:e_Rh}
-  \eRh &=& \sqrt{\half} \left( \eVrt + i\eHor \right) \\
   \label{eq:polarization:e_Lh}
-  \eLh &=& \sqrt{\half} \left( \eVrt - i\eHor \right) 
+  \eLh &=& \sqrt{\half} \left( \eVrt + i\eHor \right) \\
+  \label{eq:polarization:e_Rh}
+  \eRh &=& \sqrt{\half} \left( \eVrt - i\eHor \right) 
 \end{eqnarray}
 %
-FIXME: maybe \eRh{} and \eLh{} must be swapped...\\
+%FIXME: \eRh{} and \eLh{} have been  swapped one...\\
 Field vector in circular base
 \begin{equation}
   \label{eq:polarization:E_circbase}
   \VctStl{E} = \underbrace{
-               \sqrt{\half}\left(E_v -  i E_h \right)}_{E_{RH}} 
-               \eRh 
-              + \underbrace{
-               \sqrt{\half}\left(E_v +  i E_h \right)}_{E_{LH}} 
+               \sqrt{\half}\left(E_v -  i E_h \right)}_{E_{LH}} 
                \eLh 
+              + \underbrace{
+               \sqrt{\half}\left(E_v +  i E_h \right)}_{E_{RH}} 
+               \eRh 
 \end{equation}
 %
 Intensity of the components
 \begin{eqnarray}
-  \label{eq:polarization:IRH}
-  I_{RH} &=& E_{RH} E_{RH}^\ast\\
   \label{eq:polarization:ILH}
-  I_{LH} &=& E_{LH} E_{LH}^\ast
+  I_{LH} &=& E_{LH} E_{LH}^\ast\\
+  \label{eq:polarization:IRH}
+  I_{RH} &=& E_{RH} E_{RH}^\ast
 \end{eqnarray}
 %
 Their difference
 \begin{eqnarray}
-   I_{RH} -  I_{LH}
+   I_{LH} -  I_{RH}
    &=&
      \half (E_v - i E_h) (E_v^\ast + i E_h^\ast)
     - \half (E_v + i E_h) (E_v^\ast - i E_h^\ast)\\ \nonumber
@@ -519,7 +521,7 @@ Their difference
 Therefore (cf. Eq.~\ref{eq:polarization:stokesparam_V}):
 \begin{equation}
   \label{eq:polarization:V_Idiff}
-  V =   I_{LH} -  I_{RH}
+  V =   I_{RH} -  I_{LH}
 \end{equation}
 %
 Thus if we measure $I_{RH}$ and $I_{LH}$ using -- for microwaves --
@@ -544,10 +546,12 @@ electric field vector $\VctStl{E}^\prime$ is
   \VctStl{E}^\prime = \left(E_v \eVrt +   i E_h \eHor \right) 
 \end{equation}
 The light then passes through a polarizer that is  aligned at
-$-45\degree$ with respect to the $h$-axis, resulting in
+$-45\degree$ with respect to the $h$-axis. This means we have to
+project $\VctStl{E}^\prime$ onto $\eMin$, resulting in
 \begin{equation}
   \label{eq:polarization:E_retarded_polarized}
   \VctStl{E}^{\prime\prime} 
+   = (\VctStl{E}^\prime \cdot \eMin)\eMin 
    = \sqrt{\half}\left(E_v  +  i E_h  \right) \eMin 
 \end{equation}
 Measuring the intensity now, we get
@@ -573,7 +577,7 @@ orthogonal components:
   \label{eq:polarization:stokesparam_Idiff_U}
   U &=&  I_{+45\degree} - I_{-45\degree} \\
   \label{eq:polarization:stokesparam_Idiff_V}
-  V &=&  I_{LH} - I_{RH}
+  V &=&  I_{RH} - I_{LH}
 \end{eqnarray}
 We see that $Q$ and $U$ are both related to linear polarization, while
 $V$ is related to circular polarization.
@@ -647,10 +651,10 @@ squares.
 Now we can define a measure for the degree of polarization, $p$:
 \begin{equation}
   \label{eq:polarization:pol_degree}
-  p = \frac{Q^2 + U^2 + V^2}{I^2}
+  p = \frac{\sqrt{Q^2 + U^2 + V^2}}{I}
 \end{equation}
-FIXME: Should the $p$ be squared (cf. equ.~\ref{eq:polarization:p_lin}
-and~\ref{eq:polarization:p_circ}?
+%FIXME: Should the $p$ be squared (cf. equ.~\ref{eq:polarization:p_lin}
+%and~\ref{eq:polarization:p_circ}?
 For completely polarized radiation, $Q^2 + U^2 + V^2 = I^2$, so $p =
 1$, and for unpolarized radiation, $Q = U = V = 0$, so $p = 0$.
 
