@@ -987,7 +987,62 @@ perturbation calculations.
  perturbations (Eq. \ref{eq:wfuns:perturb}). See further the on-line
  information (type \verb|arts -d kTemp|).
 
+\levelb{Spectroscopic Parameters WFs}
+\label{sec:wfuns:spectro}
+The spectroscopic parameters weighting functions are calculated
+semi-analytically as described in Section~\ref{sec:wfuns:approaches:anal}.
+As it is assumed that the spectroscopic parameters have no influence on
+the source function, the spectroscopic parameters weighting
+functions are calculated as (cf. Eq.~\ref{eq:wfuns:taylor2})
+ \begin{equation}
+    \K_{\bt}^s = \Hm
+                 \frac{\partial\iv}{\partial \kappa}
+                 \frac{\partial \kappa}{\partial \mat{k}}
+                 \frac{\partial \mat{k}}{\partial \bt}
+  \label{eq:wfuns:spectro}
+ \end{equation}
 
+The term $\partial\iv / \partial \kappa$ is the LOS weighting
+function, described in Section~\ref{sec:wfuns:absloswfs}, while the
+term $\partial \kappa /\partial \mat{k}$ gives weights of the
+absorption calculated for
+LOS grid points to the absorption calculated to vertical grid (described in
+Section~\ref{sec:wfuns:bases}). The vertical grid in this case
+is the pressure grid {\verb p_abs} used to calculate the absorption
+coefficients (see Section~\ref{sec:line_absorption}).
+The above two terms are easy calculated.
+The only term which remains to be calculated is $\partial \mat{k} /
+\partial \bt$, where $\bt$ is the spectroscopic parameter in concern
+(line intensity, line position, pressure broadening parameters and
+their temperature dependence, and pressure shift), specific to one line. 
+Since the parameter $\bt$ is characteristic for one single line,
+specific to one species, the total absorption can be written as:
+\begin{equation}
+   \mat{k} = \mat{\bar{k}}_s + \sum_{i\ne s} \mat{k}_i
+  \label{eq:wfuns:kspectro}
+\end{equation}
+where  $\mat{\bar{k}}_s$ is the
+ absorption of the line of interest, and $\mat{k}_i$ is the absorption
+ due to other lines.
+
+Since the parameter of one specific line influence the the absorption
+of the line itself then one can write:
+\begin{equation}
+   \partial \mat{k}/\partial \mat{\bt} =\partial \mat{k_s}/\partial
+   \mat{\bt}
+\end{equation}
+
+The term $\partial \mat{k}_s/\partial \mat{\bt}$ is calculated
+numerically. For each line, and each parameter the absorption is
+calculated once again by increasing the value of the parameter $\bt$ by ${\delta\bt}$. The
+difference in the two absorption is then calculated, and divided to
+the applied perturbation on the parameter. Schematically we have:
+ \begin{eqnarray}
+      \frac{\partial\mat{k}}{\partial \mat{\bt}} = \frac{\partial
+     \mat{k}^s}{\partial \mat{\bt}} = \frac{k(\bt +\delta \bt)-k(\bt) }{\delta\bt}
+     \nonumber
+ \end{eqnarray}
+  
 %\levelb{WF for ground emission factor}
 % \label{sec:wfuns:eground}
 % 

@@ -393,14 +393,11 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
     // Extract HITRAN intensity:
     extract(s,line,10);
-
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s * hi2arts;
-
     // Take out isotopic ratio:
-    mi0 /= species_data[mspecies].Isotope()[misotope].Abundance();    
-  }
-
+    mi0 /= species_data[mspecies].Isotope()[misotope].Abundance();  
+  }  
   
   // Skip transition probability:
   {

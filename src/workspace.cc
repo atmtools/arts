@@ -84,6 +84,15 @@ void define_wsv_data()
       "tag groups defined for the absorption coefficient calculation.", 
       TagGroups_));
 
+ wsv_data.push_back
+    (WsvRecord
+     ("wfss_tgs",
+      "This is an array of arrays of tag group definitions.\n"
+      "It defines the tag groups for the calculation of weighting\n"
+      "functions. The selected tag groups must be a subgroup of the\n"
+      "tag groups defined for the absorption coefficient calculation.", 
+      TagGroups_));
+
   wsv_data.push_back
     (WsvRecord
      ("lineshape",
@@ -620,7 +629,24 @@ void define_wsv_data()
       "different forward model groups appended vertically.",
       Matrix_));
 
+ wsv_data.push_back
+    (WsvRecord
+     ("S_S",
+      "Stores the accuracy of the spectroscopic parameters read from catalog\n"
+      "This are necessary for the the spectroscopic error analysis\n"
+      "number columns = 2; first keeps the absolute error, second the error in percents\n"
+      "number lines equal of spectroscopic parameters investigated (the number of\n"
+      "columns of k).",
+      Matrix_));
 
+ wsv_data.push_back
+    (WsvRecord
+     ("Mcorr",
+      "Stores the correlation matrix\n"
+      "This are necessary for the the spectroscopic error analysis\n"
+      "number columns = number lines equal of spectroscopic parameters \n"
+      "investigated (the number of columns of k).",
+      Matrix_));
 
   //-------------------< Batch calculation stuff >-----------------------
   //                     -----------------------

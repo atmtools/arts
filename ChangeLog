@@ -1,3 +1,25 @@
+2003-04-08  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-1-0-74
+
+	* src/m_wfs.cc: modification made in kSpectro function. Now, it outputs
+	the matrix given the spectroscopic parameters uncertainty
+	(*.SS.aa) and the correlation matrix (*.Mcorr.aa). The assumed
+	correlation is input parameter (given in control file).
+	The two outputs are very useful to calculate the spectroscopic error.
+	
+	* methods.cc: modified according to new syntax
+
+	* workspace.cc: included the workspace variable for S_S and Mcorr
+	matrices. 
+
+	* doc/example: included wfs_spectro_example.arts arts control file
+	to exemplify the calculation of spectroscopic parameter WFs.
+
+	* doc/uguide/wfuns_atm.tex: included a small section for
+	spectroscopic parameters WFs.
+          
+
 2003-04-03  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-1-0-73

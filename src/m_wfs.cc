@@ -16,7 +16,6 @@
    USA. */
 
 
-
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
@@ -78,10 +77,10 @@ extern const Numeric BOLTZMAN_CONST;
    \date   2000-10-20
 */
 void k_append (
-                    Matrix&          kx,
-                    ArrayOfString&   kx_names,
-                    ArrayOfIndex&    kx_lengths,
-                    Matrix&          kx_aux,
+		    Matrix&          kx,
+		    ArrayOfString&   kx_names,
+		    ArrayOfIndex&    kx_lengths,
+		    Matrix&          kx_aux,
               const Matrix&          k,
               const ArrayOfString&   k_names,
               const Matrix&          k_aux )
@@ -166,18 +165,18 @@ void k_append (
    \date   2001-01-15
 */
 void p2grid(
-              Vector&   grid,
+	      Vector&   grid,
         const Vector&   pgrid )
 {
   grid.resize( pgrid.nelem() );
-  grid = pgrid;                 // Matpack can copy the contents of
-                                // vectors like this. The dimensions
-                                // must be the same! 
-  transform( grid, log, grid ); // Matpack has the same transform
-                                // functionality like the old
-                                // vecmat. THE ORDER OF THE ARGUMENTS
-                                // IS DIFFERENT, THOUGH (output first).
-  grid *= -1;                   // Mulitply all elements with -1.
+  grid = pgrid;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
+  transform( grid, log, grid );	// Matpack has the same transform
+				// functionality like the old
+				// vecmat. THE ORDER OF THE ARGUMENTS
+				// IS DIFFERENT, THOUGH (output first).
+  grid *= -1;			// Mulitply all elements with -1.
 }
 
 
@@ -248,7 +247,7 @@ void grid2grid_index (
 
   // Resize is and set all values to -1
   is.resize( np, 2 );
-  is = -1.0;                    // Matpack can set all elements like this.
+  is = -1.0;			// Matpack can set all elements like this.
  
   // Some checks
   if ( np < 2 )
@@ -394,9 +393,9 @@ void grid2grid_weights (
 **/
 
 void grid2grid_weights_total (
-                              ArrayOfMatrix&     W,
-                    const  Los&                     los, 
-                    const  Vector&                k_grid) 
+		          ArrayOfMatrix&     W,
+		    const  Los&               los, 
+		    const  Vector&            k_grid) 
          
 {
   // Main sizes
@@ -421,33 +420,33 @@ void grid2grid_weights_total (
       W[iza].resize(los.p[iza].nelem(), np);
       W[iza]=0.0;
       if ( (iza%20)==0 )
-        {
-          out3 << "\n      ";
-          out3 << " " << iza; cout.flush();
-        }
-      w1=0.0;
+	{
+	  out3 << "\n      ";
+	  out3 << " " << iza; cout.flush();
+	}
+      w1=0;
       // Do something only if LOS has any points
       if ( los.p[iza].nelem() > 0 )
-        {
-          // Get the LOS points affected by each retrieval point
-          //      lplos = -1.0 * log(los.p[iza]);
-          p2grid( lplos, los.p[iza] );
-          grid2grid_index (is, lplos, lgrid);
-          
-          for ( ip=0; ip<np; ip++ ) 
-            {
-              // Check if there is anything to do
-              
-              if ( is(ip,0) >= 0 )
-                {
-                  // Get the weights for the LOS points
-                  grid2grid_weights( w1, lplos, (Index)is(ip,0),  (Index)is(ip,1),
-                                     lgrid, ip );
-                  // fill the corresponding part of the Matrix W with the weights w1
-                  W[iza](Range(is(ip,0),is(ip,1)-is(ip,0)+1), ip)=w1;
-                }
-            }
-        }
+	{
+	  // Get the LOS points affected by each retrieval point
+	  //      lplos = -1.0 * log(los.p[iza]);
+	  p2grid( lplos, los.p[iza] );
+	  grid2grid_index (is, lplos, lgrid);
+	  
+	  for ( ip=0; ip<np; ip++ ) 
+	    {
+	      // Check if there is anything to do
+	      
+	      if ( is(ip,0) >= 0 )
+		{
+		  // Get the weights for the LOS points
+		  grid2grid_weights( w1, lplos, (Index)is(ip,0),  (Index)is(ip,1),
+				     lgrid, ip );
+		  // fill the corresponding part of the Matrix W with the weights w1
+		  W[iza](Range(is(ip,0),is(ip,1)-is(ip,0)+1), ip)=w1;
+		}
+	    }
+	}
     }
 }
 
@@ -485,7 +484,7 @@ void absloswfs_rte_1pass (
                     Matrix&   k,
                     Vector    y,
               const Index&   start_index,
-              const Index&   stop_index,   // this variable is used by
+	      const Index&   stop_index,   // this variable is used by
               const Numeric&  lstep,        // absloswfs_down
               const Matrix&   tr,
               const Matrix&   s,
@@ -498,7 +497,7 @@ void absloswfs_rte_1pass (
   Index         q;                   // LOS index (same notation as in AUG)
   Vector        t(nf);               // transmission to the sensor
   
-  t = 1.0;              // Set all elements of t to 1.
+  t = 1.0;		// Set all elements of t to 1.
 
   if ( ground && ((ground-1==stop_index) || (ground-1==start_index)) )
     throw logic_error("The ground cannot be at one of the end points."); 
@@ -704,9 +703,9 @@ void absloswfs_rte_down (
 
   // Calculate Y0, the intensity reaching the platform altitude at the far
   // end of LOS, that is, from above.
-  y0 = y_space;                 // Matpack can copy the contents of
-                                // vectors like this. The dimensions
-                                // must be the same! 
+  y0 = y_space;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
   rte_iterate( y0, start_index-1, stop_index, tr, s, nf );
 
   // Calculate TR0, the transmission from the platform altitude down to the
@@ -833,8 +832,8 @@ void absloswfs_rte (
 */
 void absloswfs_tau (
                     ArrayOfMatrix&   absloswfs,
-              const Los&             los,
-              const Vector&          f_mono )
+	      const Los&             los,
+	      const Vector&          f_mono )
 {
   const Index  nza = los.start.nelem();   // number of zenith angles  
   const Index  nf  = f_mono.nelem();      // number of frequencies  
@@ -866,7 +865,7 @@ void absloswfs_tau (
         kw  = los.l_step[i] / 2.0;
         kw2 = los.l_step[i];
         for( row=0; row<nf; row++ )
-        {
+	{
           absloswfs[i](row,0) = kw;
           absloswfs[i](row,np-1) = kw;
           for( col=1; col<np-1; col++ )
@@ -880,7 +879,7 @@ void absloswfs_tau (
         kw  = los.l_step[i];
         kw2 = los.l_step[i] * 2.0;
         for( row=0; row<nf; row++ )
-        {
+	{
           absloswfs[i](row,0) = kw;
           absloswfs[i](row,np-1) = kw;
           for( col=1; col<np-1; col++ )
@@ -894,7 +893,7 @@ void absloswfs_tau (
         kw  = los.l_step[i];
         kw2 = los.l_step[i] * 2.0;
         for( row=0; row<nf; row++ )
-        {
+	{
           absloswfs[i](row,0) = kw;
           absloswfs[i](row,np-1) = kw / 2.0;
           absloswfs[i](row,los.stop[i]) = kw * 1.5;
@@ -940,7 +939,7 @@ void absloswfs_tau (
 void sourceloswfs_1pass (
                     Matrix&   k,
               const Index&   start_index,
-              const Index&   stop_index,   // this variable is used by 1D down
+	      const Index&   stop_index,   // this variable is used by 1D down
               const Matrix&   tr,
               const Index&    ground,
               const Vector&   e_ground )
@@ -1296,7 +1295,7 @@ void k_species (
 
   // Set up K and additional data. Set all values of K to 0
   k.resize(nza*nv,ntg*np);
-  k = 0.0;                      // Matpack can set all elements like this.
+  k = 0.0;			// Matpack can set all elements like this.
   k_names.resize(ntg);
   k_aux.resize(ntg*np,2);
 
@@ -1355,8 +1354,8 @@ void k_species (
     {
       nd.resize( np );
       interpp(  nd, p_abs, number_density(p_abs,t_abs), k_grid );
-      nd *= vmr;                // Matpack can do element-vise
-                                // multiplication like this.
+      nd *= vmr;		// Matpack can do element-vise
+				// multiplication like this.
       for ( ip=0; ip<np; ip++ )
       {
         for ( iv=0; iv<nv; iv++ )
@@ -1383,7 +1382,7 @@ void k_species (
       if ( los.p[iza].nelem() > 0 )
       {
         // Get the LOS points affected by each retrieval point
-        //        lplos = -1.0 * log(los.p[iza]);
+	//        lplos = -1.0 * log(los.p[iza]);
         p2grid( lplos, los.p[iza] );
         grid2grid_index( is, lplos, lgrid );
 
@@ -1394,22 +1393,22 @@ void k_species (
           if ( is(ip,0) >= 0 )
           {
             // Get the weights for the LOS points
-            grid2grid_weights( w, lplos, (Index)is(ip,0), (Index)is(ip,1), 
+	    grid2grid_weights( w, lplos, (Index)is(ip,0), (Index)is(ip,1), 
                                                                  lgrid, ip );
 
             // Calculate the WFs.
             // A is di/dkappa*dkappa/dkp in a compact form.
             // This is possible as the columns of dkappa/dkp are identical.  
 
-            a = 0.0;            // Matpack can set all elements like this.
+            a = 0.0;		// Matpack can set all elements like this.
 
             i1 = (Index)is(ip,0);       // first LOS point to consider
             for ( iv=0; iv<nv; iv++ )
-            {
+	    {
               for ( iw=i1; iw<=(Index)is(ip,1); iw++ )
                 a[iv] += absloswfs[iza](iv,iw) * w[iw-i1];
               k(iv0+iv,ip0+ip) = a[iv] * abs(iv,ip);                    
-            }
+	    }
           }            
         }
       }
@@ -1542,7 +1541,7 @@ void k_contabs (
 
   // Set up K and additional data. Set all values of K to 0
   k.resize(nza*nv,npoints*np);
-  k = 0.0;                      // Matpack can set all elements like this.
+  k = 0.0;			// Matpack can set all elements like this.
   k_names.resize(npoints);
   k_aux.resize(npoints*np,2);
 
@@ -1585,16 +1584,16 @@ void k_contabs (
     }
 
     // Set-up base vector for the present fit point 
-    b = 1.0;                    // Matpack can set all elements like this.
+    b = 1.0;			// Matpack can set all elements like this.
     if ( npoints > 1 )
     {
       for ( ip=0; ip<npoints; ip++ )
       {
         if ( ip != ipoint )
-        { 
+	{ 
           for ( iv=ilow; iv<=ihigh; iv++ )
             b[iv] *= (f_mono[iv]-fpoints[ip]) / ( fpoints[ipoint]-fpoints[ip]);
-        }
+	}
       }
     }
 
@@ -1613,7 +1612,7 @@ void k_contabs (
       if ( los.p[iza].nelem() > 0 )
       {
         // Get the LOS points affected by each retrieval point
-        //        lplos = -1.0 * log(los.p[iza]);
+	//        lplos = -1.0 * log(los.p[iza]);
         p2grid( lplos, los.p[iza] );
         grid2grid_index( is, lplos, lgrid );
 
@@ -1624,22 +1623,22 @@ void k_contabs (
           if ( is(ip,0) >= 0 )
           {
             // Get the weights for the LOS points
-            grid2grid_weights( w, lplos, (Index)is(ip,0), (Index) is(ip,1),
+	    grid2grid_weights( w, lplos, (Index)is(ip,0), (Index) is(ip,1),
                                                                  lgrid, ip );
 
             // Calculate the WFs.
             // A is di/dkappa*dkappa/dkp in a compact form.
             // This is possible as the columns of dkappa/dkp are identical.  
 
-            a = 0.0;            // Matpack can set all elements like this.
+            a = 0.0;		// Matpack can set all elements like this.
 
             i1 = (Index)is(ip,0);       // first LOS point to consider
             for ( iv=ilow; iv<=ihigh; iv++ )
-            {
+	    {
               for ( iw=i1; iw<=(Index)is(ip,1); iw++ )
                 a[iv] += absloswfs[iza](iv,iw) * w[iw-i1];
               k(iv0+iv,ip0+ip) = scfac * a[iv] * b[iv];                    
-            }
+	    }
           }            
         }
       }
@@ -1689,7 +1688,7 @@ void k_contabs (
                                     models
    \param    cont_description_parameters continuum parameters for the
                                          models listed in
-                                         cont_description_names 
+					 cont_description_names 
 
    \author Patrick Eriksson
    \date   2000-09-15
@@ -1704,8 +1703,8 @@ void k_temp_nohydro (
         const Vector&                     f_mono,
         const Vector&                     p_abs,
         const Vector&                     t_abs,
-        const Vector&                     n2_abs,          
-        const Vector&                     h2o_abs,         
+        const Vector&                     n2_abs,	   
+        const Vector&                     h2o_abs,	   
         const Matrix&                     vmrs,
         const ArrayOfArrayOfLineRecord&   lines_per_tg,
         const ArrayOfLineshapeSpec&       lineshape,
@@ -1714,7 +1713,7 @@ void k_temp_nohydro (
         const Vector&                     e_ground,
         const Vector&                     k_grid,
         const ArrayOfString&              cont_description_names,
-        const ArrayOfVector&              cont_description_parameters,
+	const ArrayOfVector& 	          cont_description_parameters,
         const ArrayOfString&              cont_description_models )
 {
   // Main sizes
@@ -1745,7 +1744,7 @@ void k_temp_nohydro (
         Matrix  dabs_dt;                   // see below
  ArrayOfMatrix  abs_dummy;                 // dummy absorption array
  ArrayOfMatrix  sloswfs;                   // source LOS WFs
-        Matrix  is;                        // matrix for storing LOS index
+	Matrix  is;                        // matrix for storing LOS index
         Vector  w;                         // weights for LOS WFs
         Vector  a(nv), b(nv), pl(f_mono.nelem());  // temporary vectors
 
@@ -1756,7 +1755,7 @@ void k_temp_nohydro (
 
   // Set up K and additional data. Set all values of K to 0
   k.resize(nza*nv,np);
-  k = 0.0;                      // Matpack can set all elements like this.
+  k = 0.0;			// Matpack can set all elements like this.
   k_names.resize(1);
   k_names[0] = "Temperature: no hydrostatic eq.";
   k_aux.resize(np,2);
@@ -1774,20 +1773,20 @@ void k_temp_nohydro (
   //
   {
     // Dummy should hold t_abs + 1:
-    Vector dummy(t_abs);        // Matpack can initialize a Vector
-                                // from another Vector. 
-    dummy += 1;                 // Matpack can add element-vise like this.
+    Vector dummy(t_abs);	// Matpack can initialize a Vector
+				// from another Vector. 
+    dummy += 1;			// Matpack can add element-vise like this.
 
     absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, n2_abs, 
              h2o_abs, vmrs, lines_per_tg, lineshape, cont_description_names, 
-                        cont_description_models, cont_description_parameters);
+  	                cont_description_models, cont_description_parameters);
   }
   abs_dummy.resize(0);
   //
   out2 << "  ----- Back from absCalc ----------\n";
   //
   // Compute abs1k = abs1k - abs:
-  abs1k -= abs;                 // Matpack can subtract element-vise like this.
+  abs1k -= abs;			// Matpack can subtract element-vise like this.
 
   dabs_dt.resize( abs1k.nrows(), k_grid.nelem() );
   interpp( dabs_dt, p_abs, abs1k, k_grid );
@@ -1830,37 +1829,36 @@ void k_temp_nohydro (
         if ( is(ip,0) >= 0 )
          {
           // Get the weights for the LOS points
-          grid2grid_weights( w, lplos, (Index)is(ip,0), (Index) is(ip,1), 
+	  grid2grid_weights( w, lplos, (Index)is(ip,0), (Index) is(ip,1), 
                                                                  lgrid, ip );
-          //cout <<"numer elements  "<< w.nelem() << "\n";
 
           // Calculate the WFs.
           // A is di/dsigma*dsigma/dSp in a compact form.
           // B is di/dkappa*dkappa/dkp in a compact form.
           // This is possible as the columns of dkappa/dkp are identical and  
-          // that dkappa/dkp = dsigma/dSp
+	  // that dkappa/dkp = dsigma/dSp
           // C is just a temporary value
-          // PL is the Planck function for the present temperature value
-          //
-          a = 0.0;              // Matpack can set all elements like this.
-          b = 0.0;                    
+	  // PL is the Planck function for the present temperature value
+	  //
+          a = 0.0;		// Matpack can set all elements like this.
+	  b = 0.0;                    
           c  = PLANCK_CONST / BOLTZMAN_CONST / t[ip];
           planck( pl, f_mono, t[ip] );
           i1 = (Index)is(ip,0);       // first LOS point to consider
           //
           for ( iv=0; iv<nv; iv++ )
-          {
+	  {
             for ( iw=i1; iw<=(Index)is(ip,1); iw++ )
-            {
+	    {
               a[iv] += sloswfs[iza](iv,iw) * w[iw-i1];
               b[iv] += absloswfs[iza](iv,iw) * w[iw-i1];
-            }
+	    }
             d = c * f_mono[iv];
             k(iv0+iv,ip) = a[iv] * d/t[ip] / (exp(d)-1) * pl[iv] +
                                                       b[iv] * dabs_dt(iv,ip);
             
-            // The result for very small values can be NaN. So NaNs (and Infs)
-            // are set to 0.
+	    // The result for very small values can be NaN. So NaNs (and Infs)
+	    // are set to 0.
 #ifdef HPUX
             if ( !isfinite(k(iv0+iv,ip)) )
 #else
@@ -1868,7 +1866,7 @@ void k_temp_nohydro (
 #endif
               k(iv0+iv,ip) = 0.0;
 
-          }
+	  }
         }            
       }
     }
@@ -1889,70 +1887,60 @@ void k_temp_nohydro (
    The expression used are described in sub-section 7 of the AUG section
    "Atmospheric WFs".
 
-   \retval   kb                   weighting function matrix
-   \retval   kb_names       identity name(s)
+   \retval   kb                weighting function matrix
+   \retval   kb_names          identity name(s)
    \retval   kb_aux            additional data
-
-   \param    tag_groups        The list of tag groups
-   \param    los               line of sight structure
-   \param    absloswfs         absorption LOS Wfs
+   \retval   S_S               matrix keeping the spectrposcopic parameters uncertainties
+   \retval   Mcorr             matrix which gives the correlation between the spectro parameters        
+   \param    wfss_tgs          list of the tag groups to calculate the spectro weighting function
+                               this is useful when the number of lines is large and lines of one
+                               species have to be ignored
+   \param    tgs               the list of tag groups
    \param    f_mono            frequency absorption grid
    \param    p_abs             pressure grid for abs. calculations
    \param    t_abs             temperatures at p_abs
    \param    vmrs              VMR profiles at p_abs
    \param    lines_per_tg      lines tag sorted
    \param    lineshape         lineshape specifications: function, norm, cutoff
-   \param    IndexPar         index for the spectroscopic parameter 
+   \param    los               line of sight structure
+   \param    absweight         weight for absorption LOS Wfs
+   \param    IndexPar          index for the spectroscopic parameter 
    \param    StrPar            name of the spectroscopic parameter 
-   \author Patrick Eriksson
-   \date   2000-09-15
+   \param    corr              level of correlation for one parameter
+   \author Carmen Verdes
+   \date   2003-04-08
 */
 void kb_spectro(
-                Matrix&                                       kb,
-                ArrayOfString&                           kb_names,
-                Matrix&                                       kb_aux,
-             const TagGroups&                                tgs,
-             const Vector&                                       f_mono,
-                     const Vector&                                       p_abs,
-                     const Vector&                                       t_abs,
-                     const Vector&                                       h2o_abs,
-                     const Matrix&                                        vmrs,
-                     const ArrayOfArrayOfLineRecord&       lines_per_tg,
-                     const ArrayOfLineshapeSpec&             lineshape,
-                     const Los&                                            los,           
-             const ArrayOfMatrix&                           absweight,
-             const Index&                                         IndexPar,
-             const String&                                        StrPar)
-
+		Matrix&                             kb,
+		ArrayOfString&                      kb_names,
+		Matrix&                             kb_aux,
+                Matrix&                             S_S,
+                Matrix&                             Mcorr,
+	   const TagGroups&                          wfss_tgs,
+	   const TagGroups&                          tgs,
+	   const Vector&                             f_mono,
+           const Vector&                             p_abs,
+           const Vector&                             t_abs,
+           const Vector&                             h2o_abs,
+           const Matrix&                             vmrs,
+           const ArrayOfArrayOfLineRecord&           lines_per_tg,
+           const ArrayOfLineshapeSpec&               lineshape,
+           const Los&                                los,           
+	   const ArrayOfMatrix&                      absweight,
+	   const Index&                              IndexPar,
+	   const String&                             StrPar,
+           const Numeric&                            corr   
+)
  { 
  // Main sizes
   const Index  nza = los.start.nelem();     // number of zenith angles  
   const Index  nv  = f_mono.nelem();        // number of frequencies
-  const Index  np  = p_abs.nelem();        // number of retrieval altitudes
+  const Index  np  = p_abs.nelem();         // number of retrieval altitudes
   //----------------------------------------------------------------------
   // Index:
   Index itg, iv, nr_line_total, iza, ip, nr_line; 
   //----------------------------------------------------------------------
-  // Get size for Kb
-  nr_line_total=0;
-  nr_line=0;
-  if (tgs.nelem()==0)
-    {
-      ostringstream os;
-      os << "No species has been set:   "<<"\n";        
-      throw runtime_error(os.str());
-    }
-  else
-    {  
-      for ( itg=0; itg<tgs.nelem(); ++itg )
-        {
-          nr_line_total+=lines_per_tg[itg].nelem();
-        }  
-    }
-  kb.resize(nza*nv,nr_line_total);
-  kb_names .resize(nr_line_total);
-  kb=0;
-  // Other variables: 
+ // Other variables: 
   Matrix        abs_line;
   Matrix        abs_line_changed;
   Matrix        dabs;
@@ -1962,7 +1950,46 @@ void kb_spectro(
   //dabs.resize(nv, np);
   ArrayOfMatrix abs_dummy1;
   ArrayOfMatrix abs_dummy2;
+  Index itg_wfss;
+  ArrayOfIndex tag_index;
+  tag_index.resize(wfss_tgs.nelem()); 
+  tag_index = 0;
+  Index  dummy_line=0;
+
+ // Go through the spectroscopic parameters weighting function
+  for (itg_wfss=0; itg_wfss<wfss_tgs.nelem(); ++itg_wfss)
+    {
+      Index n;
+      get_tag_group_index_for_tag_group( n, tgs, wfss_tgs[itg_wfss] );
+      tag_index[itg_wfss] =n;
+    }
+
+ // Get size for Kb
+  nr_line_total=0;
+  nr_line=0;
+  if (tag_index.nelem()==0)
+    {
+      ostringstream os;
+      os << "No species has been set:   "<<"\n";	
+      throw runtime_error(os.str());
+    }
+  else
+    {  
+      for ( itg_wfss=0; itg_wfss<tag_index.nelem(); ++itg_wfss )
+	{
+	  itg=tag_index[itg_wfss];
+	  nr_line_total+=lines_per_tg[itg].nelem();
+	}  
+    }
+  kb.resize(nza*nv,nr_line_total);
+  kb=0.0;
+  kb_names.resize(nr_line_total);
+  S_S.resize(nr_line_total,2);
+  S_S=0.0;
+  Mcorr.resize(nr_line_total,nr_line_total);
+  Mcorr=0.0;
   
+
 
   out2 << "  Calculating the weighting function for "<< StrPar<<"\n";
    // loop:
@@ -1971,138 +1998,222 @@ void kb_spectro(
    // 3: over the zenith angles
    // 4: over the frequencies
 
-   for ( itg=0; itg<tgs.nelem(); ++itg )
-     {
-       if ( lines_per_tg[itg].nelem()>0)
-        {
-          for ( Index li=0; li<lines_per_tg[itg].nelem(); ++li )
-            { 
-              ArrayOfArrayOfLineRecord dummy_lines_per_tg; 
-              dummy_lines_per_tg.resize( lines_per_tg.nelem() ); 
-              dummy_lines_per_tg[itg].resize(1);
-              cout<<"=======Making line=========:" <<" \n"; 
-              cout << lines_per_tg[itg][li]<< "\n"; 
-              dummy_lines_per_tg[itg][0] = lines_per_tg[itg][li];
-                    // calculate the absorption for unperturbed line; 
-              xsec_per_tgInit( abs_dummy1, tgs, f_mono, p_abs );
-              xsec_per_tgAddLines( abs_dummy1, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, 
-                                  dummy_lines_per_tg, lineshape );               
-              absCalcFromXsec(abs_line, abs_dummy2, abs_dummy1 , vmrs );            
-              Numeric frac;
-              Numeric parameter;
-              Numeric dummy;
-              // apply a perturbation the one  parameter
-              switch ( IndexPar )
-                {
-              case 1: 
-                {
-                 frac=0.01;
-                 parameter=dummy_lines_per_tg[itg][0].I0();
-                 dummy = parameter +frac*parameter;
-                 dummy_lines_per_tg[itg][0].setI0(dummy);
-                 break;
-                        }
-              case 2: 
-                       {
-                 frac=0.01;
-                 parameter=dummy_lines_per_tg[itg][0].F();
-                 dummy = parameter +frac*parameter;      
-                 dummy_lines_per_tg[itg][0].setF(dummy);
-                 break;
-                       }
-              case 3: 
-                       {  
-                 frac=0.01;
-                 parameter = dummy_lines_per_tg[itg][0].Agam();
-                 dummy = parameter +frac*parameter;      
-                 dummy_lines_per_tg[itg][0].setAgam(dummy);
-                 break;
-                        }
-             case 4: 
-                       {
-                 frac=0.01;
-                 parameter=dummy_lines_per_tg[itg][0].Sgam();
-                 dummy = parameter +frac*parameter;      
-                 dummy_lines_per_tg[itg][0].setSgam(dummy);
-                 break;
-                      }
-             case 5: 
-                       {
-                 frac=0.01;
-                 parameter=dummy_lines_per_tg[itg][0].Nair();
-                 dummy = parameter +frac*parameter;      
-                 dummy_lines_per_tg[itg][0].setNair(dummy);
-                 break; 
-                        }
-               case 6: 
-                               { 
-                 frac=0.01;
-                 parameter=dummy_lines_per_tg[itg][0].Nself();
-                 dummy = parameter + frac*parameter;     
-                 dummy_lines_per_tg[itg][0].setNself(dummy);
-                 break;
-                }
-              case 7: 
-                       {
-                 frac=0.01;
-                 parameter=dummy_lines_per_tg[itg][0].Psf();
-                 dummy = parameter + frac*parameter;     
-                 dummy_lines_per_tg[itg][0].setPsf(dummy);
-                 break; 
-                }
-              default: 
-                {
-                 ostringstream os;
-                 os << "The sectroscopic parameter:   "  << StrPar<<"\n"
-                    << "does not exists";       
-                 throw runtime_error(os.str());
-                }
-              }
-            //cout << dummy_lines_per_tg[itg][0]<< "\n"; 
-            //calculate the absorption coefficient for the perturbed line
-            xsec_per_tgInit( abs_dummy1, tgs, f_mono, p_abs );
-            xsec_per_tgAddLines( abs_dummy1,
-                                 tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, dummy_lines_per_tg, lineshape );  
-            absCalcFromXsec(abs_line_changed, abs_dummy2, abs_dummy1, vmrs ); 
-            abs_line_changed-=abs_line; 
-            dabs1=abs_line_changed;
-            dabs1/=dummy-parameter;
-            dabs=transpose(dabs1);
-            Index iv0=0;
-            for ( iza=0; iza<nza; iza++ ) 
-              { 
-               if ( (iza%20)==0 )
-                  out3 << "\n      ";
-                        out3 << " " << iza; cout.flush();
-              // Do something only if LOS has any points
-                   if ( los.p[iza].nelem() > 0 ) 
-                  {
-                    for ( iv=0; iv<nv; iv++ ) 
-                      {         
-                         for ( ip=0; ip<np; ip++ )
-                           { 
-                            kb(iv0+iv, nr_line)+= absweight[iza](iv,ip)* dabs(ip, iv);
-                           }
-                        // The result for very small values can be NaN. So NaNs (and Infs)
-                        // are set to 0.
+
+     for ( itg_wfss=0; itg_wfss<tag_index.nelem(); ++itg_wfss )
+       {  
+	 itg=tag_index[itg_wfss];
+         Index nr_line_dummy=0;
+	 if ( lines_per_tg[itg].nelem()>0)
+	   {
+	     Vector gamma;
+	     gamma.resize(lines_per_tg[itg].nelem());
+	     gamma=0.0;
+	     for ( Index li=0; li<lines_per_tg[itg].nelem(); ++li )
+	       { 
+		 ArrayOfArrayOfLineRecord dummy_lines_per_tg; 
+		 dummy_lines_per_tg.resize( lines_per_tg.nelem() ); 
+		 dummy_lines_per_tg[itg].resize(1);
+		 out3<<"==Calculating weighting function for line==: " <<" \n"; 
+		 out3<< lines_per_tg[itg][li]<< "\n"; 
+		 dummy_lines_per_tg[itg][0] = lines_per_tg[itg][li];
+		 // calculate the absorption for unperturbed line; 
+		 xsec_per_tgInit( abs_dummy1, tgs, f_mono, p_abs );
+		 xsec_per_tgAddLines( abs_dummy1, tgs, f_mono, p_abs, t_abs,
+				      h2o_abs, vmrs, dummy_lines_per_tg, 
+				      lineshape );               
+		 absCalcFromXsec(abs_line, abs_dummy2, abs_dummy1 , vmrs );
+                // define some local variables	    
+		 Numeric delta_s;   // perturbation applied
+		 Numeric parameter; // spectro parameter
+		 Numeric dummy;     // perturb spectro parameter
+		 Numeric ER_dummy;  // accuracy from spectral  database
+		 Vector ER_dummy2;  // accuracy in absolute and relative units;
+		 ER_dummy2.resize(2);
+		 ER_dummy2=0.0;
+		// apply a perturbation to one  parameter
+		 switch ( IndexPar )
+		   {
+		   case 1: 
+		     {
+		       delta_s = 10E-25; //perturbation in intensity units;
+                       // read the intensity and its uncertainty;
+		       parameter  = dummy_lines_per_tg[itg][0].I0();
+		       ER_dummy   = dummy_lines_per_tg[itg][0].dI0();
+                       // Set to a default value if there is no field for uncertainty;
+		       if (ER_dummy == -1) //
+			 {ER_dummy = 0.02;}
+                       // get uncertainty in (1) absolute values and (2) relative values;
+		       ER_dummy2[0] = ER_dummy*parameter;
+		       ER_dummy2[1] = ER_dummy*100;
+                       // apply uncertainty and update the value of the parameter;
+		       dummy = parameter +delta_s;	 
+		       dummy_lines_per_tg[itg][0].setI0(dummy);
+		       break;
+		     }
+		   case 2: 
+		     {
+		       delta_s=10; // perturbation in HZ
+                       // read the position and and its uncertainty; 
+		       parameter=dummy_lines_per_tg[itg][0].F();
+		       ER_dummy = dummy_lines_per_tg[itg][0].dF();
+                       // Set to a default value if there is no field for uncertainty;
+		       if (ER_dummy==-1)
+			 {ER_dummy=3*1E+9;}
+                       // get uncertainty in absolute values only; 
+		       ER_dummy2[0] = ER_dummy;
+		       ER_dummy2[1] = ER_dummy;
+                       // apply uncertainty and update the value of the parameter;
+		       dummy = parameter +delta_s;	 
+		       dummy_lines_per_tg[itg][0].setF(dummy);
+		       break;
+		     }
+		   case 3: 
+		     {  
+		       delta_s=0.001; // perturbation in fraction
+		       parameter = dummy_lines_per_tg[itg][0].Agam();		      
+		       ER_dummy = dummy_lines_per_tg[itg][0].dAgam();
+		       if (ER_dummy==-1)
+			 {ER_dummy=2;}
+		       ER_dummy2[0] = parameter*ER_dummy;
+		       ER_dummy2[1] = ER_dummy*100;
+		       dummy = parameter + parameter *delta_s;	 
+		       dummy_lines_per_tg[itg][0].setAgam(dummy);
+		       break;
+		     }
+		   case 4: 
+		     {
+		       delta_s=0.001; // perturbation in fraction
+		       parameter=dummy_lines_per_tg[itg][0].Sgam();
+		       Mcorr(li,li)=1;
+
+		       ER_dummy = dummy_lines_per_tg[itg][0].dSgam();
+		       if (ER_dummy==-1)
+			 {ER_dummy=2;}
+		       ER_dummy2[0] = parameter*ER_dummy;
+		       ER_dummy2[1] = ER_dummy*100;
+		       Mcorr(li,li)=1;
+		       dummy    = parameter +parameter*delta_s;	 	 
+		       dummy_lines_per_tg[itg][0].setSgam(dummy);
+		       break;
+		     }
+		   case 5: 
+		     {
+		       delta_s=0.001; // perturbation in fraction
+		       parameter=dummy_lines_per_tg[itg][0].Nair();
+		       ER_dummy = dummy_lines_per_tg[itg][0].dNair();
+		       if (ER_dummy==-1)
+			 {ER_dummy=2;}
+		       ER_dummy2[0] = parameter*ER_dummy;
+		       ER_dummy2[1] = ER_dummy*100;
+
+		       dummy = parameter + parameter*delta_s;	 	 
+		       dummy_lines_per_tg[itg][0].setNair(dummy);
+		       break; 
+		     }
+		   case 6: 
+		     { 
+		       delta_s=0.01; // perturbation in fraction
+		       parameter=dummy_lines_per_tg[itg][0].Nself();
+		       ER_dummy = dummy_lines_per_tg[itg][0].dNself();
+		       if (ER_dummy==-1)
+			 {ER_dummy=2;}
+		       ER_dummy2[0] = parameter*ER_dummy;
+		       ER_dummy2[1] = ER_dummy*100;
+		       dummy = parameter +parameter*delta_s;	 	 
+		       dummy_lines_per_tg[itg][0].setNself(dummy);
+		       break;
+		     }
+		   case 7: 
+		     {
+		       extern const Numeric TORR2PA;
+		       delta_s=1;// perturbation i
+		       parameter=dummy_lines_per_tg[itg][0].Psf();
+		       ER_dummy = dummy_lines_per_tg[itg][0].dPsf();
+		       if ((ER_dummy==-1)|| (parameter==0.0))
+			 {ER_dummy = 1E6 / TORR2PA;}
+		       else 
+			 {ER_dummy=ER_dummy*parameter;}		       
+		       ER_dummy2[0] = ER_dummy;
+		       ER_dummy2[1] = ER_dummy;
+		       dummy = parameter + delta_s                 ;	 
+		       dummy_lines_per_tg[itg][0].setPsf(dummy);	 
+		       break; 
+		     }
+		   default: 
+		     {
+		       ostringstream os;
+		       os << "The sectroscopic parameter:   "  << StrPar<<"\n"
+			  << "does not exists";	
+		       throw runtime_error(os.str());
+		     }
+		   }
+		 //calculate the absorption coefficient for the perturbed line
+		 xsec_per_tgInit( abs_dummy1, tgs, f_mono, p_abs );
+		 xsec_per_tgAddLines( abs_dummy1,
+				      tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs,
+				      dummy_lines_per_tg, lineshape );  
+		 absCalcFromXsec(abs_line_changed, abs_dummy2, abs_dummy1, vmrs ); 
+		 abs_line_changed-=abs_line; 
+		 dabs1=abs_line_changed;
+		 dabs1/=dummy-parameter;
+		 dabs=transpose(dabs1);
+		 Index iv0=0;
+		 for ( iza=0; iza<nza; iza++ ) 
+		   { 
+		     if ( (iza%20)==0 )
+		       out3 << "\n      ";
+		     out3 << " " << iza; cout.flush();
+		     // Do something only if LOS has any points
+		     if ( los.p[iza].nelem() > 0 ) 
+		       {
+			 for ( iv=0; iv<nv; iv++ ) 
+			   {         
+			     for ( ip=0; ip<np; ip++ )
+			       { 
+				 kb(iv0+iv, nr_line)+= absweight[iza](iv,ip)* dabs(ip, iv);
+			       }
+			     // The result for very small values can be NaN. So NaNs (and Infs)
+			     // are set to 0.
 #ifdef HPUX
-            if ( !isfinite(kb(iv0+iv, nr_line)) )
+			     if ( !isfinite(kb(iv0+iv, nr_line)) )
 #else
-            if ( !finite(kb(iv0+iv, nr_line)) )
+			       if ( !finite(kb(iv0+iv, nr_line)) )
 #endif
-              kb(iv0+iv,nr_line) = 0.0;
-                      }
-                    iv0+=nv;
-                  }
-              }     
-            Numeric nr = dummy_lines_per_tg[itg][0].F() *1e-9;
-            ostringstream os;
-            os <<StrPar<< "--"<<dummy_lines_per_tg[itg][0].Name()<<"@" <<nr;
-            kb_names[nr_line]= os.str();
-            ++nr_line;
-            }  
-        }         
-     }
+				 kb(iv0+iv,nr_line) = 0.0;
+			   }
+			 iv0+=nv;
+		       }
+		   }	    
+		 Numeric nr = dummy_lines_per_tg[itg][0].F() *1e-9;
+		 ostringstream os;
+		 if (IndexPar == 2)
+		   {
+		     os <<StrPar<< "--"<<tgs[itg]<<"@" <<nr<<": "<< ER_dummy2[1] <<" Hz";
+		   }
+		 else if (IndexPar == 7)
+		   {
+		     os <<StrPar<< "--"<<tgs[itg]<<"@" <<nr<<": "<< ER_dummy2[1] <<" Hz/Pa";
+		   }
+
+		 else
+		   {
+		     os <<StrPar<< "--"<<tgs[itg]<<"@" <<nr<<": "<< ER_dummy2[1] <<" %";
+		   }
+		 kb_names[nr_line]= os.str();
+		 S_S(nr_line, Range(joker))= ER_dummy2;
+		 ++nr_line;
+		 ++nr_line_dummy;
+	       } 
+	     // set the correlations for one parameter 
+             Matrix dummy_Mcorr;
+             dummy_Mcorr.resize(nr_line_dummy, nr_line_dummy);
+	     dummy_Mcorr = corr; 
+	     for ( Index i_dummy=0; i_dummy<dummy_Mcorr.nrows(); ++i_dummy )
+	       {dummy_Mcorr(i_dummy, i_dummy) =1;}
+             Mcorr(Range(dummy_line, nr_line_dummy), Range(dummy_line, nr_line_dummy)) =dummy_Mcorr;   
+	     dummy_line= dummy_line+nr_line_dummy;
+	   }         
+       }
  }
 
 /**
@@ -2113,49 +2224,61 @@ void kb_spectro(
 
    The expression used are described in sub-section 7 of the AUG section
    "Atmospheric WFs".
+   See the the online help (arts -d FUNCTION_NAME)
 
-   \retval   kb                   weighting function matrix
-   \retval   kb_names       identity name(s)
-   \retval   kb_aux            additional data
+    \retval   k                weighting function matrix
+    \retval   k_names          identity name(s)
+    \retval   k_aux            additional data
+    \retval   S_S               matrix keeping the spectrposcopic parameters uncertainties
+    \retval   Mcorr             matrix which gives the correlation between the spectro parameters        
+    \param    wfss_tgs          list of the tag groups to calculate the spectro weighting function
+                                this is useful when the number of lines is large and lines of one
+                                species have to be ignored
+    \param    tgs               the list of tag groups
+    \param    f_mono            frequency absorption grid
+    \param    p_abs             pressure grid for abs. calculations
+    \param    t_abs             temperatures at p_abs
+    \param    h2o_abs           term for H2O abs.
+    \param    vmrs              VMR profiles at p_abs
+    \param    lines_per_tg      lines tag sorted
+    \param    lineshape         lineshape specifications: function, norm, cutoff
+    \param    los               line of sight structure
+    \param    absloswfs         absorption LOS Wfs
+    \param    IndexPar          index for the spectroscopic parameter 
+    \param    StrPar            name of the spectroscopic parameter 
+    \param    corr              level of correlation for one parameter
 
-   \param    tag_groups        The list of tag groups
-   \param    los               line of sight structure
-   \param    absloswfs         absorption LOS Wfs
-   \param    f_mono            frequency absorption grid
-   \param    p_abs             pressure grid for abs. calculations
-   \param    t_abs             temperatures at p_abs
-   \param    vmrs              VMR profiles at p_abs
-   \param    lines_per_tg      lines tag sorted
-   \param    lineshape         lineshape specifications: function, norm, cutoff
-   \param    IndexPar         index for the spectroscopic parameter 
-   \param    StrPar            name of the spectroscopic parameter 
-   \author Carmen Verdes
-   \date   2002-10-1
+    \author Carmen Verdes
+    \date   2002.10.1
 */
 
-void kbSpectro (
-                Matrix&                                  kb,
-                ArrayOfString&                       kb_names,
-                Matrix&                                   kb_aux,
-             const TagGroups&                            tgs,
-             const Vector&                                   f_mono,
-             const Vector&                                   p_abs,
-             const Vector&                                    t_abs,
-                     const Vector&                                    z_abs,
-             const Vector&                                    h2o_abs,
-             const Matrix&                                     vmrs,
-             const ArrayOfArrayOfLineRecord&    lines_per_tg,
-             const ArrayOfLineshapeSpec&          lineshape,
-             const Los&                                          los,           
-             const ArrayOfMatrix&                         absloswfs,
-          // Keywords
-                     const  Index&                                          kw_intens,
-             const  Index&                                          kw_position,
-                     const  Index&                                          kw_agam,
-                     const  Index&                                          kw_sgam,
-                     const  Index&                                          kw_nair,
-                     const  Index&                                          kw_nself,
-                     const  Index&                                          kw_pSift )
+void kSpectro (
+	       Matrix&                               k,
+	       ArrayOfString&                        k_names,
+	       Matrix&                               k_aux,
+               Matrix&                               S_S,
+               Matrix&                               Mcorr,
+	  const TagGroups&                            wfss_tgs,
+	  const TagGroups&                            tgs,
+	  const Vector&                               f_mono,
+	  const Vector&                               p_abs,
+	  const Vector&                               t_abs,
+	  const Vector&                               z_abs,
+	  const Vector&                               h2o_abs,
+	  const Matrix&                               vmrs,
+	  const ArrayOfArrayOfLineRecord&             lines_per_tg,
+	  const ArrayOfLineshapeSpec&                 lineshape,
+	  const Los&                                  los,           
+	  const ArrayOfMatrix&                        absloswfs,
+	  // Keywords
+	  const  Index&                               kw_intens,
+	  const  Index&                               kw_position,
+          const  Index&                               kw_agam,
+          const  Index&                               kw_sgam,
+          const  Index&                               kw_nair,
+          const  Index&                               kw_nself,
+	  const  Index&                               kw_pSift, 
+          const  Numeric&                             corr)
 {
 
   check_if_bool( kw_intens, "do_intens keyword" );
@@ -2180,15 +2303,17 @@ void kbSpectro (
   Index itg;
   
   // Other variables
-  ArrayOfMatrix W; 
-  ArrayOfMatrix absweight;
+  ArrayOfMatrix W; // keeps  dkappa/dk;
+  ArrayOfMatrix absweight; // the product di/dkappa * dkappa/dk;
   absweight.resize(nza);
-  ArrayOfIndex  kb_lengths;
-  Matrix        k;
-  ArrayOfString k_names;
-  Matrix        k_aux;
+  ArrayOfIndex  k_lengths;
+  Matrix        kb;
+  ArrayOfString kb_names;
+  Matrix        kb_aux;
   Matrix        abs_line;
   Matrix        abs_line_changed;
+  Matrix        ER;
+  Matrix Mcorr_line;
   ArrayOfMatrix abs_dummy1;
   Index         IndexPar; // spectro parameters to be investigated
   String        StrPar;
@@ -2202,13 +2327,12 @@ void kbSpectro (
       absweight[iza].resize(absloswfs[iza].nrows(), W[iza].ncols());  
       // Do something only if LOS has any points
       if ( los.p[iza].nelem() > 0 )
-        cout<< "los.p[iza]:" << los.p[iza]<<"\n";
-        {
-          mult(absweight[iza], absloswfs[iza], W[iza]); 
-        }
+	{
+	  mult(absweight[iza], absloswfs[iza], W[iza]); 
+	}
     }
 
-// get size of kb
+// get size of k
   if (kw_intens) 
     {  ++ipar;}
   if (kw_position) 
@@ -2224,128 +2348,206 @@ void kbSpectro (
   if (kw_pSift) 
     {  ++ipar;}
   Index nr_line_total=0;
-  {  
-    for ( itg=0; itg<tgs.nelem(); ++itg )
-      {
-        nr_line_total+=lines_per_tg[itg].nelem();
-      }  
-  }
+  Index itg_wfss;
+  ArrayOfIndex tag_index;
+  tag_index.resize(wfss_tgs.nelem()); 
+  tag_index = 0;
+
+
+  // Go through the spectroscopic parameters weighting function
+  for (itg_wfss=0; itg_wfss<wfss_tgs.nelem(); ++itg_wfss)
+    {
+      Index n;
+      get_tag_group_index_for_tag_group( n, tgs, wfss_tgs[itg_wfss] );
+      tag_index[itg_wfss] =n;
+    }
+
+  // Get size for Kb
+  nr_line_total=0;
+
+  if (tag_index.nelem()==0)
+    {
+      ostringstream os;
+      os << "No species has been set:   "<<"\n";	
+      throw runtime_error(os.str());
+    }
+  else
+    {  
+      for ( itg_wfss=0; itg_wfss<tag_index.nelem(); ++itg_wfss )
+	{
+	  itg=tag_index[itg_wfss];
+	  nr_line_total+=lines_per_tg[itg].nelem();
+	}  
+    }
   if (ipar == 0)
     {
       ostringstream os;
-      os << "No sectroscopic parameters have been set"; 
+      os << "No sectroscopic parameters have been set";	
+      throw runtime_error(os.str());
+    }
+  if (nr_line_total == 0)
+    {
+      ostringstream os;
+      os << " No line for which to calculate weighting function has been found. Catalog empty?";	
       throw runtime_error(os.str());
     }
   
-  kb.resize(nza*nv, nr_line_total*ipar);
-  kb=0.0;
-  kb_names.resize(nr_line_total*ipar);
-  
+  k.resize(nza*nv, nr_line_total*ipar);
+  k=0.0;
+  k_names.resize(nr_line_total*ipar);
+  S_S.resize(nr_line_total*ipar,2);
+  ER.resize(nr_line_total,2);
+  Mcorr.resize(nr_line_total*ipar, nr_line_total*ipar);
+  Mcorr=0.0;
+  Mcorr_line.resize(nr_line_total, nr_line_total);
   // calculate the weighting function for each parameter
   Index nr_line=0;
   if (kw_intens) 
     {  
       IndexPar = 1;
       StrPar = "intensity";
-      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
-      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, lines_per_tg, 
-                  lineshape, los, absweight, IndexPar, StrPar);
-      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
-      for ( Index iri=0; iri<k_names.nelem(); iri++)
+      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER, Mcorr_line, wfss_tgs, tgs, 
+		  f_mono, p_abs, t_abs, 
+		  h2o_abs, vmrs, lines_per_tg, lineshape, los, absweight, 
+		  IndexPar, StrPar, corr); 
+      k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
+     // ER.resize(kb_names.nelem(),2);
+      for ( Index iri=0; iri<kb_names.nelem(); iri++)
         {
-          kb_names[nr_line+iri]= k_names[iri]; 
-        }  
-      nr_line+=k.ncols();
-    }   
+	  k_names[nr_line+iri]= kb_names[iri]; 
+	  S_S(nr_line+iri, Range(joker))=ER(iri, Range(joker));
+	} 
+      Mcorr(Range(nr_line, Mcorr_line.nrows()),
+	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line;
+      nr_line+=Mcorr_line.ncols();
+    }	
   if (kw_position)
     { 
       IndexPar  = 2;
       StrPar = "position";
-      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
-      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, lines_per_tg, 
-                  lineshape, los, absweight, IndexPar, StrPar);
-      kb(Range(joker), Range(nr_line,  k.ncols()))= k;
-      for ( Index iri=0; iri<k_names.nelem(); iri++)
+      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER,  Mcorr_line, wfss_tgs, tgs, 
+		  f_mono, p_abs, t_abs, 
+		  h2o_abs, vmrs, lines_per_tg, 
+ 		  lineshape, los, absweight, IndexPar, StrPar, corr);
+      k(Range(joker), Range(nr_line,  kb.ncols()))= kb;
+      // ER.resize(kb_names.nelem(),2);
+      for ( Index iri=0; iri<kb_names.nelem(); iri++)
         {
-          kb_names[nr_line+iri]= k_names[iri]; 
-        }  
-      nr_line+=k.ncols();
-        }
+	  k_names[nr_line+iri]= kb_names[iri];
+	  S_S(nr_line+iri, Range(joker))=ER(iri, Range(joker));
+	} 
+      Mcorr(Range(nr_line, Mcorr_line.nrows()),
+	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line;
+      nr_line+=Mcorr_line.ncols();
+	}
   if (kw_agam)
     { 
       IndexPar = 3;
       StrPar = "agam";
-      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
-      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, lines_per_tg, 
-                  lineshape, los, absweight, IndexPar, StrPar);
-      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
-      for ( Index iri=0; iri<k_names.nelem(); iri++)
+      out2<<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER,  Mcorr_line, wfss_tgs,
+		  tgs, f_mono, p_abs, t_abs,
+		  h2o_abs, vmrs, lines_per_tg, 
+ 		  lineshape, los, absweight, IndexPar, StrPar, corr);
+      k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
+      //ER.resize(kb_names.nelem(),2);
+      for ( Index iri=0; iri<kb_names.nelem(); iri++)
         {
-          kb_names[nr_line+iri]= k_names[iri]; 
-        }  
-      nr_line+=k.ncols();
-        }
+	  k_names[nr_line+iri]= kb_names[iri]; 
+	  S_S(nr_line+iri, Range(joker))=ER(iri, Range(joker));
+	  Mcorr(nr_line+iri, nr_line+iri)= Mcorr_line(iri, iri);
+	} 
+      Mcorr(Range(nr_line, Mcorr_line.nrows()),
+	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line;
+      nr_line+=Mcorr_line.ncols();
+	}
   if (kw_sgam)
     { 
       IndexPar = 4;
       StrPar = "sgam";
-      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
-      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, lines_per_tg, 
-                  lineshape, los, absweight, IndexPar, StrPar);
-      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
-      for ( Index iri=0; iri<k_names.nelem(); iri++)
+      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER,  Mcorr_line, wfss_tgs,
+		  tgs, f_mono, p_abs, t_abs, 
+		  h2o_abs, vmrs, lines_per_tg, 
+ 		  lineshape, los, absweight, IndexPar, StrPar, corr);
+      k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
+      //ER.resize(kb_names.nelem(),2);
+      for ( Index iri=0; iri<kb_names.nelem(); iri++)
         {
-          kb_names[nr_line+iri]= k_names[iri]; 
-        }  
-      nr_line+=k.ncols();
+	  k_names[nr_line+iri]= kb_names[iri]; 
+	  S_S(nr_line+iri, Range(joker))=ER(iri, Range(joker));
+	} 
+      Mcorr(Range(nr_line, Mcorr_line.nrows()),
+	     Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line;
+      nr_line+=kb.ncols();
     }
  
   if (kw_nair)
     { 
       IndexPar = 5;
       StrPar = "nair";
-      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
-      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, lines_per_tg, 
-                  lineshape, los, absweight, IndexPar, StrPar);
-      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
-      for ( Index iri=0; iri<k_names.nelem(); iri++)
+      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER,  Mcorr_line, wfss_tgs, 
+		  tgs, f_mono, p_abs, t_abs, 
+		  h2o_abs, vmrs, lines_per_tg, 
+		  lineshape, los, absweight, IndexPar, StrPar, corr);
+      k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
+      //ER.resize(kb_names.nelem(),2);
+      for ( Index iri=0; iri<kb_names.nelem(); iri++)
         {
-          kb_names[nr_line+iri]= k_names[iri]; 
-        }  
-      nr_line+=k.ncols();      
-        }
+	  k_names[nr_line+iri]= kb_names[iri];
+	  S_S(nr_line+iri, Range(joker)) = ER(iri, Range(joker));
+	} 
+      Mcorr(Range(nr_line, Mcorr_line.nrows()),
+	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line;
+      nr_line+=kb.ncols();      
+	}
   if (kw_nself)
     { 
       IndexPar = 6;
       StrPar = "nself";
-      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
-      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs,
-                  lines_per_tg, lineshape, los, absweight, IndexPar, StrPar);
-      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
-      for ( Index iri=0; iri<k_names.nelem(); iri++)
+      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER, Mcorr_line, wfss_tgs, 
+		  tgs, f_mono, p_abs, t_abs, 
+		  h2o_abs, vmrs, lines_per_tg, lineshape, los, absweight, 
+		  IndexPar, StrPar, corr);
+      k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
+      // ER.resize(kb_names.nelem(),2); 
+      for ( Index iri=0; iri<kb_names.nelem(); iri++)
         {
-          kb_names[nr_line+iri]= k_names[iri]; 
-        }  
-      nr_line+=k.ncols();        
-        }
+	  k_names[nr_line+iri]= kb_names[iri];
+	  S_S(nr_line+iri, Range(joker))=ER(iri, Range(joker)); 
+	} 
+      Mcorr(Range(nr_line, Mcorr_line.nrows()),
+	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line; 
+      nr_line+=kb.ncols();        
+	}
   if (kw_pSift)
     { 
       IndexPar = 7;
       StrPar = "pressure shift";
-      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
-      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs,
-                  lines_per_tg, lineshape, los, absweight, IndexPar, StrPar);
-      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
-      for ( Index iri=0; iri<k_names.nelem(); iri++)
+      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER, Mcorr_line, wfss_tgs, 
+		  tgs, f_mono, p_abs, t_abs,
+		  h2o_abs, vmrs, lines_per_tg, lineshape, los, absweight,
+		  IndexPar, StrPar, corr);
+      k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
+      ER.resize(kb_names.nelem(),2);
+      for ( Index iri=0; iri<kb_names.nelem(); iri++)
         {
-          kb_names[nr_line+iri]= k_names[iri]; 
-        }  
-      nr_line+=k.ncols();
-        }
+	  k_names[nr_line+iri]= kb_names[iri]; 
+	  S_S(nr_line+iri, Range(joker)) = ER(iri, Range(joker));
+	} 
+      Mcorr(Range(nr_line, Mcorr_line.nrows()),
+	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line; 
+      nr_line+=kb.ncols();
+	}
   if (ipar == 0)
      {
        ostringstream os;
-       os << "No sectroscopic parameters have been set";        
+       os << "No sectroscopic parameters have been set";	
        throw runtime_error(os.str());
      }
 } 
@@ -2362,9 +2564,9 @@ void kbSpectro (
    \date   2000-01-31
 */
 void wfs_tgsDefine(// WS Output:
-                   TagGroups& wfs_tag_groups,
-                   // Control Parameters:
-                   const ArrayOfString& tags)
+		   TagGroups& wfs_tag_groups,
+		   // Control Parameters:
+		   const ArrayOfString& tags)
 {
   wfs_tag_groups = TagGroups(tags.nelem());
 
@@ -2379,20 +2581,20 @@ void wfs_tgsDefine(// WS Output:
       bool go_on = true;
       String these_tags = tags[i];
       while (go_on)
-        {
-          Index n = these_tags.find(',');
-          if ( n == these_tags.npos ) // npos indicates `not found'
-            {
-              // There are no more commas.
-              tag_def.push_back(these_tags);
-              go_on = false;
-            }
-          else
-            {
-              tag_def.push_back(these_tags.substr(0,n));
-              these_tags.erase(0,n+1);
-            }
-        }
+	{
+	  Index n = these_tags.find(',');
+	  if ( n == these_tags.npos ) // npos indicates `not found'
+	    {
+	      // There are no more commas.
+	      tag_def.push_back(these_tags);
+	      go_on = false;
+	    }
+	  else
+	    {
+	      tag_def.push_back(these_tags.substr(0,n));
+	      these_tags.erase(0,n+1);
+	    }
+	}
 
       // Unfortunately, MTL conatains a bug that leads to all elements of
       // the outer Array of an Array<Array>> pointing to the same data
@@ -2400,22 +2602,22 @@ void wfs_tgsDefine(// WS Output:
       wfs_tag_groups[i] = Array<OneTag>();
 
       for ( Index s=0; s<tag_def.nelem(); ++s )
-        {
-          // Remove leading whitespace, if there is any:
-          while ( ' '  == tag_def[s][0] ||
-                  '\t' == tag_def[s][0]    )    tag_def[s].erase(0,1);
+	{
+	  // Remove leading whitespace, if there is any:
+	  while ( ' '  == tag_def[s][0] ||
+		  '\t' == tag_def[s][0]    )	tag_def[s].erase(0,1);
 
-          OneTag this_tag(tag_def[s]);
+	  OneTag this_tag(tag_def[s]);
 
-          // Safety check: For s>0 check that the tags belong 
+	  // Safety check: For s>0 check that the tags belong 
           // to the same species.
-          if (s>0)
-            if ( wfs_tag_groups[i][0].Species() != this_tag.Species() )
-              throw runtime_error(
+	  if (s>0)
+	    if ( wfs_tag_groups[i][0].Species() != this_tag.Species() )
+	      throw runtime_error(
                        "Tags in a tag group must belong to the same species.");
 
-          wfs_tag_groups[i].push_back(this_tag);
-        }
+	  wfs_tag_groups[i].push_back(this_tag);
+	}
     }
 
   // Print list of tag groups to the most verbose output stream:
@@ -2424,14 +2626,88 @@ void wfs_tgsDefine(// WS Output:
     {
       out3 << "\n  " << i << ":";
       for ( Index s=0; s<wfs_tag_groups[i].nelem(); ++s )
-        {
-          out3 << " " << wfs_tag_groups[i][s].Name();
-        }
+	{
+	  out3 << " " << wfs_tag_groups[i][s].Name();
+	}
     }
   out3 << '\n';
 }
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
 
+   \author Carmen Verdes
+   \date   2000-01-31
+*/
+void wfss_tgsDefine(// WS Output:
+		   TagGroups& wfss_tgs,
+		   // Control Parameters:
+		   const ArrayOfString& tags)
+{
+  wfss_tgs = TagGroups(tags.nelem());
+
+  // Each element of the array of Strings tags defines one tag
+  // group. Let's work through them one by one.
+  for ( Index i=0; i<tags.nelem(); ++i )
+    {
+      // There can be a comma separated list of tag definitions, so we
+      // need to break the String apart at the commas.
+      ArrayOfString tag_def;
+
+      bool go_on = true;
+      String these_tags = tags[i];
+      while (go_on)
+	{
+	  Index n = these_tags.find(',');
+	  if ( n == these_tags.npos ) // npos indicates `not found'
+	    {
+	      // There are no more commas.
+	      tag_def.push_back(these_tags);
+	      go_on = false;
+	    }
+	  else
+	    {
+	      tag_def.push_back(these_tags.substr(0,n));
+	      these_tags.erase(0,n+1);
+	    }
+	}
+
+      // Unfortunately, MTL conatains a bug that leads to all elements of
+      // the outer Array of an Array<Array>> pointing to the same data
+      // after creation. So we need to fix this explicitly:
+      wfss_tgs[i] = Array<OneTag>();
+
+      for ( Index s=0; s<tag_def.nelem(); ++s )
+	{
+	  // Remove leading whitespace, if there is any:
+	  while ( ' '  == tag_def[s][0] ||
+		  '\t' == tag_def[s][0]    )	tag_def[s].erase(0,1);
+
+	  OneTag this_tag(tag_def[s]);
+
+	  // Safety check: For s>0 check that the tags belong 
+          // to the same species.
+	  if (s>0)
+	    if ( wfss_tgs[i][0].Species() != this_tag.Species() )
+	      throw runtime_error(
+                       "Tags in a tag group must belong to the same species.");
+
+	  wfss_tgs[i].push_back(this_tag);
+	}
+    }
+
+  // Print list of tag groups to the most verbose output stream:
+  out3 << "  Defined weighting function tag groups:";
+  for ( Index i=0; i<wfss_tgs.nelem(); ++i )
+    {
+      out3 << "\n  " << i << ":";
+      for ( Index s=0; s<wfss_tgs[i].nelem(); ++s )
+	{
+	  out3 << " " << wfss_tgs[i][s].Name();
+	}
+    }
+  out3 << '\n';
+}
 
 /**
    See the the online help (arts -d FUNCTION_NAME)
@@ -2441,7 +2717,7 @@ void wfs_tgsDefine(// WS Output:
 */
 void absloswfsCalc (
                     ArrayOfMatrix&   absloswfs,
-              const Index&             emission,
+	      const Index&             emission,
               const Los&             los,   
               const ArrayOfMatrix&   source,
               const ArrayOfMatrix&   trans,
@@ -2514,7 +2790,7 @@ void kSpecies (
     tg_nr[i] = i;
 
   k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
-             wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
+	     wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
 }
 
 
@@ -2549,7 +2825,7 @@ void kSpeciesSingle (
   get_tagindex_for_Strings( tg_nr, wfs_tgs, tg_name );
   
   k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
-                             wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
+                 	     wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
 }
 
 
@@ -2568,7 +2844,7 @@ void kContAbs (
               const ArrayOfMatrix&   absloswfs,
               const Vector&          f_mono,
               const Vector&          k_grid,
-              const Index&           order,
+	      const Index&           order,
               const Numeric&         f_low,
               const Numeric&         f_high,
               const String&          l_unit )
@@ -2605,32 +2881,32 @@ void kTemp (
           const Vector&                      n2_abs,
           const Vector&                      h2o_abs,
           const Matrix&                      vmrs,
-          const Matrix&                      abs0,
+	  const Matrix&                      abs0,
           const ArrayOfArrayOfLineRecord&    lines_per_tg,
           const ArrayOfLineshapeSpec&        lineshape,
           const Vector&                      e_ground,
           const Index&                       emission,
           const Vector&                      k_grid,
           const ArrayOfString&               cont_description_names,
-          const ArrayOfVector&               cont_description_parameters,
+          const ArrayOfVector& 	             cont_description_parameters,
           const ArrayOfString&               cont_description_models,
           const Los&                         los,           
           const ArrayOfMatrix&               absloswfs,
           const ArrayOfMatrix&               trans,
-          const Numeric&                     z_plat,
-          const Vector&                      za,
-          const Numeric&                     l_step,
-          const Vector&                      z_abs,
-          const Index&                       refr,
-          const Index&                       refr_lfac,
-          const Vector&                      refr_index,
+    	  const Numeric&    		     z_plat,
+    	  const Vector&     		     za,
+    	  const Numeric&    		     l_step,
+    	  const Vector&     		     z_abs,
+    	  const Index&        		     refr,
+    	  const Index&        		     refr_lfac,
+    	  const Vector&     		     refr_index,
           const String&                      refr_model,
-          const Numeric&                     z_ground,
+    	  const Numeric&    		     z_ground,
           const Numeric&                     t_ground,
-          const Vector&                      y_space,
-          const Numeric&                     r_geoid,
-          const Vector&                      hse,
-          // Keywords
+    	  const Vector&     		     y_space,
+    	  const Numeric&    		     r_geoid,
+          const Vector&     		     hse,
+	  // Keywords
           const Index&                       kw_hse,
           const Index&                       kw_fast )
 {
@@ -2750,7 +3026,7 @@ void kTemp (
     Los    los;
     Vector z_tan;
     losCalc( los, z_tan, z_plat, za, l_step, p_abs, z0, refr, refr_lfac, 
-                                               refr_index, z_ground, r_geoid );
+					       refr_index, z_ground, r_geoid );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from sourceCalc: -----\n";
     ArrayOfMatrix source, trans;
@@ -2761,7 +3037,7 @@ void kTemp (
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from yRte: -----------\n";
     yCalc( y0, emission, los, f_mono, y_space, source, trans, 
-                                                          e_ground, t_ground );
+							  e_ground, t_ground );
     out2 << "  -------------------------------------\n";
   
     // Allocate K and fill aux. variables
@@ -2795,16 +3071,16 @@ void kTemp (
       // Create absorption matrix and temperature profile corresponding to 
       // temperature disturbance
       grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
-                                                                   lgrid, ip );
+								   lgrid, ip );
       i1 = Index( is(ip,0) );    // first p_abs point to consider
 
-      abs = abs0;       
-      t   = t_abs;      
+      abs = abs0;	
+      t   = t_abs;	
       for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
       {
-        t[iw] += w[iw-i1];
-        for ( iv=0; iv<nv; iv++ )
-          abs(iv,iw) = (1-w[iw-i1])*abs0(iv,iw) + w[iw-i1]*abs1k(iv,iw);
+	t[iw] += w[iw-i1];
+	for ( iv=0; iv<nv; iv++ )
+	  abs(iv,iw) = (1-w[iw-i1])*abs0(iv,iw) + w[iw-i1]*abs1k(iv,iw);
       }
   
       out2 << "  ----- Doing new refractive index ----\n";
@@ -2814,7 +3090,7 @@ void kTemp (
       hseCalc( z4t, p_abs, t, h2o_abs, r_geoid,  hse );
       out2 << "  ----- Messages from losCalc: --------\n";
       losCalc( los, z_tan, z_plat, za, l_step, p_abs, z4t, refr, refr_lfac, 
-                                               refr_index, z_ground, r_geoid );
+					       refr_index, z_ground, r_geoid );
       out2 << "  -------------------------------------\n";
       out2 << "  ----- Messages from sourceCalc: -----\n";
       ArrayOfMatrix source, trans;
@@ -2825,12 +3101,12 @@ void kTemp (
       out2 << "  -------------------------------------\n";
       out2 << "  ----- Messages from yRte: -----------\n";
       yCalc( y, emission, los, f_mono, y_space, source, trans, 
-                                                          e_ground, t_ground );
+							  e_ground, t_ground );
       out2 << "  -------------------------------------\n";
   
       // Fill K
       for ( iv=0; iv<nza*nv; iv++ )
-        k(iv,ip) = y[iv] - y0[iv];
+	k(iv,ip) = y[iv] - y0[iv];
     }
   }
 
@@ -2853,7 +3129,7 @@ void kTemp (
   
     // Calculate reference z_abs with a high number of iterations
     hse_local[4] = 5;
-    z0 = z_abs; 
+    z0 = z_abs;	
     hseCalc( z0, p_abs, t_abs, h2o_abs, r_geoid,  hse_local );
     hse_local[4] = hse[4];
   
@@ -2863,7 +3139,7 @@ void kTemp (
     Los    los;
     Vector z_tan;
     losCalc( los, z_tan, z_plat, za, l_step, p_abs, z0, refr, refr_lfac, 
-                                               refr_index, z_ground, r_geoid );
+	        			       refr_index, z_ground, r_geoid );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from sourceCalc: -----\n";
     ArrayOfMatrix source, trans;
@@ -2874,7 +3150,7 @@ void kTemp (
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from yRte: -----------\n";
     yCalc( y0, emission, los, f_mono, y_space, source, trans, 
-                                                          e_ground, t_ground );
+							  e_ground, t_ground );
     out2 << "  -------------------------------------\n";
   
     // Allocate K and fill aux. variables
@@ -2909,17 +3185,17 @@ void kTemp (
   
       // Create disturbed temperature profile
       grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
-                                                                   lgrid, ip );
+								   lgrid, ip );
       i1 = Index( is(ip,0) );    // first p_abs point to consider
 
-      t = t_abs;        
+      t = t_abs;	
       for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
-        t[iw] += w[iw-i1];
+	t[iw] += w[iw-i1];
   
       out2 << "  ----- Messages from absCalc: --------\n";
       absCalc( abs, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
-                    lines_per_tg, lineshape, cont_description_names, 
-                         cont_description_models, cont_description_parameters);
+	            lines_per_tg, lineshape, cont_description_names, 
+       	                 cont_description_models, cont_description_parameters);
       out2 << "  ----- Doing new refractive index ----\n";
       refrCalc ( refr4t, p_abs, t, h2o_abs, refr, refr_model );
       out2 << "  ----- Doing new hydrostatic eq. -----\n";
@@ -2927,7 +3203,7 @@ void kTemp (
       hseCalc( z4t, p_abs, t, h2o_abs, r_geoid,  hse );
       out2 << "  ----- Messages from losCalc: --------\n";
       losCalc( los, z_tan, z_plat, za, l_step, p_abs, z4t, refr, refr_lfac, 
-                                                   refr4t, z_ground, r_geoid );
+					           refr4t, z_ground, r_geoid );
       out2 << "  -------------------------------------\n";
       out2 << "  ----- Messages from sourceCalc: -----\n";
       ArrayOfMatrix source, trans;
@@ -2938,12 +3214,12 @@ void kTemp (
       out2 << "  -------------------------------------\n";
       out2 << "  ----- Messages from yRte: -----------\n";
       yCalc( y, emission, los, f_mono, y_space, source, trans, 
-                                                          e_ground, t_ground );
+							  e_ground, t_ground );
       out2 << "  -------------------------------------\n";
   
       // Fill K
       for ( iv=0; iv<nza*nv; iv++ )
-        k(iv,ip) = y[iv] - y0[iv];
+	k(iv,ip) = y[iv] - y0[iv];
     }
   }
 }
@@ -2972,13 +3248,13 @@ void kFrequencyOffSet (
           const Vector&                      e_ground,
           const Index&                       emission,
           const ArrayOfString&               cont_description_names,
-          const ArrayOfVector&               cont_description_parameters,
+          const ArrayOfVector& 	             cont_description_parameters,
           const ArrayOfString&               cont_description_models,
           const Los&                         los,           
           const Numeric&                     t_ground,
-          const Vector&                      y_space,
-          const Vector&                      y,
-          // Keywords
+    	  const Vector&     		     y_space,
+    	  const Vector&     		     y,
+	  // Keywords
           const Numeric&                     delta,
           const String&                      f_unit )
 {
@@ -3035,8 +3311,8 @@ void kFrequencyOffSet (
   ArrayOfMatrix  abs_dummy;
   out2 << "  ----- Messages from absCalc: --------\n";
   absCalc( abs, abs_dummy, tgs, f_dist, p_abs, t_abs, n2_abs, h2o_abs, vmrs, 
-                    lines_per_tg, lineshape, cont_description_names, 
-                         cont_description_models, cont_description_parameters);
+	            lines_per_tg, lineshape, cont_description_names, 
+       	                 cont_description_models, cont_description_parameters);
   ArrayOfMatrix source, trans;
   out2 << "  ----- Messages from sourceCalc: -----\n";
   sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
@@ -3061,7 +3337,7 @@ void kFrequencyOffSet (
   k_names.resize( 1 );
   k_names[0] = "Frequency: off-set";
   k_aux.resize( 1, 2 );
-  k_aux = 0.0;                  // Matpack can set all elements like this.
+  k_aux = 0.0;			// Matpack can set all elements like this.
 }
 
 
@@ -3089,7 +3365,7 @@ void kPointingOffSet(
               const Numeric&         z_ground,
               const Numeric&         r_geoid,
               const Matrix&          abs,
-              const Index&           emission,
+  	      const Index&           emission,
               const Vector&          y_space,
               const Vector&          e_ground,
               const Numeric&         t_ground,
@@ -3110,11 +3386,11 @@ void kPointingOffSet(
 
   // Create new zenith angle grid
   //  const Index  nza = za_pencil.nelem();
-  Vector za_new( za_pencil );   // Matpack can initialize a
-                                // new Vector from another
-                                // Vector.
-  za_new += delta;              // With Matpack you can add delta to all
-                                // Vector elements like this.
+  Vector za_new( za_pencil );	// Matpack can initialize a
+				// new Vector from another
+				// Vector.
+  za_new += delta;		// With Matpack you can add delta to all
+				// Vector elements like this.
 
   out2 << "  ----- Messages from losCalc: --------\n";
   Los    los;
@@ -3144,7 +3420,7 @@ void kPointingOffSet(
   // k = (y_new - y) / delta
   for( Index ii=0; ii<nv; ii++ )
     { k(ii,0) = ( y_new[ii] - y[ii] ) / delta; }
-  //k = y_new;                  
+  //k = y_new;			
   //k -= y;
   //k /= delta;
 
@@ -3168,7 +3444,7 @@ void kEground(
                     Matrix&          k_aux,
               const Vector&          za_pencil,
               const Vector&          f_mono,
-              const Index&           emission,
+  	      const Index&           emission,
               const Vector&          y_space,
               const Vector&          e_ground,
               const Numeric&         t_ground,
@@ -3194,7 +3470,7 @@ void kEground(
       throw runtime_error(
            "The number of zenith angles of *los* and *source* are different.");
     check_length_nrow( f_mono, "f_mono", source[0], 
-                                            "the source matrices (in source)");
+  				            "the source matrices (in source)");
   }
   //
   if ( any_ground(los.ground) )  
@@ -3323,7 +3599,7 @@ void kCalibration(
               const Vector&          y,
               const Vector&          f_mono,
               const Vector&          y0,
-              const String&          name )
+       	      const String&          name )
 {
   check_lengths( f_mono, "f_mono", y0, "y0" );
 
@@ -3346,7 +3622,7 @@ void kCalibration(
   k_names.resize( 1 );
   k_names[0] = "Calibration: scaling";
   k_aux.resize( 1, 2 );
-  k_aux = 0.0;          
+  k_aux = 0.0;		
 }
 
 
@@ -3435,10 +3711,10 @@ void kbInit (
    \date   2000-?-?
 */
 void kxAppend (
-                    Matrix&          kx,
-                    ArrayOfString&   kx_names,
-                    ArrayOfIndex&    kx_lengths,
-                    Matrix&          kx_aux,
+		    Matrix&          kx,
+		    ArrayOfString&   kx_names,
+		    ArrayOfIndex&    kx_lengths,
+		    Matrix&          kx_aux,
               const Matrix&          k,
               const ArrayOfString&   k_names,
               const Matrix&          k_aux )
@@ -3455,10 +3731,10 @@ void kxAppend (
    \date   2000-?-?
 */
 void kbAppend (
-                    Matrix&          kb,
-                    ArrayOfString&   kb_names,
-                    ArrayOfIndex&    kb_lengths,
-                    Matrix&          kb_aux,
+		    Matrix&          kb,
+		    ArrayOfString&   kb_names,
+		    ArrayOfIndex&    kb_lengths,
+		    Matrix&          kb_aux,
               const Matrix&          k,
               const ArrayOfString&   k_names,
               const Matrix&          k_aux )
@@ -3530,10 +3806,10 @@ void kbAllocate (
    \date   2001-01-21
 */
 void kxPutInK (
-                    Matrix&          kx,
-                    ArrayOfString&   kx_names,
-                    ArrayOfIndex&    kx_lengths,
-                    Matrix&          kx_aux,
+		    Matrix&          kx,
+		    ArrayOfString&   kx_names,
+		    ArrayOfIndex&    kx_lengths,
+		    Matrix&          kx_aux,
               const Matrix&          k,
               const ArrayOfString&   k_names,
               const Matrix&          k_aux )
@@ -3597,10 +3873,10 @@ void kxPutInK (
    \date   2001-01-21
 */
 void kbPutInK (
-                    Matrix&          kb,
-                    ArrayOfString&   kb_names,
-                    ArrayOfIndex&    kb_lengths,
-                    Matrix&          kb_aux,
+		    Matrix&          kb,
+		    ArrayOfString&   kb_names,
+		    ArrayOfIndex&    kb_lengths,
+		    Matrix&          kb_aux,
               const Matrix&          k,
               const ArrayOfString&   k_names,
               const Matrix&          k_aux )
