@@ -872,6 +872,8 @@ class Array;
 /** An array of Tensor6. */
 typedef Array<Tensor6> ArrayOfTensor6;
 
+typedef Array<ArrayOfTensor6> ArrayOfArrayOfTensor6;
+
 
 
 // Functions for Iterator6D

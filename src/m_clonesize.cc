@@ -259,6 +259,18 @@ void CloneSize(// WS Generic Output:
   out2 << "  Created an Array of empty Tensor3.\n";
 }
 
+void CloneSize(// WS Generic Output:
+               ArrayOfArrayOfTensor3& out,
+               // WS Generic Output Names:
+               const String& outname,
+               // WS Generic Input:
+               const ArrayOfArrayOfTensor3& in,
+               // WS Generic Input Names:
+               const String& inname)
+{
+  out.resize( in.nelem() );
+  out2 << "  Created an Array of Arrays of empty Tensor3.\n";
+}
 
 void CloneSize(// WS Generic Output:
                ArrayOfTensor6& out,
@@ -271,6 +283,19 @@ void CloneSize(// WS Generic Output:
 {
   out.resize( in.nelem() );
   out2 << "  Created an Array of empty Tensor6.\n";
+}
+
+void CloneSize(// WS Generic Output:
+               ArrayOfArrayOfTensor6& out,
+               // WS Generic Output Names:
+               const String& outname,
+               // WS Generic Input:
+               const ArrayOfArrayOfTensor6& in,
+               // WS Generic Input Names:
+               const String& inname)
+{
+  out.resize( in.nelem() );
+  out2 << "  Created an Array of Arrays of empty Tensor6.\n";
 }
 
 

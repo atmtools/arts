@@ -1219,7 +1219,8 @@ void define_md_data_raw()
          "density field from a data base. \n"
          "\n"
          "The method allows the user to chose particle types and particle \n"
-         "number density fields. \n"
+         "number density fields. The methods reads from the chosen files \n"
+         "and appends the variables *amp_mat_raw* and *pnd_field_raw*. \n"
          "There is one database for particle number density fields ( ....),\n"
          "which includes the following particle types:\n"
          "\n"
@@ -1231,20 +1232,17 @@ void define_md_data_raw()
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS("particle_types"),
-	TYPES(Array_String_t)));
+	KEYWORDS("filename_amp_mat", "filename_pnd_field"),
+	TYPES(String_t, String_t)));
 
    md_data_raw.push_back
     ( MdRecord
       ( NAME( "ParticleTypeInit" ),
 	DESCRIPTION
         (
-         "This method initializes variables containing information about\n"
-         "the particles.\n"
-         "\n"
-         "Keyword to this method is an Index (*npt*) for the number of \n"
-         "considered particle types. The varibles *amp_mat_raw* and \n"
-         "*pnd_field_raw* are initialized according to *npt*.\n"
+         "This method initializes variables containing data about the \n"
+         "optical properties of particles (*amp_mat_raw*) and about the \n"
+         "particle number distribution (*pnd_field_raw*)\n"
          "\n"
          "*ParticleTypeInit* has to be executed before executing \n"
          "*ParticleTypeAdd*.\n"
@@ -1253,8 +1251,8 @@ void define_md_data_raw()
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS("npt"),
-	TYPES(Index_t)));
+	KEYWORDS(), 
+	TYPES())); 
 
     md_data_raw.push_back
     ( MdRecord

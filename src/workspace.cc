@@ -33,6 +33,7 @@
 #include "arts.h"
 #include "matpackI.h"
 #include "matpackIII.h"
+#include "matpackVI.h"
 #include "array.h"
 #include "auto_wsv_groups.h"
 #include "wsv_aux.h"
@@ -244,9 +245,9 @@ void define_wsv_data()
        "It depends on the frequency, the particle type, the propagation \n"
        "direction and the scattered direction.\n"
        "\n"
-       "*amp_mat_raw* is an Array of Tensor6. It contains one gridded \n"
-       "Tensor6 for each particle type. A gridded Tensor6 is a special \n"
-       "type of ArrayOfTensor6 which contains the data and also the grids.\n"
+       "*amp_mat_raw* is an Array of Array of Tensor6. It contains one \n"
+       "gridded field for each particle type which contains the data and \n"
+       "also the grids on which the data is stored.\n"
        "For the calculation the data is \n"
        "interpolated on *f_grid*, *scat_za_grid*, *scat_aa_grid*,\n"
        "*scat_za_grid* and *scat_aa_grid*. \n"
@@ -258,7 +259,8 @@ void define_wsv_data()
        "\n"
        "Unit: m \n"
        "\n"
-       "Size: Array[N_pt * 7] \n "
+       "Size: Array[N_pt] \n" 
+       "      Array[7] \n "
        "      [N_f, 1, 1, 1, 1, 1] \n"
        "      [1, N_za, 1, 1, 1, 1] \n"
        "      [1, 1, N_aa, 1, 1, 1] \n"
@@ -266,7 +268,7 @@ void define_wsv_data()
        "      [N_f, N_za, N_aa, N_za, N_aa, 8] \n"
        "\n"
        ),
-      GROUP(ArrayOfTensor6_ )));
+      GROUP(ArrayOfArrayOfTensor6_ )));
 
   
   wsv_data.push_back
@@ -1152,9 +1154,9 @@ void define_wsv_data()
        "This variable contains the particle number densities for all \n"
        "chosen particle types. It includes the grids corresponding to the \n"
        "grids in the database. \n"
-       "*pnd_field_raw* is an Array of Tensor3. It contains one gridded \n"
-       "Tensor3 for each particle type. A gridded Tensor3 is a special \n"
-       "type of ArrayOfTensor3 which contains the data and also the grids.\n"
+       "*pnd_field_raw* is an Array of Array of Tensor3. It contains one \n"
+       "gridded field for each particle type which contains the data and \n"
+       "also the grids.\n"
        "For the calculation the data is \n"
        "interpolated on *p_grid*, *lat_grid* and *lon_grid*\n"  
        "\n"
@@ -1162,14 +1164,15 @@ void define_wsv_data()
        "\n"
        "Unit:        m^-3\n"
        "\n"
-       "Size:  Array[N_pt*4] \n "
+       "Size:  Array[N_pt]\n"
+       "       Array[4] \n "
        "       [N_p, 1, 1] \n"
        "       [1, N_lat, 1] \n"
        "       [1, 1, N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        "\n"
        ),
-      GROUP( ArrayOfTensor3_ )));
+      GROUP( ArrayOfArrayOfTensor3_ )));
 
   wsv_data.push_back
    (WsvRecord

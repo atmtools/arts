@@ -1,3 +1,18 @@
+2002-07-01  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-177
+
+	* src/m_cloudbox.cc (ParticleTypeAdd), (ParticleTypeInit): Modified
+	the methods. Now, it is avoided to copy tensors so that the
+	methods are more efficient.
+
+	* src/workspace.cc: Modified entries for the methods above.
+		
+	* src/groups.cc, m_clonesize.cc, matpackIII.h, matpackVI.h,
+	xml_io.cc,groups.cc: Included ArrayOfArrayOfTensor3 and
+	ArrayOfArrayOfTensor6 everywhere. These datatypes are needed to be
+	able to use the gridded fields efficiently.
+
 2002-06-29  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-176

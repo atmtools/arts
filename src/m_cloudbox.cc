@@ -193,27 +193,19 @@ void CloudboxSetManually(
 
 //! Initialize variables containing information about the particles.
 /*! 
-  Keyword to this method is an Index (*npt*) for the number of particle types
-  which are considered. The varibles *amp_mat_raw* and *pnd_field_raw* are 
-  initialized according to *npt*. 
-  *ParticleTypeInit* has to be executed before executing *ParticleTypeAdd*.
-  
+ 
   WS Output:
   \param amp_mat_raw    Amplitude matrix data.
   \param pnd_field_raw  Particle number density field data.
 
-  Keyword:
-  \param npt            Number of particle types.
- */
+*/
 void ParticleTypeInit( //WS Output:
-                      ArrayOfTensor6& amp_mat_raw,
-                      ArrayOfTensor3& pnd_field_raw,
-                      // Keyword:
-                      const Index& npt
+                      ArrayOfArrayOfTensor6& amp_mat_raw,
+                      ArrayOfArrayOfTensor3& pnd_field_raw
                       )
 {
-  amp_mat_raw.resize(npt*7);
-  pnd_field_raw.resize(npt*4);
+  amp_mat_raw.reserve(20);
+  pnd_field_raw.reserve(20); 
 }
 
 
@@ -229,47 +221,29 @@ void ParticleTypeInit( //WS Output:
   
   \param amp_mat_raw Amplitude matrix data.
   \param pnd_field_raw Particle number density field data.
-  \param particle_types String defining the particle types.
+  \param amp_mat_file Filename for amplitude matrix data.
+  \param pnd_field_file Filename for pnd field data.
 */
 void ParticleTypeAdd( //WS Output:
-                 ArrayOfTensor6& amp_mat_raw,
-                 ArrayOfTensor3& pnd_field_raw,
+                 ArrayOfArrayOfTensor6& amp_mat_raw,
+                 ArrayOfArrayOfTensor3& pnd_field_raw,
                  // Keyword:
-                 const ArrayOfString& particle_types)
+                 const String& amp_mat_file,
+                 const String& pnd_field_file)
 {
 
-  // Number of particle types.
-  Index npt = particle_types.nelem(); 
-
-  ArrayOfTensor6 amp_mat_raw_i;
-  ArrayOfTensor3 pnd_field_raw_i;
-
-  // Loop over the particle types:
-   for (Index i=0; i<npt; i++)
-     {  
-      // Constructing file name for the amplitude matrix:
-       ArrayOfString part_types_ampmat(npt);
-       part_types_ampmat[i] = particle_types[i] + "_ampmat.xml";
-       
-       // Construncting file name for the pnd field:
-       ArrayOfString part_types_pnd(npt);
-       part_types_pnd[i] =  particle_types[i] + "_pnd.xml";
+  // Append *amp_mat_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
+  ArrayOfTensor6 amp_mat_data;
+  amp_mat_raw.push_back(amp_mat_data);
+  
+  //ArrayOfTensor3 pnd_field_data;
+  //pnd_field_raw.push_back(pnd_field_data);
     
-       // Read amplitude matrix data:
-       out2 << "Read amplitude matrix_data\n";
-       read_gridded_tensor6( part_types_ampmat[i], amp_mat_raw_i);
-       //read_gridded_tensor3 (part_types_pnd[i], pnd_field_raw_i);
+  // Read amplitude matrix data:
+  out2 << "Read amplitude matrix_data\n";
+  read_gridded_tensor6( amp_mat_file, amp_mat_raw[amp_mat_raw.nelem()-1]);
+  //read_gridded_tensor3 (pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1]);
        
-       // Put the gridded tensors for each particle type in *amp_mat_raw*.
-       for(Index k=0; k<7; k++)
-         amp_mat_raw[7*i+k] = amp_mat_raw_i[k];
-        
-       
-       //  Put the gridded tensors for each particle type in *amp_mat_raw*.
-       //for(Index k=0; k<4; k++)
-       //  pnd_field_raw[3*i+k] = pnd_field_raw_i[k];
-           
-     }          
 }
 
  

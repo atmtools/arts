@@ -275,7 +275,7 @@ class Array;
 /** An array of Tensor3. */
 typedef Array<Tensor3> ArrayOfTensor3;
 
-
+typedef Array<ArrayOfTensor3> ArrayOfArrayOfTensor3;
 
 // Functions for Iterator3D
 // ------------------------
