@@ -113,7 +113,7 @@ The overline denotes the time average
 %Since the time average of
 which for cosine squares is 1/2, thus:
 \begin{equation}
-  \label{eq:polarization:intensity}
+  \label{eq:polarization:intensity2}
  F = 
   \half\sqrt{\frac{\epsilon}{\mu}}(
     a_v^2 + a_h^2)  
@@ -202,12 +202,12 @@ it should have the following form
 Here $\beta$ must be between $-45\degree$ and $45\degree$: the tip of
 the vector $\VctStl{\tilde{E}}$ describes a circle for $\beta = \pm
 45\degree$ (circular polarization), oscillates along the $h$-axis for
-$\beta = 0$ (linear polarization) and else describes an ellipse. The
-sense of rotation is counterclockwise for positive and clockwise for
-negative $\beta$. Since $|\tan\beta|$ is the ratio of the semi-minor
-and semi-major axes of the ellipse (the ellipticity), $\beta$ is
-called the ellipticity angle.
-
+$\beta = 0$ (linear polarization) and else describes an ellipse (cf.
+Figure~\ref{fig:polarization:ellipse_aligned}). The sense of rotation
+is counterclockwise for positive and clockwise for negative $\beta$.
+Since $|\tan\beta|$ is the ratio of the semi-minor and semi-major axes
+of the ellipse (the ellipticity), $\beta$ is called the ellipticity
+angle.
 \begin{figure}[!h]
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
@@ -222,12 +222,12 @@ called the ellipticity angle.
   \end{minipage}
  \end{center}
 \end{figure}   
-
-Note that the semi-major axis is oriented along the positive $h$-axis.  To
-have the major axis of the ellipse enclose an arbitrary angle $\zeta$
-($0 \leq \zeta < 180\degree$) with the $h$-axis, we apply a rotation
-matrix and get the equation for an ellipse with arbitrary shape
-(ellipticity) and orientation:
+Note that the semi-major axis is oriented along the positive $h$-axis.
+To have the major axis of the ellipse enclose an arbitrary angle
+$\zeta$ ($0 \leq \zeta < 180\degree$) with the $h$-axis, we apply a
+rotation matrix and get the equation for an ellipse with arbitrary
+shape (ellipticity) and orientation (cf.\
+Figure~\ref{fig:polarization:ellipse_arbitrary}):
 \begin{eqnarray}
   \label{eq:polarization:ellipse_rotated1}
  \tilde{E}_v (t) &=&  a_0(  \sin\beta \cos(\omega t) \cos\zeta
@@ -236,8 +236,7 @@ matrix and get the equation for an ellipse with arbitrary shape
  \tilde{E}_h (t) &=&  a_0( -\sin\beta \cos(\omega t) \sin\zeta
                            +\cos\beta \sin(\omega t) \cos\zeta )
 \end{eqnarray}
-
-
+%
 \begin{figure}[!h]
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
@@ -248,7 +247,7 @@ matrix and get the equation for an ellipse with arbitrary shape
   \begin{minipage}[c]{0.9\textwidth}
    \caption{The ellipse that the electric field vector describes with
      time, with the major axis oriented arbitrarily.}
-   \label{fig:polarizaion:ellipse_arbitrary}
+   \label{fig:polarization:ellipse_arbitrary}
   \end{minipage}
  \end{center}
 \end{figure}   
@@ -390,7 +389,7 @@ where
 \begin{eqnarray}
   \label{eq:polarization:Iv}
   I_v &=& E_v E_v^\ast\\
-  \label{eq:polarization:Iv}
+  \label{eq:polarization:Ih}
   I_h &=& E_h E_h^\ast
 \end{eqnarray}
   
@@ -412,11 +411,11 @@ oscillatory term:
 
 Now we want to write \VctStl{E} by two components along polarization axes at
 $\pm 45\degree$ with respect to the $h$-axes. The basis vectors are
-thus
+thus (cf.\ Figure~\ref{fig:polarization:e45})
 \begin{eqnarray}
   \label{eq:polarization:e_p45}
   \ePls &=& \sqrt{\half} \left( \eHor - \eVrt \right) \\
-  \label{eq:polarization:e_p45}
+  \label{eq:polarization:e_m45}
   \eMin &=& \sqrt{\half} \left( \eHor + \eVrt \right) 
 \end{eqnarray}
 and we get the field vector in this modified linear basis:
@@ -430,7 +429,20 @@ and we get the field vector in this modified linear basis:
                \ePls 
 \end{equation}
 %
-FIXME: Image showing \eVrt, \eHor, \ePls, \eMin.
+\begin{figure}[!h]
+ \begin{center}
+  \begin{minipage}[c]{0.9\textwidth}
+   \begin{center}
+    \includegraphics*[width=0.4\hsize]{Figs/pol_e45}
+   \end{center}
+  \end{minipage}
+  \begin{minipage}[c]{0.9\textwidth}
+   \caption{Two sets of basis vectors for the linear basis.}
+   \label{fig:polarization:e45}
+  \end{minipage}
+ \end{center}
+\end{figure}   
+%FIXME: Image showing \eVrt, \eHor, \ePls, \eMin.
 
 %
 With the definitions of intensities of the components,
