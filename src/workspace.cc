@@ -393,6 +393,60 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "a_pressure" ),
+      DESCRIPTION
+      (
+       "A pressure.\n"
+       "\n"
+       "This scalar variable can hold the local pressure. It is intended\n"
+       "mainly for communication with various methods and agendas, such as\n"
+       "methods and agendas calculating absorption coefficients.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ Pa ]"
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "a_temperature" ),
+      DESCRIPTION
+      (
+       "A temperature.\n"
+       "\n"
+       "This scalar variable can hold the local temperature. It is intended\n"
+       "mainly for communication with various methods and agendas, such as\n"
+       "methods and agendas calculating absorption coefficients.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ K ]"
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "a_vmr_list" ),
+      DESCRIPTION
+      (
+       "A list of VMR values for all gas species.\n"
+       "\n"
+       "This vector variable can hold the local VMR value for all used species\n"
+       "(as given by *gas_species*). It is intended mainly for communication with\n"
+       "various methods and agendas, such as methods and agendas calculating\n"
+       "absorption coefficients.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ Absolute value ]\n"
+       "\n"
+       "Size:  Should match gas_species.nelem()"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "cloudbox_on" ),
       DESCRIPTION
       (
@@ -625,14 +679,14 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "gas_tgs" ),
+     ( NAME( "gas_species" ),
        DESCRIPTION
        (
 	"Tag groups for scalar gas absorption.\n"
 	"\n"
 	"This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
 	"available tag groups for the calculation of scalar gas absorption\n"
-	"coefficients.  See online documentation of method *gas_tgsDefine* for\n"
+	"coefficients.  See online documentation of method *gas_speciesDefine* for\n"
 	"more detailed information how tag groups work and some examples."
 	), 
        GROUP( ArrayOfArrayOfSpeciesTag_ )));
