@@ -1,5 +1,18 @@
 2004-09-13  Oliver Lemke  <olemke@linux.net>
 
+	* arts-1-1-865
+
+	* src/file.{cc,h}:
+
+	Removed unimplemented function prototypes binfile_*.
+
+	Removed obsolete string io and matrix/vector io routines.
+
+	Only functions needed by the parser and for the writing of the report
+	files are left.
+
+2004-09-13  Oliver Lemke  <olemke@linux.net>
+
 	* arts-1-1-864
 
 	* src/main.cc (main): Remove HDF info in --version output.
