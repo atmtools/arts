@@ -88,23 +88,142 @@ void define_agenda_data()
 
  agenda_data.push_back
     (AgRecord
-     ( NAME( "convergence_test_agenda" ),
+     ( NAME( "doit_conv_test_agenda" ),
        DESCRIPTION
        (
         "Compute the convergence test.\n"
         "\n"
-        "The method *i_fieldIterate* solves the RTE including all Stokes \n"
-        "components as well as scattering iterativly. This method requires \n"
+        "The method *scat_i_fieldIterate* solves the VRTE iteratively."
+        "This method requires \n"
         "a convergence test. The user can choose different convergence tests\n"
-        "which have to be defined in this agenda.\n"
+        "which are to be defined in this agenda.\n"
         "\n"
         "Possible workspace methods are:\n"
-        "*convergence_flagAbs*: Calculates the absolute differences, for \n"
-        "                       each Stokes component separately.\n"
+        "*doit_conv_flagAbs*: Calculates the absolute differences \n"
+        "  for each Stokes component separately.\n"
+        "*doit_conv_flagAbs_BT*: Same as above, but the convergence limit\n"
+        "  can be specified in Kelvin BT (Rayleigh Jeans).\n"
+        "*doit_conv_flagLsq*: Least square convergence test. Not recommended\n"
+        "  because result can be inaccurate.\n"
+        "\n"
         ),
-       OUTPUT( convergence_flag_ ),
-       INPUT(  i_field_,
-               i_field_old_)));
+       OUTPUT( doit_conv_flag_ ),
+       INPUT(  doit_i_field_,
+               doit_i_field_old_)));
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "doit_grid_optimization_agenda" ),
+       DESCRIPTION
+       (
+        "Grid optimization for DOIT calculations. \n"
+        "\n"
+        "Main WSM: *doit_za_gridOptimize*: \n"
+        "This requires as an input the radiation field computed on a very\n"
+        "fine grid which can be obtained by \n"
+        "      (a) *CloudboxGetIncoming* and *ScatteringMain* or\n "
+        "      (b) by reading a precalculated file \n"
+        "\n"
+        ),
+       OUTPUT(doit_za_grid_opt_, doit_i_field_ ),
+       INPUT(doit_za_interp_)));
+ 
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "doit_scat_field_agenda" ),
+       DESCRIPTION
+       (
+        "Calculation of the scattering integral field (DOIT). \n"
+        "\n"
+        "This agenda is called repeatedly in each DOIT iteration.\n"
+        "The following methods can be used for calculating the \n"
+        "scattering integral field: \n"
+        "\n"
+        "*doit_scat_fieldCalc*: This method calculates the scattering \n"
+        "  integral field by using the angular grids *scat_za_grid* \n"
+        "  and *scat_aa_grid*, which are also used in the update of the \n"
+        "  radiation field (*doit_rte_agenda*).\n"
+        "\n"
+        "*doit_scat_fieldCalcLimb*: This method calculates the scattering \n"
+        "  integral field.  The difference to the previous method is that \n"
+        "  the data is interpolated on equidistant angular grids. \n"
+        "  Especially for limb, where a very fine zenith angle grid \n"
+        "  resolution is required for the RT transfer part, this method \n"
+        "  is much faster than *doit_scat_fieldCalc*. \n"
+        "\n"
+        ),
+        OUTPUT( doit_scat_field_ ),
+        INPUT(  doit_i_field_, pnd_field_, scat_za_grid_, scat_aa_grid_, 
+                cloudbox_limits_, pha_mat_spt_agenda_)));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "doit_mono_agenda" ),
+       DESCRIPTION
+       (
+       "Performs monochromatic DOIT calculation."
+       "\n"
+       "This agenda includes for example the following methods:\n"
+       "   1. *DoitInit* \n"
+       "   2. *DoitScatteringDataPrepare* \n"
+       "   3. *doit_i_fieldSetClearsky \n"
+       "   4. *doit_i_fieldIterate*\n"
+       "   5. *DoitCloudboxFieldPut*\n"
+       "\n"
+       "The result of the agenda is the radiation field inside the \n"
+       "cloudbox and on the cloudbox boundary, which can be used \n"
+       "as radiative background for a clearsky radiative transfer \n"
+       "calculation. \n"
+       "\n"
+       "See the ArtsWiki page *UsingArtsDoit* and the online documentation\n"
+       "for more information about\n"
+       "the methods.\n"
+       "\n"
+        ),
+       OUTPUT(doit_i_field_,scat_i_p_,scat_i_lat_, scat_i_lon_),
+       INPUT(scat_i_p_,
+             scat_i_lat_,
+             scat_i_lon_,
+             f_grid_,
+             f_index_,
+             scat_za_grid_,
+             scat_aa_grid_)));
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "doit_rte_agenda" ),
+       DESCRIPTION
+       (
+        "Radiative transfer calculations in cloudbox.\n"
+        "\n"
+        "Agenda for radiative transfer step calculations with \n"
+        "fixed scattering integral term shoul be specified here.\n"
+        "Output is the updated radiation field in the cloudbox. \n"
+        "This agenda is called repeatedly in each DOIT iteration.\n"
+        "\n"
+        "Normally one should use \n"
+        "*doit_i_fieldUpdateSeq{1,3}D*: Seqential update of the"
+        "radiation field.\n"
+        "   This method is the fastest and most accurate method.\n"
+        "\n"
+        "A very similar method in plane parallel approximation is \n"
+        "*doit_i_fieldUpdate{1,3}DPlaneParallel*: This method also \n"
+        "   incluldes the sequential update, and it is slightly faster than\n"
+        "   *doit_i_fieldUpdateSeq{1,3}D*. The drawback is, that it is less\n"
+        "   accurate, especially for limb geometries and for larger \n"
+        "   off-nadir viewing angles. \n"
+        "\n"
+        "The following methods were used before the sequential update\n"
+        "was invented. They are very slow and should therefore only \n"
+        "be used for test cases.\n"
+        "*doit_i_fieldUpdate{1,3}D*: Old function.\n"
+        "\n"
+        ),
+        OUTPUT( doit_i_field_),
+        INPUT(  scalar_gas_absorption_agenda_, spt_calc_agenda_,
+                opt_prop_part_agenda_, opt_prop_gas_agenda_,
+                ppath_step_agenda_)));
+ 
  
   agenda_data.push_back
     (AgRecord
@@ -394,7 +513,7 @@ void define_agenda_data()
         "\n"
         ),
        OUTPUT( pha_mat_spt_),
-       INPUT( pha_mat_spt_, za_grid_size_, scat_aa_grid_)));
+       INPUT( pha_mat_spt_, doit_za_grid_size_, scat_aa_grid_)));
        
 
   agenda_data.push_back
@@ -532,98 +651,7 @@ void define_agenda_data()
        INPUT(  f_index_,
                rte_pressure_, rte_temperature_, rte_vmr_list_ )));
   
- agenda_data.push_back
-    (AgRecord
-     ( NAME( "scat_grid_optimization_agenda" ),
-       DESCRIPTION
-       (
-        "Grid optimization for scattering caclualtions. \n"
-        "\n"
-        "Main WSM: *scat_za_gridOptimize*: \n"
-        "This requires as an input the radiation field computed on a very\n"
-        "fine grid which can be obtained by \n"
-        "      (a) *CloudboxGetIncoming* and *ScatteringMain* or\n "
-        "      (b) by reading a precalculated file \n"
-        "\n"
-        ),
-       OUTPUT(scat_za_grid_opt_, i_field_ ),
-       INPUT(scat_za_interp_)));
  
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "scat_field_agenda" ),
-       DESCRIPTION
-       (
-        "Calculation of the scattering integral. \n"
-        "\n"
-        "Different methods for calculating the scattering integral have been\n"
-        "implemented. Here you can define the method which should be taken \n"
-        "in your calculation. \n"
-        "\n"
-        ),
-        OUTPUT( scat_field_ ),
-        INPUT(  i_field_, pnd_field_, scat_za_grid_, scat_aa_grid_, 
-                cloudbox_limits_, pha_mat_spt_agenda_)));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "scat_mono_agenda" ),
-       DESCRIPTION
-       (
-       "Performs the monochromatic scattering calculation."
-       "\n"
-       "Normally this agenda consists of four methods: \n"
-       "   1. amp_matCalc\n"
-       "   1. i_fieldSetClearsky or i_fieldSetConst \n"
-       "   2. i_fieldIterate (Other solution methods might be implemented\n"
-       "      later.) \n"
-       "   3. scat_i_Put \n"
-       "\n"
-       "Output and Input:\n"
-       "   scat_i_p, scat_i_lat, scat_i_lon:  Intensity field on the \n"
-       "                                      cloudbox boundary. \n"
-       "\n"
-       "Input:\n"
-       "   f_grid:       Frequency grid. \n"
-       "   f_index: Frequency index for the ongoing scattering \n"
-       "                 calculation. \n"
-       "   scat_za_grid: Zenith angle grid. \n"
-       "   scat_aa_grid: Azimuthal angle grid. \n"
-       "   amp_mat_raw: Amplitude matrix raw data. \n"
-       ""
-        ),
-       OUTPUT(i_field_),
-       INPUT(scat_i_p_,
-             scat_i_lat_,
-             scat_i_lon_,
-             f_grid_,
-             f_index_,
-             scat_za_grid_,
-             scat_aa_grid_)));
-
- agenda_data.push_back
-    (AgRecord
-     ( NAME( "scat_rte_agenda" ),
-       DESCRIPTION
-       (
-        "Radiative transfer calculation in cloudbox. \n"
-        "\n"
-        "Different methods for the radiative transfer calculation are:\n"
-        "*i_fieldUpdate{1,3}D*: 'Normal' function for successive order of\n"
-        "                      scattering method. \n"
-        "*i_fieldUpdateSeq{1,3}D*: Seqential update of the radiation field. \n"
-        "                      This method is much faster than the 'normal'\n"
-        "                      method. \n"
-        "*i_fieldUpdate{1,3}DPlaneParallel*: The same method as \n"
-        "                      *i_fieldUpdateSeq*** but with plane- \n"
-        "                      parallel geometry. \n"
-        "\n"
-        ),
-        OUTPUT( i_field_),
-        INPUT(  scalar_gas_absorption_agenda_, spt_calc_agenda_,
-                opt_prop_part_agenda_, opt_prop_gas_agenda_,
-                ppath_step_agenda_)));
-
  agenda_data.push_back
     (AgRecord
      ( NAME( "spt_calc_agenda" ),

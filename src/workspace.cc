@@ -549,7 +549,7 @@ void define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "convergence_flag" ),
+    ( NAME( "doit_conv_flag" ),
       DESCRIPTION
       (
        "Flag for the convergence test.\n"
@@ -566,14 +566,182 @@ void define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "convergence_test_agenda" ),
+    ( NAME( "doit_conv_test_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc."
        ),
       GROUP( Agenda_ )));
 
-  wsv_data.push_back
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_grid_optimization_agenda" ),
+      DESCRIPTION
+       (
+        "See agendas.cc."
+        ),
+      GROUP(  Agenda_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_i_field" ), 
+      DESCRIPTION
+      (
+       "Radiation field.\n" 
+       "\n"
+       "This variable is used to store the intensity field inside the\n"
+       "cloudbox which is found by an iterative solution.\n"
+       "Refer to AUG for further information.\n"
+       "\n"
+       "Usage: Method output. \n"    
+       "\n"
+       "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
+       "\n"
+       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+       "        N_za, N_aa, N_i ]"
+       "\n"
+       ),
+       GROUP( Tensor6_ )));
+  
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_i_field_old" ),
+      DESCRIPTION
+      (
+       "Intensity field inside the cloudbox.\n"
+       "\n"
+       "This variable is used to store the intensity field inside the\n"
+       "cloudbox while performing the iteration. One has to store the\n"
+       "intensity field of the previos iteration to be able to do the \n"
+       "convergence test after each iteration.\n"
+       "Refer to AUG for more information.\n"
+       "\n"
+       "Usage: Method output. \n"    
+       "\n"
+       "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
+       "\n"
+       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+       "        N_za, N_aa, N_i ]"
+       ),
+      GROUP( Tensor6_ )));
+ 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_iteration_counter" ),
+      DESCRIPTION
+      (
+       "Counter for iterations.\n"
+       "\n"
+       "This variable holds the number of iterations which have been \n"
+       "while solving the VRTE with scattering (DOIT). \n"
+       "\n"
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_mono_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+ 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_rte_agenda" ),
+      DESCRIPTION
+      (
+       "See agendas.cc."
+       ),
+      GROUP( Agenda_ ))); 
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_scat_field_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ ))); 
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_scat_field" ),
+      DESCRIPTION
+      (
+       "Scattered field field inside the cloudbox.\n"
+       "\n"
+       "This variable holds the value of the scattering integral.\n"
+       "for all points inside the cloudbox. \n"
+       "For more information refer to AUG.\n"
+       "\n"
+       "Usage: Input to *doit_i_fieldUpdateXXX*. \n"    
+       "\n"
+       "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
+       "\n"
+       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+       "        N_za, N_aa, N_i ]"
+       ),
+      GROUP( Tensor6_ )));   
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_za_grid_opt" ),
+      DESCRIPTION
+       (
+        "Optimized zenith angle grid.\n"
+        "\n"
+        "Output of the method *DoitGridOptimization*. It is very \n"
+        "important to use optimized grids  for both, accuracy and speed of \n"
+        "scattering calculations.\n"
+        "\n"
+        "Usage:   Output of *DoitGridOptimization*   \n"
+        "\n"
+        "Unit:    degrees "
+        "\n"
+        ),
+      GROUP( Vector_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_za_grid_size" ),
+      DESCRIPTION
+      (
+       "This vector contains the discretisation of the zenith angle grid \n"
+       "for the scattering integral caluclation. \n"
+       "\n"
+       "The zenith angle grid is defined from 0 to 180.\n"
+       "za_grid_size is the number of points of the zenith angle grid and \n"
+       "\n"
+       "Usage: Output of *DoitAngularGridsSet*.\n"
+       "\n"
+       ),
+      GROUP( Index_ )));
+ 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "doit_za_interp" ),
+      DESCRIPTION
+      (
+       "Flag for interplation method in zenith angle dimension.\n"
+       " \n"
+       "0 - linear interpolation \n"
+       "1 - cubic interpolation \n"
+       "Default is linear interpolation. \n"
+       "\n"
+       "Usage: Set by user in *doit_za_interpSet*. \n"
+       " \n"
+       ),
+      GROUP( Index_ )));
+
+   wsv_data.push_back
    (WsvRecord
     ( NAME( "els" ),
       DESCRIPTION
@@ -827,41 +995,6 @@ wsv_data.push_back
       GROUP( Matrix_ )));
 
   wsv_data.push_back
-    (WsvRecord
-    ( NAME( "grid_stepsize" ),
-      DESCRIPTION
-      (
-       "This vector contains the stepsize of the grids for the scattering \n "
-       "integral caluclation. \n"
-       "\n"
-       "grid_stepsize[0] is the stepsize of the zenith angle grid and \n"
-       "grid_stepsize[1] is the stepsize of the azimuth angle grid \n"
-       "\n"
-       "If the value is equal to -1, there is no constant grid stepsize \n"
-       "\n"
-       "Usage: Output of *grid_sizeSet*. \n"
-       "\n"
-       ),
-      GROUP( Vector_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "iteration_counter" ),
-      DESCRIPTION
-      (
-       "Counter for iterations.\n"
-       "\n"
-       "This variable holds the number of iterations which have been \n"
-       "while solving the RTE with scattering. \n"
-       "It is used in the method *Tensor6WriteIteration* and has to be set \n"
-       "0 in the control file if this method is used.\n"
-       "\n"
-       "Usage: Set by user. \n"
-       "\n"
-       ),
-      GROUP( Index_ )));
-
-  wsv_data.push_back
    (WsvRecord
     ( NAME( "iy" ),
       DESCRIPTION
@@ -910,55 +1043,7 @@ wsv_data.push_back
         "See agendas.cc."
         ),
        GROUP(  Agenda_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "i_field" ), 
-       DESCRIPTION
-      (
-       "Radiation field.\n" 
-       "\n"
-       "This variable is used to store the intensity field inside the\n"
-       "cloudbox which is found by an iterative solution.\n"
-       "Refer to AUG for further information.\n"
-       "\n"
-       "Usage: Method output. \n"    
-       "\n"
-       "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
-       "\n"
-       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-       "        N_za, N_aa, N_i ]"
-       "\n"
-       ),
-       GROUP( Tensor6_ )));
   
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "i_field_old" ),
-      DESCRIPTION
-      (
-       "Intensity field inside the cloudbox.\n"
-       "\n"
-       "This variable is used to store the intensity field inside the\n"
-       "cloudbox while performing the iteration. One has to store the\n"
-       "intensity field of the previos iteration to be able to do the \n"
-       "convergence test after each iteration.\n"
-       "Refer to AUG for more information.\n"
-       "\n"
-       "Usage: Method output. \n"    
-       "\n"
-       "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
-       "\n"
-       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-       "        N_za, N_aa, N_i ]"
-       ),
-      GROUP( Tensor6_ )));
-
- 
   wsv_data.push_back
    (WsvRecord
     ( NAME( "i_space" ),
@@ -2197,40 +2282,7 @@ wsv_data.push_back
          "\n"
          ),
         GROUP( ArrayOfSingleScatteringData_ ))); 
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_field_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc."
-       ),
-      GROUP( Agenda_ ))); 
-
-
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_field" ),
-      DESCRIPTION
-      (
-       "Scattered field field inside the cloudbox.\n"
-       "\n"
-       "This variable holds the value of the scattering integral.\n"
-       "for all points inside the cloudbox. \n"
-       "For more information refer to AUG.\n"
-       "\n"
-       "Usage: Input to *i_fieldUpdateXXX*. \n"    
-       "\n"
-       "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
-       "\n"
-       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-       "        N_za, N_aa, N_i ]"
-       ),
-      GROUP( Tensor6_ )));   
-
- 
+   
  wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_i_lat" ),
@@ -2319,7 +2371,6 @@ wsv_data.push_back
        ),
       GROUP( Tensor7_ )));
 
-
  wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_lat_index" ),
@@ -2356,16 +2407,7 @@ wsv_data.push_back
        ),
      GROUP( Index_ ))); 
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_mono_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc."
-       ),
-      GROUP( Agenda_ )));
-
- wsv_data.push_back
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_p_index" ),
       DESCRIPTION
@@ -2382,68 +2424,28 @@ wsv_data.push_back
        "\n"
        ),
      GROUP( Index_ ))); 
- 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_rte_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc."
-       ),
-      GROUP( Agenda_ ))); 
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_za_grid" ),
-      DESCRIPTION
-      (
-       "Zenith angle grid.\n"
-       "\n"
-       "The zenith angle grid, on which the intensity field is stored. \n"
-       "This grid is used for RT calculations inside the cloudbox, therefore\n"
-       "he grid has to be defined\n"
-       "if the cloudbox is activated by the flag *cloudbox_on*.\n"
-       "The grid must be sorted in increasing order, with no repetitions.\n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage:      Set by the user.\n"
-       "\n"
-       "Unit:       degrees "
-       "\n"
-       ),
-      GROUP( Vector_ )));
-
-wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_za_grid_opt" ),
-      DESCRIPTION
-      (
-       "Optimized zenith angle grid.\n"
-       "\n"
-       "Output of the method *ScatteringGridOptimization*. It is very \n"
-       "important to use optimized grids  for both, accuracy and speed of \n"
-       "scattering calculations.\n"
-       "\n"
-       "Usage:   Output of *ScatteringGridOptimization*   \n"
-       "\n"
-       "Unit:    degrees "
-       "\n"
-       ),
-      GROUP( Vector_ )));
-
- wsv_data.push_back
-   (WsvRecord
-     ( NAME( "scat_grid_optimization_agenda" ),
+  
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "scat_za_grid" ),
        DESCRIPTION
        (
-        "See agendas.cc."
+        "Zenith angle grid.\n"
+        "\n"
+        "The zenith angle grid, on which the intensity field is stored. \n"
+        "This grid is used for RT calculations inside the cloudbox, therefore\n"
+        "he grid has to be defined\n"
+        "if the cloudbox is activated by the flag *cloudbox_on*.\n"
+        "The grid must be sorted in increasing order, with no repetitions.\n"
+        "\n"
+        "Usage:      Set by the user.\n"
+        "\n"
+        "Unit:       degrees "
+        "\n"
         ),
-       GROUP(  Agenda_ )));
+      GROUP( Vector_ )));
 
- wsv_data.push_back
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_za_index" ),
       DESCRIPTION
@@ -2459,22 +2461,8 @@ wsv_data.push_back
        ),
       GROUP( Index_ )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_za_interp" ),
-      DESCRIPTION
-      (
-       "Flag for interplation method in zenith angle dimension.\n"
-       " \n"
-       "0 - linear interpolation \n"
-       "1 - cubic interpolation \n"
-       "Default is linear interpolation. \n"
-       "\n"
-       "Usage: Set by user in *scat_za_interpSet*. \n"
-       " \n"
-       ),
-      GROUP( Index_ )));
-
+ 
+ 
   wsv_data.push_back
    (WsvRecord
     ( NAME( "sensor_los" ),
@@ -3242,21 +3230,6 @@ wsv_data.push_back
 //       GROUP( Agenda_ )));
 
 
-wsv_data.push_back
-    (WsvRecord
-    ( NAME( "za_grid_size" ),
-      DESCRIPTION
-      (
-       "This vector contains the discretisation of the zenith angle grid \n"
-       "for the scattering integral caluclation. \n"
-       "\n"
-       "The zenith angle grid is defined from 0 to 180.\n"
-       "za_grid_size is the number of points of the zenith angle grid and \n"
-       "\n"
-       "Usage: Output of *grid_sizeSet*.\n"
-       "\n"
-       ),
-      GROUP( Index_ )));
 
   wsv_data.push_back
     (WsvRecord

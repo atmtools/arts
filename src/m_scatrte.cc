@@ -80,14 +80,14 @@ extern const Numeric RAD2DEG;
 
   The conditions have to be valid for all positions in the cloudbox and
   for all directions.
-  Then convergence_flag is set to 1. 
+  Then doit_conv_flag is set to 1. 
 
   WS Output:
-  \param convergence_flag Flag for convergence test.
-  \param iteration_counter
+  \param doit_conv_flag Flag for convergence test.
+  \param doit_iteration_counter
   WS Input:
-  \param i_field Radiation field.
-  \param i_field_old Old radiation field.
+  \param doit_i_field Radiation field.
+  \param doit_i_field_old Old radiation field.
   Keyword : 
   \param epsilon   Limiting values for the convergence test
 
@@ -95,36 +95,36 @@ extern const Numeric RAD2DEG;
   \date 2002-06-17
 
 */
-void convergence_flagAbs(//WS Output:
-                      Index& convergence_flag,
-                      Index& iteration_counter,
+void doit_conv_flagAbs(//WS Output:
+                      Index& doit_conv_flag,
+                      Index& doit_iteration_counter,
                       // WS Input:
-                      const Tensor6& i_field,
-                      const Tensor6& i_field_old,
+                      const Tensor6& doit_i_field,
+                      const Tensor6& doit_i_field_old,
                       // Keyword:
                       const Vector& epsilon)
 {
   //Check the input:
-  assert( convergence_flag == 0 );
+  assert( doit_conv_flag == 0 );
 
-  const Index N_p = i_field.nvitrines();
-  const Index N_lat = i_field.nshelves();
-  const Index N_lon = i_field.nbooks();
-  const Index N_za = i_field.npages();
-  const Index N_aa = i_field.nrows();
-  const Index stokes_dim = i_field.ncols();
+  const Index N_p = doit_i_field.nvitrines();
+  const Index N_lat = doit_i_field.nshelves();
+  const Index N_lon = doit_i_field.nbooks();
+  const Index N_za = doit_i_field.npages();
+  const Index N_aa = doit_i_field.nrows();
+  const Index stokes_dim = doit_i_field.ncols();
    
-  out2 << "Number of iteration: " << iteration_counter << "\n";
+  out2 << "Number of iteration: " << doit_iteration_counter << "\n";
 
-  if (iteration_counter > 50)
+  if (doit_iteration_counter > 50)
     throw runtime_error("Error in DOIT calculation: \n"
                         "Method does not converge. Please check"
                         "numerical grids!");
 
-  iteration_counter +=1;
+  doit_iteration_counter +=1;
   
-  // Check if i_field and i_field_old have the same dimensions:
-  assert(is_size( i_field_old, 
+  // Check if doit_i_field and doit_i_field_old have the same dimensions:
+  assert(is_size( doit_i_field_old, 
                   N_p, N_lat, N_lon, N_za, N_aa, stokes_dim));
   
   // Check keyword "epsilon":
@@ -152,17 +152,17 @@ void convergence_flagAbs(//WS Output:
                              stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                            abs( i_field(p_index, lat_index, lon_index, 
+                            abs( doit_i_field(p_index, lat_index, lon_index, 
                                           scat_za_index, scat_aa_index, 
                                           stokes_index) -
-                                  i_field_old(p_index, lat_index, 
+                                  doit_i_field_old(p_index, lat_index, 
                                               lon_index, scat_za_index,
                                               scat_aa_index, 
                                               stokes_index ));
                           
                           // If the absolute difference of the components
                           // is larger than the pre-defined values, return
-                          // to *i_fieldIterarte* and do next iteration
+                          // to *doit_i_fieldIterarte* and do next iteration
                           
                           if( diff > epsilon[stokes_index])
                             return;
@@ -175,9 +175,9 @@ void convergence_flagAbs(//WS Output:
         }// End loop lat_grid.
     } // End p_grid.
   
-  // Convergence test has been successful, convergence_flag can be set to 1.
-  convergence_flag = 1;
-  out2 << "Number of DOIT-iterations: " << iteration_counter << "\n";
+  // Convergence test has been successful, doit_conv_flag can be set to 1.
+  doit_conv_flag = 1;
+  out2 << "Number of DOIT-iterations: " << doit_iteration_counter << "\n";
 }
 
 
@@ -193,14 +193,14 @@ void convergence_flagAbs(//WS Output:
 
   The conditions have to be valid for all positions in the cloudbox and
   for all directions.
-  Then convergence_flag is set to 1. 
+  Then doit_conv_flag is set to 1. 
 
   WS Output:
-  \param convergence_flag Flag for convergence test.
-  \param iteration_counter
+  \param doit_conv_flag Flag for convergence test.
+  \param doit_iteration_counter
   WS Input:
-  \param i_field Radiation field.
-  \param i_field_old Old radiation field.
+  \param doit_i_field Radiation field.
+  \param doit_i_field_old Old radiation field.
   \param f_grid Frequency grid
   \param f_index Frequency index
   Keyword : 
@@ -210,39 +210,39 @@ void convergence_flagAbs(//WS Output:
   \date 2004-03-17
 
 */
-void convergence_flagLsq(//WS Output:
-                      Index& convergence_flag,
-                      Index& iteration_counter,
+void doit_conv_flagLsq(//WS Output:
+                      Index& doit_conv_flag,
+                      Index& doit_iteration_counter,
                       // WS Input:
-                      const Tensor6& i_field,
-                      const Tensor6& i_field_old,
+                      const Tensor6& doit_i_field,
+                      const Tensor6& doit_i_field_old,
                       const Vector& f_grid,
                       const Index& f_index,
                       // Keyword:
                       const Vector& epsilon)
 {
   //Check the input:
-  assert( convergence_flag == 0 );
+  assert( doit_conv_flag == 0 );
   
-  const Index N_p = i_field.nvitrines();
-  const Index N_lat = i_field.nshelves();
-  const Index N_lon = i_field.nbooks();
-  const Index N_za = i_field.npages();
-  const Index N_aa = i_field.nrows();
+  const Index N_p = doit_i_field.nvitrines();
+  const Index N_lat = doit_i_field.nshelves();
+  const Index N_lon = doit_i_field.nbooks();
+  const Index N_za = doit_i_field.npages();
+  const Index N_aa = doit_i_field.nrows();
     
-  out2 << "Number of iteration: " << iteration_counter << "\n";
+  out2 << "Number of iteration: " << doit_iteration_counter << "\n";
 
-  if (iteration_counter > 50)
+  if (doit_iteration_counter > 50)
     throw runtime_error("Error in DOIT calculation: \n"
                         "Method does not converge. Please check"
                         "numerical grids!");
 
   Vector lqs(4, 0.);
-  iteration_counter += 1;
+  doit_iteration_counter += 1;
   
-  // Check if i_field and i_field_old have the same dimensions:
-  assert(is_size( i_field_old, 
-                  N_p, N_lat, N_lon, N_za, N_aa, i_field.ncols()));
+  // Check if doit_i_field and doit_i_field_old have the same dimensions:
+  assert(is_size( doit_i_field_old, 
+                  N_p, N_lat, N_lon, N_za, N_aa, doit_i_field.ncols()));
 
   //The number of elements in epsilon must be between 1 and 4.
   assert( 1 <= epsilon.nelem() <= 4);
@@ -264,9 +264,9 @@ void convergence_flagLsq(//WS Output:
                         {
                           lqs[i] 
                             += pow(
-                                   i_field(p_index, lat_index, lon_index, 
+                                   doit_i_field(p_index, lat_index, lon_index, 
                                            scat_za_index, scat_aa_index, i) -
-                                   i_field_old(p_index, lat_index, 
+                                   doit_i_field_old(p_index, lat_index, 
                                                lon_index, scat_za_index,
                                                scat_aa_index, i) 
                                    , 2);
@@ -286,14 +286,14 @@ void convergence_flagLsq(//WS Output:
       
       if (lqs[i] >= epsilon[i])
         {
-        convergence_flag = 0;
+        doit_conv_flag = 0;
         }
       else
         {
         // Convergence test has been successful,
-        // convergence_flag can be set to 1.
-        convergence_flag = 1;
-        out1 << "Number of DOIT-iterations: " << iteration_counter << "\n";
+        // doit_conv_flag can be set to 1.
+        doit_conv_flag = 1;
+        out1 << "Number of DOIT-iterations: " << doit_iteration_counter << "\n";
         }
     } // end loop stokes_index
   
@@ -304,7 +304,7 @@ void convergence_flagLsq(//WS Output:
 /*! 
   The function calculates the absolute differences for two successive 
   iteration fields in BT units. This function works exactly similar to
-  convergence_flagAbs.  Additionally, we need frequency as input.
+  doit_conv_flagAbs.  Additionally, we need frequency as input.
 
   Note that we use Rayleigh Jeans Brightness temperature for epsilon.
   This is because epsilon is a difference of intensity and Planck BT
@@ -312,11 +312,11 @@ void convergence_flagLsq(//WS Output:
   also Planck BT cannot be used because of the same reason.
  
   WS Output:
-  \param convergence_flag Fag for convergence test.
-  \param iteration_counter
+  \param doit_conv_flag Fag for convergence test.
+  \param doit_iteration_counter
   WS Input:
-  \param i_field Radiation field.
-  \param i_field_old Old radiation field.
+  \param doit_i_field Radiation field.
+  \param doit_i_field_old Old radiation field.
   \param f_grid frequency grid
   \param f_index frequency index
   Keyword : 
@@ -327,38 +327,38 @@ void convergence_flagLsq(//WS Output:
   \date 2003-04-01
 
 */
-void convergence_flagAbs_BT(//WS Output:
-                            Index& convergence_flag,
-                            Index& iteration_counter,
+void doit_conv_flagAbsBT(//WS Output:
+                            Index& doit_conv_flag,
+                            Index& doit_iteration_counter,
                             // WS Input:
-                            const Tensor6& i_field,
-                            const Tensor6& i_field_old,
+                            const Tensor6& doit_i_field,
+                            const Tensor6& doit_i_field_old,
                             const Vector& f_grid,
                             const Index& f_index, 
                             // Keyword:
                             const Vector& epsilon)
 {
   //Check the input:
-  assert( convergence_flag == 0 );
+  assert( doit_conv_flag == 0 );
 
-  const Index N_p = i_field.nvitrines();
-  const Index N_lat = i_field.nshelves();
-  const Index N_lon = i_field.nbooks();
-  const Index N_za = i_field.npages();
-  const Index N_aa = i_field.nrows();
-  const Index stokes_dim = i_field.ncols();
+  const Index N_p = doit_i_field.nvitrines();
+  const Index N_lat = doit_i_field.nshelves();
+  const Index N_lon = doit_i_field.nbooks();
+  const Index N_za = doit_i_field.npages();
+  const Index N_aa = doit_i_field.nrows();
+  const Index stokes_dim = doit_i_field.ncols();
 
-  out2 << "Number of iteration: " << iteration_counter << "\n";
+  out2 << "Number of iteration: " << doit_iteration_counter << "\n";
 
-  if (iteration_counter > 50)
+  if (doit_iteration_counter > 50)
     throw runtime_error("Error in DOIT calculation: \n"
                         "Method does not converge. Please check"
                         "numerical grids!");
 
-  iteration_counter += 1;
+  doit_iteration_counter += 1;
   
-  // Check if i_field and i_field_old have the same dimensions:
-  assert(is_size( i_field_old, 
+  // Check if doit_i_field and doit_i_field_old have the same dimensions:
+  assert(is_size( doit_i_field_old, 
                   N_p, N_lat, N_lon, N_za, N_aa, stokes_dim));
   
   // Check keyword "epsilon":
@@ -387,17 +387,17 @@ void convergence_flagAbs_BT(//WS Output:
                              stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                            fabs( i_field(p_index, lat_index, lon_index, 
+                            fabs( doit_i_field(p_index, lat_index, lon_index, 
                                           scat_za_index, scat_aa_index, 
                                           stokes_index) -
-                                  i_field_old(p_index, lat_index, 
+                                  doit_i_field_old(p_index, lat_index, 
                                               lon_index, scat_za_index,
                                               scat_aa_index, 
                                               stokes_index ));
                           
                           // If the absolute difference of the components
                           // is larger than the pre-defined values, return
-                          // to *i_fieldIterarte* and do next iteration
+                          // to *doit_i_fieldIterarte* and do next iteration
                           Numeric diff_bt = invrayjean(diff, f_grid[f_index]);
                           if( diff_bt > epsilon[stokes_index])
                             {
@@ -411,9 +411,9 @@ void convergence_flagAbs_BT(//WS Output:
         }// End loop lat_grid.
     } // End p_grid.
   
-  // Convergence test has been successful, convergence_flag can be set to 1.
-  convergence_flag = 1;
-  out1 << "Number of DOIT-iterations:" << iteration_counter << "\n";
+  // Convergence test has been successful, doit_conv_flag can be set to 1.
+  doit_conv_flag = 1;
+  out1 << "Number of DOIT-iterations:" << doit_iteration_counter << "\n";
 }
 
 
@@ -429,7 +429,7 @@ void convergence_flagAbs_BT(//WS Output:
   grid_stepsize[1] <-> scat_aa_grid
 
   WS output:
-  \param za_grid_size Number of points in zenith angle grid for 
+  \param doit_grid_size Number of points in zenith angle grid for 
                       scattering integral calculation 
   \param scat_aa_grid Azimuth angle grid.
   Keywords:
@@ -440,8 +440,8 @@ void convergence_flagAbs_BT(//WS Output:
   \date 2003-11-17
 
   */
-void grid_sizeSet(// WS Output:
-                  Index& za_grid_size,
+void DoitAngularGridsSet(// WS Output:
+                  Index& doit_grid_size,
                   Vector& scat_aa_grid,
                   // Keywords:
                   const Index& N_za_grid,
@@ -449,7 +449,7 @@ void grid_sizeSet(// WS Output:
 {
 
   // Number of zenith angle grid points (only for scattering integral): 
-  za_grid_size = N_za_grid; 
+  doit_grid_size = N_za_grid; 
     
   // Azimuth angle grid (the same is used for the scattering integral and
   // for the radiative transfer.
@@ -462,9 +462,9 @@ void grid_sizeSet(// WS Output:
 /*! 
   A solution for the RTE with scattering is found using an iterative scheme:
 
-  1. Calculate scattering integral using *scat_field_agenda*.
-  2. Calculate RT with fixed scattered field using *scat_rte_agenda*.
-  3. Convergence test using *convergence_test_agenda*.
+  1. Calculate scattering integral using *doit_scat_field_agenda*.
+  2. Calculate RT with fixed scattered field using *doit_rte_agenda*.
+  3. Convergence test using *doit_conv_test_agenda*.
 
   Note: The atmospheric dimensionality *atmosphere_dim* can be either 1 or 3. 
         To these dimensions the method adapts automatically. 
@@ -472,50 +472,50 @@ void grid_sizeSet(// WS Output:
         scattering calculations can not be performed.
 
   WS Input and Output:
-  \param i_field Intensity field.
-  \param i_field_old Intensity field from previous iteration. 
+  \param doit_i_field Intensity field.
+  \param doit_i_field_old Intensity field from previous iteration. 
   WS Output:
-  \param convergence_flag Flag for convergence test
+  \param doit_conv_flag Flag for convergence test
   WS Input:
-  \param scat_field_agenda Agenda for calculation of scattering integral
-  \param scat_rte_agenda Agenda for RT in cloudbox 
-  \param convergence_test_agenda Agenda for convergence test.
+  \param doit_scat_field_agenda Agenda for calculation of scattering integral
+  \param doit_rte_agenda Agenda for RT in cloudbox 
+  \param doit_conv_test_agenda Agenda for convergence test.
   
   \author Claudia Emde
   \date 2002-05-29
 */
 void
-i_fieldIterate(
+doit_i_fieldIterate(
                // WS Input and Output:
-               Tensor6& i_field,
-               Tensor6& i_field_old,
+               Tensor6& doit_i_field,
+               Tensor6& doit_i_field_old,
                // WS Output
-               Index& convergence_flag,
+               Index& doit_conv_flag,
                // WS Input:  
-               const Agenda& scat_field_agenda,
-               const Agenda& scat_rte_agenda,
-               const Agenda& convergence_test_agenda
+               const Agenda& doit_scat_field_agenda,
+               const Agenda& doit_rte_agenda,
+               const Agenda& doit_conv_test_agenda
                )
 {
-  convergence_flag = 0;
-  while(convergence_flag == 0) {
+  doit_conv_flag = 0;
+  while(doit_conv_flag == 0) {
     
-    // 1. Copy i_field to i_field_old.
-    i_field_old = i_field;
+    // 1. Copy doit_i_field to doit_i_field_old.
+    doit_i_field_old = doit_i_field;
     
     // 2.Calculate scattered field vector for all points in the cloudbox.
     
     // Calculate the scattered field.
-    out2 << "Execute scat_field_agenda. \n";
-    scat_field_agenda.execute(true);
+    out2 << "Execute doit_scat_field_agenda. \n";
+    doit_scat_field_agenda.execute(true);
     
-    // Update i_field.
-    out2 << "Execute scat_rte_agenda. \n";
-    scat_rte_agenda.execute(true);
+    // Update doit_i_field.
+    out2 << "Execute doit_rte_agenda. \n";
+    doit_rte_agenda.execute(true);
 
     //Convergence test.
-    //out2 << "Execute convergence_test_agenda. \n";
-    convergence_test_agenda.execute(0);
+    //out2 << "Execute doit_conv_test_agenda. \n";
+    doit_conv_test_agenda.execute(0);
 
   }//end of while loop, convergence is reached.
 }
@@ -535,10 +535,10 @@ i_fieldIterate(
   species are calculated. Then the radiative transfer equation can be computed.
 
   It is not recommended to use this method as it can be very slow. The 
-  method i_fieldUpdateSeq1D is much more efficient (see AUG).
+  method doit_i_fieldUpdateSeq1D is much more efficient (see AUG).
 
   WS Output:
-  \param i_field Updated radiation field inside the cloudbox. 
+  \param doit_i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
   \param rte_pressure
   \param rte_temperature
@@ -552,8 +552,8 @@ i_fieldIterate(
   Variables used in ppath_step_agenda:
   \param ppath_step
   WS Input:
-  \param i_field_old Old radiation field.
-  \param scat_field Scattered field.
+  \param doit_i_field_old Old radiation field.
+  \param doit_scat_field Scattered field.
   \param cloudbox_limits 
   Calculate scalar gas absorption:
   \param scalar_gas_absorption_agenda
@@ -578,8 +578,8 @@ i_fieldIterate(
   \date 2002-05-30
 */
 void
-i_fieldUpdate1D(// WS Output:
-                Tensor6& i_field,
+doit_i_fieldUpdate1D(// WS Output:
+                Tensor6& doit_i_field,
                 // scalar_gas_abs_agenda:
                 Numeric& rte_pressure,
                 Numeric& rte_temperature,
@@ -593,8 +593,8 @@ i_fieldUpdate1D(// WS Output:
                 // ppath_step_agenda:
                 Ppath& ppath_step, 
                 // WS Input:
-                const Tensor6& i_field_old,
-                const Tensor6& scat_field,
+                const Tensor6& doit_i_field_old,
+                const Tensor6& doit_scat_field,
                 const ArrayOfIndex& cloudbox_limits,
                 // Calculate scalar gas absorption:
                 const Agenda& scalar_gas_absorption_agenda,
@@ -617,10 +617,10 @@ i_fieldUpdate1D(// WS Output:
                 )
 {
 
-  out2 << "i_fieldUpdate1D: Radiative transfer calculatiuon in cloudbox. \n";
+  out2 << "doit_i_fieldUpdate1D: Radiative transfer calculatiuon in cloudbox. \n";
   out2 << "------------------------------------------------------------- \n";
   
-  const Index stokes_dim = scat_field.ncols();
+  const Index stokes_dim = doit_scat_field.ncols();
   const Index atmosphere_dim = 1;
 
   //Check the input
@@ -630,7 +630,7 @@ i_fieldUpdate1D(// WS Output:
                         "The dimension of stokes vector must be"
                         "1,2,3, or 4");
   
-  assert( is_size( i_field, 
+  assert( is_size( doit_i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                       1, 
                       1,
@@ -638,7 +638,7 @@ i_fieldUpdate1D(// WS Output:
                       1,
                       stokes_dim));
 
-  assert( is_size( scat_field, 
+  assert( is_size( doit_scat_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                       1, 
                       1,
@@ -679,7 +679,7 @@ i_fieldUpdate1D(// WS Output:
     
 
       // Calculate ext_mat, abs_vec for all points inside the cloudbox.
-      // sca_vec can be obtained from the workspace variable scat_field.
+      // sca_vec can be obtained from the workspace variable doit_scat_field.
       // As we need the average for each layer, it makes sense to calculte
       // the coefficients once and store them in an array instead of 
       // calculating at each point the coefficient of the point above and 
@@ -869,29 +869,29 @@ i_fieldUpdate1D(// WS Output:
                   //
                   // Interpolation of sca_vec:
                   //
-                  out3 << "Interpolate scat_field:\n";
+                  out3 << "Interpolate doit_scat_field:\n";
                   interp_atmfield_by_itw
                     (sca_vec_int(i, joker),
                      atmosphere_dim,
                      p_grid[p_range], dummy_grid, dummy_grid,
-                     scat_field(joker, joker, joker, scat_za_index,
+                     doit_scat_field(joker, joker, joker, scat_za_index,
                                 0, i),
-                     "scat_field",
+                     "doit_scat_field",
                      cloud_gp_p,
                      dummy_gp, dummy_gp,
                      itw_field);
                   //
                   // Stokes vector:
                   //
-                  // Interpolation of i_field_old.
-                  out3 << "Interpolate i_field_old:\n";
+                  // Interpolation of doit_i_field_old.
+                  out3 << "Interpolate doit_i_field_old:\n";
                   interp_atmfield_by_itw
                     (sto_vec_int(i, joker),
                      atmosphere_dim,
                      p_grid[p_range], dummy_grid, dummy_grid,
-                     i_field_old(joker, joker, joker, scat_za_index,
+                     doit_i_field_old(joker, joker, joker, scat_za_index,
                              0, i),
-                     "i_field_old",
+                     "doit_i_field_old",
                      cloud_gp_p,
                      dummy_gp, dummy_gp,
                      itw_field);
@@ -1033,8 +1033,8 @@ i_fieldUpdate1D(// WS Output:
                            sca_vec_av, l_step, rte_planck_value);
                   
                 } // End of loop over ppath_step. 
-              // Assign calculated Stokes Vector to i_field. 
-              i_field(p_index - cloudbox_limits[0],
+              // Assign calculated Stokes Vector to doit_i_field. 
+              doit_i_field(p_index - cloudbox_limits[0],
                       0, 0,
                       scat_za_index, 0,
                       joker) = stokes_vec;
@@ -1070,7 +1070,7 @@ i_fieldUpdate1D(// WS Output:
   (see AUG) than the "normal" update. 
 
   WS Output:
-  \param i_field Updated radiation field inside the cloudbox. 
+  \param doit_i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
   \param rte_pressure
   \param rte_temperature
@@ -1087,7 +1087,7 @@ i_fieldUpdate1D(// WS Output:
   \param rte_pos
   \param rte_gp_p
   WS Input:
-  \param scat_field Scattered field.
+  \param doit_scat_field Scattered field.
   \param cloudbox_limits 
   Calculate scalar gas absorption:
   \param scalar_gas_absorption_agenda
@@ -1113,8 +1113,8 @@ i_fieldUpdate1D(// WS Output:
   \date 2002-05-30
 */
 void
-i_fieldUpdateSeq1D(// WS Output:
-                   Tensor6& i_field,
+doit_i_fieldUpdateSeq1D(// WS Output:
+                   Tensor6& doit_i_field,
                    // scalar_gas_abs_agenda:
                    Numeric& rte_pressure,
                    Numeric& rte_temperature,
@@ -1131,7 +1131,7 @@ i_fieldUpdateSeq1D(// WS Output:
                    Vector& rte_pos,
                    GridPos& rte_gp_p,
                    // WS Input:
-                   const Tensor6& scat_field,
+                   const Tensor6& doit_scat_field,
                    const ArrayOfIndex& cloudbox_limits,
                    // Calculate scalar gas absorption:
                    const Agenda& scalar_gas_absorption_agenda,
@@ -1152,19 +1152,19 @@ i_fieldUpdateSeq1D(// WS Output:
                    const Vector& f_grid,
                    const Index& f_index,
                    const Agenda& iy_surface_agenda, //STR
-                   const Index& scat_za_interp
+                   const Index& doit_za_interp
                    )
 {
   
-  out2 << "i_fieldUpdateSeq1D: Radiative transfer calculatiuon in cloudbox.\n";
+  out2 << "doit_i_fieldUpdateSeq1D: Radiative transfer calculatiuon in cloudbox.\n";
   out2 << "------------------------------------------------------------- \n";
   
-  const Index stokes_dim = scat_field.ncols();
+  const Index stokes_dim = doit_scat_field.ncols();
   
   //Check the input
   if (cloudbox_limits.nelem() != 2)
     throw runtime_error(
-                        "The method *i_fieldUpdateSeq1D* requires a 1D \n"
+                        "The method *doit_i_fieldUpdateSeq1D* requires a 1D \n"
                         "atmosphere. Check whether you have used \n"
                         "*AtmosphereSet1D* in your cortrol file.\n"
                         );
@@ -1174,7 +1174,7 @@ i_fieldUpdateSeq1D(// WS Output:
                         "The dimension of stokes vector must be"
                         "1,2,3, or 4");
   
-  assert( is_size( i_field, 
+  assert( is_size( doit_i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                       1, 
                       1,
@@ -1182,7 +1182,7 @@ i_fieldUpdateSeq1D(// WS Output:
                       1,
                       stokes_dim));
 
-  assert( is_size( scat_field, 
+  assert( is_size( doit_scat_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                       1, 
                       1,
@@ -1265,18 +1265,18 @@ i_fieldUpdateSeq1D(// WS Output:
           for(Index p_index = cloudbox_limits[1]-1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-              cloud_ppath_update1D(i_field, 
+              cloud_ppath_update1D(doit_i_field, 
                                    rte_pressure, rte_temperature, rte_vmr_list,
                                    ext_mat, abs_vec, 
                                    rte_los, rte_pos, rte_gp_p, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
-                                   cloudbox_limits, scat_field,
+                                   cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, t_field, 
                                    f_grid, f_index, ext_mat_field,
                                    abs_vec_field, iy_surface_agenda,
-                                   scat_za_interp); 
+                                   doit_za_interp); 
             }
         }
       else if ( scat_za_grid[scat_za_index] > theta_lim) 
@@ -1287,18 +1287,18 @@ i_fieldUpdateSeq1D(// WS Output:
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              cloud_ppath_update1D(i_field,  
+              cloud_ppath_update1D(doit_i_field,  
                                    rte_pressure, rte_temperature, rte_vmr_list,
                                    ext_mat, abs_vec, 
                                     rte_los, rte_pos, rte_gp_p, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
-                                   cloudbox_limits, scat_field,
+                                   cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, t_field, 
                                    f_grid, f_index, ext_mat_field, 
                                    abs_vec_field, iy_surface_agenda,
-                                   scat_za_interp); 
+                                   doit_za_interp); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
       
@@ -1321,19 +1321,19 @@ i_fieldUpdateSeq1D(// WS Output:
               // gives an error for such cases.
               if (!(p_index == 0 && scat_za_grid[scat_za_index] > 90.))
                 {
-                  cloud_ppath_update1D(i_field,  
+                  cloud_ppath_update1D(doit_i_field,  
                                        rte_pressure, rte_temperature, 
                                        rte_vmr_list,
                                        ext_mat, abs_vec, 
                                        rte_los, rte_pos, rte_gp_p, ppath_step, 
                                        p_index, scat_za_index, scat_za_grid,
-                                       cloudbox_limits, scat_field,
+                                       cloudbox_limits, doit_scat_field,
                                        scalar_gas_absorption_agenda, vmr_field,
                                        opt_prop_gas_agenda, ppath_step_agenda,
                                        p_grid,  z_field, r_geoid, t_field, 
                                        f_grid, f_index, ext_mat_field, 
                                        abs_vec_field, iy_surface_agenda,
-                                       scat_za_interp);
+                                       doit_za_interp);
                 }
             }
         } 
@@ -1356,14 +1356,14 @@ i_fieldUpdateSeq1D(// WS Output:
   optical properties including the partile types as well as the gaseous
   species are calculated. Then the radiative transfer equation can be computed.
 
-  It is recommended to use i_fieldUpdateSeq3D as it is much more 
+  It is recommended to use doit_i_fieldUpdateSeq3D as it is much more 
   efficient (see AUG).
 
   Note: Surface reflection is not yet implemented in 3D scattering 
   calculations.
 
   WS Output:
-  \param i_field Updated radiation field inside the cloudbox. 
+  \param doit_i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
   \param rte_pressure
   \param rte_temperature
@@ -1380,8 +1380,8 @@ i_fieldUpdateSeq1D(// WS Output:
   Variables used in ppath_step_agenda:
   \param ppath_step
   WS Input:
-  \param i_field_old Old radiation field.
-  \param scat_field Scattered field.
+  \param doit_i_field_old Old radiation field.
+  \param doit_scat_field Scattered field.
   \param cloudbox_limits 
   Calculate scalar gas absorption:
   \param scalar_gas_absorption_agenda
@@ -1408,8 +1408,8 @@ i_fieldUpdateSeq1D(// WS Output:
   \author Claudia Emde
   \date 2003-01-07
 */
-void i_fieldUpdate3D(// WS Output:
-                     Tensor6& i_field,
+void doit_i_fieldUpdate3D(// WS Output:
+                     Tensor6& doit_i_field,
                      // scalar_gas_abs_agenda:
                      Numeric& rte_pressure,
                      Numeric& rte_temperature,
@@ -1426,8 +1426,8 @@ void i_fieldUpdate3D(// WS Output:
                      // ppath_step_agenda:
                      Ppath& ppath_step, 
                      // WS Input:
-                     const Tensor6& i_field_old,
-                     const Tensor6& scat_field,
+                     const Tensor6& doit_i_field_old,
+                     const Tensor6& doit_scat_field,
                      const ArrayOfIndex& cloudbox_limits,
                      // Calculate scalar gas absorption:
                      const Agenda& scalar_gas_absorption_agenda,
@@ -1453,10 +1453,10 @@ void i_fieldUpdate3D(// WS Output:
                      )
 {
   
-  out2 << "i_fieldUpdate3D: Radiative transfer calculatiuon in cloudbox. \n";
+  out2 << "doit_i_fieldUpdate3D: Radiative transfer calculatiuon in cloudbox. \n";
   out2 << "------------------------------------------------------------- \n";
 
-  const Index stokes_dim = scat_field.ncols();
+  const Index stokes_dim = doit_scat_field.ncols();
   const Index atmosphere_dim = 3;
 
   //Check the input
@@ -1468,7 +1468,7 @@ void i_fieldUpdate3D(// WS Output:
                         "The dimension of stokes vector must be"
                         "1,2,3, or 4");
   
-  assert( is_size( i_field, 
+  assert( is_size( doit_i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                       (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
                       (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -1476,7 +1476,7 @@ void i_fieldUpdate3D(// WS Output:
                        scat_aa_grid.nelem(),
                        stokes_dim));
 
-  assert( is_size( scat_field, 
+  assert( is_size( doit_scat_field, 
                      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                      (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
                      (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -1762,15 +1762,15 @@ void i_fieldUpdate3D(// WS Output:
                             //
                             // Interpolation of sca_vec:
                             //
-                            out3 << "Interpolate scat_field:\n";
+                            out3 << "Interpolate doit_scat_field:\n";
                             interp_atmfield_by_itw
                               (sca_vec_int(i, joker),
                                atmosphere_dim,
                                p_grid[p_range], lat_grid[lat_range],
                                lon_grid[lon_range],
-                               scat_field(joker, joker, joker, scat_za_index,
+                               doit_scat_field(joker, joker, joker, scat_za_index,
                                          scat_aa_index, i),
-                               "scat_field",
+                               "doit_scat_field",
                                cloud_gp_p,
                                cloud_gp_lat,
                                cloud_gp_lon,
@@ -1778,17 +1778,17 @@ void i_fieldUpdate3D(// WS Output:
                             //
                             // Stokes vector:
                             //
-                            // Interpolation of i_field_old.
-                            out3 << "Interpolate i_field_old:\n";
+                            // Interpolation of doit_i_field_old.
+                            out3 << "Interpolate doit_i_field_old:\n";
                             interp_atmfield_by_itw
                               (sto_vec_int(i, joker),
                                atmosphere_dim,
                                p_grid[p_range],
                                lat_grid[lat_range],
                                lon_grid[lon_range],
-                               i_field_old(joker, joker, joker, scat_za_index,
+                               doit_i_field_old(joker, joker, joker, scat_za_index,
                                        scat_aa_index, i),
-                               "i_field_old",
+                               "doit_i_field_old",
                                cloud_gp_p,
                                cloud_gp_lat,
                                cloud_gp_lon,
@@ -1939,8 +1939,8 @@ void i_fieldUpdate3D(// WS Output:
                           }
                         
                         
-                        // Assign calculated Stokes Vector to i_field. 
-                        i_field(p_index - cloudbox_limits[0],
+                        // Assign calculated Stokes Vector to doit_i_field. 
+                        doit_i_field(p_index - cloudbox_limits[0],
                                 lat_index - cloudbox_limits[2],
                                 lon_index - cloudbox_limits[4],
                                 scat_za_index, scat_aa_index,
@@ -1960,7 +1960,7 @@ void i_fieldUpdate3D(// WS Output:
         }// end loop over scat_aa_grid
     }// end loop over scat_za_grid
   
-  out2 << "Finished i_fieldUpdate3D.\n";
+  out2 << "Finished doit_i_fieldUpdate3D.\n";
 }// end of function.
 
                         
@@ -1981,7 +1981,7 @@ void i_fieldUpdate3D(// WS Output:
   calculations.
 
   WS Output:
-  \param i_field Updated radiation field inside the cloudbox. 
+  \param doit_i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
   \param rte_pressure
   \param rte_temperature
@@ -1998,8 +1998,8 @@ void i_fieldUpdate3D(// WS Output:
   Variables used in ppath_step_agenda:
   \param ppath_step
   WS Input:
-  \param i_field_old Old radiation field.
-  \param scat_field Scattered field.
+  \param doit_i_field_old Old radiation field.
+  \param doit_scat_field Scattered field.
   \param cloudbox_limits 
   Calculate scalar gas absorption:
   \param scalar_gas_absorption_agenda
@@ -2026,8 +2026,8 @@ void i_fieldUpdate3D(// WS Output:
   \author Claudia Emde
   \date 2003-01-07
 */
-void i_fieldUpdateSeq3D(// WS Output:
-                     Tensor6& i_field,
+void doit_i_fieldUpdateSeq3D(// WS Output:
+                     Tensor6& doit_i_field,
                      // scalar_gas_abs_agenda:
                      Numeric& rte_pressure,
                      Numeric& rte_temperature,
@@ -2044,7 +2044,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                      // ppath_step_agenda:
                      Ppath& ppath_step, 
                      // WS Input:
-                     const Tensor6& scat_field,
+                     const Tensor6& doit_scat_field,
                      const ArrayOfIndex& cloudbox_limits,
                      // Calculate scalar gas absorption:
                      const Agenda& scalar_gas_absorption_agenda,
@@ -2067,14 +2067,14 @@ void i_fieldUpdateSeq3D(// WS Output:
                      const Tensor3& t_field,
                      const Vector& f_grid,
                      const Index& f_index,
-                     const Index& scat_za_interp
+                     const Index& doit_za_interp
                      )
 {
   
-  out2 << "i_fieldUpdate3D: Radiative transfer calculatiuon in cloudbox. \n";
+  out2 << "doit_i_fieldUpdate3D: Radiative transfer calculatiuon in cloudbox. \n";
   out2 << "------------------------------------------------------------- \n";
 
-  const Index stokes_dim = scat_field.ncols();
+  const Index stokes_dim = doit_scat_field.ncols();
     
   //Check the input
   if (stokes_dim < 0 || stokes_dim > 4)
@@ -2085,12 +2085,12 @@ void i_fieldUpdateSeq3D(// WS Output:
   //Check the input
   if (cloudbox_limits.nelem() != 6)
     throw runtime_error(
-                        "The method *i_fieldUpdateSeq3D* requires a 3D \n"
+                        "The method *doit_i_fieldUpdateSeq3D* requires a 3D \n"
                         "atmosphere. Check whether you have used \n"
                         "*AtmosphereSet3D* in your cortrol file.\n"
                         );
 
-  assert( is_size( i_field, 
+  assert( is_size( doit_i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                       (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
                       (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -2098,7 +2098,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                        scat_aa_grid.nelem(),
                        stokes_dim));
 
-  assert( is_size( scat_field, 
+  assert( is_size( doit_scat_field, 
                      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                      (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
                      (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
@@ -2190,14 +2190,14 @@ void i_fieldUpdateSeq3D(// WS Output:
                       for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(i_field, 
+                          cloud_ppath_update3D(doit_i_field, 
                                                rte_pressure, rte_temperature, 
                                                rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
                                                scat_aa_grid, cloudbox_limits, 
-                                               scat_field, 
+                                               doit_scat_field, 
                                                scalar_gas_absorption_agenda,
                                                vmr_field, 
                                                opt_prop_gas_agenda,
@@ -2206,7 +2206,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                                                r_geoid, t_field, f_grid,
                                                f_index,
                                                ext_mat_field, abs_vec_field,
-                                               scat_za_interp);
+                                               doit_za_interp);
                         }
                     }
                 }
@@ -2224,14 +2224,14 @@ void i_fieldUpdateSeq3D(// WS Output:
                       for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(i_field, 
+                          cloud_ppath_update3D(doit_i_field, 
                                                rte_pressure, rte_temperature, 
                                                rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
                                                scat_aa_grid, cloudbox_limits, 
-                                               scat_field, 
+                                               doit_scat_field, 
                                                scalar_gas_absorption_agenda,
                                                vmr_field, 
                                                opt_prop_gas_agenda,
@@ -2240,7 +2240,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                                                r_geoid, t_field, f_grid,
                                                f_index,
                                                ext_mat_field, abs_vec_field,
-                                               scat_za_interp);
+                                               doit_za_interp);
                         }
                     }
                 }
@@ -2270,7 +2270,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                           for(Index lon_index = lon_low; lon_index <= lon_up; 
                               lon_index ++)
                             {
-                              cloud_ppath_update3D(i_field, 
+                              cloud_ppath_update3D(doit_i_field, 
                                                    rte_pressure,
                                                    rte_temperature, 
                                                    rte_vmr_list,
@@ -2282,7 +2282,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                                                    scat_za_grid, 
                                                    scat_aa_grid,
                                                    cloudbox_limits, 
-                                                   scat_field, 
+                                                   doit_scat_field, 
                                                    scalar_gas_absorption_agenda,
                                                    vmr_field, 
                                                    opt_prop_gas_agenda,
@@ -2293,7 +2293,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                                                    f_index,
                                                    ext_mat_field,
                                                    abs_vec_field,
-                                                   scat_za_interp); 
+                                                   doit_za_interp); 
                             }
                         }
                     }
@@ -2302,8 +2302,8 @@ void i_fieldUpdateSeq3D(// WS Output:
         } //  Closes loop over aa_grid.
     }// Closes loop over scat_za_grid.
 
-  i_field(joker, joker, joker, joker, 0, joker) = 
-    i_field(joker, joker, joker, joker, N_scat_aa-1, joker);
+  doit_i_field(joker, joker, joker, joker, 0, joker) = 
+    doit_i_field(joker, joker, joker, joker, N_scat_aa-1, joker);
 
   
   
@@ -2314,14 +2314,14 @@ void i_fieldUpdateSeq3D(// WS Output:
 
 //! 1D RT calculation inside the cloud box in a plane parallel geometry.
 /*! 
-  This function is baseically same as i_fieldUpdateSeq1D in that it updates the
-  i_field.  The difference is that it assumes that inside the cloudbox the 
+  This function is baseically same as doit_i_fieldUpdateSeq1D in that it updates the
+  doit_i_field.  The difference is that it assumes that inside the cloudbox the 
   atmosphere is planeparallel.  This is included with the intention that it 
   can be faster compared to the spherical.  Also it will be good for comparisons.
   
 
   WS Output:
-  \param i_field       Updated intensity field. 
+  \param doit_i_field       Updated intensity field. 
   Variables used in scalar_gas_abs_agenda:
   \param rte_pressure    FIXME: Add documentation.
   \param rte_temperature FIXME: Add documentation.
@@ -2336,8 +2336,8 @@ void i_fieldUpdateSeq3D(// WS Output:
   \param ppath_step
   \param ppath_step
   WS Input:
-  \param i_field_old Old radiation field.
-  \param scat_field Scattered field.
+  \param doit_i_field_old Old radiation field.
+  \param doit_scat_field Scattered field.
   \param cloudbox_limits 
   Calculate scalar gas absorption:
   \param scalar_gas_absorption_agenda
@@ -2363,8 +2363,8 @@ void i_fieldUpdateSeq3D(// WS Output:
   \date 2002-11-28
 */
 void
-i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
-                Tensor6& i_field,
+doit_i_fieldUpdateSeq1DPP(// WS Output:
+                Tensor6& doit_i_field,
                 // scalar_gas_abs_agenda:
                 Numeric& rte_pressure,
                 Numeric& rte_temperature,
@@ -2381,7 +2381,7 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                 Vector& rte_pos,
                 GridPos& rte_gp_p,
                 // WS Input:
-                const Tensor6& scat_field,
+                const Tensor6& doit_scat_field,
                 const ArrayOfIndex& cloudbox_limits,
                 // Calculate scalar gas absorption:
                 const Agenda& scalar_gas_absorption_agenda,
@@ -2405,10 +2405,10 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                 )
 {
 
-  out2 << "i_fieldUpdatePlaneparallel: Radiative transfer calculatiuon in cloudbox.\n";
+  out2 << "doit_i_fieldUpdatePlaneparallel: Radiative transfer calculatiuon in cloudbox.\n";
   out2 << "------------------------------------------------------------- \n";
   
-  const Index stokes_dim = scat_field.ncols();
+  const Index stokes_dim = doit_scat_field.ncols();
   //  const Index atmosphere_dim = 1;
 
   //Check the input
@@ -2418,7 +2418,7 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                         "The dimension of stokes vector must be"
                         "1,2,3, or 4");
   
-  assert( is_size( i_field, 
+  assert( is_size( doit_i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                       1, 
                       1,
@@ -2426,7 +2426,7 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                       1,
                       stokes_dim));
 
-  assert( is_size( scat_field, 
+  assert( is_size( doit_scat_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                       1, 
                       1,
@@ -2498,12 +2498,12 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
           for(Index p_index = cloudbox_limits[1] -1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-              cloud_ppath_update1D_planeparallel(i_field, 
+              cloud_ppath_update1D_planeparallel(doit_i_field, 
                                                  rte_pressure, rte_temperature, rte_vmr_list,
                                                  ext_mat, abs_vec, 
                                                  rte_los, rte_pos, rte_gp_p, ppath_step, 
                                                  p_index, scat_za_index, scat_za_grid,
-                                                 cloudbox_limits, scat_field,
+                                                 cloudbox_limits, doit_scat_field,
                                                  scalar_gas_absorption_agenda, vmr_field,
                                                  opt_prop_gas_agenda, ppath_step_agenda,
                                                  p_grid,  z_field, r_geoid, t_field, 
@@ -2519,12 +2519,12 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              cloud_ppath_update1D_planeparallel(i_field,  
+              cloud_ppath_update1D_planeparallel(doit_i_field,  
                                                  rte_pressure, rte_temperature, rte_vmr_list,
                                                  ext_mat, abs_vec, 
                                                  rte_los, rte_pos, rte_gp_p, ppath_step, 
                                                  p_index, scat_za_index, scat_za_grid,
-                                                 cloudbox_limits, scat_field,
+                                                 cloudbox_limits, doit_scat_field,
                                                  scalar_gas_absorption_agenda, vmr_field,
                                                  opt_prop_gas_agenda, ppath_step_agenda,
                                                  p_grid,  z_field, r_geoid, t_field, 
@@ -2544,10 +2544,10 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
     angles.
 
     This method uses the same angular grids as the radiative transfer methods
-    *i_fieldUpdateXXX*. 
+    *doit_i_fieldUpdateXXX*. 
     
     WS Output:
-    \param scat_field Scattering integral field.
+    \param doit_scat_field Scattering integral field.
     WS Output and Input:
     \param pha_mat Phase matrix.
     \param pha_mat_spt Phase matrix for single particle type
@@ -2555,7 +2555,7 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
     \param scat_aa_index needed for communication with pha_mat_spt_agenda.
     WS Input:
     \param pha_mat_spt_agenda Agenda for calculation of pha_mat_spt. 
-    \param i_field Intensity field 
+    \param doit_i_field Intensity field 
     \param pnd_field Particle number density field.
     \param scat_za_grid Zenith angle grid
     \param scat_aa_grid Azimuth angle grid
@@ -2571,8 +2571,8 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
 */
 
 void
-scat_fieldCalc(//WS Output:
-               Tensor6& scat_field,
+doit_scat_fieldCalc(//WS Output:
+               Tensor6& doit_scat_field,
                Tensor4& pha_mat,
                Tensor5& pha_mat_spt,
                Index& scat_za_index, 
@@ -2583,35 +2583,35 @@ scat_fieldCalc(//WS Output:
                Index& scat_lon_index,
                //WS Input:
                const Agenda& pha_mat_spt_agenda,
-               const Tensor6& i_field,
+               const Tensor6& doit_i_field,
                const Tensor4& pnd_field,
                const Vector& scat_za_grid,
                const Vector& scat_aa_grid,
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
-               const Index& za_grid_size,
+               const Index& doit_grid_size,
                const Tensor3& t_field
                )
   
 {
-  Index stokes_dim = scat_field.ncols();
+  Index stokes_dim = doit_scat_field.ncols();
 
   // Some useful indices :
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
-  if (za_grid_size != Nza)
-    throw runtime_error("Error in *scat_fieldCalc*: \n"
+  if (doit_grid_size != Nza)
+    throw runtime_error("Error in *doit_scat_fieldCalc*: \n"
                         "Zenith angle grids for radiative transfer \n"
                         "(*scat_za_grid*) and computation of scattering  \n"
                         "integral (specified in *grid_stepsizeSet*) must \n"
                         "be equal.\n"
                         "If you need different grids (for Limb calculations)\n"
-                        "you have to use *scat_fieldCalcLimb*"
+                        "you have to use *doit_scat_fieldCalcLimb*"
                         );
 
   Vector grid_stepsize(2);
-  grid_stepsize[0] = 180./(za_grid_size - 1);
+  grid_stepsize[0] = 180./(doit_grid_size - 1);
   grid_stepsize[1] = 360./(Naa - 1);     
   
   Tensor3 product_field(Nza, Naa, stokes_dim, 0);
@@ -2620,14 +2620,14 @@ scat_fieldCalc(//WS Output:
   
   if  ( atmosphere_dim == 1 )
     {
-      assert ( is_size( i_field, 
+      assert ( is_size( doit_i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       1, 
                       1,
                       scat_za_grid.nelem(), 
                       1,
                       stokes_dim));
-    assert ( is_size( scat_field, 
+    assert ( is_size( doit_scat_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       1, 
                       1,
@@ -2675,7 +2675,7 @@ scat_fieldCalc(//WS Output:
                           {
                             product_field(za_in, aa_in, i) +=
                               pha_mat(za_in, aa_in, i, j) * 
-                              i_field(p_index, 0, 0, za_in, 0, j);
+                              doit_i_field(p_index, 0, 0, za_in, 0, j);
                           }
                       }
 
@@ -2690,9 +2690,9 @@ scat_fieldCalc(//WS Output:
                   product_field( Range(joker),
                                  Range(joker),
                                  i);
-                // scat_field is also defined for all points inside the cloud
+                // doit_scat_field is also defined for all points inside the cloud
                 //box for each propagion angle
-                scat_field( p_index,
+                doit_scat_field( p_index,
                             0,
                             0,
                             scat_za_index, 
@@ -2712,14 +2712,14 @@ scat_fieldCalc(//WS Output:
   //When atmospheric dimension , atmosphere_dim = 3
   if( atmosphere_dim == 3 ){
     
-    assert ( is_size( i_field, 
+    assert ( is_size( doit_i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
                       (cloudbox_limits[5] - cloudbox_limits[4]) +1,
                       scat_za_grid.nelem(), 
                       scat_aa_grid.nelem(),
                       stokes_dim));
-    assert ( is_size( scat_field, 
+    assert ( is_size( doit_scat_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
                       (cloudbox_limits[5] - cloudbox_limits[4]) +1,
@@ -2778,7 +2778,7 @@ scat_fieldCalc(//WS Output:
                                       {
                                         product_field(za_in, aa_in, i) +=
                                           pha_mat(za_in, aa_in, i, j) * 
-                                          i_field(p_index, lat_index, 
+                                          doit_i_field(p_index, lat_index, 
                                                   lon_index, scat_za_index,
                                                   scat_aa_index, j);
                                       }
@@ -2791,7 +2791,7 @@ scat_fieldCalc(//WS Output:
                         //AngIntegrate_trapezoid_opti
                         for (Index i = 0; i < stokes_dim; i++)
                           {
-                            scat_field( p_index,
+                            doit_scat_field( p_index,
                                         lat_index,
                                         lon_index,
                                         scat_za_index, 
@@ -2809,8 +2809,8 @@ scat_fieldCalc(//WS Output:
               }//end lon loop
           }// end lat loop
       }// end p loop
-    scat_field(joker, joker, joker, joker, 0, joker) =
-      scat_field(joker, joker, joker, joker, Naa-1, joker);
+    doit_scat_field(joker, joker, joker, joker, 0, joker) =
+      doit_scat_field(joker, joker, joker, joker, Naa-1, joker);
   }// end atmosphere_dim = 3
 }
 
@@ -2821,11 +2821,11 @@ By scattering integral, we mean the field generated by integrating
 the product of intensity field and phase matrix over all incident 
 angles.  
   
-\param scat_field Output : scattering integraal
+\param doit_scat_field Output : scattering integraal
 \param pha_mat Output : phase matrix.
 \param pha_mat_spt Input : the phase matrix for single particle type
 \param scat_data_raw FIXME: Add documentation.
-\param i_field Input : the intensity field 
+\param doit_i_field Input : the intensity field 
 \param pnd_field Input : the particle number density field.
 \param scat_za_grid zenith angle grid
 \param scat_aa_grid azimuth angle grid
@@ -2844,43 +2844,43 @@ angles.
 */
 
 void
-scat_fieldCalc1D(//WS Output:
-               Tensor6& scat_field,
+doit_scat_fieldCalc1D(//WS Output:
+               Tensor6& doit_scat_field,
                Tensor4& pha_mat,
                Tensor5& pha_mat_spt,
                Index& scat_za_index, 
                Index& scat_aa_index,
                //WS Input:
                const Agenda& pha_mat_spt_agenda,
-               const Tensor6& i_field,
+               const Tensor6& doit_i_field,
                const Tensor4& pnd_field,
                const Vector& scat_za_grid,
                const Vector& scat_aa_grid,
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
-               const Index& za_grid_size
+               const Index& doit_grid_size
                )
   
 {
   
-  Index stokes_dim = scat_field.ncols();
+  Index stokes_dim = doit_scat_field.ncols();
 
   // Some useful indices :
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
-  if (za_grid_size != Nza)
-    throw runtime_error("Error in *scat_fieldCalc*: \n"
+  if (doit_grid_size != Nza)
+    throw runtime_error("Error in *doit_scat_fieldCalc*: \n"
                         "Zenith angle grids for radiative transfer \n"
                         "(*scat_za_grid*) and computation of scattering  \n"
                         "integral (specified in *grid_stepsizeSet*) must \n"
                         "be equal.\n"
                         "If you need different grids (for Limb calculations)\n"
-                        "you have to use *scat_fieldCalcLimb*"
+                        "you have to use *doit_scat_fieldCalcLimb*"
                         );
 
   Vector grid_stepsize(2);
-  grid_stepsize[0] = 180./(za_grid_size - 1);
+  grid_stepsize[0] = 180./(doit_grid_size - 1);
   grid_stepsize[1] = 360./(Naa - 1);     
   
     Tensor3 product_field(Nza, Naa, stokes_dim, 0);
@@ -2890,14 +2890,14 @@ scat_fieldCalc1D(//WS Output:
   
   if  ( atmosphere_dim == 1 )
     {
-      assert ( is_size( i_field, 
+      assert ( is_size( doit_i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       1, 
                       1,
                       scat_za_grid.nelem(), 
                       1,
                       stokes_dim));
-    assert ( is_size( scat_field, 
+    assert ( is_size( doit_scat_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       1, 
                       1,
@@ -2939,7 +2939,7 @@ scat_fieldCalc1D(//WS Output:
                       {
                         product_field(za_in, 0, i) +=
                           pha_mat(za_in, 29, i, j) * 
-                          i_field(p_index, 0, 0, za_in, 0, j);
+                          doit_i_field(p_index, 0, 0, za_in, 0, j);
                       }
                   }
               }//end za_in loop
@@ -2951,9 +2951,9 @@ scat_fieldCalc1D(//WS Output:
                   product_field( Range(joker),
                                  0,
                                  i);
-                // scat_field is also defined for all points inside the cloud
+                // doit_scat_field is also defined for all points inside the cloud
                 //box for each propagion angle
-                scat_field( p_index,
+                doit_scat_field( p_index,
                             0,
                             0,
                             scat_za_index, 
@@ -2982,7 +2982,7 @@ scat_fieldCalc1D(//WS Output:
     have to be interpolated.
  
     WS Output:
-    \param scat_field Scattering integral field.
+    \param doit_scat_field Scattering integral field.
     WS Output and Input:
     \param pha_mat Phase matrix.
     \param pha_mat_spt Phase matrix for single particle type
@@ -2990,22 +2990,22 @@ scat_fieldCalc1D(//WS Output:
     \param scat_aa_index needed for communication with pha_mat_spt_agenda.
     WS Input:
     \param pha_mat_spt_agenda Agenda for calculation of pha_mat_spt. 
-    \param i_field Intensity field 
+    \param doit_i_field Intensity field 
     \param pnd_field Particle number density field.
     \param scat_za_grid Zenith angle grid
     \param scat_aa_grid Azimuth angle grid
     \param atmosphere_dim Atmospheric dimension
     \param cloudbox_limits Limits of the cloudbox.
     \param za_gridsize Number of grid points in zenith angle grid.
-    \param scat_za_interp
+    \param doit_za_interp
 
 \author Claudia Emde
 \date 2003-11-28
 
 */
 void
-scat_fieldCalcLimb(//WS Output:
-               Tensor6& scat_field,
+doit_scat_fieldCalcLimb(//WS Output:
+               Tensor6& doit_scat_field,
                Tensor4& pha_mat,
                Tensor5& pha_mat_spt,
                Index& scat_za_index, 
@@ -3016,18 +3016,18 @@ scat_fieldCalcLimb(//WS Output:
                Index& scat_lon_index,
                //WS Input:
                const Agenda& pha_mat_spt_agenda,
-               const Tensor6& i_field,
+               const Tensor6& doit_i_field,
                const Tensor4& pnd_field,
                const Vector& scat_za_grid,
                const Vector& scat_aa_grid,
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
-               const Index& za_grid_size,
-               const Index& scat_za_interp,
+               const Index& doit_grid_size,
+               const Index& doit_za_interp,
                const Tensor3& t_field
                )
  {
-  Index stokes_dim = scat_field.ncols();
+  Index stokes_dim = doit_scat_field.ncols();
 
   // Some useful indices :
   Index Nza = scat_za_grid.nelem();
@@ -3035,18 +3035,18 @@ scat_fieldCalcLimb(//WS Output:
 
    // Create the grids for the calculation of the scattering integral.
   Vector za_grid;
-  nlinspace(za_grid, 0, 180, za_grid_size);
+  nlinspace(za_grid, 0, 180, doit_grid_size);
  
   // Two interpolations are required. First we have to interpolate the 
   // intensity field on the equidistant grid: 
-  ArrayOfGridPos gp_za_i(za_grid_size);
+  ArrayOfGridPos gp_za_i(doit_grid_size);
   gridpos(gp_za_i, scat_za_grid, za_grid);
   
-  Matrix itw_za_i(za_grid_size, 2);
+  Matrix itw_za_i(doit_grid_size, 2);
   interpweights(itw_za_i, gp_za_i);
 
   // Intensity field interpolated on equidistant grid.
-  Matrix i_field_int(za_grid_size, stokes_dim, 0);
+  Matrix doit_i_field_int(doit_grid_size, stokes_dim, 0);
 
   // Second, we have to interpolate the scattering integral on the RT
   // zenith angle grid.
@@ -3057,27 +3057,27 @@ scat_fieldCalcLimb(//WS Output:
   interpweights(itw_za, gp_za);
 
   // Original scattered field, on equidistant zenith angle grid.
-  Matrix scat_field_org(za_grid_size, stokes_dim, 0);
+  Matrix doit_scat_field_org(doit_grid_size, stokes_dim, 0);
   
   //  Grid stepsize of zenith and azimuth angle grid, these are needed for the 
   // integration function. 
   Vector grid_stepsize(2);
-  grid_stepsize[0] = 180./(za_grid_size - 1);
+  grid_stepsize[0] = 180./(doit_grid_size - 1);
   grid_stepsize[1] = 360./(Naa - 1);
     
-  Tensor3 product_field(za_grid_size, Naa, stokes_dim, 0);
+  Tensor3 product_field(doit_grid_size, Naa, stokes_dim, 0);
   
   if  ( atmosphere_dim == 1 )
     {
     
-      assert ( is_size( i_field, 
+      assert ( is_size( doit_i_field, 
                         (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                         1, 
                         1,
                         scat_za_grid.nelem(), 
                         1,
                         stokes_dim));
-      assert ( is_size( scat_field, 
+      assert ( is_size( doit_scat_field, 
                         (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                         1, 
                         1,
@@ -3096,29 +3096,29 @@ scat_fieldCalcLimb(//WS Output:
           // Interpolate intensity field:
           for (Index i = 0; i < stokes_dim; i++)
             {
-              if (scat_za_interp == 0)
+              if (doit_za_interp == 0)
                 {
-                  interp(i_field_int(joker, i), itw_za_i, 
-                         i_field(p_index, 0, 0, joker, 0, i), gp_za_i);
+                  interp(doit_i_field_int(joker, i), itw_za_i, 
+                         doit_i_field(p_index, 0, 0, joker, 0, i), gp_za_i);
                 } 
-              else if (scat_za_interp == 1)
+              else if (doit_za_interp == 1)
                 {
                   // Cubic
                   for(Index za = 0; za < za_grid.nelem(); za++)
                     {
-                      i_field_int(za, i) = 
+                      doit_i_field_int(za, i) = 
                         interp_cubic(scat_za_grid, 
-                                     i_field(p_index, 0, 0, joker, 0, i),
+                                     doit_i_field(p_index, 0, 0, joker, 0, i),
                                      za_grid[za],
                                      gp_za_i[za]);
                     }
                 }
-              // scat_za_interp must be 0 or 1 (linear or cubic)!!!
+              // doit_za_interp must be 0 or 1 (linear or cubic)!!!
               else assert(false);
             }       
           
           //There is only loop over zenith angle grid; no azimuth angle grid.
-          for( scat_za_index = 0; scat_za_index < za_grid_size;
+          for( scat_za_index = 0; scat_za_index < doit_grid_size;
                scat_za_index ++)
             {
               scat_p_index =  p_index + cloudbox_limits[0];
@@ -3141,7 +3141,7 @@ scat_fieldCalcLimb(//WS Output:
 
             // za_in and aa_in are for incoming zenith and azimuth 
             // angle direction for which pha_mat is calculated
-            for( Index za_in = 0; za_in < za_grid_size; za_in ++)
+            for( Index za_in = 0; za_in < doit_grid_size; za_in ++)
               {
                 for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
                   {
@@ -3154,7 +3154,7 @@ scat_fieldCalcLimb(//WS Output:
                           {
                             product_field(za_in, aa_in, i) +=
                               pha_mat(za_in, aa_in, i, j) * 
-                              i_field_int(za_in, j);
+                              doit_i_field_int(za_in, j);
                           }
                       }
                     
@@ -3169,9 +3169,9 @@ scat_fieldCalcLimb(//WS Output:
                   product_field( Range(joker),
                                  Range(joker),
                                  i);
-                // scat_field is also defined for all points inside the cloud
+                // doit_scat_field is also defined for all points inside the cloud
                 //box for each propagion angle
-                scat_field_org(scat_za_index, i)=
+                doit_scat_field_org(scat_za_index, i)=
                   AngIntegrate_trapezoid_opti(product_field_mat,
                                               za_grid,
                                               scat_aa_grid,
@@ -3184,25 +3184,25 @@ scat_fieldCalcLimb(//WS Output:
         // part.
         for (Index i = 0; i < stokes_dim; i++)
           {
-            if(scat_za_interp == 0) // linear interpolation
+            if(doit_za_interp == 0) // linear interpolation
               {
-                interp(scat_field(p_index,
+                interp(doit_scat_field(p_index,
                                   0,
                                   0,
                                   joker,
                                   0,
                                   i),
                        itw_za,
-                       scat_field_org(joker, i),
+                       doit_scat_field_org(joker, i),
                        gp_za);
               }
             else // cubic interpolation
               {
                 for(Index za = 0; za < scat_za_grid.nelem(); za++)
                   {
-                    scat_field(p_index, 0, 0, za, 0, i) = 
+                    doit_scat_field(p_index, 0, 0, za, 0, i) = 
                       interp_cubic(za_grid, 
-                                   scat_field_org(joker, i),
+                                   doit_scat_field_org(joker, i),
                                    scat_za_grid[za],
                                    gp_za[za]);
                   }
@@ -3216,14 +3216,14 @@ scat_fieldCalcLimb(//WS Output:
   else if( atmosphere_dim == 3 ){
     
     
-    assert ( is_size( i_field, 
+    assert ( is_size( doit_i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
                       (cloudbox_limits[5] - cloudbox_limits[4]) +1,
                       scat_za_grid.nelem(), 
                       scat_aa_grid.nelem(),
                       stokes_dim));
-    assert ( is_size( scat_field, 
+    assert ( is_size( doit_scat_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
                       (cloudbox_limits[5] - cloudbox_limits[4]) +1,
@@ -3253,13 +3253,13 @@ scat_fieldCalcLimb(//WS Output:
                    // Interpolate intensity field:
                     for (Index i = 0; i < stokes_dim; i++)
                       {
-                        interp(i_field_int(joker, i), itw_za_i, 
-                               i_field(p_index, lat_index, lon_index,
+                        interp(doit_i_field_int(joker, i), itw_za_i, 
+                               doit_i_field(p_index, lat_index, lon_index,
                                        joker, scat_aa_index, i), gp_za_i);
                       }       
                     
                     for (scat_za_index = 0; scat_za_index < 
-                           za_grid_size; scat_za_index ++)
+                           doit_grid_size; scat_za_index ++)
                       {
                         scat_p_index =  p_index + cloudbox_limits[0];
                         scat_lat_index = lat_index + cloudbox_limits[2];
@@ -3282,7 +3282,7 @@ scat_fieldCalcLimb(//WS Output:
                         out3 << "Multiplication of phase matrix with" << 
                           "incoming intensity \n";
                         
-                        for( Index za_in = 0; za_in < za_grid_size; za_in ++)
+                        for( Index za_in = 0; za_in < doit_grid_size; za_in ++)
                           {
                             for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
                               { 
@@ -3294,7 +3294,7 @@ scat_fieldCalcLimb(//WS Output:
                                       {
                                         product_field(za_in, aa_in, i) +=
                                           pha_mat(za_in, aa_in, i, j) * 
-                                          i_field_int(za_in, j);
+                                          doit_i_field_int(za_in, j);
                                       }
                                   }
                               }//end aa_in loop
@@ -3304,7 +3304,7 @@ scat_fieldCalcLimb(//WS Output:
 
                         for (Index i = 0; i < stokes_dim; i++)
                           {
-                            scat_field_org(scat_za_index, i)  =  
+                            doit_scat_field_org(scat_za_index, i)  =  
                               AngIntegrate_trapezoid_opti(product_field
                                                      ( joker,
                                                        joker, i),
@@ -3318,22 +3318,22 @@ scat_fieldCalcLimb(//WS Output:
                     //Interpolate on original za_grid. 
                     for (Index i = 0; i < stokes_dim; i++)
                       {
-                        interp(scat_field(p_index,
+                        interp(doit_scat_field(p_index,
                                           lat_index,
                                           lon_index,
                                           joker,
                                           scat_aa_index,
                                           i),
                                itw_za,
-                               scat_field_org(joker, i),
+                               doit_scat_field_org(joker, i),
                                gp_za);
                       }
                   } // end aa_prop loop
               }//end lon loop
           }//end lat loop
       }// end p loop
-    scat_field(joker, joker, joker, joker, 0, joker) =
-      scat_field(joker, joker, joker, joker, Naa-1, joker);
+    doit_scat_field(joker, joker, joker, joker, 0, joker) =
+      doit_scat_field(joker, joker, joker, joker, Naa-1, joker);
   }// end atm_dim=3
   else
     // Atmospheric dimension must be 1 or 3 for scattering calculations.
@@ -3353,15 +3353,15 @@ scat_fieldCalcLimb(//WS Output:
   \param scat_lon_index: Index for a position inside the cloudbox
   \param scat_za_index: Index for a zenith direction.
   \param scat_aa_index: Index for an azimuth direction.
-  \param iteration_counter: Index for counting iterations.
+  \param doit_iteration_counter: Index for counting iterations.
   \param pha_mat : Phase matrix.
   \param pha_mat_spt: Phase matrix for a single particle type.
   \param ext_mat_spt: Extinction matrix for a single particle type.
   \param abs_vec_spt: Absorption vector for a single particle type.
-  \param i_field : Radiation field
-  \param iteration_counter
-  \param scat_za_interp
-  \param scat_field: Scattered field.
+  \param doit_i_field : Radiation field
+  \param doit_iteration_counter
+  \param doit_za_interp
+  \param doit_scat_field: Scattered field.
   \param stokes_dim: Stokes dimension.
   \param atmosphere_dim: Atmospheric dimension.
   \param scat_za_grid: Zenith angle grid for scattering calculation.
@@ -3379,14 +3379,14 @@ void DoitInit(
                     Tensor5& pha_mat_spt,
                     Tensor3& ext_mat_spt,
                     Matrix& abs_vec_spt,
-                    Tensor6& scat_field,
-                    Tensor6& i_field,
-                    Index& iteration_counter,
+                    Tensor6& doit_scat_field,
+                    Tensor6& doit_i_field,
+                    Index& doit_iteration_counter,
                     const Index& stokes_dim,
                     const Index& atmosphere_dim,
                     const Vector& scat_za_grid,
                     const Vector& scat_aa_grid,
-                    const Index& za_grid_size,
+                    const Index& doit_grid_size,
                     const ArrayOfIndex& cloudbox_limits,
                     const ArrayOfSingleScatteringData& scat_data_raw
                     )
@@ -3414,10 +3414,10 @@ void DoitInit(
   // Number of particle types:
   const Index N_pt = scat_data_raw.nelem();
   
-  pha_mat.resize(za_grid_size, scat_aa_grid.nelem(), stokes_dim,
+  pha_mat.resize(doit_grid_size, scat_aa_grid.nelem(), stokes_dim,
                  stokes_dim);
   
-  pha_mat_spt.resize(N_pt, za_grid_size, 
+  pha_mat_spt.resize(N_pt, doit_grid_size, 
                      scat_aa_grid.nelem(), stokes_dim, stokes_dim);
   
   abs_vec_spt.resize(N_pt, stokes_dim);
@@ -3426,18 +3426,18 @@ void DoitInit(
   ext_mat_spt.resize(N_pt, stokes_dim, stokes_dim);
   ext_mat_spt = 0.;  
 
-  iteration_counter = 0;
+  doit_iteration_counter = 0;
 
   if (atmosphere_dim == 1)
     {
-      i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+      doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
                      1, 
                      1,
                      scat_za_grid.nelem(), 
                      1,
                      stokes_dim);
       
-      scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+      doit_scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
                         1, 
                         1,
                         scat_za_grid.nelem(), 
@@ -3446,14 +3446,14 @@ void DoitInit(
     }
   else if (atmosphere_dim == 3)
     {
-      i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+      doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
                      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
                      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
                      scat_za_grid.nelem(), 
                      scat_aa_grid.nelem(),
                      stokes_dim);
       
-      scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+      doit_scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
                         (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
                         (cloudbox_limits[5] - cloudbox_limits[4]) +1,
                         scat_za_grid.nelem(), 
@@ -3469,26 +3469,26 @@ void DoitInit(
                           );
     }
   
-  i_field = 0.;
-  scat_field = 0.;
+  doit_i_field = 0.;
+  doit_scat_field = 0.;
 
 }
 
 
 //! Main function for the radiative transfer in cloudbox.  
 /*!
-  This function executes *scat_mono_agenda* for each frequency in *f_grid*.  
+  This function executes *doit_mono_agenda* for each frequency in *f_grid*.  
   
   \param f_index Frequency index
   \param f_grid Frequency grid
-  \param scat_mono_agenda Agenda for monochromatic scattering calculation. 
+  \param doit_mono_agenda Agenda for monochromatic scattering calculation. 
   
   \author Claudia Emde
 */
-void ScatteringMain(
+void ScatteringDoit(
                     Index& f_index,
                     const Vector& f_grid,
-                    const Agenda& scat_mono_agenda
+                    const Agenda& doit_mono_agenda
                     )
                   
 {
@@ -3503,11 +3503,11 @@ void ScatteringMain(
       out1 << "----------------------------------------------\n";
       out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
       out1 << "----------------------------------------------\n";
-      scat_mono_agenda.execute(); 
+      doit_mono_agenda.execute(); 
     }
 }
 
-//! Execute *scat_grid_optimization_agenda*.
+//! Execute *doit_grid_optimization_agenda*.
 /*! 
   The methods checks whether *f_grid* contains just one frequency (only 
   monochromatic grid optimization possible) and executes 
@@ -3515,15 +3515,15 @@ void ScatteringMain(
   
   WS Input:
   \param f_grid Frequency grid. 
-  \param scat_grid_optimization_agenda 
+  \param doit_grid_optimization_agenda 
 
   \author Claudia Emde
   \date 2003-04-15
 */
-void ScatteringGridOptimization(
+void DoitGridOptimization(
                                 //WS Input
                                 const Vector& f_grid, 
-                                const Agenda& scat_grid_optimization_agenda
+                                const Agenda& doit_grid_optimization_agenda
                                 )
 {
   if(f_grid.nelem() > 1)
@@ -3532,7 +3532,7 @@ void ScatteringGridOptimization(
                         "monochromatic calculations. \n"
                         );
 
-  scat_grid_optimization_agenda.execute();
+  doit_grid_optimization_agenda.execute();
 }
  
 
@@ -3552,38 +3552,39 @@ void ScatteringGridOptimization(
    \param scat_za_grid optimized zenith angle grid
 
    WS Input:
-   \param scat_mono_agenda Agenda performing monochromatic scattering
+   \param doit_mono_agenda Agenda performing monochromatic scattering
    calculation
    \param f_index 
-   \param scat_za_interp Interpolation method.
+   \param doit_za_interp Interpolation method.
    
    \author Claudia Emde
    \date 2003-04-15
  */
-void scat_za_gridOptimize(//WS Output
-                          Vector& scat_za_grid_opt,
+void doit_za_grid_optCalc(//WS Output
+                          Vector& doit_za_grid_opt,
                           // WS Output and Input:
-                          Tensor6& i_field,
+                          Tensor6& doit_i_field,
                           //WS Input
                           const Vector& scat_za_grid,
-                          const Index& scat_za_interp,
+                          const Index& doit_za_interp,
                           //Keywords:
                           const Numeric& acc
                           )
 {
-  Matrix i_field_opt_mat;
-  i_field_opt_mat = 0.;
+  Matrix doit_i_field_opt_mat;
+  doit_i_field_opt_mat = 0.;
   
   // Optimize zenith angle grid. 
-  za_gridOpt(scat_za_grid_opt, i_field_opt_mat,
-             scat_za_grid, i_field, acc,
-             scat_za_interp);
+  za_gridOpt(doit_za_grid_opt, doit_i_field_opt_mat,
+             scat_za_grid, doit_i_field, acc,
+             doit_za_interp);
  
-  i_field.resize(i_field_opt_mat.nrows(), 1, 1, i_field_opt_mat.ncols(),
+  doit_i_field.resize(doit_i_field_opt_mat.nrows(), 1, 1, 
+                      doit_i_field_opt_mat.ncols(),
                       1, 1);
-  i_field = 0;
+  doit_i_field = 0;
   
-  i_field(joker, 0, 0, joker, 0, 0) = i_field_opt_mat;
+  doit_i_field(joker, 0, 0, joker, 0, 0) = doit_i_field_opt_mat;
 }
 
 
@@ -3598,7 +3599,7 @@ void scat_za_gridOptimize(//WS Output
   By default, linear interpolation is used.
       
   WS Output: 
-  \param scat_za_interp Flag for interpolation method
+  \param doit_za_interp Flag for interpolation method
   
   Keyword:
   \param method Interpolation method: "linear" or "cubic"
@@ -3607,8 +3608,8 @@ void scat_za_gridOptimize(//WS Output
   \date 2004-03-18
      
 */ 
-void scat_za_interpSet(
-                       Index& scat_za_interp,
+void doit_za_interpSet(
+                       Index& doit_za_interp,
                        const Index& atmosphere_dim,
                        //Keyword
                        const String& method
@@ -3624,9 +3625,9 @@ void scat_za_interpSet(
                         );
 
   if(method == "linear")
-    scat_za_interp = 0;
+    doit_za_interp = 0;
   else if (method == "cubic")
-    scat_za_interp = 1;
+    doit_za_interp = 1;
   else
     throw runtime_error("Possible interpolation methods are 'linear' "
                         "and 'cubic'.\n");
@@ -3638,8 +3639,8 @@ void scat_za_interpSet(
   This function writed intermediate resultes, the iterations of fields to xml 
   files. It can be used to check the solution method for the RTE with 
   scattering integral, which is an iterative numerical method. It is useful
-  to look how the radiation field *i_field* and the scattered field
-  *scat_field* behave.
+  to look how the radiation field *doit_i_field* and the scattered field
+  *doit_scat_field* behave.
 
   The user can give an array containing the iterations which shall be written 
   to files as a keyword to the method. E.g. if "iterations = [3, 6, 9]",
@@ -3649,11 +3650,11 @@ void scat_za_interpSet(
   If you want to save all the iterations the array has to contain 
   just one element set to 0: "iterations = [0]". 
   
-  Note: The workspace variable iteration_counter has to be set as 0 in the
+  Note: The workspace variable doit_iteration_counter has to be set as 0 in the
   control file before using this method.
       
   WS Input/Output: 
-  \param iteration_counter Counter for the iterations. 
+  \param doit_iteration_counter Counter for the iterations. 
   \param field Iterated field
   \param field_name Name of intensity field.
   \param iterations Array containing the iteration numbers to be written
@@ -3663,17 +3664,17 @@ void scat_za_interpSet(
      
 */ 
 void Tensor6WriteIteration(//WS input 
-                           const Index& iteration_counter,
+                           const Index& doit_iteration_counter,
                            //Global  Input :
                            const Tensor6& field,
                            const String& field_name,
                            //Keyword:
                            const ArrayOfIndex& iterations)
 {
-  // if(iteration_counter>1000) return;
+  // if(doit_iteration_counter>1000) return;
    
   ostringstream os;
-  os << iteration_counter;
+  os << doit_iteration_counter;
   
   // All iterations are written to files
   if( iterations[0] == 0 )
@@ -3685,7 +3686,7 @@ void Tensor6WriteIteration(//WS input
     {
       for (Index i = 0; i<iterations.nelem(); i++)
         {
-          if (iteration_counter == iterations[i])
+          if (doit_iteration_counter == iterations[i])
             xml_write_to_file(field_name + os.str() + ".xml", field);  
         }
     }

@@ -1,5 +1,61 @@
 2005-04-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
+	* arts-1-1-936
+
+	Renamed agenda, WSMs and WSVs. Long time back, we decided that all
+	variables/methods related to scattering should start with scat... 
+	Now it turned out theat most of the scat... variables are only
+	used for doit, so I renamed them doit.... 
+	I will put an updated working control file on the ARTS Wiki ASAP. 
+	
+	Updated the online documentation for many renamed agendas,
+	WSMs and WSVs. 
+
+	* src/agendas.cc: Renamed the following agendas: 
+	grid_optimization_agenda --> doit_grid_optimization_agenda
+	scat_field_agenda --> doit_scat_field_agenda
+	scat_mono_agenda --> doit_mono_agenda	
+	scat_rte_agenda --> doit_rte_agenda
+	convergence_test_agenda	--> doit_conv_test_agenda
+
+	* src/methods.cc: Renamed the following WSM:	
+	convergence_flagAbs --> doit_conv_flagAbs
+	convergence_flagLsq --> doit_conv_flagLsq
+	convergence_flagAbs_BT --> doit_conv_flagAbsBT
+	i_fieldIterate --> doit_i_fieldIterate
+	i_fieldSetClearsky --> doit_i_fieldSetClearsky
+	i_fieldSetConst --> doit_i_fieldSetConst
+	i_fieldUpdate1D --> doit_i_fieldUpdate1D
+	i_fieldUpdateSeq1D --> doit_i_fieldUpdateSeq1D
+	i_fieldUpdateSeq1D_PlaneParallel --> doit_i_fieldUpdateSeq1DPP 
+	i_fieldUpdate3D --> doit_i_fieldUpdate3D
+	i_fieldUpdateSeq3D --> doit_i_fieldUpdateSeq3D
+	ScatteringDataPrepareDoitOpt --> DoitScatteringDataPrepare
+	ScatteringGridOptimization --> DoitGridOptimization
+	ScatteringMain --> ScatteringDoit
+	scat_fieldCalc --> doit_scat_fieldCalc
+	scat_fieldCalc1D --> doit_scat_fieldCalc1D	
+	scat_fieldCalcLimb --> doit_scat_fieldCalcLimb
+	scat_iPut --> DoitCloudboxFieldPut
+	scat_za_gridOptimize --> doit_za_grid_optCalc
+	scat_za_interpSet --> doit_za_interpSet
+	grid_sizeSet --> DoitAngularGridsSet
+	
+	* src/workspace.cc: Renamed the following WSV:
+	convergence_flag --> doit_conv_flag
+	iteration_counter --> doit_iteration_counter
+	i_field --> doit_i_field
+	i_field_old --> doit_i_field_old
+	scat_field --> doit_scat_field
+	scat_za_grid_opt --> doit_za_grid_opt
+	scat_za_interp --> doit_za_interp
+	za_grid_size --> doit_za_grid_size
+
+	* src/m_cloudbox.cc, m_optproperties.cc, m_scatrte.cc,
+	scatrte.cc: Included new WSM, WSV and agenda names.	
+	
+2005-04-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
 	* arts-1-1-935
 	
 	* src/m_atmosphere.cc (AtmFieldsCalc): Included checks for the 
@@ -9,7 +65,7 @@
 	Included checks for the single scattering data and the particle 
 	numbre density fields.
 
-	* src/cloudbox.{cc,h} (chk_pnd_data, chk_pnd_raw_data, 
+	* src/cloudbox.{cc,h} (chk_pnd_data, chk_pnd_raw_data  
 	chk_single_scattering_data): Created these functions. The last one
 	checks the consistency of the single scattering properties file, 
 	whether the dimensions of the data is consistent with the chosen 

@@ -378,7 +378,7 @@ void cloudboxSetManuallyAltitude(
   radiation field on all grid points inside the cloud box form the 
   clear sky field on the cloud bod boundary.
   
-  \param i_field Output : Intensity field
+  \param doit_i_field Output : Intensity field
   \param scat_i_p Input : Intensity field on cloudbox boundary 
   (equal pressure surfaces)
   \param scat_i_lat Input : Intensity field on cloudbox boundary 
@@ -396,7 +396,7 @@ void cloudboxSetManuallyAltitude(
   \author Sreerekha T.R.
    \date   2002-07-24
 */
-void i_fieldSetClearsky(Tensor6& i_field,
+void doit_i_fieldSetClearsky(Tensor6& doit_i_field,
                 const Tensor7& scat_i_p,
                 const Tensor7& scat_i_lat,
                 const Tensor7& scat_i_lon,
@@ -436,14 +436,14 @@ void i_fieldSetClearsky(Tensor6& i_field,
       //1. interpolation - pressure grid
       
       
-      i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1,
+      doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1,
                      1,
                      1,
                      N_za,
                      N_aa,
                      N_i);
 
-      i_field = 0.;
+      doit_i_field = 0.;
 
       
 
@@ -472,7 +472,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
               for (Index i = 0 ; i < N_i ; ++ i)
                 {
                   
-                  VectorView target_field = i_field(Range(joker),
+                  VectorView target_field = doit_i_field(Range(joker),
                                                     0,
                                                     0,
                                                     za_index,
@@ -571,8 +571,8 @@ void i_fieldSetClearsky(Tensor6& i_field,
       //1. interpolation - pressure grid, latitude grid and longitude grid
       
    
-      //i_field
-      i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
+      //doit_i_field
+      doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
                      (cloudbox_limits[3]- cloudbox_limits[2])+1,
                      (cloudbox_limits[5]- cloudbox_limits[4])+1,
                      N_za, 
@@ -635,7 +635,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
                       for (Index i = 0 ; i < N_i ; ++ i)
                         {
                           
-                          VectorView target_field = i_field(Range(joker),
+                          VectorView target_field = doit_i_field(Range(joker),
                                                             lat_index,
                                                             lon_index,
                                                             za_index,
@@ -674,7 +674,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
                       for (Index i = 0 ; i < N_i ; ++ i)
                         {
                           
-                          VectorView target_field = i_field(p_index,
+                          VectorView target_field = doit_i_field(p_index,
                                                             Range(joker),
                                                             lon_index,
                                                             za_index,
@@ -713,7 +713,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
                       for (Index i = 0 ; i < N_i ; ++ i)
                         {
                           
-                          VectorView target_field = i_field(p_index,
+                          VectorView target_field = doit_i_field(p_index,
                                                             lat_index,
                                                             Range(joker),
                                                             za_index,
@@ -751,10 +751,10 @@ void i_fieldSetClearsky(Tensor6& i_field,
   in f_grid =1).
 
   The user can specify a value for each Stokes dimension in the control file
-  by the variable i_field_value, which is a vector containing 4 elements, the
+  by the variable doit_i_field_value, which is a vector containing 4 elements, the
   value of the initial field for each Stokes dimension.
   
-  \param i_field Output : Intensity field
+  \param doit_i_field Output : Intensity field
   \param scat_i_p Input : Intensity field on cloudbox boundary 
   (equal pressure surfaces)
   \param scat_i_lat Input : Intensity field on cloudbox boundary 
@@ -767,14 +767,14 @@ void i_fieldSetClearsky(Tensor6& i_field,
   \param cloudbox_limits Input : Limits of the cloud box
   \param atmosphere_dim Input : dimension of atmosphere
   \param stokes_dim     FIXME: Add documentation.
-  \param i_field_values Keyword : value of the constant initial field 
+  \param doit_i_field_values Keyword : value of the constant initial field 
 
   \author Claudia Emde
   \date 2002-08-26
   
 */
-void i_fieldSetConst(//WS Output:
-                        Tensor6& i_field,
+void doit_i_fieldSetConst(//WS Output:
+                        Tensor6& doit_i_field,
                         //WS Input:
                         const Tensor7& scat_i_p,
                         const Tensor7& scat_i_lat,
@@ -786,9 +786,9 @@ void i_fieldSetConst(//WS Output:
                         const Index& atmosphere_dim,
                         const Index& stokes_dim,
                         // Keyword       
-                        const Vector& i_field_values)
+                        const Vector& doit_i_field_values)
 {
-  out2 << "Set initial field to constant values: " << i_field_values << "\n"; 
+  out2 << "Set initial field to constant values: " << doit_i_field_values << "\n"; 
 
   // In the 1D case the atmospheric layers are defined by p_grid and the
   // required interface is scat_i_p.
@@ -823,10 +823,10 @@ void i_fieldSetConst(//WS Output:
     {
       cout << "atm_dim = 1" << endl; 
       
-    // Define the size of i_field.
-    i_field.resize((cloudbox_limits[1] - cloudbox_limits[0])+1, 1, 1,  N_za,
+    // Define the size of doit_i_field.
+    doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0])+1, 1, 1,  N_za,
                    1, N_i);
-    i_field = 0.;
+    doit_i_field = 0.;
 
     // Loop over all zenith angle directions.
     for (Index za_index = 0; za_index < N_za; za_index++)
@@ -834,16 +834,16 @@ void i_fieldSetConst(//WS Output:
         for (Index i = 0; i < stokes_dim; i++)
           { 
             //set the value for the upper boundary
-            i_field(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index,
+            doit_i_field(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index,
                     0, i) = 
           scat_i_p(0, 1, 0, 0, za_index, 0, i);
             //set the value for the lower boundary 
-            i_field(0, 0, 0, za_index, 0, i) =  
+            doit_i_field(0, 0, 0, za_index, 0, i) =  
           scat_i_p(0, 0, 0, 0, za_index, 0, i);
             for (Index scat_p_index = 1; scat_p_index < cloudbox_limits[1] - 
                    cloudbox_limits[0]; scat_p_index++ )
               // The field inside the cloudbox is set to some arbitrary value.
-              i_field(scat_p_index, 0, 0, za_index, 0, i) =  i_field_values[i];
+              doit_i_field(scat_p_index, 0, 0, za_index, 0, i) =  doit_i_field_values[i];
           }    
       }
     }
@@ -866,14 +866,14 @@ void i_fieldSetConst(//WS Output:
 
       
       cout << "atm_dim = 3" << endl;      
-      i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
+      doit_i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
                      (cloudbox_limits[3]- cloudbox_limits[2])+1,
                      (cloudbox_limits[5]- cloudbox_limits[4])+1,
                      N_za, 
                      N_aa,
                      N_i);
       
-      i_field = 0.;
+      doit_i_field = 0.;
       
 
       // Loop over all directions:
@@ -892,7 +892,7 @@ void i_fieldSetConst(//WS Output:
                              lon_index <= cloudbox_limits[5]; lon_index++)
                           {
                             //set the value for the upper pressure boundary
-                            i_field(cloudbox_limits[1]-cloudbox_limits[0], 
+                            doit_i_field(cloudbox_limits[1]-cloudbox_limits[0], 
                                     lat_index-cloudbox_limits[2],
                                     lon_index-cloudbox_limits[4],
                                     za_index, aa_index, i) = 
@@ -900,7 +900,7 @@ void i_fieldSetConst(//WS Output:
                                        lon_index-cloudbox_limits[4],
                                        za_index, aa_index, i);
                             //set the value for the lower pressure boundary 
-                            i_field(0, lat_index-cloudbox_limits[2],
+                            doit_i_field(0, lat_index-cloudbox_limits[2],
                                     lon_index-cloudbox_limits[4],
                                     za_index, aa_index, i) =  
                               scat_i_p(0, 0, lat_index-cloudbox_limits[2],
@@ -918,7 +918,7 @@ void i_fieldSetConst(//WS Output:
                              lon_index <= cloudbox_limits[5]; lon_index++)
                           {
                             // first boundary
-                            i_field(p_index-cloudbox_limits[0], 
+                            doit_i_field(p_index-cloudbox_limits[0], 
                                     cloudbox_limits[3]-cloudbox_limits[2],
                                     lon_index-cloudbox_limits[4],
                                     za_index, aa_index, i) = 
@@ -926,7 +926,7 @@ void i_fieldSetConst(//WS Output:
                                          1, lon_index-cloudbox_limits[4],
                                          za_index, aa_index, i);
                             // second boundary
-                            i_field(p_index-cloudbox_limits[0], 0, 
+                            doit_i_field(p_index-cloudbox_limits[0], 0, 
                                     lon_index-cloudbox_limits[4], 
                                     za_index, aa_index, i) =  
                               scat_i_lat(0, p_index-cloudbox_limits[0], 0,
@@ -939,7 +939,7 @@ void i_fieldSetConst(//WS Output:
                              lat_index <= cloudbox_limits[3]; lat_index++)
                           {
                             // first boundary
-                            i_field(p_index-cloudbox_limits[0],
+                            doit_i_field(p_index-cloudbox_limits[0],
                                     lat_index-cloudbox_limits[2],
                                     cloudbox_limits[5]-cloudbox_limits[4],
                                     za_index, aa_index, i) = 
@@ -947,7 +947,7 @@ void i_fieldSetConst(//WS Output:
                                          lat_index-cloudbox_limits[2], 1,
                                          za_index, aa_index, i);
                             // second boundary
-                            i_field(p_index-cloudbox_limits[0],  
+                            doit_i_field(p_index-cloudbox_limits[0],  
                                     lat_index-cloudbox_limits[2],
                                     0, 
                                     za_index, aa_index, i) =  
@@ -972,11 +972,11 @@ void i_fieldSetConst(//WS Output:
                                 lon_index < cloudbox_limits[5];
                                 lon_index++)
                              {
-                               i_field(p_index-cloudbox_limits[0],
+                               doit_i_field(p_index-cloudbox_limits[0],
                                        lat_index-cloudbox_limits[2],
                                        lon_index-cloudbox_limits[4],
                                        za_index, aa_index, i) =  
-                                 i_field_values[i];
+                                 doit_i_field_values[i];
                              }
                          }
                      }
@@ -1252,7 +1252,7 @@ void pnd_fieldCalc(//WS Output:
 /*
   This method puts the scattered radiation field into the interface variables 
   between the cloudbox and the clearsky, which are *scat_i_p*, *scat_i_lat*,
-  *scat_i_lon*. As i_field is only stored for one frequency given by
+  *scat_i_lon*. As doit_i_field is only stored for one frequency given by
   *f_index* this method has to be executed after each scattering 
   calculation to store the scattered field on the boundary of the cloudbox.
   
@@ -1261,10 +1261,10 @@ void pnd_fieldCalc(//WS Output:
   can be included.
  
   
- \param scat_i_p i_field on pressure boundaries
- \param scat_i_lat i_field on latitude boundaries
- \param scat_i_lon i_field on longitude boundaries
- \param i_field radiation field inside cloudbox
+ \param scat_i_p doit_i_field on pressure boundaries
+ \param scat_i_lat doit_i_field on latitude boundaries
+ \param scat_i_lon doit_i_field on longitude boundaries
+ \param doit_i_field radiation field inside cloudbox
  \param f_grid frequency grid
  \param f_index index for scattering calculation
  \param p_grid pressure grid
@@ -1280,12 +1280,12 @@ void pnd_fieldCalc(//WS Output:
  \date 2002-09-09
  
 */
-void scat_iPut(//WS Output:
+void DoitCloudboxFieldPut(//WS Output:
                Tensor7&  scat_i_p,
                Tensor7& scat_i_lat,
                Tensor7& scat_i_lon,
                //WS Input:
-               const Tensor6& i_field,
+               const Tensor6& doit_i_field,
                const Vector& f_grid,
                const Index& f_index,
                const Vector& p_grid,
@@ -1326,12 +1326,12 @@ void scat_iPut(//WS Output:
                         "be 2 x *atmosphere_dim*"); 
   // End of checks.
 
-  // Put the i_field at the cloudbox boundary into the interface variable 
+  // Put the doit_i_field at the cloudbox boundary into the interface variable 
   // scat_i_p.
   if(atmosphere_dim == 1)
     {
-      // Check size of i_field.
-      assert ( is_size( i_field, 
+      // Check size of doit_i_field.
+      assert ( is_size( doit_i_field, 
                         (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                         1, 
                         1,
@@ -1347,14 +1347,14 @@ void scat_iPut(//WS Output:
           for (Index i = 0; i < stokes_dim; i++)
             {  
               
-              //i_field at lower boundary
+              //doit_i_field at lower boundary
               scat_i_p(f_index, 0, 0, 0,
                        za, 0, i) = 
-                i_field(0, 0, 0, za, 0, i);
-              //i_field at upper boundary
+                doit_i_field(0, 0, 0, za, 0, i);
+              //doit_i_field at upper boundary
               scat_i_p(f_index, 1, 0, 0,
                        za, 0, i) = 
-                i_field(cloudbox_limits[1] - cloudbox_limits[0],
+                doit_i_field(cloudbox_limits[1] - cloudbox_limits[0],
                         0, 0, za, 0, i); 
               
             }//end stokes_dim
@@ -1367,8 +1367,8 @@ void scat_iPut(//WS Output:
       Index N_lat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
       Index N_lon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
       
-      // Check size of i_field.
-      assert ( is_size( i_field, 
+      // Check size of doit_i_field.
+      assert ( is_size( doit_i_field, 
                         cloudbox_limits[1] - cloudbox_limits[0] + 1,
                         N_lat,
                         N_lon,
@@ -1388,53 +1388,53 @@ void scat_iPut(//WS Output:
               for (Index i = 0; i < stokes_dim; i++)
                 {  
                   //
-                  // Put i_field in scat_i_p:
+                  // Put doit_i_field in scat_i_p:
                   //
                   for (Index lat = 0; lat < N_lat; lat++)
                     {
                       for (Index lon = 0; lon < N_lon; lon++)
                         {
-                          //i_field at lower boundary
+                          //doit_i_field at lower boundary
                           scat_i_p(f_index, 0, lat, lon,
                                    za, aa, i) = 
-                            i_field(0, lat, lon, za, aa, i);
-                          //i_field at upper boundary
+                            doit_i_field(0, lat, lon, za, aa, i);
+                          //doit_i_field at upper boundary
                           scat_i_p(f_index, 1, lat, lon,
                                    za, aa, i) = 
-                            i_field(cloudbox_limits[1]-cloudbox_limits[0],
+                            doit_i_field(cloudbox_limits[1]-cloudbox_limits[0],
                                     lat, lon, za, aa, i);
                         }
                     }
                   // 
-                  // Put i_field in scat_i_lat:
+                  // Put doit_i_field in scat_i_lat:
                   //
                   for (Index p = 0; p < N_p; p++)
                     {
                       for (Index lon = 0; lon < N_lon; lon++)
                         {
-                          //i_field at lower boundary
+                          //doit_i_field at lower boundary
                           scat_i_lat(f_index, p, 0, lon,
                                      za, aa, i) = 
-                            i_field(p, 0, lon, za, aa, i);
-                          //i_field at upper boundary
+                            doit_i_field(p, 0, lon, za, aa, i);
+                          //doit_i_field at upper boundary
                           scat_i_lat(f_index, p, 1, lon,
                                      za, aa, i) = 
-                            i_field(p, cloudbox_limits[3]-
+                            doit_i_field(p, cloudbox_limits[3]-
                                     cloudbox_limits[2],
                                     lon, za, aa, i);
                         }
                       //
-                      // Put i_field in scat_i_lon:
+                      // Put doit_i_field in scat_i_lon:
                       for (Index lat = 0; lat < N_lat; lat++)
                         {
-                          //i_field at lower boundary
+                          //doit_i_field at lower boundary
                           scat_i_lon(f_index, p, lat, 0,
                                      za, aa, i) = 
-                            i_field(p, lat, 0, za, aa, i);
-                          //i_field at upper boundary
+                            doit_i_field(p, lat, 0, za, aa, i);
+                          //doit_i_field at upper boundary
                           scat_i_lon(f_index, p, lat, 1,
                                      za, aa, i) = 
-                            i_field(p, lat, cloudbox_limits[5]-
+                            doit_i_field(p, lat, cloudbox_limits[5]-
                                     cloudbox_limits[4], za, aa, i);
                         } 
                     }

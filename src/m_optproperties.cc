@@ -1138,18 +1138,18 @@ void scat_data_rawCheck(//Input:
   \author Claudia Emde
   \date   2003-08-25
 */
-void ScatteringDataPrepareDOITOpt( //Output:
-                                  ArrayOfTensor7& pha_mat_sptDOITOpt,
-                                  ArrayOfSingleScatteringData& scat_data_mono,
-                                  //Input:
-                                  const Index& za_grid_size,
-                                  const Vector& scat_aa_grid,
-                                  const ArrayOfSingleScatteringData&
-                                  scat_data_raw,
-                                  const Vector& f_grid,
-                                  const Index& f_index,
-                                  const Index& atmosphere_dim,
-                                  const Index& stokes_dim
+void DoitScatteringDataPrepare( //Output:
+                               ArrayOfTensor7& pha_mat_sptDOITOpt,
+                               ArrayOfSingleScatteringData& scat_data_mono,
+                               //Input:
+                               const Index& za_grid_size,
+                               const Vector& scat_aa_grid,
+                               const ArrayOfSingleScatteringData&
+                               scat_data_raw,
+                               const Vector& f_grid,
+                               const Index& f_index,
+                               const Index& atmosphere_dim,
+                               const Index& stokes_dim
                                   )
 {
   
