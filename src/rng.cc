@@ -141,7 +141,6 @@ return seed_no;
 */
 
 //#include <config.h>
-#include <stdlib.h>
 
 static inline unsigned long int mt_get (void *vstate);
 static double mt_get_double (void *vstate);
@@ -274,7 +273,6 @@ unsigned long int gsl_rng_default_seed = 0;
  */
 
 //#include <config.h>
-#include <stdlib.h>
 
 #define N1 100
 
@@ -373,9 +371,6 @@ gsl_rng_types_setup (void)
  */
 
 //#include <config.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 //#include "gsl_errno.h"
 //#include "gsl_message.h"
@@ -441,9 +436,9 @@ gsl_set_stream (FILE * new_stream)
  */
 
 //#include <config.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstddef>
+#include <cstdlib>
+#include <cstdio>
 
 //#include "gsl_errno.h"
 //#include "gsl_message.h"
@@ -516,9 +511,6 @@ no_error_handler (const char *reason, const char *file, int line, int gsl_errno)
  */
 
 //#include <config.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 //#include "gsl_errno.h"
 
 gsl_rng *
