@@ -1,3 +1,4 @@
+#!/bin/sh
 #  
 # This file is free software; as a special exception the author gives
 # unlimited permission to copy and/or distribute it, with or without 
@@ -12,7 +13,6 @@
 rm INSTALL install-sh missing mkinstalldirs 2> /dev/null
 
 
-#!/bin/sh
 rm -f config.cache
 rm -f acconfig.h
 echo "- aclocal."
@@ -27,5 +27,5 @@ echo "- autoheader."
 autoheader
 echo "- automake."
 automake -a
-./configure --enable-docs
+./configure --enable-maintainer-mode $@
 exit
