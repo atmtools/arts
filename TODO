@@ -1,11 +1,7 @@
-SAB 2000-01-17: Change copyright to FSF.
 SAB 2000-01-30: Turn off all debugging options with ./configure flag.
                 (Do not give the -g flag to the compiler, set NDEBUG.)
 SAB 2000-03-27: Add an author field to MdRecord?
 SAB 2000-06-17: Change interpolation in absorption part to interpp.
-SAB 2000-08-10: Change define_wsv_data, etc. to be default
-                constructors. That way, we don't have to call them
-                explicitly.   
 SAB 2000-08-16: - Implement abs_tags and wf_tags, also
                   abs_tagsDefine and wf_tagsDefine.
                 - Change absComp to return absorption matrices only for 
@@ -62,3 +58,41 @@ SAB 2000-09-13: Change names of automatically generated files to _auto...
 
 AvE 2000-09-27: There is optimization potential in the lineshape.cc file,
 		read FIXME comments over there.
+
+SAB 2000-10-05: Remove name of argument from generic methods
+                (i.e., WriteToFile instead fo
+                VectorWriteToFile). Internally, unique names have to
+                be assigned to the specific functions for the
+                different WSV types. Will make the program internally
+                somewhat more complicated, but much more user
+                friendly.
+
+SAB 2000-10-05: Implement a mechanism for `meta-methods', i.e.,
+                methods that can execute parts of the controlfile with
+                changed parameters in a private copy of the
+                workspace. 
+
+SAB 2000-10-05: Implement sparse matrices and multiplication of sparse
+                matrix with a vector.
+
+SAB 2000-10-05: Change matrix/vector package from TNT to MTL. A new
+                version of MTL with a much better user interface is
+                expected. However we cannot be sure exactly when it
+                will be available. 
+
+SAB 2000-10-05: Implement sensor model by sparse matrix. (Needs sparse
+                matrix first)
+
+SAB 2000-10-05: Implement optimization algorithms. (Needs meta-methods
+                first.) 
+
+SAB 2000-10-05: Make a first release.
+
+SAB 2000-10-05: Set up ARTS mailing list. (Oliver)
+
+SAB 2000-10-05: Set up ARTS web page. (Oliver)
+
+SAB 2000-10-05: Create IDL version of AMI. (Wolfram)
+
+SAB 2000-10-05: Fix pdf version of Uguide. (Oliver)
+
