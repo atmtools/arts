@@ -1,5 +1,31 @@
 2001-10-31  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-0-1-31
+
+	* configure.in: First check for libjpeg. Otherwise static linking
+	does not work when the libraries are added in the wrong order
+	(libdf depends on libjpeg).
+
+	* src/parser.cc: Moved #include "arts.h" to top.
+
+	* src/main.cc: Moved #include "arts.h" to top.
+
+	* src/absorption.cc: Moved #include "arts.h" to top.
+
+	* src/workspace_aux.cc: Moved #include "arts.h" to top.
+
+	* src/globals_2.cc: Moved #include "arts.h" to top.
+
+	* src/arts.h: Added #include <cstddef> on top which contains
+	definition of size_t required to compile on marvin with HP's
+	broken gcc.
+
+	* All of the following changes belong to the effort to compile
+	ARTS on marvin.
+	
+	
+2001-10-31  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-0-1-30
 	
 	* reconf: Added option --copy to automake
