@@ -145,43 +145,64 @@ binistream::Int binistream::readInt(unsigned int size)
 
 binistream::Float binistream::readFloat(FType ft)
 {
-  if(getFlag(FloatIEEE)) {	// Read IEEE-754 floating-point value
-    unsigned int	i, size;
-    Byte		in[8];
-    bool		swap;
+  if(getFlag(FloatIEEE))
+    {
+      // Read IEEE-754 floating-point value
 
-    // Determine appropriate size for given type.
-    switch(ft) {
-    case Single: size = 4; break;	// 32 bits
-    case Double: size = 8; break;	// 64 bits
-    }
+      unsigned int      i, size;
+      Byte              in[8];
+      bool              swap;
 
-    // Determine byte ordering, depending on what we do next
-    if(system_flags & FloatIEEE)
-      swap = getFlag(BigEndian) ^ (system_flags & BigEndian);
-    else
-      swap = !getFlag(BigEndian);
+      // Determine appropriate size for given type.
+      switch(ft) {
+        case Single: size = 4; break;	// 32 bits
+        case Double: size = 8; break;	// 64 bits
+      }
 
-    // Read the float byte by byte, converting endianess
-    for(i = 0; i < size; i++)
-      if(swap)
-	in[size - i - 1] = getByte();
+      // Determine byte ordering, depending on what we do next
+      if(system_flags & FloatIEEE)
+        swap = getFlag(BigEndian) ^ (system_flags & BigEndian);
       else
-	in[i] = getByte();
+        swap = !getFlag(BigEndian);
 
-    if(system_flags & FloatIEEE) {
-      // Compatible system, let the hardware do the conversion
-      switch(ft) {
-      case Single: return *(float *)in;
-      case Double: return *(double *)in;
-      }
-    } else {	// Incompatible system, convert manually
-      switch(ft) {
-      case Single: return ieee_single2float(in);
-      case Double: return ieee_double2float(in);
-      }
+      if (!swap && ((size == sizeof (float)) || (size == sizeof (double))))
+        {
+          if (size == 4)
+            {
+              float f;
+              getRaw ((char *)&f, size);
+              return (Float)f;
+            }
+          else
+            {
+              double d;
+              getRaw ((char *)&d, size);
+              return (Float)d;
+            }
+        }
+      else
+        {
+          // Read the float byte by byte, converting endianess
+          for(i = 0; i < size; i++)
+            if(swap)
+              in[size - i - 1] = getByte();
+            else
+              in[i] = getByte();
+
+          if(system_flags & FloatIEEE) {
+                // Compatible system, let the hardware do the conversion
+                switch(ft) {
+                  case Single: return *(float *)in;
+                  case Double: return *(double *)in;
+                }
+          } else {	// Incompatible system, convert manually
+                switch(ft) {
+                  case Single: return ieee_single2float(in);
+                  case Double: return ieee_double2float(in);
+                }
+          }
+        }
     }
-  }
 
   // User tried to read a (yet) unsupported floating-point type. Bail out.
   err |= Unsupported; return 0.0;
@@ -405,11 +426,26 @@ void binostream::writeFloat(Float f, FType ft)
       // Hardware could be big or little endian, convert appropriately
       swap = getFlag(BigEndian) ^ (system_flags & BigEndian);
 
-      // Determine appropriate size for given type and convert by hardware
       switch(ft) {
-      case Single: size = 4; out = (Byte *)&outf; break;	// 32 bits
-      case Double: size = 8; out = (Byte *)&outd; break;	// 64 bits
+        case Single: size = 4; break;	// 32 bits
+        case Double: size = 8; break;	// 64 bits
       }
+
+      if (!swap && ((size == sizeof (float)) || (size == sizeof (double))))
+        {
+          if (size == 4)
+            { putRaw ((char *)&outf, size); return; }
+          else
+            { putRaw ((char *)&outd, size); return; }
+        }
+      else
+        {
+          // Determine appropriate size for given type and convert by hardware
+          switch(ft) {
+            case Single: out = (Byte *)&outf; break;	// 32 bits
+            case Double: out = (Byte *)&outd; break;	// 64 bits
+          }
+        }
     } else {
 #if BINIO_WITH_MATH
       // incompatible system, do the conversion manually

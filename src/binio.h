@@ -140,6 +140,7 @@ public:
 
 protected:
   virtual Byte getByte() = 0;
+  virtual void getRaw(char *c, streamsize n) = 0;
 
 private:
   Float ieee_single2float(Byte *data);
@@ -161,6 +162,7 @@ public:
 
 protected:
   virtual void putByte(Byte) = 0;
+  virtual void putRaw(const char *c, streamsize n) = 0;
 
 private:
   void float2ieee_single(Float f, Byte *data);
