@@ -258,24 +258,6 @@ double pow (float f, double d)
   return (pow (double (f), d));
 }
 
-//! pow
-/*! 
-    Returns the value of f raised to the power of d.
-
-    \return      The value of d raised to the power of f.
-    \param   d   Double value.
-    \param   f   Float value.
-
-    \author Oliver Lemke
-    \date   2003-01-23
-*/
-
-
-double pow (double d, float f)
-{
-  return (pow (d, double (f)));
-}
-
 
 //! AngIntegrate_trapezoid
 /*! 

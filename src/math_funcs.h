@@ -81,9 +81,6 @@ Vector nlogspace(
 
 double pow (float f, double d);
 
-double pow (double d, float f);
-
-
 Numeric AngIntegrate_trapezoid(MatrixView Integrand,
                                ConstVectorView za_grid,
                                ConstVectorView aa_grid);
