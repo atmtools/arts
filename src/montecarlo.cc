@@ -542,12 +542,27 @@ void interpTArray(Matrix& T,
 void Sample_los (
 		 VectorView& rte_los,
 		 Numeric& g_los_csc_theta,
-		 Rng& rng
+		 Rng& rng,
+		 const Index& sampling_method
 		 )
 {
-  rte_los[0] = RAD2DEG*acos(1-2*sqrt(rng.draw()));
-  rte_los[1] = rng.draw()*360-180;
-  g_los_csc_theta = 0.5*(1-cos(DEG2RAD*rte_los[0]));
+ rte_los[1] = rng.draw()*360-180;
+ if (sampling_method == 1)
+   {
+     rte_los[0] = acos(1-2*sqrt(rng.draw()));
+     g_los_csc_theta = 0.5*(1-cos(rte_los[0]));
+   }
+ else if (sampling_method == 2)
+   {
+     rte_los[0] = acos(1-2*rng.draw());
+     g_los_csc_theta = 0.5;
+   }
+ else
+   {
+     throw runtime_error( "Invalid value for sampling_method. sampling_method\n
+must be 1 or 2" );
+   }
+ rte_los[0]*=RAD2DEG;
 }
 
 

@@ -436,7 +436,8 @@ void ScatteringMonteCarlo (
 			   const Index& record_ppath,
 			   const Index& silent,
 			   const Index& record_histdata,
-			   const String& histdata_filename)
+			   const String& histdata_filename,
+			   const Index& los_sampling_method)
 
 {		
   //Internal Declarations
@@ -598,12 +599,16 @@ void ScatteringMonteCarlo (
 		}
 	      mult(pathinc,Q,emissioncontri);
 	      pathI += pathinc;
-	      Sample_los(new_rte_los,g_los_csc_theta,rng);
+
+	      //Sample new line of sight.
+	      Sample_los(new_rte_los,g_los_csc_theta,rng, los_sampling_method);
+	      
 	      //Calculate Phase matrix////////////////////////////////
 	      pha_mat_za_grid[0]=180-rte_los[0];
 	      pha_mat_za_grid[1]=180-new_rte_los[0];
-	      pha_mat_aa_grid[0]=180+rte_los[1];
-	      pha_mat_aa_grid[1]=180+new_rte_los[1];
+	      pha_mat_aa_grid[0]= (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
+	      pha_mat_aa_grid[1]= (new_rte_los[1]>=0) ?-180+new_rte_los[1]:pha_mat_aa_grid[1]=180+new_rte_los[1];
+	      
 	      za_prop=0;
 	      aa_prop=0;
 	      pha_mat_sptFromData(pha_mat_spt,
@@ -619,6 +624,8 @@ void ScatteringMonteCarlo (
 	      pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
 			  atmosphere_dim, p_index, lat_index, 
 			  lon_index);
+
+
 	      Z=pha_mat(1,1,joker,joker);
 	      Z*=2*PI/g/g_los_csc_theta;
 	      mult(q,T,Z);

@@ -3090,8 +3090,8 @@ md_data_raw.push_back
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath","silent", 
-		 "record_histdata", "histdata_filename" ),
-        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, String_t )));
+		 "record_histdata", "histdata_filename", "los_sampling_method" ),
+        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, String_t, Index_t )));
 
  md_data_raw.push_back
     ( MdRecord

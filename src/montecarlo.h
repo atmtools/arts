@@ -124,7 +124,8 @@ void interpTArray(Matrix& T,
 void Sample_los (
 		 VectorView& rte_los,
 		 Numeric& g_los_csc_theta,
-		 Rng& rng
+		 Rng& rng,
+		 const Index& sampling_method
 		 );
 
 void Sample_ppathlength (
