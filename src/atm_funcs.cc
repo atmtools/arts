@@ -210,7 +210,9 @@ void invrayjean (
         Index   i0;
 
   // The function returned NaNs when a and b were set to be Numeric (PE 010404)
-  const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
+  // Integrated this calculation into the for-loop to avoid numerical overflow
+  // (OLE)
+  //const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
         double   b;
 
   // Check input
@@ -232,11 +234,15 @@ void invrayjean (
 
   for ( Index i=0; i<nf; i++ )
   {
-    b = a/(f[i]*f[i]);
+    //b = a/(f[i]*f[i]);
+    // a splitted and changed order of calculation to avoid
+    // numerical instabilities. (OLE 2002-08-26)
+    b = SPEED_OF_LIGHT / ((double)f[i] * (double)f[i])
+      * SPEED_OF_LIGHT / (2 * BOLTZMAN_CONST);
     for ( Index j=0; j<nza; j++ )    
     {
       i0 = j*nf + i;
-      y[i0] = b * y[i0];
+      y[i0] = b * (double)y[i0];
     }
   }
 }
