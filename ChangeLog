@@ -1,3 +1,26 @@
+2001-09-27  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-238
+	
+	* src/methods.cc (define_md_data): Updated the docs of the Ascii
+	methods to match the style guide.
+
+	* src/Makefile.am: Removed LDADD. No longer needed because the
+	libraries are automatically detected and set by configure.
+
+	Added special targets for methods.cc and species_data.cc.
+
+	* configure.in: Added library checks for libjpeg, libdf and libz
+	(needed by HDF).
+
+	Introduced an extra compiler flag variable CXXFLAGS_FIXED which is
+	used to compile methods.cc and species_data.cc to avoid the
+	exorbitant compilation time.
+
+	Added a new configure flag called --enable-debug /
+	--disable-debug. By default debugging is enabled.
+	
+
 2001-09-27  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-237
