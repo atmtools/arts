@@ -701,6 +701,9 @@ void surfaceBlackbody(
         const Index&     stokes_dim,
         const Numeric&   surface_skin_t )
 {
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_over_0( "surface_skin_t", surface_skin_t );
+
   out2 << "  Sets variables to model a blackbody surface with a temperature "
        << " of " << surface_skin_t << " K.\n";
   surface_los.resize(0,0);
@@ -846,9 +849,13 @@ void surfaceFlat(
         const Numeric&   surface_skin_t,
         const String&    epsmodel )
 {
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_over_0( "surface_skin_t", surface_skin_t );
+
   out2 << "  Sets variables to model a flat surface with:\n"
-       << "     temperature               : " << surface_skin_t << " K.\n"
-       << "     dielectric constant model : " << epsmodel << "\n";
+       << "     temperature      : " << surface_skin_t << " K.\n"
+       << "     dielectric model : " << epsmodel << "\n";
 
   const Index   nf = f_grid.nelem();
 
@@ -857,7 +864,7 @@ void surfaceFlat(
   surface_specular_los( surface_los(0,joker), atmosphere_dim );
 
   surface_emission.resize( nf, stokes_dim );
-  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
+  surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
 
   for( Index iv=0; iv<nf; iv++ )
     { 
@@ -890,13 +897,10 @@ void surfaceFlat(
       //
       fresnel( Rv, Rh, Numeric(1.0), sqrt(eps), 180.0-abs(rte_los[0]) );
 
-      cout << "f   = " << f_grid[iv]/1e9 << "\n";
-      cout << "t   = " << surface_skin_t << "\n";
-      cout << "the = " << 180.0-rte_los[0] << "\n";
-      cout << "eps = " << eps << "\n";
-      cout << "Rv  = " << Rv << "\n";
-      cout << "Rh  = " << Rh << "\n";
-      exit(0);
+      // Fill reflection matrix and emission vector
+      surface_specular_R_and_b( surface_rmatrix(0,iv,joker,joker), 
+                                surface_emission(iv,joker), Rv, Rh, 
+                                f_grid[iv], stokes_dim, surface_skin_t );
     }
 }
 
@@ -921,13 +925,10 @@ void surfaceSingleEmissivity(
         const Numeric&   e,
         const String&    ename )
 {
-  if( e > 1  ||  e < 0 )
-    {
-      ostringstream os;
-      os << "The input variable " << ename 
-         << " must be inside the range [0,1].\n";
-      throw runtime_error( os.str() );
-    }       
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_over_0( "surface_skin_t", surface_skin_t );
+  chk_if_in_range( ename, e, 0, 1 );
 
   out2 << "  Sets variables to model a flat surface with:\n"
        << "     temperature : " << surface_skin_t << " K.\n"

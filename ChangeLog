@@ -1,3 +1,13 @@
+2004-09-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-881
+
+	* src/rte.cc (surface_specular_R_and_b): Made this function.
+
+	* src/m_atmosphere.cc (surfaceFlat): The function now works. But
+	there is only a dielectric model for water at 10 - 1000(?) GHz.
+	Please add more.
+
 2004-09-22  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-880

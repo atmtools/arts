@@ -41,6 +41,7 @@
 
 #include "agenda_class.h"
 #include "arts.h"
+#include "complex.h"          
 #include "ppath.h"
 #include "matpackI.h"
 #include "matpackIII.h"
@@ -94,6 +95,14 @@ void surface_specular_los(
               VectorView   los,
         const Index&       atmosphere_dim );
 
+void surface_specular_R_and_b(
+              MatrixView   surface_rmatrix,
+              VectorView   surface_emission,
+        const Complex&     Rv,
+        const Complex&     Rh,
+        const Numeric&     f,
+        const Index&       stokes_dim,
+        const Numeric&     surface_skin_t );
 
 
 void rte_calc_old(

@@ -487,7 +487,90 @@ void surface_specular_los(
 
 
 
+//! surface_specular_R_and_b
+/*!
+    Sets up the surface reflection matrix and emission vector for
+    the case of specular reflection.
 
+    The function handles only one frequency at the time.
+
+    See further the surface chapter in the user guide.
+
+    \param   surface_rmatrix   Out: As the WSV with the same name, but slice
+                                    for one direction and one frequency.
+    \param   surface_emission  Out: As the WSV with the same name, but slice
+                                    for one direction and one frequency.
+    \param   Rv                In: Complex amplitude relection coefficient
+                                   for vertical polarisation.
+    \param   Rh                In: Complex amplitude relection coefficient
+                                   for horisontal polarisation.
+    \paran   f                 In: Frequency (a scalar).
+    \param   stokes_dim        In: As the WSV with the same name.
+    \param   surface_skin_t    In: As the WSV with the same name.
+
+    \author Patrick Eriksson 
+    \date   2004-09-24
+*/
+void surface_specular_R_and_b(
+              MatrixView   surface_rmatrix,
+              VectorView   surface_emission,
+        const Complex&     Rv,
+        const Complex&     Rh,
+        const Numeric&     f,
+        const Index&       stokes_dim,
+        const Numeric&     surface_skin_t )
+{
+  assert( surface_rmatrix.nrows() == stokes_dim );
+  assert( surface_rmatrix.ncols() == stokes_dim );
+  assert( surface_emission.nelem() == stokes_dim );
+
+  // Expressions are derived in the surface chapter in the user guide
+
+  const Numeric   rv    = pow( abs(Rv), 2.0 );
+  const Numeric   rh    = pow( abs(Rh), 2.0 );
+  const Numeric   rmean = ( rv + rh ) / 2;
+  const Numeric   B     = planck( f, surface_skin_t );
+
+  surface_rmatrix   = 0;
+  surface_emission  = 0;
+
+  surface_rmatrix(0,0) = rmean;
+  surface_emission[0]  = B * ( 1 - rmean );
+
+  if( stokes_dim > 1 )
+    {
+      const Numeric   rdiff = ( rv - rh ) / 2;
+
+      surface_rmatrix(1,0) = rdiff;
+      surface_rmatrix(0,1) = rdiff;
+      surface_rmatrix(1,1) = rmean;
+      surface_emission[1]  = -B * rdiff;
+
+        if( stokes_dim > 2 )
+          {
+            const Complex   a     = Rh * conj(Rv);
+            const Complex   b     = Rv * conj(Rh);
+            const Numeric   c     = real( a + b ) / 2.0;
+
+            surface_rmatrix(2,2) = c;
+      
+            if( stokes_dim > 3 )
+              {
+                const Numeric   d     = imag( a - b ) / 2.0;
+
+                surface_rmatrix(3,2) = d;
+                surface_rmatrix(2,3) = d;
+                surface_rmatrix(3,3) = c;
+              }
+          }
+    }
+  /*
+  cout << Rv << "\n";
+  cout << Rh << "\n";
+  cout << surface_rmatrix << "\n";
+  cout << surface_emission << "\n";
+  */
+}
 
 
 
