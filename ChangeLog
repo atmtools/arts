@@ -1,5 +1,11 @@
 2003-07-28  Axel von_Engeln  <engeln@uni-bremen.de>
 
+	* arts-1-0-105
+
+	* src/lineshape.cc: minor modifications of last check in.
+
+2003-07-28  Axel von_Engeln  <engeln@uni-bremen.de>
+
 	* arts-1-0-104
 
 	* src/absorption.h, absorption.cc, lineshapes.cc: added

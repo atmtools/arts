@@ -2024,6 +2024,6 @@ void define_lineshape_norm_data()
      ("VVH",
       "Van Vleck Huber normalization of the lineshape with\n"
       "             (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))).\n"
-      "             The denominator is a result of catalogue intensities."
+      "             The denominator is a result of catalogue intensities.",
       lineshape_norm_VVH));
 }
