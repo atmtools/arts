@@ -1325,13 +1325,14 @@ wsv_data.push_back
       (
        "Particle types.\n"
        "\n"
-       "A vector containing all particle types which shall be considered."
+       "An ArrayOfString containing the filenames for  all particle types\n"
+       "which shall be considered. Theses files must be part of the Single \n"
+       "Scattering Database. \n"
        "\n"
        "Usage:      Set by the user.\n"
        "\n"
-       "Unit:       Pa"
        ),
-      GROUP( Vector_ )));
+      GROUP( ArrayOfString_ )));
 
    wsv_data.push_back
    (WsvRecord

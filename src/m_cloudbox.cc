@@ -1974,7 +1974,7 @@ void ybatchMetProfiles(//Output
 		       Vector& p_grid,
 		       //Input
 		       const ArrayOfArrayOfSpeciesTag& gas_species,
-		       const Vector& part_types,
+		       const ArrayOfString& part_types,
 		       const String& met_profile_path,
 		       const ArrayOfString& met_profile_basenames,
 		       const Agenda& met_profile_calc_agenda,

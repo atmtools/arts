@@ -46,7 +46,7 @@
   HORIZ_AL     Horizonatally aligned plates and columns
   SPHERICAL    Spherical particles
 
-  A detailed description of the differnent cases can be found in AUG.
+  A detailed description of the different cases can be found in AUG.
 
 */
 typedef enum{
@@ -72,11 +72,48 @@ struct SingleScatteringData {
   PType     ptype;
   String    description;
   Vector    f_grid;
+  Vector    T_grid;
   Vector    za_grid;
   Vector    aa_grid;
   Tensor6   pha_mat_data;
   Tensor4   ext_mat_data;
   Tensor4   abs_vec_data;
 };
+
+
+void abs_vecTransform(//Output and Input
+                      VectorView abs_vec_lab,
+                      //Input
+                      const Tensor3View abs_vec_data,
+                       const VectorView za_datagrid,
+                      const VectorView aa_datagrid,
+                      const PType& ptype,
+                      const Numeric& za_sca,
+                      const Numeric& aa_sca);
+
+
+void ext_matTransform(//Output and Input
+                      MatrixView ext_mat_lab,
+                      //Input
+                      const Tensor3View ext_mat_data,
+                      const VectorView za_datagrid,
+                      const VectorView aa_datagrid,
+                      const PType& ptype,
+                      const Numeric& za_sca,
+                      const Numeric& aa_sca);
+ 
+
+void pha_matTransform(//Output
+                      MatrixView pha_mat_lab,
+                      //Input
+                      const Tensor5View pha_mat_data,
+                      const VectorView za_datagrid,
+                      const VectorView aa_datagrid,
+                      const PType& ptype,
+                      const Numeric& za_sca,
+                      const Numeric& aa_sca,
+                      const Numeric& za_inc,
+                      const Numeric& aa_inc);
+
 
 #endif //optproperties_h

@@ -2114,6 +2114,7 @@ xml_read_from_stream (istream& is_xml,
   ssdata.ptype = PType (ptype);
   xml_read_from_stream (is_xml, ssdata.description, pbifs);
   xml_read_from_stream (is_xml, ssdata.f_grid, pbifs);
+  xml_read_from_stream (is_xml, ssdata.T_grid, pbifs);
   xml_read_from_stream (is_xml, ssdata.za_grid, pbifs);
   xml_read_from_stream (is_xml, ssdata.aa_grid, pbifs);
 
@@ -2152,6 +2153,7 @@ xml_write_to_stream (ostream& os_xml,
   xml_write_to_stream (os_xml, Index (ssdata.ptype), pbofs);
   xml_write_to_stream (os_xml, ssdata.description, pbofs);
   xml_write_to_stream (os_xml, ssdata.f_grid, pbofs);
+  xml_write_to_stream (os_xml, ssdata.T_grid, pbofs);
   xml_write_to_stream (os_xml, ssdata.za_grid, pbofs);
   xml_write_to_stream (os_xml, ssdata.aa_grid, pbofs);
   xml_write_to_stream (os_xml, ssdata.pha_mat_data, pbofs);

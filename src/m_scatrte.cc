@@ -327,7 +327,7 @@ i_fieldIterate(
                // WS Input:
                const ArrayOfIndex& cloudbox_limits,
                const Index& atmosphere_dim,
-               const Vector& part_types,
+               const ArrayOfString& part_types,
                // Used for calculating scat_field
                const Tensor6& amp_mat,
                const Vector& p_grid,
@@ -3505,7 +3505,7 @@ void ScatteringInit(
                     const Vector& scat_za_grid,
                     const Vector& scat_aa_grid,
                     const ArrayOfIndex& cloudbox_limits,
-                    const Vector& part_types
+                    const ArrayOfString& part_types
                     )
 {
   // Check the input:

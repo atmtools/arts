@@ -2255,6 +2255,22 @@ void define_md_data_raw()
 
  md_data_raw.push_back
     ( MdRecord
+      ( NAME("opt_prop_sptFromData"),
+        DESCRIPTION
+        (
+         "To be written by CE."
+        ),
+        OUTPUT( pha_mat_spt_, ext_mat_spt_, abs_vec_spt_ ),
+        INPUT( pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_za_grid_, 
+               scat_aa_grid_, scat_za_index_, scat_aa_index_, part_types_,
+               f_index_, f_grid_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+ md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ParticleTypeAdd" ),
         DESCRIPTION
         (
@@ -2352,6 +2368,28 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES())); 
   
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pha_mat_sptFromData" ),
+        DESCRIPTION
+        (
+         "This method calculates the phase matrix for a single particle type.\n"
+         "\n"
+         "The phase matrix explains the tranformation of Stokes parameters of \n"
+         "incident plane wave into those of the scattered spherical wave \n"
+         "due to scattering of radiation by the particle. The phase \n"
+         "matrix elements are calculated from the single scattering database.\n" 
+         "\n"
+         ),
+	OUTPUT(pha_mat_spt_),
+        INPUT(pha_mat_spt_, scat_za_grid_, scat_aa_grid_, scat_za_index_,
+              scat_aa_index_, part_types_, f_index_, f_grid_),
+	GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES())); 
+
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "pnd_fieldCalc" ),

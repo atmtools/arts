@@ -1,3 +1,27 @@
+2003-04-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-529
+		
+	* src/m_optproperties.cc: Added new methods to calculate the 
+	single particle properties from the new database format:
+	*pha_mat_sptFromData* and *opt_prop_sptFromData*
+
+	* src/optproperties.{cc,h}: Included transformations from the 
+	coordinate system used in the database to the laboratory coordinate 
+	system. So far only for the case of randomly oriented particles.
+
+	Modified the structure *SingleScatteringData*: Included additional
+	field for temperature.
+
+	* src/xml_io.cc: Modified reading and writing routines for 
+	*SingleScatteringData*.
+	
+	* src/methods.cc: Included the methods above.
+
+	* src/workspace.cc: Modified WSV *part_types*. It is now an 
+	ArrayOfString containing the filenames of the different particles
+	which shall be included in the calculation.
+	
 2003-04-23  Nikolay Koulev  <nkoulev@uni-bremen.de>
 	
 	* arts-1-1-528
@@ -7,8 +31,6 @@
 
 	* src/test_zeemanproperties.{cc}: Changed accordingly.
 
-
-	
 2003-04-23  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-527

@@ -576,8 +576,6 @@ make_auto_md_h_SOURCES = \
 	methods.cc \
 	methods.h \
 	methods_aux.cc \
-	optproperties.cc \
-	optproperties.h \
 	token.cc \
 	token.h \
 	version.cc \
@@ -615,8 +613,6 @@ make_auto_md_cc_SOURCES = \
 	methods.cc \
 	methods.h \
 	methods_aux.cc \
-	optproperties.cc \
-	optproperties.h \
 	token.cc \
 	token.h \
 	version.cc \
