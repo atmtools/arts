@@ -128,7 +128,7 @@ and the second for gaseous extinction (\aExtMat{g}). Then
 The particle extinction term can be written as a sum, each term
 corresponding to one particle type:
 \begin{eqnarray}
-  \aExtMat{p}\DirFre = \sum_i \PDen_i \aSExMat{p} \DirFre
+  \aExtMat{p}\DirFre = \sum_i \PDen_i \aSExMat{p}_i \DirFre
 \end{eqnarray}
 
 Here \PDen$_i$ is the particle density of the
@@ -158,10 +158,10 @@ The last term in Equation (\ref{eq:RTE}) is the scattering source
 term. It is the 
 amount of radiation which is scattered from the direction \PDir'   
 into the line of sight.  The scattering efficiency matrix
-\SEfMat is the 
-product of the particle density \PDen  and the phase matrix \PhaMat
+\SEfMat is the sum of products  
+of the particle densities \PDen  and the phase matrices \PhaMat
 \begin{eqnarray}
-\SEfMat(\PDir, \PDir', \Frq) = \PDen\PhaMat(\PDir, \PDir', \Frq).
+\SEfMat(\PDir, \PDir', \Frq) = \sum_i{\PDen\PhaMat(\PDir, \PDir', \Frq)}.
 \end{eqnarray}
 
 Molecular scattering is neglected as it is not important in the 
@@ -231,7 +231,7 @@ found.
 
 \levelb{Database for the Single Scattering Properties}
 %============================================================
-\label{sec:scat_database}
+\label{sec:scattering:database}
 
 The required quantities for the radiative transfer calculations are
 the  extinction cross section matrix, the
@@ -279,101 +279,290 @@ components of the amplitude matrix ($S^{real}_{11}$, $S^{real}_{12}$,
 $S^{real}_{21}$, $S^{real}_{22}$) and the imaginary components
 ($S^{imag}_{11}$, $S^{imag}_{12}$,$S^{imag}_{21}$, $S^{imag}_{22}$).
 
+You can read the database using the function
+\wsfindex{read\_amp\_fromDb}.\\
+Output of the function is a tensor containing amplitude matrices for
+a fixed angle combination stored in the variable
+\wsvindex{amp\_mat}. Its dimension is [$N_{sp}, N_{I}, N_{I}$]
+where $N_{pt}$ is the number of particle
+types  and $N_{I}$ denotes the Stokes dimension.\\
+Input to this method is a fixed angle
+combination  (\artsstyle{za},\artsstyle{aa},\artsstyle{za}' and
+\artsstyle{aa}') for propagation and scattered direction and the vector
+\artsstyle{scat\_pt} which contains indices for the  particle types
+which are considered in the calculation. This vector has to be defined
+in the control file.
 
 
-\levelc{Generate Extinction Matrix, Absorption
-  Vector and Phase Matrix} 
+\levelb{Extract local atmospheric properties from atmospheric fields}
 %==================================================================
-\label{sec:scattering:gen_ext_abs}
+\label{sec:scattering:gen_ext}
 
-There are three methods to generate extinction cross section
-matrix, phase matrix and absorptien cross section vector, all needed for the
-radiative transfer calculation. 
-\begin{itemize}
-\item  \funcindex{calc\_ext\_matrix} - The extinction cross section
-  matrices \SExMat are
-  calculated for all patricle types chosen in the control
-  file. The function reads the
-  required amplitude matrices \AmpMat from the 
-  data base and calculates the coefficients using the following
-  formulas:
-  \begin{eqnarray}
-    \label{eq:gen_ext_matrix}
-    L^p_{jj}({\bf n}) &=& \frac{2\pi \nu}{c} Im[S_{11}({\bf n},{\bf
-      n})+S_{22}({\bf n},{\bf n})], \quad j=1,...,4 \\
-    L^p_{12}({\bf n}) = L^p_{21}({\bf n}) &=& \frac{2\pi \nu}{c} Im[S_{11}({\bf n},{\bf
-      n})-S_{22}({\bf n},{\bf n})]\\
-    L^p_{13}({\bf n}) = L^p_{31}({\bf n}) &=& -\frac{2\pi \nu}{c} Im[S_{12}({\bf n},{\bf
-      n})+S_{21}({\bf n},{\bf n})]\\
-    L^p_{14}({\bf n}) = L^p_{41}({\bf n}) &=& \frac{2\pi \nu}{c} Re[S_{21}({\bf n},{\bf
-      n})-S_{12}({\bf n},{\bf n})]\\
-    L^p_{23}({\bf n}) = -L^p_{32}({\bf n}) &=& \frac{2\pi \nu}{c} Im[S_{21}({\bf n},{\bf
-      n})-S_{12}({\bf n},{\bf n})]\\
-    L^p_{24}({\bf n}) = -L^p_{42}({\bf n}) &=& -\frac{2\pi \nu}{c} Re[S_{12}({\bf n},{\bf
-      n})+S_{21}({\bf n},{\bf n})]\\
-    L^p_{34}({\bf n}) = L^p_{43}({\bf n}) &=& \frac{2\pi \nu}{c} Re[S_{22}({\bf n},{\bf
-      n})-S_{11}({\bf n},{\bf n})]
-  \end{eqnarray}
-  The coefficients are stored in the variable
-  \begin{center}
- \wsvindex{scat\_ext\_mat} $\in$ (\IPart, \ScaZa, \ScaAa, \ScaZa', \ScaAa',\aInd{K}).   
-  \end{center}
+\levelb{Generate Extinction Matrix}
+%==================================================================
+\label{sec:scattering:gen_ext}
 
-\item \funcindex{calc\_phase\_matrix} - This method generates the
-  phase matrix \PhaMat from the amplitude matrix \AmpMat applying the following
-  equations:
+\levelc{Agenda for calculating the extinction matrix}
+%==================================================================
+\label{sec:scattering:ext_mat_agenda}
+
+The agenda \wsfindex{ext\_mat\_agenda} calculates the total extinction
+matrix \ExtMat{}
+for each grid point. It is the physical extinction matrix, that means
+that it includes the gaseous extinction and the particle
+extinction.\\
+Output is the variable \wsvindex{ext\_mat} which is given
+as a 4x4 Matrix, i.e. one dimension for each Stokes component. If the
+Stokes dimension is only one, only the element $\ExtMat_{11}$ will be
+nonzero, it corresponds to the scalar extinction cross section. \\
+As input for calculating the particle extinction the following
+variables are required:
+\wsvindex{pnd}, i.e. the particle number density, and 
+\wsvindex{ext\_mat\_spt}, which contains the extinction
+matrices for each chosen particle type. How this variable is generated
+is explained in section \ref{sec:scattering:ext_mat_spt}. For calculating the
+gaseous extinction the volume mixing ratio (\wsvindex{vmr}), the
+pressure  (\wsvindex{p}), the temperature  (\wsvindex{T}) and the
+propagation direction given by zenith angle (\wsvindex{za}) and
+azimuth angle (\wsvindex{aa}) are needed.\\
+The aganda is defined in the following manner:
+
+\verb|AgendaDefine(ext\_mat\_agenda)|\\
+\begin{tabular}[h]{l l}
+\verb|{ |\\
+\verb|ext_mat_partCalc{}| & \verb| //function to calculate particle |\\
+& \verb|extinction | (see section \ref{sec:scattering:ext_mat_part}).\\
+\verb|ext_mat_gasCalc{}| & \verb| //function to calculate gaseous | \\
+& \verb|extinction | (see section \ref{sec:scattering:ext_mat_gas}).\\ 
+\verb|ext_matCalc{}| &\verb| // function which sums up | \\
+& \verb| particle extinction and gaseous extinction.|\\
+\verb| }|
+\end{tabular}
+
+\levelc{Generate particle extinction matrix}
+%==================================================================0
+\label{sec:scattering:ext_mat_part}
+
+The workspace method \wsfindex{ext\_mat\_partCalc} gives as output the
+particle extinction matrix \ExtMat{p} stored in the variable
+\wsvindex{ext\_mat\_part} which has the chosen Stokes dimension. So in
+the most general it is a 4x4 matrix.\\
+Input is first the workspace variable \wsvindex{ext\_mat\_spt} (see section
+\ref{sec:scattering:ext_mat_spt}). The second input variable are the
+local particle number densities \artsstyle{pnd} for all particle types,
+that means \artsstyle{pnd} is of dimension $N_{pt}$ (number of
+particle types). \\
+The function sums up the extinction matrices for all particle types
+weighted with the particle number density:
 \begin{eqnarray}
- \label{eq:gen_phase_matrix}
+  \aExtMat{p} = \sum_i \PDen_i \aSExMat{p}_i 
+\end{eqnarray}
+
+
+\levelc{Generate gaseous extinction matrix}
+%===============================================================
+\label{sec:scattering:ext_mat_gas}
+
+\levelc{Generate extinction matrix for single particle types}
+%==============================================================
+\label{sec:scattering:ext_mat_spt}
+
+From the database for single scattering properties (see section 
+\ref{sec:scattering:database}) the extinction matrices for each
+particle type can be derived using the workspace method
+\wsfindex{ext\_mat\_sptCalc}.\\
+Output is a tensor including local extinction matrices for each
+particle type, so it is of the dimension [$N_{pt}, N_{I}, N_{I}$],
+where $N_{I}$ denotes the Stokes dimension.\\
+As input variables it need the amplitude matrix (\wsvindex{amp\_mat})
+and the propagation direction given by the local zenith and azimuth
+angle (\artsstyle{za} and \artsstyle{aa}). \wsvindex{amp\_mat} is
+obtained using the reading routine \wsfindex{get\_amp\_fromDb} which is
+explained in section \ref{sec:scattering:database}.\\
+
+The extinction cross section matrices \SExMat{} are
+calculated for all patricle types chosen in the control
+file. The following formulas are used:
+\begin{eqnarray}
+  \label{eq:gen_ext_matrix}
+  L^p_{jj}({\bf n}) &=& \frac{c}{\nu} Im[S_{11}({\bf n},{\bf
+    n})+S_{22}({\bf n},{\bf n})], \quad j=1,...,4 \\
+  L^p_{12}({\bf n}) = L^p_{21}({\bf n}) &=& \frac{c}{\nu} Im[S_{11}({\bf n},{\bf
+    n})-S_{22}({\bf n},{\bf n})]\\
+  L^p_{13}({\bf n}) = L^p_{31}({\bf n}) &=& -\frac{c}{\nu} Im[S_{12}({\bf n},{\bf
+    n})+S_{21}({\bf n},{\bf n})]\\
+  L^p_{14}({\bf n}) = L^p_{41}({\bf n}) &=& \frac{c}{\nu} Re[S_{21}({\bf n},{\bf
+    n})-S_{12}({\bf n},{\bf n})]\\
+  L^p_{23}({\bf n}) = -L^p_{32}({\bf n}) &=& \frac{c}{\nu} Im[S_{21}({\bf n},{\bf
+    n})-S_{12}({\bf n},{\bf n})]\\
+  L^p_{24}({\bf n}) = -L^p_{42}({\bf n}) &=& -\frac{c}{\nu} Re[S_{12}({\bf n},{\bf
+    n})+S_{21}({\bf n},{\bf n})]\\
+  L^p_{34}({\bf n}) = -L^p_{43}({\bf n}) &=& \frac{c}{\nu} Re[S_{22}({\bf n},{\bf
+    n})-S_{11}({\bf n},{\bf n})]
+\end{eqnarray}
+
+
+\levelb{Generate phase matrix}
+%========================================================================
+\label{sec:scattering:tot_pha_mat}
+
+\levelc{Calculate the total phase matrix \SEfMat{}}
+%=======================================================================
+\label{sec:scattering:pha_mat}
+
+Output of the workspace method \wsfindex{pha\_matCalc} is the phase
+matrix stored in the variable \wsvindex{pha\_mat}  with dimension
+according to the chosen Stokes
+dimension, so in general it is a 4x4 matrix.\\
+Input is first the workspace variable \wsvindex{pha\_mat\_spt} (see section
+\ref{sec:scattering:pha_mat_spt}). The second input variable are the
+local particle number densities \artsstyle{pnd} for all particle types
+chosen in the control file.
+The function sums up the phase matrices for all particle types
+weighted with the particle number density.
+\begin{eqnarray}
+\SEfMat = \sum_i{\PDen\PhaMat}.
+\end{eqnarray}
+
+\levelc{Generate phase matrix for single particle types}
+%==============================================================
+\label{sec:scattering:pha_mat_spt}
+
+From the amplitude matrix the the phase matrix for each
+particle type is calculated using the workspace method
+\wsfindex{pha\_mat\_sptCalc}.\\
+Output is a tensor including phase matrices for all particle
+types. Therefore it is  of  dimension
+[$N_{pt}, N_{I}, N_{I}$], where $N_{pt}$ is the number of particle
+types  and $N_{I}$ denotes the Stokes dimension.\\
+As input variables it needs the amplitude matrix (\wsvindex{amp\_mat})
+and the propagation direction given by the local zenith and azimuth
+angle (\artsstyle{za} and \artsstyle{aa}). Furthermore it needs the
+angles describing the scattering direction  (\artsstyle{za}' and
+\artsstyle{aa}'). 
+The phase matrices \PhaMat{} are
+calculated for all patricle types chosen in the control
+file using the following equations: 
+\begin{eqnarray}
    Z_{11} &=& \frac{1}{2}(|S_{11}|^2+|S_{12}|^2+|S_{21}|^2+|S_{22}|^2)\\
    Z_{21} &=& \frac{1}{2}(|S_{11}|^2+|S_{12}|^2-|S_{21}|^2-|S_{22}|^2)\\
    Z_{31} &=& -Re(S_{11}S_{21}^*+S_{22}S_{12}^*)\\
    Z_{41} &=& -Im(S_{21}S_{11}^*+S_{22}S_{12}^*)\\
 \cdots ... {\rm to be completed}
 \end{eqnarray}
-The phase matrix is stored in the
-variable\\ 
-\begin{center}
-  \wsvindex{phase\_matrix} $\in$ (\IPart, \ScaZa, \ScaAa,
-  \ScaZa',\ScaAa',\aInd{Z}).
-\end{center}
 
- 
-\item \funcindex{calc\_abs\_vector} - This method calculates the
-  absorption coefficient vectors \SAbVec for all particle distributions using
-  the following formulas:
-  \begin{eqnarray}
-    \label{eq:gen_abs_vector}
-b^p_1({\bf n}) &=& n^p L^p_{11}({\bf n}) - n^p \int_{4\pi} d{\bf n'}
-Z_{11}({\bf n, n'})\\
-b^p_2({\bf n}) &=& n^p L^p_{21}({\bf n}) - n^p \int_{4\pi} d{\bf n'}
-Z_{21}({\bf n, n'})\\
-b^p_3({\bf n}) &=& n^p L^p_{31}({\bf n}) - n^p \int_{4\pi} d{\bf n'}
-Z_{31}({\bf n, n'})\\
-b^p_4({\bf n}) &=& n^p L^p_{41}({\bf n}) - n^p \int_{4\pi} d{\bf n'}
-Z_{41}({\bf n, n'})
-  \end{eqnarray}
+
+
+
+
+
+\levelb{Generate absorption coefficient vector}
+%==========================================================================
+\label{sec:scattering:abs_vec}
+
+Agendas and methods to generate the absorption coefficient vector are
+defined in analogy to those generating the extinction coefficient matrix.
+
+\levelc{Agenda for calculating the absorption vector}
+%==================================================================
+\label{sec:scattering:abs_vec_agenda}
+
+The agenda \wsfindex{abs\_vec\_agenda} calculates the total absorption
+matrix \AbsVec{}
+for each grid point. It is the physical absorption vector including
+particle absorption and gaseous absorption.\\
+Output is the variable \wsvindex{abs\_vec} which is given
+as a 4 component vector, i.e. one dimension for each Stokes component. If the
+Stokes dimension is only one, it will only have the first component
+corresponding to the scalar absorption coefficient. \\
+Input for this agenda are the following variables:
+the particle number density \wsvindex{pnd} and 
+\wsvindex{abs\_vec\_spt}, which contains the absorption vectors  for
+each chosen particle type. How this variable is obtained
+is described in section \ref{sec:scattering:abs_vec_spt}. For calculating 
+gaseous absorption the volume mixing ratio (\wsvindex{vmr}), the
+pressure  (\wsvindex{p}), the temperature  (\wsvindex{T}) and the
+propagation direction given by zenith angle (\wsvindex{za}) and
+azimuth angle (\wsvindex{aa}) are needed.\\
+The definition of the agenda is listed below:
+
+\verb|AgendaDefine(abs_vec_agenda)|\\
+\begin{tabular}[h]{l l}
+\verb|{ |\\
+\verb|abs_vec_partCalc{}| & \verb| //function to calculate particle |\\
+& \verb|absorption | (see section \ref{sec:scattering:abs_vec_part}).\\
+\verb|abs_vec_gasCalc{}| & \verb| //function to calculate gaseous | \\
+& \verb|absorption | (see section \ref{sec:scattering:abs_vec_gas}).\\ 
+\verb|abs_vecCalc{}| &\verb| // function which sums up | \\
+& \verb| particle absorption and gaseous absorption.|\\
+\verb| }|
+\end{tabular}
+
+
+
+\levelc{Calculate particle absorption coefficient vector}
+%=======================================================================
+\label{sec:scattering:abs_vec_part}
+
+The workspace method \wsfindex{abs\_vec\_partCalc} gives as output the
+particle absorption vector \aAbsVec{p} stored in the variable
+\wsvindex{abs\_vec\_part} which has the chosen Stokes dimension, so in
+general a four component vector.\\
+Input is first the workspace variable \wsvindex{abs\_vec\_spt} (see section
+\ref{sec:scattering:abs_vec_spt}). The second input variable are the
+local particle number densities \artsstyle{pnd} for all particle types
+chosen in the control file.
+The function sums up the absorption vectors for all particle types
+weighted with the particle number density.
+\begin{eqnarray}
+  \aAbsVec{p} = \sum_i \PDen_i \aSAbVec{p}
+\end{eqnarray}
+
+
+\levelc{Calculate gaseous absorption coefficient vector}
+%=======================================================================
+\label{sec:scattering:abs_vec_gas}
+
+
+\levelc{Generate absorption vector for single particle types}
+%==============================================================
+\label{sec:scattering:abs_vec_spt}
+
+From the amplitude matrix the absorption vector for each
+particle type is calculated using the workspace method
+\wsfindex{abs\_vec\_sptCalc}.\\
+Output is the absorption vector tensor, which is  of  dimension
+[$N_{pt}, N_{I}$], where $N_{pt}$ is the number of particle
+types  and $N_{I}$ denotes the Stokes dimension.\\
+As input variables it needs the amplitude matrix (\wsvindex{amp\_mat})
+and the propagation direction given by the local zenith and azimuth
+angle (\artsstyle{za} and \artsstyle{aa}). Furthermore the extinction
+matrix (\wsvindex{ext\_mat}) and the phase matrix
+(\wsvindex{pha\_mat}).\\
+The absorption cross section vectors \SAbVec{} are
+calculated for all patricle types chosen in the control
+file. The following formulas are used:
+\begin{eqnarray}
+  \label{eq:gen_abs_vector}
+  b^p_1({\bf n}) &=& n^p L^p_{11}({\bf n}) - n^p \int_{4\pi} d{\bf n'}
+  Z_{11}({\bf n, n'})\\
+  b^p_2({\bf n}) &=& n^p L^p_{21}({\bf n}) - n^p \int_{4\pi} d{\bf n'}
+  Z_{21}({\bf n, n'})\\
+  b^p_3({\bf n}) &=& n^p L^p_{31}({\bf n}) - n^p \int_{4\pi} d{\bf n'}
+  Z_{31}({\bf n, n'})\\
+  b^p_4({\bf n}) &=& n^p L^p_{41}({\bf n}) - n^p \int_{4\pi} d{\bf n'}
+  Z_{41}({\bf n, n'})
+\end{eqnarray}
 This equations show, that the first column of extinction and phase
-matrix are needed. So it is obligatory to call the methods
-\funcindex{calc\_ext\_matrix} and 
-\funcindex{calc\_phase\_matrix} before calling
-\funcindex{calc\_abs\_vector}. 
+matrix are needed. So it is obligatory to call the agendas
+\funcindex{ext\_mat\_agenda} and 
+\funcindex{pha\_mat\_agenda} before calling
+\funcindex{abs\_vec\_agenda}. 
 
-As only the first column of the phase matrix  is required here it is
-extracted from \wsvindex{phase\_matrix} and  stored in \\
-\wsvindex{phase\_column} $\in$ (\IPart, \ScaZa, \ScaAa, \ScaZa', \ScaAa',\IAmp).
 
-The finally calculated absorption coefficent vector is stored in the
-variable
-\begin{center}
-\wsvindex{absorption\_vector} $\in$ (\IPart, \ScaZa, \ScaAa, \ScaZa',
-\ScaAa',\aInd{b}).  
-\end{center}
-\end{itemize}
-Note that all the variables described above are
-independent of frequency. 
 
 \levelb{Methods and Agendas for the RT inside the Cloud Box}
-%=================================================================
+%==============================================================
 \label{sec:scattering:scat_meth_rt}
 
 The scattering radiative transfer calculation is performed
@@ -415,7 +604,7 @@ example
 \end{center}
 The dimensions of the other variables can be found in the same manner.
 
-\levelc{Scatterin Main Function}
+\levelc{Scattering Main Function}
 %=====================================
 \label{sec:scattering:main_function}
 
@@ -440,20 +629,22 @@ the correct order.
 \leveld{Generate extinction matrix and absorption vector}
 
 Executing \wsfindex{gen\_scat\_lookup\_agenda}, which needs the
-\artsstyle{scat\_f\_index} and \artsstyle{scat\_part\_types}, a vector containig the indices for the
+\artsstyle{scat\_f\_index} and \artsstyle{scat\_part\_types}, a vector
+containing the indices for the
 particle types, as input, produces 
 the internal lookup tables for the
 single scattering properties of the cloud. It uses the functions   
 \funcindex{calc\_ext\_matrix}, \funcindex{calc\_phase\_matrix}
 and  \funcindex{calc\_abs\_vector}
-described in section \ref{sec:scattering:gen_ext_abs}. 
+described in the sections
+\ref{sec:scattering:gen_ext},\ref{sec:scattering:tot_pha_mat} and
+\ref{sec:scattering:gen_abs}.  
 Output variables of \wsfindex{gen\_scat\_lookup\_agenda} are the
 extinction matrix
 \wsvindex{scat\_ext\_mat}, the phase matrix \wsvindex{scat\_pha\_mat}
 and the absorption vector \wsvindex{absorption\_vector}.
 
 \leveld{Initial field}
-
 Input to the agenda is the radiation field on the cloud
 box boundary.
 Using a linear 3D interpolation scheme, we obtain a
