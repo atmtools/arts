@@ -1,3 +1,18 @@
+2003-07-21  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-607
+
+	* configure.in: Added check for arts-xml-data.
+	Updated list of examples.
+
+	* autogen.sh: Look for arts data packages in /usr/share on smiles PCs.
+
+	* doc/examples/Makefile.am: Updated list of examples.
+
+	* doc/examples/{cloud_rad_field1D_example.arts.in,
+	i_field_example.arts.in}: Replaced path to arts xml data with
+	@ac_arts_xml_data@.
+
 2003-07-17  Cory Davis   <cory@met.ed.ac.uk>
 
 	* arts-1-1-606
