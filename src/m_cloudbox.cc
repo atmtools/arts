@@ -103,7 +103,7 @@ void CloudboxSetIncomingForTauCalc1D(// WS Output:
                                      Tensor7& scat_i_lat,
                                      Tensor7& scat_i_lon,
                                      // WS Input:
-                                     const ArrayOfIndex&  cloudbox_limits,
+                                     const ArrayOfIndex& /* cloudbox_limits */,
                                      const Index& atmosphere_dim,
                                      const Index& stokes_dim,
                                      const Vector&  scat_za_grid,
@@ -940,10 +940,10 @@ void ParticleTypeInitAmpl( //WS Output:
 */
 void ParticleTypeAdd( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
-                 ArrayOfArrayOfTensor3& pnd_field_raw,
+                 ArrayOfArrayOfTensor3& /* pnd_field_raw */,
                  // Keyword:
                  const String& scat_data_file,
-                 const String& pnd_field_file)
+                 const String& /* pnd_field_file */)
 {
 
   // Append *amp_mat_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
@@ -983,10 +983,10 @@ void ParticleTypeAdd( //WS Output:
 */
 void ParticleTypeAddAmpl( //WS Output:
                  ArrayOfArrayOfTensor6& amp_mat_raw,
-                 ArrayOfArrayOfTensor3& pnd_field_raw,
+                 ArrayOfArrayOfTensor3& /* pnd_field_raw */,
                  // Keyword:
                  const String& amp_mat_file,
-                 const String& pnd_field_file)
+                 const String& /* pnd_field_file */)
 {
 
   // Append *amp_mat_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
@@ -1249,7 +1249,7 @@ void scat_iPut(//WS Output:
 void CloudboxGetOutgoing(// WS Generic Output:
                          Matrix&   i_out,
                          // WS Generic Output Names:
-                         const String&   i_out_name,
+                         const String&  /* i_out_name */,
                          //WS Specific Input:
                          const Tensor7& scat_i_p,
                          const Tensor7& scat_i_lat,
