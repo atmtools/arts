@@ -84,8 +84,6 @@ void ext_mat_sptCalc(
 	      amp_coeffs,
 	      freq);
     }
-  cout<<"ext_mat_spt"<<endl;
-  cout<<ext_mat_spt<<endl;
 }
 
 //! Calculate extinction matrix (spt) for the convergence test.  
@@ -286,8 +284,6 @@ void abs_vec_sptCalc(
 	      scat_aa_grid);
      
     }	   
- cout<<"abs_vec_spt"<<endl;
-  cout<<abs_vec_spt<<endl;
 }
 
 

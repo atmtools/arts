@@ -264,6 +264,8 @@ void i_fieldSetClearsky(Tensor6& i_field,
 		     N_za,
 		     N_aa,
 		     N_i);
+
+      i_field = 0.;
       
       /*the old grid is having only two elements, corresponding to the 
 	cloudbox_limits and the new grid have elements corresponding to
@@ -755,13 +757,7 @@ void scat_iPut(//WS Output:
   Index N_lon = lon_grid.nelem();
   Index N_za = scat_za_grid.nelem();
   Index N_aa = scat_aa_grid.nelem();
-  cout<<"N_f"<<N_f<<endl;
-  cout<<"N_p"<<N_p<<endl;
-  cout<<"N_lat"<<N_lat<<endl;
-  cout<<"N_lon"<<N_lon<<endl;
-  cout<<"N_za"<<N_za<<endl;
-  cout<<"N_aa"<<N_aa<<endl;
-  cout<<"stokes_dim"<<stokes_dim<<endl;
+ 
   // Some checks:
   assert ( is_size( i_field, 
                     (cloudbox_limits[1] - cloudbox_limits[0]) + 1,

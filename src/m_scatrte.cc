@@ -112,10 +112,10 @@ void convergence_flagAbs(//WS Output:
 {
   // FIXME: There should be a check, whether iteration_counter = 0 when the
   // function is called for the first time.
-  
+ 
   //Increase the counter 
   iteration_counter = iteration_counter+1;
-  cout << "Number of iterations:   "<< iteration_counter << endl;
+  //cout << "Number of iterations:   "<< iteration_counter << endl;
   
   //Check the input:
   assert( convergence_flag == 0 );
@@ -257,6 +257,7 @@ void convergence_flagAbs(//WS Output:
 
  // Convergence test has been successful, convergence_flag can be set to 1.
   convergence_flag = 1;
+  iteration_counter = 105; 
 }
 
 
@@ -679,13 +680,13 @@ i_fieldUpdate1D(// WS Output:
 	  
 	  //Print the loop indices (just for testing the function)
 	  
-	  cout << "\n loop indices: \n";
-	  cout << "\n scat_za_index ---------"<< scat_za_index;
-	  cout << "\n p_index       ---------"<< p_index;
+          // cout << "\n loop indices: \n";
+	  //cout << "\n scat_za_index ---------"<< scat_za_index;
+	  //cout << "\n p_index       ---------"<< p_index;
           //   cout << "\n stokes_dim    ---------"<< stokes_dim;
           //  cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
           //             << cloudbox_limits[1] <<"\n";
-          cout << endl;
+          //cout << endl;
 
           // Calculate abs_vec_array 
           abs_vec_array[p_index-cloudbox_limits[0]].resize(stokes_dim); 
@@ -724,7 +725,6 @@ i_fieldUpdate1D(// WS Output:
           for(Index p_index = cloudbox_limits[0]; p_index
                 <= cloudbox_limits[1]-1; p_index ++)
             {
-              cout << "p_index......."<< p_index;
               //Initialize ppath for 1D.
               ppath_init_structure(ppath_step, 1, 1);
               // See documentation of ppath_init_structure for understanding
@@ -750,7 +750,6 @@ i_fieldUpdate1D(// WS Output:
               
               // Check if the agenda has returned ppath.step with reasonable 
               // values. 
-              cout << "l_step:" <<ppath_step.l_step[0] << endl;
               //PpathPrint( ppath_step, "ppath");
               
               sca_vec.resize(stokes_dim);
@@ -801,13 +800,13 @@ i_fieldUpdate1D(// WS Output:
               Numeric f = f_grid[scat_f_index];
               a_planck_value = planck(f, T);
               
-              cout << "planck: ..." << a_planck_value << endl;
-              cout << "sto_vec:..." << stokes_vec  << endl;
-              cout << "sca_vec:..." << sca_vec << endl;
-              cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0])
-                /ext_mat(0,0);
-              cout << "abs_vec:..." << abs_vec << endl;
-              cout << "ext_mat:..." << ext_mat << endl;
+              /*     cout << "planck: ..." << a_planck_value << endl;
+              cout << "sto_vec:..." << stokes_vec  << endl; 
+              cout << "sca_vec:..." << sca_vec << endl; 
+              cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0]) 
+                /ext_mat(0,0); 
+              cout << "abs_vec:..." << abs_vec << endl; 
+              cout << "ext_mat:..." << ext_mat << endl; */
 
               bool singular_K = true;
               for(Index i=0; i<stokes_dim && singular_K; i++){
@@ -821,8 +820,6 @@ i_fieldUpdate1D(// WS Output:
                 // Call scat_rte_agenda:
                 scat_rte_agenda.execute();
               }
-              
-              cout << "stokes_vec:"<< stokes_vec;
               
               // Assign calculated Stokes Vector to i_field. 
               i_field((p_index - cloudbox_limits[0]), 0, 0, scat_za_index, 0,
@@ -842,7 +839,6 @@ i_fieldUpdate1D(// WS Output:
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-	      cout << "p_index......."<< p_index<<"\n";
               //Initialize ppath for 1D.
               ppath_init_structure(ppath_step, 1, 1);
               // See documentation of ppath_init_structure for
@@ -870,7 +866,6 @@ i_fieldUpdate1D(// WS Output:
               
               // Check if the agenda has returned ppath.step with reasonable 
               // values. 
-              cout << "l_step:"<< ppath_step.l_step[0] << endl;
               //PpathPrint( ppath_step, "ppath");
               
               // Calculate averadge values of the coefficients.
@@ -912,13 +907,14 @@ i_fieldUpdate1D(// WS Output:
               Numeric f = f_grid[scat_f_index];
               a_planck_value = planck(f, T);
               
+              /*
               cout << "planck: ..." << a_planck_value << endl;
               cout << "sto_vec:..." << stokes_vec  << endl;
               cout << "sca_vec:..." << sca_vec << endl;
               cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0])
                 /ext_mat(0,0);
               cout << "abs_vec:..." << abs_vec << endl;
-              cout << "ext_mat:..." << ext_mat << endl;
+              cout << "ext_mat:..." << ext_mat << endl;*/
 
               bool singular_K = true;
               for(Index i=0; i<stokes_dim && singular_K; i++){
@@ -1195,12 +1191,15 @@ scat_fieldCalc(//WS Output:
 		     i_field.nbooks(),
 		     i_field.npages(),
 		     i_field.nrows(),
-		     i_field.ncols() );
+                     i_field.ncols() );
+  /*
   cout<<"N_pt"<<" "<<N_pt;
   cout<<"N_p_grid"<<" "<<p_grid.nelem();
   cout<<"N_lat_grid"<<" "<<lat_grid.nelem();
-  cout<<"N_lon_grid"<<" "<<lon_grid.nelem();
+  cout<<"N_lon_grid"<<" "<<lon_grid.nelem();*/
+
   //Note that the size of i_field and scat_field are the same 
+
   if (atmosphere_dim ==3){
     
     assert ( is_size( i_field, 
@@ -1534,8 +1533,9 @@ void ScatteringMain(//WS Output
                       lon_grid, z_field, r_geoid, z_ground);
 
   
-  for (Index scat_f_index = 0; scat_f_index < Nf; ++ scat_f_index)
+  for (scat_f_index = 0; scat_f_index < Nf; ++ scat_f_index)
     {
+      if (scat_f_index == 1) cout << "giielawölraiheus";
       scat_mono_agenda.execute(); 
     }
 }
@@ -1577,7 +1577,8 @@ void Tensor6WriteIteration(//WS input
                            //Keyword:
                            const ArrayOfIndex& iterations)
 {
- 
+  if(iteration_counter>100) return;
+  
   ostringstream os;
   os << iteration_counter;
   
