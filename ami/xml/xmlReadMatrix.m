@@ -18,6 +18,11 @@ function result = xmlReadMatrix(fid, attrlist)
 
 nr = str2num (xmlGetAttrValue (attrlist, 'nrows'));
 nc = str2num (xmlGetAttrValue (attrlist, 'ncols'));
+nelem = nr * nc;
 
-result = fscanf (fid, '%f', nr * nc);
-result = reshape (result, [nr nc]);
+result = fscanf (fid, '%f', nelem);
+xmlCheckSize (nelem, size (result));
+
+result = reshape (result, [nc nr]);
+result = result';
+
