@@ -1,3 +1,10 @@
+2003-08-18  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-651
+
+	* src/legendre.cc (legendre_poly_deriv): Forget the doxygen
+	documentation. Shame on me. :-(
+
 2003-08-15  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-650
