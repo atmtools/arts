@@ -755,6 +755,8 @@ void i_fieldSetClearsky(Tensor6& i_field,
 
 /*! 
   This method sets the initial field inside the cloudbox to a constant value.
+  The method works only for monochromatic calculations (number of elements 
+  in f_grid =1).
 
   The user can specify a value for each Stokes dimension in the control file
   by the variable i_field_value, which is a vector containing 4 elements, the
@@ -767,8 +769,6 @@ void i_fieldSetClearsky(Tensor6& i_field,
   (equal latitude surfaces)
   \param scat_i_lon Input : Intensity field on cloudbox boundary
   (equal longitude surfaces)
-  \param f_grid Input : frequency grid
-  \param f_index Input : the frequency index for scattering calculation
   \param p_grid Input : the pressure grid
   \param lat_grid Input : the latitude grid
   \param lon_grid Input : the longitude grid
@@ -787,13 +787,6 @@ void i_fieldSetConst(//WS Output:
                         const Tensor7& scat_i_p,
                         const Tensor7& scat_i_lat,
                         const Tensor7& scat_i_lon,
-                        const Vector& f_grid,
-/* FIXME f_index is only used in assertion */
-#ifndef NDEBUG
-                        const Index& f_index,
-#else
-                        const Index&,
-#endif
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
@@ -814,9 +807,6 @@ void i_fieldSetConst(//WS Output:
   Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
   Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
 
-  // Check the input:
-  assert( f_index < f_grid.nelem());
- 
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   
   // Grids have to be adapted to atmosphere_dim.
@@ -867,11 +857,11 @@ void i_fieldSetConst(//WS Output:
     }
   else 
     {
-      if ( !is_size(scat_i_p, f_grid.nelem(), 2, Nlat_cloud, 
+      if ( !is_size(scat_i_p, 1, 2, Nlat_cloud, 
                 Nlon_cloud, N_za, N_aa, stokes_dim)  
-           || !is_size(scat_i_lat, f_grid.nelem(), Np_cloud, 2, 
+           || !is_size(scat_i_lat, 1, Np_cloud, 2, 
                        Nlon_cloud, N_za, N_aa, stokes_dim)  
-           || !is_size(scat_i_lon, f_grid.nelem(), Np_cloud,  
+           || !is_size(scat_i_lon, 1, Np_cloud,  
                        Nlat_cloud, 2, N_za, N_aa, stokes_dim) )
         throw runtime_error(
                             "One of the interface variables (*scat_i_p*, "

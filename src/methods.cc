@@ -1805,20 +1805,10 @@ md_data_raw.push_back
          "A solution for the RTE with scattering is found using an iterative\n"
          "scheme:\n"
          "\n"
-         "1. Calculate scattering integral.\n"
-         "   To calculate the scattering integral the total scattering \n"
-         "   matrix is required. This is obtained using the functions \n"
-         "   *pha_mat_sptCalc* and  *pha_matCalc*. The method *.....* \n"
-         "   performs the integration.\n"
-         "2. Calculate RT with fixed scattered field.\n"
-         "   The radiative transfer equation with fixed scattering integral\n"
-         "   can be solved analytically if the coefficients are assumed to \n"
-         "   be constant.\n"
-         "   According to *atmosphere_dim* either *i_fieldUpdate1D* or \n"
-         "   *i_fieldUpdate2D* are called to perform the calculation. Inside\n"
-         "   these methods the agenda *scat_rte_agenda* is executed. \n"
-         "3. Convergence test.\n"
-         "   Here the *convergence_test_agenda* is executed.\n"
+         "1. Calculate scattering integral using *scat_field_agenda*.\n"
+         "2. Calculate RT with fixed scattered field using \n"
+         "*scat_rte_agenda*.\n"
+         "3. Convergence test using *convergence_test_agenda*.\n"
          "\n"
          "Note: The atmospheric dimensionality *atmosphere_dim* can be \n"
          "      either 1 or 3. To these dimensions the method adapts \n"
@@ -1882,8 +1872,8 @@ md_data_raw.push_back
          "stokes_dim].\n"
          ),
         OUTPUT(i_field_),
-        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, f_grid_, 
-               f_index_, p_grid_, lat_grid_, lon_grid_, 
+        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, p_grid_, lat_grid_, 
+               lon_grid_, 
                cloudbox_limits_, atmosphere_dim_, stokes_dim_),
         GOUTPUT(),
         GINPUT(),
@@ -1947,8 +1937,11 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Updates the i_field during the iteration. It performs the RT \n"
-         "calculation using a fixed value for the scattering integral stored \n"
+         "calculation using a fixed value for the scattering integral stored\n"
          "in *scat_field*.\n"
+         "\n"
+         "Note: Ground reflection is not yet implemented in 3D scattering \n"
+         "calculations.\n"
          "\n " 
         ),
         OUTPUT(i_field_, rte_pressure_, rte_temperature_,
@@ -1973,12 +1966,16 @@ md_data_raw.push_back
         (
          "Updates the i_field during the iteration sequentially.\n"
          "It performs the RT \n"
-         "calculation using a fixed value for the scattering integral stored \n"
+         "calculation using a fixed value for the scattering integral stored\n"
          "in *scat_field*.\n"
+         "\n"
+         "Note: Ground reflection is not yet implemented in 3D scattering \n"
+         "calculations.\n"
          "\n " 
         ),
         OUTPUT(i_field_, rte_pressure_, rte_temperature_,
-               rte_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_, abs_vec_,
+               rte_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_,
+               abs_vec_,
                scat_p_index_, scat_lat_index_, scat_lon_index_,  ppath_step_),
         INPUT(scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
@@ -3687,10 +3684,6 @@ md_data_raw.push_back
         (
          "This method executes *scat_mono_agenda* for each frequency defined\n"
          "in *f_grid* \n"
-         "\n"
-         "If the number of frequencies is only two, it is assumed that the \n"
-         "user is only interested in a monochromatic scattering calculation\n"
-         "and executes the agenda only for the first frequency.\n"
          "\n"
          ),
         OUTPUT(f_index_),

@@ -1,3 +1,19 @@
+2004-03-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-799	
+	
+	* src/m_cloudbox.cc (i_fieldSetConst): Removed variables which were 
+	only used in assertions. 
+
+	* src/m_scatrte.cc: (grid_sizeSet), (i_fieldIterate), 
+	(i_fieldUpdate1D), (i_fieldUpdateSeq1D)
+	(i_fieldUpdate3D), (i_fieldUpdateSeq3D)
+	Improved documentation.
+
+	* src/scatrte.cc: (cloud_ppath_update1D)
+	
+	* src/methods.cc: Adapted entries to the changes above.
+	
 2004-03-09  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-798

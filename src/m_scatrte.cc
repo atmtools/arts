@@ -335,9 +335,13 @@ void grid_stepsizeCheck(Vector& grid_stepsize,
   grid_stepsize[0] <-> scat_za_grid
   grid_stepsize[1] <-> scat_aa_grid
 
-  \param grid_stepsize
-  \param scat_za_grid
-  \param scat_aa_grid
+  WS output:
+  \param za_grid_size Number of points in zenith angle grid for 
+                      scattering integral calculation 
+  \param scat_aa_grid Azimuth angle grid.
+  Keywords:
+  \param N_za_grid  Number of grid points for scattering    
+  \param N_aa_grid  integral calculation 
 
   \author Claudia Emde
   \date 2003-11-17
@@ -365,27 +369,27 @@ void grid_sizeSet(// WS Output:
 /*! 
   A solution for the RTE with scattering is found using an iterative scheme:
 
-  1. Calculate scattering integral.
-       The method *scat_fieldCalc* performs the integration.
-  2. Calculate RT with fixed scattered field.
-       The radiative transfer equation with fixed scattering integral can be 
-       solved analytically if the coefficients are assumed to be constant.
-       According to *atmosphere_dim* either *i_fieldUpdate1D* or 
-       *i_fieldUpdate3D* are called to perform the calculation. Inside these
-       methods the agenda *scat_rte_agenda* is executed.  
-  3. Convergence test.
-       Here the *convergence_test_agenda* is executed.
+  1. Calculate scattering integral using *scat_field_agenda*.
+  2. Calculate RT with fixed scattered field using *scat_rte_agenda*.
+  3. Convergence test using *convergence_test_agenda*.
 
   Note: The atmospheric dimensionality *atmosphere_dim* can be either 1 or 3. 
         To these dimensions the method adapts automatically. 
         If *atmosphere_dim* equals 2, it returns an error message, as 2D
         scattering calculations can not be performed.
 
-        See the variable desciptions in the functions which are called in this
-        function.
-
-        \author Claudia Emde
-        \date 2002-05-29
+  WS Input and Output:
+  \param i_field Intensity field.
+  \param i_field_old Intensity field from previous iteration. 
+  WS Output:
+  \param convergence_flag Flag for convergence test
+  WS Input:
+  \param scat_field_agenda Agenda for calculation of scattering integral
+  \param scat_rte_agenda Agenda for RT in cloudbox 
+  \param convergence_test_agenda Agenda for convergence test.
+  
+  \author Claudia Emde
+  \date 2002-05-29
 */
 void
 i_fieldIterate(
@@ -437,10 +441,12 @@ i_fieldIterate(
   optical properties including the partile types as well as the gaseous
   species are calculated. Then the radiative transfer equation can be computed.
 
+  It is not recommended to use this method as it can be very slow. The 
+  method i_fieldUpdateSeq1D is much more efficient (see AUG).
+
   WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
-  \param abs_scalar_gas
   \param rte_pressure
   \param rte_temperature
   \param rte_vmr_list
@@ -464,7 +470,6 @@ i_fieldIterate(
   \param scat_za_grid
   Optical properties for gases and particles:
   \param opt_prop_part_agenda
-  \param pnd_field
   \param opt_prop_gas_agenda
   Propagation path calculation:
   \param ppath_step_agenda
@@ -940,8 +945,6 @@ i_fieldUpdate1D(// WS Output:
                       0, 0,
                       scat_za_index, 0,
                       joker) = stokes_vec;
-              cout << "za: "<< scat_za_grid[scat_za_index] <<" stokes_vec: "<< stokes_vec << endl;;
-                  //
             } //end if
               // 
               // If the intersection point is outside the cloudbox
@@ -969,11 +972,13 @@ i_fieldUpdate1D(// WS Output:
   species are calculated. Then the radiative transfer equation can be computed.
   The looping is arranged in such a way, that the radiation field is updated 
   sequentially.
+  
+  It is recommended to use the sequential update as it is much more efficient
+  (see AUG) than the "normal" update. 
 
   WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
-  \param abs_scalar_gas
   \param rte_pressure
   \param rte_temperature
   \param rte_vmr_list
@@ -985,8 +990,14 @@ i_fieldUpdate1D(// WS Output:
   \param scat_p_index
   Variables used in ppath_step_agenda:
   \param ppath_step
+  Ground related variables:
+  \param ground_los
+  \param ground_emission
+  \param ground_refl_coeffs
+  \param rte_los
+  \param rte_pos
+  \param rte_gp_p
   WS Input:
-  \param i_field_old Old radiation field.
   \param scat_field Scattered field.
   \param cloudbox_limits 
   Calculate scalar gas absorption:
@@ -997,7 +1008,6 @@ i_fieldUpdate1D(// WS Output:
   \param scat_za_grid
   Optical properties for gases and particles:
   \param opt_prop_part_agenda
-  \param pnd_field
   \param opt_prop_gas_agenda
   Propagation path calculation:
   \param ppath_step_agenda
@@ -1008,6 +1018,8 @@ i_fieldUpdate1D(// WS Output:
   \param t_field
   \param f_grid
   \param f_index
+  Ground reflection
+  \param ground_refl_agenda
 
   \author Claudia Emde
   \date 2002-05-30
@@ -1030,7 +1042,7 @@ i_fieldUpdateSeq1D(// WS Output:
                    // ground related variables STR
                    Matrix& ground_los,
                    Matrix& ground_emission,
-                  Tensor4& ground_refl_coeffs,
+                   Tensor4& ground_refl_coeffs,
                    Vector& rte_los,
                    Vector& rte_pos,
                    GridPos& rte_gp_p,
@@ -1253,10 +1265,15 @@ i_fieldUpdateSeq1D(// WS Output:
   optical properties including the partile types as well as the gaseous
   species are calculated. Then the radiative transfer equation can be computed.
 
+  It is recommended to use i_fieldUpdateSeq3D as it is much more 
+  efficient (see AUG).
+
+  Note: Ground reflection is not yet implemented in 3D scattering 
+  calculations.
+
   WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
-  \param abs_scalar_gas
   \param rte_pressure
   \param rte_temperature
   \param rte_vmr_list
@@ -1284,7 +1301,6 @@ i_fieldUpdateSeq1D(// WS Output:
   \param scat_aa_grid
   Optical properties for gases and particles:
   \param opt_prop_part_agenda
-  \param pnd_field
   \param opt_prop_gas_agenda
   Propagation path calculation:
   \param ppath_step_agenda
@@ -1870,10 +1886,12 @@ void i_fieldUpdate3D(// WS Output:
   optical properties including the partile types as well as the gaseous
   species are calculated. Then the radiative transfer equation can be computed.
 
+  Note: Ground reflection is not yet implemented in 3D scattering 
+  calculations.
+
   WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
-  \param abs_scalar_gas
   \param rte_pressure
   \param rte_temperature
   \param rte_vmr_list
@@ -1901,7 +1919,6 @@ void i_fieldUpdate3D(// WS Output:
   \param scat_aa_grid
   Optical properties for gases and particles:
   \param opt_prop_part_agenda
-  \param pnd_field
   \param opt_prop_gas_agenda
   Propagation path calculation:
   \param ppath_step_agenda
@@ -2424,26 +2441,30 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
 
 
 //! This method computes the scattering integral
-
 /*! 
-By scattering integral, we mean the field generated by integrating
-the product of intensity field and phase matrix over all incident 
-angles.  
-  
-\param scat_field Output : scattering integraal
-\param pha_mat Output : phase matrix.
-\param pha_mat_spt Input : the phase matrix for single particle type
-\param scat_data_raw FIXME: Add documentation.
-\param i_field Input : the intensity field 
-\param pnd_field Input : the particle number density field.
-\param scat_za_grid zenith angle grid
-\param scat_aa_grid azimuth angle grid
-\param p_grid pressure grid
-\param lat_grid latitude grid
-\param lon_grid longitude grid
-\param atmosphere_dim atmospheric dimension
-\param cloudbox_limits Limits of the cloudbox.
-\param za_gridsize FIXME: Add documentation.
+    By scattering integral, we mean the field generated by integrating
+    the product of intensity field and phase matrix over all incident 
+    angles.
+
+    This method uses the same angular grids as the radiative transfer methods
+    *i_fieldUpdateXXX*. 
+    
+    WS Output:
+    \param scat_field Scattering integral field.
+    WS Output and Input:
+    \param pha_mat Phase matrix.
+    \param pha_mat_spt Phase matrix for single particle type
+    \param scat_za_index Indices for propagation directions,
+    \param scat_aa_index needed for communication with pha_mat_spt_agenda.
+    WS Input:
+    \param pha_mat_spt_agenda Agenda for calculation of pha_mat_spt. 
+    \param i_field Intensity field 
+    \param pnd_field Particle number density field.
+    \param scat_za_grid Zenith angle grid
+    \param scat_aa_grid Azimuth angle grid
+    \param atmosphere_dim Atmospheric dimension
+    \param cloudbox_limits Limits of the cloudbox.
+    \param za_gridsize Number of grid points in zenith angle grid.
 
 \author Sreerekha Ravi, Claudia Emde
 \date 2002-06-20
@@ -2681,36 +2702,35 @@ scat_fieldCalc(//WS Output:
 
 
 //! This method computes the scattering integral (Limb)
-
 /*! 
-By scattering integral, we mean the field generated by integrating
-the product of intensity field and phase matrix over all incident 
-angles. 
-
-This methods used the grids specified in *grid_stepsizeSet*. The zenith angle
-grid used in the radiative transfer part has to be very fine around 90°, i.e. 
-different grids are used in the two parts of the scattering calculation. 
-
-In the case of different grids the intensity field and the scattered field 
-have to be interpolated.
+    By scattering integral, we mean the field generated by integrating
+    the product of intensity field and phase matrix over all incident 
+    angles. 
+    
+    This methods used the grids specified in *grid_stepsizeSet*. The zenith
+    angle grid used in the radiative transfer part has to be very fine around
+    90°, i.e., different grids are used in the two parts of the scattering
+    calculation. 
+    
+    In the case of different grids the intensity field and the scattered field 
+    have to be interpolated.
  
-\param scat_field Output : scattering integraal
-\param pha_mat Output : phase matrix.
-\param pha_mat_spt Output of pha_mat_spt_agenda.
-\param scat_za_index Index for communication with  pha_mat_spt_agenda.
-\param scat_aa_index Index for communication with  pha_mat_spt_agenda.
-\param pha_mat_spt_agenda
-\param i_field Input : intensity field 
-\param pnd_field Input : the particle number density field.
-\param scat_za_grid zenith angle grid
-\param scat_aa_grid azimuth angle grid
-\param p_grid pressure grid
-\param lat_grid latitude grid
-\param lon_grid longitude grid
-\param atmosphere_dim atmospheric dimension
-\param cloudbox_limits Limits of the cloudbox.
-\param za_grid_size Number of points in zenith angle grid for
- scattering integral.
+    WS Output:
+    \param scat_field Scattering integral field.
+    WS Output and Input:
+    \param pha_mat Phase matrix.
+    \param pha_mat_spt Phase matrix for single particle type
+    \param scat_za_index Indices for propagation directions,
+    \param scat_aa_index needed for communication with pha_mat_spt_agenda.
+    WS Input:
+    \param pha_mat_spt_agenda Agenda for calculation of pha_mat_spt. 
+    \param i_field Intensity field 
+    \param pnd_field Particle number density field.
+    \param scat_za_grid Zenith angle grid
+    \param scat_aa_grid Azimuth angle grid
+    \param atmosphere_dim Atmospheric dimension
+    \param cloudbox_limits Limits of the cloudbox.
+    \param za_gridsize Number of grid points in zenith angle grid.
 
 \author Claudia Emde
 \date 2003-11-28
@@ -3000,9 +3020,7 @@ scat_fieldCalcLimb(//WS Output:
       scat_field(joker, joker, joker, joker, Naa-1, joker);
   }// end atm_dim=3
 
-  
-
-    out2 << "Finished scattered field.\n"; 
+  out2 << "Finished scattered field.\n"; 
  
 }
 
@@ -3576,7 +3594,13 @@ void ScatteringInitAmpMat(
 
 //! Main function for the radiative transfer in cloudbox.  
 /*!
-  This function executes *scat_mono_agenda* for each frequency in *f_grid*.   
+  This function executes *scat_mono_agenda* for each frequency in *f_grid*.  
+  
+  \param f_index Frequency index
+  \param f_grid Frequency grid
+  \param scat_mono_agenda Agenda for monochromatic scattering calculation. 
+  
+  \author Claudia Emde
 */
 void ScatteringMain(
                     Index& f_index,
@@ -3638,7 +3662,7 @@ void iteration_counterIncrease(Index& iteration_counter)
   WS Input/Output: 
   \param iteration_counter Counter for the iterations. 
   \param field Iterated field
-  \param field_name FIXME: Add documentation.
+  \param field_name Name of intensity field.
   \param iterations Array containing the iteration numbers to be written
 
   \author Claudia Emde
@@ -3654,8 +3678,7 @@ void Tensor6WriteIteration(//WS input
                            const ArrayOfIndex& iterations)
 {
   // if(iteration_counter>1000) return;
- 
-  
+   
   ostringstream os;
   os << iteration_counter;
   

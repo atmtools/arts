@@ -194,7 +194,14 @@ void cloud_fieldsCalc(// Output:
   \param rte_vmr_list
   Variables used in opt_prop_xxx_agenda:
   \param ext_mat
-  \param abs_vec  
+  \param abs_vec 
+  Ground related variables:
+  \param ground_los
+  \param ground_emission
+  \param ground_refl_coeffs
+  \param rte_los
+  \param rte_pos
+  \param rte_gp_p
   Variables used in ppath_step_agenda:
   \param ppath_step
   WS Input:
@@ -217,8 +224,11 @@ void cloud_fieldsCalc(// Output:
   \param t_field
   \param f_grid
   \param f_index
+  Optical properties of particles
   \param ext_mat_field
   \param abs_vec_field
+  Ground reflection 
+  \param ground_refl_agenda
 
   \author Claudia Emde
   \date 2002-06-04
@@ -249,7 +259,7 @@ void cloud_ppath_update1D(
 			  // Calculate scalar gas absorption:
 			  const Agenda& scalar_gas_absorption_agenda,
 			  ConstTensor4View vmr_field,
-			  // Gas absorption:
+			  // Gas absorption: 
 			  const Agenda& opt_prop_gas_agenda,
 			  // Propagation path calculation:
 			  const Agenda& ppath_step_agenda,
@@ -260,7 +270,7 @@ void cloud_ppath_update1D(
 			  ConstTensor3View t_field,
 			  ConstVectorView f_grid,
 			  const Index& f_index,
-			  //particle opticla properties
+			  //particle optical properties
 			  ConstTensor5View ext_mat_field,
 			  ConstTensor4View abs_vec_field,
 			  const Agenda& ground_refl_agenda //STR
