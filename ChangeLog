@@ -1,5 +1,14 @@
 2001-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0-0-173
+
+	* data/atmosphere/fascod/midlatidude-summer.HO2.am: Added this
+	file by hand from the 45n file in the RAL scenario used for the
+	ESTEC studies (/pool/esa/maso/in/atm_scen). 
+
+
+2001-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-0-0-172
 
 	* continua.cc: Removed `^' character.

@@ -1,11 +1,15 @@
+2001-05-30 Stefan Buehler:
+Added midlatidude-summer.HO2 by hand from the 45n file in the RAL
+scenario used for the ESTEC studies (/pool/esa/maso/in/atm_scen).
 
-Buehler, 01. 06. 2000:
+2000-05-17 Stefan Buehler:
+Converted pressure from hPa to Pa. The conversion scripts are in
+~sbuehler/matlab/atmosphere_conversion. 
+
+2000-06-01 Stefan Buehler:
 These files were originally created by Björn-Martin Sinnhuber from the
 fascod files. Converted to standard ARTS matrix format by Stefan
 
-Stefan Buehler, 17. 06. 2000:
-Converted pressure from hPa to Pa. The conversion scripts are in
-~sbuehler/matlab/atmosphere_conversion. 
 
 --------------------------------------------------
 
