@@ -1,8 +1,29 @@
+2001-07-24  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-187
+
+	* Major Change: Added a new command line parameter --input
+	(-i). This is complementary to the --methods switch. It must be
+	given the name of a variable (or group). Then it lists all methods
+	that take this variable (or group) as input.
+	
+	* src/main.cc (main): Added command line parameter -i/--input.
+	(option_input): Added this function, to take care of the new
+	command line parameter.
+
+	* src/parameters.h: Added command line parameter -i/--input.
+
+	* src/parameters.cc (get_parameters): Added command line parameter
+	-i/--input.
+
+	* src/.cvsignore: Updated and cleaned up a bit.
+
+	
 2001-07-23  Oliver Lemke  <olemke@core-dump.net>
 
 	* arts-0-0-186
 
-	* src/make_md_h.cc: Renamed md.h to auto_md.h md.cc to auto_md.cc.
+	* src/make_md_h.cc: Renamed md.h to auto_md.h and md.cc to auto_md.cc.
 	Moved auto_md.cc creation to src/make_md_cc.cc.
 	
 	* src/make_md_cc.cc: Moved creation of auto_md.cc to this file.

@@ -15,6 +15,18 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+/**
+   \file   main.cc
+
+   This file contains the main function of ARTS, as well as functions
+   to deal with command line parameters. It also contains the
+   executor, which is the `engine' that executes workspace methods in
+   a controlfile one by one, in order to carry out an ARTS
+   calculations. 
+
+   \author Stefan Buehler
+   \date   2001-07-24
+*/
 #include "arts.h"
 #include "parameters.h"
 #include "messages.h"
@@ -46,10 +58,10 @@ void give_up(const string& message)
     method execution and stops the program if an error has
     occured. 
 
-    @param workspace Output. The workspace to act on.
-    @param tasklist The list of methods to execute (including keyword data).
+    \param workspace Output. The workspace to act on.
+    \param tasklist The list of methods to execute (including keyword data).
 
-    @authore Stefan Buehler  */
+    \author Stefan Buehler  */
 void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
 {
   // The method description lookup table:
@@ -157,8 +169,8 @@ void polite_goodby()
     sense. The value -1 for reporting means that it was (probably)
     not given on the command line, since this is the initialization
     value.
-    @param r Reporting level from Command line.
-    @author Stefan Buehler */
+    \param r Reporting level from Command line.
+    \author Stefan Buehler */
 void set_reporting_level(int r)
 {
   // The global variable that holds the message levels for screen and file.
@@ -200,8 +212,8 @@ void set_reporting_level(int r)
     a variable, it should print all methods that produce this
     variable as output.
 
-    @param methods All or name of a variable.
-    @author Stefan Buehler */
+    \param methods All or name of a variable.
+    \author Stefan Buehler */
 void option_methods(const string& methods)
 {
   // Make global data visible:
@@ -324,14 +336,130 @@ void option_methods(const string& methods)
   exit(1);
 }
 
+/** React to option `input'. Given the name of
+    a variable, it should print all methods that need this
+    variable as input.
+
+    \param methods Name of a variable.
+    \author Stefan Buehler
+    \date   2001-07-24 */
+void option_input(const string& input)
+{
+  // Make global data visible:
+  extern const ARRAY<MdRecord>  md_data;
+  extern const ARRAY<WsvRecord> wsv_data;
+  //  extern const std::map<string, size_t> MdMap;
+  extern const std::map<string, size_t> WsvMap;
+  extern const ARRAY<string> wsv_group_names;
+
+  // This is used to count the number of matches to a query, so
+  // that `none' can be output if necessary
+  size_t hitcount;
+
+  // Ok, so the user has probably specified a workspace variable or
+  // workspace variable group.
+
+  // Check if the user gave the name of a specific variable.
+  map<string, size_t>::const_iterator mi =
+    WsvMap.find(input);
+  if ( mi != WsvMap.end() )
+    {
+      // If we are here, then the given name matches a variable.
+      size_t wsv_key = mi->second;
+
+      // List generic methods:
+      hitcount = 0;
+      cout << "Generic methods that can use " << wsv_data[wsv_key].Name() << ":\n";
+      for ( size_t i=0; i<md_data.size(); ++i )
+	{
+	  // This if statement checks whether GInput, the list
+	  // of input variable types contains the group of the
+	  // requested variable.
+	  if ( count( md_data[i].GInput().begin(),
+		      md_data[i].GInput().end(),
+		      wsv_data[wsv_key].Group() ) )
+	    {
+	      cout << "- " << md_data[i].Name() << '\n';
+	      ++hitcount;
+	    }
+	}
+      if ( 0==hitcount )
+	cout << "none\n";
+
+      // List specific methods:
+      hitcount = 0;
+      cout << "Specific methods that require " << wsv_data[wsv_key].Name() << ":\n";
+      for ( size_t i=0; i<md_data.size(); ++i )
+	{
+	  // This if statement checks whether Output, the list
+	  // of output variables contains the workspace
+	  // variable key.
+	  if ( count( md_data[i].Input().begin(),
+		      md_data[i].Input().end(),
+		      wsv_key ) ) 
+	    {
+	      cout << "- " << md_data[i].Name() << '\n';
+	      ++hitcount;
+	    }
+	}
+      if ( 0==hitcount )
+	cout << "none\n";
+
+      return;
+    }
+
+  // Check if the user gave the name of a variable group.
+
+  // We use the find algorithm from the STL to do this. It
+  // returns an iterator, so to get the index we take the
+  // difference to the begin() iterator.
+  size_t group_key =
+    find( wsv_group_names.begin(),
+	  wsv_group_names.end(),
+	  input ) - wsv_group_names.begin();
+
+  // group_key == wsv_goup_names.size() indicates that a
+  // group with this name was not found.
+  if ( group_key != wsv_group_names.size() )
+    {
+      // List generic methods:
+      hitcount = 0;
+      cout << "Generic methods that require a variable "
+	   << "of group " << wsv_group_names[group_key] << ":\n";
+      for ( size_t i=0; i<md_data.size(); ++i )
+	{
+	  // This if statement checks whether GOutput, the list
+	  // of output variable types contains the
+	  // requested group.
+	  if ( count( md_data[i].GInput().begin(),
+		      md_data[i].GInput().end(),
+		      group_key ) )
+	    {
+	      cout << "- " << md_data[i].Name() << '\n';
+	      ++hitcount;
+	    }
+	}
+      if ( 0==hitcount )
+	cout << "none\n";
+
+      return;
+    }
+
+  // If we are here it means that what the user specified is neither
+  // a variable nor a variable group.
+  cerr << "The name " << input << " matches neither the name of a\n"
+       << "workspace variable, nor the name of a workspace variable group.\n";
+  exit(1);
+}
+
 
 /** React to option `workspacevariables'. If given the argument `all',
     it should simply prints a list of all variables. If given the
     name of a method, it should print all variables that are needed
     by that method.
 
-    @param  workspacevariables All or name of a method.
-    @author Stefan Buehler */
+    \param  workspacevariables All or name of a method.
+    \author Stefan Buehler */
 void option_workspacevariables(const string& workspacevariables)
 {
   // Make global data visible:
@@ -404,8 +532,8 @@ void option_workspacevariables(const string& workspacevariables)
 /** React to option `describe'. This should print the description
     string of the given workspace variable or method.
 
-    @param describe What to describe.
-    @author Stefan Buehler */
+    \param describe What to describe.
+    \author Stefan Buehler */
 void option_describe(const string& describe)
 {
   // Make global data visible:
@@ -482,10 +610,10 @@ void check_built_headers()
        parameters make sense, where necessary.) 
     \endverbatim
 
-    @return    0=ok, 1=error
-    @param     argc Number of command line parameters 
-    @param     argv Values of command line parameters
-    @author    Stefan Buehler */
+    \return    0=ok, 1=error
+    \param     argc Number of command line parameters 
+    \param     argv Values of command line parameters
+    \author    Stefan Buehler */
 int main (int argc, char **argv)
 {
   extern const Parameters parameters; // Global variable that holds
@@ -579,6 +707,15 @@ int main (int argc, char **argv)
   if ( "" != parameters.methods )
     {
       option_methods(parameters.methods);
+      return(0);
+    }
+
+  // React to option `input'. Given the name of a variable (or group)
+  // it should print all methods that need this variable (or group) as
+  // input.
+  if ( "" != parameters.input )
+    {
+      option_input(parameters.input);
       return(0);
     }
   

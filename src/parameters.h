@@ -15,6 +15,16 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+/**
+   \file   parameters.h
+
+   This file contains header information for the dealing with command
+   line parameters.
+
+   \author Stefan Buehler
+   \date   2001-07-24
+*/
+
 #ifndef parameters_h
 #define parameters_h
 
@@ -39,6 +49,7 @@ struct Parameters {
     controlfiles(),
     reporting(-1),
     methods(""),
+    input(""),
     workspacevariables(""),
     describe(""),
     groups(false)
@@ -67,9 +78,13 @@ struct Parameters {
       03 = only errors to the screen, everything to the file. */
   int reporting;
   /** If this is given the argument `all', it simply prints a list of 
-      all methods. If it is given the name of a variable, it
-      prints all methods that produce this variable as output. */
+      all methods. If it is given the name of a variable (or group), it
+      prints all methods that produce this variable (or group) as output. */
   string methods;
+  /** This is complementary to the methods switch. It must be given
+      the name of a variable (or group). Then it lists all methods that take this
+      variable (or group) as input. */
+  string input;
   /** If this is given the argument `all', it simply prints a list of 
       all workspace variables. If it is given the name of a method,
       it prints all variables needed by that method. */

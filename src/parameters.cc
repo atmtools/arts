@@ -15,7 +15,16 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-// #include "arts.h"
+/**
+   \file   parameters.cc
+   
+   This file contains the function get_parameters, which reads command
+   line parameters. Standard GNU functions are used for this.
+
+   \author Stefan Buehler
+   \date   2001-07-24
+*/
+
 #include "arts.h"
 #include <getopt.h>
 #include "parameters.h"
@@ -77,6 +86,7 @@ bool get_parameters(int argc, char **argv)
     { "basename",    	    required_argument, NULL, 'b' },
     { "reporting",    	    required_argument, NULL, 'r' },
     { "methods",     	    required_argument, NULL, 'm' },
+    { "input",     	    required_argument, NULL, 'i' },
     { "workspacevariables", required_argument, NULL, 'w' },
     { "describe",    	    required_argument, NULL, 'd' },
     { "groups",     	    no_argument,       NULL, 'g' },
@@ -84,9 +94,11 @@ bool get_parameters(int argc, char **argv)
   };
 
   parameters.usage =
-    "Usage: arts [-hvbrmwdg] [--help] [--version] [--basename <name>]\n"
+    "Usage: arts [-hvbrmiwdg] [--help] [--version] [--basename <name>]\n"
     "       [--reporting xy]\n"
-    "       [--methods all|<variable> ] [--workspacevariables all|<method> ]\n"
+    "       [--methods all|<variable>]\n"
+    "       [--input <variable>]\n"
+    "       [--workspacevariables all|<method>]\n"
     "       [--describe <method or variable>]\n"
     "       [--groups]\n"
     "       file1.arts file2.arts ...";
@@ -107,6 +119,10 @@ bool get_parameters(int argc, char **argv)
     "                    (or variable group), it prints all\n"
     "                    methods that produce this\n"
     "                    variable (or group) as output.\n"
+    "-i, --input         This is complementary to the --methods switch.\n"
+    "                    It must be given the name of a variable (or group).\n"
+    "                    Then it lists all methods that take this variable\n"
+    "                    (or group) as input.\n"
     "-w, --workspacevariables  If this is given the argument `all',\n"
     "                    it simply prints a list of all variables.\n"
     "                    If it is given the name of a method, it\n"
@@ -189,6 +205,9 @@ bool get_parameters(int argc, char **argv)
 	  }
 	case 'm':
 	  parameters.methods = optarg;
+	  break;
+	case 'i':
+	  parameters.input = optarg;
 	  break;
 	case 'w':
 	  parameters.workspacevariables = optarg;
