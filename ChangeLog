@@ -1,5 +1,11 @@
 2004-01-08  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-772
+
+	* src/methods.cc: Restore version from 1.1.769.
+
+2004-01-08  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-771
 
 	* src/logic.cc (is_increasing): Remove debug output.
