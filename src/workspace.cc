@@ -1281,24 +1281,6 @@ wsv_data.push_back
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "mblock_index" ),
-      DESCRIPTION
-      (
-       "Index of measurement block in work inside *RteCalc*.\n"
-       "\n"
-       "The WSM *RteCalc* uses this variable as index for the measurement \n"
-       "block in consideration. This means that new variables can more \n"
-       "easily be connected with the measurement blocks and be used inside \n"
-       "agendas connected with the RTE calculations. A future possible \n"
-       "extension can be to assign a time for each measurement block to \n"
-       "know, for example, the position of the sun. \n"
-       "\n"
-       "Usage: See above.\n"
-       ),
-      GROUP( Index_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "mblock_za_grid" ),
       DESCRIPTION
       (
@@ -2043,6 +2025,36 @@ wsv_data.push_back
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sensor_pol" ),
+      DESCRIPTION
+      (
+       "The sensor polarisation response.\n"
+       "\n"
+       "The number of rows of this matrix equals the number of polarisation\n"
+       "channels of the sensor. For example, if horisontal and vertical \n"
+       "polarisation are measured simultaneously, the matrix has two rows. \n"
+       "This matrix is multiplicated with the Stokes vector, converted to \n"
+       "the sensor frame, before the sensor response is applied. \n"
+       "\n"
+       "If the purpose of the simulations is to extract the polarisation\n"
+       "of the radiation coming from the atmosphere (no sensor), the matrix\n"
+       "shall be set to the identity matrix with a size matching\n"
+       "*stokes_dim*. \n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  [ - (0-1) ]\n"
+       "\n"
+       "Size:  [ number of polarisation values, stokes_dim ]"
+       ),
+      GROUP( Matrix_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "sensor_pos" ),
       DESCRIPTION
       (
@@ -2066,19 +2078,112 @@ wsv_data.push_back
       DESCRIPTION
       (
         "The response block matrix modelling the total sensor response.\n"
-		"\n"
-		"The matrix is the product of all the individual sensor response\n"
-		"matrices. Therefore its dimension are depending on the sensor\n"
-		"configuration and where in the calculations we are.\n"
-		"The *sensor_response* has to initialised by the *sensor_responseInit* method.\n"
-		"\n"
-		"Usage:		Output/input to the *sensor_response...* methods.\n"
-		"\n"
-		"Units:		1\n"
-		"\n"
-		"Dimension: See the individual *sensor_response...* method documentation."
+	"\n"
+	"The matrix is the product of all the individual sensor response\n"
+	"matrices. Therefore its dimension are depending on the sensor\n"
+	"configuration and where in the calculations we are.\n"
+	"The *sensor_response* has to initialised by the \n"
+        "*sensor_responseInit* method.\n"
+	"\n"
+	"Usage:		Output/input to the *sensor_response...* methods.\n"
+	"\n"
+	"Units:		-\n"
+	"\n"
+	"Dimension:     See the individual *sensor_response...* method \n"
+        "documentation."
        ),
       GROUP( Sparse_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_f" ),
+      DESCRIPTION
+      (
+       "The frequencies associated with *sensor_response*.\n"
+       "\n"
+       "This vector gives the output frequencies for the sensor parts\n"
+       "considered in *sensor_response*.\n"
+       "\n"
+       "The variable shall not be set manually, it will be set together with\n"
+       "*sensor_response* by sensor response WSMs.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ Hz ]"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_za" ),
+      DESCRIPTION
+      (
+       "The relative zenith angles associated with *sensor_response*.\n"
+       "\n"
+       "This vector summed with the zenith angles in *sensor_los* gives the\n"
+       "observation directions observed. For example, if the measurement \n"
+       "blocks consist of one spectrum, this vector has length 1, and most \n"
+       "likely with the value 0.\n"
+       "\n"
+       "The variable shall not be set manually, it will be set together with\n"
+       "*sensor_response* by sensor response WSMs.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ degrees ]"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_aa" ),
+      DESCRIPTION
+      (
+       "The azimuth angles associated with *sensor_response*.\n"
+       "\n"
+       "The relative azimuth angles associated with *sensor_response*.\n"
+       "The variable shall be empty if *antenna_dim* = 1.\n"
+       "\n"
+       "This vector summed with the azimuth angles in *sensor_los* gives the\n"
+       "observation directions observed. For example, if the measurement \n"
+       "blocks consist of one spectrum, this vector has length 1, and most \n"
+       "likely with the value 0.\n"
+       "\n"
+       "The variable shall not be set manually, it will be set together with\n"
+       "*sensor_response* by sensor response WSMs.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       "\n"
+       "Unit:  [ degrees ]"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_rot" ),
+      DESCRIPTION
+      (
+       "The rotation of the sensor for each measurement block.\n"
+       "\n"
+       "The rotation is the angle between the atmospheric and sensor frames\n"
+       "for polarisation. The angle increases with clockwise rotation of the\n"
+       "sensor when looking along the line-of-sight of the sensor. \n"
+       "\n"
+       "If the purpose of the simulations is to extract the polarisation\n"
+       "of the radiation coming from the atmosphere (no sensor), the angles\n"
+       "shall be set to 0.\n"
+       "\n"       
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  [ degrees ]\n"
+       "\n"
+       "Size:  [ number of measurement blocks ]"
+       ),
+      GROUP( Vector_ )));
 
 wsv_data.push_back
    (WsvRecord
@@ -2417,23 +2522,6 @@ wsv_data.push_back
        "\n"
        "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
        "       optical thickness."
-       ),
-      GROUP( Matrix_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "y_rte" ),
-      DESCRIPTION
-      (
-       "The measurement vector produced by *RteCalc*.\n"
-       "\n"
-       "More text will be written (PE).\n"
-       "\n"
-       "Usage:      Output from *RteCalc*.\n"
-       "\n"
-       "Unit:       W/(m^2 Hz sr) or optical thickness.\n"
-       "\n"
-       "Dimensions: [ any number, stokes_dim ]"
        ),
       GROUP( Matrix_ )));
 

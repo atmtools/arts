@@ -43,7 +43,6 @@ void Cloudbox_ppath_rteCalc(
 			     Numeric&              a_pressure,
 			     Numeric&              a_temperature,
 			     Vector&               a_vmr_list,
-			     Matrix&               y_rte,
 			     Matrix&               i_rte,
 			     GridPos&              a_gp_p,
 			     GridPos&              a_gp_lat,

@@ -86,7 +86,6 @@ void Cloudbox_ppath_rteCalc(
 			     Numeric&              a_pressure,
 			     Numeric&              a_temperature,
 			     Vector&               a_vmr_list,
-			     Matrix&               y_rte,
 			     Matrix&               i_rte,
 			     GridPos&              a_gp_p,
 			     GridPos&              a_gp_lat,
@@ -121,19 +120,23 @@ void Cloudbox_ppath_rteCalc(
 			     const Index&          scattering_order)
 
 {
+  // Assign dummies for variables associated with sensor.
+  Vector   mblock_za_grid_dummy(1);
+           mblock_za_grid_dummy[0] = 0;
+  Vector   mblock_aa_grid_dummy(0), sensor_rot_dummy(0);
+  Matrix   sensor_pol_dummy;
+  Index    antenna_dim_dummy = 1; 
+  Sparse   sensor_response_dummy;
+
+  // Dummy for measurement vector
+  Vector   y_dummy(0);
 
   const Index cloudbox_on_dummy=0;
-  const Index antenna_dim_dummy = 1; 
   Matrix sensor_pos(1,3);
   Matrix sensor_los(1,2);
-  Index mblock_index=0;
   Tensor7 scat_i_p_dummy;
   Tensor7 scat_i_lat_dummy;
   Tensor7 scat_i_lon_dummy;
-  Sparse dummy_sensor_response;
-  Vector mblock_za_grid_dummy(1);
-  Vector mblock_aa_grid_dummy(0);
-  mblock_za_grid_dummy[0] = 0;
  
   //  cout << "Cloudbox_ppathCalc\n";
   Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
@@ -168,12 +171,14 @@ shift_a_pos(dummy_a_pos,dummy_a_los,ppathcloud);
   sensor_pos(0,joker)=dummy_a_pos;
   sensor_los(0,joker)=dummy_a_los;
   
-  rte_calc( y_rte, ppath, ppath_step, i_rte, mblock_index, a_pos, a_los, a_gp_p, a_gp_lat,
+  rte_calc( y_dummy, ppath, ppath_step, i_rte, a_pos, a_los, a_gp_p, a_gp_lat,
 	    a_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
 	    ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, atmosphere_dim,
 	    p_grid, lat_grid, lon_grid, z_field, t_field, r_geoid, z_ground, cloudbox_on_dummy,
 	    cloudbox_limits, scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
-	    scat_aa_grid, dummy_sensor_response, sensor_pos,sensor_los,f_grid,stokes_dim,
+	    scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
+            sensor_pol_dummy, sensor_rot_dummy,
+            f_grid,stokes_dim,
 	    antenna_dim_dummy, mblock_za_grid_dummy,mblock_aa_grid_dummy,true, false, 1);
   
   

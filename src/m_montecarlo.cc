@@ -391,7 +391,6 @@ void ScatteringMonteCarlo (
 			   Matrix&         ground_emission,
 			   Matrix&         ground_los, 
 			   Tensor4&        ground_refl_coeffs,
-			   Matrix&         y_rte,
 			   Matrix&         i_rte,
 			   Vector&         scat_za_grid,
 			   Vector&         scat_aa_grid,
@@ -486,7 +485,7 @@ void ScatteringMonteCarlo (
   Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, a_pos, a_los, cum_l_stepLOS, 
 		 TArrayLOS, ext_matArrayLOS, abs_vecArrayLOS,t_ppathLOS, scat_za_grid, 
 			 scat_aa_grid, ext_mat, abs_vec, a_pressure, a_temperature, 
-			 a_vmr_list, y_rte, i_rte, a_gp_p, a_gp_lat, a_gp_lon, 
+			 a_vmr_list, i_rte, a_gp_p, a_gp_lat, a_gp_lon, 
 			 i_space, ground_emission, ground_los, ground_refl_coeffs, 
 			 f_index, ppath_step_agenda, atmosphere_dim, p_grid, 
 			 lat_grid, lon_grid, z_field, r_geoid, z_ground, 
@@ -496,7 +495,7 @@ void ScatteringMonteCarlo (
 			 rte_agenda, i_space_agenda, ground_refl_agenda, f_grid, 0, 0);
   
 
-  mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],y_rte(0,joker));
+  mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],i_rte(0,joker));
   
   //Begin Main Loop
   for (Index photon_number=1; photon_number<=maxiter; photon_number++)
@@ -525,7 +524,7 @@ void ScatteringMonteCarlo (
 	      Cloudbox_ppath_rteCalc(ppathcloud, ppath, ppath_step, a_pos, a_los, cum_l_step, 
 				    TArray, ext_matArray, abs_vecArray,t_ppath, scat_za_grid, 
 				     scat_aa_grid, ext_mat, abs_vec, a_pressure, 
-				     a_temperature, a_vmr_list, y_rte, i_rte, a_gp_p, 
+				     a_temperature, a_vmr_list, i_rte, a_gp_p, 
 				     a_gp_lat, a_gp_lon, i_space, ground_emission, 
 				     ground_los, ground_refl_coeffs, f_index, 
 				     ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
@@ -535,7 +534,7 @@ void ScatteringMonteCarlo (
 				     stokes_dim, t_field, vmr_field, rte_agenda, 
 				     i_space_agenda, ground_refl_agenda, f_grid, photon_number
 				     , scattering_order);
-	      Iboundary=y_rte(0,joker);
+	      Iboundary=i_rte(0,joker);
 	    }
 	  
 	  Sample_ppathlength (pathlength,g,rng,ext_matArray);

@@ -253,5 +253,17 @@ void chk_size( const String&    x_name,
                const Index&     r,
                const Index&     c );
 
+void chk_y_with_sensor( 
+              Index&      nf,
+              Index&      npol,
+              Index&      nspectra, 
+        ConstVectorView   y,
+        const String&     y_name,
+        ConstMatrixView   sensor_pos,
+        ConstMatrixView   sensor_los,
+        ConstVectorView   sensor_response_f,
+        ConstVectorView   sensor_response_za,
+        ConstVectorView   sensor_response_aa,
+        ConstMatrixView   sensor_pol );
 
 #endif  // checkinput_h

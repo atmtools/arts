@@ -990,3 +990,71 @@ void chk_size( const String&    x_name,
     }
 }
 
+
+
+
+/*===========================================================================
+  === Functions related to the sensor.
+  ===========================================================================*/
+
+//! chk_y_with_sensor
+/*! 
+    Checks if the length of a vector with measurement data matches the
+    given sensor data.
+
+    The function gives an error message if this is not the case.
+
+    Some sizes are returned.
+
+    \param   nf                   Out: Number of frequenices measured.
+    \param   npol                 Out: Number of polarisations measured.
+    \param   nspectra             Out: Number of spectra measured. That is,
+                                  number of repetitions of all combinations of
+                                  frequencies and polarisations. The length of
+                                  *y* shall be nf*npol*nspectra.
+    \param   y                    In: A vector of measurement data, or e.g.
+                                  a column of a Jacobian matrix.
+    \param   y_name               In: Workspace name of *y*.
+    \param   sensor_pos           In: As the WSV with same name.
+    \param   sensor_los           In: As the WSV with same name.
+    \param   sensor_response_f    In: As the WSV with same name.
+    \param   sensor_response_za   In: As the WSV with same name.
+    \param   sensor_response_aa   In: As the WSV with same name.
+    \param   sensor_pol           In: As the WSV with same name.
+
+    \author Patrick Eriksson 
+    \date   2003-07-13
+*/
+void chk_y_with_sensor( 
+              Index&      nf,
+              Index&      npol,
+              Index&      nspectra, 
+        ConstVectorView   y,
+        const String&     y_name,
+        ConstMatrixView   sensor_pos,
+        ConstMatrixView   sensor_los,
+        ConstVectorView   sensor_response_f,
+        ConstVectorView   sensor_response_za,
+        ConstVectorView   sensor_response_aa,
+        ConstMatrixView   sensor_pol )
+{
+  const Index   npos = sensor_pos.nrows();
+
+  if( npos != sensor_los.nrows() )
+    throw runtime_error( 
+        "The number of rows in *sensor_pos* and *sensor_los* must be equal." );
+
+  nf       = sensor_response_f.nelem();
+  npol     = sensor_pol.nrows();
+  nspectra = npos * sensor_response_za.nelem();
+  if( sensor_response_aa.nelem() )
+    { nspectra *= sensor_response_aa.nelem(); }
+
+  if( y.nelem() != nf*npol*nspectra )
+    {
+      ostringstream os;
+      os << "The size of *" << y_name << "* is not consistent with the"
+         << "sensor variables.";
+      throw runtime_error( os.str() );
+    }
+}

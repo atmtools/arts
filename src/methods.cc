@@ -795,9 +795,9 @@ md_data_raw.push_back
          "\n"
          ),
         OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_,
-               i_rte_, y_rte_, i_space_, ground_emission_, ground_los_, 
+               i_rte_, i_space_, ground_emission_, ground_los_, 
                ground_refl_coeffs_,
-               mblock_index_, a_los_, a_pos_, a_gp_p_, a_gp_lat_, a_gp_lon_),
+               a_los_, a_pos_, a_gp_p_, a_gp_lat_, a_gp_lon_),
         INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
                 scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
                 i_space_agenda_, ground_refl_agenda_, p_grid_, lat_grid_,
@@ -2217,13 +2217,13 @@ md_data_raw.push_back
          "   Matrix : A matrix with brightness temperature values. \n"
          "\n"
          "Generic input: \n"
-         "   Matrix : A matrix with radiance values. \n"
-         "   Vector : A set of frequencies. " 
+         "   Matrix : A matrix with radiance values."
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( sensor_pos_, sensor_los_, sensor_response_f_, 
+               sensor_response_za_, sensor_response_aa_, sensor_pol_ ),
         GOUTPUT( Matrix_ ),
-        GINPUT( Matrix_, Vector_ ),
+        GINPUT( Matrix_ ),
         KEYWORDS(),
         TYPES()));
 
@@ -2243,13 +2243,13 @@ md_data_raw.push_back
          "   Matrix : A matrix with brightness temperature values. \n"
          "\n"
          "Generic input: \n"
-         "   Matrix : A matrix with radiance values. \n"
-         "   Vector : A set of frequencies. " 
+         "   Matrix : A matrix with radiance values."
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( sensor_pos_, sensor_los_, sensor_response_f_, 
+               sensor_response_za_, sensor_response_aa_, sensor_pol_ ),
         GOUTPUT( Matrix_ ),
-        GINPUT( Matrix_, Vector_ ),
+        GINPUT( Matrix_ ),
         KEYWORDS(),
         TYPES()));
 
@@ -2802,7 +2802,7 @@ md_data_raw.push_back
          "\n"
          "More text will be written (PE)."
         ),
-        OUTPUT( y_rte_, ppath_, ppath_step_, i_rte_, mblock_index_,
+        OUTPUT( y_, ppath_, ppath_step_, i_rte_,
                 a_pos_, a_los_, a_gp_p_, a_gp_lat_, a_gp_lon_, i_space_,
                 ground_emission_, ground_los_, ground_refl_coeffs_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, i_space_agenda_,
@@ -2811,7 +2811,8 @@ md_data_raw.push_back
                t_field_, r_geoid_, z_ground_, cloudbox_on_, cloudbox_limits_, 
                scat_i_p_, scat_i_lat_, scat_i_lon_, 
                scat_za_grid_, scat_aa_grid_, sensor_response_,
-               sensor_pos_, sensor_los_, f_grid_, stokes_dim_,
+               sensor_pos_, sensor_los_, sensor_pol_, sensor_rot_, 
+               f_grid_, stokes_dim_,
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         GOUTPUT(),
         GINPUT(),
@@ -2833,24 +2834,6 @@ md_data_raw.push_back
          "*opt_prop_part_agenda*.\n"
          "The coefficients for the radiative transfer are averaged between\n" 
          "two successive propagation path points. \n"
-        ),
-        OUTPUT( i_rte_, abs_vec_, ext_mat_, a_pressure_, a_temperature_,
-                a_vmr_list_, f_index_ ),
-        INPUT( i_rte_, ppath_, f_grid_, stokes_dim_, 
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_,
-               vmr_field_, scalar_gas_absorption_agenda_, 
-               opt_prop_gas_agenda_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "RteEmissionTest" ),
-        DESCRIPTION
-        (
-         "Test RTE function with emission."
         ),
         OUTPUT( i_rte_, abs_vec_, ext_mat_, a_pressure_, a_temperature_,
                 a_vmr_list_, f_index_ ),
@@ -3143,7 +3126,7 @@ md_data_raw.push_back
           ),
         OUTPUT(ppath_, ppath_step_, I_, Ierror_, a_pos_, a_los_,
 	       a_gp_p_, a_gp_lat_, a_gp_lon_, i_space_, ground_emission_,
-	       ground_los_, ground_refl_coeffs_, y_rte_,  i_rte_, 
+	       ground_los_, ground_refl_coeffs_, i_rte_, 
 	       scat_za_grid_,scat_aa_grid_, a_pressure_, a_temperature_, 
 	       a_vmr_list_, ext_mat_, abs_vec_, f_index_),
         INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
@@ -3157,6 +3140,33 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath" ),
         TYPES( Index_t, Index_t, Index_t, Index_t )));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "sensorOff" ),
+        DESCRIPTION
+        (
+         "Sets sensor WSV to obtain monochromatic pencil beam values.\n"
+         "\n"
+         "The variables are set as follows:\n"
+         "   sensor_response : As returned by *sensor_responseInit*.\n"
+         "   sensor_pol      : Identity matrix, with size following\n"
+         "                     *stokes_dim*.\n"
+         "   sensor_rot      : Length matching *sensor_pos/los*. All values\n"
+         "                     are set 0.\n"
+         "   antenna_dim     : 1.\n"
+         "   mblock_za_grid  : Length 1, value 0."
+         "   mblock_aa_grid  : Empty."
+        ),
+        OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
+                sensor_response_aa_, sensor_pol_, sensor_rot_, 
+                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
+        INPUT( atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_, 
+               f_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
  md_data_raw.push_back
     ( MdRecord
@@ -3227,15 +3237,15 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Returns the response block matrix after it has been modified by\n"
-		 "a 1D antenna response.\n"
+	 "a 1D antenna response.\n"
          "\n"
          "The generic input matrix is a two-column matrix where the first\n"
-		 "column describes a relative grid of angles and the second column\n"
-		 "desrcibes the antenna diagram. Such a matrix can be set up by\n"
-		 "*GaussianResponse*.\n"
-		 "\n"
-		 "Generic Input: \n"
-		 "   Matrix : The antenna response matrix."
+	 "column describes a relative grid of angles and the second column\n"
+	 "desrcibes the antenna diagram. Such a matrix can be set up by\n"
+	 "*GaussianResponse*.\n"
+	 "\n"
+	 "Generic Input: \n"
+	 "   Matrix : The antenna response matrix."
         ),
         OUTPUT( sensor_response_ ),
         INPUT( f_grid_, mblock_za_grid_, antenna_dim_ ),
@@ -3250,15 +3260,15 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Returns the response block matrix after it has been modified by\n"
-		 "a spectrometer backend response.\n"
+	 "a spectrometer backend response.\n"
          "\n"
          "The generic input matrix is a two-column matrix where the first\n"
-		 "column describes a relative grid of frequencies and the second\n"
-		 "column desrcibes the backend response. Such a matrix can be set up\n"
-		 "by *GaussianResponse*.\n"
-		 "\n"
-		 "Generic Input: \n"
-		 "   Matrix : The backend response matrix."
+	 "column describes a relative grid of frequencies and the second\n"
+	 "column desrcibes the backend response. Such a matrix can be set up\n"
+	 "by *GaussianResponse*.\n"
+	 "\n"
+	 "Generic Input: \n"
+	 "   Matrix : The backend response matrix."
         ),
         OUTPUT( sensor_response_ ),
         INPUT( f_backend_, f_mixer_ ),
@@ -3275,11 +3285,13 @@ md_data_raw.push_back
          "Initialises the response block matrix to an identity matrix.\n"
          "\n"
          "The initialised matrix is a quadratic matrix with sidelength equal\n"
-		 "to the product of the length of *f_grid*, *mblock_za_grid* and\n"
-		 "*mblock_aa_grid*."
+	 "to the product of the length of *f_grid*, *mblock_za_grid*,\n"
+	 "*mblock_aa_grid* and the columns of *sensor_pol*."
         ),
-        OUTPUT( sensor_response_ ),
-        INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_ ),
+        OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
+                sensor_response_aa_  ),
+        INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_, 
+               sensor_pol_, atmosphere_dim_, stokes_dim_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -3906,34 +3918,6 @@ md_data_raw.push_back
         KEYWORDS( "length", "value"   ),
         TYPES(    Index_t,    Numeric_t )));
 
-   md_data_raw.push_back
-    ( MdRecord
-      ( NAME("VectorSetElement"),
-        DESCRIPTION
-        (
-         "Sets the selected vector element to the given value.\n"
-         "\n"
-         "The vector must be initiated before calling the function. An error\n"
-         "is issued if a position outside the range of the vector is\n"
-         "selected.\n"
-         "\n"
-         "Note that the indexing is zero based. That is, the first element \n"
-         "has index 0.\n"
-         "\n"
-         "Generic output: \n"
-         "   Matrix : The vector to be modified. \n"
-         "\n"
-         "Keywords:\n"
-         "   pos   : Column of the position element to set. \n"
-         "   value : The value of the vector element. " 
-        ),
-        OUTPUT(),
-        INPUT(),
-        GOUTPUT( Vector_ ),
-        GINPUT(),
-        KEYWORDS( "pos",   "value"   ),
-        TYPES(    Index_t, Numeric_t )));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorSetTakingLengthFromVector"),
@@ -3950,7 +3934,7 @@ md_data_raw.push_back
          "   Vector : The vector to be created. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : The vector specifying the length.. \n"
+         "   Vector : The vector specifying the length. \n"
          "\n"
          "Keywords:\n"
          "   value  : The value of the vector elements. "
@@ -3978,13 +3962,13 @@ md_data_raw.push_back
          "   Vector : A vector with brightness temperature values. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : A vector with radiance values. \n"
-         "   Vector : A set of frequencies. " 
+         "   Vector : A vector with radiance values. "
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( sensor_pos_, sensor_los_, sensor_response_f_, 
+               sensor_response_za_, sensor_response_aa_, sensor_pol_ ),
         GOUTPUT( Vector_ ),
-        GINPUT( Vector_, Vector_ ),
+        GINPUT( Vector_ ),
         KEYWORDS(),
         TYPES()));
 
@@ -4004,28 +3988,27 @@ md_data_raw.push_back
          "radiances are converted to temparatures by the Planck function \n"
          "directly. \n"
          "\n"
-         "The conversion requieres that the frequency of each intensity \n"
-         "value is known. The last general input vector is assumed to be a \n"
-         "set of frequencies. It is further assumed that the frequencies of \n"
-         "the first general input vector are obtained by repeating the last \n"
-         "vector an integer number of times. \n"
+         "The conversion assumes that the elements of the input vector are\n"
+         "stored in standard order and correspond to *sensor_response_f*,\n"
+         "*sensor_response_za*, *sensor_response_aa* and *sensor_pol*.\n"
+         "The standard option shall accordingly be to perform this \n"
+         "conversion directly after *RteCalc*.\n"
          "\n"
          "If *y* shall be converted from radiances to brightness \n"
-         "temperatures and no instrument response has been applied, the \n"
-         "conversion is done as: \n"
-         "   VectorToTbByRJ(y,y,f_grid){} \n"
+         "temperatures: \n"
+         "   VectorToTbByRJ(y,y){} \n"
          "\n"
          "Generic output: \n"
          "   Vector : A vector with brightness temperature values. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : A vector with radiance values. \n"
-         "   Vector : A set of frequencies. "
+         "   Vector : A vector with radiance values."
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( sensor_pos_, sensor_los_, sensor_response_f_, 
+               sensor_response_za_, sensor_response_aa_, sensor_pol_ ),
         GOUTPUT( Vector_ ),
-        GINPUT( Vector_, Vector_ ),
+        GINPUT( Vector_ ),
         KEYWORDS(),
         TYPES()));
 
@@ -4193,24 +4176,6 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS("nelem_p_grid"),
         TYPES(Index_t)));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "yNoPolarisation" ),
-        DESCRIPTION
-        (
-         "Converts *y_rte* to *y* assuming an unpolarised instrument.\n"
-         "\n"
-         "This function assumes that the instrument is equally sensitive for\n"
-         "all polarisations. This corresponds to that *y* simply equals the \n"
-         "first column of *y_rte*."
-        ),
-        OUTPUT( y_ ),
-        INPUT( y_rte_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord

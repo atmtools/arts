@@ -990,29 +990,6 @@ void VectorSet(           Vector&    x,
 
 
 
-//! VectorSetElement
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2003-01-07
-*/
-void VectorSetElement(
-            Vector&    x, 
-      const String&    x_name,
-      const Index&     pos,
-      const Numeric&   value )
-{
-  if( pos > x.nelem() -1 )
-    throw runtime_error(
-     "You have selected a position that is outside the range of the vector." );
-
-  x[pos] = value;            
-  out2 << "  " << x_name << "(" << pos << ") = " << value <<"\n";
-}
-
-
-
 //! VectorSetTakingLengthFromVector
 /*!
    See the online help (arts -d FUNCTION_NAME)

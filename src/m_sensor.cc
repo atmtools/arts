@@ -53,9 +53,55 @@
 
 extern const Numeric PI;
 
+
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
+
+//! AntennaSet1D
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void AntennaSet1D(
+        // WS Output:
+              Index&    antenna_dim,
+              Vector&   mblock_aa_grid )
+{
+  out2 << "  Sets the antenna dimensionality to 1.\n";
+  out3 << "    antenna_dim = 1\n";
+  out3 << "    mblock_aa_grid is set to be an empty vector\n";
+  antenna_dim = 1;
+  mblock_aa_grid.resize(0);
+}
+
+
+
+//! AntennaSet2D
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void AntennaSet2D(
+        // WS Output:
+              Index&   antenna_dim,
+        // WS Input:
+        const Index&   atmosphere_dim )
+{
+  if( atmosphere_dim != 3 )
+    throw runtime_error("Antenna dimensionality 2 is only allowed when the "
+                                          "atmospheric dimensionality is 3." );
+  out2 << "  Sets the antenna dimensionality to 1.\n";
+  out3 << "    antenna_dim = 2\n";
+  antenna_dim = 2;
+}
+
+
 
 //! GaussianResponse
 /*!
@@ -94,6 +140,70 @@ void GaussianResponse(// WS Generic Output:
                     exp(-pow(r_matrix(i,0),2.0)/(2*pow(sigma,2.0)));
   }
 }
+
+
+
+//! sensorOff
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2003-07-12
+*/
+void sensorOff(
+        // WS Output:
+              Sparse&   sensor_response,
+              Vector&   sensor_response_f,
+              Vector&   sensor_response_za,
+              Vector&   sensor_response_aa,
+              Matrix&   sensor_pol,
+              Vector&   sensor_rot,
+              Index&    antenna_dim,
+              Vector&   mblock_za_grid,
+              Vector&   mblock_aa_grid,
+        const Index&    atmosphere_dim,
+        const Index&    stokes_dim,
+        const Matrix&   sensor_pos,
+        const Matrix&   sensor_los,
+        const Vector&   f_grid )
+{
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+
+  if( sensor_los.nrows() != sensor_pos.nrows() )
+    {
+      ostringstream os;
+      os << "The number of rows of sensor_pos and sensor_los must be "
+         << "identical,\Nbut sensor_pos has " << sensor_pos.nrows() 
+         << " rows, while sensor_los has " << sensor_los.nrows() << " rows.";
+      throw runtime_error( os.str() );
+    }
+
+  out2 << "  Sets *sensor_pol* to be the identity matrix.\n";
+  sensor_pol.resize( stokes_dim, stokes_dim );
+  sensor_pol = 0;
+  for( Index i=0; i<stokes_dim; i++ )
+    { sensor_pol(i,i) = 1; }
+
+  out2 << "  Sets *sensor_rot* to a vector of zeros.\n";
+  sensor_rot.resize( sensor_pos.nrows() );
+  sensor_rot = 0;
+
+  out2 << "  Sets the antenna dimensionality to 1.\n";
+  antenna_dim = 1;
+
+  out2 << "  Sets *mblock_za_grid* to have length 1 with value 0.\n";
+  mblock_za_grid.resize(1);
+  mblock_za_grid[0] = 1;
+
+  out2 << "  Sets *mblock_aa_grid* to be an empty vector.\n";
+  mblock_aa_grid.resize(0);
+
+  sensor_responseInit( sensor_response, sensor_response_f, sensor_response_za,
+                   sensor_response_aa, f_grid, mblock_za_grid, mblock_aa_grid,
+                         antenna_dim, sensor_pol, atmosphere_dim, stokes_dim );
+}
+
+
 
 void sensor_responseAntenna1D(// WS Output:
                               Sparse&           sensor_response,
@@ -198,30 +308,69 @@ void sensor_responseBackend(// WS Output:
 }
 
 void sensor_responseInit(// WS Output:
-                         Sparse&            sensor_response,
+                               Sparse&      sensor_response,
+                               Vector&      sensor_response_f,
+                               Vector&      sensor_response_za,
+                               Vector&      sensor_response_aa,
                          // WS Input:
                          const Vector&      f_grid,
                          const Vector&      mblock_za_grid,
                          const Vector&      mblock_aa_grid,
-                         const Index&       antenna_dim )
+                         const Index&       antenna_dim,
+                         const Matrix&      sensor_pol,
+                         const Index&       atmosphere_dim,
+                         const Index&       stokes_dim )
 {
-  //Check the antenna dimension and resize the matrix accordingly
-  Index n = f_grid.nelem() * mblock_za_grid.nelem();
+  // Check input
+  chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
+  if( mblock_za_grid.nelem() == 0 )
+    throw runtime_error( 
+                         "The measurement block zenith angle grid is empty." );
+  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
+  if( antenna_dim == 1 )
+    {
+      if( mblock_aa_grid.nelem() != 0 )
+        throw runtime_error( 
+              "For antenna_dim = 1, the azimuthal angle grid must be empty." );
+    }
+  else
+    {
+      if( atmosphere_dim < 3 )
+        throw runtime_error( "2D antennas (antenna_dim=2) can only be "
+                                                 "used with 3D atmospheres." );
+      if( mblock_aa_grid.nelem() == 0 )
+        throw runtime_error(
+                      "The measurement block azimuthal angle grid is empty." );
+      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
+    }
+  if( sensor_pol.ncols() != stokes_dim )
+    throw runtime_error( 
+         "The number of columns in *sensor_pol* must be equal *stokes_dim*." );
+
+
+  Index n = f_grid.nelem() * mblock_za_grid.nelem() * sensor_pol.nrows();
   if ( antenna_dim == 2)
     n *= mblock_aa_grid.nelem();
 
-  sensor_response.resize(n,n);
+  out2 << "  Initialising *sensor_reponse* as a identity matrix.\n";
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
 
   //Set matrix to identity matrix
+  sensor_response.resize(n,n);
   for( Index i=0; i<n; i++) {
     sensor_response.rw(i,i) = 1.0;
   }
 
-  out2 << "  Initialising *sensor_reponse* as a identity matrix.\n";
-
-  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
-       << "x" << sensor_response.ncols() << "\n";
+  // Set description variables
+  sensor_response_f.resize( f_grid.nelem() );
+  sensor_response_f = f_grid;
+  sensor_response_za.resize( mblock_za_grid.nelem() );
+  sensor_response_za = mblock_za_grid;
+  sensor_response_aa.resize( mblock_aa_grid.nelem() );
+  sensor_response_aa = mblock_aa_grid;
 }
+
 
 void sensor_responseMixer(// WS Output:
                           Sparse&           sensor_response,

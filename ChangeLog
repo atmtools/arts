@@ -1,3 +1,61 @@
+2003-07-13  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-602
+
+	* src/workspace.cc: Removed y_rte as it is needed with new scheme for
+	polarisation. Removed mblock_index as it can not be used as I thought.
+
+	Added WSVs sensor_pol, sensor_rot, sensor_response_f, 
+	sensor_response_za and sensor_response_aa.
+
+	* src/methods.cc: Removed yNoPolarisation and RteTest.
+
+	* src/rte.cc (rte_calc): Added sensor_pol and sensor_rot as input 
+	arguments. Changed y_rte to y.
+
+	The vector *y* is now only filled if *apply_sensor* = true. This means
+    	if the function is called to obtain monochromatic pencil beam values
+        this has to be done for one line-of-sight at the time, and the result
+        is returned by *i_rte*. This is the way the function is already used
+	from CloudboxGetIncoming and ScatteringMonteCarlo.
+
+	Implemented polarisation, beside the rotation part.
+	
+	* src/rte.cc (get_radiative_background): Removed antenna_dim as input.
+	Changed call of rte_calc following changes given above.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Adapted to changes in 
+	rte_calc. Made y a local variable. Removed y_rte as input.
+
+	* src/montecarlo.cc (Cloudbox_ppath_rteCalc): Adapted to changes in 
+	rte_calc. Made y a local variable. Removed y_rte as input.
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): Removed y_rte as input.
+
+	* src/m_sensor.cc (sensor_responseInit): Added sensor_pol, stokes_dim
+	and atmosphere_dim as input. The function now considers the number
+	of polarisations provided by the sensor.
+	Added sensor_response_f, sensor_response_za and sensor_response_aa
+	as output.
+
+	Moved AntennaSet1D/2D to this file from m_general.cc.
+
+	Added WSM sensorOff.
+
+	* src/m_basic_types.cc (VectorSetElement): Removed this WSM as it took
+	a vector index as argument. We have decided that WSM shall not take
+	index as input, to avoid problems with 0 and 1 based indexing. 
+	(I was the one that had created the method)
+
+	* src/m_physics.cc (VectorToTbByRJ): Modified the method to take
+	sensor_response_f, sensor_response_za, sensor_response_aa and 
+	sensor_pol as input.
+
+	Did the same for VectorToTbByPlanck, MatrixToTbByRJ and 
+	MatrixToTbByPlanck.
+	
+	* src/check_input.cc (chk_y_with_sensor): Added this function.
+
 2003-07-08  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-601
@@ -8,7 +66,7 @@
 	calculations from path calculations inside the cloudbox (for e.g.
 	Montye Carlo calculations).
 
-	* src/rte.cc (rte_calc): Included inpuit argument to control agenda
+	* src/rte.cc (rte_calc): Included input argument to control agenda
 	verbosity. Agendas are set to be quiet when called from scattering
 	calculations.
 

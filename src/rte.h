@@ -85,7 +85,6 @@ void get_radiative_background(
         ConstVectorView       scat_aa_grid,
         ConstVectorView       f_grid,
         const Index&          stokes_dim,
-        const Index&          antenna_dim,
         const Index&          agenda_verb );
 
 void ground_specular_los(
@@ -108,11 +107,10 @@ void rte_step_clearsky_with_emission(
         const Numeric&      a_planck_value );
 
 void rte_calc(
-              Matrix&         y_rte,
+              Vector&         y,
               Ppath&          ppath,
               Ppath&          ppath_step,
               Matrix&         i_rte,
-              Index&          mblock_index,
               Vector&         a_pos,
               Vector&         a_los,
               GridPos&        a_gp_p,
@@ -144,13 +142,15 @@ void rte_calc(
         const Sparse&         sensor_response,
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los,
+        const Matrix&         sensor_pol,
+        const Vector&         sensor_rot,
         const Vector&         f_grid,
         const Index&          stokes_dim,
         const Index&          antenna_dim,
         const Vector&         mblock_za_grid,
         const Vector&         mblock_aa_grid,
         const bool&           check_input,
-              const bool&           apply_sensor,
+        const bool&           apply_sensor,
         const bool&           agenda_verb );
 
 void

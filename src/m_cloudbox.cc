@@ -1499,12 +1499,10 @@ void CloudboxGetIncoming(// WS Output:
                          Ppath& ppath,
                          Ppath& ppath_step,
                          Matrix& i_rte, 
-                         Matrix& y_rte,
                          Matrix& i_space,
                          Matrix& ground_emission,
                          Matrix& ground_los,
                          Tensor4& ground_refl_coeffs,
-                         Index& mblock_index,
                          Vector& a_los,
                          Vector& a_pos,
                          GridPos& a_gp_p,
@@ -1543,13 +1541,14 @@ void CloudboxGetIncoming(// WS Output:
  
   Index Ni = stokes_dim;
  
-  // Assign dummies for variables assoziated with sensor.
-  Vector mblock_za_grid_dummy(1);
-  Vector mblock_aa_grid_dummy(0);
-  Index antenna_dim_dummy = 1; 
-  mblock_za_grid_dummy[0] = 0;
-  Sparse sensor_response_dummy;
-  bool apply_sensor = false;
+  // Assign dummies for variables associated with sensor.
+  bool     apply_sensor = false;
+  Vector   mblock_za_grid_dummy(1);
+           mblock_za_grid_dummy[0] = 0;
+  Vector   mblock_aa_grid_dummy(0), sensor_rot_dummy(0);
+  Matrix   sensor_pol_dummy;
+  Index    antenna_dim_dummy = 1; 
+  Sparse   sensor_response_dummy;
 
   // Dummy variable for flag cloudbox_on. It has to be 0 for clearsky
   // calculations. We want to calculate the clearsky field on the boundary
@@ -1558,6 +1557,9 @@ void CloudboxGetIncoming(// WS Output:
 
   // Variable to avoid duplication of input checks in rte_calc
   bool   check_input = true;
+
+  // Dummy for measurement vector
+  Vector   y_dummy(0);
 
   if(atmosphere_dim == 1)
     {
@@ -1582,10 +1584,8 @@ void CloudboxGetIncoming(// WS Output:
         {
           sensor_los(0,0) =  scat_za_grid[scat_za_index];
       
-        
-
-          rte_calc( y_rte, ppath, ppath_step, i_rte,
-               mblock_index, a_pos, a_los, a_gp_p, 
+          rte_calc( y_dummy, ppath, ppath_step, i_rte,
+               a_pos, a_los, a_gp_p, 
                a_gp_lat, a_gp_lon,
                i_space, ground_emission, ground_los, 
                ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
@@ -1593,9 +1593,9 @@ void CloudboxGetIncoming(// WS Output:
                atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
                r_geoid, 
                z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
-               scat_i_lat_dummy,
-               scat_i_lon_dummy, scat_za_grid, scat_aa_grid, 
+               scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid, scat_aa_grid, 
                sensor_response_dummy, sensor_pos, sensor_los,
+               sensor_pol_dummy, sensor_rot_dummy,
                f_grid, stokes_dim, antenna_dim_dummy,
                mblock_za_grid_dummy, mblock_aa_grid_dummy, 
                check_input, apply_sensor, 1 );
@@ -1615,21 +1615,22 @@ void CloudboxGetIncoming(// WS Output:
         {
           sensor_los(0, 0) =  scat_za_grid[scat_za_index];
 
-          rte_calc( y_rte, ppath, ppath_step, i_rte,
-                   mblock_index, a_pos, a_los, a_gp_p, 
-                   a_gp_lat, a_gp_lon,
-                   i_space, ground_emission, ground_los, 
-                   ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
-                   i_space_agenda, ground_refl_agenda, 
-                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
-                   t_field, r_geoid, 
-                   z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
-                   scat_i_lat_dummy,
-                   scat_i_lon_dummy, scat_za_grid, scat_aa_grid, 
-                   sensor_response_dummy, sensor_pos,
-                   sensor_los, f_grid, stokes_dim, antenna_dim_dummy, 
-                   mblock_za_grid_dummy, mblock_aa_grid_dummy, 
-                   check_input, apply_sensor, 1 );
+          rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                 a_pos, a_los, a_gp_p, 
+                 a_gp_lat, a_gp_lon,
+                 i_space, ground_emission, ground_los, 
+                 ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
+                 i_space_agenda, ground_refl_agenda, 
+                 atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                 t_field, r_geoid, 
+                 z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
+                 scat_i_lat_dummy,
+                 scat_i_lon_dummy, scat_za_grid, scat_aa_grid, 
+                 sensor_response_dummy, sensor_pos,
+                 sensor_los, sensor_pol_dummy, sensor_rot_dummy,
+                 f_grid, stokes_dim, antenna_dim_dummy, 
+                 mblock_za_grid_dummy, mblock_aa_grid_dummy, 
+                 check_input, apply_sensor, 1 );
           
           
           scat_i_p( Range(joker), 1, 0,0, 
@@ -1695,8 +1696,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_rte, ppath, ppath_step, i_rte,
-                               mblock_index, a_pos, a_los, a_gp_p, 
+                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                               a_pos, a_los, a_gp_p, 
                                a_gp_lat, a_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
@@ -1709,7 +1710,8 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, f_grid, stokes_dim, 
+                               sensor_los, sensor_pol_dummy, sensor_rot_dummy,
+                               f_grid, stokes_dim, 
                                antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy, 
                                check_input, apply_sensor, 1 );
@@ -1750,8 +1752,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_rte, ppath, ppath_step, i_rte,
-                               mblock_index, a_pos, a_los, a_gp_p, 
+                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                               a_pos, a_los, a_gp_p, 
                                a_gp_lat, a_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
@@ -1764,8 +1766,8 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, f_grid, stokes_dim, 
-                               antenna_dim_dummy, 
+                               sensor_los, sensor_pol_dummy, sensor_rot_dummy,
+                               f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                check_input, apply_sensor, 1 );
           
@@ -1803,8 +1805,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_rte, ppath, ppath_step, i_rte,
-                               mblock_index, a_pos, a_los, a_gp_p, 
+                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                               a_pos, a_los, a_gp_p, 
                                a_gp_lat, a_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
@@ -1817,8 +1819,8 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, f_grid, stokes_dim, 
-                               antenna_dim_dummy, 
+                               sensor_los, sensor_pol_dummy, sensor_rot_dummy,
+                               f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                check_input, apply_sensor, 1 );
           
@@ -1856,8 +1858,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_rte, ppath, ppath_step, i_rte,
-                               mblock_index, a_pos, a_los, a_gp_p, 
+                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                               a_pos, a_los, a_gp_p, 
                                a_gp_lat, a_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
@@ -1870,8 +1872,8 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, f_grid, stokes_dim, 
-                               antenna_dim_dummy, 
+                               sensor_los, sensor_pol_dummy, sensor_rot_dummy,
+                               f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                check_input, apply_sensor, 1 );
           
@@ -1909,8 +1911,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_rte, ppath, ppath_step, i_rte,
-                               mblock_index, a_pos, a_los, a_gp_p, 
+                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                               a_pos, a_los, a_gp_p, 
                                a_gp_lat, a_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
@@ -1923,8 +1925,8 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, f_grid, stokes_dim, 
-                               antenna_dim_dummy, 
+                               sensor_los, sensor_pol_dummy, sensor_rot_dummy,
+                               f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                check_input, apply_sensor, 1 );
           
@@ -1962,8 +1964,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_rte, ppath, ppath_step, i_rte,
-                               mblock_index, a_pos, a_los, a_gp_p, 
+                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                               a_pos, a_los, a_gp_p, 
                                a_gp_lat, a_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
@@ -1976,8 +1978,8 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, f_grid, stokes_dim, 
-                               antenna_dim_dummy, 
+                               sensor_los, sensor_pol_dummy, sensor_rot_dummy,
+                               f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                check_input, apply_sensor, 1 );
           

@@ -47,6 +47,14 @@
 #include "special_interp.h"
 #include "lin_alg.h"
 
+extern const Numeric DEG2RAD;
+
+
+
+/*===========================================================================
+  === The functions in alphabetical order
+  ===========================================================================*/
+
 //! get_radiative_background
 /*!
     Sets *i_rte* to the radiative background for a propagation path.
@@ -136,7 +144,6 @@ void get_radiative_background(
         ConstVectorView       scat_aa_grid,
         ConstVectorView       f_grid,
         const Index&          stokes_dim,
-        const Index&          antenna_dim,
         const Index&          agenda_verb )
 {
   // Some sizes
@@ -202,91 +209,81 @@ void get_radiative_background(
         ground_emission_local    = ground_emission;
         ground_refl_coeffs_local = ground_refl_coeffs;
 
+        // Sum of reflected radiation
+        Matrix   i_sum(nf,stokes_dim,0);
 
         // Calculate the spectra hitting the ground, if any reflection
         // directions have been set (*ground_los*). If *ground_los* is empty,
-        // we are ready.
+        // we are ready with this part.
         //
-        if( nlos == 0 )
+        if( nlos > 0 )
           {
-            i_rte = 0;    // This operation is also performed inside
-          }               // the else-block
-        else
-          {
-            // Set zenith and azimuthal angles (note that these variables 
-            // are local variables). Each ground los is here treated as a 
+            // Each ground los is here treated as a 
             // measurement block, with no za and aa grids.
 
-            Matrix   sensor_pos( nlos, a_pos.nelem() );
-            Matrix   sensor_los( nlos, a_los.nelem() );
-            for( Index ilos=0; ilos < nlos; ilos++ )
-              {
-                sensor_pos( ilos, joker ) = a_pos;
-                sensor_los( ilos, joker ) = ground_los( ilos, joker);
-              }
-            Vector   mblock_za_grid(1,0);
-            Vector   mblock_aa_grid(0);
-            Index    mblock_index_local;
-            if( antenna_dim > 1 )
-              {
-                mblock_aa_grid.resize(1);
-                mblock_aa_grid = 0;
-              }
+            Matrix   sensor_pos( 1, a_pos.nelem() );
+                     sensor_pos( 0, joker ) = a_pos;
+
+            Matrix   sensor_los( 1, a_los.nelem() );
 
             // Use some local variables to avoid unwanted  side effects
             Ppath    ppath_local;
-            Matrix   y_rte_local;
+            Vector   y_local;
             
-            // Use a dummy variable for the sensor_response
-            Sparse sensor_response_dummy;
-
-            rte_calc( y_rte_local, ppath_local, ppath_step, i_rte,
-                 mblock_index_local, a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon,
-                 i_space, ground_emission, ground_los, ground_refl_coeffs, 
-                 ppath_step_agenda, rte_agenda, i_space_agenda, 
-                 ground_refl_agenda, atmosphere_dim, p_grid, lat_grid, 
-                 lon_grid, z_field, t_field, r_geoid, z_ground, 
-                 cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat,
-                 scat_i_lon, scat_za_grid, scat_aa_grid, 
-                 sensor_response_dummy, sensor_pos,
-                 sensor_los, f_grid, stokes_dim, antenna_dim,
-                 mblock_za_grid, mblock_aa_grid, false, false, agenda_verb );
+            // Use a dummy variables for the sensor
+            Vector   sensor_rot;
+            Matrix   sensor_pol;
+            Sparse   sensor_response;
+            Index    antenna_dim = 1;
+            Vector   mblock_za_grid(1,0);
+            Vector   mblock_aa_grid(0);
 
 
-            // Add the the calculated spectra (y_rte_local) to *i_rte*, 
-            // considering the reflection coeff. matrix.
-            //
-            i_rte = 0;
-            //
             for( Index ilos=0; ilos < nlos; ilos++ )
               {
-                Index   i0 = ilos*nf;
-            
+                sensor_los( 0, joker ) = ground_los( ilos, joker);
+
+                rte_calc( y_local, ppath_local, ppath_step, i_rte,
+                   a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon,
+                   i_space, ground_emission, ground_los, ground_refl_coeffs, 
+                   ppath_step_agenda, rte_agenda, i_space_agenda, 
+                   ground_refl_agenda, atmosphere_dim, p_grid, lat_grid, 
+                   lon_grid, z_field, t_field, r_geoid, z_ground, 
+                   cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat,
+                   scat_i_lon, scat_za_grid, scat_aa_grid, 
+                   sensor_response, sensor_pos, sensor_los, sensor_pol,
+                   sensor_rot, f_grid, stokes_dim, antenna_dim,
+                   mblock_za_grid, mblock_aa_grid, false, false, agenda_verb );
+
+
+                // Add the calculated spectrum (*i_rte*) to *i_sum*,
+                // considering the reflection coeff. matrix.
+                //
                 for( Index iv=0; iv<nf; iv++ )
                   {
                     if( stokes_dim == 1 )
                       {
-                        i_rte(iv,0) += ground_refl_coeffs(ilos,iv,0,0) * 
-                                                          y_rte_local(i0+iv,0);
+                        i_sum(iv,0) += ground_refl_coeffs(ilos,iv,0,0) * 
+                                                                   i_rte(iv,0);
                       }
                     else
                       {
                         Vector stokes_vec(stokes_dim);
                         mult( stokes_vec, 
                               ground_refl_coeffs(ilos,iv,joker,joker), 
-                              y_rte_local(i0+iv,joker) );
+                              i_rte(iv,joker) );
                         for( Index is=0; is < stokes_dim; is++ )
-                          { i_rte(iv,is) += stokes_vec[is]; }
+                          { i_sum(iv,is) += stokes_vec[is]; }
                       }
                   }
               }
           }
         
-        // Add the ground emission (the local copy) to *i_rte*
+        // Copy from *i_sum* to *i_rte*, and add the ground emission
         for( Index iv=0; iv<nf; iv++ )
           {
             for( Index is=0; is < stokes_dim; is++ )
-              { i_rte(iv,is) += ground_emission_local(iv,is); }
+              { i_rte(iv,is) = i_sum(iv,is) + ground_emission_local(iv,is); }
           }
       }
       break;
@@ -497,18 +494,33 @@ void ground_specular_los(
     The LOS angles are always checked. Those checks are performed in
     ppath_calc.
 
-    All variables, beside *check_input*, corresponde to the WSV with the
-    same name.
+    If no sensor is applied (*apply_sensor* = false), data are not copied to 
+    *y*. If the function is called to obtain monochromatic pencil beam values
+    this has to be done for one line-of-sight at the time, and the result
+    is returned by *i_rte*. This is done by setting *sensor_pos* and
+    *sensor_los* to contain one measurement block matching the wanted position
+    and line-of-sight. The antenna dimension (*antenna_dim*) can then be set 
+    to 1, *mblock_za_grid* to have length 1 with 0 as only value and 
+    *mblock_aa_grid* to be empty.
+
+    All variables, beside the onses listed below, corresponde to the
+    WSV with the same name.
+
+    \param   check_input    Input: Boolean to perform check of function input.
+                            True means that checka are performed.
+    \param   apply_sensor   Input: Boolean to apply sensor responses. False
+                            means no sensor.
+    \param   agenda_verb    Input: Boolean to control the verbosity of called
+                            agendas.
 
     \author Patrick Eriksson 
     \date   2003-01-18
 */
 void rte_calc(
-              Matrix&         y_rte,
+              Vector&         y,
               Ppath&          ppath,
               Ppath&          ppath_step,
               Matrix&         i_rte,
-              Index&          mblock_index,
               Vector&         a_pos,
               Vector&         a_los,
               GridPos&        a_gp_p,
@@ -540,6 +552,8 @@ void rte_calc(
         const Sparse&         sensor_response,
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los,
+        const Matrix&         sensor_pol,
+        const Vector&         sensor_rot,
         const Vector&         f_grid,
         const Index&          stokes_dim,
         const Index&          antenna_dim,
@@ -558,6 +572,21 @@ void rte_calc(
   Index naa = mblock_aa_grid.nelem();
   if( antenna_dim == 1 )
     { naa = 1; }
+
+  // Sensor specific stuff
+  Index    npol = 0;   // Number of polarisation channels of the sensor
+  Index    nblock = sensor_response.nrows();
+  Vector   ib(0);      // MPB radiances for 1 measurement block.
+  if( apply_sensor )
+    {
+      npol = sensor_pol.nrows();
+
+      // Resize *y* to have the correct length.
+      y.resize( nmblock * nblock );
+
+      // Resize *ib* to have the correct length.
+      ib.resize( sensor_response.ncols() );
+    }
 
 
   //--- Check input -----------------------------------------------------------
@@ -654,13 +683,24 @@ void rte_calc(
 
       // Sensor
       //
-      if( apply_sensor && sensor_response.ncols() != nf * nza * naa ) {
-        ostringstream os;
-        os << "The *sensor_response* matrix does not have the right size, either\n"
-           << "the method *sensor_responseInit* has not been run prior to the call\n"
-           << "to *RteCalc* or some of the other sensor response methods has not\n"
-           << "been correctly configured.";
-        throw runtime_error( os.str() );
+      if( apply_sensor ) {
+        if( sensor_response.ncols() != nf * nza * naa * npol ) {
+          ostringstream os;
+          os << "The *sensor_response* matrix does not have the right size, \n"
+             << "either the method *sensor_responseInit* has not been run \n"
+             << "prior to the call to *RteCalc* or some of the other sensor\n"
+             << "response methods has not been correctly configured.";
+          throw runtime_error( os.str() );
+        }
+        if( sensor_pol.ncols() != stokes_dim )
+          throw runtime_error( 
+         "The number of columns in *sensor_pol* must be equal *stokes_dim*." );
+        if( min(sensor_pol) < 0  ||  max(sensor_pol) > 1 )
+          throw runtime_error( 
+         "The WSV *sensor_pol* can only contains values in the range [0,1]." );
+        if( sensor_rot.nelem() != nmblock )
+          throw runtime_error( 
+                       "The length of *sensor_rot* must match *sensor_pos*." );
       }
 
       // Stokes
@@ -687,30 +727,19 @@ void rte_calc(
              << "while sensor_los has " << sensor_los.nrows() << " rows.";
           throw runtime_error( os.str() );
         }
-
     }
   //--- End: Check input ------------------------------------------------------
 
-  // Resize *y_rte* to have the correct size.
-  // This size must be changed later when Hb is introduced
-  y_rte.resize( nmblock * nf * nza * naa, stokes_dim );
-
-  // Create a matrix to hold the spectra for one measurement block
-  Index    nblock;        // Number of spectral values of 1 block
-  if( apply_sensor )
-    nblock = sensor_response.nrows();
-  else
-    nblock = nf*nza*naa;
-  Matrix ib( nblock, stokes_dim );
 
   // Loop:  measurement block / zenith angle / azimuthal angle
   //
-  Index    nydone = 0;                 // Number of positions in y_rte done
+  Index    nydone = 0;                 // Number of positions in y done
   Index    nbdone;                     // Number of positions in ib done
   Vector   los( sensor_los.ncols() );  // LOS of interest
-  Index    iaa, iza;
+  Index    iaa, iza, iv;
+  Vector   irot( stokes_dim );         // Vector to hold rotated Stokes vector
   //
-  for( mblock_index=0; mblock_index<nmblock; mblock_index++ )
+  for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
       nbdone = 0;
 
@@ -721,6 +750,7 @@ void rte_calc(
               // Argument for verbosity of agendas
               bool  ag_verb = !( agenda_verb == 0  && 
                                              (iaa + iza + mblock_index) == 0 );
+
               // LOS of interest
               los     = sensor_los( mblock_index, joker );
               los[0] += mblock_za_grid[iza];
@@ -744,29 +774,52 @@ void rte_calc(
                       r_geoid, z_ground, 
                       cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat, 
                       scat_i_lon, scat_za_grid, scat_aa_grid, f_grid, 
-                      stokes_dim, antenna_dim, ag_verb );
+                      stokes_dim, ag_verb );
 
               // Execute the *rte_agenda*
               rte_agenda.execute( ag_verb );
               
-              // Copy i_rte to ib
-              ib(Range(nbdone,nf),joker) = i_rte;
+              // Do polarisation
+              //
+              if( apply_sensor )
+                {
+                  for( iv=0; iv<nf; iv++ )
+                    {
+                      // Perform rotation
+                      if( sensor_rot[mblock_index] == 0 )
+                        { irot = i_rte(iv,joker); }
+                      else
+                        {
+                          // Add code for rotation here
+                          Numeric cv = cos( DEG2RAD*sensor_rot[mblock_index] );
+                          Numeric sv = sin( DEG2RAD*sensor_rot[mblock_index] );
+                          
+                          // An example on how it could look like:
+                          // i_rot[0] = cv*i_rte(iv,0) + sv*i_rte(iv,0);
 
-              // Increase nbdone
-              nbdone += nf;
+                          // Can we get into problem if stokes_dim < 4?
+                        }
+
+                      // Apply polarisation response matrix
+                      mult( ib[Range(nbdone,npol)], sensor_pol, irot );
+
+                      // Increase nbdone
+                      nbdone += npol;
+                    }
+                }
             }
         }
 
-      //y_rte(Range(nydone,nblock),joker) = ib;
+      // Apply sensor response matrix
+      //
       if( apply_sensor )
-        // Multiply ib with sensor_response and store the result in y_rte
-        mult( y_rte(Range(nydone,nblock),joker), sensor_response, ib);
-      else
-        // Copy ib to y_rte
-        y_rte(Range(nydone,nblock),joker) = ib;
+        {
+          // Multiply ib with sensor_response and store the result in y
+          mult( y[Range(nydone,nblock)], sensor_response, ib );
 
-      // Increase nbdone
-      nydone += nblock;
+          // Increase nbdone
+          nydone += nblock;
+        }
     }
 }
 

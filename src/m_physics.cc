@@ -46,6 +46,7 @@
 
 #include "arts.h"
 #include "auto_md.h"
+#include "check_input.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "messages.h"
@@ -149,62 +150,45 @@ void MatrixPlanck(
    \date   2002-08-11
 */
 void MatrixToTbByPlanck(
-        // WS Generic Output:
               Matrix&   y_out,
-        // WS Generic Output Names:
         const String&   y_out_name,
-        // WS Generic Input:
+        const Matrix&   sensor_pos,
+        const Matrix&   sensor_los,
+        const Vector&   sensor_response_f,
+        const Vector&   sensor_response_za,
+        const Vector&   sensor_response_aa,
+        const Matrix&   sensor_pol,
         const Matrix&   y_in,
-        const Vector&   f_grid,
-        // WS Generic Input Names:
-        const String&   y_in_name,
-        const String&   f_grid_name )
+        const String&   y_in_name )
 {
-  // Some lengths
-  const Index nin   = y_in.nrows();
-  const Index ncols = y_in.ncols();
-  const Index nf    = f_grid.nelem();
+  Index   nf, npol, nspectra;
 
-  // Check sizes
-  if( nf == 0 )
-    {
-      ostringstream os;
-      os << "The vector *" << f_grid << "* is empty.";
-      throw runtime_error( os.str() );
-    }
-  if( nin == 0  ||  ncols == 0 )
-    {
-      ostringstream os;
-      os << "The matrix *" << y_in << "* is empty.";
-      throw runtime_error( os.str() );
-    }
-  if( !is_multiple( nin, nf ) )
-    {
-      ostringstream os;
-      os << "The length of *" << f_grid_name << "* is not an integer multiple "
-         << "of the\nnumber of rows of *" << y_in_name << "*.";
-      throw runtime_error( os.str() );
-    }
+  chk_y_with_sensor( nf, npol, nspectra,  y_in(joker,0), y_in_name, sensor_pos,
+                     sensor_los, sensor_response_f, sensor_response_za, 
+                     sensor_response_aa, sensor_pol );
 
-  out2 << "   " << y_out_name << " = inv_of_planck(" << y_in_name << "," 
-       << f_grid_name << ")\n" ;
+  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
+ 
+  const Index   ncols = y_in.ncols();
 
   // Note that y_in and y_out can be the same matrix
   if ( &y_out != &y_in )
-    { y_out.resize(nin,ncols); }
-
-  // Nummber of repitions of the frequency values
-  const Index nrep = integer_div(nin,nf);
-        Index ii, irep, icol;
+    { y_out.resize(y_in.nrows(),ncols); }
 
   for( Index iv=0; iv<nf; iv++ )
     {
-      for( irep=0; irep<nrep; irep++ )
+      for( Index isp=0; isp<nspectra; isp++ )
         {  
-          ii = irep*nf + iv;
+          const Index   i0 = nf*npol*isp + iv * npol;
 
-          for( icol=0; icol<ncols; icol++ )
-            { y_out(ii,icol) = invplanck( y_in(ii,icol), f_grid[iv] ); }
+          for( Index ipol=0; ipol<npol; ipol++ )
+            {
+              for( Index icol=0; icol<ncols; icol++ )
+                { 
+                  y_out(i0+ipol,icol) = 
+                       invplanck( y_in(i0+ipol,icol), sensor_response_f[iv] );
+                }
+            }
         }
     }
 }
@@ -216,93 +200,52 @@ void MatrixToTbByPlanck(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2002-08-11
+   \date   2003_07-13
 */
 void MatrixToTbByRJ(
-        // WS Generic Output:
               Matrix&   y_out,
-        // WS Generic Output Names:
         const String&   y_out_name,
-        // WS Generic Input:
+        const Matrix&   sensor_pos,
+        const Matrix&   sensor_los,
+        const Vector&   sensor_response_f,
+        const Vector&   sensor_response_za,
+        const Vector&   sensor_response_aa,
+        const Matrix&   sensor_pol,
         const Matrix&   y_in,
-        const Vector&   f_grid,
-        // WS Generic Input Names:
-        const String&   y_in_name,
-        const String&   f_grid_name )
+        const String&   y_in_name )
 {
-  // Some lengths
-  const Index nin   = y_in.nrows();
-  const Index ncols = y_in.ncols();
-  const Index nf    = f_grid.nelem();
+  Index   nf, npol, nspectra;
 
-  // Check sizes
-  if( nf == 0 )
-    {
-      ostringstream os;
-      os << "The vector *" << f_grid << "* is empty.";
-      throw runtime_error( os.str() );
-    }
-  if( nin == 0  ||  ncols == 0 )
-    {
-      ostringstream os;
-      os << "The matrix *" << y_in << "* is empty.";
-      throw runtime_error( os.str() );
-    }
-  if( !is_multiple( nin, nf ) )
-    {
-      ostringstream os;
-      os << "The length of *" << f_grid_name << "* is not an integer multiple "
-         << "of the\nnumber of rows of *" << y_in_name << "*.";
-      throw runtime_error( os.str() );
-    }
+  chk_y_with_sensor( nf, npol, nspectra,  y_in(joker,0), y_in_name, sensor_pos,
+                     sensor_los, sensor_response_f, sensor_response_za, 
+                     sensor_response_aa, sensor_pol );
 
-  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << "," 
-       << f_grid_name << ")\n" ;
+  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
+ 
+  const Index   ncols = y_in.ncols();
 
   // Note that y_in and y_out can be the same matrix
   if ( &y_out != &y_in )
-    { y_out.resize(nin,ncols); }
+    { y_out.resize(y_in.nrows(),ncols); }
 
-  // Nummber of repitions of the frequency values
-  const Index nrep = integer_div(nin,nf);
-        Index irep, ii, icol;
 
-  // To be as fast as possible, there is a special versions for nrep=1 
-  // and ncols=1 
-  
-  if( nrep == 1  &&  ncols == 1 )
+  // Here we try to save time by determining the scaling from radiances
+  // to brightness temperature for each frequency, and applying this
+  // scaling on each repition for that frequency. Note that relationship
+  // between radiance and Tb is linear for a given frequency.
+
+  for( Index iv=0; iv<nf; iv++ )
     {
-      for( Index iv=0; iv<nf; iv++ )
-        {
-          for( irep=0; irep<nrep; irep++ )
-            {  
-              ii = irep*nf + iv;
-              
-              for( icol=0; icol<ncols; icol++ )
-                { y_out(ii,icol) = invrayjean( y_in(ii,icol), f_grid[iv] ); }
-            }
-        }
-    }
+      const Numeric   scfac = invrayjean( 1, sensor_response_f[iv] );
 
-  else
-    {
-      // Here we try to save time by determining the scaling from radiances
-      // to brightness temperature for each frequency, and applying this
-      // scaling on each repition for that frequency. Note that relationship
-      // between radiance and Tb is linear for a given frequency.
+      for( Index isp=0; isp<nspectra; isp++ )
+        {  
+          const Index   i0 = nf*npol*isp + iv * npol;
 
-      Numeric scfac;
-
-      for( Index iv=0; iv<nf; iv++ )
-        {
-          scfac = invrayjean( 1, f_grid[iv] );
-
-          for( irep=0; irep<nrep; irep++ )
-            {  
-              ii = irep*nf + iv;
-
-              for( icol=0; icol<ncols; icol++ )
-                { y_out(ii,icol) = scfac * y_in(ii,icol); }
+          for( Index ipol=0; ipol<npol; ipol++ )
+            {
+              for( Index icol=0; icol<ncols; icol++ )
+                { y_out(i0+ipol,icol) = scfac * y_in(i0+ipol,icol); }
             }
         }
     }
@@ -310,20 +253,9 @@ void MatrixToTbByRJ(
 
 
 
-//! Converts i_field(Tensor6) in radiance units to brightness temperature unit
+//! Tensor6ToTbByPlanck
 /*! 
- This is used to convert intensity in radiance units to brightness temperature 
-units for a Tensor6. It uses the function invplanck from physics_funcs.cc.  
-The frequency grid is specific input since inside the cloudbox we have only
-one frequency and we need Tensor6 conversions probably only inside the 
-cloudbox.  
- 
-\param y_out        Output : Tensor6 in Brightness temperatures
-\param y_out_name   Input  : output name
-\param scat_f_index Input  : frequency index
-\param f_grid       Input  : frequency grid
-\param y_in         Input  : intensity in radiance units
-\param y_in_name    Input  : input name
+   See the the online help (arts -d FUNCTION_NAME)
 */
 void Tensor6ToTbByPlanck( // WS Generic Output:
                          Tensor6&   y_out,
@@ -354,6 +286,7 @@ void Tensor6ToTbByPlanck( // WS Generic Output:
       y_out.resize(nv, ns, nb, np, nr, nc);
     }
   
+  out2 << "   " << y_out_name << " = inv_of_planck(" << y_in_name << ")\n" ;
    
   for( Index iv = 0; iv < nv; ++ iv )
     {
@@ -384,62 +317,41 @@ void Tensor6ToTbByPlanck( // WS Generic Output:
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2002-08-11
+   \date   2003-07-13
 */
 void VectorToTbByPlanck(
-        // WS Generic Output:
               Vector&   y_out,
-        // WS Generic Output Names:
         const String&   y_out_name,
-        // WS Generic Input:
+        const Matrix&   sensor_pos,
+        const Matrix&   sensor_los,
+        const Vector&   sensor_response_f,
+        const Vector&   sensor_response_za,
+        const Vector&   sensor_response_aa,
+        const Matrix&   sensor_pol,
         const Vector&   y_in,
-        const Vector&   f_grid,
-        // WS Generic Input Names:
-        const String&   y_in_name,
-        const String&   f_grid_name )
+        const String&   y_in_name )
 {
-  // Some lengths
-  const Index nin = y_in.nelem();
-  const Index nf  = f_grid.nelem();
+  Index   nf, npol, nspectra;
 
-  // Check sizes
-  if( nf == 0 )
-    {
-      ostringstream os;
-      os << "The vector *" << f_grid << "* is empty.";
-      throw runtime_error( os.str() );
-    }
-  if( nin == 0 )
-    {
-      ostringstream os;
-      os << "The vector *" << y_in << "* is empty.";
-      throw runtime_error( os.str() );
-    }
-  if( !is_multiple( nin, nf ) )
-    {
-      ostringstream os;
-      os << "The length of *" << f_grid_name << "* is not an integer multiple "
-         << "of the\nnumber of rows of *" << y_in_name << "*.";
-      throw runtime_error( os.str() );
-    }
+  chk_y_with_sensor( nf, npol, nspectra,  y_in, y_in_name, sensor_pos, 
+                     sensor_los, sensor_response_f, sensor_response_za, 
+                     sensor_response_aa, sensor_pol );
 
-  out2 << "   " << y_out_name << " = inv_of_planck(" << y_in_name << "," 
-       << f_grid_name << ")\n" ;
+  out2 << "   " << y_out_name << " = inv_of_planck(" << y_in_name << ")\n" ;
 
   // Note that y_in and y_out can be the same vector
   if ( &y_out != &y_in )
-    { y_out.resize(nin); }
-
-  // Nummber of repitions of the frequency values
-  const Index nrep = integer_div(nin,nf);
-        Index irep, ii;
+    { y_out.resize(nf*npol*nspectra); }
 
   for( Index iv=0; iv<nf; iv++ )
     {
-      for( irep=0; irep<nrep; irep++ )
+      for( Index isp=0; isp<nspectra; isp++ )
         {  
-          ii = irep*nf + iv;
-          y_out[ii] = invplanck( y_in[ii], f_grid[iv] );
+          const Index   i0 = nf*npol*isp + iv * npol;
+          for( Index ipol=0; ipol<npol; ipol++ )
+            { 
+              y_out[i0+ipol] = invplanck(y_in[i0+ipol],sensor_response_f[iv]); 
+           }
         }
     }
 }
@@ -451,63 +363,40 @@ void VectorToTbByPlanck(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2002-08-09
+   \date   2003-07-13
 */
 void VectorToTbByRJ(
-        // WS Generic Output:
               Vector&   y_out,
-        // WS Generic Output Names:
         const String&   y_out_name,
-        // WS Generic Input:
+        const Matrix&   sensor_pos,
+        const Matrix&   sensor_los,
+        const Vector&   sensor_response_f,
+        const Vector&   sensor_response_za,
+        const Vector&   sensor_response_aa,
+        const Matrix&   sensor_pol,
         const Vector&   y_in,
-        const Vector&   f_grid,
-        // WS Generic Input Names:
-        const String&   y_in_name,
-        const String&   f_grid_name )
+        const String&   y_in_name )
 {
-  // Some lengths
-  const Index nin = y_in.nelem();
-  const Index nf  = f_grid.nelem();
+  Index   nf, npol, nspectra;
 
-  // Check sizes
-  if( nf == 0 )
-    {
-      ostringstream os;
-      os << "The vector *" << f_grid << "* is empty.";
-      throw runtime_error( os.str() );
-    }
-  if( nin == 0 )
-    {
-      ostringstream os;
-      os << "The vector *" << y_in << "* is empty.";
-      throw runtime_error( os.str() );
-    }
-  if( !is_multiple( nin, nf ) )
-    {
-      ostringstream os;
-      os << "The length of *" << f_grid_name << "* is not an integer multiple "
-         << "of the\nnumber of rows of *" << y_in_name << "*.";
-      throw runtime_error( os.str() );
-    }
+  chk_y_with_sensor( nf, npol, nspectra,  y_in, y_in_name, sensor_pos, 
+                     sensor_los, sensor_response_f, sensor_response_za, 
+                     sensor_response_aa, sensor_pol );
 
-  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << "," 
-       << f_grid_name << ")\n" ;
+  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
 
   // Note that y_in and y_out can be the same vector
   if ( &y_out != &y_in )
-    { y_out.resize(nin); }
+    { y_out.resize(nf*npol*nspectra); }
 
-  // Nummber of repitions of the frequency values
-  const Index nrep = integer_div(nin,nf);
-
-  // To be as fast as possible, there are special versions for nrep=1 
-  // and nrep>1.
+  // To be as fast as possible, there is a special version for cases where
+  // the frequenciers not are repeated.
   
-  if( nrep == 1 )
+  if( nf == y_in.nelem() )
     {
       // Here we just loop the frequencies and call invrayjean
       for( Index iv=0; iv<nf; iv++ )
-        { y_out[iv] = invrayjean( y_in[iv], f_grid[iv] ); }
+        { y_out[iv] = invrayjean( y_in[iv], sensor_response_f[iv] ); }
     }
 
   else
@@ -517,17 +406,15 @@ void VectorToTbByRJ(
       // scaling on each repition for that frequency. Note that relationship
       // between radiance and Tb is linear for a given frequency.
 
-      Numeric scfac;
-      Index   irep, ii;
-
       for( Index iv=0; iv<nf; iv++ )
         {
-          scfac = invrayjean( 1, f_grid[iv] );
+          const Numeric   scfac = invrayjean( 1, sensor_response_f[iv] );
 
-          for( irep=0; irep<nrep; irep++ )
+          for( Index isp=0; isp<nspectra; isp++ )
             {  
-              ii = irep*nf + iv;
-              y_out[ii] = scfac * y_in[ii];
+              const Index   i0 = nf*npol*isp + iv * npol;
+              for( Index ipol=0; ipol<npol; ipol++ )
+                { y_out[i0+ipol] = scfac * y_in[i0+ipol]; }
             }
         }
     }

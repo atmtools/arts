@@ -57,50 +57,6 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! AntennaSet1D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
-void AntennaSet1D(
-        // WS Output:
-              Index&    antenna_dim,
-              Vector&   mblock_aa_grid )
-{
-  out2 << "  Sets the antenna dimensionality to 1.\n";
-  out3 << "    antenna_dim = 1\n";
-  out3 << "    mblock_aa_grid is set to be an empty vector\n";
-  antenna_dim = 1;
-  mblock_aa_grid.resize(0);
-}
-
-
-
-//! AntennaSet2D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
-void AntennaSet2D(
-        // WS Output:
-              Index&   antenna_dim,
-        // WS Input:
-        const Index&   atmosphere_dim )
-{
-  if( atmosphere_dim != 3 )
-    throw runtime_error("Antenna dimensionality 2 is only allowed when the "
-                                          "atmospheric dimensionality is 3." );
-  out2 << "  Sets the antenna dimensionality to 1.\n";
-  out3 << "    antenna_dim = 2\n";
-  antenna_dim = 2;
-}
-
-
-
 //! ArrayOfIndexPrint
 /*!
    See the the online help (arts -d FUNCTION_NAME)
