@@ -460,6 +460,73 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("AtmFieldsCalc"),
+	DESCRIPTION
+        (
+         "Interpolated the atmospheric fields.\n"
+         "\n"
+         "An atmospheric scenario includes the following data for each \n"
+         "position (pressure, latitude, longitude) in the atmosphere: \n"
+         "           1. temperature field \n"
+         "           2. the corresponding altitude field \n"
+         "           3. vmr fields for the gaseous species \n"
+         "This methods interpolates the fields from the raw data\n"
+         "(*t_field_raw*, *z_field_raw*) which can be stored on \n"
+         "arbitrary grids on the grids for the calculation\n"
+         "(*p_grid*, *lat_grid*, *lon_grid*). \n"
+         "\n"
+        ),
+	OUTPUT(t_field_, z_field_, vmr_field_),
+	INPUT(t_field_raw_, z_field_raw_, vmr_field_raw_, p_grid_, 
+              lat_grid_, lon_grid_, atmosphere_dim_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("AtmRawRead"),
+	DESCRIPTION
+        (
+         "Reads atmospheric data from a scenario.\n"
+         "\n"
+         "An atmospheric scenario includes the following data for each \n"
+         "position (pressure, latitude, longitude) in the atmosphere: \n"
+         "           1. temperature field \n"
+         "           2. the corresponding altitude field \n"
+         "           3. vmr fields for the gaseous species \n"
+         "The data is stored in different files. This methods reads all \n"
+         "files and creates the variables *t_field_raw*, *z_field_raw* \n"
+         "\n"
+         "Different atmospheric scenarios are available in arts data:\n"
+         "For example tropical and midlatitude-summer. 3D scenarios are \n"
+         "not available yet.\n"
+         "\n"
+         "Files in the scenarios look like this: tropical.H2O.xml \n"
+         "\n"
+         "The basename must include the path, i.e., the files can be \n"
+         "anywhere, but they must be all in the same directory.\n"
+         "The profile is chosen by the species name. If you have more than \n"
+         "one tag group for the same species, the same profile will be \n"
+         "used.\n"
+         "\n"
+         "Keywords: \n"
+         "basename :The name and path of a particular atmospheric scenario.\n"
+         "For example:\n"
+         "/smiles_local/arts-data/atmosphere/fascod/tropical \n"
+         "\n"
+        ),
+	OUTPUT(t_field_raw_, z_field_raw_, vmr_field_raw_),
+	INPUT(gas_species_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS("basename"),
+	TYPES(String_t)));
+
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "a_losSet" ),
 	DESCRIPTION
         (

@@ -1839,13 +1839,40 @@ void define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by the user by interpolation of a climatology.\n"
+       "Usage:      Output of *AtmFieldsCalc*.\n"
        "\n"
        "Unit:       K\n"
        "\n"
        "Dimensions: [ p_grid, lat_grid, lon_grid ]"
        ),
       GROUP( Tensor3_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "t_field_raw" ),
+      DESCRIPTION
+      (
+       "Raw data for atmospheric temperatures.\n"
+       "\n"
+       "This variable gives the atmospheric temperature as stored in the \n"
+       "database for the atmospheric scenarios.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage:      Set by the user by choosing a climatology.\n"
+       "\n"
+       "Unit:       K\n"
+       "\n"
+       "Size   Array[4] \n "
+       "       [N_p, 1, 1] \n"
+       "       [1, N_lat, 1] \n"
+       "       [1, 1, N_lon] \n"
+       "       [N_p, N_lat, N_lon] \n"
+       "\n"
+       ),
+      GROUP( ArrayOfTensor3_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1876,6 +1903,61 @@ void define_wsv_data()
        "Usage: Set by user."
        ),
       GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "vmr_field" ),
+      DESCRIPTION
+      (
+       "VMR field.\n"
+       "\n"
+       "This variable gives the volume mixing ratio of the chosen gaseous \n"
+       "species as a function of p_grid, lat_grid, lon_grid. \n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "\n"
+       "Usage:      Calculated internally.\n"
+       "\n"
+       "Unit:        absolute numbers \n"
+       "\n"
+       "Dimensions: [species, p_grid, lat_grid, lon_grid]\n"
+        ),
+      GROUP( Tensor4_ ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "vmr_field_raw" ),
+      DESCRIPTION
+      (
+       "VMR data for the chosen gaseous species.\n"
+       "\n"
+       "This variable contains the volume mixing ratios (VMR) for all \n"
+       "chosen gaseous species. It includes the grids corresponding to the \n"
+       "grids in the database. \n"
+       "*vmr_field_raw* is an Array of Array of Tensor3. It contains one \n"
+       "gridded field for each species which contains the data and \n"
+       "also the grids.\n"
+       "For the calculation the data is \n"
+       "interpolated on *p_grid*, *lat_grid* and *lon_grid*\n"  
+       "\n"
+       "Usage:      Output of *AtmRawRead*\n"
+       "            Input to *AtmFieldsCalc*.\n"
+       "\n"
+       "Unit:        absolute number\n"
+       "\n"
+       "Size:  Array[N_pt]\n"
+       "       Array[4] \n "
+       "       [N_p, 1, 1] \n"
+       "       [1, N_lat, 1] \n"
+       "       [1, 1, N_lon] \n"
+       "       [N_p, N_lat, N_lon] \n"
+       "\n"
+       ),
+      GROUP( ArrayOfArrayOfTensor3_ )));
+
 
   wsv_data.push_back
    (WsvRecord
@@ -1951,14 +2033,40 @@ void define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by the user by interpolation of a climatology, or set\n"
-       "            by a method for applying hydrostatic equilibrium.\n"
+       "Usage:      Output of *AtmFieldsCalc*\n"
        "\n"
        "Unit:       m\n"
        "\n"
        "Dimensions: [ p_grid, lat_grid, lon_grid ]"
        ),
       GROUP( Tensor3_ )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "z_field_raw" ),
+      DESCRIPTION
+      (
+       "Raw data for geometrical altitudes.\n"
+       "\n"
+       "This variable gives the geometrical altitudes as stored in the \n"
+       "database for atmospheric scenarios.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage:      Set by the user by choosing a climatology.\n"
+       "\n"
+       "Unit:       K\n"
+       "\n"
+       "Size   Array[4] \n "
+       "       [N_p, 1, 1] \n"
+       "       [1, N_lat, 1] \n"
+       "       [1, 1, N_lon] \n"
+       "       [N_p, N_lat, N_lon] \n"
+       "\n"
+       ),
+      GROUP( ArrayOfTensor3_ )));
 
   wsv_data.push_back
    (WsvRecord

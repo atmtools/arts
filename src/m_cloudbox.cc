@@ -630,10 +630,7 @@ void i_fieldSetConst(//WS Output:
     // In the 1D case the atmospheric layers are defined by p_grid and the
     // required interface is scat_i_p.
     Index N_za = scat_i_p.npages();
-    Index N_p = p_grid.nelem();
-   
-   
-
+    
     // Define the size of i_field.
     i_field.resize((cloudbox_limits[1] - cloudbox_limits[0])+1, 1, 1,  N_za,
                    1, 1);
@@ -777,11 +774,13 @@ void scat_iPut(//WS Output:
 {
   // Some sizes:
   Index N_f = f_grid.nelem();
-  Index N_p = p_grid.nelem();
-  Index N_lat = lat_grid.nelem();
-  Index N_lon = lon_grid.nelem();
   Index N_za = scat_za_grid.nelem();
-  Index N_aa = scat_aa_grid.nelem();
+
+  //for 3D:
+ //  Index N_p = p_grid.nelem();
+//   Index N_lat = lat_grid.nelem();
+//   Index N_lon = lon_grid.nelem();
+  //  Index N_aa = scat_aa_grid.nelem();
  
   // Some checks:
   
@@ -1082,9 +1081,12 @@ void CloudboxGetIncoming(// WS Output:
   Index Nza = scat_za_grid.nelem();
   Index Nf = f_grid.nelem();
   Index Np = p_grid.nelem();
-  Index Nlat = lat_grid.nelem();
-  Index Nlon = lon_grid.nelem();
-  Index Naa = scat_aa_grid.nelem();
+
+  //for 3D:
+  // Index Nlat = lat_grid.nelem();
+//   Index Nlon = lon_grid.nelem();
+//   Index Naa = scat_aa_grid.nelem();
+
   Index Ni = stokes_dim;
  
   i_rte.resize(Nf,Ni);

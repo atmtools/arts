@@ -45,10 +45,13 @@
 #include "arts.h"
 #include "check_input.h"
 #include "physics_funcs.h"
-#include "matpackI.h"
+#include "matpackIII.h"
 #include "messages.h"
 #include "rte.h"
 #include "special_interp.h"
+#include "absorption.h"
+#include "gridded_fields.h"
+#include "interpolation.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -108,6 +111,296 @@ void AtmosphereSet2D(
   lat_1d = -999;
   meridian_angle_1d = -999;
 }
+
+
+//! Calculate atmospheric fields.
+/*!
+  This method interpolated the data for atmospheric fields on the atmospheric
+  grids used for the calculation.
+
+   See also the the online help (arts -d FUNCTION_NAME)
+
+   \author Claudia Emde
+   \date   2002-11-29
+*/
+void AtmFieldsCalc(//WS Output:
+                   Tensor3& t_field,
+                   Tensor3& z_field,
+                   Tensor4& vmr_field,
+                   //WS Input
+                   const ArrayOfTensor3& t_field_raw,
+                   const ArrayOfTensor3& z_field_raw,
+                   const ArrayOfArrayOfTensor3& vmr_field_raw,
+                   const Vector& p_grid,
+                   const Vector& lat_grid,
+                   const Vector& lon_grid,
+                   const Index& atmosphere_dim
+                   )
+{
+  //==========================================================================
+  if ( atmosphere_dim == 1)
+    {
+       //Resize variables
+      t_field.resize(p_grid.nelem(), 1, 1);
+      z_field.resize(p_grid.nelem(), 1, 1);
+      vmr_field.resize(vmr_field_raw.nelem(), p_grid.nelem(), 1, 1);
+
+ 
+      // Gridpositions:
+      ArrayOfGridPos gp_p(p_grid.nelem());
+      ArrayOfGridPos gp_lat(1);
+      ArrayOfGridPos gp_lon(1);
+
+      Vector lat_grid_dummy(1,0.);
+      Vector lon_grid_dummy(1,0.);
+      
+      // Interpolate t_field:
+      
+      // Calculate grid positions:
+      gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
+      gridpos( gp_lat, t_field_raw[0](0, Range(joker), 0), lat_grid_dummy);
+      gridpos( gp_lon, t_field_raw[0](0, 0, Range(joker)), lon_grid_dummy);
+
+      // Interpolation weights:
+      Tensor4 itw(p_grid.nelem(), 1, 1, 8);
+      // (8 interpolation weights are required for 3D interpolation)
+      interpweights( itw, gp_p, gp_lat, gp_lon );
+  
+      // Interpolate:
+      interp( t_field, itw, t_field_raw[3],  gp_p, gp_lat, gp_lon);
+
+  
+      // Interpolate z_field:
+      
+      // Calculate grid positions:
+      gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
+      gridpos( gp_lat, z_field_raw[1](0, Range(joker), 0), lat_grid_dummy );
+      gridpos( gp_lon, z_field_raw[2](0, 0, Range(joker)), lon_grid_dummy );
+
+      // Interpolation weights:
+      interpweights( itw, gp_p, gp_lat, gp_lon );
+      
+      // Interpolate:
+      interp( z_field, itw, z_field_raw[3], gp_p, gp_lat, gp_lon);
+      
+  
+      // Interpolate vmr_field. 
+      // Loop over the gaseous species:
+      for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
+        {
+          // Calculate grid positions:
+          gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
+          gridpos(gp_lat, vmr_field_raw[gas_i][1](0, Range(joker), 0),
+                  lat_grid_dummy);
+          gridpos(gp_lon, vmr_field_raw[gas_i][2](0, 0, Range(joker)),
+                  lon_grid_dummy);
+
+          // Interpolation weights:
+          interpweights( itw, gp_p, gp_lat, gp_lon );
+          
+          // Interpolate:
+          interp( vmr_field(gas_i, Range(joker), Range(joker), Range(joker)),
+                  itw, vmr_field_raw[gas_i][3], gp_p, gp_lat, gp_lon);
+        }
+      
+    }
+
+  //=========================================================================
+  else if(atmosphere_dim == 2)
+    {
+      //Resize variables
+      t_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
+      z_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
+      vmr_field.resize(vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
+                       1);
+      
+      
+      // Gridpositions:
+      ArrayOfGridPos gp_p(p_grid.nelem());
+      ArrayOfGridPos gp_lat(lat_grid.nelem());
+      ArrayOfGridPos gp_lon(1);
+
+      Vector lon_grid_dummy(1,0.0);
+      
+      // Interpolate t_field:
+      
+      // Calculate grid positions:
+      gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
+      gridpos( gp_lat, t_field_raw[0](0, Range(joker), 0), lat_grid );
+      gridpos( gp_lon, t_field_raw[0](0, 0, Range(joker)), lon_grid_dummy );
+      
+      // Interpolation weights:
+      Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), 1, 8);
+      // (8 interpolation weights are required for 3D interpolation)
+      interpweights( itw, gp_p, gp_lat, gp_lon );
+      
+      // Interpolate:
+      interp( t_field, itw, t_field_raw[3],  gp_p, gp_lat, gp_lon);
+      
+      
+      // Interpolate z_field:
+      // Calculate grid positions:
+      gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
+      gridpos( gp_lat, z_field_raw[1](0, Range(joker), 0), lat_grid );
+      gridpos( gp_lon, z_field_raw[2](0, 0, Range(joker)), lon_grid_dummy );
+      
+      // Interpolation weights:
+      interpweights( itw, gp_p, gp_lat, gp_lon );
+      
+      // Interpolate:
+      interp( z_field, itw, z_field_raw[3], gp_p, gp_lat, gp_lon);
+      
+      
+      // Interpolate vmr_field. 
+      // Loop over the gaseous species:
+      for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
+        {
+          // Calculate grid positions:
+          gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
+          gridpos(gp_lat, vmr_field_raw[gas_i][1](0, Range(joker), 0), 
+                  lat_grid);
+          gridpos(gp_lon, vmr_field_raw[gas_i][2](0, 0, Range(joker)), 
+                  lon_grid_dummy);
+          
+          // Interpolation weights:
+          interpweights( itw, gp_p, gp_lat, gp_lon );
+          
+          // Interpolate:
+          interp( vmr_field(gas_i, Range(joker), Range(joker), Range(joker)),
+                  itw, vmr_field_raw[gas_i][3], gp_p, gp_lat, gp_lon);
+        }
+    }
+
+  //================================================================
+  // atmosphere_dim = 3    
+  else
+    {
+      //Resize variables
+      t_field.resize(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());
+      z_field.resize(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());
+      vmr_field.resize(vmr_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
+                       lon_grid.nelem());
+      
+      
+      // Gridpositions:
+      ArrayOfGridPos gp_p(p_grid.nelem());
+      ArrayOfGridPos gp_lat(lat_grid.nelem());
+      ArrayOfGridPos gp_lon(lon_grid.nelem());
+      
+      
+      // Interpolate t_field:
+      
+      // Calculate grid positions:
+      gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
+      gridpos( gp_lat, t_field_raw[0](0, Range(joker), 0), lat_grid );
+      gridpos( gp_lon, t_field_raw[0](0, 0, Range(joker)), lon_grid );
+      
+      // Interpolation weights:
+      Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem(), 8);
+      // (8 interpolation weights are required for 3D interpolation)
+      interpweights( itw, gp_p, gp_lat, gp_lon );
+      
+      // Interpolate:
+      interp( t_field, itw, t_field_raw[3],  gp_p, gp_lat, gp_lon);
+      
+      
+      // Interpolate z_field:
+      
+      // Calculate grid positions:
+      gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
+      gridpos( gp_lat, z_field_raw[1](0, Range(joker), 0), lat_grid );
+      gridpos( gp_lon, z_field_raw[2](0, 0, Range(joker)), lon_grid );
+      
+      // Interpolation weights:
+      interpweights( itw, gp_p, gp_lat, gp_lon );
+      
+      // Interpolate:
+      interp( z_field, itw, z_field_raw[3], gp_p, gp_lat, gp_lon);
+      
+      
+      // Interpolate vmr_field. 
+      // Loop over the gaseous species:
+      for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
+        {
+          // Calculate grid positions:
+          gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
+          gridpos(gp_lat, vmr_field_raw[gas_i][1](0, Range(joker), 0), 
+                  lat_grid);
+          gridpos(gp_lon, vmr_field_raw[gas_i][2](0, 0, Range(joker)), 
+                  lon_grid);
+          
+          // Interpolation weights:
+          interpweights( itw, gp_p, gp_lat, gp_lon );
+          
+          // Interpolate:
+          interp( vmr_field(gas_i, Range(joker), Range(joker), Range(joker)),
+                  itw, vmr_field_raw[gas_i][3], gp_p, gp_lat, gp_lon);
+        }
+    }
+}
+  
+//! Read atmospheric scenario.
+/* 
+
+   See the the online help (arts -d FUNCTION_NAME)
+
+ \param t_field_raw temperature field data
+ \param z_field_raw altitude field data
+ \param vmr_field_raw vmr field data
+ \param gas_species gas species for calculation
+ \param basename name of scenario
+
+ \author Claudia Emde
+ \date   2002-11-29
+*/
+void AtmRawRead(//WS Output:
+                ArrayOfTensor3& t_field_raw,
+                ArrayOfTensor3& z_field_raw,
+                ArrayOfArrayOfTensor3& vmr_field_raw,
+                //WS Input:
+                const ArrayOfArrayOfSpeciesTag& gas_species,
+                //Keyword:
+                const String& basename)
+{
+  // Read the temperature field:
+  String file_name = basename + ".t.xml";
+  read_gridded_tensor3( file_name, t_field_raw);
+  
+  out3 << "Temperature field read from file: " << file_name << "\n";  
+
+  // Read geometrical altitude field:
+  file_name = basename + ".z.xml";
+  read_gridded_tensor3( file_name, z_field_raw);
+
+  out3 << "Altitude field read from file: " << file_name << "\n";  
+
+
+  // The species lookup data:
+
+  extern const Array<SpeciesRecord> species_data;
+  
+  // We need to read one profile for each tag group.
+  for ( Index i=0; i<gas_species.nelem(); i ++)
+    {
+      // Determine the name.
+      file_name =
+	basename + "." +
+	species_data[gas_species[i][0].Species()].Name() + ".xml";
+      
+      // Add an element for this tag group to the vmr profiles:
+      ArrayOfTensor3 vmr_field_data;
+      vmr_field_raw.push_back(vmr_field_data);
+      
+      // Read the VMR:
+      read_gridded_tensor3( file_name, vmr_field_raw[vmr_field_raw.nelem()-1]);
+      
+      // state the source of profile.
+      out3 << "  " << species_data[gas_species[i][0].Species()].Name()
+	   << " profile read from file: " << file_name << "\n";
+    }
+}
+  
+                
 
 
 
