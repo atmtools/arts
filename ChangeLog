@@ -1,3 +1,13 @@
+2002-10-14  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-261
+	
+	* configure.in: Call init with autogen.sh instead of reconf.
+
+	* Makefile.am (EXTRA_DIST): Include autogen.sh instead of reconf.
+
+	* reconf: Purged.
+
 2002-10-14  Sreerekha T.R.  <rekha@uni-bremen.de>
         
 	* arts-1-1-260
