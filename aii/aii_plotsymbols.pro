@@ -2,14 +2,14 @@
 ; ####################### ARTS IDL INTERFACE PROCEDURE #####################
 ; ==========================================================================
 ;
-;----------------------
-FUNCTION aii_plotsym, i
-;----------------------
+;--------------------------
+FUNCTION aii_plotsymbols, i
+;--------------------------
 ;
 ;==========================================================================
 ;
 ; NAME:
-;       aii_plotsym
+;       aii_plotsymbols
 ; PURPOSE:
 ;       defines user defined plotting symbol USERSYM (PSYM=8) 
 ; EXPLANATION:
@@ -20,7 +20,7 @@ FUNCTION aii_plotsym, i
 ;       13 different symbols, including those of the standart IDL ones.
 ;
 ; CALLING EXAMPLES:
-;       psym=aii_plotsym(5) e.g. in the keyword definition of 
+;       psym=aii_plotsymbols(5) e.g. in the keyword definition of 
 ;       the command 'plot' or 'oplot' to define a triangle for 
 ;       USERSYM (PSYM=7)
 ;

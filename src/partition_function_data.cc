@@ -251,8 +251,8 @@ void define_partition_species_data()
   iso(it_isotope,	"SelfContStandardType",      Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"ForeignContStandardType",   Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"ContMPM93",             Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"SelfContCKD",           Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"ForeignContCKD",        Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"SelfContCKD24",           Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"ForeignContCKD24",        Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"CP98", Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"MPM87",Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"MPM89",Qcoeff( 0	,0		,0		,0          ) );
@@ -348,6 +348,7 @@ void define_partition_species_data()
   iso(it_isotope,	"SelfContPWR93",   Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"PWR93",          Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"MPM93",          Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM92",          Qcoeff( 0	,0		,0		,0          ) );
 
   // NO
   // Coeff:       1      1      1

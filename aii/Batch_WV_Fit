@@ -1,0 +1,14 @@
+; run it with "@Batch_WV_Fit" in the command line
+.COMPILE WVContParamFit
+.COMPILE CreateArtsControlFile
+.COMPILE aii_checks
+.COMPILE aii_color_table
+.COMPILE aii_plotsymbols
+.COMPILE aii_plot_file
+.COMPILE aii_aa_read_general
+.COMPILE CreateArtsControlFile
+.COMPILE WVContParamFit
+
+;WVContParamFit, datafile='ContFitData.aa', H2Otag='H2O-PWR98',  H2Omodel='RosenkranzLines', artspath='/home/home01/tkuhn/ARTS/arts/'
+
+WVContParamFit, datafile='ContFitData.aa', H2Otag='H2O-PWR98',  H2Omodel='user', H2Ouparam=[0.00, 1.00, 1.12], artspath='/home/home01/tkuhn/ARTS/arts/', absratio_cs=0.33000e0, absratio_cf=0.7000e0

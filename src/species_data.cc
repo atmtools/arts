@@ -196,8 +196,8 @@ void define_basic_species_data()
 	 REC( "SelfContStandardType"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "ForeignContStandardType"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ContMPM93"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-  	 REC( "SelfContCKD"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-  	 REC( "ForeignContCKD"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+  	 REC( "SelfContCKD24"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+  	 REC( "ForeignContCKD24"        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "CP98"	                ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "MPM87"	                ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "MPM89"	                ,-1.	,-1.	,-1	,-1	,TAGS()      ),
@@ -314,7 +314,8 @@ void define_basic_species_data()
 	 REC( "SelfContMPM93"	,-1.	,-1.	,-1	,-1	,TAGS()),
 	 REC( "SelfContPWR93"	,-1.	,-1.	,-1	,-1	,TAGS()),
 	 REC( "PWR93"	,-1.	,-1.	,-1	,-1	,TAGS()),
-	 REC( "MPM93"	,-1.	,-1.	,-1	,-1	,TAGS())
+	 REC( "MPM93"	,-1.	,-1.	,-1	,-1	,TAGS()),
+	 REC( "MPM92"	,-1.	,-1.	,-1	,-1	,TAGS())
 	 ) ) );
 
   // NO

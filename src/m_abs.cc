@@ -1447,6 +1447,7 @@ void AtmFromRaw(// WS Output:
 	     raw_ptz(Range(joker),0),
 	     transpose(raw_ptz(Range(joker),Range(1,joker))),
 	     p_abs );
+
     // The first Matpack expression selects the first column of
     // raw_ptz as a vector. The second Matpack expression gives the
     // transpose of the last two columns of raw_ptz. The function
@@ -1690,6 +1691,8 @@ void h2o_absSet(
       found = i;
   }
 
+  /* ----- original version -------------------------------------------
+
   if ( found < 0 )
     throw runtime_error("h2o_absSet: No tag group contains water!");
   
@@ -1699,6 +1702,22 @@ void h2o_absSet(
   // dimensions must be the same! The expression
   // vmrs(found,Range(joker)) selects the row with index corresponding
   // to found.
+
+  --------------------------------------------------------------------- 
+  */
+
+  h2o_abs.resize( vmrs.ncols() );
+  if ( found >= 0 )
+    {
+      h2o_abs = vmrs(found,Range(joker));	
+    } else {
+      out2 << "  WARNING in h2o_absSet: could not find any H2O tag. So H2O vmr is set to zero!\n";
+      for( Index i=0; i<h2o_abs.nelem(); i++ ) h2o_abs[i] = 0.0000000000e0;
+    }
+ 
+
+
+
 }
 
 
@@ -1765,6 +1784,8 @@ void n2_absSet(
       found = i;
   }
 
+  /* ----- original version -------------------------------------------
+
   if ( found < 0 )
     throw runtime_error("n2_absSet: No tag group contains nitrogen!");
   
@@ -1774,6 +1795,18 @@ void n2_absSet(
   // dimensions must be the same! The expression
   // vmrs(found,Range(joker)) selects the row with index corresponding
   // to found.
+
+  --------------------------------------------------------------------- 
+  */
+
+  n2_abs.resize( vmrs.ncols() );
+    if ( found >= 0 )
+    {
+      n2_abs = vmrs(found,Range(joker));	
+    } else {
+      out2 << "  WARNING in n2_absSet: could not find any N2 tag. So N2 vmr is set to zero!\n";
+      for( Index i=0; i<n2_abs.nelem(); i++ ) n2_abs[i] = 0.0000000000e0;
+    }
 }
 
 

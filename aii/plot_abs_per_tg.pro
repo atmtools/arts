@@ -481,13 +481,8 @@ aii_klegend_d, charlegendarray[0:index-1], $
 !P.multi=0
 
 ;; close plot output file
-aii_plot_file, action='end', show='yes', print='no'
-
-;; cp plot output file to job directory
-FINDFILENAMEVEC = FINDFILE(plotfilename+'.*', count=numfilefound)
-if (numfilefound EQ 1) then begin
-    spawn, 'cp '+FINDFILENAMEVEC[0]+' '+jobdir+'/'+FINDFILENAMEVEC[0]
-endif
+aii_plot_file, action='end', show='yes', print='no', $
+               outdir='/smiles_local/continuum/borysow'
 
 ;; restore settings
 P_ini = !P    

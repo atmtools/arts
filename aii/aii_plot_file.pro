@@ -66,50 +66,58 @@ pro aii_plot_file, action=action, $
 ; ==========================================================================
 ;
 ; define common block:
-COMMON PLOT_OUTPUT_FUN_ANTWORT, ANTWORT, USERFILENAME
+COMMON AII_PLOT_OUTPUT_CONTROL, ANTWORT, USERFILENAME, DEVICENAME, PUSERINITIAL
 ;
 ; ==========================================================================
 ; ##########################################################################
 ; ==========================================================================
 ;
+;
+;
+;                             ----------------
+; ===========================< check keywords >=============================
+;                             ----------------
+;
 ; default values for input parameters:
-if not keyword_set(outdir) then begin
-    outdir = '.'
-endif
+IF NOT KEYWORD_SET(outdir) THEN BEGIN
+    outdir = ''
+ENDIF ELSE BEGIN
+    outdir = check_backslash(outdir)
+ENDELSE
 ;
-if not keyword_set(print) then begin
-    print = 'no'
-endif
+IF NOT KEYWORD_SET(print) THEN BEGIN
+    print = 'no' ; default value
+ENDIF
 ;
-if not keyword_set(show) then begin
-    show = 'no'
-endif
+IF NOT KEYWORD_SET(show) THEN BEGIN
+    show = 'no'  ; default value
+ENDIF
 ;
 ; check input parameter action' of correctness:
-if not keyword_set(action) then begin
+IF NOT KEYWORD_SET(action) THEN BEGIN
     print,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
     print,' PROCEDURE: AII_PLOT_FILE.pro                         '
-    print,' ERROR:     no value for input variable action        '
+    print,' ERROR:     no value for input variable action set    '
+    print,'            RETURN without action                     '
     print,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-    retall
-endif
+    RETURN
+ENDIF
 ;
-if (action NE 'begin') and (action NE 'end') then begin
+IF (STRLOWCASE(action) NE 'begin') AND (STRLOWCASE(action) NE 'end') THEN BEGIN
     print,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
     print,' PROCEDURE  : AII_PLOT_FILE.pro                       '
     print,' ERROR      : wrong value for variable action         '
     print,' ALLOWED    : begin , end                             '
     print,' YOUR CHOICE:',action
     print,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-    retall
-endif
+    RETURN
+ENDIF
 ;
-; ==========================================================================
-; ##########################################################################
-; ==========================================================================
 ;
-; set constants
-; *************
+;                             ---------------
+; ===========================< set constants >==============================
+;                             ---------------
+;
 ;
 ; possible extensions of the output file:
 EXTENSION_VEC = ['.XX', $
@@ -134,29 +142,36 @@ GVOPT         = ['',           $
                  ''] 
 ;
 ;
-; ==========================================================================
 ;
-; open output file
-; ****************
+;                           ------------------
+; =========================< open output file >=============================
+;                           ------------------
 ;
-if (action EQ 'begin') then begin
 ;
-;   check input variable for output file name:
-    if (keyword_set(fname)) then begin
+if (STRLOWCASE(action) EQ 'begin') then begin
+;
+;   a) save original user settings
+;   ------------------------------
+    PUSERINITIAL = !P
+;
+;   b) check input variable for output file name
+;   --------------------------------------------
+    IF (keyword_set(fname)) THEN BEGIN
         USERFILENAME = fname ; store file name in common block variable for later use
-    endif else begin
+    ENDIF ELSE BEGIN
         USERFILENAME = 'aii_plot_file' ; default = name of this procedure
         print,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
         print,' PROCEDURE: AII_PLOT_FILE.pro  '
         print,' ATTENTION: output file name is'
         print,' >> ',USERFILENAME,' <<'
         print,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-    endelse
+    ENDELSE
 ;
-;   check input variable for output file format:
-    if (keyword_set(fformat)) then begin
+;   c) ask for input variable for output file format
+;   ------------------------------------------------
+    IF (keyword_set(fformat)) THEN BEGIN
         ANTWORT = fformat
-    endif else begin
+    ENDIF ELSE BEGIN
         ANTWORT = 1  ; default = Postscript portrait mode
         print,'_________( aii_plot_file interactive mode )_________'
         print,'| select output file format  (default=1):          |'
@@ -167,81 +182,107 @@ if (action EQ 'begin') then begin
         print,'|     (5) window                                   |'
         read, ANTWORT
         print,'|________( aii_plot_file interactive mode )________|'
-        if ((ANTWORT LT 1) or (ANTWORT GT 5)) then begin
+        IF ((ANTWORT LT 1) OR (ANTWORT GT 5)) THEN BEGIN
             ANTWORT=1
-        endif
-    endelse
+        ENDIF
+    ENDELSE
 ;
-   if (ANTWORT NE 1) AND (ANTWORT NE 2) AND $
-      (ANTWORT NE 3) AND (ANTWORT NE 4) AND $
-      (ANTWORT NE 5) then begin
-       print,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-       print,'!! Procedure: AII_PLOT_FILE.pro                  !!'
-       print,'!! ATTENTION: wrong value for output file format !!'
-       print,'!! FFORMAT  :',ANTWORT,'                                 !!',$
-             ANTWORT
-       print,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-       retall
+;   d) check input variable for output file format
+;   ----------------------------------------------
+    IF ( (ANTWORT NE 1) AND (ANTWORT NE 2) AND $
+         (ANTWORT NE 3) AND (ANTWORT NE 4) AND $
+         (ANTWORT NE 5) ) THEN BEGIN
+       print, FORMAT='(A52)', '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+       print, FORMAT='(A52)', '!! Procedure: AII_PLOT_FILE.pro                  !!'
+       print, FORMAT='(A52)', '!! ATTENTION: wrong value for output file format !!'
+       print, FORMAT='(A13,I1,A38)', '!! FFORMAT  :',ANTWORT,'                                    !!'
+       print, FORMAT='(A52)', '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+       RETURN
    endif
 ;
+;  e) save name of current graphics device
+;  ---------------------------------------
+   DEVICENAME = !D.name
+;
+;  f) remove files with the same output name
+;  -----------------------------------------
+   USERFILENAME = USERFILENAME+EXTENSION_VEC[ANTWORT]
+   xf = check_input_file(USERFILENAME, outdir)
+   IF (N_ELEMENTS(xf) GT 0) THEN $
+     FOR i = 0, N_ELEMENTS(xf)-1 DO spawn,'rm -f '+xf[i]
+;
+;  g) open the output file according to input specifications
+;  ---------------------------------------------------------
    case ANTWORT of
         1 : begin
-              ; Postscript portrait mode
-              dummy         = !P.color ; make background white
-              !P.color      = !P.background
-              !P.background = dummy
-              aii_color_table
-              spawn,'rm -f '+outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]
+              ; --- Postscript portrait mode ------------------------
+;              dummy         = !P.color ; make background white
+;              !P.color      = !P.background
+;              !P.background = dummy
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT]
-              DEVICE,/PORTRAIT
-              DEVICE, /COLOR
+              DEVICE, FILENAME=USERFILENAME, SET_FONT='Times', /PORTRAIT, /COLOR
+;              DEVICE,/PORTRAIT
+;              DEVICE, /COLOR
+;              DEVICE, SET_FONT='Times'
+              aii_color_table
               end
         2 : begin
-              ; Postscript landscape mode
-              dummy         = !P.color ; make background white
-              !P.color      = !P.background
-              !P.background = dummy
-              spawn,'rm -f '+outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]
+              ; --- Postscript landscape mode -----------------------
+;              dummy         = !P.color ; make background white
+;              !P.color      = !P.background
+;              !P.background = dummy
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT]
-              DEVICE, /LANDSCAPE
-              DEVICE, /COLOR
+              DEVICE, FILENAME=USERFILENAME, SET_FONT='Times', /LANDSCAPE, /COLOR  
+;              DEVICE, /LANDSCAPE
+;              DEVICE, /COLOR
+;              DEVICE, SET_FONT='Times'
               aii_color_table
               end
         3 : begin
-              ; encapsulated Postscript portrait mode
-              dummy         = !P.color ; make background white
-              !P.color      = !P.background
-              !P.background = dummy
-              color=2
-              spawn,'rm -f '+outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]
+              ; --- encapsulated Postscript portrait mode -----------
+;              dummy         = !P.color ; make background white
+;              !P.color      = !P.background
+;              !P.background = dummy
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT]
-              DEVICE, /ENCAPSULATED
-              DEVICE, /COLOR
-              DEVICE, /PORTRAIT
+              DEVICE, FILENAME=USERFILENAME, SET_FONT='Times', /PORTRAIT, /ENCAPSULATED, /COLOR
+;              DEVICE, /ENCAPSULATED
+;              DEVICE, /COLOR
+;              DEVICE, /PORTRAIT
+;              DEVICE, SET_FONT='Times'
               aii_color_table
               end
         4 : begin
-              ; encapsulated Postscript landscape mode
-              dummy         = !P.color ; make background white
-              !P.color      = !P.background
-              !P.background = dummy
-              color=2
-              spawn,'rm -f '+outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]
+              ; --- encapsulated Postscript landscape mode ----------
+;              dummy         = !P.color ; make background white
+;              !P.color      = !P.background
+;              !P.background = dummy
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT]
-              DEVICE, /ENCAPSULATED
-              DEVICE, /COLOR
-              DEVICE, /LANDSCAPE
+              DEVICE, FILENAME=USERFILENAME, SET_FONT='Times', /LANDSCAPE, /ENCAPSULATED, /COLOR
+;              DEVICE, /ENCAPSULATED
+;              DEVICE, /COLOR
+;              DEVICE, /LANDSCAPE
+;              DEVICE, SET_FONT='Times'
               aii_color_table
               end
         5 : begin
-              ; window
+              ; --- window ------------------------------------------
+              dummy         = !P.color ; make background white
+              !P.color      = !P.background
+              !P.background = dummy
               SET_PLOT, 'X'
+              !P.FONT = 0
+              device, retain=2,     $   ; manage window backing store
+                      decomposed=1, $   ; only affects 24-bit mode sets decomposed color off
+                      set_character_size=[10,12],$ ; vector font size
+                      true_color=24     ; set true color mode for display mode
+;                      pseudo_color=8
+;              XPAGE=20.9  &  YPAGE=29.7  &  XOFFS=0.0  &  YOFFS=0.0
+;              X0=1.374  &  Y0=1.283  &  XLEN=3.622  &  YLEN=6.157 ;Inches
+;              !P.POSITION=[X0/XPAGE,Y0/YPAGE,(X0+XLEN)/XPAGE,(Y0+YLEN)/YPAGE]
+              aii_color_table
               end
         else: begin
+              ; --- default -----------------------------------------
               dummy         = !P.color ; make background white
               !P.color      = !P.background
               !P.background = dummy
@@ -249,57 +290,62 @@ if (action EQ 'begin') then begin
               XPAGE=20.9  &  YPAGE=29.7  &  XOFFS=0.0  &  YOFFS=0.0
               X0=1.374  &  Y0=1.283  &  XLEN=3.622  &  YLEN=6.157  ;Inches
               !P.POSITION=[X0/XPAGE,Y0/YPAGE,(X0+XLEN)/XPAGE,(Y0+YLEN)/YPAGE]
-              aii_color_table
               end
    endcase
 endif
 ;
 ;
-; ==========================================================================
 ;
+;                      -----------------------------
+; ====================< close and print output file >=======================
+;                      -----------------------------
 ;
-; close and print output file
-; ***************************
 ;
 if (action EQ 'end') then begin
 ;
-; a) close output file:
-; ---------------------
-    DEVICE,/CLOSE
+; a) close output file
+; --------------------
+    IF ((ANTWORT GE 1) AND (ANTWORT LE 4)) THEN DEVICE, /close_file
+    SET_PLOT, DEVICENAME
 ;
-; b) print info:
-; --------------
-    print, '-------------------------- aii_plot_file --------------------------'
-    print, ' * dir   : ','"'+outdir+'"'
-    print, ' * file  : ','"'+USERFILENAME+EXTENSION_VEC[ANTWORT]+'"'
-    print, ' * format: ',FORMAT_VEC[ANTWORT]
+; b) print info
+; -------------
+    print, ' * aii_plot_file> dir   : ','>>'+outdir+'<<'
+    print, ' * aii_plot_file> file  : ','>>'+USERFILENAME+'<<'
+    print, ' * aii_plot_file> format: ',FORMAT_VEC[ANTWORT]
 ;
-; c) move output file into specified directory:
-; ---------------------------------------------
-    spawn, 'mv '+USERFILENAME+EXTENSION_VEC[ANTWORT]+' '+outdir+'/.'
+; c) move output file into specified directory
+; --------------------------------------------
+    IF ((ANTWORT GE 1) AND (ANTWORT LE 4)) THEN BEGIN
+        spawn, 'mv '+USERFILENAME+' '+outdir
+    ENDIF
 ;
-; d) close device and open gostview:
-; ----------------------------------
-    if (show EQ 'yes') then begin
-        print, ' * show with ghostview: yes'
-        spawn,'gv -swap -a4 -bg white -fg black '+GVOPT[ANTWORT]+' '+$
-              outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]+' &'
-    endif else begin
-        print, ' * show with ghostview: no'
-    endelse
+; d) close device and open gostview
+; ---------------------------------
+    IF ((ANTWORT GE 1) AND (ANTWORT LE 4)) THEN BEGIN
+        if (show EQ 'yes') then begin
+            print, ' * show with ghostview: yes'
+            spawn,'gv -swap -a4 -bg white -fg black '+GVOPT[ANTWORT]+' '+$
+                  outdir+USERFILENAME+' &'
+        endif else begin
+            print, ' * show with ghostview: no'
+        endelse
+    ENDIF
 ;
-; e) printing:
-; ------------
-    if (print EQ 'yes') then begin
-        print, ' * print with lpr: yes'
-        spawn,'lpr '+outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]
-    endif else begin
-        print, ' * print with lpr: no'
-    endelse
+; e) printing
+; -----------
+    IF ((ANTWORT GE 1) AND (ANTWORT LE 4)) THEN BEGIN
+        if (print EQ 'yes') then begin
+            print, ' * print with lpr: yes'
+            spawn,'lpr '+outdir+USERFILENAME
+        endif else begin
+            print, ' * print with lpr: no'
+        endelse
+    ENDIF
 ;
-; f) print info:
-; --------------
-    print, '-------------------------- aii_plot_file --------------------------'
+; f) set back to saved original user settings
+; -------------------------------------------
+    !P = PUSERINITIAL
 ;
 endif
 ;

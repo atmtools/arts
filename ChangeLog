@@ -1,3 +1,24 @@
+2002-03-17  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+        * arts-1-0-12
+
+        * src: update of O2 functions in continua.cc since the 
+        standard models use fixed VMR-O2. This is now changed to 
+        variable VMR according to the input VMR profile.
+
+        * src: additional models in continua.cc implemented. These are
+        (1) CKD2.4 with its special version for the mm frequency range 
+        (gives same values as Rosenkranz, Radio Science, 1998) (see variable 
+        ivc in function CKD24_H20) and 
+        (2) then N2-N2 rototranslatioal CIA absorption model of Borysow
+        and Frommhold, Astrophys. Journal, 1986.
+
+        * src: in m_abs.cc change of the functions h2o_absSet and n2_absSet.
+        Now if no H2O or N2 tag is detected are the values of h2o_abs and 
+        n2_abs automatically set to zero. 
+
+        * aii: additional and updates of several idl functions.  
+
 2002-03-10  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-11

@@ -9,7 +9,7 @@
 ;; SAB 22.01.98 thick can now be a vector (specifying thickness for
 ;; each entry individually) or a scalar
 ;; AvE 19.05.99 keyword font included
-;; TKS 9.4.01 use of aii_plotsym for increased number of plotting symbols.
+;; TKS 9.4.01 use of aii_plotsymbols for increased number of plotting symbols.
 ;;----------------------------------------------------------------------
 ;+
 ; NAME:
@@ -305,7 +305,7 @@ for i = 0,n-1 do begin
       endif
       if (symline and (psym(i) gt 0)) then begin 
           plots, xp,yp,color=colors(i)  ,/normal, $
-                 psym=aii_plotsym(psym(i)),$
+                 psym=aii_plotsymbols(psym(i)),$
                  symsize=charsize,thick=thick_local(i)
       endif
   endelse

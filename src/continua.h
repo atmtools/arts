@@ -144,6 +144,16 @@ void MPM93_H2O_continuum( MatrixView        xsec,                // calculated x
 			  ConstVectorView   t_abs,               // temperature vector
 			  ConstVectorView   vmr	 );              // H2O vmr profile
 
+void CKD24_H20( MatrixView          xsec,      // calculated x-section
+		int                 isf,       // flag if self or foreign cont.
+		const Numeric       Cin,       // model scaling factor
+		const String&       model,     // model option
+		ConstVectorView     f_mono,    // frequency vector
+		ConstVectorView     p_abs,     // pressure vector
+		ConstVectorView     t_abs,     // temperature vector
+		ConstVectorView     vmr,       // H2O vmr profile
+                ConstVectorView     n2_abs );  // N2 vmr profile
+
 //////////////////////////////////////////////////////////////////////////// 
 // oxygen line+continuum absorption models
 //////////////////////////////////////////////////////////////////////////// 
@@ -203,6 +213,14 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,        // calculated x-sec
 //////////////////////////////////////////////////////////////////////////// 
 // nitrogen continuum absorption models
 //////////////////////////////////////////////////////////////////////////// 
+
+void BF86_CIA_N2( MatrixView          xsec,      // calculated x-section
+		  const Numeric       Cin,       // model parameter
+		  const String&       model,     // model option 
+		  ConstVectorView     f_mono,    // frequency vector
+		  ConstVectorView     p_abs,     // pressure vector
+		  ConstVectorView     t_abs,     // temperature vector
+		  ConstVectorView     vmr   );   // N2 vmr profile 
 
 void MPM93_N2_continuum( MatrixView        xsec,                  // calculated x-section
 			 const Numeric     Cin,                   // model parameter
