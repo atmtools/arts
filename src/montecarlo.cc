@@ -377,17 +377,18 @@ void findZ11max(Vector& Z11maxvector,
   Z11maxvector.resize(np);
   for(Index i = 0;i<np;i++)
     {
+      //CE: Included 0 for T dimension
       switch(scat_data_mono[i].ptype){
       case PTYPE_MACROS_ISO:
         {
-          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,Range(joker),0,0,0,0));
+          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,0,Range(joker),0,0,0,0));
         }
       case PTYPE_HORIZ_AL:
         {
-          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,0,joker,0,0));
+          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,0,joker,0,joker,0,0));
         }
       default:
-          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,joker,joker,0));
+        Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,0,joker,joker,joker,joker,0));
       }
     }
 }
@@ -771,7 +772,8 @@ void pha_mat_singleCalc(
   // this is a loop over the different particle types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      pha_matTransform(pha_mat_lab,scat_data_mono[i_pt].pha_mat_data(0,joker,joker,joker,joker,joker), 
+      //CE: Included 0 for T dimension
+      pha_matTransform(pha_mat_lab,scat_data_mono[i_pt].pha_mat_data(0,0,joker,joker,joker,joker,joker), 
                        scat_data_mono[i_pt].za_grid, 
                        scat_data_mono[i_pt].aa_grid,
                        scat_data_mono[i_pt].ptype,scat_za_index, scat_aa_index, 

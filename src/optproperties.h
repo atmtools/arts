@@ -75,9 +75,9 @@ struct SingleScatteringData {
   Vector    T_grid;
   Vector    za_grid;
   Vector    aa_grid;
-  Tensor6   pha_mat_data;
-  Tensor4   ext_mat_data;
-  Tensor4   abs_vec_data;
+  Tensor7   pha_mat_data;
+  Tensor5   ext_mat_data;
+  Tensor5   abs_vec_data;
 };
 
 typedef Array<SingleScatteringData> ArrayOfSingleScatteringData;

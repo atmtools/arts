@@ -2838,6 +2838,7 @@ scat_fieldCalcLimb(//WS Output:
                Tensor5& pha_mat_spt,
                Index& scat_za_index, 
                Index& scat_aa_index,
+               Numeric& t_value,
                //WS Input:
                const Agenda& pha_mat_spt_agenda,
                const Tensor6& i_field,
@@ -2847,10 +2848,10 @@ scat_fieldCalcLimb(//WS Output:
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
                const Index& za_grid_size,
-               const Index& scat_za_interp
+               const Index& scat_za_interp,
+               const Tensor3& t_field
                )
-  
-{
+ {
   Index stokes_dim = scat_field.ncols();
 
   // Some useful indices :
@@ -2916,6 +2917,7 @@ scat_fieldCalcLimb(//WS Output:
       for (Index p_index = 0; p_index <= cloudbox_limits[1]-cloudbox_limits[0];
            p_index++)
         {
+          t_value = t_field(p_index, 0, 0);
           // Interpolate intensity field:
           for (Index i = 0; i < stokes_dim; i++)
             {
@@ -3060,7 +3062,9 @@ scat_fieldCalcLimb(//WS Output:
             for (Index lon_index = 0; lon_index <= 
                    cloudbox_limits[5] - cloudbox_limits[4]; lon_index++)
               {
-               
+                
+                t_value = t_field(p_index, lat_index, lon_index);
+                
                 // Loop over scattered directions
                 for (scat_aa_index = 1; scat_aa_index < Naa; 
                      scat_aa_index ++)
