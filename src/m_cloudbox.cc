@@ -219,7 +219,7 @@ void i_field_itCalc(
 		    // WS Output:
 		    Tensor6& i_field,
 		    // WS Input:
-		    const Tensor7& amp_mat,
+		    const Tensor6& amp_mat,
 		    const ArrayOfIndex& cloudbox_limits,
 		    const Vector& scat_za_grid,
 		    const Vector& scat_aa_grid,
@@ -231,34 +231,54 @@ void i_field_itCalc(
 		    const Matrix& z_ground,
 		    const Matrix& r_geoid,
 		    const Vector& f_grid,
-		    const Index& f_index,
+		    const Index& scat_f_index,
+		    const Vector& part_types,
 		    const Index& blackbody_ground,
 		    const Index& stokes_dim,
 		    const Index& atmosphere_dim
 		    )
 {
+  // Check the input
+  
+  assert( is_size( amp_mat, part_types.nelem(), scat_za_grid.nelem(), 
+		   scat_aa_grid.nelem(), scat_za_grid.nelem(),
+		   scat_aa_grid.nelem(), 8));
+  
+  if (atmosphere_dim == 3){
+    assert ( is_size( i_field, p_grid.nelem(), lat_grid.nelem(), 
+		      lon_grid.nelem(), scat_za_grid.nelem(), 
+		      scat_aa_grid.nelem(), stokes_dim));
+  }
+  else if (atmosphere_dim == 1 ){
+    assert ( is_size( i_field, p_grid.nelem(), 1, 
+		      1, scat_za_grid.nelem(), 
+		      scat_aa_grid.nelem(), stokes_dim));
+  }
 
   // Copy i_field to i_field_old.
   Tensor6 i_field_old;
   i_field_old = i_field;
-
+  
   //Calculate scattered field vector for all points in the cloudbox.
   Tensor6 sca_field;
+  sca_field = i_field;
   // ---- here will be the function to calculate the scattering integral
-
+  
+  
+  
   //Update i_field.
-   if( atmosphere_dim == 1 )
-     {
-       i_field_update1D(i_field, i_field_old, amp_mat, sca_field,
-			cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
-			lat_grid, lon_grid, t_field, z_field, z_ground,
-			r_geoid, f_grid, f_index, blackbody_ground, 
-			stokes_dim);
-	 }
-
-   //Convergence test has to be here.
+  if( atmosphere_dim == 1 )
+    {
+      i_field_update1D(i_field, i_field_old, amp_mat, sca_field,
+		       cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
+		       lat_grid, lon_grid, t_field, z_field, z_ground,
+		       r_geoid, f_grid, scat_f_index, blackbody_ground, 
+		       stokes_dim);
+    }
+  
+  //Convergence test has to be here.
 }
-	
+
 
 		
 

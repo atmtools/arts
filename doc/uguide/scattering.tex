@@ -85,7 +85,7 @@ box\\
 \newcommand{\DirFrePr} {\ensuremath{(\PDir^\prime, \Frq)}}
 
 
-\levelb{General Radiative Transfer Equation}
+\levelb{General radiative transfer equation}
 %===================
 \label{sec:scattering:general_rte}
  
@@ -107,15 +107,15 @@ polarisation of the radiation propagating in the direction \PDir.
 is the frequency of the radiation.
 \\
 
-The first term of equation (\ref{eq:scattering:RTE}) corresponds to the extinction of
+The first term of Equation (\ref{eq:scattering:RTE}) corresponds to the extinction of
 radiation determined by the extinction coefficient matrix \ExtMat
 . For microwave radiation travelling through the atmosphere we
 have extinction due to gaseous
 absorption, particle absorption and  particle scattering. Lambert's law
 states that the extinction process is
-proportional to the amount of matter. Accordingly K can be written as
+proportional to the amount of matter. Accordingly \ExtMat can be written as
 a sum of two matrices, the first for particle extinction ( \aExtMat{p})
-and the second for gaseous extinction (\aExtMat{g}). Then
+and the second for gaseous extinction (\aExtMat{g}):
 \begin{eqnarray}
   \ExtMat\DirFre &=&
   \aExtMat{p}\DirFre+\aExtMat{g}\DirFre
@@ -127,14 +127,14 @@ corresponding to one particle type:
   \aExtMat{p}\DirFre = \sum_i \PDen_i \aSExMat{p}_i \DirFre
 \end{eqnarray}
 
-Here \PDen$_i$ is the particle number density of the
-{\sl i}th particle type and  \aSExMat{p}$_i$\DirFre{}  the particle
+Here $\PDen_i$ is the particle number density of the
+{\sl i}th particle type and  $\aSExMat{p}_i\DirFre$  the particle
 extinction cross section matrix of the
-{\sl i}th particle type..
+{\sl i}th particle type.
 
-The second term in equation (\ref{eq:scattering:RTE})  describes the thermal
-emission. Therefore \Planck{}  is the Planck
-function at temperature T and \AbsVec{}  is the absorption
+The second term in Equation (\ref{eq:scattering:RTE})  describes the thermal
+emission. Therefore \Planck\  is the Planck
+function at temperature \Tmp and \AbsVec\  is the absorption
 coefficient vector which can be written as
  \begin{eqnarray}
   \AbsVec \DirFre  &=& \aAbsVec{p} \DirFre + \aAbsVec{g} \DirFre 
@@ -157,7 +157,7 @@ term. It is the
 amount of radiation which is scattered from all other directions \PDir$^\prime$   
 into direction \PDir.  The scattering efficiency matrix
 \SEfMat is the sum of products  
-of the particle densities \PDen  and the phase matrices \PhaMat
+of the particle densities \PDen\  and the phase matrices \PhaMat
 \begin{eqnarray}
 \SEfMat(\PDir, \PDir', \Frq) = \sum_i{\PDen_i\PhaMat_i(\PDir, \PDir', \Frq)}.
 \end{eqnarray}
@@ -166,7 +166,7 @@ Molecular scattering is neglected as it is not important in the
 considered frequency range from 10 to 1000 GHz. 
 
 
-\levelb{Iteration Scheme for Solving the RTE}
+\levelb{Iteration scheme for solving the RTE}
 %===============================
 \label{sec:scattering:solution_rte}
 
@@ -174,7 +174,7 @@ It is not possible to find an analytical solution to the general
 radiative transfer equation. We use an iterative method to find a
 numerical solution.
 
-\levelc{Scattering Integral}
+\levelc{Scattering integral}
 %===================================
 \label{sec:scattering:scat_int}
 
@@ -187,22 +187,22 @@ has to be performed over all incident directions $\PDir^\prime$ for each
 propagation direction \PDir{}. The result is the first guess scattered field $\ScaInt_0\DirFre$
 which has the same dimension as the intensity field \StoVec$_0$\DirFrePr. 
 
-\levelc{Radiative Transfer with fixed Scattered Field}
+\levelc{Radiative transfer with fixed scattered field}
 %======================================
 \label{sec:scattering:RTE}
 With a fixed scattered field \ScaInt\DirFre{} the radiative transfer
-equation (\ref{eq:scattering:RTE}) can be written as
+Equation (\ref{eq:scattering:RTE}) can be written as
 \begin{eqnarray}
-     \frac{\DiffD \StoVec(\PDir, \Frq, \Tmp)}{\DiffD s} =
+     \frac{\DiffD \StoVec}{\DiffD s}(\PDir, \Frq, \Tmp) =
      -\ExtMat\DirFre\StoVec + \AbsVec\DirFre \Planck(\Tmp, \Frq)
      +\ScaInt_0\DirFre
 \label{eq:rad_fs_sol}
 \end{eqnarray} 
 
-Inside a  grid box (see section
+Inside a  grid box (see Section
 \ref{sec:fm_defs:grids}) we assume that all
-coefficients and the Planck function are constant. Then inside aone
-grid box equation (\ref{eq:rad_fs_sol}) is a linear differential
+coefficients and the Planck function are constant. Then inside one
+grid box Equation (\ref{eq:rad_fs_sol}) is a linear differential
 equation with constant coefficients which can be solved analytically
 leading to the result  
 \begin{eqnarray}
@@ -223,17 +223,18 @@ iteration field \StoVec$_1$.
 
 The procedure above is repeated, i.e. \StoVec$_1$ is taken to evaluate
 the scattering integral leading to the first iterated scattered field
-$\ScaInt_1$. Then (\ref{eq:scattering:RTE_sol}) is again used to compute the
+$\ScaInt_1$. Then Equation (\ref{eq:scattering:RTE_sol}) is again used to
+compute the
 second iteration field \StoVec$_2$. \\
 After each iteration the convergence is checked. If 
 \begin{eqnarray}
 |\StoVec_m \DirFre -  \StoVec_{m-1} \DirFre| < {\bf \epsilon}
 \end{eqnarray}
-a solution to the vector radiative transfer equation (\ref{eq:scattering:RTE})
+a solution to the vector radiative transfer Equation (\ref{eq:scattering:RTE})
 has been
 found.
 
-\levelb{Database for the Single Scattering Properties}
+\levelb{Database for the single scattering properties}
 %============================================================
 \label{sec:scattering:database}
 
@@ -263,27 +264,25 @@ is specified by the Euler angles of rotation $\epsilon _i$.
 The equation above is valid for a monochromatic wave. In general, the
 amplitude matrix is also frequency dependent.
 
-The amplitude matrix contains all the information about the optical
+The amplitude matrix contains all information about the optical
 properties of the scattering medium. Extinction cross section
 matrix, absorption cross section vector and phase matrix can be
-obtained from the amplitude matrix (see sections
-\ref{sec:scattering:ext_mat_spt},\ref{sec:scattering:sca_mat_spt}  and
+obtained from the amplitude matrix (see Sections
+\ref{sec:scattering:ext_mat_spt}, \ref{sec:scattering:sca_mat_spt}  and
 \ref{sec:scattering:abs_vec_spt}).
 For this reason, it is sufficient to store only the amplitude matrices
 in the scattering data base. 
 
-
-%=============================this part has to be updated !!!!!!!!
-For each considered frequency there is one file for each particle
-type in the database. The particle
-type depends on the particle size, the particle shape and the
-orientation. We consider only ice crystals, so the material of the
+For each particle type there is one file in the database.
+The particle type depends on the particle size, the particle shape and the
+orientation. We consider only ice crystals, which means the material of the
 particles is always the same. If there is a cloud consisting of
 different particles, the scattering properties for that particles
 distribution can be derived from the single scattering properties.
 
-Each file in the database contains for each propagation direction (\ScaZa,
-\ScaAa) and each scattered direction (\ScaZa', \ScaAa') the real
+Each file in the database contains for each frequency, for each propagation
+direction (\ScaZa, \ScaAa) and each scattered direction
+ (\ScaZa$^\prime$, \ScaAa$^\prime$) the real
 components of the amplitude matrix ($S^{real}_{11}$, $S^{real}_{12}$,
 $S^{real}_{21}$, $S^{real}_{22}$) and the imaginary components
 ($S^{imag}_{11}$, $S^{imag}_{12}$,$S^{imag}_{21}$, $S^{imag}_{22}$).
@@ -307,7 +306,7 @@ in the control file.
 %==================================================================
 \label{sec:scattering:gen_atmprop}
 
-\levelb{Generate Extinction Matrix}
+\levelb{Generate extinction matrix}
 %==================================================================
 \label{sec:scattering:gen_ext}
 
@@ -329,7 +328,7 @@ variables are required:
 \wsvindex{pnd}, i.e. the particle number density, and 
 \wsvindex{ext\_mat\_spt}, which contains the extinction cross section
 matrices for each chosen particle type. How this variable is generated
-is explained in section \ref{sec:scattering:ext_mat_spt}. For calculating the
+is explained in Section \ref{sec:scattering:ext_mat_spt}. For calculating the
 gaseous extinction the volume mixing ratio (\wsvindex{vmr}), the
 pressure  (\wsvindex{p}), the temperature  (\wsvindex{T}) and the
 propagation direction given by zenith angle (\wsvindex{za}) and
@@ -340,9 +339,9 @@ The agenda can for example be defined in the following manner:
 \begin{tabular}[h]{l l}
 \verb|{ |\\
 \verb|ext_mat_partCalc{}| & \verb| //function to calculate particle |\\
-& \verb|extinction | (see section \ref{sec:scattering:ext_mat_part}).\\
+& \verb|extinction | (see Section \ref{sec:scattering:ext_mat_part}).\\
 \verb|ext_mat_gasCalc{}| & \verb| //function to calculate gaseous | \\
-& \verb|extinction | (see section \ref{sec:scattering:ext_mat_gas}).\\ 
+& \verb|extinction | (see Section \ref{sec:scattering:ext_mat_gas}).\\ 
 \verb|ext_matCalc{}| &\verb| // function which sums up | \\
 & \verb| particle extinction and gaseous extinction.|\\
 \verb| }|
@@ -356,7 +355,7 @@ The workspace method \wsfindex{ext\_mat\_partCalc} gives as output the
 particle extinction matrix \aExtMat{p} stored in the variable
 \wsvindex{ext\_mat\_part} which has the chosen Stokes dimension. So in
 the most general case it is a 4x4 matrix.\\
-Input is first the workspace variable \wsvindex{ext\_mat\_spt} (see section
+Input is first the workspace variable \wsvindex{ext\_mat\_spt} (see Section
 \ref{sec:scattering:ext_mat_spt}). The second input variable are the
 local particle number densities \artsstyle{pnd} for all particle types,
 that means \artsstyle{pnd} is of dimension $N_{pt}$ (number of
@@ -376,7 +375,7 @@ weighted with the particle number density:
 %==============================================================
 \label{sec:scattering:ext_mat_spt}
 
-From the database for single scattering properties (see section 
+From the database for single scattering properties (see Section 
 \ref{sec:scattering:database}) the extinction matrices for each
 particle type can be derived using the workspace method
 \wsfindex{ext\_mat\_sptCalc}.\\
@@ -389,7 +388,7 @@ As input variables it needs the amplitude matrix (\wsvindex{amp\_mat})
 and the propagation direction given by the local zenith and azimuth
 angle (\artsstyle{za} and \artsstyle{aa}). \wsvindex{amp\_mat} is
 obtained using the reading routine \wsfindex{get\_amp\_fromDb} which is
-explained in section \ref{sec:scattering:database}.\\
+explained in Section \ref{sec:scattering:database}.\\
 %============================================================
 
 The extinction cross section matrices \SExMat{} are
@@ -426,7 +425,7 @@ Output of the workspace method \wsfindex{sca\_matCalc} is the phase
 matrix stored in the variable \wsvindex{sca\_mat}  with dimension
 according to the chosen Stokes
 dimension, so in general it is a 4x4 matrix.\\
-Input is first the workspace variable \wsvindex{sca\_mat\_spt} (see section
+Input is first the workspace variable \wsvindex{sca\_mat\_spt} (see Section
 \ref{sec:scattering:sca_mat_spt}). The second input variable is the
 local particle number density vector \artsstyle{pnd} for all particle types
 chosen in the control file.
@@ -491,7 +490,7 @@ Input for this agenda are the following variables:
 the particle number density \wsvindex{pnd} and 
 \wsvindex{abs\_vec\_spt}, which contains the absorption vectors  for
 each chosen particle type. How this variable is obtained
-is described in section \ref{sec:scattering:abs_vec_spt}. For calculating 
+is described in Section \ref{sec:scattering:abs_vec_spt}. For calculating 
 gaseous absorption the volume mixing ratio (\wsvindex{vmr}), the
 pressure  (\wsvindex{p}), the temperature  (\wsvindex{T}) and the
 propagation direction given by zenith angle (\wsvindex{za}) and
@@ -502,9 +501,9 @@ The definition of the agenda is listed below:
 \begin{tabular}[h]{l l}
 \verb|{ |\\
 \verb|abs_vec_partCalc{}| & \verb| //function to calculate particle |\\
-& \verb|absorption | (see section \ref{sec:scattering:abs_vec_part}).\\
+& \verb|absorption | (see Section \ref{sec:scattering:abs_vec_part}).\\
 \verb|abs_vec_gasCalc{}| & \verb| //function to calculate gaseous | \\
-& \verb|absorption | (see section \ref{sec:scattering:abs_vec_gas}).\\ 
+& \verb|absorption | (see Section \ref{sec:scattering:abs_vec_gas}).\\ 
 \verb|abs_vecCalc{}| &\verb| // function which sums up | \\
 & \verb| particle absorption and gaseous absorption.|\\
 \verb| }|
@@ -520,7 +519,7 @@ The workspace method \wsfindex{abs\_vec\_partCalc} gives as output the
 particle absorption vector \aAbsVec{p} stored in the variable
 \wsvindex{abs\_vec\_part} which has the chosen Stokes dimension, so in
 general a four component vector.\\
-Input is first the workspace variable \wsvindex{abs\_vec\_spt} (see section
+Input is first the workspace variable \wsvindex{abs\_vec\_spt} (see Section
 \ref{sec:scattering:abs_vec_spt}). The second input variable are the
 local particle number densities \artsstyle{pnd} for all particle types
 chosen in the control file.
@@ -573,7 +572,7 @@ matrix are needed. So it is obligatory to execute the agendas
 
 
 
-\levelb{Methods and Agendas for the RT inside the Cloud Box}
+\levelb{Methods and agendas for the RT inside the cloudbox}
 %==============================================================
 \label{sec:scattering:scat_meth_rt}
 
@@ -581,11 +580,11 @@ The scattering radiative transfer calculation is performed
 independently from the clear sky radiative transfer calculation. It is
 limited only to a small part of the atmosphere defined by the cloud box.
 
-\levelc{Define the cloud box}
+\levelc{Define the cloudbox}
 %==========================================
 \label{sec:scattering:cloudbox}
 
-\leveld{3D Geometry}
+\leveld{3D geometry}
 %==========================================
 
 The concept of a cloud box is explained in
@@ -619,7 +618,7 @@ in the variables \wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
 \ScaAa, i$_I$).
 \end{center}
 
-\leveld{1D Geometry}
+\leveld{1D geometry}
 %=========================================================
 For 1D scattering calculations the same workspace variables are 
 used as for the 3D calculations. The dimensions which are not needed are empty. 
@@ -633,7 +632,7 @@ As interface between the clear sky calculation and the cloud box calculation onl
 \end{center}
 is required. The other interface variables are empty. 
 
-\levelc{Scattering Main Function}
+\levelc{Scattering main function}
 %=====================================
 \label{sec:scattering:main_function}
 
@@ -641,7 +640,7 @@ The scattering main function \wsfindex{scat\_iterateCalc} requires the clear sky
 field on the cloud box boundary as input.
 It loops over the frequencies and in each loop it executes the agenda 
 \wsvindex{scat\_mono\_agenda}
-(see section \ref{sec:scattering:scat_mono_ag}).\\
+(see Section \ref{sec:scattering:scat_mono_ag}).\\
 Output of \wsfindex{ScatCalc} is the scattered radiation field on the
 boundary also stored in the variables \wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
 \wsvindex{scat\_i\_lon}.
@@ -686,13 +685,13 @@ agendas, the \wsfindex{scattered\_field\_agenda} and the
 \item \artsstyle{i\_field} is copied to \artsstyle{i\_field\_old}.
 \item The scattered field is calculated using
   \wsfindex{scattered\_field\_agenda}
-    (see sections \ref{sec:scattering:scat_field_ag} and
+    (see Sections \ref{sec:scattering:scat_field_ag} and
     \ref{sec:scattering:scat_int}).
 \item Calculate the new radiation field using
   \wsfindex{i\_field\_update\_agenda}
- (see sections \ref{sec:scattering:RT_ag} and
+ (see Sections \ref{sec:scattering:RT_ag} and
   \ref{sec:scattering:RTE}).
-\item Do the convergence test (see sections
+\item Do the convergence test (see Sections
   \ref{sec:scattering:conv_method} and \ref{sec:scattering:conv})
 \end{itemize}
 The solution of the radiative transfer equation is returned as output
@@ -708,17 +707,17 @@ Of course it has to use the frequency index to know where
 to put \artsstyle{i\_field}.
  
 
-\levelc{Agenda to compute the Scattered Field}
+\levelc{Agenda to compute the scattered field}
 %=========================================
 \label{sec:scattering:scat_field_ag}
 
-\levelc{Agenda for RT with fixed Scattering Integral}
+\levelc{Agenda for RT with fixed scattering integral}
 %=====================================
 \label{sec:scattering:RT_ag}
 The \wsfindex{i\_field\_update\_agenda} needs the variables
 \artsstyle{i\_field\_old}, \artsstyle{scattered\_field}, \wsvindex{ext\_mat}
 and  \wsvindex{abs\_vec} as input.\\ 
-According to equation(\ref{eq:scattering:RTE_sol}) it computes the new
+According to Equation(\ref{eq:scattering:RTE_sol}) it computes the new
 radiation field. The agenda starts with a loop over all grid points
 inside the scattering box. Then for each grid point the new intensity
 vector
@@ -733,13 +732,13 @@ between the grid points using the interpolation routine (*** give
 reference to section here ***)
 %\ref{sec:interpolation}. \\
 Computing the matrix exponential is done using the method
-\wsfindex{matrix\_exp} explained in section
+\wsfindex{matrix\_exp} explained in Section
 \ref{sec:lin_alg:mat_exp}.\\
  The term
 \ExtMat$^{-1}$[\AbsVec\Planck+\ScaInt] can be computed numerically  
 performing a LU decomposition. This is implemented in the workspace
 methods \wsfindex{ludcmp} and \wsfindex{lubacksub} which are described
-in the sections \ref{sec:lin_alg:backsub} and
+in the Sections \ref{sec:lin_alg:backsub} and
 \ref{sec:lin_alg:lu_decomp}. \\
 Output of the \wsfindex{i\_field\_update\_agenda} is the variable 
 \artsstyle{i\_field} which contains the new radiation field at all

@@ -48,24 +48,24 @@
   ===========================================================================*/
 
 void invplanck (
-		Numeric   y,
-		const Numeric f,
-		const Numeric   za );
+		Numeric&   y,
+		const Numeric& f,
+		const Numeric& za );
 
 void invrayjean (
-              Numeric   y,
-         const Numeric   f,
-         const Numeric   za );
+		 Numeric&   y,
+		 const Numeric& f,
+		 const Numeric& za );
 
 void number_density (
-	     Numeric  nd,
-       const Numeric   p,
-       const Numeric   t );
+		     Numeric&  nd,
+		     const Numeric& p,
+		     const Numeric& t );
 
 void planck (
-	     Numeric   B, 
-         const Numeric   f,
-         const Numeric   t );
+	     Numeric&  B, 
+	     const Numeric&  f,
+	     const Numeric&  t );
 
 
 #endif // physics_h

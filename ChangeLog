@@ -1,3 +1,23 @@
+2002-06-04 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-112
+
+	* src/m_cloudbox.cc (i_field_itCalc): The method can be compiled and 
+	tested using dummy variables for the scattering coefficients. But so
+	far it only performs the update of the i_field for the 
+	1D case.
+
+	* src/workspace.cc: Changed amp_mat from Tensor7 to Tensor6. The 
+	frequency dimension is taken out.
+	
+	* src/methods.cc: Changed amp_mat as input variable for  
+	(i_field_itCalc).
+	
+	* src/physics_funcs.cc (planck): Fixed a bug here.
+
+	* doc/uguide/scattering.tex: Started to write about 1D scattering 
+	calculations.
+
 2002-06-03  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-111

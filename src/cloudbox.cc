@@ -26,6 +26,19 @@
 
 #include "cloudbox.h"
 
+#include <stdexcept>
+#include <math.h>
+#include "lin_alg.h"
+#include "arts.h"
+#include "auto_md.h"
+#include "matpackI.h"
+#include "make_vector.h"
+#include "array.h"
+#include "logic.h"
+#include "ppath.h"
+#include "interpolation.h"
+#include "physics_funcs.h"
+
 
 //! 1D RT calculation inside the cloud box.
 /*! 
@@ -51,7 +64,7 @@
   \param p_grid        Pressure grid.
   \param lat_grid      Latitude grid.
   \param lon_grid      Longitude grid.
-  \param t_field       Temperature field for alls grid points.
+  \param t_field       Temperature field for all grid points.
   \param z_field       Geometrical altitude field.
   \param z_ground      Ground altitude.
   \param r_geoid       Matrix containing geoids.
@@ -63,7 +76,7 @@
 void i_field_update1D(
 		     Tensor6View i_field,
 		     ConstTensor6View i_field_old,
-		     ConstTensor7View amp_mat,
+		     ConstTensor6View amp_mat,
 		     ConstTensor6View sca_field,
 		     const ArrayOfIndex cloudbox_limits,
 		     ConstVectorView scat_za_grid,
@@ -76,11 +89,17 @@ void i_field_update1D(
 		     ConstMatrixView z_ground,
 		     ConstMatrixView r_geoid,
 		     ConstVectorView f_grid,
-		     const Index f_index,
+		     const Index scat_f_index,
 		     const Index blackbody_ground,
 		     const Index stokes_dim
 		     )
 {
+  //Check the input
+  
+  
+
+
+
 
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
@@ -121,26 +140,28 @@ void i_field_update1D(
 	  // scattering integral vector;
 	  Vector sca_vec(4,2e-12);
 	  
-  
 	  //4. Extract sca_vec from sca_field.
 	  for (Index i = 0; i < stokes_dim; i++)
 	    {
 	      sca_vec[i] = sca_field(p_index, 0, 0,
 				      scat_za_index, 0, i);
-	    }
+	     }
 	
+
 	  //5. Generate Planck function.
 	  Numeric T = t_field(p_index, 0, 0);
 	  Numeric B;
-	  Numeric f = f_grid[f_index];
+	  Numeric f = f_grid[scat_f_index];
 	  planck(B, f, T);
-	  
+
 	  //Initialize ppath for 1D.
 	  Ppath ppath_step;
 	  ppath_init_structure(ppath_step, 1, 1);
-  
+	  
 	  // Assign value to ppath.pos:
 	  ppath_step.z[0]     = z_field(p_index,0,0);
+	  cout << "\n scat_za_index ---------"<< scat_za_index;
+	  cout << "\n p_index ---------- "<< p_index;
 	  ppath_step.pos(0,0) = r_geoid(0,0) + ppath_step.z[0];
 	  
 	  // Define the direction:
@@ -151,38 +172,42 @@ void i_field_update1D(
 	  ppath_step.gp_p[0].fd[0] = 0;
 	  ppath_step.gp_p[0].fd[1] = 1;
 	  
+
 	  // Calcultae intersection point of the path in the given direction
 	  // with the next pressure level.
 	  ppath_stepGeometric(ppath_step, 1, p_grid, lat_grid,
 			      lon_grid, z_field, r_geoid, z_ground,
 			      blackbody_ground);
        
+	  PpathPrint( ppath_step, "ppath");
   
 	  // Interpolation of the intensity field on the intersection point.
 	  // i_field_old corresponds to the old grid, the new grid is just
 	  // one point, the intersection point.
   
-	  // Calculate interpolation weights.
-	  Matrix itw(1,2);
-	  interpweights(itw, ppath_step.gp_p);
+ 	  cout << "\n interpolation weight" << ppath_step.gp_p;
+// 	  // Calculate interpolation weights.
+// 	  Matrix itw(1,2);
+// 	  interpweights(itw, ppath_step.gp_p);
 	  
-	  // Do interpolation.
-	  Vector sto_vec(4);
+// 	  // Do interpolation.
+ 	  Vector sto_vec(4);
 	  
-	  // The function interp() requires Vectors as Input, Output. It can
-	  // not handle numerical values. For this reason two vectors of 
-	  // length 1 have to be defined.
-	  Vector sto_vec_int(1);
-	  Vector i_field_old_int(1);
+// 	  // The function interp() requires Vectors as Input, Output. It can
+// 	  // not handle numerical values. For this reason two vectors of 
+// 	  // length 1 have to be defined.
+// 	  Vector sto_vec_int(1);
+// 	  Vector i_field_old_int(1);
 
-	  // Do the interpolation for each Stokes component.
-	  for (Index i = 1; i<stokes_dim; i++)
-	    {
-	      sto_vec_int[0] = sto_vec[i];
-	      i_field_old_int[0] = i_field_old(p_index, 0, 0, 
-					       scat_za_index, 0, i); 
-	      interp(sto_vec_int, itw, i_field_old_int, ppath_step.gp_p);
-	    }
+// 	  // Do the interpolation for each Stokes component.
+// 	  for (Index i = 1; i<stokes_dim; i++)
+// 	    {
+// 	      sto_vec_int[0] = sto_vec[i];
+// 	      i_field_old_int[0] = i_field_old(p_index, 0, 0, 
+// 					       scat_za_index, 0, i); 
+// 	      interp(sto_vec_int, itw, i_field_old_int, ppath_step.gp_p);
+// 	    }
+
 
 	  // Perform RT calculation.
 	  rte_scat_vecCalc(sto_vec, ext_mat, abs_vec, sca_vec, 

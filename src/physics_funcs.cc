@@ -67,9 +67,9 @@ extern const Numeric BOLTZMAN_CONST;
     \date   2000-09-28 
 */
 void invplanck (
-		Numeric   y,
-		const Numeric  f,
-		const Numeric  za )
+		Numeric&   y,
+		const Numeric&  f,
+		const Numeric&  za )
 {
  
   // Use always double to avoid numerical problem (see invrayjean)
@@ -101,9 +101,9 @@ void invplanck (
     \date   2000-09-28 
 */
 void invrayjean (
-		 Numeric   y,
-		 const Numeric  f,
-		 const Numeric  za )
+		 Numeric&   y,
+		 const Numeric&  f,
+		 const Numeric&  za )
 {
   
  // The function returned NaNs when a and b were set to be Numeric (PE 010404)
@@ -132,9 +132,9 @@ void invrayjean (
    \date   2000-04-08 
 */
 void number_density (  
-		     Numeric nd,
-		     const Numeric p,
-		     const Numeric t )
+		     Numeric& nd,
+		     const Numeric& p,
+		     const Numeric& t )
 {
   // Calculate p / (t*BOLTZMAN_CONST):
   assert( t > 0 );
@@ -155,9 +155,9 @@ void number_density (
   \date   2000-04-08 
 */
 void planck (
-             Numeric    B,
-	     const Numeric f,
-	     const Numeric t )
+             Numeric&    B,
+	     const Numeric& f,
+	     const Numeric& t )
 {
   // Double must be used here (if not, a becomes 0 when using float)
   static const double  a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
@@ -166,6 +166,7 @@ void planck (
   
   B = a * f*f*f / ( exp( f*c ) - 1.0 );
 }
+
 
 
 

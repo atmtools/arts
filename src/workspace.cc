@@ -108,6 +108,8 @@ void define_wsv_data()
      "It contains all optical properties of the scattering particles.\n"
      "It depends on the frequency, the particle type, the propagation \n"
      "direction and the scattered direction.\n"
+     "*amp_mat* is generated inside the frequency loop, so the variable \n"
+     "itself does not include the frequency information. \n"
      "The amplitude matrix is a 2x2 complex matrix. The workspace variable\n"
      "*amp_mat* stores the real and imaginary elements (i.e. 8 elements)\n"
      "separately. \n" 
@@ -115,9 +117,9 @@ void define_wsv_data()
      "Usage: Input to *ext_mat_agenda*, *abs_vec_agenda*, *sca_mat_agenda*.\n"
      "Output of *get_amp*. \n"    
      "\n"
-     "Dimensions: [ f_grid, part_types, scat_za_grid, scat_aa_grid \n"
-     "              scat_za_grid, scat_aa_grid, 8]", 
-      Tensor7_ ));
+     "Dimensions: [ part_types, scat_za_grid, scat_aa_grid, \n"
+     "              scat_za_grid, scat_aa_grid, amplitude matrix element]", 
+      Tensor6_ ));
 
   wsv_data.push_back
    (WsvRecord
@@ -365,19 +367,6 @@ void define_wsv_data()
      "\n"
      "Unit:       Hz",
      Vector_ ));
-
- wsv_data.push_back
-   (WsvRecord
-    ("f_index",
-     "Frequency index \n"
-     "\n"
-     "The calculations inside the cloudbox are only done for one frequency.\n"
-     "at a time. Some functions used for scattering calculation require the \n"
-     "frequency. *f_index* holds the information, for which frequency the  \n"
-     "scattering calcultations are performed.\n"
-     "\n"
-     "Usage:      Output of *scat_mono_agenda*.\n",
-     Index_ ));
 
  wsv_data.push_back
    (WsvRecord
@@ -802,11 +791,26 @@ void define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
+    ("scat_f_index",
+     "Frequency index for scattering calculations. \n"
+     "\n"
+     "The calculations inside the cloudbox are only done for one frequency.\n"
+     "at a time. Some functions used for scattering calculation require the \n"
+     "frequency. *f_index* holds the information, for which frequency the  \n"
+     "scattering calcultations are performed.\n"
+     "\n"
+     "Usage:      Output of *scat_mono_agenda*.\n",
+     Index_ ));
+
+
+ wsv_data.push_back
+   (WsvRecord
     ("scat_i_lat",
      "Intensity field on cloudbox boundary (equal latitude surfaces).\n"
      "\n"
      "This variable gives the intensity field from all directions defined \n"
-     "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal \n"
+     "in *scat_aa_grid* and *scat_za_grid* on each grid point on the two \n"
+     "equal \n"
      "latitude surfaces of the boundary of the cloudbox, which is defined \n"
      "by the workspace variable *cloudbox_limits*. It contains all four \n"
      "components of the Stokes vector.\n"
@@ -822,8 +826,8 @@ void define_wsv_data()
      "\n"
      "Unit:        W / (m^2 Hz sr) \n"
      "\n"
-     "Dimensions: [ f_grid, p_grid, 2, lon_grid, scat_za_grid \n "
-     "              scat_aa_grid, 4]",
+     "Dimensions: [ f_grid, p_grid, latitude surface, lon_grid, \n"
+     "              scat_za_grid \n  scat_aa_grid, stokes_dim ]",
      Tensor7_ ));
 
  wsv_data.push_back
@@ -848,8 +852,8 @@ void define_wsv_data()
      "\n"
      "Unit:        W / (m^2 Hz sr) \n"
      "\n"
-     "Dimensions: [ f_grid, p_grid, lat_grid, 2 , scat_za_grid \n "
-     "              scat_aa_grid, 4]",
+     "Dimensions: [ f_grid, p_grid, lat_grid, latitude surface, \n"
+     "              scat_za_grid, scat_aa_grid, stokes_dim]",
      Tensor7_ ));
 
  wsv_data.push_back
@@ -874,8 +878,8 @@ void define_wsv_data()
      "\n"
      "Unit:        W / (m^2 Hz sr) \n"
      "\n"
-     "Dimensions: [ f_grid, 2, lat_grid, lon_grid, scat_za_grid \n "
-     "              scat_aa_grid, 4]",
+     "Dimensions: [ f_grid, pressure surfaces, lat_grid, lon_grid, \n" 
+     "              scat_za_grid, scat_aa_grid, stokes_dim]",
      Tensor7_ ));
 
 
@@ -1291,6 +1295,7 @@ void define_wsv_data()
 //       "\n",
 //       ArrayOfString_));
   
+
 //   wsv_data.push_back
 //     (WsvRecord
 //      ("cont_description_models",
@@ -1335,10 +1340,32 @@ void define_wsv_data()
 //       "The array dimension is determined by the number of tag groups.", 
 //       ArrayOfMatrix_));
 
+  wsv_data.push_back
+    (WsvRecord
+     ("h2o_abs",
+      "The total water profile associated with the pressures in p_abs [-]",
+      Vector_));
 
-  
-//   //--------------------< 1D Absorption Stuff >--------------------
-//   //                     ---------------------
+  wsv_data.push_back
+    (WsvRecord
+     ("n2_abs",
+      "The total nitrogen profile associated with the pressures in p_abs [-]",
+      Vector_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("vmrs",
+      "The VMRs (unit: absolute number) on the p_abs grid.\n"
+      "Dimensions: [tag_groups.nelem(), p_abs.nelem()]",
+      Matrix_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("abs",
+      "The matrix of absorption coefficients (in units of [1/m]).\n"
+      "Dimensions: [f_mono.nelem(), p_abs.nelem()]",
+      Matrix_));
+
 
 //   wsv_data.push_back
 //     (WsvRecord

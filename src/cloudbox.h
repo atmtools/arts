@@ -28,26 +28,15 @@
 #ifndef cloudbox_h
 #define cloudbox_h
 
-#include <stdexcept>
-#include <math.h>
-#include "lin_alg.h"
-#include "arts.h"
-#include "auto_md.h"
-#include "matpackI.h"
-#include "make_vector.h"
-#include "array.h"
-#include "logic.h"
-#include "ppath.h"
-#include "interpolation.h"
-#include "physics_funcs.h"
+
 
 
 void i_field_update1D(
 		     Tensor6View i_field,
 		     ConstTensor6View i_field_old,
-		     ConstTensor7View amp_mat,
+		     ConstTensor6View amp_mat,
 		     ConstTensor6View sca_field,
-		     const ArrayOfIndex cloudbox_limits,
+		     const ArrayOfIndex& cloudbox_limits,
 		     ConstVectorView scat_za_grid,
 		     ConstVectorView scat_aa_grid,
 		     ConstVectorView p_grid,
@@ -58,17 +47,17 @@ void i_field_update1D(
 		     ConstMatrixView z_ground,
 		     ConstMatrixView r_geoid,
 		     ConstVectorView f_grid,
-		     const Index f_index,
-		     const Index blackbody_ground,
-		     const Index stokes_dim
+		     const Index& scat_f_index,
+		     const Index& blackbody_ground,
+		     const Index& stokes_dim
 		     );
 
 void rte_scat_vecCalc(VectorView sto_vec,
 		      ConstMatrixView ext_mat,
 		      ConstVectorView abs_vec,
 		      ConstVectorView sca_vec,
-		      const Numeric ds,
-		      const Numeric B);
+		      const Numeric& ds,
+		      const Numeric& B);
 
 
 
