@@ -40,7 +40,7 @@ void define_md_data()
   extern ARRAY<MdRecord> md_data;
 
   // Initialize to zero, just in case:
-  md_data.resize(0);
+  resize(md_data,0);
 
   /* Here's an empty template record entry:
 
@@ -1083,31 +1083,31 @@ void define_md_data()
 	KEYWORDS( "basename"           ),
 	TYPES(    string_t             )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("Atm2dFromRaw1D"),
-  	DESCRIPTION(
-	  "This method is not currently useful for anything, since\n"
-	  "there is no method to calculate absorption from the 2D\n"
-	  "parameters.\n"
-	  "\n"
-	  "Interpolates temperature, altitude, and VMRs to the pressure grid\n"
-	  "given by p_abs. The altitude is not used by the absorption routines,\n"
-	  "But later on by the RT routines."
-	  "\n"
-	  "Interpolations used: FIXME: Add these.f\n"
-	  "Temperature [K]: \n"
-	  "Altitude    [m]: \n"
-	  "VMRs        [1]: \n"
-	  "\n"
-	  "Uses interp_lin(...)."
-	  ),
-	OUTPUT(   t_abs_2d_ , z_abs_2d_   , vmrs_2d_     ),
-	INPUT(    p_abs_    , raw_ptz_1d_ , raw_vmrs_1d_ ),
-	GOUTPUT(                       			 ),         
-	GINPUT(                        			 ),
-	KEYWORDS(                      			 ),
-	TYPES(                         			 )));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("Atm2dFromRaw1D"),
+//   	DESCRIPTION(
+// 	  "This method is not currently useful for anything, since\n"
+// 	  "there is no method to calculate absorption from the 2D\n"
+// 	  "parameters.\n"
+// 	  "\n"
+// 	  "Interpolates temperature, altitude, and VMRs to the pressure grid\n"
+// 	  "given by p_abs. The altitude is not used by the absorption routines,\n"
+// 	  "But later on by the RT routines."
+// 	  "\n"
+// 	  "Interpolations used: FIXME: Add these.f\n"
+// 	  "Temperature [K]: \n"
+// 	  "Altitude    [m]: \n"
+// 	  "VMRs        [1]: \n"
+// 	  "\n"
+// 	  "Uses interp_lin(...)."
+// 	  ),
+// 	OUTPUT(   t_abs_2d_ , z_abs_2d_   , vmrs_2d_     ),
+// 	INPUT(    p_abs_    , raw_ptz_1d_ , raw_vmrs_1d_ ),
+// 	GOUTPUT(                       			 ),         
+// 	GINPUT(                        			 ),
+// 	KEYWORDS(                      			 ),
+// 	TYPES(                         			 )));
 
   md_data.push_back
     ( MdRecord
@@ -1117,7 +1117,7 @@ void define_md_data()
 	  "given by p_abs. The altitude is not used by the absorption routines,\n"
 	  "But later on by the RT routines."
 	  "\n"
-	  "Interpolations used: FIXME: Add these.f\n"
+	  "Interpolations used: FIXME: Add these.\n"
 	  "Temperature [K]: \n"
 	  "Altitude    [m]: \n"
 	  "VMRs        [1]: \n"

@@ -114,6 +114,11 @@ bool any_ground( const ARRAY<int>& ground )
 
    \author Patrick Eriksson
    \date   2000-10-02
+
+   Adapted to MTL. We have to set the size of p before calling
+   interp_lin at the end of the function.  
+   \date   2001-01-05
+   \author Stefan Buehler
 */
 void geom2refr( 
               VECTOR&       p,
@@ -129,16 +134,31 @@ void geom2refr(
         const Numeric&      l_step_refr )
 {
   const size_t nz = zs.size();
-        VECTOR n, a, r, l(nz), ps;
+  VECTOR n(nz), a(nz), b(nz), r(nz), l(nz), ps(nz);
 
   // Get refractive index at the points of the geometrical LOS
   interpz( n, p_abs, z_abs, refr_index, zs );
 
   // Calculate the prolongation factor
-  a = (r_geoid+zs);
-  a = emult( a, a );
-  r = emult( n, sqrt(a-(c*c/n(1)/n(1))) );
-  r = ediv( r, sqrt( emult(a,emult(n,n))-c*c ) );
+
+  setto( a, r_geoid );
+  add( zs, a );			//   a = (r_geoid+zs);
+  ele_mult( a, a, a );		//   a = emult( a, a );
+  // b is just a dummy I have introduced.
+  setto( b, -c*c/n[0]/n[0] );
+  add( a, b );
+  transf( b, sqrt, b );
+  ele_mult( n, b, r );		// r = emult( n, sqrt(a-(c*c/n(1)/n(1))) );
+
+  // now we can use b as a dummy for something else. Note also that we
+  // modify a here, since it is not used below.
+  ele_mult(n,a,a);
+  ele_mult(n,a,a);
+  setto(b,-c*c);
+  add(b,a);
+  transf(a,sqrt,a);
+  ele_div( r, a, r );		// r = ediv( r, sqrt( emult(a,emult(n,n))-c*c ) );
+
   // Handle tangent points
   if ( abs(zs[0]-z_tan) < 0.01 )
     r[0] = sqrt(n[0]/(n[0]+(r_geoid+zs[0])*(n[1]-n[0])/(zs[1]-zs[0])));
@@ -157,7 +177,9 @@ void geom2refr(
   if ( l[nz-1]<l_step )
     l_step = l[nz-1];
   z2p( ps, z_abs, p_abs, zs );
-  interp_lin( p, l, ps, linspace(0,l[nz-1],l_step) );
+  VECTOR dummy = linspace(0,l[nz-1],l_step);
+  resize( p, dummy.size() );
+  interp_lin( p, l, ps, dummy );
 }
 
 
@@ -249,7 +271,17 @@ void upward_geom(
   linspace( l, 0, llim, l_step );
 
   b = r_geoid + z_plat;  
-  z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*za))*l) - r_geoid;
+  //  z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*za))*l) - r_geoid;
+  VECTOR d1(l.size()), d2(l.size());  // just two dummies 
+  ele_mult(l,l,d1);
+
+  copy( scaled( l, 2.0*b*cos(DEG2RAD*za) ), d2 );
+
+  resize( z, l.size() );
+  setto( z, b*b );
+  add( d1, z );
+  add( d2, z );
+  add( VECTOR( l.size(), -r_geoid ), z );
 }
 
 
@@ -330,9 +362,11 @@ void space_geom(
   Numeric  llim;          // distance to atmospheric limit
   VECTOR   l;             // length from the tangent point
 
+  //  cout << "l_step = " << l_step << "\n";
+
   // If LOS outside the atmosphere, return empty vector
   if ( z_tan >= atm_limit )
-    z.resize(0);
+    resize(z,0);
 
   // Only through the atmosphere
   else if ( z_tan >= z_ground )
@@ -353,7 +387,23 @@ void space_geom(
     }
     linspace( l, 0, llim, l_step );
 
-    z = sqrt(b*b+emult(l,l)) - r_geoid; 
+    //    cout << "l, " << l.size() << ": " << l << "\n";
+
+    //    z = sqrt(b*b+emult(l,l)) - r_geoid;
+    ele_mult(l,l,l);
+    //    cout << "l^2, " << l.size() << ": " << l << "\n";
+
+    // Add to l a vector of same size with contents b*b:
+    add( VECTOR( l.size(), b*b ), l ); 
+    //    cout << "l added, " << l.size() << ": " << l << "\n";
+
+    transf( l, sqrt, l );
+    //    cout << "l sqrt, " << l.size() << ": " << l << "\n";
+
+    resize(z,l.size());
+    setto( z, -r_geoid );
+    add( l, z ); 
+    //    cout << "z, " << z.size() << ": " << z << "\n";
   }   
 
   // Intersection with the ground
@@ -403,7 +453,7 @@ void space_refr(
 {
   // If LOS outside the atmosphere, return empty vector
   if ( z_tan >= atm_limit )
-    p.resize(0);
+    resize(p,0);
 
   // Only through the atmosphere
   else if ( z_tan >= z_ground )
@@ -472,7 +522,7 @@ void los_space(
 
   // Set all step lengths to the user defined value as a first guess.
   // Note that the step length can be changed in SPACE_GEOM/REFR.
-  los.l_step = l_step;
+  setto( los.l_step, l_step );
 
   // Loop the zenith angles
   for ( size_t i=0; i<za.size(); i++ )
@@ -709,6 +759,8 @@ void losCalc(       LOS&        los,
 {     
   size_t n = za.size();  // number of zenith angles
 
+  //  cout << "losCalc/l_step = " << l_step << "\n";
+
   // Some checks                                                      
   if ( z_ground < z_abs[0] )
     throw runtime_error(
@@ -720,11 +772,11 @@ void losCalc(       LOS&        los,
       "The platform cannot be below the lowest absorption altitude");
 
   // Reallocate the l_step, ground, start and stop vectors
-  los.p.resize(n);
-  los.l_step.resize(n);
-  los.ground.resize(n);
-  los.start.resize(n);
-  los.stop.resize(n);
+  resize( los.p,      n	);
+  resize( los.l_step, n	);
+  resize( los.ground, n	);
+  resize( los.start,  n	);
+  resize( los.stop,   n	);
 
   // Print messages
   if ( refr == 0 )
@@ -807,7 +859,7 @@ void sourceCalc(
   out2 << "  Calculating the source function for LTE and no scattering.\n";
  
   // Resize the source array
-  source.resize(nza);
+  resize(source,nza);
 
   // Loop the zenith angles and:
   //  1. interpolate the temperature
@@ -822,10 +874,12 @@ void sourceCalc(
 
     if ( los.p[i].size() > 0 )
     {
+      resize( tlos, los.p[i].size() );
       interpp( tlos, p_abs, t_abs, los.p[i] );
       nlos = tlos.size();
+      resize( b, f_mono.size(), tlos.size() );
       planck( b, f_mono, tlos );
-      source[i].resize(nf,nlos-1);
+      resize(source[i],nf,nlos-1);
       for ( ilos=0; ilos<(nlos-1); ilos++ )
       {
         for ( iv=0; iv<nf; iv++ )
@@ -846,7 +900,7 @@ void transCalc(
 {    
   // Some variables
   const size_t   n = los.start.size();// the number of zenith angles
-  const size_t   nf = abs.dim(1);    // the number of frequencies
+  const size_t   nf = abs.nrows();    // the number of frequencies
         size_t   np;                 // the number of pressure points
         size_t   row, col;           // counters
         MATRIX   abs2 ;              // matrix to store interpolated abs values
@@ -855,7 +909,7 @@ void transCalc(
   out2 << "  Calculating transmissions WITHOUT scattering.\n";
  
   // Resize the transmission array
-  trans.resize(n);
+  resize(trans,n);
 
   // Loop the zenith angles and:
   //  1. interpolate the absorption
@@ -870,8 +924,9 @@ void transCalc(
     np = los.p[i].size();
     if ( np > 0 )
     {
+      resize( abs2, abs.nrows(), los.p[i].size() );
       interp_lin_row( abs2, p_abs, abs, los.p[i] );
-      trans[i].resize( nf, np-1 );
+      resize(trans[i], nf, np-1 );
       w  =  -0.5*los.l_step[i];
       for ( row=0; row<nf; row++ )
       {
@@ -890,10 +945,11 @@ void y_spaceStd(
               const VECTOR&   f,
               const string&   choice )
 {
+  resize( y_space, f.size() );
+
   if ( choice == "zero" )
   {
-    y_space.resize(f.size());
-    y_space = 0.0;
+    setto(y_space,0.0);
     out2 << "  Setting y_space to zero.\n";
   }
   else if ( choice == "cbgr" )
@@ -934,11 +990,11 @@ void yRte (
   out2 << "  Integrating the radiative transfer eq. WITHOUT scattering.\n";
 
   // Resize y
-  y.resize(nf*n);
+  resize( y, nf*n );
         
   // Set up vector for ground blackbody radiation if any ground intersection
   // Check also if the ground emission vector has the correct length
-  VECTOR   y_ground; 
+  VECTOR   y_ground(f_mono.size()); 
   if ( any_ground(los.ground) )  
   {
     out2 << "  There are intersections with the ground.\n";
@@ -993,7 +1049,7 @@ void yBl (
 {
   // Some variables
   const size_t   n=los.start.size();    // Number of zenith angles 
-  const size_t   nf=trans[0].dim(1);    // Number of frequencies 
+  const size_t   nf=trans[0].nrows();    // Number of frequencies 
         size_t   iy0=0;                 // Reference index for output vector
         size_t   iy;                    // Frequency index
         VECTOR   y_tmp;                 // Temporary storage for spectra
@@ -1001,7 +1057,7 @@ void yBl (
   out2 << "  Calculating total transmission WITHOUT scattering.\n";
 
   // Resize y and set to 1
-  y.resize(nf*n);
+  resize( y, nf*n );
   y = 1.0;
 
   // Check if the ground emission vector has the correct length

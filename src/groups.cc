@@ -52,7 +52,7 @@ void define_wsv_group_names()
 
   //--------------------< Build the group names array >--------------------
   // Initialize to empty, just in case.
-  wsv_group_names.resize(0);
+  resize(wsv_group_names,0);
 
   wsv_group_names.push_back("string");
   wsv_group_names.push_back("size_t");

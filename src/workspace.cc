@@ -44,7 +44,7 @@ void define_wsv_data()
 
   //--------------------< Build the wsv data >--------------------
   // Initialize to empty, just in case.
-  wsv_data.resize(0);
+  resize(wsv_data,0);
 
 
   //--------------------< Spectroscopy Stuff >--------------------

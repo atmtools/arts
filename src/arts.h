@@ -98,10 +98,10 @@ typedef size_t INDEX;
 
 
 //--------------------< Set NDEBUG? >--------------------
-/* Define this in order to turn off all debuggin feature (TNT range
+/* Define this in order to turn off all debuggin features (TNT range
     checking, assertions, ...) */
-//#undef NDEBUG
-#define NDEBUG 1
+#undef NDEBUG
+//#define NDEBUG 1
 
 // C Assert macro:
 // Could be moved to config.h in the future. This must be included

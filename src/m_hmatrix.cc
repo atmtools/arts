@@ -72,9 +72,9 @@ void h_apply (
 {
   if ( h.issparse == 0 )
   {
-    if ( h.full.dim(2) != y1.size() )
+    if ( h.full.ncols() != y1.size() )
       throw  runtime_error("Size of h and length of y do not match.");
-    y2 = h.full * y1;
+    mult( h.full, y1, y2 ); 	    //    y2 = h.full * y1;
   }
 
   else if ( h.issparse == 1 )
@@ -107,9 +107,9 @@ void h_apply (
 {
   if ( h.issparse == 0 )
   {
-    if ( h.full.dim(2) != k1.dim(1) )
+    if ( h.full.ncols() != k1.nrows() )
       throw runtime_error("Sizes of h and k do not match.");
-    k2 = h.full * k1;
+    mult( h.full, k1, k2 );	    //    k2 = h.full * k1;
   }
 
   else if ( h.issparse == 1 )
@@ -144,10 +144,12 @@ void h_diff (
 {
   if ( (h1.issparse==0) && (h2.issparse==0) )
   {
-    if ( (h1.full.dim(1)!=h2.full.dim(1)) || (h1.full.dim(2)!=h2.full.dim(2)) )
+    if ( (h1.full.nrows()!=h2.full.nrows()) || (h1.full.ncols()!=h2.full.ncols()) )
       throw runtime_error("Sizes of h and k do not match.");
     hd.issparse = 0;
-    hd.full = h2.full - h1.full;
+    //    hd.full = h2.full - h1.full;
+    copy( scaled(h1.full,-1), hd.full );
+    add ( h2.full, hd.full );
   }
 
   else if ( (h1.issparse==1) && (h2.issparse==1) )

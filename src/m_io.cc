@@ -92,8 +92,8 @@ void IndexWriteAscii(
 
   // Store the value in an ARRAYofMATRIX and write to file
   ARRAYofMATRIX am(1);
-  am[0].resize(1,1);
-  am[0] = (Numeric) v;
+  resize( am[0], 1, 1 );
+  setto( am[0], (Numeric) v);
   write_array_of_matrix_to_file(filename,am);
 }
 
@@ -112,14 +112,14 @@ void IndexReadAscii(
   // Read the value as ARRAYofMATRIX and move to Numeric
   ARRAYofMATRIX am;
   read_array_of_matrix_from_file(am,filename);
-  if ( (am.size()!=1) || (am[0].dim(1)!=1) || (am[0].dim(2)!=1) )
+  if ( (am.size()!=1) || (am[0].nrows()!=1) || (am[0].ncols()!=1) )
   {
     ostringstream os;
     os << "The file " << filename << " contains not a single value.";
     throw runtime_error(os.str());
   }
 
-  Numeric a = am[0](1,1);
+  Numeric a = am[0][0][0];
 
   if ( (a-floor(a)) != 0 )
     throw runtime_error("The value in the file is not an integer.");
@@ -177,8 +177,8 @@ void NumericWriteAscii(
 
   // Store the value in an ARRAYofMATRIX and write to file
   ARRAYofMATRIX am(1);
-  am[0].resize(1,1);
-  am[0] = v;
+  resize( am[0], 1, 1 );
+  setto( am[0], v);
   write_array_of_matrix_to_file(filename,am);
 }
 
@@ -196,14 +196,14 @@ void NumericReadAscii(
   // Read the value as ARRAYofMATRIX and move to Numeric
   ARRAYofMATRIX am;
   read_array_of_matrix_from_file(am,filename);
-  if ( (am.size()!=1) || (am[0].dim(1)!=1) || (am[0].dim(2)!=1) )
+  if ( (am.size()!=1) || (am[0].nrows()!=1) || (am[0].ncols()!=1) )
   {
     ostringstream os;
     os << "The file " << filename << " contains not a single numeric value";
     throw runtime_error(os.str());
   }
 
-  v = am[0](1,1);
+  v = am[0][0][0];
 }
 
 
@@ -253,8 +253,9 @@ void VectorWriteAscii(// WS Output:
   filename_ascii( filename, v_name );
 
   // Convert the vector to a matrix:
-  MATRIX m;
-  to_matrix(m,v);
+  //  to_matrix(m,v);
+  MATRIX m(v.size(),1);
+  copy( v, columns(m)[0] );
 
   // Convert the matrix to an array of matrix:
   ARRAYofMATRIX am(1,m);
@@ -362,6 +363,8 @@ void MatrixReadAscii(// WS Generic Output:
   ARRAYofMATRIX am;
   read_array_of_matrix_from_file(am,filename);
 
+  //  cout << "am.size(): " << am.size() << "\n";
+
   // Convert the array of matrix to a matrix.
   if ( 1 != am.size() )
    throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
@@ -418,9 +421,9 @@ void ArrayOfIndexWriteAscii(
   // Store the value in an ARRAYofMATRIX and write to file
   const size_t  n = v.size();
   ARRAYofMATRIX am(1);
-  am[0].resize(n,1);
+  resize(am[0],n,1);
   for ( size_t i=0; i<n; i++ )
-    am[0](i+1,1) = (Numeric) v[i];
+    am[0][i][0] = (Numeric) v[i];
   write_array_of_matrix_to_file(filename,am);
 }
 
@@ -450,7 +453,7 @@ void ArrayOfIndexReadAscii(
   VECTOR x;
   to_vector( x, am[0] );
   const size_t  n = x.size();
-  v.resize(n);
+  resize(v,n);
   for ( size_t i=0; i<n; i++ )
   {  
     if ( (x[i]-floor(x[i])) != 0 )
@@ -511,7 +514,9 @@ void ArrayOfVectorWriteAscii(// WS Output:
   ARRAYofMATRIX am(av.size());
   for (size_t i=0; i<av.size(); ++i)
     {
-      to_matrix(am[i],av[i]);
+      //      to_matrix(am[i],av[i]);
+      resize( am[i], av[i].size(), 1 );
+      copy( av[i], columns(am[i])[0] ); 
     }
 
   // Write the array of matrix to the file.
@@ -537,7 +542,7 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
   read_array_of_matrix_from_file(am,filename);
 
   // Convert the array of matrix to an array of vector.
-  av.resize(am.size());
+  resize(av,am.size());
   for (size_t i=0; i<am.size(); ++i)
     {
       to_vector(av[i],am[i]);
@@ -866,7 +871,7 @@ void LosReadBinary(
   binfile_close( fid, filename );
 
   const size_t   n = ground.size();
-  los.ground.resize(n);
+  resize(los.ground,n);
   for ( size_t i=0; i<n; i++ )
     los.ground[i] = int ( ground[i] - 1 );
 }
@@ -918,8 +923,8 @@ void VectorSet(           VECTOR&  x,
                     const int&     n,
                     const Numeric& value )
 {
-  x.resize(n);
-  x = value;
+  resize(x,n);
+  setto(x,value);
   out2 << "  Creating " << x_name << " as a constant vector\n"; 
   out3 << "         length : " << n << "\n";
   out3 << "          value : " << value << "\n";
@@ -935,8 +940,8 @@ void VectorSetLengthFromVector(
         const Numeric& value )
 {
   const size_t  n = z.size();
-  x.resize(n);
-  x = value;
+  resize(x,n);
+  setto(x,value);
   out2 << "  Creating " << x_name << " as a constant vector\n"; 
   out3 << "         length : " << n << "\n";
   out3 << "          value : " << value << "\n";
@@ -1005,7 +1010,8 @@ void VectorCopy(
                 const string&   name_y1 )
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
-  y2 = y1;
+  resize( y2, y1.size() );
+  copy( y1, y2 );
 }
 
 
@@ -1019,7 +1025,7 @@ void VectorCopyFromArrayOfVector(
 {
   if ( i < 0 )
     throw runtime_error("The index must be >= 0.");
-  if ( size_t(i) > va.size() )
+  if ( size_t(i) >= va.size() )
   {
     ostringstream os;
     os << "The vector array has only " << va.size() << "elements.";
@@ -1028,7 +1034,8 @@ void VectorCopyFromArrayOfVector(
 
   out2 << "  Copies " << v_name << " from vector " << i << " in " << va_name
                                                                    << "\n";
-  v = va[i];
+  resize(v,va[i].size());
+  copy(va[i],v);
 }
 
 
@@ -1042,6 +1049,7 @@ void VectorPlanck(
 {
   if ( t > 0 )
   {
+    resize( y, f.size() );
     planck( y, f, t );
     out2<<"  Setting " << y_name << " to blackbody radiation for "<<t<<" K.\n";
   }
@@ -1059,7 +1067,7 @@ void VectorCalcLog10(
 {
   out2<<"  " << out_name << " = log10( " << in_name << " )\n";
 
-  out = log10( in );
+  out = transf( in, log10 );
 }
 
 
@@ -1072,7 +1080,8 @@ void VectorRandUniform(
               const int&      n )
 {
   out2<<"  Filling " << y_name << " with uniform random data.\n";
-  rand_uniform( y, n, x_low, x_high );
+  resize( y, n );
+  rand_uniform( y, x_low, x_high );
 }
 
 
@@ -1084,7 +1093,8 @@ void VectorRandGaussian(
               const int&      n )
 {
   out2<<"  Filling " << y_name << " with Gaussian random data.\n";
-  rand_gaussian( y, n, stddev );
+  resize( y, n );
+  rand_gaussian( y, stddev );
 }
 
 
@@ -1098,7 +1108,8 @@ void MatrixCopy(
         const string&   name_y1 )
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
-  y2 = y1;
+  resize( y2, y1.nrows(), y1.ncols() );
+  copy( y1, y2 );
 }
 
 
@@ -1111,16 +1122,10 @@ void MatrixFillWithVector(
         const int&      n )
 {
   out2 << "  Creates" << name_m << " by copying " << name_y << n << "times.\n";
-  const size_t nrows = y.dim();
-  m.resize(nrows,n);
-  size_t row, col;
-  Numeric a;
-  for ( row=1; row<=nrows; row++ ) 
-  {
-    a = y(row);
-    for ( col=1; col<=size_t(n); col++ ) 
-      m(row,col) = a;
-  }
+  const size_t nrows = y.size();
+  resize( m, nrows, n );
+  for ( INDEX row=0; row<nrows; row++ ) 
+    mtl::set(m[row],y[row]);
 }
 
 
@@ -1144,7 +1149,8 @@ void ArrayOfStringSet(
         const string&         sa_name,
         const ARRAYofstring&  sa2 )
 {
-  sa = sa2;
+  resize(sa,sa2.size());
+  copy(sa2,sa);
   out3 << "  Setting " << sa_name << "\n"; 
 }
 

@@ -48,7 +48,6 @@ constants.cc \
 getopt.c \
 getopt1.c \
 main.cc \
-vecmat.cc \
 globals_2.cc \
 version.cc \
 messages.cc \
@@ -76,7 +75,7 @@ wsv_pointers.cc \
 species_data.cc \
 partition_function_data.cc \
 lineshapes.cc \
-test_math.cc
+vecmat.cc
 
 
 # When making changes to the list of sources above, please remember to
@@ -85,11 +84,12 @@ test_math.cc
 
 
 noinst_PROGRAMS = \
-demonstrate_linalg \
+demonstrate_vecmat \
 make_wsv_groups_h make_wsv_h make_wsv_pointers_cc make_md_h
 
-demonstrate_linalg_SOURCES = \
-arts.h linalg.h demonstrate_linalg.cc
+demonstrate_vecmat_SOURCES = \
+arts.h vecmat.h \
+demonstrate_vecmat.cc vecmat.cc math_funcs.cc make_vector.cc
 
 make_wsv_groups_h_SOURCES = \
 arts.h vecmat.h file.h \

@@ -1,3 +1,113 @@
+2001-01-08  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-99
+
+	* This is a working commit. Everything needs still a lot of
+	tidying up. Sorry for this. However, I have made massive changes,
+	and I don't want to get completely out of sync with the rest of
+	ARTS development. Merging was tough enough as it was.
+
+	* vecmat.h: Contains now the complete matrix/vector declaration
+	(linalg.h has vanished). 
+
+	* vecmat.cc: Contains now the complete matrix/vector implementation
+	(linalg.cc has vanished). 
+	
+	* vecmat.h: Changed implementation of ARRAY from MTL
+	to STL. This also required some small changes all over the place. 
+
+        * vecmat.h: Changed implementation of VECTOR and MATRIX to
+	MTL. This required massive changes all over ARTS.
+
+	* math_func.cc: Changed from 1-based to 0-based. Shitty work, I
+	hope I have not introduced too many bugs. Patrick, could you
+	please look at the places marked by FIXME?
+
+	Important change: Non-return versions of math functions no longer
+	resize their output vector. This makes them more useful, because
+	now you can apply them directly on rows or columns of a matrix
+	without any copying. The same is true for output
+	matrices. Instead, the return version sets the size before calling
+	the non-return version. So, if you want to create and resize at
+	the same time, simply use the return version. Anyway, because of
+	the shallow MTL copies, return versions should be as efficient as
+	non-return versions.
+
+	This also has the consequence that non-return versions no longer
+	need arguments specifying the size of things to generate, instead
+	the size is taken from the given output vector/matrix.
+
+	* rand_gaussian: Is this algorithm correct? - See FIXME.
+		
+        * rand_uniform: There is a problem with setting the random seed
+	here. It has the opposite of the desired effect. See FIXME comment
+	inside the function! I commented the line out for now.
+
+	* Philosophical remark: There is a conflict between 2 important
+	C++ paradigms, function overloading and templates. The first says
+	that it would be nice to always give the same name to similar
+	functions, even if they act on different data types (for example
+	interp_lin for vectors and matrices). The second says that it
+	would be nice to formulate algorithms such that they work for
+	several (similar) data types (for example the copy() algorithm
+	from MTL). As it turns out, having both is very difficult. For
+	example, there are the algorithms print_vector() and
+	print_all_matrix() which do the same thing, once for vectors and
+	once for matrices. Both are template functions. If we give them
+	the same name (for example simply `print') the compiler can no
+	longer distinguish between the two functions and we get an
+	error. I can see no elegant solution to this problem. 
+
+	* Math functions: I think there are now too many math functions
+	(for example interpolation routines). This should be generalized
+	more. For example one linear interpolation routine for vectors and
+	one for matrices is probably sufficient. Also, is it really
+	necessary to have also return versions for all functions?
+
+	* m_wfs.cc, k_temp_nohydro: I don't understand why 1 K is added at
+	all levels. This does not give the derivative, does it? Wouldn't
+	one have to do this separately for each level? (See FIXME in the
+	code.) 
+
+	* Transf(): Arithmetic functions like sqrt() and also the new
+	log10() for vectors and matrices are no longer necessary, since
+	the transf() algorithm can apply any mathematical function to a
+	vector or matrix. Transf() exists as parameter and return version,
+	hence has exactly the same functionality as the old functions.
+
+	* demonstrate_vecmat.cc: A sample program demonstrating matrix,
+	vector, and mathematical features. Is compiled automatically if
+	you do a `make'. Run as `demonstrate_vecmat'. 
+
+	* example1.arts: Runs and gives same result as before
+	(with arts-0-0-98). 
+
+	* full.arts: I get an error in method ybatchAbsAndRte that I don't
+	understand. This also with the old version of ARTS. Patrick, could
+	you look into this?
+
+	I quickly compared the Kx matrix with arts-0-0-98. Unfortunately,
+	the result is not identical (now about 50% smaller than before). I
+	have no idea what's going wrong. Sorry for committing it like this,
+	but since you developed this part, maybe you have better ways of
+	verifying individual calculation steps.
+
+	* A common bug: Assigning a scalar to a vector as in:
+	VECTOR a;
+	a = 1;
+	At runtime this will lead to a segmentation fault later on in the
+	program. Unfortunately this bug is hard to locate. There could be
+	still a few instances of it creeping through ARTS.
+
+	* src/docu.txt: See this file for more common bugs. If you have
+	problems, look here first. Anyway, I recommend reading this file
+	to everybody (it's quite short). The stuff will eventually go into
+	the Uguide, just I found it useful to have a simple ASCII file to
+	enter things as I implemented and checked them. If things are
+	unclear here, look also in the demonstrate_vecmat.cc file, there
+	probably is an example there for the feature you need. 
+
+	
 2001-01-06  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-98
@@ -188,9 +298,6 @@
 	everything back in vecmat.h again, so this file will vanish. At
 	the moment vecmat.h includes linalg.h.
 
-	* demonstrate_linalg.cc: A sample program demonstrating MTL
-	features. Compile with `make demonstrate_linalg' or with `g++
-	demonstrate_linalg'. 
 	
 2000-12-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 

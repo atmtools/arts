@@ -166,7 +166,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
     {
       // Initialize hspec.
       // The value of missing means that we don't have this species.
-      mtl::set(hspec,missing);
+      setto(hspec,missing);
 
       for ( size_t i=0; i<species_data.size(); ++i )
 	{
@@ -191,7 +191,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 	      // Get a nicer to handle array of HITRAN iso tags:
 	      size_t n_iso = sr.Isotope().size();
 	      ARRAY<int> iso_tags;
-	      iso_tags.resize(n_iso);
+	      resize(iso_tags,n_iso);
 	      for ( size_t j=0; j<n_iso; ++j )
 		{
 		  iso_tags[j] = sr.Isotope()[j].HitranTag();
@@ -205,7 +205,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 	      // 	  cout << "static_cast<size_t>(max(iso_tags))%10 + 1 = "
 	      // 	       << static_cast<size_t>(max(iso_tags))%10 + 1 << endl;
 	      hiso[mo] = ARRAY<size_t>( max(iso_tags)%10 + 1 );
-	      mtl::set(hiso[mo], missing);
+	      setto(hiso[mo], missing);
 
 	      // Set the isotope tags:
 	      for ( size_t j=0; j<n_iso; ++j )
@@ -544,7 +544,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 	      // Get a nicer to handle array of MYTRAN iso tags:
 	      size_t n_iso = sr.Isotope().size();
 	      ARRAY<int> iso_tags;
-	      iso_tags.resize(n_iso);
+	      resize(iso_tags,n_iso);
 	      for ( size_t j=0; j<n_iso; ++j )
 		{
 		  iso_tags[j] = sr.Isotope()[j].MytranTag();
@@ -558,7 +558,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 	      // 	  cout << "static_cast<size_t>(max(iso_tags))%10 + 1 = "
 	      // 	       << static_cast<size_t>(max(iso_tags))%10 + 1 << endl;
 	      hiso[mo] = ARRAY<size_t>( max(iso_tags)%10 + 1 );
-	      mtl::set(hiso[mo], missing);
+	      setto(hiso[mo], missing);
 
 	      // Set the isotope tags:
 	      for ( size_t j=0; j<n_iso; ++j )
@@ -644,9 +644,8 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
       // If mo == 0 this is just a comment line:
       if ( 0 != mo )
 	{
-	  // See if we know this species. We will give a warning
-	  // if a species is unknown, and not an error. FIXME: This should
-	  // probably be changed in the future.
+	  // See if we know this species. We will give an error if a
+	  // species is not known. 
 	  if ( missing != hspec[mo] )	    comment = false ;
 	  else
 	    {
@@ -1238,7 +1237,7 @@ bool LineRecord::ReadFromArtsStream(istream& is)
       icecream >> naux;
 
       // resize the aux array and read it
-      maux.resize(naux);
+      resize(maux,naux);
 
       for (size_t i = 0; i<naux; i++)
 	{
@@ -1527,14 +1526,15 @@ ostream& operator << (ostream& os, const OneTag& ot)
 void get_tagindex_for_strings( 
               ARRAYofsizet&   tags1_index, 
         const TagGroups&      tags1, 
-        const ARRAYofstring&  tags2_strings )
+	const ARRAYofstring&  tags2_strings )
 {
   const size_t   n1 = tags1.size();
   const size_t   n2 = tags2_strings.size();
      TagGroups   tags2;                // Internal tag names for tag_strings
         size_t   i1, i2, nj, j, found, ok;
 
-  tags1_index.resize(n2);
+  resize(tags1_index,n2);
+  //  cout << "tags2_strings: " << tags2_strings << "\n";
   tag_groupsDefine( tags2, tags2_strings );
 
   for ( i2=0; i2<n2; i2++ )
@@ -1601,7 +1601,13 @@ void write_lines_to_stream(ostream& os,
     \param ind_ls  Index to used lineshape function.
     \param ind_lsn Index to used lineshape normalization function.
 
-    \author Stefan Buehler 16.06.2000. */
+    \author Stefan Buehler 16.06.2000. 
+
+    Adapted indices to 0-based (MTL)
+    \date   2001-01-06
+    \author Stefan Buehler
+
+*/
 void abs_species( MATRIX&                  abs,
 		  const VECTOR&  	   f_mono,
 		  const VECTOR&  	   p_abs,
@@ -1639,7 +1645,7 @@ void abs_species( MATRIX&                  abs,
   static const Numeric lower_energy_const = PLANCK_CONST * SPEED_OF_LIGHT * 1E2;
 
   // dimension of f_mono, lines
-  INDEX nf = f_mono.dim();
+  INDEX nf = f_mono.size();
   INDEX nl = lines.size();
 
   // Define the vector for the line shape function and the
@@ -1686,33 +1692,34 @@ void abs_species( MATRIX&                  abs,
   if ( h2o_abs.size() != p_abs.size() )
     {
       ostringstream os;
-      os << "Variable vmr must have the same dimension as p_abs.\n"
+      os << "Variable h2o_abs must have the same dimension as p_abs.\n"
 	 << "h2o_abs.size() = " << h2o_abs.size() << '\n'
 	 << "p_abs.size() = " << p_abs.size();
       throw runtime_error(os.str());
     }
 
-  // Check that the dimension of abs is indeed [f_mono.dim(),
-  // p_abs.dim()]:
-  if ( abs.dim(1) != nf || abs.dim(2) != p_abs.dim() )
+  // Check that the dimension of abs is indeed [f_mono.size(),
+  // p_abs.size()]:
+  if ( abs.nrows() != nf || abs.ncols() != p_abs.size() )
     {
       ostringstream os;
       os << "Variable abs must have dimensions [f_mono.size(),p_abs.size()].\n"
-	 << "[abs.dim(1),abs.dim(2)] = [" << abs.dim(1)
-	 << ", " << abs.dim(2) << "]\n"
-	 << "f_mono.dim() = " << nf << '\n'
-	 << "p_abs.dim() = " << p_abs.dim();
+	 << "[abs.nrows(),abs.ncols()] = [" << abs.nrows()
+	 << ", " << abs.ncols() << "]\n"
+	 << "f_mono.size() = " << nf << '\n'
+	 << "p_abs.size() = " << p_abs.size();
       throw runtime_error(os.str());
     }
 
+
   // Loop all pressures:
-  for ( size_t i=1; i<=p_abs.size(); ++i )
+  for ( size_t i=0; i<p_abs.size(); ++i )
   {
 
-    // store variables p_abs(i) and t_abs(i),
+    // store variables p_abs[i] and t_abs[i],
     // this is slightly faster
-    Numeric p_i = p_abs(i);
-    Numeric t_i = t_abs(i);
+    Numeric p_i = p_abs[i];
+    Numeric t_i = t_abs[i];
 
     
     //out3 << "  p = " << p_i << " Pa\n";
@@ -1720,9 +1727,15 @@ void abs_species( MATRIX&                  abs,
     // Calculate total number density from pressure and temperature.
     // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
     Numeric n = p_i / BOLTZMAN_CONST / t_i;
+//     cout << "p_i, BOLTZMAN_CONST, t_i, n: "
+// 	 << p_i << ", "
+// 	 << BOLTZMAN_CONST << ", "
+// 	 << t_i << ", "
+// 	 << n << "\n";
 
     // For the pressure broadening, we also need the partial pressure:
-    const Numeric p_partial = p_i * vmr(i);
+    const Numeric p_partial = p_i * vmr[i];
+
 
     // Loop all lines:
     for ( size_t l=0; l< nl; ++l )
@@ -1801,8 +1814,8 @@ void abs_species( MATRIX&                  abs,
 	aux[0] = theta;
 	aux[1] = theta_Nair;
 	aux[2] = p_i;
-	aux[3] = vmr(i);
-	aux[4] = h2o_abs(i);
+	aux[3] = vmr[i];
+	aux[4] = h2o_abs[i];
 	aux[5] = l_l.Agam();
 	aux[6] = l_l.Nair();
 	// is overlap available, otherwise pass zero
@@ -1838,18 +1851,18 @@ void abs_species( MATRIX&                  abs,
 
 
 	// Add line to abs:
-	for ( size_t j=1; j<=nf; ++j )
+	for ( size_t j=0; j<nf; ++j )
 	  {
-	    abs(j,i) = abs(j,i)
-	      + n * vmr(i) * intensity * ls(j) * fac(j);
+	    abs[j][i] += 
+	      n * vmr[i] * intensity * ls[j] * fac[j];
 
-	    // if (i == 20)
-	    //  {
-	    //    cout << f_mono(j) << ' ' << n * intensity << ' ' <<
-	    //      abs(j,i) << ' ' <<  ls(j) * factor * f_mono(j) *
-	    //      f_mono(j)  << endl;
-	    //  }
-
+// 	    if (i == 19)
+// 	      {
+// 	        out3 << f_mono[j] << ' ' << n << ' ' << intensity << ' ' <<
+// 	          abs[j][i] << ' ' <<  ls[j] * sfac * fac[j] * f_mono[j] *
+// 	          f_mono[j]  << "\n";
+// 	      }
+	    
 
 	  }
       }

@@ -97,7 +97,7 @@ void setup_covmatrix(
 {
   const size_t   n = kg.size();
         size_t   row, col;
-        VECTOR   sd, cl;
+        VECTOR   sd(n), cl(n);
         Numeric  c;          // correlation
 
   if ( sdev.size() != clength.size() )
@@ -132,8 +132,8 @@ void setup_covmatrix(
   interp_lin( cl, kp, clength, kg );
 
   // Resize s and fill with 0
-  s.resize(n,n);
-  s = 0;  
+  resize( s, n, n );
+  setto( s, 0 ) ;  
 
   // Diagonal matrix
   if ( corrfun == 0 )
@@ -219,8 +219,8 @@ void sDiagonal(
   const VECTOR   clength(2,0.0);
         VECTOR   kp(2);
 
-  kp(1) = 0.0;
-  kp(2) = 1.0;
+  kp[0] = 0.0;
+  kp[1] = 1.0;
   setup_covmatrix( s, VECTOR(n,0.5), 0, 0, kp, sdev, clength );
 }
 
@@ -236,8 +236,8 @@ void sDiagonalLengthFromVector(
   const VECTOR   clength(2,0.0);
         VECTOR   kp(2);
 
-  kp(1) = grid(1);
-  kp(2) = grid(grid.dim());
+  kp[0] = grid[0];
+  kp[1] = grid[grid.size()-1];
 
   out2 << "  Creating a diagonal covariance matrix.\n";
   out3 << "    Standard deviation = " << stddev << "\n";
@@ -259,9 +259,9 @@ void sDiagonalLengthFromVectors(
   const VECTOR   clength(2,0.0);
         VECTOR   kp(2);
 
-  kp(1) = 0.0;
-  kp(2) = 1.0;
-  setup_covmatrix( s, VECTOR(grid1.dim()*grid2.dim(),0.5), 0, 0, kp, sdev, 
+  kp[0] = 0.0;
+  kp[1] = 1.0;
+  setup_covmatrix( s, VECTOR(grid1.size()*grid2.size(),0.5), 0, 0, kp, sdev, 
                                                                     clength );
 }
 
@@ -279,8 +279,8 @@ void sSimple(
   const VECTOR   clength(2,corrlength);
         VECTOR   kp(2);
 
-  kp(1) = 1;
-  kp(2) = n;
+  kp[0] = 1;
+  kp[1] = n;
   setup_covmatrix( s, linspace(1.0,n,1.0), corrfun, cutoff, kp, sdev, clength);
 }
 
@@ -299,8 +299,8 @@ void sSimpleLengthFromVector(
   const VECTOR   clength(2,corrlength);
         VECTOR   kp(2);
 
-  kp(1) = grid(1);
-  kp(2) = grid(grid.dim());
+  kp[0] = grid[0];
+  kp[1] = grid[grid.size()-1];
   setup_covmatrix( s, grid, corrfun, cutoff, kp, sdev, clength );
 }
 
@@ -322,12 +322,12 @@ void sSimpleLengthFromVectors(
   sSimpleLengthFromVector( s0, grid1, grid1_name, stddev, corrfun, cutoff, 
                                                                  corrlength );
   // Create the total matrix
-  const size_t   n1 = grid1.dim(); 
-  const size_t   n2 = grid2.dim();
-        size_t   row, col, i, i0;
+  const size_t   n1 = grid1.size(); 
+  const size_t   n2 = grid2.size();
+  size_t   row, col, i, i0;
   
-  s.resize( n1*n2, n1*n2 );
-  s = 0.0;
+  resize( s, n1*n2, n1*n2 );
+  setto( s, 0.0 );
   for ( i=0; i<n2; i++ )
   {
     i0 = (i-1)*n1;
@@ -362,9 +362,9 @@ void sFromFile(
   // Some checks of sizes
   if ( n < 1 )
     throw runtime_error("The file must contain > 1 matrix.");
-  if ( am[0].dim(1) != 2 )
+  if ( am[0].nrows() != 2 )
     throw runtime_error("The first matrix in the file must have 2 rows.");
-  if ( am[0].dim(2) != n )
+  if ( am[0].ncols() != n )
     throw runtime_error("The number of columns of the first matrix must equal the number of matrices - 1.");
 
   out2 << "  Summing " << n << " matrices.\n";
@@ -377,10 +377,10 @@ void sFromFile(
       throw runtime_error("The first row of matrix 1 shall only contain integers..");
 
     // Move definition values to vectors
-    np = am[i].dim(1);
-    kp.resize(np);
-    sdev.resize(np);
-    clength.resize(np);
+    np = am[i].nrows();
+    resize(kp,np);
+    resize(sdev,np);
+    resize(clength,np);
     for ( j=0; j<np; j++ )
     {
       kp[j]      = am[i][j][0];
@@ -397,7 +397,7 @@ void sFromFile(
       MATRIX stmp;
       setup_covmatrix( stmp, grid, size_t(am[0][0][i-1]), am[0][1][i-1], kp, 
                                                               sdev, clength );
-      s = s + stmp;
+      add( stmp, s );
     }
   }
 }
@@ -409,7 +409,7 @@ void CovmatrixInit(
         const string&   s_name)
 {
   out2 << " Initializes " << s_name;
-  s.resize(0,0);
+  resize(s,0,0);
 }
 
 
@@ -418,17 +418,17 @@ void sxAppend(
               MATRIX&   sx,
         const MATRIX&   s )
 {
-  const size_t   ns  = s.dim(1); 
-  const size_t   nsx = sx.dim(1); 
+  const size_t   ns  = s.nrows(); 
+  const size_t   nsx = sx.nrows(); 
         MATRIX   stmp;
         size_t   row, col;
 
-  if ( (ns!=s.dim(2)) || (nsx!=sx.dim(2)) )
+  if ( (ns!=s.ncols()) || (nsx!=sx.ncols()) )
     throw runtime_error("A covariance matrix must be square.");
     
   stmp = sx;
-  sx.resize(nsx+ns,nsx+ns);
-  sx = 0;
+  resize( sx, nsx+ns, nsx+ns );
+  setto( sx, 0 );
   for ( row=0; row<nsx; row++ )
   {
     for ( col=0; col<nsx; col++ )

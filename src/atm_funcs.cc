@@ -66,6 +66,10 @@ extern const Numeric BOLTZMAN_CONST;
 
     \author Patrick Eriksson 
     \date   2000-04-08 
+
+    Adapted to MTL. Gone from 1-based to 0-based. No resize!
+    \date 2000-12-26
+    \author Stefan Buehler
 */
 void planck (
               MATRIX&     B, 
@@ -78,7 +82,9 @@ void planck (
   const size_t  n_t  = t.size();
   size_t        i_f, i_t;
   Numeric       c, d;
-  B.resize(n_f,n_t);
+
+  assert( n_f==B.nrows() );
+  assert( n_t==B.ncols() );
   
   for ( i_f=0; i_f<n_f; i_f++ )
   {
@@ -101,6 +107,10 @@ void planck (
 
     \author Patrick Eriksson 
     \date   2000-04-08 
+
+    Adapted to MTL. Gone from 1-based to 0-based. No resize!
+    \date 2000-12-26
+    \author Stefan Buehler
 */
 void planck (
              VECTOR&    B,
@@ -109,8 +119,26 @@ void planck (
 {
   static const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
   static const Numeric b = PLANCK_CONST/BOLTZMAN_CONST;
-  
-  B = ediv( a*emult(f,emult(f,f)), exp(f*(b/t))-1.0 ) ;
+
+  //  B = ediv( a*emult(f,emult(f,f)), exp(f*(b/t))-1.0 ) ;
+
+  VECTOR f3( f.size() );
+  ele_mult( f, f, f3 );		// f3 = f^2
+  ele_mult( f, f3, f3 );	// f3 = f^3
+
+  VECTOR ef( f.size() );
+  transf( scaled(f,b/t), exp, ef );	// ef = exp(f*b/t)
+
+  VECTOR denom( f.size() );
+  setto( denom, -1.0 );
+  add( ef, denom );		// denom = ef-1.0
+
+  assert( B.size()==f.size() );
+  ele_div( scaled(f3,a), denom, B );	// B = a*f3 / denom
+
+  // FIXME: Maybe it would be worth a try to replace this vectorized
+  // version by a simple for loop. It might even be faster. For sure,
+  // it will need less memory.
 }
 
 
@@ -145,12 +173,20 @@ Numeric number_density (
 
     \author Patrick Eriksson 
     \date   2000-04-08 
+
+    Adapted to MTL. 
+    \date 2000-12-25
+    \author Stefan Buehler
 */
 VECTOR number_density (
        const VECTOR&    p,
        const VECTOR&    t )
 {
-  return ediv(p,t)/BOLTZMAN_CONST;
+  assert( p.size()==t.size() );
+  VECTOR dummy(p.size());
+  // ediv(p,t)/BOLTZMAN_CONST;
+  ele_div(p,scaled(t,BOLTZMAN_CONST),dummy);
+  return dummy; 
 }
 
 
@@ -258,7 +294,7 @@ void rte (
        const VECTOR&   e_ground,
        const VECTOR&   y_ground )
 {
-  const size_t   n_f = tr.dim(1);               // number of frequencies
+  const size_t   n_f = tr.nrows();               // number of frequencies
         size_t   i_f;                           // frequency index
         size_t   i_break;                       // break index for looping
         size_t   i_start;                       // variable for second loop
@@ -380,18 +416,18 @@ void bl (
        const int&      ground,
        const VECTOR&   e_ground )
 {
-  const size_t   nf = tr.dim(1);          // number of frequencies
+  const size_t   nf = tr.nrows();          // number of frequencies
         size_t   iy;                      // frequency index
 
   // Init Y
-  y.resize(nf);
-  y = 1.0;
+  resize( y, nf );
+  setto( y, 1.0 );
 
   // Loop steps passed twice
   if ( stop_index > 1 )
   {
     bl_iterate( y, 1, stop_index-1, tr, nf );
-    y = emult( y, y );  
+    ele_mult( y, y, y );  
   }
 
   // Loop remaining steps
@@ -427,7 +463,12 @@ void bl (
     \param  z       new altitude grid
 
     \author Patrick Eriksson 
-    \date   2000-04-08 
+    \date   2000-04-08
+
+    Adapted to MTL and use of transf function. No resize!
+
+    \date   2000-12-27
+    \author Stefan Buehler
 */
 void z2p(
               VECTOR&     p,
@@ -435,8 +476,25 @@ void z2p(
         const VECTOR&     p0,
         const VECTOR&     z )
 {
+  assert( p.size()==z.size() );
   if ( z.size() > 0 )
-    p = exp( interp_lin( z0, log(p0), z ) );
+    {
+//       out3 << "z2p:\n"
+// 	   << "z0, " << z0.size() << ": ";
+//       print_vector(out3,z0);
+//       out3 << "\np0, " << p0.size() << ": ";
+//       print_vector(out3,p0);
+//       out3 << "\nz, " << z.size() << ": ";
+//       print_vector(out3,z);
+//       out3 << "\n";
+
+      interp_lin_vector( p, z0, transf(p0,log), z );
+      transf( p, exp, p );
+
+//       out3 << "p, " << p.size() << ": ";
+//       print_vector(out3,p);
+//       out3 << "\n";
+    }
 }
 
 
@@ -456,7 +514,11 @@ void z2p(
     \param  p       new pressure grid
 
     \author Patrick Eriksson 
-    \date   2000-04-08 
+    \date   2000-04-08
+
+    Adapted to MTL. No resize!
+    \date   2001-01-05
+    \author Stefan Buehler
 */
 void interpp(
               VECTOR&     x, 
@@ -464,7 +526,8 @@ void interpp(
         const VECTOR&     x0,
         const VECTOR&     p )
 {
-  interp_lin( x, log(p0), x0, log(p) );
+  assert( x.size()==p.size() );
+  interp_lin( x, transf(p0,log), x0, transf(p,log) );
 }
 
 
@@ -486,6 +549,10 @@ void interpp(
 
     \author Patrick Eriksson 
     \date   2000-04-08 
+
+    Adapted to MTL. No resize!
+    \date   2001-01-05
+    \author Stefan Buehler
 */
 void interpp(
               MATRIX&  A,
@@ -493,7 +560,9 @@ void interpp(
         const MATRIX&  A0, 
         const VECTOR&  p )
 {
-  interp_lin_row( A, log(p0), A0, log(p) );
+  assert( A.nrows()==A0.nrows() );
+  assert( A.ncols()==p.size() ); 
+  interp_lin_row( A, transf(p0,log), A0, transf(p,log) );
 }
 
 
@@ -511,14 +580,18 @@ void interpp(
 
     \author Patrick Eriksson 
     \date   2000-12-04
+
+    Adapted to MTL. 
+    \date   2001-01-05
+    \author Stefan Buehler
 */
 Numeric interpp(
         const VECTOR&     p0,
         const VECTOR&     x0,
         const Numeric&    p )
 {
-  VECTOR  x, pv(1,p);
-  interp_lin( x, log(p0), x0, log(pv) );
+  VECTOR  x(1), pv(1,p);
+  interp_lin( x, transf(p0,log), x0, transf(pv,log) );
   return x[0];
 }
 
@@ -546,13 +619,14 @@ Numeric interpp(
     \date   2000-10-02 
 */
 void interpz(
-              VECTOR&     x, 
-        const VECTOR&     p0,
-        const VECTOR&     z0,
-        const VECTOR&     x0,
-        const VECTOR&     z )
+	     VECTOR&     x, 
+	     const VECTOR&     p0,
+	     const VECTOR&     z0,
+	     const VECTOR&     x0,
+	     const VECTOR&     z )
 {
-  VECTOR p;
+  assert( x.size()==z.size() ); 
+  VECTOR p(z.size());
   z2p( p, z0, p0, z );
   interpp( x, p0, x0, p );
 }

@@ -31,7 +31,7 @@ VECTOR make_vector(const Numeric& a1)
 {
   VECTOR v(1);
 
-  v(1) = a1;
+  v[0] = a1;
 
   return v;
 }
@@ -41,8 +41,8 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(2);
 
-  v(1) = a1;
-  v(2) = a2;
+  v[0] = a1;
+  v[1] = a2;
 
   return v;
 }
@@ -53,9 +53,9 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(3);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
 
   return v;
 }
@@ -67,10 +67,10 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(4);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
 
   return v;
 }
@@ -83,11 +83,11 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(5);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
 
   return v;
 }
@@ -101,12 +101,12 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(6);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
 
   return v;
 }
@@ -121,13 +121,13 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(7);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
 
   return v;
 }
@@ -143,14 +143,14 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(8);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
 
   return v;
 }
@@ -167,15 +167,15 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(9);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
 
   return v;
 }
@@ -193,16 +193,16 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(10);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
 
   return v;
 }
@@ -221,17 +221,17 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(11);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
-  v(11) = a11;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
+  v[10] = a11;
 
   return v;
 }
@@ -251,18 +251,18 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(12);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
-  v(11) = a11;
-  v(12) = a12;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
+  v[10] = a11;
+  v[11] = a12;
 
   return v;
 }
@@ -283,19 +283,19 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(13);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
-  v(11) = a11;
-  v(12) = a12;
-  v(13) = a13;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
+  v[10] = a11;
+  v[11] = a12;
+  v[12] = a13;
 
   return v;
 }
@@ -317,20 +317,20 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(14);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
-  v(11) = a11;
-  v(12) = a12;
-  v(13) = a13;
-  v(14) = a14;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
+  v[10] = a11;
+  v[11] = a12;
+  v[12] = a13;
+  v[13] = a14;
 
   return v;
 }
@@ -353,21 +353,21 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(15);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
-  v(11) = a11;
-  v(12) = a12;
-  v(13) = a13;
-  v(14) = a14;
-  v(15) = a15;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
+  v[10] = a11;
+  v[11] = a12;
+  v[12] = a13;
+  v[13] = a14;
+  v[14] = a15;
 
   return v;
 }
@@ -391,22 +391,22 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(16);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
-  v(11) = a11;
-  v(12) = a12;
-  v(13) = a13;
-  v(14) = a14;
-  v(15) = a15;
-  v(16) = a16;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
+  v[10] = a11;
+  v[11] = a12;
+  v[12] = a13;
+  v[13] = a14;
+  v[14] = a15;
+  v[15] = a16;
 
   return v;
 }
@@ -431,23 +431,23 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(17);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
-  v(11) = a11;
-  v(12) = a12;
-  v(13) = a13;
-  v(14) = a14;
-  v(15) = a15;
-  v(16) = a16;
-  v(17) = a17;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
+  v[10] = a11;
+  v[11] = a12;
+  v[12] = a13;
+  v[13] = a14;
+  v[14] = a15;
+  v[15] = a16;
+  v[16] = a17;
 
   return v;
 }
@@ -473,24 +473,24 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(18);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
-  v(11) = a11;
-  v(12) = a12;
-  v(13) = a13;
-  v(14) = a14;
-  v(15) = a15;
-  v(16) = a16;
-  v(17) = a17;
-  v(18) = a18;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
+  v[10] = a11;
+  v[11] = a12;
+  v[12] = a13;
+  v[13] = a14;
+  v[14] = a15;
+  v[15] = a16;
+  v[16] = a17;
+  v[17] = a18;
 
   return v;
 }
@@ -517,25 +517,25 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(19);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
-  v(11) = a11;
-  v(12) = a12;
-  v(13) = a13;
-  v(14) = a14;
-  v(15) = a15;
-  v(16) = a16;
-  v(17) = a17;
-  v(18) = a18;
-  v(19) = a19;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
+  v[10] = a11;
+  v[11] = a12;
+  v[12] = a13;
+  v[13] = a14;
+  v[14] = a15;
+  v[15] = a16;
+  v[16] = a17;
+  v[17] = a18;
+  v[18] = a19;
 
   return v;
 }
@@ -563,26 +563,26 @@ VECTOR make_vector(const Numeric& a1,
 {
   VECTOR v(20);
 
-  v(1) = a1;
-  v(2) = a2;
-  v(3) = a3;
-  v(4) = a4;
-  v(5) = a5;
-  v(6) = a6;
-  v(7) = a7;
-  v(8) = a8;
-  v(9) = a9;
-  v(10) = a10;
-  v(11) = a11;
-  v(12) = a12;
-  v(13) = a13;
-  v(14) = a14;
-  v(15) = a15;
-  v(16) = a16;
-  v(17) = a17;
-  v(18) = a18;
-  v(19) = a19;
-  v(20) = a20;
+  v[0] = a1;
+  v[1] = a2;
+  v[2] = a3;
+  v[3] = a4;
+  v[4] = a5;
+  v[5] = a6;
+  v[6] = a7;
+  v[7] = a8;
+  v[8] = a9;
+  v[9] = a10;
+  v[10] = a11;
+  v[11] = a12;
+  v[12] = a13;
+  v[13] = a14;
+  v[14] = a15;
+  v[15] = a16;
+  v[16] = a17;
+  v[17] = a18;
+  v[18] = a19;
+  v[19] = a20;
 
   return v;
 }

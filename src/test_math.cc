@@ -1,3 +1,16 @@
+/**
+   This file is at the moment obsolete. The reason why I have not
+   removed it is that maybe I can translate the examples and add them to
+   demonstrate_vecmat.cc. 
+   
+   See demonstrate_vecmat.cc for usage examples of matrix/vector
+   functions and mathematical functions.
+   
+   \date   2001-01-08
+   \author Stefan Buehler
+*/
+
+
 #include "arts.h"
 #include "vecmat.h"
 #include "math_funcs.h"          
@@ -14,14 +27,14 @@ void test_math()
                      "4 5 6"); //                  |4,5,6|
 
   // Reallocation
-  x.resize(9);          // Gives a vector of length 9
-  A.resize(4,5);        // Gives a matrix with 4 rows and 5 columns
-  A = transpose(B);      // Transpose of matrix
+  x.resize(9);            // Gives a vector of length 9
+  A = MATRIX(4,5);        // Gives a matrix with 4 rows and 5 columns
+  A = transpose(B);       // Transpose of matrix
 
   // To get dimensions
   x.size();               // Gives the length of the vector
-  A.dim(1);              // Gives the number of rows of the matrix
-  A.dim(2);              // Gives the number of columns of the matrix
+  A.nrows();              // Gives the number of rows of the matrix
+  A.ncols();              // Gives the number of columns of the matrix
 
   // ??
   x = 1.1;                // Sets all elements of x to 1.1

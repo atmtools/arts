@@ -44,8 +44,7 @@ void give_up(const string& message)
 /** The arts executor. This executes the methods specified in tasklist
     on the given workspace. It also checks for errors during the
     method execution and stops the program if an error has
-    occured. FIXME: Eventually, it should do a good housekeeping of
-    which variables are occupied and which are not.
+    occured. 
 
     @param workspace Output. The workspace to act on.
     @param tasklist The list of methods to execute (including keyword data).

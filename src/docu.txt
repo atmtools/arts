@@ -28,18 +28,24 @@ copy() algorithm. For copy, the target object (matrix or vector) must
 have the right dimensions. Dimensions are not adjusted automatically,
 you will just get a core dump.
 
-This has one very important consequence for
+This has one very important consequence for types like
 
-ARRAY<ARRAY<something>> my_data;
+ARRAY<VECTOR> my_data;
 
 After you create such an object, all outer
 ARRAY elements will point to the same data! You have to initialize
 manually, by doing the following:
 
 for (INDEX i=0; i<my_data.size(); ++i)
-   my_data[i] = ARRAY<something>();
+   resize( my_data[i], n );
 
-Sorry for the inconvenience, but I see no way to fix this. 
+where n is the size of the inner vectors that you want. Sorry for the
+inconvenience, but I see no way to fix this. In practise, this is no
+problem, since you anyway have to adjust the size of the inner vectors
+at some point (empty vectors are not useful). I made sure that the
+resize function above does the right thing (see also about resizing
+below). NEVER USE a.resize(i), ALWAYS USE resize(a,i).
+
 
 MTL installation (for MTL-2.1.2-19):
 ====================================
@@ -71,33 +77,34 @@ i.e. I changed instead mtl_config.h.in. )
 
 
 
-VEC: (description also valid for ARRAY!)
+VECTOR: (description also valid for ARRAY!)
 =======
 
-There is no technical need to distinguish between ARRAY and VEC. At
-the moment the two are separate, but one could simply use
-ARRAY<Numeric> in place of VEC. Unfortunately, this nice symmetry
-brakes down for matrices. Leaving the type open (using MAT<Numeric>
-instad of MAT) does not work in this case, due to the design of MTL
-(if I understand correcly).
+VECTORS are MTL based, ARRAYs are STL based. The most important
+difference is that VECTOR assignments are shallow, whereas ARRAY
+assignments are deep. Actually, STL and MTL based ARRAYs are rather
+similar. Maybe we'll switch back to MTL based ARRAYs in the future,
+but at the moment I see no advantage either way. 
+
+The two types are meant to behave very similarly, except that ARRAY
+does not offer special math and matrix/vector functions. If you find
+inconsistencies, let me know.
+
 
 1. Define a vector:   
 
-VEC x(10);
+VECTOR x(10);
 
-1.a. Resize a vector:
+you can initialize at the same time:
 
-There is a resize function:
+VECTOR x( 10, 0.0 );
 
-x.resize(20);
+1.a. Resize a vector or ARRAY:
 
-This is at the moment heavily used in the program. However, I
-discovered that sometimes resize is dangerous, in particular if you
-resize a vector that is part of another vector. The better way to
-resize is by assigning a vector of the desired size:
+resize(x,20);
 
-x = VEC(20) 
-
+This is the safe way to resize. Calling x.resize() is depreciated! I
+did this function myself, internally it does a `x = VECTOR(20)'.
 
 2. Element access:
 
@@ -107,18 +114,17 @@ x[i] = i;
 
 print_vector(cout,x);
 
-One could easily overload the << operator for VEC. In fact I tried
-this, but discovered that then there is a loss of generality. With MTL
-you have not just VEC, but also some derived types (for example for
-subranges). Function print_vector (and print_all_matrix below) will
-work for all these types because it uses genericity. It is not
-possible to program a general solution for the << operator and having
-separate ones for each subtype would be a mess.
-
+I have also overloaded the << operator for VECTOR (and
+MATRIX). However, with MTL you have not just VECTOR, but also some
+derived types (for example for subranges). Function print_vector (and
+print_all_matrix below) will work for all these types because it uses
+genericity. It is not possible to program a general solution for the
+<< operator and having separate ones for each subtype would be a
+mess. So, use print_vector if << does not work.
 
 4. Vector algorithms:
 
-set(x,alpha);         // set all elements to alpha
+setto(x,alpha);       // set all elements to alpha
 scale(x,alpha);       // multiply all elements by alpha
 s = sum(x);           // sum up all elements
 s = one_norm(x);      // sum up absolute values
@@ -138,6 +144,8 @@ swap(x,y);            // exchange contents of x and y
 ele_mult(x,y,z);      // elementwise multiplication of x and y
 ele_div(x,y,z);       // elementwise division y / x
 add(x,y);             // add x to y
+add(x,y,z);           // z = x+y
+add(x,y,z,w);         // w = x+y+z
 s = dot(x,y);         // dot (scalar) product
 
 6. Adaptor helper functions:
@@ -153,21 +161,24 @@ done within the add algorithm, not before.
 
 7. Vector associated types:
 
-VEC::subrange_type     // the type of a subrange
+VECTOR::subrange_type     // the type of a subrange
 
 8. Vector methods:
 
 a(s,f)                 // access subrange s to f
+
+Note that a(2,3) will give you exactly one element, the one with index
+2. Similarly a(2,4) will give you the element 2 and 3, and so on.
 
 
 
 ARRAY<type>:
 ===========
 
-Is just like VEC, just that the type can be anything.
+Is just like VECTOR, just that the type can be anything.
 
 
-MAT:
+MATRIX:
 =======
 Conceptually a `container of containers'.
 We use row major order. The outer container contains the rows of the
@@ -177,7 +188,19 @@ matrix behaves just like a VECTOR.
 
 1. Define a matrix:   
 
-MAT A(10,20);
+MATRIX A(10,20);
+
+initialization at the same time is not possible. Use the setto() algorithm.
+
+1.a. Resize a matrix:
+
+resize(A,15,20);
+
+I implemented this function myself, to make MATRIX more consistent
+with ARRAY and VECTOR. Resizing will destroy the contents of the
+matrix! 
+
+This is the safe way to resize. Internally it does a `A = MATRIX(15,20)'.
 
 2. Element access:
 
@@ -186,38 +209,39 @@ You could use:
 A(i,j)  = 1.0;
 
 THIS IS DANGEROUS, because in TNT the same notation meant a different
-thing (1-based indices).
+thing (1-based indices). On the other hand, if you write template
+functions that should work also with the more exotic matrix-like types
+(for example trans(A) or A.sub_range()) then you must use this kind of
+indexing since [][] will lead to errors. 
 
 Recommended access:
 
 A[i][j] = 1.0
 
-This means the same thing in TNT, so it is safe. ARTS code should be
-changed to this notation BEFORE switching to MTL.
-
+This means the same thing in TNT, so it is safe. 
 
 3. Print matrix to output stream:
 
 print_all_matrix(cout,A);
 
-See also what I wrote for print_vector.
-
+In most cases you can also use the << operator. See also what I wrote
+for print_vector. 
 
 4. Select a row of a matrix:
 
 print_vector(cout, A[3]);
 
 Unfortunately, although A[3] behaves like a vector, you cannot assign
-it to a VEC directly. The correct type for it is MAT::OneD. However,
+it to a VECTOR directly. The correct type for it is MATRIX::OneD. However,
 you can use it in all vector algorithms (like print_vector above). So
 you can copy it to a vector like this:
 
-VEC x(A.ncols());
+VECTOR x(A.ncols());
 copy(A[3],x);
 
 5. Matrix algorithms:
 
-set(A,alpha);          	// set all elements of A to alpha
+setto(A,alpha);         // set all elements of A to alpha
 scale(A,alpha);        	// multiply all elements of A by alpha
 set_diagonal(A,alpha); 	// set diagonal elements to alpha
 transpose(A);          	// replace A by A transposed
@@ -248,13 +272,13 @@ columns(A)              // Access to columns for row matrix (ARTS case)
 
 9. Matrix associated types:
 
-MAT::shape              // tag to describe shape (e.g., rectangular)
-MAT::orientation        // in our case always row_tag
-MAT::sparsity           // dense_tag or sparse_tag
-MAT::OneD               // type of inner container (the individual
+MATRIX::shape              // tag to describe shape (e.g., rectangular)
+MATRIX::orientation        // in our case always row_tag
+MATRIX::sparsity           // dense_tag or sparse_tag
+MATRIX::OneD               // type of inner container (the individual
                            rows, columns, or diagonals)
-MAT::submatrix_type     // for submatrices
-MAT::value_type         // in our case Numeric
+MATRIX::submatrix_type     // for submatrices
+MATRIX::value_type         // in our case Numeric
 
 OneD and submatrix_type are very useful for row, column, or submatrix
 access (see usage examples in demonstrate_linalg.cc). Sparsity should
@@ -263,20 +287,21 @@ be useful for the maybe_sparse types.
 10. Matrix methods:
 
 A.sub_matrix(r0,r1,c0,c1) // Selects submatrix from row r0 to r1 and
-                             columns c0 to c1
+                          // columns c0 to c1. Indices behave in the
+			  // same way as for VECTOR subranges!
 A.nrows()                 // number of rows
 A.ncols()                 // number of columns
 A.nnz()                   // number of nonzero elements
 
 
-SPARSE_MAT:
+SPARSE_MATRIX:
 ===========
 
-You can use basically all algorithms and member functions of MAT.
+You can use basically all algorithms and member functions of MATRIX.
 
 1. Define:
 
-SPARSE_MAT S(n,m);        // n,m are the dimensions, the number of
+SPARSE_MATRIX S(n,m);        // n,m are the dimensions, the number of
                              nonzero elements is 0 at first
 
 2. Set elements by:
@@ -286,4 +311,43 @@ S[3][4] = 1;
 3. Number of nonzero elements:
 
 S.nnz()
+
+
+
+
+// Special functions added for ARTS:
+
+For VECTOR and MATRIX:
+
+transf(x,sqrt,y) or y = transf(x,exp):
+
+The generic transformation function. You can use this to apply any
+mathematical function that takes only a single argument to all
+elements of a VECTOR or MATRIX x. This replaces the old exp, sqrt,
+etc. functions.
+
+interp_lin_vector() and interp_lin_matrix():
+
+These are meant to replace the various linear interpolation
+functions. They are very flexible, because they are template
+functions. For example, you can use interp_lin_matrix to interpolate
+either the rows or the columns of the matrix, by using the trans()
+adapter on the input and output matrix argument. (This is used inside
+ARTS in one place, just do a grep for the function.)
+
+
+
+// Common bugs:
+
+1. Assigning a scalar to a vector as in:
+   VECTOR a;
+   a = 1;
+   At runtime this will lead to a segmentation fault later on in the
+   program. Unfortunately this bug is hard to locate. There could be
+   still a few instances of it creeping through ARTS.
+
+2. Calling a MTL algorithm without making sure that the arguments have
+   compatible dimensions. There is no safeguard against this in MTL!
+
+3. Matrix indices not properly adapted to 0-based.
 

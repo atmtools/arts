@@ -372,6 +372,8 @@ void tag_groupsDefine(// WS Output:
 {
   tag_groups = TagGroups(tags.size());
 
+  //  cout << "Tags: " << tags << "\n";
+
   // Each element of the array of strings tags defines one tag
   // group. Let's work through them one by one.
   for ( size_t i=0; i<tags.size(); ++i )
@@ -379,6 +381,7 @@ void tag_groupsDefine(// WS Output:
       // There can be a comma separated list of tag definitions, so we
       // need to break the string apart at the commas.
       ARRAY<string> tag_def;
+
       bool go_on = true;
       string these_tags = tags[i];
       while (go_on)
@@ -387,6 +390,7 @@ void tag_groupsDefine(// WS Output:
 	  if ( n >= these_tags.size() )
 	    {
 	      // There are no more commas.
+	      //	      cout << "these_tags: (" << these_tags << ")\n";
 	      tag_def.push_back(these_tags);
 	      go_on = false;
 	    }
@@ -455,8 +459,8 @@ void lineshapeDefine(// WS Output:
 
   // generate the right number of elements
   size_t tag_sz = tag_groups.size();
-  lineshape.resize(tag_sz);
-  lineshape_norm.resize(tag_sz);
+  resize(lineshape,tag_sz);
+  resize(lineshape_norm,tag_sz);
 
   // Is this lineshape available?
   int found0=-1;
@@ -523,8 +527,8 @@ void lineshape_per_abs_tagDefine(// WS Output:
       
 
   // generate the right number of elements
-  lineshape.resize(tag_sz);
-  lineshape_norm.resize(tag_sz);
+  resize(lineshape,tag_sz);
+  resize(lineshape_norm,tag_sz);
 
   // Is this lineshape available?
   for (size_t k=0; k<tag_sz; ++k)
@@ -607,130 +611,117 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
     }
 }
 
-void Atm2dFromRaw1D(// WS Output:
-                    ARRAYofVECTOR& 	 t_abs_2d,
-                    ARRAYofVECTOR& 	 z_abs_2d,
-                    ARRAYofMATRIX& 	 vmrs_2d,
-                    // WS Input:      
-                    const VECTOR&  	 p_abs,
-                    const MATRIX&  	 raw_ptz_1d,
-                    const ARRAYofMATRIX& raw_vmrs_1d)
-{
-  // FIXME: This function is terrible! Make this better using MTL functionality.
+// void Atm2dFromRaw1D(// WS Output:
+//                     ARRAYofVECTOR& 	 t_abs_2d,
+//                     ARRAYofVECTOR& 	 z_abs_2d,
+//                     ARRAYofMATRIX& 	 vmrs_2d,
+//                     // WS Input:      
+//                     const VECTOR&  	 p_abs,
+//                     const MATRIX&  	 raw_ptz_1d,
+//                     const ARRAYofMATRIX& raw_vmrs_1d)
+// {
+//   // FIXME: This function is terrible! Make this better using MTL functionality.
+//   // Does this function work at all? Has it ever been used? I think this is garbage. 
 
-  // This function uses a lot of copying. Rather inefficient. The
-  // problem is that the raw matrices do not directly fit the
-  // interpolation routines. If this turns out to be too slow, it
-  // should be replace by a routine using element-wise
-  // interpolation. This can be also efficient, if the search for the
-  // right interpolation point is done efficiently (see function
-  // `hunt' in numerical recipies).
+//   // This function uses a lot of copying. Rather inefficient. The
+//   // problem is that the raw matrices do not directly fit the
+//   // interpolation routines. If this turns out to be too slow, it
+//   // should be replace by a routine using element-wise
+//   // interpolation. This can be also efficient, if the search for the
+//   // right interpolation point is done efficiently (see function
+//   // `hunt' in numerical recipies).
 
-  // Also, I'm sure the copying could be done more elegantly, but I
-  // just wasted a lot of time trying to do this with matrix / vector
-  // notation. 
+//   // Also, I'm sure the copying could be done more elegantly, but I
+//   // just wasted a lot of time trying to do this with matrix / vector
+//   // notation. 
 
 
-  //---------------< 1. Interpolation of temperature and altitude >---------------
-  {  
-    // Safety check: Make sure that raw_ptz_1d really is a [x,3] matrix:
-    if ( 3 != raw_ptz_1d.dim(2) )
-      {
-	ostringstream os;
-	os << "The variable raw_ptz_1d does not have the right dimensions,\n"
-	   << "dim(2) should be 3, but is actually "<< raw_ptz_1d.dim(2);
-	throw runtime_error(os.str());
-      }
+//   //---------------< 1. Interpolation of temperature and altitude >---------------
+//   {  
+//     // Safety check: Make sure that raw_ptz_1d really is a [x,3] matrix:
+//     if ( 3 != raw_ptz_1d.ncols() )
+//       {
+// 	ostringstream os;
+// 	os << "The variable raw_ptz_1d does not have the right dimensions,\n"
+// 	   << "ncols() should be 3, but is actually "<< raw_ptz_1d.ncols();
+// 	throw runtime_error(os.str());
+//       }
 
-    // Break up raw_ptz_1d in p_raw, tz_raw.
-    // The reason why we take tz_raw as a matrix is that the
-    // interpolation can then be done simultaneously, hence slightly
-    // more efficient.
+//     // Break up raw_ptz_1d in p_raw, tz_raw.
+//     // The reason why we take tz_raw as a matrix is that the
+//     // interpolation can then be done simultaneously, hence slightly
+//     // more efficient.
 
-    // p_raw is column 1:
-    VECTOR p_raw;
-    col( p_raw, 1, raw_ptz_1d );
+//     // p_raw is column 1:
+//     VECTOR p_raw;
+//     col( p_raw, 1, raw_ptz_1d );
 
-    // tz_raw is column 2-3:
-    MATRIX tz_raw;
-    col( tz_raw, 2, 3, raw_ptz_1d );
+//     // tz_raw is column 2-3:
+//     MATRIX tz_raw;
+//     col( tz_raw, 2, 3, raw_ptz_1d );
 
-    // Now interpolate tz_raw to p_abs grid:
-    MATRIX tz_intp;
-    interp_lin_col( tz_intp,
-		    p_raw, tz_raw, p_abs );
+//     // Now interpolate tz_raw to p_abs grid:
+//     MATRIX tz_intp( p_abs.size(), tz_raw.ncols() );
+//     interp_lin_col( tz_intp,
+// 		    p_raw, tz_raw, p_abs );
 
-    // Extract t_abs_2d:
-    t_abs_2d.resize(0);
-    t_abs_2d.push_back(VECTOR());
-    col( t_abs_2d[0], 1, tz_intp );
+//     // Extract t_abs_2d:
+//     resize(t_abs_2d,0);
+//     t_abs_2d.push_back(VECTOR());
+//     col( t_abs_2d[0], 1, tz_intp );
 
-    // Extract z_abs_2d:
-    z_abs_2d.resize(0);
-    z_abs_2d.push_back(VECTOR());
-    col( z_abs_2d[0], 2, tz_intp );
-  }
+//     // Extract z_abs_2d:
+//     resize(z_abs_2d,0);
+//     z_abs_2d.push_back(VECTOR());
+//     col( z_abs_2d[0], 2, tz_intp );
+//   }
 
-  //---------------< 2. Interpolation of VMR profiles >---------------
-  {
-    // We will write everything to the first array element of vmrs_2d
-    // (more array elements would only be used in a 2D calculation).
+//   //---------------< 2. Interpolation of VMR profiles >---------------
+//   {
+//     // We will write everything to the first array element of vmrs_2d
+//     // (more array elements would only be used in a 2D calculation).
 
-    // Get room for our results:
-    vmrs_2d.resize(0);
-    vmrs_2d.push_back(MATRIX());
+//     // Get room for our results:
+//     resize(vmrs_2d,0);
+//     vmrs_2d.push_back(MATRIX());
   
-    // Get a convenient reference:
-    MATRIX& intp = vmrs_2d[0];
+//     // Get a convenient reference:
+//     MATRIX& intp = vmrs_2d[0];
 
-    // Set dimensions.
-    // The first dimension is the number of profiles (= the number of
-    // tag groups). The second dimension is the dimension of the new
-    // pressure grid.
-    intp.resize( raw_vmrs_1d.size() , p_abs.size() );
+//     // Set dimensions.
+//     // The first dimension is the number of profiles (= the number of
+//     // tag groups). The second dimension is the dimension of the new
+//     // pressure grid.
+//     resize( intp, raw_vmrs_1d.size() , p_abs.size() );
   
-    // We need this for each profile, therefore we define it here:
-    VECTOR target;
+//     // For sure, we need to loop through all VMR profiles:
+//     for ( size_t j=0; j<raw_vmrs_1d.size(); ++j )
+//       {
+// 	// Get a reference to the profile we are concerned with
+// 	const MATRIX& raw = raw_vmrs_1d[j];
 
-    // For sure, we need to loop through all VMR profiles:
-    for ( size_t j=0; j<raw_vmrs_1d.size(); ++j )
-      {
-	// Get a reference to the profile we are concerned with
-	const MATRIX& raw = raw_vmrs_1d[j];
-
-	// Raw should be a matrix with dimension [x,2], the first column
-	// is the raw pressure grid, the second column the VMR values.
+// 	// Raw should be a matrix with dimension [x,2], the first column
+// 	// is the raw pressure grid, the second column the VMR values.
       
-	// Safety check to ensure this:
-	if ( 2 != raw.dim(2) )
-	  {
-	    ostringstream os;
-	    os << "The variable raw_vmrs_1d("
-	       << j
-	       << ") does not have the right dimensions,\n"
-	       << "dim(2) should be 2, but is actually "<< raw.dim(2);
-	    throw runtime_error(os.str());
-	  }
+// 	// Safety check to ensure this:
+// 	if ( 2 != raw.ncols() )
+// 	  {
+// 	    ostringstream os;
+// 	    os << "The variable raw_vmrs_1d("
+// 	       << j
+// 	       << ") does not have the right dimensions,\n"
+// 	       << "ncols() should be 2, but is actually "<< raw.ncols();
+// 	    throw runtime_error(os.str());
+// 	  }
 
-	// Extract p_raw and vmr_raw:
-	VECTOR p_raw;
-	col( p_raw, 1, raw );
-
-	VECTOR vmr_raw;
-	col( vmr_raw, 2, raw );
-
-	// Interpolate:
-	interp_lin( target,
-		    p_raw, vmr_raw, p_abs );
-
-	// Put the result in the apropriate row of intp:
-	for ( size_t i=0; i<p_abs.size(); ++i )
-	  {
-	    intp(j+1,i+1) = target[i];
-	  }
-      }
-  }
-}
+// 	// Interpolate:
+// 	interp_lin( intp[j],
+// 		    raw( 0, raw.nrows(), 0, 1 ),
+// 		    raw( 0, raw.nrows(), 1, 2 ),
+// 		    p_abs );
+//       }
+//   }
+// }
 
 void AtmFromRaw1D(// WS Output:
 		  VECTOR& 	 t_abs,
@@ -739,49 +730,51 @@ void AtmFromRaw1D(// WS Output:
 		  // WS Input:      
 		  const VECTOR&  	 p_abs,
 		  const MATRIX&  	 raw_ptz_1d,
-		  const ARRAYofMATRIX& raw_vmrs_1d)
+		  const ARRAYofMATRIX&   raw_vmrs_1d)
 {
   
   //---------------< 1. Interpolation of temperature and altitude >---------------
   {  
     // Safety check: Make sure that raw_ptz_1d really is a [x,3] matrix:
-    if ( 3 != raw_ptz_1d.dim(2) )
+    if ( 3 != raw_ptz_1d.ncols() )
       {
 	ostringstream os;
 	os << "The variable raw_ptz_1d does not have the right dimensions,\n"
-	   << "dim(2) should be 3, but is actually "<< raw_ptz_1d.dim(2);
+	   << "ncols() should be 3, but is actually "<< raw_ptz_1d.ncols();
 	throw runtime_error(os.str());
       }
 
-    // Break up raw_ptz_1d in p_raw, tz_raw.
+
+    // Contents of raw_ptz_1d: p_raw is column 1,  tz_raw is column 2-3.
+
+    // Interpolate tz_raw to p_abs grid.
     // The reason why we take tz_raw as a matrix is that the
     // interpolation can then be done simultaneously, hence slightly
     // more efficient.
-
-    // p_raw is column 1:
-    VECTOR p_raw;
-    col( p_raw, 1, raw_ptz_1d );
-
-    // tz_raw is column 2-3:
-    MATRIX tz_raw;
-    col( tz_raw, 2, 3, raw_ptz_1d );
-
-    // Now interpolate tz_raw to p_abs grid:
-    MATRIX tz_intp;
-    interp_lin_col( tz_intp,
-		    p_raw, tz_raw, p_abs );
+    MATRIX tz_intp( p_abs.size(), 2 );
+    interp_lin_matrix( trans(tz_intp),
+		       columns(raw_ptz_1d)[0],
+		       trans(raw_ptz_1d.sub_matrix(0,
+						   raw_ptz_1d.nrows(),
+						   1,
+						   raw_ptz_1d.ncols())),
+		       p_abs );
 
     // Extract t_abs:
-    col( t_abs, 1, tz_intp );
+    //    col( t_abs, 1, tz_intp );
+    resize( t_abs, tz_intp.nrows() );
+    copy( columns(tz_intp)[0], t_abs );
 
     // Extract z_abs:
-    col( z_abs, 2, tz_intp );
+    //    col( z_abs, 2, tz_intp );
+    resize( z_abs, tz_intp.nrows() );
+    copy( columns(tz_intp)[1], z_abs );
   }
 
   //---------------< 2. Interpolation of VMR profiles >---------------
   {
     // Make vmrs the right size:
-    vmrs.resize(raw_vmrs_1d.size());
+    resize( vmrs, raw_vmrs_1d.size() );
     
     // For sure, we need to loop through all VMR profiles:
     for ( size_t j=0; j<raw_vmrs_1d.size(); ++j )
@@ -789,34 +782,29 @@ void AtmFromRaw1D(// WS Output:
 	// Get a reference to the profile we are concerned with:
 	const MATRIX& raw = raw_vmrs_1d[j];
 
-	// Get a reference to the place where we want to put the
-	// interpolated profile:
-	VECTOR& this_vmr = vmrs[j];
-
 	// Raw should be a matrix with dimension [x,2], the first column
 	// is the raw pressure grid, the second column the VMR values.
       
 	// Safety check to ensure this:
-	if ( 2 != raw.dim(2) )
+	if ( 2 != raw.ncols() )
 	  {
 	    ostringstream os;
 	    os << "The variable raw_vmrs_1d("
 	       << j
 	       << ") does not have the right dimensions,\n"
-	       << "dim(2) should be 2, but is actually "<< raw.dim(2);
+	       << "ncols() should be 2, but is actually "<< raw.ncols();
 	    throw runtime_error(os.str());
 	  }
 
-	// Extract p_raw and vmr_raw:
-	VECTOR p_raw;
-	col( p_raw, 1, raw );
-
-	VECTOR vmr_raw;
-	col( vmr_raw, 2, raw );
-
+	// Make vmrs[j] the right size:
+	resize( vmrs[j], p_abs.size() );
+	
 	// Interpolate:
-	interp_lin( this_vmr,
-		    p_raw, vmr_raw, p_abs );
+	interp_lin_vector( vmrs[j],
+			   columns(raw)[0],
+			   columns(raw)[1],
+			   p_abs );
+	//	out3 << "This VMR: " << vmrs[j] << "\n";
       }
   }
 }
@@ -826,6 +814,9 @@ void AtmFromRaw1D(// WS Output:
 // Algorithm based on equation from my (PE) thesis (page 274) and the book
 // Meteorology today for scientists and engineers by R.B. Stull (pages 9-10). 
 //
+// Adapted to MTL. Gone from 1-based to 0-based. No resize!
+// 2000-12-26
+// Stefan Buehler
 void z_absHydrostatic(
           VECTOR&    z_abs,
     const VECTOR&    p_abs,
@@ -851,33 +842,34 @@ void z_absHydrostatic(
   if ( niter < 1 )
     throw runtime_error("The number of iterations must be > 0.");
 
-  for ( int iter=1; iter<=niter; iter++ )
+  for ( int iter=0; iter<niter; iter++ )
   {
     // Init ztmp
-    ztmp(1) = z_abs(1);
+    ztmp[0] = z_abs[0];
 
     // Calculate new altitudes (relative z_abs(1)) and store in ztmp
-    for ( i=1; i<np; i++ )
+    for ( i=0; i<np-1; i++ )
     {
       // Calculate g 
-      g  = ( g_of_z(EARTH_RADIUS,g0,z_abs(i)) + 
-             g_of_z(EARTH_RADIUS,g0,z_abs(i+1)) ) / 2.0;
+      g  = ( g_of_z(EARTH_RADIUS,g0,z_abs[i]) + 
+             g_of_z(EARTH_RADIUS,g0,z_abs[i+1]) ) / 2.0;
 
       // Calculate weight mixing ratio for water assuming constant average
       // molecular weight of the air
-      r  = 18/28.96 * (h2o_abs(i)+h2o_abs(i+1))/2;
+      r  = 18/28.96 * (h2o_abs[i]+h2o_abs[i+1])/2;
 
       // The virtual temperature (no liquid water)
-      tv = (1+0.61*r) * (t_abs(i)+t_abs(i+1))/2;
+      tv = (1+0.61*r) * (t_abs[i]+t_abs[i+1])/2;
 
       // The change in vertical altitude from i to i+1 
-      dz = 287.053*tv/g * log( p_abs(i)/p_abs(i+1) );
-      ztmp(i+1) = ztmp(i) + dz;
+      dz = 287.053*tv/g * log( p_abs[i]/p_abs[i+1] );
+      ztmp[i+1] = ztmp[i] + dz;
     }
 
     // Match the altitude of the reference point
     dz = interpp( p_abs, ztmp, pref ) - zref;
-    z_abs = ztmp - dz;
+    setto(z_abs,-dz);
+    add(ztmp,z_abs);		//  z_abs = ztmp - dz;
   }
 }
 
@@ -896,23 +888,22 @@ void absCalc(// WS Output:
 	     const ARRAYofsizet&             lineshape,
 	     const ARRAYofsizet&             lineshape_norm)
 {
-  // Check that vmrs and lines_per_tg really have the
-  // same array dimension:
+  // Check that vmrs and lines_per_tg really have compatible
+  // dimensions. In vmrs there should be one VECTOR for each tg:
   if ( vmrs.size() != lines_per_tg.size() )
     {
       ostringstream os;
-      os << "Variable vmrs must have the same dimension as lines_per_tg.\n"
+      os << "Variable vmrs must have compatible dimension to lines_per_tg.\n"
 	 << "vmrs.size() = " << vmrs.size() << '\n'
 	 << "lines_per_tg.size() = " << lines_per_tg.size();
       throw runtime_error(os.str());
     }
   
   // Initialize abs and abs_per_tg. The array dimension of abs_per_tg
-  // is the same as that of lines_per_tag.
-  abs.resize(f_mono.size(), p_abs.size());
-  abs = 0;
-  abs_per_tg.resize(0);
-  abs_per_tg.resize(lines_per_tg.size());
+  // is the same as that of lines_per_tg.
+  resize( abs, f_mono.size(), p_abs.size() );
+  setto( abs, 0);
+  resize( abs_per_tg, lines_per_tg.size() );
 
   // Print information
   out3 << "  Transitions to do: \n";
@@ -948,8 +939,8 @@ void absCalc(// WS Output:
       out2 << "  Tag group " << i << '\n';
       
       // Make this element of abs_per_tg the right size:
-      abs_per_tg[i].resize(f_mono.size(), p_abs.size());
-      abs_per_tg[i] = 0;
+      resize( abs_per_tg[i], f_mono.size(), p_abs.size() );
+      setto( abs_per_tg[i], 0 );
 
       abs_species( abs_per_tg[i],
 		   f_mono,
@@ -962,7 +953,7 @@ void absCalc(// WS Output:
 		   lineshape_norm[i]);
       
       // Add up to the total absorption:
-      abs = abs + abs_per_tg[i];
+      add( abs_per_tg[i], abs );
     }
 }
 
@@ -983,11 +974,26 @@ void absCalc(// WS Output:
 
    \author Patrick Eriksson
    \date   2000-09-30
+
+   Adapted to MTL.
+   2000-12-26    
+   Stefan Buehler
 */
 void refr_indexBoudourisDryAir (
                     VECTOR&          refr_index,
               const VECTOR&          p_abs,
               const VECTOR&          t_abs )
 {
-  refr_index = 1.0 + 0.77593e-6*ediv(p_abs,t_abs);
+  if ( p_abs.size()!=t_abs.size() )
+    throw(runtime_error("The variables p_abs and t_abs must have the same dimension."));
+
+  resize( refr_index, p_abs.size() );
+
+  //  refr_index = 1.0 + 0.77593e-6*ediv(p_abs,t_abs);
+  ele_div( scaled(p_abs,0.77593e-6), t_abs, refr_index );
+
+  VECTOR dummy(p_abs.size());
+  setto( dummy, 1.0 );
+
+  add(dummy, refr_index);
 }

@@ -47,7 +47,7 @@ raw_vmrs_1dReadFromScenario
         {"../../data/atmosphere/fascod/midlatitude-summer"}
 
 # Optionally write this to a file:
-#ArrayOfMatrixWriteToFile (raw_vmrs_1d) {""}
+#ArrayOfMatrixWriteAscii (raw_vmrs_1d) {""}
 
 
 # Create the pressure grid `p_abs':
@@ -64,10 +64,13 @@ VectorWriteAscii(p_abs){""}
 # grid and create the atmospheric variables `t_abs', `z_abs', `vmrs'
 AtmFromRaw1D{}
 
+# Set the physical H2O profile from the H2O profile in vmrs:
+VectorCopyFromArrayOfVector(h2o_abs,vmrs){0}
+
 # Optionally write these to files:
-#VectorWriteToFile (t_abs) {""}
-#VectorWriteToFile (z_abs) {""}
-#ArrayOfVectorWriteToFile (vmrs)  {""}
+VectorWriteAscii (t_abs) {""}
+VectorWriteAscii (z_abs) {""}
+ArrayOfVectorWriteAscii (vmrs)  {""}
 
 
 # Create the frequency grid `f_mono':

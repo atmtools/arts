@@ -14,18 +14,18 @@
 ### Spectroscopy: ############################################################
 tag_groupsDefine    { ["O3-666","ClO","H2O-161","N2O-446"] }
 #tag_groupsDefine    { ["ClO"] }
-lineshapeDefine     { shape               = "Voigt_Kuntz1"
+lineshapeDefine     { shape               = "Voigt_Kuntz6"
                       normalizationfactor = "quadratic" } 
 #
-linesReadFromHitran { filename = "/u/patrick/arts/data/spectroscopy/hitran96/hitran96_lowfreq.par"
+linesReadFromHitran { filename = "../../data/spectroscopy/hitran96/hitran96_lowfreq.par"
 		      fmin     = 498e9
                       fmax     = 505e9 }
 lines_per_tgCreateFromLines {}  
 
 
 ### Load an atmosphere ########################################################
-MatrixReadAscii (raw_ptz_1d) { "/u/patrick/arts/data/atmosphere/fascod/midlatitude-winter.tz.am" }
-raw_vmrs_1dReadFromScenario  { "/u/patrick/arts/data/atmosphere/fascod/midlatitude-winter" }
+MatrixReadAscii (raw_ptz_1d) { "../../data/atmosphere/fascod/midlatitude-winter.tz.am" }
+raw_vmrs_1dReadFromScenario  { "../../data/atmosphere/fascod/midlatitude-winter" }
 
 
 ### Monochromatic frequency grid ##############################################
@@ -118,8 +118,8 @@ kxInit{}
 #kbInit{}
 VectorCopy( k_grid, p_abs ){}
 VectorWriteAscii (k_grid)  {""}
-kSpecies{    nr   = 1
-             unit = "frac" }
+kSpecies{    tag   = "O3-666"
+             unit  = "frac" }
 #kSpeciesAll{ unit = "frac" }
 kxAppend{}
 #kxAppendUsingH(h1){}
@@ -148,6 +148,7 @@ kxAppend{}
 #kxAppendUsingH(h1){}
 #
 MatrixWriteBinary(kx){""}  
+MatrixWriteAscii(kx){""}  
 MatrixWriteBinary(kx_index){""}  
 MatrixWriteBinary(kx_aux){""}  
 ArrayOfStringWriteBinary(kx_names){""}
@@ -176,7 +177,7 @@ VectorWriteBinary( y ) {""}
 
 ### Produce batch data for varoius variables ##################################
 
-StringSet( batchname ) { "/u/patrick/ARTS/Batch/full" }
+StringSet( batchname ) { "fullbatch" }
 
 sDiagonalLengthFromVector ( p_abs )
 { 

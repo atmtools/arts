@@ -316,17 +316,17 @@ void write_array_of_matrix_to_stream(ostream& os,
   for (size_t i=0; i<n; ++i)
     {
       // Number of elements:
-      os << am[i].dim(1) << ' ' << am[i].dim(2) << '\n';
+      os << am[i].nrows() << ' ' << am[i].ncols() << '\n';
 
       os << setprecision(precision);
       // Write the elements:
-      for (size_t r=1; r<=am[i].dim(1); ++r)
+      for (size_t r=0; r<am[i].nrows(); ++r)
         {
-          os << am[i](r,1);
+          os << am[i][r][0];
       
-          for (size_t c=2; c<=am[i].dim(2); ++c)
+          for (size_t c=1; c<am[i].ncols(); ++c)
             {
-              os << " " << am[i](r,c);
+              os << " " << am[i][r][c];
             }
 
           os << '\n';
@@ -405,7 +405,7 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
   out3 << "  Dimensions:\n";
   out3 << "     "<< am.size() << "\n";
   for ( size_t i=0; i<am.size(); ++i )
-    out3 << "     " << am[i].dim(1) << ", " << am[i].dim(2) << "\n";
+    out3 << "     " << am[i].nrows() << ", " << am[i].ncols() << "\n";
 }
 
 
@@ -1111,7 +1111,7 @@ void binfile_read1(
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
-  x.resize(n);
+  resize(x,n);
 
   if ( n > 0 )
   {
@@ -1154,6 +1154,10 @@ void binfile_read1(
 
    \author Patrick Eriksson              
    \date   2000-11-01
+
+   Adapted to 0-based indexing.
+   \date   2001-01-08
+   \author Stefan Buehler
 */
 void binfile_read2(
               MATRIX&   x,
@@ -1173,7 +1177,7 @@ void binfile_read2(
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
-  x.resize(nrows,ncols);
+  resize(x,nrows,ncols);
 
   if ( (nrows > 0) && (ncols > 0) )
   {
@@ -1183,11 +1187,11 @@ void binfile_read2(
       float  a[nrows*ncols];
       size_t i,j,j0;
       VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
-      for ( i=1; i<=nrows; i++ )
+      for ( i=0; i<nrows; i++ )
       {
-	j0 = (i-1)*ncols-1;
-	for ( j=1; j<=ncols; j++ )
-	  x(i,j) = a[j0+j];
+	j0 = i*ncols;
+	for ( j=0; j<ncols; j++ )
+	  x[i][j] = a[j0+j];
       }
     }
   
@@ -1196,11 +1200,11 @@ void binfile_read2(
       double a[nrows*ncols];
       size_t i,j,j0;
       VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
-      for ( i=1; i<=nrows; i++ )
+      for ( i=0; i<nrows; i++ )
       {
-	j0 = (i-1)*ncols-1;
-	for ( j=1; j<=ncols; j++ )
-	   x(i,j) = a[j0+j];
+	j0 = i*ncols;
+	for ( j=0; j<ncols; j++ )
+	   x[i][j] = a[j0+j];
       }
     }
   
@@ -1251,7 +1255,7 @@ void binfile_read3(
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
-  x.resize(n);
+  resize(x,n);
 
   if ( n > 0 )
   {
@@ -1387,7 +1391,7 @@ void binfile_read_numeric(
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "SCALAR", 1, 1 );
   binfile_read2( a, vdata_id, nrows, ncols, filename, dataname );
-  x = a(1,1);
+  x = a[0][0];
   binfile_read_end( vdata_id, filename, dataname );
 
 }
@@ -1416,7 +1420,7 @@ void binfile_write_vector(
 
   Numeric a[n];
   for ( size_t i=0; i<n; i++ )
-    a[i] = x(i+1);
+    a[i] = x[i];
   binfile_write( fid,  filename, dataname, "VECTOR", "NUMERIC", n, 1, 
                                                                 (uint8*)a );
 }
@@ -1448,9 +1452,9 @@ void binfile_read_vector(
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "VECTOR", 0, 1 );
   binfile_read2( a, vdata_id, nrows, ncols, filename, dataname );
-  x.resize(nrows);
-  for ( size_t i=1; i<=nrows; i++ )
-    x(i) = a(i,1);
+  resize(x,nrows);
+  for ( size_t i=0; i<nrows; i++ )
+    x[i] = a[i][0];
   binfile_read_end( vdata_id, filename, dataname );
 }
 
@@ -1467,6 +1471,10 @@ void binfile_read_vector(
 
    \author Patrick Eriksson              
    \date   2000-11-01
+
+   Adapted to 0-based indexing.
+   \date   2001-01-08
+   \author Stefan Buehler
 */
 void binfile_write_matrix(
         const string&   filename,
@@ -1474,17 +1482,17 @@ void binfile_write_matrix(
         const MATRIX&   x,
         const string&   dataname )
 {
-  const size_t  nrows = x.dim(1);
-  const size_t  ncols = x.dim(2);
+  const size_t  nrows = x.nrows();
+  const size_t  ncols = x.ncols();
         size_t  i, j;
 
   Numeric a[nrows*ncols];
   size_t j0;
-  for ( i=1; i<=nrows; i++ )
+  for ( i=0; i<nrows; i++ )
   {
-    j0 = (i-1)*ncols-1;
-    for ( j=1; j<=ncols; j++ )
-      a[j0+j] = x(i,j);
+    j0 = i*ncols;
+    for ( j=0; j<ncols; j++ )
+      a[j0+j] = x[i][j];
   }
   binfile_write( fid,  filename, dataname, "MATRIX", "NUMERIC", nrows, ncols, 
                                                                 (uint8*)a );
@@ -1636,7 +1644,7 @@ void binfile_read_vectorarray(
   binfile_read_index( n, filename, fid, "N_"+dataname );  
 
   // Reallocate x and read vectors
-  x.resize(n);
+  resize(x,n);
   for (size_t i=0; i<n; i++ )
   {
     ostringstream os;
@@ -1704,7 +1712,7 @@ void binfile_read_matrixarray(
   binfile_read_index( n, filename, fid, "N_"+dataname );  
 
   // Reallocate x and read matrices
-  x.resize(n);
+  resize(x,n);
   for (size_t i=0; i<n; i++ )
   {
     ostringstream os;
@@ -1827,7 +1835,7 @@ void binfile_read_stringarray(
   binfile_read_index( n, filename, fid, "N_"+dataname );  
 
   // Reallocate x and read matrices
-  x.resize(n);
+  resize(x,n);
   for (size_t i=0; i<n; i++ )
   {
     ostringstream os;

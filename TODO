@@ -31,9 +31,6 @@ SAB 2000-08-21: Some ideas for absorption:
 		- Make a method to set the lineshape functions. (All
                   the rest is already there!)
 
-SAB 2000-08-21: Give a nice error message if control file does not
-                exist! (At the moment it just says `abgebrochen')
-
 AvE 2000-08-22: Check that partition funciton coefficients are valid, 
                 some species are not defined, nevertheless a dummy
                 partition function coefficient is given. check that 
@@ -66,11 +63,6 @@ SAB 2000-10-05: Implement a mechanism for `meta-methods', i.e.,
 
 SAB 2000-10-05: Implement sparse matrices and multiplication of sparse
                 matrix with a sparse matrix, matrix, or vector.
-
-SAB 2000-10-05: Change matrix/vector package from TNT to MTL. A new
-                version of MTL with a much better user interface is
-                expected. However we cannot be sure exactly when it
-                will be available. 
 
 SAB 2000-10-05: Implement sensor model by sparse matrix. (Needs sparse
                 matrix first)
@@ -148,8 +140,6 @@ Implement this method:
 	KEYWORDS( "filenames"          ),
 	TYPES(    ARRAY_string_t       )));
 
-SAB 2000-12-09: Remove all resize calls when MTL is completely in place. 
-
 SAB 2000-12-13: Find a solution how to remove WSVs (as if they had not
                 been created). Best would be a *general* method (which
                 is more than generic, since it should work for *any*
@@ -166,3 +156,10 @@ PE 2000-12-14:  Interpolation in m_abs is not done using the standard
                 15/12 PE).
 
 PE 2000-12-14:  Do what is possible to make the absorption as fast as possible.
+
+SAB 2001-01-05: More clearly separate between WS methods and other
+                functions. Should be always clear from the docu
+                header. WS methods should also be listed in a separate
+                section of the doxygen docu.
+
+SAB 2001-01-05: Write to MTL Siek about adding to vectors?

@@ -55,7 +55,7 @@ void lineshape_lorentz(VECTOR&       ls,
   // PI:
   extern const Numeric PI;
 
-  assert( ls.dim() == nf );
+  assert( ls.size() == nf );
 
   Numeric gamma2 = gamma * gamma;
   Numeric fac = gamma/PI;
@@ -90,7 +90,7 @@ void lineshape_doppler(VECTOR&       ls,
   extern const Numeric PI;
   static const Numeric sqrtPI = sqrt(PI);
 
-  assert( ls.dim() == nf );
+  assert( ls.size() == nf );
 
   Numeric sigma2 = sigma * sigma;
   Numeric fac = 1.0 / (sqrtPI * sigma);
@@ -1744,7 +1744,7 @@ void lineshape_norm_no_norm(VECTOR&       fac,
 			    const INDEX   nf)
 {
 
-  assert( fac.dim() == nf );
+  assert( fac.size() == nf );
 
   for ( INDEX i=0; i<nf; ++i )
     {
@@ -1768,7 +1768,7 @@ void lineshape_norm_linear(VECTOR&       fac,
 			   const INDEX   nf)
 {
 
-  assert( fac.dim() == nf );
+  assert( fac.size() == nf );
 
   for ( INDEX i=0; i<nf; ++i )
     {
@@ -1791,7 +1791,7 @@ void lineshape_norm_quadratic(VECTOR&       fac,
 			      const INDEX  nf)
 {
 
-  assert( fac.dim() == nf );
+  assert( fac.size() == nf );
 
   // don't do this for the whole loop
   Numeric f0_2 = f0 * f0;
@@ -1815,7 +1815,7 @@ ARRAY<LineshapeRecord> lineshape_data;
 void define_lineshape_data()
 {
   // Initialize to empty, just in case.
-  lineshape_data.resize(0);
+  resize(lineshape_data,0);
 
   lineshape_data.push_back
     (LineshapeRecord
@@ -1884,7 +1884,7 @@ ARRAY<LineshapeNormRecord> lineshape_norm_data;
 void define_lineshape_norm_data()
 {
   // Initialize to empty, just in case.
-  lineshape_norm_data.resize(0);
+  resize(lineshape_norm_data,0);
 
   lineshape_norm_data.push_back
     (LineshapeNormRecord

@@ -236,7 +236,8 @@ int main()
 	    for (ARRAY<size_t>::iterator k=vi.begin(); k<vi.end(); ++k)
 	      if ( *j == *k )
 		{
-		  erase_vector_element(vi,k.index());
+		  //		  erase_vector_element(vi,k.index());
+		  vi.erase(k);
 		}
 
 	  // There used to be a similar block here for the generic
@@ -480,7 +481,8 @@ int main()
 	    for (ARRAY<size_t>::iterator k=vi.begin(); k<vi.end(); ++k)
 	      if ( *j == *k )
 		{
-		  erase_vector_element(vi,k.index());
+		  //		  erase_vector_element(vi,k.index());
+		  vi.erase(k);
 		}
 
 	  // There used to be a similar block here for the generic
