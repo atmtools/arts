@@ -13,5 +13,5 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBDIRS=concept fm_definitions interpolation polarization ppath scattering 
+SUBDIRS=concept fm_definitions interpolation polarization ppath rte_theory scattering 
 
