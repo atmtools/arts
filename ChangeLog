@@ -1,3 +1,11 @@
+2002-12-17  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-62
+
+	* src/Makefile.am: Reintroduced BUILT_SOURCES to fix bug discovered
+	by Christian, removed special targets and explicit dependencies for
+	make_auto*.
+
 2002-12-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-61
