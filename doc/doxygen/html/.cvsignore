@@ -1,4 +1,5 @@
 *.gif
+*.png
 *.html
 Makefile
 Makefile.in
