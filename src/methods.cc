@@ -3083,8 +3083,8 @@ void define_md_data()
                                           e_ground_, t_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+	KEYWORDS("f_chunksize"),
+	TYPES(Index_t)));
 
   md_data.push_back
     ( MdRecord

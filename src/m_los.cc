@@ -1422,27 +1422,28 @@ void sourcetransyCalcSaveMemory(
                         const Matrix&          abs,
                         const Vector&          y_space,
                         const Vector&          e_ground,
-                        const Numeric&         t_ground )
+                        const Numeric&         t_ground,
+                        const Index&           f_chunksize)
 {
   // Some variables
   const Index   n=los.start.nelem();  // Number of zenith angles
   const Index   nf=f_mono.nelem();    // Number of frequencies
 
-  const Index chunksize = 1000;
+  assert (f_chunksize > 0);
 
   // make y the right size
   y.resize(  nf*n );
 
-  for (Index i = 0; i < nf / chunksize + 1; i++)
+  for (Index i = 0; i < nf / f_chunksize + 1; i++)
     {
       Index nf_local;
 
-      if (i * chunksize <= nf)
-        nf_local = chunksize;
+      if (i * f_chunksize <= nf)
+        nf_local = f_chunksize;
       else
-        nf_local = nf % (i * chunksize);
+        nf_local = nf % (i * f_chunksize);
 
-      Range r (i * chunksize, nf_local);
+      Range r (i * f_chunksize, nf_local);
 
       ConstVectorView f_monolocal (f_mono [r]);
       ConstVectorView e_groundlocal (e_ground [r]);
@@ -1497,7 +1498,7 @@ void sourcetransyCalcSaveMemory(
                    translocal, e_groundlocal, t_ground, j, j );
 
           // Move values to output vector
-          y[Range(i * chunksize + j * nf, nf_local)] = ylocal;
+          y[Range(i * f_chunksize + j * nf, nf_local)] = ylocal;
         }
     }
 
