@@ -6,7 +6,7 @@
 	now contains all workspace methods for calculating optical 
 	properties, not only the scattering properties.
 
-	* src/agebdas.cc (opt_prop_gas_agenda): Corrected input and output 
+	* src/agendas.cc (opt_prop_gas_agenda): Corrected input and output 
 	of this agenda.
 
 2002-11-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
