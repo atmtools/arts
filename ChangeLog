@@ -1,3 +1,10 @@
+2002-01-19  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-2
+
+	* src/methods.cc: Compile radiosonde functions only when
+	HDF support is activated.
+
 2002-01-18  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-1
