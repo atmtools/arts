@@ -1,3 +1,12 @@
+2003-03-06  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-486
+	
+	* src/xml_io.cc: Implemented reading/writing routines for
+	SingleScatteringData.
+
+	* src/test_xml.cc, src/test_binaryio.cc: Fixed warnings.
+
 2003-03-07  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-485
