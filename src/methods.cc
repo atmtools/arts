@@ -980,34 +980,26 @@ void define_md_data_raw()
          "   lstep.xml   : Distance along the path bewteen points.\n"
          "   endface.xml : Number coding of path end face.\n"
          "\n"
-         "Grid cell corner points are named as rx, where:\n"     
-         "   lower pressure surface : x=1 or x = 2 \n"
-         "   upper pressure surface : x=3 or x = 4 \n"
-         "   lower latitude (lat1)  : x=1 or x = 4 \n"
-         "   upper latitude (lat3)  : x=2 or x = 3 \n"
-	 "See also figure in AUG. Ground radii are named as the lower\n"
-	 "pressure surface.\n"
-	 "\n"
 	 "Keywords: \n"
          "   r_start   : Radius of start point.\n"
 	 "   lat_start : Latitude of start point.\n"
 	 "   za_start  : LOS zenith angle at start point.\n"
 	 "   lmax      : Maximum allowed length along the path. -1=no limit.\n"
-	 "   r1        : Radius of lower-left corner of the grid cell.\n"
-	 "   r2        : Radius of lower-right corner of the grid cell.\n"
-	 "   r3        : Radius of upper-right corner of the grid cell.\n"
-	 "   r4        : Radius of upper-left corner of the grid cell.\n"
 	 "   lat1      : Latitude of left end face of the grid cell.\n"
 	 "   lat3      : Latitude of right end face of the grid cell.\n"
+	 "   r1a       : Radius of lower-left corner of the grid cell.\n"
+	 "   r3a       : Radius of lower-right corner of the grid cell.\n"
+	 "   r3b       : Radius of upper-right corner of the grid cell.\n"
+	 "   r1b       : Radius of upper-left corner of the grid cell.\n"
 	 "   rground1  : Radius for the ground at *lat1*.\n"
-	 "   rground2  : Radius for the ground at *lat3*."
+	 "   rground3  : Radius for the ground at *lat3*."
         ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "r_start", "lat_start", "za_start", "lmax",    "r1",
-                  "r2",      "r3",        "r4",       "lat1",    "lat3",
+        KEYWORDS( "r_start", "lat_start", "za_start", "lmax",    "lat1",    
+                  "lat3",    "r1a",       "r3a",      "r3b",     "r1b",
                   "rground1", "rground2" ),
         TYPES(    Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
                   Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
@@ -1035,16 +1027,6 @@ void define_md_data_raw()
          "   lstep.xml   : Distance along the path bewteen points.\n"
          "   endface.xml : Number coding of path end face.\n"
          "\n"
-         "Grid cell corner points are named as rxy, where:\n"     
-         "   lower pressure surface : x=1 or x = 2 \n"
-         "   upper pressure surface : x=3 or x = 4 \n"
-         "   lower latitude (lat1)  : x=1 or x = 4 \n"
-         "   upper latitude (lat3)  : x=2 or x = 3 \n"
-         "   lower longitude (lon5) : y=a \n"
-         "   upper longitude (lon6) : y=b \n"
-	 "See also figure in AUG. Ground radii are named as the lower\n"
-	 "pressure surface.\n"
-         "\n"
 	 "Keywords: \n"
          "   r_start   : Radius of start point.\n"
 	 "   lat_start : Latitude of start point.\n"
@@ -1052,36 +1034,36 @@ void define_md_data_raw()
 	 "   za_start  : LOS zenith angle at start point.\n"
 	 "   aa_start  : LOS azimuth angle at start point.\n"
 	 "   lmax      : Maximum allowed length along the path. -1=no limit.\n"
-	 "   r1a       : Radius of one corner point (see above).\n"
-	 "   r2a       : Radius of one corner point (see above).\n"
-	 "   r3a       : Radius of one corner point (see above).\n"
-	 "   r4a       : Radius of one corner point (see above).\n"
-	 "   r1b       : Radius of one corner point (see above).\n"
-	 "   r2b       : Radius of one corner point (see above).\n"
-	 "   r3b       : Radius of one corner point (see above).\n"
-	 "   r4b       : Radius of one corner point (see above).\n"
 	 "   lat1      : Lower latitude.\n"
 	 "   lat3      : Upper latitude.\n"
 	 "   lon5      : Lower longitude.\n"
 	 "   lon6      : Upper longitude.\n"
-	 "   rground1a : Radius for the ground at *lat1* and *lon5*.\n"
-	 "   rground2a : Radius for the ground at *lat3* and *lon5*.\n"
-	 "   rground1b : Radius for the ground at *lat1* and *lon6*.\n"
-	 "   rground2b : Radius for the ground at *lat3* and *lon6*.  "
+	 "   r15a      : Radius at *lat1*, *lon5* and lower p-surface.\n"
+	 "   r35a      : Radius at *lat3*, *lon5* and lower p-surface.\n"
+	 "   r36a      : Radius at *lat3*, *lon6* and lower p-surface.\n"
+	 "   r16a      : Radius at *lat1*, *lon6* and lower p-surface.\n"
+	 "   r15b      : Radius at *lat1*, *lon5* and upper p-surface.\n"
+	 "   r35b      : Radius at *lat3*, *lon5* and upper p-surface.\n"
+	 "   r36b      : Radius at *lat3*, *lon6* and upper p-surface.\n"
+	 "   r16b      : Radius at *lat1*, *lon6* and upper p-surface.\n"
+	 "   rground15 : Radius for the ground at *lat1* and *lon5*.\n"
+	 "   rground35 : Radius for the ground at *lat3* and *lon5*.\n"
+	 "   rground36 : Radius for the ground at *lat3* and *lon6*.\n"
+	 "   rground16 : Radius for the ground at *lat1* and *lon6*.  "
         ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "r_start", "lat_start", "lon_start", "za_start", "aa_start",
-                  "lmax",    "r1a",       "r2a",       "r3a",      "r4a",
-                  "r1b",     "r2b",       "r3b",       "r4b",      "lat1",
-                  "lat3",    "lon5",      "lon6",  
-                  "rground1a", "rground2a", "rground1b", "rground2b" ),
+                  "lmax",    "lat1",      "lat3",      "lon5",      "lon6",  
+                  "r15a",    "r35a",      "r36a",      "r16a",
+                  "r15b",    "r35b",      "r36b",      "r16b",
+                  "rground15", "rground35", "rground36", "rground16" ),
         TYPES(    Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
                   Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
-                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
-                  Numeric_t, Numeric_t,   Numeric_t,
+                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t,
+                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t,
                   Numeric_t, Numeric_t,   Numeric_t,  Numeric_t  )));
 
   md_data_raw.push_back     

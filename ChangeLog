@@ -1,5 +1,19 @@
 2003-01-13  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-387
+
+	* src/ppath.cc: I had two parallel ways to number the corner points of
+	3D grid cells. Fixed. Also more stringent naming between 2D and 3D.
+
+	(psurface_crossing_3d): Fixed a bug that appeared when the radius
+	of pressure surfaces is not constant. I had been sloppy in checking 
+	such cases.
+	
+	(ppath_calc): Fixed a bug (hopefully) reported by Oliver (that went
+	through my compiler).
+
+2003-01-13  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-386
 
 	* src/ppath.cc (do_gridcell_3d): Some smaller improvements for 

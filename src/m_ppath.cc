@@ -188,14 +188,14 @@ void DoGridcell2D(
         const Numeric&   lat_start,
         const Numeric&   za_start,
         const Numeric&   lmax,
-        const Numeric&   r1,
-        const Numeric&   r2,
-        const Numeric&   r3,
-        const Numeric&   r4,
         const Numeric&   lat1,
         const Numeric&   lat3,
+        const Numeric&   r1a,
+        const Numeric&   r3a,
+        const Numeric&   r3b,
+        const Numeric&   r1b,
         const Numeric&   rground1,
-        const Numeric&   rground2 )
+        const Numeric&   rground3 )
 {
   const Numeric   ppc = geometrical_ppc( r_start, za_start );
 
@@ -204,7 +204,7 @@ void DoGridcell2D(
   Index     endface;
 
   do_gridcell_2d( r, lat, za, lstep, endface, r_start, lat_start, za_start, 
-                   ppc, lmax, r1, r2, r3, r4, lat1, lat3, rground1, rground2 );
+               ppc, lmax, lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3 );
 
   String filename;
 
@@ -241,22 +241,22 @@ void DoGridcell3D(
         const Numeric&   za_start,
         const Numeric&   aa_start,
         const Numeric&   lmax,
-        const Numeric&   r1a,
-        const Numeric&   r2a,
-        const Numeric&   r3a,
-        const Numeric&   r4a,
-        const Numeric&   r1b,
-        const Numeric&   r2b,
-        const Numeric&   r3b,
-        const Numeric&   r4b,
         const Numeric&   lat1,
         const Numeric&   lat3,
         const Numeric&   lon5,
         const Numeric&   lon6,
-        const Numeric&   rground1a,
-        const Numeric&   rground2a,
-        const Numeric&   rground1b,
-        const Numeric&   rground2b )
+        const Numeric&   r15a,
+        const Numeric&   r35a,
+        const Numeric&   r36a,
+        const Numeric&   r16a,
+        const Numeric&   r15b,
+        const Numeric&   r35b,
+        const Numeric&   r36b,
+        const Numeric&   r16b,
+        const Numeric&   rground15,
+        const Numeric&   rground35,
+        const Numeric&   rground36,
+        const Numeric&   rground16 )
 {
   const Numeric   ppc = geometrical_ppc( r_start, za_start );
 
@@ -265,9 +265,10 @@ void DoGridcell3D(
   Index     endface;
 
   do_gridcell_3d( r, lat, lon, za, aa, lstep, endface, r_start, lat_start, 
-                  lon_start, za_start, aa_start, ppc, lmax, r1a, r2a, r3a, r4a,
-                        r1b, r2b, r3b, r4b, lat1, lat3,  lon5, lon6, 
-                                  rground1a, rground2a, rground1b, rground2b );
+                  lon_start, za_start, aa_start, ppc, lmax, 
+                  lat1, lat3,  lon5, lon6, 
+                  r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
+                                  rground15, rground35, rground36, rground16 );
 
   String filename;
 
