@@ -173,7 +173,8 @@ void pha_mat_singleCalc(
                         Numeric aa_inc,
                         const ArrayOfSingleScatteringData& scat_data_mono,
                         const Index&          stokes_dim,
-                        const VectorView& pnd_vec     
+                        const VectorView& pnd_vec,
+			const Numeric& rte_temperature
                         );
 
 void ppathRecordMC(
@@ -195,7 +196,8 @@ void Sample_los (
                    const VectorView& pnd_vec,
                    const bool& anyptype30,
                    const VectorView& Z11maxvector,
-                   Numeric Csca
+                   Numeric Csca,
+		   const Numeric& rte_temperature
                    );
 
 void Sample_ppathlength (

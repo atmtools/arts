@@ -1,8 +1,24 @@
+2004-07-05  Cory Davis (rsh)   <cory@fog>
+
+	* arts-1-1-842
+
+	* src/montecarlo.{cc,h} ( Sample_los ): included rte_temperature
+	as an argument. (pha_matSingleCalc): included interpolation over
+	temperature and rte_temperature as an input argument. Also changed
+	so that phase matrix is only looked up and transformed if the pnd
+	value is non-zero. (findZ11max): search for maximum over all
+	temperature values
+
+	* src/m_montecarlo.{cc,h} (ScatteringMonteCarlo): changed call to Sample_los.
+
+	* src/m_optproperties.cc: Added runtime error for when
+	rte_temperature is outside SingleScatteringData.T_grid.
+
 2004-07-02  Cory Davis (rsh)   <cory@fog>
 
 	* arts-1-1-841
 
-	* src/xml_io_compound_types.cc (xml_read_from_stream (for
+	* src/xml_io_compound_types.cc (xml_read_from_stream) for
 	SingleScatteringData)): updated f_grid size check for new
 	size of pha_mat_data.
 

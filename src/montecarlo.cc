@@ -375,20 +375,20 @@ void findZ11max(Vector& Z11maxvector,
 {
   Index np=scat_data_mono.nelem();
   Z11maxvector.resize(np);
+
   for(Index i = 0;i<np;i++)
     {
-      //CE: Included 0 for T dimension
       switch(scat_data_mono[i].ptype){
       case PTYPE_MACROS_ISO:
         {
-          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,0,Range(joker),0,0,0,0));
+          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,0,0,0));
         }
       case PTYPE_HORIZ_AL:
         {
-          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,0,joker,0,joker,0,0));
+          Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,0,joker,0,0));
         }
       default:
-        Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,0,joker,joker,joker,joker,0));
+        Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,joker,joker,joker,0));
       }
     }
 }
@@ -742,7 +742,8 @@ void pha_mat_singleCalc(
                         Numeric aa_inc,
                         const ArrayOfSingleScatteringData& scat_data_mono,
                         const Index&          stokes_dim,
-                        const VectorView& pnd_vec 
+                        const VectorView& pnd_vec,
+			const Numeric& rte_temperature
                         )
 {
   Index N_pt=pnd_vec.nelem();
@@ -766,20 +767,50 @@ void pha_mat_singleCalc(
   Index za_inc_idx=0;
   Index aa_inc_idx=0;
   Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);
-
-
+  GridPos t_gp;
+  Vector itw(2);
   Z=0.0;
   // this is a loop over the different particle types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      //CE: Included 0 for T dimension
-      pha_matTransform(pha_mat_lab,scat_data_mono[i_pt].pha_mat_data(0,0,joker,joker,joker,joker,joker), 
-                       scat_data_mono[i_pt].za_grid, 
-                       scat_data_mono[i_pt].aa_grid,
-                       scat_data_mono[i_pt].ptype,scat_za_index, scat_aa_index, 
-                       za_inc_idx,aa_inc_idx, scat_za_grid, scat_aa_grid);
-      pha_mat_lab*=pnd_vec[i_pt];
-      Z+=pha_mat_lab;
+      if (pnd_vec[i_pt]>0)
+	{
+	  //need to interpolated over temperature
+	  Index pha_nshelves = scat_data_mono[i_pt].pha_mat_data.nshelves();  
+	  Index pha_nbooks = scat_data_mono[i_pt].pha_mat_data.nbooks();  
+	  Index pha_npages = scat_data_mono[i_pt].pha_mat_data.npages();  
+	  Index pha_nrows = scat_data_mono[i_pt].pha_mat_data.nrows();  
+	  Index pha_ncols = scat_data_mono[i_pt].pha_mat_data.ncols();  
+	  
+	  Tensor5 pha_mat_data1temp(pha_nshelves,pha_nbooks,pha_npages,pha_nrows,pha_ncols,0.0);
+	  //interpolate over temperature
+	  gridpos(t_gp, scat_data_mono[i_pt].T_grid, rte_temperature);
+	  interpweights(itw, t_gp);
+	  for (Index i_s = 0; i_s < pha_nshelves ; i_s++)
+	    {
+	      for (Index i_b = 0; i_b < pha_nbooks ; i_b++)
+		{
+		  for (Index i_p = 0; i_p < pha_npages ; i_p++)
+		    {
+		      for (Index i_r = 0; i_r < pha_nrows ; i_r++)
+			{
+			  for (Index i_c = 0; i_c < pha_ncols ; i_c++)
+			    {
+			      pha_mat_data1temp(i_s,i_b,i_p,i_r,i_c)=interp(itw,
+				 scat_data_mono[i_pt].pha_mat_data(0,joker,i_s,i_b,i_p,i_r,i_c),t_gp);
+			    }
+			}
+		    }
+		}
+	    }
+	  pha_matTransform(pha_mat_lab,pha_mat_data1temp, 
+			   scat_data_mono[i_pt].za_grid, 
+			   scat_data_mono[i_pt].aa_grid,
+			   scat_data_mono[i_pt].ptype,scat_za_index, scat_aa_index, 
+			   za_inc_idx,aa_inc_idx, scat_za_grid, scat_aa_grid);
+	  pha_mat_lab*=pnd_vec[i_pt];
+	  Z+=pha_mat_lab;
+	}
         
     }
 }
@@ -879,7 +910,8 @@ void Sample_los (
                    const VectorView& pnd_vec,
                    const bool& anyptype30,
                    const VectorView& Z11maxvector,
-                   Numeric Csca
+                   Numeric Csca,
+		   const Numeric& rte_temperature
                    )
 {
   Numeric Z11max=0;
@@ -901,7 +933,7 @@ void Sample_los (
       //The following is based on the assumption that the maximum value of the 
       //phase matrix for a given scattered direction is for forward scattering
       pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
-                         aa_scat,scat_data_mono,stokes_dim,pnd_vec);
+                         aa_scat,scat_data_mono,stokes_dim,pnd_vec,rte_temperature);
       Z11max=dummyZ(0,0);
     }  
   ///////////////////////////////////////////////////////////////////////  
@@ -914,7 +946,7 @@ void Sample_los (
         -180+new_rte_los[1]:180+new_rte_los[1];
       
       pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-                         aa_inc,scat_data_mono,stokes_dim,pnd_vec);
+                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,rte_temperature);
       
       if (rng.draw()<=Z(0,0)/Z11max)//then new los is accepted
         {

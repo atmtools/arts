@@ -1409,6 +1409,12 @@ void opt_prop_sptFromMonoData( // Output and Input:
       Index abs_ncols = scat_data_mono[i_pt].abs_vec_data.ncols();  
       Tensor3 ext_mat_data1temp(ext_npages,ext_nrows,ext_ncols,0.0);
       Tensor3 abs_vec_data1temp(abs_npages,abs_nrows,abs_ncols,0.0);
+      //Check that scattering data temperature range covers required temperature
+      ConstVectorView t_grid = scat_data_mono[i_pt].T_grid;
+      if ((rte_temperature<t_grid[0])||(rte_temperature>t_grid[t_grid.nelem()-1]))
+	{
+	  throw runtime_error("rte_temperature outside scattering data temperature range");
+	}
       //interpolate over temperature
       gridpos(t_gp, scat_data_mono[i_pt].T_grid, rte_temperature);
       interpweights(itw, t_gp);

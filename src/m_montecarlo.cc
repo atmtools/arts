@@ -458,7 +458,6 @@ void ScatteringMonteCarlo (
   Ppath ppathcloud;             //prop. path inside cloud box
   Numeric g;             //Probability density for pathlength sampling
   Numeric pathlength;           //\Delta s in ref1
-  Numeric temperature;          //thermodynamic temperature
   ArrayOfMatrix TArrayLOS;//array of evolution operators along 
                                 //original line of sight                
   ArrayOfMatrix TArray;//array of evolution operators for higher 
@@ -627,7 +626,7 @@ void ScatteringMonteCarlo (
             {
                //we have another scattering/emission point
               //Interpolate T, s_0, etc from ppath and Tarray
-              interpTArray(T, K_abs, temperature, K, rte_pos, rte_los, pnd_vec,
+              interpTArray(T, K_abs, rte_temperature, K, rte_pos, rte_los, pnd_vec,
                            pathlength_gp,TArray, 
                            ext_matArray,abs_vecArray, t_ppath, pnd_ppath,
                            cum_l_step,pathlength, 
@@ -639,7 +638,7 @@ void ScatteringMonteCarlo (
               if (rng.draw()>albedo)
                 {
                   //Calculate emission
-                  Numeric planck_value = planck( f_grid[f_index], temperature );
+                  Numeric planck_value = planck( f_grid[f_index], rte_temperature );
                   Vector emission=K_abs;
                   emission*=planck_value;
                   Vector emissioncontri(stokes_dim);
@@ -655,7 +654,7 @@ void ScatteringMonteCarlo (
                   
                   Sample_los (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
                               scat_data_mono,stokes_dim,
-                              pnd_vec,anyptype30,Z11maxvector,K(0,0)-K_abs[0]);
+                              pnd_vec,anyptype30,Z11maxvector,K(0,0)-K_abs[0],rte_temperature);
                                            
                   Z/=g*g_los_csc_theta*albedo;
                   
