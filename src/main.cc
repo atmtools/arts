@@ -614,7 +614,7 @@ int main (int argc, char **argv)
   extern const Parameters parameters; // Global variable that holds
                                       // all command line parameters. 
 
-  MPI_ONLY( mpi_startup (argc, argv); )
+  MPI_ONLY( mpi_manager.startup (argc, argv); )
 
   //---------------< 1. Get command line parameters >---------------
   if ( get_parameters(argc, argv) )
