@@ -16,8 +16,8 @@
 
 int main(void)
 {
-  Tensor3 extZ;
-  Matrix absvZ;
+  Tensor3 ext_mat_zee;
+  Matrix abs_vec_zee;
   Vector f_grid(1000);
  
   
@@ -25,10 +25,10 @@ int main(void)
     { 
       f_grid[i]=117.5 + 1000.*Numeric(i); //Numeric(i) - converts i in Numeric
     }
-  Zeeman(f_grid, extZ, absvZ );
+  Zeeman(f_grid, ext_mat_zee, abs_vec_zee );
 
  
 
-  xml_write_to_file("extZ.xml", extZ);
-  xml_write_to_file("absvZ.xml", absvZ);
+  xml_write_to_file("ext_mat_zee.xml", ext_mat_zee);
+  xml_write_to_file("abs_vec_zee.xml", abs_vec_zee);
 }

@@ -16,8 +16,8 @@
 
 
 void Zeeman (Vector& f_grid,
-	     Tensor3& ExtZ,
-	     Matrix& absvZ);
+	     Tensor3& ext_mat_zee,
+	     Matrix& abs_vec_zee);
  
 
 #endif 
