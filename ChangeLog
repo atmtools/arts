@@ -1,3 +1,10 @@
+2003-03-07  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-484
+		
+	* src/optproperties.h: Modified structure *SingleScatteringData* 
+	(see email to arts-dev mailing list).
+
 2003-03-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-483

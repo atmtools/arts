@@ -71,10 +71,9 @@ typedef enum{
 struct SingleScatteringData {
   PType     ptype;
   String    description;
-  Vector    za_grid_sca;
-  Vector    aa_grid_sca;
-  Vector    za_grid_inc;
-  Vector    aa_grid_inc;
+  Vector    f_grid;
+  Vector    za_grid;
+  Vector    aa_grid;
   Tensor6   pha_mat_data;
   Tensor4   ext_mat_data;
   Tensor4   abs_vec_data;
