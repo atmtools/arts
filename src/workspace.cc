@@ -410,6 +410,9 @@ void define_wsv_data()
 	&p));
   }
 
+
+  //--------------------< WF Stuff >--------------------
+  //                     ----------
   {
     static WsvPointer<ARRAYofMATRIX> p(&workspace.klos);
     wsv_data.push_back
@@ -420,6 +423,25 @@ void define_wsv_data()
 	&p));
   }
 
+  {
+    static WsvPointer<VECTOR> p(&workspace.k_grid);
+    wsv_data.push_back
+      (WsvRecord
+       ("k_grid",
+	"Grid for the weighting function matrix to be calculated.",
+	VECTOR_,
+	&p));
+  }
+
+  {
+    static WsvPointer<MATRIX> p(&workspace.k);
+    wsv_data.push_back
+      (WsvRecord
+       ("k",
+	"A weighting function matrix.",
+	MATRIX_,
+	&p));
+  }
 
   //  cout << "size = " << wsv_data.size() << '\n';
 }

@@ -47,13 +47,16 @@ extern const Numeric SUN_TEMP;
 
 
 //==========================================================================
-//=== Calculation help functions 
+//=== LOS help functions 
 //==========================================================================
 
+// UPWARD_GEOM
 // 
 // A help function to calculate LOS for upward observations.
 // No refraction.
 //
+// Patrick Eriksson 27.06.99
+
 void upward_geom(
               VECTOR&       z,
         const Numeric&      z_plat,
@@ -83,10 +86,13 @@ void upward_geom(
 
 
 
+// SPACE_GEOM
 // 
 // A function to calculate LOS for observations from space.
 // No refraction.
 //
+// Patrick Eriksson 27.06.99
+
 void space_geom(
                VECTOR&     z,
          const Numeric&    z_tan,
@@ -128,12 +134,17 @@ void space_geom(
 
 
 
-//
-//=== Sub-functions to losBasic =============================================
+//==========================================================================
+//=== Sub-functions to losBasic 
+//==========================================================================
+
+// LOS_NO_REFR_SPACE
 //
 // Observation from space, limb or nadir. 
 // No refraction.
 //
+// Patrick Eriksson 27.06.99
+
 void los_no_refr_space(
                     Los&        los,
               const Numeric&    z_plat,
@@ -162,10 +173,15 @@ void los_no_refr_space(
   }
 }
 
+
+
+// LOS_NO_REFR_INSIDE
 //
 // Observation from point inside the atmosphere, upward or downward.
 // No refraction.
 //
+// Patrick Eriksson 27.06.99
+
 void los_no_refr_inside(
                     Los&        los,
               const Numeric&    z_plat,
@@ -227,102 +243,16 @@ void los_no_refr_inside(
     }
   }
 }
-//=== End losGeneral =======================================================
-
-
-
-//
-// rte_iterate
-//
-void rte_iterate (
-             VECTOR&   y,
-       const int&      start_index,
-       const int&      stop_index,
-       const MATRIX&   Tr,
-       const MATRIX&   S,
-       const VECTOR&   y_space,
-       const int&      ground,
-       const VECTOR&   e_ground,
-       const VECTOR&   y_ground )
-{
-  const int   n_f = Tr.dim(1);               // number of frequencies
-        int   i_f, i_z;                      // indicies
-        int   i_break;                       // break index for looping
-        int   i_start, i_step;               // variables for second loop
-
-  // If LOS starts at ground, init. with Y_GROUND  
-  if ( start_index == 1 )
-    y = y_ground;
-
-  // If LOS starts in space, init with Y_SPACE
-  else
-    y = y_space;
-
-  // Check if LOS inside the atmosphere (if START_INDEX=0, Y=Y_SPACE)
-  if ( start_index > 0 )
-  {
-    // Determine break index for looping
-    if ( ground > 0 )
-      i_break = ground - 1;
-    else
-      i_break = 0;       
-
-    // Make first loop
-    for ( i_z=(start_index-1); i_z!=i_break; i_z-=1 ) 
-    {
-      for ( i_f=1; i_f<=n_f; i_f++ )    
-        y(i_f) = y(i_f) * Tr(i_f,i_z) + S(i_f,i_z) * ( 1.0-Tr(i_f,i_z) );
-    }
-
-    // We are now at the sensor, the ground or the tangent point
-    // We are ready only if we are at the sensor.
-    // If at sensor, we have that STOP_INDEX=1 and not GROUND
-    if ( !(stop_index==1 && !ground) )
-    {
-      // If at the ground, include ground reflection. 
-      // The loop can continue both downwards or upwards
-      if ( ground )
-      {            
-        for ( i_f=1; i_f<=n_f; i_f++ )    
-          y(i_f) = y(i_f)*(1.0-e_ground(i_f)) + y_ground(i_f)*e_ground(i_f);
-        
-        if ( ground == 1 )  // 1D case, loop upwards
-        {
-          i_start = 1;
-          i_step  = 1;
-          i_break = stop_index;
-	} 
-        else                // 2D case, loop downwards
-	{
-         i_start = ground - 1;
-         i_step  = -1;
-         i_break = 0;
-        }
-      }
-
-      // We are at a tangent point, loop upwards
-      else
-      {
-          i_start = 1;
-          i_step  = 1;
-          i_break = stop_index;        
-      }
-
-      // Make second loop
-      for ( i_z=i_start; i_z!=i_break; i_z+=i_step ) 
-      {
-        for ( i_f=1; i_f<=n_f; i_f++ )    
-          y(i_f) = y(i_f)*Tr(i_f,i_z) + S(i_f,i_z) * ( 1.0-Tr(i_f,i_z) );
-      }
-    } // second part
-  } // if any values
-}
 
 
 
 //==========================================================================
-//=== The methods
+//=== Workspace methods
 //==========================================================================
+
+// LOS1D
+//
+// Patrick Eriksson 22.05.00
 
 void los1d(
                     Los&        los,
@@ -384,6 +314,10 @@ void los1d(
 
 
 
+// LOS1DNOREFRACTION
+//
+// Patrick Eriksson 07.06.00
+
 void los1dNoRefraction(
                     Los&        los,
               const Numeric&    z_plat,
@@ -397,6 +331,10 @@ void los1dNoRefraction(
 }
 
 
+
+// LOS1DUPWARD
+//
+// Patrick Eriksson 07.06.00
 
 void los1dUpward(
                     Los&        los,
@@ -412,6 +350,11 @@ void los1dUpward(
   los1d( los, z_plat, view, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_plat); 
 }
 
+
+
+// SOURCE1D
+//
+// Patrick Eriksson 07.06.00
 
 void source1d(
                     ARRAYofMATRIX&   source,
@@ -446,6 +389,10 @@ void source1d(
 }
 
 
+
+// TRANS1D
+//
+// Patrick Eriksson 07.06.00
 
 void trans1d(
                     ARRAYofMATRIX&   trans,
@@ -486,6 +433,10 @@ void trans1d(
 
 
 
+// Y_SPACESTD
+//
+// Patrick Eriksson 07.06.00
+
 void y_spaceStd(
                     VECTOR&   y_space,
               const VECTOR&   f,
@@ -506,6 +457,10 @@ void y_spaceStd(
 
 
 
+// Y_SPACEPLANCK
+//
+// Patrick Eriksson 07.06.00
+
 void y_spacePlanck(
                     VECTOR&   y_space,
               const VECTOR&   f,
@@ -518,6 +473,10 @@ void y_spacePlanck(
 }
 
 
+
+// YRTE
+//
+// Patrick Eriksson 07.06.00
 
 void yRte (
                     VECTOR&          y,
@@ -553,7 +512,7 @@ void yRte (
   for ( size_t i=1; i<=n; i++ )
   {
     // Iteration is done in seperate function    
-    rte_iterate( y_tmp, los.start(i), los.stop(i), trans(i), 
+    rte( y_tmp, los.start(i), los.stop(i), trans(i), 
                  source(i), y_space, los.ground(i), e_ground, y_ground);
 
     // Move values to output vector
@@ -563,6 +522,11 @@ void yRte (
   }
 }
 
+
+
+// YRTENOGROUND
+//
+// Patrick Eriksson 07.06.00
 
 void yRteNoGround (
                     VECTOR&          y,
@@ -579,6 +543,11 @@ void yRteNoGround (
 }
 
 
+
+// YBL
+//
+// Patrick Eriksson 07.06.00
+
 void yBl (
                     VECTOR&          y,
               const Los&             los,   
@@ -590,7 +559,7 @@ void yBl (
   const size_t   nf=trans(1).dim(1);   // Number of frequencies 
         size_t   iy0=0;                // Reference index for output vector
         size_t   iy;                   // Frequency index
-        int      j;                    // LOS index
+        VECTOR   y_tmp;              // Temporary storage for spectra
 
   // Resize y and set to 1
   y.newsize(nf*n);
@@ -606,6 +575,36 @@ void yBl (
   // Loop viewing angles
   for ( size_t i=1; i<=n; i++ )
   {
+    // Iteration is done in seperate function    
+    bl( y_tmp, los.start(i), los.stop(i), trans(i), los.ground(i), e_ground );
+
+    // Move values to output vector
+    for ( iy=1; iy<=nf; iy++ )    
+      y(iy0+iy) = y_tmp(iy);
+    iy0 += nf;                    // update iy0
+  }
+}
+
+
+
+// YBLNOGROUND
+//
+// Patrick Eriksson 07.06.00
+
+void yBlNoGround (
+                    VECTOR&          y,
+              const Los&             los,   
+              const ARRAYofMATRIX&   trans )
+{
+  if ( any(los.ground) )  
+    throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
+
+  yBl( y, los, trans, VECTOR(0) );
+}
+
+
+/* Old code from yBl
+
     // Loop steps passed twice
     for ( j=1; j<los.stop(i); j++ )
     {
@@ -626,20 +625,7 @@ void yBl (
       for ( iy=1; iy<=nf; iy++ )    
         y(iy0+iy) *= ( 1.0 - e_ground(iy) );
     }
-
+   
     // Update iy0
-    iy0 += nf;   
-  }
-}
-
-
-void yBlNoGround (
-                    VECTOR&          y,
-              const Los&             los,   
-              const ARRAYofMATRIX&   trans )
-{
-  if ( any(los.ground) )  
-    throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
-
-  yBl( y, los, trans, VECTOR(0) );
-}
+    iy0 += nf;  
+*/   

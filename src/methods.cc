@@ -626,6 +626,10 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+//======================================================================
+//=== Weighting function (WF) methods
+//======================================================================
+
   md_data.push_back
     ( MdRecord
       ( NAME("klos1d"),
@@ -635,7 +639,19 @@ void define_md_data()
           "intensity with respect to the absorption at the LOS points.\n"
           "See further the ARTS user guide."),
 	OUTPUT( klos_ ),
-	INPUT( los_, source_, trans_, y_, f_abs_, e_ground_, t_ground_ ),
+	INPUT( los_, source_, trans_, y_, y_space_, f_abs_, e_ground_, t_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kSpecies1d"),
+  	DESCRIPTION(
+          "Calculates species weighting functions for 1D."),
+	OUTPUT( k_ ),
+	INPUT( los_, klos_, p_abs_, abs_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

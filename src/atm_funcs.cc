@@ -26,6 +26,10 @@ extern const Numeric BOLTZMAN_CONST;
 //=== Physical functions.
 //==========================================================================
 
+// PLANCK (matrix version)
+//
+// Patrick Eriksson 08.04.00
+
 void planck (
               MATRIX&     B, 
         const VECTOR&     f,
@@ -48,6 +52,12 @@ void planck (
   }
 }
 
+
+
+// PLANCK (vector version)
+//
+// Patrick Eriksson 08.04.00
+
 void planck (
              VECTOR&    B,
        const VECTOR&    f,
@@ -65,6 +75,10 @@ void planck (
 //=== Tangent altitudes.
 //==========================================================================
 
+// ZTAN_GEOM
+//
+// Patrick Eriksson 08.04.00
+
 Numeric ztan_geom(
         const Numeric&     view,
         const Numeric&     z_plat )
@@ -80,8 +94,190 @@ Numeric ztan_geom(
 
 
 //==========================================================================
+//=== Core functions for RTE and BL 
+//==========================================================================
+
+// RTE_ITERATE
+//
+// Patrick Eriksson 15.06.00
+
+void rte_iterate (
+             VECTOR&   y,
+       const int&      start_index,
+       const int&      stop_index,
+       const MATRIX&   Tr,
+       const MATRIX&   S,
+       const size_t    n_f )
+{
+        size_t   i_f;        // frequency index
+           int   i_z;        // LOS index
+           int   i_step;     // step order, -1 or 1
+
+  if ( start_index >= stop_index )
+    i_step = -1;
+  else
+    i_step = 1;
+
+  for ( i_z=start_index; i_z!=(stop_index+i_step); i_z+=i_step ) 
+  {
+    for ( i_f=1; i_f<=n_f; i_f++ )    
+      y(i_f) = y(i_f)*Tr(i_f,i_z) + S(i_f,i_z) * ( 1.0-Tr(i_f,i_z) );
+  }
+}
+
+
+
+// RTE
+//
+// Patrick Eriksson 22.05.00
+
+void rte (
+             VECTOR&   y,
+       const int&      start_index,
+       const int&      stop_index,
+       const MATRIX&   Tr,
+       const MATRIX&   S,
+       const VECTOR&   y_space,
+       const int&      ground,
+       const VECTOR&   e_ground,
+       const VECTOR&   y_ground )
+{
+  const int   n_f = Tr.dim(1);               // number of frequencies
+        int   i_f;                           // frequency index
+        int   i_break;                       // break index for looping
+        int   i_start;                       // variable for second loop
+
+  // If LOS starts at ground, init. with Y_GROUND  
+  if ( start_index == 1 )
+    y = y_ground;
+
+  // If LOS starts in space, init with Y_SPACE
+  else
+    y = y_space;
+
+  // Check if LOS inside the atmosphere (if START_INDEX=0, Y=Y_SPACE)
+  if ( start_index > 0 )
+  {
+    // Determine break index for looping
+    if ( ground > 0 )
+      i_break = ground;
+    else
+      i_break = 1;       
+
+    // Make first loop
+    rte_iterate( y, start_index-1, i_break, Tr, S, n_f );
+
+    // We are now at the sensor, the ground or the tangent point
+    // We are ready only if we are at the sensor.
+    // If at sensor, we have that STOP_INDEX=1 and not GROUND
+    if ( !(stop_index==1 && !ground) )
+    {
+      // Set most common values for I_START and I_BREAK
+      i_start = 1;
+      i_break = stop_index - 1;
+      
+      // If at the ground, include ground reflection. 
+      // The loop can continue both downwards or upwards
+      if ( ground )
+      {            
+        for ( i_f=1; i_f<=n_f; i_f++ )    
+          y(i_f) = y(i_f)*(1.0-e_ground(i_f)) + y_ground(i_f)*e_ground(i_f);
+        
+        if ( ground != 1 )  // 2D case, loop downwards
+	{
+         i_start = ground - 1;
+         i_break = 1;
+        }
+      }
+
+      // Make second loop
+      rte_iterate( y, i_start, i_break, Tr, S, n_f );
+
+    } // second part
+  } // if any values
+}
+
+
+
+// BL_ITERATE
+//
+// Patrick Eriksson 15.06.00
+
+void bl_iterate (
+             VECTOR&   y,
+       const int&      start_index,
+       const int&      stop_index,
+       const MATRIX&   Tr,
+       const size_t    n_f )
+{
+        size_t   i_f;        // frequency index
+           int   i_z;        // LOS index
+           int   i_step;     // step order, -1 or 1
+
+  if ( start_index >= stop_index )
+    i_step = -1;
+  else
+    i_step = 1;
+
+  for ( i_z=start_index; i_z!=(stop_index+i_step); i_z+=i_step ) 
+  {
+    for ( i_f=1; i_f<=n_f; i_f++ )    
+      y(i_f) *= Tr(i_f,i_z);
+  }
+}
+
+
+
+// BL
+//
+// Patrick Eriksson 22.05.00
+
+void bl (
+             VECTOR&   y,
+       const int&      start_index,
+       const int&      stop_index,
+       const MATRIX&   Tr,
+       const int&      ground,
+       const VECTOR&   e_ground )
+{
+  const int   nf = Tr.dim(1);          // number of frequencies
+  //        int   j;                       // LOS index   
+        int   iy;                      // frequency index
+
+  // Init Y
+  y.newsize(nf);
+  y = 1;
+
+  // Loop steps passed twice
+  if ( stop_index > 1 )
+  {
+    bl_iterate( y, 1, stop_index-1, Tr, nf );
+    y = emult( y, y );  
+  }
+
+  // Loop remaining steps
+  if ( start_index != stop_index )
+  {
+    bl_iterate( y, stop_index, start_index-1, Tr, nf );
+  }
+
+  // Include effect of ground reflection
+  if ( ground )
+  {
+    for ( iy=1; iy<=nf; iy++ )    
+      y(iy) *= ( 1.0 - e_ground(iy) );
+  }
+}
+
+
+
+//==========================================================================
 //=== Conversion and interpolation of pressure and altitude grids.
 //==========================================================================
+
+// Z2P
+//
+// Patrick Eriksson 10.04.00
 
 void z2p(
               VECTOR&     p,
@@ -93,13 +289,33 @@ void z2p(
 }
 
 
+
+// INTERPP (vector version)
+//
+// Patrick Eriksson 12.04.00
+
 void interpp(
               VECTOR&     x, 
         const VECTOR&     p0,
         const VECTOR&     x0,
         const VECTOR&     p )
 {
-  x = interp_lin( log(p0), x0, log(p) );
+  interp_lin( x, log(p0), x0, log(p) );
+}
+
+
+
+// INTERPP (matrix version)
+//
+// Patrick Eriksson 13.06.00
+
+void interpp(
+              MATRIX&  A,
+        const VECTOR&  p0, 
+        const MATRIX&  A0, 
+        const VECTOR&  p )
+{
+  interp_lin_row( A, log(p0), A0, log(p) );
 }
 
 

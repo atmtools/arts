@@ -51,7 +51,7 @@ public:
   VECTOR              	   view1;
   Numeric             	   z_plat;
   Numeric             	   l_step;
-  int                 	    refr;
+  int                 	   refr;
   Numeric             	   l_step_refr;
   VECTOR              	   refr_index;
   Numeric             	   z_ground;
@@ -62,7 +62,10 @@ public:
   ARRAYofMATRIX       	   trans;
   VECTOR              	   y_space;
   VECTOR              	   y;
+  //                  	   < WF stuff >
   ARRAYofMATRIX       	   klos;
+  VECTOR              	   k_grid;
+  MATRIX                   k;
 };
 
 

@@ -3,10 +3,9 @@
 //=== Physical functions.
 //==========================================================================
 
-/** Calculates the blackbody radiation (the Planck function).
+/** Calculates a blackbody radiation (the Planck function) matrix.
     Each row of the returned matrix corresponds to a frequency, while each
     column corresponds to a temperature.
-    A vector version, taking a single temperature, exists also.
 
     @param B       output: the blackbody radiation
     @param f       a frequency grid
@@ -17,6 +16,14 @@ void planck (
               MATRIX&     B, 
         const VECTOR&     f,
         const VECTOR&     t );
+
+/** Calculates the Planck function for a single temperature.
+
+    @param B       output: the blackbody radiation
+    @param f       a frequency grid
+    @param t       a temperature value
+
+    @author Patrick Eriksson 08.04.2000 */
 void planck (
               VECTOR&     B, 
         const VECTOR&     f,
@@ -43,12 +50,114 @@ Numeric ztan_geom(
 
 
 //==========================================================================
+//=== Core functions for RTE and BL 
+//==========================================================================
+
+/** Performs a single iteration for RTE calculations (one viewing angle).
+    The vector Y is not initilised, the obtained values are added to Y.
+    Note that only a single iteration is performed. The ground is not 
+    taken into account.     
+    This function can be used to calculate emission spectra for parts of
+    the atmosphere.
+        
+    @param y             output: the spectrum
+    @param start_index   start index for the integration
+    @param stop_index    stop index for the integration
+    @param Tr            transmission matrix
+    @param S             source function matrix
+    @param n_f           number of frequencies
+
+    @author Patrick Eriksson 15.06.2000 */
+void rte_iterate (
+             VECTOR&   y,
+       const int&      start_index,
+       const int&      stop_index,
+       const MATRIX&   Tr,
+       const MATRIX&   S,
+       const size_t    n_f );
+
+
+
+/** Performs the RTE calculations for one viewing angle.
+    This function allows calculation of emission spectra for single
+    viewing angles in function beside yRteXx.
+        
+    @param y             output: the spectrum
+    @param start_index   start index for the integration
+    @param stop_index    stop index for the integration
+    @param Tr            transmission matrix
+    @param S             source function matrix
+    @param y_space       intensity entering the atmosphre at start of LOS
+    @param ground        flag/index for ground intersection
+    @param e_ground      ground emissivity
+    @param y_ground      ground blackbody radiation 
+
+    @author Patrick Eriksson 22.05.2000 */
+void rte (
+             VECTOR&   y,
+       const int&      start_index,
+       const int&      stop_index,
+       const MATRIX&   Tr,
+       const MATRIX&   S,
+       const VECTOR&   y_space,
+       const int&      ground,
+       const VECTOR&   e_ground,
+       const VECTOR&   y_ground );
+
+
+/** Performs a single iteration for BL calculations (one viewing angle).
+    The vector Y is not initilised, Y is multiplied with the obtained values.
+    Note that only a single iteration is performed. The ground is not 
+    taken into account.     
+    This function can be used to calculate transmissions for parts of
+    the atmosphere.
+        
+    @param y             output: the spectrum
+    @param start_index   start index for the integration
+    @param stop_index    stop index for the integration
+    @param Tr            transmission matrix
+    @param S             source function matrix
+    @param n_f           number of frequencies
+
+    @author Patrick Eriksson 15.06.2000 */
+void bl_iterate (
+             VECTOR&   y,
+       const int&      start_index,
+       const int&      stop_index,
+       const MATRIX&   Tr,
+       const size_t    n_f );
+
+
+
+/** Performs the BL (transmission) calculations for one viewing angle.
+    This function allows calculation of transmission spectra for single
+    viewing angles in functions beside yBlXx.
+        
+    @param y             output: the spectrum
+    @param start_index   start index for the integration
+    @param stop_index    stop index for the integration
+    @param Tr            transmission matrix
+    @param ground        flag/index for ground intersection
+    @param e_ground      ground emissivity
+
+    @author Patrick Eriksson 22.05.2000 */
+void bl (
+             VECTOR&   y,
+       const int&      start_index,
+       const int&      stop_index,
+       const MATRIX&   Tr,
+       const int&      ground,
+       const VECTOR&   e_ground );
+
+
+
+//==========================================================================
 //=== Conversion and interpolation of pressure and altitude grids.
 //==========================================================================
 
 /** Converts an altitude vector to pressures.
-    The log. of the pressures are interpolated linearly, 
-    i.e. (Matlab notation):
+    The log. of the pressures are interpolated linearly.
+    In Matlab notation:
 
       p = exp(interp1(z0,log(p0),z,'linear'))
 
@@ -68,7 +177,7 @@ void z2p(
     A linear interpolation using log. pressure is applied.
     In Matlab notation, the following expression is used:
 
-      p = interp1(log(p0),x,log(p)'linear')
+      p = interp1(log(p0),x,log(p),'linear')
 
     @param x       output: the interpolated values at p
     @param p0      original pressure grid
@@ -82,3 +191,21 @@ void interpp(
         const VECTOR&     x0,
         const VECTOR&     p );
 
+/** Interpolates a matrix, such as an absorption matrix, at a new 
+    set of pressures.
+    A linear interpolation using log. pressure is applied.
+    In Matlab notation, the following expression is used:
+
+      A = interp1(log(p0),A0,log(p),'linear')
+
+    @param A       output: the interpolated values at p
+    @param p0      original pressure grid
+    @param A0      the matrix to be interpolated
+    @param p       new pressure grid
+
+    @author Patrick Eriksson 13.06.2000 */
+void interpp(
+              MATRIX&  A,
+        const VECTOR&  p0, 
+        const MATRIX&  A0, 
+        const VECTOR&  p );

@@ -1,3 +1,27 @@
+2000-06-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-31
+
+	* A first version of species WFs is ready. All observation geometries
+ 	are handled, but ground intersections are not yet considered. 
+        The function cover so far only the case when all the absorption is 
+	created by a single species. The WFs are returned normalised to the 
+	a priori profile. Other units will be implemented when the absorption
+	part is ready.
+	Some first tests have been performed but no extensive bug checks have
+	been done. So be aware.
+
+	* New workspace variables: k_grid, k
+	  New methods: kSpecies1d
+
+	* My AUG parts are also updated and do now match the source code (for 
+	the implemented parts). 
+
+	* The RTE and BL core iteration is now found in seperate functions. 
+	This should faciliate the future use, for single scattering etc.
+
+	* INTERPP now also in matrix-row version.
+
 2000-06-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-30

@@ -253,7 +253,7 @@ discussed separately (Sec. \ref{sec:sensor}).
 
  The effect of a ground reflection is modelled as
  \begin{equation}
-   I^{after} = I^{before}(1-e) + eB(\f,T_ground)
+   I^{after} = I^{before}(1-e) + eB(\f,T_{ground})
   \label{eq:rte:ground}
  \end{equation} 
  where $e$ is the ground emission factor and $I^{before}$ and
@@ -289,6 +289,7 @@ discussed separately (Sec. \ref{sec:sensor}).
  The ground is considered as
  \begin{equation}
    \zeta_{i+1}^{tot} = (1-e)\prod_{i=1}^{n-1}\zeta_{i}
+  \label{eq:rte:tground}
  \end{equation} 
  where $e$ is the ground emission factor.
  
