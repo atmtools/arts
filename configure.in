@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.30)
+AM_INIT_AUTOMAKE(arts,1.1.31)
 
 
 #
@@ -114,6 +114,9 @@ esac],[ ac_numeric_type=double ])
 
 AC_MSG_RESULT(Setting floating-point type to $ac_numeric_type)
 AC_DEFINE_UNQUOTED(NUMERIC, $ac_numeric_type, Default floating-point type)
+if test x$ac_numeric_type = xdouble; then
+  AC_DEFINE_UNQUOTED(USE_DOUBLE,, Whether double precision is in use)
+fi
 
 
 #
@@ -231,7 +234,7 @@ AC_ARG_ENABLE(more-warnings,
   yes) ac_more_warnings=yes ;;
    no) ac_more_warnings=no ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-more-warnings) ;;
-esac],[ ac_more_warnings=no ])
+esac],[ ac_more_warnings=$ac_maintainer_mode ])
 AC_MSG_RESULT([$ac_more_warnings])
 
 
