@@ -34,7 +34,7 @@ automake --add-missing --copy --gnu
 
 
 if test "`hostname | grep smiles`"; then
-    ARTS_DATA_PATH="--with-arts-data=/pool/lookup2/arts-data"
+    ARTS_DATA_PATH="--with-arts-xml-data=/usr/share/arts-xml-data --with-arts-data=/usr/share/arts-data"
 else
     ARTS_DATA_PATH=
 fi
