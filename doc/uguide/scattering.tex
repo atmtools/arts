@@ -1089,11 +1089,37 @@ of the RTE.  The method picks only the monochromatic radiation field
 corresponding to the actual frequency out of the variables
 \wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
 \wsvindex{scat\_i\_lon}. Output of the method is the initial field 
-which is stored in the workspace variable
+stored in the workspace variable \wsvindex{i\_field}.  The dimension
+of i\_field is
 \begin{center}
  \wsvindex{i\_field} = \wsvindex{i\_field} (\Prs, \Lat, \Lon, \ScaZa,
 \ScaAa, i$_I$). 
 \end{center}
+It has to be noted that i\_field is defined only in the cloud box. So
+the size of i\_field is 
+\begin{center}
+ \artsstyle{i\_field} = \artsstyle{i\_field}  \artsstyle{( \\
+   (cloudbox\_limits[1] - cloudbox\_limits[0]) +1,  \\
+             (cloudbox\_limits[3] - cloudbox\_limits[2]) +1, \\
+             (cloudbox\_limits[5] - cloudbox\_limits[4]) +1,  \\
+              $N_{Za}$, $N_{Aa}$, $N_I)$) }\\
+\end{center}
+
+The first three gives the sizes of the pressure grid, latitude grid
+and longitude grid respectively inside the cloud box. $N_{Za}$ and
+$N_{Aa}$ gives the size of the zenith and azimuth angle grids and
+$N_I)$ gives the stokes dimension.  
+
+The workspace method \wsmindex{i\_fieldSet} is implemented in such
+a way that the method should be able to adapt itself for 1D or 3D
+atmosphere.  Only the 1D atmosphere case is in proper shape now. In
+this case the main input is the interface field \artsstyle{scat\_i\_p},
+the pressure grid \artsstyle{p\_grid}, the frequency grid
+\artsstyle{f\_grid} and frequency index \artsstyle{scat\_f\_index} and
+ofcourse the \artsstyle{cloudbox\_limits}.  An interpolation of
+\artsstyle{scat\_i\_p} which is defined only at the
+\artsstyle{cloudbox\_limits} to all points inside the cloud box is
+done to get the initial field, \artsstyle{i\_field}. 
 
 
 \leveld{Iteration}

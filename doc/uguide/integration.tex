@@ -1,0 +1,109 @@
+\levela{Integration functions}
+%--------------------------------------------------------------------------
+\label{sec:integration}
+
+\starthistory
+  220802 & Created and written by Sreerekha T.R.\\
+\stophistory
+
+%
+% Introduction
+%
+A radiative transfer model which takes into account the effect of
+scattering involves integration of certain quantities over the angles
+of observation.  For example, from Sections
+\ref{sec:scattering:solution_rte} and
+\ref{sec:scattering:abs_vec_spt} it is clear that computing  
+scattering cross-section  and scattering integral term requires
+integration over zenith and azimuth directions. There are a wide range of
+methods that can be used for numerical integration. They can be used
+depending on various factors starting from how accurate the result
+should be to the behaviour of the function. The one which is
+implemented in ARTS is the trapezoidal integration method. 
+
+
+\levelb{Implementation files}
+%-------------------------------------------------------------------------
+\label{sec:integration:files}
+
+The integration functions can be found in the files:
+\begin{itemize}
+\item \artsstyle{math\_funcs.h}
+\item \artsstyle{math\_funcs.cc}
+\end{itemize}
+The implementation function \artsstyle {AngIntegrate\_trapezoid}is
+discussed in the second file. 
+
+\levelb{Trapezoidal Integration}
+%------------------------------------------------------------------------
+\label{sec:integration:trapezoidal}
+
+Trapezoidal Integration method comes under the Newton-Cotes formulas
+where integration of a function is approximated by the area under the
+curve described by the function.  Trapezoidal integration assumes that
+the area under the curve is trapezoid.  
+
+Trapezoidal rule : 
+\begin{eqnarray}
+\label{eq:trapezoidal_rule}
+{\int_{x_1}^{x_2} f(x)dx}  = \frac{1}{2} h (f_1 + f_2) + O(h^3 f^{''})
+\end{eqnarray}
+This is a two-point formula ($x_1$ and $x_2$).  It is exact for
+polynomials upto and including degree 1, i.e., f(x) = x. $O(h^3
+f^{''})$ signifies how far is the true answer from the estimate. 
+
+If we use eq. \ref{eq:trapezoidal_rule} $N - 1$ times, to do the
+integration in the intervals $(x_1, x_2)$,  $(x_2, x_3)$, ...,
+$(x_{N-1}, x_N)$, and then add the results, we obtain extended formula
+for the integral from $x_1$ to $x_N$.
+
+Extended Trapezoidal rule :
+\begin{eqnarray}
+\label{eq:ext_trapezoidal_rule}
+{\int_{x_1}^{x_N} f(x)dx}  = \frac{1}{2} h \left [f_1 + 2(f_2 + f_3 +
+... +f_{N-1})+f_N \right] + O\left [ \frac {(b-a)^3 f^{''}}{N^2} \right]
+\end{eqnarray}
+
+The last term tells how much the error will be decreased by taking
+more number of steps. 
+
+\levelb{Solid Angle Integration}
+%------------------------------------------------------------------------
+\label{sec:integration:solid_angle}
+In our scattering problem, we are often encountered with a double integration
+of functions over zenith and azimuth angles (see Chapter
+\ref{sec:scattering}).  One way to achieve
+double integration is to use repeated
+one-dimensional trapezoidal integration.  This is effective of course
+only if the boundary is simple and the function is very smooth.  If
+the function is strongly peaked and if know where it occurs, integral
+should be broken into smaller regions so that the 
+integrand is smooth in each.  Another thing is to take into account
+the symmetry of the function as well as the boundary. For example in
+our case, if the radiation is symmetric about the azimuth, the
+integration in that direction returns constant value of $2 \pi$ and we
+need to do only integration over zenith directions.  
+
+The function takes in as input the integrand and the angles over which
+the integration has to be done. For example in this case it can be the
+zenith and azimuth angle
+grid.
+\begin{verbatim}  
+Numeric AngIntegrate_trapezoid(MatrixView Integrand,
+                               ConstVectorView za_grid,
+                               ConstVectorView aa_grid)
+\end{verbatim}
+The integrand has the same number of rows as zenith angle grid
+and columns as azimuth angle grid.  The inner loop does trapezoidal
+integration of the integrand over all azimuth angles and the result is
+stored in a Vector  res1[i]. Note that the integrand at every point
+has to be multiplied with \artsstyle {sin (za\_grid[i] * DEG2RAD)}
+since we are integrating over solid angles.  The outer loop 
+does an integration of res1[i] over all zentih angles.  The result of
+this is returned back to the calling function.  
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
