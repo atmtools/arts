@@ -37,7 +37,7 @@ do
              ;;
          "Workspace method = "*)
              echo "$j" \
-              | sed "s/^Workspace method = \(.*\)$/\\levelb{\1}/" \
+              | sed "s/^Workspace method = \(.*\)$/\\\levelb{\1}/" \
               | sed "s/_/\\\_/g"
              ;;
          --------------------------------------------*)
