@@ -16,7 +16,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.246)
+AM_INIT_AUTOMAKE(arts,1.1.247)
 
 
 #
@@ -342,14 +342,6 @@ AC_OUTPUT([
 arts.spec
 Makefile 
    ami/Makefile 
-      ami/arts/Makefile
-      ami/file/Makefile
-      ami/general/Makefile
-      ami/hmatrix/Makefile 
-      ami/math/Makefile
-      ami/physics/Makefile
-      ami/plot/Makefile
-      ami/retrieval/Makefile
    aii/Makefile 
    doc/Makefile 
    doc/index.html
