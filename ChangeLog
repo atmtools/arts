@@ -1,3 +1,82 @@
+2002-11-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-297
+
+	* src/workspace.cc: Included variable for scalar gas absorption
+	*abs_scalar_gas* and frequency index *f_index*.
+	Modified WSVs *ext_mat* and *abs_vec*.
+	Removed *ext_mat_gas*, *ext_mat_part*, *abs_vec_gas*, abs_vec_part*.
+	Removed also *scat_f_index*. This variable is replaced by *f_index*.
+	Included and removed entries for agendas (see agenda.cc).
+
+	* src/methods.cc: Added:
+		- ext_matAddGas
+		- ext_matAddPart
+		- abs_vecAddGas
+		- abs_vecAddPart
+	Removed: 
+		- ext_mat_partCalc
+		- abs_vec_partCalc
+		- ext_mat_gasCalc
+		- abs_vec_gasCalc
+		- ext_mat_partScat
+		- ext_mat_gasExample // Commented out the examples, may be we 
+		- abs_vec_gasExample // can use them again.
+	
+	* src/agendas.cc: Added: 
+		- scalar_gas_absorption_agenda
+	        - opt_prop_gas_agenda
+		- opt_prop_part_agenda
+	Removed:
+		- ext_mat_agenda
+		- abs_vec_agenda
+	
+	* src/m_scatrte.cc: Modified the (i_fieldIterate) and (i_fieldUpdate1D)
+	according to the new variable definitions and new agenda definitions.
+	Moved (stokes_vecGeneral) and (stokes_vecScalar) to the new file
+	scat.rte.cc. These methods are ordinary functions now.
+	*scat_rte_agenda* which can use only these functions, will be removed.
+	Replaced *scat_f_index* by *scat_index*.
+	
+	* src/m_cloudbox.cc: Replaced *scat_f_index* by *scat_index*.
+
+	* src/m_scatproperties.cc:
+ 	Added:
+		- ext_matAddGas
+		- abs_vecAddGas
+		These methods are only dummy functions, as the method
+		scalar_gas_absExtractFromLookup is not yet implemented.
+	
+		- ext_matAddPart	
+		- abs_vecAddPart
+		These are only slightly modified versions of the former 
+		methods *ext_mat_partCalc* and *abs_vec_partCalc*.
+		
+	Removed:
+		- ext_mat_partCalc
+		- abs_vec_partCalc
+		- ext_mat_gasCalc
+		- abs_vec_gasCalc
+		These methods are replaced by the new method.
+	
+		- ext_mat_partScat
+		This method was only used for the convergence test. I think
+		we do not need it anymore. It does not work with the 
+		modified variables, so I commented it out.
+	
+		- ext_mat_gasExample 
+		- abs_vec_gasExample 
+		Commented out the Examples. They also have to be modified if 
+		they should work with the new variables.
+
+	* src/scat_rte.cc/h: This file contains now the functions
+	for a radiative step calculation with scattering integral term. 
+
+	* src/Makefile.am: Included scat_rte.cc/h.
+
+	* src/rte.cc: Included "scat_rte.h".
+	
+
 2002-11-20  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-296
