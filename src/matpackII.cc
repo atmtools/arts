@@ -16,6 +16,7 @@
    USA. */
 
 #include <vector>
+#include <iostream>
 #include <algorithm>
 #include <set>
 #include "matpackI.h"
