@@ -5,14 +5,15 @@ tgsDefine{
       [ 
         "H2O-SelfContStandardType",
         "H2O-ForeignContStandardType",
-        "H2O-ContMPM93",
+        "H2O-ForeignContMaTippingType",  
+	"H2O-ContMPM93",
         "O2-SelfContStandardType",
         "N2-SelfContStandardType",
         "N2-SelfContMPM93",
 	"N2-SelfContBorysow",
         "CO2-SelfContPWR93",
         "CO2-ForeignContPWR93"
-      ] 
+      ]
 }
 #----------------------------------------------------
 # initialize the continua tag structures
@@ -35,6 +36,13 @@ cont_descriptionAppend{
 cont_descriptionAppend{
     tagname        = "H2O-ForeignContStandardType"
     model          = "Rosenkranz"
+    userparameters = [ ]
+}
+#
+# Ma Tipping Continuum model
+cont_descriptionAppend{
+    tagname        = "H2O-ForeignContMaTippingType"
+    model          = "MaTipping"
     userparameters = [ ]
 }
 #

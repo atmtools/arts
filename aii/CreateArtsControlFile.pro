@@ -49,8 +49,9 @@ END
 ;
 ; **************************************************************************
 ; 
-PRO list_arts_tag, path=path, ilevel=ilevel
+PRO list_arts_tag, path=path, ilevel=ilevel, ok=ok
 ;
+ok = 1
 ;
 ; ---- SET DEGREE OF COMMENTS ---------------------------------------
 IF NOT KEYWORD_SET(ilevel) THEN ilevel = 0 
@@ -61,16 +62,30 @@ IF NOT KEYWORD_SET(ilevel) THEN ilevel = 0
 ; ---- CHECKS FOR TEMPORARY FILE ------------------------------------
 path  = STRCOMPRESS(path, /REMOVE_ALL) ; remove whitespace
 if (STRMID(path, STRLEN(path)-1, 1) NE '/') THEN path=path+'/'
-spawn, 'rm -f temp_arts_file.txt'
-spawn, 'egrep -w NAME\|REC '+path+'src/species_data.cc >> temp_arts_file.txt'
+;
+t = FINDFILE('temp_spec_arts_file.txt', COUNT=nfiles)
+if ( nfiles EQ 1 ) then begin
+    print,'list_arts_tag> take existing file >temp_spec_arts_file.txt<'
+endif else begin
+;    spawn, 'rm -f temp_arts_file.txt'
+    t = FINDFILE(path+'src/species_data.cc', COUNT=nfiles)
+    if ( nfiles EQ 1 ) then begin
+        spawn, 'egrep -w NAME\|REC '+path+'src/species_data.cc >> temp_spec_arts_file.txt'
+    endif else begin
+        print, 'list_arts_tag> could not find arts file >species_data.cc<!'
+        print, '               abort now!'
+        return
+    endelse
+endelse
 ;
 ;
 ; ---- OPEN FILE FOR READING ----------------------------------------
-openr, unit, 'temp_arts_file.txt', error=err, /get_lun
+openr, unit, 'temp_spec_arts_file.txt', error=err, /get_lun
 IF err NE 0 THEN BEGIN
-    print,'list_arts_tag> !!! ERROR: can not open file >>temp_arts_file.txt<<'
+    print,'list_arts_tag> !!! ERROR: can not open file >>temp_spec_arts_file.txt<<'
     print,'list_arts_tag> !!! >>> please check the directory and file names! STOP!'
-    FREE_LUN, unit & stop
+    ok = 4
+    FREE_LUN, unit & return
 ENDIF
 ;
 ; ---- COMMON BLOCK FOR ARTS TAG INFO -------------------------------
@@ -103,6 +118,11 @@ ENDWHILE
 FREE_LUN, unit
 ;
 ; ---- RESIZE THE ARRAYS --------------------------------------------
+if (i LT 1) then begin
+    print,'list_arts_tag> !!! ERROR: no tags found in file >>temp_arts_file.txt<<'
+    print,'               found tags:',i
+    RETURN
+endif
 NAMES = NAMES[0:i]
 ISO   = ISO[0:i,0:N_ELEMENTS(ISO[0,*])-1]
 ;
@@ -145,15 +165,30 @@ list_arts_tag_jump_print:
 ; ---- CHECKS FOR TEMPORARY FILE ------------------------------------
 path  = STRCOMPRESS(path, /REMOVE_ALL) ; remove whitespace
 if (STRMID(path, STRLEN(path)-1, 1) NE '/') THEN path=path+'/'
-spawn, 'rm -f temp_arts_file.txt'
-spawn, 'egrep CONTAGMODINFO '+path+'src/continua.cc >> temp_arts_file.txt'
+;
+t = FINDFILE('temp_cont_arts_file.txt', COUNT=nfiles)
+if ( nfiles EQ 1 ) then begin
+    print,'list_arts_tag> take existing file >temp_cont_arts_file.txt<'
+endif else begin
+;    spawn, 'rm -f temp_cont_arts_file.txt'
+    t = FINDFILE(path+'src/continua.cc', COUNT=nfiles)
+    if ( nfiles EQ 1 ) then begin
+        spawn, 'egrep CONTAGMODINFO '+path+'src/continua.cc >> temp_cont_arts_file.txt'
+    endif else begin
+        print, 'list_arts_tag> could not find arts file >continua.cc<!'
+        print, '               abort now!'
+        return
+    endelse
+endelse
+;
 ;
 ; ---- OPEN FILE FOR READING ----------------------------------------
-openr, unit, 'temp_arts_file.txt', error=err, /get_lun
+openr, unit, 'temp_cont_arts_file.txt', error=err, /get_lun
 IF err NE 0 THEN BEGIN
     print,'list_arts_tag> !!! ERROR: (2) can not open file >>temp_arts_file.txt<<'
     print,'list_arts_tag> !!! >>> please check the directory and file names! STOP!'
-    FREE_LUN, unit & stop
+    ok = 5
+    FREE_LUN, unit & return
 ENDIF
 ;
 ; ---- READ DATA FILE LINE BY LINE ----------------------------------
@@ -200,6 +235,7 @@ ARTSTAGINFO_TGM = TAGS
 ARTSTAGINFO_MOD = MODELS
 ;
 ; ---- END OF PROCEDURE ---------------------------------------------
+ok = 0
 list_arts_tag_end:
 END
 ;
@@ -378,9 +414,10 @@ END
 ;
 ; **************************************************************************
 ; 
-FUNCTION write_arts_control_file_contdescription, unit, tags, $
-                                                  models, $
-                                                  userparameters
+FUNCTION write_arts_control_file_contdescription, unit, tags,     $
+                                                  models,         $
+                                                  userparameters, $
+                                                  tag_up_n
 ;
 ; ---- SET OUTPUT FLAG -----------------------------
 flag = 1
@@ -405,8 +442,10 @@ ENDIF
 COMMON ARTSTAGINFO, ARTSTAGINFO_NAMES, ARTSTAGINFO_ISO, $
                     ARTSTAGINFO_TGM, ARTSTAGINFO_MOD
 ;
+; ---- WRITE INIT IN ANY CASE ----------------------
+printf, unit,'cont_descriptionInit{}'
+
 ; ---- CHECK ALL TAGS ------------------------------
-single = 0
 ntags = N_ELEMENTS(tags)
 FOR i = 0,ntags-1 DO BEGIN
 ;   make sure that this is a tag with an explicite isotope name
@@ -438,15 +477,11 @@ FOR i = 0,ntags-1 DO BEGIN
             ENDFOR
 ;
 ;       ---- WRITE TAG INFO INTO OUTPUT FILE -------------
-            if (single EQ 0) THEN BEGIN
-                printf, unit,'cont_descriptionInit{}'
-                single = 1      ; just write it once
-            ENDIF
             printf, unit, 'cont_descriptionAppend{'
             printf, unit, '    tagname        = "'+tags[i]+'"'
             printf, unit, '    model          = "'+models[i]+'"'
             IF (models[i] EQ 'user') THEN BEGIN
-                up = userparameters[*,i]
+                up = userparameters[0:tag_up_n[i]-1,i]
                 ps = string(up) ; array of strings
                 p = ' '
                 FOR n = 0, N_ELEMENTS(ps)-1 DO BEGIN
@@ -490,7 +525,7 @@ END
 ;
 ; **************************************************************************
 ; 
-FUNCTION write_arts_control_file_lineshape, unit, tags, lineshapes
+FUNCTION write_arts_control_file_lineshape, unit, tags, lineshapes, mirrorline
 ;
 ; ---- SET OUTPUT FLAG -----------------------------
 flag = 1
@@ -554,7 +589,8 @@ ENDFOR
 printf, unit, '                          ]'
 printf, unit, '}'
 ;
-;
+IF (STRLOWCASE(mirrorline) eq 'yes') then $
+  printf, unit, 'lines_per_tgAddMirrorLines{}' ;
 ; ---- SETOUTPUT FLAG ------------------------------
 flag = 0
 ;
@@ -716,31 +752,33 @@ END
 ;
 ; **************************************************************************
 ; 
-PRO CreateArtsControlFile, flag=flag, $
-                           debug=debug, $
-                           artsjobpath=artsjobpath, $
-                           artspath=artspath, $
-                           controlfile=controlfile, $
-                           tags=tags, $
-                           tag_models=tag_models, $
+PRO CreateArtsControlFile, flag=flag,                             $
+                           debug=debug,                           $
+                           artsjobpath=artsjobpath,               $
+                           artspath=artspath,                     $
+                           controlfile=controlfile,               $
+                           tags=tags,                             $
+                           tag_models=tag_models,                 $
                            tag_userparameters=tag_userparameters, $
-                           catname=catname, $
-                           catformat=catformat, $
-                           catfmin=catfmin, $
-                           catfmax=catfmax, $
-                           lineshapes=lineshapes,$
-                           frangemin=frangemin, $
-                           frangemax=frangemax, $
-                           frangesteps=frangesteps, $
-                           frangefile=frangefile, $
-                           ptzfile=ptzfile, $
-                           vmrtagnames=vmrtagnames, $
-                           vmrfilenames=vmrfilenames,$ 
-                           vmrbasename=vmrbasename, $
-                           vmrscenarioname=vmrscenarioname, $
-                           prangemin=prangemin, $
-                           prangemax=prangemax, $
-                           prangesteps=prangesteps, $
+                           tag_up_n=tag_up_n,                     $
+                           catname=catname,                       $
+                           catformat=catformat,                   $
+                           catfmin=catfmin,                       $
+                           catfmax=catfmax,                       $
+                           lineshapes=lineshapes,                 $
+                           mirrorline=mirrorline,                 $
+                           frangemin=frangemin,                   $
+                           frangemax=frangemax,                   $
+                           frangesteps=frangesteps,               $
+                           frangefile=frangefile,                 $
+                           ptzfile=ptzfile,                       $
+                           vmrtagnames=vmrtagnames,               $
+                           vmrfilenames=vmrfilenames,             $ 
+                           vmrbasename=vmrbasename,               $
+                           vmrscenarioname=vmrscenarioname,       $
+                           prangemin=prangemin,                   $
+                           prangemax=prangemax,                   $
+                           prangesteps=prangesteps,               $
                            prangefile=prangefile
 ;
 ; ---- SET DEGREE OF COMMENTS -----------------------------
@@ -808,9 +846,10 @@ ENDIF
 ;
 ; c) special tag information
 IF (debug GT 2) THEN print, ' CreateArtsControlFile> write special tag information in arts control file'
-IF (write_arts_control_file_contdescription(funit, tags, $
-                                            tag_models, $
-                                            tag_userparameters) NE 0) THEN BEGIN
+IF (write_arts_control_file_contdescription(funit, tags,        $
+                                            tag_models,         $
+                                            tag_userparameters, $
+                                            tag_up_n) NE 0) THEN BEGIN
     print,' CreateArtsControlFile> ERROR: tag information can not be writen into output file!'
     FREE_LUN, funit & STOP
 ENDIF
@@ -825,7 +864,7 @@ IF (KEYWORD_SET(catname)) THEN BEGIN
     ENDIF ELSE BEGIN
         printf, funit, 'lines_per_tgReadFromCatalogues{'
         printf, funit, '  filenames = [ "'+catname+'" ]'
-        printf, funit, '  formats   = [ "'+catformat+'" ]'
+        printf, funit, '  formats   = [ "'+STRUPCASE(catformat)+'" ]'
         printf, funit, '  fmin      = [ '+string(catfmin)+' ]'
         printf, funit, '  fmax      = [ '+string(catfmax)+' ]'
         printf, funit, '}'
@@ -839,7 +878,9 @@ printf, funit, FORMAT='(A1)', '#'
 IF (debug GT 2) THEN print, ' CreateArtsControlFile> write line shape information for each tag in arts control file'
 IF (write_arts_control_file_lineshape(funit,$
                                       tags, $
-                                      lineshapes) NE 0) THEN BEGIN
+                                      lineshapes, $
+                                      mirrorline) $
+    NE 0) THEN BEGIN
     print,' CreateArtsControlFile> ERROR: line shape information not correct!'
     print,lineshapes
     FREE_LUN, funit & STOP

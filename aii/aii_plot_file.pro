@@ -320,8 +320,8 @@ if (action EQ 'end') then begin
         spawn, 'mv '+USERFILENAME+' '+outdir
     ENDIF
 ;
-; d) close device and open gostview
-; ---------------------------------
+; d) close device and open ghostview
+; ----------------------------------
     IF ((ANTWORT GE 1) AND (ANTWORT LE 4)) THEN BEGIN
         if (show EQ 'yes') then begin
             print, ' * show with ghostview: yes'

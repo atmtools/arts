@@ -1,3 +1,20 @@
+2002-12-20  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-1-0-64
+
+	* src/continua.cc: add the Ma and Tipping continuum model of
+	J. Chem. Phys, 2002.
+	* src/continua.cc: add the Rosenkranz oxygen absorpiton model
+	update of 1998.
+	* aii/aii_get_hostname.pro: add this idl procedure to
+	automatically retrieve the host name.
+	* aii/aii_color_table.pro: update of the colors.
+	* aii/aii_student_t_dist_table.pro: add thisprocedure to calculate
+	the student t-distribution for statistical purposes.
+	* aii/WVContParamFit.pro: update for continuum parameter fitting.
+	* aii/CreateArtsControlFile.pro: update for generating arts
+	control files.
+	
 2002-12-20  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-63

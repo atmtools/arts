@@ -1838,6 +1838,7 @@ bool is_sorted( ConstVectorView   x )
   return true;
 }
 
+
 /** Calculate line absorption cross sections for one tag group. All
     lines in the line list must belong to the same species. This must
     be ensured by lines_per_tgCreateFromLines, so it is only verified
@@ -2209,20 +2210,21 @@ void xsec_species( MatrixView               xsec,
               // We use nfl here, which could be one less than nfls.
               VectorView this_xsec = xsec(Range(i_f_min,nfl),i);
 
+	      // Get handles on the range of ls and fac that we need.
+	      VectorView this_ls  = ls[Range(0,nfl)];
+	      VectorView this_fac = fac[Range(0,nfl)];
+
               // cutoff ?
               if ( cut )
                 {
                   // The index nfls-1 should be exactly the index pointing
                   // to the value at the cutoff frequency.
-                  base = ls[nfls-1] * fac[nfls-1];
+                  base = ls[nfls-1];
 
                   // Subtract baseline from xsec. 
-                  this_xsec -= base;
+                  // this_xsec -= base;
+                  this_ls -= base;
                 }
-
-              // Get handles on the range of ls and fac that we need.
-              VectorView this_ls  = ls[Range(0,nfl)];
-              VectorView this_fac = fac[Range(0,nfl)];
 
               // Add line to xsec. 
               {

@@ -4,6 +4,269 @@
 ;
 ; ########################### INTERNAL FUNCTIONS ########################### 
 ;
+;
+;
+; **************************************************************************
+; Name:     WVCONTABSCALC
+;
+; Purpose:  calculate water vapor continuum absorption according to
+;           Rosenkrtanz, Radio Science, 1998, parameterization.
+;
+; Inputs:   scalar  PWV    H2O pressure             [hPa]
+;           scalar  PF     foreign pressure         [hPa]
+;           scalar  F      frequency                [GHz]
+;           scalar  THETA  T_ref/T                  [1]
+;           scalar  CS     self cont. coeff.        [dB/km/hPa2/GHz2]
+;           scalar  XS     self cont. T exponent    [1]
+;           scalar  CF     foreign cont. coeff.     [dB/km/hPa2/GHz2]
+;           scalar  XF     foreign cont. T exponent [1]
+;
+; Output:   scalar         continuum absorption [Np/m] according to
+;                          Rosenkranz parameterization, Radio Science, 19998
+;
+; History:  2002-08-23    Thomas Kuhn, iup Bremen
+;
+; **************************************************************************
+; 
+FUNCTION WVCONTABSCALC, PWV, PF, F, THETA, CS, XS, CF, XF 
+;
+; absorption in dB/km
+ABS = (F * F) * (THETA * THETA * THETA) *      $
+      ( (CS * THETA^XS * PWV * PWV) +          $
+        (CF * THETA^XF * PWV * PF) )
+;
+; absorption in Np/m
+ABS = 2.3025851E-04 * ABS
+;
+RETURN, ABS
+END
+;
+;
+; **************************************************************************
+;
+;
+FUNCTION GetDatum
+;
+;; get datum to write it on the top of the plot:
+spawn,'date +"%y"',year
+spawn,'date +"%m"',month
+spawn,'date +"%d"',day
+spawn,'date +"%H"',hour
+spawn,'date +"%M"',minute
+spawn,'date +"%S"',second
+spawn,'whoami',who
+datum = who+':20'+string(year, FORMAT='(A2)')+'-'+$
+string(month, FORMAT='(A2)')+'-'+$
+string(day, FORMAT='(A2)')+'/'+$
+string(hour, FORMAT='(A2)')+':'+$
+string(minute, FORMAT='(A2)')+':'+$
+string(second, FORMAT='(A2)')
+RETURN, datum
+END
+;
+;
+; ********************************************************************
+; Student t-distribution for double sided test of 95% 
+; significance if both sided and 97.5 for single sided
+; Source:
+; http://www.itl.nist.gov/div898/handbook/mpc/section3/mpc3652.htm
+;
+FUNCTION ttest095, i
+
+if ((i LT 1) OR (i GT 89)) then begin
+    print,'ttest095> ERROR!  number of freedom is out of range!'
+    print,'(1<n<=100) n =',i
+    return, -999.99
+endif
+
+
+tdist = [ 0.000,   12.706,   4.303,   3.182,   2.776,   $
+          2.571,    2.447,   2.365,   2.306,   2.262,   $
+          2.228,    2.201,   2.179,   2.160,   2.145,   $
+          2.131,    2.120,   2.110,   2.101,   2.093,   $
+          2.086,    2.080,   2.074,   2.069,   2.064,   $
+          2.060,    2.056,   2.052,   2.048,   2.045,   $
+          2.042,    2.040,   2.037,   2.035,   2.032,   $
+          2.030,    2.028,   2.026,   2.024,   2.023,   $
+          2.021,    2.020,   2.018,   2.017,   2.015,   $
+          2.014,    2.013,   2.012,   2.011,   2.010,   $
+          2.009,    2.008,   2.007,   2.006,   2.005,   $
+          2.004,    2.003,   2.002,   2.002,   2.001,   $
+          2.000,    2.000,   1.999,   1.998,   1.998,   $
+          1.997,    1.997,   1.996,   1.995,   1.995,   $
+          1.994,    1.994,   1.993,   1.993,   1.993,   $
+          1.992,    1.992,   1.991,   1.991,   1.990,   $
+          1.990,    1.990,   1.989,   1.989,   1.989,   $
+          1.988,    1.988,   1.988,   1.987,   1.987]
+
+;,   $
+;          1.987,    1.986,   1.986,   1.986,   1.986,   $
+;          1.985,    1.985,   1.985,   1.984,   1.984,   $
+;          1.984]
+
+RETURN, tdist[i]
+END
+;
+;
+; **************************************************************************
+; Name:     MYLINREGRESS
+;
+; Purpose:  performs linear regression of input vectors x andy
+;
+; Inputs:   vector        X        independent variable
+;                         Y        dependent variable
+;                         Weights  wheight of y
+;
+; Output:   vector        parameters a and b of y = a*x+b        
+;                         additional output as keyowrds
+;
+; History:  2002-08-15    Thomas Kuhn, iup Bremen
+;
+; **************************************************************************
+; 
+FUNCTION MYLINREGRESS, X, Y,              $
+                       weights=weights,   $ ; weight of y
+                       yfit=yfit,         $ ; yfit_i = a*x_i + b
+                       mean2sep=mean2sep, $ ; mean quad. separation
+                       confa=confa,       $ ; 95% confidence intervall of a
+                       confy=confy,       $ 
+                       hypoa=hypoa
+
+if (N_ELEMENTS(X) NE N_ELEMENTS(Y)) then begin
+    print,'MYLINREGRESS> ERROR!  wrong size of input vectors X, Y'
+    print,'  N_ELEMENTS(X):',N_ELEMENTS(X),'N_ELEMENTS(Y):',N_ELEMENTS(Y)
+    print,'  RETURN without calculation!'
+    return, [0,0]
+endif
+
+;; number of elements in inpit vectors
+N = N_ELEMENTS(X)
+
+;; independent variable vector
+xmom  = MOMENT(X, /DOUBLE)
+xmean = xmom[0]
+xvar  = xmom[1]
+
+;; dependent variable vector
+wn    = dblarr(N)
+if keyword_set(weights) then begin
+    sw = TOTAL(weights)
+    sy = 0.000
+    for i = 0,N-1 do wn[i] = weights[i] / sw
+    for i = 0,N-1 do sy = sy + (wn[i]*Y[i])
+    ymean = sy / DOUBLE(N)
+    svy   = 0.000
+    for i = 0,N-1 do svy = svy + ((wn[i]*Y[i])-ymean)^2
+    yvar  = svy / DOUBLE(N-1)
+endif else begin
+    ymom  = MOMENT(Y, /DOUBLE)
+    ymean = ymom[0]
+    yvar  = ymom[1]
+    wn[*] = 1.0000E0 / DOUBLE(N)
+endelse
+
+
+SXY = 0.000E0
+for i = 0,N-1 do begin
+    SXY = SXY + ( (X[i]-xmean) * (Y[i]-ymean) )
+endfor
+SXY = SXY / DOUBLE(N-1)
+
+;; linear regression parameters for straight line y = a*x + b
+a = SXY / xmom[1]
+b = ymean - (a * xmean)
+coeff = [a, b]
+
+
+;;  --------------- additional information ---------------
+
+
+if keyword_set(yfit) then begin
+    yfit = dblarr(N)
+    for i = 0,N-1 do begin
+        yfit[i] = (a * X[i]) + b
+    endfor
+endif 
+
+
+if keyword_set(mean2sep) then begin
+;;  mean square separation between data and model
+;;  the deviations in y of data amd regression line
+;;  are squared and summed up. Afterwards the square 
+;;  root is taken and the result devided by the number 
+;;  of data points.
+    dy   = dblarr(N)
+    sdy  = 0.00E0
+    sdy2 = 0.00E0
+    for i = 0,N-1 do begin
+        dy[i] = ( Y[i] - ((a * X[i]) + b) )
+        sdy   = sdy + dy[i]
+        sdy2  = sdy2 + (dy[i]*dy[i])
+    endfor
+    mean2sep = SQRT(sdy2) / DOUBLE(N)
+endif 
+
+
+if keyword_set(confa) then begin
+;; 95% confidence intervall of the slope parameter a:
+;; true a withing 95% in the interval [a-confa, a+confa]
+   d = (N-1) * ( ymom[1] - (a * xmom[1]) )
+   c = ttest095((N-2))
+   print, 'ttest095(',N-2,')=',c 
+   if (c GT 0.00) then begin
+       confa = c * SQRT(d) / SQRT(xmom[1]) / SQRT(DOUBLE((N-1)*(N-2)))
+   endif else begin
+       print, 'WARNING!  t-distribution gave wrong number!'
+       confa = -999.99
+   endelse
+endif 
+
+
+
+if keyword_set(confy) then begin
+;; 95% confidence intervall of the y values
+;; true value withing 95% in the interval [y_i-confa_i, y_i+confa_i]
+    confy = dblarr(N)
+    d = DOUBLE(N-1) * ( ymom[1] - (a * xmom[1]) )
+    c = ttest095((N-2))
+    if (c GT 0.00) then begin
+        for i = 0,N-1 do begin
+            h2 = 1.0000E0 / DOUBLE(N) + $
+              ( X[i]-xmean )^2 / ( (DOUBLE(N)-1) * xvar )
+            confy[i] = c * SQRT(h2 * d) / SQRT(DOUBLE(N-2))
+        endfor
+    endif else begin
+        print, 'WARNING!  t-distribution gave wrong number!'
+        confy[*] = -999.99
+    endelse
+endif 
+
+
+
+if keyword_set(hypoa) then begin
+;; test the hypothesis that the slope parameter is 
+;, significance number alpha is 2.5% 
+    hypoa = 1.000
+    d = DOUBLE(N-1) * ( ymom[1] - (a * xmom[1]) )
+    c = ttest095((N-2))
+    if (c GT 0.00) then begin
+        hypo = SQRT(xvar)                        * $
+          SQRT((DOUBLE(N)-1)*(DOUBLE(N)-2)) * $
+          (a-hypoa) / (SQRT(d))
+        if (hypo LE c) then hypoa = 0.000
+    endif else begin
+        print, 'WARNING!  t-distribution gave wrong number!'
+    endelse
+endif 
+
+
+
+;; return with the linear regression parameters 
+;; slope (a) and bias (b):  y = a*x + b
+RETURN, coeff
+END
+;
+;
 ; **************************************************************************
 ; Name:     read_H2O_data_file
 ;
@@ -184,7 +447,7 @@ END
 ;
 ; **************************************************************************
 ; 
-FUNCTION write_ptz_file, artsjobpath, controlfile, pwv, pd, T
+FUNCTION write_ptz_file, artsjobpath, controlfile, ptot, T
 ;
 ;
 ; ---- P-T-z FILE NAME ------------------------------------
@@ -214,10 +477,8 @@ printf, unit, '# Pressure[Pa] Temperature[K] Altitude[m]'
 printf, unit, '# This file is created by the IDL function write_ptz_file'
 printf, unit, '1'
 printf, unit, '2  3'
-printf, unit, string(2.000*(pwv+pd), FORMAT='(E12.6)')+' '+string(T, FORMAT='(E12.6)')+' 0.000000e+00'
-printf, unit, string(0.500*(pwv+pd), FORMAT='(E12.6)')+' '+string(T, FORMAT='(E12.6)')+' 1.000000e+00'
-;printf, unit, string((pwv+pd), FORMAT='(E12.6)')+' '+string(T, FORMAT='(E12.6)')+' 0.000000e+00'
-;printf, unit, string((pwv+pd), FORMAT='(E12.6)')+' '+string(T, FORMAT='(E12.6)')+' 1.000000e+00'
+printf, unit, string(2.000*(ptot), FORMAT='(E12.6)')+' '+string(T, FORMAT='(E12.6)')+' 0.000000e+00'
+printf, unit, string(0.500*(ptot), FORMAT='(E12.6)')+' '+string(T, FORMAT='(E12.6)')+' 1.000000e+00'
 ;
 ; ---- END OF FUNCTION ------------------------------------
 write_ptz_file_ende:
@@ -238,16 +499,16 @@ END
 ;
 ; **************************************************************************
 ; 
-FUNCTION write_vmr_file, artsjobpath, controlfile, tags, p
+FUNCTION write_vmr_file, artsjobpath, controlfile, tags, ptot, p
 ;
 ; ---- CHECKS ---------------------------------------------
-IF (ABS(N_ELEMENTS(tags)-N_ELEMENTS(p)) GT 0) THEN BEGIN
-    print, ' write_vmr_file> ERROR in size of tags and pressure detected!'
-    print, ' write_vmr_file> pressure and tag vectors must have the same size!'
-    print, ' write_vmr_file> tag vector size     :',N_ELEMENTS(tags)
-    print, ' write_vmr_file> pressure vector size:',N_ELEMENTS(p)
-    FREE_LUN, unit & STOP
-ENDIF
+;IF (ABS(N_ELEMENTS(tags)-N_ELEMENTS(p)) GT 0) THEN BEGIN
+;    print, ' write_vmr_file> ERROR in size of tags and pressure detected!'
+;    print, ' write_vmr_file> pressure and tag vectors must have the same size!'
+;    print, ' write_vmr_file> tag vector size     :',N_ELEMENTS(tags)
+;    print, ' write_vmr_file> pressure vector size:',N_ELEMENTS(p)
+;    FREE_LUN, unit & STOP
+;ENDIF
 ;
 ; ---- DELETE EXISTING FILES ------------------------------
 vmrfile = strarr(N_ELEMENTS(tags))
@@ -272,8 +533,6 @@ FOR i = 0,  N_ELEMENTS(tags)-1 DO BEGIN
     ENDIF
 ;
 ;   ---- CALCULATIONS ---------------------------------------
-    ptot = 0.0e0
-    FOR k = 0, N_ELEMENTS(p)-1 DO ptot = ptot + p[k]
     vmr = p[i] / ptot
 ;
 ;   ---- WRITE OUTPUT FILE ----------------------------------
@@ -494,183 +753,6 @@ RETURN, datum
 END
 ;
 ; **************************************************************************
-; Viewing contents of file '/net/www/deutsch/idl/idllib/contrib/groupk/regress2.pro'
-;
-; NAME:
-;        REGRESS2
-;
-; PURPOSE:
-;        Multiple linear regression fit.
-;        Fit the function:
-;        Y(i) = A(0)*X(0,i) + A(1)*X(1,i) + ... +
-;             A(Nterms-1)*X(Nterms-1,i)
-;
-; CATEGORY:
-;        G2 - Correlation and regression analysis.
-;
-; CALLING SEQUENCE:
-;        Result = REGRESS(X, Y, W [, YFIT, SIGMA, FTEST, R, RMUL, CHISQ])
-;
-; INPUTS:
-;        X:   array of independent variable data.  X must
-;             be dimensioned (Nterms, Npoints) where there are Nterms
-;             coefficients to be found (independent variables) and
-;             Npoints of samples.
-;
-;        Y:   vector of dependent variable points, must have Npoints
-;             elements.
-;
-;        W:   vector of weights for each equation, must be a Npoints
-;             elements vector.  For instrumental weighting
-;             w(i) = 1/standard_deviation(Y(i)), for statistical
-;             weighting w(i) = 1./Y(i).   For no weighting set w(i)=1,
-;             and also set the RELATIVE_WEIGHT keyword.
-;
-; OUTPUTS:
-;        Function result = coefficients = vector of
-;        Nterms elements.  Returned as a column vector.
-;
-; OPTIONAL OUTPUT PARAMETERS:
-;        Yfit:     array of calculated values of Y, Npoints elements.
-;
-;        Sigma:    Vector of standard deviations for coefficients.
-;
-;        Ftest:    value of F for test of fit.
-;
-;        Rmul:     multiple linear correlation coefficient.
-;
-;        R:        Vector of linear correlation coefficient.
-;
-;        Chisq:    Reduced chi squared.
-;
-; KEYWORDS:
-;RELATIVE_WEIGHT: if this keyword is non-zero, the input weights
-;             (W vector) are assumed to be relative values, and not based
-;             on known uncertainties in the Y vector.    This is the case for
-;             no weighting W(*) = 1.
-;
-; PROCEDURE:
-;        Adapted from the program REGRES, Page 172, Bevington, Data Reduction
-;        and Error Analysis for the Physical Sciences, 1969.
-;
-; MODIFICATION HISTORY:
-;        Written, DMS, RSI, September, 1982.
-;        Added RELATIVE_WEIGHT keyword, W. Landsman, August 1991
-;        29-AUG-1994:   H.C. Wen - Used simpler, clearer algorithm to determine
-;                       fit coefficients. The constant term, A0 is now just one
-;                       of the X(iterms,*) vectors, enabling the algorithm to
-;                       now return the sigma associated with this constant term.
-;                       I also made a special provision for the case when
-;                       Nterm = 1; namely, "inverting" a 1x1 matrix, i.e. scalar.
-;        26-MAR-1996:   Added the DOUBLE and CHECK keywords to the call to DETERM.
-;        02-APR-1996:   Test matrix singularity using second argument in INVERT
-;                       instead of call to DETERM.
-; see http://www.astro.washington.edu/deutsch-bin/getpro/library27.html?REGRESS2
-; **************************************************************************
-;
-FUNCTION REGRESS2,X,Y,W,Yfit,Sigma,Ftest,R,Rmul,Chisq, RELATIVE_WEIGHT=relative_weight
-
-         On_error,2              ;Return to caller if an error occurs
-
-         NP = N_PARAMS()
-         if (NP lt 3) or (NP gt 9) then $
-              message,'Must be called with 3-9 parameters: '+$
-                      'X, Y, W [, Yfit, Sigma, Ftest, R, RMul, Chisq]'
-
-;  Determine the length of these arrays and the number of sources
-
-         SX        = SIZE( X )
-         SY        = SIZE( Y )
-         nterm     = SX(1)
-         npts      = SY(1)
-
-         if (N_ELEMENTS(W) NE SY(1)) OR $
-            (SX(0) NE 2) OR (SY(1) NE SX(2)) THEN $
-              message, 'Incompatible arrays.'
-
-         WW   = REPLICATE(1.,nterm) # W
-         curv = ( X*WW ) # TRANSPOSE( X )
-         beta = X # (Y*W)
-
-         if nterm eq 1 then begin
-              sigma  = 1./sqrt(curv)
-              X_coeff= beta/curv
-         endif else begin
-              err     = INVERT( curv, status )
-
-              if (status eq 1) then begin
-                   print,'det( Curvature matrix )=0 .. Using REGRESS'
-                   X1   = X
-                   linechk   = X(0,0) - X(0,fix( npts*randomu(seed) ))
-                   if linechk eq 0 then begin
-                        print,'Cannot determine sigma for CONSTANT'
-                        X1  = X1(1:nterm-1,*)
-                   endif
-
-                   coeff = REGRESS( X1,Y,W,Yfit,A0, Sigma,Ftest,R,Rmul,Chisq)
-
-                   if linechk eq 0 then begin
-                        coeff     = [A0,reform(coeff)]
-                        Sigma     = [ 0,reform(Sigma)]
-                        R         = [ 0,R]
-                   endif
-                   return, coeff
-              endif else if (status eq 2) then begin
-                print,'WARNING -- small pivot element used in matrix inversion.'
-                print,'           significant accuracy probably lost.'
-              endif
-
-              diag    = indgen( nterm )
-              sigma   = sqrt( err( diag,diag ) )
-              X_coeff = err # beta
-         endelse
-
-         Yfit     = TRANSPOSE(X_coeff # X)
-
-         dof   = npts - nterm > 1
-         Chisq = TOTAL( (Y-Yfit)^2.*W )
-         Chisq = Chisq/dof
-
-;   To calculate the "test of fit" parameters, we revert back to the original
-;   cryptic routine in REGRESS1. Because the constant term (if any) is now
-;   included in the X variable, NPAR = NTERM_regress2 = NTERM_regress1 + 1.
-
-         if nterm eq 1 then goto, SKIP
-
-         SW = TOTAL(W)           ;SUM OF WEIGHTS
-         YMEAN = TOTAL(Y*W)/SW   ;Y MEAN
-         XMEAN = (X * (REPLICATE(1.,NTERM) # W)) # REPLICATE(1./SW,NPTS)
-         WMEAN = SW/NPTS
-         WW = W/WMEAN
-         ;
-         NFREE = NPTS-1          ;DEGS OF FREEDOM
-         SIGMAY = SQRT(TOTAL(WW * (Y-YMEAN)^2)/NFREE) ;W*(Y(I)-YMEAN)
-         XX = X- XMEAN # REPLICATE(1.,NPTS)      ;X(J,I) - XMEAN(I)
-         WX = REPLICATE(1.,NTERM) # WW * XX      ;W(I)*(X(J,I)-XMEAN(I))
-         SIGMAX = SQRT( XX*WX # REPLICATE(1./NFREE,NPTS)) ;W(I)*(X(J,I)-XM)*(X(K,I)-XM)
-         R = WX #(Y - YMEAN) / (SIGMAX * SIGMAY * NFREE)
-
-
-         WW1 = WX # TRANSPOSE(XX)
-
-         ARRAY = INVERT(WW1/(NFREE * SIGMAX #SIGMAX))
-         A     = (R # ARRAY)*(SIGMAY/SIGMAX)         ;GET COEFFICIENTS
-
-         FREEN = NPTS-NTERM > 1                 ;DEGS OF FREEDOM, AT LEAST 1.
-
-         CHISQ = TOTAL(WW*(Y-YFIT)^2)*WMEAN/FREEN ;WEIGHTED CHI SQUARED
-         IF KEYWORD_SET(relative_weight) then varnce = chisq $
-                                         else varnce = 1./wmean
-
-         RMUL = TOTAL(A*R*SIGMAX/SIGMAY)         ;MULTIPLE LIN REG COEFF
-         IF RMUL LT 1. THEN FTEST = RMUL/(NTERM-1)/ ((1.-RMUL)/FREEN) ELSE FTEST=1.E6
-         RMUL = SQRT(RMUL)
-
-SKIP:    return, X_coeff
-
-end
-;
-; **************************************************************************
 ; NAME:     aii_csf_plot_ps_definitions
 ;
 ; PURPOSE:  set all the relevant grahical device definitions for
@@ -703,7 +785,7 @@ PRO aii_csf_plot_ps_definitions, colors=colors, $
 !X.OMARGIN  = [0,0]
 !Y.OMARGIN  = [0,0]
 !P.REGION   = [0.0, 0.0, 0.0, 0.0]
-!P.POSITION = [0.025, 0.1, 0.825, 0.9]
+!P.POSITION = [0.25, 0.20, 0.80, 0.9]
 !P.CHARTHICK = 5.0
 !P.FONT      = 1
 !P.CHARSIZE  = 1.5
@@ -724,6 +806,172 @@ endfor
 
 ;
 END
+;
+; **************************************************************************
+;$Id: WVContParamFit.pro,v 1.1.2.2 2002/12/20 15:08:30 tkuhn Exp $
+;
+; Copyright (c) 1994-1998, Research Systems, Inc.  All rights reserved.
+;       Unauthorized reproduction prohibited.
+;+
+; NAME:
+;       LINFIT
+;
+; PURPOSE:
+;       This function fits the paired data {X(i), Y(i)} to the linear model,
+;       y = A + Bx, by minimizing the chi-square error statistic. The result
+;       is a two-element vector containing the model parameters,[A,B].
+;
+; CATEGORY:
+;       Statistics.
+;
+; CALLING SEQUENCE:
+;       Result = LINFIT(X, Y)
+;
+; INPUTS:
+;       X:    An n-element vector of type integer, float or double.
+;
+;       Y:    An n-element vector of type integer, float or double.
+;
+; KEYWORD PARAMETERS:
+;   CHISQ:    Use this keyword to specify a named variable which returns the
+;             chi-square error statistic as the sum of squared errors between
+;             Y(i) and A + BX(i). If individual standard deviations are
+;             supplied, then the chi-square error statistic is computed as
+;             the sum of squared errors divided by the standard deviations.
+;
+;  DOUBLE:    If set to a non-zero value, computations are done in double
+;             precision arithmetic.
+;
+;    PROB:    Use this keyword to specify a named variable which returns the
+;             probability that the computed fit would have a value of CHISQR
+;             or greater. If PROB is greater than 0.1, the model parameters
+;             are "believable". If PROB is less than 0.1, the accuracy of the
+;             model parameters is questionable.
+;
+;    SDEV:    An n-element vector of type integer, float or double that
+;             specifies the individual standard deviations for {X(i), Y(i)}.
+;
+;   SIGMA:    Use this keyword to specify a named variable which returns a
+;             two-element vector of probable uncertainties for the model par-
+;             ameters, [SIG_A,SIG_B].
+;
+;
+; EXAMPLE:
+;       Define two n-element vectors of paired data.
+;         x = [-3.20, 4.49, -1.66, 0.64, -2.43, -0.89, -0.12, 1.41, $
+;               2.95, 2.18,  3.72, 5.26]
+;         y = [-7.14, -1.30, -4.26, -1.90, -6.19, -3.98, -2.87, -1.66, $
+;              -0.78, -2.61,  0.31,  1.74]
+;       Define a vector of standard deviations with a constant value of 0.85
+;         sdev = replicate(0.85, n_elements(x))
+;       Compute the model parameters, A and B.
+;         result = linfit(x, y, chisq = chisq, prob = prob, sdev = sdev)
+;       The result should be the two-element vector:
+;         [-3.44596, 0.867329]
+;       The keyword parameters should be returned as:
+;         chisq = 11.4998, prob = 0.319925
+;
+; REFERENCE:
+;       Numerical Recipes, The Art of Scientific Computing (Second Edition)
+;       Cambridge University Press
+;       ISBN 0-521-43108-5
+;
+; MODIFICATION HISTORY:
+;       Written by:  GGS, RSI, September 1994
+;                    LINFIT is based on the routines: fit.c, gammq.c, gser.c,
+;                    and gcf.c described in section 15.2 of Numerical Recipes,
+;                    The Art of Scientific Computing (Second Edition), and is
+;                    used by permission.
+;         Modified:  SVP, RSI, June 1996
+;                    Changed SIG_AB to SIGMA to be consistant with the other
+;                    fitting functions. Changed CHISQR to CHISQ in the docs
+;                    for the same reason. Note that the chisqr and the SIG_AB
+;                    keywords are left for backwards compatibility.
+;         Modified:  GGS, RSI, October 1996
+;                    Modified keyword checking and use of double precision.
+;                    Added DOUBLE keyword.
+;
+;         2002-06-19
+;         TKS copy of LINFIT of IDL resource to modidy it for fit purposes
+;
+; --------------------------------------------------------------------------
+; 
+FUNCTION MyLinFit, x, y, chisqr = chisqr, Double = Double, prob = prob, $
+                   sdev = sdev, sig_ab = sig_ab, sigma = sigma,         $
+                   covab = covab, rab = rab
+
+
+  ON_ERROR, 2
+ 
+  TypeX = SIZE(X)
+  TypeY = SIZE(Y)
+  nX = TypeX[TypeX[0]+2]
+  nY = TypeY[TypeY[0]+2]
+ 
+  if nX ne nY then $
+    MESSAGE, "X and Y must be vectors of equal length."
+ 
+  ;If the DOUBLE keyword is not set then the internal precision and
+  ;result are identical to the type of input.
+  if N_ELEMENTS(Double) eq 0 then $
+    Double = (TypeX[TypeX[0]+1] eq 5 or TypeY[TypeY[0]+1] eq 5)
+ 
+  nsdev = n_elements(sdev)
+
+ 
+  if nsdev eq nX then begin ;Standard deviations are supplied.
+    wt = 1.0 / sdev^2
+    ss = TOTAL(wt, Double = Double)                ; (15.2.4)
+    sx = TOTAL(wt * x, Double = Double)            ; (15.2.4)
+    sy = TOTAL(wt * y, Double = Double)            ; (15.2.4)
+    t =  (x - sx/ss) / sdev                        ; (15.2.15)
+    st2 = TOTAL(t^2, Double = Double)              ; (15.2.16)
+    b = TOTAL(t * y / sdev, Double = Double)
+  endif else if nsdev eq 0 then begin
+    ss = nX + 0.0                                  ; (15.2.4)
+    sx = TOTAL(x, Double = Double)                 ; (15.2.4)
+    sy = TOTAL(y, Double = Double)                 ; (15.2.4)
+    t = x - sx/ss                                  ; (15.2.15)
+    st2 = TOTAL(t^2, Double = Double)              ; (15.2.16)
+    b = TOTAL(t * y, Double = Double)
+  endif else $
+    MESSAGE, "sdev and x must be vectors of equal length."
+ 
+  if Double eq 0 then begin
+    st2 = FLOAT(st2) & b = FLOAT(b)                ; (15.2.16)
+  endif
+
+ 
+  b = b / st2                                      ; (15.2.17)
+  a = (sy - sx * b) / ss                           ; (15.2.18)
+  sdeva = SQRT((1.0 + sx * sx / (ss * st2)) / ss)  ; (15.2.19)
+  sdevb = SQRT(1.0 / st2)                          ; (15.2.20)
+ 
+; introduced by TKS
+  covab = -sx / (ss * st2)                         ; (15.2.21)
+  rab   = covab / (sdeva * sdevb)                  ; (15.2.22)
+
+  if nsdev ne 0 then begin; if user has specified the error on y
+    chisqr = TOTAL( ((y - a - b * x) / sdev)^2, Double = Double )
+    if Double eq 0 then chisqr = FLOAT(chisqr)
+    prob = 1 - IGAMMA(0.5*(nX-2), 0.5*chisqr)
+;
+  endif else begin; if user has not specified the error on y
+    chisqr = TOTAL( (y - a - b * x)^2, Double = Double )
+    if Double eq 0 then chisqr = FLOAT(chisqr)
+    prob = chisqr * 0 + 1 ;Make prob same type as chisqr.
+    sdevdat = SQRT(chisqr / (nX-2))                ; (15.1.6)
+    sdeva = sdeva * sdevdat                        ; (15.1.6)
+    sdevb = sdevb * sdevdat                        ; (15.1.6)
+  endelse
+ 
+  sig_ab = [sdeva, sdevb]
+  sigma  = sig_ab
+ 
+  if Double eq 0 then RETURN, FLOAT([a, b]) else RETURN, [a, b]
+ 
+END
+;
 ;
 ; **************************************************************************
 ; NAME:     do_PWR98_h2oh2o_cont_fit
@@ -750,7 +998,11 @@ END
 ; **************************************************************************
 ; 
 FUNCTION do_PWR98_h2oh2o_cont_fit, data, artsjobpath, controlfilenamecore, $
-                            linetotmaxratio
+                                   linetotmaxratio,                        $
+                                   FFITMIN, FFITMAX,                       $
+                                   plotfilename, plotfileformat,           $
+                                   titletext
+
 ;
 ;
 ; ---- SAVE SETTINGS -------------------------------------------------------
@@ -759,16 +1011,21 @@ P_ini = !P
 ; ---- GENERAL CONSTANTS ---------------------------------------------------
 COMMON UNITCONVERSION, TENLOG10_EULER, dBkm2Npm, Npm2dBkm, Hz2GHz, Pa2hPa
 ;
-Tref = 300.0E0                  ; [K] for Theta calculation
-Rlinetotmax = 7.500e-1          ; ratio of line to total absorption
-Rlinetotmin = 0.000e0           ; ratio of line to total absorption
-datanlim = 5                    ; minimum of data points for fit
-sigma_ratio_abs_tot  = 2.000e-1 ; Gaussian error propagation: sigma_abstot = 20.0% abs_tot 
-sigma_ratio_abs_line = 1.000e-1 ; Gaussian error propagation: sigma_absl   = 10.0% abs_l
-sigma_ratio_f        = 1.000e-3 ; Gaussian error propagation: sigma_f      =  0.1% f
-sigma_ratio_pwv      = 1.000e-3 ; Gaussian error propagation: sigma_PH2O   =  0.1% P_H2O
-sigma_ratio_T        = 5.000e-3 ; Gaussian error propagation. sigma_T      =  0.5% T
-IF (linetotmaxratio GE 7.500e-1) THEN linetotmaxratio = Rlinetotmax 
+Tref = 300.0E0                    ; [K] for Theta calculation
+Rlinetotmax          = 1.000      ; ratio of line to total absorption
+Rlinetotmin          = 0.001      ; ratio of line to total absorption
+datanlim             = 3          ; minimum of data points for fit
+sigma_ratio_abs_tot  = 1.000e-1   ; Gaussian error propagation: sigma_abstot = 10.0% abs_tot 
+sigma_ratio_abs_line = 5.000e-2   ; Gaussian error propagation: sigma_absl   =  5.0% abs_l
+sigma_ratio_f        = 1.000e-5   ; Gaussian error propagation: sigma_f      =  0.001% f
+sigma_ratio_pwv      = 1.000e-3   ; Gaussian error propagation: sigma_PH2O   =  0.1% P_H2O
+sigma_ratio_T        = 5.000e-3   ; Gaussian error propagation. sigma_T      =  0.5% T
+;sigma_ratio_abs_tot  = 2.000e-1  ; Gaussian error propagation: sigma_abstot = 20.0% abs_tot 
+;sigma_ratio_abs_line = 1.000e-1  ; Gaussian error propagation: sigma_absl   = 10.0% abs_l
+;sigma_ratio_f        = 1.000e-3  ; Gaussian error propagation: sigma_f      =  0.1% f
+;sigma_ratio_pwv      = 1.000e-3  ; Gaussian error propagation: sigma_PH2O   =  0.1% P_H2O
+;sigma_ratio_T        = 5.000e-3  ; Gaussian error propagation. sigma_T      =  0.5% T
+IF (linetotmaxratio GE 1.00) THEN linetotmaxratio = Rlinetotmax 
 ;
 ; --- FIT VARIABLES H2O-H2O ------------------------------------------------
 ; these are the variables with the fit results for max. n_fits different
@@ -787,6 +1044,8 @@ SIGMA_CS     = dblarr(4,n_fits) ; std. deviations for different fit routines
 SIGMA_CS[*,*]= 0.0e0
 CHI2_CS      = dblarr(n_fits)   ; chi² of the different fit routines
 CHI2_CS[*]   = 0.0e0
+COVAB=0.000
+RAB=0.000
 char_fit_fun = strarr(n_fits)   ; strings, names the for different fit routines
 ;
 ; --- SORT H2O-H2O DATA ----------------------------------------------------
@@ -797,6 +1056,10 @@ h2oh2o = dblarr(N_ELEMENTS(data[*].abs), 4) ; 0 : y = ln(a)
 j = 0
 FOR i = 0, N_ELEMENTS(data[*].abs)-1 DO BEGIN
     IF ((data[i].BuffName EQ 'XX') AND (data[i].WVName EQ 'H2O'))  THEN BEGIN
+;   --- check frequency range ------------------------------------------------
+        IF ( ( data[i].f GE FFITMIN ) AND $
+             ( data[i].f LE FFITMAX )   ) THEN BEGIN
+;   --- check line to total absorption ratio ---------------------------------
         IF ( ((data[i].labs / data[i].abs) LT linetotmaxratio) AND $
              ((data[i].labs / data[i].abs) GT Rlinetotmin) ) THEN BEGIN
 ;         o Theta [1]
@@ -841,6 +1104,7 @@ FOR i = 0, N_ELEMENTS(data[*].abs)-1 DO BEGIN
 ;         o set data counter one higher
             j = j + 1
         ENDIF
+        ENDIF
     ENDIF
 ENDFOR
 IF (j LT datanlim) THEN BEGIN
@@ -869,19 +1133,29 @@ FOR i = 0, vecsize-1 DO BEGIN
 ENDFOR
 h2oh2o = h2oh2o2[0:vecsize-1, 0:N_ELEMENTS(h2oh2o[0,*])-1]      ; resize array
 ;
-; --- FIT H2O-H2O DATA -----------------------------------------------------
+;
+; ==========================={FIT H2O-H2O DATA}=============================
+;
+;
 fitway = 1
 IF (fitway EQ 1) THEN BEGIN ;  ----------- LINFIT --------------------------
 ;   The LINFIT function fits the paired data {xi, yi} to the 
 ;   linear model, y = A + Bx, by minimizing the Chi-square error statistic. 
 ;   The result is a two-element vector containing the model parameters [A, B]. 
 ; o perform fit
-    coeff = LINFIT(h2oh2o[0:vecsize-1,1],      $
+    sdevvec = dblarr( N_ELEMENTS(h2oh2o[0:vecsize-1,0]) )
+    for isdev = 0, N_ELEMENTS(sdevvec)-1 do  $
+      sdevvec[isdev] = 1.000 / ABS( h2oh2o[isdev,0] )
+    COVAB = 0.000
+    RAB   = 0.000
+    coeff = MYLINFIT(h2oh2o[0:vecsize-1,1],    $
                    h2oh2o[0:vecsize-1,0],      $
-                   SDEV=h2oh2o[0:vecsize-1,3], $
+;                   SDEV=sdevvec,               $
                    PROB=probability , $
                    SIGMA=error,       $
                    CHISQ=CHISQ2,      $
+                   COVAB=COVAB,       $
+                   RAB=RAB,           $
                    /DOUBLE)
     CS[0,0]       = EXP(coeff[0])                   ; fit values of C_s
     CS[1,0]       = coeff[1]                        ; fit values of x_s
@@ -899,12 +1173,78 @@ IF (fitway EQ 1) THEN BEGIN ;  ----------- LINFIT --------------------------
     print, FORMAT='(A4,E10.3,A1,E10.3,A2,E10.3)','Cs =',CS[0,0],'+',$
            SIGMA_CS[0,0],'/-',SIGMA_CS[0,0]
     print, FORMAT='(A4,F13.6,A3,F13.6)','xs =',CS[1,0],'+/-',SIGMA_CS[2,0]
-    print, 'Chi2=',CHI2_CS[0],', prob. of fit =',probability
+    print, 'Chi2=',CHI2_CS[0],', N=',vecsize,', prob. of fit =',probability
+    print, 'covariance=',COVAB,', correlation=',RAB
+    PRINT, ' no. of data points:',vecsize
     print, '------------------------ C_S LINFIT ------------------------'
 ENDIF
 ;
 fitway = 2
-IF (fitway EQ 2) THEN BEGIN  ;  ------- simul. fit for f and Theta ---------
+IF (fitway EQ 2) THEN BEGIN  ;  ------- linear regression -----------------
+;   The REGRESS function performs a multiple linear regression fit and 
+;   returns an Nterm-element column vector of coefficients.
+;   REGRESS fits the function:
+;      y_i = ln(a_i) = ln(C_s)  +  (x_s * ln(Theta_i))  +  (x_f * ln(f_i))
+; o set variables
+    XF      = dblarr(vecsize)
+    XF[*]   = h2oh2o[0:vecsize-1,1]       ; x = ln(Theta) [1]
+;
+    YF      = dblarr(vecsize)
+    YF[*]   = h2oh2o[0:vecsize-1,0]       ; y = ln(abs) [1]
+;
+    Weights = dblarr(vecsize)             
+    FOR i = 0,vecsize-1 DO BEGIN
+        Weights[i] = 1.00e0
+    ENDFOR
+;
+    XSPWR98 = 4.5 ; hypothesis test with PWR98
+;
+; o perform the fit using multiple linear regression
+    mean2sep = 1
+    confa    = 1
+    confy    = dblarr(N_ELEMENTS(YF))
+    hypoa    = XSPWR98
+    CSLR = MYLINREGRESS(XF, YF,           $
+;                        weights=weights,   $ ; weight of y
+                       yfit=yfit,         $ ; yfit_i = a*x_i + b
+                       mean2sep=mean2sep, $ ; mean quad. separation
+                       confa=confa,       $ ; 95% confidence intervall of x_s
+                       confy=confy,       $ ; 95% conf.interval for each y_i
+                       hypoa=hypoa)       ; x_s agreement with PWR98
+;
+    CS[0,1]       = EXP(CSLR[1])       ; fit values of C_s
+    CS[1,1]       = CSLR[0]            ; fit values of x_s
+    kk = 0
+    for k = 0,N_ELEMENTS(XF)-1 do begin
+        if (ABS(XF[k]) LT ABS(XF[kk])) then kk = k 
+    endfor
+    print,'CS  XF=',XF[kk],' confy=',confy[kk]
+    if ( ABS(XF[kk]) LT 0.005 ) then begin  
+        CSOp = EXP( (CSLR[1] + CSLR[0]*XF[kk]) + confy[kk] )
+        CSOm = EXP( (CSLR[1] + CSLR[0]*XF[kk]) - confy[kk] )
+        SIGMA_CS[0,1] = 1.000e2 * confy[kk] ; sigma_plus of C_s  in %
+        SIGMA_CS[1,1] = 1.000e2 * confy[kk] ; sigma_minus of C_s in %
+;        SIGMA_CS[0,1] = CS[0,1] * (EXP(confy[kk]) - 1.000e0) ; sigma_plus of C_s
+;        SIGMA_CS[1,1] = CS[0,1] * (1.000e0 - EXP(confy[kk])) ; sigma_minus of C_s
+    endif else begin
+        SIGMA_CS[0,1] = -999.9            ; sigma_plus of C_s
+        SIGMA_CS[1,1] = -999.9            ; sigma_minus of C_s
+    endelse
+    SIGMA_CS[2,1] = confa              ; error in x_s
+    mean2sep      = mean2sep           ; sigma_plus of C_s
+    char_fit_fun[0] = 'REGRESS'
+; o print result
+    PRINT, ' ----------------------- C_S REGRESS -----------------------'
+    PRINT, 'C_s  = ',CS[0,1],' +',SIGMA_CS[0,1],' ',SIGMA_CS[1,1]
+    PRINT, 'x_s  = ',CS[1,1],' +/-',SIGMA_CS[2,1]
+    PRINT, 'mean2sep = ',mean2sep
+    PRINT, 'hypoa_PWR98 (0=yes/1=no)=',hypoa
+    PRINT, ' no. of data points:',N_ELEMENTS(YF)
+    PRINT, ' ----------------------- C_S REGRESS -----------------------'
+ENDIF
+;
+;fitway = 3
+IF (fitway EQ 3) THEN BEGIN  ;  ------- simul. fit for f and Theta ---------
 ;   The REGRESS function performs a multiple linear regression fit and 
 ;   returns an Nterm-element column vector of coefficients.
 ;   REGRESS fits the function:
@@ -927,10 +1267,10 @@ IF (fitway EQ 2) THEN BEGIN  ;  ------- simul. fit for f and Theta ---------
     ENDFOR
 ;
 ; o perform the fit using multiple linear regression
-;    CSTf = REGRESS(XF, YF, Weights, yfit, lnCSOTf, SigmaS, $
-;                   FtestS, RS, RmulS, ChisqS)
-    CSTf = REGRESS2(XF2, YF, Weights, Yfit, SigmaS, $
-                    FtestS, RS, RmulS, ChisqS, RELATIVE_WEIGHT=0)
+;    CSTf = MYREGRESS(XF, YF, Weights, yfit=yfit, Const=lnCSOTf, SIGMA=SigmaS, $
+;                   FTEST=FtestS, R=RS, RMUL=RmulS, CHISQ=ChisqS)
+;    CSTf = REGRESS2(XF2, YF, Weights, Yfit, SigmaS, $
+;                    FtestS, RS, RmulS, ChisqS, /RELATIVE_WEIGHT)
     CS[0,2]       = EXP(CSTf[0])      ; fit values of C_s
     CS[1,2]       = CSTf[1]           ; fit values of x_s
     CS[2,2]       = CSTf[2]           ; fit values of x_s
@@ -956,11 +1296,13 @@ IF (fitway EQ 2) THEN BEGIN  ;  ------- simul. fit for f and Theta ---------
     PRINT, ' ----------------------- C_S REGRESS -----------------------'
 ENDIF
 ;
+;
 ; ==========================={MAKE A PLOT OF C_S}===========================
 ;
+;
 ; --- use aii_plot_file for writing into plot output file ------------------
-if not keyword_set(plotfilename)   then plotfilename='CS_fit_test_plot'
-if not keyword_set(plotfileformat) then plotfileformat=2
+if (STRLEN(plotfilename) LT 3)  then plotfilename='CS_fit_plot'
+if ( (plotfileformat LT 1) OR (plotfileformat GT 5) ) then plotfileformat=4
 aii_plot_file, action='begin', fname=plotfilename, fformat=plotfileformat
 
 ; --- set frame of the plot in lin-lin scalo of log-log variables ----------
@@ -976,27 +1318,33 @@ aii_csf_plot_ps_definitions, colors=colors, $
 ; --- set frame of the plot ------------------------------------------------
 xlnmin = MIN(h2oh2o[0:vecsize-1,1])              ; min{-ln(Theta)}_i
 xlnmax = MAX(h2oh2o[0:vecsize-1,1])              ; max{-ln(Theta)}_i
-ymin   = MIN(h2oh2o[0:vecsize-1,0])
-ymax   = MAX(h2oh2o[0:vecsize-1,0])
-plot, h2oh2o[0:vecsize-1,1],                 $  ; ln(Theta)
-      h2oh2o[0:vecsize-1,0],                 $  ; ln(a)
+ymind  = MIN(h2oh2o[0:vecsize-1,0])
+ymaxd  = MAX(h2oh2o[0:vecsize-1,0])
+yminm  = ALOG(CS[0,0]) + 0.20*CS[1,0] - ABS(MAX(confy[*]))
+ymaxm  = ALOG(CS[0,0]) - 0.02*CS[1,0] + ABS(MAX(confy[*]))
+ymin   = MIN( [ymind, yminm] )
+ymax   = MAX( [ymaxd, ymaxm] )
+;
+plot, h2oh2o[0:vecsize-1,1],                 $ ; ln(Theta)
+  h2oh2o[0:vecsize-1,0],                     $ ; ln(a)
   /NORMAL,                                   $
-  xrange=[xlnmin, xlnmax],                     $
-  title=TeXtoIDL('fit of H_2O-H_2O data (A. Bauer et al.)', font=0),            $
-  xcharsize=1.5,         $
+  xrange=[xlnmin, xlnmax],                   $
+  title=TeXtoIDL('fit of H_2O-H_2O data ('+titletext+')', font=0), $
+  xcharsize=1.5,                             $
   xtitle=TeXtoIDL('-ln(\Theta)     [1]', font=0),             $
   XTICK_GET = xticks,                        $
   yrange=[ymin, ymax],                       $
-  ycharsize=1.5,         $
-  ytitle=TeXtoIDL('ln(\alpha / [dB/km/GHz^2/hPa^2])   [1]', font=0),  $
+  ycharsize=1.5,                             $
+  ytitle=TeXtoIDL('ln(C_s / [dB/km/GHz^2/hPa^2])   [1]', font=0),  $
   yTICK_GET = yticks,                        $
   color=colors[0],                           $
   psym=aii_plotsymbols(0),                   $
   symsize=1.25,                              $
   xstyle=2,                                  $
-  ystyle=2,                                  $
+  ystyle=1,                                  $
   /nodata
-; T [K] (upper x-axis)
+;
+; --- T [K] (upper x-axis) --------------------------------------------------
 FOR i = 1,N_ELEMENTS(xticks)-2 DO BEGIN
     xyouts, (xticks[i]),         $ ; x coordinate
             (yticks[0]),   $ ; y coordinate
@@ -1046,23 +1394,70 @@ FOR i = 0,vecsize-1 DO BEGIN
 ENDFOR
 ;
 ; --- plot first fit result ------------------------------------------------ 
-FOR i = 0,vecsize-1 DO BEGIN
-    yi = ALOG(CS[0,0]) + CS[1,0]*h2oh2o[i,1] ; ln(Cs) + x_s*ln(Theta)
-    plots, h2oh2o[i,1],        $  ; ln(Theta)
-           yi,                 $  ; ln(Cs) + x_s*ln(Theta)
-           color=colors[0],    $
-           linestyle=0,        $
-           thick=thick,        $
-           /CONTINUE
+index = SORT(h2oh2o[*,1])
+FOR j = 1,N_ELEMENTS(index)-1 DO BEGIN
+    i1 = index[j-1]
+    i2 = index[j]
+    x1 = h2oh2o[i1,1]                         ; ln(Theta)
+    x2 = h2oh2o[i2,1]                         ; ln(Theta)
+    y1 = ALOG(CS[0,0]) + CS[1,0]*h2oh2o[i1,1] ; ln(Cs) + x_s*ln(Theta)
+    y2 = ALOG(CS[0,0]) + CS[1,0]*h2oh2o[i2,1] ; ln(Cs) + x_s*ln(Theta)
+    plots,                $
+      [x1, x2],           $
+      [y1, y2],           $
+      color=colors[0],    $
+      linestyle=0,        $
+      thick=thick
 ENDFOR
+;
+; --- plot second fit result ----------------------------------------------- 
+IF (ABS(CS[1,1]) GT 0.0) THEN BEGIN
+;; plot linear regression plot
+    FOR j = 1,N_ELEMENTS(index)-1 DO BEGIN
+        i1 = index[j-1]
+        i2 = index[j]
+        x1 = h2oh2o[i1,1]                           ; ln(Theta)
+        x2 = h2oh2o[i2,1]                           ; ln(Theta)
+        y1 = ALOG(CS[0,1]) + CS[1,1]*h2oh2o[i1,1]   ; ln(Cs) + x_s*ln(Theta)
+        y2 = ALOG(CS[0,1]) + CS[1,1]*h2oh2o[i2,1]   ; ln(Cs) + x_s*ln(Theta)        
+        dy1  = ALOG(CS[0,1]) + CS[1,1]*h2oh2o[i1,1] - confy[i1]
+        dy2  = ALOG(CS[0,1]) + CS[1,1]*h2oh2o[i2,1] - confy[i2]
+        ddy1 = ALOG(CS[0,1]) + CS[1,1]*h2oh2o[i1,1] + confy[i1]
+        ddy2 = ALOG(CS[0,1]) + CS[1,1]*h2oh2o[i2,1] + confy[i2]
+        plots, $
+          [x1, x2],           $ ; ln(Theta)
+          [y1, y2],           $ ; ln(Cs) + x_s*ln(Theta)
+          color=colors[6],    $
+          linestyle=1,        $
+          thick=thick
+        if ( ( (dy1 GT ymin) AND (dy1 LT ymax) ) AND $
+             ( (dy2 GT ymin) AND (dy2 LT ymax) ) ) then begin
+            plots, $
+              [x1, x2],           $ ; ln(Theta)
+              [dy1, dy2],         $ ; ln(Cs) + x_s*ln(Theta)
+              color=colors[6],    $
+              linestyle=1,        $
+              thick=thick
+        endif
+        if ( ( (ddy1 GT ymin) AND (ddy1 LT ymax) ) AND $
+             ( (ddy2 GT ymin) AND (ddy2 LT ymax) ) ) then begin
+            plots, $
+              [x1, x2],           $ ; ln(Theta)
+              [ddy1, ddy2],       $ ; ln(Cs) + x_s*ln(Theta)
+              color=colors[6],    $
+              linestyle=1,        $
+              thick=thick
+        endif
+    ENDFOR
+ENDIF
 ;
 ; --- write date and user info ---------------------------------------------
 datum = get_userdate_info(1)
 xyouts, plotpos[0], plotpos[1]-0.10, datum, CHARSIZE=0.75, CHARTHICK=1.0, /NORMAL
 ;
 ; close plot output file
-aii_plot_file, action='end', show='yes', print='no', $
-               outdir='/home/home01/tkuhn/ARTS'
+aii_plot_file, action='end', show='no', print='no', $
+               outdir='./' 
 ;
 ;goto, omit_print
 ;
@@ -1113,11 +1508,32 @@ omit_print:
 read_lineabs_data_ende:
 ; set saved settings back
 !P = P_ini
-resvec = dblarr(4) ; = [C_s, sigma_C_s, x_s, sigma_x_s]
-resvec[0] = CS[0,0]
-resvec[1] = 0.5 * ( SIGMA_CS[0,0] + SIGMA_CS[1,0] )
-resvec[2] = CS[1,0]
-resvec[3] = SIGMA_CS[2,0]
+IF (CS[0,1] LE 0.0) THEN BEGIN
+; [C_s, sigma_C_s, x_s, sigma_x_s, chi2, cov(a,b), correlation(a,b)]
+    resvec = dblarr(7)          
+    resvec[0] = CS[0,0]
+    resvec[1] = 0.5 * ( SIGMA_CS[0,0] + SIGMA_CS[1,0] )
+    resvec[2] = CS[1,0]
+    resvec[3] = SIGMA_CS[2,0]
+    resvec[4] = CHI2_CS[0]  
+    resvec[5] = COVAB
+    resvec[6] = RAB
+ENDIF ELSE BEGIN
+    resvec = dblarr(12)
+    resvec[0]  = CS[0,0]
+    resvec[1]  = 0.5 * ( SIGMA_CS[0,0] + SIGMA_CS[1,0] )
+    resvec[2]  = CS[1,0]
+    resvec[3]  = SIGMA_CS[2,0]
+    resvec[4]  = CHI2_CS[0]  
+    resvec[5]  = COVAB
+    resvec[6]  = RAB
+    resvec[7]  = CS[0,1]       ; linear regression fit
+    resvec[8]  = CS[1,1]       ; linear regression fit
+    resvec[9]  = SIGMA_CS[0,1] ; linear regression fit
+    resvec[10] = SIGMA_CS[1,1] ; linear regression fit
+    resvec[11] = SIGMA_CS[2,1] ; linear regression fit
+ENDELSE
+
 RETURN,  resvec
 END
 ;
@@ -1149,7 +1565,10 @@ END
 FUNCTION do_PWR98_h2on2_cont_fit, data,                             $
                                   CS, sigma_Cs, xs, sigma_xs,       $
                                   artsjobpath, controlfilenamecore, $
-                                  linetotmaxratio
+                                  linetotmaxratio,                  $
+                                  FFITMIN, FFITMAX,                 $
+                                  plotfilename, plotfileformat,     $
+                                  titletext
 ;
 ;
 ; ---- CHECK OF CS ---------------------------------------------------------
@@ -1185,16 +1604,17 @@ P_ini = !P
 ; ---- GENERAL CONSTANTS ---------------------------------------------------
 COMMON UNITCONVERSION, TENLOG10_EULER, dBkm2Npm, Npm2dBkm, Hz2GHz, Pa2hPa
 ;
-Tref                 = 3.000E2  ; [K] for Theta calculation
-Rlinetotmax          = 7.500e-1 ; ratio of line to total absorption
-Rlinetotmin          = 0.000e0  ; ratio of line to total absorption
-datanlim             = 5        ; minimum of data points for fit
-sigma_ratio_abs_tot  = 2.000e-1 ; Gaussian error propagation: sigma_abstot = 20.0% abs_tot 
-sigma_ratio_abs_line = 1.000e-1 ; Gaussian error propagation: sigma_absl   = 10.0% abs_l
-sigma_ratio_f        = 1.000e-3 ; Gaussian error propagation: sigma_f      =  0.1% f
-sigma_ratio_pwv      = 1.000e-3 ; Gaussian error propagation: sigma_PH2O   =  0.1% P_H2O
-sigma_ratio_T        = 5.000e-3 ; Gaussian error propagation. sigma_T      =  0.5% T
-IF (linetotmaxratio GE 7.500e-1) THEN linetotmaxratio = Rlinetotmax 
+Tref                 = 3.000E2    ; [K] for Theta calculation
+Rlinetotmax          = 1.00000    ; ratio of line to total absorption
+Rlinetotmin          = 0.01       ; ratio of line to total absorption
+datanlim             = 5          ; minimum of data points for fit
+sigma_ratio_abs_tot  = 1.000e-1   ; Gaussian error propagation: sigma_abstot = 10.0% abs_tot 
+sigma_ratio_abs_line = 5.000e-2   ; Gaussian error propagation: sigma_absl   =  5.0% abs_l
+sigma_ratio_f        = 1.000e-5   ; Gaussian error propagation: sigma_f      =  0.001% f
+sigma_ratio_pwv      = 1.000e-3   ; Gaussian error propagation: sigma_PH2O   =  0.1% P_H2O
+sigma_ratio_pd       = 1.000e-4   ; Gaussian error propagation: sigma_buffer =  0.01% P_buffer
+sigma_ratio_T        = 5.000e-3   ; Gaussian error propagation. sigma_T      =  0.5% T
+IF (linetotmaxratio GE 1.00) THEN linetotmaxratio = Rlinetotmax 
 ;
 ; --- FIT VARIABLES H2O-H2O ------------------------------------------------
 ; these are the variables with the fit results for max. n_fits different
@@ -1213,6 +1633,8 @@ SIGMA_CF     = dblarr(4,n_fits) ; std. deviations for different fit routines
 SIGMA_CF[*,*]= 0.000e0
 CHI2_CF      = dblarr(n_fits)   ; chi² of the different fit routines
 CHI2_CF[*]   = 0.000e0
+COVAB = 0.000
+RAB   = 0.000
 char_fit_fun = strarr(n_fits)   ; strings, names the for different fit routines
 ;
 ; --- SORT N2-H2O DATA -----------------------------------------------------
@@ -1227,6 +1649,11 @@ FOR i = 0, N_ELEMENTS(data[*].abs)-1 DO BEGIN
 ;    print, data[i].f,'|',data[i].T,'|',data[i].pd,'|',data[i].pwv
 ;    print, '--------------------------------------------------------------------'
     IF ((data[i].BuffName EQ 'N2') AND (data[i].WVName EQ 'H2O'))  THEN BEGIN
+;        print,' do_PWR98_cont_fit> f=',data[i].f,' r=',(data[i].labs / data[i].abs)
+;   --- check frequency range ------------------------------------------------
+        IF ( ( data[i].f GE FFITMIN ) AND $
+             ( data[i].f LE FFITMAX )   ) THEN BEGIN
+;   --- check line to total absorption ratio ---------------------------------
         IF ( ((data[i].labs / data[i].abs) LT linetotmaxratio) AND $
              ((data[i].labs / data[i].abs) GT Rlinetotmin) ) THEN BEGIN
 ;         o Theta [1]
@@ -1267,7 +1694,7 @@ FOR i = 0, N_ELEMENTS(data[*].abs)-1 DO BEGIN
                 siga[1]  = sigma_ratio_abs_line * (Npm2dBkm*data[i].labs)
                 siga[2]  = sigma_ratio_f        * (Hz2GHz*data[i].f)
                 siga[3]  = sigma_ratio_pwv      * (Pa2hPa*data[i].pwv)
-                siga[4]  = sigma_ratio_pwv      * (Pa2hPa*data[i].pd)
+                siga[4]  = sigma_ratio_pd       * (Pa2hPa*data[i].pd)
                 siga[5]  = sigma_ratio_T        * Theta
                 siga[6]  = sigma_Cs
                 siga[7]  = sigma_xs
@@ -1288,6 +1715,7 @@ FOR i = 0, N_ELEMENTS(data[*].abs)-1 DO BEGIN
                 no = no + 1
             ENDELSE
         ENDIF
+        ENDIF
     ENDIF
 ENDFOR
 print,' do_PWR98_cont_fit> # of H2O-N2 data points omitted=',no
@@ -1297,9 +1725,9 @@ IF (j LT datanlim) THEN BEGIN
     goto, read_lineabs_data_ende
 ENDIF
 print,' do_PWR98_cont_fit> no. of H2O-N2 data points for fit=',j
-h2on22 = h2on2[0:j-1, 0:N_ELEMENTS(h2on2[0,*])-1] ; resize array
-index   = SORT(h2on22[*,1])                       ; sort in increasing ln(Theta)
-vecsize = N_ELEMENTS(h2on22[*,0])                 ; just for simplicity
+h2on22  = h2on2[0:j-1, 0:N_ELEMENTS(h2on2[0,*])-1] ; resize array
+index   = SORT(h2on22[*,1])                        ; sort in increasing ln(Theta)
+vecsize = N_ELEMENTS(h2on22[*,0])                  ; just for simplicity
 IF (N_ELEMENTS(index) NE vecsize) THEN BEGIN
     print,' do_PWR98_cont_fit> !!! ERROR: inconsistency in vector size!'
     print,' do_PWR98_cont_fit> !!! N_ELEMENTS(index):',N_ELEMENTS(index)
@@ -1317,19 +1745,27 @@ FOR i = 0, vecsize-1 DO BEGIN
 ENDFOR
 h2on2 = h2on22[0:vecsize-1, 0:N_ELEMENTS(h2on2[0,*])-1]      ; resize array
 ;
-; --- FIT H2O-N2 DATA ------------------------------------------------------
+;
+; ==========================={FIT H2O-N2 DATA}==============================
+;
+;
 fitway = 1
 IF (fitway EQ 1) THEN BEGIN ;  ----------- LINFIT --------------------------
 ;   The LINFIT function fits the paired data {xi, yi} to the 
 ;   linear model, y = A + Bx, by minimizing the Chi-square error statistic. 
 ;   The result is a two-element vector containing the model parameters [A, B]. 
 ; o perform fit
-    coeff = LINFIT(h2on2[0:vecsize-1,1],      $
+    sdevvec = dblarr( N_ELEMENTS(h2on2[0:vecsize-1,0]) )
+    for isdev = 0, N_ELEMENTS(sdevvec)-1 do $
+      sdevvec[isdev] = 1.000 / ABS( h2on2[isdev,0] )
+    coeff = MYLINFIT(h2on2[0:vecsize-1,1],    $
                    h2on2[0:vecsize-1,0],      $
-                   SDEV=h2on2[0:vecsize-1,3], $
+;                   SDEV=sdevvec,              $
                    PROB=probability , $
                    SIGMA=error,       $
                    CHISQ=CHISQ2,      $
+                   COVAB=COVAB,       $
+                   RAB=RAB,           $
                    /DOUBLE)
     CF[0,0]       = EXP(coeff[0])                   ; fit values of C_s
     CF[1,0]       = coeff[1]                        ; fit values of x_s
@@ -1344,15 +1780,80 @@ IF (fitway EQ 1) THEN BEGIN ;  ----------- LINFIT --------------------------
            ABS(error[0]/coeff[0])*100.0,'%'
     print, FORMAT='(A8,F10.6,A3,F5.2,A1)','coef[1]=',coeff[1],'+/-',$
            ABS(error[1]/coeff[1])*100.0,'%'
-    print, FORMAT='(A4,E10.3,A1,E10.3,A2,E10.3)','Cf =',CF[0,0],'+',$
-           SIGMA_CF[0,0],'/-',SIGMA_CF[0,0]
+    print, FORMAT='(A4,E10.3,A3,E10.3,A3,E10.3)','Cf =',CF[0,0],' /+',$
+           SIGMA_CF[0,0],' /-',SIGMA_CF[0,0]
     print, FORMAT='(A4,F13.6,A3,F13.6)','xf =',CF[1,0],'+/-',SIGMA_CF[2,0]
-    print, 'Chi2=',CHI2_CF[0],', prob. of fit =',probability
+    print, 'Chi2=',CHI2_CF[0],', N=',vecsize,', prob. of fit =',probability
+    print, 'covariance=',COVAB,', correlation=',RAB
+    PRINT, ' no. of data points:',vecsize
     print, '------------------------ C_F LINFIT ------------------------'
 ENDIF
 ;
-;fitway = 2
-IF (fitway EQ 2) THEN BEGIN  ;  ------- simul. fit for f and Theta ---------
+;
+fitway = 2
+IF (fitway EQ 2) THEN BEGIN  ;  ------- linear regression -----------------
+;   The REGRESS function performs a multiple linear regression fit and 
+;   returns an Nterm-element column vector of coefficients.
+;   REGRESS fits the function:
+;      y_i = ln(a_i) = ln(C_s)  +  (x_s * ln(Theta_i))  +  (x_f * ln(f_i))
+; o set variables
+    XF      = dblarr(vecsize)
+    XF[*]   = h2on2[0:vecsize-1,1]       ; x = ln(Theta) [1]
+;
+    YF      = dblarr(vecsize)
+    YF[*]   = h2on2[0:vecsize-1,0]       ; y = ln(abs) [1]
+;
+    Weights = dblarr(vecsize)             
+    FOR i = 0,vecsize-1 DO BEGIN
+        Weights[i] = 1.00e0
+    ENDFOR
+;
+    XSPWR98 = 0.0 ; hypothesis test with PWR98
+;
+; o perform the fit using multiple linear regression
+    mean2sep = 1
+    confa    = 1
+    confy    = dblarr(N_ELEMENTS(YF))
+    hypoa    = XSPWR98
+    CFLR = MYLINREGRESS(XF, YF,           $
+;                        weights=weights,   $ ; weight of y
+                       yfit=yfit,         $ ; yfit_i = a*x_i + b
+                       mean2sep=mean2sep, $ ; mean quad. separation
+                       confa=confa,       $ ; 95% confidence intervall of a
+                       confy=confy,       $ ; 95% conf.interval for each y_i
+                       hypoa=hypoa)       ; x_s agreement with PWR98
+;
+    CF[0,1]       = EXP(CFLR[1])       ; fit values of C_f
+    CF[1,1]       = CFLR[0]            ; fit values of x_f
+    kk = 0
+    for k = 0,N_ELEMENTS(XF)-1 do begin
+        if (ABS(XF[k]) LT ABS(XF[kk])) then kk = k 
+    endfor
+    print,'CF  XF=',XF[kk],' confy=',confy[kk]
+    if ( ABS(XF[kk]) LT 0.005 ) then begin  
+        CFOp = EXP( (CFLR[1] + CFLR[0]*XF[kk]) + confy[kk] )
+        CFOm = EXP( (CFLR[1] + CFLR[0]*XF[kk]) - confy[kk] )
+        SIGMA_CF[0,1] = 1.000e2 * confy[kk] ; sigma_plus of C_f  in %
+        SIGMA_CF[1,1] = 1.000e2 * confy[kk] ; sigma_minus of C_f in %
+    endif else begin
+        SIGMA_CF[0,1] = -999.9            ; sigma_plus of C_f
+        SIGMA_CF[1,1] = -999.9            ; sigma_minus of C_f
+    endelse
+    SIGMA_CF[2,1] = confa              ; error in x_f
+    mean2sep      = mean2sep           ; sigma_plus of C_s
+    char_fit_fun[0] = 'REGRESS'
+; o print result
+    PRINT, ' ----------------------- C_F REGRESS -----------------------'
+    PRINT, 'C_f  = ',CF[0,1],' +',SIGMA_CF[0,1],' -',SIGMA_CF[1,1]
+    PRINT, 'x_f  = ',CF[1,1],' +/-',SIGMA_CF[2,1]
+    PRINT, 'mean2sep = ',mean2sep
+    PRINT, 'hypoa_PWR98 (0=yes/1=no)=',hypoa
+    PRINT, ' no. of data points:',N_ELEMENTS(YF)
+    PRINT, ' ----------------------- C_F REGRESS -----------------------'
+ENDIF
+;
+;fitway = 3
+IF (fitway EQ 3) THEN BEGIN  ;  ------- simul. fit for f and Theta ---------
 ;   The REGRESS function performs a multiple linear regression fit and 
 ;   returns an Nterm-element column vector of coefficients.
 ;   REGRESS fits the function:
@@ -1375,10 +1876,10 @@ IF (fitway EQ 2) THEN BEGIN  ;  ------- simul. fit for f and Theta ---------
     ENDFOR
 ;
 ; o perform the fit using multiple linear regression
-;    CFTf = REGRESS(XF, YF, Weights, yfit, lnCSOTf, SigmaS, $
-;                   FtestS, RS, RmulS, ChisqS)
-    CFTf = REGRESS2(XF2, YF, Weights, Yfit, SigmaS, $
-                    FtestS, RS, RmulS, ChisqS, RELATIVE_WEIGHT=0)
+    CFTf = MYREGRESS(XF, YF, Weights, yfit=yfit, Const=lnCSOTf, Sigma=SigmaS, $
+                     FTEST=FtestS, R=RS, RMUL=RmulS, CHISQ=ChisqS)
+;    CFTf = REGRESS2(XF2, YF, Weights, Yfit, SigmaS, $
+;                    FtestS, RS, RmulS, ChisqS, RELATIVE_WEIGHT=0)
     CF[0,2]       = EXP(CFTf[0])      ; fit values of C_s
     CF[1,2]       = CFTf[1]           ; fit values of x_s
     CF[2,2]       = CFTf[2]           ; fit values of x_s
@@ -1388,6 +1889,8 @@ IF (fitway EQ 2) THEN BEGIN  ;  ------- simul. fit for f and Theta ---------
     SIGMA_CF[2,2] = SigmaS[1]         ; error in x_s
     SIGMA_CF[3,2] = SigmaS[2]         ; error in x_f
     char_fit_fun[0] = 'REGRESS'
+    COVAB = 0.00
+    RAB   = 0.00
 ; o print result
     PRINT, ' ----------------------- C_F REGRESS -----------------------'
     print, 'CFTf[0]  =',CFTf[0],' (+/-',((SigmaS[0]/CFTf[0])*100.0),'%)'
@@ -1404,9 +1907,14 @@ IF (fitway EQ 2) THEN BEGIN  ;  ------- simul. fit for f and Theta ---------
     PRINT, ' ----------------------- C_F REGRESS -----------------------'
 ENDIF
 ;
+;
+;
+; ==========================={MAKE A PLOT OF C_F}===========================
+;
+;
 ; --- set plot environment -------------------------------------------------
-if not keyword_set(plotfilename)   then plotfilename='CF_fit_test_plot'
-if not keyword_set(plotfileformat) then plotfileformat=2
+if (STRLEN(plotfilename) LT 3)  then plotfilename='CF_fit_plot'
+if ( (plotfileformat LT 1) OR (plotfileformat GT 5) ) then plotfileformat=4
 aii_plot_file, action='begin', fname=plotfilename, fformat=plotfileformat
 
 ; --- set frame of the plot in lin-lin scalo of log-log variables ----------
@@ -1418,23 +1926,28 @@ aii_csf_plot_ps_definitions, colors=colors, $
   pstyle=pstyle,   $
   plotpos=plotpos, $
   thick=thick
-;
+;;
 ; --- set frame of the plot ------------------------------------------------
 xlnmin = MIN(h2on2[0:vecsize-1,1])              ; min{-ln(Theta)}_i
 xlnmax = MAX(h2on2[0:vecsize-1,1])              ; max{-ln(Theta)}_i
-ymin   = MIN(h2on2[0:vecsize-1,0])
-ymax   = MAX(h2on2[0:vecsize-1,0])
+ymind  = MIN(h2on2[0:vecsize-1,0])
+ymaxd  = MAX(h2on2[0:vecsize-1,0])
+yminm  = ALOG(CF[0,0]) + 0.20*CF[1,0] - ABS(MAX(confy[*]))
+ymaxm  = ALOG(CF[0,0]) - 0.02*CF[1,0] + ABS(MAX(confy[*]))
+ymin   = MIN( [ymind, yminm] )
+ymax   = MAX( [ymaxd, ymaxm] )
+;
 plot, h2on2[0:vecsize-1,1],                  $  ; x=-ln(Theta)
   h2on2[0:vecsize-1,0],                      $  ; y= ln(a)
   /NORMAL,                                   $
   xrange=[xlnmin, xlnmax],                   $
-  title=TeXtoIDL('fit of H_2O-N_2 data (A. Bauer et al.)', font=0),  $
+  title=TeXtoIDL('fit of H_2O-N_2 data ('+titletext+')', font=0), $
   xcharsize=1.5,                             $
   xtitle=TeXtoIDL('-ln(\Theta)     [1]', font=0),                    $
   XTICK_GET = xticks,                        $
   yrange=[ymin, ymax],                       $
   ycharsize=1.5,         $
-  ytitle=TeXtoIDL('ln(\alpha / [dB/km/GHz^2/hPa^2])   [1]', font=0), $
+  ytitle=TeXtoIDL('ln(C_f / [dB/km/GHz^2/hPa^2])   [1]', font=0), $
   yTICK_GET = yticks,                        $
   color=colors[0],                           $
   psym=aii_plotsymbols(0),                   $
@@ -1442,7 +1955,8 @@ plot, h2on2[0:vecsize-1,1],                  $  ; x=-ln(Theta)
   xstyle=2,                                  $
   ystyle=2,                                  $
   /nodata
-; T [K] (upper x-axis)
+;
+; --- T [K] (upper x-axis) -------------------------------------------------
 FOR i = 1,N_ELEMENTS(xticks)-2 DO BEGIN
     xyouts, (xticks[i]),         $ ; x coordinate
             (yticks[0]),         $ ; y coordinate
@@ -1492,33 +2006,100 @@ FOR i = 0,vecsize-1 DO BEGIN
 ENDFOR
 ;
 ; --- plot first fit result ------------------------------------------------ 
-FOR i = 0,vecsize-1 DO BEGIN
-    yi = ALOG(CF[0,0]) + CF[1,0]*h2on2[i,1] ; ln(Cs) + x_s*ln(Theta)
-    plots, h2on2[i,1],         $  ; ln(Theta)
-           yi,                 $  ; ln(Cs) + x_s*ln(Theta)
-           color=colors[0],    $
-           linestyle=0,        $
-           thick=thick,        $
-           /CONTINUE
+index = SORT(h2on2[*,1])
+FOR j = 1,N_ELEMENTS(index)-1 DO BEGIN
+    i1 = index[j-1]
+    i2 = index[j]
+    x1 = h2on2[i1,1]                         ; ln(Theta)
+    x2 = h2on2[i2,1]                         ; ln(Theta)
+    y1 = ALOG(CF[0,0]) + CF[1,0]*h2on2[i1,1] ; ln(Cs) + x_s*ln(Theta)
+    y2 = ALOG(CF[0,0]) + CF[1,0]*h2on2[i2,1] ; ln(Cs) + x_s*ln(Theta)
+    plots,                $
+      [x1, x2],           $
+      [y1, y2],           $  
+      color=colors[0],    $
+      linestyle=0,        $
+      thick=thick
 ENDFOR
+;
+; --- plot second fit result ----------------------------------------------- 
+IF (ABS(CF[1,1]) GT 0.0) THEN BEGIN
+;; plot linear regression plot
+    FOR j = 1,N_ELEMENTS(index)-1 DO BEGIN
+        i1 = index[j-1]
+        i2 = index[j]
+        x1 = h2on2[i1,1]                           ; ln(Theta)
+        x2 = h2on2[i2,1]                           ; ln(Theta)
+        y1 = ALOG(CF[0,1]) + CF[1,1]*h2on2[i1,1]   ; ln(Cs) + x_s*ln(Theta)
+        y2 = ALOG(CF[0,1]) + CF[1,1]*h2on2[i2,1]   ; ln(Cs) + x_s*ln(Theta)        
+        dy1  = ALOG(CF[0,1]) + CF[1,1]*h2on2[i1,1] - confy[i1]
+        dy2  = ALOG(CF[0,1]) + CF[1,1]*h2on2[i2,1] - confy[i2]
+        ddy1 = ALOG(CF[0,1]) + CF[1,1]*h2on2[i1,1] + confy[i1]
+        ddy2 = ALOG(CF[0,1]) + CF[1,1]*h2on2[i2,1] + confy[i2]
+        plots, $
+          [x1, x2],           $ ; ln(Theta)
+          [y1, y2],           $ ; ln(Cs) + x_s*ln(Theta)
+          color=colors[6],    $
+          linestyle=1,        $
+          thick=thick
+        if ( ( (dy1 GT ymin) AND (dy1 LT ymax) ) AND $
+             ( (dy2 GT ymin) AND (dy2 LT ymax) ) ) then begin
+            plots, $
+              [x1, x2],           $ ; ln(Theta)
+              [dy1, dy2],         $ ; ln(Cs) + x_s*ln(Theta)
+              color=colors[6],    $
+              linestyle=1,        $
+              thick=thick
+        endif
+        if ( ( (ddy1 GT ymin) AND (ddy1 LT ymax) ) AND $
+             ( (ddy2 GT ymin) AND (ddy2 LT ymax) ) ) then begin
+            plots, $
+              [x1, x2],           $ ; ln(Theta)
+              [ddy1, ddy2],       $ ; ln(Cs) + x_s*ln(Theta)
+              color=colors[6],    $
+              linestyle=1,        $
+              thick=thick
+        endif
+    ENDFOR
+ENDIF
 ;
 ; --- write date and user info ---------------------------------------------
 datum = get_userdate_info(1)
 xyouts, plotpos[0], plotpos[1]-0.10, datum, CHARSIZE=0.75, CHARTHICK=1.0, /NORMAL
 ;
 ; close plot output file
-aii_plot_file, action='end', show='yes', print='no', $
-               outdir='/home/home01/tkuhn/ARTS'
+aii_plot_file, action='end', show='no', print='no', $
+               outdir='./' 
 ;
 ; ---- END OF FUNCTION -------------------------------------
 read_lineabs_data_ende:
 ; set saved settings back
 !P = P_ini
-resvec = dblarr(4) ; result vector [C_f, sigma_C_f, x_f, sigma_x_f]]
-resvec[0] = CF[0,0]
-resvec[1] = 0.5 * ( SIGMA_CF[0,0] + SIGMA_CF[1,0] ) ; take mean as sigma
-resvec[2] = CF[1,0]
-resvec[3] = SIGMA_CF[2,0]
+IF (CF[0,1] LE 0.00) THEN BEGIN
+; result vector [C_f, sigma_C_f, x_f, sigma_x_f, chi2, cov(a,b), correlation(a,b)]
+    resvec = dblarr(7) 
+    resvec[0]  = CF[0,0]
+    resvec[1]  = 0.5 * ( SIGMA_CF[0,0] + SIGMA_CF[1,0] ) ; take mean as sigma
+    resvec[2]  = CF[1,0]
+    resvec[3]  = SIGMA_CF[2,0]
+    resvec[4]  = CHI2_CF[0]  
+    resvec[5]  = COVAB
+    resvec[6]  = RAB
+ENDIF ELSE BEGIN
+    resvec = dblarr(12)
+    resvec[0]  = CF[0,0]
+    resvec[1]  = 0.5 * ( SIGMA_CF[0,0] + SIGMA_CF[1,0] ) ; take mean as sigma
+    resvec[2]  = CF[1,0]
+    resvec[3]  = SIGMA_CF[2,0]
+    resvec[4]  = CHI2_CF[0]  
+    resvec[5]  = COVAB
+    resvec[6]  = RAB
+    resvec[7]  = CF[0,1]       ; linear regression fit
+    resvec[8]  = CF[1,1]       ; linear regression fit
+    resvec[9]  = SIGMA_CF[0,1] ; linear regression fit
+    resvec[10] = SIGMA_CF[1,1] ; linear regression fit
+    resvec[11] = SIGMA_CF[2,1] ; linear regression fit
+ENDELSE
 RETURN, resvec
 END
 ;
@@ -1566,24 +2147,49 @@ END
 ;
 ; **************************************************************************
 ;
-PRO WVContParamFit, datafile=datafile, $
-                    controlfile=controlfile, $
-                    artspath=artspath, $
-                    frange=frange, $
-                    H2Otag=H2Otag, $
-                    H2Omodel=H2Omodel, $
-                    H2Ouparam=H2Ouparam, $
-                    H2Olineshape=H2Olineshape, $
-                    catname=catname, $
-                    catformat=catformat, $
-                    catfmin=catfmin, $
-                    catfmax=catfmax, $
-                    absratio_cs=absratio_cs, $
-                    absratio_cf=absratio_cf
+PRO WVContParamFit, datafile=datafile,             $
+                    controlfile=controlfile,       $
+                    artspath=artspath,             $
+                    artsjobpath=artsjobpath,       $
+                    frange=frange,                 $
+                    H2Otag=H2Otag,                 $
+                    H2Omodel=H2Omodel,             $
+                    H2Ouparam=H2Ouparam,           $
+                    H2Olineshape=H2Olineshape,     $
+                    mirrorline=mirrorline,         $
+                    catname=catname,               $
+                    catformat=catformat,           $
+                    catfmin=catfmin,               $
+                    catfmax=catfmax,               $
+                    absratio_cs=absratio_cs,       $ ; limit of abs_line/abs_total for C_s
+                    FFITMIN=FFITMIN,               $ ; lower frequency limit of abs_tot data
+                    FFITMAX=FFITMAX,               $ ; upper frequency limit of abs_tot data
+                    absratio_cf=absratio_cf,       $ ; limit of abs_line/abs_total for C_f
+                    paramoutfile=paramoutfile,     $ ; ascii output file
+                    paramlatexfile=paramlatexfile, $ ; LATEX output file
+                    airn2ratio=airn2ratio,         $ ; gamma_air/gamma/N2 ratio
+                    SMILESCPU=SMILESCPU              ; select smiles computer
 ;
 ; --- CLOSE ALL OPEN UNITS -------------------------------------------------
 close, /all
-;
+
+IF NOT KEYWORD_SET(paramlatexfile) THEN paramlatexfile='WVContParamFit.tex'
+;openw, latexunit, paramlatexfile, /APPEND, ERROR=err, /get_lun
+;IF (err NE 0) THEN BEGIN
+;    print,' WVContParamFit> ERROR: parameter output file >>'+paramlatexfile+$
+;          '<< can not be opened!'
+;    print,' WVContParamFit> error code for output file:',err
+;    print,' WVContParamFit> error message:', !ERR_STRING
+;    FREE_LUN, latexunit
+;ENDIF
+;printf, latexunit, $
+;  'cat. & cutoff & ls & C^o_s & & x_s & & C^o_f & & x_f & \\ '
+;FREE_LUN, latexunit
+
+; --- SELECT THE SMILES COMPUTER -------------------------------------------
+if not keyword_set(SMILESCPU) then SMILESCPU='smiles5'
+
+
 ; ---- COMMON BLOCK WITH CONSTANT ------------------------------------------
 COMMON UNITCONVERSION, TENLOG10_EULER, dBkm2Npm, Npm2dBkm, Hz2GHz, Pa2hPa
 TENLOG10_EULER = 4.3429448190325176 ; = 10*log(e)
@@ -1597,7 +2203,9 @@ Hz2GHz    = 1.0000e-9
 Pa2hPa    = 1.0000e-2
 ;
 ; --- set arts job directory -----------------------------------------------
-artsjobpath = '/home/home01/tkuhn/ARTS/'
+IF NOT KEYWORD_SET(artsjobpath) THEN BEGIN 
+    artsjobpath = '/home/home01/tkuhn/ARTS/'
+ENDIF
 artsjobpath = check_backslash(artsjobpath)
 ;
 ; --- CHECK ARTS PATH VARIABLE ---------------------------------------------
@@ -1609,11 +2217,16 @@ artspath = check_backslash(artspath)
 ; --- FILL COMMON BLOCK WITH ARTS SPECIFIC TAG INFO ------------------------
 ; this will be used in the following by the procedure
 ; "CreateArtsControlFile" in file "CreateArtsControlFile.pro"
-list_arts_tag, path=artspath, ilevel=0
+list_arts_tag, path=artspath, ilevel=0, ok=ok
+if (ok NE 0) then begin
+    print,' WVContParamFit> ERROR in finding the appropriate ARTS tags'
+    print,'                 terminate here the job'
+    goto, ende
+endif
 ;
 ; --- get all the measured data of total absorption ------------------------ 
 print, ' WVContParamFit> === 1 === read absorption data...'
-all_data = read_H2O_data_file(artsjobpath+datafile) ; this is a structure!
+all_data = read_H2O_data_file( datafile ) ; this is a structure!
 ;
 ; --- selection of H2O arts tag ----------------------------------------------
 IF NOT KEYWORD_SET(H2Otag)    THEN  H2Otag    = 'H2O'
@@ -1621,20 +2234,31 @@ IF NOT KEYWORD_SET(H2Omodel)  THEN  H2Omodel  = ''
 IF NOT KEYWORD_SET(H2Ouparam) THEN  H2Ouparam = [0.0, 0.0, 0.0]
 ;
 ; --- selection of H2O line shape --------------------------------------------
-IF NOT KEYWORD_SET(H2Olineshape) THEN H2Olineshape = ['no_shape', 'no_norm', '-1'] ; -> H2O tag = special tag
+IF NOT KEYWORD_SET(H2Olineshape) THEN H2Olineshape = ['no_shape', 'no_norm', '-1']
+ ; -> H2O tag = special tag
+IF KEYWORD_SET(mirrorline) THEN BEGIN
+  IF (STRLOWCASE(H2Olineshape[0]) NE 'no_shape') THEN mirrorline='yes' ELSE mirrorline='NO'
+ENDIF ELSE BEGIN
+    mirrorline='NO'
+ENDELSE
 ;
 ; --- selection of H2O line catalog ------------------------------------------
 IF NOT KEYWORD_SET(catname)   THEN catname   = ''
 IF NOT KEYWORD_SET(catformat) THEN catformat = ''
 IF NOT KEYWORD_SET(catfmin)   THEN catfmin   = 0.0e0
 IF NOT KEYWORD_SET(catfmax)   THEN catfmax   = 0.0e0
-IF (KEYWORD_SET(catname) AND $
-   (NOT KEYWORD_SET(catformat) OR $
-    NOT KEYWORD_SET(catfmin)   OR $
-    NOT KEYWORD_SET(catfmax))) THEN BEGIN
-    print,'ERROR in line catalog input information - please check it!'
-    STOP
-ENDIF
+;IF (KEYWORD_SET(catname)       AND $
+;   (NOT KEYWORD_SET(catformat) OR $
+;    NOT KEYWORD_SET(catfmin)   OR $
+;    NOT KEYWORD_SET(catfmax))) THEN BEGIN
+;    print,'ERROR in line catalog input information - please check it!'
+;    print,'catname: '+catname+' catformat: '+catformat+' catfmin=',catfmin,' catfmax=',catfmax
+;    STOP
+;ENDIF
+;
+; --- select fit frequency interval ------------------------------------------
+IF NOT KEYWORD_SET(FFITMIN) THEN  FFITMIN=1.0e9  ; [Hz]
+IF NOT KEYWORD_SET(FFITMAX) THEN  FFITMAX=1.0e12 ; [Hz]
 ;
 ; --- select arts control file name ------------------------------------------
 IF NOT KEYWORD_SET(controlfile) THEN BEGIN
@@ -1647,38 +2271,44 @@ controlfile = controlfilenamecore+'.arts'
 ; --- calculate the line absorption for each measurement ---------------------
 ;FOR i = 0, 50 DO BEGIN
 FOR i = 0, N_ELEMENTS(all_data[*].Abs)-1 DO BEGIN
+;   --- check frequency range ------------------------------------------------
+    IF ( ( all_data[i].f LT FFITMIN ) OR $
+         ( all_data[i].f GT FFITMAX )   ) THEN GOTO, no_arts_run
 ;   --- checks ---------------------------------------------------------------
-    IF (all_data[i].WVName   NE 'H2O') THEN GOTO, no_arts_run
+    IF ( all_data[i].WVName   NE 'H2O') THEN GOTO, no_arts_run
     IF ((all_data[i].BuffName NE 'N2') AND $
         (all_data[i].BuffName NE 'XX')) THEN GOTO, no_arts_run
 ;   --- H2O-N2 measurement ---------------------------------------------------
     IF ((all_data[i].BuffName EQ 'N2') AND $
         (all_data[i].WVName   EQ 'H2O')) THEN BEGIN
 ;        goto, no_arts_run
-        tags               = [H2Otag, 'N2']
+        tags               = H2Otag
         tag_models         = H2Omodel
         tag_userparameters = H2Ouparam
+        tag_up_n           = [N_ELEMENTS(H2Ouparam)]
         catname            = catname
         catformat          = catformat
         catfmin            = catfmin
         catfmax            = catfmax
-        lineshapes         = strarr(3,N_ELEMENTS(tags))
-        lineshapes[0:2,0]    = H2Olineshape
-        lineshapes[0:2,1]    = ['no_shape', 'no_norm', '-1']
+        lineshapes         = strarr(3, N_ELEMENTS(tags))
+        lineshapes[0:2,0]  = H2Olineshape
         frangemin          = all_data[i].f
         frangemax          = all_data[i].f
         frangesteps        = 2
-        ptzfile            = write_ptz_file(artsjobpath, controlfilenamecore,$
-                                            all_data[i].pwv, $
-                                            all_data[i].pd,  $
+        ptot               = all_data[i].pwv + all_data[i].pd
+        ptzfile            = write_ptz_file(artsjobpath,         $
+                                            controlfilenamecore, $
+                                            ptot,                $
                                             all_data[i].T)
         vmrtagnames        = tags
-        vmrfilenames       = write_vmr_file(artsjobpath, controlfilenamecore,$
-                                            tags, $
-                                            [all_data[i].pwv, all_data[i].pd])
+        vmrfilenames       = write_vmr_file(artsjobpath,         $
+                                            controlfilenamecore, $
+                                            tags,                $
+                                            ptot,                $
+                                            all_data[i].pwv)
         vmrbasename        = controlfile+'_vmr_'
-        prangemin          = (all_data[i].pwv+all_data[i].pd)
-        prangemax          = (all_data[i].pwv+all_data[i].pd)
+        prangemin          = ptot
+        prangemax          = ptot
         prangesteps=2
     ENDIF
 ;   --- pure H2O measurement -------------------------------------------------
@@ -1688,56 +2318,63 @@ FOR i = 0, N_ELEMENTS(all_data[*].Abs)-1 DO BEGIN
         tags               = H2Otag
         tag_models         = H2Omodel
         tag_userparameters = H2Ouparam
+        tag_up_n           = [N_ELEMENTS(H2Ouparam)]
         catname            = catname
         catformat          = catformat
         catfmin            = catfmin
         catfmax            = catfmax
-        lineshapes         = strarr(3,1) & lineshapes[0:2,0] = H2Olineshape
+        lineshapes         = strarr(3, N_ELEMENTS(tags))
+        lineshapes[0:2,0]  = H2Olineshape
         frangemin          = all_data[i].f
         frangemax          = all_data[i].f
         frangesteps        = 2
-        ptzfile            = write_ptz_file(artsjobpath, controlfilenamecore,     $
-                                            all_data[i].pwv, $
-                                            all_data[i].pd,  $
+        ptot               = all_data[i].pwv
+        ptzfile            = write_ptz_file(artsjobpath,         $
+                                            controlfilenamecore, $
+                                            ptot,                $
                                             all_data[i].T)
         vmrtagnames        = tags
-        vmrfilenames       = write_vmr_file(artsjobpath, controlfilenamecore,$
-                                            tags, $
+        vmrfilenames       = write_vmr_file(artsjobpath,         $
+                                            controlfilenamecore, $
+                                            tags,                $
+                                            ptot,                $
                                             all_data[i].pwv)
         vmrbasename        = controlfile+'_vmr_'
-        prangemin          = (all_data[i].pwv+all_data[i].pd)
-        prangemax          = (all_data[i].pwv+all_data[i].pd)
+        prangemin          = ptot
+        prangemax          = ptot
         prangesteps        = 2
     ENDIF
 ;   --- built arts control file for H2O line absorption calc. ----------------
     print, ' WVContParamFit> === 2 === built arts control file...'
     CreateArtsControlFile, flag=flag, debug=0, $
-                          artsjobpath=artsjobpath, $
-                          controlfile=controlfile, $
+                          artsjobpath=artsjobpath,  $
+                          controlfile=controlfile,  $
 ;                         -------------------------------------------------
-                          tags=tags, $
-                          tag_models=tag_models, $
+                          tags=tags,                $
+                          tag_models=tag_models,    $
                           tag_userparameters=tag_userparameters, $
+                          tag_up_n=tag_up_n,                     $
 ;                         -------------------------------------------------
-                          catname=catname, $
-                          catformat=catformat, $
-                          catfmin=catfmin, $
-                          catfmax=catfmax, $
+                          catname=catname,          $
+                          catformat=catformat,      $
+                          catfmin=catfmin,          $
+                          catfmax=catfmax,          $
 ;                         -------------------------------------------------
-                          lineshapes=lineshapes, $
+                          lineshapes=lineshapes,    $
+                          mirrorline=mirrorline,    $
 ;                         -------------------------------------------------
-                          frangemin=frangemin, $
-                          frangemax=frangemax, $
-                          frangesteps=2, $
+                          frangemin=frangemin,      $
+                          frangemax=frangemax,      $
+                          frangesteps=2,            $
 ;                         -------------------------------------------------
-                          ptzfile=ptzfile, $
+                          ptzfile=ptzfile,          $
 ;                         -------------------------------------------------
-                          vmrtagnames=vmrtagnames, $
+                          vmrtagnames=vmrtagnames,  $
                           vmrfilenames=vmrfilenames,$ 
-                          vmrbasename=vmrbasename, $
+                          vmrbasename=vmrbasename,  $
 ;                         -------------------------------------------------
-                          prangemin=prangemin, $
-                          prangemax=prangemax, $
+                          prangemin=prangemin,      $
+                          prangemax=prangemax,      $
                           prangesteps=2
 ;
     IF (flag NE 0) THEN BEGIN
@@ -1749,7 +2386,8 @@ FOR i = 0, N_ELEMENTS(all_data[*].Abs)-1 DO BEGIN
 ;   --- run arts job -------------------------------------------------------
     print, ' WVContParamFit> === 3 === run arts control file...'
     CD, artsjobpath, CURRENT=aiidir
-    spawn, 'myarts '+controlfile
+;    spawn, 'myarts '+controlfile
+    spawn, './myarts_'+SMILESCPU+' '+controlfile
 ;
 ;   --- retrieve the calculated line absorption coefficient ----------------
     print, ' WVContParamFit> === 4 === check arts report file...'
@@ -1759,7 +2397,8 @@ FOR i = 0, N_ELEMENTS(all_data[*].Abs)-1 DO BEGIN
     IF (STRPOS(findgoodby[0], 'Goodby') LT 0) THEN BEGIN
         print, 'WVContParamFit> !!! ERROR: arts calculation not successful!'
         print, 'WVContParamFit> !!! jump tp the next calculation, present loop index=',i
-        goto, no_arts_run
+;        goto, no_arts_run
+        STOP
     ENDIF
 ;
 ;   --- retrieve the calculated line absorption coefficient ----------------
@@ -1772,33 +2411,165 @@ FOR i = 0, N_ELEMENTS(all_data[*].Abs)-1 DO BEGIN
     all_data[i].cabs = all_data[i].abs - all_data[i].labs ;
 no_arts_run:
 ENDFOR
-;
+
+
+
+; --- extract some necessary information ------------------------------------
+shortcat = STR_SEP(catname, '/')
+if (N_ELEMENTS(shortcat) LT 1) then  p='_' else p=shortcat[N_ELEMENTS(shortcat)-1]
+catid = STR_SEP(p, '_')
+tgid  = STR_SEP(H2Otag, '-')
+if (STRLEN(catid[0]) LT 3) then begin
+    titletext = STRUPCASE(tgid[1])
+endif else begin
+    titletext = STRUPCASE(catid[0])
+endelse
+if (H2Olineshape[2] EQ '-1') then begin
+    titletext= titletext+'/nocutoff'
+endif else begin
+    titletext= titletext+'/cutoff'
+endelse
+
+
+
 ; --- perform H2O-H2O fit of abs_cont --------------------------------------
 print, ' WVContParamFit> === 6 === perform the H2O-H2O continuum parameter fit...'
-IF NOT KEYWORD_SET(absratio_cs) THEN absratio_cs = 3.300e-1 ; ratio max. allowed abs_line/abs_tot
-CSfit = do_PWR98_h2oh2o_cont_fit(all_data, artsjobpath, controlfilenamecore, absratio_cs)
-IF (N_ELEMENTS(CSfit) NE 4) THEN BEGIN
+plotfileformat=4
+IF NOT KEYWORD_SET(absratio_cs) THEN absratio_cs = 25.00e-2 ; ratio max. allowed abs_line/abs_tot
+plotfilename = 'CS_fit_plot_'+H2Otag+'_'+p+'_'+H2Olineshape[0]+'_'+$
+               H2Olineshape[2]+'_'+mirrorline+'_'+$
+               STRCOMPRESS(string((FFITMIN*1.00e-9),FORMAT='(I3)'))+'-'+$
+               STRCOMPRESS(string((FFITMAX*1.00e-9),FORMAT='(I3)'))
+; CSfit = [C_s, sigma_C_s, x_s, sigma_x_s, chi2, cov(a,b), correlation(a,b)]
+CSfit = do_PWR98_h2oh2o_cont_fit(all_data,                         $
+                                 artsjobpath, controlfilenamecore, $
+                                 absratio_cs,                      $
+                                 FFITMIN, FFITMAX,                 $
+                                 plotfilename, plotfileformat,     $
+                                 titletext)
+IF (N_ELEMENTS(CSfit) LT 7) THEN BEGIN
     print,' WVContParamFit> WARNING! The H2O-H2O continuum parameter fit was NOT successful!'
+    goto, ende
 ENDIF
-print,' WVContParamFit> Cs=',CSfit[0],'dB/km/hPa2/GHz2, xs=',CSfit[2]
-;
+spawn,'gzip -f '+plotfilename+'.*'
+
+
+
 ; --- perform H2O-N2 fit of abs_cont --------------------------------------
 print, ' WVContParamFit> === 7 === perform the H2O-N2 continuum parameter fit...'
-IF NOT KEYWORD_SET(absratio_cf) THEN absratio_cf = 3.300e-1 ; ratio max. allowed abs_line/abs_tot
+IF NOT KEYWORD_SET(absratio_cf) THEN absratio_cf = 25.00e-2 ; ratio max. allowed abs_line/abs_tot
+plotfilename = 'CF_fit_plot_'+H2Otag+'_'+p+'_'+H2Olineshape[0]+'_'+$
+               H2Olineshape[2]+'_'+mirrorline+'_'+$
+               STRCOMPRESS(string((FFITMIN*1.00e-9),FORMAT='(I3)'))+'-'+$
+               STRCOMPRESS(string((FFITMAX*1.00e-9),FORMAT='(I3)'))
+; CFfit = [C_f, sigma_C_f, x_f, sigma_x_f, chi2, cov(a,b), correlation(a,b)]
 CFfit = do_PWR98_h2on2_cont_fit(all_data,                              $
                                 CSfit[0], CSfit[1], CSfit[2], CSfit[3],$
                                 artsjobpath, controlfilenamecore,      $
-                                absratio_cf)
-IF (N_ELEMENTS(CFfit) NE 4) THEN BEGIN
+                                absratio_cf,                           $
+                                FFITMIN, FFITMAX,                      $
+                                plotfilename, plotfileformat,          $
+                                titletext)
+IF (N_ELEMENTS(CFfit) LT 7) THEN BEGIN
     print,' WVContParamFit> WARNING! The H2O-N2 continuum parameter fit was NOT successful!'
+    goto, ende
 ENDIF
-print,' WVContParamFit> Cs=',CSfit[0],' dB/km/hPa2/GHz2, xs=',CSfit[2]
-print,' WVContParamFit> Cf=',CFfit[0],'dB/km/hPa2/GHz2,  xf=',CFfit[2]
-;
+spawn,'gzip -f '+plotfilename+'.*'
+
+
+
+; --- write parameter to output file --------------------------------------
+;; physical units / constants
+IF NOT KEYWORD_SET(airn2ratio) THEN airn2ratio=(1.000/1.080) ;; conversion factor for N2 -> air
+MPM2artsUnit = 2.3026e-26 ;; unit conversion form MPM units to arts units
+;; ouotput file
+IF NOT KEYWORD_SET(paramoutfile) THEN paramoutfile='WVContParamFit.CSF'
+openw, oounit, paramoutfile, /APPEND, ERROR=err, /get_lun
+IF (err NE 0) THEN BEGIN
+    print,' WVContParamFit> ERROR: parameter output file >>'+paramoutfile+$
+          '<< can not be opened!'
+    print,' WVContParamFit> error code for output file:',err
+    print,' WVContParamFit> error message:', !ERR_STRING
+    FREE_LUN, oounit
+ENDIF
+printf, oounit,' ' 
+printf, oounit,'***********************************************************************'
+printf, oounit,' ' 
+printf, oounit, GetDatum()
+printf, oounit,' H2Otag='+H2Otag+'| H2Omodel='+H2Omodel+'| mirrorline='+mirrorline
+printf, oounit,' l-shape='+H2Olineshape[0]+', norm=',H2Olineshape[1]+', cutoff=',H2Olineshape[2]+' Hz'
+printf, oounit,' line catalog='+catname
+printf, oounit, FORMAT='(A9,E10.3,A11,E10.3)',$
+               ' FFITMIN=',FFITMIN,',  FFITMAX=',FFITMAX
+printf, oounit, FORMAT='(A13,F5.2,A14,F5.2)',$
+               ' absratio_cs=',absratio_cs,',  absratio_cf=',absratio_cf
+printf, oounit, FORMAT='(A4,E12.4,A5,E12.4,A21,F6.3,A5,F6.3)',$
+               ' Cs=',CSfit[0],' +/- ',CSfit[1],' dB/km/hPa2/GHz2, xs=',CSfit[2],' +/- ',CSfit[3]
+if (N_ELEMENTS(CSfit) GT 7) then $
+  printf, oounit, FORMAT='(A4,E12.4,A22,F6.2,A7,F6.3,A5,F6.3)',$
+  '2Cs=',CSfit[7],' dB/km/hPa2/GHz2 (+/- ',CSfit[9],'%) x_s=',$
+  CSfit[8],' +/- ',CSfit[11]
+printf, oounit, FORMAT='(A4,E12.4,A17,F6.3)',$
+               ' Cs=',(CSfit[0]*MPM2artsUnit),' 1/m/Pa2/Hz2, xs=',CSfit[2]
+printf, oounit, FORMAT='(A6,F9.4,A6,F9.4,A7,F9.4)',$
+               ' chi2=',CSfit[4],', Cov=',CSfit[5],', Corr=',CSfit[6]
+printf, oounit, FORMAT='(A9,E12.4,A5,E12.4,A21,F6.3,A5,F6.3)',$
+               ' N2:  Cf=',CFfit[0],' +/- ',CFfit[1],' dB/km/hPa2/GHz2, xf=',CFfit[2],' +/- ',CFfit[3]
+if (N_ELEMENTS(CFfit) GT 7) then begin
+    printf, oounit,  FORMAT='(A9,E12.4,A22,F6.2,A7,F6.3,A5,F6.3)',$
+      '2N2:  Cf=',CFfit[7],' dB/km/hPa2/GHz2 (+/- ',CFfit[9],'%) x_s=',$
+      CFfit[8],' +/- ',CFfit[11]
+    printf, oounit, FORMAT='(A9,E12.4,A17,F6.3)',$
+      '2N2:  Cf=',(CFfit[0]*MPM2artsUnit),$
+      ' 1/m/Pa2/Hz2, xf=',CFfit[2]
+endif
+printf, oounit, FORMAT='(A9,E12.4,A5,E12.4,A21,F6.3,A5,F6.3)',$
+               ' air: Cf=',(CFfit[0]*airn2ratio),' +/- ',(CFfit[1]*airn2ratio),$
+               ' dB/km/hPa2/GHz2, xf=',CFfit[2],' +/- ',CFfit[3]
+printf, oounit, FORMAT='(A9,E12.4,A17,F6.3)',$
+               ' air: Cf=',(CFfit[0]*MPM2artsUnit*airn2ratio),$
+               ' 1/m/Pa2/Hz2, xf=',CFfit[2]
+printf, oounit, FORMAT='(A6,F9.4,A6,F9.4,A7,F9.4)',$
+               ' chi2=',CFfit[4],', Cov=',CFfit[5],', Corr=',CFfit[6]
+FREE_LUN, oounit
+
+
+
+; --- LaTex file -----------------------------------------------------------
+openw, latexunit, paramlatexfile, /APPEND, ERROR=err, /get_lun
+IF (err NE 0) THEN BEGIN
+    print,' WVContParamFit> ERROR: parameter output file >>'+paramlatexfile+$
+          '<< can not be opened!'
+    print,' WVContParamFit> error code for output file:',err
+    print,' WVContParamFit> error message:', !ERR_STRING
+    FREE_LUN, latexunit
+ENDIF
+ppp = STR_SEP(titletext,'/')
+slshape = '-'
+if ((RSTRPOS(STRUPCASE(H2Olineshape[0]), 'LORENTZ')   GE 0) AND $
+    (RSTRPOS(STRUPCASE(H2Olineshape[1]), 'QUADRATIC') GE 0)) then slshape = 'VVW'
+if ((RSTRPOS(STRUPCASE(H2Olineshape[0]), 'LORENTZ') GE 0) AND $
+    (RSTRPOS(STRUPCASE(H2Olineshape[1]), 'LINEAR')  GE 0)) then slshape = 'L'
+if ((RSTRPOS(STRUPCASE(H2Olineshape[0]), 'VOIGT')   GE 0) AND $
+    (RSTRPOS(STRUPCASE(H2Olineshape[1]), 'QUADRATIC') GE 0)) then slshape = 'VV'
+if ((RSTRPOS(STRUPCASE(H2Olineshape[0]), 'VOIGT') GE 0) AND $
+    (RSTRPOS(STRUPCASE(H2Olineshape[1]), 'LINEAR')  GE 0)) then slshape = 'V'
+printf, latexunit, $
+  FORMAT='(A10,A3,A8,A3,A3,A3,F8.2,A3,F5.1,A5,F5.2,A3,F5.2,A3,F8.2,A3,F5.1,A5,F5.2,A3,F5.2,A3)',$
+  ppp[0],' & ',ppp[1], ' & ',slshape,' & ',                $
+  (CSfit[7]*1.0000E+08),' & ',CSfit[9],'\%) &',ABS(CSfit[8]),  ' & ',CSfit[11],' & ',$
+  (CFfit[7]*1.0000E+09),' & ',CFfit[9],'\%) &',ABS(CFfit[8]),  ' & ',CFfit[11],' \\'
+FREE_LUN, latexunit
+
+
+
+
+
 ; --- end of the procedure -------------------------------------------------
 ende:
 close, /all
 print, ' WVContParamFit> end of procedure'
+print,'***********************************************************************'
 ;
 END
 ; ==========================================================================
