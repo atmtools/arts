@@ -57,17 +57,45 @@ xml_open_input_file (ifstream& file, const String& name);
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   IO routines for XML files
+//   Generic IO routines for XML files
 ////////////////////////////////////////////////////////////////////////////
 
 template<typename T> void
 xml_read_from_file (const String& filename,
                           T&      data);
 
+template<typename T> void
+xml_write_to_file (const String& filename,
+                   const      T& data);
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Overloaded reading/writing routines for XML streams
+////////////////////////////////////////////////////////////////////////////
+
 void
-xml_read_from_stream (istream& is, Index&   index);
+xml_read_from_stream (istream& is, Index& index);
+
+void
+xml_write_to_stream (ostream& os, const Index& index);
 
 void
 xml_read_from_stream (istream& is, Numeric& numeric);
+
+void
+xml_write_to_stream (ostream& os, const Numeric& numeric);
+
+void
+xml_read_from_stream (istream& is, Vector& vector);
+
+void
+xml_write_to_stream (ostream& os, const Vector& vector);
+
+void
+xml_read_from_stream (istream& is, Matrix& matrix);
+
+void
+xml_write_to_stream (ostream& os, const Matrix& matrix);
+
 
 #endif
