@@ -1,5 +1,12 @@
 2003-03-26  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-0-69
+
+	* src/absorption.cc: Include cmath instead of math.h. Otherwise
+	pow is not found (gcc3.0).
+
+2003-03-26  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-0-68
 
 	* reconf: Don't redirect output of rm command. Prevents

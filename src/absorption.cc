@@ -31,7 +31,7 @@
 #include <map>
 #include <cfloat>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 #include "absorption.h"
 #include "math_funcs.h"
 #include "auto_md.h"
