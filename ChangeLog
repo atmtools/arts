@@ -1,3 +1,9 @@
+2004-10-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-901
+
+	* ChangeLog: Removed conflict markers.
+
 2004-10-12  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-900
@@ -77,7 +83,6 @@
 
 	* src/montecarlo.h: untabified.
 
->>>>>>> 1.1292
 2004-10-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-897
@@ -121,7 +126,6 @@
 	time the test takes (40s), we can reduce the photon numbers and
 	increase the accuracy tolerance. 
 
->>>>>>> 1.1290
 2004-10-07  Cory Davis  <cory@localhost.localdomain>
 
 	* arts-1-1-895
