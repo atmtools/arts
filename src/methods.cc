@@ -554,37 +554,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_vec_sptCalc"),
-        DESCRIPTION
-        (
-         "This method calculates the absorption vector for a single particle\n"
-         "type.\n"
-         "\n"
-         "All elements of absorption vector for a particle can be expressed\n"
-         "in terms of extinction matrix and phase matrix. So it is necessary\n"
-         "that the methods ext_mat_sptCalc and pha_mat_sptCalc are done \n"
-         "before calling this method. \n"
-         "\n"
-         "The output of the method *abs_vec_sptCalc* is *abs_vec_spt* \n"
-         "(Matrix, size: [Npt,stokes_dim]). The input to the method \n"
-         "*abs_vec_sptCalc are abs_vec_spt, *pha_mat_spt*(Tensor 5,*\n"
-         "size: [Npt,Nza,Naa,stokes_dim,stokes_dim]), *ext_mat_spt* \n"
-         "(Tensor 3,size = [Npt,stokes_dim,stokes_dim]), *scat_za_grid*\n"
-         "(Vector,size = [Nza]) and *scat_aa_grid* (Vector,size = [Naa]).\n"
-         "This method calls the function amp2abs which does the actual\n"
-         "physics, that of computing the elements of absorption vector \n"
-         "from the elements of extinction matrix and phase matrix.\n"
-         ),
-        OUTPUT(abs_vec_spt_ ),
-        INPUT(abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, scat_za_grid_,
-              scat_aa_grid_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("AgendaSet"),
         DESCRIPTION
         ( 
@@ -614,63 +583,6 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES(),
         AGENDAMETHOD( true )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("amp_matCalc"),
-        DESCRIPTION
-        (
-         "This method converts the raw amplitude matrix data namely \n"
-         "amp_mat_raw to workspace variable amp_mat which can be directly\n"
-         "used for calculating scattering properties of particles.  \n"
-         "\n"
-         "The data type of amp_mat_raw is an ArrayOfArrayOfTensor6 which \n"
-         "contains one gridded field for each particle type the user wants.\n"
-         "One data file contains amp_mat_raw for one particle type.  One \n"
-         "data file has amp_mat_raw for one particle for a set of \n"
-         "frequencies, incoming and outgoing zenith angles and azimuth \n"
-         "angles. The frequencies, angles, and the amplitude matrix are \n"
-         "each a Tensor 6. The size of amp_mat_raw is amp_mat_raw[Npt][7],\n"
-         "where Npt is the number of particle types. amp_mat_raw[Npt] [0]\n"
-         "gives the frequency tensor [N_f, 1, 1, 1, 1, 1] where N_f gives\n"
-         "the number of frequencies considered in that particular database \n"
-         "file. Similarly, amp_mat_raw[ Npt ][ 1 ] gives the outgoing zenith\n"
-         "angle tensor [1, Nza, 1, 1, 1, 1], amp_mat_raw[ Npt ][ 2 ] gives \n"
-         "the outgoing azimuth angle tensor [1, 1, Naa, 1, 1, 1], \n"
-         "amp_mat_raw[ Npt ][ 3 ] gives the incoming zentih angle tensor\n"
-         "[1, 1, 1, Nza, 1, 1], amp_mat_raw[ Npt ][ 4 ] gives the incoming\n"
-         "azimuth angle tensor [1, 1, 1, 1, Naa, 1], amp_mat_raw[ Npt ][ 5 ]\n"
-         "is a dummy tensor6 and amp_mat_raw[ Npt ][ 6 ] gives amplitude\n"
-         "matrix which is also a tensor6 of size \n"
-         "[N_f, N_za, N_aa, N_za, N_aa, 8]. Here, Nza is the number of \n"
-         "zenith angles, Naa is the number of azimuth angles and 8 denotes \n"
-         "the amplitude matrix elements.  \n"
-         "\n"
-         "In this method, we have to interpolate the raw data calculated on \n"
-         "specific angular and frequency grids onto a grid which is set by \n"
-         "the user. Since we decide that frequency should be the outermost \n"
-         "loop for our radiative transfer calculation, the frequency grid \n"
-         "contains just one value specified by the index scat_f_index. The\n"
-         "angles for which the calculations are to be done are specified by\n"
-         "scat_za_grid and scat_aa_grid. The interpolation has to be done \n"
-         "for the frequency grid, zenith angle grid and azimuth angle grid. \n"
-         "Since this interpolation is from a gridded field to a new field, \n"
-         "we have to perform a green interpolation. For more insight into \n"
-         "the interpolation schemes refer to Chapter 8-Interpolation of AUG.\n"
-         "\n"
-         "The output of this method is amp_mat has to be a Tensor6 with the \n"
-         "first dimension being that of the particle type, then the angles \n"
-         "and finally the amplitude matrix element 8. The size of amp_mat is\n"
-         "(Npt, Nza, Naa, Nza, Naa, 8).  Note that the dimension frequency \n"
-         "is taken out.\n"
-         ),
-        OUTPUT(amp_mat_),
-        INPUT(amp_mat_raw_, f_index_, f_grid_, scat_za_grid_, 
-              scat_aa_grid_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES())); 
 
   md_data_raw.push_back
     ( MdRecord
@@ -1522,89 +1434,6 @@ md_data_raw.push_back
         KEYWORDS( ),
         TYPES( )));
 
-//   md_data_raw.push_back
-//     ( MdRecord
-//       ( NAME("ext_mat_partScat"),
-//      DESCRIPTION
-//      (
-//       "This function sums up the convergence extinction matrices \n"
-//          "for all particle types weighted with particle number density.\n"
-//       "\n"
-//          "This method is only used for the convergence test, where particle\n"
-//          "absorption is set to be 0. \n"
-//       "The output of this method is *ext_mat_part* (stokes_dim, stokes_dim).\n"
-//       "The inputs are the convergence extinction matrix for the single\n"
-//          "particle type *ext_mat_conv_spt* \n"
-//          "(part_types, stokes_dim, stokes_dim) and the local \n"
-//       "particle number densities for all particle types namely the \n"
-//       "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given \n"
-//       "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
-//       "are specified in the control file.  \n"
-//       ),
-//      OUTPUT( ext_mat_  ),
-//         INPUT( ext_mat_spt_, pnd_field_, atmosphere_dim_, scat_p_index_, 
-//             scat_lat_index_, scat_lon_index_),
-//      GOUTPUT( ),
-//      GINPUT( ),
-//      KEYWORDS( ),
-//      TYPES( )));
-
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ext_mat_sptScat"),
-        DESCRIPTION
-        ( 
-         "This method calculates the convergence extinction matrix.\n"
-         "\n"
-         "This function calculates extinction due to scattering (without \n"
-         "absorption). It is used only for testing, if the iterative method \n"
-         "converges towards the right solution.\n"
-         "\n"
-         ),
-        OUTPUT( ext_mat_spt_  ),
-        INPUT( pha_mat_spt_, scat_za_grid_, scat_aa_grid_),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
- 
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ext_mat_sptCalc"),
-        DESCRIPTION
-        ( 
-         "This method calculates the extinction matrix for a single particle\n"
-         "type.\n"
-         "\n"
-         "Extinction matrix describes the total attenuation of the incident \n"
-         "radiation resulting from the combined effect of scattering and\n"
-         "absorption by the particle.  It is a 4X4 matrix and all the\n"
-         "elements of extinction matrix for a particle can be expressed in\n"
-         "terms of the elements of the forward scattering amplitude matrix.\n"
-         "\n"
-         "The output of this method is \n"
-         "*ext_mat_spt*(Tensor 3, size = [Npt,stokes_dim,stokes_dim])and the\n"
-         "inputs are *ext_mat_spt*,*amp_mat*(Tensor 6, Size=[Npt,Nza,Naa,Nza,Naa,8]), \n"
-         "*scat_za_index*,*scat_aa_index*,*f_index* and *scat_f_grid*. \n"
-         "\n"
-         "The variables *scat_za_index* and *scat_aa_index picks the right \n"
-         "element of the Tensor *amp_mat*. *f_grid* and *f_index* picks \n"
-         "the right frequeny for calculation. Frequeny is needed because the\n"
-         "computation of extinction matrix from amplitude matrix involves \n"
-         "multiplication by wavelength.  Then this method calls the \n"
-         "function amp2ext which does the actual physics, that of computing\n"
-         "the elements of extinction matrix from the elements of amplitude \n"
-         "matrix.\n"
-         ),
-        OUTPUT( ext_mat_spt_  ),
-        INPUT( ext_mat_spt_,amp_mat_, scat_za_index_, scat_aa_index_,
-               f_index_, f_grid_),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
-
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("FlagOff"),
@@ -2171,30 +2000,7 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME("grid_stepsizeCheck"),
-        DESCRIPTION
-        (
-         "Check grid_stepsize."
-         "\n"
-         "This method calculates the value of the constant gridstepsize of\n"
-         "*scat_za_grid* and *scat_aa_grid* and stores it\n"
-         "in the Vector *grid_stepsize*\n"
-         "\n"
-         "If one of the grid stepsizes isn't constant, -1 will be stored\n"
-         "\n"
-         "grid_stepsize[0] <-> scat_za_grid\n"
-         "grid_stepsize[1] <-> scat_aa_grid\n"
-         ),
-        OUTPUT( grid_stepsize_ ),
-        INPUT( scat_za_grid_, scat_aa_grid_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
- md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("grid_sizeSet"),
         DESCRIPTION
@@ -2899,37 +2705,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "pha_mat_sptCalc" ),
-        DESCRIPTION
-        (
-         "This method calculates the phase matrix for a single particle type.\n"
-         "\n"
-         "Phase matrix explains the tranformation of Stokes parameters of \n"
-         "incident plane wave into those of the scattered spherical wave \n"
-         "due to scattering of radiation by the particle. All the elements \n"
-         "of phase matrix can be expressed in terms of the elements of the\n"
-         "amplitude matrix.\n"
-         "\n"
-         "The output of the method pha_mat_sptCalc is pha_mat_spt(Tensor 5,\n"
-         "size: [Npt,Nza,Naa,stokes_dim,stokes_dim]). The input to the method\n"
-         "pha_mat_sptCalc are *pha_mat_spt*,*amp_mat*(Tensor 6,\n"
-         "Size=[Npt,Nza,Naa,Nza,Naa,8]), *scat_za_index* and scat_aa_index.\n"
-         "\n"
-         "The variables *scat_za_index* and *scat_aa_index picks the right \n"
-         "element of the Tensor *amp_mat*.Then this method calls the \n"
-         "function amp2pha which does the actual physics, that of computing\n"
-         "the elements of phase matrix from the elements of amplitude \n"
-         "matrix."
-         ),
-        OUTPUT(pha_mat_spt_),
-        INPUT(pha_mat_spt_, amp_mat_, scat_za_index_, scat_aa_index_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES())); 
-  
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "pha_mat_sptFromData" ),
         DESCRIPTION
         (
@@ -3542,41 +3317,7 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "scat_fieldCalcFromAmpMat" ),
-        DESCRIPTION
-        (
-         "This method calculates the scattering integral.\n"
-         "\n"
-         "By scattering integral we mean the field generated by integrating\n"
-         "the product of intensity field and phase matrix over all incident \n"
-         "angles. This term results solely due to the scattering properties\n"
-         "of ice particles in cirrus clouds.  \n"
-         "\n"
-         "The output of this method is the scattered field *scat_field*\n"
-         "which is used in the radiative transfer equation to give a new\n"
-         "radiation field *i_field*. The dimensions of *scat_field* and \n"
-         "*i_field* are the same. This resultant field is again given as \n"
-         "input to this method, which calculates a new *scat_field*.  The \n"
-         "iteration continues till the field converges.  Another important\n"
-         "requirement for this method is the phase matrix.  For this we \n"
-         "give as input to this method *pha_mat_spt* and *pnd_field*. From\n"
-         "these two workspace variables we calculate *pha_mat* with\n"
-         "the method *pha_matCalc*.  \n"
-         ),
-        OUTPUT( scat_field_, pha_mat_, pha_mat_spt_ ),
-        INPUT( amp_mat_, i_field_, pnd_field_, scat_za_grid_, 
-               scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, 
-               atmosphere_dim_, cloudbox_limits_,
-               grid_stepsize_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
- md_data_raw.push_back
+   md_data_raw.push_back
     ( MdRecord
       ( NAME( "scat_iPut" ),
         DESCRIPTION
@@ -3647,31 +3388,6 @@ md_data_raw.push_back
         INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
               za_grid_size_, 
               cloudbox_limits_, scat_data_raw_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
- md_data_raw.push_back
-   ( MdRecord
-      ( NAME( "ScatteringInitAmpMat" ),
-        DESCRIPTION
-        (
-         "Initialize variables for a scattering calculation. \n"
-         "\n"
-         "This function has to be used, when the scattering data is stored \n"
-         "in amplitude matrix format. \n"
-         "Variables needed in the scattering calculations are initialzed\n"
-         "here. This method has to be executed before using \n"
-         "*ScatteringMain*.\n"
-         "\n"
-         ),
-        OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
-               scat_za_index_, scat_aa_index_, iteration_counter_, pha_mat_,
-               pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_field_,
-               i_field_),
-        INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
-              cloudbox_limits_, amp_mat_raw_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

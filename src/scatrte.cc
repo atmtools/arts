@@ -72,8 +72,6 @@ extern const Numeric RAD2DEG;
   \param scat_lon_index longitude index in cloudbox
   \param ext_mat extinction matrix
   \param abs_vec absorption vector
-  \param scat_za_index Index for propagation direction
-  \param scat_aa_index Azimuth angle index
   \param spt_calc_agenda Agenda for calculation of single scattering properties
   \param opt_prop_part_agenda Agenda for summing over all hydrometeor species
   \param cloudbox_limits Cloudbox limits.
@@ -100,21 +98,16 @@ void cloud_fieldsCalc(// Output:
   out3 << "Calculate scattering properties in cloudbox \n";
   
   const Index atmosphere_dim = cloudbox_limits.nelem()/2;
-// FIXME only used for assertion
-#ifndef NDEBUG
-  const Index stokes_dim = ext_mat_field.ncols();
-#endif
   
   assert( atmosphere_dim == 1 || atmosphere_dim ==3 );
-  
-  assert(stokes_dim == ext_mat_field.nrows() &&
-         stokes_dim == abs_vec_field.ncols());
+  assert( ext_mat_field.ncols() == ext_mat_field.nrows() &&
+          ext_mat_field.ncols() == abs_vec_field.ncols());
   
 
   const Index p_low = cloudbox_limits[0];
   const Index p_up = cloudbox_limits[1];
 
-  // If atmosohere_dim==1
+  // If atmosohere_dim == 1
   Index lat_low = 0;
   Index lat_up = 0;
   Index lon_low = 0;
@@ -706,8 +699,12 @@ void cloud_ppath_update1D(
   \param ppath_step
   WS Input:
   \param p_index // Pressure index
+  \param lat_index
+  \param lon_index
   \param scat_za_index // Index for proagation direction
+  \param scat_aa_index
   \param scat_za_grid
+  \param scat_aa_grid
   \param cloudbox_limits 
   \param scat_field Scattered field.
   Calculate scalar gas absorption:
@@ -718,6 +715,8 @@ void cloud_ppath_update1D(
   Propagation path calculation:
   \param ppath_step_agenda
   \param p_grid
+  \param lat_grid
+  \param lon_grid
   \param z_field
   \param r_geoid
   Calculate thermal emission:

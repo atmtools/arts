@@ -162,8 +162,6 @@ arts_SOURCES = \
 	logic.cc \
 	lin_alg.h\
 	lin_alg.cc\
-	scatproperties.cc \
-	scatproperties.h \
 	supergeneric.h \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc
@@ -202,7 +200,6 @@ noinst_PROGRAMS = \
 	test_legendre \
 	test_linalg \
 	test_interpolation \
-	test_scatproperties\
 	test_sensor \
 	test_xml \
 	test_complex \
@@ -393,8 +390,6 @@ test_geomag_calc_SOURCES = \
 	logic.cc \
 	lin_alg.h\
 	lin_alg.cc\
-	scatproperties.cc \
-	scatproperties.h \
 	supergeneric.h \
 	geomag_calc.cc \
         geomag_calc.h \
@@ -482,36 +477,6 @@ test_linalg_SOURCES = \
 	lin_alg.h \
 	test_linalg.cc\
 	logic.h\
-	logic.cc
-
-test_scatproperties_SOURCES = \
-	arts.cc \
-	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
-	make_vector.h\
-	make_vector.cc\
-	test_scatproperties.cc\
-	scatproperties.h\
-	scatproperties.cc\
-	constants.cc\
-	logic.h\
-	math_funcs.cc\
-	math_funcs.h\
 	logic.cc
 
 test_poly_SOURCES = \

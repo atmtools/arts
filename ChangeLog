@@ -1,3 +1,37 @@
+2004-03-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-800
+
+	Some spring cleaning of the function related to scattering
+	(although it is still winter). All functions and variables 
+	related to the old scattering data format (amplitude matrix) 
+	have been removed, as they can not be used. Additionally some 
+	minor improvements in the documentation.
+	
+	* src/cloudbox.cc: Corrected doxygen documentations for
+	(cloud_fieldsCalc, cloud_ppath_update3D).
+
+	* src/m_optproperties.cc: Removed unused functions related to 
+	amplitude matrix data format:
+	(abs_vec_sptCalc, amp_matCalc, ext_mat_sptScat, ext_mat_sptCalc, 
+	pha_mat_sptCalc)
+
+	* src/m_scatrte.cc: Removed unused functions related to 
+	amplitude matrix data format:
+	(scat_fieldCalcFromAmpMat, ScatteringInitAmpMat)
+	Removed also (grid_stepsizeCheck).
+
+	* src/scatproperties.{cc,h}: Removed. This file included only functions
+	related to the amplitude matrix format. 
+
+	* src/test_scatproperties.cc: Removed.
+
+	* Makefile.am: Removed scatproperties.{cc,h}.
+
+	* workspace.cc: Removed some unused WSV:
+	amp_mat_raw, amp_mat, part_types, sca_vec, i_field_dim
+	Updated documentation.
+	
 2004-03-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-799	

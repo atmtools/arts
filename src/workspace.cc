@@ -301,12 +301,8 @@ void define_wsv_data()
         "Absorption Vector for a single particle type.\n"
         "\n"
         "This variable contains the elements of absorption vector of a \n"
-        "single particle, given *ext_mat_spt* and *pha_mat_spt*. It is the\n"
-        "input as well as the output of the method *abs_vec_sptCalc*. This \n"
-        "variable is a matrix where the first dimension part_types indicate \n"
-        "the particle type under consideration and the second dimension is \n"
-        "the *stokes_dim*.\n"
-        "*stokes_dim* can be 1,2,3 or 4 as as set by the user.\n"
+        "single particle, given  It is calculated in the agenda \n"
+        "*spt_calc_agenda*.\n"
         "\n"
         "ARTS user guide (AUG) gives the formulas used for computing all \n"
         "the elements of absorption vector.\n"
@@ -336,74 +332,6 @@ void define_wsv_data()
        "Unit: absolute number, dimensionless"
        ),
       GROUP( Vector_ ))); 
-
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "amp_mat" ),
-      DESCRIPTION
-      (
-       "Monochromatic amplitude matrix.\n"
-       "\n"
-       "The amplitude matrix is required for scattering calculations.\n"
-       "It contains all optical properties of the scattering particles.\n"
-       "It depends on the frequency, the particle type, the propagation \n"
-       "direction and the scattered direction.\n"
-       "*amp_mat* is generated inside the frequency loop, so the variable \n"
-       "itself does not include the frequency information. \n"
-       "The amplitude matrix is a 2x2 complex matrix. The workspace variable\n"
-       "*amp_mat* stores the real and imaginary elements (i.e. 8 elements)\n"
-       "separately. \n" 
-       "\n"
-       "Usage: Input to *ext_mat_agenda*, *abs_vec_agenda*, \n"
-       "*sca_mat_agenda*\n"
-       "Output of *amp_matCalc*. \n"    
-       "\n"
-       "Unit:       m\n"
-       "\n"
-       "Dimensions: [ part_types, scat_za_grid, scat_aa_grid, \n"
-       "              scat_za_grid, scat_aa_grid, amplitude matrix element]"
-       ), 
-      GROUP( Tensor6_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "amp_mat_raw" ),
-      DESCRIPTION
-      (
-       "Amplitude matrix data.\n"
-       "\n"
-       "The amplitude matrix is required for scattering calculations.\n"
-       "It contains all optical properties of the scattering particles.\n"
-       "It depends on the frequency, the particle type, the propagation \n"
-       "direction and the scattered direction.\n"
-       "\n"
-       "*amp_mat_raw* is an Array of Array of Tensor6. It contains one \n"
-       "gridded field for each particle type which contains the data and \n"
-       "also the grids on which the data is stored.\n"
-       "For the calculation the data is \n"
-       "interpolated on *f_grid*, *scat_za_grid*, *scat_aa_grid*,\n"
-       "*scat_za_grid* and *scat_aa_grid*. The interpolated data is stored \n"
-       "in *amp_mat*. \n"
-       "The amplitude matrix is a 2x2 complex matrix. The workspace variable\n"
-       "*amp_mat_raw* stores the real and imaginary elements\n"
-       "(i.e. 8 elements) separately. \n" 
-       "\n"
-       "Usage: Created by *ParticleTypesAdd\n"     
-       "\n"
-       "Unit: m \n"
-       "\n"
-       "Size: Array[N_pt] \n" 
-       "      Array[7] \n "
-       "      [N_f, 1, 1, 1, 1, 1] \n"
-       "      [1, N_za, 1, 1, 1, 1] \n"
-       "      [1, 1, N_aa, 1, 1, 1] \n"
-       "      [1, 1, 1, N_za, 1, 1] \n"
-       "      [1, 1, 1, 1, N_aa, 1] \n"
-       "      [1, 1, 1, 1, 1, 8] \n"
-       "      [N_f, N_za, N_aa, N_za, N_aa, 8] \n"
-       "\n"
-       ),
-      GROUP(ArrayOfArrayOfTensor6_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -558,6 +486,9 @@ void define_wsv_data()
        "*i_fieldIterate*.\n"
        "If after an iteration the convergence test is fulfilled, 1 is \n"
        "assigned which means that the iteration is completed. \n"
+       "\n"
+       "Usage: Method output. \n"
+       "\n"
       ), 
       GROUP( Index_ ))); 
 
@@ -624,7 +555,7 @@ void define_wsv_data()
        "Total extinction matrix.\n"
        "\n"
        "This variable contains the extinction coefficient matrix which \n"
-       "is used in the RTE calculation. It is \n"
+       "is used in the RT calculation in the cloudbox . It is \n"
        "the physical extinction matrix which includes particles extinction \n"
        "for all chosen particle types and gaseous extinction for all chosen \n"
        "gaseous species.\n" 
@@ -675,24 +606,18 @@ wsv_data.push_back
        "Extinction matrix for a single particle type.\n"
        "\n"
        "This variable contains the elements for extinction matrix of a  \n"
-       "single particle for propagation direction given by *za_index* \n"
-       "and *aa_index*. It is the input as well as the output of the \n"
-       "method *ext_mat_sptCalc*.  The elements of extinction matrix \n"
-       "are calculated from the elements of *amp_mat*. This variable \n"
-       "comes under Tensor3 where the first dimension *part_types* \n"
-       "indicate the particle type under consideration and the  \n"
-       "second and third dimension indicates the *stokes_dim*.  \n"
-       "*stokes_dim* can be 1,2,3 or 4 as set by the user. \n"
+       "single particle for a given propagation direction. It is calculated\n"
+       "input as well as the output of the agenda *spt_calc_agenda*.  \n"
        "\n"
        "ARTS user guide (AUG) gives the formulae used for computing all \n"
        "the elements of the extinction matrix for a given particle  \n"
        "type. \n"
        "\n"
-       "Usage:      Input and Output of the method ext_mat_sptCalc \n"
+       "Usage:      Output of *spt_calc_agenda* \n"
        "\n"
        "Unit:        m^2 \n"
        "\n"
-       "Dimensions: [part_types,stokes_dim, stokes_dim]"
+       "Dimensions: [part_types, stokes_dim, stokes_dim]"
        ),
       GROUP( Tensor3_ )));
 
@@ -718,7 +643,7 @@ wsv_data.push_back
         "\n"
         "Usage:      Set by the user.\n "
         "\n"
-        "Unit:        Hz"
+        "Unit:       Hz"
         ),
         GROUP( Vector_ )));
 
@@ -829,8 +754,6 @@ wsv_data.push_back
        ),
       GROUP( Matrix_ )));
 
-
-
   wsv_data.push_back
     (WsvRecord
     ( NAME( "grid_stepsize" ),
@@ -844,7 +767,8 @@ wsv_data.push_back
        "\n"
        "If the value is equal to -1, there is no constant grid stepsize \n"
        "\n"
-       "Unit: none"
+       "Usage: Output of *grid_sizeSet*. \n"
+       "\n"
        ),
       GROUP( Vector_ )));
 
@@ -855,11 +779,12 @@ wsv_data.push_back
       (
        "This vector contains the discretisation of the zenith angle grid \n"
        "for the scattering integral caluclation. \n"
-       "The zenith angle grid is defined from 0 to 180°.\n"
        "\n"
+       "The zenith angle grid is defined from 0 to 180°.\n"
        "za_grid_size is the number of points of the zenith angle grid and \n"
        "\n"
-       "Unit: none"
+       "Usage: Output of *grid_sizeSet*.\n"
+       "\n"
        ),
       GROUP( Index_ )));
 
@@ -953,9 +878,9 @@ wsv_data.push_back
        "\n"
        "This variable is used to store the intensity field inside the\n"
        "cloudbox which is found by an iterative solution.\n"
-       "More decription will be written (CE).\n"
+       "Refer to AUG for further information.\n"
        "\n"
-       "Usage: Input and output of *scat_mono_agenda*. \n"    
+       "Usage: Method output. \n"    
        "\n"
        "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
        "\n"
@@ -963,25 +888,11 @@ wsv_data.push_back
        "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
        "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
        "        N_za, N_aa, N_i ]"
+       "\n"
        ),
        GROUP( Tensor6_ )));
   
   wsv_data.push_back
-    (WsvRecord
-     ( NAME( "i_field_dim" ), 
-       DESCRIPTION
-       (
-        "Dimension of the radiation field.\n" 
-       "\n"
-       "This variable is important if a 1D atmosphere is considered.\n"
-       "1D atmosphere means that all profiles only depend on altitude or \n"
-       "equivalently pressure. Nevertheless it can be useful to allow the \n"
-       "radiation field to be 2D or 3D. Solar radiation or scattering can \n"
-       "be sources of inhomogeneities in the radiation field.\n" 
-       ),
-      GROUP( Index_ )));
- 
- wsv_data.push_back
    (WsvRecord
     ( NAME( "i_field_old" ),
       DESCRIPTION
@@ -989,10 +900,12 @@ wsv_data.push_back
        "Intensity field inside the cloudbox.\n"
        "\n"
        "This variable is used to store the intensity field inside the\n"
-       "cloudbox while performing the iteration.\n"
-       "More decription will be written (CE).\n"
+       "cloudbox while performing the iteration. One has to store the\n"
+       "intensity field of the previos iteration to be able to do the \n"
+       "convergence test after each iteration.\n"
+       "Refer to AUG for more information.\n"
        "\n"
-       "Usage: Input of *i_fieldUpdate1D*. \n"    
+       "Usage: Method output. \n"    
        "\n"
        "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
        "\n"
@@ -1080,7 +993,9 @@ wsv_data.push_back
        "It is used in the method *Tensor6WriteIteration* and has to be set \n"
        "0 in the control file if this method is used.\n"
        "\n"
-  ),
+       "Usage: Set by user. \n"
+       "\n"
+       ),
       GROUP( Index_ )));
 
 
@@ -1437,23 +1352,7 @@ wsv_data.push_back
        ),
       GROUP( Vector_ )));
 
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "part_types" ),
-      DESCRIPTION
-      (
-       "Particle types.\n"
-       "\n"
-       "An ArrayOfString containing the filenames for  all particle types\n"
-       "which shall be considered. Theses files must be part of the Single \n"
-       "Scattering Database. \n"
-       "\n"
-       "Usage:      Set by the user.\n"
-       "\n"
-       ),
-      GROUP( ArrayOfString_ )));
-
-   wsv_data.push_back
+    wsv_data.push_back
    (WsvRecord
     ( NAME( "pha_mat" ),
       DESCRIPTION
@@ -1484,15 +1383,10 @@ wsv_data.push_back
        "Phase matrix for a single particle type.\n"
        "\n"
        "This variable contains the elements of phase matrix for a single \n"
-       "particle for given propagation direction *za_index* and *aa_index*. \n"
-       "It is the input as well as the output of the method *pha_mat_sptCalc*.\n"
-       "The elements of the phase matrix are calculated from the elements of \n"
-       "*amp_mat*. This variable is a Tensor5 where the first dimension \n"
-       "*part_types* indicate the particle type under consideration.The \n"
-       "second and third dimension gives the incident zenith and azimuth \n"
-       "angles respectively, and the fourth and the fifth dimension gives\n" 
-       "the *stokes_dim*. *stokes_dim* can be 1,2,3 or 4 as set by the user.\n"
-       "\n"
+       "particle for given propagation direction. \n"
+       "It is the calculated in the agenda *pha_mat_spt_agenda* .\n"
+       "The elements of the phase matrix are calculated from   \n"
+       "single_scattering_data*."
        "ARTS user guide (AUG) gives the formulas used for computing all \n"
        "elements of the phase matrix for a given particle type.\n"
        "\n"
@@ -1500,7 +1394,7 @@ wsv_data.push_back
        "\n"
        "Unit:        m^2\n"
        "\n"
-       "Dimensions: [part_types,scat_za_grid,scat_aa_grid,stokes_dim, stokes_dim]"
+       "Dimensions: [part_types, scat_za_grid, scat_aa_grid, stokes_dim, stokes_dim]"
        ),
       GROUP( Tensor5_ )));
 
@@ -1571,13 +1465,13 @@ wsv_data.push_back
        "This variable contains the particle number densities for all \n"
        "chosen particle types. It includes the grids corresponding to the \n"
        "grids in the database. \n"
-       "*pnd_field_raw* is an Array of Array of Tensor3. It contains one \n"
-       "gridded field for each particle type which contains the data and \n"
+       "*pnd_field_raw* is an Array of GriddedField3. It contains \n"
+       "GriddedField3 for each particle type which contains the data and \n"
        "also the grids.\n"
        "For the calculation the data is \n"
        "interpolated on *p_grid*, *lat_grid* and *lon_grid*\n"  
        "\n"
-       "Usage:      Used in the method *ParticleTypesAdd*.\n"
+       "Usage:      Used in the method *ParticleTypeAdd*.\n"
        "\n"
        "Unit:        m^-3\n"
        "\n"
@@ -1910,14 +1804,15 @@ wsv_data.push_back
        (
         "Azimuthal angle grid.\n"
         "\n"
-        "The azimutal angle grid, on which the intensity field and the \n"
-       "optical scattering properties are stored. The grid has to be defined\n"
-        "if the cloudbox is activated by the flag *cloudbox_on*.\n"
-       "The grid must be sorted in decreasing order, with no repetitions.\n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
+        "The azimutal angle grid, on which the intensity field is stored. \n"
+        "This grid is used for RT calculations inside the cloudbox, \n"
+        "therefore one has to define it if the cloudbox is activated by \n"
+        "the flag *cloudbox_on*.\n"
+        "The grid must be sorted in increasing order, with no repetitions.\n"
+        "\n"
+        "See further the ARTS user guide (AUG). Use the index to find where\n"
+        "this variable is discussed. The variable is listed as a subentry to\n"
+        "\"workspace variables\".\n"
        "\n"
        "Usage:      Set by the user.\n"
        "\n"
@@ -1925,33 +1820,7 @@ wsv_data.push_back
        ),
       GROUP( Vector_ )));
 
- wsv_data.push_back
-    (WsvRecord
-    ( NAME( "sca_vec" ),
-      DESCRIPTION
-      (
-       "Scattered field vector.\n"
-       "\n"
-       "This variable contains the scattered field vector which \n"
-       "is used in the scattering RT calculation. Physically it is the \n"
-       "amount of radiation which is scattered into the propagation \n"
-       "direction. \n"
-       "The vector is calculated by the agenda *sca_vec_agenda* \n"
-       "The dimensision of the variable adapts to *stokes_dim*.\n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\"\n"
-       "\n"
-       "Usage:      Output of the agenda *sca_int_agenda*. \n"
-       "\n"
-       "Unit:       W / (m^2 Hz sr) \n"
-       "\n"
-       "Dimensions: [stokes_dim]"
-       ),
-      GROUP( Vector_ )));
- 
-   wsv_data.push_back
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_aa_index" ),
       DESCRIPTION
@@ -1959,13 +1828,13 @@ wsv_data.push_back
        "Azimuth angle index for scattering calculations.\n"
        "\n"
        "This variable is used in methods used for computing scattering\n"
-       "properties of particles like ext_mat_sptCalc and pha_mat_sptCalc.\n"
+       "properties. \n"
        "This holds the information about the azimuth angles for which the \n"
        "scattering calculations are done.  The angles used for computing \n"
        "scattering properties of particle can be different from that used \n"
        "for radiative transfer calculation. \n"
        "\n"
-       "Usage:    Input to the methods *ext_mat_sptCalc*, *pha_mat_sptCalc*\n"
+       "Usage:    Method output.\n"
        "\n"
        ),
      GROUP( Index_ ))); 
@@ -1975,7 +1844,7 @@ wsv_data.push_back
       ( NAME( "scat_data_mono" ),
         DESCRIPTION
         (
-         "monochromatic single scattering data.\n"
+         "Monochromatic single scattering data.\n"
          "\n"
          "This variable holds the single scattering properties for all \n"
          "hydrometeor species. It is calculated from scat_data_raw by \n"
@@ -1994,7 +1863,26 @@ wsv_data.push_back
          "\n"
          "This variable holds the single scattering properties for all \n"
          "hydrometeor species included in a calculation by using the \n"
-         "method *ParticleTypeAdd*.\n"
+         "method *ParticleTypeAdd*.\n" 
+         "For more information refer to AUG.\n"
+         "The unit of the single scattering properties is m^2.\n"
+         "\n"
+         "Usage: Method ouput.\n"
+         "\n"
+         "Dimensions: Array[particle types] \n"
+         "  SingleScatteringData \n"
+         "  Enum[particle type attribute]\n"
+         "  String[description] \n"
+         "  Vector[f_grid]\n"
+         "  Vector[T_grid]\n"
+         "  Vector[za_grid]\n"
+         "  Vector[aa_grid]\n"
+         "  Tensor6[pha_mat_data]\n"
+         "      [f_grid, za_grid, aa_grid, za_grid, aa_grid, matrix_element]\n"
+         "  Tensor4[ext_mat_data]\n"
+         "      [f_grid, za_grid, aa_grid, matrix_element]\n"
+         "  Tensor4[abs_vec_data]\n"
+         "      [f_grid, za_grid, aa_grid, matrix_element]\n"
          "\n"
          ),
         GROUP( ArrayOfSingleScatteringData_ ))); 
@@ -2018,9 +1906,9 @@ wsv_data.push_back
        "\n"
        "This variable holds the value of the scattering integral.\n"
        "for all points inside the cloudbox. \n"
-       "More decription will be written (CE).\n"
+       "For more information refer to AUG.\n"
        "\n"
-       "Usage: Input to *i_fieldUpdate1D*. \n"    
+       "Usage: Input to *i_fieldUpdateXXX*. \n"    
        "\n"
        "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
        "\n"
@@ -2053,7 +1941,7 @@ wsv_data.push_back
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      In/output to/from *scat_iterateCalc* \n"
+       "Usage:      In/Output from/to *ScatteringMain* \n"
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
@@ -2082,7 +1970,7 @@ wsv_data.push_back
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      In/output to/from *scat_iterateCalc* \n"
+       "Usage:      Output from *ScatteringMain* \n"
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
@@ -2111,7 +1999,7 @@ wsv_data.push_back
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Output from CloudboxGetIncoming \n"
+       "Usage:      In/Output from *ScatteringMain* \n"
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
@@ -2133,7 +2021,8 @@ wsv_data.push_back
        "This holds the information about the position for which the \n"
        "scattering calculations are done. \n"
        "\n"
-       "Usage:    Input to the methods *ext_mat_partCalc*, *pha_matCalc*\n"
+       "Usage:    Input to the methods *spt_calc_agenda*,\n"
+       "                               *pha_mat_spt_agenda*\n"
        "\n"
        ),
      GROUP( Index_ ))); 
@@ -2150,7 +2039,8 @@ wsv_data.push_back
        "This holds the information about the position for which the \n"
        "scattering calculations are done.  \n"
        "\n"
-       "Usage:    Input to the methods *ext_mat_agenda*, *pha_mat_sptCalc*\n"
+       "Usage:    Input to the methods *spt_calc_agenda*,\n"
+       "                               *pha_mat_spt_agenda*\n"
        "\n"
        ),
      GROUP( Index_ ))); 
@@ -2176,7 +2066,8 @@ wsv_data.push_back
        "This holds the information about the location for which the \n"
        "scattering calculations are done.\n"  
        "\n"
-       "Usage:    Input to the methods *ext_mat_partCalc*, *pha_matCalc*\n"
+       "Usage:    Input to the methods *spt_calc_agenda*,\n"
+       "                               *pha_mat_spt_agenda*\n"
        "\n"
        ),
      GROUP( Index_ ))); 
@@ -2205,6 +2096,10 @@ wsv_data.push_back
        "Usage: Output of *single_scattering_dataPrepareDOITOpt* and used \n"
        "in the DOIT method. \n"
        "\n"
+       "Unit: degree \n"
+       "\n"
+       "Dimensions: [za_sca, aa_sca, za_inc, aa_inc] \n"
+       "\n"
        ),
       GROUP( Tensor4_ ))); 
 
@@ -2215,10 +2110,11 @@ wsv_data.push_back
       (
        "Zenith angle grid.\n"
        "\n"
-       "The zenith angle grid, on which the intensity field and the \n"
-       "optical scattering properties are stored. The grid has to be defined\n"
+       "The zenith angle grid, on which the intensity field is stored. \n"
+       "This grid is used for RT calculations inside the cloudbox, therefore\n"
+       "he grid has to be defined\n"
        "if the cloudbox is activated by the flag *cloudbox_on*.\n"
-       "The grid must be sorted in decreasing order, with no repetitions.\n"
+       "The grid must be sorted in increasing order, with no repetitions.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -2227,6 +2123,7 @@ wsv_data.push_back
        "Usage:      Set by the user.\n"
        "\n"
        "Unit:       degrees "
+       "\n"
        ),
       GROUP( Vector_ )));
 
@@ -2238,13 +2135,10 @@ wsv_data.push_back
        "Zenith angle index for scattering calculations.\n"
        " \n"
        "This variable is used in methods used for computing scattering \n"
-       "properties of particles like ext_mat_sptCalc and pha_mat_sptCalc.\n"
-       "This holds the information about the zenith angles for which the \n"
-       "scattering calculations are done.  The angles used for computing \n"
-       "scattering properties of particle can be different from that used\n"
-       "for radiative transfer calculation. \n"
-       " \n"
-       "Usage:    Input to the methods *ext_mat_sptCalc*, *pha_mat_sptCalc*\n"
+       "properties. \n"
+       "\n"
+       "Usage:    Input to the agendas *spt_calc_agenda*, \n "
+       "                               *pha_mat_spt_agenda*.\n"
        " \n"
        ),
       GROUP( Index_ )));
@@ -2444,7 +2338,19 @@ wsv_data.push_back
        "\n"
        "Usage: Set by the user.\n"
        "\n"
-       "More will be written (Claudia)\n"
+       "Dimensions:  SingleScatteringData \n"
+       "  Enum[particle type attribute]\n"
+       "  String[description] \n"
+       "  Vector[f_grid]\n"
+       "  Vector[T_grid]\n"
+       "  Vector[za_grid]\n"
+       "  Vector[aa_grid]\n"
+       "  Tensor6[pha_mat_data]\n"
+       "      [f_grid, za_grid, aa_grid, za_grid, aa_grid, matrix_element]\n"
+       "  Tensor4[ext_mat_data]\n"
+       "      [f_grid, za_grid, aa_grid, matrix_element]\n"
+       "  Tensor4[abs_vec_data]\n"
+       "      [f_grid, za_grid, aa_grid, matrix_element]\n"
        "\n"
        ),
       GROUP( SingleScatteringData_ )));
