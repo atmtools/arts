@@ -66,6 +66,8 @@ arts_SOURCES = \
 	parser.cc \
 	parser.h \
 	partition_function_data.cc \
+	poly_roots.h \
+	poly_roots.cc \
 	species_data.cc \
 	sstream.h \
 	token.cc \
@@ -103,7 +105,18 @@ noinst_PROGRAMS = \
 	make_auto_wsv_h \
 	make_auto_wsv_pointers_cc \
 	test_matpack \
+	test_poly \
 	test_tensor
+
+test_poly_SOURCES = \
+	array.h \
+	arts.h \
+	make_array.h \
+	matpackI.cc \
+	matpackI.h \
+	poly_roots.h \
+	poly_roots.cc \
+	test_poly.cc
 
 test_tensor_SOURCES = \
 	array.h \
