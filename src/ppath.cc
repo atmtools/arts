@@ -62,7 +62,8 @@ extern const Numeric RAD2DEG;
 /**
    Calculates the radius of the geometrical tangent point.
 
-   The absolute value of the zenith angle must be >= 90 degrees.
+   If the zenith angle is smaller than 90 degrees, the tangent point is 
+   an imaginary point behind the sensor.
 
    Positive and negative zenith angles are handled.
 
@@ -76,7 +77,6 @@ extern const Numeric RAD2DEG;
 Numeric geometrical_tangent_radius( const Numeric& r, const Numeric& za )
 {
   assert( r > 0 );
-  assert( fabs(za) >= 90 );
   assert( fabs(za) <= 180 );
   return r * sin( DEG2RAD * fabs(za) );
 }
@@ -102,20 +102,18 @@ Numeric geometrical_tangent_radius( const Numeric& r, const Numeric& za )
    \date   2002-05-17
 */
 Numeric geompath_za_at_r(
-       const Numeric&   r0,
-       const Numeric&   za0,
+       const Numeric&   r_tan,
+       const Numeric&   a_za,
        const Numeric&   r )
 {
-  Numeric za = fabs(za0);
-  assert( r > 0 );
-  assert( za <= 180 );
-  assert( (za<90&&r>r0) || (za==90&&r>=r0) || (za>90&&r0>r) );
-  if( za > 90 )
-    assert( geometrical_tangent_radius( r0, za ) <= r );
-  za = RAD2DEG * asin( (r0/r) * sin( DEG2RAD * za ) );
-  if( fabs(za0) > 90 )
+  assert( r_tan > 0 );
+  assert( fabs(a_za) <= 180 );
+  assert( r >= r_tan );
+  Numeric za;
+  za = RAD2DEG * asin( r_tan / r );
+  if( fabs(a_za) > 90 )
     za = 180 - za;
-  if( za0 < 0 )
+  if( a_za < 0 )
     za = -za;
   return za;
 }
@@ -150,6 +148,64 @@ Numeric geompath_lat_at_za(
     return lat0 + dlat;
   else
     return lat0 - dlat;
+}
+
+
+
+//// geompath_l_at_r //////////////////////////////////////////////////////////
+/**
+   Calculates the length from the tangent point for the given radius.
+
+   The tangent point is either real or imaginary depending on the zenith
+   angle of the sensor. See geometrical_tangent_radius.
+
+   \return         The length along the path from the tangent point.
+   \param   r_tan  Tangent radius
+   \param   r      The radius of the point of concern.
+
+   \author Patrick Eriksson
+   \date   2002-05-20
+*/
+Numeric geompath_l_at_r(
+       const Numeric&   r_tan,
+       const Numeric&   r )
+{
+  assert( r_tan > 0 );
+  assert( r >= r_tan );
+  
+  // Double is hard-coded here to improve accuracy
+  double a=r_tan*r_tan, b=r*r;
+
+  return sqrt( b - a );
+}
+
+
+
+//// geompath_r_at_l //////////////////////////////////////////////////////////
+/**
+   Calculates the radius for a distance from the tangent point.
+
+   The tangent point is either rwal or imaginary depending on the zenith
+   angle of the sensor. See geometrical_tangent_radius.
+
+   \return         The radius. 
+   \param   r_tan  Tangent radius
+   \param   l      The length from the tangent point.
+
+   \author Patrick Eriksson
+   \date   2002-05-20
+*/
+Numeric geompath_r_at_l(
+       const Numeric&   r_tan,
+       const Numeric&   l )
+{
+  assert( r_tan > 0 );
+  assert( l >= 0 );
+  
+  // Double is hard-coded here to improve accuracy
+  double a=r_tan*r_tan, b=l*l;
+
+  return sqrt( b + a );
 }
 
 
@@ -484,8 +540,9 @@ void ppath_start_stepping(
 	  else
 	    {
 	      ppath.z[0]     = z_field(np-1,0,0);
-	      ppath.los(0,0) = geompath_za_at_r( a_pos[0], a_los[0], 
-                                                   r_geoid(0,0) + ppath.z[0] );
+	      ppath.los(0,0) = geompath_za_at_r( 
+                        geometrical_tangent_radius( a_pos[0], a_los[0] ),
+                                         a_los[0], r_geoid(0,0) + ppath.z[0] );
 	      ppath.pos(0,1) = geompath_lat_at_za( a_los[0], 0, 
                                                               ppath.los(0,0) );
 	    }
@@ -552,9 +609,9 @@ void ppath_step_1d_geom(
   assert( ppath.dim == atmosphere_dim );
   assert( ppath.np >= 1 );
   assert( ppath.gp_p[imax].idx >= 0 );
-  assert( ppath.gp_p[imax].idx <= (p_grid.nelem()-1) );
+  assert( ppath.gp_p[imax].idx <= (p_grid.nelem()-2) );
   assert( ppath.gp_p[imax].fd[0] >= 0 );
-  assert( ppath.gp_p[imax].fd[0] < 1 );
+  assert( ppath.gp_p[imax].fd[0] <= 1 );
 
   // Start and end point mean here the point where the calculations start and
   // end (which is the reversed order compared to definition of a path).
@@ -563,39 +620,156 @@ void ppath_step_1d_geom(
   const Numeric r_start  = ppath.pos(imax,0);
   const Numeric za_start = ppath.los(imax,0);
 
-  // More asserts (checking not at end point of grid and looks out)
+  // More asserts, checking not at any end point of grid and looks out etc.
   assert( !( ppath.gp_p[imax].idx == 0 && za_start > 90 ) );
-  assert( !( ppath.gp_p[imax].idx == (p_grid.nelem()-1) && za_start <= 90 ) );
+  assert( !( ppath.gp_p[imax].idx == (p_grid.nelem()-2) && 
+                                  ppath.gp_p[imax].fd[0] && za_start <= 90 ) );
+  assert( r_start >= r_geoid + z_ground );
 
-  // Tangent altitude, if downward obervation
-  Numeric r_tan;
-  if( za_start > 90 )
-    r_tan = geometrical_tangent_radius( r_start, za_start );
+  // Determine index of the pressure surface being the lower limit for the
+  // pressure grid step of interest.
+  const Index ilow = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
 
-  // Create a vector with a minimum set of radii 
+  // Tangent radius 
+  Numeric r_tan = geometrical_tangent_radius( r_start, za_start );
+
+  // Get end/lowest radius of the path step (r_end) and check:
+  // if a tangent point is passed
+  // if there is an intersection with the ground
+  Numeric r_end;
+  bool    tanpoint = false, ground = false;
+  if( za_start <= 90 )
+    r_end = r_geoid + z_grid[ ilow + 1 ];
+  else
+    {
+      // Ground radius
+      Numeric r_ground = r_geoid + z_ground;
+
+      // Lowest possible radius for the path step
+      Numeric r_lowest  = r_geoid + z_grid[ ilow ];
+      bool    ground_is_low = false;
+      if( r_ground >= r_lowest )
+	{
+	  r_lowest = r_ground;
+	  ground_is_low = true;
+	}
+
+      // Looking down but not crossing r_lower
+      if( r_tan >= r_lowest )
+	{
+	  r_end = r_tan;
+	  tanpoint = true;
+	}
+      else
+	{
+	  r_end = r_lowest;
+	  if( r_ground == r_lowest )
+	    ground = true;
+	}
+    }
+
+  // Create a vector with a minimum set of radi to describe the path step +
+  // the start radius.
   //
   Vector rs;
   //
-  // Upward
-  if( za_start >= 90 )
+  // Upward, down to next pressure surface or intersection with blackbody 
+  // ground.
+  if( za_start<=90 || (!tanpoint && !ground) || (ground && blackbody_ground) ) 
     {
       rs.resize(2);
-      rs[0] = r_start;
-      rs[1] = r_geoid + z_grid[ ppath.gp_p[imax].idx + 1 ];
+      rs[1] = r_end;
     }
-  // Looking down but not crossing the pressure surface below
-  else if( r_tan >= ( r_geoid + z_grid[ppath.gp_p[imax].idx-1] ) )
-    {
-    }
-
-
-  // Determine end radius 
-  Numeric r_end;
-  if( za_start >= 90 || r_tan >= ( r_geoid + z_grid[ppath.gp_p[imax].idx] ) )
-    r_end = r_geoid + z_grid[ ppath.gp_p[imax].idx + 1 ];
-  else if( r_tan >= ( r_geoid + z_grid[ppath.gp_p[imax].idx-1] ) )
-    r_end = r_geoid + z_grid[ ppath.gp_p[imax].idx ];
+  // Ground reflection, or passing a tangent point.
   else
-    r_end = r_geoid + z_grid[ ppath.gp_p[imax].idx - 1 ];
+    {
+      // If the starting point is not at the upper pressure surface, that 
+      // surface must be put in as last radius.
+      if( r_start == r_geoid + z_grid[ ilow + 1 ] )
+	rs.resize(3);
+      else
+	{
+	  rs.resize(4);
+          rs[3] = r_geoid + z_grid[ ilow + 1 ];
+	}
+      rs[1] = r_end;
+      rs[2] = r_start;
+    }
+  rs[0] = r_start;
+
+  // Create a vector with the lengths along the path between the points in rs
+  // and the number of sub-steps needed to go from one radius in rs to next.
+  //
+  Vector         ls( rs.nelem() );
+  ArrayOfIndex   ns( rs.nelem()-1 );
+  Index          np = 0;                // The sum of ns;
+  //
+  const Numeric l0 = geompath_l_at_r( r_tan, rs[0] );
+  // 
+  for( Index i=0; i<rs.nelem(); i++ )
+    {
+      ls[i] = geompath_l_at_r( r_tan, rs[i] ) - l0;
+      if( i > 0 )
+	{
+	  ns[i-1] = Index( ceil( (ls[i]-ls[i-1]) / lmax ) );
+	  np   += ns[i];
+	}
+    }
+
+  // Re-allocate ppath for return results
+  ppath_init_structure(  ppath, atmosphere_dim, np );
+
+  // Go from one radius to next and calculate radii, zenith angles etc.
+  //
+  np = 0;   // Now used as counter for points done
+  //
+  for( Index i=0; i<ns.nelem(); i++ )
+    {
+      Numeric dl   = ( ls[i+1] - ls[i] ) / ns[i]; 
+      Numeric dz   = z_grid[ilow+1] - z_grid[ilow];
+      Numeric a_za = za_start;   // A zenith angle valid for the path on the
+                                 // present side of the tangent point
+      for( Index j=1; j<=ns[i]; j++ )
+	{
+	  ppath.pos(np,0)      = geompath_r_at_l( r_tan, ls[i]+dl*j );
+	  ppath.z[np]          = ppath.pos(np,0) - r_geoid;
+          ppath.gp_p[np].idx   = ilow;
+	  ppath.gp_p[np].fd[0] = ( ppath.z[np] - z_grid[ilow] ) / dz;
+	  ppath.gp_p[np].fd[1] = 1 - ppath.gp_p[np].fd[0];
+          ppath.l_step[np]     = dl;
+          ppath.los(np,0)      = geompath_za_at_r( r_tan, a_za, 
+                                                             ppath.pos(np,0) );
+	  np ++;
+	}
+      
+      // Handle tangent points
+      if( i==0 )
+	{
+	  if( tanpoint )
+	    {
+	      ppath.symmetry   = 1;
+	      ppath.i_symmetry = np - 1;
+              ppath.tan_pos.resize(1);
+	      ppath.tan_pos[0] = r_tan;
+	      a_za = 80;   // Any value below 90 degrees is OK
+	    }
+	  else if( ground )
+	    {
+	      // Re-calculate last zenith angle
+	      angle_after_ground_1D( ppath.los(np-1,0) );
+	      a_za = ppath.los(np-1,0);
+
+	      if( blackbody_ground )
+		ppath_set_background( ppath, 2 );
+	      else
+		{
+		  ppath.symmetry   = 1;
+		  ppath.i_symmetry = np - 1;
+		  ppath.ground     = 1;
+		  ppath.i_ground   = np - 1;
+		}
+	    }
+	}
+    }
 
 }

@@ -90,6 +90,12 @@ void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
               ConstVectorView new_grid );
 
+Index gridpos2gridrange(
+       const GridPos&   gp,
+       const Index&     upwards );
+
+
+
 ////////////////////////////////////////////////////////////////////////////
 //			Blue interpolation
 ////////////////////////////////////////////////////////////////////////////

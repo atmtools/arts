@@ -98,5 +98,15 @@ void ppath_start_stepping(
         const Vector&         sensor_pos,
 	const Vector&         sensor_los );
 
+void ppath_step_1d_geom(
+	      Ppath&      ppath,
+        const Index&      atmosphere_dim,
+        ConstVectorView   p_grid,
+        ConstVectorView   z_grid,
+        const Numeric&    r_geoid,
+        const Numeric&    z_ground,
+        const Index&      blackbody_ground,
+	const Numeric&    lmax );
+
 
 #endif  // ppath_h

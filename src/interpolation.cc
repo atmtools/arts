@@ -322,6 +322,56 @@ void gridpos( ArrayOfGridPos& gp,
 }
 
 
+
+/**
+   Determines which grid range that is of interest for a given grid position.
+
+   The purpose of the function is to determine which two grid values that
+   sorround the given point. The index of the lower grid value is returned.
+
+   For a point exactly on a grid value it is not clear if it is the range 
+   below or above that is of interest. The input argument upward is used to 
+   resolve such cases, where upward != 0 means that it is the range above
+   that is of interest.
+
+   \return         The index of the lower end of the grid range.
+   \param   gp     Grid position structure.
+   \param   upward Direction of interest, see above.
+
+   \author Patrick Eriksson
+   \date   2002-05-20
+*/
+Index gridpos2gridrange(
+       const GridPos&   gp,
+       const Index&     upwards )
+{
+  assert( gp.fd[0] >= 0 );
+  assert( gp.fd[0] <= 1 );
+
+  // Not at a grid point
+  if( gp.fd[0] > 0 || gp.fd[0] < 1 )
+    return gp.idx;
+
+  // Fractional distance 0
+  else if( gp.fd[0] == 0 )
+    {
+      if( upwards )
+	return gp.idx;
+      else
+	return gp.idx - 1;
+    }
+
+  // Fractional distance 1
+  else
+    {
+      if( upwards )
+	return gp.idx + 1;
+      else
+	return gp.idx;
+    }
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 //			Blue interpolation
 ////////////////////////////////////////////////////////////////////////////

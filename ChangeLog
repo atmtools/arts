@@ -1,3 +1,21 @@
+2002-05-21  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-89
+
+	* Calculation of 1D geometrical path coded, but all bugs must be found.
+	
+	* src/ppath.cc: Added the functions:
+	   geompath_l_at_r
+	   geompath_r_at_l
+	Changed also some of the geompath functions to take the tangent radius
+	as input.
+	
+	* src/ppath.cc (ppath_step_1d_geom): This function is coded, but no
+	test runs yet. There are bugs, for sure.
+
+	* src/m_ppath.cc (ppathCalc): Put in a call to the function discussed
+	above.
+
 2002-05-20  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-88

@@ -225,10 +225,14 @@ void ppathCalc(
   const Index imax_lat = lat_grid.nelem() - 1;
   const Index imax_lon = lon_grid.nelem() - 1;
   //
-  /*
   while( !ppath_what_background( ppath_partial ) )
     {
-      // Call ppath_step
+      // Call ppath_step agenda
+
+      // For the moment, a hrad-coded version:
+      ppath_step_1d_geom( ppath_partial, atmosphere_dim, p_grid, 
+                    z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), 
+                                                     blackbody_ground, 999e3 );
 
       const Index n = ppath_partial.np;
 
@@ -307,7 +311,7 @@ void ppathCalc(
 	    }
 	}
     } // End path steps
-  */
+
   
   // Combine all structures in ppath_array to form the return Ppath structure.
   //
