@@ -41,6 +41,7 @@
   ===========================================================================*/
 
 #include <stdexcept>
+#include <iostream>
 #include "arts.h"
 #include "array.h"
 #include "check_input.h"

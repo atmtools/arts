@@ -24,6 +24,7 @@
 */
 
 #include <map>
+#include <iostream>
 #include "agenda_record.h"
 #include "wsv_aux.h"
 

@@ -6,6 +6,7 @@
   \brief  This file has functions for calculating extinction and phase matrices 
   from amplitude matrix 
 */
+#include <iostream>
 #include "scatproperties.h"  
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;

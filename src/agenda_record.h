@@ -27,6 +27,7 @@
 #ifndef agenda_record_h
 #define agenda_record_h
 
+#include <iostream>
 #include "make_array.h"
 #include "mystring.h"
 
