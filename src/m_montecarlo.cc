@@ -563,7 +563,12 @@ void ScatteringMonteCarlo (
   Numeric za_scat;
   Vector za_grid=scat_data_mono[0].za_grid;
   /////////////////////////////////////////
-
+  Vector Z11maxvector;
+  bool anyptype30=is_anyptype30(scat_data_mono);
+  if (anyptype30)
+    {
+      findZ11max(Z11maxvector,scat_data_mono);
+    }
   //If necessary, open file for histogram data output
   ofstream histfile;
   if (record_histdata==1)
@@ -766,7 +771,7 @@ void ScatteringMonteCarlo (
                       Sample_los_Z (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
                                     scat_data_mono,stokes_dim,scat_theta,
 				    scat_theta_gps,scat_theta_itws,
-                                    pnd_vec,K(0,0)-K_abs[0]);
+                                    pnd_vec,anyptype30,Z11maxvector,K(0,0)-K_abs[0]);
                     }
                   else
                     {

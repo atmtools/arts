@@ -100,6 +100,8 @@ void cum_l_stepCalc(
 		      const Ppath& ppath
 		      );
 
+void findZ11max(Vector& Z11maxvector,
+	const  ArrayOfSingleScatteringData& scat_data_mono);
 
 Matrix interp( ConstVectorView itw,
 	       ArrayOfMatrix a,    
@@ -127,6 +129,8 @@ void interpTArray(Matrix& T,
 		  const Index& stokes_dim,
 		  const Ppath& ppath
 		 );
+
+bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono);
 
 void montecarloGetIncoming(
 			   Matrix&               i_rte,
@@ -208,6 +212,8 @@ void Sample_los_Z (
 		   const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
 		   const Tensor5& scat_theta_itws,
 		   const VectorView& pnd_vec,
+		   const bool& anyptype30,
+		   const VectorView& Z11maxvector,
 		   Numeric Csca
 		   );
 

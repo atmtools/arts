@@ -49,8 +49,6 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-
-
 //! Cloudbox_ppath_rteCalc
 
 /*!
@@ -365,6 +363,40 @@ void cum_l_stepCalc(
       }
   }		
 
+//! findZ11max
+/*! 
+The direction sampling method requires a bounding value for Z11.  This returns a vector with the maximum value of Z11 for each particle type.
+
+\author Cory Davis
+\data 2004-31-1
+
+*/
+
+void findZ11max(Vector& Z11maxvector,
+	   const ArrayOfSingleScatteringData& scat_data_mono)
+{
+  Index np=scat_data_mono.nelem();
+  Z11maxvector.resize(np);
+  for(Index i = 0;i<np;i++)
+    {
+      switch(scat_data_mono[i].ptype){
+      case PTYPE_MACROS_ISO:
+	{
+	  Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,Range(joker),0,0,0,0));
+	}
+      case PTYPE_HORIZ_AL:
+	{
+	  Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,0,joker,0,0));
+	}
+      default:
+	  Z11maxvector[i]=max(scat_data_mono[i].pha_mat_data(0,joker,joker,joker,joker,0));
+      }
+    }
+}
+
+
+
+
 
 		
 //! Red 1D Interpolate.
@@ -551,6 +583,32 @@ void interpTArray(Matrix& T,
   rte_pos[2] = interp(itw,ppath.pos(Range(joker),2),gp[0]);
 }
 
+//! is_anyptype30
+/*!
+Some operations in Monte Carlo simulations are different depending on the 
+particle type of the scattering particles.  This function searches 
+scat_data_mono to determine if any of the particle types have ptype=30
+
+\author Cory Davis
+\date 2004-1-31
+
+*/
+
+bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono)
+{
+  Index np=scat_data_mono.nelem();
+  bool anyptype30=false;
+  Index i=0;
+  while(i < np && anyptype30==false)
+    {
+      if(scat_data_mono[i].ptype==PTYPE_HORIZ_AL)
+	{
+	  anyptype30=true;
+	}
+      i+=1;
+    }
+  return anyptype30;
+}
 
 
 //!  montecarloGetIncoming 
@@ -879,19 +937,35 @@ void Sample_los_Z (
 		   const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
 		   const Tensor5& scat_theta_itws,
 		   const VectorView& pnd_vec,
+		   const bool& anyptype30,
+		   const VectorView& Z11maxvector,
 		   Numeric Csca
 		   )
 {
+  Numeric Z11max=0;
   bool tryagain=true;
-  Matrix dummyZ(stokes_dim,stokes_dim);
-  //The following is based on the assumption that the maximum value of the 
-  //phase matrix for a given scattered direction is for forward scattering
   Numeric aa_scat = (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
-  pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
-		     aa_scat,scat_data_mono,stokes_dim,pnd_vec,
-		     scat_theta,scat_theta_gps,
+      
+  if(anyptype30)
+    {
+      Index np=pnd_vec.nelem();
+      assert(scat_data_mono.nelem()==np);
+      for(Index i=0;i<np;i++)
+	{
+	  Z11max+=Z11maxvector[i]*pnd_vec[i];
+	}
+    }
+  else
+    {
+      Matrix dummyZ(stokes_dim,stokes_dim);
+      //The following is based on the assumption that the maximum value of the 
+      //phase matrix for a given scattered direction is for forward scattering
+      pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
+			 aa_scat,scat_data_mono,stokes_dim,pnd_vec,
+			 scat_theta,scat_theta_gps,
 			 scat_theta_itws);
-  Numeric Z11max=dummyZ(0,0);  
+      Z11max=dummyZ(0,0);
+    }  
   ///////////////////////////////////////////////////////////////////////  
   while(tryagain)
     {

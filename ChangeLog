@@ -1,3 +1,14 @@
+2004-02-01  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-782
+
+	* /src/montecarlo.{cc,h}: Added two functions is_anyptype30 and
+	findZ11max.  These are there to account for the fact that Z11 is
+	not a maximum for forward scattering in the ptype=30 case.  A
+	suitable bounding value for Z11 is needed when sampling incident
+	directions. Small modifications were made in ScatteringMonteCarlo
+	and sample_losZ to accomodate these changes.
+
 2004-01-30  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 	
 	* arts-1-1-781
