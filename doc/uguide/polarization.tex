@@ -5,7 +5,7 @@
 %  \levelb{...}
 %  \levelc{...}
 %
-\levela{Polarization and Stokes Parameters}
+\levela{Polarization and Stokes parameters}
  \label{sec:polarization}
 
 %
@@ -17,7 +17,7 @@
 %  \stophistory
 %
 \starthistory
-   260602 & Created and written by Christian Melsheimer.\\
+  020626 & Created and written by Christian Melsheimer.\\
 %   260304 & Subsection on antenna added by Christian Melsheimer.\\
 %   180404 & Subsection on polarization directions added by Christian Melsheimer.\\
 \stophistory
@@ -63,7 +63,7 @@ It is therefore necessary to give some details on the polarization of
 radiation, the definition of
 the Stokes parameters, and the definition of antenna polarization.
 
-\levelb{Polarization Directions}
+\levelb{Polarization directions}
 %=====================================================================
 \label{sec:polarization:directions}
 Electromagnetic waves in homogeneous, isotropic media are transverse
@@ -97,7 +97,7 @@ of  $\VctStl{n}$ with respect to $\theta$ and $\phi$. We shall call
 them $\theta$-direction (also: vertical) and $\phi$-direction (also:
 horizontal), respectively, see
 Figure~\ref{fig:polarization:directions}. 
-\begin{figure}[!h]
+\begin{figure}[!ht]
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
    \begin{center}
@@ -142,7 +142,7 @@ $\left(\VctStl{n}\times \VctStl{e}_\theta\right) \cdot
 \VctStl{e}_\phi = 1$ and the same for all cyclic permutations.
 
 
-\levelb{Plane Monochromatic Waves}
+\levelb{Plane monochromatic waves}
 %=====================================================================
 \label{sec:polarization:monochrom}
 
@@ -308,7 +308,7 @@ or right-elliptic polarization).
 Since $|\tan\beta|$ is the ratio of the semi-minor and semi-major axes
 of the ellipse (the ellipticity), $\beta$ is called the ellipticity
 angle.\label{def:ellipticity-angle}
-\begin{figure}[!h]
+\begin{figure}[!ht]
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
    \begin{center}
@@ -337,7 +337,7 @@ Figure~\ref{fig:polarization:ellipse_arbitrary})\label{def:orientation-angle}:
                            +\cos\beta \sin(\omega t) \cos\zeta )
 \end{eqnarray}
 %
-\begin{figure}[!h]
+\begin{figure}[!ht]
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
    \begin{center}
@@ -475,7 +475,7 @@ following equality applies:
 \end{equation}
 Some examples of Stokes parameters for specific polarizations are given
 at the end of the next section (p.~\pageref{stokes-examples})
-\levelb{Measuring Stokes Parameters}
+\levelb{Measuring Stokes parameters}
 %=====================================================================
 \label{sec:polarization:measuring}
 The three different ways given so far to write the Stokes parameters
@@ -538,7 +538,7 @@ and we get the field vector in this modified linear basis:
                \ePls 
 \end{equation}
 %
-\begin{figure}[!h]
+\begin{figure}[!ht]
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
    \begin{center}
@@ -706,7 +706,7 @@ left-circular& $I$ &   0     &    0   &  $-I$ \\ \hline
 
 
 
-\levelb{Partial Polarization}
+\levelb{Partial polarization}
 %=====================================================================
 \label{sec:polarization:part_pol}
 The equality   $I^2 = Q^2 + U^2 + V^2$
@@ -902,7 +902,7 @@ and the the degree of circular polarization, $p_{circ}$, as
 %(Stephens p.61)
 
 
-\subsection{Polarization of Radiation in the Atmosphere}
+\levelc{Polarization of Radiation in the Atmosphere}
 \label{sec:polarization:atmosphere}
 The radiation encountered in atmospheric sounding (for which ARTS is
 intended) is natural radiation, coming from the sun, space (cosmic
@@ -926,7 +926,7 @@ $Q$, $U$, $V$
 for realistic radiation in relevant cases ($I \gg Q \gg U,V$ when?)
 
 
-\subsection{Antenna Polarization}
+\levelc{Antenna polarization}
 \label{sec:polarization:antenna}
 Finally we want to know what an antenna of arbitrary polarization
 response (antenna polarization)
@@ -1041,6 +1041,58 @@ It turns out to be just a scalar product:
 %This is $S_{H_2 O}$.
 
 %This is $S_{O2}$.
+
+
+
+\levelb{The scattering amplitude matrix}
+%=====================================================================
+\label{sec:polarization:ampmatrix}
+The electric field, $[E_v,E_h]^T$, originating from a single
+scattering event of an incident electric field $[E_v^0,E_h^0]^T$ may
+in the far field be written as (c.f.\ Eq.~\ref{eq:ampl_matrix})
+\begin{equation}
+  \label{eq:polarisation:ampmatrix1}
+   \left[ \begin{array}{c} E_v \\ E_h \end{array} \right] =
+   f(r)
+   \left[ \begin{array}{cc} S_2 & S_3 \\ S_4 & S_1 \end{array} \right]
+   \left[ \begin{array}{c} E_v^0 \\ E_h^0 \end{array} \right], 
+\end{equation}
+where $S_j$ are the scattering amplitude functions and all distance
+effects are put into the function $f(r)$. Using Stokes based
+nomenclature, the equation above becomes
+\begin{equation}
+  \label{eq:polarisation:ampmatrix2}
+   \left[ \begin{array}{c} I\\Q\\U\\V \end{array} \right] =
+   g(r)\MtrStl{F}
+   \left[ \begin{array}{c} I^0\\Q^0\\U^0\\V^0 \end{array} \right],
+\end{equation}
+where all distance effects are put into the function $f(r)$ and the
+transformation matrix \MtrStl{F} can be expressed as
+\begin{equation}
+  \label{eq:polarisation:Fmatrix}
+  \MtrStl{F} = \left[ \begin{array}{cccc} 
+    \scriptstyle \frac{1}{2}(M_2+M_3+M_4+M_1) & 
+    \scriptstyle \frac{1}{2}(M_2-M_3+M_4-M_1) & 
+    \scriptstyle S_{23}+S_{41} & \scriptstyle -D_{23}-D_{41} \\
+    \scriptstyle \frac{1}{2}(M_2+M_3-M_4-M_1) & 
+    \scriptstyle \frac{1}{2}(M_2-M_3-M_4+M_1) & 
+    \scriptstyle S_{23}-S_{41} & \scriptstyle -D_{23}+D_{41} \\
+    \scriptstyle S_{24}+S_{31} & \scriptstyle S_{24}-S_{31} & 
+    \scriptstyle S_{21}+S_{34} & \scriptstyle -D_{21}+D_{34} \\
+    \scriptstyle D_{24}+D_{31} & \scriptstyle D_{24}-D_{31} & 
+    \scriptstyle D_{21}+D_{34} & \scriptstyle S_{21}-S_{34} 
+  \end{array} \right].
+\end{equation}
+The elements of \MtrStl{F} are finally given by the following
+expressions:
+\begin{eqnarray}
+  M_k &=& |S_k|^2, \\
+  S_{kj} = S_{jk} &=& (S_jS_k^\ast+S_kS_j^\ast)/2, \\
+  -D_{kj} = D_{jk} &=& i(S_jS_k^\ast-S_kS_j^\ast)/2, \qquad j,k= 1, 2, 3, 4.
+\end{eqnarray}
+This section is based on \citet[Sec.\ 5.4.3]{liou:02}.
+
+
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "uguide"

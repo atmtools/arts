@@ -774,13 +774,13 @@ expansions with a relative accuracy of $< 4\topowerten{-7}$. That is,
 Equation~\ref{eq:ppath:psurf1} becomes with these replacements a
 polynomial equation of order 4:
 \begin{eqnarray}
+  \label{eq:ppath:psurf2}
   0 & = & p_0 + p_1 \Lat + p_2 \Lat^2 + p_3 \Lat^3 + p_4 \Lat^4 \\
   p_0 & = & (\aRds{0}-\aRds{p}) \sin\Theta_p \nonumber \\ 
   p_1 & = & \aRds{0}\cos\Theta_p + c \sin\Theta_p \nonumber \\ 
   p_2 & = & -(\aRds{0}\sin\Theta_p)/2 + c\cos\Theta_p  \nonumber \\ 
   p_3 & = & -(\aRds{0}\cos\Theta_p)/6 - (c\sin\Theta_p)/2 \nonumber \\ 
   p_4 & = & -(c \cos\Theta_p)/6  \nonumber 
-  \label{eq:ppath:psurf2}
 \end{eqnarray}
 This equation is solved numerically with the root finding algorithm
 implemented in the function \funcindex{poly\_root\_solve}. Solutions of

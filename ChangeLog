@@ -1,3 +1,20 @@
+2004-05-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+        * arts-1-1-817
+
+	* doc/uguide/surface.tex: Moved every thing for the surface to
+	this new chapter. Derived the reflection matrix for specular
+	reflection, based on new part in polarization.tex.
+
+	* doc/uguide/rte.tex: Is now empty, and is commented out from the
+	texing.
+	
+	* doc/uguide/polarization.tex: Wrote a section, describing the
+	relationship between amplitude and Stokes scattering matrices.
+
+	* doc/uguide/uguide.tex: Set badness limit to 10000 for the whole
+	document to avoid warnings that anyhow will be ignored.
+
 2004-05-11  Oliver Lemke  <olemke@linux.net>
 
         * arts-1-1-816

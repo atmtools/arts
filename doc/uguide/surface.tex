@@ -1,0 +1,167 @@
+\levela{Surface emission and reflections}
+ \label{sec:surface}
+
+
+\starthistory
+  040427 & Started by Patrick Eriksson. \\
+\stophistory
+
+
+Basic facts regarding the treatment of surface emission and
+reflections are given in Section~\ref{sec:fm_defs:groundrefl}.  Let us
+start with a simple example in order to explain the usage of the
+workspace variables describing the surface properties. We will here
+assume that the surface has an isotropic scattering, where all
+downwelling radiation is reflected. This assumption is made for all
+polarisation states. We assume further a 1D simulation and that the
+downwelling radiation shall be calculated for nine zenith angles. The
+relevant workspace variables should then be set as follows:
+  
+ \wsvindex{ground\_emission}: A matrix (of correct size) of zeros.
+
+ \wsvindex{ground\_los}: A vector of length 9, covering the zenith
+ angle range. A possible choice would be [5,15,25,\dots,85].
+ 
+ \wsvindex{ground\_refl\_coeffs}: Each reflection matrix is a diagonal
+ matrix with the value 1/9 throughout on the diagonal. That is, all
+ elements with index (:,:,i,i) is 1/9. Size matching
+ \artsstyle{ground\_los}, \artsstyle{f\_grid} and
+ \artsstyle{stokes\_dim}
+
+
+\levelb{The dielectric constant and the refractive index}
+
+ The properties of a material are reported either as the relative
+ dielectric constant, $\epsilon$, or the refractive index, $n$. Both
+ these quantities can be complex and are related as
+ \begin{equation}
+   \label{eq:rte_eps2n}
+   n = \sqrt{\epsilon}.
+ \end{equation}
+
+
+\levelb{Specular reflections}
+ \label{sec:rte:surface:specular}
+ 
+ If the surface is sufficiently smooth, radiation will be
+ reflected/scattered only in the complementary angle, specular
+ reflection. Required smoothness for assuming specular reflection is
+ normally estimated by the Rayleigh criterion:
+ \begin{equation}
+   \label{eq:rte:rayleigh}
+   \Delta h < \frac{\Wvl}{8\cos\theta_1}
+ \end{equation}
+ where $\Delta h$ is the root mean square variation of the surface
+ height, \Wvl\ the wavelength and $\theta_1$ the angle between the
+ surface normal and the incident direction of the radiation. The
+ criterion can also be defined with the factor 8 replaced with a lower
+ integer number.
+ 
+ The reflection coefficient for the amplitude of the electromagnetic
+ wave for vertical ($R_v$) and horizontal ($R_v$) polarisation is
+ for a flat surface given by the Fresnel equations:
+ \begin{eqnarray}
+   \label{eq:rte_fresnel}
+   R_v &=& \frac{n_2\cos\theta_1-n_1\cos\theta_2}
+                                           {n_2\cos\theta_1+n_1\cos\theta_2} \\
+   R_h &=& \frac{n_1\cos\theta_1-n_2\cos\theta_2}
+                                           {n_1\cos\theta_1+n_2\cos\theta_2} \\
+ \end{eqnarray}
+ [* check if correct *] where $n_1$ is refractive index for
+ the medium where the incoming radiation is propagating, $\theta_1$ is
+ the incident angle (measured from the local surface normal) and $n_2$
+ is the refractive index of the reflecting medium. The angle
+ $\theta_2$ is the propagation direction for the transmited part, and
+ is given by Snell's law:
+ \begin{equation}
+   \label{eq:rte:snell}
+   \Re(n_1)\sin\theta_1 = \Re(n_2)\sin\theta_2.
+ \end{equation}
+ where $\Re(\cdot)$ denotes the complex real part.
+ For cases where medium 1 is air, $n_1$ can (in this context) be set to 1.
+ 
+ The power reflection coefficients are converted to an intensity
+ reflection coefficient as
+ \begin{equation}
+   \label{eq:rte:R2r}
+   r = |R|^2,
+ \end{equation}
+ where $|\!\cdot\!|$ denotes the absolute value. Note that $R$ can be
+ complex, while $r$ is always real.
+ 
+ The surface reflection can be seen as a scattering event and
+ Section~\ref{sec:polarization:ampmatrix} can be used to derive the
+ reflection matrix values. The scattering amplitude functions of
+ Equation~\ref{eq:polarisation:ampmatrix1} are simply
+ \begin{eqnarray}
+   S_2 &=& R_v, \\
+   S_1 &=& R_h, \\
+   S_3 = S_4 &=& =0.
+ \end{eqnarray}
+ This leads to that the transformation matrix for a specular ground
+ reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
+ \begin{equation}
+   \label{eq:rte:specular_matrix}
+   \MtrStl{F} =
+      \left[\begin{array}{cccc}
+        \frac{r_v+r_h}{2}&\frac{r_v-r_h}{2}&0&0\\
+        \frac{r_v-r_h}{2}&\frac{r_v+r_h}{2}&0&0\\
+     0&0&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}&i\frac{R_hR_v^\ast-R_vR_h^\ast}{2}\\
+     0&0&i\frac{R_vR_h^\ast-R_hR_v^\ast}{2}&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}\\
+      \end{array}
+      \right].
+ \end{equation}
+ If the downwelling radiatio is unpolarised, the reflected part of the
+ upwelling radiation is
+ \begin{equation}
+   \MtrStl{F}
+   \left[ \begin{array}{c} I\\0\\0\\0 \end{array} \right] =
+   \left[ \begin{array}{c} I(r_v+r_h)/2\\I(r_v-r_h)/2\\0\\0 
+   \end{array} \right].
+ \end{equation}
+ as expected.
+
+ The workspace variable \artsstyle{ground\_los} shall here
+ of course be set to have the length 1. The specular direction is
+ calculated by the internal function \funcindex{ground\_specular\_los}.
+
+ [* Fill in what workspace methods that match this section. *]
+
+
+\levelc{Surface emission}
+ \label{sec:rte:surface:emission}
+ 
+ [* Can we relate \artsstyle{ground\_refl\_coeffs} and
+ \artsstyle{ground\_emission}? 
+
+ The emission for specular reflection should be 
+ \begin{equation}
+    \left[\begin{array}{c}
+      B\left(1-\frac{r_v+r_h}{2}\right) \\
+      B\frac{r_h-r_v}{2} \\
+      0\\0
+    \end{array}\right]
+ \end{equation}
+ Correct? *]
+
+ 
+\levelc{Surface properties}
+ \label{sec:rte:surfprop}
+ 
+ This section discusses the propertiesof various surface materials and
+ conditions.
+ 
+\levelc{Sea water}
+ \label{sec:rte:surfprop:water}
+
+ What is the standard model for $\epsilon$?
+
+ 
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% TeX-master: "uguide"
+%%% End: 
