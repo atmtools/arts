@@ -1,3 +1,22 @@
+2001-01-19  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-110
+
+	* m_abs.cc: Added method lines_per_tgReadFromCatalogues. This
+	reads lines from catalogues and assigns them to lines_per_tg in
+	one go. Different catalogues can be specified for different
+	tags. This will be handy for the water vapor absorption
+	spectrum. Now we can use a special line file for water vapor,
+	with continuum parameters to match.
+
+	* token.h, parser.cc: Renamed the type ARRAY_Numeric_t to
+	VECTOR_t. Also changed the definition accordingly, so this type is
+	now a vector.
+
+	* doc/examples/example1.arts: Adapted to demonstrate the new
+	catalogue reading features.
+
+	
 2001-01-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-109

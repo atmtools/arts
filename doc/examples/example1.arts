@@ -6,14 +6,14 @@
 #                      -------------------
 # Read the spectroscopic line data from the HITRAN catalogue and
 # create the workspace variable `lines':
-linesReadFromHitran {
-   filename = "../../data/spectroscopy/hitran96/hitran96_lowfreq.par"
-   fmin     = 1e9
-   fmax     = 200e9
-}
+#linesReadFromHitran {
+#   filename = "../../data/spectroscopy/hitran96/hitran96_lowfreq.par"
+#   fmin     = 200e9
+#   fmax     = 205e9
+#}
 
 # Optionally write the line list to a file:
-linesWriteToFile{""} 
+#linesWriteToFile{""} 
 
  
 # This defines the list of tag groups (`tag_groups'). Absorption
@@ -29,12 +29,21 @@ linesWriteToFile{""}
 tag_groupsDefine{
       [ "H2O-161, H2O-181, H2O-171, H2O-162, H2O-182, H2O-262",
         "H2O-HITRAN96Self, H2O-HITRAN96Foreign",
-        "O3"] 
+        "O3",
+	"N2O" ] 
 }
 
 # This separates the lines into the different tag groups and creates
 # the workspace variable `lines_per_tg':
-lines_per_tgCreateFromLines{}
+#lines_per_tgCreateFromLines{}
+
+lines_per_tgReadFromCatalogues{
+  filenames = ["../../data/spectroscopy/jpl00/jpl00.cat",
+               "../../data/spectroscopy/hitran96/hitran96_lowfreq.par"]
+  formats = [ "JPL", "HITRAN96" ]
+  fmin    = [ 0,         0      ]       
+  fmax    = [ 200e9,     200e9  ]   
+}
 
 lines_per_tgWriteToFile{""} 
 
@@ -95,8 +104,8 @@ VectorWriteAscii (f_mono) {""}
 
 # or set it separately for each tag
 lineshape_per_tgDefine{
-	shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6"]
-	normalizationfactor = ["quadratic","no_norm","linear"]
+	shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6","Voigt_Kuntz6"]
+	normalizationfactor = ["quadratic","no_norm","linear","linear"]
 }
 
 # Calculate absorption coefficients, both total (`abs') and 

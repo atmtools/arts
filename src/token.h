@@ -23,7 +23,7 @@
 /** The different token value types. These are the types that keyword
     parameters in the controlfile can have. */
 enum TokValType { string_t,    int_t,    Numeric_t,
-	          ARRAY_string_t, ARRAY_int_t, ARRAY_Numeric_t,
+	          ARRAY_string_t, ARRAY_int_t, VECTOR_t,
                   undefined_t };
 
 /** This stores arbitrary token values and remembers the type. Only
@@ -74,10 +74,10 @@ public:
     copy(nv, mnv);
   }
 
-  /** To set TokVal from an array of Numerics. */
-  TokVal(ARRAY<Numeric> xv) : mxv(xv.size())
+  /** To set TokVal from a VECTOR. */
+  TokVal(VECTOR xv) : mxv(xv.size())
   {
-    mtype = ARRAY_Numeric_t;
+    mtype = VECTOR_t;
     copy(xv, mxv);
   }
 
@@ -94,8 +94,8 @@ public:
   operator ARRAY<string>() const;
   /** Return array of integers. */
   operator ARRAY<int>() const;
-  /** Return array of Numerics. */
-  operator ARRAY<Numeric>() const;
+  /** Return VECTOR. */
+  operator VECTOR() const;
 
   /** Output operator. */
   friend ostream& operator<<(ostream& os, const TokVal& a);
@@ -107,7 +107,7 @@ private:
   Numeric      mx;   
   ARRAY<string>  msv;
   ARRAY<int>     mnv;
-  ARRAY<Numeric> mxv;
+  VECTOR         mxv;
 };
 
 

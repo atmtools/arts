@@ -56,8 +56,8 @@ TokVal::operator ARRAY<int>() const {
   return mnv;
 }
   
-TokVal::operator ARRAY<Numeric>() const {
-  assert (mtype == ARRAY_Numeric_t);
+TokVal::operator VECTOR() const {
+  assert (mtype == VECTOR_t);
   return mxv;
 }
 
@@ -81,7 +81,7 @@ ostream& operator<<(ostream& os, const TokVal& a)
     case ARRAY_int_t:
       print_vector(os,a.mnv);
       break;
-    case ARRAY_Numeric_t:
+    case VECTOR_t:
       print_vector(os,a.mxv);
       break;
     default:

@@ -615,7 +615,7 @@ void parse_intvector(ARRAY<int>& res, SourceText& text)
     inside numbers are not allowed. 
    
     @see parse_numeric */
-void parse_numvector(ARRAY<Numeric>& res, SourceText& text)
+void parse_numvector(VECTOR& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
   resize(res,0);			// Clear the result vector (just in case).
@@ -863,7 +863,7 @@ bool parse_method(size_t& id,
 
       // Now parse the key value. This can be:
       // string_t,    int_t,    Numeric_t,
-      // ARRAY_string_t, ARRAY_int_t, ARRAY_Numeric_t,
+      // ARRAY_string_t, ARRAY_int_t, VECTOR_t,
       switch (md_data[id].Types()[i]) 
 	{
 	case string_t:
@@ -901,9 +901,9 @@ bool parse_method(size_t& id,
 	    values.push_back(dummy);
 	    break;
 	  }
-	case ARRAY_Numeric_t:
+	case VECTOR_t:
 	  {
-	    ARRAY<Numeric> dummy;
+	    VECTOR dummy;
 	    parse_numvector(dummy, text);
 	    values.push_back(dummy);
 	    break;
