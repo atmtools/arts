@@ -23,7 +23,8 @@ main (int argc, char *argv[])
   try
     {
       cout << "l = " << l << "  m = " << m << "  x = " << x << endl;
-      cout << "Pml = " << legendre_polynomial (l, m, x) << endl;
+      cout << "Pml = " << legendre_poly (l, m, x) << endl;
+      cout << "Norm Pml = " << legendre_poly_norm (l, m, x) << endl;
     }
   catch (runtime_error e)
     {
@@ -50,7 +51,7 @@ main (int argc, char *argv[])
     throw runtime_error ("Timer error: Unable to get current CPU time");
 
   for (Index i = 0; i < n; i++)
-    r2[i] = legendre_polynomial (l, m, v2[i]);
+    r2[i] = legendre_poly (l, m, v2[i]);
 
   if (times (&cput_end) == -1)
     throw runtime_error ("Timer error: Unable to get current CPU time");
@@ -58,7 +59,7 @@ main (int argc, char *argv[])
   cout << "CPU time: " << setprecision (2)
     << ((cput_end.tms_stime - cput_start.tms_stime)
         + (cput_end.tms_utime - cput_start.tms_utime))
-    / (Numeric)clktck << endl;
+    / (Numeric)clktck << " s" << endl;
 
   return (0);
 }
