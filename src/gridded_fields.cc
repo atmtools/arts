@@ -40,6 +40,7 @@
 
 
 #include <stdexcept>
+#include <iostream>
 #include "xml_io.h"
 #include "array.h"
 #include "matpackIII.h"
