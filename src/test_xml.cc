@@ -4,23 +4,21 @@ using namespace std;
 #include "matpackII.h"
 #include "xml_io.h"
 #include "exceptions.h"
+#include "absorption.h"
+
+extern Array<SpeciesRecord> species_data;
 
 int
 main (int /* argc */, char * /* argv */ [])
 {
-  Sparse a (5, 3);
-  Sparse b;
-
+  define_species_data ();
   try
     {
-      a (1, 1) = 6.;
-      a (2, 2) = 5.;
+      xml_write_to_file ("sdata.xml", species_data);
+      cout << "Wrote species_data: " << endl;
 
-      xml_write_to_file ("sparse.xml", a);
-      cout << "Wrote: " << a << endl;
-
-      xml_read_from_file ("sparse.xml", b);
-      cout << "Read: " << b << endl;
+      //xml_read_from_file ("sparse.xml", b);
+      //cout << "Read: " << b << endl;
     }
   catch (runtime_error e)
     {
