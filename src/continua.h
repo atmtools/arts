@@ -112,6 +112,14 @@ void CP98H2OAbsModel( MatrixView        xsec,        // calculated x-section
 // water vapor continuum absorption models
 //////////////////////////////////////////////////////////////////////////// 
 
+void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,   // calculated x-section
+				     const Numeric       Cin,    // model parameter
+				     const String&       model,  // model option
+				     ConstVectorView     f_mono, // frequency vector
+				     ConstVectorView     p_abs,  // pressure vector
+				     ConstVectorView     t_abs,  // temperature vector 
+				     ConstVectorView     vmr);   // H2O vmr profile
+
 void Standard_H2O_self_continuum( MatrixView        xsec,        // calculated x-section
 				  const Numeric     C,           // model parameter
 				  const Numeric     x,           // model parameter
@@ -306,6 +314,15 @@ void Standard_N2_self_continuum(   MatrixView        xsec,        // calculated 
 				   ConstVectorView   p_abs,       // pressure vector
 				   ConstVectorView   t_abs,       // temperature vector
 				   ConstVectorView   vmr );       // N2 vmr profile
+
+void Pardo_ATM_N2_dry_continuum( MatrixView        xsec,          // calculated x-section
+				  const Numeric     Cin,          // model parameter
+				  const String&     model,        // model option
+				  ConstVectorView   f_mono,       // frequency vector
+				  ConstVectorView   p_abs,        // pressure vector
+				  ConstVectorView   t_abs,        // temperature vector
+				  ConstVectorView   vmr,	  // N2 vmr profile
+				  ConstVectorView   h2o_abs);     // H2O vmr profile
 
 //////////////////////////////////////////////////////////////////////////// 
 // carbon dioxide continuum absorption models

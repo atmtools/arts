@@ -198,6 +198,7 @@ void define_basic_species_data()
   	 REC( "ContMPM93"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "SelfContCKD24"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ForeignContCKD24"        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "ForeignContATM01"        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "CP98"	                ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "MPM87"	                ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "MPM89"	                ,-1.	,-1.	,-1	,-1	,TAGS()      ),
@@ -552,7 +553,8 @@ void define_basic_species_data()
 	 REC( "SelfContMPM93"	        ,-1.	,-1.	,-1	,-1	,TAGS()),
 	 REC( "SelfContPWR93"	        ,-1.	,-1.	,-1	,-1	,TAGS()),
 	 REC( "SelfContStandardType"    ,-1.	,-1.	,-1	,-1	,TAGS()),
-	 REC( "SelfContBorysow"	        ,-1.	,-1.	,-1	,-1	,TAGS())
+	 REC( "SelfContBorysow"	        ,-1.	,-1.	,-1	,-1	,TAGS()),
+	 REC( "DryContATM01"	        ,-1.	,-1.	,-1	,-1	,TAGS())
 	 ) ) );
 
   // HCN

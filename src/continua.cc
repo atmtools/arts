@@ -1644,6 +1644,105 @@ void CKD24_H20( MatrixView          xsec,
 //
 // #################################################################################
 //
+/** 
+   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+                            N2-continuum according to Rosenkranz, 1993 [1/m]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
+   \param    xTin           continuum strength temperature exponent [1]
+   \param    model          allows user defined input parameter set 
+                            (Cin and xTin)<br> or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid      [Hz]
+   \param    p_abs          predefined pressure grid       [Pa]
+   \param    t_abs          predefined temperature grid    [K] 
+   \param    vmr            H2O volume mixing ratio        [1]
+
+   \note     Except for  model 'user' the input parameters Cin and xTin 
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'ATM', and 'user'. 
+             See the user guide for detailed explanations.
+
+   \remark   Reference: Pardo et al., IEEE, Trans. Ant. Prop., <br>
+             Vol 49, No 12, pp. 1683-1694, 2001.
+
+   \author Thomas Kuhn
+   \date 2001-04-10
+ */ 
+
+void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
+				     const Numeric       Cin,
+				     const String&       model,
+				     ConstVectorView     f_mono,
+				     ConstVectorView     p_abs,
+				     ConstVectorView     t_abs,
+				     ConstVectorView     vmr)
+{
+  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
+  // standard values for the Pardo et al. model (IEEE, Trans. Ant. Prop., 
+  // Vol 49, No 12, pp. 1683-1694, 2001)
+  const Numeric	C_ATM = 0.0315; // [1/m]
+  // ---------------------------------------------------------------------------------------
+
+  // select the parameter set (!!model dominates parameters!!):
+  Numeric C;
+   if ( model == "ATM" )
+     {
+       C = C_ATM;
+     }
+   else if ( model == "user" )
+     {
+       C = Cin;
+     }
+   else
+     {
+       ostringstream os;
+       os << "H2O-ForeignContATM01: ERROR! Wrong model values given.\n"
+	  << "allowed models are: 'ATM', 'user'" << '\n';
+       throw runtime_error(os.str());
+     }
+   out3  << "H2O-ForeignContATM01: (model=" << model << ") parameter values in use:\n" 
+         << " C_f = " << C << "\n";
+
+   const Index n_p = p_abs.nelem();	// Number of pressure levels
+   const Index n_f = f_mono.nelem();	// Number of frequencies
+
+   // Check that dimensions of p_abs, t_abs, and vmr agree:
+   assert ( n_p==t_abs.nelem() );
+   assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+  
+  // Loop over pressure/temperature grid:
+  for ( Index i=0; i<n_p; ++i )
+    {
+      // since this is an effective "dry air" continuum, it is not really
+      // it is not specifically attributed to N2, so we need the total 
+      // dry air part in total which is equal to the total minus the 
+      // water vapor pressure:
+      Numeric  pd = p_abs[i] * ( 1.00000e0 - vmr[i] ); // [Pa]
+      // since the H2O VMR will be multiplied in absCalc, we omit it here
+      Numeric  pwdummy = p_abs[i]                    ; // [Pa]
+      // Loop over frequency grid:
+      for ( Index s=0; s<n_f; ++s )
+	{
+	  // Becaue this is an effective "dry air" continuum, it is not really
+	  // specific N2 but mainly caused by N2. Therefore the N2 vmr must be 
+	  // canceled out here which is later in absCalc multiplied 
+	  // (calculation: abs = vmr * xsec):
+	  xsec(s,i) += C *                  // strength [1/(m*Hz²Pa²)] 
+	    pow( (f_mono[s]/2.25e11), 2 ) * // quadratic f dependence [1]
+	    pow( (300.0/t_abs[i]),    3 ) * // free T dependence      [1]
+	    (pd/1.01300e5)                * // p_dry dependence       [1]
+	    (pwdummy/1.01300e5);            // p_H2O dependence       [1]
+	}
+    }
+}
+//
+// #################################################################################
+//
 // MPM93 H2O pseudo continuum line parameters:
 // see publication side of National Telecommunications and Information Administration
 //   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
@@ -1810,7 +1909,7 @@ void MPM93_H2O_continuum( MatrixView          xsec,
    \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
              are neglected (model dominates over parameters).<br>
              Allowed models: 'MPM85', 'MPM85Lines', 'MPM85Continuum', 'MPM85NoCoupling', 
-             and 'user'. See the user guide for detailed explanations.
+             'MPM85NoCutoff', and 'user'. See the user guide for detailed explanations.
 
    \remark   Reference: H. J. Liebe,<br>
              <i>An updated model for millimeter wave propagation in moist air,</i>,<br>
@@ -1899,6 +1998,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
   const Numeric CL_MPM85 = 1.00000;
   const Numeric CW_MPM85 = 1.00000;
   const Numeric CO_MPM85 = 1.00000;
+  int   AppCutoff = 0;
   // ---------------------------------------------------------------------------------------
 
 
@@ -1932,6 +2032,14 @@ void MPM85O2AbsModel( MatrixView          xsec,
       CW = CW_MPM85;
       CO = 0.000;
     }
+  else if ( model == "MPM85NoCutoff" )
+    {
+      CC = CC_MPM85;
+      CL = CL_MPM85;
+      CW = CW_MPM85;
+      CO = CO_MPM85;
+      AppCutoff = 1;
+    }
   else if ( model == "user" )
     {
       CC = CCin;
@@ -1943,7 +2051,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
     {
       ostringstream os;
       os << "O2-MPM85: ERROR! Wrong model values given.\n"
-	 << "Valid models are: 'MPM85' 'MPM85Lines' 'MPM85Continuum' 'MPM85NoCoupling' " 
+	 << "Valid models are: 'MPM85' 'MPM85Lines' 'MPM85Continuum' 'MPM85NoCoupling' 'MPM85NoCutoff'" 
          << "and 'user'" << '\n';
       throw runtime_error(os.str());
     }
@@ -1955,7 +2063,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
   
 
   // O2 continuum parameters of MPM92:
-  const Numeric	S0 =  3.070e-4; // line strength                        [ppm]
+  const Numeric	S0 =  6.140e-4; // line strength                        [ppm]
   const Numeric G0 =  5.600e-3;  // line width                           [GHz/kPa]
   const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
 
@@ -2017,7 +2125,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
 	  // Numeric FAC =  1.000 / ( pow( ff, 2) + pow( 60.000, 2) );
 	  // if we let the non-proofen rollofff away as in further version: 
 	  Numeric FAC =  1.000 ;
-	  Numeric Nppc =  CC * 2.000 * strength_cont * FAC * ff * gam_cont /
+	  Numeric Nppc =  CC * strength_cont * FAC * ff * gam_cont /
 	                  ( pow( ff, 2) + pow( gam_cont, 2) );
 	  
 	  // Loop over MPM85 O2 spectral lines:
@@ -2043,7 +2151,10 @@ void MPM85O2AbsModel( MatrixView          xsec,
 	  // since this cutoff is only 'detectable' in the source code and not in the
           // publications we assume this cutoff also for MPM85 since it is also 
           // implemented in MPM87. 
-	  if (Nppl < 0.000)  Nppl = 0.0000;
+	  if (AppCutoff == 0) 
+	    {
+	      if (Nppl < 0.000)  Nppl = 0.0000;
+	    }
 	  //
 	  // O2 line absorption [1/m]
 	  // cross section: xsec = absorption / var
@@ -2076,7 +2187,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
    \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
              are neglected (model dominates over parameters).<br>
              Allowed models: 'MPM87', 'MPM87Lines', 'MPM87Continuum', 'MPM87NoCoupling', 
-             and 'user'. See the user guide for detailed explanations.
+             'MPM87NoCutoff', and 'user'. See the user guide for detailed explanations.
 
    \remark   Reference: H. J. Liebe and D. H. Layton,<br>
              <i>Millimeter-wave properties of the atmosphere: 
@@ -2169,6 +2280,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
   const Numeric CL_MPM87 = 1.00000;
   const Numeric CW_MPM87 = 1.00000;
   const Numeric CO_MPM87 = 1.00000;
+  int   AppCutoff = 0;
   // ---------------------------------------------------------------------------------------
 
 
@@ -2202,6 +2314,17 @@ void MPM87O2AbsModel( MatrixView          xsec,
       CW = CW_MPM87;
       CO = 0.000;
     }
+  else if ( model == "MPM87NoCutoff" )
+    {
+      // !!ATTENTION!!
+      // In the window regions the total absorption can get negative values.
+      // So be carefull with this selection!
+      CC = CC_MPM87;
+      CL = CL_MPM87;
+      CW = CW_MPM87;
+      CO = CO_MPM87;
+      AppCutoff = 1;
+    }
   else if ( model == "user" )
     {
       CC = CCin;
@@ -2213,7 +2336,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
     {
       ostringstream os;
       os << "O2-MPM87: ERROR! Wrong model values given.\n"
-	 << "Valid models are: 'MPM87' 'MPM87Lines' 'MPM87Continuum' 'MPM87NoCoupling' " 
+	 << "Valid models are: 'MPM87' 'MPM87Lines' 'MPM87Continuum' 'MPM87NoCoupling' 'MPM87NoCutoff'" 
          << "and 'user'" << '\n';
       throw runtime_error(os.str());
     }
@@ -2225,8 +2348,8 @@ void MPM87O2AbsModel( MatrixView          xsec,
   
 
   // O2 continuum parameters of MPM92:
-  const Numeric	S0 =  3.070e-4; // line strength                        [ppm]
-  const Numeric G0 =  4.800e-3;  // line width                           [GHz/kPa]
+  const Numeric	S0 =  6.140e-4; // line strength                        [ppm]
+  const Numeric G0 =  4.800e-3;  // line width [GHz/kPa] !! 14% lower than in all the other versions !!
   const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
@@ -2283,7 +2406,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
 	  // O2 continuum absorption [1/m]
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
-	  Numeric Nppc =  CC * 2.000 * strength_cont * ff * gam_cont /
+	  Numeric Nppc =  CC * strength_cont * ff * gam_cont /
 	                  ( pow( ff, 2) + pow( gam_cont, 2) );
 	  
 	  // Loop over MPM87 O2 spectral lines:
@@ -2306,7 +2429,10 @@ void MPM87O2AbsModel( MatrixView          xsec,
 	    }
 	  // in MPM87 there is a cutoff for O2 line absorption if abs_l < 0 
 	  // absorption cannot be less than 0 according to MPM87 source code.
-	  if (Nppl < 0.000)  Nppl = 0.0000;
+	  if (AppCutoff == 0) 
+	    {
+	      if (Nppl < 0.000)  Nppl = 0.0000;
+	    }
 	  //
 	  // O2 line absorption [1/m]
 	  // cross section: xsec = absorption / var
@@ -2339,7 +2465,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
    \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
              are neglected (model dominates over parameters).<br>
              Allowed models: 'MPM89', 'MPM89Lines', 'MPM89Continuum', 'MPM89NoCoupling', 
-             and 'user'. See the user guide for detailed explanations.
+             'MPM89NoCutoff', and 'user'. See the user guide for detailed explanations.
 
    \remark   Reference: H. J. Liebe,<br>
              <i>MPM - an atmospheric millimeter-wave propagation model</i>,<br>
@@ -2425,6 +2551,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
   const Numeric CL_MPM89 = 1.00000;
   const Numeric CW_MPM89 = 1.00000;
   const Numeric CO_MPM89 = 1.00000;
+  int   AppCutoff = 0; 
   // ---------------------------------------------------------------------------------------
 
 
@@ -2458,6 +2585,14 @@ void MPM89O2AbsModel( MatrixView          xsec,
       CW = CW_MPM89;
       CO = 0.000;
     }
+  else if ( model == "MPM89NoCutoff" )
+    {
+      CC = CC_MPM89;
+      CL = CL_MPM89;
+      CW = CW_MPM89;
+      CO = CO_MPM89;
+      AppCutoff = 1; 
+    }
   else if ( model == "user" )
     {
       CC = CCin;
@@ -2469,7 +2604,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
     {
       ostringstream os;
       os << "O2-MPM89: ERROR! Wrong model values given.\n"
-	 << "Valid models are: 'MPM89' 'MPM89Lines' 'MPM89Continuum' 'MPM89NoCoupling' " 
+	 << "Valid models are: 'MPM89' 'MPM89Lines' 'MPM89Continuum' 'MPM89NoCoupling' 'MPM89NoCutoff'" 
          << "and 'user'" << '\n';
       throw runtime_error(os.str());
     }
@@ -2562,7 +2697,10 @@ void MPM89O2AbsModel( MatrixView          xsec,
 	    }
 	  // in MPM89 we adopt the cutoff for O2 line absorption if abs_l < 0 
 	  // absorption cannot be less than 0 according to MPM87 source code.
-	  if (Nppl < 0.000)  Nppl = 0.0000;
+	  if (AppCutoff == 0) 
+	    {
+	      if (Nppl < 0.000)  Nppl = 0.0000;
+	    }
 	  //
 	  // O2 line absorption [1/m]
 	  // cross section: xsec = absorption / var
@@ -2596,7 +2734,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
    \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
              are neglected (model dominates over parameters).<br>
              Allowed models: 'MPM92', 'MPM92Lines', 'MPM92Continuum', 'MPM92NoCoupling', 
-             and 'user'. See the user guide for detailed explanations.
+             'MPM92NoCutoff', and 'user'. See the user guide for detailed explanations.
 
    \remark   Reference: H. J. Liebe, P. W. Rosenkranz and G. A. Hufford,<br>
              <i>Atmospheric 60-GHz Oxygen Spectrum: New Laboratory Measurements 
@@ -2682,6 +2820,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
   const Numeric CL_MPM92 = 1.00000;
   const Numeric CW_MPM92 = 1.00000;
   const Numeric CO_MPM92 = 1.00000;
+  int AppCutoff = 0;
   // ---------------------------------------------------------------------------------------
 
 
@@ -2715,6 +2854,14 @@ void MPM92O2AbsModel( MatrixView          xsec,
       CW = CW_MPM92;
       CO = 0.000;
     }
+  else if ( model == "MPM92NoCutoff" )
+    {
+      CC = CC_MPM92;
+      CL = CL_MPM92;
+      CW = CW_MPM92;
+      CO = CO_MPM92;
+      AppCutoff = 1;
+    }
   else if ( model == "user" )
     {
       CC = CCin;
@@ -2726,7 +2873,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
     {
       ostringstream os;
       os << "O2-MPM92: ERROR! Wrong model values given.\n"
-	 << "Valid models are: 'MPM92' 'MPM92Lines' 'MPM92Continuum' 'MPM92NoCoupling' " 
+	 << "Valid models are: 'MPM92' 'MPM92Lines' 'MPM92Continuum' 'MPM92NoCoupling' 'MPM92NoCutoff'" 
          << "and 'user'" << '\n';
       throw runtime_error(os.str());
     }
@@ -2737,6 +2884,12 @@ void MPM92O2AbsModel( MatrixView          xsec,
 	<< " CO = " << CO << "\n";
   
 
+  // const = VMR * ISORATIO = 0.20946 * 0.99519
+  // this constant is already incorporated into the line strength, so we 
+  // have top devide the line strength by this value since arts multiplies xsec
+  // by these variables later in absCalc.
+  const Numeric	VMRISO = 0.2085;
+
   // O2 continuum parameters of MPM92:
   const Numeric	S0 =  6.140e-5; // line strength                        [ppm]
   const Numeric G0 =  0.560e-3; // line width                           [GHz/hPa]
@@ -2744,12 +2897,6 @@ void MPM92O2AbsModel( MatrixView          xsec,
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
   const Index n_f = f_mono.nelem();	// Number of frequencies
-
-  // const = VMR * ISORATIO = 0.20946 * 0.99519
-  // this constant is already incorporated into the line strength, so we 
-  // have top devide the line strength by this value since arts multiplies xsec
-  // by these variables later in absCalc.
-  const Numeric	VMRISO = 0.2085;
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
   assert ( n_p==t_abs.nelem() );
@@ -2818,8 +2965,11 @@ void MPM92O2AbsModel( MatrixView          xsec,
 	      Nppl            += strength * MPMLineShapeO2Function(gam, mpm92[l][0], ff, delta); 
 	    }
 	  // in MPM92 we adopt the cutoff for O2 line absorption if abs_l < 0 
-	  // absorption cannot be less than 0 according to MPM878 and MPM93 source code.
-	  // if (Nppl < 0.000)  Nppl = 0.0000;
+	  // absorption cannot be less than 0 according to MPM87 and MPM93 source code.
+	  if (AppCutoff == 0) 
+	    {
+	      if (Nppl < 0.000)  Nppl = 0.0000;
+	    }
 	  //
 	  // O2 line absorption [1/m]
 	  // cross section: xsec = absorption / var
@@ -2852,7 +3002,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
    \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
              are neglected (model dominates over parameters).<br>
              Allowed models: 'MPM93', 'MPM93Lines', 'MPM93Continuum', 'MPM93NoCoupling', 
-             and 'user'. See the user guide for detailed explanations.
+             'MPM93NoCutoff', and 'user'. See the user guide for detailed explanations.
 
    \remark   Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
              <i>Propagation modeling of moist air and suspended water/ice
@@ -2938,6 +3088,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
   const Numeric CL_MPM93 = 1.00000;
   const Numeric CW_MPM93 = 1.00000;
   const Numeric CO_MPM93 = 1.00000;
+  int   AppCutoff = 0;
   // ---------------------------------------------------------------------------------------
 
 
@@ -2971,6 +3122,17 @@ void MPM93O2AbsModel( MatrixView          xsec,
       CW = CW_MPM93;
       CO = 0.000;
     }
+  else if ( model == "MPM93NoCutoff" )
+    {
+      // !!ATTENTION!!
+      // In the window regions the total absorption can get negative values.
+      // So be carefull with this selection!
+      CC = CC_MPM93;
+      CL = CL_MPM93;
+      CW = CW_MPM93;
+      CO = CO_MPM93;
+      AppCutoff = 1;
+    }
   else if ( model == "user" )
     {
       CC = CCin;
@@ -2982,7 +3144,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
     {
       ostringstream os;
       os << "O2-MPM93: ERROR! Wrong model values given.\n"
-	 << "Valid models are: 'MPM93' 'MPM93Lines' 'MPM93Continuum' 'MPM93NoCoupling' " 
+	 << "Valid models are: 'MPM93' 'MPM93Lines' 'MPM93Continuum' 'MPM93NoCoupling' 'MPM93NoCutoff'" 
          << "and 'user'" << '\n';
       throw runtime_error(os.str());
     }
@@ -2993,16 +3155,16 @@ void MPM93O2AbsModel( MatrixView          xsec,
 	<< " CO = " << CO << "\n";
   
 
-  // O2 continuum parameters of MPM93:
-  const Numeric	S0 =  6.140e-5; // line strength                        [ppm]
-  const Numeric G0 =  0.560e-3; // line width                           [GHz/hPa]
-  const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
-
   // const = VMR * ISORATIO = 0.20946 * 0.99519
   // this constant is already incorporated into the line strength, so we 
   // have top devide the line strength by this value since arts multiplies xsec
   // by these variables later in absCalc.
   const Numeric	VMRISO = 0.2085;
+
+  // O2 continuum parameters of MPM93:
+  const Numeric	S0 =  6.140e-5; // line strength                        [ppm]
+  const Numeric G0 =  0.560e-3; // line width                           [GHz/hPa]
+  const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
   const Index n_f = f_mono.nelem();	// Number of frequencies
@@ -3077,14 +3239,15 @@ void MPM93O2AbsModel( MatrixView          xsec,
 	    }
 	  // in MPM93 there is a cutoff for O2 line absorption if abs_l < 0 
 	  // absorption cannot be less than 0 according to MPM93 philosophy.
-	  if (Nppl < 0.0)  Nppl = 0.0; // <---!!IMPORTANT FEATURE!!
+	  if (AppCutoff == 0) 
+	    {
+	      if (Nppl < 0.000)  Nppl = 0.0000;// <---!!IMPORTANT FEATURE!!
+	    }
 	  //
 	  // O2 line absorption [1/m]
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
 	  xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
-	  // out2 << "O2-MPM93:" << "P_tot=" << p_abs[i] << ", f=" << ff 
-          //      << ", Nppl=" << Nppl << ", Nppc=" <<  Nppc << "\n";
 	}
     }
   return;
@@ -3207,12 +3370,13 @@ void PWR93O2AbsModel( MatrixView        xsec,
                                   0.8439, -0.8529,  0.0000,  0.0000,
                                   0.0000,  0.0000,  0.0000,  0.0000};
 
+
   // y parameter for the calculation of Y [1/bar].
   // These values are from P. W. Rosenkranz, Interference coefficients for the 
   // overlapping oxygen lines in air, JQSRT, 1988, Volume 39, 287-297.
   const Numeric Y88[n_lines] = { -0.0244,  0.2772, -0.4068,  0.6270,
                                  -0.6183,  0.6766, -0.4119,  0.3290, 
-                                 -0.0317,  0.1591,  0.1145, -0.2068, 
+                                  0.0317, -0.1591,  0.1145, -0.2068, 
                                   0.3398, -0.4158,  0.3922, -0.4482,
                                   0.4011, -0.4442,  0.4339, -0.4687,
                                   0.4783, -0.5074,  0.5157, -0.5403,
@@ -4097,6 +4261,107 @@ void MPM93_N2_continuum( MatrixView          xsec,
 	}
     }
   return;
+}
+//
+// #################################################################################
+//
+/** 
+   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+                            N2-continuum according to Rosenkranz, 1993 [1/m]
+   \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
+   \param    xTin           continuum strength temperature exponent [1]
+   \param    model          allows user defined input parameter set 
+                            (Cin and xTin)<br> or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid      [Hz]
+   \param    p_abs          predefined pressure grid       [Pa]
+   \param    t_abs          predefined temperature grid    [K] 
+   \param    vmr            H2O volume mixing ratio        [1]
+
+   \note     Except for  model 'user' the input parameters Cin and xTin 
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'ATM', and 'user'. 
+             See the user guide for detailed explanations.
+
+   \remark   Reference: Pardo et al., IEEE, Trans. Ant. Prop., <br>
+             Vol 49, No 12, pp. 1683-1694, 2001.
+
+   \author Thomas Kuhn
+   \date 2001-04-10
+ */ 
+
+void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
+				  const Numeric       Cin,
+				  const String&       model,
+				  ConstVectorView     f_mono,
+				  ConstVectorView     p_abs,
+				  ConstVectorView     t_abs,
+				  ConstVectorView     vmr,
+				  ConstVectorView     h2ovmr	 )
+{
+  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
+  // standard values for the Pardo et al. model (IEEE, Trans. Ant. Prop., 
+  // Vol 49, No 12, pp. 1683-1694, 2001)
+  const Numeric	C_ATM = 2.612e-6; // [1/m]
+  // ---------------------------------------------------------------------------------------
+
+  // select the parameter set (!!model dominates parameters!!):
+  Numeric C;
+   if ( model == "ATM" )
+     {
+       C = C_ATM;
+     }
+   else if ( model == "user" )
+     {
+       C = Cin;
+     }
+   else
+     {
+       ostringstream os;
+       os << "N2-DryContATM01: ERROR! Wrong model values given.\n"
+	  << "allowed models are: 'ATM', 'user'" << '\n';
+       throw runtime_error(os.str());
+     }
+   out3  << "N2-DryContATM01: (model=" << model << ") parameter values in use:\n" 
+         << " C_s = " << C << "\n";
+
+   const Index n_p = p_abs.nelem();	// Number of pressure levels
+   const Index n_f = f_mono.nelem();	// Number of frequencies
+
+   // Check that dimensions of p_abs, t_abs, and vmr agree:
+   assert ( n_p==t_abs.nelem() );
+   assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+  
+  // Loop over pressure/temperature grid:
+  for ( Index i=0; i<n_p; ++i )
+    {
+      // since this is an effective "dry air" continuum, it is not really
+      // it is not specifically attributed to N2, so we need the total 
+      // dry air part in total which is equal to the total minus the 
+      // water vapor pressure:
+      Numeric  pd = p_abs[i] * ( 1.00000e0 - h2ovmr[i] ); // [Pa]
+      // Loop over frequency grid:
+      if (vmr[i] > VMRCalcLimit )
+	{
+	  for ( Index s=0; s<n_f; ++s )
+	    {
+	      // Becaue this is an effective "dry air" continuum, it is not really
+	      // specific N2 but mainly caused by N2. Therefore the N2 vmr must be 
+	      // canceled out here which is later in absCalc multiplied 
+	      // (calculation: abs = vmr * xsec):
+	      xsec(s,i) += C *                    // strength [1/(m*Hz²Pa²)] 
+		pow( (f_mono[s]/2.25e11), 2 )   * // quadratic f dependence [Hz²]
+		pow( (300.0/t_abs[i]),    3.5 ) * // free T dependence      [1]
+		pow( (pd/1.01300e5),      2 )   / // quadratic p dependence [Pa²]
+		vmr[i];                           // cancel the vmr dependency
+	    }
+	}
+    }
 }
 //
 // #################################################################################
@@ -5132,8 +5397,11 @@ void xsec_continuum_tag( MatrixView                 xsec,
   *CONTAGMODINFO*   H2O-PWR98:               Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
   *CONTAGMODINFO*   H2O-CP98:                CruzPol, CruzPolLine, CruzPolContinuum, user
   *CONTAGMODINFO*   H2O-CKD24:               CKD24, user
-  *CONTAGMODINFO*   O2-MPM92:                MPM92, MPM92Lines, MPM92Continuum, MPM92NoCoupling, user
-  *CONTAGMODINFO*   O2-MPM93:                MPM93, MPM93Lines, MPM93Continuum, MPM93NoCoupling, user
+  *CONTAGMODINFO*   O2-MPM85:                MPM85, MPM85Lines, MPM85Continuum, MPM85NoCoupling, MPM85NoCutoff, user
+  *CONTAGMODINFO*   O2-MPM87:                MPM87, MPM87Lines, MPM87Continuum, MPM87NoCoupling, MPM87NoCutoff, user
+  *CONTAGMODINFO*   O2-MPM89:                MPM89, MPM89Lines, MPM89Continuum, MPM89NoCoupling, MPM89NoCutoff, user
+  *CONTAGMODINFO*   O2-MPM92:                MPM92, MPM92Lines, MPM92Continuum, MPM92NoCoupling, MPM92NoCutoff, user
+  *CONTAGMODINFO*   O2-MPM93:                MPM93, MPM93Lines, MPM93Continuum, MPM93NoCoupling, MPM92NoCutoff, user
   *CONTAGMODINFO*   O2-PWR93:                Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
   *CONTAGMODINFO*   O2-PWR88:                Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
   *CONTAGMODINFO*   O2-SelfContMPM93:        MPM93, user
@@ -5341,6 +5609,70 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			       p_abs,
 			       t_abs,
 			       vmr	 );
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "ERROR: Continuum model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 2.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "H2O-ForeignContATM01"==name )
+    {
+      // Foreign wet continuum term.
+      //
+      // Pardo et al., IEEE, Trans. Ant. Prop., 
+      // Vol 49, No 12, pp. 1683-1694, 2001.
+      //
+      // specific continuum parameters and units:
+      //  OUTPUT 
+      //     xsec          : [1/m],
+      //  INPUT
+      //     parameters[0] : pseudo continuum line frequency                      [Hz]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     vmr           : [1]
+      //
+      const int Nparam = 1;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Continuum model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  Pardo_ATM_H2O_ForeignContinuum( xsec,
+					  parameters[0],
+					  model,
+					  f_mono,
+					  p_abs,
+					  t_abs,
+					  vmr	 );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Continuum model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Continuum model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  Pardo_ATM_H2O_ForeignContinuum( xsec,
+					  0.000,
+					  model,
+					  f_mono,
+					  p_abs,
+					  t_abs,
+					  vmr	 );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -6670,6 +7002,72 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			      h2o_abs,
 			      vmr );
 	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "ERROR: Continuum model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters.\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 2.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "N2-DryContATM01"==name )
+    {
+      // data information about this continuum: 
+      // Pardo et al. model model (IEEE, Trans. Ant. Prop., 
+      // Vol 49, No 12, pp. 1683-1694, 2001)
+      //
+      // specific continuum parameters and units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : continuum strength coefficient  [1/m * 1/(Hz*Pa)²]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     vmr           : [1]   for  N2
+      //     h2ovmr        : [1]   for  H2O
+      //
+      const int Nparam = 1;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Continuum model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  Pardo_ATM_N2_dry_continuum( xsec,
+				      parameters[0], // coefficient
+				      model,
+				      f_mono,
+				      p_abs,
+				      t_abs,
+				      vmr,
+				      h2o_abs );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Continuum model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Continuum model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  Pardo_ATM_N2_dry_continuum( xsec,
+				      0.000, // coefficient
+				      model,
+				      f_mono,
+				      p_abs,
+				      t_abs,
+				      vmr,
+				      h2o_abs );
+	} 
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
 	  ostringstream os;
@@ -10761,8 +11159,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.2 $ */
-/*     created:	        $Date: 2002/04/05 23:10:57 $ */
+/*     revision:	        $Revision: 1.26.2.3 $ */
+/*     created:	        $Date: 2002/04/10 20:34:04 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

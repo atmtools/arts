@@ -1,3 +1,18 @@
+2002-04-10 Thomas Kuhn  <tkuhn@uni-bremen.de>
+	* arts-1-0-22
+
+	* src/continua.cc: implementation of the dry air continuum of 
+	  Pardo et al., IEEE, Trans. Ant. Prop., Vol 49, No 12, 
+	  pp. 1683-1694, 2001.
+
+	* src/continua.cc: implementation of the foreign H2O continuum of
+          Pardo et al., IEEE, Trans. Ant. Prop., Vol 49, No 12,
+          pp. 1683-1694, 2001.
+
+	* aii/aii_color_table.pro: change in ciolors to get them darker
+	  (no yellow or zyan in the first 12 colors) for a better 
+          contrast in color plots.
+
 2002-04-08  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-1-0-21
