@@ -7,7 +7,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-SUBDIRS        = . html # latex
+SUBDIRS        = . html latex
 
 # The latex docuement is huge, and seems not to be too useful.
 
@@ -32,8 +32,7 @@ doxyfied: Doxyfile $(toexamine)
 	cp ../arts-splash.gif html/
 	touch doxyfied
 
-clean:
-	rm -f doxyfied
+CLEANFILES = doxyfied
 
 else
 
