@@ -1,3 +1,20 @@
+2001-10-05  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-263
+
+	* The example auto_full is now up to date and runs. Good work Oliver
+	to set the path to data dirs automatically.
+
+	* There were a lot of old files in .cvsignore for the examples folder.
+	You should remove the old files. The following can be removed full.*
+	h2o.* sparse.* uwe.* *.am 
+	
+	* Fixed a bug for n2_absSet and h2o_absSet. For example, n2_abs_Set
+	searched for the first tag group where the tag string starts with N2
+	and instead of finding the N2 tag group, N2O could be found. The
+	functions now search for N2- and H2O-.
+
+	
 2001-10-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-262

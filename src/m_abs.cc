@@ -1620,8 +1620,8 @@ void h2o_absSet(
   for( Index i=0; i<n && found<0; i++ ) 
   {
     s = tgs[i][0].Name();
-    
-    if ( s.substr(0,3) == "H2O" )
+
+    if ( s.substr(0,4) == "H2O-" )
       found = i;
   }
 
@@ -1675,10 +1675,6 @@ void vmrsScale(
 
 
 
-
-
-
-
 /**
    See the the online help (arts -d FUNCTION_NAME)
    Just a copy of the function 'h2o_absSet' 
@@ -1700,7 +1696,7 @@ void n2_absSet(
   {
     s = tgs[i][0].Name();
     
-    if ( s.substr(0,2) == "N2" )
+    if ( s.substr(0,3) == "N2-" )
       found = i;
   }
 
