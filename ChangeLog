@@ -1,3 +1,17 @@
+2001-09-27  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-243
+	
+	* src/main.cc (main): Added info about HDF support to --version
+	option.
+
+	* configure.in: Removed LF_SET_WARNINGS.
+	Bug fix in HDF stuff.
+
+	Added option --enable-warnings which appends -W -Wall to CFLAGS and
+	CXXFLAGS. Disabled by default.
+
+	
 2001-09-27  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-0-0-242
@@ -58,7 +72,7 @@
 	
 
 2001-09-27  Oliver Lemke  <olemke@uni-bremen.de>
-	
+
 	* arts-0-0-239
 	
 	* src/Makefile.am (species_data.o): Added dependencies.
