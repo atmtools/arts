@@ -1,3 +1,17 @@
+2003-02-03  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-443
+
+	* m_scatrte.cc (i_fieldUpdate1D): Modified. The distinction between
+	uplooking and downlooking cases is now done using the grid positions
+	returned by the ppath_step_agenda instead of viewing directions (like
+	in i_fieldUpdata3D). Now, also viewing directions close to 90° can be
+	handled. Interpolation in altitude is done logarithmically (was linear
+	before).
+
+	* m_cloudbox.cc (CloudboxGetIncoming): Fixed 1D part. Didn't work 
+	after some modifications for the 3D part.
+
 2003-02-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-442

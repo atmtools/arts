@@ -1470,11 +1470,10 @@ void CloudboxGetIncoming(// WS Output:
 
   Index Nf = f_grid.nelem();
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-  Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1; 
-  Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+ 
   Index Nza = scat_za_grid.nelem();
-  Index Naa = scat_aa_grid.nelem();
-
+ 
+  cout << "error 1" << endl;
   Index Ni = stokes_dim;
  
   // Assign dummies for variables assoziated with sensor.
@@ -1514,6 +1513,8 @@ void CloudboxGetIncoming(// WS Output:
         {
           sensor_los(0,0) =  scat_za_grid[scat_za_index];
       
+        
+
           rte_calc( y_rte, ppath, ppath_step, i_rte, 
                mblock_index, a_pos, a_los, a_gp_p, 
                a_gp_lat, a_gp_lon,
@@ -1527,7 +1528,7 @@ void CloudboxGetIncoming(// WS Output:
                scat_i_lon_dummy, scat_za_grid, scat_aa_grid, sensor_pos, 
                sensor_los, f_grid, stokes_dim, antenna_dim_dummy, 
                mblock_za_grid_dummy, mblock_aa_grid_dummy, check_input );
-          
+           cout << "error 2" << endl;
           check_input = false;
      
           scat_i_p( Range(joker), 0, 0, 0, 
@@ -1569,6 +1570,9 @@ void CloudboxGetIncoming(// WS Output:
   // atmosphere_dim = 3:
   else
     {
+      Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1; 
+      Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+      Index Naa = scat_aa_grid.nelem();
        // Convert scat_za_grid to "sensor coordinates" 
       //(-180° < azimuth angle < 180°)
       //
