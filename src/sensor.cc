@@ -80,11 +80,10 @@
    \author Mattias Ekström
    \date   2003-04-09
 */
-void antenna_transfer_matrix(
-           SparseView   H,
-      ConstVectorView   m_za,
-      ConstMatrixView   srm,
-      ConstVectorView   x_f )
+void antenna_transfer_matrix( Sparse&   H,
+                              ConstVectorView   m_za,
+                              ConstMatrixView   srm,
+                              ConstVectorView   x_f )
 {
   //Assert that the transfer matrix and the sensor response matrix has the 
   //right size
@@ -474,11 +473,10 @@ void sensor_summation_vector(
    \author Mattias Ekström
    \date   2003-05-12
 */
-void spectrometer_transfer_matrix(
-           SparseView   H,
-      ConstMatrixView   srm,
-      ConstVectorView   x_s,
-      ConstVectorView   x_f )
+void spectrometer_transfer_matrix( Sparse&   H,
+                                   ConstMatrixView   srm,
+                                   ConstVectorView   x_s,
+                                   ConstVectorView   x_f )
 {
   //Assert that the transfer matrix and the sensor response matrix has the
   //right size
