@@ -13,9 +13,5 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-EXTRA_DIST = \
-	fill_grid.m \
-	fwhm.m \
-	interpp.m \
-	join_grids.m \
-	loggrid.m
+EXTRA_DIST = *.m
+

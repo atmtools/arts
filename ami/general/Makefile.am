@@ -13,7 +13,5 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-EXTRA_DIST = \
-        amenu.m \
-        out.m \
-	whoami.m
+EXTRA_DIST = *.m
+

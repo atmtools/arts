@@ -13,26 +13,5 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-EXTRA_DIST = \
-	ax_set.m \
-	axes_1xn.m \
-	axes_nx1.m \
-	fig_size.m \
-	hide_axes.m \
-	lpr.m \
-	mkfig_1gridbox_2d.m \
-	mkfig_ppath_2d.m \
-	pline.m \
-	plineleg.m \
-	plot_1gridbox_2d.m \
-	plot_atm_1d.m \
-	plot_atm_2d.m \
-	plot_ppath.m \
-	plot_psurface.m \
-	suptitle.m \
-	text2.m \
-	text3.m \
-	title2.m \
-	xlabel2.m \
-	ylabel2.m \
-	zlabel2.m
+EXTRA_DIST = *.m
+

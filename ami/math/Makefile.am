@@ -13,11 +13,5 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-EXTRA_DIST = \
-	isinteger.m \
-	isodd.m \
-	isscalar.m \
-	last.m \
-	sFromFile.m \
-	vec2col.m \
-	vec2row.m    
+EXTRA_DIST = *.m
+
