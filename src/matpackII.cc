@@ -54,6 +54,9 @@ Index SparseView::nnz() const
   return *(mcolptr->end()-1);
 }
 
+Numeric& SparseView::rw (Index r, Index c)
+{ return (*this)(r, c); }
+
 /** Plain index operator. This has to correctly handle two cases:
 
     1. The data element exists. In this case the operator acts similar
@@ -61,7 +64,7 @@ Index SparseView::nnz() const
 
     2. The element does not exist. In this case it is created.
 */
-Numeric& SparseView::rw(Index r, Index c)
+Numeric& SparseView::operator ()(Index r, Index c)
 {
   // Check if indices are valid:
   assert( 0<=r );
@@ -113,8 +116,11 @@ Numeric& SparseView::rw(Index r, Index c)
   return *( mdata->insert( mdata->begin()+i, 0 ) );
 }
 
+Numeric SparseView::ro (Index r, Index c) const
+{ return (*this)(r, c); }
+
 /** Plain const index operator. */
-Numeric SparseView::ro(Index r, Index c) const
+Numeric SparseView::operator() (Index r, Index c) const
 {
   // Check if indices are valid:
   assert( 0<=r );

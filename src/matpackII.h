@@ -53,6 +53,9 @@ public:
   Numeric& rw(Index r, Index c);
   Numeric  ro(Index r, Index c) const;
 
+  Numeric& operator() (Index r, Index c);
+  Numeric  operator() (Index r, Index c) const;
+
   // Friends:
   friend std::ostream& operator<<(std::ostream& os, const SparseView& v);
   friend void mult (VectorView y, const SparseView& M, const ConstVectorView& x );
@@ -96,6 +99,14 @@ public:
 
   // Destructor:
   ~Sparse();
+
+  Numeric& operator() (Index r, Index c)
+    { return SparseView::operator() (r, c); }
+  Numeric operator() (Index r, Index c) const
+    { return SparseView::operator() (r, c); }
+
+  void resize (Index r, Index c) { /* FIXME: Delete me and put resize
+                                      code in cc file */ };
 };
 
 
