@@ -110,6 +110,27 @@ int main()
       ofs << "// Method function declarations:\n\n";
       for (size_t i=0; i<n_md; ++i)
 	{
+	  // First of all write the comment as a doc++ header.
+	  // For this we have to make some small replacements for
+	  // indendation and to handle special latex characters correctly.
+	  {
+	    // Local copy of the description string:
+	    string s = md_data[i].Description();
+
+	    // Add indentation:
+	    replace_all(s,"\n","\n    "); 
+	    // Replace special latex characters:
+	    replace_all(s,"#","\\#");      
+	    replace_all(s,"$","\\$");      
+	    replace_all(s,"%","\\%");      
+	    replace_all(s,"&","\\&");      
+	    replace_all(s,"_","\\_");      
+	    replace_all(s,"{","\\{");      
+	    replace_all(s,"}","\\}");      
+
+	    ofs << "/** " << s << " */\n";
+	  }
+
 	  // The names of the types of workspace variables.
 	  extern ARRAY<string> wsv_group_names;
 
@@ -203,7 +224,7 @@ int main()
 	  // Write the control parameters:
 	  {
 	    // Flag first parameter of this sort.
-	    	    bool is_first_of_these = true;
+	    bool is_first_of_these = true;
 
 	    // Number of keyword parameters.
 	    size_t n_tv = md_data[i].Keywords().size();
@@ -229,7 +250,8 @@ int main()
 		  }
 
 		extern string TokValTypeName[];
-		ofs << "const " << TokValTypeName[md_data[i].Types()[j]] << "&";
+		ofs << "const " << TokValTypeName[md_data[i].Types()[j]] << "& "
+		    << md_data[i].Keywords()[j];
 	      }
 	  }
 

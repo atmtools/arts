@@ -8,4 +8,4 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 EXTRA_DIST = reconf configure
-SUBDIRS = m4 doc src
+SUBDIRS = src m4 doc

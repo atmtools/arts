@@ -3,6 +3,7 @@
 
 #include "arts.h"
 #include "make_vector.h"
+#include "workspace.h"
 #include "methods.h"
 
 // Some #defines and typedefs to make the records better readable:
@@ -40,13 +41,30 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("AllAbsExample"),
-	DESCRIPTION("Reads all important absorption related variables from the\n."
+	DESCRIPTION("Reads all important absorption related variables from the\n"
 		    "given files."),
 	GENERIC(false),
 	OUTPUT(f_abs_, p_abs_, t_abs_, abs_),
 	INPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorWriteToFile"),
+	DESCRIPTION("Writes a workspace variable that is a vector to a file.\n"
+		    "The format is exactly the same as for matrices, with the\n"
+		    "second dimension given as zero. Explicitly:\n\n"
+		    "# <comments>\n\n"
+		    "\"<variable_name>\"\n\n"
+		    "<precision>\n\n"
+		    "<n_elements> 0\n\n"
+		    "<elements>"),
+	GENERIC(true),
+	OUTPUT(VECTOR_),
+	INPUT(),
+	KEYWORDS("filename"),
+	TYPES(str_)));
 
   
 // MdRecord md_data[] = {

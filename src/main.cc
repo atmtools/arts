@@ -42,10 +42,9 @@ int main (int argc, char **argv)
 
   if (parameters.version)
     {
-      extern const string subversion;
+      extern const string full_name;
       // Just print version information and then exit.
-      cerr << "This is " 
-	   << PACKAGE << " " << VERSION << "." << subversion << '\n';
+      cerr << "This is " << full_name << '\n';
       return(0);
     }
 

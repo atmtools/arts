@@ -5,6 +5,10 @@
  */
 
 #include <string>
+#include "config.h"
 
-string subversion = "3";
+#define SUBVERSION "3"
+
+string subversion = SUBVERSION;
+string full_name  = static_cast<string>(PACKAGE) + "-" + VERSION + "." + SUBVERSION;
 

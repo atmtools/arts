@@ -36,7 +36,8 @@ token.cc \
 parser.cc \
 md.cc \
 math_funcs.cc \
-absorption.cc
+m_abs.cc \
+m_io.cc
 
 noinst_PROGRAMS = make_wsv_h make_md_h
 

@@ -108,3 +108,14 @@ void read_text_from_file(ARRAY<string>& text, const string& name)
       throw runtime_error(os.str());
     }
 }
+
+void replace_all(string& s, const string& what, const string& with)
+{
+  string::size_type j = s.find(what);
+  while ( j != string::npos )
+    {
+      //		cout << "j = " << j << '\n';
+      s.replace(j,1,with);
+      j = s.find(what,j+with.size());
+    }
+}

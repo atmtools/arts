@@ -56,6 +56,15 @@ void read_text_from_stream(ARRAY<string>& text, istream& is);
 void read_text_from_file(ARRAY<string>& text, const string& name);
 
 
+/** 
+    Replace all occurances of `what' in `s' with `with'.
+
+    @param s Output. The string to act on.
+    @param what The string to replace.
+    @param with The replacement.
+    
+    @author Stefan Buehler */
+void replace_all(string& s, const string& what, const string& with);
 
 
 #endif

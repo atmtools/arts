@@ -41,6 +41,33 @@ Some notes about the art of programing on ARTS:
 6. Files: Always use the open_output_file and open_input_file
    functions to open files. This switches on exceptions, so that any
    error occuring later on with this file will result in an exception.
+
+7. How to add a workspace method:
+
+   a) Create an entry in md_data in file methods.cc. (Make a copy of
+      an existing entry (one of the md_data.push_back(...) blocks) and
+      edit it to fit your new method.) Don't forget the dokumentation
+      string! It should contain line breaks and even double line
+      breaks (= blank lines) in apropriate places.
+
+      In the future there should also be example values for
+      keyword parameters here, but this is not yet
+      implemented. (FIXME: Update this.)
+
+   b) Run make.
+
+   c) Look in md.h. There is a new function prototype
+      void <YourNewMethod>(...)
+      Check that everything looks nice. If necessary, change the
+      documentation string.
+
+   d) Add your function to one of the .cc files which contain method
+      functions. Such files must have names starting with "m_". (See
+      separate HowTo if you want to create a new source file.) The
+      header of your function must be compatible with the prototype in
+      md.h.
+
+   e) Thats it!
 ----------------------------------------------------------------------
 
 Build stuff:
