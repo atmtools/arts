@@ -1,0 +1,34 @@
+beginfig(1);
+u=1cm;
+sc=0.35u; xl=3u; yl=4u;
+path p, pl;
+p=unitsquare xscaled xl yscaled yl;
+draw p shifted (2*sc,-0);
+fill p shifted (sc,sc) withcolor white;
+draw p shifted (sc,sc);
+fill p shifted (0,2*sc) withcolor white;
+draw p shifted (0,2*sc);
+pl=(0.5u,0.5u)--(0.5u,yl-0.5u);
+draw pl shifted (0,2sc) dashed evenly;
+draw pl shifted (0.5u,2sc) dashed evenly;
+draw pl shifted (0.5u*2,2sc) dashed evenly;
+draw pl shifted (0.5u*4,2sc) dashed evenly;
+picture ldz; ldz=thelabel(btex $\Delta\varphi$ etex, (0.4u,2.5u));
+unfill bbox ldz; draw ldz;
+picture lfa; lfa=thelabel(btex $f_1$ etex, (1u,2.5u));
+unfill bbox lfa; draw lfa;
+picture lfb; lfb=thelabel(btex $f_2$ etex, (1.5u,2.5u));
+unfill bbox lfb; draw lfb;
+picture lfn; lfn=thelabel(btex $f_n$ etex, (2.5u,2.5u));
+unfill bbox lfn; draw lfn;
+label.urt(btex $p_1$ etex, (xl,yl) shifted (0,2sc));
+label.urt(btex $p_2$ etex, (xl,yl) shifted (sc,sc));
+label.urt(btex $p_m$ etex, (xl,yl) shifted (2sc,0));
+picture pic; pic=currentpicture;
+pic:=pic shifted (6u,0);
+draw pic;
+label.lft(btex $\varphi_1:\quad$ etex, (0,2.25u));
+label.lft(btex $\varphi_2:\quad$ etex, (6u,2.25u));
+endfig;
+
+end

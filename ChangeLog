@@ -2,6 +2,15 @@
 
 	* arts-1-1-832
 
+	* doc/uguide/Figs/sensor: Added folder with files Makefile.am,
+	ant_diag.mp and ant_diag.pdf to CVS repository.
+
+	* configure.in: Added above mentioned folder to compilation.
+
+2004-06-17  Mattias Ekström <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-832
+
 	* src/[methods,m_sensor].cc: Added *sensor_norm* to method sensorOff.
 	sensorOff now sets *sensor_norm* to zero since it is not used.
 
