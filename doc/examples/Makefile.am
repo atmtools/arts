@@ -31,7 +31,7 @@ examplesdoc_DATA = $(arts_examples)
 
 EXTRA_DIST   = $(arts_examples_in)
 
-CLEANFILES = *_example*.aa *_example*.ab *.rep
+CLEANFILES = *_example*.aa *_example*.ab *.rep *.out
 
 check:	$(arts) $(arts_examples)
 	$(arts) absorption_example.arts
