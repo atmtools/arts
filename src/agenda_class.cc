@@ -23,6 +23,7 @@
   \brief  Implementation of agendas.
 */
 
+#include "arts.h"
 #include "agenda_class.h"
 #include "methods.h"
 #include "wsv_aux.h"

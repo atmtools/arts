@@ -23,6 +23,7 @@
   \brief  Physical absorption routines. 
 */
 
+#include "arts.h"
 #include <cfloat>
 #include <map>
 #include "absorption.h"
