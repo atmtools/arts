@@ -73,6 +73,126 @@ bool is_size( ConstMatrixView   x,
 	  c == x.ncols()     );
 }
 
+//! Verifies that the size of x is [p,r,c].
+/*! 
+  \param  x The Tensor to check.
+  \param  p The desired number of pages.
+  \param  r The desired number of rows.
+  \param  c The desired number of columns.
+  \return True if the size of x is correct.
+*/
+bool is_size( ConstTensor3View  x,
+	      const Index&      p,
+	      const Index&      r,
+	      const Index&      c ) 
+{
+  return( p == x.npages()     &&
+	  r == x.nrows()      &&
+	  c == x.ncols()     );
+}
+
+//! Verifies that the size of x is [b,p,r,c].
+/*! 
+  \param  x The Tensor to check.
+  \param  b The desired number of books.
+  \param  p The desired number of pages.
+  \param  r The desired number of rows.
+  \param  c The desired number of columns.
+  \return True if the size of x is correct.
+*/
+bool is_size( ConstTensor4View  x,
+	      const Index&      b,
+	      const Index&      p,
+	      const Index&      r,
+	      const Index&      c ) 
+{
+  return( b == x.nbooks()     &&
+	  p == x.npages()     &&
+	  r == x.nrows()      &&
+	  c == x.ncols()     );
+}
+
+//! Verifies that the size of x is [s,b,p,r,c].
+/*! 
+  \param  x The Tensor to check.
+  \param  s The desired number of shelves.
+  \param  b The desired number of books.
+  \param  p The desired number of pages.
+  \param  r The desired number of rows.
+  \param  c The desired number of columns.
+  \return True if the size of x is correct.
+*/
+bool is_size( ConstTensor5View  x,
+	      const Index&      s,
+	      const Index&      b,
+	      const Index&      p,
+	      const Index&      r,
+	      const Index&      c ) 
+{
+  return( s == x.nshelves()   &&
+	  b == x.nbooks()     &&
+	  p == x.npages()     &&
+	  r == x.nrows()      &&
+	  c == x.ncols()     );
+}
+
+//! Verifies that the size of x is [v,s,b,p,r,c].
+/*! 
+  \param  x The Tensor to check.
+  \param  v The desired number of vitrines.
+  \param  s The desired number of shelves.
+  \param  b The desired number of books.
+  \param  p The desired number of pages.
+  \param  r The desired number of rows.
+  \param  c The desired number of columns.
+  \return True if the size of x is correct.
+*/
+bool is_size( ConstTensor6View  x,
+	      const Index&      v,
+	      const Index&      s,
+	      const Index&      b,
+	      const Index&      p,
+	      const Index&      r,
+	      const Index&      c ) 
+{
+  return( v == x.nvitrines()  &&
+	  s == x.nshelves()   &&
+	  b == x.nbooks()     &&
+	  p == x.npages()     &&
+	  r == x.nrows()      &&
+	  c == x.ncols()     );
+}
+
+//! Verifies that the size of x is [l,v,s,b,p,r,c].
+/*! 
+  \param  x The Tensor to check.
+  \param  l The desired number of libraries.
+  \param  v The desired number of vitrines.
+  \param  s The desired number of shelves.
+  \param  b The desired number of books.
+  \param  p The desired number of pages.
+  \param  r The desired number of rows.
+  \param  c The desired number of columns.
+  \return True if the size of x is correct.
+*/
+bool is_size( ConstTensor7View  x,
+	      const Index&      l,
+	      const Index&      v,
+	      const Index&      s,
+	      const Index&      b,
+	      const Index&      p,
+	      const Index&      r,
+	      const Index&      c ) 
+{
+  return( l == x.nlibraries() &&
+	  v == x.nvitrines()  &&
+	  s == x.nshelves()   &&
+	  b == x.nbooks()     &&
+	  p == x.npages()     &&
+	  r == x.nrows()      &&
+	  c == x.ncols()     );
+}
+
 //! Checks if a vector is sorted in ascending order.
 /*!
   Duplicated values are allowed.

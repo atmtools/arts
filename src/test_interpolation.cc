@@ -62,8 +62,8 @@ void test01()
     cout << "nf:\n" << nf << "\n";
   }
 
-  cout << "2D:\n"
-       << "---\n";
+  cout << "Blue 2D:\n"
+       << "--------\n";
   {
     // To store interpolation weights:
     Matrix itw(gp.nelem(),4);
@@ -85,8 +85,8 @@ void test01()
     cout << "nf:\n" << nf << "\n";
   }
 
-  cout << "6D:\n"
-       << "---\n";
+  cout << "Blue 6D:\n"
+       << "--------\n";
   {
     // To store interpolation weights:
     Matrix itw(gp.nelem(),64);
@@ -109,6 +109,29 @@ void test01()
     cout << "nf:\n" << nf << "\n";
   }
 
+  cout << "Green 2D:\n"
+       << "---------\n";
+  {
+    // To store interpolation weights:
+    Tensor3 itw(gp.nelem(),gp.nelem(),4);
+    interpweights(itw,gp,gp);
+    
+    for ( Index i=0; i<itw.ncols(); ++i )
+      cout << "itw " << i << ":\n" << itw(Range(joker),Range(joker),i) << "\n";
+
+    // Original field:
+    Matrix of(og.nelem(),og.nelem(),0);
+    of(2,2) = 10;			// 0 Matrix with 10 in the middle
+
+    cout << "of:\n" << of << "\n";
+
+    // Interpolated field:
+    Matrix nf(ng.nelem(),ng.nelem());
+
+    interp(nf, itw, of, gp, gp);
+
+    cout << "nf:\n" << nf << "\n";
+  }
 }
 
 void test02(Index n)

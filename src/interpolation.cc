@@ -320,6 +320,10 @@ void gridpos( ArrayOfGridPos& gp,
 }
 
 
+////////////////////////////////////////////////////////////////////////////
+//			Blue interpolation
+////////////////////////////////////////////////////////////////////////////
+
 //! Compute 1D interpolation weights.
 /*! 
   For this 1D case there is no distinction between "blue" and "green"
@@ -1038,5 +1042,128 @@ void interp( VectorView      	   ia,
 			     tc.idx+c) * itw(i,iti);
 		    ++iti;
 		  }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////
+//			Green interpolation
+////////////////////////////////////////////////////////////////////////////
+
+//! Compute 2D interpolation weights for an entire field.
+/*! 
+ Compute the weights for a "green" type interpolation of the field,
+ that means that the grid position Arrays are interpreted as defining
+ the grids for the interpolated field.
+
+ The dimensions of itw must be consistent with this.
+
+ Note that we still do not need the actual field for this step.
+
+ This function can be easily distinguished from the other
+ interpweights function (for "green" interpolation), because the
+ output is a Tensor with one more dimension than the number of grid
+ position Arrays.
+
+ \param itw Output: Interpolation weights
+ \param rgp The grid position Array for the row dimension.
+ \param cgp The grid position Array for the column dimension.
+ 
+ */
+void interpweights( Tensor3View itw,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp )
+{
+  Index nr = rgp.nelem();
+  Index nc = cgp.nelem();
+  assert(is_size(itw,nr,nc,4));	// We must store 4 interpolation
+				// weights for each position.
+
+  // We have to loop all the points in the new grid:
+  for ( Index ir=0; ir<nr; ++ir )
+    {
+      // Current grid position:
+      const GridPos& tr = rgp[ir];
+
+      for ( Index ic=0; ic<nc; ++ic )
+	{
+	  // Current grid position:
+	  const GridPos& tc = cgp[ic];
+
+	  // Interpolation weights are stored in this order (l=lower
+	  // u=upper, r=row, c=column):
+	  // 1. l-r l-c
+	  // 2. l-r u-c
+	  // 3. u-r l-c
+	  // 4. u-r u-c
+
+	  Index iti = 0;
+
+	  LOOPIT(r)
+	    LOOPIT(c)
+	    {
+	      itw(ir,ic,iti) = (*r) * (*c);
+	      ++iti;
+	    }
+	}
+    }
+}
+
+//! Interpolate 2D field to another 2D field.
+/*! 
+ This performs a "green" type interpolation of the field, that means
+ that the grid position Arrays are interpreted as defining the grids
+ for the interpolated field.
+
+ This function can be easily distinguished from the other
+ interpolation function (that creates a sequence of interpolated
+ values), because of the dimension of ia and itw.
+
+ The size of ia and itw in all dimensions must be consistent with the grid
+ position Arrays.
+
+ \param ia  Output: Interpolated field.
+ \param itw Interpolation weights.
+ \param a   The field to interpolate.
+ \param rgp The grid position Array for the row dimension.
+ \param cgp The grid position Array for the column dimension.
+ 
+ */
+void interp( MatrixView       	   ia,
+             ConstTensor3View 	   itw,
+             ConstMatrixView  	   a,   
+	     const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp)
+{
+  Index nr = rgp.nelem();
+  Index nc = cgp.nelem();
+  assert(is_size(ia,nr,nc));    
+  assert(is_size(itw,nr,nc,4));	// We need 4 interpolation
+				// weights for each position.
+
+  // We have to loop all the points in the new grid:
+  for ( Index ir=0; ir<nr; ++ir )
+    {
+      // Current grid position:
+      const GridPos& tr = rgp[ir];
+
+      for ( Index ic=0; ic<nc; ++ic )
+	{
+	  // Current grid position:
+	  const GridPos& tc = cgp[ic];
+
+	  // Get handle to current element of output tensor and initialize
+	  // it to zero:
+	  Numeric& tia = ia(ir,ic);
+	  tia = 0;
+
+	  Index iti = 0;
+	  for ( Index r=0; r<2; ++r )
+	    for ( Index c=0; c<2; ++c )
+	    {
+	      tia += a(tr.idx+r,
+		       tc.idx+c) * itw(ir,ic,iti);
+	      ++iti;
+	    }
+	}
     }
 }

@@ -1,3 +1,17 @@
+2002-05-08  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-68
+
+	* src/interpolation.cc: 2D Green interpolation works.
+
+	* src/interpolation.h: Added headers for new functions.
+
+	* src/test_interpolation.cc: Test case for this.
+
+	* src/logic.cc: Added is_size functions for tensors up to rank 7.
+
+	* src/logic.h: Added headers for new functions.
+
 2002-05-08  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-67

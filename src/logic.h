@@ -38,6 +38,41 @@ bool is_size( ConstMatrixView   x,
 	      const Index&      r,
 	      const Index&      c );
 
+bool is_size( ConstTensor3View  x,
+	      const Index&      p,
+	      const Index&      r,
+	      const Index&      c );
+
+bool is_size( ConstTensor4View  x,
+	      const Index&      b,
+	      const Index&      p,
+	      const Index&      r,
+	      const Index&      c );
+
+bool is_size( ConstTensor5View  x,
+	      const Index&      s,
+	      const Index&      b,
+	      const Index&      p,
+	      const Index&      r,
+	      const Index&      c );
+
+bool is_size( ConstTensor6View  x,
+	      const Index&      v,
+	      const Index&      s,
+	      const Index&      b,
+	      const Index&      p,
+	      const Index&      r,
+	      const Index&      c );
+
+bool is_size( ConstTensor7View  x,
+	      const Index&      l,
+	      const Index&      v,
+	      const Index&      s,
+	      const Index&      b,
+	      const Index&      p,
+	      const Index&      r,
+	      const Index&      c );
+
 bool is_sorted( ConstVectorView& x );
 
 bool is_increasing( ConstVectorView& x );

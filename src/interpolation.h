@@ -90,6 +90,10 @@ void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
               ConstVectorView new_grid );
 
+////////////////////////////////////////////////////////////////////////////
+//			Blue interpolation
+////////////////////////////////////////////////////////////////////////////
+
 void interpweights( MatrixView itw,
                	    const ArrayOfGridPos& cgp );
 
@@ -155,6 +159,19 @@ void interp( VectorView      	   ia,
              const ArrayOfGridPos& rgp,
              const ArrayOfGridPos& cgp);
 
+////////////////////////////////////////////////////////////////////////////
+//			Green interpolation
+////////////////////////////////////////////////////////////////////////////
+
+void interpweights( Tensor3View itw,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp );
+
+void interp( MatrixView       	   ia,
+             ConstTensor3View 	   itw,
+             ConstMatrixView  	   a,   
+	     const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp);
 
 
 #endif // interpolation_h
