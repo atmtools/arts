@@ -1,3 +1,14 @@
+2003-05-27  Sreerekha T.R.  <rekha@uni-bremen.de>
+			
+	* arts-1-1-555
+	
+	* src/m_cloudbox.cc (ybatchMetProfiles): Modifed the function to
+        take into account the orographic height corresponding to each
+        profiles.  The path to pnd_field_raw data is also modified.
+	
+	* src/methods.cc: Added *z_ground* in the output of
+        *ybatchMetProfiles*.
+ 	
 2003-05-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-554

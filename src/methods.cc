@@ -3940,7 +3940,7 @@ md_data_raw.push_back
 	 ),
         OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
 		pnd_field_raw_,	pnd_field_, y_, p_grid_, sensor_los_,
-		cloudbox_on_, cloudbox_limits_),
+		cloudbox_on_, cloudbox_limits_, z_ground_),
         INPUT(gas_species_, met_profile_path_, met_profile_calc_agenda_, 
 	      f_grid_, met_amsu_data_, sensor_pos_, r_geoid_, lat_grid_, 
 	      lon_grid_, atmosphere_dim_),

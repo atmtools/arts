@@ -2036,6 +2036,7 @@ void ybatchMetProfiles(//Output
 		       Matrix& sensor_los,
 		       Index& cloudbox_on,
 		       ArrayOfIndex& cloudbox_limits,
+		       Matrix& z_ground,
 		       //Input
 		       const ArrayOfArrayOfSpeciesTag& gas_species,
 		       const String& met_profile_path,
@@ -2084,10 +2085,15 @@ void ybatchMetProfiles(//Output
   Vector lat, lon;
   lat = met_amsu_data(Range(joker),0);
   lon = met_amsu_data(Range(joker),1);
+
+  Vector oro_height;
+  oro_height = met_amsu_data(Range(joker),5);
   
+  z_ground.resize(1,1);
   for (Index i = 0; i < no_profiles; ++ i)
     {
       ostringstream lat_os, lon_os;
+
       Index lat_prec = 3;
       if(lat[i] < 0) lat_prec--;
       if(abs(lat[i])>=10 )
@@ -2106,11 +2112,17 @@ void ybatchMetProfiles(//Output
 	  lon_prec--;
 	  if(abs(lon[i])>=100 ) lon_prec--;
 	}
-      lon_os<<ios::showpoint<<ios::fixed<<setprecision(lon_prec)<<lon[i];
+      lon_os.setf (ios::showpoint | ios::fixed);
+      lon_os << setprecision(lon_prec) << lon[i];
       cout<<lat_os.str()<<endl;
       cout<<lon_os.str()<<endl;
+
+      z_ground(0,0) = oro_height[i];
+      cout<<"z_ground"<<z_ground<<endl;
       sat_za = sat_za_from_profile[i];
       
+      //sensor_los(Range(joker),0) = 
+      //	180.0 - (asin(r_geoid(0,0) * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
       sensor_los(Range(joker),0) = 
       	180.0 - (asin(r_geoid(0,0) * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
       cout<<"sensor_los"<<sat_za_from_profile[i]<<endl;
@@ -2129,9 +2141,9 @@ void ybatchMetProfiles(//Output
       // array is for species
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
        			 vmr_field_h2o);
-      
-      xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd_raw.xml", 
-       			 pnd_field_here);
+     
+      xml_read_from_file("/freax/storage/users/rekha/uk_data/profiles/size500/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd500.xml", 
+       		 pnd_field_here);
       cout << "--------------------------------------------------------------------------"<<endl;
       cout << "The file" << met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()<< "is executed now"<<endl;
       cout << "--------------------------------------------------------------------------"<<endl; 
