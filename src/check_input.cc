@@ -431,7 +431,7 @@ void chk_atm_grids(
       if( lon_grid[0] < -360 )
 	throw runtime_error( 
                 "The longitude grid cannot extend below -360 degrees for 3D" );
-      if( lon_grid[lat_grid.nelem() - 1] > 360 )
+      if( lon_grid[lon_grid.nelem() - 1] > 360 )
 	throw runtime_error( 
                 "The longitude grid cannot extend above 360 degrees for 3D" );
     }
