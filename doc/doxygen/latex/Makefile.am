@@ -32,4 +32,8 @@ refman.dvi: $(wildcard *.tex)
 	latex refman
 
 refman.ps: refman.dvi
-	dvips refman
+	dvips -o refman.ps refman
+
+refman.pdf: refman.ps
+	ps2pdf refman.ps
+
