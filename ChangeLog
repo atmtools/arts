@@ -1,3 +1,21 @@
+2005-01-25  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-915
+
+	* doc/uguide/sensor.tex: Minor fixes.
+
+	* src/methods.cc: Added WSM for calculating jacobians for particle
+	number densities; jacobianAddParticle and jacobianCalcParticle
+
+	* src/m_jacobian.cc: Implemented jacobianAddParticle and 
+	jacobianCalcParticle. These functions bears a lot of similarities
+	with the functions related to gas species. But instead of perturbing
+	the vmr_field they change the pnd_field, and the perturbations are
+	applied to all particle types not just one.
+	The jacobianCalcParticle function is not yet functional, it still 
+	remains to implement the actual rte calculations. Now this method
+	only returns zero values for the jacobian.
+ 
 2005-01-21  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-914

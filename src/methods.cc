@@ -2104,6 +2104,46 @@ void define_md_data_raw()
          
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianAddParticle" ),
+        DESCRIPTION
+        (
+         "Add particle number density as retrieval quantity to the Jacobian.\n"
+         "\n"
+         "The Jacobian is calculated with a common perturbation for all\n"
+         "particle types.\n"
+         "\n"
+         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
+         "the retrieval field should be set to zero length.\n"
+         "\n" 
+         "NOTE: Only \"perturbation\" method implemented.\n"
+         "\n"
+         "Output:\n"
+         "  jacobian_quantities : The array of retrieval quantities.\n"
+         "  jacobian_agenda     : The agenda for calculating the jacobian.\n"
+         "\n"
+         "Input:\n"
+         "  jacobian       : The Jacobian Matrix.\n"
+         "  atmosphere_dim : The atmosphere dimensionality.\n"
+         "\n"
+         "Generic input:\n"
+         "  Vector : The pressure grid of the retrieval field.\n"
+         "  Vector : The latitude grid of the retrieval field.\n"
+         "  Vector : The longitude grid of the retrieval field.\n"
+         "\n"
+         "Keywords:\n"
+         "  method  : \"analytic\" or \"perturbation\".\n"
+         "  unit    : Unit of the perturbation, \"rel\" or \"abs\".\n"
+         "  dx      : Size of perturbation."
+        ),
+        OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
+        INPUT( jacobian_, atmosphere_dim_ ),
+        GOUTPUT(),
+        GINPUT( Vector_, Vector_, Vector_ ),
+        KEYWORDS( "method", "unit", "dx" ),
+        TYPES( String_t, String_t, Numeric_t )));
+         
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("jacobianAddPointing"),
         DESCRIPTION
         (
@@ -2226,6 +2266,39 @@ void define_md_data_raw()
         KEYWORDS( "species" ),
         TYPES( String_t )));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianCalcParticle"),
+        DESCRIPTION
+        (
+        "Calculates the contribution of particle number densities to the\n"
+        "Jacobian.\n"
+        "\n"
+        "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
+        "and should normally not be called by the user.\n"
+        "\n"
+        "Output:\n"
+        "  jacobian            : The Jacobian matrix.\n"
+        "  pnd_field           : The particle number density field.\n"
+        "Input:\n"
+        "  jacobian_quantities : The array of retrieval quantities.\n"
+        "\n"
+        "See also input/output for RteCalc."
+        ),
+        OUTPUT( jacobian_, pnd_field_, y_, ppath_, ppath_step_, iy_, rte_pos_,
+                rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        INPUT( jacobian_quantities_, ppath_step_agenda_, 
+               rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
+               iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
+               lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_on_, 
+               cloudbox_limits_, sensor_response_, sensor_pos_, sensor_los_, 
+               f_grid_, stokes_dim_, antenna_dim_, mblock_za_grid_, 
+               mblock_aa_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+        
   md_data_raw.push_back
     ( MdRecord
       ( NAME("jacobianCalcPointing"),
