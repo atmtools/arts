@@ -69,7 +69,10 @@
   \param scat_p_index pressure index in cloudbox
   \param scat_lat_index latitude index in cloudbox
   \param scat_lon_index longitude index in cloudbox
+  \param ext_mat extinction matrix
+  \param abs_vec absorption vector
   \param scat_za_index Index for propagation direction
+  \param scat_aa_index Azimuth angle index
   \param spt_calc_agenda Agenda for calculation of single scattering properties
   \param opt_prop_part_agenda Agenda for summing over all hydrometeor species
   \param cloudbox_limits Cloudbox limits.
@@ -188,7 +191,6 @@ void cloud_fieldsCalc(// Output:
  WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
-  \param abs_scalar_gas
   \param a_pressure
   \param a_temperature
   \param a_vmr_list
@@ -217,6 +219,8 @@ void cloud_fieldsCalc(// Output:
   \param t_field
   \param f_grid
   \param f_index
+  \param ext_mat_field
+  \param abs_vec_field
 
   \author Claudia Emde
   \date 2002-06-04
@@ -519,7 +523,7 @@ void cloud_ppath_update1D(
  WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
-  \param abs_scalar_gas
+  \param stokes_vec
   \param a_pressure
   \param a_temperature
   \param a_vmr_list
@@ -530,8 +534,12 @@ void cloud_ppath_update1D(
   \param ppath_step
   WS Input:
   \param p_index // Pressure index
+  \param lat_index // Latitude index
+  \param lon_index // Longitude index
   \param scat_za_index // Index for proagation direction
+  \param scat_aa_index // Azimuth angle index
   \param scat_za_grid
+  \param scat_aa_grid
   \param cloudbox_limits 
   \param scat_field Scattered field.
   Calculate scalar gas absorption:
@@ -542,12 +550,16 @@ void cloud_ppath_update1D(
   Propagation path calculation:
   \param ppath_step_agenda
   \param p_grid
+  \param lat_grid
+  \param lon_grid
   \param z_field
   \param r_geoid
   Calculate thermal emission:
   \param t_field
   \param f_grid
   \param f_index
+  \param ext_mat_field
+  \param abs_vec_field
 
   \author Claudia Emde
   \date 2002-06-04

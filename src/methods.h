@@ -90,6 +90,7 @@ public:
     printed as a comment, but this can be turned off by setting
     show_comment to false.
 
+    @param os Output stream
     @param show_description Should the description string also be printed?
   */
   ostream& PrintTemplate(ostream& os, bool show_description=true) const;

@@ -149,7 +149,7 @@ void get_refr_index_1d(
                                 at each latitude.
    \param   t_field             The temperature 2D field.
    \param   vmr_field           The VMR 2D field for each species.
-   \param   z                   The radius of the position of interest.
+   \param   r                   The radius of the position of interest.
    \param   lat                 The latitude of the position of interest.
 
    \author Patrick Eriksson
@@ -480,7 +480,7 @@ void refr_gradients_2d(
    \param   refr_index          Output: As the WSV with the same name.
    \param   dndr                Output: Radial gradient of refractive index.
    \param   dndlat              Output: Latitude gradient of refractive index.
-   \param   dndlat              Output: Longitude gradient of refractive index.
+   \param   dndlon              Output: Longitude gradient of refractive index.
    \param   a_pressure          Output: As the WSV with the same name.
    \param   a_temperature       Output: As the WSV with the same name.
    \param   a_vmr_list          Output: As the WSV with the same name.

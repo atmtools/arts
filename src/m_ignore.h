@@ -35,9 +35,9 @@
   This is the implementation of the supergeneric Ignore method. See
   arts -d Ignore for a description what the method does.
 
-  \param in Source WSV.
   \param inname Name of source WSV.
 */
+/* param in Source WSV. */
 template< class T >
 void Ignore(// WS Generic Input:
             const T&,

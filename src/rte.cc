@@ -74,7 +74,6 @@
     \param   ground_los         Output: As the WSV with the same name.
     \param   ground_refl_coeffs Output: As the WSV with the same name.
     \param   ppath              Input: As the WSV with the same name.
-    \param   mblock_index       Input: As the WSV with the same name.
     \param   ppath_step_agenda  Input: As the WSV with the same name.
     \param   rte_agenda         Input: As the WSV with the same name.
     \param   i_space_agenda     Input: As the WSV with the same name.
@@ -84,6 +83,7 @@
     \param   lat_grid           Input: As the WSV with the same name.
     \param   lon_grid           Input: As the WSV with the same name.
     \param   z_field            Input: As the WSV with the same name.
+    \param   t_field            Input: As the WSV with the same name.
     \param   r_geoid            Input: As the WSV with the same name.
     \param   z_ground           Input: As the WSV with the same name.
     \param   cloudbox_on        Input: As the WSV with the same name.

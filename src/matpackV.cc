@@ -2214,8 +2214,17 @@ Tensor5View::Tensor5View(Numeric *data,
     explicit range, consistent with the original Range.
 
     \param *data The actual data.
-    \param p Previous range.
-    \param n New Range.  */
+    \param ps Previous range.
+    \param pb Previous range.
+    \param pp Previous range.
+    \param pr Previous range.
+    \param pc Previous range.
+    \param ns New Range.
+    \param nb New Range.
+    \param np New Range.
+    \param nr New Range.
+    \param nc New Range.
+  */
 Tensor5View::Tensor5View(Numeric *data,
                                 const Range& ps,
                                 const Range& pb,

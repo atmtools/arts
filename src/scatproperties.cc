@@ -324,7 +324,7 @@ void amp2pha(Tensor4View phasemat,
   function.
 
   Output:
-  \param ext_conv Extinction coefficient for the convergence test.
+  \param ext_scat Extinction coefficient for the convergence test.
   Input:
   \param pha  Phase matrix.
   \param za_grid  Zenith angle grid

@@ -198,11 +198,11 @@ void read_text_from_stream(ArrayOfString& text, istream& is)
    text. This uses the function @see read_text_from_stream. TEXT IS
    NOT OVERWRITTEN, BUT APPENDED!  
 
-   @param text Output. The contents fo the file
-   @param  filename Name of file to read
-   @exception IOError
-   @version   1
-   @author Stefan Buehler */
+   \param text  Output. The contents fo the file
+   \param name  Name of file to read
+   \exception IOError
+   \version   1
+   \author Stefan Buehler */
 void read_text_from_file(ArrayOfString& text, const String& name)
 {
   ifstream ifs;

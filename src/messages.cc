@@ -33,7 +33,7 @@
 String out_path;
 
 /** The basename for the report file and for all other output
-    files. The files will have names like <basename>.rep (for the
+    files. The files will have names like \<basename\>.rep (for the
     report file). */
 String out_basename;
 

@@ -490,6 +490,7 @@ void chk_atm_field(
     \param    x_name       The name of the atmospheric field.
     \param    x            A variable holding an atmospheric field.
     \param    dim          The atmospheric dimensionality.
+    \param    nspecies     Number of species.
     \param    p_grid       The pressure grid.
     \param    lat_grid     The latitude grid.
     \param    lon_grid     The longitude grid.

@@ -307,7 +307,7 @@ bool Agenda::is_output(Index var) const
 /*! 
   This sets the private member mname to the given string. 
 
-  \param name The name for the agenda.
+  \param nname The name for the agenda.
 */
 void Agenda::set_name(const String& nname)
 {

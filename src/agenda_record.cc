@@ -208,8 +208,8 @@ ostream& operator<<(ostream& os, const AgRecord& agr)
   This has to be here rather than with workspace.cc or
   workspace_aux.cc, because it uses agenda_data and AgendaMap.
 
-  \param os Output stream.
-  \param agr Agenda record.
+  \param os  Output stream.
+  \param wr  Workspace variable record.
 
   \return Output stream.
 */

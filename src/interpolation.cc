@@ -549,9 +549,9 @@ bool is_gridpos_at_index_i(
    resolve such cases, where upward == 1 means that it is the range above
    that is of interest.
 
-   \return         The index of the lower end of the grid range.
-   \param   gp     Grid position structure.
-   \param   upward Direction of interest, see above.
+   \param   gp      Grid position structure.
+   \param   upwards Direction of interest, see above.
+   \return          The index of the lower end of the grid range.
 
    \author Patrick Eriksson
    \date   2002-05-20

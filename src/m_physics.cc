@@ -319,9 +319,11 @@ one frequency and we need Tensor6 conversions probably only inside the
 cloudbox.  
  
 \param y_out        Output : Tensor6 in Brightness temperatures
+\param y_out_name   Input  : output name
 \param scat_f_index Input  : frequency index
 \param f_grid       Input  : frequency grid
 \param y_in         Input  : intensity in radiance units
+\param y_in_name    Input  : input name
 */
 void Tensor6ToTbByPlanck( // WS Generic Output:
                          Tensor6&   y_out,

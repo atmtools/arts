@@ -2652,8 +2652,19 @@ Tensor6View::Tensor6View(Numeric *data,
     explicit range, consistent with the original Range.
 
     \param *data The actual data.
-    \param p Previous range.
-    \param n New Range.  */
+    \param pv Previous range.
+    \param ps Previous range.
+    \param pb Previous range.
+    \param pp Previous range.
+    \param pr Previous range.
+    \param pc Previous range.
+    \param nv New Range.
+    \param ns New Range.
+    \param nb New Range.
+    \param np New Range.
+    \param nr New Range.
+    \param nc New Range.
+  */
 Tensor6View::Tensor6View(Numeric *data,
                                 const Range& pv,
                                 const Range& ps,

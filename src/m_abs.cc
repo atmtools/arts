@@ -1583,19 +1583,21 @@ void n2_absSet(
    \param   abs Output:            absorption coefficients
    \param   abs_per_tg Output:     absorption coefficients per tag group
 
-   \param    tgs     the list of tag groups 
+   \param    tgs            the list of tag groups
    \param    f_mono         monochromatic frequency grid
-   \param    p_abs          pressure levels 
+   \param    p_abs          pressure levels
    \param    t_abs          temperature at pressure level
+   \param    n2_abs         total volume mixing ratio of n2
    \param    h2o_abs        total volume mixing ratio of water vapor
    \param    vmrs           volume mixing ratios per tag group
    \param    lines_per_tg   transition lines per tag group
    \param    lineshape      lineshape specifications to use per tag group
    \param    cont_description_names names of different continuum
                                     models
+   \param    cont_description_models     FIXME: Add documentation.
    \param    cont_description_parameters continuum parameters for the
                                          models listed in
-                                         cont_description_names 
+                                         cont_description_names
 
    \author Axel von Engeln
    \date 2001-01-11
@@ -1606,7 +1608,7 @@ void n2_absSet(
 void absCalc(// WS Output:
              Matrix&                         abs,
              ArrayOfMatrix&                  abs_per_tg,
-             // WS Input:                 
+             // WS Input:
              const ArrayOfArrayOfSpeciesTag&                tgs,
              const Vector&                   f_mono,
              const Vector&                   p_abs,
@@ -2001,6 +2003,7 @@ void xsec_per_tgAddLines(// WS Output:
    \param    cont_description_parameters continuum parameters for the
                                          models listed in
                                          cont_description_names 
+   \param    cont_description_models     models of different continuum
 
    \throw runtime_error something went wrong
 

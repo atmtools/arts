@@ -225,7 +225,7 @@ void CloudboxSetManually(
   \param lat_grid Input : the latitude grid
   \param lon_grid Input : the longitude grid
   \param cloudbox_limits Input : Limits of the cloud box
-  \param atmospere_dim Input : dimension of atmosphere
+  \param atmosphere_dim Input : dimension of atmosphere
   
   \author Sreerekha T.R.
    \date   2002-07-24
@@ -599,8 +599,9 @@ void i_fieldSetClearsky(Tensor6& i_field,
   \param lat_grid Input : the latitude grid
   \param lon_grid Input : the longitude grid
   \param cloudbox_limits Input : Limits of the cloud box
-  \param atmospere_dim Input : dimension of atmosphere
-  \param i_field_value Keyword: value of the constant initial field 
+  \param atmosphere_dim Input : dimension of atmosphere
+  \param stokes_dim     FIXME: Add documentation.
+  \param i_field_values Keyword : value of the constant initial field 
 
   \author Claudia Emde
   \date 2002-08-26
@@ -2015,17 +2016,29 @@ void CloudboxGetIncoming(// WS Output:
   method.  See documentation of WSM *met_profile_calc_agenda* for more
   information on this agenda
 
+\param ybatch FIXME: Add documentation.
 \param t_field_raw temperature field
 \param z_field_raw altitude field
 \param vmr_field_raw VMR field
 \param pnd_field_raw particle number density field
 \param pnd_field particle number density field
 \param y spectra
-\param part_types particle types
-\param met_profile_basenames the string containg the basenames of profiles
-\param met_profile_calc_agenda agenda for absorption calculation and RT methods
 \param p_grid pressure grid
+\param sensor_los FIXME: Add documentation.
+\param cloudbox_on FIXME: Add documentation.
+\param cloudbox_limits FIXME: Add documentation.
+\param z_ground FIXME: Add documentation.
+\param gas_species FIXME: Add documentation.
+\param met_profile_path FIXME: Add documentation.
+\param met_profile_calc_agenda agenda for absorption calculation and RT methods
 \param f_grid frequency grid
+\param met_amsu_data FIXME: Add documentation.
+\param sensor_pos FIXME: Add documentation.
+\param r_geoid FIXME: Add documentation.
+\param lat_grid FIXME: Add documentation.
+\param lon_grid FIXME: Add documentation.
+\param atmosphere_dim FIXME: Add documentation.
+\param nelem_p_grid FIXME: Add documentation.
 
   \author Sreerekha T.R.
   \date 2003-04-17
@@ -2293,17 +2306,22 @@ void ybatchMetProfiles(//Output
   method.  See documentation of WSM *met_profile_calc_agenda* for more
   information on this agenda
 
+\param ybatch FIXME: Add documentation.
 \param t_field_raw temperature field
 \param z_field_raw altitude field
 \param vmr_field_raw VMR field
-\param pnd_field_raw particle number density field
-\param pnd_field particle number density field
 \param y spectra
-\param part_types particle types
-\param met_profile_basenames the string containg the basenames of profiles
-\param met_profile_calc_agenda agenda for absorption calculation and RT methods
 \param p_grid pressure grid
+\param sensor_los FIXME: Add documentation.
+\param z_ground FIXME: Add documentation.
+\param gas_species FIXME: Add documentation.
+\param met_profile_path Path to the MO profiles
+\param met_profile_calc_agenda agenda for absorption calculation and RT methods
 \param f_grid frequency grid
+\param met_amsu_data FIXME: Add documentation.
+\param sensor_pos FIXME: Add documentation.
+\param r_geoid FIXME: Add documentation.
+\param nelem_p_grid FIXME: Add documentation.
 
   \author Sreerekha T.R.
   \date 2003-04-17

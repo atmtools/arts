@@ -833,8 +833,11 @@ ConstMatrixView::ConstMatrixView( Numeric *data,
     explicit range, consistent with the original Range.
 
     \param *data The actual data.
-    \param p Previous range.
-    \param n New Range.  */
+    \param pr Previous range.
+    \param pc Previous range.
+    \param nr New Range.
+    \param nc New Range.
+  */
 ConstMatrixView::ConstMatrixView( Numeric *data,
                                   const Range& pr, const Range& pc,
                                   const Range& nr, const Range& nc) :
@@ -1278,8 +1281,11 @@ MatrixView::MatrixView(Numeric *data,
     explicit range, consistent with the original Range.
 
     \param *data The actual data.
-    \param p Previous range.
-    \param n New Range.  */
+    \param pr Previous range.
+    \param pc Previous range.
+    \param nr New Range.
+    \param nc New Range.
+  */
 MatrixView::MatrixView(Numeric *data,
                             const Range& pr, const Range& pc,
                             const Range& nr, const Range& nc) :

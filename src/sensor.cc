@@ -271,7 +271,7 @@ Matrix scale_antenna_diagram(
 
    \param   h      The multiplication (row) vector.
    \param   f      The values of function f(x).
-   \param   x_f    The grid points of function f(x).
+   \param   x_ftot The grid points of function f(x).
    \param   x_g    The grid points of function g(x).
 
    \author Mattias Ekström

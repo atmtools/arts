@@ -5137,8 +5137,21 @@ Tensor7View::Tensor7View(Numeric *data,
     explicit range, consistent with the original Range.
 
     \param *data The actual data.
-    \param p Previous range.
-    \param n New Range.  */
+    \param pl Previous range.
+    \param pv Previous range.
+    \param ps Previous range.
+    \param pb Previous range.
+    \param pp Previous range.
+    \param pr Previous range.
+    \param pc Previous range.
+    \param nl New Range.
+    \param nv New Range.
+    \param ns New Range.
+    \param nb New Range.
+    \param np New Range.
+    \param nr New Range.
+    \param nc New Range.
+  */
 Tensor7View::Tensor7View(Numeric *data,
                                 const Range& pl,
                                 const Range& pv,

@@ -18,9 +18,8 @@
 /*! 
   This is mainly there to help developers. For example, you can write
   the empty table to an XML file, to see the file format.
-
-  \param GasAbsLookup Absorption lookup table.
 */
+  /* param x  Absorption lookup table.*/
 void gas_abs_lookupInit(GasAbsLookup& /* x */)
 {
   // Nothing to do here.
@@ -151,6 +150,7 @@ void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
   \param a_vmr_list     Agenda input: Local list of VMR values.
 
   \param sga_agenda     Agenda to use to calculate local absorption.
+  \param f_index        FIXME: Add documentation.
   \param f_grid         Frequency grid.
   \param atmosphere_dim Atmospheric dimensionality.
   \param p_grid         Global pressure grid.

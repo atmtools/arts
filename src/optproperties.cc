@@ -210,9 +210,9 @@ void ext_matTransform(//Output and Input
   the hydrometeor species. 
 
   Output and Input:
-  \param ext_mat_lab Absorption vector in Laboratory frame.
+  \param pha_mat_lab Absorption vector in Laboratory frame.
   Input:
-  \param ext_mat_data Absorption vector in database.
+  \param pha_mat_data Absorption vector in database.
   \param za_datagrid Zenith angle grid in the database.
   \param aa_datagrid Zenith angle grid in the database.
   \param ptype Clasiification of the hydometeor species.

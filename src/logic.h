@@ -94,14 +94,14 @@ bool is_same_within_epsilon( const Numeric& a,
 //   Template functions (have to be here in the .h file).
 ////////////////////////////////////////////////////////////////////////////
 
-//! Verifies that the size of x is l.
+//! Verifies that the size of x is n.
 /*! 
   This function is supposed to be used together with assert like this:
-  assert(is_size(x,l)). It works for any array type.
+  assert(is_size(x,n)). It works for any array type.
 
   \param  x The Array to check.
-  \param  l The desired length.
-  \return True if the size of x is l.
+  \param  n The desired length.
+  \return True if the size of x is n.
 */
 template< class T >
 bool is_size( const Array<T>& x,

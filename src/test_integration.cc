@@ -316,6 +316,7 @@ Numeric AngIntegrate_trapezoid_opt(MatrixView Integrand,
     \param Integrand The Matrix to be integrated
     \param za_grid Input : The zenith angle grid 
     \param aa_grid Input : The azimuth angle grid 
+    \param stepsize Input : The grid stepsize
     
     \return The resulting integral
 */
@@ -358,6 +359,7 @@ Numeric AngIntegrate_trapezoid_fixedstep(MatrixView Integrand,
     \param Integrand The Matrix to be integrated
     \param za_grid Input : The zenith angle grid 
     \param aa_grid Input : The azimuth angle grid 
+    \param stepsize Input : The grid stepsize
     
     \return The resulting integral
 */
@@ -407,6 +409,7 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt(MatrixView Integrand,
     \param Integrand The Matrix to be integrated
     \param za_grid Input : The zenith angle grid 
     \param aa_grid Input : The azimuth angle grid 
+    \param stepsize Input: The grid stepsize
     
     \return The resulting integral
 */
@@ -905,7 +908,6 @@ Numeric test_x(int vsize,
     uses the other Integration function with constant Theta-spacing.
 
     \param vsize The size of the Vetor who is integrated, e.g. 1801
-    \param stepsize The size of the steps, e.g. 0.1
     \param frequency Only for test purposes: how often is the integral calculated
 
     \return The resulting integral

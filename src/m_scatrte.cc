@@ -2462,45 +2462,38 @@ void i_fieldUpdateSeq3D(// WS Output:
 
   WS Output:
   \param i_field       Updated intensity field. 
-  \param ppath_step    Propagation path step for RT calculation.
-  \param stokes_vec    Stokes vector.
-  \param sca_vec       Scattered field vector.
-  \param a_planck_value Planck function.
-  \param l_step        Pathlength step.
-  \param abs_vec_spt   Absorption vector for a single particle type.
-  \param ext_mat_spt   Extinction matrix for a single particle type.
-  \param pha_mat_spt   Scattering Matrix for a single particle type.
+  \param abs_scalar_gas Scalar gas absorption.
+  \param a_pressure    FIXME: Add documentation.
+  \param a_temperature FIXME: Add documentation.
+  \param a_vmr_list    FIXME: Add documentation.
+  \param scat_za_grid  Zenith angle grid inside the cloud box.
   \param ext_mat       Extinction matrix (4x4 matrix).
   \param abs_vec       Absorprion vector (4 elements).
   \param scat_p_index  Pressure index.
-  \param scat_za_index Zenith angle index inside cloudbox.
-  \param scat_aa_index Azimuth angle index inside cloudbox.
-  \param abs_scalar_gas Scalar gas absorption.
+  \param ppath_step    Propagation path step for RT calculation.
   WS Input:
+  \param i_field_old   FIXME: Add documentation.
+  \param scat_field    Scattering integral at all grid points
+                       inside the cloud box.
+  \param cloudbox_limits Limits of the cloudbox.
+  \param scalar_gas_absorption_agenda Scalar gas absorption.
+  \param vmr_field     FIXME: Add documentation.
   \param spt_calc_agenda Agenda for single particle scattering properties.
+  \param scat_za_index Zenith angle index inside cloudbox.
   \param opt_prop_part_agenda Agenda to compute optical properties 
                             for particles.
+  \param pnd_field     Particle number density field.
   \param opt_prop_gas_agenda Agenda to compute total optical properties 
                             for gases.
-  \param scalar_gas_absorption_agenda Scalar gas absorption.
   \param ppath_step_agenda Agenda to compute a propagation path step.
-  \param amp_mat       Amplitude matrix. 
-  \param scat_field     Scattering integral at all grid points
-                              inside the cloud box.
-  \param cloudbox_limits Limits of the cloudbox.
-  \param scat_za_grid  Zenith angle grid inside the cloud box.
-  \param scat_aa_grid  Azimuth angle grid inside the cloud box.//STR
   \param p_grid        Pressure grid (is required only for checking the 
                        input).
-  \param t_field       Temperature field for all grid points.
   \param z_field       Geometrical altitude field.
   \param r_geoid       Matrix containing geoids.
+  \param t_field       Temperature field for all grid points.
   \param f_grid        Frequency grid.
   \param f_index  Frequency index.
-  \param pnd_field     Particle number density field.
-  \param stokes_dim    The number of Stokes components to be calculated.
-  \param atmosphere_dim Dimension of the atmosphere.
-  
+
 
 Some workspace variables have to be defined in the workspace to execute the 
 agendas. These are:
@@ -2516,9 +2509,9 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
                 Tensor6& i_field,
                 // scalar_gas_abs_agenda:
                 Matrix& abs_scalar_gas,
-		Numeric& a_pressure,
-	        Numeric& a_temperature,
-		Vector& a_vmr_list,
+                Numeric& a_pressure,
+                Numeric& a_temperature,
+                Vector& a_vmr_list,
                 // spt_calc_agenda:
                 Index& scat_za_index ,
                 // opt_prop_xxx_agenda:
@@ -2944,17 +2937,20 @@ angles.
   
 \param scat_field Output : scattering integraal
 \param pha_mat Output : phase matrix.
-\param i_field Input : the intensity field 
 \param pha_mat_spt Input : the phase matrix for single particle type
+\param scat_data_raw FIXME: Add documentation.
+\param i_field Input : the intensity field 
 \param pnd_field Input : the particle number density field.
 \param scat_za_grid zenith angle grid
 \param scat_aa_grid azimuth angle grid
 \param p_grid pressure grid
 \param lat_grid latitude grid
 \param lon_grid longitude grid
-\param stokes_dim dimension of stokes vector
 \param atmosphere_dim atmospheric dimension
 \param cloudbox_limits Limits of the cloudbox.
+\param f_grid Frequency grid.
+\param f_index Frequency index.
+\param grid_stepsize FIXME: Add documentation.
 
 \author Sreerekha Ravi
 \date 2002-06-20
@@ -3241,6 +3237,7 @@ angles.
   
 \param scat_field Output : scattering integraal
 \param pha_mat Output : phase matrix.
+\param amp_mat Input : Amplitude matrix.
 \param i_field Input : the intensity field 
 \param pha_mat_spt Input : the phase matrix for single particle type
 \param pnd_field Input : the particle number density field.
@@ -3249,9 +3246,9 @@ angles.
 \param p_grid pressure grid
 \param lat_grid latitude grid
 \param lon_grid longitude grid
-\param stokes_dim dimension of stokes vector
 \param atmosphere_dim atmospheric dimension
 \param cloudbox_limits Limits of the cloudbox.
+\param grid_stepsize FIXME: Add documentation.
 
 \author Sreerekha Ravi
 \date 2002-06-20
@@ -3261,19 +3258,19 @@ void
 scat_fieldCalcFromAmpMat(//WS Output:
 	       Tensor6& scat_field,
 	       Tensor4& pha_mat,
-               Tensor5& pha_mat_spt,
+         Tensor5& pha_mat_spt,
 	       //WS Input: 
-               const Tensor6& amp_mat,
-	       const Tensor6& i_field,
-               const Tensor4& pnd_field,
-	       const Vector& scat_za_grid,
-	       const Vector& scat_aa_grid,
+         const Tensor6& amp_mat,
+         const Tensor6& i_field,
+         const Tensor4& pnd_field,
+         const Vector& scat_za_grid,
+         const Vector& scat_aa_grid,
 	       const Vector& p_grid,
 	       const Vector& lat_grid,
 	       const Vector& lon_grid,
-               const Index& atmosphere_dim,
+         const Index& atmosphere_dim,
 	       const ArrayOfIndex& cloudbox_limits,
-               const Vector& grid_stepsize
+         const Vector& grid_stepsize
 	       )
   
 {
@@ -3551,8 +3548,9 @@ scat_fieldCalcFromAmpMat(//WS Output:
   \param stokes_dim: Stokes dimension.
   \param atmosphere_dim: Atmospheric dimension.
   \param scat_za_grid: Zenith angle grid for scattering calculation.
-  \param scat_za_grid: Azimuth angle grid for scattering calculation.
+  \param scat_aa_grid: Azimuth angle grid for scattering calculation.
   \param cloudbox_limits: Limits of cloudbox.
+  \param scat_data_raw FIXME: Add documentation.
 */
 void ScatteringInit(
                     Index& scat_p_index,
@@ -3680,8 +3678,9 @@ void ScatteringInit(
   \param stokes_dim: Stokes dimension.
   \param atmosphere_dim: Atmospheric dimension.
   \param scat_za_grid: Zenith angle grid for scattering calculation.
-  \param scat_za_grid: Azimuth angle grid for scattering calculation.
+  \param scat_aa_grid: Azimuth angle grid for scattering calculation.
   \param cloudbox_limits: Limits of cloudbox.
+  \param amp_mat_raw FIXME: Add documentation.
 */
 void ScatteringInitAmpMat(
                     Index& scat_p_index,
@@ -3819,6 +3818,8 @@ void ScatteringMain(
 /*!
   This function has to be used if you want to write the separate iteration 
   fields into differtent files using *Tensor6WriteIteration*.
+
+  \param iteration_counter Counter for the number of iterations.
 */
 void iteration_counterIncrease(Index& iteration_counter)
 {
@@ -3849,6 +3850,7 @@ void iteration_counterIncrease(Index& iteration_counter)
   WS Input/Output: 
   \param iteration_counter Counter for the iterations. 
   \param field Iterated field
+  \param field_name FIXME: Add documentation.
   \param iterations Array containing the iteration numbers to be written
 
   \author Claudia Emde

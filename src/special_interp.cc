@@ -334,8 +334,6 @@ Numeric interp_atmfield_by_gp(
 
     \param   itw                Output: Interpolation weights.
     \param   atmosphere_dim     As the WSV with the same name.
-    \param   lat_grid           As the WSV with the same name.
-    \param   lon_grid           As the WSV with the same name.
     \param   gp_lat             Latitude grid positions.
     \param   gp_lon             Longitude grid positions.
 
@@ -458,8 +456,8 @@ void interp_atmsurface_by_itw(
     \param   atmosphere_dim     As the WSV with the same name.
     \param   lat_grid           As the WSV with the same name.
     \param   lon_grid           As the WSV with the same name.
-    \param   x_field            The atmospheric field to be interpolated.
-    \param   x_field_name       The name of the field as a string, e.g. 
+    \param   x_surface          The atmospheric field to be interpolated.
+    \param   x_surface_name     The name of the field as a string, e.g. 
                                 "t_field".
     \param   gp_lat             Latitude grid positions.
     \param   gp_lon             Longitude grid positions.

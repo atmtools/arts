@@ -470,9 +470,9 @@ xml_write_to_stream (ostream& os_xml,
 /*!
   \param is_xml  XML Input stream
   \param stag    SpeciesTag return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
-                 Ignored because SpeciesTag is always stored in ASCII format.
 */
+/*  param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+                 Ignored because SpeciesTag is always stored in ASCII format.*/
 void
 xml_read_from_stream (istream& is_xml,
                       SpeciesTag& stag,
@@ -529,10 +529,10 @@ xml_read_from_stream (istream& is_xml,
 /*!
   \param os_xml  XML Output stream
   \param stag    SpeciesTag
-  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
-                 Ignore because SpeciesTag is always stored in ASCII format.
   \param name    Optional name attribute
 */
+/*  param pbofs   Pointer to binary file stream. NULL for ASCII output.
+                 Ignore because SpeciesTag is always stored in ASCII format. */
 void
 xml_write_to_stream (ostream& os_xml,
                      const SpeciesTag& stag,

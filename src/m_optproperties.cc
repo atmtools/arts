@@ -40,7 +40,7 @@ extern const Numeric PI;
   \param amp_mat Input : amplitude matrix for each particle type
   \param scat_za_index  Input : local zenith angle
   \param scat_aa_index  Input : local azimuth angle
-  \param scat_f_index  Input : frequency index
+  \param f_index  Input : frequency index
   \param f_grid  Input : frequency grid
  
 */
@@ -230,7 +230,7 @@ void pha_mat_sptCalc(
   \param scat_za_grid Zenith angle grid for scattering calculation.
   \param scat_aa_grid Azimuth angle grid for scattering calculation.
   \param scat_za_index Index specifying the propagation direction.
-  \param scat_za_index Index specifying the propagation direction.
+  \param scat_aa_index  Index specifying the azimuth angle
   \param f_index Index specifying the frequency.
   \param f_grid Frequency grid.
 
@@ -388,7 +388,7 @@ void pha_mat_sptFromData( // Output:
   \param scat_za_grid Zenith angle grid for scattering calculation.
   \param scat_aa_grid Azimuth angle grid for scattering calculation.
   \param scat_za_index Index specifying the propagation direction.
-  \param scat_za_index Index specifying the propagation direction.
+  \param scat_aa_index  Index specifying the azimuth angle
   \param f_index Index specifying the frequency.
   \param f_grid Frequency grid.
 
@@ -620,7 +620,6 @@ void abs_vec_sptCalc(
 
 //! Extinction Coefficient Matrix for the particle 
 /*! 
-  
   This function sums up the extinction matrices for all particle 
   types weighted with particle number density
   \param ext_mat Output and input : physical extinction coefficient 
@@ -632,7 +631,6 @@ void abs_vec_sptCalc(
   \param scat_p_index Input : Pressure index for scattering calculations.
   \param scat_lat_index Input : Latitude index for scattering calculations.
   \param scat_lon_index Input : Longitude index for scattering calculations.
-  \param stokes_dim  Input : stokes dimension
   
 */
 void ext_matAddPart(
@@ -711,9 +709,8 @@ void ext_matAddPart(
 
 } 
 
-//! Aabsorption Vector for the particle 
+//! Absorption Vector for the particle 
 /*! 
-  
   This function sums up the absorption vectors for all particle 
   types weighted with particle number density
   \param abs_vec Output : physical absorption vector 
@@ -725,7 +722,6 @@ void ext_matAddPart(
   \param scat_p_index Input : Pressure index for scattering calculations.
   \param scat_lat_index Input : Latitude index for scattering calculations.
   \param scat_lon_index Input : Longitude index for scattering calculations.
-  \param stokes_dim  Input : stokes dimension
 */
 void abs_vecAddPart(
                       Matrix& abs_vec,
@@ -903,6 +899,7 @@ void abs_vecAddPart(
   \param ext_mat Extinction matrix.
   \param f_grid Frequency grid.
   \param stokes_dim Stokes dimension.
+  \param f_index Frequency index.
 
   \author Stefan Buehler
 
@@ -998,6 +995,7 @@ void ext_matAddGas( Tensor3&      ext_mat,
   \param abs_vec Extinction matrix.
   \param f_grid Frequency grid.
   \param stokes_dim Stokes dimension.
+  \param f_index Frequency index.
 
   \author Stefan Buehler
 
@@ -1575,10 +1573,10 @@ void amp_matCalc(Tensor6& amp_mat,
   This function can be used to check datafiles containing data for 
   randomly oriented scattering media.
   It is checked whether the data is consistent. The integral over the phase 
-  matrix should result the scattering cross section <C_sca>.
+  matrix should result the scattering cross section \<C_sca\>.
   
   The check is if:
-  <C_ext> - <C_sca> = <C_abs>
+  \<C_ext\> - \<C_sca\> = \<C_abs\>
   
   The result is printed on the screen.
   

@@ -32,7 +32,6 @@
 
 //! Describe Tensor7.
 /*! 
-  \param os Output stream.
   \param x  What to describe.
   \return   Output stream. */
 string describe( ConstTensor7View x )
@@ -51,7 +50,6 @@ string describe( ConstTensor7View x )
 
 //! Describe Tensor6.
 /*! 
-  \param os Output stream.
   \param x  What to describe.
   \return   Output stream. */
 string describe( ConstTensor6View x )
@@ -69,7 +67,6 @@ string describe( ConstTensor6View x )
 
 //! Describe Tensor5.
 /*! 
-  \param os Output stream.
   \param x  What to describe.
   \return   Output stream. */
 string describe( ConstTensor5View x )
@@ -86,7 +83,6 @@ string describe( ConstTensor5View x )
 
 //! Describe Tensor4.
 /*! 
-  \param os Output stream.
   \param x  What to describe.
   \return   Output stream. */
 string describe( ConstTensor4View x )
@@ -102,7 +98,6 @@ string describe( ConstTensor4View x )
 
 //! Describe Tensor3.
 /*! 
-  \param os Output stream.
   \param x  What to describe.
   \return   Output stream. */
 string describe( ConstTensor3View x )
@@ -117,7 +112,6 @@ string describe( ConstTensor3View x )
 
 //! Describe Matrix.
 /*! 
-  \param os Output stream.
   \param x  What to describe.
   \return   Output stream. */
 string describe( ConstMatrixView x )
@@ -131,7 +125,6 @@ string describe( ConstMatrixView x )
 
 //! Describe Vector.
 /*! 
-  \param os Output stream.
   \param x  What to describe.
   \return   Output stream. */
 string describe( ConstVectorView x )
@@ -144,7 +137,6 @@ string describe( ConstVectorView x )
 
 //! Describe Scalar.
 /*! 
-  \param os Output stream.
   \param x  What to describe.
   \return   Output stream. */
 string describe( const Numeric& x )

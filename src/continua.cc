@@ -1229,8 +1229,8 @@ void CP98H2OAbsModel( MatrixView        xsec,
 /**
    \param    xsec Output:          cross section (absorption/volume mixing ratio) of the 
                             H2O-H2O continuum [1/m]
-   \param    C              constant absorption strength    [1/m / (Hz*Pa)²]
-   \param    x              temperature exponent of (300/T) [1]
+   \param    Cin            constant absorption strength    [1/m / (Hz*Pa)²]
+   \param    xin            temperature exponent of (300/T) [1]
    \param    model          allows user defined input parameter set 
                             (C and x)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
@@ -1349,8 +1349,8 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
 /**
    \param   xsec Output:           cross section (absorption/volume mixing ratio) of the 
                             H2O-dry air continuum [1/m]
-   \param    C              constant absorption strength [1/m / (Hz*Pa)²]
-   \param    x              temperature exponent         [1] 
+   \param    Cin            constant absorption strength [1/m / (Hz*Pa)²]
+   \param    xin            temperature exponent         [1] 
    \param    model          allows user defined input parameter set 
                             (C and x)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
@@ -2130,8 +2130,8 @@ void PWR93O2AbsModel( MatrixView        xsec,
                             O2-continuum according to MPM93 [1/m]
    \param    S0in           O2-continuum strength [1/Pa]
    \param    G0in           O2-continuum width [Hz/Pa]
-   \param    xS0in          O2-continuum strength temperature exponent [1]
-   \param    xG0in          O2-continuum width temperature exponent    [1]
+   \param    XS0in          O2-continuum strength temperature exponent [1]
+   \param    XG0in          O2-continuum width temperature exponent    [1]
    \param    model          allows user defined input parameter set 
                             (S0in, G0in, xS0in, and xG0in)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
@@ -2390,7 +2390,7 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
 /**
    \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to Rosenkranz 1993 [1/m]
-   \param    S0in           line strength                             [1/(Hz*Pa*m)]
+   \param    Cin            line strength                             [1/(Hz*Pa*m)]
    \param    G0in           line width                                [Hz/Pa]
    \param    G0Ain          dry air broadening parameter              [1]
    \param    G0Bin          water vapor broadening parameter          [1]
@@ -2691,7 +2691,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
    \param    xsec Output:          cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
-   \param    xTin           continuum strength temperature exponent [1]
+   \param    xin            continuum strength temperature exponent [1]
    \param    model          allows user defined input parameter set 
                             (Cin and xTin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
@@ -3435,8 +3435,8 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
 // #################################################################################
 //
 /** 
+   MPMLineShapeFunction Output:  H2O-line shape function value     [1/Hz]  
 
-   \param   MPMLineShapeFunction Output:  H2O-line shape function value     [1/Hz]  
    \param    gamma                 H2O-line width                    [Hz]
    \param    fl                    H2O-line central frequency        [Hz]
    \param    f                     frequency position of calculation [Hz]
@@ -3491,8 +3491,8 @@ Numeric MPMLineShapeFunction( const Numeric gamma,
 // #################################################################################
 //
 /** 
+   MPMLineShapeO2Function Output:  O2-line shape function value         [1]
 
-   \param   MPMLineShapeO2Function Output:  O2-line shape function value         [1]  
    \param    gamma                   O2-line width                        [Hz]
    \param    fl                      H2O-line central frequency of the    [Hz]
    \param    f                       frequency position of calculation    [Hz]
@@ -3550,8 +3550,8 @@ Numeric MPMLineShapeO2Function( const Numeric gamma,
 // #################################################################################
 //
 /** 
+   WVSatPressureLiquidWater Output:     water vapor saturation pressure over liquid water [Pa]  
 
-   \param   WVSatPressureLiquidWater Output:     water vapor saturation pressure over liquid water [Pa]  
    \param    t                            temperature                                       [K]
 
    \note     This function calculates the water vapor saturation pressure 
@@ -3608,8 +3608,8 @@ Numeric WVSatPressureLiquidWater(const Numeric t)
 // #################################################################################
 //
 /** 
+   WVSatPressureIce Output:     water vapor saturation pressure over liquid water [Pa]  
 
-   \param   WVSatPressureIce Output:     water vapor saturation pressure over liquid water [Pa]  
    \param    t                    temperature                                       [K]
 
    \note     This function calculates the water vapor saturation pressure 
@@ -3676,11 +3676,11 @@ Numeric WVSatPressureIce(const Numeric t)
     \param  f_mono     Frequency grid [Hz]
     \param  p_abs      Pressure grid [Pa]
     \param  t_abs      Temperatures associated with the pressure grid, p_abs [K]
-    \param  vmrh2o     Total volume mixing ratio profile of water vapor.<br> 
-                       This will be needed only for the oxygen continuum <br> 
-                       however one is forced to give this input [1]
-    \param  vmrn2      Total volume mixing ratio profile of molecular nitrogen.<br> 
+    \param  n2_abs      Total volume mixing ratio profile of molecular nitrogen.<br> 
                        This will be needed only for the CO2 foreign continuum [1]<br> 
+                       however one is forced to give this input [1]
+    \param  h2o_abs    Total volume mixing ratio profile of water vapor.<br> 
+                       This will be needed only for the oxygen continuum <br> 
                        however one is forced to give this input [1]
     \param  vmr        Volume mixing ratio profile of the actual species [1]
 

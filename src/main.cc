@@ -281,7 +281,7 @@ void option_methods(const String& methods)
     a variable, it should print all methods that need this
     variable as input.
 
-    \param methods Name of a variable.
+    \param input Name of a variable.
     \author Stefan Buehler
     \date   2001-07-24 */
 void option_input(const String& input)

@@ -776,6 +776,7 @@ void resolve_lon(
    \param   lon         Longitude of observation position.
    \param   za          LOS zenith angle at observation position.
    \param   aa          LOS azimuth angle at observation position.
+   \param   ppc         FIXME: Add documentation.
 
    \author Patrick Eriksson
    \date   2002-12-31
@@ -1298,12 +1299,10 @@ double psurface_crossing_2d(
    \param   lat       Out: Latitude of found crossing.
    \param   lon       Out: Longitude of found crossing.
    \param   l         Out: Length along the path to the crossing.
-   \param   lat1      Lower latitude of grid cell.
-   \param   lat3      Upper latitude of grid cell.
-   \param   lon5      Lower longitude of grid cell.
-   \param   lon6      Upper longitude of grid cell.
    \param   r_surf    Radius of the surface
    \param   r_start   Radius of observation point.
+   \param   lat_start Latitude of start point.
+   \param   lon_start Longitude of start point.
    \param   za_start  Zenith angle at observation point.
    \param   x         x-coordinate of observation position.
    \param   y         y-coordinate of observation position.
@@ -1401,7 +1400,7 @@ void psurface_crossing_3d(
    \param   lstep       Out: Vector with length along the path between points.
    \param   endface     Out: Number coding for exit face. See above.
    \param   tanpoint    Out: Set to 1 if end point is a tangent point.
-   \param   r_start     Radius of start point.
+   \param   r_start0    Radius of start point.
    \param   lat_start   Latitude of start point.
    \param   za_start    LOS zenith angle at start point.
    \param   ppc         Propagation path constant.
@@ -1524,7 +1523,7 @@ void do_gridrange_1d(
    \param   lstep       Out: Vector with length along the path between points.
    \param   endface     Out: Number coding for exit face. See above.
    \param   tanpoint    Out: Set to 1 if end point is a tangent point.
-   \param   r_start     Radius of start point.
+   \param   r_start0    Radius of start point.
    \param   lat_start   Latitude of start point.
    \param   za_start    LOS zenith angle at start point.
    \param   ppc         Propagation path constant.
@@ -1753,13 +1752,15 @@ void do_gridcell_2d(
 
    \param   r_v         Out: Vector with radius of found path points.
    \param   lat_v       Out: Vector with latitude of found path points.
+   \param   lon_v       Out: Vector with longitude of found path points.
    \param   za_v        Out: Vector with LOS zenith angle at found path points.
+   \param   aa_v        FIXME: Add documentation.
    \param   lstep       Out: Vector with length along the path between points.
    \param   endface     Out: Number coding for exit face. See above.
    \param   tanpoint    Out: Set to 1 if end point is a tangent point.
-   \param   r_start     Radius of start point.
-   \param   lat_start   Latitude of start point.
-   \param   lon_start   Longitude of start point.
+   \param   r_start0    Radius of start point.
+   \param   lat_start0  Latitude of start point.
+   \param   lon_start0  Longitude of start point.
    \param   za_start    LOS zenith angle at start point.
    \param   aa_start    LOS azimuth angle at start point.
    \param   ppc         Propagation path constant.
@@ -3935,14 +3936,26 @@ void ppath_step_geom_3d(
    \param   za_array     Out: LOS zenith angle at ray tracing points.
    \param   l_array      Out: Distance along the path between ray tracing 
                          points.
+   \param   endface      FIXME: Add documentation.
+   \param   tanpoint     FIXME: Add documentation.
    \param   r            Start radius for ray tracing.
    \param   lat          Start latitude for ray tracing.
    \param   za           Start zenith angle for ray tracing.
+   \param   a_pressure   FIXME: Add documentation.
+   \param   a_temperature  FIXME: Add documentation.
+   \param   a_vmr_list   FIXME: Add documentation.
+   \param   refr_index   Refractive index.
+   \param   refr_index_agenda   FIXME: Add documentation.
    \param   ppc          Propagation path constant.
    \param   lraytrace    Maximum allowed length for ray tracing steps.
    \param   r1           Radius of lower pressure surface.
    \param   r3           Radius of upper pressure surface (r3 > r1).
-   \param   rground      Radius of the ground.
+   \param   r_ground     Radius of the ground.
+   \param   r_geoid      Geoid radii.
+   \param   p_grid       Pressure grid.
+   \param   z_field      Geometrical altitudes corresponding to p_grid.
+   \param   t_field      Temperatures corresponding to p_grid.
+   \param   vmr_field    VMR values corresponding to p_grid.
 
    \author Patrick Eriksson
    \date   2002-12-02
@@ -4107,7 +4120,6 @@ void raytrace_1d_linear_euler(
    \param   rground3        Radius for the ground at *lat3*.
    \param   p_grid          The WSV with the same name.
    \param   lat_grid        The WSV with the same name.
-   \param   lon_grid        The WSV with the same name.
    \param   r_geoid         The WSV with the same name.
    \param   z_field         The WSV with the same name.
    \param   t_field         The WSV with the same name.
@@ -6016,8 +6028,22 @@ void ppath_start_stepping(
    input arguments are the WSV with the same name, but there are) some
    additional argument(s):
 
-   \param   agenda_verb   This argument is given as input to agendas
-                          to control the verbosity.
+   \param ppath              Output: A Ppath structure
+   \param ppath_step         FIXME: Add documentation.
+   \param ppath_step_agenda  FIXME: Add documentation.
+   \param atmosphere_dim     The atmospheric dimensionality.
+   \param p_grid             The pressure grid.
+   \param lat_grid           The latitude grid.
+   \param lon_grid           The longitude grid.
+   \param z_field            The field of geometrical altitudes.
+   \param r_geoid            The geoid radius.
+   \param z_ground           Ground altitude.
+   \param cloudbox_on        Flag to activate the cloud box.
+   \param cloudbox_limits    Index limits of the cloud box.
+   \param a_pos              The position of the sensor.
+   \param a_los              The line-of-sight of the sensor.
+   \param agenda_verb        This argument is given as input to agendas
+                             to control the verbosity.
 
    \author Patrick Eriksson
    \date   2003-01-08
