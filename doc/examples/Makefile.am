@@ -22,8 +22,8 @@ arts_examples_in = \
 	fullmodels_example.arts.in \
 	radiosonde_example.arts.in \
 	rt_example.arts.in \
-	scatproperties_example.arts.in
-
+	scatproperties_example.arts.in \
+	i_field_example.arts.in
 arts_examples = \
 	absorption_example.arts \
 	amsu_example.arts \
