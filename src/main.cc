@@ -640,6 +640,7 @@ int main (int argc, char **argv)
       cout << full_name
         << " (compiled " << __DATE__ << " " << __TIME__
         << " on " << OS_NAME << " " << OS_VERSION << ")" << endl
+        << "Compile flags: " << COMPILE_FLAGS << endl
         << "Features enabled/disabled in this build: " << endl
         << "  "
         << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float")
