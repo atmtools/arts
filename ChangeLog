@@ -1,3 +1,15 @@
+2002-03-19  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-30
+
+	* doc/uguide/fm_definitions.tex: Fixed and changed according to
+	comments and discission input from Stefan.
+
+	The main thing is that we decided that the most basic variable is
+	put in as the outermost index in matrices and tensors. That is,
+	reversed order compared to before.
+	
+
 2002-03-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-29
