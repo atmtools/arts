@@ -2095,8 +2095,10 @@ void ybatchMetProfiles(//Output
 	  lat_prec--;
 	  if(abs(lat[i])>=100 ) lat_prec--;
 	}
-      lat_os<<ios::showpoint<<ios::fixed<<setprecision(lat_prec)<<lat[i];
 
+      lat_os.setf (ios::showpoint | ios::fixed);
+      lat_os << setprecision(lat_prec) << lat[i];
+      
       Index lon_prec = 4;
       if(lon[i] < 0) lon_prec--;
       if(abs(lon[i])>=10 )
