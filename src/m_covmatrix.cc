@@ -210,6 +210,12 @@ void setup_covmatrix(
 //   Workspace methods
 ////////////////////////////////////////////////////////////////////////////
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
 void sDiagonal(
         MATRIX&          s,
         const int&       n,
@@ -226,6 +232,12 @@ void sDiagonal(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
 void sDiagonalLengthFromVector(
         MATRIX&          s,
         const VECTOR&    grid,
@@ -247,6 +259,12 @@ void sDiagonalLengthFromVector(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
 void sDiagonalLengthFromVectors(
         MATRIX&          s,
         const VECTOR&    grid1,
@@ -267,6 +285,12 @@ void sDiagonalLengthFromVectors(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
 void sSimple(
               MATRIX&    s,
         const int&       n,
@@ -286,6 +310,12 @@ void sSimple(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
 void sSimpleLengthFromVector(
               MATRIX&    s,
         const VECTOR&    grid,
@@ -306,6 +336,12 @@ void sSimpleLengthFromVector(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
 void sSimpleLengthFromVectors(
               MATRIX&    s,
         const VECTOR&    grid1,
@@ -344,6 +380,12 @@ void sSimpleLengthFromVectors(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
 void sFromFile(
               MATRIX&    s,
         const VECTOR&    grid,
@@ -404,6 +446,12 @@ void sFromFile(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
 void CovmatrixInit(
               MATRIX&   s,
         const string&   s_name)
@@ -414,6 +462,12 @@ void CovmatrixInit(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
 void sxAppend(
               MATRIX&   sx,
         const MATRIX&   s )
@@ -443,6 +497,12 @@ void sxAppend(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
 void sbAppend(
               MATRIX&   sb,
         const MATRIX&   s )

@@ -56,6 +56,12 @@
 //
 //**************************************************************************
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void Exit()
 {
   out1 << "  Forced exit.\n";
@@ -64,6 +70,12 @@ void Exit()
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-14
+*/
 void RandSetSeed( )
 {
   srand( (unsigned int) time( NULL ) );
@@ -139,6 +151,13 @@ void IndexReadAscii(
 }
 
 
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 // This function shall be modified to handle INDEX
 void IndexWriteBinary(
 	const int&      v,
@@ -154,6 +173,13 @@ void IndexWriteBinary(
 }
 
 
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 // This function shall be modified to handle INDEX
 void IndexReadBinary(
 	      int&      v,
@@ -217,6 +243,12 @@ void NumericReadAscii(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void NumericWriteBinary(
         const Numeric&  v,
         const string&   var_name,
@@ -232,6 +264,12 @@ void NumericWriteBinary(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void NumericReadBinary(
 	      Numeric&  v,
         const string&   var_name,
@@ -303,6 +341,12 @@ void VectorReadAscii(// WS Generic Output:
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorWriteBinary(
         const VECTOR&  v,
         const string&  var_name,
@@ -318,6 +362,12 @@ void VectorWriteBinary(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorReadBinary(
 	      VECTOR&  v,
         const string&  var_name,
@@ -384,6 +434,12 @@ void MatrixReadAscii(// WS Generic Output:
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void MatrixWriteBinary(
         const MATRIX&  v,
         const string&  var_name,
@@ -399,6 +455,12 @@ void MatrixWriteBinary(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void MatrixReadBinary(
 	      MATRIX&  v,
         const string&  var_name,
@@ -475,6 +537,12 @@ void ArrayOfIndexReadAscii(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void ArrayOfIndexWriteBinary(
         const ARRAYofsizet&  v,
         const string&        var_name,
@@ -490,6 +558,12 @@ void ArrayOfIndexWriteBinary(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void ArrayOfIndexReadBinary(
 	      ARRAYofsizet&  v,
         const string&        var_name,
@@ -560,6 +634,12 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void ArrayOfVectorWriteBinary(
         const ARRAYofVECTOR&  v,
         const string&         var_name,
@@ -575,6 +655,12 @@ void ArrayOfVectorWriteBinary(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void ArrayOfVectorReadBinary(
 	      ARRAYofVECTOR&  v,
         const string&         var_name,
@@ -628,6 +714,12 @@ void ArrayOfMatrixReadAscii(// WS Generic Output:
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void ArrayOfMatrixWriteBinary(
         const ARRAYofMATRIX&  v,
         const string&         var_name,
@@ -643,6 +735,12 @@ void ArrayOfMatrixWriteBinary(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void ArrayOfMatrixReadBinary(
 	      ARRAYofMATRIX&  v,
         const string&         var_name,
@@ -708,6 +806,12 @@ void StringReadAscii(   // WS Generic Output:
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void StringWriteBinary(
         const string&  v,
         const string&  var_name,
@@ -723,6 +827,12 @@ void StringWriteBinary(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void StringReadBinary(
 	      string&  v,
         const string&  var_name,
@@ -776,6 +886,12 @@ void ArrayOfStringReadAscii(   // WS Generic Output:
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void ArrayOfStringWriteBinary(
         const ARRAYofstring&  v,
         const string&         var_name,
@@ -791,6 +907,12 @@ void ArrayOfStringWriteBinary(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void ArrayOfStringReadBinary(
 	      ARRAYofstring&  v,
         const string&         var_name,
@@ -808,6 +930,12 @@ void ArrayOfStringReadBinary(
 
 //=== MAYBESPARSE ====================================================
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void HmatrixReadAscii(// WS Generic Output:
 			Hmatrix& h,
 			// WS Generic Output Names:
@@ -833,6 +961,12 @@ void HmatrixReadAscii(// WS Generic Output:
 
 //=== LOS ==================================================================
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void LosWriteBinary(
         const LOS&      los,
         const string&   var_name,
@@ -859,6 +993,12 @@ void LosWriteBinary(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void LosReadBinary(
 	      LOS&      los,
         const string&   var_name,
@@ -897,6 +1037,12 @@ void LosReadBinary(
 
 //=== INDEX ============================================================
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void IntSet(// WS Generic Output:
             int& x,
             // WS Generic Output Names:
@@ -912,6 +1058,12 @@ void IntSet(// WS Generic Output:
 
 //=== NUMERIC ==========================================================
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void NumericSet(// WS Generic Output:
                 Numeric& x,
                 // WS Generic Output Names:
@@ -927,6 +1079,12 @@ void NumericSet(// WS Generic Output:
 
 //=== VECTOR ==========================================================
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorSet(           VECTOR&  x, 
                     const string&  x_name,
                     const int&     n,
@@ -941,6 +1099,12 @@ void VectorSet(           VECTOR&  x,
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorSetLengthFromVector(
               VECTOR&  x, 
         const string&  x_name,
@@ -958,6 +1122,12 @@ void VectorSetLengthFromVector(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorLinSpace(      VECTOR&  x, 
                     const string&  x_name,
                     const Numeric& start,
@@ -977,6 +1147,12 @@ void VectorLinSpace(      VECTOR&  x,
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorNLinSpace(     VECTOR&  x, 
                     const string&  x_name,
                     const Numeric& start,
@@ -996,6 +1172,12 @@ void VectorNLinSpace(     VECTOR&  x,
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorNLogSpace(     VECTOR&  x, 
                     const string&  x_name,
                     const Numeric& start,
@@ -1049,6 +1231,12 @@ void VectorCopyFromArrayOfVector(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorPlanck(
                     VECTOR&   y,
               const string&   y_name,
@@ -1068,6 +1256,12 @@ void VectorPlanck(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorCalcLog10(
                     VECTOR&   out,
               const string&   out_name,
@@ -1082,6 +1276,12 @@ void VectorCalcLog10(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-17
+*/
 void VectorAdd(
                     VECTOR&   out,
               const string&   out_name,
@@ -1102,6 +1302,12 @@ void VectorAdd(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-17
+*/
 void VectorScale(
                     VECTOR&   out,
               const string&   out_name,
@@ -1123,6 +1329,12 @@ void VectorScale(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorRandUniform(
                     VECTOR&   y,
               const string&   y_name,
@@ -1137,6 +1349,12 @@ void VectorRandUniform(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void VectorRandGaussian(
                     VECTOR&   y,
               const string&   y_name,
@@ -1181,6 +1399,12 @@ void MatrixFillWithVector(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-17
+*/
 void MatrixScale(
                     MATRIX&   out,
               const string&   out_name,
@@ -1209,6 +1433,12 @@ void MatrixScale(
 
 //=== STRING ===============================================================
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void StringSet(           string&  s, 
                     const string&  s_name,
                     const string&  s2 )
@@ -1221,6 +1451,12 @@ void StringSet(           string&  s,
 
 //=== ARRAYofSTRING ========================================================
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void ArrayOfStringSet(    
               ARRAYofstring&  sa, 
         const string&         sa_name,

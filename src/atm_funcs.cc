@@ -291,7 +291,7 @@ void rte (
   // Init Y with Y_SPACE
   copy( y_space, y );
 
-  // Check if LOS inside the atmosphere (if START_INDEX=0, Y=Y_SPACE)
+  // Check if LOS inside the atmosphere (if START_INDEX=0 -> Y=Y_SPACE)
   if ( start_index > 0 )
   {
     // Determine break index for looping, either 1 or the ground
@@ -309,20 +309,20 @@ void rte (
     if ( !(stop_index==0 && ground<0) )
     {
       // Set most common values for I_START and I_BREAK
-      i_start = 1;
+      i_start = 0;
       i_break = stop_index - 1;
       
       // If at the ground, include ground reflection. 
       // The loop can continue both downwards or upwards
       if ( ground >= 0 )
-      {            
+      {      
         for ( i_f=0; i_f<n_f; i_f++ )    
           y[i_f] = y[i_f]*(1.0-e_ground[i_f]) + y_ground[i_f]*e_ground[i_f];
         
         if ( ground != 0 )  // 2D case, loop downwards
 	{
          i_start = ground - 1;
-         i_break = 1;
+         i_break = 0;
         }
       }
 

@@ -876,6 +876,41 @@ void z_absHydrostatic(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-18
+*/
+void h2o_absSet(
+              VECTOR&          h2o_abs,
+        const TagGroups&       tag_groups,
+        const ARRAYofVECTOR&   vmrs )
+{
+  const INDEX   n = tag_groups.size();
+        int     found = -1;
+        string  s;
+
+  for( INDEX i=0; i<n && found<0; i++ ) 
+  {
+    s = tag_groups[i][0].Name();
+    
+    if ( s.substr(0,3) == "H2O" )
+      found = int(i);
+  }
+
+  if ( found < 0 )
+    throw runtime_error("No tag group contains water");
+  
+  resize( h2o_abs, vmrs[found].size() );
+  copy( vmrs[found], h2o_abs );
+}
+
+
+
+
+
+
 /** Calculates the absorption coefficients by first calculating the
    cross sections per tag group and then the absorption from the cross
    sections.

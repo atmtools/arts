@@ -1,3 +1,17 @@
+2001-01-19  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-109
+
+	* Made the function h2o_absSet.
+
+	* Fixed a bug in rte. The step just above the tangent point was just
+	looped once, instead of two as is correct. A bug from the MTL switch.
+
+	*So finally, I managed to get consistency between the spectra and
+	the internal calculation to get absloswfs. This does not guarentee
+	that the WFs are OK, but so far everything seems correct.
+	
+
 2001-01-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-108

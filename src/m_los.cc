@@ -715,6 +715,12 @@ void los_inside(
 //   Workspace methods
 ////////////////////////////////////////////////////////////////////////////
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void r_geoidStd( Numeric&    r_geoid )
 {
    r_geoid = EARTH_RADIUS;
@@ -722,6 +728,12 @@ void r_geoidStd( Numeric&    r_geoid )
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void r_geoidWGS84( 
               Numeric&   r_geoid,
         const Numeric&   latitude,
@@ -744,6 +756,12 @@ void r_geoidWGS84(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void losCalc(       LOS&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
@@ -805,6 +823,12 @@ void losCalc(       LOS&        los,
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void losNoRefraction(
                     LOS&        los,
               const Numeric&    z_plat,
@@ -821,6 +845,12 @@ void losNoRefraction(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void losUpward(
                     LOS&        los,
               const Numeric&    z_plat,
@@ -839,6 +869,12 @@ void losUpward(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void sourceCalc(
                     ARRAYofMATRIX&   source,
               const LOS&             los,   
@@ -889,6 +925,12 @@ void sourceCalc(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void transCalc(
                     ARRAYofMATRIX&   trans,
               const LOS&             los,   
@@ -937,6 +979,12 @@ void transCalc(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void y_spaceStd(
                     VECTOR&   y_space,
               const VECTOR&   f,
@@ -968,6 +1016,12 @@ void y_spaceStd(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void yRte (
                     VECTOR&          y,
               const LOS&             los,   
@@ -1024,6 +1078,12 @@ void yRte (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void yRteNoGround (
                     VECTOR&          y,
               const LOS&             los,   
@@ -1041,6 +1101,12 @@ void yRteNoGround (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void yBl (
                     VECTOR&          y,
               const LOS&             los,   
@@ -1103,6 +1169,12 @@ void yBlNoGround (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void yTB (
                     VECTOR&          y,
               const VECTOR&          f_sensor,
@@ -1140,6 +1212,12 @@ void yTB (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void yTRJ (
                     VECTOR&          y,
               const VECTOR&          f_sensor,
@@ -1175,6 +1253,12 @@ void yTRJ (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void yLoadCalibration (
                     VECTOR&          y,
               const VECTOR&          i_cal1,

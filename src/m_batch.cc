@@ -147,6 +147,12 @@ void temperature_profiles(
 //   Workspace methods
 ////////////////////////////////////////////////////////////////////////////
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void BatchdataGaussianZeroMean(
       // WS Input:
         const string&   batchname,
@@ -169,6 +175,12 @@ void BatchdataGaussianZeroMean(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void BatchdataGaussianTemperatureProfiles(
       // WS Input:
         const VECTOR&    p_abs,
@@ -212,6 +224,12 @@ void BatchdataGaussianTemperatureProfiles(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void BatchdataGaussianTemperatureProfilesNoHydro(
         const VECTOR&   t_abs,
         const MATRIX&   s,
@@ -225,6 +243,12 @@ void BatchdataGaussianTemperatureProfilesNoHydro(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void BatchdataGaussianSpeciesProfiles(
       // WS Input:
         const TagGroups&       tags,
@@ -312,6 +336,12 @@ void BatchdataGaussianSpeciesProfiles(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void BatchdataGaussianOffSets(
       // WS Input:
         const string&  batchname,
@@ -343,6 +373,12 @@ void BatchdataGaussianOffSets(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void BatchdataUniformOffSets(
       // WS Input:
         const string&  batchname,
@@ -374,6 +410,13 @@ void BatchdataUniformOffSets(
 }
 
 
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void BatchdataSinusoidalRippleNoCorrelations(
       // WS Input:
         const string&    batchname,
@@ -445,6 +488,13 @@ void BatchdataSinusoidalRippleNoCorrelations(
 }
 
 
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void ybatchAbsAndRte(
       // WS Output:
               MATRIX&                     ybatch,
@@ -607,6 +657,12 @@ void ybatchAbsAndRte(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void ybatchTB (
                     MATRIX&          ybatch,
               const VECTOR&          f_sensor,
@@ -625,6 +681,12 @@ void ybatchTB (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void ybatchTRJ (
                     MATRIX&          ybatch,
               const VECTOR&          f_sensor,
@@ -643,6 +705,12 @@ void ybatchTRJ (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void ybatchLoadCalibration (
                     MATRIX&   ybatch,
               const VECTOR&   i_cal1,
@@ -664,6 +732,12 @@ void ybatchLoadCalibration (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void ybatchAdd (
                     MATRIX&    ybatch,
               const string&    batchname,
@@ -678,6 +752,12 @@ void ybatchAdd (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-12-06
+*/
 void ybatchAddScaled (
                     MATRIX&    ybatch,
               const string&    batchname,

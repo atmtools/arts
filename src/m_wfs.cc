@@ -624,14 +624,11 @@ void absloswfs_limb (
     k[iv][0]  = (-lstep/2)*( (2*yn[iv]*tv1+s[iv][0]*(1-2*tv1))*t1q[iv] +
                        y[iv] - s[iv][0] ) * tqn[iv];
 
-  //print_vector( tqn );
-  print_vector( t1q );
-  //print_vector( yn );
-  print_vector( y );
-
   // To check the function
   // Without ground reflection: T1Q=1 and Y=0
-  // With ground reflection: T1Q=sqrt(1-e) and Y=eB
+  // With ground reflection: T1Q=(1-e) and Y=eB
+  // print_vector( t1q );
+  // print_vector( y );
 }
 
 
@@ -1632,6 +1629,12 @@ void k_temp_nohydro (
 //   Workspace methods
 ////////////////////////////////////////////////////////////////////////////
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void absloswfsCalc (
                     ARRAYofMATRIX&   absloswfs,
               const LOS&             los,   
@@ -1670,7 +1673,6 @@ void absloswfsCalc (
 
       // Pick out the part of Y corresponding to the present zenith angle
       copy( y(iy0,iy0+nf), yp );
-      iy0 += nf;        
 
       // The calculations are performed in 3 sub-functions
       //
@@ -1691,12 +1693,21 @@ void absloswfsCalc (
                         los.l_step[i], trans[i], source[i], los.ground[i], 
                         e_ground, y_ground );
     }
+
+    iy0 += nf;        
   }
+
   out3 << "\n";
 }
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void absloswfsNoGround (
                     ARRAYofMATRIX&   absloswfs,
               const LOS&             los,   
@@ -1716,6 +1727,12 @@ void absloswfsNoGround (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kSpecies (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1743,6 +1760,12 @@ void kSpecies (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kSpeciesAll (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1770,6 +1793,12 @@ void kSpeciesAll (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kContAbs (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1785,6 +1814,12 @@ void kContAbs (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kTempNoHydro (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1805,13 +1840,19 @@ void kTempNoHydro (
 		    const VECTOR&          e_ground,
 		    const VECTOR&          k_grid )
 {
-  k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs, t_abs, 
-		  h2o_abs, vmrs, lines_per_tg, lineshape, lineshape_norm, abs,
-                  trans, e_ground, k_grid );
+  k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs,
+                  t_abs, h2o_abs, vmrs, lines_per_tg, lineshape, 
+                  lineshape_norm, abs, trans, e_ground, k_grid );
 }
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kTempNoHydroNoGround (
 			         MATRIX&          k,
 			         ARRAYofstring&   k_names,
@@ -1836,10 +1877,17 @@ void kTempNoHydroNoGround (
                   trans, VECTOR(0), k_grid );
 }
 
-/*
-  Adapted to MTL.
-  \date   2001-01-06
-  \author Stefan Buehler
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+
+   Adapted to MTL.
+   \date   2001-01-06
+   \author Stefan Buehler
  */
 void kManual(
                     MATRIX&          k,
@@ -1874,10 +1922,15 @@ void kManual(
 
 
 
-/*
-  Adapted to MTL.
-  \date   2001-01-06
-  \author Stefan Buehler
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+
+   Adapted to MTL.
+   \date   2001-01-06
+   \author Stefan Buehler
  */
 void kDiffHSmall(
                     MATRIX&          k,
@@ -1916,10 +1969,15 @@ void kDiffHSmall(
 
 
 
-/*
-  Adapted to MTL.
-  \date   2001-01-06
-  \author Stefan Buehler
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+
+   Adapted to MTL.
+   \date   2001-01-06
+   \author Stefan Buehler
  */
 void kDiffHFast(
                     MATRIX&          k,
@@ -1954,6 +2012,12 @@ void kDiffHFast(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kxInit (
                     MATRIX&          kx,
                     ARRAYofstring&   kx_names,
@@ -1968,6 +2032,12 @@ void kxInit (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kbInit (
                     MATRIX&          kb,
                     ARRAYofstring&   kb_names,
@@ -1979,6 +2049,12 @@ void kbInit (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kxAppend (
 		    MATRIX&          kx,
 		    ARRAYofstring&   kx_names,
@@ -1993,6 +2069,12 @@ void kxAppend (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kbAppend (
 		    MATRIX&          kb,
 		    ARRAYofstring&   kb_names,
@@ -2007,6 +2089,12 @@ void kbAppend (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kxAppendUsingH (
 		    MATRIX&          kx,
 		    ARRAYofstring&   kx_names,
@@ -2026,6 +2114,12 @@ void kxAppendUsingH (
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
 void kbAppendUsingH (
 		    MATRIX&          kb,
 		    ARRAYofstring&   kb_names,

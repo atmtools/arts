@@ -1194,6 +1194,19 @@ void define_md_data()
 	KEYWORDS( "g0",      "pref",    "zref",    "niter" ),
 	TYPES(    Numeric_t, Numeric_t, Numeric_t, int_t   )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("h2o_absSet"),
+	DESCRIPTION(
+          "Sets h2o_abs to the profile of the first tag group containing\n"
+	  "water."),
+	OUTPUT(	    h2o_abs_ ),
+	INPUT( 	tag_groups_, vmrs_  ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
 
 
 
