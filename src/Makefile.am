@@ -28,6 +28,8 @@ arts_SOURCES = \
 	bifstream.cc \
 	bofstream.h \
 	bofstream.cc \
+	binio.h \
+	binio.cc \
 	check_input.cc \
 	check_input.h \
 	cloudbox.h \
@@ -175,6 +177,8 @@ test_binaryio_SOURCES = \
 	bifstream.cc \
 	bofstream.h \
 	bofstream.cc \
+	binio.h \
+	binio.cc \
 	partition_function_data.cc \
 	matpackI.cc \
 	matpackI.h \
@@ -325,6 +329,8 @@ test_xml_SOURCES = \
 	bifstream.cc \
 	bofstream.h \
 	bofstream.cc \
+	binio.h \
+	binio.cc \
 	partition_function_data.cc \
 	matpackI.cc \
 	matpackI.h \
@@ -359,6 +365,8 @@ test_zeemanproperties_SOURCES = \
 	bifstream.cc \
 	bofstream.h \
 	bofstream.cc \
+	binio.h \
+	binio.cc \
 	check_input.cc \
 	check_input.h \
 	cloudbox.h \
