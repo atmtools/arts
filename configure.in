@@ -12,11 +12,11 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
-AC_INIT(reconf)
+AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.260)
+AM_INIT_AUTOMAKE(arts,1.1.261)
 
 
 #
