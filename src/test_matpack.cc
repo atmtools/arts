@@ -710,6 +710,19 @@ void test36()
   cout << "b = " << b << "\n";
 }
 
+void test37()
+{
+  Vector v1(5., 10, 0.42);
+  Vector v2(5., 10, 0.42);
+  Index i = 5;
+
+  v1 /= i;
+  v2 /= (Numeric)i;
+
+  cout << v1 << endl;
+  cout << v2 << endl;
+}
+
 int main()
 {
 //   test1();
@@ -748,6 +761,7 @@ int main()
 //   test34();
 //   test35();
 //   test36();
+  test37();
 
   return 0;
 }
