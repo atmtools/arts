@@ -1,5 +1,19 @@
 2001-11-20  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-0-1-48
+	
+	* src/m_io.cc (Exit): Return 0 on exit.
+
+	* doc/examples/radiosonde_example.arts.in: Changed f_mono.out to
+	f_mono.aa.
+
+	* doc/examples/amsu_example.arts.in: Renamed output file.
+	Changed f_mono.out to f_mono.aa.
+
+	* doc/examples/f_mono.aa: Renamed from f_mono.out.
+
+2001-11-20  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-0-1-47
 	
 	* doc/examples/batch_example.arts.in: Renamed batch_test to
