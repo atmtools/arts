@@ -1,3 +1,21 @@
+2005-01-05  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-912
+
+	* doc/uguide/sensor.tex: Worked on the sensor chapter.
+
+	* src/jacobian.[cc,h]: Added function to automatically create the
+	agenda for the jacobian. The agenda is filled with the WSM 
+	jacobianCalc... methods, with gas species as keywords when needed.
+
+	* src/m_jacobian.cc: Added the call to the agenda creating function.
+
+	* src/m_sensor.cc: Included number of measurement blocks in the 
+	conversion of RF to IF.
+
+	* src/methods.cc:  Included *jacobian_agenda* as output in the
+	jacobianAdd... methods.
+ 
 2004-11-18  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-911
@@ -3647,7 +3665,7 @@
         output of interpTArray.  (Sample_ppathlength) Changed PDF so that
         it is based on the ppath averaged extinction matrix.
 
-2003-10-03  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+2003-10-03  Mattias EkstrÃ¶m  <ekstrom@rss.chalmers.se> 
 
         * arts-1-1-694
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2004 Mattias Ekström <ekstrom@rss.chalmers.se>
+/* Copyright (C) 2004 Mattias Ekstrom <ekstrom@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -23,7 +23,7 @@
 
 /*!
   \file   m_jacobian.cc
-  \author Mattias Ekström <ekstrom@rss.chalmers.se>
+  \author Mattias Ekstrom <ekstrom@rss.chalmers.se>
   \date   2004-09-14
 
   \brief  Workspace functions related to the jacobian.
@@ -57,11 +57,12 @@
 /*!
    See the online help (arts -d FUNCTION_NAME)
    
-   \author Mattias Ekström
+   \author Mattias Ekstrom
    \date   2004-09-30
 */
 void jacobianAddGas(// WS Output:
                     ArrayOfRetrievalQuantity& jq,
+                    Agenda&                   jacobian_agenda,
                     ArrayOfArrayOfSpeciesTag& gas_species,
                     // WS Input:
                     const Sparse&             jac,
@@ -155,7 +156,13 @@ void jacobianAddGas(// WS Output:
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
   
-  out2 << "  Adding gas species: " << species << " to *jacobian_quantities*.\n";
+  // Add gas species method to the jacobian agenda
+  String methodname = "jacobianCalcGas";
+  String kwv = species;
+  agenda_append(jacobian_agenda, methodname, kwv);
+
+  out2 << "  Adding gas species: " << species << " to *jacobian_quantities*\n"
+       << "  and *jacobian_agenda*\n";
   if (method_index==0) 
   { 
     out3 << "  Calculations done by perturbation, size " << dx 
@@ -165,7 +172,7 @@ void jacobianAddGas(// WS Output:
   {
     out3 << "  Calculations done by analytical expression.\n"; 
   }
-
+  
   // Add retrieval quantity to *gas_species*
   ArrayOfSpeciesTag tags;
   array_species_tag_from_string( tags, species );
@@ -182,6 +189,7 @@ void jacobianAddGas(// WS Output:
     out3 << " " << tags[s].Name();
   }
   out3 << '\n';
+  
 }                    
 
 
@@ -189,13 +197,15 @@ void jacobianAddGas(// WS Output:
 /*!
    See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström�
+   \author Mattias Ekstrom
    \date   2004-09-14
 */
 void jacobianAddPointing(// WS Output:
                          ArrayOfRetrievalQuantity&  jq,
+                         Agenda&                    jacobian_agenda,
                          // WS Input:
                          const Sparse&              jac,
+                         const Matrix&              sensor_pos,
                          // Control Parameters:
                          const Numeric&             dza,
                          const String&              unit,
@@ -220,9 +230,10 @@ void jacobianAddPointing(// WS Output:
     throw runtime_error(os.str());
   }
 
-  // Check that poly_order is positive
-  if (poly_order<0)
-    throw runtime_error("The polynomial order has to be positive.");
+  // Check that poly_order is -1 or positive
+  if (poly_order<-1)
+    throw runtime_error(
+      "The polynomial order has to be positive or -1 for gitter.");
     
   // Define subtag here to easily expand function.
   String subtag="za offset";
@@ -247,7 +258,15 @@ void jacobianAddPointing(// WS Output:
   rq.Unit(unit);
   rq.Method(0);
   rq.Perturbation(dza);
+  // To store the value or the polynomial order, create a vector with length
+  // poly_order+1, in case of gitter set the size of the grid vector to be the
+  // number of measurement blocks, all elements set to -1.
   Vector grid(0,poly_order+1,1);
+  if (poly_order==-1)
+  {
+    grid.resize(sensor_pos.nrows());
+    grid = -1.0;
+  }
   ArrayOfVector grids(1, grid);
   rq.Grids(grids);
   rq.SpeciesIndex(-1);
@@ -255,8 +274,13 @@ void jacobianAddPointing(// WS Output:
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
 
+  // Add pointing method to the jacobian agenda
+  String methodname = "jacobianCalcPointing";
+  String kwv = "";
+  agenda_append(jacobian_agenda, methodname, kwv);
+  
   out2 << "  Adding zenith angle pointing offset to *jacobian_quantities*\n"
-       << "  with perturbation size " << dza << "\n";
+       << "  and *jacobian_agenda* with perturbation size " << dza << "\n";
 }
 
 
@@ -264,11 +288,12 @@ void jacobianAddPointing(// WS Output:
 /*!
    See the online help (arts -d FUNCTION_NAME)
    
-   \author Mattias Ekström
+   \author Mattias Ekstrom
    \date   2004-10-14
 */
 void jacobianAddTemperature(// WS Output:
                     ArrayOfRetrievalQuantity& jq,
+                    Agenda&                   jacobian_agenda,
                     // WS Input:
                     const Sparse&             jac,
                     const Index&              atmosphere_dim,
@@ -364,7 +389,13 @@ void jacobianAddTemperature(// WS Output:
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
   
-  out2 << "  Adding temperature to *jacobian_quantities*.\n";
+  // Add pointing method to the jacobian agenda
+  String methodname = "jacobianCalcTemperature";
+  String kwv = "";
+  agenda_append(jacobian_agenda, methodname, kwv);
+  
+  out2 << "  Adding temperature to *jacobian_quantities* and "
+       << "*jacobian_agenda*.\n";
   if (method_index==0) 
   { 
     out3 << "  Calculations done by perturbation, size " << dx 
@@ -381,7 +412,7 @@ void jacobianAddTemperature(// WS Output:
 /*!
    See the online help (arts -d FUNCTION_NAME)
    
-   \author Mattias Ekström
+   \author Mattias Ekstrom
    \date   2004-09-28
 */
 void jacobianCalc(// WS Output:
@@ -425,7 +456,7 @@ void jacobianCalc(// WS Output:
 /*!
    See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström�
+   \author Mattias Ekstrom
    \date   2004-10-01
 */
 void jacobianCalcGas(
@@ -706,11 +737,11 @@ void jacobianCalcPointing(
      const Vector&                   mblock_za_grid,
      const Vector&                   mblock_aa_grid)
 {
-  // Set some useful (and needed) variables. 
-//  Index n_los = sensor_los.nrows();
+  // Set some useful (and needed) variables.  
+  //  Index n_los = sensor_los.nrows();
   Matrix sensor_los_pert = sensor_los;
   RetrievalQuantity rq;
-  Index it;
+  bool gitter = false;
   
   // Check that sensor_time is consistent with sensor_pos
   if (sensor_time.nelem()!=sensor_pos.nrows())
@@ -742,6 +773,12 @@ void jacobianCalcPointing(
   assert( rq.Unit()=="abs" || rq.Unit()=="rel" );
   
   // FIXME: Should the size of *jacobian* be checked here?
+  
+  // Check if pointing is of type gitter
+  if (rq.Grids()[0][0]==-1)
+  {
+    gitter = true;
+  }
   
   // Calculate the weight vector. We set sensor_time[0] to correspond to
   // -1 and sensor_time[end] to 1.
@@ -801,8 +838,20 @@ void jacobianCalcPointing(
   // Add the weighted dy/dx as column in jacobian
   // FIXME: Save cpu time by implementing a sparse::insert_column()
   Index ny = y.nelem()/sensor_pos.nrows();
-  for (it=ji[0]; it<=ji[1]; it++)
+  Index it = ji[0];
+  Numeric exponent;
+  while (it<=ji[1])
+//  for (it=ji[0]; it<=ji[1]; it++)
   {
+    // For gitter the exponent is zero for all columns
+    if (!gitter)
+    {
+      exponent = (Numeric) it-ji[0];
+    }
+    else
+    {  
+      exponent = 0.0;
+    } 
     out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
          << jacobian.ncols() << "\n";
     Index y_it = 0;
@@ -810,10 +859,16 @@ void jacobianCalcPointing(
     {
       for (Index dummy=0; dummy<ny; dummy++)
       {
-        jacobian.rw(y_it,it) = dydx[y_it]*pow(weight[ns],(Numeric) it-ji[0]);
+        jacobian.rw(y_it,it) = dydx[y_it]*pow(weight[ns], exponent);
         y_it++;
       }
+      // If gitter then change column for each row in sensor_pos
+      if (gitter)
+        it++;
     }
+    // If not gitter then change column for each order of polynomial
+    if (!gitter)
+      it++;
   }
      
   // Restore y before returning

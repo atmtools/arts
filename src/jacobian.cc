@@ -35,6 +35,56 @@ ostream& operator << (ostream& os, const RetrievalQuantity& ot)
   === The functions in alphabetical order
   ===========================================================================*/
 
+//! Appends methods to an agenda
+/*!
+   This function is designed to be called from the jacobian WSMs that add 
+   retrieval quantities and to append their related calculating methods to the
+   jacobian agenda.
+   
+   This function only cares about a method name and a keyword value, therefor 
+   it can not handle agenda methods or generic methods. 
+   The keyword value has to be a string, which for no value should be of length
+   zero.
+   
+   \param agenda        The agenda
+   \param methodname    The name of the WSM
+   \param keywordvalue  The value of the keyword
+   
+   \author Mattias Ekstrom
+   \date   2005-01-05
+*/
+void agenda_append(       Agenda& agenda,
+                    const String& methodname,
+                    const String& keywordvalue)
+{
+  // This should not be a supergeneric method? Therefor take the record 
+  // in md_data. Load the lookup information for workspace methods. 
+  extern const map<String, Index> MdMap;
+  extern const Array<MdRecord> md_data;
+  
+  const MdRecord* mdd;
+  
+  // Find explicit method id in MdMap.
+  const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
+  assert ( i2 != MdMap.end() );
+  Index id = i2->second;            
+          
+  mdd = &md_data[id];
+  
+  Array<TokVal> values(0);
+  ArrayOfIndex output(0);          
+  ArrayOfIndex input(0);
+  Agenda dummy;
+  dummy.resize(0);
+  
+  // If not empty append the keyword value
+  if (keywordvalue.nelem()!=0) 
+    values.push_back(keywordvalue);
+  
+  // Append the method
+  agenda.push_back(MRecord(id,values,output,input,dummy));
+}
+
 //! Check that the retrieval grids are defined for each atmosphere dim
 /*!
    This function checks that the retrieval grids needed for the atmosphere

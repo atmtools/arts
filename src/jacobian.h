@@ -18,12 +18,13 @@
 /** \file
     Declarations required for the calculation of jacobians.
 
-    \author Mattias Ekstr�
+    \author Mattias Ekstrom
 */
 
 #ifndef jacobian_h
 #define jacobian_h
 
+#include <map>
 #include <iostream>
 #include <stdexcept>
 #include "matpackI.h"
@@ -33,6 +34,8 @@
 #include "bifstream.h"
 #include "interpolation.h"
 #include "logic.h"
+#include "methods.h"
+#include "agenda_class.h"
 
 /** Contains the data for one retrieval quantity.
     \author Mattias Ekstr� */
@@ -126,6 +129,10 @@ typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
 //======================================================================
 //             Functions related to calculation of Jacobian
 //======================================================================
+
+void agenda_append(       Agenda& agenda,
+                    const String& methodname,
+                    const String& keywordvalue);
 
 bool check_retrieval_grids(       ArrayOfVector& grids,
                                   ostringstream& os,

@@ -1,7 +1,6 @@
 \chapter{Sensor modeling}
  \label{sec:sensor}
 
-
 %
 % Document history, format:
 %  \starthistory
@@ -59,93 +58,250 @@ In the follow text we will use the terms sensor to denote the total
 sensor configuration, i.e. the the whole object that will be
 represented by the WSV \artsstyle{sensor\_response}. To denote 
 individual parts of the sensor, such as the antenna or the mixer, we
-use the terms sensor parts or instrument, especially when taking
+use the terms sensor parts or instrument, especially when talking
 of characteristics.
 %Conversion of radiances to brightness temperatures is also treated
 %here.
 
 %--------------------------
 \section{Internal functions}
-Description of the concept with forward matrices. Show pictures?
+As described in section~\ref{sec:formalism} the forward model is divided into an atmospheric
+part and a sensor part, equation~\ref{eq:formalism:fms}. The sensor part can be modelled by a
+sensor transfer matrix which is precalculated for the entire atmospheric simulation, and applied on the monochromatic pencil beam spectra, equation~\ref{eq:formalism:H}. To calculate the total sensor response the each individual part of the sensor has to calculated and combined.
+The individual part for a microwave measurements consists in most cases of an antenna, a sideband filter and mixer and a spectrometer. These are the instruments that has been used as a starting point for the sensor modelling. There exist therefore WSM to compute these sensor responses. The operations performed by the instruments on the incoming spectra can either be described by a weighting, over viewing angles or frequencies, or a summation of signals in different sidebands.
+
+Summation and weighting of the spectral components are both linear
+operations, and thus it is possible to model the effect of the
+different sensor parts as subsequent matrix multiplications of the
+monochromatic pencil beam spectrum, as suggested in \citet{eriksson:00a}:
+\begin{eqnarray}
+  \MsrVct = \aSnsMtr{n}\dots\aSnsMtr{2}\aSnsMtr{1}\MpiVct + \MsrErrVct
+\end{eqnarray}
+where $n$ is the number of sensor parts to consider, and this results
+in that the sensor model can be expressed as a single matrix
+multiplication (Eq. \ref{eq:formalism:H})
+\begin{eqnarray}
+  \MsrVct = \SnsMtr\MpiVct + \MsrErrVct                     \nonumber
+\end{eqnarray}
+Applying Equation \ref{eq:formalism:H} for the sensor model will
+clearly give very rapid calculations, and we must find ways to
+calculate $\SnsMtr$. Therefore internal functions has been designed to calculate the response of such a weighting or a summation.
+\FIXME{For more information \ldots reference to Sensor modelling article.}
 
 \subsection{Weighting}
-Decribe how the weighting matrices work and are derived.
+The instruments that performs a weighting of the spectra are the antenna which weights different viewing angles by the normalised antenna response, $w_\mathrm{a}$, and the spectrometer that weights signals of neighbouring frequencies by the channel response, $w_\mathrm{ch}$. The influence of the antenna can be expressed as
+\begin{equation}
+  \label{eq:sensor:weight:antenna}
+  i_\mathrm{a} = \int_{4\pi}\!\!\!\!i(\Omega+\Omega_0) 
+                 w_\mathrm{a}(\Omega) \DiffD\Omega
+                 \quad \textrm{with} \quad 
+  \int_{4\pi}\!\!\!\!w_\mathrm{a}(\Omega)\DiffD\Omega = 1.
+\end{equation} 
+where $i$ is the monochromatic pencil beam spectra, $i_\mathrm{a}$ the apparent radiation intensity after the antenna, $\Omega$ the solid angle and $\Omega_0$ is some reference point for the antenna pattern, normally the point of highest response. For the spectrometeral the output for channel $n$ is
+\begin{equation}
+  \label{eq:sensor:weight:spectrometer} 
+  \MsrVct_n = \int_{0}^{\infty}\!\!\!\!i(\nu) w_\mathrm{ch}^n(\nu) \DiffD\nu 
+         \quad \textrm{with} \quad 
+  \int_{0}^{\infty}\!\!\!\!w_\mathrm{ch}^n(\nu)\DiffD\nu = 1.
+\end{equation} 
+To incorporate this weighting
+into the response matrix $\SnsMtr$, we want to express the
+weighting as a multiplication between two vectors:
+\begin{equation}
+  \label{eq:sensor:weight:integr}
+  \mathbf{h}\mathbf{g} = \int f(x)g(x)\DiffD x,
+\end{equation} 
+where $x$ is either angle or frequency, $f(x)$ is the instrument
+response, $g(x)$ is the spectral signal, $\mathbf{g}$ is the vector
+representation of $g(x)$ and $\mathbf{h}$ is a row vector. The
+vector $\mathbf{h}$ corresponds to elements of a row in
+$\SnsMtr$, where row and element positions depend on considered
+response and sorting order between Stokes components, frequencies
+and viewing directions. It should be noted that the actual values
+of $g$ are not known when creating $\mathbf{h}$, only the grid used
+for $\mathbf{g}$. In addition, the strength of the described method
+is that the same $\SnsMtr$ can be used repeatedly, and then in
+conjunction with a varying $\mathbf{g}$.
+  
+The functions $f$ and $g$ can be represented using different grids,
+as indicated in figure~\ref{fig:sensor:weight}. This means that the product between $f$ and $g$ can have
+a discontinuity at each position corresponding to a grid point of
+either $f$ or $g$. Letting $k$ be the calculation interval index,
+the integral in equation~(\ref{eq:sensor:weight:integr}) is broken down as
+\begin{equation}
+  \label{eq:sensor:weight:part integr}
+  \int_{x_k}^{x_{k+1}}\hspace{-4ex}f(x)g(x)\DiffD x  = 
+    \frac{x_{k+1}-x_k}{2}\Bigl( f(x_k) g(x_k) + 
+    f(x_{k+1}) g(x_{k+1}) \bigr).
+\end{equation}
+The value $g(x_k)$ is 
+\begin{equation}
+  \label{eq:sensor:weight:g(x_k)} 
+  g(x_k) = g(x_i)\frac{x_{i+1}-x_k}{x_{i+1}-x_i} + 
+           g(x_{i+1})\frac{x_k-x_i}{x_{i+1}-x_i}, \quad 
+           x_i \leq x_k < x_{i+1},
+\end{equation}
+where $i$ is grid index of $g$, and the range $[x_i,x_{i+1}]$
+encompasses the range $[x_k,x_{k+1}]$. The value $g(x_{k+1})$ is
+determined likewise. The response function $f$ is
+known and $f(x_k)$ and $f(x_{k+1})$ can be explicitely calculated
+(following equation~(\ref{eq:sensor:weight:g(x_k)})).
+   
+Inserting equation (\ref{eq:sensor:weight:g(x_k)}) in (\ref{eq:sensor:weight:part integr})
+yields the following expressions for the considered integral interval:
+\begin{eqnarray}
+  &\int_{x_k}^{x_{k+1}}f(x)g(x)\DiffD x = & \nonumber \\
+  & \dfrac{x_{k+1}-x_k}{2}\Bigr[ \Bigr( 
+  f(x_k)\frac{x_{i+1}-x_k}{x_{i+1}-x_i} + 
+  f(x_{k+1})\frac{x_{i+1}-x_{k+1}}{x_{i+1}-x_i} \Bigl)g(x_i) +&\nonumber\\
+  & \Bigr( f(x_k)\frac{x_k-x_i}{x_{i+1}-x_i} + 
+  f(x_{k+1})\frac{x_{k+1}-x_i}{x_{i+1}-x_i} \Bigl)g(x_{i+1}) \Bigl], &
+\end{eqnarray}
+and the weights to be added to element $i$ and $i+1$ of
+$\mathbf{h}$ are then
+\begin{eqnarray}
+  &\mathbf{h}_i = \mathbf{h}_i + \frac{x_{k+1}-x_k}{2} \left[ f(x_k)
+                  \frac{x_{i+1}-x_k}{x_{i+1}-x_i} + f(x_{k+1})
+                  \frac{x_{i+1}-x_{k+1}}{x_{i+1}-x_i} \right] & \\
+  &\mathbf{h}_{i+1} = \mathbf{h}_{i+1}+
+                     \frac{x_{k+1}-x_k}{2} \left[ f(x_k)
+                     \frac{x_k-x_i}{x_{i+1}-x_i} + f(x_{k+1})
+                     \frac{x_{k+1}-x_i}{x_{i+1}-x_i} \right] &
+\end{eqnarray} 
+The vector $\mathbf{h}$ is initiated to hold zeros and the
+calculation procedure is iterated over $k$. To ensure energy
+conservation this vector should be normalised such that the sum of
+the elements equals one.
+\begin{figure}[!h]
+\begin{center}
+  \includegraphics{Figs/sensor/integration.mps}
+  \caption{Schematic of antenna and backend calculations. The dashed 
+    lines show the end points of each integral interval. The
+    shaded area corresponds to the interval considered in
+    equation (\ref{eq:sensor:weight:part integr}).}
+  \label{fig:sensor:weight}
+\end{center}
+\end{figure}
 
 \subsection{Summation}
-Decribe how the summation matrices work and are derived.
+\label{sec:sensor:sum}
+The summation takes place when the mixer downconverts the sideband signals into the intermediate frequency, $\nu_\mathrm{IF}$. This is done by mixing the measurement signal with the local oscillator signal (LO).
+\begin{equation}
+  \label{eq:sensor:sum:v_if} 
+  \nu_\mathrm{IF} = \vert \nu - \nu_\mathrm{LO} \vert,
+\end{equation}
+where $\nu_\mathrm{LO}$ is the frequency of the LO. This procedure has the consequence that frequencies with the same distance to $\nu_\mathrm{LO}$ are translated to the same $\nu_\mathrm{IF}$. Thus, the `image'
+frequency, $\nu'$, is
+\begin{equation}
+  \label{eq:sensor:sum:RF2IF}
+  \nu' = 2\nu_{LO} - \nu.
+\end{equation}
+The signal from $\nu$ and $\nu'$ is normally not weighted equally.
+This can be an effect of a frequency dependent response of elements from
+the antenna to the mixer, or caused by a sideband filter, with the
+purpose of minimising the contribution from one of the bands. These
+terms are here lumped together into one term, the sideband response
+$w_\mathrm{sb}$. The apparent intensity after the mixer,
+$I_\mathrm{IF}$, can then be expressed as
+\begin{equation}
+  \label{eq:sensor:sum:I_IF} 
+  I_\mathrm{IF}(\nu_\mathrm{IF}) = \frac{w_\mathrm{sb}(\nu)I(\nu) + 
+    w_\mathrm{sb}(\nu')I(\nu')}{w_\mathrm{sb}(\nu) + w_\mathrm{sb}(\nu')}.
+\end{equation} 
+
+To model the sideband folding, a vector $\mathbf{h}$ representing
+the summation of the sideband filtered radio frequency (RF) signals
+into an intermediate frequency (IF) signal is to be determined. The
+translation of frequencies is given by equation~(\ref{eq:sensor:sum:RF2IF}). To
+preserve all spectral information it is needed that the IF grid
+includes all unique transformations from RF to IF. That is, the IF
+grid shall be constructed by the projection of the RF grid from both
+sidebands (with duplicates of IF values removed). This implies that
+each IF grid point corresponds directly to a RF of one of the
+sidebands, but will normally fall between RF grid points in the
+other band (\FIXME{figure~2}), if not the RF grid is perfectly symmetric
+around the LO frequency.
+ 
+Using the same notation as in equation (\ref{eq:sensor:sum:I_IF}), the elements
+of the response vector $\mathbf{h}$ can then be written as
+\begin{eqnarray}
+\mathbf{h}_i & = & \frac{\mathbf{v}_{i+1}-\nu}
+     {\mathbf{v}_{i+1}-\mathbf{v}_i} 
+     \frac{w_\mathrm{sb}(\nu)}{w_\mathrm{sb}(\nu)+w_\mathrm{sb}(\nu')}, \\
+  \mathbf{h}_{i+1} & = & \frac{\nu-\mathbf{v}_i}
+     {\mathbf{v}_{i+1}-\mathbf{v}_i} 
+     \frac{w_\mathrm{sb}(\nu)}{w_\mathrm{sb}(\nu)+w_\mathrm{sb}(\nu')}, \\
+  \mathbf{h}_j & = & \frac{\mathbf{v}_{j+1}-\nu'}
+     {\mathbf{v}_{j+1}-\mathbf{v}_j} 
+     \frac{w_\mathrm{sb}(\nu')}{w_\mathrm{sb}(\nu)+w_\mathrm{sb}(\nu')}, \\
+  \mathbf{h}_{j+1} & = & \frac{\nu'-\mathbf{v}_j}
+     {\mathbf{v}_{j+1}-\mathbf{v}_j} 
+     \frac{w_\mathrm{sb}(\nu')}{w_\mathrm{sb}(\nu)+w_\mathrm{sb}(\nu')},
+\end{eqnarray} 
+where $\mathbf{v}$ is the RF grid and all other elements of
+$\mathbf{h}$ are zero. Either $\mathbf{h}_{i+1}$ or
+$\mathbf{h}_{j+1}$ is unnecessary to compute, depending on if the
+IF corresponds directly to $\mathbf{h}_{i}$ or $\mathbf{h}_{j}$.
+The complete response matrix is computed by iterating over all IF.
+
+The normal situation should be that the sideband folding and
+filtering are kept constant, and it is not needed to repeat the
+calculations even if the instrument is scanning. The weights of
+$\mathbf{h}$ from one viewing direction can for such cases be
+applied throughout the scan.
 
 %----------------------------------
 \section{Instrument characteristics}
-\FIXME{rewrite}
-
-In an effort to keep a consitency between the different sensor parts, 
-some general concepts has been determined for the variables and 
-methods connected to sensor modelling.
-Examples of this are the way the instrument characteristics are 
-stored and the of course the way the sensor response is modelled 
-as matrix, as decribed above (REF?).
-
 To be able of computing the response from a certain sensor part, we 
 need the instrument characteristics. This information thus have to 
 be stored in such a way that we can incorporate it in our forward 
 model. ARTS uses XML-files to store and retrieve variables from 
-files. Thus it is easiest to store the characteristics in form of 
-XML-files, but there exist also methods for computing simple gaussian
+files and this offer a easy way to include characteristics that has been prepared outside ARTS. 
+There exist also methods for computing simple gaussian
 characteristics. See section~\ref{sec:sensor:WSM} for more details.
 
-Even though the different sensor parts are very different in their
-representation of their characteristics, we have tried to apply the 
-same concept when applying them to the forward model. This is where
-the concept of \textit{single or complete} is used. The words 
-\textit{single} and \textit{complete} describes the way the given 
-characteristics are applied. This might better be understood with an
-example, e.g. the antenna, if only one set of antenna characteristics
-are given the same set will for instance be used for all polarisations.
-If on the other hand a individual set of antenna characteristics are 
-given for each polarisation, then that individual set will be used
-for each individual polarisation.
-What this imply is that you can't give instrument characteristics
-for only half of the cases, you have to give one set, \textit{single},
-or one set for each case, \textit{complete}.
-
-How this is implemented for each sensor part will be described in the 
+The sensor characteristics is often described by matrices, where the first column contains relative grid positions for the values in the following columns. These grid positions can for example be frequencies relative to a channel frequency or angles relative to a antenna line-of-sight. These matrices can then be grouped together in arrays, or even array of arrays, to enable the characteristics to vary with other parameters such as polarisation, and use of different antennae. Common to all these variables are that the user has the choice that for each parameter either provide one set of characteristics that will be used for all cases or to provide a set of characteristics for each state of the parameter. As an example, consider the array of matrices used for the backend response characteristics. On the matrix level, the first column holds the relative frequency grid and the following hold the response values. If we want the same response for all channel frequencies only one column of response values is needed, on the other hand if we want the backend response to vary with the channel frequencies a column must be given for each frequency in \artsstyle{f\_backend}. Futher on the array level, if the array only has one matrix that response will be used for all polarisations otherwise the array needs as many matrices as polarisations simulated. Note that polarisations is not the same as Stokes dimension, see section~\ref{sec:sensor:polarisation} for more information on polarisation.
+How the sensor characteristics are implemented for each sensor part will be described in the 
 sections concerning the different sensor parts.
+
+\subsection{Normalisation}
+In most cases the sensor characteristics should be normalised as in equation~\ref{eq:sensor:weight:antenna}, \ref{eq:sensor:weight:spectrometer} and \ref{eq:sensor:sum:I_IF}, but for the possibility to study the sensor response, the normalisation is controlled by the WSV \artsstyle{sensor\_norm}. For normalised sensor responses this variable should be set to one, and for non-normalised sensor responses it should be zero.
 
 %--------------------------------------
 \section{Sensor response initialisation}
 Even if the monochromatic pencil beam spectrum is studied without any sensor influence, the sensor variables, especially \SnsMtr\ has to be set. The reason is that the WSM \artsstyle{RteCalc} always applies a \SnsMtr\ to the spectrum or spectra. On the other hand if a response from a sensor system should be applied to the spectral values the sensor variables has to be initialised properly. For these tasks there exist two WSMs, \artsstyle{sensorOff} and \artsstyle{sensor\_responseInit}. At least one of these has to be included in the control file.
 
 \subsection{No sensor}
-If the calculated monochromatic pencil beams is to be studied as is, i.e.~there is no sensor system present in the simulation, only one WSM is needed \artsstyle{sensor\_off}. It sets all the necessary sensor variables so that the monochromatic pencil beams are unchanged. This means setting \SnsMtr\ to be an identity matrix. Other variables that are set by \artsstyle{sensor\_off} are \artsstyle{sensor\_pol}, \artsstyle{sensor\_rot}, \artsstyle{antenna\_dim}, \artsstyle{mblock\_za\_grid}, \artsstyle{mblock\_aa\_grid} and all the \artsstyle{sensor\_response\_}\ldots variables.
+If the calculated monochromatic pencil beams is to be studied as is, i.e.~there is no sensor system present in the simulation, only one WSM is needed \artsstyle{sensor\_off}. It sets all the necessary sensor variables so that the monochromatic pencil beams are unchanged. This means setting \SnsMtr\ to be an identity matrix. Other variables that are set by \artsstyle{sensor\_off} are \artsstyle{sensor\_norm}, \artsstyle{sensor\_pol}, \artsstyle{sensor\_rot}, \artsstyle{antenna\_dim}, \artsstyle{mblock\_za\_grid}, \artsstyle{mblock\_aa\_grid} and all the sensor response variables.
 The syntax to disable the sensor in the simulation is simply;
 \begin{verbatim}
 sensorOff{}
 \end{verbatim}
 
 \subsection{Initialisation}
-When there is a sensor system present in the simulation the sensor response variables has to be set up in a correct way. The WSM \artsstyle{sensor\_responseInit} takes care of this. It sets the \SnsMtr\ to be an identity matrix with size so that is it applicable to the monochromatic pencil beam column vector. It also initialises
-the \artsstyle{sensor\_response\_}\ldots variables, \artsstyle{sensor\_response\_f}, \artsstyle{sensor\_response\_za}, \artsstyle{sensor\_response\_aa} and \artsstyle{sensor\_response\_pol}. These are updated by all succeeding sensor response WSMs, and therefor gives the accurate output grids and values for the frequency and zenith- and azimuth angle grids and number of polarisations. The output grids for the initial sensor response are \artsstyle{f\_grid}, \artsstyle{mblock\_za\_grid} and
-\artsstyle{mblock\_aa\_grid} and the number of polarisation equals \artsstyle{stokes\_dim}. These WSV has to be set prior to calling \artsstyle{sensor\_responseInit} together with the position and line-of-sight of the sensor and the atmosphere dimension.
+When there is a sensor system present in the simulation the sensor response variables has to be set up in a correct way. The WSM \artsstyle{sensor\_responseInit} takes care of this. It sets the \SnsMtr\ to be an identity matrix with size so that is it applicable to the monochromatic pencil beam column vector. It also initialises \artsstyle{sensor\_response\_f}, \artsstyle{sensor\_response\_za}, \artsstyle{sensor\_response\_aa} and \artsstyle{sensor\_response\_pol}. These are updated by all succeeding sensor response WSMs, and therefor gives the accurate output grids and values for the frequency and zenith- and azimuth angle grids and number of polarisations. The output grids for the initial sensor response are \artsstyle{f\_grid}, \artsstyle{mblock\_za\_grid} and
+\artsstyle{mblock\_aa\_grid} and the number of polarisation equals \artsstyle{stokes\_dim}. These WSV has to be set prior to calling \artsstyle{sensor\_responseInit} together with \artsstyle{sensor\_norm}, the position and line-of-sight of the sensor and the atmosphere dimension.
 
-An example syntax for calling the initialisation method looks like the following. Note that the filesnames used are just examples. First the atmosphere dimension is set, here to 1D, and the sensor position and line-of-sight is defined.
-\begin{verbatim}
-AtmosphereSet1D {}
-ReadXML( sensor_pos ) { "sensor_pos.xml" }
-ReadXML( sensor_los ) { "sensor_los.xml" }
-\end{verbatim}
-Then the required grid are specified. Here they are read from XML-files. The WSM \artsstyle{AntennaSet1D} sets both the antenna dimension and the azimuth angle grid.
-\begin{verbatim}
-ReadXML( f_grid ) { "f_mono.xml" }
-ReadXML( mblock_za_grid ) { "za_pencil.xml" }
-AntennaSet1D {} 
-\end{verbatim}
-Finally, the sensor response is computed
-\begin{verbatim}
-sensor_responseInit {}
-\end{verbatim}
+% An example syntax for calling the initialisation method looks like the following. Note that the filesnames used are just examples. First the atmosphere dimension is set, here to 1D, and the sensor position and line-of-sight is defined.
+% \begin{verbatim}
+% AtmosphereSet1D {}
+% ReadXML( sensor_pos ) { "sensor_pos.xml" }
+% ReadXML( sensor_los ) { "sensor_los.xml" }
+% \end{verbatim}
+% Then the required grid are specified. Here they are read from XML-files. The WSM \artsstyle{AntennaSet1D} sets both the antenna dimension and the azimuth angle grid.
+% \begin{verbatim}
+% ReadXML( f_grid ) { "f_mono.xml" }
+% ReadXML( mblock_za_grid ) { "za_pencil.xml" }
+% AntennaSet1D {} 
+% \end{verbatim}
+% Finally, the sensor response is computed
+% \begin{verbatim}
+% sensor_responseInit {}
+% \end{verbatim}
 
 %-----------------------------
 \section{Polarisation response}
+\label{sec:sensor:polarisation}
 Taking polarisation into account, and assuming no losses, the measured intensity for a certain direction and frequency , $I_p$, is
 \begin{equation}
 \label{eq:sensor:pol:response}
@@ -162,38 +318,40 @@ To study different polarisations in ARTS, these has to be defined by the polaris
   \end{array} \right].
 \end{displaymath}
 When initialised \MtrStl{P} is set to be the identity matrix, so to study all Stokes
-components nothing more has to be done. As an example the \artsstyle{sensor\_pol} matrix can be read from XML-file;
-\begin{verbatim}
-ReadXML( sensor_pol ) { "sensor_pol.xml" }
-\end{verbatim}
-now it is possible to call the computing function
-\begin{verbatim}
-sensor_responsePolarisation {}
-\end{verbatim}
-and now \SnsMtr\ is updated to include the polarisation response.
+components nothing more has to be done. 
+The \artsstyle{sensor\_pol} matrix is most easily read from XML-file.
+% As an example the \artsstyle{sensor\_pol} matrix can be read from XML-file;
+% \begin{verbatim}
+% ReadXML( sensor_pol ) { "sensor_pol.xml" }
+% \end{verbatim}
+% % now it is possible to call the computing function
+% % \begin{verbatim}
+% sensor_responsePolarisation {}
+% \end{verbatim}
+% and now \SnsMtr\ is updated to include the polarisation response.
+
+\FIXME{Name of WSM \artsstyle{sensor_responsePolarisation, and describe where it should be applied (before or after antenna)}
 
 %------------------------
 \section{Antenna response}
 \label{sec:sensor:antenna}
-The influence of the antenna can be expressed as a weighting between the antenna response, $w_\mathrm{a}$, as a function of viewing direction and the MPBR field, $I$:
-\begin{equation}
-  I_\mathrm{a} = \int_{4\pi}\!\!\!\!I(\Omega+\Omega_0) 
-  w_\mathrm{a}(\Omega) \; \mathrm{d}\Omega
-  \quad \textrm{with} \quad 
-  \int_{4\pi}\!\!\!\!w_\mathrm{a}(\Omega)\;\mathrm{d}\Omega = 1.
-\end{equation} 
-where $I_\mathrm{a}$ is the apparent radiation intensity after the antenna,
-$\Omega$ is solid angle and $\Omega_0$ is some reference point for the
-antenna pattern, normally the point of highest response.
+The influence of the antenna can as described in above in equation~\ref{eq:sensor:weight:antenna} be expressed as a weighting between the antenna response, $w_\mathrm{a}$, as a function of viewing direction and the monochromatic pencil beam spectra.
+% \begin{equation}
+%   I_\mathrm{a} = \int_{4\pi}\!\!\!\!I(\Omega+\Omega_0) 
+%   w_\mathrm{a}(\Omega) \; \mathrm{d}\Omega
+%   \quad \textrm{with} \quad 
+%   \int_{4\pi}\!\!\!\!w_\mathrm{a}(\Omega)\;\mathrm{d}\Omega = 1.
+% \end{equation} 
+% where $I_\mathrm{a}$ is the apparent radiation intensity after the antenna,
+% $\Omega$ is solid angle and $\Omega_0$ is some reference point for the
+% antenna pattern, normally the point of highest response.
 In ARTS the pencil beams are calculated for each measurement block at the angles
 given by \artsstyle{mblock\_za\_grid} and \artsstyle{mblock\_aa\_grid} added to the current line-of-sight, \artsstyle{sensor\_los}, as described in \ref{sec:fm_defs:sensorchar}. The weights  $w_\mathrm{a}$ are described by the WSV \artsstyle{antenna\_diagram} that describes the angular dependent antenna pattern. 
-ARTS is prepared to handle a full 3D environment with a 2D antenna, but so far only methods for 1D antennas have been developped. 
+ARTS is prepared to handle a full 3D environment with a 2D antenna, but so far only methods for 1D antennae have been developped. 
 
 \subsection{Antenna diagram}
-\FIXME{Change of concept?}
-
-The antenna diagram $w_\mathrm{a}$ in ARTS is represented by a structure \artsstyle{antenna\_diagram} that consists of an array of arrays of matrices. The reason to use such a complicated structure is to preserve as much variability as possible when describing the antenna pattern. With this structure it is possible to define the antenna response for different viewing angles, polarisations and frequencies. 
-Since there only exists a method 1D antennae, $w_\mathrm{a}$ is so far only defined for 1D antenna patterns. The structure consists of matrices that describe the weights for different angles. The first column in matrices describes the angular grid and the following columns the weights for different frequencies, see figure~\ref{fig:sensor:ant_diag}. Each polarisation is then represented by a separate matrix and each viewing angle by an array of matrices. By using arrays of matrices instead of tensors it is also possible to use different settings for the different polarisations/viewing directions. For each of these sets it is possible to define only one column, matrix or array of matrices, or a full set of columns, matrices or arrays of matrices. E.g.~for the most simple case where the antenna has the same pattern for all directions and frequencies $w_\mathrm{a}$ consists of a single array of matrix with a single two column matrix.
+The antenna diagram $w_\mathrm{a}$ in ARTS is represented by a structure \artsstyle{antenna\_diagram} that consists of an array of arrays of matrices. The reason to use such a complicated structure is to enable as much variability as possible when describing the antenna pattern. With this structure it is possible to define the antenna response for different viewing angles, polarisations and frequencies. 
+Since there only exists a method for 1D antennae, $w_\mathrm{a}$ is so far only defined for 1D antenna patterns. The structure consists of matrices that describe the weights for different angles. The first column in matrices describes the angular grid and the following columns the weights for different frequencies, see figure~\ref{fig:sensor:ant_diag}. Each polarisation is then represented by a separate matrix and each viewing angle by an array of matrices. By using arrays of matrices instead of tensors it is also possible to use different settings for the different polarisations/viewing directions. For each of these sets it is possible to define only one column, matrix or array of matrices, or a full set of columns, matrices or arrays of matrices. E.g.~for the most simple case where the antenna has the same pattern for all directions and frequencies $w_\mathrm{a}$ consists of a single array of matrix with a single two column matrix.
 \begin{figure}[!ht]
 \label{fig:sensor:ant_diag}
 \begin{center}
@@ -205,31 +363,35 @@ Since there only exists a method 1D antennae, $w_\mathrm{a}$ is so far only defi
 \end{figure}
 
 \subsection{1D antenna}
-Here it will be assumed that the variation of $I$ in one angular dimension can be neglected, and that the weighting can be described by an one dimensional integral:
+Here it will be assumed that the variation of \Mpi\ in one angular dimension can be neglected, and that the weighting can be described by an one dimensional integral:
 \begin{eqnarray}
 \label{eq:sensor:antenna:1D}
-  I_\mathrm{a} &=& \int_{-\pi}^\pi\!\!\!\!I(\theta+\theta_0) 
+  \aMpi{\mathrm{a}} &=& \int_{-\pi}^\pi\!\!\!\!I(\theta+\theta_0) 
   w_\mathrm{a}^\theta(\theta)\;\mathrm{d}\theta,\\
   w_\mathrm{a}^\theta(\theta) &=& \int_0^{2\pi}\!\!\!\!
   w_\mathrm{a}(\theta,\phi)\cos(\theta)\,\mathrm{d}\phi,
 \end{eqnarray}
-where $\theta_0$ is the reference angle of the antenna.
+where $\theta_0$ is the reference angle of the antenna. The weighting is only performed over the zenith angles and therefor the only variables needed before calling the calculating function apart from the output variables from the initialisation function are \artsstyle{antenna\_dim}, \artsstyle{antenna\_diagram}, \artsstyle{antenna\_los} and \artsstyle{mblock\_za\_grid}.
 
+\FIXME{Name of WSM \artsstyle{sensor_responseAntenna1D})
 
-\begin{verbatim}
-AntennaSet1D {}
-
-ReadXML( matrix_1 ) { "ant_diag.xml" }
-ArrayOfMatrixSet( arrayofmatrix_1, matrix_1 ) { element=0 }
-antenna_diagramAppendArray( arrayofmatrix_1 ) {}
-
-ReadXML( vector_1 ) { "antenna_za.xml" }
-
-sensor_responseAntenna1D( vector_1 ) {}
-\end{verbatim}
+% \begin{verbatim}
+% AntennaSet1D {}
+% 
+% ReadXML( matrix_1 ) { "ant_diag.xml" }
+% ArrayOfMatrixSet( arrayofmatrix_1, matrix_1 ) { element=0 }
+% antenna_diagramAppendArray( arrayofmatrix_1 ) {}
+% 
+% ReadXML( vector_1 ) { "antenna_za.xml" }
+% 
+% sensor_responseAntenna1D( vector_1 ) {}
+% \end{verbatim}
 
 %------------------------------------------
 \section{Mixer and sideband filter response}
+As described in section~\ref{sec:sensor:sum} the mixer folds the two RF sidebands together into the IF band. At the same time the sideband ratio can be altered by the mixer itself and a sideband filter, these two effects are grouped together to what we refer to as the sideband filter.  
+
+\subsection{Single mixer}
 \begin{verbatim}
 ReadXML( lo ) {
   "../xml/lo.xml"
@@ -241,6 +403,8 @@ ReadXML( matrix_1 ) {
 
 sensor_responseMixer( matrix_1 ) {}
 \end{verbatim}
+
+\subsection{Multiple mixers}
 
 %------------------------
 \section{Backend response}
@@ -298,13 +462,13 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % different sensor parts as subsequent matrix multiplications of the
 % monochromatic pencil beam spectrum, as suggested in \citet{eriksson:00a}:
 % \begin{eqnarray}
-%   \y = \Hm_n\dots\Hm_2\Hm_1\iv + \merr
+%   \MsrVct = \Hm_n\dots\Hm_2\Hm_1\iv + \merr
 % \end{eqnarray}
 % where $n$ is the number of sensor parts to consider, and this results
 % in that the sensor model can be expressed as a single matrix
 % multiplication (Eq. \ref{eq:formalism:H})
 % \begin{eqnarray}
-%   \y = \Hm\iv + \merr                     \nonumber
+%   \MsrVct = \Hm\iv + \merr                     \nonumber
 % \end{eqnarray}
 % Applying Equation \ref{eq:formalism:H} for the sensor model will
 % clearly give very rapid calculations, and we must find ways to

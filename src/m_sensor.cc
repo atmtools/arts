@@ -157,6 +157,7 @@ void ConvertIFToRF(
                    const Vector&    sensor_response_aa,
                    const Vector&    lo,
                    const Index&     atmosphere_dim,
+                   const Matrix&    sensor_pos,
                    // Control Parameters:
                    const String&    output )
 {
@@ -174,12 +175,13 @@ void ConvertIFToRF(
     throw runtime_error("The frequencies seems to already be given in RF.");
 
   // Check that *y* has the right size
+  Index n_mb = sensor_pos.nrows();
   Index n_az = sensor_response_za.nelem();
   Index n_pol = sensor_pol.nrows();
   Index n_freq = sensor_response_f.nelem();
-  if( atmosphere_dim!=1 )
+  if( atmosphere_dim>2 )
     n_az *= sensor_response_aa.nelem();
-  if( y.nelem()!=n_freq*n_pol*n_az )
+  if( y.nelem()!=n_freq*n_pol*n_az*n_mb )
     throw runtime_error(
       "The measurement vector *y* does not have the correct size.");
 
@@ -194,13 +196,16 @@ void ConvertIFToRF(
     f_out += l;
 
     // The measurement vector *y* then also has to be reversed for each
-    // zenith and azimuth angle, and polarisation to match the frequency
-    // vector.
+    // measurement block, zenith and azimuth angle, and polarisation to 
+    // match the frequency vector.
     Vector y_out( y.nelem() );
-    for( Index az=0; az<n_az; az++ ) {
-      for( Index p=0; p<n_pol; p++ ) {
-        y_out[Range(az*n_pol*n_freq+p,n_freq,n_pol)] =
-          y[Range((az+1)*n_pol*n_freq-(n_pol-p),n_freq,-n_pol)];
+    for( Index mb=0; mb<n_mb; mb++ ) {
+      for( Index az=0; az<n_az; az++ ) {
+        Index mb_az = (mb*n_az+az)*n_pol*n_freq;
+        for( Index p=0; p<n_pol; p++ ) {
+          y_out[Range(mb_az+p,n_freq,n_pol)] =
+            y[Range(mb_az+(n_freq-1)*n_pol+p,n_freq,-n_pol)];
+        }
       }
     }
 
@@ -230,15 +235,21 @@ void ConvertIFToRF(
 
     // The measurement vector *y* is also unfolded in a similar manner.
     Vector y_out( y.nelem()*2 );
-    for( Index az=0; az<n_az; az++ ) {
-      for( Index p=0; p<n_pol; p++ ) {
-        y_out[Range(az*2*n_pol*n_freq+p,n_freq,n_pol)] =
-          y[Range((az+1)*n_pol*n_freq-(n_pol-p),n_freq,-n_pol)];
-        y_out[Range((az*2+1)*n_pol*n_freq+p,n_freq,n_pol)] =
-          y[Range(az*n_pol*n_freq+p,n_freq,n_pol)];
+    for( Index mb=0; mb<n_mb; mb++ ) {
+      for( Index az=0; az<n_az; az++ ) {
+        // Primary band, just moved down the vector
+        Index mb_az = (mb*n_az+az)*n_pol*n_freq;
+        y_out[Range(2*mb_az+n_az*n_freq*n_pol,n_az*n_freq*n_pol)] =
+          y[Range(mb_az,n_az*n_freq*n_pol)];
+        // Image band, here we need to resort the vector        
+        for( Index p=0; p<n_pol; p++ ) {
+          Index mb2_az = (2*mb*n_az+az)*n_pol*n_freq;
+          y_out[Range(mb2_az+p,n_freq,n_pol)] =
+            y[Range(mb_az+(n_freq-1)*n_pol+p,n_freq,-n_pol)];
+        }
       }
     }
-
+    
     // Copy temporary vectors to output vectors
     sensor_response_f = f_out;
     y = y_out;
@@ -689,8 +700,7 @@ void sensor_responseInit(// WS Output:
     n *= sensor_response_aa.nelem();
 
   out2 << "  Initialising *sensor_reponse* as a identity matrix.\n";
-  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
-       << "x" << sensor_response.ncols() << "\n";
+  out3 << "  Size of *sensor_response*: " << n << "x" << n << "\n";
 
   //Set matrix to identity matrix
   sensor_response.make_I(n,n);

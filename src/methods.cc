@@ -1208,7 +1208,7 @@ void define_md_data_raw()
          ),
          OUTPUT( sensor_response_f_, y_ ),
          INPUT( sensor_pol_, sensor_response_za_, sensor_response_aa_, lo_,
-                atmosphere_dim_ ),
+                atmosphere_dim_, sensor_pos_ ),
          GOUTPUT( ),
          GINPUT( ),
          KEYWORDS( "output" ),
@@ -2067,7 +2067,8 @@ void define_md_data_raw()
          "\n"
          "This functions also adds the SpeciesTag of the given species to\n"
          "*gas_species*. This way the treated gas species only need to be\n"
-         "given at one place in the control file.\n"
+         "given at one place in the control file. It also appends\n"
+         "*jacobianCalcGas* with the given gas species to *jacobian_agenda*.\n"
          "\n"
          "For 1D or 2D calculations the latitude and/or longitude grid of\n"
          "the retrieval field should be set to zero length.\n"
@@ -2076,6 +2077,7 @@ void define_md_data_raw()
          "\n"
          "Output:\n"
          "  jacobian_quantities : The array of retrieval quantities.\n"
+         "  jacobian_agenda     : The agenda for calculating the jacobian.\n"
          "  gas_species         : Tag groups for scalar gas absorption.\n"
          "\n"
          "Input:\n"
@@ -2093,7 +2095,7 @@ void define_md_data_raw()
          "  unit    : Unit of the perturbation, \"rel\" or \"abs\".\n"
          "  dx      : Size of perturbation."
         ),
-        OUTPUT( jacobian_quantities_, gas_species_ ),
+        OUTPUT( jacobian_quantities_, jacobian_agenda_, gas_species_ ),
         INPUT( jacobian_, atmosphere_dim_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
@@ -2108,24 +2110,28 @@ void define_md_data_raw()
          "Add a pointing as a retrieval quantity to the Jacobian.\n"
          "\n"
          "This function adds a pointing offset described over time by a\n"
-         "polynomial.\n"
+         "polynomial. The WSM *jacobianCalcPointing is automatically added\n"
+         "to *jacobian_agenda*.\n"
+         "\n"
          "NOTE: So far this function only treats zenith angle offsets.\n"
          "NOTE 2: Only constant offsets, i.e. zero order polynomials are\n"
          "implemented.\n"
          "\n"
          "Output:\n"
          "  jacobian_quantities : The array of retrieval quantities.\n"
+         "  jacobian_agenda     : The agenda for calculating the jacobian.\n"
          "\n"
          "Input:\n"
          "  jacobian            : The Jacobian matrix.\n"
+         "  sensor_pos          : Define number of measurement blocks.\n"
          "\n"
          "Keywords:\n"
          "  dza                 : The size of the perturbation.\n"
          "  unit                : Unit of perturbation \"abs\"/\"rel\"\n"
          "  poly_order          : Order of the polynomial."
         ),
-        OUTPUT( jacobian_quantities_ ),
-        INPUT( jacobian_ ),
+        OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
+        INPUT( jacobian_, sensor_pos_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS( "dza", "unit", "poly_order" ),
@@ -2140,12 +2146,15 @@ void define_md_data_raw()
          "\n"
          "For 1D or 2D calculations the latitude and/or longitude grid of\n"
          "the retrieval field should be set to zero length.\n"
+         "The WSM *jacobianCalcTemperature* is automatically added to\n"
+         "*jacobian_agenda*.\n"
          "\n" 
          "NOTE: So far hydrostatic equilibrium is not considered and only\n"
          "\"perturbation\" method implemented.\n"
          "\n"
          "Output:\n"
          "  jacobian_quantities : The array of retrieval quantities.\n"
+         "  jacobian_agenda     : The agenda for calculating the jacobian.\n"
          "\n"
          "Input:\n"
          "  jacobian       : The Jacobian Matrix.\n"
@@ -2161,7 +2170,7 @@ void define_md_data_raw()
          "  unit    : Unit of the perturbation, \"rel\" or \"abs\".\n"
          "  dx      : Size of perturbation."
         ),
-        OUTPUT( jacobian_quantities_ ),
+        OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
