@@ -2038,8 +2038,9 @@ void i_fieldUpdateSeq3D(// WS Output:
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
-      //Loop over azimuth directions (scat_aa_grid)
-      for(scat_aa_index = 0; scat_aa_index < N_scat_aa; scat_aa_index ++)
+      //Loop over azimuth directions (scat_aa_grid). First and last point in 
+      // azimuth angle grid are euqal. Start with second element.
+      for(scat_aa_index = 1; scat_aa_index < N_scat_aa; scat_aa_index ++)
         {
          //==================================================================
           // Radiative transfer inside the cloudbox
@@ -2171,6 +2172,11 @@ void i_fieldUpdateSeq3D(// WS Output:
             }
         } //  Closes loop over aa_grid.
     }// Closes loop over scat_za_grid.
+
+  i_field(joker, joker, joker, joker, 0, joker) = 
+    i_field(joker, joker, joker, joker, N_scat_aa-1, joker);
+
+  
   
 }// end of function.          
       
@@ -2636,8 +2642,9 @@ scat_fieldCalc(//WS Output:
 
                         pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                     atmosphere_dim, 
-                                    p_index + cloudbox_limits[0], lat_index, 
-                                    lon_index);
+                                    p_index + cloudbox_limits[0], 
+                                    lat_index + cloudbox_limits[2], 
+                                    lon_index + cloudbox_limits[4]);
                    
                         product_field = 0;
 
@@ -2688,7 +2695,7 @@ scat_fieldCalc(//WS Output:
       }// end lat loop
   }// end p loop
   // end atmosphere_dim = 3
-  
+
 }
 
 
@@ -2945,17 +2952,17 @@ scat_fieldCalcLimb(//WS Output:
       
     // Loop over all positions
     for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
-         p_index++)
+         p_index ++)
       {
         for (Index lat_index = 0; lat_index <= 
                cloudbox_limits[3] - cloudbox_limits[2]; lat_index++)
           {
             for (Index lon_index = 0; lon_index <= 
-                   cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
+                   cloudbox_limits[5] - cloudbox_limits[4]; lon_index++)
               {
                
                 // Loop over scattered directions
-                for (scat_aa_index = 0; scat_aa_index < Naa; 
+                for (scat_aa_index = 1; scat_aa_index < Naa; 
                      scat_aa_index ++)
                   {
                    // Interpolate intensity field:
@@ -2974,8 +2981,9 @@ scat_fieldCalcLimb(//WS Output:
                         
                         pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                     atmosphere_dim, 
-                                    p_index + cloudbox_limits[0], lat_index, 
-                                    lon_index);
+                                    p_index + cloudbox_limits[0], 
+                                    lat_index + cloudbox_limits[2], 
+                                    lon_index + cloudbox_limits[4]);
                         
                         product_field = 0;
                         
@@ -3037,7 +3045,12 @@ scat_fieldCalcLimb(//WS Output:
       }// end p loop
   }// end atm_dim=3
 
-  out2 << "Finished scattered field.\n"; 
+  
+
+  scat_field(joker, joker, joker, joker, 0, joker) = 
+    scat_field(joker, joker, joker, joker, Naa-1, joker); 
+    
+    out2 << "Finished scattered field.\n"; 
  
 }
 

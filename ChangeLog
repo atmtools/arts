@@ -1,3 +1,16 @@
+2003-12-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-761
+	
+	* src/m_scatrte.cc (scat_fieldCalcLimb): Fixed small bug in 3D part. 
+	The latitude and longitude indices where not right in the pha_matCalc.
+	Furthermore  changed loops, so that azimuth angle 0° (=360°) 
+	is not calculated twice. Did the same in (i_fieldUpdateSeq3D).
+	(scat_fieldCalc): Fixed the same bug. 
+
+	Now, the 3D model seems to work perfectly, the problem with the 
+	cloudbox boundaries is solved!!!
+
 2003-12-15  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-760
