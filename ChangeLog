@@ -1,3 +1,36 @@
+2001-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-207
+
+	* doc/uguide/main.tex (paragraph{#1}}): Moved setting of tocdepth
+	counter to uguide_pdf.tex and uguide.tex.
+
+	* doc/uguide/uguide.tex: Added the tocdepth counter.
+
+	* doc/uguide/uguide_pdf.tex: Increase the depth of the table of
+	contents to three for the pdf version. That means, that also minor
+	headings will be displayed. This is useful, because one can jump
+	directly to the subsection by mouseclick with the Acrobat reader.
+
+	* src/make_auto_wsv_pointers_cc.cc (main): Corrected program name
+	in doxygen header and output file.
+
+	* src/make_auto_wsv_h.cc (main): Corrected program name
+	in doxygen header and output file.
+
+	* src/make_auto_wsv_groups_h.cc (main): Corrected program name
+	in doxygen header and output file.
+
+	* src/make_auto_md_h.cc (main): Corrected program name
+	in doxygen header and output file.
+
+	* src/make_auto_md_cc.cc (main): Corrected program name
+	in doxygen header and output file.
+
+	* *.cc, *.h: Added GPL to files where it was missing. Updated JPL
+	(year and authors).
+
+	
 2001-09-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-206

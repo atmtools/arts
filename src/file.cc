@@ -1,4 +1,4 @@
-/* Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -35,6 +35,7 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <hdf.h>
 #include <stdexcept>
 #include <math.h>
 #include "arts.h"
@@ -42,7 +43,6 @@
 #include "array.h"
 #include "messages.h"
 #include "file.h"
-#include <hdf.h>
 
 
 

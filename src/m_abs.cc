@@ -1,7 +1,7 @@
-/* Copyright (C) 2000 Stefan Buehler   <sbuehler@uni-bremen.de>
-                      Patrick Eriksson <patrick@rss.chalmers.se>
-		      Axel von Engeln  <engeln@uni-bremen.de>
-		      Thomas Kuhn      <tkuhn@uni-bremen.de>
+/* Copyright (C) 2000, 2001 Stefan Buehler   <sbuehler@uni-bremen.de>
+                      	    Patrick Eriksson <patrick@rss.chalmers.se>
+		      	    Axel von Engeln  <engeln@uni-bremen.de>
+		      	    Thomas Kuhn      <tkuhn@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the

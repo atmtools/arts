@@ -1,4 +1,4 @@
-/* Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -16,7 +16,7 @@
    USA. */
 
 /*!
-  \file   make_wsv_h.cc
+  \file   make_auto_wsv_h.cc
   \brief  Generates the file auto_wsv.h.
 
   This is a little C++ program that generates the header file from the
@@ -62,7 +62,7 @@ int main()
 	  << "    handle for workspace variables. Also declares the\n"
 	  << "    workspace itself.\n\n"
 
-	  << "    This file was generated automatically by make_wsv_h.cc.\n"
+	  << "    This file was generated automatically by make_auto_wsv_h.cc.\n"
 
 	  << "    <b>DO NOT EDIT!</b>\n\n"
 

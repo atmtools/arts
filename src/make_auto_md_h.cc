@@ -1,4 +1,4 @@
-/* Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -16,7 +16,7 @@
    USA. */
 
 /*!
-  \file   make_md_h.cc
+  \file   make_auto_md_h.cc
   \brief  This is a little C++ program that generates the file auto_md.h from the
           workspace methods data md_data. 
 
@@ -124,7 +124,7 @@ int main()
       ofstream ofs;
       open_output_file(ofs,"auto_md.h");
 
-      ofs << "// This file was generated automatically by make_md_h.cc.\n";
+      ofs << "// This file was generated automatically by make_auto_md_h.cc.\n";
       ofs << "// DO NOT EDIT !\n";
       ofs << "// Generated: "
 	  << __DATE__ << ", "

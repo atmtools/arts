@@ -1,4 +1,4 @@
-/* Copyright (C) 2000 Patrick Eriksson <patrick@rss.chalmers.se>
+/* Copyright (C) 2000, 2001 Patrick Eriksson <patrick@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
