@@ -48,6 +48,7 @@
 #include "physics_funcs.h"
 #include "matpackI.h"
 #include "messages.h"
+#include "rte.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -133,6 +134,97 @@ void AtmosphereSet3D(
 
 
 
+//! GroundNoScatteringSingleEmissivity
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-09-22
+*/
+void GroundNoScatteringSingleEmissivity(
+              Matrix&    ground_emission, 
+              Matrix&    ground_los, 
+              Tensor4&   ground_refl_coeffs,
+        const Vector&    f_grid,
+	const Index&     stokes_dim,
+	const GridPos&   a_gp_p,
+	const GridPos&   a_gp_lat,
+	const GridPos&   a_gp_lon,
+	const Vector&    a_los,
+        const Index&     atmosphere_dim,
+        const Vector&    p_grid,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+	const Matrix&    r_geoid,
+        const Matrix&    z_ground,
+        const Tensor3&   t_field,
+        const Numeric&   e )
+{
+  //--- Check input -----------------------------------------------------------
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
+  chk_atm_surface( "z_ground", z_ground, atmosphere_dim, lat_grid, lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+  chk_if_in_range( "the keyword *e*", e, 0, 1 );
+  //---------------------------------------------------------------------------
+
+  out2 << 
+        "  Sets the ground to have no scattering and a constant emissivity.\n";
+  out3 << 
+        "     Ground temperature is obtained by interpolation of *t_field*.\n";
+  out3 << "     Zenith angle for upwelling radiation is   : " 
+       << a_los[0] << "\n";
+  if( atmosphere_dim > 2 )
+    {
+      out3 << "     Azimuth angle for upwelling radiation is  : " << a_los[1] 
+           << "\n";
+    }
+
+  // Some sizes
+  const Index   nf = f_grid.nelem();
+
+  // Resize output arguments
+  ground_emission.resize( nf, stokes_dim );
+  ground_los.resize( 1, a_los.nelem() );
+  ground_refl_coeffs.resize( 1, nf, stokes_dim, stokes_dim );
+  ground_refl_coeffs = 0;
+
+  // Determine the temperature at the point of the ground reflection
+  Numeric t;
+  interp_atmfield( t, atmosphere_dim, p_grid, lat_grid, lon_grid,
+      	                      t_field, "t_field", a_gp_p, a_gp_lat, a_gp_lon );
+
+  // Fill ground_emission and ground_refl_coeffs
+  for( Index i=0; i<nf; i++ )
+    { 
+      ground_emission(i,0) = e * planck( f_grid[i], t ); 
+      ground_refl_coeffs(0,i,0,0) = 1 - e;
+      for( Index is=1; is<stokes_dim; is++ )
+	{ 
+	  ground_emission(i,is) = 0; 
+	  ground_refl_coeffs(0,i,is,is) = 1 - e;
+	}
+      // Note that other elements of ground_feld_coeffs are set to 0 above.
+    }
+
+  // Calculate LOS for downwelling radiation
+  ground_specular_los( ground_los(0,Range(joker)), atmosphere_dim, r_geoid,
+                      z_ground, lat_grid, lon_grid, a_gp_lat,a_gp_lon, a_los );
+
+  out3 << "     Zenith angle for downwelling radiation is : " 
+       << ground_los(0,0) << "\n";
+  if( atmosphere_dim > 2 )
+    {
+      out3 << "     Azimuth angle for downwelling radiation is: " 
+           << ground_los(0,1) << "\n";
+    }
+}
+
+
+
 //! GroundTreatAsBlackbody
 /*!
    See the the online help (arts -d FUNCTION_NAME)
@@ -155,6 +247,18 @@ void GroundTreatAsBlackbody(
         const Vector&    lon_grid,
         const Tensor3&   t_field )
 {
+  //--- Check input -----------------------------------------------------------
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+  //---------------------------------------------------------------------------
+
+  out2 << "  Sets the ground to be a blackbody.\n";
+  out3 << 
+        "     Ground temperature is obtained by interpolation of *t_field*.\n";
+
   // Set ground_los and ground_refl_coeffs to be empty as no downwelling
   // spectra shall be calculated
   ground_los.resize(0,0);
@@ -167,29 +271,14 @@ void GroundTreatAsBlackbody(
   ground_emission.resize(nf,stokes_dim);
 
   // Determine the temperature at the point of the ground reflection
-  //
-  Vector t(1);
-  //
-  ArrayOfGridPos   agp_p(1), agp_lat(0), agp_lon(0);
-  gridpos_copy( agp_p[0], a_gp_p );
-  if( atmosphere_dim > 1 )
-    { 
-      agp_lat.resize(1);
-      gridpos_copy( agp_lat[0], a_gp_lat ); 
-    } 
-  if( atmosphere_dim > 2 )
-    { 
-      agp_lon.resize(1);
-      gridpos_copy( agp_lon[0], a_gp_lon ); 
-    }
-  //
+  Numeric t;
   interp_atmfield( t, atmosphere_dim, p_grid, lat_grid, lon_grid,
-      	                         t_field, "t_field", agp_p, agp_lat, agp_lon );
+      	                      t_field, "t_field", a_gp_p, a_gp_lat, a_gp_lon );
 
   // Fill ground_emission with unpolarised blackbody radiation
   for( Index i=0; i<nf; i++ )
     { 
-      ground_emission(i,0) = planck( f_grid[i], t[0] ); 
+      ground_emission(i,0) = planck( f_grid[i], t ); 
       for( Index is=1; is<stokes_dim; is++ )
 	{ ground_emission(i,is) = 0; }
     }

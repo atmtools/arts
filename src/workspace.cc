@@ -281,7 +281,10 @@ void define_wsv_data()
       (
        "The dimensionality of the antenna pattern (1-2).\n"
        "\n"
-       "Text will be written (PE).\n"
+       "A dimensionality of 1 means that only the respons variation in the\n"
+       "zenith direction is considered. The respons is the integrated in the\n"
+       "azimuth direction. For 2D, the respons of the antenna has both a\n"
+       "zenith and azimuth variation.\n"
        "\n"
        "Usage:      Set by the user."
        ),
@@ -394,7 +397,7 @@ void define_wsv_data()
        "\n"
        "Usage:      Calculated in *i_fieldUpdate1D*.\n"
        "\n"
-       "Unit:       W\n "
+       "Unit:       W / (m^2 Hz sr)\n "
        ),
       GROUP( Numeric_ )));
 
@@ -669,7 +672,7 @@ void define_wsv_data()
        (
 	"Tag groups for scalar gas absorption.\n"
 	"\n"
-	"This is an array of arrays of OneTag tag definitions.  It defines the\n"
+	"This is an array of arrays of OneTag tag definitions. It defines the\n"
 	"available tag groups for the calculation of scalar gas absorption\n"
 	"coefficients.  See online documentation of method *gas_tgsDefine* for\n"
 	"more detailed information how tag groups work and some examples."
@@ -681,7 +684,15 @@ void define_wsv_data()
      ( NAME( "ground_emission" ),
        DESCRIPTION
        (
-	"To be written (PE).\n"
+	"The emission from the ground at a specified position.\n"
+	"\n"
+	"See further *ground_refl_agenda*.\n"
+	"\n"
+	"Usage:      Output from *ground_refl_agenda*.. \n"
+	"\n"
+	"Unit:       W / (m^2 Hz sr)\n"
+	"\n"
+	"Dimensions: [ f_grid, stokes_dim ]"
 	), 
        GROUP( Matrix_ )));
  
@@ -699,7 +710,19 @@ void define_wsv_data()
      ( NAME( "ground_refl_coeffs" ),
        DESCRIPTION
        (
-	"To be written (PE).\n"
+	"The reflection coefficients from the directions given by\n"
+	"*ground_los* to the direction of interest.\n"
+	"\n"
+	"The rows and columns of this tensor holds the reflection coefficient"
+	"matrix for one frequency and one LOS.\n"
+	"\n"
+	"See further *ground_refl_agenda*.\n"
+	"\n"
+	"Usage:      Output from *ground_refl_agenda*.. \n"
+	"\n"
+	"Units:      -\n"
+	"\n"
+	"Dimensions: [ ground_los, f_grid, stokes_dim, stokes_dim ]"
 	), 
        GROUP( Tensor4_ )));
  
@@ -708,7 +731,16 @@ void define_wsv_data()
      ( NAME( "ground_los" ),
        DESCRIPTION
        (
-	"To be written (PE).\n"
+	"Directions for which to calculate downwelling radiation when \n"
+	"considerin g a ground reflection.\n"
+	"\n"
+	"See further *ground_refl_agenda*.\n"
+	"\n"
+	"Usage: Output from *ground_refl_agenda*.. \n"
+	"\n"
+	"Units: degrees\n"
+	"\n"
+	"Size:  [ any number, 1 or 2 ]"
 	), 
        GROUP( Matrix_ )));
  
@@ -920,9 +952,9 @@ void define_wsv_data()
        "\n"
        "Values shall be inside the range [-90,90].\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "Usage: Set by the user.\n"
        "\n"
-       "Unit:       degrees"
+       "Unit:  degrees"
        ),
       GROUP( Numeric_ )));
 
@@ -947,9 +979,9 @@ void define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "Usage: Set by the user.\n"
        "\n"
-       "Unit:       degrees"
+       "Unit:  degrees"
        ),
       GROUP( Vector_ )));
 
@@ -1062,7 +1094,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage:      Set by user."
+       "Usage: Set by user."
        ),
       GROUP( Matrix_ )));
 
@@ -1082,11 +1114,17 @@ void define_wsv_data()
       (
        "The azimuthal angle grid for each measurement block.\n"
        "\n"
-       "Text will be written (PE).\n"
+       "This variable should normally contain the azimuth grid of the\n"
+       "antenna pattern. The grid is given as an angular off-set with\n"
+       "respect to the angles in *sensor_los*.\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
        "\n"
-       "Unit:       degrees "
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  degrees "
        ),
       GROUP( Vector_ )));
 
@@ -1104,7 +1142,7 @@ void define_wsv_data()
        "extension can be to assign a time for each measurement block to \n"
        "know, for example, the position of the sun. \n"
        "\n"
-       "Usage:      See above.\n"
+       "Usage: See above.\n"
        ),
       GROUP( Index_ )));
 
@@ -1115,11 +1153,17 @@ void define_wsv_data()
       (
        "The zenith angle grid for each measurement block.\n"
        "\n"
-       "Text will be written (PE).\n"
+       "This variable should normally contain the zenith grid of the\n"
+       "antenna pattern. The grid is given as an angular off-set with\n"
+       "respect to the angles in *sensor_los*.\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
        "\n"
-       "Unit:       degrees "
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  degrees "
        ),
       GROUP( Vector_ )));
 
@@ -1137,9 +1181,9 @@ void define_wsv_data()
        "\n"
        "Values shall be in the range [-180,180].\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "Usage: Set by the user.\n"
        "\n"
-       "Unit:       degrees"
+       "Unit:  degrees"
        ),
       GROUP( Numeric_ )));
 
@@ -1162,9 +1206,9 @@ void define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "Usage: Set by the user.\n"
        "\n"
-       "Unit:       Pa"
+       "Unit:  Pa"
        ),
       GROUP( Vector_ )));
 
@@ -1306,7 +1350,7 @@ void define_wsv_data()
        "find where the data structure, Ppath, for propagation paths is \n"
        "discussed. It is listed as a subentry to \"data structures\".\n"
        "\n"
-       "Usage:      Output from the method *ppathCalc*."
+       "Usage: Output from the method *ppathCalc*."
        ),
       GROUP( Ppath_ )));
 
@@ -1325,9 +1369,9 @@ void define_wsv_data()
        "paths. Or read the chapter on propgation paths in the ARTS user\n"
        "guide.\n"
        "\n"
-       "Usage:      In/output to/from *ppath_step_agenda*.\n"
+       "Usage:   In/output to/from *ppath_step_agenda*.\n"
        "\n"
-       "Members:    To be written."
+       "Members: See AUG."
        ),
       GROUP( Ppath_ )));
 
@@ -1363,8 +1407,8 @@ void define_wsv_data()
        "The geoid is defined by giving the radius from the coordinate centre\n"
        "to the geoid surface for each crossing of the latitude and longitude\n"
        "grids. The geoid should normally be selected to be an ellipsoid but\n"
-       "any shape is allowed. For 1D calculations, the geoid is be definition\n"
-       "a sphere.\n"
+       "any shape is allowed. For 1D calculations, the geoid is by\n"
+       "definition a sphere.\n"
        "\n"
        "The radius for a point between the grid crossings is obtained by\n"
        "linear (2D) or bi-linear (3D) interpolation of the *r_geoid*. For 1D\n"
@@ -1686,7 +1730,9 @@ void define_wsv_data()
       (
        "The sensor line-of-sight for each measurement block.\n"
        "\n"
-       "Text will be written (PE).\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
        "\n"
        "Usage: Set by the user.\n"
        "\n"
@@ -1703,10 +1749,9 @@ void define_wsv_data()
       (
        "The sensor position for each measurement block.\n"
        "\n"
-       "Text will be written (PE).\n"
-       "\n"
-       "Range for zenith angles is [0,180] beside for 2D where it\n"
-       "is [-180,180].\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
        "\n"
        "Usage: Set by the user.\n"
        "\n"
@@ -1789,7 +1834,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage:      Set by user."
+       "Usage: Set by user."
        ),
       GROUP( Vector_ )));
 
@@ -1804,7 +1849,7 @@ void define_wsv_data()
        "It can be used, for example, when some intermediate data must be\n"
        "generated or to copy some data.\n"
        "\n"
-       "Usage:      Set by user."
+       "Usage: Set by user."
        ),
       GROUP( Vector_ )));
 
@@ -1832,10 +1877,10 @@ void define_wsv_data()
        "\n"
        "Text will be written (PE).\n"
        "\n"
-       "Usage:      Output from methods to apply sensor characteristics.\n"
+       "Usage: Output from methods to apply sensor characteristics.\n"
        "\n"
-       "Unit:       Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
-       "            optical thickness."
+       "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
+       "       optical thickness."
        ),
       GROUP( Vector_ )));
 
@@ -1852,7 +1897,7 @@ void define_wsv_data()
        "\n"
        "Unit:       W/(m^2 Hz sr) or optical thickness.\n"
        "\n"
-       "Dimensions: [ ?, stokes_dim ]"
+       "Dimensions: [ any number, stokes_dim ]"
        ),
       GROUP( Matrix_ )));
 
@@ -1921,6 +1966,5 @@ void define_wsv_data()
        "Dimensions: [ lat_grid, lon_grid ]"
        ),
       GROUP( Matrix_ )));
-
  
 }

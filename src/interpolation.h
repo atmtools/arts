@@ -255,16 +255,48 @@ void interp( Tensor6View       	   ia,
 	     const ArrayOfGridPos& rgp,
              const ArrayOfGridPos& cgp);
 
-void interp_atmfield( 
-              Vector&         	e, 
+void interp_atmsurface( 
+              VectorView        x, 
         const Index&          	atmosphere_dim,
-        const Vector&         	p_grid,
-        const Vector&         	lat_grid,
-        const Vector&         	lon_grid,
-	const Tensor3&          x_field,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+	ConstMatrixView         x_surf,
+ 	const String&           x_surf_name,
+        const ArrayOfGridPos&   gp_lat,
+	const ArrayOfGridPos&   gp_lon );
+
+void interp_atmsurface( 
+              Numeric&          x, 
+        const Index&          	atmosphere_dim,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+	ConstMatrixView         x_field,
+ 	const String&           x_field_name,
+        const GridPos&          gp_lat,
+	const GridPos&          gp_lon );
+
+void interp_atmfield( 
+              VectorView        x, 
+        const Index&          	atmosphere_dim,
+        ConstVectorView         p_grid,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+	ConstTensor3View        x_field,
  	const String&           x_field_name,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
 	const ArrayOfGridPos&   gp_lon );
+
+void interp_atmfield( 
+              Numeric&          x, 
+        const Index&          	atmosphere_dim,
+        ConstVectorView         p_grid,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+	ConstTensor3View        x_field,
+ 	const String&           x_field_name,
+        const GridPos&          gp_p,
+        const GridPos&          gp_lat,
+	const GridPos&          gp_lon );
 
 #endif // interpolation_h

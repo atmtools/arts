@@ -1204,6 +1204,42 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("GroundNoScatteringSingleEmissivity"),
+	DESCRIPTION
+	(
+	 "Treats the ground to not cause any scattering, and to have a\n"
+	 "reflection coefficient of 1-e. \n"
+	 "\n"
+	 "The size of *ground_emission* is set to [ nf, stokes_dim ] where \n"
+	 "nf is the length of *f_grid*. Columns 2-4 are set to zero.\n"
+	 "The temperature of the ground is obtained by interpolating \n"
+	 "*t_field* to the position of the ground reflection. The obtained \n"
+	 "temperature and *f_grid* are then used as input to the Planck\n"
+	 "function. The emission from the ground is then calculated as eB,\n"
+	 "where B is the Planck function.\n"
+	 "\n"
+	 "It is here assumed that the downwelling radiation to consider\n"
+	 "comes from a single direction and the returned *ground_los*\n"
+	 "contains only one LOS. The slope of the ground is considered\n"
+	 "when calculating the LOS for the downwelling radiation. The\n"
+	 "reflection matrices in *ground_refl_coeffs* are all set to be\n"
+	 "diagonal matrices, where all diagonal elements are 1-e.\n"
+	 "\n"
+         "Keywords: \n"
+         "   e : Ground emissivity. Must be a value in the range [0,1].\n"
+	 "       All frequencies are assumed to have the same e."
+	),
+	OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_ ),
+	INPUT( f_grid_, stokes_dim_, a_gp_p_, a_gp_lat_, a_gp_lon_, a_los_,
+	       atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+	       r_geoid_,z_ground_, t_field_ ),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS(    "e"    ),
+	TYPES(    Numeric_t )));
+ 
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("GroundTreatAsBlackbody"),
 	DESCRIPTION
 	(
@@ -1223,9 +1259,9 @@ md_data_raw.push_back
 	 "function and the calculated blackbody radiation is put into the\n"
 	 "first column of *ground_emission*.\n"
 	 "\n"
-	 "Note that this function does not use *a_los* as input, and if used\n"
-	 "inside *ground_refl_agenda*, the command Ignore(a_los){} must be\n"
-	 "added to the agenda."
+	 "Note that this function does not use *a_los*, *r_geoid* and\n"
+	 "*z_ground* as input, and if used inside *ground_refl_agenda*,\n"
+	 "ignore commands for those variables must be added to the agenda."
 	),
 	OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_ ),
 	INPUT( f_grid_, stokes_dim_, a_gp_p_, a_gp_lat_, a_gp_lon_, 

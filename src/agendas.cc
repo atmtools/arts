@@ -179,10 +179,29 @@ void define_agenda_data()
      ( NAME( "ground_refl_agenda" ),
        DESCRIPTION
        (
-	"To be written (PE)."
+	"Describes the properties of the ground to consider when there is a\n"
+	"ground reflection.\n"
+	"\n"
+	"The ground properties are described by the WSVs *ground_emission*,\n"
+	"*ground_los* and *ground_refl_coeffs*.\n"
+	"\n"
+	"The upwelling radiation from the ground is calculated as the sum of\n"
+	"*ground_emission* and the spectra calculated for the directions\n"
+	"given by *ground_los*, multiplicated with the weights in\n"
+	"*ground_refl_coeffs*. Or (for frequency i): \n"
+	"   i_up = i_emission + sum_over_los( W*i_down ) \n"
+	"where i_up is the upwelling radiation, i_emission is row i of\n"
+	"*ground_emission*, W is the reflection matrix in \n"
+	"*ground_refl_coeffs* for the frequency and LOS of concern and \n"
+	"i_down is the downwelling radiation for the LOS given in\n"
+	"*ground_los*. \n"
+	"\n"
+	"With other words, the scattering properties of the ground are \n"
+	"described by the variables *ground_los* and *ground_refl_coeffs*."
 	),
        OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_  ),
-       INPUT(  f_grid_, stokes_dim_, a_gp_p_, a_gp_lat_, a_gp_lon_, a_los_ )));
+       INPUT(  f_grid_, stokes_dim_, a_gp_p_, a_gp_lat_, a_gp_lon_, a_los_,
+	       r_geoid_, z_ground_, t_field_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -282,22 +301,8 @@ void define_agenda_data()
 	"For more information read the chapter on propagation paths in the\n"
 	"ARTS user guide.\n"
 	"\n"
-	"Usage:             Called from *ppathCalc* or from function doing\n"
-	"                   scattering calculations.\n"
-        "\n"
-        "Output: \n"    
-        "   ppath_step    : Variable which includes structure for the \n"
-        "                   propagation path step.\n"
-        "\n"
-        "Input: \n"
-        "   ppath_step    : Structure has to be initialized. \n"
-        "   atmosphere_dim: Atmospheric dimension (1-3).\n"
-        "   p_grid        : Pressure grid.\n"
-        "   lat_grid      : Latitude grid. \n"
-        "   lon_grid      : Longitude grid. \n"
-        "   z_field       : Geometrical altitudes.\n"
-        "   r_geoid       : Geoid radius. \n"
-        "   z_ground      : Altitude of the ground. "
+	"Usage: Called from *PpathCalc* and from functions doing scattering\n"
+	"       calculations."
 	),
        OUTPUT(ppath_step_),
        INPUT(ppath_step_,

@@ -491,7 +491,7 @@ Numeric za_geom2other_point(
    \param   z_surf      Geometrical altitude of the ground, or the pressure
                         surface of interest, for the latitide dimension
    \param   gp          Latitude grid position for the position of interest
-   \param   upwards     
+   \param   upwards     See above.
 
    \author Patrick Eriksson
    \date   2002-06-03
@@ -699,57 +699,6 @@ Numeric psurface_crossing_2d(
 
   return dlat;
 }
-
-
-
-
-/*===========================================================================
-  === Angle(s) after a ground reflection
-  ===========================================================================*/
-
-//! angle_after_ground_1d 
-/*!
-   Calculates the LOS after a ground reflection for 1D.
-
-   The zenith angle before the reflection msut be > 90 degrees.
-
-   \param   za     Output: Zenith angle.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
-void angle_after_ground_1d( Numeric& za )
-{
-  assert( za > 90 );
-  za = 180 - za;
-}
-
-
-
-//! angle_after_ground_2d 
-/*!
-   Calculates the LOS after a ground reflection for 2D.
-
-   The zenith angle before the reflection msut be > 90 degrees.
-
-   \param   za     Output: Zenith angle.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
-void angle_after_ground_2d( Numeric& za, const Numeric& tilt )
-{
-  assert( is_los_downwards_2d( za, tilt ) );
-
-  if( za >= 0 )
-    { za = 180 - za; }
-  else
-    { za = -180 - za; }
-
-  // Include ground tilt
-  za -= 2 * tilt;
-}
-
 
 
 
@@ -1890,20 +1839,15 @@ void ppath_step_geom_1d(
       ppath.tan_pos.resize(2);
       ppath.tan_pos[0] = r_v[ilast];
       ppath.tan_pos[1] = lat_v[ilast];
-    }
 
-  // If tangent point, make part from tangent point and up to the starting
-  // pressure level.
-  //
-  if( tanpoint )
-    {
+      // Make part from tangent point and up to the starting pressure level.
+      //
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
-      // Call this function recursively
       ppath_step_geom_1d( ppath2, atmosphere_dim, p_grid, z_grid, r_geoid,
 			                                      z_ground, lmax );
 

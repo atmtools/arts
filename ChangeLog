@@ -1,3 +1,31 @@
+2002-09-22  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-246
+
+	* src/interpolation.cc (interp_atmsurface): Created this function in
+	two versions.
+
+	(interp_atmsurface): Created a version of this function for a single
+	position.
+
+	* src/ppath.cc: Removed two functions to calculate the specular angle
+	for ground reflections.
+
+	* src/rte.cc (ground_specular_los): Created this function, partly
+	based on code from ppath.cc.
+
+	* src/m_atmosphere.cc (GroundNoScatteringSingleEmissivity): Created
+	this function. 
+
+	(GroundTreatAsBlackbody): Smaller changes in this function due to
+	new interpolation functions.
+
+	* src/workspace.cc: Wrote text, or extended text, for several 
+	variables.
+
+	* src/agendas.cc: Wrote text for ground_refl_agenda. Added r_geoid
+	and z_ground as input to the agenda.
+
 2002-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-245

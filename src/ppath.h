@@ -79,6 +79,10 @@ struct Ppath {
   === Functions from ppath.cc
   ===========================================================================*/
 
+bool is_los_downwards_2d( 
+        const Numeric&   za,
+        const Numeric&   tilt );
+
 void ppath_init_structure( 
 	      Ppath&      ppath,
 	const Index&      atmosphere_dim,
@@ -122,5 +126,16 @@ void ppath_step_geom_2d(
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
 	const Numeric&    lmax );
+
+Numeric psurface_slope_2d(
+	ConstVectorView   lat_grid,	      
+	ConstVectorView   r_geoid,
+	ConstVectorView   z_surf,
+        const GridPos&    gp,
+        const Index&      upwards );
+
+Numeric psurface_tilt_2d(
+        const Numeric&   r,
+        const Numeric&   c );
 
 #endif  // ppath_h

@@ -51,14 +51,6 @@
   === Functions in rte.cc
   ===========================================================================*/
 
-void rte_step_clearsky_with_emission(
-	      Vector&       stokes_vec,		       
-        const Index&        stokes_dim,
-	ConstMatrixView&    ext_mat_gas,
-	ConstVectorView&    abs_vec_gas,
-	const Numeric&      l_step,
-        const Numeric&      a_planck_value );
-
 void get_radiative_background(
               Matrix&         i_rte,
 	      Ppath&          ppath_step,
@@ -94,5 +86,24 @@ void get_radiative_background(
         ConstVectorView       f_grid,
 	const Index&          stokes_dim,
 	const Index&          antenna_dim );
+
+void ground_specular_los(
+	      VectorView   los,
+        const Index&       atmosphere_dim,
+        ConstMatrixView    r_geoid,
+        ConstMatrixView    z_ground,
+	ConstVectorView    lat_grid,
+	ConstVectorView    lon_grid,
+	const GridPos&     a_gp_lat,
+	const GridPos&     a_gp_lon,
+        ConstVectorView    a_los );
+
+void rte_step_clearsky_with_emission(
+	      VectorView    stokes_vec,		       
+        const Index&        stokes_dim,
+	ConstMatrixView     ext_mat_gas,
+	ConstVectorView     abs_vec_gas,
+	const Numeric&      l_step,
+        const Numeric&      a_planck_value );
 
 #endif  // rte_h

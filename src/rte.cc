@@ -45,119 +45,8 @@
 #include "rte.h"
 
 
-
-/*===========================================================================
-  === 
-  ===========================================================================*/
-
-
-//! rte_step_clearsky_with_emission
-/*!
-    Performs monochromatic radiative transfer for an atmospheric slab 
-    with constant conditions, no scattering and having emission.
-
-    The function is best explained by considering a homogenous layer. That is,
-    the physical conditions inside the layer are constant. The absorption
-    inside the layer is described by *ext_mat_gas* and *abs_vec_gas*,
-    the blackbdoy radiation of the layer is given by *a_planck_value*
-    and the propagation path length through the layer is *l_step*. 
-
-    When calling the function, the vector *stokes_vec* shall contain the
-    Stopkes vector for the incoming radiation. The function returns this
-    vector, then containing the outgoing radiation on the other side of the 
-    layer.
-
-    The function performs the calculations differently depending on the
-    conditions to improve the speed. There are three cases: <br>
-       1. Scalar absorption (stokes_dim = 1). <br>
-       2. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
-       3. The total general case.
-
-    \param   stokes_vec         Input/Output: A Stokes vector.
-    \param   stokes_dim         Input: As the WSV with the same name.
-    \param   ext_mat_gas        Input: As the WSV with the same name.
-    \param   abs_vec_gas        Input: As the WSV with the same name.
-    \param   l_step             Input: The length of the RTE step.
-    \param   a_planck_value     Input: Blackbody radiation.
-
-    \author Patrick Eriksson 
-    \date   2002-09-16
-*/
-void rte_step_clearsky_with_emission(
-	      Vector&       stokes_vec,		       
-        const Index&        stokes_dim,
-	ConstMatrixView&    ext_mat_gas,
-	ConstVectorView&    abs_vec_gas,
-	const Numeric&      l_step,
-	const Numeric&      a_planck_value )
-{
-  // Asserts
-  assert( stokes_dim >= 1  &  stokes_dim <= 4 );
-  assert( stokes_vec.nelem() == stokes_dim );
-  assert( ext_mat_gas.nrows() == stokes_dim );
-  assert( ext_mat_gas.ncols() == stokes_dim );
-  assert( abs_vec_gas.nelem() == stokes_dim );
-  assert( a_planck_value >= 0 );
-
-  // Scalar case
-  if( stokes_dim == 1 )
-    { 
-      assert( ext_mat_gas(0,0) == abs_vec_gas[0] );
-      Numeric transm = exp( -l_step * abs_vec_gas[0] );
-      stokes_vec[0] = stokes_vec[0] * transm + ( 1- transm ) * a_planck_value;
-    }
-
-  // Vector case
-  else
-    {
-      // We have here two cases, diagonal or non-diagonal ext_mat_gas
-      // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
-      // non-zero value in position 1.
-      // 
-      bool diagonal = true;
-      //
-      for( Index i=1; diagonal  && i<stokes_dim; i++ )
-	{
-	  for( Index j=0; diagonal && j<i; j++ )
-	    {
-	      if( ext_mat_gas(i,j) != 0  ||  ext_mat_gas(j,i) )
-		{ diagonal = false; }
-	    }
-	  assert( !diagonal  ||  ( diagonal  && abs_vec_gas[i] == 0 ) );
-	}
-      cout << "Diagonal = " << diagonal << "\n";
-
-      // Unpolarised
-      if( diagonal )
-	{
-	  // Stokes dim 1
-	  assert( ext_mat_gas(0,0) == abs_vec_gas[0] );
-	  Numeric transm = exp( -l_step * abs_vec_gas[0] );
-	  stokes_vec[0] = stokes_vec[0] * transm + 
-                                                ( 1- transm ) * a_planck_value;
-
-	  // Stokes dims > 1
-	  for( Index i=1; i<stokes_dim; i++ )
-	    { stokes_vec[i] *= exp( -l_step * ext_mat_gas(i,i) ); }
-	}
-
-
-      // Polarised
-      else
-	{
-	  // Here we use the general method for the cloud box.
-          stokes_vecGeneral( stokes_vec, ext_mat_gas, abs_vec_gas, 
-		    Vector(stokes_dim,0), l_step, a_planck_value, stokes_dim );
-	}
-    }
-}
-
-
-
 //! get_radiative_background
 /*!
-    This text is old. PE 2002-09-17
-
     Sets a vector (normally *i_rte*) to the radiative background for a 
     propagation path.
 
@@ -172,20 +61,40 @@ void rte_step_clearsky_with_emission(
     *i_rte* to the correct size before calling the function. The size is set
     to be [f_grid.nelem(),stokes_dim].
 
-    The side effects of the function are: <br>
-    1. The WSV *i_space* is changed if the radiative background is the 
-       space. <br>
-    2. The WSVs *a_pos* and *a_los* are always set to the position and LOS of 
-       the last point in ppath (point np-1).
-
     \param   i_rte              Output: As the WSV with the same name.
-    \param   i_space            Output: As the WSV with the same name.
+    \param   ppath_step         Output: As the WSV with the same name.
     \param   a_pos              Output: As the WSV with the same name.
     \param   a_los              Output: As the WSV with the same name.
-    \param   i_space_agenda     As the WSV with the same name.
-    \param   ppath              As the WSV with the same name.
-    \param   f_grid             As the WSV with the same name.
-    \param   stokes_dim         As the WSV with the same name.
+    \param   a_gp_p             Output: As the WSV with the same name.
+    \param   a_gp_lat           Output: As the WSV with the same name.
+    \param   a_gp_lon           Output: As the WSV with the same name.
+    \param   i_space            Output: As the WSV with the same name.
+    \param   ground_emission    Output: As the WSV with the same name.
+    \param   ground_los         Output: As the WSV with the same name.
+    \param   ground_refl_coeffs Output: As the WSV with the same name.
+    \param   ppath              Input: As the WSV with the same name.
+    \param   mblock_index       Input: As the WSV with the same name.
+    \param   ppath_step_agenda  Input: As the WSV with the same name.
+    \param   rte_agenda         Input: As the WSV with the same name.
+    \param   i_space_agenda     Input: As the WSV with the same name.
+    \param   ground_refl_agenda Input: As the WSV with the same name.
+    \param   atmosphere_dim     Input: As the WSV with the same name.
+    \param   p_grid             Input: As the WSV with the same name.
+    \param   lat_grid           Input: As the WSV with the same name.
+    \param   lon_grid           Input: As the WSV with the same name.
+    \param   z_field            Input: As the WSV with the same name.
+    \param   r_geoid            Input: As the WSV with the same name.
+    \param   z_ground           Input: As the WSV with the same name.
+    \param   cloudbox_on        Input: As the WSV with the same name.
+    \param   cloudbox_limits    Input: As the WSV with the same name.
+    \param   scat_i_p           Input: As the WSV with the same name.
+    \param   scat_i_lat         Input: As the WSV with the same name.
+    \param   scat_i_lon         Input: As the WSV with the same name.
+    \param   scat_za_grid       Input: As the WSV with the same name.
+    \param   scat_aa_grid       Input: As the WSV with the same name.
+    \param   f_grid             Input: As the WSV with the same name.
+    \param   stokes_dim         Input: As the WSV with the same name.
+    \param   antenna_dim        Input: As the WSV with the same name.
 
     \author Patrick Eriksson 
     \date   2002-09-17
@@ -374,6 +283,210 @@ void get_radiative_background(
     default:  //--- ????? ----------------------------------------------------
       // Are we here, the coding is wrong somewhere
       assert( false );
+    }
+}
+
+
+
+//! ground_specular_los
+/*!
+    Calculates the LOS for a specular ground reflection.
+
+    The function calculates the LOS for the downwelling radiation to consider
+    when the ground is treated to give no scattering. The tilt of the ground
+    (that is, a change in radius as a function of latitude etc.) is considered.
+
+    \param   los                Output: As the WSV with the same name.
+    \param   atmosphere_dim     Input: As the WSV with the same name.
+    \param   r_geoid            Input: As the WSV with the same name.
+    \param   z_ground           Input: As the WSV with the same name.
+    \param   lat_grid           Input: As the WSV with the same name.
+    \param   lon_grid           Input: As the WSV with the same name.
+    \param   a_gp_lat           Input: As the WSV with the same name.
+    \param   a_gp_lon           Input: As the WSV with the same name.
+    \param   a_los              Input: As the WSV with the same name.
+
+    \author Patrick Eriksson 
+    \date   2002-09-22
+*/
+void ground_specular_los(
+	      VectorView   los,
+        const Index&       atmosphere_dim,
+        ConstMatrixView    r_geoid,
+        ConstMatrixView    z_ground,
+	ConstVectorView    lat_grid,
+	ConstVectorView    lon_grid,
+	const GridPos&     a_gp_lat,
+	const GridPos&     a_gp_lon,
+	ConstVectorView    a_los )
+{
+  assert( atmosphere_dim >= 1  &&  atmosphere_dim <= 3 );
+
+  if( atmosphere_dim == 1 )
+    {
+      assert( r_geoid.nrows() == 1 );
+      assert( r_geoid.ncols() == 1 );
+      assert( z_ground.nrows() == 1 );
+      assert( z_ground.ncols() == 1 );
+      assert( a_los.nelem() == 1 );
+      assert( a_los[0] > 90 );      // Otherwise ground refl. not possible
+      assert( a_los[0] <= 180 ); 
+      assert( los.nelem() == 1 );
+
+      los[0] = 180 - a_los[0];
+    }
+
+  else if( atmosphere_dim == 2 )
+    {
+      assert( r_geoid.ncols() == 1 );
+      assert( z_ground.ncols() == 1 );
+      assert( a_los.nelem() == 1 );
+      assert( los.nelem() == 1 );
+      assert( fabs(a_los[0]) <= 180 ); 
+
+      // Calculate LOS neglecting any tilt of the ground
+      if( a_los[0] >= 0 )
+	{ los[0] = 180 - a_los[0]; }
+      else
+	{ los[0] = -180 - a_los[0]; }
+
+      // Interpolate to get radius for the ground at reflection point.
+      Numeric r_ground, z;
+      interp_atmsurface( r_ground, atmosphere_dim, lat_grid, lon_grid,
+      	                              r_geoid, "r_geoid", a_gp_lat, a_gp_lon );
+      interp_atmsurface( z, atmosphere_dim, lat_grid, lon_grid,
+      	                            z_ground, "z_ground", a_gp_lat, a_gp_lon );
+      r_ground += z;
+
+      // Calculate ground slope (unit is m/deg).
+      Numeric slope = psurface_slope_2d( lat_grid, r_geoid(Range(joker),0), 
+                                      z_ground(Range(joker),0), a_gp_lat, 1 );
+
+      // Calculate ground (angular) tilt (unit is deg).
+      Numeric tilt = psurface_tilt_2d( r_ground, slope );
+
+      // Check that a_los contains a downward LOS
+      assert( is_los_downwards_2d( a_los[0], tilt ) );
+      
+      // Include ground tilt
+      los[0] -= 2 * tilt;
+    }
+
+  else if( atmosphere_dim == 3 )
+    {
+      throw runtime_error( "Calculation of LOS for ground reflections is not "
+			                           "yet implemented for 3D." );
+    }
+}
+
+
+
+//! rte_step_clearsky_with_emission
+/*!
+    Performs monochromatic radiative transfer for an atmospheric slab 
+    with constant conditions, no scattering and having emission.
+
+    The function is best explained by considering a homogenous layer. That is,
+    the physical conditions inside the layer are constant. The absorption
+    inside the layer is described by *ext_mat_gas* and *abs_vec_gas*,
+    the blackbdoy radiation of the layer is given by *a_planck_value*
+    and the propagation path length through the layer is *l_step*. 
+
+    When calling the function, the vector *stokes_vec* shall contain the
+    Stopkes vector for the incoming radiation. The function returns this
+    vector, then containing the outgoing radiation on the other side of the 
+    layer.
+
+    The function performs the calculations differently depending on the
+    conditions to improve the speed. There are three cases: <br>
+       1. Scalar absorption (stokes_dim = 1). <br>
+       2. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
+       3. The total general case.
+
+    \param   stokes_vec         Input/Output: A Stokes vector.
+    \param   stokes_dim         Input: As the WSV with the same name.
+    \param   ext_mat_gas        Input: As the WSV with the same name.
+    \param   abs_vec_gas        Input: As the WSV with the same name.
+    \param   l_step             Input: The length of the RTE step.
+    \param   a_planck_value     Input: Blackbody radiation.
+
+    \author Patrick Eriksson 
+    \date   2002-09-16
+*/
+void rte_step_clearsky_with_emission(
+	      VectorView    stokes_vec,		       
+        const Index&        stokes_dim,
+	ConstMatrixView     ext_mat_gas,
+	ConstVectorView     abs_vec_gas,
+	const Numeric&      l_step,
+	const Numeric&      a_planck_value )
+{
+  // Asserts
+  assert( stokes_dim >= 1  &  stokes_dim <= 4 );
+  assert( stokes_vec.nelem() == stokes_dim );
+  assert( ext_mat_gas.nrows() == stokes_dim );
+  assert( ext_mat_gas.ncols() == stokes_dim );
+  assert( abs_vec_gas.nelem() == stokes_dim );
+  assert( a_planck_value >= 0 );
+
+  // Scalar case
+  if( stokes_dim == 1 )
+    { 
+      assert( ext_mat_gas(0,0) == abs_vec_gas[0] );
+      Numeric transm = exp( -l_step * abs_vec_gas[0] );
+      stokes_vec[0] = stokes_vec[0] * transm + ( 1- transm ) * a_planck_value;
+    }
+
+  // Vector case
+  else
+    {
+      // We have here two cases, diagonal or non-diagonal ext_mat_gas
+      // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
+      // non-zero value in position 1.
+      // 
+      bool diagonal = true;
+      //
+      for( Index i=1; diagonal  && i<stokes_dim; i++ )
+	{
+	  for( Index j=0; diagonal && j<i; j++ )
+	    {
+	      if( ext_mat_gas(i,j) != 0  ||  ext_mat_gas(j,i) )
+		{ diagonal = false; }
+	    }
+	  assert( !diagonal  ||  ( diagonal  && abs_vec_gas[i] == 0 ) );
+	}
+
+
+      // Unpolarised
+      if( diagonal )
+	{
+	  // Stokes dim 1
+	  assert( ext_mat_gas(0,0) == abs_vec_gas[0] );
+	  Numeric transm = exp( -l_step * abs_vec_gas[0] );
+	  stokes_vec[0] = stokes_vec[0] * transm + 
+                                                ( 1- transm ) * a_planck_value;
+
+	  // Stokes dims > 1
+	  for( Index i=1; i<stokes_dim; i++ )
+	    { stokes_vec[i] *= exp( -l_step * ext_mat_gas(i,i) ); }
+	}
+
+
+      // Polarised
+      else
+	{
+	  // Here we use the general method for the cloud box.
+	  // As this is a WSM and stokes_vec there is defined as Vector (and
+	  // not VectorView), stokes_vec must be copied to a vector
+	  //
+	  Vector sv(stokes_dim);
+	  sv = stokes_vec;
+	  //
+          stokes_vecGeneral( sv, ext_mat_gas, abs_vec_gas, 
+		    Vector(stokes_dim,0), l_step, a_planck_value, stokes_dim );
+	  //
+	  stokes_vec = sv;
+	}
     }
 }
 

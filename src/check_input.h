@@ -105,23 +105,23 @@ void chk_matrix_nrows(
 void chk_atm_grids( 
 	const Index&      dim,
 	ConstVectorView   p_grid,
-	ConstVectorView   alpha_grid,
-	ConstVectorView   beta_grid );
+	ConstVectorView   lat_grid,
+	ConstVectorView   lon_grid );
 
 void chk_atm_field( 
 	const String&     x_name,
         const Tensor3&    x, 
 	const Index&      dim,
 	ConstVectorView   p_grid,
-	ConstVectorView   alpha_grid,
-	ConstVectorView   beta_grid );
+	ConstVectorView   lat_grid,
+	ConstVectorView   lon_grid );
 
 void chk_atm_surface( 
 	const String&     x_name,
         const Matrix&     x, 
 	const Index&      dim,
-	ConstVectorView   alpha_grid,
-	ConstVectorView   beta_grid );
+	ConstVectorView   lat_grid,
+	ConstVectorView   lon_grid );
 
 void chk_cloudbox(
 	const Index&          dim,

@@ -345,7 +345,6 @@ void RteEmissionStd(
         { ext_mat_gas(i,i) = alpha; }
       abs_vec_gas[0] = alpha;
 
-
       // Loop the propagation path steps
       //
       // The number of path steps is np-1.
@@ -354,25 +353,17 @@ void RteEmissionStd(
       //
       for( Index ip=np-1; ip>0; ip-- )
 	{
-	  // Consider absorption and emission from point ip to ip-1 for
-	  // all frequencies
 	  for( Index iv=0; iv<nf; iv++ )
 	    {
-	      // Calculate an effective blackbdoy radiation for the step
+	      // Calculate an effective blackbody radiation for the step
 	      // The mean of the temperature at the ned points is used.
 	      Numeric planck_value = 
                            planck( f_grid[iv], (t_ppath[ip]+t_ppath[ip-1])/2 );
 
-	      // Perform the RTE step
-	      //
-	      // I had to introduce this vector to make the compiler happy
-	      Vector stokes_vec( stokes_dim );
-	      stokes_vec = i_rte( iv, Range(joker) ); 
-	      //
-	      rte_step_clearsky_with_emission( stokes_vec, stokes_dim, 
-                  ext_mat_gas, abs_vec_gas, ppath.l_step[ip-1], planck_value );
-	      //
-	      i_rte( iv, Range(joker) ) = stokes_vec;
+	      // Perform the RTE step.
+	      rte_step_clearsky_with_emission( i_rte( iv, Range(joker) ), 
+                         stokes_dim, ext_mat_gas, abs_vec_gas, 
+                                            ppath.l_step[ip-1], planck_value );
 	    }
 	}
     }
