@@ -1,5 +1,26 @@
 2003-08-07  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-636
+
+	* doc/doxygen/Makefile.am: Prevent doxygen from overwriting our own
+	Makefile in latex/.
+
+	* doc/doxygen/latex/Makefile.am: Added targets from doxygen Makefile.
+	Define targets only in maintainer mode.
+	If you want to get a ps or pdf version of the doxygen documentation,
+	go to the latex directory and run:
+
+	make refman.ps
+	or
+	make refman.pdf
+
+	But note that the document is really large (resulting postscript file
+	has >1800 pages and is nearly 30 MB in size). It might not even work
+	with all doxygen version. PS creation tested with doxygen v1.3.3.
+	Pdf version does not build.
+
+2003-08-07  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-635
 
 	* src/matpackII.cc (mult): Removed FIXME. Nothing to fix. :-)
