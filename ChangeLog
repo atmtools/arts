@@ -1,5 +1,11 @@
 2002-11-13  Carmen Verdes  <cverdes@uni-bremen.de>
 
+	* arts-1-0-53
+	
+	* src/absorption.h: removed a small bug (sorry!)
+	
+2002-11-13  Carmen Verdes  <cverdes@uni-bremen.de>
+
 	* arts-1-0-52
 	
 	* src/absorption.h	

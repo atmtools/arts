@@ -262,13 +262,6 @@ public:
     return qcoeff_at_t_ref / qtemp;
   }
 
-  // calculate the partition function at the reference temperature
-  void CalculatePartitionFctAtRefTemp( Numeric temperature )
-  {
-    //    if (mqcoeff_at_t_ref <= -1.0 )     
-    mqcoeff_at_t_ref = CalculatePartitionFctAtTemp( temperature );
-  }
-
 private:
 
   // calculate the partition fct at a certain temperature
