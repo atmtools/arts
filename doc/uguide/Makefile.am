@@ -57,9 +57,9 @@ EXTRA_DIST = \
 # show up explicitly in EXTRA_DIST, since this is distributed automatically.
 
 uguide.dvi: $(top_srcdir)/configure.in $(texfiles)
-	latex  uguide
+	latex  uguide > /dev/null
 	bibtex uguide
-	latex  uguide
+	latex  uguide > /dev/null
 	latex  uguide
 	rm -f  *.aux
 
@@ -67,9 +67,9 @@ uguide.ps: uguide.dvi
 	dvips -f uguide > uguide.ps
 
 uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles)
-	pdflatex uguide_pdf
+	pdflatex uguide_pdf > /dev/null
 	bibtex uguide_pdf
-	pdflatex  uguide_pdf
+	pdflatex  uguide_pdf > /dev/null
 	pdflatex  uguide_pdf
 	rm -f  *.aux
 
