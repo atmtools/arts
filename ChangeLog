@@ -1,6 +1,12 @@
+2000-12-15  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-92
+
+	* arts can now read its own catalogue files.
+
 2000-12-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
-	* arts-0-0-90
+	* arts-0-0-91
 
 	* Fixed some smaller bugs caused by the index change.
 

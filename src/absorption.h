@@ -726,6 +726,24 @@ public:
     \author Axel von Engeln */
   bool ReadFromJplStream(istream& is);
 
+  /** Read one line from a stream associated with an Arts file.
+
+      Format: see arts distribution
+
+    The function attempts to read a line of data from the
+    catalogue. It returns false if it succeeds. Otherwise, if eof is
+    reached, it returns true. If an error occurs, a runtime_error is
+    thrown. When the function looks for a data line, comment lines are
+    automatically skipped.
+
+    \param is Stream from which to read
+    \exception runtime_error Some error occured during the read
+    \return false=ok (data returned), true=eof (no data returned)
+
+    \date 15.12.00
+    \author Oliver Lemke*/
+  bool ReadFromArtsStream(istream& is);
+
 
 private:
   // Molecular species index: 
@@ -756,11 +774,11 @@ private:
   ARRAY<Numeric> maux;
 };
 
-// is needed to map jpl tags to the species/isotope data within arts
-class JplSpecIsoMap{
+// is needed to map jpl tags/arts identifier to the species/isotope data within arts
+class SpecIsoMap{
 public:
-  JplSpecIsoMap():mspeciesindex(0), misotopeindex(0){}
-  JplSpecIsoMap(const size_t& speciesindex,
+  SpecIsoMap():mspeciesindex(0), misotopeindex(0){}
+  SpecIsoMap(const size_t& speciesindex,
 		const size_t& isotopeindex)
     : mspeciesindex(speciesindex),
       misotopeindex(isotopeindex) 

@@ -135,6 +135,44 @@ void linesReadFromJpl(// WS Output:
 }
 
 
+void linesReadFromArts(// WS Output:
+		       ARRAYofLineRecord& lines,
+		       // Control Parameters:
+		       const string& filename,
+		       const Numeric& fmin,
+		       const Numeric& fmax)
+{
+  ifstream is;
+
+  out2 << "  Reading file: " << filename << '\n';
+  open_input_file(is, filename);
+
+  bool go_on = true;
+  while ( go_on )
+    {
+      LineRecord lr;
+      if ( lr.ReadFromArtsStream(is) )
+	{
+	  // If we are here the read function has reached eof and has
+	  // returned no data.
+	  go_on = false;
+	}
+      else
+	{
+	  if ( fmin <= lr.F() )
+	    {
+	      if ( lr.F() <= fmax )
+		lines.push_back(lr);
+	      else
+		go_on = false;
+	    }
+	}
+    }
+  out2 << "  Read " << lines.size() << " lines.\n";
+}
+
+
+
 void lines_per_tgCreateFromLines(// WS Output:
                                   ARRAYofARRAYofLineRecord& lines_per_tg,
                                   // WS Input:

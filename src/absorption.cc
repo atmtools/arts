@@ -844,7 +844,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
   // static variable, so that we have to do this only once.  The ARTS
   // species index is JplMap[<JPL tag>]. We need int in this map,
   // because the tag array within the species data is an int array.
-  static map<int, JplSpecIsoMap> JplMap;
+  static map<int, SpecIsoMap> JplMap;
 
   // Remeber if this stuff has already been initialized:
   static bool hinit = false;
@@ -865,7 +865,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
 	      for (size_t k=0; k<sr.Isotope()[j].JplTags().size(); ++k)
 		{
 
-		  JplSpecIsoMap indicies(i,j);
+		  SpecIsoMap indicies(i,j);
 
 		  JplMap[sr.Isotope()[j].JplTags()[k]] = indicies;
 
@@ -922,7 +922,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
       // explicitly in apropriate pieces. Not elegant, but works!
 
       // Extract center frequency:
-      // Initialization of mo is important, because v stays the same
+      // Initialization of v is important, because v stays the same
       // if line is empty.
       // JPL position in MHz:
       Numeric v = 0.0;
@@ -1007,7 +1007,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
   // ok, now for the cool index map:
 
   // is this tag valid?
-  const map<int, JplSpecIsoMap>::const_iterator i = JplMap.find(tag);
+  const map<int, SpecIsoMap>::const_iterator i = JplMap.find(tag);
   if ( i == JplMap.end() )
     {
       ostringstream os;
@@ -1015,7 +1015,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
       throw runtime_error(os.str());
     }
 
-  JplSpecIsoMap id = i->second;
+  SpecIsoMap id = i->second;
 
 
   // Set mspecies:
@@ -1087,6 +1087,175 @@ bool LineRecord::ReadFromJplStream(istream& is)
 }
 
 
+bool LineRecord::ReadFromArtsStream(istream& is)
+{
+  // Global species lookup data:
+  extern ARRAY<SpeciesRecord> species_data;
+
+  // We need a species index sorted by Arts identifier. Keep this in a
+  // static variable, so that we have to do this only once.  The ARTS
+  // species index is ArtsMap[<Arts string>]. 
+  static map<string, SpecIsoMap> ArtsMap;
+
+  // Remeber if this stuff has already been initialized:
+  static bool hinit = false;
+
+  if ( !hinit )
+    {
+
+      out3 << "  ARTS index table:\n";
+
+      for ( size_t i=0; i<species_data.size(); ++i )
+	{
+	  const SpeciesRecord& sr = species_data[i];
+
+
+	  for ( size_t j=0; j<sr.Isotope().size(); ++j)
+	    {
+	      
+	      SpecIsoMap indicies(i,j);
+	      string buf = sr.Name()+"-"+sr.Isotope()[j].Name();
+	      
+	      ArtsMap[buf] = indicies;
+	      
+	      // Print the generated data structures (for debugging):
+	      // The explicit conversion of Name to a c-string is
+	      // necessary, because setw does not work correctly for
+	      // stl strings.
+	      const size_t& i1 = ArtsMap[buf].Speciesindex();
+	      const size_t& i2 = ArtsMap[buf].Isotopeindex();
+					 
+	      out3 << "  Arts Identifier = " << buf << "   Species = "
+		   << setw(10) << setiosflags(ios::left)
+		   << species_data[i1].Name().c_str()
+		   << "iso = " 
+		   << species_data[i1].Isotope()[i2].Name().c_str()
+		   << "\n";
+
+	    }
+	}
+      hinit = true;
+    }
+
+
+  // This contains the rest of the line to parse. At the beginning the
+  // entire line. Line gets shorter and shorter as we continue to
+  // extract stuff from the beginning.
+  string line;
+
+
+  // Look for more comments?
+  bool comment = true;
+
+  while (comment)
+    {
+      // Return true if eof is reached:
+      if (is.eof()) {
+	//	cout << "Eof" << endl;
+	return true;
+      }
+
+      // Throw runtime_error if stream is bad:
+      if (!is) throw runtime_error ("Stream bad.");
+
+      // Read line from file into linebuffer:
+      getline(is,line);
+
+      // @ as first character marks catalogue entry
+      char c;
+      extract(c,line,1);
+      
+      // check for empty line
+      if (c == '@')
+	{
+	  comment = false;
+	}
+    }
+
+
+  // read the arts identifier string
+  istringstream icecream(line);
+
+  string artsid;
+  icecream >> artsid;
+
+  if (artsid.length() != 0)
+    {
+
+      // ok, now for the cool index map:
+      // is this arts identifier valid?
+      const map<string, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
+      if ( i == ArtsMap.end() )
+	{
+	  ostringstream os;
+	  os << "ARTS Tag: " << artsid << " is unknown.";
+	  throw runtime_error(os.str());
+	}
+
+      SpecIsoMap id = i->second;
+
+
+      // Set mspecies:
+      mspecies = id.Speciesindex();
+
+      // Set misotope:
+      misotope = id.Isotopeindex();
+
+
+      // Extract center frequency:
+      icecream >> mf;
+
+
+      // Extract pressure shift:
+      icecream >> mpsf;
+  
+      // Extract intensity:
+      icecream >> mi0;
+
+
+      // Extract reference temperature for Intensity in K:
+      icecream >> mti0;
+
+
+      // Extract lower state energy:
+      icecream >> melow;
+
+
+      // Extract air broadening parameters:
+      icecream >> magam;
+      icecream >> msgam;
+
+      // Extract temperature coefficient of broadening parameters:
+      icecream >> mnair;
+      icecream >> mnself;
+
+  
+      // Extract reference temperature for broadening parameter in K:
+      icecream >> mtgam;
+
+      // Extract the aux parameters:
+      size_t naux;
+      icecream >> naux;
+
+      // resize the aux array and read it
+      maux.resize(naux);
+
+      for (size_t i = 0; i<naux; i++)
+	{
+	  icecream >> maux[i];
+	}
+
+
+      // calculate the partition fct at the reference temperature. This is
+      // done for all lines read from the catalogue, even the ones never
+      // used in calculation. FIXME: are there better ways to implement this?
+      species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 );
+
+    }
+
+  // That's it!
+  return false;
+}
 
 
 
@@ -1422,8 +1591,6 @@ void write_lines_to_stream(ostream& os,
     ensured by lines_per_tgCreateFromLines, so it is only verified
     with assert. Also, the input vectors p_abs, t_abs, and vmr must
     all have the same dimension.
-
-    This is still in the developing state.
 
     \retval abs    Absorption coefficients.
     \param f_mono  Frequency grid.
