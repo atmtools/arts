@@ -1657,7 +1657,6 @@ void CloudboxGetIncoming(// WS Output:
 
   Index Nf = f_grid.nelem();
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-
   Index Nza = scat_za_grid.nelem();
 
   Index Ni = stokes_dim;
@@ -1771,6 +1770,8 @@ void CloudboxGetIncoming(// WS Output:
   // atmosphere_dim = 3:
   else
     {
+      Index Naa = scat_aa_grid.nelem();
+
       if( scat_za_grid[0] != 0. || scat_za_grid[Nza] != 180. )
         throw runtime_error(
                             "*scat_za_grid* must include 0° and 180° as"
@@ -1785,7 +1786,7 @@ void CloudboxGetIncoming(// WS Output:
 
       Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
       Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-      Index Naa = scat_aa_grid.nelem();
+      
        // Convert scat_za_grid to "sensor coordinates"
       //(-180° < azimuth angle < 180°)
       //
@@ -2207,6 +2208,8 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                         "*cloudboxSetManually* to define \n the cloudbox "
                         "limits.");
  
+  Index Nza = scat_za_grid.nelem();
+  Index Naa = scat_aa_grid.nelem();
   if( scat_za_grid[0] != 0. || scat_za_grid[Nza] != 180. )
         throw runtime_error(
                             "*scat_za_grid* must include 0° and 180° as"
@@ -2221,9 +2224,6 @@ void CloudboxGetIncoming1DAtm(// WS Output:
   
   Index Nf = f_grid.nelem();
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-
-  Index Nza = scat_za_grid.nelem();
-  Index Naa = scat_aa_grid.nelem();
   Index Ni = stokes_dim;
 
   // Assign dummies for variables associated with sensor.
