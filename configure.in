@@ -15,7 +15,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.95)
+AM_INIT_AUTOMAKE(arts,1.0.96)
 #
 # First of all set the default PREFIX if not given
 # (needed for arts data path later)
@@ -158,7 +158,7 @@ esac], [ac_arts_data=default])
 
 if test x$ac_arts_data = xdefault; then
   if test "`hostname | grep smiles`"; then
-    ac_arts_data="/pool/lookup2/arts-data"
+    ac_arts_data="/usr/share/arts-data"
   else
     ac_arts_data="${prefix}/share/arts-data"
   fi
