@@ -2855,13 +2855,12 @@ void define_md_data()
     ( MdRecord
       ( NAME("BatchdataGaussianOffSets"),
   	DESCRIPTION(
-          "Creates a set of vectors suitable for batch calculations.\n"
-          "The produced vectors are shifted, having off-sets, compared\n"
-          "to the given vector where the off-sets have gaussian PDF.\n"
+          "Creates a vector of off-sets suitable for batch calculations.\n"
           "There is no correlation between the off-sets.\n"
           "The vectors are written to the file\n"
           "   batchname.varname.ab  \n"
-          "where varname is the workspace name of the reference vector.\n"
+          "where varname is the workspace name of the given vector.\n"
+          "Typical input vectors are f_mono and za_pencil.\n"
           "\n"
           "Keywords \n"
           "  n        : Number of random vectors to produce.\n"
@@ -2877,16 +2876,14 @@ void define_md_data()
     ( MdRecord
       ( NAME("BatchdataUniformOffSets"),
   	DESCRIPTION(
-          "Creates a set of vectors suitable for batch calculations.\n"
-          "The produced vectors are shifted, having off-sets, compared\n"
-          "to the given vector where the off-sets have uniform PDF\n"
-          "between low and high.\n"
+          "Creates a vector of off-sets suitable for batch calculations.\n"
           "Note that the off-set range (low to high) can be strictly\n"
           "negative or positive.\n"
           "There is no correlation between the off-sets.\n"
           "The vectors are written to the file\n"
           "   batchname.varname.ab  \n"
           "where varname is the workspace name of the reference vector.\n"
+          "Typical input vectors are f_mono and za_pencil.\n"
           "\n"
           "Keywords \n"
           "  n    : Number of random vectors to produce.\n"

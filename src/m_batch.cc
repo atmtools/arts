@@ -377,22 +377,16 @@ void BatchdataGaussianOffSets(
         const int&     n,
         const Numeric& stddev)
 {
-  const size_t   l = z0.size();
-        VECTOR   r;
-        MATRIX   zs( l, n );
+  VECTOR   r(n);
+  MATRIX   a(1,n);
 
   string fname = "";
   filename_batch( fname, batchname, z_name );
-  out2 << "  Creating " << n << " vectors with gaussian random off-set.\n";
-  resize( r, n );
+  out2 << "  Creating a vector with " << n << " off-sets with gaussian PDF.\n";
+
   rand_gaussian( r, stddev );
-  for ( size_t i=0; i<size_t(n); i++ )
-  {
-    //      put_in_col( zs, i+1, z0+r[i] );
-    copy( z0, columns(zs)[i] );
-    add( VECTOR(l,r[i]), columns(zs)[i] );
-  }
-  MatrixWriteBinary( zs, "", fname );
+  copy( r, rows(a)[0] );
+  MatrixWriteBinary( a, "", fname );
 }
 
 
@@ -415,22 +409,16 @@ void BatchdataUniformOffSets(
         const Numeric& low,
         const Numeric& high )
 {
-  const size_t   l = z0.size();
-        VECTOR   r;
-        MATRIX   zs( l, n );
+  VECTOR   r(n);
+  MATRIX   a(1,n);
 
   string fname = "";
   filename_batch( fname, batchname, z_name );
-  out2 << "  Creating " << n << " vectors with uniform random off-set.\n";
-  resize( r, n );
+  out2 << "  Creating a vector with " << n << " off-sets with uniform PDF.\n";
+
   rand_uniform( r, low, high );
-  for ( size_t i=0; i<size_t(n); i++ )
-  {
-    //      put_in_col( zs, i+1, z0+r[i] );
-    copy( z0, columns(zs)[i] );
-    add( VECTOR(l,r[i]), columns(zs)[i] );
-  }
-  MatrixWriteBinary( zs, "", fname );
+  copy( r, rows(a)[0] );
+  MatrixWriteBinary( a, "", fname );
 }
 
 
@@ -583,29 +571,32 @@ void ybatchAbsAndRte(
   // Read data from file(s) or use the workspace varaible
   //
   // Temperature
-  VECTOR t = t_abs;
+  VECTOR t(t_abs.size());
+  copy( t_abs, t );
   MATRIX Ts;
   if ( do_t )
     read_batchdata( Ts, batchname, t_file, "t_abs", np, ncalc );
   //
   // Altitudes
-  VECTOR z = z_abs;
+  VECTOR z(z_abs.size());
+  copy( z_abs, z );
   MATRIX Zs;
   if ( do_z )
     read_batchdata( Zs, batchname, z_file, "z_abs", np, ncalc );
   //
   // Frequencies
-  VECTOR f = f_mono;
-  MATRIX Fs;
+  VECTOR f(f_mono.size());
+  copy( f_mono, f );
+  MATRIX f_oss;
   if ( do_f )
-    read_batchdata( Fs, batchname, f_file, "f_mono", f_mono.size(), ncalc );
+    read_batchdata( f_oss, batchname, f_file, "f_mono", 1, ncalc );
   //
   // Zenith angles
-  VECTOR za = za_pencil;
-  MATRIX ZAs;
+  VECTOR za(za_pencil.size());
+  copy( za_pencil, za );
+  MATRIX za_oss;
   if ( do_za )
-    read_batchdata( ZAs, batchname, za_file, "za_pencil", za_pencil.size(), 
-                                                                      ncalc );
+    read_batchdata( za_oss, batchname, za_file, "za_pencil", 1, ncalc );
   //
   // Species profiles
          size_t itag;
@@ -644,50 +635,34 @@ void ybatchAbsAndRte(
     // Copy from file data for the "do" quantities
     if ( do_t )
       {
-	//      col( t, i+1, Ts );
 	assert( t.size()==Ts.nrows() );
 	copy( columns(Ts)[i], t );
       }
     if ( do_z )
       {
-	//      col( z, i+1, Zs );
 	assert( z.size()==Zs.nrows() );
 	copy( columns(Zs)[i], z );
       }
     if ( do_f )
       {
-	//      col( f, i+1, Fs );
-	assert( f.size()==Fs.nrows() );
-	copy( columns(Fs)[i], f );
+        setto( f, f_oss[0][i] );
+	add( f_mono, f );
       }
     if ( do_za )
       {
-	//      col( za, i+1, ZAs );
-	assert( za.size()==ZAs.nrows() );
-	copy( columns(ZAs)[i], za );
+        setto( za, za_oss[0][i] );
+	add( za_pencil, za );
+	cout << za << "\n";
       }
     for ( itag=0; itag<ndo; itag++ )
       {
-	//      col( vs[tagindex[itag]], i+1, VMRs[itag] );
 	assert( vs[tagindex[itag]].size()==VMRs[itag].nrows() );
 	copy( columns(VMRs[itag])[i], vs[tagindex[itag]] );	
       }
+
+
     // Do the calculations
-    
-    //cout << "tgs: " << tgs.size() << "\n";
-    //cout << "f: " << f.size() << "\n";
-    //cout << "p_abs: " << p_abs.size() << "\n";
-    //cout << "t: " << t.size() << "\n";
-    //cout << "n2_abs : " << n2_abs.size() << "\n";
-    //cout << "h2o_abs: " << h2o_abs.size() << "\n";
-    //cout << "vs: " << vs.size() << "\n";
-    //cout << "vs0: " << vs[0].size() << "\n";
-    //cout << "vs1: " << vs[1].size() << "\n";
-    //cout << "vs2: " << vs[2].size() << "\n";
-    //cout << "vs3: " << vs[3].size() << "\n";
-
-
-
+    //
     if ( (i==0) || do_t || ndo || do_f )
       absCalc( abs, abs_per_tag, tgs, f, p_abs, t, n2_abs, h2o_abs, vs, 
 	       lines_per_tag, lineshape, 

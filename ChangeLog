@@ -1,3 +1,15 @@
+2001-05-16  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-169
+
+	* Fixed a size check in yCalc that gave wrong error message when a LOS
+	is outside the atmosphere.
+
+	* Off-sets in the batch part are now stored as a vector of off-sets. 
+	Before the full new grid (e.g. za_pencil) with the off-set applied was
+	stored.
+	
+
 2001-05-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-168

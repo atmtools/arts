@@ -1202,7 +1202,7 @@ void yCalc (
 
   // Check that dimensions of trans and f_mono are consistent.
   for ( size_t i=0; i<trans.size(); ++i )
-    if ( trans[i].nrows() != f_mono.size() )
+    if ( (trans[i].nrows()>0) && (trans[i].nrows()!=f_mono.size()) )
     {
       ostringstream os;
       os << "Number of frequencies in trans and f_mono is inconsistent:\n"
