@@ -1,3 +1,13 @@
+2003-07-22  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-611
+	
+	* ChangeLog : Edited the ChangeLog message of the previous
+	version as Stefan pointed out a wrong statement there.  I had
+	written that the clear-sky part and cloudbox part agree when the
+	particle number density is zero. But there is a difference for low
+	emissivity values.    
+	
 2003-07-21  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-610
@@ -7,18 +17,17 @@
 	clear-sky part we can use the method
 	*GroundNoScatteringSingleEmissivity* to give different surface
 	emissivity values keeping in mind that the cloudbox has to be
-	extended to the ground.  This implementation may require some
-	changes in the future.  The results agree with the
-	clear-sky values when the particle number density is zero. 
-	Included some variables related to ground reflection in the
-	parameter of this function.
+	extended to the ground. The results are compared with the 
+	clear-sky values when the particle number density is zero.This
+	shows good agreement for higher emissivity values.  For emissivity
+	=0, there is a difference of about 1 K.	Also Included some variables
+	related to ground reflection in the parameter of this function.
 
-	* src/scatrte.h: Modified the parameters according to the
-	function cloud_ppath_update1D.
+	* src/scatrte.h: Added ground reflection parameters according to
+	the function cloud_ppath_update1D. 
 
-	* src/m_scatrte.cc:  Modified the output parameter list of the
-	method *i_fieldUpdateSeq1D* include
-	the variables related to ground reflection implementation.
+	* src/m_scatrte.cc:  Added ground reflection parameters for the
+	method *i_fieldUpdateSeq1D*.
 	
 	* src/methods.cc: Adapted *i_fieldUpdateSeq1D* to the above
 	changes.  
