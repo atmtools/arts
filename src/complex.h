@@ -31,5 +31,10 @@
 
 typedef complex<Numeric> Complex;
 
+complex<float> operator+ (const double &d, const complex<float> &c);
+complex<float> operator* (const double &d, const complex<float> &c);
+
+complex<double> operator+ (const float &f, const complex<double> &c);
+complex<double> operator* (const float &f, const complex<double> &c);
 #endif
 

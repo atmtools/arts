@@ -25,5 +25,24 @@
 
 #include "complex.h"
 
-/* All additional functions for complex numbers should be added here */
+complex<float> operator+ (const double &d, const complex<float> &c)
+{
+  return (float(d) + c);
+}
+
+complex<float> operator* (const double &d, const complex<float> &c)
+{
+  return (float(d) * c);
+}
+
+
+complex<double> operator+ (const float &f, const complex<double> &c)
+{
+  return (double(f) + c);
+}
+
+complex<double> operator* (const float &f, const complex<double> &c)
+{
+  return (double(f) * c);
+}
 
