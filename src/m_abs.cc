@@ -1493,6 +1493,7 @@ void abs_per_tgReduce(// WS Output:
     }
 
   // copy the generated matrix back to abs_per_tg
+  resize( abs_per_tg, wfs_tag_groups.size() );
   copy( abs_per_tg_out, abs_per_tg );
 }
 
