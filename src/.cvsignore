@@ -14,6 +14,7 @@ config.h
 config.h.in
 demonstrate_linalg
 demonstrate_vecmat
+gmon.out
 make_auto_md_cc
 make_auto_md_h
 make_auto_wsv_groups_h
