@@ -35,6 +35,7 @@
   === External declarations
   ===========================================================================*/
 
+#include <cmath>
 #include "interpolation.h"
 #include "refraction.h"
 #include "special_interp.h"
