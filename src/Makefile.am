@@ -65,7 +65,8 @@ m_los.cc \
 m_wfs.cc \
 absorption.cc \
 wsv_pointers.cc \
-species_data.cc
+species_data.cc \
+lineshapes.cc
 
 # When making changes to the list of sources above, please remember to
 # also change the lists in the files:

@@ -67,6 +67,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("MATRIX");
   wsv_group_names.push_back("ARRAYofMATRIX");
   wsv_group_names.push_back("ARRAYofVECTOR");
+  wsv_group_names.push_back("ARRAYofsizet");
   wsv_group_names.push_back("Los");
   wsv_group_names.push_back("ARRAYofLineRecord");
   wsv_group_names.push_back("ARRAYofARRAYofLineRecord");

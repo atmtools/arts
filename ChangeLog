@@ -1,3 +1,26 @@
+2000-08-21  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-42
+
+	* lineshapes.cc: Added this file. It contains the definition of
+	the available lineshape functions (at the moment only a quick hack
+	of Lorentz), as well as the lineshape function lookup data
+	(initialized by define_lineshape_data). The lookup data contains
+	one record for each lineshape. The record contains name and
+	description (as usual), the cutoff frequency (-1 if none), and a
+	pointer to the actual function. So, if you have the index of the
+	lineshape you want to use, you can call the apropriate
+	function. No need for any if or switch statements anywhere.
+
+	* workspace.cc: Added WSV lineshapes, an ARRAY of size_t. This
+	will hold one index for each abs_tag. If you have several abs_tags
+	for different isotopes or transitions of a species, you may use
+	different lineshapes.
+
+	* Missing: A WS method to set lineshapes; use lineshapes in
+	absorption calculation.
+
+	
 2000-08-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-41
@@ -16,6 +39,7 @@
 	* vecmat.cc: Added this file. It contains some stuff that used to
 	be in vecmat.h.
 	
+
 2000-08-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-40
@@ -55,6 +79,7 @@
 
 	* make_wsv_groups_h.cc: Renamed from make_wsv_group_h.cc
 
+
 2000-08-08  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-39
@@ -68,11 +93,13 @@
 
 	* example1.arts: was empty in last check in
 
+
 2000-08-08  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-38
 
 	* absorption.cc: Included all molecules from JPL/HITRAN.
+
 
 2000-08-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -86,6 +113,7 @@
 	* Achieved so far: Wsv group handles (file wsv_group.h) are now
 	generated automatically from information in function
 	define_wsv_group_names in file groups.cc.
+
 
 2000-07-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -112,11 +140,13 @@
 	fix the \verbatim parts in documentation headers, which seem to
 	not come out right.
 
+
 2000-07-26  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-35
 
 	* Moved user guide to doc/uguide.
+
 
 2000-06-17  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -131,6 +161,7 @@
 	Patrick's p_grid and k_grid are inside the pressure range. Also,
 	k_grid had to be slightly changed. The spectrum y looks
 	reasonable, but the k matrix looks strange (ragged).
+
 
 2000-06-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -261,6 +292,7 @@
 	* I do not get any warning messages. Patrick, do you still get
 	them? 
 	
+
 2000-06-09  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-27
@@ -290,6 +322,7 @@
 
 	* The function startup added to AMI.
 
+
 2000-06-01  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-26
@@ -313,6 +346,7 @@
 	the name, then the default name is chosen. It was simply too
 	nerve-wracking to have to duplicate each and every IO function for
 	these two cases.
+
 
 2000-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -354,6 +388,7 @@
 	also seems to work not so well, so I always use either
 	ostringstream or istringstream.
 	
+
 2000-05-23  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-23
@@ -369,6 +404,7 @@
 
 	* Please note that the user guide is not up to data and does
 	not match the present version of ARTS
+
 
 2000-05-22  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -400,6 +436,7 @@
 	tried to document all formats and units as best as I can in the
 	code directly.
 
+
 2000-05-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-21
@@ -413,6 +450,7 @@
 	seems not worth the trouble. Anyway, the field for the mass is
 	there. Should anybody feel like adding the true numbers, just go
 	ahead.
+
 
 2000-05-15  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -435,12 +473,14 @@
 
 	* This means the command line options are complete for now.
 
+
 2000-05-11  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-19
 
 	* Added the implementation of the --methods (-m) dommand line
 	option. Seems to work beautifully!
+
 
 2000-05-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -771,6 +811,7 @@
 
 	* Added some more HowTos in file src/notes.txt
 	
+
 2000-03-29  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0.0.4
@@ -779,6 +820,7 @@
 	(add explicit fields for generic I/O, so that a method can have
 	both generic and specific I/O). So this commit is mainly to save
 	the state of the work before I start with this complicated task.
+
 
 2000-03-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -793,6 +835,7 @@
 	* math_funcs.h: Added.
 	* math_funcs.cc: Added. 
 	* absorption.cc: Added. 
+
 
 2000-03-14  Stefan Buehler  <sbuehler@uni-bremen.de>
 

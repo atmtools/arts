@@ -1,15 +1,42 @@
-SAB 17.01.2000 Change copyright to FSF.
-SAB 30.01.2000 Turn off all debugging options with ./configure flag.
-               (Do not give the -g flag to the compiler, set NDEBUG.)
-SAB 27.03.2000 Add an author field to MdRecord?
-SAB 15.06.2000 Rename data to artsdata, so that paths in example
-               control files work both in the source tree and in the
-               installed version. 
-SAB 17.06.2000 Change interpolation in absorption part to interpp.
-SAB 10.08.2000 Change define_wsv_data, etc. to be default
-               constructors. That way, we don't have to call them
-               explicitly.   
-SAB 16.08.2000 - Implement abs_tags and wf_tags, also
-                 abs_tagsDefine and wf_tagsDefine.
-               - Change absComp to return absorption matrices only for 
-                 wf_tags
+SAB 2000-01-17: Change copyright to FSF.
+SAB 2000-01-30: Turn off all debugging options with ./configure flag.
+                (Do not give the -g flag to the compiler, set NDEBUG.)
+SAB 2000-03-27: Add an author field to MdRecord?
+SAB 2000-06-15: Rename data to artsdata, so that paths in example
+                control files work both in the source tree and in the
+                installed version. 
+SAB 2000-06-17: Change interpolation in absorption part to interpp.
+SAB 2000-08-10: Change define_wsv_data, etc. to be default
+                constructors. That way, we don't have to call them
+                explicitly.   
+SAB 2000-08-16: - Implement abs_tags and wf_tags, also
+                  abs_tagsDefine and wf_tagsDefine.
+                - Change absComp to return absorption matrices only for 
+                  wf_tags
+SAB 2000-08-21: Some ideas for absorption:
+                - Method lines_per_tgAddMirrorLines
+                  Adds mirror lines for those transitions for which
+                  the calculation frequency would be inside the
+                  cutoff. 
+		  Requires the lineshapes and the frequency grid as
+                  input. 
+		  This would remove the need for a special
+                  implementation of the VVW line shape, only
+		  Lorentz-type lineshape would be needed.
+
+                - Method lines_per_tgRemoveOutsideCutoff
+		  Remove all lines which would not contribute anything
+                  due to lineshape frequency cutoff. Saves unnecessary
+                  calls to lineshape function, which would only return
+                  0.
+		  Needs lineshapes and frequency grid as input.
+
+		- Should it be enforced that the frequency grid is
+                  sorted? If not, this must be done by the above
+                  methods. 
+
+		- Make a method to set the lineshape functions. (All
+                  the rest is already there!)
+
+SAB 2000-08-21: Give a nice error message if control file does not
+                exist! (At the moment it just says `abgebrochen')

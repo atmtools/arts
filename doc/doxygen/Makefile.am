@@ -81,7 +81,8 @@ $(top_srcdir)/src/m_io.cc \
 $(top_srcdir)/src/m_los.cc \
 $(top_srcdir)/src/m_wfs.cc \
 $(top_srcdir)/src/absorption.cc \
-$(top_srcdir)/src/species_data.cc
+$(top_srcdir)/src/species_data.cc \
+$(top_srcdir)/src/lineshapes.cc
 
 doxyfied: $(toexamine)
 	doxygen Doxyfile > /dev/null

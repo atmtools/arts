@@ -29,6 +29,51 @@
 #include <iostream>
 #include "vecmat.h"
 
+/*! The type that is used to store pointers to lineshape
+    functions.  */
+typedef void (*lsf_type)(VECTOR&,
+			 Numeric,
+			 Numeric,
+			 Numeric,
+			 const VECTOR&);
+
+/*! Lineshape related information. There is one LineshapeRecord for
+    each available lineshape function.
+
+    \author Stefan Buehler
+    \date   2000-08-21  */
+class LineshapeRecord{
+public:
+  LineshapeRecord(const string& name,
+		  const string& description,
+		  Numeric       cutoff,
+		  lsf_type      function)
+    : mname(name),
+      mdescription(description),
+      mcutoff(cutoff),
+      mfunction(function)
+  { /* Nothing to do here. */ }
+  /*! Return the name of this lineshape. */
+  const string&  Name()        const { return mname;        }   
+  /*! Return the description text. */
+  const string&  Description() const { return mdescription; }
+  /*! Return the cutoff frequency (in Hz). This is the distance from
+    the line center outside of which the lineshape is defined to be
+    zero. Negative means no cutoff.*/
+  Numeric Cutoff() const { return mcutoff; }
+  /*! Return pointer to lineshape function. */
+  lsf_type Function() const { return mfunction; }
+private:	
+  string  mname;        //!< Name of the function (e.g., Lorentz).
+  string  mdescription; //!< Short description.
+  Numeric mcutoff;      /*!< Cutoff frequency (in Hz). This is the
+  			     distance from the line center outside of
+			     which the lineshape is defined to be
+			     zero. Negative means no cutoff. */ 
+  lsf_type mfunction;       /*!< Pointer to lineshape function. */
+
+};
+
 /** Contains the lookup data for one isotope.
     @author Stefan Buehler */
 class IsotopeRecord{

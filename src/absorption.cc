@@ -716,32 +716,6 @@ void write_lines_to_stream(ostream& os,
     }
 }
 
-/** The Lorentz line shape. This is a quick and dirty implementation.
-
-    @param F     Output: The shape function.
-    @param f0    Line center frequency.
-    @param f_abs The frequency grid.
-    @param gamma The pressure broadening parameter.
-
-    @author Stefan Buehler 16.06.2000 */
-void line_shape_lorentz(VECTOR&       ls,
-			Numeric	      f0,
-			Numeric       gamma,
-			const VECTOR& f_abs)
-{
-  // FIXME: Maybe try if call by reference is faster for f0 and gamma?
-
-  // 1/PI:
-  extern const Numeric PI;
-  static const Numeric invPI = 1. / PI;
-
-  assert( ls.dim() == f_abs.dim() );
-
-  for ( size_t i=0; i<f_abs.dim(); ++i )
-    {
-      ls[i] = invPI * gamma / ( pow( f_abs[i]-f0, 2) + pow(gamma,2) );
-    }
-}
 
 void abs_species( MATRIX&                  abs,
 		  const VECTOR&  	   f_abs,
@@ -750,6 +724,9 @@ void abs_species( MATRIX&                  abs,
 		  const VECTOR&            vmr,
 		  const ARRAYofLineRecord& lines )
 {
+  // Make lineshape lookup data visible:
+  extern const ARRAY<LineshapeRecord> lineshape_data;
+
   // Define the vector for the line shape function here, so that we
   // don't need so many free store allocations.
   VECTOR ls(f_abs.dim());
@@ -861,10 +838,12 @@ void abs_species( MATRIX&                  abs,
 	// Ignore Doppler broadening for now. FIXME: Add this.
 
 	// Get line shape:
-	line_shape_lorentz(ls,
-			   lines[l].F(),
-			   gamma,
-			   f_abs);
+	// We have only one, so just take it!
+	lineshape_data[0].Function()(ls,
+				     lines[l].F(),
+				     gamma,
+				     0,
+				     f_abs);
 
 	// Add line to abs:
 	for ( size_t j=1; j<=f_abs.dim(); ++j )

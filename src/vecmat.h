@@ -422,6 +422,9 @@ typedef ARRAY<MATRIX> ARRAYofMATRIX;
 /** An array of vectors. */
 typedef ARRAY<VECTOR> ARRAYofVECTOR;
 
+/** An array of integers. */
+typedef ARRAY<size_t> ARRAYofsizet;
+
 // You can write variables of these types to stdout, simply by 
 // cout << x;
 

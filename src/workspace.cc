@@ -310,5 +310,15 @@ void define_wsv_data()
       "The instrument matrix. Patrick, please put more information here.",
       SPARSEMATRIX_));
 
+  wsv_data.push_back
+    (WsvRecord
+     ("lineshapes",
+      "Indices of lineshape functions. There is one entry for\n"
+      "each abs_tag, not for each species. This means if you have several\n"
+      "abs_tags for different isotopes or transitions of a species, you\n"
+      "may use different lineshapes.",
+      ARRAYofsizet_));
+
+
   //  cout << "size = " << wsv_data.size() << '\n';
 }
