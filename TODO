@@ -155,3 +155,5 @@ AvE 2001-04-03: I just tried to run some calculations with arts and the
  
 		Somebody has to update arts to the 2000 edition. 
 
+PE 2001-04-04:  When optional input parameters are implemented, go through
+                the function and put in checks for consistency of input.

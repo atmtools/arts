@@ -1,3 +1,17 @@
+2001-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-151
+
+	* Deleted wsv.txt in ami/arts from CVS. This function is auto-generated
+	when compliling ARTS and is copied to ami when running the init script.
+	Axel had some problems with this function and I hope it is best to keep
+	it outside CVS (and I must added it to CVS by mistake).
+
+	* (Sorry, for the problem with yCalc. I will check "my" functions for
+	this kind of problems when the optional input variables are ready and
+	we know the consequencies of this. I put this in TODO.)
+
+
 2001-04-03  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-150
