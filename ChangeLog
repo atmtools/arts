@@ -1,3 +1,20 @@
+2004-10-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+        * arts-1-1-903
+
+	* doc/uguide/surface.tex: When looking for other stuff, I found 
+	that Vol. 1 of Ulaby contains equations that relates surface
+	reflectivity and emissivity. Based on this, I now feel more sure that
+	the general expression for emission from flat surfaces I derived is
+	correct. I then updated section.
+
+	However, some things must be confirmed. Can anyone having the
+	Mischenko book check if it confirms Eq. 7.7, 7.8 and 7.14, or if
+	it says something different. As the scattering part is based on
+	Mischenko, we should use those definitions as far as possible. For
+	example, it seems that different text books differs with a factor
+	of -1 for the Fresnel expression of Rv. 
+
 2004-10-14  Cory Davis  <cory@geosl504>
 
         * arts-1-1-902

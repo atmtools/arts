@@ -33,7 +33,7 @@ variables should then be set as follows:
 
 
 \section{The dielectric constant and the refractive index}
-
+ 
  The properties of a material are reported either as the relative
  dielectric constant, $\epsilon$, or the refractive index, $n$. Both
  these quantities can be complex and are related as
@@ -41,6 +41,58 @@ variables should then be set as follows:
    \label{eq:surface_eps2n}
    n = \sqrt{\epsilon}.
  \end{equation}
+
+
+\section{Relating reflectivity and emissivity}
+ \label{sec:surface:surface:ref2emi}
+ 
+ Kirchoff's law applied to thermodynamics states that under conditions
+ of local thermodynamic equilibrium, thermal emission has to be equal
+ to absorption \citep[page 215]{ulaby:81}. This is a consequence of
+ the fact that there must exist a radiation equilibrium between an
+ object and its surrounding, if it is surrounded by a blackbody having
+ the same temperature (with no physical contact). 
+ 
+ Thermodynamic equilibrium can be assumed for natural surfaces, as
+ long as there exist no strong temperature gradients. The Kirchoff law
+ can then be used to relate the reflectivity and emissivity of a
+ surface. For rough surfaces the scattering properties must be
+ integrated over the half sphere (above the surface) to determine the
+ emissivity \citep[see e.g.][Eq.\ 4.186]{ulaby:81}. For specular
+ reflections (defined below) and scalar radiative transfer
+ calculations, the emissivity $e$ is
+ \begin{equation}
+  \label{eq:e=1-r}
+   e = 1 - r,
+ \end{equation}
+ where $r$ is the reflective (power reflection coefficient) of the
+ surface.  Equation \ref{eq:e=1-r} is valid for each polarisation state
+ individually \citep[Eq.\ 4.190a]{ulaby:81}.
+
+ We have then that
+ \begin{equation}
+  \Mpi^\mathrm{up} = \Mpi^\mathrm{down}r + (1-r)B,
+ \end{equation}
+ where $\Mpi^\mathrm{up}$ is upwelling radiation, $\Mpi^\mathrm{down}$
+ is downwelling radiation and $B$ is the magnitude of blackbody
+ radiation. As expected, if $\Mpi^\mathrm{down}=B$, also
+ $\Mpi^\mathrm{up}$ equals $B$.  Expressing the last observation using
+ vector nomenclature gives
+ \begin{equation}
+   \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right] =
+  \MtrStl{R} \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right] + 
+  \VctStl{b},
+ \end{equation}
+ where $\MtrStl{R}$ is the matrix (4\,x\,4) correspondence to the
+ scalar reflectivity, describing the properties of the surface
+ reflection. The vector \VctStl{b} is the surface emission, that
+ can be expressed as
+ \begin{equation}
+  \label{eq:surface:bvector} 
+  \VctStl{b} = (\MtrStl{1}-\MtrStl{R})
+      \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right],
+ \end{equation}
+ where \MtrStl{1} is the identity matrix. 
 
 
 \section{Specular reflections}
@@ -60,15 +112,18 @@ variables should then be set as follows:
  criterion can also be defined with the factor 8 replaced with a lower
  integer number.
  
- The complex reflection coefficient for the amplitude of the electromagnetic
- wave for vertical ($R_v$) and horizontal ($R_v$) polarisation is
- for a flat surface given by the Fresnel equations:
+ The complex reflection coefficient for the amplitude of the
+ electromagnetic wave for vertical ($R_v$) and horizontal ($R_v$)
+ polarisation is for a flat surface (if the relative magnetic
+ permeability ($\mu_r$) of both media is 1) given by the Fresnel equations:
+ \FIXME{One text book gives opposite sign for $R_v$. Different definitions? 
+     Anyhow put in a reference. (PE 041021)}
  \begin{eqnarray}
    \label{eq:surface_fresnel}
    R_v &=& \frac{n_2\cos\theta_1-n_1\cos\theta_2}
                                            {n_2\cos\theta_1+n_1\cos\theta_2} \\
    R_h &=& \frac{n_1\cos\theta_1-n_2\cos\theta_2}
-                                           {n_1\cos\theta_1+n_2\cos\theta_2} \\
+                                           {n_1\cos\theta_1+n_2\cos\theta_2} 
  \end{eqnarray}
  where $n_1$ is refractive index for the medium where the reflected
  radiation is propagating, $\theta_1$ is the incident angle (measured
@@ -91,8 +146,6 @@ variables should then be set as follows:
  where $|\!\cdot\!|$ denotes the absolute value. Note that $R$ can be
  complex, while $r$ is always real.
 
-THE PART JUST BELOW IS PRELIMINARY. EQUATIONS WILL BE CONFORMED LATER.
- 
 The surface reflection can be seen as a scattering event and
 Section~\ref{sec:polarization:ampmatrix} can be used to derive the
 reflection matrix values. The scattering amplitude functions of
@@ -104,6 +157,8 @@ Equation~\ref{eq:polarisation:ampmatrix1} are simply
 \end{eqnarray}
 This leads to that the transformation matrix for a specular surface
 reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
+\FIXME{Check that definitions are consistent between Liou and Mischenko
+(PE 041021)}
 \begin{equation}
   \label{eq:surface:specular_matrix}
   \MtrStl{R} =
@@ -125,38 +180,9 @@ upwelling radiation is
 \end{equation}
 as expected.
 
-Thermodynamic equilibrium can be assumed for natural surfaces. In the
-scalar case this assumption leads to that the reflection ($r$) and
-emission ($e$) coefficients add up to one:
-\begin{equation}
-  \label{eq:e=1-r}
-  e = 1 - r.
-\end{equation}
-With other words, we have that
-\begin{equation}
-  \Mpi^\mathrm{up} = \Mpi^\mathrm{down}r + (1-r)B,
-\end{equation}
-where $\Mpi^\mathrm{up}$ is upwelling radiation, $\Mpi^\mathrm{down}$
-is downwelling radiation and $B$ is blackbody radiation. A consequence
-of thermodynamic equilibrium is that if $\Mpi^\mathrm{down}=B$, also
-$\Mpi^\mathrm{up}$ will equal $B$. We can use this observation to
-derive how a surface reflection matrix and the Stokes of vector of
-surface emission, $\VctStl{b}$, are related. As blackbody radiation is
-unpolarised, we have that 
-\begin{equation}
-   \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right] =
-  \MtrStl{R} \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right] + 
-  \VctStl{b},
-\end{equation}
-that gives
-\begin{equation}
-  \VctStl{b} = (\MtrStl{1}-\MtrStl{R})
-      \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right],
-\end{equation}
-where \MtrStl{1} is the identity matrix.
 
 If \MtrStl{R} is given by Equation~\ref{eq:surface:specular_matrix},
-the surface emission is accordingly
+Equation \ref{eq:surface:bvector} gives that the surface emission  is
 \begin{equation}
   \label{eq:surface:specular_emission}
    \left[\begin{array}{c}
