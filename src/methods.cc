@@ -1828,6 +1828,35 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_iPut" ),
+	DESCRIPTION
+        (
+         "Method for the communication between cloudbox and clearsky.\n"
+         "\n"
+         "This method puts the scattered radiation field into the interface\n"
+         "variables between the cloudbox and the clearsky, which are \n"
+         "*scat_i_p*, *scat_i_lat* and *scat_i_lon*. As i_field is only\n"
+         "stored for one frequency given by *scat_f_index* this method has\n" 
+         "to be\n"
+         "executed after each scattering calculation to store the scattered\n"
+         "field on the boundary of the cloudbox.\n"
+         "\n"
+         "The best way to calculate spectra including the influence of\n" 
+         "scattering is to set up the *scat_mono_agenda* where this method \n"
+         "can be included.\n"
+         "\n"
+         ),
+	OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_ ),
+	INPUT( i_field_, f_grid_, scat_f_index_,   p_grid_, lat_grid_, 
+               lon_grid_, scat_za_grid_, scat_aa_grid_, stokes_dim_,
+	       atmosphere_dim_, cloudbox_limits_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "sensor_posAddGeoidWGS84" ),
@@ -1877,7 +1906,7 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
-md_data_raw.push_back     
+ md_data_raw.push_back     
     ( MdRecord
       ( NAME("stokes_vecGeneral"),
 	DESCRIPTION

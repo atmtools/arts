@@ -665,8 +665,8 @@ i_fieldUpdate1D(// WS Output:
       ArrayOfVector abs_vec_array;
       abs_vec_array.resize(cloudbox_limits[1]-cloudbox_limits[0]+1);
 
-      Vector planck_vector;
-      planck_vector.resize(cloudbox_limits[1]-cloudbox_limits[0]+1);
+      Vector T_vector;
+      T_vector.resize(cloudbox_limits[1]-cloudbox_limits[0]+1);
 
      
       // Loop over all positions inside the cloudbox defined by the 
@@ -699,12 +699,9 @@ i_fieldUpdate1D(// WS Output:
           ext_mat_agenda.execute();
           ext_mat_array[p_index-cloudbox_limits[0]] = ext_mat;
           
-        
+          //Generate temperature vector.
+          T_vector[p_index - cloudbox_limits[0]] = t_field(p_index, 0, 0); 
          
-          //Generate Planck function.
-          Numeric T = t_field(p_index, 0, 0); 
-          Numeric f = f_grid[scat_f_index];
-          planck_vector[p_index-cloudbox_limits[0]] = planck(f, T);
          
           
         }//End of p_grid loop over the cloudbox
@@ -797,10 +794,10 @@ i_fieldUpdate1D(// WS Output:
              
             
               //Planck function
-              planck_function = 0.5*( planck_vector
-                                     [p_index-cloudbox_limits[0]] +
-                                     planck_vector
-                                     [p_index-cloudbox_limits[0]+1]);
+              Numeric T =  0.5*( T_vector[p_index-cloudbox_limits[0]] +
+                                 T_vector[p_index-cloudbox_limits[0]+1]);
+              Numeric f = f_grid[scat_f_index];
+              planck_function = planck(f, T);
               
               cout << "planck: ..." << planck_function << endl;
               cout << "sto_vec:..." << stokes_vec  << endl;
@@ -897,12 +894,12 @@ i_fieldUpdate1D(// WS Output:
                             0, 0, scat_za_index, 0, i);
 
                 }// Closes loop over stokes_dim.  
-
+              
               //Planck function
-              planck_function = 0.5*( planck_vector
-                                      [p_index-cloudbox_limits[0]] +
-                                      planck_vector
-                                      [p_index-cloudbox_limits[0]-1]);
+              Numeric T =  0.5*( T_vector[p_index-cloudbox_limits[0]] +
+                                 T_vector[p_index-cloudbox_limits[0]-1]);
+              Numeric f = f_grid[scat_f_index];
+              planck_function = planck(f, T);
               
               cout << "planck: ..." << planck_function << endl;
               cout << "sto_vec:..." << stokes_vec  << endl;
