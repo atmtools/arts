@@ -2729,28 +2729,16 @@ md_data_raw.push_back
       ( NAME( "ScatteringMain" ),
         DESCRIPTION
         (
-         "This method gives out the interface variables *scat_i_p*, \n"
-         "*scat_i_lat* and *scat_i_lon* and also the frequency index\n"
-         "*scat_f_index*.\n"
+         "This method executes *scat_mono_agenda* for each frequency defined\n"
+         "in *f_grid* \n"
          "\n"
-         "This method calls the method *CloudboxGetIncoming* and gets \n"
-         "the field at the interface of the upper and lower surface of \n"
-         "boundary. This also gives the frequency index inside the \n"
-         "cloudbox, namely the variable *f_index* \n"
-         "\n"
-         "More to be written.\n"
+         "If the number of frequencies is only two, it is assumed that the \n"
+         "user is only interested in a monochromatic scattering calculation\n"
+         "and executes the agenda only for the first frequency.\n"
          "\n"
          ),
-        OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, f_index_, ppath_, 
-               ppath_step_, i_rte_,y_rte_, i_space_,
-               ground_emission_, ground_los_, ground_refl_coeffs_,
-               mblock_index_, a_los_, a_pos_, a_gp_p_, a_gp_lat_, a_gp_lon_),
-        INPUT( scat_mono_agenda_, cloudbox_on_, cloudbox_limits_, 
-               atmosphere_dim_, stokes_dim_, 
-                scat_za_grid_, scat_aa_grid_, f_grid_,  ppath_step_agenda_,
-                rte_agenda_, i_space_agenda_, ground_refl_agenda_, p_grid_, 
-                lat_grid_, lon_grid_, z_field_, t_field_, r_geoid_, z_ground_),
-              
+        OUTPUT(f_index_),
+        INPUT(f_grid_, scat_mono_agenda_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

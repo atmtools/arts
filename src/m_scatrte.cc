@@ -1435,13 +1435,13 @@ i_fieldUpdate3D(// WS Output:
           
 
           // Store coefficients in arrays for the whole cloudbox.
-                      abs_vec_array(p_index-cloudbox_limits[0],
+                      abs_vec_array(p_index - cloudbox_limits[0],
                                     lat_index - cloudbox_limits[2],
                                     lon_index - cloudbox_limits[4],
                                     Range(joker)) = 
                         abs_vec(0, Range(joker));
                       
-                      ext_mat_array(p_index-cloudbox_limits[0],
+                      ext_mat_array(p_index - cloudbox_limits[0],
                                     lat_index - cloudbox_limits[2],
                                     lon_index - cloudbox_limits[4],
                                     Range(joker), Range(joker)) = 
@@ -1466,7 +1466,7 @@ i_fieldUpdate3D(// WS Output:
           // Loop over all positions inside the cloud box defined by the 
           // cloudbox_limits.
           for(Index p_index = cloudbox_limits[0]; p_index
-                <= cloudbox_limits[1]-1; p_index ++)
+                <= cloudbox_limits[1]; p_index ++)
             {
               for(Index lat_index = cloudbox_limits[2]; lat_index
                     <= cloudbox_limits[3]; lat_index ++)
@@ -1524,7 +1524,7 @@ i_fieldUpdate3D(// WS Output:
               
                     // Check if the agenda has returned ppath.step with 
                     // reasonable values. 
-                    PpathPrint( ppath_step, "ppath");
+                    // PpathPrint( ppath_step, "ppath");
               
                     // Check whether the next point is inside or outside the
                     // cloudbox. Only if the next point lies inside the
@@ -2253,10 +2253,7 @@ scat_fieldCalc(//WS Output:
   // Some useful indices :
   Index N_pt = pha_mat_spt.nshelves();
   Index Nza = scat_za_grid.nelem();
-  Index Nza_prop = i_field.npages();
   Index Naa = scat_aa_grid.nelem();
-  Index Naa_prop = i_field.ncols();
-  //  Index Np  = i_field.nvitrines();
 
   Tensor3 product_field(Nza, Naa, stokes_dim,0);
  
@@ -2325,7 +2322,7 @@ scat_fieldCalc(//WS Output:
       {
        
         //There is only loop over zenith angle grid ; no azimuth angle grid.
-        for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
+        for (Index za_prop = 0; za_prop < Nza; ++ za_prop)
           {
             pha_mat_sptCalc(pha_mat_spt,
                             amp_mat,
@@ -2366,7 +2363,7 @@ scat_fieldCalc(//WS Output:
                                         Range(joker)),
                          pha, 
                          i_field_in);
-                            
+                    
                   }//end aa_in loop
               }//end za_in loop
             /*integration of the product of ifield_in and pha
@@ -2408,17 +2405,17 @@ scat_fieldCalc(//WS Output:
       when we calculate the pha_mat from pha_mat_spt and pnd_field
       using the method pha_matCalc.  */
     
-    for (Index p_index = 0; p_index < cloudbox_limits[1]-cloudbox_limits[0];
+    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
          p_index++)
       {
-        for (Index lat_index = 0; lat_index < 
-               cloudbox_limits[3]-cloudbox_limits[2]; lat_index++)
+        for (Index lat_index = cloudbox_limits[2]; lat_index <= 
+               cloudbox_limits[3]; lat_index++)
           {
-            for (Index lon_index = 0; lon_index <= 
-                   cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
-              for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
+            for (Index lon_index = cloudbox_limits[4]; lon_index <= 
+                   cloudbox_limits[5]; lon_index++)
+              for (Index za_prop = 0; za_prop < Nza; ++ za_prop)
                 {
-                  for (Index aa_prop = 0; aa_prop < Naa_prop; ++ aa_prop)
+                  for (Index aa_prop = 0; aa_prop < Naa; ++ aa_prop)
                     {
               
                       pha_mat_sptCalc(pha_mat_spt,
@@ -2443,9 +2440,9 @@ scat_fieldCalc(//WS Output:
                                                             Range(joker));
                               
                               ConstVectorView i_field_in = 
-                                i_field(p_index,
-                                        lat_index,
-                                        lon_index,
+                                i_field(p_index-cloudbox_limits[0],
+                                        lat_index-cloudbox_limits[2],
+                                        lon_index-cloudbox_limits[4],
                                         za_prop,
                                         aa_prop,
                                         Range(joker));
@@ -2455,29 +2452,33 @@ scat_fieldCalc(//WS Output:
                                                   Range(joker)),
                                    pha, 
                                    i_field_in);
-                              
+                           
+
                             }//end aa_in loop
                         }//end za_in loop
-                        //integration of the product of ifield_in and pha
+                      //integration of the product of ifield_in and pha
                         //over zenith angle and azimuth angle grid. It 
                         //calls here the integration routine 
                         //AngIntegrate_trapezoid
                       for (Index i = 0; i < stokes_dim; i++)
-                          {
+                        {
                             MatrixView product_field_mat =
                               product_field( Range(joker),
                                              Range(joker),
                                              i);
-                            scat_field( p_index,
-                                        lat_index,
-                                        lon_index,
+                            
+                    
+                            scat_field( p_index-cloudbox_limits[0],
+                                        lat_index-cloudbox_limits[2],
+                                        lon_index-cloudbox_limits[4],
                                         za_prop, 
                                         aa_prop,
                                         i)  =  
                               AngIntegrate_trapezoid(product_field_mat,
                                                      scat_za_grid,
                                                      scat_aa_grid);
-                          }//end i loop
+                            
+                        }//end i loop
                     }//end aa_prop loop
                 }//end za_prop loop
           }//end lon loop
@@ -2485,6 +2486,7 @@ scat_fieldCalc(//WS Output:
   }// end p loop
   // end atmosphere_dim = 3
   
+  xml_write_to_file("i_field.xml", i_field);
   xml_write_to_file("scat_field.xml", scat_field);
   out2 <<"Finished scattered field.\n"; 
  
@@ -2492,132 +2494,28 @@ scat_fieldCalc(//WS Output:
 
 //! Main function for the radiative transfer in cloudbox.  
 /*!
-This function executes the method *CloudboxGetIncoming* to get 
-the clearsky field on the boundary of the cloudbox, which is 
-stored in the interface variable **scat_i_p*, *scat_i_lat* and
-*scat_i_lon*.
-
-Then it executes *scat_mono_agenda* dor each frequency in *f_grid*.   
- 
-\param scat_i_p  intensity field on the cloudb box boundary w.r.t
-pressure grid
-\param scat_i_lat intensity field on the cloudb box boundary w.r.t 
-latitude grid
-\param scat_i_lon intensity field on the cloudb box boundary w.r.t
-longitude grid
-\param f_index the frequency index for scatttering calculations
-\param a_gp_p a grid position with respect to the pressure grid
-\param a_gp_lat a grid position with respect to the latitude grid
-\param a_gp_lon a grid position with respect to the longitude grid
-\param ppath propagation path for one line-of-sight
-\param ppath_step propagation path step
-\param i_rte one spectrum calculated by rte_agenda
-\param cloudbox_on the flag which activates the cloudbox
-\param cloudbox_limits the limits of teh cloudbox
-\param atmosphere_dim dimension of the atmosphere
-\param stokes_dim stokes dimension
-\param scat_za_grid scattering zenith angle grid
-\param scat_aa_grid scattering azimuth angle grid
-\param f_grid frequency grid
-\param ppath_step_agenda agenda for Calculating a propagation path step
-\param rte_agenda Performs monochromatic pencil beam calculations for a single
-propagation path
-\param p_grid pressrue grid
-\param lat_grid latitude grid
-\param lon_grid longitude grid
-\param z_field the altitude field
-\param r_geoid geoid radius
-\param z_ground the ground altitude
-
-\author Sreerekha Ravi
-\date 2002-10-09
+  This function executes *scat_mono_agenda* for each frequency in *f_grid*.   
 */
-void ScatteringMain(//WS Output 
-                   Tensor7& scat_i_p,
-                   Tensor7& scat_i_lat,
-                   Tensor7& scat_i_lon,
-                   Index& f_index,
-                   Ppath& ppath,
-                   Ppath& ppath_step,
-                   Matrix& i_rte,
-                   Matrix& y_rte,
-                   Matrix& i_space,
-                   Matrix& ground_emission,
-                   Matrix& ground_los,
-                   Tensor4& ground_refl_coeffs,
-                   Index& mblock_index,
-                   Vector& a_los,
-                   Vector& a_pos,
-                   GridPos& a_gp_p,
-                   GridPos& a_gp_lat,
-                   GridPos& a_gp_lon,
-                   //WS  Input :
-                   const Agenda& scat_mono_agenda,
-                   const Index& cloudbox_on, 
-                   const ArrayOfIndex& cloudbox_limits,
-                   const Index& atmosphere_dim,
-                   const Index& stokes_dim,
-                   const Vector& scat_za_grid,
-                   const Vector& scat_aa_grid,
-                   const Vector& f_grid,
-                   const Agenda& ppath_step_agenda,
-                   const Agenda& rte_agenda,
-                   const Agenda& i_space_agenda,
-                   const Agenda& ground_refl_agenda,
-                   const Vector& p_grid,
-                   const Vector& lat_grid,
-                   const Vector& lon_grid,
-                   const Tensor3& z_field,
-                   const Tensor3& t_field,
-                   const Matrix& r_geoid,
-                   const Matrix& z_ground
-                   )
+void ScatteringMain(
+                    Index& f_index,
+                    const Vector& f_grid,
+                    const Agenda& scat_mono_agenda
+                    )
                   
 {
-  Index Nza = scat_za_grid.nelem();
+
   Index Nf = f_grid.nelem();
-  Index Np = p_grid.nelem();
-  Index Nlat = lat_grid.nelem();
-  Index Nlon = lon_grid.nelem();
-  Index Naa = scat_aa_grid.nelem();
-  Index Ni = stokes_dim; 
-
-   //Initializations
-  scat_i_p.resize(Nf, 2, Nlat, Nlon, Nza, Naa, Ni);
-  scat_i_p = 0.;
-  scat_i_lat.resize(Nf, Np, 2, Nlon, Nza, Naa, Ni);
-  scat_i_lat = 0.;
-  scat_i_lon.resize(Nf, Np, Nlat, 2, Nza, Naa, Ni);
-  scat_i_lon = 0.;
-  i_rte.resize(Nf, Ni);
-  i_rte = 0.;
-
-  if( !cloudbox_on )
-    throw runtime_error( "The cloud box is not activated and no incoming "
-                         "field can be returned." );
-
-
- //  CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
-//                       i_rte, y_rte, i_space, ground_emission, ground_los, 
-//                       ground_refl_coeffs,mblock_index, a_los,
-//                        a_pos, a_gp_p, a_gp_lat, a_gp_lon,
-//                       cloudbox_limits, atmosphere_dim, stokes_dim,
-//                       scat_za_grid, scat_aa_grid, f_grid, 
-//                       ppath_step_agenda, rte_agenda, i_space_agenda,
-//                       ground_refl_agenda, p_grid,lat_grid,
-//                       lon_grid, z_field, t_field, r_geoid, z_ground);
-
-  
-  // Calculation for monochromatic radiation field inside cloudbox:
+    // Calculation for monochromatic radiation field inside cloudbox:
   // We have to define at least 2 frequencies in f_grid, but the scattering
   // calculation should be done only for 1 frequency.
   if (f_grid.nelem() == 2) Nf = 1;
 
-  for (f_index = 0; f_index < Nf; ++ f_index)
+  for ( f_index = 0; f_index < Nf; ++ f_index)
     {
       out2 << "---------------------------------------------\n";
       out2 << "Frequency for monochromatic scattering calculation: " << 
         f_grid[f_index]/1e9 <<" GHz \n" ;
+      out2 << "---------------------------------------------\n";
       scat_mono_agenda.execute(); 
     }
 }

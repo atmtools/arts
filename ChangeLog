@@ -1,8 +1,34 @@
+2003-01-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+	
+ 	* arts-1-1-434	
+	
+	* src/m_scatrte.cc (ScatteringMain): Removed clearsky field 
+	calculation on boundary (CloudboxGetIncoming) from this function.
+	Now it is possible to read a pre-calculated clearsky field. This 
+	makes sense as we are interested to test clouds with different
+	particle types. For those cases the clearsky field on the cloudbox
+	boundary is always the same and it saves a lot of time not 
+	recalculating the clearsky field for each case.
+	To do a convergence test it is now also possible to take an unrealistic
+	field on the cloudbox boundary.
+		
+	* src/m_scatrte.cc (i_fieldUpdate3D): Fixed a small bug.
+
+	* src/m_cloudbox.cc (i_fieldSetConst): Modified. This function is
+	tested now and works correctly.
+
+	* src/methods.cc (ScatteringMain): Modified interface variables.
+
+	Note: I have made a 3D convergence test (in analogy to 
+	the 1D convergence
+	test). It works, so we can be quite sure, that the 3D scattering 
+	implementation is correct!
+
 2003-01-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
-    * arts-1-1-433
+    	* arts-1-1-433
     
-    * src/m_basic_types.cc: added the WSM 
+    	* src/m_basic_types.cc: added the WSM 
             Matrix1ColFromVector
             Matrix2ColFromVectors
             Matrix3ColFromVectors
@@ -10,7 +36,7 @@
             Matrix2RowFromVectors
             Matrix3RowFromVectors
             VectorZtanToZa
-      removed the WSM
+      	removed the WSM
             MatrixFillWithVector
             MatrixSetElement
 

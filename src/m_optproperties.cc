@@ -23,6 +23,7 @@
 #include "logic.h"
 #include "interpolation.h"
 #include "messages.h"
+#include "xml_io.h"
 
 extern const Numeric PI;
 
@@ -837,12 +838,13 @@ void pha_matCalc(
                              pnd_field(pt_index, scat_p_index,  
                                        scat_lat_index, scat_lon_index));
                           
+                          
                         } 
-                    }
+                    }	
                 }
-            }
-        }
-    }
+            }		
+        }	
+    }		
 }
 
 
@@ -867,8 +869,8 @@ void pha_matCalc(
 //   \param scat_lat_index Input : Latitude index for scattering calculations.
 //   \param scat_lon_index Input : Longitude index for scattering calculations.
 // */
-// void ext_mat_partScat(
-//                    Matrix& ext_mat_part,
+// void ext_mat_AddScat(
+//                    Matrix& ext_mat,
 //                    const Tensor3& ext_mat_spt,
 //                    const Tensor4& pnd_field,
 //                    const Index& atmosphere_dim,
@@ -880,30 +882,27 @@ void pha_matCalc(
 //   Index N_pt = ext_mat_spt.npages();
 //   Index stokes_dim = ext_mat_spt.nrows();
   
-//   ext_mat_part.resize(stokes_dim, stokes_dim);
+//   Matrix ext_mat_part(stokes_dim, stokes_dim, 0.);
   
-//   for (Index m = 0; m < stokes_dim; m++)
-//     {
-//       for (Index n = 0; n < stokes_dim; n++)
-//      ext_mat_part(m, n) = 0.0;// Initialisation
-//     }
  
 //   if (atmosphere_dim == 1)
 //     {
 //       // this is a loop over the different particle types
 //       for (Index l = 0; l < N_pt; l++)
-//      { 
-          
+//         { 
+       
 //        // now the last two loops over the stokes dimension.
 //        for (Index m = 0; m < stokes_dim; m++)
 //          {
 //            for (Index n = 0; n < stokes_dim; n++)
-//             //summation of the product of pnd_field and 
+//              //summation of the product of pnd_field and 
 //              //ext_mat_conv_spt.
-//            ext_mat_part(m, n) += 
+//              ext_mat_part(m, n) += 
 //              (ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
 //          }
 //      }
+//       //Add particle extinction matrix to *ext_mat*.
+//       ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
 //     }
 //   if (atmosphere_dim == 3)
 //     {
