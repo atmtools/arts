@@ -96,6 +96,9 @@ std::ostream& operator<<(std::ostream& os, const GridPos& gp)
  \param gp Output: Grid position Array.
  \param old_grid The original grid.
  \param new_grid The new grid where we want to have the interpolated values. 
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
 */
 void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
@@ -484,7 +487,10 @@ Index gridpos2gridrange(
   
   \param itw Output: Interpolation weights.
   \param cgp The grid position Array for the column dimension.
- */
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( MatrixView itw,
                	    const ArrayOfGridPos& cgp )
 {
@@ -554,7 +560,10 @@ void interpweights( MatrixView itw,
  \param itw Output: Interpolation weights.
  \param rgp The grid position Array for the row dimension.
  \param cgp The grid position Array for the column dimension.
- */
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( MatrixView itw,
                	    const ArrayOfGridPos& rgp,
                	    const ArrayOfGridPos& cgp )
@@ -608,7 +617,10 @@ void interpweights( MatrixView itw,
  \param pgp The grid position Array for the page dimension.
  \param rgp The grid position Array for the row dimension.
  \param cgp The grid position Array for the column dimension.
- */
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( MatrixView itw,
                	    const ArrayOfGridPos& pgp,
                	    const ArrayOfGridPos& rgp,
@@ -659,7 +671,10 @@ void interpweights( MatrixView itw,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
- */
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( MatrixView itw,
                	    const ArrayOfGridPos& bgp,
                	    const ArrayOfGridPos& pgp,
@@ -715,7 +730,10 @@ void interpweights( MatrixView itw,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
- */
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( MatrixView itw,
                	    const ArrayOfGridPos& sgp,
                	    const ArrayOfGridPos& bgp,
@@ -776,7 +794,10 @@ void interpweights( MatrixView itw,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
- */
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( MatrixView itw,
                	    const ArrayOfGridPos& vgp,
                	    const ArrayOfGridPos& sgp,
@@ -832,6 +853,9 @@ void interpweights( MatrixView itw,
   \param itw Interpolation weights.
   \param a   The field to interpolate.
   \param cgp The grid position Array for the column dimension.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri May  3 08:55:51 2002
 */
 void interp( VectorView      	   ia,
              ConstMatrixView 	   itw,
@@ -881,6 +905,9 @@ void interp( VectorView      	   ia,
  \param a   The field to interpolate.
  \param rgp The grid position Array for the row    dimension.
  \param cgp The grid position Array for the column dimension.
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
 */
 void interp( VectorView      	   ia,
              ConstMatrixView 	   itw,
@@ -936,6 +963,9 @@ void interp( VectorView      	   ia,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
 */
 void interp( VectorView      	   ia,
              ConstMatrixView 	   itw,
@@ -997,6 +1027,9 @@ void interp( VectorView      	   ia,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
 */
 void interp( VectorView      	   ia,
              ConstMatrixView 	   itw,
@@ -1064,6 +1097,9 @@ void interp( VectorView      	   ia,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
 */
 void interp( VectorView      	   ia,
              ConstMatrixView 	   itw,
@@ -1137,6 +1173,9 @@ void interp( VectorView      	   ia,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
 */
 void interp( VectorView      	   ia,
              ConstMatrixView 	   itw,
@@ -1216,7 +1255,9 @@ void interp( VectorView      	   ia,
  \param rgp The grid position Array for the row dimension.
  \param cgp The grid position Array for the column dimension.
  
- */
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( Tensor3View itw,
                	    const ArrayOfGridPos& rgp,
                	    const ArrayOfGridPos& cgp )
@@ -1275,8 +1316,10 @@ void interpweights( Tensor3View itw,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
- 
- */
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( Tensor4View itw,
                	    const ArrayOfGridPos& pgp,
                	    const ArrayOfGridPos& rgp,
@@ -1335,7 +1378,9 @@ void interpweights( Tensor4View itw,
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
  
- */
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( Tensor5View itw,
                	    const ArrayOfGridPos& bgp,
                	    const ArrayOfGridPos& pgp,
@@ -1402,7 +1447,9 @@ void interpweights( Tensor5View itw,
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
  
- */
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( Tensor6View itw,
                	    const ArrayOfGridPos& sgp,
                	    const ArrayOfGridPos& bgp,
@@ -1477,7 +1524,9 @@ void interpweights( Tensor6View itw,
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
  
- */
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interpweights( Tensor7View itw,
                	    const ArrayOfGridPos& vgp,
                	    const ArrayOfGridPos& sgp,
@@ -1555,7 +1604,9 @@ void interpweights( Tensor7View itw,
  \param rgp The grid position Array for the row dimension.
  \param cgp The grid position Array for the column dimension.
  
- */
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
+*/
 void interp( MatrixView       	   ia,
              ConstTensor3View 	   itw,
              ConstMatrixView  	   a,   
@@ -1615,6 +1666,9 @@ void interp( MatrixView       	   ia,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
 */
 void interp( Tensor3View       	   ia,
              ConstTensor4View 	   itw,
@@ -1685,6 +1739,9 @@ void interp( Tensor3View       	   ia,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
 */
 void interp( Tensor4View       	   ia,
              ConstTensor5View 	   itw,
@@ -1764,6 +1821,9 @@ void interp( Tensor4View       	   ia,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
 */
 void interp( Tensor5View       	   ia,
              ConstTensor6View 	   itw,
@@ -1852,6 +1912,9 @@ void interp( Tensor5View       	   ia,
  \param pgp The grid position Array for the page    dimension.
  \param rgp The grid position Array for the row     dimension.
  \param cgp The grid position Array for the column  dimension.
+
+ \author Stefan Buehler <sbuehler@uni-bremen.de>
+ \date   Fri May  3 08:55:51 2002
 */
 void interp( Tensor6View       	   ia,
              ConstTensor7View 	   itw,

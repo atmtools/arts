@@ -206,7 +206,6 @@ void test04()
   a(1,1,1) = 20;
   a(2,1,1) = 30;
 
-
   // New row and column grids:
   // 1, 1.5, 2, 2.5, 3
   Vector  n_rgrid(1,5,.5), n_cgrid(1,5,.5); 
@@ -247,7 +246,6 @@ void test04()
   cout << "Interpolated field:\n";
   for ( Index i=0; i<n.npages(); ++i )
       cout << "page " << i << ":\n" << n(i,Range(joker),Range(joker)) << "\n";
-  
 }
 
 void test05()
@@ -288,5 +286,5 @@ void test05()
 
 int main()
 {
-  test05();
+  test04();
 }

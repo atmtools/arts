@@ -1,3 +1,22 @@
+2002-05-28  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-98
+
+	* doc/uguide/myepstopdf: Added. Use this script to convert eps
+	files to pdf.
+
+	* doc/uguide/interpolation.tex: Finished first version of
+	documentation for interpolation functions.
+
+	* doc/uguide/Figs/interpolation/: Added interpolation chapter
+	figures here.
+
+	* doc/uguide/main.tex: Added include for interpolation.
+
+	* src/interpolation.cc: Added \author and \date tags to my functions.
+
+	* src/.cvsignore: Added test_xml and string.xml.
+
 2002-05-28 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-97 

@@ -20,8 +20,10 @@ make_auto_wsv_h
 make_auto_wsv_pointers_cc
 stamp-h
 stamp-h.in
+string.xml
 test_interpolation
 test_linalg
 test_matpack
 test_poly
 test_tensor
+test_xml
