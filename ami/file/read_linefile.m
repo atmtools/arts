@@ -7,16 +7,31 @@
 %           See further WRITE_LINEFILE for definition of the structure
 %           field names.
 %
+%           The optional argument FLIMS can be used to only pick out 
+%           transitions inside a frequency range. This option is best used
+%           when reading a file with frequency sorted transitions as the
+%	    reading is stoped as soon as a transition is above the upper
+%           frequency limit.
+%
 % FORMAT:   L = read_linefile( filename )
 %
 % OUT:      L          Structure array with line data.
 % IN:       filename   Name on file to create.
+% OPTIONAL: flims      Frequency limits, as [f_low,f_high], for transitions
+%                      to consider.
 %------------------------------------------------------------------------
 
 % HISTORY: 2002.01.01  Created by Patrick Eriksson
 
 
-function L = write_linefile( filename )
+function L = write_linefile( filename, flims )
+
+
+%=== Default values
+%
+if nargin < 2
+  flims = [0 Inf];
+end
 
 
 %=== Present version number
@@ -57,106 +72,116 @@ n     = 0;
 L     = [];
 %
 while ~isempty(S)
-  %
-  n = n + 1;
-  %
-  for i = 1:length(S)
 
-    switch i
+  f = sscanf( S{2}, '%f' );
 
-      case 1
-        L{n}.name = S{i};
-       
-      case 2
-        L{n}.f = sscanf( S{i}, '%f' );
+  if f > flims(2)
+    return
+  end
 
-      case 3
-        L{n}.psf = sscanf( S{i}, '%f' );
 
-      case 4
-        L{n}.i0 = sscanf( S{i}, '%f' );
-
-      case 5
-        L{n}.t_i0 = sscanf( S{i}, '%f' );
-
-      case 6
-        L{n}.elow = sscanf( S{i}, '%f' );
-
-      case 7
-        L{n}.agam = sscanf( S{i}, '%f' );
-
-      case 8
-        L{n}.sgam = sscanf( S{i}, '%f' );
-
-      case 9
-        L{n}.nair = sscanf( S{i}, '%f' );
-
-      case 10
-        L{n}.nself = sscanf( S{i}, '%f' );
-
-      case 11
-        L{n}.t_gam = sscanf( S{i}, '%f' );
-
-      case 12
-        L{n}.n_aux = sscanf( S{i}, '%f' );
-        n_aux      = L{n}.n_aux;
-        %
-        % Aux variables are handled below otherwise
-
-      case 13 + n_aux
-        L{n}.df = sscanf( S{i}, '%f' );
-
-      case 14 + n_aux
-        L{n}.di0 = sscanf( S{i}, '%f' );
-
-      case 15 + n_aux
-        L{n}.dagam = sscanf( S{i}, '%f' );
-
-      case 16 + n_aux
-        L{n}.dsgam = sscanf( S{i}, '%f' );
-
-      case 17 + n_aux
-        L{n}.dnair = sscanf( S{i}, '%f' );
-
-      case 18 + n_aux
-        L{n}.dnself = sscanf( S{i}, '%f' );
-
-      case 19 + n_aux
-        L{n}.dpsf = sscanf( S{i}, '%f' );
-
-      case 20 + n_aux
-        L{n}.qcode = sscanf( S{i}, '%s' );
-
-      case 21 + n_aux
-        L{n}.qlower = sscanf( S{i}, '%s' );
-
-      case 22 + n_aux
-        L{n}.qlower = sscanf( S{i}, '%s' );
-
-      case 23 + n_aux
-        L{n}.if = sscanf( S{i}, '%s' );
-
-      case 24 + n_aux
-        L{n}.ii0 = sscanf( S{i}, '%s' );
-
-      case 25 + n_aux
-        L{n}.ilw = sscanf( S{i}, '%s' );
-
-      case 26 + n_aux
-        L{n}.ipsf = sscanf( S{i}, '%s' );
-
-      case 27 + n_aux
-        L{n}.iaux = sscanf( S{i}, '%s' );
- 
-      otherwise
-        %
-        if i <= 12+n_aux
-          eval(['L{i}.aux',int2str(i-11)]) = sscanf( S{i}, '%f' );
-        else
-          error(sprintf('To many fields found for line %d.',n));
-        end
-    end
-  end 
+  if f >= flims(1)
+    %
+    n = n + 1;
+    %
+    for i = 1:length(S)
+  
+      switch i
+  
+	case 1
+	  L{n}.name = S{i};
+	 
+	case 2
+	  L{n}.f = f;
+  
+	case 3
+	  L{n}.psf = sscanf( S{i}, '%f' );
+  
+	case 4
+	  L{n}.i0 = sscanf( S{i}, '%f' );
+  
+	case 5
+	  L{n}.t_i0 = sscanf( S{i}, '%f' );
+  
+	case 6
+	  L{n}.elow = sscanf( S{i}, '%f' );
+  
+	case 7
+	  L{n}.agam = sscanf( S{i}, '%f' );
+  
+	case 8
+	  L{n}.sgam = sscanf( S{i}, '%f' );
+  
+	case 9
+	  L{n}.nair = sscanf( S{i}, '%f' );
+  
+	case 10
+	  L{n}.nself = sscanf( S{i}, '%f' );
+  
+	case 11
+	  L{n}.t_gam = sscanf( S{i}, '%f' );
+  
+	case 12
+	  L{n}.n_aux = sscanf( S{i}, '%f' );
+	  n_aux      = L{n}.n_aux;
+	  %
+	  % Aux variables are handled below otherwise
+  
+	case 13 + n_aux
+	  L{n}.df = sscanf( S{i}, '%f' );
+  
+	case 14 + n_aux
+	  L{n}.di0 = sscanf( S{i}, '%f' );
+  
+	case 15 + n_aux
+	  L{n}.dagam = sscanf( S{i}, '%f' );
+  
+	case 16 + n_aux
+	  L{n}.dsgam = sscanf( S{i}, '%f' );
+  
+	case 17 + n_aux
+	  L{n}.dnair = sscanf( S{i}, '%f' );
+  
+	case 18 + n_aux
+	  L{n}.dnself = sscanf( S{i}, '%f' );
+  
+	case 19 + n_aux
+	  L{n}.dpsf = sscanf( S{i}, '%f' );
+  
+	case 20 + n_aux
+	  L{n}.qcode = sscanf( S{i}, '%s' );
+  
+	case 21 + n_aux
+	  L{n}.qlower = sscanf( S{i}, '%s' );
+  
+	case 22 + n_aux
+	  L{n}.qlower = sscanf( S{i}, '%s' );
+  
+	case 23 + n_aux
+	  L{n}.if = sscanf( S{i}, '%s' );
+  
+	case 24 + n_aux
+	  L{n}.ii0 = sscanf( S{i}, '%s' );
+  
+	case 25 + n_aux
+	  L{n}.ilw = sscanf( S{i}, '%s' );
+  
+	case 26 + n_aux
+	  L{n}.ipsf = sscanf( S{i}, '%s' );
+  
+	case 27 + n_aux
+	  L{n}.iaux = sscanf( S{i}, '%s' );
+   
+	otherwise
+	  %
+	  if i <= 12+n_aux
+	    eval(['L{i}.aux',int2str(i-11)]) = sscanf( S{i}, '%f' );
+	  else
+	    error(sprintf('To many fields found for line %d.',n));
+	  end
+      end
+    end 
+  end
   %
   S = next_line( fid );
   %

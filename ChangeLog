@@ -1,3 +1,21 @@
+2002-01-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-0-pre2
+
+	* Sorry Oliver, but I have stuff that must be commited now.
+
+	* ami/arts/tag2mo.m: The function now works for tag string with more
+	than one part, e.g. "H2O-PWR98,H2O". 
+
+	* ami/file/read_linefile.m: The reading can now be limited to a 
+	frequency range.
+
+	* ami/file/combine_lines.m: Created this function to lower the number
+	of transitions in the linefile when several transitions are basically
+	identical, which is the case for some species, such as HNO3. The
+	intensities of such transitions are added to create a pseudo-line that
+	gives the same contribution as the individual transitions.
+	
 2002-01-15  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-0-pre1
