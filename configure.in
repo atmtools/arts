@@ -116,7 +116,6 @@ Makefile
       doc/emacs/Makefile
    m4/Makefile 
    src/Makefile 
-      src/tnt/Makefile 
    data/Makefile 
       data/atmosphere/Makefile 
          data/atmosphere/fascod/Makefile
