@@ -1,5 +1,12 @@
 2003-03-07  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
+	* arts-1-1-488	
+	
+	* src/m_scatrte.cc (i_fieldUpdate3D): Same bug fix as for 
+	(i_fieldUpdate1D).
+	
+2003-03-07  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+	
 	* arts-1-1-487
 
 	* src/m_scatrte.cc (i_fieldUpdate1D): Fixed a bug. The function did 
