@@ -1474,11 +1474,15 @@ void k_contabs (
               const Numeric&         fhigh,
               const String&          lunit )
 {
+
   if ( los.p.nelem() != absloswfs.nelem() )
+    {
     throw runtime_error(
-     "The number of zenith angles is not the same in *los* and *absloswfs*." );
-  check_length_nrow( f_mono, "f_mono", absloswfs[0], 
+		    "The number of zenith angles is not the same in *los* and *absloswfs*." ); 
+    check_length_nrow( los.p[0], "los points", absloswfs[0], 
                                                  "the matrices of absloswfs" );
+    }
+  
   // Main sizes
   const Index  nza = los.start.nelem();     // number of zenith angles  
   const Index  np  = k_grid.nelem();        // number of retrieval altitudes

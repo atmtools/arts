@@ -491,7 +491,7 @@ void define_partition_species_data()
   iso(it_isotope,       "622",  Qcoeff( -9.3697E-01     ,3.6090E+00     ,-3.4552E-03    ,1.7462E-05) );
   iso(it_isotope,       "624",  Qcoeff( -1.1536E+00     ,3.7028E+00     ,-3.5582E-03    ,1.7922E-05) );
   iso(it_isotope,       "632",  Qcoeff( -6.1015E-01     ,7.2200E+00     ,-7.0044E-03    ,3.6708E-05) );
-  iso(it_isotope,       "623",  Qcoeff( -1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00) );
+  iso(it_isotope,       "623",  Qcoeff( -1.0000E+00     ,0.0000E+00     ,0.0000E+00     ,0.0000E+00) );  
   iso(it_isotope,       "822",  Qcoeff( -2.1569E-01     ,3.8332E+00     ,-3.6783E-03    ,1.9177E-05) );
 
 

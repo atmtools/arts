@@ -71,7 +71,7 @@ while ischar( s )
       %
       LM{i}.name = sscanf( s(1:3), '%c'  );
       %
-      LA{i}.name = my2arts(str2num( LM{i}.name));
+      LA{i}.name = my2arts(( LM{i}.name));
       
       %= Centre frequency [Hz]
       %

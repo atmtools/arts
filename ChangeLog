@@ -1,3 +1,22 @@
+2003-08-28  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-1-0-120
+
+	* src/species_data.cc: updated the isotopic ratio values taken from
+	HITRAN96, with the ones from HITRAN00. The differences are very
+	small. A intercomparison of the two datasets showed that only some
+	isotopic ratios in HITRAN00 were given with a higher
+	precision. E.g., for CO2-636 the old value was 0.01106 while the
+	new value is 0.0110574.
+
+	* src/partition_function_data.cc: a small correction according the
+	species_data.cc file. 
+
+	* doc/uguide/absorption.tex: updated the table listing the species
+	implemented and the isotopic ratios according to the new updates
+	included in species_data.cc. Now all the species, continua,
+	clouds, are consistently listed in tables. 
+
 2003-08-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-119

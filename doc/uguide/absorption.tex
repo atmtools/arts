@@ -689,14 +689,16 @@ of the JPL00 catalog.
      & 181&  12&    12&  20003\\
      & 171&  13&    13&  19003\\
      & 162&  14&    14&  19002\\
-     & 182&  -1&    -1&  21001\\
+     & 182&  -1&    15&  21001\\
      & 172&  -1&    16&       \\
      & 262&  -1&    -1&  20001\\
      &SelfContStandardType&             -1&  -1 & \\      
-     &ForeignContStandardType&          -1&  -1 & \\      
+     &ForeignContStandardType&          -1&  -1 & \\  
+     &ForeignContMaTippingType&         -1&  -1 & \\      
      &ContMPM93&                        -1&  -1 & \\      
-     &SelfContCKD&                      -1&  -1 & \\      
-     &ForeignContCKD&                   -1&  -1 & \\      
+     &SelfContCKD24&                    -1&  -1 & \\      
+     &ForeignContCKD24&                 -1&  -1 & \\ 
+     &ForeignContATM01&                 -1&  -1 & \\         
      &CP98&                             -1&  -1 & \\      
      &MPM87&                            -1&  -1 & \\      
      &MPM89&                            -1&  -1 & \\      
@@ -748,21 +750,22 @@ of the JPL00 catalog.
     &SelfContStandardType&   -1        &-1&     \\
     &SelfContMPM93&          -1        &-1&     \\
     &SelfContPWR93&          -1        &-1&     \\
-    &PWR93&                  -1        &-1&     \\ 
+    &PWR98&                  -1        &-1&     \\ 
+    &PWR93&                  -1        &-1&     \\
+    &PWR88&                  -1        &-1&     \\  
     &MPM93&                  -1        &-1&     \\
-
-
-
-
+    &MPM92&                  -1        &-1&     \\
+    &MPM89&                  -1        &-1&     \\
+    &MPM85&                  -1        &-1&     \\
 \hline                  
   NO& 46&  81&    81&  30008\\
     & 56&  -1&    82&\\
     & 48&  -1&    83&\\
 \hline                  
   SO2& 626&  91&    91&  64002, 64005\\
-     & 646&  -1&    92&  66002\\
-     & 636&  -1&    -1&  65001\\
-     & 628&  -1&    -1&  66004\\
+     & 646&  92&    92&  66002\\
+     & 636&  93&    -1&  65001\\
+     & 628&  94&    -1&  66004\\
 \hline                  
   NO2& 646&  101&   101&  46006\\
 \hline                  
@@ -798,6 +801,7 @@ of the JPL00 catalog.
      & 624&  192&   192&  62001\\
      & 632&  193&   193&  61001\\
      & 822&  194&   194&  62002\\
+     & 623&  195&   195&       \\
 \hline                  
   H2CO& 1126&  201&   201&  30004\\
       & 1136&  202&   202&  31002\\
@@ -813,7 +817,7 @@ of the JPL00 catalog.
     &SelfContPWR93&             -1      &-1     \\
     &SelfContStandardType&      -1      &-1     \\
     &SelfContBorysow&           -1      &-1     \\
-
+    &DryContATM01&              -1      &-1     \\
 
 
 \hline                  
@@ -860,32 +864,56 @@ of the JPL00 catalog.
   OClO& 656&  431&    -1&  67001\\
       & 676&  432&    -1&  69001\\
 \hline                  
-  BrO& 96&  461&    -1&  95001\\
-     & 16&  462&    -1&  97001\\
+  BrO& 96&  401&    -1&  95001\\
+     & 16&  402&    -1&  97001\\
 \hline                  
   H2SO4& 126&  481&    -1&  98001\\
 \hline                  
   Cl2O2& 565&  491&    -1&  102001\\
        & 765&  492&    -1&  104001\\
+\hline                  
+  HOBr & 169&  371&    371&  96001\\
+       & 161&  372&    372&  98002\\
+\hline                  
+  C2H4 & 221&  381&    371&       \\
+       & 231&  382&    372&       \\
+\hline                  
+CH3CN & 211124&   &        & 41001 \\
+      & 311124&   &        & 42006 \\
+      & 211134&   &        & 42007 \\
+      & 211125&   &        & 42001 \\
+      & 211224&   &        & 42008 \\
+\hline                  
+  HNC & 142&      &        & 27002 \\
+  HNC & 143&      &        & 28005 \\
+  HNC & 152&      &        & 28006 \\
+  HNC & 242&      &        & 28007 \\
+\hline                  
+liquidcloud& MPM93&  &     &       \\
+\hline                  
+icecloud& MPM9&      &     &       \\
+\hline                  
+rain     & MPM93 &   &     &       \\
 \end{longtable}
  
 
 Table \ref{table:isoratio} gives an overview of the isotopic ratios
 and their sources, and the molecular mass of the species used in used
 in ARTS.  The isotopic ratio of the species was in general taken from
-HITRAN96, even for species where JPL00 and HITRAN96 give isotopic
-ratios. Species not present in HITRAN96 were extracted from JPL00.
+HITRAN00, even for species where JPL00 and HITRAN00 give isotopic
+ratios. 
+Species not present in HITRAN00 were extracted from JPL00.
 JPL00 isotopic ratios are normalized to 1 for some molecules, for
-these cases, the HITRAN96 isotopic ratio of the major isotope was used
+these cases, the HITRAN00 isotopic ratio of the major isotope was used
 to scale the JPL00 isotopic ratio to relative number.
 
 As in \ref{table:impl_secies} the first two columns give the ARTS
 molecule name and  the ARTS isotope name. The next two ones give the
 isotopic ratio and the source it is taken from respectively. An entry
-of 1 corresponds to HITRAN96, 2 to JPL00, 3 to JPL00 multiplied with
-the maximum abundance of this molecule in HITRAN. The last column
-contains the molecular masses of the isotopes. an entry of -1 is
-prescribed to the continuum tags.
+of 1 corresponds to HITRAN00, 2 to JPL00, 3 to JPL00 multiplied with
+the maximum abundance of this molecule in HITRAN. The
+last column contains the molecular masses of the isotopes. An entry of -1 is
+prescribed to the continuum tags. 
 
 
 
@@ -922,14 +950,16 @@ prescribed to the continuum tags.
      & 181&  0.00199983&  1&20\\
      & 171&  0.00037200&  1&19\\
      & 162&  0.00031069&  1&19\\
-     & 182&  6.1070746E-07&  3&21\\
+     & 182&  6.23003E-07& 1&21\\
      & 172&  1.15853E-07& 1& 20\\
      & 262&  2.2430204E-08&  3&20\\
      &SelfContStandardType&     -1    &-1    &-1     \\
      &ForeignContStandardType&  -1    &-1    &-1     \\
+     &ForeignContMaTippingType& -1    &-1    &-1     \\
      &ContMPM93&                -1    &-1    &-1     \\
-     &SelfContCKD&              -1    &-1    &-1     \\
-     &ForeignContCKD&           -1    &-1    &-1     \\
+     &SelfContCKD24&            -1    &-1    &-1     \\
+     &ForeignContCKD24&         -1    &-1    &-1     \\
+     &ForeignContATM01&         -1    &-1    &-1     \\
      &CP98&                     -1    &-1    &-1     \\
      &MPM87&                    -1    &-1    &-1     \\
      &MPM89&                    -1    &-1    &-1     \\
@@ -977,8 +1007,14 @@ prescribed to the continuum tags.
     &SelfContStandardType&      -1      &-1     &-1     \\
     &SelfContMPM93&             -1      &-1     &-1     \\
     &SelfContPWR93&             -1      &-1     &-1     \\
+    &PWR98&                     -1      &-1     &-1     \\
     &PWR93&                     -1      &-1     &-1     \\
-    &PM93&                      -1      &-1     &-1     \\
+    &PMR88&                     -1      &-1     &-1     \\
+    &MPM93&                     -1      &-1     &-1     \\
+    &MPM92&                     -1      &-1     &-1     \\
+    &MPM89&                     -1      &-1     &-1     \\
+    &MPM87&                     -1      &-1     &-1     \\
+    &MPM85&                     -1      &-1     &-1     \\
 \hline                  
   NO& 46&  0.993974&  1&30\\
     & 56&  0.0036543&  1&31\\
@@ -1021,11 +1057,12 @@ prescribed to the continuum tags.
   OCS& 622&  0.93739&  1&60\\
      & 624&  0.04158&  1&62\\
      & 632&  0.01053&  1&61\\
-     & 822&  0.0018797&  1&61\\
+     & 822&  0.0018797&1&61\\
+     & 623&  0.007399 &1&61\\
 \hline                  
   H2CO& 1126&  0.98624&  1&30\\
       & 1136&  0.01108&  1&31\\
-      & 1128&  0.0019776&  1&32\\
+      & 1128&  0.0019776& 1&32\\
       & 1226&  0.00029578940&  3&31\\
       & 2226&  2.2181076E-08&  3&32\\
 \hline                  
@@ -1037,6 +1074,7 @@ prescribed to the continuum tags.
     &SelfContPWR93&             -1      &-1     &-1\\
     &SelfContStandardType&      -1      &-1     &-1\\
     &SelfContBorysow&           -1      &-1     &-1\\
+    &DryContATM01&              -1      &-1     &-1\\
 \hline                  
   HCN& 124&  0.98511&  1&27\\
      & 134&  0.01107&  1&28\\
@@ -1088,7 +1126,29 @@ prescribed to the continuum tags.
 \hline                  
   Cl2O2& 565&  0.57016427&  2&102\\
        & 765&  0.36982818&  2&104\\
-
+\hline                  
+  HOBr& 169&   0.505579  &  1&102\\
+      & 161&   0.491894  &  1&104\\
+\hline                  
+  C2H4& 221&   0.977294  &  4&28\\
+      & 231&   0.0219595 &  4&29\\
+\hline                  
+CH3CN &211124& 0.97366840&  3&41\\
+CH3CN &311124& 0.011091748& 3&42\\
+CH3CN &211134& 0.011091748& 3&42\\
+CH3CN &211125& 0.0036982817&3&42\\
+CH3CN &211224& 0.00044977985&3&42\\
+\hline                  
+  HNC & 142&   0.98505998  &3 &27\\
+  HNC & 143&   0.011091748 &3 &28\\
+  HNC & 152&   0.0036982817&3 &28\\
+  HNC & 242&   0.00014996849&3&28\\
+\hline
+liquidcloud&          -1 & -1& -1\\
+\hline
+icecloud&             -1 & -1& -1\\
+\hline
+rain&                 -1 & -1& -1\\
 \end{longtable}
 
 
