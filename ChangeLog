@@ -1,3 +1,10 @@
+2002-06-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-138
+		
+	* doc/uguide/scattering.tex: Modified documentation according to
+	the methods in (scatproperties.cc) and (m_cloudbox.cc). 
+
 2002-06-14  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-137
@@ -9,7 +16,6 @@
 	of Matrix is included here. I think it is better to shift this
 	function to math_funcs.cc or so.   
 	
-
 2002-06-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-136

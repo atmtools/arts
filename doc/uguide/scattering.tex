@@ -312,7 +312,7 @@ The amplitude matrix contains all information about the optical
 properties of the scattering medium. Extinction cross section
 matrix, absorption cross section vector and phase matrix can be
 obtained from the amplitude matrix (see Sections
-\ref{sec:scattering:ext_mat_spt}, \ref{sec:scattering:sca_mat_spt}  and
+\ref{sec:scattering:ext_mat_spt}, \ref{sec:scattering:pha_mat_spt}  and
 \ref{sec:scattering:abs_vec_spt}).
 For this reason, it is sufficient to store only the amplitude matrices
 in the scattering data base. 
@@ -373,31 +373,33 @@ variables are required:
 \wsvindex{ext\_mat\_spt}, which contains the extinction cross section
 matrices for each chosen particle type. How this variable is generated
 is explained in Section \ref{sec:scattering:ext_mat_spt}. For calculating the
-gaseous extinction the volume mixing ratio (\wsvindex{vmr}), the
-pressure  (\wsvindex{p}), the temperature  (\wsvindex{T}) and the
-propagation direction given by zenith angle (\wsvindex{za}) and
-azimuth angle (\wsvindex{aa}) are needed.\\
+gaseous extinction the volume mixing ratio (\wsvindex{vmrs}), the
+pressure (\wsvindex{p\_grid}), the temperature  (\wsvindex{t\_field}) and the
+propagation direction given by zenith angle (\wsvindex{scat\_za\_grid}) and
+azimuth angle (\wsvindex{scat\_aa\_grid}) are needed.\\
 The agenda can for example be defined in the following manner:
 
+\begin{minipage}{0.9\hsize}
+\begin{verbatim}
+AgendaDefine(ext_mat_agenda)
+{
+ext_mat_partCalc{} // Function to calculate particle
+                   // extinction.
+ext_mat_gasCalc{}  // Function to calculate gaseous
+                   // extinction. 
+ext_matCalc{}      // Function which sums up
+                   // particle extinction and 
+                   // gaseous extinction.
+}
+\end{verbatim}
+\end{minipage}
 
-FIXME: Fix this. Use raggedright? Or better use verbatim environment
-for this?
-\verb|AgendaDefine(ext_mat_agenda)|\\
-\begin{tabularx}{\hsize}{@{}lX}
-  Irgendwas & \raggedright Hier ein längerer Text. Hier ein längerer Text. Hier ein
-  längerer Text. HiereinlängererText.  HiereinlängererText.
-\end{tabularx}
-
-\begin{tabular}[h]{l l}
-\verb|{ |\\
-\verb|ext_mat_partCalc{}| & \verb| //function to calculate particle |\\
-& \verb|extinction | (see Section \ref{sec:scattering:ext_mat_part}).\\
-\verb|ext_mat_gasCalc{}| & \verb| //function to calculate gaseous | \\
-& \verb|extinction | (see Section \ref{sec:scattering:ext_mat_gas}).\\ 
-\verb|ext_matCalc{}| &\verb| // function which sums up | \\
-& \verb| particle extinction and gaseous extinction.|\\
-\verb| }|
-\end{tabular}
+\vspace{2ex}
+\noindent
+The methods \wsmindex{ext\_mat\_partCalc} and
+\wsmindex{ext\_mat\_gasCalc} are explained in Sections
+\ref{sec:scattering:ext_mat_part} and \ref{sec:scattering:ext_mat_gas}
+respectively.
 
 \levelc{Generate particle extinction matrix}
 %==================================================================0
@@ -433,15 +435,16 @@ particle type can be derived using the workspace method
 \wsmindex{ext\_mat\_sptCalc}.\\
 Output is a tensor including local extinction matrices for each
 particle type, so it is of the dimension [$N_{pt}, N_{I}, N_{I}$],
-where $N_{I}$ denotes the Stokes dimension.
-
-% =================update !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+where $N_{I}$ denotes the Stokes dimension.\\
 As input variables it needs the amplitude matrix (\wsvindex{amp\_mat})
-and the propagation direction given by the local zenith and azimuth
-angle (\artsstyle{za} and \artsstyle{aa}). \wsvindex{amp\_mat} is
+and the propagation direction specified by the angular grid indices
+\wsvindex{scat\_za\_grid} and \wsvindex{scat\_aa\_grid}. Furthermore the
+frequency is required. It is passed into the function by the workspace
+variables \wsvindex{scat\_f\_index} and \wsvindex{f\_grid}.
+\wsvindex{amp\_mat} is
 obtained using the reading routine \wsmindex{get\_amp\_fromDb} which is
 explained in Section \ref{sec:scattering:database}.
-%============================================================
+
 
 The extinction cross section matrices \SExMat{} are
 calculated for all patricle types chosen in the control
@@ -467,18 +470,18 @@ file. The following formulas are used:
 
 \levelb{Generate scattering efficiency matrix}
 %========================================================================
-\label{sec:scattering:tot_sca_mat}
+\label{sec:scattering:tot_pha_mat}
 
 \levelc{Calculate the total scattering efficiency matrix}
 %=======================================================================
-\label{sec:scattering:sca_mat}
+\label{sec:scattering:pha_mat}
 
-Output of the workspace method \wsmindex{sca\_matCalc} is the phase
-matrix stored in the variable \wsvindex{sca\_mat}  with dimension
+Output of the workspace method \wsmindex{pha\_matCalc} is the phase
+matrix stored in the variable \wsvindex{pha\_mat}  with dimension
 according to the chosen Stokes
 dimension, so in general it is a 4x4 matrix.\\
-Input is first the workspace variable \wsvindex{sca\_mat\_spt} (see Section
-\ref{sec:scattering:sca_mat_spt}). The second input variable is the
+Input is first the workspace variable \wsvindex{pha\_mat\_spt} (see Section
+\ref{sec:scattering:pha_mat_spt}). The second input variable is the
 local particle number density vector \artsstyle{pnd} for all particle types
 chosen in the control file.
 The function sums up the phase matrices for all particle types
@@ -489,20 +492,25 @@ weighted with the particle number density.
 
 \levelc{Generate phase matrix for single particle types}
 %==============================================================
-\label{sec:scattering:sca_mat_spt}
+\label{sec:scattering:pha_mat_spt}
 
 From the amplitude matrix the phase matrix for each
 particle type is calculated using the workspace method
-\wsmindex{pha\_mat\_sptCalc}.\\
-Output is a tensor including phase matrices for all particle
+\wsmindex{pha\_mat\_sptCalc}. The phase matrix depends on the
+direction of the incoming radiation, so it is stored for all incoming
+directions specified by \wsvindex{scat\_za\_grid} and
+\wsvindex{scat\_aa\_grid}.\\
+Output of the method is a tensor5 including phase matrices for all particle
 types. Therefore it is  of  dimension
-[$N_{pt}, N_{I}, N_{I}$], where $N_{pt}$ is the number of particle
-types  and $N_{I}$ denotes the Stokes dimension.\\
+[$N_{pt}, N_{\ScaZa}, N_{\ScaAa}, N_{I}, N_{I}$], where $N_{pt}$ is
+the number of particle
+types  and $N_{I}$ denotes the Stokes dimension. $N_{\ScaZa}$ and
+$N_{\ScaAa}$ are the number of angles in the angular grids defined for
+the scattering calculations.\\
 As input variables it needs the amplitude matrix (\wsvindex{amp\_mat})
 and the propagation direction given by the local zenith and azimuth
-angle (\artsstyle{za} and \artsstyle{aa}). Furthermore it needs the
-angles describing the scattering direction  (\artsstyle{za\_inc} and
-\artsstyle{aa\_inc}). 
+angle specified by the indices \wsvindex{scat\_za\_index} and
+\artsstyle{scat\_aa\_index}.  
 The phase matrices \PhaMat{} are
 calculated for all particle types chosen in the control
 file using the following equations: 
@@ -544,23 +552,33 @@ the particle number density \wsvindex{pnd} and
 each chosen particle type. How this variable is obtained
 is described in Section \ref{sec:scattering:abs_vec_spt}. For calculating 
 gaseous absorption the volume mixing ratio (\wsvindex{vmr}), the
-pressure  (\wsvindex{p}), the temperature  (\wsvindex{T}) and the
-propagation direction given by zenith angle (\wsvindex{za}) and
-azimuth angle (\wsvindex{aa}) are needed.\\
+pressure  (\wsvindex{p\_grid}), the temperature  (\wsvindex{t\_field}) and the
+propagation direction given by zenith angle (\wsvindex{scat\_za\_grid}) and
+azimuth angle (\wsvindex{scat\_aa\_grid}) are needed.\\
 The definition of the agenda is listed below:
 
-\verb|AgendaDefine(abs_vec_agenda)|\\
-\begin{tabular}[h]{l l}
-\verb|{ |\\
-\verb|abs_vec_partCalc{}| & \verb| //function to calculate particle |\\
-& \verb|absorption | (see Section \ref{sec:scattering:abs_vec_part}).\\
-\verb|abs_vec_gasCalc{}| & \verb| //function to calculate gaseous | \\
-& \verb|absorption | (see Section \ref{sec:scattering:abs_vec_gas}).\\ 
-\verb|abs_vecCalc{}| &\verb| // function which sums up | \\
-& \verb| particle absorption and gaseous absorption.|\\
-\verb| }|
-\end{tabular}
+\vspace{2ex} 
+\begin{minipage}[h]{.9\hsize}
+\begin{verbatim}
+AgendaDefine(abs_vec_agenda)
+{
+abs_vec_partCalc{}  // Function to calculate particle
+                    // absorption.
+abs_vec_gasCalc{}   // Function to calculate gaseous
+                    // absorption.
+abs_vecCalc{}       // Function which sums up 
+                    // particle absorption and
+                    // gaseous absorption.
+}
+\end{verbatim}
+\end{minipage}
+\vspace{2ex} 
 
+\noindent
+The workspace methods \wsmindex{abs\_vec\_partCalc} and
+\wsmindex{abs\_vec\_gasCalc} are described in the sections
+\ref{sec:scattering:abs_vec_part} and
+\ref{sec:scattering:abs_vec_gas}. 
 
 
 \levelc{Calculate particle absorption coefficient vector}
@@ -597,9 +615,7 @@ particle type is calculated using the workspace method
 Output is the absorption vector tensor, which is  of  dimension
 [$N_{pt}, N_{I}$], where $N_{pt}$ is the number of particle
 types  and $N_{I}$ denotes the Stokes dimension.\\
-As input variables it needs the amplitude matrix (\wsvindex{amp\_mat})
-and the propagation direction given by the local zenith and azimuth
-angle (\artsstyle{za} and \artsstyle{aa}). Furthermore the extinction
+As input it uses the extinction
 matrix (\wsvindex{ext\_mat}) and the phase matrix
 (\wsvindex{pha\_mat}).\\
 The absorption cross section vectors \SAbVec{} are
@@ -616,10 +632,10 @@ file. The following formulas are used:
   b^p_4({\bf n}) &=&  L^p_{41}({\bf n}) - \int_{4\pi} d{\bf n'}
   Z_{41}({\bf n, n'})
 \end{eqnarray}
-This equations show, that the first column of extinction and phase
+These equations show, that the first column of extinction and phase
 matrix are needed. So it is obligatory to execute the agendas
 \funcindex{ext\_mat\_agenda} and 
-\funcindex{sca\_mat\_agenda} before executing
+\funcindex{pha\_mat\_agenda} before executing
 \funcindex{abs\_vec\_agenda}. 
 
 
@@ -639,7 +655,7 @@ limited only to a small part of the atmosphere defined by the cloud box.
 \leveld{3D geometry}
 %==========================================
 
-The concept of a cloud box is explained in
+The concept of a cloud box is explained in Section
 \ref{sec:fm_defs:cloudbox}. It is activated by setting the flag
 \wsvindex{cloudbox\_on} to 1. The
 limits of the cloud box are stored in \wsvindex{cloudbox\_limits}
@@ -822,7 +838,7 @@ performed:
   \item Extinction coefficient matrix: Execute \wsvindex{ext\_mat\_agenda} (see
     Section \ref{sec:scattering:ext_mat_agenda}).
   \item Scattering efficiency matrix: Execute \wsvindex{sca\_matCalc} (see
-    Section \ref{sec:scattering:sca_mat}).
+    Section \ref{sec:scattering:pha_mat}).
   \item Absorption coefficient vector:  Execute \wsvindex{abs\_vec\_agenda} (see
     Section \ref{sec:scattering:abs_vec_agenda}).
   \end{itemize}
@@ -834,18 +850,23 @@ performed:
   the intersection point with the next
   layer is determined as well as the pathlength d{\bf s} from the starting
   point to the intersection point.  
-\item Solve Equation (\ref{eq:scattering:RTE_sol}) using either the
-  method \artsstyle{sto\_vecCalc} if the Stokes dimension
-  \wsvindex{stokes\_dim} is greater
-  than one or \artsstyle{sto\_vec1DCalc} if  \wsvindex{stokes\_dim}
-  equals one, i.e. if the scalar case is considered. The two methods
-  are described below. The workspace
-  method adjusts automatically to the Stokes dimension which has to be
-  defined in the control file before doing scattering calculations. 
+\item Solve Equation (\ref{eq:scattering:RTE_sol}) using  the agenda
+  \wsvindex{scat\_rte\_agenda} (see description below).
 \end{itemize}
 
-\leveld{Method \artsstyle{sto\_vecCalc}}
-%================================================================
+\leveld{Agenda \wsvindex{scat\_rte\_agenda}}
+%=================================================================
+In the agenda \wsvindex{scat\_rte\_agenda} the method for doing a
+radiative step calculation through one grid cell for a 3D atmosphere
+or one layer for a 1D atmosphere is defined. The following methods can
+be chosen:
+
+\begin{itemize}
+\item {\bf Method \artsstyle{stokes\_vecGeneral}:}\\
+This method is the most general method. It can be applied for all
+Stokes dimensions but it should not be used for the scalar equation as
+for this case the method is numerically inefficient. 
+
 There are two terms in the radiative transfer equation
 \ref{eq:scattering:RTE_sol} which are
 computed separately using different functions. The first term 
@@ -864,19 +885,17 @@ includes the inverse of \ExtMat\ multiplied with a vector. This is
 computed numerically by a LU decomposition as described in the
 Sections \ref{sec:lin_alg:backsub} and
 \ref{sec:lin_alg:lu_decomp}. The functions used here are
-\wsmindex{ludcmp} and \wsmindex{lubacksub}. The matrix emponential is
-computed using again \artsstyle{matrix\_exp}.
-
+\artsstyle{ludcmp} and \artsstyle{lubacksub}. The matrix emponential is
+computed using again \artsstyle{matrix\_exp}.\\
 Finally the method sums up the two terms to get the updated Stokes Vector. 
  
-\leveld{Method \artsstyle{sto\_vec1DCalc}}
-%================================================================
-For the scalar case it is straight forward to compute a radiative
-transfer step through one grid cell. Only equation
+\item {\bf Method \artsstyle{stokes\_vecScalar}:}\\
+For the scalar case it is straightforward to compute a radiative
+transfer step through one grid cell/layer. Only equation
 (\ref{eq:scattering:scalar_rte_sol}) has to be computed. We only
 have to compute the scalar exponential function and do not need the
 matrix inverse, such that the standard C math library is sufficient.
-
+\end{itemize}
 
 
 

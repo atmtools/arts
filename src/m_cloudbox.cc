@@ -237,6 +237,9 @@ void CloudboxSetManually(
   \param blackbody_ground Flag to treat ground as blackbody.
   \param stokes_dim    The number of Stokes components to be calculated.
   \param atmosphere_dim Atmospheric dimension.
+
+  \author Claudia Emde
+  \date 2002-05-29
 */
 void
 i_fieldIterate(
@@ -362,6 +365,9 @@ i_fieldIterate(
   \param scat_f_index  Frequency index.
   \param blackbody_ground Flag to treat ground as blackbody.
   \param stokes_dim    The number of Stokes components to be calculated.
+
+  \author Claudia Emde
+  \date 2002-05-30
 */
 void
 i_fieldUpdate1D(// WS Output:
@@ -455,9 +461,8 @@ i_fieldUpdate1D(// WS Output:
           stokes_vec.resize(stokes_dim);
 
           stokes_vec = s;
-          sca_vec = b;
-	 
-          //Extract sca_vec from sca_field.
+         
+	  //Extract sca_vec from sca_field.
 	  for (Index i = 0; i < stokes_dim; i++)
 	    {
 	      sca_vec[i] = scat_field(p_index, 0, 0,
@@ -527,6 +532,9 @@ i_fieldUpdate1D(// WS Output:
   \param l_step  Input: Pathlength through a grid cell/ layer.
   \param planck_function  Input: Planck function.
   \param stokes_dim Input: Stokes dimension. 
+
+  \author Claudia Emde
+  \date 2002-06-08
 */
 void
 stokes_vecGeneral(//WS Output and Input:
@@ -616,6 +624,9 @@ stokes_vecGeneral(//WS Output and Input:
   \param l_step  Input: Pathlength through a grid cell/ layer.
   \param planck_function  Input: Planck function.
   \param stokes_dim Input: Stokes dimension.
+
+  \author Claudia Emde
+  \date 2002-06-08
 */
 void
 stokes_vecScalar(//WS Input and Output:
