@@ -164,7 +164,6 @@ public:
   friend class ConstIterator5D;
   friend class ConstIterator6D;
   friend class ConstIterator7D;
-  friend class SparseView;
   friend class ConstTensor3View;
   friend class Tensor3View;
   friend class Tensor3;
@@ -407,7 +406,6 @@ public:
   friend class Tensor5View;
   friend class Tensor6View;
   friend class Tensor7View;
-  friend class SparseView;
 
   // A special constructor, that allows to make a VectorView of a scalar.
   VectorView(Numeric& a);
@@ -595,7 +593,6 @@ public:
   friend class ConstTensor7View;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend int poly_root_solve (Matrix &roots, Vector &coeffs);
-  //friend void mult (MatrixView A, const SparseView B, const MatrixView C );
 
 protected:
   // Constructors:
