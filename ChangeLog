@@ -1,3 +1,12 @@
+2003-07-01  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-91
+
+	* doc/doxygen/Makefile.am: Copy arts logo to html dir.
+
+	* src/arts.h: Updated doxygen main page with logo and Claudia's
+	arts description from the satpage.
+
 2003-06-27  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-0-90
