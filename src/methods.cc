@@ -166,6 +166,19 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("NumericCopyFirstOfVector"),
+	DESCRIPTION(
+           "Sets a workspace variable of type Numeric to the value of the"
+           "first element in a vector." ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Numeric_ ),
+	GINPUT(  VECTOR_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("NumericWriteAscii"),
 	DESCRIPTION("Writes a numeric value to an ASCII file.\n"
 		    "The filename can be specified or an empty string.\n"

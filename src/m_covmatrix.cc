@@ -452,7 +452,7 @@ void CovmatrixInit(
            SYMMETRIC&   s,
         const string&   s_name)
 {
-  out2 << " Initializes " << s_name;
+  out2 << " Initializes " << s_name << "\n";
   resize(s,0,0);
 }
 

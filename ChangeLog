@@ -1,3 +1,28 @@
+2001-03-28  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-142
+
+	* First a comment to z_tan just be totally clear. The los
+	function will still only take zenith angles as argument, but
+	there will be a function to convert a set of tangent altitudes
+	to corresponding zenith angles. The z_tan vector will be an 
+	output of losCalc.
+
+	* Made some smaller changes to the definition on the ARTS line
+	format found in absorption.h. Read it give comments.
+	Stefan, can really ARTS read line files (in the ARTS formats)
+	with line breaks inside the definition of a transition? I tried
+	this and it didn't work.
+
+	* New WSF NumericCopyFirstOfVector. I plan to use this to set 
+	the ground temperature to the first value of t_abs.
+
+	* New function in AMI (in file/) to create ARTS line file from
+	data in Matlab. Will be used to convert Verdandi to the ARTS
+	line catalog.
+
+	
+
 2001-03-27  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-141

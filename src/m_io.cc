@@ -1144,6 +1144,26 @@ void NumericSet(// WS Generic Output:
 }
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-03-28
+*/
+void NumericCopyFirstOfVector(
+                // WS Generic Output:
+                      Numeric&  x,
+                // WS Generic Output Names:
+                const string&   x_name,
+                // Control Parameters:
+                const VECTOR&   v,
+                const string&   v_name )
+{
+  x = v[0];
+  out3 << "  Setting " << x_name << " to the first value of " << v_name << ".\n";
+}
+
+
 
 //=== VECTOR ==========================================================
 

@@ -4,8 +4,10 @@
 %          Gives the current figure the given size, both on the screen
 %          and for later printing. The printing is best done with the 
 %          accompanying function LPR.
-%          The global parameter SCREENFAC, set in STARTUP, is used for 
-%          a correct scaling for the screen.
+%          The function uses the global variable SCEENFAC to get a
+%          correct scaling for the screen (the size obtained on the screen 
+%          is not always correct). If SCREENFAC is not defined, it is set 
+%          to 1.
 %          The figure on the screen can be scaled further by the optional 
 %          variable SFAC (the paper figure is not changed).
 %          Default unit is centimeters.
@@ -39,6 +41,10 @@ end
 
 
 global SCREENFAC
+%
+if isempty( SCREENFAC )
+  SCREENFAC = 1;  
+end
 
 
 h     = gcf;

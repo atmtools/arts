@@ -352,35 +352,41 @@ private:
     \verbatim
     Col  Variable                Label    Unit     Comment
     ------------------------------------------------------------------      
-    0   `@'                      ENTRY       -     marks start of entry
-    1   name                     NAME        -     e.g. O3-666
-    2   center frequency            F       Hz     e.g. 501.12345e9 
-    3   pressure shift of F       PSF    Hz/Pa    
-    4   line intensity             I0   m^2/Hz 
-    5   reference temp. for I0   T_I0        K
-    6   lower state energy       ELOW     cm-1
-    7   air broadened width      AGAM    Hz/Pa     values around 2 GHz/Pa
-    8   self broadened width     SGAM    Hz/Pa
-    9   AGAM temp. exponent      NAIR        -
-    10   SGAM temp. exponent     NSELF       - 
-    11   ref. temp. for AGAM, SGAM T_GAM     K
-    12   number of aux. parameters N_AUX     -
-    13   auxiliary parameter       AUX1      -
-    14   ...
-    15   error for F                DF      Hz
-    16   error for AGAM          DAGAM       %
-    17   error for SGAM          DSGAM       %
-    18   error for NAIR          DNAIR       %
-    19   error for NSELF        DNSELF       %
-    20   error for PSF            DPSF       %
-    21   quantum number code                       string or number ?
-    22   lower state quanta                        string inside quotes
-    23   upper state quanta                        string inside quotes
-    24   information source of F
-    25   information source of I0
-    26   information source of line width variables
-    27   information source of overlap constants
+     0   `@'                         ENTRY        -     marks start of entry
+     1   name                         NAME        -     e.g. O3-666
+     2   center frequency         	 F       Hz     e.g. 501.12345e9 
+     3   pressure shift of F           PSF    Hz/Pa    
+     4   line intensity                 I0   m^2/Hz 
+     5   reference temp. for I0       T_I0        K
+     6   lower state energy           ELOW     cm-1
+     7   air broadened width          AGAM    Hz/Pa     values around 2 GHz/Pa
+     8   self broadened width         SGAM    Hz/Pa
+     9   AGAM temp. exponent          NAIR        -
+    10   SGAM temp. exponent         NSELF    	  - 
+    11   ref. temp. for AGAM, SGAM   T_GAM    	  K
+    12   number of aux. parameters   N_AUX    	  -
+    13   auxiliary parameter          AUX1    	  -
+    14   ... 
+    15   error for F            	DF    	 Hz
+    16   error for I0                  DI0        %
+    17   error for AGAM              DAGAM    	  %
+    18   error for SGAM              DSGAM    	  %
+    19   error for NAIR              DNAIR    	  %
+    20   error for NSELF            DNSELF    	  %
+    21   error for PSF                DPSF    	  %
+    22   quantum number code         QCODE            
+    23   lower state quanta         QLOWER            
+    24   upper state quanta         QUPPER            
+    25   information source of F                      IF
+    26   information source of I0                     II0
+    27   information source of line width variables   ILW
+    28   information source of pressure shift         IPSF
+    29   information source of auxiliary parameters   IAUX
     \endverbatim
+
+    For the error fields (15-21), a -1 means that no value exist.
+
+    Fields 22-29 are string inside quotes ("") for maximum flexibility.
 
     One line could be:
     {\small

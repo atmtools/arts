@@ -3,6 +3,31 @@
 %
 %          Sets objects of the current axes and childrens.
 %
+%          The setting structure A can have the following fields:
+%
+%            POSITION
+%            FONTSIZE
+%            FONTWEIGHT
+%            GRID
+%            BOX
+%            TITLE
+%            TITLE_SIZE
+%            TITLE_WEIGHT
+%            XLABEL
+%            XLABEL_SIZE
+%            XLABEL_WEIGHT
+%            XGRID
+%            XTICKLABEL
+%            YLABEL
+%            YLABEL_SIZE
+%            YLABEL_WEIGHT
+%            YGRID
+%            YTICKLABEL
+%
+%          Fields with a '_' (underscore) refers to properties of childrens.
+%          For example, TITLE_SIZE is the size of the title, which is a
+%          children to the axes.
+%
 % FORMAT:  h = ax_set( A )
 %
 % OUT:     h     Handle to the current axes.
