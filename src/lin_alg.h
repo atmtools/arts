@@ -55,23 +55,24 @@ void lusolve(VectorView x, ConstMatrixView K, ConstVectorView y);
   Given a matrix A this routine replaces it by the LU decompostion of a rowwise permutation of 
   itself. (Compare Numerical Recipies in C, pages 36-48.)
   
-  \param a Input and output: Matrix for which the LU decomposition is performed, it also returns 
-  the decomposition.
+  \param LU Output: returns L and U in one matrix
   \param indx Output: Vector that records the row permutation.
-  \param d Output: +-1, depending on whether number of interchanges was odd or even.
+  \param A Input: Matrix for which the LU decomposition is performed
 */
-void ludcmp(Matrix& a, ArrayOfIndex& indx, Numeric& d); 
+void ludcmp(MatrixView& LU, ArrayOfIndex& indx, MatrixView& A); 
 
 
-//! LU backsubstitution.
+//! LU backsubstitution
 /*! 
-   Solves a set of linear equations Ax=b. It is neccessairy to do a LU decomposition using 
-   the function ludcp before using this function.
+  Solves a set of linear equations Ax=b. It is neccessairy to do a LU decomposition using 
+  the function ludcp before using this function.
   
-   @param a Input: LU decomposition of the matrix obtained by the function ludcp
-   @param b Input: right-hand-side vector of equation system
-   @param indx Input and output: pivoting information 
- */
-void lubacksub(Matrix& a, Vector& b, ArrayOfIndex& indx);
+  \param x Output: Solution vector of the equation system. 
+  \param LU Input: LU decomposition of the matrix (output of function ludcp).
+  \param b  Input: Right-hand-side vector of equation system.
+  \param indx Input: Pivoting information (output of function ludcp).
+*/
+void lubacksub(VectorView& x, MatrixView& LU, ConstVectorView& b, ArrayOfIndex& indx);
+
 
 #endif    // linalg_h

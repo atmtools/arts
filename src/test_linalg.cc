@@ -35,8 +35,9 @@ int main(void)
   ArrayOfIndex indx(4);
   Numeric d;
   Matrix orig(4,4);
+  Matrix b(4,4);
 
-  // assign matrix elements
+  /* Assign test-matrix elements. */
   
   a(0,0) = 1;
   a(0,1) = 3;
@@ -55,7 +56,10 @@ int main(void)
   a(3,2) = 4;
   a(3,3) = 3;
 
-  orig = a;
+ 
+  /* ---------------------------------------------------------------------------
+     Test the function ludcmp.
+     --------------------------------------------------------------------------- */
 
   cout << "\n LU decomposition test \n";
   cout << "initial matrix: \n";
@@ -67,25 +71,29 @@ int main(void)
     }
    cout << "\n";
 
-  ludcmp(a, indx, d);
+   /* input: Test-matrix a, 
+      output: Decomposed matrix b (includes uppper and lower triangle, cp. Numerical Recipies)
+              and index which gives information about pivoting. */
+   ludcmp(b, indx, a);
 
   cout << "\n after decomposition";
   for( Index i = 0; i<4; i++)
     {      cout << "\n";
       for (Index j = 0; j<4; j++)
-        cout << " " << a(i,j);
+        cout << " " << b(i,j);
     }
   cout << "\n";
 
+  /* Seperate b into the two triangular matrices. */
   Matrix l(4,4,0.0);
   Matrix u(4,4,0.0);
   Matrix lu(4,4,0.0);
   
   
   for(Index i = 0; i<4; i++) l(i,i) = 1.0;
-  l(1,0) = a(1,0);
-  l(2,Range(0,2)) = a(2, Range(0,2));
-  l(3,Range(0,3)) = a(3, Range(0,3));
+  l(1,0) = b(1,0);
+  l(2,Range(0,2)) = b(2, Range(0,2));
+  l(3,Range(0,3)) = b(3, Range(0,3));
   
   cout << "\n Matrix L";
   for( Index i = 0; i<4; i++)
@@ -97,10 +105,10 @@ int main(void)
   cout << "\n";
 
 
-  u(0,Range(0,4)) = a(0,Range(0,4));
-  u(1,Range(1,3)) = a(1,Range(1,3));
-  u(2,Range(2,2)) = a(2,Range(2,2));
-  u(3,Range(3,1)) = a(3,Range(3,1));
+  u(0,Range(0,4)) = b(0,Range(0,4));
+  u(1,Range(1,3)) = b(1,Range(1,3));
+  u(2,Range(2,2)) = b(2,Range(2,2));
+  u(3,Range(3,1)) = b(3,Range(3,1));
 
 
    cout << "\n Matrix U";
@@ -112,6 +120,8 @@ int main(void)
     }
   cout << "\n";
 
+
+  /* Test, if LU = a. */
   mult(lu,l,u);
 
   cout << "\n product L*U";
@@ -123,35 +133,41 @@ int main(void)
     }
    cout << "\n";
 
+   /*-------------------------------------------------------------------
+     end of ludcmp test
+     ------------------------------------------------------------------*/
 
-   //test backsubstitution routine
 
-   Vector b(4);
-   b[0] = 2;
-   b[1] = 5;
-   b[2] = 6;
-   b[3] = 7;
+   /*--------------------------------------------------------------------
+     test backsubstitution routine lubacksub
+     -------------------------------------------------------------------*/
+
+   Vector c(4);
+   c[0] = 2;
+   c[1] = 5;
+   c[2] = 6;
+   c[3] = 7;
 
    cout << "\n  vector indx";
    for (Index i=0; i<4; i++)
      {
        cout << "\n";
-       cout << indx[i] << "  " << b[i];
+       cout << indx[i] << "  " << c[i];
      }
 
-
-   lubacksub(a,b,indx);
+   Vector x(4);
+   lubacksub(x, b, c, indx);
 
    cout << "\n solution vector x";
    for (Index i=0; i<4; i++)
      {
        cout << "\n";
-       cout << b[i];
+       cout << x[i];
      }
   
    cout << "\n test solution LU*x";
      Vector y(4);
-   mult(y,lu,b);
+   mult(y,lu,x);
    for (Index i=0; i<4; i++)
      {
        cout << "\n";
@@ -188,8 +204,6 @@ int main(void)
    K(3,2) = 4;
    K(3,3) = 3;
 
-  
-
    // assign vector elements
    Vector y2(4);
    
@@ -198,22 +212,23 @@ int main(void)
    y2[2] = 6;
    y2[3] = 7;
    
-   // solution vector
-   Vector x(4);
+    Vector x2(4);
 
-   lusolve(x,K,y2);
+   lusolve(x2,K,y2);
+
    cout << "\n Test lusolve function:";
    for (Index i=0; i<4; i++)
      {
        cout << "\n";
-       cout << x[i];
+       cout << x2[i];
      }
     cout << "\n";
    
+
    // test solution:
    Vector y_test(4);
    
-   mult(y_test,K,x);
+   mult(y_test,K,x2);
 
    cout << "\n Test lusolve function:";
    for (Index i=0; i<4; i++)

@@ -52,28 +52,24 @@ void lusolve(VectorView x, ConstMatrixView K, ConstVectorView y)
   if (A.nrows() != K.nrows() || A.ncols() != K.ncols())
     A.resize(K.nrows(), K.ncols());
 
+  static Matrix LU;
+  if (LU.nrows() != K.nrows() || LU.ncols() != K.ncols())
+    LU.resize(K.nrows(), K.ncols());
+
   static ArrayOfIndex indx;
   if (K.nrows() != indx.nelem())
     indx.resize(K.nrows());
 
-  static Vector x2;
-  if (K.nrows() != x2.nelem())
-    x2.resize(K.nrows());
-
-  /*Copy K and y to the variables used in the functions ludcmp and lubacksub.*/
+  /*Copy K to the variable used in the functions ludcmp.*/
   A = K;
-  x2 = y;
   
-
-  Numeric d;
 
   /* Perform a LU-decomposition.*/
-  ludcmp(A, indx, d);
+  ludcmp(LU, indx, A);
   
   /* Perform the backsubstitution to solve the equation system. */
-  lubacksub(A, x2, indx);
+  lubacksub(x, LU, y, indx);
 
-  x = x2;
 }
 
 
@@ -86,19 +82,18 @@ void lusolve(VectorView x, ConstMatrixView K, ConstVectorView y)
   Given a matrix A this routine replaces it by the LU decompostion of a rowwise permutation of 
   itself. (Compare Numerical Recipies in C, pages 36-48.)
   
-  \param a Input and output: Matrix for which the LU decomposition is performed, it also returns 
-  the decomposition.
+  \param LU Output: returns L and U in one matrix
   \param indx Output: Vector that records the row permutation.
-  \param d Output: +-1, depending on whether number of interchanges was odd or even.
+  \param A Input: Matrix for which the LU decomposition is performed
 */
-void ludcmp(Matrix& a, ArrayOfIndex& indx, Numeric& d) 
+void ludcmp(MatrixView& LU, ArrayOfIndex& indx, MatrixView& A) 
 {
   int imax, dim;
   const Numeric TINY=1.0e-20;
-  Numeric big, dum, sum, temp;
-  
-  
-  dim = a.nrows();
+  Numeric big, dum, sum, temp, d;
+ 
+  LU = A;
+  dim = A.nrows();
   Vector vv(dim);  //stores implicit scaling of each row
   d = 1.0;
   for (Index i=0; i<dim; i++)
@@ -106,7 +101,7 @@ void ludcmp(Matrix& a, ArrayOfIndex& indx, Numeric& d)
       indx[i]= i;
       big = 0.0;
       for (Index j=0; j<dim; j++)
-        if ((temp = fabs(a(i,j))) > big) big = temp;
+        if ((temp = fabs(LU(i,j))) > big) big = temp;
       if (big == 0)
 	throw runtime_error("ludcmp: Matrix is singular");
       vv[i] = 1.0/big; // save scaling
@@ -116,18 +111,18 @@ void ludcmp(Matrix& a, ArrayOfIndex& indx, Numeric& d)
     {
       for (Index i=0; i<j; i++)
         {
-          sum = a(i,j);
+          sum = LU(i,j);
           for (Index k=0; k<i; k++) 
-            sum -= a(i,k)*a(k,j);
-          a(i,j) = sum;
+            sum -= LU(i,k)*LU(k,j);
+          LU(i,j) = sum;
         }
       big = 0.0;
       for( Index i=j; i<dim; i++)
         {
-          sum = a(i,j);
+          sum = LU(i,j);
           for (Index k=0; k<j; k++)
-            sum -= a(i,k)*a(k,j);
-          a(i,j) = sum;
+            sum -= LU(i,k)*LU(k,j);
+          LU(i,j) = sum;
           if( (dum = vv[i]*fabs(sum)) >= big) 
             {
               big = dum;
@@ -140,9 +135,9 @@ void ludcmp(Matrix& a, ArrayOfIndex& indx, Numeric& d)
         {
           for(Index k=0; k<dim; k++)
             {
-              dum = a(imax,k);
-	      a(imax,k) = a(j,k);
-              a(j,k) = dum;
+              dum = LU(imax,k);
+	      LU(imax,k) = LU(j,k);
+              LU(j,k) = dum;
             }
           d = -d;
           vv[imax] = vv[j];
@@ -150,72 +145,60 @@ void ludcmp(Matrix& a, ArrayOfIndex& indx, Numeric& d)
 	  indx[imax] =j;
 	 }
      
-      if(a(j,j) == 0.0) a(j,j) = TINY;
+      if(LU(j,j) == 0.0) LU(j,j) = TINY;
       
       if (j != dim) 
         {
-          dum=1.0/a(j,j);
+          dum=1.0/LU(j,j);
           for (Index i=j+1; i<dim; i++)
-            a(i,j) *=dum;
+            LU(i,j) *=dum;
         }
     }
 
   vv[Range(0,dim)] = 0.0;
 }
 
+ 
+ 
 
-/** 
- * Solves a set of linear equations Ax=b. It is neccessairy to do a LU decomposition using 
- * he function ludcp before using this function.
- * 
- * @param a input: LU decomposition of the matrix obtained by the function ludcp
- * @param b right-hand-side vector of equation system
- * @param indx pivoting information
- */
-void lubacksub(Matrix& a, Vector& b, ArrayOfIndex& indx)
+
+//! LU backsubstitution
+/*! 
+  Solves a set of linear equations Ax=b. It is neccessairy to do a LU decomposition using 
+  the function ludcp before using this function.
+  
+  \param x Output: Solution vector of the equation system. 
+  \param LU Input: LU decomposition of the matrix (output of function ludcp).
+  \param b  Input: Right-hand-side vector of equation system.
+  \param indx Input: Pivoting information (output of function ludcp).
+*/
+void lubacksub(VectorView& x, MatrixView& LU, ConstVectorView& b, ArrayOfIndex& indx)
 {
   int ip,dim;
   float sum;
  
-  dim = a.nrows(); 
+  dim = LU.nrows(); 
   
-  Vector b2(dim);
   for(Index i=0; i<dim; i++)
      {
        ip = indx[i];
-       b2[ip] = b[i];
+       x[ip] = b[i];
      }
-  b = b2;
-
+ 
   for (Index i=0; i<dim; i++)
     {
-      sum = b[i];
+      sum = x[i];
      for (Index j=0; j<=i-1; j++)
-       sum -= a(i,j)*b[j]; 
-      b[i] = sum;
+       sum -= LU(i,j)*x[j]; 
+      x[i] = sum;
      }
-
-  // for (Index i=0; i<dim; i++)
-//     {
-//       ip = int(indx[i]);
-//       sum = b[ip];
-//       b[ip] = b[i];
-//       if (ii != 99)
-// 	for (Index j=ii; j<=i-1; j++)
-// 	  sum -= a(i,j)*b[j];
-//       else if (sum) ii = i;
-//       b[i] = sum;
-//     }
 
   for(Index i=dim-1; i>=0; i--)
     {
-      sum = b[i];
+      sum = x[i];
       for (Index j=i+1; j<dim; j++)
-	sum -= a(i,j)*b[j];
-      b[i] = sum/a(i,i);
+	sum -= LU(i,j)*x[j];
+      x[i] = sum/LU(i,i);
     }
 }
-
-
-
 
