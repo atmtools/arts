@@ -44,6 +44,8 @@
 #include "interpolation.h"
 #include "logic.h"
 
+
+
 // File-global constants:
 
 //! The maximum difference from 1 that we allow for a sum check.
@@ -61,6 +63,21 @@
 const Numeric sum_check_epsilon = 1e-6;
 
 
+//! Allowed tolerance for fractional distance values
+/*!
+    Fractional distances are not allowed to be negative or exceed
+    1 above the set tolerance. Values deviating less than the
+    tolerance from 0 and 1 will be treated as end points, if such a
+    check is performed.     
+
+    We cannot use a sharp comparison there, due to numerical
+    noise. The value of 1e-4 is an ad-hoc value.
+*/
+const Numeric FD_TOL = 1e-4;
+
+
+
+
 //! Macro for interpolation weight loops.
 /*!
   We use the macro LOOPIT to make the notation for the nested for
@@ -72,6 +89,8 @@ const Numeric sum_check_epsilon = 1e-6;
   for ( const Numeric* p=&tp.fd[1]; p>=&tp.fd[0]; --p )
 */
 #define LOOPIT(x) for ( const Numeric* x=&t##x.fd[1]; x>=&t##x.fd[0]; --x )
+
+
 
 
 //! Output operator for GridPos.
@@ -110,6 +129,12 @@ ostream& operator<<(ostream& os, const GridPos& gp)
  dimensions that you want to interpolate.
 
  Note also, that for this step you do not need the field itself at all!
+
+ The new grid has basically to be inside the range covered by old
+ grid, but some margins are given for practical reasons. An
+ extrapolation of half the distance between end points is allowed.
+ For example, if point 0 is at 0 and point 1 is at 1, the new grid can
+ be extended to -0.5.
 
  \param gp Output: Grid position Array.
  \param old_grid The original grid.
@@ -428,6 +453,26 @@ void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old )
 
 
 
+//! fractional_gp
+/*!
+   Returns the complete fractional grid position.
+
+   The fractional grid position is the sum of grid index and fraction
+   distance, and is this not an integer value.
+
+   \return         Fractional grid position.
+   \param   gp     Input: Grid position structure.
+
+   \author Patrick Eriksson
+   \date   2004-09-28
+*/
+Numeric fractional_gp( const GridPos&   gp )
+{
+  return ( Numeric(gp.idx) + gp.fd[0] );
+}
+
+
+
 //! gridpos_check_fd
 /*!
    Checks that the fractional distances have a value in the range [0,1].
@@ -444,10 +489,10 @@ void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old )
 void gridpos_check_fd( GridPos&   gp )
 {
   // Catch values that "must" be wrong
-  assert( gp.fd[0] > -0.01 );
-  assert( gp.fd[0] < 1.01 );
-  assert( gp.fd[1] > -0.01 );
-  assert( gp.fd[1] < 1.01 );
+  assert( gp.fd[0] > -FD_TOL );
+  assert( gp.fd[0] < 1.0 + FD_TOL );
+  assert( gp.fd[1] > -FD_TOL );
+  assert( gp.fd[1] < 1.0 + FD_TOL );
 
   if( gp.fd[0] < 0 )
     { gp.fd[0] = 0; }
@@ -475,7 +520,7 @@ void gridpos_check_fd( GridPos&   gp )
    be called for every point.
 
    The input fractional distances are not allowed to deviate freom 0 and 1
-   with more than 1e-2.
+   with more than FD_TOL.
 
    \param   gp     Output: Grid position structure.
 
@@ -486,15 +531,15 @@ void gridpos_force_end_fd( GridPos&   gp )
 {
   if( gp.fd[0] < 0.5 )
     {
-      assert( fabs( gp.fd[0] ) <= 1e-2 );
-      assert( fabs(gp.fd[1] -1 ) <= 1e-2 );
+      assert( fabs( gp.fd[0] ) <= FD_TOL );
+      assert( fabs( gp.fd[1] -1 ) <= FD_TOL );
       gp.fd[0] = 0;
       gp.fd[1] = 1;
     }
   else
     {
-      assert( fabs( gp.fd[1] ) <= 1e-2 );
-      assert( fabs(gp.fd[0] -1 ) <= 1e-2 );
+      assert( fabs( gp.fd[1] ) <= FD_TOL );
+      assert( fabs(gp.fd[0] -1 ) <= FD_TOL );
       gp.fd[0] = 1;
       gp.fd[1] = 0;
     }    
@@ -505,6 +550,8 @@ void gridpos_force_end_fd( GridPos&   gp )
 //! is_gridpos_at_index_i
 /*!
    Determines if a grid position is at a given grid index.
+
+   A fractional deviation < FD_TOL to i will be treated as a match.
 
    \return         True if at index i, else false.
    \param   gp     Grid position structure.
@@ -517,22 +564,11 @@ bool is_gridpos_at_index_i(
        const GridPos&   gp,
        const Index&     i )
 {
-  if( ( gp.fd[0] == 0  ||  gp.fd[0] == 1 )  &&  
-                                            ( gp.idx + Index(gp.fd[0]) ) == i )
+  if( ( fabs(gp.fd[0]) < FD_TOL  ||  fabs(gp.fd[0]-1.0) < FD_TOL )  &&  
+      ( ( fractional_gp(gp) - Numeric(i) ) < FD_TOL ) )
     { return true; }
   else
     { return false; }
-
-  // Alternative version by Claudia:
-
-  //(CE:) The grid positions have to be converted to index and also rounded 
-  // (+0.5)!!
-
-  //if( ( Index(gp.fd[0]+0.5) == 0  ||  Index(gp.fd[0]+0.5) == 1 )  &&  
-  //    ( gp.idx + Index(gp.fd[0]+0.5) ) == i )
-  //  { return true; }
-  //else
-  //  { return false; }
 }
 
 

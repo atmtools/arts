@@ -6315,8 +6315,9 @@ void ppath_calc(
       // Check if there is an intersection with an active cloud box
       if( cloudbox_on )
         {
-          double ipos = double( ppath_step.gp_p[n-1].idx ) + 
-                                                    ppath_step.gp_p[n-1].fd[0];
+          double ipos = fractional_gp( ppath_step.gp_p[n-1] );
+          //double ipos = double( ppath_step.gp_p[n-1].idx ) + 
+          //                                        ppath_step.gp_p[n-1].fd[0];
           if( ipos >= double( cloudbox_limits[0] )  && 
                                         ipos <= double( cloudbox_limits[1] ) )
             {
@@ -6324,13 +6325,15 @@ void ppath_calc(
                 { ppath_set_background( ppath_step, 3 ); }
               else
                 {
-                  ipos = double( ppath_step.gp_lat[n-1].idx ) + 
-                                                  ppath_step.gp_lat[n-1].fd[0];
+                  ipos = fractional_gp( ppath_step.gp_lat[n-1] );
+                  //double( ppath_step.gp_lat[n-1].idx ) + 
+                  //                              ppath_step.gp_lat[n-1].fd[0];
                   if( ipos >= double( cloudbox_limits[2] )  && 
                                         ipos <= double( cloudbox_limits[3] ) )
                     {
-                      ipos = double( ppath_step.gp_lon[n-1].idx ) + 
-                                                  ppath_step.gp_lon[n-1].fd[0];
+                      ipos = fractional_gp( ppath_step.gp_lon[n-1] );
+                      //ipos = double( ppath_step.gp_lon[n-1].idx ) + 
+                      //                          ppath_step.gp_lon[n-1].fd[0];
                       if( ipos >= double( cloudbox_limits[4] )  && 
                                         ipos <= double( cloudbox_limits[5] ) )
                         { ppath_set_background( ppath_step, 3 ); } 

@@ -3472,7 +3472,6 @@ void ybatchMetProfilesClear(//Output
   \date 2004-03-20 Created subfuctions top split this method.
   \date 2004-09-27 Modified by Patrick Eriksson.
 */
-/*
 void iyFromCloudboxField(
             Matrix&         iy,
       const Tensor7&        scat_i_p,
@@ -3492,10 +3491,16 @@ void iyFromCloudboxField(
       const String&         interpmeth )
 {
   //--- Check input -----------------------------------------------------------
-
+  if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )
+    throw runtime_error( "The atmospheric dimensionality must be 1 or 3.");
   if( !cloudbox_on )
     throw runtime_error( "The cloud box is not activated and no outgoing "
                          "field can be returned." );
+  if ( cloudbox_limits.nelem() != 2*atmosphere_dim )
+    throw runtime_error(
+       "*cloudbox_limits* is a vector which contains the upper and lower\n"
+       "limit of the cloud for all atmospheric dimensions.\n"
+       "So its length must be 2 x *atmosphere_dim*" ); 
   if( scat_za_grid.nelem() == 0 )
     throw runtime_error( "The variable *scat_za_grid* is empty. Are dummy "
                          "values from *cloudboxOff used?" );
@@ -3510,24 +3515,82 @@ void iyFromCloudboxField(
 
   //--- Determine if at border or inside of cloudbox (or outside!)
   //
-  bool   inside = true;
-  bool   outside = false;
+  // Let us introduce a number coding for cloud box borders.
+  // Borders have the same number as position in *cloudbox_limits*.
+  // Innside cloud box is coded as 99, and outside as > 100.
+  Index  border  = 999;
   //
+  //- Check if at any border
+  if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[0] ) )
+    { border = 0; }
+  else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[1] ) )
+    { border = 1; }
+  if( atmosphere_dim == 3  &&  border > 100 )
+    {
+      if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[2] ) )
+        { border = 2; }
+      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[3] ) )
+        { border = 3; }
+      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[4] ) )
+        { border = 4; }
+      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[5] ) )
+        { border = 5; }
+    }
+  //
+  //- Check if inside
+  if( border > 100 )
+    {
+      // Assume inside as it is easiest to detect if outside (can be detected
+      // check in one dimension at the time)
+      bool inside = true;
+      Numeric fgp;
 
+      // Check in pressure dimension
+      fgp = fractional_gp( rte_gp_p );
+      if( fgp < Numeric(cloudbox_limits[0])  || 
+          fgp > Numeric(cloudbox_limits[1]) )
+        { inside = false; }
+
+      // Check in lat and lon dimensions
+     if( atmosphere_dim == 3  &&  inside )
+       {
+         fgp = fractional_gp( rte_gp_lat );
+         if( fgp < Numeric(cloudbox_limits[2])  || 
+             fgp > Numeric(cloudbox_limits[3]) )
+           { inside = false; }
+         fgp = fractional_gp( rte_gp_lon );
+         if( fgp < Numeric(cloudbox_limits[4])  || 
+             fgp > Numeric(cloudbox_limits[5]) )
+           { inside = false; }
+       }
+
+     if( inside )
+       { border = 99; }
+    }
+
+  // If outside, something is wrong
+  if( border > 100 )
+    {
+      throw runtime_error( 
+                 "Given position has been found to be outside the cloudbox." );
+    }
+
+  // We are not yet handling points inside the cloud box
+  if( border == 99 )
+    {
+      throw runtime_error( 
+               "Observations from inside the cloud box are not yet handled." );
+    }
 
 
   if( atmosphere_dim == 1 )
-    cloudbox_getOutgoing1D(i_out, scat_i_p, rte_gp_p, rte_los, 
+    cloudbox_getOutgoing1D( iy, scat_i_p, rte_gp_p, rte_los, 
                            cloudbox_limits, stokes_dim, scat_za_grid, f_grid);
   
   else if( atmosphere_dim == 3 )
-    cloudbox_getOutgoing3D(i_out, scat_i_p, scat_i_lat, scat_i_lon, 
+    cloudbox_getOutgoing3D( iy, scat_i_p, scat_i_lat, scat_i_lon, 
                            rte_gp_p, rte_gp_lat, rte_gp_lon,  rte_los, 
                            cloudbox_limits, stokes_dim, scat_za_grid, 
                            scat_aa_grid, f_grid);
-  
-  else
-    throw runtime_error("Scattering calculations are only possible for "
-                          "*atmosphere_dim*  equal to 1 or 3, not for 2D. \n");
 }
-*/
+

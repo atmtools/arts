@@ -101,6 +101,8 @@ void gridpos( GridPos& gp,
 
 void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old );
 
+Numeric fractional_gp( const GridPos&   gp );
+
 void gridpos_check_fd( GridPos&   gp );
 
 void gridpos_force_end_fd( GridPos&   gp );

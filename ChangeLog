@@ -1,3 +1,27 @@
+2004-09-28  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-883
+
+	* No new external functionality, but some internal improvements and
+	further work on iyFromCloudboxField.
+
+	* src/m_cloudbox.cc (iyFromCloudboxField): More work, but not 
+	finished.
+
+	* src/ppath.cc (ppath_calc): Included usage of fractional_gp.
+
+	* src/interpolation.cc: Introduced file-global constant FGP_TOL,
+	to set a measure on precision on fractional grid distances.
+
+	(fractional_gp): Made this function. Basically adds gp.idx and
+	gp.fd[0].
+
+	(gridpos): Included description of allowed extrapolataion of half
+	grid range in function header. Was only commnted inside function.
+
+	(is_gridpos_at_index_i): Modified, now uses FGP_TOL and will be more
+	robust than old version.
+
 2004-09-27  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-882
