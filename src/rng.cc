@@ -34,6 +34,7 @@ generator from the GNU Scientific Library <http://www.gnu.org/software/gsl/>.
 
 #include "rng.h"
 #include <iostream>
+#include "arts.h"
 /*!
 Constructor creates instance of gsl_rng of type gsl_rng_mt19937 and seeds it 
 with the system time
