@@ -22,7 +22,7 @@
 /*!
   \file   xml_io.cc
   \author Oliver Lemke <olemke@uni-bremen.de>
-  \date   Fri May 10 09:43:57 2002
+  \date   2002-05-10
 
   \brief This file contains basic functions to handle XML data files.
 
@@ -1749,18 +1749,25 @@ xml_read_from_stream (istream&    is,
 {
   ArtsXMLTag tag;
   stringbuf  strbuf;
+  char dummy;
 
   tag.read_from_stream (is);
   tag.check_name ("SpeciesTag");
 
-  is.get (strbuf, '<');
+  is.get (strbuf, '"');
   if (is.fail ())
     {
-      xml_parse_error ("Error while reading data");
+      xml_parse_error ("SpeciesTag must begin with \"");
     }
 
-  out2 << "Reading of SpeciesTag not yet implemented\n";
-  //stag = SpeciesTag (strbuf.str ());
+  is >> dummy;
+  is.get (strbuf, '"');
+  if (is.fail ())
+    {
+      xml_parse_error ("SpeciesTag must end with \"");
+    }
+
+  stag = SpeciesTag (strbuf.str ());
 
   tag.read_from_stream (is);
   tag.check_name ("/SpeciesTag");
@@ -1782,8 +1789,7 @@ xml_write_to_stream (ostream&          os,
   open_tag.set_name ("SpeciesTag");
   open_tag.write_to_stream (os);
 
-  out2 << "Writing of SpeciesTag not yet implemented\n";
-//  os << stag;
+  os << '\"' << stag.Name () << '\"';
 
   close_tag.set_name ("/SpeciesTag");
   close_tag.write_to_stream (os);
