@@ -1,3 +1,10 @@
+2003-07-24  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-615
+
+	* src/agendas.cc: Added missing _ after scalar_gas_absorption_agenda
+	in rte_agenda.
+
 2003-07-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-614
