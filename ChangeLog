@@ -1,3 +1,19 @@
+2002-10-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-264
+	
+	* src/interpolation.cc (is_gridpos_at_index_i) and (gridpos2gridrange):
+	Fixed bugs here. Interpolation weights which are Numeric were 
+	compared to Index which caused serious errors in the ppath_step 
+	calculations. Patrick, I have included comments were I made 
+	modifications.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Some modifictions. This
+	method seems to work now!!!!
+
+	* src/m_scatrte.cc (ScatteringMain): Modified according to the change
+	in (CloudboxGetIncoming).
+
 2002-10-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-263
@@ -6,7 +22,7 @@
 	calculates the initial field at the whole cloudbox boundary. Before 
 	it only doing one boundary at a time.
 
-	* src/m_scatrte.cc (ScatteringMain): Moidfied according to the change
+	* src/m_scatrte.cc (ScatteringMain): Modfied according to the change
 	in (CloudboxGetIncoming).
 	
 	* src/methods.cc: Modified the inputs and outputs to the above
