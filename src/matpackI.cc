@@ -1516,8 +1516,37 @@ Numeric operator*(const ConstVectorView& a, const ConstVectorView& b)
     to the same Matrix will lead to unpredictable results. In
     particular, this means that A and B must not be the same matrix! */
 void mult( VectorView y,
-                  const ConstMatrixView& M,
-                  const ConstVectorView& x )
+           const ConstMatrixView& M,
+           const ConstVectorView& x )
+{
+  // Check dimensions:
+  assert( y.mrange.mextent == M.mrr.mextent );
+  assert( M.mcr.mextent == x.mrange.mextent );
+
+  Numeric *mdata   = M.mdata + M.mcr.mstart + M.mrr.mstart;
+  Numeric *xdata   = x.mdata + x.mrange.mstart;
+  Numeric *yelem   = y.mdata + y.mrange.mstart;
+
+  for (Index i = 0; i < M.mrr.mextent; i++)
+    {
+      Numeric *melem = mdata;
+      Numeric *xelem = xdata;
+      *yelem = *melem * *xelem;
+      for (Index j = 1; j < M.mcr.mextent; j++)
+        {
+          melem += M.mcr.mstride;
+          xelem += x.mrange.mstride;
+          *yelem += *melem * *xelem;
+        }
+      mdata += M.mrr.mstride;
+      yelem += y.mrange.mstride;
+    }
+}
+
+// Old mult function TODO: Remove if new mult works
+void mult_old( VectorView y,
+               const ConstMatrixView& M,
+               const ConstVectorView& x )
 {
   // Check dimensions:
   assert( y.nelem() == M.nrows() );
