@@ -216,6 +216,9 @@ void CloudboxSetManually(
   \param lon_grid Input : the longitude grid
   \param cloudbox_limits Input : Limits of the cloud box
   \param atmospere_dim Input : dimension of atmosphere
+  
+  \author Sreerekha T.R.
+   \date   2002-07-24
 */
 void i_fieldSetClearsky(Tensor6& i_field,
 		const Tensor7& scat_i_p,
@@ -856,6 +859,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
 
   if( scat_za_grid.nelem() == 0 )
     throw runtime_error( "The variable *scat_za_grid* is empty. Are dummy "
+
 			                    "values from *CloudboxOff used?" );
 
  if(atmosphere_dim == 1)
@@ -925,4 +929,136 @@ void CloudboxGetOutgoing(// WS Generic Output:
                           );
     }
    
+}
+
+//! This method gives the radiance at the cloudbox boundary. 
+/* 
+   
+  \param scat_i_p i_field on pressure boundaries.
+  \param scat_i_lat i_field on latitude boundaries.
+  \param scat_i_lon i_field on longitude boundaries.
+  \param i_in radiation coming into the cloudbox.
+  \param cloudbox_pos Position on the cloudbox boundary.
+  \param cloudbox_los Direction of radiation.
+  \param cloudbox_limits Cloudbox limits.
+  \param atmosphere_dim Atmospheric dimension.
+  \param stokes_dim Stokes dimension.
+
+  \author Sreerekha T.R.
+  \date 2002-10-07
+
+ */    
+void CloudboxGetIncoming(// WS Output:
+			 Tensor7& scat_i_p,
+                         Tensor7& scat_i_lat,
+                         Tensor7& scat_i_lon,
+			 Ppath& ppath,
+			 Ppath& ppath_step,
+			 Matrix& i_rte, 
+			 //WS Specific Input:
+			 const GridPos& a_gp_p,
+                         const GridPos& a_gp_lat,
+                         const GridPos& a_gp_lon,
+                         //const Vector& a_los,
+			 //const Vector& a_pos,
+			 const Index& cloudbox_on, 
+                         const ArrayOfIndex& cloudbox_limits,
+                         const Index& atmosphere_dim,
+                         const Index& stokes_dim,
+                         const Vector& scat_za_grid,
+                         const Vector& scat_aa_grid,
+                         const Vector& f_grid,
+			 const Agenda& ppath_step_agenda,
+			 const Agenda& rte_agenda,
+			 const Vector& p_grid,
+			 const Vector& lat_grid,
+			 const Vector& lon_grid,
+			 const Tensor3& z_field,
+			 const Matrix& r_geoid,
+			 const Matrix& z_ground)
+			 
+{
+  Index Nza = scat_za_grid.nelem();
+  Index Nf = f_grid.nelem();
+  Index Nlat = lat_grid.nelem();
+  Index Nlon = lon_grid.nelem();
+  Index Naa = scat_aa_grid.nelem();
+  Index Ni = stokes_dim;
+
+  scat_i_p.resize(Nf,2,Nlat,Nlon,Nza,Naa,Ni);
+  i_rte.resize(Nf,Ni);
+  if( !cloudbox_on )
+    throw runtime_error( "The cloud box is not activated and no outgoing "
+			 "field can be returned." );
+  
+  if(atmosphere_dim == 1)
+    {
+      scat_i_p.resize(Nf,2,1,1,Nza,1,Ni);
+      if (a_gp_p.idx != cloudbox_limits[0] &&
+	  a_gp_p.idx != cloudbox_limits[1])
+	throw runtime_error(
+			    "Gridpositions have to be on the boundary of the "
+			    "cloudbox defined by *cloudbox_limits*."
+			    ); 
+      Vector a_pos(1);
+      Vector a_los(1);
+      // Get scat_i_p at lower boundary
+      if(a_gp_p.idx == cloudbox_limits[0])
+	{
+	  //a_pos[0] = p_grid[cloudbox_limits[0]];
+	  a_pos[0] = r_geoid(0,0)+z_field(cloudbox_limits[0],0,0);
+	  
+	  for (Index scat_za_index = 0; scat_za_index < Nza; ++ scat_za_index)
+	    {
+	      
+	      a_los[0] = scat_za_grid[scat_za_index];
+	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
+			 p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground,
+			 cloudbox_on, cloudbox_limits,  a_pos, a_los );
+	      
+	      rte_agenda.execute();
+	      
+	      scat_i_p( Range(joker), 0, 0,0, 
+			scat_za_index,0,
+			Range(joker)) = i_rte;
+	      cout << "a_los[0]" <<a_los[0]<< endl;
+	      //cout << "r_geoid" <<r_geoid(0,0)<< endl;
+	      //cout << "z_field" <<z_field(cloudbox_limits[0],0,0)<< endl;
+	     
+	    }
+	  
+	}
+     
+      // Get scat_i_p at upper boundary
+      else if (a_gp_p.idx == cloudbox_limits[1])
+	{
+	  //a_pos[0] = p_grid[cloudbox_limits[0]];
+	  a_pos[0] = r_geoid(0,0)+z_field(cloudbox_limits[1],0,0);
+	  for (Index scat_za_index = 0; scat_za_index < Nza; ++ scat_za_index)
+	    {
+	      
+	      a_los[0] = scat_za_grid[scat_za_index];
+	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
+			 p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground,
+			 cloudbox_on, cloudbox_limits, 
+			 a_pos, a_los );
+	      
+	      rte_agenda.execute();
+	      
+	      scat_i_p( Range(joker), 1, 0,0, 
+			scat_za_index,0,
+			Range(joker)) = i_rte;
+	    }
+	} 
+      scat_i_lat = 0;
+      scat_i_lon = 0;
+    }
+ exit(1);
+  if(atmosphere_dim == 3)
+    {
+      throw runtime_error(
+			  "CloudboxGetIncoming for 3D atmosphere will be \n"
+			  "implemented soon."
+			  );
+    }
 }

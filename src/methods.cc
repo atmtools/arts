@@ -562,6 +562,38 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "CloudboxGetIncoming" ),
+	DESCRIPTION
+        (
+	 "This method gives the intensity field at the boundary of the\n"
+	 "cloudbox.\n"
+	 "\n"
+	 "The method uses *PpathCalc* and *rte_agenda*.  The input to\n"
+	 "this method is the position of the cloudbox given by the \n"
+	 "variable *cloudbox_limits*. Then for each propagation direction\n"
+	 "it calls the function *PpathCalc* and executes the agenda \n"
+	 "*rte_agenda*.  This gives *i_rte* which holds the Stokes vector\n"
+	 "for all frequencies btained by the monochromatic pencil beam \n"
+	 "calculations performed by *rte_agenda*. Then this is copied to\n"
+	 "the interface variable. \n"
+	 "\n"
+	 "This is implemented only for the case of 1D atmosphere at present\n"
+	 "\n"
+         ),
+	OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_, i_rte_),
+	INPUT(  a_gp_p_, a_gp_lat_, a_gp_lon_, cloudbox_on_, cloudbox_limits_, 
+               atmosphere_dim_, stokes_dim_, 
+		scat_za_grid_, scat_aa_grid_, f_grid_,
+		ppath_step_agenda_,  rte_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,
+		r_geoid_, z_ground_),
+	      
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "CloudboxGetOutgoing" ),
 	DESCRIPTION
         (
@@ -1937,6 +1969,35 @@ md_data_raw.push_back
 	INPUT( i_field_, f_grid_, scat_f_index_,   p_grid_, lat_grid_, 
                lon_grid_, scat_za_grid_, scat_aa_grid_, stokes_dim_,
 	       atmosphere_dim_, cloudbox_limits_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_mainCalc" ),
+	DESCRIPTION
+        (
+	 "This method gives out the interface variables *scat_i_p*, \n"
+	 "*scat_i_lat* and *scat_i_lon* and also the frequency index\n"
+	 "*scat_f_index*.\n"
+	 "\n"
+	 "This method calls the method *CloudboxGetIncoming* and gets \n"
+	 "the field at the interface of the upper and lower surface of \n"
+	 "boundary. This also gives the frequency index inside the \n"
+	 "cloudbox, namely the variable *scat_f_index* \n"
+	 "\n"
+	 "More to be written.\n"
+         "\n"
+         ),
+	OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, scat_f_index_, a_gp_p_,
+	       a_gp_lat_, a_gp_lon_, ppath_, ppath_step_, i_rte_ ),
+	INPUT(  cloudbox_on_, cloudbox_limits_, atmosphere_dim_, stokes_dim_, 
+		scat_za_grid_, scat_aa_grid_, f_grid_,	ppath_step_agenda_,
+		rte_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,r_geoid_,
+		z_ground_),
+	      
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

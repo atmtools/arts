@@ -1430,9 +1430,137 @@ scat_fieldCalc(//WS Output:
   }// end atmosphere_dim = 3
  
 }
+
+//! This method gives the variables which act as interface between clear sky
+// and cloudbox
+
+/*! 
   
+\param scat_i_p  intensity field on the cloudb box boundary w.r.t pressure grid
+\param scat_i_lat intensity field on the cloudb box boundary w.r.t latitude grid
+\param scat_i_lon intensity field on the cloudb box boundary w.r.t longitude grid
+\param scat_f_index the frequency index for scatttering calculations
+\param a_gp_p a grid position with respect to the pressure grid
+\param a_gp_lat a grid position with respect to the latitude grid
+\param a_gp_lon a grid position with respect to the longitude grid
+\param ppath propagation path for one line-of-sight
+\param ppath_step propagation path step
+\param i_rte one spectrum calculated by rte_agenda
+\param cloudbox_on the flag which activates the cloudbox
+\param cloudbox_limits the limits of teh cloudbox
+\param atmosphere_dim dimension of the atmosphere
+\param stokes_dim stokes dimension
+\param scat_za_grid scattering zenith angle grid
+\param scat_aa_grid scattering azimuth angle grid
+\param f_grid frequency grid
+\param ppath_step_agenda agenda for Calculating a propagation path step
+\param rte_agenda Performs monochromatic pencil beam calculations for a single
+propagation path
+\param p_grid pressrue grid
+\param lat_grid latitude grid
+\param lon_grid longitude grid
+\param z_field the altitude field
+\param r_geoid geoid radius
+\param z_ground the ground altitude
 
+\author Sreerekha Ravi
+\date 2002-10-09
+*/
+void scat_mainCalc(//WS Output 
+		   Tensor7& scat_i_p,
+		   Tensor7& scat_i_lat,
+		   Tensor7& scat_i_lon,
+		   Index& scat_f_index,
+		   GridPos& a_gp_p,
+                   GridPos& a_gp_lat,
+                   GridPos& a_gp_lon,
+		   Ppath& ppath,
+		   Ppath& ppath_step,
+		   Matrix& i_rte,
+		   //WS  Input :
+		   const Index& cloudbox_on, 
+		   const ArrayOfIndex& cloudbox_limits,
+		   const Index& atmosphere_dim,
+		   const Index& stokes_dim,
+		   const Vector& scat_za_grid,
+		   const Vector& scat_aa_grid,
+		   const Vector& f_grid,
+		   const Agenda& ppath_step_agenda,
+		   const Agenda& rte_agenda,
+		   const Vector& p_grid,
+		   const Vector& lat_grid,
+		   const Vector& lon_grid,
+		   const Tensor3& z_field,
+		   const Matrix& r_geoid,
+		   const Matrix& z_ground)
+{
+  Index Nza = scat_za_grid.nelem();
+  Index Nf = f_grid.nelem();
+  Index Np = p_grid.nelem();
+  Index Nlat = lat_grid.nelem();
+  Index Nlon = lon_grid.nelem();
+  Index Naa = scat_aa_grid.nelem();
+  Index Ni = stokes_dim; 
 
+  scat_i_p.resize(Nf, 2, Nlat, Nlon, Nza, Naa, Ni);
+  scat_i_lat.resize(Nf, Np, 2, Nlon, Nza, Naa, Ni);
+  scat_i_lon.resize(Nf, Np, Nlat, 2, Nza, Naa, Ni);
+  i_rte.resize(Nf, Ni);
+
+  if( !cloudbox_on )
+    throw runtime_error( "The cloud box is not activated and no outgoing "
+			 "field can be returned." );
+  if(atmosphere_dim == 1)
+    {
+     // Get scat_i_p at lower boundary 
+      a_gp_p.idx = cloudbox_limits[0];
+      a_gp_p.fd[0] = 0;
+      a_gp_p.fd[1] = 1;
+      a_gp_lat.idx = 0;
+      a_gp_lat.fd[0] = 0;
+      a_gp_lat.fd[1] = 1;
+      a_gp_lon.idx = 0;
+      a_gp_lon.fd[0] = 0;
+      a_gp_lon.fd[1] = 1;
+
+      CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step, i_rte, 
+			  a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on, cloudbox_limits,
+			  atmosphere_dim, stokes_dim, scat_za_grid, scat_aa_grid, 
+			  f_grid, ppath_step_agenda, rte_agenda, p_grid,lat_grid, lon_grid,
+			  z_field, r_geoid, z_ground);
+      // Get scat_i_p at upper boundary 
+      a_gp_p.idx = cloudbox_limits[1];
+      a_gp_p.fd[0] = 0;
+      a_gp_p.fd[1] = 1;
+      a_gp_lat.idx = 0;
+      a_gp_lat.fd[0] = 0;
+      a_gp_lat.fd[1] = 1;
+      a_gp_lon.idx = 0;
+      a_gp_lon.fd[0] = 0;
+      a_gp_lon.fd[1] = 1;
+
+      CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step, i_rte, 
+			  a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on, cloudbox_limits,
+			  atmosphere_dim, stokes_dim, scat_za_grid, scat_aa_grid, 
+			  f_grid, ppath_step_agenda, rte_agenda, p_grid,lat_grid, lon_grid,
+			  z_field, r_geoid, z_ground);
+    }
+  for (Index scat_f_index = 0; scat_f_index < Nf; ++ scat_f_index)
+    {
+      /*We have to call the main functions here
+	i_fieldSetClearSky
+	i_fieldIterate
+	scat_iPut
+      */
+	
+      
+    }
+  if(atmosphere_dim == 3)
+    {
+      throw runtime_error( "This method is not implemented for atmosphere_dim  = 3" );
+    }
+}
+  
 //! Write iterated fields.
 /*!
   This function writed intermediate resultes, the iterations of fields to xml 
@@ -1476,7 +1604,7 @@ void Tensor6WriteIteration(//WS input
   // All iterations are written to files
   if( iterations[0] == 0 )
     {
-      xml_write_to_file(field_name + os.str() + "_mlw.xml", field);  
+      xml_write_to_file(field_name + os.str() + ".xml", field);  
    }
   // Only the iterations given by the keyword are written to a file
   else
@@ -1484,7 +1612,7 @@ void Tensor6WriteIteration(//WS input
       for (Index i = 0; i<iterations.nelem(); i++)
         {
           if (iteration_counter == iterations[i])
-            xml_write_to_file(field_name + os.str() + "_mlw.xml", field);  
+            xml_write_to_file(field_name + os.str() + ".xml", field);  
         }
     }
 }

@@ -91,6 +91,7 @@ void ext_mat_sptCalc(
 	      amp_coeffs,
 	      freq);
     }
+  cout<<"Extinction matrix for single particle type"<<""<<ext_mat_spt<<"\n";
 }
 
 //! Calculate extinction matrix (spt) for the convergence test.  
@@ -291,7 +292,7 @@ void abs_vec_sptCalc(
 	      scat_aa_grid);
      
     }	   
-  
+  cout<<"Absorption Vector for single particle type"<<""<<abs_vec_spt<<"\n";
 }
 
 
@@ -507,7 +508,7 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
 
  //This is a typical absorption calculated from arts.1.0 (mls)
   
-    /* MakeVector typical_abs(0.0164163638663716,
+    MakeVector typical_abs(0.0164163638663716,
 			   0.00768271579907592,
 			   0.00294668635075111,
 			   0.00125411825404778,
@@ -516,11 +517,11 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
 			   4.40975932116215e-05,
 			   7.31218846316807e-06,
 			   3.643089167928e-06,
-			   3.12497184475723e-06);*/
+			   3.12497184475723e-06);
     
 //This is a typical absorption calculated from arts.1.0 (mlw)
   
-    MakeVector typical_abs(0.00433659795310861,
+    /*MakeVector typical_abs(0.00433659795310861,
 			   0.00267195350007522,
 			   0.00122676231151285,
 			   0.000524902357458338,
@@ -529,10 +530,10 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
 			   1.07249251986862e-05,
 			   5.85896298848906e-06,
 			   4.94996692358466e-06,
-			   4.35302994835574e-06);
+			   4.35302994835574e-06);*/
 
 
-    //The pressure grid for the above calculation (mls)
+    //The pressure grid for the above calculation (mlw)
     MakeVector typical_abs_pgrid(100000,
 				 77426.3682681127,
 				 59948.4250318941,
@@ -641,8 +642,7 @@ void pha_matCalc(
   Index Nza = pha_mat_spt.nbooks();
   Index Naa = pha_mat_spt.npages();
   Index stokes_dim = pha_mat_spt.nrows();
-  cout<<"scat_lat_index"<<""<<scat_lat_index<<"\n";
-  //(CE:) Resize pha_mat:
+ 
   pha_mat.resize(Nza, Naa, stokes_dim, stokes_dim);
 
   // Initialisation

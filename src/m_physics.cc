@@ -310,7 +310,8 @@ void MatrixToTbByRJ(
  This is used to convert intensity in radiance units to brightness temperature 
 units for a Tensor6. It uses the function invplanck from physics_funcs.cc.  
 The frequency grid is specific input since inside the cloudbox we have only
-one frequency and we need Tensor6 conversions probably only inside the cloudbox.  
+one frequency and we need Tensor6 conversions probably only inside the 
+cloudbox.  
  
 \param y_out        Output : Tensor6 in Brightness temperatures
 \param scat_f_index Input  : frequency index

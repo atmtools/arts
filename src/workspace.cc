@@ -805,7 +805,7 @@ void define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME( "Tensor6_1" ), 
+     ( NAME( "tensor6_1" ), 
        DESCRIPTION
       (
        "The *i_field* expressed in brightness temperature units.\n"
@@ -1611,7 +1611,7 @@ void define_wsv_data()
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      In/output to/from *scat_iterateCalc* \n"
+       "Usage:      Output from CloudboxGetIncoming \n"
        "\n"
        "Unit:        W / (m^2 Hz sr) \n"
        "\n"
