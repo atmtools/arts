@@ -2743,6 +2743,33 @@ md_data_raw.push_back
 
  md_data_raw.push_back
     ( MdRecord
+      ( NAME("opt_prop_sptFromMonoData"),
+        DESCRIPTION
+        (
+         "Calculates opticle properties for the single particle types.\n"
+         "\n"
+         "In this function extinction matrix and absorption vector are \n"
+         "calculated in the laboratory frame. "
+         "\n"
+         "The single scattering data is obtained from scat_data_mono, so\n"
+         "frequency interpolation is not required\n"
+         "\n"
+         "Output of the function are *ext_mat_spt*, and *abs_vec_spt* which\n"
+         "hold the optical properties for a specified propagation direction\n"
+         "for each particle type. \n"
+         "\n"
+        ),
+        OUTPUT( ext_mat_spt_, abs_vec_spt_ ),
+        INPUT(  ext_mat_spt_, abs_vec_spt_, scat_data_mono_,
+               scat_za_grid_, 
+               scat_aa_grid_, scat_za_index_, scat_aa_index_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+ md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ParticleTypeAdd" ),
         DESCRIPTION
         (
