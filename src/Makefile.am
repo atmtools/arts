@@ -54,6 +54,8 @@ arts_SOURCES = \
 	interpolation.cc \
 	interpolation.h \
 	iotraits.h \
+	legendre.cc \
+	legendre.h \
 	m_lineshapes.cc \
 	m_agenda.cc \
         m_atmosphere.cc \
@@ -188,6 +190,7 @@ noinst_PROGRAMS = \
 	test_sparse \
 	test_poly \
 	test_tensor \
+	test_legendre \
 	test_linalg \
 	test_interpolation \
 	test_scatproperties\
@@ -261,6 +264,19 @@ test_interpolation_SOURCES = \
 	test_interpolation.cc \
 	make_vector.cc \
 	make_vector.h
+
+test_legendre_SOURCES = \
+	array.h \
+	arts.cc \
+	arts.h \
+	arts_mpi.cc \
+	arts_mpi.h \
+	make_array.h \
+	matpackI.cc \
+	matpackI.h \
+	legendre.h \
+	legendre.cc \
+	test_legendre.cc
 
 test_linalg_SOURCES = \
 	arts.cc \
