@@ -22,20 +22,47 @@ MAINTAINERCLEANFILES = $(wildcard *.tex *.eps doxygen.sty refman.dvi refman.ps)
 
 all:
 
+if MAINTAINER_MODE
+
 # Cancel the implicit rule for .dvi and .ps files, since they
 # introduces the wrong clean files: 
 %.dvi: %.tex
 %.ps: %.dvi
 
+ps: refman.ps
 
-refman.dvi: $(wildcard *.tex)
-	latex refman
-	makeindex refman.idx
-	latex refman
+pdf: refman.pdf
+
+ps_2on1: refman_2on1.ps
+
+pdf_2on1: refman_2on1.pdf
 
 refman.ps: refman.dvi
-	dvips -o refman.ps refman
+	dvips -o refman.ps refman.dvi
 
 refman.pdf: refman.ps
-	ps2pdf refman.ps
+	ps2pdf refman.ps refman.pdf
+
+refman.dvi: refman.tex doxygen.sty
+	echo "Running latex..."
+	latex refman.tex
+	echo "Running makeindex..."
+	makeindex refman.idx
+	echo "Rerunning latex...."
+	latex refman.tex
+	latex_count=5 ; \
+	while egrep -s 'Rerun (LaTeX|to get cross-references right)' refman.log && [ $$latex_count -gt 0 ] ;\
+	    do \
+	      echo "Rerunning latex...." ;\
+	      latex refman.tex ;\
+	      latex_count=`expr $$latex_count - 1` ;\
+	    done
+
+refman_2on1.ps: refman.ps
+	psnup -2 refman.ps >refman_2on1.ps
+
+refman_2on1.pdf: refman_2on1.ps
+	ps2pdf refman_2on1.ps refman_2on1.pdf
+
+endif
 
