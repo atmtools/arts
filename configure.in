@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.532)
+AM_INIT_AUTOMAKE(arts,1.1.533)
 
 
 AM_MAINTAINER_MODE
@@ -78,6 +78,22 @@ if test x$ac_sstream = xyes; then
 fi
 AM_CONDITIONAL(HAVE_SSTREAM, test x$ac_sstream = xyes)
 
+
+#
+# MPI support
+#
+AC_ARG_WITH([mpi],
+  AC_HELP_STRING([--with-mpi],
+                 [MPI support (default is no)]),
+  [case "${withval}" in
+    yes) ac_use_mpi=yes ;;
+      *) ac_use_mpi=no ;;
+   esac],
+  [ac_use_mpi=no])
+
+if test x$ac_use_mpi = xyes; then
+  AC_CHECK_HEADER(mpi.h, AC_DEFINE_UNQUOTED(HAVE_MPI, , Use MPI support), [AC_MSG_ERROR(mpi.h not found)])
+fi
 
 #
 # HDF support
@@ -379,6 +395,7 @@ AC_MSG_RESULT([  Maintainer mode          : $USE_MAINTAINER_MODE])
 AC_MSG_RESULT([  Debugging                : $ac_debug])
 AC_MSG_RESULT([  Floating-point type      : $ac_numeric_type])
 AC_MSG_RESULT([  Integer type             : $ac_integer_type])
+AC_MSG_RESULT([  Use MPI                  : $ac_use_mpi])
 AC_MSG_RESULT([  Regenerate documentation : $ac_docgen])
 if test $ac_hdf_support = autodetect; then
   AC_MSG_RESULT([  HDF support              : $ac_hdf (autodetected)])
