@@ -128,6 +128,12 @@ void interpp(
         const VECTOR&     x0,
         const VECTOR&     p );
 
+void interpp_cloud(
+              VECTOR&     x,
+        const VECTOR&     p0,
+        const VECTOR&     x0,
+        const VECTOR&     p );
+
 void interpp(
               MATRIX&  A,
         const VECTOR&  p0, 

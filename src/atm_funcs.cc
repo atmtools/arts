@@ -524,6 +524,16 @@ void interpp(
   interp_lin_vector( x, transf(p0,log), x0, transf(p,log) );
 }
 
+void interpp_cloud(
+              VECTOR&     x, 
+        const VECTOR&     p0,
+        const VECTOR&     x0,
+        const VECTOR&     p )
+{
+  assert( x.size()==p.size() );
+  //interp_lin( x, p0, x0, p );
+  interp_lin_vector( x, p0, x0, p );
+}
 
 
 //// interpp (matrix version) ///////////////////////////////////////////////

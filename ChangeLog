@@ -1,3 +1,17 @@
+2001-08-07  Thomas Kuhn  <tkuhn@uni-bremen.de>
+	
+        * arts-0-0-191
+
+	* changes: 
+	  - Aded O2-MPM93 oxygen absorption model of Liebe et al.
+	  - implemented a linear extrapolation of the cloud LWC/IWC 
+	    profile.
+	  - Added the possibility to set the water vapor VMR to the 
+	    saturation value over water/ice within a water/ice cloud.
+	    This is implemented in AtmFromRaw1D, hwere one has now 
+	    the option of AtmFromRaw1D{CloudSatWV = "yes"} to do this
+	    VMP profile modification.
+	
 2001-07-30  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-190

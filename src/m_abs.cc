@@ -1034,6 +1034,19 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
     }
 }
 
+/** Reads in the profiles from the specified files in filenames for the tag list seltags
+    and for all the other tags the atmospheric profile from the general scenario stated in 
+    basename.
+
+   \param    raw_vmrs_1d    volume mixing ratios per tag group    (output)
+   \param    tgs            the list of tag groups                (input)
+   \param    seltags        selected tags for special input files (input)
+   \param    filenames      specific files for list of seltags    (input)
+   \param    basename       general scenario base name            (input)
+
+   \author Thomas Kuhn
+   \date 2001-08-02
+ */ 
 void raw_vmrs_1dReadFromFiles(// WS Output:
 			      ARRAYofMATRIX&   raw_vmrs_1d,
 			      // WS Input:
@@ -1127,6 +1140,116 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
 	}
     }
 }
+
+/** Calculates the water vapor saturation volume mixing ratio (VMR) in the 
+    vertical range where liquid or ice clouds are in the atmosphere.
+    At the pressure/altitude grid points where the liquid water content (LWC) 
+    or ice water content (IWC) is larger than zero the H2O-VMR is set to 
+    liquid water/ice saturation VMR (=p_saturation/p_tot)
+
+   \param    vmrs           volume mixing ratios per tag group (input/output)
+   \param    t_abs          temperature at pressure level      (input)
+   \param    p_abs          pressure levels                    (input)
+   \param    tgs            the list of tag groups             (input)
+
+   \author Thomas Kuhn
+   \date 2001-08-02
+ */ 
+size_t WVsatinClouds( ARRAYofVECTOR&    vmrs,  // manipulates this array
+		      const VECTOR&     t_abs, // constant
+		      const VECTOR&     p_abs, // constant
+		      const TagGroups&  tgs  ) // constant
+{
+
+
+  // The species lookup data
+  extern const ARRAY<SpeciesRecord> species_data;
+  // cloud tag numbers:
+  size_t liquid_index = 1+tgs.size();
+  size_t ice_index    = 1+tgs.size();
+  size_t h2o_index[tgs.size()];
+
+  // check size of input vectors.
+  assert ( t_abs.size() == p_abs.size() ); 
+
+  // find tags for clouds and for water vapor
+  size_t u = 0;
+  for ( size_t i=0; i<tgs.size(); ++i )
+    {
+      string tag_name = species_data[tgs[i][0].Species()].Name();
+      if (tag_name == "liquidcloud")
+	{
+	  liquid_index = i;
+	}
+      if (tag_name == "icecloud")
+	{
+	  ice_index = i;
+	}
+      if (tag_name == "H2O")
+	{
+	  h2o_index[u++] = i;
+	  //cout << "tag_name=" << tag_name << ",  tag=" << i << ",  u=" << u 
+          //     << ",  h2o_index[u]=" << h2o_index[u] << "\n";
+	}
+    }
+
+  // if no water vapor profile is in use do not go further
+  if (u < 1)
+    {
+      cout << "WVsatinClouds: no H2O profile found to adjust for clouds..\n";
+      return 0;
+    }
+
+  // modify the water vapor profiles for saturation over liquid water in a liquid water cloud
+  if ( (liquid_index >= 0) && (liquid_index < tgs.size()) )
+    {
+      assert ( vmrs[liquid_index].size() == p_abs.size() ); 
+
+      // sauration over liquid water 
+      for (size_t i=0; i<vmrs[liquid_index].size() ; ++i)
+	{
+	  if (vmrs[liquid_index][i] > 0.000)
+	    {
+	      for (size_t uu=0; uu<u; ++uu)
+		{
+		  //cout << "uu=" << uu  << "  (" << p_abs.size() << ")" << "\n";
+		  //cout << " h2o_index[uu]=" << h2o_index[uu] << ",  i=" << i << "\n";
+		  //cout << "tag name=" << species_data[tgs[h2o_index[uu]][0].Species()].Name() << "\n";
+		  //cout << "0 vmrs[h2o_index[uu]][i]=" << vmrs[h2o_index[uu]][i]; 
+		  vmrs[h2o_index[uu]][i] = ( WVSatPressureLiquidWater( t_abs[i] ) / p_abs[i] );
+		  if (vmrs[h2o_index[uu]][i] < 0.000) return 1;
+		  //cout << ",  1 vmrs[h2o_index[uu]][i]=" << vmrs[h2o_index[uu]][i] << "\n";
+		  //cout << "T=" << t_abs[i] << "K,  ptot=" << p_abs[i] << "Pa,  psat="
+                  //     << WVSatPressureLiquidWater( t_abs[i] ) << "\n";
+		}
+	    }
+	}
+    }
+
+  // modify the water vapor profiles for saturation over ice water in a ice water cloud
+  if ( (ice_index >= 0) && (ice_index < tgs.size()) )
+    {
+      assert ( vmrs[ice_index].size() == p_abs.size() ); 
+
+      for (size_t i=0; i<vmrs[ice_index].size() ; ++i)
+	{
+	  if (vmrs[ice_index][i] > 0.000)
+	    {
+	      // sauration over ice water 
+	      for (size_t uu=0; uu<u; ++uu)
+		{
+		  //cout << "uu=" << uu  << "  (" << p_abs.size() << ")" << "\n";
+		  //cout << " h2o_index[uu]=" << h2o_index[uu] << ",  i=" << i << "\n";
+		  //cout << "tag name=" << species_data[tgs[h2o_index[uu]][0].Species()].Name() << "\n";
+		  vmrs[h2o_index[uu]][i] = ( WVSatPressureIce( t_abs[i] ) / p_abs[i] );
+		  if (vmrs[h2o_index[uu]][i] < 0.000) return 1;
+		}
+	    }
+	}
+    }
+
+  return 0;
+} // end of WVsatinClouds --------------------------------------------------------------------
 
 // void Atm2dFromRaw1D(// WS Output:
 //                     ARRAYofVECTOR& 	 t_abs_2d,
@@ -1248,7 +1371,9 @@ void AtmFromRaw1D(// WS Output:
 		  const TagGroups&       tgs,
 		  const VECTOR&  	 p_abs,
 		  const MATRIX&  	 raw_ptz_1d,
-		  const ARRAYofMATRIX&   raw_vmrs_1d)
+		  const ARRAYofMATRIX&   raw_vmrs_1d,
+		  // Control Parameters:
+		  const string&          CloudSatWV)
 {
   
   //---------------< 1. Interpolation of temperature and altitude >---------------
@@ -1306,6 +1431,9 @@ void AtmFromRaw1D(// WS Output:
 
   //---------------< 2. Interpolation of VMR profiles >---------------
   {
+    // The species lookup data
+    extern const ARRAY<SpeciesRecord> species_data;
+
     // check size of input string vectors.
     assert ( tgs.size() == raw_vmrs_1d.size() ); 
 
@@ -1341,16 +1469,52 @@ void AtmFromRaw1D(// WS Output:
 	// Make vmrs[j] the right size:
 	resize( vmrs[j], p_abs.size() );
 	
-	// Interpolate:
-	interpp( vmrs[j],
-		 p_raw,
-		 vmr_raw,
-		 p_abs );
-	//	out3 << "This VMR: " << vmrs[j] << "\n";
+	// interpolation of the profiles on the predefined pressure grid
+	string tag_name = species_data[tgs[j][0].Species()].Name(); // name of the tag
+	if ( (tag_name == "liquidcloud") || (tag_name == "icecloud") )
+	  {
+	    // Interpolate linearly the cloud profiles
+	    cout << " Interpolate linearly the cloud profiles " << "\n";
+	    interpp_cloud( vmrs[j],
+			   p_raw,
+			   vmr_raw,
+			   p_abs );
+	    //	out3 << "This VMR: " << vmrs[j] << "\n";
+
+	  } else
+	    {
+	      // Interpolate VMRs:
+	      interpp( vmrs[j],
+		       p_raw,
+		       vmr_raw,
+		       p_abs );
+	      // out3 << "This VMR: " << vmrs[j] << "\n";
+	    }
+
+
       }
   }
-}
+  //---------------< 3. Saturation VMR profiles of H2O tags>---------------
+  {
+    if(CloudSatWV == "yes")
+      {
+	assert ( vmrs[0].size() == p_abs.size() );
 
+	size_t satflag = WVsatinClouds( vmrs,  // manipulates this array for H2O tags
+		                        t_abs, // constant
+					p_abs, // constant
+					tgs);  // constant
+	if (satflag != 0)
+	  {
+	    ostringstream os;
+	    os << "In AtmFromRaw1D, part 3:\n"
+	       << "*** WRONG WATER VAPOR SATURATION CALCULATION IN CLOUD REGION ***\n";
+	    throw runtime_error(os.str());
+	  }
+      }
+  }
+
+}
 
 
 /**
@@ -1490,46 +1654,6 @@ void hseCalc(
 }
 
 
-
-/**
-   This method sets the H2o VMR profile to the saturated H2O VMR profile
-   according to the saturation pressure calculated with WVSatPressureLiquidWater 
-   for vapor-water and WVSatPressureIce for vapor-ice phase mixtures.
-
-   \author Thomas Kuhn
-   \date   2001-06-22
-*/
-void h2o_SatVMR( const TagGroups&       tgs,
-                 const ARRAYofVECTOR&   vmrs )
-{
-  const INDEX   n = tgs.size();
-  int   found = -1;
-  string  s;
-  VECTOR  h2o_sat;
-  for( INDEX i=0; i<n && found<0; i++ ) 
-  {
-    s = tgs[i][0].Name();
-    
-    if ( s.substr(0,3) == "H2O" )
-      found = int(i);
-  }
-
-  if ( found < 0 )
-    throw runtime_error("h2o_SatVMR: No tag group contains water vapor!");
-  
-  // set the appropriate size of the h2o_sat vector
-  resize( h2o_sat, vmrs[found].size() );
-
-  //
-
-
-  // copy the saturation water vapor VMR to the VMR matrix
-  copy( h2o_sat, vmrs[found] );
-}
-
-
-
-
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
@@ -1594,8 +1718,6 @@ void n2_absSet(
   resize( n2_abs, vmrs[found].size() );
   copy( vmrs[found], n2_abs );
 }
-
-
 
 
 /** Calculates the absorption coefficients by first calculating the

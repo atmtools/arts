@@ -15,25 +15,26 @@
 tgsDefine{
       [ 
 #	"H2O",
-#	"O2",
+	"O2",
 	"N2",
-	"H2O-CP98",
-	"H2O-MPM87",
-	"H2O-MPM89",
+#	"H2O-CP98",
+#	"H2O-MPM87",
+#	"H2O-MPM89",
 	"H2O-MPM93",
-	"H2O-PWR98",
+#	"H2O-PWR98",
 #	"H2O-SelfContStandardType",
 #	"H2O-ForeignContStandardType",
 #	"H2O-ContMPM93",
-	"O2-SelfContPWR93",
+#	"O2-SelfContPWR93",
 #	"O2-SelfContMPM93",
-#	"O2-PWR93",
-	"N2-SelfContPWR93"
+	"O2-PWR93",
+#	"O2-MPM93"
+#	"N2-SelfContPWR93"
 #	"N2-SelfContMPM93",
 #	"CO2-SelfContPWR93",
 #	"CO2-ForeignContPWR93",
-#	"liquidcloud-MPM93",
-#	"icecloud-MPM93"
+	"liquidcloud-MPM93",
+	"icecloud-MPM93"
       ] 
 }
 #
@@ -149,6 +150,12 @@ cont_descriptionAppend{
     parameters = [ ]
 }
 #
+# MPM93 O2 absorption model (lines + continuum)
+cont_descriptionAppend{
+    name       = "O2-MPM93"
+    parameters = [ ]
+}
+#
 # ----- CO2 continuum ------------------------------------
 #
 # Rosenkranz CO2-self continuum:
@@ -180,11 +187,18 @@ cont_descriptionAppend{
 # ********************************************************************
 # Read spectral line data from HITRAN catalogue for 0-200 GHz:
 lines_per_tgReadFromCatalogues{
-  filenames = [ "arts/data/spectroscopy/hitran96/hitran96_lowfreq.par",
-                "arts/data/spectroscopy/arts/o2_spin_rot_pwr_3.aa"]
-  formats   = [ "HITRAN96", "ARTS"   ]
-  fmin      = [  1.0e9,  1.0e9  ]
-  fmax      = [  3.0e10, 1.0e12 ]
+  filenames = [ 
+#               "arts-data/spectroscopy/hitran96/hitran96_lowfreq.par",
+                "arts-data/spectroscopy/arts/o2_spin_rot_pwr_3.aa"]
+  formats   = [ 
+#               "HITRAN96", 
+                "ARTS"   ]
+  fmin      = [  
+#               1.0e9,
+		1.0e9  ]
+  fmax      = [  
+#               3.0e10, 
+		1.0e12 ]
 }
 
 #lines_per_tgWriteToFile{""} 
@@ -193,18 +207,18 @@ lines_per_tgReadFromCatalogues{
 # Read the pressure, temperature, and altitude profiles and create 
 # the workspace variable `raw_ptz_1d':
 MatrixReadAscii (raw_ptz_1d) 
-        {"arts/data/atmosphere/fascod/midlatitude-summer.tz.am"}
+        {"arts-data/atmosphere/fascod/midlatitude-summer.tz.am"}
 
 # The same for the input VMR profiles:
 #raw_vmrs_1dReadFromScenario
-#         {"arts/data/atmosphere/fascod/midlatitude-summer"}
+#         {"arts-data/atmosphere/fascod/midlatitude-summer"}
 
 raw_vmrs_1dReadFromFiles
          {seltags   = ["liquidcloud-MPM93",
                        "icecloud-MPM93"]
-          filenames = ["arts/data/atmosphere/particles/midlatitude-summer.cumulus.MPM93droplet.am",
-	               "arts/data/atmosphere/particles/midlatitude-summer.cirrus.MPM93.am"]
-          basename  =  "arts/data/atmosphere/fascod/midlatitude-summer"
+          filenames = ["arts-data/atmosphere/particles/midlatitude-summer.cumulonimbus.MPM93droplet.am",
+	               "arts-data/atmosphere/particles/midlatitude-summer.cirrus.MPM93ice.am"]
+          basename  =  "arts-data/atmosphere/fascod/midlatitude-summer"
          }
 
 # Optionally write this to a file:
@@ -213,8 +227,8 @@ raw_vmrs_1dReadFromFiles
 
 # Create the pressure grid `p_abs':
 VectorNLogSpace(p_abs){
-        start = 100000
-        stop  = 10000
+        start = 100000.000
+        stop  =   5650.000
         n     = 100
 }
 
@@ -222,7 +236,7 @@ VectorWriteAscii(p_abs){""}
 
 # Now interpolate all the raw atmospheric input onto the pressure 
 # grid and create the atmospheric variables `t_abs', `z_abs', `vmrs'
-AtmFromRaw1D{}
+AtmFromRaw1D{CloudSatWV = "yes"}
 
 # Set the physical H2O profile from the H2O profile in vmrs:
 h2o_absSet{}
@@ -238,9 +252,9 @@ ArrayOfVectorWriteAscii (vmrs)  {""}
 
 # Create the frequency grid `f_mono':
 VectorNLinSpace(f_mono){
-        start =    1.0e8
-        stop  =   100.0e9
-        n     =   300    
+        start =   1.0e9
+        stop  =   201.0e9
+        n     =   200    
 }
 
 # Write frequency grid to file:
@@ -255,24 +269,53 @@ lineshapeDefine{
 
 # or set it separately for each tag
 lineshape_per_tgDefine{
-       	shape               = ["no_shape", "no_shape", "no_shape", "no_shape",
-	                       "no_shape", "no_shape", "no_shape", "no_shape"]
-       	normalizationfactor = ["no_norm" , "no_norm" , "no_norm" , "no_norm",
-                               "no_norm" , "no_norm" , "no_norm" , "no_norm"]
-       	cutoff              = [-1        , -1        , -1        , -1,
-                               -1        , -1        , -1        , -1]
+       	shape               = [	"Rosenkranz_Voigt_Kuntz6",
+				"no_shape", 
+	                       	"no_shape", 
+ 	  		       	"no_shape",
+			       	"no_shape",
+#				"no_shape",
+#				"no_shape",
+#	                        "no_shape", 
+#				"no_shape", 
+#				"no_shape", 
+				"no_shape"]
+       	normalizationfactor = [ "quadratic",
+				"no_norm", 
+				"no_norm", 
+				"no_norm", 
+				"no_norm", 
+#				"no_norm",
+#				"no_norm",
+#                               "no_norm", 
+#				"no_norm", 
+#				"no_norm", 
+				"no_norm"]
+       	cutoff              = [	-1,
+				-1        , 
+				-1        , 
+				-1        , 
+				-1,        
+#				-1,        
+#				-1,
+#                              	-1        , 
+#				-1        , 
+#				-1        , 
+				-1]
 }
 # for all the above stated tags take this function:
 #lineshape_per_tgDefine{
-#      shape = ["Voigt_Kuntz6", "Rosenkranz_Voigt_Kuntz6", "Voigt_Kuntz6","no_shape","no_shape",
+#      shape = ["Voigt_Kuntz6", "Rosenkranz_Voigt_Kuntz6", "Voigt_Kuntz6",
+#                "no_shape","no_shape","no_shape",
 #               "no_shape","no_shape","no_shape","no_shape","no_shape",
 #               "no_shape","no_shape","no_shape","no_shape","no_shape",
 #               "no_shape","no_shape","no_shape","no_shape","no_shape"]
-#      normalizationfactor = ["quadratic","quadratic","quadratic","no_norm","no_norm",
+#      normalizationfactor = ["quadratic","quadratic","quadratic",
+#                              "no_norm","no_norm","no_norm",
 #                             "no_norm","no_norm","no_norm","no_norm","no_norm",
 #                             "no_norm","no_norm","no_norm","no_norm","no_norm",
 #                             "no_norm","no_norm","no_norm","no_norm","no_norm"]
-#      cutoff = [-1,-1,-1,-1,-1,
+#      cutoff = [-1,-1,-1,-1,-1,-1,
 #       	 -1,-1,-1,-1,-1,
 #                -1,-1,-1,-1,-1,
 #              	 -1,-1,-1,-1,-1]

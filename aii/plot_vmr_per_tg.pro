@@ -57,6 +57,37 @@ FUNCTION WVSatPressureIce, t
   end
 ;
 ; #################################################################################
+;; history:  alpha version,  2001-06-05, TKS
+FUNCTION SatPressureCalc, LWC, IWC, T
+
+es = -1.000e6
+
+if ( (LWC GT 0.00) AND (IWC LE 0.00) ) then begin
+    es = WVSatPressureLiquidWater( T )
+endif
+; ice cloud detected
+if ( (LWC LE 0.00) AND (IWC GT 0.00) ) then begin
+    es = WVSatPressureIce( T )
+endif
+
+; both cloud types are present, take then the lower saturation pressure
+if ( (LWC GT 0.00) AND (IWC GT 0.00) ) then begin
+    es1 = WVSatPressureLiquidWater( T )
+    es2 = WVSatPressureIce( T )
+    es = min([es1, es2])
+endif
+
+; no cloud case
+if ( (LWC LE 0.00) AND (IWC LE 0.00) ) then begin
+    if (T GE 273.15) then es = WVSatPressureLiquidWater( T )
+    if (T LT 273.15) then es = WVSatPressureIce( T )
+endif
+
+return, es; water vapor saturation pressure in Pa
+end
+;
+;
+;#################################################################################
 ;
 function aii_file_exists, filename
 ;; checks whether the file filename exists and returns 1 for yes and 0
@@ -273,7 +304,7 @@ endif
 if keyword_set(altunit) then begin
     case altunit of
         'km'  : begin
-                 zscale = 1.000/1000.0
+                 zscale = 0.001
                  zunit = '[km]'
                  end
         'm'   : begin
@@ -281,8 +312,8 @@ if keyword_set(altunit) then begin
                  zunit = '[m]'
                  end
         else:    begin
-                 zscale = 1.000/1000.0
-                 zunit = '[km]'
+                 zscale = 1.000
+                 zunit = '[m]'
                  end
     endcase
 endif else begin
@@ -370,13 +401,35 @@ posvec = [[0.2, 0.7, 0.45, 0.9], $
           [0.6, 0.1, 0.85, 0.3]]
 !P.multi  = [0,2,3]
 
+;; set the rright y-axis side to altitude
+y2axval_length = 6
+y2axval = fltarr(y2axval_length)
+y2axval[0] = alt[0]
+y2axval[1] = alt[FIX(N_ELEMENTS(alt) * 0.20)]
+y2axval[2] = alt[FIX(N_ELEMENTS(alt) * 0.40)]
+y2axval[3] = alt[FIX(N_ELEMENTS(alt) * 0.60)]
+y2axval[3] = alt[FIX(N_ELEMENTS(alt) * 0.80)]
+y2axval[4] = alt[N_ELEMENTS(alt)-1]
 
-;; loop over all tags
+;; special water tags tags
+h2ovmr                = dblarr(N_ELEMENTS(alt)) ; H2O VMR profile 
+liquidcloudprofile    = dblarr(N_ELEMENTS(alt)) ; liquid cloud profile 
+icecloudprofile       = dblarr(N_ELEMENTS(alt)) ; ice cloud profile 
+h2ovmr[*]             = 0.000
+liquidcloudprofile[*] = 0.000
+icecloudprofile[*]    = 0.000
+watertag              = -1
+icetag                = -1
+h2otag                = -1
+
+;; loop over tags
 index = 0 & posi = 0
 for k = 0,N_ELEMENTS(tg)-1 do begin ; loop over all tags
+
 ;;  construct title of the plot:
     total_title= 'species="'+tg[k]+'"'
 
+;;  find min and max of the tag concentration
     s1='xmin = min(vmr.mat'+string(k,format='(I0)')+'[0,0:N_ELEMENTS(alt)-1])' 
     r1 = execute(s1)
     s1='xmax = max(vmr.mat'+string(k,format='(I0)')+'[0,0:N_ELEMENTS(alt)-1])' 
@@ -386,41 +439,89 @@ for k = 0,N_ELEMENTS(tg)-1 do begin ; loop over all tags
         xmax = xmax * 10.000
     endif
 
+;;  x-axis label
     ax = 'volume mixing ratio '+vmrunit
+
+;;  line style mode
     al = 'linestyle = ls[index], '
+
+;;  logarithmic scale for VMR profiles
+    sxlog = 'plot, /XLOG, '
+
+;;  water vapor tag found?
+    if ( STRPOS(tg[k],'H2O') GE 0) then begin
+        h2otag = k
+        for z = 0, N_ELEMENTS(alt)-1 do begin
+            s1 = 'h2ovmr['+string(z,format='(I)')+'] = vmr.mat'+$
+                 string(k,format='(I0)')+'[0,'+string(z,format='(I)')+']' 
+            r1 = execute(s1)
+        endfor
+    endif
+
+;;  water cloud in the tag group?
     if ( STRPOS(tg[k],'liquidcloud') GE 0) then begin
-        xmin = xmax * 0.0100
-        xmax = xmax * 10.00000
+        watertag = k
+        xmin = 0.000
+        xmax = xmax * 1.100
         ax = 'liquid water density '+'[kg/m!U3!N]'
+        sxlog = 'plot, '
+        for z = 0, N_ELEMENTS(alt)-1 do begin
+            s1 = 'liquidcloudprofile['+string(z,format='(I)')+'] = vmr.mat'+$
+                 string(k,format='(I0)')+'[0,'+string(z,format='(I)')+']' 
+            r1 = execute(s1)
+        endfor
     endif
+
+;;  ice cloud in the tag group?
     if ( STRPOS(tg[k],'icecloud') GE 0) then begin
-        xmin = xmax * 0.00100
-        xmax = xmax * 10.00000
+        icetag = k
+        xmin = xmax * 0.00
+        xmax = xmax * 1.100
         ax = 'ice particle density '+'[kg/m!U3!N]'
+        sxlog = 'plot, '
+        for z = 0, N_ELEMENTS(alt)-1 do begin
+            s1 = 'icecloudprofile['+string(z,format='(I)')+'] = vmr.mat'+$
+                 string(k,format='(I0)')+'[0,'+string(z,format='(I)')+']' 
+            r1 = execute(s1)
+        endfor
     endif
-    ay = 'altitude '+zunit
+
+;;  counts plots per single page
     if (posi GE 6) then begin
         posi = 0
         !P.multi  = [0,2,3]
     endif
 
 ;;  plot VMR vs. altitude
-    s1='plot, /XLOG, '+$
+    s1=   sxlog+$
           'vmr.mat'+string(k,format='(I0)')+'[0,0:N_ELEMENTS(alt)-1], '+$
-          'alt[0:N_ELEMENTS(alt)-1], '+$
+          'pre[0:N_ELEMENTS(alt)-1]*ppscale, '+$
           'title=total_title, '+$
-          'yrange=[min(alt[0:N_ELEMENTS(alt)-1]), max(alt[0:N_ELEMENTS(alt)-1])], '+$
+          'yrange=[ppscale*max(pre[0:N_ELEMENTS(alt)-1]), ppscale*min(pre[0:N_ELEMENTS(alt)-1])], '+$
           'xrange=[xmin, xmax], '+$
           'xtitle=ax, '+$
-          'ytitle=ay, '+$
+          'XCHARSIZE=1.2, '+$
+          'YCHARSIZE=1.2, '+$
           'color=colors[index], '+$
           al+$
           'thick=thick, '+$
           'xstyle=1, '+$
-          'ystyle=1, '+$
+          'ystyle=4, '+$
           'POSITION=[posvec[0:3,'+string(posi,format='(I0)')+']]'
     r1 = execute(s1)
+    axis, yaxis=0, $
+          yrange=[ppscale*max(pre[0:N_ELEMENTS(alt)-1]), ppscale*min(pre[0:N_ELEMENTS(alt)-1])], $
+          /save, $
+          YCHARSIZE=1.1, $
+          ytitle='pressure '+ppunit
+
+    axis, yaxis=1, $
+          yrange=[min(alt[0:N_ELEMENTS(alt)-1]), max(alt[0:N_ELEMENTS(alt)-1])], $
+          /save, $
+          YCHARSIZE=1.1, $
+          ytitle='altitude '+zunit
     posi = posi + 1
+
 endfor
 
 ;; plot temperature
@@ -452,48 +553,195 @@ endif
 
 ;; relative humidity calculation if H2O is calculated in RT.
 rhfound = 1
-for k = 0,N_ELEMENTS(tg)-1 do begin
-    if ( STRPOS(tg[k],'H2O') GE 0) then begin
-        print, 'H2O tag found for RH calculation: ', tg[k]
-        rhfound = 0
-        tt = dblarr(N_ELEMENTS(alt))
-        pp = dblarr(N_ELEMENTS(alt))
-        zz = dblarr(N_ELEMENTS(alt))
-        vv = dblarr(N_ELEMENTS(alt))
-        for z = 0, N_ELEMENTS(alt)-1 do begin
-            s1='vv['+string(z,format='(I)')+'] = vmr.mat'+$
-               string(k,format='(I0)')+'[0,'+string(z,format='(I)')+']' 
-            r1 = execute(s1)
-        endfor
-        goto, firh
-    endif
-endfor
-firh:
-if (rhfound EQ 0) then begin
+if ( h2otag GE 0) then begin
     RH = dblarr(N_ELEMENTS(alt))
     for z = 0, N_ELEMENTS(alt)-1 do begin
         es = 0.000
-        if (tt[z] LT 273.16) then es = WVSatPressureLiquidWater(temperature[0,z])
-        if (tt[z] LT 273.16) then es = WVSatPressureIce(temperature[0,z])
-        RH[z] = 100.00 * pre[z] * vv[z] / es
-        ;print, z,' T=', temperature[0,z], ', vmr= ', vv[z],', es= ',  es,', RH=', RH[z]
+                                ; liquid water cloud detected
+        if ( (liquidcloudprofile[z] GT 0.00) AND $
+             (icecloudprofile[z] LE 0.00)         ) then begin
+            es = WVSatPressureLiquidWater(temperature[0,z])
+        endif
+                                ; ice cloud detected
+        if ( (liquidcloudprofile[z] LE 0.00) AND $
+             (icecloudprofile[z] GT 0.00)         ) then begin
+            es = WVSatPressureIce(temperature[0,z])
+        endif
+                                ; liquid water and ice cloud detected
+        if ( (liquidcloudprofile[z] GT 0.00) AND $
+             (icecloudprofile[z] GT 0.00)         ) then begin
+            es = WVSatPressureIce(temperature[0,z])
+        endif
+        if ( (liquidcloudprofile[z] LE 0.00) AND $
+             (icecloudprofile[z] LE 0.00)         ) then begin
+            if (temperature[0,z] GE 273.15) then es = WVSatPressureLiquidWater(temperature[0,z])
+            if (temperature[0,z] LT 273.15) then es = WVSatPressureIce(temperature[0,z])
+        endif
+        RH[z] = 100.00 * pre[z] * h2ovmr[z] / es
     endfor
-endif
 ; plot RH:
-plot, $
-  RH[0:N_ELEMENTS(alt)-1],$
-  alt[0:N_ELEMENTS(alt)-1],$
-  title='relative humidity profile',$
-  yrange=[min(alt[0:N_ELEMENTS(alt)-1]), max(alt[0:N_ELEMENTS(alt)-1])],$
-  xrange=[0.0, 110.0],$
-  xtitle='relative humidity [%]',$
-  ytitle='altitude '+zunit,$
-  color=colors[0],$
-  linestyle=ls[0],$
-  thick=thick,$
-  xstyle=1,$
-  ystyle=1, $
-  POSITION=[posvec[0:3,posi]]
+    plot, $
+      RH[0:N_ELEMENTS(alt)-1],$
+      pre[0:N_ELEMENTS(alt)-1]*ppscale,$
+      title='relative humidity profile',$
+      xrange=[0.0, 130.0],$
+      yrange=[ppscale*max(pre[0:N_ELEMENTS(alt)-1]), ppscale*min(pre[0:N_ELEMENTS(alt)-1])], $
+      xtitle='relative humidity [%]',$  
+      XCHARSIZE=1.2, $
+      YCHARSIZE=1.2, $
+      color=colors[0],$
+      linestyle=ls[0],$
+      thick=thick,$
+      xstyle=1,$
+      ystyle=4, $
+      POSITION=[posvec[0:3,posi]]
+    axis, yaxis=0, $
+      yrange=[ppscale*max(pre[0:N_ELEMENTS(alt)-1]), ppscale*min(pre[0:N_ELEMENTS(alt)-1])], $
+      /save, $
+      YCHARSIZE=1.1, $
+      ytitle='pressure '+ppunit
+    
+    axis, yaxis=1, $
+      yrange=[min(alt[0:N_ELEMENTS(alt)-1]), max(alt[0:N_ELEMENTS(alt)-1])], $
+      /save, $
+      YCHARSIZE=1.1, $
+      ytitle='altitude '+zunit
+    posi = posi+ 1
+    if (posi GE 6) then begin
+        posi = 0
+        !P.multi  = [0,2,3]
+    endif
+endif
+
+;; relative humidity and liquid water clouds superimposed
+if ( (h2otag GE 0) and (watertag GE 0) ) then begin
+    RH = dblarr(N_ELEMENTS(alt))
+    for z = 0, N_ELEMENTS(alt)-1 do begin
+        RH[z] = 100.00 * pre[z] * h2ovmr[z] / SatPressureCalc(liquidcloudprofile[z], $
+                                                              icecloudprofile[z],    $
+                                                              temperature[0,z])  ; [%]
+    endfor
+; plot RH:
+    ymin=ppscale*max(pre[0:N_ELEMENTS(alt)-1])
+    ymax=ppscale*min(pre[0:N_ELEMENTS(alt)-1])
+    plot, $
+      RH[0:N_ELEMENTS(alt)-1],$
+      pre[0:N_ELEMENTS(alt)-1]*ppscale,$
+      xrange=[0.0, 110.0],$
+      yrange=[ymin, ymax], $
+      xtitle='relative humidity [%]',$  
+      XCHARSIZE=1.2, $
+      YCHARSIZE=1.2, $
+      color=colors[0],$
+      linestyle=ls[0],$
+      thick=thick,$
+      xstyle=1,$
+      ystyle=4, $
+      POSITION=[posvec[0:3,posi]]
+    axis, yaxis=0, $
+      yrange=[ppscale*max(pre[0:N_ELEMENTS(alt)-1]), ppscale*min(pre[0:N_ELEMENTS(alt)-1])], $
+      /save, $
+      YCHARSIZE=1.1, $
+      ytitle='pressure '+ppunit
+    
+    axis, yaxis=1, $
+      yrange=[min(alt[0:N_ELEMENTS(alt)-1]), max(alt[0:N_ELEMENTS(alt)-1])], $
+      /save, $
+      YCHARSIZE=1.1, $
+      ytitle='altitude '+zunit
+;   liquid water clouds:
+    plot, $
+      liquidcloudprofile[0:N_ELEMENTS(alt)-1],$
+      pre[0:N_ELEMENTS(alt)-1]*ppscale,$
+      xrange=[0.0, 1.01*max(liquidcloudprofile[0:N_ELEMENTS(alt)-1])],$
+      yrange=[ymin, ymax], $
+      XCHARSIZE=1.2, $
+      YCHARSIZE=1.2, $
+      color=colors[1],$
+      linestyle=ls[1],$
+      thick=thick,$
+      xstyle=4,$
+      ystyle=4, $
+      POSITION=[posvec[0:3,posi]]
+    axis, xaxis=1, $
+      xrange=[0.0, 1.01*max(liquidcloudprofile[0:N_ELEMENTS(alt)-1])],$
+      /save, $
+      YCHARSIZE=1.1, $
+      xtitle='liquid water density [kg/m!U3!N]'
+
+    posi = posi+ 1
+    if (posi GE 6) then begin
+        posi = 0
+        !P.multi  = [0,2,3]
+    endif
+endif
+
+;; relative humidity and ice cloud profiles
+if ( (h2otag GE 0) and (icetag GE 0) ) then begin
+    RH = dblarr(N_ELEMENTS(alt))
+    for z = 0, N_ELEMENTS(alt)-1 do begin
+        RH[z] = 100.00 * pre[z] * h2ovmr[z] / SatPressureCalc(liquidcloudprofile[z], $
+                                                              icecloudprofile[z],    $
+                                                              temperature[0,z])  ; [%]
+    endfor
+; plot RH:
+    ymin=ppscale*max(pre[0:N_ELEMENTS(alt)-1])
+    ymax=ppscale*min(pre[0:N_ELEMENTS(alt)-1])
+    plot, $
+      RH[0:N_ELEMENTS(alt)-1],$
+      pre[0:N_ELEMENTS(alt)-1]*ppscale,$
+      xrange=[0.0, 110.0],$
+      yrange=[ymin, ymax], $
+      xtitle='relative humidity [%]',$  
+      XCHARSIZE=1.2, $
+      YCHARSIZE=1.2, $
+      color=colors[0],$
+      linestyle=ls[0],$
+      thick=thick,$
+      xstyle=1,$
+      ystyle=4, $
+      POSITION=[posvec[0:3,posi]]
+    axis, yaxis=0, $
+      yrange=[ppscale*max(pre[0:N_ELEMENTS(alt)-1]), ppscale*min(pre[0:N_ELEMENTS(alt)-1])], $
+      /save, $
+      YCHARSIZE=1.1, $
+      ytitle='pressure '+ppunit
+    
+    axis, yaxis=1, $
+      yrange=[min(alt[0:N_ELEMENTS(alt)-1]), max(alt[0:N_ELEMENTS(alt)-1])], $
+      /save, $
+      YCHARSIZE=1.1, $
+      ytitle='altitude '+zunit
+;   liquid water clouds:
+    plot, $
+      icecloudprofile[0:N_ELEMENTS(alt)-1],$
+      pre[0:N_ELEMENTS(alt)-1]*ppscale,$
+      xrange=[0.0, 1.01*max(icecloudprofile[0:N_ELEMENTS(alt)-1])],$
+      yrange=[ymin, ymax], $
+      XCHARSIZE=1.5, $
+      YCHARSIZE=1.5, $
+      color=colors[2],$
+      linestyle=ls[2],$
+      thick=thick,$
+      xstyle=4,$
+      ystyle=4, $
+      POSITION=[posvec[0:3,posi]]
+    axis, xaxis=1, $
+      xrange=[0.0, 1.01*max(liquidcloudprofile[0:N_ELEMENTS(alt)-1])],$
+      /save, $
+      YCHARSIZE=1.5, $
+      xtitle='ice water density [kg/m!U3!N]'
+
+    posi = posi+ 1
+    if (posi GE 6) then begin
+        posi = 0
+        !P.multi  = [0,2,3]
+    endif
+endif
+
+
+
+
 
 ;; close plot output file
 aii_plot_file, action='end', show='yes', print='no'

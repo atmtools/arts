@@ -1449,21 +1449,8 @@ void define_md_data()
 	INPUT(    tgs_, p_abs_    , raw_ptz_1d_ , raw_vmrs_1d_ ),
 	GOUTPUT(                       			 ),         
 	GINPUT(                        			 ),
-	KEYWORDS(                      			 ),
-	TYPES(                         			 )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("h2o_SatVMR"),
-	DESCRIPTION(
-          "Sets h2o VMR to saturation values.\n"
-	  "water."),
-	OUTPUT(),
-	INPUT( 	tgs_, vmrs_  ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+	KEYWORDS(  "CloudSatWV"             		 ),
+	TYPES(     string_t                    		 )));
 
   md_data.push_back
     ( MdRecord
@@ -1567,7 +1554,6 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-
 
 
 //=== 1D absorption methods ===============================================
