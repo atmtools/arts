@@ -18,7 +18,6 @@ SUBDIRS        = tnt
 arts_SOURCES   = \
 wsv_groups.h \
 wsv.h \
-wsv_pointers.h \
 md.cc \
 arts.h \
 getopt.h \
