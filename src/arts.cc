@@ -37,8 +37,6 @@
 */
 void arts_exit (int status)
 {
-  MPI_ONLY ( mpi_shutdown (); )
-
   exit (status);
 }
 
