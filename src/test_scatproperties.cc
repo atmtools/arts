@@ -4,6 +4,7 @@
   \date   Mon May 13 11:36:11 2002
 */
 
+#include <cmath>
 #include <iostream>
 #include "scatproperties.h"
 #include "math_funcs.h"
