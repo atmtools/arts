@@ -1145,9 +1145,9 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
-/* md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
-      ( NAME( "i_fieldUpdatePlaneParallel" ),
+      ( NAME( "i_fieldUpdate1D_PlaneParallel" ),
 	DESCRIPTION
         (
 	 "Updates the i_field during the iteration. It performs the RT \n"
@@ -1168,7 +1168,7 @@ md_data_raw.push_back
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
-	TYPES()));*/
+	TYPES()));
 
  md_data_raw.push_back     
     ( MdRecord
