@@ -283,9 +283,9 @@ geometrical calculations and when considering refraction.
   
   Refraction affects the radiative transfer in several ways. The
   distance through a layer of a fixed vertical thickness will be
-  changed, and for limb sounding observation the tangent point is
-  moved both vertically and horisontally. If the atmosphere is assumed
-  to be horizontally stratified, as done here (1D), a horisontal
+  changed, and for a limb sounding observation the tangent point is
+  moved both vertically and horizontally. If the atmosphere is assumed
+  to be horizontally stratified, as done here (1D), a horizontal
   displacement is of no importance but for 2D calculations this effect
   must be considered. For limb sounding and a fixed zenith angle, the
   tangent point is moved downwards compared to the pure geometrical
@@ -294,9 +294,10 @@ geometrical calculations and when considering refraction.
   tangent and ground points.
 
  \levelc{General theory}
+  \label{sec:los:reftheory}
 
    When determining the LOS through the atmosphere geometrical optics 
-   can be applied because the change of the refractivce index over a
+   can be applied because the change of the refractive index over a
    wavelength can be neglected. Applying Snell's law to the geometry 
    shown in Figure \ref{fig:los:snell} gives
    \begin{equation}
@@ -308,7 +309,7 @@ geometrical calculations and when considering refraction.
       \caption{Geometry to derive Snell's law for a spherical atmosphere. 
                The Earth radius is $R_e$, the vertical
                altitude $z$, the refractive index $n$ and the angle
-               between the LOS and the vector to the Earth centre $\theta$.}
+               between the LOS and the vector to the Earth center $\theta$.}
       \label{fig:los:snell} 
     \end{center} 
   \end{figure}
@@ -325,14 +326,14 @@ geometrical calculations and when considering refraction.
    \label{eq:los:snellspherical}
   \end{equation}
   where $c$ is a constant. With other words, the Snell's law for spherical
-  atmospheres says that the product of $n$, $(R_e+z)$ and $\sin(\theta)$ is
+  atmospheres states that the product of $n$, $(R_e+z)$ and $\sin(\theta)$ is
   constant along the LOS.
 
   The radiative transfer is evaluated along the LOS, while Equation 
   \ref{eq:los:snellspherical} is expressed for vertical altitudes.
   The relationship between a change in vertical altitude and the
   corresponding change along the LOS is here denoted as the geometrical term
-  and it is
+  and it is \citep{eriksson:97a}
   \begin{equation}
     g(z) = \frac{1}{\cos(\theta)}
   \end{equation}
@@ -348,53 +349,178 @@ geometrical calculations and when considering refraction.
     l_1^2 = \int_{z_1}^{z_2}{g(z)\dd z} \nonumber
   \end{eqnarray}
   where $z_1$ and $z_2$ are two vertical altitudes and $l_1^2$ the length
-  along the LOS between these two altitudes. However, this appraoch is
+  along the LOS between these two altitudes. However, this approach is
   problematic for limb sounding as the geometric factor is
-  singular at the tangent point (Sec. !!).
-
-
- \levelc{The relative geometrical factor}
- 
-  To avoid the singularity of the geometrical factor at tangent points,
-  the relative geometrical factor is here introduced. This factor is
-  defined as
-  \begin{equation}
-    h(z) = \frac {(R_e+z)n(z)} {\sqrt{ (R_e+z)^2n^2(z) - c^2 }} 
-   \label{eq:los:gtermcor}
-  \end{equation}
-
-
-
-
-   \begin{figure}
-    \begin{center}
-      \includegraphics*[width=0.8\hsize]{Figs/fig_geomfac}
-      \caption{The geometrical factor, as a function of altitude, for limb 
-               sounding and three tangent altitudes.}
-    \end{center} 
-   \label{fig:los:gfac}
+  singular at the tangent point (Fig. \ref{fig:los:gfac}). 
+  \begin{figure}
+   \begin{center}
+    \includegraphics*[width=0.8\hsize]{Figs/fig_geomfac.eps}
+     \caption{The geometrical factor, as a function of altitude, for limb 
+              sounding and three tangent altitudes. Taken from
+              \citet{eriksson:97a}}.
+    \label{fig:los:gfac}
+   \end{center} 
   \end{figure}
 
+
+
+ \levelc{The refraction prolongation factor}
+ 
+  To avoid the singularity of the geometrical factor at tangent points,
+  the refraction prolongation factor is here introduced. This factor is 
+  defined as
+  \begin{equation}
+    r(z) = \frac {g(z)} {g_g(z)}
+   \label{eq:los:refprol1}
+  \end{equation}
+  where $g_g(z)$ is the geometrical factor for the geometrical LOS
+  that is parallel with the refracted LOS at the lowest point. The
+  $c$ constant for $g_g$ equals accordingly $(R_e+z)\sin(\theta)$ for
+  the lowest altitude of the refracted LOS. If this altitude is
+  denoted as $z_{min}$, the prolongation factor can be written as
+  \begin{equation}
+    r(z) = \frac {n(z)\sqrt{ (R_e+z)^2 - (c/n(z_{min}))^2 }} 
+                 {\sqrt{ (R_e+z)^2n^2(z) - c^2 }}
+   \label{eq:los:refprol2}
+  \end{equation}
+  The prolongation factor for limb sounding is shown in Figure 
+  \ref{fig:los:pfac}.
+  The value of $r$ at tangent points is discussed below.
+
+  The factor $r$ gives the relative increase in length of the
+  refracted LOS $(\Delta l)$ compared to the length of the corresponding
+  geometrical LOS $(\Delta l_g)$ through a small vertical layer $(\Delta z)$:
+  \begin{equation}
+    \Delta l = g(z) \Delta z = r(z) g_g(z) \Delta z = r(z) \Delta l_g.
+   \label{eq:los:refprol3}
+  \end{equation}
+
+  \begin{figure}
+   \begin{center}
+    \includegraphics*[width=0.49\hsize]{Figs/fig_pfac_z.eps}
+    \includegraphics*[width=0.46\hsize]{Figs/fig_pfac_l.eps}
+     \caption{Prolongation factors for limb sounding and three tangent
+              altitudes. The figure to the left shows $r$ as a function
+              of the vertical altitude, while the right figure shows $r$ as 
+              a function of the distance along the LOS from the tangent point.
+              The refraction index is calculated as $n=1+77.9593\ee{-6}p/T$
+              where the unit of $p$ is hPa (see \citet{elgered:93}).}
+    \label{fig:los:pfac}
+   \end{center} 
+  \end{figure}
+
+
+ \levelc{Practical solution}
+
+  The scheme applied to determine the LOS with refraction can be 
+  summarized as:
+  \begin{enumerate}
+    \item The lowest point of the LOS and the angle $\theta$ at this point 
+          are determined. 
+    \item The geometrical LOS matching this point and angle is calculated
+          with a step length defined by the user, $\Delta l_r$.
+    \item The prolongation factor is determined for the altitudes of the
+          geometrical LOS.
+    \item The distances along the LOS from the lowest point are calculated
+          following Eq. \ref{eq:los:refprol3}, where the applied prolongation
+          factor is the mean of $r$ at the end points of the steps.
+    \item The obtained distances are interpolated to obtain an equally spaced
+          refractive LOS with the selected step length $(\Delta l)$.
+  \end{enumerate}
+  The altitude and angle in step 1 are directly given by the platform
+  altitude and the zenith angle for upward observations. Limb sounding
+  is discussed separately below. The constant $c$ is throughout given
+  by the zenith angle and the refractive index at the sensor. Figure
+  \ref{fig:los:pfac} shows that $r$ varies slowly (as a function of $l$) 
+  and it should suffice to treat $r$ as piecewise linear function as
+  done here. 
+
+  The accuracy of the calculations can be controlled by the step length 
+  $\Delta l_r$. As the calculations are straightforward and simple a
+  relatively low value for $\Delta l_r$ can be used without increasing the
+  total calculation time noteworthily. The described scheme can be said to 
+  be correct to the first order, as it gives the same result as the pure
+  geometrical expressions if $n$ is set to 1.
+
+   
+ \leveld{Limb sounding}
+ 
+  The most important step for limb sounding is to get a correct
+  tangent altitude. Fortunately, there is a way to determine the
+  tangent altitude directly for 1D cases, without following the LOS
+  from the top of the atmosphere.
+
+  The tangent altitude is given by the relationship
+  \begin{equation}
+    (R_e+z_t)n(z_t) = (R_e+z_p)\sin(\view) = c
+   \label{eq:los:ztan_ref}
+  \end{equation}
+  as $\sin(\theta)=1$ at tangent points, the refractive index in space
+  is 1 and $sin(180^{\circ}-\view)=sin(\view)$. The tangent altitude
+  is practically determined by finding the highest altitude where
+  $(R_e+z)n(z)$ exceeds the value of $c$, followed by an interpolation
+  of the product $(R_e+z)n(z)$ between the found altitude and the
+  altitude above to find the altitude fulfilling Equation
+  \ref{eq:los:ztan_ref}.
+  
+  For cases with ground reflections, a similar relationship,
+  \begin{equation}
+    (R_e+z_g)n(z_g)sin(\theta_g) = (R_e+z_p)\sin(\view) = c,
+  \end{equation}
+  gives the angle between the LOS and the ground normal. With this angle
+  the LOS can be determined with the corresponding upward function.
+  
+  The value of the prolongation factor at tangent points cannot be
+  calculated using Equation \ref{eq:los:refprol2} as the denominator
+  of this expression is here zero. By using that
+  $(a^2-b^2)=(a+b)(a-b)$ both in nominator and denominator, Equation
+  \ref{eq:los:refprol2} can be rewritten as
+  \begin{eqnarray}
+    r^2(z) &=& \frac{n^2(z) \left[(R_e+z)^2-(R_e+z_t)^2\right]}
+                   {(R_e+z)^2n^2(z)-(R_e+z_t)^2n^2(z_t)} = \nonumber \\
+   &=&  \frac{n^2(z)\left(2R_e+z+z_t\right)}{(R_e+z)n(z)+(R_e+z_t)n(z_t)}
+        \frac{z-z_t}{(R_e+z)n(z)-(R_e+z_t)n(z_t)} \nonumber
+  \end{eqnarray}
+  The first quotient equals $n(z_t)$ at tangent points. By adding $z_tn(z)$
+  to the denominator, the second term can be
+  further rewritten as
+  \begin{eqnarray}
+     & & \frac{z-z_t}{(R_e+z)n(z)-(R_e+z_t)n(z_t)}= \nonumber \\
+     &=& \frac{z-z_t}{R_e[n(z)-n(z_t)]+n(z)(z-z_t)+z_t[n(z)-n(z_t)]}= 
+                                                                 \nonumber \\
+     &=& \frac{1}{n(z)+R_e\frac{n(z)-n(z_t)}{z-z_t}+
+                     z_t\frac{n(z)-n(z_t)}{z-z_t}}               \nonumber
+  \end{eqnarray}
+  The last expression brings out that the important quantity is 
+  \begin{equation}
+    a = \lim_{z \to z_t^+}\frac{n(z)-n(z_t)}{z-z_t}
+  \end{equation}
+  The prolongation factor for the tangent point is now determined:
+  \begin{equation}
+    r(z_t) = \sqrt{\frac{n(z_t)}{n(z_t)+a(R_e+z_t)}}
+  \end{equation}
+
+  
   
  \levelb{Ground intersections}
-   \label{sec:los:ground}
+  \label{sec:los:ground}
   
-   Ground reflections are indicated by a special flag. This flag is
-   zero when there is no ground intersection or gives the index of the
-   LOS point corresponding to the ground, $i_g$. For 1D calculations,
-   $i_g$ is either 0 or 1, as index 1 is here defined to always be the
-   lowest altitude of the LOS. However, to pave the way for 2D
-   calculations, cases where the ground is placed at other positions
-   than index 1 are handled.
+  Ground reflections are indicated by a special flag. This flag is
+  zero when there is no ground intersection or gives the index of the
+  LOS point corresponding to the ground, $i_g$. For 1D calculations,
+  $i_g$ is either 0 or 1, as index 1 is here defined to always be the
+  lowest altitude of the LOS. However, to pave the way for 2D
+  calculations, cases where the ground is placed at other positions
+  than index 1 are handled.
   
-   For 1D cases, where only half of the total LOS is stored and the
-   ground can only have index 1 ($i_g=1$), the effect of a ground
-   reflection (Eq. \ref{eq:rte:ground}) is put in when reversing the
-   loop order.  Accordingly, the calculation order is: ... step2, step
-   1, ground, step 1, step 2, ... Ground reflections for 1D cases are
-   treated internally in ARTS by the limb sounding functions.
+  For 1D cases, where only half of the total LOS is stored and the
+  ground can only have index 1 ($i_g=1$), the effect of a ground
+  reflection (Eq. \ref{eq:rte:ground}) is put in when reversing the
+  loop order.  Accordingly, the calculation order is: ... step2, step
+  1, ground, step 1, step 2, ... Ground reflections for 1D cases are
+  treated internally in ARTS by the limb sounding functions.
   
-   \begin{figure}
+  \begin{figure}[b]
    \begin{center}
      \includegraphics*[width=0.75\hsize]{Figs/ground}
     \caption{Schematic of ground reflections for 2D cases. The index 
@@ -402,237 +528,14 @@ geometrical calculations and when considering refraction.
              of the LOS is the point closest to the sensor. }  
     \label{fig:los1d:ground}  
    \end{center}
-   \end{figure}
+  \end{figure}
  
-   When solving the radiative transfer (Eq. \ref{eq:rte:iteration})
-   for 2D cases, the ground reflection is treated between evaluating
-   step $i_g$ and $i_{g-1}$ (the iteration goes from $n$ to 1), as
-   shown in Figure \ref{fig:los1d:ground}.  Ground reflections for 2D
-   cases are treated internally in ARTS by the upward looking
-   functions (Sec.  \ref{sec:los:2d}).
-  
-  
-  
-
-
-
-
-
-%\levelb{The geometrical term}
-% \label{sec:los:gterm}
-%
-% !! The new scheme for WF do not use the geometrical term. Is there
-% another good approach for refraction that also works for 2D. Check Kyle.
-% Accordingly, this section is maybe obsolete.!!
-%  
-% The equations above could be determined from trigonometric
-% relationships as they not consider refraction. To include the
-% effect of refraction, the LOS can be treated to consist of piecewise
-% geometrical parts, but another approach is selected here (see Sec.
-% \ref{sec:los:refr}) and this approach includes the geometrical term.
-%   
-%  The geometrical term, $g$, is the ratio between an incremental distance
-%  along the LOS and the corresponding change in vertical altitude:
-%  \begin{equation}
-%    g(z) = \frac{\dd l(z)}{\dd z}
-%   \label{eq:los:gterm}
-%  \end{equation}
-% 
-%  \levelc{Derivation}
-%    
-%   The Snell's law for a spherically geometry says that the following
-%   product is constant, $c$, along the LOS \citep[e.g.][]{kyle:91,balluch:97}
-%   \begin{equation}
-%     c = (R_e+z) n(z) \sin(\theta)
-%     \label{eq:los:snell}
-%   \end{equation}
-%   where $n$ is the refractive index and $\theta$ is the angle
-%   between LOS and the vector to the Earth center (Fig.
-%   \ref{fig:los:snell}). This relationship is described somewhat more in
-%   detail by \citet{eriksson:97a}.
-%
-%   \begin{figure}[tb]
-%    \begin{center}
-%      \includegraphics*{Figs/snell}
-%      \caption{Definition of the angle $\theta$ in Snell's law for a 
-%               spherically geometry (Eq. \ref{eq:los:snell}).}  
-%      \label{fig:los:snell} 
-%    \end{center} 
-%  \end{figure}
-%
-%  By noticing that 
-%  \begin{equation}
-%    g(z) = \frac{1}{\cos(\theta)}
-%  \end{equation}
-%  it can be derived that the geometrical term can be expressed
-%  generally as
-%  \begin{equation}
-%    g(z) = \frac {(R_e+z)n(z)} {\sqrt{ (R_e+z)^2n^2(z) - c^2 }}
-%   \label{eq:los:gterm2}
-%  \end{equation}
-%
-%
-%
-% \levelc{Corrected geometrical term}
-%  \label{sec:los:gcorr}
-%
-%  To obtain the LOS with refraction the geometrical term,
-%  multiplicated with some other quantities, is integrated vertically.
-%  There are two problems associated with this integration, (1) the
-%  geometrical term is infinite at tangent points, (2) as the
-%  geometrical term is a monotonous function (see Fig. 24 of
-%  \citet{eriksson:97a}), the integration routine can consequently
-%  under- or overestimate its integrated value.
-%   
-%  The integral of the geometrical term between two altitudes
-%  $(z_1,z_2)$ is the distance along LOS between these two
-%  altitudes $(l_{12})$:
-%  \begin{equation}
-%    l_{12} = \int_{z_1}^{z_2}g(z)\dd z
-%   \label{eq:los:gintegr}
-%  \end{equation}
-%  If refraction is neglected, we can then easily make a correction to
-%  the geometrical term in such way that the integration routine
-%  applied gives the expected result. The integration routine applied
-%  assumes that the integrand is linear between the given points, and
-%  an integration of the geometrical term between two points of the LOS
-%  would give the result
-%  \begin{eqnarray}
-%    \frac {(z_{i+1}-z_i)(g_{i+1}-g_i)}{2}   \nonumber
-%  \end{eqnarray}
-%  The correct answer for this integration is $\Delta l$.  Accordingly, a
-%  corrected geometrical term, $g'$, can be calculated iteratively as
-%  \begin{equation}
-%     g'_i = \frac {2\Delta l} {z_{i+1}-z_i} - g'_{i+1} 
-%   \label{eq:los:gcorr}
-%  \end{equation}
-%  where the iteration is started at the top of the atmosphere where $g'$
-%  is set to the value of the geometrical term without refraction, $g_{n=1}$.
-%  
-%  !! Check if this part shall be moved
-%  When $g´$ is determined, the ratio $g'/g_{n=1}$ can be used as a
-%  correction factor when integrating the geometrical term with refraction.
-%  The basic idea is that the correction factor shall compensate for an
-%  inaccurate integration of the geometrical term, i.e. an integration
-%  of the product
-%  \begin{eqnarray}
-%    \frac{g(z)g'(z)}{g_{n=1}(z)}
-%   \nonumber
-%  \end{eqnarray}
-%  should give a more accurate answer then applying Equation
-%  \ref{eq:los:gintegr} directly. For example, the scheme described
-%  gives a totally correct answer when the refractive index is set to 1
-%  (except at tangent points). Hence, the problem of integrating the
-%  geometrical term is reduced significantly. Note that the main problem
-%  is not the refractive index, which varies relatively slowly, it is
-%  the rapid change of the geometrical term around tangent points.
-%  However, the term $gg'/g_{n=1}$ is singular at tangent points, and
-%  the integration must be started some distance from the tangent point
-%  of the case considered. 
-%
-%  The term $g/g_{n=1}$ can be simplified to
-%  \begin{equation}
-%    \frac{g(z)}{g_{n=1}(z)} = \sqrt{n(z)\frac{1-n(z_t)}{n(z)-n(z_t)}}
-%  \end{equation}
-%  
-%  
-%
-%\levelb{LOS with refraction}
-% \label{sec:los:refr}
-% 
-% A smaller integration step is used to calculate LOS with refraction
-% than compared to the integration of RTE. This step is here denoted
-% $\Delta l_r$. This section is partly based on Section 4 of
-% \citet{eriksson:97a}.
-% 
-% \levelc{Upward looking} 
-%  
-%  The constant for Snell's law is
-%  \begin{equation}
-%    c = (R_e+z_p)n(z_p) \sin (\view)
-%  \end{equation}
-%  Note that $\sin(\theta)=sin(180^\circ-\view)=sin(\view)$.
-%    
-%  The refracted LOS is determined by first calculating a geometric LOS
-%  with steps of $\Delta l_r$ by using the geometrical function for
-%  upward geometry. The refractive index is interpolated for these
-%  altitudes, and the product $gg'/g_{n=1}$ is integrated, as described
-%  in Section \ref{sec:los:gcorr}.  The obtained vector of distances
-%  along LOS resulting from this integration is then interpolated at
-%  $0, \Delta l, 2\Delta l,\dots$ to yield the final refracted vertical
-%  altitudes of LOS.
-%    
-%  If the zenith angle is very close to $90^\circ$ ($\geq
-%  89.999^\circ$), then the limb sounding function is called (with $z_t
-%  \gets z_p$).
-%
-%
-%
-% \levelc{Limb sounding}
-%    
-%  Most important for limb sounding is to get a correct tangent
-%  altitude, and the calculation of LOS should, if possible, start from
-%  the tangent point. Fortunately, Snell's law (Eq.  \ref{eq:los:snell})
-%  makes it possible to determine the tangent point without following the
-%  LOS downwards from the upper limit of the atmosphere. The angle
-%  $\theta$ is at the tangent point $90^\circ$ and thus
-%  \begin{equation}
-%     (R_e+z_t)n(z_t) = c
-%  \end{equation}
-%  where
-%  \begin{equation}
-%    c = (R_e+z_p) \sin(\view)
-%  \end{equation}
-%  as the refractive index in space is 1.
-%  
-%  The tangent altitude is calculated practically by calculating the
-%  product $\left(R_e+z\right)n\left(z_t\right)$ for the absorption
-%  vertical grid, looping downwards until $c$ is greater than this
-%  product, and making an interpolation between this and the previous
-%  altitude.  This scheme is taken from \citet{eriksson:97a}.
-%  
-%  If the tangent altitude is found to be below ground level, a
-%  geometrical continuation of the LOS is assumed inside the Earth. This
-%  tangent altitude can be determined by calling the function that
-%  calculates the tangent altitude geometrically, where the platform
-%  altitude and the zenith angle is set to
-%  \begin{eqnarray}
-%    z_p  & \gets & z_g \nonumber \\
-%     \view & \gets & \pi-\sin^{-1}\left(\frac{c}{(R_e+z_g)n(z_g)}\right) 
-%                                                 \nonumber
-%  \end{eqnarray}   
-%  The refracted vertical altitudes of the LOS are calculated in a
-%  similar manner as for the upward looking case, but, of course, using
-%  corresponding limb sounding functions. Howver, the integration of
-%  the corrected geometrical term starts at some distance from the
-%  tangent point, instead of at the platform.  This distance is
-%  determined by the compile time variable \verb|REFR_MIN_FROM_TAN|.
-%    
-%  If the tangent altitude is below ground level, LOS is determined by
-%  the corresponding upward function for refraction as
-%  \begin{eqnarray}
-%    z_p  & \gets & z_g \nonumber \\
-%    \view & \gets & \sin^{-1}\left(\frac{R_e+z_t}{R_e+z_g}\right) 
-%                                                 \nonumber
-%  \end{eqnarray}   
-%  Note that LOS is assumed to be straight below $z_g$ and a
-%  geometrical calculation for calculation of $\view$ works for this
-%  case.
-%
-%
-% \levelc{Downward looking}
-%  
-%  The tangent altitude can be calculated with corresponding limb
-%  sounding function if it is considered that the refractive index at
-%  the platform deviates from unity.
-%  
-%  The refracted LOS for downward looking observations is obtained by
-%  calling repeatedly the upward (if $z_t<z_g$) or the limb sounding
-%  (if $z_t\geq z_g$) function for refraction, adjusting the step
-%  length until one altitude of the LOS is sufficiently close to the
-%  platform altitude. The stop criterion is controlled by the
-%  compilation time variable \verb|REFR_DOWN_PREC|.
-
+  When solving the radiative transfer (Eq. \ref{eq:rte:iteration}) for
+  2D cases, the ground reflection is treated between evaluating step
+  $i_g$ and $i_{g-1}$ (the iteration goes from $n$ to 1), as shown in
+  Figure \ref{fig:los1d:ground}.  Ground reflections for 2D cases are
+  treated internally in ARTS by the upward looking functions (Sec.
+  \ref{sec:los:2d}).
 
 
 

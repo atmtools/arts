@@ -155,35 +155,6 @@ VECTOR number_density (
 
 
 
-/////////////////////////////////////////////////////////////////////////////
-//   Tangent altitudes.
-/////////////////////////////////////////////////////////////////////////////
-
-//// ztan_geom //////////////////////////////////////////////////////////////
-//
-/** Calculates the geometrical tangent altitude (no refraction).
-
-    \return        the tangent altitude
-    \param za      the angle between zenith and the LOS
-    \param z_plat  the platform altitude
-
-    \author Patrick Eriksson 
-    \date   2000-04-08 
-*/
-Numeric ztan_geom(
-        const Numeric&     za,
-        const Numeric&     z_plat )
-{
-  Numeric  z_tan;
-  if ( za >= 90 )   
-    z_tan = (EARTH_RADIUS+z_plat)*sin(DEG2RAD*za) - EARTH_RADIUS; 
-  else
-    z_tan = 9.9999e6;
-  return z_tan;
-}
-
-
-
 ////////////////////////////////////////////////////////////////////////////
 //   Core functions for RTE and BL 
 ////////////////////////////////////////////////////////////////////////////
@@ -502,5 +473,161 @@ void interpp(
 {
   interp_lin_row( A, log(p0), A0, log(p) );
 }
+
+
+
+//// interpz (vector version) ///////////////////////////////////////////////
+//
+/** Interpolates a vertical profile at a new set of vertical altitudes.
+
+    NOTE!! Avoid to use this function, interpolation should mainly be done
+    in pressure, that is, use interpp when possible.
+
+    This function uses z2p and interpp to make an interpolation for vertical 
+    altitudes. 
+
+    Used mainly for LOS calculations with refraction.
+
+    \retval x       output: the interpolated values at z
+    \param  p0      original pressure grid
+    \param  z0      original vertical altitude grid
+    \param  x0      the profile to be interpolated
+    \param  z       new vertical altitude grid
+
+    \author Patrick Eriksson 
+    \date   2000-10-02 
+*/
+void interpz(
+              VECTOR&     x, 
+        const VECTOR&     p0,
+        const VECTOR&     z0,
+        const VECTOR&     x0,
+        const VECTOR&     z )
+{
+  VECTOR p;
+  z2p( p, z0, p0, z );
+  interpp( x, p0, x0, p );
+}
+
+
+
+//// interpz (scalar version) ///////////////////////////////////////////////
+//
+/** Interpolates a vertical profile at a single vertical altitude.
+
+    NOTE!! Avoid to use this function, interpolation should mainly be done
+    in pressure, that is, use interpp when possible.
+
+    This function uses z2p and interpp to make an interpolation for a vertical 
+    altitude. 
+
+    Used mainly for LOS calculations with refraction.
+
+    \retval x       output: the interpolated values at z
+    \param  p0      original pressure grid
+    \param  z0      original vertical altitude grid
+    \param  x0      the profile to be interpolated
+    \param  z       new vertical altitude grid
+
+    \author Patrick Eriksson 
+    \date   2000-10-02 
+*/
+Numeric interpz(
+        const VECTOR&     p0,
+        const VECTOR&     z0,
+        const VECTOR&     x0,
+        const Numeric&    z )
+{
+  VECTOR x;
+  interpz( x, p0, z0, x0, VECTOR(1,z) );
+  return x(1);
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+//   Tangent altitudes.
+/////////////////////////////////////////////////////////////////////////////
+
+//// ztan_geom //////////////////////////////////////////////////////////////
+//
+/** Calculates the geometrical tangent altitude (no refraction).
+
+    \return        the tangent altitude
+    \param za      the angle between zenith and the LOS
+    \param z_plat  the platform altitude
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
+Numeric ztan_geom(
+        const Numeric&     za,
+        const Numeric&     z_plat )
+{
+  Numeric  z_tan;
+  if ( za >= 90 )   
+    z_tan = (EARTH_RADIUS+z_plat)*sin(DEG2RAD*za) - EARTH_RADIUS; 
+  else
+    z_tan = 9.9999e6;
+  return z_tan;
+}
+
+
+
+//// ztan_refr //////////////////////////////////////////////////////////////
+//
+/** Calculates the tangent altitude with refraction.
+
+    \return               the tangent altitude
+    \param    c           LOS constant
+    \param    za          the angle between zenith and the LOS
+    \param    z_plat      the platform altitude
+    \param    z_ground    the ground altitude
+    \param    p_abs       absorption pressure grid
+    \param    z_abs       absorption altitude grid
+    \param    refr_index  refrective index corresponding to p_abs
+
+    \author Patrick Eriksson 
+    \date   2000-10-02
+*/
+Numeric ztan_refr(
+        const Numeric&     c,
+        const Numeric&     za,
+        const Numeric&     z_plat,
+        const Numeric&     z_ground,
+        const VECTOR&      p_abs,
+        const VECTOR&      z_abs,
+        const VECTOR&      refr_index )
+{
+  if ( za < 90 )   //=== Upward ==========================================
+    return ztan_geom( za, z_plat);
+  else
+  {
+    const size_t  n = z_abs.dim();
+          size_t  i;
+
+    for ( i=n; (i>0) && (EARTH_RADIUS+z_abs(i))*refr_index(i)>c; i-- ) 
+    {
+      if ( z_abs(i) <= z_ground ) //=== Ground intersection ==============
+      {
+        Numeric n_ground = interpz( p_abs, z_abs, refr_index, z_ground );
+        Numeric theta = RAD2DEG*asin(c/n_ground/(EARTH_RADIUS+z_ground));
+        return ztan_geom( 180-theta, z_ground );
+      }
+    }
+    if ( i == n )      //=== outside the atmosphere ======================
+      return ztan_geom( za, z_plat);
+    else               //=== z_tan inside the atmosphere =================
+    {
+      VECTOR zs(2), cs(2);
+      zs(1) = z_abs(i);
+      zs(2) = z_abs(i+1);
+      cs(1) = (EARTH_RADIUS+z_abs(i))*refr_index(i);
+      cs(2) = (EARTH_RADIUS+z_abs(i+1))*refr_index(i+1);  
+      return interp_lin( cs, zs, c ); 
+    }
+  }
+}
+
 
 

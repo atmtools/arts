@@ -63,6 +63,112 @@ extern const Numeric SUN_TEMP;
 //   LOS help functions 
 ////////////////////////////////////////////////////////////////////////////
 
+//// geom2refr /////////////////////////////////////////////////////////////
+/**
+   Determines a refractive LOS using the prolongation factor.
+
+   This function takes a geometrical LOS that is parallel with the refractive
+   LOS at the lowest point and, by using the prolongation factor, calculates
+   the distance along the LOS for the altitudes of the geometrical LOS. These
+   distances are interpolated to get the refractive LOS.
+
+   See further AUG.
+
+   \retval   p           pressures of the refractive LOS
+   \retval   l_step      step length along the final LOS
+   \param    zs          vertical altitudes of the geometrical LOS
+   \param    c           constant for the refractive LOS
+   \param    z_tan       tangent altitude
+   \param    atm_limit   upper atmospheric limit
+   \param    p_abs       absorption pressure grid
+   \param    z_abs       absorption altitude grid
+   \param    refr_index  refrective index corresponding to p_abs
+   \param    l_step_refr step length along the input geometrical LOS
+
+   \author Patrick Eriksson
+   \date   2000-10-02
+*/
+void geom2refr( 
+              VECTOR&       p,
+              Numeric&      l_step,
+        const VECTOR&       zs,
+        const Numeric&      c,
+        const Numeric&      z_tan,
+        const Numeric&      atm_limit,
+        const VECTOR&       p_abs,
+        const VECTOR&       z_abs,
+        const VECTOR&       refr_index,
+        const Numeric&      l_step_refr )
+{
+  const size_t nz = zs.dim();
+        VECTOR n, a, r, l(nz), ps;
+
+  // Get refractive index at the points of the geometrical LOS
+  interpz( n, p_abs, z_abs, refr_index, zs );
+
+  // Calculate the prolongation factor
+  a = (EARTH_RADIUS+zs);
+  a = emult( a, a );
+  r = emult( n, sqrt(a-(c*c/n(1)/n(1))) );
+  r = ediv( r, sqrt( emult(a,emult(n,n))-c*c ) );
+  // Handle tangent points
+  if ( abs(zs(1)-z_tan) < 0.01 )
+    r(1) = sqrt(n(1)/(n(1)+(EARTH_RADIUS+zs(1))*(n(2)-n(1))/(zs(2)-zs(1))));
+
+  // Safety check
+  if ( isnan(r(2)) != 0 )
+    throw logic_error(
+        "NaN obtained for the prolongation factor (check consistency for c!)");
+
+  // Calculate distance from the lowest altitude along the LOS using r
+  l(1) = 0.0;
+  for( size_t i=2; i<=nz; i++ )
+    l(i) = l(i-1) + l_step_refr * (r(i-1)+r(i))/2;
+  
+  // Interpolate to get LOS with steps of L_STEP
+  if ( l(nz)<l_step )
+    l_step = l(nz);
+  z2p( ps, z_abs, p_abs, zs );
+  interp_lin( p, l, ps, linspace(0,l(nz),l_step) );
+}
+
+
+
+//// refr_constant ///////////////////////////////////////////////////////////
+/**
+   Determines the constant for a refractive LOS.
+
+   Calculates (Re+z)*n(z)*sin(theta) at the platform.
+
+   \return               LOS constant
+   \param    za          zenith angle
+   \param    z_plat      platform altitude
+   \param    p_abs       absorption pressure grid
+   \param    z_abs       absorption altitude grid
+   \param    refr_index  refrective index corresponding to p_abs
+
+   \author Patrick Eriksson
+   \date   2000-10-02
+*/
+Numeric refr_constant( 
+        const Numeric&      za,
+        const Numeric&      z_plat,
+        const VECTOR&       p_abs,
+        const VECTOR&       z_abs,
+        const VECTOR&       refr_index )
+{
+  Numeric n_plat;
+
+  if ( z_plat > last(z_abs) )
+    n_plat = 1;
+  else
+    n_plat = interpz( p_abs, z_abs, refr_index, z_plat );
+
+  return (EARTH_RADIUS + z_plat) * sin(DEG2RAD*za) * n_plat;
+}
+
+
+
 //// upward_geom ///////////////////////////////////////////////////////////
 /**
    A help function to calculate LOS for upward observations without refraction.
@@ -73,7 +179,8 @@ extern const Numeric SUN_TEMP;
    \retval   l_step      step length along the LOS
    \param    z_plat      platform altitude
    \param    za          zenith angle
-   \param    z_abs_max   maximum altitude of the absorption grid
+   \param    atm_limit   maximum altitude of the absorption grid
+   \param    fit_limit   flag to match perfectly atmospheric limit
 
    \author Patrick Eriksson
    \date   2000-09-14
@@ -83,7 +190,8 @@ void upward_geom(
               Numeric&      l_step,
         const Numeric&      z_plat,
         const Numeric&      za,
-        const Numeric&      z_abs_max )
+        const Numeric&      atm_limit,
+        const size_t&       fit_limit )
 {
   Numeric  a, b;          // temporary values
   Numeric  llim;          // distance to atmospheric limit
@@ -92,16 +200,68 @@ void upward_geom(
   if ( za > 90 )
     throw logic_error("Upward function used for zenith angle > 90 deg."); 
 
-  a     = EARTH_RADIUS + z_abs_max;
+  a     = EARTH_RADIUS + atm_limit;
   b     = (EARTH_RADIUS + z_plat)*sin(DEG2RAD*za);
   llim  = sqrt(a*a-b*b) - (EARTH_RADIUS+z_plat)*cos(DEG2RAD*za) ;
 
-  if ( llim < l_step )   // Handle the rare case that llim < l_step
-    l_step = llim*0.999; // *0.999 to avoid problem in interpolations
+  if ( !fit_limit ) 
+  {
+    if ( llim < l_step )    // Handle the rare case that llim < l_step
+      l_step = llim*0.9999; // *0.9999 to avoid problem in interpolations
+  }
+  else
+  {
+    double n = ceil( llim / l_step + 1.0 );  
+    l_step = 0.9999*llim/(n-1); // *0.9999 to avoid problem in interpolations
+  }
+  linspace( l, 0, llim, l_step );
 
-  l = linspace( 0, llim, l_step );
   b = EARTH_RADIUS + z_plat;  
   z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*za))*l) - EARTH_RADIUS;
+}
+
+
+
+//// upward_refr ///////////////////////////////////////////////////////////
+/**
+   A help function to calculate LOS for upward observations with refraction.
+
+   This function handles only a single zenith angle.
+
+   \retval   p           pressures the LOS
+   \retval   l_step      step length along the LOS
+   \param    c           LOS constant
+   \param    z_plat      platform altitude
+   \param    za          zenith angle
+   \param    atm_limit   maximum altitude of the absorption grid
+   \param    p_abs       absorption pressure grid
+   \param    z_abs       absorption altitude grid
+   \param    refr_index  refrective index corresponding to p_abs
+   \param    l_step_refr step length along the input geometrical LOS
+
+   \author Patrick Eriksson
+   \date   2000-10-02
+*/
+void upward_refr(
+              VECTOR&       p,
+              Numeric&      l_step,
+        const Numeric&      c,
+        const Numeric&      z_plat,
+        const Numeric&      za,
+        const Numeric&      atm_limit,
+        const VECTOR&       p_abs,
+        const VECTOR&       z_abs,
+        const VECTOR&       refr_index,
+              Numeric       l_step_refr )
+{
+  VECTOR  zs;
+
+  if ( za > 90 )
+    throw logic_error("Upward function used for zenith angle > 90 deg."); 
+
+  upward_geom( zs, l_step_refr, z_plat, za, atm_limit, 1 );
+  geom2refr( p, l_step, zs, c, -99e3, atm_limit, p_abs, z_abs, refr_index, 
+                                                                l_step_refr );
 }
 
 
@@ -115,7 +275,8 @@ void upward_geom(
    \retval   z           vertical altitudes for the LOS
    \retval   l_step      step length along the LOS
    \param    z_tan       tangent altitude
-   \param    z_abs_max   maximum altitude of the absorption grid
+   \param    atm_limit   maximum altitude of the absorption grid
+   \param    fit_limit   flag to match perfectly atmospheric limit
    \param    z_ground    altitude of the ground
 
    \author Patrick Eriksson
@@ -125,7 +286,8 @@ void space_geom(
                VECTOR&     z,
                Numeric&    l_step,
          const Numeric&    z_tan,
-         const Numeric&    z_abs_max,
+         const Numeric&    atm_limit,
+         const size_t&     fit_limit,
          const Numeric&    z_ground )
 {
   Numeric  a, b;          // temporary values
@@ -133,21 +295,28 @@ void space_geom(
   VECTOR   l;             // length from the tangent point
 
   // If LOS outside the atmosphere, return empty vector
-  if ( z_tan >= z_abs_max )
+  if ( z_tan >= atm_limit )
     z.newsize(0);
 
   // Only through the atmosphere
   else if ( z_tan >= z_ground )
   {
-    a    = EARTH_RADIUS + z_abs_max;
+    a    = EARTH_RADIUS + atm_limit;
     b    = EARTH_RADIUS + z_tan;
     llim = sqrt( a*a - b*b );        
 
-    if ( llim < l_step )   // Handle the rare case that llim < l_step
-      l_step = llim*0.999; // *0.999 to avoid problem in interpolations
-
-
+    if ( !fit_limit ) 
+    {
+      if ( llim < l_step )   // Handle the rare case that llim < l_step
+        l_step = llim*0.9999; // *0.9999 to avoid problem in interpolations
+    }
+    else
+    {
+      double n = ceil( llim / l_step + 1.0 );  
+      l_step = 0.9999*llim/(n-1); // *0.9999 to avoid problem in interpolations
+    }
     linspace( l, 0, llim, l_step );
+
     z = sqrt(b*b+emult(l,l)) - EARTH_RADIUS; 
   }   
 
@@ -156,10 +325,67 @@ void space_geom(
   {
     // Determine the "zenith angle" at ground level and call upward function 
     Numeric za = RAD2DEG*asin((EARTH_RADIUS+z_tan)/(EARTH_RADIUS+z_ground));
-    upward_geom( z, l_step, z_ground, za, z_abs_max );    
+    upward_geom( z, l_step, z_ground, za, atm_limit, 0 );    
   }
 }
 
+
+
+//// space_refr ////////////////////////////////////////////////////////////
+/**
+   Calculates the LOS for observations from space with refraction.
+
+   This function handles only a single zenith angle.
+
+   \retval   p           pressures along the LOS
+   \retval   l_step      step length along the LOS
+   \param    c           LOS constant
+   \param    z_tan       tangent altitude
+   \param    atm_limit   maximum altitude of the absorption grid
+   \param    z_ground    altitude of the ground
+   \param    p_abs       absorption pressure grid
+   \param    z_abs       absorption altitude grid
+   \param    refr_index  refrective index corresponding to p_abs
+   \param    l_step_refr step length for intermediate LOS
+
+   \author Patrick Eriksson
+   \date   2000-10-02
+*/
+void space_refr(
+               VECTOR&     p,
+               Numeric&    l_step,
+         const Numeric&    c,
+         const Numeric&    z_tan,
+         const Numeric&    atm_limit,
+         const Numeric&    z_ground,
+         const VECTOR&     p_abs,
+         const VECTOR&     z_abs,
+         const VECTOR&     refr_index,
+               Numeric     l_step_refr )
+{
+  // If LOS outside the atmosphere, return empty vector
+  if ( z_tan >= atm_limit )
+    p.newsize(0);
+
+  // Only through the atmosphere
+  else if ( z_tan >= z_ground )
+  {
+    VECTOR zs;
+    space_geom( zs, l_step_refr, z_tan, atm_limit, 1, z_ground );
+    geom2refr( p, l_step, zs, c, z_tan, atm_limit, p_abs, z_abs, refr_index, 
+                                                                 l_step_refr );
+  }   
+
+  // Intersection with the ground
+  else
+  {
+    // Determine the "zenith angle" at ground level and call upward function 
+    Numeric n_ground = interpz( p_abs, z_abs, refr_index, z_ground );
+    Numeric za_ground = RAD2DEG*asin(c/n_ground/(EARTH_RADIUS+z_ground));
+    upward_refr( p, l_step, c, z_ground, za_ground, atm_limit, p_abs, z_abs, 
+                                           refr_index, l_step_refr );
+  }
+}
 
 
 
@@ -167,43 +393,65 @@ void space_geom(
 //   Sub-functions to losBasic 
 ////////////////////////////////////////////////////////////////////////////
 
-//// los_no_refr_space /////////////////////////////////////////////////////
+//// los_space /////////////////////////////////////////////////////////////
 /**
    Sets up the LOS structure for observations from space.
 
    Both limb and nadir observations are handled.   
-   No refraction.
 
    \retval   los         los structure (for all zenith angles)
    \param    z_plat      platform altitude
    \param    za          zentith angles
    \param    l_step      maximum step length along the LOS
-   \param    z_abs_max   maximum altitude of the absorption grid
+   \param    atm_limit   maximum altitude of the absorption grid
    \param    z_ground    altitude of the ground
+   \param    refr        flag for refraction (0=no refraction)
+   \param    z_abs       absorption altitude grid
+   \param    p_abs       absorption pressure grid
+   \param    refr_index  refrective index corresponding to p_abs
+   \param    l_step_refr step length for intermediate LOS
 
    \author Patrick Eriksson
    \date   2000-09-14
 */
-void los_no_refr_space(
+void los_space(
                     Los&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
               const Numeric&    l_step,
-              const Numeric&    z_abs_max,
-              const Numeric&    z_ground )
+              const Numeric&    atm_limit,
+              const Numeric&    z_ground,
+              const int&        refr,
+              const VECTOR&     z_abs,
+              const VECTOR&     p_abs,
+              const VECTOR&     refr_index,
+              const Numeric&    l_step_refr )
 {
   Numeric z_tan;           // the tangent altitude
-  int     n = za.dim();    // the number of zenith angles
+  Numeric c;               // LOS constant
 
   // Set all step lengths to the user defined value as a first guess.
-  // Note that the step length can be changed in SPACE_GEOM.
+  // Note that the step length can be changed in SPACE_GEOM/REFR.
   los.l_step = l_step;
 
   // Loop the zenith angles
-  for ( int i=1; i<=n; i++ )
+  for ( size_t i=1; i<=za.dim(); i++ )
   { 
-    z_tan = ztan_geom( za(i), z_plat);
-    space_geom( los.p(i), los.l_step(i), z_tan, z_abs_max, z_ground );
+    if ( refr )   // Refraction
+    {
+      c = refr_constant( za(i), z_plat, p_abs, z_abs, refr_index );
+      z_tan = ztan_refr( c, za(i), z_plat, z_ground, p_abs, z_abs, refr_index);
+      space_refr( los.p(i), los.l_step(i), c, z_tan, atm_limit, z_ground, 
+                                     p_abs, z_abs, refr_index, l_step_refr );
+    }
+    else          // Geometrical calculations
+    {
+      z_tan = ztan_geom( za(i), z_plat );
+      space_geom( los.p(i), los.l_step(i), z_tan, atm_limit, 0, z_ground );
+      // The geometrical functions return altitudes, not pressures
+      z2p( los.p(i), z_abs, p_abs, los.p(i) );
+    }
+
     los.start(i)  = los.p(i).dim();
     los.stop(i)   = los.start(i);
     if ( z_tan >= z_ground )
@@ -215,45 +463,63 @@ void los_no_refr_space(
 
 
 
-//// los_no_refr_inside ////////////////////////////////////////////////////
+//// los_inside ////////////////////////////////////////////////////
 /**
-   Sets up the LOS structure for measurements from points inside the atmosphere
+   Sets up the LOS for measurements from points inside the atmosphere.
 
    Both upward and downward observations are handled.
-   No refraction.   
 
    \retval   los         los structure (for all zenith angles)
    \param    z_plat      platform altitude
    \param    za          zentith angles
    \param    l_step      maximum step length along the LOS
-   \param    z_abs_max   maximum altitude of the absorption grid
+   \param    atm_limit   maximum altitude of the absorption grid
    \param    z_ground    altitude of the ground
+   \param    refr        flag for refraction (0=no refraction)
+   \param    z_abs       absorption altitude grid
+   \param    p_abs       absorption pressure grid
+   \param    refr_index  refrective index corresponding to p_abs
+   \param    l_step_refr step length for intermediate LOS
 
    \author Patrick Eriksson
    \date   2000-09-14
 */
-void los_no_refr_inside(
+void los_inside(
                     Los&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
               const Numeric&    l_step,
-              const Numeric&    z_abs_max,
-              const Numeric&    z_ground )
+              const Numeric&    atm_limit,
+              const Numeric&    z_ground,
+              const int&        refr,
+              const VECTOR&     z_abs,
+              const VECTOR&     p_abs,
+              const VECTOR&     refr_index,
+              const Numeric&    l_step_refr )
 {
-  Numeric z_tan, a, b, c, l1;  // see below
+  Numeric z_tan, za_ground; 
+  Numeric a, b, c, l1;         // see below (c can be the LOS constant)
   int     n = za.dim();        // the number of zenith angles
 
   // Set all step lengths to the user defined value as a first guess.
-  // Note that the step length can be changed in UPWARD_GEOM.
+  // Note that the step length can be changed in the sub-functions.
   los.l_step = l_step;
 
   // Loop the zenith angles
   for ( int i=1; i<=n; i++ )
   { 
+    // Calculate the LOS constant
+    if ( refr )
+      c = refr_constant( za(i), z_plat, p_abs, z_abs, refr_index );
+
     // Upward
     if ( za(i) <= 90 )
     {
-      upward_geom( los.p(i), los.l_step(i), z_plat, za(i), z_abs_max );    
+      if ( refr )
+        upward_refr( los.p(i), los.l_step(i), c, z_plat, za(i), atm_limit, 
+                                    p_abs, z_abs, refr_index, l_step_refr );
+      else
+        upward_geom( los.p(i), los.l_step(i), z_plat, za(i), atm_limit, 0 );
       los.start(i)  = los.p(i).dim();   // length of LOS
       los.stop(i)   = 1;                // stop index here always 1
       los.ground(i) = 0;                // no ground intersection
@@ -263,18 +529,44 @@ void los_no_refr_inside(
     else
     {
       // Calculate the tangent altitude
-      z_tan = ztan_geom(za(i),z_plat);
+      if ( refr )
+        z_tan = ztan_refr( c, za(i), z_plat, z_ground, p_abs,z_abs,refr_index);
+      else
+	z_tan = ztan_geom( za(i), z_plat );
 
       // Only through the atmosphere
       if ( z_tan >= z_ground )
       {
-	a      = EARTH_RADIUS + z_plat;   // help variable
-	b      = EARTH_RADIUS + z_tan;    // help variable
-	l1     = sqrt(a*a-b*b);           // distance platform-tangent point
-        // Adjust l_step downwards to get an integer number of steps
+        // Calculate the distance between the platform and the tangent point
+        if ( refr )
+        {
+          // Calculate a first refractive LOS with short step length and 
+          // interpolate to determine the distance
+	  VECTOR  zs, ps, ls;  
+	  Numeric l_temp=l_step_refr;
+	  space_geom( zs, l_temp, z_tan, atm_limit, 1, z_ground );
+	  geom2refr( ps, l_temp, zs, c, z_tan, atm_limit, p_abs, z_abs, 
+		                                        refr_index, l_temp );
+	  linspace( ls, 0, l_temp*(ps.dim()-1), l_temp );
+	  //l1 = interp_lin( ps, ls, p_plat(1) );  
+	  l1 = interp_lin( ps, ls, z_plat );  
+	}
+        else
+	{
+          // Use geometry
+	  a      = EARTH_RADIUS + z_plat;   // help variable
+	  b      = EARTH_RADIUS + z_tan;    // help variable
+	  l1     = sqrt(a*a-b*b);           // distance platform-tangent point
+        }
+
+	// Adjust l_step downwards to get an integer number of steps
 	los.stop(i)   = (int) ceil( l1 / l_step + 1.0 );  
 	los.l_step(i) = l1 / ( (Numeric)los.stop(i) - 1.0 );
-	space_geom( los.p(i), los.l_step(i), z_tan, z_abs_max, z_ground );
+        if ( refr )
+	  space_refr( los.p(i), los.l_step(i), c, z_tan, atm_limit, z_ground, 
+                                       p_abs, z_abs, refr_index, l_step_refr );
+	else
+	  space_geom( los.p(i), los.l_step(i), z_tan, atm_limit, 0, z_ground );
         los.start(i)  = los.p(i).dim();
         los.ground(i) = 0;                // no gound intersection
       }   
@@ -282,19 +574,47 @@ void los_no_refr_inside(
       // Intersection with the ground
       else
       {
-        a      = EARTH_RADIUS + z_ground;
-	b      = EARTH_RADIUS + z_plat;
-	c      = EARTH_RADIUS + z_tan;
-	l1     = sqrt(b*b-c*c) - sqrt(a*a-c*c); // distance platform-ground
+        if ( refr )
+        {
+          // Calculate a first refractive LOS with short step length and 
+          // interpolate to determine the distance
+	  VECTOR  zs, ps, ls;  
+	  Numeric l_temp=l_step_refr;
+          // Determine the "zenith angle" at ground and call upward function 
+          Numeric n_ground = interpz( p_abs, z_abs, refr_index, z_ground );
+          za_ground = RAD2DEG*asin(c/n_ground/(EARTH_RADIUS+z_ground));
+          upward_geom( zs, l_temp, z_ground, za_ground, atm_limit, 1 );
+	  geom2refr( ps, l_temp, zs, c, z_tan, atm_limit, p_abs, z_abs, 
+		                                        refr_index, l_temp );
+	  linspace( ls, 0, l_temp*(ps.dim()-1), l_temp );
+	  //l1 = interp_lin( ps, ls, p_plat(1) );  
+	  l1 = interp_lin( ps, ls, z_plat );  
+
+	}
+        else
+	{
+          a      = EARTH_RADIUS + z_ground;
+	  b      = EARTH_RADIUS + z_plat;
+	  c      = EARTH_RADIUS + z_tan;
+	  l1     = sqrt(b*b-c*c) - sqrt(a*a-c*c); // distance platform-ground
+        }
         // Adjust l_step downwards to get an integer number of steps
 	los.stop(i)   = 1 + (int) ceil( l1 / l_step );
 	los.l_step(i) = l1 / ( (double)los.stop(i) - 1.0 );
-	upward_geom( los.p(i), los.l_step(i), z_ground, RAD2DEG*asin(c/a),
-                                                                   z_abs_max);
+        if ( refr )
+	  upward_refr( los.p(i), los.l_step(i), c, z_ground, za_ground, 
+                            atm_limit, p_abs, z_abs, refr_index, l_step_refr );
+        else
+          upward_geom( los.p(i), los.l_step(i), z_ground, RAD2DEG*asin(c/a),
+                                                                atm_limit, 0 );
         los.start(i)  = los.p(i).dim();
         los.ground(i) = 1;                // ground at index 1
       }
     }
+
+    // The geometrical functions return altitudes, not pressures
+    if ( !refr )
+      z2p( los.p(i), z_abs, p_abs, los.p(i) );
   }
 }
 
@@ -328,7 +648,7 @@ void los_no_refr_inside(
    \author Patrick Eriksson
    \date   2000-09-14
 */
-void losCalc(                    Los&        los,
+void losCalc(       Los&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
               const Numeric&    l_step,
@@ -358,9 +678,6 @@ void losCalc(                    Los&        los,
   los.start.newsize(n);
   los.stop.newsize(n);
 
-  // Get highest absorption altitude
-  Numeric z_abs_max  =  last(z_abs);
-
   // Print messages
   if ( refr == 0 )
     out2 << "  Calculating line of sights WITHOUT refraction.\n";
@@ -377,25 +694,20 @@ void losCalc(                    Los&        los,
     out3 << "     max za: " << max(za) << " degs.\n";
   }
 
-  // Without refraction
-  if ( refr == 0 )
-  {
-    // The functions below calculates the vertical altitudes along LOS, 
-    // stored temporarily in los.p.
-    if ( z_plat >= z_abs_max )
-      los_no_refr_space( los, z_plat, za, l_step, z_abs_max, z_ground );
-    else
-      los_no_refr_inside( los, z_plat, za, l_step, z_abs_max, z_ground );
+  // Determine the upper limit of the atmosphere
+  const Numeric atm_limit = last(z_abs);
 
-    // Convert altitudes to pressures.
-    for ( size_t i=1; i<=n; i++ )
-      z2p( los.p(i), z_abs, p_abs, los.p(i) );
-  } 
-
-  // With refraction
+  // Two cases, from space or from within the atmosphere
+  if ( z_plat >= atm_limit )
+    los_space( los, z_plat, za, l_step, atm_limit, z_ground, refr, 
+                                     z_abs, p_abs, refr_index, l_step_refr );
   else
-  {
-  }  
+    los_inside( los, z_plat, za, l_step, atm_limit, z_ground, refr, 
+                                     z_abs, p_abs, refr_index, l_step_refr );
+
+  out1<<los.p(1);
+  out1<<los.l_step(1)<<"\n";
+  exit(1);
 }
 
 

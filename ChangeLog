@@ -1,3 +1,26 @@
+2000-10-02  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-56
+
+	* Refraction included. All observation geometries are treated.
+
+	* The refraction is included in a totally new way (to my best 
+	knowledge). A "prolongation factor" is used that gives the ratio
+	between the length of the refracted and the length of a corresponding 
+	geometrical LOS between two vertical altitudes. This approach avoids 
+	the singularity at tangent points and does not need any integral 
+	approximations etc. This results also in fast calculations.
+	See further AUG.
+	
+	* If n is set to 1, the refractive functions and the geometrical ones
+	give basically identical results, the difference is on the dm level
+	at the top of the atmosphere. This should indicate that the refractive
+	functions should give very accurate results.
+
+	* A function to get the refractive index for totally dry air is 
+	implemented.
+	
+
 2000-09-27  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-55

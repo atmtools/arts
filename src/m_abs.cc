@@ -625,3 +625,29 @@ void absCalc(// WS Output:
       abs = abs + abs_per_tg[i];
     }
 }
+
+
+
+//// refr_indexBoudourisDryAir ///////////////////////////////////////////////
+/**
+   Calculates the refractive index for dry air at microwave frequncies 
+   following Boudouris 1963.
+
+   The expression is also found in Chapter 5 of the Janssen book.
+
+   The atmosphere is assumed to have no water vapour.
+
+   \retval   refr        refractive index
+   \param    p_abs       absorption pressure grid
+   \param    t_abs       temperatures at p_abs
+
+   \author Patrick Eriksson
+   \date   2000-09-30
+*/
+void refr_indexBoudourisDryAir (
+                    VECTOR&          refr_index,
+              const VECTOR&          p_abs,
+              const VECTOR&          t_abs )
+{
+  refr_index = 1.0 + 0.77593e-6*ediv(p_abs,t_abs);
+}

@@ -686,8 +686,8 @@ Numeric interp_lin(
         const VECTOR&  y, 
         const Numeric  xi )
 {
-  VECTOR yi(1); 
-  interp_lin( yi, x, y, xi );
+  VECTOR yi; 
+  interp_lin( yi, x, y, VECTOR(1,xi) );
   return yi(1);
 }        
 

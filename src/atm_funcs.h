@@ -57,16 +57,6 @@ VECTOR number_density (
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Tangent altitudes
-////////////////////////////////////////////////////////////////////////////
-
-Numeric ztan_geom(
-        const Numeric&     za,
-        const Numeric&     z_plat );
-
-
-
-////////////////////////////////////////////////////////////////////////////
 //   Core functions for RTE and BL
 ////////////////////////////////////////////////////////////////////////////
 
@@ -127,3 +117,36 @@ void interpp(
         const VECTOR&  p0, 
         const MATRIX&  A0, 
         const VECTOR&  p );
+
+void interpz(
+              VECTOR&     x, 
+        const VECTOR&     p0,
+        const VECTOR&     z0,
+        const VECTOR&     x0,
+        const VECTOR&     z );
+
+Numeric interpz(
+        const VECTOR&     p0,
+        const VECTOR&     z0,
+        const VECTOR&     x0,
+        const Numeric&    z );
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Tangent altitudes
+////////////////////////////////////////////////////////////////////////////
+
+Numeric ztan_geom(
+        const Numeric&     za,
+        const Numeric&     z_plat );
+
+Numeric ztan_refr(
+        const Numeric&     c,
+        const Numeric&     za,
+        const Numeric&     z_plat,
+        const Numeric&     z_ground,
+        const VECTOR&      p_abs,
+        const VECTOR&      z_abs,
+        const VECTOR&      refr_index );
+

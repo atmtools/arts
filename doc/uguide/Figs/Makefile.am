@@ -29,6 +29,11 @@ EXTRA_DIST = \
 	fig_corrfuns.m \
 	fig_geomfac.eps \
 	fig_geomfac.pdf \
+	fig_pfac.m \
+	fig_pfac_z.eps \
+	fig_pfac_l.eps \
+	fig_pfac_z.pdf \
+	fig_pfac_l.pdf \
 	generic_method.eps \
 	generic_method.pdf \
 	geoms.eps \

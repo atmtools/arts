@@ -490,6 +490,20 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("refr_indexBoudourisDryAir"),
+	DESCRIPTION("Calculates the refractive index for dry air at micro-\n"
+		    "wave frequncies following Boudouris 1963.\n"
+		    "The expression is also found in Chapter 5 of the\n"
+		    "Janssen book."),
+	OUTPUT(	    refr_index_ ),
+	INPUT( 	    p_abs_, t_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
   
 
 
