@@ -19,9 +19,9 @@
 /*!
   \file   m_xml.h
   \author Stefan Buehler <sbuehler@uni-bremen.de>
-  \date   Tue Jun 18 18:32:43 2002
+  \date   2002-06-18
 
-  \brief  Template functions for supergeneric XML IO.
+  \brief  Workspace methods and template functions for supergeneric XML IO.
 
 */
 
@@ -48,7 +48,9 @@ ReadXML (// WS Generic Output:
 
 
 template<typename T> void
-WriteXML (// WS Generic Output:
+WriteXML (//WS Input:
+          const String &file_format,
+          // WS Generic Output:
           const T&            v,
           // WS Generic Output Names:
           const String& v_name,
@@ -60,8 +62,19 @@ WriteXML (// WS Generic Output:
   // Create default filename if empty
   filename_xml (filename, v_name);
 
-  xml_write_to_file (filename, v);
+  xml_write_to_file
+    (filename, v, file_format == "ascii" ? FILE_TYPE_ASCII : FILE_TYPE_BINARY);
 }
+
+
+void
+output_file_formatSetAscii (// WS Output:
+                            String &file_format);
+
+void
+output_file_formatSetBinary (// WS Output:
+                             String &file_format);
+
 
 #endif // m_xml_h
 
