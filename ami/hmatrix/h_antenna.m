@@ -185,11 +185,13 @@ function w_ant = moving_ant(za,w_ant,dza)
     zastep = min(diff(za))/10;
   
     n      = max([ceil(dza/zastep),2]);
-    dzap   = linspace(-dza/2,dza/2,n);
+    dzap   = linspace(-dza*(.5-1/n/2),dza*(.5-1/n/2),n);
     nza    = length(za);
     A      = zeros(n,nza);
     for i = 1:n
-      A(i,:) = interp1([za(1)*2;za+dzap(i);za(nza)*2],[0;w_ant;0],za)';
+      A(i,:) = interp1(...
+                [za(1)-dza;za(1)-1e-6;za;za(nza)+1e-6;za(nza)+dza]+dzap(i),...
+                                                       [0;0;w_ant;0;0], za )';
     end
     w_ant  = trapz(dzap,A)'/dza;
 

@@ -1,3 +1,11 @@
+2002-03-19  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-13
+
+	* ami/hmatrix/h_antenna.m: Fixed some smaller proplems for a
+	moving antenna. That part should now be somewhat more accurate and a
+	smaller (hopefully none) risk for a crash.
+
 2002-03-17  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
         * arts-1-0-12

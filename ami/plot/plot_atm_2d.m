@@ -50,7 +50,7 @@ n_z     = size(z_field,3);
 % Clear figure
 clf
 
-ltext{1} = 'pressure surfaces';
+ltext{1} = 'pressure-latitude grid';
 ltext{2} = 'ground';
 
 
