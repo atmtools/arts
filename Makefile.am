@@ -9,5 +9,5 @@
 
 EXTRA_DIST = autogen.sh configure make_parallel
 
-SUBDIRS = src aii ami m4 doc
+SUBDIRS = src aii m4 doc
 
