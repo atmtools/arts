@@ -31,18 +31,73 @@
   \date 16.05.1999 */
 
 /** \mainpage
-    
-    This automatic documentation is still \e very experimental. We
-    have just switched from doc++ to doxygen. You can use the HTML
-    version to browse the source text. Just point and click, and
-    eventually you will see the real implementation of functions and
-    classes. 
 
-    If you are looking for a more comprehensive text, check out the
-    Arts User Guide that is also distributed along with the
-    program. Section `Documentation' in Chapter `The art of developing
-    ARTS' there also tells you how you should add documentation
-    headers to your code if you are an ARTS developer.
+  <center><img src="arts-splash.gif" alt="ARTS"></center>
+
+  <h2>What is ARTS?</h2>
+
+  ARTS is a radiative transfer model for the millimeter and sub-millimeter
+  spectral range. There are a number of models mostly developed explicitly
+  for the different sensors. The basic principle for the development of ARTS
+  is to provide a code that can be applied for many different applications
+  concerning radiative transfer calculations in the microwave region. For
+  this reason much emphasis has been placed on modularity, extendibility, and
+  generality. At the moment two versions of ARTS are available.
+
+  ARTS-1-0-x: 1D version for simulating unpolarized radiative transfer.
+
+  The ARTS-1-0-x version, which is stable and tested, is limited to cases
+  where scattering can be neglected and local thermodynamic equilibrium
+  applies. At millimeter and sub-millimeter wavelengths these assumptions are
+  valid from the troposphere up to the mesosphere, but only in the clear-sky
+  case, i.e., in the absence of hydrometers such as large ice crystals or rain.
+
+  The model carries out scalar radiative transfer calculations, that means
+  it treats only the first component of the Stokes vector, corresponding to
+  the total intensity. In the absence of polarization effects this is a good
+  approximation. The only source of polarization effects could be scattering,
+  which has already been excluded, and Zeeman splitting of some spectral lines
+  due to the Earths magnetic fields. Hence, the scalar treatment implies that
+  Zeeman effects can not be modeled explicitly.
+
+  The model assumes a one-dimensional spherical atmosphere, with all
+  parameters varying as a function of the vertical coordinate only. The
+  primary vertical coordinate is pressure. All other quantities, such as
+  temperature, geometric altitude, and trace gas concentrations, are
+  given on pressure grids.
+
+  ARTS has been developed having passive emission measurements in mind, put
+  pure transmission measurements are also handled. The model can be used
+  to simulate measurements for any observation geometry: Up looking, down
+  looking, or limb looking, and for any sensor position: On the ground, inside
+  the atmosphere, or on a satellite.
+
+  The model works with arbitrary frequency grids, hence it can be used both
+  for the simulation of high resolution sensors, and for the simulation of
+  broad frequency ranges. The applicable spectral range is from the microwave
+  up to the thermal infrared, but the model is currently only well validated
+  below roughly 1 THz. In that frequency range, particular care has been
+  taken to make the absorption calculation consistent with state of the art
+  continuum models for water vapor and nitrogen, and with continuum and line
+  mixing models for oxygen.
+
+  Besides providing sets of spectra, ARTS can calculate Jacobians for a number
+  of variables. Analytical expressions are used to calculate Jacobians for
+  trace gas concentrations, continuum absorption, and ground emissivity.
+  Perturbations are used to calculate Jacobians for pointing offsets and
+  calibration offsets. For temperature Jacobians, the user can chose between
+  an analytical method, which does not assume hydrostatic equilibrium, and a
+  perturbation method, which does assume hydrostatic equilibrium.
+
+  You can use this HTML documentation to browse the source code. Just point
+  and click, and eventually you will see the real implementation of functions
+  and classes.
+
+  If you are looking for a more comprehensive text, check out the
+  Arts User Guide that is also distributed along with the
+  program. Section 'Documentation' in Chapter 'The art of developing
+  ARTS' there also tells you how you should add documentation
+  headers to your code if you are an ARTS developer.
  */
 
 #ifndef arts_h
