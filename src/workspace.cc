@@ -534,6 +534,30 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ("vector1",
+     "An arbitrary vector.\n"
+     "\n"
+     "This variable shall be treated as a general variable of type Vector.\n"
+     "It can be used, for example, when some intermediate data must be\n"
+     "generated or to copy some data.\n"
+     "\n"
+     "Usage:      Set by user.",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("vector2",
+     "An arbitrary vector.\n"
+     "\n"
+     "This variable shall be treated as a general variable of type Vector.\n"
+     "It can be used, for example, when some intermediate data must be\n"
+     "generated or to copy some data.\n"
+     "\n"
+     "Usage:      Set by user.",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
     ("z_field",
      "The field of geometrical altitudes.\n"
      "\n"

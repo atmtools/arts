@@ -73,11 +73,11 @@ bool is_size( ConstTensor7View  x,
 	      const Index&      r,
 	      const Index&      c );
 
-bool is_sorted( ConstVectorView& x );
+bool is_sorted( ConstVectorView   x );
 
-bool is_increasing( ConstVectorView& x );
+bool is_increasing( ConstVectorView   x );
 
-bool is_decreasing( ConstVectorView& x );
+bool is_decreasing( ConstVectorView   x );
 
 
 ////////////////////////////////////////////////////////////////////////////

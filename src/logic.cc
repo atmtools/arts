@@ -200,7 +200,7 @@ bool is_size( ConstTensor7View  x,
   \param   x   A vector.
   \return      True if sorted.
 */
-bool is_sorted( ConstVectorView& x )
+bool is_sorted( ConstVectorView   x )
 {
   if( x.nelem() > 1 )
     {
@@ -220,7 +220,7 @@ bool is_sorted( ConstVectorView& x )
     \return      True if strictly increasing, otherwise false.
     \param   x   A vector.
 */
-bool is_increasing( ConstVectorView& x )
+bool is_increasing( ConstVectorView   x )
 {
   if( x.nelem() > 1 )
     {
@@ -240,7 +240,7 @@ bool is_increasing( ConstVectorView& x )
     \return      True if strictly decreasing, otherwise false.
     \param   x   A vector.
 */
-bool is_decreasing( ConstVectorView& x )
+bool is_decreasing( ConstVectorView   x )
 {
   if( x.nelem() > 1 )
     {

@@ -500,6 +500,38 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("MatrixFillWithVector"),
+	DESCRIPTION
+        (
+         "Forms a matrix by repeating a vector.\n"
+         "\n"
+         "The vector can either form the rows or the columns of the matrix.\n"
+	 "The direction of the vector inside the matrix is selected by\n"
+         "setting the size determined by the vector length to 0. For \n"
+         "example, if the keyword *ncols* is set to 0, the vector will be\n"
+         "put in as rows of the matrix and the number of rows will equal\n"
+         "*nrows*.\n"
+	 "\n"
+	 "One, but only one, keyword argument must be 0.\n"
+         "\n"
+         "Global output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : The vector to be copied. \n"
+         "Keyword: \n"
+         "   nrows : Number of rows in the matrix.\n"
+         "   ncols : Number of columns in the matrix. "
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Vector_ ),
+	KEYWORDS( "nrows", "ncols"   ),
+	TYPES(    Index_t, Index_t )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("MatrixReadXML"),
 	DESCRIPTION(
                     "Reads a matrix from an XML file.\n"
@@ -774,6 +806,38 @@ void define_md_data()
 	GINPUT( String_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor3FillWithVector"),
+	DESCRIPTION
+        (
+         "Forms a tensor of order 3 by repeating a vector.\n"
+         "\n"
+	 "The direction of the vector inside the tensor is selected by\n"
+         "setting the size determined by the vector length to 0. For \n"
+         "example, if the keyword *ncols* is set to 0, the vector will be\n"
+         "put in as rows on every page. The remaining sizes are taken from \n"
+         "the keyword arguments. \n"
+	 "\n"
+	 "One, but only one, keyword argument must be 0.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor3 : The tensor to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : The vector to be copied. \n"
+         "Keyword: \n"
+         "   npages : Number of pages in the tensor.\n"
+         "   nrows  : Number of rows in the tensor.\n"
+         "   ncols  : Number of columns in the tensor. "
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor3_ ),
+	GINPUT( Vector_ ),
+	KEYWORDS( "npages", "nrows", "ncols"   ),
+	TYPES(    Index_t,  Index_t, Index_t )));
 
   md_data.push_back     
     ( MdRecord

@@ -83,8 +83,8 @@ void ppathCalc(
 	  Vector dummy(z_field.npages());
 	  dummy = z_field(Range(joker),row,col);
 	  ostringstream os;
-	  os << "z_field for latitude nr " << row << " and longitude nr " 
-             << col;
+	  os << "z_field (for latitude nr " << row << " and longitude nr " 
+             << col << ")";
 	  chk_if_increasing( os.str(), dummy ); 
 	}
     }
@@ -116,6 +116,21 @@ void ppathCalc(
   chk_if_bool(  "blackbody_ground", blackbody_ground );
   chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid, blackbody_ground, 
 		cloudbox_on, cloudbox_limits );
+
+  // Sensor position and LOS
+  //
+  chk_vector_length( "sensor_pos", sensor_pos, atmosphere_dim );
+  chk_if_over_0( "sensor radius", sensor_pos[0] );
+  if( atmosphere_dim <= 2 )
+    chk_vector_length( "sensor_los", sensor_los, 1 );
+  else
+    {
+      chk_if_in_range( "sensor latitude", sensor_pos[1], -90, 90 );
+      chk_if_in_range( "sensor longitude", sensor_pos[2], -360, 360 );
+      chk_vector_length( "sensor_los", sensor_los, 2 );
+      chk_if_in_range( "sensor azimuth angle", sensor_los[1], -180, 180 );
+    }
+  chk_if_in_range( "sensor_los zenith angle", sensor_los[0], -180, 180 );
   
   //--- End: Check input ------------------------------------------------------
 

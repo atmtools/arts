@@ -189,7 +189,7 @@ void chk_if_in_range(
 */
 void chk_vector_length( 
 	const String&      x_name,
-        ConstVectorView&   x,
+        ConstVectorView    x,
         const Index&       l ) 
 {
   if ( x.nelem() != l )
@@ -221,8 +221,8 @@ void chk_vector_length(
 void chk_vector_length( 
 	const String&      x1_name,
 	const String&      x2_name,
-        ConstVectorView&   x1, 
-        ConstVectorView&   x2 ) 
+        ConstVectorView    x1, 
+        ConstVectorView    x2 ) 
 {
   if ( x1.nelem() != x2.nelem() )
     {
@@ -253,7 +253,7 @@ void chk_vector_length(
 */
 void chk_if_increasing( 
 	const String&      x_name,
-        ConstVectorView&   x ) 
+        ConstVectorView    x ) 
 {
   if ( !is_increasing(x) )
     {
@@ -282,7 +282,7 @@ void chk_if_increasing(
 */
 void chk_if_decreasing( 
 	const String&      x_name,
-        ConstVectorView&   x ) 
+        ConstVectorView    x ) 
 {
   if ( !is_decreasing(x) )
     {
@@ -392,7 +392,7 @@ void chk_atm_field(
       ostringstream os;
       os << "The atmospheric field *" << x_name <<  "* has wrong size.\n"
          << "Expected size is " << npages << " x " << nrows << " x " 
-         << ncols << ",while actual size is " << x.npages() << " x " 
+         << ncols << ", while actual size is " << x.npages() << " x " 
          << x.nrows() << " x " << x.ncols() << ".";
       throw runtime_error( os.str() );
     }
@@ -434,7 +434,7 @@ void chk_atm_surface(
       ostringstream os;
       os << "The atmospheric surface *" << x_name <<  "* has wrong size.\n"
          << "Expected size is " << nrows << " x " << ncols << ","
-         << "while actual size is " << x.nrows() << " x " << x.ncols() << ".";
+         << " while actual size is " << x.nrows() << " x " << x.ncols() << ".";
       throw runtime_error( os.str() );
     }
 }

@@ -114,6 +114,56 @@ void MatrixCopy(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
+   \date   2002-05-11
+*/
+void MatrixFillWithVector(
+        // WS Generic Output:
+              Matrix&   m,
+        // WS Generic Output Names:
+        const String&   m_name,
+        // WS Generic Input:
+        const Vector&   v,
+        // WS Generic Input Names:
+        const String&   v_name,
+        // Control Parameters:
+        const Index&    nrows,
+        const Index&    ncols )
+{
+  if( nrows==0 && ncols==0 )
+    throw runtime_error("0nly one of the keyword arguments can be 0."); 
+
+  const Index nv = v.nelem();
+
+  if( ncols == 0 )
+    {
+      out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
+           << " as rows.\n";
+      out3 << "          nrows : " << nrows << "\n";
+      out3 << "          ncols : " << nv << "\n";
+      m.resize( nrows, nv );
+      for( Index i=0; i<nrows; i++ )
+        m(i,Range(joker)) = v;
+    }
+  else if( nrows == 0 )
+    {
+      out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
+           << " as columns.\n";
+      out3 << "          nrows : " << nv << "\n";
+      out3 << "          ncols : " << ncols << "\n";
+      m.resize( nv, ncols );
+      for( Index i=0; i<ncols; i++ )
+        m(Range(joker),i) = v;
+    }
+  else 
+    throw runtime_error(
+                    "The size argument for either rows or columns must be 0.");
+}
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
    \date   2001-01-17
 */
 void MatrixScale(
@@ -197,6 +247,75 @@ void StringSet(           String&  s,
 
 
 
+void Tensor3FillWithVector(
+        // WS Generic Output:
+              Tensor3&   t,
+        // WS Generic Output Names:
+        const String&   t_name,
+        // WS Generic Input:
+        const Vector&   v,
+        // WS Generic Input Names:
+        const String&   v_name,
+        // Control Parameters:
+        const Index& npages,
+        const Index& nrows,
+        const Index& ncols )
+{
+  if( ( (npages==0) + (nrows==0) + (ncols==0) ) > 1 )
+    throw runtime_error("0nly one of the keyword arguments can be 0."); 
+
+  const Index nv = v.nelem();
+
+  if( ncols == 0 )
+    {
+      out2 << "  Creates the tensor " << t_name << " by putting in " << v_name
+           << "\n  perpendicular to the column dimension.\n";
+      out3 << "          npages : " << npages << "\n";
+      out3 << "          nrows  : " << nrows << "\n";
+      out3 << "          ncols  : " << nv << "\n";
+      t.resize( npages, nrows, nv );
+      for( Index i=0; i<npages; i++ )
+	{
+	  for( Index j=0; j<nrows; j++ )
+	    t(i,j,Range(joker)) = v;
+	}
+    }
+  else if( nrows == 0 )
+    {
+      out2 << "  Creates the tensor " << t_name << " by putting in " << v_name
+           << "\n  perpendicular to the row dimension.\n";
+      out3 << "          npages : " << npages << "\n";
+      out3 << "          nrows  : " << nv << "\n";
+      out3 << "          ncols  : " << ncols << "\n";
+      t.resize( npages, nv, ncols );
+      for( Index i=0; i<npages; i++ )
+	{
+	  for( Index j=0; j<ncols; j++ )
+	    t(i,Range(joker),j) = v;
+	}
+    }
+  else if( npages == 0 )
+    {
+      out2 << "  Creates the tensor " << t_name << " by putting in " << v_name
+           << "\n  perpendicular to the page dimension.\n";
+      out3 << "          npages : " << nv << "\n";
+      out3 << "          nrows  : " << nrows << "\n";
+      out3 << "          ncols  : " << ncols << "\n";
+      t.resize( nv, nrows, ncols );
+      for( Index i=0; i<nrows; i++ )
+	{
+	  for( Index j=0; j<ncols; j++ )
+	    t(Range(joker),i,j) = v;
+	}
+    }
+  else 
+    throw runtime_error(
+             "The size argument for either pages, rows or columns must be 0.");
+  cout << t << "\n";
+}
+
+
+
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
@@ -261,7 +380,7 @@ void VectorLinSpace(      Vector&    x,
                     const Numeric&   step )
 {
   linspace(x,start,stop,step);
-  out2 << "  Creating " << x_name << " as linearly spaced vector\n";
+  out2 << "  Creating " << x_name << " as linearly spaced vector.\n";
   out3 << "         length: " << x.nelem() << "\n";
   out3 << "    first value: " << x[0] << "\n";
   if ( x.nelem() > 1 )
@@ -288,7 +407,7 @@ void VectorNLinSpace(     Vector&    x,
   if ( n<2 ) 
     throw runtime_error("The number of points must be > 1."); 
   nlinspace(x,start,stop,n);
-  out2 << "  Creating " << x_name << " as linearly spaced vector\n";
+  out2 << "  Creating " << x_name << " as linearly spaced vector.\n";
   out3 << "         length: " << n << "\n";
   out3 << "    first value: " << x[0] << "\n";
   if ( x.nelem() > 1 )
@@ -319,7 +438,7 @@ void VectorNLogSpace(       Vector&    x,
 
   x.resize(n);
   x = nlogspace(start,stop,n);
-  out2 << "  Creating " << x_name << " as logarithmically spaced vector\n";
+  out2 << "  Creating " << x_name << " as logarithmically spaced vector.\n";
   out3 << "         length: " << n << "\n";
   out3 << "    first value: " << x[0] << "\n";
   if ( x.nelem() > 1 )
@@ -374,7 +493,7 @@ void VectorSet(           Vector&    x,
 {
   x.resize(n);
   x = value;		
-  out2 << "  Creating " << x_name << " as a constant vector\n"; 
+  out2 << "  Creating " << x_name << " as a constant vector.\n"; 
   out3 << "         length : " << n << "\n";
   out3 << "          value : " << value << "\n";
 }
@@ -397,7 +516,7 @@ void VectorSetTakingLengthFromVector(
   const Index  n = z.nelem();
   x.resize(n);
   x = value;		
-  out2 << "  Creating " << x_name << " as a constant vector\n"; 
+  out2 << "  Creating " << x_name << " as a constant vector.\n"; 
   out3 << "         length : " << n << "\n";
   out3 << "          value : " << value << "\n";
 }

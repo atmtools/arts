@@ -1,3 +1,20 @@
+2002-05-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-79
+
+	* I had by mistake put a & after ConstVectorView in some places.
+	Now fixed.
+
+	* src/workspace.cc: Added two general vector variables vector1 and
+	vector2.
+
+	* src/m_basic_types.cc: Added the WSF MatrixFillWithVector and 
+	Tensor3FillWithVector. Note that the vector can be put in along any
+	dimension (in contrast to the old MatrixFillWithVector).
+
+	* src/m_ppath.cc (ppathCalc): Added input checks for sensor position
+	and los.
+
 2002-05-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-78

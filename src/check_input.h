@@ -67,22 +67,22 @@ void chk_if_in_range(
 
 void chk_vector_length( 
 	const String&      x_name,
-        ConstVectorView&   x,
+        ConstVectorView    x,
         const Index&       l );
 
 void chk_vector_length( 
 	const String&      x1_name,
 	const String&      x2_name,
-        ConstVectorView&   x1, 
-        ConstVectorView&   x2 );
+        ConstVectorView    x1, 
+        ConstVectorView    x2 );
 
 void chk_if_increasing( 
 	const String&      x_name,
-        ConstVectorView&   x );
+        ConstVectorView    x );
 
 void chk_if_decreasing( 
 	const String&      x_name,
-        ConstVectorView&   x );
+        ConstVectorView    x );
 
 void chk_atm_grids( 
 	const Index&      dim,
