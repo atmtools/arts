@@ -1,3 +1,9 @@
+2003-08-21  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-660
+
+	* src/sorting.h: Include algorithm.
+
 2003-08-20  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-659
