@@ -12,7 +12,12 @@ bin_PROGRAMS = arts
 
 # Set libraries:
 #LDADD = -lhdf5 -lz 
+if HDF_SUPPORT
 LDADD = -lmfhdf -ldf -ljpeg -lz
+else
+LDADD = 
+endif
+
 # not needed at the moment: -ljpeg -lnsl -lm
 
 arts_SOURCES = \
