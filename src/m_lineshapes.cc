@@ -57,6 +57,35 @@ void elsLorentz(// WS Output:
     }
 }
 
+//! The Doppler line shape
+/*!
+ See online documentation for details.
+*/
+
+void elsDoppler(// WS Output:
+		Vector&       els,
+                // WS Output:
+                const Numeric& ls_sigma,
+                const Vector& els_f_grid)
+{
+  //PI:
+  extern const Numeric PI;
+
+  Index nf = els_f_grid.nelem();
+
+  // Resize will do nothing if the size is already correct.
+  els.resize(nf);
+
+  Numeric sigma2 = ls_sigma * ls_sigma;
+  Numeric fac = 1.0 / (ls_sigma * sqrt(PI));
+
+  for ( Index i=0; i<nf; ++i )
+    {
+      Numeric deltaf = els_f_grid[i];
+      els[i] =  fac * exp( - deltaf * deltaf / sigma2 );
+    }
+}
+
 void lsWithCutoffAdd(// WS Output:
                      Vector&         ls,
                      Vector&         els,
