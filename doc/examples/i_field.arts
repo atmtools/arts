@@ -167,6 +167,8 @@ AgendaSet( ppath_step_agenda ) { ppath_stepGeometric{} }
 
 AgendaSet( scat_rte_agenda ) { stokes_vecGeneral{} }
 
+AgendaSet( convergence_test_agenda) {convergence_flagAbs{} }
+
 i_fieldIterate{}
 
 

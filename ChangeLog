@@ -1,3 +1,20 @@
+2002-06-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-143
+
+	* src/m_cloudbox.cc (convergence_flagAbs): Added this function. It
+	performs a convergence test checking the maximal absolute
+	difference for all components of the radiation field.
+
+	* src/workspace.cc: Added variables *convergence_flag* and
+	*i_field_dim* (for a 1D atmosphere the radiation field can be 2D
+	or 3D!)
+		
+	* src/methods.cc: Added method *convergence_flagAbs*.
+
+	* src/agendas.cc (convergence_test_agenda): Added the agenda for
+	the convergence test.
+
 2002-06-17  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-142
