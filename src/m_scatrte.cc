@@ -36,7 +36,7 @@
 
 #include <stdexcept>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <cmath>
 #include "arts.h"
 #include "array.h"

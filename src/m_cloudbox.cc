@@ -41,7 +41,7 @@
 
 #include <stdexcept>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include "arts.h"
 #include "array.h"
 #include "auto_md.h"
