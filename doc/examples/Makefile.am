@@ -9,29 +9,34 @@
 
 artsdocdir = $(pkgdatadir)/doc
 
+arts = $(top_srcdir)/src/arts
+
 examplesdocdir = $(artsdocdir)/examples
 
+arts_examples_in = \
+	absorption_example.arts.in \
+	amsu_example.arts.in \
+	batch_example.arts.in \
+	radiosonde_example.arts.in \
+	rt_example.arts.in
+
 arts_examples = \
-	cont.arts \
-	amsu.arts
+	absorption_example.arts \
+	amsu_example.arts \
+	batch_example.arts \
+	radiosonde_example.arts \
+	rt_example.arts
 
-artsdata_examples_in = \
-	auto_example1.arts.in \
-	auto_full.arts.in
-
-artsdata_examples = \
-	auto_example1.arts \
-	auto_full.arts
-
-if ARTS_DATA_PATH
-examplesdoc_DATA = $(arts_examples) $(artsdata_examples)
-else
 examplesdoc_DATA = $(arts_examples)
-endif
 
-EXTRA_DIST   = $(arts_examples) $(artsdata_examples_in)
+EXTRA_DIST   = $(arts_examples_in)
 
-check:	$(top_srcdir)/src/arts $(arts_examples)
-	$(top_srcdir)/src/arts cont.arts
-	$(top_srcdir)/src/arts auto_full.arts
+CLEANFILES = *_example*.aa *_example*.ab *.rep
+
+check:	$(arts) $(arts_examples)
+	$(arts) absorption_example.arts
+	$(arts) amsu_example.arts
+	$(arts) batch_example.arts
+	$(arts) radiosonde_example.arts
+	$(arts) rt_example.arts
 
