@@ -1,5 +1,14 @@
 2003-07-28  Axel von_Engeln  <engeln@uni-bremen.de>
 
+	* arts-1-0-106
+
+	* doc/uguide/absorption.tex: added van Vleck Huber lineshape
+	normalization, and absCalcSaveMemory.
+
+	* doc/uguide/references.bib: van Vleck Huber added.
+
+2003-07-28  Axel von_Engeln  <engeln@uni-bremen.de>
+
 	* arts-1-0-105
 
 	* src/lineshape.cc: minor modifications of last check in.
