@@ -17,7 +17,7 @@
 
 #include "sensor.h"
 //#include <cmath>
-//#include <iostream>
+#include <iostream>
 #include "matpackI.h"
 //#include "array.h"
 //#include "make_array.h"

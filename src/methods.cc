@@ -1527,16 +1527,15 @@ void define_md_data_raw()
          "in *scat_field*.\n"
          "   " 
         ),
-        OUTPUT(i_field_, ppath_step_, stokes_vec_, 
-               sca_vec_, a_planck_value_, l_step_,
-               abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, ext_mat_, abs_vec_,
-               scat_p_index_, scat_za_index_, scat_aa_index_, abs_scalar_gas_),
-        INPUT(spt_calc_agenda_, opt_prop_part_agenda_, opt_prop_gas_agenda_,
-              scalar_gas_absorption_agenda_, ppath_step_agenda_,
-              amp_mat_, scat_field_, cloudbox_limits_,
-              scat_za_grid_, scat_aa_grid_, p_grid_, t_field_, z_field_, 
-              r_geoid_, f_grid_, f_index_, 
-              pnd_field_, stokes_dim_, atmosphere_dim_, part_types_),
+        OUTPUT(i_field_, abs_scalar_gas_, a_pressure_, a_temperature_,
+                a_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
+               scat_p_index_, ppath_step_),
+        INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
+              scalar_gas_absorption_agenda_,
+              vmr_field_, spt_calc_agenda_, scat_za_grid_, 
+              opt_prop_part_agenda_, pnd_field_, opt_prop_gas_agenda_,
+              ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
+              f_grid_, f_index_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3595,6 +3594,37 @@ md_data_raw.push_back
         TYPES(    String_t   ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ybatchMetProfiles" ),
+        DESCRIPTION
+        (
+         "This method is used for simulating ARTS for metoffice model fields"
+         "\n"
+	 "This method loops over *met_profile_basenames* which contains the\n"
+	 "basenames of the metoffice profile files as an ArrayOfString.\n"
+	 "Corresponding to each basename we have temperature field, altitude\n"
+	 "field, humidity field and particle number density field.  The\n"
+	 "temperature field and altitude field are stored in the same dimensions\n"
+	 "as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are\n"
+	 "set to constant values of 0.209 and 0.782, respectively and are used\n"
+	 "along with humidity field to generate *vmr_field_raw*.  \n"
+	 "\n"
+	 "The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are\n"
+	 "given as input to *met_profile_calc_agenda* which is called in this\n"
+	 "method.  See documentation of WSM *met_profile_calc_agenda* for more\n"
+	 "information on this agenda.  \n"
+	 "\n"
+	 ),
+        OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
+		pnd_field_raw_,	pnd_field_, y_),
+        INPUT(gas_species_, part_types_, met_profile_basenames_,
+	      met_profile_calc_agenda_, p_grid_, f_grid_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord

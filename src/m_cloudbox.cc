@@ -1929,3 +1929,132 @@ void CloudboxGetIncoming(// WS Output:
   //
   out3 << "Finished calculation of incoming field on cloudbox boundary.\n";
 }
+
+
+//! The function does a batch calculation for metoffice fields.
+/*!
+  This method is used for simulating ARTS for metoffice model field
+  This method loops over *met_profile_basenames* which contains the
+  basenames of the metoffice profile files as an ArrayOfString.
+  Corresponding to each basename we have temperature field, altitude
+  field, humidity field and particle number density field.  The
+  temperature field and altitude field are stored in the same dimensions
+  as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are
+  set to constant values of 0.209 and 0.782, respectively and are used
+  along with humidity field to generate *vmr_field_raw*.  
+  
+  The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are
+  given as input to *met_profile_calc_agenda* which is called in this
+  method.  See documentation of WSM *met_profile_calc_agenda* for more
+  information on this agenda
+
+\param t_field_raw temperature field
+\param z_field_raw altitude field
+\param vmr_field_raw VMR field
+\param pnd_field_raw particle number density field
+\param pnd_field particle number density field
+\param y spectra
+\param part_types particle types
+\param met_profile_basenames the string containg the basenames of profiles
+\param met_profile_calc_agenda agenda for absorption calculation and RT methods
+\param p_grid pressure grid
+\param f_grid frequency grid
+
+  \author Sreerekha T.R.
+  \date 2003-04-17
+*/
+void ybatchMetProfiles(//Output
+		       Matrix& ybatch,
+		       ArrayOfTensor3& t_field_raw,
+		       ArrayOfTensor3& z_field_raw,
+		       ArrayOfArrayOfTensor3& vmr_field_raw,
+		       ArrayOfArrayOfTensor3& pnd_field_raw,
+		       Tensor4& pnd_field,
+		       Vector& y,
+		       //Input
+		       const ArrayOfArrayOfSpeciesTag& gas_species,
+		       const Vector& part_types,
+		       const ArrayOfString& met_profile_basenames,
+		       const Agenda& met_profile_calc_agenda,
+		       const Vector& p_grid,
+		       const Vector& f_grid )
+{
+  Index no_profiles = met_profile_basenames.nelem();
+  
+  // The humidity data is stored as  an ArrayOfTensor3 whereas
+  // vmr_field_raw is an ArrayOfArrayOfTensor3
+  ArrayOfTensor3 vmr_field_h2o;
+  
+  //We are reading pnd_field which is an ArrayOfArrayOfTensor3. 
+  // But the data is just an ArrayOfTensor3
+  ArrayOfTensor3 pnd_field_here;
+  
+  vmr_field_raw.resize(gas_species.nelem());
+  
+  for (Index i = 0; i < gas_species.nelem(); ++ i)
+    {
+      vmr_field_raw[i].resize(4);
+    }
+
+  pnd_field_raw.resize(part_types.nelem());
+  pnd_field.resize(part_types.nelem(),p_grid.nelem(), 1,1);
+
+  y.resize(f_grid.nelem());
+  ybatch.resize(no_profiles, f_grid.nelem());
+  
+  for (Index i = 0; i < no_profiles; ++ i)
+    {
+      //Reads the t_field_raw from file
+      xml_read_from_file(met_profile_basenames[i] + ".t.xml", t_field_raw);
+
+      //Reads the z_field_raw from file
+      xml_read_from_file(met_profile_basenames[i] + ".z.xml", z_field_raw);
+
+      //Reads the humidity from file - it is only an ArrayofTensor3
+      // The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
+      // array is for species
+      xml_read_from_file(met_profile_basenames[i] + ".H2O.xml", vmr_field_h2o);
+      
+      xml_read_from_file(met_profile_basenames[i] + ".pnd_raw.xml", pnd_field_here);
+
+      // the first element of the species is water vapour.  
+      vmr_field_raw[0] = vmr_field_h2o;
+
+      // the second element of the species.  the first 3 Tensors in the
+      //array are the same .  They are pressure grid, latitude grid and
+      // longitude grid.  The third tensor which is the vmr is set to a 
+      // constant value of 0.782.
+      vmr_field_raw[1][3].resize(vmr_field_raw[0][0].npages(),
+				 vmr_field_raw[0][1].nrows(),
+				 vmr_field_raw[0][2].ncols());
+      vmr_field_raw[1][0] = vmr_field_raw[0][0];
+      vmr_field_raw[1][1] = vmr_field_raw[0][1];
+      vmr_field_raw[1][2] = vmr_field_raw[0][2];
+      vmr_field_raw[1][3](joker, joker, joker) = 0.782;
+
+      // the second element of the species.  the first 3 Tensors in the
+      //array are the same .  They are pressure grid, latitude grid and
+      // longitude grid.  The third tensor which is the vmr is set to a 
+      // constant value of 0.209.
+      vmr_field_raw[2][3].resize(vmr_field_raw[0][0].npages(),
+				 vmr_field_raw[0][1].nrows(),
+				 vmr_field_raw[0][2].ncols());
+      vmr_field_raw[2][0] = vmr_field_raw[0][0];
+      vmr_field_raw[2][1] = vmr_field_raw[0][1];
+      vmr_field_raw[2][2] = vmr_field_raw[0][2];
+      vmr_field_raw[2][3] (joker, joker, joker) = 0.209;
+      
+      //xml_write_to_file(met_profile_basenames[i]+ ".N2.xml", vmr_field_raw[1]);
+      //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);
+
+      pnd_field_raw[0] = pnd_field_here;
+      pnd_field(0, Range(joker),0,0) = pnd_field_raw[0][3](Range(joker), 0,0) ; 
+      
+      // executing the met_profile_calc_agenda
+      met_profile_calc_agenda.execute();
+      
+      //putting in the spectra *y* for each profile
+      ybatch(i, Range(joker)) = y;
+
+    }// closing the loop over profile basenames
+}

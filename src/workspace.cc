@@ -1140,6 +1140,15 @@ void define_wsv_data()
        ),
       GROUP( Agenda_)));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "met_profile_calc_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_)));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "mblock_aa_grid" ),
@@ -2145,6 +2154,22 @@ wsv_data.push_back
        "       optical thickness."
        ),
       GROUP( Vector_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ybatch" ),
+      DESCRIPTION
+      (
+       "Spectra for a batch of metoffice profiles.\n"
+       "The spectra is in the columns of the matrix and the rows\n"
+       "corresponds to the number of profiles.\n"
+       "\n"
+       "Usage: Output from batch methods.\n"
+       "\n"
+       "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
+       "       optical thickness."
+       ),
+      GROUP( Matrix_ )));
 
   wsv_data.push_back
    (WsvRecord

@@ -1,3 +1,22 @@
+2003-04-17  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-525
+	
+	* src/workspace.cc : Added the variable *ybatch* and
+	*met_profile_calc_agenda* 
+
+	* src/agendas.cc : Set up the agenda *met_profile_calc_agenda* 
+
+	* src/methods.cc : Added the method  *ybatchMetProfiles*
+
+	* src/m_cloudbox.cc (ybatchMetProfiles): This method is
+	used for calculating spectra for the profiles from metoffice.  The
+	method does a loop around the profile basenames and executes the
+	agenda *met_profile-calc_agenda* for absorption as well as
+	radiative transfer calculations. It gives ybatch as the output. 
+
+	* src/test_sensor.cc: included iostream.
+
 2003-04-15  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-524

@@ -164,7 +164,34 @@ void define_agenda_data()
         ),
        OUTPUT(),
        INPUT()));
- 
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "met_profile_calc_agenda" ),
+       DESCRIPTION
+       (
+        "This agenda is used for metoffice profile calculations.\n"
+	"\n"
+	"This agenda is called inside the method *ybatchMetProfiles* which is\n"
+	"used to make a batch calculation for the metoffice profiles.   \n"
+	"See the documentation of *ybatchMetProfiles* for more information.\n"
+	"\n"
+	"This agenda can be, for example, set up like this:\n"
+	"\n"
+	"*AtmFieldsCalc*\n"
+	"*gas_abs_lookupAdapt*\n"
+	"*ScatteringInit	*\n"
+	"*CloudboxGetIncoming*\n"
+	"*ScatteringMain*\n"
+	"*RteCalc*\n"
+	"*yNoPolarisation*\n"
+	"\n"
+	"For example, if you want the output in brightness temperature unit,\n"
+	"then add the method *VectorToTbByPlanck*.  \n"
+	"\n"
+        ),
+       OUTPUT( y_ ),
+       INPUT(t_field_raw_, vmr_field_raw_, z_field_raw_)));
 
   agenda_data.push_back
     (AgRecord
