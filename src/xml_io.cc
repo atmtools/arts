@@ -382,7 +382,16 @@ xml_open_output_file (ofstream& file, const String& name)
                   ios::failbit);
 
   // c_str explicitly converts to c String.
-  file.open(name.c_str() );
+  try {
+    file.open(name.c_str() );
+  } catch (ios::failure e) {
+    ostringstream os;
+    os << "Cannot open output file: " << name << '\n'
+      << "Maybe you don't have write access "
+      << "to the directory or the file?";
+    throw runtime_error(os.str());
+  }
+
 
   // See if the file is ok.
   // FIXME: This should not be necessary anymore in the future, when

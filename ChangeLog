@@ -1,3 +1,10 @@
+2004-04-27  Oliver Lemke  <olemke@linux.net>
+
+        * arts-1-1-812
+
+	* src/xml_io.cc (xml_open_output_file): Catch ios::failure to omit
+	core-dump if output file could not be created.
+
 2004-04-16  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
         * arts-1-1-811
