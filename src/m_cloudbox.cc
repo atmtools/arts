@@ -1024,15 +1024,16 @@ void CloudboxGetIncoming(// WS Output:
       Matrix sensor_pos(Nza,atmosphere_dim);
       
       // Get scat_i_p at lower boundary
-      sensor_pos(Range(joker), 0) = r_geoid(0,0)+z_field(cloudbox_limits[0],
+      sensor_pos.resize(1,1);
+      sensor_los.resize(1,1);
+      sensor_pos(0, 0) = r_geoid(0,0)+z_field(cloudbox_limits[0],
                                                          0,0);
-      sensor_los(Range(joker), 0) =  scat_za_grid;
+
+      for (Index scat_za_index = 0; scat_za_index < Nza-1; scat_za_index ++)
+        {
+          sensor_los(0, 0) =  scat_za_grid[scat_za_index];
       
-      a_gp_p.idx = cloudbox_limits[0];
-      a_gp_p.fd[0] = 0;
-      a_gp_p.fd[1] = 1;
-      
-      RteCalc( y_rte, ppath, ppath_step, i_rte, 
+          RteCalc( y_rte, ppath, ppath_step, i_rte, 
                mblock_index, a_pos, a_los, a_gp_p, 
                a_gp_lat, a_gp_lon,
                i_space, ground_emission, ground_los, 
@@ -1045,45 +1046,42 @@ void CloudboxGetIncoming(// WS Output:
                sensor_los, f_grid, stokes_dim, antenna_dim_dummy, 
                mblock_za_grid_dummy, mblock_aa_grid_dummy );
 	  
-      for (Index scat_za_index = 0; scat_za_index < Nza; ++ scat_za_index)
-        {
+     
           scat_i_p( Range(joker), 0, 0,0, 
                     scat_za_index,0,
                     Range(joker)) = i_rte;
           
-	      cout << "i_rte" <<i_rte<< endl;
-	      
-	      
-        }
+          cout << "i_rte lower boundary :" << i_rte <<  endl;
+	        }
 
       // Get scat_i_p at upper boundary
-      sensor_pos(Range(0,Nza),1) = r_geoid(0,0)+z_field(cloudbox_limits[1],
-                                                        0,0);
-      sensor_los(Range(joker), 1) =  scat_za_grid;
+       sensor_pos(0, 0) = r_geoid(0,0)+z_field(cloudbox_limits[1],
+                                               0,0);
+       
+      for (Index scat_za_index = 0; scat_za_index < Nza; ++ scat_za_index)
+        {
+          sensor_los(0, 0) =  scat_za_grid[scat_za_index];
 
-      RteCalc( y_rte, ppath, ppath_step, i_rte, 
-               mblock_index, a_pos, a_los, a_gp_p, 
-               a_gp_lat, a_gp_lon,
-               i_space, ground_emission, ground_los, 
-               ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
-               i_space_agenda, ground_refl_agenda, 
-               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
-               z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
-               scat_i_lat_dummy,
-               scat_i_lon_dummy, scat_za_grid, scat_aa_grid, sensor_pos, 
-               sensor_los, f_grid, stokes_dim, antenna_dim_dummy, 
-               mblock_za_grid_dummy, mblock_aa_grid_dummy );
+          RteCalc( y_rte, ppath, ppath_step, i_rte, 
+                   mblock_index, a_pos, a_los, a_gp_p, 
+                   a_gp_lat, a_gp_lon,
+                   i_space, ground_emission, ground_los, 
+                   ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
+                   i_space_agenda, ground_refl_agenda, 
+                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
+                   z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
+                   scat_i_lat_dummy,
+                   scat_i_lon_dummy, scat_za_grid, scat_aa_grid, sensor_pos, 
+                   sensor_los, f_grid, stokes_dim, antenna_dim_dummy, 
+                   mblock_za_grid_dummy, mblock_aa_grid_dummy );
 	  
-	  for (Index scat_za_index = 0; scat_za_index < Nza; ++ scat_za_index)
-	    {
-	      scat_i_p( Range(joker), 1, 0,0, 
-			scat_za_index,0,
-			Range(joker)) = i_rte;
-	      
-	      cout << "i_rte" <<i_rte<< endl;
-	      
-	      
-	    } 
+          
+          scat_i_p( Range(joker), 1, 0,0, 
+                    scat_za_index,0,
+                    Range(joker)) = i_rte;
+          
+          cout << " i_rte upper boundary " << i_rte << endl;
+        } 
           
     
           scat_i_lat = 0;

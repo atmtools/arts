@@ -1521,7 +1521,7 @@ void ScatteringMain(//WS Output
   i_rte.resize(Nf, Ni);
 
   if( !cloudbox_on )
-    throw runtime_error( "The cloud box is not activated and no outgoing "
+    throw runtime_error( "The cloud box is not activated and no incoming "
 			 "field can be returned." );
   CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
                       i_rte, y_rte, i_space, ground_emission, ground_los, 

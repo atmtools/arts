@@ -258,7 +258,7 @@ void RteCalc(
 	      los[0] += mblock_za_grid[iza];
 	      if( antenna_dim == 2 )
 		{ los[1] += mblock_aa_grid[iaa]; }
-	      cout<<"los and sensor_pos"<<los<<" "<<sensor_pos<<endl;
+	    
 
 	      // Determine propagation path
 	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
@@ -281,8 +281,8 @@ void RteCalc(
 	      rte_agenda.execute();
 	      
 	      // Copy i_rte to ib
-	      ib(Range(nbdone,nf),Range(joker)) = i_rte;
-
+              ib(Range(nbdone,nf),Range(joker)) = i_rte;
+            
 	      // Increase nbdone
 	      nbdone += nf;
 	    }
