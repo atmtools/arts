@@ -148,12 +148,7 @@ SpeciesTag::SpeciesTag(String def)
       for ( Index i=0; i<spr.Isotope().nelem(); ++i )
         ins.push_back( spr.Isotope()[i].Name() );
 
-      // Use the find algorithm from the STL to find the isotope ID. It
-      // returns an iterator, so to get the index we take the
-      // difference to the begin() iterator.
-      misotope = find( ins.begin(),
-                       ins.end(),
-                       isoname ) - ins.begin();
+      misotope = find_first (ins, isoname);
 
       // Check if we found a matching isotope:
       if ( misotope >= ins.nelem() ) 
