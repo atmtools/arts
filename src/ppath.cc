@@ -1964,7 +1964,7 @@ void do_gridcell_3d(
       double   l_acc  = 1e-3;
       double   l_in   = 0, l_out = l_end;
       bool     ready  = false, startup = true;
-      bool     abs_aa = abs( aa_start );
+      double   abs_aa = abs( aa_start );
 
       double   l_tan = 99e6;
       if( za_start > 90 )
@@ -1992,7 +1992,7 @@ void do_gridcell_3d(
             { resolve_lon( lon_end, lon5, lon6 ); }
           
           // Special fixes for west-east observations
-          if( abs( aa_start - 90 ) < ANGTOL )
+          if( abs( abs_aa - 90 ) < ANGTOL )
             {
               if( lat_start == 0 )
                 { lat_end = 0; }
@@ -6128,10 +6128,10 @@ void ppath_calc(
       // Before everything is tested carefully, we consider more than 1000
       // path points to be an indication on that the calcululations have
       // got stuck in an infinite loop.
-      if( istep > 10000 )
+      if( istep > 5000 )
         {
           throw logic_error(
-             "10000 path points have been reached. Is this an infinite loop?" );
+             "5000 path points have been reached. Is this an infinite loop?" );
         }
       
       // Number of points in returned path step

@@ -1,12 +1,25 @@
 2003-02-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-452
+
+	* src/m_cloudbox.cc (CloudboxSetManually): The function now behaves as
+	expected for limits identical to grid values.
+
+	* src/ppath.cc (do_gridcell_3d): Improvement in 1-1-451 for west-east
+	cases was incorrect. In the hurry, the type for abs( aa_start ) was
+	set to bool (instead of double). This turned the fix off, and there
+	was a crash for Numeric=float. It appears that this fix is not needed
+	for double, but I leave it, just in case.
+
+2003-02-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+	
 	* arts-1-1-451
 
 	* src/ppath.cc (ppath_start_stepping): Upward observations along
 	the upper latitude limit is not allowed for 2D. That is, start position
 	inside the atmosphere, za=0, and lat=last(lat_grid).
 
-	(do_gridcell_3d): Test for finding starictly west-east
+	(do_gridcell_3d): Test for finding strictly west-east
 	observations was wrong. Strange that it has not crashed. All old
 	3D results are definitely wrong.  
 

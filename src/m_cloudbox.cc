@@ -166,7 +166,7 @@ void CloudboxSetManually(
     }
   else
     {
-      for( cloudbox_limits[0]=1; p_grid[cloudbox_limits[0]+1]>p1; 
+      for( cloudbox_limits[0]=1; p_grid[cloudbox_limits[0]+1]>=p1; 
                                                      cloudbox_limits[0]++ ) {}
     }
   if( p2 < p_grid[p_grid.nelem()-2] )
@@ -176,25 +176,25 @@ void CloudboxSetManually(
   else
     {
       for( cloudbox_limits[1]=p_grid.nelem()-2; 
-                    p_grid[cloudbox_limits[1]-1]<p2; cloudbox_limits[1]-- ) {}
+                    p_grid[cloudbox_limits[1]-1]<=p2; cloudbox_limits[1]-- ) {}
     }
 
   // Latitude limits
   if( atmosphere_dim >= 2 )
     {
-      for( cloudbox_limits[2]=1; lat_grid[cloudbox_limits[2]+1]<lat1; 
+      for( cloudbox_limits[2]=1; lat_grid[cloudbox_limits[2]+1]<=lat1; 
                                                      cloudbox_limits[2]++ ) {}
       for( cloudbox_limits[3]=lat_grid.nelem()-2; 
-                lat_grid[cloudbox_limits[3]-1]>lat2; cloudbox_limits[3]-- ) {}
+                lat_grid[cloudbox_limits[3]-1]>=lat2; cloudbox_limits[3]-- ) {}
     }
 
   // Longitude limits
   if( atmosphere_dim == 3 )
     {
-      for( cloudbox_limits[4]=1; lon_grid[cloudbox_limits[4]+1]<lon1; 
+      for( cloudbox_limits[4]=1; lon_grid[cloudbox_limits[4]+1]<=lon1; 
                                                      cloudbox_limits[4]++ ) {}
       for( cloudbox_limits[5]=lon_grid.nelem()-2; 
-                lon_grid[cloudbox_limits[5]-1]>lon2; cloudbox_limits[5]-- ) {}
+                lon_grid[cloudbox_limits[5]-1]>=lon2; cloudbox_limits[5]-- ) {}
     }
 }
 

@@ -725,7 +725,7 @@ void rte_calc(
               
               // Copy i_rte to ib
               ib(Range(nbdone,nf),joker) = i_rte;
-            
+
               // Increase nbdone
               nbdone += nf;
             }
