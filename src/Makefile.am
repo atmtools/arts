@@ -102,7 +102,21 @@ noinst_PROGRAMS = \
 	make_auto_wsv_groups_h \
 	make_auto_wsv_h \
 	make_auto_wsv_pointers_cc \
-	test_matpack
+	test_matpack \
+	test_tensor
+
+test_tensor_SOURCES = \
+	array.h \
+	arts.h \
+	make_array.h \
+	make_vector.cc \
+	make_vector.h \
+	matpackI.cc \
+	matpackI.h \
+	matpackIII.h \
+	matpackIV.h \
+	mystring.h \
+	test_tensor.cc
 
 test_matpack_SOURCES = \
 	array.h \
