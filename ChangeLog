@@ -1,10 +1,17 @@
+2003-04-01  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-1-0-71
+
+	* ami/file: included my2arts.m function to convert MYTRAN tag to
+	ARTS tag (it belongs together with read_mytran.m)
+
 2003-03-28  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-1-0-70
 
-	* ami/file: included read_mytran.m and write_mytran.m files, to
-	read and write into a MYTRAN format (these are 'strictly' necessary for
-	spectroscopy study)
+	* ami/file: included read_mytran.m and write_mytran.m MATLAB
+	functions to read and write into a MYTRAN format (these are
+	'strictly' necessary for spectroscopy study)
 
 2003-03-26  Oliver Lemke  <olemke@uni-bremen.de>
 
