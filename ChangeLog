@@ -1,3 +1,11 @@
+2003-03-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-502
+	
+	* src/m_scatrte.cc (i_fieldUpdate3D): Same modification as for the 
+	1D function. I have tested the new *i_fieldUpdate1D* and the result 
+	is improved significantly in Limb direction. 
+
 2003-03-18  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-501
@@ -4100,7 +4108,7 @@
 		
 	* agendas.cc (spt_calc_agenda): MAde this agenda for calculating 
 	the properties for single particle types. Using this agenda it is 
-	easy to do the convergence test, which seems to be very important to 
+/	easy to do the convergence test, which seems to be very important to 
 	make sure, that the model delivers correct results.
 
 	* workspace.cc: Icluded spt_calc_agenda.
