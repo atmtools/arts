@@ -90,13 +90,13 @@
 /** The type to use for all floating point numbers. You should never
     use float or double explicitly, unless you have a very good
     reason. Always use this type instead.  */
-typedef double Numeric;
+typedef NUMERIC Numeric;
 
 //--------------------< Set integer type >--------------------
 /** The type to use for all integer numbers and indices. You should never
     use int, long, or size_t explicitly, unless you have a very good
     reason. Always use this type instead.  */
-typedef long Index;
+typedef INDEX Index;
 
 //--------------------< Set string type >--------------------
 /** The type to use for all strings. This is just to have consistent
