@@ -67,7 +67,7 @@ public:
   //! Assignment operator.
   /*! To override the default assignment operator. AgRecords cannot be
       assigned! */
-  AgRecord operator=(const AgRecord& m){
+  AgRecord operator=(const AgRecord& /* m */){
     cout << "AgRecord cannot be assigned!\n";
     arts_exit ();
     return AgRecord();
