@@ -1,3 +1,19 @@
+2003-07-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-600
+	
+	* Commit of changes made during the Bredbeck workshop.
+
+	* src/Makefile.am: Added missing zeemanproperties.h to source file
+	lists.
+
+	* src/rte.cc (rte_calc): Removed dummy vector passed to
+	chk_if_increasing to avoid copying of z_field.
+
+	* src/matpackII.{h,cc}: FIXMEs added by Stefan.
+
+	* doc/uguide/scattering.tex: Fixed typo.
+
 2003-07-04  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-599
