@@ -1,3 +1,12 @@
+2003-08-07  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-634
+
+	* src/matpackII.cc (transpose): Cast loop variable c of type size_t
+	explicitly to Index in find function. c can never be >MAX(Index)
+	because mrowind and mcolptr are themselves of type Index, so
+	downcasting is ok here.
+
 2003-08-06  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-633
