@@ -1,3 +1,15 @@
+2003-06-24  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-585
+
+	* src/test_zeemanproperties.cc: Major changes - added
+	documentatation, replaced my frequency grid function by the ARTS
+	Vector f_grid, threw away the output files producing part and
+	replaced it by a short string function block.
+
+	* src/test_zeemanproperties.cc: Minor changes - changed units to SI.
+	
+
 2003-06-23  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-584

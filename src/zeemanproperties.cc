@@ -40,8 +40,8 @@ void Zeeman (Vector& f_grid,
   //! Magnitude of Earth's magnetic field along LOS.
   Numeric B_field;
   
-  //! Dummy value for the magnetic field in [µT].
-  B_field = 35;
+  //! Dummy value for the magnetic field in [T].
+  B_field = 35e-9;
 
   //! Angle between the directions of Earth's magnetic field and LOS.    
   Numeric phi;
@@ -54,7 +54,7 @@ void Zeeman (Vector& f_grid,
   Numeric p;
 
   //! Test value for the pressure at 95 km.
-  p = 8.800000e-05;
+  p = 8.800000e-2;
     // 0.0044661608;
 
   //! Temperature in [K].
@@ -283,7 +283,7 @@ void Zeeman (Vector& f_grid,
 
 		//! Center frequency of the of the individual components of the Zeeman split.
 		Numeric f_z;
-		f_z = f_c + 28.03*pow(10.,-6.)*eta*B_field;
+		f_z = f_c + 28.03*1e9*eta*B_field;
 		  f_z_mat(j,k)=f_z;
 		  //cout.precision(10);
 		  //cout << "f_z " << f_z << endl;
@@ -292,12 +292,12 @@ void Zeeman (Vector& f_grid,
 
 		  //! Line strength of the unsplit line.
 		  Numeric S;
-		  S = a1*p*pow(300./T,3)*exp(a2*(1-300./T));
+		  S = a1*(p/1000)*pow(300./T,3)*exp(a2*(1-300./T));
 		  
 		  //! Numeric expressions for both the pressure (agam) and Doppler (gamma) broadening line width.
 		  Numeric theta = 300./T;
-		  agam = 0.01163 * p * pow(theta,0.85);
-		  gamma = 0.633 * pow(10.,-7) * sqrt(T) * f_z;
+		  agam = 0.01163 * p * pow(theta,0.85) * 1e3;
+		  gamma = 0.633 * sqrt(T) * f_z * 1e2;
 		  		  
 		      //! Complex argument of the special line shape (CEF), used in the case of Zeeman splitting.
 		      Complex zeta;

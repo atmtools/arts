@@ -18,99 +18,85 @@
 using namespace std;
 
 int main(void)
-{
-  Tensor3 ext_mat_zee;
-  Matrix abs_vec_zee;
-  Vector f_grid(1000);
-  Matrix N;
-  Matrix xi_mat;
-  Matrix f_z_mat;
-  Numeric N_r;
-  Numeric BN_r;
-  Numeric AN_r;
-  Numeric f_c;
-  Numeric a1;
-  Numeric a2;
+{//Output  
+  Tensor3 ext_mat_zee;   // Tensor3 of the Extinction Matrix for the specified frequency grid. 
+  Matrix abs_vec_zee;    // Matrix of the Absorption Vector for the specified frequency grid.
+  Matrix xi_mat;         // Matrix of the relative intensities of the Zeeman components.
+  Matrix f_z_mat;        // Matrix of the frequencies of the Zeeman components.
+ 
+  //Input
+  Matrix N;          // Matrix variable for the content of the zeeman_intensity_coeff.xml. 
+  Numeric N_r;       // Rotational quantum number indentification of the Zeeman line.
+  Numeric BN_r;      // Number of the split components for a given polarization.
+  Numeric AN_r;      // Maximum value of the magnetic quantum number for a given polarization.
+  Numeric f_c;       // Central frequency of the unsplit line [GHz].
+  Numeric a1;        // Intensity coeficient of of the unsplit line.
+  Numeric a2;        // Intensity coeficient of of the unsplit line.
+
+  //Input & Output
+  Vector f_grid;         // Frequency grid.
 
 
+
+
+
+  // Reading the content of zeeman_intensity_coeff.xml. 
   xml_read_from_file ("zeeman_intensity_coeff.xml", N);
-  for (int i=N.nrows()-9;i<N.nrows()-8;i++)
+  for (Index i=N.nrows()-9;i<N.nrows()-8;i++) // Dummy case through the 5- line.
     {
       N_r = N(i,0); 
       a1 = N(i,2);
       a2 = N(i,3);
-      f_c = N(i,1);
+      f_c = N(i,1)*1e9; // Reding in and converitng the central frequency to SI unit [Hz].
       cout.precision(10);
-      cout << "central frequency = " << f_c << " GHz"<<endl;
+      cout << "central frequency = " << f_c << " Hz"<<endl;
       
+      // Frequency grid range around the central frequency of the unsplit line.
+      Numeric range; 
+      range = 6e-3; // dummy value
+      
+      // Starting point of the frequency grid.
+      Numeric f_start;
+      f_start = f_c - range;
+      
+      // Number of the frequency grid steps.
+      int n_f;
+      n_f = 1000; // dummy value
+      
+      // Size of of the frequency grid step.
+      Numeric f_step;
+      f_step = 2*range/n_f;
+      
+      // Initializing the frequency grid.
+      Vector f_grid(f_start, n_f, f_step);
 
-      for (Index j=0; j<f_grid.nelem(); j++)
-	{ 
-	  f_grid[j]= f_c - 0.006 + (0.012/f_grid.nelem())*Numeric(j); //Numeric(j) - converts j in Numeric 
-	  //f_grid[j]= f_c - 0.002 + 0.0000004*Numeric(j); //Numeric(j) - converts j in Numeric 
-	}
-      
+      // Calling the function defined in zeemanproperties.cc .
       Zeeman(f_grid, ext_mat_zee, abs_vec_zee, xi_mat, f_z_mat, N_r, AN_r, BN_r, f_c, a1, a2);
-      
-      ostringstream os1;
-      ostringstream os2;
-      ostringstream os3;
-      ostringstream os4;
-      ostringstream os5;
-      
-      if (N_r<0)
+ 
+
+      // Defining a base string for the names of the output files.
+      ostringstream os;
+      if (N_r>0)
 	{
-	  os1 << "f_grid" << "_" << abs(N_r) << "-" << "_" << f_grid.nelem() << ".xml";
-	  string namestring1 = os1.str();
-	  xml_write_to_file(namestring1,f_grid);
-	  
-	  
-	  os2 << "ext_mat_zee" << "_" << abs(N_r) << "-" << "_" << f_grid.nelem() << ".xml";
-	  string namestring2 = os2.str();
-	  xml_write_to_file(namestring2,ext_mat_zee);
-	  
-	  os3 << "abs_vec_zee" << "_" << abs(N_r) << "-" << "_" << f_grid.nelem() << ".xml";
-	  string namestring3 = os3.str();
-	  xml_write_to_file(namestring3,abs_vec_zee);
-	  
-	  os4 << "f_z_mat" << "_" << abs(N_r) << "-" << "_" << f_grid.nelem() << ".xml";
-	  string namestring4 = os4.str();
-	  xml_write_to_file(namestring4,f_z_mat);
-	  
-	  os5 << "xi_mat" << "_" << abs(N_r) << "-" << "_" << f_grid.nelem() << ".xml";
-	  string namestring5 = os5.str();
-	  xml_write_to_file(namestring5,xi_mat);
+	  os << abs(N_r) << "+" << "_" << n_f << ".xml"; 
 	}
-      else if (N_r>0)
+      else if (N_r<0)
 	{
-	  os1 << "f_grid" << "_" << abs(N_r) << "+" << "_" << f_grid.nelem() << ".xml";
-	  string namestring1 = os1.str();
-	  xml_write_to_file(namestring1,f_grid);
-	  
-	  
-	  os2 << "ext_mat_zee" << "_" << abs(N_r) << "+" << "_" << f_grid.nelem() << ".xml";
-	  string namestring2 = os2.str();
-	  xml_write_to_file(namestring2,ext_mat_zee);
-	  
-	  os3 << "abs_vec_zee" << "_" << abs(N_r) << "+" << "_" << f_grid.nelem() << ".xml";
-	  string namestring3 = os3.str();
-	  xml_write_to_file(namestring3,abs_vec_zee);
-	  
-	  os4 << "f_z_mat" << "_" << abs(N_r) << "+" <<  "_" << f_grid.nelem() <<".xml";
-	  string namestring4 = os4.str();
-	  xml_write_to_file(namestring4,f_z_mat);
-	  
-	  os5 << "xi_mat" << "_" << abs(N_r) << "+" << "_" << f_grid.nelem() << ".xml";
-	  string namestring5 = os5.str();
-	  xml_write_to_file(namestring5,xi_mat);
+	  os << abs(N_r) << "-" << "_" << n_f << ".xml"; 
 	}
+      string basestring=os.str();
       
+      // Writing out the output files for the respective variables.
+      xml_write_to_file(string("f_grid")+basestring,f_grid);
+      xml_write_to_file(string("ext_mat_zee")+basestring,ext_mat_zee);
+      xml_write_to_file(string("abs_vec_zee")+basestring,abs_vec_zee);
+      xml_write_to_file(string("f_z_mat")+basestring,f_z_mat);
+      xml_write_to_file(string("xi_mat")+basestring,xi_mat);
+
+
+
     }    
-  //  xml_write_to_file("f_grid.xml",f_grid);
-  //    xml_write_to_file("ext_mat_zee.xml", ext_mat_zee);
-  //    xml_write_to_file("abs_vec_zee.xml", abs_vec_zee);
   
-  //    xml_write_to_file("f_z_mat.xml",f_z_mat);
-  //    xml_write_to_file("xi_mat.xml",xi_mat);
   
 }
+ 
