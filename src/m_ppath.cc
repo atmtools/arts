@@ -382,20 +382,25 @@ void ppath_stepGeometric(
 */
 void ppath_stepRefractionEuler(
         // WS Output:
-              Ppath&     ppath_step,
+              Ppath&      ppath_step,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+	      Numeric&    refr_index,
         // WS Input:
-        const Index&     atmosphere_dim,
-        const Vector&    p_grid,
-        const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Tensor3&   z_field,
-        const Tensor3&   t_field,
-        const Matrix&    r_geoid,
-        const Matrix&    z_ground,
+        const Index&      atmosphere_dim,
+        const Vector&     p_grid,
+        const Vector&     lat_grid,
+        const Vector&     lon_grid,
+        const Tensor3&    z_field,
+        const Tensor3&    t_field,
+        const Tensor4&    vmr_field,
+        const Matrix&     r_geoid,
+        const Matrix&     z_ground,
         // Control Parameters:
-        const Numeric&   lraytrace,
-        const Numeric&   lmax,
-        const String&    refrindex )
+        const Numeric&    lraytrace,
+        const Numeric&    lmax,
+        const String&     refrindex )
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we do only asserts. The keywords are checked here,

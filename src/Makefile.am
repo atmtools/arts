@@ -54,6 +54,7 @@ arts_SOURCES = \
 	m_optproperties.cc \
 	m_physics.cc \
 	m_ppath.cc \
+	m_refraction.cc \
 	m_rte.cc \
 	m_scatrte.cc \
 	m_clonesize.cc \

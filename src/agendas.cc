@@ -323,6 +323,20 @@ void define_agenda_data()
              r_geoid_,
              z_ground_ )));
 
+    (AgRecord
+     ( NAME( "refr_index_agenda" ),
+       DESCRIPTION
+       (
+        "Calculate the refractive index.\n"
+        "\n"
+        "This agenda should calculate the summed refractive index for all\n"
+	"relevant constituients. The result is returned in *refr_index*, the\n"
+        "atmospheric state is speciefied by *a_pressure*, *a_temperature* \n"
+	"and *a_vmr_list*."
+        ),
+       OUTPUT( refr_index_ ),
+       INPUT(  a_pressure_, a_temperature_, a_vmr_list_ )));
+
   agenda_data.push_back
     (AgRecord
      ( NAME( "rte_agenda" ),

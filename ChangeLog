@@ -1,3 +1,17 @@
+2003-01-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-374
+
+	* src/agendas.cc: Added the agenda refr_index_agenda.
+
+	* src/workspace.cc: Added the WSV refr_index. 
+
+	* src/m_refraction.cc (refr_indexBoudouris): Added this file and
+	this function.
+
+	* src/m_ppath.cc (ppath_stepRefractionEuler): Added new input 
+	arguments.
+
 2003-01-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-373

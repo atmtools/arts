@@ -2400,9 +2400,10 @@ md_data_raw.push_back
          "   lmax      : Maximum allowed length between path points.\n"
          "   refrindex : \"calc\" or \"interp\". See further above."
         ),
-        OUTPUT( ppath_step_ ),
+        OUTPUT( ppath_step_, a_pressure_, a_temperature_, a_vmr_list_, 
+                refr_index_ ),
         INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               z_field_, t_field_, r_geoid_, z_ground_ ),
+               z_field_, t_field_, vmr_field_, r_geoid_, z_ground_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS( "lraytrace", "lmax",    "refrindex" ),
@@ -2439,6 +2440,24 @@ md_data_raw.push_back
         TYPES(    String_t   ),
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("refr_indexBoudouris"),
+        DESCRIPTION
+        (
+         "Calculates the refractive index using the parameterization\n"
+	 "by Boudouris 1963. \n"
+	 "\n"
+	 "The parameter values are taken Section 5.1.1 of the Janssen book. \n"
+	 "The Z parameters are set to 1. "
+        ),
+        OUTPUT( refr_index_ ),
+        INPUT( a_pressure_, a_temperature_, a_vmr_list_, gas_species_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord

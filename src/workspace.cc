@@ -1455,6 +1455,32 @@ void define_wsv_data()
       GROUP( Agenda_ )));
 
   wsv_data.push_back
+    (WsvRecord
+    ( NAME( "refr_index" ),
+      DESCRIPTION
+      (
+       "The total refractive index at some point in the atmosphere.\n"
+       "\n"
+       "This variable contains the refractive index summed over all relevant\n"
+       "constituents, at one position in the atmosphere. The standard set of\n"
+       "functions assumes that all frequency components propagate along the\n"
+       "same path. That is, dispersion is neglected and this variable has\n"
+       "frequency dimension.\n"
+       "\n"
+       "Unit: 1"
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "refr_index_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "rte_agenda" ),
       DESCRIPTION
