@@ -1,3 +1,10 @@
+2002-10-31  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-272
+	
+	* src/scatproperties.cc (amp2abs): Fixed a bug here for
+	calculating the absorption vector for 2nd,3rd and 4th components.
+	
 2002-10-22  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-271
@@ -6,7 +13,8 @@
 	these new lineshapes, the Voigt-Kuntz approximation with relative
 	accuracy better than 2*10^-6 and the Voigt-Drayson one.
 
-	* src/methods.cc: Added the respective descriptions for these lineshapes.
+	* src/methods.cc: Added the respective descriptions for these 
+	lineshapes.
 	
 2002-10-22  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
