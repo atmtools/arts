@@ -64,7 +64,7 @@
 
 	* src/montecarlo.cc, src/montecarlo.h (Sample_los): added a new
 	probability density function from which to sample the line of sight,
-	there are now 2 g = 0.5sin(1-cos), and g = 0.5sin.  The new argument
+	there are now 2: g = 0.5sin(1-cos), and g = 0.5sin.  The new argument
 	los_sampling_method chooses between the two.
 
 2003-07-30  Cory Davis <cory@met.ed.ac.uk>
