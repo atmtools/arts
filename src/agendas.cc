@@ -240,9 +240,26 @@ void define_agenda_data()
         "The agenda controlling the calculation of the Jacobian matrix.\n"
         "This agenda is not supposed to be set by the user, it should be\n"
         "automatically be constructed when defining the jacobian quantities.\n"
+        "\n"
+        "Usage:   Called from *jacobianCalc*."
        ),
        OUTPUT( jacobian_ ),
        INPUT( jacobian_quantities_ ))),
+       
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "jacobian_particle_update_agenda" ),
+       DESCRIPTION
+       (
+        "The agenda controlling the update of the scattered field due to\n"
+        "changes in *pnd_field* when calculating the particle Jacobian.\n"
+        "The agenda has to be specified by the user, and should contain\n"
+        "the calculations needed before a call to RteCalc.\n"
+        "\n"
+        "Usage:   Called from *jacobianCalcParticle*."
+       ),
+       OUTPUT( ),
+       INPUT( ))),
        
   agenda_data.push_back
     (AgRecord

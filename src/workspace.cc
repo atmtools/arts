@@ -993,15 +993,34 @@ wsv_data.push_back
     ( NAME( "jacobian" ),
       DESCRIPTION
       (
-       "Jacobian matrix.\n"
+       "The Jacobian matrix.\n"
        "\n"
-       "FIXME: Add text, Usage, Dimension ..."
+        "The matrix holding the Jacobians of the retrieval quantities. Each\n"
+        "quantity, and its subdivision into atmospheric grids, are stored as\n"
+        "columns in the matrix. The matrix has to be initialised before the\n"
+        "quantities can be defined. Initialisation WSM is *jacobianInit*.\n"
+        "Retrieval quantities are then added with *jacobianAdd...* methods.\n"
+        "See the online help. The calculation is controlled by an agenda, and\n"
+        "is performed by *jacobianCalc*.\n"
+        "\n"
+        "Units:   See the different retrieval quantities.\n"
+        "\n"
+        "Dimension:      [ y, number of retrieval quantities and grids ]\n"
       ),
       GROUP( Sparse_ )));
 
  wsv_data.push_back
    (WsvRecord
     ( NAME( "jacobian_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobian_particle_update_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc."
@@ -1716,7 +1735,6 @@ wsv_data.push_back
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
-       "\n"
        "\n"
        "Usage:      Set by the user.\n"
        "\n"

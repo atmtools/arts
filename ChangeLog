@@ -1,3 +1,39 @@
+2005-03-07  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-928
+
+	* src/agendas.cc: Added *jacobian_paarticle_update_agenda* which
+	is used to update the scattered field when the particle number
+	density field is perturbed during the calculation of the Jacobian.
+	The agenda has to be specified by the user, and should for DOIT
+	at least contain a call to ScatteringMain.
+
+	* src/jacobian.[cc,h]: In get_perturbation_grid added flag for
+	when dealing with pressure grid. Also fixed problems with
+	finding the perturbation limits.
+
+	* src/m_absorption.cc: Added WSM *gas_speciesAdd* that appends
+	species to the end of *gas_species*. Can be used together
+	with jacobianAddGas when you want the retrieval species first
+	in the list.
+
+	* src/m_jacobian.cc: Rewritten the particle part. Now the 
+	particle jacobian is calculated using a predefined pertrubation
+	field *pnd_field_perturb*, that has the same setup as *pnd_field*
+	apart from having an extra dimension. The jacobian is calculated
+	by iterating through all retrieval grid points and applying the
+	the perturbation from *pnd_field_perturb* at that point. Note that
+	the jacobian is only calculated for retrieval points inside or just
+	outside the cloudbox, since no particles are allowed outside the 
+	cloudbox.
+	Also moved some stuff around for the pointing offset jacobian.
+
+	* src/methods.cc: Added entry for *gas_speciesAdd*, and rewritten
+	some of the jacobian online help texts.
+
+	* src/workspace.cc: Added text to *jacobian* and added the 
+	agenda *jacobian_particle_update_agenda*.
+
 2005-03-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-927

@@ -25,6 +25,7 @@
 
 #include "arts.h"
 #include "jacobian.h"
+#include "special_interp.h"
 
 ostream& operator << (ostream& os, const RetrievalQuantity& ot)
 {
@@ -176,11 +177,15 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
    The function returns false if the atmospheric grid does not cover the
    retrieval grid. If everything is fine, it returns true.
    
-   \param pert      The perturbation grid.
-   \param gp        Array of GridPos for interpolation.
-   \param atm_grid  Atmospheric grid.
-   \param jac_grid  Retrieval grid.
-   \return          Boolean for check failure.
+   If the atmospheric grid is a pressure grid, interpolation is made
+   in logarithm of the atmospheric grid.
+   
+   \param pert        The perturbation grid.
+   \param gp          Array of GridPos for interpolation.
+   \param atm_grid    Atmospheric grid.
+   \param jac_grid    Retrieval grid.
+   \param is_pressure True for pressure grid 
+   \return            Boolean for check failure.
    
    \author Mattias Ekström
    \date   2004-10-14
@@ -188,7 +193,8 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
 bool get_perturbation_grid(       Vector&         pert,
                                   ArrayOfGridPos& gp,
                             const Vector&         atm_grid,
-                            const Vector&         jac_grid)
+                            const Vector&         jac_grid,
+                            const bool&           is_pressure)
 {
   Index nj = jac_grid.nelem();
   Index na = atm_grid.nelem();
@@ -214,8 +220,14 @@ bool get_perturbation_grid(       Vector&         pert,
   pert[Range(1,nj)] = jac_grid;
   pert[nj+1] = atm_grid[na-1]+ext;
   gp.resize(na);
-  gridpos( gp, pert, atm_grid);
-
+  if( is_pressure ){
+    p2gridpos( gp, pert, atm_grid);
+  }
+  else
+  { 
+    gridpos( gp, pert, atm_grid);
+  }
+    
   return true;
 }
 
@@ -250,7 +262,7 @@ void get_perturbation_limit(       ArrayOfIndex& limit,
                              const Vector&       atm_limit)
 {
   limit.resize(2);
-  Index np = pert_grid.nelem()-1;
+//   Index np = pert_grid.nelem()-1;
   Index na = atm_limit.nelem()-1;
   
   // If the field is ordered in decreasing order set the
@@ -260,21 +272,24 @@ void get_perturbation_limit(       ArrayOfIndex& limit,
     inc = -1;
 
   // Check that the pert_grid is encompassing atm_limit
-  assert( inc*pert_grid[0] < inc*atm_limit[0] &&
-          inc*pert_grid[np] > inc*atm_limit[na]);
+//   assert( inc*pert_grid[0] < inc*atm_limit[0] &&
+//           inc*pert_grid[np] > inc*atm_limit[na]);
       
-  // Find first limit, check if following value is within box
+  // Find first limit, check if following value is above lower limit
   limit[0]=0;
-  while (inc*pert_grid[limit[0]+1] < inc*atm_limit[0])
+  while (inc*pert_grid[limit[0]+1] < inc*atm_limit[0]) 
+  {
     limit[0]++;
+  }
   
-  // Find last limit, check if previous value is within box
+  // Find last limit, check if previous value is below upper limit
   limit[1]=pert_grid.nelem();
   while (inc*pert_grid[limit[1]-1] > inc*atm_limit[na]) 
+  {
     limit[1]--;
-  
+  }
   // Check that the limits are ok
-  assert(inc*limit[1]>inc*limit[0]);
+  assert(limit[1]>limit[0]);
   
 }
                              

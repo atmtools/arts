@@ -227,13 +227,11 @@ void jacobianAddParticle(// WS Output:
     throw runtime_error(os.str());
   }
   
-  // Check that pnd_perturb is consistent with pnd_field, here we want to
-  // compare the 2nd dimension of the perturbed field with the 1st in the 
-  // particle field, the 3rd with the 2nd and so on.
-  if ( pnd_perturb.nrows()!=pnd_field.ncols() ||
-       pnd_perturb.npages()!=pnd_field.nrows() ||
-       pnd_perturb.nbooks()!=pnd_field.npages() ||
-       pnd_perturb.nshelves()!=pnd_field.nbooks() )
+  // Check that pnd_perturb is consistent with pnd_field
+  if ( pnd_perturb.nbooks()!=pnd_field.nbooks() ||
+       pnd_perturb.npages()!=pnd_field.npages() ||
+       pnd_perturb.nrows()!=pnd_field.nrows() ||
+       pnd_perturb.ncols()!=pnd_field.ncols() )
   {
     ostringstream os;
     os << "The perturbation field *pnd_field_perturb* is not consistent with\n"
@@ -309,6 +307,7 @@ void jacobianAddPointing(// WS Output:
                          // WS Input:
                          const Sparse&              jac,
                          const Matrix&              sensor_pos,
+                         const Vector&              sensor_time,
                          // Control Parameters:
                          const Numeric&             dza,
                          const String&              unit,
@@ -352,6 +351,15 @@ void jacobianAddPointing(// WS Output:
          << "*jacobian_quantities*.";
       throw runtime_error(os.str());
     }
+  }
+
+  // Check that sensor_time is consistent with sensor_pos
+  if (sensor_time.nelem()!=sensor_pos.nrows())
+  {
+    ostringstream os;
+    os << "The WSV *sensor_time* must be defined for every "
+       << "measurement block.\n";
+    throw runtime_error(os.str());
   }
 
   // Create the new retrieval quantity
@@ -649,7 +657,7 @@ void jacobianCalcGas(
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
-  if (!get_perturbation_grid( p_pert,p_gp,p_grid,jg[0]))
+  if (!get_perturbation_grid( p_pert,p_gp,p_grid,jg[0], true))
   {
     ostringstream os;
     os << "The atmospheric pressure grid *p_grid* is not defined "
@@ -661,7 +669,7 @@ void jacobianCalcGas(
   if (atmosphere_dim>=2) 
   {
     j_lat = jg[1].nelem();
-    if (!get_perturbation_grid( lat_pert, lat_gp, lat_grid, jg[1]))
+    if (!get_perturbation_grid( lat_pert, lat_gp, lat_grid, jg[1], false))
     {
       ostringstream os;
       os << "The atmospheric latitude grid *lat_grid* is not defined "
@@ -673,7 +681,7 @@ void jacobianCalcGas(
     if (atmosphere_dim==3) 
     {
       j_lon = jg[2].nelem();
-      if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2]))
+      if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2], false))
       {
         ostringstream os;
         os << "The atmospheric latitude grid *lon_grid* is not defined "
@@ -818,6 +826,7 @@ void jacobianCalcParticle(
      // WS Input:
      const ArrayOfRetrievalQuantity& jq,
      const Tensor5&                  pnd_field_perturb,
+     const Agenda&                   jacobian_particle_update_agenda,
      const Agenda&                   ppath_step_agenda,
      const Agenda&                   rte_agenda,
      const Agenda&                   iy_space_agenda,
@@ -845,7 +854,6 @@ void jacobianCalcParticle(
   Index n_jq = jq.nelem();
   RetrievalQuantity rq;
   Index it;
-  Numeric pert_size;
   
   // Find the retrieval quantity related to this method, i.e. Particles - all.
   // This works since the combined MainTag and Subtag is individual.
@@ -880,7 +888,7 @@ void jacobianCalcParticle(
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
-  if (!get_perturbation_grid( p_pert,p_gp,p_grid,jg[0]))
+  if (!get_perturbation_grid( p_pert,p_gp,p_grid,jg[0], true))
   {
     ostringstream os;
     os << "The atmospheric pressure grid *p_grid* is not defined "
@@ -888,12 +896,12 @@ void jacobianCalcParticle(
        << "quantity " << rq;
     throw runtime_error(os.str());
   }
-  get_perturbation_limit( p_lim, p_pert, p_grid[Range(cloudbox_limits[0],
+  get_perturbation_limit( p_lim, jg[0], p_grid[Range(cloudbox_limits[0],
     cloudbox_limits[1]-cloudbox_limits[0]+1)]);
   if (atmosphere_dim==3) 
   {
     j_lat = jg[1].nelem();
-    if (!get_perturbation_grid( lat_pert, lat_gp, lat_grid, jg[1]))
+    if (!get_perturbation_grid( lat_pert, lat_gp, lat_grid, jg[1], false))
     {
       ostringstream os;
       os << "The atmospheric latitude grid *lat_grid* is not defined "
@@ -901,18 +909,18 @@ void jacobianCalcParticle(
          << "quantity " << rq;
       throw runtime_error(os.str());
     }
-    get_perturbation_limit( lat_lim, lat_pert, lat_grid[
+    get_perturbation_limit( lat_lim, jg[1], lat_grid[
       Range(cloudbox_limits[2], cloudbox_limits[3]-cloudbox_limits[2]+1)]);
     
     j_lon = jg[2].nelem();
-    if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2]))
+    if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2], false))
     {
       ostringstream os;
       os << "The atmospheric latitude grid *lon_grid* is not defined "
          << "for all gridpoints \nin the retrieval latitude grid for "
          << "quantity " << rq;
       throw runtime_error(os.str());
-    get_perturbation_limit( lon_lim, lon_pert, lon_grid[
+    get_perturbation_limit( lon_lim, jg[2], lon_grid[
       Range(cloudbox_limits[4], cloudbox_limits[5]-cloudbox_limits[4]+1)]);
     }
   }
@@ -921,14 +929,14 @@ void jacobianCalcParticle(
   out2 << "  Calculating retrieval quantity " << rq << "\n";
   
   // Store the reference spectrum and particle field
-  Vector y_ref = y, y_pert;
-  Tensor4 pnd_pert, pnd_ref = pnd_field;
+  Vector y_ref = y;
+  Tensor4 pnd_pert, base_pert = pnd_field, pnd_ref = pnd_field;
 
   // Loop through the retrieval grid and calculate perturbation effect
-  for (Index scen_it=0; scen_it<jg[atmosphere_dim+1].nelem(); scen_it++)
+  for (Index scen_it=0; scen_it<jg[atmosphere_dim].nelem(); scen_it++)
   {
     // Update the perturbation field
-    pnd_pert = pnd_field_perturb(scen_it, joker, joker, joker, joker);
+//     pnd_pert = pnd_field_perturb(scen_it, joker, joker, joker, joker);
     
     for (Index p_it=0; p_it<j_p; p_it++)
     {
@@ -936,6 +944,11 @@ void jacobianCalcParticle(
       {
         for (Index lon_it=0; lon_it<j_lon; lon_it++)
         {
+          // Update the perturbation field
+          pnd_pert = pnd_field_perturb(scen_it, joker, joker, joker, joker);
+          
+          out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
+               << j_p*j_lat*j_lon*jg[atmosphere_dim].nelem()+ji[0] << "\n";
           // Check if retrieval point is inside the box
           if ( p_it>=p_lim[0] && p_it<=p_lim[1] &&
                lat_it>=lat_lim[0] && lat_it<=lat_lim[1] &&
@@ -953,7 +966,10 @@ void jacobianCalcParticle(
               get_perturbation_range( lat_range, lat_it, j_lat);
               get_perturbation_range( lon_range, lon_it, j_lon);
             }
-                              
+                          
+            // Make empty copy of pnd_pert for base functions
+            base_pert *= 0;
+            
             // Calculate the perturbed field according to atmosphere_dim
             switch (atmosphere_dim)
             {
@@ -963,8 +979,8 @@ void jacobianCalcParticle(
                 {
                   // Here we perturb the pnd_pert vector, for each particle type
                   // with relative perturbation of size 1
-                  perturbation_field_1d( pnd_pert(typ_it,joker,lat_it,lon_it), 
-                    p_gp, p_pert, p_range, 1.0, 0);
+                  perturbation_field_1d( base_pert(typ_it,joker,lat_it,lon_it), 
+                    p_gp, p_pert, p_range, 1.0, 1);
                 }
                 break;
               }
@@ -973,29 +989,22 @@ void jacobianCalcParticle(
                 for (Index typ_it=0; typ_it<pnd_field.nrows(); typ_it++)
                 {
                   // Here we need to perturb a tensor3
-                  perturbation_field_3d( pnd_pert(typ_it,joker,joker,joker), 
+                  perturbation_field_3d( base_pert(typ_it,joker,joker,joker), 
                     p_gp, lat_gp, lon_gp, p_pert, lat_pert, lon_pert, p_range, 
-                    lat_range, lon_range, 1.0, 0);
+                    lat_range, lon_range, 1.0, 1);
                 }
                 break;
               }
             }
           
             // Now add the weighted perturbation field to the reference field
-            // FIXME: The call to the scattering agenda goes here, it should 
-            // use pnd_ref as pnd_field. Agenda: scat_precalc_agenda
-            pnd_ref += pnd_pert;
-            
-            // Calculate the size of the perturbation
-            // FIXME: How? Sum all the elements of pnd_pert? Needs loop over all 
-            // dimensions.
-            pert_size = 1.0;
-            //pert_size = pnd_pert.sum();
+            // and recalculate the scattered field
+            pnd_pert *= base_pert;
+            pnd_field += pnd_pert;
+            jacobian_particle_update_agenda.execute();
             
             // Calculate the perturbed spectrum  
-            out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
-                 << j_p*j_lat*j_lon+ji[0] << "\n";
-            RteCalc( y_pert, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat,
+            RteCalc( y, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat,
                      rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
                      iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                      atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
@@ -1003,14 +1012,15 @@ void jacobianCalcParticle(
                      sensor_response, sensor_pos, sensor_los, f_grid, 
                      stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
     
-            // Add dy/dx as column in jacobian
+            // Add dy as column in jacobian. Note that we just return the
+            // difference between the two spectra.
             for (Index y_it=0; y_it<y_ref.nelem(); y_it++)
             {
-              jacobian.rw(y_it,it) = (y_pert[y_it]-y_ref[y_it])/pert_size;
+              jacobian.rw(y_it,it) = y[y_it]-y_ref[y_it];
             }
             
             // Restore the reference pnd_field
-            pnd_ref = pnd_field;
+            pnd_field = pnd_ref;
           }
           it++;
         }
@@ -1076,13 +1086,7 @@ void jacobianCalcPointing(
   bool gitter = false;
   
   // Check that sensor_time is consistent with sensor_pos
-  if (sensor_time.nelem()!=sensor_pos.nrows())
-  {
-    ostringstream os;
-    os << "The WSV *sensor_time* must be defined for every "
-       << "measurement block.\n";
-    throw runtime_error(os.str());
-  }
+  assert(sensor_time.nelem()==sensor_pos.nrows());
 
   // Find the retrieval quantity related to this method, i.e. Pointing
   // za offset. This works since the combined MainTag and Subtag is individual.
@@ -1297,7 +1301,7 @@ void jacobianCalcTemperature(
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
-  if (!get_perturbation_grid( p_pert,p_gp,p_grid,jg[0]))
+  if (!get_perturbation_grid( p_pert,p_gp,p_grid,jg[0], true))
   {
     ostringstream os;
     os << "The atmospheric pressure grid *p_grid* is not defined "
@@ -1309,7 +1313,7 @@ void jacobianCalcTemperature(
   if (atmosphere_dim>=2) 
   {
     j_lat = jg[1].nelem();
-    if (!get_perturbation_grid( lat_pert, lat_gp, lat_grid, jg[1]))
+    if (!get_perturbation_grid( lat_pert, lat_gp, lat_grid, jg[1], false))
     {
       ostringstream os;
       os << "The atmospheric latitude grid *lat_grid* is not defined "
@@ -1321,7 +1325,7 @@ void jacobianCalcTemperature(
     if (atmosphere_dim==3) 
     {
       j_lon = jg[2].nelem();
-      if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2]))
+      if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2],false))
       {
         ostringstream os;
         os << "The atmospheric latitude grid *lat_grid* is not defined "

@@ -28,6 +28,42 @@ void gas_abs_lookupInit(GasAbsLookup& /* x */)
   out2 << "  Created an empty gas absorption lookup table.\n";
 }
 
+void gas_speciesAdd(// WS Output:
+                    ArrayOfArrayOfSpeciesTag& gas_species,
+                    // Control Parameters:
+                    const ArrayOfString& names)
+{
+//   gas_species.resize(names.nelem());
+
+  //cout << "Names: " << names << "\n";
+  
+  // Size of initial array
+  Index n_gs = gas_species.nelem();
+  
+  // Temporary ArrayOfSpeciesTag
+  ArrayOfSpeciesTag temp;
+    
+  // Each element of the array of Strings names defines one tag
+  // group. Let's work through them one by one.
+  for ( Index i=0; i<names.nelem(); ++i )
+    {
+      array_species_tag_from_string( temp, names[i] );  
+      gas_species.push_back(temp);
+    }
+
+  // Print list of tag groups to the most verbose output stream:
+  out3 << "  Added tag groups:";
+  for ( Index i=n_gs; i<gas_species.nelem(); ++i )
+    {
+      out3 << "\n  " << i << ":";
+      for ( Index s=0; s<gas_species[i].nelem(); ++s )
+        {
+          out3 << " " << gas_species[i][s].Name();
+        }
+    }
+  out3 << '\n';
+}
+
 void gas_speciesSet(// WS Output:
                     ArrayOfArrayOfSpeciesTag& gas_species,
                     // Control Parameters:

@@ -1620,6 +1620,32 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("gas_speciesAdd"),
+        DESCRIPTION
+        (
+         "Adds species tag groups to the list of gas species.\n"
+         "\n"
+         "This WSM is similar to *gas_speciesSet*, the only difference is that\n"
+         "this method appends species to an existing list of gas species instead\n"
+         "of creating the whole list.\n"
+         "\n"
+         "See *gas_speciesSet* for details on how tags are defined and examples of\n"
+         "how to input them in the control file.\n"
+         "\n"
+         "Keywords:\n"
+         "   species : Specify one String for each tag group that you want to\n"
+         "             add. Inside the String, separate the tags by commas\n"
+         "             (plus optional blanks).\n"
+         ),
+        OUTPUT( gas_species_ ),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "species" ),
+        TYPES(    Array_String_t   )));
+ 
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("gas_speciesSet"),
         DESCRIPTION
         (
@@ -2090,7 +2116,13 @@ void define_md_data_raw()
          "\n"
          "For 1D or 2D calculations the latitude and/or longitude grid of\n"
          "the retrieval field should be set to zero length.\n"
-         "\n" 
+         "\n"
+         "The perturbation can either be given as a relative or absolute\n"
+         "perturbation, e.g. setting \"method\" to \"rel\" and \"size\" to\n"
+         "0.01 gives a 1% perturbation of the VMR field at the retrieval\n"
+         "grid points. \n"
+         "The unit of the Jacobian is the unit of *y* per VMR.\n"
+         "\n"
          "NOTE: Only \"perturbation\" method implemented.\n"
          "\n"
          "Generic input:\n"
@@ -2122,6 +2154,12 @@ void define_md_data_raw()
          "of *pnd_field_perturb* to *pnd_field*. Only 3D atmosphere can be\n"
          "handled by this method.\n"
          "\n"
+         "The perturbation field and the unit of it are defined outside ARTS.\n"
+         "This method only returns the difference between the reference and\n"
+         "perturbed spectra. The division by the size of the perturbation\n"
+         "also has to be done outside ARTS.\n"
+         "The unit of the particle jacobian is the same as for *y*.\n"
+         "\n"
          "Generic input:\n"
          "  Vector : The pressure grid of the retrieval field.\n"
          "  Vector : The latitude grid of the retrieval field.\n"
@@ -2142,12 +2180,20 @@ void define_md_data_raw()
          "Add a pointing as a retrieval quantity to the Jacobian.\n"
          "\n"
          "This function adds a pointing offset described over time by a\n"
-         "polynomial. The WSM *jacobianCalcPointing is automatically added\n"
-         "to *jacobian_agenda*.\n"
+         "polynomial or a gitter. By setting the polynomial order to -1,\n"
+         "each spectra is treated separately. The WSV *sensor_time* is\n"
+         "used to assign a timestamp for each sensor position.\n"
+         "\n"
+         "The WSM *jacobianCalcPointing is automatically added to\n"
+         "*jacobian_agenda*.\n"
+         "\n"
+         "The perturbation can either be given as an absolute or a relative\n"
+         "perturbation, this perturbation is then applied to the sensor\n"
+         "line-of-sight angles.\n"
+         "\n"
+         "The unit of the Jacobian is the unit of *y* per degree.\n"
          "\n"
          "NOTE: So far this function only treats zenith angle offsets.\n"
-         "NOTE 2: Only constant offsets, i.e. zero order polynomials are\n"
-         "implemented.\n"
          "\n"
          "Keywords:\n"
          "  dza                 : The size of the perturbation.\n"
@@ -2155,7 +2201,7 @@ void define_md_data_raw()
          "  poly_order          : Order of the polynomial."
         ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
-        INPUT( jacobian_, sensor_pos_ ),
+        INPUT( jacobian_, sensor_pos_, sensor_time_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS( "dza", "unit", "poly_order" ),
@@ -2173,6 +2219,13 @@ void define_md_data_raw()
          "The WSM *jacobianCalcTemperature* is automatically added to\n"
          "*jacobian_agenda*.\n"
          "\n" 
+         "The perturbation can either be given as an absolute or a relative\n"
+         "perturbation, this perturbation is then applied to the temperature\n"
+         "field at each retrieval grid point.\n"
+         "\n"
+         "\n"
+         "Unit of the Jacobian is the unit of *y* per Kelvin.\n"
+         "\n"
          "NOTE: So far hydrostatic equilibrium is not considered and only\n"
          "\"perturbation\" method implemented.\n"
          "\n"
@@ -2244,7 +2297,8 @@ void define_md_data_raw()
         ),
         OUTPUT( jacobian_, pnd_field_, y_, ppath_, ppath_step_, iy_, rte_pos_,
                 rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
-        INPUT( jacobian_quantities_, pnd_field_perturb_,
+        INPUT( jacobian_quantities_, pnd_field_perturb_, 
+               jacobian_particle_update_agenda_,
                ppath_step_agenda_, rte_agenda_, iy_space_agenda_, 
                iy_surface_agenda_, iy_cloudbox_agenda_, atmosphere_dim_, 
                p_grid_, lat_grid_, lon_grid_, z_field_, r_geoid_, 

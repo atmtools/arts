@@ -147,7 +147,8 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
 bool get_perturbation_grid(      Vector&         pert,
                                  ArrayOfGridPos& gp,
                            const Vector&         atm_grid,
-                           const Vector&         jac_grid);
+                           const Vector&         jac_grid,
+                           const bool&           is_pressure);
 
 void get_perturbation_limit(       ArrayOfIndex& limit,
                              const Vector&       pert_grid,
