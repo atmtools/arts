@@ -133,6 +133,7 @@ make_auto_wsv_h_SOURCES = \
 	groups.cc \
 	los.h \
 	make_auto_wsv_h.cc \
+	matpackI.h \
 	messages.cc \
 	version.cc \
 	workspace.cc \
@@ -146,6 +147,7 @@ make_auto_wsv_pointers_cc_SOURCES = \
 	file.h \
 	groups.cc \
 	make_auto_wsv_pointers_cc.cc \
+	matpackI.h \
 	messages.cc \
 	version.cc \
 	workspace.cc \
@@ -163,6 +165,8 @@ make_auto_md_h_SOURCES = \
 	los.h \
 	make_array.h \
 	make_auto_md_h.cc \
+	matpackI.h \
+	matpackIII.h \
 	messages.cc \
 	messages.h \
 	methods.cc \
@@ -187,6 +191,8 @@ make_auto_md_cc_SOURCES = \
 	los.h \
 	make_array.h \
 	make_auto_md_cc.cc \
+	matpackI.h \
+	matpackIII.h \
 	messages.cc \
 	messages.h \
 	methods.cc \
@@ -209,52 +215,52 @@ make_auto_md_h_DEPENDENCIES = auto_wsv.h auto_wsv_groups.h
 
 make_auto_md_cc_DEPENDENCIES = auto_wsv.h auto_wsv_groups.h
 
-make_auto_wsv_h: $(make_auto_wsv_h_DEPENDENCIES) $(make_auto_wsv_h_OBJECTS)
-	@rm -f make_auto_wsv_h
+make_auto_wsv_h($EXEEXT): $(make_auto_wsv_h_DEPENDENCIES) $(make_auto_wsv_h_OBJECTS)
+	@rm -f make_auto_wsv_h$(EXEEXT)
 	$(CXXLINK) $(make_auto_wsv_h_LDFLAGS) \
 	           $(make_auto_wsv_h_OBJECTS) \
 	           $(make_auto_wsv_h_LDADD) $(LIBS)
 
-make_auto_wsv_groups_h: $(make_auto_wsv_group_h_DEPENDENCIES) \
+make_auto_wsv_groups_h$(EXEEXT): $(make_auto_wsv_group_h_DEPENDENCIES) \
                         $(make_auto_wsv_groups_h_OBJECTS)
-	@rm -f make_auto_wsv_groups_h
+	@rm -f make_auto_wsv_groups_h$(EXEEXT)
 	$(CXXLINK) $(make_auto_wsv_groups_h_LDFLAGS) \
 	           $(make_auto_wsv_groups_h_OBJECTS) \
 	           $(make_auto_wsv_groups_h_LDADD) $(LIBS)
 
-make_auto_wsv_pointers_cc: $(make_auto_wsv_pointers_cc_DEPENDENCIES) \
+make_auto_wsv_pointers_cc$(EXEEXT): $(make_auto_wsv_pointers_cc_DEPENDENCIES) \
                            $(make_auto_wsv_pointers_cc_OBJECTS)
-	@rm -f make_auto_wsv_pointers_cc
+	@rm -f make_auto_wsv_pointers_cc$(EXEEXT)
 	$(CXXLINK) $(make_auto_wsv_pointers_cc_LDFLAGS) \
 	           $(make_auto_wsv_pointers_cc_OBJECTS) \
 	           $(make_auto_wsv_pointers_cc_LDADD) $(LIBS)
 
-make_auto_md_h: $(make_auto_md_h_DEPENDENCIES) $(make_auto_md_h_OBJECTS)
-	@rm -f make_auto_md_h
+make_auto_md_h$(EXEEXT): $(make_auto_md_h_DEPENDENCIES) $(make_auto_md_h_OBJECTS)
+	@rm -f make_auto_md_h$(EXEEXT)
 	$(CXXLINK) $(make_auto_md_h_LDFLAGS) \
 	           $(make_auto_md_h_OBJECTS) \
 	           $(make_auto_md_h_LDADD) $(LIBS)
 
-make_auto_md_cc: $(make_auto_md_cc_DEPENDENCIES) $(make_auto_md_cc_OBJECTS)
-	@rm -f make_auto_md_cc
+make_auto_md_cc$(EXEEXT): $(make_auto_md_cc_DEPENDENCIES) $(make_auto_md_cc_OBJECTS)
+	@rm -f make_auto_md_cc$(EXEEXT)
 	$(CXXLINK) $(make_auto_md_cc_LDFLAGS) \
 	           $(make_auto_md_cc_OBJECTS) \
 	           $(make_auto_md_cc_LDADD) $(LIBS)
 
-auto_wsv.h: make_auto_wsv_h
-	$(top_builddir)/src/make_auto_wsv_h
+auto_wsv.h: make_auto_wsv_h$(EXEEXT)
+	$(top_builddir)/src/make_auto_wsv_h$(EXEEXT)
 
-auto_wsv_groups.h: make_auto_wsv_groups_h
-	$(top_builddir)/src/make_auto_wsv_groups_h
+auto_wsv_groups.h: make_auto_wsv_groups_h$(EXEEXT)
+	$(top_builddir)/src/make_auto_wsv_groups_h$(EXEEXT)
 
-auto_wsv_pointers.cc: make_auto_wsv_pointers_cc
-	$(top_builddir)/src/make_auto_wsv_pointers_cc
+auto_wsv_pointers.cc: make_auto_wsv_pointers_cc$(EXEEXT)
+	$(top_builddir)/src/make_auto_wsv_pointers_cc$(EXEEXT)
 
-auto_md.h: make_auto_md_h
-	$(top_builddir)/src/make_auto_md_h
+auto_md.h: make_auto_md_h$(EXEEXT)
+	$(top_builddir)/src/make_auto_md_h$(EXEEXT)
 
-auto_md.cc: make_auto_md_cc
-	$(top_builddir)/src/make_auto_md_cc
+auto_md.cc: make_auto_md_cc$(EXEEXT)
+	$(top_builddir)/src/make_auto_md_cc$(EXEEXT)
 
 CLEANFILES = \
 	auto_wsv.h \
