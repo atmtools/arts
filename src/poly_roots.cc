@@ -100,10 +100,10 @@ poly_root_solve (Vector &coeffs)
   s = (double *)malloc ((a-1) * 2 * sizeof (double));
 
   for (int i = 0; i < a; i++)
-    c[i] = coeffs[i];
+    c[i] = coeffs[a - i - 1];
 
   for (int i = 0; i < a; i++)
-      cout << "c: " << c[i] << "   coeff: " << coeffs[i] << endl;
+      cout << "c: " << c[i] << "   coeff: " << coeffs[a - i - 1] << endl;
 
   gsl_poly_complex_workspace *w = gsl_poly_complex_workspace_alloc (a);
 
@@ -121,10 +121,10 @@ poly_root_solve (Vector &coeffs)
           solution (i, 1) = s [i * 2 + 1];
         }
     }
-/*  else
+  else
     {
       solution.resize (0, 0);
-    }*/
+    }
 
   free (c);
   free (s);
