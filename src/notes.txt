@@ -44,54 +44,176 @@ Methods: Stays as it is:
 WSV: lineshape was in the past a complicated variable containing identification
      of the lineshape to use. In future:
 
-     ArrayOfIndex lineshape_methods: The lineshape methods to use for
-                                     each tg.
+     ArrayOfMethodList ls_methods: The lineshape methods to use for
+                                          each tg.
 
 WSVs for lineshapes: 
-     Vector lineshape: The output
-     Numeric f0:       Center frequency
-     f_mono:           frequency grid 
-     Numeric gamma:    Pressure broadening parameter
-     Numeric sigma:    Dopler broadening parameter
+     Vector ls: The output
+     Numeric ls_f0:       Center frequency
+     Vector f_mono:    frequency grid 
+     Numeric ls_gamma:    Pressure broadening parameter
+     Numeric ls_sigma:    Dopler broadening parameter
 
 Methods: Each lineshape function will be a method:
 
 Name				 Output	       Input
 
-lineshapeDoppler		 lineshape     f0, f_mono, gamma
-lineshapeLorentz		 lineshape     f0, f_mono, gamma
-lineshapeVoigtKuntz3		 lineshape     f0, f_mono, gamma, sigma
-lineshapeVoigtKuntz4		 lineshape     f0, f_mono, gamma, sigma
-lineshapeVoigtKuntz6		 lineshape     f0, f_mono, gamma, sigma
-lineshapeVoigtDrayson		 lineshape     f0, f_mono, gamma, sigma
-lineshapeRosenkranzVoigtDrayson	 lineshape     f0, f_mono, gamma, sigma
-lineshapeRosenkranzVoigtKuntz6	 lineshape     f0, f_mono, gamma, sigma
+lsDoppler		 ls     ls_f0, f_mono, ls_gamma
+lsLorentz		 ls     ls_f0, f_mono, ls_gamma
+lsVoigtKuntz3		 ls     ls_f0, f_mono, ls_gamma, ls_sigma
+lsVoigtKuntz4		 ls     ls_f0, f_mono, ls_gamma, ls_sigma
+lsVoigtKuntz6		 ls     ls_f0, f_mono, ls_gamma, ls_sigma
+lsVoigtDrayson		 ls     ls_f0, f_mono, ls_gamma, ls_sigma
+lsRosenkranzVoigtDrayson ls     ls_f0, f_mono, ls_gamma, ls_sigma
+lsRosenkranzVoigtKuntz6	 ls     ls_f0, f_mono, ls_gamma, ls_sigma
                        
 
 Furthermore, there are methods for the normalization:
 
-lineshapeNormQuadratic           lineshape	lineshape, f0, f_mono
+lsNormQuadratic           ls	ls, ls_f0, f_mono
 
 This one multiplies the lineshape with a (f/f0)^2 term. In this case,
-lineshape is both input and output, as it must exist before.
+ls is both input and output, as it must exist before.
+
+Note the naming convention: Variables that are only interesting as
+input parameters to the ls functions are called ls_xxx.
 
 For ease of use, lets have specific methods to set up the method
 lists:
 
 # For all tgs the same lineshapes:
-lineshape_methodsDefine{["lineshapeVoigtDrayson","lineshapeNormQuadratic"]}
+ls_methodsDefine{["lsVoigtDrayson","lsNormQuadratic"]}
 
 # Or individually:
 tgsDefine{["O3","H2O","ClO"]}
-lineshape_methodsDefinePerTg{
+ls_methodsDefinePerTg{
   name = "O3"
-  methods = ["lineshapeVoigtDrayson","lineshapeNormQuadratic"]
+  methods = ["lsVoigtDrayson","lsNormQuadratic"]
 }
-lineshape_methodsDefinePerTg{
+ls_methodsDefinePerTg{
   name = "ClO"
-  methods = ["lineshapeVoigtDrayson","lineshapeNormQuadratic"]
+  methods = ["lsVoigtDrayson","lsNormQuadratic"]
 }
 
 Note that we did not define the methods for the tg H2O, which is ok as
 long as we use one of the complete absorption models for this tg.
+
+There will be a file method_lists.cc, which holds definitions of
+method lists. These are necessary to automatically create functions
+for safe communication of the calling method with the method
+list. Entries in the file will look like this
+
+ml_data.push_back(
+  MlRecord(
+    NAME("ls_methods"),
+    DESCRIPTION("Computes the line shape function."),
+    OUTPUT(ls_),
+    INPUT(ls_f0_,f_mono_,ls_gamma_,ls_sigma_)))
+
+The automatically generated interface function will then look like
+this: 
+
+execute_ls_methods(Vector& ls,
+		          const MethodList ls_methods,
+                          const Numeric& ls_f0,
+                          const Vector& f_mono,
+                          const Numeric& ls_gamma,
+                          const Numeric& ls_sigma,
+                          bool quickandsilent=false);
+
+Maybe you find it confusing that ls_methods shows up both in
+the name and in the argument list. However, this is necessary to
+ensure that the calling function possesses ls_methods (has it
+in its INPUT list).
+
+Note, that the call will be carried out via the workspace. So, the
+methods in the lisgt may take additional arguments that the calling
+function is now aware of. In that case this WSV must be occupied,
+i.e., must have been defined before.
+
+The last argument can be used to suppress consistency checking and
+output if a method list shall be executed many times, as for example
+the lineshape. In that case, only one first call should be made with
+quickandsilent==false, the rest with quickandsilent==true.
+
+
+WSV: xsec_per_tg will hold the true absorption cross sections for each
+tag group (absorption coefficient divided by partial number density
+[m^-2]). This is different from the current xsec_per_tg, which
+contains absorption coefficient divided by VMR. True cross sections
+are more general, since they also work for liquid and ice particles. 
+
+WSV: xsec will hold the absorption cross section for one tg. This
+variable can be used to accumulate the absorption for one tg by
+applying different methods in sequence. 
+
+Methods:
+
+xsecAddLines (line spectrum)
+xsecAddH2O-MPM93 (complete Liebe model)
+xsecAddH2O-SelfConstStandardType (the simple empirical continuum
+                                  parameterization for the self
+                                  continuum with adjustable
+				  parameters)  
+
+WSV Groups: TagGroup (one tag group)
+            ArrayOfTagGroup (what is now TagGroups)
+
+WSV: TagGroup xsec_tg: The current tag group for absorption
+                       calculation.
+     Vector   xsec_vmr: The current vmr profile (in the case of liquid
+                        or solid particles the mass density)
+
+In general, a sequence of xsec methods can be given in an xsec_methods
+list. It has the definition:
+
+ml_data.push_back(
+  MlRecord(
+    NAME("xsec_methods"),
+    DESCRIPTION("Computes absorption cross sections for one species.\n"
+                "The species is identified by its tg."),
+    OUTPUT(xsec_),
+    INPUT(xsec_tg_,xsec_vmr_)))
+
+
+
+6. RT and Gridding
+==================
+
+There will be Tensor3-Tensor5, extending the concept of Matrix. The
+last index is always the one that is continuous in memory. The second
+to last index has a step width equal to the numer of elements of the
+last index, and so on.
+
+Functions:
+
+Tensor3 a
+cout << a(1,2,3);      // Element access
+cout << a.nelem3();    // Number of elements in the third dimension.
+                       // Note that here we do not use the 0-based
+                       // naming convention!
+
+Dimemensions of some important variables:
+
+Position: lon, lat, p/z, as needed.
+
+Atmospheric fields (like t_abs): Tensor3(lon,lat,p/z)
+
+Grids: lon_grid, lat_grid, p_grid (or z_grid)
+
+Radiation field: (lon,lat,p/z,theta,phi)
+(1-d case:       (1,  1,  p/z,theta,1  ) )
+(that's a one there!)
+
+To define a line of sight: Vector(5)(lon,lat,p/z,theta,phi)
+
+Interpolation routine:
+
+interp_1d(Numeric& result, Numeric position, Vector field, Vector grid)
+interp_2d(Numeric& result, Numeric position1, Numeric position2,
+          Matrix field, Vector grid1, Vector grid2)
+
+Absorption:
+
+()
 
