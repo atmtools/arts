@@ -184,7 +184,7 @@ inline my_basic_string<charT>& my_basic_string<charT>::operator=(const my_basic_
 template<class charT>
 inline Index my_basic_string<charT>::nelem() const
 { 
-  size_t s = size();
+  size_t s = this->size();
   assert(s<LONG_MAX);
   return static_cast<long>(s);
 }
