@@ -84,6 +84,8 @@ public:
 
   /** Define npos: */
   static const Index npos = static_cast<Index>(std::basic_string<charT>::npos);
+
+  typedef Index size_type;
 };
 
 
