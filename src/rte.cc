@@ -808,8 +808,8 @@ void rte_calc(
                       else
                         {
                           // Add code for rotation here
-                          Numeric cv = cos( DEG2RAD*sensor_rot[mblock_index] );
-                          Numeric sv = sin( DEG2RAD*sensor_rot[mblock_index] );
+                          //Numeric cv = cos( DEG2RAD*sensor_rot[mblock_index] );
+                          //Numeric sv = sin( DEG2RAD*sensor_rot[mblock_index] );
                           
                           // An example on how it could look like:
                           // i_rot[0] = cv*i_rte(iv,0) + sv*i_rte(iv,0);
