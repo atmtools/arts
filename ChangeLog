@@ -1,3 +1,10 @@
+2002-11-26  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-312
+	
+	* src/scatproperties.cc: Fixed the warnings due to uninitialised
+	varibles.  
+
 2002-11-26  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-311
