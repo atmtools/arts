@@ -735,6 +735,32 @@ void define_partition_species_data()
 
 
 
+  // CH3CN
+  // Coeff:       2      2      2      2      2
+  // Quality:    2.32   0.34   0.34   0.34   0.36
+  spec(it_species, it_isotope, "CH3CN");
+  //			Name		        c0		c1		c2		c3
+  //			|		        |		|		|		|
+  iso(it_isotope,	"211124",	Qcoeff(	3.1302E+03	,-3.3912E+01	,6.5983E-01	,-4.2371E-04) );
+  iso(it_isotope,	"211125",	Qcoeff(	-3.9263E+02	,1.7101E+01	,7.2308E-02	,-3.0381E-05) );
+  iso(it_isotope,	"311124",	Qcoeff(	-1.1837E+03	,5.1359E+01	,2.1618E-01	,-9.0741E-05) );
+  iso(it_isotope,	"211134",	Qcoeff(	-1.1446E+03	,4.9829E+01	,2.1032E-01	,-8.8474E-05) );
+  iso(it_isotope,	"211224",	Qcoeff(	-3.4891E+02	,1.5104E+01	,6.3537E-02	,-2.6662E-05) );
+
+
+  // HNC
+  // Coeff:       2      2      2      2
+  // Quality:    0.03   0.04   0.03   0.02
+  spec(it_species, it_isotope, "HNC");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"142",	Qcoeff(	1.9951E-01	,4.6136E-01	,-5.1948E-06	,6.4118E-09) );
+  iso(it_isotope,	"143",	Qcoeff(	7.0082E-02	,4.8234E-01	,-1.4190E-05	,1.3941E-08) );
+  iso(it_isotope,	"152",	Qcoeff(	1.6090E-01	,4.7149E-01	,-8.8552E-06	,8.8813E-09) );
+  iso(it_isotope,	"242",	Qcoeff(	2.0281E-01	,5.4789E-01	,-5.0006E-06	,5.6951E-09) );
+
+
+
   // particle
   // Coeff:       1      1
   // Quality:    ---    ---

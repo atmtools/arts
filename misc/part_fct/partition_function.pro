@@ -1,5 +1,5 @@
 ;
-; $Id: partition_function.pro,v 1.8 2001/04/03 18:07:33 axel Exp $
+; $Id: partition_function.pro,v 1.9 2001/09/20 15:35:43 axel Exp $
 ;
 pro HAK, dummy, mesg=mesg
 ; NAME:
@@ -389,7 +389,7 @@ PRO initialize_array,species_arr
 ;; structure of the data
 species_data = { species, $
                  name    : '',        $ ;  name of species within ARTS
-                 arts_tag: 0,         $ ;  arts isotope convention
+                 arts_tag: long(0),   $ ;  arts isotope convention
                  hit_mol : 0,         $ ;  hitran molecule number code, 
                                         ;      e.g. major isotope of H2O:161
                                         ;      for molecules not present in 

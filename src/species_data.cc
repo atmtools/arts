@@ -833,6 +833,44 @@ void define_basic_species_data()
 	 REC("231"	,.219595E-01	,29.	,-1	,382	,TAGS( ))
 	 ) ) );
 
+  // CH3CN
+  // Isotopic Ratios: 2 2 2 2 2
+  // Note: Isotopic ratio of 1.0 was found in JPL catalogue for main, 
+  // isotope, the value given here is determinded by subtracting the other
+  // isotopic ratios found in JPL from 1.0
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("CH3CN"),
+	DEGFR(3),
+	ISOTOPES
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
+	 //		|		|	|	|	|
+	 REC("211124"	,0.97366840	,41.	,-1	,-1	,TAGS(41001)),
+	 REC("211125"	,0.0036982817	,42.	,-1	,-1	,TAGS(42001)),
+	 REC("311124"	,0.011091748	,42.	,-1	,-1	,TAGS(42006)),
+	 REC("211134"	,0.011091748	,42.	,-1	,-1	,TAGS(42007)),
+	 REC("211224"	,0.00044977985	,42.	,-1	,-1	,TAGS(42008))
+	 ) ) );
+
+  // HNC
+  // Isotopic Ratios: 2 2 2 2
+  // Note: Isotopic ratio of 1.0 was found in JPL catalogue for main, 
+  // isotope, the value given here is determinded by subtracting the other
+  // isotopic ratios found in JPL from 1.0
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("HNC"),
+	DEGFR(2),
+	ISOTOPES
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
+	 //		|		|	|	|	|
+	 REC("142"	,0.98505998	,27.	,-1	,-1	,TAGS(27002)),
+	 REC("143"	,0.011091748	,28.	,-1	,-1	,TAGS(28005)),
+	 REC("152"	,0.0036982817	,28.	,-1	,-1	,TAGS(28006)),
+	 REC("242"	,0.00014996849	,28.	,-1	,-1	,TAGS(28007))
+	 ) ) );
+
+
   // You also have to change the entry in the file
   // partition_function_data.cc consistently! 
   species_data.push_back
