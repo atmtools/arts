@@ -153,8 +153,8 @@ void ConvertIFToRF(
                    Vector&          y,
                    // WS Input:
                    const Matrix&    sensor_pol,
-                   const Vector&    mblock_za_grid,
-                   const Vector&    mblock_aa_grid,
+                   const Vector&    sensor_response_za,
+                   const Vector&    sensor_response_aa,
                    const Numeric&   lo,
                    const Index&     atmosphere_dim,
                    // Control Parameters:
@@ -167,11 +167,11 @@ void ConvertIFToRF(
     throw runtime_error("The frequencies seems to already be given in RF.");
 
   // Check that *y* has the right size
-  Index n_az = mblock_za_grid.nelem();
+  Index n_az = sensor_response_za.nelem();
   Index n_pol = sensor_pol.nrows();
   Index n_freq = sensor_response_f.nelem();
   if( atmosphere_dim!=1 )
-    n_az *= mblock_aa_grid.nelem();
+    n_az *= sensor_response_aa.nelem();
   if( y.nelem()!=n_freq*n_pol*n_az )
     throw runtime_error(
       "The measurement vector *y* does not have the correct size.");
@@ -475,7 +475,7 @@ void sensor_responseAntenna1D(
     throw runtime_error(os.str());
 
   // Tell the user what is happening
-  out2 << "  Calculating the antenna response using values and grids from\n"
+  out2 << "  Calculating the antenna response using values and grids from "
        << "*" << diag_name << "*.\n";
 
   // Create the response matrix for the antenna, this matrix will later be
@@ -587,7 +587,7 @@ void sensor_responseBackend(// WS Output:
     throw runtime_error(os.str());
 
   // Give some output to the user.
-  out2 << "  Calculating the backend response using values and grid from\n"
+  out2 << "  Calculating the backend response using values and grid from "
        << "*" << ch_response_name << "*.\n";
 
   // Call the function that calculates the sensor transfer matrix.
@@ -614,6 +614,13 @@ void sensor_responseBackend(// WS Output:
   out3 << "  *sensor_response_f* set to *f_backend*\n";
 }
 
+//! sensor_responseInit
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-12-05
+*/
 void sensor_responseInit(// WS Output:
                                Sparse&      sensor_response,
                                Vector&      sensor_response_f,
@@ -664,10 +671,7 @@ void sensor_responseInit(// WS Output:
        << "x" << sensor_response.ncols() << "\n";
 
   //Set matrix to identity matrix
-  sensor_response.resize(n,n);
-  for( Index i=0; i<n; i++) {
-    sensor_response.rw(i,i) = 1.0;
-  }
+  sensor_response.make_I(n,n);
 
   // Set description variables
   sensor_response_f.resize( f_grid.nelem() );
@@ -679,6 +683,13 @@ void sensor_responseInit(// WS Output:
 }
 
 
+//! sensor_responseMixer
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-12-05
+*/
 void sensor_responseMixer(// WS Output:
                           Sparse&           sensor_response,
                           Vector&           sensor_response_f,

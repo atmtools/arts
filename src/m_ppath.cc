@@ -545,12 +545,12 @@ void VectorZtanToZa(
     {
       ostringstream os;
       os << "The number of altitudes in *" << ztan_v_name << "* must\n"
-	 << "match the number of positions in *sensor_pos*.";
+         << "match the number of positions in *sensor_pos*.";
       throw runtime_error( os.str() );
     }
 
-  out2 << "   Filling *" << za_v_name << "* with zenith angles, based on\n"
-       << "   tangent altitudes from *" << ztan_v_name << ".\n";
+  out2 << "  Filling *" << za_v_name << "* with zenith angles, based on\n"
+       << "  tangent altitudes from *" << ztan_v_name << ".\n";
 
   za_vector.resize(npos);
 

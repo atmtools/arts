@@ -1216,7 +1216,7 @@ md_data_raw.push_back
          "            \"double\""
          ),
          OUTPUT( sensor_response_f_, y_ ),
-         INPUT( sensor_pol_, mblock_za_grid_, mblock_aa_grid_, lo_,
+         INPUT( sensor_pol_, sensor_response_za_, sensor_response_aa_, lo_,
                 atmosphere_dim_ ),
          GOUTPUT( ),
          GINPUT( ),

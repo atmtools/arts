@@ -1,5 +1,20 @@
 2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
+	* arts-1-1-739
+
+	* src/matpackII.cc: Removed bug, now make_I sets the correct size.
+
+	* src/methods.cc: Changed input variables to ConvertIFToRF.
+
+	* src/m_sensor.cc: Changed to using make_I in sensor_responseInit, the
+	change in speed was encouraging. Also changed input to ConvertIFToRF
+	so that it takes sensor_response_za and sensor_response_aa, instead
+ 	of mblock variables. Also some cosmetics to the output strings.
+
+	* src/m_ppath.cc: Cosmetics to output strings.
+
+2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
 	* arts-1-1-738
 
 	* src/matpackII.{cc,h}: Created function make_I which makes a Sparse

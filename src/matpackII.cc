@@ -487,6 +487,9 @@ void Sparse::make_I( Index r, Index c)
     *rit++ = i;
     *cit++ = i;
   }
+
+  mrr = r;
+  mcr = c;
 }
 
 //! Resize function.
