@@ -1696,10 +1696,8 @@ void k_temp_nohydro (
     dummy += 1;			// Matpack can add element-vise like this.
 
     absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, n2_abs, 
-             h2o_abs, vmrs, lines_per_tg, lineshape, 
-	     cont_description_names, 
-	     cont_description_models,
-             cont_description_parameters);
+             h2o_abs, vmrs, lines_per_tg, lineshape, cont_description_names, 
+  	                cont_description_models, cont_description_parameters);
   }
   abs_dummy.resize(0);
   //
@@ -1774,7 +1772,7 @@ void k_temp_nohydro (
               b[iv] += absloswfs[iza](iv,iw) * w[iw-i1];
 	    }
             d = c * f_mono[iv];
-            k(iv0+iv,ip) = a[iv] * d/t[ip] / (1-exp(-d)) * pl[iv] +
+            k(iv0+iv,ip) = a[iv] * d/t[ip] / (exp(d)-1) * pl[iv] +
                                                       b[iv] * dabs_dt(iv,ip);
 	  }
         }            
@@ -2060,6 +2058,7 @@ void kTemp (
     	  const Index&        		     refr,
     	  const Index&        		     refr_lfac,
     	  const Vector&     		     refr_index,
+          const String&                      refr_model,
     	  const Numeric&    		     z_ground,
           const Numeric&                     t_ground,
     	  const Vector&     		     y_space,
@@ -2177,17 +2176,15 @@ void kTemp (
       out1 << "  Calculating absorption for t_abs + 1K \n";
       out2 << "  ----- Messages from absCalc: --------\n";
       absCalc( abs1k, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
-                 lines_per_tg, lineshape, 
-	       cont_description_names, 
-	       cont_description_models,
-               cont_description_parameters);
+                 lines_per_tg, lineshape, cont_description_names, 
+                         cont_description_models, cont_description_parameters);
     }
     // Calculate reference spectrum
     out1 << "  Calculating reference spectrum\n";
     out2 << "  ----- Messages from losCalc: --------\n";
     Los    los;
     Vector z_tan;
-    losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
+    losCalc( los, z_tan, z_plat, za, l_step, p_abs, z0, refr, refr_lfac, 
 					       refr_index, z_ground, r_geoid );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from sourceCalc: -----\n";
@@ -2223,32 +2220,40 @@ void kTemp (
   
     // Loop retrieval altitudes and calculate new spectra
     //
-    Vector y, w;
+    Vector y, t(nabs), w, refr4t, z4t(nabs);
     Index  i1, iw, iv;
     //
     for ( Index ip=0; ip<np; ip++ )
     {
       out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
   
-      // Create absorption matrix corresponding to temperature disturbance
+      // Create absorption matrix and temperature profile corresponding to 
+      // temperature disturbance
       grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
 								   lgrid, ip );
       i1 = Index( is(ip,0) );    // first p_abs point to consider
-      abs = abs0;	
 
+      abs = abs0;	
+      t   = t_abs;	
       for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
       {
+	t[iw] += w[iw-i1];
 	for ( iv=0; iv<nv; iv++ )
 	  abs(iv,iw) = (1-w[iw-i1])*abs0(iv,iw) + w[iw-i1]*abs1k(iv,iw);
       }
   
+      out2 << "  ----- Doing new refractive index ----\n";
+      refrCalc ( refr4t, p_abs, t, h2o_abs, refr, refr_model );
+      out2 << "  ----- Doing new hydrostatic eq. -----\n";
+      z4t = z0;
+      hseCalc( z4t, p_abs, t, h2o_abs, r_geoid,  hse );
       out2 << "  ----- Messages from losCalc: --------\n";
-      losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
+      losCalc( los, z_tan, z_plat, za, l_step, p_abs, z4t, refr, refr_lfac, 
 					       refr_index, z_ground, r_geoid );
       out2 << "  -------------------------------------\n";
       out2 << "  ----- Messages from sourceCalc: -----\n";
       ArrayOfMatrix source, trans;
-      sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+      sourceCalc( source, emission, los, p_abs, t, f_mono );
       out2 << "  -------------------------------------\n";
       out2 << "  ----- Messages from transCalc: ------\n";
       transCalc( trans, los, p_abs, abs );
@@ -2292,7 +2297,7 @@ void kTemp (
     out2 << "  ----- Messages from losCalc: --------\n";
     Los    los;
     Vector z_tan;
-    losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
+    losCalc( los, z_tan, z_plat, za, l_step, p_abs, z0, refr, refr_lfac, 
 	        			       refr_index, z_ground, r_geoid );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from sourceCalc: -----\n";
@@ -2330,7 +2335,7 @@ void kTemp (
     //
     Matrix         abs;
     ArrayOfMatrix  abs_dummy;
-    Vector y, t(nabs), w;
+    Vector y, t(nabs), w, refr4t, z4t(nabs);
     Index  i1, iw, iv;
     //
     for ( Index ip=0; ip<np; ip++ )
@@ -2341,25 +2346,27 @@ void kTemp (
       grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
 								   lgrid, ip );
       i1 = Index( is(ip,0) );    // first p_abs point to consider
-      t = t_abs;			// Matpack can copy the contents of
-					// vectors like this. The dimensions
-					// must be the same! 
+
+      t = t_abs;	
       for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
 	t[iw] += w[iw-i1];
   
       out2 << "  ----- Messages from absCalc: --------\n";
       absCalc( abs, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
-	       lines_per_tg, lineshape, 
-	       cont_description_names, 
-	       cont_description_models,
-               cont_description_parameters);
+	            lines_per_tg, lineshape, cont_description_names, 
+       	                 cont_description_models, cont_description_parameters);
+      out2 << "  ----- Doing new refractive index ----\n";
+      refrCalc ( refr4t, p_abs, t, h2o_abs, refr, refr_model );
+      out2 << "  ----- Doing new hydrostatic eq. -----\n";
+      z4t = z0;
+      hseCalc( z4t, p_abs, t, h2o_abs, r_geoid,  hse );
       out2 << "  ----- Messages from losCalc: --------\n";
-      losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
-					       refr_index, z_ground, r_geoid );
+      losCalc( los, z_tan, z_plat, za, l_step, p_abs, z4t, refr, refr_lfac, 
+					           refr4t, z_ground, r_geoid );
       out2 << "  -------------------------------------\n";
       out2 << "  ----- Messages from sourceCalc: -----\n";
       ArrayOfMatrix source, trans;
-      sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+      sourceCalc( source, emission, los, p_abs, t, f_mono );
       out2 << "  -------------------------------------\n";
       out2 << "  ----- Messages from transCalc: ------\n";
       transCalc( trans, los, p_abs, abs );
