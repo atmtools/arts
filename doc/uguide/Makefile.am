@@ -88,6 +88,7 @@ uguide.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.
 	bibtex uguide
 	pdflatex  uguide
 	pdflatex  uguide
+	pdflatex  uguide
 
 
 auto_groups.tex: arts_groups_to_latex.sh $(artsexecutable)
