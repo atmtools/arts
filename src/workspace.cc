@@ -482,6 +482,21 @@ void define_wsv_data()
      "              scat_aa_grid, stokes_dim ]",
       Tensor6_ ));
 
+ wsv_data.push_back
+   (WsvRecord
+    ("i_field_old",
+     "Intensity field inside the cloudbox.\n"
+     "\n"
+     "This variable is used to store the intensity field inside the\n"
+     "cloudbox while performing the iteration.\n"
+     "More decription will be written (CE).\n"
+     "\n"
+     "Usage: Input of *i_fieldUpdate1D*. \n"    
+     "\n"
+     "Dimensions: [ p_grid, lat_grid, lon_grid, scat_za_grid, \n"
+     "              scat_aa_grid, stokes_dim ]",
+      Tensor6_ ));
+
   wsv_data.push_back
    (WsvRecord
     ("i_rte",
@@ -916,6 +931,21 @@ void define_wsv_data()
      "\n"
      "Units:      degrees ",
      Vector_ ));
+
+wsv_data.push_back
+   (WsvRecord
+    ("scat_field",
+     "Scattered field field inside the cloudbox.\n"
+     "\n"
+     "This variable holds the value of the scattering integral.\n"
+     "for all points inside the cloudbox. \n"
+     "More decription will be written (CE).\n"
+     "\n"
+     "Usage: Input of *i_fieldUpdate1D*. \n"    
+     "\n"
+     "Dimensions: [ p_grid, lat_grid, lon_grid, scat_za_grid, \n"
+     "              scat_aa_grid, stokes_dim ]",
+      Tensor6_ ));   
 
  wsv_data.push_back
    (WsvRecord

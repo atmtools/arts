@@ -744,18 +744,37 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME( "i_field_itCalc" ),
+      ( NAME( "i_fieldIterate" ),
 	DESCRIPTION
         (
 	 "Performs iterative solution method of the RT with scattering. It\n"
          "calculates *i_field* inside the cloudbox.\n"
          "   " 
         ),
-	OUTPUT(i_field_),
-	INPUT(amp_mat_, cloudbox_limits_, scat_za_grid_, scat_aa_grid_, 
+	OUTPUT(i_field_, ppath_step_, i_field_old_, scat_field_),
+	INPUT(ppath_step_agenda_, amp_mat_, cloudbox_limits_, scat_za_grid_, scat_aa_grid_, 
 	      p_grid_, lat_grid_, lon_grid_, t_field_, z_field_, z_ground_,
 	      r_geoid_, f_grid_, scat_f_index_, part_types_, blackbody_ground_,
 	      stokes_dim_, atmosphere_dim_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+ md_data.push_back
+    ( MdRecord
+      ( NAME( "i_fieldUpdate1D" ),
+	DESCRIPTION
+        (
+	 "Updates the i_field during the iteration. It performs the RT calculation \n"
+         "using a fixed value for the scattering integral stored in *scat_field*.\n"
+         "   " 
+        ),
+	OUTPUT(i_field_, ppath_step_),
+	INPUT(ppath_step_agenda_, i_field_old_, amp_mat_, scat_field_, cloudbox_limits_, 
+	      scat_za_grid_, scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, t_field_,
+	      z_field_, z_ground_, r_geoid_, f_grid_, scat_f_index_, blackbody_ground_,
+	      stokes_dim_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

@@ -1,3 +1,22 @@
+2002-06-07  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-123
+
+	* src/methods.cc (i_fieldUpdate1D): Included this method to update
+	the intensity field during the iteration. Performs RT calculation 
+	with fixed scattered field.
+
+	* src/m_cloudbox.cc (i_fieldUpdate1D): This function was in
+	cloudbox.cc before. Now it uses the *ppath_step_agenda*, for this
+	reason it is a workspace method now. 
+
+	* src/cloudbox.cc (i_field_update1D): Removed this function.
+
+	* src/workspace.cc: Included WSV *scat_field* and *i_field_old*.
+
+	* doc/examples/i_field_arts: Example to test the cloudbox functions.
+	
+
 2002-06-07  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-122

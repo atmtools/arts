@@ -1,0 +1,171 @@
+Main {
+
+  #---< Frequency grid >-------------------------------------------------------
+
+  VectorNLinSpace( f_grid ) {
+     start = 500e9
+     stop  = 501e9
+     n     = 5
+  }
+
+
+
+  #---< i_space >--------------------------------------------------------------
+
+  i_spaceCBR{
+  }
+
+
+
+  #---< Stokes >---------------------------------------------------------------
+
+  IndexSet( stokes_dim ) {
+     value = 4
+  }
+
+
+
+  #---< Absorption >-----------------------------------------------------------
+
+  MatrixSet( abs ) {
+     nrows = 5
+     ncols = 16
+     value = 0
+  }
+
+
+
+  #---< The atmosphere >-------------------------------------------------------
+
+  AtmosphereSet1D {
+  }
+
+  NumericSet( lat_1d ) {
+    value = 45
+  }
+  
+  NumericSet( meridian_angle_1d ) {
+    value = 0
+  }
+
+  VectorNLogSpace( p_grid ) {
+     start = 1000e2
+     stop  = 100e2
+     n     = 16
+  }
+
+VectorNLinSpace( scat_za_grid ) {
+     start = 0
+     stop  = 180
+     n     = 18
+  }  
+
+VectorNLinSpace( scat_aa_grid ) {
+     start = 0
+     stop  = 10
+     n     = 2
+  }  
+
+  VectorNLinSpace( vector1 ) {
+     start = 0
+     stop  = 15e3
+     n     = 16
+  }
+  
+  Tensor3FillWithVector( z_field, vector1 ) {
+    npages = 0
+    nrows  = 1
+    ncols  = 1
+  }
+
+  VectorNLinSpace( vector1 ) {
+     start = 300
+     stop  = 200
+     n     = 16
+  }
+
+  Tensor3FillWithVector( t_field, vector1 ) {
+    npages = 0
+    nrows  = 1
+    ncols  = 1
+  }
+
+
+ 
+  #---< The ground >-----------------------------------------------------------
+
+  r_geoidWGS84 {
+  }
+
+  MatrixSet( z_ground ) {
+     nrows = 1
+     ncols = 1
+     value = 0
+  }
+
+  MatrixSet( t_ground ) {
+     nrows = 1
+     ncols = 1
+     value = 300
+  }
+  
+  FlagOn ( blackbody_ground ) {
+  }
+  
+  e_groundSet {
+     value = 0.8
+  }
+
+
+
+  #---< The cloud box >--------------------------------------------------------
+
+  CloudboxSetManually {
+      p1   = 202e2
+      p2   = 200e2
+      lat1 = 0
+      lat2 = 0
+      lon1 = 0
+      lon2 = 0
+    }
+
+   ArrayOfIndexPrint( cloudbox_limits ) {
+   }
+
+ #---- <amp_mat> --------------
+	
+Tensor6Set ( amp_mat ) {	
+	nvitrines = 3
+	nshelfs = 18
+	nbooks = 2
+	npages = 18
+	nrows = 2
+	ncols = 8
+	value = 1
+	}
+
+Tensor6Set (i_field){
+	nvitrines = 16
+	nshelfs = 1
+	nbooks = 1
+	npages = 18
+	nrows = 2
+	ncols = 4
+	value = 1
+	}
+
+VectorSet (part_types){
+	length = 3
+	value = 1
+	}	
+ 
+IndexSet ( scat_f_index ) {
+	value = 1
+	}	
+
+AgendaSet(ppath_step_agenda) { ppath_stepGeometric{} } 
+
+i_fieldIterate{}
+
+
+}

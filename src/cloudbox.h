@@ -42,26 +42,6 @@
 #include "physics_funcs.h"
 
 
-void i_field_update1D(
-		     Tensor6View i_field,
-		     ConstTensor6View i_field_old,
-		     ConstTensor6View amp_mat,
-		     ConstTensor6View sca_field,
-		     const ArrayOfIndex& cloudbox_limits,
-		     ConstVectorView scat_za_grid,
-		     ConstVectorView scat_aa_grid,
-		     ConstVectorView p_grid,
-		     ConstVectorView lat_grid,
-		     ConstVectorView lon_grid,
-		     ConstTensor3View t_field,
-		     ConstTensor3View z_field,
-		     ConstMatrixView z_ground,
-		     ConstMatrixView r_geoid,
-		     ConstVectorView f_grid,
-		     const Index& scat_f_index,
-		     const Index& blackbody_ground,
-		     const Index& stokes_dim
-		     );
 
 void rte_scat_vecCalc(VectorView sto_vec,
 		      ConstMatrixView ext_mat,
