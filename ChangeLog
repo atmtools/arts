@@ -1,3 +1,10 @@
+2001-10-15  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-1-17
+
+	* /ami/hmatrix/hRedKx.m and hRedLimb.m removed, they
+	are now part of Qpack.
+
 2001-10-16  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-6
