@@ -443,7 +443,7 @@ void grid2grid_weights_total (
 		  grid2grid_weights( w1, lplos, (Index)is(ip,0),  (Index)is(ip,1),
 				     lgrid, ip );
 		  // fill the corresponding part of the Matrix W with the weights w1
-		  W[iza](Range(is(ip,0),is(ip,1)-is(ip,0)+1), ip)=w1;
+		  W[iza](Range((Index)is(ip,0),(Index)(is(ip,1)-is(ip,0)+1)), ip)=w1;
 		}
 	    }
 	}
