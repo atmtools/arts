@@ -127,6 +127,8 @@ void RteCalc(
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
                                                                     lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
   chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
   chk_atm_surface( "z_ground", z_ground, atmosphere_dim, lat_grid, lon_grid );
 
@@ -193,6 +195,9 @@ void RteCalc(
     }
   else
     {
+      if( atmosphere_dim < 3 )
+        throw runtime_error( 
+         "2D antennas (antenna_dim=2) can only be used with 3D atmospheres." );
       if( mblock_aa_grid.nelem() == 0 )
         throw runtime_error( 
                       "The measurement block azimuthal angle grid is empty." );
@@ -259,7 +264,6 @@ void RteCalc(
               los[0] += mblock_za_grid[iza];
               if( antenna_dim == 2 )
                 { los[1] += mblock_aa_grid[iaa]; }
-            
 
               // Determine propagation path
               ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
@@ -322,10 +326,7 @@ void RteEmissionStd(
         const Vector&         lon_grid,
         const Tensor3&        t_field )
 {
-  // Checks performed in RteCalc do not need to be repeated here, but there
-  // are some other checks to be done:
-  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                    lon_grid );
+  // Relevant checks are assumed to be done in RteCalc
 
   // Some sizes
   const Index nf      = f_grid.nelem();

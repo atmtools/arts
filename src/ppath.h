@@ -93,13 +93,17 @@ Numeric psurface_slope_2d(
         const Numeric&    za );
 
 Numeric psurface_slope_3d(
-        ConstVectorView   lat_grid,
-        ConstVectorView   lon_grid,  
-        ConstMatrixView   r_geoid,
-        ConstMatrixView   z_surf,
-        const GridPos&    gp_lat,
-        const GridPos&    gp_lon,
-        const Numeric&    aa );
+        const Numeric&   lat1,
+        const Numeric&   lat3,
+        const Numeric&   lon5,
+        const Numeric&   lon6,
+        const Numeric&   r15,
+        const Numeric&   r35,
+        const Numeric&   r36,
+        const Numeric&   r16,
+        const Numeric&   lat,
+        const Numeric&   lon,
+        const Numeric&   aa );
 
 Numeric psurface_angletilt(
         const Numeric&   r,

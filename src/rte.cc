@@ -205,7 +205,7 @@ void get_radiative_background(
         Matrix     ground_los_local;
         Tensor4    ground_refl_coeffs_local;
         // Set zenith and azimuthal angles (note that these variables are not
-        // function input). Each ground los is here treated as measurement
+        // function input). Each ground los is here treated as a measurement
         // block, with no za and aa grids.
         Index    nlos = ground_los.nrows();
         Matrix   sensor_pos( nlos, a_pos.nelem() );
@@ -346,8 +346,9 @@ void ground_specular_los(
       assert( z_ground.ncols() == 1 );
       assert( a_los.nelem() == 1 );
       assert( los.nelem() == 1 );
-      assert( fabs(a_los[0]) <= 180 ); 
+      assert( abs(a_los[0]) <= 180 ); 
 
+      
       // Calculate LOS neglecting any tilt of the ground
       if( a_los[0] >= 0 )
         { los[0] = 180 - a_los[0]; }
@@ -362,7 +363,6 @@ void ground_specular_los(
                                     z_ground, "z_ground", a_gp_lat, a_gp_lon );
 
       // Calculate ground slope (unit is m/deg).
-      //
       Numeric slope = psurface_slope_2d( lat_grid, r_geoid(Range(joker),0), 
                                 z_ground(Range(joker),0), a_gp_lat, a_los[0] );
 
@@ -378,8 +378,81 @@ void ground_specular_los(
 
   else if( atmosphere_dim == 3 )
     {
-      throw runtime_error( "Calculation of LOS for ground reflections is not "
-                                                   "yet implemented for 3D." );
+      assert( a_los.nelem() == 2 );
+      assert( los.nelem() == 2 );
+      assert( a_los[0] >= 0 ); 
+      assert( a_los[0] <= 180 ); 
+      assert( abs( a_los[1] ) <= 180 ); 
+
+      assert( a_gp_lat.idx >= 0 );
+      assert( a_gp_lat.idx <= ( lat_grid.nelem() - 2 ) );
+      assert( a_gp_lon.idx >= 0 );
+      assert( a_gp_lon.idx <= ( lon_grid.nelem() - 2 ) );
+
+      // Calculate LOS neglecting any tilt of the ground
+      los[0] = 180 - a_los[0];
+      los[1] = a_los[1];
+
+      // Below you find a first version to include the ground tilt.
+      // Is the solution correct? 
+      // At least, it does not work for za = 180.
+      if( 0 )
+	{
+      // Interpolate to get radius for the ground at reflection point.
+      const Numeric r_ground =
+          interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
+                              r_geoid, "r_geoid", a_gp_lat, a_gp_lon ) +
+          interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
+                                    z_ground, "z_ground", a_gp_lat, a_gp_lon );
+
+      // Restore latitude and longitude values
+      Vector   itw(2);
+      Numeric  lat, lon;
+      interpweights( itw, a_gp_lat );
+      lat = interp( itw, lat_grid, a_gp_lat );
+      interpweights( itw, a_gp_lon );
+      lon = interp( itw, lon_grid, a_gp_lon );
+
+      // Calculate ground slope along the viewing direction (unit is m/deg).
+      //
+      Index   ilat = gridpos2gridrange( a_gp_lat, abs( a_los[1] ) <= 90 ); 
+      Index   ilon = gridpos2gridrange( a_gp_lon, a_los[1] >= 0 );
+      //
+      Numeric   lat1 = lat_grid[ilat];
+      Numeric   lat3 = lat_grid[ilat+1];
+      Numeric   lon5 = lon_grid[ilon];
+      Numeric   lon6 = lon_grid[ilon+1];
+      Numeric   r15  = r_geoid(ilat,ilon) + z_ground(ilat,ilon);
+      Numeric   r35  = r_geoid(ilat+1,ilon) + z_ground(ilat+1,ilon);
+      Numeric   r16  = r_geoid(ilat,ilon+1) + z_ground(ilat,ilon+1);
+      Numeric   r36  = r_geoid(ilat+1,ilon+1) + z_ground(ilat+1,ilon+1);
+      //
+      Numeric slope = psurface_slope_3d( lat1, lat3, lon5, lon6, 
+                                      r15, r35, r36, r16, lat, lon, a_los[1] );
+
+      // Calculate ground (angular) tilt (unit is deg).
+      Numeric tilt = psurface_angletilt( r_ground, slope );
+
+      // Check that a_los contains a downward LOS
+      assert( is_los_downwards( a_los[0], tilt ) );
+      
+      // Include ground tilt in zenith angle
+      los[0] -= 2 * tilt;
+
+      // Calculate ground slope along the viewing direction (unit is m/deg).
+      Numeric   aa = a_los[1] + 90;
+      if( aa > 180 )
+	{ aa -= 360; }
+      //
+      slope = psurface_slope_3d( lat1, lat3, lon5, lon6, 
+                                            r15, r35, r36, r16, lat, lon, aa );
+
+      // Calculate ground (angular) tilt (unit is deg).
+      tilt = psurface_angletilt( r_ground, slope );
+
+      // Include ground tilt in azimuth angle
+      los[1] -= tilt;
+	}
     }
 }
 
