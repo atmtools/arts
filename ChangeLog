@@ -1,3 +1,20 @@
+2002-11-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-289
+
+	* src/m_scatrte.cc (convergence_flagAbs): Modified iteration counter.
+	After the scattering calculation for the first frequency has converged 
+	it is set to 100. This number indicates then that the iterations 
+	should no longer be printed in (Tensor6WriteIteration).
+
+	* src/m_cloudbox.cc (i_fieldSetClearsky): Initialization of i_field was
+	missing.
+
+	* src/m_scatproperties.cc
+
+	I removed or commented the "cout"s, which we had included for 
+	debugging.
+
 2002-11-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-288
