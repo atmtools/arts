@@ -1,6 +1,15 @@
+2002-03-18  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-28
+
+	* doc/uguide/fm_definitions.tex: Fixed some typos. Added some
+	comments, marked by SAB.
+
+	* doc/uguide/.cvsignore: Added uguide_pdf.idx.
+
 2002-03-18  Patrick Eriksson  <patrick@rss.chalmers.se>
 
-	* arts-1-1-26
+	* arts-1-1-27
 
 	* doc/uguide/fm_definitions.tex: More text written. Started on sensor 
 	description.

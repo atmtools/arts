@@ -649,7 +649,7 @@ void define_wsv_data()
     (WsvRecord
      ("main_agenda",
       "The agenda corresponding to the entire controlfile. This is executed\n"
-      "when ARTS is run.\n",
+      "when ARTS is run.",
       Agenda_));
 
 }

@@ -81,7 +81,49 @@ and square braces for giving the size:
   \Alt \SzeSmb [\aVctLng{\Lon},\aVctLng{\Lat},\aVctLng{\Prs}]
 \end{equation}
 (is the \SzeSmb\ the correct symbol to use here?)? To not confuse
-ourselves, we should use the same dimension order as inside ARTS, or?  *]
+ourselves, we should use the same dimension order as inside ARTS, or? 
+
+SAB: Ok to the round an square braces. How about 1-based / 0-based
+indexing? Would it be possible to use 0-based also in the text. Would
+be less confusing.
+
+Certainly yes to take care that the dimension order is the same in
+Program and Uguide. Hm, maybe there is still need for discussion here,
+see remark in the text, marked by (*). I think if we have an object of
+type (a,b,c), it will be very confusing to speak of 'c' as the first
+dimension. This is true neither for program, nor for documentation,
+'a' comes first! But 'a' is the *outermost* dimension here.
+
+Should we avoid numbers and speak of the page dimension, row
+dimension, and column dimension in this case? 
+
+(**) Another thing: I find the ordering of the spatial dimensions just
+confusing. (Don't kill me.) If the dimensions are fixed, the order is
+really arbitrary, pure definition.  What if we overthrow our old
+decision and make the order:
+
+\begin{verbatim}
+Dimemensions of some important variables:
+
+Position: p, alpha, beta, as needed.
+
+Atmospheric fields (like t_field): Tensor3(p,alpha,beta)
+
+Grids: p_grid, alpha_grid, beta_grid
+
+Radiation field:  (p,lat,lon,phi,omega,f,S)
+(Scalar 1-d case: (p,  1,  1,phi,    1,f,1))
+(That's a one there, f is frequency, S is the index of the Stokes
+component (0-3).)
+
+To define a line of sight: Vector(5)(p,lat,lon,phi,omega)
+\end{verbatim}
+
+I find this somewhat more intuitive, and it has the advantage that for
+sensor\_pos and sensor\_los you can give just the required number of
+columns, starting with p or phi. (See also remark there.)
+
+*]
 
 
 
@@ -99,7 +141,8 @@ degree of complexity, the \qindex{atmospheric dimensionality}. There
 exist three levels for the complexity of the atmosphere, 1D, 2D and
 3D, where 1D and 2D can be treated as special cases of 3D. The
 significance of these different atmospheric dimensionalities [* does
-this form of the word exist? *], and the coordinate systems used, are
+this form of the word exist? SAB: I don't know a better word, so leave
+it. *], and the coordinate systems used, are
 here described.
 
 \leveld{\qindex{3D}} In this, the most general, case, the
@@ -112,10 +155,12 @@ the way to specify the radial position differs depending on the
 context, which is described in Section~\ref{sec:fm_defs:altitudes}.
 The valid range for latitudes goes from -90\degree to +90\degree,
 where +90\degree corresponds to the North pole etc. Longitudes are
-counted from th Greenwich meridian with positive values towards the
+counted from the Greenwich meridian with positive values towards the
 east. The meridian at the Greenwich antipode has longitude +180\degree
 and longitudes smaller or equal to -180\degree are not allowed. The
-poles are considered to be placed at longitude 0\degree.
+poles are considered to be placed at longitude 0\degree. [* SAB: I
+don't understand this last sentence. Aren't the poles at all
+longitudes? *]
 
 \leveld{\qindex{1D}} A 1D atmosphere can be described as being
 spherically symmetric. The term 1D is used here for simplicity and
@@ -126,16 +171,16 @@ but they have no latitude and longitude variation. This means that,
 for example, atmospheric fields vary only as a function of altitude
 and the ground constitutes the surface of a sphere. The radial
 coordinate is accordingly sufficient when dealing with atmospheric
-quantities, but the angular distance between the sensor and the a
-point along the propagation path can be of interest, for example when
+quantities, but the angular distance between the sensor and a point
+along the propagation path can be of interest, for example when
 determining the cross-link between two satellites (a fact that shows
 that this is not a true 1D case). A polar coordinate system is for
 this reason used when describing propagation paths, where the
 coordinate additional to the radius gives the angular distance inside
-the viewing plane between the sensor and the point of interest
-(see further Section~[**]).  This latter coordinate system coincides
-with the one used for 2D where the sensor position is set to be the
-zero point for latitude. A 1D atmosphere is shown in
+the viewing plane between the sensor and the point of interest (see
+further Section~[**]).  This latter coordinate system coincides with
+the one used for 2D where the sensor position is set to be the zero
+point for latitude. A 1D atmosphere is shown in
 Figure~\ref{fig:fm_defs:1d}.
 
 \leveld{\qindex{2D}} In contrast to the 1D and 3D cases, a 2D
@@ -145,12 +190,13 @@ and an angular coordinate, is used. The 2D case is most likely used
 for satellite measurements where the atmosphere is observed inside the
 orbit plane. The angular coordinate corresponds then to the angular
 distance along the satellite track [* is this a clear description?
-*], but the coordinate is for simplicity denoted as the latitude. The
-zero point for the 2D latitude is arbitrary. No lower and upper limit
-exists for the 2D latitude, and this allows that measurements from
-several subsequent orbits can be simulated as one unit. The atmosphere
-is treated to be undefined outside the considered plane. A 2D
-atmosphere is shown in Figure~\ref{fig:fm_defs:2d}.
+SAB: Yes, I think it is clear. *], but the coordinate is for
+simplicity denoted as the latitude. The zero point for the 2D latitude
+is arbitrary. No lower and upper limit exists for the 2D latitude, and
+this allows that measurements from several subsequent orbits can be
+simulated as one unit. The atmosphere is treated to be undefined
+outside the considered plane. A 2D atmosphere is shown in
+Figure~\ref{fig:fm_defs:2d}.
 
  \begin{figure}[!t]
   \begin{center}
@@ -205,16 +251,36 @@ introduced, and it is defined as
 \end{equation}
 where \aPrsAlt{s} and \aPrs{0} are arbitrary parameters (set in
 \verb|arts.h|), but suitably selected in such way that the pressure
-altitude corresponds roughly with the geometrical altitude. Values
+altitude corresponds roughly with the geometrical altitude. [* Values
 around $\aPrsAlt{s}=1013$~hPa and $\aPrs{0}=15.5$~km are suitable for
-simulations dealing with the Earth's atmosphere. 
+simulations dealing with the Earth's atmosphere. SAB: P0 and pzs are
+mixed up above. Also, why not mention that pzs is the scale height?
+Suggested new version:
+
+The two parameters correspond to the scale height and the surface
+pressure, respectively. Values around $\aPrsAlt{s}=15.5$~km and
+$\aPrs{0}=1013$~hPa are suitable for simulations dealing with the
+Earth's atmosphere.
+
+*]
 
 [* According to what I have written, \verb|p_grid| is in pressure.
 The question is if we shall have a parallel variable for the pressure
 altitude, or if we shall make a repeated conversion of \verb|p_grid|
 when needed? My guess is that it is not necessary to make this
 conversion many times, partly as the interpolation weights are
-pre-calculated by my index positions. What do you say? *]
+pre-calculated by my index positions. What do you say? 
+
+SAB: I fear that having two vertical variables that are alternatively
+used would be a source of confusion and bugs. We should decide on one
+of the two. Methods needing the other one should make an internal
+conversion. I have no strong opinion which one is better. Pressure
+seems more straight forward, though.
+
+If I understand what you wrote correctly, you suggest that p\_grid
+should be the vertical variable, and pz\_grid calculated only when
+needed. If this is feasible without high cost, I think it is the best
+solution.  *]
 
 \leveld{Radius \index{radius}} Beside pressure, geometrical altitudes
 are needed to determine the propagation path through the atmosphere
@@ -266,20 +332,61 @@ longitude grid (\verb|beta_grid|) must also be specified. Valid ranges
 for latitude and longitude values are given in
 Section~\ref{sec:fm_defs:atmdim}.  The atmosphere is treated to be
 undefined outside the latitude and longitude ranges covered by the
-grids. This results in that a propagation path are not allowed to
+grids. This results in that a propagation path is not allowed to
 cross a latitude or longitude end face of the atmosphere, it can only
 enter or leave the atmosphere through the top of the atmosphere (the
 uppermost pressure level). See further Section~\ref{sec:fm_defs:rte}.
 The volume (or area for 2D) covered by the grids is denoted as the
 \qindex{model atmosphere}.
 
-If the latitude and longitude grids are not used for the selected
-atmospheric dimensionality, the latitude grid (for 1D) and the
-longitude grid (for 1D and 2D) are set to be empty, but the when
-dealing with the size of variables the grid length shall be treated to
-be one ($\aVctLng{\Lat}=1$ and/or $\aVctLng{\Lon}=1$). For example,
-the matrix describing the geoid (see Section~\ref{sec:fm_defs:geoid})
-has for 1D the size $[1,1]$.
+If the longitude and latitude grids are not used for the selected
+atmospheric dimensionality, the the longitude grid (for 1D and 2D) and
+also the latitude grid (for 1D) are set to be empty [* SAB: I swapped
+the order in the above two sentences, otherwise I wouldn't understand
+them. Are they now correct? *], but the when dealing with the size of
+variables the grid length shall be treated to be one
+($\aVctLng{\Lat}=1$ and/or $\aVctLng{\Lon}=1$). For example, the
+matrix describing the geoid (see Section~\ref{sec:fm_defs:geoid}) has
+for 1D the size $[1,1]$.
+
+[* SAB: I think you are suggesting that just the existence of alpha\_grid
+and beta\_grid should be considered as the switch to decide which
+dimensionality we have. While this is very elegant, it could be in
+practice confusing for the user. What if she just forgot to specify
+beta\_grid? Or, how should the program behave if beta\_grid is there but
+alpha\_grid not?
+
+Suggestion: Have one WSV define the dimensionality explicitly:
+
+\begin{verbatim}
+  wsv_data.push_back
+    (WsvRecord
+     ("dimension",
+     "The dimensionality of the calculation. For details, see user guide,\n"
+     "Chapter 2. Allowed values:\n"
+     "\n"
+     "1: 1-D\n"
+     "2: 2-D\n"
+     "3: 3-D\n",
+      Index_));
+\end{verbatim}
+      
+All methods dealing with geometry can then verify that the grids
+specified (p\_grid, alpha\_grid, beta\_grid) are consistent with
+the chosen dimensionality.
+
+Actually, maybe we need a similar flag to specify how many Stokes
+components should be used.
+
+\begin{verbatim}
+  wsv_data.push_back
+    (WsvRecord
+     ("polarization",
+     "How many Stokes components are used. Allowed value: 1-4.",
+      Index_));
+\end{verbatim}
+
+What do you think, Patrick? *]
 
 The basic atmospheric quantities are represented by their values at
 each crossing of the involved grids (indicated by thick dots in
@@ -298,19 +405,40 @@ grid boxes, multidimensional linear interpolation is applied (that is,
 bilinear interpolation for 2D etc.). Note especially that this is also
 valid for the field of geometrical altitudes (\verb|z_field|).
 
+[* SAB: Stupid question: How does bilinear interpolation work
+exactly? Do you first interpolate one coordinate on two grid faces,
+and then the other one between the face values? Does the order make a
+difference? And how is this in 3-D? Maybe we can talk about it on the
+phone. *]
+
+[* SAB: I think it would be important to explicitly specify the
+structure of the field variables here. For example:
+
+Fields are rank-3 tensors, for example \verb|z_field| has the
+dimensions $[n_\beta,n_\alpha,n_P]$. FIXME: Re-sort, if we decide to
+change the order! That means each field is like a book, with one page
+for each longitude grid point, one row for each latitude grid point,
+and one column for each pressure grid point. In the 1-D case there is
+just one page with a single row of text.
+
+I think the order p, alpha, beta would be better, see remark (**) at the
+beginning.
+
+*]
+
 
 \levelc{The geoid and the ground}
 %===================
 \label{sec:fm_defs:geoid}
 
-The geoid, \aRds{\odot}, is an imagery surface used as a reference
-surface when specifying the ground altitude and the altitude of
-pressure surfaces. Any shape of the geoid is allowed but a smoothly
-varying geoid is the natural choice, with the centres of the geoid and
-the coordinate system coinciding. The geoid should normally be set to
-the reference ellipsoid for some global geodetic datum, such as
-WGS-84. For further reading on geoid ellipsoids and WGS-84, see
-Section~\ref{sec:ppath:geoid}.
+The geoid, \aRds{\odot}, is an imagery [* SAB: do you mean imaginary?
+*] surface used as a reference surface when specifying the ground
+altitude and the altitude of pressure surfaces. Any shape of the geoid
+is allowed but a smoothly varying geoid is the natural choice, with
+the centres of the geoid and the coordinate system coinciding. The
+geoid should normally be set to the reference ellipsoid for some
+global geodetic datum, such as WGS-84. For further reading on geoid
+ellipsoids and WGS-84, see Section~\ref{sec:ppath:geoid}.
 
 Inside ARTS, the geoid is represented as a matrix (\verb|r_geoid|),
 holding the geoid radius for each crossing of the latitude and
@@ -362,7 +490,9 @@ be a gap between the ground and the cloud box, paths leaving the cloud
 box in the nadir direction would re-enter the cloud box after a
 reflection in the ground. [* I just realized that with a tilted ground
 surface it is possible that a path bounces back into the cloud box.
-What shall we do with this? *]
+What shall we do with this? SAB: I would just mention here that this
+case is ignored. :-) Or better, mention this after the next paragraph,
+because otherwise the reader will not understand the problem. *]
 
 Beside the lower vertical limit, the cloud box is defined to be
 rectangular in the used coordinate system, with limits exactly at
@@ -388,7 +518,7 @@ workspace variables for the sensor that always must be specified are
 \verb|sensor_pos|, \verb|sensor_los|, \verb|antenna_psi_grid| and
 \verb|Ha|. These variables are presented below, where they are first
 discussed individually and then later together when it is described
-how different measurement sequences are modelled in most practical
+how different measurement sequences are modelled in the most practical
 way. Remaining sensor workspace variables are described last in this
 section.
 
@@ -401,12 +531,27 @@ The observation positions of the sensor are stored in
 \verb|sensor_pos|. This is a matrix where each row corresponds to a
 sensor position. The number of columns in the matrix equals the
 atmospheric dimensionality (1 column for 1D etc.). The columns of the
-matrix (from first to last) are radius, latitude and longitude.
+matrix (from first to last) are radius, latitude and longitude. 
+
+[*
+SAB: (*) Why do you give the columns backward? Is this an accident or a
+misunderstanding? The only thing that is `backward' about Tensors, is
+that new higher dimensions are added at the beginning, which is quite
+natural (think of a book containing pages containing rows containing
+columns). I think longitude should be first here. 
+
+Or better, we should change the order of the dimensions in the fields,
+see remark at the beginning, then your sentence would be correct.
+
+*]
+
+
+
 Accordingly, row $i$ of \verb|sensor_pos| for a 3D case is
 $(\aLon{i},\aLat{i},\aRds{i})$. The sensor position can be set to any
-values, but the resulting propagation paths (also dependent on
+value, but the resulting propagation paths (also dependent on
 \verb|sensor_los|) must be valid with respect to the model atmosphere
-(see Section~\ref{sec:fm_defs:rte}). An obvious incorrect choice is to
+(see Section~\ref{sec:fm_defs:rte}). An obviously incorrect choice is to
 place the senor below the ground altitude.
 
 The fact that the sensor position can be given any value results in
@@ -475,6 +620,8 @@ for 3D a row $i$ of the matrix is $(\aAzmAng{i},\aZntAng{i})$. The
 number of rows for \verb|sensor_los| must be the same as for
 \verb|sensor_pos|.
 
+[* SAB: Again, I think it is confusing, if the order of the columns is
+oposite from the indices of the matrix it refers to. *]
 
 \levelc{Sensor polarisation \index{sensor polarisation}}
 %===================
@@ -483,7 +630,8 @@ number of rows for \verb|sensor_los| must be the same as for
 [* How shall this be handled? *]
 
 
-\levelc{Sensor characteristics \index{sensor characteristics} and \qindex{data reduction}} 
+\levelc{Sensor characteristics \index{sensor characteristics} and
+  \qindex{data reduction}}  
 %===================
 \label{sec:fm_defs:sensorchar}
 
