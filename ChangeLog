@@ -1,3 +1,27 @@
+2004-07-16  Cory Davis (rsh)   <cory@fog>
+
+	* arts-1-1-846
+
+	* src/montecarlo.cc (opt_propCalc): Returns the extinction matrix
+	and absorption coefficient vector from scat_data_mon given local
+	temperature, a vector of pnd values and the propagation
+	direction. Replaced spt_calc_agenda.execute with call to
+	opt_propCalc. This allowed the removal of a few parameters. Also
+	added function opt_propExtract, which gets K and K_abs from a
+	single SingleScatteringData object for given za, aa, and T.  Also
+	added similar functions for the phase matrix
+	*pha_mat_singleExtract* and modified *pha_mat_singleCalc* to call
+	this function.  Added function *interp_scat_angle_temperature*
+	which is called by *pha_mat_singleExtract*.
+
+	All of these functions are very well suited for use
+	by the Monte Carlo algorithm, and have resulted in a significant
+	speedup. Claudia - if you want to use these feel free to shift
+	them to optproperties.cc
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): altered calls to
+	TArrayCalc and removed some parameters.
+
 2004-07-09  Mattias Ekström <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-845

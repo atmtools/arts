@@ -104,10 +104,6 @@ void Cloudbox_ppath_rteCalc(
                              Matrix&               ground_los, 
                              Tensor4&              ground_refl_coeffs,
                              Index&                f_index,
-                             Index&                scat_za_index,
-                             Index&                scat_aa_index,
-                             Tensor3&              ext_mat_spt,
-                             Matrix&               abs_vec_spt,
                              Matrix&               pnd_ppath,
                              const Agenda&         ppath_step_agenda,
                              const Index&          atmosphere_dim,
@@ -121,7 +117,6 @@ void Cloudbox_ppath_rteCalc(
                              const Index&          record_ppathcloud,
                              const Index&          record_ppath,
                              const Agenda&         opt_prop_gas_agenda,
-                             const Agenda&         spt_calc_agenda,
                              const Agenda&         scalar_gas_absorption_agenda,
                              const Index&          stokes_dim,
                              const Tensor3&        t_field,
@@ -132,7 +127,9 @@ void Cloudbox_ppath_rteCalc(
                              const Vector&         f_grid,
                              const Index&          photon_number,
                              const Index&          scattering_order,
-                             const Tensor4&        pnd_field)
+                             const Tensor4&        pnd_field,
+			     const ArrayOfSingleScatteringData& scat_data_mono
+)
 
 {
   // Assign dummies for variables associated with sensor.
@@ -172,13 +169,12 @@ void Cloudbox_ppath_rteCalc(
   
   
   //Calculate array of transmittance matrices
-  TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, scat_za_grid, 
-             scat_aa_grid, ext_mat, abs_vec, rte_pressure, rte_temperature, 
-             rte_vmr_list, scat_za_index, scat_aa_index, ext_mat_spt, 
-             abs_vec_spt, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
-             spt_calc_agenda, scalar_gas_absorption_agenda, stokes_dim, 
+  TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, ext_mat, abs_vec, 
+	     rte_pressure, rte_temperature, 
+             rte_vmr_list, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
+             scalar_gas_absorption_agenda, stokes_dim, 
              p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim,
-             pnd_field);
+             pnd_field,scat_data_mono);
   //Calculate contribution from the boundary of the cloud box
   //changed to dummy_rte_pos to see if rte_pos was causing assertion failure at ppath.cc:1880
   //it appears that this was not the case
@@ -499,6 +495,68 @@ Vector interp( ConstVectorView itw,
   return tia;
 }               
 
+void interp_scat_angle_temperature(//Output:
+				   VectorView pha_mat_int,
+				   Numeric& theta_rad,
+				   //Input:
+				   const SingleScatteringData& scat_data,
+				   const Numeric& za_sca,
+				   const Numeric& aa_sca,
+				   const Numeric& za_inc,
+				   const Numeric& aa_inc,
+				   const Numeric& rte_temperature
+				   )
+{
+  Numeric ANG_TOL=1e-7;
+
+  //Calculate scattering angle from incident and scattered directions.
+  //The two special cases are implemented here to avoid NaNs that can 
+  //sometimes occur in in the acos... formula in forward and backscatter
+  //cases. CPD 5/10/03.
+  
+  if(abs(aa_sca-aa_inc)<ANG_TOL)
+    {
+      theta_rad=DEG2RAD*abs(za_sca-za_inc);
+    }
+  else if (abs(abs(aa_sca-aa_inc)-180)<ANG_TOL)
+    {
+      theta_rad=DEG2RAD*(za_sca+za_inc);
+      if (theta_rad>PI){theta_rad=2*PI-theta_rad;}
+    }
+  else
+    {
+      const Numeric za_sca_rad = za_sca * DEG2RAD;
+      const Numeric za_inc_rad = za_inc * DEG2RAD;
+      const Numeric aa_sca_rad = aa_sca * DEG2RAD;
+      const Numeric aa_inc_rad = aa_inc * DEG2RAD;
+      
+      // cout << "Interpolation on scattering angle" << endl;
+      assert (scat_data.pha_mat_data.ncols() == 6);
+      // Calculation of the scattering angle:
+      theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
+                       sin(za_sca_rad) * sin(za_inc_rad) * 
+                       cos(aa_sca_rad - aa_inc_rad));
+   }
+      const Numeric theta = RAD2DEG * theta_rad;
+      
+  // Interpolation of the data on the scattering angle:
+ 
+  GridPos thet_gp;
+  gridpos(thet_gp, scat_data.za_grid, theta);
+  GridPos t_gp;
+  gridpos(t_gp, scat_data.T_grid, rte_temperature);
+          
+  Vector itw(4);
+  interpweights(itw, t_gp,thet_gp);
+
+  for (Index i = 0; i < 6; i++)
+    {
+      pha_mat_int[i] = interp(itw, scat_data.pha_mat_data(0,joker,joker, 0, 0, 0, i), 
+                              t_gp,thet_gp);
+    }
+} 
+
+
 
 //! interpTarray
 
@@ -629,7 +687,7 @@ bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono)
 
 /*!
    Gets incoming radiance at the cloud box boundary in a single propagation 
-direction, determined by the cloudboz Ppath 'pptahcloud'. 
+direction, determined by the cloudbox Ppath 'pptahcloud'. 
 Used in ScatteringMonteCarlo.  
 
    \author Cory Davis
@@ -710,6 +768,221 @@ void montecarloGetIncoming(
 }
 
 
+//! opt_propCalc
+/*!
+Returns the extinction matrix and absorption vector due to scattering particles
+from scat_data_mono
+
+   \param K               Output: extinction matrix
+   \param K_abs           Output: absorption coefficient vector
+   \param za              zenith angle of propagation direction
+   \param aa              azimuthal angle of propagation
+   \param scat_data_mono  workspace variable
+   \params stokes_dim     workspace variable
+   \param pnd_vec         vector pf particle number densities (one element per particle type)
+   \param rte_temperature loacl temperature (workspace variable)
+
+   \author Cory Davis
+   \date   2004-7-16
+*/
+
+void opt_propCalc(
+		  MatrixView& K,
+		  VectorView& K_abs,
+		  const Numeric za,
+		  const Numeric aa,
+		  const ArrayOfSingleScatteringData& scat_data_mono,
+		  const Index&          stokes_dim,
+		  const VectorView& pnd_vec,
+		  const Numeric& rte_temperature
+		  )
+{
+  const Index N_pt = scat_data_mono.nelem();
+
+  if (stokes_dim > 4 || stokes_dim < 1){
+    throw runtime_error("The dimension of the stokes vector \n"
+                         "must be 1,2,3 or 4");
+  }
+  Matrix K_spt(stokes_dim,stokes_dim);
+  Vector K_abs_spt(stokes_dim);
+
+  K=0.0;
+  K_abs=0.0;  
+
+  // Loop over the included particle_types
+  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+    {
+      if (pnd_vec[i_pt]>0)
+	{
+	  opt_propExtract(K_spt,K_abs_spt,scat_data_mono[i_pt],za,aa,
+			  rte_temperature,stokes_dim);
+	  K_spt*=pnd_vec[i_pt];
+	  K_abs_spt*=pnd_vec[i_pt];
+	  K+=K_spt;
+	  K_abs+=K_abs_spt;
+	}
+    }
+
+}
+
+//! Extract K and K_abs from a monochromatic SingleScatteringData object
+/*!
+  Given a monochromatic SingleScatteringData object, propagation directions, 
+  and the temperature, this function returns the extinction matrix and the
+  absorption coefficient vector
+  Output:
+  \param K_spt the extinction matrix (spt: this is for a single particle)
+  \param K_abs_spt the absorption coefficient vector
+  Input:
+  \param scat_data a monochromatic SingleScatteringData object
+  \param za
+  \param aa
+  \param rte_temperature
+  \param stokes_dim
+
+  \author Cory Davis
+  \date 2004-07-16
+
+*/
+
+void opt_propExtract(
+		     MatrixView& K_spt,
+		     VectorView& K_abs_spt,
+		     const SingleScatteringData& scat_data,
+		     const Numeric& za,
+		     const Numeric& aa,
+		     const Numeric& rte_temperature,
+		     const Index& stokes_dim
+		     )
+{
+
+  GridPos t_gp;
+  //interpolate over temperature
+  gridpos(t_gp, scat_data.T_grid, rte_temperature);
+  Numeric x=aa;//just to avoid warnings until we use ptype=10
+  x+=1;        //
+  switch (scat_data.ptype){
+
+  case PTYPE_GENERAL:
+    // This is only included to remove warnings about unused variables 
+    // during compilation
+
+    cout << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    break;
+    
+  case PTYPE_MACROS_ISO:
+    {
+      assert (scat_data.ext_mat_data.ncols() == 1);
+      
+      Vector itw(2);
+      interpweights(itw, t_gp);
+      // In the case of randomly oriented particles the extinction matrix is 
+      // diagonal. The value of each element of the diagonal is the
+      // extinction cross section, which is stored in the database.
+     
+      K_spt = 0.;
+      
+      K_spt(0,0) = interp(itw,scat_data.ext_mat_data(0,joker,0,0,0),t_gp);
+      
+      K_abs_spt = 0;
+
+      K_abs_spt[0] = interp(itw,scat_data.abs_vec_data(0,joker,0,0,0),t_gp);      
+      
+      if( stokes_dim == 1 ){
+        break;
+      }
+      
+      K_spt(1,1) = K_spt(0,0);
+      
+      if( stokes_dim == 2 ){
+        break;
+      }
+      
+      K_spt(2,2) = K_spt(0,0);
+      
+      if( stokes_dim == 3 ){
+        break;
+      }
+      
+      K_spt(3,3) = K_spt(0,0);
+      break;
+    }
+
+  case PTYPE_HORIZ_AL://Added by Cory Davis 9/12/03
+    {
+      assert (scat_data.ext_mat_data.ncols() == 3);
+      
+      // In the case of horizontally oriented particles the extinction matrix
+      // has only 3 independent non-zero elements Kjj, K12=K21, and K34=-K43.
+      // These values are dependent on the zenith angle of propagation. The 
+      // data storage format also makes use of the fact that in this case
+      //K(za_sca)=K(180-za_sca). 
+
+      // 1st interpolate data by za_sca
+      GridPos za_gp;
+      Vector itw(4);
+      Numeric Kjj;
+      Numeric K12;
+      Numeric K34;
+      
+      if (za>90)
+        {
+          gridpos(za_gp,scat_data.za_grid,180-za);
+        }
+      else
+        {
+          gridpos(za_gp,scat_data.za_grid,za);
+        }
+
+      interpweights(itw,t_gp,za_gp);
+      
+      K_spt=0.0;
+      K_abs_spt=0.0;
+      Kjj=interp(itw,scat_data.ext_mat_data(0,joker,joker,0,0),t_gp,za_gp);
+      K_spt(0,0)=Kjj;
+      K_abs_spt[0] = interp(itw,scat_data.abs_vec_data(0,joker,joker,0,0),
+			    t_gp,za_gp);
+      if( stokes_dim == 1 ){
+        break;
+      }
+      
+      K12=interp(itw,scat_data.ext_mat_data(0,joker,joker,0,1),t_gp,za_gp);
+      K_spt(1,1)=Kjj;
+      K_spt(0,1)=K12;
+      K_spt(1,0)=K12;
+      K_abs_spt[1] = interp(itw,scat_data.abs_vec_data(0,joker,joker,0,1),
+			    t_gp,za_gp);
+
+      if( stokes_dim == 2 ){
+        break;
+      }
+      
+      K_spt(2,2)=Kjj;
+      
+      if( stokes_dim == 3 ){
+        break;
+      }
+      
+      K34=interp(itw,scat_data.ext_mat_data(0,joker,joker,0,2),t_gp,za_gp);
+      K_spt(2,3)=K34;
+      K_spt(3,2)=-K34;
+      K_spt(3,3)=Kjj;
+      break;
+
+    }
+  default:
+    cout << "Not all particle type cases are implemented\n";
+    
+  }
+
+
+}
+
+
+
+
+
+
 
 //! pha_mat_singleCalc
 /*!
@@ -721,7 +994,7 @@ void montecarloGetIncoming(
  \param aa_scat         and
  \param za_inc          incident
  \param aa_inc          directions
- \param scat_data_raw   workspace variable
+ \param scat_data_mono   workspace variable
  \param stokes_dim      workspace variable
  \param f_index         workspace variable
  \param f_grid          workspace variable
@@ -736,8 +1009,8 @@ void montecarloGetIncoming(
 
 void pha_mat_singleCalc(
                         MatrixView& Z,                  
-                        Numeric za_scat, 
-                        Numeric aa_scat, 
+                        Numeric za_sca, 
+                        Numeric aa_sca, 
                         Numeric za_inc, 
                         Numeric aa_inc,
                         const ArrayOfSingleScatteringData& scat_data_mono,
@@ -749,70 +1022,208 @@ void pha_mat_singleCalc(
   Index N_pt=pnd_vec.nelem();
 
   assert(aa_inc>=-180 && aa_inc<=180);
-  assert(aa_scat>=-180 && aa_scat<=180);
+  assert(aa_sca>=-180 && aa_sca<=180);
 
-
-
-  Vector scat_za_grid(2);
-  Vector scat_aa_grid(2);
-
-  scat_za_grid[0]=za_inc;
-  scat_za_grid[1]=za_scat;
-
-  scat_aa_grid[0]=aa_inc;
-  scat_aa_grid[1]=aa_scat;
- 
-  Index scat_za_index=1;
-  Index scat_aa_index=1;
-  Index za_inc_idx=0;
-  Index aa_inc_idx=0;
-  Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);
-  GridPos t_gp;
-  Vector itw(2);
+  Matrix Z_spt(stokes_dim, stokes_dim, 0.);
   Z=0.0;
   // this is a loop over the different particle types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
       if (pnd_vec[i_pt]>0)
 	{
-	  //need to interpolated over temperature
-	  Index pha_nshelves = scat_data_mono[i_pt].pha_mat_data.nshelves();  
-	  Index pha_nbooks = scat_data_mono[i_pt].pha_mat_data.nbooks();  
-	  Index pha_npages = scat_data_mono[i_pt].pha_mat_data.npages();  
-	  Index pha_nrows = scat_data_mono[i_pt].pha_mat_data.nrows();  
-	  Index pha_ncols = scat_data_mono[i_pt].pha_mat_data.ncols();  
-	  
-	  Tensor5 pha_mat_data1temp(pha_nshelves,pha_nbooks,pha_npages,pha_nrows,pha_ncols,0.0);
-	  //interpolate over temperature
-	  gridpos(t_gp, scat_data_mono[i_pt].T_grid, rte_temperature);
-	  interpweights(itw, t_gp);
-	  for (Index i_s = 0; i_s < pha_nshelves ; i_s++)
-	    {
-	      for (Index i_b = 0; i_b < pha_nbooks ; i_b++)
-		{
-		  for (Index i_p = 0; i_p < pha_npages ; i_p++)
-		    {
-		      for (Index i_r = 0; i_r < pha_nrows ; i_r++)
-			{
-			  for (Index i_c = 0; i_c < pha_ncols ; i_c++)
-			    {
-			      pha_mat_data1temp(i_s,i_b,i_p,i_r,i_c)=interp(itw,
-				 scat_data_mono[i_pt].pha_mat_data(0,joker,i_s,i_b,i_p,i_r,i_c),t_gp);
-			    }
-			}
-		    }
-		}
-	    }
-	  pha_matTransform(pha_mat_lab,pha_mat_data1temp, 
-			   scat_data_mono[i_pt].za_grid, 
-			   scat_data_mono[i_pt].aa_grid,
-			   scat_data_mono[i_pt].ptype,scat_za_index, scat_aa_index, 
-			   za_inc_idx,aa_inc_idx, scat_za_grid, scat_aa_grid);
-	  pha_mat_lab*=pnd_vec[i_pt];
-	  Z+=pha_mat_lab;
+	  pha_mat_singleExtract(Z_spt,scat_data_mono[i_pt],za_sca,aa_sca,za_inc,
+				aa_inc,rte_temperature,stokes_dim);
+	  Z_spt*=pnd_vec[i_pt];
+	  Z+=Z_spt;
 	}
-        
     }
+}
+
+//! Extract the phase matrix from a monochromatic SingleScatteringData object
+/*!
+  Given a monochromatic SingleScatteringData object, incident and 
+  scattered directions, and the temperature, this function returns the phase
+  matrix in the laboratory frame
+  Output:
+  \param Z the phase matrix
+  Input:
+  \param scat_data a monochromatic SingleScatteringData object
+  \param za_sca 
+  \param aa_sca
+  \param za_inc
+  \param aa_inc
+  \param rte_temperature
+  \param stokes_dim
+
+  \author Cory Davis
+  \date 2004-07-16
+
+*/
+void pha_mat_singleExtract(
+			   MatrixView& Z_spt,
+			   const SingleScatteringData& scat_data,
+			   const Numeric& za_sca,
+			   const Numeric& aa_sca,
+			   const Numeric& za_inc,
+			   const Numeric& aa_inc,
+			   const Numeric& rte_temperature,
+			   const Index& stokes_dim
+			   )			   
+{
+  switch (scat_data.ptype){
+
+  case PTYPE_GENERAL:
+    // to remove warnings during compilation. 
+    cout << "Case PTYPE_GENERAL not yet implemented. \n"; 
+    break;
+    
+  case PTYPE_MACROS_ISO:
+    {
+      // Calculate the scattering and interpolate the data on the scattering
+      // angle:
+      
+      Vector pha_mat_int(6);
+      Numeric theta_rad;
+            
+      // Interpolation of the data on the scattering angle:
+      interp_scat_angle_temperature(pha_mat_int, theta_rad, 
+				    scat_data, za_sca, aa_sca, 
+				    za_inc, aa_inc, rte_temperature);
+      
+      // Caclulate the phase matrix in the laboratory frame:
+      pha_mat_labCalc(Z_spt, pha_mat_int, za_sca, aa_sca, za_inc, aa_inc, theta_rad);
+      
+      break;
+    }
+
+  case PTYPE_HORIZ_AL://Added by Cory Davis
+    //Data is already stored in the laboratory frame, but it is compressed
+    //a little.  Details elsewhere
+    {
+      assert (scat_data.pha_mat_data.ncols()==16);
+      Numeric delta_aa=aa_sca-aa_inc+(aa_sca-aa_inc<-180)*360-
+        (aa_sca-aa_inc>180)*360;//delta_aa corresponds to the "pages" 
+                                //dimension of pha_mat_data
+      GridPos t_gp;
+      GridPos za_sca_gp;
+      GridPos delta_aa_gp;
+      GridPos za_inc_gp;
+      Vector itw(16);
+      gridpos(t_gp, scat_data.T_grid, rte_temperature);
+      gridpos(delta_aa_gp,scat_data.aa_grid,abs(delta_aa));
+      if (za_inc>90)
+        {
+          gridpos(za_inc_gp,scat_data.za_grid,180-za_inc);
+          gridpos(za_sca_gp,scat_data.za_grid,180-za_sca);
+        }
+      else
+        {
+          gridpos(za_inc_gp,scat_data.za_grid,za_inc);
+          gridpos(za_sca_gp,scat_data.za_grid,za_sca);
+        }
+
+      interpweights(itw,t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+
+      Z_spt(0,0)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                               Range(joker),0,0),
+                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+      if( stokes_dim == 1 ){
+        break;
+      }
+      Z_spt(0,1)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                               Range(joker),0,1),
+                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+      Z_spt(1,0)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                               Range(joker),0,4),
+                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+      Z_spt(1,1)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                               Range(joker),0,5),
+                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+      if( stokes_dim == 2 ){
+        break;
+      }
+      if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
+        {
+          Z_spt(0,2)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,2),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(1,2)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,6),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(2,0)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,8),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(2,1)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,9),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+        }
+      else
+        {
+          Z_spt(0,2)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,2),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(1,2)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,6),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(2,0)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,8),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(2,1)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,9),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+        }                             
+      Z_spt(2,2)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                               Range(joker),0,10),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+      if( stokes_dim == 3 ){
+        break;
+      }
+      if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
+        {
+          Z_spt(0,3)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,3),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(1,3)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,7),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(3,0)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,12),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(3,1)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,13),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+        }
+      else
+        {
+          Z_spt(0,3)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,3),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(1,3)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,7),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(3,0)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,12),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+          Z_spt(3,1)=-interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                                   Range(joker),0,13),
+                                  t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+        }
+      Z_spt(2,3)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                               Range(joker),0,11),
+                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+      Z_spt(3,2)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                               Range(joker),0,14),
+                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+      Z_spt(3,3)=interp(itw,scat_data.pha_mat_data(0,joker,Range(joker),Range(joker),
+                                               Range(joker),0,15),
+                              t_gp,za_sca_gp,delta_aa_gp,za_inc_gp);
+      break;
+      
+    }  
+  default:
+    cout << "Not all particle type cases are implemented\n";
+    
+  }
 }
 
 
@@ -1098,22 +1509,15 @@ void TArrayCalc(
                 ArrayOfMatrix& ext_matArray,
                 ArrayOfVector& abs_vecArray,
                 Vector& t_ppath,
-                Vector& scat_za_grid,
-                Vector& scat_aa_grid,
                 Tensor3& ext_mat,
                 Matrix& abs_vec,
                 Numeric&   rte_pressure,
                 Numeric&   rte_temperature,
                 Vector&    rte_vmr_list,
-                Index&    scat_za_index,
-                Index&    scat_aa_index,
-                Tensor3& ext_mat_spt,
-                Matrix& abs_vec_spt,
                 Matrix&  pnd_ppath,
                 //input
                 const Ppath& ppath,
                 const Agenda& opt_prop_gas_agenda,
-                const Agenda& spt_calc_agenda,
                 const Agenda& scalar_gas_absorption_agenda,
                 const Index& stokes_dim,
                 const Vector&    p_grid,
@@ -1122,12 +1526,16 @@ void TArrayCalc(
                 const Tensor3&   t_field,
                 const Tensor4&   vmr_field,
                 const Index&     atmosphere_dim,
-                const Tensor4&   pnd_field
-                )
+                const Tensor4&   pnd_field,
+		const ArrayOfSingleScatteringData& scat_data_mono
+		)
 { 
   const Index np=ppath.np;  
   const Index   ns = vmr_field.nbooks();
   const Index N_pt = pnd_field.nbooks();
+  
+  Vector scat_za_grid(ppath.np);
+  Vector scat_aa_grid(ppath.np);
 
   TArray.resize(np);
   ext_matArray.resize(np); 
@@ -1144,9 +1552,6 @@ void TArrayCalc(
   Vector abs_vec_part(stokes_dim, 0.0);
 
 //use propagation angles from ppath to form scat_za_grid, scat_aa_grid
-  scat_za_grid.resize(ppath.np);
-  scat_aa_grid.resize(ppath.np);//I don't think aa can change along a 
-                                //propagation path              
 
   scat_za_grid=ppath.los(Range(joker),0);
   scat_za_grid*=-1.0;
@@ -1197,9 +1602,9 @@ void TArrayCalc(
 
 
 //Create array of extinction matrices corresponding to each point in ppath
-  for (scat_za_index=0; scat_za_index<ppath.np; scat_za_index++)
+  for (Index scat_za_index=0; scat_za_index<ppath.np; scat_za_index++)
     { 
-      scat_aa_index=scat_za_index;
+      Index scat_aa_index=scat_za_index;
       rte_pressure    = p_ppath[scat_za_index];
       rte_temperature = t_ppath[scat_za_index];
       rte_vmr_list    = vmr_ppath(joker,scat_za_index);
@@ -1212,22 +1617,11 @@ void TArrayCalc(
       //
       //opt_prop_part_agenda.execute( true );
       //use pnd_ppath and ext_mat_spt to get extmat (and similar for abs_vec
-      spt_calc_agenda.execute( true );
-      // this is a loop over the different particle types
-      for (Index l = 0; l < N_pt; l++)
-        { 
-          // now the last two loops over the stokes dimension.
-          for (Index m = 0; m < stokes_dim; m++)
-            {
-              abs_vec_part[m] += (abs_vec_spt(l, m) * pnd_ppath(l, scat_za_index));
-              for (Index n = 0; n < stokes_dim; n++)
-                ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
-                                        pnd_ppath(l, scat_za_index));
-              
-            } 
-        }
+      
+      opt_propCalc(ext_mat_part,abs_vec_part,scat_za_grid[scat_za_index],
+		   scat_aa_grid[scat_aa_index],scat_data_mono,stokes_dim,
+		   pnd_ppath(joker, scat_za_index),rte_temperature);
 
-      //Add particle extinction matrix to *ext_mat*.
       ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
       abs_vec(0,Range(joker)) += abs_vec_part;
 

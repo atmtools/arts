@@ -402,10 +402,6 @@ void ScatteringMonteCarlo (
                            Tensor3&              ext_mat,
                            Matrix&               abs_vec,
                            Index&                f_index,
-                           Index&                scat_za_index,
-                           Index&                scat_aa_index,
-                           Tensor3&              ext_mat_spt,
-                           Matrix&               abs_vec_spt,
                           
                            // WS Input:
                            const Agenda&         ppath_step_agenda,
@@ -426,7 +422,6 @@ void ScatteringMonteCarlo (
                            const Vector&         f_grid,
                            //Stuff needed by TArrayCalc
                            const Agenda& opt_prop_gas_agenda,
-                           const Agenda& spt_calc_agenda,
                            const Agenda& scalar_gas_absorption_agenda,
                            const Tensor4&   vmr_field,
                            //Other Stuff
@@ -523,15 +518,14 @@ void ScatteringMonteCarlo (
                          scat_aa_grid, ext_mat, abs_vec, rte_pressure, 
                          rte_temperature, rte_vmr_list, i_rte, rte_gp_p, 
                          rte_gp_lat, rte_gp_lon, i_space, surface_emission, 
-                         surface_los, surface_refl_coeffs, f_index, scat_za_index, 
-                         scat_aa_index, ext_mat_spt, abs_vec_spt, pnd_ppathLOS, 
+                         surface_los, surface_refl_coeffs, f_index, pnd_ppathLOS, 
                          ppath_step_agenda, atmosphere_dim, 
                          p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                          cloudbox_limits, record_ppathcloud, record_ppath, 
-                         opt_prop_gas_agenda, spt_calc_agenda, 
+                         opt_prop_gas_agenda, 
                          scalar_gas_absorption_agenda, stokes_dim, t_field, 
                          vmr_field, rte_agenda, i_space_agenda, 
-                         surface_agenda, f_grid, 0, 0,pnd_field);
+                         surface_agenda, f_grid, 0, 0,pnd_field,scat_data_mono);
   
 
   mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],i_rte(0,joker));
@@ -572,13 +566,12 @@ void ScatteringMonteCarlo (
               cum_l_stepCalc(cum_l_step,ppathcloud);
   
               //Calculate array of transmittance matrices
-              TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, scat_za_grid, 
-                         scat_aa_grid, ext_mat, abs_vec, rte_pressure, rte_temperature, 
-                         rte_vmr_list, scat_za_index, scat_aa_index, ext_mat_spt, 
-                         abs_vec_spt, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
-                         spt_calc_agenda, scalar_gas_absorption_agenda, stokes_dim, 
+              TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, ext_mat, abs_vec, 
+			 rte_pressure, rte_temperature, 
+                         rte_vmr_list, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
+                         scalar_gas_absorption_agenda, stokes_dim, 
                          p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim,
-                         pnd_field);
+                         pnd_field, scat_data_mono);
 
 
               /////////////////////////////////////////////////////////////////////

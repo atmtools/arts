@@ -51,10 +51,6 @@ void Cloudbox_ppath_rteCalc(
                              Matrix&               surface_los, 
                              Tensor4&              surface_refl_coeffs,
                              Index&                f_index,
-                             Index&                scat_za_index,
-                             Index&                scat_aa_index,
-                             Tensor3&              ext_mat_spt,
-                             Matrix&               abs_vec_spt,
                              Matrix&               pnd_ppath,
                              const Agenda&         ppath_step_agenda,
                              const Index&          atmosphere_dim,
@@ -68,7 +64,6 @@ void Cloudbox_ppath_rteCalc(
                              const Index&          record_ppathcloud,
                              const Index&          record_ppath,
                              const Agenda&         opt_prop_gas_agenda,
-                             const Agenda&         opt_prop_part_agenda,
                              const Agenda&         scalar_gas_absorption_agenda,
                              const Index&          stokes_dim,
                              const Tensor3&        t_field,
@@ -79,7 +74,9 @@ void Cloudbox_ppath_rteCalc(
                              const Vector&         f_grid,
                              const Index&          photon_number,
                              const Index&          scattering_order,
-                             const Tensor4&        pnd_field);
+                             const Tensor4&        pnd_field,
+			     const ArrayOfSingleScatteringData& scat_data_mono
+);
 
 
 void cloudbox_ppath_start_stepping(
@@ -110,6 +107,18 @@ Matrix interp( ConstVectorView itw,
 Vector interp( ConstVectorView itw,
                 ArrayOfVector a,    
                const GridPos&  tc );
+
+void interp_scat_angle_temperature(//Output:
+				   VectorView pha_mat_int,
+				   Numeric& theta_rad,
+				   //Input:
+				   const SingleScatteringData& scat_data,
+				   const Numeric& za_sca,
+				   const Numeric& aa_sca,
+				   const Numeric& za_inc,
+				   const Numeric& aa_inc,
+				   const Numeric& rte_temperature
+				   );
 
 void interpTArray(Matrix& T,
                   Vector& Kabs,
@@ -165,10 +174,31 @@ void montecarloGetIncoming(
                            const Index&          stokes_dim
                            );
 
+void opt_propCalc(
+		  MatrixView& K,
+		  VectorView& K_abs,
+		  const Numeric za,
+		  const Numeric aa,
+		  const ArrayOfSingleScatteringData& scat_data_mono,
+		  const Index&          stokes_dim,
+		  const VectorView& pnd_vec,
+		  const Numeric& rte_temperature
+		  );
+
+void opt_propExtract(
+		     MatrixView& K_spt,
+		     VectorView& K_abs_spt,
+		     const SingleScatteringData& scat_data,
+		     const Numeric& za,
+		     const Numeric& aa,
+		     const Numeric& rte_temperature,
+		     const Index& stokes_dim
+		     );
+
 void pha_mat_singleCalc(
                         MatrixView& Z,                  
-                        Numeric za_scat, 
-                        Numeric aa_scat, 
+                        Numeric za_sca, 
+                        Numeric aa_sca, 
                         Numeric za_inc, 
                         Numeric aa_inc,
                         const ArrayOfSingleScatteringData& scat_data_mono,
@@ -176,6 +206,17 @@ void pha_mat_singleCalc(
                         const VectorView& pnd_vec,
 			const Numeric& rte_temperature
                         );
+
+void pha_mat_singleExtract(
+			   MatrixView& Z_spt,
+			   const SingleScatteringData& scat_data,
+			   const Numeric& za_sca,
+			   const Numeric& aa_sca,
+			   const Numeric& za_inc,
+			   const Numeric& aa_inc,
+			   const Numeric& rte_temperature,
+			   const Index& stokes_dim
+			   );
 
 void ppathRecordMC(
                    const Ppath& ppath,
@@ -223,22 +264,15 @@ void TArrayCalc(
                 ArrayOfMatrix& ext_matArray,
                 ArrayOfVector& abs_vecArray,
                 Vector& t_ppath,
-                Vector& scat_za_grid,
-                Vector& scat_aa_grid,
                 Tensor3& ext_mat,
                 Matrix& abs_vec,
                 Numeric&   rte_pressure,
                 Numeric&   rte_temperature,
                 Vector&    rte_vmr_list,
-                Index&    scat_za_index,
-                Index&    scat_aa_index,
-                Tensor3& ext_mat_spt,
-                Matrix& abs_vec_spt,
                 Matrix&  pnd_ppath,
                 //input
                 const Ppath& ppath,
                 const Agenda& opt_prop_gas_agenda,
-                const Agenda& spt_calc_agenda,
                 const Agenda& scalar_gas_absorption_agenda,
                 const Index& stokes_dim,
                 const Vector&    p_grid,
@@ -247,7 +281,8 @@ void TArrayCalc(
                 const Tensor3&   t_field,
                 const Tensor4&   vmr_field,
                 const Index&     atmosphere_dim,
-                const Tensor4&   pnd_field
+                const Tensor4&   pnd_field,
+		const ArrayOfSingleScatteringData& scat_data_mono
                 );
 
 #endif  // montecarlo_h
