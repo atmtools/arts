@@ -2382,6 +2382,196 @@ void CKD_mt_foreign_h2o( MatrixView          xsec,
 
 // =================================================================================
 
+// CKD version 2.4.1 CO2 continuum absorption model
+/**
+
+   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+                            CO2 continuum according to CKD_MT 1.00   [1/m]
+   \param    Cin            strength scaling factor                          [1]
+   \param    model          allows user defined input parameter set 
+                            (Cin)<br> 
+                            or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid            [Hz]
+   \param    p_abs          predefined pressure grid             [Pa]
+   \param    t_abs          predefined temperature grid          [K] 
+   \param    vmr            CO2 volume mixing ratio profile      [1]
+   \param    h2o_abs        H2O volume mixing ratio profile      [1]
+
+   \note     http://www.rtweb.aer.com/continuum_frame.html<br>
+             Atmospheric and Environmental Research Inc. (AER),<br> 
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421<br>
+             USA<br>
+
+   \author Thomas Kuhn
+   \date 2002-28-08
+ */ 
+void CKD_241_co2( MatrixView         xsec,
+		 const Numeric       Cin,
+		 const String&       model,
+		 ConstVectorView     f_mono,
+		 ConstVectorView     p_abs,
+		 ConstVectorView     t_abs,
+		 ConstVectorView     vmr,
+                 ConstVectorView     h2o_abs)
+{
+
+  // scaling factor of the CO2 absorption
+  Numeric  ScalingFac = 0.0000e0;
+  if ( model == "user" )
+    {
+      ScalingFac = Cin; // input scaling factor of calculated absorption
+    }
+  else
+    {
+      ScalingFac = 1.0000e0;
+    }
+
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
+
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+
+  // ************************** CKD stuff ************************************
+
+  const Numeric xLosmt = 2.686763e19; // [molecules/cm^3]
+  const Numeric T1     =  273.0e0;
+  const Numeric TO     =  296.0e0;
+  const Numeric PO     = 1013.0e0;
+
+  // wavenumber range where CKD CO2 continuum is valid
+  const Numeric VABS_min = -2.000e1; // [cm^-1]
+  const Numeric VABS_max =  1.000e4; // [cm^-1]
+
+
+  // It is assumed here that f_mono is monotonically increasing with index!
+  // In future change this return into a change of the loop over
+  // the frequency f_mono. n_f_new < n_f
+  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
+       (V2ABS < VABS_min) || (V2ABS > VABS_max) )
+    {
+      out3  << "WARNING:\n"
+            << "  CKDv2.4.1 CO2 continuum:\n"
+	    << "  input frequency vector exceeds range of model validity\n"
+	    << "  " << FCO2_ckd_mt_100_v1 << "<->" << FCO2_ckd_mt_100_v2 << "cm^-1\n";
+    }
+
+
+  // ---------------------- subroutine FRNCO2 ------------------------------
+
+  // retrieve the appropriate array sequence of the CO2 continuum
+  // arrays of the CKD model.
+  Numeric DVC = FCO2_ckd_mt_100_dv;
+  Numeric V1C = V1ABS - DVC;
+  Numeric V2C = V2ABS + DVC;
+  
+  int I1 = (int) ((V1C-FCO2_ckd_mt_100_v1) / FCO2_ckd_mt_100_dv);
+  if (V1C < FCO2_ckd_mt_100_v1) I1 = -1;
+  V1C = FCO2_ckd_mt_100_v1 + (FCO2_ckd_mt_100_dv * (Numeric)I1);
+
+  int I2 = (int) ((V2C-FCO2_ckd_mt_100_v1) / FCO2_ckd_mt_100_dv);
+
+  int NPTC = I2-I1+3;
+  if (NPTC > FCO2_ckd_mt_100_npt) NPTC = FCO2_ckd_mt_100_npt+1;
+
+  V2C = V1C + FCO2_ckd_mt_100_dv * (Numeric)(NPTC-1);  
+  
+  if (NPTC < 1)
+    {
+      out3 << "WARNING:\n"  
+	   << "  CKDv2.4.1 CO2 continuum:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.";
+      return;
+    }
+
+  Numeric FCO2T0[NPTC+addF77fields]; // [cm^3/molecules]
+
+  for (Index J = 1 ; J <= NPTC ; ++J)
+    {
+      Index I = I1+J;
+      if ( (I < 1) || (I > FCO2_ckd_mt_100_npt) ) 
+	{
+	  FCO2T0[J] = 0.0e0;
+	}
+      else
+	{
+	  FCO2T0[J] = FCO2_ckd_mt_100[I];
+	}
+    }
+
+  // ---------------------- subroutine FRNCO2 ------------------------------
+  
+  
+
+
+  // Loop pressure/temperature:
+  for ( Index i = 0 ; i < n_p ; ++i )
+    {
+      Numeric Tave   = t_abs[i];                               // [K]
+      Numeric p      = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric vmrh2o = h2o_abs[i];                             // [1]
+      Numeric vmrco2 = vmr[i];                                 // [1]
+      Numeric pco2   = vmrco2 * p;                             // [hPa]
+      Numeric Rhoave = (p/PO) * (TO/Tave);                     // [hPa]
+      Numeric WTOT   = xLosmt * (p/PO) * (T1/Tave);            // [molecules/cm^2]
+      Numeric WW     = WTOT / (1.000e0 + vmrh2o);              // [molecules/cm^2]
+      Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
+      
+
+      // Molecular cross section calculated by CKD.
+      // The cross sectionis calculated on the predefined 
+      // CKD wavenumber grid.
+      Numeric k[NPTC+addF77fields]; // [1/cm]
+      k[0] = 0.00e0; // not used array field
+      for (Index J = 1 ; J <= NPTC ; ++J)
+	{
+	  Numeric VJ   = V1C + (DVC * (Numeric)(J-1)); 
+	  Numeric FCO2 = FCO2T0[J];
+
+	  // CKD cross section without radiative field
+	  k[J] = WW * Rhoave * (FCO2*1.000e-20); // [1]
+
+	}
+      
+
+      // Loop input frequency array. The previously calculated cross section 
+      // has therefore to be interpolated on the input frequencies.
+      for ( Index s = 0 ; s < n_f ; ++s )
+	{
+	  // calculate the associated wave number (= 1/wavelength)
+	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  if ( (V > 0.000e0) && (V < FCO2_ckd_mt_100_v2) )
+	    {
+	      // arts cross section [1/m]
+	      // interpolate the k vector on the f_mono grid
+	      //	      cout << " V1C=" << V1C << " V2C=" << V2C << " DVC=" << DVC << " V=" << V << "\n";
+	      //              cout << " lower end of k=" << 1  << " upper end of k=" << NPTC << "\n";
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
+	    }
+	}
+    }
+  
+}
+
+
+// =================================================================================
+
+
 // CKD version MT 1.00 CO2 continuum absorption model
 /**
 
@@ -2576,7 +2766,6 @@ void CKD_mt_co2( MatrixView          xsec,
 
 
 // =================================================================================
-
 // CKD version MT 1.00 N2-N2 collision induced absorption (rotational band)
 // Model reference:
 //  Borysow, A, and L. Frommhold, 
@@ -10479,6 +10668,74 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	}
     }  
   // ============= CO2 continuum ========================================================
+  else if ( "CO2-CKD241"==name )
+    {
+      // data information about this continuum: 
+      // CKDv2.4.1 model at http://www.rtweb.aer.com/continuum_frame.html
+      // This continuum accounts for the far wings of the many COS lines/bands since
+      // the line is used with a cutoff in the line shape with +/- 25 cm^-1.
+      //
+      // specific continuum parameters and units:
+      //  OUTPUT 
+      //     xsec          : [1/m],
+      //  INPUT	
+      //     parameters[0] : continuum strength coefficient [1/m * 1/(Hz*Pa)²]
+      //     parameters[1] : continuum temperature exponent  [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     vmr           : [1]
+      //     h2o_abs       : [1]
+      //
+      const int Nparam = 1;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Continuum model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  CKD_241_co2( xsec,
+		      parameters[0], // abs. scaling
+		      model,
+		      f_mono,
+		      p_abs,
+		      t_abs,
+		      vmr,
+		      h2o_abs );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Continuum model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Continuum model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  CKD_241_co2( xsec,
+		      0.00,
+		      model,
+		      f_mono,
+		      p_abs,
+		      t_abs,
+		      vmr,
+		      h2o_abs);
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "ERROR: Continuum model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters. " << "\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 3.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "CO2-CKDMT100"==name )
     {
       // data information about this continuum: 
@@ -14518,8 +14775,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.14 $ */
-/*     created:	        $Date: 2003/10/09 08:57:21 $ */
+/*     revision:	        $Revision: 1.26.2.15 $ */
+/*     created:	        $Date: 2003/10/23 15:07:42 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

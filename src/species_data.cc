@@ -231,6 +231,7 @@ void define_basic_species_data()
          REC( "637"     ,8.24623E-06   ,45.997400    ,26     ,26     ,TAGS() ),
          REC( "828"     ,3.95734E-06   ,47.998322    ,27     ,27     ,TAGS() ),
          REC( "728"     ,1.47180E-06   ,46.998291    ,28     ,28     ,TAGS() ),
+	 REC( "CKD241"           ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
 	 REC( "CKDMT100"         ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
          REC( "SelfContPWR93"    ,-1.    ,-1.    ,-1     ,-1     ,TAGS()),
          REC( "ForeignContPWR93" ,-1.    ,-1.    ,-1     ,-1     ,TAGS())

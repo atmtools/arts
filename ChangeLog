@@ -1,3 +1,13 @@
+2003-10-23  Thomas Kuhn <tkuhn@uni-bremen.de>
+
+	* arts-1-0-133
+
+	* src/continua.cc (CKD_241_co2): implementation of CKDv2.4.1 CO2
+	continuum absorption. This CKD CO2 continuum is the same as 
+	CKD_MT_1.00 with the only exception of the missing increase by a
+	factor of 7 in the frequency interval 500 to 900 cm^-1. The
+	corresponding tag name of the CKDv2.4.1 CO2 cont. abs. is 'CO2-CKD241'.
+
 2003-10-09  Thomas Kuhn <tkuhn@uni-bremen.de>
 
 	* arts-1-0-132
