@@ -42,6 +42,7 @@
 #include "math_funcs.h"
 #include "logic.h"
 extern const Numeric DEG2RAD;
+extern const Numeric PI;
 
 
 
@@ -273,6 +274,42 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
   //cout<<res<<"\n";
   return res;
 }
+
+
+//! AngIntegrate_trapezoid
+/*! 
+    Performs an integration of a matrix over all directions defined in angular
+    grids using the trapezoidal integration method.
+    The integrand is independant of the azimuth angle. The integration over
+    the azimuth angle gives a 2*PI
+
+    \param Integrand The vector to be integrated
+    \param za_grid Input : The zenith angle grid 
+
+    \author Claas Teichmann
+    \date   2003-05-13
+    
+    \return The resulting integral
+*/
+Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
+                               ConstVectorView za_grid)
+{
+
+  Index n = za_grid.nelem();
+  assert (is_size(Integrand, n));
+  
+  Numeric res = 0.0;
+  for (Index i = 0; i < n - 1; ++i)
+    {
+      // in this place 0.5 * 2 * PI is calculated:
+      res += PI * DEG2RAD * (Integrand[i] + Integrand[i + 1]) * 
+        (za_grid[i + 1] - za_grid[i]) * sin(za_grid[i] * DEG2RAD);
+    }
+  
+  //cout<<res<<"\n";
+  return res;
+}
+
 
 
 

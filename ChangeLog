@@ -1,3 +1,8 @@
+2003-05-13  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
+
+	* src/math_funcs.cc (AngIntegrate_trapezoid): added function with
+	integration over azimuth angle allready calculated: gives a 2*PI
+
 2003-05-13  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-539
