@@ -9,9 +9,9 @@
 
 artsdocdir = $(pkgdatadir)/doc
 
-thisdocdir = $(artsdocdir)/examples
+examplesdocdir = $(artsdocdir)/examples
 
-thisdoc_DATA = 
+arts_examples = \
 	example1.arts \
 	full.arts \
 	h2o.arts \
@@ -19,5 +19,16 @@ thisdoc_DATA =
 	h2o.f_mono.am \
 	h2o.t_abs.am
 
-EXTRA_DIST   = $(thisdoc_DATA)
+artsdata_examples_in = \
+	auto_full.arts.in
 
+artsdata_examples = \
+	auto_full.arts
+
+if ARTS_DATA_PATH
+examplesdoc_DATA = $(arts_examples) $(artsdata_examples)
+else
+examplesdoc_DATA = $(arts_examples)
+endif
+
+EXTRA_DIST   = $(arts_examples) $(artsdata_examples_in)
