@@ -1,3 +1,12 @@
+2001-01-18  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-108
+
+	* m_abs.cc: Fixed bug in the continuum switch in
+	xsec_per_tgCalc(). Also renamed xsec_per_tgCalc() from previous
+	name xsec_per_tgCal().
+	
+
 2001-01-18  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-107

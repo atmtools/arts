@@ -915,7 +915,7 @@ void absCalc(// WS Output:
   // allocate local variable to hold the cross sections per tag group
   ARRAYofMATRIX xsec_per_tg;
 
-  xsec_per_tgCal( xsec_per_tg,
+  xsec_per_tgCalc( xsec_per_tg,
 		  tag_groups,
 		  f_mono,
 		  p_abs,
@@ -1031,7 +1031,7 @@ void absCalcFromXsec(// WS Output:
    \author Stefan Bühler and Axel von Engeln
    \date   2001-01-11
 */
-void xsec_per_tgCal(// WS Output:
+void xsec_per_tgCalc(// WS Output:
 		    ARRAYofMATRIX& 		     xsec_per_tg,
 		    // WS Input:		  
 		    const TagGroups&                 tag_groups,
@@ -1118,40 +1118,52 @@ void xsec_per_tgCal(// WS Output:
 	// are continuum tags:  
 	for ( size_t s=0; s<tag_groups[i].size(); ++s )
 	  {
-	    // The if clause below checks whether the abundance of this tag
-	    // is negative. (Negative abundance marks continuum tags.)
-	    // It does the following:
-	    //
-	    // 1. species_data contains the lookup table of species
-	    // 	  specific data. We need the right entry in this
-	    // 	  table. The index of this is obtained by calling member function
-	    // 	  Species() on the tag. Thus we have:
-	    // 	  species_data[tag_groups[i][s].Species()].
-	    //
-	    // 2. Member function Isotope() on the above biest gives
-	    //    us the array of isotope specific data. This we have
-	    //    to subscribe with the right isotope index, which we
-	    //    get by calling member function Isotope on the
-	    //    tag. Thus we have:
-	    //    Isotope()[tag_groups[i][s].Isotope()]
-	    //
-	    // 3. Finally, from the isotope data we need to get the mixing
-	    //    ratio by calling the member function Abundance().
-	    if ( 0 >
-		 species_data[tag_groups[i][s].Species()].Isotope()[tag_groups[i][s].Isotope()].Abundance() )
+	    // First of all, we have to make sure that this is not a
+	    // tag that means `all isotopes', because this should not
+	    // include continuum. For such tags, tag.Isotope() will
+	    // return the number of isotopes (i.e., one more than the
+	    // allowed index range).
+	    if ( tag_groups[i][s].Isotope() <
+		 species_data[tag_groups[i][s].Species()].Isotope().size() )
 	      {
-		// We have identified a continuum tag. Add the
-		// continuum for this tag. The parameters in this call
-		// should be clear. The vmr is in vmrs[i]. The other
-		// vmr variable, `h2o_abs' contains the real H2O vmr,
-		// which is needed for the oxygen continuum.
-		xsec_continuum_tag( xsec_per_tg[i],
-				    tag_groups[i][s],
-				    f_mono,
-				    p_abs,
-				    t_abs,
-				    h2o_abs,
-				    vmrs[i] );
+		// If we get here, it means that the tag describes a
+		// specific isotope. Could be a continuum tag!
+		
+		// The if clause below checks whether the abundance of this tag
+		// is negative. (Negative abundance marks continuum tags.)
+		// It does the following:
+		//
+		// 1. species_data contains the lookup table of species
+		// 	  specific data. We need the right entry in this
+		// 	  table. The index of this is obtained by calling member function
+		// 	  Species() on the tag. Thus we have:
+		// 	  species_data[tag_groups[i][s].Species()].
+		//
+		// 2. Member function Isotope() on the above biest gives
+		//    us the array of isotope specific data. This we have
+		//    to subscribe with the right isotope index, which we
+		//    get by calling member function Isotope on the
+		//    tag. Thus we have:
+		//    Isotope()[tag_groups[i][s].Isotope()]
+		//
+		// 3. Finally, from the isotope data we need to get the mixing
+		//    ratio by calling the member function Abundance().
+		if ( 0 >
+		     species_data[tag_groups[i][s].Species()].Isotope()[tag_groups[i][s].Isotope()].Abundance() )
+		  {
+		    // We have identified a continuum tag. Add the
+		    // continuum for this tag. The parameters in this call
+		    // should be clear. The vmr is in vmrs[i]. The other
+		    // vmr variable, `h2o_abs' contains the real H2O vmr,
+		    // which is needed for the oxygen continuum.
+		    xsec_continuum_tag( xsec_per_tg[i],
+					tag_groups[i][s],
+					f_mono,
+					p_abs,
+					t_abs,
+					h2o_abs,
+					vmrs[i] );
+		  }
 	      }
 	  }
     }

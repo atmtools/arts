@@ -1228,7 +1228,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("xsec_per_tgCal"),
+      ( NAME("xsec_per_tgCalc"),
 	DESCRIPTION("Calculate cross sections per tag group."),
 	OUTPUT(	    xsec_per_tg_                             ),
 	INPUT( 	    tag_groups_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
