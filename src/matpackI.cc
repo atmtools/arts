@@ -1523,23 +1523,32 @@ void mult( VectorView y,
   assert( y.mrange.mextent == M.mrr.mextent );
   assert( M.mcr.mextent == x.mrange.mextent );
 
+  // Let's first find the pointers to the starting positions
   Numeric *mdata   = M.mdata + M.mcr.mstart + M.mrr.mstart;
   Numeric *xdata   = x.mdata + x.mrange.mstart;
   Numeric *yelem   = y.mdata + y.mrange.mstart;
 
-  for (Index i = 0; i < M.mrr.mextent; i++)
+  Index i = M.mrr.mextent;
+  while (i--)
     {
       Numeric *melem = mdata;
-      Numeric *xelem = xdata;
+      Numeric *xelem = xdata; // Reset xelem to first element of source vector
+
+      // Multiply first element of matrix row with first element of source
+      // vector. This is done outside the loop to avoid initialization of the
+      // target vector's element with zero (saves one assignment)
       *yelem = *melem * *xelem;
-      for (Index j = 1; j < M.mcr.mextent; j++)
-        {
+
+      Index j = M.mcr.mextent;   // --j (instead of j-- like in the outer loop)
+      while (--j)                // is important here because we only want
+        {                        // mextent-1 cycles
           melem += M.mcr.mstride;
           xelem += x.mrange.mstride;
           *yelem += *melem * *xelem;
         }
-      mdata += M.mrr.mstride;
-      yelem += y.mrange.mstride;
+
+      mdata += M.mrr.mstride;     // Jump to next matrix row
+      yelem += y.mrange.mstride;  // Jump to next element in target vector
     }
 }
 
