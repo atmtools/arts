@@ -1,3 +1,10 @@
+2002-05-29  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-101
+
+	* doc/uguide/interpolation.tex: Tried to make interpolation tensor
+	clearer, following comment by Claudia.
+
 2002-05-28 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-100 

@@ -224,8 +224,8 @@ cheap, especially if one interpolates simultaneously in many
 dimensions. On the other hand, one can save a lot by re-using the
 weights.  Therefore, interpolation weights in ARTS are stored in a
 tensor which has one more dimension than the output field. The last
-dimension is for the weight, so it has size 4 in the 2D case, size 8
-in the 3D case, and so on (always $2^n$).
+dimension is for the weight, so this last dimension has the extent 4
+in the 2D case, 8 in the 3D case, and so on (always $2^n$).
 
 In the case of a `blue' type interpolation, the weights are
 always stored in a matrix, since the output field is always 1D (a
