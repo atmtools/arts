@@ -188,3 +188,159 @@ void abs_vec_sptCalc(Matrix& abs_vec_spt,
    }	   
 }
 
+
+//! Extinction Coefficient Matrix for the particle 
+/*! 
+  
+  This function sums up the extinction matrices for all particle 
+  types weighted with particle number density
+  \param ext_mat_part Output : physical extinction coefficient 
+  for the particles for given angles. 
+  \param ext_mat_spt Input : extinction matrix for the single particle type
+  \param pnd_field Input : particle number density givs the local 
+  concentration for all particles.
+  \param cloudbox_limits Input : the limits of the cloud box.
+  \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
+*/
+void ext_mat_partCalc(Matrix& ext_mat_part,
+		      const Tensor3& ext_mat_spt,
+		      const Tensor4& pnd_field,
+		      const ArrayOfIndex& cloudbox_limits,
+		      const Index& atmosphere_dim
+		     )
+{
+  Index N_pt = ext_mat_spt.npages();
+  Index N_i = ext_mat_spt.nrows();
+   
+  for (Index m = 0; m < N_i; m++)
+    {
+      for (Index n = 0; n < N_i; n++)
+	ext_mat_part(m, n) = 0.0;// Initialisation
+    }
+  if (atmosphere_dim == 1)
+    {
+      // the loop are over the p_grid
+      for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
+	{
+	  // this is a loop over the different particle types
+	  for (Index l = 0; l < N_pt; l++)
+	    { 
+	      
+	      // now the last two loops over the stokes dimension.
+	      for (Index m = 0; m < N_i; m++)
+		{
+		  for (Index n = 0; n < N_i; n++)
+		    
+		    ext_mat_part(m, n) += 
+		      (ext_mat_spt(l, m, n) * pnd_field(i, 0, 0, l));
+		}
+	    }
+	}
+    }
+	  
+  if (atmosphere_dim == 3)
+    {
+      // the first three loops are over the p_grid, lat_grid, lon_grid
+      for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
+	{
+	  for (Index j = cloudbox_limits[2]; j < cloudbox_limits[3] ; ++j)
+	    {
+	      for (Index k = cloudbox_limits[4]; k < cloudbox_limits[5] ; ++k)
+		{
+		  
+		  // this is a loop over the different particle types
+		  for (Index l = 0; l < N_pt; l++)
+		    { 
+		      
+		      // now the last two loops over the stokes dimension.
+		      for (Index m = 0; m < N_i; m++)
+			{
+			  for (Index n = 0; n < N_i; n++)
+			    
+			    ext_mat_part(m, n) += 
+			      (ext_mat_spt(l, m, n) * pnd_field(i, j, k, l));
+			  
+			} 
+		    }
+		}
+	    }
+	}
+    }
+} 
+
+//! Aabsorption Vector for the particle 
+/*! 
+  
+  This function sums up the absorption vectors for all particle 
+  types weighted with particle number density
+  \param abs_vec_part Output : physical absorption vector 
+  for the particles for given angles. 
+  \param abs_vec_spt Input : absorption for the single particle type
+  \param pnd_field Input : particle number density givs the local 
+  concentration for all particles.
+  \param cloudbox_limits Input : the limits of the cloud box.
+  \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
+*/
+void abs_vec_partCalc(Vector& abs_vec_part,
+		      const Matrix& abs_vec_spt,
+		      const Tensor4& pnd_field,
+		      const ArrayOfIndex& cloudbox_limits,
+		      const Index& atmosphere_dim
+		      )
+{
+  Index N_pt = abs_vec_spt.nrows();
+  Index N_i = abs_vec_spt.ncols();
+ 
+ 
+  for (Index m = 0; m < N_i; ++m)
+    {
+      
+      abs_vec_part[m] = 0.0;// Initialisation
+    }
+  if (atmosphere_dim == 1)
+    {
+      // the first loop over the p_grid
+      for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
+	{
+	  
+	  // this is a loop over the different particle types
+	  for (Index l = 0; l < N_pt ; ++l)
+	    {
+	      
+	      // now the loop over the stokes dimension.
+	      for (Index m = 0; l < N_i; ++m)
+		
+		abs_vec_part[m] += 
+		  (abs_vec_spt(l, m) * pnd_field(i, 0, 0, l));
+	      
+	    }
+	}
+    }
+  
+  if (atmosphere_dim == 3)
+    {
+      // the first three loops are over the p_grid, lat_grid, lon_grid
+      for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
+	{
+	  for (Index j = cloudbox_limits[2]; j < cloudbox_limits[3] ; ++j)
+	    {
+	      for (Index k = cloudbox_limits[4]; k < cloudbox_limits[5] ; ++k)
+		{
+		  
+		  // this is a loop over the different particle types
+		  for (Index l = 0; l < N_pt ; ++l)
+		    {
+		      
+		      // now the loop over the stokes dimension.
+		      for (Index m = 0; l < N_i; ++m)
+			
+			abs_vec_part[m] += 
+			  (abs_vec_spt(l, m) * pnd_field(i, j, k, l));
+		      
+		    }
+		}
+	    }
+	}
+    }
+} 
+

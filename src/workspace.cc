@@ -131,6 +131,22 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "abs_vec_part" ),
+       DESCRIPTION
+       (
+	"Physical absorption vector for particle.\n"
+	"\n"
+	"This workspace variable represents the actual physical absorption\n"
+	"vector of the particles chosen for the study for given propagation \n"
+	"directions.  This vector is calculated by the method *abs_vec_partCalc*\n"
+	"\n"
+	"ARTS user guide (AUG) gives the formula used for computing this \n"
+	"variable. Use the index to find where this variable is discussed.\n"
+	"The variable is listed as a subentry to \"workspace variables\".\n"
+        ),
+      GROUP( Vector_ )));
+  wsv_data.push_back
+    (WsvRecord
      ( NAME("abs_vec_spt"),
        DESCRIPTION
        (
@@ -511,7 +527,7 @@ void define_wsv_data()
 	),
        GROUP(  Agenda_ )));
   
-wsv_data.push_back
+  wsv_data.push_back
     (WsvRecord
     ( NAME( "ext_mat" ),
       DESCRIPTION
@@ -537,6 +553,30 @@ wsv_data.push_back
        "Dimensions: [stokes_dim, stokes_dim]"
        ),
       GROUP( Matrix_ )));
+
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "ext_mat_part" ),
+       DESCRIPTION
+       (
+	"Physical extinction matrix for particle.\n"
+	"\n"
+	"This workspace variable represents the actual physical extinction\n"
+	"matrix of the particles chosen for the study for given propagation \n"
+	"directions.  This is calculated by the method *ext_mat_partCalc*\n"
+	"\n"
+	"ARTS user guide (AUG) gives the formula used for computing this \n"
+	"variable. Use the index to find where this variable is discussed.\n"
+	"The variable is listed as a subentry to \"workspace variables\".\n"
+	"\n"
+	"Usage:      Output of the method ext_mat_partCalc\n"
+	"\n"
+	"Unit:        m^2\n"
+	"\n"
+	"Dimensions: [ stokes_dim, stokes_dim ]\n"
+        ),
+       GROUP( Matrix_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -995,6 +1035,29 @@ wsv_data.push_back
        ),
       GROUP( Tensor5_ )));
 
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "pnd_field" ),
+      DESCRIPTION
+      (
+       "The field representing particle number densities.\n"
+       "\n"
+       "This variable gives the particle number density of the chosen particle\n"
+       "types as a function of p_grid, lat_grid, lon_grid. \n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       "\n"
+       "Unit:        m^-3\n"
+       "\n"
+       "Dimensions: [ p_grid, lat_grid, lon_grid, part_types]\n"
+        ),
+      GROUP( Tensor4_ )));
 
   wsv_data.push_back
    (WsvRecord

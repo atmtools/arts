@@ -1,3 +1,4 @@
+
 /*!
   \file   scatproperties.cc
   \author Sreerekha T.R. 
@@ -466,33 +467,4 @@ Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
   return res;
 }
 
-//! Extinction Coefficient Matrix for the particle 
-/*! 
-  
-  This function sums up the extinction matries for all particle types weighted with particle number density
-  \param ext_mat_part Output : physical extinction coefficient for the particles for given angles. 
-  \param ext_mat_spt Input : extinction matrix for the scattering species
-  \param pnd Input : particle number density givs the local concentration for all particles.
-*/
-//FIXME; change all matrix ext_mat_spt to Tensor3 ext_mat_spt(l,j,k)
-void ext_mat_partCalc(MatrixView ext_mat_part,
-		      MatrixView ext_mat_spt,
-		      VectorView pnd)
-{
-  Index N_pt, j, k, l, N_i;
-  for (j = 0; j < N_i; j++)
-    {
-      for (k = 0; k < N_i; k++)
-	ext_mat_part(j, k) = 0.0;// Initialisation
-    }
-  for (l = 0; l < N_pt; l++)
-    {
-      for (j = 0; j < N_i; j++)
-	{
-	  for (k = 0; k < N_i; k++)
-	    ext_mat_spt(j, k) *= pnd[l]; //multiplying with particle number density.
-	  ext_mat_part(j, k) += ext_mat_spt(j,k); // summing up for all particle types.
-	}
-    } 
-} 
- 
+

@@ -29,9 +29,6 @@ void amp2abs(VectorView abs,
 	     ConstVectorView za_grid,
 	     ConstVectorView aa_grid);
 
-void ext_mat_partCalc(MatrixView ext_mat_part,
-		      MatrixView ext_mat_spt,
-		      VectorView pnd);
 
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
 			       ConstVectorView za_grid,
