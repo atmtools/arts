@@ -95,23 +95,28 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const GasAbsLookup& gal,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("GasAbsLookup");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.write_to_stream (os_xml);
 
   xml_write_to_stream (os_xml, gal.species, pbofs);
-  xml_write_to_stream (os_xml, gal.nonlinear_species, pbofs);
-  xml_write_to_stream (os_xml, gal.f_grid, pbofs);
-  xml_write_to_stream (os_xml, gal.p_grid, pbofs);
-  xml_write_to_stream (os_xml, gal.vmrs_ref, pbofs);
-  xml_write_to_stream (os_xml, gal.t_ref, pbofs);
-  xml_write_to_stream (os_xml, gal.t_pert, pbofs);
-  xml_write_to_stream (os_xml, gal.nls_pert, pbofs);
-  xml_write_to_stream (os_xml, gal.xsec, pbofs);
+  xml_write_to_stream (os_xml, gal.nonlinear_species, pbofs,
+                       "NonLinearSpecies");
+  xml_write_to_stream (os_xml, gal.f_grid, pbofs, "FrequencyGrid");
+  xml_write_to_stream (os_xml, gal.p_grid, pbofs, "PressureGrid");
+  xml_write_to_stream (os_xml, gal.vmrs_ref, pbofs, "ReferenceVmrProfiles");
+  xml_write_to_stream (os_xml, gal.t_ref, pbofs, "ReferenceTemperatureProfile");
+  xml_write_to_stream (os_xml, gal.t_pert, pbofs, "TemperaturePertubations");
+  xml_write_to_stream (os_xml, gal.nls_pert, pbofs,
+                       "NonLinearSpeciesVmrPertubations");
+  xml_write_to_stream (os_xml, gal.xsec, pbofs, "AbsorptionCrossSections");
 
   close_tag.set_name ("/GasAbsLookup");
   close_tag.write_to_stream (os_xml);
@@ -160,18 +165,21 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const GriddedField3& gfield,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("GriddedField3");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.write_to_stream (os_xml);
 
-  xml_write_to_stream (os_xml, gfield.p_grid, pbofs);
-  xml_write_to_stream (os_xml, gfield.lat_grid, pbofs);
-  xml_write_to_stream (os_xml, gfield.lon_grid, pbofs);
-  xml_write_to_stream (os_xml, gfield.data, pbofs);
+  xml_write_to_stream (os_xml, gfield.p_grid, pbofs, "PressureGrid");
+  xml_write_to_stream (os_xml, gfield.lat_grid, pbofs, "LatitudeGrid");
+  xml_write_to_stream (os_xml, gfield.lon_grid, pbofs, "LongitudeGrid");
+  xml_write_to_stream (os_xml, gfield.data, pbofs, "Data");
 
   close_tag.set_name ("/GriddedField3");
   close_tag.write_to_stream (os_xml);
@@ -217,17 +225,23 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const GridPos& gpos,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("GridPos");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.write_to_stream (os_xml);
 
-  xml_write_to_stream (os_xml, gpos.idx, pbofs);
-  xml_write_to_stream (os_xml, gpos.fd[0], pbofs);
-  xml_write_to_stream (os_xml, gpos.fd[1], pbofs);
+  xml_write_to_stream (os_xml, gpos.idx, pbofs,
+                       "OriginalGridIndexBelowInterpolationPoint");
+  xml_write_to_stream (os_xml, gpos.fd[0], pbofs,
+                       "FractionalDistanceToNextPoint_1");
+  xml_write_to_stream (os_xml, gpos.fd[1], pbofs,
+                       "FractionalDistanceToNextPoint_2");
 
   close_tag.set_name ("/GridPos");
   close_tag.write_to_stream (os_xml);
@@ -285,29 +299,39 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Ppath& ppath,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Ppath");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.write_to_stream (os_xml);
 
-  xml_write_to_stream (os_xml, ppath.dim, pbofs);
-  xml_write_to_stream (os_xml, ppath.np, pbofs);
-  xml_write_to_stream (os_xml, ppath.refraction, pbofs);
-  xml_write_to_stream (os_xml, ppath.method, pbofs);
-  xml_write_to_stream (os_xml, ppath.constant, pbofs);
-  xml_write_to_stream (os_xml, ppath.pos, pbofs);
-  xml_write_to_stream (os_xml, ppath.z, pbofs);
-  xml_write_to_stream (os_xml, ppath.l_step, pbofs);
-  xml_write_to_stream (os_xml, ppath.gp_p, pbofs);
-  xml_write_to_stream (os_xml, ppath.gp_lat, pbofs);
-  xml_write_to_stream (os_xml, ppath.gp_lon, pbofs);
-  xml_write_to_stream (os_xml, ppath.los, pbofs);
-  xml_write_to_stream (os_xml, ppath.background, pbofs);
-  xml_write_to_stream (os_xml, ppath.tan_pos, pbofs);
-  xml_write_to_stream (os_xml, ppath.geom_tan_pos, pbofs);
+  xml_write_to_stream (os_xml, ppath.dim, pbofs, "AtmosphericDimensionality");
+  xml_write_to_stream (os_xml, ppath.np, pbofs,
+                       "NumberOfPositionInPropagationPath");
+  xml_write_to_stream (os_xml, ppath.refraction, pbofs, "RefractionFlag");
+  xml_write_to_stream (os_xml, ppath.method, pbofs, "CalculationApproach");
+  xml_write_to_stream (os_xml, ppath.constant, pbofs,
+                       "PropagationPathConstant");
+  xml_write_to_stream (os_xml, ppath.pos, pbofs,
+                       "PropagationPathPointPositions");
+  xml_write_to_stream (os_xml, ppath.z, pbofs, "GeometricalAltitudes");
+  xml_write_to_stream (os_xml, ppath.l_step, pbofs,
+                       "PropagationPathPositionLength");
+  xml_write_to_stream (os_xml, ppath.gp_p, pbofs, "PressureGridIndexPosition");
+  xml_write_to_stream (os_xml, ppath.gp_lat, pbofs,
+                       "LatitudeGridIndexPosition");
+  xml_write_to_stream (os_xml, ppath.gp_lon, pbofs,
+                       "LongitudeGridIndexPosition");
+  xml_write_to_stream (os_xml, ppath.los, pbofs, "LineOfSight");
+  xml_write_to_stream (os_xml, ppath.background, pbofs, "RadiativeBackground");
+  xml_write_to_stream (os_xml, ppath.tan_pos, pbofs, "TangentPointPosition");
+  xml_write_to_stream (os_xml, ppath.geom_tan_pos, pbofs,
+                       "GeometricalTangentPointPosition");
 
   close_tag.set_name ("/Ppath");
   close_tag.write_to_stream (os_xml);
@@ -369,12 +393,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const SingleScatteringData &ssdata,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("SingleScatteringData");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.write_to_stream (os_xml);
 
   xml_write_to_stream (os_xml, Index (ssdata.ptype), pbofs);
@@ -433,12 +460,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const SpeciesRecord& srecord,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("SpeciesRecord");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.write_to_stream (os_xml);
 
   xml_write_to_stream (os_xml, srecord.Name (), pbofs);
@@ -522,12 +552,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const SpeciesTag& stag,
-                     bofstream * /* pbofs */)
+                     bofstream * /* pbofs */,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("SpeciesTag");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.write_to_stream (os_xml);
 
   os_xml << '\"' << stag.Name () << '\"';
@@ -556,7 +589,8 @@ xml_read_from_stream (istream&,
 void
 xml_write_to_stream (ostream&,
                      const Agenda&,
-                     bofstream * /* pbofs */)
+                     bofstream * /* pbofs */,
+                     const String& /* name */)
 {
   throw runtime_error("Method not implemented!");
 }
