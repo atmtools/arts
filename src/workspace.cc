@@ -433,7 +433,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("z_plat",
-      "Vertical altitude, above the geiod, of the observation platform [m].",
+      "Vertical altitude, above the geoid, of the observation platform [m].",
       Numeric_));
 
   wsv_data.push_back
@@ -447,7 +447,7 @@ void define_wsv_data()
       "     between the sensor and the tangent or ground point.\n"
       "  2. Limb sounding and the distance from the tangent point to the\n"
       "     atmospheric limit (the highest absorption altitude) is smaller\n"
-      "     the selected length. The length is then adjusted to this\n"
+      "     than the selected length. The length is then adjusted to this\n"
       "     distance",
       Numeric_));
 
@@ -489,7 +489,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("z_ground",
-      "The vertical altitude above the geiod of the ground [m].",
+      "The vertical altitude above the geoid of the ground [m].",
       Numeric_));
 
   wsv_data.push_back
