@@ -1,3 +1,20 @@
+2002-06-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-163
+	
+	* src/xml_io.cc (read_from_stream): Fixed bug when more data is
+	available inside tag than expected.
+
+	* doc/uguide/arts_groups_to_latex.sh: Use cat instead of echo to
+	avoid misinterpretation of escape chars.
+
+	* doc/uguide/arts_methods_to_latex.sh: Rewritten. Use case instead
+	of if/grep combinations -> speedup by factor 10.
+	
+	Use cat instead of echo to avoid misenterpretation of escape chars.
+
+	* doc/uguide/app_methods.tex: Modified text.
+
 2002-06-25  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-162
@@ -117,7 +134,7 @@
 
 2002-06-19  Sreerekha T.R.  <rekha@uni-bremen.de>
 
-	* arts-1-1-153	
+	* arts-1-1-153
 
 	* src/agendas.cc: Added the agendas ext_mat_agenda
 	and abs_vec_agenda.
