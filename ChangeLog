@@ -1,3 +1,10 @@
+2002-06-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-167
+	
+	* doc/uguide/arts_groups_to_latex.sh: Replaced remaining echos
+	with cat.
+
 2002-06-26  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-1-166
