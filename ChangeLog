@@ -20,17 +20,7 @@
 
 	yi_cloudbox_agenda: Added.
 	
-	yi_space_agenda: Added. Will replace i_space_agenda. New standard
-	usage will be (gives cleaner coding and more efficient code than old
-	solution):
-	---
-	MatrixCBR(i_space,f_grid){}
-	AgendaSet(yi_space_agenda){
-   	Ignore(rte_pos){}
-   	Ignore(rte_los){}
-   	Copy(yi,i_space){}
-	}
-	---
+	yi_space_agenda: Added. Will replace i_space_agenda.
 
 	* src/rte.cc:
 
