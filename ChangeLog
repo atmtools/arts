@@ -1,9 +1,22 @@
+2001-09-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-230
+	
+	* src/Makefile.am: Completely rewritten to get rid of the
+	BUILT_SOURCES stuff. Now also the clean targets work properly.
+
+	* Makefile.am (DEFAULT_SUBDIRS): Added aii directory.
+
+	* ami/Makefile.am (SUBDIRS): Added general directory.
+
+	
 2001-09-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-0-229
 
 	* doc/uguide/absoption.tex: Continued to work on this.
 	Edited the Partition Function subsection
+	
 	
 2001-09-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
