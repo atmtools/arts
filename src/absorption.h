@@ -779,10 +779,7 @@ typedef Array< Array<LineRecord> > ArrayOfArrayOfLineRecord;
 ostream& operator << (ostream& os, const LineRecord& lr);
 
 
-
-/** Define the species data map.
-
-    \author Stefan Buehler  */
+// Documentation with implementation.
 void define_species_map();
 
 

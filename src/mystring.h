@@ -288,5 +288,33 @@ class Array;
 /** An array of Strings. */
 typedef Array<String> ArrayOfString;
 
+//
+// We don't use this function, we use string.find() instead.
+//
+// //! Find first occurance.
+// /*!
+//   This returns the index of the first occurance of w in 
+//   string x.  
+// 
+//   A return value of -1 indicates that no matching element was found.
+// 
+//   \return   The index of the thing we looked for.
+//   \param  x The string to search.
+//   \param w  The character to look for.
+// 
+//   \author Stefan Buehler
+//   \date   2002-12-06
+// */
+// template <class base>
+// Index find_first( const my_basic_string<base>& x,
+//                   const base& w )
+// {
+//   for ( Index i=0; i<x.nelem(); ++i )
+//     if ( w == x[i] )
+//       return i;
+// 
+//   return -1;
+// }
+
 
 #endif  // string_h

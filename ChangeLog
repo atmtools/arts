@@ -1,5 +1,39 @@
 2002-12-06  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-1-1-330
+
+	* src/methods.cc (define_md_data_raw): Fixed typo bug in
+	documentation of ppath_stepGeometric (removed backslash).
+	(define_md_data_raw): Added method gas_speciesSet. This is
+	basically the same method that used to be called tgsDefine in
+	ARTS-1-0, except for the new feature of specifying "nl" instead of
+	the isotope.
+
+	* src/workspace.cc (define_wsv_data): Fixed documentation of
+	gas_species. 
+
+	* src/old_absorption.cc: Moved define_species_map to absorption.cc.
+
+	* src/absorption.cc (define_species_map): Moved over this function
+	from old_absorption.cc
+
+	* src/absorption.h: Updated.
+
+	* src/m_abs.cc: Removed tgsDefine.
+
+	* src/m_absorption.cc (gas_speciesSet): Added (from old tgsDefine).
+
+	* src/main.cc: Initialize species_data and species_map.
+
+	* doc/examples/absorption_lookup_example.arts.in: Added
+	gas_speciesSet. 
+
+	* src/mystring.h: Added a find function. But then I thought better
+	of it and decided that for string we should continue to use
+	string.find(). So, the new function is commented out.
+
+2002-12-06  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-1-1-329
 
 	*.cc, *.c, *.h: Untabified everything.

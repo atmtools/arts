@@ -695,7 +695,7 @@ void define_wsv_data()
         "\n"
         "This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
         "available tag groups for the calculation of scalar gas absorption\n"
-        "coefficients.  See online documentation of method *gas_speciesDefine* for\n"
+        "coefficients.  See online documentation of method *gas_speciesSet* for\n"
         "more detailed information how tag groups work and some examples."
         ), 
        GROUP( ArrayOfArrayOfSpeciesTag_ )));

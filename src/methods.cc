@@ -1062,6 +1062,62 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("gas_speciesSet"),
+        DESCRIPTION
+        (
+         "Set up the list of gas species tag groups.\n"
+         "\n"
+         "The workspace variable *gas_species* contains several tag groups. Each\n"
+         "tag group contain one or more tags. This method converts descriptions\n"
+         "of tag groups given in the keyword to the internal representation of\n"
+         "*gas_species*. A tag group selects spectral features which belong to\n"
+         "the same species.\n"
+         "\n"
+         "A tag is defined in terms of the name of the species, isotope, and a\n"
+         "range of frequencies. Species are named after the standard chemical\n"
+         "names, e.g., \"O3\".  Isotopes are given by the last digit of the atomic\n"
+         "weight, i.g., \"O3-668\" for the asymmetric ozone molecule including an\n"
+         "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
+         "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
+         "\n"
+         "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
+         "frequency range and isotope may be omitted.\n"
+         "\n"
+         "Finally, instead of the isotope the special letter \"nl\" may be given,\n"
+         "e.g., \"H2O-nl\". This means that no lines of this species should be\n"
+         "included in the general line-by-line calculation. This feature is\n"
+         "useful if you want to define a tag group just for a continuum, or for\n"
+         "a complete absorption model.\n"
+         "\n"
+         "Keywords:\n"
+         "   species : Specify one String for each tag group that you want to\n"
+         "             create. Inside the String, separate the tags by commas\n"
+         "             (plus optional blanks).\n"
+         "\n"
+         "Example:\n"
+         "\n"
+         "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
+         "               \"O3\",\n"
+         "               \"H2O-nl\" ]\n"
+         "\n"
+         "   The first tag group selects all O3-666 lines between 500 and\n"
+         "   501 GHz plus all O3-686 lines.  \n"
+         "\n"
+         "   The second tag group selects all remaining O3 transitions.\n"
+         "\n"
+         "   The third tag group selects H2O, but will not put any lines in the\n"
+         "   line list for this species. Presumably, we are using a complete\n"
+         "   absorption model like MPM89 for H2O in this case."
+         ),
+        OUTPUT( gas_species_ ),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "species" ),
+        TYPES(    Array_String_t   )));
+  
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Ignore"),
         DESCRIPTION
         (
@@ -1938,7 +1994,7 @@ md_data_raw.push_back
          "This function determines a propagation path step by pure\n"
          "geometrical calculations. That is, refraction is neglected. Path\n"
          "points are always included for crossings with the grids, tangent\n"
-         "points\ and points of ground intersections. The keyword *lmax* \n"
+         "points and points of ground intersections. The keyword *lmax* \n"
          "gives the option to include additional points to ensure that the\n"
          "distance along the path between the points does not exceed the \n"
          "selected maximum length. No additional points are included if\n"
@@ -4131,47 +4187,6 @@ md_data_raw.push_back
 //      GINPUT(),
 //      KEYWORDS( "filename" ),
 //      TYPES(    String_t   )));
-  
-//   md_data_raw.push_back
-//     ( MdRecord
-//       ( NAME("tgsDefine"),
-//      DESCRIPTION(
-//                  "Set up the list of tag groups.\n"
-//                  "\n"
-//                  "The workspace variable *tgs* contains several tag groups. Each \n"
-//                  "tag group contain one or more tags. This method converts \n"
-//                  "description of tag groups  given in the keyword to the internal \n"
-//                  "representation *tgs*. A tag group selects spectral features which \n"
-//                  "belong to the same species. \n"
-//                  "   A tag group can contain a mixture of general and special \n"
-//                  "tags.  All the continuum tags belong to the special tags and \n"
-//                  "the rest come under the general tags.\n"
-//                  "   A general tag is defined in terms of the name of the species,\n"
-//                  "isotope and a range of frequencies. Species are named after the \n"
-//                  "standard chemical names,e.g., \"O3\".  Isotopes are given by the \n"
-//                  "last digit of the atomic weight, i.e., \"O3-668\" for the \n"
-//                  "asymmetric ozone molecule including an oxygen 18 atom.  Groups\n"
-//                  "of transitions are specified by giving a lower and upper limit \n"
-//                  "of a frequency range,\"O3-666-500e9-501e9\".Moreover the symbol\n"
-//                  "'*' acts as a wild card. Furthermore, frequency range or frequency\n"
-//                  "range and isotope may be omitted.\n"
-//                  "Example for some tag groups containing only general tags:\n"
-//                  "tags = [\"O3-666-500e9-501e9, O3-686\",\"O3\"]\n"
-//                  "The first tag group consist of all O3-666 lines between 500 and\n"
-//                  "501 GHz plus all O3-686 lines.  The second tag group will contain\n"
-//                  "all remaining O3 transitions.\n"
-//                  "\n"
-//                  "Keywords:\n"
-//                  "   tags : Specify one String for each tag group that you want to create.\n"
-//                  "   Inside the String, separate the tags by comma (plus optional blanks).\n"
-//                  "   Example:\n"
-//                  "   tag = [\"O3-686\",\"H2O\"]"),
-//      OUTPUT( tgs_ ),
-//      INPUT(),
-//      GOUTPUT(),
-//      GINPUT(),
-//      KEYWORDS( "tags" ),
-//      TYPES(    Array_String_t   )));
   
 //   md_data_raw.push_back
 //     ( MdRecord

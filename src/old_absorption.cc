@@ -57,18 +57,6 @@ Numeric IsotopeRecord::CalculatePartitionFctAtTemp( Numeric
   return result;
 }
 
-void define_species_map()
-{
-  extern const Array<SpeciesRecord> species_data;
-  extern std::map<String, Index> SpeciesMap;
-
-  for ( Index i=0 ; i<species_data.nelem() ; ++i)
-    {
-      SpeciesMap[species_data[i].Name()] = i;
-    }
-}
-
-
 ostream& operator << (ostream& os, const LineRecord& lr)
 {
   // Determine the precision, depending on whether Numeric is double

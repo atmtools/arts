@@ -696,10 +696,10 @@ int main (int argc, char **argv)
   // While we are at it, we can also initialize the molecular data and
   // the coefficients of the partition function that we need for the
   // absorption part, and check that the inputs are sorted the same way:
-  //  define_species_data();
+  define_species_data();
 
   // And also the species map:
-  //  define_species_map();
+  define_species_map();
 
   // Make all these data visible:
   //  extern const Array<MdRecord>  md_data;

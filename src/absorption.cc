@@ -37,6 +37,20 @@ std::map<String, Index> SpeciesMap;
 // old_absorption.cc.
 //----------------------------------------------------------------------
 
+/*! Define the species data map.
+
+    \author Stefan Buehler */
+void define_species_map()
+{
+  extern const Array<SpeciesRecord> species_data;
+  extern std::map<String, Index> SpeciesMap;
+
+  for ( Index i=0 ; i<species_data.nelem() ; ++i)
+    {
+      SpeciesMap[species_data[i].Name()] = i;
+    }
+}
+
 //! Constructor from a tag definition String. 
 /*! 
   For examples see documentation of member function Name(). 
