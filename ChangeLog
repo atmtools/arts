@@ -1,3 +1,20 @@
+2003-06-05  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-564
+
+	* src/agenda_record.h (operator=), src/methods.h (operator=):
+	Return empty AgRecord/MdRecord. Code is never reached because
+	arts_exit is called before but circumvents a gcc warning message.
+
+	* src/absorption.h (SpeciesRecord): xml_read_from_stream is our
+	friend.
+	Include bifstream.
+
+	* src/xml_io.cc, src/xml_io_private.h: Started read/write functions
+	for species_data (Array<SpeciesRecord>) and SpeciesRecord.
+
+	* .cvsignore: Added *.swp.
+
 2003-06-05  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
 
 	* arts-1-1-563
@@ -10,7 +27,6 @@
 
 	* test_integration.cc: Modified.
 
-	
 2003-06-04  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-562
