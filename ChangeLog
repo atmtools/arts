@@ -1,3 +1,9 @@
+2002-08-05  Nikolay Koulev   <nkoulev@uni-bremen.de>
+
+	* arts-1-1-197
+	
+	* src/m_lineshapes.cc (elsDoppler): Added the Doppler line shape .
+	
 2002-08-08  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-196
