@@ -2053,11 +2053,11 @@ void do_gridcell_3d(
                 { l_in = l_end; }
               else
                 { l_out = l_end; }
-              
-              l_end = ( l_out + l_in ) / 2;
-              
+                            
               if( ( l_out - l_in ) < l_acc )
                 { ready = true; }
+              else
+                { l_end = ( l_out + l_in ) / 2; }
             }
         }
 

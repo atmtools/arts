@@ -532,20 +532,24 @@ $\ZntAng=180\degree$, is thus a measurement towards the center of the
 coordinate system.
 
 The \textindex{azimuth angle}, \AzmAng, is given with respect to the
-\textindex{meridian plane}, that is, the plane going through the north
-and south poles of the coordinate system $(\Lat=\pm90\degree)$ and the
-sensor. The valid range is $[-180\degree,180\degree]$ where angles are
-counted clockwise and 0\degree means that the viewing or propagation
-direction is north-wise.  Hence, +90\degree means that the direction
-of concern goes eastward.
+\textindex{meridian plane}.  That is, the plane going through the
+north and south poles of the coordinate system $(\Lat=\pm90\degree)$
+and the sensor. The valid range is $[-180\degree,180\degree]$ where
+angles are counted clockwise and 0\degree means that the viewing or
+propagation direction is north-wise.  Hence, +90\degree means that the
+direction of concern goes eastward. This definition does not work for
+position on the poles. To cover these special cases, the definition is
+extended to say that for positions on the poles the azimuth angle
+equals the longitude along the viewing direction. For example, if
+standing on any of the poles and the viewing direction is towards
+Greenwich, the azimuth angle is 0\degree.
 
-The line-of-sight for propagation paths is discussed further in
-Section~\ref{sec:fm_defs:ppaths}. The sensor line-of-sights are stored in
-\wsvindex{sensor\_los}. This workspace variable is a matrix, where the
-first column holds zenith angles and the second column is azimuth
-angles. For 1D and 2D there is only one column in the matrix, while
-for 3D a row $i$ of the matrix is $(\aZntAng{i},\aAzmAng{i})$. The
-number of rows for \artsstyle{sensor\_los} must be the same as for
+The sensor line-of-sights are stored in \wsvindex{sensor\_los}. This
+workspace variable is a matrix, where the first column holds zenith
+angles and the second column is azimuth angles. For 1D and 2D there is
+only one column in the matrix, while for 3D a row $i$ of the matrix is
+$(\aZntAng{i},\aAzmAng{i})$. The number of rows for
+\artsstyle{sensor\_los} must be the same as for
 \artsstyle{sensor\_pos}.
 
 

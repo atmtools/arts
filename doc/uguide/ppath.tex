@@ -3,7 +3,7 @@
 
 
 \starthistory
-  030215 & Written by Patrick Eriksson.\\
+  030225 & Written by Patrick Eriksson.\\
 \stophistory
 
 
@@ -401,7 +401,7 @@ this for geometrical 2D steps.
 
 The calculation of propagation paths involves a number of mathematical
 expressions and they are presented in
-Sections~\ref{sec:ppath:basicgeom} and \ref{sec:ppath:stepcalc}. In
+Sections~\ref{sec:ppath:basicgeom}~-~\ref{sec:ppath:refreuler}. In
 addition, the path calculations present a number of practical
 problems. These practical problems are discussed briefly in this
 section. For further details, see the code.
@@ -410,7 +410,64 @@ section. For further details, see the code.
 \levelc{Numerical precision}
 %===================
 
-To be written ...
+The aim here is not to make a complete discussion around
+the limited numerical accuracy, but just to point out some of the
+problems caused. We can start by noticing that the precision with
+which atmospheric positions can be given is about 0.5~m when the
+numeric type is \textindex{float} and 2\topowerten{-8}~m for
+\textindex{double} (assuming that the mantissa has 24 and 48 bits,
+respectively). The numbers given correspond to the change of the
+position for a change of 1 bit, in either radius, latitude and
+longitude. Already these numbers cause problems for the approach taken
+here to calculate propagation paths. For any path along the border of a
+grid cell, any rounding error in the wrong direction will move the
+position outside the grid cell, which could lead to inconsistencies
+leading to a crash of the code.
+
+The values above give the representation precision. The precision will
+be even poorer if a position is obtained by calculations as numerical
+problems tend to accumulate. The calculation precision depends on what
+mathematical expressions that are involved.  For example, a radius or
+length obtained by the Pythagorean relation will have a relatively
+high uncertainty as the calculations involve taking the square of a
+radius in the order of 6400~km. It was found that for calculations
+performed using only float as numeric type, could lead to
+displacements from the true position up to 10~m. It was first tried to
+hard-code double as the numerical type for the most critical passages
+of the calculations, but a total success what not achieved and some
+code had to be duplicated (to be used with either the float or double
+option by if-statements for the pre-compiler) to avoid compiler
+warnings. A step further was then taken, and double is now hard-coded
+for all internal variables of \fileindex{ppath.cc}. This deviation
+from the rule to have an uniform numeric type inside ARTS was
+introduced to avoid more complicated coding and it has a very small
+impact on the overall calculation speed. However, this measure will
+not lead to that the precision of the path calculations will be the
+same for float and double, as the results will be converted to float
+between each propagation path step when copied to
+\artsstyle{ppath\_step}.
+
+As pointed out above, the most critical cases are when the path goes
+along the boundary of a grid cell. This situation is not common for
+arbitrary observation positions, but it is a standard case for 3D
+scattering calculations as the starting point for the calculations
+there is always a crossing point of the atmospheric grids. The
+solution to this problem is to introduce special treatment for such
+geometrical paths. For strictly vertical 2D and 3D paths, (a zenith
+angle of 0\degree or 180\degree) the latitude, and also longitude for
+3D, of the start and end points shall be identical. Paths in 3D with
+an azimuth angle of 0\degree or 180\degree have a constant longitude,
+the paths are in the north-south plane, and this should also then be
+valid for the longitude value of the start and end positions of the
+path step.
+
+The variables connected to different problems associated with the
+numerical inaccuracy and singularity of mathematical expressions are
+defined at the top of the file \artsstyle{ppath.cc}. The variables
+include the accepted tolerance when making asserts in internal
+functions that the given point is inside the specified grid cell.
+Another example is the latitude limit to use the special mathematical
+expressions needed for positions on the poles.
 
 
 
@@ -422,7 +479,7 @@ determined. The main reason to this is that the grid positions make it
 possible to quickly determine inside which grid box the path step is
 found. Without the grid positions, each call of the functions would
 need a costly search to locate the starting position with respect to
-the grids.  If you are not familiar with grid positions, it is
+the grids. If you are not familiar with grid positions, it is
 recommended to read Section~\ref{sec:interpolation} before you
 continue here.
 
@@ -463,7 +520,7 @@ interest:
 
 
 
-\levelb{Some basic geometrical relationships}
+\levelb{Some basic geometrical relationships for 1D and 2D}
 %===================
 \label{sec:ppath:basicgeom}
 
@@ -471,11 +528,11 @@ This section gives some expressions to determine positions along a
 propagation path when refraction is neglected. The expressions deal
 only with propagation path inside a plane, where the latitude angle is
 the angular distance from an arbitrary point. This means that the
-expressions given here can be directly applied for 1D and 2D, but not for
-3D. The ARTS method for making the calculation of concern is given
-inside parenthesis above each equation, if not stated explicitly. A
-part of a geometrical propagation path is shown in
-Figure~\ref{fig:ppath:1d2dgeom}.
+expressions given here can be directly applied for 1D and 2D. Some of
+the expression are alos of interest for 3D. The ARTS method for making
+the calculation of concern is given inside parenthesis above each
+equation, if not stated explicitly. A part of a geometrical
+propagation path is shown in Figure~\ref{fig:ppath:1d2dgeom}.
 
 The law of sines gives that the product must $\Rds\sin(\ZntAng)$ be
 constant along the propagation path:
@@ -713,7 +770,235 @@ interest.
 %===================
 \label{sec:ppath:3Dgeom}
 
-To be written.
+Geometrical 3D propagation path steps are determined by the function
+\funcindex{do\_gridcell\_3d}. It was first tested to use different
+analytical expressions to calculate the length from the given point to
+the crossing of a given radius, latitude or longitude. However, the
+expressions found include the trigonometric functions and the squaring
+of radii, which resulted in a high sensitivity to the numerical
+inaccuracy. It was found that the numerical problems made the created
+algorithm impossible to use in practice.
+Equation~\ref{eq:ppath:rcoss3Db} below is a reminiscence of that work.
+In addition, no good solution to the problem of finding the crossing
+with a tilted 3D pressure surface using the analytical expressions was
+found.
+
+\begin{algorithm}[!t]
+ \begin{algorithmic}
+  \STATE{calculate the spherical position $(x_0,y_0,z_0)$ and LOS vector 
+         $(\DiffD x,\DiffD y,\DiffD z)$}
+  \STATE{calculate $(\Rds_c,\Lat_c,\Lon_c)=S(x_0,y_0,z_0)-(\Rds_0,\Lat_0,\Lon_0)$, the position correction term}
+  \STATE{set $l_{in} = 0$} 
+  \STATE{set $l_{out} = 1$}
+  \IF{LOS is downwards}
+   \STATE{calculate length to the tangent point, $l_{tan}$}
+  \ELSE
+   \STATE{set $l_{tan} = 99\topowerten{6}$ m}
+  \ENDIF
+  \WHILE{$S(x_0+l_{out}\DiffD x,y_0+l_{out}\DiffD y,z_0+l_{out}\DiffD z)-(\Rds_c,\Lat_c,\Lon_c)$ is inside grid cell}
+   \IF{$l_{out}<l_{tan}$ and $10l_{out}>l_{tan}$}
+    \STATE{$l_{out} = l_{tan}$}
+    \COMMENT{to assure that tangent point is included in search}
+   \ELSE
+    \STATE{$l_{out} \gets 10 * l_{out}$ }
+   \ENDIF
+  \ENDWHILE
+  \STATE{set $l_{end} = (l_{in}+l_{out})/2$}
+  \STATE{set accuracy flag to false}
+  \WHILE{accuracy flag is false}
+   \STATE{calculate $(\Rds,\Lat,\Lon)=S(x_0+l_{end}\DiffD x,y_0+l_{end}\DiffD y,z_0+l_{end}\DiffD z)-(\Rds_c,\Lat_c,\Lon_c)$}
+   \IF{$(\Rds,\Lat,\Lon)$ is inside grid cell}
+    \STATE{$l_{in} = l_{end}$}
+   \ELSE
+    \STATE{$l_{out} = l_{end}$}
+   \ENDIF
+   \IF{$(l_{out}-l_{in})$ smaller than specified accuracy}
+    \STATE{set accuracy flag to true}
+   \ELSE
+    \STATE{$l_{end} = (l_{in}+l_{out})/2$}
+   \ENDIF
+  \ENDWHILE
+  \STATE{$(\Rds,\Lat,\Lon)\gets(\Rds,\Lat,\Lon)+(\Rds_c,\Lat_c,\Lon_c)$}
+ \end{algorithmic}
+ \caption{The method applied in \artsstyle{do\_gridcell\_3d} to find the 
+          total length of the path step to be calculated.
+          The symbol $S$ signifies here conversion from cartesian to
+          spherical coordinates (Equation \ref{eq:ppath:cart2sph}).}
+ \label{alg:ppath:dogridcell3d}
+\end{algorithm}
+
+A simple trail-and-error algorithm was then tested
+(Algorithm~\ref{alg:ppath:dogridcell3d}). The main advantage of the
+algorithm is that a correction for the shift in position caused by the
+transformations back and fourth to a cartesian coordinate system can
+be applied. The correction term assures that the position is not
+changed for a step of zero length, and is not moved outside the grid
+cell due to the numerical problems. The algorithm was further found to
+be sufficiently fast to be accepted. A simple bisection search to find
+the length of the propagation path step is used. Both the position and
+the line-of-sight for the other end point of the path step are
+calculated using a transformation to cartesian coordinates.  The
+cartesian coordinate system used here is defined as:
+\begin{description}
+\item[x-axis] is along latitude 0\degree and longitude 0\degree
+\item[y-axis] is along latitude +90\degree
+\item[z-axis] is along latitude 0\degree and longitude +90\degree
+\end{description}
+This definition results in the following relationships between the
+spherical $(\Rds,\Lat,\Lon)$ and cartesian $(x,y,z)$ coordinates
+\begin{eqnarray}
+  x &=& \Rds \cos(\Lat) \cos(\Lon) \nonumber \\
+  y &=& \Rds \sin(\Lat)            \\
+  z &=& \Rds \cos(\Lat) \sin(\Lon) \nonumber
+ \label{eq:ppath:sph2cart}
+\end{eqnarray}
+and
+\begin{eqnarray}
+  \Rds &=& \sqrt{x^2+y^2+z^2}  \nonumber  \\
+  \Lat &=& \arcsin(y/\Rds)                \\
+  \Lon &=& \arctan(z/x) \qquad \mathrm{(implemented\ by\ the\ atan2\ function)}
+                               \nonumber
+ \label{eq:ppath:cart2sph}
+\end{eqnarray}
+The functions performing these transformations are \funcindex{sph2cart} and
+\funcindex{cart2sph}.
+
+The first step to transforme a line-of-sight, given by the zenith
+($\ZntAng$) and the azimuth ($\AzmAng$) angle, to cartesian
+coordinates is to determine the corresponding vector with unit length
+in the spherical coordinate system:
+\begin{equation}
+ \left[ \begin{array}{c}
+  \DiffD \Rds \\
+  \DiffD \Lat \\
+  \DiffD \Lon
+ \end{array} \right] =
+ \left[ \begin{array}{c}
+   \cos(\ZntAng) \\
+   \sin(\ZntAng) \cos(\AzmAng) \\
+   \sin(\ZntAng) \sin(\AzmAng) / \cos(\Lat)
+ \end{array} \right]
+ \label{eq:ppath:los2sphvec}
+\end{equation}
+This vector is then translated to the cartesian coordinate system as
+\begin{equation}
+ \left[ \begin{array}{c}
+  \DiffD x \\
+  \DiffD y \\
+  \DiffD z
+ \end{array} \right] =
+ \left[ \begin{array}{ccc}
+  \cos(\Lat)\cos(\Lon) & -\sin(\Lat)\cos(\Lon) & -\cos(\Lat)\sin(\Lon) \\ 
+  \sin(\Lat)           & \cos(\Lat)            & 0                     \\ 
+  \cos(\Lat)\sin(\Lon) & -\sin(\Lat)\sin(\Lon) & \cos(\Lat)\cos(\Lon) 
+ \end{array} \right] 
+ \left[ \begin{array}{c}
+  \DiffD \Rds \\
+  \DiffD \Lat \\
+  \DiffD \Lon
+ \end{array} \right]
+ \label{eq:ppath:los2cart}
+\end{equation}
+Note that some of the terms in Equations \ref{eq:ppath:los2sphvec} and
+\ref{eq:ppath:los2cart} cancel each other. [* I have to check my notes
+to put in the cancelling terms *] These calculations are performed in
+\funcindex{poslos2cart}. Special expressions must be used for
+positions at the north and south pole (see the code) as the azimuth
+angle has there a special definition (Section~\ref{sec:fm_defs:los}).
+
+The cartesian position of a point along the geometrical path at a
+distance $l$ is then simply
+\begin{equation}
+ \left[ \begin{array}{c}
+  x_2 \\
+  y_2 \\
+  z_2
+ \end{array} \right] =
+ \left[ \begin{array}{c}
+  x_1 + l\DiffD x \\
+  y_1 + l\DiffD y \\
+  z_1 + l\DiffD z
+ \end{array} \right]
+  \label{eq:ppath:xdl}
+\end{equation}
+The cartesian viewing vector $[\DiffD x, \DiffD y, \DiffD z]^T$ is
+constant along a geomtrical path. The new position is
+converted to spherical coordinates by Equations
+\ref{eq:ppath:cart2sph} and the new spherical viewing vector is
+calculated as
+\begin{equation}
+ \left[ \begin{array}{c}
+  \DiffD \Rds \\
+  \DiffD \Lat \\
+  \DiffD \Lon
+ \end{array} \right] =
+ \left[ \begin{array}{ccc}
+  \cos(\Lat)\cos(\Lon) & \sin(\Lat)            & \cos(\Lat)\sin(\Lon) \\ 
+  -\sin(\Lat)\cos(\Lon)/\Rds & \cos(\Lat)/\Rds & -\sin(\Lat)\sin(\Lon)/\Rds \\ 
+  \sin(\Lon)/(\Rds\cos(\Lat)) & 0              & \cos(\Lon)/(\Rds\cos(\Lat)) 
+ \end{array} \right] 
+ \left[ \begin{array}{c}
+  \DiffD x \\
+  \DiffD y \\
+  \DiffD z
+ \end{array} \right]
+ \label{eq:ppath:los2sph}
+\end{equation}
+which is converted to a zenith and azimutrh angle as
+\begin{eqnarray}
+  \ZntAng &=& \arccos(\DiffD \Rds) \nonumber  \\
+  \AzmAng &=& \arccos(\Rds\DiffD\Lat/\sin(\ZntAng)), \qquad \DiffD\Lon >= 0 \\
+  \AzmAng &=& -\arccos(\Rds\DiffD\Lat/\sin(\ZntAng)), \qquad \DiffD\Lon < 0 
+                                     \nonumber
+ \label{eq:ppath:sph2cart}
+\end{eqnarray}
+Special expressions must be used for positions at the north and south
+pole (see the code) as the azimuth angle has there a special
+definition (Section~\ref{sec:fm_defs:los}). These calculations are performed in
+\funcindex{cart2poslos}.
+
+For sensor positions outside the atmosphere, the calculations made in
+\funcindex{ppath\_start\_stepping} involve to find the position where
+the path leaves the atmosphere. This position is found by an iterative
+search. The maximum radius of the uppermost pressure surface is taken
+as first guess for the radius of the entrance point. The latitude and
+longitude for this radius is determined, and the radius for the top of
+the atmosphere for the found position is used as radius for next
+iteration. This procedure is repeated until the maximum change of
+latitude and the longitude from one iteration to next is smaller than
+1\topowerten{-6}. The entrance position for a given radius, \Rds, is
+found by solving the following equation system:
+\begin{eqnarray}
+  \Rds \cos(\Lat) \cos(\Lon)  & = & x+l\DiffD x \nonumber \\
+  \Rds \sin(\Lat)             & = & y+l\DiffD y \\
+  \Rds \cos(\Lat) \sin(\Lon)  & = & z+l\DiffD z \nonumber
+  \label{eq:ppath:rcoss3Da}
+\end{eqnarray}
+where $(x,y,z)$ is the position of the sensor, $(\DiffD x,\DiffD
+y,\DiffD z)$ the sensor LOS, and $l$, \Lat\ and \Lon\ are the variables
+to be determined. The first step is to determine the distance $l$ to
+the entrance point, which is found by adding the square of all three
+equations, giving
+\begin{equation}
+  \Rds^2 = (x+l\DiffD x)^2 + (y+l\DiffD y)^2 + (z+l\DiffD z)^2
+  \label{eq:ppath:rcoss3Db}
+\end{equation}
+Once $l$ is determined, the latitude and longitude are easily
+calculated by Equation~\ref{eq:ppath:cart2sph}. These calculations are
+implemented in the function{psurface\_crossing\_3d}. Similar expressions
+were derived to find the position for the crossing of a given latitude
+or longitude but those expressions were removed from the code as they
+are not used with present algorithms\footnote{The expressions
+  mentioned can be extracted from the function
+  \artsstyle{gridcell\_crossing\_3d} in ARTS version 1-1-440.}.
+
+
+
+\levelb{Refraction with simple Euler scheme}
+%===================
+\label{sec:ppath:refreuler}
+
+
 
 
 

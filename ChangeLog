@@ -1,3 +1,14 @@
+2003-02-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-457
+
+	* doc/uguide/ppath.tex: Further work on documentation of the path
+	calculations. Geometrical paths are close to be finished. Some
+	details are missing. I plan also to create some figures.
+
+	* doc/uguide/fm_definitions.tex: Added definition of the azimuth angle
+	at the poles.
+
 2003-02-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-456
