@@ -16,7 +16,7 @@
    USA. */
 
 /*!
-  \file   agenda.cc
+  \file   agenda_record.cc
   \author Stefan Buehler <sbuehler@uni-bremen.de>
   \date   Thu Mar 14 08:49:33 2002
   

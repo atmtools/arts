@@ -1,3 +1,29 @@
+2002-09-19  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-244
+
+	* src/Makefile.am (arts_SOURCES): Added gas_abs_lookup.h
+	and gas_abs_lookup.cc.
+
+	* src/gas_abs_lookup.h: Started this file. It contains the
+	declaration of the gas absorption lookup table.
+
+	* src/gas_abs_lookup.cc: Started this file. It contains the
+	implementation of gas absorption lookup member functions.
+
+	* src/old_absorption.cc: Old stuff, should be removed eventually.
+
+	* doc/uguide/old_absorption.tex: Old stuff, should be removed
+	eventually. 
+
+	* doc/examples/old_absorption_example.arts.in: Old stuff, should
+	be removed eventually. 
+
+	* src/agenda_record.cc: Corrected file name in doxygen header.
+
+	* ami/path/.cvsignore: Created this file. Added Makefile and
+	Makefile.in. 
+
 2002-09-17  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-243

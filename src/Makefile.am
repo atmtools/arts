@@ -108,7 +108,9 @@ arts_SOURCES = \
 	lin_alg.cc\
 	scatproperties.cc \
 	scatproperties.h \
-	supergeneric.h
+	supergeneric.h \
+	gas_abs_lookup.h \
+	gas_abs_lookup.cc
 
 arts_DEPENDENCIES= \
 	auto_md.cc \
