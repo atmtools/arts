@@ -36,10 +36,10 @@ function [H,f_y,za_y,f_sensor] = ...
 
 %=== Read the sideband-mixer file
 A = read_datafile( filename, 'MATRIX' );
- 
+
 
 %=== Get H
-[Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,A(:,1),A(:,2),...
+[Hmix,f_sensor] = h_mixer_full(f_sensor,za_sensor,lo,fprimary,A(:,1),A(:,2),...
                                                                  o_filter,o_y);
 
 

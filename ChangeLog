@@ -1,3 +1,11 @@
+2004-03-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-0-158
+
+	* ami/hmatrix/h_matrix_full.m: Added this mixer function that preserves
+	as many frequencies in the new frequency grid as possible. It means
+	that the mirrored image frequencies are included in the new grid.
+
 2004-03-02  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
         * arts-1-0-157
