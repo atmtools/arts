@@ -1690,6 +1690,24 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("lines_per_tgSetEmpty"),
+  	DESCRIPTION
+	(
+	 "Sets lines_per_tg to empty line lists.\n"
+	 "\n"
+	 "You can use this method to set lines per tag if you do not reall want\n"
+	 "to compute line spectra. Formally, absCalc will still require\n"
+	 "lines_per_tg to be set.\n"
+	 ),
+	OUTPUT(   lines_per_tg_      ),
+	INPUT(    tgs_        ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(  ),
+	TYPES(    )));
+  
+  md_data.push_back
+    ( MdRecord
       ( NAME("lines_per_tgReadFromCatalogues"),
   	DESCRIPTION(
 		    "This method can read lines from different line \n"

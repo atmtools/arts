@@ -44,6 +44,20 @@
 #include "continua.h"
 #include "make_vector.h"
 
+void lines_per_tgSetEmpty(// WS Output:
+                          ArrayOfArrayOfLineRecord& lines_per_tg,
+                          // WS Input:
+                          const TagGroups& tgs)
+{
+  // Make lines_per_tg the right size:
+  lines_per_tg.resize( tgs.nelem() );
+  
+  for (Index i=0; i<tgs.nelem(); ++i)
+    {
+      lines_per_tg[i].resize(0);
+    }
+}
+
 void linesReadFromHitran(// WS Output:
                          ArrayOfLineRecord& lines,
                           // Control Parameters:
