@@ -148,7 +148,7 @@ void lineshape_doppler(Vector&       ls,
   
   for ( Index i=0; i<nf ; ++i )
     {
-      ls[i] = fac * exp( - pow( f_mono[i]-f0, 2) / sigma2 );
+      ls[i] = fac * exp(-pow(f_mono[i]-f0, 2)/sigma2);
     }
 }
 

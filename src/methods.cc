@@ -1081,7 +1081,37 @@ md_data_raw.push_back
 	GINPUT( ),
 	KEYWORDS( "value" ),
 	TYPES(     Index_t   )));
-  
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("elsDoppler"),
+	DESCRIPTION
+        (
+	 "The Doppler lineshape.\n"
+	 "\n"
+	 "This computes the Doppler lineshape as:\n"
+	 "\n"
+	 "els[i] = 1/(sqrt(PI) * ls_sigma) /\n"
+	 "         exp(-(els_f_grid[i]/ls_sigma)^2)\n"
+	 "\n"
+	 "Note that the frequency grid els_f_grid must hold\n"
+	 "offset frequencies from line center. Hence, the\n"
+	 "line center frequency is not needed as input.\n"
+	 "\n"
+	 "Output:\n"
+	 "   els        : The lineshape function [1/Hz]\n"
+	 "\n"
+	 "Input:\n"
+	 "   ls_sigma   : Line width [Hz].\n"
+	 "   els_f_grid : Frequency grid [Hz]."
+        ),
+	OUTPUT( els_ ),
+	INPUT(  ls_sigma_, els_f_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES())); 
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("elsLorentz"),
