@@ -189,9 +189,12 @@ Functions:
 
 Tensor3 a
 cout << a(1,2,3);      // Element access
-cout << a.nelem3();    // Number of elements in the third dimension.
-                       // Note that here we do not use the 0-based
-                       // naming convention!
+cout << a.npage();     // Number of pages.
+
+Tensor dimensions are:
+
+(library), (cupboard), shelf, book, page, row, column
+
 
 Dimemensions of some important variables:
 
@@ -213,7 +216,48 @@ interp_1d(Numeric& result, Numeric position, Vector field, Vector grid)
 interp_2d(Numeric& result, Numeric position1, Numeric position2,
           Matrix field, Vector grid1, Vector grid2)
 
-Absorption:
+Absorption lookup table:
 
-()
+struct abs_table {
+ArrayOfTagGroup tgs;      // Species
+Matrix          vmrs;     // [tgs.nelem(), p.nelem()]
+Vector          p;        // Pressure
+Vector          T;	  // Same length as p
+Vector          delta_T;  // Temperature offsets from T
+Vector          f;        // Frequency
 
+Tensor table;             // [tgs.nelem(),
+                              delta_T.nelem(),
+                              p.nelem(),
+                              f.nelem()]
+}
+
+How to extract absorption:
+
+Lookup functions returning 
+
+Matrix abs(number,f)
+
+Vector abs (for all frequencies), given
+
+a) total abs, given Index in p and T plus ArrayOfIndex in tgs and vmrs
+   to match to select species that should be summed.
+
+b) total abs, given Index in p and Numeric value for T plus
+   ArrayOfIndex to select tgs that should be summed. This will do an
+   interpolation in T.
+
+c) total abs, given Numeric value in p and Numeric value for T plus
+   ArrayOfIndex to select tgs that should be summed. This will do an
+   interpolation in p and T.
+
+
+
+7. Schedule
+============
+
+ARTS-1-0-0: This month. At the same time make 1-0 a side branch and
+start with 2-0-0 on the main trunk.
+
+Tensors: This month?
+Method lists: March 2002.

@@ -1,3 +1,22 @@
+2001-11-23  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+        * arts-0-1-56
+
+	* src/matpackIII.h: First implementation of Tensor3 is
+	ready. Development time: 1 day! But it works. (At least I believe
+	in it.) Check out the impressive demonstration by running
+	test_matpack. 
+
+	* src/test_matpack.cc (test31): Added examples for Tensor3 usage.
+
+	* src/Makefile.am (test_matpack_SOURCES): Added matpackIII.h.
+
+	* src/matpackI.h: Fixed	bug in the range checking for generating
+	matrix views. (Replaced mrr.mstart+(mrr.mextent-1)*mrr.mstride and
+	similar expressions by simple mrr.mextent.)
+
+	* src/notes.txt: Some more notes here.
+
 2001-11-22  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-1-55

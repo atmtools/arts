@@ -111,6 +111,7 @@ test_matpack_SOURCES = \
 	make_vector.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackIII.h \
 	mystring.h \
 	test_matpack.cc
 

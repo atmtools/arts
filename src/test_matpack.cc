@@ -16,6 +16,7 @@
    USA. */
 
 #include "matpackI.h"
+#include "matpackIII.h"
 #include "array.h"
 #include "make_array.h"
 #include "mystring.h"
@@ -511,9 +512,79 @@ void test30()
   cout << "c =\n" << c << "\n";
 }
 
+void test31()
+{
+  cout << "Test Tensor3:\n";
+
+  Tensor3 a(2,3,4,1.0);
+
+  Index fill = 0;
+
+  // Fill with some numbers
+  for ( Index i=0; i<a.npages(); ++i )
+    for ( Index j=0; j<a.nrows(); ++j )
+      for ( Index k=0; k<a.ncols(); ++k )
+	a(i,j,k) = ++fill;
+
+  cout << "a =\n" << a << "\n";
+
+  cout << "Taking out first row of first page:\n"
+       << a(0,0,Range(joker)) << "\n";
+
+  cout << "Taking out last column of second page:\n"
+       << a(1,Range(joker),a.ncols()-1) << "\n";
+
+  cout << "Taking out the first letter on every page:\n"
+       << a(Range(joker),0,0) << "\n";
+
+  cout << "Taking out first page:\n"
+       << a(0,Range(joker),Range(joker)) << "\n";
+
+  cout << "Taking out last row of all pages:\n"
+       << a(Range(joker),a.nrows()-1,Range(joker)) << "\n";
+
+  cout << "Taking out second column of all pages:\n"
+       << a(Range(joker),Range(joker),1) << "\n";
+
+  a *= 2;
+
+  cout << "After element-vise multiplication with 2:\n"
+       << a << "\n";
+
+  transform(a,sqrt,a);
+
+  cout << "After taking the square-root:\n"
+       << a << "\n";
+
+  Index s = 200;
+  cout << "Let's allocate a large tensor, "
+       << s*s*s*8/1024./1024.
+       << " MB...\n";
+
+  a.resize(s,s,s);
+
+  cout << "Set it to 1...\n";
+
+  a = 1;
+
+  cout << "a(900,900,900) = " << a(90,90,90) << "\n";
+
+  fill = 0;
+
+  cout << "Fill with running numbers, using for loops...\n";
+  for ( Index i=0; i<a.npages(); ++i )
+    for ( Index j=0; j<a.nrows(); ++j )
+      for ( Index k=0; k<a.ncols(); ++k )
+	a(i,j,k) = ++fill;
+
+  cout << "Max(a) = ...\n";
+
+  cout << max(a) << "\n";
+
+}
 
 int main()
 {
-  test30();
+  test31();
   return 0;
 }

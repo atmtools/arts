@@ -149,8 +149,13 @@ public:
   friend class MatrixView;
   friend class Matrix;
   friend class Iterator2D;
+  friend class Iterator3D;
   friend class ConstIterator2D;
+  friend class ConstIterator3D;
   friend class SparseMatrixView;
+  friend class ConstTensor3View;
+  friend class Tensor3View;
+  friend class Tensor3;
   friend std::ostream& operator<<(std::ostream& os, const SparseMatrixView& v);
 
 
@@ -239,6 +244,7 @@ public:
   friend class VectorView;
   friend class ConstIterator2D;
   friend class ConstMatrixView;
+  friend class ConstTensor3View;
 
 protected:
   // Constructors:
@@ -307,6 +313,7 @@ public:
   friend class ConstIterator2D;
   friend class Iterator2D;
   friend class MatrixView;
+  friend class Tensor3View;
 
 protected:
   // Constructors:
@@ -428,6 +435,8 @@ public:
   // Friends:
   friend class ConstVectorView;
   friend class MatrixView;
+  friend class ConstIterator3D;
+  friend class ConstTensor3View;
   friend ConstMatrixView transpose(ConstMatrixView m);
 
 protected:
@@ -503,6 +512,8 @@ public:
 
   // Friends:
   friend class VectorView;
+  friend class Iterator3D;
+  friend class Tensor3View;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend MatrixView transpose(MatrixView m);
 
@@ -580,7 +591,7 @@ typedef Array<Matrix> ArrayOfMatrix;
 // Functions for Range:
 // --------------------
 
-  /* Explicit constructor. 
+/* Explicit constructor. 
 
   \param Start must be >= 0.
 
@@ -1515,7 +1526,7 @@ inline ConstVectorView ConstMatrixView::operator()(const Range& r, Index c) cons
 {
   // Check that c is valid:
   assert( 0 <= c );
-  assert( c <= mcr.mstart+(mcr.mextent-1)*mcr.mstride );
+  assert( c < mcr.mextent );
 
   return ConstVectorView(mdata + mcr.mstart + c*mcr.mstride,
 			 mrr, r);
@@ -1530,7 +1541,7 @@ inline ConstVectorView ConstMatrixView::operator()(Index r, const Range& c) cons
 {
   // Check that r is valid:
   assert( 0 <= r );
-  assert( r <  mrr.mstart+(mrr.mextent-1)*mrr.mstride );
+  assert( r < mrr.mextent );
 
   return ConstVectorView(mdata + mrr.mstart + r*mrr.mstride,
 			 mcr, c);
@@ -1717,7 +1728,7 @@ inline VectorView MatrixView::operator()(const Range& r, Index c)
 {
   // Check that c is valid:
   assert( 0 <= c );
-  assert( c <= mcr.mstart+(mcr.mextent-1)*mcr.mstride );
+  assert( c < mcr.mextent );
 
   return VectorView(mdata + mcr.mstart + c*mcr.mstride,
 		    mrr, r);
@@ -1731,7 +1742,7 @@ inline VectorView MatrixView::operator()(Index r, const Range& c)
 {
   // Check that r is valid:
   assert( 0 <= r );
-  assert( r <  mrr.mstart+(mrr.mextent-1)*mrr.mstride );
+  assert( r <  mrr.mextent );
 
   return VectorView(mdata + mrr.mstart + r*mrr.mstride,
 		    mcr, c);
