@@ -1,3 +1,11 @@
+2003-03-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-505
+
+	* doc/uguide/Makefile.am: arts_groups_to_latex.sh and
+	arts_methods_to_latex.sh where missing in distribution (make dist).
+	Added to EXTRA_DIST.
+
 2003-03-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-504
