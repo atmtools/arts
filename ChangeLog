@@ -1,6 +1,18 @@
+2003-01-10  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-379
+
+	* src/m_cloudbox.cc, src/m_scatrte.cc: Replaced stdlib.h by cstdlib. We
+	should always include the c++ versions of the header files.
+
+	* src/m_refraction.cc: Replaced iostream.h by iostream.
+
+	* src/old_absorption.cc: Replaced math.h by cmath.
+
 2003-01-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-378
+
 	Check-in failed for version arts-1-1-376.
 	This is the next try.
 
