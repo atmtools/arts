@@ -1,3 +1,13 @@
+2003-08-06  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-631
+
+	* src/matpackII.cc (mult): Put in some comments, marked by FIXME.
+	(transpose): Made one modification and put in some comments,
+	all marked by FIXME.
+
+	* src/test_sparse.cc: Test transpose.
+
 2003-08-06  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-630

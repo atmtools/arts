@@ -504,15 +504,20 @@ void transpose( Sparse& A,
 
       // The column pointers for all columns above the current one in A
       // are then increased with this amount.
-      for ( std::vector<Index>::iterator j = A.mcolptr->begin() + i + 1;
-             j < A.mcolptr->end();
-             ++j )
-        (*j) += n;
+//       for ( std::vector<Index>::iterator j = A.mcolptr->begin() + i + 1;
+//              j < A.mcolptr->end();
+//              ++j )
+//         (*j) += n;
+
+      // FIXME: Stefan: Is it really necessary to always increase all
+      // pointers above the current one? Suggestion:
+      //
+      (*A.mcolptr)[i+1] = (*A.mcolptr)[i] + n;
     }
 
   // Next we loop through the columns of A and search for the corresponding
   // row index within each column of B (i.e. two loops). The elements are
-  // then stored in A. We know that for every column in B we will have the
+  // then stored in A. We know that for every column in B we will have
   // the corresponding rowindex in A.
   std::vector<Numeric>::iterator dataA_it = A.mdata->begin();
   std::vector<Index>::iterator rowindA_it = A.mrowind->begin();
@@ -522,7 +527,7 @@ void transpose( Sparse& A,
   for (size_t c=0; c<A.mcolptr->size(); ++c)
     {
       // Looping over columns in B to get the elements in the right order,
-      // this will turn in to row index in A.
+      // this will turn into row index in A.
       for (size_t i=0; i<B.mcolptr->size(); ++i)
         {
           // Since only one element can occupy one row in a column, we
@@ -530,6 +535,13 @@ void transpose( Sparse& A,
           std::vector<Index>::iterator elem_it =
             find(B.mrowind->begin()+*(B.mcolptr->begin()+i),
                  B.mrowind->begin()+*(B.mcolptr->begin()+i+1), c);
+          // FIXME: Stefan: The find command leads to a lot of
+          // compiler warnings, presumably because mrowind and mcolptr
+          // are of type Index, which is a signed integer type,
+          // whereas the iterator type of STL is unsigned. I suggest
+          // that you discuss with Oliver how to make a safe cast 
+          // here.
+
 
           // If we found the element, store it in A.mrowind and A.mdata
           if (elem_it != B.mrowind->begin()+*(B.mcolptr->begin()+i+1))
@@ -552,7 +564,7 @@ void transpose( Sparse& A,
 
 //! Sparse - Sparse multiplication.
 /*!
-  Calculates A = B*C, where result A is sparse.
+  Calculates A = B*C, where result A is sparse, and B and C are also sparse.
 
   Output comes first!
 
@@ -602,11 +614,14 @@ void mult( Sparse& A,
           // Get the intersection between the elements in the two columns and
           // and store them in a temporary vector
           std::set<Index> colintersec;
-          set_intersection(C.mrowind->begin()+*(C.mcolptr->begin()+c),
+          std::set_intersection(C.mrowind->begin()+*(C.mcolptr->begin()+c),
             C.mrowind->begin()+*(C.mcolptr->begin()+c+1),
             Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b),
             Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b+1),
             inserter(colintersec, colintersec.begin()));
+
+          // FIXME: Stefan: Wow, this is really an elegant way to do
+          // it. Great that you found the set_intersection algorithm!
 
           // If we got an intersection, loop through it and multiply the
           // element pairs from C and Bt and store result in A
@@ -618,6 +633,10 @@ void mult( Sparse& A,
                 {
                   // FIXME: Testa att colsintersec funkar
                   tempA += Bt(*i,b) * C(*i,c);
+                  // FIXME: Stefan: This seems to be wastefull, since
+                  // you don't use all the information you have, but
+                  // go through the full index operators again.
+
                 }
               A.rw(b,c) = tempA;
             }
