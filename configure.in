@@ -16,7 +16,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.138)
+AM_INIT_AUTOMAKE(arts,1.1.139)
 
 
 #
@@ -292,6 +292,29 @@ else
   WARNING_FLAGS=
 fi
 
+
+#
+# OS check
+#
+ac_osname=`uname`
+ac_osversion=`uname -r`
+
+AM_CONDITIONAL(OS_NAME, test "$ac_osname")
+AC_DEFINE_UNQUOTED(OS_NAME, "$ac_osname", Operating system name)
+
+AM_CONDITIONAL(OS_VERSION, test "$ac_osversion")
+AC_DEFINE_UNQUOTED(OS_VERSION, "$ac_osversion", Operating system version)
+
+case "$ac_osname" in
+  Linux) CPPFLAGS="$CPPFLAGS -DLINUX" ;;
+  HP-UX) CPPFLAGS="$CPPFLAGS -DHPUX" ;;
+  SunOS) CPPFLAGS="$CPPFLAGS -DSUNOS" ;;
+esac
+
+
+#
+# Compile flags switches
+#
 if test x$ac_maintainer_mode = xyes; then
   CFLAGS="$WARNING_FLAGS"
   CXXFLAGS="-ftemplate-depth-20 $WARNING_FLAGS"
