@@ -228,16 +228,16 @@ int main()
 	  // Check, if some workspace variables are in both the
 	  // input and the output list, and erase those from the input 
 	  // list:
-	  for (ARRAY<size_t>::const_iterator j=vo.begin(); j!=vo.end(); ++j)
+	  for (size_t j=0; j<vo.size(); ++j)
 	    // It is important that the condition is k<vi.end(), not
 	    // k!=vi.end, because if erase is called, vi.end() is
 	    // decreased. Since k is increased at the same time, the
 	    // case k=vi.end() can be missed!
-	    for (ARRAY<size_t>::iterator k=vi.begin(); k<vi.end(); ++k)
-	      if ( *j == *k )
+	    for (size_t k=0; k<vi.size(); ++k)
+	      if ( vo[j] == vi[k] )
 		{
 		  //		  erase_vector_element(vi,k.index());
-		  vi.erase(k);
+		  erase_vector_element(vi,k);
 		}
 
 	  // There used to be a similar block here for the generic
@@ -473,16 +473,16 @@ int main()
 	  // Check, if some workspace variables are in both the
 	  // input and the output list, and erase those from the input 
 	  // list:
-	  for (ARRAY<size_t>::const_iterator j=vo.begin(); j!=vo.end(); ++j)
+	  for (size_t j=0; j<vo.size(); ++j)
 	    // It is important that the condition is k<vi.end(), not
 	    // k!=vi.end, because if erase is called, vi.end() is
 	    // decreased. Since k is increased at the same time, the
 	    // case k=vi.end() can be missed!
-	    for (ARRAY<size_t>::iterator k=vi.begin(); k<vi.end(); ++k)
-	      if ( *j == *k )
+	    for (size_t k=0; k<vi.size(); ++k)
+	      if ( vo[j] == vi[k] )
 		{
 		  //		  erase_vector_element(vi,k.index());
-		  vi.erase(k);
+		  erase_vector_element(vi,k);
 		}
 
 	  // There used to be a similar block here for the generic

@@ -33,6 +33,13 @@ tag_groupsDefine{
 	"N2O" ] 
 }
 
+#wfs_tgsDefine{
+#      [ "H2O-161, H2O-181, H2O-171, H2O-162, H2O-182, H2O-262",
+#        "H2O-HITRAN96Self, H2O-HITRAN96Foreign"]
+
+#abs_per_tgReduce()
+
+
 # This separates the lines into the different tag groups and creates
 # the workspace variable `lines_per_tg':
 #lines_per_tgCreateFromLines{}
@@ -111,6 +118,10 @@ lineshape_per_tgDefine{
 # Calculate absorption coefficients, both total (`abs') and 
 # separately for each tag group (`abs_per_tg'):
 absCalc{}
+
+# Write to binary file:
+MatrixWriteBinary(abs){""}
+
 
 # These we definitely want to write to files!
 MatrixWriteAscii (abs) {""}
