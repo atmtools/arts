@@ -152,14 +152,23 @@ xml_write_to_stream (ostream& os, const Vector& vector);
 //   XML parser classes
 ////////////////////////////////////////////////////////////////////////////
 
+//! XML attribute class
+/*! 
+  Holds the name and value of an XML attribute.
+*/
+
 class XMLAttribute
 {
 public:
-  String name;
-  String value;
+  String name;                  /*!< Attribute name */
+  String value;                 /*!< Attribute value */
 };
 
 
+//! The ARTS XML tag class
+/*! 
+  Handles reading, writing and constructing of XML tags.
+*/
 class ArtsXMLTag
 {
 public:
@@ -195,8 +204,8 @@ public:
   write_to_stream (ostream& os);
 
 private:
-  String name;
-  Array<XMLAttribute> attribs;
+  String name;                  /*!< Tag name */
+  Array<XMLAttribute> attribs;  /*!< List of attributes */
 };
 
 
@@ -413,7 +422,7 @@ ArtsXMLTag::read_from_stream (istream& is)
     String::size_type pos;
 
     pos = token.find ("=", 0);
-    if (pos == (String::size_type)String::npos)
+    if (pos == String::npos)
       {
         xml_parse_error ("Syntax error in tag: " + tag.str ());
       }
@@ -1975,3 +1984,4 @@ xml_write_to_file<Tensor7> (const String&, const Tensor7&);
 
 template void
 xml_write_to_file<Vector> (const String&, const Vector&);
+
