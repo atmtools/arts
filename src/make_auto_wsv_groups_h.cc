@@ -77,9 +77,9 @@ int main()
       // Now write the group handles one by one:
       for (Index i=0; i<n_wsv_groups; ++i)
 	{
-	  ofs << "  " << wsv_group_names[i] << "_,\n";
+	  ofs << (i?",\n":"") << "  " << wsv_group_names[i] << "_";
 	}
-      ofs << "};\n\n";
+      ofs << "\n};\n\n";
 
       
       // Now write the declaration of the WsvP class.
