@@ -874,7 +874,7 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
 	      if ( (l >= 0) && (l <= 33) ) // ---- just the lines ------------------
 		{
 		  strength = CL * pwv_dummy * mpm02[l][1] * 
-			          pow(theta, 3.5)  * exp(mpm02[l][2]*(1.0-theta));
+			          pow(theta, (Numeric)3.5)  * exp(mpm02[l][2]*(1.0-theta));
 		  // line broadening parameter [GHz]
 		  gam      = CW * mpm02[l][3] * 0.001 * 
 		                  ( (mpm02[l][4] * pwv * pow(theta, mpm02[l][6])) +  
@@ -883,7 +883,7 @@ CTKS  987.9 1                    4.42(23) --       4.01     --       S. S. D. GA
 	      else if ( l == 34 ) // ----- just the continuum pseudo-line ----------
 		{
 		  strength = CC * pwv_dummy * mpm02[l][1] * 
-		                  pow(theta, 3.5)  * exp(mpm02[l][2]*(1.0-theta));
+		                  pow(theta, (Numeric)3.5)  * exp(mpm02[l][2]*(1.0-theta));
 		  // line broadening parameter [GHz]
 		  gam      = mpm02[l][3] * 0.001 * 
 	                     ( (mpm02[l][4] * pwv * pow(theta, mpm02[l][6])) +  
@@ -12169,8 +12169,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.9 $ */
-/*     created:	        $Date: 2003/05/30 09:52:56 $ */
+/*     revision:	        $Revision: 1.26.2.10 $ */
+/*     created:	        $Date: 2003/07/25 10:17:06 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */
