@@ -1,3 +1,21 @@
+2003-06-02  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
+
+	* arts-1-1-559
+
+	* src/math_funcs.cc: Added: new integration method:
+	AngIntegrate_trapezoid_opti: In addition to the "old fashined"
+	integration method "AngIntegrate_trapezoid", it checks whether
+	the stepsize is	constant. If it is, it uses a faster
+	method, if not, it uses the old one.
+
+	* src/m_scatrte.cc: Changed: declaration of scat_fieldCalc:
+	added *grid_stepsize* in function declaration
+
+	* src/methods.cc: Changed: declaration of scat_fieldCalc:
+	added *grid_stepsize* in function declaration
+
+	* src/test_integration.cc: Modified.
+	
 2003-05-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-558

@@ -276,6 +276,72 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
 }
 
 
+//! AngIntegrate_trapezoid_opti
+/*! 
+    Performs an integration of a matrix over all directions defined in angular
+    grids using the trapezoidal integration method.
+
+    In addition to the "old fashined" integration method, it checks whether
+    the stepsize is constant. If it is, it uses a faster method, if not, it
+    uses the old one.
+
+    \param Integrand The Matrix to be integrated
+    \param za_grid Input : The zenith angle grid 
+    \param aa_grid Input : The azimuth angle grid 
+    
+    \return The resulting integral
+
+    \author Claas Teichmann <claas@sat.physik.uni-bremen.de>
+    \date 2003/05/28
+*/
+Numeric AngIntegrate_trapezoid_opti(MatrixView Integrand,
+                                    ConstVectorView za_grid,
+                                    ConstVectorView aa_grid,
+                                    ConstVectorView grid_stepsize)
+{
+  Numeric res = 0;
+  if ((grid_stepsize[0] > 0) && (grid_stepsize[1] > 0))
+    {
+      Index n = za_grid.nelem();
+      Index m = aa_grid.nelem();
+      Numeric stepsize_za = grid_stepsize[0];
+      Numeric stepsize_aa = grid_stepsize[1];
+      Vector res1(n);
+      assert (is_size(Integrand, n, m));
+
+      Numeric temp = 0.0;
+      
+      for (Index i = 0; i < n ; ++i)
+        {
+          temp = 0.0;
+          
+          temp += Integrand(i, 0);
+          for (Index j = 1; j < m - 1; j++)
+            {
+              temp += Integrand(i, j) * 2;
+            }
+          temp += Integrand(i, m-1);
+          temp *= 0.5 * DEG2RAD * stepsize_aa * sin(za_grid[i] * DEG2RAD);
+          res1[i] = temp;
+        }      
+      
+      Numeric res = res1[0];
+      for (Index i = 1; i < n - 1; i++)
+        {
+          res += res1[i] * 2;
+        }
+      res += res1[n-1];
+      res *= 0.5 * DEG2RAD * stepsize_za;
+    }
+  else
+    {
+      res = AngIntegrate_trapezoid(Integrand, za_grid, aa_grid);
+    }
+  //cout<<res<<"\n";
+  return res;
+}
+
+
 //! AngIntegrate_trapezoid
 /*! 
     Performs an integration of a matrix over all directions defined in angular

@@ -3091,7 +3091,8 @@ scat_fieldCalc(//WS Output:
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
                const Vector& f_grid,
-               const Index& f_index
+               const Index& f_index,
+               const Vector& grid_stepsize
                )
   
 {

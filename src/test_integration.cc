@@ -69,6 +69,11 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt(MatrixView Integrand,
                                              ConstVectorView aa_grid,
                                              Numeric stepsize);
 
+Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
+                                              ConstVectorView za_grid,
+                                              ConstVectorView aa_grid,
+                                              Numeric stepsize);
+
 Numeric AngIntegrate_trapezoid_original(ConstVectorView Integrand,
                                         ConstVectorView za_grid);
 
@@ -88,6 +93,9 @@ Numeric test_xy_fixedstep(int z_size, int a_size,
 Numeric test_xy_fixedstep_opt(int z_size, int a_size,
                               float stepsize, int frequency);
 
+Numeric test_xy_fixedstep_opt2(int z_size, int a_size,
+                               float stepsize, int frequency);
+
 Numeric test_x(int vsize,
                float stepsize,
                int frequency);
@@ -103,17 +111,20 @@ int main(int argc, char *argv[])
   int frequency = strtol(argv[1], NULL, 10);  // Zahl zur Basis 10
   cout << "Wert von frequency    : " << frequency << endl;
 
-  test_x(1801, 0.1, frequency);
-  test_x_fixedstep(1801, frequency);
-    //  test_x(181, 1, frequency);
-    //  test_x(19, 10, frequency);
+  //  test_x(1801, 0.1, frequency);
+  //  test_x_fixedstep(1801, frequency);
+  //  test_x(181, 1, frequency);
+  //  test_x(19, 10, frequency);
 
-  test_xy(1801, 3601, 0.1, frequency);
-  test_xy_opt(1801, 3601, 0.1, frequency);
-  test_xy_fixedstep(1801, 3601, 0.1, frequency);
-  test_xy_fixedstep_opt(1801, 3601, 0.1, frequency);
+  test_xy(181, 361, 1.0, frequency);
+  //  test_xy_opt(1801, 3601, 0.1, frequency);
+  //  test_xy_fixedstep(1801, 3601, 0.1, frequency);
+  //  test_xy_fixedstep_opt(1801, 3601, 0.1, frequency);
   test_xy_fixedstep_opt(181, 361, 1.0, frequency);
-  test_xy_fixedstep_opt(19, 37, 10, frequency);
+  //  test_xy_fixedstep_opt(19, 37, 10, frequency);
+  //  test_xy_fixedstep_opt2(1801, 3601, 0.1, frequency);
+  test_xy_fixedstep_opt2(181, 361, 1.0, frequency);
+  //  test_xy_fixedstep_opt2(19, 37, 10, frequency);
 }
 
 
@@ -367,6 +378,56 @@ Numeric AngIntegrate_trapezoid_fixedstep_opt(MatrixView Integrand,
     }
   Numeric res = 0.0;
   res += res1[0];
+  for (Index i = 1; i < n - 1; i++)
+    {
+      res += res1[i] * 2;
+    }
+  res += res1[n-1];
+  res *= 0.5 * DEG2RAD * stepsize;
+  
+  //cout<<res<<"\n";
+  return res;
+}
+
+
+//! AngIntegrate_trapezoid_fixedstep_opt2
+/*! 
+    Performs an integration of a matrix over all directions defined in angular
+    grids using the trapezoidal integration method.
+    Here we use a fixed stepsize, e.g. 0.1
+    with some more optimizations to see whether it is faster or not
+
+    \param Integrand The Matrix to be integrated
+    \param za_grid Input : The zenith angle grid 
+    \param aa_grid Input : The azimuth angle grid 
+    
+    \return The resulting integral
+*/
+Numeric AngIntegrate_trapezoid_fixedstep_opt2(MatrixView Integrand,
+                                              ConstVectorView za_grid,
+                                              ConstVectorView aa_grid,
+                                              Numeric stepsize)
+{
+  Index n = za_grid.nelem();
+  Index m = aa_grid.nelem();
+  Vector res1(n);
+  assert (is_size(Integrand, n, m));
+
+  Numeric temp = 0.0;
+
+  for (Index i = 0; i < n ; ++i)
+    {
+      temp = Integrand(i, 0);
+      for (Index j = 1; j < m - 1; j++)
+        {
+          temp += Integrand(i, j) * 2;
+        }
+      temp += Integrand(i, m-1);
+      temp *= 0.5 * DEG2RAD * stepsize * sin(za_grid[i] * DEG2RAD);
+      res1[i] = temp;
+    }
+
+  Numeric res = res1[0];
   for (Index i = 1; i < n - 1; i++)
     {
       res += res1[i] * 2;
@@ -649,6 +710,62 @@ Numeric test_xy_fixedstep_opt(int z_size, int a_size,
 
   return result;
 }
+
+
+//! test_xy_fixedstep_opt2
+/*! 
+    Performs an integration over a simple Function given by a Matrix
+    uses AngIntegrate_trapezoid_fixedstep2 to integrate the funcion
+
+    \param z_size The size of the zenith dimension, e.g. 1801
+    \param a_size The size of the azimuth dimension, e.g. 3601
+    \param stepsize The size of the steps, e.g. 0.1
+    \param frequency Only for test purposes: frequency of integral computation
+
+    \return The resulting integral
+*/
+Numeric test_xy_fixedstep_opt2(int z_size, int a_size,
+                               float stepsize, int frequency)
+{
+  cout << ">>>>>-----------test_xy_fixedstep_opt2---------------\n";
+  Matrix Integrand(z_size, a_size); // function to be integrated
+  Vector za_grid(z_size);     // zenith (Theta) values
+  Vector aa_grid(a_size);     // azimuth (Phi) values
+
+  init_xy(stepsize, frequency, Integrand, za_grid, aa_grid);
+
+  Numeric result = 0;
+
+  struct timeval start;
+  struct timeval ende;
+  gettimeofday(&start, NULL);
+  //  cout << "Sekunden : " << start.tv_sec << endl
+  //   << "Milisekunden: " << start.tv_usec << endl;
+
+  for (int i = 0; i < frequency; i++)
+    result = AngIntegrate_trapezoid_fixedstep_opt2(Integrand, za_grid, aa_grid, stepsize);
+
+  gettimeofday(&ende, NULL);
+
+  double error = result/(4*PI) - 1;
+
+  double diffs = (ende.tv_sec - start.tv_sec)
+    + (ende.tv_usec - start.tv_usec)/1000000.0;
+  cout.precision(15);
+  cout << diffs << endl;
+  cout << "stepsize is    : " << stepsize << endl
+       << "z_size         : " << z_size << endl
+       << "a_size         : " << a_size << endl
+       << "1 is           : " << result/(4*PI) << endl
+       << "The result is  : " << result << endl
+       << "The error is   : " << error*100 << " %\n"
+       << "Number of loops: " << frequency << endl
+       << "elapsed time   : " << diffs << "s" << endl
+       << "----------------test_xy_fixedstep_opt2----------<<<<<\n";
+
+  return result;
+}
+
 
 
 //! test_x
