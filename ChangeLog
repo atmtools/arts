@@ -1,3 +1,10 @@
+2002-01-22  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-1
+	
+	* src/m_batch.cc: Moved #ifdef HDF_SUPPORT / #endif block to
+	support radiosonde functions even without HDF compiled in.
+
 2002-01-18  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-0
