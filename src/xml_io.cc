@@ -829,10 +829,21 @@ xml_read_from_stream (istream&      is,
   tag.get_attribute_value ("nelem", nelem);
   aindex.resize (nelem);
 
-  for (Index n = 0; n < nelem; n++)
+  Index n;
+  try
     {
-      xml_read_from_stream (is, aindex[n]);
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is, aindex[n]);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfIndex: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
     }
+
 
   tag.read_from_stream (is);
   tag.check_name ("/Array");
@@ -894,10 +905,21 @@ xml_read_from_stream (istream&       is,
   tag.get_attribute_value ("nelem", nelem);
   amatrix.resize (nelem);
 
-  for (Index n = 0; n < nelem; n++)
+  Index n;
+  try
     {
-      xml_read_from_stream (is, amatrix[n]);
+      for (Index n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is, amatrix[n]);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfMatrix: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
     }
+
 
   tag.read_from_stream (is);
   tag.check_name ("/Array");
@@ -960,10 +982,21 @@ xml_read_from_stream (istream&       is,
   tag.get_attribute_value ("nelem", nelem);
   atensor3.resize (nelem);
 
-  for (Index n = 0; n < nelem; n++)
+  Index n;
+  try
     {
-      xml_read_from_stream (is, atensor3[n]);
+      for (Index n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is, atensor3[n]);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfTensor3: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
     }
+
 
   tag.read_from_stream (is);
   tag.check_name ("/Array");
@@ -1025,10 +1058,21 @@ xml_read_from_stream (istream&       is,
   tag.get_attribute_value ("nelem", nelem);
   aatensor3.resize (nelem);
 
-  for (Index n = 0; n < nelem; n++)
+  Index n;
+  try
     {
-      xml_read_from_stream (is, aatensor3[n]);
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is, aatensor3[n]);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfArrayOfTensor3: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
     }
+
 
   tag.read_from_stream (is);
   tag.check_name ("/Array");
@@ -1092,9 +1136,19 @@ xml_read_from_stream (istream&       is,
   tag.get_attribute_value ("nelem", nelem);
   atensor6.resize (nelem);
 
-  for (Index n = 0; n < nelem; n++)
+  Index n;
+  try
     {
-      xml_read_from_stream (is, atensor6[n]);
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is, atensor6[n]);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfTensor6: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
     }
 
   tag.read_from_stream (is);
@@ -1158,9 +1212,19 @@ xml_read_from_stream (istream&       is,
   tag.get_attribute_value ("nelem", nelem);
   aatensor6.resize (nelem);
 
-  for (Index n = 0; n < nelem; n++)
+  Index n;
+  try
     {
-      xml_read_from_stream (is, aatensor6[n]);
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is, aatensor6[n]);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfArrayOfTensor6: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
     }
 
   tag.read_from_stream (is);
@@ -1224,10 +1288,22 @@ xml_read_from_stream (istream&       is,
   tag.get_attribute_value ("nelem", nelem);
   astring.resize (nelem);
 
-  for (Index n = 0; n < nelem; n++)
+  Index n;
+  try
     {
-      xml_read_from_stream (is, astring[n]);
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is, astring[n]);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfString: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
     }
+
+  
 
   tag.read_from_stream (is);
   tag.check_name ("/Array");
@@ -1289,10 +1365,21 @@ xml_read_from_stream (istream&       is,
   tag.get_attribute_value ("nelem", nelem);
   avector.resize (nelem);
 
-  for (Index n = 0; n < nelem; n++)
+  Index n;
+  try
     {
-      xml_read_from_stream (is, avector[n]);
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is, avector[n]);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfVector: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
     }
+
 
   tag.read_from_stream (is);
   tag.check_name ("/Array");
