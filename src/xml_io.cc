@@ -40,6 +40,8 @@
 #include "matpackVII.h"
 #include "array.h"
 #include "messages.h"
+#include "ppath.h"
+#include "agenda_class.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1901,6 +1903,9 @@ xml_write_to_stream (ostream&     os,
 ////////////////////////////////////////////////////////////////////////////
 
 template void
+xml_read_from_file<Agenda> (const String&, Agenda&);
+
+template void
 xml_read_from_file<ArrayOfIndex> (const String&, ArrayOfIndex&);
 
 template void
@@ -1920,6 +1925,9 @@ xml_read_from_file<Matrix> (const String&, Matrix&);
 
 template void
 xml_read_from_file<Numeric> (const String&, Numeric&);
+
+template void
+xml_read_from_file<Ppath> (const String&, Ppath&);
 
 template void
 xml_read_from_file<String> (const String&, String&);
@@ -1944,6 +1952,9 @@ xml_read_from_file<Vector> (const String&, Vector&);
 
 
 template void
+xml_write_to_file<Agenda> (const String&, const Agenda&);
+
+template void
 xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&);
 
 template void
@@ -1963,6 +1974,9 @@ xml_write_to_file<Matrix> (const String&, const Matrix&);
 
 template void
 xml_write_to_file<Numeric> (const String&, const Numeric&);
+
+template void
+xml_write_to_file<Ppath> (const String&, const Ppath&);
 
 template void
 xml_write_to_file<String> (const String&, const String&);
@@ -1985,3 +1999,38 @@ xml_write_to_file<Tensor7> (const String&, const Tensor7&);
 template void
 xml_write_to_file<Vector> (const String&, const Vector&);
 
+
+////////////////////////////////////////////////////////////////////////////
+//   Dummy funtion for groups for which 
+//   IO function have not yet been implemented
+////////////////////////////////////////////////////////////////////////////
+
+// FIXME: These should be implemented, sooner or later...
+
+void
+xml_read_from_stream (istream& is,
+                      Ppath& ppath)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+void
+xml_write_to_stream (ostream&     os,
+                     const Ppath& ppath)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+void
+xml_read_from_stream (istream& is,
+                      Agenda& agenda)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+void
+xml_write_to_stream (ostream&     os,
+                     const Agenda& agenda)
+{
+  throw runtime_error("Method not implemented!");
+}

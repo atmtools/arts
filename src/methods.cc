@@ -304,108 +304,6 @@ void define_md_data_raw()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ArrayOfIndexReadXML"),
-	DESCRIPTION
-        (
-         "Reads a index array from an XML file.\n"
-         "\n"
-         "The index array is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the index array is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   ArrayOfIndex : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"                    
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( ArrayOfIndex_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ArrayOfIndexWriteXML"),
-	DESCRIPTION
-        (
-         "Writes a index array to an XML file.\n"
-         "\n"
-         "The index array of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the index array is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   ArrayOfIndex : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( ArrayOfIndex_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ArrayOfMatrixReadXML"),
-	DESCRIPTION
-        (
-         "Reads an array of matrices from an XML file.\n"
-         "\n"
-         "The array of matrices is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the array of matrices is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   ArrayOfMatrix : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( ArrayOfMatrix_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ArrayOfMatrixWriteXML"),
-	DESCRIPTION
-        (
-         "Writes an array of matrices to an XML file.\n"
-         "\n"
-         "The array of matrices of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the array of matrices is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   ArrayOfMatrix : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( ArrayOfMatrix_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("ArrayOfStringPrint"),
@@ -422,32 +320,6 @@ void define_md_data_raw()
  
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ArrayOfStringReadXML"),
-	DESCRIPTION
-        (
-         "Reads an array of strings from an XML file.\n"
-         "\n"
-         "The array of strings is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the string is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   ArrayOfString : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( ArrayOfString_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("ArrayOfStringSet"),
 	DESCRIPTION
         (
@@ -460,84 +332,6 @@ void define_md_data_raw()
 	GINPUT(),
 	KEYWORDS( "text"         ),
 	TYPES(    Array_String_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ArrayOfStringWriteXML"),
-	DESCRIPTION
-        (
-         "Writes an array of strings to an XML file.\n"
-         "\n"
-         "The array of strings of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the string is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "The format is as follows:\n"
-         "\n"
-         "Generic input: \n"
-         "   ArrayOfString : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( ArrayOfString_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ArrayOfVectorReadXML"),
-	DESCRIPTION
-        (
-         "Reads an array of vectors from an XML file.\n"
-         "\n"
-         "The array of vectors is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the array of vectors is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   ArrayOfVector : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( ArrayOfVector_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ArrayOfVectorWriteXML"),
-	DESCRIPTION
-        (
-         "Writes an array of vectors to an XML file.\n"
-         "\n"
-         "The array of vectors of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the array of vectors is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   ArrayOfVector : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( ArrayOfVector_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1116,32 +910,6 @@ void define_md_data_raw()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("IndexReadXML"),
-	DESCRIPTION
-        (
-         "Reads a index value from an XML file.\n"
-         "\n"
-         "The index value is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the index is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   Index : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Index_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("IndexSet"),
@@ -1162,31 +930,6 @@ void define_md_data_raw()
 	KEYWORDS( "value" ),
 	TYPES(     Index_t   )));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("IndexWriteXML"),
-	DESCRIPTION
-        (
-         "Writes an index value to an XML file.\n"
-         "\n"
-         "The index value of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the index is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   Index : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( Index_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("i_spaceCBR"),
@@ -1201,51 +944,6 @@ void define_md_data_raw()
 	KEYWORDS( ),
 	TYPES( )));
 
-/*  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("linesWriteXML"),
-  	DESCRIPTION
-        (
-         "Writes the workspace variable *lines* to an XML file.\n"
-         "\n"
-         "The content of the workspace variable 'lines`\n"
-         "The content of the workspace variable *lines*\n"
-         "is written in ARTS XML line format to the file with\n"
-         "the specified name. If the filename is omitted, the\n"
-         "lines are written to <basename>.lines.xml.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ), 
-	OUTPUT(),
-	INPUT( lines_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-  
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("lines_per_tgWriteXML"),
-  	DESCRIPTION
-        (
-         "Writes the workspace variable *lines_per_tg* to an XML file.\n"
-         "\n"
-         "The content of the workspace variable *lines_per_tg*\n"
-         "is written in ARTS XML line format to the file with\n"
-         "the specified name. If the filename is omitted, the\n"
-         "lines are written to <basename>.lines_per_tg.xml.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT( lines_per_tg_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-*/
   
   md_data_raw.push_back
     ( MdRecord
@@ -1398,32 +1096,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("MatrixReadXML"),
-	DESCRIPTION
-        (
-         "Reads a matrix from an XML file.\n"
-         "\n"
-         "The matrix is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the matrix is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   Matrix : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Matrix_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("MatrixScale"),
 	DESCRIPTION
         (
@@ -1470,31 +1142,6 @@ void define_md_data_raw()
 	KEYWORDS( "nrows", "ncols", "value"   ),
 	TYPES(    Index_t, Index_t, Numeric_t )));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("MatrixWriteXML"),
-	DESCRIPTION
-        (
-         "Writes a matrix to an XML file.\n"
-         "\n"
-         "The matrix of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the matrix is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   Matrix : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( Matrix_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("NumericPrint"),
@@ -1508,32 +1155,6 @@ void define_md_data_raw()
 	GINPUT( Numeric_ ),
 	KEYWORDS( ),
 	TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("NumericReadXML"),
-	DESCRIPTION
-        (
-         "Reads a numeric value from an XML file.\n"
-         "\n"
-         "The numeric value is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the numeric is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   Numeric : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Numeric_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1554,31 +1175,6 @@ void define_md_data_raw()
 	GINPUT(),
 	KEYWORDS( "value"   ),
 	TYPES(    Numeric_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("NumericWriteXML"),
-	DESCRIPTION
-        (
-         "Writes a numeric value to an XML file.\n"
-         "\n"
-         "The numeric value of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the numeric is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   Numeric : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( Numeric_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
 
    md_data_raw.push_back
     ( MdRecord
@@ -1737,6 +1333,38 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("ReadXML"),
+	DESCRIPTION
+        (
+	 "Reads a workspace variable from an XML file.\n"
+	 "\n"
+	 "This is a supergeneric method. It can read variables of any group.\n"
+	 "\n"
+	 "If the filename is omitted, the variable is read\n"
+	 "from <basename>.<variable_name>.xml.\n"
+	 "\n"
+	 "Usage example:\n"
+	 "\n"
+	 "ReadXML(f_grid){\"frequencies.xml\"}\n"
+	 "Will read the frequency grid *f_grid* from the specified file.\n"
+	 "\n"
+	 "Supergeneric output:\n"
+	 "   Any_     : The variable to read.\n"
+	 "\n"
+	 "Keywords:\n"
+	 "   filename : Name of the input file."
+	 ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Any_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   ),
+	AGENDAMETHOD(   false ),
+	SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "RteCalc" ),
 	DESCRIPTION
         (
@@ -1889,32 +1517,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("StringReadXML"),
-	DESCRIPTION
-        (
-         "Reads a string from an XML file.\n"
-         "\n"
-         "The string is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the string is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   String : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-         ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( String_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("StringSet"),
 	DESCRIPTION
         (
@@ -1926,31 +1528,6 @@ md_data_raw.push_back
 	GINPUT(),
 	KEYWORDS( "text"   ),
 	TYPES(    String_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("StringWriteXML"),
-	DESCRIPTION
-        (
-         "Writes a string to an XML file.\n"
-         "\n"
-         "The string of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the string is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   String : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( String_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1984,32 +1561,6 @@ md_data_raw.push_back
 	KEYWORDS( "npages", "nrows", "ncols"   ),
 	TYPES(    Index_t,  Index_t, Index_t )));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor3ReadXML"),
-	DESCRIPTION
-        (
-         "Reads a tensor3 from an XML file.\n"
-         "\n"
-         "The tensor3 is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the tensor3 is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   Tensor3 : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Tensor3_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor3Set"),
@@ -2033,57 +1584,6 @@ md_data_raw.push_back
 	GINPUT(),
 	KEYWORDS( "npages", "nrows", "ncols", "value"   ),
 	TYPES( Index_t, Index_t, Index_t, Numeric_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor3WriteXML"),
-	DESCRIPTION
-        (
-         "Writes a tensor3 to an XML file.\n"
-         "\n"
-         "The tensor3 of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the tensor3 is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   Tensor3 : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( Tensor3_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor4ReadXML"),
-	DESCRIPTION
-        (
-         "Reads a tensor4 from an XML file.\n"
-         "\n"
-         "The tensor4 is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the tensor4 is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   Tensor4 : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Tensor4_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -2112,57 +1612,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor4WriteXML"),
-	DESCRIPTION
-        (
-         "Writes a tensor4 to an XML file.\n"
-         "\n"
-         "The tensor4 of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the tensor4 is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   Tensor4 : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( Tensor4_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor5ReadXML"),
-	DESCRIPTION
-        (
-         "Reads a tensor5 from an XML file.\n"
-         "\n"
-         "The tensor5 is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the tensor5 is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   Tensor5 : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Tensor5_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("Tensor5Set"),
 	DESCRIPTION
         (
@@ -2186,57 +1635,6 @@ md_data_raw.push_back
 	GINPUT(),
 	KEYWORDS( "nshelfs", "nbooks", "npages", "nrows", "ncols", "value" ),
 	TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Numeric_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor5WriteXML"),
-	DESCRIPTION
-        (
-         "Writes a tensor5 to an XML file.\n"
-         "\n"
-         "The tensor5 of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the tensor5 is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   Tensor5 : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( Tensor5_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor6ReadXML"),
-	DESCRIPTION
-        (
-         "Reads a tensor6 from an XML file.\n"
-         "\n"
-         "The tensor6 is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the tensor6 is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   Tensor6 : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Tensor6_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -2269,57 +1667,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("Tensor6WriteXML"),
-	DESCRIPTION
-        (
-         "Writes a tensor6 to an XML file.\n"
-         "\n"
-         "The tensor6 of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the tensor6 is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   Tensor6 : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( Tensor6_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor7ReadXML"),
-	DESCRIPTION
-        (
-         "Reads a tensor7 from an XML file.\n"
-         "\n"
-         "The tensor7 is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the tensor7 is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   Tensor7 : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Tensor7_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("Tensor7Set"),
 	DESCRIPTION
         (
@@ -2347,31 +1694,6 @@ md_data_raw.push_back
 		  "nrows", "ncols", "value" ),
 	TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, 
 	       Index_t, Numeric_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor7WriteXML"),
-	DESCRIPTION
-        (
-         "Writes a tensor7 to an XML file.\n"
-         "\n"
-         "The tensor7 of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the tensor7 is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   Tensor7 : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( Tensor7_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -2511,32 +1833,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorReadXML"),
-	DESCRIPTION
-        (
-         "Reads a vector from an XML file.\n"
-         "\n"
-         "The vector is read from the file with the\n"
-         "specified name and stored in the given workspace\n"
-         "variable.\n"
-         "If the filename is omitted, the vector is read\n"
-         "from <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic output: \n"
-         "   Vector : Name of the workspace variable to read.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the input file.\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("VectorScale"),
   	DESCRIPTION
         (
@@ -2611,28 +1907,35 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("VectorWriteXML"),
+      ( NAME("WriteXML"),
 	DESCRIPTION
         (
-         "Writes a vector to an XML file.\n"
-         "\n"
-         "The vector of the given workspace variable\n"
-         "is written to the file with the specified name.\n"
-         "If the filename is omitted, the vector is written\n"
-         "to <basename>.<variable_name>.xml.\n"
-         "\n"
-         "Generic input: \n"
-         "   Vector : Name of the workspace variable to write.\n"
-         "\n"
-         "Keywords: \n"
-         "   filename : Name of the output file.\n"
-        ),
+	 "Writes a workspace variable to an XML file.\n"
+	 "\n"
+	 "This is a supergeneric method. It can write variables of any group.\n"
+	 "\n"
+	 "If the filename is omitted, the variable is written\n"
+	 "to <basename>.<variable_name>.xml.\n"
+	 "\n"
+	 "Usage example:\n"
+	 "\n"
+	 "WriteXML(f_grid){\"\"}\n"
+	 "Will write the frequency grid *f_grid* to the default file.\n"
+	 "\n"
+	 "Supergeneric input:\n"
+	 "   Any_     : The variable to write.\n"
+	 "\n"
+	 "Keywords:\n"
+	 "   filename : Name of the output file."
+	 ),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT(),
-	GINPUT( Vector_ ),
+	GOUTPUT( ),
+	GINPUT(  Any_ ),
 	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
+	TYPES(    String_t   ),
+	AGENDAMETHOD(   false ),
+	SUPPRESSHEADER( true  )));
 
 
 

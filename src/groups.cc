@@ -72,9 +72,9 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfString");
   wsv_group_names.push_back("ArrayOfVector");
   wsv_group_names.push_back("ArrayOfMatrix");
-  wsv_group_names.push_back("ArrayOfLineRecord");
-  wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
-  wsv_group_names.push_back("TagGroups");
+//   wsv_group_names.push_back("ArrayOfLineRecord");
+//   wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
+//   wsv_group_names.push_back("TagGroups");
   wsv_group_names.push_back("Ppath");
   wsv_group_names.push_back("Agenda");
 }

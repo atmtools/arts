@@ -1,3 +1,27 @@
+2002-06-18  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-152
+
+	* src/methods.cc: Added supergeneric ReadXML and WriteXML
+	methods. Removed other XML IO methods.
+
+	* src/m_xml.h: Added. Contains the template functions for
+	supergeneric XML IO. This is the original template function from
+	Oliver Lemke, I've just moved it here.
+
+	* src/m_xml.cc: Removed.
+
+	* src/xml_io.cc: Added dummy functions for groups for XML IO is
+	not yet implemented.
+
+	* src/make_auto_md_cc.cc: Added #include for m_xml.h.
+
+	* doc/examples/absorption_example.arts.in: Example now uses
+	supergeneric WriteXML.
+
+	* src/groups.cc: Commented out groups TagGroups,
+	ArrayOfLineRecord, and ArrayOfArrayOfLineRecord.
+
 2002-06-18  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-151

@@ -19,7 +19,7 @@ VectorNLinSpace(f_grid){
   n     = 100
 }
 
-VectorWriteXML(f_grid){""}
+WriteXML(f_grid){""}
 
 CloneSize(ls,f_grid){}
 
@@ -33,6 +33,6 @@ NumericSet(ls_cutoff){750e9}  # Cutoff at 750 GHz
 
 lsWithCutoffAdd{}
 
-VectorWriteXML(ls){""}
+WriteXML(ls){""}
 
 }
