@@ -1236,6 +1236,65 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("elsVoigt_Drayson"),
+	DESCRIPTION
+        (
+	 "The Voigt Drayson linshape.\n"
+	 "\n"
+	 "This computes the Voigt profile\n"
+	 "through the Drayson approximation.\n"
+	 "\n"
+	 "Note that the frequency grid els_f_grid must hold\n"
+	 "offset frequencies from line center. Hence, the\n"
+	 "line center frequency is not needed as input.\n"
+	 "\n"
+	 "Output:\n"
+	 "   els        : The lineshape function [1/Hz]\n"
+	 "\n"
+	 "Input:\n"
+	 "   ls_sigma   : Lorentz width [Hz].\n"
+         "   ls_gamma   : Doppler width [Hz].\n"
+	 "   els_f_grid : Frequency grid [Hz]."
+        ),
+	OUTPUT( els_ ),
+	INPUT(  ls_sigma_, ls_gamma_, els_f_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("elsVoigt_Kuntz6"),
+	DESCRIPTION
+        (
+	 "The Voigt-Kuntz linshape.\n"
+	 "\n"
+	 "This computes the Voigt profile\n"
+	 "through the Kuntz algorithm with\n"
+         "a relative accuracy better than 2*10-6.\n"
+	 "\n"
+	 "Note that the frequency grid els_f_grid must hold\n"
+	 "offset frequencies from line center. Hence, the\n"
+	 "line center frequency is not needed as input.\n"
+	 "\n"
+	 "Output:\n"
+	 "   els        : The lineshape function [1/Hz]\n"
+	 "\n"
+	 "Input:\n"
+	 "   ls_sigma   : Lorentz width [Hz].\n"
+         "   ls_gamma   : Doppler width [Hz].\n"
+	 "   els_f_grid : Frequency grid [Hz]."
+        ),
+	OUTPUT( els_ ),
+	INPUT(  ls_sigma_, ls_gamma_, els_f_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("GroundNoScatteringSingleEmissivity"),
