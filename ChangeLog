@@ -1,4 +1,24 @@
-2001-07-11  Oliver Lemke  <olemke@core-dump.net>
+2001-07-23  Oliver Lemke  <olemke@core-dump.net>
+
+	* arts-0-0-186
+
+	* src/make_md_h.cc: Renamed md.h to auto_md.h md.cc to auto_md.cc.
+	Moved auto_md.cc creation to src/make_md_cc.cc.
+	
+	* src/make_md_cc.cc: Moved creation of auto_md.cc to this file.
+	
+	* src/Makefile.am: Changed names for auto-generated files. And added
+	make_md_cc.
+
+	* src/make_wsv_pointers_cc.cc: Renamed wsv_pointers.cc to
+	auto_wsv_pointers.cc.
+
+	* src/make_wsv_h.cc: Renamed wsv.h to auto_wsv.h.
+
+	* src/make_wsv_groups_h.cc: Renamed wsv_groups.h to auto_wsv_groups.h.
+
+
+2001-07-11  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-185
 
