@@ -37,14 +37,14 @@ do
              ;;
          "Workspace method = "*)
              echo "$j" \
-              | sed "s/^Workspace method = \(.*\)$/\\\levelb{\1}/" \
+              | sed "s/^Workspace method = \(.*\)$/\\\section*{\1}/" \
               | sed "s/_/\\\_/g"
              ;;
          --------------------------------------------*)
              if [ x$INSIDE_DESC = xno ]
              then
                  cat << EOF
-{\\footnotesize\\tt
+{\\footnotesize\\tt\\hbadness=10000
 EOF
 #\\footnotesize\\begin{verbatim}
                  INSIDE_DESC=yes

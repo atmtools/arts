@@ -1,3 +1,12 @@
+2004-05-11  Oliver Lemke  <olemke@linux.net>
+
+        * arts-1-1-816
+
+	* doc/uguide/ppath.tex: Small fix. s/fotnote/footnote/
+
+	* doc/uguide/arts_methods_to_latex.sh: Use section* instead of levelb.
+	Set badness limit to 10000 for method descriptions.
+
 2004-05-10  Oliver Lemke  <olemke@linux.net>
 
         * arts-1-1-815
