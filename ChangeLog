@@ -1,3 +1,14 @@
+2002-11-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-303	
+
+	* src/m_optproperties.cc: Renamed (m_scatproperties.cc) as this file
+	now contains all workspace methods for calculating optical 
+	properties, not only the scattering properties.
+
+	* src/agebdas.cc (opt_prop_gas_agenda): Corrected input and output 
+	of this agenda.
+
 2002-11-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-302
