@@ -1,4 +1,4 @@
-/* Copyright (C) 2002 Patrick Eriksson <patrick@rss.chalmers.se>
+/* Copyright (C)  Patrick Eriksson <patrick@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -29,7 +29,7 @@
   \brief  Functions releated to calculation of propagation paths.
   
   Functions to determine propagation paths for different atmospheric
-  dimensionalities.
+  dimensionalities, wioth and without refraction.
 
   The term propagation path is here shortened to ppath.
 */
@@ -179,37 +179,6 @@ Numeric geompath_lat_at_za(
   return lat0 + za0 - za;
 }
 
-
-
-//! geompath_za_at_lat
-/*!
-   Calculates the zenith angle for a given latitude along a geometrical 
-   propagation path.
-
-   Positive and negative zenith angles are handled. A positive zenith angle
-   means a movement towards higher latitudes.
-
-   \return         The zenith angle for the second point.
-   \param   za0    The zenith angle of the starting point.
-   \param   lat0   The latitude of the starting point.
-   \param   lat     The latitude of the second point.
-
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
-/* Not used:
-Numeric geompath_za_at_lat(
-       const Numeric&   za0,
-       const Numeric&   lat0,
-       const Numeric&   lat )
-{
-  assert( abs(za0) <= 180 );
-  assert( abs(za) <= 180 );
-  assert( ( za0 >= 0 && lat >= lat0 )  ||  ( lat < lat0 ) );
-
-  return za0 - lat0 - lat;
-}
-*/
 
 
 //! geompath_l_at_r
@@ -523,6 +492,8 @@ void cart2sph(
    cartesian position and a viewing vector. The viewing direction is the
    the vector [dx,dy,dz]. This vector is normalised (it has length 1).
 
+   See the user guide for definition on the zenith and azimuth angles.
+
    \param   x     Out: x-coordinate of observation position.
    \param   y     Out: y-coordinate of observation position.
    \param   z     Out: z-coordinate of observation position.
@@ -729,9 +700,10 @@ void resolve_lon(
 /*! 
    Position of crossing between path and a grid face
 
-   This is the basic function to determine where the path exits the grid
-   cell, given a single grid face. Or rather, the function determines
-   the position of the path for a given radius, latitude or longitude.
+   This is the basic function to determine where the path exits a 3D
+   grid cell, given a single grid face. Or rather, the function
+   determines the position of the path for a given radius, latitude or
+   longitude.
 
    The function considers only crossings in the forward direction,
    with a distance > 0. If no crossing is found, *r* is set to -1. The
@@ -1073,6 +1045,8 @@ Numeric rsurf_at_latlon(
    *psurface_slope_2d*, but the position and viewing direction must
    here be specicified as the slope varies inside the cell grid, in
    constrast to a 2D latitude grid range.
+
+   See further the other version of the function below.
 
    \return         The radial slope [m/degree]
    \param   lat1   Lower latitude of grid cell.
@@ -1899,6 +1873,27 @@ void do_gridcell_2d(
    \param   tanpoint    Out: Set to 1 if end point is a tangent point.
    \param   r_start     Radius of start point.
    \param   lat_start   Latitude of start point.
+   \param   lon_start   Longitude of start point.
+   \param   za_start    LOS zenith angle at start point.
+   \param   aa_start    LOS azimuth angle at start point.
+   \param   ppc         Propagation path constant.
+   \param   lmax        Maximum allowed length along the path. -1 = no limit.
+   \param   lat1        Latitude of left end face (face 1) of the grid cell.
+   \param   lat3        Latitude of right end face (face 3) of the grid cell.
+   \param   lon5        Lower longitude limit of the grid cell.
+   \param   lon6        Upper longitude limit of the grid cell.
+   \param   r15a        Radius of corner: lower p-surface,*lat1* and *lon5*.
+   \param   r35a        Radius of corner: lower p-surface,*lat3* and *lon5*.
+   \param   r36a        Radius of corner: lower p-surface,*lat3* and *lon6*.
+   \param   r16a        Radius of corner: lower p-surface,*lat1* and *lon6*.
+   \param   r15b        Radius of corner: upper p-surface,*lat1* and *lon5*.
+   \param   r35b        Radius of corner: upper p-surface,*lat3* and *lon5*.
+   \param   r36b        Radius of corner: upper p-surface,*lat3* and *lon6*.
+   \param   r16b        Radius of corner: upper p-surface,*lat1* and *lon6*.
+   \param   rground15   Radius for the ground at *lat1* and *lon5*.
+   \param   rground35   Radius for the ground at *lat3* and *lon5*.
+   \param   rground36   Radius for the ground at *lat3* and *lon6*.
+   \param   rground16   Radius for the ground at *lat1* and *lon6*.
 
    \author Patrick Eriksson
    \date   2002-11-28
@@ -2628,7 +2623,7 @@ void ppath_copy(
    All the data of ppath1 is kept.
 
    The first point in ppath2 is assumed to be the same as the last in ppath1.
-   Only data in ppath from the fields pos, los, z, l_step, gp_xxx and 
+   Only data in ppath from the fields pos, los, z, l_step, gp_XXX and 
    background are considered.
 
    \param   ppath1    Output: Ppath structure to be expanded.
@@ -2965,9 +2960,10 @@ void ppath_fill_3d(
 
    Both positive and negative zenith angles are handled.
 
-   \return         Path constant.
-   \param   r      Radius of the sensor position.
-   \param   za     Zenith angle of the sensor line-of-sight.
+   \return               Path constant.
+   \param   r            Radius.
+   \param   za           LOS Zenith angle.
+   \param   refr_index   Refractive index.
 
    \author Patrick Eriksson
    \date   2002-05-17
@@ -2991,7 +2987,7 @@ Numeric refraction_ppc(
   === Help functions for the *ppath_step* functions found below
   === These functions are mainly pieces of code that are common for at least
   === two functions (or two places in some function) and for this reason 
-  === there is not much documentation. 
+  === the headers are not complete. 
   ===========================================================================*/
 
 
@@ -4302,23 +4298,37 @@ void raytrace_1d_linear_euler(
    the start position when calling the function. The length of *l_array*
    will be one smaller than the length of the other arrays.
 
-   \param   r_array      Out: Radius of ray tracing points.
-   \param   lat_array    Out: Latitude of ray tracing points.
-   \param   za_array     Out: LOS zenith angle at ray tracing points.
-   \param   l_array      Out: Distance along the path between ray tracing 
-                         points.
-   \param   r            Start radius for ray tracing.
-   \param   lat          Start latitude for ray tracing.
-   \param   za           Start zenith angle for ray tracing.
-   \param   lraytrace    Maximum allowed length for ray tracing steps.
-   \param   lat1         Latitude of left end face (face 1) of the grid cell.
-   \param   lat3         Latitude of right end face (face 3) of the grid cell.
-   \param   r1a          Radius of lower-left corner of the grid cell.
-   \param   r3a          Radius of lower-right corner of the grid cell.
-   \param   r3b          Radius of upper-right corner of the grid cell.
-   \param   r1b          Radius of upper-left corner of the grid cell.
-   \param   rground1     Radius for the ground at *lat1*.
-   \param   rground3     Radius for the ground at *lat3*.
+   \param   r_array         Out: Radius of ray tracing points.
+   \param   lat_array       Out: Latitude of ray tracing points.
+   \param   za_array        Out: LOS zenith angle at ray tracing points.
+   \param   l_array         Out: Distance along the path between ray tracing 
+                            points.
+   \param   endface         Out: Number coding of exit face.
+   \param   tanpoint        Out: True if last point is a tangent point.
+   \param   r               Out: Start radius for ray tracing.
+   \param   lat             Out: Start latitude for ray tracing.
+   \param   za              Out: Start zenith angle for ray tracing.
+   \param   a_pressure      Out: The WSV with the same name.
+   \param   a_temperature   Out: The WSV with the same name.
+   \param   a_vmr_list      Out: The WSV with the same name.
+   \param   refr_index      Out: The WSV with the same name.
+   \param   refr_index_agenda    The WSV with the same name.
+   \param   lraytrace       Maximum allowed length for ray tracing steps.
+   \param   lat1            Latitude of left end face of the grid cell.
+   \param   lat3            Latitude of right end face  of the grid cell.
+   \param   r1a             Radius of lower-left corner of the grid cell.
+   \param   r3a             Radius of lower-right corner of the grid cell.
+   \param   r3b             Radius of upper-right corner of the grid cell.
+   \param   r1b             Radius of upper-left corner of the grid cell.
+   \param   rground1        Radius for the ground at *lat1*.
+   \param   rground3        Radius for the ground at *lat3*.
+   \param   p_grid          The WSV with the same name.
+   \param   lat_grid        The WSV with the same name.
+   \param   lon_grid        The WSV with the same name.
+   \param   r_geoid         The WSV with the same name.
+   \param   z_field         The WSV with the same name.
+   \param   t_field         The WSV with the same name.
+   \param   vmr_field       The WSV with the same name.
 
    \author Patrick Eriksson
    \date   2002-12-02
@@ -4426,6 +4436,12 @@ void raytrace_2d_linear_euler(
 
           za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
                                                         cos(za_rad) * dndlat );
+
+          // Make sure that obtained *za* is inside valid range
+          if( za < -180 )
+            { za += 360; }
+          else if( za > 180 )
+            { za -= 360; }
         }
 
       r   = r_new;
@@ -4462,25 +4478,49 @@ void raytrace_2d_linear_euler(
    function. The length of *l_array* will be one smaller than the
    length of the other arrays.
 
-   \param   r_array      Out: Radius of ray tracing points.
-   \param   lat_array    Out: Latitude of ray tracing points.
-   \param   lon_array    Out: Longitude of ray tracing points.
-   \param   za_array     Out: LOS zenith angle at ray tracing points.
-   \param   aa_array     Out: LOS azimuth angle at ray tracing points.
-   \param   l_array      Out: Distance along the path between ray tracing 
-                         points.
-   \param   r            Start radius for ray tracing.
-   \param   lat          Start latitude for ray tracing.
-   \param   lon          Start longitude for ray tracing.
-   \param   za           Start zenith angle for ray tracing.
-   \param   aa           Start azimuth angle for ray tracing.
-   \param   lraytrace    Maximum allowed length for ray tracing steps.
-   \param   lat1         Latitude of left end face (face 1) of the grid cell.
-   \param   lat3         Latitude of right end face (face 3) of the grid cell.
-   \param   lon5         Lower longitude of the grid cell.
-   \param   lon6         Upper longitude of the grid cell.
-   
-   to be continied ...
+   \param   r_array        Out: Radius of ray tracing points.
+   \param   lat_array      Out: Latitude of ray tracing points.
+   \param   lon_array      Out: Longitude of ray tracing points.
+   \param   za_array       Out: LOS zenith angle at ray tracing points.
+   \param   aa_array       Out: LOS azimuth angle at ray tracing points.
+   \param   l_array        Out: Distance along the path between ray tracing 
+                           points.
+   \param   endface        Out: Number coding of exit face.
+   \param   tanpoint       Out: True if last point is a tangent point.
+   \param   r              Out: Start radius for ray tracing.
+   \param   lat            Out: Start latitude for ray tracing.
+   \param   lon            Out: Start longitude for ray tracing.
+   \param   za             Out: Start zenith angle for ray tracing.
+   \param   aa             Out: Start azimuth angle for ray tracing.
+   \param   a_pressure     Out: The WSV with the same name.
+   \param   a_temperature  Out: The WSV with the same name.
+   \param   a_vmr_list     Out: The WSV with the same name.
+   \param   refr_index     Out: The WSV with the same name.
+   \param   refr_index_agenda    The WSV with the same name.
+   \param   lraytrace      Maximum allowed length for ray tracing steps.
+   \param   lat1           Latitude of left end face of the grid cell.
+   \param   lat3           Latitude of right end face of the grid cell.
+   \param   lon5           Lower longitude of the grid cell.
+   \param   lon6           Upper longitude of the grid cell.
+   \param   r15a           Radius of corner: lower p-surface,*lat1* and *lon5*.
+   \param   r35a           Radius of corner: lower p-surface,*lat3* and *lon5*.
+   \param   r36a           Radius of corner: lower p-surface,*lat3* and *lon6*.
+   \param   r16a           Radius of corner: lower p-surface,*lat1* and *lon6*.
+   \param   r15b           Radius of corner: upper p-surface,*lat1* and *lon5*.
+   \param   r35b           Radius of corner: upper p-surface,*lat3* and *lon5*.
+   \param   r36b           Radius of corner: upper p-surface,*lat3* and *lon6*.
+   \param   r16b           Radius of corner: upper p-surface,*lat1* and *lon6*.
+   \param   rground15      Radius for the ground at *lat1* and *lon5*.
+   \param   rground35      Radius for the ground at *lat3* and *lon5*.
+   \param   rground36      Radius for the ground at *lat3* and *lon6*.
+   \param   rground16      Radius for the ground at *lat1* and *lon6*.   
+   \param   p_grid         The WSV with the same name.
+   \param   lat_grid       The WSV with the same name.
+   \param   lon_grid       The WSV with the same name.
+   \param   r_geoid        The WSV with the same name.
+   \param   z_field        The WSV with the same name.
+   \param   t_field        The WSV with the same name.
+   \param   vmr_field      The WSV with the same name.
 
    \author Patrick Eriksson
    \date   2003-01-18
@@ -4627,7 +4667,8 @@ void raytrace_3d_linear_euler(
           const Numeric   sinaa = sin( aa_rad );
           const Numeric   cosaa = cos( aa_rad );
 
-
+          // Screen out very small values for *dndlat* and *dnlon* to avoid
+          // rounding errors for cases when thos variables should be 0.
           if( abs( lat ) < 90  &&  
                          ( abs( dndlat ) > 1e-15  ||  abs( dndlon ) > 1e-15 ) )
             {
@@ -4636,6 +4677,7 @@ void raytrace_3d_linear_euler(
               else
                 { aa += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); }
               
+              // Make sure that obtained *aa* is inside valid range
               if( aa > 180 )
                 { aa -= 360; }
               else if( aa < 180 )
@@ -4649,6 +4691,7 @@ void raytrace_3d_linear_euler(
             { za += aterm * ( cos(za_rad) * 
                                        ( cosaa * dndlat + sinaa * dndlon ) ); }
           
+          // Make sure that obtained *za* is inside valid range
           if( za > 180 )
             { za = 180 - za; }
           else if( za < 0 )
@@ -4687,18 +4730,22 @@ void raytrace_3d_linear_euler(
    calculations. The maximum distance between the path points is still
    determined by *lmax*.
 
-   \param   ppath             Output: A Ppath structure.
+   \param   ppath             Out: A Ppath structure.
+   \param   a_pressure        Out: The WSV with the same name.
+   \param   a_temperature     Out: The WSV with the same name.
+   \param   a_vmr_list        Out: The WSV with the same name.
+   \param   refr_index        Out: The WSV with the same name.
+   \param   refr_index_agenda The WSV with the same name.
    \param   p_grid            Pressure grid.
    \param   z_field           Geometrical altitudes corresponding to p_grid.
    \param   t_field           Temperatures corresponding to p_grid.
+   \param   vmr_field         VMR values corresponding to p_grid.
    \param   r_geoid           Geoid radius.
    \param   z_ground          Ground altitude.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
    \param   lmax              Maximum allowed length between the path points.
-   \param   refrindex         String saying how refractive index shall be
-                              determined ("calc" or "interp")
 
    \author Patrick Eriksson
    \date   2002-11-26
@@ -4836,19 +4883,23 @@ void ppath_step_refr_1d(
    Works as the same function for 1D despite that some input arguments are
    of different type.
 
-   \param   ppath             Output: A Ppath structure.
+   \param   ppath             Out: A Ppath structure.
+   \param   a_pressure        Out: The WSV with the same name.
+   \param   a_temperature     Out: The WSV with the same name.
+   \param   a_vmr_list        Out: The WSV with the same name.
+   \param   refr_index        Out: The WSV with the same name.
+   \param   refr_index_agenda The WSV with the same name.
    \param   p_grid            Pressure grid.
    \param   lat_grid          Latitude grid.
    \param   z_field           Geometrical altitudes.
    \param   t_field           Atmospheric temperatures.
+   \param   vmr_field         VMR values.
    \param   r_geoid           Geoid radii.
    \param   z_ground          Ground altitudes.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
    \param   lmax              Maximum allowed length between the path points.
-   \param   refrindex         String saying how refractive index shall be
-                              determined ("calc" or "interp")
 
    \author Patrick Eriksson
    \date   2002-12-02
@@ -4982,20 +5033,24 @@ void ppath_step_refr_2d(
    Works as the same function for 1D despite that some input arguments are
    of different type.
 
-   \param   ppath             Output: A Ppath structure.
+   \param   ppath             Out: A Ppath structure.
+   \param   a_pressure        Out: The WSV with the same name.
+   \param   a_temperature     Out: The WSV with the same name.
+   \param   a_vmr_list        Out: The WSV with the same name.
+   \param   refr_index        Out: The WSV with the same name.
+   \param   refr_index_agenda The WSV with the same name.
    \param   p_grid            Pressure grid.
    \param   lat_grid          Latitude grid.
    \param   lon_grid          Longitude grid.
    \param   z_field           Geometrical altitudes.
    \param   t_field           Atmospheric temperatures.
+   \param   vmr_field         VMR values.
    \param   r_geoid           Geoid radii.
    \param   z_ground          Ground altitudes.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
    \param   lmax              Maximum allowed length between the path points.
-   \param   refrindex         String saying how refractive index shall be
-                              determined ("calc" or "interp")
 
    \author Patrick Eriksson
    \date   2003-01-08
@@ -6134,8 +6189,9 @@ void ppath_start_stepping(
 /*! 
    This is the core for the WSM ppathCalc.
 
-   This function takes the same input as ppathCalc, but there are
-   some additional argument(s):
+   This function takes the same input as ppathCalc (that is, those
+   input arguments are the WSV with the same name, but there are) some
+   additional argument(s):
 
    \param   agenda_verb   This argument is given as input to agendas
                           to control the verbosity.

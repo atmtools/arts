@@ -1,3 +1,13 @@
+2003-01-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-412
+
+	* src/ppath.cc: Wrote some comments and made all function argument
+	lists (in the headers) complete.
+	
+	* src/ppath.cc (raytrace_2d_linear_euler): Added check that zenith 
+	angle does not go outside +-180.
+
 2003-01-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-411
