@@ -1,5 +1,11 @@
 2003-09-04  Nikolay Koulev  <nkoulev@bremen.de>
 
+	* arts-1-1-682
+		
+	* src/legendre.h: Removed a bug.
+
+2003-09-04  Nikolay Koulev  <nkoulev@bremen.de>
+
 	* arts-1-1-681
 
 	* src/legendre.cc: Added new functions with prefix (g_) for the

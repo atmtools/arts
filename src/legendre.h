@@ -67,7 +67,7 @@ Numeric
 g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x);
 
 Numeric
-g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x);
+g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x);
 
 #endif  /* legendre_h */
 
