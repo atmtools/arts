@@ -1,3 +1,10 @@
+2003-04-23  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-0-75
+
+	* configure.in: Fixed release number. This hasn't been updated
+	since arts-1-0-69!
+
 2003-04-08  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-1-0-74
@@ -18,7 +25,6 @@
 
 	* doc/uguide/wfuns_atm.tex: included a small section for
 	spectroscopic parameters WFs.
-          
 
 2003-04-03  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
