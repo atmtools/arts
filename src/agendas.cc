@@ -58,7 +58,7 @@ void define_agenda_data()
 	"Calculate the absorption vector at each grid point\n"
 	"required for solving the raditive transfer equation.\n"
 	"\n"
-	"This agenda is a set of the following methods:\n"
+	"This agenda, for example, can a set of the following methods:\n"
 	"\n"
 	"*abs_vec_partCalc* : this method calculates the absorption \n"
 	"		     vector for particles\n"
@@ -149,7 +149,7 @@ void define_agenda_data()
 	"Calculate the extinction coefficient matrix at each grid point\n"
 	"required for solving the raditive transfer equation.\n"
 	"\n"
-	"This agenda is a set of the following methods\n"
+	"This agenda, for example, can be a set of the following methods\n"
 	"\n"
 	"*ext_mat_partCalc* : this method calculates the extinction matrix\n"
 	"		      for particles\n"
@@ -341,7 +341,7 @@ void define_agenda_data()
      ( NAME( "scat_rte_agenda" ),
        DESCRIPTION
        (
-       "Calculate the radiative transfer equation (RTE) with fixed scattering \n "
+       "Calculate the radiative transfer equation (RTE) with fixed scattering\n "
        "integral.\n"
        "\n"
        "There are different possibilities to compute the RTE with a fixed value \n"
@@ -353,7 +353,7 @@ void define_agenda_data()
        "         used for the scalar RTE (if *stokes_dim* equals 1), as it\n"
        "         is numerically not efficient in this case.\n" 
        "sto_vecScalar: This method can only be used for the scalar RTE. It \n"
-       "         uses the standard exponential function and there is no need \n"
+       "         uses the standard exponential function and there is no need\n"
        "         for a LU decomposition. That means that it is much more \n"
        "         efficient for the computation of the scalar RTE. \n"
        "\n"

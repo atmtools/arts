@@ -28,13 +28,14 @@
 //! This method computes the extinction matrix for a single particle type
 //  from teh amplitude matrix.
 /*! 
-\param ext_mat_spt Output and Input: extinction matrix for a single particle type.
+\param ext_mat_spt Output and Input: extinction matrix for a single 
+particle type.
 \param amp_mat Input : amplitude matrix for each particle type
-\param f_grid  Input : frequency grid
-\param scat_f_index  Input : frequency index
 \param scat_za_index  Input : local zenith angle
 \param scat_aa_index  Input : local azimuth angle
-
+\param scat_f_index  Input : frequency index
+\param f_grid  Input : frequency grid
+\param stokes_dim  Input : stokes dimension
 */
 
 void ext_mat_sptCalc(
@@ -43,12 +44,17 @@ void ext_mat_sptCalc(
 		     const Index& scat_za_index,
 		     const Index& scat_aa_index,
 		     const Index& scat_f_index,
-		     const Vector& f_grid)
+		     const Vector& f_grid,
+		     const Index& stokes_dim)
 		     
 {
   Index npt = ext_mat_spt.npages();
-  Index stokes_dim = ext_mat_spt.nrows();
-
+    
+  if ((stokes_dim > 4) || (stokes_dim <1)){
+    throw runtime_error("The dimension of stokes vector "
+                        "can be only 1,2,3, or 4");
+  }
+  
   if (ext_mat_spt.nrows() != stokes_dim || 
       ext_mat_spt.ncols() != stokes_dim){
  
@@ -65,11 +71,7 @@ void ext_mat_sptCalc(
     throw runtime_error(
 			"Amplitude matrix must have 8 columns.");
   
-  if (stokes_dim > 4 || stokes_dim < 1){
-    throw runtime_error(
-			"The dimension of stokes vector can be "
-			"only 1,2,3, or 4");
-  }
+ 
 
   //find out frequency
   Numeric freq = f_grid[scat_f_index];
@@ -101,28 +103,33 @@ void ext_mat_sptCalc(
 
 \param ext_mat_spt Output and Input: extinction matrix for a
 single particle type.
-\param amp_mat Input : amplitude matrix for each particle type
+\param pha_mat_spt Input : phase matrix for single particle type
 \param f_grid  Input : frequency grid
-\param scat_f_index  Input : frequency index
-\param scat_za_index  Input : local zenith angle
-\param scat_aa_index  Input : local azimuth angle
+\param scat_za_grid  Input : zenith angle grid
+\param scat_aa_grid  Input : azimuth angle grid
+\param stokes_dim  Input : stokes dimension
 
 */
 void ext_mat_sptScat(
 		     Tensor3& ext_mat_spt,
                      const Tensor5& pha_mat_spt,
 		     const Vector& scat_za_grid,
-		     const Vector& scat_aa_grid)
+		     const Vector& scat_aa_grid,
+		     const Index& stokes_dim)
 		    
 {
 
   Index npt = pha_mat_spt.nshelves();
-  Index stokes_dim = pha_mat_spt.ncols();
   Index nza = pha_mat_spt.nbooks(); 
   Index naa = pha_mat_spt.npages(); 
   
   assert (is_size(scat_za_grid, nza));
   assert (is_size(scat_aa_grid, naa));
+
+  if ((stokes_dim > 4) || (stokes_dim <1)){
+    throw runtime_error("The dimension of stokes vector "
+                        "can be only 1,2,3, or 4");
+  }
   
   ext_mat_spt.resize(npt, stokes_dim, stokes_dim);
 
@@ -133,11 +140,7 @@ void ext_mat_sptScat(
 			"have 4 rows and 4 columns");
   }
   
-  if ((stokes_dim > 4) || (stokes_dim <1)){
-    throw runtime_error("The dimension of stokes vector "
-                        "can be only 1,2,3, or 4");
-  }
-  
+ 
   for (Index i = 0; i < npt; ++i)
     {
       ConstTensor4View pha=pha_mat_spt(i,
@@ -168,7 +171,7 @@ void ext_mat_sptScat(
  \param amp_mat  Input : amplitude matrix
  \param scat_za_index  Input : zenith angle index
  \param scat_aa_index  Input : azimuth angle index
-
+ \param stokes_dim  Input : stokes dimension
   
 */
 
@@ -176,11 +179,16 @@ void pha_mat_sptCalc(
 		     Tensor5& pha_mat_spt,
 		     const Tensor6& amp_mat,
 		     const Index& scat_za_index,
-		     const Index& scat_aa_index)
+		     const Index& scat_aa_index,
+		     const Index& stokes_dim)
 		     
 {
   Index npt = pha_mat_spt.nshelves();
-  Index stokes_dim = pha_mat_spt.nrows();
+ 
+   if ((stokes_dim > 4) || (stokes_dim <1)){
+    throw runtime_error("The dimension of stokes vector" 
+                         "can be only 1,2,3, or 4");
+  }
  
   if (pha_mat_spt.nrows() != stokes_dim || 
       pha_mat_spt.ncols() != stokes_dim){
@@ -190,10 +198,7 @@ void pha_mat_sptCalc(
   if (amp_mat.ncols() != 8){
     throw runtime_error("Amplitude matrix must have 8 columns.");
   }
-  if ((stokes_dim > 4) || (stokes_dim <1)){
-    throw runtime_error("The dimension of stokes vector" 
-                         "can be only 1,2,3, or 4");
-  }
+ 
   
   for (Index i = 0; i < npt; ++i)
     {
@@ -220,26 +225,32 @@ void pha_mat_sptCalc(
   \param pha_mat_spt  Input : phase matrix for  a single particle type
   \param scat_za_grid Input : zenith angle grid.
   \param scat_aa_grid Input : azimuth angle grid.
- 
+  \param stokes_dim  Input : stokes dimension
+
 */
 void abs_vec_sptCalc(
 		     Matrix& abs_vec_spt,
 		     const Tensor3& ext_mat_spt,
 		     const Tensor5& pha_mat_spt,
 		     const Vector& scat_za_grid,
-		     const Vector& scat_aa_grid)
+		     const Vector& scat_aa_grid,
+		     const Index& stokes_dim)
 		     
 {
   Index npt = abs_vec_spt.nrows();
-  Index stokes_dim = abs_vec_spt.ncols();
   Index nza = pha_mat_spt.nbooks(); 
   Index naa = pha_mat_spt.npages(); 
   
   assert (is_size(scat_za_grid, nza));
   assert (is_size(scat_aa_grid, naa));
+
+  if ((stokes_dim > 4) || (stokes_dim <1)){
+    throw runtime_error("The dimension of stokes vector "
+                        "can be only 1,2,3, or 4");
+  }
   
   if (abs_vec_spt.ncols() != stokes_dim ){
-    //FIXME: Dimension should agree to stokes_dim !!!
+    //Dimension should agree to stokes_dim !!!
     throw runtime_error("The dimension of  abs_vec_spt should"
 			"agree to stokes_dim");
   }
@@ -256,10 +267,7 @@ void abs_vec_sptCalc(
 			"have 4 rows and 4 columns");
   }
   
-  if ((stokes_dim > 4) || (stokes_dim <1)){
-    throw runtime_error("The dimension of stokes vector "
-                        "can be only 1,2,3, or 4");
-  }
+  
   
   for (Index i = 0; i < npt; ++i)
     {
@@ -301,6 +309,7 @@ void abs_vec_sptCalc(
   \param scat_p_index Input : Pressure index for scattering calculations.
   \param scat_lat_index Input : Latitude index for scattering calculations.
   \param scat_lon_index Input : Longitude index for scattering calculations.
+  \param stokes_dim  Input : stokes dimension
   
 */
 void ext_mat_partCalc(
@@ -310,13 +319,21 @@ void ext_mat_partCalc(
 		      const Index& atmosphere_dim,
 		      const Index& scat_p_index,
 		      const Index& scat_lat_index,
-		      const Index& scat_lon_index) 
+		      const Index& scat_lon_index,
+		      const Index& stokes_dim
+		      ) 
 		     
 {
   Index N_pt = ext_mat_spt.npages();
   Index stokes_dim = ext_mat_spt.nrows();
   
-  // (CE:) Size of ext_mat is not known before...
+  if (stokes_dim > 4 || stokes_dim < 1){
+    throw runtime_error(
+			"The dimension of stokes vector can be "
+			"only 1,2,3, or 4");
+  }
+
+  // Resize ext_mat_part
   ext_mat_part.resize(stokes_dim, stokes_dim);
   
   for (Index m = 0; m < stokes_dim; m++)
@@ -381,7 +398,7 @@ void ext_mat_partCalc(
   \param scat_p_index Input : Pressure index for scattering calculations.
   \param scat_lat_index Input : Latitude index for scattering calculations.
   \param scat_lon_index Input : Longitude index for scattering calculations.
-  
+  \param stokes_dim  Input : stokes dimension
 */
 void abs_vec_partCalc(
 		      Vector& abs_vec_part,
@@ -390,13 +407,17 @@ void abs_vec_partCalc(
 		      const Index& atmosphere_dim,
 		      const Index& scat_p_index,
 		      const Index& scat_lat_index,
-		      const Index& scat_lon_index) 
+		      const Index& scat_lon_index,
+		      const Index& stokes_dim) 
 		    
 {
   Index N_pt = abs_vec_spt.nrows();
-  Index stokes_dim = abs_vec_spt.ncols();
-  
-  //(CE:) Resize abs_vec_part
+
+  if ((stokes_dim > 4) || (stokes_dim <1)){
+    throw runtime_error("The dimension of stokes vector "
+                        "can be only 1,2,3, or 4");
+  } 
+  //Resize abs_vec_part
   abs_vec_part.resize(stokes_dim);
   
   for (Index m = 0; m < stokes_dim; ++m)
@@ -545,7 +566,8 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
       }
   }
   
-}  
+}
+  
 //! Method for creating an extinction matrix for gases for test purposes
 /*! 
 

@@ -253,7 +253,12 @@ void i_fieldSetClearsky(Tensor6& i_field,
       //1. interpolation - pressure grid
       
       
-      i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 1, 1,  N_za, N_aa, N_i);
+      i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1,
+		     1,
+		     1,
+		     N_za,
+		     N_aa,
+		     N_i);
       
       /*the old grid is having only two elements, corresponding to the 
 	cloudbox_limits and the new grid have elements corresponding to
@@ -301,7 +306,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
 	      
 	    }
 	}
-      xml_write_to_file("i_field_Set.xml", i_field);
+      //xml_write_to_file("i_field_Set.xml", i_field);
       //cout<<i_field<<"\n";
     }
   if(atmosphere_dim == 3)

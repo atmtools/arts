@@ -240,7 +240,7 @@ void define_md_data_raw()
 	 ),
 	OUTPUT(abs_vec_part_),
 	INPUT(abs_vec_spt_, pnd_field_, atmosphere_dim_, scat_p_index_, 
-	      scat_lat_index_, scat_lon_index_ ),
+	      scat_lat_index_, scat_lon_index_, stokes_dim_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -251,11 +251,11 @@ void define_md_data_raw()
       ( NAME("abs_vec_sptCalc"),
   	DESCRIPTION
 	(
-	 "This method calculates the absorption vector for a single particle \n"
+	 "This method calculates the absorption vector for a single particle\n"
 	 "type.\n"
 	 "\n"
-	 "All the elements of absorption vector for a particle can be expressed\n"
-	 "in terms of extinction matrix and phase matrix. So it is necessary \n"
+	 "All elements of absorption vector for a particle can be expressed\n"
+	 "in terms of extinction matrix and phase matrix. So it is necessary\n"
 	 "that the methods ext_mat_sptCalc and pha_mat_sptCalc are done \n"
 	 "before calling this method. \n"
 	 "\n"
@@ -269,9 +269,9 @@ void define_md_data_raw()
 	 "physics, that of computing the elements of absorption vector \n"
 	 "from the elements of extinction matrix and phase matrix.\n"
 	 ),
-	OUTPUT(abs_vec_spt_),
-	INPUT(abs_vec_spt_,ext_mat_spt_,pha_mat_spt_,scat_za_grid_,
-	      scat_aa_grid_),
+	OUTPUT(abs_vec_spt_ ),
+	INPUT(abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, scat_za_grid_,
+	      scat_aa_grid_, stokes_dim_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -798,7 +798,7 @@ void define_md_data_raw()
 	 ),
 	OUTPUT( ext_mat_part_  ),
         INPUT( ext_mat_spt_, pnd_field_, atmosphere_dim_, scat_p_index_, 
-	       scat_lat_index_, scat_lon_index_),
+	       scat_lat_index_, scat_lon_index_, stokes_dim_ ),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( ),
@@ -844,7 +844,7 @@ void define_md_data_raw()
          "\n"
 	 ),
 	OUTPUT( ext_mat_spt_  ),
-        INPUT( pha_mat_spt_, scat_za_grid_, scat_aa_grid_),
+        INPUT( pha_mat_spt_, scat_za_grid_, scat_aa_grid_, stokes_dim_),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( ),
@@ -865,7 +865,7 @@ void define_md_data_raw()
 	 "terms of the elements of the forward scattering amplitude matrix.\n"
 	 "\n"
 	 "The output of this method is \n"
-	 "*ext_mat_spt*(Tensor 3, size = [Npt,stokes_dim,stokes_dim])and the \n"
+	 "*ext_mat_spt*(Tensor 3, size = [Npt,stokes_dim,stokes_dim])and the\n"
 	 "inputs are *ext_mat_spt*,*amp_mat*(Tensor 6, Size=[Npt,Nza,Naa,Nza,Naa,8]), \n"
 	 "*scat_za_index*,*scat_aa_index*,*scat_f_index* and *scat_f_grid*. \n"
 	 "\n"
@@ -880,7 +880,7 @@ void define_md_data_raw()
 	 ),
 	OUTPUT( ext_mat_spt_  ),
         INPUT( ext_mat_spt_,amp_mat_, scat_za_index_, scat_aa_index_,
-	       scat_f_index_, f_grid_  ),
+	       scat_f_index_, f_grid_, stokes_dim_  ),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( ),
@@ -1596,7 +1596,8 @@ md_data_raw.push_back
 	 "matrix."
 	 ),
 	OUTPUT(pha_mat_spt_),
-	INPUT(pha_mat_spt_, amp_mat_, scat_za_index_, scat_aa_index_ ),
+	INPUT(pha_mat_spt_, amp_mat_, scat_za_index_, scat_aa_index_, 
+	      stokes_dim_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
