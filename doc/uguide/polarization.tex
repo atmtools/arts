@@ -19,6 +19,7 @@
 \starthistory
    260602 & Created and written by Christian Melsheimer.\\
 %   260304 & Subsection on antenna added by Christian Melsheimer.\\
+%   180404 & Subsection on polarization directions added by Christian Melsheimer.\\
 \stophistory
 
 
@@ -36,7 +37,14 @@
 %=====================================================================
 % Definition of new commands:
 % ====================================================================
+% a 3-elem. column vector:
+\newcommand{\ColVct}[3]{\left( \begin{array}{c}
+                                   #1 \\ #2 \\ #3
+                               \end{array} \right) }
+% partial derivative of #1 with respect to #2, written as a fraction:
+\newcommand{\PrtDrv}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\half} {\ensuremath{\textstyle\frac{1}{2}}}
+% various polarization basis vectors:
 \newcommand{\eVrt} {\ensuremath{\VctStl{e}_v}}
 \newcommand{\eHor} {\ensuremath{\VctStl{e}_h}}
 \newcommand{\eLh} {\ensuremath{\VctStl{e}_{LH}}}
@@ -44,7 +52,6 @@
 \newcommand{\ePls} {\ensuremath{\VctStl{e}_{+45\degree}}}
 \newcommand{\eMin} {\ensuremath{\VctStl{e}_{-45\degree}}}
 \newcommand{\mi}  {\ensuremath{\mathrm{i}}}
-%\newcommand{\DirFrePr} {\ensuremath{(\PDir^\prime, \Frq)}}
 
 
 The present version of ARTS implements the radiative transfer equation
@@ -53,8 +60,87 @@ just for its first component, the intensity or radiance.
 This means that the model can include polarization dependence in
 absorption or scattering processes.
 It is therefore necessary to give some details on the polarization of
-radiation and the definition of
-the Stokes parameters. (FIXME: more...)
+radiation, the definition of
+the Stokes parameters, and the definition of antenna polarization.
+
+\levelb{Polarization Directions}
+%=====================================================================
+\label{sec:polarization:directions}
+Electromagnetic waves in homogeneous, isotropic media are transverse
+waves, i.e. their oscillating electric and magnetic fields are in a
+plane perpendicular to the propagation direction. The choice of two
+basis vectors -- we shall call them polarization directions here --
+that span that transverse plane is arbitrary; often they are called
+``horizontal'' and ``vertical'' and correspond to some horizontal and
+vertical direction of the particular setting. Nevertheless, what is
+meant by horizontal/vertical, or parallel/perpendicular, is purely a
+matter of definition.
+
+Here, we stick to the system called laboratory frame or fixed frame,
+used by Mishchenko or Tsang (FIXME: references): We use a coordinate
+system where the $z$-axis points toward local zenith (FIXME: does the
+$x$-axis point toward north?).  We denote the propagation direction of
+radiation by a unit vector $\VctStl{n} = \VctStl{k}/k$, where
+$k$ is the wave number. $\VctStl{n}$ is given by two
+angles, the zenith angle $\theta$ , i.e., the angle between
+$\VctStl{n}$ and the $z$-axis, and the azimuth angle $\phi$, i.e. the
+angle between the projection of $\VctStl{n}$ into the $xy$-plane and
+the $x$-axis:
+\begin{equation}
+  \label{eq:polarization:propdir}
+   \VctStl{n} = \ColVct{\cos\phi \sin\theta}%
+                       {\sin\phi \sin\theta}%
+                       { \cos\theta}                    
+\end{equation}
+Then we define the polarization directions by the partial derivatives
+of  $\VctStl{n}$ with respect to $\theta$ and $\phi$. We shall call
+them $\theta$-direction (also: vertical) and $\phi$-direction (also:
+horizontal), respectively, see
+Figure~\ref{fig:polarization:directions}. 
+\begin{figure}[!h]
+ \begin{center}
+  \begin{minipage}[c]{0.9\textwidth}
+   \begin{center}
+    \includegraphics*[width=0.9\hsize]{Figs/polarization/pol_directions}
+   \end{center}
+  \end{minipage}
+  \begin{minipage}[c]{0.9\textwidth}
+   \caption{The definition of the polarization directions, adapted
+     from Mishchenko FIXME: reference}
+   \label{fig:polarization:directions}
+  \end{minipage}
+ \end{center}
+\end{figure}   
+%
+Their unit basis vectors are
+\begin{equation}
+  \label{eq:polarization:etheta}
+   \VctStl{e}_\theta = \eVrt =
+    \PrtDrv{\VctStl{n}}{\theta} \left/ 
+     \left\| \PrtDrv{\VctStl{n}}{\theta}\right\| \right.  
+    =
+    \ColVct{\cos\phi \cos\theta}%
+           {\sin\phi \cos\theta}%
+           { \sin\theta}
+\end{equation}
+%
+\begin{equation}
+  \label{eq:polarization:ephi}
+   \VctStl{e}_\phi = \eHor = 
+    \PrtDrv{\VctStl{n}}{\phi} \left/ 
+          \left\|\PrtDrv{\VctStl{n}}{\phi}\right\| \right.  
+    =
+    \ColVct{-\sin\phi}%
+           {\cos\phi}%
+           { 0}
+\end{equation}
+The vectors \VctStl{n}, $\VctStl{e}_\theta$ (=\eVrt),
+$\VctStl{e}_\phi$ (=\eHor) are
+mutually orthogonal and define (in the mentioned order) a right-handed
+system, i.e., 
+$\left(\VctStl{n}\times \VctStl{e}_\theta\right) \cdot
+\VctStl{e}_\phi = 1$ and the same for all cyclic permutations.
+
 
 \levelb{Plane Monochromatic Waves}
 %=====================================================================
@@ -961,3 +1047,4 @@ It turns out to be just a scalar product:
 %%% End: 
 % LocalWords:  ext matrix abs vec pha pnd sca lat lon za aa pt FIXME Eq LH RH
 % LocalWords:  Eqs mishchenko scatt nonsp partic RTE Melsheimer overline Zeeman
+% LocalWords:  Tsang
