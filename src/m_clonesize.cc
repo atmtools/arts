@@ -53,7 +53,12 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
-  out2 << "  Nothing to do for this group.\n";
+  out3 << "  You asked me to make " << outname
+       << " the same size as " << inname
+       << " (" << in
+       << ").\n"
+       << "  These are scalars, so there is nothing to do.\n";
+  out = 0;
 }
 
 void CloneSize(// WS Generic Output:
@@ -65,7 +70,12 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
-  out2 << "  Nothing to do for this group.\n";
+  out3 << "  You asked me to make " << outname
+       << " the same size as " << inname
+       << " (" << in
+       << ").\n"
+       << "  These are scalars, so there is nothing to do.\n";
+  out = 0.0;
 }
 
 void CloneSize(// WS Generic Output:
@@ -77,7 +87,12 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
-  out2 << "  Nothing to do for this group.\n";  
+  out3 << "  You asked me to make " << outname
+       << " the same size as " << inname
+       << " (" << in
+       << ").\n"
+       << "  These are scalars, so there is nothing to do.\n";
+  out = "";
 }
 
 void CloneSize(// WS Generic Output:
@@ -103,6 +118,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nrows(),
               in.ncols() );
   out = 0;
@@ -117,6 +133,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.npages(),
               in.nrows(),
               in.ncols() );
@@ -132,6 +149,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nbooks(),
               in.npages(),
               in.nrows(),
@@ -148,6 +166,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nshelves(),
               in.nbooks(),
               in.npages(),
@@ -165,6 +184,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nvitrines(),
               in.nshelves(),
               in.nbooks(),
@@ -183,6 +203,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nlibraries(),
               in.nvitrines(),
               in.nshelves(),
@@ -202,6 +223,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out = 0;
 }
@@ -215,6 +237,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out = "";
 }
@@ -228,6 +251,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out2 << "  Created an Array of empty Vectors.\n";
 }
@@ -241,6 +265,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out2 << "  Created an Array of empty Matrices.\n";
 }
@@ -255,6 +280,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out2 << "  Created an Array of empty Tensor3.\n";
 }
@@ -268,6 +294,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out2 << "  Created an Array of Arrays of empty Tensor3.\n";
 }
@@ -281,6 +308,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out2 << "  Created an Array of empty Tensor6.\n";
 }
@@ -294,6 +322,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out2 << "  Created an Array of Arrays of empty Tensor6.\n";
 }
@@ -308,6 +337,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
 }
 
@@ -320,6 +350,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out2 << "  Created an Array of empty ArrayOfLineRecords.\n";
 }
@@ -333,6 +364,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out.resize( in.nelem() );
   out2 << "  Created an Array of empty ArrayOfArrayOfSpeciesTag.\n";
 }
@@ -346,6 +378,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out2 << "  Nothing to do for this group.\n";
 }
 
@@ -358,6 +391,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out2 << "  Nothing to do for this group.\n";
 }
 
@@ -370,6 +404,7 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out2 << "  Nothing to do for this group.\n";
 }
 
@@ -382,5 +417,6 @@ void CloneSize(// WS Generic Output:
                // WS Generic Input Names:
                const String& inname)
 {
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out2 << "  Nothing to do for this group.\n";
 }

@@ -1,3 +1,13 @@
+2003-03-05  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-470
+
+	* src/m_clonesize.cc: Added some level 2 and 3 output messages to
+	surpress most unused parameter warnings. 
+
+	* src/methods.h (MdRecord operator=(const MdRecord& m)): Added
+	output of m to suppress unused parameter warning. 
+
 2003-03-05  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-469
