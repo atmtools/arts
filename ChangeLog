@@ -1,3 +1,12 @@
+2001-03-13  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-136
+
+	* I have added a number of handy Matlab scripts to AMI. All functions
+	are of rather general character and can be of use in many cases. The
+	functions are sorted into a number of sub-folders.
+	
+
 2001-03-07  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	*arts-0-0-135

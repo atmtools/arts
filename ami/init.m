@@ -16,13 +16,18 @@ function init
 
 %=== Extend the Matlab search path to include the AMI dirs.
 %=== It is assumed that this script is executed in the top AMI dir
-addpath(pwd);
-addpath([pwd,'/general']);
+addpath([pwd,'/arts']);
+addpath([pwd,'/file']);
 addpath([pwd,'/hmatrix']);
+addpath([pwd,'/math']);
+addpath([pwd,'/path']);
+addpath([pwd,'/physics']);
+addpath([pwd,'/plot']);
+addpath([pwd,'/retrieval']);
 
 
 %=== Copy the file src/wsv.txt to ami
-eval('!cp ../src/wsv.txt .');
+eval('!cp ../src/wsv.txt arts');
 
 
 %=== Define global physical constants

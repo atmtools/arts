@@ -8,13 +8,14 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
-SUBDIRS        = arts file hmatrix math path physics plot retrieval
 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#	Don't forget to register new files here!
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-amidir        = $(pkgdatadir)/ami
-
-ami_DATA = \
-init.m \
-startup.m 
-
-EXTRA_DIST = $(ami_DATA)
+EXTRA_DIST = \
+	fill_grid.m \
+	fwhm.m \
+	interpp.m \
+	join_grids.m \
+	loggrid.m

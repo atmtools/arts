@@ -1,0 +1,24 @@
+README for AMI (ARTS Matlab interface)
+
+The interface to ARTS is found in the folders arts/ and hmatrix/, 
+while the other folders contain different handy Matlab functions 
+of general character.  
+
+The functions are sorted as:
+
+arts/      : Interface functions to ARTS.
+file/      : Functions to get file information or to manipulate 
+             files.
+hmatrix/   : Functions to set up the H transfer matrix.
+math/      : Various math functions.
+path/      : Functions to handle paths and directories.
+physics/   : Physical and geometrical functions.
+plot/      : Functions for plotting and printing.
+retrieval/ : Help functions for retrieval, e.g. to set up grids.
+
+
+Information for the individual functions are obtained by reading
+the functions headings, or by using help in Matlab:
+
+help vec2col
+
