@@ -1,3 +1,21 @@
+2003-08-14  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-645
+
+	* src/legendre.{cc,h}: Added. Function calculates associated Legendre
+	polynomials. The code is based on the Numerical recipes. Results were
+	compared to the Legendre calculations from the GNU Scientific library
+	and found to be identical.
+
+	* src/poly_roots.cc: Added reference to the GNU Scientific library in
+	doxygen header.
+
+	* src/Makefile.am: Added legendre.{cc,h} and test_legendre.
+
+	* src/test_legendre.cc: Added.
+
+	* src/.cvsignore: Added test_legendre.
+
 2003-08-13  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-644
