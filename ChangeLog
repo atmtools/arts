@@ -1,5 +1,11 @@
 2003-08-13  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
+	* arts-1-1-644
+
+	* src/test_sparse.cc: Added test function for insert_row.
+
+2003-08-13  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
 	* arts-1-1-643
 
 	* src/matpackII.{cc,h} (insert_row): Added function to insert a whole
