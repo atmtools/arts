@@ -1,3 +1,10 @@
+2002-06-17  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-142
+	
+	* doc/uguide/arts_groups_to_latex.sh: Fixed doc header to use
+	$ARTS and only use the first line from arts -v output.
+
 2002-06-15  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-141
