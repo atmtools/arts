@@ -1,3 +1,17 @@
+2004-01-15  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-776
+
+	* src/optproperties.cc (ext_matTransorm): Fixed bug in ptype=30
+	case. 
+	(pha_mat_labCalc): It was causing spurious diagonal polarization.  
+	The reason for this is that the existing transformation formulae
+	were only valid for 0<aa_scat-aa_inc<180.  This only affects 
+	stokes_dim>2.  For aa_scat-aa_inc<0 elements Z13, Z23,Z24,Z31,Z32, 
+	and Z42 change sign. I have implemented this, and it has fixed the 
+	diagonal polarization problem.
+	
+
 2004-01-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-775

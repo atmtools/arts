@@ -677,10 +677,12 @@ void pha_mat_singleCalc(
 			const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,//
 			const Tensor5& scat_theta_itws)//
 {
-  //Vector pha_mat_za_grid(2);
-  //Vector pha_mat_aa_grid(2);
   Index N_pt=pnd_vec.nelem();
-  //assert (N_pt==scat_data_raw.nelem());
+
+  assert(aa_inc>=-180 && aa_inc<=180);
+  assert(aa_scat>=-180 && aa_scat<=180);
+
+
 
   Vector scat_za_grid(2);
   Vector scat_aa_grid(2);
