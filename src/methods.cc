@@ -303,7 +303,7 @@ void define_md_data_raw()
          "leading frequency dimension."
          ),
         OUTPUT(abs_vec_),
-        INPUT(abs_vec_, f_grid_, stokes_dim_),
+        INPUT(f_grid_, stokes_dim_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

@@ -203,12 +203,10 @@ void define_agenda_data()
         "   ext_mat     : Extinction matrix.\n"
         "   abs_vec     : Absorption vector. \n"
         "   abs_scalar_gas : Scalar gas absorption. \n"
-        "   f_index     : Frequency index. \n"
         ),
        OUTPUT( ext_mat_, abs_vec_ ),
        INPUT( ext_mat_, abs_vec_, 
-              abs_scalar_gas_,
-              f_index_ )));
+              abs_scalar_gas_)));
 
 
  agenda_data.push_back

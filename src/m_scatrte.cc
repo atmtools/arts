@@ -42,11 +42,7 @@
 #include "array.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "matpackI.h"
-#include "matpackIII.h"
-#include "matpackVI.h"
 #include "matpackVII.h"
-#include "cloudbox.h"
 #include "logic.h"
 #include "ppath.h"
 #include "agenda_class.h"
@@ -116,7 +112,8 @@ void convergence_flagAbs(//WS Output:
  
   //Increase the counter 
   iteration_counter = iteration_counter+1;
-  //cout << "Number of iterations:   "<< iteration_counter << endl;
+
+  out1 << "Number of iterations:   " << iteration_counter << "\n";
   
   //Check the input:
   assert( convergence_flag == 0 );
@@ -258,7 +255,6 @@ void convergence_flagAbs(//WS Output:
 
  // Convergence test has been successful, convergence_flag can be set to 1.
   convergence_flag = 1;
-  iteration_counter = 105; 
 }
 
 
@@ -537,6 +533,7 @@ i_fieldIterate(
                         pnd_field, stokes_dim, atmosphere_dim, part_types);
       }
     
+    
     //Convergence test.
     convergence_test_agenda.execute();
   }//end of while loop, convergence is reached.
@@ -700,11 +697,9 @@ i_fieldUpdate1D(// WS Output:
 
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
-  //const Index N_scat_aa = scat_aa_grid.nelem();
-
-
+  
   //=======================================================================
-  // Calculate coefficients for all posotions in the cloudbox 
+  // Calculate coefficients for all positions in the cloudbox 
   //=======================================================================
 
 
@@ -713,19 +708,28 @@ i_fieldUpdate1D(// WS Output:
   // Actually, this variable is not an array, but a matrix, because we
   // need to store the gas absorption for each species.
   // Dimensions: [ # levels in cloudbox, # species ]
-  Matrix scalar_gas_array( (cloudbox_limits[1] - cloudbox_limits[0])+ 1,
-                           abs_scalar_gas.ncols() );
-
+  // 
+  // We can only create this here, the dimensions are set below.
+  Matrix scalar_gas_array;
+  
   for(Index p_index = cloudbox_limits[0]; p_index
         <= cloudbox_limits[1]; p_index ++)
     {
       scalar_gas_absorption_agenda.execute(p_index - cloudbox_limits[0]);
+
+      // We don't know how many gas species we have before the first
+      // call of scalar_gas_absorption_agenda. So we have to resize
+      // scalar_gas_array after the first call:
+      if ( p_index == cloudbox_limits[0] )
+        scalar_gas_array.resize( (cloudbox_limits[1] - cloudbox_limits[0])+ 1,
+                                 abs_scalar_gas.ncols() );
+
       scalar_gas_array( p_index - cloudbox_limits[0], joker )
         = abs_scalar_gas(0,joker);
       // We ignore the first dimension of abs_scalar_gas, which would
       // be the frequency dimension.
     }
-  
+     
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
@@ -749,26 +753,17 @@ i_fieldUpdate1D(// WS Output:
       ArrayOfVector abs_vec_array;
       abs_vec_array.resize(cloudbox_limits[1]-cloudbox_limits[0]+1);
       
-      Vector T_vector(cloudbox_limits[1]-cloudbox_limits[0]+1,0.);
-      
       // Loop over all positions inside the cloudbox defined by the 
       // cloudbox_limits.
       for(Index p_index = cloudbox_limits[0]; p_index
         <= cloudbox_limits[1]; p_index ++)
         {
+          out3 << "-------------------------------------------------\n";
+          out3 << " Cloudbox limits: "<< cloudbox_limits[0] << " " 
+               << cloudbox_limits[1] << "\n";
+          out3 << " Zenith angle index: "<< scat_za_index << "\n";
+          out3 << " Pressure index: "<< p_index << "\n";
           
-//        //Print the loop indices (just for testing the function)
-          
-//            cout << "\n loop indices: \n";
-//        cout << "\n scat_za_index ---------"<< scat_za_index;
-//        cout << "\n p_index       ---------"<< p_index;
-//              cout << "\n stokes_dim    ---------"<< stokes_dim;
-//             cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
-//                        << cloudbox_limits[1] <<"\n";
-//           cout << endl;
-
-
-
           // Calculate abs_vec_array 
           abs_vec_array[p_index-cloudbox_limits[0]].resize(stokes_dim); 
           ext_mat_array[p_index-cloudbox_limits[0]].
@@ -801,9 +796,6 @@ i_fieldUpdate1D(// WS Output:
           ext_mat_array[p_index-cloudbox_limits[0]] = 
             ext_mat(0, Range(joker), Range(joker));
           
-          //Generate temperature vector.
-          T_vector[p_index - cloudbox_limits[0]] = t_field(p_index, 0, 0); 
-         
         }//End of p_grid loop over the cloudbox
       
 
@@ -898,32 +890,28 @@ i_fieldUpdate1D(// WS Output:
              
             
               //Planck function
-              Numeric T =  0.5*( T_vector[p_index-cloudbox_limits[0]] +
-                                 T_vector[p_index-cloudbox_limits[0]+1]);
+              Numeric T =  0.5*( t_field(p_index, 0, 0) + 
+                                 t_field(p_index+1, 0, 0));
               Numeric f = f_grid[f_index];
               a_planck_value = planck(f, T);
-              
-       //          cout << "planck: ..." << a_planck_value << endl;
-//               cout << "sto_vec:..." << stokes_vec<< endl; 
-//               cout << "sca_vec:..." << sca_vec_av << endl; 
-//               // cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0]) 
-//               //  /ext_mat(0,0); 
-//               cout << "abs_vec:..." << abs_vec_av << endl; 
-//               cout << "ext_mat:..." << ext_mat_av << endl; 
-//               cout << "l_step: ..." << l_step << endl;
 
-              // K  must not be singular
+              // Some messages:
+              out3 << "----------------------------------------------------\n";
+              out3 << "Input for radiative transfer step calculation inside"
+                   << " the cloudbox:" << "\n";
+              out3 << "Stokes vector at intersection point: \n" << stokes_vec 
+                   << "\n"; 
+              out3 << "l_step: ..." << l_step << "\n";
+              out3 << "----------------------------------------------------\n";
+              out3 << "Averaged coefficients: \n";
+              out3 << "Planck function: " << a_planck_value << "\n";
+              out3 << "Scattering vector: " << sca_vec_av << "\n"; 
+              out3 << "Absorption vector: " << abs_vec_av << "\n"; 
+              out3 << "Extinction matrix: " << ext_mat_av << "\n"; 
 
-          //     bool singular_K = true;
-//               for(Index i=0; i<stokes_dim && singular_K; i++){
-//                 for(Index j = 0; j<stokes_dim && singular_K; j++){
-//                   if(ext_mat_av(i,j) != 0.)
-//                     singular_K = false;
-//                 }
-//               }
-               assert (!is_singular( ext_mat_av ));
 
-                    
+              assert (!is_singular( ext_mat_av ));
+
               // Radiative transfer step calculation.
               rte_step(stokes_vec, ext_mat_av, abs_vec_av, 
                        sca_vec_av, l_step, a_planck_value);
@@ -1010,28 +998,27 @@ i_fieldUpdate1D(// WS Output:
                 }// Closes loop over stokes_dim.  
               
               //Planck function
-              Numeric T =  0.5*( T_vector[p_index-cloudbox_limits[0]] +
-                                 T_vector[p_index-cloudbox_limits[0]-1]);
+              Numeric T =  0.5*( t_field(p_index, 0, 0) + 
+                                 t_field(p_index+1, 0, 0));
               Numeric f = f_grid[f_index];
               a_planck_value = planck(f, T);
               
-              /*
-              cout << "planck: ..." << a_planck_value << endl;
-              cout << "sto_vec:..." << stokes_vec  << endl;
-              cout << "sca_vec:..." << sca_vec << endl;
-              cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0])
-                /ext_mat(0,0);
-              cout << "abs_vec:..." << abs_vec << endl;
-        //       cout << "ext_mat:..." << ext_mat << endl;*/
-              
-              // K must not be singular
- //              bool singular_K = true;
-//               for(Index i=0; i<stokes_dim && singular_K; i++){
-//                 for(Index j = 0; j<stokes_dim && singular_K; j++){
-//                   if(ext_mat_av(i,j) != 0.)
-//                     singular_K = false;
-//                 }
-//               }
+              // Some messages:
+              out3 << "-----------------------------------------------------"
+                   << "\n";
+              out3 << "Input for radiative transfer step calculation inside"
+                   << " the cloudbox:" << "\n";
+              out3 << "Stokes vector at intersection point: " << stokes_vec 
+                   << "\n"; 
+              out3 << "l_step: ..." << l_step << "\n";
+              out3 << "-----------------------------------------------------";
+              out3 << "Averaged coefficients: \n";
+              out3 << "Planck function: " << a_planck_value << "\n";
+              out3 << "Scattering vector: " << sca_vec_av << "\n"; 
+              out3 << "Absorption vector: " << abs_vec_av << "\n"; 
+              out3 << "Extinction matrix: " << ext_mat_av << "\n"; 
+
+       
               assert ( !is_singular( ext_mat_av ) );
                     
               // Radiative transfer step calculation.
@@ -1222,11 +1209,8 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
-  //const Index N_scat_aa = scat_aa_grid.nelem();
 
 
-  // Create scalar absorption and store it in an array. This avoids 
-  // repeting the calculation for each direction.
   // Actually, this variable is not an array, but a matrix, because we
   // need to store the gas absorption for each species.
   // Dimensions: [ # levels in cloudbox, # species ]
@@ -1257,9 +1241,6 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
       ArrayOfVector abs_vec_array;
       abs_vec_array.resize(cloudbox_limits[1]-cloudbox_limits[0]+1);
       
-      Vector T_vector(cloudbox_limits[1]-cloudbox_limits[0]+1,0.);
-      
-      
      
       // Loop over all positions inside the cloudbox defined by the 
       // cloudbox_limits.
@@ -1275,7 +1256,7 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
              cout << "\n stokes_dim    ---------"<< stokes_dim;
             cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
                        << cloudbox_limits[1] <<"\n";
-          cout << endl;
+          cout << "\n";
 
 
           // Calculate abs_vec_array 
@@ -1310,11 +1291,6 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
             abs_vec(0, Range(joker));
           ext_mat_array[p_index-cloudbox_limits[0]] = 
             ext_mat(0, Range(joker), Range(joker));
-          
-          //Generate temperature vector.
-          T_vector[p_index - cloudbox_limits[0]] = t_field(p_index, 0, 0); 
-         
-         
           
         }//End of p_grid loop over the cloudbox
       
@@ -1391,14 +1367,14 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
              
             
               //Planck function
-              Numeric T =  0.5*( T_vector[p_index-cloudbox_limits[0]] +
-                                 T_vector[p_index-cloudbox_limits[0]+1]);
+              Numeric T =  0.5*( t_field(p_index, 0, 0) + 
+                                 t_field(p_index+1, 0, 0));
               Numeric f = f_grid[f_index];
               a_planck_value = planck(f, T);
               
-                cout << "planck: ..." << a_planck_value << endl;
-              cout << "sto_vec:..." << stokes_vec<< endl; 
-              cout << "sca_vec:..." << sca_vec_av << endl; 
+                cout << "planck: ..." << a_planck_value << "\n";
+              cout << "sto_vec:..." << stokes_vec<< "\n"; 
+              cout << "sca_vec:..." << sca_vec_av << "\n"; 
               // cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0]) 
               //  /ext_mat(0,0); 
               cout << "abs_vec:..." << abs_vec_av << endl; 
@@ -1464,8 +1440,8 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
                 }// Closes loop over stokes_dim.  
               
               //Planck function
-              Numeric T =  0.5*( T_vector[p_index-cloudbox_limits[0]] +
-                                 T_vector[p_index-cloudbox_limits[0]-1]);
+              Numeric T =  0.5*( t_field(p_index, 0, 0) + 
+                                 t_field(p_index+1, 0, 0));
               Numeric f = f_grid[f_index];
               a_planck_value = planck(f, T);
 
@@ -1537,7 +1513,7 @@ scat_fieldCalc(//WS Output:
   Index Nza_prop = i_field.npages();
   Index Naa = scat_aa_grid.nelem();
   Index Naa_prop = i_field.ncols();
-  //Index Np  = i_field.nvitrines();
+  Index Np  = i_field.nvitrines();
 
   Tensor3 product_field(Nza, Naa, stokes_dim,0);
  
@@ -1903,6 +1879,9 @@ void ScatteringMain(//WS Output
 
   for (f_index = 0; f_index < Nf; ++ f_index)
     {
+      out2 << "---------------------------------------------\n";
+      out2 << "Frequency for monochromatic scattering calculation: " << 
+        f_grid[f_index]/1e9 <<" GHz \n" ;
       scat_mono_agenda.execute(); 
     }
 }

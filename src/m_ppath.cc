@@ -399,6 +399,8 @@ void ppathCalc(
           Index i1 = 1;
           if( i == 0 )
             { i1 = 0; }
+          else
+            { assert( n > 1 ); }
 
           // Vectors and matrices that can be handled by ranges.
           ppath.z[ Range(np,n-i1) ] = ppath_array[i].z[ Range(i1,n-i1) ];

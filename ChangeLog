@@ -1,3 +1,24 @@
+2002-12-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-346
+
+	* src/agendas.cc (opt_prop_gas_agenda): Removed *f_index* from input
+	variables list.
+	
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Added the 3D version. 
+			
+	* src/m_ppath.cc (ppathCalc): Inserted an assertion for number of 
+	points in ppath.
+
+	* src/ppath.cc: Bug fixed according to Patrick's suggestion. 
+	Assure that 'n = Index( ceil( fabs( l2 - l1 ) / lmax ) )' does not
+	become 0.
+
+	* src/m_scatrte.cc: Minor modifications and included output messages.
+	
+	* src/methods.cc: Removed *abs_vec* from input list to function 
+	*abs_vecInit*.
+
 2002-12-19  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-345

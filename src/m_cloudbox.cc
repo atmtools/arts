@@ -232,7 +232,9 @@ void i_fieldSetClearsky(Tensor6& i_field,
                 const ArrayOfIndex& cloudbox_limits,
                 const Index& atmosphere_dim )
 {
- 
+  
+  out2 << "Interpolate boundary clearsky field to obtain the initial field.\n";
+
   if(atmosphere_dim == 1)
     {
       Index  N_f = scat_i_p.nlibraries();
@@ -603,6 +605,8 @@ void i_fieldSetConst(//WS Output:
                         // Keyword       
                         const Vector& i_field_values)
 {
+  out2 << "Set initial field to constant values: " << i_field_values << "\n"; 
+
   // Check the input:
   assert( f_index < f_grid.nelem());
  
@@ -1079,55 +1083,51 @@ void CloudboxGetIncoming(// WS Output:
                          )
                          
 {
+
+  out2 << "Get clearsky field on cloudbox boundary. \n";
+
   Index Nza = scat_za_grid.nelem();
   Index Nf = f_grid.nelem();
   Index Np = p_grid.nelem();
-
-  //for 3D:
-  // Index Nlat = lat_grid.nelem();
-//   Index Nlon = lon_grid.nelem();
-//   Index Naa = scat_aa_grid.nelem();
+  Index Nlat = lat_grid.nelem();
+  Index Nlon = lon_grid.nelem();
+  Index Naa = scat_aa_grid.nelem();
 
   Index Ni = stokes_dim;
  
-  i_rte.resize(Nf,Ni);
-  i_space.resize(Nf, Ni);
- 
+  // Assign dummies for variables assoziated with sensor.
+  Vector mblock_za_grid_dummy(1);
+  Vector mblock_aa_grid_dummy(0);
+  Index antenna_dim_dummy = 1; 
+  mblock_za_grid_dummy[0] = 0;
+
+  // Dummy variable for flag cloudbox_on. It has to be 0 for clearsky
+  // calculations. We want to calculate the clearsky field on the boundary
+  // so we have to set the variable to 0.
+  Index cloudbox_on_dummy = 0;
+
   if(atmosphere_dim == 1)
     {
       // In the 1D case this has to be resized again, as some grids are empty,
       // then Nlat, Nlon, Naa is 0.
-      scat_i_p.resize(Nf,2,1,1,Nza,1,Ni);
+      scat_i_p.resize(Nf, 2, 1, 1, Nza, 1, Ni);
 
-      // Assign dummies for variables assoziated with sensor.
-      Vector mblock_za_grid_dummy(1);
-      Vector mblock_aa_grid_dummy(0);
-      Index antenna_dim_dummy = 1; 
-      mblock_za_grid_dummy[0] = 0;
-      
       // Dummies for interface variables scat_i_p, scat_i_lat, scat_i_lon.
       Tensor7 scat_i_p_dummy(Nf, 2, 1, 1, Nza, 1, Ni);
       Tensor7 scat_i_lat_dummy(Nf, Np, 2, 1, Nza, 1, Ni);
       Tensor7 scat_i_lon_dummy(Nf, Np, 1, 2, Nza, 1, Ni);
-     
-      // Dummy variable for flag cloudbox_on. It has to be 0 for clearsky
-      // calculations. We want to calculate the clearsky field on the boundary
-      // so we have to set the variable to 0.
-      Index cloudbox_on_dummy = 0;
-      
-      //Define the variables for position and direction.
-      Matrix sensor_los(Nza,atmosphere_dim);
-      Matrix sensor_pos(Nza,atmosphere_dim);
+           
+      //Define the variables for position and direction. 
+      Matrix sensor_los(1,1);
+      Matrix sensor_pos(1,1);
       
       // Get scat_i_p at lower boundary
-      sensor_pos.resize(1,1);
-      sensor_los.resize(1,1);
-      sensor_pos(0, 0) = r_geoid(0,0)+z_field(cloudbox_limits[0],
-                                                         0,0);
+      sensor_pos(0,0) = r_geoid(0,0) + z_field(cloudbox_limits[0],
+                                                0, 0);
 
       for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
         {
-          sensor_los(0, 0) =  scat_za_grid[scat_za_index];
+          sensor_los(0,0) =  scat_za_grid[scat_za_index];
       
           RteCalc( y_rte, ppath, ppath_step, i_rte, 
                mblock_index, a_pos, a_los, a_gp_p, 
@@ -1144,7 +1144,7 @@ void CloudboxGetIncoming(// WS Output:
                mblock_za_grid_dummy, mblock_aa_grid_dummy );
           
      
-          scat_i_p( Range(joker), 0, 0,0, 
+          scat_i_p( Range(joker), 0, 0, 0, 
                     scat_za_index,0,
                     Range(joker)) = i_rte;
           
@@ -1184,11 +1184,309 @@ void CloudboxGetIncoming(// WS Output:
           scat_i_lon = 0;
     }
 
-  if(atmosphere_dim == 3)
+  // atmosphere_dim = 3:
+  else
     {
-      throw runtime_error(
-                          "CloudboxGetIncoming for 3D atmosphere will be \n"
-                          "implemented soon."
-                          );
-    }
+       // Dummies for interface variables scat_i_p, scat_i_lat, scat_i_lon.
+      Tensor7 scat_i_p_dummy(Nf, 2, Nlat, Nlon, Nza, Naa, Ni);
+      Tensor7 scat_i_lat_dummy(Nf, Np, 2, Nlon, Nza, Naa, Ni);
+      Tensor7 scat_i_lon_dummy(Nf, Np, Nlat, 2, Nza, Naa, Ni);
+
+      // Define the variables for position and direction.
+      // LOS for 1 measurement block defined by zenith angle and azimuth angle.
+      Matrix sensor_los(1,2); 
+
+      // Position defined by pressure latitude, longitude.
+      Matrix sensor_pos(1,3);
+
+
+      // Get scat_i_p at lower boundary
+
+      for (Index lat_index = 0; lat_index < Nlat; lat_index ++)
+        {
+          for (Index lon_index = 0; lon_index < Nlon; lon_index ++)
+            {
+              sensor_pos(0,0) = r_geoid(lat_index, 
+                                        lon_index) 
+                + z_field(cloudbox_limits[0], lat_index, lon_index);
+
+              for (Index scat_za_index = 0; scat_za_index < Nza;
+                   scat_za_index ++)
+                {
+                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                       scat_aa_index ++)
+                    {
+                      sensor_los(0,0) = scat_za_grid[scat_za_index];
+                      sensor_los(0,1) = scat_aa_grid[scat_aa_index];
+                      
+                      RteCalc( y_rte, ppath, ppath_step, i_rte, 
+                               mblock_index, a_pos, a_los, a_gp_p, 
+                               a_gp_lat, a_gp_lon,
+                               i_space, ground_emission, ground_los, 
+                               ground_refl_coeffs, ppath_step_agenda,
+                               rte_agenda, 
+                               i_space_agenda, ground_refl_agenda, 
+                               atmosphere_dim, p_grid, lat_grid, lon_grid,
+                               z_field,
+                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               cloudbox_limits, scat_i_p_dummy,
+                               scat_i_lat_dummy, scat_i_lon_dummy,
+                               scat_za_grid,
+                               scat_aa_grid, sensor_pos, 
+                               sensor_los, f_grid, stokes_dim, 
+                               antenna_dim_dummy, 
+                               mblock_za_grid_dummy, mblock_aa_grid_dummy );
+          
+                      scat_i_p( Range(joker), 0, lat_index, lon_index, 
+                                scat_za_index, scat_aa_index,
+                                Range(joker)) 
+                        = i_rte;
+                      
+                    }
+                }
+            }
+        }
+
+      
+      // Get scat_i_p at upper boundary
+      
+      for (Index lat_index = 0; lat_index < Nlat; lat_index ++)
+        {
+          for (Index lon_index = 0; lon_index < Nlon; lon_index ++)
+            {
+              sensor_pos(0,0) = r_geoid(lat_index, 
+                                        lon_index) + 
+                z_field(cloudbox_limits[1], lat_index, lon_index);
+              
+              for (Index scat_za_index = 0; scat_za_index < Nza;
+                   scat_za_index ++)
+                {
+                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                       scat_aa_index ++)
+                    {
+                      sensor_los(0,0) = scat_za_grid[scat_za_index];
+                      sensor_los(0,1) = scat_aa_grid[scat_aa_index];
+                      
+                      RteCalc( y_rte, ppath, ppath_step, i_rte, 
+                               mblock_index, a_pos, a_los, a_gp_p, 
+                               a_gp_lat, a_gp_lon,
+                               i_space, ground_emission, ground_los, 
+                               ground_refl_coeffs, ppath_step_agenda,
+                               rte_agenda, 
+                               i_space_agenda, ground_refl_agenda, 
+                               atmosphere_dim, p_grid, lat_grid, lon_grid,
+                               z_field,
+                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               cloudbox_limits, scat_i_p_dummy,
+                               scat_i_lat_dummy, scat_i_lon_dummy,
+                               scat_za_grid,
+                               scat_aa_grid, sensor_pos, 
+                               sensor_los, f_grid, stokes_dim, 
+                               antenna_dim_dummy, 
+                               mblock_za_grid_dummy, mblock_aa_grid_dummy );
+          
+                      scat_i_p( Range(joker), 1, lat_index, lon_index, 
+                                scat_za_index, scat_aa_index,
+                                Range(joker)) 
+                        = i_rte;
+                      
+                    }
+                }
+            }
+        }
+       
+       
+       
+      // Get scat_i_lat (1st boundary):
+      
+      for (Index p_index = 0; p_index < Np; p_index ++)
+        {
+          for (Index lon_index = 0; lon_index < Nlon; lon_index ++)
+            {
+              sensor_pos(0,1) = r_geoid(cloudbox_limits[2], 
+                                        lon_index) +
+                z_field(p_index, cloudbox_limits[2], lon_index);
+              
+              for (Index scat_za_index = 0; scat_za_index < Nza;
+                   scat_za_index ++)
+                {
+                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                       scat_aa_index ++)
+                    {
+                      sensor_los(0,0) = scat_za_grid[scat_za_index];
+                      sensor_los(0,1) = scat_aa_grid[scat_aa_index];
+                      
+                      RteCalc( y_rte, ppath, ppath_step, i_rte, 
+                               mblock_index, a_pos, a_los, a_gp_p, 
+                               a_gp_lat, a_gp_lon,
+                               i_space, ground_emission, ground_los, 
+                               ground_refl_coeffs, ppath_step_agenda,
+                               rte_agenda, 
+                               i_space_agenda, ground_refl_agenda, 
+                               atmosphere_dim, p_grid, lat_grid, lon_grid,
+                               z_field,
+                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               cloudbox_limits, scat_i_p_dummy,
+                               scat_i_lat_dummy, scat_i_lon_dummy,
+                               scat_za_grid,
+                               scat_aa_grid, sensor_pos, 
+                               sensor_los, f_grid, stokes_dim, 
+                               antenna_dim_dummy, 
+                               mblock_za_grid_dummy, mblock_aa_grid_dummy );
+          
+                      scat_i_lat( Range(joker), p_index, 0, lon_index, 
+                                scat_za_index, scat_aa_index,
+                                Range(joker)) 
+                        = i_rte;
+                      
+                    }
+                }
+            }
+        }
+
+      
+      // Get scat_i_lat (2nd boundary)
+      
+       for (Index p_index = 0; p_index < Np; p_index ++)
+         {
+           for (Index lon_index = 0; lon_index < Nlon; lon_index ++)
+             {
+               sensor_pos(0,1) = r_geoid(cloudbox_limits[3], 
+                                         lon_index) 
+                 + z_field(p_index, cloudbox_limits[3], lon_index);
+                                                    
+               for (Index scat_za_index = 0; scat_za_index < Nza;
+                    scat_za_index ++)
+                 {
+                   for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                       scat_aa_index ++)
+                    {
+                      sensor_los(0,0) = scat_za_grid[scat_za_index];
+                      sensor_los(0,1) = scat_aa_grid[scat_aa_index];
+                      
+                      RteCalc( y_rte, ppath, ppath_step, i_rte, 
+                               mblock_index, a_pos, a_los, a_gp_p, 
+                               a_gp_lat, a_gp_lon,
+                               i_space, ground_emission, ground_los, 
+                               ground_refl_coeffs, ppath_step_agenda,
+                               rte_agenda, 
+                               i_space_agenda, ground_refl_agenda, 
+                               atmosphere_dim, p_grid, lat_grid, lon_grid,
+                               z_field,
+                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               cloudbox_limits, scat_i_p_dummy,
+                               scat_i_lat_dummy, scat_i_lon_dummy,
+                               scat_za_grid,
+                               scat_aa_grid, sensor_pos, 
+                               sensor_los, f_grid, stokes_dim, 
+                               antenna_dim_dummy, 
+                               mblock_za_grid_dummy, mblock_aa_grid_dummy );
+          
+                      scat_i_lat( Range(joker), p_index, 1, lon_index, 
+                                scat_za_index, scat_aa_index,
+                                Range(joker)) 
+                        = i_rte;
+                      
+                    }
+                }
+            }
+        }    
+
+
+       // Get scat_i_lon (1st boundary):
+       
+       for (Index p_index = 0; p_index < Np; p_index ++)
+        {
+          for (Index lat_index = 0; lat_index < Nlat; lat_index ++)
+            {
+              sensor_pos(0,2) = r_geoid(lat_index, 
+                                        cloudbox_limits[5]) + 
+                z_field(p_index, lat_index, cloudbox_limits[5]);
+
+              for (Index scat_za_index = 0; scat_za_index < Nza;
+                   scat_za_index ++)
+                {
+                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                       scat_aa_index ++)
+                    {
+                      sensor_los(0,0) = scat_za_grid[scat_za_index];
+                      sensor_los(0,1) = scat_aa_grid[scat_aa_index];
+                      
+                      RteCalc( y_rte, ppath, ppath_step, i_rte, 
+                               mblock_index, a_pos, a_los, a_gp_p, 
+                               a_gp_lat, a_gp_lon,
+                               i_space, ground_emission, ground_los, 
+                               ground_refl_coeffs, ppath_step_agenda,
+                               rte_agenda, 
+                               i_space_agenda, ground_refl_agenda, 
+                               atmosphere_dim, p_grid, lat_grid, lon_grid,
+                               z_field,
+                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               cloudbox_limits, scat_i_p_dummy,
+                               scat_i_lat_dummy, scat_i_lon_dummy,
+                               scat_za_grid,
+                               scat_aa_grid, sensor_pos, 
+                               sensor_los, f_grid, stokes_dim, 
+                               antenna_dim_dummy, 
+                               mblock_za_grid_dummy, mblock_aa_grid_dummy );
+          
+                      scat_i_lon( Range(joker), p_index, lat_index, 0, 
+                                scat_za_index, scat_aa_index,
+                                Range(joker)) 
+                        = i_rte;
+                      
+                    }
+                }
+            }
+        }
+
+      
+      // Get scat_i_p at upper boundary
+      
+       for (Index p_index = 0; p_index < Np; p_index ++)
+        {
+          for (Index lat_index = 0; lat_index < Nlat; lat_index ++)
+            {
+              sensor_pos(0,2) = r_geoid(lat_index, 
+                                        cloudbox_limits[6]) + 
+                z_field(p_index, lat_index, cloudbox_limits[6]);    
+              
+              for (Index scat_za_index = 0; scat_za_index < Nza;
+                   scat_za_index ++)
+                {
+                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                       scat_aa_index ++)
+                    {
+                      sensor_los(0,0) = scat_za_grid[scat_za_index];
+                      sensor_los(0,1) = scat_aa_grid[scat_aa_index];
+                      
+                      RteCalc( y_rte, ppath, ppath_step, i_rte, 
+                               mblock_index, a_pos, a_los, a_gp_p, 
+                               a_gp_lat, a_gp_lon,
+                               i_space, ground_emission, ground_los, 
+                               ground_refl_coeffs, ppath_step_agenda,
+                               rte_agenda, 
+                               i_space_agenda, ground_refl_agenda, 
+                               atmosphere_dim, p_grid, lat_grid, lon_grid,
+                               z_field,
+                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               cloudbox_limits, scat_i_p_dummy,
+                               scat_i_lat_dummy, scat_i_lon_dummy,
+                               scat_za_grid,
+                               scat_aa_grid, sensor_pos, 
+                               sensor_los, f_grid, stokes_dim, 
+                               antenna_dim_dummy, 
+                               mblock_za_grid_dummy, mblock_aa_grid_dummy );
+          
+                      scat_i_lon( Range(joker), p_index, lat_index, 1, 
+                                scat_za_index, scat_aa_index,
+                                Range(joker)) 
+                        = i_rte;
+                      
+                    }
+                }
+            }
+        }
+
+    }// End atmosphere_dim = 3.
 }
