@@ -1,5 +1,15 @@
 2003-08-21  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
+	* arts-1-1-664
+
+	* src/geomag_calc.{cc,h}: Added these files containing the
+	prelimmanary calculating routine of the geomagnetic field.
+
+	* src/test_geomag_calc.cc: Added test file for the geomagnetic
+	calculation.
+	
+2003-08-21  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
 	* arts-1-1-663
 
 	* src/legendre.cc: Fixed a bug in (legendre_poly_deriv) and
