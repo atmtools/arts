@@ -315,7 +315,6 @@ void convergence_flagAbs(//WS Output:
   \param scalar_gas_absorption_agenda Scalar gas absorption. 
   \param convergence_test_agenda Agenda to perform the convergence test.
   \param ppath_step_agenda Agenda to compute a propagation path step.
-  \param scat_rte_agenda Agenda to compute the RTE.
   \param amp_mat       Amplitude matrix. 
   \param cloudbox_limits Limits of the cloudbox.
   \param scat_za_grid  Zenith angle grid inside the cloud box.
@@ -323,7 +322,7 @@ void convergence_flagAbs(//WS Output:
   \param p_grid        Pressure grid.
   \param lat_grid      Latitude grid.
   \param lon_grid      Longitude grid.
-  \param t_field       Temperature field for alls grid points.
+  \param t_field       Temperature field for all grid points.
   \param z_field       Geometrical altitude field.
   \param r_geoid       Matrix containing geoids.
   \param f_grid        Frequency grid.
@@ -366,8 +365,7 @@ i_fieldIterate(
                     const Agenda& scalar_gas_absorption_agenda,
                     const Agenda& convergence_test_agenda,
                     const Agenda& ppath_step_agenda,
-                    const Agenda& scat_rte_agenda,
-		    const Tensor6& amp_mat,
+ 		    const Tensor6& amp_mat,
 		    const ArrayOfIndex& cloudbox_limits,
 		    const Vector& scat_za_grid,
 		    const Vector& scat_aa_grid,
@@ -398,8 +396,12 @@ i_fieldIterate(
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*"); 
 
-   cout<<"N_lat_grid in IfieldIterate function"<<" "<<lat_grid.nelem()<<"\n";
-    cout<<"N_lon_grid in IfieldIterate function"<<" "<<lon_grid.nelem()<<"\n";
+
+  assert( is_size( amp_mat, 
+                   part_types.nelem(), scat_za_grid.nelem(), 
+                   scat_aa_grid.nelem(), scat_za_grid.nelem(),
+                   scat_aa_grid.nelem(), 8));
+
   if (atmosphere_dim == 3){
     
     // Does i_field have the right dimension? 
@@ -410,6 +412,7 @@ i_fieldIterate(
 		      scat_za_grid.nelem(), 
 		      scat_aa_grid.nelem(),
 		      stokes_dim));
+   
   }
  
   else if (atmosphere_dim == 1 ){
@@ -437,7 +440,63 @@ i_fieldIterate(
   
   // Is the frequency index valid?
   assert( f_index <= f_grid.nelem() );
-    
+
+  // Initialize variables:
+  i_field_old.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+		      1, 
+		      1,
+		      scat_za_grid.nelem(), 
+		      1,
+                     stokes_dim);
+  i_field_old = 0.;
+
+  scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+		      1, 
+		      1,
+		      scat_za_grid.nelem(), 
+		      1,
+                     stokes_dim);
+  scat_field = 0.;
+
+  sca_vec.resize(stokes_dim);
+  sca_vec = 0.;
+
+  stokes_vec.resize(stokes_dim);
+  stokes_vec = 0.;
+
+  a_planck_value = 0.;
+  l_step = 0.;
+  
+  pha_mat.resize(scat_za_grid.nelem(), scat_aa_grid.nelem(), stokes_dim,
+                 stokes_dim);
+  pha_mat = 0.;
+  
+  pha_mat_spt.resize(part_types.nelem(), scat_za_grid.nelem(), 
+                     scat_aa_grid.nelem(), stokes_dim, stokes_dim);
+  pha_mat_spt = 0.;
+
+  abs_vec_spt.resize(part_types.nelem(), stokes_dim);
+  abs_vec_spt = 0.;
+
+  ext_mat_spt.resize(part_types.nelem(), stokes_dim, stokes_dim);
+  ext_mat_spt = 0.;
+
+  ext_mat.resize(1, stokes_dim, stokes_dim);
+  ext_mat = 0.;
+
+  abs_vec.resize(1, stokes_dim);
+  abs_vec = 0.;
+
+  scat_p_index = 0;
+  scat_lat_index = 0;
+  scat_lon_index = 0;
+  scat_za_index = 0;
+  scat_aa_index = 0;
+
+  // End of initializations.
+
+
+ 
   //The following steps are repeated until convergence is reached.
   convergence_flag = 0;
   while(convergence_flag == 0) {
@@ -448,12 +507,6 @@ i_fieldIterate(
     
     // 2.Calculate scattered field vector for all points in the cloudbox.
     
-    // Resize variables:
-    ext_mat_spt.resize(part_types.nelem(), stokes_dim, stokes_dim);
-    abs_vec_spt.resize(part_types.nelem(), stokes_dim);
-    pha_mat_spt.resize(part_types.nelem(), scat_za_grid.nelem(), 
-                       scat_aa_grid.nelem(), stokes_dim, stokes_dim);
-   
     // Calculate the scattered field.
     scat_fieldCalc(scat_field, pha_mat, pha_mat_spt, amp_mat, i_field,
                    pnd_field, 
@@ -472,7 +525,7 @@ i_fieldIterate(
                         spt_calc_agenda,
                         opt_prop_part_agenda, opt_prop_gas_agenda,
                         scalar_gas_absorption_agenda, ppath_step_agenda,
-                        scat_rte_agenda,  amp_mat, scat_field,
+                        amp_mat, scat_field,
                         cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
                         t_field, z_field, r_geoid, f_grid, f_index, 
                         pnd_field, stokes_dim, atmosphere_dim, part_types);
@@ -520,7 +573,6 @@ i_fieldIterate(
                             for gases.
   \param scalar_gas_absorption_agenda Scalar gas absorption.
   \param ppath_step_agenda Agenda to compute a propagation path step.
-  \param scat_rte_agenda Agenda to compute the RTE.
   \param amp_mat       Amplitude matrix. 
   \param scat_field     Scattering integral at all grid points
                               inside the cloud box.
@@ -572,7 +624,6 @@ i_fieldUpdate1D(// WS Output:
                 const Agenda& opt_prop_gas_agenda,
                 const Agenda& scalar_gas_absorption_agenda,
 		const Agenda& ppath_step_agenda,
-                const Agenda& scat_rte_agenda,
                 const Tensor6& amp_mat,
 		const Tensor6& scat_field,
 		const ArrayOfIndex& cloudbox_limits,
@@ -600,14 +651,15 @@ i_fieldUpdate1D(// WS Output:
                         "The dimension of stokes vector must be"
                         "1,2,3, or 4");
   
-  assert ( is_size( i_field, 
+  assert( is_size( i_field, 
 		      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
 		      1, 
 		      1,
 		      scat_za_grid.nelem(), 
 		      1,
 		      stokes_dim));
-  assert ( is_size( scat_field, 
+
+  assert( is_size( scat_field, 
 		      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
 		      1, 
 		      1,
@@ -615,9 +667,44 @@ i_fieldUpdate1D(// WS Output:
 		      1,
 		      stokes_dim));  
   
+  assert( is_size( stokes_vec, stokes_dim));
+  
+  assert( is_size( sca_vec, stokes_dim));
+
+  assert( is_size( abs_vec_spt, part_types.nelem(), stokes_dim)); 
+
+  assert( is_size( ext_mat_spt,  part_types.nelem(), stokes_dim, stokes_dim));
+  
+  assert( is_size( pha_mat_spt,  part_types.nelem(), 
+                   scat_za_grid.nelem(), scat_aa_grid.nelem(),
+                   stokes_dim, stokes_dim));
+
+  assert( is_size( ext_mat, 1, stokes_dim, stokes_dim));
+  
+  assert( is_size( abs_vec, 1, stokes_dim));
+  
+  // Is the frequency index valid?
+  assert( f_index <= f_grid.nelem() );
+
+  // End of checks
+
+
+
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
   const Index N_scat_aa = scat_aa_grid.nelem();
+
+
+  // Create scalar absorption and store it in an array. This avoids 
+  // repeting the calculation for each direction.
+
+  for(Index p_index = cloudbox_limits[0]; p_index
+                <= cloudbox_limits[1]-1; p_index ++)
+    {
+      Vector scalar_gas_array((cloudbox_limits[1] - cloudbox_limits[0]) + 1);
+      //   scalar_gas_abs_agenda.execute();
+      //    scalar_gas_array[p_index] = abs_scalar_gas;
+    }
 
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
@@ -679,8 +766,8 @@ i_fieldUpdate1D(// WS Output:
       ArrayOfVector abs_vec_array;
       abs_vec_array.resize(cloudbox_limits[1]-cloudbox_limits[0]+1);
 
-      Vector T_vector;
-      T_vector.resize(cloudbox_limits[1]-cloudbox_limits[0]+1);
+      Vector T_vector(cloudbox_limits[1]-cloudbox_limits[0]+1,0.);
+      
 
      
       // Loop over all positions inside the cloudbox defined by the 
@@ -699,34 +786,34 @@ i_fieldUpdate1D(// WS Output:
           //             << cloudbox_limits[1] <<"\n";
           //cout << endl;
 
+
           // Calculate abs_vec_array 
+          // Initialize these arrays:
+
           abs_vec_array[p_index-cloudbox_limits[0]].resize(stokes_dim); 
           ext_mat_array[p_index-cloudbox_limits[0]].
             resize(stokes_dim, stokes_dim); 
-
-          // Initialize these arrays:
-          // FIXME: include loop for all alements!
-          abs_vec_array[0] = 0.;
-          ext_mat_array[0] = 0.;
+          
+          for( Index i = 0; i < cloudbox_limits[1]-cloudbox_limits[0]+1; i++)
+            {
+              abs_vec_array[i] = 0.;
+              ext_mat_array[i] = 0.;
+            }
 
           scat_p_index = p_index; 
           
-          //Initialize ext_mat and abs_vec:
-          abs_vec.resize(1,stokes_dim);
-          ext_mat.resize(1,stokes_dim, stokes_dim);
-          abs_vec = 0.;
-          ext_mat = 0.;
+          // Get scalar gas absorption from array.
+          //abs_scalar_gas = scalar_gas_array[p_index];
 
-          scalar_gas_absorption_agenda.execute();
+          // Calculate total ext_mat and abs_vec.
           opt_prop_gas_agenda.execute();
           opt_prop_part_agenda.execute();
           
+          // Store coefficients in arrays for the whole cloudbox.
           abs_vec_array[p_index-cloudbox_limits[0]] = 
-            abs_vec(f_index, Range(joker));
-
-          // Calculate ext_mat_array
+            abs_vec(0, Range(joker));
           ext_mat_array[p_index-cloudbox_limits[0]] = 
-            ext_mat(f_index, Range(joker), Range(joker));
+            ext_mat(0, Range(joker), Range(joker));
           
           //Generate temperature vector.
           T_vector[p_index - cloudbox_limits[0]] = t_field(p_index, 0, 0); 
@@ -743,10 +830,10 @@ i_fieldUpdate1D(// WS Output:
 
       // Define variables which hold averaged coefficients:
 
-      Vector sca_vec_av(stokes_dim);
-      Vector stokes_vec_av(stokes_dim);
-      Matrix ext_mat_av(stokes_dim, stokes_dim);
-      Vector abs_vec_av(stokes_dim);
+      Vector sca_vec_av(stokes_dim,0.);
+      Vector stokes_vec_av(stokes_dim,0.);
+      Matrix ext_mat_av(stokes_dim, stokes_dim,0.);
+      Vector abs_vec_av(stokes_dim,0.);
               
 
 
@@ -1073,15 +1160,9 @@ scat_fieldCalc(//WS Output:
   cout<<"Naa in the scattering integral routine"<<" "<<Naa<<"\n";
   //Tensor4 product_field(Np,Nza, Naa, stokes_dim);//earlier tensor3; added pressure index STR
   // now tensor5 after za_index_in index
-  Tensor3 product_field(Nza, Naa, stokes_dim);
+  Tensor3 product_field(Nza, Naa, stokes_dim,0);
  
-  // scat_field is of the same size as *i_field*
-  scat_field.resize( i_field.nvitrines(),
-		     i_field.nshelves(),
-		     i_field.nbooks(),
-		     i_field.npages(),
-		     i_field.nrows(),
-                     i_field.ncols() );
+  
   /*
   cout<<"N_pt"<<" "<<N_pt;
   cout<<"N_p_grid"<<" "<<p_grid.nelem();
@@ -1404,14 +1485,21 @@ void ScatteringMain(//WS Output
   Index Naa = scat_aa_grid.nelem();
   Index Ni = stokes_dim; 
 
+  //Initializations
   scat_i_p.resize(Nf, 2, Nlat, Nlon, Nza, Naa, Ni);
+  scat_i_p = 0.;
   scat_i_lat.resize(Nf, Np, 2, Nlon, Nza, Naa, Ni);
+  scat_i_lat = 0.;
   scat_i_lon.resize(Nf, Np, Nlat, 2, Nza, Naa, Ni);
+  scat_i_lon = 0.;
   i_rte.resize(Nf, Ni);
+  i_rte = 0.;
 
   if( !cloudbox_on )
     throw runtime_error( "The cloud box is not activated and no incoming "
 			 "field can be returned." );
+
+
   CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
                       i_rte, y_rte, i_space, ground_emission, ground_los, 
                       ground_refl_coeffs,mblock_index, a_los,
@@ -1425,7 +1513,6 @@ void ScatteringMain(//WS Output
   
   for (f_index = 0; f_index < Nf; ++ f_index)
     {
-      if (f_index == 1) cout << "giielawölraiheus";
       scat_mono_agenda.execute(); 
     }
 }

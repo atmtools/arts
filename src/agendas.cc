@@ -379,47 +379,6 @@ void define_agenda_data()
 
  agenda_data.push_back
     (AgRecord
-     ( NAME( "scat_rte_agenda" ),
-       DESCRIPTION
-       (
-       "Calculate the radiative transfer equation (RTE) with fixed scattering\n "
-       "integral.\n"
-       "\n"
-       "There are different possibilities to compute the RTE with a fixed value \n"
-       "for the scattering integral. These are implemented in the workspace \n"
-       "methods: \n"
-       "sto_vecGeneral: This method uses the Pade approximation to compute the \n"
-       "         matrix exponential function and a LU decomposition method \n"
-       "         to compute the matrix inverse. This method should not be \n"
-       "         used for the scalar RTE (if *stokes_dim* equals 1), as it\n"
-       "         is numerically not efficient in this case.\n" 
-       "sto_vecScalar: This method can only be used for the scalar RTE. It \n"
-       "         uses the standard exponential function and there is no need\n"
-       "         for a LU decomposition. That means that it is much more \n"
-       "         efficient for the computation of the scalar RTE. \n"
-       "\n"
-       "Output and Input:\n"
-       "   stokes_vec  : The Stokes vector. \n"
-       "\n"
-       "Input:\n"
-       "   ext_mat     : Extinction coefficient matrix.\n"
-       "   abs_vec     : Absorption coefficient vector. \n"
-       "   sca_vec     : Scattered field vector. \n"
-       "   l_step      : Pathlength through a grid cell/ layer.\n"
-       "   a_planck_value: Planck function. \n"
-       "   stokes_dim  : Stokes dimension. \n"
-       ""
-	),
-       OUTPUT(stokes_vec_),
-       INPUT(ext_mat_,
-             abs_vec_,
-             sca_vec_,
-             l_step_,
-             a_planck_value_,
-             stokes_dim_)));
-
- agenda_data.push_back
-    (AgRecord
      ( NAME( "spt_calc_agenda" ),
        DESCRIPTION
        (

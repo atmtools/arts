@@ -111,7 +111,7 @@ void define_wsv_data()
        "Total absorption vector.\n"
        "\n"
        "This variable contains the absorption coefficient vector which \n"
-       "is used in the scattering RTE calculation. It is \n"
+       "is used in the RTE calculation. It is \n"
        "the physical absorption which includes particle absorption \n"
        "for all chosen particle types as well as gaseous absorption for\n"
        "all chosen gaseous species.\n" 
@@ -512,7 +512,7 @@ void define_wsv_data()
        "Total extinction matrix.\n"
        "\n"
        "This variable contains the extinction coefficient matrix which \n"
-       "is used in the scattering RTE calculation. It is \n"
+       "is used in the RTE calculation. It is \n"
        "the physical extinction matrix which includes particles extinction \n"
        "for all chosen particle types and gaseous extinction for all chosen \n"
        "gaseous species.\n" 
@@ -530,7 +530,7 @@ void define_wsv_data()
        "\n"
        "Unit:       [Hz, m^2, m^2] "
        "\n"
-       "Dimensions: [stokes_dim, stokes_dim]"
+       "Dimensions: [f_grid, stokes_dim, stokes_dim]"
        ),
        GROUP( Tensor3_ )));
   
@@ -1651,15 +1651,6 @@ void define_wsv_data()
        ),
      GROUP( Index_ ))); 
  
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_rte_agenda" ),
-      DESCRIPTION
-      (
-	"See agendas.cc."
-       ),
-      GROUP( Agenda_ )));
-
  wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_za_grid" ),

@@ -603,6 +603,28 @@ void i_fieldSetConst(//WS Output:
                         // Keyword       
                         const Vector& i_field_values)
 {
+  // Check the input:
+  assert( f_index < f_grid.nelem());
+ 
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  
+  // Grids have to be adapted to atmosphere_dim.
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  
+   // Check the input:
+  if (stokes_dim < 0 || stokes_dim > 4)
+    throw runtime_error(
+			"The dimension of stokes vector must be"
+			"1,2,3, or 4");
+
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains the"
+                        "upper and lower limit of the cloud for all "
+                        "atmospheric dimensions. So its dimension must"
+                        "be 2 x *atmosphere_dim*"); 
+
+  
   if(atmosphere_dim == 1)
   {
     // In the 1D case the atmospheric layers are defined by p_grid and the
@@ -610,9 +632,12 @@ void i_fieldSetConst(//WS Output:
     Index N_za = scat_i_p.npages();
     Index N_p = p_grid.nelem();
    
+   
+
     // Define the size of i_field.
     i_field.resize((cloudbox_limits[1] - cloudbox_limits[0])+1, 1, 1,  N_za,
                    1, 1);
+    i_field = 0.;
 
     // Loop over all zenith angle directions.
     for (Index za_index = 0; za_index < N_za; za_index++)
@@ -759,7 +784,41 @@ void scat_iPut(//WS Output:
   Index N_aa = scat_aa_grid.nelem();
  
   // Some checks:
-  assert ( is_size( i_field, 
+  
+  assert( f_index < f_grid.nelem() );
+ 
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  
+  // Grids have to be adapted to atmosphere_dim.
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  
+   // Check the input:
+  if (stokes_dim < 0 || stokes_dim > 4)
+    throw runtime_error(
+			"The dimension of stokes vector must be"
+			"1,2,3, or 4");
+
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains the"
+                        "upper and lower limit of the cloud for all "
+                        "atmospheric dimensions. So its dimension must"
+                        "be 2 x *atmosphere_dim*"); 
+
+ 
+
+ 
+
+  // End of checks.
+
+
+  // Put the i_field at the cloudbox boundary into the interface variable 
+  // scat_i_p.
+  if(atmosphere_dim == 1)
+    {
+      // Check size of i_field.
+
+       assert ( is_size( i_field, 
                     (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                     1, 
                     1,
@@ -767,23 +826,10 @@ void scat_iPut(//WS Output:
                     1,
                     stokes_dim));
 
-  /*assert ( is_size( scat_i_p,
-                    N_f, 2, N_lat, N_lon, N_za, N_aa, stokes_dim ));
+        assert ( is_size( scat_i_p,
+                          N_f, 2, 1, 1, N_za, N_aa, stokes_dim ));
 
-  assert ( is_size( scat_i_lat,
-                    N_f, N_p, 2, N_lon, N_za, N_aa, stokes_dim ));
-  
-  assert ( is_size( scat_i_lon,
-  N_f, N_p, N_lat, 2, N_za, N_aa, stokes_dim ));*/
-
-  // Put the i_field at the cloudbox boundary into the interface variable 
-  // scat_i_p.
-  if(atmosphere_dim == 1)
-    {
-      scat_i_p.resize(N_f, 2, 1, 1, N_za, 1, stokes_dim);
-      scat_i_lat.resize(N_f, N_p, 2, 1, N_za, 1, stokes_dim);
-      scat_i_lon.resize(N_f, N_p, 1, 2, N_za, 1, stokes_dim);
-      for (Index za = 0; za < N_za; za++)
+       for (Index za = 0; za < N_za; za++)
             {
               for (Index i = 0; i < stokes_dim; i++)
                 {  
@@ -864,6 +910,16 @@ void CloudboxGetOutgoing(// WS Generic Output:
                          const Vector& scat_aa_grid,
                          const Vector& f_grid)
 {
+  // Check the input:
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains the"
+                        "upper and lower limit of the cloud for all "
+                        "atmospheric dimensions. So its dimension must"
+                        "be 2 x *atmosphere_dim*"); 
+  
   if( !cloudbox_on )
     throw runtime_error( "The cloud box is not activated and no outgoing "
 			                            "field can be returned." );
@@ -875,6 +931,12 @@ void CloudboxGetOutgoing(// WS Generic Output:
 
  if(atmosphere_dim == 1)
    {
+     assert ( is_size( scat_i_p,
+                       f_grid.nelem(), 2, 1, 1, 
+                       scat_za_grid.nelem(), scat_aa_grid.nelem(),
+                       stokes_dim ));
+
+
      if (a_gp_p.idx != cloudbox_limits[0] &&
          a_gp_p.idx != cloudbox_limits[1])
        throw runtime_error(
