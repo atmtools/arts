@@ -1,3 +1,13 @@
+2002-03-28  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-19
+
+	* ami/physics/tilt_of_psurface.m: Changed from using a numerical to
+	analytical expression.
+
+	* ami/physics/do_1gridbox_2d_geom.m: Updated this function to match
+	new definition of the cloud box.
+
 2002-03-25  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-18

@@ -7,6 +7,9 @@
 %
 %           The function will only be part of AMI as long this Matlab
 %           version identical to the C++ version.
+%
+%           The function is NOT adopted to new index order, but follows
+%           new definition of the cloud box (though, no test runs done).
 %------------------------------------------------------------------------
 
 % HISTORY: 2002-03-08  Created by Patrick Eriksson
@@ -22,7 +25,7 @@
 % tangent point must be inside the covered latitude and longitude ranges 
 % (but can be above the top of the atmosphere).
 
-function ppath = ppath_2d_3d(dim,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,refr_on,blackbody_ground,cloudbox_on,cloudbox_limits,ppath_lmax,r_s,alpha_s,beta_s,psi_s,omega_psi)
+function ppath = ppath_2d_3d(dim,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,refr_on,blackbody_ground,cloudbox_on,cloudbox_limits,ppath_lmax,r_s,alpha_s,beta_s,psi_s,omega_s)
 
   if( dim == 3 )
     error('3D not yet implemented');
@@ -32,6 +35,7 @@ function ppath = ppath_2d_3d(dim,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_g
 
   % Asserts ...
   % dim <= 3
+  % cloud box and ground
 
   % Some sizes
   n_p     = length( p_grid );
@@ -46,7 +50,7 @@ function ppath = ppath_2d_3d(dim,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_g
   % Start by checking if the sensor is inside the atmosphere, but not 
   % below the ground.
   is_inside = is_inside_atm_box( dim, p_grid, alpha_grid, beta_grid, ...
-          z_field, r_geoid, z_ground, r_s, alpha_s, beta_s, psi_s, omega_psi );
+          z_field, r_geoid, z_ground, r_s, alpha_s, beta_s, psi_s, omega_s );
 
 
   %--- Start point inside the atmosphere --------------------------------------
@@ -328,17 +332,18 @@ function ppath = ppath_2d_3d(dim,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_g
     % If the start point is inside an active cloud box there is no path 
     % to follow. 
     if( cloudbox_on )
-      l1=cloudbox_limits(1); l2=cloudbox_limits(2); l3=cloudbox_limits(3);
+      l1=cloudbox_limits(1); l2=cloudbox_limits(2); 
+      l3=cloudbox_limits(3); l4=cloudbox_limits(4); 
       if( dim >= 3 )
-        l4=cloudbox_limits(4); l5=cloudbox_limits(5);
-        bgrid = beta_grid( l4:l5 );
+        l5=cloudbox_limits(5); l6=cloudbox_limits(6);
+        bgrid = beta_grid( l5:l6 );
       else
-        l4=1; l5=1;
+        l5=1; l6=1;
         bgrid = beta_grid;
       end
-      if( is_inside_atm_box( dim, p_grid(1:l1), alpha_grid(l2:l3), ...
-            bgrid, z_field(l4:l5,l2:l3,1:l1), r_geoid(l4:l5,l2:l3), ...
-              z_ground(l4:l5,l2:l3), r_s, alpha_s, beta_s, psi_s, omega_psi ) )
+      if( is_inside_atm_box( dim, p_grid(l1:l2), alpha_grid(l3:l4), ...
+            bgrid, z_field(l5:l6,l3:l4,l2:l2), r_geoid(l5:l6,l3:l4), ...
+              z_ground(l4:l5,l2:l3), r_s, alpha_s, beta_s, psi_s, omega_s ) )
         ppath.background = 'Inside cloud box';
         not_ready = 0;
       end
@@ -416,10 +421,10 @@ function ppath = ppath_2d_3d(dim,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_g
       end
 
       % Intersection with cloud box?
-      if( cloudbox_on & iz1<cloudbox_limits(1) )
-        if( ialpha1>=cloudbox_limits(2) & ialpha1<cloudbox_limits(3) )
-          if( dim==2 | ( dim>=3 & ibeta1>=cloudbox_limits(4) & ...
-                                                  ibeta1<cloudbox_limits(5) ) )
+      if( cloudbox_on & iz1>=cloudbox_limits(1) & iz1<cloudbox_limits(2) )
+        if( ialpha1>=cloudbox_limits(3) & ialpha1<cloudbox_limits(4) )
+          if( dim==2 | ( dim>=3 & ibeta1>=cloudbox_limits(5) & ...
+                                                  ibeta1<cloudbox_limits(6) ) )
             not_ready        = 0;
             ppath.background = 'Surface of cloud box';
           end
@@ -552,7 +557,7 @@ return
 
 
 
-function is_inside = is_inside_atm_box(dim,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,r_s,alpha_s,beta_s,psi_s,omega_psi)
+function is_inside = is_inside_atm_box(dim,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,r_s,alpha_s,beta_s,psi_s,omega_s)
 
   is_inside      = 1;
 

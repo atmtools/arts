@@ -23,6 +23,15 @@
 
 function tilt = tilt_of_psurface( r, c )
 
+% The tilt (in radians) is c/r if c is converted to m/radian
+
+global RAD2DEG
+
+tilt = RAD2DEG^2 * c/r;
+
+return
+
+% Old numerical version
 
 dalpha = 1e-2; 
 

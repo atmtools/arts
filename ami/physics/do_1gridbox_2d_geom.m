@@ -65,7 +65,7 @@ function [r,alpha,l_step,psi,r_istep,alpha_istep,r_tan,alpha_tan,ground,i_ground
   % from can_be_end.
   % Corner points are considered to belong to face 2 and 4.
   
-  % Starting at face 2? (Cannot start with 1 as the corner points belongs to 2)
+  % Starting at face 2? (Cannot start at 1 or 3 as corner points belongs to 2)
   if( r_p == r1 + c2*dalpha_l )
     tilt = tilt_of_psurface( r_p, c2 );
     if( psi_p > 0 )
@@ -304,6 +304,14 @@ function [r,alpha,l_step,psi,r_istep,alpha_istep,r_tan,alpha_tan,ground,i_ground
 	psi_r  = 180 - psi_e - 2 * tilt_of_psurface( rground1, cground );
       else
 	psi_r  = -180 - psi_e - 2 * tilt_of_psurface( rground1, cground );
+      end
+      % If we are exactly at the alpha boundaries and there is a ground slope,
+      % we can bounce out from the box. Fix this with a small disturbance of
+      % the angle.
+      if( alpha_e == alpha1 )
+        alpha_e = alpha1 + (alpha3-alpha1)/1e6;
+      elseif( alpha_e == alpha3 )
+        alpha_e = alpha3 - (alpha3-alpha1)/1e6;
       end
       [r2,alpha2,l_step2,psi2,r_istep,alpha_istep] = do_1gridbox_2d_geom( r1, r2, r3, r4, alpha1, alpha3, 0, 0, 0, r_e, alpha_e, psi_r, l_max );
       r      = [ r; r2 ];

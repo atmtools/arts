@@ -12,7 +12,7 @@
 %           Tensor3.
 %
 % FORMAT:   [ h, ltext ] = plot_atm_1d( dalpha, z_field, r_geoid, z_ground,
-%                                   cloudbox_on, cloudbox_limits, [do_geoid ] )
+%                                  cloudbox_on, cloudbox_limits [, do_geoid ] )
 % 
 % OUT:      h             Handle to each used linestyle. 
 %           ltext         Text suitable for a legend. A legend can be added
