@@ -346,6 +346,23 @@ ArtsXMLTag::read_from_stream (istream& is)
   }
 
   out2 << '\n';
+
+  // Skip comments
+  if (name == "comment")
+    {
+      is.get (tag, '<');
+
+      // Hit EOF while looking for '<'
+      if (is.bad () || is.eof ())
+        {
+          xml_parse_error ("Unexpected end of file while looking for "
+                           "comment tag");
+        }
+
+      read_from_stream (is);
+      check_name ("/comment");
+      read_from_stream (is);
+    }
 }
 
 
