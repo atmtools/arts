@@ -1,3 +1,20 @@
+2002-06-03  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-111
+
+	* src/ppath.cc (ppath_start_stepping): Worked on this function for 2D.
+	Finished for sensor positions inside the model atmosphere. More
+	to do for other starting points.
+	New internal functions:
+	   psurface_slope_2D
+	   psurface_tilt_2D
+	   is_los_downwards_2D
+	   angle_after_ground_2D
+
+	* src/m_ppath.cc: Two now WSF:
+	   a_posAddRgeoid
+	   sensor_posAddRgeoid
+
 2002-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-110

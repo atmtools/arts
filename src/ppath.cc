@@ -210,6 +210,119 @@ Numeric geompath_r_at_l(
 
 
 /*===========================================================================
+  === Functions related to slope and tilt of the ground and pressure surfaces
+  ===========================================================================*/
+
+//! psurface_slope_2D
+/*!
+   Calculates the radial slope of the ground or a pressure surface for 2D.
+
+   The radial slope is here the derivative of the radius with respect to the
+   latitude. The unit is accordingly m/degree.
+
+   Note that the radius is defined to change linearly between grid points.
+
+   Note also that the slope is always calculated with respect to increasing
+   latitudes, independently of the upwards argument. The upwards argument is
+   only used to determine which grid range that is of interest when the
+   position is exactly on top of a grid point.
+
+   For a point exactly on a grid value it is not clear if it is the range 
+   below or above that is of interest. The input argument upward is used to 
+   resolve such cases, where upward == 1 means that it is the range above
+   that is of interest.
+
+   \return              The radial slope [m/degree]
+   \param   lat_grid    The latitude grid.
+   \param   r_geoid     Radius of the geoid for the latitude dimension.
+   \param   z_surf      Geometrical altitude of the ground, or the pressure
+                        surface of interest, for the latitide dimension
+   \param   gp          Grid position for the position of interest
+   \param   upwards     
+
+   \author Patrick Eriksson
+   \date   2002-06-03
+*/
+Numeric psurface_slope_2D(
+	ConstVectorView   lat_grid,	      
+	ConstVectorView   r_geoid,
+	ConstVectorView   z_surf,
+        const GridPos&    gp,
+        const Index&      upwards )
+{
+  assert( is_bool( upwards ) );
+
+  Index i1 = gridpos2gridrange( gp, upwards );
+  const Numeric r1 = r_geoid[i1] + z_surf[i1];
+  const Numeric r2 = r_geoid[i1+1] + z_surf[i1+1];
+  return ( r2 - r1 ) / ( lat_grid[i1+1] - lat_grid[i1] );
+}
+
+
+
+//! psurface_tilt_2D
+/*!
+   Calculates the angular tilt of the ground or a pressure surface for 2D.
+
+   Note that the tilt value is a local value. The tilt for a constant
+   slope value, is different for different radiuses.
+
+   \return        The angular tilt.
+   \param    r    The radius for the surface at the point of interest.
+   \param    c    The radial slope, as returned by psurface_slope_2D.
+
+   \author Patrick Eriksson
+   \date   2002-06-03
+*/
+Numeric psurface_tilt_2D(
+        const Numeric&   r,
+        const Numeric&   c )
+{
+  // The tilt (in radians) is c/r if c is converted to m/radian. So we get
+  // conversion RAD2DEG twice
+  return   RAD2DEG * RAD2DEG * c / r;
+}
+
+
+
+//! is_los_downwards_2D
+/*!
+   Determines if a line-of-sight is downwards compared to the angular tilt
+   of the ground or a pressure surface.
+
+   For example, this function can be used to determine if the line-of-sight
+   goes into the ground for a starting point exactly on the ground radius.
+  
+   As the radius of the ground and pressure surfaces varies as a function of
+   latitude, it is not clear if a zenith angle of 90 is above or below e.g.
+   the ground.
+ 
+   \return 
+   \param   za     Zenith angle of line-of-sight.
+   \param   tilt   Angular tilt of the ground or the pressure surface (as
+                   returned by psurface_tilt_2D)
+
+   \author Patrick Eriksson
+   \date   2002-06-03
+ */
+bool is_los_downwards_2D( 
+        const Numeric&   za,
+        const Numeric&   tilt )
+{
+  assert( fabs(za) <= 180 );
+
+  // Yes, it shall be -tilt in both cases, if you wonder.
+  if( za > (90-tilt)  ||  za < (-90-tilt) )
+    { return true; }
+  else
+    { return false; }
+}
+
+
+
+
+
+/*===========================================================================
   === Angle(s) after a ground reflection
   ===========================================================================*/
 
@@ -228,6 +341,31 @@ void angle_after_ground_1D( Numeric& za )
 {
   assert( za > 90 );
   za = 180 - za;
+}
+
+
+
+//! angle_after_ground_2D 
+/*!
+   Calculates the LOS after a ground reflection for 1D.
+
+   The zenith angle before the reflection msut be > 90 degrees.
+
+   \param   za     Output: Zenith angle.
+
+   \author Patrick Eriksson
+   \date   2002-05-17
+*/
+void angle_after_ground_2D( Numeric& za, const Numeric& tilt )
+{
+  assert( is_los_downwards_2D( za, tilt ) );
+  
+  const Numeric za_new = 180 - fabs(za) - 2 * tilt;
+
+  if( za >= 0 )
+    { za = za_new; }
+  else
+    { za = -za_new; }
 }
 
 
@@ -481,7 +619,7 @@ void ppath_start_stepping(
 	  throw runtime_error(os.str());
 	}
 
-      // The sensor is inside the model atmosphere ----------------------------
+      // The sensor is inside the model atmosphere, 1D ------------------------
       if( a_pos[0] < r_top )
 	{
 	  // Put some values into ppath. Use these values below (instead of
@@ -492,7 +630,7 @@ void ppath_start_stepping(
 	  ppath.z[0]     = ppath.pos(0,0) - r_geoid(0,0);
      
 	  // Is the sensor on the ground looking down?
-	  if( ppath.pos(0,0) <= r_ground  &&  ppath.los(0,0) > 90 )
+	  if( ppath.pos(0,0) == r_ground  &&  ppath.los(0,0) > 90 )
 	    {
 	      angle_after_ground_1D( ppath.los(0,0) );
 	      ppath.ground = 1;
@@ -511,7 +649,7 @@ void ppath_start_stepping(
 		{ ppath_set_background( ppath, 4 ); }
 
 	      // Is the sensor on the surface of cloud box and looks into box?
-	      if( ( ppath.z[0] == z_field(cloudbox_limits[0],0,0)  && 
+	      else if( ( ppath.z[0] == z_field(cloudbox_limits[0],0,0)  && 
                                                         ppath.los(0,0) <= 90 )
                      || 
 		  ( ppath.z[0] == z_field(cloudbox_limits[1],0,0)  && 
@@ -522,7 +660,7 @@ void ppath_start_stepping(
 	    }
 	}
 
-      // The sensor is outside the model atmosphere ---------------------------
+      // The sensor is outside the model atmosphere, 1D -----------------------
       else
 	{
 	  // Radius of tangent point
@@ -549,6 +687,7 @@ void ppath_start_stepping(
       // Get grid position for the end point, if there is one.
       if( ppath.np == 1 )
 	{ gridpos( ppath.gp_p, z_field(Range(joker),0,0), ppath.z ); }
+
     }  // End 1D
 
 
@@ -559,29 +698,169 @@ void ppath_start_stepping(
       const Index   np = p_grid.nelem();
       const Index   nlat = lat_grid.nelem();
 
-      // If the sensor is inside the latitude range of the model atmosphere,
-      // calculate radius for the ground and the top of the atmosphere for
-      // the sensor latitude.
-      Index   is_inside = 0;
-      Numeric r_ground, r_top;
+      // Is the sensor inside the latitude range of the model atmosphere,
+      // and below the top of the atmosphere? If yes, is_inside = 1.
+      // Store geoid and ground radii, grid position and interpolation weights
+      // for later use.
+      //
+      Index   is_inside = 0;   
+      Numeric rv_geoid, rv_ground;
+      ArrayOfGridPos gp(1);
+      Matrix itw(1,2);
       //
       if( a_pos[1] >= lat_grid[0]  &&  a_pos[1] <= lat_grid[nlat-1] )
 	{
-	  is_inside = 1;
-	  ArrayOfGridPos gp(1);
-	  Matrix itw(1,2);
-	  Vector v_rgeoid, v_zground, v_ztop;
-	  gridpos( gp, lat_grid, Vector(a_pos[1]) );
+	  gridpos( gp, lat_grid, Vector(1,a_pos[1]) );
 	  interpweights( itw, gp );
+
+	  Vector v_rgeoid(1), v_zground(1), v_ztop(1);
 	  interp( v_rgeoid, itw, r_geoid(Range(joker),0), gp );
 	  interp( v_zground, itw, z_ground(Range(joker),0), gp );
 	  interp( v_ztop, itw, z_field(np-1,Range(joker),0), gp );
-	  r_ground = v_rgeoid[0] + v_zground[0];
-	  r_top    = v_rgeoid[0] + v_ztop[0];
-	  NumericPrint(r_ground,"r_ground");
-	  NumericPrint(r_top,"r_top");
+
+	  rv_geoid  = v_rgeoid[0];
+	  rv_ground = rv_geoid + v_zground[0];
+
+	  if( a_pos[0] < ( v_rgeoid[0] + v_ztop[0] ) )
+	    { is_inside = 1; }
 	}
 
+
+      // The sensor is inside the model atmosphere, 2D ------------------------
+      if( is_inside )
+	{
+	  // Check that the sensor is above the ground
+	  if( a_pos[0] < rv_ground )
+	    {
+	      ostringstream os;
+	      os << "The sensor is placed " 
+		 << (rv_ground - a_pos[0])/1e3 << " km below ground level.\n"
+		 << "The sensor must be above the ground.";
+	      throw runtime_error(os.str());
+	    }
+
+	  // Check that not at latitude end point and looks out
+	  if( ( a_pos[1] == lat_grid[0]  &&   a_los[0] < 0 ) )
+	    throw runtime_error( "The sensor is at the lower latitude end "
+                                            "point and the zenith angle < 0" );
+	  if( a_pos[1] == lat_grid[nlat-1]  &&   a_los[0] > 0 ) 
+	    throw runtime_error( "The sensor is at the upper latitude end "
+                                            "point and the zenith angle > 0" );
+
+	  
+	  // Put some values into ppath. Use these values below (instead of
+	  // a_pos and a_los) as they can be modified on the way.
+          ppath.pos(0,0) = a_pos[0];
+          ppath.pos(0,1) = a_pos[1];
+          ppath.los(0,0) = a_los[0];
+	  ppath.z[0]     = ppath.pos(0,0) - rv_geoid;
+     
+	  // Is the sensor on the ground looking down?
+	  if( ppath.pos(0,0) == rv_ground )
+	    {
+	      // Calculate radial slope of the ground
+	      const Numeric rslope = psurface_slope_2D( lat_grid, 
+                        r_geoid(Range(joker),0), z_ground(Range(joker),0), 
+                                                  gp[0], ppath.los(0,0) >= 0 );
+
+	      // Calculate angular tilt of the ground
+	      const Numeric atilt = psurface_tilt_2D( rv_ground, rslope);
+
+	      // Are we looking down into the ground?
+	      if( is_los_downwards_2D( ppath.los(0,0), atilt ) )
+		{
+		  angle_after_ground_2D( ppath.los(0,0), atilt );
+		  ppath.ground = 1;
+		  ppath.i_ground = 0;
+		  if( blackbody_ground )
+		    { ppath_set_background( ppath, 2 ); }
+		}
+	    }
+
+	  // Check sensor position with respect to cloud box, if activated
+          // and not background set to blackbody ground
+	  if( cloudbox_on )
+	    {
+	      // Are we inside the interesting latitude range
+	      if( ppath.pos(0,1) >= lat_grid[cloudbox_limits[2]]  &&
+		               ppath.pos(0,1) <= lat_grid[cloudbox_limits[3]] )
+		{
+		  // Calculate the lower and upper altitude radius limit for
+		  // the cloud box at the latitude of the sensor
+	          Vector v_zlim(1);
+		  interp( v_zlim, itw, 
+                              z_field(cloudbox_limits[0],Range(joker),0), gp );
+		  Numeric rv_low = rv_geoid + v_zlim[0];
+		  interp( v_zlim, itw, 
+                              z_field(cloudbox_limits[1],Range(joker),0), gp );
+		  Numeric rv_upp = rv_geoid + v_zlim[0];
+
+		  // Is the sensor inside the cloud box?
+		  if( ppath.pos(0,0) > rv_low  &&  ppath.pos(0,0) < rv_upp )
+		    { ppath_set_background( ppath, 4 ); }
+
+		  // Is the sensor on the surface of cloud box and looks 
+		  // into box?
+		  else if( ppath.pos(0,0) == rv_low )
+		    {
+		      // Calculate radial slope etc. of the pressure surface at
+		      // the lower cloud box limit
+		      Numeric rslope = psurface_slope_2D( lat_grid, 
+                              r_geoid(Range(joker),0), 
+                                 z_field(cloudbox_limits[0],Range(joker),0), 
+                                                  gp[0], ppath.los(0,0) >= 0 );
+		      Numeric atilt = psurface_tilt_2D( rv_ground, rslope );
+		      // Note the ! before the function command
+		      if( !is_los_downwards_2D( ppath.los(0,0), atilt ) )
+			{ ppath_set_background( ppath, 3 ); }
+		    }
+		  //
+		  else if( ppath.pos(0,0) == rv_upp )
+		    {
+		      // Calculate radial slope etc. of the pressure surface at
+		      // the upper cloud box limit
+		      Numeric rslope = psurface_slope_2D( lat_grid, 
+                              r_geoid(Range(joker),0), 
+                                 z_field(cloudbox_limits[1],Range(joker),0), 
+                                                  gp[0], ppath.los(0,0) >= 0 );
+		      Numeric atilt = psurface_tilt_2D( rv_ground, rslope );
+		      if( is_los_downwards_2D( ppath.los(0,0), atilt ) )
+			{ ppath_set_background( ppath, 3 ); }
+		    }
+		}
+	    }
+	}
+
+      // The sensor is outside the model atmosphere, 2D -----------------------
+      else
+	{
+	  // Upward observations are not allowed here
+	  if( fabs(a_los[0]) <= 90 )
+	      throw runtime_error("For 2D with the sensor outside the model "
+                          "atmosphere, upward observations are not allowed." );
+	  
+	  // Handle cases when the sensor appears to look the wrong way
+         if( ( a_pos[1] <= lat_grid[0]  &&  a_los[0] <= 0 )  || 
+	                    ( a_pos[1] >= last(lat_grid)  &&  a_los[0] >= 0 ) )
+	   {
+	     ostringstream os;
+	     os << "The sensor is outside (or at the limit) of the defined "
+		<< "atmosphere but looks in the wrong\ndirection (wrong sign "
+		<< "for the zenith angle?).\nThis case includes nadir "
+                << "looking exactly at the latitude end points.";
+	     throw runtime_error( os.str() );
+	   }
+
+	 // Determine position of the geometrical tangent point
+ 	 Numeric r_tan = geometrical_ppc( a_pos[0], a_los[0] );
+	 Numeric lat_tan;
+	 if( a_los[0] > 0 )
+	   { geompath_lat_at_za( a_los[0], a_pos[1], 90 ); }
+	 else
+	   { geompath_lat_at_za( a_los[0], a_pos[1], -90 ); }
+	 
+
+	}      
 
     }  // End 2D
 

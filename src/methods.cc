@@ -201,7 +201,7 @@ void define_md_data()
       ( NAME("ArrayOfIndexPrint"),
 	DESCRIPTION
 	(
-	 "Prints the value of an ArrayOfIndex variable onto the screen."
+	 "Prints the value of an ArrayOfIndex variable on the screen."
 	),
 	OUTPUT( ),
 	INPUT( ),
@@ -317,7 +317,7 @@ void define_md_data()
       ( NAME("ArrayOfStringPrint"),
 	DESCRIPTION
 	(
-	 "Prints the value of an ArrayOfString variable onto the screen."
+	 "Prints the value of an ArrayOfString variable on the screen."
 	),
 	OUTPUT( ),
 	INPUT( ),
@@ -548,6 +548,28 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME( "a_posAddRgeoid" ),
+	DESCRIPTION
+        (
+	 "Adds a geoid radius by interpolating *r_geoid*.\n"
+         "\n"
+         "This function assumes that the first element of *a_pos* is set\n"
+         "to the geometric altitude for the position of the sensor. \n"
+         "The variable *a_pos* shall contain the radius instead of the\n"
+         "altitude and that can be achieved by this function. The function\n"
+         "adds a geoid radius to the given altitude. The geoid radius is\n"
+         "obtained by interpolation of *r_geoid*. There is an error if the\n"
+	 "given position is outside the latitude and longitude grids."
+        ),
+	OUTPUT( a_pos_ ),
+	INPUT( a_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME( "a_posSet" ),
 	DESCRIPTION
         (
@@ -744,7 +766,7 @@ void define_md_data()
       ( NAME("IndexPrint"),
 	DESCRIPTION
 	(
-	 "Prints the value of an Index variable onto the screen."
+	 "Prints the value of an Index variable on the screen."
 	),
 	OUTPUT( ),
 	INPUT( ),
@@ -1034,7 +1056,7 @@ void define_md_data()
       ( NAME("MatrixPrint"),
 	DESCRIPTION
 	(
-	 "Prints a matrix varaible onto the screen."
+	 "Prints a matrix variable on the screen."
 	),
 	OUTPUT( ),
 	INPUT( ),
@@ -1147,7 +1169,7 @@ void define_md_data()
       ( NAME("NumericPrint"),
 	DESCRIPTION
 	(
-	 "Prints the value of a Numeric variable onto the screen."
+	 "Prints the value of a Numeric variable on the screen."
 	),
 	OUTPUT( ),
 	INPUT( ),
@@ -1259,7 +1281,7 @@ void define_md_data()
       ( NAME("PpathPrint"),
 	DESCRIPTION
 	(
-	 "Prints a variable of type Ppath onto the screen."
+	 "Prints a variable of type Ppath on the screen."
 	),
 	OUTPUT( ),
 	INPUT( ),
@@ -1401,12 +1423,34 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "sensor_posAddRgeoid" ),
+	DESCRIPTION
+        (
+	 "Adds a geoid radius by interpolating *r_geoid*.\n"
+         "\n"
+         "This function assumes that the first element of *a_pos* is set\n"
+         "to the geometric altitude for the position of the sensor. \n"
+         "The variable *a_pos* shall contain the radius instead of the\n"
+         "altitude and that can be achieved by this function. The function\n"
+         "adds a geoid radius to the given altitude. The geoid radius is\n"
+         "obtained by interpolation of *r_geoid*. There is an error if the\n"
+	 "given position is outside the latitude and longitude grids."
+        ),
+	OUTPUT( sensor_pos_ ),
+	INPUT( sensor_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
   md_data.push_back     
     ( MdRecord
       ( NAME("StringPrint"),
 	DESCRIPTION
 	(
-	 "Prints the value of a String variable onto the screen."
+	 "Prints the value of a String variable on the screen."
 	),
 	OUTPUT( ),
 	INPUT( ),
@@ -2048,7 +2092,7 @@ void define_md_data()
       ( NAME("VectorPrint"),
 	DESCRIPTION
 	(
-	 "Prints a vector variable onto the screen."
+	 "Prints a vector variable on the screen."
 	),
 	OUTPUT( ),
 	INPUT( ),

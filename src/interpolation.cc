@@ -427,7 +427,7 @@ bool is_gridpos_at_index_i(
 
    For a point exactly on a grid value it is not clear if it is the range 
    below or above that is of interest. The input argument upward is used to 
-   resolve such cases, where upward != 0 means that it is the range above
+   resolve such cases, where upward == 1 means that it is the range above
    that is of interest.
 
    \return         The index of the lower end of the grid range.
@@ -443,6 +443,7 @@ Index gridpos2gridrange(
 {
   assert( gp.fd[0] >= 0 );
   assert( gp.fd[0] <= 1 );
+  assert( is_bool( upwards ) );
 
   // Not at a grid point
   if( gp.fd[0] > 0   &&  gp.fd[0] < 1 )

@@ -175,7 +175,7 @@ void CloudboxSetManually(
     {
       for( cloudbox_limits[2]=1; lat_grid[cloudbox_limits[2]+1]<lat1; 
                                                      cloudbox_limits[2]++ ) {}
-      for( cloudbox_limits[2]=lat_grid.nelem()-2; 
+      for( cloudbox_limits[3]=lat_grid.nelem()-2; 
                 lat_grid[cloudbox_limits[3]-1]>lat2; cloudbox_limits[3]-- ) {}
     }
 

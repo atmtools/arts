@@ -114,6 +114,35 @@ void a_posAddGeoidWGS84(
 
 
 
+//! a_posAddRgeoid
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-20
+*/
+void a_posAddRgeoid(
+        // WS Output:
+              Vector&    a_pos,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Matrix&    r_geoid )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_vector_length( "a_pos", a_pos, atmosphere_dim );
+
+  // Use *sensor_posAddRgeoid* to perform the calculations.
+  Matrix m(1,a_pos.nelem());
+  m(0,Range(joker)) = a_pos;
+  sensor_posAddRgeoid( m, atmosphere_dim, lat_grid, lon_grid, r_geoid );
+  a_pos[0] = m(0,0);
+}
+
+
+
 //! a_posSet
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
@@ -280,6 +309,8 @@ void ppathCalc(
   ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
                         lon_grid, z_field, r_geoid, z_ground, blackbody_ground,
                         cloudbox_on, cloudbox_limits, a_pos, a_los );
+  PpathPrint(ppath_step,"ppath");
+  Exit();
 
   // Perform propagation path steps until the starting point is found, which
   // is flagged by ppath_step by setting the background field.
@@ -654,6 +685,79 @@ void sensor_posAddGeoidWGS84(
       // Add the geoid radius to the geometric altitudes
       for( Index i=0; i<npos; i++ )
 	sensor_pos(i,0) += r(i,0);
+    }
+}
+
+
+
+//! sensor_posAddRgeoid
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-06-03
+*/
+void sensor_posAddRgeoid(
+        // WS Output:
+              Matrix&    sensor_pos,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Matrix&    r_geoid )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_matrix_ncols( "sensor_pos", sensor_pos, atmosphere_dim );
+  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
+
+  // Number of positions
+  const Index npos = sensor_pos.nrows();
+  //
+  if( npos == 0 )
+    throw runtime_error("The number of positions is 0, must be at least 1.");
+
+  if( atmosphere_dim == 1 )
+    { sensor_pos(Range(joker),0) += r_geoid(0,0); }
+
+  else
+    {
+      // Check that positions in sensor_pos are inside the lat and lon grids
+      if( min(sensor_pos(Range(joker),1)) < lat_grid[0]  || 
+                            max(sensor_pos(Range(joker),1)) >= last(lat_grid) )
+	throw runtime_error(
+             "You have given a position with a latitude outside *lat_grid*." );
+      if( atmosphere_dim == 3 )
+	{
+	  if( min(sensor_pos(Range(joker),2)) < lon_grid[0]  || 
+                            max(sensor_pos(Range(joker),2)) >= last(lon_grid) )
+	    throw runtime_error(
+            "You have given a position with a longitude outside *lat_grid*." );
+	}
+
+      if( atmosphere_dim == 2 )
+	{
+	  ArrayOfGridPos gp(npos);
+	  Matrix itw(npos,2);
+	  gridpos( gp, lat_grid, sensor_pos(Range(joker),1) );
+	  interpweights( itw, gp );
+	  Vector v_rgeoid(npos);
+	  interp( v_rgeoid, itw, r_geoid(Range(joker),0), gp );
+	  for( Index i=0; i<npos; i++ )
+	    { sensor_pos(i,0) += v_rgeoid[i]; } 
+	}
+      else
+	{
+	  ArrayOfGridPos gp_lat(npos), gp_lon(npos);
+	  Matrix itw(npos,4);
+	  gridpos( gp_lat, lat_grid, sensor_pos(Range(joker),1) );
+	  gridpos( gp_lon, lon_grid, sensor_pos(Range(joker),2) );
+	  interpweights( itw, gp_lat, gp_lon );
+	  Vector v_rgeoid(npos);
+	  interp( v_rgeoid, itw, r_geoid, gp_lat, gp_lon );
+	  for( Index i=0; i<npos; i++ )
+	    { sensor_pos(i,0) += v_rgeoid[i]; } 
+	}
     }
 }
 
