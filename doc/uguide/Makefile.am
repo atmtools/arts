@@ -37,8 +37,10 @@ texfiles = \
 	los1d.tex \
 	main.tex \
 	measerr.tex \
+	polarization.tex \
 	reduction.tex \
 	rte.tex \
+	scattering.tex \
 	sensor.tex \
 	uguide.tex \
 	uguide_pdf.tex \
