@@ -377,6 +377,35 @@ void define_agenda_data()
              planck_function_,
              stokes_dim_)));
 
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "spt_calc_agenda" ),
+       DESCRIPTION
+       (
+	"Calculates single particle properties from the amplitude matrix.\n"
+        "\n"
+        "This agenda sets up the methods, which should be used to calculate \n"
+        "the particle properties, i.e. the extinction matrix, the absorbtion\n"
+        "vector and the phase matrix from the amplitude matrix for each \n"
+        "particle type specified in the control file. \n"
+        "\n"
+        "Normally you have tu use:\n"
+        "1. *pha_mat_sptCalc* \n"
+        "2. *ext_mat_sptCalc* \n"
+        "3. *abs_vec_sptCalc* \n"
+        "Note: the order of calling these methods is important.\n"
+        "\n"
+        "It can be useful to compute the extinction matrix without \n"
+        "particle absorption, for examle to do a convergence test. \n"
+        "Then the method *ext_mat_sptScat* has to be used. \n"
+        "\n"
+	),
+       OUTPUT( ext_mat_spt_, abs_vec_spt_, pha_mat_spt_),
+       INPUT(  pha_mat_spt_, abs_vec_spt_, ext_mat_spt_, amp_mat_,
+               scat_za_index_, scat_aa_index_,
+               scat_za_grid_, scat_aa_grid_ )));
+
+
   agenda_data.push_back
     (AgRecord
      ( NAME( "t_ground_agenda" ),

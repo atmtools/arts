@@ -806,6 +806,52 @@ void define_md_data_raw()
  
    md_data_raw.push_back
     ( MdRecord
+      ( NAME("ext_mat_partScat"),
+  	DESCRIPTION
+	(
+	 "This function sums up the convergence extinction matrices \n"
+         "for all particle types weighted with particle number density.\n"
+	 "\n"
+         "This method is only used for the convergence test, where particle\n"
+         "absorption is set to be 0. \n"
+	 "The output of this method is *ext_mat_part* (stokes_dim, stokes_dim).\n"
+	 "The inputs are the convergence extinction matrix for the single\n"
+         "particle type *ext_mat_conv_spt* \n"
+         "(part_types, stokes_dim, stokes_dim) and the local \n"
+	 "particle number densities for all particle types namely the \n"
+	 "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given \n"
+	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
+	 "are specified in the control file.  \n"
+	 ),
+	OUTPUT( ext_mat_part_  ),
+        INPUT( ext_mat_spt_, pnd_field_, atmosphere_dim_, scat_p_index_, 
+	       scat_lat_index_, scat_lon_index_),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ext_mat_sptScat"),
+  	DESCRIPTION
+	( 
+	 "This method calculates the convergence extinction matrix.\n"
+         "\n"
+         "This function calculates extinction due to scattering (without \n"
+         "absorption). It is used only for testing, if the iterative method \n"
+         "converges towards the right solution.\n"
+         "\n"
+	 ),
+	OUTPUT( ext_mat_spt_  ),
+        INPUT( pha_mat_spt_, scat_za_grid_, scat_aa_grid_),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+ 
+ md_data_raw.push_back
+    ( MdRecord
       ( NAME("ext_mat_sptCalc"),
   	DESCRIPTION
 	( 
@@ -955,8 +1001,10 @@ void define_md_data_raw()
                stokes_vec_, planck_function_, l_step_,
                convergence_flag_, pha_mat_, pha_mat_spt_, abs_vec_spt_,
                ext_mat_spt_, ext_mat_, abs_vec_, scat_p_index_, 
-               scat_lat_index_, scat_lon_index_),
-	INPUT(ext_mat_agenda_, abs_vec_agenda_, convergence_test_agenda_,
+               scat_lat_index_, scat_lon_index_, scat_za_index_,
+               scat_aa_index_),
+	INPUT(spt_calc_agenda_, ext_mat_agenda_, abs_vec_agenda_, 
+              convergence_test_agenda_,
               ppath_step_agenda_, scat_rte_agenda_, 
               amp_mat_, cloudbox_limits_,
               scat_za_grid_, scat_aa_grid_, 
@@ -1037,8 +1085,9 @@ md_data_raw.push_back
 	OUTPUT(i_field_, ppath_step_, stokes_vec_, 
                sca_vec_, planck_function_, l_step_,
                abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, ext_mat_, abs_vec_,
-               scat_p_index_),
-	INPUT(ext_mat_agenda_, abs_vec_agenda_, ppath_step_agenda_,
+               scat_p_index_, scat_za_index_, scat_aa_index_),
+	INPUT(spt_calc_agenda_, 
+              ext_mat_agenda_, abs_vec_agenda_, ppath_step_agenda_,
               scat_rte_agenda_, amp_mat_, scat_field_, cloudbox_limits_,
               scat_za_grid_, scat_aa_grid_, p_grid_, t_field_, z_field_, 
               r_geoid_, f_grid_, scat_f_index_, 

@@ -174,7 +174,7 @@ void amp2pha(Tensor4View phasemat,
     {
       for (Index j = 0; j < naa; ++j)
 	{
-	  phasemat(i, j, 0, 0) = 0.5 * 1e-12 * (Re_S11ij * Re_S11ij + 
+	   phasemat(i, j, 0, 0) = 0.5 * 1e-12 * (Re_S11ij * Re_S11ij + 
 						Im_S11ij * Im_S11ij + 
 						Re_S12ij * Re_S12ij + 
 						Im_S12ij * Im_S12ij +
@@ -182,7 +182,7 @@ void amp2pha(Tensor4View phasemat,
 						Im_S21ij * Im_S21ij +
 						Re_S22ij * Re_S22ij + 
 						Im_S22ij * Im_S22ij);
-	  
+          
 	}
     }
   
@@ -315,6 +315,127 @@ void amp2pha(Tensor4View phasemat,
   
   // if stokes_dim =4 all 16 elements need be evaluated.
 }
+
+//! Calculates extinction coefficeint for the convergence test.
+/*! 
+  For the convergence test, an extinction coefficient which only contains
+  extinction due to particle scattering is required. This can be 
+  calculated by integrating over the phase matrix, which is done in this
+  function.
+
+  Output:
+  \param ext_conv Extinction coefficient for the convergence test.
+  Input:
+  \param pha  Phase matrix.
+  \param za_grid  Zenith angle grid
+  \param aa_grid  Azimuth angle grid
+*/
+void amp2ext_scat(MatrixView ext_scat,
+                  ConstTensor4View pha,
+                  ConstVectorView za_grid,
+                  ConstVectorView aa_grid)
+{
+  
+  Index stokes_dim = pha.nrows();
+  if (stokes_dim > 4 || stokes_dim <1){
+    throw runtime_error("the dimension of stokes vector" 
+			"can be only 1,2,3, or 4");
+  }
+
+  Index nza = pha.nbooks();
+  Index naa = pha.npages();
+  assert (is_size(pha, nza, naa, stokes_dim, stokes_dim));
+  assert (is_size(za_grid,nza));
+  assert (is_size(aa_grid,naa));
+  //Vector za_grid(nza);
+  //Vector aa_grid(naa);
+
+  //  ext_conv.resize(stokes_dim, stokes_dim);
+  ext_scat = 0.;
+
+  Numeric Z11_integrated, Z21_integrated, Z31_integrated, Z41_integrated ;
+  Matrix Z11_mat = pha (Range(joker), Range(joker), 0, 0);
+  for (Index i = 0;i < nza; ++i)
+    {
+      for (Index j = 0; j < naa; ++j)
+	{
+	  Z11_integrated = AngIntegrate_trapezoid(Z11_mat,
+						  za_grid,
+						  aa_grid);
+	}
+    }
+
+  ext_scat(0,0) = Z11_integrated;
+    
+  if(1 == stokes_dim){
+    return;
+  }
+   
+  //only the first element is required if stokes_dim =1
+  
+  //FIXME: How does the extinction matrix without absorption look for 
+  // higher dimensions?
+
+  Matrix Z21_mat = pha (Range(joker), Range(joker), 1, 0);
+  for (Index i = 0; i < nza; ++i)
+    {
+      for (Index j = 0; j < naa; ++j)
+	{
+	  Z21_integrated = AngIntegrate_trapezoid(Z21_mat,
+						  za_grid,
+						  aa_grid);
+	}
+    }
+
+  ext_scat(1,0) = Z21_integrated;
+  
+  if(2 == stokes_dim){
+    return;
+  }
+
+  // if stokes_dim =2 only these 2 elements need be evaluated.
+
+  Matrix Z31_mat = pha (Range(joker), Range(joker), 2, 0);
+  for (Index i = 0; i < nza; ++i)
+    {
+      for (Index j = 0; j < naa; ++j)
+	{
+	  Z31_integrated = AngIntegrate_trapezoid(Z31_mat,
+						  za_grid,
+						  aa_grid);
+	}
+    }
+  
+  ext_scat(2,0) = Z31_integrated;
+  
+  if(3 == stokes_dim){
+    return;
+  }
+
+   // if stokes_dim =3 only these 3 elements need be evaluated.
+
+  Matrix Z41_mat = pha (Range(joker), Range(joker), 3, 0);
+  for (Index i = 0; i < nza; ++i)
+    {
+      for (Index j = 0; j < naa; ++j)
+	{
+	  
+	  Z41_integrated = AngIntegrate_trapezoid(Z41_mat,
+						  za_grid,
+						  aa_grid);
+	}
+    }
+
+  ext_scat(3,0) = Z41_integrated;
+
+  if(4 == stokes_dim){
+    return;
+  }
+
+  // if stokes_dim =4 all 4 elements need be evaluated.
+}
+
+
 
 
 //! calculates absorption coefficeint vector for given angles.

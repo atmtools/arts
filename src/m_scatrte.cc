@@ -308,7 +308,10 @@ i_fieldIterate(
                     Index& scat_p_index,
                     Index& scat_lat_index,
                     Index& scat_lon_index,
+                    Index& scat_za_index,
+                    Index& scat_aa_index,
                     // WS Input:
+                    const Agenda& spt_calc_agenda,
                     const Agenda& ext_mat_agenda,
                     const Agenda& abs_vec_agenda,
                     const Agenda& convergence_test_agenda,
@@ -402,7 +405,7 @@ i_fieldIterate(
     Index N_scat_za = scat_za_grid.nelem();
     Index N_scat_aa = scat_aa_grid.nelem();
     
-    for(Index scat_za_index = 0; scat_za_index < N_scat_za;
+    for(scat_za_index = 0; scat_za_index < N_scat_za;
         scat_za_index ++)
       {
         //If we have i_field_dim == 1, then we can avoid this loop, 
@@ -413,15 +416,7 @@ i_fieldIterate(
 	for(Index scat_aa_index = 0; scat_aa_index < N_scat_aa;
 	    scat_aa_index ++)
 	  {
-	    ext_mat_sptCalc(ext_mat_spt, 
-			    amp_mat,
-			    scat_za_index,
-			    scat_aa_index,
-			    scat_f_index,
-			    f_grid);
-	    
-	    
-	    pha_mat_sptCalc(pha_mat_spt,
+            pha_mat_sptCalc(pha_mat_spt,
 			    amp_mat,
 			    scat_za_index,
 			    scat_aa_index);
@@ -440,8 +435,9 @@ i_fieldIterate(
                         i_field, ppath_step, stokes_vec, 
                         sca_vec, planck_function, l_step,  
                         abs_vec_spt, ext_mat_spt, pha_mat_spt, ext_mat,
-                        abs_vec,  scat_p_index,
+                        abs_vec,  scat_p_index, scat_za_index, scat_aa_index,
                         //Input:
+                        spt_calc_agenda,
                         ext_mat_agenda, abs_vec_agenda, ppath_step_agenda,
                         scat_rte_agenda,  amp_mat, scat_field,
                         cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
@@ -530,7 +526,10 @@ i_fieldUpdate1D(// WS Output:
                 Matrix& ext_mat,
                 Vector& abs_vec,
                 Index& scat_p_index,
+                Index& scat_za_index,
+                Index& scat_aa_index,
                 // WS Input:
+                const Agenda& spt_calc_agenda,
                 const Agenda& ext_mat_agenda,
                 const Agenda& abs_vec_agenda,
 		const Agenda& ppath_step_agenda,
@@ -582,55 +581,52 @@ i_fieldUpdate1D(// WS Output:
   const Index N_scat_aa = scat_aa_grid.nelem();
 
   //Loop over all directions, defined by scat_za_grid 
-  for(Index scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
+  for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
-      //Loop over all directions, defined by scat_aa_grid 
-      for(Index scat_aa_index = 0; scat_aa_index < N_scat_aa; scat_aa_index ++)
-	{
-	
+      
+      scat_aa_index = 0;
       //Calculate optical properties for single particle types:
-    
-      //Calculate ext_mat_spt for the direction 
-      //corresponding to the outer loop:
-      ext_mat_sptCalc(ext_mat_spt,
-		      amp_mat,
-		      scat_za_index,
-		      scat_aa_index,
-		      scat_f_index, 
-                      f_grid);   
-   
-      // For a 1D atmosphere the azimuthal angle grid is not defined. 
-      // Only 1 value, which is arbitrary set to 0, is passed into the function
-      // abs_vec_sptCalc. 
-      // pha_mat_spt is already calculated in i_fieldIterate.
-      // next two line commented by STR
-      // Vector scat_aa_grid(1);
-      // scat_aa_grid[0] = 0;
 
-      // (CE): If the radiation field and the atmodpheric profiles are 1D
-      //       the calculations will be faster if we use a 1D intergation
-      //       routine as the integration over the azimutal angle gives 
-      //       always 2*pi.
+      spt_calc_agenda.execute();
+    
+   //    //Calculate ext_mat_spt for the direction 
+//       //corresponding to the outer loop:
+//       ext_mat_sptCalc(ext_mat_spt,
+// 		      amp_mat,
+// 		      scat_za_index,
+// 		      scat_aa_index,
+// 		      scat_f_index, 
+//                       f_grid);   
+   
+//       // For a 1D atmosphere the azimuthal angle grid is not defined. 
+//       // Only 1 value, which is arbitrary set to 0, is passed into the function
+//       // abs_vec_sptCalc. 
+//       // pha_mat_spt is already calculated in i_fieldIterate.
+//       // next two line commented by STR
+//       // Vector scat_aa_grid(1);
+//       // scat_aa_grid[0] = 0;
+
+//       // (CE): If the radiation field and the atmodpheric profiles are 1D
+//       //       the calculations will be faster if we use a 1D intergation
+//       //       routine as the integration over the azimutal angle gives 
+//       //       always 2*pi.
 
       
-      // Calculate abs_vec for the direction corresponding tp the outer loop.
-      // pha_mat_spt for this direction is required as input.
+//       // Calculate abs_vec for the direction corresponding tp the outer loop.
+//       // pha_mat_spt for this direction is required as input.
 
-      pha_mat_sptCalc(pha_mat_spt,
-                      amp_mat,
-                      scat_za_index,
-                      scat_aa_index);
+//       pha_mat_sptCalc(pha_mat_spt,
+//                       amp_mat,
+//                       scat_za_index,
+//                       scat_aa_index);
 
-      abs_vec_sptCalc(abs_vec_spt, 
-		      ext_mat_spt,
-		      pha_mat_spt,
-		      scat_za_grid, 
-                      scat_aa_grid);
+//       abs_vec_sptCalc(abs_vec_spt, 
+// 		      ext_mat_spt,
+// 		      pha_mat_spt,
+// 		      scat_za_grid, 
+//                       scat_aa_grid);
     
-      //cout << "abs_vec_spt is calculated"<<"\n";
-	} // close loop over scat_aa_grid
-  
-
+    
       // Calculate ext_mat, abs_vec for all points inside the cloudbox.
       // sca_vec can be obtained from the workspace variable scat_field.
       // As we need the average for each layer, it makes sense to calculte
@@ -659,9 +655,9 @@ i_fieldUpdate1D(// WS Output:
 	  cout << "\n loop indices: \n";
 	  cout << "\n scat_za_index ---------"<< scat_za_index;
 	  cout << "\n p_index       ---------"<< p_index;
-          cout << "\n stokes_dim    ---------"<< stokes_dim;
-	  cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
-               << cloudbox_limits[1] <<"\n";
+          //   cout << "\n stokes_dim    ---------"<< stokes_dim;
+          //  cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
+          //             << cloudbox_limits[1] <<"\n";
           cout << endl;
 
           // Calculate abs_vec_array 
@@ -671,15 +667,17 @@ i_fieldUpdate1D(// WS Output:
           // This depends on the definition of pnd_field.
           abs_vec_agenda.execute();
           abs_vec_array[p_index-cloudbox_limits[0]] = abs_vec;
-         
+
           // Calculate ext_mat_array
           ext_mat_array[p_index-cloudbox_limits[0]].
             resize(stokes_dim, stokes_dim); 
           scat_p_index = p_index;
           ext_mat_agenda.execute();
           ext_mat_array[p_index-cloudbox_limits[0]] = ext_mat;
-
-           //Generate Planck function.
+          
+        
+         
+          //Generate Planck function.
           Numeric T = t_field(p_index, 0, 0); 
           Numeric f = f_grid[scat_f_index];
           planck_vector[p_index-cloudbox_limits[0]] = planck(f, T);
@@ -733,8 +731,8 @@ i_fieldUpdate1D(// WS Output:
               
               // Check if the agenda has returned ppath.step with reasonable 
               // values. 
-              cout << "\n ";
-              PpathPrint( ppath_step, "ppath");
+              cout << "l_step:" <<ppath_step.l_step[0] << endl;
+              //PpathPrint( ppath_step, "ppath");
               
               
               // Calculate the average of the coefficients for the layers
@@ -754,20 +752,20 @@ i_fieldUpdate1D(// WS Output:
                                            (i,j));
                     }
                  
-                  cout << "1.............."<< endl;
+                 
                   // Absorption vector
                   abs_vec[i] = 0.5*( abs_vec_array
                                      [p_index-cloudbox_limits[0]][i] +
                                      abs_vec_array
                                      [p_index-cloudbox_limits[0]+1][i] );
-                 cout << "2.............."<< endl;
+                
                   // Extract sca_vec from sca_field.
                   sca_vec[i] =
                     0.5*( scat_field(p_index-cloudbox_limits[0], 
                                      0, 0, scat_za_index, 0, i)
                           + scat_field(p_index-cloudbox_limits[0]+1,
                                        0, 0, scat_za_index, 0, i)) ;
-                   cout << "3.............."<< endl;
+                   
                   // Extract stokes_vec from i_field.
                   stokes_vec[i] = 
                     0.5*( i_field((p_index-cloudbox_limits[0]), 0, 0,
@@ -776,14 +774,27 @@ i_fieldUpdate1D(// WS Output:
 				       0, 0, scat_za_index, 0, i));
                   
                 }// Closes loop over stokes_dim.
-              cout << "4.............."<< endl;
+             
+            
               //Planck function
               planck_function = 0.5*( planck_vector
                                      [p_index-cloudbox_limits[0]] +
                                      planck_vector
                                      [p_index-cloudbox_limits[0]+1]);
+              
+              cout << "planck: ..." << planck_function << endl;
+              cout << "sto_vec:..." << stokes_vec  << endl;
+              cout << "sca_vec:..." << sca_vec << endl;
+              cout << "aB+S/K: ..." << (abs_vec[0]*planck_function+sca_vec[0])
+                /ext_mat(0,0);
+              cout << "sca_vec:..." << sca_vec << endl;
+              cout << "abs_vec:..." << abs_vec << endl;
+              cout << "ext_mat:..." << ext_mat << endl;
 
-                   // Call scat_rte_agenda:
+              //    sca_vec[0] = 0.9 * sca_vec[0];
+                            ext_mat(0,0) = 1. * ext_mat(0,0); 
+              
+              // Call scat_rte_agenda:
               scat_rte_agenda.execute();
               
               // Assign calculated Stokes Vector to i_field. 
@@ -832,8 +843,8 @@ i_fieldUpdate1D(// WS Output:
               
               // Check if the agenda has returned ppath.step with reasonable 
               // values. 
-              cout << "\n ";
-              PpathPrint( ppath_step, "ppath");
+              cout << "l_step:"<< ppath_step.l_step[0] << endl;
+              //PpathPrint( ppath_step, "ppath");
               
               // Calculate averadge values of the coefficients.
  
@@ -875,7 +886,19 @@ i_fieldUpdate1D(// WS Output:
                                       [p_index-cloudbox_limits[0]] +
                                       planck_vector
                                       [p_index-cloudbox_limits[0]-1]);
-                
+              
+              cout << "planck: ..." << planck_function << endl;
+              cout << "sto_vec:..." << stokes_vec  << endl;
+              cout << "sca_vec:..." << sca_vec << endl;
+              cout << "aB+S/K: ..." << (abs_vec[0]*planck_function+sca_vec[0])
+                /ext_mat(0,0);
+              cout << "abs_vec:..." << abs_vec << endl;
+              cout << "ext_mat:..." << ext_mat << endl;
+
+              //              sca_vec[0] = 0.9 * sca_vec[0];
+
+                  ext_mat(0,0) = 1. * ext_mat(0,0);
+
               // Call scat_rte_agenda:
               scat_rte_agenda.execute();
               

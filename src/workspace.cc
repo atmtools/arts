@@ -1682,7 +1682,16 @@ void define_wsv_data()
        ),
       GROUP( Index_ )));
 
- wsv_data.push_back
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "spt_calc_agenda" ),
+      DESCRIPTION
+      (
+	"See agendas.cc."
+       ),
+      GROUP( Agenda_)));
+
+   wsv_data.push_back
    (WsvRecord
     ( NAME( "stokes_vec" ),
       DESCRIPTION

@@ -91,6 +91,74 @@ void ext_mat_sptCalc(
     }
 }
 
+//! Calculate extinction matrix (spt) for the convergence test.  
+
+/*
+  This method computes the extinction matrix for a single particle type
+  from the amplitude matrix. This extinction matrix contains only 
+  extinction due to scattering, not the extinction due to absorption. 
+  The function can be used only for testing.
+
+\param ext_mat_spt Output and Input: extinction matrix for a
+single particle type.
+\param amp_mat Input : amplitude matrix for each particle type
+\param f_grid  Input : frequency grid
+\param scat_f_index  Input : frequency index
+\param scat_za_index  Input : local zenith angle
+\param scat_aa_index  Input : local azimuth angle
+
+*/
+void ext_mat_sptScat(
+		     Tensor3& ext_mat_spt,
+                     const Tensor5& pha_mat_spt,
+		     const Vector& scat_za_grid,
+		     const Vector& scat_aa_grid)
+		    
+{
+
+  Index npt = pha_mat_spt.nshelves();
+  Index stokes_dim = pha_mat_spt.ncols();
+  Index nza = pha_mat_spt.nbooks(); 
+  Index naa = pha_mat_spt.npages(); 
+  
+  assert (is_size(scat_za_grid, nza));
+  assert (is_size(scat_aa_grid, naa));
+  
+  ext_mat_spt.resize(npt, stokes_dim, stokes_dim);
+
+
+  if (pha_mat_spt.nrows() != stokes_dim || 
+      pha_mat_spt.ncols() != stokes_dim ){
+    throw runtime_error("The tensor pha_mat_spt should"
+			"have 4 rows and 4 columns");
+  }
+  
+  if ((stokes_dim > 4) || (stokes_dim <1)){
+    throw runtime_error("The dimension of stokes vector "
+                        "can be only 1,2,3, or 4");
+  }
+  
+  for (Index i = 0; i < npt; ++i)
+    {
+      ConstTensor4View pha=pha_mat_spt(i,
+				       Range(joker),
+				       Range(joker),
+				       Range(joker),
+				       Range(joker));
+      
+      // ConstVectorView za_grid = scat_za_grid[scat_za_index];
+      //ConstVectorView aa_grid = scat_aa_grid[scat_aa_index];
+      
+      amp2ext_scat(ext_mat_spt(i,Range(joker), Range(joker)),
+                   pha,
+                   scat_za_grid,
+                   scat_aa_grid);
+     
+    }	   
+
+}
+
+
 
 //! this function calculates phase matrix for a single particle type from 
 //  the amplitude matrix
@@ -399,17 +467,51 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
   abs_vec_gas.resize( stokes_dim );
   Vector abs_gas( p_grid.nelem() );
   if (atmosphere_dim == 1){
+
+    //     MakeVector typical_abs(0,0,0,0,0,0,0,0,0,0);
+
+  //This is a typical absorption calculated from arts.1.0 (tropical)
+  
+     // MakeVector typical_abs(0.0218978044006849,
+//                             0.0114605893154005,
+//                             0.00355854032448724,
+//                             0.00161793243125695,
+//                             0.000612486464168897,
+//                             0.000168382126027889,
+//                             3.35522552862195e-05,
+//                             8.52950996338938e-06,
+//                             4.32022347140681e-06,
+//                             3.12994113724593e-06);
+
+
+ //This is a typical absorption calculated from arts.1.0 (mls)
+  
+     MakeVector typical_abs(0.0164163638663716,
+                            0.00768271579907592,
+                            0.00294668635075111,
+                            0.00125411825404778,
+                            0.000570445848162073,
+                            0.000236462958473072,
+                            4.40975932116215e-05,
+                            7.31218846316807e-06,
+                            3.643089167928e-06,
+                            3.12497184475723e-06);
+
+
+
     //This is a typical absorption calculated from arts.1.0
-    MakeVector typical_abs(0.016414284648894,
-			   0.00065204114511011,
-			   0.000156049846860233,
-			   4.54320063675961e-05,
-			   1.52191594739311e-05,
-			   5.13136166733503e-06,
-			   1.37451108959307e-06,
-			   6.70848900165098e-07,
-			   4.06285725309355e-07,
-			   2.57499613700983e-07);
+//      MakeVector typical_abs(0.016414284648894,
+// 			   0.00065204114511011,
+// 			   0.000156049846860233,
+// 			   4.54320063675961e-05,
+// 			   1.52191594739311e-05,
+// 			   5.13136166733503e-06,
+// 			   1.37451108959307e-06,
+// 			   6.70848900165098e-07,
+// 			   4.06285725309355e-07,
+// 			   2.57499613700983e-07);
+
+
     //The pressure grid for the above calculation
     MakeVector typical_abs_pgrid(100000,
 				 77426.3682681127,
@@ -621,13 +723,15 @@ void ext_matCalc(
 {
   Index stokes_dim = ext_mat_part.nrows(); 
   
+  cout << "ext_mat_part..."<< ext_mat_part << endl;
+  cout << "ext_mat_gas..." << ext_mat_gas << endl;
   
   //(CE:) Define size of ext_mat:
   ext_mat.resize(stokes_dim, stokes_dim);
   //Addition of the two matrices, ext_mat_part and ext_mat_gas.
   ext_mat = ext_mat_part;
   ext_mat += ext_mat_gas;
-  // cout<<"Totaal extinction matrix"<<"\n"<< ext_mat<<"\n";
+   cout<<"Totaal extinction matrix"<<"\n"<< ext_mat<< endl;
 }
 
 //! Total Absorption Vector
@@ -648,13 +752,99 @@ void abs_vecCalc(
 {
   Index stokes_dim = abs_vec_part.nelem(); 
    
+  cout << "abs_vec_part..." << abs_vec_part << endl;
+  cout << "abs_vec_gas..." << abs_vec_gas << endl;
   //(CE:) Resize abs_vec
   abs_vec.resize(stokes_dim);
   // addition of abs_vec_part and abs_vec_gas
   abs_vec = abs_vec_part;
   abs_vec += abs_vec_gas;
+  cout << "abs_vec..." << abs_vec << endl;
 
 }
+
+
+//! Extinction coefficient matrix  for convergence test.
+/*! 
+  This function sums up the convergence extinction matrices for all particle 
+  types weighted with particle number density. This is exactly the same 
+  function as *ext_mat_partCalc*, only with different input, *ext_mat_conv_spt*
+  instead of ext_mat_spt.
+
+  \param ext_mat_part Output : physical extinction coefficient 
+  for the particles for given angles. 
+  \param ext_mat_conv_spt Input : extinction matrix for the single 
+  particle type
+  \param pnd_field Input : particle number density givs the local 
+  concentration for all particles.
+  \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
+  \param scat_p_index Input : Pressure index for scattering calculations.
+  \param scat_lat_index Input : Latitude index for scattering calculations.
+  \param scat_lon_index Input : Longitude index for scattering calculations.
+*/
+void ext_mat_partScat(
+		      Matrix& ext_mat_part,
+		      const Tensor3& ext_mat_spt,
+		      const Tensor4& pnd_field,
+		      const Index& atmosphere_dim,
+		      const Index& scat_p_index,
+		      const Index& scat_lat_index,
+		      const Index& scat_lon_index) 
+		     
+{
+  Index N_pt = ext_mat_spt.npages();
+  Index stokes_dim = ext_mat_spt.nrows();
+  
+  ext_mat_part.resize(stokes_dim, stokes_dim);
+  
+  for (Index m = 0; m < stokes_dim; m++)
+    {
+      for (Index n = 0; n < stokes_dim; n++)
+	ext_mat_part(m, n) = 0.0;// Initialisation
+    }
+ 
+  if (atmosphere_dim == 1)
+    {
+      // this is a loop over the different particle types
+      for (Index l = 0; l < N_pt; l++)
+	{ 
+	  
+	  // now the last two loops over the stokes dimension.
+	  for (Index m = 0; m < stokes_dim; m++)
+	    {
+	      for (Index n = 0; n < stokes_dim; n++)
+	       //summation of the product of pnd_field and 
+		//ext_mat_conv_spt.
+	      ext_mat_part(m, n) += 
+		(ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
+	    }
+	}
+    }
+  cout <<  "The Extinction Matrix for particle: " << " \n " 
+     <<ext_mat_part << " \n " ;
+  if (atmosphere_dim == 3)
+    {
+      
+      // this is a loop over the different particle types
+      for (Index l = 0; l < N_pt; l++)
+	{ 
+	  
+	  // now the last two loops over the stokes dimension.
+	  for (Index m = 0; m < stokes_dim; m++)
+	    {
+	      for (Index n = 0; n < stokes_dim; n++)
+		 //summation of the product of pnd_field and 
+		//ext_mat_conv_spt.
+		ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
+					pnd_field(l, scat_p_index, 
+						  scat_lat_index, 
+						  scat_lon_index));
+	      
+	    } 
+	}
+    }
+} 
+
 
 //! Method for getting amp_mat from amp_mat_raw.
 /*! 
