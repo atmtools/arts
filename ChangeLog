@@ -28,9 +28,11 @@
 
 	* Makefile.am: Removed scatproperties.{cc,h}.
 
-	* workspace.cc: Removed some unused WSV:
+	* src/workspace.cc: Removed some unused WSV:
 	amp_mat_raw, amp_mat, part_types, sca_vec, i_field_dim
 	Updated documentation.
+
+	* src/methods.cc: Updated.
 	
 2004-03-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
