@@ -25,7 +25,7 @@ main (int argc, char *argv[])
       cout << "l = " << l << "  m = " << m << "  x = " << x << endl;
       cout << "Pml = " << legendre_poly (l, m, x) << endl;
       cout << "dPml = " << legendre_poly_deriv (l, m, x) << endl;
-      cout << "Norm Pml = " << legendre_poly_norm (l, m, x) << endl;
+      cout << "Norm Pml = " << legendre_poly_norm_schmidt (l, m, x) << endl;
     }
   catch (runtime_error e)
     {
