@@ -617,7 +617,7 @@ inline Range::Range(Index start, Index extent, Index stride) :
 
 /** Constructor with joker extent. Depending on the sign of stride,
     this means "to the end", or "to the beginning". */
-inline Range::Range(Index start, Joker joker, Index stride) :
+inline Range::Range(Index start, Joker /* joker */, Index stride) :
   mstart(start), mextent(-1), mstride(stride)
 {
   // Start must be >= 0:
@@ -627,7 +627,7 @@ inline Range::Range(Index start, Joker joker, Index stride) :
 /** Constructor with just a joker. This means, take everything. You
     can still optionally give a stride, though. This constructor is
     just shorter notation for Range(0,joker) */
-inline Range::Range(Joker joker, Index stride) :
+inline Range::Range(Joker /* joker */, Index stride) :
   mstart(0), mextent(-1), mstride(stride)
 {
   // Nothing to do here.
