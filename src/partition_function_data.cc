@@ -177,10 +177,13 @@
   <tr>
   <td >2: <td> polynomial fit to JPL data
 
+  <tr>
+  <td >3: <td> wild guess or copied from main isotope
+
   </table>
 
   <dt> Quality:
-  <dd> For each source of the coefficients, a different quality code
+  <dd> For each source of the coefficients, a different quality number
   is given, both qualities are given for the temperature range from
   150 to 300 K:
 
@@ -194,6 +197,10 @@
   <td >2: <td> the difference in ratio between the polynomial fit to
   the JPL data and the original data (interpolation with the
   recommended scheme) (range 150 to 300 K).
+
+  <tr> 
+  <td >3: <td> The value is always 0, because for this case we
+  have no quality estimate.
 
   </table>
   </dl>
@@ -219,8 +226,8 @@ void define_partition_species_data()
 
 
   // H2O
-  // Coeff:       1      1      1      1      2      2
-  // Quality:    0.28   0.28   0.35   0.46   0.32   0.34
+  // Coeff:       1      1      1      1      2      3      2
+  // Quality:    0.28   0.28   0.35   0.46   0.32   0.0    0.34
   //
   // There are dummy entries here for the continuum tags. Of course,
   // continua need no partition functions, but the entries must be

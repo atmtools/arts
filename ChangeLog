@@ -1,3 +1,12 @@
+2002-01-08  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-74
+
+	* src/partition_function_data.cc: Updated doxygen documentation
+	for H2O. Added another source code 3, to indicate "wild guess or
+	copied from main isotope". Updated source and error code
+	description accordingly.
+
 2002-01-07  Nikolay Koulev  <nkoulev@bremen.de>
 
 	* arts-0-1-73
