@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.131)
+AM_INIT_AUTOMAKE(arts,1.1.132)
 
 
 #
@@ -180,28 +180,30 @@ if test ! x$ac_arts_data = xno; then
     ac_arts_data=no
   fi
 
-  AC_MSG_CHECKING(for atmospheric data in $ac_arts_data)
-  if test -d "${ac_arts_data}/atmosphere"; then
-    AC_MSG_RESULT(found)
-  else
-    AC_MSG_RESULT(not found)
-    ac_arts_data=no
+  if test ! x$ac_arts_data = xno; then
+    AC_MSG_CHECKING(for atmospheric data in $ac_arts_data)
+    if test -d "${ac_arts_data}/atmosphere"; then
+      AC_MSG_RESULT(found)
+    else
+      AC_MSG_RESULT(not found)
+      ac_arts_data=no
+    fi
   fi
   
-  AC_MSG_CHECKING(for spectroscopy data in $ac_arts_data)
-  if test -d ${ac_arts_data}/spectroscopy; then
-    AC_MSG_RESULT(found)
-  else
-    AC_MSG_RESULT(not found)
-    ac_arts_data=no
-  fi
-
   if test ! x$ac_arts_data = xno; then
-    AM_CONDITIONAL(ARTS_DATA_PATH, test ! x$ac_arts_data = xno)
-    AC_DEFINE_UNQUOTED(ARTS_DATA_PATH, "$ac_arts_data", ARTS data path)
-    AC_SUBST(ac_arts_data)
+    AC_MSG_CHECKING(for spectroscopy data in $ac_arts_data)
+    if test -d ${ac_arts_data}/spectroscopy; then
+      AC_MSG_RESULT(found)
+    else
+      AC_MSG_RESULT(not found)
+      ac_arts_data=no
+    fi
   fi
 fi
+
+AM_CONDITIONAL(ARTS_DATA_PATH, test ! x$ac_arts_data = xno)
+AC_DEFINE_UNQUOTED(ARTS_DATA_PATH, "$ac_arts_data", ARTS data path)
+AC_SUBST(ac_arts_data)
 
 
 #
