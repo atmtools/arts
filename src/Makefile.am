@@ -62,6 +62,7 @@ arts_SOURCES = \
 	m_agenda.cc \
         m_atmosphere.cc \
 	m_basic_types.cc \
+	m_basic_types.h \
 	m_cloudbox.cc \
 	m_general.cc \
 	m_general.h \

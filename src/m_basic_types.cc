@@ -431,32 +431,6 @@ void MatrixSet(           Matrix&    x,
   out3 << "             ncols : " << ncols << "\n";
 }
 
-//! MatrixSetTakingSizeFromMatrix
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2003-01-07
-*/
-void MatrixSetTakingSizeFromMatrix(
-              Matrix&    x, 
-        const String&    x_name,
-        const Matrix&    z,
-        const String&    z_name,
-        const Numeric&   value )
-{
-  const Index  ncol = z.ncols();
-  const Index  nrow = z.nrows();
-  x.resize(nrow,ncol);
-  x = value;            
-  out2 << "  Creating " << x_name << " as a constant matrix,\n"
-       << "  with the sime size as " << z_name << ".\n"; 
-  out3 << "             nrows : " << nrow << "\n";
-  out3 << "             ncols : " << ncol << "\n";
-}
-
-
-
 //! NumericSet
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -471,8 +445,6 @@ void NumericSet(      Numeric&   x,
   x = value;
   out3 << "  " << x_name << " = " << value << "\n";
 }
-
-
 
 //! StringSet
 /*!
@@ -704,21 +676,21 @@ void Tensor5Scale(        Tensor5&  out,
 */
 void Tensor5Set(          Tensor5&   x, 
                     const String&    x_name,
-                    const Index&     nshelfs,     
+                    const Index&     nshelves,     
                     const Index&     nbooks,      
                     const Index&     npages,
                     const Index&     nrows,
                     const Index&     ncols,
                     const Numeric&   value )
 {
-  x.resize( nshelfs, nbooks, npages, nrows, ncols );
+  x.resize( nshelves, nbooks, npages, nrows, ncols );
   x = value;
-  out2 << "  " << x_name << " = " << value   << "\n";
-  out3 << "           nshelfs : " << nshelfs << "\n";
-  out3 << "            nbooks : " << nbooks  << "\n";
-  out3 << "            npages : " << npages  << "\n";
-  out3 << "             nrows : " << nrows   << "\n";
-  out3 << "             ncols : " << ncols   << "\n";
+  out2 << "  " << x_name << " = " << value    << "\n";
+  out3 << "          nshelves : " << nshelves << "\n";
+  out3 << "            nbooks : " << nbooks   << "\n";
+  out3 << "            npages : " << npages   << "\n";
+  out3 << "             nrows : " << nrows    << "\n";
+  out3 << "             ncols : " << ncols    << "\n";
 }
 
 //! Tensor6Scale
@@ -760,18 +732,18 @@ void Tensor6Scale(        Tensor6&  out,
 void Tensor6Set(          Tensor6&   x, 
                     const String&    x_name,
                     const Index&     nvitrines,   
-                    const Index&     nshelfs,     
+                    const Index&     nshelves,     
                     const Index&     nbooks,      
                     const Index&     npages,
                     const Index&     nrows,
                     const Index&     ncols,
                     const Numeric&   value )
 {
-  x.resize( nvitrines, nshelfs, nbooks, npages, nrows, ncols );
+  x.resize( nvitrines, nshelves, nbooks, npages, nrows, ncols );
   x = value;
   out2 << "  " << x_name << " = " << value     << "\n";
   out3 << "         nvitrines : " << nvitrines << "\n";    
-  out3 << "           nshelfs : " << nshelfs   << "\n";
+  out3 << "          nshelves : " << nshelves  << "\n";
   out3 << "            nbooks : " << nbooks    << "\n";
   out3 << "            npages : " << npages    << "\n";
   out3 << "             nrows : " << nrows     << "\n";
@@ -818,19 +790,19 @@ void Tensor7Set(          Tensor7&   x,
                     const String&    x_name,
                     const Index&     nlibraries,          
                     const Index&     nvitrines,   
-                    const Index&     nshelfs,     
+                    const Index&     nshelves,     
                     const Index&     nbooks,      
                     const Index&     npages,
                     const Index&     nrows,
                     const Index&     ncols,
                     const Numeric&   value )
 {
-  x.resize( nlibraries, nvitrines, nshelfs, nbooks, npages, nrows, ncols );
+  x.resize( nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols );
   x = value;
   out2 << "  " << x_name << " = " << value      << "\n";
   out3 << "        nlibraries : " << nlibraries << "\n";
   out3 << "         nvitrines : " << nvitrines  << "\n";
-  out3 << "           nshelfs : " << nshelfs    << "\n";
+  out3 << "          nshelves : " << nshelves   << "\n";
   out3 << "            nbooks : " << nbooks     << "\n";
   out3 << "            npages : " << npages     << "\n";
   out3 << "             nrows : " << nrows      << "\n";
@@ -1047,29 +1019,5 @@ void VectorSetExplicitly( Vector&       x,
   
   out2 << "  Creating " << x_name << ".\n"; 
   out3 << "  " << x_name << " = " << x << "\n";
-}
-
-
-//! VectorSetTakingLengthFromVector
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void VectorSetTakingLengthFromVector(
-              Vector&    x, 
-        const String&    x_name,
-        const Vector&    z,
-        const String&    z_name,
-        const Numeric&   value )
-{
-  const Index  n = z.nelem();
-  x.resize(n);
-  x = value;            
-  out2 << "  Creating " << x_name << " as a constant vector,\n"
-       << "  with the same length as " << z_name << ".\n"; 
-  out3 << "            length : " << n << "\n";
-  out3 << "             value : " << value << "\n";
 }
 

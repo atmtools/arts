@@ -1,3 +1,63 @@
+2004-09-20  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-877
+
+	* src/workspace.cc:
+
+	Added variables nelem, ncols, nrows, npages, nbooks, nshelves,
+	nvitrines, nlibraries.
+
+	* src/methods.cc:
+
+	Modified VectorSet, MatrixSet, Tensor[34567]Set. Size are now
+	determined by input variables and no longer by keywords.
+
+	Old:
+	MatrixSet( matrix_1 ){ nrows=2 ncols=3 value=5. }
+
+	New:
+	IndexSet( nrows ){ 2 }
+	IndexSet( ncols ){ 2 }
+	MatrixSet( matrix_1 ){ 5. }
+
+	Added WSMs nelemGet, ncolsGet, nrowsGet, npagesGet, nbooksGet,
+	nshelvesGet, nvitrinesGet, nlibrariesGet. These methods retrieve the
+	size from the given workspace variable and store them in the
+	corresponding workspace variable. Example: To set p_grid to the same
+	size as f_grid you can use:
+
+	nelemGet( f_grid ){}
+	VectorSet ( p_grid ){}
+
+	nelemGet sets the WSV *nelem* to the size of f_grid. And VectorSet
+	resizes p_grid taking the value of *nelem*.
+
+	Removed MatrixSetTakingSizeFromMatrix and
+	VectorSetTakingLengthFromVector.
+
+	* src/m_basic_types.cc:
+
+	Replaced all occurences of shelfs with shelves.
+
+	Removed MatrixSetTakingSizeFromMatrix and
+	VectorSetTakingLengthFromVector.
+
+	* src/m_basic_types.h: Added.
+
+	Added functions for WSMs nelemGet, ncolsGet, nrowsGet,
+	npagesGet, nbooksGet, nshelvesGet, nvitrinesGet, nlibrariesGet.
+
+	* src/make_auto_md_cc.cc:
+
+	Include m_basic_types.h in auto_md.cc.
+
+	* src/Makefile.am: Added m_basic_types.h to ARTS_SOURCES.
+
+	* src/m_general.h:
+
+	Removed duplicate doxygen comment. First time I saw too much
+	documentation in a file. ;-)
+
 2004-09-20  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-876

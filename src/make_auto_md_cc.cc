@@ -92,6 +92,7 @@ int main()
           << "#include \"m_general.h\"\n"
           << "#include \"m_ignore.h\"\n"
           << "#include \"m_xml.h\"\n"
+          << "#include \"m_basic_types.h\"\n"
           << "\n";
 
       // Declare wsv_data:

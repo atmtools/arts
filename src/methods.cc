@@ -2469,45 +2469,20 @@ md_data_raw.push_back
       ( NAME("MatrixSet"),
         DESCRIPTION
         (
-         "Creates a workspace matrix with the specified size and sets \n"
-         "all values of the matrix to the specified value. \n"
+         "Creates a workspace matrix and sets all elements of the \n"
+         "matrix to the specified value. The size is determined by \n"
+         "the variables *ncols* and *nrows*.\n"
          "\n"
          "Generic output: \n"
          "   Matrix : The matrix to be created. \n"
          "\n"
          "Keywords:\n"
-         "   nrows : The number of rows of the matrix to create. \n"
-         "   ncols : The number of columns of the matrix to create. \n"
          "   value : The value of the matrix elements. " 
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( nrows_, ncols_ ),
         GOUTPUT( Matrix_ ),
         GINPUT(),
-        KEYWORDS( "nrows", "ncols", "value"   ),
-        TYPES(    Index_t, Index_t, Numeric_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("MatrixSetTakingSizeFromMatrix"),
-        DESCRIPTION
-        (
-         "Creates a workspace vector with the same size as another matrix,\n"
-         "and sets all values of the new matrix to the specified value. \n"
-         "\n"
-         "Generic output: \n"
-         "   Matrix : The matrix to be created. \n"
-         "\n"
-         "Generic input: \n"
-         "   Matrix : The matrix specifying the size. \n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The value of the matrix elements. " 
-        ),
-        OUTPUT(),
-        INPUT(),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Matrix_ ),
         KEYWORDS( "value"   ),
         TYPES(    Numeric_t )));
 
@@ -2584,6 +2559,142 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "value"   ),
         TYPES(    Numeric_t )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("nelemGet"),
+        DESCRIPTION
+        (
+         "Retrieve nelem from given variable and store the value in the \n"
+         "workspace variable *nelem*"
+        ),
+        OUTPUT( nelem_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( Any_ ),
+        KEYWORDS( ),
+        TYPES( ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("ncolsGet"),
+        DESCRIPTION
+        (
+         "Retrieve ncols from given variable and store the value in the \n"
+         "workspace variable *ncols*"
+        ),
+        OUTPUT( ncols_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( Any_ ),
+        KEYWORDS( ),
+        TYPES( ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("nrowsGet"),
+        DESCRIPTION
+        (
+         "Retrieve nrows from given variable and store the value in the \n"
+         "workspace variable *nrows*"
+        ),
+        OUTPUT( nrows_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( Any_ ),
+        KEYWORDS( ),
+        TYPES( ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("npagesGet"),
+        DESCRIPTION
+        (
+         "Retrieve npages from given variable and store the value in the \n"
+         "workspace variable *npages*"
+        ),
+        OUTPUT( npages_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( Any_ ),
+        KEYWORDS( ),
+        TYPES( ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("nbooksGet"),
+        DESCRIPTION
+        (
+         "Retrieve nbooks from given variable and store the value in the \n"
+         "workspace variable *nbooks*"
+        ),
+        OUTPUT( nbooks_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( Any_ ),
+        KEYWORDS( ),
+        TYPES( ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("nshelvesGet"),
+        DESCRIPTION
+        (
+         "Retrieve nshelves from given variable and store the value in the \n"
+         "workspace variable *nshelves*"
+        ),
+        OUTPUT( nshelves_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( Any_ ),
+        KEYWORDS( ),
+        TYPES( ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("nvitrinesGet"),
+        DESCRIPTION
+        (
+         "Retrieve nvitrines from given variable and store the value in the \n"
+         "workspace variable *nvitrines*"
+        ),
+        OUTPUT( nvitrines_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( Any_ ),
+        KEYWORDS( ),
+        TYPES( ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("nlibrariesGet"),
+        DESCRIPTION
+        (
+         "Retrieve nlibraries from given variable and store the value in the \n"
+         "workspace variable *nlibraries*"
+        ),
+        OUTPUT( nlibraries_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( Any_ ),
+        KEYWORDS( ),
+        TYPES( ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -4154,24 +4265,22 @@ md_data_raw.push_back
       ( NAME("Tensor3Set"),
         DESCRIPTION
         (
-         "Creates a workspace tensor3 with the specified size and sets \n"
-         "all values of the tensor3 to the specified value. \n"
+         "Creates a workspace tensor3 and sets all elements of the \n"
+         "tensor3 to the specified value. The size is determined by \n"
+         "the variables *ncols*, *nrows*, and *npages* \n"
          "\n"
          "Generic output: \n"
          "   Tensor3 : The tensor3 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   npages : The number of pages of the tensor3 to create. \n"
-         "   nrows  : The number of rows of the tensor3 to create. \n"
-         "   ncols  : The number of columns of the tensor3 to create. \n"
          "   value  : The value of the tensor3 elements. "
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor3_ ),
         GINPUT(),
-        KEYWORDS( "npages", "nrows", "ncols", "value"   ),
-        TYPES( Index_t, Index_t, Index_t, Numeric_t )));
+        KEYWORDS( "value"   ),
+        TYPES(    Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4204,25 +4313,22 @@ md_data_raw.push_back
       ( NAME("Tensor4Set"),
         DESCRIPTION
         (
-         "Creates a workspace tensor4 with the specified size and sets \n"
-         "all values of the tensor4 to the specified value. \n"
+         "Creates a workspace tensor4 and sets all elements of the \n"
+         "tensor4 to the specified value. The size is determined by \n"
+         "the variables *ncols*, *nrows*, *npages*, and *nbooks*. \n"
          "\n"
          "Generic output: \n"
          "   Tensor4 : The tensor4 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   nbooks : The number of books of the tensor4 to create. \n"
-         "   npages : The number of pages of the tensor4 to create. \n"
-         "   nrows  : The number of rows of the tensor4 to create. \n"
-         "   ncols  : The number of columns of the tensor4 to create. \n"
          "   value  : The value of the tensor4 elements. "
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( nbooks_, npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor4_ ),
         GINPUT(),
-        KEYWORDS( "nbooks", "npages", "nrows", "ncols", "value"   ),
-        TYPES( Index_t, Index_t, Index_t, Index_t, Numeric_t )));
+        KEYWORDS( "value"   ),
+        TYPES(    Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4255,26 +4361,22 @@ md_data_raw.push_back
       ( NAME("Tensor5Set"),
         DESCRIPTION
         (
-         "Creates a workspace tensor5 with the specified size and sets \n"
-         "all values of the tensor5 to the specified value. \n"
+         "Creates a workspace tensor5 and sets all elements of the \n"
+         "tensor5 to the specified value. The size is determined by the \n"
+         "variables *ncols*, *nrows*, *npages*, *nbooks*, and *nshelves*. \n"
          "\n"
          "Generic output: \n"
          "   Tensor5 : The tensor5 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   nshelfs : The number of shelfs of the tensor5 to create. \n"
-         "   nbooks  : The number of books of the tensor5 to create. \n"
-         "   npages  : The number of pages of the tensor5 to create. \n"
-         "   nrows   : The number of rows of the tensor5 to create. \n"
-         "   ncols   : The number of columns of the tensor5 to create. \n"
          "   value   : The value of the tensor5 elements. "
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( nshelves_, nbooks_, npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor5_ ),
         GINPUT(),
-        KEYWORDS( "nshelfs", "nbooks", "npages", "nrows", "ncols", "value" ),
-        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Numeric_t )));
+        KEYWORDS( "value" ),
+        TYPES(    Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4307,29 +4409,23 @@ md_data_raw.push_back
       ( NAME("Tensor6Set"),
         DESCRIPTION
         (
-         "Creates a workspace tensor6 with the specified size and sets \n"
-         "all values of the tensor6 to the specified value. \n"
+         "Creates a workspace tensor6 and sets all elements of the \n"
+         "tensor6 to the specified value. The size is determined by the \n"
+         "variables *ncols*, *nrows*, *npages*, *nbooks*, *nshelves*, \n"
+         "and *nvitrines*. \n"
          "\n"
          "Generic output: \n"
          "   Tensor6 : The tensor6 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   nvitrines : The number of vitrines of the tensor6 to create. \n"
-         "   nshelfs   : The number of shelfs of the tensor6 to create. \n"
-         "   nbooks    : The number of books of the tensor6 to create. \n"
-         "   npages    : The number of pages of the tensor6 to create. \n"
-         "   nrows     : The number of rows of the tensor6 to create. \n"
-         "   ncols     : The number of columns of the tensor6 to create. \n"
          "   value     : The value of the tensor6 elements. "
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( nvitrines_, nshelves_, nbooks_, npages_, nrows_, ncols_ ),
         GOUTPUT( Tensor6_ ),
         GINPUT(),
-        KEYWORDS( "nvitrines", "nshelfs", "nbooks", "npages", "nrows",
-                  "ncols", "value" ),
-        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t,
-               Numeric_t )));
+        KEYWORDS( "value" ),
+        TYPES(    Numeric_t )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -4383,30 +4479,24 @@ md_data_raw.push_back
       ( NAME("Tensor7Set"),
         DESCRIPTION
         (
-         "Creates a workspace tensor7 with the specified size and sets \n"
-         "all values of the tensor7 to the specified value. \n"
+         "Creates a workspace tensor7 and sets all elements of the \n"
+         "tensor7 to the specified value. The size is determined by the \n"
+         "variables *ncols*, *nrows*, *npages*, *nbooks*, *nshelves*, \n"
+         "*nvitrines*, and *nlibraries*. \n"
          "\n"
          "Generic output: \n"
          "   Tensor7 : The tensor7 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   nlibraries : The number of libraries of the tensor7 to create. \n"
-         "   nvitrines  : The number of vitrines of the tensor7 to create. \n"
-         "   nshelfs    : The number of shelfs of the tensor7 to create. \n"
-         "   nbooks     : The number of books of the tensor7 to create. \n"
-         "   npages     : The number of pages of the tensor7 to create. \n"
-         "   nrows      : The number of rows of the tensor7 to create. \n"
-         "   ncols      : The number of columns of the tensor7 to create. \n"
          "   value      : The value of the tensor7 elements. "
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( nlibraries_, nvitrines_, nshelves_, nbooks_, npages_, nrows_,
+               ncols_ ),
         GOUTPUT( Tensor7_ ),
         GINPUT(),
-        KEYWORDS( "nlibraries", "nvitrines", "nshelfs", "nbooks", "npages",
-                  "nrows", "ncols", "value" ),
-        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t,
-               Index_t, Numeric_t )));
+        KEYWORDS( "value" ),
+        TYPES(    Numeric_t )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -4636,22 +4726,22 @@ md_data_raw.push_back
       ( NAME("VectorSet"),
         DESCRIPTION
         (
-         "Creates a workspace vector with the specified length and sets \n"
-         "all values of the vector to the specified value. \n"
+         "Creates a workspace vector and sets all elements of the \n"
+         "vector to the specified value. The length of the vector is \n"
+         "determined by the variable *nelem*. \n"
          "\n"
          "Generic output: \n"
          "   Vector : The vector to be created. \n"
          "\n"
          "Keywords:\n"
-         "   length : The length of the new vector. \n"
          "   value  : The value of the vector elements. " 
         ),
         OUTPUT(),
-        INPUT(),
+        INPUT( nelem_ ),
         GOUTPUT( Vector_ ),
         GINPUT(),
-        KEYWORDS( "length", "value"   ),
-        TYPES(    Index_t,    Numeric_t )));
+        KEYWORDS( "value"   ),
+        TYPES(    Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4676,34 +4766,6 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "values"   ),
         TYPES(    Vector_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("VectorSetTakingLengthFromVector"),
-        DESCRIPTION
-        (
-         "Creates a workspace vector with the same length as another vector,\n"
-         "and sets all values of the new vector to the specified value. \n"
-         "\n"
-         "A possible usage of the function is: \n"
-         "  VectorSetLengthFromVector(vector1,f_grid){value=0.75} \n"
-         "where *vector1* then can be used to set *e_surface*. \n"
-         "\n"
-         "Generic output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Generic input: \n"
-         "   Vector : The vector specifying the length. \n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The value of the vector elements. "
-        ),
-        OUTPUT(),
-        INPUT(),
-        GOUTPUT( Vector_ ),
-        GINPUT( Vector_ ),
-        KEYWORDS( "value"   ),
-        TYPES(    Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord

@@ -1436,6 +1436,79 @@ wsv_data.push_back
  
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "nelem" ),
+      DESCRIPTION
+      (
+        "This variable is used by the VectorSet workspace method."
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ncols" ),
+      DESCRIPTION
+      (
+        "This variable is used by the MatrixSet, Tensor3Set, etc. \n"
+        "workspace methods."
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "nrows" ),
+      DESCRIPTION
+      (
+        "See *ncols*."
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "npages" ),
+      DESCRIPTION
+      (
+        "See *ncols*."
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "nbooks" ),
+      DESCRIPTION
+      (
+        "See *ncols*."
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "nshelves" ),
+      DESCRIPTION
+      (
+        "See *ncols*."
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "nvitrines" ),
+      DESCRIPTION
+      (
+        "See *ncols*."
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "nlibraries" ),
+      DESCRIPTION
+      (
+        "See *ncols*."
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "met_profile_calc_agenda" ),
       DESCRIPTION
       (

@@ -25,14 +25,6 @@
  
 */
  
-//! Print
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Oliver Lemke
-   \date   2003-07-24
-*/
-
 #ifndef m_general_h
 #define m_general_h
 
