@@ -1,3 +1,14 @@
+2003-10-05  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-696
+
+	* src/optproperties.cc (interpolate_scat_angle): I found that
+	numerical gremlins were occasionally causing NaNs for theta_rad in
+	perfectly forward scattering cases.  I fixed this problem by
+	including two special cases - one for (abs(aa_sca-aa_inc)<ANG_TOL)
+	and one for (abs(abs(aa_sca-aa_inc)-180)<ANG_TOL).
+	
+
 2003-10-03  Cory Davis    <cory@met.ed.ac.uk>
 
 	* arts-1-1-695 

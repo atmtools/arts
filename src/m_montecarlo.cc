@@ -543,11 +543,12 @@ void ScatteringMonteCarlo (
       ppathcloud=ppathLOS;
       cum_l_step=cum_l_stepLOS;
       t_ppath=t_ppathLOS;
+      dist_to_boundary=cum_l_step[ppathcloud.np-1];
+	 
       if (silent==0){cout<<"photon_number = "<<photon_number<<"\n";}
       while (keepgoing)
 	{
-	  dist_to_boundary=cum_l_step[ppathcloud.np-1];
-	  if (scattering_order>0)
+	   if (scattering_order>0)
 	    {
 	      //We need to calculate a new propagation path. In the future, we may be 
 	      //able to take some shortcuts here
@@ -565,6 +566,8 @@ void ScatteringMonteCarlo (
 				     stokes_dim, t_field, vmr_field, rte_agenda, 
 				     i_space_agenda, ground_refl_agenda, f_grid, photon_number
 				     , scattering_order);
+	      dist_to_boundary=cum_l_step[ppathcloud.np-1];
+	 
 	      Iboundary=i_rte(0,joker);
 	      Sample_ppathlength (pathlength,g,K11,rng,ext_matArray);
 	    }

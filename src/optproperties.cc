@@ -446,22 +446,36 @@ void interpolate_scat_angle(//Output:
                             const Numeric& aa_inc
                             )
 {
-
-  const Numeric za_sca_rad = za_sca * DEG2RAD;
-  const Numeric za_inc_rad = za_inc * DEG2RAD;
-  const Numeric aa_sca_rad = aa_sca * DEG2RAD;
-  const Numeric aa_inc_rad = aa_inc * DEG2RAD;
-  
-  // cout << "Interpolation on scattering angle" << endl;
-  assert (pha_mat_data.ncols() == 6);
-
-  // Calculation of the scattering angle:
-  theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
-                   sin(za_sca_rad) * sin(za_inc_rad) * 
-                   cos(aa_sca_rad - aa_inc_rad));
-  
-  const Numeric theta = RAD2DEG * theta_rad;
-  
+  Numeric ANG_TOL=1e-7;
+  //Calculate scattering angle from incident and scattered directions.
+  //The two special cases are implemented here to avoid NaNs that can 
+  //sometimes occur in in the acos... formula in forward and backscatter
+  //cases. CPD 5/10/03.  
+  if(abs(aa_sca-aa_inc)<ANG_TOL)
+    {
+      theta_rad=DEG2RAD*abs(za_sca-za_inc);
+    }
+  else if (abs(abs(aa_sca-aa_inc)-180)<ANG_TOL)
+    {
+      theta_rad=DEG2RAD*(za_sca+za_inc);
+      if (theta_rad>PI){theta_rad=2*PI-theta_rad;}
+    }
+  else
+    {
+      const Numeric za_sca_rad = za_sca * DEG2RAD;
+      const Numeric za_inc_rad = za_inc * DEG2RAD;
+      const Numeric aa_sca_rad = aa_sca * DEG2RAD;
+      const Numeric aa_inc_rad = aa_inc * DEG2RAD;
+      
+      // cout << "Interpolation on scattering angle" << endl;
+      assert (pha_mat_data.ncols() == 6);
+      // Calculation of the scattering angle:
+      theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
+		       sin(za_sca_rad) * sin(za_inc_rad) * 
+		       cos(aa_sca_rad - aa_inc_rad));
+   }
+      const Numeric theta = RAD2DEG * theta_rad;
+      
   // Interpolation of the data on the scattering angle:
  
   GridPos thet_gp;
