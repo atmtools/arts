@@ -1,3 +1,9 @@
+2004-09-13  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-0-169
+
+	* configure.in: Test for hdf_close in libmfhdf and Hopen in libdf.
+
 2004-07-28  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-0-168

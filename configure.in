@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.168)
+AM_INIT_AUTOMAKE(arts,1.0.169)
 
 AM_MAINTAINER_MODE
 
@@ -109,8 +109,8 @@ else
   AC_CHECK_LIB(z, gzopen,, ac_hdf=no, )
   AC_CHECK_LIB(jpeg, jpeg_start_compress,, ac_hdf=no, -lz )
   AC_CHECK_HEADER(hdf.h, ac_hdf=yes, ac_hdf=no)
-  AC_CHECK_LIB(mfhdf, Hopen,, ac_hdf=no, -ldf -ljpeg -lz )
-  AC_CHECK_LIB(df, DFopen,, ac_hdf=no, -lmfhdf -ljpeg -lz )
+  AC_CHECK_LIB(mfhdf, hdf_close,, ac_hdf=no, -ldf -ljpeg -lz )
+  AC_CHECK_LIB(df, Hopen,, ac_hdf=no, -lmfhdf -ljpeg -lz )
 fi
 
 if test x$ac_hdf = xyes; then
