@@ -1,3 +1,9 @@
+2005-03-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-929
+
+	* ChangeLog: Removed conflict marker.
+
 2005-03-07  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-928
@@ -167,7 +173,6 @@
 
 	* Figs/rte_theory: Included figures. 
 	
->>>>>>> 1.1316
 2005-02-21  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-921
