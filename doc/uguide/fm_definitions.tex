@@ -439,7 +439,10 @@ pressure surfaces. If the ground is not a blackbody, the lower limit
 must be set to the lowest pressure surface (index 0). For 2D, the
 angular extension of the cloud box is between two points of the
 latitude grid (Figure~\ref{fig:fm_defs:2d}), and likewise for 3D but
-then also with a longitude extension between two grid points. The cloud
+then also with a longitude extension between two grid points.  The
+latitude and longitude limits for the cloud box cannot be placed at
+the end points of the corresponding grid as it must be possible to
+calculate the incoming intensity field. The cloud
 box is activated by setting the variable \wsvindex{cloudbox\_on} to 1. The
 limits of the cloud box are stored in \wsvindex{cloudbox\_limits}.
 

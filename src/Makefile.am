@@ -26,6 +26,8 @@ arts_SOURCES = \
 	auto_wsv.h \
 	auto_wsv_groups.h \
 	auto_wsv_pointers.cc \
+	check_input.cc \
+	check_input.h \
 	constants.cc \
 	continua.cc \
 	continua.h \
@@ -40,7 +42,6 @@ arts_SOURCES = \
 	iotraits.h \
 	lineshapes.cc \
 	los.h \
-	los.cc \
 	m_abs.cc \
 	m_batch.cc \
 	m_hdf.cc \
@@ -66,6 +67,8 @@ arts_SOURCES = \
 	parser.cc \
 	parser.h \
 	partition_function_data.cc \
+	ppath.h \\
+	ppath.cc \\
 	poly_roots.h \
 	poly_roots.cc \
 	species_data.cc \

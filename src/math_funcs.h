@@ -24,17 +24,7 @@
 /**
    \file   math_funcs.h
 
-   Contains declerations of basic mathematical and vector/matrix functions.
-
-   Example on types of functions:
-   \begin{enumerate}
-    \item Element-wise application of common scalar functions
-    \item Boolean functions                         
-    \item Creation of common vectors                
-    \item Interpolation routines                    
-    \item Integration routines                      
-    \item Conversion between vector and matrix types
-   \end{enumerate}
+   Contains the decleration of the functions in math_funcs.cc.
 
    \author Patrick Eriksson
    \date 2000-09-18 
@@ -45,18 +35,40 @@
 #ifndef math_funcs_h
 #define math_funcs_h
 
+
+#include <time.h>
+#include <math.h>
+#include <stdexcept>
+#include "array.h"
+#include "arts.h"
 #include "matpackI.h"
 #include "mystring.h"
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//// first and last /////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
+Index is_bool( 
+       const Index&    x );
 
 Numeric first( ConstVectorView x );
 
 Numeric last( ConstVectorView x );
+
+Index is_sorted( 
+       ConstVectorView&    x );
+
+Index is_increasing( 
+        ConstVectorView&    x );
+
+Index is_decreasing( 
+        ConstVectorView&    x );
+
+
+
+
+
+//
+// Old functions:
+//
 
 
 

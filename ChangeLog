@@ -1,3 +1,30 @@
+2002-04-16  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-53
+
+	* src/check_input.cc/h: Started this file. The intention of this file
+	is to hold functions that help us to check the input to functions.
+	By doing general functions, more careful checks can be done and better
+	error messages can be given. If you have to type everything for each
+	function, you tend to become sloppy. There are two series of functions:
+	assert_xxx and chk_xx. Have a look in the file and you will understand.
+
+	SO USE THESE FUNCTIONS, and ADD NEW ONES WHEN NEEDED.
+
+	* src/math_funcs.cc: Started to revise this file. The existing 
+	functions are moved down and my idea is that when we found that a 
+	function really is needed, it can be moved up, and then be polished.
+	I think there is some old junk in the file.
+
+	* src/ppath.cc: Added this file. The file will include functions to
+	determine propagation paths. Started to move things from los.cc
+	(ppath.cc replaces los.cc). Changes are needed as the definition of
+	the Ppath structure is changed. Quite some work, but nothing works
+	yet.
+
+	* src/ppath.h: Added this file to hold the declaration of the Ppath 
+	structure and functions in ppath.cc.
+	
 2002-04-14  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-52

@@ -24,16 +24,7 @@
 /**
    \file   math_funcs.cc
 
-   Contains the code of basic mathematical and vector/matrix functions.
-
-   Example on types of functions:
-   \begin{enumerate}
-    \item First and last element of a vector
-    \item Boolean functions                         
-    \item Creation of common vectors                
-    \item Interpolation routines            
-    \item Check of function input
-   \end{enumerate}
+   Contains basic mathematical and vector/matrix functions.
 
    \author Patrick Eriksson
    \date 2000-09-18 
@@ -45,45 +36,172 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
-#include <time.h>
-#include <math.h>
-#include <stdexcept>
-#include "arts.h"
 #include "math_funcs.h"
-#include "make_vector.h"
-#include "array.h"
 
 
 
 ////////////////////////////////////////////////////////////////////////////
-//// first and last /////////////////////////////////////////////////////////
+//   Functions for Index
 ////////////////////////////////////////////////////////////////////////////
-//
-/** Gives the first value of a vector.
 
-    \return       the first value of x
-    \param    x   a vector
+//// is_bool //////////////////////////////////////////////////////////////////
+/** 
+    Checks if a variable equals 0 or 1.
+
+    \return       1 if the variable is 0 or 1. Otherwise 0.
+    \param    x   A variable of type Index.
+
+    \author Patrick Eriksson 
+    \date   2004-04-15
+*/
+Index is_bool( 
+        const Index&    x )
+{
+  return ( x==0 || x==1 );
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Functions for Numeric
+////////////////////////////////////////////////////////////////////////////
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Functions for Vector
+////////////////////////////////////////////////////////////////////////////
+
+//// first ////////////////////////////////////////////////////////////////////
+/** 
+    Returns the first value of a vector.
+
+    \return       The first value of x.
+    \param    x   A vector.
 
     \author Patrick Eriksson 
     \date   2000-06-27
 */
 Numeric first( ConstVectorView x )
 {
+  assert( x.nelem() > 0 );
   return x[0]; 
 }
 
-/** Gives the last value of a vector.
 
-    \return      the last value of x
-    \param   x   a vector
+
+//// last /////////////////////////////////////////////////////////////////////
+/** 
+    Returns the last value of a vector.
+
+    \return      The last value of x.
+    \param   x   A vector.
 
     \author Patrick Eriksson 
     \date   2000-06-27
 */
 Numeric last( ConstVectorView x )
 {
+  assert( x.nelem() > 0 );
   return x[x.nelem()-1]; 
 }
+
+
+
+//// is_sorted ////////////////////////////////////////////////////////////////
+/** 
+    Checks if a vector is sorted in ascending order.
+    Duplicated values are allowed.
+
+    \return      1 if sorted, otherwise 0.
+    \param   x   A vector.
+
+    \author Patrick Eriksson 
+    \date   2000-04-15
+*/
+Index is_sorted( 
+        ConstVectorView&    x )
+{
+  if( x.nelem() > 1 )
+    {
+      for( Index i=1; i<x.nelem(); i++ )
+	{
+	  if( x[i] < x[i-1] )
+	    return 0;
+	}
+    }
+  return 1;
+}
+
+
+
+//// is_increasing ////////////////////////////////////////////////////////////
+/** 
+    Checks if a vector is sorted and strictly increasing. That is, duplicated 
+    values are not allowed.
+
+    \return      1 if strictly increasing, otherwise 0.
+    \param   x   A vector.
+
+    \author Patrick Eriksson 
+    \date   2000-04-15
+*/
+Index is_increasing( 
+        ConstVectorView&    x )
+{
+  if( x.nelem() > 1 )
+    {
+      for( Index i=1; i<x.nelem(); i++ )
+	{
+	  if( x[i] <= x[i-1] )
+	    return 0;
+	}
+    }
+  return 1;
+}
+
+
+
+//// is_decreasing ////////////////////////////////////////////////////////////
+/** 
+    Checks if a vector is sorted in reversed order and isstrictly decreasing. 
+    That is, duplicated values are not allowed.
+
+    \return      1 if strictly decreasing, otherwise 0.
+    \param   x   A vector.
+
+    \author Patrick Eriksson 
+    \date   2000-04-15
+*/
+Index is_decreasing( 
+        ConstVectorView&    x )
+{
+  if( x.nelem() > 1 )
+    {
+      for( Index i=1; i<x.nelem(); i++ )
+	{
+	  if( x[i] >= x[i-1] )
+	    return 0;
+	}
+    }
+  return 1;
+}
+
+
+
+
+//
+// The functions below this point shall be treated as old. As this part is a
+// bit of mess, we should check all functions and then move it up to appropiate
+// point. Then later, all functions below will be removed as they are not used
+// anymore. 
+// Before moving up a function, check that there is no new function that can
+// be used instead.
+//
+// Patrick 2002-04-15
+
+
 
 
 
@@ -247,6 +365,8 @@ Vector nlogspace(
 ////////////////////////////////////////////////////////////////////////////
 //   Interpolation routines
 ////////////////////////////////////////////////////////////////////////////
+
+#include "make_vector.h"
 
 /** Local help function to check input grids.
 

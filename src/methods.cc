@@ -125,11 +125,11 @@ void define_md_data()
 
   md_data.push_back     
     ( MdRecord
-      ( NAME("test_new_los"),
+      ( NAME("test_new_ppath"),
 	DESCRIPTION
 	(
-	 "Just a function to test the new LOS implementation.\n"
-	 "The functions are placxed in the file los.cc."
+	 "Just a function to test the new PPATH implementation.\n"
+	 "The functions are placed in the file ppath.cc."
 	),
 	OUTPUT( ),
 	INPUT( ),
