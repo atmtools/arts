@@ -510,7 +510,7 @@ void cart2sph(
 {
   r   = sqrt( x*x + y*y + z*z );
   lat = RAD2DEG * asin( y / r );
-  lon = RAD2DEG * atan2( z, x );    // Check if atan2 works for (0,0)
+  lon = RAD2DEG * atan2( z, x ); 
 }
 
 
@@ -767,7 +767,7 @@ void gridcell_crossing_3d(
        const Numeric&   dy,
        const Numeric&   dz,
        const Index&     known_dim,
-       const Numeric&   rlatlon )
+       const Numeric    rlatlon )
 {
   assert( known_dim >= 1 );
   assert( known_dim <= 3 );
@@ -776,6 +776,9 @@ void gridcell_crossing_3d(
   assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
 
   // Set dummy values to be used if there is no crossing
+  // Note that rlatlon is copied by value (no &) and *r*, *lat* or *lon* 
+  // can be the same variable as *rlatlon*.
+
   r   = -1;
   lat = 999;
   lon = 999;
@@ -783,6 +786,8 @@ void gridcell_crossing_3d(
 
   if( known_dim == 1 )
     {   
+      assert( rlatlon > 0 );
+
       const Numeric   p  = x*dx + y*dy + z*dz;
       const Numeric   pp = p * p;
       const Numeric   q  = x*x + y*y + z*z - rlatlon*rlatlon;
@@ -809,6 +814,9 @@ void gridcell_crossing_3d(
 
   else if( known_dim == 2 )
     {
+      assert( rlatlon >= -90 );
+      assert( rlatlon <= 90 );
+
       // The case lat=0 must be handled seperately
       if( abs( rlatlon ) < 1e-9 )
         {
@@ -846,16 +854,29 @@ void gridcell_crossing_3d(
 
   else
     {
+      assert( abs( rlatlon ) <= 360 );
+
       const Numeric   lonrad = DEG2RAD * rlatlon;
-      const Numeric   coslon = cos( lonrad );
       const Numeric   tanlon = tan( lonrad );
 
       l = ( z - tanlon*x ) / ( tanlon*dx - dz );
 
       if( l > 1e-6 )
         {
+          const Numeric   coslon = cos( lonrad );
+          const Numeric   xpdxl  = x+dx*l;
+
+          if( xpdxl != 0 )
+            { lat = RAD2DEG * atan( coslon * ( y+dy*l ) / (x+dx*l) ); }
+          else
+            {
+              if( y+dy*l > 0 )
+                { lat = 90; }
+              else
+                { lat = -90; }
+            }
+
           lon = rlatlon;
-          lat = RAD2DEG * atan( coslon * ( y+dy*l ) / (x+dx*l) );
           r   = sqrt( pow(x+dx*l,2) + pow(y+dy*l,2) + pow(z+dz*l,2) );
         }
     }
@@ -894,7 +915,8 @@ void geompath_tanpos_3d(
        const Numeric&   aa,
        const Numeric&   ppc )
 {
-  assert( za >= 0 );
+  assert( za >= 90 );
+  assert( r >= ppc );
 
   Numeric   x, y, z, dx, dy, dz;
   poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa );
@@ -902,6 +924,8 @@ void geompath_tanpos_3d(
   l_tan  = sqrt( r*r - ppc*ppc );
 
   cart2sph( r_tan, lat_tan, lon_tan, x+dx*l_tan, y+dy*l_tan, z+dz*l_tan );
+
+  assert( abs( r_tan - ppc ) < 0.1 );
 }
 
 
@@ -1472,7 +1496,7 @@ void psurface_crossing_3d_old(
     }
 }
 
-void psurface_crossing_3d(
+void psurface_crossing_3d_old2(
              Numeric&   r,
              Numeric&   lat,
              Numeric&   lon,
@@ -1567,7 +1591,7 @@ void psurface_crossing_3d(
     }
 }
 
-void psurface_crossing_3d_dev(
+void psurface_crossing_3d(
              Numeric&   r,
              Numeric&   lat,
              Numeric&   lon,
@@ -1576,21 +1600,21 @@ void psurface_crossing_3d_dev(
        const Numeric&   lat3,
        const Numeric&   lon5,
        const Numeric&   lon6,
-       const Numeric&   r15,
-       const Numeric&   r35,
-       const Numeric&   r36,
-       const Numeric&   r16,
-       const Numeric&   r_start,
-       const Numeric&   lat_start,
-       const Numeric&   lon_start,
-       const Numeric&   za_start,
-       const Numeric&   rlatlon,
+       const Numeric    r15,
+       const Numeric    r35,
+       const Numeric    r36,
+       const Numeric    r16,
+       const Numeric    r_start,         // No & to avoid problems if these
+       const Numeric    lat_start,       // variables are the same as the
+       const Numeric    lon_start,       // output ones.
+       const Numeric    za_start,
+       const Numeric    rlatlon,
        const Numeric&   x,
        const Numeric&   y,
        const Numeric&   z,
-       const Numeric    dx,
-       const Numeric    dy,
-       const Numeric    dz )
+       const Numeric&   dx,
+       const Numeric&   dy,
+       const Numeric&   dz )
 {
   assert( za_start >=   0 );
   assert( za_start <= 180 );
@@ -1626,6 +1650,8 @@ void psurface_crossing_3d_dev(
 
       else
         {
+          throw runtime_error( 
+           "The case of varying surface radius is not yet handled properly." );
         }
     }
 }
@@ -2095,7 +2121,7 @@ void do_gridcell_3d(
   Numeric   rlow_try, rhigh_try;
 
   // Local debug option
-  const bool   debug = false;
+  const bool   debug = true;
   //
   if( debug )
     {
@@ -2194,8 +2220,8 @@ void do_gridcell_3d(
       if( r_start > rlow )
         {
           psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, 
-                                lon5, lon6, r15a, r35a, r36a, r16a, 
-                                      r_start, za_start, x, y, z, dx, dy, dz );
+                        lon5, lon6, r15a, r35a, r36a, r16a, r_start, lat_start,
+                              lon_start, za_start, rlow, x, y, z, dx, dy, dz );
           if( debug )
             {
               IndexPrint( 2, "face" );
@@ -2251,8 +2277,8 @@ void do_gridcell_3d(
       // A step can both start and end on the surface, so must test all cases
         {
           psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, 
-                                lon5, lon6, r15b, r35b, r36b, r16b, 
-                                      r_start, za_start, x, y, z, dx, dy, dz );
+                        lon5, lon6, r15b, r35b, r36b, r16b, r_start, lat_start,
+                              lon_start, za_start, rupp, x, y, z, dx, dy, dz );
           if( debug )
             {
               IndexPrint( 4, "face" );
@@ -2372,7 +2398,8 @@ void do_gridcell_3d(
               psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                     lat1, lat3, lon5, lon6, 
                                     rground15, rground35, rground36, rground16,
-                                    r_start, za_start, x, y, z, dx, dy, dz );
+                                    r_start, lat_start, lon_start, za_start, 
+                                               r_ground, x, y, z, dx, dy, dz );
               if( debug )
                 {
                   IndexPrint( 6, "face" );
@@ -2397,14 +2424,15 @@ void do_gridcell_3d(
 
 
       // Check that some OK end face has been found
+      // Some extra marginal is needed due to rounding errors
       assert( endface );
       assert( lat_best >= lat1 );
       assert( lat_best <= lat3 );
       assert( lon_best >= lon5 );
       assert( lon_best <= lon6 );
-      assert( r_best   >= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+      assert( r_best + 1e-6  >= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                 r15a, r35a, r36a, r16a, lat_best, lon_best ) );
-      assert( r_best   <= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+      assert( r_best - 1e-6  <= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                 r15b, r35b, r36b, r16b, lat_best, lon_best ) );
 
 
@@ -5064,7 +5092,7 @@ void ppath_start_stepping(
       //
       Vector  geom_tan_pos(0);
       Numeric geom_tan_z=-2, geom_tan_atmtop=-1;  // OK values if the variables
-      //                                          are not set below
+      //                                             are not set below
       if( abs(a_los[0]) > 90 )
         {
           geom_tan_pos.resize(2);
@@ -5425,7 +5453,7 @@ void ppath_start_stepping(
       //
       Vector  geom_tan_pos(0);
       Numeric geom_tan_z=-2, geom_tan_atmtop=-1;  // OK values if the variables
-      //                                          are not set below
+      //                                             are not set below
       if( a_los[0] > 90 )
         {
           geom_tan_pos.resize(3);
@@ -5674,9 +5702,10 @@ void ppath_start_stepping(
               // Determine the entrance point for the minimum of *r_atmtop*
               Numeric   r_top, lat_top, lon_top, l_top;
               psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
-                 lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1], 
-                                    rtopmin, rtopmin, rtopmin, rtopmin, 
-                                    a_pos[0], a_los[0], x, y, z, dx, dy, dz );
+                         lat_grid[0], lat_grid[nlat-1], lon_grid[0], 
+                         lon_grid[nlon-1], rtopmin, rtopmin, rtopmin, rtopmin,
+                         a_pos[0], a_pos[1], a_pos[2], a_los[0], rtopmin, 
+                                                         x, y, z, dx, dy, dz );
 
               // If no crossing was found for min radius, or it is outside
               // covered lat and lon ranges, try max radius and make the same
@@ -5685,9 +5714,11 @@ void ppath_start_stepping(
                   lon_top < lat_grid[0]  ||  lon_top > lat_grid[nlat-1] )
                 {
                   psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
-                  lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1],
-                                        rtopmax, rtopmax, rtopmax, rtopmax, 
-                                     a_pos[0], a_los[0], x, y, z, dx, dy, dz );
+                          lat_grid[0], lat_grid[nlat-1], lon_grid[0], 
+                          lon_grid[nlon-1], rtopmax, rtopmax, rtopmax, rtopmax,
+                          a_pos[0], a_pos[1], a_pos[2], a_los[0], rtopmax, 
+                                                         x, y, z, dx, dy, dz );
+
                   if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
                       lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
                     { failed = true; }
@@ -5723,10 +5754,10 @@ void ppath_start_stepping(
                   // entrance radius
                   Numeric   lat_top2, lon_top2;
                   psurface_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
-                                        lat_grid[0], lat_grid[nlat-1], 
-                                        lon_grid[0], lon_grid[nlon-1],
-                                        r_top, r_top, r_top, r_top, 
-                                     a_pos[0], a_los[0], x, y, z, dx, dy, dz );
+                                lat_grid[0], lat_grid[nlat-1], lon_grid[0], 
+                                lon_grid[nlon-1], r_top, r_top, r_top, r_top,
+                                a_pos[0], a_pos[1], a_pos[2], a_los[0], r_top, 
+                                                         x, y, z, dx, dy, dz );
                   
                   // Check if new position is sufficiently close to old
                   if( abs( lat_top2 - lat_top ) < 1e-6  &&  
@@ -6138,7 +6169,7 @@ void ppath_calc(
 
   // If refraction has been considered, make a simple check that the
   // refraction at the top of the atmosphere is sufficiently close to 1.
-  if( ppath.refraction  &&  min( z_field(np-1,0,0) ) < 60e3 )
+  if( ppath.refraction  &&  min( z_field(z_field.npages()-1,0,0) ) < 60e3 )
     {
       out2 << "  *** WARNING****\n" << 
       "  The calculated propagation path can be inexact as the atmosphere" <<

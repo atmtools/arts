@@ -67,7 +67,7 @@ void refr_indexThayer(
 {
   Index   firstH2O = find_first_species_tg( gas_species, 
                                       species_index_from_species_name("H2O") );
-  IndexPrint( firstH2O, "firstH2O" );
+
   if( firstH2O < 0 )
     throw runtime_error( 
        "Water vapour is a requiered (must be a tag group in *gas_species*)." );

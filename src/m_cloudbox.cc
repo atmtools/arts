@@ -1611,7 +1611,10 @@ void CloudboxGetIncoming(// WS Output:
                                sensor_los, f_grid, stokes_dim, 
                                antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy );
-          
+
+                      IndexPrint( i_rte.nrows(), "nrows" );
+                      IndexPrint( i_rte.ncols(), "ncols" );
+
                       scat_i_p( Range(joker), 0, lat_index, lon_index, 
                                 scat_za_index, scat_aa_index,
                                 Range(joker)) 

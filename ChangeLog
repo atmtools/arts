@@ -1,3 +1,24 @@
+2003-01-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-397
+
+	* Paths with refraction for 1D and 2D have been tested and everything
+	appears to work. 
+	
+	* src/refraction.cc (get_refr_index_2d): Wrong dimension was read to
+	determine the number of species.
+
+	* src/ppath.cc: Included more asserts in the key functions for 3D to
+	catch problems as early as possible.
+	
+	(psurface_crossing_3d): Started on a new version of this function.
+	For the moment it is only allowed to use pressure surfaces with
+	constant radius. That is, the geoid must be spherical and the 
+	atmosphere spherically symmetric.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Found some problematic 
+	points, reported to Claudia.
+
 2003-01-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-396

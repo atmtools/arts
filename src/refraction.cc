@@ -190,7 +190,7 @@ void get_refr_index_2d(
   a_temperature = dummy[0];
 
   // VMR
-  const Index   ns = vmr_field.nrows();
+  const Index   ns = vmr_field.npages();
   //
   a_vmr_list.resize(ns);
   //
