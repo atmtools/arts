@@ -1000,4 +1000,16 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Test"),
+  	DESCRIPTION(
+          "xxxxxx."),
+	OUTPUT(),
+        INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
 }

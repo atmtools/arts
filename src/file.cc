@@ -15,11 +15,47 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/**
+   \file  file.cc
+
+   This file contains basic functions to handle ASCII and binary (HDF)
+   data files.
+
+   \author Patrick Eriksson
+   \date 2000-10-28 
+*/
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   External declarations
+////////////////////////////////////////////////////////////////////////////
+
 #include "arts.h"
 #include "messages.h"
 #include "file.h"
 #include <hdf5.h>
 
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Functions to open and read ASCII files
+////////////////////////////////////////////////////////////////////////////
+
+//// open_output_file //////////////////////////////////////////////////////
+/**
+   Open a file for writing. If the file cannot be opened, the
+   exception IOError is thrown. 
+   @param     file File pointer 
+   @param     name Name of the file to open
+   @author    Stefan Buehler
+   @version   1
+   @exception ios_base::failure Could for example mean that the
+                      directory is read only. */
 void open_output_file(ofstream& file, const string& name)
 {
   // Tell the stream that it should throw exceptions.
@@ -49,6 +85,16 @@ void open_output_file(ofstream& file, const string& name)
 }
 
 
+
+//// open_input_file ///////////////////////////////////////////////////////
+/**
+   Open a file for reading. If the file cannot be opened, the
+   exception IOError is thrown. 
+   @param     file File pointer 
+   @param     name Name of the file to open
+   @author    Stefan Buehler
+   @version   1
+   @exception ios_base::failure Somehow the file cannot be opened. */
 void open_input_file(ifstream& file, const string& name)
 {
   // Tell the stream that it should throw exceptions.
@@ -76,6 +122,17 @@ void open_input_file(ifstream& file, const string& name)
 }
 
 
+
+//// read_text_from_stream /////////////////////////////////////////////////
+/**
+   Read an ASCII stream and append the contents to the string array
+   text.  TEXT IS NOT OVERWRITTEN, BUT APPENDED!
+
+   @param text Output. The contents fo the file
+   @param is Stream from which to read
+   @exception IOError Some error occured during the read
+   @version   1
+   @author Stefan Buehler */
 void read_text_from_stream(ARRAY<string>& text, istream& is)
 {
   string linebuffer;
@@ -107,6 +164,18 @@ void read_text_from_stream(ARRAY<string>& text, istream& is)
 }
 
 
+
+//// read_text_from_file ////////////////////////////////////////////////////
+/**
+   Reads an ASCII file and appends the contents to the string vector
+   text. This uses the function @see read_text_from_stream. TEXT IS
+   NOT OVERWRITTEN, BUT APPENDED!  
+
+   @param text Output. The contents fo the file
+   @param  filename Name of file to read
+   @exception IOError
+   @version   1
+   @author Stefan Buehler */
 void read_text_from_file(ARRAY<string>& text, const string& name)
 {
   ifstream ifs;
@@ -132,6 +201,17 @@ void read_text_from_file(ARRAY<string>& text, const string& name)
     }
 }
 
+
+
+//// replace_all //////////////////////////////////////////////////////////
+/** 
+    Replace all occurances of `what' in `s' with `with'.
+
+    @param s Output. The string to act on.
+    @param what The string to replace.
+    @param with The replacement.
+    
+    @author Stefan Buehler */
 void replace_all(string& s, const string& what, const string& with)
 {
   string::size_type j = s.find(what);
@@ -144,8 +224,21 @@ void replace_all(string& s, const string& what, const string& with)
 }
 
 
-//-------------------------< MATRIX/VECTOR IO Routines >-------------------------
 
+////////////////////////////////////////////////////////////////////////////
+//   MATRIX/VECTOR IO routines for ASCII files
+////////////////////////////////////////////////////////////////////////////
+
+//// write_array_of_matrix_to_stream ///////////////////////////////////////
+/** A helper function that writes an array of matrix to a stream. This
+    is the generic output function for VECTORs, MATRIXs, and ARRAYof
+    both. All these are converted first to ARRAYofMATRIX, and then
+    written by this function.
+
+    @param os   Output. The stream to write to.
+    @param am    The matrix to write.
+
+    @author Stefan Buehler */
 void write_array_of_matrix_to_stream(ostream& os,
                                      const ARRAYofMATRIX& am)
 {
@@ -191,6 +284,15 @@ void write_array_of_matrix_to_stream(ostream& os,
 }
 
 
+
+//// write_array_of_matrix_to_file /////////////////////////////////////////
+/** A helper function that writes an array of matrix to a file. Uses
+    write_array_of_matrix_to_stream. 
+
+    @param filename    The name of the file.
+    @param am          The array of matrix to write.
+
+    @author Stefan Buehler */
 void write_array_of_matrix_to_file(const string& filename,
                                    const ARRAYofMATRIX& am)
 {
@@ -204,6 +306,14 @@ void write_array_of_matrix_to_file(const string& filename,
 }
 
 
+
+//// read_array_of_matrix_from_stream ///////////////////////////////////////
+/** A helper function that reads an array of matrix from a stream.
+
+    @param am   Output. The array of matrix to read.
+    @param is   Output. The input stream.
+
+    @author Stefan Buehler */
 void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
                                       istream& is)
 {
@@ -255,6 +365,15 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
 }
 
 
+
+//// read_array_of_matrix_from_file /////////////////////////////////////////
+/** A helper function that reads an array of matrix from a file. 
+    Uses read_array_of_matrix_from_stream.
+
+    @param am        Output. The array of matrix to read.
+    @param filename  The name of the file to read.
+
+    @author Stefan Buehler */
 void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
                                     const string& filename)
 {
@@ -283,16 +402,64 @@ void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
     }
 }
 
-void open_hdf()
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Basic functions to handle HDF files
+////////////////////////////////////////////////////////////////////////////
+
+void binfile_open(
+              hid_t&    fid,
+        const string&   name )
 {
-  char name[] = "dummy.h5";
-
-  hid_t       file_id;   /* file identifier */
-  herr_t      status;
-
-  /* Create a new file using default properties. */
-  file_id = H5Fcreate(name, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-
-  /* Terminate access to the file. */
-  status = H5Fclose(file_id); 
+  fid = H5Fcreate( name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  // Handle errors
 }
+
+
+void binfile_close(
+              hid_t&    fid,
+        const string&   name )
+{
+  herr_t  status;
+
+  status = H5Fclose( fid );
+  // Handle errors
+}
+
+
+void binfile_write_matrix(
+        const hid_t&    fid,
+        const MATRIX&   a )
+{
+  hid_t    space_id, set_id;
+  hsize_t  dims[2];
+  herr_t   status;
+
+  // Create test data
+  double   b[2][3];
+  int      i,j;
+  for ( i=0; i<2; i++ )
+    for ( j=0; j<3; j++ )
+      b[i][j] = 1.1;
+
+  // Create data space
+  //dims[0]  = a.dim(1);  
+  //dims[1]  = a.dim(2);  
+  dims[0]  = 2;  
+  dims[1]  = 3;  
+  space_id = H5Screate_simple( 2, dims, NULL );
+
+  // Create the data set
+  set_id = H5Dcreate( fid, "/matrix", H5T_IEEE_F64LE, space_id, H5P_DEFAULT);
+
+
+  // Write the data
+  status = H5Dwrite( set_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, 
+                                                          H5P_DEFAULT, b );
+
+  // Close
+  status = H5Dclose( set_id );
+  status = H5Sclose( space_id );
+}
+

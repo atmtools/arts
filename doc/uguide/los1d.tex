@@ -217,7 +217,7 @@ geometrical calculations and when considering refraction.
   The Pythagorean relation gives the distance from the tangent point
   to the atmospheric limit:
   \begin{equation}
-      l_{lim} = \sqrt{ (R_e+z_{lim}) - (R_e+z_t)}
+      l_{lim} = \sqrt{ (R_e+z_{lim})^2 - (R_e+z_t)^2}
   \end{equation}
   If $l_{lim}$ is smaller than upper limit for $\Delta l$ specified by
   the user, $\Delta l$ is set to $l_{lim}$ as also described in Section
@@ -226,7 +226,7 @@ geometrical calculations and when considering refraction.
   The vertical altitude as a function of the distance from the
   tangent point is
   \begin{equation}
-    z = \sqrt{ (R_e+z_t) + l^2} - R_e
+    z = \sqrt{ (R_e+z_t)^2 + l^2} - R_e
   \end{equation}
   If the tangent point is below ground, the LOS is determined by the
   upward expressions (Sec. \ref{sec:los:up}) by setting
@@ -247,12 +247,12 @@ geometrical calculations and when considering refraction.
 
   The distance between the sensor and a tangent point is
   \begin{equation}
-    l_p = \sqrt{ (R_e+z_p) - (R_e+z_t) } \qquad  z_t \geq z_g
+    l_p = \sqrt{ (R_e+z_p)^2 - (R_e+z_t)^2 } \qquad  z_t \geq z_g
   \end{equation}
   and the distance between the sensor and a point of ground
   reflection is
   \begin{equation}
-    l_p = \sqrt{ (R_e+z_p) - (R_e+z_t) } - \sqrt{ (R_e+z_g) - (R_e+z_t) }
+    l_p = \sqrt{ (R_e+z_p)^2 - (R_e+z_t)^2 } - \sqrt{ (R_e+z_g)^2-(R_e+z_t)^2}
             \qquad z_t < z_g
   \end{equation}
   where $z_t$ is determined by Equation \ref{eq:los:ztan}.

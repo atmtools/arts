@@ -40,8 +40,7 @@
 #include "messages.h"          
 #include "wsv.h"          
 #include "file.h"
-
-
+#include "hdf5.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Math with H matrices
@@ -232,4 +231,15 @@ void MatrixApplyH(// WS Generic Output:
   }
   else
     h_apply( k2, h, k1 ); 
+}
+
+
+void Test()
+{
+  string name="test.hdf";
+  hid_t fid;
+  binfile_open( fid, name );
+  binfile_write_matrix( fid, MATRIX(2,2,1.5) );
+  binfile_close( fid, name );
+  exit(1);
 }

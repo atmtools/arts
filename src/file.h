@@ -1,3 +1,4 @@
+
 /* Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
@@ -15,124 +16,84 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*
-  This file contains utility routines for IO files.
-  SAB 05.02.2000
- */
+
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/**
+   \file  file.cc
+
+   This file contains basic functions to handle ASCII and binary (HDF)
+   data files.
+
+   \author Patrick Eriksson
+   \date 2000-10-28 
+*/
+
+
 #ifndef file_h
 #define file_h
 
+
+////////////////////////////////////////////////////////////////////////////
+//   External declarations
+////////////////////////////////////////////////////////////////////////////
+
 #include <iostream>
 #include "vecmat.h"
+#include <hdf5.h>
 
-/**
-   Open a file for writing. If the file cannot be opened, the
-   exception IOError is thrown. 
-   @param     file File pointer 
-   @param     name Name of the file to open
-   @author    Stefan Buehler
-   @version   1
-   @exception ios_base::failure Could for example mean that the
-                      directory is read only. */
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Functions to open and read ASCII files
+////////////////////////////////////////////////////////////////////////////
+
 void open_output_file(ofstream& file, const string& name);
-//  throw (ios::failure);    Does not yet work in egcs
 
-/**
-   Open a file for reading. If the file cannot be opened, the
-   exception IOError is thrown. 
-   @param     file File pointer 
-   @param     name Name of the file to open
-   @author    Stefan Buehler
-   @version   1
-   @exception ios_base::failure Somehow the file cannot be opened. */
 void open_input_file(ifstream& file, const string& name);
-//  throw (ios::failure);  Does not yet work in egcs
 
-
-/**
-   Read an ASCII stream and append the contents to the string array
-   text.  TEXT IS NOT OVERWRITTEN, BUT APPENDED!
-
-   @param text Output. The contents fo the file
-   @param is Stream from which to read
-   @exception IOError Some error occured during the read
-   @version   1
-   @author Stefan Buehler */
 void read_text_from_stream(ARRAY<string>& text, istream& is);
 
-/**
-   Reads an ASCII file and appends the contents to the string vector
-   text. This uses the function @see read_text_from_stream. TEXT IS
-   NOT OVERWRITTEN, BUT APPENDED!  
-
-   @param text Output. The contents fo the file
-   @param  filename Name of file to read
-   @exception IOError
-   @version   1
-   @author Stefan Buehler */
 void read_text_from_file(ARRAY<string>& text, const string& name);
 
-
-/** 
-    Replace all occurances of `what' in `s' with `with'.
-
-    @param s Output. The string to act on.
-    @param what The string to replace.
-    @param with The replacement.
-    
-    @author Stefan Buehler */
 void replace_all(string& s, const string& what, const string& with);
 
 
-//-------------------------< MATRIX/VECTOR IO Routines >-------------------------
 
+////////////////////////////////////////////////////////////////////////////
+//   MATRIX/VECTOR IO routines for ASCII files
+////////////////////////////////////////////////////////////////////////////
 
-
-/** A helper function that writes an array of matrix to a stream. This
-    is the generic output function for VECTORs, MATRIXs, and ARRAYof
-    both. All these are converted first to ARRAYofMATRIX, and then
-    written by this function.
-
-    @param os   Output. The stream to write to.
-    @param am    The matrix to write.
-
-    @author Stefan Buehler */
 void write_array_of_matrix_to_stream(ostream& os,
                                      const ARRAYofMATRIX& am);
 
-
-/** A helper function that writes an array of matrix to a file. Uses
-    write_array_of_matrix_to_stream. 
-
-    @param filename    The name of the file.
-    @param am          The array of matrix to write.
-
-    @author Stefan Buehler */
 void write_array_of_matrix_to_file(const string& filename,
                                    const ARRAYofMATRIX& am);
 
-
-/** A helper function that reads an array of matrix from a stream.
-
-    @param am   Output. The array of matrix to read.
-    @param is   Output. The input stream.
-
-    @author Stefan Buehler */
 void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
                                       istream& is);
 
-
-
-/** A helper function that reads an array of matrix from a file. 
-    Uses read_array_of_matrix_from_stream.
-
-    @param am        Output. The array of matrix to read.
-    @param filename  The name of the file to read.
-
-    @author Stefan Buehler */
 void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
                                     const string& filename);
 
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Basic functions to handle HDF files
+////////////////////////////////////////////////////////////////////////////
+
+void binfile_open(
+              hid_t&    fid,
+        const string&   name );
+
+void binfile_close(
+              hid_t&    fid,
+        const string&   name );
+
+void binfile_write_matrix(
+        const hid_t&    fid,
+        const MATRIX&   a );
 
 
 

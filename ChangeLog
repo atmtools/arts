@@ -1,3 +1,17 @@
+2000-10-30  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-66
+
+	* AGU has now a new chapter describing data and file formats, and 
+	allowed math operations. The chapter is however not finished. Please,
+	give comments. The file src/test_math.cc is added and is compilied with
+	ARTS. This file should contain examples on all allowed basic math
+	operations and is read into AUG. As the file must pass the compiler,
+	AUG can only include allowed math operations (at least formaly).
+
+	* Some first test functions for HDF are found in file.cc and 
+	m_hmatrix.cc.
+
 2000-10-27  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-65
