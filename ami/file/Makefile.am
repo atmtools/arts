@@ -14,4 +14,5 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EXTRA_DIST = \
-        filedate.m 
+        filedate.m \
+        write_linefile.m 
