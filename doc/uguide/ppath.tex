@@ -51,7 +51,7 @@ A propagation path is the way the radiation travels to reach the
 sensor for a specified line-of-sight. This section describes how
 propagation paths are described and calculated. In addition, at the
 end of the section some geodetic issues are discussed, such as the
-choice of reference ellipsiod for the geoid.
+choice of reference ellipsoid for the geoid.
 
 
 \levelb{Implementation files}
@@ -63,14 +63,16 @@ Variables and functions related to propagation paths are defined in the files:
 \item \fileindex{m\_ppath.cc}
 \item \fileindex{m\_atmosphere.cc}
 \end{itemize}
-The definition of the structure to describe propagation paths,
-\structindex{Ppath} if found in the first file. The second file
-includeds functions to perform calculations to determine propagation
-paths. The third file contains the workspace functions releated to
+The first file, \artsstyle{ppath.h}, contains the definition of the
+structure to describe propagation paths, \structindex{Ppath}. The
+second file, \artsstyle{ppath.cc}, contains functions to perform
+calculations to determine propagation paths. The third file,
+\artsstyle{m\_ppath.cc}, contains the workspace functions related to
 propagation path, but these functions mainly checks the input and the
 actual calculations are performed by sub-functions in
-\artsstyle{ppath.cc}. Functions to set the geoid radius are found in
-\artsstyle{m\_atmosphere.cc}.
+\artsstyle{ppath.cc}. The fourth file, \artsstyle{m\_atmosphere.cc},
+contains functions to set the geoid radius.
+
 
 
 
@@ -168,12 +170,12 @@ brackets, are:
      the path is this number. If \artsstyle{np} $\leq$ 1, the observed
      spectrum is identical to the radiative background. For cases
      where the sensor is placed inside the model atmosphere and
-     \artsstyle{np} = 1, the stored postion is identical to the sensor
+     \artsstyle{np} = 1, the stored position is identical to the sensor
      position and that position can be used to determinate the radiative
      background (see below).
 
    \item[refraction] [Index] A flag (0 or 1) to indicate if refraction
-     has been considered whenm determining the path. A value of 1 means
+     has been considered when determining the path. A value of 1 means
      that refraction has been considered.
 
    \item[method] [String] A string describing the calculation approach.
@@ -183,7 +185,7 @@ brackets, are:
      constant can be assigned to all geometrical paths and for 1D
      cases (with or without refraction). See
      Sections~\ref{sec:ppath:basicgeom} and [**]. This field shall be
-     initiated to a negative value to indiacte that the constant is
+     initiated to a negative value to indicate that the constant is
      undefined or not yet set. For cases where the constant applies,
      \wsvindex{ppath\_step\_agenda} sets this constant is set
      at the first call of the agenda.
@@ -281,8 +283,8 @@ only with propagation path inside a plane, where the latitude angle is
 the angular distance from an arbitrary point. This means that the
 expressions given here can be directly applied for 1D and 2D, but for
 3D. The ARTS function for making the calculation of concern is given
-inside parenthesis above each equation, if not stated explicitely. A
-part of a geomtrical propagation path is shown in
+inside parenthesis above each equation, if not stated explicitly. A
+part of a geometrical propagation path is shown in
 Figure~\ref{fig:ppath:1d2dgeom}.
 
 \begin{figure}[!t]
@@ -388,7 +390,7 @@ fulfill the relationship
 \end{equation}
 this independently of the sign of the zenith angles. The definitions
 used here result in that the absolute value of the zenith angle always
-decreases towards zero when following the path in the line-of-sigth
+decreases towards zero when following the path in the line-of-sight
 direction, that is, when going away from the sensor. It should then be
 remembered that the latitudes for 1D measures the angular distance to
 the sensor, and for 2D a positive zenith angle means observation
@@ -450,7 +452,7 @@ direction determines the interesting grid range. As an help to resolve
 these question there is the function \funcindex{gridpos2gridrange}.
 This function takes an argument describing the direction of the
 line-of-sight with respect to the grids, the argument shall be set to
-1 if the viewing direction is towards highes indexes. The direction
+1 if the viewing direction is towards higher indexes. The direction
 argument can be set with the following logical expressions, for the
 different combinations of atmospheric dimensionality and grid of
 interest:
@@ -576,7 +578,7 @@ All geodetic datums are based on a reference ellipsoid\index{geoid
   ellipsoid}. The ellipsoid is rotationally symmetric around the
 north-south axis. That is, the ellipsoid radius has no longitude
 variation, it is only a function of latitude. The ellipsoid is
-described by a equatorial radius, \aRds{e}, and a polar radius,
+described by an equatorial radius, \aRds{e}, and a polar radius,
 \aRds{p}. These radii are indicated in Figure~\ref{fig:ppath:lats}.
 The radius of the ellipsoid for a given latitude is
 \begin{equation}
