@@ -698,16 +698,16 @@ void write_lines_to_stream(ostream& os,
     This is a strongly simplified routine which seves mainly
     the purpose of demonstration.
 
-    @param abs Output. Absorption coefficients.
-    @param f_abs Frequency grid.
-    @param p_abs Pressure grid.
-    @param t_abs Temperatures associated with p_abs.
-    @param vmrs  Volume mixing ratios of the species.
-    @param lines The spectroscopic line list.
+    @param abs    Output. Absorption coefficients.
+    @param f_mono Frequency grid.
+    @param p_abs  Pressure grid.
+    @param t_abs  Temperatures associated with p_abs.
+    @param vmrs   Volume mixing ratios of the species.
+    @param lines  The spectroscopic line list.
 
     @author Stefan Buehler 16.06.2000. */
 void abs_species( MATRIX&                  abs,
-		  const VECTOR&  	   f_abs,
+		  const VECTOR&  	   f_mono,
 		  const VECTOR&  	   p_abs,
 		  const VECTOR&  	   t_abs,           
 		  const VECTOR&            vmr,

@@ -15,15 +15,14 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*-----------------------------------------------------------------------
-FILE:      m_wfs.cc
 
-INCLUDES:  
+/////////////////////////////////////////////////////////////////////////////
+//
+// This file contains functions to calculate weightings functions (WFs)
+// some variables.
+//
+/////////////////////////////////////////////////////////////////////////////
 
-FUNCTIONS: 
-
-HISTORY:   
------------------------------------------------------------------------*/
 
 #include "arts.h"
 #include "vecmat.h"
@@ -451,30 +450,37 @@ void klos1d (
               const ARRAYofMATRIX&   trans,
               const VECTOR&          y,
               const VECTOR&          y_space,
-              const VECTOR&          f_abs,
+              const VECTOR&          f_mono,
               const VECTOR&          e_ground,
               const Numeric&         t_ground )
 {
-  const size_t  nfi = los.start.dim();   // number of viewing angles  
-  const size_t  nf  = f_abs.dim();       // number of frequencies  
+  const size_t  nza = los.start.dim();   // number of zenith angles  
+  const size_t  nf  = f_mono.dim();      // number of frequencies  
         VECTOR  yp(nf);                  // part of Y
         size_t  iy, iy0=0;               // y indices
 
   // Set up vector for ground blackbody radiation
   VECTOR   y_ground; 
   if ( any(los.ground) )
-    planck( y_ground, f_abs, t_ground );
+    planck( y_ground, f_mono, t_ground );
 
   // Resize the LOS WFs array
-  k.newsize(nfi);
+  k.newsize(nza);
 
-  // Loop viewing angles
-  for (size_t i=1; i<=nfi; i++ ) 
+  // Loop zenith angles
+  out3 << "    Zenith angle nr:\n      ";
+  for (size_t i=1; i<=nza; i++ ) 
   {
+    if ( (i%20)==0 )
+      out3 << "\n      ";
+    out3 << " " << i;
+    // Put in command to flush output stream
+
     // Do something only if LOS has any points
     if ( los.p(i).dim() > 0 )
     {
-      // Pick out the part of Y corresponding to the present viewing angle
+
+      // Pick out the part of Y corresponding to the present zenith angle
       for ( iy=1; iy<=nf; iy++ )    
         yp(iy) = y(iy0+iy);
       iy0 += nf;        
@@ -498,6 +504,7 @@ void klos1d (
                         e_ground, y_ground );
     }
   }
+  out3 << "\n";
 }
 
 
@@ -514,7 +521,7 @@ void kSpecies1d (
               const MATRIX&          Abs,
               const VECTOR&          p_grid )
 {
-  const size_t  nfi = los.start.dim();   // number of viewing angles  
+  const size_t  nza = los.start.dim();   // number of zenith angles  
   const size_t  nf  = Abs.dim(1);        // number of frequencies
   const size_t  np  = p_grid.dim();      // number of retrieval points  
         MATRIX  Abs2;                    // absorption at p_grid
@@ -528,15 +535,21 @@ void kSpecies1d (
         size_t  i1, iw;                  // weight index
 
   // Resize K and set all values to 0
-  K.newsize(nfi*nf,np);
+  K.newsize(nza*nf,np);
   K = 0.0;
 
   // Determine the absorption at the retrieval points
   interpp( Abs2, p_abs, Abs, p_grid );
 
-  // Loop viewing angles
-  for (size_t i=1; i<=nfi; i++ ) 
+  // Loop zenith angles
+  out3 << "    Zenith angle nr:\n      ";
+  for (size_t i=1; i<=nza; i++ ) 
   {
+    if ( (i%20)==0 )
+      out3 << "\n      ";
+    out3 << " " << i;
+    // Put in command to flush output stream
+
     // Do something only if LOS has any points
     if ( los.p(i).dim() > 0 )
     {
@@ -571,6 +584,7 @@ void kSpecies1d (
     // Update the frequency index offset
     iv0 += nf;
   }  
+  out3 << "\n";
 }
 
 void hTest(// WS Output:

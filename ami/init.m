@@ -19,6 +19,8 @@ function init
 %=== Extend the Matlab search path to include the AMI dirs.
 %= As a start, it is assumed that this script is executed in the top AMI dir
 addpath(pwd);
+addpath([pwd,'/general']);
+addpath([pwd,'/hmatrix']);
 
 
 %=== Define global physical constants

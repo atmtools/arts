@@ -717,7 +717,7 @@ void write_lines_to_stream(ostream& os,
 
 
 void abs_species( MATRIX&                  abs,
-		  const VECTOR&  	   f_abs,
+		  const VECTOR&  	   f_mono,
 		  const VECTOR&  	   p_abs,
 		  const VECTOR&  	   t_abs,           
 		  const VECTOR&            vmr,
@@ -728,7 +728,7 @@ void abs_species( MATRIX&                  abs,
 
   // Define the vector for the line shape function here, so that we
   // don't need so many free store allocations.
-  VECTOR ls(f_abs.dim());
+  VECTOR ls(f_mono.dim());
 
   // Check that p_abs, t_abs, and vmr all have the same
   // dimension. This could be a user error, so we throw a
@@ -752,15 +752,15 @@ void abs_species( MATRIX&                  abs,
       throw runtime_error(os.str());
     }
 
-  // Check that the dimension of abs is indeed [f_abs.dim(),
+  // Check that the dimension of abs is indeed [f_mono.dim(),
   // p_abs.dim()]:
-  if ( abs.dim(1) != f_abs.dim() || abs.dim(2) != p_abs.dim() )
+  if ( abs.dim(1) != f_mono.dim() || abs.dim(2) != p_abs.dim() )
     {
       ostringstream os;
-      os << "Variable abs must have dimensions [f_abs.dim(),p_abs.dim()].\n"
+      os << "Variable abs must have dimensions [f_mono.dim(),p_abs.dim()].\n"
 	 << "[abs.dim(1),abs.dim(2)] = [" << abs.dim(1)
 	 << ", " << abs.dim(2) << "]\n"
-	 << "f_abs.dim() = " << f_abs.dim() << '\n'
+	 << "f_mono.dim() = " << f_mono.dim() << '\n'
 	 << "p_abs.dim() = " << p_abs.dim();
       throw runtime_error(os.str());
     }
@@ -821,7 +821,7 @@ void abs_species( MATRIX&                  abs,
 	intensity = intensity * lines[l].IsotopeData().Abundance();
 
 	// 2. Get pressure broadened line width:
-	// (Agam is in Hz/Pa, p_abs is in Pa, f_abs is in Hz,
+	// (Agam is in Hz/Pa, p_abs is in Pa, f_mono is in Hz,
 	// gamma is in Hz/Pa)
 	// FIXME: This is inefficient, the scaling to Hz could be
 	// stored in lines.
@@ -842,10 +842,10 @@ void abs_species( MATRIX&                  abs,
 				     lines[l].F(),
 				     gamma,
 				     0,
-				     f_abs);
+				     f_mono);
 
 	// Add line to abs:
-	for ( size_t j=1; j<=f_abs.dim(); ++j )
+	for ( size_t j=1; j<=f_mono.dim(); ++j )
 	  {
 	    abs(j,i) = abs(j,i)
 	      + p_partial * intensity * ls(j);

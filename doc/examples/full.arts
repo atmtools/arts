@@ -18,11 +18,11 @@ VectorNLogSpace (p_abs)    { start = 1.013300e+05
 VectorWriteToFile (p_abs)  {""}
 AtmFromRaw1D               {}
 VectorWriteToFile (z_abs)  {""}
-VectorLinSpace (f_abs)     { start = 22.188e+9
+VectorLinSpace (f_mono)    { start = 22.188e+9
                              stop  = 22.270e+9
 #                             n     = 1164 
 		             step  = 1e5       }
-VectorWriteToFile (f_abs)  {""}
+VectorWriteToFile (f_mono) {""}
 absCalc                    {}
 MatrixWriteToFile (abs)    {""}
 
@@ -41,8 +41,8 @@ VectorSet  (e_ground) { length = 1164
 
 # Observation geometry
 NumericSet (z_plat) { 20e3 }
-VectorSet  (view1)  { length = 1
-                      value  = 45 }
+VectorSet  (za_pencil) { length = 1
+                         value  = 45 }
 NumericSet (l_step) { 0.5e3 }
 
 # Cosmic radiation

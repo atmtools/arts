@@ -471,7 +471,7 @@ void define_md_data()
       ( NAME("AllAbsExample"),
 	DESCRIPTION("Reads all important absorption related variables\n"
 		    "from the given files."),
-	OUTPUT(f_abs_, p_abs_, t_abs_, abs_),
+	OUTPUT(f_mono_, p_abs_, t_abs_, abs_),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
@@ -489,7 +489,7 @@ void define_md_data()
 		    "dependence is not calculated. This method is\n"
 		    "really only for demonstration."),
 	OUTPUT(	    abs_  , abs_per_tg_                         ),
-	INPUT( 	    f_abs_, p_abs_, t_abs_, vmrs_, lines_per_tg_ ),
+	INPUT( 	    f_mono_, p_abs_, t_abs_, vmrs_, lines_per_tg_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -511,7 +511,7 @@ void define_md_data()
           "must be set when using this function. The ground altitude must\n"
           "also be specified."),
 	OUTPUT(los_),
-	INPUT( z_plat_ ,view1_, l_step_, p_abs_, z_abs_, 
+	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, 
                refr_, l_step_refr_, refr_index_, z_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -525,7 +525,7 @@ void define_md_data()
           "Determines the LOS for a 1D atmosphere without refraction.\n"
           "The ground altitude must be specified."),
 	OUTPUT(los_),
-	INPUT( z_plat_ ,view1_, l_step_, p_abs_, z_abs_, z_ground_ ),
+	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, z_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -539,7 +539,7 @@ void define_md_data()
           "neglecting refraction.\n"
           "Refraction and ground altitude variables are NOT needed."),
 	OUTPUT(los_),
-	INPUT( z_plat_ ,view1_, l_step_, p_abs_, z_abs_ ),
+	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -556,7 +556,7 @@ void define_md_data()
           "the two LOS points limiting the step. The temperature at the LOS\n"
           "points is obtained by linear interpolation"),
 	OUTPUT( source_ ),
-	INPUT( los_, p_abs_, t_abs_, f_abs_ ),
+	INPUT( los_, p_abs_, t_abs_, f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -587,7 +587,7 @@ void define_md_data()
           "  1 cosmic background radiation (planck for 2.7 K)\n"
           "  2 solar radiation (planck for 6000 K)"),
 	OUTPUT( y_space_ ),
-	INPUT( f_abs_ ),
+	INPUT( f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS("nr"),
@@ -600,7 +600,7 @@ void define_md_data()
           "Sets the radiation entering the atmosphere at the start of the\n"
           "LOS to the Planck function for the given temperature."),
 	OUTPUT( y_space_ ),
-	INPUT( f_abs_ ),
+	INPUT( f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS("temp"),
@@ -614,7 +614,7 @@ void define_md_data()
           "LOS. With other words, both absorption and emission are\n"
           "considered."),
 	OUTPUT( y_ ),
-	INPUT( los_, f_abs_, y_space_, source_, trans_, e_ground_, t_ground_ ),
+	INPUT( los_, f_mono_, y_space_, source_, trans_, e_ground_, t_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -628,7 +628,7 @@ void define_md_data()
           "intersection with the ground. The ground emission and \n"
           "temperature are NOT needed when using this function."),
 	OUTPUT( y_ ),
-	INPUT( los_, f_abs_, y_space_, source_, trans_ ),
+	INPUT( los_, f_mono_, y_space_, source_, trans_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -674,7 +674,7 @@ void define_md_data()
           "intensity with respect to the absorption at the LOS points.\n"
           "See further the ARTS user guide."),
 	OUTPUT( klos_ ),
-	INPUT( los_, source_, trans_, y_, y_space_, f_abs_, e_ground_, t_ground_ ),
+	INPUT( los_, source_, trans_, y_, y_space_, f_mono_, e_ground_, t_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

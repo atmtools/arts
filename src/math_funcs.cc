@@ -15,33 +15,20 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*-----------------------------------------------------------------------
-FILE:      math_funcs.cc
 
-INCLUDES:  This file contains basic mathematical functions.
+/////////////////////////////////////////////////////////////////////////////
+//
+// This file contains basic mathematical and vector/matrix functions.
+// Example on types of functions:
+//	    1. Element-wise application of common scalar functions 
+//          2. Boolean functions
+//	    3. Creation of common vectors
+//	    4. Interpolation routines
+//	    5. Integration routines
+//          6. Conversion between vector and matrix types
+//
+/////////////////////////////////////////////////////////////////////////////
 
-           The functions are of different types:
-	    1. Element-wise application of common scalar functions 
-            2. Boolean functions
-	    3. Creation of common vectors
-	    4. Interpolation routines
-	    5. Integration routines
-            6. Conversion between vector and matrix types
-
-FUNCTIONS: sqrt, exp, log, min, max, first, last 
-           any
-           linspace, nlinspace and nlogspace
-           interp_lin, interp_lin_row
-           integr_lin
-           to_matrix, to_vector
-
-HISTORY:   27.06.1999 Created by Patrick Eriksson.
-	   23.03.2000 Stefan Buehler: Adapted to new ARRAY<>, VECTOR and
-	              MATRIX types.
-           07.04.2000 Patrick Eriksson: Added text for doc++ and nlogspace.
-           12.04.2000 Patrick Eriksson: Allowed interpolation of decreasing 
-                      grids.
------------------------------------------------------------------------*/
 
 #include "arts.h"
 #include "math_funcs.h"

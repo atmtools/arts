@@ -1,3 +1,62 @@
+2000-08-31  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-43
+
+        * Put in a check command in z2p to handle limb observations
+        outside the atmosphere.
+
+	* Changed name on the workspace variables f_abs and view1 to
+	f_mono and za_pencil, respectively.
+       Za stands for zenith angle. I think this is a better name than 
+       viewing angle 1. Zenith angle is a clearer description and I guess
+       that there never will be a view2 (it could for example be called orbit
+       angle).
+       F_abs or f_mono (i.e. monochromatic frequencies) doesn't really matter.
+       I just think f_mono fits za_pencil better.
+
+        * AMI functions for reading and writing data renamed. To read
+        any file having ARTS data format, use read_datafile. To read
+        a ARTS variable, where the last extension is .am, use read_artsvar.
+        Corresponding write functions exist. 
+
+        * read_tb removed. Conversion to brightness temperature now treated
+        as part of H (see below).
+
+       * A first set of functions to set up the sensor and data reduction
+       transfer matrices. These functions are found in ami/hmatrix.
+       Some simple tests have been performed but final debugging is not yet 
+       done.
+       
+       Basic facts:
+       - A single frequency grid is valid for all zenith angles if no data 
+       reduction is performed.
+       - With data reduction, all combinations of frequencies and angles
+       are allowed.
+       - To apply a possible data reduction on covariance matrix for thermal
+       noise and weighting functions for baseline ripple terms, the data
+       reduction transfer matrix must be known. To set up baseline ripple WFs,
+       the final zenith angles and frequencies of the sensor must also be
+       known. 
+
+       To handle these facts, there are 6 main variables:
+         H         Total transfer matrix. Conversion from monchromatic pencil
+                   beam spectra to final, possibly data reduced, measurement
+                   vector.
+         Hd        Transfer matrix for data reduction. Conversion from sensor
+                   output to final measurement vector.
+         f_sensor  Centre frequency of the spectrometer channels (assumed to
+                   be identical for all angles).
+         za_angles Zenith angles observed by the sensor.
+         f_y       The frequency of each element of the measurement vector, y
+                   (has the same length as y in contrast to f_sensor)
+         za_y      The zenith angle of each element of the measurement 
+                   vector, y (has the same length as y).
+
+       * Some example file to use these functions will be delivered.
+
+       * To do: the widths of the channels must be included in some way for
+       correct calculation of thermal noise.
+
 2000-08-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-42

@@ -15,35 +15,16 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*-----------------------------------------------------------------------
-FILE:      m_los.cc
 
-INCLUDES:  This file includes functions for a 1D atmosphere to determine:
-            1. the line of sight (LOS)
-            2. variables along LOS needed for the radiative transfer 
-               equation (RTE)
-            3. Integration of the RTE
-
-           The LOS is defined by a structure of type Los, defined in
-           los.h. The first point of LOS (index 1) is here
-           placed at the tangent point, the ground or the platform,
-           that is, data are stored with increasing altitudes. When
-           applicable, LOS is assumed to be symmetric around either
-           the tangent point, or the point of ground reflection.
-           Points/data are for such cases stored only for half of the
-           LOS. This in order to save memory and computational time.
-           The user defined step length is applied besides for
-           downward observations inside the atmosphere where the step
-           length is adjusted to get an integer number of steps
-           between the sensor and the tangent aor ground point. The
-           new step length is made smaller than the user defined one.
-
-           The algorithms used here are described in the ARTS user guide.
-
-FUNCTIONS: !!
-
-HISTORY:   27.06.99 Created by Patrick Eriksson.
------------------------------------------------------------------------*/
+/////////////////////////////////////////////////////////////////////////////
+//
+// This file contains functions to determine the line of sight (LOS)
+// to calculate variables along the LOS and to solve the radiative transfer
+// along the LOS.
+// Functions in this file assumes LTE and no scattering
+// The LOS is defined by a structure of type Los, defined in los.h.
+//
+/////////////////////////////////////////////////////////////////////////////
 
 
 #include "arts.h"
@@ -77,7 +58,7 @@ extern const Numeric SUN_TEMP;
 void upward_geom(
               VECTOR&       z,
         const Numeric&      z_plat,
-        const Numeric&      view,
+        const Numeric&      za,
         const Numeric&      l_step,
         const Numeric&      z_abs_max )
 {
@@ -85,19 +66,19 @@ void upward_geom(
   Numeric  llim;          // distance to atmospheric limit
   VECTOR   l;             // distance from sensor
 
-  if ( view > 90 )
-    throw logic_error("Upward function used for viewing angle > 90 deg."); 
+  if ( za > 90 )
+    throw logic_error("Upward function used for zenith angle > 90 deg."); 
 
   a     = EARTH_RADIUS + z_abs_max;
-  b     = (EARTH_RADIUS + z_plat)*sin(DEG2RAD*view);
-  llim  = sqrt(a*a-b*b) - (EARTH_RADIUS+z_plat)*cos(DEG2RAD*view) ;
+  b     = (EARTH_RADIUS + z_plat)*sin(DEG2RAD*za);
+  llim  = sqrt(a*a-b*b) - (EARTH_RADIUS+z_plat)*cos(DEG2RAD*za) ;
   if ( llim < l_step )  
     z.newsize(0);         // If only one point, return empty vector
   else
   {
     l = linspace( 0, llim, l_step );
     b = EARTH_RADIUS + z_plat;  
-    z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*view))*l) - EARTH_RADIUS;
+    z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*za))*l) - EARTH_RADIUS;
   }
 }
 
@@ -143,9 +124,9 @@ void space_geom(
   // Intersection with the ground
   else
   {
-    // Determine the "viewing angle" at ground level and call upward function 
-    Numeric view = RAD2DEG*asin((EARTH_RADIUS+z_tan)/(EARTH_RADIUS+z_ground));
-    upward_geom( z, z_ground, view, l_step, z_abs_max );    
+    // Determine the "zenith angle" at ground level and call upward function 
+    Numeric za = RAD2DEG*asin((EARTH_RADIUS+z_tan)/(EARTH_RADIUS+z_ground));
+    upward_geom( z, z_ground, za, l_step, z_abs_max );    
   }
 }
 
@@ -165,21 +146,21 @@ void space_geom(
 void los_no_refr_space(
                     Los&        los,
               const Numeric&    z_plat,
-              const VECTOR&     view,
+              const VECTOR&     za,
               const Numeric&    l_step,
               const Numeric&    z_abs_max,
               const Numeric&    z_ground )
 {
   Numeric z_tan;           // the tangent altitude
-  int     n = view.dim();  // the number of viewing angles
+  int     n = za.dim();  // the number of zenith angles
 
   // The step length is here throughout l_step
   los.l_step = l_step;
 
-  // Loop the viewing angles
+  // Loop the zenith angles
   for ( int i=1; i<=n; i++ )
   { 
-    z_tan = ztan_geom( view(i), z_plat);
+    z_tan = ztan_geom( za(i), z_plat);
     space_geom( los.p(i), z_tan, l_step, z_abs_max, z_ground );
     los.start(i)  = los.p(i).dim();
     los.stop(i)   = los.start(i);
@@ -202,21 +183,21 @@ void los_no_refr_space(
 void los_no_refr_inside(
                     Los&        los,
               const Numeric&    z_plat,
-              const VECTOR&     view,
+              const VECTOR&     za,
               const Numeric&    l_step,
               const Numeric&    z_abs_max,
               const Numeric&    z_ground )
 {
   Numeric z_tan, a, b, c, l1;  // see below
-  int     n = view.dim();      // the number of viewing angles
+  int     n = za.dim();      // the number of zenith angles
 
-  // Loop the viewing angles
+  // Loop the zenith angles
   for ( int i=1; i<=n; i++ )
   { 
     // Upward
-    if ( view(i) <= 90 )
+    if ( za(i) <= 90 )
     {
-      upward_geom( los.p(i), z_plat, view(i), l_step, z_abs_max );    
+      upward_geom( los.p(i), z_plat, za(i), l_step, z_abs_max );    
       los.l_step(i) = l_step;           // l_step not changed
       los.start(i)  = los.p(i).dim();   // length of LOS
       los.stop(i)   = 1;                // stop index here always 1
@@ -227,7 +208,7 @@ void los_no_refr_inside(
     else
     {
       // Calculate the tangent altitude
-      z_tan = ztan_geom(view(i),z_plat);
+      z_tan = ztan_geom(za(i),z_plat);
 
       // Only through the atmosphere
       if ( z_tan >= z_ground )
@@ -274,7 +255,7 @@ void los_no_refr_inside(
 void los1d(
                     Los&        los,
               const Numeric&    z_plat,
-              const VECTOR&     view,
+              const VECTOR&     za,
               const Numeric&    l_step,
               const VECTOR&     p_abs,
               const VECTOR&     z_abs,
@@ -283,7 +264,7 @@ void los1d(
               const VECTOR&     refr_index,
               const Numeric&    z_ground )
 {     
-  size_t n = view.dim();  // number of viewing angles
+  size_t n = za.dim();  // number of zenith angles
 
   // Some checks                                                      
   if ( z_ground < z_abs(1) )
@@ -305,15 +286,27 @@ void los1d(
   // Get highest absorption altitude
   Numeric z_abs_max  =  last(z_abs);
 
+  // Print messages
+  if ( refr == 0 )
+    out2 << "  Calculating line of sights WITHOUT refraction.\n";
+  else if ( refr == 1 )
+    out2 << "  Calculating line of sights WITH refraction.\n";
+  else
+    throw runtime_error("The refraction flag can only be 0 or 1.");
+  out3 << "     z_plat: " << z_plat/1e3 << " km\n";
+  out3 << "     min za: " << min(za) << " degs.\n";
+  out3 << "     max za: " << max(za) << " degs.\n";
+
+
   // Without refraction
   if ( refr == 0 )
   {
     // The functions below calculates the vertical altitudes along LOS, 
     // stored temporarily in los.p.
     if ( z_plat >= z_abs_max )
-      los_no_refr_space( los, z_plat, view, l_step, z_abs_max, z_ground );
+      los_no_refr_space( los, z_plat, za, l_step, z_abs_max, z_ground );
     else
-      los_no_refr_inside( los, z_plat, view, l_step, z_abs_max, z_ground );
+      los_no_refr_inside( los, z_plat, za, l_step, z_abs_max, z_ground );
 
     // Convert altitudes to pressures.
     for ( size_t i=1; i<=n; i++ )
@@ -321,12 +314,9 @@ void los1d(
   } 
 
   // With refraction
-  else if ( refr == 1 )
+  else
   {
   }
-
-  else
-    throw runtime_error("The refraction flag can only be 0 or 1.");
 }
 
 
@@ -338,13 +328,13 @@ void los1d(
 void los1dNoRefraction(
                     Los&        los,
               const Numeric&    z_plat,
-              const VECTOR&     view,
+              const VECTOR&     za,
               const Numeric&    l_step,
               const VECTOR&     p_abs,
               const VECTOR&     z_abs,
               const Numeric&    z_ground )
 {
-  los1d( los, z_plat, view, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_ground); 
+  los1d( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_ground); 
 }
 
 
@@ -356,15 +346,15 @@ void los1dNoRefraction(
 void los1dUpward(
                     Los&        los,
               const Numeric&    z_plat,
-              const VECTOR&     view,
+              const VECTOR&     za,
               const Numeric&    l_step,
               const VECTOR&     p_abs,
               const VECTOR&     z_abs )
 {
-  if ( max(view) > 90 )
-    throw runtime_error("At least one viewing angle > 90 degrees, that is, not upwards.");
+  if ( max(za) > 90 )
+    throw runtime_error("At least one zenith angle > 90 degrees, that is, not upwards.");
 
-  los1d( los, z_plat, view, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_plat); 
+  los1d( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_plat); 
 }
 
 
@@ -378,21 +368,29 @@ void source1d(
               const Los&             los,   
               const VECTOR&          p_abs,
               const VECTOR&          t_abs,
-              const VECTOR&          f_abs )
+              const VECTOR&          f_mono )
 {     
         VECTOR   t1, t2;             // temperatures along the LOS
-  const size_t   n=los.start.dim();  // the number of viewing angles  
+  const size_t   n=los.start.dim();  // the number of zenith angles  
         size_t   j, n1;              // n1 is the number of pressure points
+
+  out2 << "  Calculating the source function for LTE and no scattering.\n";
  
   // Resize the source array
   source.newsize(n);
 
-  // Loop the viewing angles and:
+  // Loop the zenith angles and:
   //  1. interpolate the temperature
   //  2. take the mean of neighbouring values
   //  3. calculate the Planck function
+  out3 << "    Zenith angle nr:\n      ";
   for (size_t i=1; i<=n; i++ ) 
   {
+    if ( (i%20)==0 )
+      out3 << "\n      ";
+    out3 << " " << i;
+    // Put in command to flush output stream
+
     if ( los.p(i).size() > 0 )
     {
       interpp( t1, p_abs, t_abs, los.p(i) );
@@ -400,9 +398,10 @@ void source1d(
       t2.newsize(n1-1);
       for ( j=1; j<n1; j++ )
         t2(j) = ( t1(j) + t1(j+1) ) / 2.0;
-      planck( source(i), f_abs, t2 );
+      planck( source(i), f_mono, t2 );
     }
   }  
+  out3 << "\n";
 }
 
 
@@ -418,21 +417,29 @@ void trans1d(
               const MATRIX&          abs )
 {    
   // Some variables
-  const size_t   n = los.start.dim();// the number of viewing angles
+  const size_t   n = los.start.dim();// the number of zenith angles
   const size_t   nf = abs.dim(1);    // the number of frequencies
         size_t   np;                 // the number of pressure points
         size_t   row, col;           // counters
         MATRIX   abs2 ;              // matrix to store interpolated abs values
        Numeric   w;                  // = -l_step/2
+
+  out2 << "  Calculating transmissions WITHOUT scattering.\n";
  
   // Resize the transmission array
   trans.newsize(n);
 
-  // Loop the viewing angles and:
+  // Loop the zenith angles and:
   //  1. interpolate the absorption
   //  2. calculate the transmission using the mean absorption between points
+  out3 << "    Zenith angle nr:\n      ";
   for (size_t i=1; i<=n; i++ ) 
   {
+    if ( (i%20)==0 )
+      out3 << "\n      ";
+    out3 << " " << i;
+    // Put in command to flush output stream
+
     np = los.p(i).dim();
     if ( np > 0 )
     {
@@ -446,6 +453,7 @@ void trans1d(
       }
     }
   }    
+  out3 << "\n";
 }
 
 
@@ -463,13 +471,21 @@ void y_spaceStd(
   {
     y_space.newsize(f.dim());
     y_space = 0.0;
+    out2 << "  Setting y_space to zero.\n";
   }
   else if ( nr == 1 )
+  {
     planck( y_space, f, COSMIC_BG_TEMP );
+    out2 << "  Setting y_space to cosmic background radiation.\n";
+  }
   else if ( nr == 2 )
+  {
     planck( y_space, f, SUN_TEMP );
+    out2 << "  Setting y_space to blackbody radiation corresponding to the Sun temperature\n";
+  }
   else
     throw runtime_error("Possible choices for Y_SPACE are 0 - 2.");
+
 }
 
 
@@ -484,7 +500,10 @@ void y_spacePlanck(
               const Numeric&  t )
 {
   if ( t > 0 )
+  {
     planck( y_space, f, t );
+    out2<<"  Setting y_space to blackbody radiation for "<<t<<" K.\n";
+  }
   else
     throw runtime_error("The temperature must be > 0.");
 }
@@ -498,7 +517,7 @@ void y_spacePlanck(
 void yRte (
                     VECTOR&          y,
               const Los&             los,   
-              const VECTOR&          f_abs,
+              const VECTOR&          f_mono,
               const VECTOR&          y_space,
               const ARRAYofMATRIX&   source,
               const ARRAYofMATRIX&   trans,
@@ -506,11 +525,13 @@ void yRte (
               const Numeric&         t_ground )
 {
   // Some variables
-  const size_t   n=los.start.dim();  // Number of viewing angles 
-  const size_t   nf=f_abs.size();    // Number of frequencies 
+  const size_t   n=los.start.dim();  // Number of zenith angles 
+  const size_t   nf=f_mono.size();   // Number of frequencies 
         VECTOR   y_tmp;              // Temporary storage for spectra
         size_t   iy0=0;              // Reference index for output vector
         size_t   iy;                 // Frequency index
+
+  out2 << "  Integrating the radiative transfer eq. WITHOUT scattering.\n";
 
   // Resize y
   y.newsize(nf*n);
@@ -520,14 +541,21 @@ void yRte (
   VECTOR   y_ground; 
   if ( any(los.ground) )  
   {
-    planck( y_ground, f_abs, t_ground );
+    out2 << "  There are intersections with the ground.\n";
+    planck( y_ground, f_mono, t_ground );
     if ( e_ground.dim() != nf )
       throw runtime_error("The frequency and ground emission vectors have different lengths.");
   }
 
-  // Loop viewing angles
+  // Loop zenith angles
+  out3 << "    Zenith angle nr:\n      ";
   for ( size_t i=1; i<=n; i++ )
   {
+    if ( (i%20)==0 )
+      out3 << "\n      ";
+    out3 << " " << i;
+    // Put in command to flush output stream
+
     // Iteration is done in seperate function    
     rte( y_tmp, los.start(i), los.stop(i), trans(i), 
                  source(i), y_space, los.ground(i), e_ground, y_ground);
@@ -537,6 +565,7 @@ void yRte (
       y(iy0+iy) = y_tmp(iy);
     iy0 += nf;                    // update iy0
   }
+  out3 << "\n";
 }
 
 
@@ -548,7 +577,7 @@ void yRte (
 void yRteNoGround (
                     VECTOR&          y,
               const Los&             los,   
-              const VECTOR&          f_abs,
+              const VECTOR&          f_mono,
               const VECTOR&          y_space,
               const ARRAYofMATRIX&   source,
               const ARRAYofMATRIX&   trans )
@@ -556,7 +585,7 @@ void yRteNoGround (
   if ( any(los.ground) )  
     throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
 
-  yRte( y, los, f_abs, y_space, source, trans, 0.0, 0.0 );
+  yRte( y, los, f_mono, y_space, source, trans, 0.0, 0.0 );
 }
 
 
@@ -572,11 +601,13 @@ void yBl (
               const VECTOR&          e_ground )
 {
   // Some variables
-  const size_t   n=los.start.dim();    // Number of viewing angles 
+  const size_t   n=los.start.dim();    // Number of zenith angles 
   const size_t   nf=trans(1).dim(1);   // Number of frequencies 
         size_t   iy0=0;                // Reference index for output vector
         size_t   iy;                   // Frequency index
         VECTOR   y_tmp;              // Temporary storage for spectra
+
+  out2 << "  Calculating total transmission WITHOUT scattering.\n";
 
   // Resize y and set to 1
   y.newsize(nf*n);
@@ -585,13 +616,20 @@ void yBl (
   // Check if the ground emission vector has the correct length
   if ( any(los.ground) )  
   {
+    out2 << "  There are intersections with the ground.\n";
     if ( e_ground.dim() != nf )
       throw runtime_error("The frequency and ground emission vectors have different lengths.");
   }
         
-  // Loop viewing angles
+  // Loop zenith angles
+  out3 << "    Zenith angle nr:\n      ";
   for ( size_t i=1; i<=n; i++ )
   {
+    if ( (i%20)==0 )
+      out3 << "\n      ";
+    out3 << " " << i;
+    // Put in command to flush output stream
+
     // Iteration is done in seperate function    
     bl( y_tmp, los.start(i), los.stop(i), trans(i), los.ground(i), e_ground );
 
@@ -600,6 +638,7 @@ void yBl (
       y(iy0+iy) = y_tmp(iy);
     iy0 += nf;                    // update iy0
   }
+  out3 << "\n";
 }
 
 
@@ -620,29 +659,3 @@ void yBlNoGround (
 }
 
 
-/* Old code from yBl
-
-    // Loop steps passed twice
-    for ( j=1; j<los.stop(i); j++ )
-    {
-      for ( iy=1; iy<=nf; iy++ )    
-        y(iy0+iy) *= trans(i)(iy,j)*trans(i)(iy,j);
-    }
-
-    // Loop remaining steps
-    for ( j=los.stop(i); j<los.start(i); j++ )
-    {
-      for ( iy=1; iy<=nf; iy++ )    
-        y(iy0+iy) *= trans(i)(iy,j);
-    }
-
-    // Include effect of ground reflection
-    if ( los.ground(i) )
-    {
-      for ( iy=1; iy<=nf; iy++ )    
-        y(iy0+iy) *= ( 1.0 - e_ground(iy) );
-    }
-   
-    // Update iy0
-    iy0 += nf;  
-*/   

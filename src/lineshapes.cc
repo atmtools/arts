@@ -33,18 +33,18 @@
 
 /*! The Lorentz line shape. This is a quick and dirty implementation.
 
-    \retval ls   The shape function.
-    \param  f0    Line center frequency.
-    \param  gamma The pressure broadening parameter.
-    \param  sigma The Doppler broadening parameter. (Not used.)
-    \param  f_abs The frequency grid.
+    \retval ls     The shape function.
+    \param  f0     Line center frequency.
+    \param  gamma  The pressure broadening parameter.
+    \param  sigma  The Doppler broadening parameter. (Not used.)
+    \param  f_mono The frequency grid.
 
     \author Stefan Buehler 16.06.2000 */
 void lineshape_lorentz(VECTOR&       ls,
 		       Numeric	      f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
-		       const VECTOR& f_abs)
+		       const VECTOR& f_mono)
 {
   // FIXME: Maybe try if call by reference is faster for f0 and gamma?
 
@@ -52,11 +52,11 @@ void lineshape_lorentz(VECTOR&       ls,
   extern const Numeric PI;
   static const Numeric invPI = 1. / PI;
 
-  assert( ls.dim() == f_abs.dim() );
+  assert( ls.dim() == f_mono.dim() );
 
-  for ( size_t i=0; i<f_abs.dim(); ++i )
+  for ( size_t i=0; i<f_mono.dim(); ++i )
     {
-      ls[i] = invPI * gamma / ( pow( f_abs[i]-f0, 2) + pow(gamma,2) );
+      ls[i] = invPI * gamma / ( pow( f_mono[i]-f0, 2) + pow(gamma,2) );
     }
 }
 

@@ -15,15 +15,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*-----------------------------------------------------------------------
-FILE:      los.h
 
-INCLUDES:  The declaration of the Los data type.
+/////////////////////////////////////////////////////////////////////////////
+//
+// This file contains the definition of the LOS structure
+//
+/////////////////////////////////////////////////////////////////////////////
 
-FUNCTIONS: None
-
-HISTORY:   10.06.2000 Created by Stefan Buehler
------------------------------------------------------------------------*/
 
 #ifndef los_h
 #define los_h
@@ -47,7 +45,12 @@ HISTORY:   10.06.2000 Created by Stefan Buehler
     \endverbatim
 
     The LOS is defined in equal long geometrical steps along the path.
-    This step length (L_STEP) can vary between the viewing angles.
+    This step length (L_STEP) is set to the user defined value, 
+    beside for downward observations inside the atmosphere where L_STEP
+    is adjusted to the distance between the sensor and the tangent point,
+    or the ground. The latter adjustment is done in such way that an integer 
+    number of steps is obtained between the two points. The highest
+    possible value for L_STEP below the used defined value is selected.
 
     Spectra are calculated in the following way (by RTE_ITERATE in m_los):
     \begin{enumerate}

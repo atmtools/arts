@@ -23,7 +23,7 @@ VectorWriteToFile (p_abs)  {""}
 
 AtmFromRaw1D               {}
 
-VectorNLinSpace (f_abs)     { start =  200e9
+VectorNLinSpace (f_mono)    { start =  200e9
                               stop  =  220e9
 	  	              n     =  1000   }
 

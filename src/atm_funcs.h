@@ -16,9 +16,12 @@
    USA. */
 
 
-//==========================================================================
-//=== Physical functions.
-//==========================================================================
+/////////////////////////////////////////////////////////////////////////////
+//
+// This file contains functions releated to atmospheric physics or geometry.
+//
+/////////////////////////////////////////////////////////////////////////////
+
 
 /** Calculates a blackbody radiation (the Planck function) matrix.
     Each row of the returned matrix corresponds to a frequency, while each
@@ -56,12 +59,12 @@ void planck (
     That is, refraction is neglected.
 
     @return        the tangent altitude
-    @param view    the angle between zenith and the LOS
+    @param za      the angle between zenith and the LOS
     @param z_plat  the platform altitude
 
     @author Patrick Eriksson 08.04.2000 */
 Numeric ztan_geom(
-        const Numeric&     view,
+        const Numeric&     za,
         const Numeric&     z_plat );
 
 
@@ -70,7 +73,7 @@ Numeric ztan_geom(
 //=== Core functions for RTE and BL 
 //==========================================================================
 
-/** Performs a single iteration for RTE calculations (one viewing angle).
+/** Performs a single iteration for RTE calculations (one zenith angle).
     The vector Y is not initilised, the obtained values are added to Y.
     Note that only a single iteration is performed. The ground is not 
     taken into account.     
@@ -95,9 +98,9 @@ void rte_iterate (
 
 
 
-/** Performs the RTE calculations for one viewing angle.
+/** Performs the RTE calculations for one zenith angle.
     This function allows calculation of emission spectra for single
-    viewing angles in function beside yRteXx.
+    zenith angles in function beside yRteXx.
         
     @param y             output: the spectrum
     @param start_index   start index for the integration
@@ -122,7 +125,7 @@ void rte (
        const VECTOR&   y_ground );
 
 
-/** Performs a single iteration for BL calculations (one viewing angle).
+/** Performs a single iteration for BL calculations (one zenith angle).
     The vector Y is not initilised, Y is multiplied with the obtained values.
     Note that only a single iteration is performed. The ground is not 
     taken into account.     
@@ -146,9 +149,9 @@ void bl_iterate (
 
 
 
-/** Performs the BL (transmission) calculations for one viewing angle.
+/** Performs the BL (transmission) calculations for one zenith angle.
     This function allows calculation of transmission spectra for single
-    viewing angles in functions beside yBlXx.
+    zenith angles in functions beside yBlXx.
         
     @param y             output: the spectrum
     @param start_index   start index for the integration

@@ -545,17 +545,17 @@ void AtmFromRaw1D(// WS Output:
 }
 
 void AllAbsExample(// WS Output:
-                   VECTOR& f_abs,
+                   VECTOR& f_mono,
                    VECTOR& p_abs,
                    VECTOR& t_abs,
                    MATRIX& abs)
 {
   // Patrick, you can set these variables to reasonable
   // values here to have a test case.
-  f_abs = VECTOR(3,"500e9 501e9 502e9");
+  f_mono = VECTOR(3,"500e9 501e9 502e9");
   p_abs = VECTOR(4,"1000 100 10 1");
   t_abs = VECTOR(4,"300 250 260 290");
-  abs   = MATRIX(f_abs.size(),p_abs.size(),
+  abs   = MATRIX(f_mono.size(),p_abs.size(),
 		 "1000 800 600 400 "
 		 "1001 801 601 401 "
 		 "1002 802 602 402 ");
@@ -570,7 +570,7 @@ void AllAbsExample(// WS Output:
       throw runtime_error(os.str());
     }
 
-//   out3 << "f_abs:\n" << f_abs << '\n';
+//   out3 << "f_mono:\n" << f_mono << '\n';
 //   out3 << "p_abs:\n" << p_abs << '\n';
 //   out3 << "t_abs:\n" << t_abs << '\n';
 //   out3 << "abs:\n"   << abs << '\n';
@@ -581,7 +581,7 @@ void absCalc(// WS Output:
              MATRIX&        		     abs,
              ARRAYofMATRIX& 		     abs_per_tg,
              // WS Input:		  
-             const VECTOR&  		     f_abs,
+             const VECTOR&  		     f_mono,
              const VECTOR&  		     p_abs,
              const VECTOR&  		     t_abs,           
              const ARRAYofVECTOR&            vmrs,
@@ -600,7 +600,7 @@ void absCalc(// WS Output:
   
   // Initialize abs and abs_per_tg. The array dimension of abs_per_tg
   // is the same as that of lines_per_tag.
-  abs.newsize(f_abs.dim(), p_abs.dim());
+  abs.newsize(f_mono.dim(), p_abs.dim());
   abs = 0;
   abs_per_tg.clear();
   abs_per_tg.newsize(lines_per_tg.dim());
@@ -611,11 +611,11 @@ void absCalc(// WS Output:
       out2 << "  Tag group " << i+1 << '\n';
       
       // Make this element of abs_per_tg the right size:
-      abs_per_tg[i].newsize(f_abs.dim(), p_abs.dim());
+      abs_per_tg[i].newsize(f_mono.dim(), p_abs.dim());
       abs_per_tg[i] = 0;
 
       abs_species( abs_per_tg[i],
-		   f_abs,
+		   f_mono,
 		   p_abs,
 		   t_abs,
 		   vmrs[i],

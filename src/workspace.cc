@@ -112,8 +112,9 @@ void define_wsv_data()
   
   wsv_data.push_back
     (WsvRecord
-     ("f_abs",
-      "The frequency grid for the absorption coefficients [GHz].",
+     ("f_mono",
+      "The monochromatic frequency grid [Hz]. This grid is used when\n"
+      "calculating absorption and pencil b",
       VECTOR_));
     
 
@@ -156,7 +157,7 @@ void define_wsv_data()
       "dimension. This dimension must be consistent with t_abs_2d\n"
       "and z_abs_2d."
       "\n"
-      "The matrix dimensions are [f_abs.dim(),p_abs.dim()].", 
+      "The matrix dimensions are [f_mono.dim(),p_abs.dim()].", 
       ARRAYofMATRIX_));
 
 
@@ -185,7 +186,7 @@ void define_wsv_data()
     (WsvRecord
      ("abs",
       "The matrix of absorption coefficients (in units of [1/m]).\n"
-      "Dimensions: [f_abs.dim(), p_abs.dim()]",
+      "Dimensions: [f_mono.dim(), p_abs.dim()]",
       MATRIX_));
 
   wsv_data.push_back
@@ -201,8 +202,9 @@ void define_wsv_data()
   //                     ----------
   wsv_data.push_back
     (WsvRecord
-     ("view1",
-      "Viewing angle 1, the angle between zenith and the LOS [deg].",
+     ("za_pencil",
+      "Pencil beam zenith angle, the angle between zenith and the LOS [deg].\n"
+      "This grid is applied when calculating pecil beam spectra",
       VECTOR_));
 
   wsv_data.push_back
@@ -250,7 +252,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("e_ground",
-      "The ground emission factor for the frequencies in f_abs [0-1].",
+      "The ground emission factor for the frequencies in f_mono [0-1].",
       VECTOR_));
 
   wsv_data.push_back

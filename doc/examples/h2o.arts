@@ -6,7 +6,7 @@ VectorNLogSpace (p_abs)    { start = 1.013300e+05
                              stop  = 3.206078e-02
                              n     = 201 }
 VectorReadFromFile (t_abs) {""}   
-VectorReadFromFile (f_abs) {""}   
+VectorReadFromFile (f_mono){""}   
 MatrixReadFromFile (abs)   {""}   
 
 # Refraction
@@ -23,8 +23,8 @@ VectorSet  (e_ground) { length = 1164
 
 # Observation geometry
 NumericSet (z_plat) { 20e3 }
-VectorSet  (view1)  { length = 1
-                      value  = 45 }
+VectorSet  (za_pencil) { length = 1
+                         value  = 45 }
 NumericSet (l_step) { 0.5e3 }
 
 # Cosmic radiation

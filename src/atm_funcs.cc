@@ -15,15 +15,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*-----------------------------------------------------------------------
-FILE:      atm_funcs.cc
 
-INCLUDES:  Functions releated to atmospheric physics or geometry.
+/////////////////////////////////////////////////////////////////////////////
+//
+// This file contains functions releated to atmospheric physics or geometry.
+//
+/////////////////////////////////////////////////////////////////////////////
 
-FUNCTIONS: ztan_geom
-
-HISTORY:   10.04.00 Started by Patrick Eriksson.
------------------------------------------------------------------------*/
 
 #include "arts.h"
 #include "vecmat.h"
@@ -97,12 +95,12 @@ void planck (
 // Patrick Eriksson 08.04.00
 
 Numeric ztan_geom(
-        const Numeric&     view,
+        const Numeric&     za,
         const Numeric&     z_plat )
 {
   Numeric  z_tan;
-  if ( view >= 90 )   
-    z_tan = (EARTH_RADIUS+z_plat)*sin(DEG2RAD*view) - EARTH_RADIUS; 
+  if ( za >= 90 )   
+    z_tan = (EARTH_RADIUS+z_plat)*sin(DEG2RAD*za) - EARTH_RADIUS; 
   else
     z_tan = 9.9999e6;
   return z_tan;
@@ -302,7 +300,8 @@ void z2p(
         const VECTOR&     p0,
         const VECTOR&     z )
 {
-  p = exp( interp_lin( z0, log(p0), z ) );
+  if ( z.dim() > 0 )
+    p = exp( interp_lin( z0, log(p0), z ) );
 }
 
 

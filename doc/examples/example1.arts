@@ -71,15 +71,15 @@ AtmFromRaw1D{}
 #ArrayOfVectorWriteToFile (vmrs)  {""}
 
 
-# Create the frequency grid `f_abs':
-VectorNLinSpace(f_abs){
+# Create the frequency grid `f_mono':
+VectorNLinSpace(f_mono){
         start = 180e9
         stop  = 185e9
         n     = 200    
 }
 
 # Write frequency grid to file:
-VectorWriteToFile (f_abs) {""}
+VectorWriteToFile (f_mono) {""}
 
 # Calculate absorption coefficients, both total (`abs') and 
 # separately for each tag group (`abs_per_tg'):

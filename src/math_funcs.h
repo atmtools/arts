@@ -15,6 +15,21 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// This file contains basic mathematical and vector/matrix functions.
+// Example on types of functions:
+//	    1. Element-wise application of common scalar functions 
+//          2. Boolean functions
+//	    3. Creation of common vectors
+//	    4. Interpolation routines
+//	    5. Integration routines
+//          6. Conversion between vector and matrix types
+//
+/////////////////////////////////////////////////////////////////////////////
+
+
 #ifndef math_funcs_h
 #define math_funcs_h
 
