@@ -466,8 +466,11 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // Number of frequencies in the table:
   const Index n_f_grid = f_grid.nelem();
 
+// FIXME only needed in assertion
+#ifndef NDEBUG
   // Number of pressure grid points in the table:
   const Index n_p_grid = p_grid.nelem();
+#endif
 
   // Number of temperature perturbations:
   const Index n_t_pert = t_pert.nelem();
