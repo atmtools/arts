@@ -18,7 +18,7 @@ int main(void)
 {
   Tensor3 ext_mat_zee;
   Matrix abs_vec_zee;
-  Vector f_grid(100000);
+  Vector f_grid(10000);
   Matrix N;
   Matrix xi_mat;
   Matrix f_z_mat;
@@ -26,7 +26,7 @@ int main(void)
 
   for (Index i=0; i<f_grid.nelem(); i++)
     { 
-      f_grid[i]=/*!118.749343*/61.149570 + 0.00000002*Numeric(i); //Numeric(i) - converts i in Numeric 
+      f_grid[i]=/*!118.749343*/61.149570 + 0.0000002*Numeric(i); //Numeric(i) - converts i in Numeric 
     }
   Zeeman(f_grid, ext_mat_zee, abs_vec_zee, xi_mat, f_z_mat);
 

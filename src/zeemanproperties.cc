@@ -117,44 +117,44 @@ void Zeeman (Vector& f_grid,
 	      
 		  if (N_r>0 && DeltaM==0)
 		    {
- 		      xi = (3*(abs(N_r)+1)*(abs(N_r)+1)-M*M)/((abs(N_r)+1)*(2*abs(N_r)+1)*(2*abs(N_r)+3));
+ 		      xi = 3*((abs(N_r)+1)*(abs(N_r)+1)-M*M)/((abs(N_r)+1)*(2*abs(N_r)+1)*(2*abs(N_r)+3));
 		      xi_mat(j,k)= xi;
-		      eta = M*(abs(N_r)-1)/abs(N_r)*(abs(N_r)+1);
+		      eta = M*(abs(N_r)-1)/(abs(N_r)*(abs(N_r)+1));
 		      cout << "if1" << endl;
 		    }
 		  else if (N_r<0 && DeltaM==0)
 		    {	
 		      xi = 3*(abs(N_r)*abs(N_r)-M*M)/(abs(N_r)*(2*abs(N_r)-1)*(2*abs(N_r)+1));
 		      xi_mat(j,k)= xi;
-		      eta = M*(abs(N_r)+2)/abs(N_r)*(abs(N_r)+1);
+		      eta = M*(abs(N_r)+2)/(abs(N_r)*(abs(N_r)+1));
 		      cout << "if2" << endl;
 		    }
 		  else if (N_r>0 && DeltaM==1)
 		    {
 		      xi = 3*(abs(N_r)+M+1)*(abs(N_r)+M+2)/(4*(abs(N_r)+1)*(2*abs(N_r)+1)*(2*abs(N_r)+3));
 		      xi_mat(j,k)= xi;
-		      eta = (M*(abs(N_r)+1)+abs(N_r))/abs(N_r)*(abs(N_r)+1);
+		      eta = (M*(abs(N_r)-1)+abs(N_r))/(abs(N_r)*(abs(N_r)+1));
 		      cout << "if3" << endl;
 		    }
 		  else if (N_r>0 && DeltaM==-1)
 		    {	
 		      xi = 3*(abs(N_r)-M+1)*(abs(N_r)-M+2)/(4*(abs(N_r)+1)*(2*abs(N_r)+1)*(2*abs(N_r)+3));
 		      xi_mat(j,k)= xi;
-		      eta = (M*(abs(N_r)-1)+abs(N_r))/abs(N_r)*(abs(N_r)+1);
+		      eta = (M*(abs(N_r)-1)-abs(N_r))/(abs(N_r)*(abs(N_r)+1));
 		      cout << "if4" << endl;
 		    }
 		  else if (N_r<0 && DeltaM==-1)
 		    {
 		      xi = 3*(abs(N_r)+M)*(abs(N_r)+M-1)/(4*abs(N_r)*(2*abs(N_r)-1)*(2*abs(N_r)+1));
 		      xi_mat(j,k)= xi;
-		      eta = (M*(abs(N_r)+2)+(abs(N_r)+1))/abs(N_r)*(abs(N_r)+1);
+		      eta = (M*(abs(N_r)+2)+(abs(N_r)+1))/(abs(N_r)*(abs(N_r)+1));
 		      cout << "if5" << endl;
 		    }
 		  else if (N_r<0 && DeltaM==1)
 		    {
 		      xi = 3*(abs(N_r)-M)*(abs(N_r)-M-1)/(4*abs(N_r)*(2*abs(N_r)-1)*(2*abs(N_r)+1));
 		      xi_mat(j,k)= xi;
-		      eta = (M*(abs(N_r)+2)-(abs(N_r)+1))/abs(N_r)*(abs(N_r)+1);
+		      eta = (M*(abs(N_r)+2)-(abs(N_r)+1))/(abs(N_r)*(abs(N_r)+1));
 		      cout << "if6" << endl;
 		    }
 		  else 

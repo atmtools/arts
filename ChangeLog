@@ -1,3 +1,10 @@
+2003-02-04  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-448
+
+	* src/zeemanproperties.cc: Fixed another bug in the calculation of the
+	relative intensities of individual Zeeman components.
+
 2003-02-04  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-447
