@@ -1,3 +1,38 @@
+2001-01-06  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-98
+
+	* o2 spin rot absorption included. 2 lineshapes are available for
+	this species:
+	Rosenkranz_Voigt_Kuntz6
+	Rosenkranz_Voigt_Drayson
+
+	added a directory o2_spin_rot to the iup comparision one, where
+	controlfiles, etc are located
+
+	The o2 absorption is calculated as all other species, with 2 major
+	differences:
+	
+	1. 2 overlap aux parameter are required in the spectroscopic
+	database. I compiled a few catalogues in the arts format, they are
+	located under spectroscopy/arts. 
+	2. the o2 absorption requires a water vapor vmr. consequently
+	abscalc requires now always a h2o vmr (I couldn't think of another
+	way to implement this). this vmr is only needed for the rosenkranz
+	lineshapes and can be set to any dummy value for other
+	calculations. I followed the arts convention and called it
+	h20_abs, which can be generated from the vmrs by:
+
+	# define the h2o_abs vector, containing the total wv vmr
+	VectorCopyFromArrayOfVector (h2o_abs, vmrs) {index=0}
+
+	this has to be done after the call to AtmFromRaw1D{}.
+
+	* Lorentz lineshape problem solved.
+
+	* hope that's it. More in the mailing list.
+                 
+
 2001-01-03  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-97

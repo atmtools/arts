@@ -161,10 +161,10 @@ void linesReadFromArts(// WS Output:
 	{
 	  if ( fmin <= lr.F() )
 	    {
-	      if ( lr.F() <= fmax )
-		lines.push_back(lr);
-	      else
-		go_on = false;
+	      // lines are not necessarily frequency sorted 
+	      if ( fmin <= lr.F() )
+		if ( lr.F() <= fmax )
+		  lines.push_back(lr);
 	    }
 	}
     }
@@ -889,7 +889,8 @@ void absCalc(// WS Output:
              // WS Input:		  
              const VECTOR&  		     f_mono,
              const VECTOR&  		     p_abs,
-             const VECTOR&  		     t_abs,           
+             const VECTOR&  		     t_abs,
+	     const VECTOR&  		     h2o_abs,
              const ARRAYofVECTOR&            vmrs,
              const ARRAYofARRAYofLineRecord& lines_per_tg,
 	     const ARRAYofsizet&             lineshape,
@@ -954,6 +955,7 @@ void absCalc(// WS Output:
 		   f_mono,
 		   p_abs,
 		   t_abs,
+		   h2o_abs,
 		   vmrs[i],
 		   lines_per_tg[i],
 		   lineshape[i],

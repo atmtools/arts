@@ -82,13 +82,13 @@ VectorWriteAscii (f_mono) {""}
 
 # set the lineshape function for all calculated tags
 # lineshapeDefine{
-#               shape = "Voigt_Kuntz1" 
+#               shape = "Voigt_Kuntz6" 
 #               normalizationfactor = "linear"
 #               }
 
 # or set it separately for each tag
 lineshape_per_abs_tagDefine{
-                            shape = ["Voigt_Kuntz1","Voigt_Kuntz1","Voigt_Kuntz1"]
+                            shape = ["Voigt_Kuntz6","Voigt_Kuntz6","Voigt_Kuntz6"]
                             normalizationfactor = ["linear","quadratic","linear"]
                            }
 

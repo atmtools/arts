@@ -1,19 +1,36 @@
 # An example ARTS controlfile that calculates absorption
 # coefficients. 
-# SAB 16.06.2000
+
 
 # --------------------< A specific method >--------------------
 #                      -------------------
-# Read the spectroscopic line data from the HITRAN catalogue and
+# Read the spectroscopic line data from the ARTS catalogue and
 # create the workspace variable `lines':
-linesReadFromHitran {
-   filename = "../../../data/spectroscopy/hitran96/hitran96_lowfreq.par"
-   fmin     = 183.3101e9
-   fmax     = 183.3102e9
+linesReadFromArts {
+   filename = "../../../data/spectroscopy/arts/o2_spin_rot_pwr_2.al"
+   fmin     = 40e9
+   fmax     = 120e9
 }
 
+# Read the spectroscopic line data from the JPL catalogue and
+# create the workspace variable `lines':
+# Note: Catalogue contains only species known to arts!
+#linesReadFromJpl {
+#   filename = "../../../data/spectroscopy/jpl00/jpl00.cat"
+#   fmin     = 40e9
+#   fmax     = 120e9
+#}
+
+# Read the spectroscopic line data from the HITRAN catalogue and
+# create the workspace variable `lines':
+#linesReadFromHitran {
+#   filename = "../../../data/spectroscopy/hitran96/hitran96_lowfreq.par"
+#   fmin     = 40e9
+#   fmax     = 120e9
+#}
+
 # Optionally write the line list to a file:
-#linesWriteToFile{""} 
+linesWriteToFile{""} 
 
  
 # This defines the list of tag groups (`tag_groups'). Absorption
@@ -23,7 +40,8 @@ linesReadFromHitran {
 # are specified here. That means the last group H2O gets assigned all
 # the H2O lines that do not fit in any other group.
 tag_groupsDefine{
-      ["H2O"] 
+      ["H2O",
+       "O2-66"]
 }
 
 # This separates the lines into the different tag groups and creates
@@ -47,16 +65,16 @@ raw_vmrs_1dReadFromScenario
 # Optionally write this to a file:
 #ArrayOfMatrixWriteAscii (raw_vmrs_1d) {""}
 
-
 # Create the pressure grid `p_abs':
 # VectorNLogSpace(p_abs){
-#         start = 101300
-#         stop  = 6.200000e-02
-#         n     = 100
-# }
+#         start = 100000
+#         stop  = 10
+#         n     = 140
+#}
 
 # read the pressure grid used in the iup forward program
-VectorReadAscii(p_abs){"H2O_183GHz.iup_old.p_abs"}
+VectorReadAscii(p_abs){"o2_spin_rot.iup_old.p_abs"}
+
 
 VectorWriteAscii(p_abs){""}
 
@@ -67,7 +85,7 @@ AtmFromRaw1D{}
 
 # Optionally write these to files:
 #VectorWriteAscii (t_abs) {""}
-#VectorWriteAscii (z_abs) {""}
+VectorWriteAscii (z_abs) {""}
 #ArrayOfVectorWriteAscii (vmrs)  {""}
 
 # define the h2o_abs vector, containing the total wv vmr
@@ -75,19 +93,27 @@ VectorCopyFromArrayOfVector (h2o_abs, vmrs) {index=0}
 
 
 # Create the frequency grid `f_mono':
-VectorNLinSpace(f_mono){
-        start = 180e9
-        stop  = 185e9
-        n     = 201
-}
+#VectorNLinSpace(f_mono){
+#        start = 40e9
+#        stop  = 120e9
+#        n     = 2000    
+#}
 
-# Write frequency grid to file:
+# Read the frequency grid from file:
+VectorReadAscii (f_mono) {"o2_spin_rot.f_mono.def"}
+
+# Write frequency grid to standard file:
 VectorWriteAscii (f_mono) {""}
 
 # define the lineshape to use
-lineshapeDefine {shape="Voigt_Kuntz3"
-                 normalizationfactor="quadratic"
-                }
+# lineshapeDefine {shape="Voigt_Kuntz6"
+#                  normalizationfactor="quadratic"
+#                 }
+lineshape_per_abs_tagDefine{
+                            shape = ["Rosenkranz_Voigt_Kuntz6","Rosenkranz_Voigt_Kuntz6"]
+                            normalizationfactor = ["quadratic","quadratic"]
+                           }
+
 
 # Calculate absorption coefficients, both total (`abs') and 
 # separately for each tag group (`abs_per_tg'):

@@ -50,7 +50,7 @@ void lineshape_lorentz(VECTOR&       ls,
 		       Numeric       gamma,
 		       Numeric       sigma,
 		       const VECTOR& f_mono,
-		       const size_t  nf)
+		       const INDEX  nf)
 {
   // PI:
   extern const Numeric PI;
@@ -60,7 +60,7 @@ void lineshape_lorentz(VECTOR&       ls,
   Numeric gamma2 = gamma * gamma;
   Numeric fac = gamma/PI;
 
-  for ( size_t i=0; i<nf; ++i )
+  for ( INDEX i=0; i<nf; ++i )
     {
       ls[i] =  fac / ( (f_mono[i]-f0) * (f_mono[i]-f0) + gamma2 );
     }
@@ -84,7 +84,7 @@ void lineshape_doppler(VECTOR&       ls,
 		       Numeric       gamma,
 		       Numeric       sigma,
 		       const VECTOR& f_mono,
-		       const size_t  nf)
+		       const INDEX  nf)
 {
   // SQRT(PI):
   extern const Numeric PI;
@@ -95,7 +95,7 @@ void lineshape_doppler(VECTOR&       ls,
   Numeric sigma2 = sigma * sigma;
   Numeric fac = 1.0 / (sqrtPI * sigma);
   
-  for ( size_t i=0; i<nf ; ++i )
+  for ( INDEX i=0; i<nf ; ++i )
     {
       ls[i] = fac * exp( - pow( f_mono[i]-f0, 2) / sigma2 );
     }
@@ -184,6 +184,7 @@ long bfun6_(Numeric y, Numeric x)
     Fortran77 but has been translated into C by Dietrich Feist (f2c)
     and into C++ by Oliver Lemke and Axel von Engeln. fak is removed
     from program code. Replaced nx by nf. Replaced prb by ls.
+    Multiplied ls with the factor fac.
     
 
     \author Oliver Lemke and Axel von Engeln
@@ -195,12 +196,21 @@ void lineshape_voigt_kuntz6(VECTOR&       ls,
 			    Numeric       gamma,
 			    Numeric       sigma,
 			    const VECTOR& f_mono,
-			    const size_t  nf)
+			    const INDEX  nf)
 
 {
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
+
+  // PI
+  extern const Numeric PI;
+
+  // constant sqrt(1/pi)
+  const Numeric sqrt_invPI =  sqrt(1/PI);
+
+  // constant normalization factor for voigt
+  Numeric fac = 1.0 / sigma * sqrt_invPI;
 
 
   /* Initialized data */
@@ -222,7 +232,7 @@ void lineshape_voigt_kuntz6(VECTOR&       ls,
     r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, c3, 
     d3, b1, y2;
   static long int i2, i1;
-  static Numeric x2, b2;
+  static Numeric x2, b2, c1;
   static long int stackp, imitte;
   static Numeric ym2;
 
@@ -397,7 +407,7 @@ void lineshape_voigt_kuntz6(VECTOR&       ls,
       i__1 = lauf[(i2 + 1 << 2) - 1];
       for (i1 = lauf[(i2 << 2) - 1]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
-	ls[i1-1] = (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+	ls[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
 			 (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
 			* (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
 			x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
@@ -440,7 +450,7 @@ void lineshape_voigt_kuntz6(VECTOR&       ls,
       i__1 = lauf[(i2 + 1 << 2) - 2];
       for (i1 = lauf[(i2 << 2) - 2]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
-	ls[i1-1] = (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+	ls[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
 			e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
 			e6 + x2)))));
 	/* L5: */
@@ -466,7 +476,7 @@ void lineshape_voigt_kuntz6(VECTOR&       ls,
       i__1 = lauf[(i2 + 1 << 2) - 3];
       for (i1 = lauf[(i2 << 2) - 3]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
-	ls[i1-1] = (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+	ls[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
 			+ x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
 	/* L6: */
       }
@@ -483,12 +493,13 @@ void lineshape_voigt_kuntz6(VECTOR&       ls,
       a2 = y2 * 4;
     }
 
+    c1 = fac * a1;
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1 << 2) - 4];
       for (i1 = lauf[(i2 << 2) - 4]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
 	b2 = b1 - x2;
-	ls[i1-1] = a1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+	ls[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
 	/* L8: */
       }
     }
@@ -584,7 +595,8 @@ long int bfun3_(Numeric y, Numeric x)
     About 'voigt3' : The program was originally written by M. Kuntz in
     Fortran77 but has been translated into C by Dietrich Feist (f2c)
     and into C++ by Oliver Lemke and Axel von Engeln. fak is removed
-    from program code. Replaced nx by nf. Replaced prb by ls.
+    from program code. Replaced nx by nf. Replaced prb by
+    ls. Multiplied ls with the factor fac.
     
 
     \author Oliver Lemke and Axel von Engeln
@@ -595,12 +607,21 @@ void lineshape_voigt_kuntz3(VECTOR&       ls,
 			    Numeric       gamma,
 			    Numeric       sigma,
 			    const VECTOR& f_mono,
-			    const size_t  nf)
+			    const INDEX  nf)
 
 {
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
+
+  // PI
+  extern const Numeric PI;
+
+  // constant sqrt(1/pi)
+  const Numeric sqrt_invPI =  sqrt(1/PI);
+
+  // constant normalization factor for voigt
+  Numeric fac = 1.0 / sigma * sqrt_invPI;
 
   /* Initialized data */
 
@@ -622,7 +643,7 @@ void lineshape_voigt_kuntz3(VECTOR&       ls,
     q7, r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, 
     c3, d3, b1, y2;
   static long i2, i1;
-  static Numeric x2, b2;
+  static Numeric x2, b2, b0, c1;
   static long stackp, imitte;
   static Numeric ym2;
 
@@ -743,7 +764,7 @@ void lineshape_voigt_kuntz3(VECTOR&       ls,
       i__1 = lauf[(i2 + 1) * 5 - 1];
       for (i1 = lauf[i2 * 5 - 1]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
-	ls[i1-1] = (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+	ls[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
 			 (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
 			* (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
 			x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
@@ -786,7 +807,7 @@ void lineshape_voigt_kuntz3(VECTOR&       ls,
       i__1 = lauf[(i2 + 1) * 5 - 2];
       for (i1 = lauf[i2 * 5 - 2]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
-	ls[i1-1] = (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+	ls[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
 			e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
 			e6 + x2)))));
 	/* L5: */
@@ -812,7 +833,7 @@ void lineshape_voigt_kuntz3(VECTOR&       ls,
       i__1 = lauf[(i2 + 1) * 5 - 3];
       for (i1 = lauf[i2 * 5 - 3]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
-	ls[i1-1] = (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+	ls[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
 			+ x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
 	/* L6: */
       }
@@ -828,12 +849,13 @@ void lineshape_voigt_kuntz3(VECTOR&       ls,
       a2 = y2 * 4;
     }
 
+    c1 = a1 * fac;
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 4];
       for (i1 = lauf[i2 * 5 - 4]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
 	b2 = b1 - x2;
-	ls[i1-1] = a1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+	ls[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
 	/* L7: */
       }
     }
@@ -847,10 +869,11 @@ L8:
       a0 = y * .5641896f;
     }
 
+    b0 = a0 * fac;
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 5];
       for (i1 = lauf[i2 * 5 - 5]; i1 <= i__1; ++i1) {
-	ls[i1-1] = a0 / (x[i1-1] * x[i1-1] + y2);
+	ls[i1-1] = b0 / (x[i1-1] * x[i1-1] + y2);
 	/* L9: */
       }
     }
@@ -942,7 +965,8 @@ long bfun4_(Numeric y, Numeric x)
     About 'voigt4' : The program was originally written by M. Kuntz in
     Fortran77 but has been translated into C by Dietrich Feist (f2c)
     and into C++ by Oliver Lemke and Axel von Engeln. fak is removed
-    from program code. Replaced nx by nf. Replaced prb by ls.
+    from program code. Replaced nx by nf. Replaced prb by
+    ls. Multiplied ls with the factor fac.
     
 
     \author Oliver Lemke and Axel von Engeln
@@ -953,11 +977,21 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
 			    Numeric       gamma,
 			    Numeric       sigma,
 			    const VECTOR& f_mono,
-			    const size_t  nf)
+			    const INDEX   nf)
 {
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
+
+  // PI
+  extern const Numeric PI;
+
+  // constant sqrt(1/pi)
+  const Numeric sqrt_invPI =  sqrt(1/PI);
+
+  // constant normalization factor for voigt
+  Numeric fac = 1.0 / sigma * sqrt_invPI;
+
 
     /* Initialized data */
 
@@ -974,14 +1008,14 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
     /* Local variables */
     static long bmin, lauf[20]	/* was [5][4] */, bmax, imin, imax;
     static long stack[80]	/* was [20][4] */;
-    static float a0, a1, a2, a3, a4, a5, a6, a7, a8, b8, c8, d8, e8, f8, g8, 
+    static Numeric a0, a1, a2, a3, a4, a5, a6, a7, a8, b8, c8, d8, e8, f8, g8, 
 	    h8, b7, c7, d7, e7, f7, g7, o8, p8, q8, r8, s8, t8, h7, o7, p7, 
 	    q7, r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, 
 	    c3, d3, b1, y2;
     static long i2, i1;
-    static float x2, b2;
+    static Numeric x2, b2, b0, c1;
     static long stackp, imitte;
-    static float ym2;
+    static Numeric ym2;
 
   // variables needed in original c routine:
 
@@ -1154,7 +1188,7 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
       i__1 = lauf[(i2 + 1) * 5 - 1];
       for (i1 = lauf[i2 * 5 - 1]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
-	ls[i1-1] = (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+	ls[i1-1] = fac * (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
 			 (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
 			* (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
 			x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
@@ -1197,7 +1231,7 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
       i__1 = lauf[(i2 + 1) * 5 - 2];
       for (i1 = lauf[i2 * 5 - 2]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
-	ls[i1-1] = (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+	ls[i1-1] = fac * (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
 			e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
 			e6 + x2)))));
 	/* L5: */
@@ -1223,7 +1257,7 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
       i__1 = lauf[(i2 + 1) * 5 - 3];
       for (i1 = lauf[i2 * 5 - 3]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
-	ls[i1-1] = (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+	ls[i1-1] = fac * (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
 			+ x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
 	/* L6: */
       }
@@ -1239,12 +1273,13 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
       a2 = y2 * 4;
     }
 
+    c1 = a1 * fac;
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 4];
       for (i1 = lauf[i2 * 5 - 4]; i1 <= i__1; ++i1) {
 	x2 = x[i1-1] * x[i1-1];
 	b2 = b1 - x2;
-	ls[i1-1] = a1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+	ls[i1-1] = c1 * (b1 + x2) / (b2 * b2 + a2 * x2);
 	/* L7: */
       }
     }
@@ -1258,10 +1293,11 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
       a0 = y * .5641896f;
     }
 
+    b0 = a0 * fac;
     for (i2 = 1; i2 <= 3; i2 += 2) {
       i__1 = lauf[(i2 + 1) * 5 - 5];
       for (i1 = lauf[i2 * 5 - 5]; i1 <= i__1; ++i1) {
-	ls[i1-1] = a0 / (x[i1-1] * x[i1-1] + y2);
+	ls[i1-1] = b0 / (x[i1-1] * x[i1-1] + y2);
 	/* L9: */
       }
     }
@@ -1310,23 +1346,32 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
 
     23.02.98 AvE
 
-    Replaced nx by nf, Z by ls. X by x.
+    Replaced nx by nf, Z by ls, X by x, and multiplied ls with the factor fac.
     \author Axel von Engeln
     \date 2000-12-06 */ 
 
 /***  ROUTINE COMPUTES THE VOIGT FUNCTION Y/PI*INTEGRAL FROM ***/
 /***   - TO + INFINITY OF EXP(-T*T)/(Y*Y+(X-T)*(X-T)) DT     ***/
-void lineshape_drayson(VECTOR&       ls,
-		       VECTOR&       x,
-		       Numeric	     f0,
-		       Numeric       gamma,
-		       Numeric       sigma,
-		       const VECTOR& f_mono,
-		       const size_t  nf)
+void lineshape_voigt_drayson(VECTOR&       ls,
+			     VECTOR&       x,
+			     Numeric	     f0,
+			     Numeric       gamma,
+			     Numeric       sigma,
+			     const VECTOR& f_mono,
+			     const INDEX   nf)
 
 {
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
+
+  // PI
+  extern const Numeric PI;
+
+  // constant sqrt(1/pi)
+  const Numeric sqrt_invPI =  sqrt(1/PI);
+
+  // constant normalization factor for voigt
+  Numeric fac = 1.0 / sigma * sqrt_invPI;
 
       static Numeric B[22+1] = {0.,0.,.7093602e-7};
       static Numeric RI[15+1];
@@ -1402,7 +1447,7 @@ L104: for (K=0; K<(int) nf; K++)
 	  UU = Y+U*UU;
 	  VV = x[K]-U*VV;
 	}
-      ls[K] = UU/(UU*UU+VV*VV)/1.772454;
+      ls[K] = UU/(UU*UU+VV*VV)/1.772454*fac;
       continue;
   L110: Y2 = Y*Y;
       if (x[K]+Y >= 5.) goto L113;
@@ -1422,14 +1467,14 @@ L104: for (K=0; K<(int) nf; K++)
 	  UU = -UU*Y2;
 	  VV = VV+V*UU;
 	}
-      ls[K] = 1.128379*VV;
+      ls[K] = 1.128379*VV*fac;
       continue;
   L112: Y2 = Y*Y;
       if (Y < 11.-.6875*x[K]) goto L113;
       /***  REGION IIIB: 2-POINT GAUSS-HERMITE QUADRATURE. ***/
       U = x[K]-XX[3];
       V = x[K]+XX[3];
-      ls[K] = Y*(HH[3]/(Y2+U*U)+HH[3]/(Y2+V*V));
+      ls[K] = Y*(HH[3]/(Y2+U*U)+HH[3]/(Y2+V*V))*fac;
       continue;
       /***  REGION IIIA: 4-POINT GAUSS-HERMITE QUADRATURE. ***/
   L113: U = x[K]-XX[1];
@@ -1437,14 +1482,253 @@ L104: for (K=0; K<(int) nf; K++)
       UU = x[K]-XX[2];
       VV = x[K]+XX[2];
       ls[K] = Y*(HH[1]/(Y2+U*U)+HH[1]/(Y2+V*V)+HH[2]/(Y2+UU*UU)+HH[2]/(Y2+
-								      VV*VV));
+								      VV*VV))*fac;
       continue;
   }
 }
 
 
 
-//---------------------------------------------------------------------------------
+/*! The Rosenkranz overlap routine. Includes a Voigt line shape
+  (kuntz6) for high altitudes and a lorentz one with overlap
+  correction for lower altitudes.
+
+  \retval ls            The shape function.
+  \retval x             Auxillary parameter to store frequency grid.
+                        Here used as well to pass parameters.
+  \param  f0            Line center frequency.
+  \param  gamma         The pressure broadening parameter.
+  \param  sigma         The Doppler broadening parameter.
+  \param  f_mono        The frequency grid.
+  \param  nf            Dimension of f_mono.
+
+  REFERENCE FOR EQUATIONS AND COEFFICIENTS:
+  P.W. ROSENKRANZ, CHAP. 2 AND APPENDIX, IN ATMOSPHERIC REMOTE SENSING
+  BY MICROWAVE RADIOMETRY (M.A. JANSSEN, ED.)
+
+  About 'lineshape_rosenkranz_voigt_kuntz6': The program was
+  originally written by P.W. Rosenkranz, and translated to c by A. von
+  Engeln.
+    
+
+  \author Axel von Engeln
+  \date 2001-01-06 */ 
+void lineshape_rosenkranz_voigt_kuntz6(VECTOR&       ls,
+				       VECTOR&       x,
+				       Numeric	     f0,
+				       Numeric       gamma,
+				       Numeric       sigma,
+				       const VECTOR& f_mono,
+				       const INDEX   nf)
+{
+
+  // seems not necessary for Doppler correction
+  //    extern const Numeric SQRT_NAT_LOG_2;
+
+  extern const Numeric PI;
+
+
+  // calculate the required stuff with the parameter of the x array:
+  Numeric overlap;      // overlap correction
+  Numeric gamma_o2;     // linewidth 
+  Numeric gamma_o2_2;   // square of linewidth
+  {
+    // x[0] = theta
+    // x[1] = theta_Nair
+    // x[2] = total pressure    
+    // x[3] = O2 VMR
+    // x[4] = H2O VMR
+    // x[5] = l_l.Agam()
+    // x[6] = l_l.Nair()
+    // x[7] = l_l.Aux()[0] = overlap y
+    // x[8] = l_l.Aux()[1] = overlap v
+
+    // Pressure Broadening:
+    // pressure broadening is calculated differently for oxygen, not
+    // with the partial pressure, but with the dry pressure. the
+    // passed gamma parameter is calculated with the partial pressure,
+    // so we correct it here:
+    gamma *= ( 1.0 - x[4] ) / ( 1 - x[3] );
+
+    // Overlap:
+    // Get the overlap correction for oxygen, this is always calculated
+    // even if not needed. FIXME: I assume that theta is to the power of
+    // Nair (just as in the pressure broadening), otherwise we need
+    // another parameter to pass with the catalogue.
+    overlap = (x[7] + x[8] * ( x[0] - 1.0)) * 
+      x[2] * x[1];
+
+    // water vapor impact:
+    // impact of water vapor upon the oxygen pressure broadening. 
+    gamma_o2 = gamma + 1.1 * x[5] * x[2] * x[4] * x[0];
+    gamma_o2_2 = gamma_o2 * gamma_o2;
+  }
+
+  // use voigt lineshape for high altitudes, otherwise lorentz with
+  // overlap correction
+  if ( (gamma_o2/sigma - 40) <= 0.0 )
+    {
+      /* call voigt function */
+      lineshape_voigt_kuntz6(ls,
+			     x,
+			     f0,
+			     gamma_o2,
+			     sigma,
+			     f_mono,
+			     nf);
+
+      // the controlfile uses generally a (f/f0)^2 factor for the
+      // lineshape function, but we have to remove this normalization
+      // factor (f/f0)^2 over here, because Rosenkranz does not use it
+      // for the Voigt part, but for the Lorentz part. don't ask me
+      // why...
+      // FIXME: Clarify whether this is correct and if yes use the
+      // normalization used in controlfile
+      Numeric f0_2 = f0 * f0;
+      for (INDEX J=0; J<(INDEX) nf; J++)
+  	{
+  	  ls[J] *= f0_2 / (f_mono[J] * f_mono[J]);
+  	}
+    }
+  else
+    {
+      Numeric FD, FS, SF1, SF2;
+      for (INDEX J=0; J<(INDEX) nf; J++)
+	{
+	  FD = f_mono[J] - f0;
+	  FS = f_mono[J] + f0;
+	  SF1 = (gamma_o2 + FD*overlap) / (FD*FD + gamma_o2_2);
+	  SF2 = (gamma_o2 - FS*overlap) / (FS*FS + gamma_o2_2);
+	  ls[J] = (SF1 + SF2) / PI;
+	}
+    }
+}
+
+
+/*! The Rosenkranz overlap routine. Includes a Voigt line shape
+  (drayson) for high altitudes and a lorentz one with overlap
+  correction for lower altitudes.
+
+  \retval ls            The shape function.
+  \retval x             Auxillary parameter to store frequency grid.
+                        Here used as well to pass parameters.
+  \param  f0            Line center frequency.
+  \param  gamma         The pressure broadening parameter.
+  \param  sigma         The Doppler broadening parameter.
+  \param  f_mono        The frequency grid.
+  \param  nf            Dimension of f_mono.
+
+  REFERENCE FOR EQUATIONS AND COEFFICIENTS:
+  P.W. ROSENKRANZ, CHAP. 2 AND APPENDIX, IN ATMOSPHERIC REMOTE SENSING
+  BY MICROWAVE RADIOMETRY (M.A. JANSSEN, ED.)
+
+  About 'lineshape_rosenkranz_voigt_drayson': The program was
+  originally written by P.W. Rosenkranz, and translated to c by A. von
+  Engeln.
+    
+
+  \author Axel von Engeln
+  \date 2001-01-06 */ 
+void lineshape_rosenkranz_voigt_drayson(VECTOR&       ls,
+					VECTOR&       x,
+					Numeric	     f0,
+					Numeric       gamma,
+					Numeric       sigma,
+					const VECTOR& f_mono,
+					const INDEX   nf)
+{
+
+  // seems not necessary for Doppler correction
+  //    extern const Numeric SQRT_NAT_LOG_2;
+
+  extern const Numeric PI;
+
+
+  // calculate the required stuff with the parameter of the x array:
+  Numeric overlap;      // overlap correction
+  Numeric gamma_o2;     // linewidth 
+  Numeric gamma_o2_2;   // square of linewidth
+  {
+    // x[0] = theta
+    // x[1] = theta_Nair
+    // x[2] = total pressure    
+    // x[3] = O2 VMR
+    // x[4] = H2O VMR
+    // x[5] = l_l.Agam()
+    // x[6] = l_l.Nair()
+    // x[7] = l_l.Aux()[0] = overlap y
+    // x[8] = l_l.Aux()[1] = overlap v
+
+    // Pressure Broadening:
+    // pressure broadening is calculated differently for oxygen, not
+    // with the partial pressure, but with the dry pressure. the
+    // passed gamma parameter is calculated with the partial pressure,
+    // so we correct it here:
+    gamma *= ( 1.0 - x[4] ) / ( 1 - x[3] );
+
+    // Overlap:
+    // Get the overlap correction for oxygen, this is always calculated
+    // even if not needed. FIXME: I assume that theta is to the power of
+    // Nair (just as in the pressure broadening), otherwise we need
+    // another parameter to pass with the catalogue.
+    overlap = (x[7] + x[8] * ( x[0] - 1.0)) * 
+      x[2] * x[1];
+
+    // water vapor impact:
+    // impact of water vapor upon the oxygen pressure broadening. 
+    gamma_o2 = gamma + 1.1 * x[5] * x[2] * x[4] * x[0];
+    gamma_o2_2 = gamma_o2 * gamma_o2;
+  }
+
+  // use voigt lineshape for high altitudes, otherwise lorentz with
+  // overlap correction
+  if ( (gamma_o2/sigma - 40) <= 0.0 )
+    {
+      /* call voigt function */
+      lineshape_voigt_drayson(ls,
+			      x,
+			      f0,
+			      gamma_o2,
+			      sigma,
+			      f_mono,
+			      nf);
+
+      // the controlfile uses generally a (f/f0)^2 factor for the
+      // lineshape function, but we have to remove this normalization
+      // factor (f/f0)^2 over here, because Rosenkranz does not use it
+      // for the Voigt part, but for the Lorentz part. don't ask me
+      // why...
+      // FIXME: Clarify whether this is correct and if yes use the
+      // normalization used in controlfile
+      Numeric f0_2 = f0 * f0;
+      for (INDEX J=0; J<(INDEX) nf; J++)
+  	{
+  	  ls[J] *= f0_2 / (f_mono[J] * f_mono[J]);
+  	}
+    }
+  else
+    {
+      Numeric FD, FS, SF1, SF2;
+      for (INDEX J=0; J<(INDEX) nf; J++)
+	{
+	  FD = f_mono[J] - f0;
+	  FS = f_mono[J] + f0;
+	  SF1 = (gamma_o2 + FD*overlap) / (FD*FD + gamma_o2_2);
+	  SF2 = (gamma_o2 - FS*overlap) / (FS*FS + gamma_o2_2);
+	  ls[J] = (SF1 + SF2) / PI;
+	}
+    }
+}
+
+
+
+
+
+
+//------------------------------------------------------------------------
+// Normalization Functions 
+//------------------------------------------------------------------------
+
 
 /*!  No normalization of the lineshape function.
 
@@ -1457,12 +1741,12 @@ L104: for (K=0; K<(int) nf; K++)
 void lineshape_norm_no_norm(VECTOR&       fac,
 			    Numeric	  f0,
 			    const VECTOR& f_mono,
-			    const size_t  nf)
+			    const INDEX   nf)
 {
 
   assert( fac.dim() == nf );
 
-  for ( size_t i=0; i<nf; ++i )
+  for ( INDEX i=0; i<nf; ++i )
     {
       fac[i] = 1.0;
     }
@@ -1481,12 +1765,12 @@ void lineshape_norm_no_norm(VECTOR&       fac,
 void lineshape_norm_linear(VECTOR&       fac,
 			   Numeric	 f0,
 			   const VECTOR& f_mono,
-			   const size_t  nf)
+			   const INDEX   nf)
 {
 
   assert( fac.dim() == nf );
 
-  for ( size_t i=0; i<nf; ++i )
+  for ( INDEX i=0; i<nf; ++i )
     {
       fac[i] = f_mono[i] / f0;
     }
@@ -1504,7 +1788,7 @@ void lineshape_norm_linear(VECTOR&       fac,
 void lineshape_norm_quadratic(VECTOR&       fac,
 			      Numeric	 f0,
 			      const VECTOR& f_mono,
-			      const size_t nf)
+			      const INDEX  nf)
 {
 
   assert( fac.dim() == nf );
@@ -1512,19 +1796,18 @@ void lineshape_norm_quadratic(VECTOR&       fac,
   // don't do this for the whole loop
   Numeric f0_2 = f0 * f0;
 
-  for ( size_t i=0; i<nf; ++i )
+  for ( INDEX i=0; i<nf; ++i )
     {
-      fac[i] = f_mono[i] * f_mono[i] / f0_2;
+      fac[i] = (f_mono[i] * f_mono[i]) / f0_2;
     }
 }
 
 
 
 
-//---------------------------------------------------------------------------------
-
-
-
+//------------------------------------------------------------------------
+// Available Lineshapes
+//------------------------------------------------------------------------
 
 /*! The lookup data for the different lineshapes. */
 ARRAY<LineshapeRecord> lineshape_data;
@@ -1574,7 +1857,23 @@ void define_lineshape_data()
      ("Voigt_Drayson",
       "The Voigt line shape. Approximation by Drayson.",
       -1,
-      lineshape_drayson));
+      lineshape_voigt_drayson));
+
+  lineshape_data.push_back
+    (LineshapeRecord
+     ("Rosenkranz_Voigt_Kuntz6",
+      "Rosenkranz lineshape for oxygen with overlap correction, "
+      "at high altitudes Voigt_Kuntz6.",
+      -1,
+      lineshape_rosenkranz_voigt_kuntz6));
+
+  lineshape_data.push_back
+    (LineshapeRecord
+     ("Rosenkranz_Voigt_Drayson",
+      "Rosenkranz lineshape for oxygen with overlap correction, "
+      "at high altitudes Drayson.",
+      -1,
+      lineshape_rosenkranz_voigt_drayson));
 
 }
 

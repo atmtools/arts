@@ -82,7 +82,6 @@ raw_vmrs_1dReadFromScenario
 # Optionally write this to a file:
 #ArrayOfMatrixWriteAscii (raw_vmrs_1d) {""}
 
-
 # Create the pressure grid `p_abs':
 # VectorNLogSpace(p_abs){
 #         start = 100000
@@ -105,6 +104,9 @@ AtmFromRaw1D{}
 #VectorWriteAscii (t_abs) {""}
 VectorWriteAscii (z_abs) {""}
 #ArrayOfVectorWriteAscii (vmrs)  {""}
+
+# define the h2o_abs vector, containing the total wv vmr
+VectorCopyFromArrayOfVector (h2o_abs, vmrs) {index=0}
 
 
 # Create the frequency grid `f_mono':

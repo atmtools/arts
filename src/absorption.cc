@@ -1605,7 +1605,8 @@ void write_lines_to_stream(ostream& os,
 void abs_species( MATRIX&                  abs,
 		  const VECTOR&  	   f_mono,
 		  const VECTOR&  	   p_abs,
-		  const VECTOR&  	   t_abs,           
+		  const VECTOR&  	   t_abs,
+		  const VECTOR&  	   h2o_abs,
 		  const VECTOR&            vmr,
 		  const ARRAYofLineRecord& lines,
 		  const size_t             ind_ls,
@@ -1630,12 +1631,6 @@ void abs_species( MATRIX&                  abs,
   // sqrt(ln(2))
   // extern const Numeric SQRT_NAT_LOG_2;
 
-  // PI
-  extern const Numeric PI;
-
-  // constant sqrt(1/pi)
-  const Numeric sqrt_invPI =  sqrt(1/PI);
-
   // Constant within the Doppler Broadening calculation:
   static const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
 					     AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
@@ -1654,15 +1649,21 @@ void abs_species( MATRIX&                  abs,
   VECTOR fac(nf);
 
   // Voigt generally needs a different frequency grid. If we allocate
-  // that in the outer loop, insted of in voigt, we don't have the free
-  // store allocation at each lineshape call. Calculation is still
-  // done in the voigt routine itself, this is just an auxillary
-  // parameter, passed to lineshape.
-  VECTOR aux(nf);
+  // that in the outer loop, insted of in voigt, we don't have the
+  // free store allocation at each lineshape call. Calculation is
+  // still done in the voigt routine itself, this is just an auxillary
+  // parameter, passed to lineshape. For selected lineshapes (e.g.,
+  // Rosenkranz) it is used additionally to pass parameters needed in
+  // the lineshape (e.g., overlap, 2. intensity parameter,
+  // ...). Consequently we have to assure that aux has a dimension not
+  // less then the number of parameters passed.
+  INDEX ii = (nf < 10) ? 10 : nf;
+  VECTOR aux(ii);
 
-  // Check that p_abs, t_abs, and vmr all have the same
+  // Check that p_abs, t_abs, h2o_abs, and vmr all have the same
   // dimension. This could be a user error, so we throw a
-  // runtime_error. 
+  // runtime_error.  FIXME: why do we do this for each tag? wouldn't a
+  // check in abscalc be sufficient?
 
   if ( t_abs.size() != p_abs.size() )
     {
@@ -1678,6 +1679,15 @@ void abs_species( MATRIX&                  abs,
       ostringstream os;
       os << "Variable vmr must have the same dimension as p_abs.\n"
 	 << "vmr.size() = " << vmr.size() << '\n'
+	 << "p_abs.size() = " << p_abs.size();
+      throw runtime_error(os.str());
+    }
+
+  if ( h2o_abs.size() != p_abs.size() )
+    {
+      ostringstream os;
+      os << "Variable vmr must have the same dimension as p_abs.\n"
+	 << "h2o_abs.size() = " << h2o_abs.size() << '\n'
 	 << "p_abs.size() = " << p_abs.size();
       throw runtime_error(os.str());
     }
@@ -1714,7 +1724,6 @@ void abs_species( MATRIX&                  abs,
     // For the pressure broadening, we also need the partial pressure:
     const Numeric p_partial = p_i * vmr(i);
 
-
     // Loop all lines:
     for ( size_t l=0; l< nl; ++l )
       {
@@ -1725,8 +1734,9 @@ void abs_species( MATRIX&                  abs,
 	Numeric F0 = l_l.F();       // center frequency
 
 	// Intensity is already in the right units (Hz*m^2). It also
-	// includes already the isotopic ratio. Needs
-	// only to be multiplied by total number density, VMR, and lineshape. 
+	// includes already the isotopic ratio. Needs only to be
+	// coverted to the actual temperature and multiplied by total
+	// number density, VMR, and lineshape.
 	Numeric intensity = l_l.I0();
 
 	// Lower state energy is in wavenumbers
@@ -1736,6 +1746,7 @@ void abs_species( MATRIX&                  abs,
 	Numeric e_upper = e_lower + F0 * PLANCK_CONST;
 
 	// get the ratio of the partition function
+	// FIXME: a try catch block is slow, maybe use an if instead.
 	Numeric part_fct_ratio = 0.0;
 	try 
 	  {
@@ -1778,6 +1789,36 @@ void abs_species( MATRIX&                  abs,
 	  sqrt( t_i / l_l.IsotopeData().Mass());
 
 
+	// 4. the rosenkranz lineshape for oxygen calculates the
+	// pressure broadening, overlap, ... differently. Therefore
+	// all required parameters are passed in the aux array, the
+	// given order must agree with how they are accessed in the
+	// used lineshape (currently only the Rosenkranz routines are
+	// using this method of passing parameters). I know, this is
+	// not very nice, but I suggested to put the oxygen absorption
+	// into a different workspace method, but nobody listened to
+	// me, Schnief.
+	aux[0] = theta;
+	aux[1] = theta_Nair;
+	aux[2] = p_i;
+	aux[3] = vmr(i);
+	aux[4] = h2o_abs(i);
+	aux[5] = l_l.Agam();
+	aux[6] = l_l.Nair();
+	// is overlap available, otherwise pass zero
+	if (l_l.Naux() > 1)
+	  {
+	    aux[7] = l_l.Aux()[0];
+	    aux[8] = l_l.Aux()[1];
+	  }
+	else
+	  {
+	    aux[7] = 0.0;
+	    aux[8] = 0.0;
+	  }
+
+
+
 	// Calculate the line shape:
 	lineshape_data[ind_ls].Function()(ls,
 					  aux,
@@ -1797,13 +1838,10 @@ void abs_species( MATRIX&                  abs,
 
 
 	// Add line to abs:
-
-	// little speeding up factor
-	Numeric sfac = 1.0 / sigma * sqrt_invPI;
 	for ( size_t j=1; j<=nf; ++j )
 	  {
 	    abs(j,i) = abs(j,i)
-	      + n * vmr(i) * intensity * ls(j) * sfac * fac(j);
+	      + n * vmr(i) * intensity * ls(j) * fac(j);
 
 	    // if (i == 20)
 	    //  {

@@ -1364,7 +1364,8 @@ void k_temp_nohydro (
 		     const ARRAYofMATRIX&   absloswfs,
 		     const VECTOR&          f_mono,
 		     const VECTOR&          p_abs,
-		     const VECTOR&          t_abs,            
+		     const VECTOR&          t_abs,
+		     const VECTOR&          h2o_abs,	   
 		     const ARRAYofVECTOR&   vmrs,
 		     const ARRAYofARRAYofLineRecord& lines_per_tg,
 		     const ARRAYofsizet&    lineshape,
@@ -1423,7 +1424,7 @@ void k_temp_nohydro (
   out2 << "  Calculating absorption for t_abs + 1K\n";
   out2 << "  ----- Messages from absCalc: -----\n";
   //
-  absCalc( abs1k, abs_dummy, f_mono, p_abs, t_abs+1.0, vmrs, lines_per_tg, 
+  absCalc( abs1k, abs_dummy, f_mono, p_abs, t_abs+1.0, h2o_abs, vmrs, lines_per_tg, 
 	   lineshape, lineshape_norm );
   abs_dummy.resize(0);
   //
@@ -1676,6 +1677,7 @@ void kTempNoHydro (
 		    const VECTOR&          f_mono,
 		    const VECTOR&          p_abs,
 		    const VECTOR&          t_abs,
+		    const VECTOR&          h2o_abs,
 		    const ARRAYofVECTOR&   vmrs,
 		    const ARRAYofARRAYofLineRecord& lines_per_tg,
 		    const ARRAYofsizet&    lineshape,
@@ -1687,7 +1689,7 @@ void kTempNoHydro (
 		    const VECTOR&          k_grid )
 {
   k_temp_nohydro( k, k_names, k_aux, los, absloswfs, f_mono, p_abs, t_abs, 
-		  vmrs, lines_per_tg, lineshape, lineshape_norm, abs, trans, 
+		  h2o_abs, vmrs, lines_per_tg, lineshape, lineshape_norm, abs, trans, 
 		  e_ground, t_ground, k_grid );
 }
 
@@ -1702,6 +1704,7 @@ void kTempNoHydroNoGround (
 			   const VECTOR&          f_mono,
 			   const VECTOR&          p_abs,
 			   const VECTOR&          t_abs,
+			   const VECTOR&          h2o_abs,	 
 			   const ARRAYofVECTOR&   vmrs,
 			   const ARRAYofARRAYofLineRecord& lines_per_tg,
 			   const ARRAYofsizet&    lineshape,
@@ -1711,7 +1714,7 @@ void kTempNoHydroNoGround (
 			   const VECTOR&          k_grid )
 {
   k_temp_nohydro( k, k_names, k_aux, los, absloswfs, f_mono, p_abs, t_abs, 
-		  vmrs, lines_per_tg, lineshape, lineshape_norm, abs, trans, 
+		  h2o_abs, vmrs, lines_per_tg, lineshape, lineshape_norm, abs, trans, 
 		  VECTOR(0), 0, k_grid );
 }
 

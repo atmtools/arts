@@ -1170,7 +1170,7 @@ void define_md_data()
 		    "calculates both the total absorption and the\n"
 		    "absorption per tag group."),
 	OUTPUT(	    abs_  , abs_per_tg_                         ),
-	INPUT( 	    f_mono_, p_abs_, t_abs_, vmrs_, lines_per_tg_, 
+	INPUT( 	    f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
 		    lineshape_, lineshape_norm_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1537,7 +1537,7 @@ void define_md_data()
           "Calculates temperature 1D weighting functions WITHOUT including\n"
           "hydrostatic equilibrium."),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
+	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
 	       lines_per_tg_, lineshape_, lineshape_norm_, abs_, 
 	       trans_, e_ground_, t_ground_, k_grid_ ),
 	GOUTPUT(),
@@ -1551,7 +1551,7 @@ void define_md_data()
   	DESCRIPTION(
           "As kTempNoHydro but does not need any ground variables"),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
+	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
 	       lines_per_tg_, lineshape_, lineshape_norm_, abs_, 
 	       trans_, k_grid_ ),
 	GOUTPUT(),
@@ -2233,7 +2233,7 @@ void define_md_data()
           "  tag_files : Filenames for species data."),
 	OUTPUT( ybatch_ ),
 	INPUT( // Variables needed for absCalc
-               f_mono_, p_abs_, t_abs_, vmrs_, lines_per_tg_, lineshape_, 
+               f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, lineshape_, 
                lineshape_norm_,
                // Additional variables for losCalc
 	       z_abs_, z_plat_ ,za_pencil_, l_step_, refr_, l_step_refr_, 

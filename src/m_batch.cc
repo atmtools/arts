@@ -419,6 +419,7 @@ void ybatchAbsAndRte(
         const VECTOR&                     f_mono,
         const VECTOR&                     p_abs, 
         const VECTOR&                     t_abs,
+	const VECTOR&                     h2o_abs,
         const ARRAYofVECTOR&              vmrs,
         const ARRAYofARRAYofLineRecord&   lines_per_tag,
         const ARRAYofsizet&               lineshape,
@@ -534,8 +535,8 @@ void ybatchAbsAndRte(
 
     // Do the calculations
     if ( (i==0) || do_t || ntags || do_f )
-      absCalc( abs, abs_per_tag, f, p_abs, t, vs, lines_per_tag, lineshape, 
-                                                              lineshape_norm);
+      absCalc( abs, abs_per_tag, f, p_abs, t, h2o_abs, vs, lines_per_tag, lineshape, 
+	       lineshape_norm);
     if ( (i==0) || do_z || do_za )   
       losCalc( los, z_plat, za, l_step, p_abs, z, refr, l_step_refr, 
                                               refr_index, z_ground, r_geoid );
