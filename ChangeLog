@@ -1,5 +1,11 @@
 2002-03-20  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-33
+
+	* src/poly_roots.{h,cc}: Changed order of parameter.
+
+2002-03-20  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-32
 
 	* src/poly_roots.{h,cc}: Changed interface of poly_root_solve to make
