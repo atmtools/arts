@@ -36,7 +36,7 @@
 %          Angle 3 is removed.
 %          Note that the channels can be picked out in any order. In
 %          addition, a channel can be used for several averages (but
-%          make little sense).           
+%          that makes little sense).           
 %
 % FORMAT:  [H,f_y,za_y,Hd] = hBinFile(Hd,f,za,filename)
 %
@@ -54,7 +54,7 @@
 % HISTORY: 00.08.22  Created by Patrick Eriksson. 
 
 
-function [H,f_y,za_y,Hd] = hBinFile(H,f_y,za_y,Hd,filename)
+function [H,f_y,za_y,Hd] = hBinfile(H,f_y,za_y,Hd,filename)
 
 disp('WARNING, this function does so far not consider the channel widths');
 
@@ -67,7 +67,7 @@ end
 
 
 %=== Load binning file
-bdata = read_datafile(filename);
+bdata = read_datafile( filename, 'aomatrix' );
 % Conversion needed for Matlab
 if ~iscell(bdata)
   temp = bdata;

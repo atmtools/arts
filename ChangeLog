@@ -1,3 +1,13 @@
+2002-10-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-49
+
+	* ami/hmatrix/hBinfile.m: Fixed two bugs reported by the Bern group.
+	Many thanks Beat and Danial for reporting and finding the bugs.
+	
+	The function name inside the file was wrong. Added data type when
+	reading bdata. 
+
 2002-09-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-48
