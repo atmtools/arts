@@ -12,7 +12,6 @@
 #include "check_input.h"
 #include <stdexcept>
 #include <cmath>
-#include <sstream>
 #include "rte.h"
 #include "lin_alg.h"
 #include "auto_md.h"
