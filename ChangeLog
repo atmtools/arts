@@ -1,3 +1,15 @@
+2002-06-15  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-141
+	
+	* src/m_scatproperties.cc (abs_vec_sptCalc): modified this method.
+	Added *scat_za_grid* and *scat_aa_grid* as inputs to this method
+	since this is required for integration of the phase matrix.  
+
+	* src/methods.cc : added  *scat_za_grid* and *scat_aa_grid* as 
+		input to the method abs_vec_sptCalc.
+	
+
 2002-06-14  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-140
