@@ -323,13 +323,13 @@ xml_read_from_stream (istream& is_xml,
   tag.get_attribute_value ("nrows", nrows);
   tag.get_attribute_value ("ncols", ncols);
   sparse.resize(nrows, ncols);
-  tag.get_attribute_value ("nnz", nnz);
-  
-  ArrayOfIndex rowind(nnz), colind(nnz);
-  Vector data(nnz);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("RowIndex");
+  tag.get_attribute_value ("nelem", nnz);
+
+  ArrayOfIndex rowind(nnz), colind(nnz);
+  Vector data(nnz);
 
   for( Index i=0; i<nnz; i++) {
       if (pbifs) {
@@ -379,7 +379,7 @@ xml_read_from_stream (istream& is_xml,
   tag.check_name ("/ColIndex");
 
   tag.read_from_stream (is_xml);
-  tag.check_name ("Data");
+  tag.check_name ("SparseData");
 
   for( Index i=0; i<nnz; i++) {
       if (pbifs) {
@@ -401,11 +401,11 @@ xml_read_from_stream (istream& is_xml,
       }
   }
   tag.read_from_stream (is_xml);
-  tag.check_name ("/Data");
+  tag.check_name ("/SparseData");
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/Sparse");
-  
+
   for( Index i=0; i<nnz; i++)
     sparse.rw(rowind[i], colind[i]) = data[i];
 }
@@ -430,10 +430,13 @@ xml_write_to_stream (ostream& os_xml,
   sparse_tag.set_name ("Sparse");
   sparse_tag.add_attribute ("nrows", sparse.nrows());
   sparse_tag.add_attribute ("ncols", sparse.ncols());
-  sparse_tag.add_attribute ("nnz", sparse.nnz());
+  //sparse_tag.add_attribute ("nnz", sparse.nnz());
   row_tag.set_name ("RowIndex");
+  row_tag.add_attribute ("nelem", sparse.nnz());
   col_tag.set_name ("ColIndex");
-  data_tag.set_name ("Data");
+  col_tag.add_attribute ("nelem", sparse.nnz());
+  data_tag.set_name ("SparseData");
+  data_tag.add_attribute ("nelem", sparse.nnz());
 
   sparse_tag.write_to_stream (os_xml);
   os_xml << '\n';
@@ -474,7 +477,7 @@ xml_write_to_stream (ostream& os_xml,
           os_xml << (*sparse.mdata)[i] << ' ';
   }
   os_xml << '\n';
-  close_tag.set_name ("/Data");
+  close_tag.set_name ("/SparseData");
   close_tag.write_to_stream (os_xml);
   os_xml << '\n';
 
