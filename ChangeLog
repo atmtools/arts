@@ -1,3 +1,12 @@
+2003-10-22  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-707
+
+	* src/matpackI.cc (mult): Reimplemented Matrix-Vector multiplication.
+
+	* src/matpackI.h: Made mult function friend of Range, ConstVectorView
+	and ConstMatrixView.
+
 2003-10-21  Mattias Ekström  <ekstrom@rss.chalmers.se> 
 
 	* arts-1-1-706
