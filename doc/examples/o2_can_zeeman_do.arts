@@ -10,9 +10,9 @@ output_file_formatSetAscii{}
 
 # Create frequency grid:
 VectorNLinSpace(f_grid){
-  start =  61.1500e9
-  stop  =  61.1500e9
-  n     =  2
+  start =  58.4446e9
+  stop  =  58.4486e9
+  n     =  1000
 #  start =  30.0000e9
 #  stop  =  90.0000e9
 #  n     =  120
@@ -20,26 +20,25 @@ VectorNLinSpace(f_grid){
 #  stop  =  125.0000e9
 #  n     =  10
 }
+
+# ... and write to file.
+WriteXML(f_grid){""}
+
 # 0=false 1=true
 ZeemanO2Settings{
 	         ZeemanO2OnOff = 1
 	         ZeemanO2PressureLimit = 1.000e3
 	        }
 
-
-
-# ... and write to file.
-WriteXML(f_grid){""}
-
 # Create a pressure vector [Pa]:
-NumericSet(rte_pressure){1.0000e5}
+NumericSet(rte_pressure){1.200000e+00}
 
 # Create a temperature vector [K]:
-NumericSet(rte_temperature){296.0e0}
+NumericSet(rte_temperature){1.741000e+02}
 
 # Create a vmr vector [absolute numbers]:
 #                                  O2        H2O
-VectorSetExplicitly(rte_vmr_list){[0.2100e0, 1.000000e-04]}
+VectorSetExplicitly(rte_vmr_list){[0.2100e0, 1.000000e-06]}
 
 ReadXML(species_index){"species_index.xml"}
 
@@ -83,6 +82,7 @@ AgendaSet(zeeman_prop_agenda)
   }
 
 ReadXML(geomag_los){"geomag_los.xml"}
+WriteXML(geomag_los){""}
 
 IndexSet(ppath_index){0}
 
@@ -97,7 +97,8 @@ IndexSet(ppath_index){0}
 #absO2Model{}
 #WriteXML(abs){"absO2Model_file.xml"}
 # ------------------------------------------------------------------
-#Print(ext_mat_zee){1}
-#Print(abs_vec_zee){1}
-WriteXML(abs_vec){"O2ext.xml"}
+WriteXML(ext_mat_zee){""}
+WriteXML(abs_vec_zee){""}
+#WriteXML(abs_vec){""}
+#WriteXML(ext_mat){""}
 }

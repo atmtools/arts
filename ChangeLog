@@ -1,3 +1,17 @@
+2003-12-15  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-760
+
+	* src/m_abs_o2_models.cc: Change in the summation scheme in
+	(Zeeman_o2_line_splitting), seems to be the right one now. Other
+	minor changes. Moved out the Lagrange interpolation routine of
+	Thomas to src/math_funcs.cc. 
+
+	* doc/examples/o2_can_zeeman_do.arts: updated.
+
+	* src/math_funcs.cc: Included the Lagrange interpolation of Thomas.
+	
+
 2003-12-12  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-759
