@@ -60,33 +60,41 @@
 
 // The XML functions are created by Oliver Lemke
 
-
-//=== Index ============================================================
-
-// This function shall be modified to handle Index
-void
-IndexWriteXML (// WS Generic Output:
-               const Index&  v,
-               // WS Generic Output Names:
-               const String& v_name,
-               // Control Parameters:
-               const String& f)
+template<typename T> void
+GenericReadXML (// WS Generic Output:
+                T&            v,
+                // WS Generic Output Names:
+                const String& v_name,
+                // Control Parameters:
+                const String& f)
 {
   String filename = f;
 
   // Create default filename if empty  
   filename_xml (filename, v_name);
 
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  xml_read_from_file (filename, v);
 }
 
 
-// This function shall be modified to handle Index
+template<typename T> void
+GenericWriteXML (// WS Generic Output:
+                 const T&            v,
+                 // WS Generic Output Names:
+                 const String& v_name,
+                 // Control Parameters:
+                 const String& f)
+{
+  String filename = f;
+
+  // Create default filename if empty  
+  filename_xml (filename, v_name);
+
+  xml_write_to_file (filename, v);
+}
+
+//=== Index ===========================================================
+
 void
 IndexReadXML (// WS Generic Output:
               Index&        v,
@@ -95,39 +103,22 @@ IndexReadXML (// WS Generic Output:
               // Control Parameters:
               const String& f )
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, v_name );
-
-  xml_read_from_file (filename, v);
+  GenericReadXML (v, v_name, f);
 }
 
-
-
-//=== NUMERIC ==========================================================
 
 void
-NumericWriteXML (// WS Generic Output:
-                 const Numeric& v,
-                 // WS Generic Output Names:
-                 const String&  v_name,
-                 // Control Parameters:
-                 const String&  f)
+IndexWriteXML (// WS Generic Output:
+               const Index&  v,
+               // WS Generic Output Names:
+               const String& v_name,
+               // Control Parameters:
+               const String& f)
 {
-  String filename = f;
-
-  // Create default filename if empty  
-  filename_xml( filename, v_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  GenericWriteXML (v, v_name, f);
 }
 
+//=== Numeric ==========================================================
 
 void
 NumericReadXML (// WS Generic Output:
@@ -137,39 +128,22 @@ NumericReadXML (// WS Generic Output:
                 // Control Parameters:
                 const String& f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml (filename, v_name);
-
-  xml_read_from_file (filename, v);
+  GenericReadXML (v, v_name, f);
 }
 
-
-
-//=== Vector ==========================================================
 
 void
-VectorWriteXML (// WS Generic Output:
-                const Vector& v,
-                // WS Generic Output Names:
-                const String& v_name,
-                // Control Parameters:
-                const String& f)
+NumericWriteXML (// WS Generic Output:
+                 const Numeric& v,
+                 // WS Generic Output Names:
+                 const String&  v_name,
+                 // Control Parameters:
+                 const String&  f)
 {
-  String filename = f;
-
-  // Create default filename if empty  
-  filename_xml( filename, v_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  GenericWriteXML (v, v_name, f);
 }
 
+//=== Vector ==========================================================
 
 void
 VectorReadXML (// WS Generic Output:
@@ -179,45 +153,22 @@ VectorReadXML (// WS Generic Output:
                // Control Parameters:
                const String& f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, v_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  GenericReadXML (v, v_name, f);
 }
 
 
-
-//=== Matrix ==========================================================
-
 void
-MatrixWriteXML (// WS Generic Output:
-                const Matrix& m,
+VectorWriteXML (// WS Generic Output:
+                const Vector& v,
                 // WS Generic Output Names:
-                const String& m_name,
+                const String& v_name,
                 // Control Parameters:
                 const String& f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, m_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  GenericWriteXML (v, v_name, f);
 }
 
-
+//=== Matrix ==========================================================
 
 void
 MatrixReadXML (// WS Generic Output:
@@ -227,24 +178,23 @@ MatrixReadXML (// WS Generic Output:
                // Control Parameters:
                const String& f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, m_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  GenericReadXML (m, m_name, f);
 }
 
 
+void
+MatrixWriteXML (// WS Generic Output:
+                const Matrix& m,
+                // WS Generic Output Names:
+                const String& m_name,
+                // Control Parameters:
+                const String& f)
+{
+  GenericWriteXML (m, m_name, f);
+}
 
 //=== ArrayOfIndex =====================================================
 
-// This function shall be modified to handle ArrayOfIndex
 void
 ArrayOfIndexWriteXML (// WS Generic Output:
                       const ArrayOfIndex& v,
@@ -253,21 +203,12 @@ ArrayOfIndexWriteXML (// WS Generic Output:
                       // Control Parameters:
                       const String&       f)
 {
-  String filename = f;
-
-  // Create default filename if empty  
-  filename_xml( filename, v_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  ostringstream os;
+  os << "Not yet implemented";
+  throw runtime_error(os.str());
 }
 
 
-// This function shall be modified to handle Index
 void
 ArrayOfIndexReadXML (// WS Generic Output:
                      ArrayOfIndex& v,
@@ -276,23 +217,10 @@ ArrayOfIndexReadXML (// WS Generic Output:
                      // Control Parameters:
                      const String& f)
 {
-  // FIXME: This function is crap. Put the whole ASCII file stuff
-  // should be changed in the future, so I leave it for now.
-  
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, v_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  ostringstream os;
+  os << "Not yet implemented";
+  throw runtime_error(os.str());
 }
-
-
 
 //=== ArrayOfVector ====================================================
 
@@ -304,19 +232,10 @@ ArrayOfVectorWriteXML (// WS Generic Output:
                        // Control Parameters:
                        const String&        f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, av_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  ostringstream os;
+  os << "Not yet implemented";
+  throw runtime_error(os.str());
 }
-
 
 
 void
@@ -327,45 +246,12 @@ ArrayOfVectorReadXML (// WS Generic Output:
                       // Control Parameters:
                       const String&  f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, av_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  ostringstream os;
+  os << "Not yet implemented";
+  throw runtime_error(os.str());
 }
-
-
 
 //=== ArrayOfMatrix ====================================================
-
-void
-ArrayOfMatrixWriteXML (// WS Generic Output:
-                       const ArrayOfMatrix& am,
-                       // WS Generic Output Names:
-                       const String&        am_name,
-                       // Control Parameters:
-                       const String&        f)
-{
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, am_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
-}
-
-
 
 void
 ArrayOfMatrixReadXML (// WS Generic Output:
@@ -375,20 +261,20 @@ ArrayOfMatrixReadXML (// WS Generic Output:
                       // Control Parameters:
                       const String&  f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, am_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  GenericReadXML (am, am_name, f);
 }
 
 
+void
+ArrayOfMatrixWriteXML (// WS Generic Output:
+                       const ArrayOfMatrix& am,
+                       // WS Generic Output Names:
+                       const String&        am_name,
+                       // Control Parameters:
+                       const String&        f)
+{
+  GenericWriteXML (am, am_name, f);
+}
 
 //=== String ===============================================================
 
@@ -400,17 +286,9 @@ StringWriteXML (// WS Generic Output:
                 // Control Parameters:
                 const String& f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, s_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  ostringstream os;
+  os << "Not yet implemented";
+  throw runtime_error(os.str());
 }
 
 
@@ -422,17 +300,9 @@ StringReadXML (// WS Generic Output:
                // Control Parameters:
                const String& f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, s_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  ostringstream os;
+  os << "Not yet implemented";
+  throw runtime_error(os.str());
 }
 
 
@@ -447,17 +317,9 @@ ArrayOfStringWriteXML (// WS Generic Input:
                        // Control Parameters:
                        const String& f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, as_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  ostringstream os;
+  os << "Not yet implemented";
+  throw runtime_error(os.str());
 }
 
 
@@ -470,17 +332,9 @@ ArrayOfStringReadXML (// WS Generic Output:
                       // Control Parameters:
                       const String& f)
 {
-  String filename = f;
-  
-  // Create default filename if empty  
-  filename_xml( filename, as_name );
-
-  {
-    ostringstream os;
-    os << "Not yet implemented";
-    throw runtime_error(os.str());
-  }
-
+  ostringstream os;
+  os << "Not yet implemented";
+  throw runtime_error(os.str());
 }
 
 
