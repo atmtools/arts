@@ -854,6 +854,25 @@ void r_geoidWGS84(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
+   \date   2001-01-22
+*/
+void groundOff( 
+              Numeric&   z_ground,
+              Numeric&   t_ground,
+              Vector&    e_ground,
+        const Vector&    z_abs )
+{
+  z_ground = z_abs[0];
+  t_ground = 0;
+  e_ground.resize( 0 );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
    \date   2001-04-19
 */
 void groundSet( 
@@ -904,17 +923,64 @@ void groundAtBottom(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2001-01-22
+   \date   2004-04-23
 */
-void groundOff( 
+void groundFlatSea( 
               Numeric&   z_ground,
               Numeric&   t_ground,
               Vector&    e_ground,
-        const Vector&    z_abs )
+        const Vector&    p_abs,
+        const Vector&    t_abs,
+        const Vector&    z_abs,
+        const Vector&    f_mono,
+        const Vector&    za_pencil,
+        const Numeric&   z_plat,
+        const Numeric&   r_geoid,
+        const Index&     refr,
+        const Vector&    refr_index,
+        const String&    pol )
 {
+  if( z_abs[0] > 0  ||  z_abs[z_abs.nelem()-1] < 0 )
+    throw runtime_error( "The WSV *z_abs* must span over 0 m." );
+  if( min(f_mono) < 10e9  ||  max(f_mono) > 1000e9 )
+    throw runtime_error( 
+           "Frequencies below 10 GHz or above 1000 GHz are not allowed." );
+
   z_ground = z_abs[0];
-  t_ground = 0;
-  e_ground.resize( 0 );
+  t_ground = interpz( p_abs, z_abs, t_abs, 0 );
+
+  Numeric  n1 = 1, n2 = 1;
+  if( refr )
+    {
+      n1 =  n_for_z( z_plat, p_abs, z_abs, refr_index, last(z_abs) );
+      n2 =  n_for_z( z_ground, p_abs, z_abs, refr_index, last(z_abs) );
+    }
+  Numeric sintheta = n1 * (r_geoid+z_plat) * sin(DEG2RAD*max(za_pencil))
+                                                 / ( n2 * (r_geoid+z_ground) );
+  cout << sintheta << "\n";
+  if( sintheta > 1 )
+    { sintheta = 1; }
+  const Numeric costheta = sqrt( 1 - sintheta*sintheta );
+
+  cout << RAD2DEG * asin(sintheta) << "\n";
+
+  // Relative dielectric constant
+  const Numeric   ep = 5;
+  const Numeric   epp = 10;
+  
+  for( Index i=0; i<f_mono.nelem()-1; i++ )
+    {
+      e_ground[i] = ep + epp;
+      e_ground[i] = costheta;
+  
+      if( pol == "v" )
+        {}
+      else if( pol == "h" )
+        {}
+      else
+        throw runtime_error( 
+                        "The keyword argument *pol* must be \"v\" or \"h\"." );
+    }
 }
 
 

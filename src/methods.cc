@@ -2923,6 +2923,24 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("groundOff"),
+  	DESCRIPTION(
+          "Sets dummy values to the ground variables. \n"
+          "\n"
+          "The ground altitude is set to the first element of 'z_abs'.\n"
+          "The ground temperature (t_ground) is set to 0. \n"
+          "The ground emission vector (e_ground) is set to be empty.\n"
+          "   If there is a ground intersection and only this function is\n"
+          "used to set the ground variables, there will be error messages."),
+	OUTPUT( z_ground_, t_ground_, e_ground_ ),
+	INPUT( z_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("groundSet"),
   	DESCRIPTION(
           "Sets the ground altitude and emission to the specified values,\n"
@@ -2961,21 +2979,34 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("groundOff"),
+      ( NAME("groundFlatSea"),
   	DESCRIPTION(
-          "Sets dummy values to the ground variables. \n"
+          "Models the emission from a flat sea. \n"
           "\n"
-          "The ground altitude is set to the first element of 'z_abs'.\n"
-          "The ground temperature (t_ground) is set to 0. \n"
-          "The ground emission vector (e_ground) is set to be empty.\n"
-          "   If there is a ground intersection and only this function is\n"
-          "used to set the ground variables, there will be error messages."),
+          "The method sets the ground variables to match the properties of \n"
+          "the sea, without wind effects. The emissivity is calculated from\n"
+          "the dielectric constant by the Fresnel equations.\n"
+          "\n"
+          "The altitude is set to 0 m. The temperature is obtained by \n"
+          "interpolating *t_abs*. The incident angle (of reflection) is \n"
+          "calculated for max of *za_pencil*. Refraction is considered\n"
+          "or not, depending on value of *refr*. This means that *refrCalc*\n"
+          "must be called before this method if refraction is considered.\n"
+          "The emissivity depends on the selected polarisation. The \n"  
+          "refractive index of air is set to 1.\n"
+          "\n"
+          "The relative dielectric constant is calculated following ?. \n"
+          "The method is accordingly only valid between ? and ? GHz.\n"
+          "\n"
+          "Keywords \n"
+          "  pol : Polarisation. Calid options are \"v\" or \"h\"."),
 	OUTPUT( z_ground_, t_ground_, e_ground_ ),
-	INPUT( z_abs_ ),
+	INPUT( p_abs_, t_abs_, z_abs_, f_mono_, za_pencil_, z_plat_, r_geoid_,
+           refr_, refr_index_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+	KEYWORDS( "pol"       ),
+	TYPES(    String_t )));
 
   md_data.push_back
     ( MdRecord
