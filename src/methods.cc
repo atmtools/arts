@@ -139,22 +139,23 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("AgendaDefine"),
+      ( NAME("AgendaSet"),
   	DESCRIPTION
 	( 
-         "Set up an agenda.\n"
+	 "Set up an agenda.\n"
 	 "\n"
-	 "A method list just contains indices (in md_data) of methods\n"
-	 "intended for sequential execution. Only methods without keyword\n"
-	 "arguments are allowed. It is the task of this method to set this\n"
-	 "up. For example, it must be checked, whether the given names\n"
-	 "really correspond to methods.\n"
+	 "An agenda is used to store a list of methods that are meant to be\n"
+	 "executed sequentially.\n"
 	 "\n"
-	 "Global output:\n"
-	 "   ArrayOfIndex : The newly generated method list.\n"
+	 "This method takes the methods given in the body (in the curly braces)\n"
+	 "and puts them in the agenda given by the output argument (in the round\n"
+	 "braces).\n"
+	 "\n"
+	 "Generic output:\n"
+	 "   Agenda : The new agenda.\n"
 	 "\n"
 	 "Keywords:\n"
-	 "   methods      : An array of names of methods." 
+	 "   No keywords, but other methods can appear in the method body."	 
 	),
 	OUTPUT(  ),
         INPUT(  ),

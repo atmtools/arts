@@ -145,10 +145,22 @@ void Agenda::execute() const
     }
 }
 
-//! Remove contents and set size to 0.
+//! Set size to n.
 void Agenda::resize(Index n)
 {
   mml.resize(n);
+}
+
+//! Return the number of agenda elements.
+/*!  
+  This is needed, so that we can find out the correct size for
+  resize, befor we do a copy.
+
+  \return Number of agenda elements.
+*/
+Index Agenda::nelem() const
+{
+  return mml.nelem();
 }
 
 //! Assignment operator.
@@ -161,4 +173,102 @@ Agenda& Agenda::operator=(const Agenda& x)
   assert( mml.nelem() == x.mml.nelem() );
   mml = x.mml;
   return *this;
+}
+
+//! Check if given variable is agenda input.
+/*! 
+  A variable is agenda input if it is an input variable to any of the
+  methods making up the agenda. 
+
+  \param var The workspace variable to check.
+
+  \return True if var is an input variable of this agenda.
+*/
+bool Agenda::is_input(Index var) const
+{
+  // Make global method data visible:
+  extern const Array<MdRecord>  md_data;
+
+  // Make sure that var is the index of a valid method:
+  assert( 0<=var );
+  assert( var<md_data.nelem() );
+
+  // Loop all methods in this agenda:
+  for ( Index i=0; i<nelem(); ++i )
+    {
+      // Get a handle on this methods runtime data record:
+      const MRecord& this_method = mml[i];
+      
+      // Is var a specific input?
+      {
+	// Get a handle on the Input list for the current method:
+	const ArrayOfIndex& input = md_data[this_method.Id()].Input();
+
+	for ( Index j=0; j<input.nelem(); ++j )
+	  {
+	    if ( var == input[j] ) return true;
+	  }
+      }
+
+      // Is var a generic input?
+      {
+	// Get a handle on the Input list:
+	const ArrayOfIndex& input = this_method.Input();
+
+	for ( Index j=0; j<input.nelem(); ++j )
+	  {
+	    if ( var == input[j] ) return true;
+	  }
+      }
+    }
+
+  // Ok, that means var is no input at all.
+  return false;
+}
+
+//! Check if given variable is agenda output.
+/*! 
+  A variable is agenda output if it is an output variable to any of the
+  methods making up the agenda. 
+
+  \param var The workspace variable to check.
+
+  \return True if var is an output variable of this agenda.
+*/
+bool Agenda::is_output(Index var) const
+{
+  // Loop all methods in this agenda:
+  for ( Index i=0; i<nelem(); ++i )
+    {
+      // Get a handle on this methods runtime data record:
+      const MRecord& this_method = mml[i];
+      
+      // Is var a specific output?
+      {
+	// Make global method data visible:
+	extern const Array<MdRecord>  md_data;
+
+	// Get a handle on the Output list for the current method:
+	const ArrayOfIndex& output = md_data[this_method.Id()].Output();
+
+	for ( Index j=0; j<output.nelem(); ++j )
+	  {
+	    if ( var == output[j] ) return true;
+	  }
+      }
+
+      // Is var a generic output?
+      {
+	// Get a handle on the Output list:
+	const ArrayOfIndex& output = this_method.Output();
+
+	for ( Index j=0; j<output.nelem(); ++j )
+	  {
+	    if ( var == output[j] ) return true;
+	  }
+      }
+    }
+
+  // Ok, that means var is no output at all.
+  return false;
 }

@@ -1,5 +1,23 @@
 2002-05-29  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-1-1-102
+
+	* src/agenda.cc
+	(nelem): Added.
+	(is_input): Added.
+	(is_output): Added.
+	
+	* src/agenda.h: Added declarations for new Agenda member functions.
+
+	* src/m_agenda.cc (AgendaSet): Renamed from
+	AgendaDefine. Implemented function body.
+
+	* src/methods.cc (define_md_data): Renamed AgendaDefine to
+	AgendaSet. Fixed documentation string. Moved to the right place in
+	the alphabetical order. Also moved Main to the right place.
+
+2002-05-29  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-1-1-101
 
 	* doc/uguide/interpolation.tex: Tried to make interpolation tensor

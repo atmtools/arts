@@ -25,14 +25,15 @@
 
 #include "agenda.h"
 
-void AgendaDefine(// WS Generic Output:
-                  Agenda& output_agenda,
-                  // WS Generic Output Names:
-                  const String& agenda_name,
-                  // Agenda from controlfile:
-                  const Agenda& input_agenda)
+void AgendaSet(// WS Generic Output:
+	       Agenda& output_agenda,
+	       // WS Generic Output Names:
+	       const String& agenda_name,
+	       // Agenda from controlfile:
+	       const Agenda& input_agenda)
 {
-  // FIXME: I guess there should be some content here...
+  output_agenda.resize(input_agenda.nelem());
+  output_agenda = input_agenda;
 }
 
 void Main(// Agenda from controlfile:

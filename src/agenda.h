@@ -31,26 +31,25 @@
 // Declare existance of class WorkSpace
 class WorkSpace;
 
-// ... and Agenda, since we need it for MRecord
+// ... and MRecord
 class MRecord;
 
 //! The Agenda class.
-/*! 
-  An agenda is a list of workspace methods (including keyword data) to
-  be executed. There are workspace variables of class agenda that can
-  contain a list of methods to execute for a particular purpose, for
-  example to compute the lineshape in an absorption calculation. The
-  controlfile contains a list of agenda definitions, including the
-  agenda `main', which is then executed. Overall, this concept is in
-  analogy to a C program that consists of various functions and one
-  function main.
+/*! An agenda is a list of workspace methods (including keyword data)
+  to be executed. There are workspace variables of class agenda that
+  can contain a list of methods to execute for a particular purpose,
+  for example to compute the lineshape in an absorption
+  calculation. 
 */
 class Agenda {
 public:
   void push_back(MRecord n);
   void execute() const;
   void resize(Index n);
+  Index nelem() const;
   Agenda& operator=(const Agenda& x);
+  bool is_input(Index var) const;
+  bool is_output(Index var) const;
 private:
   Array<MRecord> mml;	/*!< The actual list of methods to execute. */
 };
