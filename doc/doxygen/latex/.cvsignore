@@ -1,6 +1,7 @@
 *.aux
 *.eps
 *.tex
+*.md5
 Makefile
 Makefile.in
 doxygen.sty
