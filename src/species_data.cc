@@ -84,7 +84,7 @@ Array<SpeciesRecord> species_data;
                     (default, even if jpl and hitran isotopic ratios are 
                     available).
        <tr>
-       <td >2: <td> jpl isotopic ratio, taken from the documentation coming
+       <td> 2: <td> jpl isotopic ratio, taken from the documentation coming
                     along with the catalogue. latest catalogue version
                     extracted 27.07.00, can be found at
                     /pool/lookup/jpl/cat7_00/doc/d<tag_nr>.cat 

@@ -175,10 +175,10 @@
   <td> 1: <td> tips program, version September 23, 1997
 
   <tr>
-  <td >2: <td> polynomial fit to JPL data
+  <td>2: <td> polynomial fit to JPL data
 
   <tr>
-  <td >3: <td> wild guess or copied from main isotope
+  <td>3: <td> wild guess or copied from main isotope
 
   </table>
 
@@ -194,12 +194,12 @@
   percent (range 150 to 300 K).
 
   <tr>
-  <td >2: <td> the difference in ratio between the polynomial fit to
+  <td>2: <td> the difference in ratio between the polynomial fit to
   the JPL data and the original data (interpolation with the
   recommended scheme) (range 150 to 300 K).
 
   <tr> 
-  <td >3: <td> The value is always 0, because for this case we
+  <td>3: <td> The value is always 0, because for this case we
   have no quality estimate.
 
   </table>
