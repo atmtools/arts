@@ -14,6 +14,7 @@
   === External declarations
   ===========================================================================*/
 
+#include <math.h>
 #include "arts.h"
 #include "exceptions.h"
 #include "array.h"

@@ -367,7 +367,7 @@ void geompath_from_r1_to_r2(
       // The absolute value of the length distance is needed here
       n = Index( ceil( fabs( l2 - l1 ) / lmax ) );
  
-      // We can't accept n=0 (if l1 == l2)
+      // We can't accept n=0, which is the case if l1 = l2
       if( n < 1 )
         { n = 1; }
     }

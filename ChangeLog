@@ -1,3 +1,12 @@
+2002-12-20  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-350
+
+	* src/m_optproperties.cc: Added #include <math.h> because acos was 
+	not found.
+
+	* src/ppath.cc (geompath_from_r1_to_r2): Improved a comment
+
 2002-12-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-349
