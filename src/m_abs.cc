@@ -156,7 +156,13 @@ void lines_per_tgCreateFromLines(// WS Output:
   std::vector<bool> species_used (species_data.size(),false);
       
   // Make lines_per_tg the right size:
-  lines_per_tg.resize(tag_groups.size());
+  lines_per_tg = ARRAYofARRAYofLineRecord(tag_groups.size());
+
+  // Unfortunately, MTL conatains a bug that leads to all elements of
+  // the outer ARRAY of an ARRAY<ARRAY>> pointing to the same data
+  // after creation. So we need to fix this explicitly:
+  for ( size_t i=0; i<lines_per_tg.size(); ++i )
+    lines_per_tg[i] = ARRAYofLineRecord();
 
   // Loop all lines in the input line list:
   for ( size_t i=0; i<lines.size(); ++i )
@@ -254,7 +260,18 @@ void lines_per_tgCreateFromLines(// WS Output:
 	}
    }
 
- }
+  // Write some information to the lowest priority output stream.
+  for (size_t i=0; i<tag_groups.size(); ++i)
+    {
+	out3 << "  " << i << ":";
+
+	for (size_t s=0; s<tag_groups[i].size(); ++s)
+	  out3 << " " << tag_groups[i][s].Name();
+
+	out3 << ": " << lines_per_tg[i].size() << " lines\n";
+    }
+
+}
 
 
 void linesWriteToFile(// WS Input:
@@ -315,7 +332,7 @@ void tag_groupsDefine(// WS Output:
                       // Control Parameters:
                       const ARRAYofstring& tags)
 {
-  tag_groups.resize(tags.size());
+  tag_groups = TagGroups(tags.size());
 
   // Each element of the array of strings tags defines one tag
   // group. Let's work through them one by one.
@@ -343,7 +360,13 @@ void tag_groupsDefine(// WS Output:
 	}
 
       // tag_def now holds the different tag strings for this group.
-//    cout << "tag_def =\n" << tag_def << endl;
+      //      cout << "tag_def =\n" << tag_def << endl;
+
+
+      // Unfortunately, MTL conatains a bug that leads to all elements of
+      // the outer ARRAY of an ARRAY<ARRAY>> pointing to the same data
+      // after creation. So we need to fix this explicitly:
+      tag_groups[i] = ARRAY<OneTag>();
 
       for ( size_t s=0; s<tag_def.size(); ++s )
 	{
@@ -366,7 +389,7 @@ void tag_groupsDefine(// WS Output:
   out3 << "  Defined tag groups:";
   for ( size_t i=0; i<tag_groups.size(); ++i )
     {
-      out3 << "\n  " << i+1 << ":";
+      out3 << "\n  " << i << ":";
       for ( size_t s=0; s<tag_groups[i].size(); ++s )
 	{
 	  out3 << " " << tag_groups[i][s].Name();

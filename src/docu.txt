@@ -28,6 +28,19 @@ copy() algorithm. For copy, the target object (matrix or vector) must
 have the right dimensions. Dimensions are not adjusted automatically,
 you will just get a core dump.
 
+This has one very important consequence for
+
+ARRAY<ARRAY<something>> my_data;
+
+After you create such an object, all outer
+ARRAY elements will point to the same data! You have to initialize
+manually, by doing the following:
+
+for (INDEX i=0; i<my_data.size(); ++i)
+   my_data[i] = ARRAY<something>();
+
+Sorry for the inconvenience, but I see no way to fix this. 
+
 MTL installation (for MTL-2.1.2-19):
 ====================================
 

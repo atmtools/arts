@@ -557,9 +557,8 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 	      // 	  cout << "iso_tags = " << iso_tags << endl;
 	      // 	  cout << "static_cast<size_t>(max(iso_tags))%10 + 1 = "
 	      // 	       << static_cast<size_t>(max(iso_tags))%10 + 1 << endl;
-	      hiso[mo].resize( static_cast<size_t>(max(iso_tags))%10 + 1,
-			       missing );
-	      //	  cout << "hiso[mo].size() = " << hiso[mo].size() << endl;
+	      hiso[mo] = ARRAY<size_t>( max(iso_tags)%10 + 1 );
+	      mtl::set(hiso[mo], missing);
 
 	      // Set the isotope tags:
 	      for ( size_t j=0; j<n_iso; ++j )

@@ -1,9 +1,31 @@
+2000-12-13  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-90
+
+	* m_abs.cc, tag_groupsDefine: Fixed bug: Initialization does not
+	work correctly with MTL based ARRAY<ARRAY>. If you just create
+	such a biest, all elements of the outer ARRAY will point to the
+	same data. There is an easy fix though, now I simply initialize
+	the outer ARRAY elements explicitly. This bug had caused the bug
+	in get_tagindex_for_strings that Patrick has reported.
+
+	* m_abs.cc, lines_per_tgCreateFromLines: Fixed same bug.
+
+	* absorption.cc, LineRecord::ReadFromMytran2Stream: Fixed same
+	bug. In LineRecord::ReadFromMytran2Stream I had already fixed it
+	before. 
+
+	* src/docu.txt: Added description of this bug and how to avoid it
+	to the documentation.
+	
+	
 2000-12-13  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-89
 
 	* lineshapes include now: 3 Voigt Kuntz algorithms, Voigt Drayson,
 	Doppler.
+
 
 2000-12-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 

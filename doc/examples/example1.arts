@@ -32,7 +32,7 @@ tag_groupsDefine{
 # the workspace variable `lines_per_tg':
 lines_per_tgCreateFromLines{}
 
-#lines_per_tgWriteToFile{""} 
+lines_per_tgWriteToFile{""} 
 
 
 # --------------------< A generic method >--------------------

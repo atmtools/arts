@@ -152,3 +152,10 @@ SAB 2000-12-09: Remove all resize calls when MTL is completely in place.
 
 SAB 2000-12-09: Include a good example file for RT. Patrick?
 
+SAB 2000-12-13: Find a solution how to remove WSVs (as if they had not
+                been created). Best would be a *general* method (which
+                is more than generic, since it should work for *any*
+                WSV type). Second best would be any other way to get
+                rid of WSVs. Add the moment this is not possible at
+                all. :-(
+
