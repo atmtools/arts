@@ -1,3 +1,32 @@
+2004-10-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-907
+
+	* src/{geomag_calc.h,geomag_calc.cc,special_interp.h,agendas.cc,
+	binio.cc,fastem.h,fastem.cc,legendre.cc,continua.h,m_abs_o2_models.cc,
+	math_funcs.cc,m_continua.cc,m_continua_ckd.cc,m_optproperties.cc,
+	m_scatrte.cc,optproperties.cc,montecarlo.h,scatrte.h,scatrte.cc}:
+
+	Reindented. Please run make check in the src directory before
+	committing to check whether your editor accidentally used tabs for
+	indentation. (X)Emacs users should put the following in their startup
+	file:
+
+	(add-hook 'c-mode-common-hook
+          (lambda ()
+            (progn
+              (setq indent-tabs-mode nil))))
+
+	Vim users please add this to .vim/ftplugin/c.vim:
+
+	setlocal expandtab
+	setlocal cindent
+	setlocal shiftwidth=2
+	setlocal tabstop=2
+	setlocal textwidth=78
+	setlocal cino=>2s,e-s,n-s,f0,{s,}0,^-s,:s,=s,l0,g0,hs,ps,t0,+s,c3,/N0,(0,u0,)100,*100
+	setlocal formatoptions=croqlt
+
 2004-10-27  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-906

@@ -2652,7 +2652,7 @@ scat_fieldCalc(//WS Output:
  
             // Calculate the phase matric of a single particle type
             pha_mat_spt_agenda.execute(scat_za_index || p_index );
-	    
+
             // Sum over all particle types
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                         atmosphere_dim, scat_p_index, 0, 
@@ -2660,32 +2660,32 @@ scat_fieldCalc(//WS Output:
 
              product_field = 0;
              
-	     // za_in and aa_in are for incoming zenith and azimuth 
-            //angle direction for which pha_mat is calculated
-	     for (Index za_in = 0; za_in < Nza; ++ za_in)
+             // za_in and aa_in are for incoming zenith and azimuth 
+             //angle direction for which pha_mat is calculated
+             for (Index za_in = 0; za_in < Nza; ++ za_in)
               { 
                 for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
                   {
                     // Multiplication of phase matrix with incoming 
                     // intensity field.
-		    
+
                     for ( Index i = 0; i < stokes_dim; i++)
-		      {
-			 for (Index j = 0; j< stokes_dim; j++)
-			 {
-			  product_field(za_in, aa_in, i) +=
+                      {
+                        for (Index j = 0; j< stokes_dim; j++)
+                          {
+                            product_field(za_in, aa_in, i) +=
                               pha_mat(za_in, aa_in, i, j) * 
                               i_field(p_index, 0, 0, za_in, 0, j);
-                        }
-                       }
-		    
+                          }
+                      }
+
                   }//end aa_in loop
               }//end za_in loop
-            //integration of the product of ifield_in and pha
-            //  over zenith angle and azimuth angle grid. It calls
-            for (Index i = 0; i < stokes_dim; i++)
-              {
-                
+             //integration of the product of ifield_in and pha
+             //  over zenith angle and azimuth angle grid. It calls
+             for (Index i = 0; i < stokes_dim; i++)
+               {
+
                 MatrixView product_field_mat =
                   product_field( Range(joker),
                                  Range(joker),
@@ -2702,7 +2702,7 @@ scat_fieldCalc(//WS Output:
                                                                 scat_za_grid,
                                                                 scat_aa_grid,
                                                                 grid_stepsize);
-		
+
               }//end i loop
           }//end za_prop loop
       }//end p_index loop
@@ -2713,13 +2713,13 @@ scat_fieldCalc(//WS Output:
   if( atmosphere_dim == 3 ){
     
     assert ( is_size( i_field, 
-		       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-		       (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-		       scat_za_grid.nelem(), 
-		       scat_aa_grid.nelem(),
-		       stokes_dim));
-     assert ( is_size( scat_field, 
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                      scat_za_grid.nelem(), 
+                      scat_aa_grid.nelem(),
+                      stokes_dim));
+    assert ( is_size( scat_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
                       (cloudbox_limits[5] - cloudbox_limits[4]) +1,
@@ -2917,53 +2917,53 @@ scat_fieldCalc1D(//WS Output:
           {
             // Calculate the phase matric of a single particle type
             pha_mat_spt_agenda.execute(scat_za_index || p_index );
-	    
+
             // Sum over all particle types
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-			atmosphere_dim, p_index + cloudbox_limits[0], 0, 
-			0);
-	    
-	    product_field = 0;
-	     
-	     // za_in and aa_in are for incoming zenith and azimutha 
+                        atmosphere_dim, p_index + cloudbox_limits[0], 0, 
+                        0);
+
+            product_field = 0;
+
+            // za_in and aa_in are for incoming zenith and azimutha 
             //angle direction for which pha_mat is calculated
-	     for (Index za_in = 0; za_in < Nza; ++ za_in)
+            for (Index za_in = 0; za_in < Nza; ++ za_in)
               { 
-		
-		    // Multiplication of phase matrix with incoming 
-		    // intensity field.
-		    
-		    for ( Index i = 0; i < stokes_dim; i++)
-		      {
-			for (Index j = 0; j< stokes_dim; j++)
-			  {
-			    product_field(za_in, 0, i) +=
-			      pha_mat(za_in, 29, i, j) * 
-			      i_field(p_index, 0, 0, za_in, 0, j);
-		      }
-		  }
-	      }//end za_in loop
-	     //integration of the product of ifield_in and pha
-	     //  over zenith angle and azimuth angle grid. It calls
-	     for (Index i = 0; i < stokes_dim; i++)
-	       {
-		 VectorView product_field_mat =
-		   product_field( Range(joker),
-				  0,
-				  i);
-		 // scat_field is also defined for all points inside the cloud
-		 //box for each propagion angle
-		 scat_field( p_index,
-			     0,
-			     0,
-			     scat_za_index, 
-			     0,
-			     i)  =   AngIntegrate_trapezoid(product_field_mat,
-							    scat_za_grid);
-	       }//end i loop
+
+                // Multiplication of phase matrix with incoming 
+                // intensity field.
+
+                for ( Index i = 0; i < stokes_dim; i++)
+                  {
+                    for (Index j = 0; j< stokes_dim; j++)
+                      {
+                        product_field(za_in, 0, i) +=
+                          pha_mat(za_in, 29, i, j) * 
+                          i_field(p_index, 0, 0, za_in, 0, j);
+                      }
+                  }
+              }//end za_in loop
+            //integration of the product of ifield_in and pha
+            //  over zenith angle and azimuth angle grid. It calls
+            for (Index i = 0; i < stokes_dim; i++)
+              {
+                VectorView product_field_mat =
+                  product_field( Range(joker),
+                                 0,
+                                 i);
+                // scat_field is also defined for all points inside the cloud
+                //box for each propagion angle
+                scat_field( p_index,
+                            0,
+                            0,
+                            scat_za_index, 
+                            0,
+                            i)  =   AngIntegrate_trapezoid(product_field_mat,
+                                                           scat_za_grid);
+              }//end i loop
           }//end za_prop loop
       }//end p_index loop
-    
+
     }//end atmosphere_dim = 1
 }
 

@@ -911,7 +911,7 @@ void abs_vecAddGas( Matrix&       abs_vec,
    \date   2003-12-01
 */
 void ext_matAddGasZeeman( Tensor3&      ext_mat,
-			  const Tensor3&  ext_mat_zee )
+                          const Tensor3&  ext_mat_zee )
 {
   // Number of Stokes parameters:
   const Index stokes_dim = ext_mat.ncols();
@@ -925,10 +925,10 @@ void ext_matAddGasZeeman( Tensor3&      ext_mat,
   for ( Index i=0; i<stokes_dim; ++i )
     {
       for ( Index j=0; j<stokes_dim; ++j )
-	{
-	  // Add the zeeman extinction to extinction matrix.
-	  ext_mat(joker,i,j) += ext_mat_zee(joker, i, j);
-	}
+        {
+          // Add the zeeman extinction to extinction matrix.
+          ext_mat(joker,i,j) += ext_mat_zee(joker, i, j);
+        }
       
     }
 }
@@ -951,7 +951,7 @@ void ext_matAddGasZeeman( Tensor3&      ext_mat,
   \date   2003-12-01
 */
 void abs_vecAddGasZeeman( Matrix&      abs_vec,
-			  const Matrix& abs_vec_zee )
+                          const Matrix& abs_vec_zee )
 {
   // Number of Stokes parameters:
   const Index stokes_dim = abs_vec_zee.ncols();
@@ -1259,11 +1259,11 @@ void ScatteringDataPrepareDOITOpt( //Output:
   \date 2003-12-16
 */
 void scat_data_monoCalc(
-			ArrayOfSingleScatteringData& scat_data_mono,
-			const ArrayOfSingleScatteringData& scat_data_raw,
-			const Vector& f_grid,
-			const Index& f_index
-                        )
+                        ArrayOfSingleScatteringData& scat_data_mono,
+                        const ArrayOfSingleScatteringData& scat_data_raw,
+                        const Vector& f_grid,
+                        const Index& f_index
+                       )
 {
   // Check, whether single scattering data contains the right frequencies:
   for (Index i = 0; i<scat_data_raw.nelem(); i++)
@@ -1521,8 +1521,8 @@ void opt_prop_sptFromMonoData( // Output and Input:
       ext_matTransform(ext_mat_spt(i_pt, joker, joker),
                        ext_mat_data1temp,
                        scat_data_mono[i_pt].za_grid, 
-		       scat_data_mono[i_pt].aa_grid, 
-		       scat_data_mono[i_pt].ptype,
+                       scat_data_mono[i_pt].aa_grid, 
+                       scat_data_mono[i_pt].ptype,
                        za_sca, aa_sca);
       // 
       // Absorption vector:
@@ -1552,8 +1552,8 @@ void opt_prop_sptFromMonoData( // Output and Input:
       abs_vecTransform(abs_vec_spt(i_pt, joker),
                        abs_vec_data1temp,
                        scat_data_mono[i_pt].za_grid, 
-		       scat_data_mono[i_pt].aa_grid, 
-		       scat_data_mono[i_pt].ptype,
+                       scat_data_mono[i_pt].aa_grid, 
+                       scat_data_mono[i_pt].ptype,
                        za_sca, aa_sca);                
     }
 

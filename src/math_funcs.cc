@@ -122,8 +122,8 @@ Index integer_div( const Index& x, const Index& y )
 */
 
 Numeric LagrangeInterpol4( ConstVectorView x,
-			   ConstVectorView y,
-			   const Numeric a)
+                           ConstVectorView y,
+                           const Numeric a)
 {
   // lowermost grid spacing on x-axis
   const Numeric Dlimit = 1.00000e-15;
@@ -135,8 +135,8 @@ Numeric LagrangeInterpol4( ConstVectorView x,
     {
       ostringstream os;
       os << "The vectors x and y must all have the same length of 4 elements!\n"
-	 << "Actual lengths:\n"
-         << "x:" << n_x << ", " << "y:" << n_y << ".";
+        << "Actual lengths:\n"
+        << "x:" << n_x << ", " << "y:" << n_y << ".";
       throw runtime_error(os.str());
     }
 
@@ -155,10 +155,10 @@ Numeric LagrangeInterpol4( ConstVectorView x,
     {
       b[i] = 1.000e0;
       for (Index k=0 ; k < 4 ; ++k)
-	{
-	  if ( (k != i) && (fabs(x[i]-x[k]) > Dlimit) )  
-	    b[i] = b[i] * ( (a-x[k]) / (x[i]-x[k]) );
-	};
+        {
+          if ( (k != i) && (fabs(x[i]-x[k]) > Dlimit) )  
+            b[i] = b[i] * ( (a-x[k]) / (x[i]-x[k]) );
+        };
     };
 
   Numeric ya = 0.000e0;

@@ -67,7 +67,7 @@ const binio::Flags binio::detect_system_flags()
   if(sizeof(float) == 4 && sizeof(double) == 8)
     if(f & BigEndian) {
       if(dat[0] == 0x40 && dat[1] == 0xD0 && !dat[2] && !dat[3])
-	f |= FloatIEEE;
+        f |= FloatIEEE;
     } else
       if(dat[3] == 0x40 && dat[2] == 0xD0 && !dat[1] && !dat[0])
       f |= FloatIEEE;
@@ -313,7 +313,7 @@ unsigned long binistream::readString(char *str, unsigned long maxlen)
 }
 
 unsigned long binistream::readString(char *str, unsigned long maxlen,
-				     char delim)
+                                     char delim)
 {
   unsigned long i;
 
@@ -547,20 +547,20 @@ void binostream::float2ieee_single(Float num, Byte *bytes)
       long mantissa;
 
       if (expon < -(SEXP_OFFSET-2)) {	/* Smaller than normalized */
-	int shift = (SEXP_POSITION+1) + (SEXP_OFFSET-2) + expon;
-	if (shift < 0) {	/* Way too small: flush to zero */
-	  bits = sign;
-	}
-	else {			/* Nonzero denormalized number */
-	  mantissa = (long)(fMant * (1L << shift));
-	  bits = sign | mantissa;
-	}
+        int shift = (SEXP_POSITION+1) + (SEXP_OFFSET-2) + expon;
+        if (shift < 0) {	/* Way too small: flush to zero */
+          bits = sign;
+        }
+        else {			/* Nonzero denormalized number */
+          mantissa = (long)(fMant * (1L << shift));
+          bits = sign | mantissa;
+        }
       }
 
       else {				/* Normalized number */
-	mantissa = (long)floor(fMant * (1L << (SEXP_POSITION+1)));
-	mantissa -= (1L << SEXP_POSITION);			/* Hide MSB */
-	bits = sign | ((long)((expon + SEXP_OFFSET - 1)) << SEXP_POSITION) | mantissa;
+        mantissa = (long)floor(fMant * (1L << (SEXP_POSITION+1)));
+        mantissa -= (1L << SEXP_POSITION);			/* Hide MSB */
+        bits = sign | ((long)((expon + SEXP_OFFSET - 1)) << SEXP_POSITION) | mantissa;
       }
     }
   }
@@ -607,36 +607,36 @@ void binostream::float2ieee_double(Float num, Byte *bytes)
       long mantissa;
 
       if (expon < -(DEXP_OFFSET-2)) {	/* Smaller than normalized */
-	int shift = (DEXP_POSITION+1) + (DEXP_OFFSET-2) + expon;
-	if (shift < 0) {	/* Too small for something in the MS word */
-	  first = sign;
-	  shift += 32;
-	  if (shift < 0) {	/* Way too small: flush to zero */
-	    second = 0;
-	  }
-	  else {			/* Pretty small demorn */
-	    second = FloatToUnsigned(floor(ldexp(fMant, shift)));
-	  }
-	}
-	else {			/* Nonzero denormalized number */
-	  fsMant = ldexp(fMant, shift);
-	  mantissa = (long)floor(fsMant);
-	  first = sign | mantissa;
-	  second = FloatToUnsigned(floor(ldexp(fsMant - mantissa, 32)));
-	}
+        int shift = (DEXP_POSITION+1) + (DEXP_OFFSET-2) + expon;
+        if (shift < 0) {	/* Too small for something in the MS word */
+          first = sign;
+          shift += 32;
+          if (shift < 0) {	/* Way too small: flush to zero */
+            second = 0;
+          }
+          else {			/* Pretty small demorn */
+            second = FloatToUnsigned(floor(ldexp(fMant, shift)));
+          }
+        }
+        else {			/* Nonzero denormalized number */
+          fsMant = ldexp(fMant, shift);
+          mantissa = (long)floor(fsMant);
+          first = sign | mantissa;
+          second = FloatToUnsigned(floor(ldexp(fsMant - mantissa, 32)));
+        }
       }
 
       else {				/* Normalized number */
-	fsMant = ldexp(fMant, DEXP_POSITION+1);
-	mantissa = (long)floor(fsMant);
-	mantissa -= (1L << DEXP_POSITION);			/* Hide MSB */
-	fsMant -= (1L << DEXP_POSITION);
-	first = sign | ((long)((expon + DEXP_OFFSET - 1)) << DEXP_POSITION) | mantissa;
-	second = FloatToUnsigned(floor(ldexp(fsMant - mantissa, 32)));
+        fsMant = ldexp(fMant, DEXP_POSITION+1);
+        mantissa = (long)floor(fsMant);
+        mantissa -= (1L << DEXP_POSITION);			/* Hide MSB */
+        fsMant -= (1L << DEXP_POSITION);
+        first = sign | ((long)((expon + DEXP_OFFSET - 1)) << DEXP_POSITION) | mantissa;
+        second = FloatToUnsigned(floor(ldexp(fsMant - mantissa, 32)));
       }
     }
   }
-	
+
   bytes[0] = first >> 24;
   bytes[1] = first >> 16;
   bytes[2] = first >> 8;

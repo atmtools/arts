@@ -144,10 +144,10 @@ void define_agenda_data()
         "Calculates the magnetic field along a given propagation path.\n"
         "\n"
         "The agenda relates the vector of the geomagnetic field to \n"
-	    "a specified propagation path. As a result the magnitude of \n"
-	    "this vector is calculated in each point of the propagation \n"
-	    "path, alongside with the corresponding angle between the \n"
-	    "geomagnetic field vector and the propagation direction.  \n"
+        "a specified propagation path. As a result the magnitude of \n"
+        "this vector is calculated in each point of the propagation \n"
+        "path, alongside with the corresponding angle between the \n"
+        "geomagnetic field vector and the propagation direction.  \n"
         "The output is the WSV *geomag_los*, containing the two \n"
         "quantities discussed above. \n"
         "\n"
@@ -261,29 +261,29 @@ void define_agenda_data()
        DESCRIPTION
        (
         "This agenda is used for metoffice profile calculations.\n"
-	"\n"
-	"This agenda is called inside the method *ybatchMetProfiles* which is\n"
-	"used to make a batch calculation for the metoffice profiles.   \n"
-	"See the documentation of *ybatchMetProfiles* for more information.\n"
-	"\n"
-	"This agenda can be, for example, set up like this:\n"
-	"\n"
-	"*AtmFieldsCalc*\n"
-	"*gas_abs_lookupAdapt*\n"
-	"*ScatteringInit	*\n"
-	"*CloudboxGetIncoming*\n"
-	"*ScatteringMain*\n"
-	"*RteCalc*\n"
-	"*yNoPolarisation*\n"
-	"\n"
-	"For example, if you want the output in brightness temperature unit,\n"
-	"then add the method *VectorToTbByPlanck*.  \n"
-	"\n"
-        ),
+        "\n"
+        "This agenda is called inside the method *ybatchMetProfiles* which is\n"
+        "used to make a batch calculation for the metoffice profiles.   \n"
+        "See the documentation of *ybatchMetProfiles* for more information.\n"
+        "\n"
+        "This agenda can be, for example, set up like this:\n"
+        "\n"
+        "*AtmFieldsCalc*\n"
+        "*gas_abs_lookupAdapt*\n"
+        "*ScatteringInit	*\n"
+        "*CloudboxGetIncoming*\n"
+        "*ScatteringMain*\n"
+        "*RteCalc*\n"
+        "*yNoPolarisation*\n"
+        "\n"
+        "For example, if you want the output in brightness temperature unit,\n"
+        "then add the method *VectorToTbByPlanck*.  \n"
+        "\n"
+       ),
        OUTPUT( y_ ),
        INPUT(t_field_raw_, vmr_field_raw_, z_field_raw_, pnd_field_raw_,
-	     p_grid_, sensor_los_, cloudbox_on_, cloudbox_limits_,
-	     z_surface_)));
+             p_grid_, sensor_los_, cloudbox_on_, cloudbox_limits_,
+             z_surface_)));
 
   agenda_data.push_back
     (AgRecord
@@ -463,7 +463,7 @@ void define_agenda_data()
         "Calculates the refractive index.\n"
         "\n"
         "This agenda should calculate the summed refractive index for all\n"
-	"relevant constituients. The result is returned in *refr_index*, the\n"
+        "relevant constituients. The result is returned in *refr_index*, the\n"
         "atmospheric state is speciefied by *rte_pressure*, \n"
         "*rte_temperature* and *rte_vmr_list*."
         ),

@@ -31,14 +31,14 @@
 #define fastem_h
 
 void fastem(// Output:
-	    VectorView surface_emiss,
-	    // Input:
-	    const Numeric& surface_temp,
-	    ConstVectorView surface_wind,
-	    ConstVectorView surface_fastem_constants,
-	    const Numeric& freq
-	    //const Index& f_index,
-	    //const Index& stokes_dim
-	    );
+            VectorView surface_emiss,
+            // Input:
+            const Numeric& surface_temp,
+            ConstVectorView surface_wind,
+            ConstVectorView surface_fastem_constants,
+            const Numeric& freq
+            //const Index& f_index,
+            //const Index& stokes_dim
+           );
 
 #endif //fastem_h

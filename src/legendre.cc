@@ -205,9 +205,9 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-	  result = ((l + m) * legendre_poly (l-1, m, x) - 
-		    l * x * legendre_poly (l, m, x)) /
-	             (1 - x * x);
+          result = ((l + m) * legendre_poly (l-1, m, x) - 
+                    l * x * legendre_poly (l, m, x)) /
+            (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -291,9 +291,9 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-	  result = ((l + m) * legendre_poly_norm_schmidt (l-1, m, x) - 
-		    l * x * legendre_poly_norm_schmidt (l, m, x)) /
-	             (1 - x * x);
+          result = ((l + m) * legendre_poly_norm_schmidt (l-1, m, x) - 
+                    l * x * legendre_poly_norm_schmidt (l, m, x)) /
+            (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -316,8 +316,8 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
         {
           ostringstream os;
           os << e.what () << "legendre_poly_norm_schmidt_deriv: "
-	     << "Condition m = l failed" << endl
-	     << "l = " << l << "  m = " << m << endl;
+            << "Condition m = l failed" << endl
+            << "l = " << l << "  m = " << m << endl;
           throw runtime_error (os.str ());
         }
     }
@@ -327,24 +327,24 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
 
 //! g_legendre_poly
 /*!
-    Returns the associated Legendre polynomial Plm(x) without 
-    the factor (-1)^m.
+  Returns the associated Legendre polynomial Plm(x) without 
+  the factor (-1)^m.
 
-    The input parameters must fulfill the following conditions:
-    0 <= m <= l and |x| <= 1
+  The input parameters must fulfill the following conditions:
+  0 <= m <= l and |x| <= 1
 
-    The code is based on the Numerical recipes. Results were compared
-    to the Legendre calculations from the GNU Scientific library and found
-    to be identical.
+  The code is based on the Numerical recipes. Results were compared
+  to the Legendre calculations from the GNU Scientific library and found
+  to be identical.
 
-    \return      Plm
-    \param   l   Index
-    \param   m   Index
-    \param   x   Value
+  \return      Plm
+  \param   l   Index
+  \param   m   Index
+  \param   x   Value
 
-    \author Nikolay Koulev
-    \date   2003-09-02
-*/
+  \author Nikolay Koulev
+  \date   2003-09-02
+  */
 Numeric
 g_legendre_poly (Index l, Index m, Numeric x)
 {
@@ -399,24 +399,24 @@ g_legendre_poly (Index l, Index m, Numeric x)
 
 //! g_legendre_poly_norm_schmidt
 /*!
-    Returns the Schmidt quasi-normalized associated Legendre polynomial Plm(x)) without 
-    the factor (-1)^m..
+  Returns the Schmidt quasi-normalized associated Legendre polynomial Plm(x)) without 
+  the factor (-1)^m..
 
-    The input parameters must fulfill the following conditions:
-    0 <= m <= l and |x| <= 1
+  The input parameters must fulfill the following conditions:
+  0 <= m <= l and |x| <= 1
 
-    The code is based on the Numerical recipes. Results were compared
-    to the Legendre calculations from the GNU Scientific library and found
-    to be identical.
+  The code is based on the Numerical recipes. Results were compared
+  to the Legendre calculations from the GNU Scientific library and found
+  to be identical.
 
-    \return      Plm
-    \param   l   Index
-    \param   m   Index
-    \param   x   Value
+  \return      Plm
+  \param   l   Index
+  \param   m   Index
+  \param   x   Value
 
-    \author Nikolay koulev
-    \date   2003-09-02
-*/
+  \author Nikolay koulev
+  \date   2003-09-02
+  */
 Numeric
 g_legendre_poly_norm_schmidt (Index l, Index m, Numeric x)
 {
@@ -440,20 +440,20 @@ g_legendre_poly_norm_schmidt (Index l, Index m, Numeric x)
 
 //! g_legendre_poly_deriv
 /*!
-    Returns the derivative of the associated Legendre polynomial Plm(x)) without 
-    the factor (-1)^m..
+  Returns the derivative of the associated Legendre polynomial Plm(x)) without 
+  the factor (-1)^m..
 
-    The input parameters must fulfill the following conditions:
-    0 <= m <= l and |x| < 1
+  The input parameters must fulfill the following conditions:
+  0 <= m <= l and |x| < 1
 
-    \return      dPlm
-    \param   l   Index
-    \param   m   Index
-    \param   x   Value
+  \return      dPlm
+  \param   l   Index
+  \param   m   Index
+  \param   x   Value
 
-    \author Nikolay Koulev
-    \date   2003-09-02
-*/
+  \author Nikolay Koulev
+  \date   2003-09-02
+  */
 Numeric
 g_legendre_poly_deriv (Index l, Index m, Numeric x)
 {
@@ -490,9 +490,9 @@ g_legendre_poly_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-	  result = ((l + m) * g_legendre_poly (l-1, m, x) - 
-		    l * x * g_legendre_poly (l, m, x)) /
-	             (1 - x * x);
+          result = ((l + m) * g_legendre_poly (l-1, m, x) - 
+                    l * x * g_legendre_poly (l, m, x)) /
+            (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -508,8 +508,8 @@ g_legendre_poly_deriv (Index l, Index m, Numeric x)
       try
         {
           result = - m * x * g_legendre_poly (l, m, x) / (1 - x * x) + 
-	          (l + m) * (l - m + 1) * g_legendre_poly (l, m - 1, x) / 
-	          sqrt (1 - x * x);
+            (l + m) * (l - m + 1) * g_legendre_poly (l, m - 1, x) / 
+            sqrt (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -577,9 +577,9 @@ g_legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-	  result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-	    ((l + m) * g_legendre_poly(l-1, m, x) - 
-	     l * x * g_legendre_poly (l, m, x)) / (1 - x * x);
+          result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
+            ((l + m) * g_legendre_poly(l-1, m, x) - 
+             l * x * g_legendre_poly (l, m, x)) / (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -595,16 +595,16 @@ g_legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
       try
         {
           result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-	    ( - m * x * g_legendre_poly (l, m, x) / (1 - x * x) + 
-	      (l + m) * (l - m + 1) * g_legendre_poly (l, m - 1, x) / 
-	      sqrt (1 - x * x));
+            ( - m * x * g_legendre_poly (l, m, x) / (1 - x * x) + 
+              (l + m) * (l - m + 1) * g_legendre_poly (l, m - 1, x) / 
+              sqrt (1 - x * x));
         }
       catch (runtime_error e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
-	     << "Condition m = l failed" << endl
-	     << "l = " << l << "  m = " << m << endl;
+            << "Condition m = l failed" << endl
+            << "l = " << l << "  m = " << m << endl;
           throw runtime_error (os.str ());
         }
     }
@@ -666,15 +666,15 @@ g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x)
     {
       try
         {
-	  // result = - m * x * g_legendre_poly_norm_schmidt (l, m, x) / (1 - x * x)
+          // result = - m * x * g_legendre_poly_norm_schmidt (l, m, x) / (1 - x * x)
           //  +  sqrt((double)(l + m + 1 / l - m - 1)) * g_legendre_poly_norm_schmidt (l, m + 1, x)
           //  / sqrt (1 - x * x);
 
-	  result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-	    ( - m * x * g_legendre_poly (l, m, x) / (1 - x * x)  + 
-	     g_legendre_poly (l, m + 1, x)
-	     / sqrt (1 - x * x));
-	}
+          result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
+            ( - m * x * g_legendre_poly (l, m, x) / (1 - x * x)  + 
+              g_legendre_poly (l, m + 1, x)
+              / sqrt (1 - x * x));
+        }
       catch (runtime_error e)
         {
           ostringstream os;
@@ -689,14 +689,14 @@ g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x)
       try
         {
           result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-	     m * x * g_legendre_poly (l, m, x) / (1 - x * x);
+            m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
       catch (runtime_error e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
-	     << "Condition m = l failed" << endl
-	     << "l = " << l << "  m = " << m << endl;
+            << "Condition m = l failed" << endl
+            << "l = " << l << "  m = " << m << endl;
           throw runtime_error (os.str ());
         }
     }
@@ -758,10 +758,10 @@ g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x)
     {
       try
         {
-	  result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-	    ((l + m) * g_legendre_poly (l-1, m, x) - 
-		    l * x * g_legendre_poly (l, m, x)) /
-	             (1 - x * x);
+          result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
+            ((l + m) * g_legendre_poly (l-1, m, x) - 
+             l * x * g_legendre_poly (l, m, x)) /
+            (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -783,8 +783,8 @@ g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
-	     << "Condition m = l failed" << endl
-	     << "l = " << l << "  m = " << m << endl;
+            << "Condition m = l failed" << endl
+            << "l = " << l << "  m = " << m << endl;
           throw runtime_error (os.str ());
         }
     }
@@ -807,7 +807,7 @@ g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x)
 
   \author Nikolay Koulev
   \date   2003-09-02
-*/
+  */
 Numeric
 g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x)
 {
@@ -846,10 +846,10 @@ g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x)
     {
       try
         {
-	  result = sqrt(2.0 * fac (l - m) / fac (l + m)) * 
-	           (l * g_legendre_poly (l - 1, m, x) + 
-	             (m - l) * x * g_legendre_poly (l, m, x)) /
-	               (1 - x * x);
+          result = sqrt(2.0 * fac (l - m) / fac (l + m)) * 
+            (l * g_legendre_poly (l - 1, m, x) + 
+             (m - l) * x * g_legendre_poly (l, m, x)) /
+            (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -865,14 +865,14 @@ g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x)
       try
         {
           result = - sqrt(2.0 * fac (l - m) / fac (l + m)) * 
-	    m * x * g_legendre_poly (l, m, x) / (1 - x * x);
+            m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
       catch (runtime_error e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
-	     << "Condition m = l failed" << endl
-	     << "l = " << l << "  m = " << m << endl;
+            << "Condition m = l failed" << endl
+            << "l = " << l << "  m = " << m << endl;
           throw runtime_error (os.str ());
         }
     }
@@ -934,10 +934,10 @@ g_legendre_poly_norm_schmidt_deriv4 (Index l, Index m, Numeric x)
     {
       try
         {
-	  result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-	    ((l + m) * (l + 1) * g_legendre_poly (l - 1, m, x)  - 
-	     (l + 2 * m) * (l - m + 1) * g_legendre_poly (l + 1, m, x)
-	     / ((2 * l + 1 ) * (1 - x * x)));
+          result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
+            ((l + m) * (l + 1) * g_legendre_poly (l - 1, m, x)  - 
+             (l + 2 * m) * (l - m + 1) * g_legendre_poly (l + 1, m, x)
+             / ((2 * l + 1 ) * (1 - x * x)));
         }
       catch (runtime_error e)
         {
@@ -953,14 +953,14 @@ g_legendre_poly_norm_schmidt_deriv4 (Index l, Index m, Numeric x)
       try
         {
           result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-	    m * x * g_legendre_poly (l, m, x) / (1 - x * x);
+            m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
       catch (runtime_error e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
-	     << "Condition m = l failed" << endl
-	     << "l = " << l << "  m = " << m << endl;
+            << "Condition m = l failed" << endl
+            << "l = " << l << "  m = " << m << endl;
           throw runtime_error (os.str ());
         }
     }

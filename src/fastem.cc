@@ -72,13 +72,13 @@ extern const Numeric RAD2DEG;
   \date 2004-08-10
 */
 void fastem(// Output:
-	    VectorView surface_emiss,
-	    // Input:
-	    const Numeric& surface_temp,
-	    ConstVectorView surface_wind,
-	    ConstVectorView surface_fastem_constants,
-	    const Numeric& freq
-	    )
+            VectorView surface_emiss,
+            // Input:
+            const Numeric& surface_temp,
+            ConstVectorView surface_wind,
+            ConstVectorView surface_fastem_constants,
+            const Numeric& freq
+           )
 {
   //  Calculate PIOM (Ellison et al.) xperm
   //Calculate xperm using the dclamkaouchi method
@@ -90,16 +90,16 @@ void fastem(// Output:
   Numeric temp_ccc = temp_cc * temp_c;
 
   if (  (temp_c < -5.0)  ||  (temp_c > 100.0)  || 
-	(freq < 10e+9) || (freq > 500e+9) )
+        (freq < 10e+9) || (freq > 500e+9) )
     {
       
       ostringstream os;
       os << "Severe warning from dclamkaouchi: "
-	 << "The accepted temperature range in centigrade is "
-	 << "[-5,100],\nbut a value of " << temp_c 
-	 << "°C was found. Also the allowed frequency range is "
-	 << "[10 GHz,500 GHz],\nbut a value of " <<  freq
-	 << " was found.";
+        << "The accepted temperature range in centigrade is "
+        << "[-5,100],\nbut a value of " << temp_c 
+        << "°C was found. Also the allowed frequency range is "
+        << "[10 GHz,500 GHz],\nbut a value of " <<  freq
+        << " was found.";
       
       throw runtime_error( os.str() );
     }
@@ -109,14 +109,14 @@ void fastem(// Output:
       
       ostringstream os;
       os << "Warning from dclamkaouchi: "
-	 << "The accepted temperature range in centigrade is "
-	 << "[-5,100],\nbut a value of " << temp_c 
-	 << "°C was found. Also the allowed frequency range is "
-	 << "[10 GHz,500 GHz],\nbut a value of " <<  freq
-	 << " was found."<< surface_wind; //remove surface_wind, it
-					  //was only to avoid
-					  //
-					  //compilation error due to unused variable  
+        << "The accepted temperature range in centigrade is "
+        << "[-5,100],\nbut a value of " << temp_c 
+        << "°C was found. Also the allowed frequency range is "
+        << "[10 GHz,500 GHz],\nbut a value of " <<  freq
+        << " was found."<< surface_wind; //remove surface_wind, it
+                                         //was only to avoid
+                                         //
+                                         //compilation error due to unused variable  
 
       
       throw runtime_error( os.str() );

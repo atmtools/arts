@@ -93,11 +93,11 @@
 */
 
 void HUMLIK_Faddeeva_Wells ( // Input
-		       ConstVectorView X, 
-		       Numeric Y, 
-                       // Output
-		       Vector& K, 
-		       Vector& L )
+                             ConstVectorView X, 
+                             Numeric Y, 
+                             // Output
+                             Vector& K, 
+                             Vector& L )
 {
 
   /*
@@ -122,11 +122,11 @@ void HUMLIK_Faddeeva_Wells ( // Input
   const Numeric Y0PY0 = Y0+Y0;                           /* for CPF12 algorithm */
   const Numeric Y0Q   = Y0*Y0;                           /* for CPF12 algorithm */
   const Numeric C[]   = { 1.0117281,     -0.75197147,        0.012557727,
-	                  0.010022008,   -0.00024206814,     0.00000050084806 };
+    0.010022008,   -0.00024206814,     0.00000050084806 };
   const Numeric S[]   = { 1.393237,       0.23115241,       -0.15535147,
-		          0.0062183662,   0.000091908299,   -0.00000062752596 };
+    0.0062183662,   0.000091908299,   -0.00000062752596 };
   const Numeric T[]   = { 0.31424038,     0.94778839,        1.5976826,
-		          2.2795071,      3.0206370,         3.8897249 };
+    2.2795071,      3.0206370,         3.8897249 };
 
 
   /* Local variables */
@@ -177,123 +177,123 @@ void HUMLIK_Faddeeva_Wells ( // Input
       ABX = fabs( X[I] );                                /*! |x|  */
       XQ  = ABX*ABX;                                    /* ! x^2 */
       if ( ABX > XLIM0 )                                /* ! Region 0 algorithm */
-	{
-	  K[I] = YRRTPI / (XQ + YQ);
-	  L[I] = K[I]*X[I] / Y;
-	}
+        {
+          K[I] = YRRTPI / (XQ + YQ);
+          L[I] = K[I]*X[I] / Y;
+        }
       else if ( ABX > XLIM1 )                           /* ! Humlicek W4 Region 1 */
-	{
-	  if ( RG1 != 0 )                               /* ! First point in Region 1 */
-	    {
-	      RG1 = 0;
-	      A0 = YQ + 0.5;                            /* ! Region 1 y-dependents */
-	      D0 = A0*A0;
-	      D2 = YQ + YQ - 1.0;
-	      B1 = YQ - 0.5;
-	    };
-	  D = RRTPI / (D0 + XQ*(D2 + XQ));
-	  K[I] = D*Y   *(A0 + XQ);
-	  L[I] = D*X[I]*(B1 + XQ);
-	}
+        {
+          if ( RG1 != 0 )                               /* ! First point in Region 1 */
+            {
+              RG1 = 0;
+              A0 = YQ + 0.5;                            /* ! Region 1 y-dependents */
+              D0 = A0*A0;
+              D2 = YQ + YQ - 1.0;
+              B1 = YQ - 0.5;
+            };
+          D = RRTPI / (D0 + XQ*(D2 + XQ));
+          K[I] = D*Y   *(A0 + XQ);
+          L[I] = D*X[I]*(B1 + XQ);
+        }
       else if ( ABX > XLIM2 )                           /* ! Humlicek W4 Region 2 */ 
-	{
-	  if ( RG2 != 0 )                               /* ! First point in Region 2 */
-	    {
-	      RG2 = 0;
-	      H0 =  0.5625 + YQ*(4.5 + YQ*(10.5 + YQ*(6.0 + YQ))); /* ! Region 2 y-dependents */
-	      H2 = -4.5    + YQ*(9.0 + YQ*( 6.0 + YQ* 4.0));
-	      H4 = 10.5    - YQ*(6.0 - YQ*  6.0);
-	      H6 = -6.0    + YQ* 4.0;
-	      E0 =  1.875  + YQ*(8.25 + YQ*(5.5 + YQ));
-	      E2 =  5.25   + YQ*(1.0  + YQ* 3.0);
-	      E4 =  0.75*H6;
-	      F1 = -1.875  + YQ*(5.25 + YQ*(4.5 + YQ));
-	      F3 =  8.25   - YQ*(1.0  - YQ* 3.0);
-	      F5 = -5.5    + YQ* 3.0;
-	    };
-	  D = RRTPI / (H0 + XQ*(H2 + XQ*(H4 + XQ*(H6 + XQ))));
-	  K[I] = D*Y   *(E0 + XQ*(E2 + XQ*(E4 + XQ)));
-	  L[I] = D*X[I]*(F1 + XQ*(F3 + XQ*(F5 + XQ)));
-	}
+        {
+          if ( RG2 != 0 )                               /* ! First point in Region 2 */
+            {
+              RG2 = 0;
+              H0 =  0.5625 + YQ*(4.5 + YQ*(10.5 + YQ*(6.0 + YQ))); /* ! Region 2 y-dependents */
+              H2 = -4.5    + YQ*(9.0 + YQ*( 6.0 + YQ* 4.0));
+              H4 = 10.5    - YQ*(6.0 - YQ*  6.0);
+              H6 = -6.0    + YQ* 4.0;
+              E0 =  1.875  + YQ*(8.25 + YQ*(5.5 + YQ));
+              E2 =  5.25   + YQ*(1.0  + YQ* 3.0);
+              E4 =  0.75*H6;
+              F1 = -1.875  + YQ*(5.25 + YQ*(4.5 + YQ));
+              F3 =  8.25   - YQ*(1.0  - YQ* 3.0);
+              F5 = -5.5    + YQ* 3.0;
+            };
+          D = RRTPI / (H0 + XQ*(H2 + XQ*(H4 + XQ*(H6 + XQ))));
+          K[I] = D*Y   *(E0 + XQ*(E2 + XQ*(E4 + XQ)));
+          L[I] = D*X[I]*(F1 + XQ*(F3 + XQ*(F5 + XQ)));
+        }
       else if ( ABX < XLIM3 )                           /* ! Humlicek W4 Region 3 */
-	{
-	  if ( RG3 != 0 )                               /* ! First point in Region 3 */
-	    {
-	      RG3 = 0;
-	      Z0 = 272.1014 + Y*(1280.829 + Y*(2802.870 + Y*(3764.966 
-			    + Y*(3447.629 + Y*(2256.981 + Y*(1074.409 
-			    + Y*(369.1989 + Y*(88.26741 + Y*(13.39880 
-                            + Y)))))))));               /*! Region 3 y-dependents*/
-	      Z2 = 211.678  + Y*(902.3066 + Y*(1758.336 + Y*(2037.310
-                            + Y*(1549.675 + Y*(793.4273 + Y*(266.2987
-                            + Y*(53.59518 + Y*5.0)))))));
-	      Z4 = 78.86585 + Y*(308.1852 + Y*(497.3014 + Y*(479.2576
-			    + Y*(269.2916 + Y*(80.39278 + Y*10.0)))));
-	      Z6 = 22.03523 + Y*(55.02933 + Y*(92.75679 + Y*(53.59518
-                            + Y*10.0)));
-	      Z8 = 1.496460 + Y*(13.39880 + Y*5.0);
-	      P0 = 153.5168 + Y*(549.3954 + Y*(919.4955 + Y*(946.8970
-                            + Y*(662.8097 + Y*(328.2151 + Y*(115.3772 + Y*(27.93941
-                            + Y*(4.264678 + Y*0.3183291))))))));
-	      P2 = -34.16955 + Y*(-1.322256+ Y*(124.5975 + Y*(189.7730
-                             + Y*(139.4665 + Y*(56.81652 + Y*(12.79458
-                             + Y*1.2733163))))));
-	      P4 = 2.584042 + Y*(10.46332 + Y*(24.01655 + Y*(29.81482
-                            + Y*(12.79568 + Y*1.9099744))));
-	      P6 = -0.07272979 + Y*(0.9377051+ Y*(4.266322 + Y*1.273316));
-	      P8 = 0.0005480304 + Y*0.3183291;
-	      Q1 = 173.2355 + Y*(508.2585 + Y*(685.8378 + Y*(557.5178
-                            + Y*(301.3208 + Y*(111.0528 + Y*(27.62940
-                            + Y*(4.264130 + Y*0.3183291)))))));
-	      Q3 = 18.97431 + Y*(100.7375 + Y*(160.4013 + Y*(130.8905
-                            + Y*(55.88650 + Y*(12.79239+Y*1.273316)))));
-	      Q5 = 7.985877 + Y*(19.83766 + Y*(28.88480 + Y*(12.79239
-			    + Y*1.909974)));
-	      Q7 = 0.6276985 + Y*(4.264130 + Y*1.273316);
-	    };
-	  D = 1.7724538 / (Z0 + XQ*(Z2 + XQ*(Z4 + XQ*(Z6 + XQ*(Z8+XQ)))));
-	  K[I] = D*(P0 + XQ*(P2 + XQ*(P4 + XQ*(P6 + XQ*P8))));
-	  L[I] = D*X[I]*(Q1 + XQ*(Q3 + XQ*(Q5 + XQ*(Q7 + XQ*0.3183291))));
-	}
+        {
+          if ( RG3 != 0 )                               /* ! First point in Region 3 */
+            {
+              RG3 = 0;
+              Z0 = 272.1014 + Y*(1280.829 + Y*(2802.870 + Y*(3764.966 
+                                                             + Y*(3447.629 + Y*(2256.981 + Y*(1074.409 
+                                                                                              + Y*(369.1989 + Y*(88.26741 + Y*(13.39880 
+                                                                                                                               + Y)))))))));               /*! Region 3 y-dependents*/
+              Z2 = 211.678  + Y*(902.3066 + Y*(1758.336 + Y*(2037.310
+                                                             + Y*(1549.675 + Y*(793.4273 + Y*(266.2987
+                                                                                              + Y*(53.59518 + Y*5.0)))))));
+              Z4 = 78.86585 + Y*(308.1852 + Y*(497.3014 + Y*(479.2576
+                                                             + Y*(269.2916 + Y*(80.39278 + Y*10.0)))));
+              Z6 = 22.03523 + Y*(55.02933 + Y*(92.75679 + Y*(53.59518
+                                                             + Y*10.0)));
+              Z8 = 1.496460 + Y*(13.39880 + Y*5.0);
+              P0 = 153.5168 + Y*(549.3954 + Y*(919.4955 + Y*(946.8970
+                                                             + Y*(662.8097 + Y*(328.2151 + Y*(115.3772 + Y*(27.93941
+                                                                                                            + Y*(4.264678 + Y*0.3183291))))))));
+              P2 = -34.16955 + Y*(-1.322256+ Y*(124.5975 + Y*(189.7730
+                                                              + Y*(139.4665 + Y*(56.81652 + Y*(12.79458
+                                                                                               + Y*1.2733163))))));
+              P4 = 2.584042 + Y*(10.46332 + Y*(24.01655 + Y*(29.81482
+                                                             + Y*(12.79568 + Y*1.9099744))));
+              P6 = -0.07272979 + Y*(0.9377051+ Y*(4.266322 + Y*1.273316));
+              P8 = 0.0005480304 + Y*0.3183291;
+              Q1 = 173.2355 + Y*(508.2585 + Y*(685.8378 + Y*(557.5178
+                                                             + Y*(301.3208 + Y*(111.0528 + Y*(27.62940
+                                                                                              + Y*(4.264130 + Y*0.3183291)))))));
+              Q3 = 18.97431 + Y*(100.7375 + Y*(160.4013 + Y*(130.8905
+                                                             + Y*(55.88650 + Y*(12.79239+Y*1.273316)))));
+              Q5 = 7.985877 + Y*(19.83766 + Y*(28.88480 + Y*(12.79239
+                                                             + Y*1.909974)));
+              Q7 = 0.6276985 + Y*(4.264130 + Y*1.273316);
+            };
+          D = 1.7724538 / (Z0 + XQ*(Z2 + XQ*(Z4 + XQ*(Z6 + XQ*(Z8+XQ)))));
+          K[I] = D*(P0 + XQ*(P2 + XQ*(P4 + XQ*(P6 + XQ*P8))));
+          L[I] = D*X[I]*(Q1 + XQ*(Q3 + XQ*(Q5 + XQ*(Q7 + XQ*0.3183291))));
+        }
       else                                              /* ! Humlicek CPF12 algorithm */
-	{
-	  YPY0 = Y + Y0;
-	  YPY0Q = YPY0*YPY0;
-	  K[I] = 0.000;
-	  L[I] = 0.000;
-	  for(int J=0; J <= 5; ++J)
-	    {
-	      D = X[I] - T[J];
-	      MQ[J] = D*D;
-	      MF[J] = 1.0 / (MQ[J] + YPY0Q);
-	      XM[J] = MF[J]*D;
-	      YM[J] = MF[J]*YPY0;
-	      D = X[I] + T[J];
-	      PQ[J] = D*D;
-	      PF[J] = 1.0 / (PQ[J] + YPY0Q);
-	      XP[J] = PF[J]*D;
-	      YP[J] = PF[J]*YPY0;
-	      L[I]  = L[I] + C[J]*(XM[J]+XP[J]) + S[J]*(YM[J]-YP[J]);
-	    };
-	  if ( ABX <= XLIM4 )                           /* ! Humlicek CPF12 Region I */
-	    {
-	      for(int J=0; J <= 5; ++J)
-		{
-		  K[I] = K[I] + C[J]*(YM[J]+YP[J]) - S[J]*(XM[J]-XP[J]);
-		}
-	    }
-	  else                                          /* ! Humlicek CPF12 Region II */
-	    {
-	      YF = Y + Y0PY0;
-	      for(int J=0; J <= 5; ++J)
-		{
-		  K[I] = K[I]
-		    + (C[J]*(MQ[J]*MF[J]-Y0*YM[J]) + S[J]*YF*XM[J]) / (MQ[J]+Y0Q)
-		    + (C[J]*(PQ[J]*PF[J]-Y0*YP[J]) - S[J]*YF*XP[J]) / (PQ[J]+Y0Q);
-		};
-	      K[I] = Y*K[I] + exp( -XQ );
-	    };
-	};
+        {
+          YPY0 = Y + Y0;
+          YPY0Q = YPY0*YPY0;
+          K[I] = 0.000;
+          L[I] = 0.000;
+          for(int J=0; J <= 5; ++J)
+            {
+              D = X[I] - T[J];
+              MQ[J] = D*D;
+              MF[J] = 1.0 / (MQ[J] + YPY0Q);
+              XM[J] = MF[J]*D;
+              YM[J] = MF[J]*YPY0;
+              D = X[I] + T[J];
+              PQ[J] = D*D;
+              PF[J] = 1.0 / (PQ[J] + YPY0Q);
+              XP[J] = PF[J]*D;
+              YP[J] = PF[J]*YPY0;
+              L[I]  = L[I] + C[J]*(XM[J]+XP[J]) + S[J]*(YM[J]-YP[J]);
+            };
+          if ( ABX <= XLIM4 )                           /* ! Humlicek CPF12 Region I */
+            {
+              for(int J=0; J <= 5; ++J)
+                {
+                  K[I] = K[I] + C[J]*(YM[J]+YP[J]) - S[J]*(XM[J]-XP[J]);
+                }
+            }
+          else                                          /* ! Humlicek CPF12 Region II */
+            {
+              YF = Y + Y0PY0;
+              for(int J=0; J <= 5; ++J)
+                {
+                  K[I] = K[I]
+                    + (C[J]*(MQ[J]*MF[J]-Y0*YM[J]) + S[J]*YF*XM[J]) / (MQ[J]+Y0Q)
+                    + (C[J]*(PQ[J]*PF[J]-Y0*YP[J]) - S[J]*YF*XP[J]) / (PQ[J]+Y0Q);
+                };
+              K[I] = Y*K[I] + exp( -XQ );
+            };
+        };
     };
 
 };  /* end of HUMLIK_Faddeeva_Wells */
@@ -305,11 +305,11 @@ void HUMLIK_Faddeeva_Wells ( // Input
 
 
 void CEF( // Input
-	 const Complex zeta, 
-	 const Numeric Gamma_D,
-	 //oUTPUT
-	 Numeric& Re_CEF,
-	 Numeric& Im_CEF )
+          const Complex zeta, 
+          const Numeric Gamma_D,
+          //oUTPUT
+          Numeric& Re_CEF,
+          Numeric& Im_CEF )
 {
 
   // The special line shape, Complex Error Function.
@@ -489,18 +489,18 @@ Zeeman_o2_line_splitting.
 
 */
 void Zeeman_o2_line_splitting(// Output:
-			      MatrixView ext_mat_tmp,           
-			      VectorView abs_vec_tmp,          
-			      // Input:
-			      const Numeric B_field,
-			      const Numeric phi,
-			      const Numeric f_c,
-			      const Numeric S,
-			      const Numeric gamma_L,
-			      const Numeric gamma_D,
-			      const Index   N_r,
-			      const Numeric f_grid_point)
-  
+                              MatrixView ext_mat_tmp,           
+                              VectorView abs_vec_tmp,          
+                              // Input:
+                              const Numeric B_field,
+                              const Numeric phi,
+                              const Numeric f_c,
+                              const Numeric S,
+                              const Numeric gamma_L,
+                              const Numeric gamma_D,
+                              const Index   N_r,
+                              const Numeric f_grid_point)
+
 {
   
   // Check of the rotational quantum number notation of a given Zeeman transition. 
@@ -628,22 +628,22 @@ void Zeeman_o2_line_splitting(// Output:
       // the magnetic quantum number M for a given transition 
      for (Index j=0; j<BN_r; j++)
        { 
-	  // Center frequency of the individual Zeeman components
-	  Numeric f_z;
-	  f_z = f_c + 28.026 * eta(k,j) * B_field;  // [GHz]
+         // Center frequency of the individual Zeeman components
+         Numeric f_z;
+         f_z = f_c + 28.026 * eta(k,j) * B_field;  // [GHz]
 
-	  // Doppler broadening for Zeeman splitting.
-	  Numeric ALPHA = gamma_D * f_z;  // [GHz]
-	  
-	  // complex error function / Faddeeva function
-	  // (SQRT(ln(2)) = 0.8325546e0)
-	  FX[0] = 0.8325546 * abs(f_grid_point - f_z) / ALPHA;
-	  FY    = 0.8325546 * gamma_L / ALPHA;
-	  HUMLIK_Faddeeva_Wells( FX, FY, FK, FL );
-          // real part of complex refractive index
-	  Re_N_s +=  0.5 * S * xi(k,j) * FL[0];
-          // imaginary part of complex refractive index
-	  Im_N_s += -0.5 * S * xi(k,j) * FK[0];
+         // Doppler broadening for Zeeman splitting.
+         Numeric ALPHA = gamma_D * f_z;  // [GHz]
+
+         // complex error function / Faddeeva function
+         // (SQRT(ln(2)) = 0.8325546e0)
+         FX[0] = 0.8325546 * abs(f_grid_point - f_z) / ALPHA;
+         FY    = 0.8325546 * gamma_L / ALPHA;
+         HUMLIK_Faddeeva_Wells( FX, FY, FK, FL );
+         // real part of complex refractive index
+         Re_N_s +=  0.5 * S * xi(k,j) * FL[0];
+         // imaginary part of complex refractive index
+         Im_N_s += -0.5 * S * xi(k,j) * FK[0];
        };
      
      // Calculating the halved value of magnetic susceptibility tensor 
@@ -726,17 +726,17 @@ void Zeeman_o2_line_splitting(// Output:
 // pressure broadening (Van Vleck Weisskopf line shape). For the 60 GHz line complex
 // the line mixing is included.
 void PWRO2VVWMixing(//output
-		 Matrix& ext_mat_tmp, // extincton matrix [1/m]
-		 Vector& abs_vec_tmp, // absorption vector [1/m]
-		 // Input
-		 Numeric STR,    // line inensity of the unsplit line [cm� Hz]
-		 Numeric Y,      // Line mixing parameter [dimensionless]
-		 Numeric DF,     // Pressure broadening [GHz]
-		 Numeric FO,     // line center frequency [GHz]
-		 Numeric ff,     // frequency on the frequency grid [GHz]
-		 Numeric vmro2,  // volume mixing ratio of O2 [1]
-		 Numeric p,      // atmospheric pressure [hPa]
-                 Numeric TH)     // dimensionless temperature 300K/T  [1]
+                    Matrix& ext_mat_tmp, // extincton matrix [1/m]
+                    Vector& abs_vec_tmp, // absorption vector [1/m]
+                    // Input
+                    Numeric STR,    // line inensity of the unsplit line [cm� Hz]
+                    Numeric Y,      // Line mixing parameter [dimensionless]
+                    Numeric DF,     // Pressure broadening [GHz]
+                    Numeric FO,     // line center frequency [GHz]
+                    Numeric ff,     // frequency on the frequency grid [GHz]
+                    Numeric vmro2,  // volume mixing ratio of O2 [1]
+                    Numeric p,      // atmospheric pressure [hPa]
+                    Numeric TH)     // dimensionless temperature 300K/T  [1]
 {
 
   extern const Numeric PI;
@@ -783,18 +783,18 @@ void PWRO2VVWMixing(//output
 // broadening regime. The line shape function is a Voigt function. 
 // For the 60 GHz line complex the line mixing is included.
 void PWRO2VoigtMixing(//output
-		      Matrix& ext_mat_tmp,  // extincton matrix [1/m]
-		      Vector& abs_vec_tmp, // absorption vector [1/m]
-		      // Input
-		      const Numeric STR,     // line inensity of the unsplit line [cm� Hz]
-		      const Numeric Y,       // Line mixing parameter [dimensionless]
-		      const Numeric DF,      // Pressure broadening [GHz]
-		      const Numeric gamma_D, // Doppler broadening of spectral line [GHz]
-		      const Numeric FO,      // line center frequency [GHz]
-		      const Numeric ff,      // frequency on the frequency grid [GHz]
-		      const Numeric vmro2,   // volume mixing ratio of O2 [1]
-		      const Numeric p,       // atmospheric pressure [hPa]
-		      const Numeric TH)      // dimensionless temperature 300K/T  [1]
+                      Matrix& ext_mat_tmp,  // extincton matrix [1/m]
+                      Vector& abs_vec_tmp, // absorption vector [1/m]
+                      // Input
+                      const Numeric STR,     // line inensity of the unsplit line [cm� Hz]
+                      const Numeric Y,       // Line mixing parameter [dimensionless]
+                      const Numeric DF,      // Pressure broadening [GHz]
+                      const Numeric gamma_D, // Doppler broadening of spectral line [GHz]
+                      const Numeric FO,      // line center frequency [GHz]
+                      const Numeric ff,      // frequency on the frequency grid [GHz]
+                      const Numeric vmro2,   // volume mixing ratio of O2 [1]
+                      const Numeric p,       // atmospheric pressure [hPa]
+                      const Numeric TH)      // dimensionless temperature 300K/T  [1]
 {
 
   extern const Numeric PI;
@@ -1031,25 +1031,25 @@ static const Numeric V[] ={	  0, 0.0079, -0.0978,  0.0844, -0.1273,
 
   \note     Except for  model 'user' the user defined input parameters CCin, CLin, CWin, and COin 
            are neglected (model dominates over parameters).<br>
-	  Allowed models:<br> 
-	    'Rosenkranz', 'RosenkranzLines', 'RosenkranzContinuum',
-	    'RosenkranzNoCoupling', and 'user'. <br> 
-	  For the parameter  version the following three string values are allowed:
-	    'PWR88', 'PWR93', 'PWR98'.<br> 
-	  See the user guide for detailed explanations.
+           Allowed models:<br> 
+           'Rosenkranz', 'RosenkranzLines', 'RosenkranzContinuum',
+           'RosenkranzNoCoupling', and 'user'. <br> 
+           For the parameter  version the following three string values are allowed:
+           'PWR88', 'PWR93', 'PWR98'.<br> 
+           See the user guide for detailed explanations.
 
-   \remark   References:<br>  
-             <ol>
-              <li>
-	       P. W. Rosenkranz, Chapter 2: <i>Absorption of Microwaves by 
-               Atmospheric Gases</i>, in M. A. Janssen (editor), 
-               <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
-               John Wiley & Sons, Inc., 1993.
-              </li>
-	      <li>
-	       P. W. Rosenkranz, <i>Interference coefficients for the 
-               overlapping oxygen lines in air</i>, JQSRT, vol.39, pp.287-297, 1988.
-              </li>
+           \remark   References:<br>  
+           <ol>
+           <li>
+           P. W. Rosenkranz, Chapter 2: <i>Absorption of Microwaves by 
+           Atmospheric Gases</i>, in M. A. Janssen (editor), 
+           <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
+           John Wiley & Sons, Inc., 1993.
+           </li>
+           <li>
+           P. W. Rosenkranz, <i>Interference coefficients for the 
+           overlapping oxygen lines in air</i>, JQSRT, vol.39, pp.287-297, 1988.
+           </li>
               <li>
                H.J. Liebe, P. W. Rosenkranz, G. A. Hufford, 
                <i>Atmospheric 60GHz Oxygen Spectrum: New Laboratory Measurements 
@@ -1067,21 +1067,21 @@ static const Numeric V[] ={	  0, 0.0079, -0.0978,  0.0844, -0.1273,
  */ 
 
 Index absPWRO2Model(// WS Output:
-		    Tensor3&             ext_ten_zee,               // Tensor3 of the Extinction Matrix [1/m]. 
-		    MatrixView          abs_mat_zee,               // Matrix of the Absorption Vector  [1/m].
-		    // WS Input:
-		    const Numeric       geomag_strength,           // mag. field strength          [Tesla]
-		    const Numeric       geomag_angle,              // mag. field orientation angle [radians]
-		    const Index          zeeman_o2_onoff,           // Zeeman splitting on or off
+                    Tensor3&             ext_ten_zee,               // Tensor3 of the Extinction Matrix [1/m]. 
+                    MatrixView          abs_mat_zee,               // Matrix of the Absorption Vector  [1/m].
+                    // WS Input:
+                    const Numeric       geomag_strength,           // mag. field strength          [Tesla]
+                    const Numeric       geomag_angle,              // mag. field orientation angle [radians]
+                    const Index          zeeman_o2_onoff,           // Zeeman splitting on or off
                     const Numeric       zeeman_o2_pressure_limit,  // Zeeman pressure limit   [Pa]
-		    const Index          zeeman_o2_line,            // Zeeman splitting line to calcualte
-		    ConstVectorView  f_grid,                   // frequency vector             [Hz]
-		    const Numeric       p,                        // pressure                     [Pa]
-		    const Numeric       t,                        // temperature                  [K]
-		    const Numeric       vmro2,                    // O2 vmr                       [1]
-		    const Numeric       vmrh2o,                   // H2O vmr                      [1]
-		    const String&       abs_model,                // model selection string
-		    const Vector&       abs_user_parameters )     // scaling factor(s)
+                    const Index          zeeman_o2_line,            // Zeeman splitting line to calcualte
+                    ConstVectorView  f_grid,                   // frequency vector             [Hz]
+                    const Numeric       p,                        // pressure                     [Pa]
+                    const Numeric       t,                        // temperature                  [K]
+                    const Numeric       vmro2,                    // O2 vmr                       [1]
+                    const Numeric       vmrh2o,                   // H2O vmr                      [1]
+                    const String&       abs_model,                // model selection string
+                    const Vector&       abs_user_parameters )     // scaling factor(s)
 {
 
 
@@ -1135,7 +1135,7 @@ Index absPWRO2Model(// WS Output:
     {
       // check if the input parameter vector has appropriate size
       if ( abs_user_parameters.nelem() != 4 )
-	throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 4 element.");
+        throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 4 element.");
       // reset the scaling factors
       CC = abs_user_parameters[0];
       CL = abs_user_parameters[1];
@@ -1201,7 +1201,7 @@ Index absPWRO2Model(// WS Output:
     {
       // check if the input parameter vector has appropriate size
       if ( abs_user_parameters.nelem() != 4 )
-	throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 4 element.");
+        throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 4 element.");
       // reset the scaling factors
       CC = abs_user_parameters[0];
       CL = abs_user_parameters[1];
@@ -1277,7 +1277,7 @@ Index absPWRO2Model(// WS Output:
       flag98 = 0;
       // check if the input parameter vector has appropriate size
       if ( abs_user_parameters.nelem() != 4 )
-	throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 4 element.");
+        throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 4 element.");
       // set the scaling factors 
       CC = abs_user_parameters[0];
       CL = abs_user_parameters[1];
@@ -1296,7 +1296,7 @@ Index absPWRO2Model(// WS Output:
       retval = 0;
       ostringstream os;
       os << "Method absPWRO2Model: wrong model values given.\n"
-	 << "Valid models are: 'Rosenkranz', 'RosenkranzLines', RosenkranzContinuum, " 
+        << "Valid models are: 'Rosenkranz', 'RosenkranzLines', RosenkranzContinuum, " 
          << "'RosenkranzNoCoupling', and 'user'" << '\n';
       throw runtime_error(os.str());
     }
@@ -1339,18 +1339,18 @@ Index absPWRO2Model(// WS Output:
   for ( Index K=1; K<n_lines+1; K++ )
     {
       if (K > 34)
-	{
-	  Numeric KN = K + K - 35;
-	  BFAC = exp(-6.89526E-3 * KN * (KN+1) * TH1);
-	}
+        {
+          Numeric KN = K + K - 35;
+          BFAC = exp(-6.89526E-3 * KN * (KN+1) * TH1);
+        }
       else
-	{
-	  Numeric K2 = K/2;
-	  if ( K2*2 != K ) 
-	    {
-	      BFAC = exp(-6.89526E-3 * K * (K+1) * TH1);
-	    }
-	}
+        {
+          Numeric K2 = K/2;
+          if ( K2*2 != K ) 
+            {
+              BFAC = exp(-6.89526E-3 * K * (K+1) * TH1);
+            }
+        }
 
       Numeric DF = CW * W300[K];
       // change in 118GHz line in 1998 version compared to older versions
@@ -1482,24 +1482,24 @@ Index absPWRO2Model(// WS Output:
 
   \note     Except for  model 'user' the input parameter vector 'abs_user_parameters ' 
             must have exactly one or four emements which contains the overall scaling factor or the 
-	    scaling factors for the O2 continuum, O2 line intensities, O2 line broadening, 
+            scaling factors for the O2 continuum, O2 line intensities, O2 line broadening, 
             and O2 line mixing.<br>
-	    Allowed models are<br> 
-	    'PWR88'           : Rosenkranz 1993 model with line mixing parameters from 
-                                the JQSRT 1988 paper<br> 
+            Allowed models are<br> 
+            'PWR88'           : Rosenkranz 1993 model with line mixing parameters from 
+            the JQSRT 1988 paper<br> 
             'PWR88scaling'    : possibility to scale the whole 'PWR88' model by a constant factor<br> 
-	    'PWR93'           : full Rosenkranz 1993 version as described in the Janssen book<br> 
-	    'PWR93Lines'      : only the line absorption of 'PWR93'<br> 
-	    'PWR93Continuum'  : only the continuum absorption of 'PWR93'<br> 
-	    'PWR93NoCoupling' : full 'PWR93' but without line mixing<br> 
-	    'PWR93scaling'    : possibility to scale the whole 'PWR93' model by a constant factor<br> 
-	    'PWR98'           : full modified Rosenkranz 1993 version 1998 as described in the F77 code<br> 
-	    'PWR98Lines'      : only the line absorption of 'PWR98'<br> 
-	    'PWR98Continuum'  : only the continuum absorption of 'PWR98'<br>
-	    'PWR98NoCoupling' : full 'PWR98' but without line mixing<br>
-	    'PWR98scaling'    : possibility to scale the whole 'PWR98' model by a constant factor<br>
-	    <br> 
-	    See the user guide for detailed explanations.
+            'PWR93'           : full Rosenkranz 1993 version as described in the Janssen book<br> 
+            'PWR93Lines'      : only the line absorption of 'PWR93'<br> 
+            'PWR93Continuum'  : only the continuum absorption of 'PWR93'<br> 
+            'PWR93NoCoupling' : full 'PWR93' but without line mixing<br> 
+            'PWR93scaling'    : possibility to scale the whole 'PWR93' model by a constant factor<br> 
+            'PWR98'           : full modified Rosenkranz 1993 version 1998 as described in the F77 code<br> 
+            'PWR98Lines'      : only the line absorption of 'PWR98'<br> 
+            'PWR98Continuum'  : only the continuum absorption of 'PWR98'<br>
+            'PWR98NoCoupling' : full 'PWR98' but without line mixing<br>
+            'PWR98scaling'    : possibility to scale the whole 'PWR98' model by a constant factor<br>
+            <br> 
+            See the user guide for detailed explanations.
 
    \remark   dieeferent pre-defined absorption models can be selected by using
              the input variable 'abs_model'.<br>
@@ -1507,13 +1507,13 @@ Index absPWRO2Model(// WS Output:
              References:<br>  
              <ol>
               <li>
-	       P. W. Rosenkranz, Chapter 2: <i>Absorption of Microwaves by 
+              P. W. Rosenkranz, Chapter 2: <i>Absorption of Microwaves by 
                Atmospheric Gases</i>, in M. A. Janssen (editor), 
                <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
                John Wiley & Sons, Inc., 1993.
-              </li>
-	      <li>
-	       P. W. Rosenkranz, <i>Interference coefficients for the 
+               </li>
+               <li>
+               P. W. Rosenkranz, <i>Interference coefficients for the 
                overlapping oxygen lines in air</i>, JQSRT, vol.39, pp.287-297, 1988.
               </li>
               <li>
@@ -1565,24 +1565,24 @@ Index absPWRO2Model(// WS Output:
 
   \note     Except for  model 'user' the input parameter vector 'abs_user_parameters ' 
             must have exactly one or four emements which contains the overall scaling factor or the 
-	    scaling factors for the O2 continuum, O2 line intensities, O2 line broadening, 
+            scaling factors for the O2 continuum, O2 line intensities, O2 line broadening, 
             and O2 line mixing.<br>
-	    Allowed models are<br> 
-	    'PWR88'           : Rosenkranz 1993 model with line mixing parameters from 
-                                the JQSRT 1988 paper<br> 
+            Allowed models are<br> 
+            'PWR88'           : Rosenkranz 1993 model with line mixing parameters from 
+            the JQSRT 1988 paper<br> 
             'PWR88scaling'    : possibility to scale the whole 'PWR88' model by a constant factor<br> 
-	    'PWR93'           : full Rosenkranz 1993 version as described in the Janssen book<br> 
-	    'PWR93Lines'      : only the line absorption of 'PWR93'<br> 
-	    'PWR93Continuum'  : only the continuum absorption of 'PWR93'<br> 
-	    'PWR93NoCoupling' : full 'PWR93' but without line mixing<br> 
-	    'PWR93scaling'    : possibility to scale the whole 'PWR93' model by a constant factor<br> 
-	    'PWR98'           : full modified Rosenkranz 1993 version 1998 as described in the F77 code<br> 
-	    'PWR98Lines'      : only the line absorption of 'PWR98'<br> 
-	    'PWR98Continuum'  : only the continuum absorption of 'PWR98'<br>
-	    'PWR98NoCoupling' : full 'PWR98' but without line mixing<br>
-	    'PWR98scaling'    : possibility to scale the whole 'PWR98' model by a constant factor<br>
-	    <br> 
-	    See the user guide for detailed explanations.
+            'PWR93'           : full Rosenkranz 1993 version as described in the Janssen book<br> 
+            'PWR93Lines'      : only the line absorption of 'PWR93'<br> 
+            'PWR93Continuum'  : only the continuum absorption of 'PWR93'<br> 
+            'PWR93NoCoupling' : full 'PWR93' but without line mixing<br> 
+            'PWR93scaling'    : possibility to scale the whole 'PWR93' model by a constant factor<br> 
+            'PWR98'           : full modified Rosenkranz 1993 version 1998 as described in the F77 code<br> 
+            'PWR98Lines'      : only the line absorption of 'PWR98'<br> 
+            'PWR98Continuum'  : only the continuum absorption of 'PWR98'<br>
+            'PWR98NoCoupling' : full 'PWR98' but without line mixing<br>
+            'PWR98scaling'    : possibility to scale the whole 'PWR98' model by a constant factor<br>
+            <br> 
+            See the user guide for detailed explanations.
 
    \remark   dieeferent pre-defined absorption models can be selected by using
              the input variable 'abs_model'.<br>
@@ -1590,13 +1590,13 @@ Index absPWRO2Model(// WS Output:
              References:<br>  
              <ol>
               <li>
-	       P. W. Rosenkranz, Chapter 2: <i>Absorption of Microwaves by 
+              P. W. Rosenkranz, Chapter 2: <i>Absorption of Microwaves by 
                Atmospheric Gases</i>, in M. A. Janssen (editor), 
                <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
                John Wiley & Sons, Inc., 1993.
               </li>
-	      <li>
-	       P. W. Rosenkranz, <i>Interference coefficients for the 
+              <li>
+              P. W. Rosenkranz, <i>Interference coefficients for the 
                overlapping oxygen lines in air</i>, JQSRT, vol.39, pp.287-297, 1988.
               </li>
               <li>
@@ -1615,24 +1615,24 @@ Index absPWRO2Model(// WS Output:
   \date 2003-12-01
  */ 
 void absO2ZeemanModel(// WS Output:
-		      // define internal absorption arrays
-		      Tensor3&         ext_mat_zee,          // Tensor3 of the Extinction Matrix [1/m]. 
-		      Matrix&          abs_vec_zee,          // Matrix of the Absorption Vector  [1/m].
-		      // WS Input:
-		      const Matrix&    geomag_los,           // [Magnetic field B, angle between B and los]
-		      const Vector&    f_grid,               // frequency vector                 [Hz]
-		      const Index&     zeeman_o2_onoff, 
-		      const Numeric&   zeeman_o2_pressure_limit,
-		      const Index&     zeeman_o2_line, 
-		      const Index&     /* ppath_index */,          // index of propagation path index
-		      const Numeric&   rte_pressure,         // total atmospheric pressure       [Pa]
-		      const Numeric&   rte_temperature,      // temperature                      [K]
-		      const Vector&    rte_vmr_list,         // list of species vmr              [1]
-		      const ArrayOfIndex& species_index,     // index of key species   
-		      const String&    abs_model,            // model selection string
-		      const Vector&    abs_user_parameters,  // scaling factor(s)
-		      const Index&     stokes_dim            // dimension of Stokes vector
-		     )
+                      // define internal absorption arrays
+                      Tensor3&         ext_mat_zee,          // Tensor3 of the Extinction Matrix [1/m]. 
+                      Matrix&          abs_vec_zee,          // Matrix of the Absorption Vector  [1/m].
+                      // WS Input:
+                      const Matrix&    geomag_los,           // [Magnetic field B, angle between B and los]
+                      const Vector&    f_grid,               // frequency vector                 [Hz]
+                      const Index&     zeeman_o2_onoff, 
+                      const Numeric&   zeeman_o2_pressure_limit,
+                      const Index&     zeeman_o2_line, 
+                      const Index&     /* ppath_index */,          // index of propagation path index
+                      const Numeric&   rte_pressure,         // total atmospheric pressure       [Pa]
+                      const Numeric&   rte_temperature,      // temperature                      [K]
+                      const Vector&    rte_vmr_list,         // list of species vmr              [1]
+                      const ArrayOfIndex& species_index,     // index of key species   
+                      const String&    abs_model,            // model selection string
+                      const Vector&    abs_user_parameters,  // scaling factor(s)
+                      const Index&     stokes_dim            // dimension of Stokes vector
+                     )
 {
 
 
@@ -1672,33 +1672,33 @@ void absO2ZeemanModel(// WS Output:
 
       // call the absorption function
       ret = absPWRO2Model(ext_mat_zee,
-			  abs_vec_zee, 
-                           // FIXME: should be zero or direct numbers here...
+                          abs_vec_zee, 
+                          // FIXME: should be zero or direct numbers here...
                           geomag_los(0,0),   // magnetic field strength
                           geomag_los(0,1),   // angle propagation, magnetic field
-			  zeeman_o2_onoff,
+                          zeeman_o2_onoff,
                           zeeman_o2_pressure_limit,
                           zeeman_o2_line,
-			  f_grid,
-			  rte_pressure,
-			  rte_temperature, 
-			  vmro2,
-			  vmrh2o,
-			  abs_model, 
-			  abs_user_parameters);
-      
+                          f_grid,
+                          rte_pressure,
+                          rte_temperature, 
+                          vmro2,
+                          vmrh2o,
+                          abs_model, 
+                          abs_user_parameters);
+
       // output variable abs/ext (vector/matrix) should be passed 
       // to the agenda for gas absorption
       if (ret != 1) 
-	{
-	  ostringstream os;
-	  os << "absO2ZeemanModel:\n"
-	     << "error in O2 absorption function *absPWRO2Model* detected\n"
-	     << "occured error code:" << ret << "\n"
-	     << "error codes:  1 = no error\n"
-             << "              0 = wrong model name\n";
-	  throw runtime_error(os.str());
-	};
+        {
+          ostringstream os;
+          os << "absO2ZeemanModel:\n"
+            << "error in O2 absorption function *absPWRO2Model* detected\n"
+            << "occured error code:" << ret << "\n"
+            << "error codes:  1 = no error\n"
+            << "              0 = wrong model name\n";
+          throw runtime_error(os.str());
+        };
     };
 
 
@@ -1711,11 +1711,11 @@ void absO2ZeemanModel(// WS Output:
 
 
 void ZeemanO2Settings( // Output
-		       Index&          zeeman_o2_onoff, 
-		       Numeric&       zeeman_o2_pressure_limit,
-		       Index&          zeeman_o2_line, 
-		       // Keywords
-		       const Index&    ZeemanO2OnOff,
+                       Index&          zeeman_o2_onoff, 
+                       Numeric&       zeeman_o2_pressure_limit,
+                       Index&          zeeman_o2_line, 
+                       // Keywords
+                       const Index&    ZeemanO2OnOff,
                        const Numeric& ZeemanO2PressureLimit,
                        const Index&    ZeemanO2Line)
 {
@@ -1749,8 +1749,8 @@ void ZeemanO2Settings( // Output
 
 */
 void test_zeeman(
-		 const Agenda& opt_prop_gas_agenda
-		 )
+                 const Agenda& opt_prop_gas_agenda
+                )
 {
   opt_prop_gas_agenda.execute();
 }

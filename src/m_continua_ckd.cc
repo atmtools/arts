@@ -3126,7 +3126,7 @@ const Numeric O2_10_ckd_mt_100_dv  =     2.000e0;
   "MPM02Lines"     - Calculate only lines.<br>
   "MPM02Continuum" - Calculate only continuum.<br>
   "user"           - Use parameters given by abs_user_parameters,
-		     instead of the predefined settings.
+  instead of the predefined settings.
 
   Meaning of abs_user_parameters:<br>
   Only used if abs_model=="user". In that case, abs_user_parameters must have 3 elements:<br>
@@ -3223,13 +3223,13 @@ void absMPM02_H2O(// WS Output:
     {
       ostringstream os;
       os << "Wrong abs_model string given.\n"
-	 << "Valid abs_models are: 'MPM02', 'MPM02Lines', 'MPM02Continuum', and 'user'" << '\n';
+        << "Valid abs_models are: 'MPM02', 'MPM02Lines', 'MPM02Continuum', and 'user'" << '\n';
       throw runtime_error(os.str());
     }
   out3  << "  H2O-MPM02: (abs_model=" << abs_model << ") parameter values in use:\n" 
-	<< "  CC = " << CC << "\n"
-	<< "  CL = " << CL << "\n"
-	<< "  CW = " << CW << "\n";
+    << "  CC = " << CC << "\n"
+    << "  CL = " << CL << "\n"
+    << "  CW = " << CW << "\n";
   
   
   const Index n_p = abs_p.nelem();	// Number of pressure levels
@@ -3241,7 +3241,7 @@ void absMPM02_H2O(// WS Output:
     {
       ostringstream os;
       os << "The vectors abs_p, abs_t, and abs_vmr must all have the same length!\n"
-	 << "Actual lengths: "
+        << "Actual lengths: "
          << n_p << ", "
          << abs_t.nelem() << ", "
          << abs_vmr.nelem() << ".";
@@ -3288,8 +3288,8 @@ void absMPM02_H2O(// WS Output:
 */
 /*
 Numeric LagrangeInterpol4( ConstVectorView x,
-			   ConstVectorView y,
-			   const Numeric a)
+ConstVectorView y,
+const Numeric a)
 {
   // lowermost grid spacing on x-axis
   const Numeric Dlimit = 1.00000e-15;
@@ -3301,7 +3301,7 @@ Numeric LagrangeInterpol4( ConstVectorView x,
     {
       ostringstream os;
       os << "The vectors x and y must all have the same length of 4 elements!\n"
-	 << "Actual lengths:\n"
+      << "Actual lengths:\n"
          << "x:" << n_x << ", " << "y:" << n_y << ".";
       throw runtime_error(os.str());
     }
@@ -3321,10 +3321,10 @@ Numeric LagrangeInterpol4( ConstVectorView x,
     {
       b[i] = 1.000e0;
       for (Index k=0 ; k < 4 ; ++k)
-	{
-	  if ( (k != i) && (abs(x[i]-x[k]) > Dlimit) )
-	    b[i] = b[i] * ( (a-x[k]) / (x[i]-x[k]) );
-	};
+      {
+      if ( (k != i) && (abs(x[i]-x[k]) > Dlimit) )
+      b[i] = b[i] * ( (a-x[k]) / (x[i]-x[k]) );
+      };
     };
 
   Numeric ya = 0.000e0;
@@ -3364,7 +3364,7 @@ Numeric LagrangeInterpol4( ConstVectorView x,
 
 Numeric XINT_FUN( const Numeric V1A,
                   const Numeric DVA,
-		  ConstVectorView A,
+                  ConstVectorView A,
                   const Numeric VI)
 {
 
@@ -3419,7 +3419,7 @@ Numeric XINT_FUN( const Numeric V1A,
 */
 
 Numeric RADFN_FUN (const Numeric VI, 
-		   const Numeric XKT)
+                   const Numeric XKT)
 {
 // ---------------------------------------------------------------------- B18060
 //              LAST MODIFICATION:    12 AUGUST 1991                      B17940
@@ -3450,24 +3450,24 @@ Numeric RADFN_FUN (const Numeric VI,
 
   Numeric XVI   = VI;                            
   Numeric RADFN = 0.00e0;                                
-									   
+
   if (XKT > 0.000e0)
     {                                    
       Numeric XVIOKT = XVI/XKT;                 
       
       if (XVIOKT <= 0.01e0)
-	{
-	  RADFN = 0.500e0 * XVIOKT * XVI;
-	}
+        {
+          RADFN = 0.500e0 * XVIOKT * XVI;
+        }
       else if (XVIOKT <= 10.0e0)
-	{
-	  Numeric EXPVKT = exp(-XVIOKT);
-	  RADFN = XVI * (1.00e0-EXPVKT) / (1.00e0+EXPVKT);
-	}
+        {
+          Numeric EXPVKT = exp(-XVIOKT);
+          RADFN = XVI * (1.00e0-EXPVKT) / (1.00e0+EXPVKT);
+        }
       else
-	{
-	  RADFN = XVI;                         
-	}                                  
+        {
+          RADFN = XVI;                         
+        }                                  
     }
   else
     {
@@ -3494,8 +3494,8 @@ Numeric RADFN_FUN (const Numeric VI,
    \param    abs_vmr              H2O volume mixing ratio profile               [1]
    \param    model                allows modifications of the original 
                                   model by selecting model="user". To 
-				  select the pre-defined original model use
-				  model="CKDMT100"
+                                  select the pre-defined original model use
+                                  model="CKDMT100"
    \param    abs_user_parameters  absorption scaling factor                     [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
@@ -3510,14 +3510,14 @@ Numeric RADFN_FUN (const Numeric VI,
    \date     2003-11-21
 */ 
 void absCKDMT_H2O_H2O(// WS Output:
-		       Matrix&            abs,
-		       // WS Input:
-		       const Vector&      f_grid,
-		       const Vector&      abs_p,
-		       const Vector&      abs_t,
-		       const Vector&      abs_vmr,
-		       const String&      abs_model,
-		       const Vector&      abs_user_parameters)
+                      Matrix&            abs,
+                      // WS Input:
+                      const Vector&      f_grid,
+                      const Vector&      abs_p,
+                      const Vector&      abs_t,
+                      const Vector&      abs_vmr,
+                      const String&      abs_model,
+                      const Vector&      abs_user_parameters)
 {
 
   // check the model name about consistency
@@ -3525,14 +3525,14 @@ void absCKDMT_H2O_H2O(// WS Output:
   if (abs_model == "user")
     {
       if ( abs_user_parameters.nelem() != 1 )
-	throw runtime_error("Method absCKDMT_H2O_H2O: Vector abs_user_parameters must have 1 element.");
+        throw runtime_error("Method absCKDMT_H2O_H2O: Vector abs_user_parameters must have 1 element.");
       // input scaling factor of calculated absorption
       ScalingFac = abs_user_parameters[0];
     }
   else if (abs_model == "CKDMT100")
     {
       if ( abs_user_parameters.nelem() != 0 )
-	throw runtime_error("Method absCKDMT_H2O_H2O: Vector abs_user_parameters must be empty.");
+        throw runtime_error("Method absCKDMT_H2O_H2O: Vector abs_user_parameters must be empty.");
       // input scaling factor of calculated absorption
       ScalingFac = 1.0000e0;
     }
@@ -3540,8 +3540,8 @@ void absCKDMT_H2O_H2O(// WS Output:
     {
       ostringstream os;
       os << "ERROR in method absCKDMT_H2O_H2O:\n"  
-	 << "CKD_MT1.00 H2O self continuum detected wrong model name >>" << abs_model << "<<.\n"
-	 << "VALID model names are >>user<< and >>CKDMT100<<\n";
+        << "CKD_MT1.00 H2O self continuum detected wrong model name >>" << abs_model << "<<.\n"
+        << "VALID model names are >>user<< and >>CKDMT100<<\n";
       throw runtime_error(os.str());
     };
 
@@ -3553,7 +3553,7 @@ void absCKDMT_H2O_H2O(// WS Output:
     {
       ostringstream os;
       os << "The vectors abs_p, abs_t, and abs_vmr must all have the same length!\n"
-	 << "Actual lengths: "
+        << "Actual lengths: "
          << n_p << ", "
          << abs_t.nelem() << ", "
          << abs_vmr.nelem() << ".";
@@ -3584,8 +3584,8 @@ void absCKDMT_H2O_H2O(// WS Output:
     {
       out3  << "WARNING:\n"
             << "  CKD_MT 1.00 H2O self continuum:\n"
-	    << "  input frequency vector exceeds range of model validity\n"
-	    << "  " << SL296_ckd_mt_100_v1 << "<->" << SL296_ckd_mt_100_v2 << "cm^-1\n";
+            << "  input frequency vector exceeds range of model validity\n"
+            << "  " << SL296_ckd_mt_100_v1 << "<->" << SL296_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -3595,32 +3595,32 @@ void absCKDMT_H2O_H2O(// WS Output:
     {
       ostringstream os;
       os << "!!ERROR!!\n"  
-	 << "CKD_MT 1.00 H2O self continuum:\n"
-	 << "parameter V1 not the same for different ref. temperatures.\n";
+        << "CKD_MT 1.00 H2O self continuum:\n"
+        << "parameter V1 not the same for different ref. temperatures.\n";
       throw runtime_error(os.str());
     }
   if (SL296_ckd_mt_100_v2 != SL260_ckd_mt_100_v2)
     {
       ostringstream os;
       os << "!!ERROR!!\n"  
-	 << "CKD_MT 1.00 H2O self continuum:\n"
-	 << "parameter V2 not the same for different ref. temperatures.\n";
-	throw runtime_error(os.str());
+        << "CKD_MT 1.00 H2O self continuum:\n"
+        << "parameter V2 not the same for different ref. temperatures.\n";
+      throw runtime_error(os.str());
     }
   if (SL296_ckd_mt_100_dv != SL260_ckd_mt_100_dv)
     {
       ostringstream os;
       os << "!!ERROR!!\n"  
-	 << "CKD_MT 1.00 H2O self continuum:\n"
-	 << "parameter DV not the same for different ref. temperatures.\n";
+        << "CKD_MT 1.00 H2O self continuum:\n"
+        << "parameter DV not the same for different ref. temperatures.\n";
       throw runtime_error(os.str());
     }
   if (SL296_ckd_mt_100_npt != SL260_ckd_mt_100_npt)
     {
       ostringstream os;
       os << "!!ERROR!!\n"  
-	 << "CKD_MT 1.00 H2O self continuum:\n"
-	 << "parameter NPT not the same for different ref. temperatures.\n";
+        << "CKD_MT 1.00 H2O self continuum:\n"
+        << "parameter NPT not the same for different ref. temperatures.\n";
       throw runtime_error(os.str());
     }
   
@@ -3645,10 +3645,10 @@ void absCKDMT_H2O_H2O(// WS Output:
     {
       ostringstream os;
       out3 << "WARNING:\n"  
-	   << "  CKD_MT 1.00 H2O self continuum:\n"
-	   << "  no elements of internal continuum coefficients could be found for the\n"
-	   << "  input frequency range.\n"
-	   << "  Leave the function without calculating the absorption.";
+        << "  CKD_MT 1.00 H2O self continuum:\n"
+        << "  no elements of internal continuum coefficients could be found for the\n"
+        << "  input frequency range.\n"
+        << "  Leave the function without calculating the absorption.";
       return;
     }
 
@@ -3664,15 +3664,15 @@ void absCKDMT_H2O_H2O(// WS Output:
     {
       Index I = I1+J;
       if ( (I < 1) || (I > SL296_ckd_mt_100_npt) ) 
-	{
-	  SH2OT0[J] = 0.0e0;   // at T=296 K
-	  SH2OT1[J] = 0.0e0;   // at T=260 K
-	}
+        {
+          SH2OT0[J] = 0.0e0;   // at T=296 K
+          SH2OT1[J] = 0.0e0;   // at T=260 K
+        }
       else
-	{
-	  SH2OT0[J] = SL296_ckd_mt_100[I];    // at T=296 K
-	  SH2OT1[J] = SL260_ckd_mt_100[I];    // at T=260 K 
-	}
+        {
+          SH2OT0[J] = SL296_ckd_mt_100[I];    // at T=296 K
+          SH2OT1[J] = SL260_ckd_mt_100[I];    // at T=260 K 
+        }
     }
 
   // ------------------- subroutine SL296/SL260 ----------------------------
@@ -3687,9 +3687,9 @@ void absCKDMT_H2O_H2O(// WS Output:
       Numeric Tfac = (abs_t[i]-296.000e0) / (260.000e0-296.000e0); // [1]
       // atmospheric dependent part of absorption coefficient
       Numeric k_fac = (abs_vmr[i] * abs_p[i] / abs_t[i])        * 
-	              (abs_vmr[i] * abs_p[i] / abs_t[i])        * 
-	              (2.9600e2   / 1.0130e5 / BOLTZMAN_CONST)  * 
-	              1.000e-6;
+        (abs_vmr[i] * abs_p[i] / abs_t[i])        * 
+        (2.9600e2   / 1.0130e5 / BOLTZMAN_CONST)  * 
+        1.000e-6;
       // ((CKD molecular cross section) * (number density) * (radiation field)) [1/cm]
       Vector k;
       k.resize(NPTC+addF77fields);
@@ -3697,48 +3697,48 @@ void absCKDMT_H2O_H2O(// WS Output:
 
       // loop over the CKD internal frequency grid
       for (Index J = 1 ; J <= NPTC ; ++J)
-	{
-	  k[J]         = 0.00e0;
-	  Numeric VJ   = V1C + (DVC * (Numeric)(J-1)); 
-	  Numeric SH2O = 0.0e0;
-	  Numeric SFAC = 0.00e0;  
-	  if (SH2OT0[J] > 0.0e0)
-	    {
-	      SH2O = SH2OT0[J] * pow( (SH2OT1[J]/SH2OT0[J]), Tfac ); 
-	      SFAC = 1.00e0;
+        {
+          k[J]         = 0.00e0;
+          Numeric VJ   = V1C + (DVC * (Numeric)(J-1)); 
+          Numeric SH2O = 0.0e0;
+          Numeric SFAC = 0.00e0;  
+          if (SH2OT0[J] > 0.0e0)
+            {
+              SH2O = SH2OT0[J] * pow( (SH2OT1[J]/SH2OT0[J]), Tfac ); 
+              SFAC = 1.00e0;
 
-	      if ( (VJ >= 820.0e0) && (VJ <= 960.0e0) )
-		{
-		  int JFAC = (int)((VJ - 820.0e0)/10.0e0 + 0.00001e0);
-		  if ( (JFAC >= 0) && (JFAC <=14) )
-		    SFAC = XFACREV[JFAC];
-		}
+              if ( (VJ >= 820.0e0) && (VJ <= 960.0e0) )
+                {
+                  int JFAC = (int)((VJ - 820.0e0)/10.0e0 + 0.00001e0);
+                  if ( (JFAC >= 0) && (JFAC <=14) )
+                    SFAC = XFACREV[JFAC];
+                }
 
-	      SH2O = SFAC * SH2O;
-	    }
+              SH2O = SFAC * SH2O;
+            }
 
-	  k[J] =  RADFN_FUN(VJ,XKT) * k_fac * (SH2O*1.000e-20);
-	};
+          k[J] =  RADFN_FUN(VJ,XKT) * k_fac * (SH2O*1.000e-20);
+        };
 
       // Loop over user defined frequency grid.
       for ( Index s = 0 ; s < n_f ; ++s )
-	{
-	  // initialize the absorption array with zero absorption
-	  abs(s,i) = 0.000e0;
-    
-	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-	  if ( (V >= 0.000e0) && (V < SL296_ckd_mt_100_v2) )
-	    {
-	      // arts absorption coefficient [1/m]
-	      // improved Lagrange polynomial interpolation scheme used to
-	      // interpolate k from the DKC internal frequency grid on the 
-	      // user defined frequency grid.
-	      // The factor 100 comes from the conversion from 1/cm to 1/m for
-	      // the absorption coefficient.
-	      abs(s,i) = ScalingFac * 1.000e2 * XINT_FUN(V1C,DVC,k,V);
-	    };
-	};
+        {
+          // initialize the absorption array with zero absorption
+          abs(s,i) = 0.000e0;
+
+          // calculate the associated wave number (= 1/wavelength)
+          Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+          if ( (V >= 0.000e0) && (V < SL296_ckd_mt_100_v2) )
+            {
+              // arts absorption coefficient [1/m]
+              // improved Lagrange polynomial interpolation scheme used to
+              // interpolate k from the DKC internal frequency grid on the 
+              // user defined frequency grid.
+              // The factor 100 comes from the conversion from 1/cm to 1/m for
+              // the absorption coefficient.
+              abs(s,i) = ScalingFac * 1.000e2 * XINT_FUN(V1C,DVC,k,V);
+            };
+        };
     };
   
 }
@@ -3760,8 +3760,8 @@ void absCKDMT_H2O_H2O(// WS Output:
    \param    abs_vmr              H2O volume mixing ratio profile               [1]
    \param    model                allows modifications of the original 
                                   model by selecting model="user". To 
-				  select the pre-defined original model use
-				  model="CKDMT100"
+                                  select the pre-defined original model use
+                                  model="CKDMT100"
    \param    abs_user_parameters  absorption scaling factor                     [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
@@ -3776,14 +3776,14 @@ void absCKDMT_H2O_H2O(// WS Output:
    \date     2003-11-21
 */ 
 void absCKDMT_H2O_AIR(// WS Output:
-		       Matrix&           abs,
-		       // WS Input:
-		       const Vector&     f_grid,
-		       const Vector&     abs_p,
-		       const Vector&     abs_t,
-		       const Vector&     abs_vmr,
-		       const String&     abs_model,
-		       const Vector&     abs_user_parameters)
+                      Matrix&           abs,
+                      // WS Input:
+                      const Vector&     f_grid,
+                      const Vector&     abs_p,
+                      const Vector&     abs_t,
+                      const Vector&     abs_vmr,
+                      const String&     abs_model,
+                      const Vector&     abs_user_parameters)
 {
 
 
@@ -3792,14 +3792,14 @@ void absCKDMT_H2O_AIR(// WS Output:
   if (abs_model == "user")
     {
       if ( abs_user_parameters.nelem() != 1 )
-	throw runtime_error("Method absCKDMT_H2O_AIR: Vector abs_user_parameters must have 1 element.");
+        throw runtime_error("Method absCKDMT_H2O_AIR: Vector abs_user_parameters must have 1 element.");
       // input scaling factor of calculated absorption
       ScalingFac = abs_user_parameters[0];
     }
   else if (abs_model == "CKDMT100")
     {
       if ( abs_user_parameters.nelem() != 0 )
-	throw runtime_error("Method absCKDMT_H2O_AIR: Vector abs_user_parameters must be empty.");
+        throw runtime_error("Method absCKDMT_H2O_AIR: Vector abs_user_parameters must be empty.");
       // pre-defined scaling factor of calculated absorption
       ScalingFac = 1.0000e0;
     }
@@ -3807,8 +3807,8 @@ void absCKDMT_H2O_AIR(// WS Output:
     {
       ostringstream os;
       os << "ERROR in method absCKDMT_H2O_AIR:\n"  
-	 << "CKD_MT1.00 H2O self continuum detected wrong model name >>" << abs_model << "<<.\n"
-	 << "VALID model names are >>user<< and >>CKDMT100<<\n";
+        << "CKD_MT1.00 H2O self continuum detected wrong model name >>" << abs_model << "<<.\n"
+        << "VALID model names are >>user<< and >>CKDMT100<<\n";
       throw runtime_error(os.str());
     };
 
@@ -3820,10 +3820,10 @@ void absCKDMT_H2O_AIR(// WS Output:
     {
       ostringstream os;
       os << "The vectors abs_p, abs_t, and abs_vmr must all have the same length!\n"
-	 << "Actual lengths: "
-         << n_p << ", "
-         << abs_t.nelem() << ", "
-         << abs_vmr.nelem() << ".";
+        << "Actual lengths: "
+        << n_p << ", "
+        << abs_t.nelem() << ", "
+        << abs_vmr.nelem() << ".";
       throw runtime_error(os.str());
     }
 
@@ -3845,9 +3845,9 @@ void absCKDMT_H2O_AIR(// WS Output:
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
       out3  << "WARNING:\n"
-            << "  CKD_MT 1.00 H2O foreign continuum:\n"
-	    << "  input frequency vector exceeds range of model validity\n"
-	    << "  " << FH2O_ckd_mt_100_v1 << "<->" << FH2O_ckd_mt_100_v2 << "cm^-1\n";
+        << "  CKD_MT 1.00 H2O foreign continuum:\n"
+        << "  input frequency vector exceeds range of model validity\n"
+        << "  " << FH2O_ckd_mt_100_v1 << "<->" << FH2O_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -3873,10 +3873,10 @@ void absCKDMT_H2O_AIR(// WS Output:
   if (NPTC < 1)
     {
       out3 << "WARNING:\n" 
-	   << "  CKD_MT 1.00 H2O foreign continuum:\n"
-	   << "  no elements of internal continuum coefficients could be found for the\n"
-	   << "  input frequency range.\n"
-	   << "  Leave the function without calculating the absorption.";
+        << "  CKD_MT 1.00 H2O foreign continuum:\n"
+        << "  no elements of internal continuum coefficients could be found for the\n"
+        << "  input frequency range.\n"
+        << "  Leave the function without calculating the absorption.";
       return;
     }
 
@@ -3890,13 +3890,13 @@ void absCKDMT_H2O_AIR(// WS Output:
     {
       Index I = I1+J;
       if ( (I < 1) || (I > FH2O_ckd_mt_100_npt) ) 
-	{
-	  FH2OT0[J] = 0.0e0;
-	}
+        {
+          FH2OT0[J] = 0.0e0;
+        }
       else
-	{
-	  FH2OT0[J] = FH2O_ckd_mt_100[I];
-	};
+        {
+          FH2OT0[J] = FH2O_ckd_mt_100[I];
+        };
     };
 
   // ---------------------- subroutine FRN296 ------------------------------
@@ -3911,9 +3911,9 @@ void absCKDMT_H2O_AIR(// WS Output:
       Numeric XKT = abs_t[i] / 1.4387752e0;
       // atmospheric dependent part of absorption coefficient
       Numeric k_fac = (abs_vmr[i] * abs_p[i] / abs_t[i])            * 
-	              ((1.0000e0-abs_vmr[i]) * abs_p[i] / abs_t[i]) * 
-	              (2.9600e2   / 1.0130e5 / BOLTZMAN_CONST)      * 
-	              1.000e-6;
+        ((1.0000e0-abs_vmr[i]) * abs_p[i] / abs_t[i]) * 
+        (2.9600e2   / 1.0130e5 / BOLTZMAN_CONST)      * 
+        1.000e-6;
       // ((CKD molecular cross section) * (number density) * (radiation field)) [1/cm]
       Vector k;
       k.resize(NPTC+addF77fields); // [1/cm]
@@ -3921,30 +3921,30 @@ void absCKDMT_H2O_AIR(// WS Output:
 
       // loop over the CKD internal frequency grid
       for (Index J = 1 ; J <= NPTC ; ++J)
-	{
-	  Numeric VJ   = V1C + (DVC * (Numeric)(J-1)); 
-	  Numeric FH2O = FH2OT0[J];
-	  k[J]         =  RADFN_FUN(VJ,XKT) * k_fac * (FH2O*1.000e-20);
-	};
+        {
+          Numeric VJ   = V1C + (DVC * (Numeric)(J-1)); 
+          Numeric FH2O = FH2OT0[J];
+          k[J]         =  RADFN_FUN(VJ,XKT) * k_fac * (FH2O*1.000e-20);
+        };
       
       // Loop over user defined frequency grid.
       for ( Index s = 0 ; s < n_f ; ++s )
-	{
-	  // initialize the absorption array with zero absorption
-	  abs(s,i) = 0.000e0;
-    
-	  // calculate the associated wave number (= 1/wavelength)
-	  Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-	  if ( (V >= 0.000e0) && (V < VABS_max) )
-	    {
-	      // arts absorption coefficient [1/m]
-	      // improved Lagrange polynomial interpolation scheme used to
-	      // interpolate k from the DKC internal frequency grid on the 
-	      // user defined frequency grid.
-	      // The factor 100 comes from the conversion from 1/cm to 1/m for
-	      // the absorption coefficient.
-	      abs(s,i) = ScalingFac * 1.000e2 * XINT_FUN(V1C,DVC,k,V);
-	    };
-	};
+        {
+          // initialize the absorption array with zero absorption
+          abs(s,i) = 0.000e0;
+
+          // calculate the associated wave number (= 1/wavelength)
+          Numeric V = f_grid[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+          if ( (V >= 0.000e0) && (V < VABS_max) )
+            {
+              // arts absorption coefficient [1/m]
+              // improved Lagrange polynomial interpolation scheme used to
+              // interpolate k from the DKC internal frequency grid on the 
+              // user defined frequency grid.
+              // The factor 100 comes from the conversion from 1/cm to 1/m for
+              // the absorption coefficient.
+              abs(s,i) = ScalingFac * 1.000e2 * XINT_FUN(V1C,DVC,k,V);
+            };
+        };
     };
 }

@@ -20,18 +20,18 @@ extern const Numeric DEG2RAD;
 extern const Numeric EARTH_RADIUS;
 
 void magfield_nk(  // Output
-	    Numeric& B_r, // radial component of the geomagnetic field in [nT].
-	    Numeric& B_th, // latitudinal component of the geomagnetic field in [nT].
-	    Numeric& B_ph, // longitudinal component of the geomagnetic field in [nT].
-	    
-	    // Input
-	    const Numeric r, // radial distance to the point in [km]
-	    const Numeric theta, // geocentric colatitude of the point in [deg]
-	    const Numeric phi, // longitude of the point in [deg].
-	    // All coordinates - geocentric!
+                   Numeric& B_r, // radial component of the geomagnetic field in [nT].
+                   Numeric& B_th, // latitudinal component of the geomagnetic field in [nT].
+                   Numeric& B_ph, // longitudinal component of the geomagnetic field in [nT].
 
-	    const Index Ny // number of elapsed years after an epoch year, J - [0,4]
-	    )
+                   // Input
+                   const Numeric r, // radial distance to the point in [km]
+                   const Numeric theta, // geocentric colatitude of the point in [deg]
+                   const Numeric phi, // longitude of the point in [deg].
+                   // All coordinates - geocentric!
+
+                   const Index Ny // number of elapsed years after an epoch year, J - [0,4]
+                )
   
 {
   
@@ -58,45 +58,45 @@ void magfield_nk(  // Output
     {
       // Loop over the order number m of the Legendre polynomes.
       for (Index m = 0; m <= l; m++)
-	{
-	  
-	  // Relating the row index in M to the coresponding 
-	  // degree number l and order number m.
- 	  Index	  j = l * (l + 1) / 2 + m - 1; 
+        {
 
-	  // Calculating the associated Schmidt quasi-normalized Legendre 
-	  // polynomial for a degree number l and order number m.
-	  Numeric P_lm = 
-	    g_legendre_poly_norm_schmidt (l, m, cos(Theta));
+          // Relating the row index in M to the coresponding 
+          // degree number l and order number m.
+          Index	  j = l * (l + 1) / 2 + m - 1; 
 
-	  // Calculating the derivative of the associated Schmidt quasi-normalized 
-	  // Legendre polynomial for a degree number l and order number m.
-	  Numeric dP_lm = 
-	    g_legendre_poly_norm_schmidt_deriv3 (l, m, cos(Theta));
+          // Calculating the associated Schmidt quasi-normalized Legendre 
+          // polynomial for a degree number l and order number m.
+          Numeric P_lm = 
+            g_legendre_poly_norm_schmidt (l, m, cos(Theta));
 
-	  
-	  // Calculating the radial (upward) component of the magnetic field.
-	  B_r += pow(l + 2, EARTH_RADIUS / r) * (l + 1) * 
-	    ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
-	     + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) 
-	      * P_lm;
-	  
-	  // Calculating the latitudinal (southward) component of the magnetic field. 
-	  B_th += pow(l + 2, EARTH_RADIUS / r) * 
-	    ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
-	     + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) *
-	    dP_lm * sin(Theta);
-	  
-      
-      
+          // Calculating the derivative of the associated Schmidt quasi-normalized 
+          // Legendre polynomial for a degree number l and order number m.
+          Numeric dP_lm = 
+            g_legendre_poly_norm_schmidt_deriv3 (l, m, cos(Theta));
+
+
+          // Calculating the radial (upward) component of the magnetic field.
+          B_r += pow(l + 2, EARTH_RADIUS / r) * (l + 1) * 
+            ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
+             + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) 
+            * P_lm;
+
+          // Calculating the latitudinal (southward) component of the magnetic field. 
+          B_th += pow(l + 2, EARTH_RADIUS / r) * 
+            ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
+             + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) *
+            dP_lm * sin(Theta);
+
+
+
           // Calculating the longitudinal (eastward) component of the magnetic field.
           B_ph += pow(l + 2, EARTH_RADIUS / r) * m *
-	   ((M(j,0) + Ny * M(j,2)) * sin(m * Phi) 
-	    - (M(j,1) + Ny * M(j,3)) * cos(m * Phi)) *
-	     P_lm / sin(Theta);
-      
-	  
-	}
+            ((M(j,0) + Ny * M(j,2)) * sin(m * Phi) 
+             - (M(j,1) + Ny * M(j,3)) * cos(m * Phi)) *
+            P_lm / sin(Theta);
+
+
+        }
     }
   
 }

@@ -835,44 +835,44 @@ void pha_mat_labCalc(//Output:
         assert(!isnan(pha_mat_lab(1,1)));
 
         if( stokes_dim > 2 ){
-	  /*CPD: For skokes_dim > 2 some of the transformation formula 
-	  for each element have a different sign depending on whether or
-	  not 0<aa_scat-aa_inc<180.  For details see pages 94 and 95 of 
-	  Mishchenkos chapter in : 
-	  Mishchenko, M. I., and L. D. Travis, 2003: Electromagnetic 
-	  scattering by nonspherical particles. In Exploring the Atmosphere 
-	  by Remote Sensing Techniques (R. Guzzi, Ed.), Springer-Verlag, 
-	  Berlin, pp. 77-127. 
-	  This is available at http://www.giss.nasa.gov/~crmim/publications/*/
-	  Numeric delta_aa=aa_sca-aa_inc+(aa_sca-aa_inc<-180)*360-
-	    (aa_sca-aa_inc>180)*360;
-	  if(delta_aa>=0)
-	    {
-	      pha_mat_lab(0,2) = S1 * F12;
-	      pha_mat_lab(1,2) = S1 * C2 * F22 + C1 * S2 * F33;
-	      pha_mat_lab(2,0) = -S2 * F12;
-	      pha_mat_lab(2,1) = -C1 * S2 * F22 - S1 * C2 * F33;
-	    }
-	  else
-	    {
-	      pha_mat_lab(0,2) = -S1 * F12;
-	      pha_mat_lab(1,2) = -S1 * C2 * F22 - C1 * S2 * F33;
-	      pha_mat_lab(2,0) = S2 * F12;
-	      pha_mat_lab(2,1) = C1 * S2 * F22 + S1 * C2 * F33;
-	    }
+          /*CPD: For skokes_dim > 2 some of the transformation formula 
+            for each element have a different sign depending on whether or
+            not 0<aa_scat-aa_inc<180.  For details see pages 94 and 95 of 
+            Mishchenkos chapter in : 
+            Mishchenko, M. I., and L. D. Travis, 2003: Electromagnetic 
+            scattering by nonspherical particles. In Exploring the Atmosphere 
+            by Remote Sensing Techniques (R. Guzzi, Ed.), Springer-Verlag, 
+            Berlin, pp. 77-127. 
+            This is available at http://www.giss.nasa.gov/~crmim/publications/ */
+          Numeric delta_aa=aa_sca-aa_inc+(aa_sca-aa_inc<-180)*360-
+            (aa_sca-aa_inc>180)*360;
+          if(delta_aa>=0)
+            {
+              pha_mat_lab(0,2) = S1 * F12;
+              pha_mat_lab(1,2) = S1 * C2 * F22 + C1 * S2 * F33;
+              pha_mat_lab(2,0) = -S2 * F12;
+              pha_mat_lab(2,1) = -C1 * S2 * F22 - S1 * C2 * F33;
+            }
+          else
+            {
+              pha_mat_lab(0,2) = -S1 * F12;
+              pha_mat_lab(1,2) = -S1 * C2 * F22 - C1 * S2 * F33;
+              pha_mat_lab(2,0) = S2 * F12;
+              pha_mat_lab(2,1) = C1 * S2 * F22 + S1 * C2 * F33;
+            }
           pha_mat_lab(2,2) = -S1 * S2 * F22 + C1 * C2 * F33;
-          
+
           if( stokes_dim > 3 ){
             if(delta_aa>=0)
-	      {
-		pha_mat_lab(1,3) = S2 * F34;
-		pha_mat_lab(3,1) = S1 * F34;
-	      }
-	    else
-	      {
-		pha_mat_lab(1,3) = -S2 * F34;
-		pha_mat_lab(3,1) = -S1 * F34;
-	      }
+              {
+                pha_mat_lab(1,3) = S2 * F34;
+                pha_mat_lab(3,1) = S1 * F34;
+              }
+            else
+              {
+                pha_mat_lab(1,3) = -S2 * F34;
+                pha_mat_lab(3,1) = -S1 * F34;
+              }
             pha_mat_lab(0,3) = 0;
             pha_mat_lab(2,3) = C2 * F34;
             pha_mat_lab(3,0) = 0;
