@@ -543,12 +543,36 @@ void define_md_data_raw()
          "This methods interpolates the fields from the raw data\n"
          "(*t_field_raw*, *z_field_raw*) which can be stored on \n"
          "arbitrary grids on the grids for the calculation\n"
-         "(*p_grid*, *lat_grid*, *lon_grid*). \n"
-         "\n"
+         "(*p_grid*, *lat_grid*, *lon_grid*). "
         ),
         OUTPUT(t_field_, z_field_, vmr_field_),
         INPUT(p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
               vmr_field_raw_, atmosphere_dim_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("AtmFieldsCalcExpand1D"),
+        DESCRIPTION
+        (
+         "Interpolate 1D raw atmospheric fields to create  2D or 3D \n"
+         "homogenous atmospheric fields.\n"
+         "\n"
+         "The method works as *AtmFieldsCalc* but accepts only raw 1D\n"
+         "atmsopheres. The raw atmsophere is interpolated to *p_grid* and \n"
+         "the obtained values are applied for all latitudes, and also \n"
+         "longitudes for 3D, to create a homogenous atmsophere. \n"
+         "\n"
+         "Note that the method only deals with the atmospheric fields, and\n"
+         "to create a 2D or 3D version of a 1D case, a demand is also that\n"
+         "the geoid radius is set to be constant for all latitudes/longitudes."
+        ),
+        OUTPUT( t_field_, z_field_, vmr_field_ ),
+        INPUT( p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
+               vmr_field_raw_, atmosphere_dim_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

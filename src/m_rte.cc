@@ -368,22 +368,19 @@ void RteEmissionStd(
       interpweights( itw_p, ppath.gp_p );      
       itw2p( p_ppath, p_grid, ppath.gp_p, itw_p );
 
-      // Determine the atmospheric temperature at each propagation path point
-      Vector t_ppath(np);
-      //
-      interp_atmfield_by_itw( t_ppath,  atmosphere_dim, p_grid, lat_grid, 
-                               lon_grid, t_field, "t_field", 
-                               ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_p );
-
-      // Determine the vmrs at each propagation path point
+      // Determine the atmospheric temperature and species VMR at 
+      // each propagation path point
+      Vector   t_ppath(np);
       Matrix   vmr_ppath(ns,np), itw_field;
       //
       interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
                             lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
-
-      // We have to loop over all gaseous species to obtain the 
-      // full vmr_field.
-      for( Index is = 0; is < ns; is ++)
+      //
+      interp_atmfield_by_itw( t_ppath,  atmosphere_dim, p_grid, lat_grid, 
+                               lon_grid, t_field, "t_field", 
+                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+      // 
+      for( Index is=0; is<ns; is++ )
         {
           interp_atmfield_by_itw( vmr_ppath(is, Range(joker)), atmosphere_dim,
                     p_grid, lat_grid, lon_grid, 

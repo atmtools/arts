@@ -114,6 +114,7 @@ void AtmosphereSet2D(
 }
 
 
+
 //! Calculate atmospheric fields.
 /*!
   This method interpolates the data for atmospheric fields on the atmospheric
@@ -332,6 +333,73 @@ void AtmFieldsCalc(//WS Output:
         }
     }
 }
+
+
+
+//! AtmosphereSet1D
+/*!
+
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2003-01-09
+*/
+void AtmFieldsCalcExpand1D(
+            Tensor3&                 t_field,
+            Tensor3&                 z_field,
+            Tensor4&                 vmr_field,
+      const Vector&                  p_grid,
+      const Vector&                  lat_grid,
+      const Vector&                  lon_grid,
+      const ArrayOfTensor3&          t_field_raw,
+      const ArrayOfTensor3&          z_field_raw,
+      const ArrayOfArrayOfTensor3&   vmr_field_raw,
+      const Index&                   atmosphere_dim )
+{
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+
+  if( atmosphere_dim == 1 )
+    { throw runtime_error( 
+     "This function is intended for 2D and 3D. For 1D, use *AtmFieldsCalc*.");}
+
+  // Make 1D interpolation using some dummy variables
+  Vector    vempty(0);
+  Tensor3   t_temp, z_temp;
+  Tensor4   vmr_temp;
+  AtmFieldsCalc( t_temp, z_temp, vmr_temp, p_grid, vempty, vempty, 
+                                  t_field_raw, z_field_raw, vmr_field_raw, 1 );
+
+  // Move values from the temporary tensors to the return arguments
+  const Index   np = p_grid.nelem();
+  const Index   nlat = lat_grid.nelem();
+        Index   nlon = lon_grid.nelem();
+  if( atmosphere_dim == 2 )
+    { nlon = 1; }
+  const Index   nspecies = vmr_temp.nbooks();
+  //
+  assert( t_temp.npages() == np );
+  //
+  t_field.resize( np, nlat, nlon );
+  z_field.resize( np, nlat, nlon );
+  vmr_field.resize( nspecies, np, nlat, nlon );
+  //
+  for( Index ilon=0; ilon<nlon; ilon++ )
+    {
+      for( Index ilat=0; ilat<nlat; ilat++ )
+        {
+          for( Index ip=0; ip<np; ip++ )
+            {
+              t_field(ip,ilat,ilon) = t_temp(ip,0,0);
+              z_field(ip,ilat,ilon) = z_temp(ip,0,0);
+              for( Index is=0; is<nspecies; is++ )
+                { vmr_field(is,ip,ilat,ilon) = vmr_temp(is,ip,0,0); }
+            }
+        }
+    }
+}
+
+
   
 //! Read atmospheric scenario.
 /* 

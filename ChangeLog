@@ -1,3 +1,27 @@
+2003-01-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-370
+
+	* Clear sky spectra has now been produced with real absorption for 
+	1D, 2D and 3D. AND IT WORKS!!!! Time to celebrate.
+
+	Spectra were calculated for cases that should be identical for 1D,
+	2D and 3D. If lmax in ppath_stepGeometric is set to -1, some 
+	difference is noted between 1D and 2D/3D, as the crossings of the
+	latitude grid in 2D/3D results in some extra points of the path which
+	requieres an interpolation in pressure, not performed for 1D.
+	If lmax is set to e.g. 1e3, the difference is very small (probably
+	only rounding errors), which should be expected. 
+
+	So the consistency between 1D, 2D and 3D seems to be OK. At least
+	for geometric paths.
+	
+	* src/m_atmosphere.cc (AtmFieldsCalcExpand1D): Created this function
+	to make "2D or 3D view" of a 1D atmsophere.
+
+	* src/m_rte.cc (RteEmissionStd): The order of some lines were wrong. 
+	Fixed that bug for 2D and 3D, and cleaned the code slightly.
+
 2003-01-09  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-369
