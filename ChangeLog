@@ -1,3 +1,12 @@
+2003-09-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-686
+	
+	* src/m_optproperties.cc (pha_mat_labCalc): Included analytically
+	calculated limiting values for the cases were the transformation formulas
+	according to Mishchenko are not defined. Now the result for stokes-dim=2
+	for a nadir measurement is as expected almost 0. 
+
 2003-09-18  Cory Davis <cory@met.ed.ac.uk>
 
 	* arts-1-685

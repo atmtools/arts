@@ -518,8 +518,8 @@ void pha_mat_labCalc(//Output:
 {
   Numeric za_sca_rad = za_sca * DEG2RAD;
   Numeric za_inc_rad = za_inc * DEG2RAD;
-  //Numeric aa_sca_rad = aa_sca * DEG2RAD;
-  //Numeric aa_inc_rad = aa_inc * DEG2RAD;
+  Numeric aa_sca_rad = aa_sca * DEG2RAD;
+  Numeric aa_inc_rad = aa_inc * DEG2RAD;
 
   const Numeric theta = RAD2DEG * theta_rad;
   const Index stokes_dim = pha_mat_lab.ncols();
@@ -574,24 +574,41 @@ void pha_mat_labCalc(//Output:
    
    else 
      {
-       // In these cases we have to take limiting value
-       // (according personal communication with Mishchenko)
+       Numeric sigma1;
+       Numeric sigma2;
+
+
+       // In these cases we have to take limiting values.
+ 
        if (za_inc_rad < ANGTOL)
-         za_inc_rad = ANGTOL;
-       if (za_inc_rad > PI-ANGTOL)
-         za_inc_rad = PI - ANGTOL;
-       if (za_sca_rad < ANGTOL)
-         za_sca_rad = ANGTOL; 
-       if (za_sca_rad > PI - ANGTOL)
-         za_sca_rad = PI - ANGTOL;
-       
-       const Numeric sigma1 =  acos((cos(za_sca_rad) - cos(za_inc_rad)
+         {
+           sigma1 = PI + aa_sca_rad - aa_inc_rad;
+           sigma2 = 0;
+         }
+       else if (za_inc_rad > PI-ANGTOL)
+         {
+           sigma1 = aa_sca_rad - aa_inc_rad;
+           sigma2 = PI; 
+         }
+       else if (za_sca_rad < ANGTOL)
+         {
+           sigma1 = 0;
+           sigma2 = PI + aa_sca_rad - aa_inc_rad;
+         }
+       else if (za_sca_rad > PI - ANGTOL)
+         {
+           sigma1 = PI;
+           sigma2 = aa_sca_rad - aa_inc_rad; 
+         }
+       else
+         {
+           sigma1 =  acos((cos(za_sca_rad) - cos(za_inc_rad)
                                     * cos(theta_rad))/
                                     (sin(za_inc_rad)*sin(theta_rad)));
-       const Numeric sigma2 =  acos((cos(za_inc_rad) - cos(za_sca_rad)
+           sigma2 =  acos((cos(za_inc_rad) - cos(za_sca_rad)
                                     *cos(theta_rad))/
                                     (sin(za_sca_rad)*sin(theta_rad)));
-       
+         }
                
        const Numeric C1 = cos(2*sigma1);
        const Numeric C2 = cos(2*sigma2);
