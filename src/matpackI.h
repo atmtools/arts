@@ -180,6 +180,8 @@ public:
   friend class Tensor7View;
   friend class Tensor7;
   friend class Sparse;
+  friend void mult (VectorView, const ConstMatrixView&,
+                    const ConstVectorView&);
 
   /** Returns the start index of the range. */
   Index get_start () const { return mstart; }
@@ -319,6 +321,8 @@ public:
   friend class ConstTensor6View;
   friend class ConstTensor7View;
   friend int poly_root_solve (Matrix &roots, Vector &coeffs);
+  friend void mult (VectorView, const ConstMatrixView&,
+                    const ConstVectorView&);
   
   // A special constructor, that allows to make a ConstVectorView of a scalar.
   ConstVectorView(const Numeric& a);
@@ -600,6 +604,8 @@ public:
   friend class ConstTensor7View;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend int poly_root_solve (Matrix &roots, Vector &coeffs);
+  friend void mult (VectorView, const ConstMatrixView&,
+                    const ConstVectorView&);
 
 protected:
   // Constructors:
@@ -763,6 +769,10 @@ void copy(Numeric x,
           const Iterator2D& end);
 
 void mult( VectorView y,
+           const ConstMatrixView& M,
+           const ConstVectorView& x );
+
+void mult_old( VectorView y,
            const ConstMatrixView& M,
            const ConstVectorView& x );
 
