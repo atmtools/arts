@@ -2246,7 +2246,24 @@ void do_gridcell_3d(
               endface = 8;
             }
         }
-    }
+
+      // If no endface has been found, the reason can be:
+      // For positions on a pressure surface, numerical problems can result
+      // in that the wrong gridcell is found for first step of a path.
+      if( ~endface )
+        {
+          if( r_start == rlow )
+            {
+              r_best = r_start; lat_best = lat_start; lon_best = lon_start;
+              l_best = 0; endface = 2;
+            }
+          else if( r_start == rupp )
+            {
+              r_best = r_start; lat_best = lat_start; lon_best = lon_start;
+              l_best = 0; endface = 4;
+            }
+        }
+     }
 
 
   // Check that some end face has been found
