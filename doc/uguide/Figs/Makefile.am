@@ -27,15 +27,6 @@ EXTRA_DIST = \
 	fig_bendingangle.eps \
 	fig_bendingangle.pdf \
 	fig_bendingangle.m \
-	fig_calerror.m \
-	fig_calerror_tb_1.eps \
-	fig_calerror_tb_1.pdf \
-	fig_calerror_tb_2.eps \
-	fig_calerror_tb_2.pdf \
-	fig_calerror_trj_1.eps \
-	fig_calerror_trj_1.pdf \
-	fig_calerror_trj_2.eps \
-	fig_calerror_trj_2.pdf \
 	fig_corrfuns.eps \
 	fig_corrfuns.pdf \
 	fig_corrfuns.m \
