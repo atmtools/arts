@@ -1,3 +1,16 @@
+2002-10-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-255
+
+	* src/agendas.cc: Included scat_mono_agenda.
+
+	* src/m_scatrte.cc: Renamed (scat_mainCalc) Now it is called 
+	(ScatteringMain). Included scat_mono_agenda in this method.
+
+	* src/methods.cc: Modified entry for the method above.
+		
+	* src/workspace.cc: Included scat_mono_agenda.
+	
 2002-10-09  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-254
