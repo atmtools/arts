@@ -16,6 +16,7 @@
    USA. */
 
 #include "sensor.h"
+#include <stdexcept>
 #include <cmath>
 #include <iostream>
 #include "matpackI.h"
@@ -306,15 +307,63 @@ void test7()
   cout << "h*g:\n" << h.sum() << "\n";
 }
 
+void test8()
+{
+  // Test sensor integration vector with data from xml-files
+  cout << "Test 8:\nTest sensor_integration_vector with data from xml-files.\n";
+
+  Vector za_grid, ant_za_grid;
+  Matrix resp_mat;
+
+  String z_g = "z_grid.xml";
+  String r_m = "antenna_diagram.xml";
+  String azg = "antenna_za.xml";
+
+  try {
+    cout << "  Reading " << z_g << "...";
+    xml_read_from_file (z_g, za_grid);
+    cout << "done.\n  Reading " << r_m << "...";
+    xml_read_from_file (r_m, resp_mat);
+    cout << "done.\n  Reading " << azg << "...";
+    xml_read_from_file (azg, ant_za_grid);
+    cout << "done.\n";
+  } catch (runtime_error e) {
+    cerr << e.what () << endl;
+  }
+
+  Vector resp_tmp(resp_mat.nrows());
+  Matrix h_mat(ant_za_grid.nelem(), za_grid.nelem());
+
+  for( Index azi=0; azi<ant_za_grid.nelem(); azi++ ) {
+    resp_tmp = resp_mat(joker,0);
+    resp_tmp += ant_za_grid[azi];
+
+    sensor_integration_vector(h_mat(azi,joker), resp_mat(joker,1), resp_tmp,
+      za_grid);
+
+  }
+
+  try {
+    cout << "  Writing Vector h to file test8.xml" << endl;
+    xml_write_to_file ("test8.xml", h_mat);
+  } catch (runtime_error e) {
+    cerr << e.what () << endl;
+  }
+
+  cout << "h_mat:\n" << h_mat << endl;
+}
+
+
 int main()
 {
 //  test1();
 //  test2();
 //  test3();
-  test4();
+//  test4();
 //  test5();
 //  test6();
 //  test7();
+  test8();
 
   return 0;
 }

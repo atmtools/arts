@@ -682,6 +682,27 @@ test_sorting_SOURCES = \
 	test_sorting.cc
 
 test_sensor_SOURCES = \
+	absorption.cc \
+	absorption.h \
+	bifstream.h \
+	bifstream.cc \
+	bofstream.h \
+	bofstream.cc \
+	binio.h \
+	binio.cc \
+	partition_function_data.cc \
+	xml_io.h \
+	xml_io_instantiation.h \
+	xml_io_private.h \
+	xml_io_basic_types.cc \
+	xml_io_basic_types.h \
+	xml_io_compound_types.cc \
+	xml_io_compound_types.h \
+	xml_io_array_types.cc \
+	xml_io_array_types.h \
+	xml_io.cc \
+	messages.cc \
+	species_data.cc \
 	arts.cc \
 	arts.h \
 	arts_mpi.cc \
@@ -707,7 +728,7 @@ test_sensor_SOURCES = \
 	matpackVII.h \
 	sensor.h \
 	sensor.cc \
-	test_sensor.cc 
+	test_sensor.cc
 
 test_integration_SOURCES = \
 	matpackI.cc \

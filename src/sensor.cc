@@ -368,12 +368,13 @@ void sensor_integration_vector(
   //Create a reference grid vector, x_ref that containing the values of
   //x_f and x_g strictly sorted.
   list<Numeric> l_x;
-  for (Index i=0; i<x_f.nelem(); i++)
-  	l_x.push_back(x_f[i]);
-  for (Index i=0; i<x_g.nelem(); i++) {
-    if( x_g[i] > l_x.front() && x_g[i]<l_x.back() )
-      l_x.push_back(x_g[i]);
+  for (Index it=0; it<x_f.nelem(); it++)
+    l_x.push_back(x_f[it]);
+  for (Index it=0; it<x_g.nelem(); it++) {
+    if( x_g[it]>x_f[0] && x_g[it]<x_f[x_f.nelem()-1] )
+      l_x.push_back(x_g[it]);
   }
+
 
   l_x.sort();
   l_x.unique();

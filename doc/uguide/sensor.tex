@@ -36,8 +36,6 @@
   & \artsstyle{sensor\_response\_f} & The sensor frequency grid \\
   & \artsstyle{sensor\_response\_za} & The sensor zenith angle grid \\
   & \artsstyle{sensor\_response\_aa} & The sensor azimuth angle grid \\
-  & \artsstyle{sensor\_pol} & The sensor polarisation response \\
-  & \artsstyle{sensor\_response\_za} & The sensor zenith angle grid \\
   & \artsstyle{sensor\_rot} & The rotation of the sensor between measurement blocks \\
  \label{symtable:sensor}     
 \stopsymbols
@@ -66,9 +64,18 @@ of characteristics.
 %Conversion of radiances to brightness temperatures is also treated
 %here.
 
-\levelb{Theory}
+\levelb{Internal functions}
+Description of the concept with forward matrices. Show pictures?
 
-\levelb{Concepts in ARTS}
+\levelc{Weighting}
+Decribe how the weighting matrices work and are derived.
+
+\levelc{Summation}
+Decribe how the summation matrices work and are derived.
+
+\levelb{Instrument characteristics}
+\FIXME rewrite
+
 In an effort to keep a consitency between the different sensor parts, 
 some general concepts has been determined for the variables and 
 methods connected to sensor modelling.
@@ -76,9 +83,6 @@ Examples of this are the way the instrument characteristics are
 stored and the of course the way the sensor response is modelled 
 as matrix, as decribed above (REF?).
 
-\levelc{Sensor response matrix?}
-
-\levelc{Instrument characteristics}
 To be able of computing the response from a certain sensor part, we 
 need the instrument characteristics. This information thus have to 
 be stored in such a way that we can incorporate it in our forward 
@@ -94,17 +98,45 @@ the concept of \textit{single or complete} is used. The words
 \textit{single} and \textit{complete} describes the way the given 
 characteristics are applied. This might better be understood with an
 example, e.g. the antenna, if only one set of antenna characteristics
-are given the same set will for instance be used for all viewing
-directions. If on the other hand a individual set of antenna 
-characteristics are given for each viewing direction, then that
-individual set will be used for each individual view direction.
+are given the same set will for instance be used for all polarisations.
+If on the other hand a individual set of antenna characteristics are 
+given for each polarisation, then that individual set will be used
+for each individual polarisation.
 What this imply is that you can't give instrument characteristics
 for only half of the cases, you have to give one set, \textit{single},
-or a set for each case, \textit{complete}.
+or one set for each case, \textit{complete}.
 
-How this is implemented for each sensor part will be described below.
+How this is implemented for each sensor part will be described in the 
+sections concerning the different sensor parts.
 
-\leveld{Antenna 1D characteristics}
+\levelb{Forward matrix set-up}
+Describe the two options, with and with out sensor.
+
+\levelc{No sensor}
+\artsstyle{sensor\_off}
+
+\levelc{Initialisation}
+\artsstyle{sensor\_responseInit}
+
+\levelc{Antenna 1D}
+\artsstyle{sensor\_responseAntenna1D} and connected WSM.
+
+\levelc{Mixer and sideband filter}
+\artsstyle{sensor\_responseMixer}
+
+\levelc{Backend}
+\artsstyle{sensor\_responseBackend}
+
+\levelc{Auxiliary functions}
+\artsstyle{ConvertIFToRF} \ldots
+
+\levelb{Control file example}
+
+\hrule
+
+\levelb{FIXME old stuff}
+
+\textbf{\artsstyle{antenna\_diagram}}
 For the antenna characteristics we have implemented a separate WSV 
 \artsstyle{antenna\_diagram}. This variable is of the type 
 \typeindex{ArrayOfArrayOfMatrix} to accomplish the diversity antenna
@@ -120,10 +152,6 @@ The highest level is then the \artsstyle{ArrayOfArrayOfMatrix}, where each array
 
 One could think of the \artsstyle{antenna\_diagram} as a 4D tensor, with dimensions as relative angles, frequency, polarisations and zenith angles. But the reason not to store the characteristics as a tensor is that we want to keep the possibility to include antenna diagrams of different sizes, i.e. relative angular grids with different coarseness. The same goes for the polarisations, for each zenith angle the user have the possibility to give a single or complete description of the polarisation dependence.
 
-\leveld{Mixer and sideband filter charcteristics}
-
-
-\levelb{Workspace variables}
 
 \levelb{Workspace methods}
 \label{sec:sensor:WSM}

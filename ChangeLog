@@ -1,3 +1,16 @@
+2004-02-16  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-787
+
+	* src/Makefile.am: Enabled xml I/O for test_sensor.cc.
+
+	* src/test_sensor.cc Added testfunction to find a bug in sensor.cc.
+
+	* src/sensor.cc: Found and corrected bug in sensor_integration_vector.
+
+	* doc/uguide/sensor.tex: Added more text to the sensor chapter. Still
+	a working document.
+
 2004-02-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-786
