@@ -2735,7 +2735,7 @@ void define_md_data()
     ( MdRecord
       ( NAME("kContAbs"),
   	DESCRIPTION(
-a          "Calculates 1D weighting functions for fit of continuum absorption\n"
+          "Calculates 1D weighting functions for fit of continuum absorption\n"
           "by polynomials with selectable order.\n"  
           "The continuum is fitted be determining an off-set at a number of\n"
           "points (order+1) that are evenly spread between the lowest and\n"
