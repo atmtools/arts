@@ -1024,11 +1024,55 @@ void ParticleTypeInit( //WS Output:
 }
 
 
+//! Read single scattering data and particle number densities
+/*! 
+ The particle number densities *pnd_field_raw* can also be generated 
+ without using the ARTS database. In this case it is easier to generate one 
+ file including the data for all particle types than generating 
+ a pnd file for each particle type. This means, that for such cases it is 
+ more handy to us *ParticleTypeAddAll* instead of *ParticleTypeAdd*.
+  
+  \param scat_data_raw Single scattering data.
+  \param pnd_field_raw Particle number density field data.
+  \param scat_data_files Filename for scattering data.
+  \param pnd_field_file Filename for pnd field data.
+
+  \author Claudia Emde
+  \date 2004-03-08
+
+  */
+void ParticleTypeAddAll( //WS Output:
+                 ArrayOfSingleScatteringData& scat_data_raw,
+                 ArrayOfGriddedField3&  pnd_field_raw,
+                 // Keyword:
+                 const ArrayOfString& scat_data_files,
+                 const String& pnd_field_file)
+{
+  SingleScatteringData scat_data;
+  
+  for (Index i = 0; i<scat_data_files.nelem(); i++)
+    {  
+      // Append *scat_data_raw*:
+      scat_data_raw.push_back(scat_data);
+      
+      out2 << "Read single scattering data\n";
+      xml_read_from_file( scat_data_files[i], 
+                          scat_data_raw[scat_data_raw.nelem()-1]);
+    }
+  
+  out2 << "Read particle number density date \n";
+  xml_read_from_file(pnd_field_file, pnd_field_raw);
+       
+}
+
+
 //! Read single scattering data and particle number density field from 
-//  data base.
+//  data base
 /*! 
   This method allows the user to chose hydro-meteor species and particle
-  number density fields. 
+  number density fields. The data is added to *scat_data_raw* and 
+  *pnd_field_raw*. 
+  
   There is one database for particle number density fields ( ....),
   which includes the following particle types:
 
@@ -1043,7 +1087,7 @@ void ParticleTypeInit( //WS Output:
   \author Claudia Emde
   \date 2003-02-24
 
-  \date 2003-02-23 Included structure ArrayOfGriddedField3.
+  \date 2004-02-23 Included structure ArrayOfGriddedField3.
 */
 void ParticleTypeAdd( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,

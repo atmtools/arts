@@ -1,3 +1,14 @@
+2004-03-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-797
+	
+	* src/m_cloudbox.cc (ParticleTypeAddAll): Added this method (wished
+        by Cory). It allows to add all particle types at the same time. The
+        user has to give a file including *pnd_field_raw* and the 
+        coresponing file names of single scattering data.
+
+	* src/methods.cc: Added method above.  
+
 2004-03-09  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-796

@@ -2794,7 +2794,39 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
-
+ 
+ md_data_raw.push_back
+   ( MdRecord
+      ( NAME( "ParticleTypeAddAll" ),
+        DESCRIPTION
+        (
+         "Read single scattering data and particle number densities.\n"
+         "\n"
+         "The particle number densities *pnd_field_raw* can be generated \n"
+         "without using the ARTS database. In this case it is easier to \n"
+         "generate one file including the data for all particle types than \n"
+         "generating a pnd file for each particle type. This means, that \n"
+         "for such cases it can be more handy to us *ParticleTypeAddAll* \n"
+         "instead of *ParticleTypeAdd*.\n"
+         "But this method is more dangerous:\n"
+         "The order of the filenames for the scattering data files has to\n"
+         "correspond to the order of the particle types in the file \n"
+         "including *pnd_field_raw* !\n" 
+         "\n"
+         "Keywords:\n"
+         "   filenames_scat_data : Array of String including the filenames \n"
+         "                         of th single scattering data files. \n"
+         "   filename_pnd_field :  Filename of the file including \n"
+         "                         *pnd_field_raw*.\n"
+         "\n"
+         ),
+        OUTPUT(scat_data_raw_, pnd_field_raw_),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("filenames_scat_data", "filename_pnd_field"),
+        TYPES(Array_String_t, String_t)));
+ 
  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ParticleTypeAdd" ),
@@ -2812,6 +2844,11 @@ md_data_raw.push_back
          "\n"
          "Another database (....) containes the scattering properties for \n"
          "those particle types. \n"
+         "\n"
+         "Keywords:\n"
+         "   filename_scat_data : Filenames of single scattering data \n"
+         "   filename_pnd_field :  Filename of the corresponding pnd_field\n"
+         "\n"
          ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
         INPUT(),
