@@ -1,6 +1,9 @@
-# Copyright (C) 2000,2001,2002,2003 
-# Stefan Buehler <sbuehler@uni-bremen.de>
+# vim: expandtab sw=2
+# Copyright (C) 2000, 2001, 2002, 2003 
+# Stefan Buehler   <sbuehler@uni-bremen.de>
 # Patrick Eriksson <patrick@rss.chalmers.se>
+# Oliver Lemke     <olemke@uni-bremen.de>
+#
 #
 # This file is free software; as a special exception the author gives
 # unlimited permission to copy and/or distribute it, with or without 
@@ -15,7 +18,9 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.143)
+AM_INIT_AUTOMAKE(arts,1.0.144)
+
+AM_MAINTAINER_MODE
 
 #
 # First of all set the default PREFIX if not given
@@ -32,15 +37,6 @@ AC_PROG_CPP
 AC_PROG_CXX
 # C++ Preprocessor:
 AC_PROG_CXXCPP
-
-# LF_CONFIGURE_CC
-
-# Configure the C++ Compiler
-# LF_CONFIGURE_CXX
-# LF_HOST_TYPE
-
-# Allow --with-warnings flag to configure:
-#LF_SET_WARNINGS
 
 # Determine the name of the ranlib program
 AC_PROG_RANLIB
@@ -65,13 +61,11 @@ AC_CHECK_SIZEOF(size_t, 8)
 # AC_HAVE_HEADERS(getopt.h) (now included in the source)
 AC_CHECK_HEADER(math.h, , AC_MSG_ERROR(required header file <math.h> missing))
 
-
 #
 # Check for math library
 #
 AC_CHECK_LIB(m, sin, ,
   AC_MSG_ERROR(function $func not found in math library) )
-
 
 #
 # Check for sstream header
@@ -79,7 +73,7 @@ AC_CHECK_LIB(m, sin, ,
 AC_LANG_CPLUSPLUS
 AC_CHECK_HEADER(sstream, ac_sstream=yes, ac_sstream=no)
 if test x$ac_sstream = xyes; then
-	  AC_DEFINE_UNQUOTED(HAVE_SSTREAM, , Use system sstream include)
+  AC_DEFINE_UNQUOTED(HAVE_SSTREAM, , Use system sstream include)
 fi
 AM_CONDITIONAL(HAVE_SSTREAM, test x$ac_sstream = xyes)
 
@@ -87,14 +81,27 @@ AM_CONDITIONAL(HAVE_SSTREAM, test x$ac_sstream = xyes)
 #
 # HDF support
 #
-AC_ARG_WITH(hdf,
-[  --with-hdf              HDF binary file support (default=autodetect)],
-[case "${withval}" in
-  autodetect) ac_hdf_support=autodetect ;;
-  yes) ac_hdf_support=yes ;;
-   no) ac_hdf_support=no ;;
-    *) AC_MSG_ERROR(bad value ${withval} for --with-hdf) ;;
-esac],[ ac_hdf_support=autodetect ])
+AC_ARG_WITH([hdf],
+  AC_HELP_STRING([--with-hdf=DIR],
+                 [HDF binary file support DIR (default is autodetect)]),
+  [case "${withval}" in
+    autodetect) ac_hdf_support=autodetect ;;
+    yes) ac_hdf_support=yes ;;
+     no) ac_hdf_support=no ;;
+      *) ac_hdf_support=unknown ;;
+   esac],
+  [ac_hdf_support=autodetect])
+
+if test x$ac_hdf_support = xunknown; then
+  if test -d "${withval}/lib" -a -d "${withval}/include"; then
+    LDFLAGS="$LDFLAGS -L${withval}/lib"
+    CPPFLAGS="$CPPFLAGS -I${withval}/include"
+    ac_hdf=yes
+  else
+    AC_MSG_ERROR(${withval}/lib and/or ${withval}/include not found)
+    ac_hdf=no
+  fi
+fi
 
 if test x$ac_hdf_support = xno; then
   ac_hdf=no
@@ -125,6 +132,9 @@ esac],[ ac_numeric_type=double ])
 
 AC_MSG_RESULT(Setting floating-point type to $ac_numeric_type)
 AC_DEFINE_UNQUOTED(NUMERIC, $ac_numeric_type, Default floating-point type)
+if test x$ac_numeric_type = xdouble; then
+  AC_DEFINE_UNQUOTED(USE_DOUBLE,, Whether double precision is in use)
+fi
 
 
 #
@@ -200,32 +210,18 @@ AC_DEFINE_UNQUOTED(ARTS_DATA_PATH, "$ac_arts_data", ARTS data path)
 AC_SUBST(ac_arts_data)
 
 
-#
-# Enable/disable maintainer-mode
-#
-AC_MSG_CHECKING(whether maintainer-mode should be activated)
-AC_ARG_ENABLE(maintainer-mode,
-[  --enable-maintainer-mode   Activate maintainer-mode (default=no)],
-[case "${enableval}" in
-  yes) ac_maintainer_mode=yes ;;
-   no) ac_maintainer_mode=no ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-maintainer-mode) ;;
-esac],[ ac_maintainer_mode=no ])
-AM_CONDITIONAL(ARTS_MAINTAINER_MODE, test x$ac_maintainer_mode = xyes)
-AC_MSG_RESULT([$ac_maintainer_mode])
-
 
 #
 # Enable/disable debugging
 #
 AC_MSG_CHECKING(whether debugging should be activated)
 AC_ARG_ENABLE(debug,
-[  --enable-debug   Activate debugging mode (default=yes)],
+[  --enable-debug   Activate debugging mode (default=no)],
 [case "${enableval}" in
   yes) ac_debug=yes ;;
    no) ac_debug=no ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
-esac],[ ac_debug=yes ])
+esac],[ ac_debug=$USE_MAINTAINER_MODE ])
 AM_CONDITIONAL(DEBUGGING, test x$ac_debug = xyes)
 AC_MSG_RESULT([$ac_debug])
 
@@ -247,7 +243,7 @@ AC_MSG_RESULT([$ac_more_warnings])
 #
 # Toggle documentation
 #
-if test x$ac_maintainer_mode = xyes; then
+if test x$USE_MAINTAINER_MODE = xyes; then
   ac_docgen=yes
 else
   ac_docgen=no
@@ -278,10 +274,22 @@ if test x$ac_docgen = xyes; then
 
 fi
 
-if test x$ac_more_warnings = xyes; then
-  WARNING_FLAGS="-W -Wall"
-else
-  WARNING_FLAGS=
+WARNING_FLAGS=
+if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
+  GCC_MAJOR=`$CC -v 2>&1 | grep '^gcc version' | sed 's/^gcc version \([[0-9]]\)\..*$/\1/'`
+
+  WARNING_FLAGS="-W -Wall -Wconversion"
+
+  if test x$ac_more_warnings = xyes; then
+    WARNING_FLAGS="$WARNING_FLAGS -Werror"
+
+    # gcc2 produces warnings in standard headers, therefore only
+    # enable it with gcc3
+    #if test x$GCC_MAJOR = x3; then
+    #  WARNING_FLAGS="$WARNING_FLAGS -Wshadow"
+    #fi
+  fi
+
 fi
 
 
@@ -305,20 +313,22 @@ esac
 
 
 #
-# Compile flag switches
+# Compile flags switches
 #
-CFLAGS="$CFLAGS $WARNING_FLAGS"
-CXXFLAGS="$CXXFLAGS -ftemplate-depth-40 $WARNING_FLAGS"
-CXXFLAGS_FIXED="-ftemplate-depth-40 $WARNING_FLAGS"
-	
 if test x$ac_debug = xyes; then
-  CFLAGS="$CFLAGS -g"
-  CXXFLAGS="$CXXFLAGS -g"
-  CXXFLAGS_FIXED="$CXXFLAGS_FIXED -g"
+  DEBUG_FLAGS="-g"
 else
-  CFLAGS="$CFLAGS -DNDEBUG"
-  CXXFLAGS="$CXXFLAGS -DNDEBUG"
-  CXXFLAGS_FIXED="$CXXFLAGS_FIXED -DNDEBUG"
+  DEBUG_FLAGS=""
+  CPPFLAGS="$CPPFLAGS -DNDEBUG"
+fi
+
+CFLAGS="$CFLAGS $DEBUG_FLAGS $WARNING_FLAGS"
+if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
+  CXXFLAGS_FIXED="$DEBUG_FLAGS -ftemplate-depth-60 $WARNING_FLAGS"
+  CXXFLAGS="$CXXFLAGS $CXXFLAGS_FIXED"
+else
+  CXXFLAGS_FIXED="$CXXFLAGS $DEBUG_FLAGS"
+  CXXFLAGS="$CXXFLAGS_FIXED"
 fi
 
 AC_SUBST(CXXFLAGS_FIXED)
@@ -358,6 +368,7 @@ Makefile
          doc/examples/fullmodels_example.arts
          doc/examples/radiosonde_example.arts
          doc/examples/rt_example.arts
+         doc/examples/wfs_spectro_example.arts
       doc/emacs/Makefile
    m4/Makefile 
    src/Makefile
@@ -367,7 +378,7 @@ AC_MSG_RESULT()
 AC_MSG_RESULT([*******************************************************])
 AC_MSG_RESULT([              ARTS configuration summary])
 AC_MSG_RESULT()
-AC_MSG_RESULT([  Maintainer mode          : $ac_maintainer_mode])
+AC_MSG_RESULT([  Maintainer mode          : $USE_MAINTAINER_MODE])
 AC_MSG_RESULT([  Debugging                : $ac_debug])
 AC_MSG_RESULT([  Floating-point type      : $ac_numeric_type])
 AC_MSG_RESULT([  Integer type             : $ac_integer_type])
@@ -384,6 +395,7 @@ AC_MSG_RESULT()
 AC_MSG_RESULT([  CPPFLAGS : $CPPFLAGS])
 AC_MSG_RESULT([  CFLAGS   : $CFLAGS])
 AC_MSG_RESULT([  CXXFLAGS : $CXXFLAGS])
+AC_MSG_RESULT([  LDFLAGS  : $LDFLAGS])
 AC_MSG_RESULT()
 if test $ac_arts_data = no; then
   AC_MSG_RESULT([  ARTS data path : not installed])
