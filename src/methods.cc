@@ -1697,58 +1697,6 @@ void define_md_data()
 
 
 
-//=== LOS ==================================================================
-
-#ifdef HDF_SUPPORT
-  md_data.push_back
-    ( MdRecord
-      ( NAME("LosWriteBinary"),
-	DESCRIPTION(
-		    "Writes a LOS structure to a binary file.\n"
-                    "\n"
-                    "The filename can be specified or an empty String.\n"
-                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "File is in HDF4 format.\n"
-                    "\n"
-                    "Global input: \n"
-                    "   LOS : Name of the workspace variable to write.\n"
-                    "\n"
-                    "Keywords:\n"
-                    "   filename : Name of the output file.\n"
-		    ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT( Los_ ),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("LosReadBinary"),
-	DESCRIPTION(
-		    "Reads a LOS structure from a binary file.\n"
-                    "\n"
-                    "The filename can be specified or an empty String.\n"
-                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "File is in HDF4 format.\n"
-                    "\n"
-                    "Global output: \n"
-                    "   LOS : Name of the workspace variable to read.\n"
-                    "\n"
-		    "Keywords:\n"
-		    "   filename : Name of the input file.\n"
-		    ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Los_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    String_t   )));
-#endif // HDF_SUPPPORT
-
-
-
 //======================================================================
 //=== Absorption methods
 //======================================================================

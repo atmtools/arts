@@ -41,7 +41,6 @@ arts_SOURCES = \
 	groups.cc \
 	iotraits.h \
 	lineshapes.cc \
-	los.h \
 	m_abs.cc \
 	m_hdf.cc \
 	m_io.cc \

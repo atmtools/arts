@@ -1,3 +1,16 @@
+2002-05-05  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-59
+
+	* src/workspace.cc: Started to introduce new workspace variables.
+
+	* src/los.cc/h: Removed these files. Made corresponding changes
+	throughout the files, e.g:
+
+	* src/Makefile.am: Removed los.cc and los.h. 
+
+	* src/groups.cc: Removed Los, added Ppath and Tensor3.
+
 2002-05-03  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-58

@@ -32,11 +32,14 @@
   \author Stefan Buehler
   \date   2000-08-10 */
 
+
 #include "arts.h"
 #include "matpackI.h"
+#include "matpackIII.h"
 #include "array.h"
 #include "auto_wsv_groups.h"
 #include "wsv_aux.h"
+#include "ppath.h"
 
 /*! The lookup information for the workspace variables. */
 Array<WsvRecord> wsv_data;
@@ -79,6 +82,137 @@ void define_wsv_data()
      Give the keywords above only if they apply, i.e., Members only
      for a structure, Units only for a physical variable. 
   */
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Definition of the atmosphere (dimensionality, grids, fields etc.)
+  /////////////////////////////////////////////////////////////////////////////
+
+  wsv_data.push_back
+    (WsvRecord
+     ("atmosphere_dim",
+      "The atmospheric dimensionality (1-3).\n"
+      "\n"
+      "This variable defines the complexity of the atmospheric structure.\n"
+      "The dimensionality is given by an integer between 1 and 3, where 1\n"
+      "means 1D etc. This is the master variable for the atmospheric\n"
+      "dimensionality, variables which size changes with the dimensionality\n"
+      "are checked to match this variable. \n"
+      "\n"
+      "The atmospheric dimensionalities (1D, 2D and 3D) are defined in the\n"
+      "user guide (look for \"atmospheric dimensionality\" in the index).", 
+      Index_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("p_grid",
+      "The pressure grid.\n"
+      "\n"
+      "The pressure surfaces on which the atmospheric fields are defined.\n"
+      "This variable must always be defined.\n"
+      "\n"
+      "See further the ARTS user guide (AUG). Use the index to find where\n"
+      "this variable is discussed. The function is listed as a subentry to\n"
+      "\"workspace variables\".\n"
+      "\n"
+      "Units: Pa",
+      Vector_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("lat_grid",
+      "The latitude grid.\n"
+      "\n"
+      "The latitudes for which the atmospheric fields are defined.\n"
+      "Geocentric latitudes shall be used.\n"
+      "\n"
+      "For 1D calculations this vector must have the length 0.\n"
+      "In the case of 2D, the latitudes shall be interpreted as the angular\n"
+      "distance inside the orbit plane from an arbitrary zero point.\n"
+      "\n"
+      "See further the ARTS user guide (AUG). Use the index to find where\n"
+      "this variable is discussed. The function is listed as a subentry to\n"
+      "\"workspace variables\".\n"
+      "\n"
+      "Units: degrees",
+      Vector_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("lon_grid",
+      "The longitude grid.\n"
+      "\n"
+      "The longitudes for which the atmospheric fields are defined.\n"
+      "\n"
+      "For 1D and 2D calculations this vector must have the length 0.\n"
+      "\n"
+      "See further the ARTS user guide (AUG). Use the index to find where\n"
+      "this variable is discussed. The function is listed as a subentry to\n"
+      "\"workspace variables\".\n"
+      "\n"
+      "Units: degrees",
+      Vector_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("z_field",
+      "The field of geometrical altitudes.\n"
+      "\n"
+      "This variable gives the geometrical altitude, above the geoid, of\n"
+      "each crossing of the pressure, latitude and longitude grids. For 1D\n"
+      "cases the altitudes give the geometrical position of the pressure\n"
+      "surfaces.\n"
+      "\n"
+      "See further the ARTS user guide (AUG). Use the index to find where\n"
+      "this variable is discussed. The function is listed as a subentry to\n"
+      "\"workspace variables\".\n"
+      "\n"
+      "Units:      m\n"
+      "\n"
+      "Dimensions: [ p_grid, lat_grid, lon_grid ]",
+      Tensor3_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("t_field",
+      "The field of atmospheric temperatures.\n"
+      "\n"
+      "This variable gives the atmospheric temperature at each crossing of\n"
+      "the pressure, latitude and longitude grids.\n"
+      "\n"
+      "See further the ARTS user guide (AUG). Use the index to find where\n"
+      "this variable is discussed. The function is listed as a subentry to\n"
+      "\"workspace variables\".\n"
+      "\n"
+      "Units:      K\n"
+      "\n"
+      "Dimensions: [ p_grid, lat_grid, lon_grid ]",
+      Tensor3_));
+
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Ground variables
+  /////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // Below this line are the definitions from ARTS-1. Shall be removed or
+  // updated with better derscriptions.
+  // =======================================================================
+  // 
+
 
   //--------------------< Spectroscopy Stuff >--------------------
   //                     --------------------
@@ -502,13 +636,6 @@ void define_wsv_data()
      ("e_ground",
       "The ground emission factor for the frequencies in f_mono [0-1].",
       Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("los",
-      "Structure to define the line of sight (LOS). See los.h for \n"
-      "definition of the structure.", 
-      Los_));
 
   wsv_data.push_back
     (WsvRecord

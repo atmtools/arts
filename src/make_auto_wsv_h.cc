@@ -32,7 +32,6 @@
 #include "array.h"
 #include "file.h"
 #include "absorption.h"
-#include "los.h"
 #include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 #include "mystring.h"
@@ -74,8 +73,9 @@ int main()
       ofs << "#define auto_wsv_h\n\n";
 
       ofs << "#include \"absorption.h\"\n"
-	  << "#include \"los.h\"\n"
-	  << "#include \"agenda.h\"\n\n";
+	  << "#include \"agenda.h\"\n"
+	  << "#include \"ppath.h\"\n"
+          << "#include \"matpackIII.h\"\n\n";
       
       ofs << "//! Total number of workspace variables.\n"
 	  << "/*! \n"

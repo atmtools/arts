@@ -22,19 +22,17 @@
 //   File description
 ////////////////////////////////////////////////////////////////////////////
 
-/**
+/*!
   \file   ppath.cc
-
+  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \date   Sun May  5  2002
+  
+  \brief  Functions releated to calculation of propagation paths.
+  
   Functions to determine propagation paths for different atmospheric
   dimensionalities.
 
   The term propagation path is here shortened to ppath.
-
-  The main function for these calculations is ppath_calculate, that is
-  found at the end of the file.
-
-  \author Patrick Eriksson
-  \date 2002-04-15 
 */
 
 
@@ -739,7 +737,7 @@ void ppath_1d (
    \param    p_grid         Pressure grid.
    \param    alpha_grid     Latitude grid.
    \param    beta_grid      Longitude grid.
-   \param    z_field        The geometricalk altitude of the pressure surfaces.
+   \param    z_field        The geometrical altitude of the pressure surfaces.
    \param    r_greoid       Geoid radius.
    \param    z_ground       Ground altitude.
    \param    e_ground       Emissivity of the ground.

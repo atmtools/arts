@@ -20,16 +20,16 @@
 ////////////////////////////////////////////////////////////////////////////
 //   File description
 ////////////////////////////////////////////////////////////////////////////
-/**
-   \file   ppath.h
-
+/*!
+  \file   ppath.h
+  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \date   Sun May  5  2002
+  
+  \brief  Propagation path structure and functions.
+  
    This file contains the definition of the Ppath structure and the
    functions in ppath.c that are of interest elsewhere.
-
-   \author Patrick Eriksson
-   \date 2002-04-15 
 */
-
 
 
 #ifndef ppath_h

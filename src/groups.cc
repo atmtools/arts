@@ -30,6 +30,7 @@
 #include "arts.h"
 #include "array.h"
 #include "mystring.h"
+#include "ppath.h"
 
 /*! The names associated with Wsv groups as Strings.
   See function define_wsv_group_names for more information. */
@@ -60,6 +61,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("String");
   wsv_group_names.push_back("Vector");
   wsv_group_names.push_back("Matrix");
+  wsv_group_names.push_back("Tensor3");
   wsv_group_names.push_back("ArrayOfIndex");
   wsv_group_names.push_back("ArrayOfString");
   wsv_group_names.push_back("ArrayOfVector");
@@ -68,7 +70,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfLineshapeSpec");
   wsv_group_names.push_back("TagGroups");
-  wsv_group_names.push_back("Los");
+  wsv_group_names.push_back("Ppath");
   wsv_group_names.push_back("Agenda");
 }
 
