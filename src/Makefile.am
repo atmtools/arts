@@ -120,7 +120,8 @@ noinst_PROGRAMS = \
 	test_poly \
 	test_tensor \
 	test_linalg \
-	test_interpolation
+	test_interpolation \
+	test_xml
 
 test_interpolation_SOURCES = \
 	array.h \
@@ -193,6 +194,12 @@ test_matpack_SOURCES = \
 	matpackIII.h \
 	mystring.h \
 	test_matpack.cc
+
+test_xml_SOURCES = \
+	xml_io.h \
+	xml_io.cc \
+	messages.cc \
+	test_xml.cc
 
 make_auto_wsv_groups_h_SOURCES = \
 	arts.h \
