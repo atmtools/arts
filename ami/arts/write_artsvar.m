@@ -63,7 +63,7 @@ end
 
 
 %=== Create heading text
-if ~exist('heading')
+if ~exist('heading','var')
   heading = sprintf('This file contains the ARTS variable %s.',varname);
 end
 

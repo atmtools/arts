@@ -2580,9 +2580,9 @@ void cont_descriptionAppend(// WS Output:
   // First we have to check that name matches a continuum species tag.
   check_continuum_model(tagname);
 
-  cout << "   + tagname:    " << tagname << "\n";
-  cout << "   + model:      " << model << "\n";
-  cout << "   + parameters: " << userparameters << "\n";
+  //cout << "   + tagname:    " << tagname << "\n";
+  //cout << "   + model:      " << model << "\n";
+  //cout << "   + parameters: " << userparameters << "\n";
 
   // Add name and parameters to the apropriate variables:
   cont_description_names.push_back(tagname);
