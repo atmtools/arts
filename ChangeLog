@@ -16,7 +16,7 @@
 
 	But note that the document is really large (resulting postscript file
 	has >1800 pages and is nearly 30 MB in size). It might not even work
-	with all doxygen version. PS creation tested with doxygen v1.3.3.
+	with all doxygen versions. PS creation tested with doxygen v1.3.3.
 	Pdf version does not build.
 
 2003-08-07  Oliver Lemke  <olemke@uni-bremen.de>
