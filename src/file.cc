@@ -1117,13 +1117,17 @@ void binfile_read1(
   {
     // Do reading and copy data
     if ( type_in_file == "UINT" )
+      //
+      VSread( vdata_id, (uint8*)&x[0], n, FULL_INTERLACE );
+      /*
     {
       size_t  a[n];
       VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
       for ( size_t i=0; i<n; i++ )
 	x[i] = a[i];
     }
-  
+      */
+
     else
     {
       ostringstream os;
@@ -1183,30 +1187,44 @@ void binfile_read2(
   {
     // Do reading and copy data
     if ( type_in_file == "FLOAT" )
-    {
-      float  a[nrows*ncols];
-      size_t i,j,j0;
-      VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
-      for ( i=0; i<nrows; i++ )
+
+      if ( sizeof(Numeric) == 4 )
+        //
+	VSread( vdata_id, (uint8*)&x[0][0], nrows*ncols, FULL_INTERLACE );
+
+      else
       {
-	j0 = i*ncols;
-	for ( j=0; j<ncols; j++ )
-	  x[i][j] = a[j0+j];
+	float *a = new float[nrows*ncols];
+	size_t i,j,j0;
+	VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
+	for ( i=0; i<nrows; i++ )
+	{
+		j0 = i*ncols;
+		for ( j=0; j<ncols; j++ )
+		  x[i][j] = a[j0+j];
+	}
+	delete[] a;
       }
-    }
   
     else if ( type_in_file == "DOUBLE" )
-    {
-      double a[nrows*ncols];
-      size_t i,j,j0;
-      VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
-      for ( i=0; i<nrows; i++ )
+
+      if ( sizeof(Numeric) == 8 )
+        //
+    	VSread( vdata_id, (uint8*)&x[0][0], nrows*ncols, FULL_INTERLACE );
+
+      else
       {
-	j0 = i*ncols;
-	for ( j=0; j<ncols; j++ )
-	   x[i][j] = a[j0+j];
+	double *a = new double[nrows*ncols];
+	size_t i,j,j0;
+	VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
+	for ( i=0; i<nrows; i++ )
+	{
+		j0 = i*ncols;
+		for ( j=0; j<ncols; j++ )
+		   x[i][j] = a[j0+j];
+	}
+	delete[] a;
       }
-    }
   
     else
     {
@@ -1261,13 +1279,17 @@ void binfile_read3(
   {
     // Do reading and copy data
     if ( type_in_file == "CHAR" )
+      //
+      VSread( vdata_id, (uint8*)&x[0], n, FULL_INTERLACE );
+
+    /*
     {
       char  a[n];
       VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
       for ( size_t i=0; i<n; i++ )
 	x[i] = a[i];
     }
-  
+    */
     else
     {
       ostringstream os;
@@ -1301,10 +1323,14 @@ void binfile_write_index(
         const size_t&   x,
         const string&   dataname )
 {
+  /*
   size_t  a[1];
   a[0] = x;
   binfile_write( fid,  filename, dataname, "SCALAR", "INDEX", 1, 1, 
                                                                 (uint8*)a );
+  */
+  binfile_write( fid,  filename, dataname, "SCALAR", "INDEX", 1, 1, 
+                                                               (uint8*)&x );
 }
 
 
@@ -1358,10 +1384,10 @@ void binfile_write_numeric(
         const Numeric&  x,
         const string&   dataname )
 {
-  Numeric  a[1];
-  a[0] = x;
+  //Numeric  a[1];
+  //a[0] = x;
   binfile_write( fid,  filename, dataname, "SCALAR", "NUMERIC", 1, 1, 
-                                                                (uint8*)a );
+                                                               (uint8*)&x );
 }
 
 
@@ -1393,7 +1419,6 @@ void binfile_read_numeric(
   binfile_read2( a, vdata_id, nrows, ncols, filename, dataname );
   x = a[0][0];
   binfile_read_end( vdata_id, filename, dataname );
-
 }
 
 
@@ -1417,12 +1442,13 @@ void binfile_write_vector(
         const string&   dataname )
 {
   const size_t  n = x.size();
-
+  /*
   Numeric a[n];
   for ( size_t i=0; i<n; i++ )
     a[i] = x[i];
+  */
   binfile_write( fid,  filename, dataname, "VECTOR", "NUMERIC", n, 1, 
-                                                                (uint8*)a );
+                                                               (uint8*)&x[0] );
 }
 
 
@@ -1484,18 +1510,9 @@ void binfile_write_matrix(
 {
   const size_t  nrows = x.nrows();
   const size_t  ncols = x.ncols();
-        size_t  i, j;
 
-  Numeric a[nrows*ncols];
-  size_t j0;
-  for ( i=0; i<nrows; i++ )
-  {
-    j0 = i*ncols;
-    for ( j=0; j<ncols; j++ )
-      a[j0+j] = x[i][j];
-  }
   binfile_write( fid,  filename, dataname, "MATRIX", "NUMERIC", nrows, ncols, 
-                                                                (uint8*)a );
+                                                            (uint8*)&x[0][0] );
 }
 
 
@@ -1549,11 +1566,15 @@ void binfile_write_indexarray(
 {
   const size_t  n = x.size();
 
+  /*
   size_t a[n];
   for ( size_t i=0; i<n; i++ )
     a[i] = x[i];
   binfile_write( fid,  filename, dataname, "ARRAY", "INDEX", n, 1, 
                                                                 (uint8*)a );
+  */
+  binfile_write( fid,  filename, dataname, "ARRAY", "INDEX", n, 1, 
+                                                               (uint8*)&x[0] );
 }
 
 

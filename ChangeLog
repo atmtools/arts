@@ -1,3 +1,13 @@
+2001-01-26  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0113
+
+	* Changes in reading and writing of binary files. There were some 
+	really bad bugs that now should be fixed. The reading and writing
+	of matrices shall now be somewhat faster.
+
+	
+
 2001-01-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-112

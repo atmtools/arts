@@ -1485,7 +1485,7 @@ void k_temp_nohydro (
   //   3 frequencies
   //
   out2 << "  Calculating the weighting functions\n";
-  out3 << "    Zenith angle nr:\n      ";
+  out3 << "    Zenith angle nr:      ";
   for ( iza=0; iza<nza; iza++ ) 
   {
     if ( ((iza+1)%20)==0 )
@@ -2204,14 +2204,14 @@ void kxPutInK (
   {
     ostringstream os;
     os << "There is not room for so many retrieval/error identities.\n" 
-       << ni-(ni1+ni2) << " positions are missing";
+       << (ni1+ni2)-ni << " positions are missing";
       throw runtime_error(os.str());
   }
   if ( (nx1+nx2) > nx )
   {
     ostringstream os;
     os << "The k-matrix does not fit in kx.\n" 
-       << nx-(nx1+nx2) << " columns are missing";
+       << (nx1+nx2)-nx << " columns are missing";
       throw runtime_error(os.str());
   }
 
