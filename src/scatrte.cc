@@ -191,9 +191,9 @@ void cloud_fieldsCalc(// Output:
  WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
-  \param a_pressure
-  \param a_temperature
-  \param a_vmr_list
+  \param rte_pressure
+  \param rte_temperature
+  \param rte_vmr_list
   Variables used in opt_prop_xxx_agenda:
   \param ext_mat
   \param abs_vec  
@@ -228,9 +228,9 @@ void cloud_fieldsCalc(// Output:
 void cloud_ppath_update1D(
 			  Tensor6View i_field,
 			  // scalar_gas_abs_agenda:
-			  Numeric& a_pressure,
-			  Numeric& a_temperature,
-			  Vector& a_vmr_list,
+			  Numeric& rte_pressure,
+			  Numeric& rte_temperature,
+			  Vector& rte_vmr_list,
 			  // opt_prop_xxx_agenda:
 			  Tensor3& ext_mat,
 			  Matrix& abs_vec,  
@@ -238,9 +238,9 @@ void cloud_ppath_update1D(
 			  Matrix& ground_los,
 			  Matrix& ground_emission,
 			  Tensor4& ground_refl_coeffs,
-			  Vector& a_los,
-			  Vector& a_pos,
-			  GridPos& a_gp_p,
+			  Vector& rte_los,
+			  Vector& rte_pos,
+			  GridPos& rte_gp_p,
 			  // ppath_step_agenda:
 			  Ppath& ppath_step, 
 			  const Index& p_index,
@@ -428,14 +428,14 @@ void cloud_ppath_update1D(
 	      // Length of the path between the two layers.
 	      Numeric l_step = ppath_step.l_step[k-1];
 	      // Average temperature
-	      a_temperature =   0.5 * (t_int[k] + t_int[k-1]);
+	      rte_temperature =   0.5 * (t_int[k] + t_int[k-1]);
 	      //
 	      // Average pressure
-	      a_pressure = 0.5 * (p_int[k] + p_int[k-1]);
+	      rte_pressure = 0.5 * (p_int[k] + p_int[k-1]);
 	      //
 	      // Average vmrs
 	      for (Index i = 0; i < N_species; i++)
-		a_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
+		rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
 				       vmr_list_int(i,k-1));
 	      //
 	      // Calculate scalar gas absorption and add it to abs_vec 
@@ -474,7 +474,7 @@ void cloud_ppath_update1D(
 	      //
 	      // Calculate Planck function
 	      //
-	      Numeric a_planck_value = planck(f, a_temperature);
+	      Numeric rte_planck_value = planck(f, rte_temperature);
 	      
 	      // Some messages:
 	      out3 << "-----------------------------------------\n";
@@ -487,7 +487,7 @@ void cloud_ppath_update1D(
 	      out3 << "l_step: ..." << l_step << "\n";
 	      out3 << "------------------------------------------\n";
 	      out3 << "Averaged coefficients: \n";
-	      out3 << "Planck function: " << a_planck_value << "\n";
+	      out3 << "Planck function: " << rte_planck_value << "\n";
 	      out3 << "Scattering vector: " << sca_vec_av << "\n"; 
 	      out3 << "Absorption vector: " << abs_vec(0,joker) << "\n"; 
 	      out3 << "Extinction matrix: " << ext_mat(0,joker,joker) << "\n"; 
@@ -499,7 +499,7 @@ void cloud_ppath_update1D(
 	      // is updated until the considered point is reached.
 	      rte_step(stokes_vec, ext_mat(0,joker,joker), 
 		       abs_vec(0,joker), 
-		       sca_vec_av, l_step, a_planck_value);
+		       sca_vec_av, l_step, rte_planck_value);
 	      
 	    }// End of loop over ppath_step. 
 	  // Assign calculated Stokes Vector to i_field. 
@@ -513,12 +513,12 @@ void cloud_ppath_update1D(
 	  cout<<"scattering angle"<<" "<<scat_za_grid[scat_za_index]<<endl;
 	  
 	  Index np = ppath_step.np;
-	  a_pos.resize( atmosphere_dim );
-	  a_pos = ppath_step.pos(np-1,Range(0,atmosphere_dim));
-	  a_los.resize( ppath_step.los.ncols() );
-	  a_los = ppath_step.los(np-1,joker);
-	  cout<<"a_los"<<" "<<a_los<<endl;
-	  gridpos_copy( a_gp_p, ppath_step.gp_p[np-1] ); 
+	  rte_pos.resize( atmosphere_dim );
+	  rte_pos = ppath_step.pos(np-1,Range(0,atmosphere_dim));
+	  rte_los.resize( ppath_step.los.ncols() );
+	  rte_los = ppath_step.los(np-1,joker);
+	  cout<<"rte_los"<<" "<<rte_los<<endl;
+	  gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
 	  
 	  ground_refl_agenda.execute();
 
@@ -588,17 +588,17 @@ void cloud_ppath_update1D(
 	      // Length of the path between the two layers.
 	      Numeric l_step = ppath_step.l_step[k-1];
 	      // Average temperature
-	      a_temperature =   0.5 * (t_int[k] + t_int[k-1]);
+	      rte_temperature =   0.5 * (t_int[k] + t_int[k-1]);
 	  
 	      //
 	      // Average pressure
-	      a_pressure = 0.5 * (p_int[k] + p_int[k-1]);
+	      rte_pressure = 0.5 * (p_int[k] + p_int[k-1]);
 	   
 	      //
 	      // Average vmrs
 	      for (Index i = 0; i < N_species; i++)
 		{
-		  a_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
+		  rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
 					 vmr_list_int(i,k-1));
 		}
 	      //
@@ -641,7 +641,7 @@ void cloud_ppath_update1D(
 	      //
 	      // Calculate Planck function
 	      //
-	      Numeric a_planck_value = planck(f, a_temperature);
+	      Numeric rte_planck_value = planck(f, rte_temperature);
 	      
 	      assert (!is_singular( ext_mat(0,joker,joker)));
 	      
@@ -649,7 +649,7 @@ void cloud_ppath_update1D(
 	      // is updated until the considered point is reached.
 	      rte_step(stokes_vec_local, ext_mat(0,joker,joker), 
 		       abs_vec(0,joker), 
-		       sca_vec_av, l_step, a_planck_value);
+		       sca_vec_av, l_step, rte_planck_value);
 	    }// End of loop over ppath_step.
 	  // Assign calculated Stokes Vector to i_field. 
 	  i_field(p_index - cloudbox_limits[0],
@@ -678,9 +678,9 @@ void cloud_ppath_update1D(
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
   \param stokes_vec
-  \param a_pressure
-  \param a_temperature
-  \param a_vmr_list
+  \param rte_pressure
+  \param rte_temperature
+  \param rte_vmr_list
   Variables used in opt_prop_xxx_agenda:
   \param ext_mat
   \param abs_vec  
@@ -722,9 +722,9 @@ void cloud_ppath_update3D(
 			  Tensor6View i_field,
 			  VectorView stokes_vec,
 			  // scalar_gas_abs_agenda:
-			  Numeric& a_pressure,
-			  Numeric& a_temperature,
-			  Vector& a_vmr_list,
+			  Numeric& rte_pressure,
+			  Numeric& rte_temperature,
+			  Vector& rte_vmr_list,
 			  // opt_prop_xxx_agenda:
 			  Tensor3& ext_mat,
 			  Matrix& abs_vec,  
@@ -1065,7 +1065,7 @@ void cloud_ppath_update3D(
 
       itw2p( p_int, p_grid, ppath_step.gp_p, itw_p); 
       
-      a_vmr_list.resize(N_species);
+      rte_vmr_list.resize(N_species);
        
       // Radiative transfer from one layer to the next,
       // starting at the intersection with the next layer 
@@ -1077,14 +1077,14 @@ void cloud_ppath_update3D(
                     
                             
           // Average temperature
-          a_temperature =   0.5 * (t_int[k] + t_int[k-1]);
+          rte_temperature =   0.5 * (t_int[k] + t_int[k-1]);
           //
           // Average pressure
-          a_pressure = 0.5 * (p_int[k] + p_int[k-1]);
+          rte_pressure = 0.5 * (p_int[k] + p_int[k-1]);
           //
           // Average vmrs
           for (Index i = 0; i < N_species; i++)
-            a_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
+            rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
                                    vmr_list_int(i,k-1));
           //
           // Calculate scalar gas absorption and add it to 
@@ -1121,7 +1121,7 @@ void cloud_ppath_update3D(
           //
           // Calculate Planck function
           //
-          Numeric a_planck_value = planck(f, a_temperature);
+          Numeric rte_planck_value = planck(f, rte_temperature);
                             
           // Some messages:
           out3 << "-------------------------------------\n";
@@ -1135,7 +1135,7 @@ void cloud_ppath_update3D(
           out3 << "--------------------------------------\n";
           out3 << "Averaged coefficients: \n";
           out3 << "Planck function: " 
-               << a_planck_value << "\n";
+               << rte_planck_value << "\n";
           out3 << "Scattering vector: " 
                << sca_vec_av << "\n"; 
           out3 << "Absorption vector: " 
@@ -1151,7 +1151,7 @@ void cloud_ppath_update3D(
           // updated until the considered point is reached.
           rte_step(stokes_vec, ext_mat(0,joker,joker), 
                    abs_vec(0,joker), 
-                   sca_vec_av, l_step, a_planck_value);
+                   sca_vec_av, l_step, rte_planck_value);
         }
                         
                         

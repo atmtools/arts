@@ -71,11 +71,11 @@ void RteCalc(
               Ppath&          ppath,
               Ppath&          ppath_step,
               Matrix&         i_rte,
-              Vector&         a_pos,
-              Vector&         a_los,
-              GridPos&        a_gp_p,
-              GridPos&        a_gp_lat,
-              GridPos&        a_gp_lon,
+              Vector&         rte_pos,
+              Vector&         rte_los,
+              GridPos&        rte_gp_p,
+              GridPos&        rte_gp_lat,
+              GridPos&        rte_gp_lon,
               Matrix&         i_space,
               Matrix&         ground_emission, 
               Matrix&         ground_los,
@@ -114,8 +114,8 @@ void RteCalc(
   const bool   check_input = true;
   const bool   apply_sensor = true;
 
-  rte_calc( y, ppath, ppath_step, i_rte, a_pos, a_los,
-            a_gp_p, a_gp_lat, a_gp_lon, i_space, 
+  rte_calc( y, ppath, ppath_step, i_rte, rte_pos, rte_los,
+            rte_gp_p, rte_gp_lat, rte_gp_lon, i_space, 
             ground_emission, ground_los, ground_refl_coeffs, 
             ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda,
             atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -130,16 +130,16 @@ void RteCalc(
 
 //! RteEmissionStd
 /*! 
- 
    This function does a clearsky radiative transfer calculation for a given 
    propagation path. 
+
    Gaseous emission and absorption is calculated for each propagation
    path point using the agenda *gas_absorption_agenda*. 
    Absorption vector and extinction matrix are created using 
    *opt_prop_part_agenda*.
+
    The coefficients for the radiative transfer are averaged between two
-   successive propagation path points.
- 
+   successive propagation path points. 
 
    \author Claudia Emde (first version by Patrick Eriksson)
    \date   2003-01-07
@@ -149,9 +149,9 @@ void RteEmissionStd(
              Matrix&    i_rte,
              Matrix&    abs_vec,
              Tensor3&   ext_mat,
-             Numeric&   a_pressure,
-             Numeric&   a_temperature,
-             Vector&    a_vmr_list,
+             Numeric&   rte_pressure,
+             Numeric&   rte_temperature,
+             Vector&    rte_vmr_list,
              Index&     f_index,
        // WS Input:
        const Ppath&     ppath,
@@ -189,7 +189,7 @@ void RteEmissionStd(
       // each propagation path point
       Vector   t_ppath(np);
       Matrix   vmr_ppath(ns,np), itw_field;
-      a_vmr_list.resize(ns);
+      rte_vmr_list.resize(ns);
       //
       interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
                             lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
@@ -235,12 +235,12 @@ void RteEmissionStd(
               
       for( Index ip=np-1; ip>0; ip-- )
         {
-          a_pressure    = 0.5*(p_ppath[ip] + p_ppath[ip-1]);
-          a_temperature = 0.5*(t_ppath[ip] + t_ppath[ip-1]);
+          rte_pressure    = 0.5*(p_ppath[ip] + p_ppath[ip-1]);
+          rte_temperature = 0.5*(t_ppath[ip] + t_ppath[ip-1]);
 
           for( Index is = 0; is < ns; is ++)
             {
-              a_vmr_list[is]    = 0.5*(vmr_ppath(is,ip) + vmr_ppath(is, ip-1));
+              rte_vmr_list[is] = 0.5*(vmr_ppath(is,ip) + vmr_ppath(is, ip-1));
             }
 
           scalar_gas_absorption_agenda.execute( ip );
@@ -257,7 +257,7 @@ void RteEmissionStd(
               // Calculate an effective blackbody radiation for the step
               // The mean of the temperature at the end points is used.
               Numeric planck_value = 
-                           planck( f_grid[iv], a_temperature);
+                           planck( f_grid[iv], rte_temperature);
                   
               assert (!is_singular( ext_mat_av ));   
 

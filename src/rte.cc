@@ -70,11 +70,11 @@ extern const Numeric DEG2RAD;
 
     \param   i_rte              Output: As the WSV with the same name.
     \param   ppath_step         Output: As the WSV with the same name.
-    \param   a_pos              Output: As the WSV with the same name.
-    \param   a_los              Output: As the WSV with the same name.
-    \param   a_gp_p             Output: As the WSV with the same name.
-    \param   a_gp_lat           Output: As the WSV with the same name.
-    \param   a_gp_lon           Output: As the WSV with the same name.
+    \param   rte_pos            Output: As the WSV with the same name.
+    \param   rte_los            Output: As the WSV with the same name.
+    \param   rte_gp_p           Output: As the WSV with the same name.
+    \param   rte_gp_lat         Output: As the WSV with the same name.
+    \param   rte_gp_lon         Output: As the WSV with the same name.
     \param   i_space            Output: As the WSV with the same name.
     \param   ground_emission    Output: As the WSV with the same name.
     \param   ground_los         Output: As the WSV with the same name.
@@ -111,11 +111,11 @@ extern const Numeric DEG2RAD;
 void get_radiative_background(
               Matrix&         i_rte,
               Ppath&          ppath_step,
-              Vector&         a_pos,
-              Vector&         a_los,
-              GridPos&        a_gp_p,
-              GridPos&        a_gp_lat,
-              GridPos&        a_gp_lon,
+              Vector&         rte_pos,
+              Vector&         rte_los,
+              GridPos&        rte_gp_p,
+              GridPos&        rte_gp_lat,
+              GridPos&        rte_gp_lon,
               Matrix&         i_space,
               Matrix&         ground_emission,
               Matrix&         ground_los, 
@@ -151,22 +151,22 @@ void get_radiative_background(
   // Resize i_rte to have the correct the size
   i_rte.resize( nf, stokes_dim );
 
-  // Set a_pos, a_gp_XXX and a_los to match the last point in ppath.
+  // Set rte_pos, rte_gp_XXX and rte_los to match the last point in ppath.
   // The agendas below use different combinations of these varaibles.
   //
   // Note that the Ppath positions (ppath.pos) for 1D have one column more
   // than expected by most functions. Only the first atmosphere_dim values
   // shall be copied.
   //
-  a_pos.resize( atmosphere_dim );
-  a_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
-  a_los.resize( ppath.los.ncols() );
-  a_los = ppath.los(np-1,joker);
-  gridpos_copy( a_gp_p, ppath.gp_p[np-1] );
+  rte_pos.resize( atmosphere_dim );
+  rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
+  rte_los.resize( ppath.los.ncols() );
+  rte_los = ppath.los(np-1,joker);
+  gridpos_copy( rte_gp_p, ppath.gp_p[np-1] );
   if( atmosphere_dim > 1 )
-    { gridpos_copy( a_gp_lat, ppath.gp_lat[np-1] ); }
+    { gridpos_copy( rte_gp_lat, ppath.gp_lat[np-1] ); }
   if( atmosphere_dim > 2 )
-    { gridpos_copy( a_gp_lon, ppath.gp_lon[np-1] ); }
+    { gridpos_copy( rte_gp_lon, ppath.gp_lon[np-1] ); }
 
 
   // Initialize i_rte to the radiative background
@@ -230,9 +230,9 @@ void get_radiative_background(
 
             // Each ground los is here treated as a 
             // measurement block, with no za and aa grids.
-            Matrix   sensor_pos( 1, a_pos.nelem() );
-                     sensor_pos( 0, joker ) = a_pos;
-            Matrix   sensor_los( 1, a_los.nelem() );
+            Matrix   sensor_pos( 1, rte_pos.nelem() );
+                     sensor_pos( 0, joker ) = rte_pos;
+            Matrix   sensor_los( 1, rte_los.nelem() );
 
             // Use some local variables to avoid unwanted side effects
             Vector   y_local;
@@ -251,7 +251,7 @@ void get_radiative_background(
                 sensor_los( 0, joker ) = ground_los( ilos, joker);
 
                 rte_calc( y_local, ppath, ppath_step, i_rte,
-                   a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon,
+                   rte_pos, rte_los, rte_gp_p, rte_gp_lat, rte_gp_lon,
                    i_space, ground_emission, ground_los, ground_refl_coeffs, 
                    ppath_step_agenda, rte_agenda, i_space_agenda, 
                    ground_refl_agenda, atmosphere_dim, p_grid, lat_grid, 
@@ -308,7 +308,7 @@ void get_radiative_background(
 
       {
         CloudboxGetOutgoing( i_rte, "i_rte", scat_i_p, scat_i_lat, scat_i_lon, 
-                           a_gp_p, a_gp_lat, a_gp_lon, a_los, 
+                           rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los, 
                            cloudbox_on, cloudbox_limits, atmosphere_dim,
                               stokes_dim, scat_za_grid, scat_aa_grid, f_grid );
       }
@@ -345,9 +345,9 @@ void get_radiative_background(
     \param   z_ground           Input: As the WSV with the same name.
     \param   lat_grid           Input: As the WSV with the same name.
     \param   lon_grid           Input: As the WSV with the same name.
-    \param   a_gp_lat           Input: As the WSV with the same name.
-    \param   a_gp_lon           Input: As the WSV with the same name.
-    \param   a_los              Input: As the WSV with the same name.
+    \param   rte_gp_lat         Input: As the WSV with the same name.
+    \param   rte_gp_lon         Input: As the WSV with the same name.
+    \param   rte_los            Input: As the WSV with the same name.
 
     \author Patrick Eriksson 
     \date   2002-09-22
@@ -359,9 +359,9 @@ void ground_specular_los(
         ConstMatrixView    z_ground,
         ConstVectorView    lat_grid,
         ConstVectorView    lon_grid,
-        const GridPos&     a_gp_lat,
-        const GridPos&     a_gp_lon,
-        ConstVectorView    a_los )
+        const GridPos&     rte_gp_lat,
+        const GridPos&     rte_gp_lon,
+        ConstVectorView    rte_los )
 {
   assert( atmosphere_dim >= 1  &&  atmosphere_dim <= 3 );
 
@@ -371,42 +371,42 @@ void ground_specular_los(
       assert( r_geoid.ncols() == 1 );
       assert( z_ground.nrows() == 1 );
       assert( z_ground.ncols() == 1 );
-      assert( a_los.nelem() == 1 );
-      assert( a_los[0] > 90 );      // Otherwise ground refl. not possible
-      assert( a_los[0] <= 180 ); 
+      assert( rte_los.nelem() == 1 );
+      assert( rte_los[0] > 90 );      // Otherwise ground refl. not possible
+      assert( rte_los[0] <= 180 ); 
       assert( los.nelem() == 1 );
 
-      los[0] = 180 - a_los[0];
+      los[0] = 180 - rte_los[0];
     }
 
   else if( atmosphere_dim == 2 )
     {
       assert( r_geoid.ncols() == 1 );
       assert( z_ground.ncols() == 1 );
-      assert( a_los.nelem() == 1 );
+      assert( rte_los.nelem() == 1 );
       assert( los.nelem() == 1 );
-      assert( abs(a_los[0]) <= 180 ); 
+      assert( abs(rte_los[0]) <= 180 ); 
 
       
       // Calculate LOS neglecting any tilt of the ground
-      los[0] = sign( a_los[0] ) * 180 - a_los[0];
+      los[0] = sign( rte_los[0] ) * 180 - rte_los[0];
 
       // Interpolate to get radius for the ground at reflection point.
       const Numeric r_ground =
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
-                              r_geoid, "r_geoid", a_gp_lat, a_gp_lon ) +
+                              r_geoid, "r_geoid", rte_gp_lat, rte_gp_lon ) +
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
-                                    z_ground, "z_ground", a_gp_lat, a_gp_lon );
+                                z_ground, "z_ground", rte_gp_lat, rte_gp_lon );
 
       // Calculate ground slope (unit is m/deg).
       Numeric slope = psurface_slope_2d( lat_grid, r_geoid(joker,0), 
-                                       z_ground(joker,0), a_gp_lat, a_los[0] );
+                                   z_ground(joker,0), rte_gp_lat, rte_los[0] );
 
       // Calculate ground (angular) tilt (unit is deg).
       Numeric tilt = psurface_angletilt( r_ground, slope );
 
-      // Check that a_los contains a downward LOS
-      assert( is_los_downwards( a_los[0], tilt ) );
+      // Check that rte_los contains a downward LOS
+      assert( is_los_downwards( rte_los[0], tilt ) );
       
       // Include ground tilt
       los[0] -= 2 * tilt;
@@ -414,20 +414,20 @@ void ground_specular_los(
 
   else if( atmosphere_dim == 3 )
     {
-      assert( a_los.nelem() == 2 );
+      assert( rte_los.nelem() == 2 );
       assert( los.nelem() == 2 );
-      assert( a_los[0] >= 0 ); 
-      assert( a_los[0] <= 180 ); 
-      assert( abs( a_los[1] ) <= 180 ); 
+      assert( rte_los[0] >= 0 ); 
+      assert( rte_los[0] <= 180 ); 
+      assert( abs( rte_los[1] ) <= 180 ); 
 
-      assert( a_gp_lat.idx >= 0 );
-      assert( a_gp_lat.idx <= ( lat_grid.nelem() - 2 ) );
-      assert( a_gp_lon.idx >= 0 );
-      assert( a_gp_lon.idx <= ( lon_grid.nelem() - 2 ) );
+      assert( rte_gp_lat.idx >= 0 );
+      assert( rte_gp_lat.idx <= ( lat_grid.nelem() - 2 ) );
+      assert( rte_gp_lon.idx >= 0 );
+      assert( rte_gp_lon.idx <= ( lon_grid.nelem() - 2 ) );
 
       // Calculate LOS neglecting any tilt of the ground
-      los[0] = 180 - a_los[0];
-      los[1] = a_los[1];
+      los[0] = 180 - rte_los[0];
+      los[1] = rte_los[1];
 
       // Below you find a first version to include the ground tilt.
       // Is the solution correct? 
@@ -437,22 +437,22 @@ void ground_specular_los(
       // Interpolate to get radius for the ground at reflection point.
       const Numeric r_ground =
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
-                              r_geoid, "r_geoid", a_gp_lat, a_gp_lon ) +
+                              r_geoid, "r_geoid", rte_gp_lat, rte_gp_lon ) +
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
-                                    z_ground, "z_ground", a_gp_lat, a_gp_lon );
+                                z_ground, "z_ground", rte_gp_lat, rte_gp_lon );
 
       // Restore latitude and longitude values
       Vector   itw(2);
       Numeric  lat, lon;
-      interpweights( itw, a_gp_lat );
-      lat = interp( itw, lat_grid, a_gp_lat );
-      interpweights( itw, a_gp_lon );
-      lon = interp( itw, lon_grid, a_gp_lon );
+      interpweights( itw, rte_gp_lat );
+      lat = interp( itw, lat_grid, rte_gp_lat );
+      interpweights( itw, rte_gp_lon );
+      lon = interp( itw, lon_grid, rte_gp_lon );
 
       // Calculate ground slope along the viewing direction (unit is m/deg).
       //
-      Index   ilat = gridpos2gridrange( a_gp_lat, abs( a_los[1] ) <= 90 ); 
-      Index   ilon = gridpos2gridrange( a_gp_lon, a_los[1] >= 0 );
+      Index   ilat = gridpos2gridrange( rte_gp_lat, abs( rte_los[1] ) <= 90 ); 
+      Index   ilon = gridpos2gridrange( rte_gp_lon, rte_los[1] >= 0 );
       //
       Numeric   lat1 = lat_grid[ilat];
       Numeric   lat3 = lat_grid[ilat+1];
@@ -464,19 +464,19 @@ void ground_specular_los(
       Numeric   r36  = r_geoid(ilat+1,ilon+1) + z_ground(ilat+1,ilon+1);
       //
       Numeric slope = psurface_slope_3d( lat1, lat3, lon5, lon6, 
-                                      r15, r35, r36, r16, lat, lon, a_los[1] );
+                                    r15, r35, r36, r16, lat, lon, rte_los[1] );
 
       // Calculate ground (angular) tilt (unit is deg).
       Numeric tilt = psurface_angletilt( r_ground, slope );
 
-      // Check that a_los contains a downward LOS
-      assert( is_los_downwards( a_los[0], tilt ) );
+      // Check that rte_los contains a downward LOS
+      assert( is_los_downwards( rte_los[0], tilt ) );
       
       // Include ground tilt in zenith angle
       los[0] -= 2 * tilt;
 
       // Calculate ground slope along the viewing direction (unit is m/deg).
-      Numeric   aa = a_los[1] + 90;
+      Numeric   aa = rte_los[1] + 90;
       if( aa > 180 )
         { aa -= 360; }
       //
@@ -536,11 +536,11 @@ void rte_calc(
               Ppath&          ppath,
               Ppath&          ppath_step,
               Matrix&         i_rte,
-              Vector&         a_pos,
-              Vector&         a_los,
-              GridPos&        a_gp_p,
-              GridPos&        a_gp_lat,
-              GridPos&        a_gp_lon,
+              Vector&         rte_pos,
+              Vector&         rte_los,
+              GridPos&        rte_gp_p,
+              GridPos&        rte_gp_lat,
+              GridPos&        rte_gp_lon,
               Matrix&         i_space,
               Matrix&         ground_emission, 
               Matrix&         ground_los, 
@@ -781,8 +781,8 @@ void rte_calc(
                           sensor_pos(mblock_index,joker), los, 1, ag_verb );
 
               // Determine the radiative background
-              get_radiative_background( i_rte, ppath_step, 
-                      a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon, i_space, 
+              get_radiative_background( i_rte, ppath_step, rte_pos, rte_los, 
+                      rte_gp_p, rte_gp_lat, rte_gp_lon, i_space, 
                       ground_emission, ground_los, ground_refl_coeffs, ppath, 
                       ppath_step_agenda, rte_agenda, 
                       i_space_agenda, ground_refl_agenda, atmosphere_dim, 
@@ -854,7 +854,7 @@ void rte_calc(
     before calling this function. 
     Total extinction and absorption inside the layer are described by
     *ext_mat_av* and *abs_vec_av* respectively,
-    the blackbdody radiation of the layer is given by *a_planck_value*
+    the blackbdody radiation of the layer is given by *rte_planck_value*
     and the propagation path length through the layer is *l_step*.
 
     There is an additional scattering source term in the 
@@ -880,7 +880,7 @@ void rte_calc(
     \param   abs_vec_av         Input: Averaged absorption vector.
     \param   sca_vec_av         Input: averaged scattering vector.
     \param   l_step             Input: The length of the RTE step.
-    \param   a_planck_value     Input: Blackbody radiation.
+    \param   rte_planck_value     Input: Blackbody radiation.
 
     \author Patrick Eriksson, Claudia Emde 
     \date   2002-11-22
@@ -892,7 +892,7 @@ void rte_step(//Output and Input:
               ConstVectorView abs_vec_av,
               ConstVectorView sca_vec_av, 
               const Numeric& l_step,
-              const Numeric& a_planck_value )
+              const Numeric& rte_planck_value )
 {
 
   //Stokes dimension:
@@ -902,7 +902,7 @@ void rte_step(//Output and Input:
   assert(is_size(ext_mat_av, stokes_dim, stokes_dim)); 
   assert(is_size(abs_vec_av, stokes_dim));
   assert(is_size(sca_vec_av, stokes_dim));
-  assert( a_planck_value >= 0 );
+  assert( rte_planck_value >= 0 );
   assert( l_step >= 0 );
 
   // Check, if only the first component of abs_vec is non-zero:
@@ -925,7 +925,7 @@ void rte_step(//Output and Input:
   if( stokes_dim == 1 )
     { 
       stokes_vec[0] = stokes_vec[0] * trans + 
-        (abs_vec_av[0] * a_planck_value + sca_vec_av[0]) / ext_mat_av(0,0) 
+        (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) / ext_mat_av(0,0) 
         * (1 - trans);
     }
   // Vector case: 
@@ -941,7 +941,7 @@ void rte_step(//Output and Input:
       //    assert( ext_mat_av(0,0) == abs_vec_av[0] );
       //   Numeric transm = exp( -l_step * abs_vec_av[0] );
       stokes_vec[0] = stokes_vec[0] * trans + 
-        (abs_vec_av[0] * a_planck_value + sca_vec_av[0]) / ext_mat_av(0,0) 
+        (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) / ext_mat_av(0,0) 
         * (1 - trans);
       
       // Stokes dims > 1
@@ -958,7 +958,7 @@ void rte_step(//Output and Input:
   else
     {
       stokes_vecGeneral(stokes_vec, ext_mat_av, abs_vec_av, sca_vec_av,
-                        l_step, a_planck_value);
+                        l_step, rte_planck_value);
     }
 }
 
@@ -980,7 +980,7 @@ void rte_step(//Output and Input:
   \param abs_vec_av Input: Absorption coefficient vector.
   \param sca_vec_av Input: Scattered field vector.
   \param l_step  Input: Pathlength through a grid cell/ layer.
-  \param a_planck_value  Input: Planck function.
+  \param rte_planck_value  Input: Planck function.
 
   \author Claudia Emde
   \date 2002-06-08
@@ -993,7 +993,7 @@ void stokes_vecGeneral(
                   ConstVectorView abs_vec_av,
                   ConstVectorView sca_vec_av, 
                   const Numeric& l_step,
-                  const Numeric& a_planck_value )
+                  const Numeric& rte_planck_value )
 { 
 
   //Stokes dimension:
@@ -1003,7 +1003,7 @@ void stokes_vecGeneral(
   assert(is_size(ext_mat_av, stokes_dim, stokes_dim)); 
   assert(is_size(abs_vec_av, stokes_dim));
   assert(is_size(sca_vec_av, stokes_dim));
-  assert( a_planck_value >= 0 );
+  assert( rte_planck_value >= 0 );
   // assert( l_step > 0 );
 
   //Initialize internal variables:
@@ -1017,7 +1017,7 @@ void stokes_vecGeneral(
 
   Vector B_abs_vec(stokes_dim);
   B_abs_vec = abs_vec_av;
-  B_abs_vec *= a_planck_value; 
+  B_abs_vec *= rte_planck_value; 
   
   for (Index i=0; i<stokes_dim; i++) 
     b[i] = B_abs_vec[i] + sca_vec_av[i];  // b = abs_vec * B + sca_vec

@@ -124,11 +124,19 @@ void define_agenda_data()
         "*ground_los*. \n"
         "\n"
         "With other words, the scattering properties of the ground are \n"
-        "described by the variables *ground_los* and *ground_refl_coeffs*."
+        "described by the variables *ground_los* and *ground_refl_coeffs*.\n"
+        "\n"
+        "A function calling this agenda shall set *rte_los* and *rte_gp_XXX*\n"
+        "to match the line-of-sight and position at the ground reflection\n"
+        "point.\n"
+        "\n"
+        "See further the user guide.\n"
+        "\n"
+        "Usage:   Called from *RteCalc*."
         ),
        OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_  ),
-       INPUT(  f_grid_, stokes_dim_, a_gp_p_, a_gp_lat_, a_gp_lon_, a_los_,
-               r_geoid_, z_ground_, t_field_ )));
+       INPUT(  f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
+               rte_los_, r_geoid_, z_ground_, t_field_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -136,15 +144,12 @@ void define_agenda_data()
        DESCRIPTION
        (
         "Sets the workspace variable *i_space* to match the assumptions \n"
-        "regarding the radiation entering the atmosphere at the start of a \n"
+        "regarding the radiation entering the atmosphere at the start of the\n"
         "propagation path. \n"
         "\n"
         "The main usage of this agenda is to be called from *RteCalc*. \n"
         "\n"
-        "If only cosmic background radiation is considered, *i_space* can be\n"
-        "set be before *RteCalc* and the agenda only needs to include ????. \n"
-        "\n"
-        "A function calling this agenda shall set *a_pos* and *a_los* to \n"
+        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
         "the position and line-of-sight for which the entering radiation \n"
         "shall be determined. The position and line-of-sight must be known, \n"
         "for example, when radiation from the sun is considered. \n"
@@ -152,7 +157,7 @@ void define_agenda_data()
         "Usage:   Called from *RteCalc*."
         ),
        OUTPUT(  i_space_ ),
-       INPUT(  f_grid_, stokes_dim_, a_pos_, a_los_ )));
+       INPUT(  f_grid_, stokes_dim_, rte_pos_, rte_los_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -356,15 +361,15 @@ void define_agenda_data()
      ( NAME( "refr_index_agenda" ),
        DESCRIPTION
        (
-        "Calculate the refractive index.\n"
+        "Calculates the refractive index.\n"
         "\n"
         "This agenda should calculate the summed refractive index for all\n"
 	"relevant constituients. The result is returned in *refr_index*, the\n"
-        "atmospheric state is speciefied by *a_pressure*, *a_temperature* \n"
-	"and *a_vmr_list*."
+        "atmospheric state is speciefied by *rte_pressure*, \n"
+        "*rte_temperature* and *rte_vmr_list*."
         ),
        OUTPUT( refr_index_ ),
-       INPUT(  a_pressure_, a_temperature_, a_vmr_list_ )));
+       INPUT(  rte_pressure_, rte_temperature_, rte_vmr_list_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -372,13 +377,17 @@ void define_agenda_data()
        DESCRIPTION
        (
         "Performs monochromatic pencil beam calculations for a single\n"
-        "propagation path."
-       "\n"
-       "More text will be written (PE).\n"
-       ""
+        "propagation path.\n"
+        "\n"
+        "When calling the agenda, *i_rte* shall be set to the radiances, or\n"
+        "optical thicknesses, at the start of the propagation path described\n"
+        "by *ppath*. The agenda then solves the radiative transfer equation\n"
+        "along the propagation path and returns the result in *i_rte*."
         ),
        OUTPUT( i_rte_ ),
-       INPUT(  ppath_ )));
+       INPUT(  ppath_, atmosphere_dim_, stokes_dim_, f_grid_, p_grid_,
+               lat_grid_, lon_grid_, t_field_, vmr_field_,
+               scalar_gas_absorption_agenda, opt_prop_gas_agenda_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -390,8 +399,8 @@ void define_agenda_data()
         "This agenda should calculate absorption coefficients for all gas\n"
         "species as a function of the given atmospheric state for one point in\n"
         "the atmosphere. The result is returned in *abs_scalar_gas*, the\n"
-        "atmospheric state has to be specified by *a_pressure*,\n"
-        "*a_temperature*, and *a_vmr_list*\n"
+        "atmospheric state has to be specified by *rte_pressure*,\n"
+        "*rte_temperature*, and *rte_vmr_list*\n"
         "\n"
         "A mandatory input parameter is f_index, which is used as follows:\n"
         "\n"
@@ -405,7 +414,7 @@ void define_agenda_data()
         ),
        OUTPUT( abs_scalar_gas_ ),
        INPUT(  f_index_,
-               a_pressure_, a_temperature_, a_vmr_list_ )));
+               rte_pressure_, rte_temperature_, rte_vmr_list_ )));
   
   agenda_data.push_back
     (AgRecord

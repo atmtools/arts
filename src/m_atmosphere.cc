@@ -549,10 +549,10 @@ void GroundNoScatteringSingleEmissivity(
               Tensor4&   ground_refl_coeffs,
         const Vector&    f_grid,
         const Index&     stokes_dim,
-        const GridPos&   a_gp_p,
-        const GridPos&   a_gp_lat,
-        const GridPos&   a_gp_lon,
-        const Vector&    a_los,
+        const GridPos&   rte_gp_p,
+        const GridPos&   rte_gp_lat,
+        const GridPos&   rte_gp_lon,
+        const Vector&    rte_los,
         const Index&     atmosphere_dim,
         const Vector&    p_grid,
         const Vector&    lat_grid,
@@ -583,13 +583,13 @@ void GroundNoScatteringSingleEmissivity(
 
   // Resize output arguments
   ground_emission.resize( nf, stokes_dim );
-  ground_los.resize( 1, a_los.nelem() );
+  ground_los.resize( 1, rte_los.nelem() );
   ground_refl_coeffs.resize( 1, nf, stokes_dim, stokes_dim );
   ground_refl_coeffs = 0;
 
   // Determine the temperature at the point of the ground reflection
   const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
-                    lon_grid, t_field, "t_field", a_gp_p, a_gp_lat, a_gp_lon );
+              lon_grid, t_field, "t_field", rte_gp_p, rte_gp_lat, rte_gp_lon );
 
   out3 << "     Ground temperature is                     : " << t << "\n";
 
@@ -608,14 +608,14 @@ void GroundNoScatteringSingleEmissivity(
 
   // Calculate LOS for downwelling radiation
   ground_specular_los( ground_los(0,Range(joker)), atmosphere_dim, r_geoid,
-                      z_ground, lat_grid, lon_grid, a_gp_lat,a_gp_lon, a_los );
+                z_ground, lat_grid, lon_grid, rte_gp_lat,rte_gp_lon, rte_los );
 
   out3 << "     Zenith angle for upwelling radiation is   : " 
-       << a_los[0] << "\n";
+       << rte_los[0] << "\n";
   if( atmosphere_dim > 2 )
     {
-      out3 << "     Azimuth angle for upwelling radiation is  : " << a_los[1] 
-           << "\n";
+      out3 << "     Azimuth angle for upwelling radiation is  : " 
+           << rte_los[1] << "\n";
     }
   out3 << "     Zenith angle for downwelling radiation is : " 
        << ground_los(0,0) << "\n";
@@ -641,9 +641,9 @@ void GroundTreatAsBlackbody(
               Tensor4&   ground_refl_coeffs,
         const Vector&    f_grid,
         const Index&     stokes_dim,
-        const GridPos&   a_gp_p,
-        const GridPos&   a_gp_lat,
-        const GridPos&   a_gp_lon,
+        const GridPos&   rte_gp_p,
+        const GridPos&   rte_gp_lat,
+        const GridPos&   rte_gp_lon,
         const Index&     atmosphere_dim,
         const Vector&    p_grid,
         const Vector&    lat_grid,
@@ -675,7 +675,7 @@ void GroundTreatAsBlackbody(
 
   // Determine the temperature at the point of the ground reflection
   const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
-                    lon_grid, t_field, "t_field", a_gp_p, a_gp_lat, a_gp_lon );
+              lon_grid, t_field, "t_field", rte_gp_p, rte_gp_lat, rte_gp_lon );
 
   // Fill ground_emission with unpolarised blackbody radiation
   for( Index i=0; i<nf; i++ )

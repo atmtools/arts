@@ -278,8 +278,8 @@ void define_wsv_data()
        "The dimensionality of the antenna pattern (1-2).\n"
        "\n"
        "A dimensionality of 1 means that only the respons variation in the\n"
-       "zenith direction is considered. The respons is the integrated in the\n"
-       "azimuth direction. For 2D, the respons of the antenna has both a\n"
+       "zenith direction is considered. The respons is then integrated in \n"
+       "the azimuth direction. For 2D, the respons of the antenna has both a\n"
        "zenith and azimuth variation.\n"
        "\n"
        "Usage:      Set by the user."
@@ -312,173 +312,6 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "a_gp_p" ),
-      DESCRIPTION
-      (
-       "A grid position with respect to the pressure grid.\n"
-       "\n"
-       "This variable is used to give the grid position for a single point\n"
-       "to some workspace method.\n"
-       "\n"
-       "Usage:      Set by the calling function, or by the user when calling"
-       "            the method directly in the control file."
-       ),
-      GROUP( GridPos_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "a_gp_lat" ),
-      DESCRIPTION
-      (
-       "A grid position with respect to the latitude grid.\n"
-       "\n"
-       "This variable is used to give the grid position for a single point\n"
-       "to some workspace method.\n"
-       "\n"
-       "Usage:      Set by the calling function, or by the user when calling"
-       "            the method directly in the control file."
-       ),
-      GROUP( GridPos_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "a_gp_lon" ),
-      DESCRIPTION
-      (
-       "A grid position with respect to the longitude grid.\n"
-       "\n"
-       "This variable is used to give the grid position for a single point\n"
-       "to some workspace method.\n"
-       "\n"
-       "Usage:      Set by the calling function, or by the user when calling"
-       "            the method directly in the control file."
-       ),
-      GROUP( GridPos_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "a_los" ),
-      DESCRIPTION
-      (
-       "A line-of-sight.\n"
-       "\n"
-       "The main purpose of this variable and *a_pos* is communication with \n"
-       "different agendas involved in the RTE calculations. These variables \n"
-       "can also be used to enable calling of *ppathCalc* (and maybe other \n"
-       "methods) from the workspace. \n"
-       "\n"
-       "For 1D and 2D cases, *a_los* is a vector of length 1 holding the \n"
-       "zenith angle. For 3D, the length of the vector is 2, where the\n"
-       "additional element is the azimuthal angle. These angles are defined\n"
-       "in the ARTS user guide (AUG). Look in the index for \"zenith angle\"\n"
-       "and \"azimuthal angle\".\n"
-       "\n"
-       "Usage: See above.\n"
-       "\n"
-       "Units: [ degree, degree ]\n"
-       "\n"
-       "Size:  [ 1 or 2 ]"
-       ),
-      GROUP( Vector_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "a_planck_value" ),
-      DESCRIPTION
-      (
-       "A value of the Planck function for a given temperature.\n"
-       "\n"
-       "The Planck function is used in the methods for RT step calculations,\n"
-       "which are *sto_vecGeneral* and *sto_vecScalar*. \n"
-       "\n"
-       "Usage:      Calculated in *i_fieldUpdate1D*.\n"
-       "\n"
-       "Unit:       W / (m^2 Hz sr)\n "
-       ),
-      GROUP( Numeric_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "a_pos" ),
-      DESCRIPTION
-      (
-       "A geographical position.\n"
-       "\n"
-       "The main purpose of this variable and *a_los* is communication with \n"
-       "different agendas involved in the RTE calculations. These variables \n"
-       "can also be used to enable calling of *ppathCalc* (and maybe other \n"
-       "methods) from the workspace. \n"
-        "\n"
-       "This variable is a vector with a length equalling the atmospheric\n"
-       "dimensionality. The first element is the radius (from the coordinate\n"
-       "system centre) of the position. Element 2 is the latitude and \n"
-       "element 3 is the longitude. Please note that the vertical position \n"
-       "is given as the radius, not the altitude above the geoid.\n"
-       "\n"
-       "Usage: See above. \n"
-       "\n"
-       "Units: [ m, degree, degree ]\n"
-       "\n"
-       "Size:  [ atmosphere_dim ]"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "a_pressure" ),
-      DESCRIPTION
-      (
-       "A pressure.\n"
-       "\n"
-       "This scalar variable can hold the local pressure. It is intended\n"
-       "mainly for communication with various methods and agendas, such as\n"
-       "methods and agendas calculating absorption coefficients.\n"
-       "\n"
-       "Usage: Communication variable.\n"
-       "\n"
-       "Units: [ Pa ]"
-       ),
-      GROUP( Numeric_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "a_temperature" ),
-      DESCRIPTION
-      (
-       "A temperature.\n"
-       "\n"
-       "This scalar variable can hold the local temperature. It is intended\n"
-       "mainly for communication with various methods and agendas, such as\n"
-       "methods and agendas calculating absorption coefficients.\n"
-       "\n"
-       "Usage: Communication variable.\n"
-       "\n"
-       "Units: [ K ]"
-       ),
-      GROUP( Numeric_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "a_vmr_list" ),
-      DESCRIPTION
-      (
-       "A list of VMR values for all gas species.\n"
-       "\n"
-       "This vector variable can hold the local VMR value for all used species\n"
-       "(as given by *gas_species*). It is intended mainly for communication with\n"
-       "various methods and agendas, such as methods and agendas calculating\n"
-       "absorption coefficients.\n"
-       "\n"
-       "Usage: Communication variable.\n"
-       "\n"
-       "Units: [ Absolute value ]\n"
-       "\n"
-       "Size:  Should match gas_species.nelem()"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "cloudbox_on" ),
       DESCRIPTION
       (
@@ -504,24 +337,24 @@ void define_wsv_data()
       (
        "The limits of the cloud box.\n"
        "\n"
-       "This variable defines the extension of the cloud box. The cloud box is\n"
-       "defined to be rectangular in the used coordinate system, with limits\n"
-       "exactly at points of the involved grids. This means, for example, that\n"
-       "the vertical limits of the cloud box are two pressure surfaces. For\n"
-       "2D, the angular extension of the cloud box is between two points of\n"
-       "the latitude grid, and likewise for 3D but then also with a longitude\n"
-       "extension between two grid points.  The latitude and longitude limits\n" 
-       "for the cloud box cannot be placed at the end points of the \n"
-       "corresponding grid as it must be possible to calculate the incoming\n"
-       "intensity field.\n"
+       "This variable defines the extension of the cloud box. The cloud box \n"
+       "is defined to be rectangular in the used coordinate system, with \n"
+       "limits exactly at points of the involved grids. This means, for \n"
+       "example, that the vertical limits of the cloud box are two pressure \n"
+       "surfaces. For 2D, the angular extension of the cloud box is between \n"
+       "two points of the latitude grid, and likewise for 3D but then also \n"
+       "with a longitude extension between two grid points. The latitude and\n"
+       "longitude limits for the cloud box cannot be placed at the end \n"
+       "points of the corresponding grid as it must be possible to calculate\n"
+       "the incoming intensity field.\n"
        "\n"
-       "The variable *cloudbox_limits* is an array of index value with length\n"
-       "twice *atmosphere_dim*. For each dimension there is a lower limit and\n"
-       "an upper limit. The order of the dimensions is as usual pressure,\n"
-       "latitude and longitude. The upper limit index must be greater then the\n"
-       "lower limit index. For example, *cloudbox_limits* = [0 5 4 11] means\n"
-       "that cloud box extends between pressure levels 0 and 5, and latitude\n"
-       "points 4 and 11.\n"
+       "The variable *cloudbox_limits* is an array of index value with\n"
+       "length twice *atmosphere_dim*. For each dimension there is a lower \n"
+       "limit and\ an upper limit. The order of the dimensions is as usual \n"
+       "pressure, latitude and longitude. The upper limit index must be \n"
+       "greater then the lower limit index. For example, \n"
+       "*cloudbox_limits* = [0 5 4 11] means that cloud box extends between \n"
+       "pressure levels 0 and 5, and latitude points 4 and 11.\n"
        "\n"
        "If *cloudbox_on* = 0, the content of this variable is neglected, but\n"
        "it must be initiated to some dummy values.\n"
@@ -687,8 +520,6 @@ void define_wsv_data()
        (
         "The frequency grid for monochromatic pencil beam calculations.\n"
         "\n"
-        "What to say here?\n"
-        "\n"
         "Usage:      Set by the user.\n "
         "\n"
         "Unit:        Hz"
@@ -798,7 +629,7 @@ void define_wsv_data()
        (
         "The emission from the ground at a specified position.\n"
         "\n"
-        "See further *ground_refl_agenda*.\n"
+        "See further *ground_refl_agenda* and the user guide.\n"
         "\n"
         "Usage:      Output from *ground_refl_agenda*.. \n"
         "\n"
@@ -828,9 +659,9 @@ void define_wsv_data()
         "The rows and columns of this tensor holds the reflection\n"
         "coefficient matrix for one frequency and one LOS.\n"
         "\n"
-        "See further *ground_refl_agenda*.\n"
+        "See further *ground_refl_agenda* and the user guide.\n"
         "\n"
-        "Usage:      Output from *ground_refl_agenda*.. \n"
+        "Usage:      Output from *ground_refl_agenda*. \n"
         "\n"
         "Units:      -\n"
         "\n"
@@ -846,9 +677,9 @@ void define_wsv_data()
         "Directions for which to calculate downwelling radiation when \n"
         "considerin g a ground reflection.\n"
         "\n"
-        "See further *ground_refl_agenda*.\n"
+        "See further *ground_refl_agenda* and the user guide.\n"
         "\n"
-        "Usage: Output from *ground_refl_agenda*.. \n"
+        "Usage: Output from *ground_refl_agenda*. \n"
         "\n"
         "Units: degrees\n"
         "\n"
@@ -984,7 +815,7 @@ void define_wsv_data()
     ( NAME( "l_step" ),
       DESCRIPTION
       (
-       "The pathlegth through one grid cell/ layer.\n"
+       "The pathlegth through one grid cell/layer.\n"
        "\n"
        "The pathlength is required in the methods for RT step calculations,\n"
        "which are *sto_vecGeneral* and *sto_vecScalar*.\n"
@@ -1053,9 +884,10 @@ void define_wsv_data()
        "The latitude for a 1D observation.\n"
        "\n"
        "This variable is used to assign a latitude valid for a 1D case. A\n"
-       "special variable is needed for 1D as there exists no latitude grid for\n"
-       "such cases. The variable can be used, for example, to set the geoid\n"
-       "radius or select atmospheric profiles from a 2D/3D climatology. \n"
+       "special variable is needed for 1D as there exists no latitude grid \n"
+       "for such cases. The variable can be used, for example, to set the \n"
+       "geoid radius or select atmospheric profiles from a 2D/3D \n"
+       "climatology. \n"
        "\n"
        "For limb sounding, the choosen latitude should normally be selected\n"
        "to be valid for the tangent points, rather than for the sensor.\n"
@@ -1584,6 +1416,176 @@ wsv_data.push_back
         "See agendas.cc."
        ),
       GROUP( Agenda_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_gp_p" ),
+      DESCRIPTION
+      (
+       "A pressure grid position for radiative transfer calculations.\n"
+       "\n"
+       "This variable is used to give the grid position for an end point\n"
+       "of the propagation path to some workspace method part of the.\n"
+       "radiative transfer calculations.\n"
+       "\n"
+       "Usage:      Set by the calling function, or by the user when calling"
+       "            the method directly in the control file."
+       ),
+      GROUP( GridPos_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_gp_lat" ),
+      DESCRIPTION
+      (
+       "A latitude grid position for radiative transfer calculations.\n"
+       "\n"
+       "This variable is used to give the grid position for an end point\n"
+       "of the propagation path to some workspace method part of the.\n"
+       "radiative transfer calculations.\n"
+       "\n"
+       "Usage:      Set by the calling function, or by the user when calling"
+       "            the method directly in the control file."
+       ),
+      GROUP( GridPos_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_gp_lon" ),
+      DESCRIPTION
+      (
+       "A longitude grid position for radiative transfer calculations.\n"
+       "\n"
+       "This variable is used to give the grid position for an end point\n"
+       "of the propagation path to some workspace method part of the.\n"
+       "radiative transfer calculations.\n"
+       "\n"
+       "Usage:      Set by the calling function, or by the user when calling"
+       "            the method directly in the control file."
+       ),
+      GROUP( GridPos_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_los" ),
+      DESCRIPTION
+      (
+       "A line-of-sight for radiative transfer calculations.\n"
+       "\n"
+       "The main purpose of this WSV and *rte_pos* is communication with \n"
+       "different agendas involved in the RTE calculations. These variables \n"
+       "can also be used to enable calling of *ppathCalc* (and maybe other \n"
+       "methods) from the workspace. \n"
+       "\n"
+       "For 1D and 2D cases, *rte_los* is a vector of length 1 holding the \n"
+       "zenith angle. For 3D, the length of the vector is 2, where the\n"
+       "additional element is the azimuthal angle. These angles are defined\n"
+       "in the ARTS user guide (AUG). Look in the index for \"zenith angle\"\n"
+       "and \"azimuthal angle\".\n"
+       "\n"
+       "Usage: See above.\n"
+       "\n"
+       "Units: [ degree, degree ]\n"
+       "\n"
+       "Size:  [ 1 or 2 ]"
+       ),
+      GROUP( Vector_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_planck_value" ),
+      DESCRIPTION
+      (
+       "A Planck function value for radiative transfer calculations.\n"
+       "\n"
+       "The Planck function is used in the methods for RT step calculations,\n"
+       "which are *sto_vecGeneral* and *sto_vecScalar*. \n"
+       "\n"
+       "Usage:      Calculated in *i_fieldUpdate1D*.\n"
+       "\n"
+       "Unit:       W / (m^2 Hz sr)\n "
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_pos" ),
+      DESCRIPTION
+      (
+       "A geographical position for radiative transfer calculations.\n"
+       "\n"
+       "The main purpose of this WSV and *rte_los* is communication with \n"
+       "different agendas involved in the RTE calculations. These variables \n"
+       "can also be used to enable calling of *ppathCalc* (and maybe other \n"
+       "methods) from the workspace. \n"
+        "\n"
+       "This variable is a vector with a length equalling the atmospheric\n"
+       "dimensionality. The first element is the radius (from the coordinate\n"
+       "system centre) of the position. Element 2 is the latitude and \n"
+       "element 3 is the longitude. Please note that the vertical position \n"
+       "is given as the radius, not the altitude above the geoid.\n"
+       "\n"
+       "Usage: See above. \n"
+       "\n"
+       "Units: [ m, degree, degree ]\n"
+       "\n"
+       "Size:  [ atmosphere_dim ]"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_pressure" ),
+      DESCRIPTION
+      (
+       "A pressure for radiative transfer calculations.\n"
+       "\n"
+       "This scalar variable can hold the local pressure. It is intended\n"
+       "mainly for communication with various methods and agendas, such as\n"
+       "methods and agendas calculating absorption coefficients.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ Pa ]"
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_temperature" ),
+      DESCRIPTION
+      (
+       "A temperature for radiative transfer calculations.\n"
+       "\n"
+       "This scalar variable can hold the local temperature. It is intended\n"
+       "mainly for communication with various methods and agendas, such as\n"
+       "methods and agendas calculating absorption coefficients.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ K ]"
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_vmr_list" ),
+      DESCRIPTION
+      (
+       "A list of VMR values for radiative transfer calculations.\n"
+       "\n"
+       "This vector variable holds the local VMR value for all used species\n"
+       "(as given by *gas_species*). It is intended mainly for communication\n"
+       "with various methods and agendas, such as methods and agendas \n"
+       "calculating absorption coefficients.\n"
+       "\n"
+       "Usage: Communication variable.\n"
+       "\n"
+       "Units: [ Absolute value ]\n"
+       "\n"
+       "Size:  Should match gas_species.nelem()"
+       ),
+      GROUP( Vector_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2163,8 +2165,6 @@ wsv_data.push_back
       (
        "The dimensionality of the Stokes vector (1-4).\n"
        "\n"
-       "Text will be written (Claudia?).\n"
-       "\n"
        "Usage:      Set by the user."
        ),
       GROUP( Index_ )));
@@ -2176,7 +2176,7 @@ wsv_data.push_back
       (
         "See agendas.cc."
        ),
-      GROUP( Agenda_)));
+      GROUP( Agenda_ )));
 
    wsv_data.push_back
    (WsvRecord
@@ -2412,9 +2412,8 @@ wsv_data.push_back
       (
        "The measurement vector.\n"
        "\n"
-       "Text will be written (PE).\n"
-       "\n"
-       "Usage: Output from methods to apply sensor characteristics.\n"
+       "Usage: Output from radiative transfer calculations considering\n"
+       "       sensor response.\n"
        "\n"
        "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
        "       optical thickness."
@@ -2450,14 +2449,14 @@ wsv_data.push_back
        "surfaces.\n"
        "\n"
        "For each geographical position (lat,lon), the values must be sorted\n"
-       "in increasing order, with no repetitions. Otherwise the altitudes can\n"
-       "be set to arbitrary values. Hydrostatic equilibrium is not applied \n"
-       "automatically. If hydrostatic equilibrium applies, *z_field* must be\n"
-       "set by a method ensuring that this criterium is fulfilled.\n"
+       "in increasing order, with no repetitions. Otherwise the altitudes\n"
+       "can be set to arbitrary values. Hydrostatic equilibrium is not\n"
+       "applied automatically. If hydrostatic equilibrium applies, *z_field*\n"
+       "must be set by a method ensuring that this criterium is fulfilled.\n"
        "\n"
        "The radius (from the coordinate centre) for a point between the grid\n"
-       "crossings is obtained by a (multi-)linear interpolation of the sum of\n"
-       "*r_geoid* and *z_field*.\n" 
+       "crossings is obtained by a (multi-)linear interpolation of the sum\n"
+       "of *r_geoid* and *z_field*.\n" 
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -2512,10 +2511,10 @@ wsv_data.push_back
        "allowed.\n"
        "\n"
        "The radius (from the coordinate centre) for a point between the grid\n"
-       "crossings is obtained by a linear (1D or bi-linear (2D) interpolation\n"
-       "of the sum of *r_geoid* and *r_ground*. With other words, the radius\n"
-       "for the ground is assumed to vary linear along the latitudes and \n"
-       "longitudes in *lat_grid* and *lon_grid*.\n"
+       "crossings is obtained by a linear (1D) or bi-linear (2D) \n"
+       "interpolation of the sum of *r_geoid* and *r_ground*. With other \n"
+       "words, the radius for the ground is assumed to vary linear along the\n"
+       "latitudes and longitudes in *lat_grid* and *lon_grid*.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"

@@ -1165,10 +1165,10 @@ void scat_iPut(//WS Output:
   \param scat_i_p i_field on pressure boundaries.
   \param scat_i_lat i_field on latitude boundaries.
   \param scat_i_lon i_field on longitude boundaries.
-  \param a_gp_p grid poition of the point on the boundary.
-  \param a_gp_lat grid position.
-  \param a_gp_lon grid position.
-  \param a_los direction.
+  \param rte_gp_p grid poition of the point on the boundary.
+  \param rte_gp_lat grid position.
+  \param rte_gp_lon grid position.
+  \param rte_los direction.
   \param cloudbox_on is needed internally.
   \param atmosphere_dim
   \param stokes_dim Stokes dimension.
@@ -1188,10 +1188,10 @@ void CloudboxGetOutgoing(// WS Generic Output:
                          const Tensor7& scat_i_p,
                          const Tensor7& scat_i_lat,
                          const Tensor7& scat_i_lon,
-                         const GridPos& a_gp_p,
-                         const GridPos& a_gp_lat,
-                         const GridPos& a_gp_lon,
-                         const Vector& a_los,
+                         const GridPos& rte_gp_p,
+                         const GridPos& rte_gp_lat,
+                         const GridPos& rte_gp_lon,
+                         const Vector& rte_los,
                          const Index& cloudbox_on, 
                          const ArrayOfIndex& cloudbox_limits,
                          const Index& atmosphere_dim,
@@ -1225,12 +1225,12 @@ void CloudboxGetOutgoing(// WS Generic Output:
                        f_grid.nelem(), 2, 1, 1, 
                        scat_za_grid.nelem(), 1,
                        stokes_dim ));
-     cout << "a_gp_p.idx" << a_gp_p.idx << "\n";
+     cout << "rte_gp_p.idx" << rte_gp_p.idx << "\n";
      cout << "cloudbox_limits[0] " << cloudbox_limits[0] << "\n";
       cout << "cloudbox_limits[1]" << cloudbox_limits[1] << "\n";
      //Check, if grid_positions correspond to cloudbox boundary
-     if (a_gp_p.idx != cloudbox_limits[0] &&
-	   a_gp_p.idx != cloudbox_limits[1])
+     if (rte_gp_p.idx != cloudbox_limits[0] &&
+	   rte_gp_p.idx != cloudbox_limits[1])
        throw runtime_error(
 			   "Gridpositions have to be on the boundary of the "
 			   "cloudbox defined by *cloudbox_limits*."
@@ -1241,7 +1241,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
      //*cloudbox_los*.
        Vector zenith_angle(1);
        
-       zenith_angle[0] = a_los[0];
+       zenith_angle[0] = rte_los[0];
        
        //Array to store grid positions
        ArrayOfGridPos gp(1);
@@ -1262,14 +1262,14 @@ void CloudboxGetOutgoing(// WS Generic Output:
 	       Vector i_out_f(scat_za_grid.nelem());
 	       
 	       //lower boundary
-	       if(a_gp_p.idx == cloudbox_limits[0])
+	       if(rte_gp_p.idx == cloudbox_limits[0])
 		 {
 		   ConstVectorView i_f = scat_i_p(f_index, 0, 0, 0, 
 						  Range(joker), 0, i);
 		   i_out_f = i_f;
 		 }
 	       //upper boundary
-	       else if(a_gp_p.idx == cloudbox_limits[1])
+	       else if(rte_gp_p.idx == cloudbox_limits[1])
 		 {
 		   ConstVectorView i_f = scat_i_p(f_index, 1, 0, 0,
 						  Range(joker), 0, i);
@@ -1312,12 +1312,12 @@ void CloudboxGetOutgoing(// WS Generic Output:
                         stokes_dim ));
 
       //Check, if grid_positions correspond to cloudbox boundary
-     if ( (a_gp_p.idx != cloudbox_limits[0] &&
-           a_gp_p.idx != cloudbox_limits[1]) &&
-          (a_gp_lat.idx != cloudbox_limits[2] &&
-           a_gp_lat.idx != cloudbox_limits[3]) &&
-          (a_gp_lon.idx != cloudbox_limits[4] &&
-           a_gp_lon.idx != cloudbox_limits[5] ) )
+     if ( (rte_gp_p.idx != cloudbox_limits[0] &&
+           rte_gp_p.idx != cloudbox_limits[1]) &&
+          (rte_gp_lat.idx != cloudbox_limits[2] &&
+           rte_gp_lat.idx != cloudbox_limits[3]) &&
+          (rte_gp_lon.idx != cloudbox_limits[4] &&
+           rte_gp_lon.idx != cloudbox_limits[5] ) )
        throw runtime_error(
                            "Gridpositions have to be on the boundary of the "
                            "cloudbox defined by *cloudbox_limits*."
@@ -1328,8 +1328,8 @@ void CloudboxGetOutgoing(// WS Generic Output:
      // azimuth angle in 
      //*cloudbox_los*.
      Vector zenith_angle(1), azimuth_angle(1);
-     zenith_angle[0] = a_los[0];
-     azimuth_angle[0] = a_los[1];
+     zenith_angle[0] = rte_los[0];
+     azimuth_angle[0] = rte_los[1];
 
      //Arrays to store grid positions
      ArrayOfGridPos gp_za(1), gp_aa(1);
@@ -1351,12 +1351,12 @@ void CloudboxGetOutgoing(// WS Generic Output:
 
              // The requested point lies on one of the pressure
              // boundaries.
-             if ((a_gp_p.idx == cloudbox_limits[0] ||
-                  a_gp_p.idx == cloudbox_limits[1] ) &&
-                 ((a_gp_lat.idx >= cloudbox_limits[2]) &&
-                  a_gp_lat.idx <= cloudbox_limits[3]) &&
-                 ((a_gp_lon.idx >= cloudbox_limits[4]) &&
-                  a_gp_lon.idx <= cloudbox_limits[5]) )
+             if ((rte_gp_p.idx == cloudbox_limits[0] ||
+                  rte_gp_p.idx == cloudbox_limits[1] ) &&
+                 ((rte_gp_lat.idx >= cloudbox_limits[2]) &&
+                  rte_gp_lat.idx <= cloudbox_limits[3]) &&
+                 ((rte_gp_lon.idx >= cloudbox_limits[4]) &&
+                  rte_gp_lon.idx <= cloudbox_limits[5]) )
                {
                  
                  for(Index lat_index = 0; 
@@ -1366,12 +1366,12 @@ void CloudboxGetOutgoing(// WS Generic Output:
                          lon_index < cloudbox_limits[5]-cloudbox_limits[4]+1;
                          lon_index ++)
                        {
-                         if(a_gp_p.idx == cloudbox_limits[0])
+                         if(rte_gp_p.idx == cloudbox_limits[0])
                            {
                              i_out_f = scat_i_p(f_index, 0, lat_index, 
                                                 lon_index, joker, joker, i);
                            }
-                         else if(a_gp_p.idx == cloudbox_limits[1])
+                         else if(rte_gp_p.idx == cloudbox_limits[1])
                            {
                              i_out_f = scat_i_p(f_index, 1, lat_index, 
                                                 lon_index, joker, joker, i);
@@ -1382,12 +1382,12 @@ void CloudboxGetOutgoing(// WS Generic Output:
              //
              // The requested point lies on one of the latitude
              // boundaries.
-             else if ((a_gp_lat.idx == cloudbox_limits[2] ||
-                  a_gp_lat.idx == cloudbox_limits[3] ) &&
-                 ((a_gp_p.idx >= cloudbox_limits[0]) &&
-                  a_gp_p.idx <= cloudbox_limits[1]) &&
-                 ((a_gp_lon.idx >= cloudbox_limits[4]) &&
-                  a_gp_lon.idx <= cloudbox_limits[5]) )
+             else if ((rte_gp_lat.idx == cloudbox_limits[2] ||
+                  rte_gp_lat.idx == cloudbox_limits[3] ) &&
+                 ((rte_gp_p.idx >= cloudbox_limits[0]) &&
+                  rte_gp_p.idx <= cloudbox_limits[1]) &&
+                 ((rte_gp_lon.idx >= cloudbox_limits[4]) &&
+                  rte_gp_lon.idx <= cloudbox_limits[5]) )
                
                {
                  
@@ -1398,12 +1398,12 @@ void CloudboxGetOutgoing(// WS Generic Output:
                          lon_index < cloudbox_limits[5]-cloudbox_limits[4]+1;
                          lon_index ++)
                        {
-                         if(a_gp_lat.idx == cloudbox_limits[2])
+                         if(rte_gp_lat.idx == cloudbox_limits[2])
                            {
                              i_out_f = scat_i_lat(f_index, p_index, 0, 
                                                 lon_index, joker, joker, i);
                            }
-                         else if(a_gp_lat.idx == cloudbox_limits[3])
+                         else if(rte_gp_lat.idx == cloudbox_limits[3])
                            {
                              i_out_f = scat_i_lat(f_index, p_index, 1, 
                                                   lon_index, joker, joker, i);
@@ -1414,12 +1414,12 @@ void CloudboxGetOutgoing(// WS Generic Output:
              //
              // The requested point lies on one of the longitude
              // boundaries.
-             else if ((a_gp_lon.idx == cloudbox_limits[4] ||
-                  a_gp_lon.idx == cloudbox_limits[5] ) &&
-                 ((a_gp_p.idx >= cloudbox_limits[0]) &&
-                  a_gp_p.idx <= cloudbox_limits[1]) &&
-                 ((a_gp_lat.idx >= cloudbox_limits[2]) &&
-                  a_gp_lat.idx <= cloudbox_limits[3]) )
+             else if ((rte_gp_lon.idx == cloudbox_limits[4] ||
+                  rte_gp_lon.idx == cloudbox_limits[5] ) &&
+                 ((rte_gp_p.idx >= cloudbox_limits[0]) &&
+                  rte_gp_p.idx <= cloudbox_limits[1]) &&
+                 ((rte_gp_lat.idx >= cloudbox_limits[2]) &&
+                  rte_gp_lat.idx <= cloudbox_limits[3]) )
                
                {
                  
@@ -1430,12 +1430,12 @@ void CloudboxGetOutgoing(// WS Generic Output:
                          lat_index < cloudbox_limits[3]-cloudbox_limits[2]+1;
                          lat_index ++)
                        {
-                         if(a_gp_lon.idx == cloudbox_limits[4])
+                         if(rte_gp_lon.idx == cloudbox_limits[4])
                            {
                              i_out_f = scat_i_lon(f_index, p_index, lat_index, 
                                                   0, joker, joker, i);
                            }
-                         else if(a_gp_lon.idx == cloudbox_limits[5])
+                         else if(rte_gp_lon.idx == cloudbox_limits[5])
                            {
                              i_out_f = scat_i_lon(f_index, p_index, lat_index, 
                                                   1, joker, joker, i);
@@ -1503,11 +1503,11 @@ void CloudboxGetIncoming(// WS Output:
                          Matrix& ground_emission,
                          Matrix& ground_los,
                          Tensor4& ground_refl_coeffs,
-                         Vector& a_los,
-                         Vector& a_pos,
-                         GridPos& a_gp_p,
-                         GridPos& a_gp_lat,
-                         GridPos& a_gp_lon,
+                         Vector& rte_los,
+                         Vector& rte_pos,
+                         GridPos& rte_gp_p,
+                         GridPos& rte_gp_lat,
+                         GridPos& rte_gp_lon,
                          //WS Specific Input:
                          const ArrayOfIndex& cloudbox_limits,
                          const Index& atmosphere_dim,
@@ -1585,8 +1585,8 @@ void CloudboxGetIncoming(// WS Output:
           sensor_los(0,0) =  scat_za_grid[scat_za_index];
       
           rte_calc( y_dummy, ppath, ppath_step, i_rte,
-               a_pos, a_los, a_gp_p, 
-               a_gp_lat, a_gp_lon,
+               rte_pos, rte_los, rte_gp_p, 
+               rte_gp_lat, rte_gp_lon,
                i_space, ground_emission, ground_los, 
                ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
                i_space_agenda, ground_refl_agenda, 
@@ -1616,8 +1616,8 @@ void CloudboxGetIncoming(// WS Output:
           sensor_los(0, 0) =  scat_za_grid[scat_za_index];
 
           rte_calc( y_dummy, ppath, ppath_step, i_rte,
-                 a_pos, a_los, a_gp_p, 
-                 a_gp_lat, a_gp_lon,
+                 rte_pos, rte_los, rte_gp_p, 
+                 rte_gp_lat, rte_gp_lon,
                  i_space, ground_emission, ground_los, 
                  ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
                  i_space_agenda, ground_refl_agenda, 
@@ -1697,8 +1697,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
-                               a_pos, a_los, a_gp_p, 
-                               a_gp_lat, a_gp_lon,
+                               rte_pos, rte_los, rte_gp_p, 
+                               rte_gp_lat, rte_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
@@ -1753,8 +1753,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
-                               a_pos, a_los, a_gp_p, 
-                               a_gp_lat, a_gp_lon,
+                               rte_pos, rte_los, rte_gp_p, 
+                               rte_gp_lat, rte_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
@@ -1806,8 +1806,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
-                               a_pos, a_los, a_gp_p, 
-                               a_gp_lat, a_gp_lon,
+                               rte_pos, rte_los, rte_gp_p, 
+                               rte_gp_lat, rte_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
@@ -1859,8 +1859,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
-                               a_pos, a_los, a_gp_p, 
-                               a_gp_lat, a_gp_lon,
+                               rte_pos, rte_los, rte_gp_p, 
+                               rte_gp_lat, rte_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
@@ -1912,8 +1912,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
-                               a_pos, a_los, a_gp_p, 
-                               a_gp_lat, a_gp_lon,
+                               rte_pos, rte_los, rte_gp_p, 
+                               rte_gp_lat, rte_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
@@ -1965,8 +1965,8 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
-                               a_pos, a_los, a_gp_p, 
-                               a_gp_lat, a_gp_lon,
+                               rte_pos, rte_los, rte_gp_p, 
+                               rte_gp_lat, rte_gp_lon,
                                i_space, ground_emission, ground_los, 
                                ground_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 

@@ -418,9 +418,9 @@ i_fieldIterate(
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
   \param abs_scalar_gas
-  \param a_pressure
-  \param a_temperature
-  \param a_vmr_list
+  \param rte_pressure
+  \param rte_temperature
+  \param rte_vmr_list
   Variables used in spt_calc_agenda:
   \param scat_za_index
   Variables used in opt_prop_xxx_agenda:
@@ -461,9 +461,9 @@ i_fieldUpdate1D(// WS Output:
                 Tensor6& i_field,
                 // scalar_gas_abs_agenda:
                 Matrix& abs_scalar_gas,
-                Numeric& a_pressure,
-	        Numeric& a_temperature,
-		Vector& a_vmr_list,
+                Numeric& rte_pressure,
+	        Numeric& rte_temperature,
+		Vector& rte_vmr_list,
                 // spt_calc_agenda:
                 Index& scat_za_index ,
                 // opt_prop_xxx_agenda:
@@ -841,14 +841,14 @@ i_fieldUpdate1D(// WS Output:
                   // Length of the path between the two layers.
                   Numeric l_step = ppath_step.l_step[k-1];
                   // Average temperature
-                  a_temperature =   0.5 * (t_int[k] + t_int[k-1]);
+                  rte_temperature =   0.5 * (t_int[k] + t_int[k-1]);
                   //
                   // Average pressure
-                  a_pressure = 0.5 * (p_int[k] + p_int[k-1]);
+                  rte_pressure = 0.5 * (p_int[k] + p_int[k-1]);
                   //
                   // Average vmrs
                   for (Index i = 0; i < N_species; i++)
-                    a_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
+                    rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
                                            vmr_list_int(i,k-1));
                   //
                   // Calculate scalar gas absorption and add it to abs_vec 
@@ -886,7 +886,7 @@ i_fieldUpdate1D(// WS Output:
                   //
                   // Calculate Planck function
                   //
-                  Numeric a_planck_value = planck(f, a_temperature);
+                  Numeric rte_planck_value = planck(f, rte_temperature);
                   
                   // Some messages:
                   out3 << "-----------------------------------------\n";
@@ -899,7 +899,7 @@ i_fieldUpdate1D(// WS Output:
                   out3 << "l_step: ..." << l_step << "\n";
                   out3 << "------------------------------------------\n";
                   out3 << "Averaged coefficients: \n";
-                  out3 << "Planck function: " << a_planck_value << "\n";
+                  out3 << "Planck function: " << rte_planck_value << "\n";
                   out3 << "Scattering vector: " << sca_vec_av << "\n"; 
                   out3 << "Absorption vector: " << abs_vec(0,joker) << "\n"; 
                   out3 << "Extinction matrix: " << ext_mat(0,joker,joker) << "\n"; 
@@ -911,7 +911,7 @@ i_fieldUpdate1D(// WS Output:
                   // is updated until the considered point is reached.
                   rte_step(stokes_vec, ext_mat(0,joker,joker), 
                            abs_vec(0,joker), 
-                           sca_vec_av, l_step, a_planck_value);
+                           sca_vec_av, l_step, rte_planck_value);
                   
                 } // End of loop over ppath_step. 
               // Assign calculated Stokes Vector to i_field. 
@@ -953,9 +953,9 @@ i_fieldUpdate1D(// WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
   \param abs_scalar_gas
-  \param a_pressure
-  \param a_temperature
-  \param a_vmr_list
+  \param rte_pressure
+  \param rte_temperature
+  \param rte_vmr_list
   Variables used in spt_calc_agenda:
   \param scat_za_index
   Variables used in opt_prop_xxx_agenda:
@@ -996,9 +996,9 @@ i_fieldUpdateSeq1D(// WS Output:
 		   Tensor6& i_field,
 		   // scalar_gas_abs_agenda:
 		   Matrix& abs_scalar_gas,
-		   Numeric& a_pressure,
-		   Numeric& a_temperature,
-		   Vector& a_vmr_list,
+		   Numeric& rte_pressure,
+		   Numeric& rte_temperature,
+		   Vector& rte_vmr_list,
 		   // spt_calc_agenda:
 		   Index& scat_za_index ,
 		   // opt_prop_xxx_agenda:
@@ -1011,9 +1011,9 @@ i_fieldUpdateSeq1D(// WS Output:
 		   Matrix& ground_los,
 		   Matrix& ground_emission,
                   Tensor4& ground_refl_coeffs,
-		   Vector& a_los,
-		   Vector& a_pos,
-		   GridPos& a_gp_p,
+		   Vector& rte_los,
+		   Vector& rte_pos,
+		   GridPos& rte_gp_p,
 		   // WS Input:
 		   const Tensor6& i_field_old,
 		   const Tensor6& scat_field,
@@ -1144,10 +1144,10 @@ i_fieldUpdateSeq1D(// WS Output:
                 >= cloudbox_limits[0]; p_index --)
             {
 	      cloud_ppath_update1D(i_field, 
-				   a_pressure, a_temperature, a_vmr_list,
+				   rte_pressure, rte_temperature, rte_vmr_list,
 				   ext_mat, abs_vec, ground_los,
 				   ground_emission, ground_refl_coeffs,
-				   a_los, a_pos, a_gp_p, ppath_step, 
+				   rte_los, rte_pos, rte_gp_p, ppath_step, 
 				   p_index, scat_za_index, scat_za_grid,
 				   cloudbox_limits, scat_field,
 				   scalar_gas_absorption_agenda, vmr_field,
@@ -1167,10 +1167,10 @@ i_fieldUpdateSeq1D(// WS Output:
                 <= cloudbox_limits[1]; p_index ++)
             {
               cloud_ppath_update1D(i_field,  
-                                   a_pressure, a_temperature, a_vmr_list,
+                                   rte_pressure, rte_temperature, rte_vmr_list,
                                    ext_mat, abs_vec, ground_los,
 				    ground_emission, ground_refl_coeffs,
-				    a_los, a_pos, a_gp_p, ppath_step, 
+				    rte_los, rte_pos, rte_gp_p, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
                                    cloudbox_limits, scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
@@ -1195,10 +1195,10 @@ i_fieldUpdateSeq1D(// WS Output:
                 <= cloudbox_limits[1]; p_index ++)
             {
               cloud_ppath_update1D(i_field,  
-                                   a_pressure, a_temperature, a_vmr_list,
+                                   rte_pressure, rte_temperature, rte_vmr_list,
                                    ext_mat, abs_vec, ground_los,
 				    ground_emission, ground_refl_coeffs,
-				    a_los, a_pos, a_gp_p, ppath_step, 
+				    rte_los, rte_pos, rte_gp_p, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
                                    cloudbox_limits, scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
@@ -1231,9 +1231,9 @@ i_fieldUpdateSeq1D(// WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
   \param abs_scalar_gas
-  \param a_pressure
-  \param a_temperature
-  \param a_vmr_list
+  \param rte_pressure
+  \param rte_temperature
+  \param rte_vmr_list
   Variables used in spt_calc_agenda:
   \param scat_za_index
   \param scat_aa_index
@@ -1279,9 +1279,9 @@ void i_fieldUpdate3D(// WS Output:
                      Tensor6& i_field,
                      // scalar_gas_abs_agenda:
                      Matrix& abs_scalar_gas,
-                     Numeric& a_pressure,
-                     Numeric& a_temperature,
-                     Vector& a_vmr_list,
+                     Numeric& rte_pressure,
+                     Numeric& rte_temperature,
+                     Vector& rte_vmr_list,
                      // spt_calc_agenda:
                      Index& scat_za_index,
                      Index& scat_aa_index,
@@ -1730,14 +1730,14 @@ void i_fieldUpdate3D(// WS Output:
                     
                             
                             // Average temperature
-                            a_temperature =   0.5 * (t_int[k] + t_int[k-1]);
+                            rte_temperature =   0.5 * (t_int[k] + t_int[k-1]);
                             //
                             // Average pressure
-                            a_pressure = 0.5 * (p_int[k] + p_int[k-1]);
+                            rte_pressure = 0.5 * (p_int[k] + p_int[k-1]);
                             //
                             // Average vmrs
                             for (Index i = 0; i < N_species; i++)
-                              a_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
+                              rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
                                                      vmr_list_int(i,k-1));
                             //
                             // Calculate scalar gas absorption and add it to 
@@ -1774,7 +1774,7 @@ void i_fieldUpdate3D(// WS Output:
                             //
                             // Calculate Planck function
                             //
-                            Numeric a_planck_value = planck(f, a_temperature);
+                            Numeric rte_planck_value = planck(f, rte_temperature);
                             
                             // Some messages:
                             out3 << "-------------------------------------\n";
@@ -1788,7 +1788,7 @@ void i_fieldUpdate3D(// WS Output:
                             out3 << "--------------------------------------\n";
                             out3 << "Averaged coefficients: \n";
                             out3 << "Planck function: " 
-                                 << a_planck_value << "\n";
+                                 << rte_planck_value << "\n";
                             out3 << "Scattering vector: " 
                                  << sca_vec_av << "\n"; 
                             out3 << "Absorption vector: " 
@@ -1804,7 +1804,7 @@ void i_fieldUpdate3D(// WS Output:
                             // updated until the considered point is reached.
                             rte_step(stokes_vec, ext_mat(0,joker,joker), 
                                      abs_vec(0,joker), 
-                                     sca_vec_av, l_step, a_planck_value);
+                                     sca_vec_av, l_step, rte_planck_value);
                           }
                         
                         
@@ -1850,9 +1850,9 @@ void i_fieldUpdate3D(// WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
   \param abs_scalar_gas
-  \param a_pressure
-  \param a_temperature
-  \param a_vmr_list
+  \param rte_pressure
+  \param rte_temperature
+  \param rte_vmr_list
   Variables used in spt_calc_agenda:
   \param scat_za_index
   \param scat_aa_index
@@ -1898,9 +1898,9 @@ void i_fieldUpdateSeq3D(// WS Output:
                      Tensor6& i_field,
                      // scalar_gas_abs_agenda:
                      Matrix& abs_scalar_gas,
-                     Numeric& a_pressure,
-                     Numeric& a_temperature,
-                     Vector& a_vmr_list,
+                     Numeric& rte_pressure,
+                     Numeric& rte_temperature,
+                     Vector& rte_vmr_list,
                      // spt_calc_agenda:
                      Index& scat_za_index,
                      Index& scat_aa_index,
@@ -2085,8 +2085,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                           lon_index --)
                         {
                           cloud_ppath_update3D(i_field, stokes_vec, 
-                                               a_pressure, a_temperature, 
-                                               a_vmr_list, ext_mat, abs_vec,
+                                               rte_pressure, rte_temperature, 
+                                               rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -2140,8 +2140,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                           lon_index --)
                         {
                           cloud_ppath_update3D(i_field, stokes_vec, 
-                                               a_pressure, a_temperature, 
-                                               a_vmr_list, ext_mat, abs_vec,
+                                               rte_pressure, rte_temperature, 
+                                               rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -2194,8 +2194,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                           lon_index --)
                         {
                           cloud_ppath_update3D(i_field, stokes_vec, 
-                                               a_pressure, a_temperature, 
-                                               a_vmr_list, ext_mat, abs_vec,
+                                               rte_pressure, rte_temperature, 
+                                               rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -2248,8 +2248,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                           lon_index ++)
                         {
                           cloud_ppath_update3D(i_field, stokes_vec, 
-                                               a_pressure, a_temperature, 
-                                               a_vmr_list, ext_mat, abs_vec,
+                                               rte_pressure, rte_temperature, 
+                                               rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -2303,8 +2303,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                           lon_index --)
                         {
                           cloud_ppath_update3D(i_field, stokes_vec, 
-                                               a_pressure, a_temperature, 
-                                               a_vmr_list, ext_mat, abs_vec,
+                                               rte_pressure, rte_temperature, 
+                                               rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -2358,8 +2358,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                           lon_index ++)
                         {
                           cloud_ppath_update3D(i_field, stokes_vec, 
-                                               a_pressure, a_temperature, 
-                                               a_vmr_list, ext_mat, abs_vec,
+                                               rte_pressure, rte_temperature, 
+                                               rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -2412,8 +2412,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                           lon_index ++)
                         {
                           cloud_ppath_update3D(i_field, stokes_vec, 
-                                               a_pressure, a_temperature, 
-                                               a_vmr_list, ext_mat, abs_vec,
+                                               rte_pressure, rte_temperature, 
+                                               rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -2466,8 +2466,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                           lon_index ++)
                         {
                           cloud_ppath_update3D(i_field, stokes_vec, 
-                                               a_pressure, a_temperature, 
-                                               a_vmr_list, ext_mat, abs_vec,
+                                               rte_pressure, rte_temperature, 
+                                               rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -2505,9 +2505,9 @@ void i_fieldUpdateSeq3D(// WS Output:
   WS Output:
   \param i_field       Updated intensity field. 
   \param abs_scalar_gas Scalar gas absorption.
-  \param a_pressure    FIXME: Add documentation.
-  \param a_temperature FIXME: Add documentation.
-  \param a_vmr_list    FIXME: Add documentation.
+  \param rte_pressure    FIXME: Add documentation.
+  \param rte_temperature FIXME: Add documentation.
+  \param rte_vmr_list    FIXME: Add documentation.
   \param scat_za_grid  Zenith angle grid inside the cloud box.
   \param ext_mat       Extinction matrix (4x4 matrix).
   \param abs_vec       Absorprion vector (4 elements).
@@ -2551,9 +2551,9 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
                 Tensor6& i_field,
                 // scalar_gas_abs_agenda:
                 Matrix& abs_scalar_gas,
-                Numeric& a_pressure,
-                Numeric& a_temperature,
-                Vector& a_vmr_list,
+                Numeric& rte_pressure,
+                Numeric& rte_temperature,
+                Vector& rte_vmr_list,
                 // spt_calc_agenda:
                 Index& scat_za_index ,
                 // opt_prop_xxx_agenda:
@@ -2746,17 +2746,17 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 		// to the considered point.
 		
 		// Average temperature
-		a_temperature =   0.5 * (t_field(p_index,0,0) + t_field(p_index + 1,0,0));
+		rte_temperature =   0.5 * (t_field(p_index,0,0) + t_field(p_index + 1,0,0));
 		//
 		// Average pressure
-		a_pressure = 0.5 * (p_grid[p_index] + p_grid[p_index + 1]);
+		rte_pressure = 0.5 * (p_grid[p_index] + p_grid[p_index + 1]);
 	
 	      //
 		const Index N_species = vmr_field.nbooks();
-		//Vector a_vmr(N_species);
+		//Vector rte_vmr(N_species);
 		// Average vmrs
 		for (Index i = 0; i < N_species; i++)
-		  a_vmr_list[i] = 0.5 * (vmr_field(i,p_index,0,0) + 
+		  rte_vmr_list[i] = 0.5 * (vmr_field(i,p_index,0,0) + 
 					 vmr_field(i,p_index + 1,0,0));
 		
 	      //
@@ -2802,7 +2802,7 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 		//
 		// Calculate Planck function
 		//
-		Numeric a_planck_value = planck(f, a_temperature);
+		Numeric rte_planck_value = planck(f, rte_temperature);
 		
 		// Some messages:
 		out3 << "-----------------------------------------\n";
@@ -2815,7 +2815,7 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 		out3 << "l_step: ..." << l_step << "\n";
 		out3 << "------------------------------------------\n";
 		out3 << "Averaged coefficients: \n";
-		out3 << "Planck function: " << a_planck_value << "\n";
+		out3 << "Planck function: " << rte_planck_value << "\n";
 		out3 << "Scattering vector: " << sca_vec_av << "\n"; 
 		out3 << "Absorption vector: " << abs_vec(0,joker) << "\n"; 
 		out3 << "Extinction matrix: " << ext_mat(0,joker,joker) << "\n"; 
@@ -2827,7 +2827,7 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 		// is updated until the considered point is reached.
 		rte_step(stokes_vec, ext_mat(0,joker,joker), 
 		       abs_vec(0,joker), 
-			 sca_vec_av[joker], l_step, a_planck_value);
+			 sca_vec_av[joker], l_step, rte_planck_value);
 		
 		
 		// Assign calculated Stokes Vector to i_field. 
@@ -2874,16 +2874,16 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 	      // to the considered point.
 	      
 	      // Average temperature
-	      a_temperature =   0.5 * (t_field(p_index,0,0) + t_field(p_index - 1,0,0));
+	      rte_temperature =   0.5 * (t_field(p_index,0,0) + t_field(p_index - 1,0,0));
 	      //
 	      // Average pressure
-	      a_pressure = 0.5 * (p_grid[p_index] + p_grid[p_index - 1]);
+	      rte_pressure = 0.5 * (p_grid[p_index] + p_grid[p_index - 1]);
 	      
 	      const Index N_species = vmr_field.nbooks();
-	      Vector a_vmr(N_species);
+	      Vector rte_vmr(N_species);
 	      // Average vmrs
 	      for (Index i = 0; i < N_species; i++)
-		a_vmr[i] = 0.5 * (vmr_field(i,p_index,0,0) + 
+		rte_vmr[i] = 0.5 * (vmr_field(i,p_index,0,0) + 
 				  vmr_field(i,p_index - 1,0,0));
 	      
 	      //
@@ -2929,7 +2929,7 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 	      //
 	      // Calculate Planck function
 	      //
-	      Numeric a_planck_value = planck(f, a_temperature);
+	      Numeric rte_planck_value = planck(f, rte_temperature);
 	      
 	      // Some messages:
 	      out3 << "-----------------------------------------\n";
@@ -2942,7 +2942,7 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 	      out3 << "l_step: ..." << l_step << "\n";
 	      out3 << "------------------------------------------\n";
 	      out3 << "Averaged coefficients: \n";
-	      out3 << "Planck function: " << a_planck_value << "\n";
+	      out3 << "Planck function: " << rte_planck_value << "\n";
 	      out3 << "Scattering vector: " << sca_vec_av << "\n"; 
 	      out3 << "Absorption vector: " << abs_vec(0,joker) << "\n"; 
 	      out3 << "Extinction matrix: " << ext_mat(0,joker,joker) << "\n"; 
@@ -2954,7 +2954,7 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 	      // is updated until the considered point is reached.
 	      rte_step(stokes_vec, ext_mat(0,joker,joker), 
 		       abs_vec(0,joker), 
-		       sca_vec_av[joker], l_step, a_planck_value);
+		       sca_vec_av[joker], l_step, rte_planck_value);
 	      
 	      
 	      // Assign calculated Stokes Vector to i_field. 

@@ -29,8 +29,8 @@ void Cloudbox_ppath_rteCalc(
 			     Ppath&                ppathcloud,
 			     Ppath&                ppath,
 			     Ppath&                ppath_step,
-			     Vector&               a_pos,
-			     Vector&               a_los,
+			     Vector&               rte_pos,
+			     Vector&               rte_los,
 			     Vector&               cum_l_step,
 			     ArrayOfMatrix&        TArray,
 			     ArrayOfMatrix&        ext_matArray,
@@ -40,13 +40,13 @@ void Cloudbox_ppath_rteCalc(
 			     Vector&               scat_aa_grid,
 			     Tensor3&              ext_mat,
 			     Matrix&               abs_vec,
-			     Numeric&              a_pressure,
-			     Numeric&              a_temperature,
-			     Vector&               a_vmr_list,
+			     Numeric&              rte_pressure,
+			     Numeric&              rte_temperature,
+			     Vector&               rte_vmr_list,
 			     Matrix&               i_rte,
-			     GridPos&              a_gp_p,
-			     GridPos&              a_gp_lat,
-			     GridPos&              a_gp_lon,
+			     GridPos&              rte_gp_p,
+			     GridPos&              rte_gp_lat,
+			     GridPos&              rte_gp_lon,
 			     Matrix&               i_space,
 			     Matrix&               ground_emission,
 			     Matrix&               ground_los, 
@@ -88,8 +88,8 @@ void cloudbox_ppath_start_stepping(
 				   ConstTensor3View      z_field,
 				   ConstMatrixView       r_geoid,
 				   ConstMatrixView       z_ground,
-				   ConstVectorView       a_pos,
-				   ConstVectorView       a_los );
+				   ConstVectorView       rte_pos,
+				   ConstVectorView       rte_los );
 	  
 
 void cum_l_stepCalc(
@@ -109,8 +109,8 @@ Vector interp( ConstVectorView itw,
 void interpTArray(Matrix& T,
 		  Vector& Kabs,
 		  Numeric& temperature,
-		  Vector& a_pos,
-		  Vector& a_los,
+		  Vector& rte_pos,
+		  Vector& rte_los,
 		  ArrayOfGridPos& gp,
 		  const ArrayOfMatrix& TArray,
 		  const ArrayOfMatrix& ext_matArray,
@@ -123,7 +123,7 @@ void interpTArray(Matrix& T,
 		 );
 
 void Sample_los (
-		 Vector& a_los,
+		 Vector& rte_los,
 		 Rng& rng
 		 );
 
@@ -144,9 +144,9 @@ void TArrayCalc(
 		Vector& scat_aa_grid,
 		Tensor3& ext_mat,
 		Matrix& abs_vec,
-		Numeric&   a_pressure,
-		Numeric&   a_temperature,
-		Vector&    a_vmr_list,
+		Numeric&   rte_pressure,
+		Numeric&   rte_temperature,
+		Vector&    rte_vmr_list,
 		Index&    scat_za_index,
 		Index&    scat_aa_index,
 		//input

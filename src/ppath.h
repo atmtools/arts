@@ -164,9 +164,9 @@ void ppath_step_geom_3d(
 
 void ppath_step_refr_1d(
               Ppath&      ppath,
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
+              Numeric&    rte_pressure,
+              Numeric&    rte_temperature,
+              Vector&     rte_vmr_list,
               Numeric&    refr_index,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
@@ -181,9 +181,9 @@ void ppath_step_refr_1d(
 
 void ppath_step_refr_2d(
               Ppath&      ppath,
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
+              Numeric&    rte_pressure,
+              Numeric&    rte_temperature,
+              Vector&     rte_vmr_list,
               Numeric&    refr_index,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
@@ -199,9 +199,9 @@ void ppath_step_refr_2d(
 
 void ppath_step_refr_3d(
               Ppath&      ppath,
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
+              Numeric&    rte_pressure,
+              Numeric&    rte_temperature,
+              Vector&     rte_vmr_list,
               Numeric&    refr_index,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
@@ -229,8 +229,8 @@ void ppath_calc(
         const Matrix&         z_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         a_pos,
-        const Vector&         a_los,
+        const Vector&         rte_pos,
+        const Vector&         rte_los,
         const bool&           outside_cloudbox,
         const Index&          agenda_verb );
 

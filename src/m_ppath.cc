@@ -60,16 +60,16 @@ extern const Numeric EARTH_GRAV_CONST;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! a_losSet
+//! rte_losSet
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-30
 */
-void a_losSet(
+void rte_losSet(
         // WS Output:
-              Vector&    a_los,
+              Vector&    rte_los,
         // WS Input:
         const Index&     atmosphere_dim,
         // Control Parameters:
@@ -80,27 +80,27 @@ void a_losSet(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
 
   if( atmosphere_dim == 1 )
-    { a_los.resize(1); }
+    { rte_los.resize(1); }
   else
     {
-      a_los.resize(2);
-      a_los[1] = aa;
+      rte_los.resize(2);
+      rte_los[1] = aa;
     }
-  a_los[0] = za;
+  rte_los[0] = za;
 }
 
 
 
-//! a_posAddGeoidWGS84
+//! rte_posAddGeoidWGS84
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-20
 */
-void a_posAddGeoidWGS84(
+void rte_posAddGeoidWGS84(
         // WS Output:
-              Vector&    a_pos,
+              Vector&    rte_pos,
         // WS Input:
         const Index&     atmosphere_dim,
         const Numeric&   latitude_1d,
@@ -108,27 +108,27 @@ void a_posAddGeoidWGS84(
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_vector_length( "a_pos", a_pos, atmosphere_dim );
+  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
 
   // Use *sensor_posAddGeoidWGS84* to perform the calculations.
-  Matrix m(1,a_pos.nelem());
-  m(0,joker) = a_pos;
+  Matrix m(1,rte_pos.nelem());
+  m(0,joker) = rte_pos;
   sensor_posAddGeoidWGS84( m, atmosphere_dim, latitude_1d, meridian_angle_1d);
-  a_pos[0] = m(0,0);
+  rte_pos[0] = m(0,0);
 }
 
 
 
-//! a_posAddRgeoid
+//! rte_posAddRgeoid
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-20
 */
-void a_posAddRgeoid(
+void rte_posAddRgeoid(
         // WS Output:
-              Vector&    a_pos,
+              Vector&    rte_pos,
         // WS Input:
         const Index&     atmosphere_dim,
         const Vector&    lat_grid,
@@ -137,27 +137,27 @@ void a_posAddRgeoid(
 {
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_vector_length( "a_pos", a_pos, atmosphere_dim );
+  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
 
   // Use *sensor_posAddRgeoid* to perform the calculations.
-  Matrix m(1,a_pos.nelem());
-  m(0,joker) = a_pos;
+  Matrix m(1,rte_pos.nelem());
+  m(0,joker) = rte_pos;
   sensor_posAddRgeoid( m, atmosphere_dim, lat_grid, lon_grid, r_geoid );
-  a_pos[0] = m(0,0);
+  rte_pos[0] = m(0,0);
 }
 
 
 
-//! a_posSet
+//! rte_posSet
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-30
 */
-void a_posSet(
+void rte_posSet(
         // WS Output:
-              Vector&    a_pos,
+              Vector&    rte_pos,
         // WS Input:
         const Index&     atmosphere_dim,
         // Control Parameters:
@@ -168,12 +168,12 @@ void a_posSet(
   // Check input
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
 
-  a_pos.resize(atmosphere_dim);
-  a_pos[0] = r_or_z;
+  rte_pos.resize(atmosphere_dim);
+  rte_pos[0] = r_or_z;
   if( atmosphere_dim >= 2 )
-    { a_pos[1] = lat; }
+    { rte_pos[1] = lat; }
   if( atmosphere_dim == 3 )
-    { a_pos[2] = lon; }
+    { rte_pos[2] = lon; }
 }
 
 
@@ -200,12 +200,12 @@ void ppathCalc(
         const Matrix&         z_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         a_pos,
-        const Vector&         a_los )
+        const Vector&         rte_pos,
+        const Vector&         rte_los )
 {
   ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
              p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground, 
-                            cloudbox_on, cloudbox_limits, a_pos, a_los, 1, 0 );
+                        cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1, 0 );
 }
 
 
@@ -265,9 +265,9 @@ void ppath_stepGeometric(
 void ppath_stepRefractionEuler(
         // WS Output:
               Ppath&      ppath_step,
-              Numeric&    a_pressure,
-              Numeric&    a_temperature,
-              Vector&     a_vmr_list,
+              Numeric&    rte_pressure,
+              Numeric&    rte_temperature,
+              Vector&     rte_vmr_list,
               Numeric&    refr_index,
         // WS Input:
         const Agenda&     refr_index_agenda,
@@ -291,23 +291,23 @@ void ppath_stepRefractionEuler(
   assert( lraytrace > 0 );
 
   if( atmosphere_dim == 1 )
-    { ppath_step_refr_1d( ppath_step, a_pressure, a_temperature, a_vmr_list,
-                          refr_index, refr_index_agenda,
+    { ppath_step_refr_1d( ppath_step, rte_pressure, rte_temperature, 
+                          rte_vmr_list, refr_index, refr_index_agenda,
                           p_grid, z_field(joker,0,0), t_field(joker,0,0), 
                        vmr_field(joker,joker,0,0), r_geoid(0,0), z_ground(0,0),
                                            "linear_euler", lraytrace, lmax ); }
 
   else if( atmosphere_dim == 2 )
-    { ppath_step_refr_2d( ppath_step, a_pressure, a_temperature, a_vmr_list,
-                          refr_index, refr_index_agenda,
+    { ppath_step_refr_2d( ppath_step, rte_pressure, rte_temperature, 
+                          rte_vmr_list, refr_index, refr_index_agenda,
                           p_grid, lat_grid, z_field(joker,joker,0),
                        t_field(joker,joker,0), vmr_field(joker, joker,joker,0),
                           r_geoid(joker,0), z_ground(joker,0), 
                                            "linear_euler", lraytrace, lmax ); }
 
   else if( atmosphere_dim == 3 )
-    { ppath_step_refr_3d( ppath_step, a_pressure, a_temperature, a_vmr_list,
-                          refr_index, refr_index_agenda,
+    { ppath_step_refr_3d( ppath_step, rte_pressure, rte_temperature, 
+                          rte_vmr_list, refr_index, refr_index_agenda,
                           p_grid, lat_grid, lon_grid, z_field, 
                           t_field, vmr_field, r_geoid, z_ground, 
                                            "linear_euler", lraytrace, lmax ); }
@@ -503,15 +503,15 @@ void sensor_posAddRgeoid(
 
 void VectorZtanToZaRefr(// WS Output:
                         Numeric&			refr_index,
-                        Numeric&			a_pressure,
-                        Numeric&			a_temperature,
-                        Vector&				a_vmr_list,
+                        Numeric&			rte_pressure,
+                        Numeric&			rte_temperature,
+                        Vector&				rte_vmr_list,
                         // WS Generic Output:
                         Vector&				za_vector,
                         // WS Generic Output Names:
                         const String&		za_vector_name,
                         // WS Input:
-						const Agenda&		refr_index_agenda,
+			const Agenda&		refr_index_agenda,
                         const Matrix&		sensor_pos,
                         const Vector&		p_grid,
                         const Tensor3&		t_field,
@@ -536,8 +536,8 @@ void VectorZtanToZaRefr(// WS Output:
   //No output from get_refr_index_1d
   Index agenda_verb = 1;
 
-  out2 << "   Filling *" << za_vector_name << "* with zenith angles, based on\n"
-       << "   tangent altitudes from *" << ztan_vector_name << ".\n";
+  out2 << "   Filling *" << za_vector_name << "* with zenith angles, based\n"
+       << "   on tangent altitudes from *" << ztan_vector_name << ".\n";
 
 
   //Set za_vector's size equal to ztan_vector
@@ -545,7 +545,7 @@ void VectorZtanToZaRefr(// WS Output:
 
   //Calculate refractive index for the tangential altitudes
   for( Index i=0; i<ztan_vector.nelem(); i++ ) {
-	get_refr_index_1d( a_pressure, a_temperature, a_vmr_list, 
+	get_refr_index_1d( rte_pressure, rte_temperature, rte_vmr_list, 
 	  refr_index_agenda, agenda_verb, p_grid, r_geoid(0,0), 
 	  z_field(joker,0,0), t_field(joker,0,0), vmr_field(joker,joker,0,0),
 	  ztan_vector[i]+r_geoid(0,0) );
@@ -650,13 +650,13 @@ void ZaSatOccultation(
 
   //Extend upper and lower scan limits to include the limits
   //and convert to radius
-  const Numeric     d = 3e3;
-  const Numeric     r_scan_max = z_scan_high + d + r_geoid(0,0);
-  const Numeric     r_scan_min = z_scan_low - d + r_geoid(0,0);
+  const Numeric    d = 3e3;
+  const Numeric    r_scan_max = z_scan_high + d + r_geoid(0,0);
+  const Numeric    r_scan_min = z_scan_low - d + r_geoid(0,0);
 
   //Calculate max and min zenith angles to cover z_scan_min to z_scan_max
-  const Numeric     za_ref_max = geompath_za_at_r( r_scan_min, 100, r_recieve );
-  const Numeric     za_ref_min = geompath_za_at_r( r_scan_max, 100, r_recieve );
+  const Numeric    za_ref_max = geompath_za_at_r( r_scan_min, 100, r_recieve );
+  const Numeric    za_ref_min = geompath_za_at_r( r_scan_max, 100, r_recieve );
 
   //Create vector with equally spaced zenith angles
   const Numeric     za_step = 600.0;

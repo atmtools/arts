@@ -236,7 +236,7 @@ void define_md_data_raw()
         OUTPUT( abs_scalar_gas_ ),
         INPUT(  gas_abs_lookup_, gas_abs_lookup_is_adapted_,
                 f_index_, 
-                a_pressure_, a_temperature_, a_vmr_list_ ),
+                rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -265,12 +265,12 @@ void define_md_data_raw()
          "\n"
          "The calculation itself is performed by the\n"
          "*scalar_gas_absorption_agenda*, which needs the input variables\n"
-         "*a_pressure*, *a_temperature*, and *a_vmr_list*, and returns the\n"
+         "*rte_pressure*, *rte_temperature*, and *rte_vmr_list*, and returns the\n"
          "output variable *abs_scalar_gas*."
         ),
         OUTPUT( abs_scalar_gas_field_,
                 abs_scalar_gas_,
-                a_pressure_, a_temperature_, a_vmr_list_),
+                rte_pressure_, rte_temperature_, rte_vmr_list_),
         INPUT(  scalar_gas_absorption_agenda_,
                 f_index_,
                 f_grid_,
@@ -651,21 +651,21 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "a_losSet" ),
+      ( NAME( "rte_losSet" ),
         DESCRIPTION
         (
-         "Sets *a_los* to the given angles.\n"
+         "Sets *rte_los* to the given angles.\n"
          "\n"
-         "The keyword argument *za* is put in as first element of *a_los*\n"
+         "The keyword argument *za* is put in as first element of *rte_los*\n"
          "and *aa* as the second element. However, when *atmosphere_dim* is\n"
-         "set to 1D or 2D, the length of *a_los* is set to 1 and only the\n"
+         "set to 1D or 2D, the length of *rte_los* is set to 1 and only the\n"
          "given zenith angle is considered.\n"
          "\n"
          "Keywords: \n"
          "   za : Zenith angle of sensor line-of-sight.\n"
          "   aa : Azimuth angle of sensor line-of-sight."
         ),
-        OUTPUT( a_los_ ),
+        OUTPUT( rte_los_ ),
         INPUT( atmosphere_dim_ ),
         GOUTPUT(),
         GINPUT(),
@@ -674,14 +674,14 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "a_posAddGeoidWGS84" ),
+      ( NAME( "rte_posAddGeoidWGS84" ),
         DESCRIPTION
         (
          "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
          "\n"
-         "This function assumes that the first element of *a_pos* is set\n"
+         "This function assumes that the first element of *rte_pos* is set\n"
          "to the geometric altitude for the position of the sensor. \n"
-         "The variable *a_pos* shall contain the radius instead of the\n"
+         "The variable *rte_pos* shall contain the radius instead of the\n"
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
          "taken from the WGS-84 reference ellipsiod.\n"
@@ -690,10 +690,10 @@ void define_md_data_raw()
          "WGS-84 ellipsiod for the position and observation direction \n"
          "described with *lat_1d* and *meridian_angle_1d*.\n"
          "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
-         "ellipsiod for the latitude value in *a_pos*."
+         "ellipsiod for the latitude value in *rte_pos*."
         ),
-        OUTPUT( a_pos_ ),
-        INPUT( a_pos_, atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
+        OUTPUT( rte_pos_ ),
+        INPUT( rte_pos_, atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -701,21 +701,21 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "a_posAddRgeoid" ),
+      ( NAME( "rte_posAddRgeoid" ),
         DESCRIPTION
         (
          "Adds a geoid radius by interpolating *r_geoid*.\n"
          "\n"
-         "This function assumes that the first element of *a_pos* is set\n"
+         "This function assumes that the first element of *rte_pos* is set\n"
          "to the geometric altitude for the position of the sensor. \n"
-         "The variable *a_pos* shall contain the radius instead of the\n"
+         "The variable *rte_pos* shall contain the radius instead of the\n"
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
          "obtained by interpolation of *r_geoid*. There is an error if the\n"
          "given position is outside the latitude and longitude grids."
         ),
-        OUTPUT( a_pos_ ),
-        INPUT( a_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
+        OUTPUT( rte_pos_ ),
+        INPUT( rte_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -723,27 +723,27 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "a_posSet" ),
+      ( NAME( "rte_posSet" ),
         DESCRIPTION
         (
-         "Sets *a_pos* to the given co-ordinates.\n"
+         "Sets *rte_pos* to the given co-ordinates.\n"
          "\n"
          "The keyword argument *r_or_z* is put in as first element of\n"
-         "*a_pos*, *lat* as the second element and *lon* as third element.\n"
-         "However, the length of *a_pos* is set to *atmosphere_dim* and\n"
+         "*rte_pos*, *lat* as the second element and *lon* as third element.\n"
+         "However, the length of *rte_pos* is set to *atmosphere_dim* and\n"
          "keyword arguments for dimensions not used are ignored.\n"
          "\n"
          "The first keyword argument can either be a radius, or an altitude\n"
          "above the geoid. In the latter case, a function such as\n"
-         "*a_posAddGeoidWGS84* should also be called to obtain a radius as\n"
-         "first element of *a_pos*.\n"
+         "*rte_posAddGeoidWGS84* should also be called to obtain a radius as\n"
+         "first element of *rte_pos*.\n"
          "\n"
          "Keywords: \n"
          "   r_or_z : Radius or geometrical altitude of sensor position.\n"
          "   lat : Latitude of sensor position.\n"
          "   lon : Longitude of sensor position."
         ),
-        OUTPUT( a_pos_ ),
+        OUTPUT( rte_pos_ ),
         INPUT( atmosphere_dim_ ),
         GOUTPUT(),
         GINPUT(),
@@ -767,7 +767,7 @@ md_data_raw.push_back
         OUTPUT( ppath_, ppath_step_ ),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, z_field_, r_geoid_, z_ground_, 
-               cloudbox_limits_, a_pos_, a_los_ ),
+               cloudbox_limits_, rte_pos_, rte_los_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -797,7 +797,7 @@ md_data_raw.push_back
         OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_,
                i_rte_, i_space_, ground_emission_, ground_los_, 
                ground_refl_coeffs_,
-               a_los_, a_pos_, a_gp_p_, a_gp_lat_, a_gp_lon_),
+               rte_los_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_),
         INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
                 scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
                 i_space_agenda_, ground_refl_agenda_, p_grid_, lat_grid_,
@@ -821,8 +821,8 @@ md_data_raw.push_back
          "\n"
          ),
         OUTPUT(),
-        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, a_gp_p_, a_gp_lat_, 
-               a_gp_lon_, a_los_,  cloudbox_on_, cloudbox_limits_, 
+        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, rte_gp_p_, rte_gp_lat_, 
+               rte_gp_lon_, rte_los_,  cloudbox_on_, cloudbox_limits_, 
                atmosphere_dim_, stokes_dim_, 
                scat_za_grid_, scat_aa_grid_, f_grid_),
         GOUTPUT(Matrix_),
@@ -1461,12 +1461,12 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Updates the i_field during the iteration. It performs the RT \n"
-         "calculation using a fixed value for the scattering integral stored \n"
+         "calculation using a fixed value for the scattering integral stored\n"
          "in *scat_field*.\n"
          "\n" 
         ),
-        OUTPUT(i_field_, abs_scalar_gas_, a_pressure_, a_temperature_,
-               a_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
+        OUTPUT(i_field_, abs_scalar_gas_, rte_pressure_, rte_temperature_,
+               rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
                scat_p_index_, ppath_step_),
         INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
@@ -1490,10 +1490,10 @@ md_data_raw.push_back
          "in *scat_field*.\n"
          "\n" 
          ),
-        OUTPUT(i_field_, abs_scalar_gas_, a_pressure_, a_temperature_,
-               a_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
+        OUTPUT(i_field_, abs_scalar_gas_, rte_pressure_, rte_temperature_,
+               rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
                scat_p_index_, ppath_step_, ground_los_, ground_emission_,
-	       ground_refl_coeffs_, a_los_, a_pos_, a_gp_p_),
+	       ground_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
         INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
@@ -1516,8 +1516,8 @@ md_data_raw.push_back
          "in *scat_field*.\n"
          "\n " 
         ),
-        OUTPUT(i_field_, abs_scalar_gas_, a_pressure_, a_temperature_,
-               a_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_, abs_vec_,
+        OUTPUT(i_field_, abs_scalar_gas_, rte_pressure_, rte_temperature_,
+               rte_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_, abs_vec_,
                scat_p_index_, scat_lat_index_, scat_lon_index_,  ppath_step_),
         INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
@@ -1542,8 +1542,8 @@ md_data_raw.push_back
          "in *scat_field*.\n"
          "\n " 
         ),
-        OUTPUT(i_field_, abs_scalar_gas_, a_pressure_, a_temperature_,
-               a_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_, abs_vec_,
+        OUTPUT(i_field_, abs_scalar_gas_, rte_pressure_, rte_temperature_,
+               rte_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_, abs_vec_,
                scat_p_index_, scat_lat_index_, scat_lon_index_,  ppath_step_),
         INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
@@ -1567,8 +1567,8 @@ md_data_raw.push_back
          "in *scat_field*.\n"
          "   " 
         ),
-        OUTPUT(i_field_, abs_scalar_gas_, a_pressure_, a_temperature_,
-                a_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
+        OUTPUT(i_field_, abs_scalar_gas_, rte_pressure_, rte_temperature_,
+                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
                scat_p_index_, ppath_step_),
         INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
@@ -1805,7 +1805,7 @@ md_data_raw.push_back
          "       All frequencies are assumed to have the same e."
         ),
         OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_ ),
-        INPUT( f_grid_, stokes_dim_, a_gp_p_, a_gp_lat_, a_gp_lon_, a_los_,
+        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                r_geoid_,z_ground_, t_field_ ),
         GOUTPUT( ),
@@ -1834,12 +1834,12 @@ md_data_raw.push_back
          "function and the calculated blackbody radiation is put into the\n"
          "first column of *ground_emission*.\n"
          "\n"
-         "Note that this function does not use *a_los*, *r_geoid* and\n"
+         "Note that this function does not use *rte_los*, *r_geoid* and\n"
          "*z_ground* as input, and if used inside *ground_refl_agenda*,\n"
          "ignore commands for those variables must be added to the agenda."
         ),
         OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_ ),
-        INPUT( f_grid_, stokes_dim_, a_gp_p_, a_gp_lat_, a_gp_lon_, 
+        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -2567,7 +2567,7 @@ md_data_raw.push_back
         OUTPUT( ppath_, ppath_step_ ),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, z_field_, r_geoid_, z_ground_, 
-               cloudbox_on_, cloudbox_limits_, a_pos_, a_los_ ),
+               cloudbox_on_, cloudbox_limits_, rte_pos_, rte_los_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -2653,7 +2653,7 @@ md_data_raw.push_back
          "   lraytrace : Maximum length of ray tracing steps.\n"
          "   lmax      : Maximum allowed length between path points."
         ),
-        OUTPUT( ppath_step_, a_pressure_, a_temperature_, a_vmr_list_, 
+        OUTPUT( ppath_step_, rte_pressure_, rte_temperature_, rte_vmr_list_, 
                 refr_index_ ),
         INPUT( refr_index_agenda_, ppath_step_, atmosphere_dim_, p_grid_, 
                lat_grid_, lon_grid_, z_field_, t_field_, vmr_field_, r_geoid_,
@@ -2722,7 +2722,7 @@ md_data_raw.push_back
          "To calculate these quantities for the atmsopheric mesh, execute:\n"
          "   RefrIndexFieldAndGradients(tensor4_1,p_grid,lat_grid,lon_grid)"
         ),
-        OUTPUT( refr_index_, a_pressure_, a_temperature_, a_vmr_list_ ),
+        OUTPUT( refr_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         INPUT( refr_index_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, r_geoid_, z_field_, t_field_, vmr_field_ ),
         GOUTPUT( Tensor4_ ),
@@ -2745,7 +2745,7 @@ md_data_raw.push_back
 		 "Forschungszentrum Karlsruhe."
         ),
         OUTPUT( refr_index_ ),
-        INPUT( a_pressure_, a_temperature_, a_vmr_list_ ),
+        INPUT( rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -2767,7 +2767,7 @@ md_data_raw.push_back
          "pp. 9664). "
         ),
         OUTPUT( refr_index_ ),
-        INPUT( a_pressure_, a_temperature_, a_vmr_list_, gas_species_ ),
+        INPUT( rte_pressure_, rte_temperature_, rte_vmr_list_, gas_species_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -2804,7 +2804,7 @@ md_data_raw.push_back
          "More text will be written (PE)."
         ),
         OUTPUT( y_, ppath_, ppath_step_, i_rte_,
-                a_pos_, a_los_, a_gp_p_, a_gp_lat_, a_gp_lon_, i_space_,
+                rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_,
                 ground_emission_, ground_los_, ground_refl_coeffs_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, i_space_agenda_,
                ground_refl_agenda_,
@@ -2836,8 +2836,8 @@ md_data_raw.push_back
          "The coefficients for the radiative transfer are averaged between\n" 
          "two successive propagation path points. \n"
         ),
-        OUTPUT( i_rte_, abs_vec_, ext_mat_, a_pressure_, a_temperature_,
-                a_vmr_list_, f_index_ ),
+        OUTPUT( i_rte_, abs_vec_, ext_mat_, rte_pressure_, rte_temperature_,
+                rte_vmr_list_, f_index_ ),
         INPUT( i_rte_, ppath_, f_grid_, stokes_dim_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_,
                vmr_field_, scalar_gas_absorption_agenda_, 
@@ -3125,11 +3125,11 @@ md_data_raw.push_back
 	 " max_iter.\n Negative values of rng_seed seed the random number generator \n "
 	 "according to system time, positive rng_seed values are taken literally.\n"
           ),
-        OUTPUT(ppath_, ppath_step_, i_montecarlo_error_, a_pos_, a_los_,
-	       a_gp_p_, a_gp_lat_, a_gp_lon_, i_space_, ground_emission_,
+        OUTPUT(ppath_, ppath_step_, i_montecarlo_error_, rte_pos_, rte_los_,
+	       rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_, ground_emission_,
 	       ground_los_, ground_refl_coeffs_, i_rte_, 
-	       scat_za_grid_,scat_aa_grid_, a_pressure_, a_temperature_, 
-	       a_vmr_list_, ext_mat_, abs_vec_, f_index_, scat_za_index_, scat_aa_index_),
+	       scat_za_grid_,scat_aa_grid_, rte_pressure_, rte_temperature_, 
+	       rte_vmr_list_, ext_mat_, abs_vec_, f_index_, scat_za_index_, scat_aa_index_),
         INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
 	      lon_grid_, z_field_, r_geoid_, z_ground_, cloudbox_limits_,
 	      stokes_dim_, rte_agenda_, i_space_agenda_, ground_refl_agenda_,
@@ -3203,9 +3203,9 @@ md_data_raw.push_back
         (
          "Adds a geoid radius by interpolating *r_geoid*.\n"
          "\n"
-         "This function assumes that the first element of *a_pos* is set\n"
+         "This function assumes that the first element of *rte_pos* is set\n"
          "to the geometric altitude for the position of the sensor. \n"
-         "The variable *a_pos* shall contain the radius instead of the\n"
+         "The variable *rte_pos* shall contain the radius instead of the\n"
          "altitude and that can be achieved by this function. The function\n"
          "adds a geoid radius to the given altitude. The geoid radius is\n"
          "obtained by interpolation of *r_geoid*. There is an error if the\n"
@@ -3220,13 +3220,13 @@ md_data_raw.push_back
  
  md_data_raw.push_back
     ( MdRecord
-      ( NAME( "shift_a_pos" ),
+      ( NAME( "shift_rte_pos" ),
         DESCRIPTION
         (
-         "Changes *a_pos* and *a_los* to the last positions in *ppath*"
+         "Changes *rte_pos* and *rte_los* to the last positions in *ppath*"
         ),
-        OUTPUT( a_pos_, a_los_ ),
-        INPUT( ppath_, a_pos_, a_los_ ),
+        OUTPUT( rte_pos_, rte_los_ ),
+        INPUT( ppath_, rte_pos_, rte_los_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -4013,7 +4013,7 @@ md_data_raw.push_back
          "Generic input: \n"
          "   Vector : A vector with true tangent altitudes\n"
         ),
-        OUTPUT( refr_index_, a_pressure_, a_temperature_, a_vmr_list_ ),
+        OUTPUT( refr_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         INPUT( refr_index_agenda_, sensor_pos_, p_grid_, t_field_, z_field_,
 			   vmr_field_, r_geoid_, atmosphere_dim_ ),
         GOUTPUT( Vector_ ),

@@ -1,5 +1,16 @@
 2003-07-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-614
+
+	* src/xxx: Changed name of variables like a_pos, a_los and a_gp_p
+	to start with rte_ throughout the code.
+	
+	* src/workspace.cc: Revised description of "my" variables.
+
+	* src/agendas.cc: Revised description of "my" agendas.
+
+2003-07-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-613
 
 	* src/rte.cc (get_radiative_background): Fixed the bug reported by

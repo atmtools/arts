@@ -55,9 +55,9 @@ void cloud_fieldsCalc(// Output:
 void cloud_ppath_update1D(
                   Tensor6View i_field,
                   // scalar_gas_abs_agenda:
-                  Numeric& a_pressure,
-                  Numeric& a_temperature,
-                  Vector& a_vmr_list,
+                  Numeric& rte_pressure,
+                  Numeric& rte_temperature,
+                  Vector& rte_vmr_list,
                   // opt_prop_xxx_agenda:
                   Tensor3& ext_mat,
                   Matrix& abs_vec, 
@@ -65,9 +65,9 @@ void cloud_ppath_update1D(
                   Matrix& ground_los,
                   Matrix& ground_emission,
                   Tensor4& ground_refl_coeffs,
-                  Vector& a_los,
-		  Vector& a_pos,
-		  GridPos& a_gp_p,
+                  Vector& rte_los,
+		  Vector& rte_pos,
+		  GridPos& rte_gp_p,
                   // ppath_step_agenda:
                   Ppath& ppath_step, 
                   const Index& p_index,
@@ -99,9 +99,9 @@ void cloud_ppath_update3D(
                   Tensor6View i_field,
                   VectorView stokes_vec,
                    // scalar_gas_abs_agenda:
-                  Numeric& a_pressure,
-                  Numeric& a_temperature,
-                  Vector& a_vmr_list,
+                  Numeric& rte_pressure,
+                  Numeric& rte_temperature,
+                  Vector& rte_vmr_list,
                   // opt_prop_xxx_agenda:
                   Tensor3& ext_mat,
                   Matrix& abs_vec,  

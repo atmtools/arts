@@ -72,8 +72,8 @@ void Cloudbox_ppath_rteCalc(
 			     Ppath&                ppathcloud,
 			     Ppath&                ppath,
 			     Ppath&                ppath_step,
-			     Vector&               a_pos,
-			     Vector&               a_los,
+			     Vector&               rte_pos,
+			     Vector&               rte_los,
 			     Vector&               cum_l_step,
 			     ArrayOfMatrix&        TArray,
 			     ArrayOfMatrix&        ext_matArray,
@@ -83,13 +83,13 @@ void Cloudbox_ppath_rteCalc(
 			     Vector&               scat_aa_grid,
 			     Tensor3&              ext_mat,
 			     Matrix&               abs_vec,
-			     Numeric&              a_pressure,
-			     Numeric&              a_temperature,
-			     Vector&               a_vmr_list,
+			     Numeric&              rte_pressure,
+			     Numeric&              rte_temperature,
+			     Vector&               rte_vmr_list,
 			     Matrix&               i_rte,
-			     GridPos&              a_gp_p,
-			     GridPos&              a_gp_lat,
-			     GridPos&              a_gp_lon,
+			     GridPos&              rte_gp_p,
+			     GridPos&              rte_gp_lat,
+			     GridPos&              rte_gp_lon,
 			     Matrix&               i_space,
 			     Matrix&               ground_emission,
 			     Matrix&               ground_los, 
@@ -143,7 +143,7 @@ void Cloudbox_ppath_rteCalc(
   //  cout << "Cloudbox_ppathCalc\n";
   Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
 		     p_grid,lat_grid,lon_grid,z_field,r_geoid,z_ground,
-		     cloudbox_limits, a_pos,a_los);
+		     cloudbox_limits, rte_pos,rte_los);
   if (record_ppathcloud)
     {
       //Record ppathcloud.  This is useful for debugging and educational 
@@ -161,21 +161,21 @@ void Cloudbox_ppath_rteCalc(
   
   //Calculate array of transmittance matrices
   TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, scat_za_grid, scat_aa_grid, ext_mat, abs_vec,
-	     a_pressure, a_temperature, a_vmr_list, scat_za_index, scat_aa_index, 
+	     rte_pressure, rte_temperature, rte_vmr_list, scat_za_index, scat_aa_index, 
 	     ppathcloud, opt_prop_gas_agenda, 
 	     opt_prop_part_agenda, scalar_gas_absorption_agenda, stokes_dim, 
 	     p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim);
   //Calculate contribution from the boundary of the cloud box
-  //changed to dummy_a_pos to see if a_pos was causing assertion failure at ppath.cc:1880
+  //changed to dummy_rte_pos to see if rte_pos was causing assertion failure at ppath.cc:1880
   //it appears that this was not the case
-  Vector dummy_a_pos = a_pos;
-  Vector dummy_a_los = a_los;  
-shift_a_pos(dummy_a_pos,dummy_a_los,ppathcloud);
-  sensor_pos(0,joker)=dummy_a_pos;
-  sensor_los(0,joker)=dummy_a_los;
+  Vector dummy_rte_pos = rte_pos;
+  Vector dummy_rte_los = rte_los;  
+  shift_rte_pos(dummy_rte_pos,dummy_rte_los,ppathcloud);
+  sensor_pos(0,joker)=dummy_rte_pos;
+  sensor_los(0,joker)=dummy_rte_los;
   //call rte_calc without input checking, sensor stuff, or verbosity
-  rte_calc( y_dummy, ppath, ppath_step, i_rte, a_pos, a_los, a_gp_p, a_gp_lat,
-	    a_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
+  rte_calc( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, rte_gp_lat,
+	    rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
 	    ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, atmosphere_dim,
 	    p_grid, lat_grid, lon_grid, z_field, t_field, r_geoid, z_ground, cloudbox_on_dummy,
 	    cloudbox_limits, scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
@@ -219,8 +219,8 @@ shift_a_pos(dummy_a_pos,dummy_a_los,ppathcloud);
    \param   z_ground          Ground altitude.
    \param   cloudbox_on       Flag to activate the cloud box.
    \param   cloudbox_limits   Index limits of the cloud box.
-   \param   a_pos             The position of the sensor.
-   \param   a_los             The line-of-sight of the sensor.
+   \param   rte_pos             The position of the sensor.
+   \param   rte_los             The line-of-sight of the sensor.
 
    \author Cory Davis (derived from ppath_start_stepping (Patrick Eriksson))
    \date   2003-06-19
@@ -234,8 +234,8 @@ void cloudbox_ppath_start_stepping(
         ConstTensor3View      z_field,
         ConstMatrixView       r_geoid,
         ConstMatrixView       z_ground,
-        ConstVectorView       a_pos,
-        ConstVectorView       a_los )
+        ConstVectorView       rte_pos,
+        ConstVectorView       rte_los )
 {
   // This function contains no checks or asserts as it is only a sub-function
   // to ppathCalc where the input is checked carefully.
@@ -261,14 +261,14 @@ void cloudbox_ppath_start_stepping(
       Vector    itw(4);
       
       
-	    gridpos( gp_lat, lat_grid, a_pos[1] );
-          gridpos( gp_lon, lon_grid, a_pos[2] );
+	    gridpos( gp_lat, lat_grid, rte_pos[1] );
+          gridpos( gp_lon, lon_grid, rte_pos[2] );
           interpweights( itw, gp_lat, gp_lon );
 
           rv_geoid  = interp( itw, r_geoid, gp_lat, gp_lon );
           rv_ground = rv_geoid + interp( itw, z_ground, gp_lat, gp_lon );
 
-//          out2 << "  sensor altitude        : " << (a_pos[0]-rv_geoid)/1e3 
+//          out2 << "  sensor altitude        : " << (rte_pos[0]-rv_geoid)/1e3 
 //               << " km\n";
 //
       // If downwards, calculate geometrical tangent position. If the tangent
@@ -279,17 +279,17 @@ void cloudbox_ppath_start_stepping(
 //      double geom_tan_z=-2, geom_tan_atmtop=-1;  // OK values if the variables
 
       // Put sensor position and LOS in ppath as first guess
-      ppath.pos(0,0) = a_pos[0];
-      ppath.pos(0,1) = a_pos[1];
-      ppath.pos(0,2) = a_pos[2];
-      ppath.los(0,0) = a_los[0];
-      ppath.los(0,1) = a_los[1];
+      ppath.pos(0,0) = rte_pos[0];
+      ppath.pos(0,1) = rte_pos[1];
+      ppath.pos(0,2) = rte_pos[2];
+      ppath.los(0,0) = rte_los[0];
+      ppath.los(0,1) = rte_los[1];
 
 
      // Geometrical altitude
       ppath.z[0] = ppath.pos(0,0) - rv_geoid;
 
-     // Use below the values in ppath (instead of a_pos and a_los) as 
+     // Use below the values in ppath (instead of rte_pos and rte_los) as 
      // they can be modified on the way.
      
      // Grid positions
@@ -453,8 +453,8 @@ assert(is_size(itw,2));       // We need 2 interpolation
    \param   T             Output: transmittance matrix ( I may have made this term up ).
    \param   K_abs         Output: absorption coefficient vector
    \param   temperature   Output: 
-   \param   a_pos         Output: position at pathlength along ppath
-   \param   a_los         Output: LOS at pathlength along ppath
+   \param   rte_pos         Output: position at pathlength along ppath
+   \param   rte_los         Output: LOS at pathlength along ppath
    \param   gp            Output: Gridpos of interpolated point
    \param   TArray        array of transmittance matrices
    \param   ext_matArray  array of extinction matrices
@@ -471,12 +471,12 @@ assert(is_size(itw,2));       // We need 2 interpolation
 */
 
 
-//interpolates TArray and PPath to give T and a_pos(los) at a given pathlength
+//interpolates TArray and PPath to give T and rte_pos(los) at a given pathlength
 void interpTArray(Matrix& T,
 		  Vector& K_abs,
 		  Numeric& temperature,
-		  Vector& a_pos,
-		  Vector& a_los,
+		  Vector& rte_pos,
+		  Vector& rte_los,
 		  ArrayOfGridPos& gp,
 		  const ArrayOfMatrix& TArray,
 		  const ArrayOfMatrix& ext_matArray,
@@ -511,10 +511,10 @@ void interpTArray(Matrix& T,
 
   for (Index i=0; i<2; i++)
     {
-      a_pos[i] = interp(itw,ppath.pos(Range(joker),i),gp[0]);
-      a_los[i] = interp(itw,ppath.los(Range(joker),i),gp[0]);
+      rte_pos[i] = interp(itw,ppath.pos(Range(joker),i),gp[0]);
+      rte_los[i] = interp(itw,ppath.los(Range(joker),i),gp[0]);
     }
-  a_pos[2] = interp(itw,ppath.pos(Range(joker),2),gp[0]);
+  rte_pos[2] = interp(itw,ppath.pos(Range(joker),2),gp[0]);
 }
 
 
@@ -526,7 +526,7 @@ void interpTArray(Matrix& T,
    , and (cos(za)+1) because upward radiances tend to be greater than downward
    radiances.
 
-   \param   a_los       Output: incident line of sight for subsequent ray-tracing.
+   \param   rte_los       Output: incident line of sight for subsequent ray-tracing.
    \param   rng         Rng random number generator instance
    \author Cory Davis
    \date   2003-06-19
@@ -534,12 +534,12 @@ void interpTArray(Matrix& T,
 
 		
 void Sample_los (
-		 Vector& a_los,
+		 Vector& rte_los,
 		 Rng& rng
 		 )
 {
-  a_los[0] = 180-RAD2DEG*acos(2*sqrt(rng.draw())-1);
-  a_los[1] = rng.draw()*360-180;
+  rte_los[0] = 180-RAD2DEG*acos(2*sqrt(rng.draw())-1);
+  rte_los[1] = rng.draw()*360-180;
 }
 
 
@@ -604,9 +604,9 @@ void TArrayCalc(
 		Vector& scat_aa_grid,
 		Tensor3& ext_mat,
 		Matrix& abs_vec,
-		Numeric&   a_pressure,
-		Numeric&   a_temperature,
-		Vector&    a_vmr_list,
+		Numeric&   rte_pressure,
+		Numeric&   rte_temperature,
+		Vector&    rte_vmr_list,
 		Index&    scat_za_index,
 		Index&    scat_aa_index,
 		//input
@@ -673,9 +673,9 @@ Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
   for (scat_za_index=0; scat_za_index<ppath.np; scat_za_index++)
     { 
       scat_aa_index=scat_za_index;
-      a_pressure    = p_ppath[scat_za_index];
-      a_temperature = t_ppath[scat_za_index];
-      a_vmr_list    = vmr_ppath(joker,scat_za_index);
+      rte_pressure    = p_ppath[scat_za_index];
+      rte_temperature = t_ppath[scat_za_index];
+      rte_vmr_list    = vmr_ppath(joker,scat_za_index);
       scalar_gas_absorption_agenda.execute( true );
       opt_prop_gas_agenda.execute( true );
 

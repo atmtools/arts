@@ -89,8 +89,8 @@ void Cloudbox_ppathCalc(
         const Matrix&         r_geoid,
         const Matrix&         z_ground,
         const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         a_pos,
-        const Vector&         a_los)
+        const Vector&         rte_pos,
+        const Vector&         rte_los)
 {
   // This function is a WSM but it is normally only called from RteCalc. 
   // For that reason, this function does not repeat input checks that are
@@ -101,8 +101,8 @@ void Cloudbox_ppathCalc(
 
   // Sensor position and LOS
   //
-  chk_vector_length( "a_pos", a_pos, atmosphere_dim );
-  chk_if_over_0( "sensor radius", a_pos[0] );
+  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
+  chk_if_over_0( "sensor radius", rte_pos[0] );
   if( atmosphere_dim < 3 )
     {
 	ostringstream os;
@@ -111,11 +111,11 @@ void Cloudbox_ppathCalc(
     }
   else
     {
-      chk_if_in_range( "sensor latitude", a_pos[1], -90, 90 );
-      chk_if_in_range( "sensor longitude", a_pos[2], -360, 360 );
-      chk_vector_length( "a_los", a_los, 2 );
-      chk_if_in_range( "sensor zenith angle", a_los[0], 0, 180 );
-      chk_if_in_range( "sensor azimuth angle", a_los[1], -180, 180 );
+      chk_if_in_range( "sensor latitude", rte_pos[1], -90, 90 );
+      chk_if_in_range( "sensor longitude", rte_pos[2], -360, 360 );
+      chk_vector_length( "rte_los", rte_los, 2 );
+      chk_if_in_range( "sensor zenith angle", rte_los[0], 0, 180 );
+      chk_if_in_range( "sensor azimuth angle", rte_los[1], -180, 180 );
     }
   
   //--- End: Check input ------------------------------------------------------
@@ -123,12 +123,12 @@ void Cloudbox_ppathCalc(
 
   // Some messages
   out2 << "  -------------------------------------\n";
-  out2 << "  sensor radius          : " << a_pos[0]/1e3 << " km\n";
+  out2 << "  sensor radius          : " << rte_pos[0]/1e3 << " km\n";
   if( atmosphere_dim == 3 )
-    out2 << "  sensor longitude       : " << a_pos[2] << "\n";
-  out2 << "  sensor zenith angle    : " << a_los[0] << "\n";
+    out2 << "  sensor longitude       : " << rte_pos[2] << "\n";
+  out2 << "  sensor zenith angle    : " << rte_los[0] << "\n";
   if( atmosphere_dim == 3 )
-    out2 << "  sensor azimuth angle   : " << a_los[1] << "\n";
+    out2 << "  sensor azimuth angle   : " << rte_los[1] << "\n";
   
   
   
@@ -136,7 +136,7 @@ void Cloudbox_ppathCalc(
 
   //
   cloudbox_ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
-                        lon_grid, z_field, r_geoid, z_ground,a_pos, a_los );
+                      lon_grid, z_field, r_geoid, z_ground, rte_pos, rte_los );
 
   out2 << "  -------------------------------------\n";
 
@@ -381,12 +381,12 @@ void ScatteringMonteCarlo (
 			   Ppath&                ppath,
 			   Ppath&                ppath_step,
 			   Vector&               i_montecarlo_error,
-			   Vector&               a_pos,
-			   Vector&               a_los,
+			   Vector&               rte_pos,
+			   Vector&               rte_los,
 			   //Stuff needed by RteCalc
-			   GridPos&              a_gp_p,
-			   GridPos&              a_gp_lat,
-			   GridPos&              a_gp_lon,
+			   GridPos&              rte_gp_p,
+			   GridPos&              rte_gp_lat,
+			   GridPos&              rte_gp_lon,
 			   Matrix&               i_space,
 			   Matrix&               ground_emission,
 			   Matrix&               ground_los, 
@@ -394,9 +394,9 @@ void ScatteringMonteCarlo (
 			   Matrix&               i_rte,
 			   Vector&               scat_za_grid,
 			   Vector&               scat_aa_grid,
-			   Numeric&              a_pressure,
-			   Numeric&              a_temperature,
-			   Vector&               a_vmr_list,
+			   Numeric&              rte_pressure,
+			   Numeric&              rte_temperature,
+			   Vector&               rte_vmr_list,
 			   //Other Stuff
 			   Tensor3&              ext_mat,
 			   Matrix&               abs_vec,
@@ -444,7 +444,7 @@ void ScatteringMonteCarlo (
   Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
   bool keepgoing;
   Index scattering_order;
-  Vector new_a_los(2);
+  Vector new_rte_los(2);
   Ppath ppathLOS,ppathcloud;
   Numeric g;
   Numeric pathlength;
@@ -484,10 +484,10 @@ void ScatteringMonteCarlo (
   //if rng_seed is < 0, keep time based seed, otherwise...
   if(rng_seed>=0){rng.seed(rng_seed);}
   
-  Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, a_pos, a_los, cum_l_stepLOS, 
+  Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, rte_pos, rte_los, cum_l_stepLOS, 
 		 TArrayLOS, ext_matArrayLOS, abs_vecArrayLOS,t_ppathLOS, scat_za_grid, 
-			 scat_aa_grid, ext_mat, abs_vec, a_pressure, a_temperature, 
-			 a_vmr_list, i_rte, a_gp_p, a_gp_lat, a_gp_lon, 
+			 scat_aa_grid, ext_mat, abs_vec, rte_pressure, rte_temperature, 
+			 rte_vmr_list, i_rte, rte_gp_p, rte_gp_lat, rte_gp_lon, 
 			 i_space, ground_emission, ground_los, ground_refl_coeffs, 
 			 f_index, scat_za_index, scat_aa_index,
 			 ppath_step_agenda, atmosphere_dim, p_grid, 
@@ -524,11 +524,11 @@ void ScatteringMonteCarlo (
 	    {
 	      //We need to calculate a new propagation path. In the future, we may be 
 	      //able to take some shortcuts here
-	      Cloudbox_ppath_rteCalc(ppathcloud, ppath, ppath_step, a_pos, a_los, cum_l_step, 
+	      Cloudbox_ppath_rteCalc(ppathcloud, ppath, ppath_step, rte_pos, rte_los, cum_l_step, 
 				    TArray, ext_matArray, abs_vecArray,t_ppath, scat_za_grid, 
-				     scat_aa_grid, ext_mat, abs_vec, a_pressure, 
-				     a_temperature, a_vmr_list, i_rte, a_gp_p, 
-				     a_gp_lat, a_gp_lon, i_space, ground_emission, 
+				     scat_aa_grid, ext_mat, abs_vec, rte_pressure, 
+				     rte_temperature, rte_vmr_list, i_rte, rte_gp_p, 
+				     rte_gp_lat, rte_gp_lon, i_space, ground_emission, 
 				     ground_los, ground_refl_coeffs, f_index, scat_za_index, 
 				     scat_aa_index, 
 				     ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
@@ -564,7 +564,7 @@ void ScatteringMonteCarlo (
 	    {
 	       //we have another scattering/emission point
 	      //Interpolate T, s_0, etc from ppath and Tarray
-	      interpTArray(T, K_abs, temperature, a_pos, a_los, pathlength_gp,TArray, 
+	      interpTArray(T, K_abs, temperature, rte_pos, rte_los, pathlength_gp,TArray, 
 			   ext_matArray,abs_vecArray, t_ppath, cum_l_step,pathlength, 
 			   stokes_dim, ppathcloud);
 	      //Calculate emission
@@ -581,12 +581,12 @@ void ScatteringMonteCarlo (
 		}
 	      mult(pathinc,Q,emissioncontri);
 	      pathI += pathinc;
-	      Sample_los(new_a_los,rng);
+	      Sample_los(new_rte_los,rng);
 	      //Calculate Phase matrix////////////////////////////////
-	      pha_mat_za_grid[0]=180-a_los[0];
-	      pha_mat_za_grid[1]=180-new_a_los[0];
-	      pha_mat_aa_grid[0]=180+a_los[1];
-	      pha_mat_aa_grid[1]=180+new_a_los[1];
+	      pha_mat_za_grid[0]=180-rte_los[0];
+	      pha_mat_za_grid[1]=180-new_rte_los[0];
+	      pha_mat_aa_grid[0]=180+rte_los[1];
+	      pha_mat_aa_grid[1]=180+new_rte_los[1];
 	      za_prop=0;
 	      aa_prop=0;
 	      pha_mat_sptFromData(pha_mat_spt,
@@ -594,7 +594,7 @@ void ScatteringMonteCarlo (
 				  za_prop, aa_prop, f_index, f_grid);
 	      //There should probably be some interpolation here for now just use the 
 	      //low gridpoint
-	      //  cout << "a_pos = "<<a_pos<<"\n";
+	      //  cout << "rte_pos = "<<rte_pos<<"\n";
 	      
 	      p_index=ppathcloud.gp_p[pathlength_gp[0].idx].idx;
 	      lat_index=ppathcloud.gp_lat[pathlength_gp[0].idx].idx;
@@ -604,12 +604,12 @@ void ScatteringMonteCarlo (
 			  atmosphere_dim, p_index, lat_index, 
 			  lon_index);
 	      Z=pha_mat(1,1,joker,joker);
-	      Z*=4*PI/g/(1-cos(DEG2RAD*a_los[0]));
+	      Z*=4*PI/g/(1-cos(DEG2RAD*rte_los[0]));
 	      mult(q,T,Z);
 	      mult(newQ,Q,q);
 	      Q=newQ;
 	      scattering_order+=1;
-	      a_los=new_a_los;
+	      rte_los=new_rte_los;
 	      cout <<"photon_number = "<<photon_number << 
 		", scattering_order = " <<scattering_order <<"\n";
 	      if (Q(0,0)<1e-6){ keepgoing=false;}
@@ -636,22 +636,22 @@ void ScatteringMonteCarlo (
 
 
 
-//! shift_a_pos
+//! shift_rte_pos
 /*! 
-   shifts a_pos and a_los to the end of ppath.  3D only!
+   shifts rte_pos and rte_los to the end of ppath.  3D only!
 
    \author Cory Davis
    \date   2003-07-19
 */
 
 
-void shift_a_pos(
-	Vector&         a_pos,
-      Vector&         a_los,
+void shift_rte_pos(
+	Vector&         rte_pos,
+      Vector&         rte_los,
 	const Ppath&    ppath)
 {
-a_pos = ppath.pos(ppath.np-1,Range(0,3));
-a_los = ppath.los(ppath.np-1,joker);
+rte_pos = ppath.pos(ppath.np-1,Range(0,3));
+rte_los = ppath.los(ppath.np-1,joker);
 }  
 
 

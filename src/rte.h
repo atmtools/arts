@@ -54,11 +54,11 @@
 void get_radiative_background(
               Matrix&         i_rte,
               Ppath&          ppath_step,
-              Vector&         a_pos,
-              Vector&         a_los,
-              GridPos&        a_gp_p,
-              GridPos&        a_gp_lat,
-              GridPos&        a_gp_lon,
+              Vector&         rte_pos,
+              Vector&         rte_los,
+              GridPos&        rte_gp_p,
+              GridPos&        rte_gp_lat,
+              GridPos&        rte_gp_lon,
               Matrix&         i_space,
               Matrix&         ground_emission, 
               Matrix&         ground_los, 
@@ -94,9 +94,9 @@ void ground_specular_los(
         ConstMatrixView    z_ground,
         ConstVectorView    lat_grid,
         ConstVectorView    lon_grid,
-        const GridPos&     a_gp_lat,
-        const GridPos&     a_gp_lon,
-        ConstVectorView    a_los );
+        const GridPos&     rte_gp_lat,
+        const GridPos&     rte_gp_lon,
+        ConstVectorView    rte_los );
 
 void rte_step_clearsky_with_emission(
               VectorView    stokes_vec,                
@@ -104,18 +104,18 @@ void rte_step_clearsky_with_emission(
         ConstMatrixView     ext_mat_gas,
         ConstVectorView     abs_vec_gas,
         const Numeric&      l_step,
-        const Numeric&      a_planck_value );
+        const Numeric&      rte_planck_value );
 
 void rte_calc(
               Vector&         y,
               Ppath&          ppath,
               Ppath&          ppath_step,
               Matrix&         i_rte,
-              Vector&         a_pos,
-              Vector&         a_los,
-              GridPos&        a_gp_p,
-              GridPos&        a_gp_lat,
-              GridPos&        a_gp_lon,
+              Vector&         rte_pos,
+              Vector&         rte_los,
+              GridPos&        rte_gp_p,
+              GridPos&        rte_gp_lat,
+              GridPos&        rte_gp_lon,
               Matrix&         i_space,
               Matrix&         ground_emission, 
               Matrix&         ground_los, 
@@ -161,7 +161,7 @@ rte_step(//Output and Input:
          ConstVectorView abs_vec_av,
          ConstVectorView sca_vec_av, 
          const Numeric& l_step,
-         const Numeric& a_planck_value );
+         const Numeric& rte_planck_value );
 
 
 void
@@ -172,7 +172,7 @@ stokes_vecGeneral(//WS Output and Input:
                   ConstVectorView abs_vec_av,
                   ConstVectorView sca_vec_av, 
                   const Numeric& l_step,
-                  const Numeric& a_planck_value );
+                  const Numeric& rte_planck_value );
 
 
 
