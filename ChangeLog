@@ -1,5 +1,17 @@
 2004-03-03  Oliver Lemke  <olemke@linux.net>
 
+	* arts-1-1-794
+
+	* src/xml_io_compound_types.cc (xml_read_from_stream,
+	write_to_stream): Ensure consistency of GriddedField3 with runtime
+	check. Sizes of p_grid, lat_grid and lon_grid must match the size of
+	the data.
+
+	* src/arts.h: Create empty std namespace. The namespace should be
+	known before using it. (Fix compilation with HP C++ compiler).
+
+2004-03-03  Oliver Lemke  <olemke@linux.net>
+
 	* arts-1-1-793
 
 	* src/arts.h: Only use namespaces if the compiler supports it.

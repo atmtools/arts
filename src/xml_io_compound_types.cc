@@ -119,12 +119,12 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
-//=== GriddedField ===========================================================
+//=== GriddedField3 ===========================================================
 
-//! Reads GriddedField from XML input stream
+//! Reads GriddedField3 from XML input stream
 /*!
   \param is_xml  XML Input stream
-  \param gfield  GriddedField return value
+  \param gfield  GriddedField3 return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -142,6 +142,24 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, gfield.lon_grid, pbifs);
   xml_read_from_stream (is_xml, gfield.data, pbifs);
 
+  if (gfield.p_grid.nelem () != gfield.data.npages ())
+    {
+      throw runtime_error("Number of pages in data not matching number "
+                          "of elements in p_grid");
+    }
+
+  if (gfield.lat_grid.nelem () != gfield.data.nrows ())
+    {
+      throw runtime_error("Number of rows in data not matching number "
+                          "of elements in lat_grid");
+    }
+
+  if (gfield.lon_grid.nelem () != gfield.data.ncols ())
+    {
+      throw runtime_error("Number of cols in data not matching number "
+                          "of elements in lon_grid");
+    }
+
   tag.read_from_stream (is_xml);
   tag.check_name ("/GriddedField3");
 }
@@ -150,7 +168,7 @@ xml_read_from_stream (istream& is_xml,
 //! Writes GriddedField3 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param gfield  GriddedField
+  \param gfield  GriddedField3
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
   \param name    Optional name attribute
 */
@@ -162,6 +180,24 @@ xml_write_to_stream (ostream& os_xml,
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
+
+  if (gfield.p_grid.nelem () != gfield.data.npages ())
+    {
+      throw runtime_error("Number of pages in data not matching number "
+                          "of elements in p_grid");
+    }
+
+  if (gfield.lat_grid.nelem () != gfield.data.nrows ())
+    {
+      throw runtime_error("Number of rows in data not matching number "
+                          "of elements in lat_grid");
+    }
+
+  if (gfield.lon_grid.nelem () != gfield.data.ncols ())
+    {
+      throw runtime_error("Number of cols in data not matching number "
+                          "of elements in lon_grid");
+    }
 
   open_tag.set_name ("GriddedField3");
   if (name.length ())
