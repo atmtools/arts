@@ -103,7 +103,6 @@ void RteCalc(
         const Sparse&         sensor_response,
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los,
-        const Matrix&         sensor_pol,
         const Vector&         sensor_rot,
         const Vector&         f_grid,
         const Index&          stokes_dim,
@@ -122,7 +121,7 @@ void RteCalc(
             atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
             r_geoid, z_ground, cloudbox_on,  cloudbox_limits, 
             scat_i_p, scat_i_lat, scat_i_lon, scat_za_grid, scat_aa_grid, 
-            sensor_response, sensor_pos, sensor_los, sensor_pol, sensor_rot, 
+            sensor_response, sensor_pos, sensor_los, sensor_rot,
             f_grid, stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid, 
             check_input, apply_sensor, 0, scat_za_interp );
 }

@@ -219,7 +219,7 @@ void get_radiative_background(
             ppath_copy( pp_copy, ppath );
 
             // Copy ground data to local variables the ground variables can be
-            // changed below by call of *rte_calc*. There is no need to copy 
+            // changed below by call of *rte_calc*. There is no need to copy
             // *ground_los*.
             Index     nlos = ground_los.nrows();
             Matrix    ground_emission_local(nf,stokes_dim);
@@ -242,7 +242,6 @@ void get_radiative_background(
             
             // Use a dummy variables for the sensor
             Vector   sensor_rot;
-            Matrix   sensor_pol;
             Sparse   sensor_response;
             Index    antenna_dim = 1;
             Vector   mblock_za_grid(1,0);
@@ -261,7 +260,7 @@ void get_radiative_background(
                    lon_grid, z_field, t_field, r_geoid, z_ground, 
                    cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat,
                    scat_i_lon, scat_za_grid, scat_aa_grid, 
-                   sensor_response, sensor_pos, sensor_los, sensor_pol,
+                   sensor_response, sensor_pos, sensor_los,
                           sensor_rot, f_grid, stokes_dim, antenna_dim,
                           mblock_za_grid, mblock_aa_grid, false, false, 
                           agenda_verb, 0 );
@@ -589,7 +588,6 @@ void rte_calc(
         const Sparse&         sensor_response,
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los,
-        const Matrix&         sensor_pol,
         const Vector&         sensor_rot,
         const Vector&         f_grid,
         const Index&          stokes_dim,
@@ -611,21 +609,14 @@ void rte_calc(
   if( antenna_dim == 1 )
     { naa = 1; }
 
-  // Sensor specific stuff
-  Index    npol = 0;   // Number of polarisation channels of the sensor
+  // Resize *y* to have the correct length.
+  y.resize( nmblock*nf*nza*naa*stokes_dim );
+
+  // Create vector for MPB radiances for 1 measurement block.
+  Vector ib( nf*nza*naa*stokes_dim );
+
+  // Number of elements of *y* for one mblock
   Index    nblock = sensor_response.nrows();
-  Vector   ib(0);      // MPB radiances for 1 measurement block.
-  if( apply_sensor )
-    {
-      npol = sensor_pol.nrows();
-
-      // Resize *y* to have the correct length.
-      y.resize( nmblock * nblock );
-
-      // Resize *ib* to have the correct length.
-      ib.resize( sensor_response.ncols() );
-    }
-
 
   //--- Check input -----------------------------------------------------------
 
@@ -727,7 +718,7 @@ void rte_calc(
       // Sensor
       //
       if( apply_sensor ) {
-        if( sensor_response.ncols() != nf * nza * naa * npol ) {
+        if( sensor_response.ncols() != nf * nza * naa * stokes_dim ) {
           ostringstream os;
           os << "The *sensor_response* matrix does not have the right size, \n"
              << "either the method *sensor_responseInit* has not been run \n"
@@ -735,13 +726,7 @@ void rte_calc(
              << "response methods has not been correctly configured.";
           throw runtime_error( os.str() );
         }
-        if( sensor_pol.ncols() != stokes_dim )
-          throw runtime_error( 
-         "The number of columns in *sensor_pol* must be equal *stokes_dim*." );
-        if( min(sensor_pol) < 0  ||  max(sensor_pol) > 1 )
-          throw runtime_error( 
-         "The WSV *sensor_pol* can only contains values in the range [0,1]." );
-        if( sensor_rot.nelem() != nmblock )
+      if( sensor_rot.nelem() != nmblock )
           throw runtime_error( 
                        "The length of *sensor_rot* must match *sensor_pos*." );
       }
@@ -775,8 +760,7 @@ void rte_calc(
   Index    nydone = 0;                 // Number of positions in y done
   Index    nbdone;                     // Number of positions in ib done
   Vector   los( sensor_los.ncols() );  // LOS of interest
-  Index    iaa, iza, iv;
-  Vector   irot( stokes_dim );         // Vector to hold rotated Stokes vector
+  Index    iaa, iza, ip;
   //
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
@@ -800,7 +784,7 @@ void rte_calc(
               ppath_calc( ppath, ppath_step, ppath_step_agenda, 
                           atmosphere_dim, p_grid, lat_grid, lon_grid, 
                           z_field, r_geoid, z_ground,
-                          cloudbox_on, cloudbox_limits, 
+                          cloudbox_on, cloudbox_limits,
                           sensor_pos(mblock_index,joker), los, 1, ag_verb );
 
               // Determine the radiative background
@@ -818,48 +802,33 @@ void rte_calc(
 	      
               // Execute the *rte_agenda*
               rte_agenda.execute( ag_verb );
-              
-              // Do polarisation
-              //
-              if( apply_sensor )
-                {
-                  for( iv=0; iv<nf; iv++ )
-                    {
-                      // Perform rotation
-                      if( sensor_rot[mblock_index] == 0 )
-                        { irot = i_rte(iv,joker); }
-                      else
-                        {
-                          // Add code for rotation here
-                          //Numeric cv = cos( DEG2RAD*sensor_rot[mblock_index] );
-                          //Numeric sv = sin( DEG2RAD*sensor_rot[mblock_index] );
-                          
-                          // An example on how it could look like:
-                          // i_rot[0] = cv*i_rte(iv,0) + sv*i_rte(iv,0);
 
-                          // Can we get into problem if stokes_dim < 4?
-                        }
+              // If the sensor should be applied *i_rte* is reshaped
+              // to a column vector to match *sensor_response*
+              if( apply_sensor ) {
+                for( ip=0; ip<stokes_dim; ip++ )
+                  ib[Range(nbdone+ip,nf,stokes_dim)] = i_rte(joker,ip);
 
-                      // Apply polarisation response matrix
-                      mult( ib[Range(nbdone,npol)], sensor_pol, irot );
-
-                      // Increase nbdone
-                      nbdone += npol;
-                    }
-                }
+              // Increase nbdone
+              nbdone += nf*stokes_dim;
+              }
             }
         }
 
       // Apply sensor response matrix
       //
       if( apply_sensor )
-        {
-          // Multiply ib with sensor_response and store the result in y
+          // Multiply ib with sensor_response and store the result in *y*
           mult( y[Range(nydone,nblock)], sensor_response, ib );
+      /* FIXME: Should *y* be created even if no sensor is applied?
+         NOTE: sensorOff doesn't turn off apply_sensor.
+      else
+          // Copy ib to *y*
+          y[Range(nydone,nblock)] = ib;
+      */
 
-          // Increase nbdone
-          nydone += nblock;
-        }
+      // Increase nydone
+      nydone += nblock;
     }
 }
 
@@ -1041,7 +1010,7 @@ void stokes_vecGeneral(
 
   Vector B_abs_vec(stokes_dim);
   B_abs_vec = abs_vec_av;
-  B_abs_vec *= rte_planck_value; 
+  B_abs_vec *= rte_planck_value;
   
   for (Index i=0; i<stokes_dim; i++) 
     b[i] = B_abs_vec[i] + sca_vec_av[i];  // b = abs_vec * B + sca_vec
