@@ -1,3 +1,4 @@
+*.swp
 INSTALL
 Makefile
 Makefile.in
