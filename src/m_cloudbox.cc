@@ -950,10 +950,14 @@ void ParticleTypeAdd( //WS Output:
   SingleScatteringData scat_data;
   scat_data_raw.push_back(scat_data);
   
-  //ArrayOfTensor3 pnd_field_data;
-  //pnd_field_raw.push_back(pnd_field_data);
-    
-  // Read amplitude matrix data:
+  // FIXME: PND field not implemented yet. 
+  // New structure for fields should be implemented before adapting this 
+  // routine. 
+
+  // Tensor3 pnd_field_data;
+  // pnd_field_raw.push_back(pnd_field_data);
+  
+   // Read amplitude matrix data:
   out2 << "Read single scattering data\n";
   xml_read_from_file( scat_data_file, scat_data_raw[scat_data_raw.nelem()-1]);
   //read_gridded_tensor3 (pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1]);
@@ -1281,96 +1285,89 @@ void CloudboxGetOutgoing(// WS Generic Output:
 
                                             "values from *cloudboxOff used?" );
 
- if(atmosphere_dim == 1)
-   {
-     assert ( is_size( scat_i_p,
-                       f_grid.nelem(), 2, 1, 1,
-                       scat_za_grid.nelem(), 1,
-                       stokes_dim ));
-     cout << "rte_gp_p.idx" << rte_gp_p.idx << "\n";
-     cout << "cloudbox_limits[0] " << cloudbox_limits[0] << "\n";
-      cout << "cloudbox_limits[1]" << cloudbox_limits[1] << "\n";
+  if(atmosphere_dim == 1)
+    {
+      assert ( is_size( scat_i_p,
+                        f_grid.nelem(), 2, 1, 1,
+                        scat_za_grid.nelem(), 1,
+                        stokes_dim ));
 
-     //Check, if grid_positions correspond to cloudbox boundary
-     if (rte_gp_p.idx != cloudbox_limits[0] &&
-	   rte_gp_p.idx != cloudbox_limits[1])
-       throw runtime_error(
-			   "Gridpositions have to be on the boundary of the "
-			   "cloudbox defined by *cloudbox_limits*."
-			   );
+      //Check, if grid_positions correspond to cloudbox boundary
+      if (rte_gp_p.idx != cloudbox_limits[0] &&
+          rte_gp_p.idx != cloudbox_limits[1])
+        throw runtime_error(
+                            "Gridpositions have to be on the boundary of the "
+                            "cloudbox defined by *cloudbox_limits*."
+                            );
+        
 
-     //Define a vector to interpolate the outgoing radiance which is
-     //defined on scat_za_grid on the requested zenith angle in
-     //*cloudbox_los*.
-       Vector zenith_angle(1);
-
-       zenith_angle[0] = rte_los[0];
-
-       //Array to store grid positions
-       ArrayOfGridPos gp(1);
-       gridpos(gp, scat_za_grid, zenith_angle);
-
-       //Matrix to store interpolation weights
-       //Matrix itw(scat_za_grid.nelem(),2);
-       Matrix itw(gp.nelem(),2);
-       interpweights(itw, gp);
-       
-       for(Index i = 0; i < stokes_dim; i++)
-	 {
-	   for(Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
-	     {
-	       //This variable holds the radiation for a specified frequency.
-	       //It is neccessairy because the interpolation is done for 
-	       //each frequency separately.
-	       Vector i_out_f(scat_za_grid.nelem());
+      //Define a vector to interpolate the outgoing radiance which is
+      //defined on scat_za_grid on the requested zenith angle in
+      //*cloudbox_los*.
+          Vector zenith_angle(1);
+      zenith_angle[0] = rte_los[0];
+     
+      //Array to store grid positions
+      ArrayOfGridPos gp(1);
+      gridpos(gp, scat_za_grid, zenith_angle);
+     
+      //Matrix to store interpolation weights
+      //Matrix itw(scat_za_grid.nelem(),2);
+      Matrix itw(gp.nelem(),2);
+      interpweights(itw, gp);
+     
+      for(Index i = 0; i < stokes_dim; i++)
+        {
+          for(Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
+            {
+              //This variable holds the radiation for a specified frequency.
+              //It is neccessairy because the interpolation is done for 
+              //each frequency separately.
+              Vector i_out_f(scat_za_grid.nelem());
+	     
+              //lower boundary
+              if(rte_gp_p.idx == cloudbox_limits[0])
+               {
+                 ConstVectorView i_f = scat_i_p(f_index, 0, 0, 0, 
+                                                Range(joker), 0, i);
+                 i_out_f = i_f;
+               }
+             //upper boundary
+             else if(rte_gp_p.idx == cloudbox_limits[1])
+               {
+                 ConstVectorView i_f = scat_i_p(f_index, 1, 0, 0,
+                                                Range(joker), 0, i);
+                 i_out_f = i_f;
+               }
+             //Define vector for the interpolated radiance.
+             Vector i_out_los(1);
 	       
-	       //lower boundary
-	       if(rte_gp_p.idx == cloudbox_limits[0])
-		 {
-		   ConstVectorView i_f = scat_i_p(f_index, 0, 0, 0, 
-						  Range(joker), 0, i);
-		   i_out_f = i_f;
-		 }
-	       //upper boundary
-	       else if(rte_gp_p.idx == cloudbox_limits[1])
-		 {
-		   ConstVectorView i_f = scat_i_p(f_index, 1, 0, 0,
-						  Range(joker), 0, i);
-		   i_out_f = i_f;
-		 }
-	       //Define vector for the interpolated radiance.
-	       Vector i_out_los(1);
+             //Do the interpolation:
+             interp(i_out_los, itw, i_out_f, gp);
 	       
-	       //Do the interpolation:
-	       interp(i_out_los, itw, i_out_f, gp);
-	       
-	       //Put the value into the matrix:
-	       i_out(f_index, i) = i_out_los[0];
-	     }//end frequency loop
-	 }//end stokes_dim loop
+             //Put the value into the matrix:
+             i_out(f_index, i) = i_out_los[0];
+           }//end frequency loop
+       }//end stokes_dim loop
             
    }// end atmosphere_dim 1
  
 
  if(atmosphere_dim == 3)
     {
-      Index N_lat = scat_i_p.nshelves();
-      Index N_lon = scat_i_p.nbooks();
-      Index N_p = scat_i_lat.nvitrines();
-
       //Check consistency of input.
 
       assert ( is_size( scat_i_p,
-                        f_grid.nelem(), 2, N_lat, N_lon, 
+                        f_grid.nelem(), 2, scat_i_p.nshelves(), scat_i_p.nbooks(), 
                         scat_za_grid.nelem(), scat_aa_grid.nelem(),
                         stokes_dim ));
 
       assert ( is_size( scat_i_lat,
-                        f_grid.nelem(), N_p, 2, N_lon, 
+                        f_grid.nelem(), scat_i_lat.nvitrines(), 2, scat_i_p.nbooks(), 
                         scat_za_grid.nelem(), scat_aa_grid.nelem(),
                         stokes_dim ));
       assert ( is_size( scat_i_lon,
-                        f_grid.nelem(), N_p, N_lat, 2, 
+                        f_grid.nelem(), scat_i_lat.nvitrines(), scat_i_p.nshelves(), 2, 
                         scat_za_grid.nelem(), scat_aa_grid.nelem(),
                         stokes_dim ));
 
@@ -1392,7 +1389,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
      //*cloudbox_los*.
      Vector zenith_angle(1), azimuth_angle(1);
      zenith_angle[0] = rte_los[0];
-     azimuth_angle[0] = rte_los[1];
+     azimuth_angle[0] = rte_los[1]-180;
 
      //Arrays to store grid positions
      ArrayOfGridPos gp_za(1), gp_aa(1);
@@ -1402,7 +1399,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
      //Matrices to store interpolation weights
      Tensor3 itw(1, 1, 4);
      interpweights(itw, gp_za, gp_aa);
-
+     
      for(Index i = 0; i < stokes_dim; i++)
        {
          for(Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
@@ -1525,6 +1522,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
              
              // Do the interpolation.
              interp(i_out_los, itw, i_out_f, gp_za, gp_aa);
+             
              
              //Put the value into the matrix:
              i_out(f_index, i) = i_out_los(0,0);

@@ -1,3 +1,11 @@
+2003-12-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-732
+	
+	* src/m_cloudbox.cc (CloudboxGetOutgoing): Fixed a bug in the 
+	3D part of the function. A wrong azimuth angle was taken on the 
+	cloudbox boundary as background for the clearsky part. 
+
 2003-12-01  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-731
