@@ -1,3 +1,25 @@
+2002-06-04  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-113
+
+	* doc/examples/absorption_example.arts.in: The first agenda
+	example works! Method lsWithCutoffAdd uses agenda els_agenda to
+	compute the elementary lineshape.
+
+	* src/methods.cc: Modified IO parameters of elsLorentz and
+	lsWithCutoffAdd. 
+
+	* src/workspace.cc (define_wsv_data): Introduced els, the WSV to
+	hold the output of the els_agenda.
+
+	* src/m_lineshapes.cc: Finished lsWithCutoffAdd.
+
+	* src/interpolation.cc (interp): Added to all interp functions an
+	assert that makes sure that the sum of all weights for the first
+	interpolated value is 1. This condition should be fulfilled for
+	all the weights, of course, but we check only the first set of
+	weights.
+
 2002-06-04 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-112

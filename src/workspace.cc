@@ -333,7 +333,23 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ("elem_ls_agenda",
+    ("els",
+     "The elementary lineshape function.\n"
+     "\n"
+     "Holds the result of a method calculating the elementary lineshape\n"
+     "function for a vector of frequencies. The difference to the lineshape\n"
+     "functions ls is that the frequency grid associated with els is always\n"
+     "relative to the line center.\n"
+     "\n"
+     "Usage: Agenda output, set by elementary lineshape\n"
+     "       functions, e.g., elsLorentz.\n"
+     "\n"
+     "Unit: 1/Hz.",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("els_agenda",
      "Compute an elementary lineshape.\n"
      "\n"
      "The elementary lineshape is a simple and symmetric lineshape, for\n"
@@ -347,13 +363,12 @@ void define_wsv_data()
      "ls_gamma). \n"
      "\n"
      "Output:    \n"
-     "   ls : The lineshape function [1/Hz]  \n"
+     "   els        : The lineshape function [1/Hz]  \n"
      "\n"
      "Input:    \n"
-     "   ls_f0     : Line center frequency [Hz].    \n"
-     "   ls_gamma  : Pressure broadened line width [Hz].    \n"
-     "   ls_sigma  : Doppler broadened line width [Hz]. (Optional)    \n"
-     "   ls_f_mono : Frequency grid [Hz].",
+     "   ls_gamma   : Pressure broadened line width [Hz].    \n"
+     "   ls_sigma   : Doppler broadened line width [Hz]. (Optional)    \n"
+     "   els_f_grid : Frequency grid [Hz].",
      Agenda_ ));
 
   wsv_data.push_back
@@ -518,7 +533,7 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ("ls_f_grid",
+    ("els_f_grid",
      "The frequency grid for the lineshape calculation.\n"
      "\n"
      "This is a local copy of the global f_grid. The copy is necessary,\n"

@@ -867,6 +867,11 @@ void interp( VectorView      	   ia,
   assert(is_size(ia,n));	//  ia must have same size as cgp.
   assert(is_size(itw,n,2));	// We need 2 interpolation
 				// weights for each position.
+
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,Range(joker)).sum() );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -921,6 +926,11 @@ void interp( VectorView      	   ia,
   assert(is_size(rgp,n));	// rgp must have same size as cgp.
   assert(is_size(itw,n,4));	// We need 4 interpolation
 				// weights for each position.
+  
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,Range(joker)).sum() );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -981,6 +991,11 @@ void interp( VectorView      	   ia,
   assert(is_size(rgp,n));	// rgp must have same size as cgp.
   assert(is_size(itw,n,8));	// We need 8 interpolation
 				// weights for each position.
+  
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,Range(joker)).sum() );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -1047,6 +1062,11 @@ void interp( VectorView      	   ia,
   assert(is_size(rgp,n));	// rgp must have same size as cgp.
   assert(is_size(itw,n,16));	// We need 16 interpolation
 				// weights for each position.
+  
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,Range(joker)).sum() );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -1119,6 +1139,11 @@ void interp( VectorView      	   ia,
   assert(is_size(rgp,n));	// rgp must have same size as cgp.
   assert(is_size(itw,n,32));	// We need 32 interpolation
 				// weights for each position.
+  
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,Range(joker)).sum() );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -1197,6 +1222,11 @@ void interp( VectorView      	   ia,
   assert(is_size(rgp,n));	// rgp must have same size as cgp.
   assert(is_size(itw,n,64));	// We need 64 interpolation
 				// weights for each position.
+  
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,Range(joker)).sum() );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -1620,6 +1650,11 @@ void interp( MatrixView       	   ia,
   assert(is_size(itw,nr,nc,4));	// We need 4 interpolation
 				// weights for each position.
 
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,0,Range(joker)).sum() );
+  
   // We have to loop all the points in the new grid:
   for ( Index ir=0; ir<nr; ++ir )
     {
@@ -1687,6 +1722,11 @@ void interp( Tensor3View       	   ia,
 		 np,nr,nc,
 		 8));
 
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,0,0,Range(joker)).sum() );
+  
   // We have to loop all the points in the new grid:
   for ( Index ip=0; ip<np; ++ip )
     {
@@ -1762,6 +1802,11 @@ void interp( Tensor4View       	   ia,
 		 nb,np,nr,nc,
 		 16));
 
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,0,0,0,Range(joker)).sum() );
+  
   // We have to loop all the points in the new grid:
   for ( Index ib=0; ib<nb; ++ib )
     {
@@ -1846,6 +1891,11 @@ void interp( Tensor5View       	   ia,
 		 ns,nb,np,nr,nc,
 		 32));
 
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,0,0,0,0,Range(joker)).sum() );
+  
   // We have to loop all the points in the new grid:
   for ( Index is=0; is<ns; ++is )
     {
@@ -1939,6 +1989,11 @@ void interp( Tensor6View       	   ia,
 		 nv,ns,nb,np,nr,nc,
 		 64));
 
+  // Check that interpolation weights are valid. The sum of all
+  // weights (last dimension) must always be one. We only check the
+  // first element.
+  assert( 1==itw(0,0,0,0,0,0,Range(joker)).sum() );
+  
   // We have to loop all the points in the new grid:
   for ( Index iv=0; iv<nv; ++iv )
     {

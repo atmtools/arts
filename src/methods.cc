@@ -908,25 +908,28 @@ void define_md_data()
   
   md_data.push_back
     ( MdRecord
-      ( NAME("lsLorentz"),
+      ( NAME("elsLorentz"),
 	DESCRIPTION
         (
 	 "The Lorentz lineshape.\n"
 	 "\n"
 	 "This computes the simple Lorentz lineshape as:\n"
 	 "\n"
-	 "ls[i] = 1/PI * gamma / ( (f[i]-f0)^2 + gamma^2 )\n"
+	 "els[i] = 1/PI * ls_gamma / ( (els_f_grid[i])^2 + ls_gamma^2 )\n"
+	 "\n"
+	 "Note that the frequency grid els_f_grid must hold offset frequencies\n"
+	 "from line center. Hence, the line center frequency is not needed as\n"
+	 "input.\n"
 	 "\n"
 	 "Output:\n"
-	 "   ls : The lineshape function [1/Hz]\n"
+	 "   els        : The lineshape function [1/Hz]\n"
 	 "\n"
 	 "Input:\n"
-	 "   ls_f0     : Line center frequency [Hz].\n"
-	 "   ls_gamma  : Line width [Hz].\n"
-	 "   ls_f_mono : Frequency grid [Hz]."
+	 "   ls_gamma   : Line width [Hz].\n"
+	 "   els_f_grid : Frequency grid [Hz]."
         ),
-	OUTPUT( ls_ ),
-	INPUT(  ls_f0_, ls_gamma_, ls_f_grid_ ),
+	OUTPUT( els_ ),
+	INPUT(  ls_gamma_, els_f_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -944,36 +947,42 @@ void define_md_data()
 	 "the simpler method lsAdd. What this method does is the following:\n"
 	 "\n"
 	 "0. Check if any part of f_grid is inside the cutoff. If not, return\n"
-	 "   immediately. \n"
+	 "   immediately.\n"
 	 "\n"
-	 "1. Create ls_f_grid from f_grid. Only frequencies inside the cutoff\n"
-	 "   are used, but the cutoff frequency itself is also added.\n"
+	 "1. Create els_f_grid from f_grid. Only frequencies inside the cutoff\n"
+	 "   are used, but the cutoff frequency itself is also added. Note that\n"
+	 "   els_f_grid is relative to ls_f0.\n"
 	 "\n"
-	 "1. Use elem_ls_agenda to compute a lineshape. (This\n"
+	 "2. Use els_agenda to compute a lineshape. (This\n"
 	 "   should be something very simple, e.g., Lorentz or Voigt.)\n"
 	 "\n"
-	 "2. Subtract the value at the cutoff.\n"
+	 "3. Find the generated lineshape in WSV els.\n"
 	 "\n"
-	 "3. Add to ls.\n"
+	 "4. Subtract the value at the cutoff.\n"
+	 "\n"
+	 "5. Add to ls.\n"
 	 "\n"
 	 "Output:\n"
-	 "   ls        : The lineshape added to previous content.\n"
-	 "   ls_f_grid : The frequency grid for the elementary\n"
-	 "               lineshape. (Comunication variable with called agenda.) \n"
+	 "   ls         : The lineshape added to previous content.\n"
+	 "   els        : The output of els_agenda.\n"
+	 "                (Comunication variable with called agenda.)\n"
+	 "   els_f_grid : The frequency grid for els_agenda.\n"
+	 "                (Comunication variable with called agenda.)\n"
 	 "\n"
 	 "Input:\n"
-	 "   ls             : The lineshape to add to.\n"
-	 "   elem_ls_agenda : Used to comute lineshape.\n"
-	 "   ls_cutoff      : Cutoff frequency (must be > 0).\n"
-	 "   ls_f0     	    : Line center frequency (may be < 0).\n"
-	 "   ls_gamma  	    : The pressure broadening parameter (must be > 0).\n"
-	 "   ls_sigma  	    : The Doppler broadening parameter (must be > 0).\n"
-	 "   f_grid    	    : Global frequency grid."
+	 "   ls         : The lineshape to add to.\n"
+	 "   els_agenda : Used to comute lineshape.\n"
+	 "   ls_cutoff  : Cutoff frequency (must be > 0).\n"
+	 "   ls_f0      : Line center frequency (may be < 0).\n"
+	 "   ls_gamma   : The pressure broadening parameter (must be > 0).\n"
+	 "   ls_sigma   : The Doppler broadening parameter (must be > 0).\n"
+	 "   f_grid     : Global frequency grid."
         ),
 	OUTPUT( ls_,
-		ls_f_grid_ ),
+		els_,
+		els_f_grid_ ),
 	INPUT(  ls_,
-		elem_ls_agenda_,
+		els_agenda_,
 		ls_cutoff_,
 		ls_f0_, ls_gamma_, ls_sigma_, f_grid_ ),
 	GOUTPUT(),

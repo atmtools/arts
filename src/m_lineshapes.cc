@@ -29,51 +29,40 @@
 #include "make_vector.h"
 #include "messages.h"
 
-/*! The Lorentz line shape. This is a quick and dirty implementation.
-
-    \param ls         Output: The shape function.
-    \param ls_f0      Line center frequency.
-    \param ls_gamma   The pressure broadening parameter.
-    \param ls_f_grid  The frequency grid.
-
-    \author Stefan Buehler 
-    \date 2000-06-16 */
-void lsLorentz(// WS Output:
-               Vector&        ls,
+//! The Lorentz line shape.
+/*! 
+  See online documentation for details.
+*/
+void elsLorentz(// WS Output:
+               Vector&        els,
                // WS Input:
-               const Numeric& ls_f0,
                const Numeric& ls_gamma,
-               const Vector&  ls_f_grid)
+               const Vector&  els_f_grid)
 {
   // PI:
   extern const Numeric PI;
 
-  Index nf = ls_f_grid.nelem();
-
-//   if (!is_size(ls,nf))
-//     {
-//       throw runtime_error("The lineshape vector ls must have the same size as\n"
-// 			  "the frequency grid ls_f_grid.");
-//     }
+  Index nf = els_f_grid.nelem();
 
   // Resize will do nothing if the size is already correct.
-  ls.resize(nf);
+  els.resize(nf);
 
   Numeric gamma2 = ls_gamma * ls_gamma;
   Numeric fac = ls_gamma/PI;
 
   for ( Index i=0; i<nf; ++i )
     {
-      Numeric deltaf = ls_f_grid[i]-ls_f0;
-      ls[i] =  fac / ( deltaf*deltaf + gamma2 );
+      Numeric deltaf = els_f_grid[i];
+      els[i] =  fac / ( deltaf*deltaf + gamma2 );
     }
 }
 
 void lsWithCutoffAdd(// WS Output:
                      Vector&         ls,
-                     Vector&         ls_f_grid,
+                     Vector&         els,
+                     Vector&         els_f_grid,
                      // WS Input:
-                     const Agenda&   elem_ls_agenda,
+                     const Agenda&   els_agenda,
                      const Numeric&  ls_cutoff,
                      const Numeric&  ls_f0,
                      const Numeric&  ls_gamma,
@@ -118,58 +107,57 @@ void lsWithCutoffAdd(// WS Output:
   if ( l_calc > u_cut ) return;
   if ( u_calc < l_cut ) return;
 
-  // Find out, where these adjusted l_cut and u_cut are, relative to
-  // f_grid:  
+  // Find out, where l_cut and u_cut are, relative to f_grid:
   Index l_i = 0;
   while ( f_grid[l_i] < l_cut ) ++l_i;
   Index u_i = f_grid.nelem()-1;
   while ( f_grid[u_i] > u_cut ) --u_i;
 
-  // Make ls_f_grid the right size. We need one additional element for
+  // Make els_f_grid the right size. We need one additional element for
   // the frequency at the cutoff.
   Index n = u_i - l_i + 1;
-  ls_f_grid.resize(n+1);
+  els_f_grid.resize(n+1);
   
-  // Copy that range from f_grid (last element of ls_f_grid stays
+  // Copy that range from f_grid (last element of els_f_grid stays
   // free): 
-  ls_f_grid[Range(0,n)] = f_grid[Range(l_i,n)];
+  els_f_grid[Range(0,n)] = f_grid[Range(l_i,n)];
 
-  // Put frequency at the cutoff in the last element:
-  ls_f_grid[n] = u_cut;
+  // Subtract center frequency (This subtracts also from the last
+  // element, but this doesn't matter, since we'll overwrite it
+  // anyway): 
+  els_f_grid -= ls_f0;
+
+  // Put cutoff frequency into the last element:
+  els_f_grid[n] = ls_cutoff;
 
   //----------------------------------------------------------------------
-  // From here on we deal with elem_ls_agenda
+  // From here on we deal with els_agenda
   //----------------------------------------------------------------------
 
   // Check that the agenda takes the right kind of input:
 
-  if ( !elem_ls_agenda.is_input(ls_f0_) )
+  if ( !els_agenda.is_input(els_f_grid_) )
     {
-      throw runtime_error("The agenda elem_ls_agenda must use ls_f0 as an input.");
+      throw runtime_error("The agenda els_agenda must use els_f_grid as an input.");
     }
 
-  if ( !elem_ls_agenda.is_input(ls_f_grid_) )
-    {
-      throw runtime_error("The agenda elem_ls_agenda must use ls_f_grid as an input.");
-    }
-
-  if ( !elem_ls_agenda.is_input(ls_gamma_) )
+  if ( !els_agenda.is_input(ls_gamma_) )
     {
       static bool have_reported_gamma = false;
       if ( !have_reported_gamma )
 	{
-	  out0 << "  Warning: The agenda elem_ls_agenda is not using ls_f_gamma.\n"
+	  out0 << "  Warning: The agenda els_agenda is not using ls_f_gamma.\n"
 	       << "  This may be ok, for example if you use a pure Doppler shape.\n";
 	  have_reported_gamma = true;
 	}
     }
   
-  if ( !elem_ls_agenda.is_input(ls_sigma_) )
+  if ( !els_agenda.is_input(ls_sigma_) )
     {
       static bool have_reported_sigma = false;
       if ( !have_reported_sigma )
 	{
-	  out0 << "  Warning: The agenda elem_ls_agenda is not using ls_f_sigma.\n"
+	  out0 << "  Warning: The agenda els_agenda is not using ls_f_sigma.\n"
 	       << "  This may be ok, for example if you use a pure Lorentz shape.\n";
 	  have_reported_sigma = true;
 	}
@@ -177,15 +165,25 @@ void lsWithCutoffAdd(// WS Output:
   
   // Check that the agenda gives the right kind of output:
 
-  if ( !elem_ls_agenda.is_output(ls_) )
+  if ( !els_agenda.is_output(els_) )
     {
-      throw runtime_error("The agenda elem_ls_agenda must generate ls as output.");
+      throw runtime_error("The agenda els_agenda must generate els as output.");
     }
 
   // Everything seems ok. Lets call the agenda:
-  elem_ls_agenda.execute();
+  els_agenda.execute();
 
-  // After this, the new line shape should be in 
-  
+  // After this, the new line shape should be in the WSV els!
 
+  // Subtract the value at the cutoff (stored in the last element):
+  els -= els[n];
+
+  // This means we also subtract the value at the cutoff from itself,
+  // so the last element should be zero afterwards. This is ok, sice
+  // we don't need it anymore.
+
+  // Add the new shape to the right place in ls:
+  ls[Range(l_i,n)] += els[Range(0,n)];
+
+  // Done.
 }

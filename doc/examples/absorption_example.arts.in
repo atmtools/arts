@@ -11,13 +11,24 @@ NumericSet(ls_f0){183e9}
 
 NumericSet(ls_gamma){1e9}
 
-VectorNLinSpace(ls_f_grid){
+NumericSet(ls_sigma){0}
+
+VectorNLinSpace(f_grid){
   start = 160e9
   stop  = 200e9
   n     = 100
 }
 
-lsLorentz{}
+VectorWriteXML(f_grid){""}
+
+VectorSetTakingLengthFromVector(ls,f_grid){0}
+
+AgendaSet(els_agenda){ elsLorentz{} }
+
+NumericSet(ls_cutoff){750e9}  # Cutoff at 750 GHz
+#NumericSet(ls_cutoff){10e9}  # Cutoff at 10 GHz
+
+lsWithCutoffAdd{}
 
 VectorWriteXML(ls){""}
 
