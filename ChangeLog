@@ -1,3 +1,14 @@
+2003-01-13  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-384
+
+	* doc/uguide/Makefile.am: Removed uguide.ps.
+
+	* doc/uguide/Figs/{*.eps,*/*.eps}: Removed all eps files.
+
+	* doc/uguide/Figs/{Makefile.am,*/Makefile.am}: Removed *eps from file
+	list.
+
 2003-01-13  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-383
