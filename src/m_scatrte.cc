@@ -2005,7 +2005,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                         stokes_dim, stokes_dim, 0.);
   Tensor4 abs_vec_field(p_up-p_low+1, lat_up-lat_low+1, lon_up-lon_low+1,
                         stokes_dim, 0.);
-
+ 
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
@@ -2018,6 +2018,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                            spt_calc_agenda, 
                            opt_prop_part_agenda, cloudbox_limits);
           
+
+         
 
           //==================================================================
           // Radiative transfer inside the cloudbox
@@ -2072,7 +2074,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                       for(Index lon_index = lon_up; lon_index > lon_low;
                           lon_index --)
                         {
-                          cloud_ppath_update3D(i_field, stokes_vec, 
+                          cloud_ppath_update3D(i_field, 
                                                rte_pressure, rte_temperature, 
                                                rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
@@ -2098,7 +2100,7 @@ void i_fieldUpdateSeq3D(// WS Output:
           p = p_up;
           lat = lat_low; 
           lon = lon_low;
-
+          
           // Stokes vector:
           //
           // For the radiative transfer equation we 
@@ -2106,11 +2108,11 @@ void i_fieldUpdateSeq3D(// WS Output:
           stokes_vec[joker] = i_field(0, lat_up - lat_low,
                                       lon_up - lon_low,
                                       scat_za_index, scat_aa_index, joker);  
-
+          
           ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
                                  z_field, r_geoid, scat_za_grid, 
                                  aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
-            
+          
           // Check whether the next point is inside or outside the
           // cloudbox. Only if the next point lies inside the
           // cloudbox a radiative transfer step caclulation has to
@@ -2127,7 +2129,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                       for(Index lon_index = lon_up; lon_index > lon_low;
                           lon_index --)
                         {
-                          cloud_ppath_update3D(i_field, stokes_vec, 
+                          cloud_ppath_update3D(i_field, 
                                                rte_pressure, rte_temperature, 
                                                rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
@@ -2181,7 +2183,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                       for(Index lon_index = lon_up; lon_index > lon_low;
                           lon_index --)
                         {
-                          cloud_ppath_update3D(i_field, stokes_vec, 
+                          cloud_ppath_update3D(i_field,  
                                                rte_pressure, rte_temperature, 
                                                rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
@@ -2235,7 +2237,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                       for(Index lon_index = lon_low; lon_index < lon_up;
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(i_field, stokes_vec, 
+                          cloud_ppath_update3D(i_field, 
                                                rte_pressure, rte_temperature, 
                                                rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
@@ -2290,7 +2292,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                       for(Index lon_index = lon_up; lon_index > lon_low;
                           lon_index --)
                         {
-                          cloud_ppath_update3D(i_field, stokes_vec, 
+                          cloud_ppath_update3D(i_field, 
                                                rte_pressure, rte_temperature, 
                                                rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
@@ -2345,7 +2347,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                       for(Index lon_index = lon_low; lon_index < lon_up;
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(i_field, stokes_vec, 
+                          cloud_ppath_update3D(i_field, 
                                                rte_pressure, rte_temperature, 
                                                rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
@@ -2399,7 +2401,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                       for(Index lon_index = lon_low; lon_index < lon_up;
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(i_field, stokes_vec, 
+                          cloud_ppath_update3D(i_field, 
                                                rte_pressure, rte_temperature, 
                                                rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
@@ -2453,7 +2455,7 @@ void i_fieldUpdateSeq3D(// WS Output:
                       for(Index lon_index = lon_low; lon_index < lon_up;
                           lon_index ++)
                         {
-                          cloud_ppath_update3D(i_field, stokes_vec, 
+                          cloud_ppath_update3D(i_field, 
                                                rte_pressure, rte_temperature, 
                                                rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
@@ -3185,13 +3187,16 @@ scat_fieldCalc(//WS Output:
           {
             for (Index lon_index = cloudbox_limits[4]; lon_index <= 
                    cloudbox_limits[5]; lon_index++)
-              for (Index scat_za_index = 0; scat_za_index < Nza; 
+              for (scat_za_index = 0; scat_za_index < Nza; 
                    scat_za_index++)
                 {
-                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                  for (scat_aa_index = 0; scat_aa_index < Naa; 
                        scat_aa_index ++)
                     {
-                      pha_mat_spt_agenda.execute();
+                      pha_mat_spt_agenda.execute(scat_za_index || p_index - cloudbox_limits[0] 
+                                                 || scat_aa_index || 
+                                                 lat_index - cloudbox_limits[2] ||
+                                                 lat_index - cloudbox_limits[4] );
 
                       pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                   atmosphere_dim, p_index, lat_index, 
@@ -3214,8 +3219,8 @@ scat_fieldCalc(//WS Output:
                                 i_field(p_index-cloudbox_limits[0],
                                         lat_index-cloudbox_limits[2],
                                         lon_index-cloudbox_limits[4],
-                                        scat_za_index,
-                                        scat_aa_index,
+                                        za_in,
+                                        aa_in,
                                         Range(joker));
                               
                               mult(product_field( za_in,
@@ -3259,7 +3264,7 @@ scat_fieldCalc(//WS Output:
   // end atmosphere_dim = 3
   
   //xml_write_to_file("i_field.xml", i_field);
-  //xml_write_to_file("scat_field.xml", scat_field);
+  xml_write_to_file("scat_field.xml", scat_field);
   out2 <<"Finished scattered field.\n"; 
  
 }

@@ -1033,10 +1033,11 @@ void scat_iPut(//WS Output:
   // Some sizes:
   Index N_f = f_grid.nelem();
   Index N_za = scat_za_grid.nelem();
-  Index N_p = p_grid.nelem();
-  Index N_lat = lat_grid.nelem();
-  Index N_lon = lon_grid.nelem();
   Index N_aa = scat_aa_grid.nelem();
+  Index N_p = cloudbox_limits[1] - cloudbox_limits[0] +1;
+  Index N_lat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+  Index N_lon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+  
  
   // Some checks:
   
@@ -1182,7 +1183,7 @@ void scat_iPut(//WS Output:
                                      za, aa, i) = 
                             i_field(p, lat, 0, za, aa, i);
                           //i_field at upper boundary
-                          scat_i_lat(f_index, p, lat, 1,
+                          scat_i_lon(f_index, p, lat, 1,
                                      za, aa, i) = 
                             i_field(p, lat, cloudbox_limits[5]-
                                     cloudbox_limits[4], za, aa, i);

@@ -1,3 +1,20 @@
+2003-10-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-702
+
+	* src/scatrte.{cc,h} (cloud_ppath_update3D): Some modifications were
+        necessary because of latest changes.
+        The ground emission is not yet implemented in the 3D function.
+	
+        * src/m_scatrte.cc (scat_fieldCalc): Fixed thescattering integral
+	bug also for 3D (had only been fixed in the 1D part).
+         
+        * src/interpolation.h: Included two missing headers for
+        calculation of interpolation weights of "blue" interpolations.
+         
+        * src/m_cloudbox.cc (scat_iPut): Fixed the 3D part. Size of
+        interface variables had to be adjusted.
+
 2003-10-16  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-701

@@ -269,8 +269,10 @@ void cloud_ppath_update1D(
 			  )
 {
   const Index stokes_dim = i_field.ncols();
-  const Index atmosphere_dim = cloudbox_limits.nelem()/2;    
-  Vector sca_vec_av(stokes_dim,0); 
+  const Index atmosphere_dim = 1;   
+ 
+  Vector sca_vec_av(stokes_dim,0);
+ 
   //Initialize ppath for 1D.
   ppath_init_structure(ppath_step, 1, 1);
   // See documentation of ppath_init_structure for understanding
@@ -282,6 +284,7 @@ void cloud_ppath_update1D(
   
   // Define the direction:
   ppath_step.los(0,0) = scat_za_grid[scat_za_index];
+  
   
   // Define the grid positions:
   ppath_step.gp_p[0].idx   = p_index;
@@ -340,8 +343,8 @@ void cloud_ppath_update1D(
       Vector vmr_int(ppath_step.np);
       Vector p_int(ppath_step.np);
       Vector stokes_vec(stokes_dim);
-      Tensor3 ext_mat_gas(stokes_dim, stokes_dim, ppath_step.np);
-      Matrix abs_vec_gas(stokes_dim, ppath_step.np);
+      //Tensor3 ext_mat_gas(stokes_dim, stokes_dim, ppath_step.np);
+      //Matrix abs_vec_gas(stokes_dim, ppath_step.np);
                         
       // Calculate the average of the coefficients for the layers
       // to be considered in the 
@@ -666,7 +669,11 @@ void cloud_ppath_update1D(
 }
 
 
-//! Radiative transfer calculation along a path inside the cloudbox (1D).
+
+
+
+
+//! Radiative transfer calculation along a path inside the cloudbox (3D).
 /*! 
   This function calculates the radiation field along a propagation path 
   step for a specified zenith direction. This function is used for the 
@@ -681,7 +688,6 @@ void cloud_ppath_update1D(
  WS Output:
   \param i_field Updated radiation field inside the cloudbox. 
   Variables used in scalar_gas_abs_agenda:
-  \param stokes_vec
   \param rte_pressure
   \param rte_temperature
   \param rte_vmr_list
@@ -692,12 +698,8 @@ void cloud_ppath_update1D(
   \param ppath_step
   WS Input:
   \param p_index // Pressure index
-  \param lat_index // Latitude index
-  \param lon_index // Longitude index
   \param scat_za_index // Index for proagation direction
-  \param scat_aa_index // Azimuth angle index
   \param scat_za_grid
-  \param scat_aa_grid
   \param cloudbox_limits 
   \param scat_field Scattered field.
   Calculate scalar gas absorption:
@@ -708,8 +710,6 @@ void cloud_ppath_update1D(
   Propagation path calculation:
   \param ppath_step_agenda
   \param p_grid
-  \param lat_grid
-  \param lon_grid
   \param z_field
   \param r_geoid
   Calculate thermal emission:
@@ -724,7 +724,6 @@ void cloud_ppath_update1D(
 */
 void cloud_ppath_update3D(
 			  Tensor6View i_field,
-			  VectorView stokes_vec,
 			  // scalar_gas_abs_agenda:
 			  Numeric& rte_pressure,
 			  Numeric& rte_temperature,
@@ -735,12 +734,12 @@ void cloud_ppath_update3D(
 			  // ppath_step_agenda:
 			  Ppath& ppath_step, 
 			  const Index& p_index,
-			  const Index& lat_index,
-			  const Index& lon_index,
+                          const Index& lat_index,
+                          const Index& lon_index,
 			  const Index& scat_za_index,
-			  const Index& scat_aa_index,
+                          const Index& scat_aa_index,
 			  ConstVectorView scat_za_grid,
-			  ConstVectorView scat_aa_grid,
+                          ConstVectorView scat_aa_grid,
 			  const ArrayOfIndex& cloudbox_limits,
 			  ConstTensor6View scat_field,
 			  // Calculate scalar gas absorption:
@@ -751,8 +750,8 @@ void cloud_ppath_update3D(
 			  // Propagation path calculation:
 			  const Agenda& ppath_step_agenda,
 			  ConstVectorView p_grid,
-			  ConstVectorView lat_grid,
-			  ConstVectorView lon_grid,
+                          ConstVectorView lat_grid,
+                          ConstVectorView lon_grid,
 			  ConstTensor3View z_field,
 			  ConstMatrixView r_geoid,
 			  // Calculate thermal emission:
@@ -764,46 +763,15 @@ void cloud_ppath_update3D(
 			  ConstTensor4View abs_vec_field
 			  )
 {
-  
-  
-  const Index atmosphere_dim = 3;
-  const Index stokes_dim = stokes_vec.nelem();
-  
-  assert( is_size( i_field, 
-                   (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
-                   (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
-                   (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
-                   scat_za_grid.nelem(), 
-                   scat_aa_grid.nelem(),
-                   stokes_dim));
-  
-  assert( is_size( scat_field, 
-                   (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
-                   (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
-                   (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
-                   scat_za_grid.nelem(), 
-                   scat_aa_grid.nelem(),
-                   stokes_dim));
-
-  assert( stokes_vec.nelem() == stokes_dim);
-
-  // Grid ranges inside cloudbox:
-  const Range p_range = Range(cloudbox_limits[0],
-                              (cloudbox_limits[1] - cloudbox_limits[0]+1) );
-  const Range lat_range = Range(cloudbox_limits[2],
-                                (cloudbox_limits[3] - cloudbox_limits[2]+1) );
-  const Range lon_range = Range(cloudbox_limits[4],
-                                (cloudbox_limits[5] - cloudbox_limits[4]+1) );
-
-  // The definition of the azimth angle grids is different for clearsky and
-  // cloudbox. (SHOULD BE FIXED!!!!)
+  const Index stokes_dim = i_field.ncols();
+  const Index atmosphere_dim = 3;   
+ 
+  Vector sca_vec_av(stokes_dim,0);
   Vector aa_grid(scat_aa_grid.nelem());
   for(Index i = 0; i<scat_aa_grid.nelem(); i++)
     aa_grid[i] = scat_aa_grid[i] - 180;
-  
-  Vector sca_vec_av(stokes_dim,0); 
 
-  //Initialize ppath for 3D.
+   //Initialize ppath for 3D.
   ppath_init_structure(ppath_step, 3, 1);
   // See documentation of ppath_init_structure for
   // understanding the parameters.
@@ -839,22 +807,17 @@ void cloud_ppath_update3D(
   ppath_step.gp_lon[0].idx   = lon_index;
   ppath_step.gp_lon[0].fd[0] = 0.;
   ppath_step.gp_lon[0].fd[1] = 1.;
-              
+
   // Call ppath_step_agenda: 
   ppath_step_agenda.execute(scat_za_index &&
                             scat_aa_index &&
                             p_index - cloudbox_limits[0] &&
                             lat_index - cloudbox_limits[2]&&
                             lon_index - cloudbox_limits[4]);
-              
-                    
-  // Check if the agenda has returned ppath.step with 
-  // reasonable values. 
-  // PpathPrint( ppath_step, "ppath");
-
-  const Numeric TOL = 1e-6;  
   
-  // Check whether the next point is inside or outside the
+  
+  const Numeric TOL = 1e-6;  
+   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
   // cloudbox a radiative transfer step caclulation has to
   // be performed.
@@ -883,7 +846,7 @@ void cloud_ppath_update3D(
       // reduced by one and the first interpolation weight 
       // is set to 1.
                         
-      for( Index i = 0; i<2; i++)
+      for( Index i = 0; i<ppath_step.np; i++)
         { 
           if (cloudbox_limits[1] == ppath_step.gp_p[i].idx &&
               fabs(ppath_step.gp_p[i].fd[0]) < TOL)
@@ -918,102 +881,99 @@ void cloud_ppath_update3D(
       ArrayOfGridPos cloud_gp_p = ppath_step.gp_p;
       ArrayOfGridPos cloud_gp_lat = ppath_step.gp_lat;
       ArrayOfGridPos cloud_gp_lon = ppath_step.gp_lon;
-                        
-      for(Index i = 0; i<2; i++ )
+       
+      for(Index i = 0; i<ppath_step.np; i++ )
         {
           cloud_gp_p[i].idx -= cloudbox_limits[0];  
           cloud_gp_lat[i].idx -= cloudbox_limits[2];
           cloud_gp_lon[i].idx -= cloudbox_limits[4];
         }
+      
 
-      Matrix itw_field;
-                        
-      interp_atmfield_gp2itw
-        (itw_field, atmosphere_dim,
-         p_grid[ Range( cloudbox_limits[0], 
-                        (cloudbox_limits[1]-
-                         cloudbox_limits[0]+1))],
-         lat_grid[ Range( cloudbox_limits[2], 
-                          (cloudbox_limits[3]-
-                           cloudbox_limits[2]+1))],
-         lon_grid[ Range( cloudbox_limits[4], 
-                          (cloudbox_limits[5]-
-                           cloudbox_limits[4]+1))],
-         cloud_gp_p, cloud_gp_lat, cloud_gp_lon );
+      Matrix itw(ppath_step.np, 8);
+      interpweights(itw, cloud_gp_p, cloud_gp_lat, cloud_gp_lon);
 
-      // Ppath_step always has 2 points, the starting
-      // point and the intersection point. If more points are included 
-      // it can become larger.
-      Tensor3 ext_mat_int(stokes_dim, stokes_dim, 
-                          ppath_step.np);
+      Matrix itw_p(ppath_step.np, 2);
+      interpweights(itw_p, cloud_gp_p);
+ 
+       // The zenith angles and azimuth of the propagation path are
+      //needed as we have to 
+      // interpolate the intensity field and the scattered field on the 
+      // right angles.
+      Vector los_grid_za = ppath_step.los(joker,0);
+      Vector los_grid_aa = ppath_step.los(joker,1);
+
+      for(Index i = 0; i<los_grid_aa.nelem(); i++)
+        los_grid_aa[i] = los_grid_aa[i] + 180;
+  
+
+      ArrayOfGridPos gp_za(los_grid_za.nelem()); 
+      gridpos(gp_za, scat_za_grid, los_grid_za);
+
+      ArrayOfGridPos gp_aa(los_grid_aa.nelem()); 
+      gridpos(gp_aa, scat_aa_grid, los_grid_aa);
+
+      Matrix itw_p_za(ppath_step.np, 32);
+      interpweights(itw_p_za, cloud_gp_p, cloud_gp_lat, cloud_gp_lon, 
+                    gp_za, gp_aa);
+      
+      
+      // Ppath_step normally has 2 points, the starting
+      // point and the intersection point.
+      // But there can be points in between, when a maximum 
+      // l_step is given. We have to interpolate on all the 
+      // points in the ppath_step.
+      
+      Tensor3 ext_mat_int(stokes_dim, stokes_dim, ppath_step.np);
       Matrix abs_vec_int(stokes_dim, ppath_step.np);
-      Matrix sca_vec_int(stokes_dim, ppath_step.np);
-      Matrix sto_vec_int(stokes_dim, ppath_step.np);
+      Matrix sca_vec_int(stokes_dim, ppath_step.np, 0.);
+      Matrix i_field_int(stokes_dim, ppath_step.np, 0.);
       Vector t_int(ppath_step.np);
       Vector vmr_int(ppath_step.np);
       Vector p_int(ppath_step.np);
-
-      // Interpolate ext_mat, abs_vec and sca_vec on the
-      // intersection point.
+      Vector stokes_vec(stokes_dim);
+      //Tensor3 ext_mat_gas(stokes_dim, stokes_dim, ppath_step.np);
+      //Matrix abs_vec_gas(stokes_dim, ppath_step.np);
+      
                         
-      // Calculate the average of the coefficients for the 
-      // layers to be considered in the 
+      // Calculate the average of the coefficients for the layers
+      // to be considered in the 
       // radiative transfer calculation.
-                        
+      
       for (Index i = 0; i < stokes_dim; i++)
-        {
-                            
-          // Extinction matrix requires a second loop 
-          // over stokes_dim
-          out3 << "Interpolate ext_mat:\n";
-          for (Index j = 0; j < stokes_dim; j++)
-            {
-              // Interpolation of ext_mat
+	{
+	  // Extinction matrix requires a second loop 
+	  // over stokes_dim
+	  out3 << "Interpolate ext_mat:\n";
+	  for (Index j = 0; j < stokes_dim; j++)
+	    {
+	      //
+	      // Interpolation of ext_mat
               //
-              interp_atmfield_by_itw
-                (ext_mat_int(i, j, joker),
-                 atmosphere_dim,
-                 p_grid[p_range],
-                 lat_grid[lat_range],
-                 lon_grid[lon_range],
-                 ext_mat_field( joker, joker, joker, i , j),
-                 "ext_mat_field",
-                 cloud_gp_p, cloud_gp_lat, cloud_gp_lon,
-                 itw_field);
+              interp( ext_mat_int(i, j, joker), itw, 
+		      ext_mat_field(joker, joker, joker, i, j), cloud_gp_p,
+                      cloud_gp_lat, cloud_gp_lon); 
             }
           // Absorption vector:
           //
           // Interpolation of abs_vec
           //
-          out3 << "Interpolate abs_vec:\n";
-          interp_atmfield_by_itw
-            (abs_vec_int(i,joker),
-             atmosphere_dim,
-             p_grid[p_range],
-             lat_grid[lat_range],
-             lon_grid[lon_range],
-             abs_vec_field( joker, joker, joker, i),
-             "abs_vec_field",
-             cloud_gp_p, cloud_gp_lat, cloud_gp_lon,
-             itw_field);
+           interp( abs_vec_int(i,joker), itw, 
+		  abs_vec_field(joker, joker, joker, i),
+                   cloud_gp_p, cloud_gp_lat, cloud_gp_lon); 
           //
           // Scattered field:
           //
           // Interpolation of sca_vec:
           //
           out3 << "Interpolate scat_field:\n";
-          interp_atmfield_by_itw
-            (sca_vec_int(i, joker),
-             atmosphere_dim,
-             p_grid[p_range], lat_grid[lat_range],
-             lon_grid[lon_range],
-             scat_field(joker, joker, joker, scat_za_index,
-                        scat_aa_index, i),
-             "scat_field",
-             cloud_gp_p,
-             cloud_gp_lat,
-             cloud_gp_lon,
-             itw_field);
+          interp( sca_vec_int(i, joker), itw_p_za, 
+		  scat_field(joker, joker, joker, joker, joker, i), cloud_gp_p,
+                  cloud_gp_lat, cloud_gp_lon, gp_za, gp_aa);
+	  out3 << "Interpolate i_field:\n";
+	  interp( i_field_int(i, joker), itw_p_za, 
+		  i_field(joker, joker, joker, joker, joker, i), cloud_gp_p,
+                  cloud_gp_lat, cloud_gp_lon, gp_za, gp_aa);
         }
       //
       // Planck function
@@ -1021,65 +981,53 @@ void cloud_ppath_update3D(
       // Interpolate temperature field
       //
       out3 << "Interpolate temperature field\n";
-      interp_atmfield_by_itw
-        (t_int,
-         atmosphere_dim,
-         p_grid, lat_grid,
-         lon_grid,
-         t_field(joker, joker, joker),
-         "t_field",
-         ppath_step.gp_p,
-         ppath_step.gp_lat,
-         ppath_step.gp_lon,
-         itw_field);
-
+      interp( t_int, itw, 
+             t_field(joker, joker, joker), ppath_step.gp_p, 
+             ppath_step.gp_lat, ppath_step.gp_lon);
+      
       // 
       // The vmr_field is needed for the gaseous absorption 
       // calculation.
       //
       const Index N_species = vmr_field.nbooks();
       //
-      // Interpolated vmr_list, holds a vmr_list for
-      //each point in 
+      // Interpolated vmr_list, holds a vmr_list for each point in 
       // ppath_step.
       //
       Matrix vmr_list_int(N_species, ppath_step.np);
-
+      
       for (Index i = 0; i < N_species; i++)
         {
           out3 << "Interpolate vmr field\n";
-          interp_atmfield_by_itw
-            (vmr_int,
-             atmosphere_dim,
-             p_grid, lat_grid, lon_grid,
-             vmr_field(i, joker, joker, joker),
-             "vmr_field",
-             ppath_step.gp_p,
-             ppath_step.gp_lat,
-             ppath_step.gp_lon,
-             itw_field);
-                  
+          interp( vmr_int, itw, 
+                  vmr_field(i, joker, joker, joker), ppath_step.gp_p,
+                  ppath_step.gp_lat, ppath_step.gp_lon );
+          
           vmr_list_int(i, joker) = vmr_int;
         }
-      // 
-      // Interpolate pressure, latitude, longitude
-      //
-      Matrix itw_p(ppath_step.gp_p.nelem(),2);
-      interpweights(itw_p, ppath_step.gp_p);
-
-      itw2p( p_int, p_grid, ppath_step.gp_p, itw_p); 
       
-      rte_vmr_list.resize(N_species);
-       
-      // Radiative transfer from one layer to the next,
-      // starting at the intersection with the next layer 
-      // and propagating to the considered point.
+      // 
+      // Interpolate pressure
+      //
+      itw2p( p_int, p_grid, ppath_step.gp_p, itw_p);
+      
+      // Radiative transfer from one layer to the next, starting
+      // at the intersection with the next layer and propagating
+      // to the considered point.
+      stokes_vec = i_field_int(joker, ppath_step.np-1);
+      
+      // ppath_what_background(ppath_step) tells the 
+      // radiative background.  More information in the 
+      // function get_radiative_background.
+      // if there is no background we proceed the RT
+
+      //Index bkgr = ppath_what_background(ppath_step);
+       rte_vmr_list.resize(N_species);
+
       for( Index k= ppath_step.np-1; k > 0; k--)
         {
           // Length of the path between the two layers.
           Numeric l_step = ppath_step.l_step[k-1];
-                    
-                            
           // Average temperature
           rte_temperature =   0.5 * (t_int[k] + t_int[k-1]);
           //
@@ -1089,14 +1037,16 @@ void cloud_ppath_update3D(
           // Average vmrs
           for (Index i = 0; i < N_species; i++)
             rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
-                                   vmr_list_int(i,k-1));
+                                     vmr_list_int(i,k-1));
           //
-          // Calculate scalar gas absorption and add it to 
-          // abs_vec and ext_mat.
+          // Calculate scalar gas absorption and add it to abs_vec 
+          // and ext_mat.
           //
+	      
           scalar_gas_absorption_agenda.execute(p_index);
+	      
           opt_prop_gas_agenda.execute(p_index);
-                            
+	      
           //
           // Add average particle extinction to ext_mat. 
           //
@@ -1105,20 +1055,20 @@ void cloud_ppath_update3D(
               for (Index j = 0; j < stokes_dim; j++)
                 {
                   ext_mat(0,i,j) += 0.5 *
-                    (ext_mat_int(i,j,k) +
-                     ext_mat_int(i,j,k-1));
+                    (ext_mat_int(i,j,k) + ext_mat_int(i,j,k-1));
                 }
               //
               // Add average particle absorption to abs_vec.
               //
               abs_vec(0,i) += 0.5 * 
                 (abs_vec_int(i,k) + abs_vec_int(i,k-1));
+		  
               //
               // Averaging of sca_vec:
               //
-              sca_vec_av[i] =  0.5*
-                (sca_vec_int(i,k) + sca_vec_int(i,k-1));
-              // 
+              sca_vec_av[i] =  0.5 *
+                (sca_vec_int(i, k) + sca_vec_int(i, k-1));
+		  
             }
           // Frequency
           Numeric f = f_grid[f_index];
@@ -1126,9 +1076,9 @@ void cloud_ppath_update3D(
           // Calculate Planck function
           //
           Numeric rte_planck_value = planck(f, rte_temperature);
-                            
+	      
           // Some messages:
-          out3 << "-------------------------------------\n";
+          out3 << "-----------------------------------------\n";
           out3 << "Input for radiative transfer step \n"
                << "calculation inside"
                << " the cloudbox:" << "\n";
@@ -1136,45 +1086,35 @@ void cloud_ppath_update3D(
                << stokes_vec 
                << "\n"; 
           out3 << "l_step: ..." << l_step << "\n";
-          out3 << "--------------------------------------\n";
+          out3 << "------------------------------------------\n";
           out3 << "Averaged coefficients: \n";
-          out3 << "Planck function: " 
-               << rte_planck_value << "\n";
-          out3 << "Scattering vector: " 
-               << sca_vec_av << "\n"; 
-          out3 << "Absorption vector: " 
-               << abs_vec(0,joker) << "\n"; 
-          out3 << "Extinction matrix: " 
-               << ext_mat(0,joker,joker) << "\n"; 
-                      
-                  
+          out3 << "Planck function: " << rte_planck_value << "\n";
+          out3 << "Scattering vector: " << sca_vec_av << "\n"; 
+          out3 << "Absorption vector: " << abs_vec(0,joker) << "\n"; 
+          out3 << "Extinction matrix: " << ext_mat(0,joker,joker) << "\n"; 
+	      
+	      
           assert (!is_singular( ext_mat(0,joker,joker)));
-                            
-          // Radiative transfer step calculation. 
-          // The Stokes vector is
-          // updated until the considered point is reached.
+	      
+          // Radiative transfer step calculation. The Stokes vector
+          // is updated until the considered point is reached.
           rte_step(stokes_vec, ext_mat(0,joker,joker), 
                    abs_vec(0,joker), 
                    sca_vec_av, l_step, rte_planck_value);
-        }
-                        
-                        
+	      
+        }// End of loop over ppath_step. 
       // Assign calculated Stokes Vector to i_field. 
       i_field(p_index - cloudbox_limits[0],
               lat_index - cloudbox_limits[2],
               lon_index - cloudbox_limits[4],
               scat_za_index, scat_aa_index,
               joker) = stokes_vec;
-      //
-    } //end if
-  // 
-  // If the intersection point is outside the cloudbox
-  // no radiative transfer step is performed.
-  // The value on the cloudbox boundary remains unchanged.
-  //
-                    
-              
+	
+
+     
+    }//end if inside cloudbox
 }
+
 
 
 /*! Calculated for a given point and a given direction one

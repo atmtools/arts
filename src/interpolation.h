@@ -213,6 +213,19 @@ void interpweights( MatrixView itw,
                     const ArrayOfGridPos& cgp );
 
 void interpweights( MatrixView itw,
+                    const ArrayOfGridPos& bgp,
+                    const ArrayOfGridPos& pgp,
+                    const ArrayOfGridPos& rgp,
+                    const ArrayOfGridPos& cgp );
+
+void interpweights( MatrixView itw,
+                    const ArrayOfGridPos& sgp,
+                    const ArrayOfGridPos& bgp,
+                    const ArrayOfGridPos& pgp,
+                    const ArrayOfGridPos& rgp,
+                    const ArrayOfGridPos& cgp );
+
+void interpweights( MatrixView itw,
                     const ArrayOfGridPos& vgp,
                     const ArrayOfGridPos& sgp,
                     const ArrayOfGridPos& bgp,
