@@ -173,8 +173,8 @@ test_opt_properties_SOURCES = \
 	make_vector.h\
 	make_vector.cc\
 	test_opt_properties.cc\
-	scat_properties.h\
-	scat_properties.cc\
+	scatproperties.h\
+	scatproperties.cc\
 	constants.cc\
 	logic.h\
 	logic.cc

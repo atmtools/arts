@@ -1,3 +1,17 @@
+2002-06-06  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-119
+
+	* src/scatproperties.cc : Added this file.  This contains some
+	auxiliary functions like amp2ext,amp2pha,amp2abs which is called 
+	by the workspace methods like ext_mat_sptCalc,pha_mat_sptCalc and
+	abs_vec_sptCalc( Adding these methods is my immediate task.)
+
+	* src/scatproperties.h : Added this file
+	
+	* src/test_opt_properties.cc (main): I added this file mainly 
+	to test the scattering routines in scatproperties.cc
+
 2002-06-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-118
@@ -23,7 +37,7 @@
 
 	* src/method_list.h: Removed.
 
-2002-06-05  Sreerekha T.R.  <claudia@sat.physik.uni-bremen.de>
+2002-06-05  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-117
 	
@@ -203,7 +217,7 @@
 	The new figures are made in xfig. So there should now not be any errors
 	due to this when making uguide_pdf.
 
-2002-05-31  Sreerekha T.R.  <claudia@sat.physik.uni-bremen.de>
+2002-05-31  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-108
 	
