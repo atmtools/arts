@@ -37,6 +37,8 @@ arts_SOURCES = \
 	getopt1.c \
 	globals_2.cc \
 	groups.cc \
+	interpolation.cc \
+	interpolation.h \
 	iotraits.h \
 	lineshapes.cc \
 	m_abs.cc \

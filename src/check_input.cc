@@ -1,5 +1,5 @@
-/* Copyright (C) 2000, 2001 Stefan Buehler  <sbuehler@uni-bremen.de>
-                            Axel von Engeln <engeln@uni-bremen.de>
+/* Copyright (C) 2002 Patrick Eriksson <patrick@rss.chalmers.se>
+                      Stefan Buehler   <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -37,7 +37,10 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <stdexcept>
 #include "check_input.h"
+#include "array.h"
+#include "logic.h"
 
 
 
@@ -430,8 +433,8 @@ void chk_atm_grids(
     \param    x            A variable holding an atmospheric field.
     \param    dim          The atmospheric dimensionality.
     \param    p_grid       The pressure grid.
-    \param    lat_grid   The latitude grid.
-    \param    lon_grid    The longitude grid.
+    \param    lat_grid     The latitude grid.
+    \param    lon_grid     The longitude grid.
 
     \author Patrick Eriksson 
     \date   2002-04-15
@@ -520,7 +523,7 @@ void chk_atm_surface(
     \param    lat_grid     	 The latitude grid.
     \param    lon_grid           The longitude grid.
     \param    blackbody_ground   Flag for treating the ground as a blackbody.
-    \param    cloudbox_on        Flag to active the cloud box.
+    \param    cloudbox_on        Flag to activate the cloud box.
     \param    cloudbox_limits    Index limits of the cloud box.
 
     \author Patrick Eriksson 

@@ -1,5 +1,4 @@
-/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
-                            Patrick Eriksson <patrick@rss.chalmers.se>
+/* Copyright (C) 2002 Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
                             
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -37,6 +36,8 @@
 
 #include "arts.h"
 #include "auto_md.h"
+#include "check_input.h"
+#include "math_funcs.h"
 #include "ppath.h"
 
 
@@ -92,12 +93,12 @@ void ppathCalc(
         const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         sensor_pos,
-        const Vector&         sensor_los )
+        const Vector&         a_pos,
+        const Vector&         a_los )
 {
   //--- Check input -----------------------------------------------------------
 
-  // Check that data sizes of grids, *z_field* and ground variables match the 
+  // Check that data sizes of grids, z_field and ground variables match the 
   // atmospheric dimensionality.
   //
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
@@ -107,7 +108,24 @@ void ppathCalc(
   chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
   chk_atm_surface( "z_ground", z_ground, atmosphere_dim, lat_grid, lon_grid );
 
-  // Check that *z_field* has strictly increasing pages.
+  // Check that latitude and longitude grids are inside OK ranges for 3D
+  if( atmosphere_dim == 3 )
+    {
+      if( lat_grid[0] < -90 )
+	throw runtime_error( 
+                  "The latitude grid cannot extend below -90 degrees for 3D" );
+      if( last(lat_grid) > 90 )
+	throw runtime_error( 
+                  "The latitude grid cannot extend above 90 degrees for 3D" );
+      if( lon_grid[0] < -360 )
+	throw runtime_error( 
+                "The longitude grid cannot extend below -360 degrees for 3D" );
+      if( last(lon_grid) > 360 )
+	throw runtime_error( 
+                "The longitude grid cannot extend above 360 degrees for 3D" );
+    }
+
+  // Check that z_field has strictly increasing pages.
   //
   for( Index row=0; row<z_field.nrows(); row++ )
     {
@@ -153,25 +171,130 @@ void ppathCalc(
 
   // Sensor position and LOS
   //
-  chk_vector_length( "sensor_pos", sensor_pos, atmosphere_dim );
-  chk_if_over_0( "sensor radius", sensor_pos[0] );
-  if( atmosphere_dim <= 2 )
-    chk_vector_length( "sensor_los", sensor_los, 1 );
+  chk_vector_length( "a_pos", a_pos, atmosphere_dim );
+  chk_if_over_0( "sensor radius", a_pos[0] );
+  if( atmosphere_dim == 1 )
+    {
+      chk_vector_length( "a_los", a_los, 1 );
+      chk_if_in_range( "sensor zenith angle", a_los[0], 0, 180 );
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      chk_vector_length( "a_los", a_los, 1 );
+      chk_if_in_range( "sensor zenith angle", a_los[0], -180, 180 );
+    }
   else
     {
-      chk_if_in_range( "sensor latitude", sensor_pos[1], -90, 90 );
-      chk_if_in_range( "sensor longitude", sensor_pos[2], -360, 360 );
-      chk_vector_length( "sensor_los", sensor_los, 2 );
-      chk_if_in_range( "sensor azimuth angle", sensor_los[1], -180, 180 );
+      chk_if_in_range( "sensor latitude", a_pos[1], -90, 90 );
+      chk_if_in_range( "sensor longitude", a_pos[2], -360, 360 );
+      chk_vector_length( "a_los", a_los, 2 );
+      chk_if_in_range( "sensor zenith angle", a_los[0], 0, 180 );
+      chk_if_in_range( "sensor azimuth angle", a_los[1], -180, 180 );
     }
-  chk_if_in_range( "sensor_los zenith angle", sensor_los[0], -180, 180 );
   
   //--- End: Check input ------------------------------------------------------
 
 
+  // Initiate the partial Ppath structure. 
+  // The function doing the work sets ppath_partial to the last point of the
+  // path inside the atmosphere, if the path is at all inside the atmosphere.
+  // If the background field is set by the function this flags that there is no
+  // path to follow (for example when the sensor is inside the cloud box).
+  // The function checks also that the sensor and the last point of the path 
+  // are at allowed locations.
   //
+  Ppath ppath_partial;
   //
+  ppath_start_stepping( ppath_partial, atmosphere_dim, p_grid, lat_grid, 
+                        lon_grid, z_field, r_geoid, z_ground, blackbody_ground,
+                        cloudbox_on, cloudbox_limits, a_pos, a_los );
 
+
+  // Perform propagation path steps until the starting point is found, which
+  // is flagged by ppath_step by setting the background field.
+  //
+  // The results of each step, returned by ppath_step as a new ppath_partial,
+  // are stored as an array of Ppath structures.
+  //
+  Array<Ppath>   ppath_array;
+         Index   np = ppath_partial.np;     // Counter for number of points of 
+  //                                           the path
+  ppath_array.push_back( ppath_partial );
+  //
+  /*
+  while( !ppath_what_background( ppath_partial ) )
+    {
+      // Call ppath_step
+
+      np += ppath_partial.np;
+
+      // Put new ppath_partial in ppath_array
+      ppath_array.push_back( ppath_partial );
+    }
+  */
+  
+  // Combine all structures in ppath_array to form the return Ppath structure.
+  //
+  ppath_init_structure( ppath, atmosphere_dim, np );
+  //
+  np = 0;   // Now used as counter for points moved to ppath
+  //
+  for( Index i=0; i<ppath_array.nelem(); i++ )
+    {
+      Index n = ppath_array[i].np;
+      if( n )
+	{
+	  ppath.pos( Range(np,n), Range(joker) ) = ppath_array[i].pos;
+	  ppath.z[ Range(np,n) ]                 = ppath_array[i].z;
+	  if( i > 0 )
+	    ppath.l_step[ Range(np-1,n) ]     = ppath_array[i].z;
+	  for( Index j=0; j<n; j++ )
+	    {
+	      ppath.gp_p[np+j]                = ppath_array[i].gp_p[j];
+	      if( atmosphere_dim >= 2 )
+		{
+		  ppath.gp_lat[np+j]          = ppath_array[i].gp_lat[j];
+		  if( atmosphere_dim == 3 )
+		    ppath.gp_lon[np+j]        = ppath_array[i].gp_lon[j];
+		}
+	    }
+	  ppath.los( Range(np,n), Range(joker) ) = ppath_array[i].los;
+	  if( ppath_array[i].ground )
+	    {
+	      ppath.ground                    = ppath_array[i].ground;
+	      ppath.i_ground                  = np + ppath_array[i].i_ground;
+	    }
+	  if( ppath_array[i].tan_pos.nelem() )
+	    ppath.tan_pos                     = ppath_array[i].tan_pos;
+	  if( ppath_array[i].symmetry )
+	    {
+	      ppath.symmetry                  = ppath_array[i].symmetry;
+	      ppath.i_symmetry                = np + ppath_array[i].i_symmetry;
+	    }
+	  np += n;
+	}
+    }  
+  ppath.background = ppath_array[ppath_array.nelem()-1].background;
+
+  // Print the structure
+  if( 1 )
+    {
+      PrintIndex( ppath.dim, "dim" );
+      PrintIndex( ppath.np, "np" );
+      PrintMatrix( ppath.pos, "pos" );
+      PrintVector( ppath.z, "z" );
+      PrintVector( ppath.l_step, "l_step" );
+      PrintMatrix( ppath.los, "los" );
+      PrintString( ppath.background, "background" );
+      PrintIndex( ppath.ground, "ground" );
+      if( ppath.ground )
+        PrintIndex( ppath.i_ground, "i_ground" );
+      PrintIndex( ppath.symmetry, "symmetry" );
+      if( ppath.symmetry )
+        PrintIndex( ppath.i_symmetry, "i_symmetry" );
+      if( ppath.tan_pos.nelem() )
+	PrintVector( ppath.tan_pos, "tan_pos" );
+    }
 }
 
 

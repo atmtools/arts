@@ -414,10 +414,52 @@ void define_md_data()
 
   md_data.push_back     
     ( MdRecord
+      ( NAME("PrintArrayOfIndex"),
+	DESCRIPTION
+	(
+	 "Prints the value of an ArrayOfIndex variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( ArrayOfIndex_ ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("PrintArrayOfString"),
+	DESCRIPTION
+	(
+	 "Prints the value of an ArrayOfString variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( ArrayOfString_ ),
+	KEYWORDS( ),
+	TYPES( )));
+ 
+ md_data.push_back     
+    ( MdRecord
+      ( NAME("PrintIndex"),
+	DESCRIPTION
+	(
+	 "Prints the value of an Index variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( Index_ ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data.push_back     
+    ( MdRecord
       ( NAME("PrintMatrix"),
 	DESCRIPTION
 	(
-	 "Prints a matrix onto the screen."
+	 "Prints a matrix varaible onto the screen."
 	),
 	OUTPUT( ),
 	INPUT( ),
@@ -428,10 +470,38 @@ void define_md_data()
 
   md_data.push_back     
     ( MdRecord
+      ( NAME("PrintNumeric"),
+	DESCRIPTION
+	(
+	 "Prints the value of a Numeric variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( Numeric_ ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("PrintString"),
+	DESCRIPTION
+	(
+	 "Prints the value of a String variable onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( String_ ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data.push_back     
+    ( MdRecord
       ( NAME("PrintVector"),
 	DESCRIPTION
 	(
-	 "Prints a vector onto the screen."
+	 "Prints a vector varaible onto the screen."
 	),
 	OUTPUT( ),
 	INPUT( ),

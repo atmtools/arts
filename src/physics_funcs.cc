@@ -1,5 +1,5 @@
-/* Copyright (C) 2000, 2001 Patrick Eriksson <patrick@rss.chalmers.se>
-                            Stefan Buehler   <sbuehler@uni-bremen.de>
+/* Copyright (C) 2002 Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+                      Stefan Buehler   <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -39,6 +39,11 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <math.h>
+#include <stdexcept>
+#include "physics_funcs.h"
+#include "messages.h"          
+#include "mystring.h"
 #include "physics_funcs.h"
 
 extern const Numeric PLANCK_CONST;
@@ -147,7 +152,7 @@ void invrayjean (
        << f.nelem() * za.nelem() << "\n"
        << "f_mono.nelem():  " << f.nelem() << "\n"
        << "za_pencil.nelem(): " << za.nelem();
-    throw runtime_error(os.str());
+    throw runtime_error(os.str()); 
   }
 
   for ( Index i=0; i<nf; i++ )

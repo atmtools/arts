@@ -1,5 +1,5 @@
-/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
-                            Patrick Eriksson <patrick@rss.chalmers.se>
+/* Copyright (C) 2002 Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+                      Stefan Buehler   <sbuehler@uni-bremen.de>
                             
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -39,9 +39,11 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include "array.h"
 #include "arts.h"
 #include "check_input.h"
 #include "messages.h"
+#include "mystring.h"
 
 
 
@@ -67,6 +69,61 @@ void Exit()
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
+   \date   2002-05-18
+*/
+void PrintArrayOfIndex(
+        // WS Generic Input:
+        const ArrayOfIndex&   x,
+        // WS Generic Input Names:
+        const String&         x_name )
+{
+  cout << "  *" << x_name <<"* =";
+  for( Index i=0; i<x.nelem(); i++ )
+    cout << " " << x[i] << "\n";
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-18
+*/
+void PrintArrayOfString(
+        // WS Generic Input:
+        const ArrayOfString&   x,
+        // WS Generic Input Names:
+        const String&          x_name )
+{
+  cout << "  *" << x_name <<"*:\n";
+  for( Index i=0; i<x.nelem(); i++ )
+    cout << "     " << x[i] << "\n";
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-18
+*/
+void PrintIndex(
+        // WS Generic Input:
+        const Index&   x,
+        // WS Generic Input Names:
+        const String&  x_name )
+{
+  cout << "  *" << x_name <<"* = " << x << "\n";;
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
    \date   2002-05-16
 */
 void PrintMatrix(
@@ -84,6 +141,40 @@ void PrintMatrix(
       cout << "\n";
     }
 }
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-18
+*/
+void PrintNumeric(
+        // WS Generic Input:
+        const Numeric&   x,
+        // WS Generic Input Names:
+        const String&    x_name )
+{
+  cout << "  *" << x_name <<"* = " << x << "\n";;
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-18
+*/
+void PrintString(
+        // WS Generic Input:
+        const String&  x,
+        // WS Generic Input Names:
+        const String&  x_name )
+{
+  cout << "  *" << x_name <<"* = " << x << "\n";;
+}
+
 
 
 /**

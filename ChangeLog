@@ -1,3 +1,31 @@
+2002-05-19  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-87
+
+	* src/m_ppath.cc: Further work on the function. The structure of the
+	function is now there, but many details are missing.
+
+	* src/ppath.cc: Created the functions:
+	   geometrical_tangent_radius
+	   geompath_za_at_r
+	   geompath_lat_at_za
+	   angle_after_ground_1D
+	   ppath_init_structure
+	   ppath_set_background
+	   ppath_what_background
+	   ppath_start_stepping
+	
+	* src/Makefile.am (arts_SOURCES): Added interpolation.{h,cc}.
+
+	* src/m_general.cc: Added the WSFs:
+	   PrintArrayOfIndex
+	   PrintArrayOfString
+	   PrintIndex
+	   PrintNumeric
+	   PrintString
+
+	* src/workspace.cc: Improved the text for some variables.
+
 2002-05-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-86

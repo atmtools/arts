@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001 Patrick Eriksson <patrick@rss.chalmers.se>
+/* Copyright (C) 2002 Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,9 +17,9 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 //   File description
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /*!
   \file   ppath.h
   \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
@@ -36,43 +36,67 @@
 #define ppath_h
 
 
-#include <math.h>
 #include "arts.h"
-#include "check_input.h"
-#include "math_funcs.h"
+#include "interpolation.h"
 #include "matpackI.h"
-#include "messages.h"
 #include "mystring.h"
-#include "logic.h"
 
 
 
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 //   The Ppath structure
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 struct Ppath {
-  Index     dim;
-  Index     np;
-  Matrix    pos;
-  Vector    z;
-  Vector    l_step;
-  Matrix    gridindex;
-  Matrix    los;
-  String    background;
-  Index     ground;
-  Index     i_ground;
-  Vector    tan_pos;
-  Index     symmetry;
-  Index     i_symmetry;
+  Index             dim;
+  Index             np;
+  Matrix    	    pos;
+  Vector    	    z;
+  Vector            l_step;
+  ArrayOfGridPos    gp_p;
+  ArrayOfGridPos    gp_lat;
+  ArrayOfGridPos    gp_lon;
+  Matrix    	    los;
+  String    	    background;
+  Index     	    ground;
+  Index     	    i_ground;
+  Vector    	    tan_pos;
+  Index     	    symmetry;
+  Index     	    i_symmetry;
 };
 
 
 
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 //   Functions from ppath.cc
-////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
+void ppath_init_structure( 
+	      Ppath&      ppath,
+	const Index&      atmosphere_dim,
+	const Index&      np );
+
+void ppath_set_background( 
+	      Ppath&      ppath,
+        const Index&      case_nr );
+
+Index ppath_what_background( 
+	      Ppath&      ppath );
+
+void ppath_start_stepping(
+              Ppath&          ppath,
+        const Index&          atmosphere_dim,
+        const Vector&         p_grid,
+        const Vector&         lat_grid,
+        const Vector&         lon_grid,
+        const Tensor3&        z_field,
+        const Matrix&         r_geoid,
+        const Matrix&         z_ground,
+        const Index&          blackbody_ground,
+        const Index&          cloudbox_on, 
+        const ArrayOfIndex&   cloudbox_limits,
+        const Vector&         sensor_pos,
+	const Vector&         sensor_los );
 
 
 #endif  // ppath_h
