@@ -1,5 +1,11 @@
 2002-11-14  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-286
+
+	* ami/xml/xmlReadVector.m: Added.
+
+2002-11-14  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-285
 
 	* ami/xml/xmlReadTensor6.xml: Quick hack for Sreerekha. Exchanged
