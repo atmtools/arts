@@ -8,6 +8,17 @@
 
 	* Merged notes.txt with the uguide. Removed notes.txt.
 
+	* doc/examples: Added this directory. Inside is my example file
+	example1.arts. Output files of this example are listed in
+	.cvsignore. 
+
+	* doc/examples/arts: A script that calls the built arts
+	executable. 
+
+	* data/spectrocopy/hitran96: Added this directory. It contains a
+	section of the Hitran catalogue up to about 900 GHz. Also contains
+	a smaller file with just H2O lines.
+	
 
 2000-06-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
