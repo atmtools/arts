@@ -17,9 +17,11 @@
  */
 
 /**
-  \file mpi.h
+  \file arts_mpi.h
 
-  This is header contains declarations needed for MPI support in ARTS.
+  This header contains declarations needed for MPI support in ARTS.
+
+  If arts is configured without MPI support, all this code is omitted.
   
   \author Oliver Lemke
   \date 2003-05-07
@@ -27,7 +29,7 @@
 
 #include "arts.h"
 
-/* Define a macro to put around code that should only be used when
+/* Define a macro that should be put around code which is only used when
  * mpi support is active.
  */
 #ifdef HAVE_MPI
@@ -42,10 +44,52 @@
 
 #include <mpi.h>
 
-void mpi_startup (int &argc, char **&argv);
+/**
+  The MPI Manager class. This class is initializes the MPI interface
+  and provides access to information about the current MPI status.
 
-void mpi_shutdown ();
+  \author Oliver Lemke <olemke@uni-bremen.de>
+  \date 2003-05-14
+  */
+class MpiManager
+{
+public:
+  /** Default constructor */
+  MpiManager ();
 
-#endif
-#endif
+  /** Destructor. Calls mpi finalize if the MPI interface was initialized. */
+  virtual ~MpiManager ();
+
+  /** Starts up the MPI interface. */
+  void startup (int &argc, char **&argv);
+
+  /** Returns the number of processes used for the current arts run.
+
+    \return Number of processes involved.
+   */
+  int get_nprocs () { return nprocs; }
+
+  /** Returns the MPI rank of the current process.
+
+    \return Rank of the current process.
+   */
+  int get_rank () { return rank; }
+
+private:
+  /** Status of MPI. True if MPI initialization was successful. */
+  bool initialized;
+
+  /** Number of processes used for the current arts run. */
+  int  nprocs;
+
+  /** MPI rank of the current process. */
+  int  rank;
+};
+
+
+extern MpiManager mpi_manager;
+
+#endif // ARTS_MPI_H_INCLUDED
+
+#endif // HAVE_MPI
 

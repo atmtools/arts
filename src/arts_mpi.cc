@@ -1,6 +1,5 @@
 /* Copyright (C) 2003 Oliver Lemke
- *
- * This program is free software; you can redistribute it and/or
+ * * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of the
  * License, or (at your option) any later version.
@@ -16,20 +15,41 @@
  * USA
  */
 
+/**
+  \file arts_mpi.cc
+
+  Implementation of the MPI interface for arts.
+
+  \author Oliver Lemke <olemke@uni-bremen.de>
+  \date 2003-05-14
+  */
+
 #include "arts.h"
 
 #ifdef HAVE_MPI
 
 #include "arts_mpi.h"
 
-void mpi_startup (int &argc, char **&argv)
+/** Global MPI Manager */
+MpiManager mpi_manager;
+
+
+MpiManager::MpiManager () : initialized (false)
 {
-  MPI::Init (argc, argv);
 }
 
-void mpi_shutdown ()
+
+MpiManager::~MpiManager ()
 {
-  MPI::Finalize ();
+  if (initialized)
+    MPI::Finalize ();
+}
+
+
+void MpiManager::startup (int &argc, char **&argv)
+{
+  MPI::Init (argc, argv);
+  initialized = true;
 }
 
 #endif
