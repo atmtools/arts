@@ -1,3 +1,17 @@
+2002-06-12  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-134
+	
+	* configure.in: Updated copyright notice.
+
+	* doc/uguide/agendas.tex: Put in Section about WSVs. Started
+	Section about WSMs. Agenda WSMs and Section on Agendas still
+	missing. 
+
+	* src/workspace.cc: Only cosmetic changes.
+
+	* src/methods.cc: Only cosmetic changes in elsLorentz.
+
 2002-06-12  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-133

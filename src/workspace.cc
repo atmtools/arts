@@ -483,14 +483,14 @@ void define_wsv_data()
        "Dimensions: [part_types,stokes_dim, stokes_dim]"
        ),
       GROUP( Tensor3_ )));
-  
-  
+    
   wsv_data.push_back
     (WsvRecord
      ( NAME( "f_grid" ),
        DESCRIPTION
        (
-	"The frequency grid for monochromatic pencil beam calculations.\n"
+	"The frequency grid for monochromatic pencil beam\n"
+	"calculations.\n"
 	"\n"
 	"Text will be written (PE).\n"
 	"\n"

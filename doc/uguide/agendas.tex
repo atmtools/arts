@@ -13,21 +13,37 @@ This chapter deals with the main components of ARTS: \emph{Workspace
 Furthermore, it explains the use of \textindex{agendas}, a special
 group of WSVs.
 
+%To make the text easier to read, we will often use \emph{variables}
+%as a synonym for workspace variables, and \emph{methods} as a synonmy
+%for workspace methods. So:
+
+%\begin{quote}
+%\begin{tabular}{lclcl}
+%  workspace variable &=& WSV &=& variable,\\
+%  workspace method   &=& WSM &=& method
+%\end{tabular}
+%\end{quote}
+
 \levelb{Implementation files}
 %----------------------------
 \label{sec:agendas:files}
 
 The two most important files are:
 \begin{itemize}
-\item \fileindex{workspace.cc}: Definition and documentation of WSVs.
-\item\fileindex{methods.cc}: Definition and documentation of WSMs. The
+\item \fileindex{workspace.cc}:\\
+  Definition and documentation of WSVs.
+\item\fileindex{methods.cc}:\\
+  Definition and documentation of WSMs. The
   implementations of WSMs reside in files named
   \artsstyle{m\_something.cc}.
+\item \fileindex{agendas.cc}:\\
+  Definition and documentation of agendas.
 \end{itemize}
 It is very likely that you will have to edit these. Less likely, but
 possibly, you also have to edit:
 \begin{itemize}
-\item \fileindex{groups.cc}: Definition of WSV groups.
+\item \fileindex{groups.cc}:\\
+  Definition of WSV groups.
 \end{itemize}
 
 \vspace{2ex}
@@ -56,26 +72,36 @@ for each file to be generated.  The generation of the
 \artsstyle{auto\_} files happens automatically when you do a
 \artsstyle{make}. Therefore, never edit any of these files.
 
-Finally, there are some files that contain the internal implementation
-of WSVs, WSMs, and agendas. These are:
+Next, there are some files that contain the internal implementation
+of WSVs and WSMs. These are:
 \begin{itemize}
 \item \fileindex{wsv\_aux.h}, \fileindex{wsv\_aux.cc},
-  \fileindex{workspace\_aux.cc}: Implementation of class
+  \fileindex{workspace\_aux.cc}:\\
+  Implementation of class
   \typeindex{WsvRecord}, which stores the lookup information for one
   WSV, plus auxiliary stuff for the workspace.
-\item \fileindex{methods.h}, \fileindex{methods\_aux.cc}:
+\item \fileindex{methods.h}, \fileindex{methods\_aux.cc}:\\
   Implementation of class \typeindex{MdRecord}, which stores the
   lookup information for one WSM.
-\item \fileindex{agenda.h}, \fileindex{agenda.cc}: Implementation of
-  class \typeindex{MRecord}, which stores runtime information for one WSM,
-  and class \typeindex{Agenda}, which stores an agenda.
 \end{itemize}
 
-\vspace{2ex}
-As mentioned above, you will not have to modify any of these files,
-they are listed here just for reference. Normally, you only have to
-modify \artsstyle{workspace.cc} and \artsstyle{methods.cc}.
+Finally, there are some files that contain the internal implementation
+of agendas. These are:
+\begin{itemize}
+\item \fileindex{agenda\_class.h}, \fileindex{agenda\_class.cc}:\\
+  Implementation of class \typeindex{MRecord}, which stores runtime
+  information for one WSM, and class \typeindex{Agenda}, which stores
+  an agenda.
+\item \fileindex{agenda\_record.h}, \fileindex{agenda\_record.cc}:\\
+  Implementation of class \typeindex{AgRecord}, which is used to store
+  agenda lookup information.
+\end{itemize}
+  
 
+\vspace{2ex} As mentioned above, you will not have to modify any of
+the implementation files, they are listed here just for reference.
+Normally, you only have to modify \artsstyle{workspace.cc},
+\artsstyle{methods.cc}, and \artsstyle{agendas.cc}.
 
 \levelb{Workspace Variables or WSVs}
 %--------------------------
@@ -95,23 +121,28 @@ definition looks like this:
 
 {\small
 \begin{verbatim}
-  wsv_data.push_back
-   (WsvRecord
-    ("f_grid",
-     "The frequency grid for monochromatic pencil beam\n"
-     "calculations.\n"
-     "\n"
-     "Usage:      Set by the user.\n"
-     "\n"
-     "Unit:       Hz",
-     Vector_ ));
-\end{verbatim}}
+wsv_data.push_back
+  (WsvRecord
+   ( NAME( "f_grid" ),
+     DESCRIPTION
+     (
+      "The frequency grid for monochromatic pencil beam\n"
+      "calculations.\n"
+      "\n"
+      "Usage:      Set by the user.\n"
+      "\n"
+      "Unit:       Hz"
+      ),
+     GROUP( Vector_ )));
+\end{verbatim}
+}
 
+\noindent
 All WSV definitions have the same three elements:
 \begin{enumerate}
-\item The \emph{name} of the WSV. It has to be used with exactly the
-  same name in the code.
-\item The \emph{documentation}. This is normally much longer than in
+\item The \emph{name}, exactly the
+  same name has to be used in the code.
+\item The \emph{description}, which is normally much longer than in
   the example here. It must fully describe the WSV, its purpose, and
   its normal usage. See file \artsstyle{workspace.cc} for instructions
   how to write the documentation.
@@ -119,36 +150,187 @@ All WSV definitions have the same three elements:
   group as something similar to a C++ data type. The WSV in the
   example belongs to the group \artsstyle{Vector}. The allowed groups
   are defined in file \fileindex{groups.cc}. Note that you have to add
-  an underscore to the group name.
-  % FIXME: Add reference to list of groups in appendix here, when implemented.
+  an underscore to the group name. A list of all groups can be found
+  in Appendix \ref{app:groups}.
 \end{enumerate}
 
+\noindent
+See Section \ref{sec:development:extending} for explicit
+instructions how to add a new WSV to ARTS.
+
 \levelb{Workspace Methods or WSMs}
-%--------------------------
+%---------------------------------
 \label{sec:agendas:wsms}
 
 WSMs manipulate WSVs to produce other WSVs. There are three kinds of
-WSM:
+WSMs:
 \begin{enumerate}
-\item Specific WSM.
-\item Generic WSM.
-\item Agenda WSM.
+\item Specific WSMs.
+\item Generic WSMs.
+\item Agenda WSMs.
 \end{enumerate}
 As in the case of WSVs, there is a central place in ARTS where
 information on the available WSMs is stored. This place is the file
-\fileindex{methods.cc}. It contains a record for each WSM, which
-schematically looks like this: 
+\fileindex{methods.cc}. It contains a record for each WSM. Here is an
+example:
 
-FIXME: Continue here.
-
+{\small
 \begin{verbatim}
-
+md_data.push_back
+  ( MdRecord
+    ( NAME("elsLorentz"),
+      DESCRIPTION
+      (
+       "The Lorentz lineshape.\n"
+       "\n"
+       "This computes the simple Lorentz lineshape as:\n"
+       "\n"
+       "els[i] = 1/PI * ls_gamma /\n"
+       "         ( (els_f_grid[i])^2 + ls_gamma^2 )\n"
+       "\n"
+       "Note that the frequency grid els_f_grid must hold\n"
+       "offset frequencies from line center. Hence, the\n"
+       "line center frequency is not needed as input.\n"
+       "\n"
+       "Output:\n"
+       "   els        : The lineshape function [1/Hz]\n"
+       "\n"
+       "Input:\n"
+       "   ls_gamma   : Line width [Hz].\n"
+       "   els_f_grid : Frequency grid [Hz]."
+      ),
+      OUTPUT( els_ ),
+      INPUT(  ls_gamma_, els_f_grid_ ),
+      GOUTPUT(),
+      GINPUT(),
+      KEYWORDS(),
+      TYPES()));
 \end{verbatim}
+}
+
+\noindent
+All WSM definitions have the same elements:
+\begin{enumerate}
+\item The \emph{name}, exactly as in the code.
+\item The \emph{description}. This must fully describe the WSM, its
+  purpose, and its normal usage. See file \artsstyle{methods.cc} for
+  instructions how to write the documentation.
+\item The \emph{output}. This is a list of WSV names (with underscores
+  at the end). All these WSVs are set by this WSM.
+\item The \emph{input}. This is a list of WSV names (with underscores
+  at the end). All these WSVs are required as input by this WSM. This
+  means they must have been set before.
+\item The \emph{generic output}. This is a list of WSV group names (with underscores
+  at the end). This defines the group to which output arguments must
+  belong (see below).
+\item The \emph{generic input}. This is a list of WSV group names (with underscores
+  at the end). This defines the group to which input arguments must
+  belong.
+\item The \emph{keywords}, a list of keyword paramters that the user
+  has to specify in the controlfile.
+\item The \emph{types}, the data type associated with each keyword.
+\end{enumerate}
+
+\levelc{Specific WSMs}
+%---------------------
+
+For this type of WSM the output and input is fixed. Fields
+\artsstyle{GINPUT} and \artsstyle{GOUTPUT} are empty. The example
+above belongs in this category. It sets the WSV \artsstyle{els}, using
+the WSVs \artsstyle{ls\_gamma} and \artsstyle{els\_f\_grid} as
+inputs. What the function actually does is to compute a Lorentzian
+lineshape function with width \artsstyle{ls\_gamma}, for the
+frequencies given in the grid \artsstyle{els\_f\_grid}. (The line center
+is at frequency 0.) The result is then stored in the output WSV
+\artsstyle{els}. 
+
+To call this method in the controlfile, you just have to write
+\verb|elsLorentz{}|. 
+% We have to use verb here, because otherwise the curly braces get lost.
+The curly braces are empty, because the
+method takes no keyword arguments. For an example with keyword
+arguments see below.
+
+\levelc{Generic WSMs}
+%--------------------
+
+This class of WSM is more powerful, because it can be applied to any
+WSV that belongs to the right group. A good example is:
+
+{\small
+\begin{verbatim}
+md_data.push_back
+  ( MdRecord
+    ( NAME("VectorCopy"),
+      DESCRIPTION
+      (
+       "Creates a copy of a vector. \n"
+       "\n"
+       "Generic output: \n"
+       "   Vector : The vector to be created. \n"
+       "\n"
+       "Generic input: \n"
+       "   Vector : The vector to be copied. "
+      ),
+      OUTPUT(),
+      INPUT(),
+      GOUTPUT( Vector_ ),
+      GINPUT( Vector_ ),
+      KEYWORDS(),
+      TYPES()));
+\end{verbatim}
+}
+
+\noindent
+As you probably have guessed, this WSM can make a copy of a WSV of
+group \artsstyle{Vector} to another WSV of the same group. You would
+use it as follows: 
+
+{\small
+\begin{verbatim}
+VectorCopy(p_grid,f_grid){} 
+\end{verbatim}
+}
+
+\noindent
+This would copy the WSV \artsstyle{f\_grid} to the WSV
+\artsstyle{p\_grid}.  Note that output arguments always come first,
+input arguments last.
+
+This example would copy the content of the WSV for the frequency grid
+to the WSV for the pressure grid. Definitely not something you would
+normally want to do. See the example controlfiles in the
+\artsstyle{doc/examples} directory for more realistic examples. 
+
+Here is a usage example of a generic WSM with keyword arguments:
+
+{\small
+\begin{verbatim}
+VectorSet(f_grid){
+  length = 100
+  value  = 0
+}
+\end{verbatim}
+}
+
+\noindent
+It sets \artsstyle{f\_grid}, adjusts the size to 100 elements, and
+initializes all elements with 0. Try \artsstyle{arts -d VectorSet} to
+get more information on this method. (See section
+\ref{sec:online-docu} for information on command line switches.)
+
+\levelc{Agenda WSMs}
+%---------------------------------
+
 
 \levelb{Agendas}
 %--------------------------
 \label{sec:agendas:agendas}
 
+
+\levelb{ARTS online documentation}
+%---------------------------------
+\label{sec:online-docu}
 
 
 %%% Local Variables: 
