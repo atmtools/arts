@@ -1,3 +1,10 @@
+2002-02-01  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-7
+
+	* ami/file/write_linefile.m: Added the option that data can be appended
+	to a file, instead of always creating a new file.
+
 2002-01-25  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-6

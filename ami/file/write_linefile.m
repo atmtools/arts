@@ -10,7 +10,7 @@
 %           No unit conversions are performed, thus the data shall have 
 %           the same unit as in the line file.
 %
-% FORMAT:   write_linefile( filename, L [, do_quanta, do_source ])
+% FORMAT:   write_linefile( filename, L [, do_quanta, do_source, do_append ])
 %
 % OUT:      -
 % IN:       filename   Name on file to create.
@@ -18,16 +18,19 @@
 % OPTIONAL: vers       ARTS line file version number. Default is 3.
 %           do_quanta  Flag for writing of quantum data. Default is 1. 
 %           do_source  Flag for writing of source information. Default is 1.
+%           do_append  Flag for appending to an existing file instead of
+%                      creating a new file. Default is 0.
 %------------------------------------------------------------------------
 
 % HISTORY: 2001.03.27  Created by Patrick Eriksson
 
 
-function write_linefile( filename, L, do_quanta, do_source )
+function write_linefile( filename, L, do_quanta, do_source, do_append )
 
 
-if ~exist('do_quanta'),   do_quanta = 1;   end
-if ~exist('do_source'),   do_source = 1;   end
+if ~exist('do_quanta','var'),   do_quanta = 1;   end
+if ~exist('do_source','var'),   do_source = 1;   end
+if ~exist('do_append','var'),   do_append = 1;   end
 
 
 %=== Present version number
@@ -35,16 +38,22 @@ if ~exist('do_source'),   do_source = 1;   end
 vers = 3;
 
 
-%=== Open the file     
-fid = fopen( filename, 'w' );
+%=== Open the file  
+if do_append   
+  fid = fopen( filename, 'a' );
+else
+  fid = fopen( filename, 'w' );
+end
 if fid < 0
   error(sprintf('The file %s could not be opened.',filename));
 end
 
+
 %=== Write version number
 %
-fprintf(fid, 'ARTSCAT-%d\n', vers );
-
+if ~do_append
+  fprintf(fid, 'ARTSCAT-%d\n', vers );
+end
 
 
 %=== Write data
