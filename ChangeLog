@@ -1,3 +1,27 @@
+2003-03-13  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-497
+
+	* src/binio.{h,cc}: Added. Contains classes for writing binary files
+	including float/double, little-endian/big-endian and
+	ieee-float/non-ieee-float conversions.
+
+	* src/bifstream.{h,cc}, src/bofstream.{h,cc}: Make use of binio.
+	bof/bifstream now use multiple inheritance. They inherit the file
+	handling abilities from fstream and the architecture independent
+	reading/writing features from binistream/binostream.
+	Binio is quite dumb when no conversion for saving in the desired
+	format is needed. This leads to drawbacks concerning speed. They
+	will be extirpated in the next version.
+	Note on current binary format: All float values are stored as
+	IEEE-754 double precision. Integers are saved as 8 byte values.
+	Byte order is always little endian (PC).
+
+	* src/Makefile.am: Added binio.{h,cc}.
+
+	* doc/index.html.in: Removed out-dated example files list.  Instead
+	added a link to the examples directory.
+
 2003-03-10  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-496
