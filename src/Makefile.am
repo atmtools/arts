@@ -283,6 +283,8 @@ test_matpack_SOURCES = \
 	test_matpack.cc
 
 test_xml_SOURCES = \
+	absorption.cc \
+	absorption.h \
 	matpackI.cc \
 	matpackI.h \
 	matpackIII.cc \
@@ -299,6 +301,7 @@ test_xml_SOURCES = \
 	xml_io_private.h \
 	xml_io.cc \
 	messages.cc \
+	species_data.cc \
 	test_xml.cc
 
 test_complex_SOURCES = \
