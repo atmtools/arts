@@ -109,7 +109,7 @@ if fscale
         w    = w/s;
         ind3 = find(w~=0);
         nw   = length(ind3);
-        if (nrow+nw) > lrow
+        while (nrow+nw) > lrow
           [rows,cols,wgts,lrow] = reallocate(rows,cols,wgts,lrow,i,n2);
         end
         irow = nrow + (1:nw);
@@ -117,7 +117,6 @@ if fscale
         cols(irow) = ind2(ind3)+j;
         wgts(irow) = w(ind3);
         nrow       = nrow + nw;
-        %H(ind1+j,ind2(ind3)+j) = w(ind3);
       end
     end
   end
@@ -136,7 +135,7 @@ else
       ind3 = find(w~=0);
       for j = 1:nf
         nw   = length(ind3);
-        if (nrow+nw) > lrow
+        while (nrow+nw) > lrow
           [rows,cols,wgts,lrow] = reallocate(rows,cols,wgts,lrow,i,n2);
         end
         irow = nrow + (1:nw);
@@ -144,7 +143,6 @@ else
         cols(irow) = ind2(ind3)+j;
         wgts(irow) = w(ind3);
         nrow       = nrow + nw;
-        %H(ind1+j,ind2(ind3)+j) = w(ind3);
       end
     end
   end
@@ -185,7 +183,7 @@ function [rows,cols,wgts,lrow] = reallocate(rows,cols,wgts,lrow,i,n2);
   out(2,'Reallocates the vectors to set-up H (can take some time).');
 
   %=== Estimate the extra space needed. Overestimate with 25% to be safe.
-  nextra = round( lrow * (n2/i-1) * 1.25 );
+  nextra = round( lrow * (n2/i-0.5) * 1.25 );
   zvec   = zeros( 1, nextra );
   rows   = [ rows, zvec ];        
   cols   = [ cols, zvec ];        

@@ -1376,16 +1376,12 @@ void yCalc (
   // (ground emission and temperature are checked in the sub-functions)
   //
   check_if_bool( emission, "emission" );                                      
-  check_length_nrow( f_mono, "f_mono", trans[0], 
-                                     "the transmission matrices (in trans)" );
   if ( los.p.nelem() != trans.nelem() )
     throw runtime_error(
       "The number of zenith angles of *los* and *trans* are different.");
   if ( emission )
   {
     check_lengths( f_mono, "f_mono", y_space, "y_space" );  
-    check_length_nrow( f_mono, "f_mono", source[0], 
-                                          "the source matrices (in source)" );
     if ( los.p.nelem() != source.nelem() )
       throw runtime_error(
         "The number of zenith angles of *los* and *source* are different.");

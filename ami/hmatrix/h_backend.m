@@ -97,7 +97,7 @@ for i = 1:nf2
     if (nrow+nw) > lrow
       out(2,'Reallocates the vectors to set-up H (can take some time).');
       %=== Estimate the extra space needed. Overestimate with 25% to be safe.
-      nextra = round( lrow * (nf2/i-1) * 1.25 );
+      nextra = round( lrow * (nf2/i-0.5) * 1.25 );
       zvec   = zeros( 1, nextra );
       rows   = [ rows, zvec ];        
       cols   = [ cols, zvec ];        
