@@ -80,7 +80,7 @@ arts_SOURCES = \
 	m_sensor.cc \
 	m_xml.cc \
 	m_xml.h \
-	m_continua.cc \
+	m_continua_ckd.cc \
 	main.cc \
 	make_array.h \
 	make_vector.cc \
@@ -310,7 +310,7 @@ test_geomag_calc_SOURCES = \
 	m_ignore.h \
 	m_xml.cc \
 	m_xml.h \
-	m_continua.cc \
+	m_continua_ckd.cc \
 	make_array.h \
 	make_vector.cc \
 	make_vector.h \
@@ -719,7 +719,7 @@ test_zeemanproperties_SOURCES = \
 	m_ignore.h \
 	m_xml.cc \
 	m_xml.h \
-	m_continua.cc \
+	m_continua_ckd.cc \
 	make_array.h \
 	make_vector.cc \
 	make_vector.h \

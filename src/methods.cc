@@ -219,10 +219,10 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_CKDMT_H2O_H2O"),
+      ( NAME("absCKDMT_H2O_H2O"),
         DESCRIPTION
         (
-         "Calculate water vapor absorption\n"
+         "Calculate water vapor self continuum absorption\n"
          "\n"
          "CKD version MT 1.00 self continuum absorption coefficient.\n"
          "The original  code is taken from the FORTRAN77 code of\n"
@@ -237,19 +237,24 @@ void define_md_data_raw()
          "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
          "\n"
          "Input:\n"
-         "   f_grid : Frequency grid [Hz].\n"
-         "   abs_p  : List of pressures [Pa].\n"
-         "   abs_t  : List of temperatures [K]. Must have same length as abs_p!\n"
-         "   abs_vmr   : List of H2O volume mixing ratios [absolute number].\n"
-         "               Must have same length as abs_p!\n"
-         "   abs_model : String specifying the model to use. Allowed options:\n"
-         "               \"CKDMT100\"       - Calculate absorption according to CKD_MT version 1.00.\n"
-         "               \"user\"           - Use parameter given by abs_user_parameters,\n"
-         "                                    instead of the predefined settings.\n"
+         "   f_grid              : Frequency grid [Hz].\n"
+         "   abs_p               : List of pressures [Pa].\n"
+         "   abs_t               : List of temperatures [K].\n"
+         "                         (Must have same length as abs_p!)\n"
+         "   abs_vmr             : List of H2O volume mixing ratios [absolute number].\n"
+         "                         Must have same length as abs_p!\n"
+         "   abs_model           : String specifying the model to use.\n"
+         "                         Allowed options are:\n"
+         "                         \"CKDMT100\": calculate self continuum absorption\n"
+         "                                       according to CKD_MT version 1.00\n"
+         "                         \"user\"    : use user defined parameter given by\n"
+         "                                       abs_user_parameters, instead of \n"
+         "                                       the predefined settings.\n"
          "   abs_user_parameters : Only used if abs_model==\"user\". In that case,\n"
          "                         abs_user_parameters must have 1 element:\n"
          "                         1. Continuum scaling factor\n"
-         "                         Must be empty if one of the predefined models is used."
+         "                         abs_user_parameters must be empty if one of the\n"
+         "                         pre-defined models is used."
         ),
         OUTPUT( abs_ ),
         INPUT(  f_grid_, abs_p_, abs_t_, abs_vmr_,
@@ -261,10 +266,10 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("abs_CKDMT_H2O_AIR"),
+      ( NAME("absCKDMT_H2O_AIR"),
         DESCRIPTION
         (
-         "Calculate water vapor absorption\n"
+         "Calculate water vapor foreign continuum absorption\n"
          "\n"
          "CKD version MT 1.00 foreign continuum absorption coefficient.\n"
          "The original  code is taken from the FORTRAN77 code of\n"
@@ -279,19 +284,24 @@ void define_md_data_raw()
          "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
          "\n"
          "Input:\n"
-         "   f_grid : Frequency grid [Hz].\n"
-         "   abs_p  : List of pressures [Pa].\n"
-         "   abs_t  : List of temperatures [K]. Must have same length as abs_p!\n"
-         "   abs_vmr   : List of H2O volume mixing ratios [absolute number].\n"
-         "               Must have same length as abs_p!\n"
-         "   abs_model : String specifying the model to use. Allowed options:\n"
-         "               \"CKDMT100\"       - Calculate absorption according to CKD_MT version 1.00.\n"
-         "               \"user\"           - Use parameter given by abs_user_parameters,\n"
-         "                                    instead of the predefined settings.\n"
+         "   f_grid              : Frequency grid [Hz].\n"
+         "   abs_p               : List of pressures [Pa].\n"
+         "   abs_t               : List of temperatures [K].\n"
+         "                         (Must have same length as abs_p!)\n"
+         "   abs_vmr             : List of H2O volume mixing ratios [absolute number].\n"
+         "                         Must have same length as abs_p!\n"
+         "   abs_model           : String specifying the model to use.\n"
+         "                         Allowed options are:\n"
+         "                         \"CKDMT100\": calculate self continuum absorption\n"
+         "                                       according to CKD_MT version 1.00\n"
+         "                         \"user\"    : use user defined parameter given by\n"
+         "                                       abs_user_parameters, instead of \n"
+         "                                       the predefined settings.\n"
          "   abs_user_parameters : Only used if abs_model==\"user\". In that case,\n"
          "                         abs_user_parameters must have 1 element:\n"
          "                         1. Continuum scaling factor\n"
-         "                         Must be empty if one of the predefined models is used."
+         "                         abs_user_parameters must be empty if one of the\n"
+         "                         pre-defined models is used."
         ),
         OUTPUT( abs_ ),
         INPUT(  f_grid_, abs_p_, abs_t_, abs_vmr_,
@@ -300,6 +310,45 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
+
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("absPWRO2Model"),
+        DESCRIPTION
+        (
+         "Calculate oxygen absorption in the 1-1000GHz range from  the absorption"
+	 " model based on P.W.Rosenkranz.\n"
+         "Output:\n"
+         "   abs    : absorption coefficients [1/m], \n"
+         "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
+         "\n"
+         "Input:\n"
+         "   f_grid              : Frequency grid [Hz].\n"
+         "   abs_p               : List of pressures [Pa].\n"
+         "   abs_t               : List of temperatures [K].\n"
+         "                         (Must have same length as abs_p!)\n"
+         "   abs_vmr             : List of H2O volume mixing ratios [absolute number].\n"
+         "                         Must have same length as abs_p!\n"
+         "   abs_model           : String specifying the model to use.\n"
+         "                         Allowed options are:\n"
+         "   abs_user_parameters : Only used if abs_model==\"user\". In that case,\n"
+         "                         abs_user_parameters must have 4 element:\n"
+         "                         1. O2 Continuum scaling factor\n"
+         "                         2. O2 line strength scaling factor\n"
+         "                         3. O2 line pressure broadening scaling factor\n"
+         "                         4. O2 line mixing scaling factor\n"
+         "                         abs_user_parameters must be empty if one of the\n"
+         "                         pre-defined models is used."
+        ),
+        OUTPUT( abs_ ),
+        INPUT(  f_grid_, abs_p_, abs_t_, abs_vmr_,
+                abs_model_, abs_user_parameters_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
 
 
   md_data_raw.push_back     

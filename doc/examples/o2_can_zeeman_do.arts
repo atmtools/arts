@@ -1,0 +1,46 @@
+# Just calculate absorption coefficients for one continuum or full model
+# and write results to a file.
+#
+# 2003-11-16 Stefan Buehler
+
+Main {
+
+# Set output format to ASCII:
+output_file_formatSetAscii{}
+
+# Create frequency grid:
+VectorNLinSpace(f_grid){
+#  start =  30.0000e9
+#  stop  =  90.0000e9
+#  n     =  120
+  start =  115.0000e9
+  stop  =  125.0000e9
+  n     =  10
+}
+
+# ... and write to file.
+WriteXML(f_grid){""}
+
+# Create a pressure vector [Pa]:
+VectorSetExplicitly(abs_p){[3.0000e4, 3.0000e2, 3.0000e0]}
+
+# Create a temperature vector [K]:
+VectorSetExplicitly(abs_t){[235.0e0, 276.0e0, 196.0e0]}
+
+# Create a vmr vector [absolute numbers]:
+VectorSetExplicitly(abs_vmr){[1.000000e-02 , 1.000000e-04 , 2.000000e-06 ]}
+
+# Write these to files:
+WriteXML(abs_p){""}
+WriteXML(abs_t){""}
+WriteXML(abs_vmr){""}
+
+# ------------------------------------------------------------------
+# O2 Zeeman absorption model
+StringSet(abs_model){"PWR98"}
+VectorSetExplicitly(abs_user_parameters){[]}
+absPWRO2Model{}
+WriteXML(abs){"o2_can_do_abs_PWRO2Model_file.xml"}
+# ------------------------------------------------------------------
+
+}

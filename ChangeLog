@@ -1,3 +1,33 @@
+2003-11-30  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-1-1-725
+
+	* src/m_continua.cc: smaller changes according to Stefan's 
+	suggestions. Furthermore the Lagrange 4-point interpolation 
+	function is moved to the file m_abs_o2_models.cc for possible 
+	use in interpolating the magnetic field to the LOS points.
+	* src/methods.cc: add method "absPWRO2Model" which is a
+	PRELIMINARY version of the method which should at the end
+	calculate O2 absorption in the 1-1000GHz range according to
+	P. W. Rosenkranz's absorption model written in F77. YUST FOR
+	INTERNAL USE IN THIS VERSION!
+	* src/m_abs_o2_models.cc: added code for method "absPWRO2Model"
+	as descibed above. Furthermore the Lagrange 4-point interpolation
+	function is at the moment located here (moved from
+	src/m_continua.cc). Additionally the F77 code of R. J. Wells  
+	(Rapid approximation to the Voigt/Faddeeva function and its
+	derivatives, JQSRT, vol.62, pp.29-48, 1999) is implemented. This
+	internal function gives the perspective to use a Voigt function in
+	connection with line mixing. Intended to be used in future for 
+	O2 60GHz band. The implementation is not completely checked with
+	original code. What is done is that the original F77 function
+	humlik.for is translated into C code and both are compared to each
+	other. Afterwards the the C code is transformed into appropriate
+	form for arts (mainly parameter declarations). 
+	* doc/examples/o2_can_zeeman_do.arts: added a PRELIMINARY CONTROL
+	FILE FOR SIMPLE O2 ABSORPTION/EXTINCTION CALCULATIONS. NOTE THIS 
+	IS ONLY FOR INTERNAL USE AT THIS MOMENT.
+	
 2003-11-28  Cory Davis   <cory@met.ed.ac.uk>
 
 	* arts-1-1-724
