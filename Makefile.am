@@ -9,19 +9,5 @@
 
 EXTRA_DIST = reconf configure make_parallel
 
-DEFAULT_SUBDIRS = src aii ami m4
+SUBDIRS = src aii ami m4 doc
 
-if ARTS_GENDOCS
-SUBDIRS    = $(DEFAULT_SUBDIRS) doc
-else
-SUBDIRS    = $(DEFAULT_SUBDIRS)
-endif
-
-# This stuff does not work:
-#
-#documentation:
-#	cd $(top_srcdir)/doc && $(MAKE)
-#
-#release:
-#	$(MAKE) documentation
-#	$(MAKE) dist
