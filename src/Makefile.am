@@ -569,7 +569,6 @@ test_integration_SOURCES = \
 	logic.cc \
 	logic.h \
 	constants.cc \
-	constants.h \
 	test_integration.cc
 
 make_auto_wsv_groups_h_SOURCES = \

@@ -1,3 +1,26 @@
+2003-06-04  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
+
+	* arts-1-1-561
+
+	* src/math_funcs.cc: Changed: Integration method in
+	scat_fieldCalc is now AngIntegration_trapezoid_opti
+	slightly faster if the grid_stepsize is constant
+
+	* src/math_funcs.h: Added: AngIntegration_trapezoid_opti
+	faster integration if the grid_stepsize is constant
+
+	* src/methods.cc: Modified: definition of scat_fieldCalc
+
+	* src/m_scatrte.cc: Modified: scat_fieldCalc and
+	scat_fieldCalcFromAmpMat are using now
+	AngIntegration_trapezoid_opti
+
+	* src/test_integration.cc: Added: test of
+	AngIntegration_trapezoid_opti
+
+	* src/Makefile.am: Modified: removed non existing
+	constants.h in definition
+
 2003-06-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-560

@@ -36,6 +36,7 @@
  *** External declarations
  *****************************************************************************/
 
+#include <iostream>
 #include <cmath>
 #include <stdexcept>
 #include "array.h"
@@ -313,9 +314,7 @@ Numeric AngIntegrate_trapezoid_opti(MatrixView Integrand,
       
       for (Index i = 0; i < n ; ++i)
         {
-          temp = 0.0;
-          
-          temp += Integrand(i, 0);
+          temp = Integrand(i, 0);
           for (Index j = 1; j < m - 1; j++)
             {
               temp += Integrand(i, j) * 2;
@@ -323,9 +322,9 @@ Numeric AngIntegrate_trapezoid_opti(MatrixView Integrand,
           temp += Integrand(i, m-1);
           temp *= 0.5 * DEG2RAD * stepsize_aa * sin(za_grid[i] * DEG2RAD);
           res1[i] = temp;
-        }      
-      
-      Numeric res = res1[0];
+        }
+
+      res = res1[0];
       for (Index i = 1; i < n - 1; i++)
         {
           res += res1[i] * 2;

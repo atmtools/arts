@@ -73,6 +73,11 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
 Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
                                ConstVectorView za_grid);
 
+Numeric AngIntegrate_trapezoid_opti(MatrixView Integrand,
+                                    ConstVectorView za_grid,
+                                    ConstVectorView aa_grid,
+                                    ConstVectorView grid_stepsize);
+
 Numeric sign( const Numeric& x );
 
 #endif  // math_funcs_h
