@@ -637,7 +637,12 @@ void p2gridpos(
 void z_at_lat_2d(
              VectorView   z,
         ConstVectorView   p_grid,
+// FIXME only used in assertion
+#ifndef NDEBUG
         ConstVectorView   lat_grid,
+#else
+        ConstVectorView,
+#endif
         ConstMatrixView   z_field,
         const GridPos&    gp_lat )
 {
@@ -684,10 +689,16 @@ void z_at_lat_2d(
 void z_at_latlon(
              VectorView    z,
         ConstVectorView    p_grid,
+//FIXME only used in assertion
+#ifndef NDEBUG
         ConstVectorView    lat_grid,
         ConstVectorView    lon_grid,
+#else
+        ConstVectorView,
+        ConstVectorView,
+#endif
         ConstTensor3View   z_field,
-	const GridPos&     gp_lat,
+        const GridPos&     gp_lat,
         const GridPos&     gp_lon )
 {
   const Index   np = p_grid.nelem();
