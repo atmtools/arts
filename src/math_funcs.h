@@ -88,6 +88,14 @@ MATRIX log( const MATRIX& X );
 
 
 
+//// mean and standard deviation ////////////////////////////////////////////
+
+void mean_row( VECTOR& m, const MATRIX& x );
+
+void std_row( VECTOR& s, const MATRIX& x, const VECTOR& m  );
+
+
+
 //// min and max ////////////////////////////////////////////////////////////
 
 Numeric min( const VECTOR& x );
@@ -331,6 +339,17 @@ MATRIX col(size_t i,
 
 
 /////////////////////////////////////////////////////////////////////////////
+//   Putting data in a matrix column or and row
+/////////////////////////////////////////////////////////////////////////////
+
+void put_in_col(
+              MATRIX& A,
+	      size_t  i, 
+        const VECTOR& x );
+
+
+
+/////////////////////////////////////////////////////////////////////////////
 //   Random data
 /////////////////////////////////////////////////////////////////////////////
 
@@ -340,10 +359,28 @@ void rand_uniform(
         const Numeric&   x_low,
         const Numeric&   x_high );
 
-void rand_normal(
+void rand_gaussian(
               VECTOR&    r,
         const size_t     n,
         const Numeric&   s );
 
+void rand_matrix_uniform(
+              VECTOR&    m,
+        const size_t&    nrows,
+        const size_t&    ncols,
+        const Numeric&   x_low,
+        const Numeric&   x_high );
+
+void rand_matrix_gaussian(
+              VECTOR&    r,
+        const size_t&    nrows,
+        const size_t&    ncols,
+        const Numeric&   s );
+
+void rand_data_gaussian(
+              MATRIX&    z,
+        const size_t&    n,
+        const VECTOR&    z0,
+        const MATRIX&    s );
 
 #endif  // math_funcs_h

@@ -1,0 +1,344 @@
+/* Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
+
+   This program is free software; you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published by the
+   Free Software Foundation; either version 2, or (at your option) any
+   later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+   USA. */
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/**
+   \file   m_batch.cc
+
+   This file contains functions associated with covariance matrices. 
+
+   Basic math operations are found elsewhere.
+
+   \author Patrick Eriksson
+   \date 2000-12-05 
+*/
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   External declarations
+////////////////////////////////////////////////////////////////////////////
+
+#include "arts.h"
+#include "file.h"
+#include "math_funcs.h"
+#include "md.h"
+#include "messages.h"
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   General help functions
+////////////////////////////////////////////////////////////////////////////
+
+// setup_covmatrix ////////////////////////////////////////////////////////
+/** 
+   Core function to set-up covariance matrices from definition data.
+
+   The function creates a covariance matrix from standard deviations and
+   correlation lengths defined at some points (kp). Values at intermediate
+   points are obtained by linear interpolation. The definition data must 
+   cover all points of the retrieval/error grid.
+
+   The correlation between different points is controled by the variables
+   corrfun, cutoff and clength. The following correlation functions are
+   defined:
+
+     0: no correlation 
+     1: linearly decreasing down to zero (tenth function)  
+     2: exponential
+     3: gaussian 
+
+   The values of cutoff and clength are ignored when corrfun = 0.
+ 
+   The clength is the distance to the point where the correlation has declined
+   to exp(-1), the correlation length. The mean value of the correlation length
+   at the two points of interest is used.
+
+   The covariance is set to 0 for correlations below the cut-off value.
+
+   \retval  s         covaraince matrix
+   \param   kg        grid for the retrieval/error quantity
+   \param   corrfun   correlation function (see above)
+   \param   cutoff    cut-off for correlation coefficients (see above)
+   \param   kp        abscissa for sdev and clength
+   \param   sdev      standard deviation at the values of kp
+   \param   clength   correlation length at the values of kp
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
+void setup_covmatrix(
+                   MATRIX&    s,
+             const VECTOR&    kg,
+             const size_t&    corrfun,
+             const Numeric&   cutoff,
+             const VECTOR&    kp,
+             const VECTOR&    sdev,
+             const VECTOR&    clength )
+{
+  const size_t   n = kg.dim();
+        size_t   row, col;
+        VECTOR   sd, cl;
+        Numeric  c;          // correlation
+
+  if ( sdev.dim() != clength.dim() )
+    throw runtime_error("The standard deviation and correlation length vectors must have the same length.");
+
+  if ( (min(kg)<min(kp)) || (max(kg)>max(kp)) )
+    throw runtime_error("The data defining the covariance do not cover all retrieval/error points.");
+
+  if ( cutoff >= 1 )
+    throw runtime_error("The correlation cut-off must be < 1.");
+
+  // Interpolate to get standard deviation and correlation length at
+  // each point of k_grid
+  interp_lin( sd, kp, sdev, kg );
+  interp_lin( cl, kp, clength, kg );
+
+  // Resize s and fill with 0
+  s.newsize(n,n);
+  s = 0;  
+
+  // Diagonal matrix
+  if ( corrfun == 0 )
+  {
+    for ( row=1; row<=n; row++ )
+      s(row,row) = sd(row)*sd(row); 
+  }
+
+  // Linearly decreasing (tenth function)
+  else if ( corrfun == 1 )
+  {
+    for ( row=1; row<=n; row++ )
+    {
+      for ( col=row; col<=n; col++ )
+      {
+        c = 1 - 2*(1-exp(-1))*abs(kg(row)-kg(col))/(cl(row)+cl(col));
+        if ( (c>0) && (c>cutoff) )
+	{
+          s(row,col) = c*sd(row)*sd(col); 
+          s(col,row) = s(row,col);
+        } 
+      }
+    }
+  }
+
+  // Exponential
+  else if ( corrfun == 2 )
+  {
+    for ( row=1; row<=n; row++ )
+    {
+      for ( col=row; col<=n; col++ )
+      {
+        c = exp(-abs(kg(row)-kg(col))/((cl(row)+cl(col))/2));
+        if ( c > cutoff )
+	{
+          s(row,col) = c*sd(row)*sd(col); 
+          s(col,row) = s(row,col);
+        } 
+      }
+    }
+  }
+
+  // Gaussian
+  else if ( corrfun == 3 )
+  {
+    for ( row=1; row<=n; row++ )
+    {
+      for ( col=row; col<=n; col++ )
+      {
+        c = exp( -1.0 * pow( (kg(row)-kg(col))/((cl(row)+cl(col))/2), 2 ) );
+        if ( c > cutoff )
+	{
+          s(row,col) = c*sd(row)*sd(col); 
+          s(col,row) = s(row,col);
+        } 
+      }
+    }
+  }
+
+  // Unknown correlation function
+  else
+  {
+    ostringstream os;
+    os << "Unknown correlation function flag (" << corrfun << ").";
+    throw runtime_error(os.str());
+  }
+}
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Workspace methods
+////////////////////////////////////////////////////////////////////////////
+
+void sDiagonal(
+        MATRIX&          s,
+        const VECTOR&    grid,
+        const string&    grid_name,
+        const Numeric&   stddev)
+{
+  const VECTOR   sdev(2,stddev);
+  const VECTOR   clength(2,0.0);
+        VECTOR   kp(2);
+
+  kp(1) = grid(1);
+  kp(2) = grid(grid.dim());
+  out2 << "  Creating a diagonal covariance matrix.\n";
+  out3 << "    Standard deviation = " << stddev << "\n";
+  setup_covmatrix( s, grid, 0, 0, kp, sdev, clength );
+}
+
+
+
+void sSimple(
+              MATRIX&    s,
+        const VECTOR&    grid,
+        const string&    grid_name,
+        const int&       corrfun,
+        const Numeric&   cutoff,
+        const Numeric&   stddev,
+        const Numeric&   corrlength )
+{
+  const VECTOR   sdev(2,stddev);
+  const VECTOR   clength(2,corrlength);
+        VECTOR   kp(2);
+
+  kp(1) = grid(1);
+  kp(2) = grid(grid.dim());
+  out2 << "  Creating a simple covariance matrix.\n";
+  out3 << "    Standard deviation   = " << stddev << "\n";
+  out3 << "    Correlation function = " << corrfun << "\n";
+  out3 << "    Correlation length   = " << corrlength << "\n";
+  out3 << "    Correlation cut-off  = " << cutoff << "\n";
+  setup_covmatrix( s, grid, corrfun, cutoff, kp, sdev, clength );
+}
+
+
+
+void sFromFile(
+              MATRIX&    s,
+        const VECTOR&    grid,
+        const string&    grid_name,
+        const string&    filename )
+{
+  ARRAYofMATRIX   am;
+         VECTOR   kp, sdev, clength;
+         size_t   i, j, np;
+ 
+  // Read the array of matrix from the file:
+  read_array_of_matrix_from_file(am,filename);
+
+  const size_t n = am.dim()-1;
+
+  // Some checks of sizes
+  if ( n < 1 )
+    throw runtime_error("The file must contain > 1 matrix.");
+  if ( am(1).dim(1) != 2 )
+    throw runtime_error("The first matrix in the file must have 2 rows.");
+  if ( am(1).dim(2) != n )
+    throw runtime_error("The number of columns of the first matrix must equal the number of matrices - 1.");
+
+  out2 << "  Reading a covariance matrix from file " << filename << ".\n";
+  out3 << "    Summing " << n << " matrices.\n";
+  
+  // Loop the different covariance matrices
+  for ( i=1; i<=n; i++ )
+  {
+    // Check if the corrfun flag is an integer
+    if ( (am(1)(1,i)-floor(am(1)(1,i))) != 0 )
+      throw runtime_error("The first row of matrix 1 shall only contain integers..");
+
+    // Move definition values to vectors
+    np = am(i+1).dim(1);
+    kp.newsize(np);
+    sdev.newsize(np);
+    clength.newsize(np);
+    for ( j=1; j<=np; j++ )
+    {
+      kp(j)      = am(i+1)(j,1);
+      sdev(j)    = am(i+1)(j,2);
+      clength(j) = am(i+1)(j,3);
+    }
+
+    if ( i == 1 )
+      setup_covmatrix( s, grid, size_t(am(1)(1,i)), am(1)(2,i), kp, 
+                                                              sdev, clength );
+      
+    else
+    {
+      MATRIX stmp;
+      setup_covmatrix( stmp, grid, size_t(am(1)(1,i)), am(1)(2,i), kp, 
+                                                              sdev, clength );
+      s = s + stmp;
+    }
+  }
+}
+
+
+
+void CovmatrixInit(
+              MATRIX&   s,
+        const string&   s_name)
+{
+  s.newsize(0,0);
+}
+
+
+
+void sxAppend(
+              MATRIX&   sx,
+        const MATRIX&   s )
+{
+  const size_t   ns  = s.dim(1); 
+  const size_t   nsx = sx.dim(1); 
+        MATRIX   stmp;
+        size_t   row, col;
+
+  if ( (ns!=s.dim(2)) || (nsx!=sx.dim(2)) )
+    throw runtime_error("A covariance matrix must be square.");
+    
+  stmp = sx;
+  sx.newsize(nsx+ns,nsx+ns);
+  sx = 0;
+  for ( row=1; row<=nsx; row++ )
+  {
+    for ( col=1; col<=nsx; col++ )
+      sx(row,col) = stmp(row,col);
+  }
+  for ( row=1; row<=ns; row++ )
+  {
+    for ( col=1; col<=ns; col++ )
+      sx(nsx+row,nsx+col) = s(row,col);
+  }
+}
+
+
+
+void sbAppend(
+              MATRIX&   sb,
+        const MATRIX&   s )
+{
+  sxAppend( sb, s );
+}

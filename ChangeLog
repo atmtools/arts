@@ -1,3 +1,16 @@
+2000-12-07  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-84
+
+	* Panic backup. (The power contact had slipped out and the computer 
+	died. After restart, not all letters on the keyboard did not work and
+	I managed to login just by being a smart. After 1-2 minutes the 
+	keyboard was suddently OK again, but God knows what can happen)
+	As I don't trust the computer, I want to backup my work.
+
+	* I am working on generating random data and doing batch calculations.
+	Please, have a look and give comments.
+
 2000-12-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-83

@@ -547,4 +547,22 @@ void define_wsv_data()
       "The covariance matrix associated with kb.",
       MATRIX_));
 
+
+
+  //-------------------< Batch calculation stuff >-----------------------
+  //                     -----------------------
+
+  wsv_data.push_back
+    (WsvRecord
+     ("batchname",
+      "Default basename for batch data.",
+      string_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("ybatch",
+      "A batch of spectra.\n"
+      "The spectra are stored as columns in a matrix",
+      MATRIX_));
+
 }

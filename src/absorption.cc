@@ -30,6 +30,7 @@
 #include "arts.h"
 #include "absorption.h"
 #include "math_funcs.h"
+#include "md.h"
 #include "messages.h"
 
 
@@ -1330,6 +1331,73 @@ string OneTag::Name() const
 ostream& operator << (ostream& os, const OneTag& ot)
 {
   return os << ot.Name();
+}
+
+
+
+/** 
+   Returns the index among some tag groups for an array of tag strings. 
+   
+   \begin{verbatim}
+   For example, if tags1 correspond to the definition
+     ["O3","H2O-161,H2O-162"]
+   and the tag strings are
+     ["H2O-161,H2O-162","O3"]
+   the tags1_index becomes
+     [2,1]
+   \end{verbatim}
+
+   @exception runtime_error  Some string is not a valid tag item.
+   @exception runtime_error  Not all strings are not found among the tags.
+
+   \retval tags1_index     Index in tags1 for tags2_strings
+   \param  tags1           The tags to search in.
+   \param  tags2_strings   The tag strings for which indeces shall be found.
+
+   \author Patrick Eriksson 
+   \date 2000-12-06
+*/
+void get_tagindex_for_strings( 
+              ARRAYofsizet&   tags1_index, 
+        const TagGroups&      tags1, 
+        const ARRAYofstring&  tags2_strings )
+{
+  const size_t   n1 = tags1.dim();
+  const size_t   n2 = tags2_strings.dim();
+     TagGroups   tags2;                // Internal tag names for tag_strings
+        size_t   i1, i2, nj, j, found, ok;
+
+  tags1_index.newsize(n2);
+  tag_groupsDefine( tags2, tags2_strings );
+  for ( i2=1; i2<=n2; i2++ )
+  {
+    found = 0;
+    for ( i1=1; (i1<=n1) && !found; i1++ )
+    {
+      nj = tags2(i2).dim(); 
+      if ( nj  == tags1(i1).dim() )
+      {
+        ok = 1;
+        for ( j=1; j<=nj; j++ )
+	{
+          if ( tags2(i2)(j).Name() != tags1(i1)(j).Name() )
+            ok = 0;
+	}
+        if ( ok )
+	{
+          found = 1;
+          tags1_index(i2) = i1;
+	}
+      }
+    } 
+    if ( !found )
+    {
+      ostringstream os;
+      os << "The tag string \"" << tags2_strings(i2) << 
+            "\" does not match any of the given tags.\n";
+      throw runtime_error(os.str());
+    }
+  }
 }
 
 

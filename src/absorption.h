@@ -845,6 +845,13 @@ ostream& operator << (ostream& os, const OneTag& ot);
     \author Stefan Buehler */
 typedef  ARRAY< ARRAY<OneTag> > TagGroups;
 
+
+void get_tagindex_for_strings( 
+              ARRAYofsizet&   tags1_index, 
+        const TagGroups&      tags1, 
+        const ARRAYofstring&  tags2_strings );
+
+
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,
 			   const ARRAYofLineRecord& lines);

@@ -370,35 +370,6 @@ void define_md_data()
 	KEYWORDS( "temp" ),
 	TYPES( Numeric_t) ));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorRandUniform"),
-  	DESCRIPTION(
-          "Fills the vector with random data uniformerly distributed between\n"
-          "the lower and higher limit given. The length of the vector shall\n"
-          "also be given. The random data is uncorrelated."),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( ),
-	KEYWORDS( "low", "high", "n" ),
-	TYPES( Numeric_t, Numeric_t, int_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorRandNormal"),
-  	DESCRIPTION(
-          "Fills the vector with random data having a normal PDF, zero mean\n"
-          "and the standard deviation given. The length of the vector shall\n"
-          "also be given. The random data is uncorrelated."),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( ),
-	KEYWORDS( "stddev", "n" ),
-	TYPES( Numeric_t, int_t )));
-
-
 
 
 //=== MATRIX ==========================================================
@@ -677,7 +648,7 @@ void define_md_data()
 	DESCRIPTION("Sets a string to the given text string."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( string_),
+	GOUTPUT( string_ ),
 	GINPUT(),
 	KEYWORDS( "text" ),
 	TYPES( string_t )));
@@ -738,6 +709,18 @@ void define_md_data()
 
 
 //=== ARRAYofSTRING =========================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfStringSet"),
+	DESCRIPTION("Sets a string array according the given text.\n"
+                    "The format is text = [\"string1\",\"string2\",...]"),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ARRAYofstring_ ),
+	GINPUT(),
+	KEYWORDS( "text" ),
+	TYPES( ARRAY_string_t )));
 
   md_data.push_back
     ( MdRecord
@@ -829,8 +812,7 @@ void define_md_data()
       ( NAME("LosWriteBinary"),
 	DESCRIPTION("Writes a LOS structure to a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -843,8 +825,7 @@ void define_md_data()
       ( NAME("LosReadBinary"),
 	DESCRIPTION("Reads a LOS structure from a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( LOS_ ),
@@ -1118,7 +1099,7 @@ void define_md_data()
           "  zref  : The geometrical altitude at pref.\n"
           "  niter : Number of iterations (1-2 should suffice normally)."),
 	OUTPUT( z_abs_ ),
-	INPUT( z_abs_, p_abs_, t_abs_, h2o_abs_, r_geoid_ ),
+	INPUT( z_abs_, p_abs_, t_abs_, h2o_abs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "g0", "pref", "zref", "niter" ),
@@ -1183,7 +1164,11 @@ void define_md_data()
   	DESCRIPTION(
           "Sets the geoid radius according to WGS-84. See the Rodgers book \n"
           "Sec. 9.4.1. The observation direction is given as the angle to\n"
-          "the meridian plane (i.e. S=N=0, W=E=90)"),
+          "the meridian plane (i.e. S=N=0, W=E=90)\n"
+          "\n"
+          "Keywords \n"
+          "      latitude : Latitude at the measurement.\n"
+          "  obsdirection : Observation direction (see above)."),
 	OUTPUT( r_geoid_ ),
 	INPUT(),
 	GOUTPUT(),
@@ -1280,7 +1265,10 @@ void define_md_data()
           "  1 cosmic background radiation (planck for COSMIC_BG_TEMP)\n"
           "  2 solar radiation (planck for SUN_TEMP)\n"
           "COSMIC_BG_TEMP and SUN_TEMP are global variables, defined in\n"
-          "constants.cc."),
+          "constants.cc.\n"
+          "\n"
+          "Keywords \n"
+          "  nr : Selection number."),
 	OUTPUT( y_space_ ),
 	INPUT( f_mono_ ),
 	GOUTPUT(),
@@ -1440,7 +1428,11 @@ void define_md_data()
           "The avaliable units are\n"
           "  1 fractions of linearisation state \n"
           "  2 volume mixing ratio \n"
-          "  3 number density"),
+          "  3 number density\n"
+          "\n"
+          "Keywords \n"
+          "  nr   : Tag number\n"
+          "  unit : Retrieval unit."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
                                                               vmrs_, k_grid_),
@@ -1454,7 +1446,10 @@ void define_md_data()
       ( NAME("kSpeciesAll"),
   	DESCRIPTION(
           "Calculates species 1D weighting functions for all tags that\n"
-          "are included in abs_per_tg. Units as for kSpecies."),
+          "are included in abs_per_tg. Units as for kSpecies.\n"
+          "\n"
+          "Keywords \n"
+          "  unit : Retrieval unit."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
                                                               vmrs_, k_grid_),
@@ -1471,7 +1466,10 @@ void define_md_data()
           "by polynomials with selectable order.\n"  
           "The continuum is fitted be determining an off-set at a number of\n"
           "points (order+1) that are evenly spread between the lowest and\n"
-          "highest frequency of f_mono."),
+          "highest frequency of f_mono.\n"
+          "\n"
+          "Keywords \n"
+          "  order : Polynomial order (>=0)."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, k_grid_ ),
 	GOUTPUT(),
@@ -1515,10 +1513,12 @@ void define_md_data()
           "Calculates a weighting function using y and y0.\n"
           "The weighting function is calculated as: k = (y-y0)/delta\n"
           "That is, delta is the magnitude of the perturbation done.\n"
-          "The other variables are:\n"
-          "  name     name on retrieval identity\n"
-          "  grid     grid point value\n"
-          "  apriori  a priori value"),
+          "\n"
+          "Keywords \n"
+          "  name    : Name on retrieval/error identity.\n"
+          "  delta   : Magnitude of perturbation.\n"
+          "  grid    : Grid point value.\n"
+          "  apriori : A priori value."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( y0_, y_ ),
 	GOUTPUT(),
@@ -1535,11 +1535,13 @@ void define_md_data()
           "use kDiffHFast.\n"
           "The weighting function is calculated as: k = (h2*y-h1*y)/delta\n"
           "That is, delta is the magnitude of the perturbation done.\n"
-          "The other variables are:\n"
-          "  name     name on retrieval identity\n"
-          "  grid     grid point value\n"
-          "  apriori  a priori value\n"
-          "Note that the obtained k matrix includes effects of h1."),
+          "Note that the obtained k matrix includes effects of h1.\n"
+          "\n"
+          "Keywords \n"
+          "  name    : Name on retrieval/error identity.\n"
+          "  delta   : Magnitude of perturbation.\n"
+          "  grid    : Grid point value.\n"
+          "  apriori : A priori value."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( h1_, h2_, y_ ),
 	GOUTPUT(),
@@ -1686,16 +1688,16 @@ void define_md_data()
       ( NAME("sDiagonal"),
   	DESCRIPTION(
           "Creates a diagonal covariance matrix. The size of s is determined\n"
-          "of the length of k_grid.\n"
+          "of the length of the given vector.\n"
           "\n"
           "Keywords \n"
           "  stddev : Standard deviation."),
 	OUTPUT( s_ ),
-        INPUT( k_grid_ ),
+        INPUT(),
 	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "stddev" ),
-	TYPES( Numeric_t )));
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "stddev"  ),
+	TYPES(    Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1703,7 +1705,7 @@ void define_md_data()
   	DESCRIPTION(
           "Creates a covariance matrix where the standard deviation and\n"
           "correlation length are constant. The size of s is determined of\n"
-          "the length of k_grid.\n"
+          "the length of the given vector.\n"
           "\n"
           "Keywords \n"
           "  corrfun    : The correlation function: \n"
@@ -1718,17 +1720,19 @@ void define_md_data()
           "  corrlength : Correlation length. The length where the corre-\n"
           "               lation has decreased to exp(-1)."),
 	OUTPUT( s_ ),
-        INPUT( k_grid_ ),
+        INPUT(),
 	GOUTPUT(),
-	GINPUT(),
+	GINPUT( VECTOR_ ),
 	KEYWORDS( "corrfun", "cutoff", "stddev", "corrlength" ),
-	TYPES( int_t, Numeric_t, Numeric_t, Numeric_t )));
+	TYPES(    int_t,     Numeric_t, Numeric_t, Numeric_t  )));
 
   md_data.push_back
     ( MdRecord
       ( NAME("sFromFile"),
   	DESCRIPTION(
           "Creates a covariance matrix based on definition data in a file.\n"
+          "The abscissa of the covariance matrix is determined by the given\n"
+          "vector.\n"
           "Only the ASCII files are allowed.\n"
           "The covaraince matrix can be constructed as a sum of an arbitrary\n"
           "number of covariance matrices.\n"
@@ -1740,8 +1744,8 @@ void define_md_data()
           "The number of columns of the first matrix must equal the length\n"
           "of the matrix array - 1.\n"
           "Each covariance matrix is defined by a three column matrix, where\n"
-          "column 1 is the abscissa (matching k_grid), column 2 standard \n"
-          "deviations and column 3 correlation lengths.\n"
+          "column 1 is the abscissa (matching the given vector), column 2 \n"
+          "standard deviations and column 3 correlation lengths.\n"
           "Linear interpolation is used to get values at intermediate\n"
           "points.\n"
           "An example, where a diagonal matrix and a gaussian matrix, both\n"
@@ -1762,11 +1766,11 @@ void define_md_data()
           "  filename : Name on file. The file name must be specified, no\n"
           "             default name exists."),
 	OUTPUT( s_ ),
-        INPUT( k_grid_ ),
+        INPUT(),
 	GOUTPUT(),
-	GINPUT(),
+	GINPUT( VECTOR_ ),
 	KEYWORDS( "filename" ),
-	TYPES( string_t )));
+	TYPES(    string_t   )));
 
   md_data.push_back
     ( MdRecord
@@ -1809,5 +1813,186 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+
+
+//======================================================================
+//=== Methods To Generate Random Data
+//======================================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorRandUniform"),
+  	DESCRIPTION(
+          "Fills the vector with random data uniformerly distributed between\n"
+          "the lower and higher limit given. The length of the vector shall\n"
+          "also be given. The random data is uncorrelated."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( VECTOR_ ),
+	GINPUT(),
+	KEYWORDS( "low", "high", "n" ),
+	TYPES( Numeric_t, Numeric_t, int_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorRandGaussian"),
+  	DESCRIPTION(
+          "Fills the vector with random data having a normal PDF, zero mean\n"
+          "and the standard deviation given. The length of the vector shall\n"
+          "also be given. The random data is uncorrelated."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( VECTOR_ ),
+	GINPUT(),
+	KEYWORDS( "stddev", "n" ),
+	TYPES( Numeric_t, int_t )));
+
+
+
+//======================================================================
+//=== Batch Calculation Methods
+//======================================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("BatchdataGaussianTemperatureProfiles"),
+  	DESCRIPTION(
+          "Creates temperature profiles suitable for batch calculations.\n"
+          "The profiles have gaussian statistics and are stored in a file.\n"
+          "The mean of the data equals t_abs. Standard deviations and \n"
+          "correlations follow the covariance matrix s.\n"
+          "The corresponding altitudes are calculated by z_absHydrostatic\n"
+          "and are stored in a seperate file.\n"
+          "The files are named as:\n"
+          "   batchdir.t_abs.ab  \n"
+          "   batchdir.z_abs.ab  \n"
+          "\n"
+          "Keywords \n"
+          "  n        : Number of random vectors to produce.\n"
+          "  g0       : Gravitational acceleration at the geoid surface.\n"
+          "  pref     : Pressure reference point.\n"
+          "  zref     : The geometrical altitude at pref.\n"
+          "  niter    : Number of iterations (1-2 should suffice normally)."),
+	OUTPUT(),
+	INPUT( p_abs_, t_abs_, z_abs_, h2o_abs_, s_, batchname_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "n",   "g0",      "pref",    "zref",    "niter" ),
+	TYPES(    int_t, Numeric_t, Numeric_t, Numeric_t, int_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("BatchdataGaussianTemperatureProfilesNoHydro"),
+  	DESCRIPTION(
+          "As BatchdataGaussianTemperatureProfiles but no altitudes are\n"
+          "calculated.\n"
+          "The temperature profiles are stored in the file\n"
+          "   batchdir.t_abs.ab  \n"
+          "\n"
+          "Keywords \n"
+          "  n        : Number of random vectors to produce."),
+	OUTPUT(),
+	INPUT( t_abs_, s_, batchname_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "n"   ),
+	TYPES(    int_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("BatchdataGaussianSpeciesProfiles"),
+  	DESCRIPTION(
+          "Creates species profiles suitable for batch calculations.\n"
+          "The profiles have gaussian statistics and are stored in a file.\n"
+          "The mean of the data equals the corresponding profile in vmrs.\n"
+          "Standard dev. and correlations follow the covariance matrix s.\n"
+          "Profiles for several species can be produced if s is valid for\n"
+          "all the species.\n"
+          "The profiles are stored in files named as:\n"
+          "   batchdir.XXX.ab  \n"
+          "where XX is the molecule name.\n"
+          "\n"
+          "Keywords \n"
+          "  n       : Number of random vectors to produce.\n"
+          "  do_tags : This string array gives the tags for which profiles\n"
+          "            shall be generated, e.g. [\"H2O\",\"O3\"].\n"
+          "            These tags must match some tag in tags.\n"
+          "  unit    : Unit for the given standard deviation. Unit coding as\n"
+          "            for kSpecies."),
+	OUTPUT(),
+	INPUT( tag_groups_, vmrs_, p_abs_, t_abs_, s_, batchname_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "n",   "do_tags",      "unit"   ),
+	TYPES(    int_t, ARRAY_string_t, int_t    )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ybatchAbsAndRte"),
+	DESCRIPTION(
+          "Calculates a batch of spectra from a set of profiles and\n"
+	  "frequency and viewing angle grids.\n"
+          "The following workspace methods are used:\n"
+          "   absCalc    \n"
+          "   losCalc    \n"
+          "   sourceCalc \n"
+          "   transCalc  \n"
+          "   yRte  \n"
+          "and all the workspace variables needed by these functions must be\n"
+          "set before starting this method.\n"
+          "The refractive index is kept constant for all spectra.\n"
+          "The values of the workspace variables are used as defaults when\n"
+          "appropiate. For example, if temperature profiles not are read\n"
+          "from a file (do_t=0), then the values of t_abs are used for all\n"
+          "spectra.\n"
+          "All input files shall be readable by MatrixReadBinary.\n"
+          "The profiles and grids are stored as columns in the file matrix.\n"
+          "When a filename is empty (""), filenames are created as:\n"
+          "   batchname.XXX.ab \n"
+          "where XXX is\n"
+          "   t_abs     : For temperature profiles.\n" 
+          "   z_abs     : For vertical altitude grids.\n" 
+          "   f_mono    : For frequency grids.\n" 
+          "   za_pencil : For zenith angle grids.\n" 
+          "For species XXX is the molecule name, e.g. H2O and O3.\n" 
+          "If a filename is given, batchname is ignored.\n"
+          "When a flag is 0, the corresponding filename is of no importance.\n"
+          "The length of profiles (t, z and species) must match p_abs (no\n"
+          "interpolation is performed).\n" 
+          "\n"
+          "Keywords \n"
+          "  ncalc     : The number of spectra to calculate. The files can\n"
+          "              contain data for more spectra (but not less).\n"
+          "  do_t      : Temperature flag (0/1).\n"
+          "  t_file    : Filename for temperature data.\n"
+          "  do_z      : Vertical altitude flag (0/1).\n"
+          "  z_file    : Filename for vertical grid data.\n"
+          "  do_f      : Frequency flag (0/1).\n"
+          "  f_file    : Filename for frequency data.\n"
+          "  do_za     : Zenith angle flag (0/1).\n"
+          "  za_file   : Filename for zenith angle data.\n"
+          "  do_tags   : This string array gives the tags for which profiles\n"
+          "              shall be read from a file, e.g. [\"H2O\",\"O3\"].\n"
+          "              These tags must match some tag in tags.\n"
+          "  tag_files : Filenames for species data."),
+	OUTPUT( ybatch_ ),
+	INPUT( // Variables needed for absCalc
+               f_mono_, p_abs_, t_abs_, vmrs_, lines_per_tg_, lineshape_, 
+               lineshape_norm_,
+               // Additional variables for losCalc
+	       z_abs_, z_plat_ ,za_pencil_, l_step_, refr_, l_step_refr_, 
+               refr_index_, z_ground_, r_geoid_,
+               // Additional variables for yRte
+	       y_space_, e_ground_, t_ground_,
+               // Additional variables needed for this function
+               batchname_, tag_groups_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS("ncalc", "do_t", "t_file", "do_z", "z_file",
+                 "do_tags", "tag_files",
+                 "do_f", "f_file", "do_za", "za_file"),
+	TYPES(   int_t,   int_t,  string_t, int_t,  string_t, 
+                 ARRAY_string_t, ARRAY_string_t,
+                 int_t,  string_t, int_t,   string_t  )));
 
 }

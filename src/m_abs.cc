@@ -768,7 +768,6 @@ void z_absHydrostatic(
     const VECTOR&    p_abs,
     const VECTOR&    t_abs,
     const VECTOR&    h2o_abs,
-    const Numeric&   r_geoid,  
     const Numeric&   g0,
     const Numeric&   pref,
     const Numeric&   zref,
@@ -781,6 +780,7 @@ void z_absHydrostatic(
         Numeric  tv;                    // virtual temperature
         Numeric  dz;                    // step geometrical altitude
         VECTOR   ztmp(np);              // temporary storage for z_abs
+  extern const Numeric EARTH_RADIUS;
 
   if ( (z_abs.dim()!=np) || (t_abs.dim()!=np) || (h2o_abs.dim()!=np) )
     throw runtime_error("The vectors p_abs, t_abs, z_abs and h2o_abs do not all have the same length.");
@@ -797,7 +797,8 @@ void z_absHydrostatic(
     for ( i=1; i<np; i++ )
     {
       // Calculate g 
-      g  = (g_of_z(r_geoid,g0,z_abs(i))+g_of_z(r_geoid,g0,z_abs(i+1))) / 2.0;
+      g  = ( g_of_z(EARTH_RADIUS,g0,z_abs(i)) + 
+             g_of_z(EARTH_RADIUS,g0,z_abs(i+1)) ) / 2.0;
 
       // Calculate weight mixing ratio for water assuming constant average
       // molecular weight of the air

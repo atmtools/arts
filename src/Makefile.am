@@ -65,10 +65,12 @@ make_vector.cc \
 math_funcs.cc \
 atm_funcs.cc \
 m_abs.cc \
+m_batch.cc \
+m_covmatrix.cc \
+m_hmatrix.cc \
 m_io.cc \
 m_los.cc \
 m_wfs.cc \
-m_hmatrix.cc \
 absorption.cc \
 wsv_pointers.cc \
 species_data.cc \

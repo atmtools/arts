@@ -43,6 +43,60 @@
 
 
 ////////////////////////////////////////////////////////////////////////////
+//   Default file names
+////////////////////////////////////////////////////////////////////////////
+
+//// filename_ascii ////////////////////////////////////////////////////////
+/**
+   Gives the default file name for the ASCII formats.
+
+   The default name is only used if the file name is empty.
+
+   \retval   filename     file name
+   \param    varname      variable name
+
+   \author Patrick Eriksson              
+   \date   2000-11-01
+*/
+void filename_ascii(
+              string&  filename,
+        const string&  varname )
+{
+  if ( "" == filename )
+  {
+    extern const string basename;                       
+    filename = basename+"."+varname+".aa";
+  }
+}
+
+
+
+//// filename_bin ////////////////////////////////////////////////////////////
+/**
+   Gives the default file name for the binary format.
+
+   The default name is only used if the file name is empty.
+
+   \retval   filename     file name
+   \param    varname      variable name
+
+   \author Patrick Eriksson              
+   \date   2000-11-01
+*/
+void filename_bin(
+              string&  filename,
+        const string&  varname )
+{
+  if ( "" == filename )
+  {
+    extern const string basename;                       
+    filename = basename+"."+varname+".ab";
+  }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////
 //   Functions to open and read ASCII files
 ////////////////////////////////////////////////////////////////////////////
 

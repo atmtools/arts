@@ -225,6 +225,64 @@ MATRIX log( const MATRIX& X )            // matrix return version
 
 
 
+//// mean and standard deviation ////////////////////////////////////////////
+//
+/** Calculates the mean of the rows of a matrix.
+
+    \retval  m   row means
+    \param   x   a matrix
+
+    \author Patrick Eriksson 
+    \date   2000-12-06
+*/
+void mean_row( VECTOR& m, const MATRIX& x )
+{
+  const size_t  nrows = x.dim(1);
+  const size_t  ncols = x.dim(2);
+        size_t  col,row;
+        Numeric rowsum;
+
+  m.newsize(nrows);
+  for ( row=1; row<=nrows; row++ )
+  {
+    rowsum = 0;
+    for ( col=1; col<=ncols; col++ )
+      rowsum += x(row,col);
+    m(row) = rowsum/ncols;
+  }
+}
+
+/** Calculates the standard deviation for the rows of a matrix.
+
+    \retval  s   row standard deviations
+    \param   x   a matrix
+    \param   m   row means
+
+    \author Patrick Eriksson 
+    \date   2000-12-06
+*/
+void std_row( VECTOR& s, const MATRIX& x, const VECTOR& m  )
+{
+  const size_t  nrows = x.dim(1);
+  const size_t  ncols = x.dim(2);
+        size_t  col,row;
+        Numeric rowsum;
+
+  if ( nrows != m.dim() )
+    throw runtime_error("The size of the given mean profile does not match the data."); 
+
+  s.newsize(nrows);
+  for ( row=1; row<=nrows; row++ )
+  {
+    rowsum = 0;
+    for ( col=1; col<=ncols; col++ )
+      rowsum += pow( x(row,col)-m(row), 2 );
+    s(row) = rowsum/(ncols-1);
+  }
+}
+
+
+
 //// min and max ////////////////////////////////////////////////////////////
 //
 /** Gives the minimum value of a vector.
@@ -1033,7 +1091,7 @@ VECTOR row(size_t i,
   return x;
 }
 
-/** Extracts column i of MATRIX A.
+/** Extracts row i of MATRIX A.
 
     \retval   x   column i of A as a vector
     \param    i   column index
@@ -1064,7 +1122,7 @@ void row(MATRIX& X,
       }
 }
 
-/** Extracts column i of MATRIX A (return version).
+/** Extracts row i of MATRIX A (return version).
 
     \return       column i of A as a vector
     \param    i   column index
@@ -1086,7 +1144,7 @@ MATRIX row(size_t i,
 
 //// column /////////////////////////////////////////////////////////////////
 //
-/** Extracts rows i to k of MATRIX A.
+/** Extracts column i of MATRIX A.
 
     \retval   X   the extracted part of A
     \param    i   first row to extract
@@ -1112,7 +1170,7 @@ void col(VECTOR& x,
     }
 }
 
-/** Extracts rows i to k of MATRIX A (return version).
+/** Extracts column i of MATRIX A (return version).
 
     \return       the extracted part of A
     \param    i   first row to extract
@@ -1184,6 +1242,41 @@ MATRIX col(size_t i,
 
 
 /////////////////////////////////////////////////////////////////////////////
+//   Putting data in a matrix column or and row
+/////////////////////////////////////////////////////////////////////////////
+
+//// put_in_col /////////////////////////////////////////////////////////////
+//
+/** Puts a vector in column i of a matrix
+
+    \retval   A   a matrix
+    \param    i   column index
+    \param    x   a vector
+
+    \author Patrick Eriksson 
+    \date   2000-12-07
+*/
+void put_in_col(
+              MATRIX& A,
+	      size_t  i, 
+        const VECTOR& x )
+{
+  const size_t n = A.dim(1);
+
+  // Make sure that i is legal:
+  assert ( i >  0        );
+  assert ( i <= A.dim(2) );
+
+  // Check length of x
+  assert ( n == x.dim()  );
+
+  for ( size_t j=1; j<=n; ++j )
+    A(j,i) =  x(j);
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////
 //   Random data
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1217,10 +1310,10 @@ void rand_uniform(
 
 
 
-//// rand_normal ///////////////////////////////////////////////////////////
+//// rand_gaussian ///////////////////////////////////////////////////////////
 /**
-   Creates a vector with random data normally distributed with zero mean
-   and the standard deviation given.
+   Creates a gaussian random vector with zero mean and 
+   the standard deviation given.
 
    The random data is uncorrelated.
 
@@ -1234,7 +1327,7 @@ void rand_uniform(
    \author Patrick Eriksson
    \date   2000-11-27
 */
-void rand_normal(
+void rand_gaussian(
               VECTOR&    r,
         const size_t     n,
         const Numeric&   s )
@@ -1259,3 +1352,130 @@ void rand_normal(
     }
   }
 }
+
+
+
+//// rand_matrix_uniform ////////////////////////////////////////////////////
+/**
+   Creates a matrix with random data uniformerly distributed between
+   the lower and higher limit given.
+
+   The random data is uncorrelated.
+
+   \retval   m          random matrix
+   \param    nrows      number of rows of m
+   \param    ncols      number of cols of m
+   \param    x_low      lower limit for the random values
+   \param    x_high     upper limit for the random data
+
+   \author Patrick Eriksson
+   \date   2000-12-07
+*/
+void rand_matrix_uniform(
+              MATRIX&    m,
+        const size_t&    nrows,
+        const size_t&    ncols,
+        const Numeric&   x_low,
+        const Numeric&   x_high )
+{
+  VECTOR r;
+  size_t row,col;
+  m.newsize(nrows,ncols);
+  for ( col=1; col<=ncols; col++)
+  {
+    rand_uniform( r, nrows, x_low, x_high );
+    for ( row=1; row<=nrows; row++)
+      m(row,col) = r(row);
+  }
+}
+
+
+
+//// rand_matrix_gaussian ////////////////////////////////////////////////////
+/**
+   Creates a gaussian random matrix with zero mean and 
+   the standard deviation given.
+
+   The random data is uncorrelated.
+
+   See further rand_gaussian
+
+   \retval   y          random vector
+   \param    nrows      number of rows of m
+   \param    ncols      number of cols of m
+   \param    s          standard deviation
+
+   \author Patrick Eriksson
+   \date   2000-12-07
+*/
+void rand_matrix_gaussian(
+              MATRIX&    m,
+        const size_t&    nrows,
+        const size_t&    ncols,
+        const Numeric&   s )
+{
+  VECTOR r;
+  size_t row,col;
+  m.newsize(nrows,ncols);
+  for ( col=1; col<=ncols; col++)
+  {
+    rand_gaussian( r, nrows, s );
+    for ( row=1; row<=nrows; row++)
+      m(row,col) = r(row);
+  }
+}
+
+
+
+//// rand_data_gaussian ////////////////////////////////////////////////////
+/**
+   Creates a matrix with random data fulfilling the given criteria.
+
+   The mean of the data is z0. Standard deviations and correlation 
+   follow the given covariance matrix.
+
+   Each realisation is stored as a column in z.
+
+   \retval   z          random matrix
+   \param    n          number of random vectors
+   \param    z0         mean vector
+   \param    s          covariance matrix
+
+   \author Patrick Eriksson
+   \date   2000-12-07
+*/
+void rand_data_gaussian(
+              MATRIX&    z,
+        const size_t&    n,
+        const VECTOR&    z0,
+        const MATRIX&    s )
+{
+  const size_t   nrows = z0.dim();
+        size_t   row,col;
+
+  if ( nrows != s.dim(1) )
+    throw runtime_error("The length of the mean vector and the size of the covariance matrix do not match."); 
+
+  // Make Cholesky decomposition of s, l'*l=s
+  // Until we have MTL, only the diagonal elements are considered.
+  MATRIX   l(nrows,nrows,0.0);
+  for ( row=1; row<=nrows; row++ )
+    l(row,row) = sqrt( s(row,row) );
+
+  // Create matrix with gaussian data having zero mean and standard deviation 1
+  MATRIX   r;
+  rand_matrix_gaussian( r, nrows, n, 1 );
+
+  // Multiplicate l and r to get z
+  z = l*r;
+
+  // Add mean vector
+  for ( row=1; row<=nrows; row++ )
+  {
+    for ( col=1; col<=n; col++ )
+      z(row,col) += z0(row);
+  }  
+}
+
+
+

@@ -405,3 +405,14 @@ DATA TYPE: MATRIX
 DESCRIPTION:
 The covariance matrix associated with kb.
 
+VARIABLE : batchname
+DATA TYPE: string
+DESCRIPTION:
+Default basename for batch data.
+
+VARIABLE : ybatch
+DATA TYPE: MATRIX
+DESCRIPTION:
+A batch of spectra.
+The spectra are stored as columns in a matrix
+
