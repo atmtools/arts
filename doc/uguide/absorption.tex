@@ -171,15 +171,13 @@ In general there are three types of absorption/emission spectra:
       no single lines in it.
 \end{itemize}
 This section is therefore firstly devised to give a short theoretical
-overview of the absorption quantities which are used in ARTS. The presentation
-of the calculation methods within ARTS of these quantities is the
-second goal.
-There are two major subsections which deal separately with the respective types
-of spectra regarded by ARTS: 
-- lines 
-- continua.
-The second one extends beyond the scope of mere treatment of the
-continua and thus gives an integrated view of continua and spectral lines.
+overview of the absorption quantities which are used in ARTS. The
+presentation of the calculation methods within ARTS of these
+quantities is the second goal. There are two major subsections which
+deal separately with the respective types of spectra regarded by ARTS,
+lines and continua.  The second one extends beyond the scope of mere
+treatment of the continua and thus gives an integrated view of
+continua and spectral lines.
 
 % ================================================================================
 % The following section is written by Nikolay Koulev, iup Bremen, nkoulev@uni-bremen.de
@@ -212,33 +210,35 @@ function is normalized as follows
 \begin{equation}
   \int F(\nu)d\nu=1
 \end{equation}
-The values of $S(T)$ at reference temperature $T_0$ are contained in spectroscopic databases. The conversion to different
-temperatures is done by
+The values of $S(T)$ at reference temperature $T_0$ are contained in
+spectroscopic databases. The conversion to different temperatures is
+done by
 \begin{equation}
 S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/kT} - e^{-E_i/kT}}{e^{-E_f/kT_0} - e^{-E_i/kT_0}}
 \end{equation}
 given the energies $E_f$ and $E_i$ of the two levels between which the
 transition occurs as well as the partition function~~$Q(T)$. The
-databases contain the lower state energy $E_l$ tabulated along with the
-$S$ and the transition frequency $\nu$, so that the upper state energy can be
-computed by $E_u$=$E_l$+h$\nu$. Partition functions for all molecular species are also
-available along with spectroscopic databases, either in the form of tabulated values for a set
-temperatures, or in the form of FORTRAN routines. One can obtain the total absorption
-coefficient by adding the absorption of all spectral lines of all
-molecular species.
+databases contain the lower state energy $E_l$ tabulated along with
+the $S$ and the transition frequency $\nu$, so that the upper state
+energy can be computed by $E_u$=$E_l$+h$\nu$. Partition functions for
+all molecular species are also available along with spectroscopic
+databases, either in the form of tabulated values for a set
+temperatures, or in the form of FORTRAN routines. One can obtain the
+total absorption coefficient by adding the absorption of all spectral
+lines of all molecular species.
 
 The problem of determining the explicit kind of the line-shape
 functions is treated in the following subsection. Another one is
 dedicated to the partition functions and their calculation..
 
 
-\levelc{Line Shape Functions}
-Up to date there is no way to calculate the line-shape functions
-analytically just from the theoretical expressions of quantum dynamics,
-statistical physics, and theoretical mechanics. Certain approximations
-have to be made to account for different physical phenomena related to
-the absorption/emission process or to suit better the calculation of
-different parts of the spectral line.
+\levelc{Line Shape Functions} Up to date there is no way to calculate
+the line-shape functions analytically just from the theoretical
+expressions of quantum dynamics, statistical physics, and theoretical
+mechanics. Certain approximations have to be made to account for
+different physical phenomena related to the absorption/emission
+process or to suit better the calculation of different parts of the
+spectral line.
 
 There are three phenomena which contribute to the line-shape. These
 are, in increasing order of importance, the finite lifetime of an
@@ -324,15 +324,14 @@ effect is the most complicated one among the others and still
 represents a complex theoretical task to be tackled, and is in the
 same time of major experimental importance. So far, there is no way to
 calculate analytically from the basics the profile of a pressure, or
-collisional, line through a single approach near the line center as well
-as in the far wing region. The various approximations, which are
+collisional, line through a single approach near the line center as
+well as in the far wing region. The various approximations, which are
 therefore used, are immanently limited to the certain line regions
-they deal with.
-The most popular among these approximations is the  {\it{impact~approximation}}
-which postulates that the duration of the collisions of the
-gas particles is very small compared to the average time between the
-collisions. Lorentz was the first to achieve a result exploiting this
-approach, the Lorentz line-shape function:
+they deal with.  The most popular among these approximations is the
+{\it{impact~approximation}} which postulates that the duration of the
+collisions of the gas particles is very small compared to the average
+time between the collisions. Lorentz was the first to achieve a result
+exploiting this approach, the Lorentz line-shape function:
 \begin{equation}
  F_L(\nu)=\frac{\gamma_L}{\pi}\frac{1}{(\nu-\nu_0)^2+\gamma_L^2}
 \end{equation}
@@ -340,10 +339,10 @@ where $\gamma_L$ is the Lorentz line width. As one can see, the result
 (3.9) is pretty similar to (3.5) but the specific line parameters
 $\gamma$ and $\gamma_L$ make them differ significantly in the
 corresponding frequency regions of interest. For atmospheric pressures
-$\gamma_L$ is much greater and because of that, of experimental significance
-in contrast to $\gamma$.\\
-Elaborating the model of Lorentz, van Vleck and Weisskopf made a correction to it, particularly
-for the microwave region:
+$\gamma_L$ is much greater and because of that, of experimental
+significance in contrast to $\gamma$.\\
+Elaborating the model of Lorentz, van Vleck and Weisskopf made a
+correction to it, particularly for the microwave region:
 \begin{equation}
  F_{VVW} (\nu)=\left(\frac{\nu}{\nu_0}\right)^2\frac{\gamma_L}{\pi}\left[\frac{1}{(\nu-\nu_0)^2+\gamma_L^2}+\frac{1}{(\nu+\nu_0)^2+\gamma_L^2}\right]
 \end{equation}
@@ -528,7 +527,7 @@ implemented in ARTS: HITRAN, JPL, MYTRAN, and the ARTS inherent
 catalog format.
 
 Special attention will be paid here only to the inherent format in ARTS.
-To keep track with the changes in the catalog format, every catalog
+To keep track with the changes in the catalog format, every catalog file
 must start with $ARTSCAT-x$ , where for current version $x=2$.  Files
 with different or missing version will be rejected. The current
 version is stored in the private member variable mversion. It can be
@@ -589,7 +588,7 @@ Col  Variable                     Label    Unit
 \end{verbatim}
 The parameters 0-12 must be present, the others can be missing, since
 they are not needed for the calculation. For the error fields (15-21),
-a~$-1$ means that no value exist. Fields 22-29 are strings inside quotes
+a~$-1$ means that no value exists. Fields 22-29 are strings inside quotes
 \verb ""  for maximum flexibility.\\
 Thus a valid ARTS line file would be:
 \begin{verbatim}
@@ -600,25 +599,24 @@ ARTSCAT-2 2
 522.5576 21361.9693734024 27723.2206411054 0.76 0.76 296 0
 \end{verbatim}
 Some species need special parameters that are not needed by other
-species (for example overlap coefficients for O2). In the case of
+species (for example overlap coefficients for $O_2$). In the case of
 oxygen two parameters are sufficient to describe the overlap, but
 other species, e.g., methane, may need more coefficients. The default
 for \texttt{N\_AUX} is zero. In that case, no further \texttt{AUX}
-fields are present.  The names of the private members and public
-access functions of this data structure follow the above table. The
-only difference is that underscores are omitted and only the first
-letter of each name is capitalized. This is for consistency with the
-notation elsewhere in the program.
+fields are present.
 
 
 
-\levelc{Species specific data} 
+\levelc{Species specific data}
+
 The isotopic ratio of the species implemented in ARTS was in general
-taken from HITRAN96, even for such ones given by JPL00 and
-HITRAN96. For species not present in  HITRAN96 the values were
-extracted from JPL00. The isotopic ratios are normalized for some
-species in JPL00 to 1, for these cases, the HITRAN96  values of the
-major isotope is used to scale the JPL00 isotopic ratio to relative number.
+taken from HITRAN96, even for such ones given by JPL00 and HITRAN96.
+For species not present in HITRAN96 the values were extracted from
+JPL00. The isotopic ratios are normalized for some species in JPL00 to
+1, for these cases, the HITRAN96 values of the major isotope is used
+to scale the JPL00 isotopic ratio to relative number.
+
+
 
 
 
@@ -2235,14 +2233,6 @@ The parameterizations of $\inten$ was already in use for the early
 version of MPM81 \cite{liebe:81}. The expression for $\gamk$ is the
 same as in MPM89. The main difference between MPM93 and MPM89 
 concerning the water vapor line absorption is the updated line catalog.
-
-An important difference comparing the arts implementation to the
-original MPM93 source code is the incorporation of the isotopic 
-ratio in the line strength of the $\hzo$-lines at 547.676 
-($_{1}^{1}$H$_{~\,8}^{18}$O, abundance=0.00199983) and 
-552.021\,GHz ($_{1}^{1}$H$_{~\,8}^{17}$O, abundance=0.00037200).
-Since these two lines are newly added in MPM93, the older versions of
-MPM are not affected from this change. 
 %
 %
 %\begin{landscape}
@@ -2274,9 +2264,7 @@ MPM are not affected from this change.
    coefficients of H$_2$O in air for the MPM93 model \citep{liebeetal:93}. 
    The last separated line is the unphysical pseudo-line used in MPM93. 
    The lines which are marked with a "$^+$" were not in the MPM87/MPM89 
-   line catalog. The line intensities at 547.676 and 552.021\,GHz are 
-   multiplied with the respective isotopic ratio and are therefore
-   different from the original values (see text).}
+   line catalog.}
  \label{tab:mpm93linelist}
  \endlastfoot
 % --------------------- body of table  ----------------------------------  
@@ -2298,8 +2286,8 @@ MPM are not affected from this change.
 16     & 488.491133 & 0.02520 & 2.853 & 2.602 & 5.04 & 0.69 & 0.72 \\
 17     & 503.568532 & 0.00390 & 6.733 & 1.612 & 3.98 & 0.61 & 0.43 \\
 18     & 504.482692 & 0.00130 & 6.733 & 1.612 & 4.01 & 0.61 & 0.45 \\
-19$^+$ & 547.676440 & 0.00194 & 0.114 & 2.600 & 4.50 & 0.70 & 1.00 \\
-20$^+$ & 552.020960 & 0.00055 & 0.114 & 2.600 & 4.50 & 0.70 & 1.00 \\
+19$^+$ & 547.676440 & 0.97010 & 0.114 & 2.600 & 4.50 & 0.70 & 1.00 \\
+20$^+$ & 552.020960 & 1.47700 & 0.114 & 2.600 & 4.50 & 0.70 & 1.00 \\
 21     & 556.936002 & 48.74000& 0.159 & 3.210 & 4.11 & 0.69 & 1.00 \\
 22     & 620.700807 & 0.50120 & 2.200 & 2.438 & 4.68 & 0.71 & 0.68 \\
 23$^+$ & 645.866155 & 0.00713 & 8.580 & 1.800 & 4.00 & 0.60 & 0.50 \\
