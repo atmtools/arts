@@ -1,5 +1,11 @@
 2003-07-01  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-0-92
+
+	* src/arts.h: Minor doc update.
+
+2003-07-01  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-0-91
 
 	* doc/doxygen/Makefile.am: Copy arts logo to html dir.
