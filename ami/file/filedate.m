@@ -3,6 +3,10 @@
 %
 %          Returns the modification date for a file, either as a date
 %          string or as a serial date number.
+%
+%	   Matlab functions must be given with their full name, that is,
+%          including the .m extension.
+%
 %          To check if a file is newer than another
 %          FILEDATE(filename1,1) < FILEDATE(filename2,1) ...
 %
@@ -24,6 +28,13 @@ end
 
 
 d    = dir(filename);
+
+
+if isempty(d)
+  error(sprintf('The given file (%s) cannot be found.',filename));
+end
+
+
 date = d.date;
 
 

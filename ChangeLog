@@ -1,5 +1,12 @@
 2002-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-0-59
+
+	* ami/file/filedate.m: Added a descent error message if the file given
+	cannot be found.
+
+2002-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-0-58
 
 	* ami/init.m: The copying of auto_wsv is now only performed when 
