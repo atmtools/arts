@@ -361,6 +361,23 @@ int dummy(int& a, int b);
 \end{enumerate}
 
 
+\levelc{How to add an example file}
+%---------------------------------------
+\begin{enumerate}
+\item Create your own example file. The filename should end with
+  \verb|_example.arts.in|.
+\item If your example uses files from the arts-data package, replace
+  the path to the data package (e.g. \verb|/pool/lookup2/arts-data|)
+  with \verb|@ac_arts_data@|. Configure will replace this with the
+  correct path.
+\item Add your file to the variable \verb|arts_examples| in the file
+  \verb|doc/examples/Makefile.am|.
+\item Add your file to the AC\_OUTPUT list near the end of configure.in.
+\item The next time when you call make the \verb|.arts.in| file will
+  be automatically converted to \verb|.arts|.
+\end{enumerate}
+
+
 \levelb{CVS issues}
 %======================
  \label{sec:development:cvs}
