@@ -1,3 +1,21 @@
+2002-06-14  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-31
+	
+	* src/main.cc (main): Output os info with -v.
+	
+	* src/m_wfs.cc: Use !finite instead of isnan||isinf.
+	
+	Include ieeefp on SunOS.
+	
+	Use isfinite on HP-UX otherwise finite.
+
+	* src/getopt.h: Use getopt_long prototyping for GNU C, HP-UX and
+	SunOS.
+
+	* configure.in: Determine operating system name and version. Name
+	is defined in OS_NAME, version in OS_VERSION.
+
 2002-06-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-30
