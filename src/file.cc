@@ -703,6 +703,44 @@ void binfile_close(
 
 
 
+//// binfile_write_size /////////////////////////////////////////////////////
+/**
+   Writes the size of the data as an attribute to the vdata.
+
+   The size is written as [nrows,ncols]
+
+   \param    filename     file name
+   \param    dataname     name on data set
+   \param    vdata_id     vdata identifier
+   \param    nrows        number of data rows
+   \param    ncols        number of data columns
+
+   @exception runtime_error  Cannot create attribute.
+
+   \author Patrick Eriksson              
+   \date   2000-11-09
+*/
+void binfile_write_size( 
+        const string&   filename, 
+        const string&   dataname,
+        const int&      vdata_id,
+        const size_t&   nrows,
+        const size_t&   ncols )
+{
+  size_t v[2];
+  v[0] = nrows;
+  v[1] = ncols;
+
+  if ( VSsetattr( vdata_id, _HDF_VDATA, "SIZE", DFNT_UINT32, 2, v ) < 0 )
+  {
+    ostringstream os;
+    os << "Cannot write size data for " << dataname << " in file " << filename;
+    throw runtime_error(os.str());
+  }
+}
+
+
+
 //// binfile_read_init /////////////////////////////////////////////////////
 /**
    Initilizes a binary data field for reading.
@@ -756,8 +794,7 @@ void binfile_read_init(
   }
 
   // Set fields to read
-  int status = VSsetfields( vdata_id, storagetype.c_str() );
-  if ( status < 0 )
+  if ( VSsetfields( vdata_id, storagetype.c_str() ) < 0 )
   {
     ostringstream os;
     os << "Cannot find the field " << storagetype << " in file " << filename
@@ -766,24 +803,18 @@ void binfile_read_init(
   }
 
   // Get number of rows and columns
-  status = VSQuerycount( vdata_id, &nrows );
-  if ( status < 0 )
+  size_t  v[2];
+  if ( VSgetattr( vdata_id, _HDF_VDATA, 0, v ) < 0 )
   {
     ostringstream os;
-    os << "Cannot determine the number of rows in the field " << storagetype
-       << "\n" << "in file " << filename;
+    os << "Cannot determine the size of " << dataname << "\n" 
+       << "in file " << filename;
     throw runtime_error(os.str());
   }
-  ncols = VFfieldorder( vdata_id, 0 ); 
-  if ( ncols < 0 )
-  {
-    ostringstream os;
-    os << "Cannot determine the number of columns in the field " << storagetype
-       <<"\n" << "in file " << filename;
-    throw runtime_error(os.str());
-  }
+  nrows = v[0];
+  ncols = v[1];
 
-  // Check if number of rows and columns is as expected
+  // Check if number of rows and columns are as expected
   if ( (nrows0>0) && (nrows!=nrows0) )
   {
     ostringstream os;
@@ -826,6 +857,7 @@ void binfile_read_end(
     throw runtime_error(os.str());
   }
 }
+
 
 
 //// binfile_get_datatype ///////////////////////////////////////////////////
@@ -886,35 +918,104 @@ void binfile_write(
   // Check that data types have expected length
   check_data_types();
 
-  // Empty data cannot be handled by HDF
-  if ( (nrows<1) || (ncols<1) )
-    throw runtime_error("Empty data cannot be stored as binary");
-
   out3 << "    Writing: " << dataname << "\n";
 
-  // Create the data set and write data
-  if ( atomictype == "INDEX" ) 
-    VHstoredatam( fid, storagetype.c_str(), dpointer, nrows, DFNT_UINT32, 
-                                  dataname.c_str(), "UINT", ncols );
-
-  else if ( atomictype == "NUMERIC" ) 
-  {
-    if ( sizeof(Numeric) == 4 )
-      VHstoredatam( fid, storagetype.c_str(), dpointer, nrows, DFNT_FLOAT32, 
-                                  dataname.c_str(), "FLOAT", ncols );
-    else
-      VHstoredatam( fid, storagetype.c_str(), dpointer, nrows, DFNT_FLOAT64, 
-                                  dataname.c_str(), "DOUBLE", ncols );
-  }
-
-  else if ( atomictype == "CHAR" ) 
-    VHstoredatam( fid, storagetype.c_str(), dpointer, nrows, DFNT_CHAR8, 
-                                  dataname.c_str(), "CHAR", ncols );
-
-  else
+  // Create a new vdata
+  int  vdata_id = VSattach( fid, -1, "w" );
+  if ( vdata_id < 0 )
   {
     ostringstream os;
-    os << "The atomic data type " << atomictype << " is not handled";
+    os << "Cannot create a new vdata in file " << filename;
+    throw runtime_error(os.str());
+  }
+ 
+  // Set name of the vdata
+  if ( VSsetname( vdata_id, dataname.c_str() ) < 0 )
+  {
+    ostringstream os;
+    os << "Cannot name the vdata " << dataname << " in file " << filename;
+    throw runtime_error(os.str());
+  }
+
+  // Write data size
+  binfile_write_size( filename, dataname, vdata_id, nrows, ncols );
+
+  // Write data (if not empty)
+  if ( (nrows>0) && (ncols>0) )
+  {
+    // Create the field
+    int    status1, status2;
+    //
+    if ( atomictype == "INDEX" ) 
+    {
+      status1 = VSsetclass( vdata_id, "UINT"  );
+      status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_UINT32, 1);
+    }     
+    else if ( atomictype == "NUMERIC" ) 
+    {
+      if ( sizeof(Numeric) == 4 )
+      {
+        status1 = VSsetclass( vdata_id, "FLOAT"  );
+        status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_FLOAT32, 1); 
+      }
+      else
+      {
+        status1 = VSsetclass( vdata_id, "DOUBLE"  );
+        status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_FLOAT64, 1);
+      }
+    }
+  
+    else if ( atomictype == "CHAR" ) 
+    {
+      status1 = VSsetclass( vdata_id, "CHAR"  );
+      status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_CHAR, 1);     
+    }
+    else
+    {
+      ostringstream os;
+      os << "The atomic data type " << atomictype << " is not handled";
+      throw runtime_error(os.str());
+    }
+
+    // Handle error
+    if ( status1 < 0 )
+    {
+      ostringstream os;
+      os << "Cannot set class on " << dataname << " in file "<<filename;
+      throw runtime_error(os.str());
+    }
+    if ( status2 < 0 )
+    {
+      ostringstream os;
+      os << "Cannot create the field " << storagetype << " in file "<<filename;
+      throw runtime_error(os.str());
+    }
+
+    // Finalize the definition of the field
+    if ( VSsetfields( vdata_id, storagetype.c_str() ) < 0 )
+    {
+      ostringstream os;
+      os << "Cannot set the field " << storagetype << " in file " << filename;
+      throw runtime_error(os.str());
+    }
+
+    // Do actual writing
+    const size_t   nout = nrows*ncols;
+    size_t ndone = VSwrite( vdata_id, dpointer, nout, FULL_INTERLACE );
+    if ( ndone != nout )
+    {
+      ostringstream os;
+      os << "Could not write all data to field " << storagetype << "in file "
+         << filename << "\nOut of memory?";
+      throw runtime_error(os.str());
+    }
+  }
+
+  // Detach the vdata
+  if ( VSdetach( vdata_id ) < 0 )
+  {
+    ostringstream os;
+    os << "Cannot detach the vdata " << dataname << " in file " << filename;
     throw runtime_error(os.str());
   }
 }
@@ -924,6 +1025,10 @@ void binfile_write(
 //// binfile_read1 ///////////////////////////////////////////////////////////
 /**
    Core function for reading data of index type from binary files.
+
+   The data is read an index array.
+
+   The reading is splitted to several files as type conversions can be needed.
 
    \retval   x            the index array to read
    \param    vdata_id     data identifier
@@ -978,6 +1083,10 @@ void binfile_read1(
 /**
    Core function for reading data of numeric type from binary files.
 
+   The data is read a matrix.
+
+   The reading is splitted to several files as type conversions can be needed.
+
    \retval   x            the matrix to read
    \param    vdata_id     data identifier
    \param    nrows        number of data rows
@@ -1013,25 +1122,27 @@ void binfile_read2(
   // Do reading and copy data
   if ( type_in_file == "FLOAT" )
   {
-    float  a[nrows][ncols];
-    size_t i,j;
+    float  a[nrows*ncols];
+    size_t i,j,j0;
     VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
-    for ( i=0; i<nrows; i++ )
+    for ( i=1; i<=nrows; i++ )
     {
-      for ( j=0; j<ncols; j++ )
-        x(i+1,j+1) = a[i][j];
+      j0 = (i-1)*ncols-1;
+      for ( j=1; j<=ncols; j++ )
+        x(i,j) = a[j0+j];
     }
   }
 
   else if ( type_in_file == "DOUBLE" )
   {
-    double a[nrows][ncols];
-    size_t i,j;
+    double a[nrows*ncols];
+    size_t i,j,j0;
     VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
-    for ( i=0; i<nrows; i++ )
+    for ( i=1; i<=nrows; i++ )
     {
-      for ( j=0; j<ncols; j++ )
-         x(i+1,j+1) = a[i][j];
+      j0 = (i-1)*ncols-1;
+      for ( j=1; j<=ncols; j++ )
+         x(i,j) = a[j0+j];
     }
   }
 
@@ -1048,6 +1159,10 @@ void binfile_read2(
 //// binfile_read3 ///////////////////////////////////////////////////////////
 /**
    Core function for reading text from binary files.
+
+   The data is read a string.
+
+   The reading is splitted to several files as type conversions can be needed.
 
    \retval   x            the string to read
    \param    vdata_id     data identifier
@@ -1301,11 +1416,13 @@ void binfile_write_matrix(
   const size_t  ncols = x.dim(2);
         size_t  i, j;
 
-  Numeric a[nrows][ncols];
-  for ( i=0; i<nrows; i++ )
+  Numeric a[nrows*ncols];
+  size_t j0;
+  for ( i=1; i<=nrows; i++ )
   {
-    for ( j=0; j<ncols; j++ )
-      a[i][j] = x(i+1,j+1);
+    j0 = (i-1)*ncols-1;
+    for ( j=1; j<=ncols; j++ )
+      a[j0+j] = x(i,j);
   }
   binfile_write( fid,  filename, dataname, "MATRIX", "NUMERIC", nrows, ncols, 
                                                                 (uint8*)a );

@@ -14,6 +14,7 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EXTRA_DIST = \
+        filedate.m \
         isodd.m \
         vec2col.m \
         vec2row.m 

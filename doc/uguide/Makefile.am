@@ -39,7 +39,9 @@ uguide.tex \
 uguide_pdf.tex \
 utilities.tex \
 wfuns_atm.tex \
-wfuns_sensor.tex
+wfuns_sensor.tex \
+app_wsv.tex \
+app_math.tex
 
 EXTRA_DIST = \
 $(texfiles) \

@@ -1,3 +1,32 @@
+2000-11-10  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-76
+
+	* The way to store binary files modified as the prevoius version did
+	not work for matrices. The storage scheme will be described in AUG.
+
+	* AMI includes now reading and writing of binary files. The function
+	variables for the read and write functions are changed. 
+
+	* I have written and read data back and forth between ARTS and Matlab,
+	and between ASCII and binary. Everything seems OK. Even conversion
+	between double and float. But there are so many combinations, so
+	no guarantees. Tell me if you find any bugs.
+
+	* maka_wsv_h.cc produces now also a text file, wsv.txt, with the
+	information from workspace.cc. This file is used both for AGU and AMI.
+        Feel free to fix an alphabetical order of the variables in wsv.txt.
+	This would look better in AUG.
+	
+	* The file wsv.txt is copied to ami when running init.m. This file
+	is then used by read/write_artsvar to determine to type of the 
+	varaibles for e.g. consisteny reasosns. The type is also needed when
+	reading and writing binary files.
+
+	* Two appendices introduced in AUG, consisting basically of wsv.txt
+	and math_test.cc respectively.
+	
+
 2000-11-09  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-75

@@ -23,6 +23,10 @@ addpath([pwd,'/general']);
 addpath([pwd,'/hmatrix']);
 
 
+%=== Copy the file src/wsv.txt to ami
+eval('!cp ../src/wsv.txt .');
+
+
 %=== Define global physical constants
 %
 % To use the constants, type in the script for example:

@@ -1,0 +1,309 @@
+VARIABLE : lines
+DATA TYPE: ARRAYofLineRecord
+DESCRIPTION:
+A list of spectral line data.
+
+VARIABLE : lines_per_tg
+DATA TYPE: ARRAYofARRAYofLineRecord
+DESCRIPTION:
+A list of spectral line data for each tag.
+Dimensions: (tag_groups.dim()) (# of lines for this tag)
+
+VARIABLE : tag_groups
+DATA TYPE: TagGroups
+DESCRIPTION:
+This is an array of arrays of OneTag tag definitions.
+It defines the available tag groups for the calculation
+of absorption coefficients and weighting functions.
+Contrary to the original Bredbeck definition, tags within a
+group must belong to the same species, because one VMR profile
+is associated with each tag group.
+
+VARIABLE : lineshapes
+DATA TYPE: ARRAYofsizet
+DESCRIPTION:
+Indices of lineshape functions. There is one entry for
+each abs_tag, not for each species. This means if you have several
+abs_tags for different isotopes or transitions of a species, you
+may use different lineshapes.
+
+VARIABLE : raw_ptz_1d
+DATA TYPE: MATRIX
+DESCRIPTION:
+Matrix has rows:
+1. Pressure in Pa
+2. Temperature in K
+3. Altitude in m
+
+VARIABLE : raw_vmrs_1d
+DATA TYPE: ARRAYofMATRIX
+DESCRIPTION:
+The individual VMR profiles. Each species VMR profile comes with a
+pressure profile. The different species can hence be on different grids.
+
+Matrix has rows:
+1. Pressure in Pa
+2. VMR profile (absolute number)
+
+The array dimension is determined by the number of tag groups.
+
+VARIABLE : p_abs
+DATA TYPE: VECTOR
+DESCRIPTION:
+The pressure grid for the absorption coefficients [Pa]. This
+is the basic independent grid, both in the 1D and 2D
+case. Therefore it remains a vector, even in 2D.
+
+VARIABLE : f_mono
+DATA TYPE: VECTOR
+DESCRIPTION:
+The monochromatic frequency grid [Hz]. This grid is used when
+calculating absorption and pencil b
+
+VARIABLE : t_abs_2d
+DATA TYPE: ARRAYofVECTOR
+DESCRIPTION:
+2D temperatures associated with the pressures in p_abs [K].
+Array coordinate is the profile index, i.e., the horizontal
+dimension. This dimension must be consistent with z_abs_2d,
+vmr_2d, and abs_2d.
+
+VARIABLE : z_abs_2d
+DATA TYPE: ARRAYofVECTOR
+DESCRIPTION:
+2D vertical altitudes associated with the pressures in p_abs [m].Array coordinate is the profile index, i.e., the horizontal
+dimension. This dimension must be consistent with t_abs_2d,
+vmr_2d, and abs_2d.
+
+VARIABLE : vmrs_2d
+DATA TYPE: ARRAYofMATRIX
+DESCRIPTION:
+2D VMRs associated with the pressures in p_abs [absolute number].Array coordinate is the profile index, i.e., the horizontal
+dimension. This dimension must be consistent with t_abs_2d
+z_abs_2d, and abs_2d.
+The matrix dimensions are [tag_groups.dim(),p_abs.dim()].
+
+VARIABLE : abs_2d
+DATA TYPE: ARRAYofMATRIX
+DESCRIPTION:
+The array of absorption coefficient matrices.Array coordinate is the profile index, i.e., the horizontal
+dimension. This dimension must be consistent with t_abs_2d
+and z_abs_2d.
+The matrix dimensions are [f_mono.dim(),p_abs.dim()].
+
+VARIABLE : t_abs
+DATA TYPE: VECTOR
+DESCRIPTION:
+Temperature associated with the pressures in p_abs [K]
+
+VARIABLE : z_abs
+DATA TYPE: VECTOR
+DESCRIPTION:
+Vertical altitudes associated with the pressures in p_abs [m]
+
+VARIABLE : vmrs
+DATA TYPE: ARRAYofVECTOR
+DESCRIPTION:
+The VMRs (unit: absolute number) on the p_abs grid.
+Dimensions: [tag_groups.dim(), p_abs.dim()]
+
+VARIABLE : abs
+DATA TYPE: MATRIX
+DESCRIPTION:
+The matrix of absorption coefficients (in units of [1/m]).
+Dimensions: [f_mono.dim(), p_abs.dim()]
+
+VARIABLE : abs_per_tg
+DATA TYPE: ARRAYofMATRIX
+DESCRIPTION:
+These are the absorption coefficients individually for each
+tag group. The ARRAY contains one matrix for each tag group,
+the matrix format is the same as that of abs
+
+VARIABLE : za_pencil
+DATA TYPE: VECTOR
+DESCRIPTION:
+Pencil beam zenith angle, the angle between zenith and the LOS [deg].
+This grid is applied when calculating pencil beam spectra.
+
+VARIABLE : z_plat
+DATA TYPE: Numeric
+DESCRIPTION:
+The vertical altitude, above the geiod, of the platform [m].
+
+VARIABLE : l_step
+DATA TYPE: Numeric
+DESCRIPTION:
+The maximum length, along the LOS, between the points of LOS [m].
+The final step length will in most cases equal the selected length.
+There are two rare exceptions:
+  1. Downward observations from within the atmsophere, where the step
+     length is adjusted downwards to get an integer number of steps
+     between the sensor and the tangent or ground point.
+  2. Limb sounding and the distance from the tangent point to the
+     atmospheric limit (the highest absorption altitude) is smaller
+     the selected length. The length is then adjusted to this
+     distance
+
+VARIABLE : refr
+DATA TYPE: int
+DESCRIPTION:
+Boolean to consider refraction (0=no refraction).
+
+VARIABLE : l_step_refr
+DATA TYPE: Numeric
+DESCRIPTION:
+The step length (along LOS) when performing the calculations to
+determining the LOS with refraction [m].
+Note that the final step length between the LOS points is l_step.
+The step length here is only applied during the calculations.
+
+VARIABLE : refr_index
+DATA TYPE: VECTOR
+DESCRIPTION:
+The refractive index associated with the pressures in p_abs [-].
+
+
+VARIABLE : z_ground
+DATA TYPE: Numeric
+DESCRIPTION:
+The vertical altitude above the geiod of the ground [m].
+
+VARIABLE : t_ground
+DATA TYPE: Numeric
+DESCRIPTION:
+The physical temperature of the ground [K].
+
+VARIABLE : e_ground
+DATA TYPE: VECTOR
+DESCRIPTION:
+The ground emission factor for the frequencies in f_mono [0-1].
+
+VARIABLE : los
+DATA TYPE: LOS
+DESCRIPTION:
+Structure to define the line of sight (LOS). See los.h.
+
+VARIABLE : source
+DATA TYPE: ARRAYofMATRIX
+DESCRIPTION:
+Mean source functions between the points of the LOS [W/(m3Hzsr)].
+
+VARIABLE : trans
+DATA TYPE: ARRAYofMATRIX
+DESCRIPTION:
+The transmissions between the points of the LOS [-].
+
+VARIABLE : y_space
+DATA TYPE: VECTOR
+DESCRIPTION:
+Radiation entering the atmosphere at the start of the LOS
+,typically cosmic background radiation, [W/(m2Hzsr)].
+
+VARIABLE : y
+DATA TYPE: VECTOR
+DESCRIPTION:
+The working spectrum.
+
+VARIABLE : y0
+DATA TYPE: VECTOR
+DESCRIPTION:
+A reference spectrum. This variable can be used e.g. to save a copy
+of Y or to compare the spectra before and after some operation(s).
+
+VARIABLE : absloswfs
+DATA TYPE: ARRAYofMATRIX
+DESCRIPTION:
+Line of sight weighting functions.
+
+VARIABLE : k_grid
+DATA TYPE: VECTOR
+DESCRIPTION:
+Grid for the retrieval identity for which weighting functions (WFS)
+shall be calculated (when applicable). For example, pressure altitude
+grid for species
+WFs.
+
+VARIABLE : k
+DATA TYPE: MATRIX
+DESCRIPTION:
+The weighting functions (WFs) for a single retrieval identity.
+
+VARIABLE : k_names
+DATA TYPE: ARRAYofstring
+DESCRIPTION:
+Name(s) on the retrieval identity associated with K.
+
+VARIABLE : k_aux
+DATA TYPE: MATRIX
+DESCRIPTION:
+Auxiliary data for K. The number of rows of this matrix equals the
+length of the state vector for the retrieval identity (the number of
+columns of K).
+The columns hold different quantities:
+  Col 1: retrieval grid (or correspondingly)
+  Col 2: a priori values
+  Col 3: volume mixing ratios
+
+VARIABLE : kx
+DATA TYPE: MATRIX
+DESCRIPTION:
+The state weighting function matrix.
+
+VARIABLE : kx_names
+DATA TYPE: ARRAYofstring
+DESCRIPTION:
+Names on the retrieval identities associated with KX.
+
+VARIABLE : kx_index
+DATA TYPE: MATRIX
+DESCRIPTION:
+This is a two-column matrix holding first and last index of the state
+vector for each retrieval identity. That is, each row corresponds to
+a retrieval identity as [i_first,i_last].
+
+VARIABLE : kx_aux
+DATA TYPE: MATRIX
+DESCRIPTION:
+Auxiliary data for KX. As K_AUX but with the data of the different
+retrieval identies appended vertically.
+
+VARIABLE : kb
+DATA TYPE: MATRIX
+DESCRIPTION:
+The model parameters weighting function matrix.
+
+VARIABLE : kb_names
+DATA TYPE: ARRAYofstring
+DESCRIPTION:
+Names on the model parameter identities associated with KB.
+
+VARIABLE : kb_index
+DATA TYPE: MATRIX
+DESCRIPTION:
+This is a two-column matrix holding first and last index of the model
+parameter vector (b) for each  identity. That is, each row 
+corresponds to a forward model identity as [i_first,i_last].
+
+VARIABLE : kb_aux
+DATA TYPE: MATRIX
+DESCRIPTION:
+Auxiliary data for KB. As K_AUX but with the data of the different
+forward model identies appended vertically.
+
+VARIABLE : h1
+DATA TYPE: Hmatrix
+DESCRIPTION:
+A transfer matrix for sensor effects and data reduction.
+This is typically the total transfer matrix and includedes effects
+of both the sensor and data reduction.
+This matrix and H2 can also be used to split the sensor calculations
+in two parts.
+
+VARIABLE : h2
+DATA TYPE: Hmatrix
+DESCRIPTION:
+A second transfer matrix for sensor effects and data reduction.
+This matrix includes typically only effects of the data reduction.
+See further H1.
+

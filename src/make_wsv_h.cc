@@ -51,8 +51,9 @@ int main()
 
       //      cout << "size = " << wsv_data.size() << '\n';
 
-      ofstream ofs;
+      ofstream ofs,ofs2;
       open_output_file(ofs,"wsv.h");
+      open_output_file(ofs2,"wsv.txt");
 
       ofs << "/*! \\file  wsv.h\n"
 	  << "    \\brief Declares the enum type that acts as a\n"
@@ -145,10 +146,23 @@ int main()
 	      << wsv_group_names[wsv_data[i].Group()]
 	      << " "
 	      << wsv_data[i].Name() << ";\n";
+
 	}
       ofs << "};\n\n";
 
       ofs << "#endif  // wsv_h\n";
+
+      // Write text information file
+      // If you make changes here for the "VARIABLE" and "DATA TYPE" rows,
+      // you probably need to change get_artstype.m in AMI.
+      for ( size_t i=0; i<n_wsv; i++ )
+      {
+        ofs2 << "VARIABLE : " << wsv_data[i].Name() << "\n"
+             << "DATA TYPE: " << wsv_group_names[wsv_data[i].Group()] <<"\n"
+             << "DESCRIPTION:\n" 
+             << wsv_data[i].Description() << "\n\n";
+      }
+
     }
   catch (runtime_error x)
     {
@@ -159,3 +173,4 @@ int main()
 
   return 0;
 }
+

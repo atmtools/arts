@@ -1,28 +1,66 @@
 %------------------------------------------------------------------------
 % NAME:    read_artsvar
 %
-%          Reads a ARTS variable.
+%          Reads a ARTS variable from binary or ASCII data file.
 %
-%          The data is read from the file
-%             basename.varname.am
+%          Allowed file names are
+%             basename.varname.aa   (ASCII)
+%             basename.varname.ab   (binary)
 %
-%          See further READ_DATAFILE
+%          The function picks the latest file for the variable of interest.
+%          To force reading of a specific file format use FORCE.            
 %
-% FORMAT:  x = read_artsvar(basename,varname)
+% FORMAT:  x = read_artsvar(basename,varname,force)
 %
-% RETURN:  x           the data
-% IN:      basename    the ARTS basename 
-%          varname     variable name
+% RETURN:  x           Read data.
+% IN:      basename    ARTS basename 
+%          varname     Variable name.
+%          force       'a' or 'b' to force reading of ASCII or binary,
+%                      respectively.
 %------------------------------------------------------------------------
 
-% HISTORY: 12.04.00  Created by Patrick Eriksson. 
 
-function x = read_artsvar(basename,varname)
+% HISTORY: 00.04.12  First version by Patrick Eriksson (PE).
+%          00.11.10  Included binary files (PE)
 
 
-%=== Create full file name
-name = sprintf('%s.%s.am',basename,varname);
+function x = read_artsvar(basename,varname,force)
+
+
+%=== Get ARTS data type
+artstype = get_artstype(varname);
+
+
+%== Create file names
+aname = sprintf('%s.%s.aa',basename,varname);;
+bname = sprintf('%s.%s.ab',basename,varname);;
+
+
+%=== Select file type
+if exist('force')
+  if force(1) == 'a'
+    name = aname;
+  else
+    name = bname;
+  end
+else
+  aexist = exist(aname);
+  bexist = exist(bname);
+  if ~aexist & ~bexist
+    error(['No file for ',varname,' is found.'])
+  elseif aexist & ~bexist
+    name = aname;
+  elseif ~aexist & bexist
+    name = bname;
+  else
+    if filedate(aname,1) < filedate(bname,1)
+      name = bname;
+    else
+      name = aname;
+    end
+  end
+end
 
 
 %=== Read the data by using READ_DATAFILE
-x    = read_datafile(name);
+x    = read_datafile(name,artstype);

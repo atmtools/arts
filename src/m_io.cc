@@ -568,9 +568,9 @@ void ArrayOfIndexWriteAscii(
   // Store the value in an ARRAYofMATRIX and write to file
   const size_t  n = v.dim();
   ARRAYofMATRIX am(1);
-  am(1).newsize(1,n);
+  am(1).newsize(n,1);
   for ( size_t i=1; i<=n; i++ )
-    am(1)(1,i) = (Numeric) v(i);
+    am(1)(i,1) = (Numeric) v(i);
   write_array_of_matrix_to_file(filename,am);
 }
 
@@ -1014,6 +1014,3 @@ void LosReadBinary(
   binfile_read_indexarray( los.stop, filename, fid, "LOS.STOP" );
   binfile_close( fid, filename );
 }
-
-
-

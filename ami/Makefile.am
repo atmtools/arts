@@ -15,12 +15,12 @@ amidir        = $(pkgdatadir)/ami
 
 ami_DATA = \
 arts.m \
-hread_artsvar.m \
 init.m \
 read_artsvar.m \
 read_datafile.m \
 startup.m \
 write_artsvar.m \
-write_datafile.m 
+write_datafile.m \
+get_artstype.m
 
 EXTRA_DIST = $(ami_DATA)
