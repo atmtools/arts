@@ -1,3 +1,15 @@
+2003-01-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-389	
+	
+	* src/m_cloudbox.cc: Included 3D parts for (scat_iPut) and 
+	(CloudboxGetOutgoing). Now, all 3D functions for the scattering
+	part are ready to be tested!
+
+	* src/m_atmosphere.cc: Included checks and error messages. 
+	
+	* src/m_scatrte.cc: Only small modifications. Mainly documentation.
+
 2003-01-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-388

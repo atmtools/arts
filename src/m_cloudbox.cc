@@ -908,12 +908,10 @@ void scat_iPut(//WS Output:
   // Some sizes:
   Index N_f = f_grid.nelem();
   Index N_za = scat_za_grid.nelem();
-
-  //for 3D:
- //  Index N_p = p_grid.nelem();
-//   Index N_lat = lat_grid.nelem();
-//   Index N_lon = lon_grid.nelem();
-  //  Index N_aa = scat_aa_grid.nelem();
+  Index N_p = p_grid.nelem();
+  Index N_lat = lat_grid.nelem();
+  Index N_lon = lon_grid.nelem();
+  Index N_aa = scat_aa_grid.nelem();
  
   // Some checks:
   
@@ -961,40 +959,24 @@ void scat_iPut(//WS Output:
        assert ( is_size( scat_i_p,
                           N_f, 2, 1, 1, N_za, 1, stokes_dim ));
 
- 
-       Tensor6View scat_i_p_view = 
-                    scat_i_p(f_index, Range(joker) , Range(joker), 
-                             Range(joker), Range(joker), Range(joker),
-                             Range(joker));
- 
+      
        for (Index za = 0; za < N_za; za++)
             {
               for (Index i = 0; i < stokes_dim; i++)
                 {  
                   
                   //i_field at lower boundary
-                  scat_i_p_view(0 , Range(joker),  Range(joker),
-                           Range(joker), Range(joker), Range(joker)) = 
+                  scat_i_p(f_index, 0, 0, 0,
+                           za, 0, i) = 
                     i_field(0, 0, 0, za, 0, i);
                   //i_field at upper boundary
-                 scat_i_p_view(1, Range(joker),  Range(joker),
-                          Range(joker), Range(joker), Range(joker)) = 
+                  scat_i_p(f_index, 1, 0, 0,
+                          za, 0, i) = 
                     i_field(cloudbox_limits[1] - cloudbox_limits[0],
                             0, 0, za, 0, i); 
-                  // For 1D scat_i_lat and scat_i_lon are 0.
-                 //  for(Index j = 0; j<2; j++)
-//                     {
-//                       scat_i_lat(f_index, j, 0, 0, za, 0, i) = 0.;
-//                       scat_i_lon(f_index, j, 0, 0, za, 0, i) = 0.;
-//                     }
+
                 }//end stokes_dim
             }//end za loop
-      
-
-       scat_i_p(f_index, Range(joker) , Range(joker), 
-                 Range(joker), Range(joker), Range(joker),
-                 Range(joker))
-                = scat_i_p_view;
       
 
     }//end atmosphere_dim = 1
@@ -1004,10 +986,86 @@ void scat_iPut(//WS Output:
       
   if(atmosphere_dim == 3)
     {
-      throw runtime_error(
-                          "i_fieldSetConst for 3D atmosphere will be"
-                          "implemented soon."
-                          );
+      // Check size of i_field.
+      
+      assert ( is_size( i_field, 
+                        cloudbox_limits[1] - cloudbox_limits[0] + 1,
+                        cloudbox_limits[3] - cloudbox_limits[2] + 1, 
+                        cloudbox_limits[5] - cloudbox_limits[4] + 1, 
+                        N_za, 
+                        N_aa,
+                        stokes_dim));
+
+      assert ( is_size( scat_i_p,
+                        N_f, 2, N_lat, N_lon, N_za, N_aa, stokes_dim ));
+      
+      assert ( is_size( scat_i_lat,
+                        N_f, N_p, 2, N_lon, N_za, N_aa, stokes_dim ));
+
+      assert ( is_size( scat_i_lon,
+                        N_f, N_p, N_lat, 2, N_za, N_aa, stokes_dim ));
+      
+ 
+      for (Index za = 0; za < N_za; za++)
+        {
+          for (Index aa = 0; aa < N_aa; aa++)
+            {
+              for (Index i = 0; i < stokes_dim; i++)
+                {  
+                  //
+                  // Put i_field in scat_i_p:
+                  //
+                  for (Index lat = 0; lat < N_lat; lat++)
+                    {
+                      for (Index lon = 0; lon < N_lon; lon++)
+                        {
+                          //i_field at lower boundary
+                          scat_i_p(f_index, 0, lat, lon,
+                                   za, aa, i) = 
+                            i_field(0, lat, lon, za, aa, i);
+                          //i_field at upper boundary
+                          scat_i_p(f_index, 1, lat, lon,
+                                   za, aa, i) = 
+                            i_field(cloudbox_limits[1]-cloudbox_limits[0],
+                                    lat, lon, za, aa, i);
+                        }
+                    }
+                  // 
+                  // Put i_field in scat_i_lat:
+                  //
+                  for (Index p = 0; p < N_p; p++)
+                    {
+                      for (Index lon = 0; lon < N_lon; lon++)
+                        {
+                          //i_field at lower boundary
+                          scat_i_lat(f_index, p, 0, lon,
+                                     za, aa, i) = 
+                            i_field(p, 0, lon, za, aa, i);
+                          //i_field at upper boundary
+                          scat_i_lat(f_index, p, 1, lon,
+                                     za, aa, i) = 
+                            i_field(p, cloudbox_limits[3]-
+                                    cloudbox_limits[2],
+                                    lon, za, aa, i);
+                        }
+                      //
+                      // Put i_field in scat_i_lon:
+                      for (Index lat = 0; lat < N_lat; lat++)
+                        {
+                          //i_field at lower boundary
+                          scat_i_lon(f_index, p, lat, 0,
+                                     za, aa, i) = 
+                            i_field(p, lat, 0, za, aa, i);
+                          //i_field at upper boundary
+                          scat_i_lat(f_index, p, lat, 1,
+                                     za, aa, i) = 
+                            i_field(p, lat, cloudbox_limits[5]-
+                                    cloudbox_limits[4], za, aa, i);
+                        } 
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1082,12 +1140,12 @@ void CloudboxGetOutgoing(// WS Generic Output:
    {
      assert ( is_size( scat_i_p,
                        f_grid.nelem(), 2, 1, 1, 
-                       scat_za_grid.nelem(), scat_aa_grid.nelem(),
+                       scat_za_grid.nelem(), 1,
                        stokes_dim ));
 
-
-     if (a_gp_p.idx != cloudbox_limits[0] &&
-         a_gp_p.idx != cloudbox_limits[1])
+     //Check, if grid_positions correspond to cloudbox boundary
+     if (!(a_gp_p.idx == cloudbox_limits[0] &&
+           a_gp_p.idx == cloudbox_limits[1]))
        throw runtime_error(
                            "Gridpositions have to be on the boundary of the "
                            "cloudbox defined by *cloudbox_limits*."
@@ -1145,11 +1203,184 @@ void CloudboxGetOutgoing(// WS Generic Output:
 
  if(atmosphere_dim == 3)
     {
-      throw runtime_error(
-                          "i_fieldSetConst for 3D atmosphere will be \n"
-                          "implemented soon."
-                          );
-    }
+      Index N_lat = scat_i_p.nshelves();
+      Index N_lon = scat_i_p.nbooks();
+      Index N_p = scat_i_lat.nvitrines();
+
+      //Check consistency of input.
+
+      assert ( is_size( scat_i_p,
+                        f_grid.nelem(), 2, N_lat, N_lon, 
+                        scat_za_grid.nelem(), scat_aa_grid.nelem(),
+                        stokes_dim ));
+
+      assert ( is_size( scat_i_lat,
+                        f_grid.nelem(), N_p, 2, N_lon, 
+                        scat_za_grid.nelem(), scat_aa_grid.nelem(),
+                        stokes_dim ));
+      assert ( is_size( scat_i_lon,
+                        f_grid.nelem(), N_p, N_lat, 2, 
+                        scat_za_grid.nelem(), scat_aa_grid.nelem(),
+                        stokes_dim ));
+
+      //Check, if grid_positions correspond to cloudbox boundary
+     if ( (a_gp_p.idx != cloudbox_limits[0] &&
+           a_gp_p.idx != cloudbox_limits[1]) ||
+          (a_gp_lat.idx != cloudbox_limits[2] &&
+           a_gp_lat.idx != cloudbox_limits[3]) ||
+          (a_gp_lon.idx != cloudbox_limits[4] &&
+           a_gp_lon.idx != cloudbox_limits[5] ) )
+       throw runtime_error(
+                           "Gridpositions have to be on the boundary of the "
+                           "cloudbox defined by *cloudbox_limits*."
+                           );
+
+     //Define vectors to interpolate the outgoing radiance which is 
+     //defined on scat_za_grid and scat_aa_grid on the requested zenith and
+     // azimuth angle in 
+     //*cloudbox_los*.
+     Vector zenith_angle(1), azimuth_angle(1);
+     zenith_angle[0] = a_los[0];
+     azimuth_angle[0] = a_los[1];
+
+     //Arrays to store grid positions
+     ArrayOfGridPos gp_za(1), gp_aa(1);
+     gridpos(gp_za, scat_za_grid, zenith_angle);
+     gridpos(gp_aa, scat_aa_grid, azimuth_angle);
+
+     //Matrices to store interpolation weights
+     Tensor3 itw(1, 1, 4);
+     interpweights(itw, gp_za, gp_aa);
+
+     for(Index i = 0; i < stokes_dim; i++)
+       {
+         for(Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
+           {
+             //This variable holds the radiation for a specified frequency.
+             //It is neccessairy because the interpolation is done for 
+             //each frequency separately.
+             Matrix i_out_f(scat_za_grid.nelem(), scat_aa_grid.nelem());
+
+             // The requested point lies on one of the pressure
+             // boundaries.
+             if ((a_gp_p.idx == cloudbox_limits[0] ||
+                  a_gp_p.idx == cloudbox_limits[1] ) &&
+                 ((a_gp_lat.idx >= cloudbox_limits[2]) &&
+                  a_gp_lat.idx <= cloudbox_limits[3]) &&
+                 ((a_gp_lon.idx >= cloudbox_limits[4]) &&
+                  a_gp_lon.idx <= cloudbox_limits[5]) )
+               {
+                 
+                 for(Index lat_index = cloudbox_limits[2]; 
+                     lat_index < cloudbox_limits[3]; lat_index++)
+                   {
+                     for(Index lon_index = cloudbox_limits[4];
+                         lon_index < cloudbox_limits[5];
+                         lon_index ++)
+                       {
+                         if(a_gp_p.idx == cloudbox_limits[0])
+                           {
+                             i_out_f = scat_i_p(f_index, 0, lat_index, 
+                                                lon_index, joker, joker, i);
+                           }
+                         else if(a_gp_p.idx == cloudbox_limits[1])
+                           {
+                             i_out_f = scat_i_p(f_index, 1, lat_index, 
+                                                lon_index, joker, joker, i);
+                           }
+                       }
+                   }
+               }
+             //
+             // The requested point lies on one of the latitude
+             // boundaries.
+             else if ((a_gp_lat.idx == cloudbox_limits[2] ||
+                  a_gp_lat.idx == cloudbox_limits[3] ) &&
+                 ((a_gp_p.idx >= cloudbox_limits[0]) &&
+                  a_gp_p.idx <= cloudbox_limits[1]) &&
+                 ((a_gp_lon.idx >= cloudbox_limits[4]) &&
+                  a_gp_lon.idx <= cloudbox_limits[5]) )
+               
+               {
+                 
+                 for(Index p_index = cloudbox_limits[0]; 
+                     p_index < cloudbox_limits[1]; p_index++)
+                   {
+                     for(Index lon_index = cloudbox_limits[4];
+                         lon_index < cloudbox_limits[5];
+                         lon_index ++)
+                       {
+                         if(a_gp_lat.idx == cloudbox_limits[2])
+                           {
+                             i_out_f = scat_i_lat(f_index, p_index, 0, 
+                                                lon_index, joker, joker, i);
+                           }
+                         else if(a_gp_lat.idx == cloudbox_limits[3])
+                           {
+                             i_out_f = scat_i_lat(f_index, p_index, 1, 
+                                                  lon_index, joker, joker, i);
+                           }
+                       }
+                   }
+               }
+             //
+             // The requested point lies on one of the longitude
+             // boundaries.
+             else if ((a_gp_lon.idx == cloudbox_limits[4] ||
+                  a_gp_lon.idx == cloudbox_limits[5] ) &&
+                 ((a_gp_p.idx >= cloudbox_limits[0]) &&
+                  a_gp_p.idx <= cloudbox_limits[1]) &&
+                 ((a_gp_lat.idx >= cloudbox_limits[2]) &&
+                  a_gp_lat.idx <= cloudbox_limits[3]) )
+               
+               {
+                 
+                 for(Index p_index = cloudbox_limits[0]; 
+                     p_index < cloudbox_limits[1]; p_index++)
+                   {
+                     for(Index lat_index = cloudbox_limits[2];
+                         lat_index < cloudbox_limits[3];
+                         lat_index ++)
+                       {
+                         if(a_gp_lon.idx == cloudbox_limits[4])
+                           {
+                             i_out_f = scat_i_lon(f_index, p_index, lat_index, 
+                                                  0, joker, joker, i);
+                           }
+                         else if(a_gp_lon.idx == cloudbox_limits[5])
+                           {
+                             i_out_f = scat_i_lon(f_index, p_index, lat_index, 
+                                                  1, joker, joker, i);
+                           }
+                       }
+                   }
+               }
+             
+             else 
+               {
+                 throw runtime_error(
+                                     "Error in CloutboxGetOutgoing:\n"
+                                     "The point where you want to "
+                                     "calculcate the radiation coming out \n"
+                                     "of the cloud is not on the cloudbox \n"
+                                     "boundary."
+                                     );
+               }
+              
+             // Outgoing radiances has to be interpolated on the
+             // required direction.
+             
+             Matrix i_out_los(1,1);
+             
+             // Do the interpolation.
+             interp(i_out_los, itw, i_out_f, gp_za, gp_aa);
+             
+             //Put the value into the matrix:
+             i_out(f_index, i) = i_out_los(0,0);
+             
+           }//end frequency loop
+       }//end stokes_dim loop
+    }// end atmosphere_dim 3
    
 }
 

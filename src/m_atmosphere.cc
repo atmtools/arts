@@ -146,68 +146,7 @@ void AtmFieldsCalc(//WS Output:
   // Atmosphere
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  //
-  // Raw data
-  //
- //  cout << "[0:] " << t_field_raw[0].nrows () << endl;
-//   cout << "[1:] " << t_field_raw[1].ncols() << endl;
-//   cout << "[2:] " << t_field_raw[2].npages() << endl;
-//   cout << "[3:] " << t_field_raw[3].nrows() << endl;
-
-//   if (!( (is_size(t_field_raw[0], p_grid.nelem(), 1, 1)) 
-//       &&(is_size(t_field_raw[1], 1,
-//                  lat_grid.nelem() ? lat_grid.nelem() : 1,
-//                  1)) 
-//       &&(is_size(t_field_raw[2], 1, 1, 
-//                  lon_grid.nelem() ? lon_grid.nelem() :1 ))
-//       &&(is_size(t_field_raw[3], p_grid.nelem(),
-//                  lat_grid.nelem() ? lat_grid.nelem() : 1,
-//                  lon_grid.nelem() ? lon_grid.nelem() : 1))))
-//   {
-//       throw runtime_error(
-//                           "The raw data for the temperature field "
-//                           "has wrong dimensions.\n"
-//                           "If you use 1D scenarios and want to do a "
-//                           "3D calculation you have to use the method"
-//                           "*AtmFieldCalcExpand1D*");
-//   }
   
-//   if (!( (is_size(z_field_raw[0], p_grid.nelem(), 1, 1))
-//       && (is_size(z_field_raw[1], 1, lat_grid.nelem(), 1))
-//       && (is_size(z_field_raw[2], 1, 1, lon_grid.nelem() ))
-//       && (is_size(z_field_raw[3], p_grid.nelem(),
-//                   lat_grid.nelem() ? lat_grid.nelem() : 1,
-//                   lon_grid.nelem() ? lon_grid.nelem() : 1))))
-//  {
-//       throw runtime_error(
-//                           "The raw data for the altitude field "
-//                           "has wrong dimensions.\n"
-//                           "If you use 1D scenarios and want to do a "
-//                           "3D calculation you have to use the method "
-//                           "*AtmFieldCalcExpand1D*");
-//     }
-
-  // Check vmr_field raw data for all species:
-
-  for (Index is = 0; is < vmr_field_raw.nelem(); is ++)
-    {
-      if( (is_size(vmr_field_raw[is][0], p_grid.nelem(), 1, 1))
-          && (is_size(vmr_field_raw[is][1], 1, lat_grid.nelem(), 1))
-          && (is_size(vmr_field_raw[is][2], 1, 1, lon_grid.nelem() ))
-          && (is_size(vmr_field_raw[is][3], p_grid.nelem(), lat_grid.nelem(),
-                      lon_grid.nelem() )))
-        {
-          throw runtime_error(
-                              "The raw data for the VMR field"
-                              "has wrong dimensions."
-                              "If you use 1D scenarios and want to do a "
-                              "3D calculation you have to use the method"
-                              "*AtmFieldCalcExpand1D*");
-        }
-    }
-  
-  // End of checks.
-
   //==========================================================================
   if ( atmosphere_dim == 1)
     {
@@ -269,6 +208,25 @@ void AtmFieldsCalc(//WS Output:
   //=========================================================================
   else if(atmosphere_dim == 2)
     {
+      
+      if(!(t_field_raw[0].npages() == p_grid.nelem() &&
+           t_field_raw[0].ncols() == 1 &&
+           t_field_raw[0].nrows() == 1 ) ||
+         !(t_field_raw[1].npages() == 1 &&
+           t_field_raw[1].ncols() == lat_grid.nelem() &&
+           t_field_raw[1].nrows() == 1) ||
+         !(t_field_raw[2].npages() == 1 &&
+           t_field_raw[2].ncols() == 1 &&
+           t_field_raw[2].nrows() == 1) ||
+         !(t_field_raw[3].npages() == p_grid.nelem() &&
+           t_field_raw[2].ncols() == lat_grid.nelem() &&
+           t_field_raw[2].nrows() == 1)
+           )
+        throw runtime_error(
+                            "Raw data has wrong dimension. You have to use \n"
+                            "AtmFieldsCalcExpand1D instead of AtmFieldsCalc."
+                            );
+
       //Resize variables
       t_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
       z_field.resize(p_grid.nelem(), lat_grid.nelem(), 1);
@@ -339,6 +297,24 @@ void AtmFieldsCalc(//WS Output:
   // atmosphere_dim = 3    
   else
     {
+      if(!(t_field_raw[0].npages() == p_grid.nelem() &&
+           t_field_raw[0].ncols() == 1 &&
+           t_field_raw[0].nrows() == 1 ) ||
+         !(t_field_raw[1].npages() == 1 &&
+           t_field_raw[1].ncols() == lat_grid.nelem() &&
+           t_field_raw[1].nrows() == 1) ||
+         !(t_field_raw[2].npages() == 1 &&
+           t_field_raw[2].ncols() == 1 &&
+           t_field_raw[2].nrows() == lon_grid.nelem()) ||
+         !(t_field_raw[3].npages() == p_grid.nelem() &&
+           t_field_raw[2].ncols() == lat_grid.nelem() &&
+           t_field_raw[2].nrows() == lon_grid.nelem())
+           )
+        throw runtime_error(
+                            "Raw data has wrong dimension. You have to use \n"
+                            "AtmFieldsCalcExpand1D instead of AtmFieldsCalc."
+                            );
+
       //Resize variables
       t_field.resize(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());
       z_field.resize(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());

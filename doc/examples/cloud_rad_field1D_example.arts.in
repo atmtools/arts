@@ -264,7 +264,7 @@ ParticleTypeAdd{
 #	PpathPrint(ppath_step){}
 	 } 
 
-# The vector RTE is solved using an iterative method. To look at each 
+# The vector RTE is solved using an iterative metho. To look at each 
 # iteration seperately, the *iteration_couter* can be used and has to 
 # be initialized to 0.
 

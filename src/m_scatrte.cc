@@ -592,6 +592,9 @@ i_fieldIterate(
   \param scat_za_index Zenith angle index inside cloudbox.
   \param scat_aa_index Azimuth angle index inside cloudbox.
   \param abs_scalar_gas Scalar gas absorption.
+  \param a_pressure    A pressure value.
+  \param a_temperature A temperature value.
+  \param a_vmr_list    A VMR list.
   WS Input:
   \param spt_calc_agenda Agenda for single particle scattering properties.
   \param opt_prop_part_agenda Agenda to compute optical properties 
@@ -610,6 +613,7 @@ i_fieldIterate(
                        input).
   \param t_field       Temperature field for all grid points.
   \param z_field       Geometrical altitude field.
+  \param vmr_field     VMR field.
   \param r_geoid       Matrix containing geoids.
   \param f_grid        Frequency grid.
   \param f_index  Frequency index.
@@ -1112,6 +1116,9 @@ i_fieldUpdate1D(// WS Output:
   \param scat_za_index Zenith angle index inside cloudbox.
   \param scat_aa_index Azimuth angle index inside cloudbox.
   \param abs_scalar_gas Scalar gas absorption.
+  \param a_pressure    A pressure value.
+  \param a_temperature A temperature value.
+  \param a_vmr_list    A VMR list.
   WS Input:
   \param spt_calc_agenda Agenda for single particle scattering properties.
   \param opt_prop_part_agenda Agenda to compute optical properties 
@@ -1128,8 +1135,11 @@ i_fieldUpdate1D(// WS Output:
   \param scat_aa_grid  Azimuth angle grid inside the cloud box.//STR
   \param p_grid        Pressure grid (is required only for checking the 
                        input).
+  \param lat_grid      Latitude grid.
+  \param lon_grid      Longitude grid.
   \param t_field       Temperature field for all grid points.
   \param z_field       Geometrical altitude field.
+  \param vmr_field     VMR field.
   \param r_geoid       Matrix containing geoids.
   \param f_grid        Frequency grid.
   \param f_index  Frequency index.
@@ -2498,7 +2508,7 @@ void ScatteringMain(//WS Output
   Index Naa = scat_aa_grid.nelem();
   Index Ni = stokes_dim; 
 
-  //Initializations
+   //Initializations
   scat_i_p.resize(Nf, 2, Nlat, Nlon, Nza, Naa, Ni);
   scat_i_p = 0.;
   scat_i_lat.resize(Nf, Np, 2, Nlon, Nza, Naa, Ni);
