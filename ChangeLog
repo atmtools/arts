@@ -1,3 +1,23 @@
+2003-07-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-613
+
+	* src/rte.cc (get_radiative_background): Fixed the bug reported by
+	Sreerekha.  The problem was that ground reflections gave clearly
+	wrong results.
+
+	There was a clear bug, connected with a confusion of a local
+	version of ppath and the WSV ppath. As rte_agenda always uses the
+	WSVs, I did not help to send a local variable to rte_calc. Now the
+	orignal data are copied, the downwelling radiation is calculated,
+	and the ppath data is put back into ppath. The results now looks
+	OK, but no heavy checks.
+
+	This is a general comment about the ground reflections. The code
+	runs but I have not made any detailed checks of the correctness of
+	the results. So, please take care. And try to check the results if
+	you run cases with ground reflections.
+
 2003-07-22  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-612

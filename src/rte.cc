@@ -43,6 +43,7 @@
 #include "logic.h"
 #include "math_funcs.h"
 #include "physics_funcs.h"
+#include "ppath.h"
 #include "rte.h"
 #include "special_interp.h"
 #include "lin_alg.h"
@@ -62,9 +63,6 @@ extern const Numeric DEG2RAD;
     The function uses *ppath* to determine the radiative background for a 
     propagation path. The possible backgrounds are listed in the header of
     the function ppath_set_background (in ppath.cc).
-
-    The input variables beside *ppath* are the variables needed to calculate
-    the magnitude of the radiative background. 
 
     The main purpose of the function is set *i_rte*. It is NOT needed to set 
     *i_rte* to the correct size before calling the function. The size is set
@@ -122,7 +120,7 @@ void get_radiative_background(
               Matrix&         ground_emission,
               Matrix&         ground_los, 
               Tensor4&        ground_refl_coeffs,
-        const Ppath&          ppath,
+              Ppath&          ppath,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         i_space_agenda,
@@ -200,34 +198,43 @@ void get_radiative_background(
           throw runtime_error(
                   "The size of the created *ground_emission* is not correct.");
 
-        // Copy to local variables as the ground variables can be changed by
-        // by call of RteCalc. There is no need to copy *ground_los*.
-        Index     nlos = ground_los.nrows();
-        Matrix    ground_emission_local(nf,stokes_dim);
-        Tensor4   ground_refl_coeffs_local(nlos,nf,stokes_dim,stokes_dim);
+        // If *ground_los* is empty, the upwelling radiation is just
+        // the ground emission. Else, the downwelling radiation shall
+        // be calculated and be added with the ground emission.
         //
-        ground_emission_local    = ground_emission;
-        ground_refl_coeffs_local = ground_refl_coeffs;
-
-        // Sum of reflected radiation
-        Matrix   i_sum(nf,stokes_dim,0);
-
-        // Calculate the spectra hitting the ground, if any reflection
-        // directions have been set (*ground_los*). If *ground_los* is empty,
-        // we are ready with this part.
-        //
-        if( nlos > 0 )
+        if( ground_los.nrows() == 0 )
           {
+            i_rte = ground_emission;
+          }
+
+        else
+          {
+            // Make a copy of *ppath* as the WSV will be changed below, but the
+            // original data is needed when going back to *rte_calc*.
+            Ppath   pp_copy;
+            ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
+            ppath_copy( pp_copy, ppath );
+
+            // Copy ground data to local variables the ground variables can be
+            // changed below by call of *rte_calc*. There is no need to copy 
+            // *ground_los*.
+            Index     nlos = ground_los.nrows();
+            Matrix    ground_emission_local(nf,stokes_dim);
+            Tensor4   ground_refl_coeffs_local(nlos,nf,stokes_dim,stokes_dim);
+            //
+            ground_emission_local    = ground_emission;
+            ground_refl_coeffs_local = ground_refl_coeffs;
+
+            // Sum of reflected radiation
+            Matrix   i_sum(nf,stokes_dim,0);
+
             // Each ground los is here treated as a 
             // measurement block, with no za and aa grids.
-
             Matrix   sensor_pos( 1, a_pos.nelem() );
                      sensor_pos( 0, joker ) = a_pos;
-
             Matrix   sensor_los( 1, a_los.nelem() );
 
-            // Use some local variables to avoid unwanted  side effects
-            Ppath    ppath_local;
+            // Use some local variables to avoid unwanted side effects
             Vector   y_local;
             
             // Use a dummy variables for the sensor
@@ -239,11 +246,11 @@ void get_radiative_background(
             Vector   mblock_aa_grid(0);
 
 
-            for( Index ilos=0; ilos < nlos; ilos++ )
+            for( Index ilos=0; ilos<nlos; ilos++ )
               {
                 sensor_los( 0, joker ) = ground_los( ilos, joker);
 
-                rte_calc( y_local, ppath_local, ppath_step, i_rte,
+                rte_calc( y_local, ppath, ppath_step, i_rte,
                    a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon,
                    i_space, ground_emission, ground_los, ground_refl_coeffs, 
                    ppath_step_agenda, rte_agenda, i_space_agenda, 
@@ -255,7 +262,6 @@ void get_radiative_background(
                    sensor_rot, f_grid, stokes_dim, antenna_dim,
                    mblock_za_grid, mblock_aa_grid, false, false, agenda_verb );
 
-
                 // Add the calculated spectrum (*i_rte*) to *i_sum*,
                 // considering the reflection coeff. matrix.
                 //
@@ -263,27 +269,36 @@ void get_radiative_background(
                   {
                     if( stokes_dim == 1 )
                       {
-                        i_sum(iv,0) += ground_refl_coeffs(ilos,iv,0,0) * 
-                                                                   i_rte(iv,0);
+                        i_sum(iv,0) += 
+                                 ground_refl_coeffs(ilos,iv,0,0) * i_rte(iv,0);
                       }
                     else
                       {
-                        Vector stokes_vec(stokes_dim);
-                        mult( stokes_vec, 
-                              ground_refl_coeffs(ilos,iv,joker,joker), 
-                              i_rte(iv,joker) );
-                        for( Index is=0; is < stokes_dim; is++ )
-                          { i_sum(iv,is) += stokes_vec[is]; }
+                        for( Index is0=0; is0<stokes_dim; is0++ )
+                          { 
+                            for( Index is=0; is<stokes_dim; is++ )
+                              {
+                                i_sum(iv,is0) += 
+                                      ground_refl_coeffs(ilos,iv,is0,is) * 
+                                                                  i_rte(iv,is);
+                              }
+                          }
                       }
                   }
               }
-          }
-        
-        // Copy from *i_sum* to *i_rte*, and add the ground emission
-        for( Index iv=0; iv<nf; iv++ )
-          {
-            for( Index is=0; is < stokes_dim; is++ )
-              { i_rte(iv,is) = i_sum(iv,is) + ground_emission_local(iv,is); }
+
+            // Copy from *i_sum* to *i_rte*, and add the ground emission
+            for( Index iv=0; iv<nf; iv++ )
+              {
+                for( Index is=0; is<stokes_dim; is++ )
+                  { 
+                    i_rte(iv,is) = i_sum(iv,is) + ground_emission_local(iv,is);
+                  }
+              }
+
+            // Copy data back to *ppath*.
+            ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
+            ppath_copy( ppath, pp_copy );
           }
       }
       break;
@@ -594,8 +609,13 @@ void rte_calc(
   if( check_input )
     {
       // Agendas (agendas not always used are checked when actually used)
+      //
       chk_not_empty( "ppath_step_agenda", ppath_step_agenda );
       chk_not_empty( "rte_agenda", rte_agenda );
+
+      // Stokes
+      //
+      chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
 
       // Basic checks of atmospheric, geoid and ground variables
       //  
@@ -702,10 +722,6 @@ void rte_calc(
           throw runtime_error( 
                        "The length of *sensor_rot* must match *sensor_pos*." );
       }
-
-      // Stokes
-      //
-      chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
 
       // Sensor position and LOS. 
       //
@@ -969,9 +985,8 @@ void rte_step(//Output and Input:
   \author Claudia Emde
   \date 2002-06-08
 */
-
-void
-stokes_vecGeneral(//WS Output and Input:
+void stokes_vecGeneral(
+                  //WS Output and Input:
                   VectorView stokes_vec,
                   //Input
                   ConstMatrixView ext_mat_av,
