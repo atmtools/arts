@@ -76,7 +76,8 @@ void magfield_nk(  // Output
 	  
 	  // Calculating the latitudinal (nortward) component of the magnetic field. 
 	  B_th += pow(l+2,a/r)*((M(j,0) + Ny*M(j,2))*cos(l*phi) 
-				  + (M(j,1) + Ny*M(j,3))*sin(l*phi))*dP_lm;
+				+ (M(j,1) + Ny*M(j,3))*sin(l*phi))*
+	                           sin(PI/2 - theta*DEG2RAD)*dP_lm;
 	  
 	  
 	  // Calculating the longitudinal (eastward) component of the magnetic field.
