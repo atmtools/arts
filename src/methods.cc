@@ -3744,14 +3744,14 @@ md_data_raw.push_back
          "Returns the response block matrix after it has been modified by\n"
          "a 1D antenna response.\n"
          "\n"
-         "The antenna diagram patterns are given as the generic input\n"
-         "ArrayOfArrayOfMatrix. The structure of this variable is that\n"
-         "the Matrix describes the antenna diagram values by a relative\n"
-         "zenith angle grid, the ArrayOfMatrix then contains antenna\n"
-         "diagrams for each polarisation given by the rows of *sensor_pol*\n"
-         "and at the top level, the ArrayOfArrayOfMatrix contains antenna\n"
-         "diagrams for each viewing angle of the antennas/beams described\n"
-         "by the generic input Vector.\n"
+         "The antenna diagram patterns are given as the input variable\n"
+         "*antenna_diagram*, which is an array of ArrayOfMatrix. The\n"
+         "structure of this variable is that the Matrix describes the\n"
+         "antenna diagram values by a relative zenith angle grid, the\n"
+         "ArrayOfMatrix then contains antenna diagrams for each polarisation\n"
+         "given by the rows of *sensor_pol* and at the top level, the\n"
+         "*antenna_diagram* contains antenna diagrams for each viewing angle\n"
+         "of the antennas/beams described by the generic input Vector.\n"
          "\n"
          "The individual antenna diagrams, described by the matrices,\n"
          "contain at least two columns where the first column describes a\n"
@@ -3765,13 +3765,13 @@ md_data_raw.push_back
          "frequency is given its individual element/column.\n"
          "\n"
          "Generic Input: \n"
-         "ArrayOfArrayOfMatrix : The antenna diagram(s).\n"
-         "              Vector : The antenna/beam zenith angle grid."
+         "   Vector : The antenna/beam zenith angle grid."
         ),
         OUTPUT( sensor_response_, sensor_response_za_ ),
-        INPUT( f_grid_, mblock_za_grid_, antenna_dim_, sensor_pol_ ),
+        INPUT( f_grid_, mblock_za_grid_, antenna_dim_, sensor_pol_,
+               antenna_diagram_ ),
         GOUTPUT( ),
-        GINPUT( ArrayOfArrayOfMatrix_, Vector_ ),
+        GINPUT( Vector_ ),
         KEYWORDS( ),
         TYPES( )));
 

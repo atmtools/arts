@@ -363,11 +363,10 @@ void sensor_responseAntenna1D(
        const Vector&                mblock_za_grid,
        const Index&                 antenna_dim,
        const Matrix&                sensor_pol,
-       // WS Generic Input:
        const ArrayOfArrayOfMatrix&  diag,
+       // WS Generic Input:
        const Vector&                antenna_za,
        // WS Generic Input Names:
-       const String&                diag_name,
        const String&                antenna_za_name)
 {
   // Check that the antenna has the right dimension, this implies that the
@@ -402,7 +401,7 @@ void sensor_responseAntenna1D(
   // has its individual values.
   if (diag.nelem()==0 || antenna_za.nelem()==0) {
     ostringstream os;
-    os << "The antenna response array " << diag_name << " and the viewing\n"
+    os << "The antenna response array *antenna_diagram* and the viewing\n"
        << "angle vector " << antenna_za_name << " must contain at least\n"
        << "one element.\n";
     error_found = true;
@@ -413,7 +412,7 @@ void sensor_responseAntenna1D(
     //FIXME: Give output that each viewing direction uses individual values
   } else {
     ostringstream os;
-    os << "The antenna response array " << diag_name << " does not have the"
+    os << "The antenna response array *antenna_diagram* does not have the"
        << " right\n size. It should either has one element or as many elements"
        << " as\n the number of viewing angles given by " << antenna_za_name
        << ".\n";
@@ -425,9 +424,8 @@ void sensor_responseAntenna1D(
   for (Index i=0; i<diag.nelem(); i++) {
     if (diag[i].nelem()!=1 && diag[i].nelem()!=sensor_pol.nrows()) {
       ostringstream os;
-      os << "The number of Matrix in element " << i << " in "
-         << diag_name << "\nmust be equal one or the number of "
-         << "polarisations.\n";
+      os << "The number of Matrix in element " << i << " in *antenna_diagram*"
+         << "\nmust be equal one or the number of polarisations.\n";
       error_found = true;
     }
     // Check each Matrix in diag[i], it should contain either on column
@@ -439,7 +437,7 @@ void sensor_responseAntenna1D(
           (diag[i])[j].ncols()!=f_grid.nelem()+1) {
         ostringstream os;
         os << "The number of columns in Matrix " << j << " in array element "
-           << i << " in  " << diag_name << "\nmust equal two or the number of "
+           << i << " in  *antenna_diagram*\nmust equal two or the number of "
            << "frequencies plus one.\n";
         error_found = true;
       }
@@ -476,7 +474,7 @@ void sensor_responseAntenna1D(
 
   // Tell the user what is happening
   out2 << "  Calculating the antenna response using values and grids from "
-       << "*" << diag_name << "*.\n";
+       << "*antenna_diagram*.\n";
 
   // Create the response matrix for the antenna, this matrix will later be
   // multiplied with the original sensor_response matrix.

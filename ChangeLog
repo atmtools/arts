@@ -1,3 +1,12 @@
+2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-741
+
+	* src/methods.cc: Changed text and input variables to
+	sensor_responseAntenna1D.
+
+	* src/m_sensor.cc: Changed input variable as above.
+
 2003-12-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-1-1-740
