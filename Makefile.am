@@ -8,7 +8,14 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 EXTRA_DIST = reconf configure make_parallel
-SUBDIRS    = src ami m4 data doc
+
+DEFAULT_SUBDIRS = src ami m4 data
+
+if ARTS_GENDOCS
+SUBDIRS    = $(DEFAULT_SUBDIRS) doc
+else
+SUBDIRS    = $(DEFAULT_SUBDIRS)
+endif
 
 # This stuff does not work:
 #
