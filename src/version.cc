@@ -27,7 +27,7 @@
 
 // You now have to set the full version number (including subversion)
 // in file configure.in in the top-level ARTS directory. Don't forget
-// to run `reconf' after editing configure.in!
+// to run `autogen.sh' after editing configure.in!
 
 String full_name  = static_cast<String>(PACKAGE)
   + "-" + VERSION;
