@@ -67,6 +67,7 @@ arts_SOURCES = \
 	m_absorption.cc \
 	m_copy.h \
 	m_ignore.h \
+	m_xml.cc \
 	m_xml.h \
 	main.cc \
 	make_array.h \
@@ -390,6 +391,7 @@ test_zeemanproperties_SOURCES = \
 	m_absorption.cc \
 	m_copy.h \
 	m_ignore.h \
+	m_xml.cc \
 	m_xml.h \
 	make_array.h \
 	make_vector.cc \
