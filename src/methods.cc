@@ -167,6 +167,17 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS("value"),
 	TYPES(num_)));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("losTest"),
+	DESCRIPTION("Just to see if los works."),
+	OUTPUT(los_),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
   
 
 }

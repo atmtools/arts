@@ -1,5 +1,13 @@
 2000-04-04  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0.0.9
+
+	* Added method losTest just to see if we can access los. This does
+	not initialize los, just change the value. For a real method, this
+	would be very bad style, it should re-set los completely, unless
+	los is also specified as INPUT variable in methods.cc. 
+	
+
 	* arts-0.0.8
 
 	* Added workspace variable group Los and workspace variable los on
