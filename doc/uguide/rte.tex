@@ -393,24 +393,26 @@ incorporate sensor effects in the spectra is discussed separately
  \end{equation}
  where \temperature\ is the temperature, \timesymbol\ is the time,
  \density\ is the air density, \heatcapacity\ is the heat capacitivity
- (for pressure work) and \altitude\ is vertical altitude. This is the
- expression normally used to determine cooling rates.
-
+ (for pressure work), \flux\ is radiative flux and \altitude\ is
+ vertical altitude. This is the expression normally used to determine
+ cooling rates.
+ 
  The idea here is to find an expression that gives the heating rate if
- the spectral radiance as a function of zenith angle is known. 
- As a first step, Equation~\ref{eq:heatrate1} is rewritten as
+ the spectral radiance as a function of zenith angle is known.  As a
+ first step, Equation~\ref{eq:heatrate1} is rewritten to include the
+ spectral flux, \monoflux:
  \begin{equation}
   \label{eq:heatrate2}
   \frac{\dd\temperature}{\dd\timesymbol} = 
-        \frac{-1}{\density\heatcapacity} \int_0^\infty \left[
-        \lim_{\Delta\altitude\gets 0}\frac{\monoflux(\altitude+\Delta\altitude)-
+       \frac{-1}{\density\heatcapacity} \int_0^\infty \left[
+       \lim_{\Delta\altitude\gets 0}\frac{\monoflux(\altitude+\Delta\altitude)-
                 \monoflux(\altitude)}{\Delta\altitude} \right] \dd\f.
  \end{equation}
- The elationship between spectral radiance and monochromatic
- flux is
+  The relationship between \monoflux\ and spectral radiance,
+  \mpbi, is
  \begin{equation}
   \monoflux(\altitude) = 2\pi\int_0^\pi \mpbi(\altitude,\view)
-          \cos\view \sin\view \dd\theta,
+          \cos\view \sin\view \dd\theta.
  \end{equation}
  The assumption below is that the upwelling part of $\mpbi$ is
  known at \altitude\, and the downwelling part $\mpbi$ is known at
@@ -484,8 +486,8 @@ incorporate sensor effects in the spectra is discussed separately
  We can already here note that the contribution to the heating rate
  will be zero for frequencies where $\abscoeff=0$.
  
- To obtrain correct results it is crucial that \mpbi\ converges to
- \planckfunc\ when it is expected $\mpbi=\planckfunc$, which is the
+ To obtain correct results it is crucial that \mpbi\ converges to
+ \planckfunc\ when it is expected that $\mpbi=\planckfunc$, which is the
  case when the absorption is very high. Considering that radiative
  transfer applies a mean value of the Planck function at the end
  points of the integration step (Eq.~\ref{eq:rte:smean}), it is not a
