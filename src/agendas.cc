@@ -293,7 +293,7 @@ void define_agenda_data()
         "\n"
         ),
        OUTPUT( pha_mat_spt_),
-       INPUT( pha_mat_spt_, scat_theta_, scat_za_grid_, scat_aa_grid_)));
+       INPUT( pha_mat_spt_, scat_theta_, za_grid_size_, scat_aa_grid_)));
        
 
   agenda_data.push_back

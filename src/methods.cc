@@ -1881,10 +1881,10 @@ md_data_raw.push_back
 
  md_data_raw.push_back
     ( MdRecord
-      ( NAME("grid_stepsizeSet"),
+      ( NAME("grid_stepsizeCheck"),
         DESCRIPTION
         (
-         "Setting grid_stepsize."
+         "Check grid_stepsize."
          "\n"
          "This method calculates the value of the constant gridstepsize of\n"
          "*scat_za_grid* and *scat_aa_grid* and stores it\n"
@@ -1901,6 +1901,32 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("grid_sizeSet"),
+        DESCRIPTION
+        (
+         "Set *grid_size* for scattering integral."
+         "\n"
+         "In this method the grid sizes (number of points of zenith grid \n"
+         "and azimuth  angle grid) for the scattering integral calculation \n"
+         "can be specified. For the calculation of the scattering integral\n"
+         "equidistant grids are appropriate as the peak of the phase \n"
+         "function can be anywhere, depending on incoming and scattered \n"
+         "directions." 
+         "\n"
+         "Keywords: \n"
+         "  N_za_grid : Number of points in zenith angle grid. \n"
+         "  N_aa_grid : Number of points in azimuth angle grid. \n"
+         ),
+        OUTPUT( za_grid_size_, scat_aa_grid_),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("N_za_grid", "N_aa_grid"),
+        TYPES(Index_t, Index_t)));
+
 
   md_data_raw.push_back     
     ( MdRecord
@@ -2646,8 +2672,8 @@ md_data_raw.push_back
          "of the scattering integral (*scat_fieldCalc*).\n"
          "\n"
          ),
-        OUTPUT(pha_mat_spt_),
-        INPUT(pha_mat_spt_, pha_mat_sptDOITOpt_, scat_theta_, scat_za_grid_,
+	OUTPUT(pha_mat_spt_),
+        INPUT(pha_mat_spt_, pha_mat_sptDOITOpt_, scat_theta_, za_grid_size_,
               scat_aa_grid_, 
               scat_za_index_, scat_aa_index_),
         GOUTPUT(),
@@ -3125,8 +3151,7 @@ md_data_raw.push_back
                 scat_aa_index_),
         INPUT( pha_mat_spt_agenda_, i_field_, pnd_field_, scat_za_grid_, 
                scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, 
-               atmosphere_dim_, cloudbox_limits_, f_grid_, f_index_,
-               grid_stepsize_),
+               atmosphere_dim_, cloudbox_limits_, za_grid_size_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3234,6 +3259,7 @@ md_data_raw.push_back
                pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_field_,
                i_field_),
         INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
+              za_grid_size_, 
               cloudbox_limits_, scat_data_raw_),
         GOUTPUT(),
         GINPUT(),
@@ -3580,7 +3606,7 @@ md_data_raw.push_back
          "\n" 
           ),
         OUTPUT( scat_theta_, pha_mat_sptDOITOpt_),
-        INPUT( scat_za_grid_, scat_aa_grid_, scat_data_raw_, f_grid_, f_index_,
+        INPUT( za_grid_size_, scat_aa_grid_, scat_data_raw_, f_grid_, f_index_,
                atmosphere_dim_),
         GOUTPUT( ),
         GINPUT( ),

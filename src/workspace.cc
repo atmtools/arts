@@ -756,16 +756,32 @@ void define_wsv_data()
     ( NAME( "grid_stepsize" ),
       DESCRIPTION
       (
-       "Vector of Numeric with two components:\n"
+       "This vector contains the stepsize of the grids for the scattering \n "
+       "integral caluclation. \n"
        "\n"
-       "grid_stepsize[0] is the stepsize of the Workspacevariable scat_za_grid,\n"
-       "grid_stepsize[1] is the stepsize of the Workspacevariable scat_aa_grid\n"
+       "grid_stepsize[0] is the stepsize of the zenith angle grid and \n"
+       "grid_stepsize[1] is the stepsize of the azimuth angle grid \n"
        "\n"
-       "If the value is equal to -1, there is no constant gridspace"
+       "If the value is equal to -1, there is no constant grid stepsize \n"
        "\n"
        "Unit: none"
        ),
       GROUP( Vector_ )));
+
+wsv_data.push_back
+    (WsvRecord
+    ( NAME( "za_grid_size" ),
+      DESCRIPTION
+      (
+       "This vector contains the discretisation of the zenith angle grid \n"
+       "for the scattering integral caluclation. \n"
+       "The zenith angle grid is defined from 0 to 180°.\n"
+       "\n"
+       "za_grid_size is the number of points of the zenith angle grid and \n"
+       "\n"
+       "Unit: none"
+       ),
+      GROUP( Index_ )));
 
   wsv_data.push_back
     (WsvRecord

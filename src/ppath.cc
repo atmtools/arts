@@ -6159,7 +6159,8 @@ void ppath_calc(
       //
       istep++;
       //
-      ppath_step_agenda.execute( agenda_verb + ( istep - 1 ) );
+      ppath_step_agenda.execute(true);
+      //ppath_step_agenda.execute( agenda_verb + ( istep - 1 ) );
 
       // Before everything is tested carefully, we consider more than 5000
       // path points to be an indication on that the calcululations have

@@ -1144,15 +1144,7 @@ void scat_iPut(//WS Output:
       scat_i_lon.resize(N_f, N_p, N_lat, 2, N_za, N_aa, stokes_dim);
 
 
-      //  assert ( is_size( scat_i_p,
-//                         N_f, 2, N_lat, N_lon, N_za, N_aa, stokes_dim ));
-      
-//       assert ( is_size( scat_i_lat,
-//                         N_f, N_p, 2, N_lon, N_za, N_aa, stokes_dim ));
 
-//       assert ( is_size( scat_i_lon,
-//                         N_f, N_p, N_lat, 2, N_za, N_aa, stokes_dim ));
-      
  
       for (Index za = 0; za < N_za; za++)
         {

@@ -1,5 +1,6 @@
 /* Copyright (C) 2002,2003 Claudia Emde <claudia@sat.physik.uni-bremen.de>
-                      
+                           Sreerekha T.R. <rekha@uni-bremen.de>
+
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -273,7 +274,7 @@ void convergence_flagAbs_BT(//WS Output:
 
 
 
-//! Setting grid_stepsize.
+//! Ckecking grid_stepsize.
 /*!
   This method calculates the value of the constant gridstepsize of
   the workspacevariables *scat_za_grid* and *scat_aa_grid* and stores it
@@ -292,7 +293,7 @@ void convergence_flagAbs_BT(//WS Output:
   \date 2003-05-26
 */
 
-void grid_stepsizeSet(Vector& grid_stepsize,
+void grid_stepsizeCheck(Vector& grid_stepsize,
                       const Vector& scat_za_grid,
                       const Vector& scat_aa_grid)
 {
@@ -321,6 +322,42 @@ void grid_stepsizeSet(Vector& grid_stepsize,
     }
   if (grid_stepsize[1] == 0) grid_stepsize[1]=diff_aa;
   return;
+}
+
+
+//! Set grid_stepsize for scattering integral.
+/*!
+  In this method the grid stepsizes (zenith angle grid and azimuth angle grid)
+  for the scattering integral calculation
+  can be specified. For the calculation of the scattering integral equidistant
+  grids are appropriate as the peak of the phase function can be anywhere, 
+  depending on incoming and scattered directions. 
+
+  grid_stepsize[0] <-> scat_za_grid
+  grid_stepsize[1] <-> scat_aa_grid
+
+  \param grid_stepsize
+  \param scat_za_grid
+  \param scat_aa_grid
+
+  \author Claudia Emde
+  \date 2003-11-17
+
+  */
+void grid_sizeSet(// WS Output:
+                  Index& za_grid_size,
+                  Vector& scat_aa_grid,
+                  // Keywords:
+                  const Index& N_za_grid,
+                  const Index& N_aa_grid)
+{
+
+  // Number of zenith angle grid points (only for scattering integral): 
+  za_grid_size = N_za_grid; 
+    
+  // Azimuth angle grid (the same is used for the scattering integral and
+  // for the radiative transfer.
+  nlinspace(scat_aa_grid, 0, 360, N_aa_grid);
 }
 
 
@@ -369,35 +406,27 @@ i_fieldIterate(
  
   // Is the frequency index valid?
   assert( f_index <= f_grid.nelem() );
-  cout << "Frequency: " << f_grid[f_index] << endl;
   
-  // if ( !is_size( amp_mat, 
-//                    part_types.nelem(), scat_za_grid.nelem(), 
-//                    scat_aa_grid.nelem(), scat_za_grid.nelem(),
-//                  scat_aa_grid.nelem(), 8) )
-//     throw runtime_error(
-//                         "*amp_mat* has a wrong dimension. May be you have "
-//                         "used a pre-calculated amplituded matrix for "
-//                         "another scattering angle grid.");
-
-  //The following steps are repeated until convergence is reached.
   convergence_flag = 0;
   while(convergence_flag == 0) {
     
     // 1. Copy i_field to i_field_old.
     i_field_old = i_field;
     
-    
     // 2.Calculate scattered field vector for all points in the cloudbox.
     
     // Calculate the scattered field.
-    scat_field_agenda.execute();
+    out2 << "Execute scat_field_agenda. \n";
+    scat_field_agenda.execute(true);
     
     // Update i_field.
-    scat_rte_agenda.execute();
+    out2 << "Execute scat_rte_agenda. \n";
+    scat_rte_agenda.execute(true);
 
     //Convergence test.
-    convergence_test_agenda.execute();
+    out2 << "Execute convergence_test_agenda. \n";
+    convergence_test_agenda.execute(true);
+
   }//end of while loop, convergence is reached.
 }
 
@@ -1132,8 +1161,8 @@ i_fieldUpdateSeq1D(// WS Output:
         {
 	  // Loop over all positions inside the cloud box defined by the 
           // cloudbox_limits exculding the upper boundary. For uplooking
-          // directions, we start from cloudbox_limits[0] and go up
-          // to cloudbox_limits[1] to do a sequential update of the
+          // directions, we start from cloudbox_limits[1]-1 and go down
+          // to cloudbox_limits[0] to do a sequential update of the
           // aradiation field
           for(Index p_index = cloudbox_limits[1]-1; p_index
                 >= cloudbox_limits[0]; p_index --)
@@ -1177,10 +1206,10 @@ i_fieldUpdateSeq1D(// WS Output:
       
       //
       // Limb looking:
-      // We hav eto include a special case here, as we may miss the endpoints
+      // We have to include a special case here, as we may miss the endpoints
       // when the intersection point is at the same level as the aactual point.
       // To be save we loop over the full cloudbox. Inside the function 
-      // cloud_ppath_update1D it is checked whether th intersection point is 
+      // cloud_ppath_update1D it is checked whether the intersection point is 
       // inside the cloudbox or not.
       else if (  scat_za_grid[scat_za_index] > 90 &&
                  scat_za_grid[scat_za_index] < theta_lim ) 
@@ -2066,12 +2095,12 @@ void i_fieldUpdateSeq3D(// WS Output:
             {
               // Loop over all positions inside the cloud box defined by the 
               // cloudbox_limits.
-              for(Index p_index = p_up; p_index > p_low; p_index --)
+              for(Index p_index = p_up-1; p_index >= p_low; p_index --)
                 {
-                  for(Index lat_index = lat_up; lat_index > lat_low;
+                  for(Index lat_index = lat_up-1; lat_index >= lat_low;
                       lat_index --)
                     {
-                      for(Index lon_index = lon_up; lon_index > lon_low;
+                      for(Index lon_index = lon_up-1; lon_index >= lon_low;
                           lon_index --)
                         {
                           cloud_ppath_update3D(i_field, 
@@ -2121,12 +2150,12 @@ void i_fieldUpdateSeq3D(// WS Output:
             {
               // Loop over all positions inside the cloud box defined by the 
               // cloudbox_limits.
-              for(Index p_index = p_low; p_index < p_up; p_index ++)
+              for(Index p_index = p_low+1; p_index <= p_up; p_index ++)
                 {
-                  for(Index lat_index = lat_up; lat_index > lat_low;
+                  for(Index lat_index = lat_up-1; lat_index >= lat_low;
                       lat_index --)
                     {
-                      for(Index lon_index = lon_up; lon_index > lon_low;
+                      for(Index lon_index = lon_up-1; lon_index >= lon_low;
                           lon_index --)
                         {
                           cloud_ppath_update3D(i_field, 
@@ -2175,12 +2204,12 @@ void i_fieldUpdateSeq3D(// WS Output:
             {
               // Loop over all positions inside the cloud box defined by the 
               // cloudbox_limits.
-              for(Index p_index = p_up; p_index > p_low; p_index --)
+              for(Index p_index = p_up-1; p_index >= p_low; p_index --)
                 {
-                  for(Index lat_index = lat_low; lat_index < lat_up;
+                  for(Index lat_index = lat_low+1; lat_index <= lat_up;
                       lat_index ++)
                     {
-                      for(Index lon_index = lon_up; lon_index > lon_low;
+                      for(Index lon_index = lon_up-1; lon_index >= lon_low;
                           lon_index --)
                         {
                           cloud_ppath_update3D(i_field,  
@@ -2229,9 +2258,9 @@ void i_fieldUpdateSeq3D(// WS Output:
             {
               // Loop over all positions inside the cloud box defined by the 
               // cloudbox_limits.
-              for(Index p_index = p_up; p_index > p_low; p_index --)
+              for(Index p_index = p_up-1; p_index >= p_low; p_index --)
                 {
-                  for(Index lat_index = lat_up; lat_index > lat_low;
+                  for(Index lat_index = lat_up-1; lat_index >= lat_low;
                       lat_index --)
                     {
                       for(Index lon_index = lon_low; lon_index < lon_up;
@@ -2284,12 +2313,12 @@ void i_fieldUpdateSeq3D(// WS Output:
             {
               // Loop over all positions inside the cloud box defined by the 
               // cloudbox_limits.
-              for(Index p_index = p_low; p_index < p_up; p_index ++)
+              for(Index p_index = p_low+1; p_index <= p_up; p_index ++)
                 {
-                  for(Index lat_index = lat_low; lat_index < lat_up;
+                  for(Index lat_index = lat_low+1; lat_index <= lat_up;
                       lat_index ++)
                     {
-                      for(Index lon_index = lon_up; lon_index > lon_low;
+                      for(Index lon_index = lon_up-1; lon_index >= lon_low;
                           lon_index --)
                         {
                           cloud_ppath_update3D(i_field, 
@@ -2339,12 +2368,12 @@ void i_fieldUpdateSeq3D(// WS Output:
             {
               // Loop over all positions inside the cloud box defined by the 
               // cloudbox_limits.
-              for(Index p_index = p_low; p_index < p_up; p_index ++)
+              for(Index p_index = p_low+1; p_index <= p_up; p_index ++)
                 {
-                  for(Index lat_index = lat_up; lat_index > lat_low;
+                  for(Index lat_index = lat_up-1; lat_index >= lat_low;
                       lat_index --)
                     {
-                      for(Index lon_index = lon_low; lon_index < lon_up;
+                      for(Index lon_index = lon_low+1; lon_index <= lon_up;
                           lon_index ++)
                         {
                           cloud_ppath_update3D(i_field, 
@@ -2393,12 +2422,12 @@ void i_fieldUpdateSeq3D(// WS Output:
             {
               // Loop over all positions inside the cloud box defined by the 
               // cloudbox_limits.
-              for(Index p_index = p_up; p_index > p_low; p_index --)
+              for(Index p_index = p_up-1; p_index >= p_low; p_index --)
                 {
-                  for(Index lat_index = lat_low; lat_index < lat_up;
+                  for(Index lat_index = lat_low+1; lat_index <= lat_up;
                       lat_index ++)
                     {
-                      for(Index lon_index = lon_low; lon_index < lon_up;
+                      for(Index lon_index = lon_low+1; lon_index <= lon_up;
                           lon_index ++)
                         {
                           cloud_ppath_update3D(i_field, 
@@ -2447,12 +2476,12 @@ void i_fieldUpdateSeq3D(// WS Output:
             {
               // Loop over all positions inside the cloud box defined by the 
               // cloudbox_limits.
-              for(Index p_index = p_low; p_index < p_up; p_index ++)
+              for(Index p_index = p_low+1; p_index <= p_up; p_index ++)
                 {
-                  for(Index lat_index = lat_low; lat_index < lat_up;
+                  for(Index lat_index = lat_low+1; lat_index <= lat_up;
                       lat_index ++)
                     {
-                      for(Index lon_index = lon_low; lon_index < lon_up;
+                      for(Index lon_index = lon_low+1; lon_index <= lon_up;
                           lon_index ++)
                         {
                           cloud_ppath_update3D(i_field, 
@@ -2984,10 +3013,12 @@ angles.
 \param f_index Frequency index.
 \param grid_stepsize FIXME: Add documentation.
 
-\author Sreerekha Ravi
+\author Sreerekha Ravi, Claudia Emde
 \date 2002-06-20
 
-\date 2003-10-24 Modefications to gain efficiency (CE).  
+\date 2003-10-24 Modefications to gain efficiency (CE).
+\data 2003-11-14 Included reduction of zenith angle grid.
+  
 
 */
 
@@ -3009,9 +3040,7 @@ scat_fieldCalc(//WS Output:
                const Vector& lon_grid,
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
-               const Vector& f_grid,
-               const Index& f_index,
-               const Vector& grid_stepsize
+               const Index& za_grid_size
                )
   
 {
@@ -3022,21 +3051,160 @@ scat_fieldCalc(//WS Output:
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
-  Tensor3 product_field(Nza, Naa, stokes_dim, 0);
+  // Create the grids for the calculation of the scattering integral.
+  Vector za_grid;
+  nlinspace(za_grid, 0, 180, za_grid_size);
  
-  out2 << "Calculate the scattered field\n";
+  // Two interpolations are required. First we have to interpolate the 
+  // intensity field on the equidistant grid: 
+  ArrayOfGridPos gp_za_i(za_grid_size);
+  gridpos(gp_za_i, scat_za_grid, za_grid);
+  
+  Matrix itw_za_i(za_grid_size, 2);
+  interpweights(itw_za_i, gp_za_i);
 
-  /*  
-  cout<<"N_pt"<<" "<<N_pt;
-  cout<<"N_p_grid"<<" "<<p_grid.nelem();
-  cout<<"N_lat_grid"<<" "<<lat_grid.nelem();
-  cout<<"N_lon_grid"<<" "<<lon_grid.nelem();
-  */
+  // Intensity field interpolated on equidistant grid.
+  Matrix i_field_int(za_grid_size, stokes_dim, 0);
 
-  //Note that the size of i_field and scat_field are the same 
+  // Second, we have to interpolate the scattering integral on the RT
+  // zenith angle grid.
+  ArrayOfGridPos gp_za(Nza);
+  gridpos(gp_za, za_grid, scat_za_grid);
 
-  if (atmosphere_dim ==3){
+  Matrix itw_za(Nza, 2);
+  interpweights(itw_za, gp_za);
+
+  // Original scattered field, on equidistant zenith angle grid.
+  Matrix scat_field_org(za_grid_size, stokes_dim, 0);
+  
+  // Grid stepsize of zenith and azimuth angle grid, these are needed for the 
+  // integration function. 
+  Vector grid_stepsize(2);
+  grid_stepsize[0] = 180/(za_grid_size - 1);
+  grid_stepsize[1] = 360/(Naa - 1);
     
+  Tensor3 product_field(za_grid_size, Naa, stokes_dim, 0);
+  
+  if  ( atmosphere_dim == 1 )
+    {
+    
+      assert ( is_size( i_field, 
+                        (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                        1, 
+                        1,
+                        scat_za_grid.nelem(), 
+                        1,
+                        stokes_dim));
+      assert ( is_size( scat_field, 
+                        (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                        1, 
+                        1,
+                        scat_za_grid.nelem(), 
+                        1,
+                        stokes_dim));
+      assert ( is_size( pnd_field, 
+                        N_pt,
+                        p_grid.nelem(),
+                        1, 
+                        1)); 
+  
+      scat_aa_index = 0;
+
+      
+  
+      // Get pha_mat at the grid positions
+      // Since atmosphere_dim = 1, there is no loop over lat and lon grids
+      for (Index p_index = 0; p_index <= cloudbox_limits[1]-cloudbox_limits[0];
+           p_index++)
+        {
+          // Interpolate intensity field:
+          for (Index i = 0; i < stokes_dim; i++)
+            {
+              interp(i_field_int(joker, i), itw_za_i, 
+                     i_field(p_index, 0, 0, joker, 0, i), gp_za_i);
+            }       
+          
+          //There is only loop over zenith angle grid; no azimuth angle grid.
+          for( scat_za_index = 0; scat_za_index < za_grid_size;
+               scat_za_index ++)
+            {
+            // Calculate the phase matrix of a single particle type
+            out3 << "Calculate the phase matrix \n"; 
+            pha_mat_spt_agenda.execute(true);
+
+            // Sum over all particle types
+            pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+                        atmosphere_dim, p_index + cloudbox_limits[0], 0, 
+                        0);
+
+            out3 << "Multiplication of phase matrix with incoming" << 
+              " intensities \n";
+            
+            product_field = 0;
+
+            // za_in and aa_in are for incoming zenith and azimuth 
+            // angle direction for which pha_mat is calculated
+            for( Index za_in = 0; za_in < za_grid_size; za_in ++)
+              {
+                for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
+                  {
+                    // Multiplication of phase matrix with incoming 
+                    // intensity field.
+                    
+                    for ( Index i = 0; i < stokes_dim; i++)
+                      {
+                        for (Index j = 0; j< stokes_dim; j++)
+                          {
+                            product_field(za_in, aa_in, i) +=
+                              pha_mat(za_in, aa_in, i, j) * 
+                              i_field_int(za_in, j);
+                          }
+                      }
+                    
+                  }//end aa_in loop
+              }//end za_in loop
+            
+            out3 << "Compute integral. \n"; 
+            for (Index i = 0; i < stokes_dim; i++)
+              {
+                
+                MatrixView product_field_mat =
+                  product_field( Range(joker),
+                                 Range(joker),
+                                 i);
+                // scat_field is also defined for all points inside the cloud
+                //box for each propagion angle
+                scat_field_org(scat_za_index, i)=
+                  AngIntegrate_trapezoid_opti(product_field_mat,
+                                              za_grid,
+                                              scat_aa_grid,
+                                              grid_stepsize);
+                
+              }//end i loop
+          }//end za_prop loop
+        
+        // Interpolation on scat_za_grid, which is used in radiative transfer 
+        // part.
+        for (Index i = 0; i < stokes_dim; i++)
+          { 
+            interp(scat_field(p_index,
+                              0,
+                              0,
+                              joker,
+                              0,
+                              i),
+                   itw_za,
+                   scat_field_org(joker, i),
+                   gp_za);
+          }
+      }//end p_index loop
+    
+  }//end atmosphere_dim = 1
+
+  
+  if( atmosphere_dim == 3 ){
+    
+
     assert ( is_size( i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
@@ -3056,124 +3224,9 @@ scat_fieldCalc(//WS Output:
                       p_grid.nelem(),
                       lat_grid.nelem(), 
                       lon_grid.nelem()));
-    
-  }
-  
-  else if (atmosphere_dim == 1 ){
-    assert ( is_size( i_field, 
-                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                      1, 
-                      1,
-                      scat_za_grid.nelem(), 
-                      1,
-                      stokes_dim));
-    assert ( is_size( scat_field, 
-                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                      1, 
-                      1,
-                      scat_za_grid.nelem(), 
-                      1,
-                      stokes_dim));
-    assert ( is_size( pnd_field, 
-                      N_pt,
-                      p_grid.nelem(),
-                      1, 
-                      1));
-  }
 
-  
-  if  ( atmosphere_dim == 1 )
-    {
       
-    scat_aa_index = 0;
-    
-    // Get pha_mat at the grid positions
-    // Since atmosphere_dim = 1, there is no loop over lat and lon grids
-    for (Index p_index = 0; p_index <= cloudbox_limits[1]- cloudbox_limits[0] ;
-         p_index++)
-      {
-	//There is only loop over zenith angle grid ; no azimuth angle grid.
-        for (scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
-          {
-            // Calculate the phase matric of a single particle type
-            pha_mat_spt_agenda.execute(scat_za_index || p_index );
-
-            // Sum over all particle types
-            pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-                         atmosphere_dim, p_index + cloudbox_limits[0], 0, 
-                         0);
-
-             product_field = 0;
-
-            // za_in and aa_in are for incoming zenith and azimutha 
-            //angle direction for which pha_mat is calculated
-            for (Index za_in = 0; za_in < Nza; ++ za_in)
-              { 
-                for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
-                  {
-                    // Multiplication of phase matrix with incoming 
-                    // intensity field.
-
-                    for ( Index i = 0; i < stokes_dim; i++)
-                       {
-                       for (Index j = 0; j< stokes_dim; j++)
-                        {
-                            product_field(za_in, aa_in, i) +=
-                              pha_mat(za_in, aa_in, i, j) * 
-                              i_field(p_index, 0, 0, za_in, 0, j);
-                        }
-                       }
-                    
-                  }//end aa_in loop
-              }//end za_in loop
-            /*integration of the product of ifield_in and pha
-              over zenith angle and azimuth angle grid. It calls
-              here for (Index za_in = 0; za_in < Nza; ++ za_in)
-              { 
-                for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
-                  {
-                    the integration routine AngIntegrate_trapezoid_opti*/
-           
-            for (Index i = 0; i < stokes_dim; i++)
-              {
-                
-                MatrixView product_field_mat =
-                  product_field( Range(joker),
-                                 Range(joker),
-                                 i);
-                // scat_field is also defined for all points inside the cloud
-                //box for each propagion angle
-                scat_field( p_index,
-                            0,
-                            0,
-                            scat_za_index, 
-                            0,
-                            i)  =   AngIntegrate_trapezoid_opti(product_field_mat,
-                                                                scat_za_grid,
-                                                                scat_aa_grid,
-                                                                grid_stepsize);
-                
-              }//end i loop
-          }//end za_prop loop
-      }//end p_index loop
-    
-  }//end atmosphere_dim = 1
-
-
-  // xml_write_to_file("scat_field.xml", scat_field);       
-
-  //cout<<"scat_field"<<scat_field<<"\n";       
-  //arts_exit ();
-
-  
-  
-  //When atmospheric dimension , atmosphere_dim = 3
-  if( atmosphere_dim == 3 ){
-    
-    /*there is a loop over pressure, latitude and longitudeindex
-      when we calculate the pha_mat from pha_mat_spt and pnd_field
-      using the method pha_matCalc.  */
-    
+    // Loop over all positions
     for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
          p_index++)
       {
@@ -3183,27 +3236,39 @@ scat_fieldCalc(//WS Output:
             for (Index lon_index = 0; lon_index <= 
                    cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
               {
-                for (scat_za_index = 0; scat_za_index < Nza; 
-                     scat_za_index++)
+               
+                // Loop over scattered directions
+                for (scat_aa_index = 0; scat_aa_index < Naa; 
+                     scat_aa_index ++)
                   {
-                    for (scat_aa_index = 0; scat_aa_index < Naa; 
-                         scat_aa_index ++)
+                   // Interpolate intensity field:
+                    for (Index i = 0; i < stokes_dim; i++)
                       {
-                        pha_mat_spt_agenda.execute(scat_za_index || p_index 
-                                                   || scat_aa_index || 
-                                                   lat_index  ||
-                                                   lon_index  );
-
+                        interp(i_field_int(joker, i), itw_za_i, 
+                               i_field(p_index, lat_index, lon_index,
+                                       joker, scat_aa_index, i), gp_za_i);
+                      }       
+                    
+                    for (scat_za_index = 0; scat_za_index < 
+                           za_grid_size; scat_za_index ++)
+                      {
+                        out3 << "Calculate phase matrix \n";
+                        pha_mat_spt_agenda.execute(true);
+                        
                         pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                     atmosphere_dim, 
                                     p_index + cloudbox_limits[0], lat_index, 
                                     lon_index);
-                   
+                        
                         product_field = 0;
-
+                        
+                        
                         //za_in and aa_in are the incoming directions
                         //for which pha_mat_spt is calculated
-                        for (Index za_in = 0; za_in < Nza; ++ za_in)
+                        out3 << "Multiplication of phase matrix with" << 
+                          "incoming intensity \n";
+                        
+                        for( Index za_in = 0; za_in < za_grid_size; za_in ++)
                           {
                             for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
                               { 
@@ -3215,43 +3280,46 @@ scat_fieldCalc(//WS Output:
                                       {
                                         product_field(za_in, aa_in, i) +=
                                           pha_mat(za_in, aa_in, i, j) * 
-                                          i_field(p_index, lat_index, 
-                                                  lon_index, scat_za_index,
-                                                  scat_aa_index, j);
+                                          i_field_int(za_in, j);
                                       }
                                   }
                               }//end aa_in loop
                           }//end za_in loop
-                        //integration of the product of ifield_in and pha
-                        //over zenith angle and azimuth angle grid. It 
-                        //calls here the integration routine 
-                        //AngIntegrate_trapezoid_opti
+                        
+                        out3 << "Compute the integral \n";
+
                         for (Index i = 0; i < stokes_dim; i++)
                           {
-                            scat_field( p_index,
-                                        lat_index,
-                                        lon_index,
-                                        scat_za_index, 
-                                        scat_aa_index,
-                                        i)  =  
-                              AngIntegrate_trapezoid_opti(product_field
-                                                          ( joker,
-                                                            joker, i),
-                                                          scat_za_grid,
-                                                          scat_aa_grid,
-                                                          grid_stepsize);
-                          }//end i loop
-                      }//end aa_prop loop
-                  }
-              }//end za_prop loop
-          }//end lon loop
-      }// end lat loop
-  }// end p loop
-  // end atmosphere_dim = 3
-  
-  //xml_write_to_file("i_field.xml", i_field);
-  //xml_write_to_file("scat_field.xml", scat_field);
-  out2 <<"Finished scattered field.\n"; 
+                            scat_field_org(scat_za_index, i)  =  
+                              AngIntegrate_trapezoid(product_field
+                                                     ( joker,
+                                                       joker, i),
+                                                     za_grid,
+                                                     scat_aa_grid
+                                                     );
+                          }//end stokes_dim loop
+
+                      }//end za_prop loop
+                    //Interpolate on original za_grid. 
+                    for (Index i = 0; i < stokes_dim; i++)
+                      {
+                        interp(scat_field(p_index,
+                                          lat_index,
+                                          lon_index,
+                                          joker,
+                                          scat_aa_index,
+                                          i),
+                               itw_za,
+                               scat_field_org(joker, i),
+                               gp_za);
+                      }
+                  } // end aa_prop loop
+              }//end lon loop
+          }//end lat loop
+      }// end p loop
+  }// end atm_dim=3
+
+  out2 << "Finished scattered field.\n"; 
  
 }
 
@@ -3595,6 +3663,7 @@ void ScatteringInit(
                     const Index& atmosphere_dim,
                     const Vector& scat_za_grid,
                     const Vector& scat_aa_grid,
+                    const Index& za_grid_size,
                     const ArrayOfIndex& cloudbox_limits,
                     const ArrayOfSingleScatteringData& scat_data_raw
                     )
@@ -3622,14 +3691,12 @@ void ScatteringInit(
   // Number of particle types:
   const Index N_pt = scat_data_raw.nelem();
   
-  pha_mat.resize(scat_za_grid.nelem(), scat_aa_grid.nelem(), stokes_dim,
+  pha_mat.resize(za_grid_size, scat_aa_grid.nelem(), stokes_dim,
                  stokes_dim);
-  pha_mat = 0.;
   
-  pha_mat_spt.resize(N_pt, scat_za_grid.nelem(), 
+  pha_mat_spt.resize(N_pt, za_grid_size, 
                      scat_aa_grid.nelem(), stokes_dim, stokes_dim);
-  pha_mat_spt = 0.;
-
+  
   abs_vec_spt.resize(N_pt, stokes_dim);
   abs_vec_spt = 0.;
 
@@ -3829,10 +3896,9 @@ void ScatteringMain(
   
   for ( f_index = 0; f_index < Nf; ++ f_index)
     {
-      out2 << "---------------------------------------------\n";
-      out2 << "Frequency for monochromatic scattering calculation: " << 
-        f_grid[f_index]/1e9 <<" GHz \n" ;
-      out2 << "---------------------------------------------\n";
+      out1 << "----------------------------------------------\n";
+      out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
+      out1 << "----------------------------------------------\n";
       scat_mono_agenda.execute(); 
     }
 }

@@ -394,21 +394,24 @@ void pha_mat_sptFromDataDOITOpt( // Output:
                          // Input:
                          const Tensor5& pha_mat_sptDOITOpt,
                          const Tensor4& scat_theta,
-                         const Vector& scat_za_grid,
+                         const Index& za_grid_size,
                          const Vector& scat_aa_grid,
                          const Index& scat_za_index, // propagation directions
                          const Index& scat_aa_index
                          )
 {
-     
-  const Numeric za_sca = scat_za_grid[scat_za_index];
+
+  Vector za_grid;
+  nlinspace(za_grid, 0, 180, za_grid_size);  
+  
+  const Numeric za_sca = za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
   
   Numeric za_inc;
   Numeric aa_inc;
   
   // Do the transformation into the laboratory coordinate system.
-  for (Index za_inc_idx = 0; za_inc_idx < scat_za_grid.nelem(); za_inc_idx ++)
+  for (Index za_inc_idx = 0; za_inc_idx < za_grid_size; za_inc_idx ++)
     {
       for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
            aa_inc_idx ++) 
@@ -418,7 +421,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
           const Numeric theta_rad = scat_theta
             (scat_za_index, scat_aa_index, za_inc_idx, aa_inc_idx);
           
-          za_inc = scat_za_grid[za_inc_idx];
+          za_inc = za_grid[za_inc_idx];
           aa_inc = scat_aa_grid[aa_inc_idx];
 
           pha_mat_labCalc(pha_mat_spt(0, za_inc_idx, aa_inc_idx, joker, joker),
@@ -1904,7 +1907,7 @@ void ScatteringDataPrepareDOITOpt( //Output:
                                    Tensor4& scat_theta,
                                    Tensor5& pha_mat_sptDOITOpt,
                                    //Input:
-                                   const Vector& scat_za_grid,
+                                   const Index& za_grid_size,
                                    const Vector& scat_aa_grid,
                                    const ArrayOfSingleScatteringData& scat_data_raw,
                                    const Vector& f_grid,
@@ -1920,13 +1923,15 @@ void ScatteringDataPrepareDOITOpt( //Output:
   else
     N_aa_sca = scat_aa_grid.nelem();
   
-    
-  // Initialize variables:
-  scat_theta.resize(scat_za_grid.nelem(), N_aa_sca, 
-                    scat_za_grid.nelem(),scat_aa_grid.nelem());
+  Vector za_grid;
+  nlinspace(za_grid, 0, 180, za_grid_size);
   
-  pha_mat_sptDOITOpt.resize(scat_za_grid.nelem(), N_aa_sca, 
-                    scat_za_grid.nelem(),scat_aa_grid.nelem(),6);
+  // Initialize variables:
+  scat_theta.resize(za_grid.nelem(), N_aa_sca, 
+                    za_grid.nelem(),scat_aa_grid.nelem());
+  
+  pha_mat_sptDOITOpt.resize(za_grid_size, N_aa_sca, 
+                    za_grid_size, scat_aa_grid.nelem(), 6);
   
   // Only one  particle type is taken.
   Index i_pt = 0;
@@ -1962,16 +1967,16 @@ void ScatteringDataPrepareDOITOpt( //Output:
   GridPos thet_gp;
   Vector itw(2);
   
-  for (Index za_sca = 0; za_sca < scat_za_grid.nelem(); za_sca ++)
+  for (Index za_sca = 0; za_sca < za_grid_size; za_sca ++)
     {
       for (Index aa_sca = 0; aa_sca < N_aa_sca; aa_sca ++)
         {
-          for (Index za_inc = 0; za_inc < scat_za_grid.nelem(); za_inc ++)
+          for (Index za_inc = 0; za_inc < za_grid_size; za_inc ++)
             {
               for (Index aa_inc = 0; aa_inc < scat_aa_grid.nelem(); aa_inc ++)
                 {
-                  za_sca_rad = scat_za_grid[za_sca] * DEG2RAD;
-                  za_inc_rad = scat_za_grid[za_inc] * DEG2RAD;
+                  za_sca_rad = za_grid[za_sca] * DEG2RAD;
+                  za_inc_rad = za_grid[za_inc] * DEG2RAD;
                   aa_sca_rad = scat_aa_grid[aa_sca] * DEG2RAD;
                   aa_inc_rad = scat_aa_grid[aa_inc] * DEG2RAD;
                   
@@ -1997,11 +2002,7 @@ void ScatteringDataPrepareDOITOpt( //Output:
             }
         }
     }
-    
 }
-
-  
-
 
 
 //! No preparation of single scattering data.

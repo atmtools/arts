@@ -315,9 +315,9 @@ void pha_matTransform(//Output
         {
           // Interpolation of the data on the scattering angle. Use 
           // precalculated interpolation weights.
-          interpolate_scat_angleDOIT(pha_mat_int, theta_rad, pha_mat_data,
+          interpolate_scat_angleDOIT(pha_mat_int, pha_mat_data,
                                  za_sca_idx, aa_sca_idx,
-                                 za_inc_idx, aa_inc_idx, scat_theta, 
+                                 za_inc_idx, aa_inc_idx,  
                                  scat_theta_gps, scat_theta_itws);
         }
 
@@ -369,31 +369,18 @@ void pha_matTransform(//Output
 */
 void interpolate_scat_angleDOIT(//Output:
                             VectorView pha_mat_int,
-                            Numeric& theta_rad,
                             //Input:
                             ConstTensor5View pha_mat_data,
                             const Index& za_sca_idx,
                             const Index& aa_sca_idx,
                             const Index& za_inc_idx,
                             const Index& aa_inc_idx,
-                            ConstTensor4View scat_theta,
                             const ArrayOfArrayOfArrayOfArrayOfGridPos&
                                 scat_theta_gps,
                             ConstTensor5View scat_theta_itws
                             )
 {
-  // GridPos theta_gp;
-  // VectorView itw(2);
-   
-  // cout << "za_sca: " << za_sca << endl
-//        << "za_inc: " << za_inc << endl
-//        << "aa_sca: " << aa_sca << endl
-//        << "aa_inc: " << aa_inc << endl;
   
-  // Extract pre-calculated scattering angle, grid positions and
-  // interpolations weights.
-  //theta_rad = scat_theta(za_sca_idx, aa_sca_idx, za_inc_idx, aa_inc_idx);
-  // theta_gp = scat_theta_gps[za_sca_idx][aa_sca_idx][za_inc_idx][aa_inc_idx];
   ConstVectorView itw = scat_theta_itws(za_sca_idx, aa_sca_idx, za_inc_idx, aa_inc_idx, joker);
   
   for (Index i = 0; i < 6; i++)
@@ -401,9 +388,7 @@ void interpolate_scat_angleDOIT(//Output:
       pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), 
                              scat_theta_gps[za_sca_idx][aa_sca_idx][za_inc_idx][aa_inc_idx]);
     }
-  //  cout << "scat_theta " << theta_rad * RAD2DEG << endl;
-  // cout << "pha_mat_int " << pha_mat_int << endl;
-
+  
 } 
 
 

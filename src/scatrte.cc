@@ -98,6 +98,8 @@ void cloud_fieldsCalc(// Output:
                         )
 {
   
+  out3 << "Calculate scattering properties in cloudbox \n";
+  
   const Index atmosphere_dim = cloudbox_limits.nelem()/2;
   const Index stokes_dim = ext_mat_field.ncols();
   
@@ -126,7 +128,7 @@ void cloud_fieldsCalc(// Output:
     }
 
   //Calculate optical properties for single particle types:
-  spt_calc_agenda.execute(scat_za_index || scat_aa_index);
+  spt_calc_agenda.execute(true);
   
   // Calculate ext_mat, abs_vec for all points inside the cloudbox.
   // sca_vec can be obtained from the workspace variable scat_field.
@@ -146,14 +148,8 @@ void cloud_fieldsCalc(// Output:
           for(scat_lon_index = lon_low; scat_lon_index <= lon_up;
               scat_lon_index ++)
             {
-              // Execute agendas silently, only the first call is
-              // output on the screen (no other reason for argument 
-              // in agenda.execute).
-              opt_prop_part_agenda.execute(scat_za_index ||
-                                            scat_aa_index ||
-                                            scat_p_index-p_low ||
-                                            scat_lat_index- lat_low||
-                                            scat_lon_index- lon_low);
+              // Execute agendas silently.
+              opt_prop_part_agenda.execute(true);
            
               // Store coefficients in arrays for the whole cloudbox.
               abs_vec_field(scat_p_index - p_low, 
@@ -292,8 +288,7 @@ void cloud_ppath_update1D(
   ppath_step.gp_p[0].fd[1] = 1;
   
   // Call ppath_step_agenda: 
-  ppath_step_agenda.execute((scat_za_index + 
-                             (p_index - cloudbox_limits[0])));
+  ppath_step_agenda.execute(true);
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -451,9 +446,9 @@ void cloud_ppath_update1D(
 	      // and ext_mat.
 	      //
 	      
-	      scalar_gas_absorption_agenda.execute(p_index);
+	      scalar_gas_absorption_agenda.execute(true);
 	      
-	      opt_prop_gas_agenda.execute(p_index);
+	      opt_prop_gas_agenda.execute(true);
 	      
 	      //
 	      // Add average particle extinction to ext_mat. 
@@ -534,7 +529,7 @@ void cloud_ppath_update1D(
 	  gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
 	  // Executes the ground reflection agenda
 	  chk_not_empty( "ground_refl_agenda", ground_refl_agenda );
-	  ground_refl_agenda.execute();
+	  ground_refl_agenda.execute(true);
 
 	  // Check returned variables
 	  if( ground_emission.nrows() != f_grid.nelem()  ||  
@@ -614,9 +609,9 @@ void cloud_ppath_update1D(
 	      // and ext_mat.
 	      //
 	      
-	      scalar_gas_absorption_agenda.execute(p_index);
+	      scalar_gas_absorption_agenda.execute(true);
 	      
-	      opt_prop_gas_agenda.execute(p_index);
+	      opt_prop_gas_agenda.execute(true);
 	      
 	      //
 	      // Add average particle extinction to ext_mat. 
@@ -810,11 +805,7 @@ void cloud_ppath_update3D(
   ppath_step.gp_lon[0].fd[1] = 1.;
 
   // Call ppath_step_agenda: 
-  ppath_step_agenda.execute(scat_za_index &&
-                            scat_aa_index &&
-                            p_index - cloudbox_limits[0] &&
-                            lat_index - cloudbox_limits[2]&&
-                            lon_index - cloudbox_limits[4]);
+  ppath_step_agenda.execute(true);
   
   
   const Numeric TOL = 1e-6;  
@@ -1044,9 +1035,9 @@ void cloud_ppath_update3D(
           // and ext_mat.
           //
 	      
-          scalar_gas_absorption_agenda.execute(p_index);
+          scalar_gas_absorption_agenda.execute(true);
 	      
-          opt_prop_gas_agenda.execute(p_index);
+          opt_prop_gas_agenda.execute(true);
 	      
           //
           // Add average particle extinction to ext_mat. 
@@ -1198,7 +1189,7 @@ void ppath_step_in_cloudbox(//Output:
   ppath_step.gp_lon[0].fd[1] = 1.;
               
   // Call ppath_step_agenda: 
-  ppath_step_agenda.execute();
+  ppath_step_agenda.execute(true);
 }
 
 

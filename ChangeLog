@@ -1,3 +1,56 @@
+2003-11-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-715
+
+	Major changes in calculation of the scattering integral. The 
+	requirements for the zenith angle discretisation are different for the 
+	calculation of the scattering integral and for the radiative transfer
+	part inside the cloudbox. For the radiative transfer part, it is very
+	important to have a fine discretisation about 90°. This is not so 
+	important for the scattering integral. Here we need the same 
+	discretisation everywhere as the position of the peak of the 
+	phase matrix depends on incoming and outgoing directions. 
+	Normally it is sufficient to take 10° steps to get sufficiently 
+	high accuracy. 
+	I included a new workspace variable *za_grid_size* (the name is
+	not very good, I should probably change it) which is set by
+	the user and includes the number of grid points of the zenith angle 
+	grid used to calculate the scattering integral.
+	This modification makes the scattering calculations a lot faster.
+		
+	* src/m_scatrte.cc (scat_fieldCalc): Included modifications 
+	described above.
+	(ScatteringInit): Adjusted initialisation of *pha_mat_spt* and 
+	*pha_mat*.
+	Made some agenda output silent. Now the report file (level 1) is no
+	longer useless for scattering calculations. 
+
+	* src/m_optproperties.cc (pha_mat_sptFromDataDOITOpt) and
+	(ScatteringDataPrepareDOITOpt): Adapted to the
+	new concept. *pha_mat_spt* is now calculated on the zenith angle 
+	grid for the scattering integral calculation.
+	Note: *pha_mat_sptFromData* shoulds be adapted as well. 
+
+	* src/scatrte.cc: Made agenda output silent.
+
+	* src/optproperties.{cc,h} (interpolate_scat_angleDOIT): Removed
+	unused variables. 
+
+	* src/workspace.cc: Included *za_grid_size*.
+	
+	* src/agendas.cc: Modified input of *pha_mat_spt_agenda* according to 
+	new functions.
+	
+	* src/m_cloudbox.cc (scat_iPut): Fixed 3D part. Adjusted to "new" sizes
+	of *scat_i_XXX*.
+
+	* src/ppath.cc: Made *ppath_step_agenda* totally silent. In the 
+	scattering calculations there were too many outputs from this agenda.
+
+	* src/rte.cc: Made *ppath_step_agenda* totally silent.
+	I hope this is o.k. For clearsky calculation one might like to have
+	the agenda output, but in the scattering part it is useless.
+
 2003-11-17  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-714

@@ -136,14 +136,12 @@ void pha_matTransform(//Output
 
 void interpolate_scat_angleDOIT(//Output:
                             VectorView pha_mat_int,
-                            Numeric& theta_rad,
                             //Input:
                             ConstTensor5View pha_mat_data,
                             const Index& za_sca_idx,
                             const Index& aa_sca_idx,
                             const Index& za_inc_idx,
                             const Index& aa_inc_idx,
-                            ConstTensor4View scat_theta,
                             const ArrayOfArrayOfArrayOfArrayOfGridPos&
                                 scat_theta_gps,
                             ConstTensor5View scat_theta_itws
