@@ -32,20 +32,40 @@
       AGARD 52nd Specialists Meeting of the Electromagnetic Wave
       Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
 
+   i) MPM87 H2O absorption model (line and continuum) according to 
+      Liebe, Radio Science, 20(5), 1985, 1069.
+
+  ii) MPM89 H2O absorption model (line and continuum) according to 
+      Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631
+
+ iii) MPM93 H2O absorption model (line and continuum) according to 
+      . J. Liebe and G. A. Hufford and M. G. Cotton,
+      "Propagation modeling of moist air and suspended water/ice
+      particles at frequencies below 1000 GHz",
+      AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+      Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
+
+  iv) Cruz-Pol H2O absorption model (line and continuum) according to 
+      S. L. Cruz-Pol et al., Radio Science, 33(5), 1319, 1998
+
+   v) Rosenkranz H2O absorption model (line and continuum) according to 
+      P. W. Rosenkranz., Radio Science, 33(4), 919, 1998
+
+   ------------------------------------------------------------------
 
    The following unit conversions are used:
    (SI units: meter, kilogram, second, ampere, Kelvin, candela) 
+   x g/cm3 = y kg/m3    <===>      y = x * 1.00e3
+   x g/m3  = y kg/m3    <===>      y = x * 1.00e-3
    x GHz   = y Hz       <===>      y = x * 1.00e9
    x 1/GHz = y 1/Hz     <===>      y = x * 1.00e-9
    x hPa   = y Pa       <===>      y = x * 1.00e2
    x 1/hPa = y 1/Pa     <===>      y = x * 1.00e-2
    x 1/cm  = y 1/m      <===>      y = x * 1.0e2
    x 1/km  = y 1/m      <===>      y = x * 1.00e-3
-   x Np    = y 1        <===>      y = x
    x dB    = y Np       <===>      y = x / (10.0 * log10(e))
    x dB/km = y 1/m      <===>      y = x * 1.00e-3 / (10.0 * log10(e))
-   x g/cm3 = y kg/m3    <===>      y = x * 1.00e3
-   x g/m3  = y kg/m3    <===>      y = x * 1.00e-3
+   x Np/km = y 1/m      <===>      y = x * 1.00e-3
 
    \author Thomas Kuhn
    \date   2001-03-27
@@ -54,6 +74,7 @@
 #include "vecmat.h"
 #include "absorption.h"
 #include "messages.h"
+#include "continua.h"
 
 /**
    Calculates the continuum according to the simple
@@ -751,42 +772,46 @@ void MPM87H2OAbsModel( MATRIX&           xsec,
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
   for ( size_t i=0; i<n_p; ++i )
     {
-      // relative inverse temperature [1]
-      Numeric theta = (300.0 / t_abs[i]);
-      // H2O partial pressure [kPa]
-      Numeric pwv   = 0.001 * p_abs[i] * vmr[i];
-      // dry air partial pressure [kPa]
-      Numeric pda   = (0.001 * p_abs[i]) - pwv;
-      // H2O continuum absorption [dB/km/GHz2] like in the original MPM87
-      Numeric absc  = pwv * pow(theta, 3.0) * 1.000e-5 *
-	              ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)) );
-
-      // Loop over input frequency
-      for ( size_t s=0; s<n_f; ++s )
+      // calculate xsec only if VMR(H2O) > VMRCalcLimit
+      if (vmr[i] > VMRCalcLimit)
 	{
-	  // input frequency in [GHz]
-	  Numeric ff   = f_mono[s] * 1.00e-9; 
-	  // H2O line contribution at position f
-	  Numeric absl = 0.000;
+	  // relative inverse temperature [1]
+	  Numeric theta = (300.0 / t_abs[i]);
+	  // H2O partial pressure [kPa]
+	  Numeric pwv   = 0.001 * p_abs[i] * vmr[i];
+	  // dry air partial pressure [kPa]
+	  Numeric pda   = (0.001 * p_abs[i]) - pwv;
+	  // H2O continuum absorption [dB/km/GHz2] like in the original MPM87
+	  Numeric absc  = pwv * pow(theta, 3.0) * 1.000e-5 *
+	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)) );
 
-	  // Loop over MPM89 H2O spectral lines
-	  for ( size_t l = i_first; l <= i_last; ++l )
+	  // Loop over input frequency
+	  for ( size_t s=0; s<n_f; ++s )
 	    {
-	      // line strength [kHz]
-	      Numeric strength = CL * mpm87[l][1] * pwv * 
-	                         pow(theta,3.5) * exp(mpm87[l][2]*(1.000-theta));
-	      // line broadening parameter [GHz]
-	      Numeric gam      = CW * mpm87[l][3] * 
- 		                 ( (4.80 * pwv * pow(theta, 1.1)) + 
-				   (       pda * pow(theta, 0.6)) );
-	      // effective line width with Doppler broadening [GHz]
-	      // gam              = sqrt(gam*gam + (2.14e-12 * mpm87[l][0] * mpm87[l][0] / theta));
-	      // H2O line absorption [dB/km/GHz] like in the original MPM87
-	      absl            += strength * MPMLineShapeFunction(gam, mpm87[l][0], ff); 
+	      // input frequency in [GHz]
+	      Numeric ff   = f_mono[s] * 1.00e-9; 
+	      // H2O line contribution at position f
+	      Numeric absl = 0.000;
+	      
+	      // Loop over MPM89 H2O spectral lines
+	      for ( size_t l = i_first; l <= i_last; ++l )
+		{
+		  // line strength [kHz]
+		  Numeric strength = CL * mpm87[l][1] * pwv * 
+	                             pow(theta,3.5) * exp(mpm87[l][2]*(1.000-theta));
+		  // line broadening parameter [GHz]
+		  Numeric gam      = CW * mpm87[l][3] * 
+ 		                     ( (4.80 * pwv * pow(theta, 1.1)) + 
+				       (       pda * pow(theta, 0.6)) );
+		  // effective line width with Doppler broadening [GHz]
+		  // gam              = sqrt(gam*gam + (2.14e-12 * mpm87[l][0] * mpm87[l][0] / theta));
+		  // H2O line absorption [dB/km/GHz] like in the original MPM87
+		  absl            += strength * MPMLineShapeFunction(gam, mpm87[l][0], ff); 
+		}
+	      // xsec = abs/vmr [1/m]
+	      // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820     (1/(10*log(e)) = 0.230259)
+	      xsec[s][i]  += 4.1907e-5 * ff * ( absl + (CC * absc * ff) ) / vmr[i];
 	    }
-	  // xsec = abs/vmr [1/m]
-	  // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820     (1/(10*log(e)) = 0.230259)
-	  xsec[s][i]  += 4.1907e-5 * ff * ( absl + (CC * absc * ff) ) / vmr[i];
 	}
     }
   return;
@@ -859,44 +884,48 @@ void MPM89H2OAbsModel( MATRIX&           xsec,
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
   for ( size_t i=0; i<n_p; ++i )
     {
-      // relative inverse temperature [1]
-      Numeric theta = (300.0 / t_abs[i]);
-      // H2O partial pressure [kPa]
-      Numeric pwv   = 0.001 * p_abs[i] * vmr[i];
-      // dry air partial pressure [kPa]
-      Numeric pda   = (0.001 * p_abs[i]) - pwv;
-      // H2O continuum absorption [dB/km/GHz2] like in the original MPM89
-      Numeric absc  = pwv * pow(theta, 3.0) * 1.000e-5 *
-		      ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)) );
-
-      // Loop over input frequency
-      for ( size_t s=0; s<n_f; ++s )
+      // calculate xsec only if VMR(H2O) > VMRCalcLimit
+      if (vmr[i] > VMRCalcLimit)
 	{
-	  // input frequency in [GHz]
-	  Numeric ff   = f_mono[s] * 1.00e-9; 
-	  // H2O line contribution at position f 
-	  Numeric absl = 0.000;
+	  // relative inverse temperature [1]
+	  Numeric theta = (300.0 / t_abs[i]);
+	  // H2O partial pressure [kPa]
+	  Numeric pwv   = 0.001 * p_abs[i] * vmr[i];
+	  // dry air partial pressure [kPa]
+	  Numeric pda   = (0.001 * p_abs[i]) - pwv;
+	  // H2O continuum absorption [dB/km/GHz2] like in the original MPM89
+	  Numeric absc  = pwv * pow(theta, 3.0) * 1.000e-5 *
+	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)) );
 
-	  // Loop over MPM89 spectral lines:
-	  for ( size_t l = i_first; l <= i_last; ++l )
+	  // Loop over input frequency
+	  for ( size_t s=0; s<n_f; ++s )
 	    {
-	      // line strength [kHz]
-	      Numeric strength = CL * mpm89[l][1] * pwv * 
-		                 pow(theta, 3.5) * exp(mpm89[l][2]*(1.000-theta));
-	      // line broadening parameter [GHz]
-	      Numeric gam      = CW * mpm89[l][3] * 0.001 * 
-	                         ( mpm89[l][5] * pwv * pow(theta, mpm89[l][6]) +  
-	                                         pda * pow(theta, mpm89[l][4]) );
-	      // Doppler line width [GHz]
-	      Numeric gamd     = 1.46e-6 * mpm89[l][0] / sqrt(theta);
-	      // effective line width [GHz]
-	      // gam              = 0.535 * gam + sqrt(0.217*gam*gam + gamd*gamd);  
-	      // H2O line absorption [dB/km/GHz] like in the original MPM89
-	      absl            += strength * MPMLineShapeFunction(gam, mpm89[l][0], ff); 
+	      // input frequency in [GHz]
+	      Numeric ff   = f_mono[s] * 1.00e-9; 
+	      // H2O line contribution at position f 
+	      Numeric absl = 0.000;
+	      
+	      // Loop over MPM89 spectral lines:
+	      for ( size_t l = i_first; l <= i_last; ++l )
+		{
+		  // line strength [kHz]
+		  Numeric strength = CL * mpm89[l][1] * pwv * 
+		                     pow(theta, 3.5) * exp(mpm89[l][2]*(1.000-theta));
+		  // line broadening parameter [GHz]
+		  Numeric gam      = CW * mpm89[l][3] * 0.001 * 
+	                             ( mpm89[l][5] * pwv * pow(theta, mpm89[l][6]) +  
+	                                             pda * pow(theta, mpm89[l][4]) );
+		  // Doppler line width [GHz]
+		  // Numeric gamd     = 1.46e-6 * mpm89[l][0] / sqrt(theta);
+		  // effective line width [GHz]
+		  // gam              = 0.535 * gam + sqrt(0.217*gam*gam + gamd*gamd);  
+		  // H2O line absorption [dB/km/GHz] like in the original MPM89
+		  absl            += strength * MPMLineShapeFunction(gam, mpm89[l][0], ff); 
+		}
+	      // xsec = abs/vmr [1/m]
+	      // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820    (1/(10*log(e)) = 0.230259)
+	      xsec[s][i] += 4.1907e-5 * ff * ( absl + (CC * absc * ff) ) / vmr[i];
 	    }
-	  // xsec = abs/vmr [1/m]
-	  // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820    (1/(10*log(e)) = 0.230259)
-	  xsec[s][i]   += 4.1907e-5 * ff * ( absl + (CC * absc * ff) ) / vmr[i];
 	}
     }
   return;
@@ -975,48 +1004,52 @@ void MPM93H2OAbsModel( MATRIX&           xsec,
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
   for ( size_t i=0; i<n_p; ++i )
     {
-      // relative inverse temperature [1]
-      Numeric theta    = (300.0 / t_abs[i]);
-      // H2O partial pressure [hPa]
-      Numeric pwv      = 0.01 * p_abs[i] * vmr[i];
-      // dry air partial pressure [hPa]
-      Numeric pda      = (0.01 * p_abs[i]) - pwv;
-      // Loop over MPM93 spectral lines:
-
-      for ( size_t l = i_first; l <= i_last; ++l )
+      // calculate xsec only if VMR(H2O) > VMRCalcLimit
+      if (vmr[i] > VMRCalcLimit)
 	{
-	  // line strength [ppm]. The missing vmr of H2O will be multiplied 
-	  // at the stage of absorption calculation: abs / vmr * xsec.
-	  Numeric strength = CL * mpm93[l][1] * pwv * 
-	                     pow(theta,3.5) * exp(mpm93[l][2]*(1.0-theta));
-	  // line broadening parameter [GHz]
-	  Numeric gam      = CW * mpm93[l][3] * 0.001 * 
-	                     ( (mpm93[l][4] * pwv * pow(theta, mpm93[l][6])) +  
-	                       (              pda * pow(theta, mpm93[l][5])) );
-	  // Doppler line width [GHz]
-	  Numeric gamd     = 1.46e-6 * mpm93[l][0] / sqrt(theta);
-	  // effective line width [GHz]
-	  //gam              = 0.535 * gam + sqrt(0.217*gam*gam + gamd*gamd);  
-
+	  // relative inverse temperature [1]
+	  Numeric theta    = (300.0 / t_abs[i]);
+	  // H2O partial pressure [hPa]
+	  Numeric pwv      = 0.01 * p_abs[i] * vmr[i];
+	  // dry air partial pressure [hPa]
+	  Numeric pda      = (0.01 * p_abs[i]) - pwv;
+	  // Loop over MPM93 spectral lines:
+	  
 	  // Loop over input frequency
 	  for ( size_t s=0; s<n_f; ++s )
 	    {
 	      // input frequency in [GHz]
 	      Numeric ff = f_mono[s] * 1.00e-9; 
-	      // absorption [dB/km] like in the original MPM93
-	      Numeric abs = strength * MPMLineShapeFunction(gam, mpm93[l][0], ff); 
-	      if (l == 34)
+
+	      for ( size_t l = i_first; l <= i_last; ++l )
 		{
-		  // H2O pseudo continuum line
-		  // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820    (1/(10*log(e)) = 0.230259)
-		  // xsec = abs/vmr [1/m]
-		  xsec[s][i]   += 4.1907e-5 * CC * ff * abs / vmr[i];
-		} else 
-		  {
-		    // H2O spectral line
-		    // xsec = abs/vmr [1/m]
-		    xsec[s][i]   += 4.1907e-5 * ff * abs / vmr[i];
-		  }
+		  // line strength [ppm]. The missing vmr of H2O will be multiplied 
+		  // at the stage of absorption calculation: abs / vmr * xsec.
+		  Numeric strength = CL * mpm93[l][1] * pwv * 
+	                             pow(theta, 3.5)  * exp(mpm93[l][2]*(1.0-theta));
+		  // line broadening parameter [GHz]
+		  Numeric gam      = CW * mpm93[l][3] * 0.001 * 
+	                             ( (mpm93[l][4] * pwv * pow(theta, mpm93[l][6])) +  
+	                               (              pda * pow(theta, mpm93[l][5])) );
+		  // Doppler line width [GHz]
+		  // Numeric gamd     = 1.46e-6 * mpm93[l][0] / sqrt(theta);
+		  // effective line width [GHz]
+		  //gam              = 0.535 * gam + sqrt(0.217*gam*gam + gamd*gamd); 
+		  // absorption [dB/km] like in the original MPM93
+		  Numeric abs = strength * MPMLineShapeFunction(gam, mpm93[l][0], ff); 
+		  if (l == 34)
+		    {
+		      // H2O pseudo continuum line
+		      // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820    (1/(10*log(e)) = 0.230259)
+		      // xsec = abs/vmr [1/m]
+		      xsec[s][i]   += 4.1907e-5 * CC * ff * abs / vmr[i];
+		    } else 
+		      {
+			// H2O spectral line
+			// xsec = abs/vmr [1/m]
+			xsec[s][i]   += 4.1907e-5 * ff * abs / vmr[i];
+		      }
+		}
 	    }
 	}
     }
@@ -1056,28 +1089,32 @@ void CP98H2OAbsModel( MATRIX&           xsec,
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
   for ( size_t i=0; i<n_p; ++i )
     {
-      // relative inverse temperature [1]
-      Numeric theta = (300.0 / t_abs[i]);
-      // H2O partial pressure [hPa]
-      Numeric pwv   = 0.01 * p_abs[i] * vmr[i];
-      // dry air partial pressure [hPa]
-      Numeric pda   = (0.01 * p_abs[i]) - pwv;
-      // line strength
-      Numeric TL    = CL * 0.0109 * pwv * pow(theta,3.5) * exp(2.143*(1.0-theta));
-      // line broadening parameter [GHz]
-      Numeric gam   = CW * 0.002784 *  
-	            ( (pda * pow(theta,0.6)) + (4.80 * pwv * pow(theta,1.1)) );
-      // continuum term
-      Numeric TC    = CC * pwv * pow(theta, 3.0) * 1.000e-7 * 
-                      ( (0.113 * pda) + (3.57 * pwv * pow(theta,7.5)) );
-      // Loop over input frequency
-      for ( size_t s=0; s<n_f; ++s )
+      // calculate xsec only if VMR(H2O) > VMRCalcLimit
+      if (vmr[i] > VMRCalcLimit)
 	{
-	  // input frequency in [GHz]
-	  Numeric ff  = f_mono[s] * 1.00e-9; 
-	  Numeric TSf = MPMLineShapeFunction(gam, 22.235080, ff); 
-	  // xsec = abs/vmr [1/m] (Cruz-Pol model in [Np/km])
-	  xsec[s][i] += 4.1907e-5 * ff * ( (TL * TSf) + (ff * TC) ) / vmr[i];
+	  // relative inverse temperature [1]
+	  Numeric theta = (300.0 / t_abs[i]);
+	  // H2O partial pressure [hPa]
+	  Numeric pwv   = 0.01 * p_abs[i] * vmr[i];
+	  // dry air partial pressure [hPa]
+	  Numeric pda   = (0.01 * p_abs[i]) - pwv;
+	  // line strength
+	  Numeric TL    = CL * 0.0109 * pwv * pow(theta,3.5) * exp(2.143*(1.0-theta));
+	  // line broadening parameter [GHz]
+	  Numeric gam   = CW * 0.002784 *  
+	                  ( (pda * pow(theta,0.6)) + (4.80 * pwv * pow(theta,1.1)) );
+	  // continuum term
+	  Numeric TC    = CC * pwv * pow(theta, 3.0) * 1.000e-7 * 
+	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta,7.5)) );
+	  // Loop over input frequency
+	  for ( size_t s=0; s<n_f; ++s )
+	    {
+	      // input frequency in [GHz]
+	      Numeric ff  = f_mono[s] * 1.00e-9; 
+	      Numeric TSf = MPMLineShapeFunction(gam, 22.235080, ff); 
+	      // xsec = abs/vmr [1/m] (Cruz-Pol model in [Np/km])
+	      xsec[s][i] += 4.1907e-5 * ff * ( (TL * TSf) + (ff * TC) ) / vmr[i];
+	    }
 	}
     }
   return;
@@ -1154,55 +1191,220 @@ void PWR98H2OAbsModel( MATRIX&           xsec,
   // Loop pressure/temperature:
   for ( size_t i=0; i<n_p; ++i )
     {
-      // water vapor partial pressure [hPa]
-      Numeric pvap = 0.01 * p_abs[i] * vmr[i];
-      // dry air partial pressure [hPa]
-      Numeric pda  = (0.01 *p_abs[i]) - pvap;
-      // Rosenkranz number density  (Rosenkranz H2O mass density in [g/m3])
-      // [g/m3]    =  [g*K / Pa*m3]  *  [Pa/K]
-      // rho       =   (M_H2O / R)   *  (P_H2O / T)
-      // rho       =      2.1667     *  p_abs * vmr / t_abs
-      // den       = 3.335e16 * rho
-      Numeric den  = 3.335e16 * (2.1667 * p_abs[i] * vmr[i] / t_abs[i]);
-      // inverse relative temperature [1]
-      Numeric ti   = (300.0 / t_abs[i]);
-      Numeric ti2  = pow(ti, 2.5);
-
-      // continuum term [Np/km/GHz2]
-      Numeric con = pvap * pow(ti, 3.0) * 1.000e-9 * 
-	            ( (0.543 * pda) + (17.96 * pvap * pow(ti, 4.5)) );
-
-      // Loop over input frequency
-      for ( size_t s=0; s<n_f; ++s )
+      // calculate xsec only if VMR(H2O) > VMRCalcLimit
+      if (vmr[i] > VMRCalcLimit)
 	{
-	  // input frequency in [GHz]
-	  Numeric ff  = f_mono[s] * 1.00e-9;
-	  // line contribution at position f
-	  Numeric sum = 0.000;
-
-	  // Loop over spectral lines
-	  for (size_t l = 0; l < 15; l++) 
+	  // water vapor partial pressure [hPa]
+	  Numeric pvap = 0.01 * p_abs[i] * vmr[i];
+	  // dry air partial pressure [hPa]
+	  Numeric pda  = (0.01 *p_abs[i]) - pvap;
+	  // Rosenkranz number density  (Rosenkranz H2O mass density in [g/m3])
+	  // [g/m3]    =  [g*K / Pa*m3]  *  [Pa/K]
+	  // rho       =   (M_H2O / R)   *  (P_H2O / T)
+	  // rho       =      2.1667     *  p_abs * vmr / t_abs
+	  // den       = 3.335e16 * rho
+	  Numeric den  = 3.335e16 * (2.1667 * p_abs[i] * vmr[i] / t_abs[i]);
+	  // inverse relative temperature [1]
+	  Numeric ti   = (300.0 / t_abs[i]);
+	  Numeric ti2  = pow(ti, 2.5);
+	  
+	  // continuum term [Np/km/GHz2]
+	  Numeric con = pvap * pow(ti, 3.0) * 1.000e-9 * 
+	                ( (0.543 * pda) + (17.96 * pvap * pow(ti, 4.5)) );
+	  
+	  // Loop over input frequency
+	  for ( size_t s=0; s<n_f; ++s )
 	    {
-	      Numeric width    = CW * ( PWRw3[l] * pda  * pow(ti, PWRx[l]) + 
-		                        PWRws[l] * pvap * pow(ti, PWRxs[l]) );
-	      Numeric wsq      = width * width;
-	      Numeric strength = CL * PWRs1[l] * ti2 * exp(PWRb2[l]*(1.0 - ti));
-	      // frequency differences
-	      Numeric df0      = ff - PWRfl[l];
-	      Numeric df1      = ff + PWRfl[l];
-	      // use Clough's definition of local line contribution
-	      Numeric base     = width / (wsq + 562500.000);
-	      // positive and negative resonances
-	      Numeric res      = 0.000;
-	      if (fabs(df0) < 750.0) res += width / (df0*df0 + wsq) - base;
-	      if (fabs(df1) < 750.0) res += width / (df1*df1 + wsq) - base;
-	      sum             += strength * res * pow( (ff/PWRfl[l]), 2.0 );
+	      // input frequency in [GHz]
+	      Numeric ff  = f_mono[s] * 1.00e-9;
+	      // line contribution at position f
+	      Numeric sum = 0.000;
+
+	      // Loop over spectral lines
+	      for (size_t l = 0; l < 15; l++) 
+		{
+		  Numeric width    = CW * ( PWRw3[l] * pda  * pow(ti, PWRx[l]) + 
+		                            PWRws[l] * pvap * pow(ti, PWRxs[l]) );
+		  Numeric wsq      = width * width;
+		  Numeric strength = CL * PWRs1[l] * ti2 * exp(PWRb2[l]*(1.0 - ti));
+		  // frequency differences
+		  Numeric df0      = ff - PWRfl[l];
+		  Numeric df1      = ff + PWRfl[l];
+		  // use Clough's definition of local line contribution
+		  Numeric base     = width / (wsq + 562500.000);
+		  // positive and negative resonances
+		  Numeric res      = 0.000;
+		  if (fabs(df0) < 750.0) res += width / (df0*df0 + wsq) - base;
+		  if (fabs(df1) < 750.0) res += width / (df1*df1 + wsq) - base;
+		  sum             += strength * res * pow( (ff/PWRfl[l]), 2.0 );
+		}
+	      // line term [Np/km]
+	      Numeric absl = 0.3183e-4 * den * sum;
+	      // xsec = abs/vmr [1/m] (Rosenkranz model in [Np/km])
+	      // 4.1907e-5 = 0.230259 * 0.1820 * 1.0e-3    (1/(10*log(e)) = 0.230259)
+	      xsec[s][i]  += 1.000e-3 * ( absl + (CC * con * ff * ff) ) / vmr[i];	  
 	    }
-	  // line term [Np/km]
-	  Numeric absl = 0.3183e-4 * den * sum;
-	  // xsec = abs/vmr [1/m] (Rosenkranz model in [Np/km])
-	  // 4.1907e-5 = 0.230259 * 0.1820 * 1.0e-3    (1/(10*log(e)) = 0.230259)
-	  xsec[s][i]  += 1.000e-3 * ( absl + (CC * con * ff * ff) ) / vmr[i];
+	}
+    }
+  return;
+}
+//
+// #################################################################################
+// 
+//   Oxygen complex at 60 GHz plus mm O2 lines plus O2 continuum
+//
+//   REFERENCE FOR EQUATIONS AND COEFFICIENTS:
+//   P.W. ROSENKRANZ, CHAP. 2 AND APPENDIX, IN ATMOSPHERIC REMOTE SENSING
+//   BY MICROWAVE RADIOMETRY (M.A. JANSSEN, ED. 1993)
+//   AND H.J. LIEBE ET AL, JQSRT V.48, PP.629-643 (1992)
+//   (EXCEPT: SUBMILLIMETER LINE INTENSITIES FROM HITRAN92)
+//
+void PWR93O2AbsModel( MATRIX&           xsec,
+		      Numeric             CC, // continuum term scale factor
+		      Numeric             CL, // line strength scale factor
+		      Numeric             CW, // line broadening scale factor
+		      Numeric             CO, // line coupling scale factor
+		      const VECTOR&   f_mono,
+		      const VECTOR&    p_abs,
+		      const VECTOR&    t_abs,
+		      const VECTOR&   vmrh2o,
+                      const VECTOR&      vmr )
+{
+  const size_t n_lines = 40; // number of O2 lines in this model (range: 50-850 GHz)
+
+  // lines are arranged 1-,1+,3-,3+,etc. in spin-rotation spectrum
+  const Numeric F[n_lines] = { 118.7503,  56.2648,  62.4863,  58.4466, 
+                           60.3061,  59.5910,  59.1642,  60.4348, 
+                           58.3239,  61.1506,  57.6125,  61.8002,
+			   56.9682,  62.4112,  56.3634,  62.9980, 
+                           55.7838,  63.5685,  55.2214,  64.1278, 
+                           54.6712,  64.6789,  54.1300,  65.2241,
+			   53.5957,  65.7648,  53.0669,  66.3021, 
+                           52.5424,  66.8368,  52.0214,  67.3696, 
+                           51.5034,  67.9009, 368.4984, 424.7631,
+			  487.2494, 715.3932, 773.8397, 834.1453};
+
+  const Numeric S300[n_lines] = { 0.2936E-14, 0.8079E-15, 0.2480E-14, 0.2228E-14,
+			     0.3351E-14, 0.3292E-14, 0.3721E-14, 0.3891E-14,
+			     0.3640E-14, 0.4005E-14, 0.3227E-14, 0.3715E-14,
+			     0.2627E-14, 0.3156E-14, 0.1982E-14, 0.2477E-14,
+		             0.1391E-14, 0.1808E-14, 0.9124E-15, 0.1230E-14,
+		             0.5603E-15, 0.7842E-15, 0.3228E-15, 0.4689E-15,
+		             0.1748E-15, 0.2632E-15, 0.8898E-16, 0.1389E-15,
+		             0.4264E-16, 0.6899E-16, 0.1924E-16, 0.3229E-16,
+		             0.8191E-17, 0.1423E-16, 0.6460E-15, 0.7047E-14, 
+		             0.3011E-14, 0.1826E-14, 0.1152E-13, 0.3971E-14};
+
+  const Numeric BE[n_lines] = {   0.009,   0.015,   0.083,   0.084, 
+                             0.212,   0.212,   0.391,   0.391, 
+                             0.626,   0.626,   0.915,   0.915, 
+                             1.260,   1.260,   1.660,   1.665,   
+                             2.119,   2.115,   2.624,   2.625, 
+                             3.194,   3.194,   3.814,   3.814, 
+                             4.484,   4.484,   5.224,   5.224, 
+                             6.004,   6.004,   6.844,   6.844, 
+                             7.744,   7.744,   0.048,   0.044, 
+	      		     0.049,   0.145,   0.141,   0.145};
+
+  // widths in MHz/mbar
+  const Numeric WB300 = 0.56;
+  const Numeric X     = 0.80;
+
+  const Numeric W300[n_lines] = { 1.630, 1.646, 1.468, 1.449, 
+                             1.382, 1.360, 1.319, 1.297, 
+                             1.266, 1.248, 1.221, 1.207, 
+                             1.181, 1.171, 1.144, 1.139, 
+                             1.110, 1.108, 1.079, 1.078, 
+                             1.050, 1.050, 1.020, 1.020, 
+                             1.000, 1.000, 0.970, 0.970,
+			     0.940, 0.940, 0.920, 0.920,
+                             0.890, 0.890, 1.920, 1.920, 
+                             1.920, 1.810, 1.810, 1.810};
+
+  const Numeric Y300[n_lines] = { -0.0233,  0.2408, -0.3486,  0.5227,
+			     -0.5430,  0.5877, -0.3970,  0.3237, 
+                             -0.1348,  0.0311,  0.0725, -0.1663, 
+                              0.2832, -0.3629,  0.3970, -0.4599,
+                              0.4695, -0.5199,  0.5187, -0.5597,
+                              0.5903, -0.6246,  0.6656, -0.6942,
+                              0.7086, -0.7325,  0.7348, -0.7546,
+                              0.7702, -0.7864,  0.8083, -0.8210,
+                              0.8439, -0.8529,  0.0000,  0.0000,
+                              0.0000,  0.0000,  0.0000,  0.0000};
+
+
+  const Numeric V[n_lines] ={  0.0079, -0.0978,  0.0844, -0.1273,
+			  0.0699, -0.0776,  0.2309, -0.2825, 
+                          0.0436, -0.0584,  0.6056, -0.6619, 
+                          0.6451, -0.6759,  0.6547, -0.6675,
+                          0.6135, -0.6139,  0.2952, -0.2895, 
+                          0.2654, -0.2590,  0.3750, -0.3680, 
+                          0.5085, -0.5002,  0.6206, -0.6091,
+			  0.6526, -0.6393,  0.6640, -0.6475,
+                          0.6729, -0.6545,  0.0000,  0.0000,
+			  0.0000,  0.0000,  0.0000,  0.0000};
+
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+  
+  // Loop pressure/temperature:
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      // calculate xsec only if VMR(O2) > VMRCalcLimit
+      if (vmr[i] > VMRCalcLimit)
+	{
+	  // relative inverse temperature [1]
+	  Numeric TH  = 300.000 / t_abs[i];
+	  Numeric TH1 = TH-1.000;
+	  Numeric B   = pow(TH, X);
+	  //cout << "TH,TH1,B= " << TH << ", " << TH1 << ", " << B << "\n";
+	  // partial pressure of H2O and dry air [hPa]
+	  Numeric PRESWV = 0.01 * p_abs[i] * vmrh2o[i];
+	  Numeric PRESDA = 0.01 * p_abs[i] * (1.000 - vmrh2o[i]);
+	  //cout << "PRESWV,PRESDA=" << PRESWV << ", " << PRESDA << "\n";
+	  Numeric DEN    = .001*(PRESDA*B + 1.1*PRESWV*TH);
+	  Numeric DFNR   = WB300*DEN;
+	  // initial O2 line absorption at position ff 
+	  Numeric O2ABS = 0.000;
+
+	    // Loop over input frequency
+	    for ( size_t s=0; s<n_f; ++s )
+	      {
+		// input frequency in [GHz]
+		Numeric ff  = f_mono[s] * 1.00e-9; 
+		// continuum absorption [Neper/km]
+		Numeric SUM = CC * 1.6e-17 * ff * ff * DFNR / ( TH*(ff*ff + DFNR*DFNR) );
+		//cout << "DEN,DFNR,SUM=" << DEN  << ", " << DFNR  << ", " << SUM << "\n";
+
+		//cout << "ff =" << ff << ",  O2ABS=" << O2ABS << ",  SUM=" << SUM << "\n";
+		// Loop over Rosnekranz '93 spectral line frequency:
+		for ( size_t l=0; l<n_lines; ++l )
+		  {
+		    Numeric DF   = CO * W300[l] * DEN;
+		    Numeric Y    = CW * 0.001 * 0.01 * p_abs[i] * B * ( Y300[l] + V[l]*TH1 );
+		    Numeric STR  = CL * S300[l] * exp(-BE[l] * TH1);
+		    Numeric SF1  = ( DF + (ff-F[l])*Y ) / ( (ff-F[l])*(ff-F[l]) + DF*DF );
+		    Numeric SF2  = ( DF - (ff+F[l])*Y ) / ( (ff+F[l])*(ff+F[l]) + DF*DF );
+		            SUM += STR * (SF1+SF2) * pow((ff/F[l]), 2.0);
+		    //cout << "k,DF,Y,STR,SF1,SF2=" << l << ", " << DF << ", " << Y << ", " << STR
+		    //<< ", " << SF1  << ", " << SF2 << "\n";
+		  }
+		// O2 absorption [Neper/km] 
+		O2ABS += 0.5034e12 * SUM * PRESDA * pow(TH, 3.0) / 3.14159;
+		//cout << "O2ABS=" << O2ABS << "\n";
+		// unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3 
+		// xsec [1/m]  1.000e-3
+		xsec[s][i] += 1.000e-3 * O2ABS / vmr[i];
+	      }
 	}
     }
   return;
@@ -1638,6 +1840,56 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 			       t_abs,
 			       h2o_abs,
 			       vmr );
+    }
+  else if ( "O2-PWR93O2Model"==name )
+    {
+      //  REFERENCE FOR EQUATIONS AND COEFFICIENTS:
+      //  P.W. ROSENKRANZ, CHAP. 2 AND APPENDIX, IN ATMOSPHERIC REMOTE SENSING
+      //  BY MICROWAVE RADIOMETRY (M.A. JANSSEN, ED. 1993)
+      //  AND H.J. LIEBE ET AL, JQSRT V.48, PP.629-643 (1992)
+      //  (EXCEPT: SUBMILLIMETER LINE INTENSITIES FROM HITRAN92)
+
+      // Check if the right number of paramters has been specified:
+      if ( 4 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "Rosenkranz O2 abs. model " << name << " requires two input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      // specific continuum parameters:
+      // parameters[0] : continuum term scale factor,   default CC = 1.000
+      // parameters[1] : line strength scale factor,    default CL = 1.000
+      // parameters[2] : line broadening scale factor,  default CW = 1.000
+      // parameters[3] : line coupling scale factor,    default CO = 1.000
+      //
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [1]
+      //     parameters[1] : [1]
+      //     parameters[1] : [1]
+      //     parameters[1] : [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     h2o_abs,      : [1]
+      //     vmr           : [1]
+      //
+      PWR93O2AbsModel( xsec,
+		       parameters[0], // continuum term scale factor
+		       parameters[1], // line strength scale factor
+		       parameters[2], // line broadening scale factor
+		       parameters[3], // line coupling scale factor
+		       f_mono,
+		       p_abs,
+		       t_abs,
+		       h2o_abs,
+		       vmr );
     }
   // ============= N2 continuum =================================================
   else if ( "N2-ContRosenkranzSelf"==name )

@@ -304,7 +304,8 @@ void define_basic_species_data()
 	 REC("66"	,0.995262	,32.	,71	,71	,TAGS(32001, 32002)),
 	 REC("68"	,0.00399141	,34.	,72	,72	,TAGS(34001)),
 	 REC("67"	,0.000742	,33.	,73	,73	,TAGS(33002)),
-	 REC( "ContRosenkranz"	,-1.	,-1.	,-1	,-1	,TAGS())
+	 REC( "ContRosenkranz"	,-1.	,-1.	,-1	,-1	,TAGS()),
+	 REC( "PWR93O2Model"	,-1.	,-1.	,-1	,-1	,TAGS())
 	 ) ) );
 
   // NO

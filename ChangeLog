@@ -1,3 +1,10 @@
+2001-04-30  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-0-0-163
+
+	* add additional O2 absorption model of Rosenkranz in
+	  continua.cc and continua.h
+
 2001-04-27  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-162

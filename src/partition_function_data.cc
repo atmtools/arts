@@ -334,7 +334,7 @@ void define_partition_species_data()
   iso(it_isotope,	"68",	Qcoeff(	-4.0039E+00	,1.5595E+00	,-1.5357E-04	,3.0969E-07) );
   iso(it_isotope,	"67",	Qcoeff(	-2.3325E+01	,9.0981E+00	,-8.4435E-04	,1.7062E-06) );
   iso(it_isotope,	"ContRosenkranz",   Qcoeff( 0	,0		,0		,0          ) );
-
+  iso(it_isotope,	"PWR93O2Model",     Qcoeff( 0	,0		,0		,0          ) );
 
 
   // NO

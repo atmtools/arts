@@ -10,6 +10,8 @@
 #ifndef contiua_h
 #define contiua_h
 
+const Numeric VMRCalcLimit = 1.000e-25;
+
 
 void xsec_continuum_tag( MATRIX&                    xsec,
 			 const string&              name,
