@@ -1969,6 +1969,29 @@ xml_read_from_stream (istream&    is,
         {
           xml_parse_error ("SpeciesTag must begin with \"");
         }
+      else
+        {
+          bool string_starts_with_quotes = true;
+          for (size_t i = 0;
+               string_starts_with_quotes && i < strbuf.str ().length();
+               i++)
+            {
+              switch (strbuf.str ()[i])
+                {
+              case ' ':
+              case '\n':
+              case '\r':
+              case '\t':
+                    break;
+              default:
+                    string_starts_with_quotes = false;
+                }
+            }
+          if (!string_starts_with_quotes)
+            {
+              xml_parse_error ("String must begin with \"");
+            }
+        }
     }
 
   is >> dummy;
@@ -2025,18 +2048,56 @@ xml_read_from_stream (istream& is,
                       String&  str)
 {
   ArtsXMLTag tag;
-  stringbuf strbuf;
+  stringbuf  strbuf;
+  char dummy;
 
   tag.read_from_stream (is);
   tag.check_name ("String");
-  
-  is.get (strbuf, '<');
+
+  // Check whether next char is ". If so, is.get will read nothing
+  // and input stream will become invalid
+  if (is.peek () != '"')
+    {
+      is.get (strbuf, '"');
+      if (is.fail ())
+        {
+          xml_parse_error ("String must begin with \"");
+        }
+      else
+        {
+          bool string_starts_with_quotes = true;
+          for (size_t i = 0;
+               string_starts_with_quotes && i < strbuf.str ().length();
+               i++)
+            {
+              switch (strbuf.str ()[i])
+                {
+              case ' ':
+              case '\n':
+              case '\r':
+              case '\t':
+                    break;
+              default:
+                    string_starts_with_quotes = false;
+                }
+            }
+          if (!string_starts_with_quotes)
+            {
+              xml_parse_error ("String must begin with \"");
+            }
+        }
+    }
+
+  is >> dummy;
+  is.get (strbuf, '"');
   if (is.fail ())
     {
-      xml_parse_error ("Error while reading data");
+      xml_parse_error ("String must end with \"");
     }
-  
+
   str = strbuf.str ();
+
+  is >> dummy;
 
   tag.read_from_stream (is);
   tag.check_name ("/String");
@@ -2059,7 +2120,7 @@ xml_write_to_stream (ostream&     os,
 
   open_tag.write_to_stream (os);
 
-  os << str;
+  os << '\"' << str << '\"';
 
   close_tag.set_name ("/String");
   close_tag.write_to_stream (os);
