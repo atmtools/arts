@@ -1,3 +1,10 @@
+2003-01-22  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-414
+
+	* src/ppath.cc: Started the work to make things work for Numeric=float,
+	but got time for just a few changes.
+
 2003-01-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-413	

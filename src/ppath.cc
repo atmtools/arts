@@ -196,16 +196,15 @@ g
    \date   2002-05-20
 */
 Numeric geompath_l_at_r(
-       const Numeric&   ppc,
-       const Numeric&   r )
+       const double&   ppc,
+       const double&   r )
 {
+  // Double hard coded above to improve the accuracy for Numeric=float
+
   assert( ppc >= 0 );
   assert( r >= ppc );
   
-  // Double is hard-coded here to improve accuracy
-  double a=ppc*ppc, b=r*r;
-
-  return sqrt( b - a );
+  return sqrt( r*r - ppc*ppc );
 }
 
 
@@ -225,16 +224,15 @@ Numeric geompath_l_at_r(
    \date   2002-05-20
 */
 Numeric geompath_r_at_l(
-       const Numeric&   ppc,
-       const Numeric&   l )
+       const double&   ppc,
+       const double&   l )
 {
+  // Double hard coded above to improve the accuracy for Numeric=float
+
   assert( ppc >= 0 );
   assert( l >= 0 );
   
-  // Double is hard-coded here to improve accuracy
-  double a=ppc*ppc, b=l*l;
-
-  return sqrt( b + a );
+  return sqrt( l*l + ppc*ppc );
 }
 
 
@@ -376,11 +374,13 @@ void geompath_from_r1_to_r2(
    \date   2002-07-03
 */
 Numeric za_geom2other_point(
-       const Numeric&   r1,
-       const Numeric&   lat1,
-       const Numeric&   r2,
-       const Numeric&   lat2 )
+       const double&    r1,
+       const double&    lat1,
+       const double&    r2,
+       const double&    lat2 )
 {
+  // Double hard coded above to improve the accuracy for Numeric=float
+
   if( lat2 == lat1 )
     {
       if( r1 <= r2 )
@@ -395,6 +395,7 @@ Numeric za_geom2other_point(
 
       // The zenith angle is obtained by a combination of the lawes of sine
       // and cosine.
+      // Type casting to double to improve the accuracy for Numeric=float
       Numeric za = dlat + RAD2DEG * asin( r1 * sin( DEG2RAD * dlat ) / 
                  sqrt( r1*r1 + r2*r2 - 2 * r1 * r2 * cos( DEG2RAD * dlat ) ) );
 
@@ -473,10 +474,12 @@ void cart2sph(
              Numeric&   r,
              Numeric&   lat,
              Numeric&   lon,
-       const Numeric&   x,
-       const Numeric&   y,
-       const Numeric&   z )
+       const double&    x,
+       const double&    y,
+       const double&    z )
 {
+  // Double hard coded above to improve the accuracy for Numeric=float
+
   r   = sqrt( x*x + y*y + z*z );
   lat = RAD2DEG * asin( y / r );
   lon = RAD2DEG * atan2( z, x ); 
