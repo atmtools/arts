@@ -26,6 +26,6 @@ autoconf
 echo "- autoheader."
 autoheader
 echo "- automake."
-automake -a
+automake -a --copy
 ./configure --enable-maintainer-mode $@
 exit
