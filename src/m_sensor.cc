@@ -400,8 +400,8 @@ void sensor_responseAntenna1D(
   // directions (or there exist only on viewing angle) or if each angle
   // has its individual values.
   if (diag.nelem()==0 || antenna_za.nelem()==0) {
-    ostringstream os;
-    os << "The antenna response array *antenna_diagram* and the viewing\n"
+    ostringstream os2;
+    os2 << "The antenna response array *antenna_diagram* and the viewing\n"
        << "angle vector " << antenna_za_name << " must contain at least\n"
        << "one element.\n";
     error_found = true;
@@ -411,8 +411,8 @@ void sensor_responseAntenna1D(
   } else if (diag.nelem()==antenna_za.nelem()) {
     //FIXME: Give output that each viewing direction uses individual values
   } else {
-    ostringstream os;
-    os << "The antenna response array *antenna_diagram* does not have the"
+    ostringstream os2;
+    os2 << "The antenna response array *antenna_diagram* does not have the"
        << " right\n size. It should either has one element or as many elements"
        << " as\n the number of viewing angles given by " << antenna_za_name
        << ".\n";
@@ -423,8 +423,8 @@ void sensor_responseAntenna1D(
   // or one per polarisation
   for (Index i=0; i<diag.nelem(); i++) {
     if (diag[i].nelem()!=1 && diag[i].nelem()!=sensor_pol.nrows()) {
-      ostringstream os;
-      os << "The number of Matrix in element " << i << " in *antenna_diagram*"
+      ostringstream os2;
+      os2 << "The number of Matrix in element " << i << " in *antenna_diagram*"
          << "\nmust be equal one or the number of polarisations.\n";
       error_found = true;
     }
@@ -435,8 +435,8 @@ void sensor_responseAntenna1D(
     for (Index j=0; j<diag[i].nelem(); j++) {
       if ((diag[i])[j].ncols()!=2 &&
           (diag[i])[j].ncols()!=f_grid.nelem()+1) {
-        ostringstream os;
-        os << "The number of columns in Matrix " << j << " in array element "
+        ostringstream os2;
+        os2 << "The number of columns in Matrix " << j << " in array element "
            << i << " in  *antenna_diagram*\nmust equal two or the number of "
            << "frequencies plus one.\n";
         error_found = true;
