@@ -1,3 +1,21 @@
+2004-07-01  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-840
+	
+	* src/m_optproperties.cc:
+	(ScatteringDataPrepareDOITOpt),(scat_data_monoCalc): Temperature 
+	interpolation removed from this place, as it has to be part of  
+	*pha_mat_spt_agenda*. Kept temperature grids in *pha_mat_sptDOITOpt*
+	and *scat_datta_mono*.
+	(pha_mat_sptFromDataDOITOpt): Included temperature interpolation 
+	here.
+	(pha_mat_sptFromMonoData): Included temperature interpolation.
+
+	T-interpolation is still missing in (opt_prop_sptFromMonoData)!
+				
+	* src/workspace.cc: Changed *pha_mat_sptDOITOpt* from Tensor6 to 
+	ArrayOfTensor6 to include temperature dimension. 
+	
 2004-06-29  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-839

@@ -1462,9 +1462,11 @@ wsv_data.push_back
        "\n"
        "Unit:        m^2\n"
        "\n"
-       "Dimensions: [N_pt, scat_za_grid,scat_aa_grid, scat_za_grid, scat_aa_grid, 6]"
+       "Dimensions: \n"
+       "[particle types]\n"
+       "[T, scat_za_grid,scat_aa_grid, scat_za_grid, scat_aa_grid, 6]"
        ),
-      GROUP( Tensor6_ )));
+      GROUP( ArrayOfTensor6_ )));
 
 
 
