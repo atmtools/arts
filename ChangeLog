@@ -1,3 +1,39 @@
+2003-07-16  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-605
+
+	* src/matpackII.cc: Cleaned up the sparse matrix
+	implementation. Everything related to views and ranges has been
+	kicked out. WARNING: the function transpose and sparse-sparse
+	multiplication are currently commented out. ARTS sensor model code
+	will not work properly!
+
+	* src/matpackII.h: Ditto for the header file.
+
+	* doc/uguide/matrix_vector.tex: Added template section about
+	sparse matrices.
+
+	* src/test_sparse.cc: Added this file for sparse matrix tests.
+
+	* src/test_matpack.cc: Moved sparse testing routines to test_sparse.cc.
+
+	* src/Makefile.am: Added test_sparse.
+
+	* src/.cvsignore: Added test_sparse.
+
+	* src/xml_io_basic_types.cc: Small adaptations to cleaned up sparse matrices.
+
+	* src/sensor.h: Small adaptations to cleaned up sparse matrices.
+
+	* src/sensor.cc: Small adaptations to cleaned up sparse matrices.
+
+	* src/matpackI.h: Small adaptations to cleaned up sparse matrices.
+
+	* src/m_sensor.cc: Small adaptations to cleaned up sparse
+	matrices.
+	(sensorOff): Fixed typo in error message that lead to compiler
+	warning.
+
 2003-07-16  Cory Davis (rsh)   <cory@fog>
 
 	* arts-1-1-604
