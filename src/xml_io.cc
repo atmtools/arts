@@ -592,7 +592,7 @@ xml_read_from_file (const String& filename,
   try
     {
       xml_read_header_from_stream (ifs);
-      xml_read_from_stream (ifs, type);
+      xml_read_from_stream (ifs, ifs, type);
       xml_read_footer_from_stream (ifs);
     }
   catch (runtime_error e)
@@ -625,7 +625,7 @@ xml_write_to_file (const String& filename,
   try
     {
       xml_write_header_to_stream (ofs);
-      xml_write_to_stream (ofs, type);
+      xml_write_to_stream (ofs, ofs, type);
       xml_write_footer_to_stream (ofs);
     }
   catch (runtime_error e)
@@ -655,13 +655,14 @@ xml_write_to_file (const String& filename,
   \param aastag ArrayOfArrayOfSpeciesTag return value
 */
 void
-xml_read_from_stream (istream&                  is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfArrayOfSpeciesTag& aastag)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "ArrayOfSpeciesTag");
 
@@ -673,7 +674,7 @@ xml_read_from_stream (istream&                  is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, aastag[n]);
+          xml_read_from_stream (is_xml, is_data, aastag[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -684,7 +685,7 @@ xml_read_from_stream (istream&                  is,
     }
 
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -695,7 +696,8 @@ xml_read_from_stream (istream&                  is,
   \param aastag ArrayOfArrayOfSpeciesTag
 */
 void
-xml_write_to_stream (ostream&                        os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfArrayOfSpeciesTag& aastag)
 {
   ArtsXMLTag open_tag;
@@ -706,18 +708,18 @@ xml_write_to_stream (ostream&                        os,
   open_tag.add_attribute ("type", "ArrayOfSpeciesTag");
   open_tag.add_attribute ("nelem", aastag.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < aastag.nelem (); n++)
     {
-      xml_write_to_stream (os, aastag[n]);
+      xml_write_to_stream (os_xml, os_data, aastag[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 
@@ -732,13 +734,14 @@ xml_write_to_stream (ostream&                        os,
   \param aatensor3 ArrayOfArrayOfTensor3 return value
 */
 void
-xml_read_from_stream (istream&       is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfArrayOfTensor3& aatensor3)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "ArrayOfTensor3");
 
@@ -750,7 +753,7 @@ xml_read_from_stream (istream&       is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, aatensor3[n]);
+          xml_read_from_stream (is_xml, is_data, aatensor3[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -761,7 +764,7 @@ xml_read_from_stream (istream&       is,
     }
 
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -772,7 +775,8 @@ xml_read_from_stream (istream&       is,
   \param aatensor3 ArrayOfArrayOfTensor3
 */
 void
-xml_write_to_stream (ostream&             os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfArrayOfTensor3& aatensor3)
 {
   ArtsXMLTag open_tag;
@@ -783,18 +787,18 @@ xml_write_to_stream (ostream&             os,
   open_tag.add_attribute ("type", "ArrayOfTensor3");
   open_tag.add_attribute ("nelem", aatensor3.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < aatensor3.nelem (); n++)
     {
-      xml_write_to_stream (os, aatensor3[n]);
+      xml_write_to_stream (os_xml, os_data, aatensor3[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 
@@ -809,13 +813,14 @@ xml_write_to_stream (ostream&             os,
   \param aatensor6 ArrayOfArrayOfTensor6 return value
 */
 void
-xml_read_from_stream (istream&       is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfArrayOfTensor6& aatensor6)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "ArrayOfTensor6");
 
@@ -827,7 +832,7 @@ xml_read_from_stream (istream&       is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, aatensor6[n]);
+          xml_read_from_stream (is_xml, is_data, aatensor6[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -837,7 +842,7 @@ xml_read_from_stream (istream&       is,
       throw runtime_error(os.str());
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -848,7 +853,8 @@ xml_read_from_stream (istream&       is,
   \param aatensor6 ArrayOfArrayOfTensor6
 */
 void
-xml_write_to_stream (ostream&             os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfArrayOfTensor6& aatensor6)
 {
   ArtsXMLTag open_tag;
@@ -859,18 +865,18 @@ xml_write_to_stream (ostream&             os,
   open_tag.add_attribute ("type", "ArrayOfTensor6");
   open_tag.add_attribute ("nelem", aatensor6.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < aatensor6.nelem (); n++)
     {
-      xml_write_to_stream (os, aatensor6[n]);
+      xml_write_to_stream (os_xml, os_data, aatensor6[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 
@@ -885,13 +891,14 @@ xml_write_to_stream (ostream&             os,
   \param agpos ArrayOfGridPos return value
 */
 void
-xml_read_from_stream (istream&        is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfGridPos& agpos)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "GridPos");
 
@@ -903,7 +910,7 @@ xml_read_from_stream (istream&        is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, agpos[n]);
+          xml_read_from_stream (is_xml, is_data, agpos[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -914,7 +921,7 @@ xml_read_from_stream (istream&        is,
     }
 
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -925,7 +932,8 @@ xml_read_from_stream (istream&        is,
   \param agpos ArrayOfGridPos
 */
 void
-xml_write_to_stream (ostream&              os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfGridPos& agpos)
 {
   ArtsXMLTag open_tag;
@@ -936,18 +944,18 @@ xml_write_to_stream (ostream&              os,
   open_tag.add_attribute ("type", "GridPos");
   open_tag.add_attribute ("nelem", agpos.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < agpos.nelem (); n++)
     {
-      xml_write_to_stream (os, agpos[n]);
+      xml_write_to_stream (os_xml, os_data, agpos[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 
@@ -962,13 +970,14 @@ xml_write_to_stream (ostream&              os,
   \param aindex ArrayOfIndex return value
 */
 void
-xml_read_from_stream (istream&      is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfIndex& aindex)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "Index");
 
@@ -980,7 +989,7 @@ xml_read_from_stream (istream&      is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, aindex[n]);
+          xml_read_from_stream (is_xml, is_data, aindex[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -991,7 +1000,7 @@ xml_read_from_stream (istream&      is,
     }
 
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -1002,7 +1011,8 @@ xml_read_from_stream (istream&      is,
   \param aindex ArrayOfIndex
 */
 void
-xml_write_to_stream (ostream&            os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfIndex& aindex)
 {
   ArtsXMLTag open_tag;
@@ -1013,18 +1023,18 @@ xml_write_to_stream (ostream&            os,
   open_tag.add_attribute ("type", "Index");
   open_tag.add_attribute ("nelem", aindex.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < aindex.nelem (); n++)
     {
-      xml_write_to_stream (os, aindex[n]);
+      xml_write_to_stream (os_xml, os_data, aindex[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 //=== ArrayOfMatrix ==========================================================
@@ -1038,13 +1048,14 @@ xml_write_to_stream (ostream&            os,
   \param amatrix ArrayOfMatrix return value
 */
 void
-xml_read_from_stream (istream&       is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfMatrix& amatrix)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "Matrix");
 
@@ -1056,7 +1067,7 @@ xml_read_from_stream (istream&       is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, amatrix[n]);
+          xml_read_from_stream (is_xml, is_data, amatrix[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1067,7 +1078,7 @@ xml_read_from_stream (istream&       is,
     }
 
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -1078,7 +1089,8 @@ xml_read_from_stream (istream&       is,
   \param amatrix ArrayOfMatrix
 */
 void
-xml_write_to_stream (ostream&             os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfMatrix& amatrix)
 {
   ArtsXMLTag open_tag;
@@ -1089,18 +1101,18 @@ xml_write_to_stream (ostream&             os,
   open_tag.add_attribute ("type", "Matrix");
   open_tag.add_attribute ("nelem", amatrix.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < amatrix.nelem (); n++)
     {
-      xml_write_to_stream (os, amatrix[n]);
+      xml_write_to_stream (os_xml, os_data, amatrix[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 
@@ -1115,13 +1127,14 @@ xml_write_to_stream (ostream&             os,
   \param astag ArrayOfSpeciesTag return value
 */
 void
-xml_read_from_stream (istream&           is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfSpeciesTag& astag)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "SpeciesTag");
 
@@ -1133,7 +1146,7 @@ xml_read_from_stream (istream&           is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, astag[n]);
+          xml_read_from_stream (is_xml, is_data, astag[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1143,7 +1156,7 @@ xml_read_from_stream (istream&           is,
       throw runtime_error(os.str());
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -1154,7 +1167,8 @@ xml_read_from_stream (istream&           is,
   \param astag ArrayOfSpeciesTag
 */
 void
-xml_write_to_stream (ostream&                 os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfSpeciesTag& astag)
 {
   ArtsXMLTag open_tag;
@@ -1165,18 +1179,18 @@ xml_write_to_stream (ostream&                 os,
   open_tag.add_attribute ("type", "SpeciesTag");
   open_tag.add_attribute ("nelem", astag.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < astag.nelem (); n++)
     {
-      xml_write_to_stream (os, astag[n]);
+      xml_write_to_stream (os_xml, os_data, astag[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 
@@ -1191,13 +1205,14 @@ xml_write_to_stream (ostream&                 os,
   \param atensor3 ArrayOfTensor3 return value
 */
 void
-xml_read_from_stream (istream&       is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfTensor3& atensor3)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "Tensor3");
 
@@ -1209,7 +1224,7 @@ xml_read_from_stream (istream&       is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, atensor3[n]);
+          xml_read_from_stream (is_xml, is_data, atensor3[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1220,7 +1235,7 @@ xml_read_from_stream (istream&       is,
     }
 
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -1231,7 +1246,8 @@ xml_read_from_stream (istream&       is,
   \param atensor3 ArrayOfTensor3
 */
 void
-xml_write_to_stream (ostream&             os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfTensor3& atensor3)
 {
   ArtsXMLTag open_tag;
@@ -1242,18 +1258,18 @@ xml_write_to_stream (ostream&             os,
   open_tag.add_attribute ("type", "Tensor3");
   open_tag.add_attribute ("nelem", atensor3.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < atensor3.nelem (); n++)
     {
-      xml_write_to_stream (os, atensor3[n]);
+      xml_write_to_stream (os_xml, os_data, atensor3[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 
@@ -1268,13 +1284,14 @@ xml_write_to_stream (ostream&             os,
   \param atensor6 ArrayOfTensor6 return value
 */
 void
-xml_read_from_stream (istream&       is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfTensor6& atensor6)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "Tensor6");
 
@@ -1286,7 +1303,7 @@ xml_read_from_stream (istream&       is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, atensor6[n]);
+          xml_read_from_stream (is_xml, is_data, atensor6[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1296,7 +1313,7 @@ xml_read_from_stream (istream&       is,
       throw runtime_error(os.str());
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -1307,7 +1324,8 @@ xml_read_from_stream (istream&       is,
   \param atensor6 ArrayOfTensor6
 */
 void
-xml_write_to_stream (ostream&             os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfTensor6& atensor6)
 {
   ArtsXMLTag open_tag;
@@ -1318,18 +1336,18 @@ xml_write_to_stream (ostream&             os,
   open_tag.add_attribute ("type", "Tensor6");
   open_tag.add_attribute ("nelem", atensor6.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < atensor6.nelem (); n++)
     {
-      xml_write_to_stream (os, atensor6[n]);
+      xml_write_to_stream (os_xml, os_data, atensor6[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 
@@ -1344,13 +1362,14 @@ xml_write_to_stream (ostream&             os,
   \param astring ArrayOfString return value
 */
 void
-xml_read_from_stream (istream&       is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfString& astring)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "String");
 
@@ -1362,7 +1381,7 @@ xml_read_from_stream (istream&       is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, astring[n]);
+          xml_read_from_stream (is_xml, is_data, astring[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1372,7 +1391,7 @@ xml_read_from_stream (istream&       is,
       throw runtime_error(os.str());
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -1383,7 +1402,8 @@ xml_read_from_stream (istream&       is,
   \param astring ArrayOfString
 */
 void
-xml_write_to_stream (ostream&             os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfString& astring)
 {
   ArtsXMLTag open_tag;
@@ -1394,18 +1414,18 @@ xml_write_to_stream (ostream&             os,
   open_tag.add_attribute ("type", "String");
   open_tag.add_attribute ("nelem", astring.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < astring.nelem (); n++)
     {
-      xml_write_to_stream (os, astring[n]);
+      xml_write_to_stream (os_xml, os_data, astring[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 //=== ArrayOfVector ==========================================================
@@ -1419,13 +1439,14 @@ xml_write_to_stream (ostream&             os,
   \param avector ArrayOfVector return value
 */
 void
-xml_read_from_stream (istream&       is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       ArrayOfVector& avector)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Array");
   tag.check_attribute ("type", "Vector");
 
@@ -1437,7 +1458,7 @@ xml_read_from_stream (istream&       is,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is, avector[n]);
+          xml_read_from_stream (is_xml, is_data, avector[n]);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1448,7 +1469,7 @@ xml_read_from_stream (istream&       is,
     }
 
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Array");
 }
 
@@ -1459,7 +1480,8 @@ xml_read_from_stream (istream&       is,
   \param amatrix ArrayOfVector
 */
 void
-xml_write_to_stream (ostream&             os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const ArrayOfVector& avector)
 {
   ArtsXMLTag open_tag;
@@ -1470,18 +1492,18 @@ xml_write_to_stream (ostream&             os,
   open_tag.add_attribute ("type", "Vector");
   open_tag.add_attribute ("nelem", avector.nelem ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   for (Index n = 0; n < avector.nelem (); n++)
     {
-      xml_write_to_stream (os, avector[n]);
+      xml_write_to_stream (os_xml, os_data, avector[n]);
     }
 
   close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 
@@ -1497,25 +1519,26 @@ xml_write_to_stream (ostream&             os,
   \param gal GasAbsLookup return value
 */
 void
-xml_read_from_stream (istream&      is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       GasAbsLookup& gal)
 {
   ArtsXMLTag tag;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("GasAbsLookup");
 
-  xml_read_from_stream (is, gal.species);
-  xml_read_from_stream (is, gal.nonlinear_species);
-  xml_read_from_stream (is, gal.f_grid);
-  xml_read_from_stream (is, gal.p_grid);
-  xml_read_from_stream (is, gal.vmrs_ref);
-  xml_read_from_stream (is, gal.t_ref);
-  xml_read_from_stream (is, gal.t_pert);
-  xml_read_from_stream (is, gal.nls_pert);
-  xml_read_from_stream (is, gal.abs);
+  xml_read_from_stream (is_xml, is_data, gal.species);
+  xml_read_from_stream (is_xml, is_data, gal.nonlinear_species);
+  xml_read_from_stream (is_xml, is_data, gal.f_grid);
+  xml_read_from_stream (is_xml, is_data, gal.p_grid);
+  xml_read_from_stream (is_xml, is_data, gal.vmrs_ref);
+  xml_read_from_stream (is_xml, is_data, gal.t_ref);
+  xml_read_from_stream (is_xml, is_data, gal.t_pert);
+  xml_read_from_stream (is_xml, is_data, gal.nls_pert);
+  xml_read_from_stream (is_xml, is_data, gal.abs);
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/GasAbsLookup");
 }
 
@@ -1526,28 +1549,29 @@ xml_read_from_stream (istream&      is,
   \param gas GasAbsLookup
 */
 void
-xml_write_to_stream (ostream&            os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const GasAbsLookup& gal)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("GasAbsLookup");
-  open_tag.write_to_stream (os);
+  open_tag.write_to_stream (os_xml);
 
-  xml_write_to_stream (os, gal.species);
-  xml_write_to_stream (os, gal.nonlinear_species);
-  xml_write_to_stream (os, gal.f_grid);
-  xml_write_to_stream (os, gal.p_grid);
-  xml_write_to_stream (os, gal.vmrs_ref);
-  xml_write_to_stream (os, gal.t_ref);
-  xml_write_to_stream (os, gal.t_pert);
-  xml_write_to_stream (os, gal.nls_pert);
-  xml_write_to_stream (os, gal.abs);
+  xml_write_to_stream (os_xml, os_data, gal.species);
+  xml_write_to_stream (os_xml, os_data, gal.nonlinear_species);
+  xml_write_to_stream (os_xml, os_data, gal.f_grid);
+  xml_write_to_stream (os_xml, os_data, gal.p_grid);
+  xml_write_to_stream (os_xml, os_data, gal.vmrs_ref);
+  xml_write_to_stream (os_xml, os_data, gal.t_ref);
+  xml_write_to_stream (os_xml, os_data, gal.t_pert);
+  xml_write_to_stream (os_xml, os_data, gal.nls_pert);
+  xml_write_to_stream (os_xml, os_data, gal.abs);
 
   close_tag.set_name ("/GasAbsLookup");
-  close_tag.write_to_stream (os);
-  os << '\n';
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 }
 
 
@@ -1562,19 +1586,20 @@ xml_write_to_stream (ostream&            os,
   \param gpos GridPos return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       GridPos& gpos)
 {
   ArtsXMLTag tag;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("GridPos");
 
-  xml_read_from_stream (is, gpos.idx);
-  xml_read_from_stream (is, gpos.fd[0]);
-  xml_read_from_stream (is, gpos.fd[1]);
+  xml_read_from_stream (is_xml, is_data, gpos.idx);
+  xml_read_from_stream (is_xml, is_data, gpos.fd[0]);
+  xml_read_from_stream (is_xml, is_data, gpos.fd[1]);
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/GridPos");
 }
 
@@ -1584,22 +1609,23 @@ xml_read_from_stream (istream& is,
   \param gpos  GridPos
 */
 void
-xml_write_to_stream (ostream&       os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const GridPos& gpos)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("GridPos");
-  open_tag.write_to_stream (os);
+  open_tag.write_to_stream (os_xml);
 
-  xml_write_to_stream (os, gpos.idx);
-  xml_write_to_stream (os, gpos.fd[0]);
-  xml_write_to_stream (os, gpos.fd[1]);
+  xml_write_to_stream (os_xml, os_data, gpos.idx);
+  xml_write_to_stream (os_xml, os_data, gpos.fd[0]);
+  xml_write_to_stream (os_xml, os_data, gpos.fd[1]);
 
   close_tag.set_name ("/GridPos");
-  close_tag.write_to_stream (os);
-  os << '\n';
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 }
 
 
@@ -1615,21 +1641,22 @@ xml_write_to_stream (ostream&       os,
   \param index Index return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Index&   index)
 {
   ArtsXMLTag tag;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Index");
   
-  is >> index;
-  if (is.fail ())
+  is_data >> index;
+  if (is_data.fail ())
     {
       xml_parse_error ("Error while reading data");
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Index");
 }
 
@@ -1640,7 +1667,8 @@ xml_read_from_stream (istream& is,
   \param index Index value
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Index& index)
 {
   ArtsXMLTag open_tag;
@@ -1648,13 +1676,13 @@ xml_write_to_stream (ostream&     os,
 
   open_tag.set_name ("Index");
 
-  open_tag.write_to_stream (os);
+  open_tag.write_to_stream (os_xml);
 
-  os << index;
+  os_data << index;
 
   close_tag.set_name ("/Index");
-  close_tag.write_to_stream (os);
-  os << '\n';
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 }
 
 //=== Matrix ==========================================================
@@ -1668,13 +1696,14 @@ xml_write_to_stream (ostream&     os,
   \param matrix Matrix return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Matrix& matrix)
 {
   ArtsXMLTag tag;
   Index nrows, ncols;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Matrix");
 
   tag.get_attribute_value ("nrows", nrows);
@@ -1685,8 +1714,8 @@ xml_read_from_stream (istream& is,
     {
       for (Index c = 0; c < ncols; c++)
         {
-          is >> matrix (r, c);
-          if (is.fail ())
+          is_data >> matrix (r, c);
+          if (is_data.fail ())
             {
               ostringstream os;
               os << "Error reading Matrix:"
@@ -1697,7 +1726,7 @@ xml_read_from_stream (istream& is,
         }
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Matrix");
 }
 
@@ -1708,7 +1737,8 @@ xml_read_from_stream (istream& is,
   \param matrix Matrix
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Matrix& matrix)
 {
   ArtsXMLTag open_tag;
@@ -1718,28 +1748,29 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("nrows", matrix.nrows ());
   open_tag.add_attribute ("ncols", matrix.ncols ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
-  xml_set_stream_precision (os);
+  xml_set_stream_precision (os_xml);
 
   // Write the elements:
   for (Index r = 0; r < matrix.nrows (); ++r)
     {
-      os << matrix (r,0);
+      os_data << matrix (r,0);
       
       for (Index c = 1; c < matrix.ncols (); ++c)
         {
-          os << " " << matrix (r,c);
+          os_data << " " << matrix (r,c);
         }
       
-      os << '\n';
+      if (os_xml == os_data)
+        os_data << '\n';
     }
 
   close_tag.set_name ("/Matrix");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 //=== Numeric =========================================================
@@ -1753,21 +1784,22 @@ xml_write_to_stream (ostream&     os,
   \param numeric Numeric return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Numeric& numeric)
 {
   ArtsXMLTag tag;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Numeric");
 
-  is >> numeric;
-  if (is.fail ())
+  is_data >> numeric;
+  if (is_data.fail ())
     {
       xml_parse_error ("Error while reading data");
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Numeric");
 }
 
@@ -1778,7 +1810,8 @@ xml_read_from_stream (istream& is,
   \param numeric Numeric value
 */
 void
-xml_write_to_stream (ostream&       os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Numeric& numeric)
 {
   ArtsXMLTag open_tag;
@@ -1786,15 +1819,15 @@ xml_write_to_stream (ostream&       os,
 
   open_tag.set_name ("Numeric");
 
-  open_tag.write_to_stream (os);
+  open_tag.write_to_stream (os_xml);
 
-  xml_set_stream_precision (os);
+  xml_set_stream_precision (os_xml);
 
-  os << numeric;
+  os_data << numeric;
 
   close_tag.set_name ("/Numeric");
-  close_tag.write_to_stream (os);
-  os << '\n';
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 }
 
 
@@ -1809,31 +1842,32 @@ xml_write_to_stream (ostream&       os,
   \param ppath Ppath return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Ppath& ppath)
 {
   ArtsXMLTag tag;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Ppath");
 
-  xml_read_from_stream (is, ppath.dim);
-  xml_read_from_stream (is, ppath.np);
-  xml_read_from_stream (is, ppath.refraction);
-  xml_read_from_stream (is, ppath.method);
-  xml_read_from_stream (is, ppath.constant);
-  xml_read_from_stream (is, ppath.pos);
-  xml_read_from_stream (is, ppath.z);
-  xml_read_from_stream (is, ppath.l_step);
-  xml_read_from_stream (is, ppath.gp_p);
-  xml_read_from_stream (is, ppath.gp_lat);
-  xml_read_from_stream (is, ppath.gp_lon);
-  xml_read_from_stream (is, ppath.los);
-  xml_read_from_stream (is, ppath.background);
-  xml_read_from_stream (is, ppath.tan_pos);
-  xml_read_from_stream (is, ppath.geom_tan_pos);
+  xml_read_from_stream (is_xml, is_data, ppath.dim);
+  xml_read_from_stream (is_xml, is_data, ppath.np);
+  xml_read_from_stream (is_xml, is_data, ppath.refraction);
+  xml_read_from_stream (is_xml, is_data, ppath.method);
+  xml_read_from_stream (is_xml, is_data, ppath.constant);
+  xml_read_from_stream (is_xml, is_data, ppath.pos);
+  xml_read_from_stream (is_xml, is_data, ppath.z);
+  xml_read_from_stream (is_xml, is_data, ppath.l_step);
+  xml_read_from_stream (is_xml, is_data, ppath.gp_p);
+  xml_read_from_stream (is_xml, is_data, ppath.gp_lat);
+  xml_read_from_stream (is_xml, is_data, ppath.gp_lon);
+  xml_read_from_stream (is_xml, is_data, ppath.los);
+  xml_read_from_stream (is_xml, is_data, ppath.background);
+  xml_read_from_stream (is_xml, is_data, ppath.tan_pos);
+  xml_read_from_stream (is_xml, is_data, ppath.geom_tan_pos);
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Ppath");
 }
 
@@ -1843,34 +1877,35 @@ xml_read_from_stream (istream& is,
   \param ppath Ppath
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Ppath& ppath)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Ppath");
-  open_tag.write_to_stream (os);
+  open_tag.write_to_stream (os_xml);
 
-  xml_write_to_stream (os, ppath.dim);
-  xml_write_to_stream (os, ppath.np);
-  xml_write_to_stream (os, ppath.refraction);
-  xml_write_to_stream (os, ppath.method);
-  xml_write_to_stream (os, ppath.constant);
-  xml_write_to_stream (os, ppath.pos);
-  xml_write_to_stream (os, ppath.z);
-  xml_write_to_stream (os, ppath.l_step);
-  xml_write_to_stream (os, ppath.gp_p);
-  xml_write_to_stream (os, ppath.gp_lat);
-  xml_write_to_stream (os, ppath.gp_lon);
-  xml_write_to_stream (os, ppath.los);
-  xml_write_to_stream (os, ppath.background);
-  xml_write_to_stream (os, ppath.tan_pos);
-  xml_write_to_stream (os, ppath.geom_tan_pos);
+  xml_write_to_stream (os_xml, os_data, ppath.dim);
+  xml_write_to_stream (os_xml, os_data, ppath.np);
+  xml_write_to_stream (os_xml, os_data, ppath.refraction);
+  xml_write_to_stream (os_xml, os_data, ppath.method);
+  xml_write_to_stream (os_xml, os_data, ppath.constant);
+  xml_write_to_stream (os_xml, os_data, ppath.pos);
+  xml_write_to_stream (os_xml, os_data, ppath.z);
+  xml_write_to_stream (os_xml, os_data, ppath.l_step);
+  xml_write_to_stream (os_xml, os_data, ppath.gp_p);
+  xml_write_to_stream (os_xml, os_data, ppath.gp_lat);
+  xml_write_to_stream (os_xml, os_data, ppath.gp_lon);
+  xml_write_to_stream (os_xml, os_data, ppath.los);
+  xml_write_to_stream (os_xml, os_data, ppath.background);
+  xml_write_to_stream (os_xml, os_data, ppath.tan_pos);
+  xml_write_to_stream (os_xml, os_data, ppath.geom_tan_pos);
 
   close_tag.set_name ("/Ppath");
-  close_tag.write_to_stream (os);
-  os << '\n';
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 }
 
 
@@ -1885,21 +1920,22 @@ xml_write_to_stream (ostream&     os,
   \param stag SpeciesTag return value
 */
 void
-xml_read_from_stream (istream&    is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       SpeciesTag& stag)
 {
   ArtsXMLTag tag;
   stringbuf  strbuf;
   char dummy;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("SpeciesTag");
 
   // Skip whitespaces
   bool string_starts_with_quotes = true;
   do
     {
-      is >> dummy;
+      is_data >> dummy;
       switch (dummy)
         {
       case ' ':
@@ -1911,7 +1947,7 @@ xml_read_from_stream (istream&    is,
       default:
         string_starts_with_quotes = false;
         }
-    } while (is.good () && dummy != '"' && string_starts_with_quotes);
+    } while (is_data.good () && dummy != '"' && string_starts_with_quotes);
 
   // Throw exception if first char after whitespaces is not a quote
   if (!string_starts_with_quotes)
@@ -1919,8 +1955,8 @@ xml_read_from_stream (istream&    is,
       xml_parse_error ("SpeciesTag must begin with \"");
     }
 
-  is.get (strbuf, '"');
-  if (is.fail ())
+  is_data.get (strbuf, '"');
+  if (is_data.fail ())
     {
       xml_parse_error ("SpeciesTag must end with \"");
     }
@@ -1928,9 +1964,9 @@ xml_read_from_stream (istream&    is,
   stag = SpeciesTag (strbuf.str ());
 
   // Ignore quote
-  is >> dummy;
+  is_data >> dummy;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/SpeciesTag");
 }
 
@@ -1941,20 +1977,21 @@ xml_read_from_stream (istream&    is,
   \param stag SpeciesTag
 */
 void
-xml_write_to_stream (ostream&          os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const SpeciesTag& stag)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("SpeciesTag");
-  open_tag.write_to_stream (os);
+  open_tag.write_to_stream (os_xml);
 
-  os << '\"' << stag.Name () << '\"';
+  os_data << '\"' << stag.Name () << '\"';
 
   close_tag.set_name ("/SpeciesTag");
-  close_tag.write_to_stream (os);
-  os << '\n';
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 }
 
 
@@ -1969,21 +2006,22 @@ xml_write_to_stream (ostream&          os,
   \param str String return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       String&  str)
 {
   ArtsXMLTag tag;
   stringbuf  strbuf;
   char dummy;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("String");
 
   // Skip whitespaces
   bool string_starts_with_quotes = true;
   do
     {
-      is >> dummy;
+      is_data >> dummy;
       switch (dummy)
         {
       case ' ':
@@ -1995,7 +2033,7 @@ xml_read_from_stream (istream& is,
       default:
         string_starts_with_quotes = false;
         }
-    } while (is.good () && dummy != '"' && string_starts_with_quotes);
+    } while (is_data.good () && dummy != '"' && string_starts_with_quotes);
 
   // Throw exception if first char after whitespaces is not a quote
   if (!string_starts_with_quotes)
@@ -2003,8 +2041,8 @@ xml_read_from_stream (istream& is,
       xml_parse_error ("String must begin with \"");
     }
 
-  is.get (strbuf, '"');
-  if (is.fail ())
+  is_data.get (strbuf, '"');
+  if (is_data.fail ())
     {
       xml_parse_error ("String must end with \"");
     }
@@ -2012,9 +2050,9 @@ xml_read_from_stream (istream& is,
   str = strbuf.str ();
 
   // Ignore quote
-  is >> dummy;
+  is_data >> dummy;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/String");
 }
 
@@ -2025,7 +2063,8 @@ xml_read_from_stream (istream& is,
   \param str String value
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const String& str)
 {
   ArtsXMLTag open_tag;
@@ -2033,13 +2072,13 @@ xml_write_to_stream (ostream&     os,
 
   open_tag.set_name ("String");
 
-  open_tag.write_to_stream (os);
+  open_tag.write_to_stream (os_xml);
 
-  os << '\"' << str << '\"';
+  os_data << '\"' << str << '\"';
 
   close_tag.set_name ("/String");
-  close_tag.write_to_stream (os);
-  os << '\n';
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 }
 
 
@@ -2054,13 +2093,14 @@ xml_write_to_stream (ostream&     os,
   \param tensor Tensor return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Tensor3& tensor)
 {
   ArtsXMLTag tag;
   Index npages, nrows, ncols;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Tensor3");
 
   tag.get_attribute_value ("npages", npages);
@@ -2074,8 +2114,8 @@ xml_read_from_stream (istream& is,
         {
           for (Index c = 0; c < ncols; c++)
             {
-              is >> tensor (p, r, c);
-              if (is.fail ())
+              is_data >> tensor (p, r, c);
+              if (is_data.fail ())
                 {
                   ostringstream os;
                   os << "Error reading Tensor3:"
@@ -2088,7 +2128,7 @@ xml_read_from_stream (istream& is,
         }
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Tensor3");
 }
 
@@ -2099,7 +2139,8 @@ xml_read_from_stream (istream& is,
   \param tensor Tensor
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Tensor3& tensor)
 {
   ArtsXMLTag open_tag;
@@ -2110,29 +2151,30 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("nrows", tensor.nrows ());
   open_tag.add_attribute ("ncols", tensor.ncols ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
-  xml_set_stream_precision (os);
+  xml_set_stream_precision (os_xml);
 
   // Write the elements:
   for (Index p = 0; p < tensor.npages (); ++p)
     {
       for (Index r = 0; r < tensor.nrows (); ++r)
         {
-          os << tensor (p, r, 0);
+          os_data << tensor (p, r, 0);
           for (Index c = 1; c < tensor.ncols (); ++c)
             {
-              os << " " << tensor (p, r, c);
+              os_data << " " << tensor (p, r, c);
             }
-          os << '\n';
+          if (os_xml == os_data)
+            os_data << '\n';
         }
     }
 
   close_tag.set_name ("/Tensor3");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 //=== Tensor4 =========================================================
@@ -2146,13 +2188,14 @@ xml_write_to_stream (ostream&     os,
   \param tensor Tensor return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Tensor4& tensor)
 {
   ArtsXMLTag tag;
   Index nbooks, npages, nrows, ncols;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Tensor4");
 
   tag.get_attribute_value ("nbooks", nbooks);
@@ -2169,8 +2212,8 @@ xml_read_from_stream (istream& is,
             {
               for (Index c = 0; c < ncols; c++)
                 {
-                  is >> tensor (b, p, r, c);
-                  if (is.fail ())
+                  is_data >> tensor (b, p, r, c);
+                  if (is_data.fail ())
                     {
                       ostringstream os;
                       os << "Error reading Tensor4:"
@@ -2185,7 +2228,7 @@ xml_read_from_stream (istream& is,
         }
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Tensor4");
 }
 
@@ -2196,7 +2239,8 @@ xml_read_from_stream (istream& is,
   \param tensor Tensor
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Tensor4& tensor)
 {
   ArtsXMLTag open_tag;
@@ -2208,10 +2252,10 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("nrows", tensor.nrows ());
   open_tag.add_attribute ("ncols", tensor.ncols ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
-  xml_set_stream_precision (os);
+  xml_set_stream_precision (os_xml);
 
   // Write the elements:
   for (Index b = 0; b < tensor.nbooks (); ++b)
@@ -2220,20 +2264,21 @@ xml_write_to_stream (ostream&     os,
         {
           for (Index r = 0; r < tensor.nrows (); ++r)
             {
-              os << tensor (b, p, r, 0);
+              os_data << tensor (b, p, r, 0);
               for (Index c = 1; c < tensor.ncols (); ++c)
                 {
-                  os << " " << tensor (b, p, r, c);
+                  os_data << " " << tensor (b, p, r, c);
                 }
-              os << '\n';
+              if (os_xml == os_data)
+                os_data << '\n';
             }
         }
     }
 
   close_tag.set_name ("/Tensor4");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 //=== Tensor5 =========================================================
@@ -2247,13 +2292,14 @@ xml_write_to_stream (ostream&     os,
   \param tensor Tensor return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Tensor5& tensor)
 {
   ArtsXMLTag tag;
   Index nshelves, nbooks, npages, nrows, ncols;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Tensor5");
 
   tag.get_attribute_value ("nshelves", nshelves);
@@ -2273,8 +2319,8 @@ xml_read_from_stream (istream& is,
                 {
                   for (Index c = 0; c < ncols; c++)
                     {
-                      is >> tensor (s, b, p, r, c);
-                      if (is.fail ())
+                      is_data >> tensor (s, b, p, r, c);
+                      if (is_data.fail ())
                         {
                           ostringstream os;
                           os << "Error reading Tensor5:"
@@ -2291,7 +2337,7 @@ xml_read_from_stream (istream& is,
         }
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Tensor5");
 }
 
@@ -2302,7 +2348,8 @@ xml_read_from_stream (istream& is,
   \param tensor Tensor
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Tensor5& tensor)
 {
   ArtsXMLTag open_tag;
@@ -2315,10 +2362,10 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("nrows", tensor.nrows ());
   open_tag.add_attribute ("ncols", tensor.ncols ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
-  xml_set_stream_precision (os);
+  xml_set_stream_precision (os_xml);
 
   // Write the elements:
   for (Index s = 0; s < tensor.nshelves (); ++s)
@@ -2329,21 +2376,22 @@ xml_write_to_stream (ostream&     os,
             {
               for (Index r = 0; r < tensor.nrows (); ++r)
                 {
-                  os << tensor (s, b, p, r, 0);
+                  os_data << tensor (s, b, p, r, 0);
                   for (Index c = 1; c < tensor.ncols (); ++c)
                     {
-                      os << " " << tensor (s, b, p, r, c);
+                      os_data << " " << tensor (s, b, p, r, c);
                     }
-                  os << '\n';
+                  if (os_xml == os_data)
+                    os_data << '\n';
                 }
             }
         }
     }
 
   close_tag.set_name ("/Tensor5");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 //=== Tensor6 =========================================================
@@ -2357,13 +2405,14 @@ xml_write_to_stream (ostream&     os,
   \param tensor Tensor return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Tensor6& tensor)
 {
   ArtsXMLTag tag;
   Index nvitrines, nshelves, nbooks, npages, nrows, ncols;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Tensor6");
 
   tag.get_attribute_value ("nvitrines", nvitrines);
@@ -2386,8 +2435,8 @@ xml_read_from_stream (istream& is,
                     {
                       for (Index c = 0; c < ncols; c++)
                         {
-                          is >> tensor (v, s, b, p, r, c);
-                          if (is.fail ())
+                          is_data >> tensor (v, s, b, p, r, c);
+                          if (is_data.fail ())
                             {
                               ostringstream os;
                               os << "Error reading Tensor6:"
@@ -2406,7 +2455,7 @@ xml_read_from_stream (istream& is,
         }
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Tensor6");
 }
 
@@ -2417,7 +2466,8 @@ xml_read_from_stream (istream& is,
   \param tensor Tensor
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Tensor6& tensor)
 {
   ArtsXMLTag open_tag;
@@ -2431,10 +2481,10 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("nrows", tensor.nrows ());
   open_tag.add_attribute ("ncols", tensor.ncols ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
-  xml_set_stream_precision (os);
+  xml_set_stream_precision (os_xml);
 
   // Write the elements:
   for (Index v = 0; v < tensor.nvitrines (); ++v)
@@ -2447,12 +2497,13 @@ xml_write_to_stream (ostream&     os,
                 {
                   for (Index r = 0; r < tensor.nrows (); ++r)
                     {
-                      os << tensor (v, s, b, p, r, 0);
+                      os_data << tensor (v, s, b, p, r, 0);
                       for (Index c = 1; c < tensor.ncols (); ++c)
                         {
-                          os << " " << tensor (v, s, b, p, r, c);
+                          os_data << " " << tensor (v, s, b, p, r, c);
                         }
-                      os << '\n';
+                      if (os_xml == os_data)
+                        os_data << '\n';
                     }
                 }
             }
@@ -2460,9 +2511,9 @@ xml_write_to_stream (ostream&     os,
     }
 
   close_tag.set_name ("/Tensor6");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 //=== Tensor7 =========================================================
@@ -2476,13 +2527,14 @@ xml_write_to_stream (ostream&     os,
   \param tensor Tensor return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Tensor7& tensor)
 {
   ArtsXMLTag tag;
   Index nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Tensor7");
 
   tag.get_attribute_value ("nlibraries", nlibraries);
@@ -2508,8 +2560,8 @@ xml_read_from_stream (istream& is,
                         {
                           for (Index c = 0; c < ncols; c++)
                             {
-                              is >> tensor (l, v, s, b, p, r, c);
-                              if (is.fail ())
+                              is_data >> tensor (l, v, s, b, p, r, c);
+                              if (is_data.fail ())
                                 {
                                   xml_parse_error ("Error while reading data");
                                 }
@@ -2521,7 +2573,7 @@ xml_read_from_stream (istream& is,
         }
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Tensor7");
 }
 
@@ -2532,7 +2584,8 @@ xml_read_from_stream (istream& is,
   \param tensor Tensor
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Tensor7& tensor)
 {
   ArtsXMLTag open_tag;
@@ -2547,10 +2600,10 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("nrows", tensor.nrows ());
   open_tag.add_attribute ("ncols", tensor.ncols ());
 
-  open_tag.write_to_stream (os);
-  os << '\n';
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
-  xml_set_stream_precision (os);
+  xml_set_stream_precision (os_xml);
 
   // Write the elements:
   for (Index l = 0; l < tensor.nlibraries (); ++l)
@@ -2565,12 +2618,13 @@ xml_write_to_stream (ostream&     os,
                     {
                       for (Index r = 0; r < tensor.nrows (); ++r)
                         {
-                          os << tensor (l, v, s, b, p, r, 0);
+                          os_data << tensor (l, v, s, b, p, r, 0);
                           for (Index c = 1; c < tensor.ncols (); ++c)
                             {
-                              os << " " << tensor (l, v, s, b, p, r, c);
+                              os_data << " " << tensor (l, v, s, b, p, r, c);
                             }
-                          os << '\n';
+                          if (os_xml == os_data)
+                            os_data << '\n';
                         }
                     }
                 }
@@ -2579,9 +2633,9 @@ xml_write_to_stream (ostream&     os,
     }
 
   close_tag.set_name ("/Tensor7");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 //=== Vector ==========================================================
@@ -2595,13 +2649,14 @@ xml_write_to_stream (ostream&     os,
   \param vector Vector return value
 */
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Vector& vector)
 {
   ArtsXMLTag tag;
   Index nelem;
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("Vector");
   
   tag.get_attribute_value ("nelem", nelem);
@@ -2609,8 +2664,8 @@ xml_read_from_stream (istream& is,
   
   for (Index n = 0; n < nelem; n++)
     {
-      is >> vector[n];
-      if (is.fail ())
+      is_data >> vector[n];
+      if (is_data.fail ())
         {
           ostringstream os;
           os << "Error reading Vector:"
@@ -2619,7 +2674,7 @@ xml_read_from_stream (istream& is,
         }
     }
 
-  tag.read_from_stream (is);
+  tag.read_from_stream (is_xml);
   tag.check_name ("/Vector");
 }
 
@@ -2630,7 +2685,8 @@ xml_read_from_stream (istream& is,
   \param vector Vector
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Vector& vector)
 {
   ArtsXMLTag open_tag;
@@ -2644,16 +2700,16 @@ xml_write_to_stream (ostream&     os,
   open_tag.set_name ("Vector");
   open_tag.add_attribute ("nelem", v.str ());
 
-  open_tag.write_to_stream (os);
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
-  os << '\n';
   for (Index i=0; i<n; ++i)
-    os << vector[i] << '\n';
+    os_data << vector[i] << '\n';
 
   close_tag.set_name ("/Vector");
-  close_tag.write_to_stream (os);
+  close_tag.write_to_stream (os_xml);
 
-  os << '\n';
+  os_xml << '\n';
 }
 
 
@@ -2665,14 +2721,16 @@ xml_write_to_stream (ostream&     os,
 // FIXME: These should be implemented, sooner or later...
 
 void
-xml_read_from_stream (istream& is,
+xml_read_from_stream (istream& is_xml,
+                      istream& is_data,
                       Agenda& agenda)
 {
   throw runtime_error("Method not implemented!");
 }
 
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream& os_xml,
+                     ostream& os_data,
                      const Agenda& agenda)
 {
   throw runtime_error("Method not implemented!");
