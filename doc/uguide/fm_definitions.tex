@@ -160,7 +160,7 @@ checked, when used, to have a size consistent with
   system is for this reason used when describing propagation paths,
   where the coordinate additional to the radius gives the angular
   distance inside the viewing plane between the sensor and the point
-  of interest (see further Section\ref{sec:ppath:Ppath}). This latter
+  of interest (see also Section~\ref{sec:ppath:Ppath}). This latter
   coordinate system coincides with the one used for 2D if the sensor
   position is set to be the zero point for the latitudes. A 1D
   atmosphere is shown in Figure~\ref{fig:fm_defs:1d}.
@@ -576,17 +576,18 @@ the centre of the antenna pattern is directed.
 \end{figure}           
  
 The \textindex{zenith angle}, \ZntAng, is simply the angle between the
-line-of-sight and the zenith direction
-(Figure~\ref{fig:fm_defs:los}). It should be mentioned that the
-zenith and nadir directions are here defined to be along the line
+line-of-sight and the zenith direction (Figure~\ref{fig:fm_defs:los}).
+The valid range for 1D and 3D cases is $[0,180\degree]$. In the case
+of 2D, zenith angles down to -180\degree are also allowed, where the
+distinction is that positive angles mean a viewing direction is
+towards higher latitudes, and vice versa. It should be mentioned that
+the zenith and nadir directions are here defined to be along the line
 passing the centre of the coordinate system and the point of concern
 (Section~\ref{sec:ppath:geoid}). A nadir observation,
 $\ZntAng=180\degree$, is thus a measurement towards the centre of the
 coordinate system. The maximum absolute value of a zenith angle is
 180\degree. For 1D and 3D, positive and negative zenith angles are
-treated identically, while for 2D a distinction is made. In the case
-of 2D, positive and negative zenith angles mean that the viewing
-direction is towards higher and lower latitudes, respectively.
+treated identically, while for 2D a distinction is made.
 
 The \textindex{azimuthal angle}, \AzmAng, is given with respect to the
 \textindex{meridian plane}, that is, the plane going through the north
