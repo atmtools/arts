@@ -610,10 +610,10 @@ void lines_per_tgWriteToFile(// WS Input:
 }
 
 
-void tag_groupsDefine(// WS Output:
-                      TagGroups& tag_groups,
-                      // Control Parameters:
-                      const ARRAYofstring& tags)
+void tgsDefine(// WS Output:
+	       TagGroups& tag_groups,
+	       // Control Parameters:
+	       const ARRAYofstring& tags)
 {
   tag_groups = TagGroups(tags.size());
 
@@ -1446,6 +1446,54 @@ void xsec_per_tgCalc(// WS Output:
 	      }
 	  }
     }
+}
+
+
+/** Reduces absorption coefficients.
+    \verbatim
+    Only absorption
+    coefficients for which weighting functions are
+    calculated are kept in memory.
+    \endverbatim */
+void abs_per_tgReduce(// WS Output:
+                      ARRAYofMATRIX&         abs_per_tg,
+                      // WS Input:
+                      const TagGroups&       tag_groups,
+                      const TagGroups&       wfs_tag_groups)
+{
+
+  // make a safety check that the dimensions of tag_groups and
+  // abs_per_tg are the same (could happen that we call this workspace
+  // method twice by accident)
+  if ( abs_per_tg.size()!=tag_groups.size() )
+    throw(runtime_error("The variables abs_per_tg and tag_groups must\n"
+			"have the same dimension."));
+
+  // index to the elements of wfs_tag_groups in tag_groups
+  size_t index;
+
+  // dimension of output abs_per_tg
+  ARRAYofMATRIX abs_per_tg_out( wfs_tag_groups.size() );
+
+  // make a copy of tag_groups, where we operate on
+  TagGroups copy_of_tag_groups( tag_groups.size() );
+  copy( tag_groups, copy_of_tag_groups );
+
+  // now copy the right elements in the right order and delete the
+  // copied matrix from abs_per_tg to save memory
+  for (size_t i=0; i<wfs_tag_groups.size(); i++)
+    {
+      get_tag_group_index_for_tag_group(index, copy_of_tag_groups, wfs_tag_groups[i] );
+
+      abs_per_tg_out[i] = abs_per_tg[ index ];
+
+      erase_vector_element( abs_per_tg, index );
+      erase_vector_element( copy_of_tag_groups, index );
+
+    }
+
+  // copy the generated matrix back to abs_per_tg
+  copy( abs_per_tg_out, abs_per_tg );
 }
 
 

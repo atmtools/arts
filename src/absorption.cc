@@ -1535,7 +1535,7 @@ void get_tagindex_for_strings(
 
   resize(tags1_index,n2);
   //  cout << "tags2_strings: " << tags2_strings << "\n";
-  tag_groupsDefine( tags2, tags2_strings );
+  tgsDefine( tags2, tags2_strings );
 
   for ( i2=0; i2<n2; i2++ )
   {
@@ -1567,6 +1567,66 @@ void get_tagindex_for_strings(
     }
   }
 }
+
+
+/**  Compares 2 tag group array and returns the index of elements in
+   array 2 within array 1. Slightly modified copy of
+   get_tagindex_for_strings.
+   
+   \begin{verbatim}
+   For example, if tags1 correspond to the definition
+     ["O3","H2O-161,H2O-162"]
+   and tags2 is
+     ["H2O-161,H2O-162","O3"]
+   the tags1_index becomes
+     [2,1]
+   \end{verbatim}
+
+   @exception runtime_error  Some string is not a valid tag item.
+   @exception runtime_error  Not all strings are not found among the tags.
+
+   \retval tags1_index     Index in tags1 for tags2_strings
+   \param  tags1           The tags to search in.
+   \param  tags2           The tags for which indeces shall be found.
+
+   \author Patrick Eriksson and Axel von Engeln
+   \date 2001-01-31 */
+void get_tag_group_index_for_tag_group( 
+				       size_t&               tags1_index, 
+				       const TagGroups&      tags1, 
+				       const ARRAY<OneTag>&  tags2 )
+{
+  const size_t   n1 = tags1.size();
+        size_t   i1, nj, j, found, ok;
+
+  found = 0;
+  for ( i1=0; (i1<n1) && !found; i1++ )
+  {
+    nj = tags2.size(); 
+    if ( nj  == tags1[i1].size() )
+    {
+      ok = 1;
+      for ( j=0; j<nj; j++ )
+      {
+        if ( tags2[j].Name() != tags1[i1][j].Name() )
+          ok = 0;
+      }
+      if ( ok )
+      {
+        found = 1;
+        tags1_index = i1;
+      }
+    }
+  }
+  if ( !found )
+  {
+    ostringstream os;
+    os << "The tag string \"" << tags2 << 
+          "\" does not match any of the given tags.\n";
+    throw runtime_error(os.str());
+  }
+}
+
 
 
 /** A helper function that writes lines in a line list to a stream. 

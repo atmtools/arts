@@ -75,6 +75,15 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ("wfs_tag_groups",
+      "This is an array of arrays of tag group definitions.\n"
+      "It defines the tag groups for the calculation of weighting\n"
+      "functions. The selected tag groups must be a subgroup of the\n"
+      "tag groups defined for the absorption coefficient calculation.", 
+      TagGroups_));
+
+  wsv_data.push_back
+    (WsvRecord
      ("lineshape",
       "Indices of lineshape functions. There is one entry for\n"
       "each abs_tag, not for each species. This means if you have several\n"

@@ -1,3 +1,18 @@
+2001-02-02  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-116
+
+	* tag_groupsDefine workspace method has now been changed to
+	tgsDefine
+
+	* wfs_tgsDefine workspace method introduced, this gives the
+	tag groups out of tgsDefine, for which weighting function shall
+	be calculated
+
+	* abs_per_tgReduce workspace method introduced, this reduces the
+	abs_per_tg variable to the size of the tag groups given in
+	wfs_tgsDefine. The order in wfs_tgsDefine does not has to be kept.
+
 2001-01-30  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-115

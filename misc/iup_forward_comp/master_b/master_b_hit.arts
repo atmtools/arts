@@ -40,7 +40,7 @@ linesWriteToFile{""}
 # The lines are assigned to the tag groups in the order as the groups
 # are specified here. That means the last group H2O gets assigned all
 # the H2O lines that do not fit in any other group.
-tag_groupsDefine{
+tgsDefine{
       ["H2O",
        "HCN",
        "CO",

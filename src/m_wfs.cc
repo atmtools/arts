@@ -1552,6 +1552,83 @@ void k_temp_nohydro (
 //   Workspace methods
 ////////////////////////////////////////////////////////////////////////////
 
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Axel von Engeln
+   \date   2000-01-31
+*/
+void wfs_tgsDefine(// WS Output:
+		   TagGroups& wfs_tag_groups,
+		   // Control Parameters:
+		   const ARRAYofstring& tags)
+{
+  wfs_tag_groups = TagGroups(tags.size());
+
+  // Each element of the array of strings tags defines one tag
+  // group. Let's work through them one by one.
+  for ( size_t i=0; i<tags.size(); ++i )
+    {
+      // There can be a comma separated list of tag definitions, so we
+      // need to break the string apart at the commas.
+      ARRAY<string> tag_def;
+
+      bool go_on = true;
+      string these_tags = tags[i];
+      while (go_on)
+	{
+	  size_t n = these_tags.find(',');
+	  if ( n >= these_tags.size() )
+	    {
+	      // There are no more commas.
+	      tag_def.push_back(these_tags);
+	      go_on = false;
+	    }
+	  else
+	    {
+	      tag_def.push_back(these_tags.substr(0,n));
+	      these_tags.erase(0,n+1);
+	    }
+	}
+
+      // Unfortunately, MTL conatains a bug that leads to all elements of
+      // the outer ARRAY of an ARRAY<ARRAY>> pointing to the same data
+      // after creation. So we need to fix this explicitly:
+      wfs_tag_groups[i] = ARRAY<OneTag>();
+
+      for ( size_t s=0; s<tag_def.size(); ++s )
+	{
+	  // Remove leading whitespace, if there is any:
+	  while ( ' '  == tag_def[s][0] ||
+		  '\t' == tag_def[s][0]    )	tag_def[s].erase(0,1);
+
+	  OneTag this_tag(tag_def[s]);
+
+	  // Safety check: For s>0 check that the tags belong to the same species.
+	  if (s>0)
+	    if ( wfs_tag_groups[i][0].Species() != this_tag.Species() )
+	      throw runtime_error("Tags in a tag group must belong to the same species.");
+
+	  wfs_tag_groups[i].push_back(this_tag);
+	}
+    }
+
+  // Print list of tag groups to the most verbose output stream:
+  out3 << "  Defined weighting function tag groups:";
+  for ( size_t i=0; i<wfs_tag_groups.size(); ++i )
+    {
+      out3 << "\n  " << i << ":";
+      for ( size_t s=0; s<wfs_tag_groups[i].size(); ++s )
+	{
+	  out3 << " " << wfs_tag_groups[i][s].Name();
+	}
+    }
+  out3 << '\n';
+}
+
+
+
 /**
    See the the online help (arts -d FUNCTION_NAME)
 

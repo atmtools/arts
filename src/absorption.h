@@ -901,6 +901,10 @@ void get_tagindex_for_strings(
         const TagGroups&      tags1, 
         const ARRAYofstring&  tags2_strings );
 
+void get_tag_group_index_for_tag_group( 
+              size_t&         tags1_index, 
+        const TagGroups&      tags1, 
+        const ARRAY<OneTag>&  tags2 );
 
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,

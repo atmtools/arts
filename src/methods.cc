@@ -1098,7 +1098,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("tag_groupsDefine"),
+      ( NAME("tgsDefine"),
   	DESCRIPTION(
           "Set up the list of tag groups.\n"
 	  "Specify one string for each tag group that you want to create.\n"
@@ -1331,6 +1331,21 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
   
+//=== methods operating on absorption ========================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("abs_per_tgReduce"),
+	DESCRIPTION("Reduces absorption coefficients. Only absorption\n"
+		    "coefficients for which weighting functions are\n"
+		    "calculated are kept in memory."),
+	OUTPUT(	    abs_per_tg_ ),
+	INPUT( 	    abs_per_tg_, tag_groups_, wfs_tag_groups_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
 
 
 //======================================================================
@@ -1555,6 +1570,22 @@ void define_md_data()
 //======================================================================
 //=== Weighting function (WF) methods
 //======================================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("wfs_tgsDefine"),
+  	DESCRIPTION(
+          "Set up the list of tag groups for which weighting functions will be.\n"
+	  "calculated. The specified strings must be a subgroup of the tgsDefine\n"
+	  "tag groups.\n"
+	  "Example:\n"
+	  "wfs_tgs = [\"O3-666-500e9-501e9, O3-686\",\"H2O\",\"O2-*-*-*\"]"),
+	OUTPUT( wfs_tag_groups_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "wfs_tgs" ),
+	TYPES(    ARRAY_string_t   )));
 
   md_data.push_back
     ( MdRecord
