@@ -1,0 +1,126 @@
+
+# How should the Controlfile of the future look like?
+
+Main {
+
+   # Components state what components of the atmosphere the model should
+   # consider. They do not exclusively belong to the abosorption part,
+   # since the RT part has to be aware of them in order to compute
+   # weigting functions. Gas and liquid/solid particles behave in very
+   # different ways, so they are treated separately.
+
+   # Per definition, a component is something that has a concentration
+   # field (profile in the 1D case) associated with it. Concentrations of
+   # gas_component are given as VMR [absolute number], concentrations of
+   # particle_component as number density [m^(-3)].
+
+   # There can be several instances of the same component, which are then
+   # distinguished by a number. The point is, that then different
+   # concentration fields will be associated with the different
+   # instances. This allows powerful retrieval options, since weighting
+   # functions calculation and retrieval can be carried out
+   # independently for each instance.
+
+   # In the case of gas components, a component is also something that
+   # has a list of spectral lines (from an exernal line catalouge)
+   # associated with it. An exception are WaterVapor and DryAir, which
+   # are special, because they have no explicit spectral lines
+   # associated with them.
+   gas_componentsDefine{
+      ["WaterVapor","DryAir","H2O","O3(1)","O3(2)","N2O"]
+   }
+
+   particle_componentsDefine{
+      ["Ice(1)","Liquid","Ice(2)"]
+   }
+
+   NumericSet(atmosphere_dim){1}
+
+   # FIXME: Somehow load the atmosphere and the concentration
+   # profiles. Should there be separate loading methods for the
+   # different dimensions?
+
+   # The next task is to somehow assign the right spectral lines to
+   # those gas_components for which explicit line-by-line calculations
+   # should be done. 
+	
+   # Set all line lists to empty
+   lines_per_componentInit{}
+
+   linesReadFromArts {
+      filename = "thomas.al"
+      fmin     = 1e9
+      fmax     = 200e9
+   }
+
+   lines_per_componentPut{
+      components = [ "H2O" ]
+      tag_groups = [ "H2O"    ]
+   }
+
+   linesReadFromHitran {
+      filename = "/pool/lookup2/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
+      fmin     = 1e9
+      fmax     = 200e9
+   }
+
+   lines_per_componentPut{
+      components = [ "O3(1)",  "O3(2)", "N2O"  ]
+      tag_groups = [ "O3-666", "O3",    "N2O"  ]
+   }
+
+   # There could be also 
+   #    lines_per_componentPutAll{}
+   # Which would just assign all lines to the species. 
+
+
+   # The purpose of gas_abs_tableCalc below is to calculate a lookup
+   # table of absorption coefficients for all gas components.
+
+   # The temperature perturbations for which the table should be
+   # calculated (in K).
+   VectorDefine(delta_t){[-10-5,0,5,10]}
+
+   # The water vapor perturbations for which the table should be
+   # calculated (as factors, .9 means 90% of the reference profile
+   # value).  
+   VectorDefine(delta_h2o){[.01,.1,0,10,100]}
+
+   # Inside the braces for this method you should define a method list
+   # that computes xsec_per_tg for given temperature and water vapor
+   # (and pressure and other concentrations). This is used repeatedly
+   # by gas_abs_tableCalc to calculate the table.
+   #
+   # Variables delta_t and delta_h2o specify the extent of the table
+   # in temperature and vater vapor mixing ratio.
+   gas_abs_tableCalc {
+
+      # Sets the table to 0.
+      gas_abs_tableInit{}
+
+      # Add explicit line spectra (using lines from external catalogues).
+
+      gas_abs_component{
+
+	 # Set the name of the component to calculate. Must correspond
+         # to one of the gas_components.
+         StringSet(this_component){"H2O(1)"}
+
+         
+
+
+      }
+      
+      gas_abs_component{
+      }
+
+      gas_abs_component{
+      }
+
+      gas_abs_component{
+      }
+   }
+
+   # And some RT Stuff here.
+
+}
