@@ -344,8 +344,7 @@ void sensorOff(
 
   sensor_responseInit( sensor_response, sensor_response_f, sensor_response_za,
     sensor_response_aa, sensor_response_pol, f_grid, mblock_za_grid,
-    mblock_aa_grid, antenna_dim, sensor_pol, atmosphere_dim, stokes_dim,
-    sensor_los, 0 );
+    mblock_aa_grid, antenna_dim, sensor_pol, atmosphere_dim, stokes_dim, 0 );
 }
 
 
@@ -366,7 +365,6 @@ void sensor_responseAntenna1D(
        const Vector&                mblock_za_grid,
        const Index&                 antenna_dim,
        const ArrayOfArrayOfMatrix&  diag,
-       const Matrix&                sensor_los,
        const Index&                 sensor_norm,
        // WS Generic Input:
        const Vector&                antenna_za,
@@ -432,10 +430,9 @@ void sensor_responseAntenna1D(
       error_found = true;
     }
     // Check each Matrix in diag[i], it should contain either on column
-    // or one per frequency.
-    // NOTE: We also check the difference between the antenna diagram
-    // zenith angle grid and mblock_za_grid. This is to make sure that
-    // the antenna diagram is covered for each sensor_los.
+    // or one per frequency. Also check the difference between the antenna
+    // diagram zenith angle grid and mblock_za_grid. This is to make sure
+    // that the antenna diagram is covered.
     for (Index j=0; j<diag[i].nelem(); j++) {
       if ((diag[i])[j].ncols()!=2 &&
           (diag[i])[j].ncols()!=sensor_response_f.nelem()+1) {
@@ -482,15 +479,10 @@ void sensor_responseAntenna1D(
 
   // Create the response matrix for the antenna, this matrix will later be
   // multiplied with the original sensor_response matrix.
-  // NOTE: Here we use the sensor_response_za vector to get the antenna
-  // response for all pencil beams. The output is the result of addind
-  // antenna_za to sensor_los.
-  Vector za_grid;
-  merge_grids( za_grid, sensor_los(joker,0), antenna_za );
-  Index nout = sensor_response_f.nelem()*sensor_response_pol*za_grid.nelem();
+  Index nout = sensor_response_f.nelem()*sensor_response_pol*antenna_za.nelem();
   Sparse antenna_response( nout, n);
   antenna_transfer_matrix(antenna_response, sensor_response_za, diag,
-    sensor_response_f, za_grid, sensor_response_pol, sensor_norm);
+    sensor_response_f, antenna_za, sensor_response_pol, sensor_norm);
 
   // It's forbidden to have same matrix as input twice to mult and we
   // want to multiply antenna_response with sensor_response and store the
@@ -505,7 +497,7 @@ void sensor_responseAntenna1D(
        << "x" << sensor_response.ncols() << "\n";
 
   // Update some descriptive variables
-  sensor_response_za = za_grid;
+  sensor_response_za = antenna_za;
   out3 << "  *sensor_response_za* set to *sensor_los* with *"
        << antenna_za_name << "* added to it.\n";
 }
@@ -644,7 +636,6 @@ void sensor_responseInit(// WS Output:
                          const Matrix&      sensor_pol,
                          const Index&       atmosphere_dim,
                          const Index&       stokes_dim,
-                         const Matrix&      sensor_los,
                          const Index&       sensor_norm )
 {
   // Check input
@@ -677,18 +668,14 @@ void sensor_responseInit(// WS Output:
       "The normalisation flag, *sensor_norm*, has to be either 0 or 1." );
 
   // Set description variables
-  sensor_response_f.resize( f_grid.nelem() );
   sensor_response_f = f_grid;
-  merge_grids( sensor_response_za, sensor_los(joker,0), mblock_za_grid );
+  sensor_response_za = mblock_za_grid;
+  sensor_response_aa = mblock_aa_grid;
   sensor_response_pol = stokes_dim;
   Index n = sensor_response_f.nelem()*sensor_response_za.nelem()
             *sensor_response_pol;
-  if ( antenna_dim == 2) {
-    merge_grids( sensor_response_aa, sensor_los(joker,1), mblock_aa_grid );
+  if ( antenna_dim == 2)
     n *= sensor_response_aa.nelem();
-  } else {
-    sensor_response_aa.resize(0);
-  }
 
   out2 << "  Initialising *sensor_reponse* as a identity matrix.\n";
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()

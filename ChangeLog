@@ -1,5 +1,16 @@
 2004-06-04  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
+	* arts-1-1-829
+
+	* src/[m_sensor,methods].cc: Removed sensor_los as input variable
+	for sensor_responseAntenna1D and sensor_responseInit.
+	The reason I added them was a miss-understanding. The sensor_response
+	should only be calculated once per mblock.
+
+	* src/sensor.[cc,h]: Commented out merge_grids, since it is not used.
+
+2004-06-04  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
 	* arts-1-1-828
 
 	* src/workspace.cc: Added WSV sensor_norm which sets whether sensor

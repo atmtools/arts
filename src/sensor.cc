@@ -209,7 +209,7 @@ void antenna_transfer_matrix( Sparse&   H,
 
    \author Mattias Ekström
    \date   2004-05-28
-*/
+* /
 void merge_grids(
               Vector&   tot,
       ConstVectorView   ref,
@@ -237,6 +237,7 @@ void merge_grids(
     e++;
   }
 }
+*/
 
 //! mixer_transfer_matrix
 /*!

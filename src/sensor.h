@@ -59,10 +59,12 @@ void antenna_transfer_matrix(
                  const Index&   n_pol,
                  const Index&   do_norm );
 
+/*
 void merge_grids(
               Vector&   tot,
       ConstVectorView   ref,
       ConstVectorView   rel );
+*/
 
 void mixer_transfer_matrix(
               Sparse&   H,
