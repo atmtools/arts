@@ -342,24 +342,16 @@ void ppathCalc(
     {
       chk_vector_length( "a_los", a_los, 1 );
       chk_if_in_range( "sensor zenith angle", a_los[0], -180, 180 );
+      if( cloudbox_on )
+	{ throw runtime_error( "The cloud box is not defined for 2D." ); }
     }
   else
     {
       chk_if_in_range( "sensor latitude", a_pos[1], -90, 90 );
-      chk_if_in_range( "sensor longitude", a_pos[2], -180, 180 );
+      chk_if_in_range( "sensor longitude", a_pos[2], -360, 360 );
       chk_vector_length( "a_los", a_los, 2 );
       chk_if_in_range( "sensor zenith angle", a_los[0], 0, 180 );
       chk_if_in_range( "sensor azimuth angle", a_los[1], -180, 180 );
-      if( a_pos[2] == -180  &&  a_los[1] < 0 )
-	{
-	  throw runtime_error( 
-                            "For lon = -180, the azimuth angle must be >= 0" );
-	}
-      if( a_pos[2] == 180  &&  a_los[1] >= 0 )
-	{
-	  throw runtime_error( 
-                            "For lon = 180, the azimuth angle must be < 0" );
-	}
     }
   
   //--- End: Check input ------------------------------------------------------
@@ -474,13 +466,13 @@ void ppathCalc(
             }
 
 	  // Longitude 
-	  // Note that it must be if and else if here. Otherwise -180 will
-	  // be shifted to 180 and then later back to -180.
+	  // Note that it must be if and else if here. Otherwise e.g. -180 
+	  // will be shifted to 180 and then later back to -180.
 	  if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 )  &&
-	                                    abs( ppath_step.pos(n-1,1) ) < 90 )
+	     ppath_step.los(n-1,1) < 0  &&  abs( ppath_step.pos(n-1,1) ) < 90 )
 	    {
 	      // Check if the longitude point can be shifted +360 degrees
-	      if( lon_grid[imax_lon] - lon_grid[0] == 360 )
+	      if( lon_grid[imax_lon] - lon_grid[0] >= 360 )
 		{
 		  ppath_step.pos(n-1,2) = ppath_step.pos(n-1,2) + 360;
 		  gridpos( ppath_step.gp_lon[n-1], lon_grid, 
@@ -491,15 +483,15 @@ void ppathCalc(
 		  ostringstream os;
 		  os << "The path exits the atmosphere through the lower " 
 		     << "longitude end face.\nThe exit point is at an "
-		     << " altitude of " << ppath_step.z[n-1]/1e3 << " km.";
+		     << "altitude of " << ppath_step.z[n-1]/1e3 << " km.";
 		  throw runtime_error( os.str() );
 		}
 	    }
 	  else if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ) &&
-	                                    abs( ppath_step.pos(n-1,1) ) < 90 )
+	     ppath_step.los(n-1,1) > 0  &&  abs( ppath_step.pos(n-1,1) ) < 90 )
 	    {
 	      // Check if the longitude point can be shifted -360 degrees
-	      if( lon_grid[imax_lon] - lon_grid[0] == 360 )
+	      if( lon_grid[imax_lon] - lon_grid[0] >= 360 )
 		{
 		  ppath_step.pos(n-1,2) = ppath_step.pos(n-1,2) - 360;
 		  gridpos( ppath_step.gp_lon[n-1], lon_grid, 
@@ -534,16 +526,11 @@ void ppathCalc(
                   if( ipos >= Numeric( cloudbox_limits[2] )  && 
                                         ipos <= Numeric( cloudbox_limits[3] ) )
                     {
-                      if( atmosphere_dim == 2 )
-                        { ppath_set_background( ppath_step, 3 ); }
-                      else
-                        {
-                          ipos = Numeric( ppath_step.gp_lon[n-1].idx ) + 
+		      ipos = Numeric( ppath_step.gp_lon[n-1].idx ) + 
                                                   ppath_step.gp_lon[n-1].fd[0];
-                          if( ipos >= Numeric( cloudbox_limits[4] )  && 
+		      if( ipos >= Numeric( cloudbox_limits[4] )  && 
                                         ipos <= Numeric( cloudbox_limits[5] ) )
-                            { ppath_set_background( ppath_step, 3 ); } 
-                        }
+			{ ppath_set_background( ppath_step, 3 ); } 
                     }
                 }
             }

@@ -472,7 +472,7 @@ void sph2cart(
 {
   assert( r > 0 );
   assert( abs( lat ) <= 90 );
-  assert( abs( lon ) <= 180 );
+  assert( abs( lon ) <= 360 );
 
   const Numeric latrad = DEG2RAD * lat;
   const Numeric lonrad = DEG2RAD * lon;
@@ -553,7 +553,7 @@ void poslos2cart(
   // lat=+-90 
   // For lat = +- 90 the azimuth angle gives the longitude along which the
   // LOS goes
-  if( abs( lat ) > 89.999999 )
+  if( abs( lat ) == 90 )
     {
       const Numeric   s = sign( lat );
 
@@ -656,7 +656,7 @@ void cart2poslos(
   if( za < 1e-6  ||  za > 179.999999  )
     { aa = 0; }
 
-  else if( abs( lat ) < 89.999999 )
+  else if( abs( lat ) < 90 )
     {
       aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
 
@@ -675,6 +675,51 @@ void cart2poslos(
   // LOS goes
   else
     { aa = RAD2DEG * atan2( dz, dx ); }
+}
+
+
+
+//! resolve_lon
+/*! 
+   Resolves which longitude angle that shall be used.
+
+   Longitudes are allowed to vary between -360 and 360 degress, while the
+   inverse trigonomtric functions returns values between -180 and 180.
+   This function determines if the longitude shall be shifted -360 or
+   +360 to fit the longitudes set by the user.
+   
+   The argument *lon* as input is a value calculated by some inverse
+   trigonometric function. The arguments *lon5* and *lon6* are the
+   lower and upper limit for the probable range for *lon*. The longitude
+   *lon* will be shifted with -360 or +360 degrees if such a shift better
+   fit *lon5* and *lon6*. No error is given if it is not possible to
+   obtain a value between *lon5* and *lon6*. 
+
+   \param   lon    In/Out: Longitude, possible shifted when returned.
+   \param   lon5   Lower limit of probable range for lon.
+   \param   lon6   Upper limit of probable range for lon
+
+   \author Patrick Eriksson
+   \date   2003-01-05
+*/
+void resolve_lon(
+              Numeric&   lon,
+        const Numeric&   lon5,
+	const Numeric&   lon6 )
+{
+  assert( lon6 >= lon5 );
+  assert( ( lon6 - lon5 ) < 360 );
+
+  if( lon < lon5  || lon > lon6 )
+    {
+      const Numeric   meanlon = ( lon5 + lon6 ) / 2;
+      const Numeric   diff0   = abs( meanlon - lon );
+
+      if( abs( lon + 360 - meanlon ) < diff0 )
+	{ lon += 360; }
+      else if( abs( lon - 360 - meanlon ) < diff0 )
+	{ lon -= 360; }
+    }
 }
 
 
@@ -1872,7 +1917,8 @@ void do_gridcell_3d(
   poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
                                                           za_start, aa_start );
 
-  // Check possible crossing with faces in number order
+  // Check possible crossing with faces in number order, buth where zenith 
+  // and nadir looking are treated seperately.
   // The crossing with the lowest distance *l* is what we want.
   // See the 2D function for comments on the different cases.
   //
@@ -1883,7 +1929,7 @@ void do_gridcell_3d(
   Numeric   rlow_try, rhigh_try;
 
   // Local debug option
-  bool   debug = true;
+  const bool   debug = false;
   //
   if( debug )
     {
@@ -1895,36 +1941,79 @@ void do_gridcell_3d(
       NumericPrint( rupp, "rupp" );
     }
 
-  // As the longitude is undefined at the poles and as the azimuth angle
-  // is defined in other way at the poles, some extra checks are needed
-  // in the if-statements below.
 
-  //--- Face 1: along lat1
-  //
-  if( ( abs( aa_start ) > 90  ||  lat_start == 90 )  &&  lat_start != -90 )
+  // Zenith looking
+  if( za_start == 0 )
     {
-      gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
-                                                x, y, z, dx, dy, dz, 2, lat1 );
+      r_best   = rupp;
+      lat_best = lat_start;
+      lon_best = lon_start;
+      l_best   = rupp - r_start;
+      endface  = 4;
       if( debug )
 	{
-	  IndexPrint( 1, "face" );
+	  IndexPrint( 4, "face" );
 	  NumericPrint( r_try, "r_try" );
-	  if( r_try > 0 )
-	    {
-	      NumericPrint( lat_try, "lat_try" );
-	      NumericPrint( lon_try, "lon_try" );
-	      NumericPrint( l_try, "l_try" );
-	    }
+	  NumericPrint( lat_try, "lat_try" );
+	  NumericPrint( lon_try, "lon_try" );
+	  NumericPrint( l_try, "l_try" );
 	}
-      if( r_try > 0  &&  l_try < l_best  &&  ( lat1 == -90  ||
-				   ( lon_try >= lon5  &&  lon_try <= lon6 ) ) )
-	{
-	  rlow_try  = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                        r1a, r2a, r2b, r2a, lat_try, lon_try );
-	  rhigh_try = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                        r4a, r3a, r3b, r4a, lat_try, lon_try );
+    }
 
-	  if( r_try >= rlow_try  &&  r_try <= rhigh_try )
+  // Nadir looking
+  else if( za_start == 180 )
+    {
+      const Numeric   rground = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+	    rground1a, rground2a, rground2b, rground1b, lat_start, lon_start );
+      
+      if( rlow > rground )
+	{
+	  r_best  = rlow;
+	  endface = 2;
+	}
+      else
+	{
+	  r_best  = rground;
+	  endface = 7;
+	}
+      lat_best = lat_start;
+      lon_best = lon_start;
+      l_best   = r_best - r_start;
+      if( debug )
+	{
+	  IndexPrint( 4, "face" );
+	  NumericPrint( r_try, "r_try" );
+	  NumericPrint( lat_try, "lat_try" );
+	  NumericPrint( lon_try, "lon_try" );
+	  NumericPrint( l_try, "l_try" );
+	}
+    }
+
+  // Check faces in number order
+  else
+    {
+      // As the longitude is undefined at the poles and as the azimuth angle
+      // is defined in other way at the poles, some extra checks are needed
+      // in the if-statements below.
+
+      //--- Face 1: along lat1
+      //
+      if( ( abs( aa_start ) > 90  ||  lat_start == 90 )  &&  lat_start != -90 )
+	{
+	  gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
+				                x, y, z, dx, dy, dz, 2, lat1 );
+	  if( debug )
+	    {
+	      IndexPrint( 1, "face" );
+	      NumericPrint( r_try, "r_try" );
+	      if( r_try > 0 )
+		{
+		  NumericPrint( lat_try, "lat_try" );
+		  NumericPrint( lon_try, "lon_try" );
+		  NumericPrint( l_try, "l_try" );
+		}
+	    }
+	  if( r_try > 0  &&  l_try < l_best )
 	    {
 	      r_best   = r_try;
 	      lat_best = lat_try;
@@ -1933,64 +2022,54 @@ void do_gridcell_3d(
 	      endface  = 1;
 	    }
 	}
-    }
 
 
-  //--- Face 2: lower pressure surface
-  //
-  if( r_start > rlow  &&  za_start > 0 )
-    {
-      psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
+      //--- Face 2: lower pressure surface
+      //
+      if( r_start > rlow )
+	{
+	  psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
              lat1, lat3, lon5, lon6, r1a, r2a, r2b, r1b, x, y, z, dx, dy, dz );
-      if( debug )
-	{
-	  IndexPrint( 2, "face" );
-	  NumericPrint( r_try, "r_try" );
-	  if( r_try > 0 )
+	  if( debug )
 	    {
-	      NumericPrint( lat_try, "lat_try" );
-	      NumericPrint( lon_try, "lon_try" );
-	      NumericPrint( l_try, "l_try" );
+	      IndexPrint( 2, "face" );
+	      NumericPrint( r_try, "r_try" );
+	      if( r_try > 0 )
+		{
+		  NumericPrint( lat_try, "lat_try" );
+		  NumericPrint( lon_try, "lon_try" );
+		  NumericPrint( l_try, "l_try" );
+		}
+	    }
+	  if( r_try > 0  &&  l_try < l_best )
+	    {
+	      r_best   = r_try;
+	      lat_best = lat_try;
+	      lon_best = lon_try;
+	      l_best   = l_try;
+	      endface  = 2;
 	    }
 	}
-      if( r_try > 0  &&  l_try < l_best  &&  lat_try >= lat1  &&  
-                    lat_try <= lat3  &&  lon_try >= lon5  &&  lon_try <= lon6 )
+
+
+      //--- Face 3: along lat3
+      //
+      if( ( abs( aa_start ) < 90  ||  lat_start == -90 )  && lat_start != 90 )
 	{
-	  r_best   = r_try;
-	  lat_best = lat_try;
-	  lon_best = lon_try;
-	  l_best   = l_try;
-	  endface  = 2;
-	}
-    }
-
-
-  //--- Face 3: along lat3
-  //
-  if( ( abs( aa_start ) < 90  ||  lat_start == -90 )  && lat_start != 90 )
-    {
-      gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
+	  gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 2, lat3 );
-      if( debug )
-	{
-	  IndexPrint( 3, "face" );
-	  NumericPrint( r_try, "r_try" );
-	  if( r_try > 0 )
+	  if( debug )
 	    {
-	      NumericPrint( lat_try, "lat_try" );
-	      NumericPrint( lon_try, "lon_try" );
-	      NumericPrint( l_try, "l_try" );
+	      IndexPrint( 3, "face" );
+	      NumericPrint( r_try, "r_try" );
+	      if( r_try > 0 )
+		{
+		  NumericPrint( lat_try, "lat_try" );
+		  NumericPrint( lon_try, "lon_try" );
+		  NumericPrint( l_try, "l_try" );
+		}
 	    }
-	}
-      if( r_try > 0  &&  l_try < l_best  &&  ( lat3 == 90  ||  
-				    (lon_try >= lon5  &&  lon_try <= lon6 ) ) )
-	{
-	  rlow_try  = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                        r1a, r2a, r2b, r2a, lat_try, lon_try );
-	  rhigh_try = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                        r4a, r3a, r3b, r4a, lat_try, lon_try );
-
-	  if( r_try >= rlow_try  &&  r_try <= rhigh_try )
+	  if( r_try > 0  &&  l_try < l_best )
 	    {
 	      r_best   = r_try;
 	      lat_best = lat_try;
@@ -1999,64 +2078,54 @@ void do_gridcell_3d(
 	      endface  = 3;
 	    }
 	}
-    }
 
 
-  //--- Face 4: upper pressure surface
-  //
-  if( r_start < rupp  &&  za_start < 180 )
-    {
-      psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
-             lat1, lat3, lon5, lon6, r4a, r3a, r3b, r4b, x, y, z, dx, dy, dz );
-      if( debug )
+      //--- Face 4: upper pressure surface
+      //
+      if( r_start < rupp )
 	{
-	  IndexPrint( 4, "face" );
-	  NumericPrint( r_try, "r_try" );
-	  if( r_try > 0 )
+	  psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
+	     lat1, lat3, lon5, lon6, r4a, r3a, r3b, r4b, x, y, z, dx, dy, dz );
+	  if( debug )
 	    {
-	      NumericPrint( lat_try, "lat_try" );
-	      NumericPrint( lon_try, "lon_try" );
-	      NumericPrint( l_try, "l_try" );
+	      IndexPrint( 4, "face" );
+	      NumericPrint( r_try, "r_try" );
+	      if( r_try > 0 )
+		{
+		  NumericPrint( lat_try, "lat_try" );
+		  NumericPrint( lon_try, "lon_try" );
+		  NumericPrint( l_try, "l_try" );
+		}
+	    }
+	  if( r_try > 0  &&  l_try < l_best )
+	    {
+	      r_best   = r_try;
+	      lat_best = lat_try;
+	      lon_best = lon_try;
+	      l_best   = l_try;
+	      endface  = 4;
 	    }
 	}
-      if( r_try > 0  &&  l_try < l_best  &&  lat_try >= lat1  &&  
-                    lat_try <= lat3  &&  lon_try >= lon5  &&  lon_try <= lon6 )
+      
+
+      //--- Face 5: along lon5
+      //
+      if( aa_start < 0 )
 	{
-	  r_best   = r_try;
-	  lat_best = lat_try;
-	  lon_best = lon_try;
-	  l_best   = l_try;
-	  endface  = 4;
-	}
-    }
-
-
-  //--- Face 5: along lon5
-  //
-  if( aa_start < 0 )
-    {
-      gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
+	  gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 3, lon5 );
-      if( debug )
-	{
-	  IndexPrint( 5, "face" );
-	  NumericPrint( r_try, "r_try" );
-	  if( r_try > 0 )
+	  if( debug )
 	    {
-	      NumericPrint( lat_try, "lat_try" );
-	      NumericPrint( lon_try, "lon_try" );
-	      NumericPrint( l_try, "l_try" );
+	      IndexPrint( 5, "face" );
+	      NumericPrint( r_try, "r_try" );
+	      if( r_try > 0 )
+		{
+		  NumericPrint( lat_try, "lat_try" );
+		  NumericPrint( lon_try, "lon_try" );
+		  NumericPrint( l_try, "l_try" );
+		}
 	    }
-	}
-      if( r_try > 0  &&  l_try < l_best  &&  lat_try >= lat1  &&  
-                                                              lat_try <= lat3 )
-	{
-	  rlow_try  = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                        r1a, r2a, r2b, r2a, lat_try, lon_try );
-	  rhigh_try = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                        r4a, r3a, r3b, r4a, lat_try, lon_try );
-
-	  if( r_try >= rlow_try  &&  r_try <= rhigh_try )
+	  if( r_try > 0  &&  l_try < l_best )
 	    {
 	      r_best   = r_try;
 	      lat_best = lat_try;
@@ -2065,35 +2134,26 @@ void do_gridcell_3d(
 	      endface  = 5;
 	    }
 	}
-    }
+      
 
-
-  //--- Face 6: along lon6
-  //
-  if( aa_start > 0 )
-    {
-      gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
-                                                x, y, z, dx, dy, dz, 3, lon6 );
-      if( debug )
+      //--- Face 6: along lon6
+      //
+      if( aa_start > 0 )
 	{
-	  IndexPrint( 6, "face" );
-	  NumericPrint( r_try, "r_try" );
-	  if( r_try > 0 )
+	  gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
+				                x, y, z, dx, dy, dz, 3, lon6 );
+	  if( debug )
 	    {
-	      NumericPrint( lat_try, "lat_try" );
-	      NumericPrint( lon_try, "lon_try" );
-	      NumericPrint( l_try, "l_try" );
+	      IndexPrint( 6, "face" );
+	      NumericPrint( r_try, "r_try" );
+	      if( r_try > 0 )
+		{
+		  NumericPrint( lat_try, "lat_try" );
+		  NumericPrint( lon_try, "lon_try" );
+		  NumericPrint( l_try, "l_try" );
+		}
 	    }
-	}
-      if( r_try > 0  &&  l_try < l_best  &&  lat_try >= lat1  &&  
-                                                              lat_try <= lat3 )
-	{
-	  rlow_try  = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                        r1a, r2a, r2b, r2a, lat_try, lon_try );
-	  rhigh_try = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                        r4a, r3a, r3b, r4a, lat_try, lon_try );
-
-	  if( r_try >= rlow_try  &&  r_try <= rhigh_try )
+	  if( r_try > 0  &&  l_try < l_best )
 	    {
 	      r_best   = r_try;
 	      lat_best = lat_try;
@@ -2102,66 +2162,65 @@ void do_gridcell_3d(
 	      endface  = 6;
 	    }
 	}
-    }
+      
 
-
-  //--- Face 7: the ground
-  //
-  // Note "l_try <= l_best", whick means that the ground will be picked
-  // if lower pressure surface and the ground are at the same radius.
-  //
-  if( za_start > 0  &&  ( rground1a >= r1a  ||  rground2a >= r2a  ||  
-                                     rground1b >= r1b  ||  rground2b >= r2b ) )
-    {
-      psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, lon5, 
-       lon6, rground1a, rground2a, rground2b, rground1b, x, y, z, dx, dy, dz );
-
-      if( debug )
+      //--- Face 7: the ground
+      //
+      // Note "l_try <= l_best", whick means that the ground will be picked
+      // if lower pressure surface and the ground are at the same radius.
+      //
+      if( za_start > 0  &&  ( rground1a >= r1a  ||  rground2a >= r2a  ||  
+			             rground1b >= r1b  ||  rground2b >= r2b ) )
 	{
-	  IndexPrint( 6, "face" );
-	  NumericPrint( r_try, "r_try" );
-	  if( r_try > 0 )
+	  psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, 
+                       lon5, lon6, rground1a, rground2a, rground2b, rground1b,
+                                                         x, y, z, dx, dy, dz );
+	  if( debug )
 	    {
-	      NumericPrint( lat_try, "lat_try" );
-	      NumericPrint( lon_try, "lon_try" );
-	      NumericPrint( l_try, "l_try" );
+	      IndexPrint( 6, "face" );
+	      NumericPrint( r_try, "r_try" );
+	      if( r_try > 0 )
+		{
+		  NumericPrint( lat_try, "lat_try" );
+		  NumericPrint( lon_try, "lon_try" );
+		  NumericPrint( l_try, "l_try" );
+		}
+	    }
+	  if( r_try > 0  &&  l_try <= l_best )
+	    {
+	      r_best   = r_try;
+	      lat_best = lat_try;
+	      lon_best = lon_try;
+	      l_best   = l_try;
+	      endface  = 7;
 	    }
 	}
-      if( r_try > 0  &&  l_try <= l_best  &&  lat_try >= lat1  &&  
-                    lat_try <= lat3  &&  lon_try >= lon5  &&  lon_try <= lon6 )
-	{
-	  r_best   = r_try;
-	  lat_best = lat_try;
-	  lon_best = lon_try;
-	  l_best   = l_try;
-	  endface  = 7;
-	}
-    }
 
 
-  //--- Face 8: tangent point
-  //
-  if( za_start > 90 )
-    {
-      Numeric   za_try, aa_try;
-      cart2poslos( r_try, lat_try, lon_try, za_try, aa_try,
-                           x+dx*l_best, y+dy*l_best, z+dz*l_best, dx, dy, dz );
-      if( debug )
+      //--- Face 8: tangent point
+      //
+      if( za_start > 90 )
 	{
-	  IndexPrint( 6, "face" );
-	  NumericPrint( r_try, "r_try" );
-	  if( r_try > 0 )
+	  Numeric   za_try, aa_try;
+	  cart2poslos( r_try, lat_try, lon_try, za_try, aa_try,
+		           x+dx*l_best, y+dy*l_best, z+dz*l_best, dx, dy, dz );
+	  if( debug )
 	    {
-	      NumericPrint( lat_try, "lat_try" );
-	      NumericPrint( lon_try, "lon_try" );
-	      NumericPrint( l_try, "l_try" );
+	      IndexPrint( 6, "face" );
+	      NumericPrint( r_try, "r_try" );
+	      if( r_try > 0 )
+		{
+		  NumericPrint( lat_try, "lat_try" );
+		  NumericPrint( lon_try, "lon_try" );
+		  NumericPrint( l_try, "l_try" );
+		}
 	    }
-	}
-      if( za_try <= 90 )
-	{
-          geompath_tanpos_3d( r_best, lat_best, lon_best, l_best, r_start, 
-                               lat_start, lon_start, za_start, aa_start, ppc );
-	  endface = 8;
+	  if( za_try <= 90 )
+	    {
+	      geompath_tanpos_3d( r_best, lat_best, lon_best, l_best, r_start, 
+  	                       lat_start, lon_start, za_start, aa_start, ppc );
+	      endface = 8;
+  	    }
 	}
     }
 
@@ -2207,6 +2266,12 @@ void do_gridcell_3d(
   r_v[n]   = r_best;
   lat_v[n] = lat_best;
   lon_v[n] = lon_best;
+
+  // Shall lon values be shifted?
+  for( Index j=1; j<=n; j++ )
+    {
+      resolve_lon( lon_v[j], lon5, lon6 );
+    }
 
   //--- Set last zenith angle to be as accurate as possible
   if( endface == 8 )
@@ -3417,10 +3482,10 @@ void ppath_start_stepping(
                   "point and the absolute value of the azimuth angle <= 90." );
 
           // Check that not at longitude end point and looks out
-          if( a_pos[1] == lon_grid[0]  &&  a_los[1] < 0 )
+          if( a_pos[2] == lon_grid[0]  &&  a_los[1] < 0 )
             throw runtime_error( "The sensor is at the lower longitude end "
                                           "point and the azimuth angle < 0." );
-          if( a_pos[1] == lon_grid[nlon-1]  &&  a_los[1] > 0 ) 
+          if( a_pos[2] == lon_grid[nlon-1]  &&  a_los[1] > 0 ) 
             throw runtime_error( "The sensor is at the upper longitude end "
                                           "point and the azimuth angle > 0." );
           
@@ -3475,7 +3540,7 @@ void ppath_start_stepping(
 
               if( ppath.pos(0,1) >= lat_grid[cloudbox_limits[2]]  &&
                   ppath.pos(0,1) <= lat_grid[cloudbox_limits[3]]  &&
-                  ppath.pos(0,2) <= lon_grid[cloudbox_limits[4]]  &&
+                  ppath.pos(0,2) >= lon_grid[cloudbox_limits[4]]  &&
                   ppath.pos(0,2) <= lon_grid[cloudbox_limits[5]]  )
                 {
                   // Calculate the lower and upper altitude radius limit for
@@ -4380,8 +4445,8 @@ void ppath_start_3d(
   //
   assert( za_start >= 0 );
   assert( za_start <= 180 );
-  //
-  // more asserts below ...
+  assert( aa_start >= -180 );
+  assert( aa_start <= 180 );
 
 
   // Lower index of lat and lon ranges of interest
@@ -4389,7 +4454,7 @@ void ppath_start_3d(
   // The longitude is undefined at the poles and as the azimuth angle
   // is defined in other way at the poles.
   //
-  if( lat_start > 89.999999 )
+  if( lat_start == 90 )
     { 
       ilat = nlat - 2;
       GridPos   gp_tmp;
@@ -4399,7 +4464,7 @@ void ppath_start_3d(
       else
 	{ ilon = gridpos2gridrange( gp_tmp, 0 ); }
     }
-  else if( lat_start < -89.999999 )
+  else if( lat_start == -90 )
     { 
       ilat = 0; 
       GridPos   gp_tmp;
@@ -4412,7 +4477,10 @@ void ppath_start_3d(
   else
     { 
       ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start ) <= 90 ); 
-      ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 ); 
+      if( lon_start < lon_grid[nlon-1] )
+	{ ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 ); }
+      else
+	{ ilon = nlon - 2; }
     }
   //
   lat1 = lat_grid[ilat];

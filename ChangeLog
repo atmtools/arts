@@ -1,3 +1,14 @@
+2003-01-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-357
+
+	* src/ppath.cc: Several things fixed to make path along the end 
+	longitudes to work. Longitudes can now be in the range [-360,360], as
+	described in AUG.
+
+	I have tested a number of waht should be nasty cases and everything 
+	worked. It seems that 3D geometrical paths are now working.
+
 2003-01-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-356

@@ -113,6 +113,9 @@ void CloudboxSetManually(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
+  if( atmosphere_dim == 2 )
+    { throw runtime_error( "The cloud box is not defined for 2D." ); }
+
   // Check keyword arguments
   if( p1 <= p2 )
     throw runtime_error( 
