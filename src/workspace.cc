@@ -1061,7 +1061,26 @@ void define_wsv_data()
        ),
       GROUP( Vector_ )));
 
-wsv_data.push_back
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_aa_index" ),
+      DESCRIPTION
+      (
+       "Azimuth angle index for scattering calculations.\n"
+       "\n"
+       "This variable is used in methods used for computing scattering\n"
+       "properties of particles like ext_mat_sptCalc and pha_mat_sptCalc.\n"
+       "This holds the information about the azimuth angles for which the \n"
+       "scattering calculations are done.  The angles used for computing \n"
+       "scattering properties of particle can be different from that used \n"
+       "for radiative transfer calculation. \n"
+       "\n"
+       "Usage:    Input to the methods *ext_mat_sptCalc*, *pha_mat_sptCalc*\n"
+       "\n"
+       ),
+     GROUP( Index_ ))); 
+
+   wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_field" ),
       DESCRIPTION
@@ -1206,6 +1225,25 @@ wsv_data.push_back
        "Units:      degrees "
        ),
       GROUP( Vector_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_za_index" ),
+      DESCRIPTION
+      (
+       "Zenith angle index for scattering calculations.\n"
+       " \n"
+       "This variable is used in methods used for computing scattering \n"
+       "properties of particles like ext_mat_sptCalc and pha_mat_sptCalc.\n"
+       "This holds the information about the zenith angles for which the \n"
+       "scattering calculations are done.  The angles used for computing \n"
+       "scattering properties of particle can be different from that used\n"
+       "for radiative transfer calculation. \n"
+       " \n"
+       "Usage:    Input to the methods *ext_mat_sptCalc*, *pha_mat_sptCalc*\n"
+       " \n"
+       ),
+      GROUP( Index_ )));
 
 
   wsv_data.push_back

@@ -146,6 +146,7 @@ void define_md_data()
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
 
+   
 
   md_data.push_back
     ( MdRecord
@@ -708,6 +709,8 @@ void define_md_data()
 	GINPUT( ),
 	KEYWORDS( "value" ),
 	TYPES(    Numeric_t )));
+
+  
 
   md_data.push_back     
     ( MdRecord
@@ -1286,6 +1289,8 @@ void define_md_data()
 	GINPUT( Numeric_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+
+   
 
   md_data.push_back
     ( MdRecord
