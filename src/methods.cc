@@ -810,7 +810,7 @@ void define_md_data()
   	DESCRIPTION(
           "Play around with sparse matrix h."),
 	OUTPUT( h_ ),
-	INPUT(),
+	INPUT(h_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

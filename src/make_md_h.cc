@@ -239,18 +239,14 @@ int main()
 		  vi.erase(k);
 		}
 
-	  // The same for the lists of generic variables:
-	  for (ARRAY<size_t>::const_iterator j=vgo.begin(); j!=vgo.end(); ++j)
-	    // It is important that the condition is k<vi.end(), not
-	    // k!=vi.end, because if erase is called, vi.end() is
-	    // decreased. Since k is increased at the same time, the
-	    // case k=vi.end() can be missed!
-	    for (ARRAY<size_t>::iterator k=vgi.begin(); k<vgi.end(); ++k)
-	      if ( *j == *k )
-		{
-		  vgi.erase(k);
-		}
+	  // There used to be a similar block here for the generic
+	  // input/output variables. However, this was a mistake. For
+	  // example, if a method has a vector as generic input and a
+	  // vector as generic output, this does not mean that it is
+	  // the same vector!
 
+
+	  // Start with the name of the method:
 	  ofs << "void " << md_data[i].Name() << "(";
 
 	  // Write the Output workspace variables:
@@ -487,17 +483,12 @@ int main()
 		  vi.erase(k);
 		}
 
-	  // The same for the lists of generic variables:
-	  for (ARRAY<size_t>::const_iterator j=vgo.begin(); j!=vgo.end(); ++j)
-	    // It is important that the condition is k<vi.end(), not
-	    // k!=vi.end, because if erase is called, vi.end() is
-	    // decreased. Since k is increased at the same time, the
-	    // case k=vi.end() can be missed!
-	    for (ARRAY<size_t>::iterator k=vgi.begin(); k<vgi.end(); ++k)
-	      if ( *j == *k )
-		{
-		  vgi.erase(k);
-		}
+	  // There used to be a similar block here for the generic
+	  // input/output variables. However, this was a mistake. For
+	  // example, if a method has a vector as generic input and a
+	  // vector as generic output, this does not mean that it is
+	  // the same vector!
+
 
 	  ofs << "void " << md_data[i].Name()
 	      << "_g(WorkSpace& ws, const MRecord& mr)\n";

@@ -1,3 +1,16 @@
+2000-10-21  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-60
+
+	* make_md_h.cc: There was a bug in the generic input/output
+	WSVs. For example, if a method had a vector as generic input and a
+	vector as generic output, the input vector was removed from the
+	list of arguments, similar to the case of specif WSV. In the case
+	of specific WSVs this is the correct behaviour. However, in the
+	case of generic arguments, the two vectors can be different! Fixed
+	this.
+
+
 2000-10-10  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-59

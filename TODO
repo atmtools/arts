@@ -73,7 +73,7 @@ SAB 2000-10-05: Implement a mechanism for `meta-methods', i.e.,
                 workspace. 
 
 SAB 2000-10-05: Implement sparse matrices and multiplication of sparse
-                matrix with a vector.
+                matrix with a sparse matrix, matrix, or vector.
 
 SAB 2000-10-05: Change matrix/vector package from TNT to MTL. A new
                 version of MTL with a much better user interface is
