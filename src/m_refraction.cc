@@ -41,6 +41,7 @@
 #include <iostream>
 #include "absorption.h"
 #include "arts.h"
+#include "auto_md.h"
 #include "matpackI.h"
 
 
@@ -63,22 +64,15 @@ void refr_indexThayer(
        const Vector&                     a_vmr_list,
        const ArrayOfArrayOfSpeciesTag&   gas_species )
 {
-  refr_index = 1.0 + 77.593e-8 * a_pressure / a_temperature;
+  refr_index = 1.0 + 77.6e-8 * a_pressure / a_temperature;
 
   //  for ( Index i=0; i<n; i++ )
   //{
   // e = p_abs[i] * h2o_abs[i];
   //  p = p_abs[i] - e;
   //
-  //  refr_index[i] = 1.0 + 77.593e-8 * p / t_abs[i] + 
+  //  refr_index[i] = 1.0 + 77.6e-8 * p / t_abs[i] + 
   //                        72e-8 * e / t_abs[i] +
   //                        3.754e-3 * e / (t_abs[i]*t_abs[i]);
   //}
-
-  extern const Array<SpeciesRecord> species_data;
-
-  for( Index i=0; i<gas_species.nelem(); i++ )
-    {
-      cout << species_data[gas_species[i][0].Species()].Name() << "\n";
-    }
 }

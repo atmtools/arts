@@ -1,3 +1,10 @@
+2003-01-13  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-386
+
+	* src/ppath.cc (do_gridcell_3d): Some smaller improvements for 
+	special zenith and azimuth angles.
+
 2003-01-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-385

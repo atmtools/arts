@@ -1010,6 +1010,9 @@ Numeric rsurf_at_latlon(
        const Numeric&   lat,
        const Numeric&   lon )
 {
+  // We can't have any assert of *lat* and *lon* here as we can go outside
+  // the ranges when called from *psurface_slope_3d*.
+
   if( lat == lat1 )
     { return   r15 + ( lon - lon5 ) * ( r16 - r15 ) / ( lon6 -lon5 ); }
   else if( lat == lat3 )
@@ -1953,10 +1956,10 @@ void do_gridcell_3d(
       if( debug )
         {
           IndexPrint( 4, "face" );
-          NumericPrint( r_try, "r_try" );
-          NumericPrint( lat_try, "lat_try" );
-          NumericPrint( lon_try, "lon_try" );
-          NumericPrint( l_try, "l_try" );
+          NumericPrint( r_best, "r_best" );
+          NumericPrint( lat_best, "lat_best" );
+          NumericPrint( lon_best, "lon_best" );
+          NumericPrint( l_best, "l_best" );
         }
     }
 
@@ -1982,10 +1985,10 @@ void do_gridcell_3d(
       if( debug )
         {
           IndexPrint( 4, "face" );
-          NumericPrint( r_try, "r_try" );
-          NumericPrint( lat_try, "lat_try" );
-          NumericPrint( lon_try, "lon_try" );
-          NumericPrint( l_try, "l_try" );
+          NumericPrint( r_best, "r_best" );
+          NumericPrint( lat_best, "lat_best" );
+          NumericPrint( lon_best, "lon_best" );
+          NumericPrint( l_best, "l_best" );
         }
     }
 
@@ -2250,7 +2253,7 @@ void do_gridcell_3d(
       // If no endface has been found, the reason can be:
       // For positions on a pressure surface, numerical problems can result
       // in that the wrong gridcell is found for first step of a path.
-      if( ~endface )
+      if( endface == 0 )
         {
           if( r_start == rlow )
             {
@@ -2308,17 +2311,26 @@ void do_gridcell_3d(
   lat_v[n] = lat_best;
   lon_v[n] = lon_best;
 
-  // Shall lon values be shifted?
-  for( Index j=1; j<=n; j++ )
-    {
-      resolve_lon( lon_v[j], lon5, lon6 );
-    }
-
   //--- Set last zenith angle to be as accurate as possible
-  if( endface == 8 )
+  if( za_start == 0 )
+    { za_v[n] = 0; }
+  else if( abs( za_start ) == 180 )
+    { za_v[n] = za_start; }
+  else if( endface == 8 )
     { za_v[n] = 90; }
   else
     { za_v[n] = geompath_za_at_r( ppc, za_start, r_v[n] ); }
+
+  //--- Set last azimuth angle and lon. to be as accurate as possible
+  if( abs( lat_start ) < 90  &&  ( aa_start == 0  ||  abs( aa_start) == 180 ) )
+    { 
+      aa_v[n] = aa_start; 
+      lon_v[n] = lon_start;
+    }
+
+  // Shall lon values be shifted?
+  for( Index j=1; j<=n; j++ )
+    { resolve_lon( lon_v[j], lon5, lon6 ); }
 }
 
 
@@ -2897,6 +2909,110 @@ Numeric refraction_ppc(
 
 
 
+//! get_refr_index_1d
+/*! 
+   A temporary function to get refractive index for 1D cases.
+
+   See the code fo details.
+
+   \author Patrick Eriksson
+   \date   2002-11-13
+*/
+void get_refr_index_1d(
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+              Numeric&    refr_index,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   z_field,
+        ConstVectorView   t_field,
+        ConstMatrixView   vmr_field,
+        const Numeric&    z )
+{ 
+  // Altitude (equal to pressure) grid position
+  ArrayOfGridPos   gp(1);
+  gridpos( gp, z_field, Vector(1,z) );
+
+  // Altitude interpolation weights
+  Matrix   itw(1,2);
+  interpweights( itw, gp );
+
+  // Pressure
+  Vector   dummy(1);
+  itw2p( dummy, p_grid, gp, itw );
+  a_pressure = dummy[0];
+
+  // Temperature
+  interp( dummy, itw, t_field, gp );
+  a_temperature = dummy[0];
+
+  // VMR
+  const Index   ns = vmr_field.nrows();
+  //
+  a_vmr_list.resize(ns);
+  //
+  for( Index is=0; is<ns; is++ )
+    {
+      interp( dummy, itw, vmr_field(is,joker), gp );
+      a_vmr_list[is] = dummy[0];
+    }
+
+  refr_index_agenda.execute();
+}
+
+
+
+//! get_refr_index_2d
+/*! 
+   A temporary function to get refractive index for 2D cases.
+
+   See the code fo details.
+
+   \author Patrick Eriksson
+   \date   2002-11-18
+*/
+Numeric get_refr_index_2d(
+        ConstVectorView    p_grid,
+        ConstVectorView    lat_grid,
+        ConstVectorView    r_geoid,
+        ConstMatrixView    z_field,
+        ConstMatrixView    t_field,
+        const Numeric&     r,
+        const Numeric&     lat )
+{     
+  const Index   np = p_grid.nelem();
+  GridPos       gp_p, gp_lat;
+  Numeric       rg, p_value, t_value;
+  Vector        z_grid(np);
+  Vector        itw(2);
+
+  gridpos( gp_lat, lat_grid, lat );
+  interpweights( itw, gp_lat );
+  rg = interp( itw, r_geoid, gp_lat );
+
+  z_at_lat_2d( z_grid, p_grid, lat_grid, z_field, gp_lat );
+
+  gridpos( gp_p, z_grid, r - rg );
+  ArrayOfGridPos   agp_p(1);
+  gridpos_copy( agp_p[0], gp_p );
+  Matrix   itw2(1,2);
+  interpweights( itw, agp_p );
+  itw2p( p_value, p_grid, agp_p, itw2 );
+
+  itw.resize(4);
+  interpweights( itw, gp_p, gp_lat );
+  t_value = interp( itw, t_field, gp_p, gp_lat );
+
+  Vector refr_index(1);
+
+  //  refr_index_BoudourisDryAir( refr_index, p_value, t_value );
+
+  return refr_index[0];
+}
+
+
+
 //! refraction_gradient_2d
 /*! 
    Calculates the radial and latitudinal derivative of the refractive
@@ -2985,127 +3101,6 @@ void refraction_gradient_2d(
   === two functions (or two places in some function) and for this reason 
   === there is not much documentation. 
   ===========================================================================*/
-
-// This function is copied from arts-1 as a temporary solution.
-
-//// refr_index_BoudourisDryAir ///////////////////////////////////////////////
-/**
-   Calculates the refractive index for dry air at microwave frequncies 
-   following Boudouris 1963.
-
-   The expression is also found in Chapter 5 of the Janssen book.
-
-   The atmosphere is assumed to have no water vapour.
-
-   \retval   refr_index  refractive index
-   \param    p_abs       absorption pressure grid
-   \param    t_abs       temperatures at p_abs
-
-   \author Patrick Eriksson
-   \date   2001-02-16
-*/
-void refr_index_BoudourisDryAir (
-             Vector&     refr_index,
-       ConstVectorView   p_abs,
-       ConstVectorView   t_abs )
-{
-  const Index   n = p_abs.nelem();
-  refr_index.resize( n );
-
-  assert ( n == t_abs.nelem() );
-
-  // N = 77.593e-2 * p / t ppm
-  for ( Index i=0; i<n; i++ )
-    refr_index[i] = 1.0 + 77.593e-8 * p_abs[i] / t_abs[i];
-
-  //refr_index = 1;
-}
-
-
-
-//! get_refr_index_1d
-/*! 
-   A temporary function to get refractive index for 1D cases.
-
-   See the code fo details.
-
-   \author Patrick Eriksson
-   \date   2002-11-13
-*/
-Numeric get_refr_index_1d(
-        ConstVectorView   p_grid,
-        ConstVectorView   z_field,
-        ConstVectorView   t_field,
-        const Numeric&    z )
-{      
-  ArrayOfGridPos gp(1);
-  gridpos( gp, z_field, Vector(1,z) );
-
-  Matrix itw(1,2);
-  interpweights( itw, gp );
-
-  Vector p_value(1), t_value(1);
-
-  itw2p( p_value, p_grid, gp, itw );
-  interp( t_value, itw, t_field, gp );
-
-  Vector refr_index(1);
-
-  refr_index_BoudourisDryAir( refr_index, p_value[0], t_value[0] );
-
-  return refr_index[0];
-}
-
-
-
-//! get_refr_index_2d
-/*! 
-   A temporary function to get refractive index for 2D cases.
-
-   See the code fo details.
-
-   \author Patrick Eriksson
-   \date   2002-11-18
-*/
-Numeric get_refr_index_2d(
-        ConstVectorView    p_grid,
-        ConstVectorView    lat_grid,
-        ConstVectorView    r_geoid,
-        ConstMatrixView    z_field,
-        ConstMatrixView    t_field,
-        const Numeric&     r,
-        const Numeric&     lat )
-{     
-  const Index   np = p_grid.nelem();
-  GridPos       gp_p, gp_lat;
-  Numeric       rg, p_value, t_value;
-  Vector        z_grid(np);
-  Vector        itw(2);
-
-  gridpos( gp_lat, lat_grid, lat );
-  interpweights( itw, gp_lat );
-  rg = interp( itw, r_geoid, gp_lat );
-
-  z_at_lat_2d( z_grid, p_grid, lat_grid, z_field, gp_lat );
-
-  gridpos( gp_p, z_grid, r - rg );
-  ArrayOfGridPos   agp_p(1);
-  gridpos_copy( agp_p[0], gp_p );
-  Matrix   itw2(1,2);
-  interpweights( itw, agp_p );
-  itw2p( p_value, p_grid, agp_p, itw2 );
-
-  itw.resize(4);
-  interpweights( itw, gp_p, gp_lat );
-  t_value = interp( itw, t_field, gp_p, gp_lat );
-
-  Vector refr_index(1);
-
-  refr_index_BoudourisDryAir( refr_index, p_value, t_value );
-
-  return refr_index[0];
-}
-
 
 
 //! ppath_start_1d
@@ -4230,6 +4225,7 @@ void raytrace_1d_linear_euler(
               Numeric&          a_temperature,
               Vector&           a_vmr_list,
               Numeric&          refr_index,
+        const Agenda&           refr_index_agenda,
         const Numeric&          ppc,
         const Numeric&          lraytrace,
         const Numeric&          r1,
@@ -4239,13 +4235,10 @@ void raytrace_1d_linear_euler(
         ConstVectorView         t_field,
         ConstMatrixView         vmr_field,
         const Numeric&          r_geoid,
-        const Numeric&          zground )
+        const Numeric&          r_ground )
 {
   // Loop boolean
   bool ready = false;
-
-  // Ground radius
-  const Numeric   rground = r_geoid + zground;
 
   // Variables for output from do_gridrange_1d
   Vector    r_v, lat_v, za_v;
@@ -4258,7 +4251,7 @@ void raytrace_1d_linear_euler(
 
       // Where will this path exit the grid cell?
       do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step,
-                                                         -1, r1, r3, rground );
+                                                        -1, r1, r3, r_ground );
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is < *lraytrace*, extract the found end point and
@@ -4289,26 +4282,22 @@ void raytrace_1d_linear_euler(
 
       // Calculate LOS zenith angle at found point.
       //
-      if( ready  &&  endface == 8 )
-        { za = 90; }
+      // Refractive index at r_new
+      get_refr_index_1d( a_pressure, a_temperature, a_vmr_list, refr_index, 
+                         refr_index_agenda, p_grid, z_field, t_field, 
+                                                  vmr_field, r_new - r_geoid );
+      
+      const Numeric   ppc_local = ppc / refr_index; 
+
+      if( ppc_local < r_new )
+        { za = geompath_za_at_r( ppc_local, za, r_new ); }
       else
-        {
-          // Refractive index at r_new
-          Numeric n_new;
-          n_new = get_refr_index_1d( p_grid, z_field, t_field, r_new-r_geoid );
-
-          const Numeric   ppc_local = ppc / n_new; 
-
-          if( ppc_local < r_new )
-            { za = geompath_za_at_r( ppc_local, za, r_new ); }
-          else
-            {                 // If we end up here, then numerical inaccuracy
-              za      = 90;   // has brought us below the true tangent point.  
-              ready   = 1;    // We save this situation by setting this point
-              endface = 8;    // to be a tangent point.
-            }
+        {                   // If we end up here, then numerical inaccuracy
+          za      = 90;     // has brought us below the true tangent point.  
+          ready   = 1;      // We save this situation by setting this point
+          endface = 8;      // to be a tangent point.
         }
-
+  
       r   = r_new;
       lat = lat_new;
 
@@ -4318,7 +4307,6 @@ void raytrace_1d_linear_euler(
       za_array.push_back( za );
       l_array.push_back( lstep );
     }  
-
 }
 
 
@@ -4469,251 +4457,6 @@ void raytrace_2d_linear_euler(
   === Core functions for refraction *ppath_step* functions
   ===========================================================================*/
 
-//! ppath_step_refr_1d_special
-/*! 
-   THIS FUNCTION IS NOT USED FOR THE MOMENT.
-
-   \param   ppath             Output: A Ppath structure.
-   \param   p_grid            Pressure grid.
-   \param   z_field           Geometrical altitudes corresponding to p_grid.
-   \param   t_field           Temperatures corresponding to p_grid.
-   \param   r_geoid           Geoid radius.
-   \param   z_ground          Ground altitude.
-   \param   rtrace_method     String giving which ray tracing method to use.
-                              See the function for options.
-   \param   lraytrace         Maximum allowed length for ray tracing steps.
-   \param   lmax              Maximum allowed length between the path points.
-
-   \author Patrick Eriksson
-   \date   2002-12-02
-*/
-void ppath_step_refr_1d_special(
-              Ppath&      ppath,
-        ConstVectorView   p_grid,
-        ConstVectorView   z_field,
-        ConstVectorView   t_field,
-        const Numeric&    r_geoid,
-        const Numeric&    z_ground,
-        const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax )
-{
-  // Starting radius, zenith angle and latitude
-  Numeric r_start, lat_start, za_start;
-
-  // Index of the pressure surface being the lower limit for the
-  // grid range of interest.
-  Index ip;
-
-  // Determine the variables defined above, and make asserts of input
-  ppath_start_1d( r_start, lat_start, za_start, ip,
-                                   ppath, p_grid, z_field, r_geoid, z_ground );
-
-  // Assert not done for geometrical calculations
-  assert( t_field.nelem() == p_grid.nelem() );
-  assert( lraytrace > 0 );
-  assert( lmax < 0  ||  lmax >= lraytrace );
-
-  // Refractive index at *r_start*.
-  const Numeric   nvalue = get_refr_index_1d( p_grid, z_field, t_field, 
-                                                           r_start - r_geoid );
-
-
-  // If the field "constant" is negative, this is the first call of the
-  // function and the path constant shall be calculated.
-  // If the sensor is placed outside the atmosphere, the constant is
-  // already set.
-  Numeric ppc;
-  if( ppath.constant < 0 )
-    { ppc = refraction_ppc( r_start, za_start, nvalue ); }
-  else
-    { ppc = ppath.constant; }
-
-
-  // Get end radius of the path step (r_end). If looking downwards, it must 
-  // be checked if:
-  //    a tangent point is passed
-  //    there is an intersection with the ground
-  //
-  Numeric   r_end;
-  Index     endface;
-  //
-  if( za_start <= 90 )
-    { 
-      r_end   = r_geoid + z_field[ ip + 1 ]; 
-      endface = 3;
-    }
-  else
-    {
-      // Lowest possible radius for the path step
-      const Numeric r_lowest  = r_geoid + z_field[ ip ];
-
-      // Refractive index at r_lowest
-      const Numeric n_lowest = get_refr_index_1d( p_grid, z_field, t_field, 
-                                                          r_lowest - r_geoid );
-      // Ground radius
-      const Numeric r_ground = r_geoid + z_ground;
-
-      // Is the pressure surface below the end point?
-      if( ( r_lowest > r_ground )  &&  ( r_lowest*n_lowest > ppc ) )
-        {
-          r_end    = r_lowest;
-          endface  = 1;
-        }
-
-      // Is the tangent point is the end point?
-      else if( ppc >= r_ground * get_refr_index_1d( p_grid, z_field, t_field, 
-                                                         r_ground - r_geoid ) )
-        {
-                Numeric   r_tan = r_lowest;
-                          r_end = r_tan + 999e3;   
-                Numeric   n_end = n_lowest;
-                bool      first = true;
-          const Numeric   accuracy = 0.01;       // 0.01m 
-
-          // We loop until it is sure that accuracy is better then specified
-          while( abs( r_end - r_tan ) > accuracy )
-            {
-              r_end = r_tan;
-
-              if( !first )
-                {
-                  n_end = get_refr_index_1d( p_grid, z_field, t_field, 
-                                                             r_end - r_geoid );
-                }
-              first = false;
-
-              const Numeric dn = ( nvalue - n_end ) / ( r_start - r_end );
-          
-              if( abs(dn) < 1e-15 )        // An arbitrary threshold! 
-                {                           // dn at ground level is about 3e-8
-                  r_tan = ppc / n_end;
-                }
-              else
-                {
-                  // See AUG for algorith used here
-                  const Numeric x = ( n_end - dn * r_end ) / ( 2 * dn );
-                  r_tan = -x + sign(dn) * sqrt( x*x + ppc/dn );
-                }
-            }
-          r_tan += accuracy;
-          endface = 8;
-        }
-
-      // Ground must be the end point!
-      else
-        {
-          r_end   = r_ground;
-          endface = 7;
-        }
-    }
-
-
-  // Init ray tracing
-  //
-  // Create some variables used for the ray tracing.
-  // These variables are needed as the ray tracing is always done from the
-  // lowest to the highest radius.
-  //
-  Numeric   r, rstop, za;
-  //
-  if( r_start < r_end )
-    {
-      r     = r_start;
-      rstop = r_end;
-      za    = za_start;
-    }
-  else
-    {
-      r     = r_end;
-      rstop = r_start;
-      if( endface == 8 )    // Here we don't know ZA for the start point.
-        { za = 90; }
-      else
-        { 
-          const Numeric n_end = get_refr_index_1d( p_grid, z_field, t_field, 
-                                                             r_end - r_geoid );
-          za = geompath_za_at_r( ppc/n_end, 0, r_end ); 
-        }
-    }
-
-
-  // Perform the ray tracing
-  //
-  // Arrays to store found ray tracing points
-  // (Vectors don't work here as we don't know how many points there will be)
-  Array<Numeric>   r_array, lat_array, za_array, l_array;
-  //
-  // Store the start point
-  r_array.push_back( r );
-  lat_array.push_back( lat_start );
-  za_array.push_back( za );
-  //
-  // String to store description of ray tracing method
-  String   method;
-  //
-  if( rtrace_method  == "linear_euler" )
-    {
-      if( lmax < 0 )
-        { method = "special 1D linear Euler"; }
-      else
-        { method = "special 1D linear Euler, with length criterion"; }
-
-      Index dummy;
-      //      raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, dummy,
-      //      r, lat_start, za, ppc, lraytrace, r_geoid+z_field[ip],
-      //                  r_geoid+z_field[ip+1], -1, -1, 
-      //                          p_grid,
-      //                          z_field,
-      //                          t_field,
-      //                          r_geoid,
-      //                          0, "calc" );
-    }
-  else
-    {
-      bool   known_ray_trace_method = false;
-      assert( known_ray_trace_method );
-    }
-
-
-  // Interpolate the radii, zenith angles and latitudes to a set of points
-  // linearly spaced along the path. 
-  //
-  Vector    r_v, lat_v, za_v;
-  Numeric   lstep;
-  //
-  from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
-                    r_array, lat_array, za_array, l_array, za_start>90, lmax );
-
-
-  // Fill *ppath*
-  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, endface, 
-                                                              method, 1, ppc );
-
-
-  //--- End point is a tangent point
-  if( endface == 8 )
-    {
-      // Make part from tangent point and up to the starting pressure level.
-      //
-      Ppath ppath2;
-      ppath_init_structure( ppath2, ppath.dim, ppath.np );
-      ppath_copy( ppath2, ppath );
-
-      out3 << "  --- Recursive step to include tangent point --------\n"; 
-
-      ppath_step_refr_1d_special( ppath2, p_grid, z_field, t_field, r_geoid, 
-                                    z_ground, rtrace_method, lraytrace, lmax );
-
-      out3 << "  ----------------------------------------------------\n"; 
-
-      // Combine ppath and ppath2
-      ppath_append( ppath, ppath2 );
-    }
-}
-
-
-
 //! ppath_step_refr_1d
 /*! 
    Calculates 1D propagation path steps including effects of refraction.
@@ -4746,6 +4489,7 @@ void ppath_step_refr_1d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
               Numeric&    refr_index,
+        const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
@@ -4779,9 +4523,10 @@ void ppath_step_refr_1d(
   Numeric ppc;
   if( ppath.constant < 0 )
     { 
-      const Numeric   nvalue = get_refr_index_1d( p_grid, z_field, t_field, 
-                                                           r_start - r_geoid );
-      ppc = refraction_ppc( r_start, za_start, nvalue ); 
+      get_refr_index_1d( a_pressure, a_temperature, a_vmr_list, refr_index, 
+                         refr_index_agenda, p_grid, z_field, t_field, 
+                                                vmr_field, r_start - r_geoid );
+      ppc = refraction_ppc( r_start, za_start, refr_index ); 
     }
   else
     { ppc = ppath.constant; }
@@ -4813,9 +4558,9 @@ void ppath_step_refr_1d(
 
       raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, endface,
             r_start, lat_start, za_start, a_pressure, a_temperature, 
-            a_vmr_list, refr_index, ppc, lraytrace, r_geoid+z_field[ip],
-            r_geoid+z_field[ip+1], p_grid, z_field, t_field, vmr_field, 
-                                                           r_geoid, z_ground );
+            a_vmr_list, refr_index, refr_index_agenda, ppc, lraytrace, 
+            r_geoid+z_field[ip], r_geoid+z_field[ip+1], p_grid, z_field, 
+                             t_field, vmr_field, r_geoid, r_geoid + z_ground );
     }
   else
     {
@@ -4851,8 +4596,8 @@ void ppath_step_refr_1d(
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
       ppath_step_refr_1d( ppath2, a_pressure, a_temperature, a_vmr_list,
-                      refr_index, p_grid, z_field, t_field, vmr_field, r_geoid,
-                                    z_ground, rtrace_method, lraytrace, lmax );
+                      refr_index, refr_index_agenda, p_grid, z_field, t_field,
+                vmr_field, r_geoid, z_ground, rtrace_method, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -4894,6 +4639,7 @@ void ppath_step_refr_2d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
               Numeric&    refr_index,
+        const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
@@ -4993,7 +4739,8 @@ void ppath_step_refr_2d(
 
       // Call this function recursively
       ppath_step_refr_2d( ppath2, a_pressure, a_temperature, a_vmr_list,
-                     refr_index, p_grid, lat_grid, z_field, t_field, vmr_field,
+                    refr_index, refr_index_agenda, p_grid, lat_grid, z_field, 
+                    t_field, vmr_field, 
                            r_geoid, z_ground, rtrace_method, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
@@ -5037,6 +4784,7 @@ void ppath_step_refr_3d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
               Numeric&    refr_index,
+        const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
@@ -6342,20 +6090,21 @@ void ppath_calc(
   // refraction at the top of the atmosphere is sufficiently close to 1.
   if( ppath.refraction )
     {
-      Vector        n(1);
-      const Index   np = p_grid.nelem();
+            Numeric                     refr_local;
+      const Index                       np = p_grid.nelem();
+      const ArrayOfArrayOfSpeciesTag&   species_local(0);
 
-      refr_index_BoudourisDryAir( n, Vector(1,p_grid[np-1]), 
-                                                 Vector(1,t_field(np-1,0,0)) );
+      refr_indexThayer( refr_local, p_grid[np-1], t_field(np-1,0,0), 
+                                                    Vector(0), species_local );
 
-      if( (n[0]-1) > 1e-6 )
+      if( (refr_local-1) > 1e-6 )
         {
           out2 << "  *** WARNING****\n" << 
             "  The calculated propagation path can "
             "be inexact as the refractive index\n  at the top of the "
             "atmosphere deviates significantly from 1\n" << "     n-1 = " <<
-            n[0]-1 << "\n  However, the importance of this depends on the " 
-            "observation geometry.\n";
+            refr_local-1 << "\n  However, the importance of this depends on "
+            "the observation geometry.\n";
         } 
     }
 }

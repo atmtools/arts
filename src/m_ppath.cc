@@ -386,8 +386,9 @@ void ppath_stepRefractionEuler(
               Numeric&    a_pressure,
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
-	      Numeric&    refr_index,
+              Numeric&    refr_index,
         // WS Input:
+        const Agenda&     refr_index_agenda,
         const Index&      atmosphere_dim,
         const Vector&     p_grid,
         const Vector&     lat_grid,
@@ -409,20 +410,23 @@ void ppath_stepRefractionEuler(
 
   if( atmosphere_dim == 1 )
     { ppath_step_refr_1d( ppath_step, a_pressure, a_temperature, a_vmr_list,
-                          refr_index, p_grid, z_field(joker,0,0), 
-                          t_field(joker,0,0), vmr_field(joker,joker,0,0),
-              r_geoid(0,0), z_ground(0,0), "linear_euler", lraytrace, lmax ); }
+                          refr_index, refr_index_agenda,
+                          p_grid, z_field(joker,0,0), t_field(joker,0,0), 
+                       vmr_field(joker,joker,0,0), r_geoid(0,0), z_ground(0,0),
+                                           "linear_euler", lraytrace, lmax ); }
 
   else if( atmosphere_dim == 2 )
     { ppath_step_refr_2d( ppath_step, a_pressure, a_temperature, a_vmr_list,
-                          refr_index, p_grid, lat_grid, z_field(joker,joker,0),
+                          refr_index, refr_index_agenda,
+                          p_grid, lat_grid, z_field(joker,joker,0),
                        t_field(joker,joker,0), vmr_field(joker, joker,joker,0),
                           r_geoid(joker,0), z_ground(joker,0), 
                                            "linear_euler", lraytrace, lmax ); }
 
   else if( atmosphere_dim == 3 )
     { ppath_step_refr_3d( ppath_step, a_pressure, a_temperature, a_vmr_list,
-                          refr_index, p_grid, lat_grid, lon_grid, z_field, 
+                          refr_index, refr_index_agenda,
+                          p_grid, lat_grid, lon_grid, z_field, 
                           t_field, vmr_field, r_geoid, z_ground, 
                                            "linear_euler", lraytrace, lmax ); }
 
