@@ -406,7 +406,6 @@ function [vdata_id,nrows,ncols] = ...
   % Find the Vdata in the file
   vdata_ref = hdfvs('find',fid,dataname);
   if vdata_ref <= 0
-keyboard
     error(['Cannot find the data ',dataname,' in file ',filename,'. Maybe the file contains data of other type.']);
   end
 

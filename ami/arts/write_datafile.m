@@ -71,7 +71,6 @@ if ~exist('heading')
   heading = []; 
 end
 
-
 %=== Convert ARRAYof to AO and make artstype uppercase
 if strncmp(upper(artstype),'ARRAYOF',7)
   artstype = ['AO',artstype(8:length(artstype))];
@@ -281,7 +280,7 @@ else
   %=== STRING
   elseif strcmp(artstype,'STRING')
     binfile_write(fid,filename,'STRING','STRING','CHAR',x,prec);
-    x = binfile_read_string(filename,fid,'STRING','STRING',0,0);
+    %x = binfile_read_string(filename,fid,'STRING','STRING',0,0);
 
   %=== AOSTRING
   elseif strcmp(artstype,'AOSTRING')

@@ -482,7 +482,7 @@ void los_1za(
 
     // Add psi0 to all elements:
     if ( psi0 != 0 )
-      psi += psi0;			// Matpack can add element-vise like this.
+      psi += psi0;		
   
     start = stop = nz - 1;
   }
@@ -1030,7 +1030,8 @@ void zaFromZtan(
         const Numeric&      z_ground )
 {
   check_lengths( p_abs, "p_abs", z_abs, "z_abs" );  
-  check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
+  if ( refr )
+    check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
 
   const Numeric atm_limit = last(z_abs);
   const Index          nz = z_tan.nelem();
@@ -1101,7 +1102,9 @@ void zaFromDeltat(
 {
   // Checking stuff
   check_lengths( p_abs, "p_abs", z_abs, "z_abs" );  
-  check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
+  if ( refr ) {
+    check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
+  }
   if ( z_tan_lim[0] > z_tan_lim[1] )
     throw runtime_error(
        "The lower tangent latitude is larger than the higher (in z_tan_lim).");
@@ -1173,10 +1176,10 @@ void zaFromDeltat(
       throw runtime_error("The time given is too large to have any cross-link in the given altitude range");  
     const Index np=Index(floor((psibot-psitop)/ang_step));
     // corresponding psi (in that z_tan_lim[1]-z_tan_lim[0])
-    Vector psit(n);
+    Vector psit(np);
     for ( Index j=0;j<np;j++ )
       psit[j]=psibot-j*ang_step;
-
+ 
 
     // ztan for psi for deltat from  psi and ztan for interpolation        
     z_tan_1.resize(np);
@@ -1188,7 +1191,7 @@ void zaFromDeltat(
     // corresponding zenith angles
     zaFromZtan(za, za_str, z_tan_1, z_plat, p_abs, z_abs, refr, refr_index, 
                                                             r_geoid, z_ground);
-  }
+   }
 }
 
 

@@ -49,9 +49,10 @@ if rem(ny,nf) ~= 0
 end
 nza = ny/nf;
 za  = zeros(nza,1);
+
 for i = 1:nza
   za(i) = za_y((i-1)*nf+1);
-  for j = 1:f
+  for j = 1:nf
     ind = (i-1)*nf+j;
     if (f_y(ind)~=f(j)) | (za_y(ind)~=za(i)) 
       error('Incorrect F_Y and/or ZA_Y, all zenith angles must have the same frequencies');
