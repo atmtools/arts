@@ -20,13 +20,13 @@
   \file   vecmat.cc
   \brief  Implementation of some MATRIX/VECTOR functions.
 
-  \author Stefan Buehler
+  \author Stefan Buehler and Patrick Eriksson
   \date   2000-08-16
 */
 
 #include "vecmat.h"
 
-MATRIX emult(const MATRIX &A, const MATRIX &B)
+  MATRIX emult(const MATRIX &A, const MATRIX &B)
   {
     SUBSCRIPT M = A.dim(1);
     SUBSCRIPT N = A.dim(2);
@@ -44,7 +44,7 @@ MATRIX emult(const MATRIX &A, const MATRIX &B)
     return tmp;
   }        
 
-MATRIX ediv(const MATRIX &A, const MATRIX &B)
+  MATRIX ediv(const MATRIX &A, const MATRIX &B)
   {
     SUBSCRIPT M = A.dim(1);
     SUBSCRIPT N = A.dim(2);

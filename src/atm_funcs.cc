@@ -85,6 +85,31 @@ void planck (
 }
 
 
+// number_density (scalar version)
+//
+// Patrick Eriksson 04.09.00
+
+Numeric number_density (
+       const Numeric&   p,
+       const Numeric&   t )
+{
+  return  p/t/BOLTZMAN_CONST;
+}
+
+
+// number_density (vector version)
+//
+// Patrick Eriksson 04.09.00
+
+VECTOR number_density (
+       const VECTOR&    p,
+       const VECTOR&    t )
+{
+  return ediv(p,t)/BOLTZMAN_CONST;
+}
+
+
+
 
 //==========================================================================
 //=== Tangent altitudes.
@@ -120,8 +145,8 @@ void rte_iterate (
              VECTOR&   y,
        const int&      start_index,
        const int&      stop_index,
-       const MATRIX&   Tr,
-       const MATRIX&   S,
+       const MATRIX&   tr,
+       const MATRIX&   s,
        const size_t    n_f )
 {
         size_t   i_f;        // frequency index
@@ -136,7 +161,7 @@ void rte_iterate (
   for ( i_z=start_index; i_z!=(stop_index+i_step); i_z+=i_step ) 
   {
     for ( i_f=1; i_f<=n_f; i_f++ )    
-      y(i_f) = y(i_f)*Tr(i_f,i_z) + S(i_f,i_z) * ( 1.0-Tr(i_f,i_z) );
+      y(i_f) = y(i_f)*tr(i_f,i_z) + s(i_f,i_z) * ( 1.0-tr(i_f,i_z) );
   }
 }
 
@@ -150,37 +175,32 @@ void rte (
              VECTOR&   y,
        const int&      start_index,
        const int&      stop_index,
-       const MATRIX&   Tr,
-       const MATRIX&   S,
+       const MATRIX&   tr,
+       const MATRIX&   s,
        const VECTOR&   y_space,
        const int&      ground,
        const VECTOR&   e_ground,
        const VECTOR&   y_ground )
 {
-  const int   n_f = Tr.dim(1);               // number of frequencies
+  const int   n_f = tr.dim(1);               // number of frequencies
         int   i_f;                           // frequency index
         int   i_break;                       // break index for looping
         int   i_start;                       // variable for second loop
 
-  // If LOS starts at ground, init. with Y_GROUND  
-  if ( start_index == 1 )
-    y = y_ground;
-
-  // If LOS starts in space, init with Y_SPACE
-  else
-    y = y_space;
+  // Init Y with Y_SPACE
+  y = y_space;
 
   // Check if LOS inside the atmosphere (if START_INDEX=0, Y=Y_SPACE)
   if ( start_index > 0 )
   {
-    // Determine break index for looping
+    // Determine break index for looping, either 1 or the ground
     if ( ground > 0 )
       i_break = ground;
     else
       i_break = 1;       
 
     // Make first loop
-    rte_iterate( y, start_index-1, i_break, Tr, S, n_f );
+    rte_iterate( y, start_index-1, i_break, tr, s, n_f );
 
     // We are now at the sensor, the ground or the tangent point
     // We are ready only if we are at the sensor.
@@ -206,7 +226,7 @@ void rte (
       }
 
       // Make second loop
-      rte_iterate( y, i_start, i_break, Tr, S, n_f );
+      rte_iterate( y, i_start, i_break, tr, s, n_f );
 
     } // second part
   } // if any values
@@ -222,7 +242,7 @@ void bl_iterate (
              VECTOR&   y,
        const int&      start_index,
        const int&      stop_index,
-       const MATRIX&   Tr,
+       const MATRIX&   tr,
        const size_t    n_f )
 {
         size_t   i_f;        // frequency index
@@ -237,7 +257,7 @@ void bl_iterate (
   for ( i_z=start_index; i_z!=(stop_index+i_step); i_z+=i_step ) 
   {
     for ( i_f=1; i_f<=n_f; i_f++ )    
-      y(i_f) *= Tr(i_f,i_z);
+      y(i_f) *= tr(i_f,i_z);
   }
 }
 
@@ -251,30 +271,27 @@ void bl (
              VECTOR&   y,
        const int&      start_index,
        const int&      stop_index,
-       const MATRIX&   Tr,
+       const MATRIX&   tr,
        const int&      ground,
        const VECTOR&   e_ground )
 {
-  const int   nf = Tr.dim(1);          // number of frequencies
-  //        int   j;                       // LOS index   
+  const int   nf = tr.dim(1);          // number of frequencies
         int   iy;                      // frequency index
 
   // Init Y
   y.newsize(nf);
-  y = 1;
+  y = 1.0;
 
   // Loop steps passed twice
   if ( stop_index > 1 )
   {
-    bl_iterate( y, 1, stop_index-1, Tr, nf );
+    bl_iterate( y, 1, stop_index-1, tr, nf );
     y = emult( y, y );  
   }
 
   // Loop remaining steps
   if ( start_index != stop_index )
-  {
-    bl_iterate( y, stop_index, start_index-1, Tr, nf );
-  }
+    bl_iterate( y, stop_index, start_index-1, tr, nf );
 
   // Include effect of ground reflection
   if ( ground )

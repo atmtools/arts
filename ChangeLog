@@ -1,3 +1,44 @@
+2000-09-12  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-44
+
+	* The definition of the source function along the LOS is changed.
+	The source function is now defined following the absorption.
+	The source functions values are now determined at the LOS points.
+	The source functions for a LOS step is calculated as the mean
+	of the values at the end points of the step. 
+        This change was made to get a similar treatment of the absorption and
+	the source function. This is of great help for the analytical WFs.
+	See further AUG.
+
+	* Analytical WFs for species, continuum absorption and temperature
+	(without hydrostatic eq.) are now ready. See some examples
+ 	on how to use the function in:
+           arts/doc/examples/full.arts
+	I have made some quick tests of the WFs. The agreement when disturbing
+	the absorption and the temperature with the WFs was excellent. However,
+	I have only tested a single upward looking case and there could be 
+	bugs. I prefer to wait to do further testing until I am sure that this
+	is the final version. 
+
+	* Ground reflections now handled for correctly (hopefully), both for
+	1D and 2D cases. Ground reflections also included in the analytical
+	WFs.
+	
+	* AUG (ARTS user guide) is updated and extended to reflect the 
+	changes above and several minor errors fixed.
+
+	* WFs are now appended to the total K matrix. Before starting WF 
+	calculations, the function kInit shall be called. As a help for
+	non-linear inversions and to display results, there are now some
+	help variables for the K matrix, giving index, names, a priori value,
+	and retrieval grid for the different retrieval identities (e.g. a 
+	species profile). However, the k_names cannot be stored as this is
+	an ARRAYofstring. This is so far not included in AUG.
+
+	* New workspace variable type: ARRAYofstring
+
+	
 2000-08-31  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-43

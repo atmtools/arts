@@ -510,7 +510,7 @@ void define_md_data()
           "Refraction is selected by a flag and the refraction variables\n"
           "must be set when using this function. The ground altitude must\n"
           "also be specified."),
-	OUTPUT(los_),
+	OUTPUT( los_ ),
 	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, 
                refr_, l_step_refr_, refr_index_, z_ground_ ),
 	GOUTPUT(),
@@ -524,7 +524,7 @@ void define_md_data()
   	DESCRIPTION(
           "Determines the LOS for a 1D atmosphere without refraction.\n"
           "The ground altitude must be specified."),
-	OUTPUT(los_),
+	OUTPUT( los_ ),
 	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, z_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -535,10 +535,12 @@ void define_md_data()
     ( MdRecord
       ( NAME("los1dUpward"),
   	DESCRIPTION(
-          "Determines the LOS for a 1D atmosphere for upward observations,\n"
-          "neglecting refraction.\n"
+          "Determines the LOS for a 1D atmosphere when neglecting refraction\n"
+          "and there is no ground intersections. The typical case is upward\n"
+          "observations, but the function could also be of interest for limb\n"
+          "sounding observations above about 20 km.\n"
           "Refraction and ground altitude variables are NOT needed."),
-	OUTPUT(los_),
+	OUTPUT( los_ ),
 	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -682,11 +684,88 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("klos1dNoGround"),
+  	DESCRIPTION(
+          "As klos1D but does not need any ground variables"),
+	OUTPUT( klos_ ),
+	INPUT( los_, source_, trans_, y_, y_space_, f_mono_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kInit"),
+  	DESCRIPTION(
+          "Init. the weighting function matrix (k) and help variables\n"
+          "(k_names, k_index and k_aux).\n"
+          "Use this function before the WF calculations starts, or to empty\n"
+          "an existing WF matrix"),
+	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("kSpecies1d"),
   	DESCRIPTION(
-          "Calculates species weighting functions for 1D."),
-	OUTPUT( k_ ),
-	INPUT( los_, klos_, p_abs_, abs_, k_grid_ ),
+          "Calculates species 1D weighting functions for a single tag.\n"
+          "The tag is selected by the parameter nr, which is the position\n"
+          "for the tag in abs_per_tg.\n"
+          "The avaliable units are\n"
+          "  1 fractions of linearisation state \n"
+          "  2 volume mixing ratio \n"
+          "  3 number density"),
+	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	INPUT( los_, klos_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
+                                                              vmrs_, k_grid_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "nr",   "unit"  ),
+	TYPES(    int_t,  int_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kSpecies1dAll"),
+  	DESCRIPTION(
+          "Calculates species 1D weighting functions for all tags that\n"
+          "are included in abs_per_tg. Otherwise as kSpecies1D"),
+	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	INPUT( los_, klos_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
+                                                              vmrs_, k_grid_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "unit"  ),
+	TYPES(    int_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kContAbs1d"),
+  	DESCRIPTION(
+          "Calculates 1D weighting functions for polynomial fit of continuum\n"
+          "absorption. The continuum is fitted be determining an off-set at\n"
+          "a number of points (npoints) that are evenly spread between the\n"
+          "lowest and hihest frequency of f_mono."),
+	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	INPUT( los_, klos_, f_mono_, k_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "order" ),
+	TYPES(    int_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kTempNoHydro1d"),
+  	DESCRIPTION(
+          "Calculates temperature 1D weighting functions WITHOUT including\n"
+          "hydrostatic equilibrium."),
+	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	INPUT( los_, klos_, f_mono_, p_abs_, t_abs_, vmrs_, lines_per_tg_, 
+                        abs_, trans_, e_ground_, t_ground_, k_grid_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

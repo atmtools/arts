@@ -76,6 +76,16 @@ void define_wsv_data()
       "is associated with each tag group.", 
       TagGroups_));
 
+  wsv_data.push_back
+    (WsvRecord
+     ("lineshapes",
+      "Indices of lineshape functions. There is one entry for\n"
+      "each abs_tag, not for each species. This means if you have several\n"
+      "abs_tags for different isotopes or transitions of a species, you\n"
+      "may use different lineshapes.",
+      ARRAYofsizet_));
+
+
   //--------------------< 1D Input Atmosphere Stuff >--------------------
   //                     ---------------------------
   wsv_data.push_back
@@ -99,6 +109,7 @@ void define_wsv_data()
       "\n"
       "The array dimension is determined by the number of tag groups.", 
       ARRAYofMATRIX_));
+
 
   //--------------------< General Absorption Stuff >--------------------
   //                     --------------------------
@@ -297,13 +308,41 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("k_grid",
-      "Grid for the weighting function matrix to be calculated.",
+      "Grid for the retrieval identity for which weighting functions (WFS)\n"
+      "shall be calculated. For example, pressure altitude grid for species\n"
+      "WFs.",
       VECTOR_));
 
   wsv_data.push_back
     (WsvRecord
      ("k",
-      "A weighting function matrix.",
+      "The weighting function (WF) matrix.",
+      MATRIX_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("k_names",
+      "Name on each retrieval identity of the weighting function matrix.",
+      ARRAYofstring_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("k_index",
+      "This is a two-column matrix holding first and last index of the state\n"
+      "vector for each retrieval identity. That is, each row corresponds to\n"
+      "a retrieval identity, as [i_first,i_last].",
+      MATRIX_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("k_aux",
+      "Auxiliary data for the weighting function matrix. The number of rows\n"
+      "equals the length of the state vector (the number of columns of K).\n"
+      "The columns hold different quantities:\n"
+      "  Col 1: retrieval grid (or correspondingly)\n"
+      "  Col 2: a priori values\n"
+      "  Col 3: volume mixing ratios\n"
+      "More comments!!",
       MATRIX_));
 
   wsv_data.push_back
@@ -311,16 +350,6 @@ void define_wsv_data()
      ("h",
       "The instrument matrix. Patrick, please put more information here.",
       SPARSEMATRIX_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("lineshapes",
-      "Indices of lineshape functions. There is one entry for\n"
-      "each abs_tag, not for each species. This means if you have several\n"
-      "abs_tags for different isotopes or transitions of a species, you\n"
-      "may use different lineshapes.",
-      ARRAYofsizet_));
-
 
   //  cout << "size = " << wsv_data.size() << '\n';
 }

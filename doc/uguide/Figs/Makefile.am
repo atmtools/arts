@@ -25,6 +25,8 @@ EXTRA_DIST = \
 	generic_method.eps \
 	geoms.eps \
 	geoms.fig \
+	ground.eps \
+	ground.fig \
 	kpol.eps \
 	kpol.fig \
 	los.eps \

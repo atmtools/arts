@@ -74,6 +74,8 @@ dnl         doc/doc++/tex/Makefile
 AC_OUTPUT( 
 Makefile 
    ami/Makefile 
+      ami/general/Makefile
+      ami/hmatrix/Makefile 
    doc/Makefile 
    doc/index.html
       doc/icons/Makefile 

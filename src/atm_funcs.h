@@ -50,6 +50,28 @@ void planck (
         const Numeric&    t );
 
 
+/** Calculates the number density (scalar version)
+
+    @return         number density
+    @param  p       pressure
+    @param  t       temperature
+
+    @author Patrick Eriksson 04.08.2000 */
+Numeric number_density (
+       const Numeric&   p,
+       const Numeric&   t );
+
+/** Calculates the number density (vector version)
+
+    @return nd      number density
+    @param  p       pressure
+    @param  t       temperature
+
+    @author Patrick Eriksson 04.08.2000 */
+VECTOR number_density (
+       const VECTOR&    p,
+       const VECTOR&    t );
+
 
 //==========================================================================
 //=== Tangent altitudes.

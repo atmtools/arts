@@ -11,7 +11,13 @@ artsdocdir = $(pkgdatadir)/doc
 
 thisdocdir = $(artsdocdir)/examples
 
-thisdoc_DATA = example1.arts full.arts h2o.arts h2o.abs.am h2o.f_abs.am h2o.t_abs.am
+thisdoc_DATA = 
+	example1.arts \
+	full.arts \
+	h2o.arts \
+	h2o.abs.am \
+	h2o.f_mono.am \
+	h2o.t_abs.am
 
 EXTRA_DIST   = $(thisdoc_DATA)
 

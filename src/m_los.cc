@@ -57,9 +57,9 @@ extern const Numeric SUN_TEMP;
 
 void upward_geom(
               VECTOR&       z,
+              Numeric&      l_step,
         const Numeric&      z_plat,
         const Numeric&      za,
-        const Numeric&      l_step,
         const Numeric&      z_abs_max )
 {
   Numeric  a, b;          // temporary values
@@ -72,14 +72,13 @@ void upward_geom(
   a     = EARTH_RADIUS + z_abs_max;
   b     = (EARTH_RADIUS + z_plat)*sin(DEG2RAD*za);
   llim  = sqrt(a*a-b*b) - (EARTH_RADIUS+z_plat)*cos(DEG2RAD*za) ;
-  if ( llim < l_step )  
-    z.newsize(0);         // If only one point, return empty vector
-  else
-  {
-    l = linspace( 0, llim, l_step );
-    b = EARTH_RADIUS + z_plat;  
-    z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*za))*l) - EARTH_RADIUS;
-  }
+
+  if ( llim < l_step )   // Handle the rare case that llim < l_step
+    l_step = llim*0.999; // *0.999 to avoid problem in interpolations
+
+  l = linspace( 0, llim, l_step );
+  b = EARTH_RADIUS + z_plat;  
+  z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*za))*l) - EARTH_RADIUS;
 }
 
 
@@ -93,8 +92,8 @@ void upward_geom(
 
 void space_geom(
                VECTOR&     z,
+               Numeric&    l_step,
          const Numeric&    z_tan,
-         const Numeric&    l_step,
          const Numeric&    z_abs_max,
          const Numeric&    z_ground )
 {
@@ -112,13 +111,13 @@ void space_geom(
     a    = EARTH_RADIUS + z_abs_max;
     b    = EARTH_RADIUS + z_tan;
     llim = sqrt( a*a - b*b );        
-    if ( llim >= 2*l_step )       // There must be at least 2 points
-    {
-      linspace( l, 0, llim, l_step );
-      z = sqrt(b*b+emult(l,l)) - EARTH_RADIUS; 
-    }
-    else
-      z.newsize(0);               // If only 1 point, return empty vector
+
+    if ( llim < l_step )   // Handle the rare case that llim < l_step
+      l_step = llim*0.999; // *0.999 to avoid problem in interpolations
+
+
+    linspace( l, 0, llim, l_step );
+    z = sqrt(b*b+emult(l,l)) - EARTH_RADIUS; 
   }   
 
   // Intersection with the ground
@@ -126,7 +125,7 @@ void space_geom(
   {
     // Determine the "zenith angle" at ground level and call upward function 
     Numeric za = RAD2DEG*asin((EARTH_RADIUS+z_tan)/(EARTH_RADIUS+z_ground));
-    upward_geom( z, z_ground, za, l_step, z_abs_max );    
+    upward_geom( z, l_step, z_ground, za, z_abs_max );    
   }
 }
 
@@ -152,16 +151,17 @@ void los_no_refr_space(
               const Numeric&    z_ground )
 {
   Numeric z_tan;           // the tangent altitude
-  int     n = za.dim();  // the number of zenith angles
+  int     n = za.dim();    // the number of zenith angles
 
-  // The step length is here throughout l_step
+  // Set all step lengths to the user defined value as a first guess.
+  // Note that the step length can be changed in SPACE_GEOM.
   los.l_step = l_step;
 
   // Loop the zenith angles
   for ( int i=1; i<=n; i++ )
   { 
     z_tan = ztan_geom( za(i), z_plat);
-    space_geom( los.p(i), z_tan, l_step, z_abs_max, z_ground );
+    space_geom( los.p(i), los.l_step(i), z_tan, z_abs_max, z_ground );
     los.start(i)  = los.p(i).dim();
     los.stop(i)   = los.start(i);
     if ( z_tan >= z_ground )
@@ -189,7 +189,11 @@ void los_no_refr_inside(
               const Numeric&    z_ground )
 {
   Numeric z_tan, a, b, c, l1;  // see below
-  int     n = za.dim();      // the number of zenith angles
+  int     n = za.dim();        // the number of zenith angles
+
+  // Set all step lengths to the user defined value as a first guess.
+  // Note that the step length can be changed in UPWARD_GEOM.
+  los.l_step = l_step;
 
   // Loop the zenith angles
   for ( int i=1; i<=n; i++ )
@@ -197,8 +201,7 @@ void los_no_refr_inside(
     // Upward
     if ( za(i) <= 90 )
     {
-      upward_geom( los.p(i), z_plat, za(i), l_step, z_abs_max );    
-      los.l_step(i) = l_step;           // l_step not changed
+      upward_geom( los.p(i), los.l_step(i), z_plat, za(i), z_abs_max );    
       los.start(i)  = los.p(i).dim();   // length of LOS
       los.stop(i)   = 1;                // stop index here always 1
       los.ground(i) = 0;                // no ground intersection
@@ -219,7 +222,7 @@ void los_no_refr_inside(
         // Adjust l_step downwards to get an integer number of steps
 	los.stop(i)   = (int) ceil( l1 / l_step + 1.0 );  
 	los.l_step(i) = l1 / ( (Numeric)los.stop(i) - 1.0 );
-	space_geom( los.p(i), z_tan, los.l_step(i), z_abs_max, z_ground );
+	space_geom( los.p(i), los.l_step(i), z_tan, z_abs_max, z_ground );
         los.start(i)  = los.p(i).dim();
         los.ground(i) = 0;                // no gound intersection
       }   
@@ -234,7 +237,8 @@ void los_no_refr_inside(
         // Adjust l_step downwards to get an integer number of steps
 	los.stop(i)   = 1 + (int) ceil( l1 / l_step );
 	los.l_step(i) = l1 / ( (double)los.stop(i) - 1.0 );
-	upward_geom(los.p(i),z_ground,RAD2DEG*asin(c/a),los.l_step(i),z_abs_max);
+	upward_geom( los.p(i), los.l_step(i), z_ground, RAD2DEG*asin(c/a),
+                                                                   z_abs_max);
         los.start(i)  = los.p(i).dim();
         los.ground(i) = 1;                // ground at index 1
       }
@@ -294,9 +298,13 @@ void los1d(
   else
     throw runtime_error("The refraction flag can only be 0 or 1.");
   out3 << "     z_plat: " << z_plat/1e3 << " km\n";
-  out3 << "     min za: " << min(za) << " degs.\n";
-  out3 << "     max za: " << max(za) << " degs.\n";
-
+  if ( n == 1 )
+    out3 << "         za: " << za(1) << " degs.\n";
+  else
+  {
+    out3 << "     min za: " << min(za) << " degs.\n";
+    out3 << "     max za: " << max(za) << " degs.\n";
+  }
 
   // Without refraction
   if ( refr == 0 )
@@ -316,7 +324,7 @@ void los1d(
   // With refraction
   else
   {
-  }
+  }  
 }
 
 
@@ -370,35 +378,40 @@ void source1d(
               const VECTOR&          t_abs,
               const VECTOR&          f_mono )
 {     
-        VECTOR   t1, t2;             // temperatures along the LOS
-  const size_t   n=los.start.dim();  // the number of zenith angles  
-        size_t   j, n1;              // n1 is the number of pressure points
+        VECTOR   tlos;                 // temperatures along the LOS
+  const size_t   nza=los.start.dim();  // the number of zenith angles  
+  const size_t   nf=f_mono.dim();      // the number of frequencies
+        size_t   nlos;                 // the number of pressure points
+        MATRIX   b;                    // the Planck function for TLOS  
+        size_t   iv, ilos;             // frequency and LOS point index
 
   out2 << "  Calculating the source function for LTE and no scattering.\n";
  
   // Resize the source array
-  source.newsize(n);
+  source.newsize(nza);
 
   // Loop the zenith angles and:
   //  1. interpolate the temperature
-  //  2. take the mean of neighbouring values
-  //  3. calculate the Planck function
+  //  2. calculate the Planck function for the interpolated temperatures
+  //  3. take the mean of neighbouring Planck values
   out3 << "    Zenith angle nr:\n      ";
-  for (size_t i=1; i<=n; i++ ) 
+  for (size_t i=1; i<=nza; i++ ) 
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
-    out3 << " " << i;
-    // Put in command to flush output stream
+    out3 << " " << i; cout.flush();
 
     if ( los.p(i).size() > 0 )
     {
-      interpp( t1, p_abs, t_abs, los.p(i) );
-      n1 = t1.dim();
-      t2.newsize(n1-1);
-      for ( j=1; j<n1; j++ )
-        t2(j) = ( t1(j) + t1(j+1) ) / 2.0;
-      planck( source(i), f_mono, t2 );
+      interpp( tlos, p_abs, t_abs, los.p(i) );
+      nlos = tlos.dim();
+      planck( b, f_mono, tlos );
+      source(i).newsize(nf,nlos-1);
+      for ( ilos=1; ilos<nlos; ilos++ )
+      {
+        for ( iv=1; iv<=nf; iv++ )
+          source(i)(iv,ilos) = ( b(iv,ilos) + b(iv,ilos+1) ) / 2.0;
+      }
     }
   }  
   out3 << "\n";
@@ -437,9 +450,8 @@ void trans1d(
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
-    out3 << " " << i;
-    // Put in command to flush output stream
-
+    out3 << " " << i; cout.flush();
+    
     np = los.p(i).dim();
     if ( np > 0 )
     {
@@ -553,9 +565,8 @@ void yRte (
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
-    out3 << " " << i;
-    // Put in command to flush output stream
-
+    out3 << " " << i; cout.flush();
+    
     // Iteration is done in seperate function    
     rte( y_tmp, los.start(i), los.stop(i), trans(i), 
                  source(i), y_space, los.ground(i), e_ground, y_ground);
@@ -627,9 +638,8 @@ void yBl (
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
-    out3 << " " << i;
-    // Put in command to flush output stream
-
+    out3 << " " << i; cout.flush();
+    
     // Iteration is done in seperate function    
     bl( y_tmp, los.start(i), los.stop(i), trans(i), los.ground(i), e_ground );
 

@@ -56,6 +56,8 @@
 
 function [H,f_y,za_y,Hd] = hBinFile(H,f_y,za_y,Hd,filename)
 
+disp('WARNING, this function does so far not consider the channel widths');
+
 
 %=== Check F_Y and ZA_Y
 ny  = length(f_y);     % total length

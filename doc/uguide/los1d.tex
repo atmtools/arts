@@ -5,7 +5,7 @@
 %  \levelb{...}
 %  \levelc{...}
 %
-\levela{Determination of the line of sight, 1D}
+\levela{Line of sight, 1D}
  \label{sec:los}
 
 
@@ -32,7 +32,7 @@
 %
 %
 \startsymbols
-  \view     & \verb|view|     & viewing angle from zenith                  \\
+  \view     & \verb|view|     & zenith angle from zenith                  \\
   $z$       & \verb|z|       & vertical altitude                          \\
   $z_p$     & \verb|z_plat|  & platform altitude                          \\
   $z_t$     & \verb|z_tan|   & tangent altitude                           \\
@@ -53,45 +53,45 @@
 % Introduction
 %
 This section describes how the line of sight (LOS) can be determined
-for situations where the atmosphere is assumed to be totally horizontally
-stratified, a 1D atmosphere. Expressions are given both for
-pure geometrical calculations and when considering refraction.
+for situations where the atmosphere is assumed to be horizontally
+stratified, a 1D atmosphere. Expressions are given both for pure
+geometrical calculations and when considering refraction.
 
 
 
 \levelb{Definitions}
- \label{sec:rte:defs}
+ \label{sec:los:defs}
  
- Vertical altitudes are denoted as $z$ and distances along the LOS are
- denoted as $l$. Vertical distances are measured from the geoid and $l$
- is the distance from the lowest point of the LOS.
+ Vertical (geometrical) altitudes are denoted as $z$, pressures as $p$
+ and distances along the LOS are denoted as $l$. Vertical distances
+ are measured from the geoid and $l$ is the distance from the lowest
+ point of the LOS.
  
- As an 1D atmosphere is assumed, the conditions are symmetrical around
- tangent points and points of ground reflection, and inside the
- forward model only the needed part of the LOS is stored.  The points
- of the LOS are stored by increasing vertical altitude, that is, the first
- point is the lowest point of the LOS. Index 1 corresponds accordingly
- to either the platform, the tangent point or the ground.  The
- internal description of the LOS is further described in the file
- \verb|workspace.h|.
+ As a 1D atmosphere is assumed here, the conditions are symmetrical
+ around tangent points and points of ground reflection, and, for such
+ cases, only one half of the LOS is stored for efficiency reasons.
+ The points of the LOS are stored by increasing vertical altitude
+ point. Index 1 corresponds accordingly to either the platform, the
+ tangent point or the ground.  The internal description of the LOS is
+ further described in the file \verb|los.h|.
   
  The line of sight is defined by two variables, the platform altitude,
- $z_p$, and the viewing angle, $\view$, (see Fig. \ref{fig:los1d:geoms}):
+ $z_p$, and the zenith angle, $\view$, (see Fig. \ref{fig:los1d:geoms}):
 
  \begin{description}
   \item[The platform altitude] is the altitude above the geoid of the
        sensor used to detect the spectrum simulated.
-  \item[The viewing angle] is the angle between the zenith
+  \item[The zenith angle] is the angle between the zenith
        direction and the direction of observation. As an 1D atmosphere is
        assumed, there is no difference between positive and negative
-       viewing angles.
+       zenith angles.
   \end{description}
 
   \noindent
   The lower limit of the atmosphere is given by the ground altitude,
   $z_g$. The practical upper limit of the atmosphere is denoted
   $z_{lim}$ and is in the forward model determined by the highest
-  point of the absorption grid. Note that the absorption grid can
+  point of the absorption grid. The absorption grid can
   extend below $z_g$. On the other hand, it is not allowed that any
   part of the LOS is between the lowest absorption altitude and the ground.
  
@@ -115,21 +115,43 @@ pure geometrical calculations and when considering refraction.
   The forward model uses internally three main observation geometries:
 
   \begin{description}
-    \item[Upward looking] signifies observation from within the atmosphere 
-      in an upward direction ($z_p<z_{lim}$ and $\view\leq90^{\circ}$).
-    \item[Limb Sounding] covers here all observations from a point
-      outside the atmosphere ($z_p \geq z_{lim}$). All viewing angles
-      are covered, and, for example, nadir looking observations
-      ($\view=180$) are treated as limb sounding in the forward model.
-      If the LOS does not pass the atmosphere ($z_{tan} \geq z_{lim}$), cosmic
-      background radiation or zero is returned.
-    \item[Downward looking] is observation from within the atmosphere in a
-      downward direction ($z_p<z_{lim}$ and $\view>90^{\circ}$).
+  \item[Upward looking] signifies observation from
+    within the atmosphere in an upward direction ($z_p<z_{lim}$ and
+    $\view\leq90^{\circ}$). 
+  \item[Limb sounding] covers here all observations from a point
+    outside the atmosphere ($z_p \geq z_{lim}$). All zenith angles are
+    covered, and, for example, nadir looking observations
+    ($\view=180$) are treated as limb sounding in the forward model.
+    If the LOS does not pass the atmosphere ($z_{tan} \geq z_{lim}$),
+    cosmic background radiation, or correspondingly, is returned.
+  \item[Downward looking] is observation from within the atmosphere in
+    a downward direction ($z_p<z_{lim}$ and $\view>90^{\circ}$).
   \end{description}
  
 
+\levelb{Outlook towards 2D}
+ \label{sec:los:2d}
+ So far ARTS is only capable of calculating spectra for 1D cases.
+ It is planned to also handle satellite measurements with atmospheric 
+ horizontal variations, but limited to observations in the orbit
+ plane, here denoted as 2D observations. 
+ 
+ For 2D observations there is no symmetry to be used, each point of
+ the LOS is unique. This is also the case for 1D upward looking
+ observations, and it is planned that 2D and 1D upward calculations of
+ radiative transfer and weighting functions shall be performed with
+ the same general functions.  The 2D case exhibits however one
+ difference compared to the 1D upward case. For 2D cases there could
+ be a ground reflection along the LOS, which is never the case for 1D
+ upward looking observations by definition. This question is discussed
+ a bit further in Section \ref{sec:los:ground}. Note that if the 1D
+ upward functions are used for 2D simulations, the point of LOS
+ closest to the sensor will throughout have index 1.
+
+
  
 \levelb{The step length}
+ \label{sec:rte:stepl}
  
  As described in Section \ref{sec:rte}, the LOS is divided into equal
  long geometrical steps, $\Delta l$. The user gives an upper limit for
@@ -137,20 +159,26 @@ pure geometrical calculations and when considering refraction.
  (if inside the atmosphere), tangent points and points of ground
  reflection, but no adjustment to the upper atmospheric limit is made.
  This gives a single fixed point for limb sounding and upward looking
- observation and $\Delta l$ is set to the value given by the user.
- On the other hand, for downward observations there are two fixed points 
- inside the atmosphere (the platform and the tangent point, or the point of
- ground reflection) and $\Delta l$ is here adjusted
- according to the the distance between these two points. See further
- Section \ref{sec:los:down}.
+ observation and $\Delta l$ is set to the value given by the user if
+ the LOS has at least two definition points. If the LOS gets only one
+ point with the user defined value, for example when the tangent point
+ is just below the atmospheric limit, the step length is adjusted to
+ the length from the fixed point of the LOS (the sensor or the tangent 
+ point) and the atmospheric limit.
+ 
+ In contrast to upward and limb sounding observations, for downward
+ observations there are two fixed points inside the atmosphere (the
+ platform and the tangent point, or the point of ground reflection)
+ and $\Delta l$ is here adjusted according to the the distance between
+ these two points. See further Section \ref{sec:los:down}.
 
 
 
 \levelb{Geometrical calculations}
   
-  The equations of this section are described further, both in text
- and by figures (with a slightly different notation and definitions
- of the viewing angle) in Section 4 of \citet{eriksson:97a}.
+ Most of the equations of this section are described further, both in text
+ and by figures (with a slightly different notation and definition
+ of the zenith angle) in Section 4 of \citet{eriksson:97a}.
 
  \levelc{Upward looking}   
   \label{sec:los:up}
@@ -181,21 +209,24 @@ pure geometrical calculations and when considering refraction.
   \end{equation}
   This relationship holds even if $z_t<z_g$. Note that
   $\sin(180^\circ-\view)=\sin(\view)$ and it must be checked that
-  $\view\geq90^\circ$. Viewing angles $<90^\circ$ correspond to an
-  imaginary tangent point behind the sensor, and is treated as an
-  observation into the space.
+  $\view\geq90^\circ$. Zenith angles $<90^\circ$ correspond to an
+  imaginary tangent point behind the sensor, and are treated as
+  observations into the space.
   
   The Pythagorean relation gives the distance from the tangent point
   to the atmospheric limit:
   \begin{equation}
       l_{lim} = \sqrt{ (R_e+z_{lim}) - (R_e+z_t)}
   \end{equation}
+  If $l_{lim}$ is smaller than upper limit for $\Delta l$ specified by
+  the user, $\Delta l$ is set to $l_{lim}$ as also described in Section
+  \ref{sec:rte:stepl}.
+
   The vertical altitude as a function of the distance from the
   tangent point is
   \begin{equation}
     z = \sqrt{ (R_e+z_t) + l^2} - R_e
   \end{equation}
-
   If the tangent point is below ground, the LOS is determined by the
   upward expressions (Sec. \ref{sec:los:up}) by setting
   \begin{eqnarray}
@@ -238,7 +269,7 @@ pure geometrical calculations and when considering refraction.
     \Delta l = \frac{l_{lim}}{m-1}
   \label{eq:los:dl}
  \end{equation} 
- If the tangent altitude is above the ground ($z_{tan} \geq z_t$), the
+ If the tangent altitude is above the ground ($z_{tan} \geq z_t$),
  the LOS is determined by the same expressions as applied for limb
  sounding, but with the adjusted value for $\Delta l$.
  If there is an intersection with the ground, the upward
@@ -246,13 +277,57 @@ pure geometrical calculations and when considering refraction.
  again with the adjusted value for $\Delta l$.
 
 
+ \levelb{Ground intersections}
+  \label{sec:los:ground}
+  
+  Ground reflections are indicated by a special flag. This flag is
+  zero when there is no ground intersection or gives the index of the
+  LOS point corresponding to the ground, $i_g$. For 1D calculations,
+  $i_g$ is either 0 or 1, as index 1 is here defined to always be the
+  lowest altitude of the LOS. However, to pave the way for 2D
+  calculations, cases where the ground is placed at other positions
+  than index 1 are handled.
+  
+  For 1D cases, where only half of the total LOS is stored and the
+  ground can only have index 1 ($i_g=1$), the effect of a ground
+  reflection (Eq. \ref{eq:rte:ground}) is put in when reversing the
+  loop order.  Accordingly, the calculation order is: ... step2, step
+  1, ground, step 1, step 2, ... Ground reflections for 1D cases are
+  treated internally in ARTS by the limb sounding functions.
+  
+  \begin{figure}
+   \begin{center}
+    \includegraphics*[width=0.75\hsize]{Figs/ground.eps}
+    \caption{Schematic of ground reflections for 2D cases. The index 
+             of the point corresponding to the ground is $i_g$. Point 1
+             of the LOS is the point closest to the sensor. }  
+    \label{fig:los1d:ground}  
+   \end{center}
+  \end{figure}
+ 
+  When solving the radiative transfer (Eq. \ref{eq:rte:iteration}) for
+  2D cases, the ground reflection is treated between evaluating step
+  $i_g$ and $i_{g-1}$ (the iteration goes from $n$ to 1), as shown in
+  Figure \ref{fig:los1d:ground}.  Ground reflections for 2D cases are
+  treated internally in ARTS by the upward looking functions (Sec.
+  \ref{sec:los:2d}).
+  
+  
+  
+ \levelb{With refraction}
+
+  Refraction is so far not implemented in ARTS. A possible scheme for 
+  the refraction calculations is found in \citet{eriksson:97a}.
+  
+  (I have now a new, very nice, idea that should make, at least, the
+  1D calculations very simple. I should implement this ASAP Patrick 000908)
 
 %\levelb{The geometrical term}
 % \label{sec:los:gterm}
 %
 % !! The new scheme for WF do not use the geometrical term. Is there
 % another good approach for refraction that also works for 2D. Check Kyle.
-% Accordingly, this section is maybe obselete.!!
+% Accordingly, this section is maybe obsolete.!!
 %  
 % The equations above could be determined from trigonometric
 % relationships as they not consider refraction. To include the
@@ -391,7 +466,7 @@ pure geometrical calculations and when considering refraction.
 %  $0, \Delta l, 2\Delta l,\dots$ to yield the final refracted vertical
 %  altitudes of LOS.
 %    
-%  If the viewing angle is very close to $90^\circ$ ($\geq
+%  If the zenith angle is very close to $90^\circ$ ($\geq
 %  89.999^\circ$), then the limb sounding function is called (with $z_t
 %  \gets z_p$).
 %
@@ -424,7 +499,7 @@ pure geometrical calculations and when considering refraction.
 %  geometrical continuation of the LOS is assumed inside the Earth. This
 %  tangent altitude can be determined by calling the function that
 %  calculates the tangent altitude geometrically, where the platform
-%  altitude and the viewing angle is set to
+%  altitude and the zenith angle is set to
 %  \begin{eqnarray}
 %    z_p  & \gets & z_g \nonumber \\
 %     \view & \gets & \pi-\sin^{-1}\left(\frac{c}{(R_e+z_g)n(z_g)}\right) 

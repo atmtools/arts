@@ -7,14 +7,20 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-amidir     = $(pkgdatadir)/ami
+
+SUBDIRS        = general hmatrix
+
+
+amidir        = $(pkgdatadir)/ami
 
 ami_DATA = \
 arts.m \
+hread_artsvar.m \
 init.m \
-read_arts.m \
-read_tb.m \
+read_artsvar.m \
+read_datafile.m \
 startup.m \
-write_arts.m
+write_artsvar.m \
+write_datafile.m 
 
 EXTRA_DIST = $(ami_DATA)

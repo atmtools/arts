@@ -1,49 +1,47 @@
 # Spectroscopy:
-linesReadFromHitran 	    	{ filename = "../../data/spectroscopy/hitran96/hitran96_h2o.par"
-		    	    	  fmin     = 0e9
-                    	    	  fmax     = 184e9 }
+linesReadFromHitran 	    	{ filename = "/u/patrick/arts/data/spectroscopy/hitran96/hitran96_h2o.par"
+		    	    	  fmin     = 20e9
+                    	    	  fmax     = 30e9 }
 tag_groupsDefine    	    	{ ["H2O"] }
 lines_per_tgCreateFromLines 	{}  
 
 
 # Model Atmosphere:
-MatrixReadFromFile (raw_ptz_1d) { "../../data/atmosphere/fascod/midlatitude-winter.tz.am" }
-raw_vmrs_1dReadFromScenario     { "../../data/atmosphere/fascod/midlatitude-winter" }
+MatrixReadFromFile (raw_ptz_1d) { "/u/patrick/arts/data/atmosphere/fascod/midlatitude-winter.tz.am" }
+raw_vmrs_1dReadFromScenario     { "/u/patrick/arts/data/atmosphere/fascod/midlatitude-winter" }
 
 
 # Absorption
 VectorNLogSpace (p_abs)    { start = 1.013300e+05
                              stop  = 0.0914023919463313
-                             n     = 187 }
-VectorWriteToFile (p_abs)  {""}
+                             n     = 201 }
 AtmFromRaw1D               {}
+VectorWriteToFile (p_abs)  {""}
+VectorWriteToFile (t_abs)  {""}
+ArrayOfVectorWriteToFile (vmrs) {""}
 VectorWriteToFile (z_abs)  {""}
 VectorLinSpace (f_mono)    { start = 22.188e+9
                              stop  = 22.270e+9
-#                             n     = 1164 
 		             step  = 1e5       }
 VectorWriteToFile (f_mono) {""}
 absCalc                    {}
-MatrixWriteToFile (abs)    {""}
+#MatrixWriteToFile (abs) {""}
+#ArrayOfMatrixWriteToFile (abs_per_tg) {""}
 
-
-# Refraction
-IntSet     (refr)        { 0 }
-NumericSet (l_step_refr) { 1.0e3 }
-VectorSet  (refr_index)  { length = 201
-                           value  = 1.0 }
-
-# The ground
-NumericSet (z_ground) { 40 }
-NumericSet (t_ground) { 290.0 }
-VectorSet  (e_ground) { length = 1164
-                        value  = 0.5 } 
 
 # Observation geometry
-NumericSet (z_plat) { 20e3 }
+NumericSet (z_plat) { 12e3 }
 VectorSet  (za_pencil) { length = 1
-                         value  = 45 }
+                         value  = 43 }
 NumericSet (l_step) { 0.5e3 }
+
+
+# The ground
+NumericSet (z_ground) { 40.0 }
+NumericSet (t_ground) { 290.0 }
+VectorSet  (e_ground) { length = 821
+                        value  = 0.75 }
+
 
 # Cosmic radiation
 y_spaceStd{0}
@@ -51,9 +49,9 @@ y_spaceStd{0}
 
 
 # Line of sight (LOS)
-los1d{}
+#los1d{}
 # A function assuming no refraction
-#los1dNoRefraction{}
+los1dNoRefraction{}
 # A function assuming no refraction and no ground intersection
 #los1dUpward{}
 source1d{}
@@ -66,11 +64,32 @@ yRte{}
 #yBlNoGround{}
 VectorWriteToFile(y){""}
 
-# Calculate species weighting function matrx and save
+# Calculate species weighting function matrix and save
 klos1d{}
 VectorNLogSpace (k_grid) { start = 1.013300e+05
                            stop  = 0.0914023919463313
-                           n     = 100 }
-kSpecies1d{}
+                           n     = 201 }
+VectorWriteToFile (k_grid)  {""}
+kInit{}
+kSpecies1d{ nr   = 1
+            unit = 1 }
+#kSpecies1dAll{ unit = 1 }
+#kTempNoHydro{}
+#kContAbs1d{ npoints = 2 }
+#kTempNoHydro1d{}
 MatrixWriteToFile(k){""}  
+MatrixWriteToFile(k_index){""}  
+MatrixWriteToFile(k_aux){""}  
 
+
+
+# These function calls can be used to check species WFs
+# In this example, the absorption at some altitude is increased by a small 
+# factor (e.g. 1 or 10%) in Matlab. If everything is OK, then (y_changed-y)
+# should equal the corresponing column of K multiplied with the applied factor.
+# This works as p_abs amd k_grid are set to be equal.
+#
+#MatrixReadFromFile (abs)  {"full.abs_changed.am"}
+#trans1d{}
+#yRte{}
+#VectorWriteToFile(y){"full.y_changed.am"}

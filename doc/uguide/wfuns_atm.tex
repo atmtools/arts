@@ -5,7 +5,7 @@
 %  \levelb{...}
 %  \levelc{...}
 %
-\levela{Basic atmospheric weighting functions}
+\levela{Atmospheric weighting functions}
  \label{sec:wfuns}
 
 
@@ -89,7 +89,7 @@ perturbation calculations.
   \begin{eqnarray*}
     \Kx = \Hm\frac{\partial\iv}{\partial \xt},
   \end{eqnarray*}
-  we understand that the core problem of finding these analytical
+  it can be seen that the core problem of finding these analytical
   expressions is to determine $\partial\iv / \partial \xt$. 
   
   If $\xt^p$ influences only the conditions at one altitude, the
@@ -103,8 +103,35 @@ perturbation calculations.
    \label{eq:wfuns:taylor}
   \end{equation}
   where $\mat{S}^p$ and $\mat{k}^p$ are the source function and the
-  absorption at altitude $p$, respectively.
+  absorption at the (vertical) altitude $p$, respectively.
   
+  The absorption and source function in Equation \ref{eq:wfuns:taylor}
+  are defined in vertical coordinates (as we retrieve atmospheric
+  variables as functions of altitude). For different reasons it is
+  more practical to work with these quantities defined along the LOS.
+  For example, the source function and transmission along the LOS are
+  already determined when calculating the spectra. To solve this
+  problem, Equation \ref{eq:wfuns:taylor} is expanded one step further
+  \begin{equation}
+    \K_{\xt}^p = \Hm \Bigg[ \frac{\partial\iv}{\partial \sigma}
+                 \frac{\partial \sigma}{\partial \mat{S}^p} 
+                 \frac{\partial \mat{S}^p}{\partial \xt^p} +
+                 \frac{\partial\iv}{\partial \kappa}
+                 \frac{\partial \kappa}{\partial \mat{k}^p}
+                 \frac{\partial \mat{k}^p}{\partial \xt^p} \Bigg]
+   \label{eq:wfuns:taylor2}
+  \end{equation}
+  where $\sigma$ and $\kappa$ are the source function and the absorption 
+  along the LOS, respectively.
+  
+  The term $\partial\iv / \partial \sigma$ is here denoted as source function 
+  line of sight weighting functions (source LOS WFs) and is
+  discussed in Section \ref{sec:wfuns:sourceloswfs}. The term
+  $\partial\iv/ \partial \kappa$ is denoted as absorption LOS WFs and
+  is discussed in Section \ref{sec:wfuns:absloswfs}. These terms are
+  treated seperately as they are common for all variables influencing
+  the source function or the absorption.
+
   The term $\partial \mat{S}^p/\partial \xt^p$ can often be neglected.
   When scattering is neglected and local thermodynamic equilibrium is
   assumed, the only variable of interest affecting the source function
@@ -112,66 +139,52 @@ perturbation calculations.
   other variables, such as species abundance, $\partial
   \mat{S}^p/\partial \xt^p=0$.
   
-  On the other hand, the term $\partial \iv^p/\partial \mat{k}^p$ is
-  common for all variables and this term should be determined in such
-  way that it can be used for the calculation of all atmospheric
-  weighting functions. For this purpose, Equation
-  \ref{eq:wfuns:taylor} is expanded one step further
-  \begin{equation}
-    \K_{\xt}^p = \Hm \Bigg[ \frac{\partial\iv}{\partial \mat{S}^p}
-                 \frac{\partial \mat{S}^p}{\partial \xt^p} +
-                 \frac{\partial\iv}{\partial \kappa}
-                 \frac{\partial \kappa}{\partial \mat{k}^p}
-                 \frac{\partial \mat{k}^p}{\partial \xt^p} \Bigg]
-   \label{eq:wfuns:taylor2}
-  \end{equation}
-  where $\kappa$ is the absorption along the LOS.  The terms of
-  \ref{eq:wfuns:taylor2} are discussed more in detail below.
-  
   It was decided to allow that the retrieval grids differ between
-  species, temperature etc. This results in that the term $\partial
-  \kappa/ \partial \mat{k}^p$ is not constant, it changes according to
-  the selected retrieval grid. However, the term $\partial\iv/
-  \partial \kappa$, here denoted as LOS weighting functions, is only
-  dependent on the step length along the LOS $(\Delta l)$ and is here
-  common for all WFs. Accordingly, it is suitable to calculate the LOS
-  WFs separately.
+  species, temperature etc. This results in that the terms $\partial
+  \sigma/ \partial \mat{S}^p$ and $\partial \kappa/ \partial
+  \mat{k}^p$ are not constant, they change according to the selected
+  retrieval grid. Accordingly, it is not suitable to include these terms
+  in the corresponding LOS WFs, they must be treated seperately.
   
   
 
+\levelb{Absorption line of sight weighting functions}
+ \label{sec:wfuns:absloswfs}
 
-
-\levelb{Line of sight weighting functions}
- \label{sec:wfuns:loswfs}
-
- The line of sight weighting functions are
+ The absorption line of sight weighting functions are defined as
  \begin{equation}
    \K_{\kappa}^q =  \frac{\partial\iv}{\partial \kappa^q}
   \label{eq:wfuns:loswfs}
  \end{equation}
- For simplicity, LOS WFs are below derived without using vector
- notation. The notation used here is identical to the one used in
- Section \ref{sec:rte}.
+ These weighting functions express how the intensity is
+ affected by changes of the absorption at the points of the line of
+ sight. Note that $\kappa$ is the total absorption, not the
+ absorption of a single species. 
+ 
+ For simplicity, the absorption LOS WFs are below derived without
+ using vector notation. The notation used here is identical to the one
+ used in Section \ref{sec:rte}.
 
 
  \levelc{Single pass}
  \label{sec:wfuns:single}
  
- This section derives the LOS WF for cases when each individual part
- of the atmosphere is passed only once, as for upward looking
- measurements, or when each point in the atmosphere is treated
- separately (2D or 3D simulations). With other words, the conditions
- are not symmetrical around some point. Accordingly, 1D limb sounding
- and 1D downward observations are not treated here, and are instead
- discussed in Section \ref{sec:wfuns:limb} and \ref{sec:wfuns:down},
- respectively.
+ This section derives the absorption LOS WFs for cases when each
+ individual part of the atmosphere is passed only once, as for upward
+ looking measurements, or when each point in the atmosphere is treated
+ separately (2D simulations). With other words, the conditions are not
+ assumed to be symmetrical around some point. Accordingly, 1D limb
+ sounding and 1D downward observations are not treated here, and are
+ instead discussed in Section \ref{sec:wfuns:limb} and
+ \ref{sec:wfuns:down}, respectively.
 
  \begin{figure}[t]
   \begin{center}
    \includegraphics*[width=0.95\hsize]{Figs/wf1.eps}
    \caption{The terms used for the derivation of line of sight weighting
             functions when the individual atmospheric parts are passed a
-            single time.}
+            single time. The variables are defined in Figure 
+            \ref{fig:rte:los}.}
    \label{fig:wfuns:single}  
   \end{center}
  \end{figure}
@@ -179,18 +192,18 @@ perturbation calculations.
  By rewriting Equation \ref{eq:rte:rteprod}, the monochromatic pencil beam
  intensity can be expressed as (see Fig. \ref{fig:wfuns:single})
  \begin{eqnarray}
-   I &=& I_2\zeta_1+S_1(1-\zeta_1), \quad q=1 
+   I &=& I_2\zeta_1+\psi_1(1-\zeta_1), \quad q=1 
      \nonumber \\
-   I &=&\Big[I_{q+1}\zeta_q\zeta_{q-1}+S_q(1-\zeta_q)\zeta_{q-1} +
-            S_{q-1}(1-\zeta_{q-1}) \Big] \Theta^{q-1}_1, \quad 1<q<n 
+   I &=&\Big[I_{q+1}\zeta_q\zeta_{q-1}+\psi_q(1-\zeta_q)\zeta_{q-1} +
+            \psi_{q-1}(1-\zeta_{q-1}) \Big] \Theta^{q-1}_1, \quad 1<q<n 
     \label{eq:wfuns:mpbi} \\
-   I &=& \Big[I_n\zeta_{n-1}+S_{n-1}(1-\zeta_{n-1})\Big]\Theta^{n-1}_{1}, \quad q=n
+   I &=& \Big[I_n\zeta_{n-1}+\psi_{n-1}(1-\zeta_{n-1})\Big]\Theta^{n-1}_{1}, \quad q=n
      \nonumber
  \end{eqnarray}
  where it assumed that the LOS has $n$ points, index 1 is the point
  closest to the sensor,
  \begin{equation}
-   I_q = I_n \Theta^{n}_{q} + \sum_{i=q}^{n-1}S_i(1-\zeta_i) 
+   I_q = I_n \Theta^{n}_{q} + \sum_{i=q}^{n-1}\psi_i(1-\zeta_i) 
              \Theta_{q}^{i}, \quad 1 \leq q < n
   \label{eq:wfuns:iq}
  \end{equation}
@@ -201,7 +214,12 @@ perturbation calculations.
      \quad \mathrm{and} \quad \Theta_p^p = 1
   \label{eq:wfuns:Theta}
  \end{equation}
- the transmission from point $q$ and $p$. 
+ the transmission from point $q$ and $p$. It should be noted that
+ $I_q$ and $\Theta_q^p$ not are calculated as indicated by the
+ equations above. These quantities are instead updated when going from
+ one step of the LOS to the next, as described below. It should also be
+ noted that ground reflections are here neglected and are discussed 
+ seperately below.
 
  The transmissions $\zeta_{q-1}$ and $\zeta_q$ are separated in Equation
  \ref{eq:wfuns:mpbi} as they are the only terms including the absorption
@@ -209,29 +227,35 @@ perturbation calculations.
  \begin{equation}
    \zeta_{q-1} = e^{-\Delta l(\kappa_{q-1}+\kappa_q)/2}
  \end{equation}
- and, accordingly,
+ and we have that
  \begin{equation}
    \frac{\partial \zeta_q}{\partial \kappa_q} = -\frac{\Delta l}{2}\zeta_q
   \label{eq:wfuns:dzeta1}
+ \end{equation}
+ \begin{equation}
+   \frac{\partial\zeta_{q-1}}{\partial \kappa_q}=-\frac{\Delta l}{2}\zeta_{q-1}
  \end{equation}
  \begin{equation}
    \frac{\partial \zeta_{q-1}\zeta_q}{\partial \kappa_q} = 
           -\Delta l \zeta_{q-1}\zeta_q
   \label{eq:wfuns:dzeta2}
  \end{equation}
+ The derivate of transmission values beside $\zeta_q$ and
+ $\zeta_{q-1}$ with respect to $\kappa_q$ is zero.
+
  The LOS WFs are now easily determined, using the case $1<q<n$ as example
  \begin{equation}
    \K_{\kappa}^q = -\frac{\Delta l}{2} \Big[ 2I_{q+1}\zeta_q\zeta_{q-1}+
-     S_q(1-2\zeta_q)\zeta_{q-1} - S_{q-1}\zeta_{q-1} \Big] \Theta^{q-1}_1, 
+     \psi_q(1-2\zeta_q)\zeta_{q-1} - \psi_{q-1}\zeta_{q-1} \Big] \Theta^{q-1}_1, 
      \quad 1<q<n
  \end{equation}
  which can be rewritten as
  \begin{eqnarray}
-   \K_{\kappa}^q &=& -\frac{\Delta l}{2} \big[ I_2-S_1 \big] \Theta^2_1, \quad q=1 \nonumber \\
-   \K_{\kappa}^q &=& -\frac{\Delta l}{2} \big[ 2(I_{q+1}-S_q)\zeta_q+
-           S_q-S_{q-1} \big] \Theta^q_1, \quad 1<q<n 
+   \K_{\kappa}^q &=& -\frac{\Delta l}{2} \big[ I_2-\psi_1 \big] \Theta^2_1, \quad q=1 \nonumber \\
+   \K_{\kappa}^q &=& -\frac{\Delta l}{2} \big[ 2(I_{q+1}-\psi_q)\zeta_q+
+           \psi_q-\psi_{q-1} \big] \Theta^q_1, \quad 1<q<n 
   \label{eq:wfuns:loswfsxx} \\
-   \K_{\kappa}^q &=& -\frac{\Delta l}{2} \big[ I_n-S_{n-1} \big] \Theta^n_1, \quad q=n \nonumber
+   \K_{\kappa}^q &=& -\frac{\Delta l}{2} \big[ I_n-\psi_{n-1} \big] \Theta^n_1, \quad q=n \nonumber
  \end{eqnarray}
  Note that one $\zeta_q$ is incorporated in $\Theta^q_q$, and that 
  $\Theta^2_1=\zeta_1$.
@@ -240,33 +264,49 @@ perturbation calculations.
  be of interest to note that Equation \ref{eq:wfuns:loswfsxx} can be
  written
  \begin{equation}
-   \K_{\kappa}^q = -\frac{\Delta l}{2} \big[ (I_{q+1}-S_q)\zeta_q+
-           I_q-S_{q-1} \big] \Theta^q_1, \quad 1<q<n ,
+   \K_{\kappa}^q = -\frac{\Delta l}{2} \big[ (I_{q+1}-\psi_q)\zeta_q+
+           I_q-\psi_{q-1} \big] \Theta^q_1, \quad 1<q<n ,
  \end{equation}
  showing that the expressions for $q=1$ and $q=n$ are special cases of
  the general expression where the terms connected to $q-1$ and $q$,
  are neglected, respectively.
  
  The iteration starts here at the end closest to the sensor the
- sensor (reversed order to the RTE part).  The iteration is
- started by setting $I_n$ to the already calculated spectrum and
- $\Theta^1_1$ to 1.  These two variables are updated as
+ sensor, that is, at index 1. (reversed order to the RTE part).  The
+ iteration is started by setting $I_1$ to the already calculated
+ spectrum and $\Theta^1_1$ to 1.  These two variables are updated as
  \begin{eqnarray}
-   I_{q+1} = \frac{I_q - S_q(1-\zeta_q)}{\zeta_q} \nonumber
+   I_{q+1} = \frac{I_q - \psi_q(1-\zeta_q)}{\zeta_q} 
  \end{eqnarray}
  \begin{eqnarray}
-   \Theta_1^{q+1} =  \Theta_1^q \zeta_q \nonumber
+   \Theta_1^{q+1} =  \Theta_1^q \zeta_q
  \end{eqnarray}
- 
-% The effect of a ground intersection is included in $I_n$ when the iteration
-% starts. For the point where the ground intersection takes place, the 
-% intensity and the transmission are changed as (compare to Equations
-% \ref{eq:rte:ground} and \ref{eq:rte:tground})
-% \begin{eqnarray}
-%   I_q &\gets& \frac{I_q-eB(\f,T_{ground}}{1-e} \\
-%   \Theta_1^{q} &\gets& \Theta_1^{q}(1-e)
-% \end{eqnarray}
- The equations above assumes no intersection with the ground ...
+ For 2D calculations possible ground reflections inside the LOS must
+ be handled. The ground cannot be found at any of the end points of
+ the LOS, and the correspondance to Equation \ref{eq:wfuns:mpbi} for a
+ ground point is (c.f. Equations \ref{eq:rte:ground} and
+ \ref{eq:rte:tground})
+ \begin{eqnarray}
+   I &=&\Big[I_{q+1}\zeta_q(1-e)\zeta_{q-1}+\psi_q(1-\zeta_q)(1-e)\zeta_{q-1}
+          +eB\zeta_{q-1}+ \nonumber \\
+     & & + \psi_{q-1}(1-\zeta_{q-1}) \Big] \Theta^{q-1}_1, \quad 1<q<n 
+    \label{eq:wfuns:mpbi_ground}
+ \end{eqnarray}
+ and the corresponding absoprtion LOS WF for this point is (cf. Eq.
+ \ref{eq:wfuns:loswfsxx})
+ \begin{eqnarray}
+   \K_{\kappa}^q &=& -\frac{\Delta l}{2} \big[ 2(I_{q+1}-\psi_q)\zeta_q(1-e)+
+           \psi_q(1-e)+eB-\psi_{q-1} \big] \Theta^q_1 \\
+ \end{eqnarray}
+ The intensity and the transmission are here updated as
+ \begin{eqnarray}
+   I_{q+1} &=& \frac{I_q-\psi_q(1-\zeta_q)(1-e)-eB}{\zeta_q(1-e)}  \nonumber \\
+   \Theta_1^{q+1} &=& \Theta_1^{q}\zeta_q(1-e) \nonumber
+ \end{eqnarray}
+ It is noteworthy that the effect of a ground intersection is included
+ in $I_1$ when the iteration starts.  
+
+
 
 
  
@@ -275,14 +315,58 @@ perturbation calculations.
     
  For limb sounding and when the atmosphere is assumed to be consist of
  homogenous layers (horizontally stratified), there is a perfect
- symmetry around the tangent point. For these cases the distance from
- the sensor is neglected, the important factor is the vertical altitude.
- All altitudes above the tangent point are passed twice (Fig. 
+ symmetry around the tangent point. This covers also the case with a
+ ground reflection. For these cases the distance from the sensor is
+ neglected, the important factor is the vertical altitude.  All
+ altitudes above the tangent point are passed twice (Fig.
  \ref{fig:wfuns:limb}) and both crossings of an atmospheric layer are
- treated to be identical, and this fact must also be reflected by the
- WFs.
+ treated to be identical for the retrievals, and this fact must also
+ be reflected by the WFs.
 
- \begin{figure}[t]
+ Using a nomenclature similar to the one used for Equation
+ \ref{eq:wfuns:mpbi}, the intensity of a limb sounding
+ observations can be expressed as (Fig. \ref{fig:wfuns:limb})
+ \begin{eqnarray}
+   I & = & \Big(I_2 \Big( \zeta_1\Theta^1_1 \Big)^2 + \psi_1(1-\zeta_1)
+            \Big( \Theta^1_1 \Big)^2 \zeta_1+
+            I_1^1\zeta_1+\psi_1(1-\zeta_1) \Big)\Theta^n_{2}, \quad q=1 
+        \nonumber \\
+   I & = & \Big[\Big(I_{q+1}\zeta_q\zeta_{q-1} +\psi_q(1-\zeta_q)\zeta_{q-1} + 
+           \psi_{q-1}(1-\zeta_{q-1})\Big)\Big(\Theta^{q-1}_{1}\Big)^2
+           \zeta_{q-1}\zeta_q + \nonumber \\
+      & & + I_{q-1}^{q-1}\zeta_{q-1}\zeta_q + \psi_{q-1}(1-\zeta_{q-1})
+           \zeta_q + \psi_q(1-\zeta_q) \Big] \Theta^n_{q+1}, \quad 1<q<n
+  \label{eq:wfuns:limb1}  \\
+   I & = & \Big(I_n\zeta_{n-1}+\psi_{n-1}(1-\zeta_{n-1})\Big)\Big
+           (\Theta^{n-1}_{1}\Big)^2\zeta_{n-1} + I_{n-1}^{n-1}\zeta_{n-1} +
+             \nonumber \\
+      & &  +   \psi_{n-1}(1-\zeta_{n-1}), \quad q=n \nonumber
+ \end{eqnarray}
+ where the expression for $q=1$ is commented below, index 1 of the LOS
+ is the tangent (or the ground) point, index $n$ corresponds to the
+ highest altitude,
+ \begin{equation}
+   I_q = I_n \Theta^{n}_{q} + \sum_{i=q}^{n-1}\psi_i(1-\zeta_i) 
+             \Theta_{q}^{i-1}
+  \label{eq:wfuns:iqq}
+ \end{equation}
+ is the intensity reaching point $q$ from the part of the
+ atmosphere furthest away from the sensor, $I_n$ the intensity at point $n$,
+ \begin{equation}
+   I_q^q = \Big[ \sum_{i=1}^{q-1}(\psi_i(1-\zeta_i)\Theta_{1}^{i-1}\Big]
+             \Theta_{1}^{q} + \sum_{i=1}^{q-1}\psi_i(1-\zeta_i)
+            \Theta_{i+1}^{q}, \qquad q>1
+ \end{equation}
+ is the intensity generated along the LOS (towards the sensor) between
+ the two crossing with altitude $q$, $I_1^1=0$, $\Theta$ is defined by
+ Equation \ref{eq:wfuns:Theta}. The equations defining $I_q$, $I_q^q$
+ and $\Theta$ neglect ground reflections, but could easily be extended
+ to cover also such cases. However, $I_1^1$ and $\Theta_1^1$ are
+ included for $q=1$ to make Equation \ref{eq:wfuns:limb1} valid for
+ cases with ground reflections. The treatment of ground reflections
+ are discussed seperately last in the section.
+
+ \begin{figure}[tb]
   \begin{center}
    \includegraphics*[width=0.95\hsize]{Figs/wf2.eps}
    \caption{The terms used for the derivation of line of sight weighting
@@ -291,49 +375,14 @@ perturbation calculations.
   \end{center}
  \end{figure}
  
- Using a nomenclature similar to the one used for Equation
- \ref{eq:wfuns:mpbi}, the intensity of a limb sounding
- observations can be expressed as (Fig. \ref{fig:wfuns:limb})
- \begin{eqnarray}
-   I & = & \Big(I_2\zeta_1^2+S_1(1-\zeta_1^2) \Big)\Theta^n_{2}, \quad q=1 
-        \nonumber \\
-   I & = & \Big[\Big(I_{q+1}\zeta_q\zeta_{q-1} +S_q(1-\zeta_q)\zeta_{q-1} + 
-           S_{q-1}(1-\zeta_{q-1})\Big)\Big(\Theta^{q-1}_{1}\Big)^2
-           \zeta_{q-1}\zeta_q + \nonumber \\
-      & & + I_{q-1}^{q-1}\zeta_{q-1}\zeta_q + S_{q-1}(1-\zeta_{q-1})
-           \zeta_q + S_q(1-\zeta_q) \Big] \Theta^n_{q+1}, \quad 1<q<n
-  \label{eq:wfuns:limb1}  \\
-   I & = & \Big(I_n\zeta_{n-1}+S_{n-1}(1-\zeta_{n-1})\Big)\Big
-           (\Theta^{n-1}_{1}\Big)^2\zeta_{n-1} + I_{n-1}^{n-1}\zeta_{n-1} +
-             \nonumber \\
-      & &  +   S_{n-1}(1-\zeta_{n-1}), \quad q=n \nonumber
- \end{eqnarray}
- where index 1 of the LOS is the tangent point, index $n$ corresponds
- to the highest altitude, 
- \begin{equation}
-   I_q = I_n \Theta^{n}_{q} + \sum_{i=q}^{n-1}S_i(1-\zeta_i) 
-             \Theta_{q}^{i-1}
-  \label{eq:wfuns:iqq}
- \end{equation}
- is the intensity reaching point $q$ from the part of the
- atmosphere furthest away from the sensor, $I_n$ the intensity at point $n$,
- \begin{equation}
-   I_q^q = \Big[ \sum_{i=1}^{q-1}(S_i(1-\zeta_i)\Theta_{1}^{i-1}\Big]
-             \Theta_{1}^{q} + \sum_{i=1}^{q-1}S_i(1-\zeta_i)
-            \Theta_{i+1}^{q}, \qquad q>1
- \end{equation}
- is the intensity generated along the LOS (towards the sensor) between
- the two crossing with altitude $q$, $I_1^1=0$, and $\Theta$ is defined
- by Equation \ref{eq:wfuns:Theta}.
-
  If the different combinations of $\zeta_{q-1}$ and $\zeta_q$ are 
  grouped, for example, Equation \ref{eq:wfuns:limb1} becomes
  \begin{eqnarray}
-   I & = & \Big[\Big((I_{q+1}-S_q)\zeta_{q-1}^2\zeta_q^2+(S_q-S_{q-1})
-            \zeta_{q-1}^2\zeta_q + S_{q-1}\zeta_{q-1}\zeta_q
+   I & = & \Big[\Big((I_{q+1}-\psi_q)\zeta_{q-1}^2\zeta_q^2+(\psi_q-\psi_{q-1})
+            \zeta_{q-1}^2\zeta_q + \psi_{q-1}\zeta_{q-1}\zeta_q
             \Big)\Big(\Theta^{q-1}_{1}\Big)^2 + \nonumber \\
-    &  &     + (I_{q-1}^{q-1}-S_{q-1})\zeta_{q-1}\zeta_q + 
-            (S_{q-1}-S_q)\zeta_q + S_q \Big] \Theta^n_{q+1} 
+    &  &     + (I_{q-1}^{q-1}-\psi_{q-1})\zeta_{q-1}\zeta_q + 
+            (\psi_{q-1}-\psi_q)\zeta_q + \psi_q \Big] \Theta^n_{q+1} 
  \end{eqnarray}
  This equation has some higher products between
  $\zeta_{q-1}$ and $\zeta_q$ than Equation \ref{eq:wfuns:mpbi}, and
@@ -352,40 +401,49 @@ perturbation calculations.
  \ref{eq:wfuns:dzeta3} and \ref{eq:wfuns:dzeta4}, the LOS WFs for 1D
  limb sounding can be determined to be
  \begin{eqnarray}
-   \K_{\kappa}^q& = & -\Delta l (I_2-S_1)\Theta^n_{1}\zeta_1, 
+   \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[ \Big( 2I_2\zeta_1+\psi_1(1-
+       2\zeta_1)\Big) \Big(\Theta^1_1\Big)^2 +I_1-\psi_1 \Big]\Theta^n_1
           \quad q=1 \nonumber \\
-   \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[\Big(4(I_{q+1}-S_q)
+   \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[\Big(4(I_{q+1}-\psi_q)
            \zeta_{q-1}\zeta_q+
-            3(S_q-S_{q-1})\zeta_{q-1} + 2 S_{q-1}
+            3(\psi_q-\psi_{q-1})\zeta_{q-1} + 2 \psi_{q-1}
             \Big) \Big(\Theta^{q-1}_{1}\Big)^2\zeta_{q-1} +  \nonumber \\
-       &  & + 2(I_{q-1}^{q-1}-S_{q-1})\zeta_{q-1} + 
-            S_{q-1}-S_q \Big] \Theta^n_{q}, \quad 1<q<n
+       &  & + 2(I_{q-1}^{q-1}-\psi_{q-1})\zeta_{q-1} + 
+            \psi_{q-1}-\psi_q \Big] \Theta^n_{q}, \quad 1<q<n
   \label{eq:wfuns:loswfs2} \\
    \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[\Big( 2I_n\zeta_{n-1}+
-         S_{n-1}(1-2\zeta_{n-1}) \Big)\Big(\Theta^{n-1}_{1}\Big)^2\zeta_{n-1}+ 
+         \psi_{n-1}(1-2\zeta_{n-1}) \Big)\Big(\Theta^{n-1}_{1}\Big)^2\zeta_{n-1}+ 
              \nonumber \\   
-       & &  + I_{n-1}^{n-1}-S_{n-1}\Big] \zeta_{n-1}, \quad q=n \nonumber
+       & &  + I_{n-1}^{n-1}-\psi_{n-1}\Big] \zeta_{n-1}, \quad q=n \nonumber
  \end{eqnarray}
- The function calculating the LOS WFs takes the total spectrum as input
- ($I_n^n$) and it is then most suitable to iterate downwards,
- starting with point $n$. For each iteration, the quantities are updated
- as
+ The function calculating these LOS WFs takes the total spectrum as
+ input (that is, $I_n^n$) and it is then most suitable to iterate
+ downwards, starting with point $n$. For each iteration, the
+ quantities are updated as
  \begin{eqnarray}
-   I_{q-1} = I_q\zeta_{q-1} + S_{q-1}(1-\zeta_{q-1}) \nonumber
+   I_{q-1} = I_q\zeta_{q-1} + \psi_{q-1}(1-\zeta_{q-1}) \nonumber
  \end{eqnarray}
  \begin{eqnarray}
    \Theta_{1}^{q-1} =  \frac{\Theta_{1}^{q}}{\zeta_{q-1}} \nonumber
  \end{eqnarray}
  \begin{eqnarray}
-   I_{q-1}^{q-1} = \frac{I_q - S_{q-1}(1-\zeta_{q-1})
+   I_{q-1}^{q-1} = \frac{I_q - \psi_{q-1}(1-\zeta_{q-1})
        (1+\big(\Theta^{q-1}_{1}\big)^2\zeta_{q-1})}{\zeta_{q-1}} \nonumber
  \end{eqnarray}
- The iteration is started by setting $I_n$ to zero or cosmic background
- background radiation and setting $\Theta^n_1$ to the square root of the
- total transmission. As mentioned above, $I_n^n$ is an input to the 
- function.
+ The iteration is started by setting $I_n$ to cosmic
+ background radiation, or correspondingly, and setting
+ $\Theta^n_1$ to the square root of the total transmission. As
+ mentioned above, $I_n^n$ is an input to the function.
+ 
+ No special attention needs to be given here to possible ground
+ reflections.  This as the effects of a ground reflection are already
+ included in $I_n^n$ and $\Theta^n_1$ when starting the iteration. The
+ procedure of setting $\Theta^n_1$ to the square root of the total
+ transmission maintains the symmetry and makes it possible to treat
+ the ground as an imaginary altitude ``below'' point 1. If there is a
+ ground reflection, $\Theta^1_1$ and $I_1^1$ equal $\sqrt{1-e}$ and
+ $eB$, respectively, at the end of the iteration.
 
- The equations above assumes no intersection with the ground ...
 
  
 
@@ -402,48 +460,136 @@ perturbation calculations.
   If $q$ is the index for platform altitude, the intensity can be
   expressed as
   \begin{eqnarray}
-   I &=& \Big(I_{q+1}\zeta_q\zeta_{q-1} +S_q(1-\zeta_q)\zeta_{q-1} + 
-           S_{q-1}(1-\zeta_{q-1})\Big)\Big(\Theta^{q-1}_{1}\Big)^2
+   I &=& \Big(I_{q+1}\zeta_q\zeta_{q-1} +\psi_q(1-\zeta_q)\zeta_{q-1} + 
+           \psi_{q-1}(1-\zeta_{q-1})\Big)\Big(\Theta^{q-1}_{1}\Big)^2
            \zeta_{q-1} + \nonumber \\
-      & & + I_{q-1}^{q-1}\zeta_{q-1} + S_{q-1}(1-\zeta_{q-1})
+      & & + I_{q-1}^{q-1}\zeta_{q-1} + \psi_{q-1}(1-\zeta_{q-1})
     \label{eq:wfuns:idown}
   \end{eqnarray}
   and the corresponding WF is
   \begin{eqnarray}
-   \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[\Big(3(I_{q+1}-S_q)
-           \zeta_{q-1}\zeta_q+ 2(S_q-S_{q-1})\zeta_{q-1} + S_{q-1} \Big)
+   \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[\Big(3(I_{q+1}-\psi_q)
+           \zeta_{q-1}\zeta_q+ 2(\psi_q-\psi_{q-1})\zeta_{q-1} + \psi_{q-1} \Big)
            \Big(\Theta^{q-1}_{1}\Big)^2 + \nonumber \\
-      & &  + I_{q-1}^{q-1}-S_{q-1}\Big]\zeta_{q-1}
+      & &  + I_{q-1}^{q-1}-\psi_{q-1}\Big]\zeta_{q-1}
   \end{eqnarray}
 
- No special attention need to be given to the ground for the 1D limb
- sounding case. The ground can be seen as an imaginary altitude 
- ``below'' point 1. The effects of the ground are already included in
- $I_n^n$ and $\Theta^n_1$ when starting the iteration if there is a
- ground intersection.
+
+
+\levelb{Source function line of sight weighting functions}
+ \label{sec:wfuns:sourceloswfs}
+
+ The source function line of sight weighting functions are defined as
+ \begin{equation}
+   \K_{\sigma}^q =  \frac{\partial\iv}{\partial \sigma^q}
+  \label{eq:wfuns:sloswfs}
+ \end{equation}
+ These weighting functions express how the intensity is affected by
+ changes of the source function at the points of the line of sight.
+ The source and absorption LOS WFs are tightly related and this
+ section follows closely Section \ref{sec:wfuns:absloswfs}.
+
+
+ \levelc{Single pass}
+  \label{sec:wfuns:single2}
+  As, for example,
+  \begin{equation}
+    \psi_{q} = \frac{\sigma_q+\sigma_{q+1}}{2}
+  \end{equation}
+  the derivate of the mean source function values with respect to 
+  $\sigma_q$ is
+  \begin{equation}
+    \frac{\partial \psi_{q-1}}{\partial \sigma_q} = 
+    \frac{\partial \psi_q}{\partial \sigma_q} = \frac{1}{2}
+   \label{eq:wfuns:dpsi}
+  \end{equation}
+  This derivate for other $\psi$ terms is zero.
+ 
+  Using \ref{eq:wfuns:mpbi}, the source LOS WFs for upward looking
+  observations can be determined to be
+  \begin{eqnarray}
+    \K_{\sigma}^q &=& \frac{1-\zeta_1}{2}, \quad q=1 
+     \nonumber \\
+    \K_{\sigma}^q &=& \frac{1-\zeta_{q-1}\zeta_q}{2} 
+                                            \Theta^{q-1}_1, \quad 1<q<n \\
+    \K_{\sigma}^q &=& \frac{1-\zeta_{n-1}}{2}\Theta^{n-1}_{1}, \quad q=n
+     \nonumber
+  \end{eqnarray}
+  For ground points in 2D calculations, the Wfs are (cf. Eq. 
+  \ref{eq:wfuns:mpbi_ground})
+  \begin{equation}
+    \K_{\sigma}^q = \frac{(1-\zeta_q)(1-e)\zeta_{q-1}+1-\zeta_{q-1}}{2} 
+                                            \Theta^{q-1}_1, \quad 1<q<n \\
+  \end{equation}
+  The practical calculations, such as the updating of $\Theta$, follow the
+  absorption LOS WFs (Sec. \ref{sec:wfuns:single}).
+
+
+ \levelc{1D limb sounding}
+  \label{sec:wfuns:limb2}
+  The 1D limb sounding source LOS WFs are (derived using Eq.
+  \ref{eq:wfuns:limb1})
+  \begin{eqnarray}
+    \K_{\sigma}^q & = & \frac{1}{2} \Big(1-\zeta_1\Big) \Big(1+
+        \Big( \Theta^1_1 \Big)^2\zeta_1 \Big) \Theta^n_2, 
+                                                    \quad q=1  \nonumber \\
+    \K_{\sigma}^q & = & \frac{1}{2} \Big[ (1-\zeta_{q-1}\zeta_q)
+           \Big(\Theta^{q-1}_{1}\Big)^2\zeta_{q-1}\zeta_q + 
+           (1-\zeta_{q-1})\zeta_q + \nonumber \\
+      & & + 1-\zeta_q \Big] \Theta^n_{q+1}, \quad 1<q<n \\
+    \K_{\sigma}^q & = & \frac{1}{2} \Big( (1-\zeta_{n-1}) \Big(
+           \Theta^{n-1}_{1}\Big)^2\zeta_{n-1} + 1-\zeta_{n-1} \Big), \quad q=n \nonumber
+  \end{eqnarray}
+  The practical calculations follow the absorption LOS WFs (Sec.
+  \ref{sec:wfuns:limb}).
+
+
+ \levelc{1D downward looking observations}
+  \label{sec:wfuns:down2}
+  The source LOS WFs for downward looking observations are determined
+  by the upward and the limb sounding expressions in the same manner
+  as for the absorption LOS WFs (Sec. \ref{sec:wfuns:down}).
+
+  The LOS WF for the index corresponding to the platform altitude is
+  (cf. Eq. \ref{eq:wfuns:idown})
+  observations can be determined to be
+  \begin{equation}
+   \K_{\sigma}^q = \frac{1}{2}\Big[ (1-\zeta_{q-1}\zeta_q) 
+           \Big(\Theta^{q-1}_{1}\Big)^2
+           \zeta_{q-1} + 1-\zeta_{q-1} \Big]\
+  \end{equation}
+
 
 
 \levelb{Transformation from vertical altitudes to distances along LOS}
  \label{sec:wfuns:bases}
-
- \levelc{Basis functions} 
- The absorption, both as a function of vertical altitude $(\mat{k})$
- and along the LOS $(\kappa)$, is assumed to vary linear between the
- points of the grid of concern, that is, the basis functions for
- expressing the absorption decline, from the point of interest,
- linearly down to zero at neighboring points. Such functions are here
- denoted as tenth functions
- (Fig.  \ref{fig:wfuns:zbasis}).
  
-
+ \levelc{Basis functions} 
+ The source function and the absorption, both
+ as a function of vertical altitude $(\mat{k})$ and along the LOS
+ $(\kappa)$, are assumed to vary linear between the points of the grid
+ of concern. The functions to express the quantities between grid
+ points are denoted as basis functions. For picewise linear functions,
+ the basis functions decline, from the point of interest, linearly
+ down to zero at neighboring points. Such functions are here denoted
+ as tenth functions (Fig. \ref{fig:wfuns:zbasis}).
+ 
+ 
  \levelc{Transformation from $z$ to $l$} 
- The forward model uses internally a grid along the line of sight
- (Sec. \ref{sec:los}), while the atmospheric WF matrices are
- calculated for some user specified vertical grid, and a
- transformation between these two grids must be performed. This 
- transformation is achieved by the term,
- $\partial\kappa/ \partial \mat{k}^p$.
-
+ The forward model uses
+ internally a grid along the line of sight (Sec. \ref{sec:los}), while
+ the atmospheric WF matrices are calculated for some user specified
+ vertical grid, and a transformation between these two grids must be
+ performed. This transformation is achieved by the terms,
+ $\partial\kappa/ \partial \mat{k}^p$ and $\partial \sigma / \partial
+ S^\mat{p}$. As the source function and the absorption are assumed to
+ have the same funcional behavoiur (piece wise linear), these two
+ terms are identical if the retrieval grid is the same for both quantities:
+ \begin{equation}
+   \frac{\partial \kappa}{\partial \mat{k}^p} =
+   \frac{\partial \sigma}{\partial S^\mat{p}}
+  \label{eq:wfuns:sandk}
+ \end{equation}
  \begin{figure}[t]
   \begin{center}
    \includegraphics*[width=0.7\hsize]{Figs/fig_absbasis_z.eps}
@@ -452,7 +598,6 @@ perturbation calculations.
    \label{fig:wfuns:zbasis}  
   \end{center}
  \end{figure}
-
  \begin{figure}[t]
   \begin{center}
    \includegraphics*[width=0.7\hsize]{Figs/fig_absbasis_l.eps}
@@ -462,12 +607,11 @@ perturbation calculations.
    \label{fig:wfuns:lbasis}  
   \end{center}
  \end{figure}
- 
- The term $\partial\kappa/ \partial \mat{k}^p$ gives the relationship
- between the absorption along the LOS and a change of the absorption
- at one altitude.  Figure \ref{fig:wfuns:lbasis} exemplifies
- $\partial\kappa/ \partial \mat{k}^p$ for three altitudes. Ideally, the
- following relationship should be fulfilled for all $z$
+ For example, the term $\partial\kappa/ \partial \mat{k}^p$ gives the
+ relationship between the absorption along the LOS and a change of the
+ absorption at one altitude.  Figure \ref{fig:wfuns:lbasis}
+ exemplifies $\partial\kappa/ \partial \mat{k}^p$ for three altitudes.
+ Ideally, the following relationship should be fulfilled for all $z$
  \begin{equation}
    \sum_i\mat{k}^i\phi^i_\mat{k}(z(l)) = \sum_j \kappa^j\phi^j_{\kappa}(l)
   \label{eq:wfuns:bases}
@@ -517,7 +661,7 @@ perturbation calculations.
 \levelb{Species WFs}
  \label{sec:wfuns:species}
  
- As it is assumed in this section that the species have no influence on
+ As it is assumed here that the species have no influence on
  the source function, species WFs are calculated as (cf. Eq.
  \ref{eq:wfuns:taylor2})
  \begin{equation}
@@ -528,7 +672,7 @@ perturbation calculations.
   \label{eq:wfuns:species}
  \end{equation}
  The term $\partial\iv / \partial \kappa$ is described in Section
- \ref{sec:wfuns:loswfs}, while the term $\partial \kappa /\partial
+ \ref{sec:wfuns:absloswfs}, while the term $\partial \kappa /\partial
  \mat{k}^p$ is treated in Section \ref{sec:wfuns:bases}, and it
  remains to determine $\partial \mat{k}^p / \partial \xt^p$. It is
  assumed below in this section that \xt\ only represents a single 
@@ -542,7 +686,7 @@ perturbation calculations.
  where $p$ is the altitude of concern, $\mat{\bar{k}}_s$ is the
  absorption of the species of interest, normalized to the units of the
  corresponding values of \xt\ (or \bt) and $\mat{k}_i$ the total
- absorption of other species.
+ absorption for other species.
  We have then that
  \begin{equation}
    \frac{\partial \mat{k}^p}{\partial \xt^p} = \mat{\bar{k}}^p_s
@@ -550,10 +694,10 @@ perturbation calculations.
  \end{equation}
  Different units for species retrievals are allowed. The possible units are
  \begin{enumerate}
-    \item Volume mixing ratio [-] (no dimension)
-    \item Number density [molecules/m$^3$)
     \item Fractions of linearization state [-], i.e. $\xt/\xt_0$ where
           $\xt_0$ is the linearization state 
+    \item Volume mixing ratio [-] (no dimension)
+    \item Number density [molecules/m$^3$)
  \end{enumerate}
  Accordingly, for the practical calculations, the absorption of the
  species of interest is needed, and a possibility to scale to the
@@ -654,7 +798,7 @@ perturbation calculations.
    \frac{\partial \mat{k}^p(\f)}{\partial \xt^p_2} &=& \frac{\f-\f_{min}}
           {\f_{max}-\f_{min}}, \quad \f_{min}\leq \f \leq \f_{max}
  \end{eqnarray}
- Note that the WFs are constant as a function of altitude. Or with
+ Note that these WFs have no altitude variation. Or with
  other words, they are identical for all $p$.
 
 
@@ -665,102 +809,72 @@ perturbation calculations.
  hydrostatic equilibrium is assumed or not. If hydrostatic equilibrium
  is neglected, the WFs can be calculated by semi-analytical
  expressions, while if hydrostatic equilibrium is assumed, the WFs are
- obtained by perturbations.
+ obtained by perturbations. 
+
+ A change of the temperature inside an atmospheric layer will change
+ the line of sights for beams passing this altitude. This effect should
+ however normally be small, and it is here neglected.
 
  \levelc{Without hydrostatic equilibrium}
  
  For some measurement situations it can be questionable to assume that
- the atmosphere fulfills the law of hydrostatic equilibrium. One
- example is 1D limb sounding when there is a large horizontal distance
- between the nadir point of the tangent point for the start and end
- points of the scan. This is the case for the Odin observations where
- the tangent point will move with a speed of about 9 km/s and a scan
- takes 1 -- 2 minutes.
+ the pressure, temparature and geometrical altitude, valid for the
+ measurement, fulfill the law of hydrostatic equilibrium. One example
+ is 1D limb sounding when there is a large horizontal distance between
+ the nadir point of the tangent point for the start and end points of
+ the scan. This is, for example, the case for the Odin observations
+ where the tangent point will move in the latitude direction with a
+ speed of about 9 km/s and a scan takes 1 -- 2 minutes.
  
  If the constrain of hydrostatic equilibrium is neglected, WFs for the
  temperature profile can be calculated following Equation
- \ref{eq:wfuns:taylor2}. However, it is more practical to use the
- temperature and the source function along the LOS, instead as a function
- of vertical altitude, and the relationship applied is
- \begin{equation}
-    \K_{\xt}^p = \Hm \Bigg[ \frac{\partial\iv}{\partial \mat{S}}
-                 \frac{\partial \mat{S}}{\partial T}
-                 \frac{\partial T}{\partial \xt^p} +
+ \ref{eq:wfuns:taylor2}, that is:
+ \begin{eqnarray}
+    \K_{\xt}^p = \Hm \Bigg[ \frac{\partial\iv}{\partial \sigma}
+                 \frac{\partial \sigma}{\partial \mat{S}^p} 
+                 \frac{\partial \mat{S}^p}{\partial \mat{t}^p} +
                  \frac{\partial\iv}{\partial \kappa}
                  \frac{\partial \kappa}{\partial \mat{k}^p}
-                 \frac{\partial \mat{k}^p}{\partial \xt^p} \Bigg]
- \end{equation}
- where $S$ and $T$ are the source function along the LOS and $T$ the
- temperature used to calculate $S$.
+                 \frac{\partial \mat{k}^p}{\partial \mat{t}^p} \Bigg]
+ \end{eqnarray}  
+ where $\mat{t}$ is the vector describing the vertical temperature profile. 
  
- The terms $\partial \iv/\partial \kappa$ and $\partial
- \kappa/\partial \mat{k}^p$ are treated in Section
- \ref{sec:wfuns:loswfs} and \ref{sec:wfuns:bases}, respectively.
- 
- The term $\partial \mat{k}^p/\partial \mat{x}^p$ cannot easily be
- determined analytically. Instead, the total absorption is calculated
- for a temperature profile that is 1~K higher at all altitudes than
- the assumed profile. The difference between the two absorption
- matrices are then interpolated to the temperature profile retrieval
- grid, giving an estimation of the the derivative of the absorption
- with respect to the temperature at the grid altitudes. Schematically
- \begin{eqnarray}
-   \frac{\partial \mat{k}^p}{\partial \mat{x}^p} = \Upsilon(k(T_0+1)-k(T_0))
-     \nonumber
- \end{eqnarray}
- where $\Upsilon$ is the interpolating function from the vertical
- absorption grid to the retrieval grid, $k$ the total absorption, and
- $T_0$ the assumed temperature profile.
- 
- The term $\partial \iv/\partial \mat{S}^q$ can be determined from the
- expressions giving $I$ in Section \ref{sec:wfuns:loswfs}. Using
- Equation \ref{eq:wfuns:mpbi}, we get for single pass cases
- \begin{eqnarray}
-   \frac{\partial \iv}{\partial \mat{S}^q} = 
-                  S_q(1-\zeta_q)\Theta^n_{q+1}, \quad 1\leq q<n 
-  \label{eq:wfuns:temp:single}
- \end{eqnarray}
- Note that there exists no $S_n$.
+ The term $\partial \iv/\partial \sigma$, the source LOS WFs, are
+ derived in Section \ref{sec:wfuns:sourceloswfs}, while the absorption
+ LOS WFs ($\partial \iv/\partial \kappa$) are found in Section
+ \ref{sec:wfuns:absloswfs}. As a single grid is here of concern,
+ Equation \ref{eq:wfuns:sandk} is valid, that is, $\partial\kappa/
+ \partial \mat{k}^p$ equals $\partial \sigma / \partial S^\mat{p}$.
+ These two terms are discussed in Section \ref{sec:wfuns:bases}.
 
- For 1D limb sounding, we have that (cf. Eq. \ref{eq:wfuns:limb1})
- \begin{eqnarray}
-   \frac{\partial \iv}{\partial \mat{S}^q} & = & 
-       S_1(1-\zeta_1^2)\Theta^n_{2}, \quad q=1  \nonumber \\
-   \frac{\partial \iv}{\partial \mat{S}^q} & = & S_q(1-\zeta_q)\big[ 1+\zeta_{q-1}^2\zeta_q\Big(\Theta^{q-1}_{1}\Big)^2  \big]\Theta^n_{q+1}, \quad 1< q<n 
- \end{eqnarray}
- Downwards looking observations can be handled by the two equations above 
- with suitable a change of the final transmission factor ($\Theta^n_{q+1}$) 
- in Equation \ref{eq:wfuns:temp:single}. 
- 
- Here it is assumed that $S$ equals the Planck function, $B$ (see
- Equation \ref{eq:rte:planck}), and the derivative of the source
+ Here it is assumed that $S$ equals the Planck function, $B$
+ (Equation \ref{eq:rte:planck}), and the derivative of the source
  function with respect to the temperature is (see also Equation 44 of
  \citet{eriksson:00a})
  \begin{equation}
    \frac{\partial S}{\partial T} = \frac{h\f}{k_BT^2}
         \Big( 1-e^{-h\f/k_BT}  \Big)^{-1}B(\f,T)
+   \label{eq:wfuns:dsdt}
  \end{equation}
- The temperature used to calculate the Planck function is the mean
- value of the temperature at the neighboring LOS points (Eq.
- \ref{eq:rte:planck2}), a fact giving that
- \begin{equation}
-   \frac{\partial T}{\partial \xt^p} = 
-         \frac{\partial T}{\partial T_{q-1}}
-         \frac{\partial T_{q-1}}{\partial \xt^p} +
-         \frac{\partial T}{\partial T_q}
-         \frac{\partial T_q}{\partial \xt^p} = \frac{1}{2} \Big[
-         \frac{\partial T_{q-1}}{\partial \xt^p} +
-         \frac{\partial T_q}{\partial \xt^p} \Big]
- \end{equation}
- In accordance to Equation \ref{eq:wfuns:kappak}, the terms inside the
- square brackets are
+ The term $\partial \mat{S}^p / \partial \mat{t}^p$ is calculated
+ using Equation \ref{eq:wfuns:dsdt} where $T$ is replaced by $\mat{t}^p$.
+
+ The term $\partial \mat{k}^p/\partial \mat{t}^p$ cannot easily be
+ determined analytically. Instead, the total absorption is calculated
+ for a temperature profile that is 1~K higher at all altitudes than
+ the assumed profile. The difference between the two absorption
+ matrices are then interpolated to the temperature profile retrieval
+ grid, giving an estimation of the derivative of the absorption
+ with respect to the temperature at the grid altitudes. Schematically
  \begin{eqnarray}
-    \frac{\partial T_{q-1}}{\partial \xt^p} &=&  \phi^p_\mat{T}(z(\mat{l}^{q-1})) \\
-    \frac{\partial T_q}{\partial \xt^p} &=&  \phi^p_\mat{T}(z(\mat{l}^q))
+   \frac{\partial \mat{k}^p}{\partial \mat{t}^p} = \Upsilon(k(T_0+1)-k(T_0))
+     \nonumber
  \end{eqnarray}
- where $\phi^p_\mat{T}$ are the temperature vertical basis functions and 
- $\mat{l}^q$ are lengths along the LOS.  
-  
+ where $\Upsilon$ is the interpolating function from the vertical
+ absorption grid to the retrieval grid, $k$ the total absorption, and
+ $T_0$ the assumed temperature profile.
+
+ 
 
  \levelc{With hydrostatic equilibrium}
  
