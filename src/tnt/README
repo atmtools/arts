@@ -1,5 +1,7 @@
 Changes in vecadaptor.h:
 
+SAB 30.01.2000:
+
 I Want to use 
 
 # define ARRAY(a)  TNT::Vector_Adaptor< std::vector<a> >
@@ -14,4 +16,6 @@ push_back() changes the memory allocation.
 Also un-commented begin() and end() methods. Which R. Pozzo had
 commented out for compatibility with valarray.
 
-SAB 30.01.2000
+
+SAB 22.03.2000: 
+Added erase(iterator q) method

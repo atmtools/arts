@@ -1,9 +1,5 @@
 SAB 17.01.2000 Change copyright to FSF.
 SAB 29.01.2000 do not compile documentation as default (maybe put it
                on target doc)
-SAB 29.01.2000 Query replace NumMatrix and NumVector by Matrix and
-               Vector? First check that this does not clash with TNT
-               names. (Probably obsolete, since I use MATRIX/VECTOR
-               after all.)
 SAB 30.01.2000 Turn off all debugging options with ./configure flag.
                (Do not give the -g flag to the compiler, set NDEBUG.)

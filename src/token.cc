@@ -2,8 +2,12 @@
 #include "messages.h"
 #include "token.h"
 
+/** The name of the type associated with the different tokens. This
+    has to be the name exactly as it appears in declarations of these
+    variables in the program, because it is used by make_md_h.cc to
+    automatically generate declarations for method functions. */
 string TokValTypeName[6] = {"string", "int", "Numeric",
-			    "StringVector", "IntVector", "NumVector"};
+			    "ARRAY<String>", "ARRAY<Int>", "VECTOR"};
 
 
 // Conversion functions to read TokVal for the 6 different types: 

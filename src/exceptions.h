@@ -17,40 +17,6 @@
 #ifndef exceptions_h
 #define exceptions_h
 
-// FIXME: We need vector just so that the trace stuff compiles. Throw
-// this out again when you work on parser, trace is now obsolete.
-#include <vector>
-
-
-// IO and File errors:
-
-/** The parent class for all input/output errors. */
-class IOError : public runtime_error {
-public:
-  IOError(const string& s) : runtime_error(s) { }
-};
-
-// Too specific, not used
-/** A file can not be opened for writing. This could for example mean
-    that the directory or the file is read only. */
-/* class CannotOpenOutputFile : public IOError { */
-/* public: */
-/*   CannotOpenOutputFile(const string& s) : IOError(s) { } */
-/* }; */
-
-/* A file can not be opened for reading. Perhaps it does not exist? */
-/* class CannotOpenInputFile : public IOError { */
-/* public: */
-/*   CannotOpenInputFile(const string& s) : IOError(s) { } */
-/* }; */
-
-
-/* class ReadError : public IOError { */
-/* public: */
-/*   ReadError(const string& s) : IOError(s) { } */
-/* }; */
-
-
 // Special stuff for the parser:
 
 class ParseError : public runtime_error {

@@ -89,7 +89,7 @@ class Vector_Adaptor
         v_.push_back(x);
 	// vm1_ needs to be set after push_back!! 
 	// (push_back changes memory allocation)
-	vm1_ = &(v_[0]) -1;
+	vm1_ = &(v_[0]) - 1;
     }
 
     // SAB 11.02.2000 Added clear method, for compatibility with std::vector.
@@ -98,6 +98,14 @@ class Vector_Adaptor
         v_.clear();
 	// vm1_ is now no longer valid.
 	vm1_ = NULL;
+    }
+
+    // SAB 22.03.2000 Added erase method, for compatibility with std::vector.
+    void erase(iterator q)
+    {
+        v_.erase(q);
+	// To be on the safe side, re-set vm1_
+	vm1_ = &(v_[0]) - 1;
     }
 
     BBVec& getVector() { return v_; }

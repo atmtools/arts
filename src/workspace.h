@@ -1,7 +1,7 @@
 #ifndef workspace_h
 #define workspace_h
 
-#include "messages.h"
+#include <iostream>
 
 /** Define the enum type that identifies wsv groups.
     This is used to group workspace variables of the same type
@@ -44,7 +44,7 @@ private:
       to the correct type, for which an overloaded conversion operator
       exists. */
   void safety() {
-    out0 << "Internal error: Tried to convert a WsvP "
+    cerr << "Internal error: Tried to convert a WsvP "
 	 << "pointer to the wrong type.\n";
     exit(1);
   };

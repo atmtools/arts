@@ -7,6 +7,7 @@
 #include "workspace.h"
 #include "methods.h"
 #include "parser.h"
+#include "md.h"
 
 /*
    This is the main function of ARTS. (You never guessed that, did you?)
@@ -73,6 +74,11 @@ int main (int argc, char **argv)
   // which way is easier.
   try
     {
+      // Some global variables that we need:
+      extern WorkSpace workspace;
+      extern ARRAY<WsvRecord> wsv_data;
+      extern ARRAY<MdRecord> md_data;
+
       {
 	// Output program name and version number: 
 	// The name (PACKAGE) and the major and minor version number
@@ -93,8 +99,7 @@ int main (int argc, char **argv)
 	// Quick test that the pointers stored in wsv_data can be
 	// really used to access the workspace variables.
 	// YES!! It works.
-	extern WorkSpace workspace;
-	extern ARRAY<WsvRecord> wsv_data;
+	// FIXME: Remove all this.
 	WsvP   *wp = wsv_data[basename_].Pointer(); 
 	string *s = *wp;
 	*s = "test";
@@ -106,7 +111,6 @@ int main (int argc, char **argv)
 
       {
 	// Quick test:
-	extern ARRAY<MdRecord> md_data;
 	for (size_t i=0; i<md_data.size(); ++i)
 	  {
 	    cout << md_data[i].Name() << '\n';
@@ -128,8 +132,23 @@ int main (int argc, char **argv)
 
       // Call the parser to parse the control text:
       parse_main(tasklist, text);
-      
 
+      // Execute the methods in tasklist.
+      for (size_t i=0; i<tasklist.size(); ++i)
+	try
+	  {
+	    // The array holding the pointers to the getaway functions:
+	    extern void (*getaways[])(WorkSpace&, const ARRAY<TokVal>&);
+
+	    getaways[tasklist[i].Id()]
+	      ( workspace, tasklist[i].Values() );
+	  }
+	catch (runtime_error x)
+	  {
+	    out0 << "Error in method: " << md_data[tasklist[i].Id()].Name() << '\n'
+		 << x.what() << '\n';
+	    exit(1);
+	  }
     }
   catch (runtime_error x)
     {

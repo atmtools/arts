@@ -42,13 +42,14 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("f_abs_ReadFromFile"),
-	DESCRIPTION("Reads absorption frequency grid from the given file."),
+      ( NAME("AllAbsExample"),
+	DESCRIPTION("Reads all important absorption related variables from the\n."
+		    "given files."),
 	GENERIC(false),
-	OUTPUT(f_abs_),
+	OUTPUT(p_abs_, f_abs_, t_abs_, abs_),
 	INPUT(),
-	KEYWORDS("file"),
-	TYPES(str_)));
+	KEYWORDS(),
+	TYPES()));
 
   
 // MdRecord md_data[] = {

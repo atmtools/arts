@@ -8,7 +8,6 @@
 #include <iostream>
 #include "vecmat.h"
 
-
 /**
    Open a file for writing. If the file cannot be opened, the
    exception IOError is thrown. 
@@ -16,9 +15,10 @@
    @param     name Name of the file to open
    @author    Stefan Buehler
    @version   1
-   @exception IOError Could for example mean that the
+   @exception ios_base::failure Could for example mean that the
                       directory is read only. */
 void open_output_file(ofstream& file, const string& name);
+//  throw (ios::failure);    Does not yet work in egcs
 
 /**
    Open a file for reading. If the file cannot be opened, the
@@ -27,8 +27,9 @@ void open_output_file(ofstream& file, const string& name);
    @param     name Name of the file to open
    @author    Stefan Buehler
    @version   1
-   @exception IOError Somehow the file cannot be opened. */
+   @exception ios_base::failure Somehow the file cannot be opened. */
 void open_input_file(ifstream& file, const string& name);
+//  throw (ios::failure);  Does not yet work in egcs
 
 
 /**

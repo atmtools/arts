@@ -9,28 +9,25 @@
 
 #include "arts.h"
 #include "vecmat.h"
+#include "file.h"
 #include "workspace.h"
 
 int main()
 {
   try
     {
-      // Initialize the wsv data.
+      // Initialize wsv data.
       define_wsv_data();
 
-      // The lookup information for the workspace variables. 
+      // Make wsv data visible.
       extern ARRAY<WsvRecord> wsv_data;
 
       const size_t n_wsv = wsv_data.size();
 
       //      cout << "size = " << wsv_data.size() << '\n';
 
-      ofstream ofs("wsv.h");
-      if (!ofs)
-	{
-	  cout << "Cannot open output file wsv.h.\n";
-	  return 1;
-	}
+      ofstream ofs;
+      open_output_file(ofs,"wsv.h");
 
       ofs << "// This file was generated automatically by make_wsv_h.cc.\n";
       ofs << "// DO NOT EDIT !\n";
@@ -40,8 +37,10 @@ int main()
 
       ofs << "#ifndef wsv_h\n";
       ofs << "#define wsv_h\n\n";
-
-      ofs << "#define N_WSV " << n_wsv << "\n\n";
+      
+      ofs << "// This is only used for a consistency check. You can get the\n"
+	  << "// number of workspace variables from wsv_data.size().\n"
+	  << "#define N_WSV " << n_wsv << "\n\n";
 
       ofs << "enum WsvHandle{\n";
       for (size_t i=0; i<n_wsv-1; ++i)
@@ -53,11 +52,10 @@ int main()
 
       ofs << "#endif  // wsv_h\n";
     }
-  catch (exception x)
+  catch (runtime_error x)
     {
-      cout << "Something went wrong, I don't know what.\n";
-      cout << "Message text:\n";
-      cout << x.what();
+      cout << "Something went wrong. Message text:\n";
+      cout << x.what() << '\n';
       return 1;
     }
 

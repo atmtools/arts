@@ -22,6 +22,8 @@ workspace.h \
 methods.h \
 token.h \
 parser.h \
+md.h \
+math_funcs.h \
 getopt.c \
 getopt1.c \
 main.cc \
@@ -31,16 +33,25 @@ file.cc \
 workspace.cc \
 methods.cc \
 token.cc \
-parser.cc
+parser.cc \
+md.cc \
+math_funcs.cc \
+absorption.cc
 
-noinst_PROGRAMS = make_wsv_h
+noinst_PROGRAMS = make_wsv_h make_md_h
 
 make_wsv_h_SOURCES = \
-arts.h vecmat.h messages.h workspace.h \
-messages.cc workspace.cc \
-make_wsv_h.cc
+arts.h vecmat.h messages.h file.h workspace.h \
+messages.cc file.cc workspace.cc make_wsv_h.cc
+
+make_md_h_SOURCES = \
+arts.h vecmat.h wsv.h token.h messages.h file.h workspace.h methods.h \
+token.cc messages.cc file.cc workspace.cc methods.cc make_md_h.cc
 
 wsv.h: make_wsv_h
 	./make_wsv_h
 
-BUILT_SOURCES = wsv.h
+md.h: make_md_h
+	./make_md_h
+
+BUILT_SOURCES = wsv.h md.h

@@ -6,5 +6,5 @@
 
 #include <string>
 
-string subversion = "1";
+string subversion = "2";
 

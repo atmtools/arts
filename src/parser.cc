@@ -1,4 +1,5 @@
 #include "arts.h"
+#include "messages.h"
 #include "exceptions.h"
 #include "file.h"
 #include "workspace.h"

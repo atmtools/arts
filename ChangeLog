@@ -1,21 +1,28 @@
-# This file contains the Arts history. ALWAYS add a note to this file, no
-# matter how small your change. Also, always update the running version
-# number. Newest change log entries first!
-#
-# You can very easily add an entry with emacs by typing either
-# M-x add-change-log-entry or C-x 4 a.
-#
-# Remark about version numbers: Arts has a 3 digit version number, like
-# for example Arts 1.2.3. For user releases the third digit is zero.
-# The first two digits are set in configure.in. Update these only when
-# you cut a user release. In that case you also have to set the third
-# digit to zero.  The third digit is set in src/version.cc. Always
-# update this, no matter how small your change!
-# SAB 14.03.2000.
+2000-03-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0.0.2.
+	* make_md_h.cc: Added.
+	* math_funcs.h: Added.
+	* math_funcs.cc: Added. 
+	* absorption.cc: Added. 
 
 2000-03-14  Stefan Buehler  <sbuehler@uni-bremen.de>
 
-	* Subversion 0.0.1.
-	* Added .cvsignore files everywhere.
-	* Started this file.
+	* This file contains  SAB 14.03.2000.
+
+	* arts-0.0.1.
+	* .cvsignore files added everywhere.
+	* Started this file, the Arts history. ALWAYS add a note to this
+	file, no matter how small your change. Also, always update the
+	running version number. Newest change log entries first!
+	  
+	You can very easily add an entry with emacs by typing either M-x
+	add-change-log-entry or C-x 4 a.
+	  
+	Remark about version numbers: Arts has a 3 digit version number,
+	like for example Arts 1.2.3. For user releases the third digit is
+	zero.  The first two digits are set in configure.in. Update these
+	only when you cut a user release. In that case you also have to
+	set the third digit to zero.  The third digit is set in
+	src/version.cc. Always update this, no matter how small your
+	change!

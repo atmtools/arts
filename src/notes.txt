@@ -37,6 +37,10 @@ Some notes about the art of programing on ARTS:
 
    The only exception from this rule are the output streams out0 to
    out3, which are visible by default.
+
+6. Files: Always use the open_output_file and open_input_file
+   functions to open files. This switches on exceptions, so that any
+   error occuring later on with this file will result in an exception.
 ----------------------------------------------------------------------
 
 Build stuff:

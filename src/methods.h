@@ -37,13 +37,13 @@ public:
       assert( mkeywords.size() == mtypes.size() );
     }
   
-  const string&          Name()        	const { return mname;        }   
-  const string&          Description() 	const { return mdescription; }
-  bool                   Generic()      const { return mgeneric;     }
-  const ARRAY<size_t>&  Output()       const { return moutput;      }
-  const ARRAY<size_t>&  Input()        const { return minput;       }
-  const ARRAY<string>&     Keywords()    	const { return mkeywords;    }
-  const ARRAY<TokValType>& Types()       	const { return mtypes;       }
+  const string&            Name()         const { return mname;        }   
+  const string&            Description()  const { return mdescription; }
+  bool                     Generic()      const { return mgeneric;     }
+  const ARRAY<size_t>&     Output()       const { return moutput;      }
+  const ARRAY<size_t>&     Input()        const { return minput;       }
+  const ARRAY<string>&     Keywords()     const { return mkeywords;    }
+  const ARRAY<TokValType>& Types()        const { return mtypes;       }
 
 private:
 
