@@ -1,3 +1,22 @@
+2003-12-16  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-763
+
+	* src/workspace.cc: Added *scat_data_mono*, which is scat_data_raw 
+	interpolated by frequency.
+
+	* src/m_optproperties.cc, src/methods.cc: added function 
+	*scat_data_monoCalc*, changed 
+	#define pha_mat_data to #define pha_mat_data_raw, and changed all
+	affected functions. The former meant I could not access
+	scat_data_mono members.
+
+	* src/montecarlo.cc (pha_mat_singleCalc): Changed to use
+	scat_data_mono instead of scat_data_raw.
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo):Changed to use
+	scat_data_mono instead of scat_data_raw.
+
 2003-12-16  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-762

@@ -476,7 +476,7 @@ void ScatteringMonteCarlo (
                            const Agenda& scalar_gas_absorption_agenda,
                            const Tensor4&   vmr_field,
                            //Other Stuff
-                           const ArrayOfSingleScatteringData& scat_data_raw,
+                           const ArrayOfSingleScatteringData& scat_data_mono,
                            const Tensor4& pnd_field,
                            const Tensor4& scat_theta, // CE: Included 
                            const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
@@ -531,7 +531,7 @@ void ScatteringMonteCarlo (
   Vector t_ppathLOS;
   Matrix pnd_ppath;
   Matrix pnd_ppathLOS;
-  Tensor5 pha_mat_spt(scat_data_raw.nelem(),2,2,stokes_dim,stokes_dim);
+  Tensor5 pha_mat_spt(scat_data_mono.nelem(),2,2,stokes_dim,stokes_dim);
   Tensor4 pha_mat(2,2,stokes_dim,stokes_dim);
   ArrayOfGridPos pathlength_gp(1);
   Vector K_abs(stokes_dim);
@@ -561,7 +561,7 @@ void ScatteringMonteCarlo (
   Vector pathI_e(stokes_dim);
   //Index I_emission_N=0;
   Numeric za_scat;
-  Vector za_grid=scat_data_raw[0].za_grid;
+  Vector za_grid=scat_data_mono[0].za_grid;
   /////////////////////////////////////////
 
   //If necessary, open file for histogram data output
@@ -764,8 +764,8 @@ void ScatteringMonteCarlo (
                   if (los_sampling_method==3)
                     {
                       Sample_los_Z (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
-                                    scat_data_raw,stokes_dim,f_index,f_grid,
-                                    scat_theta,scat_theta_gps,scat_theta_itws,
+                                    scat_data_mono,stokes_dim,scat_theta,
+				    scat_theta_gps,scat_theta_itws,
                                     pnd_vec,K(0,0)-K_abs[0]);
                     }
                   else
@@ -778,9 +778,8 @@ void ScatteringMonteCarlo (
                         -180+new_rte_los[1]:180+new_rte_los[1];
                       
                       pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-                                         aa_inc,scat_data_raw,stokes_dim,f_index,
-                                         f_grid,scat_theta,scat_theta_gps,
-                                         scat_theta_itws,pnd_vec);
+                                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,scat_theta,
+					 scat_theta_gps,scat_theta_itws);
                     }
                   if(strat_sampling)
                     {

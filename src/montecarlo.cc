@@ -670,50 +670,47 @@ void pha_mat_singleCalc(
 			Numeric aa_scat, 
 			Numeric za_inc, 
 			Numeric aa_inc,
-			const ArrayOfSingleScatteringData& scat_data_raw,
+			const ArrayOfSingleScatteringData& scat_data_mono,
 			const Index&          stokes_dim,
-			const Index&                f_index,
-			const Vector&         f_grid,
-			const Tensor4& scat_theta, // CE: Included 
-			const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
-			const Tensor5& scat_theta_itws,
-			const VectorView& pnd_vec      
-			)
+			const VectorView& pnd_vec, 
+			const Tensor4& scat_theta,//these three are a bit annoying
+			const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,//
+			const Tensor5& scat_theta_itws)//
 {
-  Vector pha_mat_za_grid(2);
-  Vector pha_mat_aa_grid(2);
-  Tensor5 pha_mat_spt(scat_data_raw.nelem(),2,2,stokes_dim,stokes_dim);
-  
+  //Vector pha_mat_za_grid(2);
+  //Vector pha_mat_aa_grid(2);
   Index N_pt=pnd_vec.nelem();
+  assert (N_pt==scat_data_raw.nelem());
 
-  pha_mat_za_grid[0]=za_scat;
-  pha_mat_za_grid[1]=za_inc;
-  pha_mat_aa_grid[0]= aa_scat;
-  pha_mat_aa_grid[1]=aa_inc;
+  Vector scat_za_grid(2);
+  Vector scat_aa_grid(2);
 
-  Index za_prop=0;
-  Index aa_prop=0;
-  pha_mat_sptFromData(pha_mat_spt, scat_data_raw, pha_mat_za_grid, pha_mat_aa_grid, 
-		      za_prop, aa_prop, f_index, f_grid, 
-		      scat_theta, scat_theta_gps, scat_theta_itws);
-  
+  scat_za_grid[0]=za_inc;
+  scat_za_grid[1]=za_scat;
+
+  scat_aa_grid[0]=aa_inc;
+  scat_aa_grid[1]=aa_scat;
+ 
+  Index scat_za_index=1;
+  Index scat_aa_index=1;
+  Index za_inc_idx=0;
+  Index aa_inc_idx=0;
+  Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);
+
+
   Z=0.0;
   // this is a loop over the different particle types
-  for (Index pt_index = 0; pt_index < N_pt; pt_index++)
+  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      // now the last two loops over the stokes dimension.
-      for (Index i = 0;  i < stokes_dim; i++)
-	{
-	  for (Index j = 0; j < stokes_dim; j++)
-	    {
-	      //summation of the product of pnd_field and 
-	      //pha_mat_spt.
-	      Z(i,j) += (pha_mat_spt(pt_index, 1, 1, i, j) * 
-			 pnd_vec[pt_index]);
-	      
-	      
-	    } 
-	}	
+      pha_matTransform(pha_mat_lab,scat_data_mono[i_pt].pha_mat_data(0,joker,joker,joker,joker,joker), 
+		       scat_data_mono[i_pt].za_grid, 
+		       scat_data_mono[i_pt].aa_grid,
+		       scat_data_mono[i_pt].ptype,scat_za_index, scat_aa_index, 
+		       za_inc_idx,aa_inc_idx, scat_za_grid, scat_aa_grid,
+		       scat_theta, scat_theta_gps, scat_theta_itws);
+      pha_mat_lab*=pnd_vec[i_pt];
+      Z+=pha_mat_lab;
+      	
     }
 }
 
@@ -874,10 +871,8 @@ void Sample_los_Z (
 		   MatrixView& Z,
 		   Rng& rng,
 		   const VectorView& rte_los,
-		   const ArrayOfSingleScatteringData& scat_data_raw,
+		   const ArrayOfSingleScatteringData& scat_data_mono,
 		   const Index&          stokes_dim,
-		   const Index&                f_index,
-		   const Vector&         f_grid,
 		   const Tensor4& scat_theta, // CE: Included 
 		   const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
 		   const Tensor5& scat_theta_itws,
@@ -891,9 +886,9 @@ void Sample_los_Z (
   //phase matrix for a given scattered direction is for forward scattering
   Numeric aa_scat = (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
   pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
-			 aa_scat,scat_data_raw,stokes_dim,f_index,
-			 f_grid,scat_theta,scat_theta_gps,
-			 scat_theta_itws,pnd_vec);
+		     aa_scat,scat_data_mono,stokes_dim,pnd_vec,
+		     scat_theta,scat_theta_gps,
+			 scat_theta_itws);
   Numeric Z11max=dummyZ(0,0);  
   ///////////////////////////////////////////////////////////////////////  
   while(tryagain)
@@ -905,9 +900,8 @@ void Sample_los_Z (
 	-180+new_rte_los[1]:180+new_rte_los[1];
       
       pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-			 aa_inc,scat_data_raw,stokes_dim,f_index,
-			 f_grid,scat_theta,scat_theta_gps,
-			 scat_theta_itws,pnd_vec);
+			 aa_inc,scat_data_mono,stokes_dim,pnd_vec,scat_theta,
+			 scat_theta_gps, scat_theta_itws);
       
       if (rng.draw()<=Z(0,0)/Z11max)//then new los is accepted
 	{

@@ -38,9 +38,9 @@ extern const Numeric RAD2DEG;
 #define f_datagrid scat_data_raw[i_pt].f_grid
 #define za_datagrid scat_data_raw[i_pt].za_grid
 #define aa_datagrid scat_data_raw[i_pt].aa_grid
-#define pha_mat_data scat_data_raw[i_pt].pha_mat_data
-#define ext_mat_data scat_data_raw[i_pt].ext_mat_data
-#define abs_vec_data scat_data_raw[i_pt].abs_vec_data
+#define pha_mat_data_raw scat_data_raw[i_pt].pha_mat_data  //CPD: changed from pha_mat_data
+#define ext_mat_data_raw scat_data_raw[i_pt].ext_mat_data  //which wouldn't let me play with
+#define abs_vec_data_raw scat_data_raw[i_pt].abs_vec_data  //scat_data_mono.
 
 
 //! Calculate single particle extinction. 
@@ -298,9 +298,9 @@ void pha_mat_sptFromData( // Output:
       // Frequency interpolation:
      
       // The data is interpolated on one frequency. 
-      pha_mat_data_int.resize(pha_mat_data.nshelves(), pha_mat_data.nbooks(),
-                              pha_mat_data.npages(), pha_mat_data.nrows(), 
-                              pha_mat_data.ncols());
+      pha_mat_data_int.resize(pha_mat_data_raw.nshelves(), pha_mat_data_raw.nbooks(),
+                              pha_mat_data_raw.npages(), pha_mat_data_raw.nrows(), 
+                              pha_mat_data_raw.ncols());
 
       
       // Gridpositions:
@@ -311,23 +311,23 @@ void pha_mat_sptFromData( // Output:
       Vector itw(2);
       interpweights(itw, freq_gp);
      
-      for (Index i_za_sca = 0; i_za_sca < pha_mat_data.nshelves() ; i_za_sca++)
+      for (Index i_za_sca = 0; i_za_sca < pha_mat_data_raw.nshelves() ; i_za_sca++)
         {
-          for (Index i_aa_sca = 0; i_aa_sca < pha_mat_data.nbooks(); i_aa_sca++)
+          for (Index i_aa_sca = 0; i_aa_sca < pha_mat_data_raw.nbooks(); i_aa_sca++)
             {
-              for (Index i_za_inc = 0; i_za_inc < pha_mat_data.npages(); 
+              for (Index i_za_inc = 0; i_za_inc < pha_mat_data_raw.npages(); 
                    i_za_inc++)
                 {
-                  for (Index i_aa_inc = 0; i_aa_inc < pha_mat_data.nrows(); 
+                  for (Index i_aa_inc = 0; i_aa_inc < pha_mat_data_raw.nrows(); 
                        i_aa_inc++)
                     {  
-                      for (Index i = 0; i < pha_mat_data.ncols(); i++)
+                      for (Index i = 0; i < pha_mat_data_raw.ncols(); i++)
                         {
                           pha_mat_data_int(i_za_sca, 
                                                 i_aa_sca, i_za_inc, 
                                                 i_aa_inc, i) =
                             interp(itw,
-                                   pha_mat_data(joker,i_za_sca, 
+                                   pha_mat_data_raw(joker,i_za_sca, 
                                                 i_aa_sca, i_za_inc, 
                                                 i_aa_inc, i),
                                    freq_gp);
@@ -515,13 +515,13 @@ void opt_prop_sptFromData( // Output and Input:
       //
       // Resize the variables for the interpolated data:
       //
-      ext_mat_data_int.resize(ext_mat_data.npages(),
-                              ext_mat_data.nrows(), 
-                              ext_mat_data.ncols());
+      ext_mat_data_int.resize(ext_mat_data_raw.npages(),
+                              ext_mat_data_raw.nrows(), 
+                              ext_mat_data_raw.ncols());
       //
-      abs_vec_data_int.resize(abs_vec_data.npages(),
-                              abs_vec_data.nrows(), 
-                              abs_vec_data.ncols());
+      abs_vec_data_int.resize(abs_vec_data_raw.npages(),
+                              abs_vec_data_raw.nrows(), 
+                              abs_vec_data_raw.ncols());
       
       
       // Gridpositions:
@@ -532,33 +532,33 @@ void opt_prop_sptFromData( // Output and Input:
       Vector itw(2);
       interpweights(itw, freq_gp);
      
-      for (Index i_za_sca = 0; i_za_sca < ext_mat_data.npages() ; i_za_sca++)
+      for (Index i_za_sca = 0; i_za_sca < ext_mat_data_raw.npages() ; i_za_sca++)
         {
-          for(Index i_aa_sca = 0; i_aa_sca < ext_mat_data.nrows(); i_aa_sca++)
+          for(Index i_aa_sca = 0; i_aa_sca < ext_mat_data_raw.nrows(); i_aa_sca++)
             {
               //
               // Interpolation of extinction matrix:
               //
-              for (Index i = 0; i < ext_mat_data.ncols(); i++)
+              for (Index i = 0; i < ext_mat_data_raw.ncols(); i++)
                 {
                   ext_mat_data_int(i_za_sca, i_aa_sca, i) =
-                    interp(itw, ext_mat_data(joker, i_za_sca, i_aa_sca, i),
+                    interp(itw, ext_mat_data_raw(joker, i_za_sca, i_aa_sca, i),
                            freq_gp);
                 }
             }
         }
 
-      for (Index i_za_sca = 0; i_za_sca < abs_vec_data.npages() ; i_za_sca++)
+      for (Index i_za_sca = 0; i_za_sca < abs_vec_data_raw.npages() ; i_za_sca++)
         {
-          for(Index i_aa_sca = 0; i_aa_sca < abs_vec_data.nrows(); i_aa_sca++)
+          for(Index i_aa_sca = 0; i_aa_sca < abs_vec_data_raw.nrows(); i_aa_sca++)
             {
               //
               // Interpolation of absorption vector:
               //
-              for (Index i = 0; i < abs_vec_data.ncols(); i++)
+              for (Index i = 0; i < abs_vec_data_raw.ncols(); i++)
                 {
                   abs_vec_data_int(i_za_sca, i_aa_sca, i) =
-                    interp(itw, abs_vec_data(joker, i_za_sca, i_aa_sca, i),
+                    interp(itw, abs_vec_data_raw(joker, i_za_sca, i_aa_sca, i),
                            freq_gp);
                 }
             }
@@ -1718,13 +1718,13 @@ void scat_data_rawCheck(//Input:
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
       Numeric Csca = AngIntegrate_trapezoid
-        (pha_mat_data(0, joker, 0, 0, 0, 0), za_datagrid);
+        (pha_mat_data_raw(0, joker, 0, 0, 0, 0), za_datagrid);
 
-      Numeric Cext = ext_mat_data(0,0,0,0);
+      Numeric Cext = ext_mat_data_raw(0,0,0,0);
 
       Numeric Cabs = Cext - Csca;
 
-      Numeric Cabs_data = abs_vec_data(0,0,0,0);
+      Numeric Cabs_data = abs_vec_data_raw(0,0,0,0);
 
       Numeric Csca_data = Cext - Cabs_data;
 
@@ -2008,7 +2008,7 @@ void ScatteringDataPrepareDOITOpt( //Output:
   Index i_pt = 0;
   
   // Frequency interpolation of the data:
-  Matrix pha_mat_data_int(pha_mat_data.nshelves(), 6);
+  Matrix pha_mat_data_int(pha_mat_data_raw.nshelves(), 6);
   
   // Gridpositions:
   GridPos freq_gp;
@@ -2024,7 +2024,7 @@ void ScatteringDataPrepareDOITOpt( //Output:
       for (Index za_idx = 0; za_idx < za_datagrid.nelem(); za_idx ++)
         {
           pha_mat_data_int(za_idx, i) =
-            interp(freq_itw, pha_mat_data(joker, za_idx, 0, 0, 0, i),
+            interp(freq_itw, pha_mat_data_raw(joker, za_idx, 0, 0, 0, i),
                    freq_gp);
         }
     }
@@ -2101,3 +2101,124 @@ void ScatteringDataPrepareOFF( //Output:
   scat_theta_gps.resize(0);
   scat_theta_itws.resize(0,0,0,0,0);
 }
+
+
+//! scat_data_monoCalc
+/*! 
+  calculates monochromatic sngle scattering data for all particle types by
+  interpolating scat_data_raw over frequency.
+
+  \param scat_data_mono     Output: monochomatic scattering data
+  \param scat_data_raw      raw scattering data WSV
+  \param f_grid
+  \param f_index
+
+  \author Cory Davis
+  \date 2003-12-16
+*/
+void scat_data_monoCalc(
+			ArrayOfSingleScatteringData& scat_data_mono,
+			const ArrayOfSingleScatteringData& scat_data_raw,
+			const Vector& f_grid,
+			const Index& f_index
+			)
+{
+  const Index N_pt = scat_data_raw.nelem();
+  
+  //Initialise scat_data_mono
+  scat_data_mono.resize(N_pt);
+  
+  // Loop over the included particle_types
+  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+    {
+
+      // Gridpositions:
+      GridPos freq_gp;
+      gridpos(freq_gp, f_datagrid, f_grid[f_index]); 
+
+      // Interpolationweights:
+      Vector itw(2);
+      interpweights(itw, freq_gp);
+
+      //Stuff that doesn't need interpolating
+      scat_data_mono[i_pt].ptype=part_type;
+      scat_data_mono[i_pt].f_grid.resize(1);
+      scat_data_mono[i_pt].f_grid=f_grid[f_index];
+      scat_data_mono[i_pt].T_grid=scat_data_raw[i_pt].T_grid;
+      scat_data_mono[i_pt].za_grid=za_datagrid;
+      scat_data_mono[i_pt].aa_grid=aa_datagrid;
+
+      //Phase matrix data
+      scat_data_mono[i_pt].pha_mat_data.resize(1,pha_mat_data_raw.nshelves(),
+				  pha_mat_data_raw.nbooks(),pha_mat_data_raw.npages(),
+				  pha_mat_data_raw.nrows(),pha_mat_data_raw.ncols());
+     
+      for (Index i_za_sca = 0; i_za_sca < pha_mat_data_raw.nshelves() ; i_za_sca++)
+        {
+          for (Index i_aa_sca = 0; i_aa_sca < pha_mat_data_raw.nbooks(); i_aa_sca++)
+            {
+              for (Index i_za_inc = 0; i_za_inc < pha_mat_data_raw.npages(); 
+                   i_za_inc++)
+                {
+                  for (Index i_aa_inc = 0; i_aa_inc < pha_mat_data_raw.nrows(); 
+                       i_aa_inc++)
+                    {  
+                      for (Index i = 0; i < pha_mat_data_raw.ncols(); i++)
+                        {
+                          scat_data_mono[i_pt].pha_mat_data(0,i_za_sca, 
+                                                i_aa_sca, i_za_inc, 
+                                                i_aa_inc, i) =
+                            interp(itw,
+                                   pha_mat_data_raw(joker,i_za_sca, 
+                                                i_aa_sca, i_za_inc, 
+                                                i_aa_inc, i),
+                                   freq_gp);
+                        }
+                    }
+                }
+            }
+        }
+      //Extinction matrix data
+      scat_data_mono[i_pt].ext_mat_data.resize(1,ext_mat_data_raw.npages(),
+					       ext_mat_data_raw.nrows(),
+					       ext_mat_data_raw.ncols());
+      for (Index i_za_sca = 0; i_za_sca < ext_mat_data_raw.npages() ; i_za_sca++)
+        {
+          for(Index i_aa_sca = 0; i_aa_sca < ext_mat_data_raw.nrows(); i_aa_sca++)
+            {
+              //
+              // Interpolation of extinction matrix:
+              //
+              for (Index i = 0; i < ext_mat_data_raw.ncols(); i++)
+                {
+                  scat_data_mono[i_pt].ext_mat_data(0,i_za_sca, i_aa_sca, i) =
+                    interp(itw, ext_mat_data_raw(joker, i_za_sca, i_aa_sca, i),
+                           freq_gp);
+                }
+            }
+        }
+      //Extinction matrix data
+      scat_data_mono[i_pt].abs_vec_data.resize(1,abs_vec_data_raw.npages(),
+					       abs_vec_data_raw.nrows(),
+					       abs_vec_data_raw.ncols());
+      for (Index i_za_sca = 0; i_za_sca < abs_vec_data_raw.npages() ; i_za_sca++)
+        {
+          for(Index i_aa_sca = 0; i_aa_sca < abs_vec_data_raw.nrows(); i_aa_sca++)
+            {
+              //
+              // Interpolation of absorption vector:
+              //
+              for (Index i = 0; i < abs_vec_data_raw.ncols(); i++)
+                {
+                  scat_data_mono[i_pt].abs_vec_data(0,i_za_sca, i_aa_sca, i) =
+                    interp(itw, abs_vec_data_raw(joker, i_za_sca, i_aa_sca, i),
+                           freq_gp);
+                }
+            }
+        }
+
+    }
+}
+
+
+

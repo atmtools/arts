@@ -1994,6 +1994,21 @@ wsv_data.push_back
 
    wsv_data.push_back
      (WsvRecord
+      ( NAME( "scat_data_mono" ),
+        DESCRIPTION
+        (
+         "monochromatic single scattering data.\n"
+         "\n"
+         "This variable holds the single scattering properties for all \n"
+         "hydrometeor species. It is calculated from scat_data_raw by \n"
+	 "*scat_data_monoCalc*, which interpolates scat_data_raw for the \n"
+	 "required frequency.\n"
+         "\n"
+         ),
+        GROUP( ArrayOfSingleScatteringData_ ))); 
+
+   wsv_data.push_back
+     (WsvRecord
       ( NAME( "scat_data_raw" ),
         DESCRIPTION
         (

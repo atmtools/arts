@@ -173,14 +173,12 @@ void pha_mat_singleCalc(
 			Numeric aa_scat, 
 			Numeric za_inc, 
 			Numeric aa_inc,
-			const ArrayOfSingleScatteringData& scat_data_raw,
+			const ArrayOfSingleScatteringData& scat_data_mono,
 			const Index&          stokes_dim,
-			const Index&                f_index,
-			const Vector&         f_grid,
+			const VectorView& pnd_vec,     
 			const Tensor4& scat_theta, // CE: Included 
 			const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
-			const Tensor5& scat_theta_itws,
-			const VectorView& pnd_vec     
+			const Tensor5& scat_theta_itws     
 			);
 
 void ppathRecordMC(
@@ -204,10 +202,8 @@ void Sample_los_Z (
 		   MatrixView& Z,
 		   Rng& rng,
 		   const VectorView& rte_los,
-		   const ArrayOfSingleScatteringData& scat_data_raw,
+		   const ArrayOfSingleScatteringData& scat_data_mono,
 		   const Index&          stokes_dim,
-		   const Index&                f_index,
-		   const Vector&         f_grid,
 		   const Tensor4& scat_theta, // CE: Included 
 		   const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
 		   const Tensor5& scat_theta_itws,

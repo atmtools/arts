@@ -3366,6 +3366,22 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "scat_data_monoCalc" ),
+        DESCRIPTION
+        (
+         "Interpolates scat_data_raw by frequency to give scat_data_mono\n"
+         "\n"
+         "\n"
+          ),
+        OUTPUT( scat_data_mono_ ),
+        INPUT( scat_data_raw_ ,f_grid_, f_index_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "scat_data_rawCheck" ),
         DESCRIPTION
         (
@@ -3649,7 +3665,7 @@ md_data_raw.push_back
               t_field_, scat_za_grid_,
               scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
               spt_calc_agenda_,scalar_gas_absorption_agenda_, vmr_field_,
-              scat_data_raw_, pnd_field_, scat_theta_, scat_theta_gps_,
+              scat_data_mono_, pnd_field_, scat_theta_, scat_theta_gps_,
               scat_theta_itws_,montecarlo_p_from_belowCsca_),
         GOUTPUT(),
         GINPUT(),
