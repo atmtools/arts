@@ -32,10 +32,19 @@
 #include "xml_io.h"
 #include <stdexcept>
 #include <cfloat>
+#include "matpackI.h"
+#include "matpackIII.h"
+#include "matpackIV.h"
+#include "matpackV.h"
+#include "matpackVI.h"
+#include "matpackVII.h"
 #include "array.h"
 #include "messages.h"
 
 
+////////////////////////////////////////////////////////////////////////////
+//   General XML handling routines
+////////////////////////////////////////////////////////////////////////////
 
 void
 xml_parse_error (const String& str_error);
@@ -52,7 +61,96 @@ xml_write_header_to_stream (ostream& os);
 void
 xml_write_footer_to_stream (ostream& os);
 
+void
+xml_set_stream_precision (ostream &os);
 
+
+////////////////////////////////////////////////////////////////////////////
+//   Overloaded reading/writing routines for XML streams
+////////////////////////////////////////////////////////////////////////////
+
+void
+xml_read_from_stream (istream& is, ArrayOfIndex& aindex);
+
+void
+xml_write_to_stream (ostream& os, const ArrayOfIndex& aindex);
+
+void
+xml_read_from_stream (istream& is, ArrayOfMatrix& amatrix);
+
+void
+xml_write_to_stream (ostream& os, const ArrayOfMatrix& amatrix);
+
+void
+xml_read_from_stream (istream& is, ArrayOfVector& avector);
+
+void
+xml_write_to_stream (ostream& os, const ArrayOfVector& avector);
+
+void
+xml_read_from_stream (istream& is, Index& index);
+
+void
+xml_write_to_stream (ostream& os, const Index& index);
+
+void
+xml_read_from_stream (istream& is, Matrix& matrix);
+
+void
+xml_write_to_stream (ostream& os, const Matrix& matrix);
+
+void
+xml_read_from_stream (istream& is, Numeric& numeric);
+
+void
+xml_write_to_stream (ostream& os, const Numeric& numeric);
+
+void
+xml_read_from_stream (istream& is, String& str);
+
+void
+xml_write_to_stream (ostream& os, const String& str);
+
+void
+xml_read_from_stream (istream& is, Tensor3& tensor);
+
+void
+xml_write_to_stream (ostream& os, const Tensor3& tensor);
+
+void
+xml_read_from_stream (istream& is, Tensor4& tensor);
+
+void
+xml_write_to_stream (ostream& os, const Tensor4& tensor);
+
+void
+xml_read_from_stream (istream& is, Tensor5& tensor);
+
+void
+xml_write_to_stream (ostream& os, const Tensor5& tensor);
+
+void
+xml_read_from_stream (istream& is, Tensor6& tensor);
+
+void
+xml_write_to_stream (ostream& os, const Tensor6& tensor);
+
+void
+xml_read_from_stream (istream& is, Tensor7& tensor);
+
+void
+xml_write_to_stream (ostream& os, const Tensor7& tensor);
+
+void
+xml_read_from_stream (istream& is, Vector& vector);
+
+void
+xml_write_to_stream (ostream& os, const Vector& vector);
+
+
+////////////////////////////////////////////////////////////////////////////
+//   XML parser classes
+////////////////////////////////////////////////////////////////////////////
 
 class XMLAttribute
 {
@@ -79,7 +177,16 @@ public:
   add_attribute (const String& aname, const String& value);
 
   void
+  add_attribute (const String& aname, const Index& value);
+
+  void
+  check_attribute (const String& aname, const String& value);
+
+  void
   get_attribute_value (const String& aname, String& value);
+
+  void
+  get_attribute_value (const String& aname, Index& value);
 
   void
   read_from_stream (istream& is);
@@ -117,7 +224,7 @@ ArtsXMLTag::check_name (const String& expected_name)
 }
 
 
-//! Adds an attribute to tag
+//! Adds a String attribute to tag
 /*! 
   
   \param aname Attribute name
@@ -134,6 +241,109 @@ ArtsXMLTag::add_attribute (const String& aname, const String& value)
 }
 
 
+//! Adds an Index attribute to tag
+/*! 
+  
+  \param aname Attribute name
+  \param value Attribute value
+*/
+void
+ArtsXMLTag::add_attribute (const String& aname, const Index& value)
+{
+  ostringstream v;
+
+  v << value;
+  add_attribute (aname, v.str ());
+}
+
+
+//! Checks whether attribute has the expected value
+/*! 
+
+  If the attribute has another value or is unknown an exception is
+  thrown.
+
+  \param aname Attribute name
+  \param value Expected value
+*/
+void
+ArtsXMLTag::check_attribute (const String& aname, const String& value)
+{
+  String actual_value;
+  
+  get_attribute_value (aname, actual_value);
+
+  if (actual_value == "*not found*")
+    {
+      xml_parse_error ("Required attribute " + aname
+                       + " does not exist");
+    }
+  else if (actual_value != value)
+    {
+      xml_parse_error ("Attribute " + aname + " has value "
+                       + actual_value + " but "
+                       + value + " was expected.");
+    }
+}
+
+
+//! Returns value of attribute as String
+/*! 
+  Searches for the matching attribute and returns it value. If no
+  attribute with the given name exists, return value is set to
+  *not found*.
+
+  \param aname Attribute name
+  \param value Return value
+*/
+void
+ArtsXMLTag::get_attribute_value (const String& aname, String& value)
+{
+  value = "*not found*";
+
+  Array<XMLAttribute>::iterator it = attribs.begin ();
+  while (it != attribs.end ())
+    {
+      if (it->name == aname)
+        {
+          value = it->value;
+          it = attribs.end ();
+        }
+      else
+        {
+          it++;
+        }
+    }
+}
+
+
+//! Returns value of attribute as type Index
+/*! 
+  Searches for the matching attribute and returns it value. If no
+  attribute with the given name exists, return value is set to
+  *not found*.
+
+  \param aname Attribute name
+  \param value Return value
+*/
+void
+ArtsXMLTag::get_attribute_value (const String& aname, Index& value)
+{
+  String attribute_value;
+  istringstream strstr ("");
+
+  get_attribute_value (aname, attribute_value);
+  strstr.str (attribute_value);
+  strstr >> value;
+  if (strstr.fail ())
+    {
+      xml_parse_error ("Error while parsing value of " + aname
+                       + " from <" + name + ">");
+    }
+}
+
+
+
 //! Reads next XML tag
 /*!
   Reads the name and attributes of the next XML tag from stream.
@@ -143,10 +353,10 @@ ArtsXMLTag::add_attribute (const String& aname, const String& value)
 void
 ArtsXMLTag::read_from_stream (istream& is)
 {
-  String       token;
-  stringbuf    tag;
-  istringstream sstr("");
-  XMLAttribute attr;
+  String        token;
+  stringbuf     tag;
+  istringstream sstr ("");
+  XMLAttribute  attr;
 
   attribs.clear ();
 
@@ -176,7 +386,7 @@ ArtsXMLTag::read_from_stream (istream& is)
 
 
   sstr.str (tag.str () + '>');
-  cout << "Read: " << sstr.str () << endl;
+  out2 << "Read: " << sstr.str () << '\n';
 
   sstr >> name;
 
@@ -195,7 +405,7 @@ ArtsXMLTag::read_from_stream (istream& is)
       // Tag may have attributes, so read next token
       sstr >> token;
     }
-  cout << "Name: " << name << endl;
+  out2 << "Name: " << name << '\n';
 
   //extract attributes
   while (token != ">")
@@ -203,7 +413,7 @@ ArtsXMLTag::read_from_stream (istream& is)
     String::size_type pos;
 
     pos = token.find ("=", 0);
-    if (pos == String::npos)
+    if (pos == (String::size_type)String::npos)
       {
         xml_parse_error ("Syntax error in tag: " + tag.str ());
       }
@@ -217,7 +427,7 @@ ArtsXMLTag::read_from_stream (istream& is)
       }
 
     pos = token.find ("\"", 1);
-    if (pos == String::npos)
+    if (pos == (String::size_type)String::npos)
       {
         xml_parse_error ("Missing \" in tag: " + sstr.str ());
       }
@@ -226,8 +436,8 @@ ArtsXMLTag::read_from_stream (istream& is)
 
     attribs.push_back (attr);
 
-    cout << "Attr: " << attr.name << endl;
-    cout << "Value: " << attr.value << endl;
+    out2 << "Attr: " << attr.name << '\n';
+    out2 << "Value: " << attr.value << '\n';
 
     if (token[token.length () - 1] == '>')
       {
@@ -239,7 +449,7 @@ ArtsXMLTag::read_from_stream (istream& is)
       }
   }
 
-  cout << endl;
+  out2 << '\n';
 }
 
 
@@ -259,8 +469,8 @@ ArtsXMLTag::write_to_stream (ostream& os)
   
   while (it != attribs.end ())
     {
-      os << ' ' << (*it).name
-         << "=\"" << (*it).value << '\"';
+      os << ' ' << it->name
+         << "=\"" << it->value << '\"';
       it++;
     }
 
@@ -270,7 +480,7 @@ ArtsXMLTag::write_to_stream (ostream& os)
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Default file names
+//   Default file name
 ////////////////////////////////////////////////////////////////////////////
   
 //! Gives the default filename for the XML formats.
@@ -467,10 +677,31 @@ xml_write_footer_to_stream (ostream& os)
   os << endl;
 }
 
+void
+xml_set_stream_precision (ostream &os)
+{
+  // Determine the precision, depending on whether Numeric is double
+  // or float:  
+  Index precision;
+  switch (sizeof (Numeric))
+    {
+    case sizeof (float):
+      precision = FLT_DIG;
+      break;
+    case sizeof (double):
+      precision = DBL_DIG;
+      break;
+    default:
+      out0 << "Numeric must be double or float\n";
+      exit (1);
+  }
+
+  os << setprecision (precision);
+}
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Index IO routines for XML files
+//   Generic IO routines for XML files
 ////////////////////////////////////////////////////////////////////////////
 
 //! Reads data from XML file
@@ -548,9 +779,270 @@ xml_write_to_file (const String& filename,
 }
 
 
+
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded functions for reading/writing data from/to XML stream
 ////////////////////////////////////////////////////////////////////////////
+
+//=== ArrayOfIndex ==========================================================
+
+//! Reads ArrayOfIndex from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Array type="Index">
+  and if so, write the values to 'aindex' parameter.
+
+  \param is Input stream
+  \param aindex ArrayOfIndex return value
+*/
+void
+xml_read_from_stream (istream&      is,
+                      ArrayOfIndex& aindex)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "Index");
+  
+  tag.get_attribute_value ("nelem", nelem);
+  aindex.resize (nelem);
+
+  for (Index n = 0; n < nelem; n++)
+    {
+      xml_read_from_stream (is, aindex[n]);
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfIndex to XML output stream
+/*!
+  \param os Output stream
+  \param aindex ArrayOfIndex
+*/
+void
+xml_write_to_stream (ostream&            os,
+                     const ArrayOfIndex& aindex)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+
+  open_tag.add_attribute ("type", "Index");
+  open_tag.add_attribute ("nelem", aindex.nelem ());
+
+  open_tag.write_to_stream (os);
+  os << endl;
+
+  for (Index n = 0; n < aindex.nelem (); n++)
+    {
+      xml_write_to_stream (os, aindex[n]);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os);
+
+  os << endl;
+}
+
+//=== ArrayOfMatrix ==========================================================
+
+//! Reads ArrayOfMatrix from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Array type="Matrix">
+  and if so, write the values to 'amatrix' parameter.
+
+  \param is Input stream
+  \param amatrix ArrayOfMatrix return value
+*/
+void
+xml_read_from_stream (istream&       is,
+                      ArrayOfMatrix& amatrix)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "Matrix");
+  
+  tag.get_attribute_value ("nelem", nelem);
+  amatrix.resize (nelem);
+
+  for (Index n = 0; n < nelem; n++)
+    {
+      xml_read_from_stream (is, amatrix[n]);
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfMatrix to XML output stream
+/*!
+  \param os Output stream
+  \param amatrix ArrayOfMatrix
+*/
+void
+xml_write_to_stream (ostream&             os,
+                     const ArrayOfMatrix& amatrix)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+
+  open_tag.add_attribute ("type", "Matrix");
+  open_tag.add_attribute ("nelem", amatrix.nelem ());
+
+  open_tag.write_to_stream (os);
+  os << endl;
+
+  for (Index n = 0; n < amatrix.nelem (); n++)
+    {
+      xml_write_to_stream (os, amatrix[n]);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os);
+
+  os << endl;
+}
+
+//=== ArrayOfString ==========================================================
+
+//! Reads ArrayOfString from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Array type="String">
+  and if so, write the values to 'astring' parameter.
+
+  \param is Input stream
+  \param astring ArrayOfString return value
+*/
+void
+xml_read_from_stream (istream&       is,
+                      ArrayOfString& astring)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "String");
+  
+  tag.get_attribute_value ("nelem", nelem);
+  astring.resize (nelem);
+
+  for (Index n = 0; n < nelem; n++)
+    {
+      xml_read_from_stream (is, astring[n]);
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfString to XML output stream
+/*!
+  \param os Output stream
+  \param astring ArrayOfString
+*/
+void
+xml_write_to_stream (ostream&             os,
+                     const ArrayOfString& astring)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+
+  open_tag.add_attribute ("type", "String");
+  open_tag.add_attribute ("nelem", astring.nelem ());
+
+  open_tag.write_to_stream (os);
+  os << endl;
+
+  for (Index n = 0; n < astring.nelem (); n++)
+    {
+      xml_write_to_stream (os, astring[n]);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os);
+
+  os << endl;
+}
+
+//=== ArrayOfVector ==========================================================
+
+//! Reads ArrayOfVector from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Array type="Vector">
+  and if so, write the values to 'amatrix' parameter.
+
+  \param is Input stream
+  \param avector ArrayOfVector return value
+*/
+void
+xml_read_from_stream (istream&       is,
+                      ArrayOfVector& avector)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "Vector");
+  
+  tag.get_attribute_value ("nelem", nelem);
+  avector.resize (nelem);
+
+  for (Index n = 0; n < nelem; n++)
+    {
+      xml_read_from_stream (is, avector[n]);
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfVector to XML output stream
+/*!
+  \param os Output stream
+  \param amatrix ArrayOfVector
+*/
+void
+xml_write_to_stream (ostream&             os,
+                     const ArrayOfVector& avector)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+
+  open_tag.add_attribute ("type", "Vector");
+  open_tag.add_attribute ("nelem", avector.nelem ());
+
+  open_tag.write_to_stream (os);
+  os << endl;
+
+  for (Index n = 0; n < avector.nelem (); n++)
+    {
+      xml_write_to_stream (os, avector[n]);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os);
+
+  os << endl;
+}
 
 //=== Index ===========================================================
 
@@ -577,7 +1069,7 @@ xml_read_from_stream (istream& is,
       xml_parse_error ("Error while reading data");
     }
 
-  cout << "Data:" << index << endl;
+  out2 << "Data:" << index << '\n';
 
   tag.read_from_stream (is);
   tag.check_name ("/Index");
@@ -597,10 +1089,92 @@ xml_write_to_stream (ostream&     os,
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Index");
-  close_tag.set_name ("/Index");
 
   open_tag.write_to_stream (os);
+
   os << index;
+
+  close_tag.set_name ("/Index");
+  close_tag.write_to_stream (os);
+  os << endl;
+}
+
+//=== Matrix ==========================================================
+
+//! Reads Matrix from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Matrix> and if so,
+  write the values to 'matrix' parameter.
+
+  \param is Input stream
+  \param matrix Matrix return value
+*/
+void
+xml_read_from_stream (istream& is,
+                      Matrix& matrix)
+{
+  ArtsXMLTag tag;
+  Index nrows, ncols;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Matrix");
+
+  tag.get_attribute_value ("nrows", nrows);
+  tag.get_attribute_value ("ncols", ncols);
+  matrix.resize (nrows, ncols);
+
+  for (Index r = 0; r < nrows; r++)
+    {
+      for (Index c = 0; c < ncols; c++)
+        {
+          is >> matrix (r, c);
+          if (is.fail ())
+            {
+              xml_parse_error ("Error while reading data");
+            }
+        }
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Matrix");
+}
+
+
+//! Writes Matrix to XML output stream
+/*!
+  \param os Output stream
+  \param matrix Matrix
+*/
+void
+xml_write_to_stream (ostream&     os,
+                     const Matrix& matrix)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Matrix");
+  open_tag.add_attribute ("nrows", matrix.nrows ());
+  open_tag.add_attribute ("ncols", matrix.ncols ());
+
+  open_tag.write_to_stream (os);
+  os << endl;
+
+  xml_set_stream_precision (os);
+
+  // Write the elements:
+  for (Index r = 0; r < matrix.nrows (); ++r)
+    {
+      os << matrix (r,0);
+      
+      for (Index c = 1; c < matrix.ncols (); ++c)
+        {
+          os << " " << matrix (r,c);
+        }
+      
+      os << endl;
+    }
+
+  close_tag.set_name ("/Matrix");
   close_tag.write_to_stream (os);
 
   os << endl;
@@ -628,10 +1202,10 @@ xml_read_from_stream (istream& is,
   is >> numeric;
   if (is.fail ())
     {
-      xml_parse_error ("Error on reading data");
+      xml_parse_error ("Error while reading data");
     }
 
-  cout << "Data:" << numeric << endl;
+  out2 << "Data:" << numeric << '\n';
 
   tag.read_from_stream (is);
   tag.check_name ("/Numeric");
@@ -644,17 +1218,591 @@ xml_read_from_stream (istream& is,
   \param numeric Numeric value
 */
 void
-xml_write_to_stream (ostream&     os,
+xml_write_to_stream (ostream&       os,
                      const Numeric& numeric)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Numeric");
-  close_tag.set_name ("/Numeric");
 
   open_tag.write_to_stream (os);
+
+  xml_set_stream_precision (os);
+
   os << numeric;
+
+  close_tag.set_name ("/Numeric");
+  close_tag.write_to_stream (os);
+  os << endl;
+}
+
+//=== String ===========================================================
+
+//! Reads String from XML input stream
+/*!
+  Checks whether the next tag in input stream is <String> and if so,
+  write the value to 'str' parameter.
+
+  \param is Input stream
+  \param str String return value
+*/
+void
+xml_read_from_stream (istream& is,
+                      String&  str)
+{
+  ArtsXMLTag tag;
+  stringbuf strbuf;
+
+  tag.read_from_stream (is);
+  tag.check_name ("String");
+  
+  is.get (strbuf, '<');
+  if (is.fail ())
+    {
+      xml_parse_error ("Error while reading data");
+    }
+  
+  str = strbuf.str ();
+
+  tag.read_from_stream (is);
+  tag.check_name ("/String");
+}
+
+
+//! Writes String to XML output stream
+/*!
+  \param os Output stream
+  \param str String value
+*/
+void
+xml_write_to_stream (ostream&     os,
+                     const String& str)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("String");
+
+  open_tag.write_to_stream (os);
+
+  os << str;
+
+  close_tag.set_name ("/String");
+  close_tag.write_to_stream (os);
+  os << endl;
+}
+
+//=== Tensor3 =========================================================
+
+//! Reads Tensor3 from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Tensor3> and if so,
+  write the values to 'tensor' parameter.
+
+  \param is Input stream
+  \param tensor Tensor return value
+*/
+void
+xml_read_from_stream (istream& is,
+                      Tensor3& tensor)
+{
+  ArtsXMLTag tag;
+  Index npages, nrows, ncols;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Tensor3");
+
+  tag.get_attribute_value ("npages", npages);
+  tag.get_attribute_value ("nrows", nrows);
+  tag.get_attribute_value ("ncols", ncols);
+  tensor.resize (npages, nrows, ncols);
+
+  for (Index p = 0; p < npages; p++)
+    {
+      for (Index r = 0; r < nrows; r++)
+        {
+          for (Index c = 0; c < ncols; c++)
+            {
+              is >> tensor (p, r, c);
+              if (is.fail ())
+                {
+                  xml_parse_error ("Error while reading data");
+                }
+            }
+        }
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Tensor3");
+}
+
+
+//! Writes Tensor3 to XML output stream
+/*!
+  \param os Output stream
+  \param tensor Tensor
+*/
+void
+xml_write_to_stream (ostream&     os,
+                     const Tensor3& tensor)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Tensor3");
+  open_tag.add_attribute ("npages", tensor.npages ());
+  open_tag.add_attribute ("nrows", tensor.nrows ());
+  open_tag.add_attribute ("ncols", tensor.ncols ());
+
+  open_tag.write_to_stream (os);
+  os << endl;
+
+  xml_set_stream_precision (os);
+
+  // Write the elements:
+  for (Index p = 0; p < tensor.npages (); ++p)
+    {
+      for (Index r = 0; r < tensor.nrows (); ++r)
+        {
+          os << tensor (p, r, 0);
+          for (Index c = 1; c < tensor.ncols (); ++c)
+            {
+              os << " " << tensor (p, r, c);
+            }
+          os << endl;
+        }
+    }
+
+  close_tag.set_name ("/Tensor3");
+  close_tag.write_to_stream (os);
+
+  os << endl;
+}
+
+//=== Tensor4 =========================================================
+
+//! Reads Tensor4 from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Tensor4> and if so,
+  write the values to 'tensor' parameter.
+
+  \param is Input stream
+  \param tensor Tensor return value
+*/
+void
+xml_read_from_stream (istream& is,
+                      Tensor4& tensor)
+{
+  ArtsXMLTag tag;
+  Index nbooks, npages, nrows, ncols;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Tensor4");
+
+  tag.get_attribute_value ("nbooks", nbooks);
+  tag.get_attribute_value ("npages", npages);
+  tag.get_attribute_value ("nrows", nrows);
+  tag.get_attribute_value ("ncols", ncols);
+  tensor.resize (nbooks,npages, nrows, ncols);
+
+  for (Index b = 0; b < nbooks; b++)
+    {
+      for (Index p = 0; p < npages; p++)
+        {
+          for (Index r = 0; r < nrows; r++)
+            {
+              for (Index c = 0; c < ncols; c++)
+                {
+                  is >> tensor (b, p, r, c);
+                  if (is.fail ())
+                    {
+                      xml_parse_error ("Error while reading data");
+                    }
+                }
+            }
+        }
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Tensor4");
+}
+
+
+//! Writes Tensor4 to XML output stream
+/*!
+  \param os Output stream
+  \param tensor Tensor
+*/
+void
+xml_write_to_stream (ostream&     os,
+                     const Tensor4& tensor)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Tensor4");
+  open_tag.add_attribute ("nbooks", tensor.nbooks ());
+  open_tag.add_attribute ("npages", tensor.npages ());
+  open_tag.add_attribute ("nrows", tensor.nrows ());
+  open_tag.add_attribute ("ncols", tensor.ncols ());
+
+  open_tag.write_to_stream (os);
+  os << endl;
+
+  xml_set_stream_precision (os);
+
+  // Write the elements:
+  for (Index b = 0; b < tensor.nbooks (); ++b)
+    {
+      for (Index p = 0; p < tensor.npages (); ++p)
+        {
+          for (Index r = 0; r < tensor.nrows (); ++r)
+            {
+              os << tensor (b, p, r, 0);
+              for (Index c = 1; c < tensor.ncols (); ++c)
+                {
+                  os << " " << tensor (b, p, r, c);
+                }
+              os << endl;
+            }
+        }
+    }
+
+  close_tag.set_name ("/Tensor4");
+  close_tag.write_to_stream (os);
+
+  os << endl;
+}
+
+//=== Tensor5 =========================================================
+
+//! Reads Tensor5 from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Tensor5> and if so,
+  write the values to 'tensor' parameter.
+
+  \param is Input stream
+  \param tensor Tensor return value
+*/
+void
+xml_read_from_stream (istream& is,
+                      Tensor5& tensor)
+{
+  ArtsXMLTag tag;
+  Index nshelves, nbooks, npages, nrows, ncols;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Tensor5");
+
+  tag.get_attribute_value ("nshelves", nshelves);
+  tag.get_attribute_value ("nbooks", nbooks);
+  tag.get_attribute_value ("npages", npages);
+  tag.get_attribute_value ("nrows", nrows);
+  tag.get_attribute_value ("ncols", ncols);
+  tensor.resize (nshelves, nbooks,npages, nrows, ncols);
+
+  for (Index s = 0; s < nshelves; s++)
+    {
+      for (Index b = 0; b < nbooks; b++)
+        {
+          for (Index p = 0; p < npages; p++)
+            {
+              for (Index r = 0; r < nrows; r++)
+                {
+                  for (Index c = 0; c < ncols; c++)
+                    {
+                      is >> tensor (s, b, p, r, c);
+                      if (is.fail ())
+                        {
+                          xml_parse_error ("Error while reading data");
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Tensor5");
+}
+
+
+//! Writes Tensor5 to XML output stream
+/*!
+  \param os Output stream
+  \param tensor Tensor
+*/
+void
+xml_write_to_stream (ostream&     os,
+                     const Tensor5& tensor)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Tensor5");
+  open_tag.add_attribute ("nshelves", tensor.nshelves ());
+  open_tag.add_attribute ("nbooks", tensor.nbooks ());
+  open_tag.add_attribute ("npages", tensor.npages ());
+  open_tag.add_attribute ("nrows", tensor.nrows ());
+  open_tag.add_attribute ("ncols", tensor.ncols ());
+
+  open_tag.write_to_stream (os);
+  os << endl;
+
+  xml_set_stream_precision (os);
+
+  // Write the elements:
+  for (Index s = 0; s < tensor.nshelves (); ++s)
+    {
+      for (Index b = 0; b < tensor.nbooks (); ++b)
+        {
+          for (Index p = 0; p < tensor.npages (); ++p)
+            {
+              for (Index r = 0; r < tensor.nrows (); ++r)
+                {
+                  os << tensor (s, b, p, r, 0);
+                  for (Index c = 1; c < tensor.ncols (); ++c)
+                    {
+                      os << " " << tensor (s, b, p, r, c);
+                    }
+                  os << endl;
+                }
+            }
+        }
+    }
+
+  close_tag.set_name ("/Tensor5");
+  close_tag.write_to_stream (os);
+
+  os << endl;
+}
+
+//=== Tensor6 =========================================================
+
+//! Reads Tensor6 from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Tensor6> and if so,
+  write the values to 'tensor' parameter.
+
+  \param is Input stream
+  \param tensor Tensor return value
+*/
+void
+xml_read_from_stream (istream& is,
+                      Tensor6& tensor)
+{
+  ArtsXMLTag tag;
+  Index nvitrines, nshelves, nbooks, npages, nrows, ncols;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Tensor6");
+
+  tag.get_attribute_value ("nvitrines", nvitrines);
+  tag.get_attribute_value ("nshelves", nshelves);
+  tag.get_attribute_value ("nbooks", nbooks);
+  tag.get_attribute_value ("npages", npages);
+  tag.get_attribute_value ("nrows", nrows);
+  tag.get_attribute_value ("ncols", ncols);
+  tensor.resize (nvitrines, nshelves, nbooks,npages, nrows, ncols);
+
+  for (Index v = 0; v < nvitrines; v++)
+    {
+      for (Index s = 0; s < nshelves; s++)
+        {
+          for (Index b = 0; b < nbooks; b++)
+            {
+              for (Index p = 0; p < npages; p++)
+                {
+                  for (Index r = 0; r < nrows; r++)
+                    {
+                      for (Index c = 0; c < ncols; c++)
+                        {
+                          is >> tensor (v, s, b, p, r, c);
+                          if (is.fail ())
+                            {
+                              xml_parse_error ("Error while reading data");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Tensor6");
+}
+
+
+//! Writes Tensor6 to XML output stream
+/*!
+  \param os Output stream
+  \param tensor Tensor
+*/
+void
+xml_write_to_stream (ostream&     os,
+                     const Tensor6& tensor)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Tensor6");
+  open_tag.add_attribute ("nvitrines", tensor.nvitrines ());
+  open_tag.add_attribute ("nshelves", tensor.nshelves ());
+  open_tag.add_attribute ("nbooks", tensor.nbooks ());
+  open_tag.add_attribute ("npages", tensor.npages ());
+  open_tag.add_attribute ("nrows", tensor.nrows ());
+  open_tag.add_attribute ("ncols", tensor.ncols ());
+
+  open_tag.write_to_stream (os);
+  os << endl;
+
+  xml_set_stream_precision (os);
+
+  // Write the elements:
+  for (Index v = 0; v < tensor.nvitrines (); ++v)
+    {
+      for (Index s = 0; s < tensor.nshelves (); ++s)
+        {
+          for (Index b = 0; b < tensor.nbooks (); ++b)
+            {
+              for (Index p = 0; p < tensor.npages (); ++p)
+                {
+                  for (Index r = 0; r < tensor.nrows (); ++r)
+                    {
+                      os << tensor (v, s, b, p, r, 0);
+                      for (Index c = 1; c < tensor.ncols (); ++c)
+                        {
+                          os << " " << tensor (v, s, b, p, r, c);
+                        }
+                      os << endl;
+                    }
+                }
+            }
+        }
+    }
+
+  close_tag.set_name ("/Tensor6");
+  close_tag.write_to_stream (os);
+
+  os << endl;
+}
+
+//=== Tensor7 =========================================================
+
+//! Reads Tensor7 from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Tensor7> and if so,
+  write the values to 'tensor' parameter.
+
+  \param is Input stream
+  \param tensor Tensor return value
+*/
+void
+xml_read_from_stream (istream& is,
+                      Tensor7& tensor)
+{
+  ArtsXMLTag tag;
+  Index nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Tensor7");
+
+  tag.get_attribute_value ("nlibraries", nlibraries);
+  tag.get_attribute_value ("nvitrines", nvitrines);
+  tag.get_attribute_value ("nshelves", nshelves);
+  tag.get_attribute_value ("nbooks", nbooks);
+  tag.get_attribute_value ("npages", npages);
+  tag.get_attribute_value ("nrows", nrows);
+  tag.get_attribute_value ("ncols", ncols);
+  tensor.resize (nlibraries, nvitrines, nshelves, nbooks,npages, nrows, ncols);
+
+  for (Index l = 0; l < nlibraries; l++)
+    {
+      for (Index v = 0; v < nvitrines; v++)
+        {
+          for (Index s = 0; s < nshelves; s++)
+            {
+              for (Index b = 0; b < nbooks; b++)
+                {
+                  for (Index p = 0; p < npages; p++)
+                    {
+                      for (Index r = 0; r < nrows; r++)
+                        {
+                          for (Index c = 0; c < ncols; c++)
+                            {
+                              is >> tensor (l, v, s, b, p, r, c);
+                              if (is.fail ())
+                                {
+                                  xml_parse_error ("Error while reading data");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Tensor7");
+}
+
+
+//! Writes Tensor7 to XML output stream
+/*!
+  \param os Output stream
+  \param tensor Tensor
+*/
+void
+xml_write_to_stream (ostream&     os,
+                     const Tensor7& tensor)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Tensor7");
+  open_tag.add_attribute ("nlibraries", tensor.nlibraries ());
+  open_tag.add_attribute ("nvitrines", tensor.nvitrines ());
+  open_tag.add_attribute ("nshelves", tensor.nshelves ());
+  open_tag.add_attribute ("nbooks", tensor.nbooks ());
+  open_tag.add_attribute ("npages", tensor.npages ());
+  open_tag.add_attribute ("nrows", tensor.nrows ());
+  open_tag.add_attribute ("ncols", tensor.ncols ());
+
+  open_tag.write_to_stream (os);
+  os << endl;
+
+  xml_set_stream_precision (os);
+
+  // Write the elements:
+  for (Index l = 0; l < tensor.nlibraries (); ++l)
+    {
+      for (Index v = 0; v < tensor.nvitrines (); ++v)
+        {
+          for (Index s = 0; s < tensor.nshelves (); ++s)
+            {
+              for (Index b = 0; b < tensor.nbooks (); ++b)
+                {
+                  for (Index p = 0; p < tensor.npages (); ++p)
+                    {
+                      for (Index r = 0; r < tensor.nrows (); ++r)
+                        {
+                          os << tensor (l, v, s, b, p, r, 0);
+                          for (Index c = 1; c < tensor.ncols (); ++c)
+                            {
+                              os << " " << tensor (l, v, s, b, p, r, c);
+                            }
+                          os << endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+  close_tag.set_name ("/Tensor7");
   close_tag.write_to_stream (os);
 
   os << endl;
@@ -675,17 +1823,22 @@ xml_read_from_stream (istream& is,
                       Vector& vector)
 {
   ArtsXMLTag tag;
+  Index nelem;
 
   tag.read_from_stream (is);
   tag.check_name ("Vector");
   
-  //  is >> numeric;
-  if (is.fail ())
+  tag.get_attribute_value ("nelem", nelem);
+  vector.resize (nelem);
+  
+  for (Index n = 0; n < nelem; n++)
     {
-      xml_parse_error ("Error on reading data");
+      is >> vector[n];
+      if (is.fail ())
+        {
+          xml_parse_error ("Error while reading data");
+        }
     }
-
-  //  cout << "Data:" << numeric << endl;
 
   tag.read_from_stream (is);
   tag.check_name ("/Vector");
@@ -724,175 +1877,23 @@ xml_write_to_stream (ostream&     os,
   os << endl;
 }
 
-//=== Matrix ==========================================================
-
-//! Reads Matrix from XML input stream
-/*!
-  Checks whether the next tag in input stream is <Matrix> and if so,
-  write the values to 'matrix' parameter.
-
-  \param is Input stream
-  \param matrix Matrix return value
-*/
-void
-xml_read_from_stream (istream& is,
-                      Matrix& matrix)
-{
-  ArtsXMLTag tag;
-
-  tag.read_from_stream (is);
-  tag.check_name ("Matrix");
-  
-  //  is >> numeric;
-  if (is.fail ())
-    {
-      xml_parse_error ("Error on reading data");
-    }
-
-  //  cout << "Data:" << numeric << endl;
-
-  tag.read_from_stream (is);
-  tag.check_name ("/Matrix");
-}
 
 
-//! Writes Matrix to XML output stream
-/*!
-  \param os Output stream
-  \param matrix Matrix
-*/
-void
-xml_write_to_stream (ostream&     os,
-                     const Matrix& matrix)
-{
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-
-  open_tag.set_name ("Matrix");
-
-  {
-    ostringstream v;
-    v << matrix.nrows ();
-    open_tag.add_attribute ("nrows", v.str ());
-  }
-
-  {
-    ostringstream v;
-    v << matrix.ncols ();
-    open_tag.add_attribute ("ncols", v.str ());
-  }
-
-  open_tag.write_to_stream (os);
-
-  // Determine the precision, depending on whether Numeric is double
-  // or float:  
-  Index precision;
-  switch (sizeof (Numeric))
-    {
-    case sizeof (float):
-      precision = FLT_DIG;
-      break;
-    case sizeof (double):
-      precision = DBL_DIG;
-      break;
-    default:
-      out0 << "Numeric must be double or float\n";
-      exit (1);
-  }
-
-  os << setprecision (precision);
-  // Write the elements:
-  for (Index r = 0; r < matrix.nrows (); ++r)
-    {
-      os << matrix (r,0);
-      
-      for (Index c = 1; c < matrix.ncols (); ++c)
-        {
-          os << " " << matrix (r,c);
-        }
-      
-      os << endl;
-    }
-
-  os << endl;
-  close_tag.set_name ("/Matrix");
-  close_tag.write_to_stream (os);
-
-  os << endl;
-}
-
-//=== ArrayOfMatrix ==========================================================
-
-//! Reads ArrayOfMatrix from XML input stream
-/*!
-  Checks whether the next tag in input stream is <Array type="matrix">
-  and if so, write the values to 'amatrix' parameter.
-
-  \param is Input stream
-  \param amatrix ArrayOfMatrix return value
-*/
-void
-xml_read_from_stream (istream&       is,
-                      ArrayOfMatrix& amatrix)
-{
-  ArtsXMLTag tag;
-
-  tag.read_from_stream (is);
-  tag.check_name ("Array");
-  
-  //  is >> numeric;
-  if (is.fail ())
-    {
-      xml_parse_error ("Error on reading data");
-    }
-
-  //  cout << "Data:" << numeric << endl;
-
-  tag.read_from_stream (is);
-  tag.check_name ("/Matrix");
-}
-
-
-//! Writes ArrayOfMatrix to XML output stream
-/*!
-  \param os Output stream
-  \param amatrix ArrayOfMatrix
-*/
-void
-xml_write_to_stream (ostream&             os,
-                     const ArrayOfMatrix& amatrix)
-{
-  ArtsXMLTag open_tag;
-  ArtsXMLTag close_tag;
-
-  open_tag.set_name ("Array");
-
-  open_tag.add_attribute ("type", "Matrix");
-  {
-    ostringstream v;
-    v << amatrix.nelem ();
-    open_tag.add_attribute ("nelem", v.str ());
-  }
-
-  open_tag.write_to_stream (os);
-
-  for (Index n = 0; n < amatrix.nelem (); n++)
-    {
-      xml_write_to_stream (os, amatrix[n]);
-    }
-
-  close_tag.set_name ("/Array");
-  close_tag.write_to_stream (os);
-
-  os << endl;
-}
 ////////////////////////////////////////////////////////////////////////////
 //   Explicit instantiation of template functions we need
 ////////////////////////////////////////////////////////////////////////////
 
 template void
+xml_read_from_file<ArrayOfIndex> (const String&, ArrayOfIndex&);
+
+template void
 xml_read_from_file<ArrayOfMatrix> (const String&, ArrayOfMatrix&);
+
+template void
+xml_read_from_file<ArrayOfString> (const String&, ArrayOfString&);
+
+template void
+xml_read_from_file<ArrayOfVector> (const String&, ArrayOfVector&);
 
 template void
 xml_read_from_file<Index> (const String&, Index&);
@@ -904,11 +1905,38 @@ template void
 xml_read_from_file<Numeric> (const String&, Numeric&);
 
 template void
+xml_read_from_file<String> (const String&, String&);
+
+template void
+xml_read_from_file<Tensor3> (const String&, Tensor3&);
+
+template void
+xml_read_from_file<Tensor4> (const String&, Tensor4&);
+
+template void
+xml_read_from_file<Tensor5> (const String&, Tensor5&);
+
+template void
+xml_read_from_file<Tensor6> (const String&, Tensor6&);
+
+template void
+xml_read_from_file<Tensor7> (const String&, Tensor7&);
+
+template void
 xml_read_from_file<Vector> (const String&, Vector&);
 
 
 template void
+xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&);
+
+template void
 xml_write_to_file<ArrayOfMatrix> (const String&, const ArrayOfMatrix&);
+
+template void
+xml_write_to_file<ArrayOfString> (const String&, const ArrayOfString&);
+
+template void
+xml_write_to_file<ArrayOfVector> (const String&, const ArrayOfVector&);
 
 template void
 xml_write_to_file<Index> (const String&, const Index&);
@@ -918,6 +1946,24 @@ xml_write_to_file<Matrix> (const String&, const Matrix&);
 
 template void
 xml_write_to_file<Numeric> (const String&, const Numeric&);
+
+template void
+xml_write_to_file<String> (const String&, const String&);
+
+template void
+xml_write_to_file<Tensor3> (const String&, const Tensor3&);
+
+template void
+xml_write_to_file<Tensor4> (const String&, const Tensor4&);
+
+template void
+xml_write_to_file<Tensor5> (const String&, const Tensor5&);
+
+template void
+xml_write_to_file<Tensor6> (const String&, const Tensor6&);
+
+template void
+xml_write_to_file<Tensor7> (const String&, const Tensor7&);
 
 template void
 xml_write_to_file<Vector> (const String&, const Vector&);
