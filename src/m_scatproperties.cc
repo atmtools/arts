@@ -325,7 +325,7 @@ void ext_mat_partCalc(
 		     
 {
   Index N_pt = ext_mat_spt.npages();
-  Index stokes_dim = ext_mat_spt.nrows();
+ 
   
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error(

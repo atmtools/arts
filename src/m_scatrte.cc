@@ -1238,7 +1238,9 @@ scat_fieldCalc(//WS Output:
             pha_mat_sptCalc(pha_mat_spt,
                             amp_mat,
                             za_prop,
-                            0);
+                            0,
+			    stokes_dim);
+	    
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                         atmosphere_dim, p_index, 0, 
                         0);
