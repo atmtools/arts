@@ -1,3 +1,12 @@
+2004-01-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-775
+	
+	* src/m_cloudbox.cc (CloudboxGetOutgoing): (Hopefully) fixed bug 
+	reported by Cory.
+	Azimuth angle of outgoing radiation from cloudbox was wrong (in 3D
+	part of the function)
+	
 2004-01-14  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-1-1-774

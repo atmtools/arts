@@ -1363,16 +1363,19 @@ void CloudboxGetOutgoing(// WS Generic Output:
       //Check consistency of input.
 
       assert ( is_size( scat_i_p,
-                        f_grid.nelem(), 2, scat_i_p.nshelves(), scat_i_p.nbooks(), 
+                        f_grid.nelem(), 2, scat_i_p.nshelves(), 
+                        scat_i_p.nbooks(), 
                         scat_za_grid.nelem(), scat_aa_grid.nelem(),
                         stokes_dim ));
 
       assert ( is_size( scat_i_lat,
-                        f_grid.nelem(), scat_i_lat.nvitrines(), 2, scat_i_p.nbooks(), 
+                        f_grid.nelem(), scat_i_lat.nvitrines(), 2, 
+                        scat_i_p.nbooks(), 
                         scat_za_grid.nelem(), scat_aa_grid.nelem(),
                         stokes_dim ));
       assert ( is_size( scat_i_lon,
-                        f_grid.nelem(), scat_i_lat.nvitrines(), scat_i_p.nshelves(), 2, 
+                        f_grid.nelem(), scat_i_lat.nvitrines(), 
+                        scat_i_p.nshelves(), 2, 
                         scat_za_grid.nelem(), scat_aa_grid.nelem(),
                         stokes_dim ));
 
@@ -1394,7 +1397,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
      //*cloudbox_los*.
      Vector zenith_angle(1), azimuth_angle(1);
      zenith_angle[0] = rte_los[0];
-     azimuth_angle[0] = rte_los[1]-180;
+     azimuth_angle[0] = rte_los[1]+180.;
 
      //Arrays to store grid positions
      ArrayOfGridPos gp_za(1), gp_aa(1);
@@ -1425,7 +1428,8 @@ void CloudboxGetOutgoing(// WS Generic Output:
                {
                  
                  for(Index lat_index = 0; 
-                     lat_index < cloudbox_limits[3]-cloudbox_limits[2]+1; lat_index++)
+                     lat_index < cloudbox_limits[3]-cloudbox_limits[2]+1;
+                     lat_index++)
                    {
                      for(Index lon_index = 0;
                          lon_index < cloudbox_limits[5]-cloudbox_limits[4]+1;
@@ -1457,7 +1461,8 @@ void CloudboxGetOutgoing(// WS Generic Output:
                {
                  
                  for(Index p_index = 0; 
-                     p_index < cloudbox_limits[1]-cloudbox_limits[0]+1; p_index++)
+                     p_index < cloudbox_limits[1]-cloudbox_limits[0]+1;
+                     p_index++)
                    {
                      for(Index lon_index = 0;
                          lon_index < cloudbox_limits[5]-cloudbox_limits[4]+1;
@@ -1489,7 +1494,8 @@ void CloudboxGetOutgoing(// WS Generic Output:
                {
                  
                  for(Index p_index = 0; 
-                     p_index < cloudbox_limits[1]-cloudbox_limits[0]+1; p_index++)
+                     p_index < cloudbox_limits[1]-cloudbox_limits[0]+1;
+                     p_index++)
                    {
                      for(Index lat_index = 0;
                          lat_index < cloudbox_limits[3]-cloudbox_limits[2]+1;
