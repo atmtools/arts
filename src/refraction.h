@@ -44,16 +44,46 @@
 
 
 void get_refr_index_1d(
+              Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
-              Numeric&    refr_index,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
         const Numeric&    z );
+
+void get_refr_index_2d(
+              Numeric&    refr_index,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        ConstMatrixView   t_field,
+        ConstTensor3View  vmr_field,
+        const Numeric&    z,
+        const Numeric&    lat );
+
+void refr_gradients_2d(
+              Numeric&    refr_index,
+              Numeric&    dndr,
+              Numeric&    dndlat,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        ConstMatrixView   t_field,
+        ConstTensor3View  vmr_field,
+        const Numeric&    z,
+        const Numeric&    lat );
 
 void refr_index_thayer_1974(
               Numeric&   refr_index,

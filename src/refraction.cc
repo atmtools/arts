@@ -74,10 +74,10 @@
    \date   2003-01-16
 */
 void get_refr_index_1d(
+              Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
-              Numeric&    refr_index,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
@@ -149,10 +149,10 @@ void get_refr_index_1d(
    \date   2003-01-17
 */
 void get_refr_index_2d(
+              Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
-              Numeric&    refr_index,
         const Agenda&     refr_index_agenda,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -203,6 +203,46 @@ void get_refr_index_2d(
   refr_index_agenda.execute();
 }
 
+
+
+void refr_gradients_2d(
+              Numeric&    refr_index,
+              Numeric&    dndr,
+              Numeric&    dndlat,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        ConstMatrixView   t_field,
+        ConstTensor3View  vmr_field,
+        const Numeric&    z,
+        const Numeric&    lat )
+{ 
+   get_refr_index_2d( refr_index, a_pressure, 
+                       a_temperature, a_vmr_list, refr_index_agenda, p_grid, 
+                               lat_grid, z_field, t_field, vmr_field, z, lat );
+
+   const Numeric   n0 = refr_index;
+
+   get_refr_index_2d( refr_index, a_pressure, 
+                       a_temperature, a_vmr_list, refr_index_agenda, p_grid, 
+                             lat_grid, z_field, t_field, vmr_field, z+1, lat );
+
+   dndr = refr_index - n0;
+
+   const Numeric   dlat = 1e-4;
+
+   get_refr_index_2d( refr_index, a_pressure, 
+                       a_temperature, a_vmr_list, refr_index_agenda, p_grid, 
+                          lat_grid, z_field, t_field, vmr_field, z, lat+dlat );
+
+   dndlat = ( refr_index - n0 ) / dlat; 
+
+   refr_index = n0;
+}
 
 
 //! refr_index_thayer_1974

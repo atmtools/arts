@@ -1,3 +1,24 @@
+2003-01-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-396
+
+	* src/refraction.cc (refr_gradients_2d): Created this function.
+	2D paths with refraction are now completed, but no tests have been
+	performed.
+
+	* src/ppath.cc (do_gridcell_3d): Added more asserts that should give
+	an earlier and clear indication on that something has gone wrong.
+
+	(psurface_crossing_2d): Removed some checks that had no impact (for
+	the approximative solution, dlat = 0 was acceped if r0!=rp, but that 
+	can never happen as za=0 and za=180 are handled seperately).
+
+	(raytrace_1d_linear_euler): Cleaned up the code and removed some
+	variables that were not really needed.
+
+	(raytrace_2d_linear_euler): As above and added call of
+	refr_gradients_2d. 
+
 2003-01-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-395
