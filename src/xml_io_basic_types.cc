@@ -328,6 +328,9 @@ xml_read_from_stream (istream& is_xml,
   ArrayOfIndex rowind(nnz), colind(nnz);
   Vector data(nnz);
 
+  tag.read_from_stream (is_xml);
+  tag.check_name ("RowIndex");
+
   for( Index i=0; i<nnz; i++) {
       if (pbifs) {
           *pbifs >> rowind[i];
@@ -347,6 +350,11 @@ xml_read_from_stream (istream& is_xml,
           }
       }
   }
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/RowIndex");
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("ColIndex");
 
   for( Index i=0; i<nnz; i++) {
       if (pbifs) {
@@ -367,6 +375,11 @@ xml_read_from_stream (istream& is_xml,
           }
       }
   }
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/ColIndex");
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Data");
 
   for( Index i=0; i<nnz; i++) {
       if (pbifs) {
@@ -387,6 +400,8 @@ xml_read_from_stream (istream& is_xml,
           }
       }
   }
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Data");
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/Sparse");
@@ -406,49 +421,62 @@ xml_write_to_stream (ostream& os_xml,
                      const Sparse& sparse,
                      bofstream *pbofs)
 {
-  ArtsXMLTag open_tag;
+  ArtsXMLTag sparse_tag;
+  ArtsXMLTag row_tag;
+  ArtsXMLTag col_tag;
+  ArtsXMLTag data_tag;
   ArtsXMLTag close_tag;
-  
-  open_tag.set_name("Sparse");
-  open_tag.add_attribute("nrows", sparse.nrows());
-  open_tag.add_attribute("ncols", sparse.ncols());
-  open_tag.add_attribute("nnz", sparse.nnz());
-  
-  open_tag.write_to_stream( os_xml);
-    
-    //FIXME??: open_tag.set_name("Row index");
-    os_xml << '\n';
-    for( Index i=0; i<sparse.nnz(); i++) {
-      if (pbofs)
-        *pbofs << (*sparse.mrowind)[i];
-      else
-        os_xml << (*sparse.mrowind)[i];
-    }
-    //FIXME??: close_tag.set_name("/Row index");
 
-    //FIXME??: open_tag.set_name("Column index");
-    os_xml << '\n';
-    for( size_t i=0; i<sparse.mcolptr->size()-1;  ++i) {
-      for( Index j=0; j<(*sparse.mcolptr)[i+1]-(*sparse.mcolptr)[i]; j++) {
+  sparse_tag.set_name ("Sparse");
+  sparse_tag.add_attribute ("nrows", sparse.nrows());
+  sparse_tag.add_attribute ("ncols", sparse.ncols());
+  sparse_tag.add_attribute ("nnz", sparse.nnz());
+  row_tag.set_name ("RowIndex");
+  col_tag.set_name ("ColIndex");
+  data_tag.set_name ("Data");
+
+  sparse_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  row_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+  for( Index i=0; i<sparse.nnz(); i++) {
         if (pbofs)
-          *pbofs << (*sparse.mcolptr)[i];
+          *pbofs << (*sparse.mrowind)[i];
         else
-          os_xml << (*sparse.mcolptr)[i];
-      }
-    }
-    //FIXME??: close_tag.set_name("/Column index");
+          os_xml << (*sparse.mrowind)[i] << '\n';
+  }
+  close_tag.set_name("/RowIndex");
+  close_tag.write_to_stream( os_xml);
+  os_xml << '\n';
 
-    //FIXME??: open_tag.set_name("Data");
-    os_xml << '\n';
-    xml_set_stream_precision (os_xml);
-    for( Index i=0; i<sparse.nnz(); i++) {
-      if (pbofs)
-        *pbofs << (*sparse.mdata)[i];
-      else
-        os_xml << (*sparse.mdata)[i];
-    }
-    //FIXME??: close_tag.set_name("/Data");
-    os_xml << '\n';
+  col_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+  for( size_t i=0; i<sparse.mcolptr->size()-1;  ++i) {
+        for( Index j=0; j<(*sparse.mcolptr)[i+1]-(*sparse.mcolptr)[i]; j++) {
+              if (pbofs)
+                *pbofs << (*sparse.mcolptr)[i];
+              else
+                os_xml << (*sparse.mcolptr)[i] << '\n';
+        }
+  }
+  close_tag.set_name ("/ColIndex");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  data_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+  xml_set_stream_precision (os_xml);
+  for( Index i=0; i<sparse.nnz(); i++) {
+        if (pbofs)
+          *pbofs << (*sparse.mdata)[i];
+        else
+          os_xml << (*sparse.mdata)[i] << ' ';
+  }
+  os_xml << '\n';
+  close_tag.set_name ("/Data");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 
   close_tag.set_name("/Sparse");
   close_tag.write_to_stream( os_xml);
