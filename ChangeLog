@@ -1,5 +1,12 @@
 2002-05-13  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-76
+	
+	* src/methods.cc (define_md_data): Moved XML functions into
+	alphabetical order.
+
+2002-05-13  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-75
 	
 	* src/mystring.h: Include system sstream if available otherwise use our
