@@ -82,3 +82,10 @@ SAB 2001-09-25: Rename Array<OneTag> to TagGroup and Array<
 
 SAB 2001-09-25: Thomas: Write doxygen header for function
                 interpp_cloud in file atm_funcs.cc.
+
+PE 2001-09-26:  Change batchname to be a keyword input to ybatchCalc when
+                revising this function.
+
+PE 2001-09-26:  Go through workspace.cc (I have done this for "my" variables).
+
+PE 2001-09-26:  Shall the few remaining rand functions be removed?

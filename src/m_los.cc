@@ -1315,11 +1315,11 @@ void yTau (
 */
 void yTB (
                     Vector&          y,
-              const Vector&          f_sensor,
-              const Vector&          za_sensor )
+              const Vector&          f_mono,
+              const Vector&          za_pencil )
 {
-  const Index   nf  = f_sensor.nelem();
-  const Index   nza = za_sensor.nelem();
+  const Index   nf  = f_mono.nelem();
+  const Index   nza = za_pencil.nelem();
   const Index   ny  = y.nelem();
         Index   i0;
   // Following the change in yTRJ below (just to be safe)
@@ -1333,14 +1333,14 @@ void yTB (
 
   if ( nf*nza != ny )  
     throw runtime_error(
-                 "The length of y does not match f_sensor and za_sensor.");
+                 "The length of y does not match f_mono and za_pencil.");
 
   out2 << "  Converts the spectrum to brightness (Planck) temperature.\n";
 
   for ( Index i=0; i<nf; i++ )
   {
-    c = a*f_sensor[i];
-    d = b*f_sensor[i]*f_sensor[i]*f_sensor[i];
+    c = a*f_mono[i];
+    d = b*f_mono[i]*f_mono[i]*f_mono[i];
     for ( Index j=0; j<nza; j++ )    
     {
       i0 = j*nf + i;
@@ -1359,11 +1359,11 @@ void yTB (
 */
 void yTRJ (
                     Vector&          y,
-              const Vector&          f_sensor,
-              const Vector&          za_sensor )
+              const Vector&          f_mono,
+              const Vector&          za_pencil )
 {
-  const Index   nf  = f_sensor.nelem();
-  const Index   nza = za_sensor.nelem();
+  const Index   nf  = f_mono.nelem();
+  const Index   nza = za_pencil.nelem();
   const Index   ny  = y.nelem();
         Index   i0;
   // The function returned NaNs when a and b were set to be Numeric (PE 010404)
@@ -1377,12 +1377,12 @@ void yTRJ (
   if ( nf*nza != ny )  
     {
       ostringstream os;
-      os << "The length of y does not match f_sensor and za_sensor.\n"
+      os << "The length of y does not match f_mono and za_pencil.\n"
 	 << "y.nelem():         " << y.nelem() << "\n"
-	 << "Should be f_sensor.nelem()*za_sensor.nelem(): "
-	 << f_sensor.nelem() * za_sensor.nelem() << "\n"
-	 << "f_sensor.nelem():  " << f_sensor.nelem() << "\n"
-	 << "za_sensor.nelem(): " << za_sensor.nelem();
+	 << "Should be f_mono.nelem()*za_pencil.nelem(): "
+	 << f_mono.nelem() * za_pencil.nelem() << "\n"
+	 << "f_mono.nelem():  " << f_mono.nelem() << "\n"
+	 << "za_pencil.nelem(): " << za_pencil.nelem();
       throw runtime_error(os.str());
     }
 
@@ -1390,7 +1390,7 @@ void yTRJ (
 
   for ( Index i=0; i<nf; i++ )
   {
-    b = a/(f_sensor[i]*f_sensor[i]);
+    b = a/(f_mono[i]*f_mono[i]);
     for ( Index j=0; j<nza; j++ )    
     {
       i0 = j*nf + i;
@@ -1411,8 +1411,8 @@ void MatrixTRJ (// WS Generic Output:
                 // WS Generic Output Names:
                 const String& kout_name,
                 // WS Input:
-                const Vector& f_sensor,
-                const Vector& za_sensor,
+                const Vector& f_mono,
+                const Vector& za_pencil,
                 // WS Generic Input:
                 const Matrix& kin,
                 // WS Generic Input Names:
@@ -1427,7 +1427,7 @@ void MatrixTRJ (// WS Generic Output:
   for ( Index i=0; i<kin.ncols(); i++ )
   {
     y = kin(Range(joker),i);	// Copy ith column of kin to y.
-    yTRJ( y, f_sensor, za_sensor );
+    yTRJ( y, f_mono, za_pencil );
     kout(Range(joker),i) = y;	// Copy to ith column of kout.
   }
 }
@@ -1444,8 +1444,8 @@ void MatrixTB (// WS Generic Output:
                 // WS Generic Output Names:
                 const String& kout_name,
                 // WS Input:
-                const Vector& f_sensor,
-                const Vector& za_sensor,
+                const Vector& f_mono,
+                const Vector& za_pencil,
                 // WS Generic Input:
                 const Matrix& kin,
                 // WS Generic Input Names:
@@ -1460,53 +1460,8 @@ void MatrixTB (// WS Generic Output:
   for ( Index i=0; i<kin.ncols(); i++ )
   {
     y = kin(Range(joker),i);	// Copy ith column of kin to y.
-    yTB( y, f_sensor, za_sensor );
+    yTB( y, f_mono, za_pencil );
     kout(Range(joker),i) = y;	// Copy to ith column of kout.
-  }
-}
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void yLoadCalibration (
-                    Vector&          y,
-              const Vector&          i_cal1,
-              const Vector&          i_cal2,
-              const Vector&          y_cal1,
-              const Vector&          y_cal2,
-              const Vector&          za_sensor )
-{
-  const Index   nf  = i_cal1.nelem();
-  const Index   nza = za_sensor.nelem();
-  const Index   ny  = y.nelem();
-        Index   i0;
-        Numeric  a;
-
-  if ( max(y) > 1e-4 )  
-    throw runtime_error("The spectrum is not in expected intensity unit "
-                        "(impossible value detected).");
-
-  if ( (nf!=i_cal2.nelem()) || (nf!=y_cal1.nelem()) || (nf!=y_cal2.nelem()) )
-    throw runtime_error(
-                     "All the calibration vectors must have the same length.");
-  if ( nf*nza != ny )  
-    throw runtime_error(
-         "The length of y does not match za_sensor and the calibration data.");
-
-  out2 << "  Performs a load switching calibration procedure.\n";
-
-  for ( Index i=0; i<nf; i++ )
-  {
-    a = (i_cal2[i]-i_cal1[i])/(y_cal2[i]-y_cal1[i]);
-    for ( Index j=0; j<nza; j++ )    
-    {
-      i0 = j*nf + i;
-      y[i0] = i_cal1[i] + a * ( y[i0] - y_cal1[i] );
-    }
   }
 }
 

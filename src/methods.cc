@@ -1453,6 +1453,7 @@ void define_md_data()
 #endif // HDF_SUPPPORT
 
 
+
 //======================================================================
 //=== Absorption methods
 //======================================================================
@@ -2419,7 +2420,7 @@ void define_md_data()
           "Converts a spectrum from intensity to brightness temperature.\n"
           "The used frequency vector is f_sensor."),
 	OUTPUT( y_ ),
-	INPUT( y_, f_sensor_, za_sensor_ ),
+	INPUT( y_, f_mono_, za_pencil_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2432,7 +2433,7 @@ void define_md_data()
           "Converts a spectrum from intensity to Rayleigh-Jean temperature.\n"
           "The used frequency vetor is f_sensor."),
 	OUTPUT( y_ ),
-	INPUT( y_, f_sensor_, za_sensor_ ),
+	INPUT( y_, f_mono_, za_pencil_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2446,7 +2447,7 @@ void define_md_data()
 		    "same as the old specific method ybatchTRJ. It can\n"
 		    "be used on ybatch or on k-matrices."),
 	OUTPUT(),
-	INPUT(   f_sensor_, za_sensor_ ),
+	INPUT(   f_mono_, za_pencil_ ),
 	GOUTPUT( Matrix_ ),
 	GINPUT(  Matrix_ ),
 	KEYWORDS(),
@@ -2460,30 +2461,9 @@ void define_md_data()
 		    "same as the old specific method ybatchTB. It can\n"
 		    "be used on ybatch or on k-matrices."),
 	OUTPUT(),
-	INPUT(   f_sensor_, za_sensor_ ),
+	INPUT(   f_mono_, za_pencil_ ),
 	GOUTPUT( Matrix_ ),
 	GINPUT(  Matrix_ ),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("yLoadCalibration"),
-  	DESCRIPTION(
-          "Simulates a load switch calibration as\n"
-          "  y = i_cal1 + (i_cal2-i_cal1)*(y-y_cal1)/(y_cal2-y_cal1)\n"
-          "The unit for i_cal1,2 can either be intensity or brightness\n"
-          "temperature. An example:\n"
-          "...\n"
-          "VectorPlanck(y_cal1,f_sensor){temp=78}\n"
-          "VectorPlanck(y_cal2,f_sensor){temp=300}\n"
-          "VectorSet2(i_cal1,y_cal1){value=78}\n"
-          "VectorSet2(i_cal2,y_cal2){value=300}\n"
-          "yLoadCalibration{}"),
-	OUTPUT( y_ ),
-	INPUT( y_, i_cal1_, i_cal2_, y_cal1_, y_cal2_, za_sensor_ ),
-	GOUTPUT(),
-	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
 

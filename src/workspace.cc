@@ -158,8 +158,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("f_mono",
-      "The monochromatic frequency grid [Hz]. This grid is used when\n"
-      "calculating absorption and pencil b",
+      "The monochromatic frequency grid [Hz]. ",
       Vector_));
     
 
@@ -244,34 +243,38 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("emission",
-      "Boolean to include emssion in the calculations.\n"
+      "Boolean to include emssion in the calculation of spectra.\n"
       "If this variable is set to 0 (zero) pure transmission calculations \n"
-      "be simulated and, for example, yCalc will give optical thicknesses \n" 
-      "instead of intensities.",
+      "will be simulated and, for example, yCalc will give optical \n"
+      "thicknesses instead of radiation intensities.",
       Index_));
 
   wsv_data.push_back
     (WsvRecord
      ("za_pencil",
-      "Pencil beam zenith angle, the angle between zenith and the LOS [deg].\n"
-      "This grid is applied when calculating pencil beam spectra.",
+      "Pencil beam zenith angle grid [deg]. \n"
+      "The observation direction is specified by the angle between zenith \n"
+      "and the LOS.",
       Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("z_tan",
-      "Tangent altitude for the different LOS [m].\n"
+      "Tangent altitude for each spectrum [m].\n"
       "These tangent altitudes include the effect of refraction (if set). \n"
       "In the case of a ground intersection, a geometrical prolongation \n"
       "below the ground is applied to determine the tangent altitude. \n"
       "For upward observations where there are no tangent altitudes, \n" 
-      "z_tan is set to 999 km.",
+      "*z_tan* is set to 999 km. \n"
+      "It should be noted that the LOS calculations take *za_pencil* as \n" 
+      "input, not *z_tan*. However, *za_pencil* can be calculated from \n"
+      "*z_tan* by the function *zaFromZtan*. ",
       Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("z_plat",
-      "The vertical altitude, above the geiod, of the platform [m].",
+      "Vertical altitude, above the geiod, of the observation platform [m].",
       Numeric_));
 
   wsv_data.push_back
@@ -280,7 +283,7 @@ void define_wsv_data()
       "The maximum length, along the LOS, between the points of LOS [m].\n"
       "The final step length will in most cases equal the selected length.\n"
       "There are two rare exceptions:\n"
-      "  1. Downward observations from within the atmsophere, where the step\n"
+      "  1. Downward observations from within the atmosphere, where the step\n"
       "     length is adjusted downwards to get an integer number of steps\n"
       "     between the sensor and the tangent or ground point.\n"
       "  2. Limb sounding and the distance from the tangent point to the\n"
@@ -308,14 +311,14 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("refr_model",
-      "A string giving what refraction model (or parameterization) to use\n"
-      "for the calculation of refractive index.",
+      "A string giving what parameterization to use for the calculation of \n"
+      "refractive index. See *refrCalc* for existing choices.",
       String_));
 
   wsv_data.push_back
     (WsvRecord
      ("refr_index",
-      "The refractive index associated with the pressures in p_refr [-].\n",
+      "The refractive index at the pressure levels in p_abs [-].\n",
       Vector_));
 
   wsv_data.push_back
@@ -345,13 +348,14 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("los",
-      "Structure to define the line of sight (LOS). See los.h.", 
+      "Structure to define the line of sight (LOS). See los.h for \n"
+      "definition of the structure.", 
       Los_));
 
   wsv_data.push_back
     (WsvRecord
      ("source",
-      "Mean source functions between the points of the LOS.",
+      "Mean source function between the points of the LOS.",
       ArrayOfMatrix_));
 
   wsv_data.push_back
@@ -363,21 +367,23 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("y_space",
-      "Radiation entering the atmosphere at the start of the LOS,\n"
-      "typically cosmic background radiation.",
+      "Radiation entering the atmosphere at the top of the atmosphere, \n"
+      "typically cosmic background radiation. This variable is most easily \n"
+      "set by the function *y_spaceStd*.",
       Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("y",
-      "The working spectrum.",
+      "The working set of spectra. \n"
+      "The spectra from the different zenith angles are appended to form *y*.",
       Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("y0",
       "A reference spectrum. This variable can be used e.g. to save a copy\n"
-      "of y or to compare the spectra before and after some operation(s).",
+      "of *y* or to compare the spectra before and after some operation(s).",
       Vector_));
 
 
@@ -386,34 +392,35 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("absloswfs",
-      "Line of sight weighting functions.",
+      "Line of sight weighting functions. \n"
+      "See AUG for definition of this quantity. ",
       ArrayOfMatrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("k_grid",
-      "Grid for the retrieval identity for which weighting functions (WFS)\n"
-      "shall be calculated (when applicable).\n"
-      "For example, pressure altitude grid for species WFs.",
+      "Retrieval grid to be used in calculation of weighting functions (WFs)\n"
+      "For example, *k_grid* is the pressure altitude grid for species WFs. \n"
+      "Not all WFs need 'k_grid* as input.",
       Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("k",
-      "The weighting functions (WFs) for a single retrieval/error identity.",
+      "The weighting functions (WFs) for a single retrieval/error group.",
       Matrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("k_names",
-      "Name(s) on the retrieval identity associated with k.",
+      "Names of the retrieval identies in *k*.",
       ArrayOfString_));
 
   wsv_data.push_back
     (WsvRecord
      ("k_aux",
-      "Auxiliary data for k. The number of rows of this matrix equals the\n"
-      "length of the state vector for the retrieval identity (the number of\n"
+      "Auxiliary data for *k*. The number of rows of this matrix equals the\n"
+      "length of the state vector for the retrieval group (the number of\n"
       "columns of k).\n"
       "The columns hold different quantities:\n"
       "  Col 1: retrieval grid (or correspondingly)\n"
@@ -429,20 +436,20 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("kx_names",
-      "Names on the retrieval identities associated with kx.",
+      "Names of the retrieval identities in *kx*.",
       ArrayOfString_));
 
   wsv_data.push_back
     (WsvRecord
      ("kx_lengths",
-      "The length of the state vector for each retrieval identity in kx.",
+      "The length of the state vector for each retrieval identity in *kx*.",
       ArrayOfIndex_));
 
   wsv_data.push_back
     (WsvRecord
      ("kx_aux",
-      "Auxiliary data for kx. As k_aux but with the data of the different\n"
-      "retrieval identies appended vertically.",
+      "Auxiliary data for *kx*. As *k_aux* but with the data of the \n"
+      "different retrieval groups appended vertically.",
       Matrix_));
 
   wsv_data.push_back
@@ -454,93 +461,21 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("kb_names",
-      "Names on the model parameter identities associated with kb.",
+      "Names of the model parameter identities in *kb*.",
       ArrayOfString_));
 
   wsv_data.push_back
     (WsvRecord
      ("kb_lengths",
-      "The length of the model vector for each retrieval identity in kb.",
+      "The length of the model vector for each retrieval identity in *kb*.",
       ArrayOfIndex_));
 
   wsv_data.push_back
     (WsvRecord
      ("kb_aux",
-      "Auxiliary data for kb. As k_aux but with the data of the different\n"
-      "forward model identies appended vertically.",
+      "Auxiliary data for *kb*. As *k_aux* but with the data of the \n"
+      "different forward model groups appended vertically.",
       Matrix_));
-
-
-  //-----------------< Sensor and data reduction stuff >------------------
-  //                   -------------------------------
-  wsv_data.push_back
-    (WsvRecord
-     ("f_sensor",
-      "The centre frequency of the sensor's backend channels [Hz].\n"
-      "That is, the frequency vector before any data reduction.\n"
-      "It is assumed that the same backend is used for all za_sensor.",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("za_sensor",
-      "The centre zenith angle for the spectra recorded by the sensor [deg].\n"
-      "That is, the zenith angle vector before any data reduction.",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("f_y",
-      "The frequency for every element of y [Hz]. This vector has the same\n"
-      "length as y and is mainly for display purposes.\n"
-      "If no data reduction is performed f_y = [f_sensor;f_sensor...] where\n"
-      "the number of repetitions of f_sensor equals the number of zenith\n"
-      "angles. With data reduction there is no general relationship between\n"
-      "f_y and f_sensor. If the data reduction is performed using some\n"
-      "eigenvectors, f_y can be set to [1;2;3;...;n]",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("za_y",
-      "The zenith_angle for every element of y [deg]. This vector has the\n"
-      "same length as y and is mainly for display purposes.\n"
-      "If no data reduction is performed za_y=[za_sensor(1);za_sensor(1)...]\n"
-      "where the number of repetitions of the elements of za_sensor equals\n"
-      "the number of frequencies. With data reduction there is no general\n"
-      "relationship between za_y and za_sensor. If the data reduction is\n"
-      "performed using some eigenvectors, za_y can be set to [1;1;1;...;1]",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("y_cal1",
-      "A first calibration spectrum. This spectrum is assumed to be used for\n"
-      "all zenith angles. This vector corresponds accordingly to f_sensor.\n"
-      "See for example yLoadCalibration for usage of this spectrum.",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("y_cal2",
-      "A first calibration spectrum. This spectrum is assumed to be used for\n"
-      "all zenith angles. This vector corresponds accordingly to f_sensor.\n"
-      "See for example yLoadCalibration for usage of this spectrum.",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("i_cal1",
-      "The intensity or brightness temperature corresponding to y_cal1.\n"
-      "See for example yLoadCalibration for usage.",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("i_cal2",
-      "The intensity or brightness temperature corresponding to y_cal2.\n"
-      "See for example yLoadCalibration for usage.",
-      Vector_));
 
 
 

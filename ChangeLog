@@ -1,3 +1,25 @@
+2001-09-26  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-233
+
+	* I didn't manage to link the program after Oliver's last commit, but 
+	I must commit to move changes to the laptop.
+
+	* Improved text for WSV in workspace.cc for "my" variables. Can someone
+	elso look at the remaining variables.
+
+	* Some WSV are removed: f_sensor, za_sensor, i_cal...
+
+	* I did this as the sensor is totally removed from ARTS. 
+
+	* The TB and TRJ functions changed to take f_mono and za_pencil as 
+	input. 
+
+	* The function yLoadCalibration removed (I know think this function
+	is not needed. It is possible to make the load switching smarter than
+	I realised. The corresponding part in AUG will be removed.)
+
+	
 2001-09-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-232
