@@ -36,7 +36,7 @@ function r = wgs84( dim, lat, obsdir )
 
 global DEG2RAD
 
-rq = 6378.138e3;
+rq = 6378.137e3;
 rp = 6356.752e3;
 
 rq = rq * rq;

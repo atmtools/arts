@@ -1,3 +1,10 @@
+2002-04-08  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-1-0-21
+
+	* Some fixing in temperature weighting functions to avoid getting
+	NaNs.
+
 2002-04-06  Thomas Kuhn  <tkuhn@uni-bremen.de>
  
         * arts-1-0-20
@@ -66,7 +73,7 @@
 
 	* Some bug in h_antenna.m when including the movement of the antenna,
 	the antennas patterns were broader than they should be.
-
+	
 2002-03-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-14

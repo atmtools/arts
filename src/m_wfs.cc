@@ -1774,6 +1774,12 @@ void k_temp_nohydro (
             d = c * f_mono[iv];
             k(iv0+iv,ip) = a[iv] * d/t[ip] / (exp(d)-1) * pl[iv] +
                                                       b[iv] * dabs_dt(iv,ip);
+            
+	    // The result for very small values can be NaN. So NaNs (and Infs)
+	    // are set to 0.
+            if ( isnan(k(iv0+iv,ip)) || isinf(k(iv0+iv,ip)) )
+              k(iv0+iv,ip) = 0.0;
+
 	  }
         }            
       }
