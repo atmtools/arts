@@ -39,8 +39,6 @@ arts_SOURCES = \
 	complex.h \
 	complex.cc \
 	constants.cc \
-	continua.cc \
-	continua.h \
 	exceptions.h \
 	file.cc \
 	file.h \
@@ -80,6 +78,7 @@ arts_SOURCES = \
 	m_sensor.cc \
 	m_xml.cc \
 	m_xml.h \
+	m_continua.cc \
 	main.cc \
 	make_array.h \
 	make_vector.cc \
@@ -271,8 +270,6 @@ test_geomag_calc_SOURCES = \
 	complex.h \
 	complex.cc \
 	constants.cc \
-	continua.cc \
-	continua.h \
 	exceptions.h \
 	file.cc \
 	file.h \
@@ -310,6 +307,7 @@ test_geomag_calc_SOURCES = \
 	m_ignore.h \
 	m_xml.cc \
 	m_xml.h \
+	m_continua.cc \
 	make_array.h \
 	make_vector.cc \
 	make_vector.h \
@@ -649,8 +647,6 @@ test_zeemanproperties_SOURCES = \
 	complex.h \
 	complex.cc \
 	constants.cc \
-	continua.cc \
-	continua.h \
 	exceptions.h \
 	file.cc \
 	file.h \
@@ -686,6 +682,7 @@ test_zeemanproperties_SOURCES = \
 	m_ignore.h \
 	m_xml.cc \
 	m_xml.h \
+	m_continua.cc \
 	make_array.h \
 	make_vector.cc \
 	make_vector.h \

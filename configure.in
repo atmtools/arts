@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.712)
+AM_INIT_AUTOMAKE(arts,1.1.713)
 
 AM_MAINTAINER_MODE
 
@@ -433,6 +433,7 @@ Makefile
           doc/examples/cloud_rad_field1D_example.arts
           doc/examples/clouds_example.arts
           doc/examples/cont_example.arts
+          doc/examples/cont_simple_example.arts
           doc/examples/fullmodels_example.arts
           doc/examples/i_field_example.arts
           doc/examples/old_absorption_example.arts

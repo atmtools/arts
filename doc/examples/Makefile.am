@@ -21,6 +21,7 @@ arts_examples_in = \
 	cloud_rad_field1D_example.arts.in \
 	clouds_example.arts.in \
 	cont_example.arts.in \
+	cont_simple_example.arts.in \
 	fullmodels_example.arts.in \
 	i_field_example.arts.in \
 	old_absorption_example.arts.in \
@@ -36,6 +37,7 @@ arts_examples = \
 	cloud_rad_field1D_example.arts \
 	clouds_example.arts \
 	cont_example.arts \
+	cont_simple_example.arts \
 	fullmodels_example.arts \
 	i_field_example.arts \
 	old_absorption_example.arts \
@@ -55,6 +57,7 @@ check:	$(arts) $(arts_examples)
 	$(arts) batch_example.arts
 	$(arts) clouds_example.arts
 	$(arts) cont_example.arts
+	$(arts) cont_simple_example.arts
 	$(arts) fullmodels_example.arts
 	$(arts) radiosonde_example.arts
 	$(arts) rt_example.arts

@@ -1,3 +1,36 @@
+2003-11-16  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-713
+
+	* src/workspace.cc: Added new variables input variables for the
+	absorption models:
+	abs_p:     Pressures
+	abs_t:     Temperatures
+	abs_vmr:   VMR values (these three must have same length)
+	abs_model: Model string
+	abs_user_parameters: Vector of model parameters
+	Also implemented a variable to hold absorption coeffients, abs.
+
+	* src/methods.cc: Added new methods VectorSetExplicitly and absMPM02_H2O.
+
+	* src/m_basic_types.cc: Added method VectorSetExplicitly, which
+	can be used to specify a vector directly in the controlfile,
+	rather than reading it from a file.
+
+	* src/Makefile.am: Removed continua.cc and continua.h,
+	added m_continua.cc.
+
+	* src/continua.cc: Removed.
+	
+	* src/continua.h: Removed.
+
+	* src/m_continua.cc: Added. Implemented dummy case for
+	MPM02 H2O model to define interfaces.
+
+	* doc/examples/cont_simple_example.arts.in: Added. Continuum for one species.
+
+	* doc/examples/Makefile.am: Added the new file.
+
 2003-11-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-712

@@ -8,3 +8,8 @@ absorption_example.f_grid.xml
 absorption_example.ls.xml
 absorption_example.ls_sigma.xml
 absorption_lookup_example.gas_abs_lookup.xml
+cont_simple_example.abs.xml
+cont_simple_example.abs_p.xml
+cont_simple_example.abs_t.xml
+cont_simple_example.abs_vmr.xml
+cont_simple_example.f_grid.xml

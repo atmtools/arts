@@ -1,0 +1,51 @@
+# Just calculate absorption coefficients for one continuum or full model
+# and write results to a file.
+#
+# 2003-11-16 Stefan Buehler
+
+Main {
+
+# Set output format to ASCII:
+output_file_formatSetAscii{}
+
+# Create frequency grid:
+VectorNLinSpace(f_grid){
+  start = 160e9
+  stop  = 200e9
+  n     = 100
+}
+
+# ... and write to file.
+WriteXML(f_grid){""}
+
+# Create a pressure vector [hPa]:
+VectorSetExplicitly(abs_p){[100000, 10000, 1000]}
+
+# Create a temperature vector [K]:
+VectorSetExplicitly(abs_t){[295, 215, 233]}
+
+# Create a vmr vector [absolute numbers]:
+VectorSetExplicitly(abs_vmr){[1.877431e-02 , 3.302817e-06 , 4.703154e-06 ]}
+
+# Write these to files:
+WriteXML(abs_p){""}
+WriteXML(abs_t){""}
+WriteXML(abs_vmr){""}
+
+# Set the "model" string.
+# (This string is used by some absorption models to switch 
+# between different options.)
+StringSet(abs_model){"MPM02"}
+
+# Set the user parameters.
+# These are also used by some models, for example to scale 
+# model constants. In this case we set it to an empty vector.
+VectorSetExplicitly(abs_user_parameters){[]}
+
+# Call the MPM02_H2O model to calculte H2O absorption:
+absMPM02_H2O{}
+
+# Write result to file:
+WriteXML(abs){""}
+
+}

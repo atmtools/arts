@@ -106,6 +106,63 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+    ( NAME( "abs" ),
+      DESCRIPTION
+      (
+       "Scalar gas absorption coefficients for one species.\n"
+       "\n"
+       "This is used as output variable of methods calculating absorption,\n"
+       "such as continua and full absorption models.\n"
+       "\n"
+       "The Variable can hold absorption for many atmospheric conditions,\n"
+       "given by the second dimension.\n"
+       "\n"
+       "The second dimension, N, corresponds to the length of the input\n"
+       "pressure and temperature vectors given to the method used to calculate\n"
+       "abs."
+       "\n"
+       "Dimensions: [f_grid, N]\n"
+       "\n"
+       "Unit: 1/m\n"
+       ),
+      GROUP( Matrix_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_model" ),
+      DESCRIPTION
+      (
+       "Model used for continuum or complete absorption calculation\n"
+       "\n"
+       "This is just a string that is used as input by some methods\n"
+       "calculating absorption. Its meaning depends on the model. See\n"
+       "documentation of methods taking this variable as input for more\n"
+       "explanations."
+       ),
+      GROUP( String_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+    ( NAME( "abs_p" ),
+      DESCRIPTION
+      (
+       "List of pressures to be used for the calculation of absorption\n"
+       "coefficients. \n"
+       "\n"
+       "This can be copied from the global p_grid, but could also be\n"
+       "different. \n"
+       "\n"
+       "Any absorption method should check that the length of this vector\n"
+       "is the same as that of abs_t\n"
+       "\n"
+       "Dimension: [number of pressures]\n"
+       "\n"
+       "Unit: Pa"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+    (WsvRecord
     ( NAME( "abs_scalar_gas" ),
       DESCRIPTION
       (
@@ -145,6 +202,37 @@ void define_wsv_data()
        "Dimensions: [species, f_grid, p_grid, lat_grid, lon_grid]"
         ),
       GROUP( Tensor5_ ))); 
+
+  wsv_data.push_back
+    (WsvRecord
+    ( NAME( "abs_t" ),
+      DESCRIPTION
+      (
+       "List of temperatures to be used for the calculation of absorption\n"
+       "coefficients.\n"
+       "\n"
+       "In contrast to the global t_field, this is just a vector. Any\n"
+       "absorption method should check that the length of this vector is the\n"
+       "same as that of abs_p\n"
+       "\n"
+       "Dimension: [number of pressures]\n"
+       "\n"
+       "Unit: K"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+    ( NAME( "abs_user_parameters" ),
+      DESCRIPTION
+      (
+       "User parameters for absorption continua or complete models\n"
+       "\n"
+       "This is just a list of numbers, for example scaling factors of model\n"
+       "constants. Their meaning depends on the model. See documentation of\n"
+       "methods taking this variable as input for more explanations."
+       ),
+      GROUP( Vector_ )));
 
  wsv_data.push_back
     (WsvRecord
@@ -201,6 +289,24 @@ void define_wsv_data()
         "Dimensions: [part_types,stokes_dim]"
         ),
        GROUP( Matrix_ ) ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_vmr" ),
+      DESCRIPTION
+      (
+       "List of vmr values to be used for the calculation of absorption\n"
+       "coefficients.\n"
+       " \n"
+       "In contrast to the global vmr_field, this is just a vector. Any\n"
+       "absorption method should check that the length of this vector is the\n"
+       "same as that of abs_p\n"
+       " \n"
+       "Dimension: [number of pressures]\n"
+       " \n"
+       "Unit: absolute number, dimensionless"
+       ),
+      GROUP( Vector_ ))); 
 
    wsv_data.push_back
    (WsvRecord

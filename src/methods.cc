@@ -160,62 +160,61 @@ void define_md_data_raw()
 //      KEYWORDS(),
 //      TYPES()));
 
-  md_data_raw.push_back
+  md_data_raw.push_back     
     ( MdRecord
-      ( NAME("amp_matCalc"),
+      ( NAME("absMPM02_H2O"),
         DESCRIPTION
         (
-         "This method converts the raw amplitude matrix data namely \n"
-         "amp_mat_raw to workspace variable amp_mat which can be directly\n"
-         "used for calculating scattering properties of particles.  \n"
+         "Calculate water vapor absorption\n"
          "\n"
-         "The data type of amp_mat_raw is an ArrayOfArrayOfTensor6 which \n"
-         "contains one gridded field for each particle type the user wants.\n"
-         "One data file contains amp_mat_raw for one particle type.  One \n"
-         "data file has amp_mat_raw for one particle for a set of \n"
-         "frequencies, incoming and outgoing zenith angles and azimuth \n"
-         "angles. The frequencies, angles, and the amplitude matrix are \n"
-         "each a Tensor 6. The size of amp_mat_raw is amp_mat_raw[Npt][7],\n"
-         "where Npt is the number of particle types. amp_mat_raw[Npt] [0]\n"
-         "gives the frequency tensor [N_f, 1, 1, 1, 1, 1] where N_f gives\n"
-         "the number of frequencies considered in that particular database \n"
-         "file. Similarly, amp_mat_raw[ Npt ][ 1 ] gives the outgoing zenith\n"
-         "angle tensor [1, Nza, 1, 1, 1, 1], amp_mat_raw[ Npt ][ 2 ] gives \n"
-         "the outgoing azimuth angle tensor [1, 1, Naa, 1, 1, 1], \n"
-         "amp_mat_raw[ Npt ][ 3 ] gives the incoming zentih angle tensor\n"
-         "[1, 1, 1, Nza, 1, 1], amp_mat_raw[ Npt ][ 4 ] gives the incoming\n"
-         "azimuth angle tensor [1, 1, 1, 1, Naa, 1], amp_mat_raw[ Npt ][ 5 ]\n"
-         "is a dummy tensor6 and amp_mat_raw[ Npt ][ 6 ] gives amplitude\n"
-         "matrix which is also a tensor6 of size \n"
-         "[N_f, N_za, N_aa, N_za, N_aa, 8]. Here, Nza is the number of \n"
-         "zenith angles, Naa is the number of azimuth angles and 8 denotes \n"
-         "the amplitude matrix elements.  \n"
+         "Corrected version of MPM93 by TKS, iup, 2002 The H2O lines at\n"
+         "547.676440 GHz and 552.020960 GHz are isotopic lines: 547 GHz is from\n"
+         "the isotope 1-8-1 (HITRAN code 181, JPL code 20003) with an isotopic\n"
+         "ratio of 0.00199983 and 552 GHz is from the isotope 1-7-1 (HITRAN code\n"
+         "171, JPL code 19003) with an isotopic ratio of 0.00037200.\n"
          "\n"
-         "In this method, we have to interpolate the raw data calculated on \n"
-         "specific angular and frequency grids onto a grid which is set by \n"
-         "the user. Since we decide that frequency should be the outermost \n"
-         "loop for our radiative transfer calculation, the frequency grid \n"
-         "contains just one value specified by the index scat_f_index. The\n"
-         "angles for which the calculations are to be done are specified by\n"
-         "scat_za_grid and scat_aa_grid. The interpolation has to be done \n"
-         "for the frequency grid, zenith angle grid and azimuth angle grid. \n"
-         "Since this interpolation is from a gridded field to a new field, \n"
-         "we have to perform a green interpolation. For more insight into \n"
-         "the interpolation schemes refer to Chapter 8-Interpolation of AUG.\n"
+         "The original source code of MPM93 has these isotopic ratios not\n"
+         "included in the line strength parameter b1, which is an error. In the\n"
+         "arts implementation the line strength parameter b1 of these two lines\n"
+         "is multiplied with the appropriate isotopic ratio.\n"
          "\n"
-         "The output of this method is amp_mat has to be a Tensor6 with the \n"
-         "first dimension being that of the particle type, then the angles \n"
-         "and finally the amplitude matrix element 8. The size of amp_mat is\n"
-         "(Npt, Nza, Naa, Nza, Naa, 8).  Note that the dimension frequency \n"
-         "is taken out.\n"
-         ),
-        OUTPUT(amp_mat_),
-        INPUT(amp_mat_raw_, f_index_, f_grid_, scat_za_grid_, 
-              scat_aa_grid_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES())); 
+         "Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton, Propagation\n"
+         "modeling of moist air and suspended water/ice particles at frequencies\n"
+         "below 1000 GHz, AGARD 52nd Specialists Meeting of the Electromagnetic\n"
+         "Wave Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21.\n"
+         "\n"
+         "Output:\n"
+         "   abs    : absorption coefficients [1/m], \n"
+         "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
+         "\n"
+         "Input:\n"
+         "   f_grid : Frequency grid [Hz].\n"
+         "   abs_p  : List of pressures [Pa].\n"
+         "   abs_t  : List of temperatures [K]. Must have same length as abs_p!\n"
+         "   abs_vmr   : List of volume mixing ratios [absolute number].\n"
+         "               Must have same length as abs_p!\n"
+         "   abs_model : String specifying the model to use. Allowed options:\n"
+         "               \"MPM02\"          - Calculate lines and continuum.\n"
+         "               \"MPM02Lines\"     - Calculate only lines.\n"
+         "               \"MPM02Continuum\" - Calculate only continuum.\n"
+         "               \"user\"           - Use parameters given by abs_user_parameters,\n"
+         "                                    instead of the predefined settings.\n"
+         "   abs_user_parameters : Only used if abs_model==\"user\". In that case,\n"
+         "                         abs_user_parameters must have 3 elements:\n"
+         "                         1. Continuum scaling factor\n"
+         "                         2. Line strength scaling factor\n"
+         "                         3. Line broadening scaling factor\n"
+         "                         Setting all scaling factors to 1 gives the\n"
+         "                         same behavior as abs_model==\"MPM02\".\n"
+         "                         Must be empty if one of the predefined models is used."
+        ),
+        OUTPUT( abs_ ),
+        INPUT(  f_grid_, abs_p_, abs_t_, abs_vmr_,
+                abs_model_, abs_user_parameters_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -411,6 +410,63 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES(),
         AGENDAMETHOD( true )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("amp_matCalc"),
+        DESCRIPTION
+        (
+         "This method converts the raw amplitude matrix data namely \n"
+         "amp_mat_raw to workspace variable amp_mat which can be directly\n"
+         "used for calculating scattering properties of particles.  \n"
+         "\n"
+         "The data type of amp_mat_raw is an ArrayOfArrayOfTensor6 which \n"
+         "contains one gridded field for each particle type the user wants.\n"
+         "One data file contains amp_mat_raw for one particle type.  One \n"
+         "data file has amp_mat_raw for one particle for a set of \n"
+         "frequencies, incoming and outgoing zenith angles and azimuth \n"
+         "angles. The frequencies, angles, and the amplitude matrix are \n"
+         "each a Tensor 6. The size of amp_mat_raw is amp_mat_raw[Npt][7],\n"
+         "where Npt is the number of particle types. amp_mat_raw[Npt] [0]\n"
+         "gives the frequency tensor [N_f, 1, 1, 1, 1, 1] where N_f gives\n"
+         "the number of frequencies considered in that particular database \n"
+         "file. Similarly, amp_mat_raw[ Npt ][ 1 ] gives the outgoing zenith\n"
+         "angle tensor [1, Nza, 1, 1, 1, 1], amp_mat_raw[ Npt ][ 2 ] gives \n"
+         "the outgoing azimuth angle tensor [1, 1, Naa, 1, 1, 1], \n"
+         "amp_mat_raw[ Npt ][ 3 ] gives the incoming zentih angle tensor\n"
+         "[1, 1, 1, Nza, 1, 1], amp_mat_raw[ Npt ][ 4 ] gives the incoming\n"
+         "azimuth angle tensor [1, 1, 1, 1, Naa, 1], amp_mat_raw[ Npt ][ 5 ]\n"
+         "is a dummy tensor6 and amp_mat_raw[ Npt ][ 6 ] gives amplitude\n"
+         "matrix which is also a tensor6 of size \n"
+         "[N_f, N_za, N_aa, N_za, N_aa, 8]. Here, Nza is the number of \n"
+         "zenith angles, Naa is the number of azimuth angles and 8 denotes \n"
+         "the amplitude matrix elements.  \n"
+         "\n"
+         "In this method, we have to interpolate the raw data calculated on \n"
+         "specific angular and frequency grids onto a grid which is set by \n"
+         "the user. Since we decide that frequency should be the outermost \n"
+         "loop for our radiative transfer calculation, the frequency grid \n"
+         "contains just one value specified by the index scat_f_index. The\n"
+         "angles for which the calculations are to be done are specified by\n"
+         "scat_za_grid and scat_aa_grid. The interpolation has to be done \n"
+         "for the frequency grid, zenith angle grid and azimuth angle grid. \n"
+         "Since this interpolation is from a gridded field to a new field, \n"
+         "we have to perform a green interpolation. For more insight into \n"
+         "the interpolation schemes refer to Chapter 8-Interpolation of AUG.\n"
+         "\n"
+         "The output of this method is amp_mat has to be a Tensor6 with the \n"
+         "first dimension being that of the particle type, then the angles \n"
+         "and finally the amplitude matrix element 8. The size of amp_mat is\n"
+         "(Npt, Nza, Naa, Nza, Naa, 8).  Note that the dimension frequency \n"
+         "is taken out.\n"
+         ),
+        OUTPUT(amp_mat_),
+        INPUT(amp_mat_raw_, f_index_, f_grid_, scat_za_grid_, 
+              scat_aa_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES())); 
 
   md_data_raw.push_back
     ( MdRecord
@@ -784,7 +840,7 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Main function for calculation of propagation paths within the \n"
-	   "cloud box. This function will be used in *ScatteringMonteCarlo*\n"
+           "cloud box. This function will be used in *ScatteringMonteCarlo*\n"
          "\n"
          "\n"
          "The definition of a propgation path cannot be accomodated here.\n"
@@ -1052,16 +1108,16 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Convergence test (maximum absolute difference in Rayleigh-Jeans\n"
-	 "Brightness temperature units)\n"
+         "Brightness temperature units)\n"
          "\n"
-	 "This method work exactly similar to convergence_flagAbs except that\n"
+         "This method work exactly similar to convergence_flagAbs except that\n"
          "now we se the convergence criteria keyword *epsilon* to Brightness\n"
          "temperature units. /n"
-	 "\n"
+         "\n"
          "Note that we use Rayleigh Jeans Brightness temperature for epsilon.\n"
-	 "This is because epsilon is a difference of intensity and Planck BT\n"
-	 "is not linear for small radiance values.  For higher stokes components\n"
-	 "also Planck BT cannot be used because of the same reason.\n"
+         "This is because epsilon is a difference of intensity and Planck BT\n"
+         "is not linear for small radiance values.  For higher stokes components\n"
+         "also Planck BT cannot be used because of the same reason.\n"
          "\n"
          "The function calculates the absolute differences for two successive\n"
          "iteration fields. It picks out the maximum values for each Stokes \n"
@@ -1579,7 +1635,7 @@ md_data_raw.push_back
         OUTPUT(i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
                scat_p_index_, ppath_step_, ground_los_, ground_emission_,
-	       ground_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
+               ground_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
         INPUT(scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
@@ -2529,9 +2585,9 @@ md_data_raw.push_back
          "the elements of phase matrix from the elements of amplitude \n"
          "matrix."
          ),
-	OUTPUT(pha_mat_spt_),
+        OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, amp_mat_, scat_za_index_, scat_aa_index_),
-	GOUTPUT(),
+        GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
         TYPES())); 
@@ -2554,11 +2610,11 @@ md_data_raw.push_back
          "laboratory coordinate system is done.\n"
          "\n"
          ),
-	OUTPUT(pha_mat_spt_),
+        OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, scat_data_raw_, scat_za_grid_, scat_aa_grid_, 
               scat_za_index_, scat_aa_index_, f_index_, f_grid_, scat_theta_,
               scat_theta_gps_, scat_theta_itws_),
-	GOUTPUT(),
+        GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
         TYPES())); 
@@ -2590,11 +2646,11 @@ md_data_raw.push_back
          "of the scattering integral (*scat_fieldCalc*).\n"
          "\n"
          ),
-	OUTPUT(pha_mat_spt_),
+        OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, pha_mat_sptDOITOpt_, scat_theta_, scat_za_grid_,
               scat_aa_grid_, 
               scat_za_index_, scat_aa_index_),
-	GOUTPUT(),
+        GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
         TYPES())); 
@@ -2604,21 +2660,21 @@ md_data_raw.push_back
       ( NAME( "pnd_fieldCalc" ),
         DESCRIPTION
         ("Interpolate the particle number density fields.\n"
-	 "\n"
-	 "This methods interpolates the particle number density field\n"
-	 "from the raw data *pnd_field_raw* to pnd_field* onto the grids for the\n"
-	 "calculation namely, *p_grid*, *lat_grid*, *lon_grid*.  The method is\n"
-	 "similar to *AtmFieldsCalc* where temperature, altitude and vmr are\n"
-	 "interpolated onto *p_grid*, *lat_grid*, *lon_grid*. \n"
-	 "\n"
-	 "The method takes in as input *pnd_field_raw* which is an\n"
-	 "ArrayOfArrayOfTensor3 which contains one gridded field for each\n"
-	 "particle type. See the online documentation of *pnd_field_raw* for\n"
-	 "more information about this variable.  The output *pnd_field* is a\n"
-	 "Tensor4 with dimension pnd_field(part_types, p_grid, lat_grid,\n"
-	 "lon_grid). \n"
-	 ),
-	OUTPUT(pnd_field_),
+         "\n"
+         "This methods interpolates the particle number density field\n"
+         "from the raw data *pnd_field_raw* to pnd_field* onto the grids for the\n"
+         "calculation namely, *p_grid*, *lat_grid*, *lon_grid*.  The method is\n"
+         "similar to *AtmFieldsCalc* where temperature, altitude and vmr are\n"
+         "interpolated onto *p_grid*, *lat_grid*, *lon_grid*. \n"
+         "\n"
+         "The method takes in as input *pnd_field_raw* which is an\n"
+         "ArrayOfArrayOfTensor3 which contains one gridded field for each\n"
+         "particle type. See the online documentation of *pnd_field_raw* for\n"
+         "more information about this variable.  The output *pnd_field* is a\n"
+         "Tensor4 with dimension pnd_field(part_types, p_grid, lat_grid,\n"
+         "lon_grid). \n"
+         ),
+        OUTPUT(pnd_field_),
         INPUT(p_grid_, lat_grid_, lon_grid_, pnd_field_raw_, atmosphere_dim_),
         GOUTPUT(),
         GINPUT(),
@@ -2805,10 +2861,10 @@ md_data_raw.push_back
          "Earth's atmosphere. \n"
          "\n"
          "Only refractivity of dry air is considered. All other gases has\n"
-		 "a negligible contribution.  \n"
+                 "a negligible contribution.  \n"
          "\n"
          "The formula used is contributed by Michael Höpfner,\n"
-		 "Forschungszentrum Karlsruhe."
+                 "Forschungszentrum Karlsruhe."
         ),
         OUTPUT( refr_index_ ),
         INPUT( rte_pressure_, rte_temperature_, rte_vmr_list_ ),
@@ -3001,15 +3057,15 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "If you are doing limb calculations it can be useful to specify\n"
-	 "viewing direction and sensor position by the tangent pressure.\n"
-	 "This function takes tan_p as a keyword argument and sets rte_los\n"
-	 "and rte_pos to the apropriate position on the edge of the modelled\n"
-	 "atmosphere\n\n"
-	 "This function is a work in progress. Only 1D is currently supported"
+         "viewing direction and sensor position by the tangent pressure.\n"
+         "This function takes tan_p as a keyword argument and sets rte_los\n"
+         "and rte_pos to the apropriate position on the edge of the modelled\n"
+         "atmosphere\n\n"
+         "This function is a work in progress. Only 1D is currently supported"
         ),
         OUTPUT( rte_pos_, rte_los_, ppath_, ppath_step_ ),
         INPUT( atmosphere_dim_, p_grid_, z_field_, lat_grid_, lon_grid_,
-	       ppath_step_agenda_, r_geoid_, z_ground_ ),
+               ppath_step_agenda_, r_geoid_, z_ground_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("tan_p"),
@@ -3146,16 +3202,16 @@ md_data_raw.push_back
          "Method for the communication between cloudbox and clearsky.\n"
          "\n"
          "This is the equivalent of scat_iPut for use with ScatteringMonteCarlo.\n"
-	 "To fit in with pre-existing code the Stokes vector I is simply copied \n"
-	 "several times to make the sizes of scat_i_p, scat_i_lat, and scat_i_lon\n"
-	 "the same as they would be of successive order of scattering calculations.\n"
-	 "This means that after *scat_iPutMonteCarlo* the radiative transfer \n"
-	 "calculation can be completed by simply calling *RteCalc*\n"
-	 "\n"
+         "To fit in with pre-existing code the Stokes vector I is simply copied \n"
+         "several times to make the sizes of scat_i_p, scat_i_lat, and scat_i_lon\n"
+         "the same as they would be of successive order of scattering calculations.\n"
+         "This means that after *scat_iPutMonteCarlo* the radiative transfer \n"
+         "calculation can be completed by simply calling *RteCalc*\n"
+         "\n"
          ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_ ),
         INPUT( i_rte_, stokes_dim_, f_grid_, cloudbox_limits_, scat_za_grid_,
-	       scat_aa_grid_ ),
+               scat_aa_grid_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3236,37 +3292,37 @@ md_data_raw.push_back
         (
          "This method performs a single pencil beam monochromatic scattering\n"
          "calculation using a Monte Carlo algorithm \n"
-	 "\n"
-	 "\n"
-	 "The main output variables *i_rte* and *i_montecarlo_error* represent the \n"
-	 "Stokes vector, and the estimated error in the Stokes vector respectively.\n"
-	 "The keyword parameter `maxiter\' describes the number of `photons\'\n"
-	 "used in the simulation (more photons means smaller *Ierror*).\n"
-	 "Non-zero values of keyword parameters record_ppathcloud and record_ppath\n"
-	 "enable the saving of internal and external ppath data for diagnostic purposes.\n"
-	 "  record_ppathcloud and record_ppath should be set to 0 for large values of\n"
-	 " max_iter.\n Negative values of rng_seed seed the random number generator \n "
-	 "according to system time, positive rng_seed values are taken literally.\n"
+         "\n"
+         "\n"
+         "The main output variables *i_rte* and *i_montecarlo_error* represent the \n"
+         "Stokes vector, and the estimated error in the Stokes vector respectively.\n"
+         "The keyword parameter `maxiter\' describes the number of `photons\'\n"
+         "used in the simulation (more photons means smaller *Ierror*).\n"
+         "Non-zero values of keyword parameters record_ppathcloud and record_ppath\n"
+         "enable the saving of internal and external ppath data for diagnostic purposes.\n"
+         "  record_ppathcloud and record_ppath should be set to 0 for large values of\n"
+         " max_iter.\n Negative values of rng_seed seed the random number generator \n "
+         "according to system time, positive rng_seed values are taken literally.\n"
           "if keyword parameter silent is non-zero iterative output showing the photon\n"
-	 "number and scattering order are suppressed" ),
+         "number and scattering order are suppressed" ),
         OUTPUT(ppath_, ppath_step_, i_montecarlo_error_, rte_pos_, rte_los_,
-	       rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_, ground_emission_,
-	       ground_los_, ground_refl_coeffs_, i_rte_, 
-	       scat_za_grid_,scat_aa_grid_, rte_pressure_, rte_temperature_, 
-	       rte_vmr_list_, ext_mat_, abs_vec_, f_index_, scat_za_index_, 
-	       scat_aa_index_, ext_mat_spt_, abs_vec_spt_),
+               rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_, ground_emission_,
+               ground_los_, ground_refl_coeffs_, i_rte_, 
+               scat_za_grid_,scat_aa_grid_, rte_pressure_, rte_temperature_, 
+               rte_vmr_list_, ext_mat_, abs_vec_, f_index_, scat_za_index_, 
+               scat_aa_index_, ext_mat_spt_, abs_vec_spt_),
         INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
-	      lon_grid_, z_field_, r_geoid_, z_ground_, cloudbox_limits_,
-	      stokes_dim_, rte_agenda_, i_space_agenda_, ground_refl_agenda_,
-	      t_field_, scat_za_grid_,
-	      scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
-	      spt_calc_agenda_,scalar_gas_absorption_agenda_, vmr_field_,
-	      scat_data_raw_, pnd_field_, scat_theta_, scat_theta_gps_,
+              lon_grid_, z_field_, r_geoid_, z_ground_, cloudbox_limits_,
+              stokes_dim_, rte_agenda_, i_space_agenda_, ground_refl_agenda_,
+              t_field_, scat_za_grid_,
+              scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
+              spt_calc_agenda_,scalar_gas_absorption_agenda_, vmr_field_,
+              scat_data_raw_, pnd_field_, scat_theta_, scat_theta_gps_,
               scat_theta_itws_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath","silent", 
-		 "record_histdata", "histdata_filename", "los_sampling_method" ),
+                 "record_histdata", "histdata_filename", "los_sampling_method" ),
         TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, String_t, Index_t )));
 
  md_data_raw.push_back
@@ -4150,6 +4206,30 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("VectorSetExplicitly"),
+        DESCRIPTION
+        (
+         "Create a vector from the given list of numbers.\n"
+         "\n"
+         "Generic output:\n"
+         "   Vector : The vector to be created.\n"
+         "\n"
+         "Keywords:\n"
+         "   values  : The vector elements.\n"
+         "\n"
+         "Usage:\n"
+         "   VectorSetExplicitly(p_grid){[1000 100 10]}\n"
+         "   Will create a p_grid vector with these three elements."
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Vector_ ),
+        GINPUT(),
+        KEYWORDS( "values"   ),
+        TYPES(    Vector_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("VectorSetTakingLengthFromVector"),
         DESCRIPTION
         (
@@ -4253,7 +4333,7 @@ md_data_raw.push_back
          "are converted to a generic vector of zenith angles. The position of\n"
          "the sensor is given by the WSV *sensor_pos*. The function works only\n"
          "for a spherical geoid. The zenith angles are always set to be\n"
-		 "positive.\n"
+                 "positive.\n"
          "The tangent altitudes are given as the altitude above the geoid.\n"
          "\n"
          "Generic output: \n"
@@ -4264,7 +4344,7 @@ md_data_raw.push_back
         ),
         OUTPUT( refr_index_, rte_pressure_, rte_temperature_, rte_vmr_list_ ),
         INPUT( refr_index_agenda_, sensor_pos_, p_grid_, t_field_, z_field_,
-			   vmr_field_, r_geoid_, atmosphere_dim_ ),
+                           vmr_field_, r_geoid_, atmosphere_dim_ ),
         GOUTPUT( Vector_ ),
         GINPUT( Vector_ ),
         KEYWORDS(),
@@ -4339,32 +4419,32 @@ md_data_raw.push_back
         (
          "This method is used for simulating ARTS for metoffice model fields"
          "\n"
-	 "This method reads in *met_amsu_data* which contains the\n"
-	 "lat-lon of the metoffice profile files as a Matrix. It then \n"
-	 "loops over the number of profiles and corresponding to each \n"
-	 "longitude create the appropriate profile basename. Then, \n"
-	 "Corresponding to each basename we have temperature field, altitude\n"
-	 "field, humidity field and particle number density field.  The\n"
-	 "temperature field and altitude field are stored in the same dimensions\n"
-	 "as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are\n"
-	 "set to constant values of 0.209 and 0.782, respectively and are used\n"
-	 "along with humidity field to generate *vmr_field_raw*.  \n"
-	 "\n"
-	 "The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are\n"
-	 "given as input to *met_profile_calc_agenda* which is called in this\n"
-	 "method.  See documentation of WSM *met_profile_calc_agenda* for more\n"
-	 "information on this agenda.  \n"
-	 "\n"
-	 "The method also converts satellite zenith angle to appropriate \n"
-	 "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
-	 "from the profiles inside the function\n"
-	 ),
+         "This method reads in *met_amsu_data* which contains the\n"
+         "lat-lon of the metoffice profile files as a Matrix. It then \n"
+         "loops over the number of profiles and corresponding to each \n"
+         "longitude create the appropriate profile basename. Then, \n"
+         "Corresponding to each basename we have temperature field, altitude\n"
+         "field, humidity field and particle number density field.  The\n"
+         "temperature field and altitude field are stored in the same dimensions\n"
+         "as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are\n"
+         "set to constant values of 0.209 and 0.782, respectively and are used\n"
+         "along with humidity field to generate *vmr_field_raw*.  \n"
+         "\n"
+         "The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are\n"
+         "given as input to *met_profile_calc_agenda* which is called in this\n"
+         "method.  See documentation of WSM *met_profile_calc_agenda* for more\n"
+         "information on this agenda.  \n"
+         "\n"
+         "The method also converts satellite zenith angle to appropriate \n"
+         "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
+         "from the profiles inside the function\n"
+         ),
         OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
-		pnd_field_raw_,	pnd_field_, y_, p_grid_, sensor_los_,
-		cloudbox_on_, cloudbox_limits_, z_ground_),
+                pnd_field_raw_, pnd_field_, y_, p_grid_, sensor_los_,
+                cloudbox_on_, cloudbox_limits_, z_ground_),
         INPUT(gas_species_, met_profile_path_, met_profile_calc_agenda_, 
-	      f_grid_, met_amsu_data_, sensor_pos_, r_geoid_, lat_grid_, 
-	      lon_grid_, atmosphere_dim_),
+              f_grid_, met_amsu_data_, sensor_pos_, r_geoid_, lat_grid_, 
+              lon_grid_, atmosphere_dim_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("nelem_p_grid"),
@@ -4376,32 +4456,32 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "This method is used for simulating ARTS for metoffice model fields\n"
-	 "for clear sky conditions.\n"
+         "for clear sky conditions.\n"
          "\n"
-	 "This method reads in *met_amsu_data* which contains the\n"
-	 "lat-lon of the metoffice profile files as a Matrix. It then \n"
-	 "loops over the number of profiles and corresponding to each \n"
-	 "longitude create the appropriate profile basename. Then, \n"
-	 "Corresponding to each basename we have temperature field, altitude\n"
-	 "field, humidity field and particle number density field.  The\n"
-	 "temperature field and altitude field are stored in the same dimensions\n"
-	 "as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are\n"
-	 "set to constant values of 0.209 and 0.782, respectively and are used\n"
-	 "along with humidity field to generate *vmr_field_raw*.  \n"
-	 "\n"
-	 "The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are\n"
-	 "given as input to *met_profile_calc_agenda* which is called in this\n"
-	 "method.  See documentation of WSM *met_profile_calc_agenda* for more\n"
-	 "information on this agenda.  \n"
-	 "\n"
-	 "The method also converts satellite zenith angle to appropriate \n"
-	 "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
-	 "from the profiles inside the function\n"
-	 ),
+         "This method reads in *met_amsu_data* which contains the\n"
+         "lat-lon of the metoffice profile files as a Matrix. It then \n"
+         "loops over the number of profiles and corresponding to each \n"
+         "longitude create the appropriate profile basename. Then, \n"
+         "Corresponding to each basename we have temperature field, altitude\n"
+         "field, humidity field and particle number density field.  The\n"
+         "temperature field and altitude field are stored in the same dimensions\n"
+         "as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are\n"
+         "set to constant values of 0.209 and 0.782, respectively and are used\n"
+         "along with humidity field to generate *vmr_field_raw*.  \n"
+         "\n"
+         "The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are\n"
+         "given as input to *met_profile_calc_agenda* which is called in this\n"
+         "method.  See documentation of WSM *met_profile_calc_agenda* for more\n"
+         "information on this agenda.  \n"
+         "\n"
+         "The method also converts satellite zenith angle to appropriate \n"
+         "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
+         "from the profiles inside the function\n"
+         ),
         OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
-		 y_, p_grid_, sensor_los_, z_ground_),
+                 y_, p_grid_, sensor_los_, z_ground_),
         INPUT(gas_species_, met_profile_path_, met_profile_calc_agenda_, 
-	      f_grid_, met_amsu_data_, sensor_pos_, r_geoid_),
+              f_grid_, met_amsu_data_, sensor_pos_, r_geoid_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("nelem_p_grid"),

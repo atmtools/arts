@@ -1027,6 +1027,28 @@ void VectorSet(           Vector&    x,
 }
 
 
+//! VectorSetExplicitly
+/*!
+  Create a vector from the given list of numbers.
+
+  \retval x     The vector to be created.
+  
+  \param x_name Name of the vector we are creating.
+  \param values The vector elements.
+
+  \author Stefan Buehler
+  \date   2003-11-16
+*/
+void VectorSetExplicitly( Vector&       x, 
+                          const String& x_name,
+                          const Vector& values )
+{
+  x = values;
+  
+  out2 << "  Creating " << x_name << ".\n"; 
+  out3 << "  " << x_name << " = " << x << "\n";
+}
+
 
 //! VectorSetTakingLengthFromVector
 /*!
