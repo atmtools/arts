@@ -31,6 +31,8 @@ arts_SOURCES = \
 	check_input.cc \
 	check_input.h \
 	cloudbox.h \
+	complex.h \
+	complex.cc \
 	constants.cc \
 	continua.cc \
 	continua.h \
@@ -316,6 +318,8 @@ test_zeemanproperties_SOURCES = \
 	check_input.cc \
 	check_input.h \
 	cloudbox.h \
+	complex.h \
+	complex.cc \
 	constants.cc \
 	continua.cc \
 	continua.h \
