@@ -682,6 +682,27 @@ void NumericCopyFirstOfVector(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2003-09-07
+*/
+void NumericCopyLastOfVector(
+                // WS Generic Output:
+                      Numeric&  x,
+                // WS Generic Output Names:
+                const String&   x_name,
+                // Control Parameters:
+                const Vector&   v,
+                const String&   v_name )
+{
+  x = v[v.nelem()-1];
+  out3 << "  Setting " << x_name << " to the last value of " << v_name << ".\n";
+}
+
+
+
 //=== Vector ==========================================================
 
 /**

@@ -358,6 +358,27 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("NumericCopyLastOfVector"),
+	DESCRIPTION
+        (
+         "Sets a numeric workspace variable to the value of the last \n"
+         "element of a vector. \n"
+         "\n"
+         "Generic output: \n"
+         "   Numeric : The numeric variable to be set. \n"
+         "\n"
+         "Generic input:\n"
+         "   Vector : The vector from which the value shall be obtained." 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Numeric_ ),
+	GINPUT(  Vector_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("NumericWriteAscii"),
 	DESCRIPTION(
                     "Writes a numeric value to an ASCII file.\n"
@@ -2158,12 +2179,12 @@ void define_md_data()
     ( MdRecord
       ( NAME("lineshapeDefine"),
   	DESCRIPTION(
-          "Sets the lineshape for all calculated lines.\n\n"
+          "Sets the lineshape for all calculated lines.\n"
           "\n"
           "   A general lineshape profile is specified, according to a given  \n"
-          "approximation. Alongside a normalization factor is to be set - a  \n"
+          "approximation. Alongside a normalization factor is to be set - a \n"
           "multiplicative forefactor through which the profile can be \n"
-          "modified. This factor is just the 0th or 1st, or 2nd power of the \n"
+          "modified. This factor is just the 0th or 1st, or 2nd power of the\n"
           "ratio between the frequency of calculation f and the center frequency\n"
           "for a specific line f0. A cutoff frequency must also be specified in\n"
           "order to restrict the calculation within a desired frequency region or\n"
@@ -2187,9 +2208,13 @@ void define_md_data()
           "                                     on the basis of Drayson routine\n"                                    
           "        \"Rosenkranz_Voigt_Kuntz6\" : Rosenkrantz oxygen absortion with overlap correction\n"
           "                                    on the basis of Kuntz routine, accuracy > 2x10^(-6)\n"
+          "        \"CO2_Lorentz\" : Lorentz multiplicated with Cousin's chi factors\n"
+          "        \"CO2_Drayson\" : Drayson multiplicated with Cousin's chi factors\n"
+          "\n"
           "normalizationfactor - \"no_norm\": 1\n"
           "                      \"linear\": f/f0\n" 
           "                      \"quadratic\": (f/f0)^2.\n"
+          "\n"
           "cutoff - \" -1\" : no cutoff\n"
           "         \"Number\": positive cutoff frequency in Hz.\n"
           "\n"

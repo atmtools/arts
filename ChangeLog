@@ -1,8 +1,36 @@
+2003-09-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-123
+
+	* src/constants.cc: Added HZ2CM.
+
+	* src/lineshapes.cc: Added the lineshapes CO2_Lorentz and
+	CO2_Drayson. These lineshapes are an emprical way to consider line
+	mixing and finite duration of collision in the line wings. This
+	means that the finer details in the line centre of line mixing are
+	not covered. This line shape shall not be combined with any
+	cut-off, normalisation factor or continua.
+
+	The Cousin chi factors used, were obtained for the v3 band (2600
+	cm-1), but these chi factors are also frequently applied for v2
+	(650 cm-1). 
+
+	The temperature dependency of the chi factor is not implemented as
+	I could not understand how to pass the temperature to the function
+	calculating the line shape. The chi factors are valid for 238 K.
+
+	* src/m_io.cc (NumericCopyLastOfVector): Added this WSM.
+
+	* src/m_abs.cc (xsec_per_tgAddLines): Commented out part that gave
+	an incorrect message of total number of transitions to do. The
+	part shall now give correct messages if uncommented.
+
 2003-08-29  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-1-0-122
 
-	* doc/uguide/absorption.tex: just small corrections for a few isotopic ratios.
+	* doc/uguide/absorption.tex: just small corrections for a few 
+	isotopic ratios.
 
 2003-08-29  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
@@ -87,6 +115,7 @@
 	included in species_data.cc. Now all the species, continua, and 
 	clouds, are consistently listed in tables. 
 
+>>>>>>> 1.364.4.123
 2003-08-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-119

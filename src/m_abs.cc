@@ -2243,37 +2243,40 @@ void xsec_per_tgAddLines(// WS Output:
   }  
 
   // Print information:
-  {
-    // The variables defined here (in particular the frequency
-    // conversion) are just to make the output nice. They are not used
-    // in subsequent calculations.
-    out2 << "  Calculating line spectra.\n";
-    //    cout << "  Transitions to do: \n";
-    Index nlines = 0;
-    String funit;
-    Numeric ffac;
-    if ( f_mono[0] < 3e12 )
-      {
-        funit = "GHz"; ffac = 1e9;
-      }
-    else
-      {
-        extern const Numeric SPEED_OF_LIGHT;
-        funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
-      }
-    for ( Index i=0; i<lines_per_tg.nelem(); ++i )
-      {
-        for ( Index l=0; l<lines_per_tg[i].nelem(); ++l )
-          {
-            //cout << "    " << lines_per_tg[i][l].Name() << " @ " 
-            //   << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
-            //   << lines_per_tg[i][l].I0() << "  "
-            //   << lines_per_tg[i][l].Agam() << ")\n"; 
-            // nlines++;
-          }
-      }
-    out2 << "  Total number of transistions : " << nlines << "\n";
-  }
+  //
+  out2 << "  Calculating line spectra.\n";
+  //
+  // Uncomment the part below if you temporarily want detailed info about 
+  // transitions to be done
+
+      // The variables defined here (in particular the frequency
+      // conversion) are just to make the output nice. They are not used
+      // in subsequent calculations.
+  //    cout << "  Transitions to do: \n";
+  //    Index nlines = 0;
+  //    String funit;
+  //    Numeric ffac;
+  //    if ( f_mono[0] < 3e12 )
+  //      {
+  //        funit = "GHz"; ffac = 1e9;
+  //      }
+  //    else
+  //      {
+  //        extern const Numeric SPEED_OF_LIGHT;
+  //        funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
+  //      }
+  //    for ( Index i=0; i<lines_per_tg.nelem(); ++i )
+  //      {
+  //        for ( Index l=0; l<lines_per_tg[i].nelem(); ++l )
+  //          {
+  //          cout << "    " << lines_per_tg[i][l].Name() << " @ " 
+  //               << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
+  //               << lines_per_tg[i][l].I0() << "  "
+  //               << lines_per_tg[i][l].Agam() << ")\n"; 
+  //          nlines++;
+  //        }
+  //    }
+  //  out2 << "  Total number of transistions : " << nlines << "\n";
 
   // Call xsec_species for each tag group.
   for ( Index i=0; i<tgs.nelem(); ++i )

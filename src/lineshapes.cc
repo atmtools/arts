@@ -1782,6 +1782,140 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
 
 
 
+/*! Chi factors according to Cousin
+
+    The CO2-CO2 self-broadening is neglected. Broadening factors for both
+    O2 and N2 are considered, assuming 79% N2 and 21% O2.
+
+    \param  chi  Out: The chi factor
+    \param  df   (f-f0) in Hz.
+
+    \author Patrick Eriksson 
+    \date 2000-09-07 
+*/
+void chi_cousin(
+            Numeric&   chi,
+      const Numeric&   df )
+{
+  // Conversion factor from Hz to cm-1
+  extern const Numeric HZ2CM;
+
+  const Numeric n2 = 0.79;
+  const Numeric o2 = 0.21;
+
+  const Numeric   df_cm     = df * HZ2CM;
+  const Numeric   df_cm_abs = fabs( df_cm );
+
+  chi = 0;  
+
+  // N2 term
+  if( df_cm_abs <= 5 )
+    { chi += n2; }
+  else if( df_cm_abs <= 22 )
+    { chi += n2 * 1.968 * exp( -0.1354 * df_cm_abs ); }
+  else if( df_cm_abs <= 50 )
+    { chi += n2 * 0.160 * exp( -0.0214 * df_cm_abs ); }
+  else
+    { chi += n2 * 0.162 * exp( -0.0216 * df_cm_abs ); }
+
+  // O2 term
+  if( df_cm_abs <= 5 )
+    { chi += o2; }
+  else if( df_cm_abs <= 22 )
+    { chi += o2 * 1.968 * exp( -0.1354 * df_cm_abs ); }
+  else if( df_cm_abs <= 50 )
+    { chi += o2 * 0.160 * exp( -0.0214 * df_cm_abs ); }
+  else
+    { chi += o2 * 0.162 * exp( -0.0216 * df_cm_abs ); }
+}
+
+
+
+/*! A CO2 IR line shape.
+
+    \retval ls            The shape function.
+    \retval X             Auxillary parameter, only used in Voigt fct.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter.
+    \param  sigma         The Doppler broadening parameter. (Not used.)
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
+
+    \author Patrick Eriksson 
+    \date 2000-09-04 */
+void lineshape_CO2_lorentz(
+            Vector&   ls,
+            Vector&   X,
+            Numeric   f0,
+            Numeric   gamma,
+            Numeric   sigma,
+      VectorView      f_mono,
+      const Index     nf )
+{
+  assert( f_mono.nelem() == nf );
+
+  // PI:
+  extern const Numeric PI;
+
+  // Some constant variables
+  const Numeric gamma2 = gamma * gamma;
+  const Numeric fac = gamma/PI;
+
+  for ( Index i=0; i<nf; ++i )
+    {
+      // f-f0
+      const Numeric df = f_mono[i] - f0;
+
+      // The chi factor
+      Numeric chi;
+      chi_cousin( chi, df );      
+
+      // chi * Lorentz
+      ls[i] =  chi * fac / ( df * df + gamma2 );
+    }
+}
+
+
+
+/*! A CO2 IR line shape.
+
+    \retval ls            The shape function.
+    \retval X             Auxillary parameter, only used in Voigt fct.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter.
+    \param  sigma         The Doppler broadening parameter. (Not used.)
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
+
+    \author Patrick Eriksson 
+    \date 2000-09-04 */
+void lineshape_CO2_drayson(
+            Vector&   ls,
+            Vector&   X,
+            Numeric   f0,
+            Numeric   gamma,
+            Numeric   sigma,
+      VectorView      f_mono,
+      const Index     nf )
+{
+  lineshape_voigt_drayson(  ls, X, f0, gamma, sigma, f_mono, nf );
+
+  for ( Index i=0; i<nf; ++i )
+    {
+      // f-f0
+      const Numeric df = f_mono[i] - f0;
+
+      // The chi factor
+      Numeric chi;
+      chi_cousin( chi, df );      
+
+      // chi * Lorentz
+      ls[i] *=  chi;
+    }
+}
+
+
+
 
 
 
@@ -1989,6 +2123,35 @@ void define_lineshape_data()
       "Rosenkranz lineshape for oxygen with overlap correction, "
       "at high altitudes Drayson.",
       lineshape_rosenkranz_voigt_drayson));
+
+  lineshape_data.push_back
+    (LineshapeRecord
+     ("CO2_Lorentz",
+      "Special line shape for CO2 in the infrared, neglecting Doppler\n"
+      "broadening and details of line mixing. The line shape can be\n"
+      "expressed as\n"
+      "   chi(f,f0) * Lorentz(f,f0) \n"
+      "\n"
+      "The chi-factor follows Cousin et al. 1985. Broadening by N2 and O2\n"
+      "is considered, while self-broadening (CO2-CO2) is neglected."
+      "\n"
+      "NOTE: Temperature dependency is not yet included. The chi factor is\n"
+      "valid for 238 K.",
+      lineshape_CO2_lorentz));
+
+  lineshape_data.push_back
+    (LineshapeRecord
+     ("CO2_Drayson",
+      "Special line shape for CO2 in the infrared, neglecting details of\n"
+      "line mixing. The line shape can be expressed as\n"
+      "   chi(f,f0) * Drayson(f,f0) \n"
+      "\n"
+      "The chi-factor follows Cousin et al. 1985. Broadening by N2 and O2\n"
+      "is considered, while self-broadening (CO2-CO2) is neglected.\n"
+      "\n"
+      "NOTE: Temperature dependency is not yet included. The chi factor is\n"
+      "valid for 238 K.",
+      lineshape_CO2_drayson));
 
 }
 
