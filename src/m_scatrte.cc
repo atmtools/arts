@@ -398,10 +398,14 @@ i_fieldIterate(
                         "be 2 x *atmosphere_dim*"); 
 
 
-  assert( is_size( amp_mat, 
+  if ( !is_size( amp_mat, 
                    part_types.nelem(), scat_za_grid.nelem(), 
                    scat_aa_grid.nelem(), scat_za_grid.nelem(),
-                   scat_aa_grid.nelem(), 8));
+                 scat_aa_grid.nelem(), 8) )
+    throw runtime_error(
+                        "*amp_mat* has a wrong dimension. May be you have "
+                        "used a pre-calculated amplituded matrix for "
+                        "another scattering angle grid.");
 
   if (atmosphere_dim == 3){
     
@@ -699,8 +703,13 @@ i_fieldUpdate1D(// WS Output:
   const Index N_scat_aa = scat_aa_grid.nelem();
 
 
+  //=======================================================================
+  // Calculate coefficients for all posotions in the cloudbox 
+  //=======================================================================
+
+
   // Create scalar absorption and store it in an array. This avoids 
-  // repeting the calculation for each direction.
+  // repeating the calculation for each direction.
   Vector scalar_gas_array((cloudbox_limits[1] - cloudbox_limits[0])+ 1, 0.);
 
   for(Index p_index = cloudbox_limits[0]; p_index
@@ -713,52 +722,14 @@ i_fieldUpdate1D(// WS Output:
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
-      
+      //For 1D we need onoly one angle as viewing direction.
       scat_aa_index = 0;
-      //Calculate optical properties for single particle types:
 
-      
+      //Calculate optical properties for single particle types:
       spt_calc_agenda.execute(scat_za_index);
     
-   //    //Calculate ext_mat_spt for the direction 
-//       //corresponding to the outer loop:
-//       ext_mat_sptCalc(ext_mat_spt,
-// 		      amp_mat,
-// 		      scat_za_index,
-// 		      scat_aa_index,
-// 		      f_index, 
-//                       f_grid);   
-   
-//       // For a 1D atmosphere the azimuthal angle grid is not defined. 
-//       // Only 1 value, which is arbitrary set to 0, is passed into the function
-//       // abs_vec_sptCalc. 
-//       // pha_mat_spt is already calculated in i_fieldIterate.
-//       // next two line commented by STR
-//       // Vector scat_aa_grid(1);
-//       // scat_aa_grid[0] = 0;
 
-//       // (CE): If the radiation field and the atmodpheric profiles are 1D
-//       //       the calculations will be faster if we use a 1D intergation
-//       //       routine as the integration over the azimutal angle gives 
-//       //       always 2*pi.
-
-      
-//       // Calculate abs_vec for the direction corresponding tp the outer loop.
-//       // pha_mat_spt for this direction is required as input.
-
-//       pha_mat_sptCalc(pha_mat_spt,
-//                       amp_mat,
-//                       scat_za_index,
-//                       scat_aa_index);
-
-//       abs_vec_sptCalc(abs_vec_spt, 
-// 		      ext_mat_spt,
-// 		      pha_mat_spt,
-// 		      scat_za_grid, 
-//                       scat_aa_grid);
-    
-    
-      // Calculate ext_mat, abs_vec for all points inside the cloudbox.
+      // Calculate ext_mat, abs_vec, T for all points inside the cloudbox.
       // sca_vec can be obtained from the workspace variable scat_field.
       // As we need the average for each layer, it makes sense to calculte
       // the coefficients once and store them in an array instead of 
@@ -773,34 +744,28 @@ i_fieldUpdate1D(// WS Output:
       
       Vector T_vector(cloudbox_limits[1]-cloudbox_limits[0]+1,0.);
       
-      
-     
       // Loop over all positions inside the cloudbox defined by the 
       // cloudbox_limits.
       for(Index p_index = cloudbox_limits[0]; p_index
 	<= cloudbox_limits[1]; p_index ++)
 	{
 	  
-	  //Print the loop indices (just for testing the function)
+// 	  //Print the loop indices (just for testing the function)
 	  
-           cout << "\n loop indices: \n";
-	  cout << "\n scat_za_index ---------"<< scat_za_index;
-	  cout << "\n p_index       ---------"<< p_index;
-             cout << "\n stokes_dim    ---------"<< stokes_dim;
-            cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
-                       << cloudbox_limits[1] <<"\n";
-          cout << endl;
+//            cout << "\n loop indices: \n";
+// 	  cout << "\n scat_za_index ---------"<< scat_za_index;
+// 	  cout << "\n p_index       ---------"<< p_index;
+//              cout << "\n stokes_dim    ---------"<< stokes_dim;
+//             cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
+//                        << cloudbox_limits[1] <<"\n";
+//           cout << endl;
+
 
 
           // Calculate abs_vec_array 
-          // Initialize these arrays:
-
           abs_vec_array[p_index-cloudbox_limits[0]].resize(stokes_dim); 
           ext_mat_array[p_index-cloudbox_limits[0]].
             resize(stokes_dim, stokes_dim); 
-          
-
-          scat_p_index = p_index; 
           
           // Get scalar gas absorption from array.
           abs_scalar_gas[0] = scalar_gas_array[p_index- cloudbox_limits[0]];
@@ -809,14 +774,16 @@ i_fieldUpdate1D(// WS Output:
           abs_vec = 0.;
 
           // Calculate total ext_mat and abs_vec.
-           opt_prop_gas_agenda.execute();
-           opt_prop_part_agenda.execute();
+          // The required workspace variable is scat_p_index.
+          scat_p_index = p_index; 
+          
+        //   opt_prop_gas_agenda.execute();
+//           opt_prop_part_agenda.execute();
            
- 
-         //  opt_prop_gas_agenda.execute(scat_za_index && 
-//                                       (p_index - cloudbox_limits[0]));
-//           opt_prop_part_agenda.execute(scat_za_index &&
-//                                       (p_index - cloudbox_limits[0]));
+          // Execute agendas silently, only the first call is output on
+          // the screen (no other reason for argument in agenda.execute).
+          opt_prop_gas_agenda.execute(p_index - cloudbox_limits[0]);
+          opt_prop_part_agenda.execute(p_index - cloudbox_limits[0]);
           
           // Store coefficients in arrays for the whole cloudbox.
           abs_vec_array[p_index-cloudbox_limits[0]] = 
@@ -827,8 +794,6 @@ i_fieldUpdate1D(// WS Output:
           //Generate temperature vector.
           T_vector[p_index - cloudbox_limits[0]] = t_field(p_index, 0, 0); 
          
-         
-          
         }//End of p_grid loop over the cloudbox
       
 
@@ -927,37 +892,27 @@ i_fieldUpdate1D(// WS Output:
               Numeric f = f_grid[f_index];
               a_planck_value = planck(f, T);
               
-                cout << "planck: ..." << a_planck_value << endl;
-              cout << "sto_vec:..." << stokes_vec<< endl; 
-              cout << "sca_vec:..." << sca_vec_av << endl; 
-              // cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0]) 
-              //  /ext_mat(0,0); 
-              cout << "abs_vec:..." << abs_vec_av << endl; 
-              cout << "ext_mat:..." << ext_mat_av << endl; 
-              cout << "l_step: ..." << l_step << endl;
+       //          cout << "planck: ..." << a_planck_value << endl;
+//               cout << "sto_vec:..." << stokes_vec<< endl; 
+//               cout << "sca_vec:..." << sca_vec_av << endl; 
+//               // cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0]) 
+//               //  /ext_mat(0,0); 
+//               cout << "abs_vec:..." << abs_vec_av << endl; 
+//               cout << "ext_mat:..." << ext_mat_av << endl; 
+//               cout << "l_step: ..." << l_step << endl;
 
-             //  if (stokes_dim  == 1)
-//                 stokes_vecScalar(stokes_vec_av, ext_mat_av, abs_vec_av, 
-//                                  sca_vec_av, l_step, a_planck_value, 
-//                                  stokes_dim);
-//               else
-//                 {
-//                   bool singular_K = true;
-//                   for(Index i=0; i<stokes_dim && singular_K; i++){
-//                     for(Index j = 0; j<stokes_dim && singular_K; j++){
-//                       if(ext_mat_av(i,j) != 0.)
-//                         singular_K = false;
-//                     }
-//                   }
-                  
-//                   if ( !singular_K ){ 
-//                     // Call scat_rte_agenda:
-//                     // scat_rte_agenda.execute();
-//                     stokes_vecGeneral(stokes_vec_av, ext_mat_av, abs_vec_av, 
-//                                       sca_vec_av, l_step, a_planck_value, 
-//                                       stokes_dim);
-//                   }
-//                 }
+              // K  must not be singular
+
+              bool singular_K = true;
+              for(Index i=0; i<stokes_dim && singular_K; i++){
+                for(Index j = 0; j<stokes_dim && singular_K; j++){
+                  if(ext_mat_av(i,j) != 0.)
+                    singular_K = false;
+                }
+              }
+              assert (!singular_K );
+                    
+              // Radiative transfer step calculation.
               rte_step(stokes_vec, ext_mat_av, abs_vec_av, 
                        sca_vec_av, l_step, a_planck_value);
 
@@ -1055,29 +1010,18 @@ i_fieldUpdate1D(// WS Output:
                 /ext_mat(0,0);
               cout << "abs_vec:..." << abs_vec << endl;
         //       cout << "ext_mat:..." << ext_mat << endl;*/
-//             if (atmosphere_dim == 1)
-//                 stokes_vecScalar(stokes_vec_av, ext_mat_av, abs_vec_av, 
-//                                  sca_vec_av, l_step, a_planck_value, 
-//                                  stokes_dim);
-//               else
-//                 {
-//                   bool singular_K = true;
-//                   for(Index i=0; i<stokes_dim && singular_K; i++){
-//                     for(Index j = 0; j<stokes_dim && singular_K; j++){
-//                       if(ext_mat_av(i,j) != 0.)
-//                         singular_K = false;
-//                     }
-//                   }
-                  
-//                   if ( !singular_K ){ 
-//                     // Call scat_rte_agenda:
-//                     // scat_rte_agenda.execute();
-//                     stokes_vecGeneral(stokes_vec_av, ext_mat_av, abs_vec_av, 
-//                                       sca_vec_av, l_step, a_planck_value, 
-//                                       stokes_dim);
-//                   }
-//                 }
-
+              
+              // K must not be singular
+              bool singular_K = true;
+              for(Index i=0; i<stokes_dim && singular_K; i++){
+                for(Index j = 0; j<stokes_dim && singular_K; j++){
+                  if(ext_mat_av(i,j) != 0.)
+                    singular_K = false;
+                }
+              }
+              assert (!singular_K );
+                    
+              // Radiative transfer step calculation.
               rte_step(stokes_vec, ext_mat_av, abs_vec_av, 
                        sca_vec_av, l_step, a_planck_value);
 

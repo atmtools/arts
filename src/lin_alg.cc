@@ -203,8 +203,8 @@ matrix_exp(MatrixView F,
   Numeric A_norm_inf, c;
   Numeric j;
   const Index n = A.ncols(); 
-  Matrix D(n,n), N(n,n), X(n,n), cX(n,n), B(n,n);
-  Vector N_col_vec(n), F_col_vec(n);
+  Matrix D(n,n), N(n,n), X(n,n), cX(n,n,0.0), B(n,n,0.0);
+  Vector N_col_vec(n,0.), F_col_vec(n,0.);
 
   /*Check if A and F are a quadratic and of the same dimension. */
   assert(is_size(A,n,n));
@@ -283,7 +283,7 @@ Numeric
 norm_inf(ConstMatrixView A)
 {
   const Index n = A.nrows();  
-  Vector row_sum(n);
+  Vector row_sum(n,0.);
   Numeric norm_inf;
   
   for(Index j=0; j<A.nrows(); j++)

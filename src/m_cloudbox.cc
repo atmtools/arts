@@ -829,25 +829,42 @@ void scat_iPut(//WS Output:
        assert ( is_size( scat_i_p,
                           N_f, 2, 1, 1, N_za, 1, stokes_dim ));
 
+ cout << "before ...." << endl;
+       Tensor6View scat_i_p_view = 
+                    scat_i_p(f_index, Range(joker) , Range(joker), 
+                             Range(joker), Range(joker), Range(joker),
+                             Range(joker));
+ cout << "after ...." << endl;
        for (Index za = 0; za < N_za; za++)
             {
               for (Index i = 0; i < stokes_dim; i++)
                 {  
+                  
                   //i_field at lower boundary
-                  scat_i_p(f_index, 0, 0, 0, za, 0, i) = 
+                  scat_i_p_view(0 , Range(joker),  Range(joker),
+                           Range(joker), Range(joker), Range(joker)) = 
                     i_field(0, 0, 0, za, 0, i);
                   //i_field at upper boundary
-                  scat_i_p(f_index, 1, 0, 0, za, 0, i) = 
+                 scat_i_p_view(1, Range(joker),  Range(joker),
+                          Range(joker), Range(joker), Range(joker)) = 
                     i_field(cloudbox_limits[1] - cloudbox_limits[0],
                             0, 0, za, 0, i); 
                   // For 1D scat_i_lat and scat_i_lon are 0.
-                  for(Index j = 0; j<2; j++)
-                    {
-                      scat_i_lat(f_index, j, 0, 0, za, 0, i) = 0.;
-                      scat_i_lon(f_index, j, 0, 0, za, 0, i) = 0.;
-                    }
+                 //  for(Index j = 0; j<2; j++)
+//                     {
+//                       scat_i_lat(f_index, j, 0, 0, za, 0, i) = 0.;
+//                       scat_i_lon(f_index, j, 0, 0, za, 0, i) = 0.;
+//                     }
                 }//end stokes_dim
             }//end za loop
+      
+
+       scat_i_p(f_index, Range(joker) , Range(joker), 
+                 Range(joker), Range(joker), Range(joker),
+                 Range(joker))
+                = scat_i_p_view;
+      
+
     }//end atmosphere_dim = 1
                                                         
       
