@@ -890,7 +890,7 @@ void define_md_data_raw()
          ),
 	OUTPUT(i_field_, ppath_step_, i_field_old_, scat_field_, sca_vec_, 
                stokes_vec_, planck_function_, l_step_,
-               convergence_flag_, pha_mat_part_, pha_mat_spt_, abs_vec_spt_,
+               convergence_flag_, pha_mat_, pha_mat_spt_, abs_vec_spt_,
                ext_mat_spt_, ext_mat_, abs_vec_, scat_p_index_, 
                scat_lat_index_, scat_lon_index_),
 	INPUT(ext_mat_agenda_, abs_vec_agenda_, convergence_test_agenda_,
@@ -1212,13 +1212,13 @@ void define_md_data_raw()
 
    md_data_raw.push_back
     ( MdRecord
-      ( NAME( "pha_mat_partCalc" ),
+      ( NAME( "pha_matCalc" ),
 	DESCRIPTION
         (
 	 "This function sums up the phase matrices for all particle\n"
 	 "types weighted with particle number density.\n"
 	 "\n"
-	 "The output of this method is *pha_mat_part* (Nza, Naa, stokes_dim,\n"
+	 "The output of this method is *pha_mat* (Nza, Naa, stokes_dim,\n"
 	 "stokes_dim). The inputs are the phase matrix for the single particle\n"
 	 "type *pha_mat_spt* (part_types, Nza, Naa, stokes_dim, stokes_dim)\n"
 	 "and the local particle  number densities for all particle types namely \n"
@@ -1226,7 +1226,7 @@ void define_md_data_raw()
 	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
 	 "are specified in the control file.\n"
 	 ),
-	OUTPUT(pha_mat_part_),
+	OUTPUT(pha_mat_),
 	INPUT(pha_mat_spt_, pnd_field_, atmosphere_dim_, scat_p_index_,
 	      scat_lat_index_, scat_lon_index_ ),
 	GOUTPUT(),
@@ -1446,7 +1446,7 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "scat_integralCalc" ),
+      ( NAME( "scat_fieldCalc" ),
 	DESCRIPTION
         (
 	 "This method calculates the scattering integral.\n"
@@ -1464,10 +1464,10 @@ void define_md_data_raw()
 	 "iteration continues till the field converges.  Another important\n"
 	 "requirement for this method is the phase matrix.  For this we \n"
 	 "give as input to this method *pha_mat_spt* and *pnd_field*. From\n"
-	 "these two workspace variables we calculate *pha_mat_part* with\n"
-	 "the method *pha_mat_partCalc*.  \n"
+	 "these two workspace variables we calculate *pha_mat* with\n"
+	 "the method *pha_matCalc*.  \n"
 	 ),
-	OUTPUT( scat_field_, pha_mat_part_ ),
+	OUTPUT( scat_field_, pha_mat_ ),
 	INPUT( i_field_, pha_mat_spt_, pnd_field_, scat_za_grid_, 
 	       scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, stokes_dim_,
 	       atmosphere_dim_, cloudbox_limits_ ),

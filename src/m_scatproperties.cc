@@ -245,6 +245,7 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
       for (Index n = 0; n < stokes_dim; n++)
 	ext_mat_part(m, n) = 0.0;// Initialisation
     }
+ 
   if (atmosphere_dim == 1)
     {
       // this is a loop over the different particle types
@@ -363,7 +364,7 @@ void abs_vec_partCalc(Vector& abs_vec_part,
   
   This function sums up the phase matrices for all particle 
   types weighted with particle number density
-  \param pha_mat_part Output : physical phase matrix 
+  \param pha_mat Output : physical phase matrix 
   for the particles for given angles. 
   \param pha_mat_spt Input : phase matrix for the single particle type
   \param pnd_field Input : particle number density givs the local 
@@ -374,7 +375,7 @@ void abs_vec_partCalc(Vector& abs_vec_part,
   \param scat_lon_index Input : Longitude index for scattering calculations.
 */
 
-void pha_mat_partCalc(Tensor4& pha_mat_part,
+void pha_matCalc(Tensor4& pha_mat,
 		      const Tensor5& pha_mat_spt,
 		      const Tensor4& pnd_field,
 		      const Index& atmosphere_dim,
@@ -390,8 +391,8 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
   Index Naa = pha_mat_spt.npages();
   Index stokes_dim = pha_mat_spt.nrows();
 
-  //(CE:) Resize pha_mat_part:
-  pha_mat_part.resize(Nza, Naa, stokes_dim, stokes_dim);
+  //(CE:) Resize pha_mat:
+  pha_mat.resize(Nza, Naa, stokes_dim, stokes_dim);
 
   // Initialisation
   for (Index za_index = 0; za_index < Nza; ++ za_index)
@@ -403,7 +404,7 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
 	    {
 	      for (Index stokes_index = 0; stokes_index < stokes_dim; 
 		   ++ stokes_index)
-		pha_mat_part(za_index, aa_index, stokes_index, stokes_index)
+		pha_mat(za_index, aa_index, stokes_index, stokes_index)
 
 		  = 0.0;
 	    }
@@ -428,7 +429,7 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
 		      for (Index stokes_index = 0; stokes_index < stokes_dim;
 			   ++ stokes_index)
 			
-			pha_mat_part(za_index, aa_index,  
+			pha_mat(za_index, aa_index,  
 				     stokes_index, stokes_index) += 
 			  
 			  (pha_mat_spt(pt_index, za_index, aa_index,  
@@ -458,7 +459,7 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
 		      for (Index j = 0; j < stokes_dim; ++ j)
 			{
 			  
-			  pha_mat_part(za_index, aa_index, i,j ) += 
+			  pha_mat(za_index, aa_index, i,j ) += 
 			    (pha_mat_spt(pt_index, za_index, aa_index, i, j) * 
 			     pnd_field(pt_index, scat_p_index,  
 				       scat_lat_index, scat_lon_index));
@@ -479,7 +480,7 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
   and gas
   \param ext_mat Output : Total extinction matrix  
   \param ext_mat_part Input : extinction matrix for particle
-  \param ext_mat_part Input : extinction matrix for gas
+  \param ext_mat_gas Input : extinction matrix for gas
 */
 
 void ext_matCalc(Matrix& ext_mat,

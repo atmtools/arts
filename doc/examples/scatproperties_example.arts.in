@@ -198,7 +198,7 @@ abs_vec_sptCalc{}
 
 ext_mat_partCalc{}
 
-pha_mat_partCalc{}
+pha_matCalc{}
 
 abs_vec_partCalc{}
 

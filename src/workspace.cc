@@ -1071,20 +1071,20 @@ void define_wsv_data()
 
    wsv_data.push_back
    (WsvRecord
-    ( NAME( "pha_mat_part" ),
+    ( NAME( "pha_mat" ),
       DESCRIPTION
       (
        "Physical phase matrix for particle.\n"
        "\n"
        "This workspace variable represents the actual physical phase\n"
        "matrix of the particles chosen for the study for given propagation\n"
-       "directions.  This is calculated by the method *pha_mat_partCalc*\n"
+       "directions.  This is calculated by the method *pha_matCalc*\n"
        "\n"
        "ARTS user guide (AUG) gives the formula used for computing this\n"
        "variable. Use the index to find where this variable is discussed.\n"
        "The variable is listed as a subentry to \"workspace variables\".\n"
        "\n"
-       "Usage:      Output of the method pha_mat_partCalc\n"
+       "Usage:      Output of the method pha_matCalc\n"
        "\n"
        "Unit:        m^2\n"
        "\n"
@@ -1465,11 +1465,11 @@ void define_wsv_data()
        "Latitude index for scattering calculations.\n"
        "\n"
        "This variable is used in methods used for computing scattering\n"
-       "properties of particles like ext_mat_partCalc and pha_mat_partCalc.\n"
+       "properties of particles like ext_mat_partCalc and pha_matCalc.\n"
        "This holds the information about the position for which the \n"
        "scattering calculations are done. \n"
        "\n"
-       "Usage:    Input to the methods *ext_mat_partCalc*, *pha_mat_partCalc*\n"
+       "Usage:    Input to the methods *ext_mat_partCalc*, *pha_matCalc*\n"
        "\n"
        ),
      GROUP( Index_ ))); 

@@ -235,7 +235,7 @@ void convergence_flagAbs(//WS Output:
   \param l_step        Pathlength step. 
   \param convergence_flag 1 if convergence is reached after an 
                        iteration. 0 else.
-  \param pha_mat_part  Scattering matrix.
+  \param pha_mat  Scattering matrix.
   \param pha_mat_spt   Scattering matrix for a single particle type.
   \param abs_vec_spt   Absorption vector for a single particle type.
   \param ext_mat_spt   Extinction matrix for a single particle type.
@@ -281,7 +281,7 @@ i_fieldIterate(
                     Numeric& planck_function,
                     Numeric& l_step,
                     Index& convergence_flag,
-                    Tensor4& pha_mat_part,
+                    Tensor4& pha_mat,
                     Tensor5& pha_mat_spt,
                     Matrix& abs_vec_spt,
                     Tensor3& ext_mat_spt,
@@ -388,7 +388,7 @@ i_fieldIterate(
     // Total scattering matrix.
     
 
-    //pha_mat_partCalc(pha_mat_part, pha_mat_spt, pnd_field, 
+    //pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
     //cloudbox_limits, atmosphere_dim, scat_p_index, scat_lat_index, 
     //                 scat_lon_index);
     
@@ -911,7 +911,7 @@ the product of intensity field and phase matrix over all incident
 angles.  
   
 \param scat_field Output : scattering integraal
-\param pha_mat_part Output : phase matrix.
+\param pha_mat Output : phase matrix.
 \param i_field Input : the intensity field 
 \param pha_mat_spt Input : the phase matrix for single particle type
 \param pnd_field Input : the particle number density field.
@@ -922,11 +922,12 @@ angles.
 \param lon_grid longitude grid
 \param stokes_dim dimension of stokes vector
 \param atmosphere_dim atmospheric dimension
+\param cloudbox_limits Limits of the cloudbox.
 */
 void
-scat_integralCalc(//WS Output:
+scat_fieldCalc(//WS Output:
               Tensor6& scat_field,
-	      Tensor4& pha_mat_part,
+	      Tensor4& pha_mat,
               //WS Input: 
 	      const Tensor6& i_field,
 	      const Tensor5& pha_mat_spt,
@@ -969,20 +970,20 @@ scat_integralCalc(//WS Output:
   if( atmosphere_dim == 1 ){
     
     /*there is a loop only over the pressure index when we calculate
-     the pha_mat_part from pha_mat_spt and pnd_field using the method
-     pha_mat_partCalc.  Note that the
+     the pha_mat from pha_mat_spt and pnd_field using the method
+     pha_matCalc.  Note that the
      lat_index and lon_index are set to zero*/
 
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++) 
       {
-	pha_mat_partCalc(pha_mat_part, pha_mat_spt, pnd_field, 
+	pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
 			 atmosphere_dim, p_index, 0, 
 			                  0);
 			 
       }
     
-    // Get pha_mat_part at the grid positions
+    // Get pha_mat at the grid positions
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
@@ -994,7 +995,7 @@ scat_integralCalc(//WS Output:
 		  {
 		    
 		    // This matrix pha is a 4x4 matrix if stokes_dim = 1
-		    ConstMatrixView pha = pha_mat_part(za_index,
+		    ConstMatrixView pha = pha_mat(za_index,
 						       aa_index,
 						       Range(joker),
 						       Range(joker));
@@ -1029,8 +1030,8 @@ scat_integralCalc(//WS Output:
   if( atmosphere_dim == 3 ){
     
     /*there is a loop only over the pressure index when we calculate
-     the pha_mat_part from pha_mat_spt and pnd_field using the method
-     pha_mat_partCalc.  */
+     the pha_mat from pha_mat_spt and pnd_field using the method
+     pha_matCalc.  */
 
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
@@ -1041,7 +1042,7 @@ scat_integralCalc(//WS Output:
 	    for (Index lon_index = cloudbox_limits[4]; lon_index <= 
 		   cloudbox_limits[5]; lon_index++)
 	      {
-	pha_mat_partCalc(pha_mat_part, pha_mat_spt, pnd_field, 
+	pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
 			 atmosphere_dim, p_index, lat_index, 
 			                  lon_index);
 	      }
@@ -1049,7 +1050,7 @@ scat_integralCalc(//WS Output:
 			 
       }
     
-    // Get pha_mat_part at the grid positions
+    // Get pha_mat at the grid positions
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
@@ -1067,7 +1068,7 @@ scat_integralCalc(//WS Output:
 			//{
 			    
 			    //This matrix pha is a 4x4 matrix if stokes_dim = 1
-			    ConstMatrixView pha = pha_mat_part(za_index,
+			    ConstMatrixView pha = pha_mat(za_index,
 							       aa_index,
 							       Range(joker),
 							       Range(joker));
