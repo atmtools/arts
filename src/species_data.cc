@@ -185,13 +185,18 @@ void define_basic_species_data()
 	 REC( "162"		,0.00031069	,19.	,14	,14	,TAGS(19002) ),
 	 REC( "182"		,6.1070746E-07	,21.	,-1	,-1	,TAGS(21001) ),
 	 REC( "262"		,2.2430204E-08	,20.	,-1	,-1	,TAGS(20001) ),
-	 REC( "ContRosenkranzSelf"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "ContRosenkranzForeign"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "ContStandardSelf"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "ContStandardForeign"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ContMPM93"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ContCKDSelf"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ContCKDForeign"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "MPM93droplet"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "MPM93ice"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
+	 REC( "MPM93ice"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "CP98Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "MPM87Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "MPM89Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "MPM93Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "PWR98Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
 	 ) ) );
 
   // CO2 

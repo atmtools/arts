@@ -101,9 +101,9 @@ void define_wsv_data()
       "names of continuum models. Associated with this WSV is the WSV\n"
       "`cont_description_parameters' which should contain continuum\n"
       "parameters for each model. Allowed models currently are:\n\n"
-      "H2O-ContRosenkranzSelf: Self component of a simple empirical\n"
+      "H2O-ContStandardSelf: Self component of a simple empirical\n"
       "   continuum model a la Liebe/Rosenkranz. Needs two parameters.\n"
-      "H2O-ContRosenkranzForeign: Foreign component of a simple empirical\n"
+      "H2O-ContStandardForeign: Foreign component of a simple empirical\n"
       "   continuum model a la Liebe/Rosenkranz. Needs two parameters.",
       ARRAYofstring_));
 

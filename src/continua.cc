@@ -189,9 +189,9 @@ void Rosenkranz_h2o_foreign_continuum( MATRIX&           xsec,
 //
 // 2b) H2O-air: Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
 //
-Numeric MPM93ContinuumPseudoLineShapeFunction( Numeric gamma, 
-					       Numeric fl, 
-					       Numeric f)
+Numeric MPMLineShapeFunction( Numeric gamma, 
+				Numeric fl, 
+				Numeric f)
 {
   /*
     this routine calculates the line shape function of Van Vleck and Weisskopf
@@ -269,7 +269,7 @@ void MPM93_h2o_continuum( MATRIX&           xsec,
 	{
 	  xsec[s][i] += 0.182 * 0.001 / (10.000*log10(2.718281828))  * 
 	                f_mono[s] * strength * 
-	                MPM93ContinuumPseudoLineShapeFunction(gam, MPM93fopcl, f_mono[s]); 
+	                MPMLineShapeFunction(gam, MPM93fopcl, f_mono[s]); 
 	  //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
 	}
     }
@@ -632,41 +632,584 @@ void MPM93IceCrystalAbs( MATRIX&           xsec,
       // relative humidity [1]
       // Numeric RH = e / es;
   
-      // relative inverse temperature [1]
-      Numeric theta = 300.000 / t_abs[i];
-      // inverse frequency T-dependency function [Hz]
-      Numeric ai = (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
-      // linear frequency T-dependency function [1/Hz]
-      Numeric bi = 0.542e-6 * 
-                   ( -24.17 + (116.79/theta) + pow((theta/(theta-0.9927)),2) );
 
-      // Loop frequency:
-      for ( size_t s=0; s<n_f; ++s )
+
+      // if the temperature is below 0 degree C (273 K) then 
+      // absorption due to ice particles is added:
+      if (t_abs[i] < 273.15)
 	{
-	  // real part of the complex permittivity of ice
-	  Numeric Reepsilon  = 3.15;
-	  // imaginary part of the complex permittivity of water
-	  Numeric Imepsilon  = ( ( ai/(f_mono[s]*1.000e-9) ) +
-				 ( bi*(f_mono[s]*1.000e-9) ) );
-	  // the imaginary part of the complex refractivity of suspended ice particles.
-	  // In MPM93 w is in g/m3 and m is in g/cm3. Because of the units used in arts,
-          // a factor of 1.000e6 must be multiplied with the ratio (w/m):
-          // MPM93: (w/m)_MPM93  in   (g/m3)/(g/cm3)
-          // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
-          // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
-          // the factor of 1.0e6 is included below in the constant 41.90705.
-	  Numeric ImNw = 1.500 * (w/m) * 
- 	                ( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
-	  // ice particle absorption cross section [1/m]
-	  // The vmr of H2O will be multiplied at the stage of absorption 
-	  // calculation: abs = vmr * xsec.
-          // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
-	  xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw / vmr[i];
+	  // relative inverse temperature [1]
+	  Numeric theta = 300.000 / t_abs[i];	
+	  // inverse frequency T-dependency function [Hz]
+	  Numeric ai = (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
+	  // linear frequency T-dependency function [1/Hz]
+	  Numeric bi = 0.542e-6 * 
+	               ( -24.17 + (116.79/theta) + pow((theta/(theta-0.9927)),2) );
+
+	  // Loop frequency:
+	  for ( size_t s=0; s<n_f; ++s )
+	    {
+	      // real part of the complex permittivity of ice
+	      Numeric Reepsilon  = 3.15;
+	      // imaginary part of the complex permittivity of water
+	      Numeric Imepsilon  = ( ( ai/(f_mono[s]*1.000e-9) ) +
+				     ( bi*(f_mono[s]*1.000e-9) ) );
+	      // the imaginary part of the complex refractivity of suspended ice particles.
+	      // In MPM93 w is in g/m3 and m is in g/cm3. Because of the units used in arts,
+	      // a factor of 1.000e6 must be multiplied with the ratio (w/m):
+	      // MPM93: (w/m)_MPM93  in   (g/m3)/(g/cm3)
+	      // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
+	      // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
+	      // the factor of 1.0e6 is included below in the constant 41.90705.
+	      Numeric ImNw = 1.500 * (w/m) * 
+ 	                     ( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
+	      // ice particle absorption cross section [1/m]
+	      // The vmr of H2O will be multiplied at the stage of absorption 
+	      // calculation: abs = vmr * xsec.
+	      // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
+	      xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw / vmr[i];
+	    }
 	}
     }
-
+  return;
 }
 //
+// #################################################################################
+// ####################### additional line absorption models #######################
+// implemented models are: 
+//   1.) MPM87:    H. J. Liebe and D. H. Layton, NITA Report 87-224, 1987
+//   2.) MPM89:    H. J. Liebe, Int. J. Infrared and Mill. Waves, 10(6), 631, 1989
+//   3.) MPM93:    H. J. Liebe and G. A. Hufford and M. G. Cotton,
+//                 AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+//                 Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
+//   4.) Cruz-Pol: S. L. Cruz-Pol et al. Radio Science 33(5), 1319, 1998
+// 
+// #################################################################################
+//
+void MPM87H2OAbsModel( MATRIX&           xsec,
+		       Numeric             CC, // continuum term scale factor
+		       Numeric             CL, // line term scale factor
+		       Numeric             CW, // line broadening scale factor
+		       const VECTOR&   f_mono,
+		       const VECTOR&    p_abs,
+		       const VECTOR&    t_abs,
+		       const VECTOR&      vmr )
+{
+  //
+  // Coefficients are from Liebe, Radio Science, 20(5), 1985, 1069
+  //         0           1        2       3      
+  //         f0          b1       b2      b3     
+  //        [GHz]     [kHz/kPa]   [1]   [GHz/kPa]
+  const Numeric mpm87[30][4] = { 
+    {    22.235080,    0.1090,  2.143,   27.84e-3},
+    {    67.813960,    0.0011,  8.730,   27.60e-3},
+    {   119.995940,    0.0007,  8.347,   27.00e-3},
+    {   183.310074,    2.3000,  0.653,   28.35e-3},
+    {   321.225644,    0.0464,  6.156,   21.40e-3},
+    {   325.152919,    1.5400,  1.515,   27.00e-3},
+    {   336.187000,    0.0010,  9.802,   26.50e-3},
+    {   380.197372,   11.9000,  1.018,   27.60e-3},
+    {   390.134508,    0.0044,  7.318,   19.00e-3},
+    {   437.346667,    0.0637,  5.015,   13.70e-3},
+    {   439.150812,    0.9210,  3.561,   16.40e-3},
+    {   443.018295,    0.1940,  5.015,   14.40e-3},
+    {   448.001075,   10.6000,  1.370,   23.80e-3},
+    {   470.888947,    0.3300,  3.561,   18.20e-3},
+    {   474.689127,    1.2800,  2.342,   19.80e-3},
+    {   488.491133,    0.2530,  2.814,   24.90e-3},
+    {   503.568532,    0.0374,  6.693,   11.50e-3},
+    {   504.482692,    0.0125,  6.693,   11.90e-3},
+    {   556.936002,  510.0000,  0.114,   30.00e-3},
+    {   620.700807,    5.0900,  2.150,   22.30e-3},
+    {   658.006500,    0.2740,  7.767,   30.00e-3},
+    {   752.033227,  250.0000,  0.336,   28.60e-3},
+    {   841.073593,    0.0130,  8.113,   14.10e-3},
+    {   859.865000,    0.1330,  7.989,   28.60e-3},
+    {   899.407000,    0.0550,  7.845,   28.60e-3},
+    {   902.555000,    0.0380,  8.360,   26.40e-3},
+    {   906.205524,    0.1830,  5.039,   23.40e-3},
+    {   916.171582,    8.5600,  1.369,   25.30e-3},
+    {   970.315022,    9.1600,  1.842,   24.00e-3},
+    {   987.926764,  138.0000,  0.178,   28.60e-3}};
+
+  // number of lines of liebe line catalogue (30 lines)
+  const size_t i_first = 0;
+  const size_t i_last  = 29;
+  
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+  // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      // relative inverse temperature [1]
+      Numeric theta = (300.0 / t_abs[i]);
+      // H2O partial pressure [kPa]
+      Numeric pwv   = 0.001 * p_abs[i] * vmr[i];
+      // dry air partial pressure [kPa]
+      Numeric pda   = (0.001 * p_abs[i]) - pwv;
+      // H2O continuum absorption [dB/km/GHz2] like in the original MPM87
+      Numeric absc  = pwv * pow(theta, 3.0) * 1.000e-5 *
+	              ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)) );
+
+      // Loop over input frequency
+      for ( size_t s=0; s<n_f; ++s )
+	{
+	  // input frequency in [GHz]
+	  Numeric ff   = f_mono[s] * 1.00e-9; 
+	  // H2O line contribution at position f
+	  Numeric absl = 0.000;
+
+	  // Loop over MPM89 H2O spectral lines
+	  for ( size_t l = i_first; l <= i_last; ++l )
+	    {
+	      // line strength [kHz]
+	      Numeric strength = CL * mpm87[l][1] * pwv * 
+	                         pow(theta,3.5) * exp(mpm87[l][2]*(1.000-theta));
+	      // line broadening parameter [GHz]
+	      Numeric gam      = CW * mpm87[l][3] * 
+ 		                 ( (4.80 * pwv * pow(theta, 1.1)) + 
+				   (       pda * pow(theta, 0.6)) );
+	      // effective line width with Doppler broadening [GHz]
+	      // gam              = sqrt(gam*gam + (2.14e-12 * mpm87[l][0] * mpm87[l][0] / theta));
+	      // H2O line absorption [dB/km/GHz] like in the original MPM87
+	      absl            += strength * MPMLineShapeFunction(gam, mpm87[l][0], ff); 
+	    }
+	  // xsec = abs/vmr [1/m]
+	  // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820     (1/(10*log(e)) = 0.230259)
+	  xsec[s][i]  += 4.1907e-5 * ff * ( absl + (CC * absc * ff) ) / vmr[i];
+	}
+    }
+  return;
+}
+//
+// #################################################################################
+//
+void MPM89H2OAbsModel( MATRIX&           xsec,
+		       Numeric             CC, // continuum term scale factor
+		       Numeric             CL, // line term scale factor
+		       Numeric             CW, // line broadening scale factor
+		       const VECTOR&   f_mono,
+		       const VECTOR&    p_abs,
+		       const VECTOR&    t_abs,
+		       const VECTOR&      vmr )
+{
+  //
+  // Coefficients are from Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631
+  //         0           1        2       3        4      5      6
+  //         f0          b1       b2      b3       b4     b5     b6
+  //        [GHz]     [kHz/kPa]   [1]   [MHz/kPa]  [1]    [1]    [1]
+  const Numeric mpm89[30][7] = { 
+    {    22.235080,    0.1030,  2.143,   28.11,   0.69,  4.80,  1.00},
+    {    67.813960,    0.0011,  8.735,   28.58,   0.69,  4.93,  0.82},
+    {   119.995940,    0.0007,  8.356,   29.48,   0.70,  4.78,  0.79},
+    {   183.310074,    0.3000,  0.668,   28.13,   0.64,  5.30,  0.85},
+    {   321.225644,    0.0464,  6.181,   23.03,   0.67,  4.69,  0.54},
+    {   325.152919,    1.5400,  1.540,   27.83,   0.68,  4.85,  0.74},
+    {   336.187000,    0.0010,  9.829,   26.93,   0.69,  4.74,  0.61},
+    {   380.197372,   11.9000,  1.048,   28.73,   0.69,  5.38,  0.84},
+    {   390.134508,    0.0044,  7.350,   21.52,   0.63,  4.81,  0.55},
+    {   437.346667,    0.0637,  5.050,   18.45,   0.60,  4.23,  0.48},
+    {   439.150812,    0.9210,  3.596,   21.00,   0.63,  4.29,  0.52},
+    {   443.018295,    0.1940,  5.050,   18.60,   0.60,  4.23,  0.50},
+    {   448.001075,   10.6000,  1.405,   26.32,   0.66,  4.84,  0.67},
+    {   470.888947,    0.3300,  3.599,   21.52,   0.66,  4.57,  0.65},
+    {   474.689127,    1.2800,  2.381,   23.55,   0.65,  4.65,  0.64},
+    {   488.491133,    0.2530,  2.853,   26.02,   0.69,  5.04,  0.72},
+    {   503.568532,    0.0374,  6.733,   16.12,   0.61,  3.98,  0.43},
+    {   504.482692,    0.0125,  6.733,   16.12,   0.61,  4.01,  0.45},
+    {   556.936002,  510.0000,  0.159,   32.10,   0.69,  4.11,  1.00},
+    {   620.700807,    5.0900,  2.200,   24.38,   0.71,  4.68,  0.68},
+    {   658.006500,    0.2740,  7.820,   32.10,   0.69,  4.14,  1.00},
+    {   752.033227,  250.0000,  0.396,   30.60,   0.68,  4.09,  0.84},
+    {   841.073593,    0.0130,  8.180,   15.90,   0.33,  5.76,  0.45},
+    {   859.865000,    0.1330,  7.989,   30.60,   0.68,  4.09,  0.84},
+    {   899.407000,    0.0550,  7.917,   29.85,   0.68,  4.53,  0.90},
+    {   902.555000,    0.0380,  8.432,   28.65,   0.70,  5.10,  0.95},
+    {   906.205524,    0.1830,  5.111,   24.08,   0.70,  4.70,  0.53},
+    {   916.171582,    8.5600,  1.442,   26.70,   0.70,  4.78,  0.78},
+    {   970.315022,    9.1600,  1.920,   25.50,   0.64,  4.94,  0.67},
+    {   987.926764,  138.0000,  0.258,   29.85,   0.68,  4.55,  0.90}};
+
+  // number of lines of liebe line catalogue (30 lines)
+  const size_t i_first = 0;
+  const size_t i_last  = 29;
+  
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+  
+  // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      // relative inverse temperature [1]
+      Numeric theta = (300.0 / t_abs[i]);
+      // H2O partial pressure [kPa]
+      Numeric pwv   = 0.001 * p_abs[i] * vmr[i];
+      // dry air partial pressure [kPa]
+      Numeric pda   = (0.001 * p_abs[i]) - pwv;
+      // H2O continuum absorption [dB/km/GHz2] like in the original MPM89
+      Numeric absc  = pwv * pow(theta, 3.0) * 1.000e-5 *
+		      ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)) );
+
+      // Loop over input frequency
+      for ( size_t s=0; s<n_f; ++s )
+	{
+	  // input frequency in [GHz]
+	  Numeric ff   = f_mono[s] * 1.00e-9; 
+	  // H2O line contribution at position f 
+	  Numeric absl = 0.000;
+
+	  // Loop over MPM89 spectral lines:
+	  for ( size_t l = i_first; l <= i_last; ++l )
+	    {
+	      // line strength [kHz]
+	      Numeric strength = CL * mpm89[l][1] * pwv * 
+		                 pow(theta, 3.5) * exp(mpm89[l][2]*(1.000-theta));
+	      // line broadening parameter [GHz]
+	      Numeric gam      = CW * mpm89[l][3] * 0.001 * 
+	                         ( mpm89[l][5] * pwv * pow(theta, mpm89[l][6]) +  
+	                                         pda * pow(theta, mpm89[l][4]) );
+	      // Doppler line width [GHz]
+	      Numeric gamd     = 1.46e-6 * mpm89[l][0] / sqrt(theta);
+	      // effective line width [GHz]
+	      // gam              = 0.535 * gam + sqrt(0.217*gam*gam + gamd*gamd);  
+	      // H2O line absorption [dB/km/GHz] like in the original MPM89
+	      absl            += strength * MPMLineShapeFunction(gam, mpm89[l][0], ff); 
+	    }
+	  // xsec = abs/vmr [1/m]
+	  // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820    (1/(10*log(e)) = 0.230259)
+	  xsec[s][i]   += 4.1907e-5 * ff * ( absl + (CC * absc * ff) ) / vmr[i];
+	}
+    }
+  return;
+}
+//
+// #################################################################################
+//
+void MPM93H2OAbsModel( MATRIX&           xsec,
+		       Numeric             CC, // continuum term scale factor
+		       Numeric             CL, // line term scale factor
+		       Numeric             CW, // line broadening scale factor
+		       const VECTOR&   f_mono,
+		       const VECTOR&    p_abs,
+		       const VECTOR&    t_abs,
+		       const VECTOR&      vmr )
+{
+  //
+  // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
+  //         0           1        2       3        4      5      6
+  //         f0          b1       b2      b3       b4     b5     b6
+  //        [GHz]     [kHz/hPa]   [1]   [MHz/hPa]  [1]    [1]    [1]
+  const Numeric mpm93[35][7] = { 
+    {    22.235080,    0.01130,  2.143,   2.811,   4.80,  0.69,  1.00},
+    {    67.803960,    0.00012,  8.735,   2.858,   4.93,  0.69,  0.82},
+    {   119.995940,    0.00008,  8.356,   2.948,   4.78,  0.70,  0.79},
+    {   183.310091,    0.24200,  0.668,   3.050,   5.30,  0.64,  0.85},
+    {   321.225644,    0.00483,  6.181,   2.303,   4.69,  0.67,  0.54},
+    {   325.152919,    0.14990,  1.540,   2.783,   4.85,  0.68,  0.74},
+    {   336.222601,    0.00011,  9.829,   2.693,   4.74,  0.69,  0.61},
+    {   380.197372,    1.15200,  1.048,   2.873,   5.38,  0.54,  0.89},
+    {   390.134508,    0.00046,  7.350,   2.152,   4.81,  0.63,  0.55},
+    {   437.346667,    0.00650,  5.050,   1.845,   4.23,  0.60,  0.48},
+    {   439.150812,    0.09218,  3.596,   2.100,   4.29,  0.63,  0.52},
+    {   443.018295,    0.01976,  5.050,   1.860,   4.23,  0.60,  0.50},
+    {   448.001075,    1.03200,  1.405,   2.632,   4.84,  0.66,  0.67},
+    {   470.888947,    0.03297,  3.599,   2.152,   4.57,  0.66,  0.65},
+    {   474.689127,    0.12620,  2.381,   2.355,   4.65,  0.65,  0.64},
+    {   488.491133,    0.02520,  2.853,   2.602,   5.04,  0.69,  0.72},
+    {   503.568532,    0.00390,  6.733,   1.612,   3.98,  0.61,  0.43},
+    {   504.482692,    0.00130,  6.733,   1.612,   4.01,  0.61,  0.45},
+    {   547.676440,    0.97010,  0.114,   2.600,   4.50,  0.70,  1.00},
+    {   552.020960,    1.47700,  0.114,   2.600,   4.50,  0.70,  1.00},
+    {   556.936002,   48.74000,  0.159,   3.210,   4.11,  0.69,  1.00},
+    {   620.700807,    0.50120,  2.200,   2.438,   4.68,  0.71,  0.68},
+    {   645.866155,    0.00713,  8.580,   1.800,   4.00,  0.60,  0.50},
+    {   658.005280,    0.03022,  7.820,   3.210,   4.14,  0.69,  1.00},
+    {   752.033227,   23.96000,  0.396,   3.060,   4.09,  0.68,  0.84},
+    {   841.053973,    0.00140,  8.180,   1.590,   5.76,  0.33,  0.45},
+    {   859.962313,    0.01472,  7.989,   3.060,   4.09,  0.68,  0.84},
+    {   899.306675,    0.00605,  7.917,   2.985,   4.53,  0.68,  0.90},
+    {   902.616173,    0.00426,  8.432,   2.865,   5.10,  0.70,  0.95},
+    {   906.207325,    0.01876,  5.111,   2.408,   4.70,  0.70,  0.53},
+    {   916.171582,    0.83400,  1.442,   2.670,   4.78,  0.70,  0.78},
+    {   923.118427,    0.00869, 10.220,   2.900,   5.00,  0.70,  0.80},
+    {   970.315022,    0.89720,  1.920,   2.550,   4.94,  0.64,  0.67},
+    {   987.926764,   13.21000,  0.258,   2.985,   4.55,  0.68,  0.90},
+    {  1780.000000, 2230.00000,  0.952,  17.620,  30.50,  2.00,  5.00}};
+
+  
+  // number of lines of liebe line catalogue (0-33 lines, 34 cont. pseudo line)
+  const size_t i_first = 0;
+  const size_t i_last  = 34;
+  
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+  // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      // relative inverse temperature [1]
+      Numeric theta    = (300.0 / t_abs[i]);
+      // H2O partial pressure [hPa]
+      Numeric pwv      = 0.01 * p_abs[i] * vmr[i];
+      // dry air partial pressure [hPa]
+      Numeric pda      = (0.01 * p_abs[i]) - pwv;
+      // Loop over MPM93 spectral lines:
+
+      for ( size_t l = i_first; l <= i_last; ++l )
+	{
+	  // line strength [ppm]. The missing vmr of H2O will be multiplied 
+	  // at the stage of absorption calculation: abs / vmr * xsec.
+	  Numeric strength = CL * mpm93[l][1] * pwv * 
+	                     pow(theta,3.5) * exp(mpm93[l][2]*(1.0-theta));
+	  // line broadening parameter [GHz]
+	  Numeric gam      = CW * mpm93[l][3] * 0.001 * 
+	                     ( (mpm93[l][4] * pwv * pow(theta, mpm93[l][6])) +  
+	                       (              pda * pow(theta, mpm93[l][5])) );
+	  // Doppler line width [GHz]
+	  Numeric gamd     = 1.46e-6 * mpm93[l][0] / sqrt(theta);
+	  // effective line width [GHz]
+	  //gam              = 0.535 * gam + sqrt(0.217*gam*gam + gamd*gamd);  
+
+	  // Loop over input frequency
+	  for ( size_t s=0; s<n_f; ++s )
+	    {
+	      // input frequency in [GHz]
+	      Numeric ff = f_mono[s] * 1.00e-9; 
+	      // absorption [dB/km] like in the original MPM93
+	      Numeric abs = strength * MPMLineShapeFunction(gam, mpm93[l][0], ff); 
+	      if (l == 34)
+		{
+		  // H2O pseudo continuum line
+		  // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820    (1/(10*log(e)) = 0.230259)
+		  // xsec = abs/vmr [1/m]
+		  xsec[s][i]   += 4.1907e-5 * CC * ff * abs / vmr[i];
+		} else 
+		  {
+		    // H2O spectral line
+		    // xsec = abs/vmr [1/m]
+		    xsec[s][i]   += 4.1907e-5 * ff * abs / vmr[i];
+		  }
+	    }
+	}
+    }
+  return;
+}
+//
+// #################################################################################
+//
+void CP98H2OAbsModel( MATRIX&           xsec,
+		      Numeric             CC, // continuum scale factor
+		      Numeric             CL, // line strength scale factor
+		      Numeric             CW, // line broadening scale factor
+		      const VECTOR&   f_mono,
+		      const VECTOR&    p_abs,
+		      const VECTOR&    t_abs,
+		      const VECTOR&      vmr )
+{
+  //
+  // Coefficients are from S. L. Cruz-Pol et al., Radio Science, 33(5), 1319, 1998
+  // nominal values for the scale factors:
+  //  CC = 1.2369 +/- 0.155
+  //  CL = 1.0639 +/- 0.016
+  //  CW = 1.0658 +/- 0.0096
+
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+  // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      // relative inverse temperature [1]
+      Numeric theta = (300.0 / t_abs[i]);
+      // H2O partial pressure [hPa]
+      Numeric pwv   = 0.01 * p_abs[i] * vmr[i];
+      // dry air partial pressure [hPa]
+      Numeric pda   = (0.01 * p_abs[i]) - pwv;
+      // line strength
+      Numeric TL    = CL * 0.0109 * pwv * pow(theta,3.5) * exp(2.143*(1.0-theta));
+      // line broadening parameter [GHz]
+      Numeric gam   = CW * 0.002784 *  
+	            ( (pda * pow(theta,0.6)) + (4.80 * pwv * pow(theta,1.1)) );
+      // continuum term
+      Numeric TC    = CC * pwv * pow(theta, 3.0) * 1.000e-7 * 
+                      ( (0.113 * pda) + (3.57 * pwv * pow(theta,7.5)) );
+      // Loop over input frequency
+      for ( size_t s=0; s<n_f; ++s )
+	{
+	  // input frequency in [GHz]
+	  Numeric ff  = f_mono[s] * 1.00e-9; 
+	  Numeric TSf = MPMLineShapeFunction(gam, 22.235080, ff); 
+	  // xsec = abs/vmr [1/m] (Cruz-Pol model in [Np/km])
+	  xsec[s][i] += 4.1907e-5 * ff * ( (TL * TSf) + (ff * TC) ) / vmr[i];
+	}
+    }
+  return;
+}
+//
+// #################################################################################
+//
+void PWR98H2OAbsModel( MATRIX&           xsec,
+		       Numeric             CC, // continuum term scale factor
+		       Numeric             CL, // line term scale factor
+		       Numeric             CW, // line broadening scale factor
+		       const VECTOR&   f_mono,
+		       const VECTOR&    p_abs,
+		       const VECTOR&    t_abs,
+		       const VECTOR&      vmr )
+{
+  //   REFERENCES:
+  //   LINE INTENSITIES FROM HITRAN92 (SELECTION THRESHOLD=
+  //     HALF OF CONTINUUM ABSORPTION AT 1000 MB).
+  //   WIDTHS MEASURED AT 22,183,380 GHZ, OTHERS CALCULATED:
+  //     H.J.LIEBE AND T.A.DILLON, J.CHEM.PHYS. V.50, PP.727-732 (1969) &
+  //     H.J.LIEBE ET AL., JQSRT V.9, PP. 31-47 (1969)  (22GHz);
+  //     A.BAUER ET AL., JQSRT V.37, PP.531-539 (1987) & 
+  //     ASA WORKSHOP (SEPT. 1989) (380GHz);
+  //     AND A.BAUER ET AL., JQSRT V.41, PP.49-54 (1989) (OTHER LINES).
+  //   AIR-BROADENED CONTINUUM BASED ON LIEBE & LAYTON, NTIA 
+  //     REPORT 87-224 (1987); SELF-BROADENED CONTINUUM BASED ON 
+  //     LIEBE ET AL, AGARD CONF. PROC. 542 (MAY 1993), 
+  //     BUT READJUSTED FOR LINE SHAPE OF
+  //     CLOUGH et al, ATMOS. RESEARCH V.23, PP.229-241 (1989).
+  //
+  // Coefficients are from P. W. Rosenkranz., Radio Science, 33(4), 919, 1998
+  // line frequencies [GHz]
+  const Numeric PWRfl[15] = {  22.2351, 183.3101, 321.2256, 325.1529, 380.1974, 
+                              439.1508, 443.0183, 448.0011, 470.889,  474.6891, 
+                              488.4911, 556.936,  620.7008, 752.0332, 916.1712 };
+  // line intensities at 300K
+  const Numeric PWRs1[15] = { 1.31e-14,  2.273e-12, 8.036e-14, 2.694e-12, 2.438e-11, 
+                              2.179e-12, 4.624e-13, 2.562e-11, 8.369e-13, 3.263e-12, 
+                              6.659e-13, 1.531e-9,  1.707e-11, 1.011e-9,  4.227e-11 };
+  // T coeff. of intensities
+  const Numeric PWRb2[15] = { 2.144, 0.668, 6.179, 1.541, 1.048, 
+                              3.595, 5.048, 1.405, 3.597, 2.379,
+                              2.852, 0.159, 2.391, 0.396, 1.441 };
+  // air-broadened width parameters at 300K [GHz/hPa]
+  const Numeric PWRw3[15] = { 0.00281, 0.00281, 0.00230, 0.00278, 0.00287,
+                              0.00210, 0.00186, 0.00263, 0.00215, 0.00236,
+                              0.00260, 0.00321, 0.00244, 0.00306, 0.00267 };
+  // T-exponent of air-broadening [1]
+  const Numeric PWRx[15]  = { 0.69, 0.64, 0.67, 0.68, 0.54,
+                              0.63, 0.60, 0.66, 0.66, 0.65,
+	        	      0.69, 0.69, 0.71, 0.68, 0.70 };
+  // self-broadened width parameters at 300K [GHz/hPa]
+  const Numeric PWRws[15] = { 0.01349, 0.01491, 0.01080, 0.01350, 0.01541,
+                              0.00900, 0.00788, 0.01275, 0.00983, 0.01095,
+                              0.01313, 0.01320, 0.01140, 0.01253, 0.01275 };
+  // T-exponent of self-broadening [1]
+  const Numeric PWRxs[15] = { 0.61, 0.85, 0.54, 0.74, 0.89,
+			      0.52, 0.50, 0.67, 0.65, 0.64,
+			      0.72, 1.00, 0.68, 0.84, 0.78 };
+
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+  // Loop pressure/temperature:
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      // water vapor partial pressure [hPa]
+      Numeric pvap = 0.01 * p_abs[i] * vmr[i];
+      // dry air partial pressure [hPa]
+      Numeric pda  = (0.01 *p_abs[i]) - pvap;
+      // Rosenkranz number density  (Rosenkranz H2O mass density in [g/m3])
+      // [g/m3]    =  [g*K / Pa*m3]  *  [Pa/K]
+      // rho       =   (M_H2O / R)   *  (P_H2O / T)
+      // rho       =      2.1667     *  p_abs * vmr / t_abs
+      // den       = 3.335e16 * rho
+      Numeric den  = 3.335e16 * (2.1667 * p_abs[i] * vmr[i] / t_abs[i]);
+      // inverse relative temperature [1]
+      Numeric ti   = (300.0 / t_abs[i]);
+      Numeric ti2  = pow(ti, 2.5);
+
+      // continuum term [Np/km/GHz2]
+      Numeric con = pvap * pow(ti, 3.0) * 1.000e-9 * 
+	            ( (0.543 * pda) + (17.96 * pvap * pow(ti, 4.5)) );
+
+      // Loop over input frequency
+      for ( size_t s=0; s<n_f; ++s )
+	{
+	  // input frequency in [GHz]
+	  Numeric ff  = f_mono[s] * 1.00e-9;
+	  // line contribution at position f
+	  Numeric sum = 0.000;
+
+	  // Loop over spectral lines
+	  for (size_t l = 0; l < 15; l++) 
+	    {
+	      Numeric width    = CW * ( PWRw3[l] * pda  * pow(ti, PWRx[l]) + 
+		                        PWRws[l] * pvap * pow(ti, PWRxs[l]) );
+	      Numeric wsq      = width * width;
+	      Numeric strength = CL * PWRs1[l] * ti2 * exp(PWRb2[l]*(1.0 - ti));
+	      // frequency differences
+	      Numeric df0      = ff - PWRfl[l];
+	      Numeric df1      = ff + PWRfl[l];
+	      // use Clough's definition of local line contribution
+	      Numeric base     = width / (wsq + 562500.000);
+	      // positive and negative resonances
+	      Numeric res      = 0.000;
+	      if (fabs(df0) < 750.0) res += width / (df0*df0 + wsq) - base;
+	      if (fabs(df1) < 750.0) res += width / (df1*df1 + wsq) - base;
+	      sum             += strength * res * pow( (ff/PWRfl[l]), 2.0 );
+	    }
+	  // line term [Np/km]
+	  Numeric absl = 0.3183e-4 * den * sum;
+	  // xsec = abs/vmr [1/m] (Rosenkranz model in [Np/km])
+	  // 4.1907e-5 = 0.230259 * 0.1820 * 1.0e-3    (1/(10*log(e)) = 0.230259)
+	  xsec[s][i]  += 1.000e-3 * ( absl + (CC * con * ff * ff) ) / vmr[i];
+	}
+    }
+  return;
+}
+//
+// #################################################################################
+// #################### CONTROL OF ADDITIONAL ABSORPTION MODEL #####################
 // #################################################################################
 //
 /** Calculates continuum absorption for one continuum tag. Note, that
@@ -713,7 +1256,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
   // chain of if-else statements.
   //
   // ============= H2O continuum ================================================
-  if ( "H2O-ContRosenkranzSelf"==name )
+  if ( "H2O-ContStandardSelf"==name )
     {
       // Check if the right number of paramters has been specified:
       if ( 2 != parameters.size() )
@@ -749,7 +1292,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 				     t_abs,
 				     vmr );
     }
-  else if ( "H2O-ContRosenkranzForeign"==name ) // ------------------------------
+  else if ( "H2O-ContStandardForeign"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
       if ( 2 != parameters.size() )
@@ -856,6 +1399,201 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	  throw runtime_error(os.str());
 	  return;
 
+    }
+  else if ( "H2O-CP98Model"==name ) // ------------------------------
+    {
+      // Check if the right number of paramters has been specified:
+      if ( 3 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "Cruz-Pol absorption model " << name << " requires three input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      // specific continuum parameters:
+      // parameters[0] : continuum scale factor       CC (default = 1.2369 +/- 0.155)
+      // parameters[1] : line strength scale factor   CL (default = 1.0639 +/- 0.016)
+      // parameters[2] : line broadening scale factor CW (default = 1.0658 +/- 0.0096)
+      //
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [1]
+      //     parameters[1] : [1]
+      //     parameters[2] : [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     vmr           : [1]
+      //
+      CP98H2OAbsModel( xsec,
+		       parameters[0],
+		       parameters[1],
+		       parameters[2],
+		       f_mono,
+		       p_abs,
+		       t_abs,
+		       vmr );
+    }
+  else if ( "H2O-MPM87Model"==name ) // ------------------------------
+    {
+      // Check if the right number of paramters has been specified:
+      if ( 3 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "MPM87 absorption model " << name << " requires three input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      // specific continuum parameters:
+      // parameters[0] : continuum scale factor       CC (default = 1.000)
+      // parameters[1] : line strength scale factor   CL (default = 1.000)
+      // parameters[2] : line broadening scale factor CW (default = 1.000)
+      //
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [1]
+      //     parameters[1] : [1]
+      //     parameters[2] : [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     vmr           : [1]
+      //
+      MPM87H2OAbsModel( xsec,
+			parameters[0],
+			parameters[1],
+			parameters[2],
+			f_mono,
+			p_abs,
+			t_abs,
+			vmr );
+    }
+  else if ( "H2O-MPM89Model"==name ) // ------------------------------
+    {
+      // Check if the right number of paramters has been specified:
+      if ( 3 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "MPM89 absorption model " << name << " requires three input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      // specific continuum parameters:
+      // parameters[0] : continuum scale factor       CC (default = 1.000)
+      // parameters[1] : line strength scale factor   CL (default = 1.000)
+      // parameters[2] : line broadening scale factor CW (default = 1.000)
+      //
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [1]
+      //     parameters[1] : [1]
+      //     parameters[2] : [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     vmr           : [1]
+      //
+      MPM89H2OAbsModel( xsec,
+			parameters[0],
+			parameters[1],
+			parameters[2],
+			f_mono,
+			p_abs,
+			t_abs,
+			vmr );
+    }
+  else if ( "H2O-MPM93Model"==name ) // ------------------------------
+    {
+      // Check if the right number of paramters has been specified:
+      if ( 3 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "MPM93 absorption model " << name << " requires three input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      // specific continuum parameters:
+      // parameters[0] : continuum scale factor       CC (default = 1.000)
+      // parameters[1] : line strength scale factor   CL (default = 1.000)
+      // parameters[2] : line broadening scale factor CW (default = 1.000)
+      //
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [1]
+      //     parameters[1] : [1]
+      //     parameters[2] : [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     vmr           : [1]
+      //
+      MPM93H2OAbsModel( xsec,
+			parameters[0],
+			parameters[1],
+			parameters[2],
+			f_mono,
+			p_abs,
+			t_abs,
+			vmr );
+    }
+  else if ( "H2O-PWR98Model"==name ) // ------------------------------
+    {
+      // Check if the right number of paramters has been specified:
+      if ( 3 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "Rosenkranz98 absorption model " << name << " requires three input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      // specific continuum parameters:
+      // parameters[0] : continuum scale factor       CC (default = 1.000)
+      // parameters[1] : line strength scale factor   CL (default = 1.000)
+      // parameters[2] : line broadening scale factor CW (default = 1.000)
+      //
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [1]
+      //     parameters[1] : [1]
+      //     parameters[2] : [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     vmr           : [1]
+      //
+      PWR98H2OAbsModel( xsec,
+			parameters[0],
+			parameters[1],
+			parameters[2],
+			f_mono,
+			p_abs,
+			t_abs,
+			vmr );
     }
   // ============= O2 continuum =================================================
   else if ( "O2-ContRosenkranz"==name )
@@ -1164,8 +1902,8 @@ void xsec_continuum_tag( MATRIX&                    xsec,
    really represent a valid continuum model.
 
    The given name should be something like
-   `H2O-ContRosenkranzSelf'. The function simply checks if there is a
-   species H2O with an isotope ContRosenkranzSelf.
+   `ContStandardSelf'. The function simply checks if there is a
+   species H2O with an isotope ContStandardSelf.
 
    For user-friendliness, the function also compiles a list of allowed
    continuum models and gives this as an error message if the model is
@@ -1206,7 +1944,7 @@ void check_continuum_model(const string& name)
 	  string isonam = j->Name();
 
 	  // The specified name consists of a species part and an
-	  // isotope part, e.g., H2O-ContRosenkranzSelf. We need to
+	  // isotope part, e.g., H2O-ContStandardSelf. We need to
 	  // construct a similar string from the species lookup data
 	  // by concatenating species name and isotope name.
 

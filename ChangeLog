@@ -1,3 +1,12 @@
+2001-04-27  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-0-0-161
+
+	* add additional H2O absorption models: 
+	MPM85/87, MPM89, MPM93, Cruz-Pol98, and Rosenkranz98
+	added. Preliminary stored in continua.cc, but this will be
+	changed in future.
+
 2001-04-25  Oliver Lemke  <oliver@uni-bremen.de>
 
 	* arts-0-0-160
