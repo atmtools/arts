@@ -55,7 +55,8 @@ int main()
       ofs << "#ifndef auto_wsv_groups_h\n"
 	  << "#define auto_wsv_groups_h\n\n";
 
-      ofs << "#include \"ppath.h\"\n"
+      ofs << "#include <iostream>\n"
+          << "#include \"ppath.h\"\n"
 	  << "#include \"absorption.h\"\n\n";
       
       ofs << "// Declare existence of class Agenda. We cannot include agenda.h here,\n"
