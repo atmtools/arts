@@ -1,3 +1,13 @@
+2003-12-09  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-756
+
+	* doc/uguide/sensor.tex: More text about the sensor modelling. Thinking
+	about introducing the name 'forward matrix' for the sensor response
+	matrix.
+
+	* doc/uguide/main.tex: Included sensor section in contribution list.
+ 
 2003-12-09  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-755
