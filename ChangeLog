@@ -1,9 +1,30 @@
+2001-09-27  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-0-0-242
+	
+	* TODO: Added a new TODO.
+
+	* src/methods.cc (define_md_data):  Changed the online
+	documentation of the following methods:
+	- linesWriteAscii
+	- lines_per_tgWriteAscii
+	- lines_per_tgReadFromCatalogues
+	- linesReadFromHitran
+	- linesReadFromMytran2
+	- linesReadFromJpl
+	- linesReadFromArts
+	- linesElowToJoule
+	- lines_per_tgCreateFromLines
+	- lines_per_tgAddMirrorLines
+	- lines_per_tgCompact
+	
+
 2001-09-27  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-0-0-241
 	
 	* src/methods.cc (define_md_data): Changed the online
-	documentation of the following methods
+	documentation of the following methods:
 	- raw_vmrsReadFromFiles
 	- raw_vmrsReadFromScenario
 	- AtmFromRaw
