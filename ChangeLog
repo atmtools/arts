@@ -1,25 +1,84 @@
+2003-07-31  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-627
+
+	* src/methods.cc, src/m_general.cc: Added dummy Print method for
+	group Timer.
+	Added methods timerStart and timerStop.
+
+	* src/m_general.h: Added dummy Print method for group Timer.
+	Fixed filename in doxygen header.
+
+	* src/workspace.cc: Added WSV timer.
+
+	* src/groups.cc: Added group Timer.
+
+	* src/make_auto_wsv_groups_h.cc: Include m_general.h in
+	auto_wsv_groups.h.
+
+	* src/make_auto_wsv_h.cc: Include m_general.h in auto_wsv.h.
+
+	* src/Makefile.am: make_auto_wsv_h and make_auto_wsv_group_h must
+	depend on m_general.h.
+
+	* src/xml_io_basic_types.{h,cc}, src/xml_io_instantiation.h: Added
+	dummy read/write functions for group Timer.
+
+	* doc/doxygen/html/Makefile.am: Added graph_legend.dot and
+	formula.repository to MAINTAINERCLEANFILES.
+
+	* doc/doxygen/Makefile.am: Use CLEANFILES instead of target clean.
+	Otherwise 'doxyfied' is not removed with make maintainer-clean.
+	Readded latex to subdirs.
+
+	* doc/doxygen/latex/.cvsignore: Added refman.out.
+
+	* doc/doxygen/latex/Makefile.am: Define empty 'all' target as we don't
+	won't to build ps/dvi by default but the user should be able to do so
+	if she likes.
+	Undef EXTRA_DIST.
+
+	* doc/doxygen/Doxyfile.in: Disabled creation of man pages and rtf. If
+	we want to support this, we should also create man and rtf directories
+	with appropriate Makefiles in the repository.
+
+        * configure.in: Readded doc/doxygen/latex/Makefile to AC_OUTPUT. We
+	don't build latex doxygen documentation by default, but it should be
+	possible to do it manually. For this case we need the Makefile.
+
+	* src/gas_abs_lookup.cc: Put empty doxygen header in front of output
+	operator to prevent doxygen confusion.
+
+	* doc/doc++/{.,html,tex}/.cvsignore: Removed to make directories empty
+	and pruned on checkout/update.
+
+	* ChangeLog: Wrapped paragraphs with lines > 80 chars. Cory, your
+	emacs sucks ;-)
+
 2003-07-30  Cory Davis <cory@met.ed.ac.uk>
 
 	* arts-1-1-626
 
-	* src/methods.cc, src/m_montecarlo.cc (ScatteringMonteCarlo): Added control
-	parameter los_sampling_method.
+	* src/methods.cc, src/m_montecarlo.cc (ScatteringMonteCarlo): Added
+	control parameter los_sampling_method.
 
-	* src/montecarlo.cc, src/montecarlo.h (Sample_los): added a new probability
-	density function from which to sample the line of sight, there are now 2
-	g = 0.5sin(1-cos), and g = 0.5sin.  The new argument los_sampling_method
-	chooses between the two.
+	* src/montecarlo.cc, src/montecarlo.h (Sample_los): added a new
+	probability density function from which to sample the line of sight,
+	there are now 2 g = 0.5sin(1-cos), and g = 0.5sin.  The new argument
+	los_sampling_method chooses between the two.
 
 2003-07-30  Cory Davis <cory@met.ed.ac.uk>
 
 	* arts-1-1-625
 
-	* src/methods.cc, src/m_montecarlo.cc (ScatteringMonteCarlo): Added control 
-	parameters record_histdata and histdata_filename. These enable the output
-	of each 'photon' contribution, which can then be analysed in MATLAB to 
-	investigate error reduction.  Fixed bug in line of sight sampling.
+	* src/methods.cc, src/m_montecarlo.cc (ScatteringMonteCarlo): Added
+	control parameters record_histdata and histdata_filename. These enable
+	the output of each 'photon' contribution, which can then be analysed
+	in MATLAB to investigate error reduction.
+	Fixed bug in line of sight sampling.
 
-	* src/montecarlo.cc, src/montecarlo.cc (Sample_los): Tidied Sample_los function.
+	* src/montecarlo.cc, src/montecarlo.cc (Sample_los): Tidied Sample_los
+	function.
 
 2003-07-29  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
@@ -50,11 +109,12 @@
 	
 	* arts-1-1-621
 
-	* src/methods.cc: added control parameter "silent" to ScatteringMonteCarlo WSM.
+	* src/methods.cc: added control parameter "silent" to
+	ScatteringMonteCarlo WSM.
 	This disables/enables iterative output.
 
-	* src/m_montecarlo.cc (ScatteringMonteCarlo): added "silent control parameter" and
-	added code to output estimated execution time.
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): added "silent control
+	parameter" and added code to output estimated execution time.
 
 2003-07-28  Oliver Lemke  <olemke@uni-bremen.de>
 
@@ -71,13 +131,13 @@
 	1. Introduced a cut off value for Q[0,0] below which higher scattering
 	orders are neglected.
 	2. There were problems with inconsistency of the returned exit radiance
-	and the estimated error.  It seemed like a problem with rounding or type 
-	conversion.  The problem seems to have gone away by including the following
-	explicit cast (L631)
+	and the estimated error.  It seemed like a problem with rounding or
+	type conversion.  The problem seems to have gone away by including the
+	following explicit cast (L631)
 	I/=(Numeric) maxiter;  //For some reason this cast seems to help?
-	I is a Vector (the exit stokes vector) and maxiter is an Index. I don't really
-	know why this helps - I would have thought the type conversion worked 
-	automatically. Any ideas?
+	I is a Vector (the exit stokes vector) and maxiter is an Index.
+	I don't really know why this helps - I would have thought the type
+	conversion worked automatically. Any ideas?
 
 2003-07-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
@@ -145,7 +205,6 @@
 	* src/agendas.cc: Added missing _ after scalar_gas_absorption_agenda
 	in rte_agenda.
 
->>>>>>> 1.999
 2003-07-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-614
@@ -487,8 +546,8 @@
 	* src/m_cloudbox.cc (CloudboxGetIncoming) Fixed bug that gave spurious 
 	assertion failure when checking that the current grid position is on
 	the cloudbox boundary.  Made function compatible with the small version
-	of scat_i_p, scat_i_lat, scat_i_lon. (This means some work will be needed
-	on Scat_iPut for the 3D case!)
+	of scat_i_p, scat_i_lat, scat_i_lon. (This means some work will be
+	needed on Scat_iPut for the 3D case!)
 
 	* src/methods.cc added WSM scat_iPutMonteCarlo.
 
