@@ -1,5 +1,15 @@
 2002-12-18  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-342
+
+	* src/xml_io.cc: Added GasAbsLookup.gal.nonlinear_species to reading
+	and writing routine for GasAbsLookup table.
+
+	* src/Makefile.am: Added partition_function_data.cc to
+	test_xml_SOURCES.
+
+2002-12-18  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-341
 
 	* src/xml_io.cc: Implemented reading/writing of SpeciesTag.
