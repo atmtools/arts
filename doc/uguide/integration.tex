@@ -4,6 +4,7 @@
 
 \starthistory
   220802 & Created and written by Sreerekha T.R.\\
+  220103 & Included mathematical description for implemented integration method(CE).\\
 \stophistory
 
 %
@@ -84,7 +85,48 @@ our case, if the radiation is symmetric about the azimuth, the
 integration in that direction returns constant value of $2 \pi$ and we
 need to do only integration over zenith directions.  
 
-The function takes in as input the integrand and the angles over which
+The general form of a solid angle integration is
+\begin{equation}
+  \label{eq:solid_int}
+S = \int_{4\pi} f(\omega) \DiffD\omega
+\end{equation}
+In spherical coordinates we can write:
+\begin{equation}
+  \label{eq:sol_int_sph}
+ S = \int_0^\pi \int_0^{2\pi} f(\theta,\phi) \sin\theta \quad\DiffD\theta\DiffD\phi
+\end{equation}
+A double integration can be splitted into two single integrations:
+\begin{eqnarray}
+ S &=& \int_0^\pi \left(\int_0^{2\pi}  f(\theta,\phi) \sin\theta \DiffD\phi \right) \DiffD\theta \\
+ &=& \int_0^\pi g(\theta) \DiffD\theta
+\end{eqnarray}
+If we have to integrate a vector, we can apply this method componentwise.
+
+To solve the integral numerically we discretize $\theta$ and $\phi$ and obtain two angular grids ( $[\theta_0, \theta_1, \cdots, \theta_n]$  and $[\phi_0, \phi_1, \cdots, \phi_m]$). 
+Then we can first calculate $g(\theta_j)$ for all $\theta_j$ unsing the trapezoidal method.
+\begin{equation}
+  g(\theta_j) = \sum_{i=1}^m \sin\theta_j \frac{f(\theta_j, \phi_i) + f(\theta_j, \phi_{i+1})}{2} \cdot (\phi_{i+1} - \phi_i)  
+\end{equation}
+The final step is to sum up all $g(\theta_j)$, again applying the trapezoidal method.
+\begin{equation}
+  S = \sum_{j=1}^n \frac{g(\theta_j) + g(\theta_{j+1})}{2} \cdot  (\theta_{j+1} - \theta_j)  
+\end{equation}
+
+If the radiation is symmetric about the azimuth we just calculate:
+\begin{equation}
+  S_{sym} = 2\pi \int_0^{\pi} f(\theta) \sin(\theta) \DiffD \theta 
+\end{equation}
+Unsing the trapezoidal method this can be written as:
+\begin{equation}
+  S_{sym} =  2\pi \sum_{j=1}^n \frac{h(\theta_j) + h(\theta_{j+1})}{2} \cdot  (\theta_{j+1} - \theta_j)  
+\end{equation}
+where $h(\theta) = \sin\theta\cdot f(\theta)$.
+ 
+\vspace{2ex}
+
+
+
+The function  \artsstyle{AngIntegrate\_trapezoid} takes as input the integrand and the angles over which
 the integration has to be done. For example in this case it can be the
 zenith and azimuth angle
 grid.
