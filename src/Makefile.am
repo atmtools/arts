@@ -42,8 +42,14 @@ arts_SOURCES = \
 	iotraits.h \
 	lineshapes.cc \
 	m_abs.cc \
+	m_agenda.cc \
+	m_basic_types.cc \
+	m_cloudbox.cc \
+	m_general.cc \
 	m_hdf.cc \
 	m_io.cc \
+	m_method_list.cc \
+	m_ppath.cc \
 	main.cc \
 	make_array.h \
 	make_vector.cc \
@@ -76,10 +82,8 @@ arts_SOURCES = \
 	workspace_aux.cc \
 	wsv_aux.h \
 	wsv_aux.cc \
-	m_method_list.cc \
 	agenda.h \
 	agenda.cc \
-	m_agenda.cc \
 	logic.h \
 	logic.cc
 

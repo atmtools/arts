@@ -53,16 +53,19 @@
          "A detailed description of the function. Please, try to be as \n"
          "clear and detailed as possible, this will help both you and \n"
          "others in the long run. \n"
-         "   Additional paragraphs are indented with three blanks, as \n"
-         "exemplified here.\n"
-         "   The names of workspace variables and other methods\n"
-         "are marked by stars, for example *z_plat*.\n"
-         "   Global input and output, and keywords shall be described \n"
+         "\n"
+         "Paragraphs are seperated with blank lines.\n"
+         "\n"
+         "The names of workspace variables and other methods are marked by\n"
+         "stars, for example *z_plat*.\n"
+         "\n"
+         "Global input and output, and keywords shall be described \n"
          "as exemplified below. If there is no variables of a group, \n"
          "(e.g. global input) remove that part totally. Note that the \n"
          "on-line help just gives the type of global input/output and the \n"
          "keyword names, and additional information is for sure needed.\n"
-         "   Leave space and brake lines when listing input and output \n"
+         "\n"
+         "Leave space and brake lines when listing input and output \n"
          "variabales to make the code easier to read. See example below. \n"
          "\n"
          "Global input: \n"
@@ -413,27 +416,6 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("NumericCopyFirstOfVector"),
-	DESCRIPTION
-        (
-         "Sets a numeric workspace variable to the value of the first \n"
-         "element of a vector. \n"
-         "\n"
-         "Global output: \n"
-         "   Numeric : The numeric variable to be set. \n"
-         "\n"
-         "Global input:\n"
-         "   Vector : The vector from which the value shall be obtained." 
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Numeric_ ),
-	GINPUT(  Vector_ ),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
       ( NAME("NumericWriteAscii"),
 	DESCRIPTION(
                     "Writes a numeric value to an ASCII file.\n"
@@ -560,7 +542,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("VectorSetLengthFromVector"),
+      ( NAME("VectorSetTakingLengthFromVector"),
 	DESCRIPTION
         (
          "Creates a workspace vector with the same length as another vector,\n"
@@ -665,58 +647,10 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("VectorPressuresForLinAltitudes"),
-	DESCRIPTION
-        (
-         "Calculates a set of pressures corresponding to a set of\n"
-         "linearly spaced altitudes. \n"
-         "\n"
-         "The linear set of altitudes is defined by an altitude step and \n"
-         "a start and stop pressure. \n"
-         "   The conversions between pressures and altitudes are based on\n"
-         "*p_abs* and *z_abs*. \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : Return vector for the pressure grid created. \n"
-         "\n"
-         "Keywords:\n"
-         "     delta_z : Altitude step.\n"
-         "     p_start : Start pressure.\n"
-         "     p_stop  : Stop pressure."  
-        ),
-	OUTPUT(),
-	INPUT( p_abs_, z_abs_ ),
-	GOUTPUT( Vector_ ),
-	GINPUT(),
-	KEYWORDS( "delta_z", "p_start", "p_stop"  ),
-	TYPES(    Numeric_t, Numeric_t, Numeric_t )));
-
-  md_data.push_back
-    ( MdRecord
       ( NAME("VectorCopy"),
 	DESCRIPTION
         (
          "Creates a copy of a vector. \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Global input: \n"
-         "   Vector : The vector to be copied. "
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT( Vector_ ),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorFlip"),
-	DESCRIPTION
-        (
-         "Creates a copy of a vector in reversed order. \n"
          "\n"
          "Global output: \n"
          "   Vector : The vector to be created. \n"
@@ -858,55 +792,6 @@ void define_md_data()
 	TYPES(    String_t   )));
 #endif // HDF_SUPPORT
 
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorPlanck"),
-  	DESCRIPTION
-        (
-         "Sets a vector to the Planck function for the given frequencies\n"
-         "and temperature. \n"
-         "\n"
-         "An example:\n"
-         "   VectorPlanck(y_space,f_mono){temp=2.7} \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Global input: \n"
-         "   Vector : Input frequencies. \n"
-         "\n"
-         "Keywords:\n"
-         "   temp : The blackbody temperature."  
-        ),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( Vector_ ),
-	GINPUT( Vector_ ),
-	KEYWORDS( "temp"    ),
-	TYPES(    Numeric_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorCalcLog10"),
-  	DESCRIPTION
-        (
-         "Calculates the base 10 logarithm of a vector. \n"
-         "\n"
-         "The result can either be stored in the same or another vector. \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : Return vector. \n"
-         "\n"
-         "Global input: \n"
-         "   Vector : Input vector. "
-        ),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( Vector_ ),
-	GINPUT( Vector_ ),
-	KEYWORDS(),
-	TYPES()));
 
   md_data.push_back
     ( MdRecord
