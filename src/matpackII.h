@@ -92,6 +92,7 @@ public:
 
   // Friends:
   friend ostream& operator<<(ostream& os, const Sparse& v);
+  friend void abs (Sparse& A, const Sparse& B );
   friend void mult (VectorView y, const Sparse& M, ConstVectorView x );
   friend void mult (MatrixView A, const Sparse& B, ConstMatrixView C );
   friend void mult (Sparse& A, const Sparse& B, const Sparse& C );
@@ -115,6 +116,9 @@ private:
 
 
 // Functions for general matrix operations
+void abs(       Sparse& A,
+          const Sparse& B );
+
 void mult( VectorView y,
            const Sparse& M,
            ConstVectorView x );

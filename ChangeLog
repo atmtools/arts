@@ -1,3 +1,21 @@
+2005-03-21  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-932
+
+	* doc/uguide/sensor.tex: Changed from MetaPost to pdf figures.
+
+	* doc/uguide/Figs/sensor/integration.[mps,pdf]: Removed the mps
+	version and added the pdf version.
+
+	* doc/uguide/Figs/sensor/folding.[mps,pdf]: Removed the mps version
+	and added the pdf version.
+
+	* src/matpackII.[cc,h]: Added function abs( Sparse, const Sparse)
+	that makes a copy of absolute values of the elements in the second
+	input matrix.
+
+	* src/test_sparse.cc: Test function for the abs method.
+
 2005-03-16  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-931

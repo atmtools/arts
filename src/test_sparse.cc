@@ -377,6 +377,24 @@ void test47()
   cout << "A:\n" << A << endl;
 }
 
+void test48()
+{
+  cout << "Test absolute values of sparse matrix:\n";
+  
+  Sparse B(4,5);
+  Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
+  Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
+  for ( Index i=0; i<9; i++ )
+    B.rw(r[i],c[i]) = -i*0.5;
+  cout << "B:\n" << B << endl;
+      
+  Sparse A( B );
+  abs(A,B);
+  
+  cout << "abs(B):\n" << A << endl;
+  
+}
+    
 int main()
 {
   //  test3();
@@ -389,7 +407,8 @@ int main()
   //  test44();
   //  test45();
   //  test46();
-  test47();
-
+//   test47();
+  test48();
+  
   return 0;
 }

@@ -602,6 +602,42 @@ ostream& operator<<(ostream& os, const Sparse& v)
 
 // General matrix functions
 
+//! Absolute value of sparse matrix elements
+/*!
+  Computes the absolute values of the elements in sparse matrix B.
+
+  The output matrix A must have been initialized with the correct size.
+
+  \param A Output: Absolute value matrix.
+  \param B Original matrix.
+
+  \author Mattias Ekstrom
+  \date   2005-03-21
+*/
+void abs(       Sparse& A,
+          const Sparse& B )
+{
+  // Check dimensions
+  assert( A.nrows() == B.nrows() );
+  assert( A.ncols() == B.ncols() );
+
+  // Here we allocate memory for the A.mdata vector so that it matches the
+  // input matrix, and then store the absolute values of B.mdata in it.
+  A.mdata->resize( B.mdata->size() );
+  Index end = B.mdata->size();
+  for (Index i=0; i<end; i++)
+    {
+      (*A.mdata)[i] = fabs((*B.mdata)[i]);
+    }
+  
+  // The column pointer and row index vectors are copies of the input  
+  A.mcolptr->resize( B.mcolptr->size() );
+  copy(B.mcolptr->begin(), B.mcolptr->end(), A.mcolptr->begin());
+  A.mrowind->resize( B.mrowind->size() );
+  copy(B.mrowind->begin(), B.mrowind->end(), A.mrowind->begin());
+  
+}
+
 //! Sparse matrix - Vector multiplication.
 /*!
   This calculates the product
