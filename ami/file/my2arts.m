@@ -66,6 +66,12 @@ switch mytag
   atag = 'NO-46';
  case 91 
   atag = 'SO2-626';
+ case 92 
+  atag = 'SO2-646'; 
+ case 93 
+  atag = 'SO2-636';
+ case 94 
+  atag = 'SO2-628';
  case 101 
   atag = 'NO2-646';
  case 111 
@@ -100,7 +106,9 @@ switch mytag
   atag = 'OCS-624';
  case 193 
   atag = 'OCS-632';
- case 194 
+ case 195 
+  atag = 'OCS-623'; 
+ case 195 
   atag = 'OCS-822';
  case 201 
   atag = 'H2CO-1126';
@@ -140,6 +148,10 @@ switch mytag
   atag = 'ClONO2-5646';
  case 352 
   atag = 'ClONO2-7646';
+ case 371
+  atag = 'HOBr-169'; 
+ case 372
+  atag = 'HOBr-161';  
  case 431 
   atag = 'OClO-656';
  case 432 

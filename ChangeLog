@@ -1,3 +1,10 @@
+2003-06-10  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-1-0-87
+
+	* ami/file/my2arts.m: included the changes in the MYTRAN tag
+	according to the new changes in src/species_data.cc
+
 2003-06-10  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-1-0-86
