@@ -56,6 +56,9 @@ is assumed to be treated separately.
 
 \levelb{Implementation strategy}
  \label{sec:sensor:strategy}
+
+\levelc{The sensor transfer matrix}
+ \label{sec:sensor:strategy:h}
  
  The modeling of a sensor part is either a summation of different
  frequency components (mixer), or a weighting of the spectra as a
@@ -86,6 +89,20 @@ is assumed to be treated separately.
  clearly give very rapid calculations, and we must find ways to
  calculate $\Hm$.
 
+\levelc{Normalization of \Hm}
+ \label{sec:sensor:strategy:norm}
+ 
+ If not a calibration procedure is simulated (see Sec.
+ \ref{sec:sensor:cal}) it is important that the transfer matrix for
+ each sensor part is normalized in such way that a unit response is
+ obtained. A unit response signifies here that a constant intensity
+ (as a function of frequency or zenith angle) is preserved, that is
+ \begin{equation}
+   \mat{u}_2 = \Hm\mat{u}_1
+ \end{equation}
+ where $\mat{u}_1$ and $\mat{u}_2$ are vectors of appropriate length
+ where each element is $1$. This criterion equals that the sum of 
+ the elements of each row of \Hm is 1.
 
 
 \levelb{Integration as vector multiplication} 
@@ -247,12 +264,176 @@ is assumed to be treated separately.
  interpolation in the primary band that could cause unexpected effects.  
  
  
+\levelb{Calibration} 
+ \label{sec:sensor:cal}
+
+ Some kind of calibration process, either in absolute or relative units,
+ is always needed. For mm and sub-mm receivers, the calibration normally
+ presents the measured intensity in some temperature scale, and conversion
+ to brightness and Rayleigh-Jeans temperatures is also treated in this section.
 
 
+\levelb{Conversion to brightness temperature} 
+ \label{sec:sensor:cal:tb}
+
+ The brightness temperature is defined as the temperature a blackbody 
+ shall have to give the same intensity magnitude as observed. The 
+ brightness temperature is thus calculated as
+ \begin{equation}
+   T_b = \frac{h\f}{k_B} \frac{1}{\ln{ \left( \frac{2h\f^3}{c^2\mpbi}+1 \right)}}
+   \label{eq:sensor:cal:tb}
+ \end{equation}
+ where \mpbi is the radiative intensity.
+ 
+ It should be noted that the conversion from intensity to brightness
+ temperature is non-linear. This non-linearity has (at least) two important
+ consequences:
+ \begin{itemize}
+  \item The conversion from intensity to brightness temperature cannot be
+        included in \Hm.
+  \item \bf{Brightness temperature cannot be used for retrievals.}
+ \end{itemize}
+ Accordingly, the main reason to convert a spectrum to brightness
+ temperatures is to display the spectrum in an unit that gives a more
+ intuitive understanding of the emission magnitude.
+
+
+\levelb{Conversion to Rayleigh-Jean temperature} 
+ \label{sec:sensor:cal:rj}
+
+ For lower frequencies where $h\f \ll k_BT$ the Planck function can
+ be approximated by the Rayleigh-Jean (RJ) formula:
+ \begin{equation}
+   B \approx \frac{2\f^2k_BT}{c^2}
+ \end{equation}
+ This relationship holds rather well in the microwave region. For example,
+ for $T=50$~K, $h\f = k_BT$ at 1.04~THz. The RJ approximation of the Planck
+ function gives a natural definition on a ``brightness temperature'' with
+ that has a linear relationship to the intensity:
+ \begin{equation}
+   T_{rj} = \frac{c^2}{2\f^2k_B} \mpbi
+   \label{eq:sensor:cal:rj}
+ \end{equation}
+ This intensity unit is often referred to as the brightness temperature but
+ to avoid confusion it is here denoted as the RJ temperature.
+ 
+ As the intensity from intensity to RJ temperature is linear, this
+ conversion can be included in \Hm\ and weighting functions can be
+ converted using \ref{eq:sensor:cal:rj}, that is, retrievals are
+ possible using RJ temperatures (at least for simulated measurements).
+ On the other hand, the RJ temperature shall not be mistaken for the
+ ``physical'' brightness temperature $(T_b)$ as the deviation between
+ $T_b$ and $T_{rj}$ is not negligible \citep{eriksson:97a}.
+
+
+\levelb{Load switching} 
+ \label{sec:sensor:cal:loadswitch}
+ 
+ A common way to calibrate a microwave radiometer is to observe two
+ objects with known emission intensities. These objects are normally
+ denoted as loads. Good calibration loads act close to blackbodies
+ (for the observed frequencies). One of the loads is further used
+ during the measurements for the Dicke switching procedure. Dicke switching
+ means here that, instead of measuring the atmospheric signal
+ directly, the atmospheric emission and one load are observed
+ alternative to obtain a difference measurement. For more details see
+ for example \citet{janssen:93}. The load used as reference during the
+ Dicke switching is below called load 1, while the second load, only
+ used for the calibration, is called load 2.  
+ 
+ The unit of the calibrated spectra is often Kelvins ([K]) as it is
+ the (physical) temperature of the loads that is known, instead of the
+ emission magnitude, and as ``brightness temperature'' is a practical
+ unit. This causes some problems as the obtained temperatures neither
+ match $T_b$ or $T_{rj}$.
+
+ Calibrated spectra for a load switching receiver are calculated as
+ \begin{equation}
+   \y^i = T_1 + (T_2-T_1)\frac{V_a^i-V_1^i}{V_2^i-V_1^i}
+   \label{eq:sensor:cal:loadswitch}
+ \end{equation}
+ where $i$ is channel index, $T_1$ and $T_2$ are the estimated
+ brightness temperatures of the loads, and $V_a$, $V_1$ and $V_2$ are
+ the recorded voltage when observing the atmosphere, load 1 and load
+ 2. Equation \ref{eq:sensor:cal:loadswitch} is only schematic. For
+ example, the $V_1$'s in the numerator and the denominator can deviate
+ as they are obtained during measurement and calibration phase,
+ respectively.
+
+ \begin{figure}[t]
+  \begin{center}
+   \begin{minipage}{0.50\textwidth}
+    \centering
+    \includegraphics*[width=0.99\hsize]{Figs/fig_calerror_tb_1}
+   \end{minipage}%
+   \begin{minipage}{0.50\textwidth}
+    \centering
+    \includegraphics*[width=0.99\hsize]{Figs/fig_calerror_tb_2}
+   \end{minipage}
+  \end{center}
+    \caption{Difference between the temperature obtained by load switching 
+             calibration and the brightness temperature. The temperature of
+             load 2 is 300~K in both cases while load 1 is 2.7~K in the
+             left figure and 80~K in the right figure.}
+    \label{fig:sensor:loadswitch1}
+ \end{figure}           
+ \begin{figure}[t]
+  \begin{center}
+   \begin{minipage}{0.50\textwidth}
+    \centering
+    \includegraphics*[width=0.99\hsize]{Figs/fig_calerror_trj_1}
+   \end{minipage}%
+   \begin{minipage}{0.50\textwidth}
+    \centering
+    \includegraphics*[width=0.99\hsize]{Figs/fig_calerror_trj_2}
+   \end{minipage}
+  \end{center}
+    \caption{As Figure \ref{fig:sensor:loadswitch1} but for the Rayleigh-Jean
+             temperature.}
+    \label{fig:sensor:loadswitch2}
+ \end{figure}           
+  
+ The ``brightness temperature'' given by Equation
+ \ref{eq:sensor:cal:loadswitch} coincides with the correct brightness
+ temperature (Eq. \ref{eq:sensor:cal:tb}) for $T_b=T_1$ and $T_b=T_2$,
+ while for other temperatures there is a deviation (Fig.
+ \ref{fig:sensor:loadswitch1}). The difference to the corresponding
+ Rayleigh-Jean temperature depends on the temperature of the loads
+ (Fig. \ref{fig:sensor:loadswitch1}). This difference is in some cases
+ constant (as a function of temperature). In these cases it should be
+ possible to invert a load switched measurement spectrum by including
+ the calibration process in the corresponding simulated spectrum by
+ Equation \ref{eq:sensor:cal:loadswitch} and convert weighting
+ functions to RJ temperature by Equation \ref{eq:sensor:cal:rj}. In
+ situations when the difference between calibrated and RJ temperatures
+ is non-constant, this retrieval scheme would result in a non-linear
+ inversion problem. To summerize, an inversion using RJ temperatures
+ can only be done for special cases when the frequency is relatively
+ low.
+  
+ The calibration scheme giving ``brightness temperatures'' is
+ accordingly of limited use. The recommendation must then be to 
+ perform the calibration using intensity units instead of temperature.
+ The calibration formula is then
+ \begin{equation}
+   \y^i = I_1^i + (I_2^i-I_1^i)\frac{V_a^i-V_1^i}{V_2^i-V_1^i}
+   \label{eq:sensor:cal:loadswitch}
+ \end{equation}
+ where $I_1^i$ is the estimated emission intensity for load 1 and
+ channel $i$. 
+ 
+ The inversion is in this case performed by using spectra and
+ weighting functions for the corresponding intensity unit. 
+ Measured and fitted spectra can still be displayed using brightness
+ temperatures. 
+
+ 
+ 
+ 
 
 
 %%% Local Variables: 
 %%% mode: latex 
-%%% TeX-master: "main" 
+%%% TeX-master: "uguide" 
 %%% End:
 

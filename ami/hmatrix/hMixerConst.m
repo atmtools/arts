@@ -30,13 +30,13 @@ function [H,f_y,za_y,f_sensor] = ...
 
 
 %=== Get H
-nf = length(f);
+nf = length(f_sensor);
 if fprimary > lo
   [Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,...
-             [f(1) lo lo+0.1 f(nf)],[ratio ratio 1-ratio 1-ratio],1);
+         [f_sensor(1) lo lo+0.1 f_sensor(nf)],[ratio ratio 1-ratio 1-ratio],1);
 else
   [Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,...
-             [f(1) lo-0.1 lo f(nf)],[1-ratio 1-ratio ratio ratio],1);
+         [f_sensor(1) lo-0.1 lo f_sensor(nf)],[1-ratio 1-ratio ratio ratio],1);
 end
 
 

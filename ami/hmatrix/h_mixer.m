@@ -116,7 +116,7 @@ for i = iprim:istop
   iout   = i - iprim + 1;
 
   %=== Get sideband filter values
-  if ( o_filter == 1
+  if ( o_filter == 1 )
     w = interp1(f_filter,w_filter,[f(i),fimage],'linear');
   else
     w = interp1(f_filter,w_filter,[f(i),fimage],'cubic');
