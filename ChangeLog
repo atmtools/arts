@@ -1,3 +1,38 @@
+2002-11-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-278
+
+	* configure.in: Use AM_MAINTAINER_MODE macro from automake instead
+	of our homemade stuff. If --enable-maintainer-mode is used,
+	additional dependencies are included in the generated Makefiles.
+	E.g. when configure.in or any Makefile.am are changed the
+	Makefiles are rebuild automatically with the next make. This
+	is not necessary for end-users. --enable-maintainer-mode is
+	passed by default to configure when you call autogen.sh.
+
+	IMPORTANT NOTE: Dependency check on configure.in is only performed
+	in top level directory. This means: After an update or modifying
+	configure.in you *MUST* run make in the top level directory.
+
+	Debugging is activated in maintainer-mode by default and disabled
+	in end-user mode. This could be overridden by passing --enable-debug
+	or --disable-debug to configure.
+
+	Removed setting of arts-data path on smiles pcs to lookup2. Moved to
+	autogen.sh because configure should not contain such special
+	treatments.
+
+	Cleanup. Removed some unused macros.
+
+	* autogen.sh: Inserted hostname check and pass
+	--with-arts-data=/pool/lookup2/arts-data to configure if we
+	are on a smiles pc.
+
+	* doc/uguide/Makefile.am, doc/doxygen/Makefile.am: Use
+	MAINTAINER_MODE in conditional.
+
+	* .cvsignore: Added autom4te.cache. Sorted.
+
 2002-11-07  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-277
