@@ -263,12 +263,12 @@ void NumericSet(// WS Generic Output:
 }
 
 
-/** Just to see if los works. */
-void losTest(// WS Output:
-             Los& los)
-{
-  size_t ss = los.zs.size();
-  out3 << "los.zs.size() = " << ss << '\n';
-  los.zs.newsize(ss+1);
-}
+
+//void losTest(// WS Output:
+//             Los& los)
+//{
+// size_t ss = los.zs.size();
+//  out3 << "los.zs.size() = " << ss << '\n';
+//  los.zs.newsize(ss+1);
+//}
 

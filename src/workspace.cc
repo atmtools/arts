@@ -39,7 +39,7 @@ void define_wsv_data()
   wsv_group_names.push_back("VECTOR");
   wsv_group_names.push_back("MATRIX");
   wsv_group_names.push_back("Numeric");
-  wsv_group_names.push_back("Los");
+  wsv_group_names.push_back("Los1d");
 
   // As a primitive consistency check, compare the size of
   // wsv_group_names with N_WSV_GROUPS:  
@@ -60,16 +60,6 @@ void define_wsv_data()
   }
   
   {
-    static WsvPointer<VECTOR> p(&workspace.f_abs);
-    wsv_data.push_back
-      (WsvRecord
-       ("f_abs",
-	"The frequency grid for the absorption coefficients [GHz].",
-	VECTOR_,
-	&p));
-  }
-  
-  {
     static WsvPointer<VECTOR> p(&workspace.t_abs);
     wsv_data.push_back
       (WsvRecord
@@ -78,7 +68,17 @@ void define_wsv_data()
 	VECTOR_,
 	&p));
   }
-  
+
+  {
+    static WsvPointer<VECTOR> p(&workspace.f_abs);
+    wsv_data.push_back
+      (WsvRecord
+       ("f_abs",
+	"The frequency grid for the absorption coefficients [GHz].",
+	VECTOR_,
+	&p));
+  }
+    
   {
     static WsvPointer<MATRIX> p(&workspace.abs);
     wsv_data.push_back
@@ -90,23 +90,32 @@ void define_wsv_data()
   }
 
   {
-    static WsvPointer<Numeric> p(&workspace.dummy1);
+    static WsvPointer<VECTOR> p(&workspace.view1);
     wsv_data.push_back
       (WsvRecord
-       ("dummy1",
-	"This is just to test Numeric WSVs.",
+       ("view1",
+	"Viewing angle 1, the angle between zenith and the LOS [deg].",
+	VECTOR_,
+	&p));
+  }
+
+  {
+    static WsvPointer<Numeric> p(&workspace.plat_z);
+    wsv_data.push_back
+      (WsvRecord
+       ("plat_z",
+	"The vertical altitude, above the geiod, of the platform [m].",
 	Numeric_,
 	&p));
   }
 
   {
-    static WsvPointer<Los> p(&workspace.los);
+    static WsvPointer<Los1d> p(&workspace.los1d);
     wsv_data.push_back
       (WsvRecord
-       ("los",
-	"Data for the line of sight calculation. FIXME: Patrick, can you\n"
-	"please add some more documentation here?",
-	Los_,
+       ("los1d",
+	"Structure to define the line of sight (LOS) for 1d cases.", 
+	Los1d_,
 	&p));
   }
 

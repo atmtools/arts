@@ -40,6 +40,11 @@ void define_md_data()
 	));
   */
 
+
+//======================================================================
+//=== IO methods
+//======================================================================
+
   md_data.push_back
     ( MdRecord
       ( NAME("AllAbsExample"),
@@ -168,16 +173,33 @@ void define_md_data()
 	KEYWORDS("value"),
 	TYPES(num_)));
 
+  //  md_data.push_back
+  //    ( MdRecord
+  // ( NAME("losTest"),
+  //DESCRIPTION("Just to see if los works."),
+  //OUTPUT(los_),
+  //INPUT(),
+  //GOUTPUT(),
+  //GINPUT(),
+  //KEYWORDS(),
+  //TYPES()));
+  
+
+//======================================================================
+//=== LOS methods
+//======================================================================
+
   md_data.push_back
     ( MdRecord
-      ( NAME("losTest"),
-	DESCRIPTION("Just to see if los works."),
-	OUTPUT(los_),
-	INPUT(),
+      ( NAME("los1dNoRefraction"),
+	DESCRIPTION("Determines the LOS for a 1D atmosphere\n"
+                    "Refraction is neglected"),
+	OUTPUT(los1d_),
+	INPUT(plat_z_ ,view1_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-  
+
 
 }

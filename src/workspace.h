@@ -18,22 +18,34 @@ enum WsvGroup{
   VECTOR_,
   MATRIX_,
   Numeric_,
-  Los_
+  Los1d_,
 };
 
 // For consistency check:
 #define N_WSV_GROUPS 4
 
 
-/** FIXME: Patrick, can you add some documentation here? The
-    declaration of this struct does not necessarily have to be here,
-    could also be in a .h file where you have other RTE
-    stuff. Should not be in a m_*.cc file, however. */
-struct Los {
-      ARRAY<VECTOR> zs;
+
+//
+// Definition of workspace variables of not basic types
+// (Is this really the best place ? !PE!)
+//
+
+/** Holds the data defining the line of sight (LOS) for 1D cases 
+    The structure has the following fields:
+
+    ARRAY<VECTOR> zs    
+    ARRAY<int> ground
+    ARRAY<int> start
+    ARRAY<int> stop
+
+    Finish this documentation later !PE!
+   */
+struct Los1d {
+      ARRAY<VECTOR> p;
       ARRAY<int> ground;
-      ARRAY<size_t> start;
-      ARRAY<size_t> stop;
+      ARRAY<int> start;
+      ARRAY<int> stop;
 };
 
 
@@ -41,12 +53,13 @@ struct Los {
 // Yes, this is the declaration of the great workspace itself.
 class WorkSpace {
 public:
-  VECTOR p_abs;
-  VECTOR f_abs;
-  VECTOR t_abs;
-  MATRIX abs;
-  Numeric dummy1;
-  Los los;
+  VECTOR  p_abs;
+  VECTOR  t_abs;
+  VECTOR  f_abs;
+  MATRIX  abs;
+  VECTOR  view1;
+  Numeric plat_z;
+  Los1d   los1d; 
 };
 
 
@@ -60,11 +73,11 @@ public:
     defined. */ 
 class WsvP {
 public:
-  virtual operator string*() { safety(); return NULL; };
-  virtual operator VECTOR*() { safety(); return NULL; };
-  virtual operator MATRIX*() { safety(); return NULL; };
+  virtual operator string*()  { safety(); return NULL; };
+  virtual operator VECTOR*()  { safety(); return NULL; };
+  virtual operator MATRIX*()  { safety(); return NULL; };
   virtual operator Numeric*() { safety(); return NULL; };
-  virtual operator Los*()     { safety(); return NULL; };
+  virtual operator Los1d*()   { safety(); return NULL; };
       
 private:
   /** Safety check. This is called by all the virtual conversion

@@ -1,3 +1,13 @@
+2000-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0.0.10
+
+	* Set the ground to include los1d. Included the file m_los.cc.
+	  Introduced the workspace variables plat_z and view1 for test
+	  purposes. There will be more variables connected to los.
+	  Some bugs mailed to Stefan.
+
+
 2000-04-04  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0.0.9

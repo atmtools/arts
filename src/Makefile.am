@@ -40,7 +40,8 @@ md.cc \
 math_funcs.cc \
 make_vector.cc \
 m_abs.cc \
-m_io.cc
+m_io.cc \
+m_los.cc
 
 noinst_PROGRAMS = make_wsv_h make_md_h
 
