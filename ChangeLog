@@ -1,3 +1,14 @@
+2002-11-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-309
+	
+	* src/getopt.c: Moved comment after include to separate line.
+
+	* src/Makefile.am: Added constants.cc to test_interpolation_SOURCES.
+
+	* configure.in: Use a more sophisticated way to determine whether we
+	are using a GNU compiler.
+
 2002-11-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-308
