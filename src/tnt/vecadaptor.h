@@ -190,7 +190,9 @@ class Vector_Adaptor
         return *this;
     }
 
-    Vector_Adaptor<BBVec>& resize(Subscript N) 
+  // SAB 22.05.2000 Added second argument for resizing with
+  // initialization to value c.
+    Vector_Adaptor<BBVec>& resize(Subscript N, T c=T()) 
     { 
         if (N == size()) return *this;
 
@@ -200,6 +202,10 @@ class Vector_Adaptor
 
         for (i=0; i<n; i++)
             tmp[i] = v_[i];
+
+	// SAB: Initialize new elements with c:
+        for (i=n; i<N; i++)
+            tmp[i] = c;
             
 
         return (*this = tmp);

@@ -483,11 +483,8 @@ void parse_integer(int& n, SourceText& text)
 {
   string res;
   read_integer(res, text);
-  // [**These are strange tricks to work around non-compliance to ANSI 
-  // of EGCS. Change this when it's no longer necessary to:
-  // std::istrstream(res) >> n  (should be sufficient)]
-  char *s = &res[0];
-  std::istrstream is(s,res.size());
+  std::strstream is;
+  is << res;
   is >> n;
 }
 
@@ -496,11 +493,8 @@ void parse_numeric(Numeric& n, SourceText& text)
 {
   string res;
   read_numeric(res, text);
-  // [**These are strange tricks to work around non-compliance to ANSI 
-  // of EGCS. Change this when it's no longer necessary to:
-  // std::istrstream(res) >> n  (should be sufficient)]
-  char *s = &res[0];
-  std::istrstream is(s,res.size());
+  std::strstream is;
+  is << res;
   is >> n;
 }
 

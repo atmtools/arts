@@ -48,6 +48,7 @@ void define_wsv_data()
   wsv_group_names.push_back("ARRAYofMATRIX");
   wsv_group_names.push_back("ARRAYofVECTOR");
   wsv_group_names.push_back("Los");
+  wsv_group_names.push_back("ARRAYofLineRecord");
 
   // As a primitive consistency check, compare the size of
   // wsv_group_names with N_WSV_GROUPS:  
@@ -244,6 +245,16 @@ void define_wsv_data()
        ("los",
 	"Structure to define the line of sight (LOS) for 1d cases.", 
 	Los_,
+	&p));
+  }
+
+  {
+    static WsvPointer<ARRAYofLineRecord> p(&workspace.lines);
+    wsv_data.push_back
+      (WsvRecord
+       ("lines",
+	"A list of spectral line data.", 
+	ARRAYofLineRecord_,
 	&p));
   }
 

@@ -425,6 +425,42 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("linesReadFromHitran"),
+  	DESCRIPTION(
+          "Read all the lines from a HITRAN catalogue file that\n"
+	  "correspond to legal species / isotope combinations.\n"
+	  "\n"
+	  "The output line array is not overwritten, but the new data\n"
+	  "is appended!\n" 
+	  "\n"
+	  "This is mainly for testing, the method probably will become\n"
+	  "more complicated later on.\n"
+	  "\n"
+	  "filename = Name (and path) of the catalogue file.\n"
+	  "fmin     = Minimum frequency for lines to read in Hz.\n"
+	  "fmax     = Maximum frequency for lines to read in Hz."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ARRAYofLineRecord_ ),
+	GINPUT(),
+	KEYWORDS( "filename",  "fmin",    "fmax"),
+	TYPES(    string_t,    Numeric_t, Numeric_t)));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("linesWriteToNamedFile"),
+  	DESCRIPTION(
+          "Write the content of the workspace variable lines to the\n"
+	  "given file in ARTS line format."),
+	OUTPUT(),
+	INPUT( lines_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
 }
 
 void define_md_map()

@@ -112,14 +112,27 @@ Numeric max( const VECTOR& x );
     @author Stefan Buehler 08.05.2000 */
 Numeric max( const MATRIX& A );
 
-/** Gives the maximum value of an array, v = max(x).
+
+/** Gives the maximum value of an array, v = max(x). Because this is a
+    template function, the definition has to be also in the header
+    file, and not in file math_func.cc.
 
     @param   v   Returns: the maximum value of x
     @param   x   The input array
 
     @author Stefan Buehler 08.05.2000 */
 template<class T>
-T max( const ARRAY<T>& x );
+T max( const ARRAY<T>& x )
+{
+  size_t n = x.dim();
+  T y=x(1);
+  for ( size_t i=2; i<=n; i++ )
+  {
+    if ( x(i) > y )
+      y = x(i);
+  }
+  return y; 
+}
 
 
 /** Gives the first value of a vector, v = first(x).

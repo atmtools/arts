@@ -185,18 +185,6 @@ Numeric max( const MATRIX& A )
   return y; 
 }
 
-template<class T>
-T max( const ARRAY<T>& x )
-{
-  int n = x.dim();
-  Numeric y=x(1);
-  for ( int i=2; i<=n; i++ )
-  {
-    if ( x(i) > y )
-      y = x(i);
-  }
-  return y; 
-}
 
 Numeric first( const VECTOR& x )
 {

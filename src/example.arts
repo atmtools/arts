@@ -16,10 +16,20 @@
 
 #ArrayOfMatrixWriteToNamedFile(source){"dummy.source.a"}
 
-VectorLinSpace(p_abs){
-	start = 0
-	stop  = 10
-	step  = .1
+#VectorLinSpace(p_abs){
+#	start = 0
+#	stop  = 10
+#	step  = .1
+#}
+
+#VectorWriteToFile(p_abs){}
+
+linesReadFromHitran(lines){
+#	filename = "/pool/lookup/hitran92/hitran92_h2o_le160.dat"
+#	filename = "/cdrom/hitran96/hitran96.par"
+	filename = "hit_ex.dat"
+	fmin     = 0
+	fmax     = 1000e12
 }
 
-VectorWriteToFile(p_abs){}
+linesWriteToNamedFile{"lines.dat"}

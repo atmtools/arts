@@ -3,6 +3,9 @@
 #include "arts.h"
 #include "vecmat.h"
 #include "messages.h"
+#include "file.h"
+#include "absorption.h"
+#include "workspace.h"
 
 void AllAbsExample(// WS Output:
                    VECTOR& f_abs,
@@ -34,4 +37,59 @@ void AllAbsExample(// WS Output:
 //   out3 << "p_abs:\n" << p_abs << '\n';
 //   out3 << "t_abs:\n" << t_abs << '\n';
 //   out3 << "abs:\n"   << abs << '\n';
+}
+
+
+void linesReadFromHitran(// WS Output:
+                         ARRAYofLineRecord& lines,
+                        // WS Generic Output Names:
+                         const string& lines_name,
+                          // Control Parameters:
+                         const string& filename,
+                         const Numeric& fmin,
+                         const Numeric& fmax)
+{
+  ifstream is;
+
+  out2 << "  Reading file: " << filename << '\n';
+  open_input_file(is, filename);
+
+  bool go_on = true;
+  while ( go_on )
+    {
+      LineRecord lr;
+      if ( lr.ReadFromHitranStream(is) )
+	{
+	  // If we are here the read function has reached eof and has
+	  // returned no data.
+	  go_on = false;
+	}
+      else
+	{
+	  if ( fmin <= lr.F() )
+	    {
+	      if ( lr.F() <= fmax )
+		lines.push_back(lr);
+	      else
+		go_on = false;
+	    }
+	}
+    }
+}
+
+
+void linesWriteToNamedFile(// WS Input:
+                           const ARRAYofLineRecord& lines,
+                           // Control Parameters:
+                           const string& filename)
+{
+  ofstream os;
+
+  out2 << "  Writing file: " << filename << '\n';
+  open_output_file(os, filename);
+
+  for ( size_t i=0; i<lines.size(); ++i )
+    {
+      os << lines[i] << '\n';
+    }
 }

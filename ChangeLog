@@ -1,3 +1,33 @@
+2000-05-22  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-22
+
+	* ARTS can now read HITRAN catalogue files!
+
+	* Methods: linesReadFromHitran, linesWriteToNamedFile
+	These methods are rather preliminary, because how they should act
+	eventually depends on the rest of the absorption module. Anyway,
+	I've tried to rather cleanly implement the capability to
+	understand HITRAN in the utility function 
+
+	LineRecord::ReadFromHitranStream(istream& is)
+
+	Yes, this is a member function of LineRecord, the data structure
+	that stores spectro data for a single line. In the future, similar
+	member functions can be added to read from JPL (setting widths to
+	default values) and of course eventually from the native ARTS
+	format. 
+
+	Of course, the program does not depend internally on any
+	particular catalogue at all. In particular not on HITRAN. Rather,
+	during the read-in, the HITRAN data is right away converted to the
+	ARTS internal format. 
+
+	For now, this stuff seems to work fine. Ah yes, the line data is
+	according to the recommendations given in the Bredbeck book. I've
+	tried to document all formats and units as best as I can in the
+	code directly.
+
 2000-05-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-21
