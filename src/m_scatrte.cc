@@ -3369,7 +3369,7 @@ scat_fieldCalcLimb(//WS Output:
   \param cloudbox_limits: Limits of cloudbox.
   \param scat_data_raw FIXME: Add documentation.
 */
-void ScatteringInit(
+void DoitInit(
                     Index& scat_p_index,
                     Index& scat_lat_index,
                     Index& scat_lon_index,

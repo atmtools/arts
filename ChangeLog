@@ -1,3 +1,23 @@
+2004-10-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-890
+
+	* Monte Carlo calculations now works again. And even better, works
+	with iy_cloudbox_agenda. This makes a control file for MC much
+	simpler. I will send out an example.
+
+	* src/m_scatrte.cc (DoitInit): Renamed ScatteringInit to DoitInit.
+	This as I got confused of the name and it took me quite some time
+	to check what it does. I though it did general tasks, but it does
+	only pure DOIT stuff.
+
+	* src/rte.cc (get_radiative_background): Included improved error
+	message made by Cory for other backgrounds than space.
+
+	* src/interpolation.cc (is_gridpos_at_index_i): Moved back to old code,
+	that was replaced for version 1-1-885. New code clearly a bad idea
+	after more careful consideration.
+
 2004-10-04  Cory Davis  <cory@localhost.localdomain>
 
 	* arts-1-1-889

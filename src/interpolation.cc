@@ -564,11 +564,17 @@ bool is_gridpos_at_index_i(
        const GridPos&   gp,
        const Index&     i )
 {
-  if( ( fabs(gp.fd[0]) < FD_TOL  ||  fabs(gp.fd[0]-1.0) < FD_TOL )  &&  
-      ( fabs( fractional_gp(gp) - Numeric(i) ) < FD_TOL ) )
+  if( ( gp.fd[0] == 0  ||  gp.fd[0] == 1 )  &&  
+                                            ( gp.idx + Index(gp.fd[0]) ) == i )
     { return true; }
   else
     { return false; }
+  // Attempt to new code that did not work. 
+  /*  if( ( fabs(gp.fd[0]) < FD_TOL  ||  fabs(gp.fd[0]-1.0) < FD_TOL )  &&  
+      ( fabs( fractional_gp(gp) - Numeric(i) ) < FD_TOL ) )
+    { return true; }
+  else
+  { return false; }*/
 }
 
 

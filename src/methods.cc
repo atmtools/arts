@@ -1251,6 +1251,30 @@ void define_md_data_raw()
         SUPPRESSHEADER( true  )));
 
  md_data_raw.push_back
+   ( MdRecord
+      ( NAME( "DoitInit" ),
+        DESCRIPTION
+        (
+         "Initialize variables for DOIT scattering calculations. \n"
+         "\n"
+         "Variables needed in the scattering calculations are initialzed\n"
+         "here. This method has to be executed before using \n"
+         "*ScatteringMain*.\n"
+         "\n"
+         ),
+        OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
+               scat_za_index_, scat_aa_index_, pha_mat_,
+               pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_field_,
+               i_field_, iteration_counter_),
+        INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
+              za_grid_size_, 
+              cloudbox_limits_, scat_data_raw_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+ md_data_raw.push_back
     ( MdRecord
       ( NAME("elsDoppler"),
         DESCRIPTION
@@ -3475,30 +3499,6 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
-
- md_data_raw.push_back
-   ( MdRecord
-      ( NAME( "ScatteringInit" ),
-        DESCRIPTION
-        (
-         "Initialize variables for a scattering calculation. \n"
-         "\n"
-         "Variables needed in the scattering calculations are initialzed\n"
-         "here. This method has to be executed before using \n"
-         "*ScatteringMain*.\n"
-         "\n"
-         ),
-        OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
-               scat_za_index_, scat_aa_index_, pha_mat_,
-               pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_field_,
-               i_field_, iteration_counter_),
-        INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
-              za_grid_size_, 
-              cloudbox_limits_, scat_data_raw_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
 
   md_data_raw.push_back
    ( MdRecord

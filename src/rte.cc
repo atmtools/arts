@@ -136,36 +136,65 @@ void get_radiative_background(
 	 
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
-	  {
-	    out1 << "nf = " << nf << ", stokes_dim = " << stokes_dim<<"\n";//Added by cory
-	    out1 << "iy size = [" << iy.nrows() << ", "<< iy.ncols()<<"]\n";
-	    throw runtime_error( "The size of *iy* returned from "
+          {
+            out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
+            out1 << "iy size = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
+            throw runtime_error( "The size of *iy* returned from "
                                           "*iy_space_agenda* is not correct.");
-	  }
+          }
       }
       break;
 
 
     case 2:   //--- The surface -----------------------------------------------
       {
+        // Make a copy of *ppath* as the WSV will be changed below, but the
+        // original data is needed when going back to *rte_calc*.
+        Ppath   pp_copy;
+        ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
+        ppath_copy( pp_copy, ppath );
+
         chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
         iy_surface_agenda.execute( agenda_verb );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
-          throw runtime_error( "The size of *iy* returned from "
+          {
+            out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
+            out1 << "iy size = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
+            throw runtime_error( "The size of *iy* returned from "
                                         "*iy_surface_agenda* is not correct.");
+          }
+
+        // Copy data back to *ppath*.
+        ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
+        ppath_copy( ppath, pp_copy );
       }
       break;
 
 
     case 3:   //--- Cloudbox surface -----------------------------------------
       {
+        // Make a copy of *ppath* as the WSV will be changed below, but the
+        // original data is needed when going back to *rte_calc*.
+        Ppath   pp_copy;
+        ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
+        ppath_copy( pp_copy, ppath );
+        chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
+
         chk_not_empty( "iy_cloudbox_agenda", iy_cloudbox_agenda );
         iy_cloudbox_agenda.execute( agenda_verb );
 
         if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
-          throw runtime_error( "The size of *iy* returned from "
+          {
+            out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
+            out1 << "iy size = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
+            throw runtime_error( "The size of *iy* returned from "
                                       "*iy_cloudbox_agenda* is not correct." );
+          }
+
+        // Copy data back to *ppath*.
+        ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
+        ppath_copy( ppath, pp_copy );
       }
       break;
 
