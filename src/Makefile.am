@@ -16,8 +16,9 @@ SUBDIRS        = tnt
 # Does not work (source file in separate dir)
 
 arts_SOURCES   = \
+wsv_groups.h \
 wsv.h \
-md.h \
+wsv_pointers.h \
 md.cc \
 arts.h \
 getopt.h \
@@ -28,7 +29,6 @@ parameters.h \
 vecmat.h \
 exceptions.h \
 file.h \
-wsv_groups.h \
 wsv_aux.h \
 methods.h \
 token.h \
@@ -97,11 +97,11 @@ version.cc globals_2.cc \
 token.cc messages.cc file.cc groups.cc workspace.cc workspace_aux.cc \
 methods.cc methods_aux.cc make_md_h.cc
 
-make_wsv_h_DEPENDENCIES = wsv_groups.h
+# make_wsv_h_DEPENDENCIES = wsv_groups.h
 
-make_wsv_pointers_cc_DEPENDENCIES  = wsv_groups.h wsv.h
+# make_wsv_pointers_cc_DEPENDENCIES  = wsv_groups.h wsv.h
 
-make_md_h_DEPENDENCIES  = wsv.h
+# make_md_h_DEPENDENCIES  = wsv.h
 
 wsv_groups.h: make_wsv_groups_h
 	$(top_builddir)/src/make_wsv_groups_h
