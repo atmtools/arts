@@ -100,6 +100,8 @@ public:
   // Output operator:
   void                 print( ostream& os,
                               const String& indent ) const;
+
+  void touch () const {};
 private:
   /** Method id. */
   Index mid;
