@@ -1163,64 +1163,71 @@ void CloudboxGetOutgoing(// WS Generic Output:
                        f_grid.nelem(), 2, 1, 1, 
                        scat_za_grid.nelem(), 1,
                        stokes_dim ));
-
+     cout << "a_gp_p.idx" << a_gp_p.idx << "\n";
+     cout << "cloudbox_limits[0] " << cloudbox_limits[0] << "\n";
+      cout << "cloudbox_limits[1]" << cloudbox_limits[1] << "\n";
      //Check, if grid_positions correspond to cloudbox boundary
-     if (!(a_gp_p.idx == cloudbox_limits[0] &&
-           a_gp_p.idx == cloudbox_limits[1]))
+     if (a_gp_p.idx != cloudbox_limits[0] &&
+	   a_gp_p.idx != cloudbox_limits[1])
        throw runtime_error(
-                           "Gridpositions have to be on the boundary of the "
-                           "cloudbox defined by *cloudbox_limits*."
-                           );
+			   "Gridpositions have to be on the boundary of the "
+			   "cloudbox defined by *cloudbox_limits*."
+			   );
+     cout << "a_gp_p.idx" << a_gp_p.idx << "\n";
+     
      
      //Define a vector to interpolate the outgoing radiance which is 
      //defined on scat_za_grid on the requested zenith angle in 
      //*cloudbox_los*.
-     Vector zenith_angle(1);
-     zenith_angle[0] = a_los[0];
-         
-     //Array to store grid positions
-     ArrayOfGridPos gp(1);
-     gridpos(gp, scat_za_grid, zenith_angle);
-
-     //Matrix to store interpolation weights
-     Matrix itw(scat_za_grid.nelem(),2);
-     interpweights(itw, gp);
-
-     for(Index i = 0; i < stokes_dim; i++)
-       {
-         for(Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
-           {
-             //This variable holds the radiation for a specified frequency.
-             //It is neccessairy because the interpolation is done for 
-             //each frequency separately.
-             Vector i_out_f(scat_za_grid.nelem());
-
-             //lower boundary
-             if(a_gp_p.idx == cloudbox_limits[0])
-               {
-                 ConstVectorView i_f = scat_i_p(f_index, 0, 0, 0, 
-                                                 Range(joker), 0, i);
-                 i_out_f = i_f;
-               }
-             //upper boundary
-             else if(a_gp_p.idx == cloudbox_limits[1])
-               {
-                 ConstVectorView i_f = scat_i_p(f_index, 1, 0, 0,
-                                                 Range(joker), 0, i);
-                 i_out_f = i_f;
-               }
-             //Define vector for the interpolated radiance.
-             Vector i_out_los(1);
-             
-             //Do the interpolation:
-             interp(i_out_los, itw, i_out_f, gp);
-             
-             //Put the value into the matrix:
-             i_out(f_index, i) = i_out_los[0];
-           }//end frequency loop
-       }//end stokes_dim loop
+       Vector zenith_angle(1);
+       
+       zenith_angle[0] = a_los[0];
+       
+       //Array to store grid positions
+       ArrayOfGridPos gp(1);
+       gridpos(gp, scat_za_grid, zenith_angle);
+       
+       //Matrix to store interpolation weights
+       //Matrix itw(scat_za_grid.nelem(),2);
+       Matrix itw(gp.nelem(),2);
+       interpweights(itw, gp);
+       
+       for(Index i = 0; i < stokes_dim; i++)
+	 {
+	   for(Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
+	     {
+	       //This variable holds the radiation for a specified frequency.
+	       //It is neccessairy because the interpolation is done for 
+	       //each frequency separately.
+	       Vector i_out_f(scat_za_grid.nelem());
+	       
+	       //lower boundary
+	       if(a_gp_p.idx == cloudbox_limits[0])
+		 {
+		   ConstVectorView i_f = scat_i_p(f_index, 0, 0, 0, 
+						  Range(joker), 0, i);
+		   i_out_f = i_f;
+		 }
+	       //upper boundary
+	       else if(a_gp_p.idx == cloudbox_limits[1])
+		 {
+		   ConstVectorView i_f = scat_i_p(f_index, 1, 0, 0,
+						  Range(joker), 0, i);
+		   i_out_f = i_f;
+		 }
+	       //Define vector for the interpolated radiance.
+	       Vector i_out_los(1);
+	       
+	       //Do the interpolation:
+	       interp(i_out_los, itw, i_out_f, gp);
+	       
+	       //Put the value into the matrix:
+	       i_out(f_index, i) = i_out_los[0];
+	     }//end frequency loop
+	 }//end stokes_dim loop
+            
    }// end atmosphere_dim 1
-
+ 
 
  if(atmosphere_dim == 3)
     {
