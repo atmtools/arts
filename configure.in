@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.250)
+AM_INIT_AUTOMAKE(arts,0.0.251)
 
 
 #
@@ -304,17 +304,6 @@ fi
 
 AC_SUBST(CXXFLAGS_FIXED)
 
-#
-# Create list of example control files depending on arts-data package
-#
-# We have to do it this ugly way, because it is not possible
-# to use if statements inside AC_OUTPUT!
-#
-if test ! $ac_arts_data = no; then
-  ac_config_files="$ac_config_files 
-                  doc/examples/auto_full.arts"
-fi
-
 
 AC_OUTPUT([
 arts.spec
@@ -340,11 +329,11 @@ Makefile
       doc/uguide/auto_version.tex 
          doc/uguide/Figs/Makefile 
       doc/examples/Makefile 
+         doc/examples/auto_full.arts
       doc/emacs/Makefile
    m4/Makefile 
    src/Makefile
 ])
-
 
 AC_MSG_RESULT()
 AC_MSG_RESULT([*******************************************************])
