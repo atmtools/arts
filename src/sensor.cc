@@ -264,11 +264,11 @@ void mixer_transfer_matrix(
   l_mixer.unique();
   l_mixer.sort();
   f_mixer.resize((Index) l_mixer.size());
-  Index i=0;
+  Index e=0;
   for (list<Numeric>::iterator li=l_mixer.begin(); li != l_mixer.end(); li++)
   {
-    f_mixer[i] = *li;
-    i++;
+    f_mixer[e] = *li;
+    e++;
   }
 
   // Now we know the final size of H, so resize it
@@ -379,10 +379,10 @@ void sensor_integration_vector(
   l_x.unique();
 
   Vector x_ref(l_x.size());
-  Index i=0;
+  Index e=0;
   for (list<Numeric>::iterator li=l_x.begin(); li != l_x.end(); li++) {
-	x_ref[i] = *li;
-	i++;
+    x_ref[e] = *li;
+    e++;
   }
 
   //Initiate output vector, with equal size as x_g, with zeros.
