@@ -203,9 +203,9 @@ void define_agenda_data()
         "   abs_vec_spt : Absorption vector for single particle type. \n"
         "   pnd_field   : Particle number density field. \n"
 	),
-       OUTPUT( ext_mat_ ),
-       INPUT( ext_mat_, 
-              ext_mat_spt_,
+       OUTPUT( abs_vec_ ),
+       INPUT( abs_vec_, 
+              abs_vec_spt_,
               pnd_field_ )));
 
 

@@ -51,10 +51,10 @@ arts_SOURCES = \
 	m_general.cc \
 	m_hdf.cc \
 	m_io.cc \
+	m_optproperties.cc \
 	m_physics.cc \
 	m_ppath.cc \
 	m_rte.cc \
-	m_scatproperties.cc \
 	m_scatrte.cc \
 	m_clonesize.cc \
 	m_absorption.cc \

@@ -1,8 +1,12 @@
 /*!
-  \file   m_scatproperties.cc
+  \file   m_optproperties.cc
   \author Sreerekha T.R. <rekha@uni-bremen.de>
-  \date   \date   Mon Jun 10 11:19:11 2002
-  \brief  This file contains workspace methods for calculating the single scattering properties of ice particles.
+  \date   Mon Jun 10 11:19:11 2002 
+  \brief  This file contains workspace methods for calculating the optical 
+  properties for the radiative transfer. These are extinction matrix,
+  absorption vector and scattering vector. 
+  The optical properties for the gases can be calculated with or without 
+  Zeeman effect.
 */
 /*===========================================================================
   === External declarations
