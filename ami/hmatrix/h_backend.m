@@ -57,10 +57,10 @@ f_back = f_back/1e6;
 
 %=== Check if backend channels totally inside frequency grid
 if f1(1) > f2(1)+f_back(1)
-  error(sprintf('You must increase your frequency grid downwards with %.3e GHz',f1(1)-(f2(1)+f_back(1))));
+  error(sprintf('You must increase your frequency grid downwards with %.3e MHz',f1(1)-(f2(1)+f_back(1))));
 end
 if f1(nf1) < f2(nf2)+f_back(nback)
-  error(sprintf('You must increase your frequency grid upwards with %.3e GHz',(f2(nf2)+f_back(nback))-f1(nf1)));
+  error(sprintf('You must increase your frequency grid upwards with %.3e MHz',(f2(nf2)+f_back(nback))-f1(nf1)));
 end
 
 

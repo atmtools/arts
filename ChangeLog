@@ -1,3 +1,10 @@
+2001-11-28  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-1-59
+
+	* ami/hmatrix/h_backend.m: The frequency unit in an error message was 
+	wrong. GHz is now changed to MHz.
+
 2001-11-27  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-1-58
