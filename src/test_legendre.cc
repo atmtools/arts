@@ -24,6 +24,7 @@ main (int argc, char *argv[])
     {
       cout << "l = " << l << "  m = " << m << "  x = " << x << endl;
       cout << "Pml = " << legendre_poly (l, m, x) << endl;
+      cout << "dPml = " << legendre_poly_deriv (l, m, x) << endl;
       cout << "Norm Pml = " << legendre_poly_norm (l, m, x) << endl;
     }
   catch (runtime_error e)
@@ -31,7 +32,7 @@ main (int argc, char *argv[])
       cerr << e.what ();
     }
 
-  struct tms cput_start, cput_end;
+/*  struct tms cput_start, cput_end;
   const Index n = 1000000;
   Index clktck;
   Vector v2 (n), r2 (n);
@@ -60,6 +61,7 @@ main (int argc, char *argv[])
     << ((cput_end.tms_stime - cput_start.tms_stime)
         + (cput_end.tms_utime - cput_start.tms_utime))
     / (Numeric)clktck << " s" << endl;
+*/
 
   return (0);
 }
