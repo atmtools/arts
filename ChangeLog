@@ -1,3 +1,49 @@
+2001-02-19  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-126
+
+	* Yet another bigger revision of the LOS part. 
+	The core calculations are now performed by a single function for
+	all observation geometries (one function for refrcation and one
+	function for geometrical calculations). This should ensure a high
+	consistency for the calculations. Some preparation for the 2D
+	calculations have been performed.
+
+	* Refraction is now handled by a more traditional ray tracing scheme,
+	using the geometrical term as starting point. The refractive index
+	is assumed to be constant over each ray tracing step. See further
+	AUG. As I wanted an integer ray tracing step for each LOS step,
+	the wsv l_step_refr is exchanged with refr_lfac (an integer). This
+	factor gives how many ray tracing steps that shall be performed for
+	each LOS step (the ray tracing step length is accordingly
+	l_step/refr_lfac). The calculations with refraction are now a bit 
+	slower and too small steps should be avoided. The ray tracing works 
+	both with float and double.
+
+	* I have tested the ray tracing scheme and the results were good.
+	First of all, if n is set to 1 at all altitudes, the geometrical LOS
+	is obtained exactly (the deviations are around 1e-6 m). A suitable 
+	value for the ray tracing step length seem to be about 5 km. 
+
+	* The LOS structure is extended and holds now also the geometrical
+	altitudes of the LOS points not only the pressures). These altitudes
+	should not be used inside ARTS but are intended for plotting and bug
+	checking.
+
+	* The angles between the vectors going from the Earth's center and
+	the sensor and the LOS points are now also calculated. These angles
+	are called psi in lack of a better name (any suggestion?).
+	The psi angles were included as a preperation for 2D. If horisontal
+	structures are neglected for the LOS calculations (the effects should
+	be negliable according to RAL and Rodgers), it is now a simple thing
+	to get the whole LOS for 2D (as soon we define what coordinate system
+	to use).
+
+	* Axel, I got your thesis in my hand more or less in the same minute
+	as I finished my ray tracing scheme. I saw that you have written quite
+	a lot about refraction. You should have done this work!
+	
+
 2001-02-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-125

@@ -2024,7 +2024,7 @@ void kPointingOffSet(
               const VECTOR&          t_abs,
               const VECTOR&          f_mono,
               const int&             refr,
-              const Numeric&         l_step_refr,
+              const int&             refr_lfac,
               const VECTOR&          refr_index,
               const Numeric&         z_ground,
               const Numeric&         r_geoid,
@@ -2043,7 +2043,7 @@ void kPointingOffSet(
 
   out2 << "  ----- Messages from losCalc: --------\n";
   LOS los;
-  losCalc( los, z_plat, za_new, l_step, p_abs, z_abs, refr, l_step_refr, 
+  losCalc( los, z_plat, za_new, l_step, p_abs, z_abs, refr, refr_lfac, 
                                               refr_index, z_ground, r_geoid );
   out2 << "  -------------------------------------\n";
 

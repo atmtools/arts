@@ -58,8 +58,10 @@ VARIABLE : p_abs
 DATA TYPE: VECTOR
 DESCRIPTION:
 The pressure grid for the absorption coefficients [Pa]. This
-is the basic independent grid, both in the 1D and 2D
-case. Therefore it remains a vector, even in 2D.
+is the basic independent grid for the absorption calculation, both
+in the 1D and 2D case. Therefore it remains a vector, even in 2D.
+The "raw" atmospheric data shall be interpolated to p_abs before
+the absorption calculations starts.
 
 VARIABLE : f_mono
 DATA TYPE: VECTOR
@@ -169,18 +171,19 @@ DATA TYPE: int
 DESCRIPTION:
 Boolean to consider refraction (0=no refraction).
 
-VARIABLE : l_step_refr
-DATA TYPE: Numeric
+VARIABLE : refr_lfac
+DATA TYPE: int
 DESCRIPTION:
-The step length (along LOS) when performing the calculations to
-determining the LOS with refraction [m].
-Note that the final step length between the LOS points is l_step.
-The step length here is only applied during the calculations.
+This factor determines the step length used during the ray tracing 
+performed when considering refraction. 
+The step length applied is l_step divided by refr_lfac. 
+Accordingly, this factor gives how many ray tracing steps that are 
+performed for each step of the LOS.
 
 VARIABLE : refr_index
 DATA TYPE: VECTOR
 DESCRIPTION:
-The refractive index associated with the pressures in p_abs [-].
+The refractive index associated with the pressures in p_refr [-].
 
 
 VARIABLE : r_geoid

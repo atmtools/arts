@@ -976,18 +976,14 @@ void LosWriteBinary(
   string filename = f;
   filename_bin( filename, var_name );
 
-  // Handle ground by adding 1 and handle as INDEX
-  const size_t   n = los.ground.size();
-  ARRAYofsizet   ground(n);
-  for ( size_t i=0; i<n; i++ )
-    ground[i] = size_t( los.ground[i] + 1 );
-
   binfile_open_out( fid, filename );
-  binfile_write_vectorarray( filename, fid, los.p, "LOS.P" );
-  binfile_write_vector( filename, fid, los.l_step, "LOS.L_STEP" );
-  binfile_write_indexarray( filename, fid, ground, "LOS.GROUND" );
-  binfile_write_indexarray( filename, fid, los.start, "LOS.START" );
-  binfile_write_indexarray( filename, fid, los.stop, "LOS.STOP" );
+  binfile_write_vectorarray( filename, fid, los.p,      "LOS.P" );
+  binfile_write_vectorarray( filename, fid, los.psi,    "LOS.PSI" );
+  binfile_write_vectorarray( filename, fid, los.z,      "LOS.Z" );
+  binfile_write_vector(      filename, fid, los.l_step, "LOS.L_STEP" );
+  binfile_write_indexarray(  filename, fid, los.ground, "LOS.GROUND" );
+  binfile_write_indexarray(  filename, fid, los.start,  "LOS.START" );
+  binfile_write_indexarray(  filename, fid, los.stop,   "LOS.STOP" );
   binfile_close( fid, filename );
 }
 
@@ -1008,21 +1004,15 @@ void LosReadBinary(
   string filename = f;
   filename_bin( filename, var_name );
 
-  // Ground is stored as 1-based
-  ARRAYofsizet   ground;
-
   binfile_open_in( fid, filename );
-  binfile_read_vectorarray( los.p, filename, fid, "LOS.P" );
-  binfile_read_vector( los.l_step, filename, fid, "LOS.L_STEP" );
-  binfile_read_indexarray( ground, filename, fid, "LOS.GROUND" );
-  binfile_read_indexarray( los.start, filename, fid, "LOS.START" );
-  binfile_read_indexarray( los.stop, filename, fid, "LOS.STOP" );
+  binfile_read_vectorarray( los.p,      filename, fid, "LOS.P" );
+  binfile_read_vectorarray( los.psi,    filename, fid, "LOS.PSI" );
+  binfile_read_vectorarray( los.z,      filename, fid, "LOS.Z" );
+  binfile_read_vector(      los.l_step, filename, fid, "LOS.L_STEP" );
+  binfile_read_indexarray(  los.ground, filename, fid, "LOS.GROUND" );
+  binfile_read_indexarray(  los.start,  filename, fid, "LOS.START" );
+  binfile_read_indexarray(  los.stop,   filename, fid, "LOS.STOP" );
   binfile_close( fid, filename );
-
-  const size_t   n = ground.size();
-  resize(los.ground,n);
-  for ( size_t i=0; i<n; i++ )
-    los.ground[i] = int ( ground[i] - 1 );
 }
 
 

@@ -284,7 +284,7 @@ void rte (
        const VECTOR&   e_ground,
        const VECTOR&   y_ground )
 {
-  const size_t   n_f = tr.nrows();               // number of frequencies
+  const size_t   n_f = tr.nrows();              // number of frequencies
         size_t   i_f;                           // frequency index
         size_t   i_break;                       // break index for looping
         size_t   i_start;                       // variable for second loop
@@ -296,8 +296,8 @@ void rte (
   if ( start_index > 0 )
   {
     // Determine break index for looping, either 1 or the ground
-    if ( ground >= 0 )
-      i_break = ground;
+    if ( ground > 0 )
+      i_break = ground-1;
     else
       i_break = 0;       
 
@@ -306,8 +306,8 @@ void rte (
 
     // We are now at the sensor, the ground or the tangent point
     // We are ready only if we are at the sensor.
-    // If at sensor, we have that STOP_INDEX=0 and GROUND<0
-    if ( !(stop_index==0 && ground<0) )
+    // If at sensor, we have that STOP_INDEX=0 and GROUND=0
+    if ( !(stop_index==0 && ground==0) )
     {
       // Set most common values for I_START and I_BREAK
       i_start = 0;
@@ -315,14 +315,14 @@ void rte (
       
       // If at the ground, include ground reflection. 
       // The loop can continue both downwards or upwards
-      if ( ground >= 0 )
+      if ( ground > 0 )
       {      
         for ( i_f=0; i_f<n_f; i_f++ )    
           y[i_f] = y[i_f]*(1.0-e_ground[i_f]) + y_ground[i_f]*e_ground[i_f];
         
-        if ( ground != 0 )  // 2D case, loop downwards
+        if ( ground > 1 )  // 2D case, loop downwards
 	{
-         i_start = ground - 1;
+         i_start = ground - 2;
          i_break = 0;
         }
       }
@@ -406,8 +406,8 @@ void bl (
        const int&      ground,
        const VECTOR&   e_ground )
 {
-  const size_t   nf = tr.nrows();          // number of frequencies
-        size_t   iy;                      // frequency index
+  const size_t   nf = tr.nrows();      // number of frequencies
+        size_t   iy;                   // frequency index
 
   // Init Y
   resize( y, nf );
@@ -425,7 +425,7 @@ void bl (
     bl_iterate( y, stop_index, start_index-1, tr, nf );
 
   // Include effect of ground reflection
-  if ( ground >= 0 )
+  if ( ground > 0 )
   {
     for ( iy=0; iy<nf; iy++ )    
       y[iy] *= ( 1.0 - e_ground[iy] );
@@ -706,7 +706,7 @@ Numeric ztan_refr(
     const size_t  n = z_abs.size();
           size_t  i;
 
-    for ( i=(n-1); (i>=0) && (r_geoid+z_abs[i])*refr_index[i]>c; i-- ) 
+    for ( i=(n-1); (i>=0) && (r_geoid+z_abs[i])*refr_index[i]>c; i-- )
     {
       if ( z_abs[i] <= z_ground ) //=== Ground intersection ==============
       {
@@ -723,11 +723,9 @@ Numeric ztan_refr(
       zs[0] = z_abs[i];
       zs[1] = z_abs[i+1];
       cs[0] = (r_geoid+z_abs[i])*refr_index[i];
-      cs[1] = (r_geoid+z_abs[i+1])*refr_index[i+1];  
-      return interp_lin( cs, zs, c ); 
+      cs[1] = (r_geoid+z_abs[i+1])*refr_index[i+1];
+      return interp_lin( cs, zs, c );
     }
   }
 }
-
-
-
+                           

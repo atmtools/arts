@@ -511,7 +511,7 @@ void ybatchAbsAndRte(
         const VECTOR&                     za_pencil,
         const Numeric&                    l_step,
         const int&                        refr,
-        const Numeric&                    l_step_refr,
+        const int&                        refr_lfac,
         const VECTOR&                     refr_index,
         const Numeric&                    z_ground,
         const Numeric&                    r_geoid,
@@ -634,10 +634,11 @@ void ybatchAbsAndRte(
       }
     // Do the calculations
     if ( (i==0) || do_t || ntags || do_f )
-      absCalc( abs, abs_per_tag, tag_groups, f, p_abs, t, h2o_abs, vs, lines_per_tag, lineshape);
+      absCalc( abs, abs_per_tag, tag_groups, f, p_abs, t, h2o_abs, vs, 
+                                                     lines_per_tag, lineshape);
     if ( (i==0) || do_z || do_za )   
-      losCalc( los, z_plat, za, l_step, p_abs, z, refr, l_step_refr, 
-                                              refr_index, z_ground, r_geoid );
+      losCalc( los, z_plat, za, l_step, p_abs, z, refr, refr_lfac, 
+                                               refr_index, z_ground, r_geoid );
     if ( (i==0) || do_t || do_z || do_f || do_za )   
       sourceCalc( source, los, p_abs, t, f );
     transCalc( trans, los, p_abs, abs );

@@ -1604,33 +1604,26 @@ void abs_per_tgReduce(// WS Output:
 
    The atmosphere is assumed to have no water vapour.
 
-   \retval   refr        refractive index
+   \retval   refr_index  refractive index
    \param    p_abs       absorption pressure grid
    \param    t_abs       temperatures at p_abs
 
    \author Patrick Eriksson
-   \date   2000-09-30
-
-   Adapted to MTL.
-   2000-12-26    
-   Stefan Buehler
+   \date   2001-02-16
 */
 void refr_indexBoudourisDryAir (
-                    VECTOR&          refr_index,
-              const VECTOR&          p_abs,
-              const VECTOR&          t_abs )
+                    VECTOR&   refr_index,
+              const VECTOR&   p_abs,
+              const VECTOR&   t_abs )
 {
-  if ( p_abs.size()!=t_abs.size() )
-    throw(runtime_error("The variables p_abs and t_abs must have the same dimension."));
+  const INDEX   n = p_abs.size();
+  resize( refr_index, n );
 
-  resize( refr_index, p_abs.size() );
+  assert ( n == t_abs.size() );
 
-  //  refr_index = 1.0 + 0.77593e-6*ediv(p_abs,t_abs);
-  ele_div( scaled(p_abs,0.77593e-6), t_abs, refr_index );
-
-  VECTOR dummy( p_abs.size(), 1.0 );
-
-  add(dummy, refr_index);
+  // N = 77.593e-2 * p / t ppm
+  for ( INDEX i=0; i<n; i++ )
+    refr_index[i] = 1.0 + 77.593e-8 * p_abs[i] / t_abs[i];
 }
 
 
@@ -1642,28 +1635,40 @@ void refr_indexBoudourisDryAir (
 
    The expression is also found in Chapter 5 of the Janssen book.
 
-   \retval   refr        refractive index
+   \retval   refr_index  refractive index
    \param    p_abs       absorption pressure grid
    \param    t_abs       temperatures at p_abs
    \param    h2o_abs     H2O vmr at p_abs
 
    \author Patrick Eriksson
-   \date   2001-01-17
+   \date   2001-02-16
 */
 void refr_indexBoudouris (
-                    VECTOR&          refr_index,
-              const VECTOR&          p_abs,
-              const VECTOR&          t_abs,
-              const VECTOR&          h2o_abs )
+                    VECTOR&   refr_index,
+              const VECTOR&   p_abs,
+              const VECTOR&   t_abs,
+              const VECTOR&   h2o_abs )
 {
-  const INDEX  n = p_abs.size();
+  const INDEX   n = p_abs.size();
+  resize( refr_index, n );
 
-  if ( n != t_abs.size() )
-    throw(runtime_error("The variables p_abs and t_abs must have the same dimension."));
+  assert ( n == t_abs.size() );
+  assert ( n == h2o_abs.size() );
 
-  if ( n != h2o_abs.size() )
-    throw(runtime_error("The variables p_abs and h2o_abs must have the same dimension."));
+  Numeric   e;     // Partial pressure of water in Pa
+  Numeric   p;     // Partial pressure of the dry air: p = p_tot - e 
 
+  for ( INDEX i=0; i<n; i++ )
+  {
+    e = p_abs[i] * h2o_abs[i];
+    p = p_abs[i] - e;
+
+    refr_index[i] = 1.0 + 77.593e-8 * p / t_abs[i] + 
+                          72e-8 * e / t_abs[i] +
+                          3.754e-3 * e / (t_abs[i]*t_abs[i]);
+  }
+
+  /*
   resize( refr_index, n );
 
   // Partial pressure of water in Pa
@@ -1695,4 +1700,5 @@ void refr_indexBoudouris (
   // Add 1
   setto( dummy, 1.0 );
   add(dummy, refr_index);
+  */
 }

@@ -121,8 +121,10 @@ void define_wsv_data()
     (WsvRecord
      ("p_abs",
       "The pressure grid for the absorption coefficients [Pa]. This\n"
-      "is the basic independent grid, both in the 1D and 2D\n"
-      "case. Therefore it remains a vector, even in 2D.",
+      "is the basic independent grid for the absorption calculation, both\n"
+      "in the 1D and 2D case. Therefore it remains a vector, even in 2D.\n"
+      "The \"raw\" atmospheric data shall be interpolated to p_abs before\n"
+      "the absorption calculations starts.",
       VECTOR_));
   
   wsv_data.push_back
@@ -265,17 +267,18 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("l_step_refr",
-      "The step length (along LOS) when performing the calculations to\n"
-      "determining the LOS with refraction [m].\n"
-      "Note that the final step length between the LOS points is l_step.\n"
-      "The step length here is only applied during the calculations.",
-      Numeric_));
+     ("refr_lfac",
+      "This factor determines the step length used during the ray tracing \n"
+      "performed when considering refraction. \n"
+      "The step length applied is l_step divided by refr_lfac. \n" 
+      "Accordingly, this factor gives how many ray tracing steps that are \n"
+      "performed for each step of the LOS.",
+      int_));
 
   wsv_data.push_back
     (WsvRecord
      ("refr_index",
-      "The refractive index associated with the pressures in p_abs [-].\n",
+      "The refractive index associated with the pressures in p_refr [-].\n",
       VECTOR_));
 
   wsv_data.push_back

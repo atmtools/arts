@@ -190,12 +190,13 @@ else
 
   %=== AOSIZET
   elseif strcmp(artstype,'AOSIZET') 
-    a = binfile_read_numeric(filename,fid,'INDEXARRAY','ARRAY',0,1);
-    n = length(a);
-    x = cell(n,1);
-    for i = 1:n
-      x{i} = a(i);
-    end
+    x = binfile_read_numeric(filename,fid,'INDEXARRAY','ARRAY',0,1);
+    %a = binfile_read_numeric(filename,fid,'INDEXARRAY','ARRAY',0,1);
+    %n = length(a);
+    %x = cell(n,1);
+    %for i = 1:n
+    %  x{i} = a(i);
+    %end
 
   %=== NUMERIC
   elseif strcmp(artstype,'NUMERIC')
@@ -239,6 +240,36 @@ else
       x{i} = binfile_read_string(filename,fid,['STRING',int2str(i-1)],...
                                                                 'STRING',0,1);
     end
+
+  %=== LOS
+  elseif strcmp(artstype,'LOS')
+    n = binfile_read_numeric(filename,fid,'N_LOS.P','SCALAR',1,1);
+    x.p = cell(n,1);
+    for i = 1:n
+      x.p{i} = binfile_read_numeric(filename,fid,['LOS.P',int2str(i-1)],...
+                                                                'VECTOR',0,0);
+    end
+    %
+    n = binfile_read_numeric(filename,fid,'N_LOS.PSI','SCALAR',1,1);
+    x.psi = cell(n,1);
+    for i = 1:n
+      x.psi{i} = binfile_read_numeric(filename,fid,...
+                                       ['LOS.PSI',int2str(i-1)],'VECTOR',0,0);
+    end
+    %
+    n = binfile_read_numeric(filename,fid,'N_LOS.Z','SCALAR',1,1);
+    x.z = cell(n,1);
+    for i = 1:n
+      x.z{i} = binfile_read_numeric(filename,fid,['LOS.Z',int2str(i-1)],...
+                                                                'VECTOR',0,0);
+    end
+    %
+    x.l_step = binfile_read_numeric(filename,fid,'LOS.L_STEP','VECTOR',0,1);
+    %
+    x.ground = binfile_read_numeric(filename,fid,'LOS.GROUND','ARRAY',0,1);
+    x.start  = binfile_read_numeric(filename,fid,'LOS.START','ARRAY',0,1);
+    x.stop   = binfile_read_numeric(filename,fid,'LOS.STOP','ARRAY',0,1);
+
 
   %=== ??????????????
   else

@@ -1341,13 +1341,13 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("refr_indexBoudourisDryAir"),
-	DESCRIPTION("Calculates the refractive index for dry air at micro-\n"
-		    "wave frequncies following Boudouris 1963.\n"
-                    "The effect of water vapor is neglected (dry air).\n"
-		    "The expression is also found in Chapter 5 of the\n"
-		    "Janssen book."),
-	OUTPUT(	    refr_index_ ),
-	INPUT( 	    p_abs_, t_abs_ ),
+	DESCRIPTION(
+           "Calculates the refractive index for dry air at micro-wave\n"
+	   "frequencies following Boudouris 1963.\n"
+           "The effect of water vapor is neglected (dry air).\n"
+	   "The expression is also found in Chapter 5 of the Janssen book."),
+	OUTPUT( refr_index_ ),
+	INPUT( 	p_abs_, t_abs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1356,12 +1356,12 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("refr_indexBoudouris"),
-	DESCRIPTION("Calculates the refractive index at microwave\n"
-		    "frequncies following Boudouris 1963.\n"
-		    "The expression is also found in Chapter 5 of the\n"
-		    "Janssen book."),
-	OUTPUT(	    refr_index_ ),
-	INPUT( 	    p_abs_, t_abs_, h2o_abs_ ),
+	DESCRIPTION(
+           "Calculates the refractive index at microwave frequencies\n"
+           "following Boudouris 1963.\n"
+	   "The expression is also found in Chapter 5 of the Janssen book."),
+	OUTPUT(	refr_index_ ),
+	INPUT( 	p_abs_, t_abs_, h2o_abs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1443,11 +1443,11 @@ void define_md_data()
       ( NAME("NoRefraction"),
   	DESCRIPTION(
           "Sets the refraction flag (refr) to zero and gives other \n"
-          "refraction variables (refr_index and l_step_refr) dummy values. \n"
+          "refraction variables (refr_index and refr_lfac) dummy values. \n"
           "If the refraction later is turned on, the variables refr_index \n"
-          "and l_step_refr must be given propoer values, or there will be\n"
+          "and refr_lfac must be given propoer values, or there will be\n"
           "error messages."),
-	OUTPUT( refr_, refr_index_, l_step_refr_ ),
+	OUTPUT( refr_, refr_index_, refr_lfac_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
@@ -1464,7 +1464,7 @@ void define_md_data()
           "also be specified."),
 	OUTPUT( los_ ),
 	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, 
-               refr_, l_step_refr_, refr_index_, z_ground_, r_geoid_ ),
+                refr_, refr_lfac_, refr_index_, z_ground_, r_geoid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1659,7 +1659,7 @@ void define_md_data()
           "  unit : Retrieval unit string (see above)."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, p_abs_, t_abs_, wfs_tgs_, abs_per_tg_, 
-                                                               vmrs_, k_grid_),
+                                                              vmrs_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "tag",     "unit"  ),
@@ -1751,7 +1751,7 @@ void define_md_data()
           "  delta : Size of zenith angle perturbation."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( z_plat_, za_pencil_, l_step_, p_abs_, z_abs_, t_abs_, f_mono_,
-               refr_, l_step_refr_, refr_index_, z_ground_, r_geoid_, 
+               refr_, refr_lfac_, refr_index_, z_ground_, r_geoid_, 
                abs_, y_space_, e_ground_, t_ground_, y_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -2511,10 +2511,11 @@ void define_md_data()
           "  tag_files : Filenames for species data."),
 	OUTPUT( ybatch_ ),
 	INPUT( // Variables needed for absCalc
-               f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, lineshape_, 
+               f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
+               lineshape_, 
                // Additional variables for losCalc
-	       z_abs_, z_plat_ ,za_pencil_, l_step_, refr_, l_step_refr_, 
-               refr_index_, z_ground_, r_geoid_,
+	       z_abs_, z_plat_ ,za_pencil_, l_step_, refr_, 
+               refr_lfac_, refr_index_, z_ground_, r_geoid_,
                // Additional variables for yRte
 	       y_space_, e_ground_, t_ground_,
                // Additional variables needed for this function
