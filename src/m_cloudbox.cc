@@ -955,12 +955,18 @@ void CloudboxGetIncoming(// WS Output:
 			 Ppath& ppath,
 			 Ppath& ppath_step,
 			 Matrix& i_rte, 
+			 Matrix& y_rte,
+			 Matrix& i_space,
+			 Matrix& ground_emission,
+			 Matrix& ground_los,
+			 Tensor4& ground_refl_coeffs,
+			 Index& mblock_index,
+			 Vector& a_los,
+			 Vector& a_pos,
 			 //WS Specific Input:
 			 const GridPos& a_gp_p,
                          const GridPos& a_gp_lat,
                          const GridPos& a_gp_lon,
-                         //const Vector& a_los,
-			 //const Vector& a_pos,
 			 const Index& cloudbox_on, 
                          const ArrayOfIndex& cloudbox_limits,
                          const Index& atmosphere_dim,
@@ -970,23 +976,33 @@ void CloudboxGetIncoming(// WS Output:
                          const Vector& f_grid,
 			 const Agenda& ppath_step_agenda,
 			 const Agenda& rte_agenda,
+			 const Agenda& i_space_agenda,
+			 const Agenda& ground_refl_agenda,
 			 const Vector& p_grid,
 			 const Vector& lat_grid,
 			 const Vector& lon_grid,
 			 const Tensor3& z_field,
 			 const Matrix& r_geoid,
-			 const Matrix& z_ground)
+			 const Matrix& z_ground,
+			 const Index& antenna_dim,
+			 const Vector& mblock_aa_grid
+			 )
 			 
 {
   Index Nza = scat_za_grid.nelem();
   Index Nf = f_grid.nelem();
+  Index Np = p_grid.nelem();
   Index Nlat = lat_grid.nelem();
   Index Nlon = lon_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
   Index Ni = stokes_dim;
-
+  
   scat_i_p.resize(Nf,2,Nlat,Nlon,Nza,Naa,Ni);
+  scat_i_lat.resize(Nf,Np,2,Nlon,Nza,Naa,Ni);
+  scat_i_lon.resize(Nf,Np,Nlat,2,Nza,Naa,Ni);
   i_rte.resize(Nf,Ni);
+  i_space.resize(Nf, Ni);
+ 
   if( !cloudbox_on )
     throw runtime_error( "The cloud box is not activated and no outgoing "
 			 "field can be returned." );
@@ -1000,31 +1016,55 @@ void CloudboxGetIncoming(// WS Output:
 			    "Gridpositions have to be on the boundary of the "
 			    "cloudbox defined by *cloudbox_limits*."
 			    ); 
-      Vector a_pos(1);
-      Vector a_los(1);
+      Vector mblock_za_grid(1);
+      
+      mblock_za_grid[0] = 0;
+      
+      Matrix sensor_los(Nza,atmosphere_dim);
+      Matrix sensor_pos(Nza,atmosphere_dim);
+      
+      // dummy scat_i_p, scat_i_lat, scat_i_lon
+      Tensor7 scat_i_p_dummy(Nf, 2, Nlat, Nlon, Nza, Naa, Ni);
+      Tensor7 scat_i_lat_dummy(Nf, Np, 2, Nlon, Nza, Naa, Ni);
+      Tensor7 scat_i_lon_dummy(Nf, Np, Nlat, 2, Nza, Naa, Ni);
+     
+
+      GridPos a_gp_p_dummy;
+      GridPos a_gp_lat_dummy;
+      GridPos a_gp_lon_dummy;
+
+      Index cloudbox_on_dummy = 0;
+       
       // Get scat_i_p at lower boundary
       if(a_gp_p.idx == cloudbox_limits[0])
 	{
-	  //a_pos[0] = p_grid[cloudbox_limits[0]];
-	  a_pos[0] = r_geoid(0,0)+z_field(cloudbox_limits[0],0,0);
+		  
+	  sensor_pos(Range(0,Nza), 0) = r_geoid(0,0)+z_field(cloudbox_limits[0],0,0);
+	  
+	  sensor_los(Range(joker), 0) =  scat_za_grid;
+	  
+	  RteCalc( y_rte, ppath, ppath_step, i_rte, 
+		   mblock_index, a_pos, a_los, a_gp_p_dummy, 
+		   a_gp_lat_dummy, a_gp_lon_dummy,
+		   i_space, ground_emission, ground_los, 
+		   ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
+		   i_space_agenda, ground_refl_agenda, 
+		   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
+		   z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
+		   scat_i_lat_dummy,
+		   scat_i_lon_dummy, scat_za_grid, scat_aa_grid, sensor_pos, 
+		   sensor_los, f_grid, stokes_dim, antenna_dim, 
+		   mblock_za_grid, mblock_aa_grid );
 	  
 	  for (Index scat_za_index = 0; scat_za_index < Nza; ++ scat_za_index)
 	    {
-	      
-	      a_los[0] = scat_za_grid[scat_za_index];
-	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
-			 p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground,
-			 cloudbox_on, cloudbox_limits,  a_pos, a_los );
-	      
-	      rte_agenda.execute();
-	      
 	      scat_i_p( Range(joker), 0, 0,0, 
 			scat_za_index,0,
 			Range(joker)) = i_rte;
-	      cout << "a_los[0]" <<a_los[0]<< endl;
-	      //cout << "r_geoid" <<r_geoid(0,0)<< endl;
-	      //cout << "z_field" <<z_field(cloudbox_limits[0],0,0)<< endl;
-	     
+	      
+	      cout << "i_rte" <<i_rte<< endl;
+	      
+	      
 	    }
 	  
 	}
@@ -1032,28 +1072,39 @@ void CloudboxGetIncoming(// WS Output:
       // Get scat_i_p at upper boundary
       else if (a_gp_p.idx == cloudbox_limits[1])
 	{
-	  //a_pos[0] = p_grid[cloudbox_limits[0]];
-	  a_pos[0] = r_geoid(0,0)+z_field(cloudbox_limits[1],0,0);
+	 sensor_pos(Range(0,Nza),1) = r_geoid(0,0)+z_field(cloudbox_limits[1],0,0);
+	  
+	  sensor_los(Range(joker), 1) =  scat_za_grid;
+	  
+	  RteCalc( y_rte, ppath, ppath_step, i_rte, 
+		   mblock_index, a_pos, a_los, a_gp_p_dummy, 
+		   a_gp_lat_dummy, a_gp_lon_dummy,
+		   i_space, ground_emission, ground_los, 
+		   ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
+		   i_space_agenda, ground_refl_agenda, 
+		   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
+		   z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
+		   scat_i_lat_dummy,
+		   scat_i_lon_dummy, scat_za_grid, scat_aa_grid, sensor_pos, 
+		   sensor_los, f_grid, stokes_dim, antenna_dim, 
+		   mblock_za_grid, mblock_aa_grid );
+	  
 	  for (Index scat_za_index = 0; scat_za_index < Nza; ++ scat_za_index)
 	    {
-	      
-	      a_los[0] = scat_za_grid[scat_za_index];
-	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
-			 p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground,
-			 cloudbox_on, cloudbox_limits, 
-			 a_pos, a_los );
-	      
-	      rte_agenda.execute();
-	      
 	      scat_i_p( Range(joker), 1, 0,0, 
 			scat_za_index,0,
 			Range(joker)) = i_rte;
-	    }
+	      
+	      cout << "i_rte" <<i_rte<< endl;
+	      
+	      
+	    } //a_pos[0] = p_grid[cloudbox_limits[0]];
+	 
 	} 
       scat_i_lat = 0;
       scat_i_lon = 0;
     }
- exit(1);
+
   if(atmosphere_dim == 3)
     {
       throw runtime_error(

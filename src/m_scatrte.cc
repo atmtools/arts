@@ -1477,6 +1477,14 @@ void ScatteringMain(//WS Output
 		   Ppath& ppath,
 		   Ppath& ppath_step,
 		   Matrix& i_rte,
+		   Matrix& y_rte,
+		   Matrix& i_space,
+		   Matrix& ground_emission,
+		   Matrix& ground_los,
+		   Tensor4& ground_refl_coeffs,
+		   Index& mblock_index,
+		   Vector& a_los,
+		   Vector& a_pos,
 		   //WS  Input :
                    const Agenda& scat_mono_agenda,
 		   const Index& cloudbox_on, 
@@ -1488,12 +1496,17 @@ void ScatteringMain(//WS Output
 		   const Vector& f_grid,
 		   const Agenda& ppath_step_agenda,
 		   const Agenda& rte_agenda,
+		   const Agenda& i_space_agenda,
+		   const Agenda& ground_refl_agenda,
 		   const Vector& p_grid,
 		   const Vector& lat_grid,
 		   const Vector& lon_grid,
 		   const Tensor3& z_field,
 		   const Matrix& r_geoid,
-		   const Matrix& z_ground)
+		   const Matrix& z_ground,
+		   const Index& antenna_dim,
+		   const Vector& mblock_aa_grid)
+		  
 {
   Index Nza = scat_za_grid.nelem();
   Index Nf = f_grid.nelem();
@@ -1523,13 +1536,18 @@ void ScatteringMain(//WS Output
       a_gp_lon.idx = 0;
       a_gp_lon.fd[0] = 0;
       a_gp_lon.fd[1] = 1;
-
+      
       CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
-                          i_rte, a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on, 
-                          cloudbox_limits,
-			  atmosphere_dim, stokes_dim, scat_za_grid, scat_aa_grid, 
-			  f_grid, ppath_step_agenda, rte_agenda, p_grid,lat_grid, lon_grid,
-			  z_field, r_geoid, z_ground);
+			  i_rte, y_rte, i_space, ground_emission, ground_los, 
+			  ground_refl_coeffs,mblock_index, a_los,
+			  a_pos, a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on,
+			  cloudbox_limits, atmosphere_dim, stokes_dim,
+			  scat_za_grid, scat_aa_grid, f_grid, 
+			  ppath_step_agenda, rte_agenda, i_space_agenda,
+			  ground_refl_agenda, p_grid,lat_grid,
+			  lon_grid, z_field, r_geoid, z_ground, antenna_dim, 
+			  mblock_aa_grid );
+
       // Get scat_i_p at upper boundary 
       a_gp_p.idx = cloudbox_limits[1];
       a_gp_p.fd[0] = 0;
@@ -1542,13 +1560,17 @@ void ScatteringMain(//WS Output
       a_gp_lon.fd[1] = 1;
 
       CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
-                          i_rte, a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on, 
-                          cloudbox_limits, atmosphere_dim, stokes_dim,
-                          scat_za_grid, scat_aa_grid, f_grid, 
-                          ppath_step_agenda, rte_agenda, p_grid,lat_grid, 
-                          lon_grid, z_field, r_geoid, z_ground);
+			  i_rte, y_rte, i_space, ground_emission, ground_los, 
+			  ground_refl_coeffs,mblock_index, a_los,
+			  a_pos, a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on,
+			  cloudbox_limits, atmosphere_dim, stokes_dim,
+			  scat_za_grid, scat_aa_grid, f_grid, 
+			  ppath_step_agenda, rte_agenda,i_space_agenda,
+			  ground_refl_agenda, p_grid,lat_grid, 
+			  lon_grid, z_field, r_geoid, z_ground,antenna_dim,
+			  mblock_aa_grid);
+			 
     }
-
   for (Index scat_f_index = 0; scat_f_index < Nf; ++ scat_f_index)
     {
       scat_mono_agenda.execute(); 
