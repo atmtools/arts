@@ -199,7 +199,6 @@ void pha_mat_sptFromData( // Output:
   \author Claudia Emde
   \date   2003-08-25
 */
-
 void pha_mat_sptFromDataDOITOpt( // Output:
                          Tensor5& pha_mat_spt,
                          // Input:
@@ -213,7 +212,6 @@ void pha_mat_sptFromDataDOITOpt( // Output:
                          const Numeric& rte_temperature
                          )
 {
-
   // Create equidistant zenith angle grid
   Vector za_grid;
   nlinspace(za_grid, 0, 180, za_grid_size);  
@@ -228,6 +226,14 @@ void pha_mat_sptFromDataDOITOpt( // Output:
   // Do the transformation into the laboratory coordinate system.
   for (Index i_pt = 0; i_pt < N_pt; i_pt ++)
     { 
+      if (part_type != PTYPE_MACROS_ISO)
+        throw  runtime_error(
+                             "The method *pha_mat_sptFromDataDOITOpt* only \n"
+                             "works for randomly oriented particles (p20). \n"
+                             "Please use *pha_mat_sptFromMonoData* for\n"
+                             "horizonthally aligned particles (p30).\n"
+                         );
+
       // Temperature interpolation
       // Gridpositions:
       GridPos T_gp;
@@ -1075,7 +1081,7 @@ void ScatteringDataPrepareDOITOpt( //Output:
           throw runtime_error( os.str() );
         }
     }
-
+  
   // For 1D calculation the scat_aa dimension is not required:
   Index N_aa_sca;
   if(atmosphere_dim == 1)
@@ -1096,6 +1102,14 @@ void ScatteringDataPrepareDOITOpt( //Output:
 
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
+      if (part_type != PTYPE_MACROS_ISO)
+        throw  runtime_error(
+                             "The method *ScatteringDataPrepareDOITOpt* only \n"
+                             "works for randomly oriented particles (p20). \n"
+                             "Please use *scat_data_monoCalc* for horizonthally\n"
+                             "aligned particles (p30).\n"
+                             );
+      
       Index N_T = T_datagrid.nelem();
       pha_mat_sptDOITOpt[i_pt].resize(N_T, za_grid_size, N_aa_sca, 
                     za_grid_size, scat_aa_grid.nelem(), 6);
