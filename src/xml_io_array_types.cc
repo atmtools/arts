@@ -529,6 +529,88 @@ xml_write_to_stream (ostream& os_xml,
   os_xml << '\n';
 }
 
+
+//=== ArrayOfIsotopeRecord ===================================================
+
+//! Reads ArrayOfIsotopeRecord from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param airecord  ArrayOfIsotopeRecord return value
+  \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      Array<IsotopeRecord>& airecord,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "IsotopeRecord");
+
+  tag.get_attribute_value ("nelem", nelem);
+  airecord.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, airecord[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfIsotopeRecord: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfIsotopeRecord to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param aindex  ArrayOfIsotopeRecord
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const Array<IsotopeRecord>& airecord,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("type", "IsotopeRecord");
+  open_tag.add_attribute ("nelem", airecord.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < airecord.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, airecord[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+
 //=== ArrayOfMatrix ==========================================================
 
 //! Reads ArrayOfMatrix from XML input stream

@@ -55,6 +55,13 @@
 ////////////////////////////////////////////////////////////////////////////
 
 void
+xml_read_from_stream (istream&, Array<IsotopeRecord>&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const Array<IsotopeRecord>&, bofstream * = NULL,
+                     const String& = "");
+
+void
 xml_read_from_stream (istream&, Array<SpeciesRecord>&, bifstream * = NULL);
 
 void
