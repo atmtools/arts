@@ -622,7 +622,6 @@ void mult( Sparse& A,
                   std::vector<Index>::iterator rowindC_it =
                     find(C.mrowind->begin()+*(C.mcolptr->begin()+c),
                       C.mrowind->begin()+*(C.mcolptr->begin()+c+1), *i);
-                  // FIXME: The find function is also used here
 
                   std::vector<Numeric>::iterator dataBt_it =
                     Bt.mdata->begin()+(rowindBt_it-Bt.mrowind->begin());
