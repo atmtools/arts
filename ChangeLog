@@ -2,10 +2,10 @@
 
 	* arts-1-1-188
 
-	* doc/uguide/scattering.tex: Rewritten the explaination of the
+	* doc/uguide/scattering.tex: Rewritten the explanation of the
 	iteration scheme. More detailed now.
 
-	* doc/uguide/main.tex: Renamed part III. Now it is "Matematical
+	* doc/uguide/main.tex: Renamed part III. Now it is "Mathematical
 	functions" instead of "Linear algebra functions". 
 	Added a new part "Theoretical background". Included chapter about
 	polarization there. 
