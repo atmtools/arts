@@ -1,3 +1,20 @@
+2002-12-02  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-326
+
+	* src/ppath.cc: Things have been moved around a bit. A pure Euler
+	approach has been implemented for 1D (used in Euler/EulerWithLmax).
+	The 1D and 2D versions give basically identical results. The results
+	converge when making the step lengtn smaller.
+
+	The special 1D version that gives a symmetric path around tangent 
+	points is moved to be part of a new WSM ppath_stepRefraction1D. 
+	The results for this version do not converge when making the ray 
+	tracing step length shorter (and I can't find out why this is the 
+	case).
+
+	* src/m_atmosphere.cc (r_geoidSpherical): New WSM.
+
 2002-12-02  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-325

@@ -136,6 +136,17 @@ void ppath_step_geom_2d(
         ConstVectorView   z_ground,
 	const Numeric&    lmax );
 
+void ppath_step_refr_1d_special(
+	      Ppath&      ppath,
+        ConstVectorView   p_grid,
+        ConstVectorView   z_field,
+        ConstVectorView   t_field,
+        const Numeric&    r_geoid,
+        const Numeric&    z_ground,
+	const String&     rtrace_method,
+	const Numeric&    lraytrace,
+        const Numeric&    lmax );
+
 void ppath_step_refr_1d(
 	      Ppath&      ppath,
         ConstVectorView   p_grid,

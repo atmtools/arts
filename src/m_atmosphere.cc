@@ -55,6 +55,7 @@
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
+extern const Numeric EARTH_RADIUS;
 
 
 
@@ -574,6 +575,51 @@ void GroundTreatAsBlackbody(
       for( Index is=1; is<stokes_dim; is++ )
 	{ ground_emission(i,is) = 0; }
     }
+}
+
+
+
+//! r_geoidSpherical
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-12_02
+*/
+void r_geoidSpherical(
+        // WS Output:
+              Matrix&    r_geoid,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Numeric&   r )
+{
+  // Check input (use dummy for *p_grid*).
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, Vector(2,2,-1), lat_grid, lon_grid );
+
+  // What radius to use?
+  Numeric   r_local = r;
+  if( r < 0 )
+    { r_local = EARTH_RADIUS; }
+
+  out2 << "  Sets r_geoid to a sphere with a constant radius of " 
+       << r_local/1e3 << " km.\n";
+
+  // Effective number of latitudes and longitudes
+  Index nlat=1, nlon=1;
+  if( atmosphere_dim >= 2 )
+    { nlat = lat_grid.nelem(); }
+  if( atmosphere_dim >= 3 )
+    { nlon = lon_grid.nelem(); }
+        
+  r_geoid.resize( nlat, nlon );
+
+  r_geoid = r_local;
+  
+  out3 << "            nrows  : " << r_geoid.nrows() << "\n";
+  out3 << "            ncols  : " << r_geoid.ncols() << "\n";
 }
 
 

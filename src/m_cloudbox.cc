@@ -1073,6 +1073,7 @@ void CloudboxGetIncoming(// WS Output:
 			 const Vector& lat_grid,
 			 const Vector& lon_grid,
 			 const Tensor3& z_field,
+			 const Tensor3& t_field,
 			 const Matrix& r_geoid,
 			 const Matrix& z_ground
                          )
@@ -1134,7 +1135,8 @@ void CloudboxGetIncoming(// WS Output:
                i_space, ground_emission, ground_los, 
                ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
                i_space_agenda, ground_refl_agenda, 
-               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
+               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+               r_geoid, 
                z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
                scat_i_lat_dummy,
                scat_i_lon_dummy, scat_za_grid, scat_aa_grid, sensor_pos, 
@@ -1162,7 +1164,8 @@ void CloudboxGetIncoming(// WS Output:
                    i_space, ground_emission, ground_los, 
                    ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
                    i_space_agenda, ground_refl_agenda, 
-                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
+                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                   t_field, r_geoid, 
                    z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
                    scat_i_lat_dummy,
                    scat_i_lon_dummy, scat_za_grid, scat_aa_grid, sensor_pos, 

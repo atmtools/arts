@@ -1838,6 +1838,7 @@ void ScatteringMain(//WS Output
 		   const Vector& lat_grid,
 		   const Vector& lon_grid,
 		   const Tensor3& z_field,
+		   const Tensor3& t_field,
 		   const Matrix& r_geoid,
 		   const Matrix& z_ground
                    )
@@ -1874,7 +1875,7 @@ void ScatteringMain(//WS Output
                       scat_za_grid, scat_aa_grid, f_grid, 
                       ppath_step_agenda, rte_agenda, i_space_agenda,
                       ground_refl_agenda, p_grid,lat_grid,
-                      lon_grid, z_field, r_geoid, z_ground);
+                      lon_grid, z_field, t_field, r_geoid, z_ground);
 
   
   // Calculation for monochromatic radiation field inside cloudbox:

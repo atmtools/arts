@@ -91,6 +91,7 @@ void RteCalc(
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
+        const Tensor3&        t_field,
         const Matrix&         r_geoid,
         const Matrix&         z_ground,
         const Index&          cloudbox_on, 
@@ -262,7 +263,8 @@ void RteCalc(
 
 	      // Determine propagation path
 	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
-		        p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground,
+		        p_grid, lat_grid, lon_grid, z_field, t_field, 
+                              r_geoid, z_ground,
 			      cloudbox_on, cloudbox_limits, 
 			          sensor_pos(mblock_index,Range(joker)), los );
 
@@ -272,7 +274,8 @@ void RteCalc(
 	              ground_emission, ground_los, ground_refl_coeffs, ppath, 
                       mblock_index, ppath_step_agenda, rte_agenda, 
                       i_space_agenda, ground_refl_agenda, atmosphere_dim, 
-                      p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground, 
+                      p_grid, lat_grid, lon_grid, z_field, t_field, 
+                      r_geoid, z_ground, 
                       cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat, 
                       scat_i_lon, scat_za_grid, scat_aa_grid, f_grid, 
                       stokes_dim, antenna_dim );

@@ -193,6 +193,7 @@ void ppathCalc(
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
+        const Tensor3&        t_field,
         const Matrix&         r_geoid,
         const Matrix&         z_ground,
         const Index&          cloudbox_on, 
@@ -283,14 +284,10 @@ void ppathCalc(
       // Call ppath_step agenda
       //
       istep++;
-      out3 << "  path step number     : " << istep << "\n";
       //
-      
       // (CE:) Included istep here to execute the agenda silently.
       ppath_step_agenda.execute(istep-1);
       
-      //PpathPrint(ppath_step,"ppath_step");
-
       // Number of points in returned path step
       const Index n = ppath_step.np;
 
@@ -450,6 +447,31 @@ void ppathCalc(
   ppath.refraction = ppath_step.refraction;
   ppath.constant   = ppath_step.constant;
   ppath.background = ppath_step.background;
+
+  out3 << "  number of path steps  : " << istep           << "\n";
+  out3 << "  number of path points : " << ppath.z.nelem() << "\n";
+
+
+  // If refraction has been considered, make a simple check that the
+  // refraction at the top of the atmosphere is sufficiently close to 1.
+  if( ppath.refraction )
+    {
+      Vector        n(1);
+      const Index   np = p_grid.nelem();
+
+      refr_index_BoudourisDryAir( n, Vector(1,p_grid[np-1]), 
+                                                 Vector(1,t_field(np-1,0,0)) );
+
+      if( (n[0]-1) > 1e-6 )
+        {
+          out2 << "  *** WARNING****\n" << 
+            "  The calculated propagation path can "
+            "be inexact as the refractive index\n  at the top of the "
+            "atmosphere deviates significantly from 1\n" << "     n-1 = " <<
+            n[0]-1 << "\n  However, the importance of this depends on the " 
+            "observation geometry.\n";
+        } 
+    }
 }
 
 
@@ -533,6 +555,47 @@ void ppath_stepGeometricWithLmax(
   else
     {
       throw runtime_error( "3D propagation path steps are not yet handled." );
+    }
+}
+
+
+
+//! ppath_stepRefraction1D
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-12-02
+*/
+void ppath_stepRefraction1D(
+        // WS Output:
+              Ppath&     ppath_step,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Vector&    p_grid,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Tensor3&   z_field,
+        const Tensor3&   t_field,
+        const Matrix&    r_geoid,
+        const Matrix&    z_ground,
+        // Control Parameters:
+	const Numeric&   lraytrace )
+{
+  // Input checks here would be rather costly as this function is called
+  // many times. So we perform asserts in the sub-functions, but no checks 
+  // here. This commented in the on-line information.
+
+  // Note that lmax is here set to -1.
+
+  if( atmosphere_dim == 1 )
+    { ppath_step_refr_1d_special( ppath_step, p_grid, 
+                       z_field(Range(joker),0,0), t_field(Range(joker),0,0), 
+                  r_geoid(0,0), z_ground(0,0), "linear_euler", lraytrace, -1 );
+    }
+  else 
+    {
+      throw runtime_error( "This function is only intended for 1D." );
     }
 }
 

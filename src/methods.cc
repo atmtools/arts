@@ -653,7 +653,7 @@ void define_md_data_raw()
         INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
                 scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
                 i_space_agenda_, ground_refl_agenda_, p_grid_, lat_grid_,
-                lon_grid_, z_field_, r_geoid_, z_ground_),
+                lon_grid_, z_field_, t_field_, r_geoid_, z_ground_),
               
         GOUTPUT(),
         GINPUT(),
@@ -1907,7 +1907,7 @@ md_data_raw.push_back
         ),
         OUTPUT( ppath_, ppath_step_ ),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, r_geoid_, z_ground_, 
+               lon_grid_, z_field_, t_field_, r_geoid_, z_ground_, 
                cloudbox_on_, cloudbox_limits_, a_pos_, a_los_ ),
         GOUTPUT(),
         GINPUT(),
@@ -1986,11 +1986,36 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ppath_stepRefraction1D" ),
+        DESCRIPTION
+        (
+         "A special function to calculate path with refraction for 1D.\n"
+         "\n"
+         "This function works rather similar to *ppath_stepRefractionEuler*,\n"
+         "but gives symmetric paths (around tangent points), a more accurate\n"
+         "altitude for tangent points and calculates the refractive index\n"
+         "for each ray tracing point.\n"
+         "\n"
+         "See the user guide for more details on the algorithm used.\n"
+         "\n"
+         "Keywords: \n"
+         "   lraytrace : Maximum length of ray tracing steps.\n"
+        ),
+        OUTPUT( ppath_step_ ),
+        INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+               z_field_, t_field_, r_geoid_, z_ground_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "lraytrace" ),
+        TYPES(    Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ppath_stepRefractionEuler" ),
         DESCRIPTION
         (
-         "Calculates a propagation path step, considering refraction by an\n"
-         "Euler approach.\n"
+         "Calculates a propagation path step, considering refraction by a\n"
+         "straightforward Euler approach.\n"
          "\n"
          "Refraction is taken into account by probably the simplest approach\n"
          "possible. The path is treated to consist of piece-wise geometric \n"
@@ -2024,7 +2049,7 @@ md_data_raw.push_back
       ( NAME( "ppath_stepRefractionEulerWithLmax" ),
         DESCRIPTION
         (
-         "As *ppath_stepRefractionStd* but with a length criterion for the\n"
+         "As *ppath_stepRefractionEuler* but with a length criterion for the\n"
          "distance between the path points.\n"
          "\n"
          "This function works as *ppath_stepRefractionEuler* but additional\n"
@@ -2093,8 +2118,8 @@ md_data_raw.push_back
                 ground_emission_, ground_los_, ground_refl_coeffs_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, i_space_agenda_,
                ground_refl_agenda_,
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
-               r_geoid_, z_ground_, cloudbox_on_, cloudbox_limits_, 
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+               t_field_, r_geoid_, z_ground_, cloudbox_on_, cloudbox_limits_, 
                scat_i_p_, scat_i_lat_, scat_i_lon_, 
                scat_za_grid_, scat_aa_grid_,
                sensor_pos_, sensor_los_, f_grid_, stokes_dim_,
@@ -2120,6 +2145,27 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "r_geoidSpherical" ),
+        DESCRIPTION
+        (
+         "Sets the geoid to be a perfect sphere.\n"
+         "\n"
+         "The radius of the sphere is selected by the keyword argument *r*.\n"
+         "If the keyword is set to be negative, the radius is set to the\n"
+         "global internal varaible *EARTH_RADIUS*, defined in constants.cc.\n"
+         "\n"
+         "Keywords:\n"
+         "   r : Radius of geoid sphere. See furtjher above."
+        ),
+        OUTPUT( r_geoid_ ),
+        INPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "r" ),
+        TYPES(    Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2233,7 +2279,7 @@ md_data_raw.push_back
                atmosphere_dim_, stokes_dim_, 
                 scat_za_grid_, scat_aa_grid_, f_grid_,  ppath_step_agenda_,
                 rte_agenda_, i_space_agenda_, ground_refl_agenda_, p_grid_, 
-                lat_grid_, lon_grid_, z_field_,r_geoid_, z_ground_),
+                lat_grid_, lon_grid_, z_field_, t_field_, r_geoid_, z_ground_),
               
         GOUTPUT(),
         GINPUT(),

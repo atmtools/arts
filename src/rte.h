@@ -74,6 +74,7 @@ void get_radiative_background(
         ConstVectorView       lat_grid,
         ConstVectorView       lon_grid,
         const Tensor3&        z_field,
+        const Tensor3&        t_field,
         ConstMatrixView       r_geoid,
         ConstMatrixView       z_ground,
         const Index&          cloudbox_on, 

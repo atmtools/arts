@@ -840,6 +840,104 @@ Numeric psurface_crossing_2d(
 
 
 
+
+
+/*===========================================================================
+  === Path through grid cells and 1D pressure range
+  ===========================================================================*/
+
+//! do_gridrange_1d
+/*!
+   Calculates the geometrical path through a 1D grid range.
+
+   This function works as *do_gridcell_2d*, but is valid for 1D cases.
+
+   The coding of variables and end face is as for *do_gridcell_2d*, with
+   the excpetion that end faces 2 and 4 do not exist here.
+
+   \param   r_v         Out: Vector with radius of found path points.
+   \param   lat_v       Out: Vector with latitude of found path points.
+   \param   za_v        Out: Vector with LOS zenith angle at found path points.
+   \param   lstep       Out: Vector with length along the path between points.
+   \param   endface     Out: Number coding for exit face. See above.
+   \param   r_start     Radius of start point.
+   \param   lat_start   Latitude of start point.
+   \param   za_start    LOS zenith angle at start point.
+   \param   ppc         Propagation path constant.
+   \param   lmax        Maximum allowed length along the path. -1 = no limit.
+   \param   r1          Radius of lower pressure surface.
+   \param   r3          Radius of upper pressure surface (r3 > r1);
+   \param   rground     Radius for the ground.
+
+   \author Patrick Eriksson
+   \date   2002-12-02
+*/
+void do_gridrange_1d(
+	      Vector&    r_v,
+	      Vector&    lat_v,
+	      Vector&    za_v,
+	      Numeric&   lstep,
+	      Index&     endface,
+        const Numeric&   r_start,
+        const Numeric&   lat_start,
+        const Numeric&   za_start,
+        const Numeric&   ppc,
+        const Numeric&   lmax,
+        const Numeric&   r1,
+        const Numeric&   r3,
+        const Numeric&   rground )
+{
+  assert( r3 > r1 );
+  assert( r_start >= r1 );
+  assert( r_start <= r3 );
+
+  // Get end radius of the path step (r_end). If looking downwards, it must 
+  // be checked if:
+  //    a tangent point is passed
+  //    there is an intersection with the ground
+  //
+  Numeric r_end;
+  //
+  if( za_start <= 90 )
+    { 
+      r_end   = r3; 
+      endface = 3;
+    }
+  else
+    {
+      // The tangent radius equals here ppc.
+
+      if( ( r1 > rground )  &&  ( r1 > ppc ) )
+	{
+	  r_end   = r1;
+          endface = 1;
+	}
+      else if( ppc >= rground )
+	{
+	  r_end   = ppc;
+          endface = 6;
+	}
+      else
+	{
+	  r_end   = rground;
+          endface = 5;
+	}
+    }
+
+
+  // Calculate basic variables from r_start to r_end.
+  //
+  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
+                                                       za_start, r_end, lmax );
+
+
+  // Force end zenith angle to be exact when we know the correct value
+  if( endface == 6 )
+    { za_v[za_v.nelem()-1] = 90; }
+}
+
+
+
 //! do_gridcell_2d
 /*!
    Calculates the geometrical path through a 2D grid cell.
@@ -1044,7 +1142,6 @@ void do_gridcell_2d(
 	{ endface  = 3; }
       else
 	{ endface  = 1; }
-      IndexPrint(endface,"endface");
     }
 
 
@@ -2214,12 +2311,10 @@ Numeric get_refr_index_2d(
    \date   2002-11-13
 */
 void ppath_start_1d(
-	      Index&      imax,
-	      Index&      npl,
-	      Index&      ip,
               Numeric&    r_start,
               Numeric&    lat_start,
               Numeric&    za_start,
+	      Index&      ip,
 	const Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
@@ -2227,10 +2322,10 @@ void ppath_start_1d(
         const Numeric&    z_ground )
 {
   // Number of points in the incoming ppath
-  imax = ppath.np - 1;
+  const Index   imax = ppath.np - 1;
 
   // Number of pressure levels
-  npl = p_grid.nelem();
+  const Index   npl = p_grid.nelem();
 
   // Extract starting radius, zenith angle and latitude
   r_start   = ppath.pos(imax,0);
@@ -2261,6 +2356,8 @@ void ppath_start_1d(
   // grid range of interest.
   //
   ip = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
+
+  out3 << "  pressure grid range  : " << ip << "\n";
 }
 
 
@@ -2286,12 +2383,13 @@ void ppath_end_1d(
         ConstVectorView   z_field,
         const Numeric&    r_geoid,
 	const Index&      ip,
-        const bool&       ground,
-        const bool&       tanpoint,
+        const Index&      endface,
 	const String&     method,
 	const Index&      refraction,
 	const Numeric&    ppc )
 {
+  out3 << "  end face number code : " << endface << "\n";
+
   // Number of path points
   const Index   np = r_v.nelem();
 
@@ -2310,19 +2408,15 @@ void ppath_end_1d(
   // Different options depending on position of end point of step:
 
   //--- End point is the ground
-  if( ground )
+  if( endface == 5 )
     { ppath_set_background( ppath, 2 ); }
 
   //--- End point is a tangent point
-  else if( tanpoint )
+  else if( endface == 6 )
     {
       ppath.tan_pos.resize(2);
       ppath.tan_pos[0] = r_v[np-1];
       ppath.tan_pos[1] = lat_v[np-1];
-
-      // Make sure that last zenith angle is exactly 90 degrees.
-      // Otherwise "another" tangent point can be found in the recursive call.
-      ppath.los(np-1,0) = 90;
     }
 
   //--- End point is on top of a pressure surface
@@ -2517,9 +2611,6 @@ void ppath_end_2d(
         ConstVectorView   r_geoid,
 	const Index&      ip,
 	const Index&      ilat,
-	const Numeric&    lat1,
-	const Numeric&    lat3,
-	const Numeric&    za_start,
 	const Index&      endface,
 	const String&     method,
 	const Index&      refraction,
@@ -2653,6 +2744,53 @@ void interpolate_raytracing_points(
 
 
 
+//! from_raytracingarrays_to_ppath_vectors_1d_and_2d
+/*! 
+   A small help function to convert arrays with ray tracing points t
+   interpolated values along the path.
+
+   This function is common for 1D and 2D.
+
+   \author Patrick Eriksson
+   \date   2002-12-02
+*/
+void from_raytracingarrays_to_ppath_vectors_1d_and_2d(
+	     Vector&           r_v,
+	     Vector&           lat_v,
+	     Vector&           za_v,
+	     Numeric&          lstep,
+       const Array<Numeric>&   r_array,
+       const Array<Numeric>&   lat_array,
+       const Array<Numeric>&   za_array,
+       const Array<Numeric>&   l_array,
+       const Numeric&          lmax )
+{
+  // Copy arrays to vectors for later interpolation
+  //
+  // Number of ray tracing points
+  const Index   nrt=r_array.nelem();
+  //
+  Vector    r_rt(nrt), lat_rt(nrt), za_rt(nrt), l_rt(nrt-1);    
+  //
+  for( Index i=0; i<nrt; i++ )
+    {
+      r_rt[i]   = r_array[i];
+      lat_rt[i] = lat_array[i]; 
+      za_rt[i]  = za_array[i];
+      if( i < (nrt-1) )
+	{ l_rt[i]   = l_array[i]; }
+    }
+
+
+  // Interpolate the radii, zenith angles and latitudes to a set of points
+  // linearly spaced along the path. If *lmax* <= 0, then only the end points
+  //
+  Vector    dummy;   // Dummy vector for output variables not used
+  //
+  interpolate_raytracing_points( r_v, lat_v, dummy, za_v, dummy, lstep,
+      r_rt, lat_rt, Vector(0), za_rt, Vector(0), l_rt, lmax );
+}
+
 
 
 /*===========================================================================
@@ -2694,9 +2832,6 @@ void ppath_step_geom_1d(
         const Numeric&    z_ground,
 	const Numeric&    lmax )
 {
-  // Number of pressure levels and points in the incoming ppath
-  Index npl, imax;
-
   // Starting radius, zenith angle and latitude
   Numeric r_start, lat_start, za_start;
 
@@ -2705,7 +2840,7 @@ void ppath_step_geom_1d(
   Index ip;
 
   // Determine the variables defined above, and make asserts of input
-  ppath_start_1d( imax, npl, ip, r_start, lat_start, za_start, 
+  ppath_start_1d( r_start, lat_start, za_start, ip,
                                    ppath, p_grid, z_field, r_geoid, z_ground );
 
 
@@ -2718,50 +2853,17 @@ void ppath_step_geom_1d(
     { ppc = ppath.constant; }
 
 
-  // Get end radius of the path step (r_end). If looking downwards, it must 
-  // be checked if:
-  //    a tangent point is passed
-  //    there is an intersection with the ground
+  // The path is determined by another function. Determine some variables
+  // needed bý that function and call the function.
   //
-  Numeric r_end;
-  bool    tanpoint = false, ground = false;
-  //
-  if( za_start <= 90 )
-    { r_end = r_geoid + z_field[ ip + 1 ]; }
-  else
-    {
-      // Lowest possible radius for the path step
-      Numeric r_lowest  = r_geoid + z_field[ ip ];
-
-      // Ground radius
-      Numeric r_ground = r_geoid + z_ground;
-
-      // The tangent radius equals here ppc.
-
-      if( ( r_lowest > r_ground )  &&  ( r_lowest > ppc ) )
-	{
-	  r_end    = r_lowest;
-	}
-      else if( ppc >= r_ground )
-	{
-	  r_end    = ppc;
-	  tanpoint = true;
-	}
-      else
-	{
-	  r_end    = r_ground;
-	  ground   = true;
-	}
-    }
-
-
-  // Calculate basic variables from r_start to r_end.
-  //
+  // Vars to hold found path points, path step length and coding for end face
   Vector    r_v, lat_v, za_v;
   Numeric   lstep;
+  Index     endface;
   //
-  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
-                                                       za_start, r_end, lmax );
+  do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r_start, lat_start, 
+                   za_start, ppc, lmax, 
+                r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid+z_ground );
 
 
   // Fill *ppath*
@@ -2772,12 +2874,12 @@ void ppath_step_geom_1d(
   else
     { method     = "1D geometrical with length criterion"; }
   //
-  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, ground, 
-		                                    tanpoint, method, 0, ppc );
+  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, endface, 
+		                                              method, 0, ppc );
 
 
   // Make part from a tangent point and up to the starting pressure level.
-  if( tanpoint )
+  if( endface == 6 )
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
@@ -2888,7 +2990,7 @@ void ppath_step_geom_2d(
     { method     = "2D geometrical with length criterion"; }
   //
   ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
-	             ip, ilat, lat1, lat3, za_start, endface, method, 0, ppc );
+	                                   ip, ilat, endface, method, 0, ppc );
 
 
   // Make part after a tangent point.
@@ -2920,12 +3022,12 @@ void ppath_step_geom_2d(
   === Ray tracing functions
   ===========================================================================*/
 
-//! raytrace_1d_linear_euler
+//! raytrace_1d_special_linear_euler
 /*! 
    Performs ray tracing for 1D with linear Euler steps.
 
    A geometrical step with length of *lraytrace* is taken from each
-   point.  The zenith angle for the end point of that step is
+   point. The zenith angle for the end point of that step is
    calculated exactly by the expression c = r*n*sin(theta), and a new
    step is taken. The length of the last ray tracing step to reach the
    end radius is adopted to the distance to the end radius. The
@@ -2958,7 +3060,7 @@ void ppath_step_geom_2d(
    \author Patrick Eriksson
    \date   2002-11-27
 */
-void raytrace_1d_linear_euler(
+void raytrace_1d_special_linear_euler(
   	      Array<Numeric>&   r_array,
   	      Array<Numeric>&   lat_array,
   	      Array<Numeric>&   za_array,
@@ -2982,13 +3084,13 @@ void raytrace_1d_linear_euler(
 
   while( !ready )
     {
-      const Numeric   ppc_step = geometrical_ppc( r, za );;
+      const Numeric   ppc_step = geometrical_ppc( r, za );
             Numeric   l_step   = lraytrace;
 
       Numeric r_new = geompath_r_at_l( ppc_step, 
                                      geompath_l_at_r( ppc_step, r ) + l_step );
 
-      if( r_new >= rstop )
+      if( r_new > rstop )
 	{
 	  r_new  = rstop;
 	  l_step = geompath_l_at_r( ppc_step, r_new ) - 
@@ -2996,7 +3098,7 @@ void raytrace_1d_linear_euler(
 	  ready  = true;
 	}
       
-      const Numeric n_new = get_refr_index_1d( p_grid, z_field, t_field, 
+      const Numeric   n_new = get_refr_index_1d( p_grid, z_field, t_field, 
                                                              r_new - r_geoid );
 
       const Numeric   ppc_local = ppc / n_new; 
@@ -3019,6 +3121,195 @@ void raytrace_1d_linear_euler(
 
 
 
+//! raytrace_1d_linear_euler
+/*! 
+   Performs ray tracing for 1D with linear Euler steps.
+
+   A geometrical step with length of *lraytrace* is taken from each
+   point. The zenith angle for the end point of that step is
+   calculated exactly by the expression c = r*n*sin(theta), and a new
+   step is taken. The length of the last ray tracing step to reach the
+   end radius is adopted to the distance to the end radius.
+
+   The refractive index is assumed to vary linearly between the pressure
+   surfaces.
+
+   As the ray tracing is performed from the last end point, the found path
+   will not be symmetric around the tangent point.
+
+   For more information read the chapter on propagation paths in AUG.
+   The algorithm used is described in that part of AUG.
+
+   The array variables *r_array*, *lat_array* and *za_array* shall include
+   the start position when calling the function. The length of *l_array*
+   will be one smaller than the length of the other arrays.
+
+   \param   r_array      Out: Radius of ray tracing points.
+   \param   lat_array    Out: Latitude of ray tracing points.
+   \param   za_array     Out: LOS zenith angle at ray tracing points.
+   \param   l_array      Out: Distance along the path between ray tracing 
+                         points.
+   \param   r            Start radius for ray tracing.
+   \param   lat          Start latitude for ray tracing.
+   \param   za           Start zenith angle for ray tracing.
+   \param   ppc          Propagation path constant.
+   \param   lraytrace    Maximum allowed length for ray tracing steps.
+   \param   r1           Radius of lower pressure surface.
+   \param   r3           Radius of upper pressure surface (r3 > r1).
+   \param   n1           Refractive index at *r1*.
+   \param   n3           Refractive index at *r3*.
+   \param   rground      Radius of the ground.
+
+   \author Patrick Eriksson
+   \date   2002-12-02
+*/
+void raytrace_1d_linear_euler(
+  	      Array<Numeric>&   r_array,
+  	      Array<Numeric>&   lat_array,
+  	      Array<Numeric>&   za_array,
+  	      Array<Numeric>&   l_array,
+              Index&            endface,
+              Numeric           r,
+              Numeric           lat,
+              Numeric           za,
+        const Numeric&          ppc,
+        const Numeric&          lraytrace,
+        const Numeric&          r1,
+        const Numeric&          r3,
+        const Numeric&          n1,
+        const Numeric&          n3,
+        const Numeric&          rground )
+{
+  // Loop boolean
+  bool ready = false;
+
+  // Variables for output from do_gridrange_1d
+  Vector    r_v, lat_v, za_v;
+  Numeric   lstep, r_new = -9999, lat_new = 9999, dlat = 9999;
+
+  while( !ready )
+    {
+      // Constant for the geometrical step to make
+      const Numeric   ppc_step = geometrical_ppc( r, za );
+
+      // Where will this path exit the grid cell?
+      do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step,
+                                                         -1, r1, r3, rground );
+      assert( r_v.nelem() == 2 );
+
+      // If *lstep* is < *lraytrace*, extract the found end point and
+      // we are ready.
+      // Otherwise, we make a geometrical step with length *lraytrace*.
+
+      if( lstep <= lraytrace )
+	{
+	  r_new   = r_v[1];
+	  lat_new = lat_v[1];
+	  dlat    = lat_new - lat;
+	  ready   = true;
+	}
+      else
+	{
+	  if( fabs(za) <= 90 )
+	    { lstep = lraytrace; }
+	  else
+	    { lstep = -lraytrace; }
+
+	  r_new = geompath_r_at_l( ppc_step, 
+                                         geompath_l_at_r(ppc_step,r) + lstep );
+	  dlat = RAD2DEG * acos( ( r_new*r_new + r*r - 
+                                             lstep*lstep ) / ( 2 * r_new*r ) );
+	  lat_new = lat + dlat;
+	  lstep = fabs( lstep );
+	}
+
+      // Calculate LOS zenith angle at found point.
+      //
+      if( ready  &&  endface == 6 )
+	{ za = 90; }
+      else
+	{
+          // Refractive index at r_new
+          const Numeric   n_new = n1 + (r_new-r1)*(n3-n1)/(r3-r1);
+
+          const Numeric   ppc_local = ppc / n_new; 
+
+          if( ppc_local < r_new )
+	    { za = geompath_za_at_r( ppc_local, za, r_new ); }
+          else
+            {                 // If we end up here, then numerical inaccuracy
+              za      = 90;   // has brought us below the true tangent point.  
+              ready   = 1;    // We save this situation by setting this point
+              endface = 6;    // to tangent point.
+            }
+	}
+
+      r   = r_new;
+      lat = lat_new;
+
+      // Store found point
+      r_array.push_back( r );
+      lat_array.push_back( lat );
+      za_array.push_back( za );
+      l_array.push_back( lstep );
+    }  
+
+}
+
+
+
+//! raytrace_2d_linear_euler
+/*! 
+   Performs ray tracing for 2D with linear Euler steps.
+
+   A geometrical step with length of *lraytrace* is taken from each
+   point. The zenith angle for the end point of that step is
+   calculated considering the gradient of the refractive index. The
+   length of the last ray tracing step to reach the end radius is
+   adopted to the distance to the end radius.
+
+   The refractive index is assumed to vary linearly along the pressure
+   surfaces and the latitude grid points.
+
+   For more information read the chapter on propagation paths in AUG.
+   The algorithm used is described in that part of AUG.
+
+   The array variables *r_array*, *lat_array* and *za_array* shall include
+   the start position when calling the function. The length of *l_array*
+   will be one smaller than the length of the other arrays.
+
+   \param   r_array      Out: Radius of ray tracing points.
+   \param   lat_array    Out: Latitude of ray tracing points.
+   \param   za_array     Out: LOS zenith angle at ray tracing points.
+   \param   l_array      Out: Distance along the path between ray tracing 
+                         points.
+   \param   r            Start radius for ray tracing.
+   \param   lat          Start latitude for ray tracing.
+   \param   za           Start zenith angle for ray tracing.
+   \param   lraytrace    Maximum allowed length for ray tracing steps.
+   \param   r1           Radius of lower-left corner of the grid cell.
+   \param   r2           Radius of lower-right corner of the grid cell.
+   \param   r3           Radius of upper-right corner of the grid cell (r3>r2).
+   \param   r4           Radius of upper-left corner of the grid cell (r4>r1).
+   \param   lat1         Latitude of left end face (face 1) of the grid cell.
+   \param   lat3         Latitude of right end face (face 3) of the grid cell.
+   \param   c2           Slope of lower pressure surface [m/deg].
+   \param   c4           Slope of upper pressure surface [m/deg].
+   \param   n1           Refractive index at lower-left corner.
+   \param   n2           Refractive index at lower-right corner.
+   \param   n3           Refractive index at upper-right corner.
+   \param   n4           Refractive index at upper-left corner.
+   \param   at_lower_psurface   Boolean that is true if start point is on top
+                                of the lower pressure surface (face 2).
+   \param   at_upper_psurface   Boolean that is true if start point is on top
+                                of the upper pressure surface (face 4).
+   \param   rground1     Radius for the ground at *lat1*.
+   \param   rground2     Radius for the ground at *lat3*.
+   \param   cground      Slope of the ground [m/deg].
+
+   \author Patrick Eriksson
+   \date   2002-12-02
+*/
 void raytrace_2d_linear_euler(
   	      Array<Numeric>&   r_array,
   	      Array<Numeric>&   lat_array,
@@ -3041,7 +3332,6 @@ void raytrace_2d_linear_euler(
 	const Numeric&          n2, 
 	const Numeric&          n3,
 	const Numeric&          n4,
-	      const Numeric&          ppc_global,
               bool            	at_lower_psurf,
               bool            	at_upper_psurf,
         const Numeric&         	rground1,
@@ -3058,11 +3348,11 @@ void raytrace_2d_linear_euler(
   while( !ready )
     {
       // Constant for the geometrical step to make
-      const Numeric   ppc = geometrical_ppc( r, za );
+      const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will this path exit the grid cell?
       do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, 
-                     r, lat, za, ppc, -1, r1, r2, r3, r4, 
+                     r, lat, za, ppc_step, -1, r1, r2, r3, r4, 
                      lat1, lat3, c2, c4, at_lower_psurf, at_upper_psurf, 
                                                  rground1, rground2, cground );
       assert( r_v.nelem() == 2 );
@@ -3088,14 +3378,14 @@ void raytrace_2d_linear_euler(
 	    { lstep = lraytrace; }
 	  else
 	    { lstep = -lraytrace; }
-	  r_new = geompath_r_at_l( ppc, geompath_l_at_r(ppc,r) + lstep ); 
 
+	  r_new = geompath_r_at_l( ppc_step, 
+                                         geompath_l_at_r(ppc_step,r) + lstep );
 	  dlat = RAD2DEG * acos( ( r_new*r_new + r*r - 
                                              lstep*lstep ) / ( 2 * r_new*r ) );
 	  if( za < 0 )
 	    { dlat = -dlat; }
 	  lat_new = lat + dlat;
-
 	  lstep = fabs( lstep );
 	}
 
@@ -3111,9 +3401,6 @@ void raytrace_2d_linear_euler(
 	  const Numeric   za_rad = DEG2RAD * za;
 	  za += -dlat + RAD2DEG * lstep / n * 
                           ( -sin(za_rad) * dndr + cos(za_rad) * dndlat / r );
-	  //refraction_gradient_2d( n, dndr, dndlat, r1, r4, c2, c4, lat1,lat3,
-	  //                                n1, n2, n3, n4, r_new, lat1 );
-      //za = geompath_za_at_r( ppc_global/n, za, r_new ); 
 	}
 
       r   = r_new;
@@ -3130,19 +3417,14 @@ void raytrace_2d_linear_euler(
 
 
 
+
 /*===========================================================================
   === Core functions for refraction *ppath_step* functions
   ===========================================================================*/
 
-//! ppath_step_refr_1d
+//! ppath_step_refr_1d_special
 /*! 
-   Calculates 1D propagation path steps including effects of refraction.
 
-   This function works as the function *ppath_step_geom_1d* but considers
-   also refraction. The upper length of the ray tracing steps is set by
-   the argument *lraytrace*. This argument controls only the internal
-   calculations. The maximum distance between the path points is still
-   determined by *lmax*.
 
    \param   ppath             Output: A Ppath structure.
    \param   p_grid            Pressure grid.
@@ -3156,9 +3438,9 @@ void raytrace_2d_linear_euler(
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
-   \date   2002-11-26
+   \date   2002-12-02
 */
-void ppath_step_refr_1d(
+void ppath_step_refr_1d_special(
 	      Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
@@ -3169,9 +3451,6 @@ void ppath_step_refr_1d(
 	const Numeric&    lraytrace,
 	const Numeric&    lmax )
 {
-  // Number of pressure levels and points in the incoming ppath
-  Index npl, imax;
-
   // Starting radius, zenith angle and latitude
   Numeric r_start, lat_start, za_start;
 
@@ -3180,28 +3459,26 @@ void ppath_step_refr_1d(
   Index ip;
 
   // Determine the variables defined above, and make asserts of input
-  ppath_start_1d( imax, npl, ip, r_start, lat_start, za_start, 
+  ppath_start_1d( r_start, lat_start, za_start, ip,
                                    ppath, p_grid, z_field, r_geoid, z_ground );
 
   // Assert not done for geometrical calculations
-  assert( t_field.nelem() == npl );
+  assert( t_field.nelem() == p_grid.nelem() );
   assert( lraytrace > 0 );
   assert( lmax < 0  ||  lmax >= lraytrace );
 
-  // Refractive index at start point
-  Numeric nvalue = get_refr_index_1d( p_grid, z_field, t_field, 
+  // Refractive index at *r_start*.
+  const Numeric   nvalue = get_refr_index_1d( p_grid, z_field, t_field, 
                                                            r_start - r_geoid );
 
 
   // If the field "constant" is negative, this is the first call of the
   // function and the path constant shall be calculated.
+  // If the sensor is placed outside the atmosphere, the constant is
+  // already set.
   Numeric ppc;
   if( ppath.constant < 0 )
-    { 
-      // If the sensor is placed outside the atmosphere, the constant is
-      // already set.
-      ppc = refraction_ppc( r_start, za_start, nvalue ); 
-    }
+    { ppc = refraction_ppc( r_start, za_start, nvalue ); }
   else
     { ppc = ppath.constant; }
 
@@ -3211,12 +3488,14 @@ void ppath_step_refr_1d(
   //    a tangent point is passed
   //    there is an intersection with the ground
   //
-  Numeric r_end;
-  bool    tanpoint = false, ground = false;
+  Numeric   r_end;
+  Index     endface;
   //
   if( za_start <= 90 )
-    { r_end = r_geoid + z_field[ ip + 1 ]; }
-
+    { 
+      r_end   = r_geoid + z_field[ ip + 1 ]; 
+      endface = 3;
+    }
   else
     {
       // Lowest possible radius for the path step
@@ -3232,6 +3511,7 @@ void ppath_step_refr_1d(
       if( ( r_lowest > r_ground )  &&  ( r_lowest*n_lowest > ppc ) )
 	{
 	  r_end    = r_lowest;
+          endface  = 1;
 	}
 
       // Is the tangent point is the end point?
@@ -3270,14 +3550,14 @@ void ppath_step_refr_1d(
 		}
 	    }
 
-	  tanpoint = true;
+	  endface = 6;
 	}
 
       // Ground must be the end point!
       else
 	{
-	  r_end    = r_ground;
-	  ground   = true;
+	  r_end   = r_ground;
+	  endface = 6;
 	}
     }
 
@@ -3300,7 +3580,7 @@ void ppath_step_refr_1d(
     {
       r     = r_end;
       rstop = r_start;
-      if( tanpoint )    // Here we don't know ZA for the start point.
+      if( endface == 6 )    // Here we don't know ZA for the start point.
 	{ za = 90; }
       else
 	{ 
@@ -3328,11 +3608,11 @@ void ppath_step_refr_1d(
   if( rtrace_method  == "linear_euler" )
     {
       if( lmax < 0 )
-	{ method = "1D linear Euler"; }
+	{ method = "special 1D linear Euler"; }
       else
-	{ method = "1D linear Euler, with length criterion"; }
+	{ method = "special 1D linear Euler, with length criterion"; }
 
-      raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, 
+      raytrace_1d_special_linear_euler( r_array, lat_array, za_array, l_array, 
         r, rstop, lat, za, lraytrace, ppc, p_grid, z_field, t_field, r_geoid );
     }
   else
@@ -3376,11 +3656,6 @@ void ppath_step_refr_1d(
 	}
     }
 
-  //VectorPrint(r_rt,"r_rt");
-  //VectorPrint(lat_rt,"lat_rt");
-  //VectorPrint(za_rt,"za_rt");
-  //VectorPrint(l_rt,"l_rt");
-
 
   // Interpolate the radii, zenith angles and latitudes to a set of points
   // linearly spaced along the path. If *lmax* <= 0, then only the end points
@@ -3395,12 +3670,159 @@ void ppath_step_refr_1d(
 
 
   // Fill *ppath*
-  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, ground, 
-		                                    tanpoint, method, 1, ppc );
+  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, endface, 
+		                                              method, 1, ppc );
 
 
   //--- End point is a tangent point
-  if( tanpoint )
+  if( endface == 6 )
+    {
+      // Make part from tangent point and up to the starting pressure level.
+      //
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      out3 << "  --- Recursive step to include tangent point --------\n"; 
+
+      ppath_step_refr_1d_special( ppath2, p_grid, z_field, t_field, r_geoid, 
+                                    z_ground, rtrace_method, lraytrace, lmax );
+
+      out3 << "  ----------------------------------------------------\n"; 
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
+}
+
+
+
+//! ppath_step_refr_1d
+/*! 
+   Calculates 1D propagation path steps including effects of refraction.
+
+   This function works as the function *ppath_step_geom_1d* but considers
+   also refraction. The upper length of the ray tracing steps is set by
+   the argument *lraytrace*. This argument controls only the internal
+   calculations. The maximum distance between the path points is still
+   determined by *lmax*.
+
+   \param   ppath             Output: A Ppath structure.
+   \param   p_grid            Pressure grid.
+   \param   z_field           Geometrical altitudes corresponding to p_grid.
+   \param   t_field           Temperatures corresponding to p_grid.
+   \param   r_geoid           Geoid radius.
+   \param   z_ground          Ground altitude.
+   \param   rtrace_method     String giving which ray tracing method to use.
+                              See the function for options.
+   \param   lraytrace         Maximum allowed length for ray tracing steps.
+   \param   lmax              Maximum allowed length between the path points.
+
+   \author Patrick Eriksson
+   \date   2002-11-26
+*/
+void ppath_step_refr_1d(
+	      Ppath&      ppath,
+        ConstVectorView   p_grid,
+        ConstVectorView   z_field,
+        ConstVectorView   t_field,
+        const Numeric&    r_geoid,
+        const Numeric&    z_ground,
+	const String&     rtrace_method,
+	const Numeric&    lraytrace,
+	const Numeric&    lmax )
+{
+  // Starting radius, zenith angle and latitude
+  Numeric   r_start, lat_start, za_start;
+
+  // Index of the pressure surface being the lower limit for the
+  // grid range of interest.
+  Index   ip;
+
+  // Determine the variables defined above, and make asserts of input
+  ppath_start_1d( r_start, lat_start, za_start, ip, 
+                                   ppath, p_grid, z_field, r_geoid, z_ground );
+
+  // Assert not done for geometrical calculations
+  assert( t_field.nelem() == p_grid.nelem() );
+  assert( lraytrace > 0 );
+  assert( lmax < 0  ||  lmax >= lraytrace );
+
+
+  // If the field "constant" is negative, this is the first call of the
+  // function and the path constant shall be calculated.
+  // If the sensor is placed outside the atmosphere, the constant is
+  // already set.
+  Numeric ppc;
+  if( ppath.constant < 0 )
+    { 
+      const Numeric   nvalue = get_refr_index_1d( p_grid, z_field, t_field, 
+                                                           r_start - r_geoid );
+      ppc = refraction_ppc( r_start, za_start, nvalue ); 
+    }
+  else
+    { ppc = ppath.constant; }
+
+
+  // Refractive index at lower and upper pressure surface of the grid range.
+  const Numeric   nlow = get_refr_index_1d( p_grid, z_field, t_field, 
+                                                                 z_field[ip] );
+  const Numeric   nupp = get_refr_index_1d( p_grid, z_field, t_field, 
+                                                               z_field[ip+1] );
+
+
+  // Perform the ray tracing
+  //
+  // Arrays to store found ray tracing points
+  // (Vectors don't work here as we don't know how many points there will be)
+  Array<Numeric>   r_array, lat_array, za_array, l_array;
+  //
+  // Store the start point
+  r_array.push_back( r_start );
+  lat_array.push_back( lat_start );
+  za_array.push_back( za_start );
+  //
+  // String to store description of ray tracing method
+  String   method;
+  //
+  // Number coding for end face
+  Index   endface;
+  //
+  if( rtrace_method  == "linear_euler" )
+    {
+      if( lmax < 0 )
+	{ method = "1D linear Euler"; }
+      else
+	{ method = "1D linear Euler, with length criterion"; }
+
+      raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, endface,
+            r_start, lat_start, za_start, ppc, lraytrace, r_geoid+z_field[ip],
+                         r_geoid+z_field[ip+1], nlow, nupp, r_geoid+z_ground );
+    }
+  else
+    {
+      bool   known_ray_trace_method = false;
+      assert( known_ray_trace_method );
+    }
+
+
+  // Interpolate the radii, zenith angles and latitudes to a set of points
+  // linearly spaced along the path. 
+  //
+  Vector    r_v, lat_v, za_v;
+  Numeric   lstep;
+  //
+  from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
+                                 r_array, lat_array, za_array, l_array, lmax );
+
+
+  // Fill *ppath*
+  ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, endface, 
+		                                              method, 1, ppc );
+
+
+  //--- End point is a tangent point
+  if( endface == 6 )
     {
       // Make part from tangent point and up to the starting pressure level.
       //
@@ -3422,7 +3844,7 @@ void ppath_step_refr_1d(
 
 
 
-//! ppath_step_refr_euler_2d
+//! ppath_step_refr_2d
 /*! 
    Calculates 1D propagation path steps, with refraction, using a simple
    and fast ray tracing scheme.
@@ -3443,7 +3865,7 @@ void ppath_step_refr_1d(
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
-   \date   2002-07-03
+   \date   2002-12-02
 */
 void ppath_step_refr_2d(
 	      Ppath&      ppath,
@@ -3478,6 +3900,13 @@ void ppath_step_refr_2d(
   ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
                   r1, r2, r3, r4, lat1, lat3, c2, c4, 
                          ppath, p_grid, lat_grid, z_field, r_geoid, z_ground );
+
+  // Assert not done for geometrical calculations
+  assert( t_field.nrows() == p_grid.nelem() );
+  assert( t_field.ncols() == lat_grid.nelem() );
+  assert( lraytrace > 0 );
+  assert( lmax < 0  ||  lmax >= lraytrace );
+
 
   // No constant for the path is valid here.
 
@@ -3529,7 +3958,7 @@ void ppath_step_refr_2d(
 
       raytrace_2d_linear_euler( r_array, lat_array, za_array, l_array, endface,
                  r_start, lat_start, za_start, lraytrace, r1, r2, r3, r4, 
-		 lat1, lat3, c2, c4, n1, n2, n3, n4, ppath.constant,
+		 lat1, lat3, c2, c4, n1, n2, n3, n4, 
                  at_lower_psurf, at_upper_psurf, rground1, rground2, cground );
     }
   else
@@ -3539,47 +3968,19 @@ void ppath_step_refr_2d(
     }
 
 
-  // Copy arrays to vectors for later interpolation
-  //
-  // The copying differ depending on the true direction (upward/downward) of
-  // the path step.
-  //
-  // Number of ray tracing points
-  const Index   nrt=r_array.nelem();
-  //
-  Vector    r_rt(nrt), lat_rt(nrt), za_rt(nrt), l_rt(nrt-1);    
-  //
-  for( Index i=0; i<nrt; i++ )
-    {
-      r_rt[i]   = r_array[i];
-      lat_rt[i] = lat_array[i]; 
-      za_rt[i]  = za_array[i];
-      if( i < (nrt-1) )
-	{ l_rt[i]   = l_array[i]; }
-    }
-
-  //VectorPrint(r_rt,"r_rt");
-  //VectorPrint(lat_rt,"lat_rt");
-  //VectorPrint(za_rt,"za_rt");
-  //VectorPrint(l_rt,"l_rt");
-  //IndexPrint(endface,"endface");
-
   // Interpolate the radii, zenith angles and latitudes to a set of points
-  // linearly spaced along the path. If *lmax* <= 0, then only the end points
+  // linearly spaced along the path. 
   //
-  // Interpolated data, stored as vectors, and the step length obtained.
   Vector    r_v, lat_v, za_v;
   Numeric   lstep;
-  Vector    dummy;   // Dummy vector for output variables not used
   //
-  interpolate_raytracing_points( r_v, lat_v, dummy, za_v, dummy, lstep,
-      r_rt, lat_rt, Vector(0), za_rt, Vector(0), l_rt, lmax );
+  from_raytracingarrays_to_ppath_vectors_1d_and_2d( r_v, lat_v, za_v, lstep, 
+                                 r_array, lat_array, za_array, l_array, lmax );
 
 
   // Fill *ppath*
-  const Numeric   ppc = ppath.constant;
   ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
-	  ip, ilat, lat1, lat3, za_start, endface, method, 1, ppc );
+	                                    ip, ilat, endface, method, 1, -1 );
 
 
   // Make part after a tangent point.
