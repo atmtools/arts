@@ -41,6 +41,7 @@
   === External declarations
   ===========================================================================*/
 
+#include <iostream>
 #include <math.h>
 #include "arts.h"
 #include "auto_md.h"
