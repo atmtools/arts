@@ -1,3 +1,27 @@
+2001-10-02  Oliver Lemke  <olemke@uni-bremen.de>
+
+        * arts-0-0-256
+	
+	* doc/doxygen/Makefile.am: Made the generation depending on
+	ARTS_GENDOCS. If ARTS_GENDOCS is not defined then skip the doxygen
+	run.
+
+	* doc/uguide/Makefile.am: Made the generation of uguide.ps and
+	uguide_pdf.pdf depending on ARTS_GENDOCS. If ARTS_GENDOCS is not
+	defined the dummy targets are used.
+
+	Added auto_version.tex to target dependencies.
+
+	* Makefile.am: Added doc permanently to subdirs. Otherwise the
+	documentation is only installed in maintainer-mode. But what we
+	want is to only re-generate the docs in maintainer mode but
+	install it always.
+
+	* configure.in: Added -g to CXXFLAGS_FIXED when debug is enabled.
+	Corrected CXXFLAGS_FIXED in maintainer mode (warning flags where
+	added twice).
+
+	
 2001-10-02  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-255
