@@ -1,95 +1,266 @@
-# Spectroscopy:
-linesReadFromHitran 	    	{ filename = "/u/patrick/arts/data/spectroscopy/hitran96/hitran96_h2o.par"
-		    	    	  fmin     = 20e9
-                    	    	  fmax     = 30e9 }
-tag_groupsDefine    	    	{ ["H2O"] }
-lines_per_tgCreateFromLines 	{}  
+#
+# Run this control file and type in AMI:
+#    f=read_artsvar('full','f_mono');   
+#    za=read_artsvar('full','za_pencil'); 
+#    y=read_artsvar('full','y');   
+#    plot(f/1e9,reshape(y2,length(f),length(za))) 
+#
+# You should then get something similar to Figure 4 in Paper A of my thesis.
+# By typing 
+#    Y=read_artsvar('full','ybatch');  
+# you get the result of the batch calculations.
+#
+
+### Spectroscopy: ############################################################
+tag_groupsDefine    { ["O3-666","ClO","H2O-161","N2O-446"] }
+#tag_groupsDefine    { ["ClO"] }
+lineshapeDefine     { shape               = "Voigt_Kuntz1"
+                      normalizationfactor = "quadratic" } 
+#
+linesReadFromHitran { filename = "/u/patrick/arts/data/spectroscopy/hitran96/hitran96_lowfreq.par"
+		      fmin     = 498e9
+                      fmax     = 505e9 }
+lines_per_tgCreateFromLines {}  
 
 
-# Model Atmosphere:
-MatrixReadFromFile (raw_ptz_1d) { "/u/patrick/arts/data/atmosphere/fascod/midlatitude-winter.tz.am" }
-raw_vmrs_1dReadFromScenario     { "/u/patrick/arts/data/atmosphere/fascod/midlatitude-winter" }
+### Load an atmosphere ########################################################
+MatrixReadAscii (raw_ptz_1d) { "/u/patrick/arts/data/atmosphere/fascod/midlatitude-winter.tz.am" }
+raw_vmrs_1dReadFromScenario  { "/u/patrick/arts/data/atmosphere/fascod/midlatitude-winter" }
 
 
-# Absorption
+### Monochromatic frequency grid ##############################################
+VectorLinSpace (f_mono)    { start = 501.18e+9
+                             stop  = 501.58e+9
+		             step  = 0.5e6       }
+VectorWriteAscii (f_mono) {""}
+
+
+### The ground ################################################################
+# Set r_geoid to EARTH_RADIUS
+r_geoidStd{}
+# Set r_geoid to the WGS84 geoid 
+#r_geoidWGS84{ latitude     = 0
+#              obsdirection = 0 }
+NumericSet (z_ground) { 0.0 }
+NumericSet (t_ground) { 290.0 }
+VectorSetLengthFromVector(e_ground,f_mono){value=0.75}
+
+
+
+### Vertical profiles #########################################################
 VectorNLogSpace (p_abs)    { start = 1.013300e+05
                              stop  = 0.0914023919463313
                              n     = 201 }
 AtmFromRaw1D               {}
-VectorWriteToFile (p_abs)  {""}
-VectorWriteToFile (t_abs)  {""}
-ArrayOfVectorWriteToFile (vmrs) {""}
-VectorWriteToFile (z_abs)  {""}
-VectorLinSpace (f_mono)    { start = 22.188e+9
-                             stop  = 22.270e+9
-		             step  = 1e5       }
-VectorWriteToFile (f_mono) {""}
+VectorSetLengthFromVector ( h2o_abs, p_abs ) { 0 } 
+z_absHydrostatic{
+   g0    = 9.81
+   pref  = 101330
+   zref  = 0
+   niter = 2 }
+VectorWriteAscii (p_abs)  {""}
+VectorWriteAscii (t_abs)  {""}
+VectorWriteAscii (z_abs)  {""}
+#ArrayOfVectorWriteAscii (vmrs) {""}
+
+
+### Calculate absorption ######################################################
 absCalc                    {}
-#MatrixWriteToFile (abs) {""}
-#ArrayOfMatrixWriteToFile (abs_per_tg) {""}
+#MatrixWriteBinary (abs) {""}
+#ArrayOfMatrixWriteBinary (abs_per_tg) {""}
 
 
-# Observation geometry
-NumericSet (z_plat) { 12e3 }
-VectorSet  (za_pencil) { length = 1
-                         value  = 43 }
-NumericSet (l_step) { 0.5e3 }
+### Observation geometry ######################################################
+NumericSet (z_plat) { 620e3 }
+VectorNLinSpace (za_pencil) { start = 113
+                              stop  = 114.1
+                              n     = 11 }
+#VectorSet  (za_pencil) { length = 1
+#                         value  = 0 }
+VectorWriteAscii( za_pencil ){""}
+NumericSet (l_step) { 10e3 }
 
 
-# The ground
-NumericSet (z_ground) { 40.0 }
-NumericSet (t_ground) { 290.0 }
-VectorSet  (e_ground) { length = 821
-                        value  = 0.75 }
-
-
-# Cosmic radiation
-y_spaceStd{0}
+### Cosmic radiation ##########################################################
+y_spaceStd{ "cbgr" }
 #y_spacePlanck{300}
 
 
-# Line of sight (LOS)
-#los1d{}
-# A function assuming no refraction
-los1dNoRefraction{}
-# A function assuming no refraction and no ground intersection
-#los1dUpward{}
-source1d{}
-trans1d{}
+### Refraction ################################################################
+IntSet(refr) {0}
+NumericSet (l_step_refr) { 1e3 }
+refr_indexBoudourisDryAir{}
 
-# Calculate and save spectra
+
+### Line of sight (LOS) #######################################################
+losCalc{}
+# A function assuming no refraction
+#losNoRefraction{}
+# A function assuming no refraction and no ground intersection
+#losUpward{}
+#LosWriteBinary(los){""}
+#LosReadBinary(los){""}
+sourceCalc{}
+transCalc{}
+
+
+### Calculate spectra #########################################################
 yRte{}
 #yRteNoGround{}
 #yBl{}
 #yBlNoGround{}
-VectorWriteToFile(y){""}
-
-# Calculate species weighting function matrix and save
-klos1d{}
-VectorNLogSpace (k_grid) { start = 1.013300e+05
-                           stop  = 0.0914023919463313
-                           n     = 201 }
-VectorWriteToFile (k_grid)  {""}
-kInit{}
-kSpecies1d{ nr   = 1
-            unit = 1 }
-#kSpecies1dAll{ unit = 1 }
-#kTempNoHydro{}
-#kContAbs1d{ npoints = 2 }
-#kTempNoHydro1d{}
-MatrixWriteToFile(k){""}  
-MatrixWriteToFile(k_index){""}  
-MatrixWriteToFile(k_aux){""}  
 
 
 
-# These function calls can be used to check species WFs
-# In this example, the absorption at some altitude is increased by a small 
-# factor (e.g. 1 or 10%) in Matlab. If everything is OK, then (y_changed-y)
-# should equal the corresponing column of K multiplied with the applied factor.
-# This works as p_abs amd k_grid are set to be equal.
+### Calculate species weighting function matrix and save ######################
+absloswfsCalc{}
+kxInit{}
+#kbInit{}
+VectorCopy( k_grid, p_abs ){}
+VectorWriteAscii (k_grid)  {""}
+kSpecies{    nr   = 1
+             unit = "frac" }
+#kSpeciesAll{ unit = "frac" }
+kxAppend{}
+#kxAppendUsingH(h1){}
+kContAbs{ order = 1 }
+kxAppend{}
+#kxAppendUsingH(h1){}
+kTempNoHydro{}
+kxAppend{}
+#MatrixApplyH(kx,h1,kx){}
 #
-#MatrixReadFromFile (abs)  {"full.abs_changed.am"}
-#trans1d{}
+# To test kDiffH
+#kDiffHFast{ name    = "Proportional"
+#             delta   = 0.01
+#             grid    = 0
+#             apriori = 0}
+#kxAppend{}
+#
+# To test kManual
+#VectorCopy(y0,y){}
+#y_spaceStd{1}
 #yRte{}
-#VectorWriteToFile(y){"full.y_changed.am"}
+#kManual{ name    = "CBGR"
+#         delta   = 2.73
+#         grid    = 0
+#         apriori = 2.73}
+#kxAppendUsingH(h1){}
+#
+MatrixWriteBinary(kx){""}  
+MatrixWriteBinary(kx_index){""}  
+MatrixWriteBinary(kx_aux){""}  
+ArrayOfStringWriteBinary(kx_names){""}
+#MatrixWriteAscii(kb){""}  
+#MatrixWriteAscii(kb_index){""}  
+#MatrixWriteAscii(kb_aux){""}  
+#ArrayOfStringWriteBinary(kb_names){""}
+
+
+### Conversion to different temperature scales ################################
+VectorCopy(f_sensor,f_mono){}
+VectorCopy(za_sensor,za_pencil){}
+yTRJ{}
+#yTB{}
+#VectorPlanck(y_cal1,f_sensor){temp=78}
+#VectorPlanck(y_cal2,f_sensor){temp=300}
+#VectorSetLengthFromVector(i_cal1,y_cal1){value=78}
+#VectorSetLengthFromVector(i_cal2,y_cal2){value=300}          
+#yLoadCalibration{}
+
+
+### Save spectra #############################################################
+VectorWriteBinary( y ) {""}
+
+
+
+### Produce batch data for varoius variables ##################################
+
+StringSet( batchname ) { "/u/patrick/ARTS/Batch/full" }
+
+sDiagonalLengthFromVector ( p_abs )
+{ 
+  stddev     = 3
+}
+
+BatchdataGaussianTemperatureProfiles{
+   n     = 20
+   g0    = 9.81
+   pref  = 101330
+   zref  = 0
+   niter = 2 
+}
+
+sDiagonalLengthFromVector ( p_abs )
+{ 
+  stddev     = 0.3
+}
+
+BatchdataGaussianSpeciesProfiles{
+   n       = 20
+   do_tags = ["O3-666"]
+   unit    = "frac"
+}
+
+
+BatchdataUniformOffSets ( za_sensor ) {
+   n    = 20
+   low  = -0.01
+   high = 0.01
+}
+
+# These lines produce thermal noise, but the covariance cannot be 
+# created for the selected f_sensor and za_sensor without 
+# diagonal/banded covariance matrices.
+#
+#sDiagonalLengthFromVectors ( f_sensor, za_sensor )
+#{ 
+#  stddev     = 0.2
+#}
+#
+#BatchdataGaussianZeroMean {
+#   n       = 20
+#   varname = "noise"
+#}
+
+BatchdataSinusoidalRippleNoCorrelations( f_sensor, za_sensor )
+{
+  n         = 20
+  period    = 20e6
+  amplitude = 0.2
+  pdf       = "gaussian"
+  varname   = "ripple"
+}
+
+
+### Calculate spectra for the batch data,  ####################################
+### convert to RJ and add noise and ripple
+
+ybatchAbsAndRte{
+   ncalc     = 10
+   do_t      = 1
+   t_file    = ""
+   do_z      = 1
+   z_file    = ""
+   do_tags   = ["O3-666"]
+   tag_files = [""]
+   do_f      = 0
+   f_file    = ""
+   do_za     = 1
+   za_file   = ""
+}
+
+ybatchTRJ{}
+#MatrixFillWithVector( ybatch, y ){ 10 }
+
+ybatchAdd{ "ripple" }
+#ybatchAdd{ "noise" }
+
+MatrixWriteBinary( ybatch ) {""}
+
+
+
+
+
+
+

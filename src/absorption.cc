@@ -1527,13 +1527,15 @@ void abs_species( MATRIX&                  abs,
     Numeric t_i = t_abs(i);
 
     
-    out3 << "  p = " << p_i << " Pa\n";
+    //out3 << "  p = " << p_i << " Pa\n";
 
     // Calculate total number density from pressure and temperature. n
     // = n0*T0/p0 * p/T, ideal gas law
     Numeric n;
     {
       // FIXME: Should these be moved to constants.cc?
+      // The number density cab ne calculated as n  = p/KB/t. No new 
+      // constants are needed (PE 001215). 
       const Numeric T_0_C = 273.15;  	       /* temp. of 0 Celsius in [K]  */
       const Numeric p_0   = 101300.25; 	       /* standard p in [Pa]        */
       const Numeric n_0   = 2.686763E25;         /* Loschmidt constant [m^-3] */

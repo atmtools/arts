@@ -159,3 +159,11 @@ SAB 2000-12-13: Find a solution how to remove WSVs (as if they had not
                 rid of WSVs. Add the moment this is not possible at
                 all. :-(
 
+PE 2000-12-14:  Spectroscopic data should be converted to SI units when doing
+                the reading. No conversion should be needed in the absorption
+                routines.
+
+PE 2000-12-14:  Interpolation in m_abs is not done using the standard 
+                function (interpp).
+
+PE 2000-12-14:  Do what is possible to make the absorption as fast as possible.

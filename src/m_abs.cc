@@ -875,6 +875,34 @@ void absCalc(// WS Output:
   abs_per_tg.resize(0);
   abs_per_tg.resize(lines_per_tg.size());
 
+  // Print information
+  out3 << "  Transitions to do: \n";
+  size_t nlines = 0;
+  string funit;
+  Numeric ffac;
+  if ( f_mono[0] < 3e12 )
+  {
+    funit = "GHz"; ffac = 1e9;
+  }
+  else
+  {
+    extern const Numeric SPEED_OF_LIGHT;
+    funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
+  }
+  for ( size_t i=0; i<lines_per_tg.size(); ++i )
+  {
+    for ( size_t l=0; l<lines_per_tg[i].size(); ++l )
+    {
+      out3 << "    " << lines_per_tg[i][l].Name() << " @ " 
+           << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
+           << lines_per_tg[i][l].I0() << ")\n"; 
+      nlines++;
+    }
+  }
+  out2 << "  Number of frequencies     : " << f_mono.size() << "\n";
+  out2 << "  Number of pressure levels : " << p_abs.size() << "\n";
+  out2 << "  Number of transistions    : " << nlines << "\n";
+
   // Call abs_species for each tag group.
   for ( size_t i=0; i<lines_per_tg.size(); ++i )
     {

@@ -391,11 +391,12 @@ void BatchdataSinusoidalRippleNoCorrelations(
   size_t   i, iv, iza, if0;
   VECTOR   r(nf*nza);
   Numeric  a, p, b=2*PI/period;
+
   for ( i=0; i<size_t(n); i++ )
   {
     for ( iza=0; iza<nza; iza++ )
     {
-      if0 = (iza-1)*nf;
+      if0 = iza*nf;
       a   = amp[iza][i];
       p   = phase[iza][i];
       for ( iv=0; iv<nf; iv++ )

@@ -1,3 +1,17 @@
+2000-12-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-90
+
+	* Fixed some smaller bugs caused by the index change.
+
+	* Updated full.arts in doc/examples. The control file runs OK, spectra 
+	lokk OK (including the batch run) but WFs are not checked if correct.
+
+	* Changed the text for the out-streams in calcAbs. Now all lines 
+	listed for level 3 (but not pressures) and the main sizes for the 
+	calculations are showed for level 2.
+	
+
 2000-12-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-90

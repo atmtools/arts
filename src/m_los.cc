@@ -1073,7 +1073,7 @@ void yTB (
     d = b*f_sensor[i]*f_sensor[i]*f_sensor[i];
     for ( size_t j=0; j<nza; j++ )    
     {
-      i0 = (j-0)*nf + i;
+      i0 = j*nf + i;
       y[i0] = c / ( log(d/y[i0]+1) );
     }
   }
@@ -1106,7 +1106,7 @@ void yTRJ (
     b = a/(f_sensor[i]*f_sensor[i]);
     for ( size_t j=0; j<nza; j++ )    
     {
-      i0 = (j-0)*nf + i;
+      i0 = j*nf + i;
       y[i0] = b * y[i0];
     }
   }
@@ -1143,7 +1143,7 @@ void yLoadCalibration (
     a = (i_cal2[i]-i_cal1[i])/(y_cal2[i]-y_cal1[i]);
     for ( size_t j=0; j<nza; j++ )    
     {
-      i0 = (j-0)*nf + i;
+      i0 = j*nf + i;
       y[i0] = i_cal1[i] + a * ( y[i0] - y_cal1[i] );
     }
   }

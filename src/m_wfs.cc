@@ -128,7 +128,7 @@ void k_append (
     }    
     for ( iri=0; iri<nri1; iri++ )
     {
-      kx_names[iri-1]  = ktemp_names[iri-1];
+      kx_names[iri]    = ktemp_names[iri];
       kx_index[iri][0] = ktemp_index[iri][0];
       kx_index[iri][1] = ktemp_index[iri][1];
     } 
@@ -147,9 +147,9 @@ void k_append (
   size_t l = (size_t) floor(nx2/nri2);
   for ( iri=0; iri<nri2; iri++ )
   {
-    kx_names[nri1+iri-1]  = k_names[iri-1];
-    kx_index[nri1+iri][0] = nx1 + (iri-1)*l;
-    kx_index[nri1+iri][1] = nx1 + iri*l - 1;
+    kx_names[nri1+iri]    = k_names[iri];
+    kx_index[nri1+iri][0] = nx1 + iri*l;
+    kx_index[nri1+iri][1] = nx1 + (iri+1)*l - 1;
   } 
 }
 
