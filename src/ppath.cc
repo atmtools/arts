@@ -472,7 +472,7 @@ void sph2cart(
 {
   assert( r > 0 );
   assert( abs( lat ) <= 90 );
-  assert( abs( lon ) <= 360 );
+  assert( abs( lon ) <= 180 );
 
   const Numeric latrad = DEG2RAD * lat;
   const Numeric lonrad = DEG2RAD * lon;
@@ -481,6 +481,35 @@ void sph2cart(
   z = x * sin( lonrad );
   x = x * cos( lonrad );
   y = r * sin( latrad );
+}
+
+
+
+//! cart2sph
+/*! 
+   The inverse of *sph2cart*.
+
+   \param   r     Out: Radius of observation position.
+   \param   lat   Out: Latitude of observation position.
+   \param   lon   Out: Longitude of observation position.
+   \param   x     x-coordinate of observation position.
+   \param   y     y-coordinate of observation position.
+   \param   z     z-coordinate of observation position.
+
+   \author Patrick Eriksson
+   \date   2002-12-30
+*/
+void cart2sph(
+             Numeric&   r,
+       	     Numeric&   lat,
+       	     Numeric&   lon,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z )
+{
+  r   = sqrt( x*x + y*y + z*z );
+  lat = RAD2DEG * asin( y / r );
+  lon = RAD2DEG * atan2( z, x );    // Check if atan2 works for (0,0)
 }
 
 
@@ -524,8 +553,6 @@ void poslos2cart(
   // lat=90 is most easily handled as a special case
   if( abs( lat ) > 89.999999 )
     {
-      assert( abs( lat ) <= 90 );
-
       const Numeric   s = sign( lat );
 
       x = 0;
@@ -572,7 +599,10 @@ void poslos2cart(
 /*! 
    The inverse of *poslos2cart*.
 
-   The azimuth angle is set to 0 when the zenith angle is 0 or 180.
+   The azimuth angle is set to: <br> 
+      0 when the zenith angle is 0 or 180.
+      atan2(dz,dx) at the poles (lat = +- 90).
+
    The longitude is set to 0 at the poles (lat = +- 90).
 
    \param   r     Out: Radius of observation position.
@@ -599,23 +629,15 @@ void cart2poslos(
        const Numeric&   x,
        const Numeric&   y,
        const Numeric&   z,
-             Numeric    dx,
-             Numeric    dy,
-             Numeric    dz )
+       const Numeric&   dx,
+       const Numeric&   dy,
+       const Numeric&   dz )
 {
-  // Spherical coordinates
-  r   = sqrt( x*x + y*y + z*z );
-  lat = RAD2DEG * asin( y / r );
-  lon = RAD2DEG * atan2( z, x );    // Check if atan2 works for (0,0)
+  // Assert that LOS vector is normalised
+  assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
 
-  // Normalise dx, dy and dz
-  const Numeric   l  = sqrt( dx*dx + dy*dy + dz*dz );
-  if( l != 1 )
-    {
-      dx = dx / l;
-      dy = dy / l;
-      dz = dz / l;
-    }
+  // Spherical coordinates
+  cart2sph( r, lat, lon, x, y, z );
 
   // Spherical derivatives
   const Numeric   coslat = cos( DEG2RAD * lat );
@@ -636,10 +658,9 @@ void cart2poslos(
     {
       aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
 
-      // Numerical inaccuracy can give NaN for aa=0
-      if( isnan( aa ) )
-	{ aa = 0; }
-      else if( dlon < 0 )
+      assert( !isnan( aa ) );
+
+      if( dlon < 0 )
 	{ aa = -aa; }
     }
 
@@ -729,25 +750,33 @@ void gridcell_crossing_3d(
 
   else if( known_dim == 2 )
     {
-      const Numeric   latrad = DEG2RAD * rlatlon;
-            Numeric   t2     = tan( latrad );
-                      t2     = t2 * t2;
-      const Numeric   a      = dx*dx + dz*dz - dy*dy/t2;
-      const Numeric   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
-      const Numeric   pp     = p * p;
-      const Numeric   q      = ( x*x + z*z - y*y/t2 ) / a;
-
-      const Numeric   l1 = -p + sqrt( pp - q );
-      const Numeric   l2 = -p - sqrt( pp - q );
-      
-      if( l1 < 0  &&  l2 > 0 )
-	{ l = l2; }
-      else if( l1 > 0  &&  l2 < 0 )
-        { l = l1; }
-      else if( l1 < l2 )
-        { l = l1; }
+      // The case lat=0 must be handled seperately
+      if( abs( rlatlon ) < 1e-9 )
+	{
+	  l = -y / dy;
+	} 
       else
-        { l = l2; }
+	{
+      	  const Numeric   latrad = DEG2RAD * rlatlon;
+      	        Numeric   t2     = tan( latrad );
+      	                  t2     = t2 * t2;
+      	  const Numeric   a      = dx*dx + dz*dz - dy*dy/t2;
+      	  const Numeric   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
+      	  const Numeric   pp     = p * p;
+      	  const Numeric   q      = ( x*x + z*z - y*y/t2 ) / a;
+
+      	  const Numeric   l1 = -p + sqrt( pp - q );
+      	  const Numeric   l2 = -p - sqrt( pp - q );
+
+      	  if( l1 < 0  &&  l2 > 0 )
+      	    { l = l2; }
+      	  else if( l1 > 0  &&  l2 < 0 )
+      	    { l = l1; }
+      	  else if( l1 < l2 )
+      	    { l = l1; }
+      	  else
+      	    { l = l2; }
+	}
 
       if( l > 0 )
 	{
@@ -776,6 +805,49 @@ void gridcell_crossing_3d(
 
 
 
+//! geompath_tanpos_3d
+/*! 
+   Position of the tangent point for 3D cases.
+
+   The zenith angle must be >= 90.
+
+   \param   r_tan       Out: Radius of tangent point.
+   \param   lat_tan     Out: Latitude of tangent point.
+   \param   lon_tan     Out: Longitude of tangent point.
+   \param   l_tan       Out: Distance along path to the tangent point.
+   \param   r           Radius of observation position.
+   \param   lat         Latitude of observation position.
+   \param   lon         Longitude of observation position.
+   \param   za          LOS zenith angle at observation position.
+   \param   aa          LOS azimuth angle at observation position.
+
+   \author Patrick Eriksson
+   \date   2002-12-31
+*/
+void geompath_tanpos_3d( 
+             Numeric&   r_tan,
+       	     Numeric&   lat_tan,
+       	     Numeric&   lon_tan,
+       	     Numeric&   l_tan,
+       const Numeric&   r,
+       const Numeric&   lat,
+       const Numeric&   lon,
+       const Numeric&   za,
+       const Numeric&   aa,
+       const Numeric&   ppc )
+{
+  assert( za >= 0 );
+
+  Numeric   x, y, z, dx, dy, dz;
+  poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa );
+
+  l_tan  = sqrt( r*r - ppc*ppc );
+
+  cart2sph( r_tan, lat_tan, lon_tan, x+dx*l_tan, y+dy*l_tan, z+dz*l_tan );
+}
+
+
+
 
 
 /*===========================================================================
@@ -789,17 +861,13 @@ void gridcell_crossing_3d(
    The radial slope is here the derivative of the radius with respect to the
    latitude. The unit is accordingly m/degree.
 
-   Note that the radius is defined to change linearly between grid points.
+   Note that the radius is defined to change linearly between grid points,
+   and the slope is constant between to points of the latitude grid.
 
    Note also that the slope is always calculated with respect to increasing
-   latitudes, independently of the upwards argument. The upwards argument is
+   latitudes, independently of the zenith angle. The zenith angle is
    only used to determine which grid range that is of interest when the
-   position is exactly on top of a grid point.
-
-   For a point exactly on a grid value it is not clear if it is the range 
-   below or above that is of interest. The input argument upward is used to 
-   resolve such cases, where upward == 1 means that it is the range above
-   that is of interest.
+   position is exactly on top of a grid point. 
 
    \return              The radial slope [m/degree]
    \param   lat_grid    The latitude grid.
@@ -807,7 +875,7 @@ void gridcell_crossing_3d(
    \param   z_surf      Geometrical altitude of the ground, or the pressure
                         surface of interest, for the latitide dimension
    \param   gp          Latitude grid position for the position of interest
-   \param   upwards     See above.
+   \param   za          LOS zenith angle.
 
    \author Patrick Eriksson
    \date   2002-06-03
@@ -817,11 +885,9 @@ Numeric psurface_slope_2d(
         ConstVectorView   r_geoid,
         ConstVectorView   z_surf,
         const GridPos&    gp,
-        const Index&      upwards )
+        const Numeric&    za )
 {
-  assert( is_bool( upwards ) );
-
-  Index i1 = gridpos2gridrange( gp, upwards );
+  Index i1 = gridpos2gridrange( gp, abs( za ) >= 0 );
   const Numeric r1 = r_geoid[i1] + z_surf[i1];
   const Numeric r2 = r_geoid[i1+1] + z_surf[i1+1];
   return ( r2 - r1 ) / ( lat_grid[i1+1] - lat_grid[i1] );
@@ -835,7 +901,8 @@ Numeric psurface_slope_2d(
 
    This function returns the same quantity as the function above, but takes
    the radius and latitude at two points of the pressure surface, instead
-   of vector input. 
+   of vector input. That is, for this function the interesting latitude range
+   is known when calling the function.
 
    \return         The radial slope [m/degree]
    \param   lat1   A latitude.
@@ -910,8 +977,13 @@ Numeric rsurf_at_latlon(
 
 //! psurface_slope_3d
 /*!
-   Calculates the local radial slope of the ground or a pressure surface for 
-   3D.
+   Calculates the local radial slope of the ground or a pressure surface 
+   for 3D.
+
+   The function works basically as the non-vector version of
+   *psurface_slope_2d*, but the position and viewing direction must
+   here be specicified as the slope varies inside the cell grid, in
+   constrast to a 2D latitude grid range.
 
    \return         The radial slope [m/degree]
    \param   lat1   Lower latitude of grid cell.
@@ -963,8 +1035,73 @@ Numeric psurface_slope_3d(
   r2 = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15, r35, r36, r16, lat2,lon2);
   
   // Return slope
-  NumericPrint( ( r2 - r0 ) / dang, "slope" );
   return   ( r2 - r0 ) / dang;
+}
+
+
+
+//! psurface_slope_3d
+/*!
+   Calculates the radial slope of the ground or a pressure surface for 3D.
+
+   The radial slope is here the derivative of the radius with respect
+   to an angular change (in degrees) along the great circle along the
+   given azimuth angle. That is, how much the radius would change for a
+   movement of r*pi/180 in the given azimuth angle (if the
+   slope where constant along the distance). The unit is m/degree.
+
+   For a point exactly on a grid value it is not clear if it is the
+   range below or above that is of interest. The azimuth angle is used
+   to resolve such cases.
+
+   This function is in practice another way to call the non-vector version
+   of the function above.
+
+   \return              The radial slope [m/degree]
+   \param   lat_grid    The latitude grid.
+   \param   lon_grid    The longitude grid.
+   \param   r_geoid     As the WSV with the same name.
+   \param   z_surf      Geometrical altitude of the ground, or the pressure
+                        surface of interest.
+   \param   gp_lat      Latitude grid position for the position of interest.
+   \param   gp_lon      Longitude grid position for the position of interest.
+   \param   aa          Azimuth angle.
+
+   \author Patrick Eriksson
+   \date   2002-06-03
+*/
+Numeric psurface_slope_3d(
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,  
+        ConstMatrixView   r_geoid,
+        ConstMatrixView   z_surf,
+        const GridPos&    gp_lat,
+        const GridPos&    gp_lon,
+        const Numeric&    aa )
+{
+  Index ilat = gridpos2gridrange( gp_lat, abs( aa ) >= 0 );
+  Index ilon = gridpos2gridrange( gp_lon, aa >= 0 );
+
+  // Restore latitude and longitude values
+  Vector   itw(2);
+  Numeric  lat, lon;
+  interpweights( itw, gp_lat );
+  lat = interp( itw, lat_grid, gp_lat );
+  interpweights( itw, gp_lon );
+  lon = interp( itw, lon_grid, gp_lon );
+
+  // Extract values that defines the grid cell
+  const Numeric   lat1 = lat_grid[ilat];
+  const Numeric   lat3 = lat_grid[ilat+1];
+  const Numeric   lon5 = lon_grid[ilon];
+  const Numeric   lon6 = lon_grid[ilon+1];
+  const Numeric   r15  = r_geoid(ilat,ilon) + z_surf(ilat,ilon);
+  const Numeric   r35  = r_geoid(ilat+1,ilon) + z_surf(ilat+1,ilon);
+  const Numeric   r16  = r_geoid(ilat,ilon+1) + z_surf(ilat,ilon+1);
+  const Numeric   r36  = r_geoid(ilat+1,ilon+1) + z_surf(ilat+1,ilon+1);
+
+  return   psurface_slope_3d( lat1, lat3, lon5, lon6, r15, r35, r36, r16, 
+                                                                lat, lon, aa );
 }
 
 
@@ -1470,8 +1607,6 @@ void do_gridcell_2d(
         const Numeric&   rground1,
         const Numeric&   rground2 )
 {
-  // Define some useful variables:
-
   // Slopes of pressure surfaces
   const Numeric  c2 = psurface_slope_2d( lat1, lat3, r1, r2 );
   const Numeric  c4 = psurface_slope_2d( lat1, lat3, r4, r3 );
@@ -1479,6 +1614,10 @@ void do_gridcell_2d(
 
   // Latitude distance between start point and left grid cell boundary
   const Numeric dlat_left  = lat_start - lat1;
+
+  // Radius of lower and upper pressure surface at *lat_start*.
+  const Numeric   rlow = r1 + c2*dlat_left;
+  const Numeric   rupp = r4 + c4*dlat_left;
 
   // Latitude distance to latitude end face in the viewing direction
   Numeric dlat_endface;
@@ -1491,8 +1630,8 @@ void do_gridcell_2d(
   // Assert that start point is inside the grid cell
   assert( lat_start >= lat1 );
   assert( lat_start <= lat3 );
-  assert( r_start >= r1 + c2*dlat_left );
-  assert( r_start <= r4 + c4*dlat_left );
+  assert( r_start >= rlow );
+  assert( r_start <= rupp );
 
 
   // The end point is most easily determined by the latitude difference to 
@@ -1514,11 +1653,9 @@ void do_gridcell_2d(
   // crossing. We don't need to consider the face if we are standing
   // on the pressure surface.
   //
-  Numeric r_surface = r1 + c2*dlat_left;
-  //
-  if( r_start > r_surface  &&  za_start != 0 )
+  if( r_start > rlow  &&  za_start != 0 )
     {
-      dlat2end = psurface_crossing_2d( r_start, za_start, r_surface, c2 );
+      dlat2end = psurface_crossing_2d( r_start, za_start, rlow, c2 );
       endface = 2;  // This variable will be re-set if there was no crossing
     }
 
@@ -1550,14 +1687,15 @@ void do_gridcell_2d(
 
   // --- Upper face  (pressure surface ip+1).
   //
-  if( abs(dlat2end) > abs(dlat_endface)  &&  abs( za_start ) < 180 )
+  // If the start point is on the pressure surface, we don't need to do any
+  // check as there must be a tangent point before a possible crossing.
+  //
+  if( r_start < rupp  &&  abs(dlat2end) > abs(dlat_endface)  &&  
+                                                        abs( za_start ) < 180 )
     {
       // We can here determine by zenith angles if there is a crossing with
       // the pressure surface. This should save some time compared to call
       // psurface_crossing_2d blindly.
-      // Note that the path step can both start and end at the face.
-
-      r_surface = r4 + c4 * dlat_left;
 
       if( za_start >= za_geom2other_point( r_start, lat_start, r4, lat1 )  &&
               za_start <= za_geom2other_point( r_start, lat_start, r3, lat3 ) )
@@ -1566,7 +1704,7 @@ void do_gridcell_2d(
           // the pressure surface, 999 is returned. This case will anyhow
           // be handled correctly.
 
-          dlat2end = psurface_crossing_2d( r_start, za_start, r_surface, c4 );
+          dlat2end = psurface_crossing_2d( r_start, za_start, rupp, c4 );
           endface  = 4;
         }
     }
@@ -1704,31 +1842,49 @@ void do_gridcell_3d(
         const Numeric&   rground1b,
         const Numeric&   rground2b )
 {
-  // Assert that the given position is inside the grid cell
+  // Assert latitude and longitude
   assert( lat_start >= lat1 );
   assert( lat_start <= lat3 );
   assert( lon_start >= lon5 );
   assert( lon_start <= lon6 );
-  assert( r_start >= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                  r1a, r2a, r2b, r1b, lat_start, lon_start ) );
-  assert( r_start <= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                  r4a, r3a, r3b, r4b, lat_start, lon_start ) );
+
+  // Radius of lower and upper pressure surface at the start position
+  const Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+				    r1a, r2a, r2b, r1b, lat_start, lon_start );
+  const Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+				    r4a, r3a, r3b, r4b, lat_start, lon_start );
+
+  // Assert radius
+  assert( r_start >= rlow );
+  assert( r_start <= rupp );
 
   // Position and LOS in cartesian coordinates
   Numeric   x, y, z, dx, dy, dz;
   poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
                                                           za_start, aa_start );
 
-
   // Check possible crossing with faces in number order
   // The crossing with the lowest distance *l* is what we want.
+  // See the 2D function for comments on the different cases.
   //
   endface = 0;
   //
   Numeric   l_best  = 99999e3;
   Numeric   r_best, lat_best, lon_best, r_try, lat_try, lon_try, l_try;
-  Numeric   rlow, rhigh;
+  Numeric   rlow_try, rhigh_try;
 
+  // Local debug option
+  bool   debug = false;
+  //
+  if( debug )
+    {
+      NumericPrint( lat1, "lat1" );
+      NumericPrint( lat3, "lat3" );
+      NumericPrint( lon5, "lon5" );
+      NumericPrint( lon6, "lon6" );
+      NumericPrint( rlow, "rlow" );
+      NumericPrint( rupp, "rupp" );
+    }
 
   //--- Face 1: along lat1
   //
@@ -1736,15 +1892,26 @@ void do_gridcell_3d(
     {
       gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 2, lat1 );
-
+      if( debug )
+	{
+	  IndexPrint( 1, "face" );
+	  NumericPrint( r_try, "r_try" );
+	  if( r_try > 0 )
+	    {
+	      NumericPrint( lat_try, "lat_try" );
+	      NumericPrint( lon_try, "lon_try" );
+	      NumericPrint( l_try, "l_try" );
+	    }
+	}
       if( r_try > 0  &&  l_try < l_best  &&  lon_try >= lon5  &&  
                                                               lon_try <= lon6 )
 	{
-	  rlow  = rsurf_at_latlon( lat1, lat3, lon5, lon6, r1a, r2a, r2b, r2a, 
-                                                            lat_try, lon_try );
-	  rhigh = rsurf_at_latlon( lat1, lat3, lon5, lon6, r4a, r3a, r3b, r4a, 
-                                                            lat_try, lon_try );
-	  if( r_try >= rlow  &&  r_try <= rhigh )
+	  rlow_try  = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                        r1a, r2a, r2b, r2a, lat_try, lon_try );
+	  rhigh_try = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                        r4a, r3a, r3b, r4a, lat_try, lon_try );
+
+	  if( r_try >= rlow_try  &&  r_try <= rhigh_try )
 	    {
 	      r_best   = r_try;
 	      lat_best = lat_try;
@@ -1758,11 +1925,21 @@ void do_gridcell_3d(
 
   //--- Face 2: lower pressure surface
   //
-  if( za_start > 0 )
+  if( r_start > rlow  &&  za_start > 0 )
     {
       psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
              lat1, lat3, lon5, lon6, r1a, r2a, r2b, r1b, x, y, z, dx, dy, dz );
-
+      if( debug )
+	{
+	  IndexPrint( 2, "face" );
+	  NumericPrint( r_try, "r_try" );
+	  if( r_try > 0 )
+	    {
+	      NumericPrint( lat_try, "lat_try" );
+	      NumericPrint( lon_try, "lon_try" );
+	      NumericPrint( l_try, "l_try" );
+	    }
+	}
       if( r_try > 0  &&  l_try < l_best  &&  lat_try >= lat1  &&  
                     lat_try <= lat3  &&  lon_try >= lon5  &&  lon_try <= lon6 )
 	{
@@ -1781,15 +1958,26 @@ void do_gridcell_3d(
     {
       gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 2, lat3 );
-
+      if( debug )
+	{
+	  IndexPrint( 3, "face" );
+	  NumericPrint( r_try, "r_try" );
+	  if( r_try > 0 )
+	    {
+	      NumericPrint( lat_try, "lat_try" );
+	      NumericPrint( lon_try, "lon_try" );
+	      NumericPrint( l_try, "l_try" );
+	    }
+	}
       if( r_try > 0  &&  l_try < l_best  &&  lon_try >= lon5  &&  
                                                               lon_try <= lon6 )
 	{
-	  rlow  = rsurf_at_latlon( lat1, lat3, lon5, lon6, r1a, r2a, r2b, r2a, 
-                                                            lat_try, lon_try );
-	  rhigh = rsurf_at_latlon( lat1, lat3, lon5, lon6, r4a, r3a, r3b, r4a, 
-                                                            lat_try, lon_try );
-	  if( r_try >= rlow  &&  r_try <= rhigh )
+	  rlow_try  = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                        r1a, r2a, r2b, r2a, lat_try, lon_try );
+	  rhigh_try = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                        r4a, r3a, r3b, r4a, lat_try, lon_try );
+
+	  if( r_try >= rlow_try  &&  r_try <= rhigh_try )
 	    {
 	      r_best   = r_try;
 	      lat_best = lat_try;
@@ -1803,11 +1991,21 @@ void do_gridcell_3d(
 
   //--- Face 4: upper pressure surface
   //
-  if( za_start < 180 )
+  if( r_start < rupp  &&  za_start < 180 )
     {
       psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
              lat1, lat3, lon5, lon6, r4a, r3a, r3b, r4b, x, y, z, dx, dy, dz );
-
+      if( debug )
+	{
+	  IndexPrint( 4, "face" );
+	  NumericPrint( r_try, "r_try" );
+	  if( r_try > 0 )
+	    {
+	      NumericPrint( lat_try, "lat_try" );
+	      NumericPrint( lon_try, "lon_try" );
+	      NumericPrint( l_try, "l_try" );
+	    }
+	}
       if( r_try > 0  &&  l_try < l_best  &&  lat_try >= lat1  &&  
                     lat_try <= lat3  &&  lon_try >= lon5  &&  lon_try <= lon6 )
 	{
@@ -1826,15 +2024,26 @@ void do_gridcell_3d(
     {
       gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 3, lon5 );
-
+      if( debug )
+	{
+	  IndexPrint( 5, "face" );
+	  NumericPrint( r_try, "r_try" );
+	  if( r_try > 0 )
+	    {
+	      NumericPrint( lat_try, "lat_try" );
+	      NumericPrint( lon_try, "lon_try" );
+	      NumericPrint( l_try, "l_try" );
+	    }
+	}
       if( r_try > 0  &&  l_try < l_best  &&  lat_try >= lat1  &&  
                                                               lat_try <= lat3 )
 	{
-	  rlow  = rsurf_at_latlon( lat1, lat3, lon5, lon6, r1a, r2a, r2b, r2a, 
-                                                            lat_try, lon_try );
-	  rhigh = rsurf_at_latlon( lat1, lat3, lon5, lon6, r4a, r3a, r3b, r4a, 
-                                                            lat_try, lon_try );
-	  if( r_try >= rlow  &&  r_try <= rhigh )
+	  rlow_try  = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                        r1a, r2a, r2b, r2a, lat_try, lon_try );
+	  rhigh_try = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                        r4a, r3a, r3b, r4a, lat_try, lon_try );
+
+	  if( r_try >= rlow_try  &&  r_try <= rhigh_try )
 	    {
 	      r_best   = r_try;
 	      lat_best = lat_try;
@@ -1852,15 +2061,26 @@ void do_gridcell_3d(
     {
       gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 3, lon6 );
-
+      if( debug )
+	{
+	  IndexPrint( 6, "face" );
+	  NumericPrint( r_try, "r_try" );
+	  if( r_try > 0 )
+	    {
+	      NumericPrint( lat_try, "lat_try" );
+	      NumericPrint( lon_try, "lon_try" );
+	      NumericPrint( l_try, "l_try" );
+	    }
+	}
       if( r_try > 0  &&  l_try < l_best  &&  lat_try >= lat1  &&  
                                                               lat_try <= lat3 )
 	{
-	  rlow  = rsurf_at_latlon( lat1, lat3, lon5, lon6, r1a, r2a, r2b, r2a, 
-                                                            lat_try, lon_try );
-	  rhigh = rsurf_at_latlon( lat1, lat3, lon5, lon6, r4a, r3a, r3b, r4a, 
-                                                            lat_try, lon_try );
-	  if( r_try >= rlow  &&  r_try <= rhigh )
+	  rlow_try  = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                        r1a, r2a, r2b, r2a, lat_try, lon_try );
+	  rhigh_try = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                        r4a, r3a, r3b, r4a, lat_try, lon_try );
+
+	  if( r_try >= rlow_try  &&  r_try <= rhigh_try )
 	    {
 	      r_best   = r_try;
 	      lat_best = lat_try;
@@ -1874,26 +2094,36 @@ void do_gridcell_3d(
 
   //--- Face 7: the ground
   //
+  // Note "l_try <= l_best", whick means that the ground will be picked
+  // if lower pressure surface and the ground are at the same radius.
+  //
   if( za_start > 0  &&  ( rground1a >= r1a  ||  rground2a >= r2a  ||  
                                      rground1b >= r1b  ||  rground2b >= r2b ) )
     {
       psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, lon5, 
        lon6, rground1a, rground2a, rground2b, rground1b, x, y, z, dx, dy, dz );
 
-    if( r_try > 0  &&  l_try < l_best  &&  lat_try >= lat1  &&  
+      if( debug )
+	{
+	  IndexPrint( 6, "face" );
+	  NumericPrint( r_try, "r_try" );
+	  if( r_try > 0 )
+	    {
+	      NumericPrint( lat_try, "lat_try" );
+	      NumericPrint( lon_try, "lon_try" );
+	      NumericPrint( l_try, "l_try" );
+	    }
+	}
+      if( r_try > 0  &&  l_try <= l_best  &&  lat_try >= lat1  &&  
                     lat_try <= lat3  &&  lon_try >= lon5  &&  lon_try <= lon6 )
-      {
-	r_best   = r_try;
-	lat_best = lat_try;
-	lon_best = lon_try;
-	l_best   = l_try;
-	endface  = 7;
-      }
+	{
+	  r_best   = r_try;
+	  lat_best = lat_try;
+	  lon_best = lon_try;
+	  l_best   = l_try;
+	  endface  = 7;
+	}
     }
-
-
-  // Check that some end face has been found
-  assert( endface );
 
 
   //--- Face 8: tangent point
@@ -1903,18 +2133,28 @@ void do_gridcell_3d(
       Numeric   za_try, aa_try;
       cart2poslos( r_try, lat_try, lon_try, za_try, aa_try,
                            x+dx*l_best, y+dy*l_best, z+dz*l_best, dx, dy, dz );
-      NumericPrint( r_try, "r_try" );
-      NumericPrint( lat_try, "lat_try" );
-      NumericPrint( lon_try, "lon_try" );
-      NumericPrint( za_try, "za_try" );
+      if( debug )
+	{
+	  IndexPrint( 6, "face" );
+	  NumericPrint( r_try, "r_try" );
+	  if( r_try > 0 )
+	    {
+	      NumericPrint( lat_try, "lat_try" );
+	      NumericPrint( lon_try, "lon_try" );
+	      NumericPrint( l_try, "l_try" );
+	    }
+	}
       if( za_try <= 90 )
 	{
-	  l_best  = sqrt( r_start*r_start - ppc*ppc );
-	  cart2poslos( r_best, lat_best, lon_best, za_try, aa_try,
-                           x+dx*l_best, y+dy*l_best, z+dz*l_best, dx, dy, dz );
+          geompath_tanpos_3d( r_best, lat_best, lon_best, l_best, r_start, 
+                               lat_start, lon_start, za_start, aa_start, ppc );
 	  endface = 8;
 	}
     }
+
+
+  // Check that some end face has been found
+  assert( endface );
 
 
   //--- Create return vectors
@@ -1950,7 +2190,7 @@ void do_gridcell_3d(
     }
 
 
-  //--- Set last point especially, which should improve the
+  //--- Set last point especially, which should improve the accuracy
   r_v[n]   = r_best;
   lat_v[n] = lat_best;
   lon_v[n] = lon_best;
@@ -2482,7 +2722,7 @@ void ppath_fill_3d(
 
       // Longitude grid index
       ppath.gp_lon[i].idx   = ilon;
-      ppath.gp_lon[i].fd[0] = ( lon[i] - lat_grid[ilon] ) / dlon;
+      ppath.gp_lon[i].fd[0] = ( lon[i] - lon_grid[ilon] ) / dlon;
       ppath.gp_lon[i].fd[1] = 1 - ppath.gp_lon[i].fd[0];
       gridpos_check_fd( ppath.gp_lon[i] );
 
@@ -2592,7 +2832,7 @@ void ppath_start_stepping(
 
       // If downwards, calculate geometrical tangent position
       Vector geom_tan_pos(0);
-      if( a_los[0] >= 90 )
+      if( a_los[0] > 90 )
         {
           geom_tan_pos.resize(2);
           geom_tan_pos[0] = geometrical_ppc( a_pos[0], a_los[0] );
@@ -2695,33 +2935,30 @@ void ppath_start_stepping(
       const Index   nlat = lat_grid.nelem();
 
       // Is the sensor inside the latitude range of the model atmosphere,
-      // and below the top of the atmosphere? If yes, is_inside = 1.
+      // and below the top of the atmosphere? If yes, is_inside = true.
       // Store geoid and ground radii, grid position and interpolation weights
       // for later use.
       //
-      Index   is_inside = 0;   
-      Numeric rv_geoid=-1, rv_ground=-1;  // -1 to avoid compiler warnings
-      ArrayOfGridPos gp_lat(1);
-      Matrix itw(1,2);
+      bool      is_inside = false;   
+      Numeric   rv_geoid=-1, rv_ground=-1;  // -1 to avoid compiler warnings
+      GridPos   gp_lat;
+      Vector    itw(2);
       //
       if( a_pos[1] >= lat_grid[0]  &&  a_pos[1] <= lat_grid[nlat-1] )
         {
-          gridpos( gp_lat, lat_grid, Vector(1,a_pos[1]) );
+          gridpos( gp_lat, lat_grid, a_pos[1] );
           interpweights( itw, gp_lat );
 
-          Vector v_rgeoid(1), v_zground(1), v_ztop(1);
-          interp( v_rgeoid, itw, r_geoid(Range(joker),0), gp_lat );
-          interp( v_zground, itw, z_ground(Range(joker),0), gp_lat );
-          interp( v_ztop, itw, z_field(np-1,Range(joker),0), gp_lat );
-
-          rv_geoid  = v_rgeoid[0];
-          rv_ground = rv_geoid + v_zground[0];
+          rv_geoid  = interp( itw, r_geoid(Range(joker),0), gp_lat );
+          rv_ground = rv_geoid + 
+                               interp( itw, z_ground(Range(joker),0), gp_lat );
 
           out2 << "  sensor altitude        : " << (a_pos[0]-rv_geoid)/1e3 
                << " km\n";
 
-          if( a_pos[0] < ( v_rgeoid[0] + v_ztop[0] ) )
-            { is_inside = 1; }
+          if( a_pos[0] < ( rv_geoid + 
+                        interp( itw, z_field(np-1,Range(joker),0), gp_lat ) ) )
+            { is_inside = true; }
         }
 
       // If downwards, calculate geometrical tangent position. If the tangent
@@ -2729,9 +2966,9 @@ void ppath_start_stepping(
       // geometrical altitude of the tangent point and the top of atmosphere.
       //
       Vector  geom_tan_pos(0);
-      Numeric geom_tan_z=-1, geom_tan_atmtop=-1;  // -1 to avoid warnings
-      //
-      if( abs(a_los[0]) >= 90 )
+      Numeric geom_tan_z=-2, geom_tan_atmtop=-1;  // OK values if the variables
+      //                                          are not set below
+      if( abs(a_los[0]) > 90 )
         {
           geom_tan_pos.resize(2);
           geom_tan_pos[0] = geometrical_ppc( a_pos[0], a_los[0] );
@@ -2747,15 +2984,14 @@ void ppath_start_stepping(
           if( geom_tan_pos[1] >= lat_grid[0]  &&  
                                           geom_tan_pos[1] <= lat_grid[nlat-1] )
             {
-              ArrayOfGridPos gp_tmp(1);
-              Matrix itw_tmp(1,2);
-              Vector v1_tmp(1), v2_tmp(1);
-              gridpos( gp_tmp, lat_grid, Vector(1,geom_tan_pos[1]) );
-              interpweights( itw_tmp, gp_tmp );
-              interp( v1_tmp, itw_tmp, r_geoid(Range(joker),0), gp_tmp );
-              geom_tan_z = geom_tan_pos[0] - v1_tmp[0];
-              interp( v2_tmp, itw_tmp, z_field(np-1,Range(joker),0), gp_tmp );
-              geom_tan_atmtop = v2_tmp[0];
+              GridPos   gp_tan;
+              Vector    itw_tan(2);
+              gridpos( gp_tan, lat_grid, geom_tan_pos[1] );
+              interpweights( itw_tan, gp_tan );
+	      geom_tan_z = geom_tan_pos[0] - 
+                            interp( itw_tan, r_geoid(Range(joker),0), gp_tan );
+              geom_tan_atmtop = 
+                       interp( itw_tan, z_field(np-1,Range(joker),0), gp_tan );
               out2 << "  geom. tangent altitude : " << geom_tan_z/1e3 
                    << " km\n";
             }
@@ -2782,10 +3018,10 @@ void ppath_start_stepping(
           // Check that not at latitude end point and looks out
           if( ( a_pos[1] == lat_grid[0]  &&   a_los[0] < 0 ) )
             throw runtime_error( "The sensor is at the lower latitude end "
-                                            "point and the zenith angle < 0" );
+                                           "point and the zenith angle < 0." );
           if( a_pos[1] == lat_grid[nlat-1]  &&   a_los[0] > 0 ) 
             throw runtime_error( "The sensor is at the upper latitude end "
-                                            "point and the zenith angle > 0" );
+                                           "point and the zenith angle > 0." );
           
           // Geometrical altitude
           ppath.z[0] = ppath.pos(0,0) - rv_geoid;
@@ -2794,9 +3030,10 @@ void ppath_start_stepping(
           // they can be modified on the way.
      
           // Grid positions
-          ppath.gp_lat[0].idx   = gp_lat[0].idx;
-          ppath.gp_lat[0].fd[0] = gp_lat[0].fd[0];
-          ppath.gp_lat[0].fd[1] = gp_lat[0].fd[1];
+          ppath.gp_lat[0].idx   = gp_lat.idx;
+          ppath.gp_lat[0].fd[0] = gp_lat.fd[0];
+          ppath.gp_lat[0].fd[1] = gp_lat.fd[1];
+
           // Create a vector with the geometrical altitude of the pressure 
           // surfaces for the sensor latitude and use it to get ppath.gp_p.
           Vector z_grid(np);
@@ -2810,7 +3047,7 @@ void ppath_start_stepping(
               // Calculate radial slope of the ground
               const Numeric rslope = psurface_slope_2d( lat_grid, 
                         r_geoid(Range(joker),0), z_ground(Range(joker),0), 
-                                              gp_lat[0], ppath.los(0,0) >= 0 );
+                                                      gp_lat, ppath.los(0,0) );
 
               // Calculate angular tilt of the ground
               const Numeric atilt = psurface_angletilt( rv_ground, rslope);
@@ -2838,13 +3075,11 @@ void ppath_start_stepping(
                 {
                   // Calculate the lower and upper altitude radius limit for
                   // the cloud box at the latitude of the sensor
-                  Vector v_zlim(1);
-                  interp( v_zlim, itw, 
+
+		  const Numeric   rv_low = rv_geoid + interp( itw, 
                           z_field(cloudbox_limits[0],Range(joker),0), gp_lat );
-                  Numeric rv_low = rv_geoid + v_zlim[0];
-                  interp( v_zlim, itw, 
+		  const Numeric   rv_upp = rv_geoid + interp( itw, 
                           z_field(cloudbox_limits[1],Range(joker),0), gp_lat );
-                  Numeric rv_upp = rv_geoid + v_zlim[0];
 
                   if( ppath.pos(0,0) >= rv_low  &&  ppath.pos(0,0) <= rv_upp )
                     { ppath_set_background( ppath, 4 ); }       
@@ -2941,8 +3176,8 @@ void ppath_start_stepping(
                                                 geom_tan_z >= geom_tan_atmtop )
             {
               ppath_set_background( ppath, 1 );
-              out1 << "  --- WARNING ---: path is totally outside of the "
-                   << "model atmosphere\n";
+              out1 << "  ------- WARNING -------: path is totally outside of "
+		   << "the model atmosphere\n";
             }
 
           // The path enters the atmosphere
@@ -2979,12 +3214,12 @@ void ppath_start_stepping(
                   lat0  = a_pos[1]; 
                   if( a_los[0] >= 0 )
                     {  
-                      ilat0 = gridpos2gridrange( gp_lat[0], 1 );
+                      ilat0 = gridpos2gridrange( gp_lat, 1 );
                       istep = 1;
                     }
                   else
                     { 
-                      ilat0 = gridpos2gridrange( gp_lat[0], 0 ) + 1;
+                      ilat0 = gridpos2gridrange( gp_lat, 0 ) + 1;
                       istep = -1; 
                     }
                 }
@@ -3027,8 +3262,7 @@ void ppath_start_stepping(
                       ppath.gp_p[0].idx = np - 2;
                       ppath.gp_p[0].fd[0] = 1;
                       ppath.gp_p[0].fd[1] = 0;
-                      gridpos( ppath.gp_lat, lat_grid, 
-                                                   ppath.pos(Range(joker),1) );
+                      gridpos( ppath.gp_lat[0], lat_grid, ppath.pos(0,1) );
                     } 
                   else
                     {
@@ -3050,9 +3284,405 @@ void ppath_start_stepping(
 
 
   //-- 3D ---------------------------------------------------------------------
-  else if( atmosphere_dim == 3 )
+  else
     {
-      throw runtime_error("The function handles not yet 3D.");
+      // Number of points in the latitude and longitude grids
+      const Index   nlat = lat_grid.nelem();
+      const Index   nlon = lon_grid.nelem();
+
+      // Is the sensor inside the latitude and longitude ranges of the
+      // model atmosphere, and below the top of the atmosphere? If
+      // yes, is_inside = true. Store geoid and ground radii, grid
+      // position and interpolation weights for later use.
+      //
+      bool      is_inside = false;   
+      Numeric   rv_geoid=-1, rv_ground=-1;  // -1 to avoid compiler warnings
+      GridPos   gp_lat, gp_lon;
+      Vector    itw(4);
+      //
+      if( a_pos[1] >= lat_grid[0]  &&  a_pos[1] <= lat_grid[nlat-1]  &&
+                    a_pos[2] >= lon_grid[0]  &&  a_pos[2] <= lon_grid[nlon-1] )
+        {
+          gridpos( gp_lat, lat_grid, a_pos[1] );
+          gridpos( gp_lon, lon_grid, a_pos[2] );
+          interpweights( itw, gp_lat, gp_lon );
+
+          rv_geoid  = interp( itw, r_geoid, gp_lat, gp_lon );
+          rv_ground = rv_geoid + interp( itw, z_ground, gp_lat, gp_lon );
+
+          out2 << "  sensor altitude        : " << (a_pos[0]-rv_geoid)/1e3 
+               << " km\n";
+
+          if( a_pos[0] < ( rv_geoid + interp( itw, 
+                  z_field(np-1,Range(joker),Range(joker)), gp_lat, gp_lon ) ) )
+            { is_inside = true; }
+        }
+
+      // If downwards, calculate geometrical tangent position. If the tangent
+      // point is inside the covered latitude range, calculate also the 
+      // geometrical altitude of the tangent point and the top of atmosphere.
+      //
+      Vector  geom_tan_pos(0);
+      Numeric geom_tan_z=-2, geom_tan_atmtop=-1;  // OK values if the variables
+      //                                          are not set below
+      if( a_los[0] > 90 )
+        {
+          geom_tan_pos.resize(3);
+          Numeric    dummy;
+          geompath_tanpos_3d( geom_tan_pos[0], geom_tan_pos[1], 
+                   geom_tan_pos[2], dummy, a_pos[0], a_pos[1], a_pos[2], 
+                   a_los[0], a_los[1], geometrical_ppc( a_pos[0], a_los[0] ) );
+          out2 << "  geom. tangent radius   : " << geom_tan_pos[0] / 1e3
+               <<" km\n";
+          out2 << "  geom. tangent latitude : " << geom_tan_pos[1] 
+               << "\n";
+          out2 << "  geom. tangent longitude: " << geom_tan_pos[2] 
+               << "\n";
+          //
+
+          if( geom_tan_pos[1] >= lat_grid[0]       &&  
+              geom_tan_pos[1] <= lat_grid[nlat-1]  &&
+              geom_tan_pos[2] >= lon_grid[0]       &&
+              geom_tan_pos[2] <= lon_grid[nlon-1] )
+            {
+              GridPos   gp_tanlat, gp_tanlon;
+              Vector    itw_tan(4);
+              gridpos( gp_tanlat, lat_grid, geom_tan_pos[1] );
+              gridpos( gp_tanlon, lon_grid, geom_tan_pos[2] );
+              interpweights( itw_tan, gp_tanlat, gp_tanlon );
+              geom_tan_z = geom_tan_pos[0] - 
+                              interp( itw_tan, r_geoid, gp_tanlat, gp_tanlon );
+              geom_tan_atmtop = interp( itw_tan, 
+               z_field(np-1,Range(joker),Range(joker)), gp_tanlat, gp_tanlon );
+              out2 << "  geom. tangent altitude : " << geom_tan_z/1e3 
+                   << " km\n";
+            }
+        }
+
+      // Put sensor position and LOS in ppath as first guess
+      ppath.pos(0,0) = a_pos[0];
+      ppath.pos(0,1) = a_pos[1];
+      ppath.pos(0,2) = a_pos[2];
+      ppath.los(0,0) = a_los[0];
+      ppath.los(0,1) = a_los[1];
+
+
+      // The sensor is inside the model atmosphere, 3D ------------------------
+      if( is_inside )
+        {
+          // Check that the sensor is above the ground
+          if( a_pos[0] < rv_ground )
+            {
+              ostringstream os;
+              os << "The sensor is placed " 
+                 << (rv_ground - a_pos[0])/1e3 << " km below ground level.\n"
+                 << "The sensor must be above the ground.";
+              throw runtime_error(os.str());
+            }
+
+          // Check that not at latitude end point and looks out
+          if( a_pos[1] == lat_grid[0]  &&  abs( a_los[1] > 90 ) )
+            throw runtime_error( "The sensor is at the lower latitude end "
+                   "point and the absolute value of the azimuth angle > 90." );
+          if( a_pos[1] == lat_grid[nlat-1]  &&  abs( a_los[1] ) <= 90 ) 
+            throw runtime_error( "The sensor is at the upper latitude end "
+                  "point and the absolute value of the azimuth angle <= 90." );
+
+          // Check that not at longitude end point and looks out
+          if( a_pos[1] == lon_grid[0]  &&  a_los[1] < 0 )
+            throw runtime_error( "The sensor is at the lower longitude end "
+                                          "point and the azimuth angle < 0." );
+          if( a_pos[1] == lon_grid[nlon-1]  &&  a_los[1] > 0 ) 
+            throw runtime_error( "The sensor is at the upper longitude end "
+                                          "point and the azimuth angle > 0." );
+          
+          // Geometrical altitude
+          ppath.z[0] = ppath.pos(0,0) - rv_geoid;
+
+          // Use below the values in ppath (instead of a_pos and a_los) as 
+          // they can be modified on the way.
+     
+          // Grid positions
+          ppath.gp_lat[0].idx   = gp_lat.idx;
+          ppath.gp_lat[0].fd[0] = gp_lat.fd[0];
+          ppath.gp_lat[0].fd[1] = gp_lat.fd[1];
+          ppath.gp_lon[0].idx   = gp_lon.idx;
+          ppath.gp_lon[0].fd[0] = gp_lon.fd[0];
+          ppath.gp_lon[0].fd[1] = gp_lon.fd[1];
+
+          // Create a vector with the geometrical altitude of the pressure 
+          // surfaces for the sensor latitude and use it to get ppath.gp_p.
+          Vector z_grid(np);
+          z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, 
+                                                              gp_lat, gp_lon );
+          gridpos( ppath.gp_p, z_grid, ppath.z );
+
+          // Is the sensor on the ground looking down?
+          if( ppath.pos(0,0) == rv_ground )
+            {
+              // Calculate radial slope of the ground
+              const Numeric rslope = psurface_slope_3d( lat_grid, lon_grid,
+                          r_geoid, z_ground, gp_lat, gp_lon, ppath.los(0,1)  );
+
+              // Calculate angular tilt of the ground
+              const Numeric atilt = psurface_angletilt( rv_ground, rslope);
+
+              // Are we looking down into the ground?
+              // If yes and the sensor is inside the cloudbox, the background 
+              // will be changed below.
+              if( is_los_downwards( ppath.los(0,0), atilt ) )
+                { ppath_set_background( ppath, 2 ); }
+            }
+
+          // Check sensor position with respect to cloud box.
+          if( cloudbox_on )
+            {
+              // To check all possible cases here when the sensor is at the
+              // surface and can either look into or out from the box needs
+              // a lot of coding.
+              // So we are instead sloppy and set all cases when the sensor
+              // is inside or at the surface to be inside the box.
+              // The neglected cases should be very unlikely in for real
+              // situations.
+
+              if( ppath.pos(0,1) >= lat_grid[cloudbox_limits[2]]  &&
+                  ppath.pos(0,1) <= lat_grid[cloudbox_limits[3]]  &&
+                  ppath.pos(0,2) <= lon_grid[cloudbox_limits[4]]  &&
+                  ppath.pos(0,2) <= lon_grid[cloudbox_limits[5]]  )
+                {
+                  // Calculate the lower and upper altitude radius limit for
+                  // the cloud box at the latitude of the sensor
+
+		  const Numeric   rv_low = rv_geoid + interp( itw, 
+                        z_field(cloudbox_limits[0],Range(joker),Range(joker)),
+                                                              gp_lat, gp_lon );
+		  const Numeric   rv_upp = rv_geoid + interp( itw, 
+                        z_field(cloudbox_limits[1],Range(joker),Range(joker)), 
+                                                              gp_lat, gp_lon );
+
+                  if( ppath.pos(0,0) >= rv_low  &&  ppath.pos(0,0) <= rv_upp )
+                    { ppath_set_background( ppath, 4 ); }       
+                }
+            }
+        }
+
+      // The sensor is outside the model atmosphere, 3D -----------------------
+      else
+        {
+          // Upward observations are not allowed here
+          if( abs(a_los[0]) <= 90 )
+            {
+              ostringstream os;
+              os << "When the sensor is placed outside the model atmosphere,\n"
+                 << "upward observations are not allowed.";
+              throw runtime_error( os.str() );
+            }
+          
+          // We can here set the path constant, that equals the radius of the
+          // geometrical tangent point.
+          ppath.constant = geom_tan_pos[0];
+
+          // Handle cases when the sensor appears to look the wrong way in
+          // the north-south direction
+          if( ( a_pos[1] <= lat_grid[0]  &&  abs( a_los[1] ) >= 90 )  || 
+                  ( a_pos[1] >= lat_grid[nlat-1]  &&  abs( a_los[1] ) <= 90 ) )
+            {
+              ostringstream os;
+              os << "The sensor is north or south (or at the limit) of the "
+		 << "model atmosphere but\nlooks in the wrong direction.\n";
+              throw runtime_error( os.str() );
+            }
+
+	  // Handle cases when the sensor appears to look the wrong way in
+          // the west-east direction. We demand that the sensor is inside the
+	  // range of lon_grid even if all longitudes are covered.
+          if( ( a_pos[2] <= lon_grid[0]  &&  a_los[1] < 0 )  || 
+                           ( a_pos[2] >= lon_grid[nlon-1]  &&  a_los[1] > 0 ) )
+            {
+              ostringstream os;
+              os << "The sensor is east or west (or at the limit) of the "
+		 << "model atmosphere but\nlooks in the wrong direction.\n";
+              throw runtime_error( os.str() );
+            }
+
+	  // We either checks that:
+	  // 1. the tangent point is above the atmosphere, inside covered 
+	  //    lat and lon ranges
+	  // 2. We try to determine the entrance point, and issues an error
+	  //    if it is not at the top of the atmosphere.
+          
+          // Is tangent point above the model atmosphere
+          if( geom_tan_pos[1] >= lat_grid[0]  &&  
+                           geom_tan_pos[1] <= lat_grid[nlat-1]   &&  
+                           geom_tan_pos[2] >= lon_grid[0]        &&  
+                           geom_tan_pos[2] <= lon_grid[nlon-1]   &&  
+                                                geom_tan_z >= geom_tan_atmtop )
+            {
+              ppath_set_background( ppath, 1 );
+              out1 << "  ------- WARNING -------: path is totally outside of "
+		   << "the model atmosphere\n";
+            }
+
+          // The path: does it enter the atmosphere, and then where?
+          else
+            {
+	      // Create a matrix for top of the atmosphere radii
+	      Matrix r_atmtop(nlat,nlon);
+	      //
+	      for( Index ilat=0; ilat<nlat; ilat++ )
+		{
+		  for( Index ilon=0; ilon<nlon; ilon++ )
+		    { r_atmtop(ilat,ilon) = r_geoid(ilat,ilon) +
+			                             z_field(np-1,ilat,ilon); }
+		}
+
+	      // Handle the case when the sensor radius is obviously too low
+	      Numeric   rtopmin = min( r_atmtop );
+	      if( a_pos[0] <= rtopmin )
+		{
+		  ostringstream os;
+		  os << "The sensor radius is smaller than the minimum radius "
+		     << "of the top of\nthe atmosphere. This gives no possible"
+		     << " OK entrance point for the path.";
+		  throw runtime_error( os.str() );
+		}
+
+	      // Handle the case when the path clearly passes above the 
+	      // model atmosphere
+	      Numeric   rtopmax = max( r_atmtop );
+	      if( geom_tan_pos[0] >= rtopmax )
+                {
+                  ostringstream os;
+                  os << "The combination of sensor position and line-of-sight "
+                     << "gives a\npropagation path that goes above the model "
+                     << "atmosphere, with\na tangent point outside the covered"
+                     << " latitude and longitude ranges.\nThe position of the "
+		     << "tangent point is:\n   lat : " << geom_tan_pos[1] 
+		     << "\n   lon : " << geom_tan_pos[2];
+                  throw runtime_error( os.str() );
+                }
+
+	      // Sensor pos and LOS in cartesian coordinates
+	      Numeric   x, y, z, dx, dy, dz;
+	      poslos2cart( x, y, z, dx, dy, dz, a_pos[0], a_pos[1], a_pos[2], 
+                                                          a_los[0], a_los[1] );
+
+	      // Boolean for that entrance point CANNOT be found
+	      bool   failed = false;
+	     
+	      // Determine the entrance point for the minimum of *r_atmtop*
+	      Numeric   r_top, lat_top, lon_top, l_top;
+              psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
+                 lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1], 
+                     rtopmin, rtopmin, rtopmin, rtopmin, x, y, z, dx, dy, dz );
+
+	      // If no crossing was found for min radius, or it is outside
+	      // covered lat and lon ranges, try max radius and make the same
+	      // check. If check not succesful, there is no OK entrance point.
+	      if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
+		  lon_top < lat_grid[0]  ||  lon_top > lat_grid[nlat-1] )
+		{
+		  psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
+                  lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1],
+                     rtopmax, rtopmax, rtopmax, rtopmax, x, y, z, dx, dy, dz );
+		  if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
+		      lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
+		    { failed = true; }
+		}
+
+	      // Search iteratively for the entrance point until convergence
+	      // or moving out from covered lat and lon ranges
+	      //
+	      bool   ready = false;
+	      //
+	      while( !failed  &&  !ready )
+		{
+	      	  // Determine radius at found lat and lon
+	      	  GridPos   gp_lattop, gp_lontop;
+	      	  Numeric   lat1, lat3, lon5, lon6, r1a, r2a, r2b, r1b;
+	      	  Index     ilat, ilon;
+	      	  gridpos( gp_lattop, lat_grid, lat_top );
+	      	  ilat = gridpos2gridrange( gp_lattop, abs( a_los[1] ) >= 90 );
+	      	  gridpos( gp_lontop, lon_grid, lon_top );
+	      	  ilon = gridpos2gridrange( gp_lontop, a_los[1] > 0 );   
+  	      	  r1a = r_geoid(ilat,ilon) + z_field(np-1,ilat,ilon);
+  	      	  r2a = r_geoid(ilat+1,ilon) + z_field(np-1,ilat+1,ilon);
+  	      	  r1b = r_geoid(ilat,ilon+1) + z_field(np-1,ilat,ilon+1);
+  	      	  r2b = r_geoid(ilat+1,ilon+1) + z_field(np-1,ilat+1,ilon+1);
+  	      	  lat1  = lat_grid[ilat];
+  	      	  lat3  = lat_grid[ilat+1];
+  	      	  lon5  = lon_grid[ilon];
+  	      	  lon6  = lon_grid[ilon+1];
+	      	  r_top = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                       r1a, r2a, r2b, r1b, lat_top, lon_top );
+
+		  // Determine new entance position for latest estimated
+		  // entrance radius
+		  Numeric   lat_top2, lon_top2;
+		  psurface_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
+                  lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1],
+		             r_top, r_top, r_top, r_top, x, y, z, dx, dy, dz );
+		  
+		  // Check if new position is sufficiently close to old
+		  if( abs( lat_top2 - lat_top ) < 1e-6  &&  
+		                             abs( lon_top2 - lon_top ) < 1e-6 )
+		    { ready = true; }
+
+		  // Have we moved outside covered lat or lon range?
+		  else if( lat_top < lat_grid[0]  ||  
+                           lat_top > lat_grid[nlat-1] ||
+		           lon_top < lon_grid[0]  ||  
+                           lon_top > lon_grid[nlon-1] )
+		    { failed = true; }
+		  
+		  lat_top = lat_top2;   
+		  lon_top = lon_top2; 
+		}
+
+	      if( failed )
+		{
+		  ostringstream os;
+		  os << "The path does not enter the model atmosphere at the "
+		     << "top.\nThe path reaches the top of the atmosphere "
+		     << "altitude\napproximately at the position:\n"
+		     << "   lat : " << lat_top << "\n   lon : " << lon_top;
+		  throw runtime_error( os.str() );
+		}
+
+	      // Move found values to *ppath*
+	      //
+	      // Position
+	      ppath.pos(0,0) = r_top;
+	      ppath.pos(0,1) = lat_top;
+	      ppath.pos(0,2) = lon_top;
+	      //
+	      // Grid position
+	      ppath.gp_p[0].idx = np - 2;
+	      ppath.gp_p[0].fd[0] = 1;
+	      ppath.gp_p[0].fd[1] = 0;
+	      gridpos( ppath.gp_lat[0], lat_grid, lat_top ); 
+	      gridpos( ppath.gp_lon[0], lon_grid, lon_top ); 
+	      //
+	      // Geometrical altitude
+	      Vector   itw(4);
+	      interpweights( itw, ppath.gp_lat[0], ppath.gp_lon[0] );
+	      ppath.z[0] = ppath.pos(0,0) - interp(itw,  r_geoid,
+                                            ppath.gp_lat[0], ppath.gp_lon[0] );
+	      //
+	      // LOS
+              cart2poslos( r_top, lat_top, lon_top, ppath.los(0,0), 
+              ppath.los(0,1), x+dx*l_top, y+dy*l_top, z+dz*l_top, dx, dy, dz );
+            }
+
+        } // else
+
+      // Set geometrical tangent point position
+      if( geom_tan_pos.nelem() == 3 )
+        {
+          ppath.geom_tan_pos.resize(3);
+          ppath.geom_tan_pos = geom_tan_pos;
+        }
+
     }  // End 3D
 }
 
@@ -3270,31 +3900,35 @@ Numeric get_refr_index_2d(
         ConstVectorView    r_geoid,
         ConstMatrixView    z_field,
         ConstMatrixView    t_field,
-        const Numeric&     z,
+        const Numeric&     r,
         const Numeric&     lat )
 {     
-  const Index      np = p_grid.nelem();
-  ArrayOfGridPos   gp_p(1), gp_lat(1);
-  Vector           z_grid(np), r_value(1), p_value(1), t_value(1);
-  Matrix           itw(1,2);
+  const Index   np = p_grid.nelem();
+  GridPos       gp_p, gp_lat;
+  Numeric       rg, p_value, t_value;
+  Vector        z_grid(np);
+  Vector        itw(2);
 
-  gridpos( gp_lat, lat_grid, Vector(1,lat) );
+  gridpos( gp_lat, lat_grid, lat );
   interpweights( itw, gp_lat );
-  interp( r_value, itw, r_geoid, gp_lat );
+  rg = interp( itw, r_geoid, gp_lat );
 
   z_at_lat_2d( z_grid, p_grid, lat_grid, z_field, gp_lat );
 
-  gridpos( gp_p, z_grid, Vector(1,z-r_value[0]) );
-  interpweights( itw, gp_p );
-  itw2p( p_value, p_grid, gp_p, itw );
+  gridpos( gp_p, z_grid, r - rg );
+  ArrayOfGridPos   agp_p(1);
+  gridpos_copy( agp_p[0], gp_p );
+  Matrix   itw2(1,2);
+  interpweights( itw, agp_p );
+  itw2p( p_value, p_grid, agp_p, itw2 );
 
-  itw.resize(1,4);
+  itw.resize(4);
   interpweights( itw, gp_p, gp_lat );
-  interp( t_value, itw, t_field, gp_p, gp_lat );
+  t_value = interp( itw, t_field, gp_p, gp_lat );
 
   Vector refr_index(1);
 
-  refr_index_BoudourisDryAir( refr_index, p_value[0], t_value[0] );
+  refr_index_BoudourisDryAir( refr_index, p_value, t_value );
 
   return refr_index[0];
 }
@@ -3351,9 +3985,7 @@ void ppath_start_1d(
   //
   assert( r_start >= r_geoid + z_ground );
   assert( za_start >= 0  &&  za_start <= 180 );
-  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], 0 ) && za_start > 90 ) );
-  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], npl-1 )  && 
-                                                            za_start <= 90 ) );
+
 
   // Determine index of the pressure surface being the lower limit for the
   // grid range of interest.
@@ -3498,14 +4130,7 @@ void ppath_start_2d(
   //
   assert( za_start >= -180  );
   assert( za_start <= 180 );
-  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], 0 )  &&  
-                                                       abs(za_start) > 90 ) );
-  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], npl-1 )  && 
-                                                      abs(za_start) <= 90 ) );
-  assert( !( is_gridpos_at_index_i( ppath.gp_lat[imax], 0 )  &&  
-                                                              za_start < 0 ) );
-  assert( !( is_gridpos_at_index_i( ppath.gp_lat[imax], nlat-1 )  &&  
-                                                              za_start > 0 ) );
+  //
   // more asserts below ...
 
 
@@ -3571,13 +4196,6 @@ void ppath_start_2d(
   // Ground radius at latitude end points
   rground1 = r_geoid[ilat] + z_ground[ilat];
   rground2 = r_geoid[ilat+1] + z_ground[ilat+1];
-
-  // As a double check: 
-  // assert that start position is inside the found grid cell.
-  assert( lat_start >= lat1 );
-  assert( lat_start <= lat3 );
-  assert( r_start >= r1 + c2 * ( lat_start - lat1 ) );
-  assert( r_start <= r4 + c4 * ( lat_start - lat1 ) );
 }
 
 
@@ -3717,7 +4335,7 @@ void ppath_start_3d(
   assert( is_size( r_geoid, nlat, nlon ) );
   assert( is_size( z_ground, nlat, nlon ) );
   //
-  assert( ppath.dim == 2 );
+  assert( ppath.dim == 3 );
   assert( ppath.np >= 1 );
   assert( ppath.gp_p[imax].idx >= 0 );
   assert( ppath.gp_p[imax].idx <= ( npl - 2 ) );
@@ -3728,24 +4346,13 @@ void ppath_start_3d(
   assert( ppath.gp_lat[imax].fd[0] >= 0 );
   assert( ppath.gp_lat[imax].fd[0] <= 1 );
   assert( ppath.gp_lon[imax].idx >= 0 );
-  assert( ppath.gp_lon[imax].idx <= ( nlat - 2 ) );
+  assert( ppath.gp_lon[imax].idx <= ( nlon - 2 ) );
   assert( ppath.gp_lon[imax].fd[0] >= 0 );
   assert( ppath.gp_lon[imax].fd[0] <= 1 );
   //
   assert( za_start >= 0 );
   assert( za_start <= 180 );
-  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], 0 )  &&  
-                                                             za_start > 90 ) );
-  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], npl-1 )  && 
-                                                            za_start <= 90 ) );
-  assert( !( is_gridpos_at_index_i( ppath.gp_lat[imax], 0 )  &&  
-                                                      abs( aa_start > 90 ) ) );
-  assert( !( is_gridpos_at_index_i( ppath.gp_lat[imax], nlat-1 )  &&  
-                                                     abs( aa_start < 90  ) ) );
-  assert( !( is_gridpos_at_index_i( ppath.gp_lon[imax], 0 )  &&  
-                                                              aa_start < 0 ) );
-  assert( !( is_gridpos_at_index_i( ppath.gp_lon[imax], nlon-1 )  &&  
-                                                              aa_start > 0 ) );
+  //
   // more asserts below ...
 
 
@@ -3753,7 +4360,7 @@ void ppath_start_3d(
   // the range.
   //
   ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start ) <= 90 );
-  ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 );
+  ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 ); 
   //
   lat1 = lat_grid[ilat];
   lat3 = lat_grid[ilat+1];
@@ -3776,7 +4383,7 @@ void ppath_start_3d(
   r2b = r_geoid(ilat+1,ilon+1) + z_field(ip,ilat+1,ilon+1); 
   r3b = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1);
   r4b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);     
-  
+
   // Check if the LOS zenith angle happen to be between 90 and the zenith angle
   // of the pressure surface (that is, 90 + tilt of pressure surface), and in
   // that case if ip must be changed. This check is only needed when the
@@ -3819,24 +4426,13 @@ void ppath_start_3d(
 
   out3 << "  pressure grid range  : " << ip << "\n";
   out3 << "  latitude grid range  : " << ilat << "\n";
-  out3 << "  latitude grid range  : " << ilon << "\n";
+  out3 << "  longitude grid range : " << ilon << "\n";
 
   // Ground radius at latitude end points, and ground slope
   rground1a = r_geoid(ilat,ilon) + z_ground(ilat,ilon);
   rground2a = r_geoid(ilat+1,ilon) + z_ground(ilat+1,ilon);
   rground1b = r_geoid(ilat,ilon+1) + z_ground(ilat,ilon+1);
   rground2b = r_geoid(ilat+1,ilon+1) + z_ground(ilat+1,ilon+1);
-
-  // As a double check: 
-  // assert that start position is inside the found grid cell.
-  assert( lat_start >= lat1 );
-  assert( lat_start <= lat3 );
-  assert( lon_start >= lon5 );
-  assert( lon_start <= lon6 );
-  assert( r_start >= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                  r1a, r2a, r2b, r1b, lat_start, lon_start ) );
-  assert( r_start <= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                  r4a, r3a, r4b, r3b, lat_start, lon_start ) );
 }
 
 
@@ -4313,7 +4909,7 @@ void ppath_step_geom_3d(
 
   // Determine the variables defined above and make all possible asserts
   ppath_start_3d( r_start, lat_start, lon_start, za_start, aa_start, 
-	   ip, ilat, ilon, r1a, r2a, r3a, r4a, r2a, r2b, r3b, r4b, lat1, lat3,
+	   ip, ilat, ilon, r1a, r2a, r3a, r4a, r1b, r2b, r3b, r4b, lat1, lat3,
 		  lon5, lon6, rground1a, rground2a, rground1b, rground2b,
                ppath, p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground );
 

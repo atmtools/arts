@@ -547,7 +547,7 @@ Numeric interp_atmsurface_by_gp(
     are then calculated using the geometrical altitudes for the pressure
     surfaces for the position of concern.
 
-    This can be seen as a 1D "red" interpolation. That means that the number
+    This can be seen as a 1D "blue" interpolation. That means that the number
     of columns of itw shall be 2.
 
     \param   p_values   Output: Found pressure values.
@@ -596,32 +596,85 @@ void itw2p(
     \param   z          Out: Found altitudes.
     \param   p_grid     As the WSV with the same name.
     \param   lat_grid   As the WSV with the same name.
-    \param   z_field    As the WSV with the same name.
-    \param   gp_lat     Altitude grid positions.
+    \param   z_field    The pressure and latitude part of the WSV with 
+                        the same name (that is, the first column).
+    \param   gp_lat     Latitude grid position.
 
     \author Patrick Eriksson 
     \date   2002-11-18
 */
 void z_at_lat_2d(
-             VectorView          z,
-        ConstVectorView          p_grid,
-        ConstVectorView          lat_grid,
-        ConstMatrixView          z_field,
-        const ArrayOfGridPos&    gp_lat )
+             VectorView   z,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        const GridPos&    gp_lat )
 {
   const Index   np = p_grid.nelem();
 
   assert( z.nelem() == np );
   assert( z_field.nrows() == np );
-  assert( gp_lat.nelem() == 1 );
+  assert( z_field.ncols() == lat_grid.nelem() );
 
   Matrix           z_matrix(np,1);
-  ArrayOfGridPos   gp_z(np);
+  ArrayOfGridPos   gp_z(np), agp_lat(1);
   Tensor3          itw(np,1,4);
 
+  gridpos_copy( agp_lat[0], gp_lat );
   gridpos( gp_z, p_grid, p_grid );
-  interpweights( itw, gp_z, gp_lat );
-  interp( z_matrix, itw, z_field, gp_z, gp_lat );
+  interpweights( itw, gp_z, agp_lat );
+  interp( z_matrix, itw, z_field, gp_z, agp_lat );
 
   z = z_matrix(Range(joker),0);
+}
+
+
+
+//! z_at_latlon
+/*!
+    Returns the geomtrical altitudes of *p_grid* for one latitude and
+    one longitude.
+
+    The latitude and longitude are specified by their grid position,
+    in an ArrayOfGridPos of length 1. The altitude field (*z_field*)
+    is then interpolated to that latitude and longitude.
+
+    \param   z          Out: Found altitudes.
+    \param   p_grid     As the WSV with the same name.
+    \param   lat_grid   As the WSV with the same name.
+    \param   lon_grid   As the WSV with the same name.
+    \param   z_field    As the WSV with the same name.
+    \param   gp_lat     Latitude grid positions.
+    \param   gp_lon     Longitude grid positions.
+
+    \author Patrick Eriksson 
+    \date   2002-12-31
+*/
+void z_at_latlon(
+             VectorView    z,
+        ConstVectorView    p_grid,
+        ConstVectorView    lat_grid,
+        ConstVectorView    lon_grid,
+        ConstTensor3View   z_field,
+	const GridPos&     gp_lat,
+        const GridPos&     gp_lon )
+{
+  const Index   np = p_grid.nelem();
+
+  assert( z.nelem() == np );
+  assert( z_field.npages() == np );
+  assert( z_field.nrows() == lat_grid.nelem() );
+  assert( z_field.ncols() == lon_grid.nelem() );
+
+  Tensor3          z_tensor(np,1,1);
+  ArrayOfGridPos   agp_z(np), agp_lat(1), agp_lon(1);
+  Tensor4          itw(np,1,1,8);
+
+  gridpos_copy( agp_lat[0], gp_lat );
+  gridpos_copy( agp_lon[0], gp_lon );
+  gridpos( agp_z, p_grid, p_grid );
+  interpweights( itw, agp_z, agp_lat, agp_lon );
+  interp( z_tensor, itw, z_field, agp_z, agp_lat, agp_lon );
+
+  z = z_tensor(Range(joker),0,0);
 }

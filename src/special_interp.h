@@ -132,11 +132,20 @@ void itw2p(
         ConstMatrixView        itw );
 
 void z_at_lat_2d(
-             VectorView          z,
-        ConstVectorView          p_grid,
-        ConstVectorView          lat_grid,
-        ConstMatrixView          z_field,
-        const ArrayOfGridPos&    gp_lat );
+             VectorView   z,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        const GridPos&    gp_lat );
+
+void z_at_latlon(
+             VectorView    z,
+        ConstVectorView    p_grid,
+        ConstVectorView    lat_grid,
+        ConstVectorView    lon_grid,
+        ConstTensor3View   z_field,
+	const GridPos&     gp_lat,
+        const GridPos&     gp_lon );
 
 
 #endif // special_interp_h

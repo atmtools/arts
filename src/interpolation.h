@@ -92,6 +92,10 @@ void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
               ConstVectorView new_grid );
 
+void gridpos( GridPos& gp,
+              ConstVectorView old_grid,
+              const Numeric&  new_grid );
+
 void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old );
 
 void gridpos_check_fd( GridPos&   gp );
@@ -105,6 +109,86 @@ bool is_gridpos_at_index_i(
 Index gridpos2gridrange(
        const GridPos&   gp,
        const bool&      upwards );
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//                      Red Interpolation
+////////////////////////////////////////////////////////////////////////////
+
+void interpweights( VectorView itw,
+                    const GridPos& tc );
+
+void interpweights( VectorView itw,
+                    const GridPos& tr,
+                    const GridPos& tc );
+
+void interpweights( VectorView itw,
+                    const GridPos& tp,
+                    const GridPos& tr,
+                    const GridPos& tc );
+
+void interpweights( VectorView itw,
+                    const GridPos& tb,
+                    const GridPos& tp,
+                    const GridPos& tr,
+                    const GridPos& tc );
+
+void interpweights( VectorView itw,
+                    const GridPos& ts,
+                    const GridPos& tb,
+                    const GridPos& tp,
+                    const GridPos& tr,
+                    const GridPos& tc );
+
+void interpweights( VectorView itw,
+                    const GridPos& tv,
+                    const GridPos& ts,
+                    const GridPos& tb,
+                    const GridPos& tp,
+                    const GridPos& tr,
+                    const GridPos& tc );
+
+Numeric interp( ConstVectorView itw,
+                ConstVectorView a,    
+                const GridPos&  tc );
+
+Numeric interp( ConstVectorView  itw,
+                ConstMatrixView  a,    
+                const GridPos&   tr,
+                const GridPos&   tc );
+
+Numeric interp( ConstVectorView  itw,
+                ConstTensor3View a,    
+                const GridPos&   tp,
+                const GridPos&   tr,
+                const GridPos&   tc );
+
+Numeric interp( ConstVectorView  itw,
+                ConstTensor4View a,    
+                const GridPos&   tb,
+                const GridPos&   tp,
+                const GridPos&   tr,
+                const GridPos&   tc );
+
+Numeric interp( ConstVectorView  itw,
+                ConstTensor5View a,    
+                const GridPos&   ts,
+                const GridPos&   tb,
+                const GridPos&   tp,
+                const GridPos&   tr,
+                const GridPos&   tc );
+
+Numeric interp( ConstVectorView  itw,
+                ConstTensor6View a,    
+                const GridPos&   tv,
+                const GridPos&   ts,
+                const GridPos&   tb,
+                const GridPos&   tp,
+                const GridPos&   tr,
+                const GridPos&   tc );
+
 
 
 
@@ -177,6 +261,10 @@ void interp( VectorView            ia,
              const ArrayOfGridPos& pgp,
              const ArrayOfGridPos& rgp,
              const ArrayOfGridPos& cgp);
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////
 //                      Green interpolation

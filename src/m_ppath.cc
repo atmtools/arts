@@ -346,7 +346,7 @@ void ppathCalc(
   else
     {
       chk_if_in_range( "sensor latitude", a_pos[1], -90, 90 );
-      chk_if_in_range( "sensor longitude", a_pos[2], -360, 360 );
+      chk_if_in_range( "sensor longitude", a_pos[2], -180, 180 );
       chk_vector_length( "a_los", a_los, 2 );
       chk_if_in_range( "sensor zenith angle", a_los[0], 0, 180 );
       chk_if_in_range( "sensor azimuth angle", a_los[1], -180, 180 );
@@ -397,17 +397,17 @@ void ppathCalc(
   const Index imax_p   = p_grid.nelem() - 1;
   const Index imax_lat = lat_grid.nelem() - 1;
   const Index imax_lon = lon_grid.nelem() - 1;
-  //
+
   
   while( !ppath_what_background( ppath_step ) )
     {
 
-      // Call ppath_step agenda
+      // Call ppath_step agenda. 
+      // The new path step is added to *ppath_array* last in the while block
       //
       istep++;
       //
-      // (CE:) Included istep here to execute the agenda silently.
-      ppath_step_agenda.execute(istep-1);
+      ppath_step_agenda.execute( istep-1 );
       
       // Number of points in returned path step
       const Index n = ppath_step.np;
@@ -415,16 +415,14 @@ void ppathCalc(
       // Increase the total number
       np += n - 1;
 
-      // Put new ppath_step in ppath_array
-      ppath_array.push_back( ppath_step );
-
       // Check if the top of the atmosphere is reached
       if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
         { ppath_set_background( ppath_step, 1 ); }
 
       // Check that path does not exit at a latitude or longitude end face
-      if( atmosphere_dim >= 2 )
+      if( atmosphere_dim == 2 )
         {
+	  // Latitude 
           if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], 0 ) )
             {
               ostringstream os;
@@ -441,27 +439,70 @@ void ppathCalc(
                  << ppath_step.z[n-1]/1e3 << " km.";
               throw runtime_error( os.str() );
             }
-
-          if( atmosphere_dim == 3 )
+	}
+      if( atmosphere_dim == 3 )
+	{
+	  // Latitude 
+          if( lat_grid[0] > -90  && 
+                           is_gridpos_at_index_i( ppath_step.gp_lat[n-1], 0 ) )
             {
-              if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 ) )
-                {
-                  ostringstream os;
-                  os << "The path exits the atmosphere through the lower " 
-                     << "longitude end face.\nThe exit point is at an altitude"
-                     << "of " << ppath_step.z[n-1]/1e3 << " km.";
-                  throw runtime_error( os.str() );
-                }
-              if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ))
-                {
-                  ostringstream os;
-                  os << "The path exits the atmosphere through the upper "
-                     << "longitude end face.\nThe exit point is at an altitude"
-                     << "of " << ppath_step.z[n-1]/1e3 << " km.";
-                  throw runtime_error( os.str() );
-                }
+              ostringstream os;
+              os << "The path exits the atmosphere through the lower latitude"
+                 << " end face.\nThe exit point is at an altitude of " 
+                 << ppath_step.z[n-1]/1e3 << " km.";
+              throw runtime_error( os.str() );
             }
-        }
+          if( lat_grid[imax_lat] < 90  && 
+                    is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
+            {
+              ostringstream os;
+              os << "The path exits the atmosphere through the upper latitude"
+                 << " end face.\nThe exit point is at an altitude of " 
+                 << ppath_step.z[n-1]/1e3 << " km.";
+              throw runtime_error( os.str() );
+            }
+
+	  // Longitude 
+	  // Note that it must be if and else if here. Otherwise -180 will
+	  // be shifted to 180 and then later back to -180.
+	  if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 ) )
+	    {
+	      // Check if the longitude point can be shifted +360 degrees
+	      if( lon_grid[imax_lon] - lon_grid[0] == 360 )
+		{
+		  ppath_step.pos(n-1,2) = ppath_step.pos(n-1,2) + 360;
+		  gridpos( ppath_step.gp_lon[n-1], lon_grid, 
+			                               ppath_step.pos(n-1,2) );
+		}
+	      else
+		{
+		  ostringstream os;
+		  os << "The path exits the atmosphere through the lower " 
+		     << "longitude end face.\nThe exit point is at an "
+		     << " altitude of " << ppath_step.z[n-1]/1e3 << " km.";
+		  throw runtime_error( os.str() );
+		}
+	    }
+	  else if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ))
+	    {
+	      // Check if the longitude point can be shifted -360 degrees
+	      if( lon_grid[imax_lon] - lon_grid[0] == 360 )
+		{
+		  ppath_step.pos(n-1,2) = ppath_step.pos(n-1,2) - 360;
+		  gridpos( ppath_step.gp_lon[n-1], lon_grid, 
+			                               ppath_step.pos(n-1,2) );
+		  PpathPrint( ppath_step, "modstep" );
+		}
+	      else
+		{
+		  ostringstream os;
+		  os << "The path exits the atmosphere through the upper "
+		     << "longitude end face.\nThe exit point is at an "
+		     << "altitude of " << ppath_step.z[n-1]/1e3 << " km.";
+		  throw runtime_error( os.str() );
+		}
+	    }
+	}
       
     
       // Check if there is an intersection with an active cloud box
@@ -495,6 +536,10 @@ void ppathCalc(
                 }
             }
         }
+
+      // Put new ppath_step in ppath_array
+      ppath_array.push_back( ppath_step );
+
     } // End path steps
   
  
@@ -848,9 +893,9 @@ void sensor_posAddRgeoid(
       if( atmosphere_dim == 3 )
         {
           if( min(sensor_pos(Range(joker),2)) < lon_grid[0]  || 
-                            max(sensor_pos(Range(joker),2)) >= last(lon_grid) )
+                            max(sensor_pos(Range(joker),2)) > last(lon_grid) )
             throw runtime_error(
-            "You have given a position with a longitude outside *lat_grid*." );
+            "You have given a position with a longitude outside *lon_grid*." );
         }
 
       if( atmosphere_dim == 2 )

@@ -382,6 +382,33 @@ void gridpos( ArrayOfGridPos& gp,
 
 
 
+//! gridpos
+/*!
+   Creates a grid position structure.
+  
+   This is a gateaway to the function for arrays of grid positions, to be
+   used for e.g. "red interpolation".
+
+   \param   gp         Output: The GridPos structure. 
+   \param   old_grid   The original grid.
+   \param   new_grid   The position where we want to have the interpolated 
+                       value.
+
+   \author Patrick Eriksson
+   \date   2002-12-31
+*/
+void gridpos( GridPos& gp,
+              ConstVectorView old_grid,
+              const Numeric&  new_grid )
+{
+  ArrayOfGridPos  agp(1);
+  Vector          v( 1, new_grid );
+  gridpos( agp, old_grid, v );
+  gridpos_copy( gp,  agp[0] );  
+}
+
+
+
 //! gridpos_copy
 /*!
    Copies the content of a GridPos structure.
@@ -416,6 +443,11 @@ void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old )
 */
 void gridpos_check_fd( GridPos&   gp )
 {
+  assert( gp.fd[0] > -0.01 );
+  assert( gp.fd[0] < 1.01 );
+  assert( gp.fd[1] > -0.01 );
+  assert( gp.fd[1] < 1.01 );
+
   if( gp.fd[0] < 0 )
     { gp.fd[0] = 0; }
   else if( gp.fd[0] > 1 )
@@ -554,30 +586,6 @@ Index gridpos2gridrange(
       else
         return gp.idx;
     }
-
-  // Alternative version by Claudia:
-
-  // (CE:) This condition is always true as the weights are numerics.
-  // You have to include the uncertainties which are there due to rounding 
-  // errors (double precision.)
-
-  // Fractional distance 0
-  //if( Index(gp.fd[0]+0.5) == 0 ) //(CE:) You had compared Index with Numeric!!
-  //  {
-  //    if( upwards )
-  //    return gp.idx;
-  //    else
-  //    return gp.idx - 1;
-  //  }
-
-  // Fractional distance 1
-  //else
-  //  {
-  //    if( upwards )
-  //    return gp.idx + 1;
-  //    else
-  //    return gp.idx;
-  //  }
 }
 
 

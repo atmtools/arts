@@ -362,8 +362,9 @@ void ground_specular_los(
                                     z_ground, "z_ground", a_gp_lat, a_gp_lon );
 
       // Calculate ground slope (unit is m/deg).
+      //
       Numeric slope = psurface_slope_2d( lat_grid, r_geoid(Range(joker),0), 
-                                      z_ground(Range(joker),0), a_gp_lat, 1 );
+                                z_ground(Range(joker),0), a_gp_lat, a_los[0] );
 
       // Calculate ground (angular) tilt (unit is deg).
       Numeric tilt = psurface_angletilt( r_ground, slope );

@@ -1,3 +1,35 @@
+2003-01-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-355
+
+	* 3D geometrical paths are not finished, but it is not too far away.
+	Path passing exactly above the poles are not OK, but no other known
+	bugs. Path passing longitude +-180 are working.
+
+	Definition of accepted longitudes is changed. Longitudes must now
+	be inside [-180,180]. To cover the whole globe, lowest and highest
+	longitude must be -180 and 180, respectively. (AUG not updated on
+	this point).
+
+	I have done quite some cleaning, both for 2D and 3D. So 2D must be
+	checked carefully later. My plan now is to finish all dimensions,
+	with and without refraction, and make a careful, parallell check
+	of all cases later.
+	
+	* src/ppath.cc: Fixed uncountable bugs, such as dividing with a
+	trigonometric function becoming 0, lat index for longituide grids and
+	pure logical mistakes. And ...
+
+	* src/interpolation.h: Added declaration of functions for "red
+	interpolation". The functions existed in interpolation.cc, but where
+	not visible to the outside world. 
+
+	(Stefan, any reason for this that I have missed? I hope not, because
+	I use now the red interpolation in many places.)
+
+	* src/interpolation.cc (gridpos): Created a second version where a
+	GridPos is created, instead of ArrayOfGridPos.
+
 2002-12-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-354
