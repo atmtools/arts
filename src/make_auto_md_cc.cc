@@ -158,6 +158,24 @@ int main()
                   << "{\n";
             }
 
+          // Add call to dummy function touch of WorkSpace if ws is not
+          // used in method.
+          if (0 == vo.nelem ()
+              && 0 == vi.nelem ())
+            {
+              ofs << "  ws.touch ();\n";
+            }
+
+          // Add call to dummy function touch of MRecord if mr is not
+          // used in method.
+          if ( 0 == vgo.nelem ()
+               && 0 == vgi.nelem ()
+               && 0 == mdd.Keywords().nelem()
+               && !mdd.AgendaMethod())
+            {
+              ofs << "  mr.touch ();\n";
+            }
+
           // Define generic output pointers
           for (Index j=0; j<vgo.nelem(); ++j)
             {
