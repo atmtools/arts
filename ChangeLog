@@ -1,5 +1,14 @@
 2001-08-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-0-0-194
+
+	* Added some functions to ami/plot to easily set font size and
+	weights in figures. These functions have the same name as the
+	standard Matlab functions with 2 appended, e.g. xlabel2.
+
+
+2001-08-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-0-0-193
 
 	* whoami.m and amenu.m added to ami/general
