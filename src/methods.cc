@@ -3626,7 +3626,24 @@ md_data.push_back
 	 "- losCalc\n"
 	 "- sourceCalc\n"
 	 "- transCalc\n"
-	 "- yCalc"),
+	 "- yCalc\n"
+	 "\n"
+	 "Keywords: \n"
+	 "\n"
+          "  finegrid : Flag for a fine *p_abs* grid, 0 = Radiosonde levels, 1 = finer grid. \n"
+	"\n"
+	"If the keyword finegrid is set to 0 (finegrid = 0),\n"
+	"absorption coeff. are calculated on the same grid as in the radiosonde launch.\n" 
+	"It does not check whether the launch has reached up to a certain height. \n"
+	"\n"
+	"If finegrid = 1, the absorption is calculated on a very fine grid (about 15 m)\n"
+	"which is finer than the high resolution radiosonde levels (about 60 m). In this\n"
+	"case *p_abs* grid is only up to 100 hPa so that we assume there is no atmosphere\n"
+	"above this pressure level. The RT calculation is not done for any profile which\n"
+	"do not fly up to 100 hPa. In this case we put -1 as the Tbs for all the frequencies.\n"
+	"Planck brightness temperature is calculated for all the launches those reach 100 hPa.\n"
+	"Note that *l_step* which is given by the user in the control file should be less than\n"
+	 "15 m, may be 5 m."),
 	OUTPUT( ybatch_ ),
 	INPUT( // Variables needed for absCalc
                radiosonde_data_, f_mono_, lines_per_tg_, lineshape_, 
@@ -3642,8 +3659,8 @@ md_data.push_back
                cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS(),
-	TYPES(     )));
+	KEYWORDS( "finegrid" ),
+	TYPES(  Index_t   )));
 
 md_data.push_back
     ( MdRecord

@@ -351,126 +351,229 @@ void ybatchFromRadiosonde(// WS Output:
                           const TagGroups& tgs,
                           const ArrayOfString& cont_description_names,
                           const ArrayOfString& cont_description_models,
-                          const ArrayOfVector& cont_description_parameters)
+                          const ArrayOfVector& cont_description_parameters,
+			  //Keyword
+			  const Index& fine_abs_grid)
 {
+  // Check value of the keyword
+  check_if_bool(fine_abs_grid , "finegrid keyword" );
+
   // Initialize ybatch:
   ybatch.resize( f_mono.nelem()*za_pencil.nelem(), radiosonde_data.nelem() );
   ybatch = 0;
-
+  
   // Loop over all radiosonde profiles:
   for ( Index i=0; i<radiosonde_data.nelem(); ++i )
     {
       const Matrix& rd = radiosonde_data[i];
-
-      // Create p_abs, t_abs, z_abs:
-      ConstVectorView p_abs = rd(Range(joker),0);
-      ConstVectorView t_abs = rd(Range(joker),1);
-      ConstVectorView z_abs = rd(Range(joker),2);
-
-      // Create vmrs:
-      Matrix vmrs(3,rd.nrows());
-      vmrs(0,Range(joker)) = rd(Range(joker),3);     // H2O
-      vmrs(1,Range(joker)) = 0.209;                  // O2 
-      vmrs(2,Range(joker)) = 0.782;                  // N2
-
-      // Set the physical H2O profile from the H2O profile in vmrs:
-      Vector h2o_abs = vmrs(0,Range(joker));
       
-      // Set the physical N2 profile from the N2 profile in vmrs:
-      Vector n2_abs = vmrs(2,Range(joker));
+      // Check whether the launch has reached upto 100 hpa
+      Numeric min_p = rd(rd.nrows() - 1, 0);
 
-      // Calculate absorption:
-      Matrix        abs;
-      ArrayOfMatrix abs_per_tg;
-      // ... call the workspace method absCalc:
-      absCalc(// Output:
-             abs,
-             abs_per_tg,
-             // Input:            
-             tgs,
-             f_mono,
-             p_abs,
-             t_abs,
-             n2_abs,
-             h2o_abs,
-             vmrs,
-             lines_per_tg,
-             lineshape,
-             cont_description_names,
-             cont_description_models,
-             cont_description_parameters);
+      // The launch reached up to or above 100 hPa
+      if (min_p <= 10000.0)
+	{
+	  Numeric t_ground, z_ground;
+	  Vector  p_abs, t_abs, z_abs, h2o_abs, n2_abs;
+	  Matrix  vmrs;
+	  
+	  // The absorption is calculated on a grid which is
+	  // the same as the radiosonde levels
+	  if (!fine_abs_grid)
+	    {	  
+	      // Create p_abs, t_abs, z_abs:
+	      p_abs.resize(rd.nrows());
+	      t_abs.resize(rd.nrows());
+	      z_abs.resize(rd.nrows());
+	      
+	      p_abs = rd(Range(joker),0);
+	      t_abs = rd(Range(joker),1);
+	      z_abs = rd(Range(joker),2);
+	      
+	      
+	      // Create vmrs:
+	      vmrs.resize(3, rd.nrows());
+	      vmrs(0,Range(joker)) = rd(Range(joker),3);     // H2O
+	      vmrs(1,Range(joker)) = 0.209;                  // O2 
+	      vmrs(2,Range(joker)) = 0.782;                  // N2
+	      
+	      
+	      // Set the physical H2O profile from the H2O profile in vmrs:
+	      h2o_abs.resize(rd.nrows());
+	      h2o_abs = vmrs(0,Range(joker));
+	      
+	      // Set the physical N2 profile from the N2 profile in vmrs:
+	      n2_abs.resize(rd.nrows());
+	      Vector n2_abs = vmrs(2,Range(joker));
+	      
+	      // Set t_ground from lowest level of t_abs:
+	      t_ground = t_abs[0];
+	      
+	      // Set z_ground from lowest level of z_abs:
+	      z_ground = z_abs[0];
+	      
+	    }
+	  
+	  // The absorption is calculated on a very fine grid
+	  else
+	    {
+	      // Number of levels in the launch
+	      Index n_rows = rd.nrows();
+	      
+	      // Create p_abs, t_abs, z_abs:
+	      Vector p_raw(n_rows + 1);
+	      Vector t_raw(n_rows + 1);
+	      Vector z_raw(n_rows + 1);
+	      
+	      // Adding one more level at the bottom 
+	      // Pressure is set as 1040 hpa
+	      // Temperature is the lowermost value from the sonde
+	      // Height is -99.0 m (a dummy value below ground)
+	      p_raw[0] = 104000.0;
+	      t_raw[0] = rd(0,1);
+	      z_raw[0] = -99.0;
+	      
+	      p_raw[Range(1, n_rows)] = rd(Range(joker),0);
+	      t_raw[Range(1, n_rows)] = rd(Range(joker),1);
+	      z_raw[Range(1, n_rows)] = rd(Range(joker),2);
+	      
+	      // Creating p_abs 
+	      VectorNLogSpace (p_abs,"p_abs", p_raw[0], 10000.0, 1001);
+	      
+	      t_abs.resize(p_abs.nelem());
+	      z_abs.resize(p_abs.nelem());
+	      
+	      // Interpolating the profiles on p_abs
+	      interpp (t_abs, p_raw, t_raw, p_abs);
+	      interpp (z_abs, p_raw, z_raw, p_abs);    
+	      
+	      cout << p_abs << endl;
+	      // Create vmrs:
+	      Vector vmr_raw(n_rows + 1);
+	      
+	      vmr_raw[0] = rd(0,3);
+	      vmr_raw[Range(1, n_rows)] = rd(Range(joker),3);   // H2O	 
+	      
+	      vmrs.resize(3, p_abs.nelem());
+	      
+	      // Interpolating H2O VMR on p_abs grid
+	      interpp (vmrs(0, Range(joker)), p_raw, vmr_raw, p_abs);
+	      
+	      vmrs(1,Range(joker)) = 0.209;                     // O2 
+	      vmrs(2,Range(joker)) = 0.782;                     // N2
+	      
+	      // Set the physical H2O profile from the H2O profile in vmrs:
+	      h2o_abs.resize(p_abs.nelem());
+	      h2o_abs = vmrs(0,Range(joker));
+	      
+	      // Set the physical N2 profile from the N2 profile in vmrs:
+	      n2_abs.resize(p_abs.nelem());
+	      n2_abs = vmrs(2,Range(joker));	  
+	      
+	      // Set t_ground from lowest level of launch:
+	      t_ground = rd(0,1);
+	      
+	      // Set z_ground from lowest level of launch:
+	      z_ground = rd(0,2);
+	    }
+	  
+	  // Calculate absorption:
+	  Matrix        abs;
+	  ArrayOfMatrix abs_per_tg;
+	  // ... call the workspace method absCalc:
+	  absCalc(// Output:
+		  abs,
+		  abs_per_tg,
+		  // Input:            
+		  tgs,
+		  f_mono,
+		  p_abs,
+		  t_abs,
+		  n2_abs,
+		  h2o_abs,
+		  vmrs,
+		  lines_per_tg,
+		  lineshape,
+		  cont_description_names,
+		  cont_description_models,
+		  cont_description_parameters);
 
-      // Set t_ground from lowest level of t_abs:
-      Numeric t_ground = t_abs[0];
+      
+	  // Calculate refractive index:
+	  Vector refr_index;
+	  refrCalc(// Output:
+		   refr_index,
+		   // Input:
+		   p_abs,
+		   t_abs,
+		   h2o_abs,
+		   refr,
+		   refr_model);
+	  
+	  // Calculate the line of sight:
+	  Los los;
+	  Vector z_tan;
+	  losCalc(// Output:
+		  los,
+		  z_tan,
+		  // Input:
+		  z_plat,
+		  za_pencil,
+		  l_step,
+		  p_abs,
+		  z_abs,
+		  refr,
+		  refr_lfac,
+		  refr_index,
+		  z_ground,
+		  r_geoid);
+	  
+	  // Calculate source:
+	  ArrayOfMatrix source;
+	  sourceCalc(// Output:
+		     source,
+		     // Input:
+		     emission,
+		     los,
+		     p_abs,
+		     t_abs,
+		     f_mono);
+	  
+	  // Calculate transmittances:
+	  ArrayOfMatrix trans;
+	  transCalc(// Output:
+		    trans,
+		    //Input:
+		    los,
+		    p_abs,
+		    abs);
 
-      // Set z_ground from lowest level of z_abs:
-      Numeric z_ground = z_abs[0];
-
-      // Calculate refractive index:
-      Vector refr_index;
-      refrCalc(// Output:
-               refr_index,
-               // Input:
-               p_abs,
-               t_abs,
-               h2o_abs,
-               refr,
-               refr_model);
-
-      // Calculate the line of sight:
-      Los los;
-      Vector z_tan;
-      losCalc(// Output:
-              los,
-              z_tan,
-              // Input:
-              z_plat,
-              za_pencil,
-              l_step,
-              p_abs,
-              z_abs,
-              refr,
-              refr_lfac,
-              refr_index,
-              z_ground,
-              r_geoid);
-
-      // Calculate source:
-      ArrayOfMatrix source;
-      sourceCalc(// Output:
-                 source,
-                 // Input:
-                 emission,
-                 los,
-                 p_abs,
-                 t_abs,
-                 f_mono);
-
-      // Calculate transmittances:
-      ArrayOfMatrix trans;
-      transCalc(// Output:
-                trans,
-                //Input:
-                los,
-                p_abs,
-                abs);
-
-      // Calculate Spectrum:
-      Vector y;
-      yCalc(// Output:
-            y,
-            // Input:
-            emission,
-            los,
-            f_mono,
-            y_space,
-            source,
-            trans,
-            e_ground,
-            t_ground);
-
-      // Assign y to this column of ybatch:
-      ybatch(Range(joker),i) = y;
+	  // Calculate Spectrum:
+	  Vector y;
+	  yCalc(// Output:
+		y,
+		// Input:
+		emission,
+		los,
+		f_mono,
+		y_space,
+		source,
+		trans,
+		e_ground,
+		t_ground);
+	  
+	  // Convert Radiance to Planck Tb
+	  yTB(y, f_mono, za_pencil);
+	  
+	  // Assign y to this column of ybatch:
+	  ybatch(Range(joker),i) = y;
+	}
+      // The launch did not reach upto or above 100 hPa
+      else
+	{
+	  // Assign -1 to this column of ybatch:
+	  ybatch(Range(joker),i) = -1.0;
+	}
     }
 }
 
@@ -565,7 +668,7 @@ void ybatchFromRadiosondeGlobal(// WS Output:
 
       // Set z_ground from lowest level of z_abs:
       Numeric z_ground = z_raw[0];
-      cout << z_raw[0] << endl;
+      //cout << z_raw[0] << endl;
 
       // Calculate refractive index:
       Vector refr_index;

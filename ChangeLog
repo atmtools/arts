@@ -1,3 +1,31 @@
+2003-07-16  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-1-0-93		
+	
+	* src/m_batch.cc (ybatchFromRadiosonde): Modified this method to
+	use a finer grid for absorption calculation. Added a keyword
+	parameter *finegrid*.
+	
+	There are two options now:
+	1. set keyword finegrid = 0
+		The calculations will be the same as before. Absorption
+	is calculated on the radiosonde levels. But now the conversion of
+	radiance to Planck brightness temperature is done inside this
+	function. This should be changed in the control file.
+
+	2. set keyword finegrid = 1
+		The absorption is calculated on a very fine grid of about
+	15 m spacing. *p_abs* grid goes only up to 100 hPa so that there is
+	no atmosphere above 100 hPa. This is equivalent to cut the
+	profiles at 100 hPa. If a profile does not reach up to 100 hPa
+	calculation is not done for this profile and -1 is put as the
+	value of brightness temperature. Please note that *l_step* should
+	be less than 15 m, say for example 5 m. Conversion from radiance
+	to brightness temperature should be removed from the control file.
+
+	* src/methods.cc (define_md_data): Added keyword parameter and
+	updated the documentation.	
+	
 2003-07-01  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-92

@@ -2907,7 +2907,7 @@ void kTemp (
     	  const Numeric&    		     r_geoid,
           const Vector&     		     hse,
 	  // Keywords
-          const Index&                       kw_hse,
+	  const Index&                       kw_hse,
           const Index&                       kw_fast )
 {
   check_if_bool( kw_hse, "hse keyword" );
