@@ -1,3 +1,11 @@
+2003-07-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-603
+
+	* src/m_sensor.cc (sensorOff): Fixed a bug reported by Sreerekha (who
+	also found how to solve it). The mblock_za_grid was wrongly set to 1,
+	instead of 0 (I was probably thinking about the length).
+
 2003-07-13  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-602

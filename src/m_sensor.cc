@@ -193,7 +193,7 @@ void sensorOff(
 
   out2 << "  Sets *mblock_za_grid* to have length 1 with value 0.\n";
   mblock_za_grid.resize(1);
-  mblock_za_grid[0] = 1;
+  mblock_za_grid[0] = 0;
 
   out2 << "  Sets *mblock_aa_grid* to be an empty vector.\n";
   mblock_aa_grid.resize(0);
