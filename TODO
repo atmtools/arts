@@ -44,6 +44,18 @@ AvE 2000-08-22: Check that partition funciton coefficients are valid,
                 the returned value of the partition function (NOT
                 the ratio) is larger than zero after calling.
 
+AvE 04.09.2000: Agnes Perrin mentioned that the simple scheme to calculate
+	       	partition functions at different temperature is accurate enough,
+		so one should actually perfom an accuracy check.
+
+		simple scheme: 
+
+		Q_rot(T')=Q_rot(T)*(T'/T)**1.5 for non linear molecule  
+		and
+		Q_rot(T')=Q_rot)*(T'/T)   for a linear molecule
+
+		This way might be more efficient timewise.
+
 SAB 2000-09-13: Remove `1D' from WSV names.
 
 SAB 2000-09-13: Change names of automatically generated files to _auto...

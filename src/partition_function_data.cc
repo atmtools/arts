@@ -134,10 +134,15 @@ ARRAY<QRecord> q_data;
   HNO3 and ClONO2 are covered in the JPL database, and a polynomial
   fit to the partition function calculated with the recommended scheme
   was found to be accurate within 2 percents, therefore the JPL
-  partition function was used for these 2 molecules. The other
-  molecules (SF6, C2H6) and atom (O) were marked as not appropriate for
-  a polynomial fit following the tips convention, e.g., first
-  coefficient is -1, all others are zero.
+  partition function was used for these 2 molecules. JPL values allow
+  a polynomial fit because certain vibrational levels are missing in
+  the partition function (Holger Müller, Uni Cologne). No information
+  is availabe about the introduced error of this missing vibration
+  states.
+
+  The other molecules (SF6, C2H6) and atom (O) were marked as not
+  appropriate for a polynomial fit following the tips convention, e.g.,
+  first coefficient is -1, all others are zero.
 
   HCOOH is the only species that shows errors of up to 7 % for the
   polynomial fit to the JPL partition functions, where the partition
@@ -147,7 +152,10 @@ ARRAY<QRecord> q_data;
   a polynomial fit for this species, nevertheless it was done since
   the agreement between HITRAN and JPL ratios for the first isotope of
   HCOOH was found to be larger than 10 %, thus even larger than the
-  fit error.
+  fit error. It should be noted however, that the polynomial fit to
+  the JPL HCOOH partition functions works very well for the first
+  isotope, the other isotopes show a different partition function for
+  some reason that I do not understand.
 
 
   <h1>Source for entries</h1>
