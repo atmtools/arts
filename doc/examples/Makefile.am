@@ -35,7 +35,7 @@ arts_examples = \
 
 examplesdoc_DATA = $(arts_examples)
 
-EXTRA_DIST   = $(arts_examples_in)
+EXTRA_DIST   = $(arts_examples_in) batch_input* f_mono.aa radiosondes.aa
 
 CLEANFILES = *_example*.aa *_example*.ab *.rep *.out
 
