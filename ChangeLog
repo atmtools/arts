@@ -1,3 +1,12 @@
+2002-12-16  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-337
+
+	* src/complex.h: Implemented basic arithmetic operations with
+	complex numbers. But absolute value and phase still to be added.
+        
+	* src/test_complex.cc: Added some new test examples on complex numbers.
+	
 2002-12-16  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-336

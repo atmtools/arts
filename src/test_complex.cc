@@ -30,7 +30,7 @@ void test01()
   Complex a;
   Complex b(3,4);
 
-  cout << "a = " << a << "\n";
+  //cout << "a = " << a << "\n";
   cout << "b = " << b << "\n";
 
   a = b;
@@ -40,8 +40,8 @@ void test01()
   a.Im() = 5;
   cout << "a = " << a << "\n";
 
-  cout << "b.Abs() = " << b.Abs() << "\n";
-
+  // cout << "b.Abs() = " << b.Abs() << "\n";
+  // cout << "b.Pha() = " << b.Pha() << "\n";
   Complex c;
   c = a + b;
   cout << "c = " << c << "\n";
@@ -51,6 +51,12 @@ void test01()
   cout << "c+3 = " << (c+3) << "\n";
 
   cout << "c+3i = c+Complex(0,3) = " << (c+Complex(0,3)) << "\n";
+   Complex d;
+   c = a * b;
+   cout << "d = " << d << "\n";
+   Complex e;
+   e = a * b;
+   cout << "e = " << e << "\n";
 }
 
 int main()

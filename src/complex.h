@@ -28,7 +28,8 @@
 
 #include <iostream>
 #include "arts.h"
-
+#include "cmath"
+#include "assert.h"
 //! Complex numbers.
 /*! 
   The complex numbers implemented by this class should behave in the
@@ -56,7 +57,7 @@ public:
   \param im Imaginary part.
   */
   Complex( Numeric re, Numeric im ) : mre(re), mim(im) { /* Nothing to do. */ }
-
+  
   //! Constructor from real part only.
   /*! 
     This sets the imaginary part to zero.
@@ -71,13 +72,14 @@ public:
   */
   Complex( const Complex& x ) : mre(x.mre), mim(x.mim) { /* Nothing to do. */ }
 
+
   //! Real part.
   Numeric Re() const
   {
     return mre;
   }
 
-  //! Real part as lvalue.
+  //! Real part as value.
   Numeric& Re()
   {
     return mre;
@@ -89,33 +91,22 @@ public:
     return mim;
   }
 
-  //! Imaginary part as lvalue.
+  //! Imaginary part as value.
   Numeric& Im()
   {
     return mim;
   }
-
-  //! Absolute value.
-  Numeric Abs() const
-  {
-    return sqrt( mre*mre + mim*mim );
-  }
-
-  //! Phase.
-  /*! 
-    \return The phase.
-
-    \author FIXME
-    \date   FIXME
-  */
-  Numeric Pha() const
-  {
-    // FIXME: Nikolay, implement this, please. Don't forget to put a
-    // test in test_complex.cc to check whether it works correctly.
-
-    cout << "Not implemented.";
-    exit(1);
-  }
+  
+  //asolute value
+  //  Numeric Abs()
+  //{
+  // return sqrt( (mre*mre)+(mim*mim))
+  //  }
+  //asolute value as value
+  // Numeric& Abs()
+  //{
+   //return sqrt( (mre*mre)+(mim*mim))
+   //}
 
   //! Addition of another complex number.
   /*! 
@@ -133,6 +124,54 @@ public:
     return *this;
   }
 
+  //! Subtraction of another complex number.
+  /*! 
+    \param x Another complex number to add to this one.
+    
+    \return We also return *this, to be consistent with other C += operators. 
+
+    \author Nikolay Koulev
+    \date   2002-12-16
+  */
+  Complex operator-=(const Complex& x)
+  {
+    mre -= x.mre;
+    mim -= x.mim;
+    return *this;
+  }
+  //! Multiplication of another complex number.
+  /*! 
+    \param x Another complex number to add to this one.
+    
+    \return We also return *this, to be consistent with other C += operators. 
+
+    \author Nikolay Koulev, Thomas Kuhn
+    \date   2002-12-16
+  */
+   Complex operator*=(const Complex& x)
+  { 
+    mre = (mre*x.mre) - (mim*x.mim);
+    mim = (mre*x.mim) + (mim*x.mre);
+    return *this;
+  }
+  //! Division of another complex number.
+  /*! 
+    \param x Another complex number to add to this one.
+    
+    \return We also return *this, to be consistent with other C += operators. 
+
+    \author Nikolay Koulev, Thomas Kuhn
+    \date   2002-12-16
+  */
+   Complex operator/=(const Complex& x)
+  {
+    mre = (mre*x.mre+mim*x.mim) / (x.mre*x.mre+x.mim*x.mim);
+    mim = (mim*x.mre-mre*x.mim) / (x.mre*x.mre+x.mim*x.mim);
+    // assert ((x.mre*x.mre+x.mim*x.mim)!=0)
+    return *this;
+  }
+
+
   /*  FIXME: Nikolay, please implement -=, *=, and /= in similar
       fashion. Don't forget \author and \date tags. Don't forget to
       put tests in test_complex.cc to see if your operators work
@@ -140,7 +179,7 @@ public:
       division by zero!
   */
 
-  //! Addition of too complex numbers.
+  //! Addition of two complex numbers.
   /*!
     This uses the += operator to add two complex numbers.
   
@@ -157,12 +196,77 @@ public:
     Complex a(*this);
     
     // Add x:
-    a+=x;
+    a += x;
 
     // return result:
     return a;
   }
+   //! Subtraction of two complex numbers.
+  /*!
+    This uses the += operator to add two complex numbers.
   
+    \param x The other number to add to *this.
+    
+    \return The result.
+    
+    \author Nikolay Koulev
+    \date   2002-12-16
+  */
+  Complex operator-( const Complex& x )
+  {
+    // Create a dummy and initialize with *this:
+    Complex a(*this);
+    
+    // Subtract x:
+    a -= x;
+
+    // return result:
+    return a;
+  } 
+  //! Multiplication of two complex numbers.
+  /*!
+    This uses the += operator to add two complex numbers.
+  
+    \param x The other number to add to *this.
+    
+    \return The result.
+    
+    \author Nikolay Koulev
+    \date   2002-12-16
+  */
+  Complex operator*( const Complex& x )
+  {
+    // Create a dummy and initialize with *this:
+    Complex a(*this);
+    
+    // Multiply with x:
+    a*=x;
+
+    // return result:
+    return a;
+   } 
+  //! Multiplication of two complex numbers.
+  /*!
+    This uses the += operator to add two complex numbers.
+  
+    \param x The other number to add to *this.
+    
+    \return The result.
+    
+    \author Nikolay Koulev
+    \date   2002-12-16
+  */
+  Complex operator/( const Complex& x )
+  {
+    // Create a dummy and initialize with *this:
+    Complex a(*this);
+    
+    // Devide by x:
+    a/=x;
+
+    // return result:
+    return a;
+   } 
   /*  FIXME: Nikolay, please implement -, *, and / in similar
       fashion. Note that you should just use the -=, *=, and /=
       operators to achieve this, as I have done in my example.
@@ -175,6 +279,8 @@ public:
       generated for file complex.cc, after you said "make" in the
       doc/doxygen directory.
   */
+
+
 
 private:
   //! Real part.

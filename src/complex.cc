@@ -37,5 +37,3 @@ std::ostream& operator<<( std::ostream& os,
   os << "(" << x.Re() << "+" << x.Im() << "i)";
   return os;
 }
-
-
