@@ -1,3 +1,13 @@
+2004-08-12  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+	
+	* arts-1-1-856
+	
+	* src/m_optproperties.cc (ScatteringDataPrepareDOITOpt),
+	(pha_mat_sptFromDataDOITOpt): These methods can now also be used for
+	horizonthally aligned particles (p30).
+
+	* methods.cc: Improved documentation. 
+	
 2004-08-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-855
@@ -17,7 +27,7 @@
 	* src/methods.cc: (ScatteringDataPrepareDOITOpt) 
 	(pha_mat_sptFromDataDOITOpt) - removed 
 	*scat_theta* from Output/Input.
-	(pha_mat_sptFromMonoData): Fixed big in input variable list.
+	(pha_mat_sptFromMonoData): Fixed bug in input variable list.
 	
 	* src/workspace.cc: *pha_mat_sptDOITOpt* - modified. Now it holds
 	the phase matrices for all incoming and scattering angle combinations.

@@ -48,26 +48,8 @@ extern const Numeric RAD2DEG;
 
 //! Calculates phase matrix for the single particle types.
 /*! 
-  In this function the phase matrix calculated
-  in the laboratory frame. This function is used in the calculation
-  of the scattering integral (*scat_fieldCalc*).
   
-  The interpolation of the data on the actual frequency is the first 
-  step in this function. 
-  
-  Then the transformation from the database coordinate system to to 
-  laboratory coordinate system is done.
-
-  WS Output:
-  \param pha_mat_spt Extinction matrix for a single particle type.
-  WS Input:
-  \param scat_data_raw Raw data containing optical properties.
-  \param scat_za_grid Zenith angle grid for scattering calculation.
-  \param scat_aa_grid Azimuth angle grid for scattering calculation.
-  \param scat_za_index Index specifying the propagation direction.
-  \param scat_aa_index  Index specifying the azimuth angle
-  \param f_index Index specifying the frequency.
-  \param f_grid Frequency grid.
+  See the the online help (arts -d FUNCTION_NAME)
 
   \author Claudia Emde
   \date   2003-05-14
@@ -186,27 +168,9 @@ void pha_mat_sptFromData( // Output:
 
 //! Calculates phase matrix for the single particle types.
 /*! 
-  In this function the phase matrix calculated
-  in the laboratory frame. This function can be used in the agenda
-  *pha_mat_spt_agenda* which is part of the calculation of the scattering
-  integral (*scat_fieldCalc*).
- 
-  The function uses *pha_mat_sptDOITOpt*, which is the phase matrix interpolated
-  on the right frequency for all scattering angles.
-  
-  The transformation from the database coordinate system to to 
-  laboratory coordinate system is done in this function.
 
-    WS Output:
-  \param pha_mat_spt Phase matrix for a single particle type.
-  WS Input:
-  \param pha_mat_sptDOITOpt Phase matrix data.
-  \param scat_theta Scattering angles.
-  \param scat_za_grid Zenith angle grid for scattering calculation.
-  \param scat_aa_grid Azimuth angle grid for scattering calculation.
-  \param scat_za_index Index specifying the propagation direction.
-  \param scat_aa_index  Index specifying the azimuth angle
-  
+  See the the online help (arts -d FUNCTION_NAME)
+
   \author Claudia Emde
   \date   2003-08-25
 */
@@ -295,15 +259,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
          pha_mat_spt = 0.;
          return;
         }
-      
-      if (scat_data_mono[i_pt].ptype != PTYPE_MACROS_ISO)
-        throw  runtime_error(
-                             "The method *pha_mat_sptFromDataDOITOpt* only \n"
-                             "works for randomly oriented particles (p20). \n"
-                             "Please use *pha_mat_sptFromMonoData* for\n"
-                             "horizonthally aligned particles (p30).\n"
-                         );
-      
+
       // Temporary phase matrix wich icludes the all temperatures.
       Tensor3 pha_mat_spt_tmp(scat_data_mono[i_pt].T_grid.nelem(), 
                           pha_mat_spt.nrows(), pha_mat_spt.ncols());
@@ -1172,29 +1128,8 @@ void scat_data_rawCheck(//Input:
 
 //! Prepare single scattering data for a DOIT scattering calculation.
 /*! 
-  This function has can be used for scatttering calcualtions using the 
-  DOIT method. It is a method optimized for randomly oriented 
-  scattering media and it can only be used for such cases.
-  It has to be used in combination with *pha_mat_sptFromDataDOITOpt*.
-
-  First the scattering data is interpolated in frequency using
-  *scat:data_monoCalc.Then phase matrix data is 
-  interpolated  on all scattering angles 
-  following from all possible combinations in *scat_za_grid* and 
-  *scat_aa_grid*. The temperature interpolation in done 
-  *pha_mat_sptFromDataDOITOpt*.
   
-  Output:
-  \param scat_theta All scattering angles.
-  \param pha_mat_sptDOITOpt Interpolated phase matrix data.
-    Input:
-  \param scat_za_grid Zenith angle grid for scattering calculations.
-  \param scat_aa_grid Azimuth angle grid for scattering calculations.
-  \param scat_data_raw Array of single scattering data for all hydrometeor
-                      species.
-  \param f_grid Frequency grid.
-  \param f_index Frequency index. 
-  \param atmosphere_dim Atmospheric dimension. 
+ See the the online help (arts -d FUNCTION_NAME)
 
   \author Claudia Emde
   \date   2003-08-25
@@ -1253,17 +1188,6 @@ void ScatteringDataPrepareDOITOpt( //Output:
 
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      // This method can only be applied when all particle types are 
-      // randomly oriented.
-      if (part_type != PTYPE_MACROS_ISO)
-        throw  runtime_error(
-                             "The method *ScatteringDataPrepareDOITOpt* only\n"
-                             "works for randomly oriented particles (p20). \n"
-                             "Please use *scat_data_monoCalc* "
-                             "for horizonthally\n"
-                             "aligned particles (p30).\n"
-                             );
-      
       Index N_T = scat_data_mono[i_pt].T_grid.nelem();
       pha_mat_sptDOITOpt[i_pt].resize(N_T, za_grid_size, N_aa_sca, 
                                       za_grid_size, scat_aa_grid.nelem(), 
@@ -1635,23 +1559,9 @@ void opt_prop_sptFromMonoData( // Output and Input:
 
 //! Calculates phase matrix for the single particle types.
 /*! 
-  In this function the phase matrix calculated
-  in the laboratory frame. This function is used in the calculation
-  of the scattering integral (*scat_fieldCalc*).
   
-  This  function is a monochromatic version of pha_mat_sptFromData.
+  See the the online help (arts -d FUNCTION_NAME)
   
-  WS Output:
-  \param pha_mat_spt Extinction matrix for a single particle type.
-  WS Input:
-  \param scat_data_mono Raw data containing optical properties.
-  \param scat_za_grid Zenith angle grid for scattering calculation.
-  \param scat_aa_grid Azimuth angle grid for scattering calculation.
-  \param scat_za_index Index specifying the propagation direction.
-  \param scat_aa_index  Index specifying the azimuth angle
-  \param f_index Index specifying the frequency.
-  \param f_grid Frequency grid.
-
   \author Claudia Emde
   \date   2004-02-11
 */                        

@@ -2122,28 +2122,6 @@ wsv_data.push_back
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "scat_theta" ),
-      DESCRIPTION
-      (
-       "Scattering angles.\n"
-       "\n"
-       "The scattering angles (angle between incident and scattered direction) \n"
-       "for all angle combinations of *scat_za_grid* and *scat_aa_grid. \n"
-       "The scattering angles are used for the case of randomly oriented \n"
-       "particles. \n" 
-       "\n"
-       "Usage: Output of *single_scattering_dataPrepareDOITOpt* and used \n"
-       "in the DOIT method. \n"
-       "\n"
-       "Unit: degree \n"
-       "\n"
-       "Dimensions: [za_sca, aa_sca, za_inc, aa_inc] \n"
-       "\n"
-       ),
-      GROUP( Tensor4_ ))); 
-
- wsv_data.push_back
-   (WsvRecord
     ( NAME( "scat_za_grid" ),
       DESCRIPTION
       (
