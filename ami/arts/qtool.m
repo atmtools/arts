@@ -97,7 +97,7 @@ while 1
 
       in_if   = 1;
       in_else = 0;
-      s       = deblank(s(4:(length(s)-1)));
+      s       = deblank( s(4:(length(s)-1)) );
       if isempty(s)
         error(sprintf('IF statement without variable found on line %d.',...
                                                                       line));
@@ -142,8 +142,8 @@ while 1
       %= Check first if any "inline" function shall be called
       if s(1) == '§'
 
-        s = deblank( s );
-        eval([ s(2:length(s)), '(Q,fid_out);' ])
+        s = deblank( s(2:(length(s)-1)) );
+        eval([ s, '(Q,fid_out);' ])
 
       %= Replace variables (marked by $$) and move text to cfile
       else

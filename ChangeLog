@@ -1,3 +1,11 @@
+2001-04-11  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-156
+
+	* Fixed a bug in qtool. The line feed was included when calling
+	inline functions.
+	
+
 2001-04-11  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-155
