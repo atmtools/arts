@@ -17,13 +17,13 @@
  * Copyright (C) 2002, 2003 Simon Peter <dn.tlp@gmx.net>
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "binio.h"
 
 #if BINIO_WITH_MATH
 
-#include <math.h>
+#include <cmath>
 
 #ifdef __QNXNTO__
    #define pow std::powf
@@ -233,9 +233,9 @@ binistream::Float binistream::ieee_single2float(Byte *data)
     }
 
   if(!exp)	// Unnormalized float values
-    return sign * pow(2, -126) * fract * pow(2, -23);
+    return sign * pow(2, -126.) * fract * pow(2, -23.);
   else		// Normalized float values
-    return sign * pow(2, exp - 127) * (fract * pow(2, -23) + 1);
+    return sign * pow(2, exp - 127.) * (fract * pow(2, -23.) + 1);
 
   err |= Fatal; return 0.0;
 }
@@ -245,9 +245,9 @@ binistream::Float binistream::ieee_double2float(Byte *data)
   signed int	sign = data[0] >> 7 ? -1 : 1;
   unsigned int	exp = ((unsigned int)(data[0] & 0x7f) << 4) | (data[1] >> 4),
     fracthi4 = data[1] & 0xf;
-  Float		fract = fracthi4 * pow(2, 48) + data[2] * pow(2, 40) + data[3] *
-    pow(2, 32) + data[4] * pow(2, 24) + data[5] * pow(2, 16) + data[6] *
-    pow(2, 8) + data[7];
+  Float		fract = fracthi4 * pow(2, 48.) + data[2] * pow(2, 40.) + data[3] *
+    pow(2, 32.) + data[4] * pow(2, 24.) + data[5] * pow(2, 16.) + data[6] *
+    pow(2, 8.) + data[7];
 
   // Signed and unsigned zero
   if(!exp && !fracthi4 && !data[2] && !data[3] && !data[4] && !data[5] &&
@@ -272,9 +272,9 @@ binistream::Float binistream::ieee_double2float(Byte *data)
     }
 
   if(!exp)	// Unnormalized float values
-    return sign * pow(2, -1022) * fract * pow(2, -52);
+    return sign * pow(2, -1022.) * fract * pow(2, -52.);
   else		// Normalized float values
-    return sign * pow(2, exp - 1023) * (fract * pow(2, -52) + 1);
+    return sign * pow(2, exp - 1023.) * (fract * pow(2, -52.) + 1);
 
   err |= Fatal; return 0.0;
 }
