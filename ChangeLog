@@ -1,9 +1,16 @@
 2002-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-0-57
+
+	* ami/init.m: I missed to transfer some of the changes from another
+	version of ami.
+
+2002-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-0-56
 
 	* ami/init.m: Fixed a bug when arts is not compiled without arts-data.
-	The warning about not finding arts-adat can now be suppresed by 
+	The warning about not finding arts-data can now be suppresed by 
 	calling the function as init(0). 
 
 2002-12-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>

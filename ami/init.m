@@ -65,7 +65,7 @@ ATM2HPA        = 1.01325e3;
 %
 c = get_artsconfig('ARTS_DATA_PATH');
 %
-if isstr( c )
+if isstr( c )  &  ~strcmp( c, '"no"' )
   % Remove "-chars
   c = c( 2:(length(c)-1) );
   addpath( c );
