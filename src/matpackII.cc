@@ -142,7 +142,7 @@ Numeric& Sparse::rw(Index r, Index c)
   \return The data element with these indices.
   
   \author Stefan Buehler <sbuehler@uni-bremen.de>
-  \date   Tue Jul 15 15:05:40 2003 
+  \date   Tue Jul 15 15:05:40 2003
 */
 Numeric Sparse::operator() (Index r, Index c) const
 { return this->ro(r, c); }
@@ -286,7 +286,7 @@ Sparse::~Sparse()
   \param c New column dimension.
 
   \author Stefan Buehler <sbuehler@uni-bremen.de>
-  \date   Tue Jul 15 15:05:40 2003 
+  \date   Tue Jul 15 15:05:40 2003
 */
 void Sparse::resize(Index r, Index c)
 {
@@ -502,16 +502,8 @@ void transpose( Sparse& A,
     {
       Index n = count( B.mrowind->begin(), B.mrowind->end(), i);
 
-      // The column pointers for all columns above the current one in A
-      // are then increased with this amount.
-//       for ( std::vector<Index>::iterator j = A.mcolptr->begin() + i + 1;
-//              j < A.mcolptr->end();
-//              ++j )
-//         (*j) += n;
-
-      // FIXME: Stefan: Is it really necessary to always increase all
-      // pointers above the current one? Suggestion:
-      //
+      // The column pointer for the column above the current one in A
+      // are then set to the current one plus this amount.
       (*A.mcolptr)[i+1] = (*A.mcolptr)[i] + n;
     }
 
@@ -539,7 +531,7 @@ void transpose( Sparse& A,
           // compiler warnings, presumably because mrowind and mcolptr
           // are of type Index, which is a signed integer type,
           // whereas the iterator type of STL is unsigned. I suggest
-          // that you discuss with Oliver how to make a safe cast 
+          // that you discuss with Oliver how to make a safe cast
           // here.
 
 
@@ -607,10 +599,6 @@ void mult( Sparse& A,
 
       for (size_t b=0; b<Bt.mcolptr->size()-1; ++b)
         {
-          // Get row indices for this column too
-          //Index beginBt = (*Bt.mcolptr)[b];
-          //Index endBt = (*Bt.mcolptr)[b+1];
-
           // Get the intersection between the elements in the two columns and
           // and store them in a temporary vector
           std::set<Index> colintersec;
@@ -620,9 +608,6 @@ void mult( Sparse& A,
             Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b+1),
             inserter(colintersec, colintersec.begin()));
 
-          // FIXME: Stefan: Wow, this is really an elegant way to do
-          // it. Great that you found the set_intersection algorithm!
-
           // If we got an intersection, loop through it and multiply the
           // element pairs from C and Bt and store result in A
           if (!colintersec.empty())
@@ -631,12 +616,27 @@ void mult( Sparse& A,
               for (set<Index>::iterator i=colintersec.begin();
                 i!=colintersec.end(); ++i)
                 {
-                  // FIXME: Testa att colsintersec funkar
-                  tempA += Bt(*i,b) * C(*i,c);
-                  // FIXME: Stefan: This seems to be wastefull, since
-                  // you don't use all the information you have, but
-                  // go through the full index operators again.
+                  // To get iterators to the data elements in Bt and C, we
+                  // subtract the iterator that points to the start of the
+                  // mrowind vector from the iterators that points to the
+                  // values in colintersec. We then get the number of steps 
+                  // from the start of the both vectors mrowind and mdata to
+                  // the intersecting values and can add them to the 
+                  // iterator that points to the beginning of mdata.
+                  std::vector<Index>::iterator rowindBt_it =
+                    find(Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b),
+                      Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b+1), *i);
+                  std::vector<Index>::iterator rowindC_it =
+                    find(C.mrowind->begin()+*(C.mcolptr->begin()+c),
+                      C.mrowind->begin()+*(C.mcolptr->begin()+c+1), *i);
+                  // FIXME: The find function is also used here
 
+                  std::vector<Numeric>::iterator dataBt_it =
+                    Bt.mdata->begin()+(rowindBt_it-Bt.mrowind->begin());
+                  std::vector<Numeric>::iterator dataC_it =
+                    C.mdata->begin()+(rowindC_it-C.mrowind->begin());
+
+                  tempA += *dataBt_it * *dataC_it;
                 }
               A.rw(b,c) = tempA;
             }
