@@ -36,7 +36,6 @@
 
 #include <stdexcept>
 #include <iostream>
-#include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
 #include "arts.h"
@@ -130,11 +129,10 @@ void convergence_flagAbs(//WS Output:
   counter = counter+1;
   cout << "Number of iterations:   "<< counter << endl;
   
-  char buffer[5];
+  ostringstream os;
 
-  sprintf(buffer, "%d", int(counter));
-
-  xml_write_to_file("i_field_" + string(buffer) + ".xml", i_field);
+  os << counter;
+  xml_write_to_file("i_field_" + os.str() + ".xml", i_field);
 
   cout<< "i_field    " << i_field << endl;
 
