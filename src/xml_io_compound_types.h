@@ -76,6 +76,13 @@ xml_write_to_stream (ostream&, const GridPos&, bofstream * = NULL,
                      const String& = "");
 
 void
+xml_read_from_stream (istream&, IsotopeRecord&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const IsotopeRecord&, bofstream * = NULL,
+                     const String& = "");
+
+void
 xml_read_from_stream (istream&, Ppath&, bifstream * = NULL);
 
 void
