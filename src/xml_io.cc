@@ -2088,6 +2088,55 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+//=== SingleScatteringData ======================================
+
+//! Reads SingleScatteringData from XML input stream
+/*!
+  Checks whether the next tag in input stream is <SingleScatteringData>
+  and if so, write the values to 'ssdata' parameter.
+
+  \param is_xml  XML Input stream
+  \param ssdata  SingleScatteringData return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      SingleScatteringData&,
+                      bifstream * = NULL)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("SingleScatteringData");
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/SingleScatteringData");
+}
+
+
+//! Writes SingleScatteringData to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param ssdata  SingleScatteringData
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const SingleScatteringData&,
+                     bofstream * = NULL)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("SingleScatteringData");
+  open_tag.write_to_stream (os_xml);
+
+  close_tag.set_name ("/SingleScatteringData");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+}
+
+
 //=== SpeciesTag ================================================
 
 //! Reads SpeciesTag from XML input stream
