@@ -58,6 +58,7 @@ struct Ppath {
   Index             dim;
   Index             np;
   Matrix    	    pos;
+  Vector    	    p;
   Vector    	    z;
   Vector            l_step;
   ArrayOfGridPos    gp_p;

@@ -41,6 +41,7 @@
  *** External declarations
  *****************************************************************************/
 
+#include <math.h>
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
@@ -238,7 +239,7 @@ void ppathCalc(
     {
       // Call ppath_step agenda
 
-      // For the moment, a hrad-coded version:
+      // For the moment, a hard-coded version:
       ppath_step_1d_geom( ppath_partial, atmosphere_dim, p_grid, 
                     z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), 
                                                      blackbody_ground, 999e3 );
@@ -250,48 +251,52 @@ void ppathCalc(
       // Put new ppath_partial in ppath_array
       ppath_array.push_back( ppath_partial );
 
+      // At what pressure level are we?
+      const Index ip = Index( rint( Numeric(ppath_partial.gp_p[n-1].idx) + 
+                                             ppath_partial.gp_p[n-1].fd[0] ) );
+
       // Check if the top of the atmosphere is reached
-      if( ppath_partial.gp_p[n].idx == imax_p )
-	ppath_set_background( ppath, 1 );
+      if( ip == imax_p )
+	ppath_set_background( ppath_partial, 1 );
 
       // Check that path does not exit at a latitude or longitude end face
       if( atmosphere_dim >= 2 )
 	{
-	  if( ( Numeric(ppath_partial.gp_lat[n].idx) +
- 		                         ppath_partial.gp_lat[n].fd[0] ) == 0 )
+	  if( ( Numeric(ppath_partial.gp_lat[n-1].idx) +
+ 		                       ppath_partial.gp_lat[n-1].fd[0] ) == 0 )
 	    {
 	      ostringstream os;
 	      os << "The path enters the atmosphere through the lower latitude"
-		 << "end face,\nat altitude " << ppath_partial.z[n]/1e3 
+		 << "end face,\nat altitude " << ppath_partial.z[n-1]/1e3 
                  << " km.";
 	      throw runtime_error( os.str() );
 	    }
-	  if( ppath_partial.gp_lat[n].idx == imax_lat )
+	  if( ppath_partial.gp_lat[n-1].idx == imax_lat )
 	    {
 	      ostringstream os;
 	      os << "The path enters the atmosphere through the upper latitude"
-		 << "end face,\nat altitude " << ppath_partial.z[n]/1e3 
+		 << "end face,\nat altitude " << ppath_partial.z[n-1]/1e3 
                  << " km.";
 	      throw runtime_error( os.str() );
 	    }
 
 	  if( atmosphere_dim == 3 )
 	    {
-	      if( ( Numeric(ppath_partial.gp_lon[n].idx) +
-		                         ppath_partial.gp_lon[n].fd[0] ) == 0 )
+	      if( ( Numeric(ppath_partial.gp_lon[n-1].idx) +
+		                       ppath_partial.gp_lon[n-1].fd[0] ) == 0 )
 		{
 		  ostringstream os;
 		  os << "The path enters the atmosphere through the lower " 
 		     << "longitude end face,\nat altitude " 
-		     << ppath_partial.z[n]/1e3 << " km.";
+		     << ppath_partial.z[n-1]/1e3 << " km.";
 		  throw runtime_error( os.str() );
 		}
-	      if( ppath_partial.gp_lon[n].idx == imax_lon )
+	      if( ppath_partial.gp_lon[n-1].idx == imax_lon )
 		{
 		  ostringstream os;
 		  os << "The path enters the atmosphere through the upper "
                      << "longitude end face,\nat altitude " 
-                     << ppath_partial.z[n]/1e3 << " km.";
+                     << ppath_partial.z[n-1]/1e3 << " km.";
 		  throw runtime_error( os.str() );
 		}
 	    }
@@ -300,22 +305,23 @@ void ppathCalc(
       // Check if there is an intersection with an active cloud box
       if( cloudbox_on )
 	{
-	  if( ppath_partial.gp_p[n].idx >= cloudbox_limits[0] &&
-	           ( Numeric(ppath_partial.gp_p[n].idx) + 
-                           ppath_partial.gp_p[n].fd[0]) <= cloudbox_limits[1] )
+	  if( ppath_partial.gp_p[n-1].idx >= cloudbox_limits[0]  &&
+	           ( Numeric(ppath_partial.gp_p[n-1].idx) + 
+                         ppath_partial.gp_p[n-1].fd[0]) <= cloudbox_limits[1] )
 	    {
 	      if( atmosphere_dim == 1 )
-		ppath_set_background( ppath, 3 );
-	      else if( ppath_partial.gp_lat[n].idx >= cloudbox_limits[2] &&
-	              ( Numeric(ppath_partial.gp_lat[n].idx) + 
-                         ppath_partial.gp_lat[n].fd[0]) <= cloudbox_limits[3] )
+		ppath_set_background( ppath_partial, 3 );
+	      else if( ppath_partial.gp_lat[n-1].idx >= cloudbox_limits[2]  &&
+	              ( Numeric(ppath_partial.gp_lat[n-1].idx) + 
+                        ppath_partial.gp_lat[n-1].fd[0]) <= cloudbox_limits[3] )
 		{
 		  if( atmosphere_dim == 2 )
-		    ppath_set_background( ppath, 3 );
-		  else if ( ppath_partial.gp_lon[n].idx >= cloudbox_limits[4]&&
-	              ( Numeric(ppath_partial.gp_lon[n].idx) + 
-                         ppath_partial.gp_lon[n].fd[0]) <= cloudbox_limits[5] )
-		    ppath_set_background( ppath, 3 );
+		    ppath_set_background( ppath_partial, 3 );
+		  else if ( ppath_partial.gp_lon[n-1].idx >= cloudbox_limits[4]
+                                &&
+	              ( Numeric(ppath_partial.gp_lon[n-1].idx) + 
+                       ppath_partial.gp_lon[n-1].fd[0]) <= cloudbox_limits[5] )
+		    ppath_set_background( ppath_partial, 3 );
 		}
 	    }
 	}
@@ -334,9 +340,10 @@ void ppathCalc(
       if( n )
 	{
 	  ppath.pos( Range(np,n), Range(joker) ) = ppath_array[i].pos;
+	  ppath.p[ Range(np,n) ]                 = ppath_array[i].p;
 	  ppath.z[ Range(np,n) ]                 = ppath_array[i].z;
 	  if( i > 0 )
-	    ppath.l_step[ Range(np-1,n) ]     = ppath_array[i].z;
+	    ppath.l_step[ Range(np-1,n) ]     = ppath_array[i].l_step;
 	  for( Index j=0; j<n; j++ )
 	    {
 	      ppath.gp_p[np+j]                = ppath_array[i].gp_p[j];
@@ -366,7 +373,7 @@ void ppathCalc(
 	  np += n;
 	}
     }  
-  ppath.background = ppath_array[ppath_array.nelem()-1].background;
+  ppath.background = ppath_partial.background;
 
   // Print the structure
   if( 1 )
@@ -374,6 +381,7 @@ void ppathCalc(
       PrintIndex( ppath.dim, "dim" );
       PrintIndex( ppath.np, "np" );
       PrintMatrix( ppath.pos, "pos" );
+      PrintVector( ppath.p, "p" );
       PrintVector( ppath.z, "z" );
       PrintVector( ppath.l_step, "l_step" );
       PrintMatrix( ppath.los, "los" );

@@ -1,3 +1,13 @@
+2002-05-22  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-92
+
+	* Further work on propagation path calculations. Fixed numerous bugs.
+	A simple upward 1D case works now at least. But more bugs to find.
+
+	The biggest problem was to catch when the limited numerical precsion
+	causes the fractional distance to be just below 0 or just above 1.
+
 2002-05-21  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-91

@@ -322,8 +322,8 @@ void gridpos( ArrayOfGridPos& gp,
 }
 
 
-
-/**
+//! gridpos2gridrange
+/*!
    Determines which grid range that is of interest for a given grid position.
 
    The purpose of the function is to determine which two grid values that
@@ -343,14 +343,16 @@ void gridpos( ArrayOfGridPos& gp,
 */
 Index gridpos2gridrange(
        const GridPos&   gp,
-       const Index&     upwards )
+       const bool&      upwards )
 {
   assert( gp.fd[0] >= 0 );
   assert( gp.fd[0] <= 1 );
 
   // Not at a grid point
-  if( gp.fd[0] > 0 || gp.fd[0] < 1 )
-    return gp.idx;
+  if( gp.fd[0] > 0   &&  gp.fd[0] < 1 )
+    {
+      return gp.idx;
+    }
 
   // Fractional distance 0
   else if( gp.fd[0] == 0 )
@@ -370,6 +372,35 @@ Index gridpos2gridrange(
 	return gp.idx;
     }
 }
+
+
+
+//! gridpos_check_fd
+/*!
+   Checks that the fractional distances have value in the range [0,1].
+
+   This function can be used when you are sure that the fractional distances
+   have been calculated correctly, but the limited numerical precision can
+   give values below 0 or above 1.
+
+   \param   gp     Output: Grid position structure.
+
+   \author Patrick Eriksson
+   \date   2002-05-21
+*/
+void gridpos_check_fd( GridPos&   gp )
+{
+  if( gp.fd[0] < 0 )
+    gp.fd[0] = 0;
+  else if( gp.fd[0] > 1 )
+    gp.fd[0] = 1;
+
+  if( gp.fd[1] < 0 )
+    gp.fd[1] = 0;
+  else if( gp.fd[1] > 1 )
+    gp.fd[1] = 1;
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////

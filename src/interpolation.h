@@ -92,7 +92,9 @@ void gridpos( ArrayOfGridPos& gp,
 
 Index gridpos2gridrange(
        const GridPos&   gp,
-       const Index&     upwards );
+       const bool&      upwards );
+
+void gridpos_check_fd( GridPos&   gp );
 
 
 

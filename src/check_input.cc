@@ -74,7 +74,7 @@ void chk_if_bool(
 
 
 
-/*! chk_if_in_range
+//! chk_if_in_range
 /*! 
     Checks that a variable of type Index has a value inside the specified
     range.
@@ -111,7 +111,7 @@ void chk_if_in_range(
  *** Functions for Numeric
  *****************************************************************************/
 
-/*! chk_if_over_0 
+//! chk_if_over_0 
 /*! 
     Checks that a variable of type Numeric is 0 or is positive.
     range.
@@ -139,7 +139,7 @@ void chk_if_over_0(
 
 
 
-/*! chk_if_in_range
+//! chk_if_in_range
 /*! 
     Checks that a variable of type Numeric has a value inside the specified
     range.
@@ -176,7 +176,7 @@ void chk_if_in_range(
  *** Functions for Vector
  *****************************************************************************/
 
-/*! chk_vector_length
+//! chk_vector_length
 /*! 
     Checks that a vector has the specified length.
 
@@ -206,7 +206,7 @@ void chk_vector_length(
 
 
 
-/*! chk_vector_length
+//! chk_vector_length
 /*! 
     Checks if two vectors have the same length.
 
@@ -239,7 +239,7 @@ void chk_vector_length(
 
 
 
-/*! chk_if_increasing
+//! chk_if_increasing
 /*! 
     Checks if a vector is strictly increasing.
 
@@ -268,7 +268,7 @@ void chk_if_increasing(
 
 
 
-/*! chk_if_decreasing
+//! chk_if_decreasing
 /*! 
     Checks if a vector is strictly decreasing.
 
@@ -301,7 +301,7 @@ void chk_if_decreasing(
  *** Functions for Matrix
  *****************************************************************************/
 
-/*! chk_matrix_ncols
+//! chk_matrix_ncols
 /*! 
     Checks that a matrix has the specified number of columns.
 
@@ -330,7 +330,7 @@ void chk_matrix_ncols(
 
 
 
-/*! chk_matrix_nrows
+//! chk_matrix_nrows
 /*! 
     Checks that a matrix has the specified number of rows.
 
@@ -363,7 +363,7 @@ void chk_matrix_nrows(
  *** Functions related to atmospheric grids, fields and surfaces.
  *****************************************************************************/
 
-/*! chk_atm_grids 
+//! chk_atm_grids 
 /*! 
     Checks if the atmospheric grids and the specified atmospheric 
     dimensionality match, and if the grids are ordered correctly.
@@ -422,7 +422,7 @@ void chk_atm_grids(
 
 
 
-/*! chk_atm_field 
+//! chk_atm_field 
 /*! 
     Checks if an atmospheric field matches the dimensionality and the grids.
 
@@ -464,7 +464,7 @@ void chk_atm_field(
 
 
 
-/*! chk_atm_surface
+//! chk_atm_surface
 /*! 
     Checks if an atmospheric surface matches the dimensionality and the grids.
 
@@ -509,7 +509,7 @@ void chk_atm_surface(
  *** Function(s) releated with the cloud box.
  *****************************************************************************/
 
-/*! chk_cloudbox
+//! chk_cloudbox
 /*! 
     Checks the consistency of the cloud box workspace variables. 
 
