@@ -1,3 +1,9 @@
+2004-10-07  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-0-171
+
+	* ami/physics/geomtan2za.m: Vectorised function.
+
 2004-09-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-170

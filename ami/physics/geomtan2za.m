@@ -18,4 +18,4 @@
 function za = geomtan2za(r_geoid,z_plat,z_tan)
 
 
-za = (pi - asin((r_geoid+z_tan)/(r_geoid+z_plat)) ) * 180/pi;
+za = (pi - asin((r_geoid+z_tan)./(r_geoid+z_plat)) ) * 180/pi;
