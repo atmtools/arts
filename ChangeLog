@@ -1,5 +1,13 @@
 2001-11-09  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
+	* arts-0-1-38
+
+	* src/methods.cc (lineshapeDefine): Edited the entry.
+
+	* src/methods.cc (lineshape_per_tgDefine): Edited the entry. 
+	
+2001-11-09  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
 	* arts-0-1-37
 
 	* src/methods.cc (lineshapeDefine): Erased the non-functioning
@@ -7,7 +15,7 @@
 	and added the only one functioning - Voigt_Drayson.
 
 	* src/methods.cc (lineshape_per_tgDefine): The same as above.
-	
+		
 2001-11-09  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-36
