@@ -44,8 +44,8 @@ complex<double> operator+ (const complex<double> &c, const float &d);
 complex<double> operator* (const complex<double> &c, const float &d);
 
 
-Complex asin( const Complex& a );
-Complex acos( const Complex& a );
+//Complex asin( const Complex& a );
+//Complex acos( const Complex& a );
 
 #endif
 

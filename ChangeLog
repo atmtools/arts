@@ -1,3 +1,12 @@
+2004-04-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-165
+
+	* src/m_los.cc (groundFlatSea): Fixed two errors. Only the real part
+	of n shall be used in Snell's law. abs(R) has been corrected to
+	abs(R)^2. Results of this function are identical to fresnel.m in
+	Atmlab.
+
 2004-04-16  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-0-164

@@ -974,7 +974,7 @@ void groundFlatSea(
 
   // The expressions for the dielectric constant are taken from the file
   // epswater93.m (by C. Mätzler), part of Atmlab.
-  // The cosntant e2 is here set to 3.52, which according to Mätzler 
+  // The constant e2 is here set to 3.52, which according to Mätzler 
   // corresponds to Liebe 1993.
 
   // Some constants
@@ -1004,18 +1004,18 @@ void groundFlatSea(
       if( pol == "v" )
         { 
           a = n2 * costheta;
-          b = n1 * cos( asin((n1*sintheta)/n2) );
+          b = n1 * cos( asin( n1 * sintheta / n2.real() ) );
         }
       else if( pol == "h" )
         { 
           a = n1 * costheta;
-          b = n2 * cos( asin((n1*sintheta)/n2) );          
+          b = n2 * cos( asin( n1 * sintheta / n2.real() ) );
         }
       else
         throw runtime_error( 
                         "The keyword argument *pol* must be \"v\" or \"h\"." );
 
-      const Numeric   r = abs( ( a - b ) / ( a + b ) );
+      const Numeric   r = pow( abs( ( a - b ) / ( a + b ) ), 2.0 );
 
       e_ground[i] = 1 - r * r;
     }

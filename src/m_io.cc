@@ -108,10 +108,6 @@ void Test( )
 {
   // This function can be used to test stuff.
 
-  Complex a = Complex(0.0,-3.0);
-
-  cout << asin( a ) << "\n";
-  cout << acos( a ) << "\n";
 }
 
 

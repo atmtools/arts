@@ -69,16 +69,16 @@ complex<double> operator* (const complex<double> &c, const float &f)
 }
 
 
-Complex asin( const Complex& a )
-{
-  const Complex   i(0.0,-1.0);
+// Complex asin( const Complex& a )
+// {
+//   const Complex   i(0.0,-1.0);
 
-  return i * log( i*a + sqrt(1.0-a*a));
-}
+//   return i * log( i*a + sqrt(1.0-a*a));
+// }
 
-Complex acos( const Complex& a )
-{
-  const Complex   i(0.0,-1.0);
+// Complex acos( const Complex& a )
+// {
+//   const Complex   i(0.0,-1.0);
 
-  return -i * log( a + i*sqrt(1.0-a*a));
-}
+//   return -i * log( a + i*sqrt(1.0-a*a));
+// }
