@@ -1,5 +1,16 @@
 2003-01-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-391
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Fixed a bug. The longitude
+	index was not set following the cloud box limits.
+
+	* src/ppath.cc (psurface_crossing_3d): A slight improvement that should
+	lower the chance for failures. However, another algorithm will be 
+	tested.
+
+2003-01-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-390
 
 	* src/ppath.cc: Work on 3D paths to handle all possible problems

@@ -1415,7 +1415,7 @@ Numeric psurface_crossing_2d(
    \author Patrick Eriksson
    \date   2002-12-30
 */
-void psurface_crossing_3d(
+void psurface_crossing_3d_old(
              Numeric&   r,
              Numeric&   lat,
              Numeric&   lon,
@@ -1461,6 +1461,101 @@ void psurface_crossing_3d(
         { r2 = r_start; }
 
       nlinspace( rtest, r1, r2, ntest );
+
+      Vector   rfound(ntest), latfound(ntest), lonfound(ntest), lfound(ntest);
+      bool     ok = false;
+
+      for( Index j=0; j<ntest && !ok; j++ )
+        {
+          gridcell_crossing_3d( rfound[j], latfound[j], lonfound[j], lfound[j],
+                                            x, y, z, dx, dy, dz, 1, rtest[j] );
+
+          if( rfound[j] > 0 )
+            {
+              rfound[j] = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15, r35, r36, r16, latfound[j], lonfound[j] );
+
+              if( j > 0  &&  rfound[j-1] > 0  &&  rfound[j] > 0  &&  
+                        rfound[j-1] >= rtest[j-1]  &&   rfound[j] <= rtest[j] )
+                {
+                  const Numeric   rq1 = rtest[j-1] / rfound[j-1];
+                  const Numeric   rq2 = rtest[j] / rfound[j];
+
+                  rtest[0] = rtest[j-1] + ( rtest[j] - rtest[j-1] ) * 
+                                                   ( 1 - rq1 ) / ( rq2 - rq1 );
+                  gridcell_crossing_3d( rfound[0], latfound[0], lonfound[0], 
+                                 lfound[0], x, y, z, dx, dy, dz, 1, rtest[0] );
+                  rfound[0] = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15, r35, r36, r16, latfound[0], lonfound[0] );
+
+                  ok = true;
+                }
+            }
+        }
+
+      if( ok )
+        {
+          r   = rfound[0];
+          lat = latfound[0];
+          lon = lonfound[0];
+          l   = lfound[0];
+        }
+      else
+        {
+          r   = -1;
+          lat = 999;
+          lon = 999;
+          l   = -1;
+        }
+    }
+}
+
+void psurface_crossing_3d(
+             Numeric&   r,
+             Numeric&   lat,
+             Numeric&   lon,
+             Numeric&   l,
+       const Numeric&   lat1,
+       const Numeric&   lat3,
+       const Numeric&   lon5,
+       const Numeric&   lon6,
+       const Numeric&   r15,
+       const Numeric&   r35,
+       const Numeric&   r36,
+       const Numeric&   r16,
+       const Numeric&   r_start,
+       const Numeric&   za_start,
+       const Numeric&   x,
+       const Numeric&   y,
+       const Numeric&   z,
+       const Numeric    dx,
+       const Numeric    dy,
+       const Numeric    dz )
+{
+  Vector rvalues(4);
+  rvalues[0] = r15;  rvalues[1] = r35;  rvalues[2] = r36;  rvalues[3] = r16;
+
+  const Numeric   rmin = min( rvalues );
+  const Numeric   rmax = max( rvalues );
+        Index     ntest;
+        Vector    rtest;
+
+  if( rmax == rmin )
+    { gridcell_crossing_3d( r, lat, lon, l, x, y, z, dx, dy, dz, 1, rmin ); }
+
+  else
+    {
+      Numeric   rlow = rmin,   rupp = rmax;
+
+      if( za_start <= 90  &&  r_start > rlow )
+        { rlow = r_start + 1e-3; }
+      else if( za_start > 90  &&  r_start < rupp )    
+        { rupp = r_start - 1e-3; }
+
+      ntest  = 5;
+      rtest.resize( ntest );
+
+      nlinspace( rtest, rlow, rupp, ntest );
 
       Vector   rfound(ntest), latfound(ntest), lonfound(ntest), lfound(ntest);
       bool     ok = false;
