@@ -35,7 +35,7 @@
 
 #include "arts.h"
 #include "vecmat.h"
-#include "wsv.h"
+#include "auto_wsv.h"
 #include "wsv_aux.h"
 #include "methods.h"
 

@@ -39,10 +39,10 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "arts.h"
-#include "md.h"
+#include "auto_md.h"
 #include "vecmat.h"
 #include "messages.h"          
-#include "wsv.h"          
+#include "auto_wsv.h"          
 #include "math_funcs.h"          
 #include "atm_funcs.h"          
 #include "hmatrix.h"

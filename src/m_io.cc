@@ -45,7 +45,7 @@
 #include "file.h"
 #include "math_funcs.h"
 #include "messages.h"
-#include "md.h"
+#include "auto_md.h"
 #include <hdf.h>
 
 

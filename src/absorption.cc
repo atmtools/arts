@@ -30,7 +30,7 @@
 #include "arts.h"
 #include "absorption.h"
 #include "math_funcs.h"
-#include "md.h"
+#include "auto_md.h"
 #include "messages.h"
 
 

@@ -50,7 +50,7 @@
 #include "los.h"
 #include "math_funcs.h"          
 #include "messages.h"          
-#include "wsv.h"          
+#include "auto_wsv.h"          
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric COSMIC_BG_TEMP;

@@ -13,11 +13,11 @@ make_wsv_group_h
 make_wsv_groups_h
 make_wsv_h
 make_wsv_pointers_cc
-md.cc
-md.h
+auto_md.cc
+auto_md.h
 stamp-h
 stamp-h.in
-wsv.h
-wsv_group.h
-wsv_groups.h
-wsv_pointers.cc
+auto_wsv.h
+auto_wsv_group.h
+auto_wsv_groups.h
+auto_wsv_pointers.cc

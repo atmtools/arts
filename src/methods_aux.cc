@@ -29,7 +29,7 @@
 
 #include "arts.h"
 #include "make_array.h"
-#include "wsv.h"
+#include "auto_wsv.h"
 #include "methods.h"
 
 

@@ -28,7 +28,7 @@
 #ifndef wsv_aux_h
 #define wsv_aux_h
 
-#include "wsv_groups.h"
+#include "auto_wsv_groups.h"
 
 /** Template for Wsv Pointers. This defines for each pointer class the
     conversion operator back to the type that it is pointing

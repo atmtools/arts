@@ -20,10 +20,10 @@
 #include "messages.h"
 #include "exceptions.h"
 #include "file.h"
-#include "wsv.h"
+#include "auto_wsv.h"
 #include "methods.h"
 #include "parser.h"
-#include "md.h"
+#include "auto_md.h"
 #include "absorption.h"
 
 

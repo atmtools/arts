@@ -30,7 +30,7 @@
 
 #include "vecmat.h"
 #include "token.h"
-#include "wsv.h"
+#include "auto_wsv.h"
 
 /** This class contains all information for one workspace method. */
 class MdRecord {

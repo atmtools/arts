@@ -38,7 +38,7 @@
 #include "arts.h"
 #include "hmatrix.h"
 #include "messages.h"          
-#include "wsv.h"          
+#include "auto_wsv.h"          
 #include "file.h"
 
 
