@@ -101,9 +101,13 @@ Numeric invrayjean(
   assert( f > 0 );
 
   // Double must be used here (if not, the result can be NaN when using float)
-  static const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
+  // Integrated this calculation into the return statement and changed
+  // the order of the terms to avoid numerical instability.
+  // (OLE 2002-08-26)
+  //static const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
 
-  return   a * i / ( f * f );
+  return   SPEED_OF_LIGHT / ((double)f * (double)f)
+    * (double)i * SPEED_OF_LIGHT / (2 * BOLTZMAN_CONST);
 }
 
 
