@@ -44,6 +44,12 @@
 #include "continua.h"
 #include "make_vector.h"
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Stefan Buehler
+   \date   2001-10-02
+*/
 void lines_per_tgSetEmpty(// WS Output:
                           ArrayOfArrayOfLineRecord& lines_per_tg,
                           // WS Input:

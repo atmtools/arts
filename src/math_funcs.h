@@ -150,4 +150,7 @@ void check_length_nrow( const Vector& x, const String& x_name,
 void check_length_ncol( const Vector& x, const String& x_name,
                          const Matrix& A, const String& A_name );
 
+void check_ncol_nrow( const Matrix& A, const String& A_name,
+		      const Matrix& B, const String& B_name );
+
 #endif  // math_funcs_h

@@ -635,6 +635,32 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("VectorMatrixMultiply"),
+	DESCRIPTION
+        (
+	 "Multiply a Vector with a Matrix and store the result in another\n"
+	 "Vector.\n"
+	 "\n"
+	 "This just computes the normal Matrix-Vector product, y=M*x. It is ok\n"
+	 "if input and output Vector are the same. This function is handy for\n"
+	 "multiplying the H Matrix to spectra.\n"
+	 "\n"
+	 "Global output:\n"
+	 "   Vector : The result of the multiplication (dimension m).\n"
+	 "\n"
+	 "Global input:\n"
+	 "   Matrix : The Matrix to multiply (dimension mxn).\n"
+	 "   Vector : The original Vector (dimension n).\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Vector_ ),
+	GINPUT( Matrix_, Vector_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("VectorWriteAscii"),
 	DESCRIPTION(
                     "Writes a vector to an ASCII file.\n"
@@ -902,6 +928,32 @@ void define_md_data()
 	GINPUT( Vector_ ),
 	KEYWORDS( "n"   ),
 	TYPES(    Index_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixMatrixMultiply"),
+	DESCRIPTION
+        (
+	 "Multiply a Matrix with another Matrix and store the result in the result\n"
+	 "Matrix.\n"
+	 "\n"
+	 "This just computes the normal Matrix-Matrix product, Y=M*X. It is ok\n"
+	 "if Y and X are the same Matrix. This function is handy for\n"
+	 "multiplying the H Matrix to weighting functions.\n"
+	 "\n"
+	 "Global output:\n"
+	 "   Matrix : The result of the multiplication (dimension mxc).\n"
+	 "\n"
+	 "Global input:\n"
+	 "   Matrix : The Matrix to multiply (dimension mxn).\n"
+	 "   Matrix : The original Matrix (dimension nxc).\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Matrix_, Matrix_ ),
+	KEYWORDS(),
+	TYPES()));
 
   md_data.push_back
     ( MdRecord

@@ -972,6 +972,42 @@ void VectorScale(
     }
 }
 
+/**
+   Compute y = M*x.
+
+   Works also if y and x are the same Vector.
+
+   For more information see the the online help (arts -d
+   FUNCTION_NAME).
+
+   \author Stefan Buehler
+   \date   2001-10-02
+*/
+void VectorMatrixMultiply(// WS Generic Output:
+                          Vector& y,
+                          // WS Generic Output Names:
+                          const String& y_name,
+                          // WS Generic Input:
+                          const Matrix& M,
+                          const Vector& x,
+                          // WS Generic Input Names:
+                          const String& M_name,
+                          const String& x_name)
+{
+  // Check that dimensions are right, x must match columns of M:
+  check_length_ncol( x, x_name, M, M_name );
+
+  // Temporary for the result:
+  Vector dummy( M.nrows() );
+
+  mult( dummy, M, x );
+
+  // Copy result to y:
+
+  y.resize( dummy.nelem() );
+
+  y = dummy;
+}
 
 
 //=== Matrix ==========================================================
@@ -1087,6 +1123,44 @@ void MatrixDiagonal(
   out3 << "          nrows : " << nrows << "\n";
   out3 << "          value : " << value << "\n";
 }
+
+/**
+   Compute Y = M*X.
+
+   Works also if Y and X are the same Matrix.
+
+   For more information see the the online help (arts -d
+   FUNCTION_NAME).
+
+   \author Stefan Buehler
+   \date   2001-10-02
+*/
+void MatrixMatrixMultiply(// WS Generic Output:
+                          Matrix& Y,
+                          // WS Generic Output Names:
+                          const String& Y_name,
+                          // WS Generic Input:
+                          const Matrix& M,
+                          const Matrix& X,
+                          // WS Generic Input Names:
+                          const String& M_name,
+                          const String& X_name)
+{
+  // Check that dimensions are right, M.ncols() must match X.nrows():
+  check_ncol_nrow( M, M_name, X, X_name );
+
+  // Temporary for the result:
+  Matrix dummy( M.nrows(), X.ncols() );
+
+  mult( dummy, M, X );
+
+  // Copy result to Y:
+
+  Y.resize( dummy.nrows(), dummy.ncols() );
+
+  Y = dummy;
+}
+
 
 
 

@@ -387,6 +387,15 @@ void define_wsv_data()
       "of *y* or to compare the spectra before and after some operation(s).",
       Vector_));
 
+  wsv_data.push_back
+    (WsvRecord
+     ("h",
+      "The H matrix.\n"
+      "\n"
+      "Can be used to apply the sensor model to monochromatic pencil beam\n"
+      "spectra and weighting functions. \n",
+      Matrix_));
+
 
   //--------------------< WF Stuff >--------------------
   //                     ----------

@@ -1,3 +1,19 @@
+2001-10-02  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+        * arts-0-0-255
+
+	* src/math_funcs.cc (check_ncol_nrow): Added this check function.
+	All check functions: Removed newline at end of message.
+
+	* src/workspace.cc (define_wsv_data): Added h.
+
+	* src/methods.cc (define_md_data): Added methods
+	VectorMatrixMultiply and MatrixMatrixMultiply.
+
+	* src/m_io.cc (VectorMatrixMultiply): Added this method.
+	(MatrixMatrixMultiply): Added this method.
+
+	
 2001-10-02  Oliver Lemke  <olemke@uni-bremen.de>
 
         * arts-0-0-254

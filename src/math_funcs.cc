@@ -487,7 +487,7 @@ void check_lengths( const Vector& x1, const String& x1_name,
     os << "The vectors *" << x1_name <<  "* and *" << x2_name << "*\n"
        << "must have the same lengths. \nThe lengths are: \n"
        << x1_name << ": " << x1.nelem() << "\n"
-       << x2_name << ": " << x2.nelem() << "\n";
+       << x2_name << ": " << x2.nelem();
     throw runtime_error( os.str() );
   }
 }
@@ -520,7 +520,7 @@ void check_length_nrow( const Vector& x, const String& x_name,
        << "same as the number of rows of *" << A_name << "*.\n"
        << "The length of *" << x_name <<  "* is " << x.nelem() << ".\n"
        << "The number of rows of *" << A_name <<  "* is " << A.nrows() 
-       << ".\n";
+       << ".";
     throw runtime_error( os.str() );
   }
 }
@@ -553,7 +553,38 @@ void check_length_ncol( const Vector& x, const String& x_name,
        << "same as the number of columns of *" << A_name << "*.\n"
        << "The length of *" << x_name <<  "* is " << x.nelem() << ".\n"
        << "The number of columns of *" << A_name <<  "* is " << A.ncols()
-       << ".\n";
+       << ".";
+    throw runtime_error( os.str() );
+  }
+}
+
+//// check_ncol_nrow  /////////////////////////////////////////////////////
+//
+/** Checks that the number of columns of the first matrix is the same as the
+    number of rows of the second matrix.
+
+    A runtime error is thrown otherwise.
+
+    \param    A        first Matrix
+    \param    A_name   the name of the first Matrix
+    \param    B        second matrix
+    \param    B_name   the name of the second matrix
+
+    \author Stefan Buehler
+    \date   2001-10-02
+*/
+void check_ncol_nrow( const Matrix& A, const String& A_name,
+		      const Matrix& B, const String& B_name ) 
+{
+  if ( A.ncols() != B.nrows() )
+  {
+    ostringstream os;
+    os << "The number of columns of *" << A_name << "* must be the\n"
+       << "same as the number of rows of *" << B_name << "*."
+       << "The number of columns of *" << A_name <<  "* is " << A.ncols()
+       << ".\n"
+       << "The number of rows of *" << B_name <<  "* is " << B.nrows()
+       << ".";
     throw runtime_error( os.str() );
   }
 }
