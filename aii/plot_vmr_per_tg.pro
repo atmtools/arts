@@ -463,7 +463,7 @@ h2ovmr[*]             = 0.000
 liquidcloudprofile[*] = 0.000
 icecloudprofile[*]    = 0.000
 watercloudtag         = -1
-icecloudtag                = -1
+icecloudtag           = -1
 h2otag                = -1
 
 ;; y-axis range

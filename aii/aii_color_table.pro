@@ -1,12 +1,34 @@
-pro aii_color_table, slide=slide
-; Description:
-; Sets my very own special color table, derived from the tek_color 
-; table with a few colors interchanged.
+; ==========================================================================
+; ####################### ARTS IDL INTERFACE PROCEDURE #####################
+; ==========================================================================
 ;
-; History:          27.10.95        created S. Buehler
+pro aii_color_table
 ;
-
-
+;==========================================================================
+;
+; NAME:
+;       aii_color_table
+; PURPOSE:
+;       Provides a color table for plots made with IDL.
+;
+; EXPLANATION:
+;       Special color table, derived from the tek_color.
+;
+; INPUTS:
+;       slide  (integer)   the content of the string decides the action, 
+;                          Possible values are 'yes' and 'no'.
+;
+; OUTPUTS:
+;       IDL intern color tabale
+;
+; MODIFICATION HISTORY:
+;       07/10/95        created S. Buehler
+;       05/12/01        T. Kuhn  alpha version for arts created 
+;
+; ==========================================================================
+; ##########################################################################
+; ==========================================================================
+;
 ;r = [ 0,255,  0,  0,  0,196,255,255,160,  0,  0,140,255, 84,170, 14,191,114, $
 ;      43, 63,127,191,255,170,101, 43, 43, 43,114,191,229,255]
 ;g = [ 0,  0,255,  0,255,196,  0,127, 54,255,127,  0,  0, 84,170,131,255,255,$
@@ -48,6 +70,9 @@ rgb = [ [   0 ,   0 ,   0 ],$   ;  0 black
         [ 255 , 255 ,   0 ] ]   ; 31
 
 tvlct,rgb[0,*],rgb[1,*],rgb[2,*]
-
-
+;
 end
+;
+; ==========================================================================
+; ##########################################################################
+; ==========================================================================

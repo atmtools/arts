@@ -429,7 +429,7 @@ void MPM87H2OAbsModel( MatrixView        xsec,
       Numeric pda   = (Pa_to_kPa * p_abs[i]) - pwv;
       // H2O continuum absorption [dB/km/GHz2] like in the original MPM87
       Numeric Nppc  = CC * pwv_dummy * pow(theta, 3.0) * 1.000e-5 *
-	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)) );
+	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.8)) );
 
       // Loop over input frequency
       for ( Index s=0; s<n_f; ++s )
@@ -2639,7 +2639,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
 	<< " xf = " << xf << "\n";
   
   // unit conversion internally:
-  const Numeric S0unitconv = 1.000e+13;
+  const Numeric S0unitconv = 1.000e+13;  // x [1/(hPa²*GHz)] => y [1/(pa²*Hz)]
   const Numeric G0unitconv = pow(10.000, gxf);
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
@@ -2679,7 +2679,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
 	  // abs / vmr * xsec.
 	  xsec(s,i) += dB_km_to_1_m * 0.1820 * 
 	               f * strength * f / 
-                       ( 1.000 + G0unitconv * G0 * pow( f, xf) ) / vmr[i];
+                       ( 1.000 + G0unitconv * G0 * pow( f, xf) );
 	}
     }
   return;
@@ -2882,17 +2882,18 @@ void Standard_N2_self_continuum( MatrixView          xsec,
   // Loop over pressure/temperature grid:
   for ( Index i=0; i<n_p; ++i )
     {
+      //cout << "vmr[" << i << "]= " << vmr[i] << "\n";
       // Loop over frequency grid:
       for ( Index s=0; s<n_f; ++s )
 	{
 	  // The second N2-VMR will be multiplied at the stage of absorption 
 	  // calculation: abs = vmr * xsec.
-	  xsec(s,i) += C                          * // strength [1/(m*Hz²Pa²)]  
-                       pow( 300.00/t_abs[i], xt ) * // T dependence        [1] 
-                       pow( f_mono[s], xf )       * // f dependence    [Hz^xt]  
-                       pow( p_abs[i], xp )        * // p dependence    [Pa^xp]
-                       vmr[i];                      // second N2-VMR at the stage 
-	                                            // of absorption calculation
+	  xsec(s,i) += C                            * // strength [1/(m*Hz²Pa²)]  
+                       pow( (300.00/t_abs[i]), xt ) * // T dependence        [1] 
+                       pow( f_mono[s], xf )         * // f dependence    [Hz^xt]  
+                       pow( p_abs[i], xp )          * // p dependence    [Pa^xp]
+                       pow( vmr[i], (xp-1) );         // last N2-VMR at the stage 
+	                                              // of absorption calculation
 	}
     }
 }

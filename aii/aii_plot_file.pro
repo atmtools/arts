@@ -6,7 +6,8 @@ pro aii_plot_file, action=action, $
                    fname=fname, $
                    fformat=fformat, $
                    show=show, $
-                   print=print
+                   print=print, $
+                   outdir=outdir
 ;
 ;==========================================================================
 ;
@@ -71,6 +72,19 @@ COMMON PLOT_OUTPUT_FUN_ANTWORT, ANTWORT, USERFILENAME
 ; ##########################################################################
 ; ==========================================================================
 ;
+; default values for input parameters:
+if not keyword_set(outdir) then begin
+    outdir = '.'
+endif
+;
+if not keyword_set(print) then begin
+    print = 'no'
+endif
+;
+if not keyword_set(show) then begin
+    show = 'no'
+endif
+;
 ; check input parameter action' of correctness:
 if not keyword_set(action) then begin
     print,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
@@ -98,16 +112,28 @@ endif
 ; *************
 ;
 ; possible extensions of the output file:
-EXTENSION_VEC = ['.XX','.ps','.ps','.eps','.eps','.XX']
-FORMAT_VEC    = [' NOT DEFINED ', $
-                 'POSTSCRIPT PORTRAIT MODE', $
-                 'POSTSCRIPT LANDSCAPE MODE', $
-                 'ENCAPSULATED POSTSCRIPT PORTRAIT MODE', $
+EXTENSION_VEC = ['.XX', $
+                 '.ps', $
+                 '.ps', $
+                 '.eps',$
+                 '.eps',$
+                 '.XX']
+;
+FORMAT_VEC    = [' NOT DEFINED ',                          $
+                 'POSTSCRIPT PORTRAIT MODE',               $
+                 'POSTSCRIPT LANDSCAPE MODE',              $
+                 'ENCAPSULATED POSTSCRIPT PORTRAIT MODE',  $
                  'ENCAPSULATED POSTSCRIPT LANDSCAPE MODE', $
                  'WINDOW']
 ;
-; ==========================================================================
-; ##########################################################################
+GVOPT         = ['',           $
+                 '-portrait',  $
+                 '-landscape', $
+                 '-portrait',  $
+                 '-landscape', $
+                 ''] 
+;
+;
 ; ==========================================================================
 ;
 ; open output file
@@ -164,53 +190,52 @@ if (action EQ 'begin') then begin
               dummy         = !P.color ; make background white
               !P.color      = !P.background
               !P.background = dummy
-              color=2
-              spawn,'rm -f '+USERFILENAME+EXTENSION_VEC[ANTWORT]
+              aii_color_table
+              spawn,'rm -f '+outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT], /COLOR
-              XPAGE=20.9  &  YPAGE=29.7  &  XOFFS=0.0  &  YOFFS=0.0
-              DEVICE,/portrait,XSIZE=XPAGE,YSIZE=YPAGE,$
-                             XOFFSET=XOFFS,YOFFSET=YOFFS
-              device, /TIMES
-              aii_color_table, slide = color - 1
+              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT]
+              DEVICE,/PORTRAIT
+              DEVICE, /COLOR
               end
         2 : begin
               ; Postscript landscape mode
               dummy         = !P.color ; make background white
               !P.color      = !P.background
               !P.background = dummy
-              color=2
-              spawn,'rm -f '+USERFILENAME+EXTENSION_VEC[ANTWORT]
+              spawn,'rm -f '+outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT], /COLOR
-              XPAGE=29.7  &  YPAGE=20.9  &  XOFFS=0.0  &  YOFFS=XPAGE
-              DEVICE, /LANDSCAPE,XSIZE=XPAGE,YSIZE=YPAGE,$
-                      XOFFSET=XOFFS,YOFFSET=YOFFS
-              device, /TIMES
-              aii_color_table, slide = color - 1
+              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT]
+              DEVICE, /LANDSCAPE
+              DEVICE, /COLOR
+              aii_color_table
               end
         3 : begin
               ; encapsulated Postscript portrait mode
               dummy         = !P.color ; make background white
               !P.color      = !P.background
               !P.background = dummy
-              spawn,'rm -f '+USERFILENAME+EXTENSION_VEC[ANTWORT]
+              color=2
+              spawn,'rm -f '+outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT], /COLOR
-              device, /encapsulated
-              device, /portrait
-              aii_color_table, slide = color - 1
+              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT]
+              DEVICE, /ENCAPSULATED
+              DEVICE, /COLOR
+              DEVICE, /PORTRAIT
+              aii_color_table
               end
         4 : begin
               ; encapsulated Postscript landscape mode
               dummy         = !P.color ; make background white
               !P.color      = !P.background
               !P.background = dummy
-              spawn,'rm -f '+USERFILENAME+EXTENSION_VEC[ANTWORT]
+              color=2
+              spawn,'rm -f '+outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]
               SET_PLOT, 'PS'
-              device, /encapsulated, /COLOR
-              device, LANDSCAPE=1   ; =0 portrait, =1 landscape
-              aii_color_table, slide = color - 1
+              DEVICE, FILENAME=USERFILENAME+EXTENSION_VEC[ANTWORT]
+              DEVICE, /ENCAPSULATED
+              DEVICE, /COLOR
+              DEVICE, /LANDSCAPE
+              aii_color_table
               end
         5 : begin
               ; window
@@ -224,45 +249,57 @@ if (action EQ 'begin') then begin
               XPAGE=20.9  &  YPAGE=29.7  &  XOFFS=0.0  &  YOFFS=0.0
               X0=1.374  &  Y0=1.283  &  XLEN=3.622  &  YLEN=6.157  ;Inches
               !P.POSITION=[X0/XPAGE,Y0/YPAGE,(X0+XLEN)/XPAGE,(Y0+YLEN)/YPAGE]
-              aii_color_table, slide = color - 1
+              aii_color_table
               end
    endcase
-   ;print,' aii_plot_file> device setting for output file: ',!D.name,'.'
-   print,' aii_plot_file> output file format: ',FORMAT_VEC[ANTWORT],'.'
 endif
 ;
+;
 ; ==========================================================================
-; ##########################################################################
-; ==========================================================================
+;
 ;
 ; close and print output file
 ; ***************************
 ;
 if (action EQ 'end') then begin
 ;
-; close device:
-; -------------
-    device,/close
-
-; close device and open gostview:
-; -------------------------------
-    if (show EQ 'yes') then begin
-        spawn,'gv -swap -a4 -bg white -fg black '+$
-              USERFILENAME+EXTENSION_VEC[ANTWORT]+' &'
-    endif
+; a) close output file:
+; ---------------------
+    DEVICE,/CLOSE
 ;
-; printing:
-; ---------
-    if (print EQ 'yes') then begin
-         print, ' aii_plot_file> print file "'+$
-                USERFILENAME+EXTENSION_VEC[ANTWORT]+$
-                '" on standard line printer (command used: lpr).'
-        spawn,'lpr '+USERFILENAME+EXTENSION_VEC[ANTWORT]
+; b) print info:
+; --------------
+    print, '-------------------------- aii_plot_file --------------------------'
+    print, ' * dir   : ','"'+outdir+'"'
+    print, ' * file  : ','"'+USERFILENAME+EXTENSION_VEC[ANTWORT]+'"'
+    print, ' * format: ',FORMAT_VEC[ANTWORT]
+;
+; c) move output file into specified directory:
+; ---------------------------------------------
+    spawn, 'mv '+USERFILENAME+EXTENSION_VEC[ANTWORT]+' '+outdir+'/.'
+;
+; d) close device and open gostview:
+; ----------------------------------
+    if (show EQ 'yes') then begin
+        print, ' * show with ghostview: yes'
+        spawn,'gv -swap -a4 -bg white -fg black '+GVOPT[ANTWORT]+' '+$
+              outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]+' &'
     endif else begin
-        print, ' aii_plot_file> save file "'+$
-               USERFILENAME+EXTENSION_VEC[ANTWORT]+$
-               '" without printing it.'
+        print, ' * show with ghostview: no'
     endelse
+;
+; e) printing:
+; ------------
+    if (print EQ 'yes') then begin
+        print, ' * print with lpr: yes'
+        spawn,'lpr '+outdir+'/'+USERFILENAME+EXTENSION_VEC[ANTWORT]
+    endif else begin
+        print, ' * print with lpr: no'
+    endelse
+;
+; f) print info:
+; --------------
+    print, '-------------------------- aii_plot_file --------------------------'
 ;
 endif
 ;

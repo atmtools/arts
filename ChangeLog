@@ -1,3 +1,14 @@
+2001-12-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
+ 
+        * arts-0-1-62
+ 
+        * changes: - Update the H2O continuum parameter n_s of MPM 
+                     from 7.5 to 7.8.
+                   - Update the uiguide for the isotopic ratio introduced 
+                     in the MPm93 lines at 547 and 556 GHz in the line strength.
+                   - update the IDL procedures aii_color_table.pro and 
+                     aii_plot_file.pro
+
 2001-11-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-1-61

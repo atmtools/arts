@@ -2196,6 +2196,14 @@ The parameterizations of $\inten$ was already in use for the early
 version of MPM81 \cite{liebe:81}. The expression for $\gamk$ is the
 same as in MPM89. The main difference between MPM93 and MPM89 
 concerning the water vapor line absorption is the updated line catalog.
+
+An important difference comparing the arts implementation to the
+original MPM93 source code is the incorporation of the isotopic 
+ratio in the line strength of the $\hzo$-lines at 547.676 
+($_{1}^{1}$H$_{~\,8}^{18}$O, abundance=0.00199983) and 
+552.021\,GHz ($_{1}^{1}$H$_{~\,8}^{17}$O, abundance=0.00037200).
+Since these two lines are newly added in MPM93, the older versions of
+MPM are not affected from this change. 
 %
 %
 %\begin{landscape}
@@ -2227,7 +2235,9 @@ concerning the water vapor line absorption is the updated line catalog.
    coefficients of H$_2$O in air for the MPM93 model \citep{liebeetal:93}. 
    The last separated line is the unphysical pseudo-line used in MPM93. 
    The lines which are marked with a "$^+$" were not in the MPM87/MPM89 
-   line catalog.}
+   line catalog. The line intensities at 547.676 and 552.021\,GHz are 
+   multiplied with the respective isotopic ratio and are therefore
+   different from the original values (see text).}
  \label{tab:mpm93linelist}
  \endlastfoot
 % --------------------- body of table  ----------------------------------  
@@ -2249,8 +2259,8 @@ concerning the water vapor line absorption is the updated line catalog.
 16     & 488.491133 & 0.02520 & 2.853 & 2.602 & 5.04 & 0.69 & 0.72 \\
 17     & 503.568532 & 0.00390 & 6.733 & 1.612 & 3.98 & 0.61 & 0.43 \\
 18     & 504.482692 & 0.00130 & 6.733 & 1.612 & 4.01 & 0.61 & 0.45 \\
-19$^+$ & 547.676440 & 0.97010 & 0.114 & 2.600 & 4.50 & 0.70 & 1.00 \\
-20$^+$ & 552.020960 & 1.47700 & 0.114 & 2.600 & 4.50 & 0.70 & 1.00 \\
+19$^+$ & 547.676440 & 0.00194 & 0.114 & 2.600 & 4.50 & 0.70 & 1.00 \\
+20$^+$ & 552.020960 & 0.00055 & 0.114 & 2.600 & 4.50 & 0.70 & 1.00 \\
 21     & 556.936002 & 48.74000& 0.159 & 3.210 & 4.11 & 0.69 & 1.00 \\
 22     & 620.700807 & 0.50120 & 2.200 & 2.438 & 4.68 & 0.71 & 0.68 \\
 23$^+$ & 645.866155 & 0.00713 & 8.580 & 1.800 & 4.00 & 0.60 & 0.50 \\
