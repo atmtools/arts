@@ -32,8 +32,10 @@
 #ifndef xml_io_h
 #define xml_io_h
 
-#include <iosfwd>
 #include "mystring.h"
+
+typedef enum {FTYPE_ASCII, FTYPE_BINARY} FType;
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names
@@ -54,6 +56,7 @@ xml_read_from_file (const String& filename,
 
 template<typename T> void
 xml_write_to_file (const String& filename,
-                   const      T& data);
+                   const      T& data,
+                           FType ftype = FTYPE_ASCII);
 
 #endif

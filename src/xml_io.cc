@@ -31,6 +31,8 @@
 
 #include "xml_io.h"
 #include "xml_io_private.h"
+#include "bofstream.h"
+#include "bifstream.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -41,7 +43,7 @@
 /*!
   Checks whether the name of the tag is correct. Throws runtime
   error otherwise.
-  
+
   \param expected_name Expected tag name
 */
 void
@@ -52,13 +54,13 @@ ArtsXMLTag::check_name (const String& expected_name)
       xml_parse_error ("Tag <" + expected_name + "> expected but <"
                        + name + "> found.");
     }
-  
+
 }
 
 
 //! Adds a String attribute to tag
-/*! 
-  
+/*!
+
   \param aname Attribute name
   \param value Attribute value
 */
@@ -74,8 +76,8 @@ ArtsXMLTag::add_attribute (const String& aname, const String& value)
 
 
 //! Adds an Index attribute to tag
-/*! 
-  
+/*!
+
   \param aname Attribute name
   \param value Attribute value
 */
@@ -456,11 +458,12 @@ xml_parse_error (const String& str_error)
   \param is Input stream
 */
 void
-xml_read_header_from_stream (istream& is)
+xml_read_header_from_stream (istream& is, FType &ftype)
 {
   char str[6];
   stringbuf strbuf;
   ArtsXMLTag tag;
+  String strftype;
 
   is.get (str, 6);
 
@@ -480,6 +483,11 @@ xml_read_header_from_stream (istream& is)
 
   tag.read_from_stream (is);
   tag.check_name ("arts");
+  tag.get_attribute_value ("format", strftype);
+  if (strftype == "binary")
+    ftype = FTYPE_BINARY;
+  else
+    ftype = FTYPE_ASCII;
 }
 
 
@@ -504,7 +512,7 @@ xml_read_footer_from_stream (istream& is)
   \param os Output stream
 */
 void
-xml_write_header_to_stream (ostream& os)
+xml_write_header_to_stream (ostream& os, FType ftype)
 {
   ArtsXMLTag tag;
 
@@ -512,8 +520,18 @@ xml_write_header_to_stream (ostream& os)
      << '\n';
 
   tag.set_name ("arts");
-  tag.add_attribute ("format", "ascii");
+  switch (ftype)
+    {
+  case FTYPE_ASCII:
+    tag.add_attribute ("format", "ascii");
+    break;
+  case FTYPE_BINARY:
+    tag.add_attribute ("format", "binary");
+    break;
+    }
+
   tag.add_attribute ("version", "1");
+
   tag.write_to_stream (os);
 
   os << '\n';
@@ -576,6 +594,7 @@ xml_read_from_file (const String& filename,
                     T&            type)
 {
   ifstream ifs;
+  FType ftype;
 
   out2 << "  Reading " << filename << '\n';
   
@@ -590,8 +609,17 @@ xml_read_from_file (const String& filename,
   // filename.
   try
     {
-      xml_read_header_from_stream (ifs);
-      xml_read_from_stream (ifs, ifs, type);
+      xml_read_header_from_stream (ifs, ftype);
+      if (ftype == FTYPE_ASCII)
+        {
+          xml_read_from_stream (ifs, type);
+        }
+      else
+        {
+          String bfilename = filename + ".bin";
+          bifstream bifs (bfilename.c_str ());
+          xml_read_from_stream (ifs, type, &bifs);
+        }
       xml_read_footer_from_stream (ifs);
     }
   catch (runtime_error e)
@@ -614,7 +642,8 @@ xml_read_from_file (const String& filename,
 */
 template<typename T> void
 xml_write_to_file (const String& filename,
-                   const T&      type)
+                   const T&      type,
+                         FType   ftype)
 {
   ofstream ofs;
 
@@ -623,8 +652,18 @@ xml_write_to_file (const String& filename,
 
   try
     {
-      xml_write_header_to_stream (ofs);
-      xml_write_to_stream (ofs, ofs, type);
+      xml_write_header_to_stream (ofs, ftype);
+      if (ftype == FTYPE_ASCII)
+        {
+          xml_write_to_stream (ofs, type);
+        }
+      else
+        {
+          String bfilename = filename + ".bin";
+          bofstream bofs (bfilename.c_str ());
+          xml_write_to_stream (ofs, type, &bofs);
+        }
+
       xml_write_footer_to_stream (ofs);
     }
   catch (runtime_error e)
@@ -651,13 +690,13 @@ xml_write_to_file (const String& filename,
   parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
-  \param aastag ArrayOfArrayOfSpeciesTag return value
+  \param aastag  ArrayOfArrayOfSpeciesTag return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfArrayOfSpeciesTag& aastag)
+                      ArrayOfArrayOfSpeciesTag& aastag,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -674,7 +713,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, aastag[n]);
+          xml_read_from_stream (is_xml, aastag[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -693,13 +732,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfArrayOfSpeciesTag to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param os_data  Data Output stream
   \param aastag ArrayOfArrayOfSpeciesTag
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfArrayOfSpeciesTag& aastag)
+                     const ArrayOfArrayOfSpeciesTag& aastag,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -714,7 +753,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < aastag.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, aastag[n]);
+      xml_write_to_stream (os_xml, aastag[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -732,13 +771,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'aatensor3' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param aatensor3 ArrayOfArrayOfTensor3 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfArrayOfTensor3& aatensor3)
+                      ArrayOfArrayOfTensor3& aatensor3,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -755,7 +794,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, aatensor3[n]);
+          xml_read_from_stream (is_xml, aatensor3[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -774,13 +813,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfArrayOfTensor3 to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param os_data  Data Output stream
   \param aatensor3 ArrayOfArrayOfTensor3
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfArrayOfTensor3& aatensor3)
+                     const ArrayOfArrayOfTensor3& aatensor3,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -795,7 +834,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < aatensor3.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, aatensor3[n]);
+      xml_write_to_stream (os_xml, aatensor3[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -813,13 +852,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'aatensor6' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param aatensor6 ArrayOfArrayOfTensor6 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfArrayOfTensor6& aatensor6)
+                      ArrayOfArrayOfTensor6& aatensor6,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -836,7 +875,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, aatensor6[n]);
+          xml_read_from_stream (is_xml, aatensor6[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -854,13 +893,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfArrayOfTensor6 to XML output stream
 /*!
   \param os_xml        XML Output stream
-  \param os_data       Data Output stream
   \param aatensor6 ArrayOfArrayOfTensor6
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfArrayOfTensor6& aatensor6)
+                     const ArrayOfArrayOfTensor6& aatensor6,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -875,7 +914,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < aatensor6.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, aatensor6[n]);
+      xml_write_to_stream (os_xml, aatensor6[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -893,13 +932,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'agpos' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param agpos ArrayOfGridPos return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfGridPos& agpos)
+                      ArrayOfGridPos& agpos,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -916,7 +955,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, agpos[n]);
+          xml_read_from_stream (is_xml, agpos[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -935,13 +974,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfGridPos to XML output stream
 /*!
   \param os_xml    XML Output stream
-  \param os_data   Data Output stream
   \param agpos ArrayOfGridPos
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfGridPos& agpos)
+                     const ArrayOfGridPos& agpos,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -956,7 +995,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < agpos.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, agpos[n]);
+      xml_write_to_stream (os_xml, agpos[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -974,13 +1013,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'aindex' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param aindex ArrayOfIndex return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfIndex& aindex)
+                      ArrayOfIndex& aindex,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -997,7 +1036,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, aindex[n]);
+          xml_read_from_stream (is_xml, aindex[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1016,13 +1055,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfIndex to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param os_data  Data Output stream
   \param aindex ArrayOfIndex
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfIndex& aindex)
+                     const ArrayOfIndex& aindex,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1037,7 +1076,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < aindex.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, aindex[n]);
+      xml_write_to_stream (os_xml, aindex[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -1054,13 +1093,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'amatrix' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param amatrix ArrayOfMatrix return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfMatrix& amatrix)
+                      ArrayOfMatrix& amatrix,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -1077,7 +1116,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, amatrix[n]);
+          xml_read_from_stream (is_xml, amatrix[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1096,13 +1135,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfMatrix to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param os_data  Data Output stream
   \param amatrix ArrayOfMatrix
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfMatrix& amatrix)
+                     const ArrayOfMatrix& amatrix,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1117,7 +1156,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < amatrix.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, amatrix[n]);
+      xml_write_to_stream (os_xml, amatrix[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -1135,13 +1174,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'astag' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param astag ArrayOfSpeciesTag return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfSpeciesTag& astag)
+                      ArrayOfSpeciesTag& astag,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -1158,7 +1197,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, astag[n]);
+          xml_read_from_stream (is_xml, astag[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1176,13 +1215,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfSpeciesTag to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param os_data  Data Output stream
   \param astag ArrayOfSpeciesTag
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfSpeciesTag& astag)
+                     const ArrayOfSpeciesTag& astag,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1197,7 +1236,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < astag.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, astag[n]);
+      xml_write_to_stream (os_xml, astag[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -1215,13 +1254,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'atensor3' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param atensor3 ArrayOfTensor3 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfTensor3& atensor3)
+                      ArrayOfTensor3& atensor3,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -1238,7 +1277,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, atensor3[n]);
+          xml_read_from_stream (is_xml, atensor3[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1257,13 +1296,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfTensor3 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param atensor3 ArrayOfTensor3
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfTensor3& atensor3)
+                     const ArrayOfTensor3& atensor3,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1278,7 +1317,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < atensor3.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, atensor3[n]);
+      xml_write_to_stream (os_xml, atensor3[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -1296,13 +1335,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'atensor6' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param atensor6 ArrayOfTensor6 return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfTensor6& atensor6)
+                      ArrayOfTensor6& atensor6,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -1319,7 +1358,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, atensor6[n]);
+          xml_read_from_stream (is_xml, atensor6[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1337,13 +1376,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfTensor6 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param atensor6 ArrayOfTensor6
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfTensor6& atensor6)
+                     const ArrayOfTensor6& atensor6,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1358,7 +1397,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < atensor6.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, atensor6[n]);
+      xml_write_to_stream (os_xml, atensor6[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -1376,13 +1415,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'astring' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param astring ArrayOfString return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfString& astring)
+                      ArrayOfString& astring,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -1399,7 +1438,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, astring[n]);
+          xml_read_from_stream (is_xml, astring[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1417,13 +1456,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfString to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param astring ArrayOfString
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfString& astring)
+                     const ArrayOfString& astring,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1438,7 +1477,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < astring.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, astring[n]);
+      xml_write_to_stream (os_xml, astring[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -1455,13 +1494,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'amatrix' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param avector ArrayOfVector return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      ArrayOfVector& avector)
+                      ArrayOfVector& avector,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -1478,7 +1517,7 @@ xml_read_from_stream (istream& is_xml,
     {
       for (n = 0; n < nelem; n++)
         {
-          xml_read_from_stream (is_xml, is_data, avector[n]);
+          xml_read_from_stream (is_xml, avector[n], pbifs);
         }
     } catch (runtime_error e) {
       ostringstream os;
@@ -1497,13 +1536,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfVector to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param amatrix ArrayOfVector
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const ArrayOfVector& avector)
+                     const ArrayOfVector& avector,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1518,7 +1557,7 @@ xml_write_to_stream (ostream& os_xml,
 
   for (Index n = 0; n < avector.nelem (); n++)
     {
-      xml_write_to_stream (os_xml, os_data, avector[n]);
+      xml_write_to_stream (os_xml, avector[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
@@ -1537,28 +1576,28 @@ xml_write_to_stream (ostream& os_xml,
   to the 'gal' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param gal GasAbsLookup return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      GasAbsLookup& gal)
+                      GasAbsLookup& gal,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
 
   tag.read_from_stream (is_xml);
   tag.check_name ("GasAbsLookup");
 
-  xml_read_from_stream (is_xml, is_data, gal.species);
-  xml_read_from_stream (is_xml, is_data, gal.nonlinear_species);
-  xml_read_from_stream (is_xml, is_data, gal.f_grid);
-  xml_read_from_stream (is_xml, is_data, gal.p_grid);
-  xml_read_from_stream (is_xml, is_data, gal.vmrs_ref);
-  xml_read_from_stream (is_xml, is_data, gal.t_ref);
-  xml_read_from_stream (is_xml, is_data, gal.t_pert);
-  xml_read_from_stream (is_xml, is_data, gal.nls_pert);
-  xml_read_from_stream (is_xml, is_data, gal.abs);
+  xml_read_from_stream (is_xml, gal.species, pbifs);
+  xml_read_from_stream (is_xml, gal.nonlinear_species, pbifs);
+  xml_read_from_stream (is_xml, gal.f_grid, pbifs);
+  xml_read_from_stream (is_xml, gal.p_grid, pbifs);
+  xml_read_from_stream (is_xml, gal.vmrs_ref, pbifs);
+  xml_read_from_stream (is_xml, gal.t_ref, pbifs);
+  xml_read_from_stream (is_xml, gal.t_pert, pbifs);
+  xml_read_from_stream (is_xml, gal.nls_pert, pbifs);
+  xml_read_from_stream (is_xml, gal.abs, pbifs);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/GasAbsLookup");
@@ -1568,13 +1607,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes GasAbsLookup to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param gas GasAbsLookup
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const GasAbsLookup& gal)
+                     const GasAbsLookup& gal,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1582,15 +1621,15 @@ xml_write_to_stream (ostream& os_xml,
   open_tag.set_name ("GasAbsLookup");
   open_tag.write_to_stream (os_xml);
 
-  xml_write_to_stream (os_xml, os_data, gal.species);
-  xml_write_to_stream (os_xml, os_data, gal.nonlinear_species);
-  xml_write_to_stream (os_xml, os_data, gal.f_grid);
-  xml_write_to_stream (os_xml, os_data, gal.p_grid);
-  xml_write_to_stream (os_xml, os_data, gal.vmrs_ref);
-  xml_write_to_stream (os_xml, os_data, gal.t_ref);
-  xml_write_to_stream (os_xml, os_data, gal.t_pert);
-  xml_write_to_stream (os_xml, os_data, gal.nls_pert);
-  xml_write_to_stream (os_xml, os_data, gal.abs);
+  xml_write_to_stream (os_xml, gal.species, pbofs);
+  xml_write_to_stream (os_xml, gal.nonlinear_species, pbofs);
+  xml_write_to_stream (os_xml, gal.f_grid, pbofs);
+  xml_write_to_stream (os_xml, gal.p_grid, pbofs);
+  xml_write_to_stream (os_xml, gal.vmrs_ref, pbofs);
+  xml_write_to_stream (os_xml, gal.t_ref, pbofs);
+  xml_write_to_stream (os_xml, gal.t_pert, pbofs);
+  xml_write_to_stream (os_xml, gal.nls_pert, pbofs);
+  xml_write_to_stream (os_xml, gal.abs, pbofs);
 
   close_tag.set_name ("/GasAbsLookup");
   close_tag.write_to_stream (os_xml);
@@ -1606,22 +1645,22 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'gpos' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param gpos GridPos return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      GridPos& gpos)
+                      GridPos& gpos,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
 
   tag.read_from_stream (is_xml);
   tag.check_name ("GridPos");
 
-  xml_read_from_stream (is_xml, is_data, gpos.idx);
-  xml_read_from_stream (is_xml, is_data, gpos.fd[0]);
-  xml_read_from_stream (is_xml, is_data, gpos.fd[1]);
+  xml_read_from_stream (is_xml, gpos.idx, pbifs);
+  xml_read_from_stream (is_xml, gpos.fd[0], pbifs);
+  xml_read_from_stream (is_xml, gpos.fd[1], pbifs);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/GridPos");
@@ -1630,13 +1669,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes GridPos to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param gpos  GridPos
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const GridPos& gpos)
+                     const GridPos& gpos,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1644,9 +1683,9 @@ xml_write_to_stream (ostream& os_xml,
   open_tag.set_name ("GridPos");
   open_tag.write_to_stream (os_xml);
 
-  xml_write_to_stream (os_xml, os_data, gpos.idx);
-  xml_write_to_stream (os_xml, os_data, gpos.fd[0]);
-  xml_write_to_stream (os_xml, os_data, gpos.fd[1]);
+  xml_write_to_stream (os_xml, gpos.idx, pbofs);
+  xml_write_to_stream (os_xml, gpos.fd[0], pbofs);
+  xml_write_to_stream (os_xml, gpos.fd[1], pbofs);
 
   close_tag.set_name ("/GridPos");
   close_tag.write_to_stream (os_xml);
@@ -1663,23 +1702,34 @@ xml_write_to_stream (ostream& os_xml,
   write the value to 'index' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param index Index return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Index&   index)
+                      Index&   index,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
 
   tag.read_from_stream (is_xml);
   tag.check_name ("Index");
   
-  is_data >> index;
-  if (is_data.fail ())
+  if (pbifs)
     {
-      xml_parse_error ("Error while reading data");
+      *pbifs >> index;
+      if (pbifs->fail ())
+        {
+          xml_parse_error ("Error while reading data");
+        }
+    }
+  else
+    {
+      is_xml >> index;
+      if (is_xml.fail ())
+        {
+          xml_parse_error ("Error while reading data");
+        }
     }
 
   tag.read_from_stream (is_xml);
@@ -1690,13 +1740,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Index to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param index Index value
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Index& index)
+                     const Index& index,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1705,7 +1755,10 @@ xml_write_to_stream (ostream& os_xml,
 
   open_tag.write_to_stream (os_xml);
 
-  os_data << index;
+  if (pbofs)
+    *pbofs << index;
+  else
+    os_xml << index;
 
   close_tag.set_name ("/Index");
   close_tag.write_to_stream (os_xml);
@@ -1720,13 +1773,13 @@ xml_write_to_stream (ostream& os_xml,
   write the values to 'matrix' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param matrix Matrix return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Matrix& matrix)
+                      Matrix& matrix,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nrows, ncols;
@@ -1742,14 +1795,29 @@ xml_read_from_stream (istream& is_xml,
     {
       for (Index c = 0; c < ncols; c++)
         {
-          is_data >> matrix (r, c);
-          if (is_data.fail ())
+          if (pbifs)
             {
-              ostringstream os;
-              os << "Error reading Matrix:"
-                 << "\n  Row   : " << r
-                 << "\n  Column: " << c;
-              xml_parse_error (os.str());
+              *pbifs >> matrix (r, c);
+              if (pbifs->fail ())
+                {
+                  ostringstream os;
+                  os << "Error reading Matrix:"
+                    << "\n  Row   : " << r
+                    << "\n  Column: " << c;
+                  xml_parse_error (os.str());
+                }
+            }
+          else
+            {
+              is_xml >> matrix (r, c);
+              if (is_xml.fail ())
+                {
+                  ostringstream os;
+                  os << "Error reading Matrix:"
+                    << "\n  Row   : " << r
+                    << "\n  Column: " << c;
+                  xml_parse_error (os.str());
+                }
             }
         }
     }
@@ -1762,13 +1830,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Matrix to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param matrix Matrix
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Matrix& matrix)
+                     const Matrix& matrix,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1785,15 +1853,21 @@ xml_write_to_stream (ostream& os_xml,
   // Write the elements:
   for (Index r = 0; r < matrix.nrows (); ++r)
     {
-      os_data << matrix (r,0);
+      if (pbofs)
+        *pbofs << matrix (r, 0);
+      else
+        os_xml << matrix (r, 0);
       
       for (Index c = 1; c < matrix.ncols (); ++c)
         {
-          os_data << " " << matrix (r,c);
+          if (pbofs)
+            *pbofs << matrix (r, c);
+          else
+            os_xml << " " << matrix (r, c);
         }
       
-      if (os_xml == os_data)
-        os_data << '\n';
+      if (!pbofs)
+        os_xml << '\n';
     }
 
   close_tag.set_name ("/Matrix");
@@ -1810,23 +1884,34 @@ xml_write_to_stream (ostream& os_xml,
   write the value to 'numeric' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param numeric Numeric return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Numeric& numeric)
+                      Numeric& numeric,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
 
   tag.read_from_stream (is_xml);
   tag.check_name ("Numeric");
 
-  is_data >> numeric;
-  if (is_data.fail ())
+  if (pbifs)
     {
-      xml_parse_error ("Error while reading data");
+      *pbifs >> numeric;
+      if (pbifs->fail ())
+        {
+          xml_parse_error ("Error while reading data");
+        }
+    }
+  else
+    {
+      is_xml >> numeric;
+      if (is_xml.fail ())
+        {
+          xml_parse_error ("Error while reading data");
+        }
     }
 
   tag.read_from_stream (is_xml);
@@ -1837,13 +1922,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Numeric to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param numeric Numeric value
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Numeric& numeric)
+                     const Numeric& numeric,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1854,7 +1939,10 @@ xml_write_to_stream (ostream& os_xml,
 
   xml_set_stream_precision (os_xml);
 
-  os_data << numeric;
+  if (pbofs)
+    *pbofs << numeric;
+  else
+    os_xml << numeric;
 
   close_tag.set_name ("/Numeric");
   close_tag.write_to_stream (os_xml);
@@ -1870,34 +1958,34 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'ppath' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param ppath Ppath return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Ppath& ppath)
+                      Ppath& ppath,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
 
   tag.read_from_stream (is_xml);
   tag.check_name ("Ppath");
 
-  xml_read_from_stream (is_xml, is_data, ppath.dim);
-  xml_read_from_stream (is_xml, is_data, ppath.np);
-  xml_read_from_stream (is_xml, is_data, ppath.refraction);
-  xml_read_from_stream (is_xml, is_data, ppath.method);
-  xml_read_from_stream (is_xml, is_data, ppath.constant);
-  xml_read_from_stream (is_xml, is_data, ppath.pos);
-  xml_read_from_stream (is_xml, is_data, ppath.z);
-  xml_read_from_stream (is_xml, is_data, ppath.l_step);
-  xml_read_from_stream (is_xml, is_data, ppath.gp_p);
-  xml_read_from_stream (is_xml, is_data, ppath.gp_lat);
-  xml_read_from_stream (is_xml, is_data, ppath.gp_lon);
-  xml_read_from_stream (is_xml, is_data, ppath.los);
-  xml_read_from_stream (is_xml, is_data, ppath.background);
-  xml_read_from_stream (is_xml, is_data, ppath.tan_pos);
-  xml_read_from_stream (is_xml, is_data, ppath.geom_tan_pos);
+  xml_read_from_stream (is_xml, ppath.dim, pbifs);
+  xml_read_from_stream (is_xml, ppath.np, pbifs);
+  xml_read_from_stream (is_xml, ppath.refraction, pbifs);
+  xml_read_from_stream (is_xml, ppath.method, pbifs);
+  xml_read_from_stream (is_xml, ppath.constant, pbifs);
+  xml_read_from_stream (is_xml, ppath.pos, pbifs);
+  xml_read_from_stream (is_xml, ppath.z, pbifs);
+  xml_read_from_stream (is_xml, ppath.l_step, pbifs);
+  xml_read_from_stream (is_xml, ppath.gp_p, pbifs);
+  xml_read_from_stream (is_xml, ppath.gp_lat, pbifs);
+  xml_read_from_stream (is_xml, ppath.gp_lon, pbifs);
+  xml_read_from_stream (is_xml, ppath.los, pbifs);
+  xml_read_from_stream (is_xml, ppath.background, pbifs);
+  xml_read_from_stream (is_xml, ppath.tan_pos, pbifs);
+  xml_read_from_stream (is_xml, ppath.geom_tan_pos, pbifs);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/Ppath");
@@ -1906,13 +1994,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Ppath to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param ppath Ppath
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Ppath& ppath)
+                     const Ppath& ppath,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1920,21 +2008,21 @@ xml_write_to_stream (ostream& os_xml,
   open_tag.set_name ("Ppath");
   open_tag.write_to_stream (os_xml);
 
-  xml_write_to_stream (os_xml, os_data, ppath.dim);
-  xml_write_to_stream (os_xml, os_data, ppath.np);
-  xml_write_to_stream (os_xml, os_data, ppath.refraction);
-  xml_write_to_stream (os_xml, os_data, ppath.method);
-  xml_write_to_stream (os_xml, os_data, ppath.constant);
-  xml_write_to_stream (os_xml, os_data, ppath.pos);
-  xml_write_to_stream (os_xml, os_data, ppath.z);
-  xml_write_to_stream (os_xml, os_data, ppath.l_step);
-  xml_write_to_stream (os_xml, os_data, ppath.gp_p);
-  xml_write_to_stream (os_xml, os_data, ppath.gp_lat);
-  xml_write_to_stream (os_xml, os_data, ppath.gp_lon);
-  xml_write_to_stream (os_xml, os_data, ppath.los);
-  xml_write_to_stream (os_xml, os_data, ppath.background);
-  xml_write_to_stream (os_xml, os_data, ppath.tan_pos);
-  xml_write_to_stream (os_xml, os_data, ppath.geom_tan_pos);
+  xml_write_to_stream (os_xml, ppath.dim, pbofs);
+  xml_write_to_stream (os_xml, ppath.np, pbofs);
+  xml_write_to_stream (os_xml, ppath.refraction, pbofs);
+  xml_write_to_stream (os_xml, ppath.method, pbofs);
+  xml_write_to_stream (os_xml, ppath.constant, pbofs);
+  xml_write_to_stream (os_xml, ppath.pos, pbofs);
+  xml_write_to_stream (os_xml, ppath.z, pbofs);
+  xml_write_to_stream (os_xml, ppath.l_step, pbofs);
+  xml_write_to_stream (os_xml, ppath.gp_p, pbofs);
+  xml_write_to_stream (os_xml, ppath.gp_lat, pbofs);
+  xml_write_to_stream (os_xml, ppath.gp_lon, pbofs);
+  xml_write_to_stream (os_xml, ppath.los, pbofs);
+  xml_write_to_stream (os_xml, ppath.background, pbofs);
+  xml_write_to_stream (os_xml, ppath.tan_pos, pbofs);
+  xml_write_to_stream (os_xml, ppath.geom_tan_pos, pbofs);
 
   close_tag.set_name ("/Ppath");
   close_tag.write_to_stream (os_xml);
@@ -1950,13 +2038,13 @@ xml_write_to_stream (ostream& os_xml,
   and if so, write the values to 'stag' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param stag SpeciesTag return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      SpeciesTag& stag)
+                      SpeciesTag& stag,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   stringbuf  strbuf;
@@ -1969,7 +2057,7 @@ xml_read_from_stream (istream& is_xml,
   bool string_starts_with_quotes = true;
   do
     {
-      is_data >> dummy;
+      is_xml >> dummy;
       switch (dummy)
         {
       case ' ':
@@ -1981,7 +2069,7 @@ xml_read_from_stream (istream& is_xml,
       default:
         string_starts_with_quotes = false;
         }
-    } while (is_data.good () && dummy != '"' && string_starts_with_quotes);
+    } while (is_xml.good () && dummy != '"' && string_starts_with_quotes);
 
   // Throw exception if first char after whitespaces is not a quote
   if (!string_starts_with_quotes)
@@ -1989,8 +2077,8 @@ xml_read_from_stream (istream& is_xml,
       xml_parse_error ("SpeciesTag must begin with \"");
     }
 
-  is_data.get (strbuf, '"');
-  if (is_data.fail ())
+  is_xml.get (strbuf, '"');
+  if (is_xml.fail ())
     {
       xml_parse_error ("SpeciesTag must end with \"");
     }
@@ -1998,7 +2086,7 @@ xml_read_from_stream (istream& is_xml,
   stag = SpeciesTag (strbuf.str ());
 
   // Ignore quote
-  is_data >> dummy;
+  is_xml >> dummy;
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/SpeciesTag");
@@ -2008,13 +2096,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes SpeciesTag to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param stag SpeciesTag
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const SpeciesTag& stag)
+                     const SpeciesTag& stag,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2022,7 +2110,7 @@ xml_write_to_stream (ostream& os_xml,
   open_tag.set_name ("SpeciesTag");
   open_tag.write_to_stream (os_xml);
 
-  os_data << '\"' << stag.Name () << '\"';
+  os_xml << '\"' << stag.Name () << '\"';
 
   close_tag.set_name ("/SpeciesTag");
   close_tag.write_to_stream (os_xml);
@@ -2038,13 +2126,13 @@ xml_write_to_stream (ostream& os_xml,
   write the value to 'str' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param str String return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      String&  str)
+                      String&  str,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   stringbuf  strbuf;
@@ -2057,7 +2145,7 @@ xml_read_from_stream (istream& is_xml,
   bool string_starts_with_quotes = true;
   do
     {
-      is_data >> dummy;
+      is_xml >> dummy;
       switch (dummy)
         {
       case ' ':
@@ -2069,7 +2157,7 @@ xml_read_from_stream (istream& is_xml,
       default:
         string_starts_with_quotes = false;
         }
-    } while (is_data.good () && dummy != '"' && string_starts_with_quotes);
+    } while (is_xml.good () && dummy != '"' && string_starts_with_quotes);
 
   // Throw exception if first char after whitespaces is not a quote
   if (!string_starts_with_quotes)
@@ -2077,8 +2165,8 @@ xml_read_from_stream (istream& is_xml,
       xml_parse_error ("String must begin with \"");
     }
 
-  is_data.get (strbuf, '"');
-  if (is_data.fail ())
+  is_xml.get (strbuf, '"');
+  if (is_xml.fail ())
     {
       xml_parse_error ("String must end with \"");
     }
@@ -2086,7 +2174,7 @@ xml_read_from_stream (istream& is_xml,
   str = strbuf.str ();
 
   // Ignore quote
-  is_data >> dummy;
+  is_xml >> dummy;
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/String");
@@ -2096,13 +2184,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes String to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param str String value
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const String& str)
+                     const String& str,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2111,7 +2199,7 @@ xml_write_to_stream (ostream& os_xml,
 
   open_tag.write_to_stream (os_xml);
 
-  os_data << '\"' << str << '\"';
+  os_xml << '\"' << str << '\"';
 
   close_tag.set_name ("/String");
   close_tag.write_to_stream (os_xml);
@@ -2127,13 +2215,13 @@ xml_write_to_stream (ostream& os_xml,
   write the values to 'tensor' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param tensor Tensor return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Tensor3& tensor)
+                      Tensor3& tensor,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index npages, nrows, ncols;
@@ -2152,15 +2240,31 @@ xml_read_from_stream (istream& is_xml,
         {
           for (Index c = 0; c < ncols; c++)
             {
-              is_data >> tensor (p, r, c);
-              if (is_data.fail ())
+              if (pbifs)
                 {
-                  ostringstream os;
-                  os << "Error reading Tensor3:"
-                     << "\n  Page  : " << p
-                     << "\n  Row   : " << r
-                     << "\n  Column: " << c;
-                  xml_parse_error (os.str());
+                  *pbifs >> tensor (p, r, c);
+                  if (pbifs->fail ())
+                    {
+                      ostringstream os;
+                      os << "Error reading Tensor3:"
+                        << "\n  Page  : " << p
+                        << "\n  Row   : " << r
+                        << "\n  Column: " << c;
+                      xml_parse_error (os.str());
+                    }
+                }
+              else
+                {
+                  is_xml >> tensor (p, r, c);
+                  if (is_xml.fail ())
+                    {
+                      ostringstream os;
+                      os << "Error reading Tensor3:"
+                        << "\n  Page  : " << p
+                        << "\n  Row   : " << r
+                        << "\n  Column: " << c;
+                      xml_parse_error (os.str());
+                    }
                 }
             }
         }
@@ -2174,13 +2278,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Tensor3 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param tensor Tensor
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Tensor3& tensor)
+                     const Tensor3& tensor,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2200,13 +2304,19 @@ xml_write_to_stream (ostream& os_xml,
     {
       for (Index r = 0; r < tensor.nrows (); ++r)
         {
-          os_data << tensor (p, r, 0);
+          if (pbofs)
+            *pbofs << tensor (p, r, 0);
+          else
+            os_xml << tensor (p, r, 0);
           for (Index c = 1; c < tensor.ncols (); ++c)
             {
-              os_data << " " << tensor (p, r, c);
+              if (pbofs)
+                *pbofs << tensor (p, r, c);
+              else
+                os_xml << " " << tensor (p, r, c);
             }
-          if (os_xml == os_data)
-            os_data << '\n';
+          if (!pbofs)
+            os_xml << '\n';
         }
     }
 
@@ -2224,13 +2334,13 @@ xml_write_to_stream (ostream& os_xml,
   write the values to 'tensor' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param tensor Tensor return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Tensor4& tensor)
+                      Tensor4& tensor,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nbooks, npages, nrows, ncols;
@@ -2252,16 +2362,33 @@ xml_read_from_stream (istream& is_xml,
             {
               for (Index c = 0; c < ncols; c++)
                 {
-                  is_data >> tensor (b, p, r, c);
-                  if (is_data.fail ())
+                  if (pbifs)
                     {
-                      ostringstream os;
-                      os << "Error reading Tensor4:"
-                         << "\n  Book  : " << b
-                         << "\n  Page  : " << p
-                         << "\n  Row   : " << r
-                         << "\n  Column: " << c;
-                      xml_parse_error (os.str());
+                      *pbifs >> tensor (b, p, r, c);
+                      if (pbifs->fail ())
+                        {
+                          ostringstream os;
+                          os << "Error reading Tensor4:"
+                            << "\n  Book  : " << b
+                            << "\n  Page  : " << p
+                            << "\n  Row   : " << r
+                            << "\n  Column: " << c;
+                          xml_parse_error (os.str());
+                        }
+                    }
+                  else
+                    {
+                      is_xml >> tensor (b, p, r, c);
+                      if (is_xml.fail ())
+                        {
+                          ostringstream os;
+                          os << "Error reading Tensor4:"
+                            << "\n  Book  : " << b
+                            << "\n  Page  : " << p
+                            << "\n  Row   : " << r
+                            << "\n  Column: " << c;
+                          xml_parse_error (os.str());
+                        }
                     }
                 }
             }
@@ -2276,13 +2403,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Tensor4 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param tensor Tensor
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Tensor4& tensor)
+                     const Tensor4& tensor,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2305,13 +2432,19 @@ xml_write_to_stream (ostream& os_xml,
         {
           for (Index r = 0; r < tensor.nrows (); ++r)
             {
-              os_data << tensor (b, p, r, 0);
+              if (pbofs)
+                *pbofs << tensor (b, p, r, 0);
+              else
+                os_xml << tensor (b, p, r, 0);
               for (Index c = 1; c < tensor.ncols (); ++c)
                 {
-                  os_data << " " << tensor (b, p, r, c);
+                  if (pbofs)
+                    *pbofs << tensor (b, p, r, c);
+                  else
+                    os_xml << " " << tensor (b, p, r, c);
                 }
-              if (os_xml == os_data)
-                os_data << '\n';
+              if (!pbofs)
+                os_xml << '\n';
             }
         }
     }
@@ -2330,13 +2463,13 @@ xml_write_to_stream (ostream& os_xml,
   write the values to 'tensor' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param tensor Tensor return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Tensor5& tensor)
+                      Tensor5& tensor,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nshelves, nbooks, npages, nrows, ncols;
@@ -2361,17 +2494,35 @@ xml_read_from_stream (istream& is_xml,
                 {
                   for (Index c = 0; c < ncols; c++)
                     {
-                      is_data >> tensor (s, b, p, r, c);
-                      if (is_data.fail ())
+                      if (pbifs)
                         {
-                          ostringstream os;
-                          os << "Error reading Tensor5:"
-                             << "\n  Shelf : " << s
-                             << "\n  Book  : " << b
-                             << "\n  Page  : " << p
-                             << "\n  Row   : " << r
-                             << "\n  Column: " << c;
-                          xml_parse_error (os.str());
+                          *pbifs >> tensor (s, b, p, r, c);
+                          if (pbifs->fail ())
+                            {
+                              ostringstream os;
+                              os << "Error reading Tensor5:"
+                                << "\n  Shelf : " << s
+                                << "\n  Book  : " << b
+                                << "\n  Page  : " << p
+                                << "\n  Row   : " << r
+                                << "\n  Column: " << c;
+                              xml_parse_error (os.str());
+                            }
+                        }
+                      else
+                        {
+                          is_xml >> tensor (s, b, p, r, c);
+                          if (is_xml.fail ())
+                            {
+                              ostringstream os;
+                              os << "Error reading Tensor5:"
+                                << "\n  Shelf : " << s
+                                << "\n  Book  : " << b
+                                << "\n  Page  : " << p
+                                << "\n  Row   : " << r
+                                << "\n  Column: " << c;
+                              xml_parse_error (os.str());
+                            }
                         }
                     }
                 }
@@ -2387,13 +2538,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Tensor5 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param tensor Tensor
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Tensor5& tensor)
+                     const Tensor5& tensor,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2419,13 +2570,19 @@ xml_write_to_stream (ostream& os_xml,
             {
               for (Index r = 0; r < tensor.nrows (); ++r)
                 {
-                  os_data << tensor (s, b, p, r, 0);
+                  if (pbofs)
+                    *pbofs << tensor (s, b, p, r, 0);
+                  else
+                    os_xml << tensor (s, b, p, r, 0);
                   for (Index c = 1; c < tensor.ncols (); ++c)
                     {
-                      os_data << " " << tensor (s, b, p, r, c);
+                      if (pbofs)
+                        *pbofs << tensor (s, b, p, r, c);
+                      else
+                        os_xml << " " << tensor (s, b, p, r, c);
                     }
-                  if (os_xml == os_data)
-                    os_data << '\n';
+                  if (!pbofs)
+                    os_xml << '\n';
                 }
             }
         }
@@ -2445,13 +2602,13 @@ xml_write_to_stream (ostream& os_xml,
   write the values to 'tensor' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param tensor Tensor return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Tensor6& tensor)
+                      Tensor6& tensor,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nvitrines, nshelves, nbooks, npages, nrows, ncols;
@@ -2479,18 +2636,37 @@ xml_read_from_stream (istream& is_xml,
                     {
                       for (Index c = 0; c < ncols; c++)
                         {
-                          is_data >> tensor (v, s, b, p, r, c);
-                          if (is_data.fail ())
+                          if (pbifs)
                             {
-                              ostringstream os;
-                              os << "Error reading Tensor6:"
-                                 << "\n  Vitrine: " << v
-                                 << "\n  Shelf  : " << s
-                                 << "\n  Book   : " << b
-                                 << "\n  Page   : " << p
-                                 << "\n  Row    : " << r
-                                 << "\n  Column : " << c;
-                              xml_parse_error (os.str());
+                              *pbifs >> tensor (v, s, b, p, r, c);
+                              if (pbifs->fail ())
+                                {
+                                  ostringstream os;
+                                  os << "Error reading Tensor6:"
+                                    << "\n  Vitrine: " << v
+                                    << "\n  Shelf  : " << s
+                                    << "\n  Book   : " << b
+                                    << "\n  Page   : " << p
+                                    << "\n  Row    : " << r
+                                    << "\n  Column : " << c;
+                                  xml_parse_error (os.str());
+                                }
+                            }
+                          else
+                            {
+                              is_xml >> tensor (v, s, b, p, r, c);
+                              if (is_xml.fail ())
+                                {
+                                  ostringstream os;
+                                  os << "Error reading Tensor6:"
+                                    << "\n  Vitrine: " << v
+                                    << "\n  Shelf  : " << s
+                                    << "\n  Book   : " << b
+                                    << "\n  Page   : " << p
+                                    << "\n  Row    : " << r
+                                    << "\n  Column : " << c;
+                                  xml_parse_error (os.str());
+                                }
                             }
                         }
                     }
@@ -2507,13 +2683,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Tensor6 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param tensor Tensor
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Tensor6& tensor)
+                     const Tensor6& tensor,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2542,13 +2718,19 @@ xml_write_to_stream (ostream& os_xml,
                 {
                   for (Index r = 0; r < tensor.nrows (); ++r)
                     {
-                      os_data << tensor (v, s, b, p, r, 0);
+                      if (pbofs)
+                        *pbofs << tensor (v, s, b, p, r, 0);
+                      else
+                        os_xml << tensor (v, s, b, p, r, 0);
                       for (Index c = 1; c < tensor.ncols (); ++c)
                         {
-                          os_data << " " << tensor (v, s, b, p, r, c);
+                          if (pbofs)
+                            *pbofs << tensor (v, s, b, p, r, c);
+                          else
+                            os_xml << " " << tensor (v, s, b, p, r, c);
                         }
-                      if (os_xml == os_data)
-                        os_data << '\n';
+                      if (!pbofs)
+                        os_xml << '\n';
                     }
                 }
             }
@@ -2569,13 +2751,13 @@ xml_write_to_stream (ostream& os_xml,
   write the values to 'tensor' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param tensor Tensor return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Tensor7& tensor)
+                      Tensor7& tensor,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nlibraries, nvitrines, nshelves, nbooks, npages, nrows, ncols;
@@ -2606,10 +2788,21 @@ xml_read_from_stream (istream& is_xml,
                         {
                           for (Index c = 0; c < ncols; c++)
                             {
-                              is_data >> tensor (l, v, s, b, p, r, c);
-                              if (is_data.fail ())
+                              if (pbifs)
                                 {
-                                  xml_parse_error ("Error while reading data");
+                                  *pbifs >> tensor (l, v, s, b, p, r, c);
+                                  if (pbifs->fail ())
+                                    {
+                                      xml_parse_error ("Error while reading data");
+                                    }
+                                }
+                              else
+                                {
+                                  is_xml >> tensor (l, v, s, b, p, r, c);
+                                  if (is_xml.fail ())
+                                    {
+                                      xml_parse_error ("Error while reading data");
+                                    }
                                 }
                             }
                         }
@@ -2627,13 +2820,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Tensor7 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param tensor Tensor
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Tensor7& tensor)
+                     const Tensor7& tensor,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2665,13 +2858,19 @@ xml_write_to_stream (ostream& os_xml,
                     {
                       for (Index r = 0; r < tensor.nrows (); ++r)
                         {
-                          os_data << tensor (l, v, s, b, p, r, 0);
+                          if (pbofs)
+                            *pbofs << tensor (l, v, s, b, p, r, 0);
+                          else
+                            os_xml << tensor (l, v, s, b, p, r, 0);
                           for (Index c = 1; c < tensor.ncols (); ++c)
                             {
-                              os_data << " " << tensor (l, v, s, b, p, r, c);
+                              if (pbofs)
+                                *pbofs << tensor (l, v, s, b, p, r, c);
+                              else
+                                os_xml << " " << tensor (l, v, s, b, p, r, c);
                             }
-                          if (os_xml == os_data)
-                            os_data << '\n';
+                          if (!pbofs)
+                            os_xml << '\n';
                         }
                     }
                 }
@@ -2693,13 +2892,13 @@ xml_write_to_stream (ostream& os_xml,
   write the values to 'vector' parameter.
 
   \param is_xml  XML Input stream
-  \param is_data Data Input stream
   \param vector Vector return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Vector& vector)
+                      Vector& vector,
+                      bifstream *pbifs = NULL)
 {
   ArtsXMLTag tag;
   Index nelem;
@@ -2712,13 +2911,27 @@ xml_read_from_stream (istream& is_xml,
   
   for (Index n = 0; n < nelem; n++)
     {
-      is_data >> vector[n];
-      if (is_data.fail ())
+      if (pbifs)
         {
-          ostringstream os;
-          os << "Error reading Vector:"
-             << "\n  Element: " << n;
-          xml_parse_error (os.str());
+          *pbifs >> vector[n];
+          if (pbifs->fail ())
+            {
+              ostringstream os;
+              os << "Error reading Vector:"
+                << "\n  Element: " << n;
+              xml_parse_error (os.str());
+            }
+        }
+      else
+        {
+          is_xml >> vector[n];
+          if (is_xml.fail ())
+            {
+              ostringstream os;
+              os << "Error reading Vector:"
+                << "\n  Element: " << n;
+              xml_parse_error (os.str());
+            }
         }
     }
 
@@ -2730,13 +2943,13 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Vector to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param os_data Data Output stream
   \param vector Vector
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Vector& vector)
+                     const Vector& vector,
+                     bofstream *pbofs = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2753,7 +2966,10 @@ xml_write_to_stream (ostream& os_xml,
   os_xml << '\n';
 
   for (Index i=0; i<n; ++i)
-    os_data << vector[i] << '\n';
+    if (pbofs)
+      *pbofs << vector[i];
+    else
+      os_xml << vector[i] << '\n';
 
   close_tag.set_name ("/Vector");
   close_tag.write_to_stream (os_xml);
@@ -2771,16 +2987,16 @@ xml_write_to_stream (ostream& os_xml,
 
 void
 xml_read_from_stream (istream& is_xml,
-                      istream& is_data,
-                      Agenda& agenda)
+                      Agenda& agenda,
+                      bifstream *pbifs = NULL)
 {
   throw runtime_error("Method not implemented!");
 }
 
 void
 xml_write_to_stream (ostream& os_xml,
-                     ostream& os_data,
-                     const Agenda& agenda)
+                     const Agenda& agenda,
+                     bofstream *pbofs = NULL)
 {
   throw runtime_error("Method not implemented!");
 }
