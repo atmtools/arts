@@ -37,7 +37,7 @@
 #else
 #include "sstream.h"
 #endif
-#include <stdexcept>
+#include "exceptions.h"
 
 #include "math_funcs.h"
 
@@ -174,9 +174,17 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
         {
           result = 1;
         }
-      else
+      else if (m == 1)
         {
           result = x / sqrt(1 - x*x);
+        }
+      else
+        {
+          ostringstream os;
+          os << "legendre_poly_deriv: "
+            << "Condition l == 1 && (m == 0 || m == 1) failed" << endl
+            << "l = " << l << "  m = " << m << endl;
+          throw runtime_error (os.str ());
         }
     }
   else
@@ -221,12 +229,21 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
     {
       if (m == 0)
         {
-          result = sqrt (2.0 * fac (1 - m) / fac (1 + m)) * 1;
+          result = sqrt (2.0 * fac (1 - m) / fac (1 + m));
         }
-	  else
+      else if (m == 1)
         {
-          result = sqrt (2.0 * fac (1 - m) / fac (1 + m)) * x /sqrt(1 - x*x);
+          result = sqrt (2.0 * fac (1 - m) / fac (1 + m)) * x / sqrt(1 - x*x);
         }
+      else
+        {
+          ostringstream os;
+          os << "legendre_poly_norm_schmidt_deriv: "
+            << "Condition l == 1 && (m == 0 || m == 1) failed" << endl
+            << "l = " << l << "  m = " << m << endl;
+          throw runtime_error (os.str ());
+        }
+
     }
   else
     {
