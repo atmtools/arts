@@ -1,5 +1,13 @@
 2002-01-16  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-1-0-0-pre4
+
+	* uguide: Removed a reference to the sensor WFs section that is 
+	commented out. There is almost nothing in this section and the little
+	content is not in sync with ARTS, so no idea to include it.
+
+2002-01-16  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-1-0-0-pre3
 
 	* ami: Improved the README file slightly (I had forgotten that there 
