@@ -1,3 +1,36 @@
+2005-03-02  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-925
+	
+	* src/montecarlo.cc (matrix_exp_p30): Added.  When we have p30
+	particles (or a mixture of p20 and p30) there is a very
+	simple and exact expression for the matrix exponential of the
+	extinction matrix.  Using this instead of matrix_exp has given me
+	a speed-up of approximately 2x for MC simulations.  Replaced all
+	calls to matrix_exp in montecarlo.cc.  Claudia: it might be worth
+	using this in DOIT?
+
+	* src/montecarlo.{cc,h}: Moved all interpolation functions to
+	mc_interp.{cc,h}
+	
+	* tests/simpleMC.arts : Modified for new
+	ScatteringMonteCarlo keyword "z_field_is_1D" 
+
+	* tests/simpleMCWithIncomingLookup.arts : Modified for new
+	ScatteringMonteCarlo keyword "z_field_is_1D" 
+
+2005-03-01  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* src/methods.cc (define_md_data_raw): removed scat_iPutMonteCarlo
+	and added z_field_is_1D keyword parameter in ScatteringMonteCarlo.
+
+	* src/m_montecarlo.cc (scat_iPutMonteCarlo): removed. Not
+	used. Implemented z_field_is_1D keyword parameter in
+	ScatteringMonteCarlo.
+	
+	* src/montecarlo.{cc,h}: removed mcGetIncomingFromData,
+	ppathRecordMC, Sample_ppathlength
+
 2005-02-28  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
         * arts-1-1-924

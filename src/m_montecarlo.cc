@@ -192,7 +192,8 @@ void ScatteringMonteCarlo (
                            const Index& max_time,
                            const Index& max_iter,
                            const Index& rng_seed,
-                           const Index& incoming_lookup
+                           const Index& incoming_lookup,
+                           const Index& z_field_is_1D
                            )
 
 { 
@@ -307,7 +308,7 @@ void ScatteringMonteCarlo (
                          scalar_gas_absorption_agenda, stokes_dim, t_field, 
                          vmr_field, rte_agenda, iy_space_agenda, 
                          iy_surface_agenda, iy_cloudbox_agenda,f_grid, 0, 0,
-                         pnd_field,scat_data_mono);
+                         pnd_field,scat_data_mono, z_field_is_1D );
  
   mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],iy(0,joker));
 
@@ -350,7 +351,7 @@ void ScatteringMonteCarlo (
                           scalar_gas_absorption_agenda, stokes_dim, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface,
                           t_field, vmr_field, cloudbox_limits, pnd_field,
-                          scat_data_mono);
+                          scat_data_mono,z_field_is_1D);
             }
           else
             {

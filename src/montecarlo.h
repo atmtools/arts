@@ -45,21 +45,22 @@ void atm_vars_at_ppath_end(
                            );
 
 void Cloudbox_ppathCalc(
-        //  Output:
-              Ppath&          ppath,
-              Ppath&          ppath_step,
-        //  Input:
-        const Agenda&         ppath_step_agenda,
-        const Index&          atmosphere_dim,
-        const Vector&         p_grid,
-        const Vector&         lat_grid,
-        const Vector&         lon_grid,
-        const Tensor3&        z_field,
-        const Matrix&         r_geoid,
-        const Matrix&         z_surface,
-        const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         rte_pos,
-        const Vector&         rte_los);
+                        //  Output:
+                        Ppath&          ppath,
+                        Ppath&          ppath_step,
+                        //  Input:
+                        const Agenda&         ppath_step_agenda,
+                        const Index&          atmosphere_dim,
+                        const Vector&         p_grid,
+                        const Vector&         lat_grid,
+                        const Vector&         lon_grid,
+                        const Tensor3&        z_field,
+                        const Matrix&         r_geoid,
+                        const Matrix&         z_surface,
+                        const ArrayOfIndex&   cloudbox_limits,
+                        const Vector&         rte_pos,
+                        const Vector&         rte_los,
+                        const Index& z_field_is_1D);
 
 
 void Cloudbox_ppath_rteCalc(
@@ -114,7 +115,8 @@ void Cloudbox_ppath_rteCalc(
                              const Index&          photon_number,
                              const Index&          scattering_order,
                              const Tensor4&        pnd_field,
-                             const ArrayOfSingleScatteringData& scat_data_mono
+                             const ArrayOfSingleScatteringData& scat_data_mono,
+                             const Index& z_field_is_1D
 );
 
 
@@ -128,7 +130,8 @@ void cloudbox_ppath_start_stepping(
                                    ConstMatrixView       r_geoid,
                                    ConstMatrixView       z_surface,
                                    ConstVectorView       rte_pos,
-                                   ConstVectorView       rte_los );
+                                   ConstVectorView       rte_los,
+                                   const Index& z_field_is_1D );
           
 
 
@@ -140,49 +143,10 @@ void cum_l_stepCalc(
 void findZ11max(Vector& Z11maxvector,
         const  ArrayOfSingleScatteringData& scat_data_mono);
 
-Matrix interp( ConstVectorView itw,
-               ArrayOfMatrix a,    
-               const GridPos&  tc );
-
-Vector interp( ConstVectorView itw,
-                ArrayOfVector a,    
-               const GridPos&  tc );
-
-void interp_scat_angle_temperature(//Output:
-                                   VectorView pha_mat_int,
-                                   Numeric& theta_rad,
-                                   //Input:
-                                   const SingleScatteringData& scat_data,
-                                   const Numeric& za_sca,
-                                   const Numeric& aa_sca,
-                                   const Numeric& za_inc,
-                                   const Numeric& aa_inc,
-                                   const Numeric& rte_temperature
-                                   );
-
-void interpTArray(Matrix& T,
-                  Vector& Kabs,
-                  Numeric& temperature,
-                  MatrixView&  K,
-                  Vector& rte_pos,//maybe these should be VectorViews?
-                  Vector& rte_los,
-                  VectorView& pnd_vec,
-                  const ArrayOfMatrix& TArray,
-                  const ArrayOfMatrix& ext_matArray,
-                  const ArrayOfVector& abs_vecArray,
-                  const Vector& t_ppath,
-                  const Matrix& pnd_ppath,
-                  const Vector& cum_l_step,
-                  const Numeric& pathlength,
-                  const Index& stokes_dim,
-                  const Ppath& ppath
-                 );
-
 bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono);
 
-Numeric mcGetIncomingFromData(const Vector& rte_pos,
-                              const Vector& rte_los,
-                              const ArrayOfMatrix& mc_incoming);
+void matrix_exp_p30(MatrixView& M,
+                    ConstMatrixView& A);
 
 void mcPathTrace(MatrixView&           evol_op,
                  Vector& K_abs,
@@ -211,7 +175,8 @@ void mcPathTrace(MatrixView&           evol_op,
                  const Tensor4&   vmr_field,
                  const ArrayOfIndex&   cloudbox_limits,
                  const Tensor4&   pnd_field,
-                 const ArrayOfSingleScatteringData& scat_data_mono);
+                 const ArrayOfSingleScatteringData& scat_data_mono,
+                 const Index& z_field_is_1D);
 
 void montecarloGetIncoming(
                            Matrix&               iy,
@@ -305,14 +270,6 @@ void pha_mat_singleExtract(
                            const Index& stokes_dim
                            );
 
-void ppathRecordMC(
-                   const Ppath& ppath,
-                   const String name,
-                   const Index& photon_number,
-                   const Index& scattering_order
-                   );
-
-
 void Sample_los (
                    VectorView& new_rte_los,
                    Numeric& g_los_csc_theta,
@@ -327,14 +284,6 @@ void Sample_los (
                    Numeric Csca,
                    const Numeric& rte_temperature
                    );
-
-void Sample_ppathlength (
-                         Numeric& pathlength, 
-                         Numeric& g,
-                         Rng& rng,
-                         const ArrayOfMatrix& TArray,
-                         const ConstVectorView& cum_l_step
-                         );
 
 void Sample_ppathlengthLOS (
                          Numeric& pathlength, 

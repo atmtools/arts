@@ -39,6 +39,16 @@
 #include "arts.h"
 #include "matpackI.h"
 #include "array.h"
+#include "interpolation.h"
+#include "optproperties.h"
+#include "ppath.h"
+
+extern const Numeric DEG2RAD;
+extern const Numeric RAD2DEG;
+extern const Numeric PI;
+
+
+
 
 //! A 2D sequential linear interpolation (SLI) lookup table
 /*! This class holds the gridded for 2D SLI as well as the
@@ -58,5 +68,45 @@ public:
 };
 
 ostream& operator<< (ostream &os, const SLIData2 &sli);
+
+
+Matrix interp( ConstVectorView itw,
+               ArrayOfMatrix a,    
+               const GridPos&  tc );
+
+Vector interp( ConstVectorView itw,
+                ArrayOfVector a,    
+               const GridPos&  tc );
+
+void interp_scat_angle_temperature(//Output:
+                                   VectorView pha_mat_int,
+                                   Numeric& theta_rad,
+                                   //Input:
+                                   const SingleScatteringData& scat_data,
+                                   const Numeric& za_sca,
+                                   const Numeric& aa_sca,
+                                   const Numeric& za_inc,
+                                   const Numeric& aa_inc,
+                                   const Numeric& rte_temperature
+                                   );
+
+void interpTArray(Matrix& T,
+                  Vector& Kabs,
+                  Numeric& temperature,
+                  MatrixView&  K,
+                  Vector& rte_pos,//maybe these should be VectorViews?
+                  Vector& rte_los,
+                  VectorView& pnd_vec,
+                  const ArrayOfMatrix& TArray,
+                  const ArrayOfMatrix& ext_matArray,
+                  const ArrayOfVector& abs_vecArray,
+                  const Vector& t_ppath,
+                  const Matrix& pnd_ppath,
+                  const Vector& cum_l_step,
+                  const Numeric& pathlength,
+                  const Index& stokes_dim,
+                  const Ppath& ppath
+                 );
+
 
 #endif  // mc_interp_h
