@@ -3192,7 +3192,7 @@ scat_fieldCalc(//WS Output:
               }//end za_in loop
             /*integration of the product of ifield_in and pha
               over zenith angle and azimuth angle grid. It calls
-              here the integration routine AngIntegrate_trapezoid*/
+              here the integration routine AngIntegrate_trapezoid_opti*/
            
             for (Index i = 0; i < stokes_dim; i++)
               {
@@ -3208,9 +3208,10 @@ scat_fieldCalc(//WS Output:
                             0,
                             za_prop, 
                             0,
-                            i)  =   AngIntegrate_trapezoid(product_field_mat,
-                                                           scat_za_grid,
-                                                           scat_aa_grid);
+                            i)  =   AngIntegrate_trapezoid_opti(product_field_mat,
+                                                                scat_za_grid,
+                                                                scat_aa_grid,
+                                                                grid_stepsize);
                 
               }//end i loop
           }//end za_prop loop
@@ -3285,7 +3286,7 @@ scat_fieldCalc(//WS Output:
                       //integration of the product of ifield_in and pha
                         //over zenith angle and azimuth angle grid. It 
                         //calls here the integration routine 
-                        //AngIntegrate_trapezoid
+                        //AngIntegrate_trapezoid_opti
                       for (Index i = 0; i < stokes_dim; i++)
                         {
                             MatrixView product_field_mat =
@@ -3300,9 +3301,10 @@ scat_fieldCalc(//WS Output:
                                         za_prop, 
                                         aa_prop,
                                         i)  =  
-                              AngIntegrate_trapezoid(product_field_mat,
-                                                     scat_za_grid,
-                                                     scat_aa_grid);
+                              AngIntegrate_trapezoid_opti(product_field_mat,
+                                                          scat_za_grid,
+                                                          scat_aa_grid,
+                                                          grid_stepsize);
                             
                         }//end i loop
                     }//end aa_prop loop

@@ -1,3 +1,11 @@
+2003-06-10  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
+
+	* arts-1-1-567
+	
+	* src/m_scatrte.cc (scat_fieldCalc): bug fixed.
+	AngIntegrate_trapezoid_opti readded.
+
+
 2003-06-10  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-1-1-566
