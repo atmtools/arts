@@ -35,6 +35,7 @@ test_mpi
 test_poly
 test_scatproperties
 test_sensor
+test_sorting
 test_sparse
 test_tensor
 test_xml
