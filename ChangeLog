@@ -1,3 +1,17 @@
+2000-09-14  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-48
+
+	* Removed 1D from function and variable names for LOS, RTE and WF
+	parts. We have decided that 1D is default, and 1D should not be 
+	included in the names. However, 2D shall be included.
+
+	* The variable klos is renamed to absloswfs (uh, long name, I know).
+	This to follow AUG closer. There is also source LOS WFs, but these
+	WFs are so far only used by kTEmpNoHydro and are not a workspace 
+	variable.
+	
+
 2000-09-14  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-47

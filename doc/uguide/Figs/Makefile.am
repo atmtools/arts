@@ -22,6 +22,7 @@ EXTRA_DIST = \
 	fig_baselinefit.eps \
 	fig_corrfuns.eps \
 	fig_corrfuns.m \
+	fig_geomfac.eps \
 	generic_method.eps \
 	geoms.eps \
 	geoms.fig \

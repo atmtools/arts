@@ -499,7 +499,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("los1d"),
+      ( NAME("losCalc"),
   	DESCRIPTION(
           "A general function to determine LOS for a 1D atmosphere.\n"
           "Refraction is selected by a flag and the refraction variables\n"
@@ -515,7 +515,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("los1dNoRefraction"),
+      ( NAME("losNoRefraction"),
   	DESCRIPTION(
           "Determines the LOS for a 1D atmosphere without refraction.\n"
           "The ground altitude must be specified."),
@@ -528,12 +528,12 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("los1dUpward"),
+      ( NAME("losUpward"),
   	DESCRIPTION(
           "Determines the LOS for a 1D atmosphere when neglecting refraction\n"
           "and there is no ground intersections. The typical case is upward\n"
           "observations, but the function could also be of interest for limb\n"
-          "sounding observations above about 20 km.\n"
+          "sounding observations strictly above about 20 km.\n"
           "Refraction and ground altitude variables are NOT needed."),
 	OUTPUT( los_ ),
 	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_ ),
@@ -544,13 +544,14 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("source1d"),
+      ( NAME("sourceCalc"),
   	DESCRIPTION(
-          "Calculates the source function between the points of a 1D LOS.\n" 
+          "Calculates source function values valid between the points of"
+          "of a 1D LOS.\n" 
           "No scattering and local thermodynamic equilibrium are assumed,\n"
           "that is, the source function equals the Planck function.\n"
-          "The temparature is set to the mean value of the temperature at\n"
-          "the two LOS points limiting the step. The temperature at the LOS\n"
+          "The source function is set to the mean of the Planck function at\n"
+          "the two LOS points limiting the steps. The temperature at the LOS\n"
           "points is obtained by linear interpolation"),
 	OUTPUT( source_ ),
 	INPUT( los_, p_abs_, t_abs_, f_mono_ ),
@@ -561,12 +562,12 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("trans1d"),
+      ( NAME("transCalc"),
   	DESCRIPTION(
           "Calculates the transmission between the points of a 1D LOS.\n"
           "The absorption is assumed to vary linear between the LOS points."
           "The absorption at the LOS points is obtained by linear\n"
-          "interpolation."),
+          "interpolation of abs."),
 	OUTPUT( trans_ ),
 	INPUT( los_, p_abs_, abs_ ),
 	GOUTPUT(),
@@ -581,8 +582,10 @@ void define_md_data()
           "Standard selection for the radiation entering the atmosphere at\n"
           "the start of the LOS. The selections are:\n"
           "  0 no radiation\n"
-          "  1 cosmic background radiation (planck for 2.7 K)\n"
-          "  2 solar radiation (planck for 6000 K)"),
+          "  1 cosmic background radiation (planck for COSMIC_BG_TEMP)\n"
+          "  2 solar radiation (planck for SUN_TEMP)\n"
+          "COSMIC_BG_TEMP and SUN_TEMP are global variables, defined in\n"
+          "constants.cc."),
 	OUTPUT( y_space_ ),
 	INPUT( f_mono_ ),
 	GOUTPUT(),
@@ -609,9 +612,11 @@ void define_md_data()
   	DESCRIPTION(
           "Solves the general radiative transfer equation (RTE) along the\n"
           "LOS. With other words, both absorption and emission are\n"
-          "considered."),
+          "considered.\n"
+          "This function requires that e_ground and t_ground are set."),
 	OUTPUT( y_ ),
-	INPUT( los_, f_mono_, y_space_, source_, trans_, e_ground_, t_ground_ ),
+	INPUT( los_, f_mono_, y_space_, source_, trans_, e_ground_, 
+                                                                  t_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -622,8 +627,9 @@ void define_md_data()
       ( NAME("yRteNoGround"),
   	DESCRIPTION(
           "This function can be used instead of yRte if there is no\n"
-          "intersection with the ground. The ground emission and \n"
-          "temperature are NOT needed when using this function."),
+          "intersection with the ground.\n"
+          "With other words, the ground emission and temperature are NOT\n"
+          "needed when using this function."),
 	OUTPUT( y_ ),
 	INPUT( los_, f_mono_, y_space_, source_, trans_ ),
 	GOUTPUT(),
@@ -636,7 +642,8 @@ void define_md_data()
       ( NAME("yBl"),
   	DESCRIPTION(
           "Calculates the total transmission throught the atmosphere,\n"
-          "using the Beer-Lambert (BL) law."),
+          "using the Beer-Lambert (BL) law.\n"
+          "This function requires that e_ground is set."),
 	OUTPUT( y_ ),
 	INPUT( los_, trans_, e_ground_ ),
 	GOUTPUT(),
@@ -664,14 +671,16 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("klos1d"),
+      ( NAME("absloswfsCalc"),
   	DESCRIPTION(
           "Calculates line of sight weighting functions (LOS WFs) for 1D.\n"
           "These WFs are the derivative of the monochromatic pencil beam\n"
           "intensity with respect to the absorption at the LOS points.\n"
-          "See further the ARTS user guide."),
-	OUTPUT( klos_ ),
-	INPUT( los_, source_, trans_, y_, y_space_, f_mono_, e_ground_, t_ground_ ),
+          "See further the ARTS user guide.\n"
+          "This function requires that e_ground and t_ground are set."),
+	OUTPUT( absloswfs_ ),
+	INPUT( los_, source_, trans_, y_, y_space_, f_mono_, e_ground_, 
+                                                                   t_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -679,10 +688,10 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("klos1dNoGround"),
+      ( NAME("absloswfsNoGround"),
   	DESCRIPTION(
-          "As klos1D but does not need any ground variables"),
-	OUTPUT( klos_ ),
+          "As klosCalc but does not need any ground variables"),
+	OUTPUT( absloswfs_ ),
 	INPUT( los_, source_, trans_, y_, y_space_, f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -693,10 +702,10 @@ void define_md_data()
     ( MdRecord
       ( NAME("kInit"),
   	DESCRIPTION(
-          "Init. the weighting function matrix (k) and help variables\n"
+          "Initializes the weighting function matrix (k) and help variables\n"
           "(k_names, k_index and k_aux).\n"
-          "Use this function before the WF calculations starts, or to empty\n"
-          "an existing WF matrix"),
+          "Use this function before the WF calculations are started or\n"
+          "restarted."),
 	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
 	INPUT(),
 	GOUTPUT(),
@@ -706,7 +715,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("kSpecies1d"),
+      ( NAME("kSpecies"),
   	DESCRIPTION(
           "Calculates species 1D weighting functions for a single tag.\n"
           "The tag is selected by the parameter nr, which is the position\n"
@@ -716,7 +725,7 @@ void define_md_data()
           "  2 volume mixing ratio \n"
           "  3 number density"),
 	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
-	INPUT( los_, klos_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
+	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
                                                               vmrs_, k_grid_),
 	GOUTPUT(),
 	GINPUT(),
@@ -725,12 +734,12 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("kSpecies1dAll"),
+      ( NAME("kSpeciesAll"),
   	DESCRIPTION(
           "Calculates species 1D weighting functions for all tags that\n"
-          "are included in abs_per_tg. Otherwise as kSpecies1D"),
+          "are included in abs_per_tg. Units as for kSpecies."),
 	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
-	INPUT( los_, klos_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
+	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
                                                               vmrs_, k_grid_),
 	GOUTPUT(),
 	GINPUT(),
@@ -739,14 +748,15 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("kContAbs1d"),
+      ( NAME("kContAbs"),
   	DESCRIPTION(
-          "Calculates 1D weighting functions for polynomial fit of continuum\n"
-          "absorption. The continuum is fitted be determining an off-set at\n"
-          "a number of points (npoints) that are evenly spread between the\n"
-          "lowest and hihest frequency of f_mono."),
+          "Calculates 1D weighting functions for fit of continuum absorption\n"
+          "by polynomials with selectable order.\n"  
+          "The continuum is fitted be determining an off-set at a number of\n"
+          "points (order+1) that are evenly spread between the lowest and\n"
+          "highest frequency of f_mono."),
 	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
-	INPUT( los_, klos_, f_mono_, k_grid_ ),
+	INPUT( los_, absloswfs_, f_mono_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "order" ),
@@ -754,13 +764,26 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("kTempNoHydro1d"),
+      ( NAME("kTempNoHydro"),
   	DESCRIPTION(
           "Calculates temperature 1D weighting functions WITHOUT including\n"
           "hydrostatic equilibrium."),
 	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
-	INPUT( los_, klos_, f_mono_, p_abs_, t_abs_, vmrs_, lines_per_tg_, 
-                        abs_, trans_, e_ground_, t_ground_, k_grid_),
+	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
+                   lines_per_tg_, abs_, trans_, e_ground_, t_ground_, k_grid_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kTempNoHydroNoGround"),
+  	DESCRIPTION(
+          "As klosCalc but does not need any ground variables"),
+	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
+                   lines_per_tg_, abs_, trans_, k_grid_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

@@ -252,11 +252,11 @@ void los_no_refr_inside(
 //=== Workspace methods
 //==========================================================================
 
-// LOS1D
+// losCalc
 //
 // Patrick Eriksson 22.05.00
 
-void los1d(
+void losCalc(
                     Los&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
@@ -329,11 +329,11 @@ void los1d(
 
 
 
-// LOS1DNOREFRACTION
+// losNoRefraction
 //
 // Patrick Eriksson 07.06.00
 
-void los1dNoRefraction(
+void losNoRefraction(
                     Los&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
@@ -342,16 +342,16 @@ void los1dNoRefraction(
               const VECTOR&     z_abs,
               const Numeric&    z_ground )
 {
-  los1d( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_ground); 
+  losCalc( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_ground); 
 }
 
 
 
-// LOS1DUPWARD
+// losUpward
 //
 // Patrick Eriksson 07.06.00
 
-void los1dUpward(
+void losUpward(
                     Los&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
@@ -360,18 +360,18 @@ void los1dUpward(
               const VECTOR&     z_abs )
 {
   if ( max(za) > 90 )
-    throw runtime_error("At least one zenith angle > 90 degrees, that is, not upwards.");
+    throw runtime_error("At least one zenith angle > 90 degrees, that is, not upwards. Use losCalc or losNoRefraction.");
 
-  los1d( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_plat); 
+  losCalc( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_plat); 
 }
 
 
 
-// SOURCE1D
+// sourceCalc
 //
 // Patrick Eriksson 07.06.00
 
-void source1d(
+void sourceCalc(
                     ARRAYofMATRIX&   source,
               const Los&             los,   
               const VECTOR&          p_abs,
@@ -419,11 +419,11 @@ void source1d(
 
 
 
-// TRANS1D
+// transCalc
 //
 // Patrick Eriksson 07.06.00
 
-void trans1d(
+void transCalc(
                     ARRAYofMATRIX&   trans,
               const Los&             los,   
               const VECTOR&          p_abs,
@@ -470,7 +470,7 @@ void trans1d(
 
 
 
-// Y_SPACESTD
+// y_spaceStd
 //
 // Patrick Eriksson 07.06.00
 
@@ -502,7 +502,7 @@ void y_spaceStd(
 
 
 
-// Y_SPACEPLANCK
+// y_spacePlanck
 //
 // Patrick Eriksson 07.06.00
 
@@ -522,7 +522,7 @@ void y_spacePlanck(
 
 
 
-// YRTE
+// yRte
 //
 // Patrick Eriksson 07.06.00
 
@@ -581,7 +581,7 @@ void yRte (
 
 
 
-// YRTENOGROUND
+// yRteNoGround
 //
 // Patrick Eriksson 07.06.00
 
@@ -601,7 +601,7 @@ void yRteNoGround (
 
 
 
-// YBL
+// yBl
 //
 // Patrick Eriksson 07.06.00
 
@@ -653,7 +653,7 @@ void yBl (
 
 
 
-// YBLNOGROUND
+// yBlNoGround
 //
 // Patrick Eriksson 07.06.00
 

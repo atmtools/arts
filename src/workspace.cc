@@ -212,7 +212,7 @@ void define_wsv_data()
     (WsvRecord
      ("za_pencil",
       "Pencil beam zenith angle, the angle between zenith and the LOS [deg].\n"
-      "This grid is applied when calculating pecil beam spectra",
+      "This grid is applied when calculating pencil beam spectra.",
       VECTOR_));
 
   wsv_data.push_back
@@ -224,7 +224,16 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("l_step",
-      "The length (along the LOS) between the points of LOS [m].",
+      "The maximum length, along the LOS, between the points of LOS [m].\n"
+      "The final step length will in most cases equal the selected length.\n"
+      "There are two rare exceptions:\n"
+      "  1. Downward observations from within the atmsophere, where the step\n"
+      "     length is adjusted downwards to get an integer number of steps\n"
+      "     between the sensor and the tangent or ground point.\n"
+      "  2. Limb sounding and the distance from the tangent point to the\n"
+      "     atmospheric limit (the highest absorption altitude) is smaller\n"
+      "     the selected length. The length is then adjusted to this\n"
+      "     distance",
       Numeric_));
 
   wsv_data.push_back
@@ -236,13 +245,16 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("l_step_refr",
-      "The step length (along LOS) when determining the LOS with refraction [m].",
+      "The step length (along LOS) when performing the calculations to\n"
+      "determining the LOS with refraction [m].\n"
+      "Note that the final step length between the LOS points is l_step.\n"
+      "The step length here is only applied during the calculations.",
       Numeric_));
 
   wsv_data.push_back
     (WsvRecord
      ("refr_index",
-      "The refractive index associated with the pressures in p_abs [-].",
+      "The refractive index associated with the pressures in p_abs [-].\n",
       VECTOR_));
 
   wsv_data.push_back
@@ -266,7 +278,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("los",
-      "Structure to define the line of sight (LOS) for 1d cases.", 
+      "Structure to define the line of sight (LOS). See los.h.", 
       Los_));
 
   wsv_data.push_back
@@ -284,13 +296,14 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("y_space",
-      "Radiation entering the atmosphere at the start of the LOS.",
+      "Radiation entering the atmosphere at the start of the LOS\n,"
+      "typically cosmic background radiation, [W/(m2Hzsr)].",
       VECTOR_));
 
   wsv_data.push_back
     (WsvRecord
      ("y",
-      "The final spectrum, including sensor effects and data reduction.",
+      "Final emission or absorption spectrum.",
       VECTOR_));
 
 
@@ -298,7 +311,7 @@ void define_wsv_data()
   //                     ----------
   wsv_data.push_back
     (WsvRecord
-     ("klos",
+     ("absloswfs",
       "Line of sight weighting functions.",
       ARRAYofMATRIX_));
 
@@ -306,7 +319,8 @@ void define_wsv_data()
     (WsvRecord
      ("k_grid",
       "Grid for the retrieval identity for which weighting functions (WFS)\n"
-      "shall be calculated. For example, pressure altitude grid for species\n"
+      "shall be calculated (when applicable). For example, pressure altitude\n"
+      "grid for species\n"
       "WFs.",
       VECTOR_));
 
@@ -338,8 +352,7 @@ void define_wsv_data()
       "The columns hold different quantities:\n"
       "  Col 1: retrieval grid (or correspondingly)\n"
       "  Col 2: a priori values\n"
-      "  Col 3: volume mixing ratios\n"
-      "More comments!!",
+      "  Col 3: volume mixing ratios",
       MATRIX_));
 
   wsv_data.push_back

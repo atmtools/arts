@@ -311,7 +311,7 @@ void grid2grid_weights (
 
 
 //==========================================================================
-//=== Help functions for KLOS1D to calculate absorption LOS WFs
+//=== Help functions for absloswfsCalc to calculate absorption LOS WFs
 //==========================================================================
 
 // ABSLOSWFS_1PASS
@@ -402,7 +402,7 @@ void absloswfs_1pass (
 
 
 
-// ABSLOSWFS_1DLIMB
+// ABSLOSWFS_LIMB
 //
 // This function covers 1D limb sounding
 //
@@ -411,7 +411,7 @@ void absloswfs_1pass (
 //
 // Patrick Eriksson 14.06.00
 
-void absloswfs_1dlimb (
+void absloswfs_limb (
                     MATRIX&   k,
                     VECTOR    y,              // = y_q^q
                     VECTOR    yn,             // = y_space
@@ -477,7 +477,7 @@ void absloswfs_1dlimb (
 
 
 
-// ABSLOSWFS_1DDOWN
+// ABSLOSWFS_DOWN
 //
 // This function covers 1D downward looking observations
 //
@@ -486,7 +486,7 @@ void absloswfs_1dlimb (
 //
 // Patrick Eriksson 15.06.00
 
-void absloswfs_1ddown (
+void absloswfs_down (
                     MATRIX&   k,
               const VECTOR    y,
               const VECTOR    y_space,
@@ -521,7 +521,7 @@ void absloswfs_1ddown (
 
   // The indeces below STOP_INDEX are handled by the limb sounding function.
   // The limb function is given Y0 instead of cosmic radiation 
-  absloswfs_1dlimb( k2, y, y0, stop_index, lstep, tr, s, ground, e_ground );  
+  absloswfs_limb( k2, y, y0, stop_index, lstep, tr, s, ground, e_ground );  
   for ( iv=1; iv<=nf; iv++ )
   {
     for ( q=1; q<stop_index; q++ )
@@ -634,7 +634,7 @@ void sourceloswfs_1pass (
 
 
 
-// SOURCELOSWFS_1DLIMB
+// SOURCELOSWFS_LIMB
 //
 // This function covers 1D limb sounding
 //
@@ -643,7 +643,7 @@ void sourceloswfs_1pass (
 //
 // Patrick Eriksson 11.09.00
 
-void sourceloswfs_1dlimb (
+void sourceloswfs_limb (
                     MATRIX&   k,
               const int&      start_index,
               const MATRIX&   tr,
@@ -690,7 +690,7 @@ void sourceloswfs_1dlimb (
 
 
 
-// SOURCELOSWFS_1DDOWN
+// SOURCELOSWFS_DOWN
 //
 // This function covers 1D downward looking observations
 //
@@ -699,7 +699,7 @@ void sourceloswfs_1dlimb (
 //
 // Patrick Eriksson 11.09.00
 
-void sourceloswfs_1ddown (
+void sourceloswfs_down (
                     MATRIX&   k,
               const int&      start_index,
               const int&      stop_index,
@@ -721,7 +721,7 @@ void sourceloswfs_1ddown (
   bl( tr0, stop_index, stop_index, tr, ground, e_ground );
 
   // The indeces below STOP_INDEX are handled by the limb sounding function.
-  sourceloswfs_1dlimb( k2, stop_index, tr, ground, e_ground );  
+  sourceloswfs_limb( k2, stop_index, tr, ground, e_ground );  
   for ( iv=1; iv<=nf; iv++ )
   {
     for ( q=1; q<stop_index; q++ )
@@ -756,7 +756,7 @@ void sourceloswfs_1ddown (
 // Patrick Eriksson 11.09.00
 
 void sourceloswfs (
-                    ARRAYofMATRIX&   klos,
+                    ARRAYofMATRIX&   sourceloswfs,
               const Los&             los,   
               const ARRAYofMATRIX&   trans,
               const VECTOR&          f_mono,
@@ -766,7 +766,7 @@ void sourceloswfs (
   const size_t  nza = los.start.dim();   // number of zenith angles  
 
   // Resize the LOS WFs array
-  klos.newsize(nza);
+  sourceloswfs.newsize(nza);
 
   // Loop zenith angles
   out3 << "    Zenith angle nr:\n      ";
@@ -783,18 +783,18 @@ void sourceloswfs (
       //
       // Upward looking (=single pass)
       if ( los.stop(i)==1 )
-        sourceloswfs_1pass( klos(i), los.start(i), 1, trans(i), los.ground(i),
-                                                                  e_ground );
+        sourceloswfs_1pass( sourceloswfs(i), los.start(i), 1, trans(i), 
+                                                     los.ground(i), e_ground );
       //
       // 1D limb sounding
       else if ( los.start(i) == los.stop(i) )
-        sourceloswfs_1dlimb( klos(i), los.start(i), trans(i), los.ground(i), 
-                                                                e_ground );
+        sourceloswfs_limb( sourceloswfs(i), los.start(i), trans(i), 
+                                                     los.ground(i), e_ground );
       //
       // 1D downward looking
       else 
-        sourceloswfs_1ddown( klos(i), los.start(i), los.stop(i), trans(i), 
-                                        los.ground(i), e_ground );
+        sourceloswfs_down( sourceloswfs(i), los.start(i), los.stop(i), 
+                                           trans(i), los.ground(i), e_ground );
     }
   }
   out3 << "\n";
@@ -810,17 +810,17 @@ void sourceloswfs (
 //===    should most likely be included in the other functions.
 //==========================================================================
 
-// K_SPECIES1D
+// K_SPECIES
 //
 // Patrick Eriksson 04.09.00
 
-void k_species1d (
+void k_species (
                     MATRIX&          ktot,
                     ARRAYofstring&   ktot_names,
                     MATRIX&          ktot_index,
                     MATRIX&          ktot_aux,
               const Los&             los,           
-              const ARRAYofMATRIX&   klos,
+              const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          p_abs,
               const VECTOR&          t_abs,             
               const TagGroups&       tags,
@@ -894,9 +894,9 @@ void k_species1d (
 
     // Interpolate to get the total absorption and the VMR values at the 
     // retrieval points and scale the absorption to the selected unit:
-    //   0 normalised to a mean profile
-    //   1 VMR
-    //   2 number density
+    //   1 normalised to a mean profile
+    //   2 VMR
+    //   3 number density
     interpp( abs, p_abs, abs_per_tg(tg), k_grid );
     interpp( vmr, p_abs, vmrs(tg), k_grid ); 
     if ( unit == 1 )
@@ -968,7 +968,7 @@ void k_species1d (
             for ( iv=1; iv<=nv; iv++ )
 	    {
               for ( iw=i1; iw<=(size_t)is(ip,2); iw++ )
-                a(iv) += klos(iza)(iv,iw) * w(iw-i1+1);
+                a(iv) += absloswfs(iza)(iv,iw) * w(iw-i1+1);
               k(iv0+iv,ip0+ip) = a(iv) * abs(iv,ip);                    
 	    }
           }            
@@ -1000,7 +1000,7 @@ void k_contabs (
                     MATRIX&          ktot_index,
                     MATRIX&          ktot_aux,
               const Los&             los,           
-              const ARRAYofMATRIX&   klos,
+              const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          f_mono,
               const VECTOR&          k_grid,
               const size_t&          order )
@@ -1053,7 +1053,7 @@ void k_contabs (
   //   4 frequencies
   //
   // (Another loop order should be somewhat more efficient, but to keep this
-  // function consistent with k_species1d, this loop order was selected.)
+  // function consistent with k_species, this loop order was selected.)
   //
   out2 << "  You have selected " << npoints << " off-set fit points.\n";
   for ( ipoint=1; ipoint<=npoints; ipoint++ ) 
@@ -1121,7 +1121,7 @@ void k_contabs (
             for ( iv=1; iv<=nv; iv++ )
 	    {
               for ( iw=i1; iw<=(size_t)is(ip,2); iw++ )
-                a(iv) += klos(iza)(iv,iw) * w(iw-i1+1);
+                a(iv) += absloswfs(iza)(iv,iw) * w(iw-i1+1);
               k(iv0+iv,ip0+ip) = a(iv) * b(iv);                    
 	    }
           }            
@@ -1153,7 +1153,7 @@ void k_temp_nohydro (
                     MATRIX&          ktot_index,
                     MATRIX&          ktot_aux,
               const Los&             los,           
-              const ARRAYofMATRIX&   klos,
+              const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          f_mono,
               const VECTOR&          p_abs,
               const VECTOR&          t_abs,            
@@ -1280,7 +1280,7 @@ void k_temp_nohydro (
             for ( iw=i1; iw<=(size_t)is(ip,2); iw++ )
 	    {
               a(iv) += sloswfs(iza)(iv,iw) * w(iw-i1+1);
-              b(iv) += klos(iza)(iv,iw) * w(iw-i1+1);
+              b(iv) += absloswfs(iza)(iv,iw) * w(iw-i1+1);
 	    }
             d = c * f_mono(iv);
             k(iv0+iv,ip) = a(iv) * d/t(ip) / (1-exp(-d)) * pl(iv) +
@@ -1305,12 +1305,12 @@ void k_temp_nohydro (
 //=== Workspace methods
 //==========================================================================
 
-// KLOS1D
+// absloswfsCalc
 //
 // Patrick Eriksson 14.06.00
 
-void klos1d (
-                    ARRAYofMATRIX&   klos,
+void absloswfsCalc (
+                    ARRAYofMATRIX&   absloswfs,
               const Los&             los,   
               const ARRAYofMATRIX&   source,
               const ARRAYofMATRIX&   trans,
@@ -1331,7 +1331,7 @@ void klos1d (
     planck( y_ground, f_mono, t_ground );
 
   // Resize the LOS WFs array
-  klos.newsize(nza);
+  absloswfs.newsize(nza);
 
   // Loop zenith angles
   out3 << "    Zenith angle nr:\n      ";
@@ -1354,17 +1354,17 @@ void klos1d (
       //
       // Upward looking (=single pass)
       if ( los.stop(i)==1 )
-        absloswfs_1pass( klos(i), yp, los.start(i), 1, los.l_step(i), 
+        absloswfs_1pass( absloswfs(i), yp, los.start(i), 1, los.l_step(i), 
                      trans(i), source(i), los.ground(i), e_ground, y_ground );
       //
       // 1D limb sounding
       else if ( los.start(i) == los.stop(i) )
-        absloswfs_1dlimb( klos(i), yp, y_space, los.start(i), los.l_step(i), 
+        absloswfs_limb( absloswfs(i), yp, y_space, los.start(i), los.l_step(i),
                      trans(i), source(i), los.ground(i), e_ground );
       //
       // 1D downward looking
       else 
-        absloswfs_1ddown( klos(i), yp, y_space, los.start(i), los.stop(i), 
+        absloswfs_down( absloswfs(i), yp, y_space, los.start(i), los.stop(i), 
                         los.l_step(i), trans(i), source(i), los.ground(i), 
                         e_ground, y_ground );
     }
@@ -1374,12 +1374,12 @@ void klos1d (
 
 
 
-// KLOS1DNOGROUND
+// absloswfsNoGround
 //
 // Patrick Eriksson 04.09.00
 
-void klos1dNoGround (
-                    ARRAYofMATRIX&   klos,
+void absloswfsNoGround (
+                    ARRAYofMATRIX&   absloswfs,
               const Los&             los,   
               const ARRAYofMATRIX&   source,
               const ARRAYofMATRIX&   trans,
@@ -1390,12 +1390,13 @@ void klos1dNoGround (
   if ( any(los.ground) )  
     throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
 
-  klos1d( klos, los,source, trans, y, y_space, f_mono, VECTOR(0), -1.0 );
+  absloswfsCalc( absloswfs, los,source, trans, y, y_space, f_mono, VECTOR(0), 
+                                                                        -1.0 );
 }
 
 
 
-// KINIT
+// kInit
 //
 // Patrick Eriksson 05.09.00
 
@@ -1413,17 +1414,17 @@ void kInit (
 
 
 
-// KSPECIES1D
+// kSpecies
 //
 // Patrick Eriksson 04.09.00
 
-void kSpecies1d (
+void kSpecies (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
                     MATRIX&          k_index,
                     MATRIX&          k_aux,
               const Los&             los,           
-              const ARRAYofMATRIX&   klos,
+              const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          p_abs,
               const VECTOR&          t_abs,             
               const TagGroups&       tags,
@@ -1435,23 +1436,23 @@ void kSpecies1d (
 {
   ARRAYofsizet  tg_nr(1,nr);
   
-  k_species1d( k, k_names, k_index, k_aux, los, klos, p_abs, t_abs, 
+  k_species( k, k_names, k_index, k_aux, los, absloswfs, p_abs, t_abs, 
                                  tags, abs_per_tg, vmrs, k_grid, tg_nr, unit );
 }
 
 
 
-// KSPECIES1DALL
+// kSpeciesAll
 //
 // Patrick Eriksson 04.09.00
 
-void kSpecies1dAll (
+void kSpeciesAll (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
                     MATRIX&          k_index,
                     MATRIX&          k_aux,
               const Los&             los,           
-              const ARRAYofMATRIX&   klos,
+              const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          p_abs,
               const VECTOR&          t_abs,             
               const TagGroups&       tags,
@@ -1467,47 +1468,43 @@ void kSpecies1dAll (
   for ( size_t i=1; i<=ntg; i++ )
     tg_nr(i) = i;
 
-  k_species1d( k, k_names, k_index, k_aux, los, klos, p_abs, t_abs, 
+  k_species( k, k_names, k_index, k_aux, los, absloswfs, p_abs, t_abs, 
                                  tags, abs_per_tg, vmrs, k_grid, tg_nr, unit );
-  //  for (size_t i=1; i<=k_names.dim(); i++ )
-  //    out1 << k_names(i) << "\n";
 }
 
 
 
-// kContAbs1d
+// kContAbs
 //
 // Patrick Eriksson 06.09.00
 
-void kContAbs1d (
+void kContAbs (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
                     MATRIX&          k_index,
                     MATRIX&          k_aux,
               const Los&             los,           
-              const ARRAYofMATRIX&   klos,
+              const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          f_mono,
               const VECTOR&          k_grid,
               const int&             order )
 {
-  k_contabs( k, k_names, k_index, k_aux, los, klos, f_mono, k_grid, order );
-  //for (size_t i=1; i<=k_names.dim(); i++ )
-  //  out1 << k_names(i) << "\n";
+  k_contabs( k, k_names, k_index, k_aux, los, absloswfs, f_mono, k_grid, order );
 }
 
 
 
-// KTEMPNOHYDRO1D
+// kTempNoHydro
 //
 // Patrick Eriksson 06.09.00
 
-void kTempNoHydro1d (
+void kTempNoHydro (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
                     MATRIX&          k_index,
                     MATRIX&          k_aux,
               const Los&             los,           
-              const ARRAYofMATRIX&   klos,
+              const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          f_mono,
               const VECTOR&          p_abs,
               const VECTOR&          t_abs,
@@ -1519,10 +1516,34 @@ void kTempNoHydro1d (
               const Numeric&         t_ground,
               const VECTOR&          k_grid )
 {
-  k_temp_nohydro( k, k_names, k_index, k_aux, los, klos, f_mono, p_abs, 
-   t_abs, vmrs, lines_per_tg, abs, trans, e_ground, t_ground, k_grid );
-  //for (size_t i=1; i<=k_names.dim(); i++ )
-  // out1 << k_names(i) << "\n";
+  k_temp_nohydro( k, k_names, k_index, k_aux, los, absloswfs, f_mono, p_abs, 
+          t_abs, vmrs, lines_per_tg, abs, trans, e_ground, t_ground, k_grid );
+}
+
+
+
+// kTempNoHydroNoGround
+//
+// Patrick Eriksson 06.09.00
+
+void kTempNoHydroNoGround (
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_index,
+                    MATRIX&          k_aux,
+              const Los&             los,           
+              const ARRAYofMATRIX&   absloswfs,
+              const VECTOR&          f_mono,
+              const VECTOR&          p_abs,
+              const VECTOR&          t_abs,
+              const ARRAYofVECTOR&   vmrs,
+              const ARRAYofARRAYofLineRecord& lines_per_tg,
+              const MATRIX&          abs,            
+              const ARRAYofMATRIX&   trans,
+              const VECTOR&          k_grid )
+{
+  k_temp_nohydro( k, k_names, k_index, k_aux, los, absloswfs, f_mono, p_abs, 
+          t_abs, vmrs, lines_per_tg, abs, trans, VECTOR(0), 0, k_grid );
 }
 
 

@@ -18,7 +18,8 @@
 %  \stophistory
 %
 \starthistory
-  000307 & Created and written by Patrick Eriksson. \\
+  000307 & Started by Patrick Eriksson. \\
+  000914 & First version finished by Patrick Eriksson.\\
 \stophistory
 
 
@@ -31,21 +32,21 @@
 %  \stopsymbols
 %
 %
-\startsymbols
-  \view     & \verb|view|     & zenith angle from zenith                  \\
-  $z$       & \verb|z|       & vertical altitude                          \\
-  $z_p$     & \verb|z_plat|  & platform altitude                          \\
-  $z_t$     & \verb|z_tan|   & tangent altitude                           \\
-  $z_g$     & \verb|z_ground|& altitude of the ground                     \\
-  $z_{lim}$ & \verb|z_abs_max|& practical upper limit of the atmosphere   \\
-  $l$       & \verb|l|       & distance along LOS                         \\
-  $e$       & \verb|gr_emiss|& ground emissivity                          \\
-  $\Delta l$& \verb|l_step|  & step length along LOS                      \\
-  $l_{lim}$ & \verb|llim|    & distance from lowest LOS point to $z_{lim}$\\
-  $l_p$     & \verb|l1|      & distance used for downward observation     \\
-  $i_p$     & -              & index for platform altitude for downward obs. \\
- \label{symtable:los}     
-\stopsymbols
+%\startsymbols
+%  \view     & \verb|view|     & zenith angle from zenith                  \\
+%  $z$       & \verb|z|       & vertical altitude                          \\
+%  $z_p$     & \verb|z_plat|  & platform altitude                          \\
+%  $z_t$     & \verb|z_tan|   & tangent altitude                           \\
+%  $z_g$     & \verb|z_ground|& altitude of the ground                     \\
+%  $z_{lim}$ & \verb|z_abs_max|& practical upper limit of the atmosphere   \\
+%  $l$       & \verb|l|       & distance along LOS                         \\
+%  $e$       & \verb|gr_emiss|& ground emissivity                          \\
+%  $\Delta l$& \verb|l_step|  & step length along LOS                      \\
+%  $l_{lim}$ & \verb|llim|    & distance from lowest LOS point to $z_{lim}$\\
+%  $l_p$     & \verb|l1|      & distance used for downward observation     \\
+%  $i_p$     & -              & index for platform altitude for downward obs.\\
+% \label{symtable:los}     
+%\stopsymbols
 
 
 
@@ -277,50 +278,145 @@ geometrical calculations and when considering refraction.
  again with the adjusted value for $\Delta l$.
 
 
+ \levelb{With refraction}
+  \label{sec:los:refraction}
+  
+  Refraction affects the radiative transfer in several ways. The
+  distance through a layer of a fixed vertical thickness will be
+  changed, and for limb sounding observation the tangent point is
+  moved both vertically and horisontally. If the atmosphere is assumed
+  to be horizontally stratified, as done here (1D), a horisontal
+  displacement is of no importance but for 2D calculations this effect
+  must be considered. For limb sounding and a fixed zenith angle, the
+  tangent point is moved downwards compared to the pure geometrical
+  case, resulting in that inclusion of refraction in general gives
+  higher intensities. However, the LOS is still symmetric around
+  tangent and ground points.
+
+ \levelc{General theory}
+
+   When determining the LOS through the atmosphere geometrical optics 
+   can be applied because the change of the refractivce index over a
+   wavelength can be neglected. Applying Snell's law to the geometry 
+   shown in Figure \ref{fig:los:snell} gives
+   \begin{equation}
+     n_i \sin (\theta_i) = n_{i+1} \sin (\theta_i')
+   \end{equation}
+   \begin{figure}
+    \begin{center}
+      \includegraphics*{Figs/snell.eps}
+      \caption{Geometry to derive Snell's law for a spherical atmosphere. 
+               The Earth radius is $R_e$, the vertical
+               altitude $z$, the refractive index $n$ and the angle
+               between the LOS and the vector to the Earth centre $\theta$.}
+      \label{fig:los:snell} 
+    \end{center} 
+  \end{figure}
+  Using the same figure, the law of sines gives the relationship
+  \begin{equation}
+    \frac{\sin(\theta_{i+1})}{R_e+z_i} = 
+    \frac{\sin(180^\circ-\theta_{i+1}')}{R_e+z_{i+1}} =
+    \frac{\sin(\theta_i')}{R_e+z_{i+1}} 
+  \end{equation}
+  By combining the two equations above, the Snell's law for a spherical
+  atmosphere (i.e. 1D) is derived \citep[e.g.][]{kyle:91,balluch:97}:
+  \begin{equation}
+    c = (R_e+z_i) n_i \sin(\theta_i) = (R_e+z_{i+1}) n_{i+1}\sin(\theta_{i+1}) 
+   \label{eq:los:snellspherical}
+  \end{equation}
+  where $c$ is a constant. With other words, the Snell's law for spherical
+  atmospheres says that the product of $n$, $(R_e+z)$ and $\sin(\theta)$ is
+  constant along the LOS.
+
+  The radiative transfer is evaluated along the LOS, while Equation 
+  \ref{eq:los:snellspherical} is expressed for vertical altitudes.
+  The relationship between a change in vertical altitude and the
+  corresponding change along the LOS is here denoted as the geometrical term
+  and it is
+  \begin{equation}
+    g(z) = \frac{1}{\cos(\theta)}
+  \end{equation}
+  which can be rewritten using trigonometric identities and Equation
+  \ref{eq:los:snellspherical}:
+  \begin{equation}
+    g(z) = \frac {(R_e+z)n(z)} {\sqrt{ (R_e+z)^2n^2(z) - c^2 }}
+   \label{eq:los:gterm}
+  \end{equation}
+  A possible solution for calculating the LOS would be to integrating the
+  geometrical term as \citep{eriksson:00a}
+  \begin{eqnarray}
+    l_1^2 = \int_{z_1}^{z_2}{g(z)\dd z} \nonumber
+  \end{eqnarray}
+  where $z_1$ and $z_2$ are two vertical altitudes and $l_1^2$ the length
+  along the LOS between these two altitudes. However, this appraoch is
+  problematic for limb sounding as the geometric factor is
+  singular at the tangent point (Sec. !!).
+
+
+ \levelc{The relative geometrical factor}
+ 
+  To avoid the singularity of the geometrical factor at tangent points,
+  the relative geometrical factor is here introduced. This factor is
+  defined as
+  \begin{equation}
+    h(z) = \frac {(R_e+z)n(z)} {\sqrt{ (R_e+z)^2n^2(z) - c^2 }} 
+   \label{eq:los:gtermcor}
+  \end{equation}
+
+
+
+
+   \begin{figure}
+    \begin{center}
+      \includegraphics*[width=0.8\hsize]{Figs/fig_geomfac.eps}
+      \caption{The geometrical factor, as a function of altitude, for limb 
+               sounding and three tangent altitudes.}
+    \end{center} 
+   \label{fig:los:gfac}
+  \end{figure}
+
+  
  \levelb{Ground intersections}
-  \label{sec:los:ground}
+   \label{sec:los:ground}
   
-  Ground reflections are indicated by a special flag. This flag is
-  zero when there is no ground intersection or gives the index of the
-  LOS point corresponding to the ground, $i_g$. For 1D calculations,
-  $i_g$ is either 0 or 1, as index 1 is here defined to always be the
-  lowest altitude of the LOS. However, to pave the way for 2D
-  calculations, cases where the ground is placed at other positions
-  than index 1 are handled.
+   Ground reflections are indicated by a special flag. This flag is
+   zero when there is no ground intersection or gives the index of the
+   LOS point corresponding to the ground, $i_g$. For 1D calculations,
+   $i_g$ is either 0 or 1, as index 1 is here defined to always be the
+   lowest altitude of the LOS. However, to pave the way for 2D
+   calculations, cases where the ground is placed at other positions
+   than index 1 are handled.
   
-  For 1D cases, where only half of the total LOS is stored and the
-  ground can only have index 1 ($i_g=1$), the effect of a ground
-  reflection (Eq. \ref{eq:rte:ground}) is put in when reversing the
-  loop order.  Accordingly, the calculation order is: ... step2, step
-  1, ground, step 1, step 2, ... Ground reflections for 1D cases are
-  treated internally in ARTS by the limb sounding functions.
+   For 1D cases, where only half of the total LOS is stored and the
+   ground can only have index 1 ($i_g=1$), the effect of a ground
+   reflection (Eq. \ref{eq:rte:ground}) is put in when reversing the
+   loop order.  Accordingly, the calculation order is: ... step2, step
+   1, ground, step 1, step 2, ... Ground reflections for 1D cases are
+   treated internally in ARTS by the limb sounding functions.
   
-  \begin{figure}
+   \begin{figure}
    \begin{center}
-    \includegraphics*[width=0.75\hsize]{Figs/ground.eps}
+     \includegraphics*[width=0.75\hsize]{Figs/ground.eps}
     \caption{Schematic of ground reflections for 2D cases. The index 
              of the point corresponding to the ground is $i_g$. Point 1
              of the LOS is the point closest to the sensor. }  
     \label{fig:los1d:ground}  
    \end{center}
-  \end{figure}
+   \end{figure}
  
-  When solving the radiative transfer (Eq. \ref{eq:rte:iteration}) for
-  2D cases, the ground reflection is treated between evaluating step
-  $i_g$ and $i_{g-1}$ (the iteration goes from $n$ to 1), as shown in
-  Figure \ref{fig:los1d:ground}.  Ground reflections for 2D cases are
-  treated internally in ARTS by the upward looking functions (Sec.
-  \ref{sec:los:2d}).
+   When solving the radiative transfer (Eq. \ref{eq:rte:iteration})
+   for 2D cases, the ground reflection is treated between evaluating
+   step $i_g$ and $i_{g-1}$ (the iteration goes from $n$ to 1), as
+   shown in Figure \ref{fig:los1d:ground}.  Ground reflections for 2D
+   cases are treated internally in ARTS by the upward looking
+   functions (Sec.  \ref{sec:los:2d}).
   
   
   
- \levelb{With refraction}
 
-  Refraction is so far not implemented in ARTS. A possible scheme for 
-  the refraction calculations is found in \citet{eriksson:97a}.
-  
-  (I have now a new, very nice, idea that should make, at least, the
-  1D calculations very simple. I should implement this ASAP Patrick 000908)
+
+
+
 
 %\levelb{The geometrical term}
 % \label{sec:los:gterm}
