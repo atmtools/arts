@@ -428,7 +428,11 @@ bool LineRecord::ReadFromHitranStream(istream& is)
     // ARTS parameter in Hz/Pa:
     msgam = gam * hi2arts;
 
-//    cout << "agam, sgam = " << magam << ", " << msgam << endl;
+    // If zero, set to agam:
+    if (0==msgam)
+      msgam = magam;
+
+    //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
   }
 
 
@@ -458,10 +462,8 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
   // Pressure shift.
   {
-    // HITRAN value in cm^-1
-    // (I guess they really mean cm^-1 / atm. Anyway, that's what I'll
-    // assume. So the conversion goes exactly as for the broadening
-    // parameters. 
+    // HITRAN value in cm^-1 / atm. So the conversion goes exactly as
+    // for the broadening parameters.
     Numeric d;
     // External constant from constants.cc: Converts atm to
     // Pa. Multiply value in atm by this number to get value in Pa. 
@@ -1690,6 +1692,31 @@ void write_lines_to_stream(ostream& os,
 }
 
 
+/** Calculate line absorption cross sections for one tag group. All
+    lines in the line list must belong to the same species. This must
+    be ensured by lines_per_tgCreateFromLines, so it is only verified
+    with assert. Also, the input vectors p_abs, and t_abs must all
+    have the same dimension.
+
+    This is mainly a copy of abs_species which is removed now, with
+    the difference that the vmrs are removed from the absorption
+    coefficient calculation. (the vmr is still used for the self
+    broadening)
+
+    Continua are not handled by this function, you have to call
+    xsec_continuum_tag for those.
+
+    \retval xsec   Cross section of one tag group.
+    \param f_mono  Frequency grid.
+    \param p_abs   Pressure grid.
+    \param t_abs   Temperatures associated with p_abs.
+    \param h2o_abs Total volume mixing ratio of water vapor.
+    \param vmr     Volume mixing ratio of the calculated species.
+    \param lines   The spectroscopic line list.
+    \param ind_ls  Lineshape specifications.
+
+    \author Stefan Buehler and Axel von Engeln
+    \date   2001-01-11 */
 void xsec_species( MatrixView               xsec,
 		   ConstVectorView  	    f_mono,
 		   ConstVectorView  	    p_abs,
@@ -1840,7 +1867,8 @@ void xsec_species( MatrixView               xsec,
 	  // lines[l] is used several times, this construct should be
 	  // faster (Oliver Lemke)
 	  LineRecord l_l = lines[l];  // which line are we dealing with
-	  Numeric F0 = l_l.F();       // center frequency
+	  // Center frequency in vacuum:
+	  Numeric F0 = l_l.F();
 
 	  // Intensity is already in the right units (Hz*m^2). It also
 	  // includes already the isotopic ratio. Needs only to be
@@ -1885,6 +1913,12 @@ void xsec_species( MatrixView               xsec,
 	  Numeric sigma = F0 * doppler_const * 
 	    sqrt( t_i / l_l.IsotopeData().Mass());
 
+	  // 3.a. Put in pressure shift.
+	  // The T dependence is connected to that of agam by:
+	  // n_shift = .25 + 1.5 * n_agam
+	  // Theta has been initialized above.
+	  F0 += l_l.Psf() * p_i * 
+	      pow( theta , .25 + 1.5*l_l.Nair() );         
 
 	  // 4. the rosenkranz lineshape for oxygen calculates the
 	  // pressure broadening, overlap, ... differently. Therefore

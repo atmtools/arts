@@ -1,3 +1,16 @@
+2001-10-12  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-2
+
+	* src/absorption.cc (xsec_species): Added pressure shift. It
+	remains to be verified that this works correctly. Hopefully the
+	intercomparison with Moliere for HCl can show that.
+	(ReadFromHitranStream): If sgam==0, set it equal to agam.
+
+	* src/absorption.h: Moved doxygen header for xsec_species to
+	absorption.cc. 
+
+	
 2001-10-08  Nikolay Koulev  <nkoulev@uni-bremen.de>
         
 	* arts-0-1-1
