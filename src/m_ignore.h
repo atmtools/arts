@@ -40,21 +40,12 @@
 */
 template< class T >
 void Ignore(// WS Generic Input:
-            const T& in,
+            const T&,
             // WS Generic Input Names:
             const String& inname)
 {
   // Nothing to do here.
   out2 << "  Ignoring " << inname << ".\n";
-
-  // Evil hack to suppress unused parameter warning for in:
-  if ( false )
-    {
-      // This code serves no purpose at all and will never be executed
-      // anyhow!
-      const T *p = &in;
-      ++p;
-    }
 }
 
 #endif // m_ignore_h
