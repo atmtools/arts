@@ -30,6 +30,8 @@
 #include <iostream>
 #include "matpackII.h"
 
+Joker joker;
+
 void test3()
 {
   Sparse M(10,15);
