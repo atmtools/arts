@@ -1,3 +1,21 @@
+2002-02-22  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-13
+
+	* src/matpackIV.h Iterator4D Tensor4View::begin(): Bug fix,
+	removed const at end of line.
+	Iterator4D Tensor4View::end(): Same.
+	Recursive ConstTensor4View constructor: Bug fix, fixed typing
+	error. 
+
+	* src/matpackIII.h: Added some friend declarations.
+
+	* src/matpackI.h: Added some friend declarations.
+
+	* src/test_tensor.cc: Added definition of joker object. Added a
+	test for selecting a book and a test for selecting the first
+	letter of every page of every book.
+
 2002-02-21  Wolfram Haas    <wolhaas@hermes.fho-emden.de>
 
 	* arts-1-1-12

@@ -150,8 +150,10 @@ public:
   friend class Matrix;
   friend class Iterator2D;
   friend class Iterator3D;
+  friend class Iterator4D;
   friend class ConstIterator2D;
   friend class ConstIterator3D;
+  friend class ConstIterator4D;
   friend class SparseMatrixView;
   friend class ConstTensor3View;
   friend class Tensor3View;

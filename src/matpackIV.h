@@ -1379,7 +1379,7 @@ inline ConstIterator4D Tensor4View::end() const
 }
 
 /** Return iterator to first book. */
-inline Iterator4D Tensor4View::begin() const
+inline Iterator4D Tensor4View::begin()
 {
   return Iterator4D( Tensor3View(mdata + mbr.mstart,
                                  mpr, mrr, mcr),
@@ -1387,7 +1387,7 @@ inline Iterator4D Tensor4View::begin() const
 }
 
 /** Return iterator behind last book. */
-inline Iterator4D Tensor4View::end() const
+inline Iterator4D Tensor4View::end()
 {
   return Iterator4D( Tensor3View(mdata + mbr.mstart +
                                  (mbr.mextent) * mbr.mstride,
@@ -1607,7 +1607,7 @@ inline Tensor4View::Tensor4View(Numeric *data,
                                 const Range& np,
                                 const Range& nr,
                                 const Range& nc) :
-  ConstTensor3View(data, pb, pp, pr, pc, nb, np, nr, nc)
+  ConstTensor4View(data, pb, pp, pr, pc, nb, np, nr, nc)
 {
   // Nothing to do here.
 }

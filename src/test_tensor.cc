@@ -19,6 +19,9 @@
 #include "matpackIII.h"
 #include "matpackIV.h"
 
+/** Define the global joker objekt. */
+Joker joker;
+
 void test1()
 {
   cout << "Test Tensor4:\n";
@@ -34,6 +37,12 @@ void test1()
           a(i, j, k, l) = ++fill;
 
   cout << "a =" << endl << a << endl;
+
+  cout << "Second book:\n"
+       << a(1,Range(joker),Range(joker),Range(joker)) << "\n";
+
+  cout << "First letter of every page of every book:\n"
+       << a(Range(joker),Range(joker),0,0) << "\n";
 }
 
 int main()
