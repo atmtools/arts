@@ -1,5 +1,12 @@
 2003-01-28  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-437
+
+	* src/ppath.cc (do_gridcell_3d_try): Added ground intersections and
+	some checks to handle paths along lon grid value.
+
+2003-01-28  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-436
 	
 	* src/ppath.cc (do_gridcell_3d_try): I have worked on another scheme

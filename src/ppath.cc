@@ -682,17 +682,36 @@ void cart2poslos(
    \date   2003-01-05
 */
 void resolve_lon(
-              Numeric&   lon,
-        const Numeric&   lon5,
-        const Numeric&   lon6 )
+              double&   lon,
+        const double&   lon5,
+        const double&   lon6 )
 {
   assert( lon6 >= lon5 );
   assert( ( lon6 - lon5 ) < 360 );
 
   if( lon < lon5  || lon > lon6 )
     {
-      const Numeric   meanlon = ( lon5 + lon6 ) / 2;
-      const Numeric   diff0   = abs( meanlon - lon );
+      const double   meanlon = ( lon5 + lon6 ) / 2;
+      const double   diff0   = abs( meanlon - lon );
+
+      if( abs( lon + 360 - meanlon ) < diff0 )
+        { lon += 360; }
+      else if( abs( lon - 360 - meanlon ) < diff0 )
+        { lon -= 360; }
+    }
+}
+void resolve_lon(
+              float&   lon,
+        const float&   lon5,
+        const float&   lon6 )
+{
+  assert( lon6 >= lon5 );
+  assert( ( lon6 - lon5 ) < 360 );
+
+  if( lon < lon5  || lon > lon6 )
+    {
+      const float   meanlon = ( lon5 + lon6 ) / 2;
+      const float   diff0   = abs( meanlon - lon );
 
       if( abs( lon + 360 - meanlon ) < diff0 )
         { lon += 360; }
@@ -2020,7 +2039,7 @@ void do_gridcell_3d_try(
   double   r_end, lat_end, lon_end, l_end;
 
   // Local debug option
-  const bool   debug = true;
+  const bool   debug = false;
   //
   if( debug )
     {
@@ -2111,6 +2130,12 @@ void do_gridcell_3d_try(
         { l_tan = sqrt( r_start*r_start - ppc*ppc ); }
 
 
+      bool   do_ground = false;
+      if( rground15 >= r15a  ||  rground35 >= r35a  ||  
+                                     rground36 >= r36a  ||  rground16 >= r16a )
+        { do_ground = true; }
+
+
       while( !ready )
         {
           cart2sph( r_end, lat_end, lon_end, 
@@ -2118,6 +2143,12 @@ void do_gridcell_3d_try(
           r_end   -= r_corr;
           lat_end -= lat_corr;
           lon_end -= lon_corr;
+
+          if( abs( lat_start ) < 90  &&  ( aa_start == 0  ||  
+                                                      abs( aa_start) == 180 ) )
+            { lon_end = lon_start; }
+          else
+            { resolve_lon( lon_end, lon5, lon6 ); }
           
           if( debug )
             {
@@ -2149,6 +2180,16 @@ void do_gridcell_3d_try(
                 { inside = false;   endface = 2; }
               else if( r_end > rupp )
                 { inside = false;   endface = 4; }
+
+              if( do_ground )
+                {
+                  const Numeric   r_ground = rsurf_at_latlon( 
+                                  lat1, lat3, lon5, lon6, 
+                                  rground15, rground35, rground36, rground16, 
+                                                            lat_end, lon_end );
+                  if( r_ground >= rlow  &&  r_end < r_ground )
+                    { inside = false;   endface = 7; }
+                }
             }              
              
           if( startup )
@@ -2204,6 +2245,10 @@ void do_gridcell_3d_try(
         { lon_end = lon5; }
       else if( endface == 6 )
         { lon_end = lon6; }
+      else if( endface == 7 )
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                  rground15, rground35, rground36, rground16, 
+                                                          lat_end, lon_end ); }
 
 
       //--- Tangent point?
@@ -2316,13 +2361,10 @@ void do_gridcell_3d_try(
   else
     { za_v[n] = geompath_za_at_r( ppc, za_start, r_v[n] ); }
 
-  //--- Set last azimuth angle and lon. to be as accurate as possible for
+  //--- Set last azimuth angle to be as accurate as possible for
   //    zenith and nadir observations
   if( abs( lat_start ) < 90  &&  ( aa_start == 0  ||  abs( aa_start) == 180 ) )
-    { 
-      aa_v[n] = aa_start; 
-      lon_v[n] = lon_start;
-    }
+    {  aa_v[n] = aa_start; }
 
   // Shall lon values be shifted (value 0 and n+1 are already OK)?
   for( Index j=1; j<n; j++ )
@@ -5108,13 +5150,8 @@ void raytrace_3d_linear_euler(
             }
 
           // Shall lon values be shifted?
-#ifdef USE_DOUBLE
           resolve_lon( lon_new, lon5, lon6 );
-#else
-          Numeric   lontmp = lon_new;
-          resolve_lon( lontmp, lon5, lon6 );
-          lon_new = lontmp;
-#endif
+
           za = za_new;
           aa = aa_new;
         }
