@@ -34,8 +34,6 @@
 #include "config.h"
 #endif	
 
-#ifdef HDF_SUPPORT
-
 ////////////////////////////////////////////////////////////////////////////
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
@@ -48,6 +46,8 @@
 #include "file.h"
 #include "auto_md.h"
 
+
+#ifdef HDF_SUPPORT
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -328,6 +328,8 @@ void ybatchCalc(
   }
   out2 << "  ------------------------------------\n";
 }
+
+#endif // HDF_SUPPORT
 
 void ybatchFromRadiosonde(// WS Output:
                           Matrix& ybatch,
@@ -634,5 +636,3 @@ void ybatchFromRadiosondeGlobal(// WS Output:
     }
 }
 
-
-#endif // HDF_SUPPORT
