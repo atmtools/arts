@@ -1,5 +1,13 @@
 2001-10-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0-1-3
+
+	* src/absorption.cc (ReadFromJplStream): Here also set sgam to
+	agam (was zero).
+
+
+2001-10-12  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-0-1-2
 
 	* src/absorption.cc (xsec_species): Added pressure shift. It

@@ -1054,7 +1054,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
     magam = 2.5E4;
 
     // ARTS parameter in Hz/Pa:
-    msgam = 0.0;
+    msgam = magam;
   }
 
 
