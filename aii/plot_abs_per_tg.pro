@@ -53,13 +53,13 @@ if ( com ) then begin
 	spawn,'zcat '+filename+' > '+dummyname
 
 	; read in from dummyname
-        output=read_datafile(dummyname, /optimize)
+        output=read_datafile(dummyname, /check)
 
 	;remove the dummy matrix file
 	spawn,'rm '+dummyname
 endif else begin
 	; read in from filename
-        output=read_datafile(filename, /optimize)
+        output=read_datafile(filename, /check)
 endelse
 
 end
@@ -164,6 +164,13 @@ if not keyword_set(altitude) then begin
 endif else begin
     altitude = (where(alt gt altitude))[0]
 endelse
+if altitude eq -1 then begin
+    print, 'Error: Please chose an altitude within the calculated grid.'
+    print, '       Either altitude setting is wrong, of default (25 km) does not exist'
+    stop
+endif
+
+
 
 ;; rearrange the absorption and tag groups according to their
 ;; absorption magnitude, and get max and min values for plot range

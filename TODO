@@ -146,3 +146,12 @@ SAB 2001-03-12: Rename `resize' to `replace'.
 SAB 2001-03-12: Implement `conglomerates', a mechanism of binding a
                 couple of WSVs together. Based on this, implement more
                 logical ASCII I/O formats.
+
+AvE 2001-04-03: I just tried to run some calculations with arts and the 
+                new hitran 2000 edition, and of course, ran into problems. 
+                I did update arts a bit with the new hitran species, but 
+		just had to find out that more has changed. For example 
+		Hitran has now more H2O isotopes.
+ 
+		Somebody has to update arts to the 2000 edition. 
+

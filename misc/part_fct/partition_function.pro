@@ -1,5 +1,5 @@
 ;
-; $Id: partition_function.pro,v 1.7 2001/02/22 15:21:10 axel Exp $
+; $Id: partition_function.pro,v 1.8 2001/04/03 18:07:33 axel Exp $
 ;
 pro HAK, dummy, mesg=mesg
 ; NAME:
@@ -344,10 +344,11 @@ end
 
 
 
-PRO make_plot,part_fct,data_def,t_arr,ind,title,leg_str
+PRO make_plot,part_fct,data_def,t_arr,ind,title,leg_str,$
+              no_hak
 ;; plot routine
 
-window,1
+if not no_hak then window,1
 plot,t_arr[ind],part_fct[0,ind],title=title, $
   xtitle='Temperature [K]', ytitle='Partition Function [1]',xstyle=1
 for i=1,data_def-1 do oplot,t_arr[ind],part_fct[i,ind],linestyle=i
@@ -616,7 +617,8 @@ end
 
 PRO partition_function,jpl_tag=jpl_tag,hit_tag=hit_tag,jpl_all=jpl_all,$
                        make_arts_entry=make_arts_entry,$
-                       no_vib_correction=no_vib_correction,no_windows=no_windows
+                       no_vib_correction=no_vib_correction,no_windows=no_windows,$
+                       no_hak=no_hak
 
 ;; this procedure compares jpl and hitran partition functions (Q). 
 ;;
@@ -651,6 +653,8 @@ PRO partition_function,jpl_tag=jpl_tag,hit_tag=hit_tag,jpl_all=jpl_all,$
 ;;                         provided by Patrick Eriksson, Miriam von
 ;;                         König, and a book research.
 ;;    - no_windows       : only printed output
+;;    - no_hak           : with keyword jpl_all, does not wait after
+;;                         each species for user input (for ps output)
 ;;
 ;; OUTPUT:
 ;;    - plots with Qs of both catalogues, for hitran the State
@@ -682,6 +686,9 @@ if n_elements(jpl_tag) eq 0 and n_elements(hit_tag) eq 0 $
     print,"        partition_function,hit_tag='O2-71'"
     print,'   For all JPL molecules defined in ARTS:'
     print,'        partition_function,/jpl_all'
+    print,'   For all JPL molecules defined in ARTS, generate ps output,'
+    print,'   set the output device accorgingly (set_plot,"ps" ...):'
+    print,'        partition_function,/jpl_all,/no_hak'
     print,'   No vibraional correction of JPL partition functions,'
     print,'        only available for certain species.'
     print,'        partition_function,.....,/no_vib_correction'
@@ -1040,14 +1047,15 @@ for ii=0,n_elements(loop_index)-1 do begin
         ;; call plot routine
         if not no_windows then begin
 
-            make_plot,part_fct,data_def,t_arr,ind,title,leg_str
+            make_plot,part_fct,data_def,t_arr,ind,title,leg_str,$
+              keyword_set(no_hak)
     
         
             if hitran and hit_ok and jpl and jpl_ok then begin
                 !P.multi=[0,1,2,0]
             
                 ;; make a plot of the differences
-                window,2
+                if not keyword_set(no_hak) then window,2
                 plot,t_arr[ind],(Q_temp_jpl[ind] - Q_temp_hit[ind])/Q_temp_jpl[ind] $
                   * 100.0,$
                   title='Difference of Partition Functions, '+'HITRAN Tag: '+$
@@ -1101,7 +1109,7 @@ for ii=0,n_elements(loop_index)-1 do begin
                     
                     ;; make a plot of the differences between the poly fit
                     ;; to jpl and the jpl recommended part fct calculation
-                    window,2
+                    if not keyword_set(no_hak) then window,2
                     ;; compare ratio of Q at 300 K to Q at other values
                     plot,t_arr,( (Q_temp_jpl[ind300[0]]/Q_temp_jpl) - $
                                  (Q_temp_jpl_poly[ind300[0]]/Q_temp_jpl_poly)) /$
@@ -1121,7 +1129,10 @@ for ii=0,n_elements(loop_index)-1 do begin
                       !y.crange(1)-!y.crange(1)/7, (abs(!y.crange(1)) + abs(!y.crange(0)))/15
                     
                     
-                endif else            window, 2 ; just empty to avoid confusion
+                endif else begin
+                    ;; just empty to avoid confusion
+                    if not keyword_set(no_hak) then window, 2 
+                endelse
             endelse
         endif
 
@@ -1174,7 +1185,7 @@ for ii=0,n_elements(loop_index)-1 do begin
         print,'-----------------------------------------------------------------'
     
     
-        if keyword_set(jpl_all) then begin
+        if keyword_set(jpl_all) and not keyword_set(no_hak) then begin
             hak,/mesg
         endif
 
