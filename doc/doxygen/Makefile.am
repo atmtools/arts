@@ -31,6 +31,9 @@ doxyfied: $(toexamine)
 	doxytag -t arts.tag html
 	touch doxyfied
 
+clean:
+	rm -f doxyfied
+
 else
 
 doxyfied:
