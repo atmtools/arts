@@ -1,3 +1,24 @@
+2002-06-18  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-151
+	
+	* src/m_scatproperties.cc (abs_vecCalc): The methods
+	abs_vecCalc and ext_matCalc are implemented. The method
+	abs_vecCalc sums up the particle absorption vector and 
+	gaseous absorption vector (abs_vec_part + abs_vec_gas) 
+	and the method ext_matCalc sums up the particle extinction
+	matrix and gaseous extinction matrix (ext_mat_part + ext_mat_gas).
+
+	* src/math_funcs.cc : moved the integration routine 
+	AngIntegrate_trapezoid from scatproperties.cc to here. 
+
+	* src/methods.cc : added the methods abs_vecCalc and 
+	ext_matCalc
+
+	* src/workspace.cc : added the variables ext_mat_gas 
+	and abs_vec_gas.  The documentation for this is at present
+	bit clumsy.
+
 2002-06-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-150
