@@ -1,3 +1,14 @@
+2003-02-03  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-440
+
+	* src/m_scatrte.cc (i_fieldUpdate3D): Included *scat_lat_index* and
+	*scat_lon_index* required for optical properties calculation. Before 
+	the optical properties were only calculated for *scat_lat_index* and 
+	*scat_lon_index* equal 0.
+
+	* src/methods.cc(i_fieldUpdate3D): Modified according to correction. 
+	
 2003-02-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-439

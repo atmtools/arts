@@ -565,7 +565,8 @@ i_fieldIterate(
                         i_field, ppath_step, stokes_vec, 
                         sca_vec, a_planck_value, l_step,  
                         abs_vec_spt, ext_mat_spt, pha_mat_spt, ext_mat,
-                        abs_vec,  scat_p_index, scat_za_index, scat_aa_index,
+                        abs_vec,  scat_p_index, scat_lat_index, 
+                        scat_lon_index, scat_za_index, scat_aa_index,
                         abs_scalar_gas, a_pressure, a_temperature, a_vmr_list,
                         //Input:
                         spt_calc_agenda,
@@ -1193,6 +1194,8 @@ i_fieldUpdate3D(// WS Output:
                 Tensor3& ext_mat,
                 Matrix& abs_vec,
                 Index& scat_p_index,
+                Index& scat_lat_index,
+                Index& scat_lon_index,
                 Index& scat_za_index,
                 Index& scat_aa_index,
                 Matrix& abs_scalar_gas,
@@ -1418,6 +1421,8 @@ i_fieldUpdate3D(// WS Output:
                       // Calculate total ext_mat and abs_vec.
                       // The required workspace variable is scat_p_index.
                       scat_p_index = p_index; 
+                      scat_lat_index = lat_index;
+                      scat_lon_index = lon_index;
           
                       // Execute agendas silently, only the first call is
                       // output on the screen (no other reason for argument 
