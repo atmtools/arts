@@ -12,3 +12,4 @@ config.h
 config.h.in
 stamp-h
 stamp-h.in
+make_wsv_group_h
