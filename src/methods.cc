@@ -3243,8 +3243,8 @@ md_data.push_back
            "For each parameter a do flag has to be specified.\n"
           "\n"
           "Keywords \n"
-	  "do_intens: Flag for calculating the weighting function for 
-           the intensity do_intens=1. \n" 
+	  "do_intens: Flag for calculating the weighting function for"
+           "the intensity do_intens=1. \n" 
 	  "do_position: flag for line possition. \n"
 	  "do_agam: flag for agam. \n"
 	  "do_sgam: flag for sgam. \n" 
