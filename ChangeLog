@@ -1,3 +1,16 @@
+2003-03-18  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-500
+
+	* src/matpack{III,IV,V,VI,VII}.h: Removed inline keyword from copy
+	function declarations. Because they are implemented in the cc file,
+	they could not be inlined which leads to linker errors with -O3 and
+	higher.
+
+	* src/bofstream.cc: Removed output operator template.
+	
+	* src/refraction.cc: Added cmath include.
+
 2003-03-17  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-499
