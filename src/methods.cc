@@ -2151,7 +2151,7 @@ void define_md_data()
           "the center frequency for a specific line f0. A cutoff frequency must also be\n"
           "specified for each of the tags in  order to restrict the calculation within\n" 
           "a desired region or not, when there's no such region.\n"
-          "   The general lineshape profile is given by keywords  shape,\n"
+          "   The general lineshape profile is given by the keyword shape,\n"
           "while the normalization factor and the cutoff frequency by\n"
           "normalizationfactor and cutoff respectively.\n"
           "\n"
