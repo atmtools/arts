@@ -1474,7 +1474,6 @@ void AtmFromRaw1D(// WS Output:
 	if ( (tag_name == "liquidcloud") || (tag_name == "icecloud") )
 	  {
 	    // Interpolate linearly the cloud profiles
-	    cout << " Interpolate linearly the cloud profiles " << "\n";
 	    interpp_cloud( vmrs[j],
 			   p_raw,
 			   vmr_raw,

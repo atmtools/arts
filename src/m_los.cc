@@ -180,10 +180,8 @@ void los_geometric(
    See further los_geometric.
 
    \retval   z           vertical altitudes of the LOS points
-   \retval   psi         the angle in the observation plane between the vectors
-                         going from the sensor and the LOS point, respectively,
-                         to the centre of the earth geoid.angle from the sensor
-                         of the LOS points
+   \retval   psi         the angle in the observation plane between the LOS
+                         points and the lowest point of the LOS
    \retval   l_step      distance along the LOS between the points
    \param    z_plat      platform altitude
    \param    za          zentith angles
