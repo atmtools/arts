@@ -2117,9 +2117,7 @@ void ybatchMetProfiles(//Output
       cout<<lat_os.str()<<endl;
       cout<<lon_os.str()<<endl;
 
-      z_ground(0,0) = oro_height[i];
-      cout<<"z_ground"<<z_ground<<endl;
-      sat_za = sat_za_from_profile[i];
+       sat_za = sat_za_from_profile[i];
       
       //sensor_los(Range(joker),0) = 
       //	180.0 - (asin(r_geoid(0,0) * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
@@ -2142,7 +2140,7 @@ void ybatchMetProfiles(//Output
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
        			 vmr_field_h2o);
      
-      xml_read_from_file("/freax/storage/users/rekha/uk_data/profiles/size500/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd500.xml", 
+      xml_read_from_file("/freax/storage/users/rekha/uk_data/profiles/size200/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd200.xml", 
        		 pnd_field_here);
       cout << "--------------------------------------------------------------------------"<<endl;
       cout << "The file" << met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()<< "is executed now"<<endl;
@@ -2151,6 +2149,8 @@ void ybatchMetProfiles(//Output
       // the first element of the species is water vapour. 
  
       // N_p is the number of elements in the pressure grid
+      
+      z_ground(0,0) = z_field_raw[3](0,0,0);
 
       Index N_p = t_field_raw[0].npages();
        
@@ -2209,7 +2209,7 @@ void ybatchMetProfiles(//Output
 		      "p_grid", 
 		      t_field_raw[0](0,0,0), 
 		      t_field_raw[0](N_p -1,0,0), 
-		      100);
+		      nelem_p_grid);
       cout<<"t_field_raw[0](0,0,0)"<<t_field_raw[0](0,0,0)<<endl;
       cout<<"t_field_raw[0](N_p -1,0,0)"<<t_field_raw[0](N_p -1,0,0)<<endl;
       xml_write_to_file("p_grid.xml", p_grid);
@@ -2267,5 +2267,201 @@ void ybatchMetProfiles(//Output
       //putting in the spectra *y* for each profile
       ybatch(i, Range(joker)) = y;
 
+    }// closing the loop over profile basenames
+}
+
+//! The function does a batch calculation for metoffice fields.
+/*!
+  This method is used for simulating ARTS for metoffice model field
+  This method loops over *met_profile_basenames* which contains the
+  basenames of the metoffice profile files as an ArrayOfString.
+  Corresponding to each basename we have temperature field, altitude
+  field, humidity field and particle number density field.  The
+  temperature field and altitude field are stored in the same dimensions
+  as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are
+  set to constant values of 0.209 and 0.782, respectively and are used
+  along with humidity field to generate *vmr_field_raw*.  
+  
+  The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are
+  given as input to *met_profile_calc_agenda* which is called in this
+  method.  See documentation of WSM *met_profile_calc_agenda* for more
+  information on this agenda
+
+\param t_field_raw temperature field
+\param z_field_raw altitude field
+\param vmr_field_raw VMR field
+\param pnd_field_raw particle number density field
+\param pnd_field particle number density field
+\param y spectra
+\param part_types particle types
+\param met_profile_basenames the string containg the basenames of profiles
+\param met_profile_calc_agenda agenda for absorption calculation and RT methods
+\param p_grid pressure grid
+\param f_grid frequency grid
+
+  \author Sreerekha T.R.
+  \date 2003-04-17
+*/
+void ybatchMetProfilesClear(//Output
+			     Matrix& ybatch,
+			     ArrayOfTensor3& t_field_raw,
+			     ArrayOfTensor3& z_field_raw,
+			     ArrayOfArrayOfTensor3& vmr_field_raw,
+			     Vector& y,
+			     Vector& p_grid,
+			     Matrix& sensor_los,
+			     Matrix& z_ground,
+			     //Input
+			     const ArrayOfArrayOfSpeciesTag& gas_species,
+			     const String& met_profile_path,
+			     const Agenda& met_profile_calc_agenda,
+			     const Vector& f_grid,
+			     const Matrix& met_amsu_data,
+			     const Matrix& sensor_pos,
+			     const Matrix& r_geoid,
+			     //Keyword
+			     const Index& nelem_p_grid)
+{
+  Index no_profiles = met_amsu_data.nrows();
+  //Index no_profiles = met_profile_basenames.nelem();
+  // The humidity data is stored as  an ArrayOfTensor3 whereas
+  // vmr_field_raw is an ArrayOfArrayOfTensor3
+  ArrayOfTensor3 vmr_field_h2o;
+  
+  vmr_field_raw.resize(gas_species.nelem());
+  
+  for (Index i = 0; i < gas_species.nelem(); ++ i)
+    {
+      vmr_field_raw[i].resize(4);
+    }
+  
+  y.resize(f_grid.nelem());
+  ybatch.resize(no_profiles, f_grid.nelem());
+  
+  Vector sat_za_from_profile;
+  sat_za_from_profile = met_amsu_data(Range(joker),3);
+  Numeric sat_za;
+  
+  sensor_los.resize(1,1);
+    
+  Vector lat, lon;
+  lat = met_amsu_data(Range(joker),0);
+  lon = met_amsu_data(Range(joker),1);
+
+  Vector oro_height;
+  oro_height = met_amsu_data(Range(joker),5);
+  
+  z_ground.resize(1,1);
+  for (Index i = 0; i < no_profiles; ++ i)
+    {
+      ostringstream lat_os, lon_os;
+
+      Index lat_prec = 3;
+      if(lat[i] < 0) lat_prec--;
+      if(abs(lat[i])>=10 )
+	{
+	  lat_prec--;
+	  if(abs(lat[i])>=100 ) lat_prec--;
+	}
+
+      lat_os.setf (ios::showpoint | ios::fixed);
+      lat_os << setprecision(lat_prec) << lat[i];
+      
+      Index lon_prec = 4;
+      if(lon[i] < 0) lon_prec--;
+      if(abs(lon[i])>=10 )
+	{
+	  lon_prec--;
+	  if(abs(lon[i])>=100 ) lon_prec--;
+	}
+      lon_os.setf (ios::showpoint | ios::fixed);
+      lon_os << setprecision(lon_prec) << lon[i];
+      cout<<lat_os.str()<<endl;
+      cout<<lon_os.str()<<endl;
+
+      
+      sat_za = sat_za_from_profile[i];
+      
+      //sensor_los(Range(joker),0) = 
+      //	180.0 - (asin(r_geoid(0,0) * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
+      sensor_los(Range(joker),0) = 
+      	180.0 - (asin(r_geoid(0,0) * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
+      cout<<"sensor_los"<<sat_za_from_profile[i]<<endl;
+      cout<<"sensor_los"<<sat_za<<endl;
+      cout<<"sensor_los"<<sensor_los<<endl;
+      //Reads the t_field_raw from file
+      
+      xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".t.xml",
+			 t_field_raw);
+      //Reads the z_field_raw from file
+      xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()  + ".z.xml",
+			 z_field_raw);
+      
+      //Reads the humidity from file - it is only an ArrayofTensor3
+      // The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
+      // array is for species
+      xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
+      		 vmr_field_h2o);
+      //xml_read_from_file("/home/home01/rekha/uk/profiles/sat_vmr/profile.lat_"+lat_os.str()//+".lon_"+lon_os.str() + ".H2O_es.xml", vmr_field_h2o);
+      
+      cout << "--------------------------------------------------------------------------"<<endl;
+      cout << "The file" << met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()<< "is executed now"<<endl;
+      cout << "--------------------------------------------------------------------------"<<endl; 
+      xml_write_to_file("profile_number.xml",  i);
+      // the first element of the species is water vapour. 
+      
+      // N_p is the number of elements in the pressure grid
+      //z_ground(0,0) = oro_height[i]+ 0.01;
+      z_ground(0,0) = z_field_raw[3](0,0,0);
+      cout<<"z_ground"<<z_ground<<endl;
+      Index N_p = t_field_raw[0].npages();
+      
+      vmr_field_raw[0] = vmr_field_h2o;
+      
+      // the second element of the species.  the first 3 Tensors in the
+      //array are the same .  They are pressure grid, latitude grid and
+      // longitude grid.  The third tensor which is the vmr is set to a 
+      // constant value of 0.782.
+      vmr_field_raw[1][3].resize(vmr_field_raw[0][0].npages(),
+				 vmr_field_raw[0][1].nrows(),
+				 vmr_field_raw[0][2].ncols());
+      vmr_field_raw[1][0] = vmr_field_raw[0][0];
+      vmr_field_raw[1][1] = vmr_field_raw[0][1];
+      vmr_field_raw[1][2] = vmr_field_raw[0][2];
+      vmr_field_raw[1][3](joker, joker, joker) = 0.782;
+      
+      // the second element of the species.  the first 3 Tensors in the
+      //array are the same .  They are pressure grid, latitude grid and
+      // longitude grid.  The third tensor which is the vmr is set to a 
+      // constant value of 0.209.
+      vmr_field_raw[2][3].resize(vmr_field_raw[0][0].npages(),
+				 vmr_field_raw[0][1].nrows(),
+				 vmr_field_raw[0][2].ncols());
+      vmr_field_raw[2][0] = vmr_field_raw[0][0];
+      vmr_field_raw[2][1] = vmr_field_raw[0][1];
+      vmr_field_raw[2][2] = vmr_field_raw[0][2];
+      vmr_field_raw[2][3] (joker, joker, joker) = 0.209;
+      
+      //xml_write_to_file(met_profile_basenames[i]+ ".N2.xml", vmr_field_raw[1]);
+      //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);
+     
+      //Making a p_grid with the first and last element taken from the profile.
+      // this is because of the extrapolation problem.
+      
+      VectorNLogSpace(p_grid, 
+		      "p_grid", 
+		      t_field_raw[0](0,0,0), 
+		      t_field_raw[0](N_p -1,0,0), 
+		      nelem_p_grid);
+      cout<<"t_field_raw[0](0,0,0)"<<t_field_raw[0](0,0,0)<<endl;
+      cout<<"t_field_raw[0](N_p -1,0,0)"<<t_field_raw[0](N_p -1,0,0)<<endl;
+      xml_write_to_file("p_grid.xml", p_grid);
+
+      // executing the met_profile_calc_agenda
+      met_profile_calc_agenda.execute();
+      
+      //putting in the spectra *y* for each profile
+      ybatch(i, Range(joker)) = y;
+      
     }// closing the loop over profile basenames
 }

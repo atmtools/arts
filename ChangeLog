@@ -1,3 +1,15 @@
+2003-06-11  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-568
+	
+	* src/m_cloudbox.cc (ybatchMetProfilesClear): A distinction was
+	made when the clear-sky calculations are performed with the
+	met-office profiles.  The difference with the *ybatchMetProfiles*
+	method is that, here the pnd_field file is not read and the
+	cloudbox is not set.  
+
+	* src/methods.cc: Added the method *ybatchMetProfilesClear*.
+	
 2003-06-10  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
 
 	* arts-1-1-567

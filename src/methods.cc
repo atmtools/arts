@@ -4003,6 +4003,43 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ybatchMetProfilesClear" ),
+        DESCRIPTION
+        (
+         "This method is used for simulating ARTS for metoffice model fields\n"
+	 "for clear sky conditions.\n"
+         "\n"
+	 "This method reads in *met_amsu_data* which contains the\n"
+	 "lat-lon of the metoffice profile files as a Matrix. It then \n"
+	 "loops over the number of profiles and corresponding to each \n"
+	 "longitude create the appropriate profile basename. Then, \n"
+	 "Corresponding to each basename we have temperature field, altitude\n"
+	 "field, humidity field and particle number density field.  The\n"
+	 "temperature field and altitude field are stored in the same dimensions\n"
+	 "as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are\n"
+	 "set to constant values of 0.209 and 0.782, respectively and are used\n"
+	 "along with humidity field to generate *vmr_field_raw*.  \n"
+	 "\n"
+	 "The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are\n"
+	 "given as input to *met_profile_calc_agenda* which is called in this\n"
+	 "method.  See documentation of WSM *met_profile_calc_agenda* for more\n"
+	 "information on this agenda.  \n"
+	 "\n"
+	 "The method also converts satellite zenith angle to appropriate \n"
+	 "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
+	 "from the profiles inside the function\n"
+	 ),
+        OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
+		 y_, p_grid_, sensor_los_, z_ground_),
+        INPUT(gas_species_, met_profile_path_, met_profile_calc_agenda_, 
+	      f_grid_, met_amsu_data_, sensor_pos_, r_geoid_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("nelem_p_grid"),
+        TYPES(Index_t)));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "yNoPolarisation" ),
         DESCRIPTION
         (
