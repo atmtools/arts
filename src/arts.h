@@ -89,6 +89,8 @@
   an analytical method, which does not assume hydrostatic equilibrium, and a
   perturbation method, which does assume hydrostatic equilibrium.
 
+  <h2>Documentation</h2>
+
   You can use this HTML documentation to browse the source code. Just point
   and click, and eventually you will see the real implementation of functions
   and classes.
