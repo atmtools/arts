@@ -55,7 +55,7 @@ int main()
 
       ofstream ofs,ofs2;
       open_output_file(ofs,"auto_wsv.h");
-      open_output_file(ofs2,"wsv.txt");
+      open_output_file(ofs2,"auto_wsv.txt");
 
       ofs << "/*! \\file  auto_wsv.h\n"
 	  << "    \\brief Declares the enum type that acts as a\n"
