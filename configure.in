@@ -14,14 +14,14 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.1.28)
+AM_INIT_AUTOMAKE(arts,0.1.29)
 
 
 #
 # First of all set the default PREFIX if not given
 # (needed for arts data path later)
 #
-if test "${prefix}" = "NONE"; then
+if test x${prefix} = xNONE; then
   prefix="/usr/local"
 fi
 
@@ -85,7 +85,7 @@ AC_ARG_WITH(hdf,
     *) AC_MSG_ERROR(bad value ${withval} for --with-hdf) ;;
 esac],[ ac_hdf_support=autodetect ])
 
-if test $ac_hdf_support = no; then
+if test x$ac_hdf_support = xno; then
   ac_hdf=no
 else
   AC_CHECK_HEADER(hdf.h, ac_hdf=yes, ac_hdf=no)
@@ -95,7 +95,7 @@ else
   AC_CHECK_LIB(z, gzopen,, ac_hdf=no, -lmfhdf -ldf -ljpeg )
 fi
 
-if test $ac_hdf = yes; then
+if test x$ac_hdf = xyes; then
   AC_DEFINE_UNQUOTED(HDF_SUPPORT, , Compile with HDF support)
 fi
 
@@ -146,7 +146,7 @@ AC_ARG_WITH(arts-data,
     *) ac_arts_data=${withval};;
 esac], [ac_arts_data=default])
 
-if test $ac_arts_data = default; then
+if test x$ac_arts_data = xdefault; then
   if test "`hostname | grep smiles`"; then
     ac_arts_data="/pool/lookup2/arts-data"
   else
@@ -154,13 +154,13 @@ if test $ac_arts_data = default; then
   fi
 fi
 
-if test ! $ac_arts_data = no; then
+if test ! x$ac_arts_data = xno; then
   #
   # Simple check to see whether the arts-data package exists
   # at the given location
   #
   AC_MSG_CHECKING(for arts data in $ac_arts_data)
-  if test -d ${ac_arts_data}; then
+  if test -d "${ac_arts_data}"; then
     AC_MSG_RESULT(found)
   else
     AC_MSG_RESULT(not found)
@@ -168,7 +168,7 @@ if test ! $ac_arts_data = no; then
   fi
 
   AC_MSG_CHECKING(for atmospheric data in $ac_arts_data)
-  if test -d ${ac_arts_data}/atmosphere; then
+  if test -d "${ac_arts_data}/atmosphere"; then
     AC_MSG_RESULT(found)
   else
     AC_MSG_RESULT(not found)
@@ -183,12 +183,13 @@ if test ! $ac_arts_data = no; then
     ac_arts_data=no
   fi
 
-  if test ! $ac_arts_data = no; then
+  if test ! x$ac_arts_data = xno; then
     AM_CONDITIONAL(ARTS_DATA_PATH, test ! x$ac_arts_data = xno)
     AC_DEFINE_UNQUOTED(ARTS_DATA_PATH, "$ac_arts_data", ARTS data path)
     AC_SUBST(ac_arts_data)
   fi
 fi
+
 
 #
 # Enable/disable maintainer-mode
@@ -224,77 +225,70 @@ AC_MSG_RESULT([$ac_debug])
 # Enable/disable warnings
 #
 AC_MSG_CHECKING(whether warnings should be enabled)
-AC_ARG_ENABLE(warnings,
-[  --enable-debug   Enable warnings (default=no)],
+AC_ARG_ENABLE(more-warnings,
+[  --enable-more-warnings   Enable more warnings (default=no)],
 [case "${enableval}" in
-  yes) ac_warnings=yes ;;
-   no) ac_warnings=no ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-warnings) ;;
-esac],[ ac_warnings=no ])
-AC_MSG_RESULT([$ac_warnings])
+  yes) ac_more_warnings=yes ;;
+   no) ac_more_warnings=no ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-more-warnings) ;;
+esac],[ ac_more_warnings=no ])
+AC_MSG_RESULT([$ac_more_warnings])
 
 
 #
 # Toggle documentation
 #
+if test x$ac_maintainer_mode = xyes; then
+  ac_docgen=yes
+else
+  ac_docgen=no
+fi
 AC_MSG_CHECKING(whether documentation should be generated)
-AC_ARG_ENABLE(docs,
-[  --enable-docs              Regenerate documentation (default=no)],
-[case "${enableval}" in
-  yes) ac_docgen=yes ;;
-   no) ac_docgen=no  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-docs) ;;
-esac],[ if test $ac_maintainer_mode = yes; then ac_docgen=yes; else ac_docgen=no; fi ])
 AM_CONDITIONAL(ARTS_GENDOCS, test x$ac_docgen = xyes)
 AC_MSG_RESULT([$ac_docgen])
-
-if test $ac_maintainer_mode = yes -a $ac_docgen = no; then
-    AC_MSG_ERROR(Cannot deactivate documentation in maintainer-mode)
-fi
 
 
 #
 # Check for the required tools to build the docs
 #
-if test $ac_docgen = yes; then
+if test x$ac_docgen = xyes; then
     AC_CHECK_PROG(ac_doxygen, doxygen, yes, no)
-    if test $ac_doxygen = no; then
+    if test x$ac_doxygen = xno; then
         AC_MSG_ERROR(Doxygen is required to build the documentation - Get it from http://www.doxygen.org/)
     fi
 
     AC_CHECK_PROG(ac_latex, latex, yes, no)
-    if test $ac_latex = no; then
+    if test x$ac_latex = xno; then
         AC_MSG_ERROR(LaTeX is required to build the documentation!!!)
     fi
 
     AC_CHECK_PROG(ac_pdflatex, pdflatex, yes, no)
-    if test $ac_pdflatex = no; then
+    if test x$ac_pdflatex = xno; then
         AC_MSG_ERROR(pdfLaTeX is required to build the documentation!!!)
     fi
 
 fi
 
-if test $ac_warnings = yes; then
+if test x$ac_more_warnings = xyes; then
   WARNING_FLAGS="-W -Wall"
 else
   WARNING_FLAGS=
 fi
 
-if test $ac_maintainer_mode = yes; then
-  # Turn on debugging
+if test x$ac_maintainer_mode = xyes; then
   CFLAGS="$WARNING_FLAGS"
   CXXFLAGS="-ftemplate-depth-20 $WARNING_FLAGS"
   CXXFLAGS_FIXED="$CXXFLAGS"
 else
-  CFLAGS="$CFLAGS"
-  CXXFLAGS="$CXXFLAGS -ftemplate-depth-20"
-  CXXFLAGS_FIXED="-ftemplate-depth-20"
+  CFLAGS="$CFLAGS $WARNING_FLAGS"
+  CXXFLAGS="$CXXFLAGS -ftemplate-depth-20 $WARNING_FLAGS"
+  CXXFLAGS_FIXED="-ftemplate-depth-20 $WARNING_FLAGS"
 fi
 	
-if test $ac_debug = yes; then
+if test x$ac_debug = xyes; then
   CFLAGS="$CFLAGS -g"
   CXXFLAGS="$CXXFLAGS -g"
-  CXXFLAGS_FIXED="-ftemplate-depth-20 -g"
+  CXXFLAGS_FIXED="$CXXFLAGS_FIXED -g"
 else
   CFLAGS="$CFLAGS -DNDEBUG"
   CXXFLAGS="$CXXFLAGS -DNDEBUG"
