@@ -1,3 +1,20 @@
+2001-12-17  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-0-1-68
+
+	* Makefile.in: included the dependency for methods.cc and species_data.cc.
+
+	* src/m_batch.cc (ybatchFromRadiosondeGlobal): Created a new
+	workspace method to calculate brightness temperature for global
+	radiosonde profiles. This methid is almost similar to
+	ybatchFromRadiosonde. This is created because the pressure grid in
+	the profiles is course so that it is to be interpolated into a
+	fine grid. 
+
+		The p_abs grid is created using the first and last values
+	of pressure grids spaced logrithmically over 100 steps.
+	
+
 2001-12-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* doc/examples/fullmodels_example.arts: The O2 and N2 examples
