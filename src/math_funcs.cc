@@ -31,7 +31,6 @@
     \item First and last element of a vector
     \item Boolean functions                         
     \item Creation of common vectors                
-    \item Generation of random data
     \item Interpolation routines            
     \item Check of function input
    \end{enumerate}
@@ -111,25 +110,6 @@ bool any( const ArrayOfIndex& x )
   return false;
 }
 
-
-
-//// isbool ///////////////////////////////////////////////////////////////////
-//
-/** Checks if an integer is either 0 or 1.
-
-    \return       a boolean, true if x is either 0 or 1
-    \param    x   an integer
-
-    \author Patrick Eriksson
-    \date   2001-04-19
-*/
-bool isbool( const Index x ) 
-{
-  if ( x==0 || x==1 )
-    return true;
-  else
-    return false;
-}
 
 
 
@@ -261,145 +241,6 @@ Vector nlogspace(
   return x; 
 }                     
 
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-//   Random data
-/////////////////////////////////////////////////////////////////////////////
-
-//// rand_uniform ////////////////////////////////////////////////////
-/**
-   Creates a vector with random data uniformerly distributed between
-   the lower and higher limit given.
-
-   The random data is uncorrelated. The length of the random vector is
-   taken from r.nelem().
-
-   \retval   r          random vector
-   \param    x_low      lower limit for the random values
-   \param    x_high     upper limit for the random data
-
-   \author Patrick Eriksson
-   \date   2000-11-26
-*/
-void rand_uniform(
-		  VectorView  r,
-		  const Numeric     x_low,
-		  const Numeric     x_high )
-{
-  Numeric dx = x_high-x_low;
-
-  for ( Index i=0; i<r.nelem(); i++ )
-    r[i] = x_low + dx * (Numeric(rand())/Numeric(RAND_MAX));
-}
-
-
-//// rand_gaussian ////////////////////////////////////////////////////
-/**
-   Creates a gaussian random vector with zero mean and 
-   the standard deviation given.
-
-   The random data is uncorrelated. The length of the random vector to
-   generate is taken from r.nelem().
-
-   The algorith is taken from Numerical Recipies, Section 7.2. 
-   See www.nr.com.
-
-   \retval   r          random vector
-   \param    s          standard deviation
-
-   \author Patrick Eriksson
-   \date   2000-11-27
-*/
-void rand_gaussian(
-		   VectorView       r,
-		   const Numeric   s )
-{
-  Vector  z(2);    // A vector of length 2 with uniform PDF between -1 and 1
-  Numeric rad;     // The radius cooresponding to z
-  Numeric fac;     // Normalisation factor
- 
-  const Index n = r.nelem();
-
-  for ( Index i=0; i<n; )
-  {
-    rand_uniform( z, -1, 1 );
-    rad = z[0]*z[0] + z[1]*z[1];
-
-    if ( (rad<1) && (rad>0) )
-    {
-      fac = sqrt( -2*log(rad)/rad );
-      r[i] = s*fac*z[0];
-      i++;
-      if ( i < n )
-      {
-        r[i] = s*fac*z[1];        
-        i++;
-      }
-    }
-  }
-}
-
-//// rand_matrix_uniform ////////////////////////////////////////////////////
-/**
-   Creates a matrix with random data uniformerly distributed between
-   the lower and higher limit given.
-
-   The random data is uncorrelated.
-
-   \retval   m          random matrix
-   \param    x_low      lower limit for the random values
-   \param    x_high     upper limit for the random data
-
-   \author Patrick Eriksson
-   \date   2000-12-07
-*/
-void rand_matrix_uniform(
-			 MatrixView       m,
-			 const Numeric   x_low,
-			 const Numeric   x_high )
-{
-  for ( Index i=0; i<m.nrows(); ++i )
-  {
-    rand_uniform( m(i,Range(joker)), x_low, x_high );
-    // Matpack: m(i,Range(joker)) picks out the ith row of m. Because
-    // rand_uniform takes an argument of type VectorView, it is
-    // perfectly ok to call it with the row of a matrix. No
-    // temporaries needed!
-  }
-}
-
-
-
-//// rand_matrix_gaussian ////////////////////////////////////////////////////
-/**
-   Creates a gaussian random matrix with zero mean and 
-   the standard deviation given.
-
-   The random data is uncorrelated.
-
-   See further rand_gaussian
-
-   \retval   y          random vector
-   \param    s          standard deviation
-
-   \author Patrick Eriksson
-   \date   2000-12-07
-*/
-void rand_matrix_gaussian(
-			  MatrixView    m,
-			  const Numeric      s )
-{
-  for ( Index i=0; i<m.nrows(); ++i )
-  {
-    rand_gaussian( m(i,Range(joker)), s );
-    // Matpack: m(i,Range(joker)) picks out the ith row of m. Because
-    // rand_uniform takes an argument of type VectorView, it is
-    // perfectly ok to call it with the row of a matrix. No
-    // temporaries needed!
-  }
-}
 
 
 
@@ -568,12 +409,12 @@ Numeric interp_lin(
 
 //// check_if_bool ////////////////////////////////////////////////////////////
 //
-/** Asserts that an integer is 0 or 1.
+/** Checks if an integer is 0 or 1.
 
     A runtime error is thrown if the integer is not a boolean.
 
     \param    x        an integer
-    \param    x_name   the name of the integer (in upper case letters)
+    \param    x_name   the name of the integer
 
     \author Patrick Eriksson
     \date   2001-09-19
@@ -583,8 +424,40 @@ void check_if_bool( const Index& x, const String& x_name )
   if ( !(x==0 || x==1) )
   {
     ostringstream os;
-    os << "The boolean " << x_name <<  " must either be 0 or 1.\n" 
-       << "The present value of "<< x_name <<  " is " << x << ".";
+    os << "The boolean *" << x_name <<  "* must either be 0 or 1.\n" 
+       << "The present value of *"<< x_name <<  "* is " << x << ".";
+    throw runtime_error( os.str() );
+  }
+}
+
+
+
+//// check_if_in_range ////////////////////////////////////////////////////////
+//
+/** Checks if a numeric variable is inside a specified range.
+
+    A runtime error is thrown if the variable is outside the range.
+
+    \param    x_low    lower limit
+    \param    x_high   upper limit
+    \param    x        a numeric
+    \param    x_name   the name of the numeric
+
+    \author Patrick Eriksson
+    \date   2001-09-26
+*/
+void check_if_in_range( 
+   const Numeric& x_low, 
+   const Numeric& x_high, 
+   const Numeric& x, 
+   const String&  x_name ) 
+{
+  if ( (x<x_low) || (x>x_high) )
+  {
+    ostringstream os;
+    os << "The variable *" << x_name <<  "* must fulfill:\n"
+       << "   " << x_low << " <= " << x_name << " <= " << x_high << "\n" 
+       << "The present value of *"<< x_name <<  "* is " << x << ".";
     throw runtime_error( os.str() );
   }
 }
@@ -593,14 +466,14 @@ void check_if_bool( const Index& x, const String& x_name )
 
 //// check_lengths (vector-vector) ///////////////////////////////////////////
 //
-/** Asserts that two vectors have the same length
+/** Checks that two vectors have the same length
 
-    A runtime error is thrown if the lengths of the vector differ.
+    A runtime error is thrown if the lengths of the vectors differ.
 
     \param    x1        vector 1
-    \param    x1_name   the name of vector1 (in upper case letters)
+    \param    x1_name   the name of vector1
     \param    x2        vector 2
-    \param    x2_name   the name of vector2 (in upper case letters)
+    \param    x2_name   the name of vector2
 
     \author Patrick Eriksson
     \date   2001-09-19
@@ -611,7 +484,7 @@ void check_lengths( const Vector& x1, const String& x1_name,
   if ( x1.nelem() != x2.nelem() )
   {
     ostringstream os;
-    os << "The vectors " << x1_name <<  " and " << x2_name << "\n"
+    os << "The vectors *" << x1_name <<  "* and *" << x2_name << "*\n"
        << "must have the same lengths. \nThe lengths are: \n"
        << x1_name << ": " << x1.nelem() << "\n"
        << x2_name << ": " << x2.nelem() << "\n";
@@ -623,16 +496,16 @@ void check_lengths( const Vector& x1, const String& x1_name,
 
 //// check_length_nrow  /////////////////////////////////////////////////////
 //
-/** Asserts that the length of a vector and the number of rows of a matrix
+/** Checks that the length of a vector and the number of rows of a matrix
     match.
 
-    A runtime error is thrown if the length of the vector differs from
+    A runtime error is thrown if the length of the vectors differs from
     the number of rows.
 
     \param    x        a vector
-    \param    x_name   the name of the vector (in upper case letters)
+    \param    x_name   the name of the vector
     \param    A        a matrix
-    \param    A_name   the name of the matrix (in upper case letters)
+    \param    A_name   the name of the matrix
 
     \author Patrick Eriksson
     \date   2001-09-19
@@ -643,10 +516,11 @@ void check_length_nrow( const Vector& x, const String& x_name,
   if ( x.nelem() != A.nrows() )
   {
     ostringstream os;
-    os << "The length of vector " << x_name <<  " must be the same as \n"
-       << "the number of rows of " << A_name << ".\n"
-       << "The length of " << x_name <<  " is " << x.nelem() << ".\n"
-       << "The number of rows of " << A_name <<  " is " << A.nrows() << ".\n";
+    os << "The length of vector *" << x_name <<  *" must be the same as \n"
+       << "the number of rows of *" << A_name << "*.\n"
+       << "The length of *" << x_name <<  "* is " << x.nelem() << ".\n"
+       << "The number of rows of *" << A_name <<  "* is " << A.nrows() 
+       << ".\n";
     throw runtime_error( os.str() );
   }
 }
@@ -655,16 +529,16 @@ void check_length_nrow( const Vector& x, const String& x_name,
 
 //// check_length_ncol  /////////////////////////////////////////////////////
 //
-/** Asserts that the length of a vector and the number of columns of a matrix
+/** Checkss that the length of a vector and the number of columns of a matrix
     match.
 
-    A runtime error is thrown if the length of the vector differs from
+    A runtime error is thrown if the length of the vectors differs from
     the number of columns.
 
     \param    x        a vector
-    \param    x_name   the name of the vector (in upper case letters)
+    \param    x_name   the name of the vector
     \param    A        a matrix
-    \param    A_name   the name of the matrix (in upper case letters)
+    \param    A_name   the name of the matrix
 
     \author Patrick Eriksson
     \date   2001-09-19
@@ -675,10 +549,10 @@ void check_length_ncol( const Vector& x, const String& x_name,
   if ( x.nelem() != A.ncols() )
   {
     ostringstream os;
-    os << "The length of vector " << x_name <<  " must be the same as \n"
-       << "the number of columns of " << A_name << ".\n"
-       << "The length of " << x_name <<  " is " << x.nelem() << ".\n"
-       << "The number of columns of " << A_name <<  " is " << A.ncols()
+    os << "The length of vector *" << x_name <<  "* must be the same as \n"
+       << "the number of columns of *" << A_name << "*.\n"
+       << "The length of *" << x_name <<  "* is " << x.nelem() << ".\n"
+       << "The number of columns of *" << A_name <<  "* is " << A.ncols()
        << ".\n";
     throw runtime_error( os.str() );
   }

@@ -17,6 +17,7 @@ make_auto_wsv_pointers_cc
 auto_md.h
 auto_md.cc
 auto_wsv.h
+auto_wsv.txt
 auto_wsv_groups.h
 auto_wsv_pointers.cc
 test_matpack

@@ -88,4 +88,4 @@ PE 2001-09-26:  Change batchname to be a keyword input to ybatchCalc when
 
 PE 2001-09-26:  Go through workspace.cc (I have done this for "my" variables).
 
-PE 2001-09-26:  Shall the few remaining rand functions be removed?
+PE 2001-09-26:  The WSV h20_abs, n2_abs ... shall be removed.

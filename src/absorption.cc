@@ -2041,7 +2041,7 @@ void xsec_species( MatrixView               xsec,
 //======================================================================
 
 
-//// refr_indexBoudourisDryAir ///////////////////////////////////////////////
+//// refr_index_BoudourisDryAir ///////////////////////////////////////////////
 /**
    Calculates the refractive index for dry air at microwave frequncies 
    following Boudouris 1963.
@@ -2057,7 +2057,7 @@ void xsec_species( MatrixView               xsec,
    \author Patrick Eriksson
    \date   2001-02-16
 */
-void refr_indexBoudourisDryAir (
+void refr_index_BoudourisDryAir (
 				Vector&   refr_index,
 				ConstVectorView   p_abs,
 				ConstVectorView   t_abs )
@@ -2074,7 +2074,7 @@ void refr_indexBoudourisDryAir (
 
 
 
-//// refr_indexBoudouris ///////////////////////////////////////////////
+//// refr_index_Boudouris ///////////////////////////////////////////////
 /**
    Calculates the refractive index at microwave frequncies 
    following Boudouris 1963.
@@ -2089,7 +2089,7 @@ void refr_indexBoudourisDryAir (
    \author Patrick Eriksson
    \date   2001-02-16
 */
-void refr_indexBoudouris (
+void refr_index_Boudouris (
 			  Vector&   refr_index,
 			  ConstVectorView   p_abs,
 			  ConstVectorView   t_abs,

@@ -1861,8 +1861,7 @@ void absloswfsCalc (
               const Vector&          e_ground,
               const Numeric&         t_ground )
 {
-  if ( !isbool( emission ) )  
-    throw runtime_error("The emission flag must either be 0 or 1.");
+  check_if_bool( emission, "emission" );                                      
 
   if ( emission == 0 )
     absloswfs_tau ( absloswfs, los, f_mono );
@@ -1888,31 +1887,6 @@ void absloswfsCalc (
       }
     }
   }
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2001-03-30
-*/
-void absloswfsTau (
-                    ArrayOfMatrix&   absloswfs,
-	      const Index&             emission,
-	      const Los&             los,
-              const Vector&          f_mono )
-{
-  if ( !isbool( emission ) )  
-    throw runtime_error("The emission flag must either be 0 or 1.");
-
-  if ( emission != 0 )
-    throw runtime_error(
-     "The function absloswfsTau can only be used when emission is neglected.");
-
-  absloswfs_tau ( absloswfs, los, f_mono );
-
 }
 
 
@@ -2418,8 +2392,7 @@ void kPointingOffSet(
               const Vector&          y,
               const Numeric&         delta )
 {
-  if ( !isbool( emission ) )  
-    throw runtime_error("The emission flag must either be 0 or 1.");
+  check_if_bool( emission, "emission" );                                      
 
   // Create new zenith angle grid
   //  const Index  nza = za_pencil.nelem();
@@ -2495,11 +2468,8 @@ void kEground(
               const ArrayOfMatrix&   trans,
               const Index&           single_e )
 {
-  if ( !isbool( emission ) )  
-    throw runtime_error("The variable EMISSION must either be 0 or 1.");
-
-  if ( !isbool( single_e ) )  
-    throw runtime_error("The variable SINGLE_E must either be 0 or 1.");
+  check_if_bool( emission, "emission" );                                      
+  check_if_bool( emission, "single_e" );                                      
 
   // If single_e, check that all values of e are identical
 

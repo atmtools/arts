@@ -1,3 +1,21 @@
+2001-09-27  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-237
+
+	* Revised the following parts: refraction, ground, emission, and hse.
+	Improved on-line information and more checks of input.
+
+	* Moved everything connected generation of random data to a file
+	called rand.old. The random functions are not used now. As I don't
+	like to have larger pieces of old code hanging around (even if 
+	commented out), I moved it to a special file. Maybe not the best
+	solution, but what to do?
+
+	* Removed special functions for transmission calcultions (xxxTau).
+	I did this as there is no cost to call sourceCalc when emission=0
+	(source is set to be empty).
+	
+
 2001-09-26  Nikolay Koulev  <nkoulev@uni-bremen.de>
 	
 	* arts-0-0-236

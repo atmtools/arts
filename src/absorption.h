@@ -1048,13 +1048,13 @@ Numeric wavenumber_to_joule(Numeric e);
 //             Functions related to refraction
 //======================================================================
 
-void refr_indexBoudourisDryAir (
-                    Vector&   refr_index,
+void refr_index_BoudourisDryAir (
+                    Vector&     refr_index,
               ConstVectorView   p_abs,
 	      ConstVectorView   t_abs );
 
-void refr_indexBoudouris (
-                    Vector&   refr_index,
+void refr_index_Boudouris (
+                    Vector&     refr_index,
               ConstVectorView   p_abs,
               ConstVectorView   t_abs,
 	      ConstVectorView   h2o_abs );

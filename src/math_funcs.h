@@ -66,8 +66,6 @@ Numeric last( ConstVectorView x );
 
 bool any( const ArrayOfIndex& x ); 
 
-bool isbool( const Index x );
-
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -109,30 +107,6 @@ Vector nlogspace(
 
 
 
-/////////////////////////////////////////////////////////////////////////////
-//   Random data
-/////////////////////////////////////////////////////////////////////////////
-
-void rand_uniform(
-		  VectorView r,
-		  const Numeric    x_low,
-		  const Numeric    x_high );
-
-void rand_gaussian(
-		   VectorView r,
-		   const Numeric    s );
-
-void rand_matrix_uniform(
-			 MatrixView m,
-			 const Numeric   x_low,
-			 const Numeric   x_high );
-
-void rand_matrix_gaussian(
-			  MatrixView r,
-			  const Numeric    s );
-
-
-
 ////////////////////////////////////////////////////////////////////////////
 //   Interpolation routines
 ////////////////////////////////////////////////////////////////////////////
@@ -160,6 +134,12 @@ Numeric interp_lin(
 /////////////////////////////////////////////////////////////////////////////
 
 void check_if_bool( const Index& x, const String& x_name );
+
+void check_if_in_range( 
+   const Numeric& x_low, 
+   const Numeric& x_high, 
+   const Numeric& x, 
+   const String&  x_name );
 
 void check_lengths( const Vector& x1, const String& x1_name,
                      const Vector& x2, const String& x2_name );

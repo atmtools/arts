@@ -1403,7 +1403,7 @@ void hseSet(
     const Numeric&   pref,
     const Numeric&   zref,
     const Numeric&   g0,
-    const Index&       niter )
+    const Index&     niter )
 {
   hse.resize( 5 );
   
@@ -1449,7 +1449,7 @@ void hseOff(
 
 
 
-// Algorithm based on equation from my (PE) thesis (page 274) and the book
+// Algorithm based on equations from my (PE) thesis (page 274) and the book
 // Meteorology today for scientists and engineers by R.B. Stull (pages 9-10). 
 //
 /**
@@ -1466,15 +1466,13 @@ void hseCalc(
     const Numeric&   r_geoid,   
     const Vector&    hse )
 {
-  if ( !isbool( static_cast<Index>(hse[0]) ) )  
-    throw runtime_error(
-        "The HSE flag (first element of hse) must either be 0 or 1.");
+  check_if_bool( static_cast<Index>(hse[0]), 
+                                        "the HSE flag (first element of hse)");
   
   if ( hse[0] )
   {
     if ( hse.nelem() != 5 )
-    throw runtime_error(
-        "The length of the hse vector must be 5.");
+      throw runtime_error("The length of the *hse* vector must be 5.");
 
     const Index   np = p_abs.nelem();
 	  Index   i;                     // altitude index
@@ -1490,9 +1488,8 @@ void hseCalc(
     const Numeric   g0    = hse[3];
     const Index     niter = Index( hse[4] );
   
-    if ( (z_abs.nelem()!=np) || (t_abs.nelem()!=np) || (h2o_abs.nelem()!=np) )
-      throw runtime_error(
-                         "The input vectors do not all have the same length.");
+    check_lengths( z_abs, "z_abs", t_abs, "t_abs" );  
+    check_lengths( z_abs, "z_abs", h2o_abs, "h2o_abs" );  
     if ( niter < 1 )
       throw runtime_error("The number of iterations must be > 0.");
   
@@ -1525,8 +1522,7 @@ void hseCalc(
 
       //  z_abs = ztmp - dz;
       z_abs = ztmp;
-      z_abs -= dz;		// Note the new Matpack operations =
-				// and -=
+      z_abs -= dz;		
     }
   }
 }
@@ -2288,15 +2284,14 @@ void abs_per_tgReduce(// WS Output:
    \date   2001-04-19
 */
 void refrSet( 
-              Index&      refr,
-              Index&      refr_lfac,
+              Index&    refr,
+              Index&    refr_lfac,
               String&   refr_model,
-        const Index&      on,
+        const Index&    on,
         const String&   model,
-        const Index&      lfac )
+        const Index&    lfac )
 {
-  if ( !isbool( on ) )  
-    throw runtime_error("The on/off flag must either be 0 or 1.");
+  check_if_bool( on, "on" );
   if ( lfac < 1 )
     throw runtime_error("The length factor cannot be smaller than 1.");      
 
@@ -2314,8 +2309,8 @@ void refrSet(
    \date   2001-01-22
 */
 void refrOff( 
-              Index&      refr,
-              Index&      refr_lfac,
+              Index&    refr,
+              Index&    refr_lfac,
               String&   refr_model )
 {
   refrSet( refr, refr_lfac, refr_model, 0, "", 1 );
@@ -2335,11 +2330,10 @@ void refrCalc (
               const Vector&   p_abs,
               const Vector&   t_abs,
               const Vector&   h2o_abs,
-              const Index&      refr,
+              const Index&    refr,
               const String&   refr_model )
 {
-  if ( !isbool( refr ) )  
-    throw runtime_error("The refraction flag must either be 0 or 1.");
+  check_if_bool( refr, "refr" );
 
   if ( refr == 0 )
     refr_index.resize( 0 );
@@ -2348,22 +2342,25 @@ void refrCalc (
   {
     if ( refr_model == "Unity" )
     {
-      cout << "DOING Unity \n";
       const Index n = p_abs.nelem();
       refr_index.resize( n );
-      refr_index = 1.0;		// Matpack can set all elements like this.
+      refr_index = 1.0;
     }
     
     else if ( refr_model == "Boudouris" )
-      refr_indexBoudouris( refr_index, p_abs, t_abs, h2o_abs );
+      refr_index_Boudouris( refr_index, p_abs, t_abs, h2o_abs );
 
     else if ( refr_model == "BoudourisDryAir" )
-      refr_indexBoudourisDryAir( refr_index, p_abs, t_abs );
+      refr_index_BoudourisDryAir( refr_index, p_abs, t_abs );
 
     else
     {
       ostringstream os;
-      os << "Unknown refraction model: " << refr_model;
+      os << "Unknown refraction parameterization: " << refr_model << "\n"
+         << "Existing parameterizations are: \n"
+         << "Unity\n"
+         << "Boudouris\n"
+         << "BoudourisDryAir";
       throw runtime_error(os.str());
     }
   }

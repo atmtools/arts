@@ -746,9 +746,9 @@ void y_tau (
 {
   // Some variables
   const Index   n=los.start.nelem();    // Number of zenith angles 
-  const Index   nf=trans[0].nrows();   // Number of frequencies 
-        Index   iy, iy0=0;             // Index for output vector
-        Vector   y_tmp;                 // Temporary storage for spectra
+  const Index   nf=trans[0].nrows();    // Number of frequencies 
+        Index   iy, iy0=0;              // Index for output vector
+        Vector  y_tmp;                  // Temporary storage for spectra
 
   out2 << "  Calculating optical thicknesses.\n";
 
@@ -819,6 +819,9 @@ void r_geoidWGS84(
         const Numeric&   latitude,
         const Numeric&   obsdirection )
 {
+  check_if_in_range( -90, 90, latitude, "latitude" );
+  check_if_in_range( -360, 360, obsdirection, "obsdirection" );
+
   const Numeric rq = 6378.138e3, rp = 6356.752e3;
         Numeric a, b, rns, rew;
 
@@ -853,10 +856,11 @@ void groundSet(
 	const Numeric&   z,
 	const Numeric&   e )
 {
+  check_if_in_range( 0, 1, e, "e" );
   z_ground = z;
   t_ground = interpz( p_abs, z_abs, t_abs, z );
   e_ground.resize( f_mono.nelem() );
-  e_ground = e;			// Matpack can set all elements like this.
+  e_ground = e;		
 }
 
 
@@ -876,6 +880,7 @@ void groundAtBottom(
         const Vector&    f_mono,
 	const Numeric&   e )
 {
+  check_if_in_range( 0, 1, e, "e" );
   z_ground = z_abs[0];
   t_ground = t_abs[0];
   e_ground.resize( f_mono.nelem() );
@@ -931,74 +936,6 @@ void emissionOff( Index&   emission )
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
-   \author Carlos Jimenez
-   \date   2000-03-27
-*/
-void zaFromZtan(
-        // WS Goutput
-              Vector&       za,
-        const String&       za_name,
-	 // WS input
-	const Vector&       z_tan,
-        const Numeric&      z_plat,
-        const Vector&       p_abs,
-        const Vector&       z_abs,
-	const Index&          refr,
-	const Vector&       refr_index,
-	const Numeric&      r_geoid,
-        const Numeric&      z_ground )
-{
-
-  
-  const Numeric atm_limit = last(z_abs);
-  const Index         nz = z_tan.nelem();
-
-  za.resize(nz);
-
-  for (Index i=0; i<nz; i++)
-  {
-
-    if (za[i]>z_plat)
-      throw runtime_error(
-        "Tangent altitude larger than the platform altitude");      
-
-    // No refraction
-
-    if (!refr)    
-       za[i] = 90 + RAD2DEG*acos ( (r_geoid + z_tan[i]) / (r_geoid + z_plat) );
- 
-    // Refraction
-
-    else
-    {
-      Numeric nz_plat =  n_for_z(z_plat,p_abs,z_abs,refr_index,atm_limit);  
-      if (z_tan[i]>=0)
-        { 
-	// Calculating constant
-        Numeric nza =  n_for_z(z_tan[i],p_abs,z_abs,refr_index,atm_limit);
-        Numeric c   = (r_geoid + z_tan[i]) * nza;
-        za[i]       =  180 - RAD2DEG * asin( c / nz_plat / (r_geoid + z_plat));
-        }
-      else
-        {
-	// inside the Earth, looking for hitting point
-	Numeric ze  = RAD2DEG * acos((r_geoid + z_tan[i]) / r_geoid);
-        // from hitting point to platform
-        Numeric nze =  n_for_z(z_ground,p_abs,z_abs,refr_index,atm_limit);
-        Numeric c   =  r_geoid * sin(DEG2RAD * (90-ze)) * nze;
-        za[i]       =  180 - RAD2DEG * asin( c / nz_plat / (r_geoid + z_plat));
-     
-        } 
-    }  
-
-  }
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
    \author Patrick Eriksson
    \date   2001-02-15
 */
@@ -1009,17 +946,16 @@ void losCalc(       Los&        los,
               const Numeric&    l_step,
               const Vector&     p_abs,
               const Vector&     z_abs,
-              const Index&        refr,
-              const Index&        refr_lfac,
+              const Index&      refr,
+              const Index&      refr_lfac,
               const Vector&     refr_index,
               const Numeric&    z_ground,
               const Numeric&    r_geoid )
 {     
   Index   n = za.nelem();  // number of zenith angles
 
-  // Some checks                                                      
-  if ( !isbool( refr ) )  
-    throw runtime_error("The refraction flag must either be 0 or 1.");
+  // Some checks                
+  check_if_bool( refr, "refr" );                                      
   if ( z_ground < z_abs[0] )
     throw runtime_error(
       "There is a gap between the ground and the lowest absorption altitude.");
@@ -1031,7 +967,7 @@ void losCalc(       Los&        los,
   if ( refr && ( p_abs.nelem() != refr_index.nelem() ) )
     throw runtime_error(
       "Refraction is turned on, but the length of refr_index does not match\n"
-      "the length of p_abs. Are dummy vales used?.");
+      "the length of p_abs. Are dummy vales used?");
   if ( refr && ( refr_lfac < 1 ) )
     throw runtime_error(
       "Refraction is turned on, but the refraction length factor is < 1. \n"
@@ -1052,8 +988,6 @@ void losCalc(       Los&        los,
     out2 << "  Calculating line of sights WITHOUT refraction.\n";
   else if ( refr == 1 )
     out2 << "  Calculating line of sights WITH refraction.\n";
-  else
-    throw runtime_error("The refraction flag can only be 0 or 1.");
   //
   out3 << "     z_plat: " << z_plat/1e3 << " km\n";
 
@@ -1078,19 +1012,203 @@ void losCalc(       Los&        los,
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
+   \author Carlos Jimenez
+   \date   2000-03-27
+*/
+void zaFromZtan(
+        // WS Goutput
+              Vector&       za,
+        const String&       za_name,
+	 // WS input
+	const Vector&       z_tan,
+        const Numeric&      z_plat,
+        const Vector&       p_abs,
+        const Vector&       z_abs,
+	const Index&        refr,
+	const Vector&       refr_index,
+	const Numeric&      r_geoid,
+        const Numeric&      z_ground )
+{
+  check_lengths( p_abs, "p_abs", z_abs, "z_abs" );  
+  check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
+
+  const Numeric atm_limit = last(z_abs);
+  const Index          nz = z_tan.nelem();
+
+  za.resize(nz);
+
+  for (Index i=0; i<nz; i++)
+  {
+    if (za[i]>z_plat)
+      throw runtime_error(
+        "One tangent altitude is larger than the platform altitude");      
+
+    // No refraction
+    if (!refr)    
+       za[i] = 90 + RAD2DEG*acos ( (r_geoid + z_tan[i]) / (r_geoid + z_plat) );
+ 
+    // Refraction
+    else
+    {
+      Numeric nz_plat =  n_for_z(z_plat,p_abs,z_abs,refr_index,atm_limit);  
+      if (z_tan[i]>=0)
+      { 
+	// Calculating constant
+        Numeric nza =  n_for_z(z_tan[i],p_abs,z_abs,refr_index,atm_limit);
+        Numeric c   = (r_geoid + z_tan[i]) * nza;
+        za[i]       =  180 - RAD2DEG * asin( c / nz_plat / (r_geoid + z_plat));
+      }
+      else
+      {
+	// inside the Earth, looking for hitting point
+	Numeric ze  = RAD2DEG * acos((r_geoid + z_tan[i]) / r_geoid);
+        // from hitting point to platform
+        Numeric nze =  n_for_z(z_ground,p_abs,z_abs,refr_index,atm_limit);
+        Numeric c   =  r_geoid * sin(DEG2RAD * (90-ze)) * nze;
+        za[i]       =  180 - RAD2DEG * asin( c / nz_plat / (r_geoid + z_plat));
+      } 
+    }  
+  }
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Carlos Jimenez
+   \date   2000-04-09
+*/
+void zaFromDeltat(
+        // WS Generic Output:
+        Vector&             za,
+        // WS Generic Output Names:
+        const String&       za_name,
+        // WS Input:
+        const Numeric&      z_plat,
+        const Vector&       p_abs,
+        const Vector&       z_abs,
+        const Numeric&      l_step,
+	const Index&        refr,
+	const Index&        refr_lfac,
+	const Vector&       refr_index,
+	const Numeric&      r_geoid,
+        const Numeric&      z_ground,
+        // Control Parameters:
+        const Numeric&      delta_t,
+        const Vector&       z_tan_lim )
+
+{
+  // Checking stuff
+  check_lengths( p_abs, "p_abs", z_abs, "z_abs" );  
+  check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
+  if ( z_tan_lim[0] > z_tan_lim[1] )
+    throw runtime_error(
+       "The lower tangent latitude is larger than the higher (in z_tan_lim).");
+
+  // No refraction
+  if (!refr)     
+  {
+    // Geometric calculations
+    Vector phi(2);
+    Vector za_lim(2);
+    String zastr = "za_lim";
+
+    zaFromZtan(za_lim, zastr, z_tan_lim, z_plat, p_abs, z_abs, refr, 
+                                                refr_index, r_geoid, z_ground);
+
+    phi[0] = za_lim[0] - 90;
+    phi[1] = za_lim[1] - 90;
+
+    const Numeric ang_step  = RAD2DEG * delta_t * 
+                             sqrt (EARTH_GRAV_CONST / pow(r_geoid + z_plat,3));
+
+    if (((phi[0]-phi[1])/ang_step) <=0)
+      throw runtime_error("The time given is too large to have any cross-link in the given altitude range");     
+
+    const Index n=Index(floor((phi[0]-phi[1])/ang_step));
+
+    za.resize(n);
+    for ( Index j=0;j<n;j++ )
+      za[j] = 90 + phi[0] - (j * ang_step);
+  }
+
+  // Refraction
+  else
+  {  
+    const Index ztanstep = 100;  // 100 meters step
+    const Index n=Index(floor((z_tan_lim[1]-z_tan_lim[0])/ztanstep));
+    
+    Vector z_tan_1(n);
+    Vector z_tan_2(n);
+    za.resize(n);
+
+    // ztan altitudes for later doing the interpolation
+    for ( Index j=0;j<n;j++ )
+      z_tan_1[j]=z_tan_lim[0]+j*ztanstep;
+    
+    // corresponding zenith angles
+    String za_str = "za";
+    zaFromZtan(za, za_str, z_tan_1, z_plat, p_abs, z_abs, refr, refr_index, 
+                                                            r_geoid, z_ground);
+    
+    // corresponding psi
+    Los los;
+    losCalc(los,z_tan_2,z_plat,za,l_step,p_abs,z_abs,refr,refr_lfac,
+                                                  refr_index,z_ground,r_geoid);
+    // psi corresponding to the ztan defined for interpolation
+    Vector psizb(n);
+    for ( Index j=0;j<n;j++ )
+      psizb[j]=los.psi[j][0];
+    // lower and higer psi
+    const Numeric psitop = psizb[n-1];
+    const Numeric psibot = psizb[0];       
+
+    // vel * deltat 
+    const Numeric ang_step = RAD2DEG * delta_t * 
+                             sqrt (EARTH_GRAV_CONST / pow(r_geoid + z_plat,3));
+
+    // number of cross links in the ztan range specified for the given deltat
+    if (((psibot-psitop)/ang_step)<=0)
+      throw runtime_error("The time given is too large to have any cross-link in the given altitude range");  
+    const Index np=Index(floor((psibot-psitop)/ang_step));
+    // corresponding psi (in that z_tan_lim[1]-z_tan_lim[0])
+    Vector psit(n);
+    for ( Index j=0;j<np;j++ )
+      psit[j]=psibot-j*ang_step;
+
+
+    // ztan for psi for deltat from  psi and ztan for interpolation        
+    z_tan_1.resize(np);
+    for ( Index j=0;j<np;j++ )
+    {
+      z_tan_1[j]=interp_lin(psizb,z_tan_2,psit[j]);
+    }
+ 
+    // corresponding zenith angles
+    zaFromZtan(za, za_str, z_tan_1, z_plat, p_abs, z_abs, refr, refr_index, 
+                                                            r_geoid, z_ground);
+  }
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
    \author Patrick Eriksson
    \date   2000-?-?
 */
 void sourceCalc(
                     ArrayOfMatrix&   source,
-	      const Index&             emission,
+	      const Index&           emission,
               const Los&             los,   
               const Vector&          p_abs,
               const Vector&          t_abs,
               const Vector&          f_mono )
 {
-  if ( !isbool( emission ) )  
-    throw runtime_error("The emission flag must either be 0 or 1.");
+  check_if_bool( emission, "emission" );
+  check_lengths( p_abs, "p_abs", t_abs, "t_abs" );  
 
   if ( emission == 0 )
   {
@@ -1100,12 +1218,12 @@ void sourceCalc(
 
   else
   {     
-	  Vector   tlos;                  // temperatures along the LOS
-    const Index   nza=los.start.nelem();  // the number of zenith angles  
-    const Index   nf=f_mono.nelem();      // the number of frequencies
-	  Index   nlos;                  // the number of pressure points
-	  Matrix   b;                     // the Planck function for TLOS  
-	  Index   iv, ilos;              // frequency and LOS point index
+	  Vector   tlos;                   // temperatures along the LOS
+    const Index    nza=los.start.nelem();  // the number of zenith angles  
+    const Index    nf=f_mono.nelem();      // the number of frequencies
+	  Index    nlos;                   // the number of pressure points
+	  Matrix   b;                      // the Planck function for TLOS  
+	  Index    iv, ilos;               // frequency and LOS point index
   
     out2 << "  Calculating the source function for LTE and no scattering.\n";
    
@@ -1156,13 +1274,15 @@ void transCalc(
               const Vector&          p_abs,
               const Matrix&          abs )
 {    
+  check_length_ncol( p_abs, "p_abs", abs, "abs" );
+
   // Some variables
-  const Index   n = los.start.nelem(); // the number of zenith angles
-  const Index   nf = abs.nrows();     // the number of frequencies
-        Index   np;                   // the number of pressure points
-        Index   row, col;             // counters
-        Matrix   abs2 ;                // matrix to store interpolated absorp.
-       Numeric   w;                    // = -l_step/2
+  const Index     n = los.start.nelem(); // the number of zenith angles
+  const Index     nf = abs.nrows();      // the number of frequencies
+        Index     np;                    // the number of pressure points
+        Index     row, col;              // counters
+        Matrix    abs2 ;                 // matrix to store interpolated abs.
+        Numeric   w;                     // = -l_step/2
 
   out2 << "  Calculating transmissions WITHOUT scattering.\n";
  
@@ -1229,7 +1349,7 @@ void y_spaceStd(
   }
   else
     throw runtime_error(
-      "Possible choices for Y_SPACE are \"zero\", \"cbgr\" and \"sun\".");
+      "Possible choices for y_space are \"zero\", \"cbgr\" and \"sun\".");
 
 }
 
@@ -1243,7 +1363,7 @@ void y_spaceStd(
 */
 void yCalc (
                     Vector&          y,
-	      const Index&             emission,
+	      const Index&           emission,
               const Los&             los,   
               const Vector&          f_mono,
               const Vector&          y_space,
@@ -1252,58 +1372,30 @@ void yCalc (
               const Vector&          e_ground,
               const Numeric&         t_ground )
 {
-  if ( !isbool( emission ) )  
-    throw runtime_error("The emission flag must either be 0 or 1.");
-
-  // Check that dimensions of trans and f_mono are consistent.
-  for ( Index i=0; i<trans.nelem(); ++i )
-    if ( (trans[i].nrows()>0) && (trans[i].nrows()!=f_mono.nelem()) )
-    {
-      ostringstream os;
-      os << "Number of frequencies in trans and f_mono is inconsistent:\n"
-	 << "trans:  " << trans[i].nrows() << "\n"
-	 << "f_mono: " << f_mono.nelem();
-      throw runtime_error(os.str());
-    }
-  
-    // FIXME: There should be more safety checks here, for example for source.
+  // Check input
+  // (ground emission and temperature are checked in the sub-functions)
+  //
+  check_if_bool( emission, "emission" );                                      
+  check_lengths( f_mono, "f_mono", y_space, "y_space" );  
+  check_length_nrow( f_mono, "f_mono", trans[0], 
+                                     "the transmission matrices (in trans)" );
+  if ( los.p.nelem() != trans.nelem() )
+    throw runtime_error(
+      "The number of zenith angles of *los* and *trans* are different.");
+  if ( emission )
+  {
+    check_length_nrow( f_mono, "f_mono", source[0], 
+                                          "the source matrices (in source)" );
+    if ( los.p.nelem() != source.nelem() )
+      throw runtime_error(
+        "The number of zenith angles of *los* and *source* are different.");
+  }
 
   if ( emission == 0 )
     y_tau( y, los, trans, e_ground );
   else
     y_rte( y, los, f_mono, y_space, source, trans, e_ground, t_ground );
 }
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2001-03-30
-*/
-void yTau (
-                    Vector&          y,
-	      const Index&             emission,
-              const Los&             los,   
-              const ArrayOfMatrix&   trans,
-              const Vector&          e_ground )
-{
-  if ( emission != 0 )
-    throw runtime_error(
-      "The function yTau can only be used when emission is neglected.");
-
-  y_tau( y, los, trans, e_ground );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
 
 
 
@@ -1327,13 +1419,22 @@ void yTB (
   const double   b = 2*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
         double   c,d;
 
+  // Check input
   if ( max(y) > 1e-4 )  
     throw runtime_error("The spectrum is not in expected intensity unit "
                         "(impossible value detected).");
-
+  //
   if ( nf*nza != ny )  
-    throw runtime_error(
-                 "The length of y does not match f_mono and za_pencil.");
+  {
+    ostringstream os;
+    os << "The length of *y* does not match *f_mono* and *za_pencil*.\n"
+       << "y.nelem():         " << y.nelem() << "\n"
+       << "Should be f_mono.nelem()*za_pencil.nelem(): "
+       << f_mono.nelem() * za_pencil.nelem() << "\n"
+       << "f_mono.nelem():  " << f_mono.nelem() << "\n"
+       << "za_pencil.nelem(): " << za_pencil.nelem();
+    throw runtime_error(os.str());
+  }
 
   out2 << "  Converts the spectrum to brightness (Planck) temperature.\n";
 
@@ -1370,21 +1471,22 @@ void yTRJ (
   const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
         double   b;
 
+  // Check input
   if ( max(y) > 1e-4 )  
     throw runtime_error("The spectrum is not in expected intensity unit "
                         "(impossible value detected).");
-
+  //
   if ( nf*nza != ny )  
-    {
-      ostringstream os;
-      os << "The length of y does not match f_mono and za_pencil.\n"
-	 << "y.nelem():         " << y.nelem() << "\n"
-	 << "Should be f_mono.nelem()*za_pencil.nelem(): "
-	 << f_mono.nelem() * za_pencil.nelem() << "\n"
-	 << "f_mono.nelem():  " << f_mono.nelem() << "\n"
-	 << "za_pencil.nelem(): " << za_pencil.nelem();
-      throw runtime_error(os.str());
-    }
+  {
+    ostringstream os;
+    os << "The length of *y* does not match *f_mono* and *za_pencil*.\n"
+       << "y.nelem():         " << y.nelem() << "\n"
+       << "Should be f_mono.nelem()*za_pencil.nelem(): "
+       << f_mono.nelem() * za_pencil.nelem() << "\n"
+       << "f_mono.nelem():  " << f_mono.nelem() << "\n"
+       << "za_pencil.nelem(): " << za_pencil.nelem();
+    throw runtime_error(os.str());
+  }
 
   out2 << "  Converts the spectrum to Rayleigh-Jean temperature.\n";
 
@@ -1400,8 +1502,7 @@ void yTRJ (
 }
 
 /**
-   Convert a matrix containing radiances to Rayleigh-Jeans
-   BTs. 
+   Convert a matrix containing radiances to Rayleigh-Jeans BTs. 
 
    \author Stefan, Viju, Sreerekha
    \date   2001-05-02
@@ -1419,8 +1520,7 @@ void MatrixTRJ (// WS Generic Output:
                 const String& kin_name)
 {
   // Resize kout if necessary:
-  if (kout.nrows()!=kin.nrows() ||
-      kout.ncols()!=kin.ncols())
+  if ( kout.nrows()!=kin.nrows() || kout.ncols()!=kin.ncols() )
     kout.resize(kin.nrows(),kin.ncols());
   
   Vector y(kin.nrows());
@@ -1433,8 +1533,7 @@ void MatrixTRJ (// WS Generic Output:
 }
 
 /**
-   Convert a matrix containing radiances to Planck
-   BTs. 
+   Convert a matrix containing radiances to Planck BTs. 
 
    \author Stefan, Viju, Sreerekha
    \date   2001-05-02
@@ -1464,125 +1563,5 @@ void MatrixTB (// WS Generic Output:
     kout(Range(joker),i) = y;	// Copy to ith column of kout.
   }
 }
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Carlos Jimenez
-   \date   2000-04-09
-*/
-
-void zaFromDeltat(
-        // WS Generic Output:
-        Vector&             za,
-        // WS Generic Output Names:
-        const String&       za_name,
-        // WS Input:
-        const Numeric&      z_plat,
-        const Vector&       p_abs,
-        const Vector&       z_abs,
-        const Numeric&      l_step,
-	const Index&          refr,
-	const Index&          refr_lfac,
-	const Vector&       refr_index,
-	const Numeric&      r_geoid,
-        const Numeric&      z_ground,
-        // Control Parameters:
-        const Numeric&      delta_t,
-        const Vector&       z_tan_lim )
-
-{
- 
-  
-  // Checking stuff
-
-  if (z_tan_lim[0]>z_tan_lim[1])
-    throw runtime_error("The lower tangent latitude is larger than the higher in z_tan_lim");
-
-
-  // No refraction
-
-  if (!refr)     
-  {
-
-    // Geometric calculations
-    Vector phi(2);
-    Vector za_lim(2);
-    String zastr = "za_lim";
-
-    zaFromZtan(za_lim, zastr, z_tan_lim, z_plat, p_abs, z_abs, refr, refr_index, r_geoid, z_ground);
-
-    phi[0] = za_lim[0] - 90;
-    phi[1] = za_lim[1] - 90;
-
-    const Numeric ang_step  = RAD2DEG * delta_t * sqrt (EARTH_GRAV_CONST / pow(r_geoid + z_plat,3));
-
-    if (((phi[0]-phi[1])/ang_step) <=0)
-      throw runtime_error("The time given is too large to have any cross-link in the given altitude range");     
-
-    const Index n=Index(floor((phi[0]-phi[1])/ang_step));
-
-    za.resize(n);
-    for ( Index j=0;j<n;j++ )
-      za[j] = 90 + phi[0] - (j * ang_step);
-  }
-  // Refraction
-  else
-  {  
-  
-    const Index ztanstep = 100;  // 100 meters step
-    const Index n=Index(floor((z_tan_lim[1]-z_tan_lim[0])/ztanstep));
-    
-    Vector z_tan_1(n);
-    Vector z_tan_2(n);
-    za.resize(n);
-
-    // ztan altitudes for later doing the interpolation
-    for ( Index j=0;j<n;j++ )
-      z_tan_1[j]=z_tan_lim[0]+j*ztanstep;
-    
-    // corresponding zenith angles
-    String za_str = "za";
-    zaFromZtan(za, za_str, z_tan_1, z_plat, p_abs, z_abs, refr, refr_index, r_geoid, z_ground);
-    
-    // corresponding psi
-    Los los;
-    losCalc(los,z_tan_2,z_plat,za,l_step,p_abs,z_abs,refr,refr_lfac,refr_index,z_ground,r_geoid);   
-    // psi corresponding to the ztan defined for interpolation
-    Vector psizb(n);
-    for ( Index j=0;j<n;j++ )
-      psizb[j]=los.psi[j][0];
-    // lower and higer psi
-    const Numeric psitop = psizb[n-1];
-    const Numeric psibot = psizb[0];       
-
-    // vel * deltat 
-    const Numeric ang_step = RAD2DEG * delta_t * sqrt (EARTH_GRAV_CONST / pow(r_geoid + z_plat,3));
-
-    // number of cross links in the ztan range specified for the given deltat
-    if (((psibot-psitop)/ang_step)<=0)
-      throw runtime_error("The time given is too large to have any cross-link in the given altitude range");  
-    const Index np=Index(floor((psibot-psitop)/ang_step));
-    // corresponding psi (in that z_tan_lim[1]-z_tan_lim[0])
-    Vector psit(n);
-    for ( Index j=0;j<np;j++ )
-      psit[j]=psibot-j*ang_step;
-
-
-    // ztan for psi for deltat from  psi and ztan for interpolation        
-    z_tan_1.resize(np);
-    for ( Index j=0;j<np;j++ )
-    {
-      z_tan_1[j]=interp_lin(psizb,z_tan_2,psit[j]);
-    }
- 
-    // corresponding zenith angles
-    zaFromZtan(za, za_str, z_tan_1, z_plat, p_abs, z_abs, refr, refr_index, r_geoid, z_ground);
-
-  }
-
-}
-
 
 

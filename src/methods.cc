@@ -28,6 +28,7 @@
   \author Stefan Buehler
   \date 2000-06-10 */
 
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -1889,6 +1890,19 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("vmrsScale"),
+	DESCRIPTION(
+          "Scales the vmr input of the tgs given in scaltgs by the\n"
+	  "factors given in scalfac."),
+	OUTPUT(	vmrs_ ),
+	INPUT( 	tgs_, vmrs_  ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "scaltgs", "scalfac"),
+	TYPES( Array_String_t, Vector_t)));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("h2o_absSet"),
 	DESCRIPTION(
           "Sets h2o_abs to the profile of the first tag group containing\n"
@@ -1918,8 +1932,9 @@ void define_md_data()
       ( NAME("hseSet"),
 	DESCRIPTION(
           "Sets the vector of parameters for calculation of hydrostatic \n"
-          "equilibrium (HSE). The on/off flag is set to 1. \n"
-          "Type 'arts -d hse' for more information. \n"
+          "equilibrium (*hse*). The on/off flag is set to 1. \n"
+          "\n"
+          "Type \"arts -d hse\" for more information. \n"
           "\n"
           "Keywords \n"
           "  pref  : Pressure of the reference point. \n"
@@ -1955,8 +1970,9 @@ void define_md_data()
       ( NAME("hseOff"),
 	DESCRIPTION(
           "Turns off hydrostatic equilibrium. \n"
-          "The on/off flag off hse is set to 0 and hse is set to be a vector\n"
-          "of length 1."),
+          "\n"
+          "The on/off flag off *hse* is set to 0 and *hse* is set to be a \n"
+          "vector of length 1."),
 	OUTPUT( hse_ ),
 	INPUT(),
 	GOUTPUT(),
@@ -1969,19 +1985,19 @@ void define_md_data()
       ( NAME("hseCalc"),
 	DESCRIPTION(
           "Ensures that 'z_abs' fulfills hydrostatic equilibrium.\n"
-          "Nothing is done if the on/off flag of 'hse' is set to 0.\n"
-          "Calculates a vertical grid fulfilling hydrostatic equilibrium\n"
-          "The given altitudes (i.e. z_abs) are used as a first guess when \n"
-          "starting the calculations (to estimate g etc.).\n"
-          "The altitude variation of the gravitational acceleration is\n"
-          "considered.\n"
-          "The average molecular weight is assumed to be 28.96 at all\n"
-          "altitudes.\n"
-          "The amount of water vapour is taken into account.\n"
-          "The reference point, g at the ground and the number of iterations\n"
-          "are taken from 'hse'. A higher number of iterations \n" 
+          "\n"
+          "Nothing is done if the on/off flag of *hse* is set to 0.\n The \n"
+          "reference point, g at the ground and number of iterations\n"
+          "are taken from *hse*."
+          "   The given altitudes (*z_abs*) are used as a first guess when \n"
+          "starting the calculations (to estimate g etc.). The altitude \n"
+          "variation of the gravitational acceleration is considered. The \n"
+          "average molecular weight is assumed to be 28.96 at all altitudes.\n"
+          "The amount of water vapour is taken into account. \n"
+          "    The calculations are repeated according to the number of \n"
+          "iterations specified. A higher number of iterations \n" 
           "improves the accuracy, but one iteration should be normally \n"
-          "enough if z_abs already has reasonable values. Two iterations \n"
+          "enough if *z_abs* already has reasonable values. Two iterations \n"
           "should suffice for basically all applications."),
 	OUTPUT( z_abs_ ),
 	INPUT( z_abs_, p_abs_, t_abs_, h2o_abs_, r_geoid_, hse_ ),
@@ -1991,23 +2007,10 @@ void define_md_data()
 	TYPES()));
 
 
+
+//=== Absorption methods ===============================================
+
   md_data.push_back
-    ( MdRecord
-      ( NAME("vmrsScale"),
-	DESCRIPTION(
-          "Scales the vmr input of the tgs given in scaltgs by the\n"
-	  "factors given in scalfac."),
-	OUTPUT(	vmrs_ ),
-	INPUT( 	tgs_, vmrs_  ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "scaltgs", "scalfac"),
-	TYPES( Array_String_t, Vector_t)));
-
-
-//=== 1D absorption methods ===============================================
-
- md_data.push_back
     ( MdRecord
       ( NAME( "absCalc" ),
 	DESCRIPTION(
@@ -2094,7 +2097,7 @@ md_data.push_back
 	TYPES()));
 
 
-//=== methods operating on absorption ========================================
+//=== Methods operating on absorption ========================================
 
   md_data.push_back
     ( MdRecord
@@ -2112,20 +2115,21 @@ md_data.push_back
 	TYPES()));
 
 
-//=== 1D refraction ==========================================================
+//=== Refraction ==========================================================
 
   md_data.push_back
     ( MdRecord
       ( NAME("refrSet"),
 	DESCRIPTION(
            "Sets the refraction input arguments (refr, refr_model and \n"
-           "refr_lfac) to the specified values. Type e.g. 'arts -d refr'\n"
-           "for more information on the input arguments.\n"
-           "See refrCalc for avaliable refraction models.\n"
+           "refr_lfac) to the specified values. \n"
+           "\n"
+           "Type \"arts -d refr\" etc. for more information on the input \n"
+           "arguments. See *refrCalc* for avaliable refraction models.\n"
            "\n"
            "Keywords:\n"
-           "     on    : On/off flagg.\n"
-           "     model : Model/parametization for the refractive index.\n"
+           "     on    : On/off boolean.\n"
+           "     model : Name on parametization for the refractive index.\n"
            "     lfac  : Length factor for ray tracing."  ),
 	OUTPUT( refr_, refr_lfac_, refr_model_ ),
 	INPUT(),
@@ -2138,8 +2142,8 @@ md_data.push_back
     ( MdRecord
       ( NAME("refrOff"),
   	DESCRIPTION(
-          "Sets the refraction flag (refr) to zero and gives other \n"
-          "refraction input arguments (refr_lfac and refr_model) dummy \n"
+          "Sets the refraction boolean (*refr*) to zero and gives the other \n"
+          "refraction input arguments (*refr_lfac* and *refr_model*) dummy \n"
           "values (that will give error messages if used)."),
 	OUTPUT( refr_, refr_lfac_, refr_model_ ),
 	INPUT(),
@@ -2152,19 +2156,20 @@ md_data.push_back
     ( MdRecord
       ( NAME("refrCalc"),
 	DESCRIPTION(
-           "Calculates the refractive index using the model/parameterization\n"
-           "specified by 'refr_model'. \n"
-           "If 'refr' is set to zero, the refractive index is set to be an \n"
+           "Calculates the refractive index using the parameterization\n"
+           "specified by *refr_model*. \n"
+           "\n"
+           "If *refr* is set to zero, the refractive index is set to be an \n"
            "empty vector. \n"
            "\n"
-           "Available models are: \n"
+           "Existing parameterizations are: \n"
            "\n"
            "   'Unity': \n"
-           "      Sets the refractive to be 1 at all altitudes. \n"
+           "      Sets the refractive index to 1 at all altitudes. \n"
            "\n"
            "   'Boudouris': \n"
            "      Refractive index at microwave frequencies following \n"
-           "      Boudouris 1963. The parameter values were taken from \n"
+           "      Boudouris 1963. The k-parameter values were taken from \n"
            "      Section 5.1.1 of the Janssen book. The Z parameters are \n"
            "      set to 1. \n"
            "\n"
@@ -2188,11 +2193,13 @@ md_data.push_back
       ( NAME("zaFromZtan"),
 	DESCRIPTION(
            "Calculates the zenith angles corresponding to a set of tangent\n"
-            "altitudes. See the WSV z_tan for definitions."),
+           "altitudes.\n"
+           "\n"
+           "Refraction is considered if it is turned on (refr=1)."),
 	OUTPUT(),
 	INPUT( z_tan_, z_plat_ , p_abs_, z_abs_, refr_, refr_index_, r_geoid_,
                z_ground_ ),
-	GOUTPUT(Vector_ ),
+	GOUTPUT( Vector_ ),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
@@ -2231,7 +2238,7 @@ md_data.push_back
     ( MdRecord
       ( NAME("r_geoidStd"),
   	DESCRIPTION(
-          "Sets the geoid radius to the Earth radius defined in\n"
+          "Sets the geoid radius to the standard Earth radius defined in \n"
           "constants.cc."),
 	OUTPUT( r_geoid_ ),
 	INPUT(),
@@ -2244,9 +2251,10 @@ md_data.push_back
     ( MdRecord
       ( NAME("r_geoidWGS84"),
   	DESCRIPTION(
-          "Sets the geoid radius according to WGS-84. See the Rodgers book \n"
-          "Sec. 9.4.1. The observation direction is given as the angle to\n"
-          "the meridian plane (i.e. S=N=0, W=E=90).\n"
+          "Sets the geoid radius according to WGS-84. \n"
+          "\n"
+          "The function is based on Section 9.4.1 in the Rodgers book. \n"
+          "The observation direction is given as the angle to the meridian \n"           "plane (that is, S=N=0, W=E=90).\n"
           "\n"
           "Keywords \n"
           "      latitude : Latitude at the measurement.\n"
@@ -2264,12 +2272,13 @@ md_data.push_back
   	DESCRIPTION(
           "Sets the ground altitude and emission to the specified values,\n"
           "and selects a ground temperature.\n"
+          "\n"
           "The emission is set to be identical for all frequencies. \n"
-          "The ground temperature is obtained by interpolating 't_abs'.\n"
+          "The ground temperature is obtained by interpolating *t_abs*.\n"
           "\n"
           "Keywords \n"
           "  z : Altitude above the geoid of the ground.\n"
-          "  e : Emission factor."),
+          "  e : Ground emission factor."),
 	OUTPUT( z_ground_, t_ground_, e_ground_ ),
 	INPUT( p_abs_, t_abs_, z_abs_, f_mono_ ),
 	GOUTPUT(),
@@ -2281,12 +2290,13 @@ md_data.push_back
     ( MdRecord
       ( NAME("groundAtBottom"),
   	DESCRIPTION(
-          "Sets the ground emission to the specified value, and sets the \n"
+          "Sets the ground emission to the specified value, and sets ground \n"
           "altitude and temperature to the first values of z_abs and t_abs.\n"
+          "\n"
           "The emission is set to be identical for all frequencies. \n"
           "\n"
           "Keywords \n"
-          "  e : Emission factor."),
+          "  e : Ground emission factor."),
 	OUTPUT( z_ground_, t_ground_, e_ground_ ),
 	INPUT( t_abs_, z_abs_, f_mono_ ),
 	GOUTPUT(),
@@ -2298,12 +2308,12 @@ md_data.push_back
     ( MdRecord
       ( NAME("groundOff"),
   	DESCRIPTION(
-          "Sets the ground altitude and gives the other ground variables\n"
-          "(t_ground and e_ground) dummy values. \n"
+          "Sets dummy values to the ground variables. \n"
+          "\n"
           "The ground altitude is set to the first element of 'z_abs'.\n"
           "The ground temperature (t_ground) is set to 0. \n"
           "The ground emission vector (e_ground) is set to be empty.\n"
-          "If there is a ground intersection and only this function is\n"
+          "   If there is a ground intersection and only this function is\n"
           "used to set the ground variables, there will be error messages."),
 	OUTPUT( z_ground_, t_ground_, e_ground_ ),
 	INPUT( z_abs_ ),
@@ -2340,8 +2350,9 @@ md_data.push_back
     ( MdRecord
       ( NAME("losCalc"),
   	DESCRIPTION(
-          "Calculates the line-of-sight (LOS) for 1D atmospheres with and\n"
-          "without refraction."),
+          "Calculates the line-of-sight (LOS), with and without refraction.\n"
+          "\n"
+          "See AUG for details about the calculations.."),
 	OUTPUT( los_, z_tan_ ),
 	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, 
                 refr_, refr_lfac_, refr_index_, z_ground_, r_geoid_ ),
@@ -2355,14 +2366,15 @@ md_data.push_back
       ( NAME("sourceCalc"),
   	DESCRIPTION(
           "Calculates source function values valid between the points of"
-          "of a 1D LOS.\n" 
+          "of the LOS.\n"
+          "\n" 
           "No scattering and local thermodynamic equilibrium are assumed,\n"
           "that is, the source function equals the Planck function.\n"
           "The source function is set to the mean of the Planck function at\n"
           "the two LOS points limiting the steps. The temperature at the LOS\n"
           "points is obtained by linear interpolation.\n"
-          "If emission is neglected (emission=0), the WSV source is set to be"
-          "empty."),
+          "   If emission is neglected (emission=0), the WSV source is set \n"
+          "to be empty."),
 	OUTPUT( source_ ),
 	INPUT( emission_, los_, p_abs_, t_abs_, f_mono_ ),
 	GOUTPUT(),
@@ -2374,10 +2386,11 @@ md_data.push_back
     ( MdRecord
       ( NAME("transCalc"),
   	DESCRIPTION(
-          "Calculates the transmission between the points of a 1D LOS.\n"
+          "Calculates the transmission between the points of the LOS.\n"
+          "\n"
           "The absorption is assumed to vary linear between the LOS points."
           "The absorption at the LOS points is obtained by linear\n"
-          "interpolation of abs."),
+          "interpolation of *abs*."),
 	OUTPUT( trans_ ),
 	INPUT( los_, p_abs_, abs_ ),
 	GOUTPUT(),
@@ -2390,10 +2403,13 @@ md_data.push_back
       ( NAME("y_spaceStd"),
   	DESCRIPTION(
           "Standard choices for the radiation entering the atmosphere at\n"
-          "the start of the LOS. The selections are:\n"
+          "the top of the atmosphere. \n"
+          "\n"
+          "The selections are:\n"
           "  zero : no radiation\n"
           "  cbgr : cosmic background radiation (planck for COSMIC_BG_TEMP)\n"
           "  sun  : solar radiation (planck for SUN_TEMP)\n"
+          "\n"
           "COSMIC_BG_TEMP and SUN_TEMP are global variables, defined in\n"
           "constants.cc.\n"
           "\n"
@@ -2411,7 +2427,8 @@ md_data.push_back
       ( NAME("yCalc"),
   	DESCRIPTION(
           "Performs the integration of the radiative transfer equation\n"
-          "along the LOS with or without emission.\n"
+          "along the LOS, with or without emission.\n"
+          "\n"
           "If emission is considered (emission=1) the outout unit is \n"
           "intensity, while without emission (emission=0) optical \n"
           "thicknesses are returned. "),
@@ -2425,26 +2442,13 @@ md_data.push_back
 
   md_data.push_back
     ( MdRecord
-      ( NAME("yTau"),
-  	DESCRIPTION(
-          "As yCalc but to be used only when emission is neglected.\n"
-          "The function returns the optical thicknesses (tau) along the LOS.\n"
-          "Some variables needed for yCalc are not needed here (such as \n"
-          "y_space, source and t_ground). The emission WSV emission must \n"
-          "be set to 0. "),
-	OUTPUT( y_ ),
-	INPUT( emission_, los_, trans_, e_ground_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
       ( NAME("yTB"),
   	DESCRIPTION(
-          "Converts a spectrum from intensity to brightness temperature.\n"
-          "The used frequency vector is f_sensor."),
+           "Converts a radiance spectrum to Planck brightness temperatures.\n"
+           "\n"
+           "The conversion is done by the Planck expression.\n"
+	   "   The frequency of each value of *y* is determined by *f_mono* \n"
+           "and za_pencil."),
 	OUTPUT( y_ ),
 	INPUT( y_, f_mono_, za_pencil_ ),
 	GOUTPUT(),
@@ -2454,10 +2458,35 @@ md_data.push_back
 
   md_data.push_back
     ( MdRecord
+      ( NAME("MatrixTB"),
+	DESCRIPTION(
+	   "Converts a radiance matrix to Planck brightness temperatures.\n"
+           "\n"
+           "Applies the function yTB on each column of the matrix. \n"
+           "\n"
+           "Global input: \n"
+           "   Matrix : Any matrix, but typically *ybatch* or a WF matrix.\n"
+           "\n"
+           "Global output: \n"
+           "   Matrix : Any matrix, but typically the same as the input \n"
+           "            matrix."),
+	OUTPUT(),
+	INPUT(   f_mono_, za_pencil_ ),
+	GOUTPUT( Matrix_ ),
+	GINPUT(  Matrix_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("yTRJ"),
   	DESCRIPTION(
-          "Converts a spectrum from intensity to Rayleigh-Jean temperature.\n"
-          "The used frequency vetor is f_sensor."),
+           "Converts a radiance spectrum to Rayleigh-Jean temperatures.\n"
+           "\n"
+           "The conversion is done by the Rayleigh-Jean approximation of the\n"
+           "Planck expression.\n"
+	   "   The frequency of each value of *y* is determined by *f_mono* \n"
+           "and za_pencil."),
 	OUTPUT( y_ ),
 	INPUT( y_, f_mono_, za_pencil_ ),
 	GOUTPUT(),
@@ -2468,24 +2497,17 @@ md_data.push_back
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixTRJ"),
-	DESCRIPTION("Converts a matrix of radiance to Rayleigh-Jeans Brightness\n"
-		    "temperatures. This generic method does exatly the\n"
-		    "same as the old specific method ybatchTRJ. It can\n"
-		    "be used on ybatch or on k-matrices."),
-	OUTPUT(),
-	INPUT(   f_mono_, za_pencil_ ),
-	GOUTPUT( Matrix_ ),
-	GINPUT(  Matrix_ ),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixTB"),
-	DESCRIPTION("Converts a matrix of radiance to Planck Brightness\n"
-		    "temperatures. This generic method does exatly the\n"
-		    "same as the old specific method ybatchTB. It can\n"
-		    "be used on ybatch or on k-matrices."),
+	DESCRIPTION(
+	   "Converts a radiance matrix to Rayleigh-Jean temperatures.\n"
+           "\n"
+           "Applies the function yTRJ on each column of the matrix. \n"
+           "\n"
+           "Global input: \n"
+           "   Matrix : Any matrix, but typically *ybatch* or a WF matrix.\n"
+           "\n"
+           "Global output: \n"
+           "   Matrix : Any matrix, but typically the same as the input \n"
+           "            matrix."),
 	OUTPUT(),
 	INPUT(   f_mono_, za_pencil_ ),
 	GOUTPUT( Matrix_ ),
@@ -2526,20 +2548,6 @@ md_data.push_back
 	OUTPUT( absloswfs_ ),
 	INPUT( emission_, los_, source_, trans_, y_, y_space_, f_mono_, 
                                                         e_ground_, t_ground_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("absloswfsTau"),
-  	DESCRIPTION(
-          "As absloswfsCalc to be used when neglecting emission and \n"
-          "thus requires less input (e.g. y_space, source and t_ground are\n"
-          "not needed). When using this function the WSV emission must be 0."),
-	OUTPUT( absloswfs_ ),
-	INPUT( emission_, los_, f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2914,55 +2922,6 @@ md_data.push_back
 	GINPUT(),
 	KEYWORDS("delta_z","p_start","p_stop"),
 	TYPES(   Numeric_t, Numeric_t, Numeric_t )));
-
-
-
-
-//======================================================================
-//=== Methods To Generate Random Data
-//======================================================================
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("RandSetSeed"),
-  	DESCRIPTION(
-          "Sets the random seed in a \"random\" way (using the clock).\n"
-          "If not this function is called, the same random sequence is\n"
-          "obtained for each run."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorRandUniform"),
-  	DESCRIPTION(
-          "Fills the vector with random data uniformerly distributed between\n"
-          "the lower and higher limit given. The length of the vector shall\n"
-          "also be given. The random data is uncorrelated."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT(),
-	KEYWORDS( "low",     "high",    "n" ),
-	TYPES(    Numeric_t, Numeric_t, Index_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorRandGaussian"),
-  	DESCRIPTION(
-          "Fills the vector with random data having a normal PDF, zero mean\n"
-          "and the standard deviation given. The length of the vector shall\n"
-          "also be given. The random data is uncorrelated."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT(),
-	KEYWORDS( "stddev",  "n" ),
-	TYPES(    Numeric_t, Index_t )));
 
 
 

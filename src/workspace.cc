@@ -233,7 +233,8 @@ void define_wsv_data()
       "  4: Gravitational acceleration at the geoid surface [m/s2]. \n " 
       "  5: Number of iterations of the calculations.\n"
       "If the on/off flag is set to 1, the length of the vector must be 5,\n"
-      "while if the flag is 0 a length of 1 is OK.", 
+      "while if the flag is 0 a length of 1 is OK.\n"
+      "See the function hseCalc for some more details.", 
       Vector_));
 
 

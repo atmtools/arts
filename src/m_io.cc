@@ -76,19 +76,6 @@ void Exit()
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2001-01-14
-*/
-void RandSetSeed( )
-{
-  srand( (unsigned int) time( NULL ) );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
    \date   2001-05-15
 */
 void Test( )
@@ -981,45 +968,6 @@ void VectorScale(
 				// must be the same! 
       out *= value;
     }
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void VectorRandUniform(
-                    Vector&   y,
-              const String&   y_name,
-              const Numeric&  x_low,
-              const Numeric&  x_high,
-              const Index&      n )
-{
-  out2<<"  Filling " << y_name << " with uniform random data.\n";
-  y.resize( n );
-  rand_uniform( y, x_low, x_high );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void VectorRandGaussian(
-                    Vector&   y,
-              const String&   y_name,
-              const Numeric&  stddev,
-              const Index&      n )
-{
-  out2<<"  Filling " << y_name << " with Gaussian random data.\n";
-  y.resize( n );
-  rand_gaussian( y, stddev );
 }
 
 
