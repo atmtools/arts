@@ -30,7 +30,9 @@
    \date 2001-09-26 
 */
 
-
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif	
 
 ////////////////////////////////////////////////////////////////////////////
 //   External declarations

@@ -28,6 +28,10 @@
   \author Stefan Buehler
   \date 2000-06-10 */
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "arts.h"
 #include "make_array.h"
 #include "auto_wsv.h"
