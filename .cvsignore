@@ -11,6 +11,6 @@ stamp-h
 stamp-h.in
 arts.spec
 INSTALL
-install.sh
+install-sh
 mkinstalldirs
 missing
