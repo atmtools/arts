@@ -1,3 +1,14 @@
+2003-12-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-745
+
+	* src/binio.cc, src/geomag_calc.cc, src/legendre.cc,
+	zeemanproperties.cc: Initialize variables which might be used
+	unitialized.
+
+	* src/m_abs_o2_models.cc (PWRO2VoigtMixing): Define lnpi as const
+	Numeric.
+
 2003-12-06  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-744
