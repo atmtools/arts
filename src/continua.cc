@@ -116,7 +116,7 @@
          <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
          John Wiley & Sons, Inc., 1993
          <a href="ftp://mesa.mit.edu/phil/lbl_rt">(WWW access)</a>.<br>
-         and<br>
+         and also described in<br>
          H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
 	 <i>Propagation modeling of moist air and suspended water/ice<br>
 	 particles at frequencies below 1000 GHz</i>,<br>

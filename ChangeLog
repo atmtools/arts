@@ -1,3 +1,23 @@
+2001-11-22  Thomas Kuhn  <tkuhn@uni-bremen.de>
+	
+        * arts-0-1-53
+
+	* changes:
+	   - update /src/continua.cc online description
+	   - set back the example /doc/examples/batch_example.arts.in 
+	     back to original version so it works again.
+	* added:
+	   - figures
+	        doc/uguide/Figs/cloud_description_page1.eps
+	        doc/uguide/Figs/cloud_description_page2.eps
+		doc/uguide/Figs/cloud_description_page3.eps
+		doc/uguide/Figs/cont_description_page1.eps
+		doc/uguide/Figs/cont_description_page2.eps
+		doc/uguide/Figs/cont_description_page3.eps
+		doc/uguide/Figs/fullmodel_description_page1.eps
+		doc/uguide/Figs/fullmodel_description_page2.eps
+		doc/uguide/Figs/fullmodel_description_page3.eps
+
 2001-11-22  Oliver Lemke  <olemke@uni-bremen.de>
 
         * arts-0-1-52
@@ -29,7 +49,6 @@
 		doc/uguide/Figs/fullmodel_description_page2.pdf
 		doc/uguide/Figs/fullmodel_description_page3.pdf
 	
-
 2001-11-21  Thomas Kuhn  <tkuhn@uni-bremen.de>
 	
         * arts-0-1-51
