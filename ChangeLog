@@ -1,3 +1,10 @@
+2004-01-13  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-773
+
+	* src/optproperties.cc (pha_matTransform): Fixed bug in ptype=30 
+	case that was causing spurious diagonal polarization. 
+
 2004-01-08  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-772

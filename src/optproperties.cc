@@ -463,7 +463,7 @@ void pha_matTransform(//Output
       if( stokes_dim == 2 ){
         break;
       }
-      if ((za_inc<=90 && delta_aa>=0)||(za_inc<=90 && delta_aa<0))
+      if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
         {
           pha_mat_lab(0,2)=interp(itw,pha_mat_data(Range(joker),Range(joker),
                                                    Range(joker),0,2),
@@ -499,7 +499,7 @@ void pha_matTransform(//Output
       if( stokes_dim == 3 ){
         break;
       }
-      if ((za_inc<=90 && delta_aa>=0)||(za_inc<=90 && delta_aa<0))
+      if ((za_inc<=90 && delta_aa>=0)||(za_inc>90 && delta_aa<0))
         {
           pha_mat_lab(0,3)=interp(itw,pha_mat_data(Range(joker),Range(joker),
                                                    Range(joker),0,3),
