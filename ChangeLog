@@ -1,3 +1,11 @@
+2003-06-11  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-571
+
+	* src/zeemanproperties.cc: changed extinction matrix and
+	absorption vector to be calculated fully in a 
+	left-circular-right-circular polarization basis.
+	
 2003-06-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-570
