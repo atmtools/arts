@@ -1,3 +1,15 @@
+2002-12-21  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-351
+
+	* ami: Removed.
+
+	* configure.in: Removed ami Makefiles.
+
+	* Makefile.am: Removed ami directory.
+
+	* src/m_optproperties.cc: Include cmath instead of math.h.
+
 2002-12-20  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-350
