@@ -7,7 +7,7 @@
 #include <string>
 #include "config.h"
 
-#define SUBVERSION "4"
+#define SUBVERSION "5"
 
 string subversion = SUBVERSION;
 string full_name  = static_cast<string>(PACKAGE) + "-" + VERSION + "." + SUBVERSION;

@@ -4,6 +4,11 @@
 /** The output path. For example for the report file. */
 string out_path;
 
+/** The basename for the report file and for all other output
+    files. The files will have names like <basename>.rep (for the
+    report file). */
+string basename;
+
 /** The report file. */
 ofstream report_file;
 

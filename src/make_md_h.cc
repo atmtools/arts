@@ -160,10 +160,14 @@ int main()
 	  // indentation of the functin parameters:
 	  string indent(md_data[i].Name().size()+6,' ');
 
-	  // There are two lists of parameters that we have to
-	  // write: 
+	  // There are four lists of parameters that we have to
+	  // write. 
 	  ARRAY<size_t>  vo=md_data[i].Output();   // Output 
 	  ARRAY<size_t>  vi=md_data[i].Input();    // Input
+	  ARRAY<size_t>  vgo=md_data[i].GOutput();   // Generic Output 
+	  ARRAY<size_t>  vgi=md_data[i].GInput();    // Generic Input
+	  // vo and vi contain handles of workspace variables, 
+	  // vgo and vgi handles of workspace variable groups.
 
 	  // Check, if some workspace variables are in both the
 	  // input and the output list, and erase those from the input 
@@ -177,6 +181,18 @@ int main()
 	      if ( *j == *k )
 		{
 		  vi.erase(k);
+		}
+
+	  // The same for the lists of generic variables:
+	  for (ARRAY<size_t>::const_iterator j=vgo.begin(); j!=vgo.end(); ++j)
+	    // It is important that the condition is k<vi.end(), not
+	    // k!=vi.end, because if erase is called, vi.end() is
+	    // decreased. Since k is increased at the same time, the
+	    // case k=vi.end() can be missed!
+	    for (ARRAY<size_t>::iterator k=vgi.begin(); k<vgi.end(); ++k)
+	      if ( *j == *k )
+		{
+		  vgi.erase(k);
 		}
 
 	  ofs << "void " << md_data[i].Name() << "(";
@@ -199,10 +215,51 @@ int main()
 		    is_first_of_these = false;
 		  }
 
-		if (!md_data[i].Generic())
-		  ofs << wsv_group_names[wsv_data[vo[j]].Group()] << "&";
-		else
-		  ofs << wsv_group_names[md_data[i].Output()[j]]   << "&";
+		ofs << wsv_group_names[wsv_data[vo[j]].Group()] << "&";
+	      }
+	  }
+
+	  // Write the Generic output workspace variables:
+	  {
+	    // Flag first parameter of this sort:
+	    bool is_first_of_these = true;
+
+	    for (size_t j=0; j<vgo.size(); ++j)
+	      {
+		// Add comma and line break, if not first element:
+		align(ofs,is_first_parameter,indent);
+
+		// Add comment if this is the first of this sort
+		if (is_first_of_these)
+		  {
+		    ofs << "// WS Generic Output:\n";
+		    ofs << indent;
+		    is_first_of_these = false;
+		  }
+
+		  ofs << wsv_group_names[md_data[i].GOutput()[j]]   << "&";
+	      }
+	  }
+
+	  // Write the Generic output workspace variable names:
+	  {
+	    // Flag first parameter of this sort:
+	    bool is_first_of_these = true;
+
+	    for (size_t j=0; j<vgo.size(); ++j)
+	      {
+		// Add comma and line break, if not first element:
+		align(ofs,is_first_parameter,indent);
+
+		// Add comment if this is the first of this sort
+		if (is_first_of_these)
+		  {
+		    ofs << "// WS Generic Output Names:\n";
+		    ofs << indent;
+		    is_first_of_these = false;
+		  }
+
+		  ofs << "const string&";
 	      }
 	  }
 
@@ -224,26 +281,55 @@ int main()
 		    is_first_of_these = false;
 		  }
 		
-		if (!md_data[i].Generic())
-		  ofs << "const "
-		      << wsv_group_names[wsv_data[vi[j]].Group()] << "&";
-		else
-		  ofs << "const "
-		      << wsv_group_names[md_data[i].Input()[j]]   << "&";
+		ofs << "const "
+		    << wsv_group_names[wsv_data[vi[j]].Group()] << "&";
 	      }
 	  }
 
-	  // Write the workspace variable names (only for generic methods):
-	  if (md_data[i].Generic())
-	    {
-	      // Add comma and line break, if not first element:
-	      align(ofs,is_first_parameter,indent);
+	  // Write the Generic input workspace variables:
+	  {
+	    // Flag first parameter of this sort.
+	    bool is_first_of_these = true;
 
-	      ofs << "// WS Variable Names:\n";
-	      ofs << indent;		  
+	    for (size_t j=0; j<vgi.size(); ++j)
+	      {
+		// Add comma and line break, if not first element:
+		align(ofs,is_first_parameter,indent);
+		    
+		// Add type if this is the first of this sort.
+		if (is_first_of_these)
+		  {
+		    ofs << "// WS Generic Input:\n";
+		    ofs << indent;		  
+		    is_first_of_these = false;
+		  }
+		
+		ofs << "const "
+		    << wsv_group_names[md_data[i].GInput()[j]]   << "&";
+	      }
+	  }
 
-	      ofs << "const WsvActualGenericNames& ws_var_names";
-	    }
+	  // Write the Generic input workspace variable names:
+	  {
+	    // Flag first parameter of this sort:
+	    bool is_first_of_these = true;
+
+	    for (size_t j=0; j<vgi.size(); ++j)
+	      {
+		// Add comma and line break, if not first element:
+		align(ofs,is_first_parameter,indent);
+
+		// Add comment if this is the first of this sort
+		if (is_first_of_these)
+		  {
+		    ofs << "// WS Generic Input Names:\n";
+		    ofs << indent;
+		    is_first_of_these = false;
+		  }
+
+		  ofs << "const string&";
+	      }
+	  }
 
 	  // Write the control parameters:
 	  {
@@ -303,21 +389,29 @@ int main()
 	  << "#include \"md.h\"\n"
 	  << "\n";
 
+      // Declare wsv_data:
+      ofs << "const extern ARRAY<WsvRecord> wsv_data;\n\n";
+
+
       // Write all get-away functions:
       // -----------------------------
       for (size_t i=0; i<n_md; ++i)
 	{
 	  // This is needed to flag the first function parameter, which 
 	  // needs no line break before being written:
-	  bool is_first_parameter;
+	  bool is_first_parameter = true;
 	  // The string indent is needed to achieve the correct
 	  // indentation of the functin parameters:
-	  string indent;
+	  string indent = string(md_data[i].Name().size()+3,' ');;
 	  
-	  // There are two lists of parameters that we have to
-	  // write: 
+	  // There are four lists of parameters that we have to
+	  // write. 
 	  ARRAY<size_t>  vo=md_data[i].Output();   // Output 
 	  ARRAY<size_t>  vi=md_data[i].Input();    // Input
+	  ARRAY<size_t>  vgo=md_data[i].GOutput();   // Generic Output 
+	  ARRAY<size_t>  vgi=md_data[i].GInput();    // Generic Input
+	  // vo and vi contain handles of workspace variables, 
+	  // vgo and vgi handles of workspace variable groups.
 
 	  // Check, if some workspace variables are in both the
 	  // input and the output list, and erase those from the input 
@@ -333,48 +427,38 @@ int main()
 		  vi.erase(k);
 		}
 
+	  // The same for the lists of generic variables:
+	  for (ARRAY<size_t>::const_iterator j=vgo.begin(); j!=vgo.end(); ++j)
+	    // It is important that the condition is k<vi.end(), not
+	    // k!=vi.end, because if erase is called, vi.end() is
+	    // decreased. Since k is increased at the same time, the
+	    // case k=vi.end() can be missed!
+	    for (ARRAY<size_t>::iterator k=vgi.begin(); k<vgi.end(); ++k)
+	      if ( *j == *k )
+		{
+		  vgi.erase(k);
+		}
+
 	  ofs << "void " << md_data[i].Name()
 	      << "_g(WorkSpace& ws, const MRecord& mr)\n";
 	  ofs << "{\n";
 
-	  // Some special stuff for generic methods:
-	  if (md_data[i].Generic())
+
+	  // Define generic output pointers
+	  for (size_t j=0; j<vgo.size(); ++j)
 	    {
-	      // Only for generic methods, we need to pass on the actual
-	      // names of the workspace variables in the structure ws_var_names.
-	      ofs << "  const extern ARRAY<WsvRecord> wsv_data;\n"
-		  << "  WsvActualGenericNames ws_var_names;\n"
-		  << "  for ( size_t i=0 ; i<mr.Output().size() ; ++i )\n"
-		  << "    ws_var_names.output.push_back(wsv_data[mr.Output()[0]].Name());\n"
-		  << "  for ( size_t i=0 ; i<mr.Input().size() ; ++i )\n"
-		  << "    ws_var_names.input.push_back(wsv_data[mr.Input()[0]].Name());\n";
-	      //  << "\n"
-	      //  << "  cout << \"ws_var_names.output = \" << ws_var_names.output << endl;\n"
-	      //  << "  cout << \"ws_var_names.input = \" << ws_var_names.input << endl;\n";
-
-	      // The actual workspace variables have to be transfered
-	      // with the pointers stored in wsv_data:
-
-	      // Write the Output workspace variables:
-	      for (size_t j=0; j<vo.size(); ++j)
-		{
-		  ofs << "  " << wsv_group_names[md_data[i].Output()[j]]
-		      << " *O" << j << " = *wsv_data[mr.Output()[" << j
-		      << "]].Pointer();\n";
-		}
-
-	      // Write the Input workspace variables:
-	      for (size_t j=0; j<vi.size(); ++j)
-		{
-		  ofs << "  " << wsv_group_names[md_data[i].Input()[j]]
-		      << " *I" << j << " = *wsv_data[mr.Input()[" << j
-		      << "]].Pointer();\n";
-		}
+	      ofs << "  " << wsv_group_names[md_data[i].GOutput()[j]]
+		  << " *GO" << j << " = *wsv_data[mr.Output()[" << j
+		  << "]].Pointer();\n";
 	    }
 
-	  // Re-set is_first_parameter and indent:
-	  is_first_parameter = true;
-	  indent = string(md_data[i].Name().size()+3,' ');
+	  // Define generic input pointers
+	  for (size_t j=0; j<vgi.size(); ++j)
+	    {
+	      ofs << "  " << wsv_group_names[md_data[i].GInput()[j]]
+		  << " *GI" << j << " = *wsv_data[mr.Input()[" << j
+		  << "]].Pointer();\n";
+	    }
 
 	  ofs << "  " << md_data[i].Name() << "(";
 
@@ -384,10 +468,27 @@ int main()
 	      // Add comma and line break, if not first element:
 	      align(ofs,is_first_parameter,indent);
 
-	      if (!md_data[i].Generic())
-		ofs << "ws." << wsv_data[vo[j]].Name();
-	      else
-		ofs << "*O" << j;
+	      ofs << "ws." << wsv_data[vo[j]].Name();
+	    }
+
+	  // Write the Generic output workspace variables:
+	  for (size_t j=0; j<vgo.size(); ++j)
+	    {
+	      // Add comma and line break, if not first element:
+	      align(ofs,is_first_parameter,indent);
+
+	      ofs << "*GO" << j;
+	    }
+
+	  // Write the Generic output workspace variable names:
+	  for (size_t j=0; j<vgo.size(); ++j)
+	    {
+	      // Add comma and line break, if not first element:
+	      align(ofs,is_first_parameter,indent);
+
+	      ofs << "wsv_data[mr.Output()["
+		  << j
+		  << "]].Name()";
 	    }
 
 	  // Write the Input workspace variables:
@@ -396,19 +497,27 @@ int main()
 	      // Add comma and line break, if not first element:
 	      align(ofs,is_first_parameter,indent);
 
-	      if (!md_data[i].Generic())
-		ofs << "ws." << wsv_data[vi[j]].Name();
-	      else
-		ofs << "*I" << j;
+	      ofs << "ws." << wsv_data[vi[j]].Name();
 	    }
 
-	  // Write the workspace variable names (only for generic methods):
-	  if (md_data[i].Generic())
+	  // Write the Generic input workspace variables:
+	  for (size_t j=0; j<vgi.size(); ++j)
 	    {
 	      // Add comma and line break, if not first element:
 	      align(ofs,is_first_parameter,indent);
 
-	      ofs << "ws_var_names";
+	      ofs << "*GI" << j;
+	    }
+
+	  // Write the Generic input workspace variable names:
+	  for (size_t j=0; j<vgi.size(); ++j)
+	    {
+	      // Add comma and line break, if not first element:
+	      align(ofs,is_first_parameter,indent);
+
+	      ofs << "wsv_data[mr.Input()["
+		  << j
+		  << "]].Name()";
 	    }
 
 	  // Write the control parameters:

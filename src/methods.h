@@ -19,16 +19,18 @@ public:
       fields. */
   MdRecord(const char name[],
 	   const char description[],
-	   bool  generic,
 	   const ARRAY<size_t>&  output,
 	   const ARRAY<size_t>&  input,   
+	   const ARRAY<size_t>&  goutput,
+	   const ARRAY<size_t>&  ginput,   
 	   const ARRAY<string>&     keywords,
 	   const ARRAY<TokValType>& types) :
     mname(name),
     mdescription(description),
-    mgeneric(generic),
     moutput(output),  
     minput(input),   
+    mgoutput(goutput),  
+    mginput(ginput),   
     mkeywords(keywords),
     mtypes(types)
     { 
@@ -40,9 +42,10 @@ public:
   
   const string&            Name()         const { return mname;        }   
   const string&            Description()  const { return mdescription; }
-  bool                     Generic()      const { return mgeneric;     }
   const ARRAY<size_t>&     Output()       const { return moutput;      }
   const ARRAY<size_t>&     Input()        const { return minput;       }
+  const ARRAY<size_t>&     GOutput()      const { return mgoutput;      }
+  const ARRAY<size_t>&     GInput()       const { return mginput;       }
   const ARRAY<string>&     Keywords()     const { return mkeywords;    }
   const ARRAY<TokValType>& Types()        const { return mtypes;       }
 
@@ -54,20 +57,17 @@ private:
   /** A text string describing this method. */
   string mdescription;
 
-  /** Is this a generic method? The workspace output and input is
-      speciefied either as lists of individual workspace variables
-      (identified by their handle), or as lists of groups. It is not
-      possible to merge these to concepts!  Generic==true indicates
-      that this is a generic method, hence groups are
-      used. Generic==false means that this is a normal method with
-      explicit WsvHandles. */
-  bool mgeneric;
-  
   /** Workspace Output. */
   ARRAY<size_t> moutput;
 
   /** Workspace Input. */
   ARRAY<size_t> minput;
+
+  /** Generic Workspace Output. */
+  ARRAY<size_t> mgoutput;
+
+  /** Generic Workspace Input. */
+  ARRAY<size_t> mginput;
 
   /** Keywords. */
   ARRAY<string> mkeywords;

@@ -675,6 +675,7 @@ bool parse_method(size_t& id,
 {
   const extern ARRAY<WsvRecord> wsv_data;
   const extern ARRAY<MdRecord> md_data;
+  const extern ARRAY<string> wsv_group_names;
 
   size_t wsvid;			// Workspace variable id, is used to
 				// access data in wsv_data.
@@ -708,7 +709,7 @@ bool parse_method(size_t& id,
 
   // For generic methods the output and input workspace variables have 
   // to be parsed (given in round brackets).
-  if ( md_data[id].Generic() )
+  if ( 0 < md_data[id].GOutput().size() + md_data[id].GInput().size() )
     {
       //      cout << "Generic!" << id << md_data[id].Name() << '\n';
       string wsvname;
@@ -718,7 +719,7 @@ bool parse_method(size_t& id,
       eat_whitespace(text);
 
       // First read all output Wsvs:
-      for ( size_t j=0 ; j<md_data[id].Output().size() ; ++j )
+      for ( size_t j=0 ; j<md_data[id].GOutput().size() ; ++j )
 	{
 	  if (first)
 	    first = false;
@@ -743,8 +744,9 @@ bool parse_method(size_t& id,
 	  }
 
 	  // Check that this Wsv belongs to the correct group:
-	  if ( wsv_data[wsvid].Group() != md_data[id].Output()[j] )
-	    throw WrongWsvGroup( wsvname,
+	  if ( wsv_data[wsvid].Group() != md_data[id].GOutput()[j] )
+	    throw WrongWsvGroup( wsvname+"Group should be "+
+				 wsv_group_names[md_data[id].Output()[j]],
 				 text.File(),
 				 text.Line(),
 				 text.Column() );
@@ -756,7 +758,7 @@ bool parse_method(size_t& id,
 	}
 
       // Then read all input Wsvs:
-      for ( size_t j=0 ; j<md_data[id].Input().size() ; ++j )
+      for ( size_t j=0 ; j<md_data[id].GInput().size() ; ++j )
 	{
 	  if (first)
 	    first = false;
@@ -785,8 +787,9 @@ bool parse_method(size_t& id,
 // 	  cout << "md_data[id].Input()"    << md_data[id].Input() << endl;
 
 	  // Check that this Wsv belongs to the correct group:
-	  if ( wsv_data[wsvid].Group() != md_data[id].Input()[j] )
-	    throw WrongWsvGroup( wsvname,
+	  if ( wsv_data[wsvid].Group() != md_data[id].GInput()[j] )
+	    throw WrongWsvGroup( wsvname+"Group should be "+
+				 wsv_group_names[md_data[id].Output()[j]],
 				 text.File(),
 				 text.Line(),
 				 text.Column() );
@@ -966,7 +969,7 @@ void parse(ARRAY<MRecord>& tasklist,
 	  }
 	  
 	// Output workspace variables for generic methods:
-	if (md_data[id].Generic())
+	if ( 0 < md_data[id].GOutput().size() + md_data[id].GInput().size() )
 	  {
 	    out3 << "   Output: ";
 	    for ( size_t j=0 ; j<output.size() ; ++j )

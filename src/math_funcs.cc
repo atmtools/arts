@@ -357,3 +357,88 @@ MATRIX integr_lin(              // As above but return version
 }
 
 
+//
+// Vector to matrix conversion:
+//
+
+void to_matrix(MATRIX& W, const VECTOR& x)
+{
+  // FIXME: I'm sure this can be made more efficient when TNT has more
+  // functionality.  
+  W.newsize(x.dim(),1);
+  //  cout << "W size = " << W.num_rows() << " " << W.num_cols() << endl;
+  for (size_t i=1; i<=x.dim() ; ++i)
+    {
+      //      cout << "i = " << i << endl;
+      W(i,1) = x(i);
+    }
+}
+
+
+MATRIX to_matrix(const VECTOR& x)
+{
+  // FIXME: I'm sure this can be made more efficient when TNT has more
+  // functionality.
+  MATRIX W(x.dim(),0);
+  for (size_t i=1; i<=x.dim() ; ++i)
+    W(i,0) = x(i);
+  return W;
+}
+
+
+
+//
+//  Matrix to vector conversion:
+//
+
+void to_vector(VECTOR& x, const MATRIX& W)
+{
+  // FIXME: I'm sure this can be made more efficient when TNT has more
+  // functionality.
+
+  // Check if one of the dimensions of W is 1:
+  if ( 1 == W.num_cols() )
+    {
+      x.newsize(W.num_rows());
+      for (size_t i=1; i<=x.dim() ; ++i)
+	x(i) = W(i,1);
+    }
+  else if ( 1 == W.num_rows() )
+    {
+      x.newsize(W.num_cols());
+      for (size_t i=1; i<=x.dim() ; ++i)
+	x(i) = W(1,i);
+    }
+  else
+    throw runtime_error("You tried to convert a matrix to a vector,\n"
+			"but none of the dimensions is 1.");
+}
+
+VECTOR to_vector(const MATRIX& W)
+{
+  // FIXME: I'm sure this can be made more efficient when TNT has more
+  // functionality.
+
+  VECTOR x;
+
+  // Check if one of the dimensions of W is 1:
+  if ( 1 == W.num_cols() )
+    {
+      x.newsize(W.num_rows());
+      for (size_t i=1; i<=x.dim() ; ++i)
+	x(i) = W(i,1);
+    }
+  else if ( 1 == W.num_rows() )
+    {
+      x.newsize(W.num_cols());
+      for (size_t i=1; i<=x.dim() ; ++i)
+	x(i) = W(1,i);
+    }
+  else
+    throw runtime_error("You tried to convert a matrix to a vector,\n"
+			"but none of the dimensions is 1.");
+
+  return x;
+}
+
+

@@ -18,7 +18,7 @@ struct Parameters {
   Parameters() :
     help(false),
     version(false),
-    reportFile(""),
+    basename(""),
     controlfiles()
   { /* Nothing to be done here */ }
   /** Short message how to call the program. */
@@ -29,10 +29,10 @@ struct Parameters {
   bool help;			
   /** Display version information. */
   bool version;			
-  /** The name of the report file. This is always set by
-      get_parameters, either from the name specified with the -r or
-      --report-file option, or from the first control file name. */
-  string reportFile;
+  /** If this is specified (with the -b --basename option), it is used
+      as the base name for the report file and for other output
+      files. */ 
+  string basename;
   /** The filenames of the controlfiles. Can be only one or as many as
       you want. */
   ARRAY<string> controlfiles;

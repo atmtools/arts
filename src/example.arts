@@ -1,20 +1,13 @@
-
-#SomeMethod{
-#	sample = ["Test1",	"Test2"    ]
-#	ints   = [1,   2   , 3, 4, 5, 6, 7 ]
-#	numm   = [3.4, 1e-3, 5             ]
-#}
-
-#f_abs_ReadFromFile {
-#	file = "example.abs"
-#}
-
-#WriteVectorToFile (f_abs) {}
-
-#End{}
-
 AllAbsExample{}
 
-VectorWriteToNamedFile(p_abs){filename="p_abs.dat"}
+VectorWriteToFile(p_abs){}
+	     
+MatrixWriteToFile(abs){}
 
-MatrixWriteToNamedFile(abs){"abs.dat"}
+MatrixReadFromFile(abs){}
+
+MatrixWriteToNamedFile(abs){"dummy.abs.a"}
+
+VectorReadFromFile(p_abs){}
+
+VectorWriteToNamedFile(p_abs){"dummy.p_abs.a"}

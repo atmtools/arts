@@ -57,20 +57,19 @@ bool get_parameters(int argc, char **argv)
   {
     { "help",        no_argument, 	NULL, 'h' },
     { "version",     no_argument, 	NULL, 'v' },
-    { "report-file", required_argument, NULL, 'r' },
+    { "basename",    required_argument, NULL, 'b' },
     { NULL,          no_argument,       NULL, 0   }
   };
 
   parameters.usage =
-    "Usage: arts [-hvr] [--help] [--version] [--report-file <name>] file1.arts file2.arts ...";
+    "Usage: arts [-hvb] [--help] [--version] [--basename <name>] file1.arts file2.arts ...";
 
   parameters.helptext =
     "The Atmospheric Radiative Transfer System.\n\n"
     "-h, --help          Print this message.\n"
     "-v, --version       Show version information.\n"
-    "-r, --report-file   Set the report file name.\n"
-    "                    If this is not specified the base-name of the\n"
-    "                    first control file is used.";
+    "-b, --basename      Set the basename for the report\n"
+    "                    file and for other output files.\n";
 
   // Set the short options automatically from the last columns of
   // longopts.
@@ -115,9 +114,9 @@ bool get_parameters(int argc, char **argv)
 	case 'v':
 	  parameters.version = true;
 	  break;
-	case 'r':
+	case 'b':
 	  //	  cout << "optarg = " << optarg << endl;
-	  parameters.reportFile = optarg;
+	  parameters.basename = optarg;
 	  break;
 	default:
 	  // There were strange options.
@@ -147,21 +146,6 @@ bool get_parameters(int argc, char **argv)
   //  cout << "alle:\n" << parameters.controlfiles << '\n';
 
 
-  // Set the report file according to the first control file, if not
-  // explicitly specified.
-  // Only if controlfiles are available!
-  if ( "" == parameters.reportFile &&
-       0  != parameters.controlfiles.size() )
-    {
-      // Get a dummy to work on:
-      string s = parameters.controlfiles[0];
-      // Find the last . in the name
-      string::size_type p = s.rfind('.');
-      // Kill everything starting from the .
-      s.erase(p);
-      // Construct the report file name:
-      parameters.reportFile = s + ".rep";
-    }
-  
+
   return false;
 }

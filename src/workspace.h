@@ -2,6 +2,7 @@
 #define workspace_h
 
 #include <iostream>
+#include "vecmat.h"
 
 /** Define the enum type that identifies wsv groups.
     This is used to group workspace variables of the same type
@@ -14,16 +15,25 @@
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     \end{verbatim} */
 enum WsvGroup{
-  string_,
   VECTOR_,
   MATRIX_,
-  Other_
 };
-// Do we need this?
-// #define N_WSV_GROUPS 4
+
+// For consistency check:
+#define N_WSV_GROUPS 2
 
 
-// [**Complete the WsvP classes and add a WsvP element to the WsvRecord.]
+// Yes, this is the declaration of the great workspace itself.
+class WorkSpace {
+public:
+  VECTOR p_abs;
+  VECTOR f_abs;
+  VECTOR t_abs;
+  MATRIX abs;
+};
+
+
+
 
 /** Base class for the different Wsv pointers. A virtual function for
     the conversion operator must be added here. You can put variables
@@ -69,21 +79,6 @@ private:
 
 
 
-class WorkSpace {
-public:
-  // The slots of the workspace that are actually occupied are flagged
-  // with true in the array occupied:
-  //  bool occupied[N_WSV] = 0;
-  // Move this somewhere else, it does not need to be in the Workspace 
-  // class!
-
-  string basename;
-  VECTOR p_abs;
-  VECTOR f_abs;
-  VECTOR t_abs;
-  MATRIX abs;
-};
-
 /** This class contains all static information for one workspace
     variable. */
 class WsvRecord {
@@ -123,12 +118,9 @@ private:
   WsvP* mpointer;
 };
 
-
-/** Used to pass the actual workspace variable names to generic methods. */
-struct WsvActualGenericNames {
-  ARRAY<string> output;
-  ARRAY<string> input;
-};
+/** Output operator for WsvRecord.
+    @author Stefan Buehler */
+ostream& operator<<(ostream& os, const WsvRecord& wr);
 
 
 /** Define the lookup data for the workspace variables. The array

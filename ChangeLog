@@ -1,3 +1,23 @@
+2000-03-30  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0.0.5
+
+	* ARTS has now the following methods:
+        AllAbsExample
+	VectorWriteToFile
+	MatrixWriteToFile
+	VectorWriteToNamedFile
+	MatrixWriteToNamedFile
+	VectorReadFromFile
+	MatrixReadFromFile
+
+	which all do the obvious. Parsing and executing of methods seems
+	to work, but yet has to be tested for a wider variety of
+	methods. Also, the executor already checks if all input workspace
+	data is present, before it executes a method.
+
+	* Added some more HowTos in file src/notes.txt
+	
 2000-03-29  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0.0.4

@@ -36,25 +36,16 @@ void define_wsv_data()
      have to take place before the wsv_data is defined, since that
      needs these enums.
      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-  wsv_group_names.push_back("string");
   wsv_group_names.push_back("VECTOR");
   wsv_group_names.push_back("MATRIX");
-  wsv_group_names.push_back("Other");
+
+  // As a primitive consistency check, compare the size of
+  // wsv_group_names with N_WSV_GROUPS:  
+  assert(N_WSV_GROUPS==wsv_group_names.size());
 
   //--------------------< Build the wsv data >--------------------
   // Initialize to empty, just in case.
   wsv_data.clear();
-
-  {
-    static WsvPointer<string> p(&workspace.basename);
-    wsv_data.push_back
-      (WsvRecord
-       ("basename",
-	"The name that is used for all output files,\n"
-	"with different extensions.",
-	Other_,
-	&p));
-  }
 
   {
     static WsvPointer<VECTOR> p(&workspace.p_abs);
@@ -98,3 +89,14 @@ void define_wsv_data()
 
   //  cout << "size = " << wsv_data.size() << '\n';
 }
+
+
+ostream& operator<<(ostream& os, const WsvRecord& wr)
+{
+  os << "Name = "        << wr.Name() << '\n'
+     << "Description = " << wr.Description() << '\n'
+     <<	"Group = "       << wsv_group_names[wr.Group()];
+
+  return os;
+}
+

@@ -16,9 +16,9 @@ void AllAbsExample(// WS Output:
   p_abs = VECTOR(4,"1000 100 10 1");
   t_abs = VECTOR(4,"300 250 260 290");
   abs   = MATRIX(f_abs.size(),p_abs.size(),
-		 "1000.12345678901234567890 800 600 400 "
+		 "1000 800 600 400 "
 		 "1001 801 601 401 "
-		 "1002 802 602 402.12345678901234567890 ");
+		 "1002 802 602 402 ");
   
   // Safety check:
   if ( p_abs.size() != t_abs.size() )

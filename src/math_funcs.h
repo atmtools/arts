@@ -112,11 +112,64 @@ MATRIX interp_lin_row(       // As above but return version
 Numeric integr_lin( const VECTOR& x, const VECTOR& y );
                            // Integrates Y over X assuming that Y is
                            // linear between the given points
-void integr_lin( MATRIX&, const VECTOR& x, const MATRIX& M );
+void integr_lin( MATRIX& W, const VECTOR& x, const MATRIX& M );
                            // As above but works with a matrix instead
                            // of a vector
 MATRIX integr_lin( const VECTOR& x, const MATRIX& M );
                            // As above but return version
+
+//
+// Conversion functions:
+//
+
+/** Converts a vector to a matrix. For a vector of dimension n, the
+    dimension of the matrix is [n,0], in other words, the vector is
+    interpreted as a column vector. There is also a return version of
+    this function.
+
+    @param W Output. The matrix.
+    @param x The vector.
+
+    @author Stefan Buehler    */
+void to_matrix(MATRIX& W, const VECTOR& x);
+
+/** Converts a vector to a matrix (return version). For a vector of
+    dimension n, the dimension of the matrix is [n,0], in other words,
+    the vector is interpreted as a column vector.
+
+    @param x The vector.
+
+    @return The matrix.
+
+    @author Stefan Buehler    */
+MATRIX to_matrix(const VECTOR& x);
+
+
+
+/** Converts a matrix to a vector. This works only if one of the
+    dimensions of the matrix is 1. There is also a return version of
+    this function.
+
+    @param x Output. The vector.
+    @param W The matrix.
+
+    @exception runtime_error None of the dimensions of W was 1.
+
+    @author Stefan Buehler    */
+void to_vector(VECTOR& x, const MATRIX& W);
+
+
+/** Converts a matrix to a vector. This works only if one of the
+    dimensions of the matrix is 1. 
+
+    @param W The matrix.
+
+    @return x The vector.
+
+    @exception runtime_error None of the dimensions of W was 1.
+
+    @author Stefan Buehler    */
+VECTOR to_vector(const MATRIX& W);
 
 
 #endif  // math_funcs_h

@@ -90,8 +90,8 @@ void read_text_from_file(ARRAY<string>& text, const string& name)
 
   // Open input stream:
   open_input_file(ifs, name);
-  // No need to check for error, because open_input_file throws an
-  // IOError with an appropriate error message.
+  // No need to check for error, because open_input_file throws a
+  // runtime_error with an appropriate error message.
 
   // Read the text from the stream. Here we catch the exception,
   // because then we can issue a nicer error message that includes the 
