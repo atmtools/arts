@@ -282,6 +282,8 @@ class MatrixView;
     case of a VectorView which also allocates storage. */
 class ConstVectorView {
 public:
+  // Typedef for compatibility with STL
+  typedef ConstIterator1D const_iterator;
 
   // Member functions:
   Index nelem() const;
@@ -348,6 +350,8 @@ protected:
     constant index operators and iterators. */
 class VectorView : public ConstVectorView {
 public:
+  // Typedef for compatibility with STL
+  typedef Iterator1D iterator;
 
   // Const index operators:
   /** Plain const index operator. Has to be redifined here, because the
@@ -554,6 +558,9 @@ class Matrix;
     which also allocates storage. */
 class ConstMatrixView {
 public:
+  // Typedef for compatibility with STL
+  typedef ConstIterator2D const_iterator;
+
   // Member functions:
   Index nrows() const;
   Index ncols() const;
@@ -623,6 +630,8 @@ protected:
     which also allocates storage. */
 class MatrixView : public ConstMatrixView {
 public:
+  // Typedef for compatibility with STL
+  typedef Iterator2D iterator;
 
   // Const index operators:
   /** Plain const index operator. Has to be redefined here, since it is
