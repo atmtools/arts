@@ -469,26 +469,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ArrayOfMatrixAppend"),
-        DESCRIPTION
-        (
-         "Appends a Matrix to an ArrayOfMatrix.\n"
-         "\n"
-         "Generic output:\n"
-         "  ArrayOfMatrix : The array to be expanded.\n"
-         "\n"
-         "Generic input:\n"
-         "         Matrix : The matrix to append."
-        ),
-        OUTPUT(),
-        INPUT(),
-        GOUTPUT( ArrayOfMatrix_ ),
-        GINPUT( Matrix_ ),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("ArrayOfMatrixSet"),
         DESCRIPTION
         (

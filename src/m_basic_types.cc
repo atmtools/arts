@@ -59,27 +59,6 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! ArrayOfMatrixAppend
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-08-25
-*/
-void ArrayOfMatrixAppend(// WS Generic Output:
-                         ArrayOfMatrix&   a,
-                         // WS Generic Output Names:
-                         const String&    a_name,
-                         // WS Generic Input:
-                         const Matrix&    m,
-                         // WS Generic Input Names:
-                         const String&    m_name)
-{
-  a.push_back(m);
-  out2 << "  Appending Matrix " << m_name << " to ArrayOfMatrix "
-       << a_name << ".\n";
-}
-
 
 //! ArrayOfMatrixSet
 /*!
