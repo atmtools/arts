@@ -19,8 +19,6 @@ using namespace std;
 
 int main(void)
 {//Input & Output
-  Vector f_grid;         // Frequency grid.
-
   //Output
   Tensor3 ext_mat_zee;   // Tensor3 of the Extinction Matrix for the specified frequency grid. 
   Matrix abs_vec_zee;    // Matrix of the Absorption Vector for the specified frequency grid.
