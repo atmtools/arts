@@ -48,6 +48,7 @@
 #include "absorption.h"
 #include "gas_abs_lookup.h"
 #include "optproperties.h"
+#include "m_general.h"
 #include "bifstream.h"
 #include "bofstream.h"
 
@@ -124,6 +125,13 @@ xml_read_from_stream (istream&, Tensor7&, bifstream * = NULL);
 
 void
 xml_write_to_stream (ostream&, const Tensor7&, bofstream * = NULL,
+                     const String& = "");
+
+void
+xml_read_from_stream (istream&, Timer&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const Timer&, bofstream * = NULL,
                      const String& = "");
 
 void

@@ -79,6 +79,9 @@ template void
 xml_read_from_file<Tensor7> (const String&, Tensor7&);
 
 template void
+xml_read_from_file<Timer> (const String&, Timer&);
+
+template void
 xml_read_from_file<Vector> (const String&, Vector&);
 
 template void
@@ -110,6 +113,9 @@ xml_write_to_file<Tensor6> (const String&, const Tensor6&, FileType);
 
 template void
 xml_write_to_file<Tensor7> (const String&, const Tensor7&, FileType);
+
+template void
+xml_write_to_file<Timer> (const String&, const Timer&, FileType);
 
 template void
 xml_write_to_file<Vector> (const String&, const Vector&, FileType);
