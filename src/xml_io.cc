@@ -283,7 +283,6 @@ ArtsXMLTag::read_from_stream (istream& is)
       xml_parse_error ("Closing > not found in tag: " + tag.str ());
     }
 
-
   sstr.str (tag.str () + '>');
   out2 << "Read: " << sstr.str () << '\n';
 
@@ -1128,7 +1127,6 @@ xml_read_from_stream (istream&           is,
       throw runtime_error(os.str());
     }
 
-
   tag.read_from_stream (is);
   tag.check_name ("/Array");
 }
@@ -1756,10 +1754,15 @@ xml_read_from_stream (istream&    is,
   tag.read_from_stream (is);
   tag.check_name ("SpeciesTag");
 
-  is.get (strbuf, '"');
-  if (is.fail ())
+  // Check whether next char is ". If so, is.get will read nothing
+  // and input stream will become invalid
+  if (is.peek () != '"')
     {
-      xml_parse_error ("SpeciesTag must begin with \"");
+      is.get (strbuf, '"');
+      if (is.fail ())
+        {
+          xml_parse_error ("SpeciesTag must begin with \"");
+        }
     }
 
   is >> dummy;
