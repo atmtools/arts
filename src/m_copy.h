@@ -30,6 +30,8 @@
 #ifndef m_copy_h
 #define m_copy_h
 
+#include "messages.h"
+
 //! Supergeneric Copy.
 /*! 
   This is the implementation of the supergeneric Copy method. See
@@ -50,7 +52,10 @@ void Copy(// WS Generic Output:
           // WS Generic Input Names:
           const String& inname)
 {
-  CloneSize( out, outname, in, inname );
+  // The use of CloneSize should not be necessary anymore, thanks to
+  // the new copy semantics.  
+  // CloneSize( out, outname, in, inname );
+  out2 << "  Copying " << inname << " to " << outname << ".\n";
   out = in;
 }
 

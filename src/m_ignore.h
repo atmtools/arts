@@ -45,6 +45,7 @@ void Ignore(// WS Generic Input:
             const String& inname)
 {
   // Nothing to do here.
+  out2 << "  Ignoring " << inname << ".\n";
 }
 
 #endif // m_ignore_h

@@ -1,5 +1,16 @@
 2003-03-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-1-1-471
+
+	* src/m_ignore.h (Ignore): Issue a level 2 message which WSV is
+	ignored. This avoids the unused parameter warning for
+	*inname*. However, there still is one for *in*. Don't know how to
+	fix this right now.
+
+	* src/m_copy.h (Copy): Removed call of CloneSize.
+
+2003-03-05  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-1-1-470
 
 	* src/m_clonesize.cc: Added some level 2 and 3 output messages to
