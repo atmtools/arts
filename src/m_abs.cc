@@ -53,6 +53,9 @@ void linesReadFromHitran(// WS Output:
 {
   ifstream is;
 
+  // Reset lines in case it already existed:
+  lines.resize(0);
+
   out2 << "  Reading file: " << filename << '\n';
   open_input_file(is, filename);
 
@@ -90,6 +93,9 @@ void linesReadFromMytran2(// WS Output:
 {
   ifstream is;
 
+  // Reset lines in case it already existed:
+  lines.resize(0);
+
   out2 << "  Reading file: " << filename << '\n';
   open_input_file(is, filename);
 
@@ -122,6 +128,9 @@ void linesReadFromJpl(// WS Output:
 		      const Numeric& fmax)
 {
   ifstream is;
+
+  // Reset lines in case it already existed:
+  lines.resize(0);
 
   out2 << "  Reading file: " << filename << '\n';
   open_input_file(is, filename);
@@ -165,6 +174,9 @@ void linesReadFromArts(// WS Output:
   // We will use this line record to read in the line records in the
   // file one after another:
   LineRecord lr;
+
+  // Reset lines in case it already existed:
+  lines.resize(0);
 
   out2 << "  Reading file: " << filename << '\n';
   open_input_file(is, filename);

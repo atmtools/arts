@@ -55,19 +55,19 @@ void define_wsv_group_names()
   // Initialize to empty, just in case.
   wsv_group_names.resize(0);
 
-  wsv_group_names.push_back("String");
   wsv_group_names.push_back("Index");
   wsv_group_names.push_back("Numeric");
+  wsv_group_names.push_back("String");
   wsv_group_names.push_back("Vector");
   wsv_group_names.push_back("Matrix");
-  wsv_group_names.push_back("ArrayOfString");
   wsv_group_names.push_back("ArrayOfIndex");
+  wsv_group_names.push_back("ArrayOfString");
   wsv_group_names.push_back("ArrayOfVector");
   wsv_group_names.push_back("ArrayOfMatrix");
-  wsv_group_names.push_back("LOS");
   wsv_group_names.push_back("ArrayOfLineRecord");
   wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
-  wsv_group_names.push_back("TagGroups");
   wsv_group_names.push_back("ArrayOfLineshapeSpec");
+  wsv_group_names.push_back("TagGroups");
+  wsv_group_names.push_back("LOS");
 }
 

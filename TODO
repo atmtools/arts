@@ -22,9 +22,6 @@ AvE 04.09.2000: Agnes Perrin mentioned that the simple scheme to calculate
 AvE 2000-09-27: There is optimization potential in the lineshape.cc file,
 		read FIXME comments over there.
 
-PE  2000-11-11: Write the workspace variables in alphabetical order to 
-                wsv.txt.
-
 SAB 2000-11-08: Send information about ARTS to Gerald Nedolua for
                 destribution to NDSC.
 
@@ -78,3 +75,13 @@ SAB 2001-09-24: After the workshop, implement a new ASCII output
                 format. Think about consistant naming of
                 methods. Don't forget los, lines, lines_per_tg, and
                 raw_vmrs read/write.
+
+SAB 2001-09-25: Patrick, can you please rename the group LOS to Los,
+                in order to be consistent with the other group names?
+
+SAB 2001-09-25: Rename Array<OneTag> to TagGroup and Array<
+                Array<OneTag> > to ArrayOfTagGroup. (After update of
+                online docs, to avoid conflicts.)
+
+SAB 2001-09-25: Thomas: Write doxygen header for function
+                interpp_cloud in file atm_funcs.cc.

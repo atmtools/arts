@@ -1,5 +1,5 @@
 
-\levela{Data types, math operations and file formats}
+\levela{Workspace variable groups and file formats}
  \label{sec:formats}
  
 \starthistory
@@ -7,48 +7,32 @@
   010904 & Started new text about handmade matrix/vector package.\\
 \stophistory
 
- This section defines the data types, basic mathematical operations
- and file formats supported by ARTS. The implementation of vectors,
- matrices, and sparse matrices is based on the handmade MATPACK
- package, which is part of the ARTS source code (files matpackI.h,
- matpackII.h, matpackI.cc, and matpackII.cc). The implementation of
- arrays is based on the Standard Template Library (STL).
- 
- You can read ARTS variables from Ascii or Binary files, and also
- write them to Ascii or Binary files. The Ascii file format is very
- simple and explained in the online help %
- (\verb|arts -d ArrayOfMatrixWriteAscii|).  Binary files are created
- and read by using the Hierarchical Data Format (HDF). Some
- information and help how to install HDF is given below.
+This section defines the data types, basic mathematical operations
+and file formats supported by ARTS. The implementation of vectors,
+matrices, and sparse matrices is based on the handmade MATPACK
+package, which is part of the ARTS source code (files matpackI.h,
+matpackII.h, matpackI.cc, and matpackII.cc). The implementation of
+arrays is based on the Standard Template Library (STL).
 
+You can read ARTS variables from Ascii or Binary files, and also
+write them to Ascii or Binary files. The Ascii file format is very
+simple and explained in the online help %
+(\verb|arts -d ArrayOfMatrixWriteAscii|).  Binary files are created
+and read by using the Hierarchical Data Format (HDF). Some
+information and help how to install HDF is given below.
 
+ARTS workspace variables are organized in \emph{groups}. Such a group
+is similar to a type in C or C++. For example, \verb|String| and
+\verb|Vector| are both groups. To get a complete list of workspace
+variable groups, call ARTS like this: \verb|arts -g|.
 
-\levelb{Data types}
+\levelb{Important workspace variable groups}
  \label{sec:formats:datatypes}
 
- \begin{table}[t]
-  \begin{tabular}{p{4cm} p{4cm} p{4cm}}
-   \verb|VectorView|         & \verb|MatrixView|         \\
-   \verb|ConstVectorView|    & \verb|ConstMatrixView|    \\
-   \verb|Range|              & \verb|Joker| \\
-  \end{tabular}
-  \caption{Auxiliary numeric data types.}
-  \label{table:format:numaux}
- \end{table}
-
- \begin{table}[t]
-  \begin{tabular}{p{4cm} p{4cm} p{4cm}}
-   \verb|ArrayOfVector|  & \verb|ArrayOfMatrix|  & \verb|ArrayOfIndex|   \\
-   \verb|ArrayOfString|  &                       &                        \\
-  \end{tabular}
-  \caption{Array containers for the atomic types.}
-  \label{table:format:atomicarrays}
- \end{table}
-
-\levelc{Atomic types}
+\levelc{Atomic groups}
 \label{sec:formats:atomic}
  
-The most basic, the atomic, data types of ARTS are:
+The most basic, the atomic, groups of ARTS are:
 
 \begin{itemize}
 \item \verb|Index|
@@ -56,7 +40,7 @@ The most basic, the atomic, data types of ARTS are:
 \item \verb|String|
 \end{itemize}
 
-A variable of type \verb|Index| is a positive or negative integer.
+A variable of group \verb|Index| is a positive or negative integer.
 \verb|Index| is the general purpose integer type of ARTS.  Internally
 this type is set to the C data type \verb|long int|. \verb|Index| is
 used for indexing vectors, matrices, and arrays. The type is also used
@@ -64,7 +48,7 @@ for all function flags, i.e., to make a selction among a limited number
 of choices. Accordingly, characters or strings shall not be used as
 flags.
 
-A variable of type \verb|Numeric| is a floating point number.
+A variable of group \verb|Numeric| is a floating point number.
 Internally, it is either set to be double or float by
 \verb|configure|. If \verb|Numeric| is set to be double, the
 calculations will be more accurate and there is a smaller risk to
@@ -74,12 +58,12 @@ will be more rapid (about twice as fast), and the program will need
 only half as much memory. The type selected for \verb|Numeric| is also
 reflected in the size of output files.
 
-A \verb|String| is not a true `atomic' data type as it consists of a
-number of characters, but as characters are not used in ARTS, strings
-are the most basic text type in ARTS.
+A variable of group \verb|String| is not a true `atomic' variable, as
+it consists of a number of characters, but as characters are not used
+in ARTS, strings are the most basic text type in ARTS.
   
 
-\levelc{Numeric mathematical types}
+\levelc{Numeric groups}
 \label{sec:formats:nummath}
  
 Numeric values can be stored in vectors or matrices for which
@@ -91,41 +75,29 @@ possible. ARTS uses the following types:
 \item \verb|Matrix|
 \end{itemize}
 
-Because these types are quite powerfull, they are described in more
-detail in the next two section.
+Both of these use 0-based indexing, i.e., \verb|a[0]| is the first
+element of the \verb|Vector| \verb|a|.  Because these types are quite
+powerfull, they are described in more detail in a separate section,
+which you should read if you want to do ARTS development. [FIXME: Put
+reference here.]
 
-\leveld{Vectors}
-
-\leveld{Matrices}
-
-
-\levelc{Arrays based on atomic types}
+\levelc{Arrays based on atomic and numeric groups}
  \label{sec:formats:atomic_arrays}
  
 Arrays correspond to vectors but are not treated as mathematical
 objects, they are only used as containers to hold different data.
 The arrays (as vectors and matrices) have 0-based indexing, that is,
-the first element has index 0 (not 1). The existing arrays for the
-atomic data types are listed in Table \ref{table:format:atomicarrays}.
-A \verb|Matrix| is basically an array of vectors, but if the vectors
-have different length they must be stored as an \verb|ArrayOfVECTOR|.
+the first element has index 0 (not 1). Some examples for \verb|Array|s
+are:
 
+\begin{itemize}
+\item ArrayOfIndex
+\item ArrayOfString
+\item ArrayOfVector
+\item ArrayOfMatrix
+\end{itemize}
 
-\levelc{Other data types}
- \label{sec:formats:others}
-
- \begin{table}[t]
-  \begin{tabular}{l l l}
-   \verb|LineRecord| & \verb|ArrayOfLineRecord| & \verb|ArrayOfArrayOfLineRecord| \\
-   \verb|OneTag|     & \verb|Tags|   & \\
-   \verb|LOS| & & \\
-  \end{tabular}
-  \caption{ARTS data types using a mix of atomic types (structures).}
-  \label{table:format:structures}
- \end{table}
- 
-!! Stefan or Axel can you check Table \ref{table:format:structures} and
-write something here !!
+\levelc{Structures based on atomic and numeric groups}
 
 The \verb|LOS| is a structure to describe the line of sight (LOS).
 The structure holds for example the pressures along the LOS. To make the
@@ -135,37 +107,6 @@ to describe the iteration order. The structure also contains the
 index for ground reflections and the geometrical step length along
 the LOS. The LOS is further described in Section \ref{sec:los}.
 
-
-\levelb{Mathematical and logical operations}
-\label{sec:formats:maths}
- 
-\levelc{The atomic types} 
-All standard mathermatical (\verb|+|,\verb|-|,\verb|*|,\verb|/| etc.)
-and logical operations (\verb|==|, \verb|!=| etc.) of C++ can of
-course be used for \verb|Numeric| and \verb|Index|. Among the C++
-standard operations for strings, comparation using \verb|==| and
-\verb|!=| are probably the most important.
-
- 
-\levelc{Vectors}
- 
-\levelc{Matrices}
-A matrix with 5 rows and 3 columns is defined like this:
-\begin{verbatim}
-Matrix M(5,3)
-\end{verbatim}
-Elements are accessed like this:
-\begin{verbatim}
-Numeric x =  M(2,2)
-\end{verbatim}
-\textbf{Note that indices are zero-based!}
-
-
- 
-\levelc{Arrays} 
- No mathematical or logical oeprations are defined for the arrays (see
- Table \ref{table:format:atomicarrays}). The arrays are only used as
- containers to store data.
 
 
 \levelb{File formats}
@@ -224,11 +165,11 @@ String 3
 }
 
  \begin{table}[t]
-  \begin{tabular}{p{4.5cm} p{4.5cm} p{4.5cm}}
-   \verb|Numeric|        & \verb|VECTOR|         & \verb|Matrix|          \\
-   \verb|ArrayOfVECTOR|  & \verb|ArrayOfMatrix|  &                        \\
+  \begin{tabular}{p{4cm} p{4cm} p{4cm}}
+   \verb|Numeric|        & \verb|Vector|         & \verb|Matrix|          \\
+   \verb|ArrayOfVector|  & \verb|ArrayOfMatrix|  &                        \\
    \verb|Index|          & \verb|ArrayOfIndex|  &                        \\
-   \verb|STRING|          & \verb|ArrayOfSTRING|  &                        \\
+   \verb|String|          & \verb|ArrayOfString|  &                        \\
   \end{tabular}
   \caption{ARTS data types that can be stored using the ASCII
            file formats (.aa).}
