@@ -418,6 +418,23 @@ void chk_atm_grids(
                           "For dim=3, the length of *lon_grid* must be >=2.");
       chk_if_increasing( "lon_grid", lon_grid );
     }
+
+  // Check that latitude and longitude grids are inside OK ranges for 3D
+  if( atmosphere_dim == 3 )
+    {
+      if( lat_grid[0] < -90 )
+	throw runtime_error( 
+                  "The latitude grid cannot extend below -90 degrees for 3D" );
+      if( last(lat_grid) > 90 )
+	throw runtime_error( 
+                  "The latitude grid cannot extend above 90 degrees for 3D" );
+      if( lon_grid[0] < -360 )
+	throw runtime_error( 
+                "The longitude grid cannot extend below -360 degrees for 3D" );
+      if( last(lon_grid) > 360 )
+	throw runtime_error( 
+                "The longitude grid cannot extend above 360 degrees for 3D" );
+    }
 }
 
 

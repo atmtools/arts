@@ -90,22 +90,20 @@ void i_spaceCBR(
 void RteCalc(
         // WS Output:
               Vector&         y,
+	      Ppath&          ppath_step,
         // WS Input:
+	const Agenda&         ppath_step_agenda,
         const Index&          atmosphere_dim,
         const Vector&         p_grid,
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
-        const Tensor3&        t_field,
         const Matrix&         r_geoid,
         const Matrix&         z_ground,
-        const Matrix&         t_ground,
-        const Tensor3&        e_ground,
         const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         f_grid,
-        const Vector&         i_space,
         const Index&          antenna_dim,
         const Vector&         mblock_za_grid,
         const Vector&         mblock_aa_grid,
@@ -113,33 +111,6 @@ void RteCalc(
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los )
 {
-  /* Notes for the RTE calculations:
-
-  rte_background_agenda
-    ---
-    Needed as to handle case with or without cloudbox/emission and to avoid
-    that too many variables must be set to dummy values
-    ---
-    Needs   : ppath, ground variables, i_space, ...
-    Creates : i_rte_background
-    ---
-    Versions: RteBackgroundEmission, RteBackgroundEmissionWithCloudBox
-
-  rte_calculate_agenda
-    ---
-    To switch between considering emission or not. The cloudbox is not
-    important here.
-    ---
-    Needs   : ppath, i_background, atmospheric variables, ...
-    Creates : i_rte
-    ----
-    Versions: RteEmission
-
-   
-  The main functions for the calculations is RteCalc
-  */
-
-
 
   // Some sizes
   //
@@ -150,35 +121,64 @@ void RteCalc(
 
   //--- Check input -----------------------------------------------------------
 
-  // There are extensives checks performed in ppathCalc and those are not
-  // duplicated here.
-
-  // Atmospheric variables
-  //
-  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+  // Basic checks of atmospheric, geoid and ground variables
+  //  
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
                                                                     lon_grid );
+  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
+  chk_atm_surface( "z_ground", z_ground, atmosphere_dim, lat_grid, lon_grid );
 
-  // Ground variables
+  // Check that z_field has strictly increasing pages.
   //
-  chk_atm_surface( "t_ground", t_ground, atmosphere_dim, lat_grid, lon_grid );
-  if( e_ground.npages() != nf )
+  for( Index row=0; row<z_field.nrows(); row++ )
     {
-      ostringstream os;
-      os << "The number of pages of e_ground must be equal to the number of "
-	 << "frequencies, but f_grid has the length " << nf <<",\n"
-	 << "while e_ground has " << e_ground.npages() << " pages.";
-      throw runtime_error( os.str() );
+      for( Index col=0; col<z_field.ncols(); col++ )
+	{
+	  // I could not get the compliler to accept a solution without dummy!!
+	  Vector dummy(z_field.npages());
+	  dummy = z_field(Range(joker),row,col);
+	  ostringstream os;
+	  os << "z_field (for latitude nr " << row << " and longitude nr " 
+             << col << ")";
+	  chk_if_increasing( os.str(), dummy ); 
+	}
     }
 
-  chk_atm_surface( "a page of e_ground", e_ground(0,Range(joker),Range(joker)),
-                                          atmosphere_dim, lat_grid, lon_grid );
-  
-  // Frequency grid and i_space
+  // Check that there is no gap between the ground and lowest pressure surface
+  //
+  for( Index row=0; row<z_ground.nrows(); row++ )
+    {
+      for( Index col=0; col<z_ground.ncols(); col++ )
+	{
+	  if( z_ground(row,col)<z_field(0,row,col) || 
+                       z_ground(row,col)>=z_field(z_field.npages()-1,row,col) )
+	    {
+	      ostringstream os;
+	      os << "The ground altitude (*z_ground*) cannot be outside of the"
+		 << " altitudes in *z_field*.";
+		if( atmosphere_dim > 1 )
+		  os << "\nThis was found to be the case for:\n" 
+		     << "latitude " << lat_grid[row];
+		if( atmosphere_dim > 2 )
+		  os << "\nlongitude " << lon_grid[col];
+	      throw runtime_error( os.str() );
+	    }
+	}
+    }
+
+  // Blackbody ground and cloud box
+  //
+  chk_if_bool(  "blackbody_ground", blackbody_ground );
+  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid, blackbody_ground, 
+		                                cloudbox_on, cloudbox_limits );
+
+  // Frequency grid
   //
   if( nf == 0 )
     throw runtime_error( "The frequency grid is empty." );
   chk_if_increasing( "f_grid", f_grid );
-  chk_vector_length( "f_grid", "i_space", f_grid, i_space );
 
   // Antenna
   //
@@ -204,8 +204,9 @@ void RteCalc(
   //
   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
 
-  // Sensor position and LOS. That the angles are inside OK ranges are checked
-  // inside ppathCalc.
+  // Sensor position and LOS. 
+  //
+  // That the angles are inside OK ranges are checked inside ppathCalc.
   //
   if( sensor_pos.ncols() != atmosphere_dim )
     throw runtime_error( "The number of columns of sensor_pos must be equal "
@@ -251,16 +252,17 @@ void RteCalc(
 	{
 	  for( Index iaa=0; iaa<naa; iaa++ )
 	    {
-	      // LOS
+	      // LOS of interest
 	      los     = sensor_los( imblock, Range(joker) );
 	      los[0] += mblock_za_grid[iza];
 	      if( antenna_dim == 2 )
 		{ los[1] += mblock_aa_grid[iaa]; }
 
 	      // Determine propagation path
-	      //ppathCalc( ppath, atmosphere_dim, p_grid, lat_grid, lon_grid, 
-	      // z_field, r_geoid, z_ground, blackbody_ground, cloudbox_on,
-              //      cloudbox_limits, sensor_pos(imblock,Range(joker)), los );
+	      ppathCalc( ppath, ppath_step, atmosphere_dim, p_grid, lat_grid, 
+                        lon_grid, z_field, r_geoid, z_ground, blackbody_ground,
+                             cloudbox_on, cloudbox_limits, ppath_step_agenda, 
+                                       sensor_pos(imblock,Range(joker)), los );
 
 	      // Calculate spectra and WFs
 	      // (this will be an agenda)
@@ -288,4 +290,5 @@ void RteCalc(
   y.resize( nmblock * nf * nza * naa );
   //
   y = i_total( Range(joker), 0 );
+
 }

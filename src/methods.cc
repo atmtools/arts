@@ -731,10 +731,10 @@ void define_md_data_raw()
 	 "Sets the ground emissivity to a constant value.\n"
 	 "\n"
 	 "The size of *e_ground* is automatically determined by the\n"
-	 "latitaude , longitude and frequency grids.\n"
+	 "latitude , longitude and frequency grids.\n"
 	 "\n"
 	 "If the ground shall be treated as a blackbody, use the\n"
-	 "function *SetBlackbodyGround*.\n"
+	 "function *GroundSetToBlackbody*.\n"
 	 "\n"
          "Keywords: \n"
          "   value : The ground emissivity."
@@ -1536,11 +1536,11 @@ void define_md_data_raw()
          "\n"
          "Text will be written (PE)."
         ),
-	OUTPUT( y_ ),
-	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
-               t_field_, r_geoid_, z_ground_, t_ground_, e_ground_, 
+	OUTPUT( y_, ppath_step_ ),
+	INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
+               r_geoid_, z_ground_,
                blackbody_ground_, cloudbox_on_,  cloudbox_limits_, f_grid_, 
-               i_space_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_,
+               antenna_dim_, mblock_za_grid_, mblock_aa_grid_,
                stokes_dim_, sensor_pos_, sensor_los_ ),
 	GOUTPUT(),
 	GINPUT(),

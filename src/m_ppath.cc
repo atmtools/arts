@@ -200,79 +200,12 @@ void ppathCalc(
         const Vector&         a_pos,
         const Vector&         a_los )
 {
+  // This function is a WSM but it is normally only called from RteCalc. 
+  // For that reason, this function does not repeat input checks that are
+  // performed in RteCalc, it only performs checks regarding the sensor 
+  // position and LOS.
 
   //--- Check input -----------------------------------------------------------
-
-  // Check that data sizes of grids, z_field and ground variables match the 
-  // atmospheric dimensionality.
-  //
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                    lon_grid );
-  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
-  chk_atm_surface( "z_ground", z_ground, atmosphere_dim, lat_grid, lon_grid );
-
-  // Check that latitude and longitude grids are inside OK ranges for 3D
-  if( atmosphere_dim == 3 )
-    {
-      if( lat_grid[0] < -90 )
-	throw runtime_error( 
-                  "The latitude grid cannot extend below -90 degrees for 3D" );
-      if( last(lat_grid) > 90 )
-	throw runtime_error( 
-                  "The latitude grid cannot extend above 90 degrees for 3D" );
-      if( lon_grid[0] < -360 )
-	throw runtime_error( 
-                "The longitude grid cannot extend below -360 degrees for 3D" );
-      if( last(lon_grid) > 360 )
-	throw runtime_error( 
-                "The longitude grid cannot extend above 360 degrees for 3D" );
-    }
-
-  // Check that z_field has strictly increasing pages.
-  //
-  for( Index row=0; row<z_field.nrows(); row++ )
-    {
-      for( Index col=0; col<z_field.ncols(); col++ )
-	{
-	  // I could not get the compliler to accept a solution without dummy!!
-	  Vector dummy(z_field.npages());
-	  dummy = z_field(Range(joker),row,col);
-	  ostringstream os;
-	  os << "z_field (for latitude nr " << row << " and longitude nr " 
-             << col << ")";
-	  chk_if_increasing( os.str(), dummy ); 
-	}
-    }
-
-  // Check that there is no gap between the ground and lowest pressure surface
-  //
-  for( Index row=0; row<z_ground.nrows(); row++ )
-    {
-      for( Index col=0; col<z_ground.ncols(); col++ )
-	{
-	  if( z_ground(row,col)<z_field(0,row,col) || 
-                       z_ground(row,col)>=z_field(z_field.npages()-1,row,col) )
-	    {
-	      ostringstream os;
-	      os << "The ground altitude (*z_ground*) cannot be outside of the"
-		 << " altitudes in *z_field*.";
-		if( atmosphere_dim > 1 )
-		  os << "\nThis was found to be the case for:\n" 
-		     << "latitude " << lat_grid[row];
-		if( atmosphere_dim > 2 )
-		  os << "\nlongitude " << lon_grid[col];
-	      throw runtime_error( os.str() );
-	    }
-	}
-    }
-
-  // Blackbody ground and cloud box
-  //
-  chk_if_bool(  "blackbody_ground", blackbody_ground );
-  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid, blackbody_ground, 
-		cloudbox_on, cloudbox_limits );
 
   // Sensor position and LOS
   //
