@@ -32,25 +32,48 @@
 #include "bifstream.h"
 using namespace std;
 
-
-template<typename T>
-bifstream &operator>> (bifstream &bif, T &n)
+void bifstream::seek(long pos, Offset offs)
 {
-  bif.read ((char *)&n, sizeof (n));
+  if(!in) { err = NotOpen; return; }
 
-  return (bif);
+  switch(offs) {
+  case Set: this->seekg(pos, ios::beg); break;
+  case Add: this->seekg(pos, ios::cur); break;
+  case End: this->seekg(pos, ios::end); break;
+  }
 }
 
-/* Explicit instantiation of output operators */
-template
-bifstream &operator>> <double> (bifstream &bif, double &n);
+long bifstream::pos()
+{
+  if(!in) { err = NotOpen; return 0; }
+  return (long)this->tellg();
+}
 
-template
-bifstream &operator>> <float> (bifstream &bif, float &n);
+bifstream::Byte bifstream::getByte()
+{
+  int read;
 
-template
-bifstream &operator>> <int> (bifstream &bif, int &n);
+  if(this->good ()) {
+        read = this->get ();
+        if(read == EOF) err |= Eof;
+        return (Byte)read;
+  } else {
+        err |= NotOpen;
+        return 0;
+  }
+}
 
-template
-bifstream &operator>> <long> (bifstream &bif, long &n);
+
+/* Overloaded input operators */
+bifstream &operator>> (bifstream &bif, double &n)
+{ n = (double)bif.readFloat (binio::Double); return (bif); }
+
+bifstream &operator>> (bifstream &bif, float &n)
+{ n = (float)bif.readFloat (binio::Double); return (bif); }
+
+bifstream &operator>> (bifstream &bif, long &n)
+{ n = (long)bif.readInt (8); return (bif); }
+
+bifstream &operator>> (bifstream &bif, int &n)
+{ n = (int)bif.readInt (8); return (bif); }
 

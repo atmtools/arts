@@ -32,6 +32,31 @@
 #include "bofstream.h"
 using namespace std;
 
+void bofstream::seek(long pos, Offset offs)
+{
+  if(!in) { err = NotOpen; return; }
+
+  switch(offs) {
+  case Set: this->seekp(pos, ios::beg); break;
+  case Add: this->seekp(pos, ios::cur); break;
+  case End: this->seekp(pos, ios::end); break;
+  }
+}
+
+long bofstream::pos()
+{
+  if(!in) { err = NotOpen; return 0; }
+  return (long)this->tellp ();
+}
+
+void bofstream::putByte (bofstream::Byte b)
+{
+  if(!this->good ()) { err |= NotOpen; return; }
+
+  this->put (b);
+  if (this->bad ())
+    err |= Fatal;
+}
 
 template<typename T>
 bofstream &operator<< (bofstream &bof, T n)
@@ -41,16 +66,18 @@ bofstream &operator<< (bofstream &bof, T n)
   return (bof);
 }
 
-/* Explicit instantiation of output operators */
-template
-bofstream &operator<< <double> (bofstream &bof, double n);
 
-template
-bofstream &operator<< <float> (bofstream &bof, float n);
+/* Overloaded output operators */
+bofstream &operator<< (bofstream &bof, double n)
+{ bof.writeFloat (n, binio::Double); return (bof); }
 
-template
-bofstream &operator<< <int> (bofstream &bof, int n);
+bofstream &operator<< (bofstream &bof, float n)
+{ bof.writeFloat (n, binio::Double); return (bof); }
 
-template
-bofstream &operator<< <long> (bofstream &bof, long n);
+bofstream &operator<< (bofstream &bof, long n)
+{ bof.writeInt (n, 8); return (bof); }
+
+bofstream &operator<< (bofstream &bof, int n)
+{ bof.writeInt (n, 8); return (bof); }
+
 

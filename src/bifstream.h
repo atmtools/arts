@@ -34,26 +34,46 @@
 #include <fstream>
 using namespace std;
 
+#include "binio.h"
+
 
 //! Binary output file stream class
 /*!
   Handles writing to an output file stream in binary format. It makes it
   possible to use the operator<< for binary output.
 */
-class bifstream : public ifstream
+class bifstream : public binistream, public ifstream
 {
 public:
   bifstream () : ifstream () { }
 
   explicit
   bifstream (const char* name,
-             ios::openmode mode = ios::in | ios::binary)
-  : ifstream (name, mode) { }
+                          ios::openmode mode = ios::in | ios::binary)
+  : ifstream (name, mode)
+    {
+      // Set Little Endian mode, with IEEE-754 floats.
+      this->setFlag(binio::BigEndian, false);   // remove flag
+      this->setFlag(binio::FloatIEEE);          // set flag
+    }
+
+
+  virtual ~bifstream () {}
+  void seek(long pos, Offset offs);
+  long pos();
+
+  bifstream::Byte getByte();
 
 };
 
 
-template<typename T>
-bifstream &operator>> (bifstream &bif, T &n);
+/* Overloaded input operators */
+bifstream &operator>> (bifstream &bif, double &n);
+
+bifstream &operator>> (bifstream &bif, float &n);
+
+bifstream &operator>> (bifstream &bif, long &n);
+
+bifstream &operator>> (bifstream &bif, int &n);
 
 #endif
