@@ -151,6 +151,7 @@ noinst_PROGRAMS = \
 	make_auto_wsv_groups_h \
 	make_auto_wsv_h \
 	make_auto_wsv_pointers_cc \
+	test_binaryio \
 	test_matpack \
 	test_poly \
 	test_tensor \
@@ -160,6 +161,33 @@ noinst_PROGRAMS = \
 	test_xml \
 	test_complex \
 	test_zeemanproperties
+
+test_binaryio_SOURCES = \
+	absorption.cc \
+	absorption.h \
+	bifstream.h \
+	bifstream.cc \
+	bofstream.h \
+	bofstream.cc \
+	partition_function_data.cc \
+	matpackI.cc \
+	matpackI.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
+	xml_io.h \
+	xml_io_private.h \
+	xml_io.cc \
+	messages.cc \
+	species_data.cc \
+	test_binaryio.cc
 
 test_interpolation_SOURCES = \
 	array.h \
@@ -285,6 +313,10 @@ test_matpack_SOURCES = \
 test_xml_SOURCES = \
 	absorption.cc \
 	absorption.h \
+	bifstream.h \
+	bifstream.cc \
+	bofstream.h \
+	bofstream.cc \
 	partition_function_data.cc \
 	matpackI.cc \
 	matpackI.h \
@@ -315,6 +347,10 @@ test_zeemanproperties_SOURCES = \
 	auto_wsv.h \
 	auto_wsv_groups.h \
 	auto_wsv_pointers.cc \
+	bifstream.h \
+	bifstream.cc \
+	bofstream.h \
+	bofstream.cc \
 	check_input.cc \
 	check_input.h \
 	cloudbox.h \
