@@ -67,6 +67,8 @@ typedef struct {
 } gsl_poly_complex_workspace ;
 
 
+/* Begin Internal GSL function prototypes */
+
 static gsl_poly_complex_workspace *
 gsl_poly_complex_workspace_alloc (size_t n);
 
@@ -87,46 +89,56 @@ gsl_poly_complex_solve (const double *a, size_t n,
                         gsl_poly_complex_workspace * w,
                         gsl_complex_packed_ptr z);
 
+/* End Internal GSL function prototypes */
 
-Matrix
-poly_root_solve (Vector &coeffs)
+
+int
+poly_root_solve (Vector &coeffs, Matrix &roots)
 {
-  size_t a;
+  Index a;
   double *c;
   double *s;
 
   a = coeffs.nelem();
-  c = (double *)malloc (a * sizeof (double));
-  s = (double *)malloc ((a-1) * 2 * sizeof (double));
 
-  for (int i = 0; i < a; i++)
-    c[i] = coeffs[a - i - 1];
+  assert (roots.nrows() == a - 1);
+  assert (roots.ncols() == 2);
+  assert (coeffs[a - 1] != 0);
+
+#ifdef USE_DOUBLE
+  c = coeffs.mdata;
+  s = roots.mdata;
+#else
+  c = (double *)malloc (a * sizeof (double));
+  for (Index i = 0; i < a; i++)
+    c[i] = (double)coeffs[i];
+
+  s = (double *)malloc ((a-1) * 2 * sizeof (double));
+#endif
 
   gsl_poly_complex_workspace *w = gsl_poly_complex_workspace_alloc (a);
 
   int status = gsl_poly_complex_solve (c, a, w, s);
 
-  Matrix solution (a - 1, 2, 0);
-
+#ifndef USE_DOUBLE
   if (status == GSL_SUCCESS)
     {
-
-      for (int i = 0; i < a - 1; i++)
+      for (Index i = 0; i < a - 1; i++)
         {
-          solution (i, 0) = s [i * 2];
-          solution (i, 1) = s [i * 2 + 1];
+          roots (i, 0) = (Numeric)s[i * 2];
+          roots (i, 1) = (Numeric)s[i * 2 + 1];
         }
-    }
-  else
-    {
-      solution.resize (0, 0);
     }
 
   free (c);
   free (s);
+#endif
 
-  return solution;
+  gsl_poly_complex_workspace_free (w);
+
+  return status;
 }
+
 
 static gsl_poly_complex_workspace *
 gsl_poly_complex_workspace_alloc (size_t n)
