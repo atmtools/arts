@@ -88,14 +88,14 @@ void lusolve(VectorView x, ConstMatrixView K, ConstVectorView y)
   \param indx Output: Vector that records the row permutation.
   \param A Input: Matrix for which the LU decomposition is performed
 */
-void ludcmp(MatrixView& LU, ArrayOfIndex& indx, MatrixView& A) 
+void ludcmp(MatrixView LU, ArrayOfIndex& indx, ConstMatrixView A) 
 {
-  int imax, dim;
+  int imax;
   const Numeric TINY=1.0e-20;
   Numeric big, dum, sum, temp, d;
  
   LU = A;
-  dim = A.nrows();
+  const int dim = A.nrows();
   Vector vv(dim);  //stores implicit scaling of each row
   d = 1.0;
   for (Index i=0; i<dim; i++)
@@ -174,7 +174,7 @@ void ludcmp(MatrixView& LU, ArrayOfIndex& indx, MatrixView& A)
   \param b  Input: Right-hand-side vector of equation system.
   \param indx Input: Pivoting information (output of function ludcp).
 */
-void lubacksub(VectorView& x, MatrixView& LU, ConstVectorView& b, ArrayOfIndex& indx)
+void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayOfIndex& indx)
 {
   int ip,dim;
   float sum;
@@ -203,4 +203,123 @@ void lubacksub(VectorView& x, MatrixView& LU, ConstVectorView& b, ArrayOfIndex& 
       x[i] = sum/LU(i,i);
     }
 }
+
+
+//! Exponential of a Matrix
+/*! 
+  The exponential of a matrix is computed using the Pade-Approximation. 
+  The method is decribed in:
+  Golub, G. H. and C. F. Van Loan, Matrix Computation, p. 384, 
+  Johns Hopkins University Press, 1983.
+  
+  \param F Output: The matrix exponential of A.
+  \param A Input: arbitrary square matrix
+*/
+void matrix_exp(MatrixView F, MatrixView A)
+{
+  Numeric A_norm_inf, c;
+  Numeric j;
+  const Index n = A.ncols(); 
+  Matrix D(n,n), N(n,n), X(n,n), cX(n,n), B(n,n);
+  Vector N_col_vec(n), F_col_vec(n);
+
+  A_norm_inf = norm_inf(A);
+  j = 1 +  floor(1./log(2.)*log(A_norm_inf));
+  if(j<0) j=0.;
+  Index j_index = (Index)(j);
+  A /= pow(2,j);
+
+  /* The higher q the more accurate is the computation, 
+     see user guide for accuracy */
+  Index q = 8;
+  Numeric q_n = (Numeric)(q);
+  identity(D, n);
+  identity(N, n);
+  identity(X, n);
+  c = 1.;
+
+  for(Index k=0; k<q; k++)
+    {
+      Numeric k_n = (Numeric)(k+1);
+      c *= (q_n-k_n+1)/((2*q_n-k_n+1)*k_n);
+      mult(B,A,X);		// X = A * X
+      X = B;
+      cX = X;			
+      cX *= c;			// cX = X*c
+      N += cX;			// N = N + X*c
+      cX *= pow(-1,k_n);		// cX = (-1)^k*c*X
+      D += cX;			// D = D + (-1)^k*c*X
+    }
+
+  /*Solve the equation system DF=N for F using LU decomposition,
+   use the backsubstitution routung for columns of N*/ 
+
+ 
+  /* Now use X  for the LU decomposition matrix of D.*/
+  ArrayOfIndex indx(n);
+  ludcmp(X, indx, D);
+
+  for(Index i=0; i<n; i++)
+    {
+      for(Index k=0; k<n; k++)
+	N_col_vec[k] = N(k,i);	// extract column vectors of N
+      lubacksub(F_col_vec, X, N_col_vec, indx);
+      for(Index k=0; k<n; k++)
+	F(k,i) = F_col_vec[k];	// construct F matrix  from column vectors 
+    }
+  
+  /* The square of F gives the result. */
+    for(Index k=0; k<j_index; k++)
+    {
+      mult(B,F,F);		// F = F^2
+      F = B;
+    }
+ 
+}
+
+
+
+
+
+
+//! Maximum absolute row sum norm 
+/*! 
+  This function returns the maximum absolute row sum norm of a 
+  matrix A (see user guide for the definition).
+
+  \param A Input: arbitrary matrix
+  
+  \return Maximum absolute row sum norm 
+*/
+Numeric norm_inf(ConstMatrixView A)
+{
+  Vector row_sum(4);
+  Numeric norm_inf;
+  
+  for(Index j=0; j<A.ncols(); j++)
+    {
+  for(Index i=0; i<A.ncols(); i++)
+    row_sum[j] += A(i,j);
+  if(j>0 && row_sum[j] < row_sum[j-1])
+    row_sum[j] = row_sum[j-1];
+    }
+  norm_inf = row_sum[3];
+
+  return norm_inf;
+}
+
+
+//! Identity Matrix
+/*! 
+  
+  \param I Output: identity matrix
+  \param n Input: dimension
+*/
+void identity(MatrixView I, const Index& n)
+{
+  I = 0;
+  for(Index i=0; i<n; i++)
+    I(i,i) = 1.;
+}
+
 

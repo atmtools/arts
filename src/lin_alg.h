@@ -30,10 +30,12 @@
 #define linalg_h
 
 #include <stdexcept>
+#include <math.h>
 #include "arts.h"
 #include "matpackI.h"
 #include "make_vector.h"
 #include "array.h"
+#include "logic.h"
 
 
 //! Linear equation sytem solver.
@@ -59,7 +61,7 @@ void lusolve(VectorView x, ConstMatrixView K, ConstVectorView y);
   \param indx Output: Vector that records the row permutation.
   \param A Input: Matrix for which the LU decomposition is performed
 */
-void ludcmp(MatrixView& LU, ArrayOfIndex& indx, MatrixView& A); 
+void ludcmp(MatrixView LU, ArrayOfIndex& indx, ConstMatrixView A); 
 
 
 //! LU backsubstitution
@@ -72,7 +74,40 @@ void ludcmp(MatrixView& LU, ArrayOfIndex& indx, MatrixView& A);
   \param b  Input: Right-hand-side vector of equation system.
   \param indx Input: Pivoting information (output of function ludcp).
 */
-void lubacksub(VectorView& x, MatrixView& LU, ConstVectorView& b, ArrayOfIndex& indx);
+void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayOfIndex& indx);
 
+
+//! Exponential of a Matrix
+/*! 
+  The exponential of a matrix is computed using the Pade-Approximation. 
+  The method is decribed in:
+  Golub, G. H. and C. F. Van Loan, Matrix Computation, p. 384, 
+  Johns Hopkins University Press, 1983.
+  
+  \param F Output: The matrix exponential of A.
+  \param A Input: arbitrary square matrix
+*/
+void matrix_exp(MatrixView F, MatrixView A);
+
+
+//! Maximum absolute row sum norm 
+/*! 
+  This function returns the maximum absolute row sum norm of a 
+  matrix A (see user guide for the definition).
+
+  \param A Input: arbitrary matrix
+  
+  \return Maximum absolute row sum norm 
+*/
+Numeric norm_inf(ConstMatrixView A);
+
+
+//! Identity Matrix
+/*! 
+  
+  \param I Output: identity matrix
+  \param n Input: dimension
+*/
+void identity(MatrixView I, const Index& n);
 
 #endif    // linalg_h
