@@ -828,7 +828,7 @@ void r_geoidWGS84(
   // Calculate NS and EW radius
   a   = cos(latitude*DEG2RAD);
   b   = sin(latitude*DEG2RAD);
-  rns = rq*rq*rp*rp/pow(rq*rq*a*a+rp*rp*b*b,1.5);
+  rns = rq*rq*rp*rp/pow(rq*rq*a*a+rp*rp*b*b,(Numeric)1.5);
   rew = rq*rq/sqrt(rq*rq*a*a+rp*rp*b*b);
 
   // Calculate the radius in the observation direction

@@ -1919,7 +1919,7 @@ void xsec_species( MatrixView               xsec,
 	  // n_shift = .25 + 1.5 * n_agam
 	  // Theta has been initialized above.
 	  F0 += l_l.Psf() * p_i * 
-	      pow( theta , .25 + 1.5*l_l.Nair() );         
+	      std::pow( theta , (Numeric).25 + (Numeric)1.5*l_l.Nair() );
 
 	  // 4. the rosenkranz lineshape for oxygen calculates the
 	  // pressure broadening, overlap, ... differently. Therefore

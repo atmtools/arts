@@ -428,8 +428,8 @@ void MPM87H2OAbsModel( MatrixView        xsec,
       // dry air partial pressure [kPa]
       Numeric pda   = (Pa_to_kPa * p_abs[i]) - pwv;
       // H2O continuum absorption [dB/km/GHz2] like in the original MPM87
-      Numeric Nppc  = CC * pwv_dummy * pow(theta, 3.0) * 1.000e-5 *
-	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.8)) );
+      Numeric Nppc  = CC * pwv_dummy * pow(theta, (Numeric)3.0) * 1.000e-5
+        * ( (0.113 * pda) + (3.57 * pwv * pow(theta, (Numeric)7.8)) );
 
       // Loop over input frequency
       for ( Index s=0; s<n_f; ++s )
@@ -443,12 +443,12 @@ void MPM87H2OAbsModel( MatrixView        xsec,
 	  for ( Index l = i_first; l <= i_last; ++l )
 	    {
 	      // line strength [kHz]
-	      Numeric strength = CL * pwv_dummy * mpm87[l][1] *
-		                      pow(theta,3.5) * exp(mpm87[l][2]*(1.000-theta));
+	      Numeric strength = CL * pwv_dummy * mpm87[l][1]
+                * pow(theta,(Numeric)3.5) * exp(mpm87[l][2]*(1.000-theta));
 	      // line broadening parameter [GHz]
 	      Numeric gam      = CW * mpm87[l][3] * 
- 		                     ( (4.80 * pwv * pow(theta, 1.1)) + 
-				       (       pda * pow(theta, 0.6)) );
+                ( (4.80 * pwv * pow(theta, (Numeric)1.1)) + 
+                  (       pda * pow(theta, (Numeric)0.6)) );
 	      // effective line width with Doppler broadening [GHz]
 	      // gam              = sqrt(gam*gam + (2.14e-12 * mpm87[l][0] * mpm87[l][0] / theta));
 	      // H2O line absorption [dB/km/GHz] like in the original MPM87
@@ -613,8 +613,8 @@ void MPM89H2OAbsModel( MatrixView        xsec,
       // dry air partial pressure [kPa]
       Numeric pda       = (Pa_to_kPa * p_abs[i]) - pwv;
       // H2O continuum absorption [dB/km/GHz^2] like in the original MPM89
-      Numeric Nppc      = CC * pwv_dummy * pow(theta, 3.0) * 1.000e-5 *
-	                      ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)) );
+      Numeric Nppc      = CC * pwv_dummy * pow(theta, (Numeric)3.0) * 1.000e-5
+        * ( (0.113 * pda) + (3.57 * pwv * pow(theta, (Numeric)7.5)) );
       
       // Loop over input frequency
       for ( Index s=0; s<n_f; ++s )
@@ -628,11 +628,11 @@ void MPM89H2OAbsModel( MatrixView        xsec,
 	  for ( Index l = i_first; l <= i_last; ++l )
 	    {
 	      // line strength [kHz]
-	      Numeric strength = CL * pwv_dummy * mpm89[l][1] * 
-		                      pow(theta, 3.5) * exp(mpm89[l][2]*(1.000-theta));
+	      Numeric strength = CL * pwv_dummy * mpm89[l][1]
+                * pow(theta, (Numeric)3.5) * exp(mpm89[l][2]*(1.000-theta));
 	      // line broadening parameter [GHz]
-	      Numeric gam      = CW * mpm89[l][3] * 0.001 * 
-		                      ( mpm89[l][5] * pwv * pow(theta, mpm89[l][6]) +  
+	      Numeric gam      = CW * mpm89[l][3] * 0.001
+                * ( mpm89[l][5] * pwv * pow(theta, mpm89[l][6]) +  
 		                      pda * pow(theta, mpm89[l][4]) );
 	      // Doppler line width [GHz]
 	      // Numeric gamd     = 1.46e-6 * mpm89[l][0] / sqrt(theta);
@@ -848,8 +848,8 @@ void MPM93H2OAbsModel( MatrixView        xsec,
 	      Numeric gam = 0.00;
 	      if ( (l >= 0) && (l <= 33) ) // ---- just the lines ------------------
 		{
-		  strength = CL * pwv_dummy * mpm93[l][1] * 
-			          pow(theta, 3.5)  * exp(mpm93[l][2]*(1.0-theta));
+		  strength = CL * pwv_dummy * mpm93[l][1]
+                    * pow(theta, (Numeric)3.5)  * exp(mpm93[l][2]*(1.0-theta));
 		  // line broadening parameter [GHz]
 		  gam      = CW * mpm93[l][3] * 0.001 * 
 		                  ( (mpm93[l][4] * pwv * pow(theta, mpm93[l][6])) +  
@@ -857,8 +857,8 @@ void MPM93H2OAbsModel( MatrixView        xsec,
 		}
 	      else if ( l == 34 ) // ----- just the continuum pseudo-line ----------
 		{
-		  strength = CC * pwv_dummy * mpm93[l][1] * 
-		                  pow(theta, 3.5)  * exp(mpm93[l][2]*(1.0-theta));
+		  strength = CC * pwv_dummy * mpm93[l][1]
+                    * pow(theta, (Numeric)3.5)  * exp(mpm93[l][2]*(1.0-theta));
 		  // line broadening parameter [GHz]
 		  gam      = mpm93[l][3] * 0.001 * 
 	                     ( (mpm93[l][4] * pwv * pow(theta, mpm93[l][6])) +  
@@ -1048,11 +1048,11 @@ void PWR98H2OAbsModel( MatrixView        xsec,
       Numeric den_dummy  = 3.335e16 * (2.1667 * p_abs[i] / t_abs[i]);
       // inverse relative temperature [1]
       Numeric ti         = (300.0 / t_abs[i]);
-      Numeric ti2        = pow(ti, 2.5);
+      Numeric ti2        = pow(ti, (Numeric)2.5);
       
       // continuum term [Np/km/GHz2]
-      Numeric con = CC * pvap_dummy * pow(ti, 3.0) * 1.000e-9 * 
-	                 ( (0.543 * pda) + (17.96 * pvap * pow(ti, 4.5)) );
+      Numeric con = CC * pvap_dummy * pow(ti, (Numeric)3.0) * 1.000e-9
+        * ( (0.543 * pda) + (17.96 * pvap * pow(ti, (Numeric)4.5)) );
 	  
       // Loop over input frequency
       for ( Index s=0; s<n_f; ++s )
@@ -1080,7 +1080,8 @@ void PWR98H2OAbsModel( MatrixView        xsec,
 	      Numeric res      = 0.000;
 	      if (fabs(df0) < 750.0) res += width / (df0*df0 + wsq) - base;
 	      if (fabs(df1) < 750.0) res += width / (df1*df1 + wsq) - base;
-	      sum             += strength * res * pow( (ff/PWRfl[l]), 2.0 );
+	      sum             += strength * res * pow( (ff/PWRfl[l]),
+                                                       (Numeric)2.0 );
 	    }
 	  // line term [Np/km]
 	  Numeric absl = 0.3183e-4 * den_dummy * sum;
@@ -1201,13 +1202,15 @@ void CP98H2OAbsModel( MatrixView        xsec,
 	  // dry air partial pressure [hPa]
 	  Numeric pda   = (Pa_to_hPa * p_abs[i]) - pwv;
 	  // line strength
-	  Numeric TL    = CL * 0.0109 * pwv * pow(theta,3.5) * exp(2.143*(1.0-theta));
+	  Numeric TL    = CL * 0.0109 * pwv * pow(theta,(Numeric)3.5)
+            * exp(2.143*(1.0-theta));
 	  // line broadening parameter [GHz]
 	  Numeric gam   = CW * 0.002784 *  
-	                  ( (pda * pow(theta,0.6)) + (4.80 * pwv * pow(theta,1.1)) );
+	                  ( (pda * pow(theta,(Numeric)0.6))
+                            + (4.80 * pwv * pow(theta,(Numeric)1.1)) );
 	  // continuum term
-	  Numeric TC    = CC * pwv * pow(theta, 3.0) * 1.000e-7 * 
-	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta,7.5)) );
+	  Numeric TC    = CC * pwv * pow(theta, (Numeric)3.0) * 1.000e-7
+            * ( (0.113 * pda) + (3.57 * pwv * pow(theta,(Numeric)7.5)) );
 
 	  // Loop over input frequency
 	  for ( Index s=0; s<n_f; ++s )
@@ -1332,12 +1335,13 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
       // The second vmr of H2O will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
       Numeric dummy =
-	C * pow( 300./t_abs[i], x+3. ) * pow( p_abs[i], 2 ) * vmr[i];
+	C * pow( (Numeric)300./t_abs[i], x+(Numeric)3. )
+        * pow( p_abs[i], (Numeric)2. ) * vmr[i];
 
       // Loop over frequency grid:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec(s,i) += dummy * pow( f_mono[s], 2 );
+	  xsec(s,i) += dummy * pow( f_mono[s], (Numeric)2. );
 	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
@@ -1453,12 +1457,13 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The vmr of H2O will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
-      Numeric dummy = C * pow( 300./t_abs[i], x+3. ) * p_abs[i] * pdry;
+      Numeric dummy = C * pow( (Numeric)300./t_abs[i], x+(Numeric)3. )
+        * p_abs[i] * pdry;
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec(s,i) += dummy * pow( f_mono[s], 2 );
+	  xsec(s,i) += dummy * pow( f_mono[s], (Numeric)2. );
 	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
@@ -1733,8 +1738,8 @@ void Pardo_ATM_H2O_ForeignContinuum( MatrixView          xsec,
 	  // canceled out here which is later in absCalc multiplied 
 	  // (calculation: abs = vmr * xsec):
 	  xsec(s,i) += C *                  // strength [1/(m*Hz²Pa²)] 
-	    pow( (f_mono[s]/2.25e11), 2 ) * // quadratic f dependence [1]
-	    pow( (300.0/t_abs[i]),    3 ) * // free T dependence      [1]
+	    pow( (f_mono[s]/(Numeric)2.25e11), (Numeric)2. ) * // quadratic f dependence [1]
+	    pow( ((Numeric)300.0/t_abs[i]), (Numeric)3. ) * // free T dependence      [1]
 	    (pd/1.01300e5)                * // p_dry dependence       [1]
 	    (pwdummy/1.01300e5);            // p_H2O dependence       [1]
 	}
@@ -1870,7 +1875,8 @@ void MPM93_H2O_continuum( MatrixView          xsec,
       Numeric th = 300.0 / t_abs[i];
       // the vmr of H2O will be multiplied at the stage of absorption calculation:
       // abs / vmr * xsec.
-      Numeric strength =  MPM93b1pcl * p_abs[i] * pow( th, 3.5 ) * exp(MPM93b2pcl * (1 - th));
+      Numeric strength =  MPM93b1pcl * p_abs[i] * pow( th, (Numeric)3.5 )
+        * exp(MPM93b2pcl * (1 - th));
       Numeric gam      =  MPM93b3pcl * 0.001 * 
 	                  ( MPM93b4pcl * p_abs[i] * vmr[i]       * pow( th, MPM93b6pcl ) +  
 	                                 p_abs[i]*(1.000-vmr[i]) * pow( th, MPM93b5pcl ) );
@@ -2109,7 +2115,7 @@ void MPM85O2AbsModel( MatrixView          xsec,
       // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
       Numeric pda_dummy = pda;
       // O2 continuum strength [ppm]
-      Numeric strength_cont =  S0 * pda_dummy * pow( theta, 2 );
+      Numeric strength_cont =  S0 * pda_dummy * pow( theta, (Numeric)2. );
       // O2 continuum pseudo line broadening [GHz]
       Numeric gam_cont      =  G0 * ( pda + 1.10*pwv ) *  pow( theta, X0 ); // GHz
       
@@ -2126,7 +2132,8 @@ void MPM85O2AbsModel( MatrixView          xsec,
 	  // if we let the non-proofen rollofff away as in further version: 
 	  Numeric FAC =  1.000 ;
 	  Numeric Nppc =  CC * strength_cont * FAC * ff * gam_cont /
-	                  ( pow( ff, 2) + pow( gam_cont, 2) );
+	                  ( pow( ff, (Numeric)2.)
+                            + pow( gam_cont, (Numeric)2.) );
 	  
 	  // Loop over MPM85 O2 spectral lines:
 	  Numeric Nppl  = 0.0;
@@ -2134,11 +2141,11 @@ void MPM85O2AbsModel( MatrixView          xsec,
 	    {
 	      // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
 	      Numeric strength = CL * mpm85[l][1] * 1.000e-6  * pda_dummy * 
-		                      pow(theta, 3) * exp(mpm85[l][2]*(1.000-theta)) /
+		                      pow(theta, (Numeric)3.) * exp(mpm85[l][2]*(1.000-theta)) /
 		                      mpm85[l][0];
 	      // line broadening parameter [GHz]
 	      Numeric gam      = CW * ( mpm85[l][3] * 1.000e-3 * 
-	                              ( (       pda * pow(theta, (0.80-mpm85[l][4]))) + 
+	                              ( (       pda * pow(theta, ((Numeric)0.80-mpm85[l][4]))) + 
                                         (1.10 * pwv * theta) ) );
 	      // line mixing parameter [1]
 	      Numeric delta    = CO * mpm85[l][5] * 1.000e-3 * 
@@ -2394,7 +2401,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
       // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
       Numeric pda_dummy = pda;
       // O2 continuum strength [ppm]
-      Numeric strength_cont =  S0 * pda_dummy * pow( theta, 2 );
+      Numeric strength_cont =  S0 * pda_dummy * pow( theta, (Numeric)2. );
       // O2 continuum pseudo line broadening [GHz]
       Numeric gam_cont      =  G0 * ( pda + 1.10*pwv ) *  pow( theta, X0 ); // GHz
       
@@ -2407,7 +2414,7 @@ void MPM87O2AbsModel( MatrixView          xsec,
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
 	  Numeric Nppc =  CC * strength_cont * ff * gam_cont /
-	                  ( pow( ff, 2) + pow( gam_cont, 2) );
+	                  ( pow( ff, (Numeric)2.) + pow( gam_cont, (Numeric)2.) );
 	  
 	  // Loop over MPM87 O2 spectral lines:
 	  Numeric Nppl  = 0.0;
@@ -2415,11 +2422,11 @@ void MPM87O2AbsModel( MatrixView          xsec,
 	    {
 	      // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
 	      Numeric strength = CL * mpm87[l][1] * 1.000e-6  * pda_dummy * 
-		                      pow(theta, 3) * exp(mpm87[l][2]*(1.000-theta)) /
+		                      pow(theta, (Numeric)3.) * exp(mpm87[l][2]*(1.000-theta)) /
 		                      mpm87[l][0];
 	      // line broadening parameter [GHz]
 	      Numeric gam      = CW * ( mpm87[l][3] * 1.000e-3 * 
-	                              ( (       pda * pow(theta, (0.80-mpm87[l][4]))) + 
+	                              ( (       pda * pow(theta, ((Numeric)0.80-mpm87[l][4]))) + 
                                         (1.10 * pwv * theta) ) );
 	      // line mixing parameter [1]
 	      Numeric delta    = CO * mpm87[l][5] * 1.000e-3 * 
@@ -2662,7 +2669,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
       // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
       Numeric pda_dummy = pda;
       // O2 continuum strength [ppm]
-      Numeric strength_cont =  S0 * pda_dummy * pow( theta, 2 );
+      Numeric strength_cont =  S0 * pda_dummy * pow( theta, (Numeric)2. );
       // O2 continuum pseudo line broadening [GHz]
       Numeric gam_cont      =  G0 * (pwv+pda) *  pow( theta, X0 ); // GHz
       
@@ -2675,7 +2682,7 @@ void MPM89O2AbsModel( MatrixView          xsec,
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
 	  Numeric Nppc =  CC * strength_cont * ff * gam_cont /
-	                  ( pow( ff, 2) + pow( gam_cont, 2) );
+	                  ( pow( ff, (Numeric)2.) + pow( gam_cont, (Numeric)2.) );
 	  
 	  // Loop over MPM89 O2 spectral lines:
 	  Numeric Nppl  = 0.0;
@@ -2683,15 +2690,15 @@ void MPM89O2AbsModel( MatrixView          xsec,
 	    {
 	      // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
 	      Numeric strength = CL * mpm89[l][1] * 1.000e-6  * pda_dummy * 
-		                      pow(theta, 3) * exp(mpm89[l][2]*(1.000-theta)) /
+		                      pow(theta, (Numeric)3.) * exp(mpm89[l][2]*(1.000-theta)) /
 		                      mpm89[l][0];
 	      // line broadening parameter [GHz]
 	      Numeric gam      = CW * ( mpm89[l][3] * 1.000e-3 * 
-	                              ( (       pda * pow(theta, (0.80-mpm89[l][4]))) + 
+	                              ( (       pda * pow(theta, ((Numeric)0.80-mpm89[l][4]))) + 
                                         (1.10 * pwv * theta) ) );
 	      // line mixing parameter [1]
 	      Numeric delta    = CO * ( (mpm89[l][5] + mpm89[l][6] * theta) * 1.000e-3 * 
-			                pda * pow(theta, 0.8) );
+			                pda * pow(theta, (Numeric)0.8) );
 	      // absorption [dB/km] like in the original MPM92
 	      Nppl            += strength * MPMLineShapeO2Function(gam, mpm89[l][0], ff, delta); 
 	    }
@@ -2931,7 +2938,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
       // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
       Numeric pda_dummy = pda;
       // O2 continuum strength [ppm]
-      Numeric strength_cont =  S0 * pda_dummy * pow( theta, 2 );
+      Numeric strength_cont =  S0 * pda_dummy * pow( theta, (Numeric)2. );
       // O2 continuum pseudo line broadening [GHz]
       Numeric gam_cont      =  G0 * (pwv+pda) *  pow( theta, X0 ); // GHz
       
@@ -2944,7 +2951,7 @@ void MPM92O2AbsModel( MatrixView          xsec,
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
 	  Numeric Nppc =  CC * strength_cont * ff * gam_cont /
-	                  ( pow( ff, 2) + pow( gam_cont, 2) );
+	                  ( pow( ff, (Numeric)2.) + pow( gam_cont, (Numeric)2.) );
 	  
 	  // Loop over MPM92 O2 spectral lines:
 	  Numeric Nppl  = 0.0;
@@ -2952,15 +2959,15 @@ void MPM92O2AbsModel( MatrixView          xsec,
 	    {
 	      // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
 	      Numeric strength = CL * 1.000e-6  * pda_dummy * mpm92[l][1] / mpm92[l][0] * 
-		                      pow(theta, 3) * exp(mpm92[l][2]*(1.0-theta));
+		                      pow(theta, (Numeric)3.) * exp(mpm92[l][2]*(1.0-theta));
 	      // line broadening parameter [GHz]
 	      Numeric gam      = CW * ( mpm92[l][3] * 0.001 * 
-	                              ( (       pda * pow(theta, (0.8-mpm92[l][4]))) + 
+	                              ( (       pda * pow(theta, ((Numeric)0.8-mpm92[l][4]))) + 
                                         (1.10 * pwv * theta) ) );
 	      // line mixing parameter [1]
 	      //		  if (l < 11) CD = 1.1000;
 	      Numeric delta    = CO * ( (mpm92[l][5] + mpm92[l][6] * theta) * 
-			              (pda+pwv) * 0.001 * pow(theta, 0.8) );
+			              (pda+pwv) * 0.001 * pow(theta, (Numeric)0.8) );
 	      // absorption [dB/km] like in the original MPM92
 	      Nppl            += strength * MPMLineShapeO2Function(gam, mpm92[l][0], ff, delta); 
 	    }
@@ -3203,7 +3210,7 @@ void MPM93O2AbsModel( MatrixView          xsec,
       // old version without VMRISO: Numeric pda_dummy = pda / vmr[i];
       Numeric pda_dummy = pda;
       // O2 continuum strength [ppm]
-      Numeric strength_cont =  S0 * pda_dummy * pow( theta, 2 );
+      Numeric strength_cont =  S0 * pda_dummy * pow( theta, (Numeric)2. );
       // O2 continuum pseudo line broadening [GHz]
       Numeric gam_cont      =  G0 * (pwv+pda) *  pow( theta, X0 ); // GHz
       
@@ -3216,7 +3223,8 @@ void MPM93O2AbsModel( MatrixView          xsec,
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
 	  Numeric Nppc =  CC * strength_cont * ff * gam_cont /
-	                  ( pow( ff, 2) + pow( gam_cont, 2) );
+	                  ( pow( ff, (Numeric)2.)
+                            + pow( gam_cont, (Numeric)2.) );
 	  
 	  // Loop over MPM93 O2 spectral lines:
 	  Numeric Nppl  = 0.0;
@@ -3225,15 +3233,16 @@ void MPM93O2AbsModel( MatrixView          xsec,
 	      // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
 	      Numeric strength = CL * 1.000e-6  * pda_dummy * 
 		                      mpm93[l][1] / mpm93[l][0] * 
-		                      pow(theta, 3) * exp(mpm93[l][2]*(1.0-theta));
+		                      pow(theta, (Numeric)3.) * exp(mpm93[l][2]*(1.0-theta));
 	      // line broadening parameter [GHz]
 	      Numeric gam      = CW * ( mpm93[l][3] * 0.001 * 
-	                              ( (       pda * pow(theta, (0.8-mpm93[l][4]))) + 
+                                      ( (       pda * pow(theta, ((Numeric)0.8-mpm93[l][4]))) + 
                                         (1.10 * pwv * theta) ) );
 	      // line mixing parameter [1]
 	      //		  if (l < 11) CD = 1.1000;
 	      Numeric delta    = CO * ( (mpm93[l][5] + mpm93[l][6] * theta) * 
-			              (pda+pwv) * pow(theta, 0.8) * 0.001 );
+			              (pda+pwv) * pow(theta, (Numeric)0.8)
+                                        * (Numeric)0.001 );
 	      // absorption [dB/km] like in the original MPM93
 	      Nppl            += strength * MPMLineShapeO2Function(gam, mpm93[l][0], ff, delta); 
 	    }
@@ -3525,7 +3534,7 @@ void PWR93O2AbsModel( MatrixView        xsec,
       Numeric DFNR   = WB300*DEN; // [GHz]
       
       // continuum absorption [1/m/GHz]
-      Numeric CCONT  = CC * 1.23e-10 * pow( TH, 2.0 ) * p_abs[i];
+      Numeric CCONT  = CC * 1.23e-10 * pow( TH, (Numeric)2. ) * p_abs[i];
 
       // Loop over input frequency
       for ( Index s=0; s<n_f; ++s )
@@ -3562,7 +3571,7 @@ void PWR93O2AbsModel( MatrixView        xsec,
 	  // unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3 
 	  // therefore 2.414322e10 --> 2.414322e7
 	  // xsec [1/m] 
-	  xsec(s,i) += CONT + (2.414322e7 * SUM * p_abs[i] * pow(TH, 3.0) / PI);
+	  xsec(s,i) += CONT + (2.414322e7 * SUM * p_abs[i] * pow(TH, (Numeric)3.) / PI);
 	}
     }
   return;
@@ -3708,8 +3717,8 @@ void MPM93_O2_continuum( MatrixView          xsec,
 	  // abs / vmr * xsec.
 	  xsec(s,i) +=  (4.0 * PI / SPEED_OF_LIGHT)  *              // unit factor [1/(m*Hz)] 
 	                (strength / VMRISO)          *              // strength    [1]
-	                ( pow( f_mono[s], 2) * gamma /              // line shape  [Hz]
-	                  ( pow( f_mono[s], 2) + pow( gamma, 2) ) );
+	                ( pow( f_mono[s], (Numeric)2.) * gamma /              // line shape  [Hz]
+	                  ( pow( f_mono[s], (Numeric)2.) + pow( gamma, (Numeric)2.) ) );
 	}
     }
   return;
@@ -3835,7 +3844,9 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
 	  // division by vmr of O2 is necessary because of the absorption calculation
           // abs = vmr * xsec.
 	  xsec(s,i) += S0 * p_abs[i] / pow( t_abs[i], XS0 ) * 
-                        ( pow( f_mono[s], 2 ) * gamma / ( pow( f_mono[s], 2 ) + pow( gamma, 2 ) ) ) ;
+                        ( pow( f_mono[s], (Numeric)2. )
+                          * gamma / ( pow( f_mono[s], 2 )
+                                      + pow( gamma, (Numeric)2. ) ) ) ;
 	}
     }
 }
@@ -3899,7 +3910,7 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
   // P. W. Rosenkranz, Chapter 2, in M. A. Janssen,
   // Atmospheric Remote Sensing by Microwave Radiometry, John Wiley & Sons, Inc., 1993
   // ftp://mesa.mit.edu/phil/lbl_rt
-  const Numeric	C_PWR93    = (1.108e-14/pow(3.0e2,2)); // [1/(Hz*Pa*m)] line strength
+  const Numeric	C_PWR93    = (1.108e-14/pow((Numeric)3.0e2,(Numeric)2.)); // [1/(Hz*Pa*m)] line strength
   const Numeric G0_PWR93   = 5600.000;  // line width [Hz/Pa]
   const Numeric G0A_PWR93  =    1.000;  // line width [1]
   const Numeric G0B_PWR93  =    1.100;  // line width [1]
@@ -4001,9 +4012,9 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
 	{
 	  // division by vmr of O2 is necessary because of the absorption calculation
           // abs = vmr * xsec.
-	  xsec(s,i) += C * p_abs[i] * pow( TH, 2 ) * 
-                       ( gamma * pow( f_mono[s], 2 ) / 
-                         ( pow( f_mono[s], 2 ) + pow( gamma, 2 ) ) );
+	  xsec(s,i) += C * p_abs[i] * pow( TH, (Numeric)2. ) * 
+                       ( gamma * pow( f_mono[s], (Numeric)2. ) / 
+                         ( pow( f_mono[s], 2 ) + pow( gamma, (Numeric)2. ) ) );
 	}
     }
 }
@@ -4109,7 +4120,7 @@ void BF86_CIA_N2( MatrixView          xsec,
       //cout << "N2-N2 BF86: p     =" << p_abs[i] << " Pa\n";
       //cout << "N2-N2 BF86: VMR   =" << vmr[i] << "\n";
       Numeric XAMA  = (p_abs[i]) / ( AMAG2DEN * RIDGAS * t_abs[i] );
-      Numeric XAMA2 = pow(XAMA,2);
+      Numeric XAMA2 = pow(XAMA,(Numeric)2.);
       //cout << "N2-N2 BF86: XAMA  =" << XAMA << "\n";
 
       // Loop frequency:
@@ -4188,7 +4199,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
   const Numeric	xf_MPM93  =  1.500;             // frequency exponent [1]
   const Numeric	gxf_MPM93 =  9.000*xf_MPM93;    // needed for the unit conversion of G_MPM93
   const Numeric	S_MPM93   =  2.296e-31;         // line strength  [1/Pa² * 1/Hz]
-  const Numeric G_MPM93   =  1.930e-5*pow(10.000, -gxf_MPM93); // frequency factor [1/Hz^xf]
+  const Numeric G_MPM93   =  1.930e-5*pow((Numeric)10.000, -gxf_MPM93); // frequency factor [1/Hz^xf]
   // ---------------------------------------------------------------------------------------
   
   // select the parameter set (!!model dominates values!!):
@@ -4245,8 +4256,9 @@ void MPM93_N2_continuum( MatrixView          xsec,
     {
       Numeric th = 300.0 / t_abs[i];
       Numeric strength =  S0 * 
-                          pow( (p_abs[i] * (1.0000 - h2o_abs[i])), 2 ) * 
-                          pow( th, xT );
+                          pow( (p_abs[i] * ((Numeric)1.0000 - h2o_abs[i])),
+                               (Numeric)2. )
+                          * pow( th, xT );
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
@@ -4255,7 +4267,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
 	  // the vmr of N2 will be multiplied at the stage of absorption calculation:
 	  // abs / vmr * xsec.
 	  xsec(s,i) += fac * strength *                              // strength
-                       pow(f_mono[s],2) /                      // frequency dependence
+                       pow(f_mono[s], (Numeric)2.) /                      // frequency dependence
 	               ( 1.000 + G0 * pow( f_mono[s], xf) ) *  
 	                vmr[i];                                // N2 vmr
 	}
@@ -4355,9 +4367,9 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
 	      // canceled out here which is later in absCalc multiplied 
 	      // (calculation: abs = vmr * xsec):
 	      xsec(s,i) += C *                    // strength [1/(m*Hz²Pa²)] 
-		pow( (f_mono[s]/2.25e11), 2 )   * // quadratic f dependence [Hz²]
-		pow( (300.0/t_abs[i]),    3.5 ) * // free T dependence      [1]
-		pow( (pd/1.01300e5),      2 )   / // quadratic p dependence [Pa²]
+		pow( (f_mono[s]/(Numeric)2.25e11), (Numeric)2. )   * // quadratic f dependence [Hz²]
+		pow( ((Numeric)300.0/t_abs[i]), (Numeric)3.5 ) * // free T dependence      [1]
+		pow( (pd/(Numeric)1.01300e5), (Numeric)2. )   / // quadratic p dependence [Pa²]
 		vmr[i];                           // cancel the vmr dependency
 	    }
 	}
@@ -4452,9 +4464,9 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
 	  // The second vmr of N2 will be multiplied at the stage of absorption 
 	  // calculation: abs = vmr * xsec.
 	  xsec(s,i) += C *                        // strength [1/(m*Hz²Pa²)] 
-	               pow( f_mono[s], 2 ) *      // quadratic f dependence [Hz²]
-	               pow( 300.0/t_abs[i], x ) * // free T dependence      [1]
-                       pow( p_abs[i], 2 ) *       // quadratic p dependence [Pa²]
+	               pow( f_mono[s], (Numeric)2. ) *      // quadratic f dependence [Hz²]
+	               pow( (Numeric)300.0/t_abs[i], x ) * // free T dependence      [1]
+                       pow( p_abs[i], (Numeric)2. ) *       // quadratic p dependence [Pa²]
                        vmr[i];                    // second N2-VMR at the stage 
 	                                          // of absorption calculation
 	}
@@ -4568,10 +4580,10 @@ void Standard_N2_self_continuum( MatrixView          xsec,
 	  // The second N2-VMR will be multiplied at the stage of absorption 
 	  // calculation: abs = vmr * xsec.
 	  xsec(s,i) += C                            * // strength [1/(m*Hz²Pa²)]  
-                       pow( (300.00/t_abs[i]), xt ) * // T dependence        [1] 
+                       pow( ((Numeric)300.00/t_abs[i]), xt ) * // T dependence        [1] 
                        pow( f_mono[s], xf )         * // f dependence    [Hz^xt]  
                        pow( p_abs[i], xp )          * // p dependence    [Pa^xp]
-                       pow( vmr[i], (xp-1) );         // last N2-VMR at the stage 
+                       pow( vmr[i], (xp-(Numeric)1.) );         // last N2-VMR at the stage 
 	                                              // of absorption calculation
 	}
     }
@@ -4666,12 +4678,12 @@ void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
       // The second vmr of CO2 will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
       Numeric dummy =
-	C * pow( 300./t_abs[i], x ) * pow( p_abs[i], 2 ) * vmr[i];
+	C * pow( (Numeric)300./t_abs[i], x ) * pow( p_abs[i], (Numeric)2. ) * vmr[i];
 
       // Loop over frequency grid:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec(s,i) += dummy * pow( f_mono[s], 2 );
+	  xsec(s,i) += dummy * pow( f_mono[s], (Numeric)2. );
 	}
     }
 }
@@ -4765,12 +4777,12 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The vmr of CO2 will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
-      Numeric dummy = C * pow( 300./t_abs[i], x ) * p_abs[i] * p_abs[i] * n2_abs[i];
+      Numeric dummy = C * pow( (Numeric)300./t_abs[i], x ) * p_abs[i] * p_abs[i] * n2_abs[i];
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec(s,i) += dummy * pow( f_mono[s], 2 );
+	  xsec(s,i) += dummy * pow( f_mono[s], (Numeric)2. );
 	}
     }
 }
@@ -4906,17 +4918,21 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
 	    {
 	      // real part of the complex permittivity of water (double-debye model)
 	      Numeric Reepsilon  = epsilon0 - 
-		pow((f_mono[s]*Hz_to_GHz),2) *
+		pow((f_mono[s]*Hz_to_GHz),(Numeric)2.) *
 		( ((epsilon0-epsilon1)/
-		   (pow((f_mono[s]*Hz_to_GHz),2) + pow(gamma1,2))) + 
+		   (pow((f_mono[s]*Hz_to_GHz),(Numeric)2.)
+                    + pow(gamma1,(Numeric)2.))) + 
 		  ((epsilon1-epsilon2)/
-		   (pow((f_mono[s]*Hz_to_GHz),2) + pow(gamma2,2))) );
+		   (pow((f_mono[s]*Hz_to_GHz),(Numeric)2.)
+                    + pow(gamma2,(Numeric)2.))) );
 	      // imaginary part of the complex permittivity of water (double-debye model)
 	      Numeric Imepsilon  = (f_mono[s]*Hz_to_GHz) *
 		( (gamma1*(epsilon0-epsilon1)/
-		   (pow((f_mono[s]*Hz_to_GHz),2) + pow(gamma1,2))) + 
+		   (pow((f_mono[s]*Hz_to_GHz),(Numeric)2.)
+                    + pow(gamma1,(Numeric)2.))) + 
 		  (gamma2*(epsilon1-epsilon2)/
-		   (pow((f_mono[s]*Hz_to_GHz),2) + pow(gamma2,2))) );
+		   (pow((f_mono[s]*Hz_to_GHz),(Numeric)2.)
+                    + pow(gamma2,(Numeric)2.))) );
 	      // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
 	      // In MPM93 w is in g/m³ and m is in g/cm³. Because of the units used in arts,
 	      // a factor of 1.000e6 must be multiplied with the ratio (w/m):
@@ -4925,7 +4941,9 @@ void MPM93WaterDropletAbs( MatrixView         xsec,
 	      // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
 	      // the factor of 1.0e6 is included below in xsec calculation.
 	      Numeric ImNw = 1.500 / m * 
-		( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
+		( 3.000 * Imepsilon
+                  / ( pow((Reepsilon+(Numeric)2.000),(Numeric)2.)
+                      + pow(Imepsilon,(Numeric)2.) ) );
 	      // liquid water particle absorption cross section [1/m]
 	      // The vmr of H2O will be multiplied at the stage of absorption 
 	      // calculation: abs = vmr * xsec.
@@ -5069,7 +5087,8 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
 	  Numeric ai = CA * (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
 	  // linear frequency T-dependency function [1/Hz]
 	  Numeric bi = CB * 0.542e-6 * 
-		       ( -24.17 + (116.79/theta) + pow((theta/(theta-0.9927)),2) );
+		       ( -24.17 + (116.79/theta)
+                         + pow((theta/(theta-(Numeric)0.9927)),(Numeric)2.) );
 	      
 	  // Loop frequency:
 	  for ( Index s=0; s<n_f; ++s )
@@ -5087,7 +5106,9 @@ void MPM93IceCrystalAbs( MatrixView        xsec,
 	      // =====> (w/m)_MPM93   =   1.0e6 * (w/m)_arts
 	      // the factor of 1.0e6 is included below in xsec calculation.
 	      Numeric ImNw = 1.500 / m * 
-		    ( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
+		    ( 3.000 * Imepsilon
+                      / ( pow((Reepsilon+(Numeric)2.000),(Numeric)2.)
+                          + pow(Imepsilon,(Numeric)2.) ) );
 	      // ice particle absorption cross section [1/m]
 	      // The vmr of H2O will be multiplied at the stage of absorption 
 	      // calculation: abs = vmr * xsec.
@@ -5276,10 +5297,17 @@ Numeric WVSatPressureLiquidWater(const Numeric t)
   Numeric theta    = 373.16 / t;
   Numeric exponent = ( -7.90298 * (theta-1.000) +
 		        5.02808 * log10(theta) -
-		        1.3816e-7 * ( pow( 10.00, (11.344*(1.00-(1.00/theta))) ) - 1.000 ) +
-		        8.1328e-3 * ( pow( 10.00, (-3.49149*(theta-1.00))) - 1.000) +
+		        1.3816e-7 * ( pow( (Numeric)10.00,
+                                           ((Numeric)11.344*
+                                            ((Numeric)1.00-((Numeric)1.00
+                                                             /theta))) )
+                                      - (Numeric)1.000 ) +
+		        8.1328e-3 * ( pow( (Numeric)10.00,
+                                           ((Numeric)-3.49149
+                                            *(theta-(Numeric)1.00)))
+                                      - 1.000) +
 		        log10(1013.246) );
-  Numeric es_MPM93 = 100.000 * pow(10.00,exponent);
+  Numeric es_MPM93 = 100.000 * pow((Numeric)10.00,exponent);
 
   return es_MPM93; // [Pa]
 }
@@ -5327,7 +5355,7 @@ Numeric WVSatPressureIce(const Numeric t)
 		       0.876793 * (1.000-(1.000/theta)) +
 		       log10(6.1071) );
 
-  Numeric es_MPM93 = 100.000 * pow(10.00,exponent);
+  Numeric es_MPM93 = 100.000 * pow((Numeric)10.00,exponent);
 
   return es_MPM93;
 }
@@ -11159,8 +11187,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.4 $ */
-/*     created:	        $Date: 2002/05/31 16:53:44 $ */
+/*     revision:	        $Revision: 1.26.2.5 $ */
+/*     created:	        $Date: 2002/06/27 10:51:48 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */
