@@ -302,8 +302,9 @@ Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
   for (Index i = 0; i < n - 1; ++i)
     {
       // in this place 0.5 * 2 * PI is calculated:
-      res += PI * DEG2RAD * (Integrand[i] + Integrand[i + 1]) * 
-        (za_grid[i + 1] - za_grid[i]) * sin(za_grid[i] * DEG2RAD);
+      res += PI * DEG2RAD * (Integrand[i]* sin(za_grid[i] * DEG2RAD) 
+                             + Integrand[i + 1] * sin(za_grid[i + 1] * DEG2RAD))
+        * (za_grid[i + 1] - za_grid[i]);
     }
   
   //cout<<res<<"\n";

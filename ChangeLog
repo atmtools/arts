@@ -1,3 +1,9 @@
+2003-05-26  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
+
+	* arts-1-1-553
+
+	* src/math_funcs.cc: fixed integration routine
+
 2003-05-26  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-552
