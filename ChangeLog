@@ -1,3 +1,11 @@
+2002-01-17  Nikolay Koulev <nkoulev@uni-bremen.de>
+
+	* arts-1-0-0-pre8
+
+	* doc/uguide/absorption.tex: Erased the strange artefacts after
+	committing the pre7 version.
+
+	
 2002-01-17  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-0-0-pre7
