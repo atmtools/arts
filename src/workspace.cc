@@ -284,6 +284,73 @@ void define_wsv_data()
 	&p));
   }
 
+  {
+    static WsvPointer<int> p(&workspace.n_profiles);
+    wsv_data.push_back
+      (WsvRecord
+       ("n_profiles",
+	"The number of absorption profiles which should be calculated\n"
+	"simultaneously. For 1-D calculations this is always 1.\n"
+	"This should be useful for 2 and 3-D calculations. It affects\n"
+	"the array dimension of pzT and t_and_all_vmrs, as well as the\n"
+	"matrix dimension of raw_vmr_profiles", 
+	int_,
+	&p));
+  }
+
+  {
+    static WsvPointer<ARRAYofMATRIX> p(&workspace.ptz);
+    wsv_data.push_back
+      (WsvRecord
+       ("ptz",
+	"Matrix has columns:\n"
+	"1. Pressure in hPa\n"
+	"2. Temperature in K\n"
+	"3. Altitude in km\n"
+	"\n"
+	"The array dimension is determined by n_profiles (for 2 and 3-D)\n"
+	"calculations.", 
+	ARRAYofMATRIX_,
+	&p));
+  }
+
+  {
+    static WsvPointer<ARRAYofMATRIX> p(&workspace.raw_vmr_profiles);
+    wsv_data.push_back
+      (WsvRecord
+       ("raw_vmr_profiles",
+	"The individual VMR profiles. Each species VMR profile comes with a\n"
+	"pressure profile. The different species can hence be on different grids.\n"
+	"\n"
+	"Matrix has columns:\n"
+	"1. Pressure in hPa\n"
+	"2. VMR profile (absolute number)\n"
+	"3. more VMR profiles.\n"
+	"\n"
+	"The number of VMR profiles is given by n_profiles (1 in the 1-D case).\n"
+	"The array dimension is determined by the number of tag groups.", 
+	ARRAYofMATRIX_,
+	&p));
+  }
+
+  {
+    static WsvPointer<ARRAYofMATRIX> p(&workspace.t_and_all_vmrs);
+    wsv_data.push_back
+      (WsvRecord
+       ("t_and_all_vmrs",
+	"Matrix has columns:\n"
+	"1. Pressure in hPa\n"
+	"2. Temperature in K\n"
+	"2. VMR profile (absolute number)\n"
+	"3. more VMR profiles.\n"
+	"\n"
+	"The number of VMR profiles is determined by the number of tag groups.\n"
+	"The array dimension is determined by n_profiles (for 2 and 3-D)\n"
+	"calculations.", 
+	ARRAYofMATRIX_,
+	&p));
+  }
+
   //  cout << "size = " << wsv_data.size() << '\n';
 }
 

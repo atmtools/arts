@@ -136,7 +136,14 @@ void tag_groupsDefine(// WS Output:
 	  while ( ' '  == tag_def[s][0] ||
 		  '\t' == tag_def[s][0]    )	tag_def[s].erase(0,1);
 
-	  tag_groups[i].push_back(OneTag(tag_def[s]));
+	  OneTag this_tag(tag_def[s]);
+
+	  // Safety check: For s>0 check that the tags belong to the same species.
+	  if (s>0)
+	    if ( tag_groups[i][0].Species() != this_tag.Species() )
+	      throw runtime_error("Tags in a tag group must belong to the same species.");
+
+	  tag_groups[i].push_back(this_tag);
 	}
     }
 
@@ -150,6 +157,34 @@ void tag_groupsDefine(// WS Output:
 	  out3 << " " << tag_groups[i][s].Name();
 	}
     }
+  out3 << '\n';
 
-  cout << endl << endl << tag_groups << endl;
+//  cout << endl << endl << tag_groups << endl;
+}
+
+void raw_vmr_profilesReadFromScenario(// WS Output:
+                                      ARRAYofMATRIX&   raw_vmr_profiles,
+                                      // WS Input:
+                                      const TagGroups& tag_groups,
+                                      // Control Parameters:
+                                      const string&    basename)
+{
+  // The species lookup data:
+  extern const ARRAY<SpeciesRecord> species_data;
+
+  // We need to read one profile for each tag group.
+  for ( size_t i=0; i<tag_groups.size(); ++i )
+    {
+      // Determine the name.
+      string name =
+	basename + "." +
+	species_data[tag_groups[i][0].Species()].Name() + ".am";
+
+      cout << name << endl;
+
+
+
+
+
+    }
 }

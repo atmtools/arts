@@ -67,4 +67,58 @@ void read_text_from_file(ARRAY<string>& text, const string& name);
 void replace_all(string& s, const string& what, const string& with);
 
 
+//-------------------------< MATRIX/VECTOR IO Routines >-------------------------
+
+
+
+/** A helper function that writes an array of matrix to a stream. This
+    is the generic output function for VECTORs, MATRIXs, and ARRAYof
+    both. All these are converted first to ARRAYofMATRIX, and then
+    written by this function.
+
+    @param os   Output. The stream to write to.
+    @param am    The matrix to write.
+
+    @author Stefan Buehler */
+void write_array_of_matrix_to_stream(ostream& os,
+                                     const ARRAYofMATRIX& am);
+
+
+/** A helper function that writes an array of matrix to a file. Uses
+    write_array_of_matrix_to_stream. 
+
+    @param filename    The name of the file.
+    @param am          The array of matrix to write.
+
+    @author Stefan Buehler */
+void write_array_of_matrix_to_file(const string& filename,
+                                   const ARRAYofMATRIX& am);
+
+
+/** A helper function that reads an array of matrix from a stream.
+
+    @param am   Output. The array of matrix to read.
+    @param is   Output. The input stream.
+
+    @author Stefan Buehler */
+void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
+                                      istream& is);
+
+
+
+/** A helper function that reads an array of matrix from a file. 
+    Uses read_array_of_matrix_from_stream.
+
+    @param am        Output. The array of matrix to read.
+    @param filename  The name of the file to read.
+
+    @author Stefan Buehler */
+void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
+                                    const string& filename);
+
+
+
+
+
+
 #endif

@@ -39,3 +39,10 @@ tag_groupsDefine{
 	"H2O",
 	"CO2-*-*-*" ] 
 }
+
+IntSet(n_profiles){1}
+
+ArrayOfMatrixReadFromNamedFile (ptz) 
+{"../data/atmosphere/fascod/midlatitude-summer.tz.am"}
+
+raw_vmr_profilesReadFromScenario{"../data/atmosphere/fascod/midlatitude-summer"}

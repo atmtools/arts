@@ -141,7 +141,7 @@ void define_md_data()
     ( MdRecord
       ( NAME("ArrayOfMatrixWriteToFile"),
 	DESCRIPTION("Writes a variable of this type to a file.\n"
-		    "The filename is <basename>.<variable_name>.a.\n"
+		    "The filename is <basename>.<variable_name>.am.\n"
 		    "The format is as follows:\n\n"
 		    "# <comments>\n"
 		    "<n_array_elements>\n"
@@ -279,8 +279,20 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("ArrayOfVectorReadFromFile"),
+      ( NAME("ArrayOfMatrixReadFromNamedFile"),
 	DESCRIPTION("Reads a variable of this type from a named file.\n"
+		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(ARRAYofMATRIX_),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfVectorReadFromFile"),
+	DESCRIPTION("Reads a variable of this type from a file.\n"
 		    "The filename has to be specified.\n"
 		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
 	OUTPUT(),
@@ -289,6 +301,19 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+  
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfVectorReadFromNamedFile"),
+	DESCRIPTION("Reads a variable of this type from a named file.\n"
+		    "The filename has to be specified.\n"
+		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(ARRAYofVECTOR_),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
   
 
 //
@@ -335,6 +360,79 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("linesReadFromHitran"),
+  	DESCRIPTION(
+          "Read all the lines from a HITRAN catalogue file that\n"
+	  "correspond to legal species / isotope combinations.\n"
+	  "\n"
+	  "The output line array is not overwritten, but the new data\n"
+	  "is appended!\n" 
+	  "\n"
+	  "This is mainly for testing, the method probably will become\n"
+	  "more complicated later on.\n"
+	  "\n"
+	  "filename = Name (and path) of the catalogue file.\n"
+	  "fmin     = Minimum frequency for lines to read in Hz.\n"
+	  "fmax     = Maximum frequency for lines to read in Hz."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ARRAYofLineRecord_ ),
+	GINPUT(),
+	KEYWORDS( "filename",  "fmin",    "fmax"),
+	TYPES(    string_t,    Numeric_t, Numeric_t)));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("linesWriteToNamedFile"),
+  	DESCRIPTION(
+          "Write the content of the workspace variable lines to the\n"
+	  "given file in ARTS line format."),
+	OUTPUT(),
+	INPUT( lines_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("tag_groupsDefine"),
+  	DESCRIPTION(
+          "Set up the list of tag groups.\n"
+	  "Specify one string for each tag group that you want to create.\n"
+	  "Inside the string, separate the tags by comma (plus optional blanks).\n"
+	  "Example:\n"
+	  "tag = [\"O3-666-500e9-501e9, O3-686\",\"H2O\",\"O2-*-*-*\"]"),
+	OUTPUT( tag_groups_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "tags" ),
+	TYPES(    ARRAY_string_t   )));
+  
+  md_data.push_back
+    ( MdRecord
+      ( NAME("raw_vmr_profilesReadFromScenario"),
+  	DESCRIPTION(
+	  "Read the individual VMR profile for each tag group from a standard\n"
+	  "atmospheric scenario. Files must look like this example:\n"
+	  "<basename>.ClO.am\n"
+	  "\n"
+	  "The basename can include a path, i.e., the files can be anywhere,\n"
+	  "but they must be all in the same directory.\n"
+	  "\n"
+	  "The profile is chosen by the species name. If you have more than one\n"
+	  "tag group for the same species, the same profile will be used."
+	  ),
+	OUTPUT(   raw_vmr_profiles_    ),
+	INPUT(    tag_groups_          ),
+	GOUTPUT(                       ),
+	GINPUT(                        ),
+	KEYWORDS( "basename"           ),
+	TYPES(    string_t             )));
   
 
 
@@ -436,58 +534,6 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("linesReadFromHitran"),
-  	DESCRIPTION(
-          "Read all the lines from a HITRAN catalogue file that\n"
-	  "correspond to legal species / isotope combinations.\n"
-	  "\n"
-	  "The output line array is not overwritten, but the new data\n"
-	  "is appended!\n" 
-	  "\n"
-	  "This is mainly for testing, the method probably will become\n"
-	  "more complicated later on.\n"
-	  "\n"
-	  "filename = Name (and path) of the catalogue file.\n"
-	  "fmin     = Minimum frequency for lines to read in Hz.\n"
-	  "fmax     = Maximum frequency for lines to read in Hz."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( ARRAYofLineRecord_ ),
-	GINPUT(),
-	KEYWORDS( "filename",  "fmin",    "fmax"),
-	TYPES(    string_t,    Numeric_t, Numeric_t)));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("linesWriteToNamedFile"),
-  	DESCRIPTION(
-          "Write the content of the workspace variable lines to the\n"
-	  "given file in ARTS line format."),
-	OUTPUT(),
-	INPUT( lines_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    string_t   )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("tag_groupsDefine"),
-  	DESCRIPTION(
-          "Set up the list of tag groups.\n"
-	  "Specify one string for each tag group that you want to create.\n"
-	  "Inside the string, separate the tags by comma (plus optional blanks).\n"
-	  "Example:\n"
-	  "tag = [\"O3-666-500e9-501e9, O3-686\",\"H2O\",\"O2-*-*-*\"]"),
-	OUTPUT( tag_groups_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "tags" ),
-	TYPES(    ARRAY_string_t   )));
 
 }
 

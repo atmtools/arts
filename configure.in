@@ -42,11 +42,16 @@ AC_STDC_HEADERS
 # Special headers that we need:
 # AC_HAVE_HEADERS(getopt.h) (now included in the source)
 
-AC_OUTPUT(Makefile \
-             doc/Makefile \
-                doc/doc++/Makefile \
-                   doc/doc++/html/Makefile \
-                   doc/doc++/tex/Makefile \
-             m4/Makefile \
-             src/Makefile \
-                src/tnt/Makefile)
+AC_OUTPUT( \
+Makefile \
+   doc/Makefile \
+      doc/doc++/Makefile \
+         doc/doc++/html/Makefile \
+         doc/doc++/tex/Makefile \
+   m4/Makefile \
+   src/Makefile \
+      src/tnt/Makefile \
+   data/Makefile \
+      data/atmosphere/Makefile \
+         data/atmosphere/fascod/Makefile \
+)

@@ -1,3 +1,17 @@
+2000-06-01  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-26
+
+	* Added workspace variables: 
+	n_profiles, 
+	ptz, 
+	raw_vmr_profiles,
+	t_and_all_vmrs 
+
+	* Changed standart data file extension from .a to .am (you can
+	read this as `arts matrix' or as `array of matrix', as you
+	like). The single a seems to be already in use by other programs. 
+
 2000-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-25

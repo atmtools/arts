@@ -97,6 +97,10 @@ public:
   ARRAYofMATRIX       klos;
   ARRAYofLineRecord   lines;
   TagGroups           tag_groups;
+  int                 n_profiles;
+  ARRAYofMATRIX       ptz;
+  ARRAYofMATRIX       raw_vmr_profiles;
+  ARRAYofMATRIX	      t_and_all_vmrs;
 };
 
 
