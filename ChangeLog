@@ -1,3 +1,16 @@
+2003-05-16  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-543
+
+	* src/Makefile.am: Fixed bug reported by Mattias. arts.cc was missing
+	in some targets which caused undefined symbol arts_exit while linking.
+
+	* src/absorption.cc: Include arts.h
+
+	* src/agenda_class.cc: Include arts.h
+
+	* src/xml_io.cc: Include arts.h
+
 2003-05-14  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-542
