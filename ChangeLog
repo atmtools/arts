@@ -1,3 +1,18 @@
+2003-02-04  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-446
+
+	* src/zeemanproperties.cc: Fixed a bug in the calculation of the
+	relative intensities of individual Zeeman components. Added two
+	more output variables in order to save the frequencies and the
+	corresponding relative intensities of the components as matrixes in xml 	format.
+
+	* src/zeemanproperties.h: Modified the file according the changes
+	in the zeemanproperties.cc.
+
+	* src/test_zeemanproperties.cc: Modified the file according the changes
+	in the zeemanproperties.cc.
+
 2003-02-04  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-445
