@@ -890,8 +890,6 @@ typedef  Array<ArrayOfSpeciesTag> ArrayOfArrayOfSpeciesTag;
 //         const ArrayOfArrayOfSpeciesTag&      tags1, 
 //         const Array<SpeciesTag>&  tags2 );
 
-String get_tag_group_name( const Array<SpeciesTag>& tg );
-
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,
                            const ArrayOfLineRecord& lines);
@@ -911,6 +909,18 @@ void xsec_species( MatrixView              xsec,
 
 // A helper function for energy conversion:
 Numeric wavenumber_to_joule(Numeric e);
+
+
+//======================================================================
+//             Functions related to species and tags
+//======================================================================
+
+String get_tag_group_name( const Array<SpeciesTag>& tg );
+
+Index species_index_from_species_name( String name );
+
+Index find_first_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
+                             const Index& spec );
 
 
 //======================================================================

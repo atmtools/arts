@@ -28,10 +28,6 @@
 #include "absorption.h"
 
 
-/** The map associated with species_data. */
-std::map<String, Index> SpeciesMap;
-
-
 //----------------------------------------------------------------------
 // Functions should be moved over here one by one from the old file
 // old_absorption.cc.
@@ -64,8 +60,6 @@ SpeciesTag::SpeciesTag(String def)
 {
   // Species lookup data:
   extern const Array<SpeciesRecord> species_data;
-  // The species map. This is used to find the species id.
-  extern std::map<String, Index> SpeciesMap;
   // Name of species and isotope (aux variables):
   String name, isoname;
   // Aux index:
@@ -96,34 +90,11 @@ SpeciesTag::SpeciesTag(String def)
       def  = "";
     }
 
-  // Remove leading whitespace, if there is any:
-  while ( 0 != name.nelem() && (
-                                ' '  == name[0] ||
-                                '\t' == name[0] ||
-                                '\n' == name[0] ||
-                                '\r' == name[0]
-                                )
-          )    name.erase(0,1);
+  // Obtain species index from species name.
+  // (This will also remove possible whitespace.)
+  mspecies = species_index_from_species_name( name );
 
-  // Remove trailing whitespace, if there is any:
-  while ( 0 != name.nelem() && (
-                                ' '  == name[name.nelem()-1] ||
-                                '\t' == name[name.nelem()-1] ||
-                                '\n' == name[name.nelem()-1] ||
-                                '\r' == name[name.nelem()-1]
-                                )
-          )    name.erase(name.nelem()-1);
-
-  //  cout << "name / def = " << name << " / " << def << endl;
-
-  // Look for species name in species map:
-  map<String, Index>::const_iterator mi = SpeciesMap.find(name);
-  if ( mi != SpeciesMap.end() )
-    {
-      // Ok, we've found the species. Set mspecies.
-      mspecies = mi->second;
-    }
-  else
+  if ( 0 > mspecies )
     {
       ostringstream os;
       os << "Species \"" << name << "\" is not a valid species.";
@@ -231,7 +202,7 @@ SpeciesTag::SpeciesTag(String def)
     {
       // n==def.npos means that def does not contain a '-'. In this
       // case that is not allowed!
-      throw runtime_error("You must either speciefy both frequency limits\n"
+      throw runtime_error("You must either specify both frequency limits\n"
                           "(at least with jokers), or none.");
     }
 
@@ -335,7 +306,7 @@ ostream& operator << (ostream& os, const SpeciesTag& ot)
   return os << ot.Name();
 }
 
-//! Print the name of a tag group. 
+//! Return the name of a tag group as a string. 
 /*!
    A tag group consists of several elementary SpeciesTags. This function
    returns a String with the name of the entire tag group. This is
@@ -362,4 +333,110 @@ String get_tag_group_name( const ArrayOfSpeciesTag& tg )
   return name;
 }
 
+//! Find first occurrence of species in tag groups.
+/*! 
+  The species to look for must be specified by its species index, not
+  by the name. Use the helper function to get the species index from
+  the species name if necessary.
+
+  \see species_index_from_species_name.
+
+  \param tgs The species tags to search in.
+  \param spec The species index of the species to look for.
+  
+  \return The index of spec in tgs, -1 if not found.
+
+  \author Stefan Buehler
+  \date   2003-01-13
+*/
+Index find_first_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
+                             const Index& spec )
+{
+  for ( Index i=0; i<tgs.nelem(); ++i )
+    {
+      // We compare the given species index spec to the index of the
+      // first element in each tag group. (All elements of a group
+      // must belong to the same species.)
+      //
+      // If they match, then this i is the index of the tag group we
+      // want. 
+      if ( spec == tgs[i][0].Species() )
+        return i;
+    }
+
+  // If we get here, then spec did not match the species of any of the
+  // tag groups.
+  return -1;
+}
+
+//! Return species index for given species name.
+/*! 
+  This is useful in connection with other functions that need a species
+  index.
+
+  \see find_first_species_tg.
+
+  \param name Species name.
+
+  \return Species index, -1 means not found.
+
+  \author Stefan Buehler
+  \date   2003-01-13
+*/
+Index species_index_from_species_name( String name )
+{
+  // The species map. This is used to find the species id.
+  extern std::map<String, Index> SpeciesMap;
+
+  // For the return value:
+  Index mspecies;
+  
+  // Remove leading whitespace, if there is any:
+  while ( 0 != name.nelem() && (
+                                ' '  == name[0] ||
+                                '\t' == name[0] ||
+                                '\n' == name[0] ||
+                                '\r' == name[0]
+                                )
+          )    name.erase(0,1);
+
+  // Remove trailing whitespace, if there is any:
+  while ( 0 != name.nelem() && (
+                                ' '  == name[name.nelem()-1] ||
+                                '\t' == name[name.nelem()-1] ||
+                                '\n' == name[name.nelem()-1] ||
+                                '\r' == name[name.nelem()-1]
+                                )
+          )    name.erase(name.nelem()-1);
+
+  //  cout << "name / def = " << name << " / " << def << endl;
+
+  // Look for species name in species map:
+  map<String, Index>::const_iterator mi = SpeciesMap.find(name);
+  if ( mi != SpeciesMap.end() )
+    {
+      // Ok, we've found the species. Set mspecies.
+      mspecies = mi->second;
+    }
+  else
+    {
+      // The species does not exist!
+      mspecies = -1;
+    }
+
+  return mspecies;
+}
+
+
+
+//! The map associated with species_data.
+/*! 
+  This should be at the end of the file, so that it has to be declared
+  as external explicitly in all functions that want to use it.
+
+  Note: This has to be initialized explicitly at program start.
+  
+  \see define_species_map.
+*/
+std::map<String, Index> SpeciesMap;
 

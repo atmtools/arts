@@ -1,3 +1,22 @@
+2003-01-13  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-385
+
+	* src/absorption.cc (find_first_species_tg): Added. Finds first
+	occurrence of species in tag groups. The species to look for
+	must be specified by its species index, not by the name!
+	(species_index_from_species_name): Added. Returns species index
+	for given species name.
+
+	You can use both functions together to find the first water vapor
+	tag:
+	Index firstH2O
+	   = find_first_species_tg(species_index_from_species_name("H2O"))
+
+	If there is no water vapor in the tag list the result will be -1.
+	
+	* src/absorption.h: Added declarations for the two new functions.
+
 2003-01-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-384
