@@ -1,3 +1,14 @@
+2004-08-09  Cory Davis (rsh)   <cory@fog>
+
+	* arts-1-1-853
+
+	* src/montecarlo.cc (Sample_ppathlength,Sample_ppathlengthLOS):
+	In really optically thick cases transmittances can become lower
+	than the smallest double precision number, this could cause errors
+	when trying to interpolate a vector of transmittance values.
+	Included code that truncates the transmittance vector below a
+	certain threshold (1e-12) 
+
 2004-08-09  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-852

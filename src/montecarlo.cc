@@ -1413,6 +1413,13 @@ void Sample_ppathlength (
   for (Index i=0;i<npoints;i++)
     {
       T11vector[i]=TArray[i](0,0);
+      if (T11vector[i] < 1e-12)
+	{
+	  //then we need to truncate T11vector at this point
+	  T11vector=T11vector[Range(0,i+1)];
+	  npoints=i;
+	  break;
+	}
     }
   GridPos gp;
   //  Vector itw(2);
@@ -1473,6 +1480,13 @@ void Sample_ppathlengthLOS (
   for (Index i=0;i<npoints;i++)
     {
       T11vector[i]=TArray[i](0,0);
+      if (T11vector[i] < 1e-12)
+	{
+	  //then we need to truncate T11vector at this point
+	  T11vector=T11vector[Range(0,i+1)];
+	  npoints=i;
+	  break;
+	}
     }
   GridPos gp;
   //Vector itw(2);
