@@ -50,6 +50,7 @@
 #include "mystring.h"
 #include "logic.h"
 #include "interpolation.h"
+#include "poly_roots.h"
 #include "ppath.h"
 
 extern const Numeric DEG2RAD;
@@ -236,10 +237,7 @@ Numeric geompath_r_at_l(
 
 //! geompath_r_at_lat
 /*!
-   Calculates the radius for a distance from the tangent point.
-
-   The tangent point is either rwal or imaginary depending on the zenith
-   angle of the sensor. See geometrical_tangent_radius.
+   Calculates the radius for a given latitude.
 
    \return         Radius at the point of interest.
    \param   ppc    Propagation path constant.
@@ -359,14 +357,14 @@ Numeric psurface_tilt_2D(
    latitude, it is not clear if a zenith angle of 90 is above or below e.g.
    the ground.
  
-   \return 
+   \return         Boolean that is true if LOS is downwards.
    \param   za     Zenith angle of line-of-sight.
    \param   tilt   Angular tilt of the ground or the pressure surface (as
                    returned by psurface_tilt_2D)
 
    \author Patrick Eriksson
    \date   2002-06-03
- */
+*/
 bool is_los_downwards_2D( 
         const Numeric&   za,
         const Numeric&   tilt )
@@ -378,6 +376,110 @@ bool is_los_downwards_2D(
     { return true; }
   else
     { return false; }
+}
+
+
+
+//! psurface_crossing_2D
+/*!
+   Calculates the angular distance to a crossing of a pressure surface
+   or the ground.
+
+   The function solves the problem mentioned above for a pressure
+   surface, or the ground, where the radius changes linearly as a
+   function of latitude.  No analytical solution to the original
+   problem has been found. The problem involves sine and cosine of the
+   latitude difference and these functions are replaced with their
+   Taylor expansions where the two first terms are kept. This should
+   be OK as in practical situations, the latitude difference inside a
+   grid cell should not exceed 2 degrees, and the accuracy should be
+   sufficient for values up to 5 degrees. An error is given if the
+   found latitude difference is > 5 degrees.
+
+   The problem and its solution is further described in AUG. See ???
+ 
+   The latitude difference is set to 999 of no possible value is found, but
+   there will normally be some value < 360 degrees. 
+
+
+   \return         The angular distance to the crossing.
+   \param   r      Radius of a point of the path inside the grid cell
+   \param   za     Zenith angle of the path at r.
+   \param   r1     Radius of the pressure surface or the ground at the
+                   latitude of r
+   \param   c      Slope, as returned by psurface_slope_2D
+
+   \author Patrick Eriksson
+   \date   2002-06-07
+*/
+Numeric psurface_crossing_2d(
+        const Numeric&   r,
+        const Numeric&   za,
+        const Numeric&   r1,
+              Numeric    c )
+{
+  assert( fabs(za) <= 180 );
+  assert( (r<r1 && fabs(za)<90)  ||  (r>=r1 && fabs(za)>=90) );
+
+  // The nadir angle in radians, and cosine and sine of that angle
+  const Numeric   beta = DEG2RAD * ( 180 - fabs(za) );
+  const Numeric   cv = cos( beta );
+  const Numeric   sv = sin( beta );
+
+  // Convert slope to m/radian and consider viewing direction
+  c *= RAD2DEG;
+  if( za < 0 )
+    { c = -c; }
+  
+  // The case when c=0 must be treated seperately as the root solving function 
+  // does not accept that the highest polynomial has coefficient = 0.
+  Index n = 5;
+  if( c == 0 )
+    { n = 4; }
+      
+  // The vector of polynomial coefficients
+  Vector p(n);
+  //
+  p[3] = -r1 * cv / 6 - c * sv / 2;
+  p[2] = -r1 * sv / 2 + c * cv;
+  p[1] = r1 * cv + c * sv;
+  p[0] = ( r1 - r ) * sv;
+  //
+  if( n == 5 )
+    { p[4] = -c * cv / 6; }
+
+  // Calculate roots of the polynomial
+  Matrix roots(n-1,2);
+  poly_root_solve( roots, p );
+
+
+  // Find first root with imaginary part = 0, and real part > 0 or >= 0.
+  // The solution r=0 is not of interest if r = r1.
+  Numeric dlat = 999;
+  for( Index i=0; i<n-1; i++ )
+    {
+      if( roots(i,1) == 0 )
+	{
+	  if( ( roots(i,0) > 0  ||  ( r != r1  &&  roots(i,0) == 0 ) )  &&
+	                                            RAD2DEG*roots(i,0) < dlat )
+	    { dlat = RAD2DEG * roots(i,0); }
+	}
+    }  
+
+  // Give an error if the found latitude distance is > 5
+  if( dlat < 999  &&  dlat > 5 )
+    {
+      ostringstream os;
+      os << "The function is accurate only for latitude differences up to 5 "
+	 << "degrees, but a value of " << dlat << " was found";
+      throw runtime_error(os.str());
+    }
+
+  // Change sign if zenith angle is negative
+  if( dlat < 999  &&  za < 0 )
+    { dlat = -dlat; }
+
+  return dlat;
 }
 
 
@@ -649,6 +751,19 @@ void ppath_start_stepping(
         const Vector&         a_pos,
         const Vector&         a_los )
 {
+  /* Some lines to test psurface_crossing_2d
+  Numeric r00=7000e3, za00=90.1;
+  Numeric ppc = geometrical_ppc( r00, za00 );
+  Numeric za22 = geompath_za_at_r( ppc, za00, r00 );
+  Numeric lat1 = geompath_lat_at_za( za00, 0, za22 );
+  NumericPrint(lat1,"lat1");
+
+  Numeric lat2 = psurface_crossing_2d( r00, za00, r00, 0 );
+  NumericPrint(lat2,"lat2");
+
+  Exit();
+  */
+
   // This function contains no checks or asserts as it is only a sub-function
   // to ppathCalc where the input is checked carefully.
 
@@ -756,7 +871,7 @@ void ppath_start_stepping(
 	    {
 	      ppath_init_structure(  ppath, atmosphere_dim, 0 );
 	      ppath_set_background( ppath, 1 );
-	      out2 << "  --- WARNING ---, path is totally outside of the "
+	      out1 << "  --- WARNING ---, path is totally outside of the "
 		   << "model atmosphere";
 	    }
 
@@ -1042,8 +1157,14 @@ void ppath_start_stepping(
 	    {
 	      ppath_init_structure(  ppath, atmosphere_dim, 0 );
 	      ppath_set_background( ppath, 1 );
-	      out2 << "  --- WARNING ---: path is totally outside of the "
+	      out1 << "  --- WARNING ---: path is totally outside of the "
 		   << "model atmosphere\n";
+	    }
+
+	  // The path enters the atmosphere
+	  else
+	    {
+	      
 	    }
 	}      
 

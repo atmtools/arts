@@ -1,3 +1,13 @@
+2002-06-08  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-125
+
+	* src/ppath.cc (psurface_crossing_2d): Adapted the Matlab function
+	psurface_crossing in AMI to create this function. I had to handle
+	the case c=0 especially due to a limitation of poly_root_solve
+	compared to the Matlab function roots. 
+	Tests performed of the function and it looked OK.
+
 2002-06-07  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-124
