@@ -1,3 +1,21 @@
+2002-05-13  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-74
+	
+	* src/test_linalg.cc: Include iostream.
+
+	* src/file.cc (open_input_file): Only set badbit for input stream
+	otherwise eof throws exception as well and that is not what we
+	want.
+
+	* src/methods.cc (define_md_data): Added xml workspace methods.
+
+	* src/m_xml.cc: New file. XML io workspace methods. Only dummys at the moment.
+	
+	* src/xml_io.{h,cc}: New files. XML io functions. Only dummys at the moment.
+
+	* src/Makefile.am (arts_SOURCES): Added xml_io.h, xml_io.cc and m_xml.cc.
+
 2002-05-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-73
@@ -25,7 +43,6 @@
 
 	* src/physics_funcs.cc/h: Added these files.
 	
-
 2002-05-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-71
