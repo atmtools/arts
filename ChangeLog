@@ -1,3 +1,34 @@
+2003-01-27  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-431
+
+	* Nearly completed binary file support.
+	Missing features: - Integration into arts workspace.
+	                  - Storing of Numeric/Index type in xml file.
+			    -> Currently binary files must be read with the
+			       same Numeric/Index type as they where written.
+
+	* src/Makefile.am: Added test_binaryio target.
+	Added b(i|o)fstream.{cc,h} where needed.
+
+	* src/test_binaryio.cc: Added for testing binary io routines.
+
+ 	* src/xml_io.{h,cc}, src/xml_io_private.h: xml_write_to_file
+	functions take now three parameters. Third arg is the type of file to
+	write (FTYPE_ASCII or FTYPE_BINARY). Default is ASCII.
+	Changed parameters for xml_{write_to,read_from}_stream functions:
+	Removed parameters is_data and os_data. Instead, a pointer to
+	bifstream / bofstream is passed to the function. If the pointer is
+	NULL the data is written to/read from the xml file, otherwise the
+	binary stream is used.
+
+	* src/bifstream.h: Removed ios::trunc from default openmode.
+
+	* src/b(i|o)stream.{h,cc}: Added operator template instanciations for
+	types int and long.
+
+	* src/.cvsignore: Added test_binaryio.
+
 2003-01-27  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-430
