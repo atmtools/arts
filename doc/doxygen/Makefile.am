@@ -26,7 +26,7 @@ $(top_srcdir)/src/*.cc
 
 if MAINTAINER_MODE
 
-doxyfied: $(toexamine)
+doxyfied: Doxyfile $(toexamine)
 	doxygen Doxyfile > /dev/null
 	doxytag -t arts.tag html
 	touch doxyfied
