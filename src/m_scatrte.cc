@@ -2991,8 +2991,10 @@ scat_fieldCalc(//WS Output:
                Tensor6& scat_field,
                Tensor4& pha_mat,
                Tensor5& pha_mat_spt,
-               //WS Input: 
-               const ArrayOfSingleScatteringData& scat_data_raw,
+               Index& scat_za_index, 
+               Index& scat_aa_index,
+               //WS Input:
+               const Agenda& pha_mat_spt_agenda,
                const Tensor6& i_field,
                const Tensor4& pnd_field,
                const Vector& scat_za_grid,
@@ -3004,11 +3006,7 @@ scat_fieldCalc(//WS Output:
                const ArrayOfIndex& cloudbox_limits,
                const Vector& f_grid,
                const Index& f_index,
-               const Vector& grid_stepsize,
-               const Tensor4& scat_theta,
-               const ArrayOfArrayOfArrayOfArrayOfGridPos&
-               scat_theta_gps,
-               const Tensor5& scat_theta_itws
+               const Vector& grid_stepsize
                )
   
 {
@@ -3080,6 +3078,8 @@ scat_fieldCalc(//WS Output:
   
    //When atmospheric dimension , atmosphere_dim = 1
   if( atmosphere_dim == 1 ){
+
+    scat_aa_index = 0;
   
     // Get pha_mat at the grid positions
     // Since atmosphere_dim = 1, there is no loop over lat and lon grids
@@ -3088,20 +3088,20 @@ scat_fieldCalc(//WS Output:
       {
         
         //There is only loop over zenith angle grid ; no azimuth angle grid.
-        for (Index za_prop = 0; za_prop < Nza; ++ za_prop)
+        for (scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
           {
-            pha_mat_sptFromData(pha_mat_spt,
-                                scat_data_raw, scat_za_grid, scat_aa_grid, 
-                                za_prop, 0, f_index, f_grid, scat_theta,
-                                scat_theta_gps, scat_theta_itws);
-                            
-            
+            // Calculate the phase matric of a single particle type
+            pha_mat_spt_agenda.execute(scat_za_index || p_index - cloudbox_limits[0]);
+
+
+            // Sum over all particle types
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-                        atmosphere_dim, p_index, 0, 
-                        0);
+                         atmosphere_dim, p_index, 0, 
+                         0);
+            
+
             // za_in and aa_in are for incoming zenith and azimutha 
             //angle direction for which pha_mat is calculated
-            
             for (Index za_in = 0; za_in < Nza; ++ za_in)
               { 
                 for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
@@ -3119,7 +3119,7 @@ scat_fieldCalc(//WS Output:
                       i_field((p_index - cloudbox_limits[0]),
                               0,
                               0,
-                              za_prop,
+                              scat_za_index,
                               0,
                               Range(joker));
 
@@ -3149,7 +3149,7 @@ scat_fieldCalc(//WS Output:
                 scat_field( (p_index - cloudbox_limits[0]),
                             0,
                             0,
-                            za_prop, 
+                            scat_za_index, 
                             0,
                             i)  =   AngIntegrate_trapezoid_opti(product_field_mat,
                                                                 scat_za_grid,
@@ -3185,15 +3185,14 @@ scat_fieldCalc(//WS Output:
           {
             for (Index lon_index = cloudbox_limits[4]; lon_index <= 
                    cloudbox_limits[5]; lon_index++)
-              for (Index za_prop = 0; za_prop < Nza; ++ za_prop)
+              for (Index scat_za_index = 0; scat_za_index < Nza; 
+                   scat_za_index++)
                 {
-                  for (Index aa_prop = 0; aa_prop < Naa; ++ aa_prop)
+                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                       scat_aa_index ++)
                     {
-                      pha_mat_sptFromData(pha_mat_spt, scat_data_raw, 
-                                          scat_za_grid, scat_aa_grid, 
-                                          za_prop, aa_prop, f_index, f_grid,
-                                          scat_theta, scat_theta_gps, 
-                                          scat_theta_itws);
+                      pha_mat_spt_agenda.execute();
+
                       pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                   atmosphere_dim, p_index, lat_index, 
                                   lon_index);
@@ -3215,8 +3214,8 @@ scat_fieldCalc(//WS Output:
                                 i_field(p_index-cloudbox_limits[0],
                                         lat_index-cloudbox_limits[2],
                                         lon_index-cloudbox_limits[4],
-                                        za_prop,
-                                        aa_prop,
+                                        scat_za_index,
+                                        scat_aa_index,
                                         Range(joker));
                               
                               mult(product_field( za_in,
@@ -3234,8 +3233,8 @@ scat_fieldCalc(//WS Output:
                         //AngIntegrate_trapezoid_opti
                       for (Index i = 0; i < stokes_dim; i++)
                         {
-                            MatrixView product_field_mat =
-                              product_field( Range(joker),
+                          MatrixView product_field_mat =
+                            product_field( Range(joker),
                                              Range(joker),
                                              i);
                             
@@ -3243,8 +3242,8 @@ scat_fieldCalc(//WS Output:
                             scat_field( p_index-cloudbox_limits[0],
                                         lat_index-cloudbox_limits[2],
                                         lon_index-cloudbox_limits[4],
-                                        za_prop, 
-                                        aa_prop,
+                                        scat_za_index, 
+                                        scat_aa_index,
                                         i)  =  
                               AngIntegrate_trapezoid_opti(product_field_mat,
                                                           scat_za_grid,
@@ -3317,7 +3316,7 @@ scat_fieldCalcFromAmpMat(//WS Output:
   Index Nza_prop = i_field.npages();
   Index Naa = scat_aa_grid.nelem();
   Index Naa_prop = i_field.ncols();
-  Index Np  = i_field.nvitrines();
+  
   const Index stokes_dim = pha_mat_spt.ncols();
 
   cout<<"Naa in the scattering integral routine"<<" "<<Naa<<"\n";

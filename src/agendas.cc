@@ -279,6 +279,20 @@ void define_agenda_data()
               pnd_field_, atmosphere_dim_, scat_p_index_, scat_lat_index_,
               scat_lon_index_)));
 
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "pha_mat_spt_agenda" ),
+       DESCRIPTION
+       (
+        "Calculates the phase matrix for a single particle type.\n"
+        "\n"
+        "Different options are possible for the usage of this agenda: \n"
+        "*pha_mat_sptFromData* or *pha_mat_sptDOITOpt*. \n"
+        "\n"
+        ),
+       OUTPUT( pha_mat_spt_),
+       INPUT( pha_mat_spt_, scat_theta_, scat_za_grid_, scat_aa_grid_)));
+       
 
   agenda_data.push_back
     (AgRecord
@@ -490,7 +504,7 @@ void define_agenda_data()
         "\n"
         ),
         OUTPUT( i_field_),
-        INPUT(  i_field_old_, scalar_gas_absorption_agenda_, spt_calc_agenda_,
+        INPUT(  scalar_gas_absorption_agenda_, spt_calc_agenda_,
                 opt_prop_part_agenda_, opt_prop_gas_agenda_,
                 ppath_step_agenda_)));
 

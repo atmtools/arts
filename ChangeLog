@@ -1,3 +1,32 @@
+2003-08-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-669		
+	
+	* src/agendas.cc (pha_mat_spt_agenda): Included this agenda 
+	to be able to include optimizations. To use the general methods
+	it should include **pha_mat_sptFromData*.
+	
+	* src/m_optproperties.cc (ScatteringDataPrepareDOITOpt): Included.
+	This function can be used for spped optimization for the 
+	special case of randomly oriented particles. The method can be used
+	in *scat_mono_agenda* to interpolate the phase matrix on the 
+	frequency and on all possible scattering angles. It turned out 
+	that this optimization is much more efficient that the 
+	pre-calculation of grid-position and interpolation weights, 
+	especially for optically thick scatetring media.
+	(pha_mat_sptFromDataDOIT): To use the optimized routines 
+	*pha_mat_sptFromData* has to be replaced by this function in 
+	*pha_mat_spt_agenda*. It uses the precalculated phase matrix data.
+	
+	* src/methods.cc: Included the two new methods. Modified entry 
+	for *scat_fieldCalc*.
+
+	* src/workspace.cc: Included pha_mat_sptDOITOpt and entry for 
+	*pha_mat_spt_agenda*.
+
+	* src/m_scatrte (scat_fieldCalc): Included agenda for calculating
+	*pha_mat_spt*.
+		
 2003-08-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-668
@@ -27,6 +56,7 @@
 	normalization and added this case to
 	(legendre_poly_deriv).
 	
+>>>>>>> 1.1053
 2003-08-22  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-665

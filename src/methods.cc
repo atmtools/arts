@@ -2460,6 +2460,41 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES())); 
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pha_mat_sptFromDataDOITOpt" ),
+        DESCRIPTION
+        (
+         "Calculation of the phase matrix for the single particle types.\n"
+         "\n"
+         "In this function the phase matrix calculated \n"
+         "in the laboratory frame. This function can be used in the agenda\n"
+         "*pha_mat_spt_agenda* which is part of the calculation of the scattering\n"
+         "integral (*scat_fieldCalc*).\n"
+         "\n"
+         "The function uses *pha_mat_sptDOITOpt*, which is the phase matrix \n"
+         "interpolated\n"
+         "on the right frequency for all scattering angles.\n"
+         "\n"
+         "The transformation from the database coordinate system to to \n"
+         "laboratory coordinate system is done in this function.\n"
+         "\n"
+         "NOTE: This is a special function for 1 particle type, including \n"
+         "randomly oriented particles. \n"
+         "\n"
+         "In this function the phase matrix calculated \n"
+         "in the laboratory frame. This function is used in the calculation\n"
+         "of the scattering integral (*scat_fieldCalc*).\n"
+         "\n"
+         ),
+	OUTPUT(pha_mat_spt_),
+        INPUT(pha_mat_spt_, pha_mat_sptDOITOpt_, scat_theta_, scat_za_grid_,
+              scat_aa_grid_, 
+              scat_za_index_, scat_aa_index_),
+	GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES())); 
 
   md_data_raw.push_back
     ( MdRecord
@@ -2908,11 +2943,12 @@ md_data_raw.push_back
          "these two workspace variables we calculate *pha_mat* with\n"
          "the method *pha_matCalc*.  \n"
          ),
-        OUTPUT( scat_field_, pha_mat_, pha_mat_spt_ ),
-        INPUT( scat_data_raw_, i_field_, pnd_field_, scat_za_grid_, 
+        OUTPUT( scat_field_, pha_mat_, pha_mat_spt_, scat_za_index_,
+                scat_aa_index_),
+        INPUT( pha_mat_spt_agenda_, i_field_, pnd_field_, scat_za_grid_, 
                scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, 
                atmosphere_dim_, cloudbox_limits_, f_grid_, f_index_,
-               grid_stepsize_, scat_theta_, scat_theta_gps_, scat_theta_itws_),
+               grid_stepsize_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3330,6 +3366,31 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ScatteringDataPrepareDOITOpt"),
+        DESCRIPTION
+        (
+          "Prepare single scattering data for a DOIT scattering calculation.\n"
+         "\n"
+         "This function has can be used for scatttering calcualtions using the\n" 
+         " DOIT method. It is a method optimized for randomly oriented \n"
+         "scattering media and it can only be used for such cases. \n"
+         "\n"
+         "It has to be used in *scat_mono_agenda*. The phase matrix data is \n"
+         "interpolated on the actual frequency and on all scattering angles \n"
+         "following from all possible combinations in *scat_za_grid* and \n"
+         "*scat_aa_grid*. \n"
+         "\n" 
+          ),
+        OUTPUT( scat_theta_, pha_mat_sptDOITOpt_),
+        INPUT( scat_za_grid_, scat_aa_grid_, scat_data_raw_, f_grid_, f_index_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
 
 md_data_raw.push_back
     ( MdRecord

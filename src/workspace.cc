@@ -1277,6 +1277,39 @@ void define_wsv_data()
       GROUP( Tensor5_ )));
 
 
+    wsv_data.push_back
+   (WsvRecord
+    ( NAME( "pha_mat_spt_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ ))); 
+
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "pha_mat_sptDOITOpt" ),
+      DESCRIPTION
+      (
+       "Interpolated phase matrix for a single particle type.\n"
+       "\n"
+       "This variable contains the data of the phase matrix in the \n"
+       "scattering frame interpolated on the actual frequency (the variable\n"
+       "is used inside *scat_mono_agenda*) and also interpolated on all \n"
+       "possible scattering angles following from all combinations of \n"
+       "*scat_za_grid* and *scat_aa_grid*. \n"
+       "\n"
+       "Usage:      Input of the method *pha_mat_sptFromDataDOITOpt\n"
+       "\n"
+       "Unit:        m^2\n"
+       "\n"
+       "Dimensions: [scat_za_grid,scat_aa_grid, scat_za_grid, scat_aa_grid, 6]"
+       ),
+      GROUP( Tensor5_ )));
+
+
+
    wsv_data.push_back
    (WsvRecord
     ( NAME( "pnd_field" ),

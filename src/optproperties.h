@@ -118,14 +118,17 @@ void pha_matTransform(//Output
                       const VectorView za_datagrid,
                       const VectorView aa_datagrid,
                       const PType& ptype,
-                      const Numeric& za_sca,
-                      const Numeric& aa_sca,
-                      const Numeric& za_inc,
-                      const Numeric& aa_inc,
+                      const Index& za_sca_idx,
+                      const Index& aa_sca_idx,
+                      const Index& za_inc_idx,
+                      const Index& aa_inc_idx,
+                      const VectorView scat_za_grid,
+                      const VectorView scat_aa_grid, 
                       const Tensor4View scat_theta,
                       const ArrayOfArrayOfArrayOfArrayOfGridPos&
-                      scat_theta_gps,
+                         scat_theta_gps,
                       const Tensor5View scat_theta_itws);
+
 
 
 // Functions for the case: Randomly oriented particles: 
@@ -136,11 +139,10 @@ void interpolate_scat_angleDOIT(//Output:
                             Numeric& theta_rad,
                             //Input:
                             const Tensor5View pha_mat_data,
-                            const VectorView za_datagrid,
-                            const Numeric& za_sca_rad,
-                            const Numeric& aa_sca_rad,
-                            const Numeric& za_inc_rad,
-                            const Numeric& aa_inc_rad,
+                            const Index& za_sca_idx,
+                            const Index& aa_sca_idx,
+                            const Index& za_inc_idx,
+                            const Index& aa_inc_idx,
                             const Tensor4View scat_theta,
                             const ArrayOfArrayOfArrayOfArrayOfGridPos&
                                 scat_theta_gps,
@@ -153,10 +155,10 @@ void interpolate_scat_angle(//Output:
                             //Input:
                             const Tensor5View pha_mat_data,
                             const VectorView za_datagrid,
-                            const Numeric& za_sca_rad,
-                            const Numeric& aa_sca_rad,
-                            const Numeric& za_inc_rad,
-                            const Numeric& aa_inc_rad);
+                            const Numeric& za_sca,
+                            const Numeric& aa_sca,
+                            const Numeric& za_inc,
+                            const Numeric& aa_inc);
 
 
 void pha_mat_labCalc(//Output:

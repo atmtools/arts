@@ -258,22 +258,26 @@ void pha_matTransform(//Output
                       const VectorView za_datagrid,
                       const VectorView aa_datagrid,
                       const PType& ptype,
-                      const Numeric& za_sca,
-                      const Numeric& aa_sca,
-                      const Numeric& za_inc,
-                      const Numeric& aa_inc,
+                      const Index& za_sca_idx,
+                      const Index& aa_sca_idx,
+                      const Index& za_inc_idx,
+                      const Index& aa_inc_idx,
+                      const VectorView scat_za_grid,
+                      const VectorView scat_aa_grid, 
                       const Tensor4View scat_theta,
                       const ArrayOfArrayOfArrayOfArrayOfGridPos&
                          scat_theta_gps,
                       const Tensor5View scat_theta_itws)
 {
 
-  const Numeric za_sca_rad = za_sca * DEG2RAD;
-  const Numeric za_inc_rad = za_inc * DEG2RAD;
-  const Numeric aa_sca_rad = aa_sca * DEG2RAD;
-  const Numeric aa_inc_rad = aa_inc * DEG2RAD;
+  
   const Index stokes_dim = pha_mat_lab.ncols();
-    
+  
+  Numeric za_sca = scat_za_grid[za_sca_idx]; 
+  Numeric aa_sca = scat_aa_grid[aa_sca_idx];
+  Numeric za_inc = scat_za_grid[za_inc_idx]; 
+  Numeric aa_inc = scat_aa_grid[aa_inc_idx];
+               
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
                          "must be 1,2,3 or 4");
@@ -302,8 +306,8 @@ void pha_matTransform(//Output
 
           // Interpolation of the data on the scattering angle:
           interpolate_scat_angle(pha_mat_int, theta_rad, pha_mat_data,
-                                 za_datagrid, za_sca_rad, aa_sca_rad,
-                                 za_inc_rad, aa_inc_rad);
+                                 za_datagrid, za_sca, aa_sca,
+                                 za_inc, aa_inc);
                
         }
       
@@ -312,8 +316,8 @@ void pha_matTransform(//Output
           // Interpolation of the data on the scattering angle. Use 
           // precalculated interpolation weights.
           interpolate_scat_angleDOIT(pha_mat_int, theta_rad, pha_mat_data,
-                                 za_datagrid, za_sca_rad, aa_sca_rad,
-                                 za_inc_rad, aa_inc_rad, scat_theta, 
+                                 za_sca_idx, aa_sca_idx,
+                                 za_inc_idx, aa_inc_idx, scat_theta, 
                                  scat_theta_gps, scat_theta_itws);
         }
 
@@ -368,40 +372,38 @@ void interpolate_scat_angleDOIT(//Output:
                             Numeric& theta_rad,
                             //Input:
                             const Tensor5View pha_mat_data,
-                            const VectorView za_datagrid,
-                            const Numeric& za_sca_rad,
-                            const Numeric& aa_sca_rad,
-                            const Numeric& za_inc_rad,
-                            const Numeric& aa_inc_rad,
+                            const Index& za_sca_idx,
+                            const Index& aa_sca_idx,
+                            const Index& za_inc_idx,
+                            const Index& aa_inc_idx,
                             const Tensor4View scat_theta,
                             const ArrayOfArrayOfArrayOfArrayOfGridPos&
                                 scat_theta_gps,
                             const Tensor5View scat_theta_itws
                             )
 {
-  // cout << "Interpolation on scattering angle" << endl;
-  assert (pha_mat_data.ncols() == 6);
-
-  // Calculation of the scattering angle:
-  theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
-                   sin(za_sca_rad) * sin(za_inc_rad) * 
-                   cos(aa_sca_rad - aa_inc_rad));
-  
-  const Numeric theta = RAD2DEG * theta_rad;
-  
-  // Interpolation of the data on the scattering angle:
- 
-  GridPos thet_gp;
-  gridpos(thet_gp, za_datagrid, theta);
-  
+  GridPos theta_gp;
   Vector itw(2);
-  interpweights(itw, thet_gp);
-
+   
+  // cout << "za_sca: " << za_sca << endl
+//        << "za_inc: " << za_inc << endl
+//        << "aa_sca: " << aa_sca << endl
+//        << "aa_inc: " << aa_inc << endl;
+  
+  // Extract pre-calculated scattering angle, grid positions and
+  // interpolations weights.
+  //theta_rad = scat_theta(za_sca_idx, aa_sca_idx, za_inc_idx, aa_inc_idx);
+  theta_gp = scat_theta_gps[za_sca_idx][aa_sca_idx][za_inc_idx][aa_inc_idx];
+  itw = scat_theta_itws(za_sca_idx, aa_sca_idx, za_inc_idx, aa_inc_idx, joker);
+  
   for (Index i = 0; i < 6; i++)
     {
       pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), 
-                              thet_gp);
+                              theta_gp);
     }
+  //  cout << "scat_theta " << theta_rad * RAD2DEG << endl;
+  // cout << "pha_mat_int " << pha_mat_int << endl;
+
 } 
 
 
@@ -424,10 +426,10 @@ void interpolate_scat_angleDOIT(//Output:
   \param pha_mat_data Phase matrix in database.
   \param za_datagrid Zenith angle grid in the database.
   \param aa_datagrid Zenith angle grid in the database.
-  \param za_sca_rad Zenith angle of scattered direction [rad].
-  \param aa_sca_rad Azimuth angle of scattered direction [rad].
-  \param za_inc_rad Zenith angle of incoming direction [rad].
-  \param aa_inc_rad Azimuth angle of incoming direction [rad].
+  \param za_sca Zenith angle of scattered direction [rad].
+  \param aa_sca Azimuth angle of scattered direction [rad].
+  \param za_inc Zenith angle of incoming direction [rad].
+  \param aa_inc Azimuth angle of incoming direction [rad].
      
   \author Claudia Emde
   \date   2003-081-19
@@ -438,12 +440,18 @@ void interpolate_scat_angle(//Output:
                             //Input:
                             const Tensor5View pha_mat_data,
                             const VectorView za_datagrid,
-                            const Numeric& za_sca_rad,
-                            const Numeric& aa_sca_rad,
-                            const Numeric& za_inc_rad,
-                            const Numeric& aa_inc_rad
+                            const Numeric& za_sca,
+                            const Numeric& aa_sca,
+                            const Numeric& za_inc,
+                            const Numeric& aa_inc
                             )
 {
+
+  const Numeric za_sca_rad = za_sca * DEG2RAD;
+  const Numeric za_inc_rad = za_inc * DEG2RAD;
+  const Numeric aa_sca_rad = aa_sca * DEG2RAD;
+  const Numeric aa_inc_rad = aa_inc * DEG2RAD;
+  
   // cout << "Interpolation on scattering angle" << endl;
   assert (pha_mat_data.ncols() == 6);
 
