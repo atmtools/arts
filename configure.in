@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.350)
+AM_INIT_AUTOMAKE(arts,1.1.351)
 
 AM_MAINTAINER_MODE
 
@@ -319,8 +319,6 @@ AC_SUBST(CXXFLAGS_FIXED)
 AC_OUTPUT([
 arts.spec
 Makefile 
-   ami/Makefile 
-     ami/xml/Makefile 
    aii/Makefile 
    doc/Makefile 
    doc/index.html
