@@ -1,1401 +1,833 @@
-%
-% To start the document, use
-%  \chapter{...}
-% For lover level, sections use
-%  \section{...}
-%  \subsection{...}
-%
-\chapter{Scattering}
+\chapter{Scattering - DOIT module}
  \label{sec:scattering}
 
-%
-% Document history, format:
-%  \starthistory
-%    date1 & text .... \\
-%    date2 & text .... \\
-%    ....
-%  \stophistory
-%
- \starthistory
- 100502 & Created and written by Claudia Emde.\\
- 120103 & Updated.\\
- 020703 & Described new database format.
- \stophistory
+\starthistory
+ 020601 & Created and written by Claudia Emde\\ 
+ 050223 & Rewritten by Claudia Emde, mostly taken from
+ Chapter 4 of Claudia's PhD thesis 
+\stophistory
+
+The Discrete Ordinate ITerative (DOIT) method is one of the scattering
+algorithms in ARTS. Besides the DOIT method a backward Monte Carlo
+scheme has been implemented (see \secref{sec:montecarlo}). The DOIT
+method is unique because a discrete ordinate iterative method is used to solve the
+scattering problem in a 3D spherical atmosphere. A literature review
+about scattering models for the microwave region, which is presented
+in \citet{sreerekha04:_devel_rt_ghz_wp1}, shows that former implementations
+of discrete ordinate schemes are only applicable for
+(1D-)plane-parallel or 3D-cartesian atmospheres. All of these algorithms
+can not be used for the simulation of limb radiances.
+A description of the DOIT method, similar to what is presented in this
+chapter, has been published in \citet{emde04:_doit_jgr} and in 
+\citet{emde05:_phdthesis}. 
 
 
-%
-% Symbol table, format:
-%  \startsymbols
-%    ... & \artsstyle{...} & text ... \\
-%    ... & \artsstyle{...} & text ... \\
-%    ....
-%  \stopsymbols
-%
- \startsymbols
- \StoVec       & \artsstyle{i\_field}       & monochromatic intensity field\/ Stokes Vector\\
- & \artsstyle{i\_field\_old}  & needed for the iteration\\
- i$_I$         & -                          & Stokes component \\
- \ExtMat       & -                        & total extinction matrix \\
- \SExMat & \artsstyle{ext\_mat} & extinction matrix for a
- single particle type\\
- \AbsVec       & -                        & total absorption vector \\
- \SAbVec & \artsstyle{abs\_vec} & absorption vector for a
- single particle type\\
- \SEfMat & - & scattering efficiency
- matrix\\
- \PhaMat & \artsstyle{pha\_mat} & phase matrix for a particle
- type\\
- \AmpMat       & \artsstyle{amp\_mat} & amplitude matrix\\
- \PDir         & -                        & propagation direction \\
- \Frq          & \artsstyle{f\_grid}       & frequency grid\\
- \Tmp          & \artsstyle{t\_field}         & temperature field\\
- \PDen         & \artsstyle{pnd\_field} & particle density field \\
- \ScaInt & \artsstyle{sca\_vec} & scattered vector,
- evaluated scattering integral\\
- \Prs & \artsstyle{p\_grid} & pressure grid inside cloud
- box\\
- \Lat & \artsstyle{lat\_grid} & latitude grid inside cloud
- box\\
- \Lon & \artsstyle{lon\_grid} & longitude grid inside cloud
- box\\
- \ScaZa        & \artsstyle{scat\_za\_grid}  & zenith angle \\
- \ScaAa        & \artsstyle{scat\_aa\_grid}  & azimuth angle  \\
- & \artsstyle{scat\_f\_index}  & frequency index\\
- \Planck & \artsstyle{a\_planck\_value} & Planck function
-\label{symtable:scattering}
-\stopsymbols
-%=====================================================================
+\section{The discrete ordinate iterative method}
+\label{sec:scattering:doit}
 
-
-%=====================================================================
-% Definition of new commands:
-% ====================================================================
-\newcommand{\DirFre} {(\PDir, \Frq, \Tmp)} \newcommand{\DirFrePr}
-{\ensuremath{(\PDir, \PDir^\prime, \Frq, \Tmp)}}
-
-
-\section{Vector radiative transfer equation (VRTE)}
-%=====================================================================
-\label{sec:scattering:general_rte}
- 
-The radiative transfer equation for a medium with thermal emission
-comprising sparsely and randomly distributed, spherical or arbitrarily
-oriented non-spherical particles is according to \cite{sree02}:
+\subsection{Radiation field}
+\label{sec:scattering:rad_field}
+The Stokes vector depends on the
+position in the cloud box and on the propagation direction specified
+by the zenith angle ($\ZntAng$) and the azimuth angle ($\AzmAng$). All
+these dimensions are discretized inside the model; five
+numerical grids are required to represent the radiation field
+$\IFld$:
 \begin{eqnarray}
-\label{eq:scattering:RTE} 
-     \frac{\DiffD \StoVec}{\DiffD s}(\PDir, \Frq) =
-     -\ExtMat\DirFre\StoVec(\PDir, \Frq)+\AbsVec\DirFre
-     \Planck(\Frq) \\ \nonumber
-     +\int_{4\pi} \DiffD \PDir^\prime \SEfMat\DirFrePr
-     \StoVec(\PDir^\prime, \Frq) 
-\end{eqnarray} 
-Formally it is an inhomogeneous four dimensional vector differential
-equation for the Stokes vector \StoVec $(I,Q,U,V)$. To describe the
-full state of an electromagnetic wave one could use the
-electromagnetic field vector, which consists of two complex numbers.
-This is the common notation in Maxwell's theory. An alternative
-notation is the Stokes vector which is more convenient for
-experimental purposes, as it consists of real numbers which can be
-associated more directly with the measurements.  The first component
-of the Stokes vector $I$ signifies the monochromatic flux or the
-intensity of the radiation. The other components describe the
-polarization state: the second and third components $Q$ and $U$
-characterize the state of linear polarization and the last component
-$V$
-characterizes the state of circular polarization.\\
-In Equation (\ref{eq:scattering:RTE}) \PDir\ denotes the propagation
-direction and \DiffD $s$ the path-length element along this direction.
-The radiation field depends on position, propagation direction {\bf
-  n}, and frequency \Frq.  \vspace{1ex} The first term of Equation
-(\ref{eq:scattering:RTE}) corresponds to the extinction of radiation
-determined by the extinction coefficient matrix \ExtMat . For
-microwave radiation traveling through the atmosphere there is
-extinction due to gaseous absorption, particle absorption and particle
-scattering. Lambert's law states that the extinction process is
-proportional to the amount of matter. Therefore \ExtMat\ can be
-written as a sum of two matrices, the first for particle extinction (
-\aExtMat{p}) and the second for gaseous extinction (\aExtMat{g}):
+  \vec{\Prs} &= \{ \Prs_1, \Prs_2, ... , \Prs_{N_\Prs}\}, \nonumber \\
+  \vec{\Lat} &= \{ \Lat_1, \Lat_2, ... , \Lat_{N_\Lat}\}, \nonumber \\
+  \vec{\Lon} &= \{\Lon_1, \Lon_2, ... , \Lon_{N_\Lon}\}, \\
+  \vec{\ZntAng} &= \{\ZntAng_1, \ZntAng_2, ... , \ZntAng_{N_\ZntAng}\}, \nonumber \\
+  \vec{\AzmAng} &= \{\AzmAng_1, \AzmAng_2, ... , \AzmAng_{N_\AzmAng}\}. \nonumber 
+\end{eqnarray}
+Here $\vec{\Prs}$ is the pressure grid, $\vec{\Lat}$ is the latitude
+grid and $\vec{\Lon}$ is the longitude grid.
+The radiation field is a set of Stokes vectors ($N_\Prs\times N_\Lat
+\times N_\Lon \times N_\ZntAng \times N_\AzmAng$ elements) for all
+combinations of positions and directions:
 \begin{eqnarray}
-  \ExtMat\DirFre &=&
-  \aExtMat{p}\DirFre+\aExtMat{g}\DirFre
+  \IFld &= \{ \StoVec_1(\Prs_1,\Lat_1, \Lon_1, \ZntAng_1, \AzmAng_1),
+  \StoVec_2(\Prs_2,\Lat_1, \Lon_1, \ZntAng_1, \AzmAng_1), ... , \nonumber \\ 
+  &\StoVec_{N_\Prs\times N_\Lat \times N_\Lon \times N_\ZntAng \times N_\AzmAng}
+  (\Prs_{N_\Prs},\Lat_{N_\Lat}, \Lon_{N_\Lon}, \ZntAng_{N_\ZntAng}, 
+  \AzmAng_{N_\AzmAng}) \}. 
+\end{eqnarray}
+In the following we will use the notation
+\begin{eqnarray}
+  & i = 1 \ldots N_\Prs  \nonumber \\
+  & j = 1 \ldots N_\Lat  \nonumber \\
+  \IFld = \left\{\StoVec_{ijklm}\right\}  \hspace{5ex}&
+  k = 1 \ldots N_\Lon. \\
+  &  l = 1 \ldots N_\ZntAng  \nonumber \\
+  &  m = 1 \ldots N_\AzmAng  \nonumber
 \end{eqnarray}
 
-The particle extinction term can be written as a sum, each term
-corresponding to one particle type:
+\subsection{Vector radiative transfer equation solution} 
+\label{sec:scattering:VRTE_sol}
+
+\figref{fig:scattering:iteration_scheme} shows a schematic of the iterative
+method, which is applied to solve the vector radiative transfer
+equation \eqref{eq:rtetheory:VRTE}
 \begin{eqnarray}
-  \aExtMat{p}\DirFre = \sum_i \PDen_i \aSExMat{p}_i \DirFre
-\end{eqnarray}
-
-Here $\PDen_i$ is the particle number density of the {\sl i}th
-particle type and $\aSExMat{p}_i\DirFre$ the particle extinction cross
-section matrix of the {\sl i}th particle type.
-
-
-The gaseous extinction matrix is derived from the scalar gas
-absorption. As extinction by gas absorption does not cause any
-polarization effects, the off-diagonal elements of the gaseous
-extinction matrix have to be zero. Gaseous extinction is determined
-only by absorption, so the coefficients on the diagonal correspond to
-the gaseous absorption coeffient:
-
-\[
-\aExtMat{g}_{i,j}(\Prs, \Frq, \Tmp) =
-\left\{\begin{array}{r@{\quad:\quad}l} \alpha(\Prs, \Frq, \Tmp) & i =
-    j \\ 0 & i \not= j \end{array} \right.
-\]
-
-Here \Prs and \Tmp are pressure and temperature. $\alpha$ is the
-scalar gaseous absorption coefficient.
-
-The second term in Equation (\ref{eq:scattering:RTE}) describes the
-thermal emission. \Planck\ is the Planck function and \AbsVec\ is the
-absorption coefficient vector which can be written as
-\begin{eqnarray}
-  \AbsVec \DirFre  &=& \aAbsVec{p} \DirFre + \aAbsVec{g} \DirFre 
-\end{eqnarray}
-with \aAbsVec{p} and \aAbsVec{g} as the particle absorption
-coefficient and the gaseous absorption coefficient, respectively.
-
-The particle absorption term can also be written as a sum over all
-particle types:
-\begin{eqnarray}
-  \aAbsVec{p}\DirFre = \sum_i \PDen_i \aSAbVec{p}_i \DirFre
-\end{eqnarray}
-Here $\aAbsVec{p}_i$ is the particle absorption cross section vector
-of the {\sl i}th particle type.  The gaseous absorption vector can be
-written as follows:
-
-\begin{eqnarray}
-  \aAbsVec{g}(\Prs, \Frq, \Tmp)  = (\alpha(\Prs, \Frq, \Tmp), 0, 0, 0) 
-\end{eqnarray}
+  \frac {\DiffD\StoVec(\PDir, \nu, T)}{\DiffD s} =
+    &{}-\EnsAvr{\ExtMat(\PDir, \nu, T)} \StoVec(\PDir, \nu, T) +
+    \EnsAvr{\AbsVec(\PDir, \nu, T)} \rlap{$B(\nu, T)$} \\
+    &{}+ \int_{4\pi} \DiffD\PDir' \EnsAvr{\PhaMat(\PDir, \PDir', \nu, T)} \StoVec(\PDir', \nu, T),
+  \end{eqnarray}
+  where $\StoVec$ is the specific intensity vector, $\EnsAvr\ExtMat$
+  is the ensemble-averaged extinction matrix, $\EnsAvr\AbsVec$ is the
+  ensemble-averaged absorption vector, $B$ is the 
+  Planck function and $\EnsAvr\PhaMat$ is the ensemble-averaged
+  phase matrix.  Furthermore $\nu$ is the frequency of the radiation,
+  $T$ is the temperature, $\DiffD s$ is a path-length-element of the
+  propagation path and $\PDir$ the propagation direction.
+  \eqnref{eq:rtetheory:VRTE} is explained more detailed in
+  \secref{sec:rtetheory:theory_rte}. 
 
 
-The last term in Equation (\ref{eq:scattering:RTE}) is the scattering
-source term. It is the amount of radiation which is scattered from all
-directions \PDir$^\prime$ into the propagation direction \PDir.  The
-scattering efficiency matrix \SEfMat\ is the sum of products of the
-particle densities \PDen\ and the phase matrices \PhaMat
-\begin{eqnarray}
-\SEfMat(\PDir, \PDir', \Frq) = \sum_i{\PDen_i\PhaMat_i(\PDir,
-  \PDir', \Frq)}.
-\end{eqnarray}
+\begin{figure}[t!]
+  \fbox{
+  \includegraphics[width=.95\hsize]{../Figs/scattering/iteration_scheme}}
+  \caption{Schematic of the iterative method to solve the VRTE in the cloud box.}
+  \label{fig:scattering:iteration_scheme}
+\end{figure}
 
-Molecular scattering is neglected as it is not important in the
-considered frequency range from 10 to 1000 GHz.
+The \emph{first guess field}
+\begin{equation}
+  \IFld^{(0)} = \left\{\StoVec^{(0)}_{ijklm}\right\},
+\end{equation}
+is partly determined by the boundary condition given by the radiation
+coming from the clear sky part of the atmosphere traveling into the
+cloud box.  Inside the cloud box an arbitrary field can be chosen as a
+first guess. In order to minimize the number of iterations it should
+be as close as possible to the solution field.
 
+The next step is to solve the scattering integrals
+\begin{equation}
+  \EnsAvr{\AmpMat^{(0)}_{ijklm}} = \int_{4\pi} \DiffD \PDir'
+  \EnsAvr{\PhaMat_{ijklm}} \StoVec_{ijklm}^{(0)},
+  \label{eq:scattering:scat-int}
+\end{equation}
+using the first guess field, which is now stored in a variable
+reserved for the \emph{old radiation field}. For the integration we
+use equidistant angular grids in order to save computation time (cf.
+\secref{sec:scattering:grid_opt_interp}).  The radiation field, which is
+generally defined on finer angular grids ($\vec{\AzmAng},
+\vec{\ZntAng}$), is interpolated on the equidistant angular grids.
+The integration is performed over all incident directions $\PDir'$ for
+each propagation direction $\PDir$.  The evaluation of the scattering
+integral is done for all grid points inside the cloud box. The
+obtained integrals are interpolated on $\vec{\AzmAng}$ and
+$\vec{\ZntAng}$.  The result is the first guess \emph{scattering
+  integral field} ${\mathcal S}^{0}$:
+\begin{equation}
+  \SFld^{(0)} = \left\{\EnsAvr{\SVec^{(0)}_{ijklm} }\right\}.  
+\end{equation}
 
-\section{Scalar radiative transfer equation}
-%======================================================
-\label{sec:scattering:scalar_rte}
+\figref{fig:scattering:average} shows a propagation path step from a grid
+point $\VctStl{P} = (\Prs_i, \Lat_j, \Lon_k)$ into direction $\PDir =
+(\ZntAng_l, \AzmAng_m)$. The radiation arriving at $\VctStl{P}$ from the
+direction $\PDir'$ is obtained by solving the linear
+differential equation:
+\begin{equation}
+  \frac{\DiffD \StoVec^{(1)}}{\DiffD s} =
+  -\overline{\EnsAvr\ExtMat}  \StoVec^{(1)} + \overline{\EnsAvr\AbsVec}\,  \bar{B}
+  +\overline{\EnsAvr{\SVec^{(0)}}},
+  \label{eq:scattering:vrte-fs-av}
+\end{equation}
+where $\overline{\EnsAvr\ExtMat}$, $\overline{\EnsAvr\AbsVec}$, $\bar{B}$ and $\overline{\EnsAvr{\SVec^{(0)}}} $ are \emph{averaged quantities}.  This equation
+can be solved analytically for constant coefficients. Multi-linear
+interpolation gives the quantities $\ExtMat', \AbsVec',
+\SVec'$ and $T'$ at the intersection point $\VctStl{P}'$.  To calculate the radiative transfer from $\VctStl{P}'$ towards $\VctStl{P}$ all quantities are approximated by
+taking the averages between the values at $\VctStl{P}'$ and $\VctStl{P}$. The average value of the temperature is used to get the
+averaged Planck function $\bar{B}$.
 
-If we know that the radiation field is unpolarized we may use the
-scalar radiative transfer equation, which is easier to handle than the
-vector equation. It can directly be derived from the general equation
-provided that there are no non-spherical particles in the scattering
-medium. If there are non-spherical particles the polarization state of
-the radiation will be changed, in this case the medium is called
-dichroistic.  For spherical particles the extinction matrix has only
-elements on the diagonal and all of them have equal values. Only the
-first component of the absorption vector will be nonzero.
+\begin{figure}[t!]
+  \centering\includegraphics[width=.8\hsize]{../Figs/scattering/average}
+  \caption{Path from a grid point ($(\Prs_i, \Lat_j, \Lon_k)$~-~($\times$)) to the intersection point ($(\Prs_i', \Lat_j', \Lon_k')$~-~($\circ$)) with the next grid cell boundary. Viewing direction is specified by $(\ZntAng_l, \AzmAng_m)$ at ($\times$) or $(\ZntAng_l', \AzmAng_m')$ at ($\circ$).}
+  \label{fig:scattering:average}
+\end{figure}
 
-Instead of taking the full phase matrix, commonly only its first
-element, which is usually called the phase function, is used, for
-aspherical particles as well as for spherical particles. This concept
-has no physical justification as there are non-diagonal terms in the
-phase matrix.
+The solution of \eqnref{eq:scattering:vrte-fs-av} is found analytically using
+a matrix exponential approach: % \FIXME  (see \appref{app:A}):
+\begin{equation}
+  \StoVec^{(1)} =
+  e^{-\overline{\EnsAvr\ExtMat}  s} \StoVec^{(0)}
+  \left( \IdnMtr -  e^{-\overline{\EnsAvr\ExtMat} s} \right)
+  \overline{\EnsAvr\ExtMat}^{\,-1} \left(\overline{\EnsAvr\AbsVec}\,
+    \bar{B} + \overline{\EnsAvr{\SVec^{(0)}}} \right),
+  \label{eq:scattering:VRTE_sol}
+\end{equation}
+where \IdnMtr\ denotes the identity matrix and $\StoVec^{(0)}$ the
+initial Stokes vector.  The \emph{radiative transfer step} from $\VctStl{P}'$ to $\VctStl{P}$ is calculated, therefore $\StoVec^{(0)}$ is
+the incoming radiation at $\VctStl{P}'$ into direction
+$(\ZntAng_l', \AzmAng_m')$, which is the first guess field
+interpolated on $\VctStl{P}'$.  This radiative transfer step
+calculation is done for all points inside the cloud box in all
+directions. The resulting set of Stokes vectors ($\StoVec^{(1)}$ for
+all points in all directions) is the first order iteration field
+$\IFld^{(1)}$:
+\begin{equation}
+  \IFld^{(1)} = \left\{ \StoVec^{(1)}_{ijklm}\right\}.  
+\end{equation}
+The first order iteration field is stored in a variable reserved for the 
+\emph{new radiation field}. 
 
-Thus to write down the scalar radiative transfer equation the
-extinction matrix in (\ref{eq:scattering:RTE}) is replaced by the
-first element of the extinction matrix $K_{11}$, the scalar absorption
-coefficient is replaced by the first element of the absorption vector
-$a_1$ and the scalar scattering coefficient by the first element of
-the scattering efficiency matrix $Y_{11}$:
-\begin{eqnarray}
-  \label{eq:scattering:scalar_rte}
-\frac{\DiffD I}{\DiffD s} (\PDir, \Frq) = -K_{11}(\PDir, \Frq)I
-(\PDir, \Frq) + a_1(\PDir, \Frq)\Planck(\Frq) + \\ \nonumber
- +\int_{4\pi} \DiffD \PDir^\prime Y_{11}\DirFrePr I(\PDir^\prime,
-  \Frq)
-\end{eqnarray}
+In the \emph{convergence test} the \emph{new radiation field} is
+compared to the \emph{old radiation field}. For the difference field,
+the absolute values of all Stokes vector elements for all cloud box
+positions are calculated. If one of the differences is larger than a
+requested accuracy limit, the convergence test is not fulfilled. The
+user can define different convergence limits for the different Stokes
+components.
 
-\section{Iteration scheme for solving the vector RTE}
-%===============================
-\label{sec:scattering:solution_rte}
+If the convergence test is not fulfilled, the first order iteration
+field is copied to the variable holding the \emph{old radiation field}, 
+and is then used to evaluate again the scattering integral at all
+cloud box points:
+\begin{equation}
+  \EnsAvr{\SVec^{(1)}_{ijklm}} = \int_{4\pi} \DiffD \PDir'
+  \EnsAvr\PhaMat \StoVec^{(1)}_{ijklm}.
+\end{equation}
+The second order iteration field
+\begin{equation}
+  \IFld^{(2)} = \left\{\StoVec^{(2)}_{ijklm}\right\},  
+\end{equation}
+is obtained by solving
+\begin{equation}
+  \frac{\DiffD \StoVec^{(2)}}{\DiffD s} =
+  -\overline{\EnsAvr\ExtMat}  \StoVec^{(2)} + \overline{\EnsAvr\AbsVec}\,  \bar{B}
+  +\overline{\EnsAvr{\SVec^{(1)}}},
+\end{equation}
+for all cloud box points in all directions.  This equation contains
+already the averaged values and is valid for specified positions and
+directions.
 
-There exists no analytical solution for differential equations as the
-general radiative transfer equation. A numerical solution can be
-obtained using for example an iterative method. The method implemented
-in ARTS is described in this section.
+As long as the convergence test is not fulfilled the scattering integral fields and higher order iteration
+fields are calculated alternately. 
 
-\subsection{Basic definitions}
-\begin{itemize}
-\item{\bf Cloudbox}
-  
-  It is not necessary to solve the VRTE in the whole atmosphere. In
-  ARTS it is possible to define a region called cloudbox, in which
-  cloud particles may exist. Only in this particular region the VRTE
-  is solved, this saves computation time and memory.  The cloudbox is
-  defined by its corner points which have to correspond to atmospheric
-  grid points (cp. Figure \ref{fig:scattering:cloudbox}). For a 3D
-  calulation the user has to define lower and upper pressure limit
-  (\aPrs{1} and \aPrs{2}), two latitude limits (\aLat{1} and \aLat{2})
-  and two longitude limits (\aLon{1} and \aLon{2}), the cloudbox
-  concept is described mor detailed in section
-  \ref{sec:fm_defs:cloudbox}.
+We can formulate a differential equation for the $n$-th order
+iteration field. The scattering integrals are given by
+\begin{equation}
+ \EnsAvr{\SVec^{(n-1)}_{ijklm}} = \int_{4\pi} \DiffD \PDir'
+  \EnsAvr\PhaMat \StoVec^{(n-1)}_{ijklm},
+\end{equation}
+and the differential equation for a specified grid point into a
+specified direction is
+\begin{equation}
+  \frac{\DiffD \StoVec^{(n)}}{\DiffD s} =
+  -\overline{\EnsAvr\ExtMat}  \StoVec^{(n)} + \overline{\EnsAvr\AbsVec} \,\bar{B}
+  +\overline{\EnsAvr{\SVec^{(n-1)}}}.
+\end{equation}
+Thus the \emph{$n$-th order iteration field }
+\begin{equation}
+  \IFld^{(n)} = \left\{ \StoVec^{(n)}_{ijklm} \right\},  
+\end{equation}
+is given by
+\begin{equation}
+  \StoVec^{(n)} =  e^{-\overline{\EnsAvr\ExtMat}
+    s}\cdot\StoVec^{(n-1)}  (\IdnMtr - e^{-\overline {\EnsAvr\ExtMat
+    s}} ) \overline{\EnsAvr\ExtMat} ^{\,-1} ( \overline{\EnsAvr\AbsVec}\,\bar{B} + \overline{\EnsAvr{\SVec^{(n-1)}}} ),
+\end{equation}
+for all cloud box points and all directions defined in the numerical
+grids.
 
-\begin{figure}[htbp]
- \begin{center}
-  \begin{minipage}[c]{0.65\textwidth}
-   \begin{center}
-     \includegraphics*[width=0.9\hsize]{Figs/scattering/cloudbox}
-   \end{center}
-  \end{minipage}%
-  \begin{minipage}[c]{0.35\textwidth}
-   \caption{2D cloudbox defined by lower and upper pressure limit (\aPrs{1} and \aPrs{2}) and two latitude limits (\aLat{1} and \aLat{2}).}
-   \label{fig:scattering:cloudbox}
-  \end{minipage}
- \end{center}
-\end{figure}   
-
-The aim is to calculate the radiation at all grid points inside the
-cloudbox for all viewing angles, this quantity we call the radiation
-field.
-
-\item{\bf Radiation field}
-  
-  To describe the radiation field inside the cloudbox completely we
-  need the Stokes vectors at all grid points. The Stokes vector
-  depends not only on the position in the cloudbox but also on the
-  propagation direction of the radiation (cp. equation
-  \ref{eq:scattering:RTE}). Thus the radiation field is defined to be
-  a set including the Stokes vectors at all grid points in the
-  cloudbox, which are elements of the atmospheric grids, and for all
-  propagation directions defined by special angular grids for the
-  scattering calculation:
-
-\begin{eqnarray}
-{\mathcal I} = \left\{ \StoVec \left( p_i, \alpha_i, \beta_i, \theta_i, \phi_i\right)\right\}   \quad
-\forall \quad p_i &\in& p\_grid,\\
- \alpha_i &\in& lat\_grid, \\
- \beta_i &\in& lon\_grid, \\
- \theta_i &\in& scat\_za\_grid, \\
- \phi_i &\in& scat\_aa\_grid 
-\end{eqnarray}
-
-Of course the Stokes vector also depends on the frequency of the
-radiation. But in order to save computation memory, the scattering
-calculation is only done for one frequency at a time.
-
-\end{itemize}
-
-
-\subsection{First guess field}
-%===========================================================================
-
-The starting point of the iteration method is the first guess field
-\aIFld{0}. This is partly determined by the boundary condition given
-by the radiation coming from the clear sky part of the atmosphere
-traveling into the cloudbox. To take into account this condition, the
-first guess field on the cloudbox boundary has to be set to the clear
-sky field on the cloudbox boundary.
-
-Inside the cloudbox any field can be chosen as a first guess. In order
-to minimize the number of iterations it should be close to the
-iterative solution. Our test calculations have shown, that taking the
-clearsky field as first guess is reasonable.
-
-
-\subsection{First scattering integral field}
-%============================================================================
-
-The next step is solving the scattering integral
-\begin{eqnarray}
-  \ScaInt^{(0)} = \int_{4\pi} \DiffD \PDir^\prime
-  \SEfMat \StoVec^{(0)}
-\label{eq:scat_int}
-\end{eqnarray}
-using the first guess initial field. For the integration we use again
-the angular grid defined for scattering calculations.
-
-The integration has to be performed over all incident directions
-$\PDir^\prime$ for each propagation direction \PDir{}. The evaluation
-of the scattering integral is done for all grid points inside the
-cloudbox. The result is the first guess scattered field \aSFld{0}
-which is a set of scatterd field vectors at all positions in the
-cloudbox for all directions:
-
-\begin{eqnarray}
-{\mathcal S}^{(0)} = \left\{ \bf{S}^{(0)} \left( p_i, \alpha_i, \beta_i, \theta_i, \phi_i\right)\right\}  \qquad  
-&\forall& {\rm positions } (p_i,\alpha_i, \beta_i)\\
-&\forall& {\rm directions } (\theta_i,\phi_i)
-\end{eqnarray}
-
-
-\subsection{Averaging of the coefficients of the VRTE}
-%============================================================================
-\label{scattering:av_coeff}
-
-In the following we are looking at one grid point inside the cloudbox
-into one specified direction.  We can substitute $\ScaInt^{(0)}$, the
-scattering integral vector calculated in the previous step at this
-point for the specified direction, into Equation
-(\ref{eq:scattering:RTE}), in order to get the VRTE for this point and
-direction:
-\begin{eqnarray}
-     \frac{\DiffD \StoVec^{(1)}}{\DiffD s} =
-     -\ExtMat \StoVec^{(1)} + \AbsVec \Planck
-     +\ScaInt^{(0)}
-\label{eq:scattering:vrte_fs}
-\end{eqnarray} 
-Here $\StoVec^{(1)}$ is the Stokes vector at the considered grid point
-for the specified direction.
-
-\begin{figure}[htbp]
- \begin{center}
-  \begin{minipage}[c]{0.65\textwidth}
-   \begin{center}
-     \includegraphics*[width=0.9\hsize]{Figs/scattering/average}
-   \end{center}
-  \end{minipage}%
-  \begin{minipage}[c]{0.35\textwidth}
-   \caption{Path from one grid point (black) to the intersection point with the next grid cell boundary. Multilinear interpolation is done from the grid points on the intersection point. The coefficients are averaged between the black grid point and the intersection point.}
-   \label{fig:scattering:averaging}
-  \end{minipage}
- \end{center}
-\end{figure}   
-
-As mentioned before, all optical properties are assumed to vary
-linearly between the grid points. Equation
-(\ref{eq:scattering:vrte_fs}) is formally a linear differential
-equation, which could be solved analytically if the coefficients were
-constant.  To find a constant approximation for the coefficients, we
-follow a propagation path from the considered point into the specified
-direction until the path intersects a grid cell boundary (cp. Figure
-\ref{fig:scattering:averaging}). By multi-linear interpolation we
-obtain all coefficients and the temperature at the intersection point.
-Also the scattering integral vector is obtained for the intersection
-point by multi-linear interpolation of the first guess scattered
-field. Now we approximate the coefficients (extinction matrix and
-absorption vector) in Equation (\ref{eq:scattering:vrte_fs}) by taking
-the average of the coefficients at the intersection point and the
-coefficients at the considered point element-vise for each
-matrix-/vector-element. The same averaging is done for the scattering
-integral vector and the temperature. The average value of the
-temperature is used to get the averaged Planck function.
-
-Then Equation (\ref{eq:scattering:vrte_fs}) can be written as follows:
- \begin{eqnarray}
-     \frac{\DiffD \StoVec^{(1)}}{\DiffD s} =
-     -\bar{\ExtMat} \StoVec^{(1)} + \bar{\AbsVec} \bar{\Planck}
-     +\bar{\ScaInt^{(0)}}
-\label{eq:scattering:vrte_fs_av}
-\end{eqnarray} 
-Here $\bar{\ExtMat}$, $\bar{\AbsVec}$, $\bar{\Planck}$ and
-$\bar{\ScaInt^{(0)}}$ are the averaged quantities.
-
-
-\subsection{Radiative transfer with fixed scattered field and averaged
-  coefficients}
-%===================================================================
-
-Equation (\ref{eq:scattering:vrte_fs_av}) can be solved analytically
-using the following matrix exponential approach:
- \begin{eqnarray}
- \label{eq:scattering:ansatz}
-&   \StoVec^{(1)} = e^{-\bar{\ExtMat}s}{\bf C_1} + {\bf C_2}
-\end{eqnarray}
-Here ${\bf C_1}$ and ${\bf C_2}$ are constants which have to be
-determined. Substituting (\ref{eq:scattering:ansatz}) into
-(\ref{eq:scattering:vrte_fs_av}) gives the constant ${\bf C_2}$:
-\begin{eqnarray}
- \Rightarrow& -\bar{\ExtMat}e^{-\bar{\ExtMat}s}{\bf C_1} = -\bar{\ExtMat}e^{-\bar{\ExtMat}s}{\bf C_1} - \bar{\ExtMat} {\bf C_2}+ \bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\\
-\Rightarrow&  \bar{\ExtMat} {\bf C_2} = \bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\\
-\Rightarrow& {\bf C_2} =  \bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)
- \label{eq:scattering:c1}
-\end{eqnarray}
-${\bf C_1}$ can be determined using the initial condition, which is
-the radiation at the intersection point ($s=0$) travelling towards the
-considered gridpoint:
-\begin{eqnarray}
-   \StoVec^{(1)}(s=0) &=& \StoVec^{(0)} {\rm(at\ intersection\ point)}\\
-\rm{From\ Ansatz:} &&\\
-\StoVec^{(0)} &=& {\bf C_1} +  \bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt^{(0)}}\right)\\
-\Rightarrow   {\bf C_1} &=& \bar{\StoVec^{(0)}} -  \bar{\ExtMat}\Inv \left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt^{(0)}}\right)
-\label{eq:scattering:c2}
-\end{eqnarray}
-Substituting (\ref{eq:scattering:c1}) and (\ref{eq:scattering:c2})
-into Equation (\ref{eq:scattering:ansatz}) leads to the solution:
-\begin{eqnarray}
-  \StoVec^{(1)} =  e^{-\bar{\ExtMat}s}\cdot\left(\StoVec^{(0)} -\bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)\right) + 
- \bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)
-\end{eqnarray}
-This can be resorted to the following form:
-\begin{eqnarray}
-\label{eq:scattering:vrte_sol}
- \StoVec^{(1)} =  e^{-\bar{\ExtMat}s} \StoVec^{(0)} + \left( {\bf E} -  e^{-\bar{\ExtMat}s}\right)  \bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)
-\end{eqnarray}
-
-Here \IdnMat\ denotes the identity matrix.  $\StoVec^{(0)}$ is given
-by the initial condition. It is the Stokes vector at the intersection
-point which is obtained by interpolation of the first guess field.
-
-This radiative transfer step calculation is done for all points inside
-the cloudbox in all directions. The resulting Stokes Vectors (
-$\StoVec^{(1)}$ for all points in all directions) form the first
-iteration field \aIFld{1}:
-
-\begin{eqnarray}
-{\mathcal I}^{(1)} = \left\{ \bf{I}^{(1)} \left( p_i, \alpha_i, \beta_i, \theta_i, \phi_i\right)\right\}  \qquad  
-&\forall& {\rm positions } (p_i,\alpha_i, \beta_i)\\
-&\forall& {\rm directions } (\theta_i,\phi_i)
-\end{eqnarray}
-
-
-\subsection{Iterations}
-
-The first iteration field is used to evaluate the scattered field
-\ScaInt\ again at all grid points inside the cloudbox:
-\begin{eqnarray}
-  \ScaInt^{(1)} = \int_{4\pi} \DiffD \PDir^\prime
-  \SEfMat \StoVec^{(1)} 
-\end{eqnarray}
-Now $\ScaInt^{(1)}$ is used as fixed scattering term in the radiative
-transfer equation for the second iteration to get the Stokes vectors
-$\StoVec^{(2)}$
-\begin{eqnarray}
-     \frac{\DiffD \StoVec^{(2)}}{\DiffD s} =
-     -\bar{\ExtMat} \StoVec^{(2)} + \bar{\AbsVec} \bar{\Planck}
-     +\bar{\ScaInt}^{(1)}.
-\end{eqnarray} 
-This equation contains already the averaged values and is valid for
-specified position and direction.
- 
-The solution is given by:
-\begin{eqnarray}
-   \StoVec^{(2)} = e^{-\bar{\ExtMat} s}\cdot\StoVec^{(1)} + (\IdnMat - e^{-\bar{\ExtMat}
-    s}) \bar{\ExtMat}\Inv (\bar{\AbsVec} \bar{\Planck} + \bar{\ScaInt}^{(1)})
-\end{eqnarray}
-Thus the Stokes vectors ( $\StoVec^{(2)}$ for all points in all
-directions) form the second iteration field.
-
-After that the scattering integral and higher order iteration fields
-are calculated alternately. We can formulate a differential equation
-for the $n$-th order iteration field. The fixed scattering integral
-term in this equation is
- \begin{eqnarray}
-  \ScaInt^{(n-1)} = \int_{4\pi} \DiffD \PDir^\prime
-  \SEfMat \StoVec^{(n-1)}
-\end{eqnarray}
-and the differential equation for specified position and direction is
-given by
-\begin{eqnarray}
-     \frac{\DiffD \StoVec^{(n)}}{\DiffD s} =
-     -\bar{\ExtMat} \StoVec^{(n)} + \bar{\AbsVec} \bar{\Planck}
-     +\bar{\ScaInt}^{(n-1)}.
-\end{eqnarray} 
-Thus the $n$-th order iteration is given by:
-\begin{eqnarray}
-   \StoVec^{(n)} = e^{-\bar{\ExtMat} s}\cdot\StoVec^{(n-1)} + (\IdnMat - e^{-\bar{\ExtMat}
-    s}) \bar{\ExtMat}\Inv (\bar{\AbsVec} \bar{\Planck} + \bar{\ScaInt}^{(n-1)})
-\end{eqnarray}
-
-
-\subsection{Convergence test}
-
-After each iteration the convergence is checked. If
-\begin{eqnarray}
-|\StoVec^{(m)} \DirFre -  \StoVec^{(m-1)} \DirFre| < {\bf \epsilon}
-\end{eqnarray}
-for all points inside the cloudbox and all directions a solution to
-the vector radiative transfer Equation (\ref{eq:scattering:RTE}) has
-been found:
-\begin{eqnarray}
-{\mathcal I}^{(m)} = \left\{ \bf{I}^{(m)} \left( p_i, \alpha_i, \beta_i, \theta_i, \phi_i\right)\right\}  \qquad  
-&\forall& {\rm positions } (p_i,\alpha_i, \beta_i)\\
-&\forall& {\rm directions } (\theta_i,\phi_i)
-\end{eqnarray}
+If the convergence test
+\begin{equation}
+  \Abs{\StoVec^{(N)}_{ijklm} \left( \Prs_i, \Lat_j, \Lon_k, \ZntAng_l, \AzmAng_m\right)  -  \StoVec^{(N-1)}_{ijklm} \left( \Prs_i, \Lat_j, \Lon_k, \ZntAng_l, \AzmAng_m\right)} < \VctStl{\epsilon},
+\end{equation}
+is fulfilled,
+ a solution to the vector radiative transfer equation \eqref{eq:rtetheory:VRTE}
+has been found:
+\begin{equation}
+  \IFld^{(N)} = \left\{ \StoVec^{(N)}_{ijklm} \right\}. 
+\end{equation}
 
 
 
-\section{Iteration scheme for solving the scalar RTE}
-%===============================
-\label{sec:scattering:solution_rte_scalar}
-\begin{itemize}
-\item {\bf Scattering integral}
-  
-  In analogy to the scattering integral vector field the scalar
-  scattering integral field is obtained:
-\begin{eqnarray}
-  S^{(0)}  = \int_{4\pi} \DiffD \PDir^\prime Y_{11} I^{(0)} 
-\end{eqnarray}
-As first guess field only the first Stokes component of the initial
-field is needed.
+\subsection{Scalar radiative transfer equation solution}
+\label{sec:scattering:scattering:solution_rte_scalar}
 
-\item{\bf Radiative transfer with fixed scattered field}
-  
-  The scalar radiative transfer equation
-  (\ref{eq:scattering:scalar_rte}) with fixed scattering integral is
-\begin{eqnarray}
-  \label{eq:scattering:scalar_rte_scatint}
-\frac{\DiffD I^{(1)}}{\DiffD s} = -K_{11} I^{(1)}
- + a_1 \Planck + S^{(0)}.
-\end{eqnarray} 
+In analogy to the \emph{scattering integral} vector field the scalar
+scattering integral field is obtained:
+\begin{equation}
+  \EnsAvr{S^{(0)}_{ijklm}}  = \int_{4\pi} \DiffD \PDir' \EnsAvr{ Z_{11}} I^{(0)}_{ijklm}.
+\end{equation}
+The \emph{scalar radiative transfer} equation \eqref{eq:rtetheory:SRTE} with a
+fixed scattering integral is
+\begin{equation}
+  \label{eq:scattering:SRTE-Int}
+  \frac{\DiffD I^{(1)}}{\DiffD s} = -\EnsAvr{ K_{11}} I^{(1)}
+  + \EnsAvr{a_1} B +\EnsAvr{S^{(0)}}.
+\end{equation}
 Assuming constant coefficients this equation is solved analytically
-after averaging extinction coefficient, absorption coefficient,
-scattered vector and the temperature. The averaging procedure is done
-analogously to the procedure described for solving the VRTE (see
-Section \ref{sec:scattering:solution_rte}).  The solution of the
-averaged differential equation is
+after averaging extinction coefficients, absorption coefficients,
+scattering vectors and the temperature. The averaging procedure is done
+analogously to the procedure described for solving the VRTE.  The
+solution of the averaged differential equation is
+\begin{equation}
+\label{eq:scattering:SRTE_sol}
+  I^{(1)} = I^{(0)} e^{-\overline{\EnsAvr{K_{11}}} s} +
+  \frac{\overline{\EnsAvr{a_1}}\, 
+    \bar{B} + \overline{\EnsAvr{ S^{(0)}}} }
+  {\overline{\EnsAvr{ K_{11}}} }
+  \left(1-e^{-\overline{\EnsAvr{K_{11}}} s}\right),
+\end{equation}
+where $I^{(0)}$ is obtained by interpolating the initial field, and
+$\overline{\EnsAvr{K_{11}}}$, $\overline{\EnsAvr{a_1}}$,
+$\bar{B}$ and $\overline{\EnsAvr{S^{(0)}}}$ are the
+averaged values for the extinction coefficient, the absorption
+coefficient, the 
+Planck function and the scattering integral respectively.  Applying
+this equation leads to the first iteration scalar intensity field,
+consisting of the intensities $I^{(1)}$ at all points in the cloud box
+for all directions.
+  
+As the solution to the vector radiative transfer equation, the solution
+to the scalar radiative transfer equation is found numerically by the
+same iterative method.  The convergence test for the scalar equation
+compares the values of the calculated intensities of two successive
+iteration fields.
+
+\subsection{Single scattering approximation}
+\label{sec:scattering:ss_approx}
+
+The DOIT method uses the single scattering approximation, which means
+that for one propagation path step the optical depth is assumed to be
+much less than one so that multiple-scattering can be neglected along
+this propagation path step. It is possible to choose a rather
+coarse grid inside the cloud box. The user can define a limit
+for the maximum propagation path step length. If a propagation path step from one
+grid cell to the intersection point with the next grid cell boundary
+is greater than this value, the path step is divided in several steps such
+that all steps are less than the maximum value. The user has to make
+sure that the optical depth due to cloud particles for one propagation
+path sub-step is is sufficiently small to assume
+single scattering. The maximum optical depth due to ice particles is 
+\begin{equation}
+  \tau_{max} = \EnsAvr{\ExtMat^p} \cdot \Delta s,
+\end{equation}
+where $\Delta s$ is the length of a propagation  path step. In all
+simulations presented in this thesis $\tau_{max} \ll$ 0.01 is
+assumed. This threshold value is also used in \citet{czekala99:_microw}.
+The radiative transfer calculation
+is done along the propagation path through one grid cell.  All
+coefficients of the VRTE are interpolated linearly on the propagation
+path points.
+
+\section{Sequential update}\label{chap:numerical_methods}
+\label{sec:scattering:sequential_update}
+
+In the previous \secref{sec:scattering:doit} the iterative solution method
+for the VRTE  
+has been described. For each grid point inside the cloud box the
+intersection point with the next grid cell boundary is determined in
+each viewing direction.  After that, all the quantities involved in the
+VRTE are interpolated onto this intersection point. As described in
+the sections above, the intensity field of the previous iteration is
+taken to obtain the Stokes vector at the intersection point.  Suppose
+that there are $N$ pressure levels inside the cloud box.  If the
+radiation field is updated taking into account for each grid point
+only the adjacent grid cells, at least $N$-1 iterations are required
+until the scattering effect from the lower-most pressure level has
+propagated throughout the cloud box up to the uppermost pressure level.
+From these considerations, it follows, that the number of iterations
+depends on the number of grid points inside the cloud box.  This means
+that the original method is very ineffective where a fine resolution
+inside the cloud box is required to resolve the cloud inhomogeneities.
+
+A solution to this problem is the ``sequential update of the radiation
+field'', which is shown schematically in \figref{fig:scattering:seq_update}.
+For simplicity it will be explained in detail for a 1D cloud box. We
+divide the update of the radiation field, i.e., the radiative transfer
+step calculations for all positions and directions inside the
+cloud box, into three parts: Update for ``up-looking'' zenith angles
+(0$^\circ$ $\le$ $\ZntAng_\mathrm{up}$ $\le$ 90$^\circ$), for ``down-looking''
+angles ($\ZntAng_\mathrm{limit}$ $\le$ $\ZntAng_\mathrm{down}$ $\le$ 180$^\circ$) and
+for ``limb-looking'' angles (90$^\circ$ $<$ $\ZntAng_\mathrm{limb}$ $<$
+$\ZntAng_\mathrm{limit}$). The ``limb-looking'' case is needed, because for
+angles between 90$^\circ$\ and $\ZntAng_\mathrm{limit}$ the intersection point
+is at the same pressure level as the observation point. The limiting
+angle $\ZntAng_\mathrm{limit}$ is calculated geometrically.  Note that the
+propagation direction of the radiation is opposite to the viewing
+direction or the direction of the line of sight, which is indicated by the arrows.  In the
+1D case the radiation field is a set of Stokes vectors each of which
+depend upon the position and direction:
+\begin{equation}
+  \IFld = \left\{\StoVec \left( \Prs_i,\ZntAng_l \right) \right\}. 
+\end{equation}
+
+\begin{figure}[htbp]
+\centering
+  \includegraphics[width=.8\hsize]{../Figs/scattering/seq_update_bw}
+ \caption{Schematic of the sequential update (1D) showing the three different parts:  ``up-looking'' corresponds to zenith angles $\ZntAng_\mathrm{up}$, ``limb-looking'' corresponds to $\ZntAng_\mathrm{limb}$ ``down-looking'' corresponds to $\ZntAng_\mathrm{down}$.}
+  \label{fig:scattering:seq_update}  
+\end{figure}
+
+The \emph{boundary condition} for the calculation is the incoming
+radiation field on the cloud box boundary $\IFld^{bd}$:
 \begin{eqnarray}
-   \label{eq:scattering:scalar_rte_sol}
-I^{(1)} = I^{(0)} e^{-\bar{K_{11}}s} + \frac{\bar{a_1}
-  \bar{B} + \bar{S^{(0)}}}{\bar{K_{11}}}\left(1-e^{-\bar{K_{11}}s}\right)
+  \IFld^{bd} = \left\{\StoVec \left( \Prs_i,\ZntAng_l \right) \right\}
+  \: \mathrm{where}  \: & \Prs_i = \Prs_N \, \forall \,  \ZntAng_l \in [0,\ZntAng_\mathrm{limit}]  \nonumber\\
+   & \Prs_i = \Prs_0  \, \forall \, \ZntAng_l \in (\ZntAng_\mathrm{limit},180^\circ],
 \end{eqnarray}
-where $I^{(0)}$ again obtained by interpolating the initial field.
-$\bar{K_{11}}$, $\bar{a_1}$, $\bar{B}$ and $\bar{S^{(0)}}$ are the
-averaged values for extinction coefficient, absorption coefficient,
-Planck function and the scattered integral respectively.
+where $\Prs_0$ and $\Prs_N$ are the pressure coordinates of the lower and
+upper cloud box boundaries respectively. For down-looking directions,
+the intensity field at the lower-most cloud box boundary and for up-
+and limb-looking directions the intensity field at the uppermost
+cloud box boundary are the required boundary conditions respectively.
 
-Applying this equation leads to first iteration scalar intensity
-field, consisting of the intensities $I^{(1)}$ at all points in the
-cloudbox for all directions.
+\subsection{Up-looking directions}
 
-\item{\bf Iteration and Convergence}
+The first step of the sequential update is to calculate the intensity
+field for the pressure coordinate $\Prs_{N-1}$, the pressure level below
+the uppermost boundary, for all up-looking directions.  Radiative
+transfer steps are calculated for paths starting at the uppermost
+boundary and propagating to the ($N-1$) pressure level. The required
+input for this radiative transfer step are the averaged coefficients
+of the uppermost cloud box layer and the Stokes vectors at
+the uppermost boundary for all up-looking directions. These are obtained
+by interpolating the boundary condition $\IFld^{bd}$ on the
+appropriate zenith angles. Note that the zenith angle of the
+propagation path for the observing direction $\ZntAng_l$ does not equal
+$\ZntAng_l'$ at the intersection point due to the spherical
+geometry. If $\ZntAng_l$ is close to $90^\circ$\ this difference is
+most significant.
   
-  As the solution to the vector radiative transfer equation the
-  solution to the scalar radiative transfer equation is found
-  numerically by iterations.
+To calculate the intensity field for the pressure coordinate
+$\Prs_{N-2}$, we repeat the calculation above. We have to calculate a
+radiative transfer step from the ($N-1$) to the ($N-2$) pressure level.
+As input we need the interpolated intensity field at the ($N-1$)
+pressure level, which has been calculated in the last step.
   
-  The convergence test for the scalar equation compares the values of
-  the calculated intensities of two successive radiation fields.
-
-\end{itemize}
-
-
-\section{Characterization of clouds by combination of hydrometeor species}
-%============================================================
-\label{sec:scattering:hydrometeor_species}
-
-\subsection{Optical properties of particle ensembles}
-%===========================================================
-\label{sec:scattering:particle_ensembles}
-
-In Chapter 3 of the book ``Scattering, Absorption and Emission of
-Light by Small Particles'' by Mishchenko et. al \cite{Mishchenko:02}
-optical properties for collections of independent particles are
-derived.  For single particles incident and scattered electromagnetic
-waves are related by a linear transformation described by the
-amplitude matrix {\bf S}:
- \begin{eqnarray}
-  \label{eq:ampl_matrix}
-  \left[{E^{\rm sca}_{\theta}\atop E^{\rm sca}_{\phi}}\right] =
-  \frac{\exp({\rm i} kR)}{R}{\bf S}({\bf n};{\bf
-      n'};\epsilon_1,\epsilon_2,\epsilon_3)\left[{E^{\rm inc}_{\theta
-          0}\atop E^{\rm inc}_{\phi 0}}\right] 
-\end{eqnarray}
-{\bf S} depends on the directions of incidence $(\theta', \phi')$ and
-scattering $(\theta, \phi)$ as well as on size, morphology and
-composition of the scattering material, furthermore on the orientation
-of the particles which is specified by the Euler angles of rotation
-$\epsilon _i$.  The equation above is valid for a monochromatic electromagnetic  wave.
-
-The amplitude matrix includes all information about the optical properties for the considered particle. Using simple transformation formulas, the phase matrix ${\bf Z}$, extinction matrix ${\bf K}$ and absorption vector ${\bf a}$  can be derived (see  \cite{Mishchenko:02}, Chapter 2).  Extinction matrix and phase matrix for single particles each have seven independent elements. The absorption vector is derived from extinction matrix and phase matrix.\\
-For particle ensembles in a small volume element, each of the $N$
-particles has a different amplitude matrix. The total amplitude matrix
-in is given by the sum of amplitude matrices of the $N$ particles.
-Each amplitude matrix ${\bf S}_n$ has to be multiplied with a phase factor
-$\exp(i\Delta)$ to take into account the different positions of the
-particles:
-\begin{equation}
-  {\bf S}({\bf n};{\bf n'}) = \sum_{n=1}^{N} \exp(i\Delta)  {\bf S}_n({\bf n};{\bf n'})
-\end{equation}
-Inserting the transformation formulas from amplitude matrix to optical properties and summing over
-all particles one can show that the total extinction matrix is the sum
-of the single particle extinction matrices
-\begin{equation}
-  {\bf K} = \sum_{n=1}^{N} {\bf K}_n = N <{\bf K}>
-\end{equation}
-and the total phase matrix is the sum of the individual phase matrices
-\begin{equation}
-  {\bf Z} =  \sum_{n=1}^{N} {\bf Z}_n = N <{\bf Z}>
-\end{equation}
-$ <{\bf K}>$ and $<{\bf Z}>$ are the average extinction matrix and the average absorption vector respectively. \\
-
-In ARTS a ``hydrometoer species'' is defined by its single scattering properties (phase matrix, extincrion matrix and absorption vector). A hydrometeor species can represent an ensemble of particles, for example a size and aspect ratio distribution of ellipsoids. The point is that one species corresponds to a fixed phase matrix. 
-
-
-\subsubsection{Structure containing single scattering data of hydrometeor species}
-%============================================================
-\label{sec:scattering:single_scattering_data}
-
-The single scattering properties are calculated outside ARTS and stored in a database. The format of the scattering database allows space reduction due to symmetry for certain special cases, e.g. random or horizontal alignment. The file format is xml. The data is stored in a structure called  \verb SingleScatteringData consisting of the following fields:
-
-\begin{itemize}
-\item {\bf {\sl enum} ptype}: An attribute which contains information about
-  the data type, which is the classification of the kind of hydrometeor species (randomly
-  oriented, general case ...) This attribute is needed inside the
-  radiative transfer function to be able to extract the physical phase
-  matrix, the physical
-  extinction matrix  and the physical absorption vector from the data.\\
+For each pressure level ($m-1$) we take the interpolated field of the
+layer above ($\IFld(\Prs_{m})^{(1)}$).  Using this method, the
+scattering influence from particles in the upper-most cloud box
+layer can propagate during one iteration down to the lower-most layer.
+This means that the number of iterations does not scale with the
+number of pressure levels, which would be the case without sequential
+update.
   
-  Possible values of ptype are:
-\begin{verbatim}
-PTYPE_GENERAL = 10
-PTYPE_MACROS_ISO = 20
-PTYPE_HORIZ_AL = 30
-PTYPE_SPHERICAL = 40
-\end{verbatim}
-  
-  For a more detailed description of the different cases refer to the
-  next part of this section.
-  
-\item {\bf {\sl String} description}: Here the particle type should be
-  specified explicitly. We can have the case randomly oriented
-  particles, but furthermore we also have to specify the exact
-  particle properties (i.e. size and shape distribution). This can be
-  a longer text describing how the scattering properties were
-  generated. It should be formated for direct printout to screen or
-  file, for example it should contain appropriate {\verb "\n" }
-  characters. 
-    
-\item {\bf {\sl Vector} f\_grid}: Frequency grid.
-
-\item {\bf {\sl Vector} T\_grid}: Temperature grid. 
-
-\item {\bf {\sl Vector} za\_grid}: Zenith angle grid (Range: 0.0\degree $\le$ za
-  $\le$ 180.0\degree ).
-  
-  
-
-\item {\bf {\sl Vector} aa\_grid}: Azimuth angle grid (Range: -180.0\degree $\le$ aa $\le$180.0 \degree).\\
-  \vspace*{1ex} The angular grids have to satisfy the following
-  conditions:
-\begin{itemize}
-\item They have to be equidistant.
-\item The value of the data must be the same for the first and the
-  last grid-point. This condition is required for the integration
-  routine.
-\item If we only have to store a part of the grid, for example {\bf
-    za\_grid} only from 0\degree to 90\degree, these two values (0\degree, 90\degree) must be
-  grid-points.
-\end{itemize}
-
-
-
-\item {\bf {\sl Tensor6} pha\_mat\_data}: Phase matrix data ($<{\bf Z}>$). \\
-  The dimensions of the data array are:
- \hspace*{2ex}\begin{verbatim}[frequency za_sca aa_sca za_inc aa_inc matrix_elment]\end{verbatim} 
-The order of matrix elements depends on
-the chosen case.  For most cases we do not need all matrix
-elements (see description of cases below).
-
-\item {\bf {\sl Tensor4} ext\_mat\_data}: Extinction matrix data ($<{\bf K}>$). \\
-  The dimensions are:
- \hspace*{2ex}\begin{verbatim} [frequency za_inc aa_inc matrix_element] \end{verbatim}
-Again, the order of matrix elements depends on the chosen case.
-
-\item {\bf {\sl Tensor4} abs\_vec\_data}: Absorption vector data ($<{\bf
-    a}>$).  The absorption vector is also precalculated. It could be calculated from extinction matrix and phase matrix. But this calculation takes long
-  computation time, as it requires an angular integration over
-  the phase matrix.  For the cases with symmetries (e.g. random
-  orientation) the data files will not become too large even if we
-  store additionally the absorption vector. The dimensions are:
-  \hspace*{2ex}\begin{verbatim} [frequency za_inc aa_inc vector_element] \end{verbatim}
-
-\end{itemize}
-
-
-\subsubsection{Macroscopically isotropic and mirror-symmetric scattering media}
-%===========================================================================
-\label{sec:scattering:rand_orientation}
-
-  For macroscopically isotropic and mirror-symmetric scattering media
-  (totally randomly oriented particles) the optical properties are calculated in the so-called scattering frame.
- In this coordinate
-  system the z-axis corresponds to the incident direction and the
-  xz-plane coincides with the scattering plane. Using this frame only the scattering angle, which is the angle between incident and scattered direction is needed. Furthermore the number of matrix elements of both matrices, phase matrix and extinction matrix, can be reduced (see \cite{Mishchenko:02}, p.90).\\
-To calculate the particle optical properties it is convenient to use Mishchenko's T-matrix code for randomly oriented particles (\cite{Mishchenko:98}) which returns the averaged phase matrix and extinction matrix. 
-
-Only 6 elements of the transformed phase matrix, which is commonly called scattering matrix, are different. Therefore the size of \verb pha_mat_data \ is:
-  \hspace*{2ex}\begin{verbatim} [N_f N_za_sca 1 1 1 6]\end{verbatim}
-  
-  The extinction matrix is in this case diagonal and independent of
-  direction and polarization.  That
-  means that we need to
-  store only 1 element for each frequency.  The size of
-  \verb ext_mat_data \ is therefore 
-\hspace*{2ex}\begin{verbatim} [N_f 1 1 1]\end{verbatim}
-
-The absorption vector is also direction and polarization independent.
-Therefore the size of \verb abs_vec_data \ for this case is the same as
-\verb ext_mat_data : 
-\hspace*{2ex}\begin{verbatim} [N_f 1 1 1]\end{verbatim}
-
-
-\subsubsection{Horizontally aligned plates and columns}
-%===========================================================================
-\label{sec:scattering:az_orientation}
-
-  For particle distributions of horizontally aligned plates and columns
-  that are oriented randomly in the azimuth the angular dimension can
-  be reduced by one, if we rotate the coordinate system appropriately.
-For this case we use the T-matrix code for single particles in fixed orientation and average phase matrix and extinction matrix manually like in the general case.
- 
-  The phase matrix (and also extinction matrix and absorption vector)
-  become independent of the incident azimuth angle in this frame.
-  Furthermore, regarding the symmetry of this case, it can be shown,
-  that for the scattered directions we need only half of the angular
-  grids, as the two halfs must contain the same data.
-  \verb pha_mat_data \ therefore has the following size:
-\hspace*{2ex}\begin{verbatim} [N_f N_za_sca/2 N_aa_sca/2 N_za_inc 1 16]}\end{verbatim} 
-We store za\_sca for all grid points from 0\degree\ to 180\degree\,
-aa\_sca from 0\degree\ to 180\degree, and za\_inc from 0\degree to 90\degree. This means that the
-za grid has to include 90\degree\ as grid-point.  The order of the matrix
-elements is the same as in the general case.
-
-For this case it can be shown that the extinction matrix has only 3
-elements Kjj, K12(=K21),
-and K34(=-K43).
-
-Because of azimuthal symmetry, it can not depend on the azimuth angle.
-The size of \verb ext_mat_data \ is therefore
-\hspace*{2ex}\begin{verbatim} [N_f N_za 1 3]\end{verbatim} 
-The
-absorption coefficient vector has only two elements a1 and a2.  This
-means that the size of  \verb abs_vec_data \ is
-\hspace*{2ex}\begin{verbatim} [N_f N_za 1 2]\end{verbatim}
-
-
-
-
-\subsubsection{Spherical particles}
-%===========================================================================
-\label{sec:scattering:spherical_particles}
-
-  In this case it is also useful to calculate the optical properties
-  in the scattering frame. The phase matrix elements can be even
-  more reduced. Only 4 different
-  elements  are needed (see  \cite{Mishchenko:02}, p.99). 
-  The phase matrix for spherical particles also depends only on
-  the scattering angle.  Thus the size of \verb pha_mat_data \ is:
-  \hspace*{2ex}\begin{verbatim} [N_f N_za_sca 1 1 1 4]\end{verbatim}
-  Extinction matrix and absorption vector are stored exactly in the
-  same way as for the randomly oriented case.
-  For this case we can of course also use the T-matrix code for randomly oriented particles.
-
-\subsubsection{General case}
-%===========================================================================
-\label{sec:general_case}
-
-  If there are no symmetries at all we have to store all 16 elements
-  of the
-  phase matrix. The average phase matrix has to be generated from all individual phase matrices of the particles in the distribution outside ARTS. The individual phase matrices are calculated using Mishchenko's T-matrix code for single particles in fixed orientation \cite{Mishchenko:00}.\\
-  The matrix elements have to be stored in the following order:\\
-   We have to store all elements for all angles in the grids.  The size
-  of \verb pha_mat_data \ is therefore:
- \hspace*{2ex}\begin{verbatim} [N_f N_za_sca N_aa_sca N_za_inc N_aa_inc 16]\end{verbatim} 
-Seven
-extinction matrix elements are independent (cp. \cite{Mishchenko:02}, p.55).  The
-elements being equal for single particles should still be the
-equal for a distribution as we get the total extinction just by adding.
-
-Here we need only the incoming grids, so the  size of \verb ext_mat_data \ is:
-\hspace*{2ex}\begin{verbatim} [N_f N_za_inc N_aa_inc 7]\end{verbatim}
-
-The absorption vector in general has four components (cp. Equation
-(2.186) in \cite{Mishchenko:02} ).
-The size of \verb abs_vec_data \ is accordingly:
-\hspace*{2ex}\begin{verbatim} [N_f N_za_inc N_aa_inc 4]\end{verbatim}
-
-
-
-
-\subsection{Database for particle number density fields}
-%==========================================================
-\label{sec:scattering:pnd_data}
-
-A second database contains the particle number density fields.  The
-datatype contained in each data file is a 3D gridded field. It
-contains three elements corresponding to pressure, latitude and
-longitude grid. The forth element contains the data for the particle
-number density. Each chosen particle type has to be defined together
-with a particle number density field.
-
-\subsection{Reading the databases}
-%===========================================================
-\label{sec:scattering:read_data}
-
-Two workspace methods are implemented for reading the database. These
-functions are used to define the clouds, the horizontal and vertical
-extension and the particle distribution inside the cloud. They are
-called \wsmindex{ParticleTypeInit} and \wsmindex{ParticleTypeAdd}.
-
-The workspace variable containing the data for the opticlal properties of the particles is
-\wsvindex{scat\_data\_raw} which is an array of \verb SingleScatteringData structures. Each element corresponds to one hydrometeor species.
-
-{\bf FIXME: We will create a structure for the pnd fields soon}
-The analogous workspace variable for the particle number density field
-is called \wsvindex{pnd\_field\_raw} which is an array of
-gridded fields containing one element for each particle type. The
-first three elements of each gridded field contain the pressure, the
-latitude and the longitude grids and the fourth element the particle
-number density data.
-
-The workspace method \wsmindex{ParticleTypeInit} is used for
-initializing \wsvindex{scat\_data\_raw} and \wsvindex{pnd\_field\_raw}.
-The method \wsmindex{ParticleTypeAdd} puts the data for one species
-type into \wsvindex{scat\_data\_raw} and \wsvindex{pnd\_field\_raw}. The
-filenames are passed into the methods by keywords which are specified
-in the control file.
-
-The following example shows a part of a control file where
-\wsvindex{scat\_data\_raw} and \wsvindex{pnd\_field\_raw} are created
-for two hydrometeor species:
-
-\begin{verbatim}
-
-# Initialize variables
-# --------------------------------------------
-ParticleTypeInit{}
-
-# Add spherical particles, gamma distribution,
-#    effective radius 85.5 microns
-# --------------------------------------------
-ParticleTypeAdd{
-        filename_scat_data = "sphere_gamma_85.5.xml" 
-        filename_pnd_field = "sphere_gamma_85.5_pnd.xml"
-        }       
-
-# Add cylindrical particles, gamma distribution, 
-#   effective radius 100 microns
-#--------------------------------------------
-ParticleTypeAdd{
-        filename_amp_mat = "cylinder_gamma_100.xml" 
-        filename_pnd_field = "cylinder_gamma_100_pnd.xml"
-        }   
-
-\end{verbatim}
- 
-
-\section{Radiative transfer implementation in the cloudbox}
-%=================================================================
-\label{sec:scattering:rt_cloudbox}
-
-
-\subsection{Scattering main function}
-%=====================================
-\label{sec:scattering:main_function}
-For a scattering calculation only the workspace method
-\wsmindex{ScatteringMain} has to be executed in the control file.  But
-before executing the main fuction, agendas required for a scattering
-calculation have to be defined.  The following example shows a part of
-a controlfile where a scattering calculation is performed:
-\begin{verbatim}
-
-#===========================================================
-# Agendas for calculating the single scattering properties
-# from the amplitude matrix data:
-#===========================================================
-
-AgendaSet(spt_calc_agenda){
-      opt_prop_sptFromData{}
-          }
- 
-AgendaSet( opt_prop_part_agenda ){
-        ext_matInit{}
-        abs_vecInit{}
-        ext_matAddPart{}
-        abs_vecAddPart{}
-    }
- 
-#===========================================================
-# Define the method for the convergence test:
-#===========================================================
-  AgendaSet( convergence_test_agenda) {
-        convergence_flagAbs{
-        epsilon = [1e-17, 1e-18, 1e-18, 1e-18] 
-        # epsilon = [1e-16]
-   }
-  
-#==========================================================
-# Methods for monochromatic scattering calculation:
-#==========================================================
- AgendaSet(scat_mono_agenda){
-  ScatteringInit{}              
-  i_fieldSetClearsky{}
-  i_fieldIterate{}
-  scat_iPut{}
- }
- 
-AgendaSet(scat_rte_agenda){
-  i_fieldUpdateSeq1D{}
- }
-        
- AgendaSet(scat_field_agenda){
-  scat_fieldCalc{}
- }      
-               
-#==========================================================
-# Execute the scattering main function:
-#==========================================================       
-        
-  ScatteringMain{}
-
-\end{verbatim}
-
-
-All listed agendas are described in detail in the next sections.\\
-\vspace*{1ex}
-
-The first step in the scattering main function is the calculation of
-the clearsky field on the cloudbox boundary using the method
-\wsmindex{CloudboxGetIncoming}.
-
-Then \wsaindex{scat\_mono\_agenda}(see Section
-\ref{sec:scattering:scat_mono_ag}) is executed inside a loop over all frequencies
-defined in \wsvindex{f\_grid}.
-
-\subsection{Numerical grids and fields}
-%====================================================================
-\label{sec:scattering:grids}
-The calculations inside the cloudbox are performed on the common
-atmospheric grids: the pressure grid (\wsvindex{p\_grid}), the
-latitude grid (\wsvindex{lat\_grid}) and the longitude grid
-(\wsvindex{lon\_grid}).  For the calculation gaseous absorption (see
-Section \ref{sec:absorption}) and atmospheric fields
-(\wsvindex{t\_field} and \wsvindex{vmr\_field}) are required. More
-atmospheric grids and fields (cp. section \ref{sec:fm_defs:grids}) are
-needed for the ray tracing.  Furthermore angular grids are necessary
-for the scattering calculations as the radiation field, the scattering
-efficiency matrix etc. depend on the propagation and incident
-direction of the radiation. For this purpose the workspace variables
-\wsvindex{scat\_za\_grid} and \wsvindex{scat\_aa\_grid} have to be
-defined in the control file. They hold a zenith angle grid and a
-azimuthal angle grid. These angles are defined in the same manner as
-the angles which describe the viewing direction of the sensor (cp.
-section \ref{sec:fm_defs:los}).  The user has to find a compromise.
-The grids should not be too coarse for accuracy reasons but they also
-can not be very fine as there is only limited random acces memory
-available.  The grids do not neccesarily have to be equidistant. It is
-reasonble to take a finer resolution around zenith angle equal
-90\degree\ because here the radiation field shows a high variability.
-The zenith angles up to an angle a bit higher than 90\degree\ 
-correspond to uplooking angles and the angles above correspond to
-downlooking angles. Of course the intensity of the radiation coming
-from below is much higher than the intensity of the radiation coming
-from above as in the lower atmosphere the density is much higher,
-which corresponds to higher thermal emission.\newline
-
-\vspace{1ex} The radiation field in the cloudbox is stored in the
-workspace variable \wsvindex{i\_field} which has the dimension:
-\begin{center}
-  \wsvindex{i\_field} = \wsvindex{i\_field} (\Prs, \Lat, \Lon, \ScaZa,
-  \ScaAa, i$_I$).
-\end{center}
-It has to be noted that \wsvindex{i\_field} is defined only in the
-cloudbox which means that its size is
-\[ \begin{array}{rl}
- N(\artsstyle{i\_field}) =& [\artsstyle{cloudbox\_limits}[1] - \artsstyle{cloudbox\_limits}[0] + 1,\\
-              &\artsstyle{cloudbox\_limits}[3] -\artsstyle{cloudbox\_limits}[2] + 1, \\
-              &\artsstyle{cloudbox\_limits}[5] -\artsstyle{cloudbox\_limits}[4] + 1,  \\
-              & N_{za}, N_{aa}, N_{I} ] 
-\end{array}\]
-The first three numbers give the sizes of pressure grid, latitude grid
-and longitude grid respectively inside the cloud box. $N_{za}$ and
-$N_{aa}$ are the size of the zenith and azimuth angle grids and
-$N_{I}$ is the Stokes dimension.
-
-
-\subsection{Interface between cloudbox and clearsky}
-%================================================================
-\label{sec:scattering:interface}
-The interface between the clearsky part and the cloudbox part of the
-radiative transfer calulation is the cloudbox boundary. The scattering
-calculation requires the incloming clearsky radiation field on the
-boundary as initial condition. For the clearsky calculation the
-outcoming radiation field on the boundary, which is propagated from
-there to the sensor, is needed.  The interface variables are
-\wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
-\wsvindex{scat\_i\_lon}. They have the dimensions
-\begin{center}
-  \artsstyle{scat\_i\_p} = \artsstyle{scat\_i\_p} (\Frq, 2(two surfaces), \Lat, \Lon, \ScaZa, \ScaAa, i$_I$)\\
-  \artsstyle{scat\_i\_lat} = \artsstyle{scat\_i\_lat} (\Frq, \Prs,
-  2(two surfaces), \Lon, \ScaZa,
-  \ScaAa, i$_I$ )\\
-  \artsstyle{scat\_i\_lon} = \artsstyle{scat\_i\_lon} (\Frq, \Prs,
-  \Lat, 2(two surfaces), \ScaZa, \ScaAa, i$_I$).
-\end{center}
-where \Frq\ is the frequency, \Prs\ the pressure, \Lat\ the latitude,
-\Lon\ the longitude, \ScaZa\ and \ScaAa\ the zenith of the propagation
-the azimuthal angles of the propagation direction respectively and
-i$_I$ is the Stokes component.  In 3D geometry the variable
-\wsvindex{scat\_i\_p} for example has the size:
-\[ \begin{array}{rl}
-  N(\artsstyle{scat\_i\_p}) =& [ N_\Frq, 2,\\
-   &\artsstyle{cloudbox\_limits}[3] -\artsstyle{cloudbox\_limits}[2] + 1, \\
-   &\artsstyle{cloudbox\_limits}[5] -\artsstyle{cloudbox\_limits}[4] + 1,  \\
-   &N_\ScaZa, N_\ScaAa, N_I]
-\end{array} 
-\] 
-
-Here $N_\Lat$ and $N_\Lon$ are the number of latitude and longitude
-gridponts inside the cloudbox region.  $N_I$ is the number of Stokes components, and $N_\Frq$
-the number of points in the frequency grid.  There are no special
-workspace variables for 1D calculations. The variables which are not
-needed, e.g. \wsvindex{scat\_i\_lat} and \wsvindex{scat\_i\_lon}, are
-still in the workspace but they are empty. For the interface only
-\wsvindex{scat\_i\_p} is needed and its size is in the 1D case
-\begin{center}
-  N( \artsstyle{scat\_i\_p} ) = $[N_\Frq, 2, 1, 1, N_\ScaZa, 1, N_I]$
-\end{center}  
-Inside the scattering box we need to specify only
-\wsvindex{scat\_za\_grid}.
-
-
-
-\subsubsection{Clearsky field on cloudbox boundary} The method
-\wsmindex{CloudboxGetIncoming} calculates for each grid point on the
-cloudbox boundary in each propagation direction the radiation field
-using the method \wsmindex{RteCalc}, which performs a clearsky
-radiative transfer calculation.  Output of this method are the
-interface variables listed above.
-
-\subsubsection{Scattered field on cloudbox boundary} The scattered field on
-the cloudbox boundary for given position and direction is obtained by
-using the method \wsmindex{CloudboxGetOutgoing}. The method performs
-an interpolation from the interface variables on the requested
-position and direction.
-
-
-\subsection{Solution of the monochromatic VRTE}
-%========================================================================
-\label{sec:scattering:scat_mono_ag}
-
-The method \wsmindex{ScatteringMain} executes
-\wsaindex{scat\_mono\_agenda} for each frequency defined in
-\wsvindex{f\_grid}. \wsaindex{scat\_mono\_agenda} is a list of methods which solve the
-monochromatic VRTE and it must be defined in the control file before
-executing \wsmindex{ScatteringMain} for example in the following way:
-
-\begin{verbatim}
-AgendaSet(scat_mono_agenda) {
-  ScatteringInit{}
-  i_fieldSetClearsky{}
-  i_fieldIterate{}
-  scat_iPut{}
-}
-\end{verbatim}
-
-\noindent
-The methods used by this agenda are described below.
-
- 
-\subsubsection{First guess field}
-%=======================================================================
-
-The workspace method \wsmindex{i\_fieldSetClearsky} uses a linear 3D
-interpolation scheme to obtain the radiation field on all grid points
-inside the cloud box from the clear sky field on the cloudbox
-boundary.  This can be taken as a first guess for the iterative
-solution method of the RTE.  The method picks only the monochromatic
-radiation field corresponding to the actual frequency out of the
-variables \wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
-\wsvindex{scat\_i\_lon}. Output of the method is the initial field
-stored in the workspace variable \wsvindex{i\_field}.  The workspace
-method \wsmindex{i\_fieldSetClearsky} is implemented in such a way
-that the method should adapt itself for 1D or 3D atmosphere. In this
-case the main input is the interface (\artsstyle{scat\_i\_p},
-\artsstyle{scat\_i\_lat}, \artsstyle{scat\_i\_lon}) the pressure grid
-(\artsstyle{p\_grid}), the frequency grid (\artsstyle{f\_grid}), the
-frequency index (\artsstyle{scat\_f\_index}) and of course the
-boundary of the cloudbox defined in \artsstyle{cloudbox\_limits}.  An
-interpolation of \artsstyle{scat\_i\_p} which is defined only on the
-cloudbox boundary to all points inside the cloud box is
-done to get the initial field. \\
-
-\vspace*{1ex} Another method to set the first guess field is
-\wsmindex{i\_fieldSetConst}. Using this method the user can assign a
-constant value for each Stokes component of the first guess field. On
-the boundary of course the clearsky field has to be taken, as this is
-the boundary condition for the scattering calculation.  Setting the
-first guess field to a constant unrealistic value is useful for
-testing the solution. A calculation can be done with different first
-guess fields. If the radiation field converges each time towards the
-same solution field, it can be assumed that the solution field is the
-correct one.
-
-
-\subsubsection{Iteration}
-%=====================================================================
-The method \wsmindex{i\_fieldIterate} solves the VRTE using the
-iterative method.  The function has included switches to adapt
-automatically to the atmospheric dimensionality specified by the
-workspace variable \wsvindex{atmosphere\_dim}. Note that only 1D or 3D
-scattering calculations are possible.  The following steps are
-performed in each iteration until the solution of the radiation field
-converges.
-
-\begin{itemize}
-\item \artsstyle{i\_field} is copied to \artsstyle{i\_field\_old}.
-\item Execute \wsaindex{scat\_field\_agenda} (see Sections
-  \ref{sec:scattering:sca_fieldCalc} and
-  \ref{sec:scattering:solution_rte}).
-\item Execute\\
-  \wsaindex{scat\_rte\_agenda}.  (see
-  Sections \ref{sec:scattering:RT_methods} and
-  \ref{sec:scattering:solution_rte}).
-\item Execute \wsaindex{convergence\_test\_agenda} (see Sections
-  \ref{sec:scattering:conv_method} and
-  \ref{sec:scattering:solution_rte}).
-\end{itemize}
-
-The solution of the radiative transfer equation is returned as output
-using the variable \artsstyle{i\_field}.
-
-
-\subsection{Computation of the scattered field}
-%=========================================
-\label{sec:scattering:sca_fieldCalc}
-
-The ARTS user has to specify the integration method in \wsaindex{scat\_field\_agenda}. Possible methods are:\\
-\begin{itemize}
-\item \wsmindex{scat\_fieldCalc}
-\item ...
-\end{itemize}
-
-{\bf Workspace method \wsmindex{scat\_fieldCalc}}:\\
-The method \wsmindex{scat\_fieldCalc} does exactly what is described
-in Section \ref{sec:scattering:solution_rte}.  Output of this method
-is the scattered field (\wsvindex{scat\_field}) which has the same
-dimension as the intensity field (\artsstyle{i\_field}).  It is
-generated by integrating the product of intensity field
-(\artsstyle{i\_field}) and phase matrix \artsstyle{pha\_mat} over all
-incident zenith and azimuth angles.  In addition to
-\artsstyle{i\_field}, the phase matrix for the single particles
-(\artsstyle{pha\_mat\_spt}) and the particle number density field
-(\artsstyle{pnd\_field}) are inputs to this method.  They are used to
-calculate the phase matrix \artsstyle{pha\_mat} by calling the method
-\artsstyle{pha\_mat\_partCalc}.\ %(see Section
-%\ref{sec:scattering:pha_mat} ).
- How the phase matrices for the individual particles are calculated is desribed in detail in Section {\bf FIXME} % \ref{sec:scattering:pha_mat_spt} 
-
-\artsstyle{scat\_fieldCalc} uses the trapezoidal integration method
-described in Section \ref{sec:integration}. More sophisticated
-integration methods are not implemented yet.
-%The integration method used is the trapezoidal integration implemented
-%by the function \artsstyle{AngIntegrate\_trapezoid} in the file
-%\artsstyle{math\_funcs.cc}.  This explains why we need this
-%computation of scattered field to be
-%put in as an agenda since there can be different methods by which we
-%can perform the integral. 
-%The output \artsstyle{scat\_field} is used in the
-%methods \artsstyle{i\_fieldUpdate1D} and \artsstyle{i\_fieldIterate}.
-
-
-\subsection{Solving the VRTE with fixed scattering integral}
-%==================================================================
-\label{sec:scattering:RT_methods}
-
-In \wsaindex{scat\_rte\_agenda} the user has to specify the method used for the radiative transfer calculation inside the cloudbox.
-Possible methods are:
-\begin{itemize}
-\item \wsmindex{i\_fieldUpdateSeq1D}
-\item \wsmindex{i\_fieldUpdate1D}
-\item \wsmindex{i\_fieldUpdateSeq1DPlaneParallel}
-\item \wsmindex{i\_fieldUpdateSeq3D}
-\item \wsmindex{i\_fieldUpdate3D}
-\end{itemize}
-
-{\bf  Workspace methods \wsmindex{i\_fieldUpdate1D} and \wsmindex{i\_fieldUpdate3D}}:\\
-
-These methods are used to evaluate the RT Equation
-(\ref{eq:scattering:vrte_fs}) and update the radiation field
-\wsvindex{i\_field} for each iteration. The theoretical description of
-these functions can be found in Section
-\ref{sec:scattering:solution_rte}.
-
-Boths functions consist basically of two parts:
-
-\subsubsection{Calculate coefficients of VRTE} In the first part, the
-coefficients required for the radiative transfer calculation are
-determined for all gridpoints inside the cloudbox and on the cloudbox
-boundary. These coefficients are the total absorption vector, the
-total extrinction matrix and the scattered field vector. They are
-obtained in the following way:
-\begin{itemize}
-\item Scattered field vector: Scattered field
-  (\artsstyle{scat\_field}) is input variable.
-\item Total extinction matrix total and absorption vector:
-  Contributions from gaseous species and from particles have to be
-  taken into accout.  The first step is calculating the scatar gas
-  absorption using \wsaindex{scalar\_gas\_absorption\_agenda}
-  described in Section \ref{sec:absorption}.  Then
-  \wsaindex{opt\_prop\_part\_agenda} and
-  \wsaindex{opt\_prop\_gas\_agenda} are used to compute total
-  extinction and absorption. They can be defined as follows:
-  
-  \vspace{1ex}
-\begin{minipage}{0.9\hsize}
-\begin{verbatim}
-AgendaSet(opt_prop_gas_agenda)
-{
-        ext_matInit{} \\ Initialize ext_mat and abs_vec.
-        abs_vecInit{} \\ 
-      ext_matAddGas{} \\ Add gaseous extinction.              
-      abs_vecAddGas{} \\ Add gaseous absorption.
-}
-\end{verbatim}
-\end{minipage} 
-
-\vspace{1ex}
-\begin{minipage}{0.9\hsize}
-\begin{verbatim}
-AgendaSet(opt_prop_part_agenda)
-{
-      ext_matAddPart{} \\ Add particle extinction.            
-      abs_vecAddPart{} \\ Add particle absorption.
-}
-\end{verbatim}
-\end{minipage} 
-
-Note: It is important, that the initialization is done in
-\wsaindex{opt\_prop\_gas\_agenda} as this agenda is called before
-\wsaindex{opt\_prop\_part\_agenda}.It is also important to put the
-initializing functions inside the agendas and not somewhere else in
-the controlfile as these agendas are executed inside loops over all
-positions in the cloudbox. For each loop index \wsvindex{abs\_vec} and
-\wsvindex{ext\_mat} have to be reinitialized, otherwise all extinction
-matrices and absorption vectors would be added up.
-
-\item The Planck function at each point can be calculated using
-  \wsvindex{t\_field} which is an input variable.
-
-\end{itemize}
-
-All coefficients are stored in arrays during the monochromatic
-radiative transfer equation. They aer replaced when the calculation
-for the next frequency starts.
-
-\subsubsection{Radiative transfer step with constant coefficients}
-
-In this part several steps are executed inside a loop over all
-positions inside the cloudbox and all directions to obtain the
-radiation field:
-\begin{itemize}
-\item Determine the intersection point with the next layer or grid
-  cell boundary using \wsaindex{ppath\_step\_agenda}
-\item Interpolate optical properties and the Stokes vector
-  (\wsvindex{i\_field}) on the intersection point.
-\item Average optical properties to find the coefficients for the VRTE
-  with constant coefficients (see Section \ref{scattering:av_coeff})
-\item Do a radative transfer calculation with constant coefficients
-  using the function \wsmindex{RteCalc}.
-\end{itemize}
-
-{\bf FIXME: Sequential update/ Plane parallel version}
-
-
-
-
-\subsection{Single scattering properties}
-%==================================================================
-\label{sec:scattering:single_scat_prop}
-
-{\bf FIXME: Description of the functions needed for new database format}
-
-
-\subsection{Radiative transfer step calculation with averaged
-  coefficients}
-%=================================================================
-\label{sec:scattering:rte_step}
-The method for doing a radiative step calculation through one grid
-cell for a 3D atmosphere or one layer for a 1D atmosphere is called
-\wsmindex{RteCalc}. The VRTE with constant coefficients and fixed
-scattering integral vector is solved.  \wsmindex{RteCalc}
-automatically chooses the most efficient way to compute the radiative
-transfer. There are three possibilities:
-
-\begin{itemize}
-\item {\bf General method}\\
-  If the Stokes dimension is greater than one and the extinction
-  matrix non-diagonal this method is chosen.  The two terms in the
-  radiative transfer equation \ref{eq:scattering:vrte_fs_av} are
-  computed separately using different functions. The first term
-\begin{equation}
- e^{-\ExtMat s}\cdot\StoVec_0
-\end{equation}
-includes the matrix exponential function. This is solved numerically
-using the Pad\'e approximation as implemented in the function
-\artsstyle{matrix\_exp} (see Section \ref{sec:lin_alg:mat_exp}).  The
-second term
-\begin{equation}
-(\IdnMat - e^{-\ExtMat
-    s}) \ExtMat\Inv (\AbsVec \Planck + \ScaInt_0)
-\end{equation}
-includes the inverse of \ExtMat\ multiplied with a vector. This is
-computed numerically by a LU decomposition as described in the
-Sections \ref{sec:lin_alg:backsub} and \ref{sec:lin_alg:lu_decomp}.
-The functions used here are \artsstyle{ludcmp} and
-\artsstyle{lubacksub}. The matrix exponential is
-computed using again \artsstyle{matrix\_exp}.\\
-Finally the method sums up the two terms to get the updated Stokes
-Vector.
- 
-\item {\bf Scalar case}\\
-  If the Stokes dimension is one, only the scalar RTE has to be
-  solved.  In this case it is straightforward to compute a radiative
-  transfer step through one grid cell/layer according to equation
-  (\ref{eq:scattering:scalar_rte_sol}). We only have to compute the
-  scalar exponential function and do not need the matrix inverse, such
-  that the standard C math library is sufficient.
-
-  
-\item{\bf Diagonal exinction matrix and no scattering}
-\end{itemize}
-{\Large: FIXME: The description of RteCalc should be shifted to
-  another place}
-
-
-\subsection{Convergence test method}
-%====================================
-\label{sec:scattering:conv_method}
-
-Different methods to do the convergence test are implemented. The user
-has to chose one by setting the \wsaindex{convergence\_test\_agenda}.
-The following methods can be used:
-
-\begin{itemize}
-\item {\bf Method \artsstyle{convergence\_flagAbs}:}\\
-  The function calculates the absolute differences for two successive
-  iteration fields. It picks out the maximum values for each Stokes
-  component separately. The convergence test is fulfilled under the
-  following conditions:
+The radiation field at a specific point in the cloud box is obtained by
+solving \eqnref{eq:scattering:VRTE_sol}. For up-looking directions at position
+$\Prs_{m-1}$ we may write:
 \begin{eqnarray}
-|I_{m+1} - I_m| < \epsilon_1    \\
-|Q_{m+1} - Q_m| < \epsilon_2    \\
-|U_{m+1} - U_m| < \epsilon_3    \\
-|V_{m+1} - V_m| < \epsilon_4     
+ & \StoVec\left( \Prs_{m-1},\ZntAng_\mathrm{up} \right) ^{(1)}  =  
+  e^{-\overline{\EnsAvr{\ExtMat (\ZntAng_\mathrm{up})}} s} 
+  \StoVec\left( \Prs_m,\ZntAng_\mathrm{up} \right)^{(1)}  \nonumber \\ &+
+  \left( \IdnMtr -  e^{-\overline{\EnsAvr{\ExtMat (\ZntAng_\mathrm{up})}} s}\right) 
+  \overline{\EnsAvr{\ExtMat(\ZntAng_\mathrm{up})}}^{\,-1} 
+  \left( \overline{\EnsAvr{\AbsVec (\ZntAng_\mathrm{up})}}\,  
+    \bar{B} +
+    \overline{\EnsAvr{\SVec\left(\ZntAng_\mathrm{up} \right)^{(0)}} }
+  \right).
 \end{eqnarray}
+For simplification we write
+\begin{equation}
+  \StoVec ( \Prs_{m-1},\ZntAng_\mathrm{up})^{(1)} = 
+  \MtrStl{A}(\ZntAng_\mathrm{up})  \StoVec\left( \Prs_m,\ZntAng_\mathrm{up} \right)^{(1)} 
+  + \MtrStl{B} ( \ZntAng_\mathrm{up}).
+\end{equation}
+Solving this equation sequentially, starting at the top of the cloud
+and finishing at the bottom, we get the updated radiation field for
+all up-looking angles.
+\begin{equation} \IFld(\Prs_i, \ZntAng_\mathrm{up})^{(1)} =
+  \left\{ \StoVec^{(1)} \left( \Prs_i,\ZntAng_l \right) \right\} \qquad
+  \forall \; \ZntAng_{l} \in [0, 90^\circ].
+\end{equation}
 
-The limits for convergence have to be set in the control file by
-setting the vector \artsstyle{epsilon} as a keyword to appropriate
-values.  The conditions have to be valid for all positions in the
-cloudbox and for all directions.  Then the workspace variable
-\wsvindex{convergence\_flag} is set to 1.
+\subsection{Down-looking directions}
+The same procedure is done for down-looking directions.  The only
+difference is that the starting point is the lower-most pressure level
+$\Prs_1$ and the incoming clear sky field at the lower cloud box boundary,
+which is interpolated on the required zenith angles, is taken as
+boundary condition.  The following equation is solved sequentially,
+starting at the bottom of the cloud box and finishing at the top:
+\begin{equation}
+  \StoVec ( \Prs_{m},\ZntAng_\mathrm{down} ) ^{(1)} = 
+  \MtrStl{A}(\ZntAng_\mathrm{down}) \StoVec\left( \Prs_{m-1},\ZntAng_\mathrm{down} \right)^{(1)} 
+  + \MtrStl{B}(\ZntAng_\mathrm{down}).
+\end{equation}
+This yields the updated radiation field for all down-looking angles.
+\begin{equation}
+  \IFld(\Prs_i, \ZntAng_\mathrm{down})^{(1)} = \left\{ \StoVec^{(1)} \left( \Prs_i,\ZntAng_l \right) \right\}  \qquad
+  \forall \;  \ZntAng_l \in [\ZntAng_\mathrm{limit}, 180^\circ].
+\end{equation}
+
+\subsection{Limb directions}
+A special case for limb directions, which correspond to angles
+slightly above 90$^\circ$\, had to be implemented.  If the tangent
+point is part of the propagation path step, the intersection point is
+exactly at the same pressure level as the starting point.  In this
+case the linearly interpolated clear sky field is taken as input for
+the radiative transfer calculation, because we do not have an already
+updated field for this pressure level:
+\begin{equation}
+  \StoVec ( \Prs_{m},\ZntAng_\mathrm{limb} ) ^{(1)} =   
+  \MtrStl{A}(\ZntAng_\mathrm{limb}) \StoVec\left( \Prs_{m},\ZntAng_\mathrm{limb} \right)^{(0)} 
+  + \MtrStl{B}(\ZntAng_\mathrm{limb})
+\end{equation}
+By solving this equation the missing part of the updated radiation
+field is obtained
+\begin{equation}
+  \IFld(\Prs_i, \ZntAng_\mathrm{limb})^{(1)} = \left\{\StoVec \left( \Prs_i,\ZntAng_l \right) \right\}  \qquad
+  \forall \;  \ZntAng_l \in  ]90^\circ, \ZntAng_\mathrm{limit}[
+\end{equation}
+For all iterations the sequential update is applied. Using this method
+the number of iterations depends only on the optical thickness of the
+cloud or on the number of multiple-scattering events, not on the
+number of pressure levels.
+
+FIXME: Description for 3D sequential update.
+
+\section{Grid optimization and interpolation methods}
+\label{sec:scattering:grid_opt_interp}
+
+The accuracy of the DOIT method depends very much on the
+discretization of the zenith angle. The reason is that the intensity
+field strongly increases at about $\ZntAng=90^\circ$. For angles
+below 90$^\circ$ (``up-looking'' directions) the intensity is very
+small compared to angles above 90$^\circ$ (``down-looking''
+directions), because the thermal emission from the lower atmosphere
+and from the ground is much larger than thermal emission from trace
+gases in the upper atmosphere. \figref{fig:scattering:i_field} shows an
+example intensity field as a function of zenith angle for different
+pressure levels inside a cloud box, which is placed from 7.3 to 12.7\,km
+altitude, corresponding to pressure limits of 411\,hPa and 188\,hPa
+respectively. The cloud box includes 27 pressure levels. The frequency
+of the sample calculation was 318\,GHz. A midlatitude-summer scenario
+including water vapor, ozone, nitrogen and oxygen was used.
+The atmospheric data was taken from the FASCOD \citep{anderson:86}
+and the spectroscopic data was obtained from the HITRAN database
+\citep{rothman:98}. For simplicity 
+this 1D set-up was chosen for all sample calculations in this section.  As the
+intensity (or the Stokes vector) at the intersection point of a
+propagation path is obtained by interpolation, large interpolation
+errors can occur for zenith angles of about 90$^\circ$ if the zenith
+angle grid discretization is too coarse.  Taking a very fine
+equidistant zenith angle grid leads to very long computation times.
+Therefore a zenith angle grid optimization method is required.
+
+For the computation of the scattering integral it is possible to take
+a much coarser zenith angle resolution without losing accuracy.  It
+does not make sense to use the zenith angle grid, which is optimized
+to represent the radiation field with a certain accuracy. The
+integrand is the product of the phase matrix and the radiation field.
+The peaks of the phase matrices can be at any zenith angle, depending
+on the incoming and the scattered directions. The multiplication
+smooths out both the radiation field increase at 90$^\circ$ and the
+peaks of the phase matrices.  Test calculations have shown that an
+increment of 10$^\circ$ is sufficient. Taking the equidistant grid
+saves the computation time of the scattering integral to a very large
+extent, because much less grid points are required.
+
+\begin{figure}[htbp]
+\centering
+  \includegraphics[width=0.8\hsize]{../Figs/scattering/i_field}
+  \caption{Intensity field for different pressure levels.}
+  \label{fig:scattering:i_field}  
+\end{figure}
 
 
-\item {\bf Method \artsstyle{convergence\_flagLsq}:}\\
-  This method performs a least square test.
-\end{itemize}
+\subsection{Zenith angle grid optimization}
+
+As a reference field for the grid optimization the DOIT method is
+applied for an empty cloud box using a very fine zenith angle grid. The
+grid optimization routine finds a reduced zenith angle grid which can
+represent the intensity field with the desired accuracy.  It first
+takes the radiation at 0$^\circ$ and 180$^\circ$ and interpolates
+between these two points on all grid points contained in the fine
+zenith angle grid for all pressure levels. Then the differences
+between the reference radiation field and the interpolated field are
+calculated. The zenith angle grid point, where the difference is
+maximal is added to 0$^\circ$ and 180$^\circ$. After that the
+radiation field is interpolated between these three points forming 
+part of the reduced grid and again the grid point with the maximum
+difference is added. Using this method more and more grid points are
+added to the reduced grid until the maximum difference is below a
+requested accuracy limit.
+
+The top panel of \figref{fig:scattering:grid_acc} shows the clear sky
+radiation in all viewing directions for a sensor located at 13\,km
+altitude. This result was obtained with a switched-off cloud box.  The
+difference between the clear sky part of the ARTS model and the
+scattering part is that in the clear sky part the radiative transfer
+calculations are done along the line of sight of the instrument
+whereas inside the cloud box the RT calculations are done as described
+in the previous section to obtain the full radiation field inside the
+cloud box. In the clear sky part the radiation field is not
+interpolated, therefore we can take the clear sky solution as the exact
+solution.
+
+\begin{figure}[t]
+\centering
+  \includegraphics[width=.9\hsize]{../Figs/scattering/grid_acc}
+  \caption{Interpolation errors for different grid accuracies.
+    Top panel: Clear sky radiation simulated for a sensor at an altitude of
+    13\,km for all viewing directions.
+    Bottom left: Grid optimization accuracy for limb directions.
+    Bottom right: Grid optimization accuracy for down-looking
+    directions.}
+  \label{fig:scattering:grid_acc}  
+\end{figure}
+
+The interpolation error is the relative difference between the exact
+clear sky calculation (cloud box switched off) and the clear sky
+calculation with empty cloud box.  The bottom panels of
+\figref{fig:scattering:grid_acc} show the interpolation errors for zenith
+angle grids optimized with three different accuracy limits (0.1\%,
+0.2\% and 0.5\%.). The left plot shows the critical region close to
+90$^\circ$.  For a grid optimization accuracy of 0.5\% the
+interpolation error becomes very large, the maximum error is 
+about 8\%. For grid accuracies of 0.2\% and 0.1\% the maximum
+interpolation errors are about 0.4\% and 0.2\% respectively. However
+for most angles it is below 0.2\%, for all three cases. For
+down-looking directions from 100$^\circ$ to 180$^\circ$ the
+interpolation error is at most 0.14\% for grid accuracies of 0.2\% and 0.5\%
+and for a grid accuracy of 0.1\% it is below~0.02\%. 
 
 
+\subsection{Interpolation methods}
+Two different interpolation methods can be chosen in ARTS for the
+interpolation of the radiation field in the zenith angle dimension:
+linear interpolation or three-point polynomial interpolation. The polynomial interpolation
+method produces more accurate results provided that the zenith angle
+grid is optimized appropriately. The linear interpolation method on
+the other hand is safer. If the zenith angle grid is not optimized for
+polynomial interpolation one should use the simpler linear interpolation
+method.  Apart from the interpolation of the radiation field in the
+zenith angle dimension linear interpolation is used everywhere in the
+model.  \figref{fig:scattering:interp} shows the interpolation errors for the
+different interpolation methods.  Both calculations are performed on
+optimized zenith angle grids, for polynomial interpolation 65 grid points
+were required to achieve an accuracy of 0.1\% and for linear
+interpolation 101 points were necessary to achieve the same accuracy.
+In the region of about 90$^\circ$ the interpolation errors are below
+1.2\% for linear interpolation and below 0.2\% for polynomial
+interpolation. For the other down-looking directions the differences
+are below 0.08\% for linear and below 0.02\% for polynomial interpolation.
+It is obvious that polynomial interpolation gives more accurate results.
+Another advantage is that the calculation is faster because less grid
+points are required, although the polynomial interpolation method itself is
+slower than the linear interpolation method.  Nevertheless, we have
+implemented the polynomial interpolation method so far only in the 1D
+model. In the 3D model, the grid optimization needs to be done over
+the whole cloud box, where it is not obvious that
+one can save grid points. Applying the polynomial interpolation method
+using non-optimized grids can yield much larger interpolation errors
+than the linear interpolation method.
 
- 
+\begin{figure}[htbp]
+\centering
+  \includegraphics[width=.9\hsize]{../Figs/scattering/interp}
+  \caption{Interpolation errors for polynomial and linear interpolation.
+  }
+  \label{fig:scattering:interp}  
+\end{figure}
 
+\subsection{Error estimates}
+The interpolation error for scattering calculations can be estimated
+by comparison of a scattering calculation performed on a very fine
+zenith angle grid (resolution 0.001$^\circ$ from 80$^\circ$ to
+100$^\circ$) with a scattering calculation performed on an optimized
+zenith angle grid with 0.1\% accuracy. The cloud box used in previous
+test calculations is filled with spheroidal particles with an aspect
+ratio of 0.5 from 10 to 12\,km altitude. The ice mass content is
+assumed to be $4.3\cdot10^{-3}$\,g/m$^3$ at all pressure levels.  
+An equal volume sphere radius of 75$\,\mum$ is assumed. The particles are
+either completely randomly oriented (p20) or azimuthally randomly
+oriented (p30) (cf. FIXME).% \ \appref{sec:ssp_ARTS}).
+The top panels of
+\figref{fig:scattering:interp_err} show the interpolation errors of the
+intensity.  For both particle orientations the interpolation error is
+in the same range as the error for the clear sky calculation, below
+0.2\,K. The bottom panels show the interpolation errors for~$Q$. For the
+randomly oriented particles the error is below 0.5\%. For the
+horizontally aligned particles with random azimuthal orientation it goes up to 2.5\% for a
+zenith angle of about 91.5$^\circ$. It is obvious that the
+interpolation error for~$Q$ must be larger than that for~$I$ because the
+grid optimization is accomplished using only the clear-sky field,
+where the polarization is zero. Only the limb directions about
+90$^\circ$ are problematic, for other down-looking directions the
+interpolation error is below~0.2\%.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=.9\hsize]{../Figs/scattering/interp_err}
+  \caption{Interpolation errors for a scattering calculation.
+    Left panels: Interpolation errors for limb directions.
+    Right panels: Interpolation errors for down-looking directions.
+    Top: Intensity~$I$, Bottom: Polarization difference~$Q$}
+  \label{fig:scattering:interp_err}  
+\end{figure}
+
+\section{Implementation in ARTS}
+\label{sec:scattering:implementation_DOIT}
+
+\subsection[Single scattering properties]{Single scattering properties}
+\label{sec:scattering:ssp}
+
+Clouds consist of a variety of particle sizes and shapes. Furthermore,
+the cloud particles
+can be oriented, in most cases they are horizontally aligned.  It is
+not possible to model the clouds exactly as they are in nature,
+therefore we need some approximations.  In ARTS different kinds of
+scattering media are implemented. One kind consists of randomly
+oriented particles, which allows very efficient computation of single
+scattering properties.  Although this kind of scattering medium is
+only a special case, it provides a rather good numerical description
+of the scattering properties of clouds and is by far the most often
+used theoretical model in particle scattering theory.  As the
+polarization signal of clouds depends significantly on the cloud
+particle orientation, there is also a kind of
+scattering media consisting of horizontally aligned particles.
+
+\subsubsection[Coordinate systems]{Coordinate systems: The laboratory frame and the scattering frame}
+\label{sec:scattering:coordinate_sytems}
+
+For radiative transfer calculations we need a coordinate system to
+describe the direction of propagation. For this purpose we use the
+laboratory frame, which has been introduced in
+\secref{sec:fm_defs} and which is also shown in \figref{fig:RT_theory_coordinates}.
+The z-axis corresponds to the local zenith direction and the x-axis
+points towards the north-pole. The propagation direction is described
+by the local zenith angle $\theta$ and the local azimuth angle $\phi$.
+This coordinate system is the most appropriate frame to describe the
+propagation direction and the polarization state of the radiation.
+However, in order to describe scattering of radiation by a particle or
+a particle ensemble, it makes sense to define another coordinate
+system taking into consideration the symmetries of the particle or the
+scattering medium, as one gets much simpler expressions for the single
+scattering properties.  For macroscopically isotropic and
+mirror-symmetric scattering media it is convenient to use the
+scattering frame, in which the incidence direction is parallel to the
+z-axis and the x-axis coincides with the scattering plane, that is,
+the plane through the unit vectors \VctStl{\hat{n}^{\inc}}\ and
+\VctStl{\hat{n}^{\sca}}. The scattering frame is illustrated in
+\figref{fig:scattering:part_frame}. For symmetry reasons the single scattering
+properties defined with respect to the scattering frame can only
+depend on the scattering angle $\Theta$,
+\begin{equation}
+  \label{eq:scat_angle}
+  \Theta=\arccos(\hat{\PDir}^{\inc} \cdot {\hat{\PDir}^{\sca}}),
+\end{equation}
+between the incident and the scattering direction.
+
+\begin{figure}[htbp]
+ \begin{center}
+   \includegraphics*[width=0.4\hsize]{./Figs/scattering/part_frame}
+   \caption{Illustration of the scattering frame. The z-axis coincides with the incident direction $\hat{\PDir}^{\inc}$. The scattering angle $\Theta$ is the angle between  $\hat{\PDir}^{\inc}$ and $\hat{\PDir}^{\sca}$.}
+   \label{fig:scattering:part_frame}  
+ \end{center}
+\end{figure}
+
+\subsubsection{ARTS datafile stucture}
+\label{sec:scattering:ARTS_SSP_structure}
+
+The single scattering properties are pre-calculated, for example by using the T-matrix
+code by \citet{Mishchenko:02}, and stored in data-files. Different
+methods for the calculation of single scattering properties are
+reviewed in \citet{emde05:_phdthesis}. The structure of the data-files is
+shown in \tabref{tab:scattering:datastructure}.  The first field of the
+structure includes a value (\emph{enum}), which characterizes the kind
+of scattering medium, i.e., whether the particles are arbitrarily
+oriented, randomly oriented or horizontally aligned. This information
+is needed, since different scattering media types are treated
+differently inside the program. The next field is a string which
+includes a short description of the scattering medium contained in the
+data-file. This should include information about how the single
+scattering properties were generated. After that, numerical grids for
+variables, on which the single scattering properties depend on, are
+stored. These are the frequency grid, the temperature grid, the zenith
+angle grid and the azimuth angle grid. Note that the same numerical
+grids are used for incident and scattered directions. The last three
+fields contain the data. First the phase matrix data is stored as a
+seven-dimensional array, as the phase matrix depends on the frequency
+\Frq, the temperature \Tmp, the scattered direction $(\ZntAng,
+\AzmAng)$, the incident direction $(\ZntAng', \AzmAng')$ and it
+has in general sixteen matrix elements. The extinction matrix data and
+the absorption coefficient vector data are five-dimensional arrays.
+They have two dimensions less than the array holding the phase matrix
+data, since they are defined only for the forward direction.
+
+\begin{table}
+\label{tab:scattering:datastructure}
+\caption{Structure of single scattering data files}
+\begin{flushleft}
+\begin{tabular}{llll}
+\hline
+\multicolumn{1}{c}{Symbol}&Type&Dimensions&Description \\
+\hline
+  &enum& & specification of particle type \\
+  &String& & short description of particle type \\
+\Frq & Vector & (\Frq) & frequency grid \\
+\Tmp  & Vector & (\Tmp) & temperature grid \\
+\ZntAng & Vector & (\ZntAng) & zenith angle grid \\
+\AzmAng & Vector & (\AzmAng) & azimuth angle grid \\
+\EnsAvr{\PhaMat}  & Tensor7 & (\Frq, \Tmp, \ZntAng, \AzmAng, $\ZntAng'$, $\AzmAng'$, $i$ )  & phase matrix \\
+\EnsAvr{\ExtMat} & Tensor5  & (\Frq, \Tmp, \ZntAng, \AzmAng, $i$ ) & extinction matrix \\
+\EnsAvr{\AbsVec} & Tensor5 & (\Frq, \Tmp, \ZntAng, \AzmAng, $i$ ) & absorption vector\\
+\hline
+\end{tabular}
+\end{flushleft}
+\end{table}
+
+The following three kinds of scattering media are implemented in ARTS
+so far. The number in brackets is the corresponding \emph{enum}-value.
+\begin{description}
+\item[General case (p10):] If the scattering medium does not have any
+  symmetries, all sixteen elements of the phase matrix have to be
+  stored. The individual phase matrices can be calculated using
+  Mishchenko's T-matrix code for single particles in fixed
+  orientation.  The
+  extinction matrix has in general seven independent elements and the
+  absorption vector has four different elements.
+\item[Randomly oriented particles (p20):] For this case the scattering
+  medium is macroscopically isotropic and mirror-symmetric and we
+  calculate the single scattering properties in the particle frame
+  (\figref{fig:scattering:part_frame}) using the T- matrix code for randomly
+  oriented particles. This reduces the size of the datafiles
+  enormously, as the single scattering properties depend only on the
+  scattering angle, not on four angles needed to describe incident and
+  scattered directions. Furthermore the number of independent elements
+  of the phase matrix, the extinction matrix and the absorption
+  coefficient vector is reduced. Only six elements of the phase matrix
+  are independent and the extinction matrix is diagonal, therefore
+  only one element needs to be stored in the data files. Only the
+  first element of the absorption vector is non-zero. Moreover,
+  extinction and absorption are independent of the propagation
+  direction. The only drawback is that the single scattering data has
+  to be transformed from the particle frame representation to the
+  laboratory frame representation. These transformations are described
+  in the appendix of \citet{emde05:_phdthesis}.
+\item[Horizontally aligned plates and columns (p30):] For particles
+  that are azimuthally randomly oriented, one angular dimension of the
+  phase matrix data array is redundant, as the phase matrix is
+  independent of the incident azimuth angle. Furthermore, regarding
+  the symmetry of this case, it can be shown that for the scattered
+  directions only half of the angular grids are required. As for the
+  general case, the fixed orientation T-matrix code for single
+  scattering particles is used. The averaging over azimuthal
+  orientations is done using the exact $T$-matrix averaging method of
+  \citet{mishchenko00:_light_scatt_nonsp_partic} for the extinction
+  matrix, and by numerical integration for the phase matrix. The data
+  is stored in the laboratory frame omitting the redundant data.
+  Therefore this data does not need to be transformed. In order to use
+  it for the radiative transfer equation, we only need appropriate
+  reading and interpolation routines for this data format.
+\end{description} 
+
+It is very convenient to use the PYTHON module PyARTS, which has been
+developed especially for ARTS and which is freely available at
+\href{http://www.sat.uni-bremen.de/cgi-bin/cvsweb.cgi/PyARTS/}
+{\url{http://www.sat.uni-bremen.de/cgi-bin/cvsweb.cgi/PyARTS/}}. This
+module can be used to generate single scattering properties for
+horizontally aligned as well as for randomly oriented particles in the
+ARTS data-file-format. PyARTS has been developed by C. Davis, who has
+implemented the Monte Carlo scattering algorithm in ARTS (see
+\secref{sec:montecarlo}).
 
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "uguide"
 %%% End: 
-% LocalWords:  Emde ext matrix abs vec pha pnd sca lat lon za aa pt FIXME Eq
-% LocalWords:  Eqs mishchenko scatt nonsp partic RTE

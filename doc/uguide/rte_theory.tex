@@ -1,9 +1,19 @@
+%Inverse Wave Impendance
+\newcommand{\ColVctTwo}[2]{\left[
+    \begin{array}{c} #1\\ #2
+    \end{array} \right] }
+
+\newcommand{\ColVctFour}[4]{\left[
+    \begin{array}{c} #1\\ #2 \\ #3 \\ #4
+    \end{array} \right] }
+
 \chapter{Basic radiative transfer theory}
  \label{sec:rte_theory}
 
 
 \starthistory
   030305 & Copied from a compendium written by Patrick Eriksson.\\
+  050224 & Copied chapter 1 from Claudia Emde's phd-thesis. 
 \stophistory
 
 
@@ -36,20 +46,650 @@
  scattering is problematic to model because the shape and size
  distribution of the scattering particles are highly variable
  quantities.  
+
+ This chapter introduces the theoretical background which is essential
+ to develop a radiative transfer model including scattering. The theory
+ is based on concepts of electrodynamics, starting from the Maxwell
+ equations.  An elementary book for electrodynamics is written by
+ \citet{jackson98:_class}.  For optics and scattering of radiation by
+ small particles the reader may refer for instance to
+ \citet{hulst57:_light_scatt_small} and \citet{bohren:98}. The notation
+ used in this chapter is mostly adapted from the book ``Scattering,
+ Absorption, and Emission of Light by Small Particles'' by
+ \citet{Mishchenko:02}. Several lengthy derivations of formulas, which
+ are not shown in detail here, can also be found in this book. The
+ purpose of this chapter is to provide definitions and give ideas, how
+ these definitions can be derived using principles of electromagnetic
+ theory. For the derivation of the radiative transfer equation an
+ outline of the traditional phenomenological approach is given.
  
- If scattering can be neglected and the atmosphere is assumed to be in
- local thermodynamic equilibrium, the radiative transfer equation gets
- unusually simple. These assumptions will be made below and
- they are normally valid for the infrared region and longer
- wavelengths as in the microwave region. For these conditions the
- atmospheric absorption and emission are linked and the basic problem
- to determine the radiative transfer is to calculate the absorption.
- At the wavelengths considered rotational and vibrational transitions
- are the dominating absorbing processes.
+ \section{Basic definitions}
+ \label{sec:rtetheory:theory_basics}
+ 
+ From the Maxwell equations one can derive the formula for the
+electromagnetic field vector $\VctStl{E}$ of a plane electromagnetic
+wave propagating in a homogeneous medium without sources:
+\begin{equation}
+  \VctStl{E}(\VctStl{r}, t) =
+  \VctStl{E}_0
+  \exp\left(-\frac{\omega}{c} m_{\mathrm{I}} \hat{\PDir} \cdot \VctStl{r}\right)
+  \exp\left(i \frac{\omega}{c} m_{\mathrm{R}} \hat{\PDir} \cdot \VctStl{r}  - i \omega t \right),
+\end{equation}
+where $\VctStl{E}_0$ is the amplitude of the electromagnetic wave in
+vacuum, $c$ is the speed of light in vacuum, $\omega$ is the angular
+frequency, $\VctStl{r}$ is the position vector and $\hat{\PDir}$
+is a real unit vector in the direction of propagation. The complex
+refractive index~$m$ is
+\begin{equation}
+  m = m_{\mathrm{R}}+ i m_{\mathrm{I}} = c \sqrt{\epsilon \mu},
+\end{equation}
+where $m_{\mathrm{R}}$ is the non-negative real part and $m_{\mathrm{I}}$ is the non-negative imaginary part. Furthermore $\mu$ is the
+permeability of the medium and $\epsilon$ the permittivity.  For a
+vacuum, $m = m_{\mathrm{R}} = 1$.  The imaginary part of the refractive
+index, if it is non-zero, determines the decay of the amplitude of the
+wave as it propagates through the medium, which is thus absorbing.
+The real part determines the phase velocity $v = c/m_{\mathrm{R}}$.
+The time-averaged Poynting vector $\VctStl{P}(\VctStl{r})$, which describes the
+flow of electromagnetic energy, is defined as
+\begin{equation}
+   \VctStl{P}(\VctStl{r}) =
+     \frac{1}{2} \Re \bigl(\EnsAvr{\VctStl{E}(\VctStl{r})} \times
+     \EnsAvr{\VctStl{H}^*(\VctStl{r})}\bigr),
+\end{equation}
+where $\VctStl{H}$ is the magnetic field vector and the $*$ denotes the
+complex conjugate. The Poynting vector for a homogeneous wave is given
+by
+\begin{equation}
+\label{eq:rtetheory:Poynting_vec}
+  \EnsAvr{\VctStl{P}(\VctStl{r})} =
+   \frac{1}{2}\Re \left( \sqrt{\frac{\epsilon}{\mu}} \right)
+   \Abs{\VctStl{E}_0}^2
+   \exp\left(-2\frac{\omega}{c} m_{\mathrm{I}} \hat{\PDir} \cdot
+     \VctStl{r}\right) \hat{\PDir}.
+\end{equation}
+\eqnref{eq:rtetheory:Poynting_vec} shows that the energy flows in the
+direction of propagation and its absolute value $I(\VctStl{r}) =
+\Abs{\EnsAvr{\VctStl{P}(\VctStl{r})}}$, which is usually called
+intensity (or irradiance), is exponentially attenuated. Rewriting
+\eqnref{eq:rtetheory:Poynting_vec} gives
+\begin{equation}
+  I(\VctStl{r}) = I_0 \exp(-\alpha^p \hat{\PDir} \cdot \VctStl{r}),
+\end{equation}
+where $I_0$ is the intensity for $\VctStl{r} = \VctStl{0}$. The absorption
+coefficient $\alpha^p$ is
+\begin{equation}
+  \alpha^p =
+  2 \frac{\omega}{c} m_{\mathrm{I}} =
+    \frac{4\pi m_{\mathrm{I}}}{\lambda} =
+    \frac{4\pi m_{\mathrm{I}}\nu}{c},
+\end{equation}
+where $\lambda$ is the free-space wavelength and $\nu$ the frequency.
+Intensity has the dimension of monochromatic flux
+[$\mathrm{energy}/(\mathrm{area}\times\mathrm{time})$].
+  
+
+\section[The Stokes parameters]{The Stokes parameters}
+\label{sec:rtetheory:Stokes_components}
+  
+
+Sensors usually do not measure directly the electric and the magnetic
+fields associated with a beam of radiation. They measure quantities
+that are time averages of real-valued linear combinations of products
+of field vector components and have the dimension of intensity.
+Examples of such observable quantities are the Stokes parameters.
+\figref{fig:RT_theory_coordinates} shows the coordinate system used
+to describe the direction of propagation $\hat{\PDir}$ and the
+polarization state of a plane electromagnetic wave.
+\begin{figure}[t]
+ \begin{center}
+   \includegraphics*[width=0.6\hsize]{./Figs/rte_theory/coordinate_system}
+   \caption{Coordinate system to describe the direction of propagation and the polarization state of a plane electromagnetic wave (adapted from Mishchenko).}
+  \label{fig:RT_theory_coordinates}  
+ \end{center}
+\end{figure}
+The unit vector $\hat{\PDir}$ can equivalently be described by a
+couplet $(\ZntAng, \AzmAng)$, where ${\ZntAng \in [0,\pi]}$ is the polar
+(zenith) angle and $\AzmAng \in [0,2\pi)$ is the azimuth angle. The
+electric field at the observation point is given by $\VctStl{E} =
+\VctStl{E}_\ZntAng + \VctStl{E}_\AzmAng$, where $ \VctStl{E}_\ZntAng$ and
+$\VctStl{E}_\AzmAng$ are the $\ZntAng$- and $\AzmAng$-components of the
+electric field vector.  $\VctStl{E}_\ZntAng$ lies in the meridional
+plane, which is the plane through $\hat{\PDir}$ and the $z$-axis, and
+$\VctStl{E}_\AzmAng$ is perpendicular to this plane.
+The Stokes parameters are defined as linear combinations of products
+of the amplitudes $\VctStl{E}_\ZntAng$ and  $\VctStl{E}_\AzmAng$ which
+form the $4\times1$ column vector \StoVec,
+which is known as the Stokes vector.  Since the Stokes parameters are
+real-valued and have the dimension of intensity, they can be measured
+directly with suitable instruments. The Stokes parameters are a
+complete set of quantities needed to characterize a plane
+electromagnetic wave. They carry information of the complex amplitudes
+and the phase difference.  The first Stokes parameter $I$ is the
+intensity and the other components $Q$, $U$ and $V$ describe the
+polarization state of the wave. For a detailed definition of the
+Stokes parameters and how they can be measured refer to
+Section~\ref{sec:polarization}.
+
+\section[Single particle scattering]{Scattering, absorption and thermal emission by a single particle}
+\label{sec:rtetheory:theory_single_part}
+
+A parallel monochromatic beam of electromagnetic radiation propagates
+in vacuum without any change in its intensity or polarization state. A
+small particle, which is interposed into the beam, can cause several
+effects:
+\begin{description}
+\item[Absorption:] The particle converts some of the energy
+  contained in the beam into other forms of energy.
+\item[Elastic scattering:] Part of the incident energy is
+  extracted from the beam and scattered into all spatial directions at
+  the frequency of the incident beam. Scattering can change the
+  polarization state of the radiation.
+\item[Extinction:] The energy of the incident beam is reduced by
+  an amount equal to the sum of absorption and scattering.
+\item[Dichroism:] The change of the polarization state of the beam
+  as it passes a particle.
+\item[Thermal emission:] If the temperature of the particle is
+  non-zero, the particle emits radiation in all directions over a
+  large frequency range.
+\end{description}
+The beam is an oscillating plane magnetic wave, whereas the particle
+can be described as an aggregation of a large number of discrete
+elementary electric charges. The incident wave excites the charges to
+oscillate with the same frequency and thereby radiate secondary
+electromagnetic waves. The superposition of these waves gives the
+total elastically scattered field.
+
+One can also describe the particle as an object with a refractive
+index different from that of the surrounding medium. The presence of
+such an object changes the electromagnetic field that would otherwise
+exist in an unbounded homogeneous space. The difference of the total
+field in the presence of the object can be thought of as the field
+\emph{scattered} by the object. The angular distribution and the
+polarization of the scattered field depend on the characteristics of
+the incident field as well as on the properties of the object as its
+size relative to the wavelength and its shape, composition and
+orientation.
+
+\subsection{Definition of the amplitude matrix}
+\label{sec:rtetheory:amp_mat}
+
+For the derivation of a relation between the incident and the
+scattered electric field we consider a finite scattering object in the
+form of a single body or a fixed aggregate embedded in an infinite
+homogeneous, isotropic and non-absorbing medium. We assume that the
+individual bodies forming the scattering object are sufficiently large
+that they can be characterized by optical constants appropriate to
+bulk matter, not to optical constants appropriate for single atoms or
+molecules. Solving the Maxwell equations for the internal volume,
+which is the interior of the scattering object, and the external
+volume one can derive a formula, which expresses the total electric
+field everywhere in space in terms of the incident field and the field
+inside the scattering object. Applying the far field approximation
+gives a relation between incident and scattered field, which is that
+of a spherical wave.  The amplitude matrix
+$\MtrStl{S}(\hat{\PDir}^{\sca},\hat{\PDir}^{\inc})$ includes this relation:
+\begin{equation}
+  \label{eq:rtetheory:amplitude_matrix}
+  \ColVctTwo{E_\ZntAng^{\sca}(r\hat{\PDir}^{\sca})}%
+         {E_\AzmAng^{\sca}(r\hat{\PDir}^{\sca})}
+         = \frac{e^{ikr}}{r}\MtrStl{S}(\hat{\PDir}^{\sca},\hat{\PDir}^{\inc}) 
+ \ColVctTwo{E_{0\ZntAng}^{\inc}}%
+         {E_{0\AzmAng}^{\inc}}.
+\end{equation}
+The amplitude matrix depends on the directions of incident
+$\hat{\PDir}^{\inc}$ and scattering $\hat{\PDir}^{\sca}$ as well as on size,
+morphology, composition, and orientation of the scattering object with
+respect to the coordinate system. The distance between the origin and
+the observation point is denoted by $r$ and the wave number of the
+external volume is denoted by~$k$.
+
+The amplitude matrix provides a complete description of the scattering
+pattern in the far field zone. The amplitude matrix explicitly depends
+on $\AzmAng^{\inc}$ and $\AzmAng^{\sca}$ even when $\ZntAng^{\inc}$ and/or
+$\ZntAng^{\sca}$ equal 0 or~$\pi$.
+
+\subsection{Phase matrix}
+\label{sec:rtetheory:pha_mat}
+
+The phase matrix \PhaMat\ describes the transformation of the Stokes
+vector of the incident wave into that of the scattered wave for
+scattering directions away from the incidence direction
+$(\hat{\PDir}^{\sca}\neq\hat{\PDir}^{\inc})$,
+\begin{equation}
+  \label{eq:rtetheory:phase_matrix}
+  \StoVec^{\sca}(r \hat{\PDir}^{\sca}) =
+    \frac{1}{r^2}\PhaMat(\hat{\PDir}^{\sca},\hat{\PDir}^{\inc}) \StoVec^{\inc}.
+\end{equation}
+The $4\times4$ phase matrix can be written in terms of the amplitude
+matrix elements for single particles \citep{Mishchenko:02}. All
+elements of the phase matrix have the dimension of area and are real.
+As the amplitude matrix, the phase matrix depends on $\AzmAng^{\inc}$
+and $\AzmAng^{\sca}$ even when $\ZntAng^{\inc}$ and/or $\ZntAng^{\sca}$ equal
+0 or~$\pi$.  In general, all 16 elements of the phase matrix are
+non-zero, but they can be expressed in terms of only seven independent
+real numbers. Four elements result from the moduli $\Abs{S_{ij}}$ ($i,j =
+1,2$) and three from the phase-differences between~$S_{ij}$.  If the
+incident beam is unpolarized, i.e., $\StoVec^{\inc} = (I^{\inc},
+0, 0, 0)^T$, the scattered light generally has at least one
+non-zero Stokes parameter other than intensity:
+\begin{eqnarray}
+  I^{\sca} &= Z_{11}I^{\inc},\\
+  Q^{\sca} &= Z_{21}I^{\inc},\\
+  U^{\sca} &= Z_{31}I^{\inc},\\
+  V^{\sca} &= Z_{41}I^{\inc}.
+\end{eqnarray}
+This is the phenomena is traditionally called ``polarization''. The
+non-zero degree of polarization \eqnref{eq:polarization:pol_degree}
+can be written in terms of the phase matrix elements
+\begin{equation}
+  p = \frac{\sqrt{Z_{21}^2+Z_{31}^2+Z_{41}^2}}{Z_{11}}.
+\end{equation}
 
 
+\subsection{Extinction matrix}
+\label{sec:rtetheory:ext_mat}
+In the special case of the exact forward direction
+$(\hat{\PDir}^{\sca}=\hat{\PDir}^{\inc})$ the attenuation of the
+incoming radiation is described by the extinction matrix~\ExtMat. In
+terms of the Stokes vector we get
+\begin{equation}
+  \StoVec(r \hat{\PDir}^{\inc}) \Delta S =
+    \StoVec^{\inc} \Delta S - \ExtMat(\hat{\PDir}^{\inc}) \StoVec^{\inc} + O(r^{-2}).
+\end{equation}
+Here $\Delta S$ is a surface element normal to
+$\hat{\PDir}^{\inc}$.  The extinction matrix can also be expressed
+explicitly in terms of the amplitude matrix. It has only seven
+independent elements. Again the elements depend on $\AzmAng^{\inc}$ and
+$\AzmAng^{\sca}$ even when the incident wave propagates along the
+$z$-axis.
+
+\subsection{Absorption vector}
+\label{sec:rtetheory:abs_vec}
+The particle also emits radiation if its temperature~$T$ is above zero
+Kelvin. According to Kirchhoff's law of radiation the emissivity
+equals the absorptivity of a medium under thermodynamic equilibrium.
+The energetic and polarization characteristics of the emitted
+radiation are described by a four-component Stokes emission column
+vector $\AbsVec(\hat{\VctStl{r}}, T, \omega)$. The emission vector is
+defined in such a way that the net rate, at which the emitted energy
+crosses a surface element $\Delta S$ normal to $\hat{\VctStl{r}}$ at
+distance~$r$ from the particle at frequencies from $\omega$ to $\omega
++ \Delta\omega$, is
+\begin{equation}
+  W^e = \frac{1}{r^2}\AbsVec(\hat{\VctStl{r}}, T, \omega)
+  \Planck(T,\omega) \Delta S \Delta\omega,
+\end{equation}
+where $W^e$ is the power of the emitted radiation and \Planck\ is the
+Planck function.  In order to calculate~\AbsVec\ we assume that the
+particle is placed inside an opaque cavity of dimensions large
+compared to the particle and any wavelengths under consideration. We
+have thermodynamic equilibrium if the cavity and the particle are
+maintained at the constant temperature~$T$. The emitted radiation
+inside the cavity is isotropic, homogeneous, and unpolarized. We can
+represent this radiation as a collection of quasi-monochromatic,
+unpolarized, incoherent beams propagating in all directions
+characterized by the Planck blackbody radiation
+\begin{equation}
+  \label{eq:rtetheory:Planck}
+  \Planck(T,\omega)\Delta S \Delta\Omega =
+    \frac{\hbar\omega^3}{2\pi^2 c^2\left[\exp\left(\frac{\hbar\omega}{k_B T}\right) -1\right]}
+     \Delta S \, \Delta\Omega,
+\end{equation}
+where $\Delta \Omega$ is a small solid angle about any direction,
+$\hbar$ is the Planck constant divided by $2\pi$, and $k_B$ is the
+Boltzmann constant. The blackbody Stokes vector is
+\begin{equation}
+  \StoVec_b(T, \omega) = \ColVctFour{\Planck(T,\omega)}{0}{0}{0}.
+\end{equation}
+For the Stokes emission vector, which we also call particle absorption
+vector, we can derive
+\begin{equation}
+  \label{eq:rtetheory:abs_vec}
+  a_i^p(\hat{\VctStl{r}}, T, \omega) =
+  K_{i1}(\hat{\VctStl{r}},\omega) - \int_{4\pi} \DiffD\hat{\VctStl{r}}' Z_{i1}(\hat{\VctStl{r}}, \hat{\VctStl{r}}', \omega) ,
+ \quad i = 1,\ldots,4. 
+\end{equation}
+This relation is a property of the particle only, and it is valid for
+any particle, in thermodynamic equilibrium or non-equilibrium.
+
+
+\subsection{Optical cross sections}
+\label{sec:rtetheory:cross_sects}
+
+The optical cross-sections are defined as follows: The product of the
+scattering cross section $C_{\sca}$ and the incident monochromatic
+energy flux gives the total monochromatic power removed from the
+incident wave as a result of scattering into all directions. The
+product of the absorption cross section $C_{\mathrm{abs}}$ and the incident
+monochromatic energy flux gives the power which is removed from the
+incident wave by absorption. The extinction cross section $C_{\mathrm{ext}}$ is
+the sum of scattering and absorption cross section.  One can express
+the extinction cross sections in terms of extinction matrix elements
+\begin{eqnarray}\label{eq:rtetheory:ext_cross_sec}
+    C_{\mathrm{ext}} =
+      \frac{1}{I^{\inc}} \, \bigl( &
+                K_{11}(\hat{\VctStl{n}}^{\inc})I^{\inc}
+             +  K_{12}(\hat{\VctStl{n}}^{\inc})Q^{\inc} + \\
+         &      K_{13}(\hat{\VctStl{n}}^{\inc})U^{\inc}
+             +  K_{14}(\hat{\VctStl{n}}^{\inc})V^{\inc} \bigr),  
+\end{eqnarray}
+and the scattering cross section in terms of phase matrix elements
+\begin{eqnarray}\label{eq:rtetheory:sca_cross_sec}
+  C_{\sca} =
+      \frac{1}{I^{\inc}} \int_{4\pi} \DiffD\hat{\VctStl{r}}
+    \bigl(&
+          Z_{11}(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc})I^{\inc}
+        + Z_{12}(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc})Q^{\inc} + \\
+     &    Z_{13}(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc})U^{\inc} +
+              Z_{14}({\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc}})V^{\inc} \bigr).
+\end{eqnarray}
+The absorption cross section is the difference between extinction and
+scattering cross section:
+\begin{equation}
+  \label{eq:rtetheory:abs_cross_sec}
+  C_{\mathrm{abs}} = C_{\mathrm{ext}} - C_{\sca}. 
+\end{equation}
+The single scattering albedo $\omega_0$, which is a commonly used
+quantity in radiative transfer theory, is defined as the ratio of the
+scattering and the extinction cross section:
+\begin{equation}
+  \omega_0 = \frac{C_{\sca}}{C_{\mathrm{ext}}} \le 1.
+\end{equation}
+All cross sections are real-valued positive quantities and have the
+dimension of area.
+
+The phase function is generally defined as
+\begin{eqnarray}\label{eq:rtetheory:phase_function}
+  p(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc}) =
+    \frac{4\pi}{C_{\sca} I^{\inc}} \, \bigl( &
+         Z_{11}(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc})I^{\inc}
+       + Z_{12}(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc})Q^{\inc} \rlap{${}+$} \\
+    &    Z_{13}(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc})U^{\inc}
+       + Z_{14}(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc})V^{\inc} \rlap{$\bigr)$.}
+ \end{eqnarray}
+The phase function is dimensionless and normalized:
+\begin{equation}
+  \frac{1}{4\pi}\int_{4\pi} 
+  p(\hat{\VctStl{r}}, \hat{\VctStl{n}}^{\inc}) \,\DiffD\hat{\VctStl{r}} = 1.
+\end{equation}
+
+
+
+\section[Particle Ensembles]{Scattering, absorption and emission by~ensembles of independent particles}
+\label{sec:rtetheory:part_ensembles}
+
+The formalism described in the previous chapter applies only for
+radiation scattered by a single body or a fixed cluster consisting of
+a limited number of components. In reality, one normally finds
+situations, where radiation is scattered by a very large group of
+particles forming a constantly varying spatial configuration. Clouds
+of ice crystals or water droplets are a good example for such a
+situation. A particle collection can be treated at each given moment
+as a fixed cluster, but as a measurement takes a finite amount of
+time, one measures a statistical average over a large number of
+different cluster realizations.
+
+Solving the Maxwell equations for a whole cluster, like a collection
+of particles in a cloud, is computationally too expensive.
+Fortunately, particles forming a random group can often be considered
+as independent scatterers. This approximation is valid under the
+following assumptions:
+\begin{enumerate}
+\item Each particle is in the far-field zone of all other particles.
+\item Scattering by the individual particles is incoherent.
+\end{enumerate}
+
+As a consequence of assumption 2, the Stokes parameters of the partial
+waves can be added without regard to the phase. If the particle number
+density is sufficiently small, the single scattering approximation can
+be applied. The scattered field in this approach is obtained by
+summing up the fields generated by the individual particles in
+response to the external field in isolation from all other particles.
+If the particle positions are random, one can show, that the phase
+matrix, the extinction matrix and the absorption vector are obtained
+by summing up the respective characteristics of all constituent
+particles.
+
+\subsection{Single scattering approximation}
+
+We consider a volume element containing $N$ particles. We assume that
+$N$ is sufficiently small, so that the mean distance between the
+particles is much larger than the incident wavelength and the average
+particle size. Furthermore we assume that the contribution of the
+total scattered signal of radiation scattered more than once is
+negligibly small.  This is equivalent to the requirement
+\begin{equation}
+  \frac{N\EnsAvr{C_{\sca}}}{l^2} \ll 1,
+\end{equation}
+where $\EnsAvr{C_{\sca}}$ is the average scattering cross section per
+particle and $l$ is the linear dimension of the volume element.  The
+electric field scattered by the volume element can be written as the
+vector sum of the partial scattered fields scattered by the individual
+particles:
+\begin{equation}
+  \VctStl{E}^{\sca}(\VctStl{r}) = \sum_{n=1}^{N}\VctStl{E_n}^{\sca}(\VctStl{r}).
+\end{equation}
+As we assume single scattering the partial scattered fields are given
+according to \eqnref{eq:rtetheory:amplitude_matrix}:
+\begin{equation}
+  \ColVctTwo{\left[ E_n^{\sca}(\VctStl{r}) \right]_\ZntAng}%
+         {\left[ E_n^{\sca}(\VctStl{r})\right]_\AzmAng}
+         = \frac{e^{ikr}}{r}{\MtrStl{S}(\hat{\VctStl{r}},\hat{\VctStl{n}}^{\inc})} 
+ \ColVctTwo{E_{0\ZntAng}^{\inc}}%
+         {E_{0\AzmAng}^{\inc}},
+\end{equation}
+where $\MtrStl{S}$ is the total amplitude scattering matrix given by:
+\begin{equation}
+  \MtrStl{S}(\hat{\VctStl{r}},\hat{\VctStl{n}}^{\inc}) = \sum_{n=1}^N e^{i\Delta_n}  {\MtrStl{S}_n(\hat{\VctStl{r}},\hat{\VctStl{n}}^{\inc})}.
+\end{equation}
+$\MtrStl{S}_n(\hat{\VctStl{r}},\hat{\VctStl{n}}^{\inc})$ are the individual amplitude
+matrices and the phase $\Delta_n$ is given by
+\begin{equation}
+  \Delta_n = k \VctStl{r}_\mathrm{On} \cdot(\hat{\VctStl{n}}^{\inc} - \hat{\VctStl{r}}),
+\end{equation}
+where the vector $\VctStl{r}_\mathrm{On}$ connects the origin of the volume
+element $O$ with the $n$th particle origin (see
+\figref{fig:part_ensembles}).  Since $\Delta_n$ vanishes in forward
+direction and the individual extinction matrices can be written in
+terms of the individual amplitude matrix elements, the total
+extinction matrix is given by
+\begin{equation}
+  \label{eq:rtetheory:ext_mat_tot}
+  \ExtMat = \sum_{n=1}^N  \MtrStl{K}_n = N \EnsAvr{\ExtMat},
+\end{equation}
+where $\EnsAvr{\ExtMat}$ is the average extinction matrix per
+particle. One can derive the analog equation for the phase matrix
+ \begin{equation}
+  \label{eq:rtetheory:pha_mat_tot}
+  \PhaMat = \sum_{n=1}^N  \MtrStl{Z}_n = N \EnsAvr{\PhaMat},
+\end{equation}
+where $\EnsAvr{\PhaMat}$ is the average phase matrix per particle.  In
+almost all practical situations, radiation scattered by a collection
+of independent particles is incoherent, as a minimal displacement of a
+particle or a slight change in the scattering geometry changes the
+phase differences entirely.  It is important to note, that the
+ensemble averaged phase matrix and the ensemble averaged extinction
+matrix have in general 16 independent elements. The relations between
+the matrix elements, which can be derived for single particles, do not
+hold for particle ensembles.
+
+\begin{figure}[t]
+ \begin{center}
+   \includegraphics*[width=0.6\hsize]{../Figs/rte_theory/part_ensemble}
+   \caption{A volume element of a scattering medium conststing of a particle ensemble. $O$ is the origin of the volume element, $r_{O1}$ connects the origin with particle $1$ and $r_{O2}$ with particle $2$. The observation point is assumed to be in the far-field zone of the volume element.}
+  \label{fig:part_ensembles}  
+ \end{center}
+\end{figure}
+
+
+\clearpage
+
+\section[Radiative transfer equation]{Phenomenological derivation of the radiative transfer equation}
+\label{sec:rtetheory:theory_rte}
+
+When the scattering medium contains a very large number of particles
+the single scattering approximation is no longer valid. In this case
+we have to take into account that each particle scatters radiation
+that has already been scattered by another particle. This means that
+the radiation leaving the medium has a significant multiple scattered
+component. The observation point is assumed to be in the far-field
+zone of each particle, but it is not necessarily in the far-field zone
+of the scattering medium as a whole. A traditional method in this case
+is to solve the radiative transfer equation.  This approach still
+assumes, that the particles forming the scattering medium are randomly
+positioned and widely separated and that the extinction and the phase
+matrices of each volume element can be obtained by incoherently adding
+the respective characteristics of the constituent particles. In other
+words the scattering media is assumed to consist of a large number of
+discrete, sparsely and randomly distributed particles and is treated
+as continuous and locally homogeneous.  Radiative transfer theory is
+originally a phenomenological approach based on considering the
+transport of energy through a medium filled with a large number of
+particles and ensuring energy conservation.
+\citet{mishchenko02:_vector} has demonstrated that it can be derived
+from electromagnetic theory of multiple wave scattering in discrete
+random media under certain simplifying assumptions.
+
+In the phenomenological radiative transfer theory, the concept of
+single scattering by individual particles is replaced by the
+assumption of scattering by a small homogeneous volume element. It is
+furthermore assumed that the result of scattering is not the
+transformation of a plane incident wave into a spherical scattered
+wave, but the transformation of the specific intensity vector, which
+includes the Stokes vectors from all waves contributing to the
+electromagnetic radiation field.
+
+The vector radiative transfer equation (VRTE) is
+\begin{eqnarray}\label{eq:rtetheory:VRTE}
+  \frac {\DiffD\StoVec(\PDir, \nu, T)}{\DiffD s} =
+    &{}-\EnsAvr{\ExtMat(\PDir, \nu, T)} \StoVec(\PDir, \nu, T) +
+    \EnsAvr{\AbsVec(\PDir, \nu, T)} \rlap{$B(\nu, T)$} \\
+    &{}+ \int_{4\pi} \DiffD\PDir' \EnsAvr{\PhaMat(\PDir, \PDir', \nu, T)} \StoVec(\PDir', \nu, T),
+  \end{eqnarray}
+where $\StoVec$ is the specific intensity vector, $\EnsAvr\ExtMat$ is the ensemble-averaged extinction matrix, $\EnsAvr\AbsVec$ is the ensemble-averaged absorption vector, $B$ is the
+Planck function and $\EnsAvr\PhaMat$ is the ensemble-averaged
+phase matrix.  Furthermore $\nu$ is the frequency of the radiation,
+$T$ is the temperature, $\DiffD s$ is a path-length-element of the
+propagation path and $\PDir$ the propagation direction.
+\eqnref{eq:rtetheory:VRTE} is valid for monochromatic or quasi-monochromatic
+radiative transfer. We can use this equation for simulating microwave
+radiative transfer through the atmosphere, as the scattering events do
+not change the frequency of the radiation.
+
+The four-component specific intensity vector~$\StoVec = (I,Q,U,V)^T$
+fully describes the radiation and it can directly be associated with
+the measurements carried out by a radiometer used for remote sensing.
+For the definition of the components of the specific intensity vector
+refer to \secref{sec:polarization}, where the Stokes
+components are described. Since the specific intensity vector is a
+superposition of Stokes vectors, the polarization state of the
+specific intensity vector can be analysed in the same way as the
+polarization state of the Stokes vector.
+
+The three terms on the right hand side of \eqnref{eq:rtetheory:VRTE} describe
+physical processes in an atmosphere containing different particle
+types and different trace gases. The first term represents the
+extinction of radiation traveling through the scattering medium. It is
+determined by the ensemble averaged extinction coefficient matrix
+$\EnsAvr\ExtMat$.  For microwave radiation in cloudy
+atmospheres, extinction is caused by gaseous absorption, particle
+absorption and particle scattering. Therefore $\EnsAvr\ExtMat$
+can be written as a sum of two matrices, the particle extinction
+matrix $\EnsAvr{\ExtMat^{p}}$ and the gaseous extinction matrix
+$\EnsAvr{\ExtMat^{g}}$:
+\begin{equation}
+  \EnsAvr{\ExtMat(\PDir, \nu, T)} =
+  \EnsAvr{\ExtMat^{p}(\PDir, \nu, T)}+
+  \EnsAvr{\ExtMat^{g}(\PDir, \nu, T)}.
+\end{equation}
+The particle extinction matrix is the sum over the individual specific
+extinction matrices $\EnsAvr{\ExtMat_i^p(\PDir, \nu, T)}$ of
+the $N$ different particles types contained in the scattering medium
+weighted by their particle number densities $n^p_i$:
+\begin{equation}
+  \EnsAvr{\ExtMat^{p}(\PDir, \nu, T)} =
+  \sum_{i=1}^N n^p_i \EnsAvr{\ExtMat_i^p (\PDir, \nu, T)}.
+\label{eq:rtetheory:ext_mat_p}
+\end{equation}
+A particle distribution, which can include various particle sizes,
+shapes and orientations, can be represented by a single particle type,
+since it is possible to derive an ensemble averaged phase matrix
+\EnsAvr{\PhaMat_i}, an ensemble averaged extinction matrix
+\EnsAvr{\ExtMat_i} and an ensemble averaged absorption vector
+\EnsAvr{\AbsVec_i}.  The gaseous extinction matrix is directly derived
+from the scalar gas absorption. As there is no polarization due to gas
+absorption at cloud altitudes, the off-diagonal elements of the
+gaseous extinction matrix are zero. At very high altitudes above
+approximately 40\,km there is polarization due to the Zeeman effect,
+mainly due to oxygen molecules.  However, in the toposphere and
+stratosphere molecular scattering can be neglected in the microwave
+frequency range. Hence the coefficients on the diagonal correspond to
+the gas absorption coefficient:
+\begin{eqnarray}
+\EnsAvr{\ExtMat^{g}_{l,m}(\nu, T)} =
+\EnsAvr{\alpha^g(\nu, T)} & \mathrm{if } l = m \\
+0 & \mathrm{if } l \neq m.
+\end{eqnarray}
+where $T$ is the temperature of the atmosphere and $\EnsAvr{ \alpha^g
+}$ is the total scalar gas absorption coefficient, which is
+calculated from the individual absorption coefficients of all $M$
+trace gases $\alpha_i^g(P, \nu, T)$ and their volume mixing ratios
+$n^g_i$ as:
+\begin{equation}
+   \EnsAvr{ \alpha^g(\nu, T) } =  \sum_{i=1}^M  n^g_i \alpha_i^g(\nu, T).
+\end{equation}
+The second term in \eqnref{eq:rtetheory:VRTE} is the thermal source term. It
+describes thermal emission by gases and particles in the atmosphere.
+The ensemble averaged absorption vector $\EnsAvr{\AbsVec}$ is
+\begin{equation}
+  \EnsAvr{\AbsVec (\PDir, \nu, T)}  =
+  \EnsAvr{\AbsVec^{p} (\PDir, \nu, T)} +
+  \EnsAvr{ \AbsVec^{g} (\nu, T) },
+\end{equation}
+where $\EnsAvr{\AbsVec^{p}}$ and $\EnsAvr{ \AbsVec^{g} }$
+are the particle absorption vector and the gas absorption vector,
+respectively.  The particle absorption vector is a sum over the
+individual absorption vectors $\EnsAvr{ \AbsVec_i^p } $, again
+weighted with $n^p_i$:
+\begin{equation}
+  \EnsAvr{\AbsVec^{p}(\PDir, \nu, T)} = \sum_{i=1}^N n^p_i \EnsAvr{\AbsVec_i^p (\PDir, \nu, T)}.
+\label{eq:rtetheory:abs_vec_p}
+\end{equation}
+The gas absorption vector is simply
+\begin{equation}
+ \EnsAvr{ \AbsVec^{g}(\nu, T) }  = (\EnsAvr{\alpha^p(\nu, T)}, 0, 0, 0)^T.
+\end{equation}
+The last term in \eqnref{eq:rtetheory:VRTE} is the scattering source term.
+It adds the amount of radiation which is scattered from all directions
+\PDir$'$ into the propagation direction \PDir.  The ensemble
+averaged phase matrix \EnsAvr\PhaMat\ is the sum of the individual
+phase matrices \EnsAvr{\PhaMat_i} weighted with $n^p_i$:
+\begin{equation}
+  \EnsAvr{\PhaMat(\PDir, \PDir', \nu, T)} = 
+  \sum_{i=1}^N {n^p_i\EnsAvr{\PhaMat_i(\PDir,
+    \PDir', \nu, T)}}.
+  \label{eq:rtetheory:pha_mat}
+\end{equation}
+
+The scalar radiative transfer equation (SRTE)
+\begin{eqnarray}
+  \label{eq:rtetheory:SRTE}
+  \frac{\DiffD I}{\DiffD s} (\PDir, \nu, T)& = 
+  -\EnsAvr{ K_{11}(\PDir, \nu, T)} I(\PDir, \nu, T) +
+  \EnsAvr{ a_1(\PDir, \nu, T)} B(\nu, T)   \nonumber\\
+  &+\int_{4\pi} \DiffD \PDir' \EnsAvr{ Z_{11}(\PDir,
+  \PDir', \nu, T) } I(\PDir', \nu, T)
+\end{eqnarray}
+can be used presuming that the radiation field is unpolarized.  This
+approximation is reasonable if the scattering medium consists of
+spherical or completely randomly oriented particles, where $\EnsAvr{
+\ExtMat^p }$ is diagonal and only the first element of $\EnsAvr{
+\AbsVec^p }$ is non-zero. 
+
+
+ 
 \section{Blackbody radiation}
- \label{sec:rtetheory:planck}
+ \label{sec:rtetheory:rtetheory:planck}
  
  All natural bodies with a temperature $>$ 0 K emit thermal radiation.
  The thermal motion in the matter is translated by collisions to
@@ -111,13 +751,20 @@
  $\mu$m are called greenhouse gases, they absorb partly some of the
  outgoing radiation from the surface and the sea.
 
+\section{Simple solution without scattering and polarization}
 
-\section{General theory}
- \label{sec:rtetheory:gen_theory}
+ If scattering can be neglected and the atmosphere is assumed to be in
+ local thermodynamic equilibrium, the radiative transfer equation gets
+ unusually simple. These assumptions will be made below and
+ they are normally valid for the infrared region and longer
+ wavelengths as in the microwave region. For these conditions the
+ atmospheric absorption and emission are linked and the basic problem
+ to determine the radiative transfer is to calculate the absorption.
+ At the wavelengths considered rotational and vibrational transitions
+ are the dominating absorbing processes.
 
  The basic equation describing radiative transfer along a specific 
  direction is
-
  \begin{equation}
    \frac{dI(\nu)}{dl} = -k(l,\nu)I(\nu) + S(l,\nu)
   \label{eq:rtetheory:chand}
@@ -266,4 +913,9 @@
              calculated using the Rayleight-Jeans approximation.}
     \label{fig:rtetheory:rayjean}
   \end{center}
- \end{figure}   
+ \end{figure} 
+  
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "uguide"
+%%% End: 

@@ -1,3 +1,34 @@
+2005-02-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-922
+	
+	* doc/uguide/scattering.tex: Removed old scattering chapter and
+	included Chapter 4 from my thesis instead. How to use the
+	different WVM is not yet included. Remover old descriptions
+	because they are partly out-dated. 
+
+	* doc/uguide/rte_theory.tex: Included here Chpter 1 from my
+	thesis, a short description of radiative transfer theory in
+	scattering media. Patrick's text is kept as a special case. The
+	notation should be made consistent. 
+
+	Fixed some links to equations in scattering chapter in the
+	following files: 
+	* integration.tex
+	* lin_alg.tex
+	* polarization.tex	
+	* ppath.tex
+	* references.bib
+
+	* symbol_defs.tex: Included some new symbols for scattering part
+	and also added \charef, \secref ... 
+	May be we could all use these definitions in order to have
+	consistent references.
+
+	* Figs/scattering: Included figures.
+
+	* Figs/rte_theory: Included figures. 
+	
 2005-02-21  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-921

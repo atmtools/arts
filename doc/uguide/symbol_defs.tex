@@ -115,11 +115,18 @@
 \newcommand{\EnsAvr}[1]        {\ensuremath{\left\langle #1 \right\rangle}}
 %--- Powers, degrees and other special units, etc.
 
+% Absolute Value
+\newcommand{\Abs}[1]          {\ensuremath{\left| #1 \right| }}   
+
 % *10^#1
 \newcommand{\topowerten}[1]   {\ensuremath{\cdot10^{#1}}}
 
 % degrees
 \newcommand{\degree}          {\ensuremath{^\circ}}
+
+% 1/2
+\newcommand{\half} {\ensuremath{\textstyle\frac{1}{2}}}
+
 
 
 
@@ -130,6 +137,13 @@
 \def \ldashdot   {\mbox{--~$\cdot$~--}}
 \def \ldotted    {\mbox{$\cdot~\cdot~\cdot$}}
 
+% --- References ------------------------------------------------------------
+
+\newcommand{\secref}[1]    {Section \ref{#1}} 
+\newcommand{\eqref}[1]     {(\ref{#1})}
+\newcommand{\eqnref}[1]    {Equation (\ref{#1})}
+\newcommand{\figref}[1]    {Figure \ref{#1}}
+\newcommand{\tabref}[1]    {Table \ref{#1}}
 
 
 %--- Physical constants ------------------------------------------------------
@@ -333,8 +347,8 @@
 \newcommand{\AbsVec}    {\ensuremath{{\bf a}}}
 \newcommand{\aAbsVec}[1]{\ensuremath{{\bf a}^{#1}}}     
 
-% Scattering efficiency matrix
-\newcommand{\SEfMat}    {\ensuremath{{\bf Y}}}
+% Phase matrix
+\newcommand{\PhaMat}    {\ensuremath{{\bf Z}}}
 
 % Stokes vector
 \newcommand{\StoVec}    {\ensuremath{{\bf I}}}
@@ -346,9 +360,6 @@
 % Particle density
 \newcommand{\PDen}      {\ensuremath{n^p}}
 
-% Phase matrix
-\newcommand{\PhaMat}    {\ensuremath{{\bf Z}}}
-
 % Radiation field
 \newcommand{\IFld}      {\ensuremath{{\mathcal I}}}
 % Radiation field index
@@ -358,6 +369,9 @@
 \newcommand{\SFld}      {\ensuremath{{\mathcal S}}}
 % Scattered field index
 \newcommand{\aSFld}[1]  {\ensuremath{{\mathcal S}^{(#1)}}}
+
+% Scattering Integral vector
+\newcommand{\SVec}      {\ensuremath{{\bf S}}}
 
 % Amplitude matrix
 \newcommand{\AmpMat}    {\ensuremath{{\bf S}}}
@@ -387,6 +401,18 @@
 % Particle type index
 \newcommand{\IPart}     {\ensuremath{{i_{part}}}}
 
+%Inverse Wave Impendance
+\newcommand{\InvImp} %
+      {\ensuremath{\sqrt{\textstyle{\frac{\epsilon}{\mu}}}}}    
+
+% Micrometer
+\newcommand{\mum}          {\ensuremath{\mu m}}
+
+% Incoming direction
+\newcommand{\inc}       {\mathrm{inc}}
+
+% Scattered direction
+\newcommand{\sca}       {\mathrm{sca}}
 
 % --- Quantities concerning scalar gas absorption  -------------------
 %
