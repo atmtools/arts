@@ -875,8 +875,8 @@ in the spherical coordinate system:
  \end{array} \right] =
  \left[ \begin{array}{c}
    \cos(\ZntAng) \\
-   \sin(\ZntAng) \cos(\AzmAng) \\
-   \sin(\ZntAng) \sin(\AzmAng) / \cos(\Lat)
+   \sin(\ZntAng) \cos(\AzmAng) / \Rds \\
+   \sin(\ZntAng) \sin(\AzmAng) / ( \Rds \cos(\Lat) )
  \end{array} \right]
  \label{eq:ppath:los2sphvec}
 \end{equation}
@@ -888,9 +888,10 @@ This vector is then translated to the cartesian coordinate system as
   \DiffD z
  \end{array} \right] =
  \left[ \begin{array}{ccc}
-  \cos(\Lat)\cos(\Lon) & -\sin(\Lat)\cos(\Lon) & -\cos(\Lat)\sin(\Lon) \\ 
-  \sin(\Lat)           & \cos(\Lat)            & 0                     \\ 
-  \cos(\Lat)\sin(\Lon) & -\sin(\Lat)\sin(\Lon) & \cos(\Lat)\cos(\Lon) 
+  \cos(\Lat)\cos(\Lon) & -\Rds\sin(\Lat)\cos(\Lon) & 
+                                                   -\Rds\cos(\Lat)\sin(\Lon) \\
+  \sin(\Lat)           & \Rds\cos(\Lat)            & 0                     \\ 
+  \cos(\Lat)\sin(\Lon) & -\Rds\sin(\Lat)\sin(\Lon) & \Rds\cos(\Lat)\cos(\Lon) 
  \end{array} \right] 
  \left[ \begin{array}{c}
   \DiffD \Rds \\
@@ -899,12 +900,12 @@ This vector is then translated to the cartesian coordinate system as
  \end{array} \right]
  \label{eq:ppath:los2cart}
 \end{equation}
-Note that some of the terms in Equations \ref{eq:ppath:los2sphvec} and
-\ref{eq:ppath:los2cart} cancel each other. [* I have to check my notes
-to put in the cancelling terms *] These calculations are performed in
-\funcindex{poslos2cart}. Special expressions must be used for
-positions at the north and south pole (see the code) as the azimuth
-angle has there a special definition (Section~\ref{sec:fm_defs:los}).
+Note that the radial terms (\Rds) in Equations
+\ref{eq:ppath:los2sphvec} and \ref{eq:ppath:los2cart} cancel each
+other.  These calculations are performed in \funcindex{poslos2cart}.
+Special expressions must be used for positions at the north and south
+pole (see the code) as the azimuth angle has there a special
+definition (Section~\ref{sec:fm_defs:los}).
 
 The cartesian position of a point along the geometrical path at a
 distance $l$ is then simply
@@ -935,7 +936,7 @@ calculated as
  \left[ \begin{array}{ccc}
   \cos(\Lat)\cos(\Lon) & \sin(\Lat)            & \cos(\Lat)\sin(\Lon) \\ 
   -\sin(\Lat)\cos(\Lon)/\Rds & \cos(\Lat)/\Rds & -\sin(\Lat)\sin(\Lon)/\Rds \\ 
-  \sin(\Lon)/(\Rds\cos(\Lat)) & 0              & \cos(\Lon)/(\Rds\cos(\Lat)) 
+  -\sin(\Lon)/(\Rds\cos(\Lat)) & 0             & \cos(\Lon)/(\Rds\cos(\Lat)) 
  \end{array} \right] 
  \left[ \begin{array}{c}
   \DiffD x \\
@@ -958,16 +959,17 @@ definition (Section~\ref{sec:fm_defs:los}). These calculations are performed in
 \funcindex{cart2poslos}.
 
 For sensor positions outside the atmosphere, the calculations made in
-\funcindex{ppath\_start\_stepping} involve to find the position where
-the path leaves the atmosphere. This position is found by an iterative
-search. The maximum radius of the uppermost pressure surface is taken
-as first guess for the radius of the entrance point. The latitude and
-longitude for this radius is determined, and the radius for the top of
-the atmosphere for the found position is used as radius for next
-iteration. This procedure is repeated until the maximum change of
-latitude and the longitude from one iteration to next is smaller than
-1\topowerten{-6}. The entrance position for a given radius, \Rds, is
-found by solving the following equation system:
+\funcindex{ppath\_start\_stepping} involve the problem of finding the
+position where the path leaves the atmosphere. This position is found
+by an iterative search. The maximum radius of the uppermost pressure
+surface is taken as first guess for the radius of the exit point.  The
+exit latitude and longitude for this radius is determined (as
+discussed below), and the radius for the top of the atmosphere for the
+found position is used as radius for next iteration. This procedure is
+repeated until the change from one iteration to next for both latitude
+and longitude is smaller than 1\topowerten{-6}. The exit position for
+a given radius, \Rds, is found by solving the following equation
+system:
 \begin{eqnarray}
   \Rds \cos(\Lat) \cos(\Lon)  & = & x+l\DiffD x \nonumber \\
   \Rds \sin(\Lat)             & = & y+l\DiffD y \\
@@ -985,12 +987,13 @@ equations, giving
 \end{equation}
 Once $l$ is determined, the latitude and longitude are easily
 calculated by Equation~\ref{eq:ppath:cart2sph}. These calculations are
-implemented in the function{psurface\_crossing\_3d}. Similar expressions
-were derived to find the position for the crossing of a given latitude
-or longitude but those expressions were removed from the code as they
-are not used with present algorithms\footnote{The expressions
-  mentioned can be extracted from the function
-  \artsstyle{gridcell\_crossing\_3d} in ARTS version 1-1-440.}.
+implemented in the function \funcindex{psurface\_crossing\_3d}.
+Similar expressions were derived to find the position for the crossing
+of a given latitude or longitude but those expressions were removed
+from the code as they are not used with present
+algorithms.\footnote{The expressions mentioned can be extracted from
+  the function \artsstyle{gridcell\_crossing\_3d} in ARTS version
+  1-1-440.}
 
 
 

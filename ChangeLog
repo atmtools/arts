@@ -1,11 +1,18 @@
+2003-02-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-460
+	
+	* doc/uguide/ppath.tex: Added some missing terms in some equations.
+	Some small polishing of the text.
+
 2003-02-25  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-459
 
 	* src/m_basic_types.cc: Added VSM Tenso3Scale, Tensor4Scale,
-  Tensor5Scale, Tensor6Scale and Tensor7Scale.
+  	Tensor5Scale, Tensor6Scale and Tensor7Scale.
 
-  * src/m_sensor.cc: Added this file for sensor modelling.
+  	* src/m_sensor.cc: Added this file for sensor modelling.
   
 2003-02-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 

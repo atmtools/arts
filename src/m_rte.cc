@@ -202,7 +202,7 @@ void RteEmissionStd(
                     vmr_field(is, joker, joker,  joker), 
               "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
         }
-      
+
       // Calculate absorption vector and extinction matrix for all points 
       // along the propagation path.
 
