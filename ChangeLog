@@ -1,3 +1,13 @@
+2003-08-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-671
+		
+	* src/m_optproperties.cc (ScatteringDataPrepareDOITOpt). Further 
+	optimization for 1D cases. 
+
+	* src/methods.cc: Included *stmosphere_dim* as input for 
+	(ScatteringDataPrepareDOITOpt).
+	
 2003-08-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-670

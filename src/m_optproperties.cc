@@ -1899,6 +1899,7 @@ void ScatteringDataPrepareDOIT( //Output:
                       species.
   \param f_grid Frequency grid.
   \param f_index Frequency index. 
+  \param atmosphere_dim Atmospheric dimension. 
 
   \author Claudia Emde
   \date   2003-08-25
@@ -1911,14 +1912,24 @@ void ScatteringDataPrepareDOITOpt( //Output:
                                    const Vector& scat_aa_grid,
                                    const ArrayOfSingleScatteringData& scat_data_raw,
                                    const Vector& f_grid,
-                                   const Index& f_index
+                                   const Index& f_index,
+                                   const Index& atmosphere_dim
                                    )
 {
+
+  // For 1D calculation the scat_aa dimension is not required:
+  Index N_aa_sca;
+  if(atmosphere_dim == 1)
+    N_aa_sca = 1;
+  else
+    N_aa_sca = scat_aa_grid.nelem();
+  
+    
   // Initialize variables:
-  scat_theta.resize(scat_za_grid.nelem(),scat_aa_grid.nelem(), 
+  scat_theta.resize(scat_za_grid.nelem(), N_aa_sca, 
                     scat_za_grid.nelem(),scat_aa_grid.nelem());
   
-  pha_mat_sptDOITOpt.resize(scat_za_grid.nelem(),scat_aa_grid.nelem(), 
+  pha_mat_sptDOITOpt.resize(scat_za_grid.nelem(), N_aa_sca, 
                     scat_za_grid.nelem(),scat_aa_grid.nelem(),6);
   
   // Only one  particle type is taken.
@@ -1957,7 +1968,7 @@ void ScatteringDataPrepareDOITOpt( //Output:
   
   for (Index za_sca = 0; za_sca < scat_za_grid.nelem(); za_sca ++)
     {
-      for (Index aa_sca = 0; aa_sca < scat_aa_grid.nelem(); aa_sca ++)
+      for (Index aa_sca = 0; aa_sca < N_aa_sca; aa_sca ++)
         {
           for (Index za_inc = 0; za_inc < scat_za_grid.nelem(); za_inc ++)
             {

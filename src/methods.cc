@@ -3385,7 +3385,8 @@ md_data_raw.push_back
          "\n" 
           ),
         OUTPUT( scat_theta_, pha_mat_sptDOITOpt_),
-        INPUT( scat_za_grid_, scat_aa_grid_, scat_data_raw_, f_grid_, f_index_ ),
+        INPUT( scat_za_grid_, scat_aa_grid_, scat_data_raw_, f_grid_, f_index_,
+               atmosphere_dim_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),

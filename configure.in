@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.670)
+AM_INIT_AUTOMAKE(arts,1.1.671)
 
 AM_MAINTAINER_MODE
 
@@ -392,7 +392,7 @@ fi
 
 CFLAGS="$CFLAGS $DEBUG_FLAGS $WARNING_FLAGS"
 if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
-  CXXFLAGS_FIXED="$DEBUG_FLAGS -ftemplate-depth-40 $WARNING_FLAGS"
+  CXXFLAGS_FIXED="$DEBUG_FLAGS -ftemplate-depth-60 $WARNING_FLAGS"
   CXXFLAGS="$CXXFLAGS $CXXFLAGS_FIXED"
 else
   CXXFLAGS_FIXED="$CXXFLAGS $DEBUG_FLAGS"
