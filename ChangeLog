@@ -1,3 +1,9 @@
+2004-05-02  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-0-166
+
+	* src/{array,messages,mystring}.h: Fix compilation with gcc 3.4.0.
+
 2004-04-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-165
