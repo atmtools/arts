@@ -25,15 +25,16 @@ stamp-h.in
 string.xml
 test_binaryio
 test_complex
-test_mpi
 test_griddedtensorcheck
 test_integration
 test_interpolation
 test_linalg
 test_matpack
+test_mpi
 test_poly
 test_scatproperties
 test_sensor
+test_sparse
 test_tensor
 test_xml
 test_zeemanproperties
