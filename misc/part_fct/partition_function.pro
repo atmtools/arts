@@ -1,5 +1,5 @@
 ;
-; $Id: partition_function.pro,v 1.9.2.1 2003/06/10 13:59:59 axel Exp $
+; $Id: partition_function.pro,v 1.9.2.2 2004/05/26 10:44:59 axel Exp $
 ;
 Function read_carmens_Q_file,carmens_hitran_file,spe,t_arr,Q_temp_hit
 ;; reads a new tips profile partition function output file, which was
@@ -92,7 +92,7 @@ return, jpl_part
 end
 
 
-PRO correct_jpl_partition_functions,jpl_part,species
+PRO correct_jpl_partition_functions,jpl_part,species,franz=franz
 ;; corrects for vibrational partition fuctions not included in the
 ;; jpl catalogue. Data are either from:
 ;; Patrick Eriksson 
@@ -100,152 +100,188 @@ PRO correct_jpl_partition_functions,jpl_part,species
 ;; or taken from the JANAF Thermochemical Tables Third Edition,
 ;; M.W. Chase et. al., Journal of Physical and Chemical Reference
 ;; Data, Volume 14, 1985.
+;; for franz, data is from: 
+;;
+;; http://www.sat.uni-bremen.de/workshops/radiative_transfer5/material/franz_schreier/molecules
+;;
+
 
 case species of 
-    18003 : begin ; H2O main, JANAF
-        vib=[1594.7,3651.1,3755.9] ; [cm^-1]
-        jpl_part=calculate_partition_functions(jpl_part,vib)
-    end
+; this should already be in JPL
+;    18003 : begin ; H2O main, JANAF
+;        vib=[1594.7,3651.1,3755.9] ; [cm^-1]
+;	if keyword_set(franz) then vib = [ 3657.00,1595.00,3756.00 ]
+;        jpl_part=calculate_partition_functions(jpl_part,vib)
+;    end
     20003 : begin ; H2O isotope, taken H2O main values
         vib=[1594.7,3651.1,3755.9] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 3657.00,1595.00,3756.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     19003 : begin ; H2O isotope, taken H2O main values
         vib=[1594.7,3651.1,3755.9] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 3657.00,1595.00,3756.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     19002 : begin ; H2O isotope, taken H2O main values
         vib=[1594.7,3651.1,3755.9] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 3657.00,1595.00,3756.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     21001 : begin ; H2O isotope, taken H2O main values
         vib=[1594.7,3651.1,3755.9] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 3657.00,1595.00,3756.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     20001 : begin ; H2O isotope, taken H2O main values
         vib=[1594.7,3651.1,3755.9] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 3657.00,1595.00,3756.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     46013 : begin ; CO2 isotope, taken CO2 main values from JANAF
-        vib=[667.3, 1384.9, 2349.3] ; [cm^-1]
+        vib=[667.3, 667.3, 1384.9, 2349.3] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 1388.00, 667.000, 667.000, 2349.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     45012 : begin ; CO2 isotope, taken CO2 main values from JANAF
-        vib=[667.3, 1384.9, 2349.3] ; [cm^-1]
+        vib=[667.3, 667.3, 1384.9, 2349.3] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 1388.00, 667.000, 667.000, 2349.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
-    48004 : begin ; O3 main, JANAF
-        vib=[705, 1043, 1110]
-        jpl_part=calculate_partition_functions(jpl_part,vib)
-    end
+; this should already be in JPL
+;    48004 : begin ; O3 main, JANAF
+;        vib=[705, 1043, 1110]
+;	if keyword_set(franz) then vib = [ 1103.00, 701.000, 1042.00 ]
+;        jpl_part=calculate_partition_functions(jpl_part,vib)
+;    end
+
     50004 : begin ; O3-asym18, Patrick Eriksson
         vib=[693.0] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 1103.00, 701.000, 1042.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     50003 : begin ; O3-sym18 Patrick Eriksson
         vib=[678.0] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 1103.00, 701.000, 1042.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     49002 : begin ; O3 isotope, taken O3 main from JANAF
         vib=[705, 1043, 1110] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 1103.00, 701.000, 1042.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     49001 : begin ; O3 isotope, taken O3 main from JANAF
         vib=[705, 1043, 1110] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 1103.00, 701.000, 1042.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     44004 : begin ; N2O main, JANAF
         vib=[588.8,588.8,1284.9,2223.8] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 2224.00, 589.000, 589.000, 1285.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     45007 : begin ; N2O isotope, taken main N2O values
         vib=[588.8,588.8,1284.9,2223.8] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 2224.00, 589.000, 589.000, 1285.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     45008 : begin ; N2O isotope, taken main N2O values
         vib=[588.8,588.8,1284.9,2223.8] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 2224.00, 589.000, 589.000, 1285.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     46007 : begin ; N2O isotope, taken main N2O values
         vib=[588.8,588.8,1284.9,2223.8] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 2224.00, 589.000, 589.000, 1285.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     28001 : begin ; CO main, Janssen - Rosenkranz
         vib=[2143.5] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 2143.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     29001 : begin ; CO isotope, taken main
         vib=[2143.5] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 2143.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     30001 : begin ; CO isotope, taken main
         vib=[2143.5] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 2143.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     29006 : begin ; CO isotope, taken main
         vib=[2143.5] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 2143.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     17003 : begin ; CH4 isotope, taken main CH4 JANAF values
-        vib=[1306,1306,1306,1534,1534,2917,3019] ; [cm^-1]
+        vib=[1306,1306,1306,1534,1534,2917,3019,3019,3019] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 2917.00, 1533.00, 1533.00, 3019.00, 3019.00, 3019.00, 1311.00, 1311.00, 1311.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     32001 : begin ; O2 main, Patrick Eriksson
         vib=[1556.5] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 1556.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     34001 : begin ; O2 isotope, taken O2 main values
         vib=[1556.5] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 1556.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     33002 : begin ; O2 isotope, taken O2 main values
         vib=[1556.5] ; [cm^-1]
+	if keyword_set(franz) then vib = [ 1556.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
-;;    30008 : begin ; NO main, no info found in JANAF
-;;        vib=[] ; [cm^-1]
-;;        jpl_part=calculate_partition_functions(jpl_part,vib)
-;;    end
-
     64002 : begin ; SO2 main, JANAF
         vib=[517.7,1151.4,1361.8] ; [cm^-1]
+	if keyword_set(franz) then vib = [1152.00, 518.000, 1362.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     66002 : begin ; SO2 isotope, taken SO2 main
         vib=[517.7,1151.4,1361.8] ; [cm^-1]
+	if keyword_set(franz) then vib = [1152.00, 518.000, 1362.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     65001 : begin ; SO2 isotope, taken SO2 main
         vib=[517.7,1151.4,1361.8] ; [cm^-1]
+	if keyword_set(franz) then vib = [1152.00, 518.000, 1362.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     66004 : begin ; SO2 isotope, taken SO2 main
         vib=[517.7,1151.4,1361.8] ; [cm^-1]
+	if keyword_set(franz) then vib = [1152.00, 518.000, 1362.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     46006 : begin ; NO2 main, JANAF
         vib=[756.8,1357.8,1665.5] ; [cm^-1]
+	if keyword_set(franz) then vib = [1320.00, 750.000, 1617.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     17002 : begin ; NH3 main, JANAF
         vib=[950, 1629, 1629, 3335, 3414, 3414] ; [cm^-1]
+	if keyword_set(franz) then vib = [3337.00, 950.000, 3444.00, 1630.00, 1630.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     18002 : begin ; NH3 isotope, taken main values
         vib=[950, 1629, 1629, 3335, 3414, 3414 ] ; [cm^-1]
+	if keyword_set(franz) then vib = [3337.00, 950.000, 3444.00, 1630.00, 1630.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     18004 : begin ; NH3 isotope, taken main values
         vib=[950, 1629, 1629, 3335, 3414, 3414 ] ; [cm^-1]
+	if keyword_set(franz) then vib = [3337.00, 950.000, 3444.00, 1630.00, 1630.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
@@ -256,6 +292,7 @@ case species of
 
     63001 : begin ; HNO3 main, JANAF
         vib=[465,583,680,765,886,1320,1335,1710,3560] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 3350.0, 1710.0, 1326.0, 1304.0, 879.0, 647.0, 580.0, 763.0, 458.0 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 ;    63001 : begin ; HNO3 main, Patrick Eriksson
@@ -264,105 +301,269 @@ case species of
 ;        jpl_part=calculate_partition_functions(jpl_part,vib)
 ;    end
 
+    ;; --------------------------------------------------------
+    ;; values given only by franz, set vib to large value otherwise so
+    ;; that partition fct is not corrected
+    17001 : begin               ; OH main, only franz
+        if keyword_set(franz) then vib = [ 3570.00 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    18001 : begin               ; OH taken from main
+        if keyword_set(franz) then vib = [ 3570.00 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    19001 : begin               ; OH taken from main
+        if keyword_set(franz) then vib = [ 3570.00 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    20002 : begin               ; HF main
+        if keyword_set(franz) then vib = [ 3961.00 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    21002 : begin               ; HF taken from main
+        if keyword_set(franz) then vib = [ 3961.00 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    30008 : begin               ; NO main, no info found in JANAF
+        if keyword_set(franz) then vib = [ 1876.00 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+
+    30011 : begin               ; NO+, use main
+        if keyword_set(franz) then vib = [ 1876.00 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+
+    
+    36001 : begin               ; HCl
+        if keyword_set(franz) then vib = [ 2886.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    38001 : begin               ; HCl taken from main
+        if keyword_set(franz) then vib = [ 2886.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    37001 : begin               ; HCl taken from main
+        if keyword_set(franz) then vib = [ 2886.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    39004 : begin               ; HCl taken from main
+        if keyword_set(franz) then vib = [ 2886.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    80001 : begin               ; HBr
+        if keyword_set(franz) then vib = [ 2559.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    82001 : begin               ; HBr taken from main
+        if keyword_set(franz) then vib = [ 2559.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    34004 : begin               ; H2O2
+        if keyword_set(franz) then vib = [ 3607.00, 1394.00, 863.00, 3608.00, 1266.00 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    46005 : begin               ; HCOOH
+        if keyword_set(franz) then vib = [ 3570.0, 2943.0, 1770.0, 1387.0, 1229.0, 1105.0, 625.0, 1033.0, 638.0] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    47002 : begin               ; HCOOH taken from main
+        if keyword_set(franz) then vib = [ 3570.0, 2943.0, 1770.0, 1387.0, 1229.0, 1105.0, 625.0, 1033.0, 638.0] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    47003 : begin               ; HCOOH taken from main
+        if keyword_set(franz) then vib = [ 3570.0, 2943.0, 1770.0, 1387.0, 1229.0, 1105.0, 625.0, 1033.0, 638.0] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    47004 : begin               ; HCOOH taken from main
+        if keyword_set(franz) then vib = [ 3570.0, 2943.0, 1770.0, 1387.0, 1229.0, 1105.0, 625.0, 1033.0, 638.0] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    33001 : begin               ; HO2
+        if keyword_set(franz) then vib = [ 3436.0, 1392.0, 1098.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    102001 : begin              ; ClOOCl with Franz
+        if keyword_set(franz) then vib = [ 127.0, 328.0, 443.0, 560.0, 653.0, 752.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    104001 : begin              ; ClOOCl with Franz
+        if keyword_set(franz) then vib = [ 127.0, 328.0, 443.0, 560.0, 653.0, 752.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    97002 : begin               ; ClONO2
+        if keyword_set(franz) then vib = [ 1735, 1292, 809, 780, 560, 434, 270, 711 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    99001 : begin               ; ClONO2 taken from main
+        if keyword_set(franz) then vib = [ 1735, 1292, 809, 780, 560, 434, 270, 711 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    96001 : begin               ; HOBr
+        if keyword_set(franz) then vib = [ 3609.0, 1239.0, 724.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    98002 : begin               ; HOBr taken from main
+        if keyword_set(franz) then vib = [ 3609.0, 1239.0, 724.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    95001 : begin               ; BrO
+        if keyword_set(franz) then vib = [ 500.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+    97001 : begin               ; BrO taken from main
+        if keyword_set(franz) then vib = [ 500.0 ] else vib = [1.0E100]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    
+;; end values only from franz
+;; --------------------------------------------------
+
     51002 : begin ; ClO main, Janssen-Rosenkranz
         vib=[842.4] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 842.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     53002 : begin ; ClO isotope, taken main
         vib=[842.4] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 842.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
 
     60001 : begin ; OCS main, JANAF
         vib=[524,524,859,2064] ; [cm^-1]
+        if keyword_set(franz) then vib = [859.000, 520.000, 520.000, 2062.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     62001 : begin ; OCS isotope, taken main
         vib=[524,524,859,2064] ; [cm^-1]
+        if keyword_set(franz) then vib = [859.000, 520.000, 520.000, 2062.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     61001 : begin ; OCS isotope, taken main
         vib=[524,524,859,2064] ; [cm^-1]
+        if keyword_set(franz) then vib = [859.000, 520.000, 520.000, 2062.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     62002 : begin ; OCS isotope, taken main
         vib=[524,524,859,2064] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 859.000, 520.000, 520.000, 2062.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     30004 : begin ; H2CO main, JANAF
         vib=[1163.5,1247.4,1500.6,1746.1,2766.4,2843.4] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2782.0, 1746.0, 1500.0, 1167.0, 2843.0, 1249.0 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     31002 : begin ; H2CO isotope, taken main
         vib=[1163.5,1247.4,1500.6,1746.1,2766.4,2843.4] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2782.0, 1746.0, 1500.0, 1167.0, 2843.0, 1249.0 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     32004 : begin ; H2CO isotope, taken main
         vib=[1163.5,1247.4,1500.6,1746.1,2766.4,2843.4] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2782.0, 1746.0, 1500.0, 1167.0, 2843.0, 1249.0 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     31003 : begin ; H2CO isotope, taken main
         vib=[1163.5,1247.4,1500.6,1746.1,2766.4,2843.4] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2782.0, 1746.0, 1500.0, 1167.0, 2843.0, 1249.0 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     32006 : begin ; H2CO isotope, taken main
         vib=[1163.5,1247.4,1500.6,1746.1,2766.4,2843.4] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2782.0, 1746.0, 1500.0, 1167.0, 2843.0, 1249.0 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     52006 : begin ; HOCl main, JANAF
         vib=[725,1239.4,3609.5] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 3609.00, 1239.00, 724.000 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     54005 : begin ; HOCl isotope, taken main
         vib=[725,1239.4,3609.5] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 3609.00, 1239.00, 724.000 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     27001 : begin ; HCN main, JANAF
         vib=[713.5,713.5,2096.3,3311.5] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2097.00, 713.000, 713.000, 3311.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     28002 : begin ; HCN isotope, taken main
         vib=[713.5,713.5,2096.3,3311.5] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2097.00, 713.000, 713.000, 3311.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     28003 : begin ; HCN isotope, taken main
         vib=[713.5,713.5,2096.3,3311.5] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2097.00, 713.000, 713.000, 3311.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     28004 : begin ; HCN isotope, taken main
         vib=[713.5,713.5,2096.3,3311.5] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2097.00, 713.000, 713.000, 3311.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     50007 : begin ; CH3Cl main, JANAF
         vib=[732,1017,1017,1355,1455,1455,2968,3054,3054] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2968.0, 1355.0, 733.00, 3039.0, 3039.0, 1452.0, 1452.0, 1018.0, 1018.0 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     52009 : begin ; CH3Cl isotope, taken main
         vib=[732,1017,1017,1355,1455,1455,2968,3054,3054] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2968.0, 1355.0, 733.00, 3039.0, 3039.0, 1452.0, 1452.0, 1018.0, 1018.0 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
     34003 : begin ; PH3 main, JANAF
         vib=[992,1122,1122,2323,2328,2328] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2327.00, 992.000, 1118.00, 1118.00, 2421.00, 2421.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
-    66001 : begin ; COF6 main, JANAF
+    66001 : begin ; COF2 main, JANAF
         vib=[381,381,1074,1978] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 1944.0, 963.0, 582.0, 1242.0, 619.0, 774.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
+
 
     34002 : begin ; H2S main, JANAF
         vib=[1183,2615,2627] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2615.00, 1183.00, 2626.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     35001 : begin ; H2S isotope, taken main
         vib=[1183,2615,2627] ; [cm^-1]
+        if keyword_set(franz) then vib = [ 2615.00, 1183.00, 2626.00 ]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
@@ -660,7 +861,7 @@ PRO partition_function,jpl_tag=jpl_tag,hit_tag=hit_tag,jpl_all=jpl_all,$
                        make_arts_entry=make_arts_entry,$
                        no_vib_correction=no_vib_correction,no_windows=no_windows,$
                        no_hak=no_hak,carmens_hitran_file=carmens_hitran_file,$
-                       Txrange=Txrange,Tyrange=Tyrange
+                       Txrange=Txrange,Tyrange=Tyrange,franz=franz
 
 ;; this procedure compares jpl and hitran partition functions (Q). 
 ;;
@@ -701,6 +902,10 @@ PRO partition_function,jpl_tag=jpl_tag,hit_tag=hit_tag,jpl_all=jpl_all,$
 ;;                           generated by Carmen Verdes
 ;;    - Txrange          : Temp x range of diff plot (0-500 default)
 ;;    - Tyrange          : Temp y range of diff plot (-10-10 default)
+;;    - franz            : use Franz Schreier provided energy of
+;;                         vibrational levels for partition functions
+;;                         correction. They cover almost all species
+;;                         in HITRAN
 ;;
 ;; OUTPUT:
 ;;    - plots with Qs of both catalogues, for hitran the State
@@ -720,6 +925,11 @@ PRO partition_function,jpl_tag=jpl_tag,hit_tag=hit_tag,jpl_all=jpl_all,$
 ;; run carmens quick hack file and print all partition functions into
 ;; file QT_DATA_JPL_HIT.dat (hard wired, yes, I am ashamed)
 ;;       partition_function,carmens_hitran_file='/freax/storage/projects/Spectro2/PartitionFunction/CompPartFun/QT_DATA.dat',/jpl_all,/no_window
+;;
+;; run carmens quick hack file and print all partition functions into
+;; file QT_DATA_JPL_HIT_FRANZ.dat (hard wired, yes, I am ashamed),
+;; using Franz Schreiers vibrational energies for correction
+;;       partition_function,carmens_hitran_file='/freax/storage/projects/Spectro2/PartitionFunction/CompPartFun/QT_DATA.dat',/jpl_all,/no_window,/franz
 ;;
 ;; HISTORY:
 ;;    15.08.00 AvE: created
@@ -859,8 +1069,14 @@ endif
 
 ;; quick hack for Carmens file output
 if (n_elements(carmens_hitran_file) ne 0) then  begin
-    openw,2,'QT_DATA_JPL_HIT.dat' ;; jpl and hitran partition fct
-    openw,3,'QT_DATA_JPL.dat'     ;; jpl partion fct
+    if keyword_set(franz) then strf='_FRANZ' else strf=''
+    if keyword_set(no_vib_correction) then strv='_noVib' else strv=''
+
+    qtfile1 = 'QT_DATA_JPL_HIT'+strf+strv+'.dat' 
+    qtfile2 = 'QT_DATA_JPL'+strf+strv+'.dat'
+
+    openw,2,qtfile1                ;; jpl and hitran partition fct
+    openw,3,qtfile2                ;; jpl partion fct
 endif
     
 
@@ -938,7 +1154,7 @@ for ii=0,n_elements(loop_index)-1 do begin
           correct_jpl = 0 $ 
         else correct_jpl = species_arr[loop_index[ii]].jpl_tag[0]
         correct_jpl_partition_functions,par_arr_jpl,$
-          correct_jpl
+          correct_jpl, franz=franz
     endif
     
     

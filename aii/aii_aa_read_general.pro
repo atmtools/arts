@@ -3,24 +3,24 @@
 ;; ==========================================================================
 ;;
 ;###########################################################################
-;+
-; NAME:
-;       aa_read_general
-;
-; Purpose:  Reads data from a file ARTS data format file into a matrix.
-;
-; Inputs:   filename      full file name
-;
-; Output:   matrix        the data matrix
-;
-; History:  2001-12-04    Thomas Kuhn, iup Bremen
-;-
+;; Name:     aa_read_general
+;;
+;; Purpose:  Reads data from a file ARTS data format file into a matrix.
+;;
+;; Inputs:   filename      full file name
+;;
+;; Output:   matrix        the data matrix
+;;
+;; History:  2001-12-04    Thomas Kuhn, iup Bremen
+;;           2003-08-04    AvE added verbose option
+;;
 ;***************************************************************************
 
  
 ;;=============================================
 FUNCTION aa_read_general, filename, $
-                          COMMENTSYM=COMMENTSYM
+                          COMMENTSYM=COMMENTSYM,$
+                          verbose=verbose
 ;;=============================================
 
 
@@ -119,7 +119,7 @@ reads, p[1], ncols
 
 ;; C) DEFINE OUTPUT MATRIX ONCE
 matrix = DBLARR(nmats, nrows, ncols)
-print,'defined matrix: nmats=',nmats,', nrows=',nrows,', ncols=',ncols
+if keyword_set(verbose) then print,'defined matrix: nmats=',nmats,', nrows=',nrows,', ncols=',ncols
 
 
 ;; ---- READ EACH MATRIX -----------------------------------

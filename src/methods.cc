@@ -2214,6 +2214,7 @@ void define_md_data()
           "normalizationfactor - \"no_norm\": 1\n"
           "                      \"linear\": f/f0\n" 
           "                      \"quadratic\": (f/f0)^2.\n"
+          "                      \"VVH\": (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))).\n"
           "\n"
           "cutoff - \" -1\" : no cutoff\n"
           "         \"Number\": positive cutoff frequency in Hz.\n"

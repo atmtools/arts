@@ -1,4 +1,4 @@
-pro aii_prologue_l, color=color, ps=ps, prog, ls, thick, size=size
+pro aii_prologue_l, color=color, ps=ps, prog, ls, thick, size=size, nomargin=nomargin
 ;----------------------------------------------------------------------
 ;   Standard Prologue for plotting
 ;----------------------------------------------------------------------
@@ -23,8 +23,11 @@ print,'-----------------------------'
 thick      = 2.5   ; standard value of thick
 slidethick = 5.    ; value of thick to use for slides
 
-!x.margin = [7.,2.]
-!y.margin = [3,2]
+;; this messes up eps plots, thus allow to remove
+if not keyword_set(nomargin) then begin
+    !x.margin = [7.,2.]
+    !y.margin = [3,2]
+endif
 
 if not keyword_set(size) then begin
     xsize=26
