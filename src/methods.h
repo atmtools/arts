@@ -28,8 +28,9 @@
 #ifndef methods_h
 #define methods_h
 
-#include <iostream>
+#include <iosfwd>
 #include "token.h"
+#include "messages.h"
 #include "make_array.h"
 
 //! All information for one workspace method.
@@ -96,7 +97,7 @@ public:
   //! To override the default assignment operator.
   /*! MdRecords cannot be assigned! */
   MdRecord operator=(const MdRecord& m){
-    cout << "MdRecord cannot be assigned!\n";
+    out0 << "MdRecord cannot be assigned!\n";
     exit(1);
       }
 
