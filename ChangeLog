@@ -1,3 +1,22 @@
+2004-08-09  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-852
+
+	* src/m_scatrte.cc: Added the method (scat_fieldCalc1D) which does
+	integration only over the zenith angles.  The function is tested
+	only for p20 type and here it is not giving the same result as
+	including the azimuth angle integration, this is because the phase matrix
+	components are not constant for the azimuth angles. So use
+	(scat_fieldCalc) or (scat_fieldCalcLimb) in the calculations. 
+	
+	* src/methods.cc: Included the method (scat_fieldCalc1D).
+	
+	* src/scatrte.cc:  Modifications in
+	(cloud_ppath_update1D_planeparallel).
+
+	* src/m_cloudbox.cc: Some modifications in (ybatchMetProfiles) to
+	include liquid water cloud. 
+
 2004-08-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-851

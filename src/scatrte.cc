@@ -1451,7 +1451,7 @@ void cloud_ppath_update1D_planeparallel(
       // if 0, there is no background
       if (bkgr == 0)
 	{
-	  if(scat_za_grid[scat_za_index]<= 90)
+	  if(scat_za_grid[scat_za_index] <= 90.0)
 	    {
 	      stokes_vec = i_field(p_index-cloudbox_limits[0] +1, 0, 0, scat_za_index, 0, joker);	 
 	      Numeric z_field_above = z_field(p_index +1, 0, 0);
@@ -1460,7 +1460,10 @@ void cloud_ppath_update1D_planeparallel(
 	      Numeric cos_theta, l_step;
 	      if (scat_za_grid[scat_za_index] == 90.0)
 		{
-		  cos_theta = cos((scat_za_grid[scat_za_index] -1)*PI/180.);
+		  //cos_theta = cos((scat_za_grid[scat_za_index] -1)*PI/180.);
+		  //		  cos_theta = cos(89.999999999999*PI/180.);
+		  cos_theta = 1e-20;
+		 
 		}
 	      else
 		{
@@ -1566,6 +1569,8 @@ void cloud_ppath_update1D_planeparallel(
 	      if (scat_za_grid[scat_za_index] == 90.0)
 		{
 		  cos_theta = cos((scat_za_grid[scat_za_index] -1)*PI/180.);
+		  //cos_theta = cos(90.00000001*PI/180.);
+		  //cout<<"cos_theta"<<cos_theta<<endl;
 		}
 	      else
 		{
@@ -1664,7 +1669,7 @@ void cloud_ppath_update1D_planeparallel(
 		      joker) = stokes_vec;
 	    }
 	  
-	  
+	
 	}// if loop end - for non_ground background
       
       // bkgr=2 indicates that the background is surface
@@ -1753,7 +1758,8 @@ void cloud_ppath_update1D_planeparallel(
 	  Numeric cos_theta;
 	  if (scat_za_grid[scat_za_index] == 90.0)
 	    {
-	      cos_theta = cos((scat_za_grid[scat_za_index] -1)*PI/180.);
+	      //cos_theta = cos((scat_za_grid[scat_za_index] -1)*PI/180.);
+	      cos_theta = cos(90.00000001*PI/180.);
 	    }
 	  else
 	    {

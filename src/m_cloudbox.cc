@@ -1223,8 +1223,7 @@ void pnd_fieldCalc(//WS Output:
 	   Matrix itw(p_grid.nelem(), 2);
 	   // (2 interpolation weights are required for 1D interpolation)
           interpweights( itw, gp_p);
-          
-          // Interpolate:
+               // Interpolate:
           interp( pnd_field(i, joker, 0, 0),
                   itw, pnd_field_raw[i].data(joker, 0, 0), gp_p);
         }
@@ -2721,6 +2720,7 @@ void ybatchMetProfiles(//Output
   //holds particle species.
   // Number of particle types:
   const Index N_pt = scat_data_raw.nelem();
+  
   pnd_field_raw.resize(N_pt);
   
   // The satellite zenith angle is read in from the amsu data
@@ -2785,11 +2785,12 @@ void ybatchMetProfiles(//Output
       
       //Reads the pnd_field_raw for one particle
       //xml_read_from_file("/rinax/storage/users/rekha/uk_data/profiles/new_obs/newest_forecastfields/reff100/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
-      
-      xml_read_from_file(met_profile_pnd_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
-      
+     
+      //xml_read_from_file(met_profile_pnd_path +"reff100_newformat/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
+  
+      xml_read_from_file(met_profile_pnd_path +"lwc_reff15/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd15.xml",  pnd_field_raw[0]);
       //Write the profile number into a file.
-      out2<<"profile_number.xml"<< i;
+      // xml_write_to_file("profile_number.xml", i);
       
       // Set z_surface from lowest level of z_field 
       z_surface(0,0) = z_field_raw.data(0,0,0);
@@ -2805,9 +2806,11 @@ void ybatchMetProfiles(//Output
 	array are the same .  They are pressure grid, latitude grid and
 	longitude grid.  The third tensor which is the vmr is set to a 
 	constant value of 0.782, corresponding to N2.*/
+
       vmr_field_raw[1].data.resize(vmr_field_raw[0].p_grid.nelem(),
 				 vmr_field_raw[0].lat_grid.nelem(),
 				 vmr_field_raw[0].lon_grid.nelem());
+
       vmr_field_raw[1].p_grid = vmr_field_raw[0].p_grid; //pressure grid for 1st element
       vmr_field_raw[1].lat_grid = vmr_field_raw[0].lat_grid; //latitude grid for 1st element
       vmr_field_raw[1].lon_grid = vmr_field_raw[0].lon_grid; //longitude grid for 1st element
@@ -2853,7 +2856,8 @@ void ybatchMetProfiles(//Output
  	{
 	  //Checking for non-zero ice content. 0.001 is a threshold for
 	  //ice water content.	  
-	  if(pnd_field_raw[0].data(ip, 0, 0) > 0.001) 
+	  // if((pnd_field_raw[0].data(ip, 0, 0) > 0.001) || (pnd_field_raw[1].data(ip, 0, 0) > 0.001)) 
+	      if(pnd_field_raw[0].data(ip, 0, 0) > 0.001) 
 	    {
 	      ++level_counter;
 	      //if non-zero ice content is found, it is set to upper 
@@ -2894,7 +2898,7 @@ void ybatchMetProfiles(//Output
 	Input to met_profile_calc_agenda  : t_field_raw,
 	z_field_raw, vmr_field_raw, pnd_field_raw, p_grid,
 	sensor_los, cloudbox_on, cloudbox_limits, z_surface, */
-		       
+		
       met_profile_calc_agenda.execute();
       
       //putting in the spectra *y* for each profile, thus assigning y
