@@ -1,3 +1,16 @@
+2001-10-31  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-1-29
+	
+	* README: Added documentation for configure options.
+
+	* configure.in: Changed configure option name for warnings to
+	--enable-more-warnings.
+
+	Removed option --enable-docs. Now the docs are only generated in
+	maintainer-mode.
+	
+
 2001-10-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-28
