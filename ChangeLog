@@ -1,3 +1,16 @@
+2001-02-16  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-125
+
+	* version.h, version.cc: Added resize function for SPARSE and
+	SYMMETRIC. Note that resize really replaces the object by a new
+	one of the right size. Maybe the name should be changed to
+	`replace' one day. Furthermore, note that for SYMMETRIC
+	resize(a,i,j) generates a new SYMMETRIC matrix by calling
+	SYMMETRIC(i,j), which should generate a ixi symmetric matrix with
+	j offdiagonal bands.
+	
+
 2001-02-15  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-124
@@ -20,6 +33,7 @@
 
 	* demonstrate_vecmat.cc: Included a test case running *chol* 
 
+	
 2001-02-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-122

@@ -99,18 +99,12 @@ std::istream& operator>>(std::istream& s, MATRIX& A)
   return s;
 }
 
-// Resize functions for VECTOR, and MATRIX
+// Resize functions for VECTOR
 
 void resize(VECTOR& x, INDEX n)
 {
   if ( n!=x.size() )
     x = VECTOR(n);
-}
-
-void resize(MATRIX& x, INDEX r, INDEX c)
-{
-  if ( r!=x.nrows() || c!=x.ncols() )
-    x = MATRIX(r,c);
 }
 
 // Resize function for string. This is just for consistent notation within ARTS.
@@ -120,6 +114,32 @@ void resize(string& x, INDEX n)
   if ( n!=x.size() )
     x.resize(n);
 }
+
+// Resize functions for MATRIX
+
+void resize(MATRIX& x, INDEX r, INDEX c)
+{
+  if ( r!=x.nrows() || c!=x.ncols() )
+    x = MATRIX(r,c);
+}
+
+// Resize functions for SPARSE
+
+void resize(SPARSE& x, int r, int c)
+{
+  // For some reason, nrows() and ncols() for this type return int!
+  if ( r!=x.nrows() || c!=x.ncols() )
+    x = SPARSE(r,c);
+}
+
+// Resize functions for SYMMETRIC
+
+void resize(SYMMETRIC& x, INDEX r, INDEX c)
+{
+  if ( r!=x.nrows() || c!=x.ncols() )
+    x = SYMMETRIC(r,c);
+}
+
 
 //----------------------------------------------------------------------
 // 	Transform functions

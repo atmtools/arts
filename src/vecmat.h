@@ -368,9 +368,12 @@ void resize(ARRAY<T>& x, INDEX n)
   x = ARRAY<T>(n);
 }
 
-void resize(VECTOR& x, INDEX n);
-void resize(MATRIX& x, INDEX r, INDEX c);
-void resize(string& x, INDEX n);
+void resize(VECTOR& x, 	  INDEX n);
+void resize(string& x,    INDEX n);
+
+void resize(MATRIX& x, 	  INDEX r, INDEX c);
+void resize(SPARSE& x, 	  INDEX r, INDEX c);
+void resize(SYMMETRIC& x, INDEX r, INDEX c);
 
 
 // Like-like operations (MATRIX-MATRIX or VECTOR-VECTOR). These

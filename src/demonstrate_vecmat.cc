@@ -279,7 +279,10 @@ main()
 
   // Demonstrate BANDEDSYM
   cout << "\nBanded Symmetric Matrices:\n";
-  SYMMETRIC Abs(5,1);
+  SYMMETRIC Abs(4,1);
+
+  // Try resize:
+  resize(Abs,5,1);
 
   mtl::set(Abs,1); 
 
