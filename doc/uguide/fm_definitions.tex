@@ -39,7 +39,7 @@
 %  $e_g$          & \artsstyle{e\_ground} & ground emissivity                 \\
 %  \Prs           & \artsstyle{p}         & pressure                          \\
 %  \PrsAlt        & \artsstyle{pz}        & pressure altitude                 \\
-%  \Rds           & \artsstyle{r}         & radius from the centre of the coordinate system         \\
+%  \Rds           & \artsstyle{r}         & radius from the center of the coordinate system         \\
 %  \Tmp           & \artsstyle{t}         & temperature                       \\
 %  \Alt           & \artsstyle{z}         & geometrical altitude above the geoid \\
 %  \Planck        & \artsstyle{source}    & Planck function                   \\
@@ -57,8 +57,8 @@
 
 This chapter introduces terms and concepts of ARTS as a forward model,
 in contrast to the previous chapter that describes ARTS as a computer
-programme. While the content of the previous chapter is specific for
-ARTS, as the way to use a forward model programme normally differs
+program. While the content of the previous chapter is specific for
+ARTS, as the way to use a forward model program normally differs
 significantly from one implementation to another, this chapter is of
 more general nature. Most of the quantities treated here should be
 part of any forward model of the same complexity as ARTS, where only
@@ -106,7 +106,7 @@ The indexing is 0-based as in ARTS. *]
 %===================
 \label{sec:fm_defs:atmdim}
 
-The structure of the modelled atmosphere can be selected to have
+The structure of the modeled atmosphere can be selected to have
 different degree of complexity, the \textindex{atmospheric
   dimensionality}. There exist three levels for the complexity of the
 atmosphere, 1D, 2D and 3D, where 1D and 2D can be treated as special
@@ -221,7 +221,7 @@ easily set by the functions \wsmindex{SetAtmosphere1D},
   The vertical grid is consistently denoted as the pressure grid and
   the corresponding workspace variable is called \wsvindex{p\_grid}. The
   choice of having pressure as main altitude coordinate results in
-  that atmospheric quantities are retrieved as a function pressure,
+  that atmospheric quantities are retrieved as a function of pressure,
   not as a function of geometrical altitude.
   
 \item[Pressure altitude\index{pressure altitude}] A basic assumption
@@ -247,7 +247,7 @@ easily set by the functions \wsmindex{SetAtmosphere1D},
 \item[Radius\index{radius}] Geometrical altitudes are
   needed to determine the propagation path through the atmosphere etc.
   The main geometrical altitude coordinate is the distance to the
-  centre of the coordinate system used, the radius. This is a natural
+  center of the coordinate system used, the radius. This is a natural
   consequence of using a spherical or polar coordinate system. The
   radius is used inside ARTS for all geometrical calculations and to
   store the position of the sensor (Section~
@@ -256,14 +256,14 @@ easily set by the functions \wsmindex{SetAtmosphere1D},
 \item[Geometrical altitude\index{geometrical altitude}] The term
   geometrical altitude signifies here the difference in radius between
   a point and the geoid (Section~\ref{sec:fm_defs:geoid}) along the
-  vector to the centre of the coordinate system
+  vector to the center of the coordinate system
   (Equation~\ref{eq:fm_defs:zground}). Hence, the geometrical altitude
   is not measured along the local zenith direction (the normal to the
   reference geoid). Geometrical altitudes are mainly used to
   facilitate the input of the ground altitude, the altitude of the
   pressure surfaces etc. This is the case as these quantities are known
   rather with respect to the geoid than with respect to the Earth's
-  centre.
+  center.
 
 \end{description}
 
@@ -289,7 +289,7 @@ A \textindex{latitude} grid (\wsvindex{lat\_grid}) must be specified
 for 2D and 3D.  For 2D, the latitudes shall be treated as the angular
 distance along the orbit track, as described above in
 Section~\ref{sec:fm_defs:atmdim}.  The latitude angle is throughout
-calculated for the vector going from the centre of the coordinate
+calculated for the vector going from the center of the coordinate
 system to the point of concern. Hence, the latitudes here correspond
 to the definition of the geocentric latitude, and not geodetic
 latitudes (see Section~\ref{sec:ppath:geoid}). This is an accordance
@@ -345,7 +345,7 @@ page.
 The \textindex{geoid} is an imaginary surface used as a
 reference when specifying the ground altitude and the altitude
 of pressure surfaces. Any shape of the geoid is allowed but a smoothly
-varying geoid is the natural choice, with the centres of the geoid and
+varying geoid is the natural choice, with the centers of the geoid and
 the coordinate system coinciding. The geoid should normally be set to
 the reference ellipsoid for some global geodetic datum, such as
 WGS-84. For further reading on geoid ellipsoids and WGS-84, see
@@ -553,7 +553,7 @@ theoretically there is an infinite number of line-of-sights associated
 with the sensor, but in the forward model, spectra are only calculated
 for a discrete set of directions. If a sensor line-of-sight is
 mentioned without any comments, it refers to the direction in which
-the centre of the antenna pattern is directed.
+the center of the antenna pattern is directed.
 
 \begin{figure}[!t]
  \begin{center}
@@ -576,10 +576,10 @@ of 2D, zenith angles down to -180\degree\ are also allowed, where the
 distinction is that positive angles mean a viewing direction towards
 higher latitudes, and negative angles mean a viewing direction towards
 lower latitudes. It should be mentioned that the zenith and nadir
-directions are here defined to be along the line passing the centre of
+directions are here defined to be along the line passing the center of
 the coordinate system and the point of concern
 (Section~\ref{sec:ppath:geoid}). A nadir observation,
-$\ZntAng=180\degree$, is thus a measurement towards the centre of the
+$\ZntAng=180\degree$, is thus a measurement towards the center of the
 coordinate system.
 
 The \textindex{azimuth angle}, \AzmAng, is given with respect to the
@@ -600,7 +600,7 @@ number of rows for \artsstyle{sensor\_los} must be the same as for
 \artsstyle{sensor\_pos}.
 
 
-\levelc{Sensor polarisation\index{sensor polarisation}}
+\levelc{Sensor polarization\index{sensor polarization}}
 %===================
 \label{sec:fm_defs:sensorpol}
 
@@ -618,7 +618,7 @@ matrix cannot be used? Claudia promised to look into the problem further. *]
 The term ``sensor characteristics''\index{sensor characteristics} 
 is used here as a
 comprehensive term for the response of all sensor parts, beside
-polarisation effects, that affect how the field of monochromatic
+polarization effects, that affect how the field of monochromatic
 pencil beam intensities are translated to the recorded spectrum. For
 example, the antenna pattern, the side-band filtering and response of
 the spectrometer channels are normally the most important
@@ -681,7 +681,7 @@ the intensity field that will be weighted with the antenna response.
 %===================
 \label{sec:fm_defs:seqsandblocks}
 
-The series of observations modelled by the simulations is denoted as
+The series of observations modeled by the simulations is denoted as
 the \textindex{measurement sequence}. That is, a measurement sequence
 covers all spectra recorded at all considered sensor positions. A
 measurement sequence consists of one or several \textindex{measurement
@@ -698,7 +698,7 @@ block can consist of several spectra when there is no effective
 motion of the sensor with respect to the atmospheric fields. It should
 be noted that for 1D cases, a motion along a constant radius has no
 influence on the simulated spectra as the same atmospheric fields are
-seen for a given viewing direction. It is favourable, if possible, to
+seen for a given viewing direction. It is favorable, if possible, to
 handle all spectra as a single block, instead of using a block for
 each sensor position. This is the case as the antenna patterns for the
 different line-of-sights are normally overlapping and a pencil beam
@@ -781,7 +781,7 @@ sounding and a 1D atmosphere, where normally a single block should be
 used despite a number of spectra are recorded, it could be practical
 to set the line-of-sight to the viewing direction of the uppermost or
 lowermost spectrum, and the zenith angles in \artsstyle{mblock\_za\_grid}
-will not be centred around zero which is the case when the ``true''
+will not be centered around zero which is the case when the ``true''
 line-of-sight is used.
 
 It should be noted that the compulsory sensor variables give no
@@ -916,7 +916,7 @@ Section~\ref{sec:fm_defs:wfs}.
                                     {pencil beam directions of the block}
     \STATE{determine the propagation path}
     \COMMENT{Section \ref{sec:fm_defs:ppaths}}
-    \STATE{initialise the vector \MpiVct\ with the radiative background}
+    \STATE{initialize the vector \MpiVct\ with the radiative background}
     \COMMENT{Section \ref{sec:fm_defs:ppaths}}
     \FORALL{steps along propagation path}
      \STATE{update \MpiVct\ following Equation [**]}
@@ -979,7 +979,7 @@ paths are shown in Figure~\ref{fig:fm_defs:ppath_cases1}.
   \caption{Propagation path examples for a 2D atmosphere. The atmosphere 
     and the cloud box are plotted as in Figure~\ref{fig:fm_defs:2d}
     beside that the points for the atmospheric fields are not
-    emphasised. For the propagation paths to the left, with a the
+    emphasized. For the propagation paths to the left, with a the
     sensor placed inside the model atmosphere, a reflecting ground is
     assumed. The paths to the right are valid for a sensor placed
     outside the atmosphere (at the $*$) and a blackbody ground. No
@@ -1061,7 +1061,7 @@ a very strong ground slope.
     different sign, which matters here as this is a 2D case), and the paths
     would have been symmetric around the latitude of the sensor without a 
     ground slope. The maximum path step length is here set to be a value
-    equalling half the vertical distance between the two shown pressure
+    equaling half the vertical distance between the two shown pressure
     surfaces.}
   \label{fig:fm_defs:ppath_cases2}
  \end{center}
@@ -1082,7 +1082,7 @@ Equation~\ref{eq:fm_defs_ground_reflection} shows that the path before
 a reflection with a blackbody ground can be neglected. For such cases,
 $\Mpi(\Frq)$ equals $B(\Frq,\aTmp{g})$ independently of the previous
 value of $\Mpi(\Frq)$. The ground emission is treated to be
-unpolarised.
+unpolarized.
 
 A more detailed treatment of ground intersections would take into
 account the scattering properties of the ground and this limitation of
@@ -1139,3 +1139,7 @@ do. *]
 %%% mode: latex
 %%% TeX-master: "uguide"
 %%% End: 
+% LocalWords:  RTE Eriksson pz mpi SetAtmosphere mkfigs atm VMR WGS WGS pos los
+% LocalWords:  SetBlackbodyGround cloudbox mblock mblock binning Hotelling lat
+% LocalWords:  mishchenko rteCalc rteCalc lon ppath ppathCalc vmr za aa Hb defs
+% LocalWords:  AUG scatt nonsp partic sr WFs

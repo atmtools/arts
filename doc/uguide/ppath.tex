@@ -37,7 +37,7 @@
 %  \aVctLng{\Lat} & -                 & length of the latitude grid \\
 %  \Prs           & \artsstyle{p}     & pressure                             \\
 %  \PrsAlt        & \artsstyle{pz}    & pressure altitude                    \\
-%  \Rds           & \artsstyle{r}     & radius from the geoid centre         \\
+%  \Rds           & \artsstyle{r}     & radius from the geoid center         \\
 %  \Alt           & \artsstyle{z}     & geometrical altitude above the geoid \\
 %  \Lat           & \artsstyle{alpha} & latitude                             \\
 %  \Lon           & \artsstyle{beta}  & longitude                            \\
@@ -119,7 +119,7 @@ filling \artsstyle{ppath\_step} with the practical end point of the
 path. This is either the position of the sensor (true or
 hypothetical), or some point at the top of the atmosphere (determined
 by geometrical calculations starting at the sensor). This
-initialisation is not handled by \artsstyle{ppath\_step\_agenda}. 
+initialization is not handled by \artsstyle{ppath\_step\_agenda}. 
 The field \artsstyle{constant} is set by \artsstyle{ppathCalc}
 to the correct value if the sensor is above the model atmosphere.
 Otherwise, the field is set to be negative and is corrected by
@@ -325,7 +325,7 @@ is found along an imaginary prolongation of the path behind the sensor
 if the viewing direction is upwards). The expressions below are based
 on $p_c$ as the usage of a global constant for the path should
 decrease the sensitivity to numerical inaccuracies. If the
-calculations are based solely on the values for the neighbouring
+calculations are based solely on the values for the neighboring
 point, a numerical inaccuracy can accumulate when going from one point
 to next. The propagation path constant is stored in the field
 \artsstyle{constant} of \wsvindex{ppath} and \wsvindex{ppath\_step}.
@@ -351,7 +351,7 @@ Equation~\ref{eq:ppath:g_geom}, we get that
   \label{eq:ppath:r2l}
 \end{equation}
 As refraction is here neglected, the tangent point, the point of
-concern and the centre of the coordinate system make up a right
+concern and the center of the coordinate system make up a right
 triangle and Equation~\ref{eq:ppath:r2l} corresponds to the
 Pythagorean relation where $p_c$ is the radius of the tangent point.
 The distance between two points ($\Delta \PpathLng$) is obtained by
@@ -392,7 +392,7 @@ The latitude for a point is most easily determined by its zenith angle
 where \aZntAng{0} and \aLat{0} are the zenith angle and latitude of some 
 other point of the path. Equation~\ref{eq:ppath:za2lat} is based on the 
 fact that the quantities \aZntAng{1}, \aZntAng{2} and $\Delta\Lat$
-fulfil the relationship
+fulfill the relationship
 \begin{equation}
   \Delta\Lat = \aZntAng{1} - \aZntAng{2},
 \end{equation}
@@ -678,7 +678,7 @@ The fact that the geoid is an ellipsoid, instead of a sphere, opens up
 for the two different definitions of the latitude. The
 \textindex{geocentric latitude}, which is the the one used here, is the
 angle between the equatorial plane and the vector from the coordinate
-system centre to the position of concern. The \textindex{geodetic
+system center to the position of concern. The \textindex{geodetic
   latitude} is also defined with respect to the equatorial plane, but
 the angle to the normal to the reference ellipsoid is considered here, as
 shown in Figure~\ref{fig:ppath:lats}. It could be mentioned that a
@@ -702,7 +702,7 @@ mid-latitudes and the maximum value is about 12 arc-minutes.
 The \textindex{zenith} and \textindex{nadir} directions shall normally be
 defined to follow the normal to the reference ellipsoid, but, if
 nothing else is mentioned, these directions are here treated to go
-along the vector the centre of the coordinate system, as indicated in
+along the vector the center of the coordinate system, as indicated in
 Figure~\ref{fig:ppath:lats}. This latter definition is preferred
 as it results in that a propagation path in the zenith/nadir direction
 can be described by a single latitude and longitude value. The
@@ -749,3 +749,6 @@ of the reference ellipsoid for the geodetic datums handled by ARTS.
 %%% TeX-master: "uguide"
 %%% End: 
 
+% LocalWords:  ppath cc stepGeometric stepGeometricWithLmax ppathCalc pos los
+% LocalWords:  ArrayOfGridPos geom ppc geomppath gridpos fd gridrange Eq Eqs
+% LocalWords:  rodgers WGS montenbruck

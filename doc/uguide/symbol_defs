@@ -103,7 +103,9 @@
 % Differential d
 \newcommand{\DiffD}         {\ensuremath{\mathrm{d}}}  
 
-
+% Real and Imaginary part
+\renewcommand{\Re}            {\ensuremath{\mathrm{Re}}}
+\renewcommand{\Im}            {\ensuremath{\mathrm{Im}}}
 
 %--- Powers, degrees and other special units, etc.
 
