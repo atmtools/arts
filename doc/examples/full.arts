@@ -25,6 +25,12 @@ tgsDefine           { [
        "ClO",
        "H2O",
        "N2O" ] }
+
+tgsDefine           { [
+       "O3",
+       "ClO",
+       "H2O",
+       "N2O" ] }
 wfs_tgsDefine       { ["O3","ClO"] }
 lineshapeDefine     { shape               = "Voigt_Kuntz6"
                       normalizationfactor = "quadratic"
@@ -40,8 +46,8 @@ cont_descriptionInit{
 
 
 ### Load an atmosphere ########################################################
-MatrixReadAscii (raw_ptz_1d) { "/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-winter.tz.aa" }
-raw_vmrs_1dReadFromScenario  { "/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-winter" }
+MatrixReadAscii (raw_ptz) { "/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-winter.tz.aa" }
+raw_vmrsReadFromScenario  { "/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-winter" }
 
 
 ### Monochromatic frequency grid ##############################################
@@ -60,7 +66,7 @@ r_geoidStd{}
 VectorNLogSpace (p_abs)    { start = 1.013300e+05
                              stop  = 0.0914023919463313
                              n     = 101 }
-AtmFromRaw1D{""}
+AtmFromRaw{""}
 h2o_absSet{}
 n2_absSet{}
 #hseSet{

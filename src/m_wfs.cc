@@ -97,10 +97,10 @@ void k_append (
   ArrayOfIndex    ktemp_lengths(kx_lengths);
   Matrix          ktemp_aux(kx_aux);
   
-  cout << "ktemp =\n" << ktemp << "\n\n\n";
-  cout << "ktemp_names =\n" << ktemp_names << "\n\n\n";
-  cout << "ktemp_lengths =\n" << ktemp_lengths << "\n\n\n";
-  cout << "ktemp_aux =\n" << ktemp_aux << "\n\n\n";
+//   cout << "ktemp =\n" << ktemp << "\n\n\n";
+//   cout << "ktemp_names =\n" << ktemp_names << "\n\n\n";
+//   cout << "ktemp_lengths =\n" << ktemp_lengths << "\n\n\n";
+//   cout << "ktemp_aux =\n" << ktemp_aux << "\n\n\n";
 
   if ( nx1 > 0 )
   {

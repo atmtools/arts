@@ -786,7 +786,7 @@ void tgsDefine(// WS Output:
 	       // Control Parameters:
 	       const ArrayOfString& tags)
 {
-  tgs = TagGroups(tags.nelem());
+  tgs.resize(tags.nelem());
 
   //cout << "Tags: " << tags << "\n";
 
@@ -820,11 +820,8 @@ void tgsDefine(// WS Output:
       // tag_def now holds the different tag Strings for this group.
       //      cout << "tag_def =\n" << tag_def << endl;
 
-
-      // Unfortunately, MTL conatains a bug that leads to all elements of
-      // the outer Array of an Array<Array>> pointing to the same data
-      // after creation. So we need to fix this explicitly:
-      tgs[i] = Array<OneTag>();
+      // Set size to zero, in case the method has been called before.
+      tgs[i].resize(0);
 
       for ( Index s=0; s<tag_def.nelem(); ++s )
 	{

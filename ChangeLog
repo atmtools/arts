@@ -1,5 +1,12 @@
 2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0-0-219
+	
+	* src/m_abs.cc (tgsDefine): Fixed bug: Use resize function!
+
+
+2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-0-0-218
 
 	* General: Bux fixes.
