@@ -1,3 +1,15 @@
+2003-01-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-368	
+	
+	* src/m_scatrte.cc (i_fieldUpdate3D): Added this function to calculte
+	3D radiative transfer inside the cloudbox. To test this function
+	and also the 3D ppath functions I have to create 3D test scenarions.
+
+	(i_fieldIterate): Included 3D case.
+
+	* src/methods.cc: Added (i_fieldUpdate3D).
+	
 2003-01-09  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-367
