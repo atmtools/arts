@@ -1,3 +1,12 @@
+2003-08-13  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-119
+
+	* src/main.cc: Fixed bug reported by Christian. Option -b was not
+	working (implementation was missing!?).
+
+	* src/matpack{I,III}.h: Backported delete [] fixes from arts-1-1.
+
 2003-08-07  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-118
