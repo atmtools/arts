@@ -1,3 +1,28 @@
+2002-11-29  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-322
+	
+	* src/m_atmosphere.cc: 
+	(AtmRawRead): Added this method to read atmospheric scenarios.
+	(AtmFieldsCalc): Added. Interpolates atmospheric fields on the
+	atmospheric grids for the RT calculation.
+
+	* src/methods.cc: Added methods above.
+
+	* src/workspace.cc: Included WSVs for methods above:
+		t_field_raw,
+		z_field_raw,
+		vmr_field_raw,
+		vmr_field
+	
+	* src/species_data.cc: Copied this file from ARTS 1.0. It is needed
+	for creating the atmospheric fields (to extract the species name
+	from gas_species).
+
+	* src/Makefile.am: Included species_data.cc.
+
+	* src/m_cloudbox.cc: Removed some unused variables.
+	
 2002-11-29  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-321
