@@ -583,7 +583,7 @@ void ext_matAddGas(Tensor3& ext_mat,
 {
   Index stokes_dim = ext_mat.ncols();
   Matrix ext_mat_gas(stokes_dim, stokes_dim,0.0);
-
+  cout<<"stokes_dim"<<stokes_dim<<endl;
   //FIXME: After the scalar ags function is ready.
   if (atmosphere_dim == 1){
   

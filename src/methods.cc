@@ -1145,6 +1145,31 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "i_fieldUpdatePlaneParallel" ),
+	DESCRIPTION
+        (
+	 "Updates the i_field during the iteration. It performs the RT \n"
+         "calculation using a fixed value for the scattering integral stored \n"
+         "in *scat_field*.\n"
+         "   " 
+        ),
+	OUTPUT(i_field_, ppath_step_, stokes_vec_, 
+               sca_vec_, a_planck_value_, l_step_,
+               abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, ext_mat_, abs_vec_,
+               scat_p_index_, scat_za_index_, scat_aa_index_, abs_scalar_gas_),
+	INPUT(spt_calc_agenda_, opt_prop_part_agenda_, opt_prop_gas_agenda_,
+              scalar_gas_absorption_agenda_, ppath_step_agenda_,
+              amp_mat_, scat_field_, cloudbox_limits_,
+              scat_za_grid_, scat_aa_grid_, p_grid_, t_field_, z_field_, 
+              r_geoid_, f_grid_, f_index_, 
+	      pnd_field_, stokes_dim_, atmosphere_dim_, part_types_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
  md_data_raw.push_back     
     ( MdRecord
       ( NAME("IndexPrint"),

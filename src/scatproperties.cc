@@ -354,8 +354,11 @@ void amp2ext_scat(MatrixView ext_scat,
 
   //  ext_conv.resize(stokes_dim, stokes_dim);
   ext_scat = 0.;
-
-  Numeric Z11_integrated, Z21_integrated, Z31_integrated, Z41_integrated ;
+  Numeric Z11_integrated = 0.0;
+  Numeric Z21_integrated = 0.0;
+  Numeric  Z31_integrated= 0.0;
+  Numeric  Z41_integrated= 0.0;
+ 
   Matrix Z11_mat = pha (Range(joker), Range(joker), 0, 0);
   for (Index i = 0;i < nza; ++i)
     {
@@ -482,10 +485,13 @@ void amp2abs(VectorView abs,
   assert (is_size(ext, stokes_dim, stokes_dim));
   assert (is_size(abs, stokes_dim));
   assert (is_size(za_grid,nza));
-  assert (is_size(aa_grid,naa));
+  assert (is_size(aa_grid,naa));  
   //Vector za_grid(nza);
   //Vector aa_grid(naa);
-  Numeric Z11_integrated, Z21_integrated, Z31_integrated, Z41_integrated ;
+  Numeric Z11_integrated = 0.0;
+  Numeric Z21_integrated = 0.0;
+  Numeric  Z31_integrated= 0.0;
+  Numeric  Z41_integrated= 0.0;
   Matrix Z11_mat = pha (Range(joker), Range(joker), 0, 0);
   for (Index i = 0;i < nza; ++i)
     {
