@@ -3113,6 +3113,22 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("CoolingRates"),
+  	DESCRIPTION(
+          "Calculates cooling rates due to exchange of longwave radiation.\n"
+          "\n"
+          ""),
+	OUTPUT( coolrate_ ),
+	INPUT( l_step_, p_abs_, z_abs_, t_abs_, f_mono_, abs_, za_pencil_,
+               refr_, refr_lfac_, refr_index_, 
+               r_geoid_, z_ground_, e_ground_, t_ground_, p_coolrate_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("yTB"),
   	DESCRIPTION(
            "Converts a radiance spectrum to Planck brightness temperatures.\n"

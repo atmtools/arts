@@ -385,11 +385,11 @@ Numeric g_of_lat (Numeric   latitude)
 */
 void rte_iterate (
                   VectorView        y, 
-                  const Index             start_index,
-                  const Index             stop_index,
+                  const Index       start_index,
+                  const Index       stop_index,
                   ConstMatrixView   tr,
                   ConstMatrixView   s,
-                  const Index             n_f )
+                  const Index       n_f )
 {
   Index   i_f;        // frequency index
   Index   i_z;        // LOS index
@@ -432,12 +432,12 @@ void rte_iterate (
 */
 void rte (
           VectorView        y,
-          const Index             start_index,
-          const Index             stop_index,
+          const Index       start_index,
+          const Index       stop_index,
           ConstMatrixView   tr,
           ConstMatrixView   s,
           ConstVectorView   y_space,
-          const Index             ground,
+          const Index       ground,
           ConstVectorView   e_ground,
           ConstVectorView   y_ground )
 {

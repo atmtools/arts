@@ -53,6 +53,8 @@
 #include "math_funcs.h"          
 #include "messages.h"          
 #include "auto_wsv.h"          
+#include "auto_md.h"          
+extern const Numeric PI;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric COSMIC_BG_TEMP;
@@ -61,7 +63,7 @@ extern const Numeric PLANCK_CONST;
 extern const Numeric BOLTZMAN_CONST;
 extern const Numeric SPEED_OF_LIGHT;
 extern const Numeric EARTH_GRAV_CONST;
-
+extern const Numeric AVOGADROS_NUMB;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1616,3 +1618,117 @@ void MatrixTB (// WS Generic Output:
 }
 
 
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2003-12-02
+*/
+void CoolingRates(
+            Matrix&   coolrate,
+      const Numeric&  lstep0,
+      const Vector&   p_abs,
+      const Vector&   z_abs,
+      const Vector&   t_abs,
+      const Vector&   f_mono,
+      const Matrix&   absorption,
+      const Vector&   za_pencil,
+      const Index&    refr,
+      const Index&    refr_lfac,
+      const Vector&   refr_index,
+      const Numeric&  r_geoid,
+      const Numeric&  z_ground,
+      const Vector&   e_ground,
+      const Numeric&  t_ground,
+      const Vector&   p_coolrate )
+{
+  // Some sizes
+  const Index   nf = f_mono.nelem();
+  const Index   nza = za_pencil.nelem();
+  const Index   np = p_coolrate.nelem();
+
+  // Input checks not done elsewhere
+  if ( za_pencil[0] != 0  ||  za_pencil[nza-1] != 180 )
+    throw runtime_error(
+      "The given zenith angle grid must start with 0 and end with 180" );
+  
+  // Give *coolrate* the correct size and set to 0
+  coolrate.resize( nf, np );
+  coolrate = 0;
+
+  // Altitudes, temperatures and absorption corresponding to *p_coolrate*
+  Vector   z_coolrate( np ), t_coolrate( np );
+  Matrix   abs_coolrate( nf, np );
+  interpp( z_coolrate, p_abs, z_abs, p_coolrate );
+  interpp( t_coolrate, p_abs, t_abs, p_coolrate );
+  interpp( abs_coolrate, p_abs, absorption, p_coolrate );
+
+  // Create matrix to store values to be integrated in (zenith angles)
+  Matrix   intgrmatrix( nf, nza, 0 );
+
+  // Activate emssion and create vector with cosmic background radiation 
+  const Index emission = 1;
+  Vector   y_space( nf );
+  y_spaceStd( y_space, f_mono, "cbgr" );  
+
+  // Vector for blackbody radiation and absorption
+  //Vector   bbody( nf );
+
+  // Define local correspondance to some WSV
+  Los             los;
+  Vector          z_tan, y;
+  ArrayOfMatrix   source, trans;
+
+
+  for( Index ip=0; ip<np; ip++ )
+    {
+      // Determine blackbody radiation at present altitude
+      //planck( bbody, f_mono, t_coolrate[ip] );
+
+      // Loop zenith angles and calculate incoming radiation
+      for( Index iza=1; iza<nza-1; iza++ )
+        {
+          Numeric lstep = lstep0 / abs( cos( DEG2RAD*za_pencil[iza] ) ); 
+          if( lstep > 10e3  ||  abs( za_pencil[iza] -90 ) < 0.01 )
+            lstep = 10e3;
+
+          losCalc( los, z_tan, z_coolrate[ip], Vector(1,za_pencil[iza]), 
+                   lstep, p_abs, z_abs, refr, refr_lfac, refr_index, 
+                   z_ground, r_geoid );
+          sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+          transCalc( trans, los, p_abs, absorption );
+          yCalc ( y, emission, los, f_mono, y_space, source, trans, 
+                  e_ground, t_ground );
+
+          const Numeric sinv = sin( DEG2RAD*za_pencil[iza] );
+
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              const Numeric bb_eff = source[0](iv,los.stop[0]);
+              intgrmatrix(iv,iza) = (bb_eff-y[iv])*abs_coolrate(iv,ip)*sinv;
+            }
+        }
+      //MatrixWriteBinary( intgrmatrix, "I", "" );
+      //Exit();
+
+      // Loop zenith angles and make integration
+      //
+      const Numeric cp = 1.00e3;
+      const Numeric rho = 28.8 * p_coolrate[ip] / 
+                         ( t_coolrate[ip] * BOLTZMAN_CONST * AVOGADROS_NUMB );
+      const Numeric factor1 = 2 * PI / (cp*rho);  
+      //
+      for( Index iza=1; iza<nza; iza++ )
+        {
+          const Numeric factor2 = DEG2RAD*(za_pencil[iza]-za_pencil[iza-1]);
+
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              coolrate(iv,ip) += factor1 * factor2 * 
+                      ( intgrmatrix(iv,iza) + intgrmatrix(iv,iza-1) ) / 2;
+            }
+        }
+    }
+}

@@ -691,6 +691,22 @@ void define_wsv_data()
       "pressure [Pa] temperature [K] altitude [m] VMR [1]",
       ArrayOfMatrix_));
 
+  //-------------------< Cooling rates stuff >-----------------------
+  //                     -------------------
+
+  wsv_data.push_back
+    (WsvRecord
+     ("coolrate",
+      "Cooling rate matrix, in unit of K/s."
+      "Dimensions: [f_mono.nelem(), z_crates.nelem()]",
+      Matrix_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("p_coolrate",
+      "Pressures for which to calculate cooling rates.",
+      Vector_));
+
   //-------------------< Methods as variables >-----------------------
   //                     --------------------
 
