@@ -35,7 +35,10 @@
 #define checkinput_h
 
 
+#include <stdexcept>
 #include "arts.h"
+#include "array.h"
+#include "logic.h"
 #include "matpackI.h"
 #include "matpackIII.h"
 #include "mystring.h"
@@ -101,6 +104,15 @@ void chk_atm_surface(
 	const Index&      dim,
 	ConstVectorView   alpha_grid,
 	ConstVectorView   beta_grid );
+
+void chk_cloudbox(
+	const Index&          dim,
+	ConstVectorView       p_grid,
+	ConstVectorView       lat_grid,
+	ConstVectorView       lon_grid,
+        const Index&          blackbody_ground,
+        const Index&          cloudbox_on, 
+	const ArrayOfIndex&   cloudbox_limits );
 
 
 #endif  // checkinput_h

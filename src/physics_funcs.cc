@@ -39,13 +39,6 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
-#include <math.h>
-#include <stdexcept>
-#include "arts.h"
-#include "matpackI.h"
-#include "messages.h"          
-#include "math_funcs.h"          
-#include "make_vector.h"
 #include "physics_funcs.h"
 
 extern const Numeric PLANCK_CONST;

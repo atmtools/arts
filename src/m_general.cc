@@ -40,6 +40,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "arts.h"
+#include "check_input.h"
 #include "messages.h"
 
 
@@ -59,6 +60,30 @@ void Exit()
   out1 << "  Forced exit.\n";
   exit(0);
 }
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-11
+*/
+void SetAtmosphericDimensionality(
+        // WS Output:
+              Index&    atmosphere_dim,
+              Vector&   lat_grid,
+              Vector&   lon_grid,
+        // Control Parameters:
+        const Index&    dim )
+{
+  chk_if_in_range( "the keyword *dim*", dim, 1, 3 );
+  atmosphere_dim = dim;
+  lat_grid.resize(0);
+  lon_grid.resize(0);
+}
+
+
 
 /**
    See the the online help (arts -d FUNCTION_NAME)

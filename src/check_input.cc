@@ -37,9 +37,7 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
-#include <stdexcept>
 #include "check_input.h"
-#include "logic.h"
 
 
 
@@ -57,7 +55,7 @@
     \param    x        A variable of type Index.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_if_bool( 
         const String&   x_name,
@@ -87,7 +85,7 @@ void chk_if_bool(
     \param    x_high   Highest allowed value for x.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_if_in_range( 
 	const String&   x_name,
@@ -122,7 +120,7 @@ void chk_if_in_range(
     \param    x        A variable of type Numeric.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_if_over_0( 
 	const String&    x_name,
@@ -152,7 +150,7 @@ void chk_if_over_0(
     \param    x_high   Highest allowed value for x.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_if_in_range( 
 	const String&    x_name,
@@ -187,7 +185,7 @@ void chk_if_in_range(
     \param    l        The expected length of x.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_vector_length( 
 	const String&      x_name,
@@ -218,7 +216,7 @@ void chk_vector_length(
     \param    x2        The second vector.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_vector_length( 
 	const String&      x1_name,
@@ -251,7 +249,7 @@ void chk_vector_length(
     \param    x        A variable of type Vector.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_if_increasing( 
 	const String&      x_name,
@@ -280,7 +278,7 @@ void chk_if_increasing(
     \param    x        A variable of type Vector.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_if_decreasing( 
 	const String&      x_name,
@@ -298,7 +296,7 @@ void chk_if_decreasing(
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Functions related to atmospheric fields, grids etc.
+//   Functions related to atmospheric grids, fields and surfaces.
 ////////////////////////////////////////////////////////////////////////////
 
 //// chk_atm_grids ////////////////////////////////////////////////////////////
@@ -314,7 +312,7 @@ void chk_if_decreasing(
     \param    lon_grid     The longitude grid.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_atm_grids( 
 	const Index&      dim,
@@ -374,7 +372,7 @@ void chk_atm_grids(
     \param    lon_grid    The longitude grid.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_atm_field( 
 	const String&     x_name,
@@ -413,11 +411,11 @@ void chk_atm_field(
     \param    x_name       The name of the atmospheric surface.
     \param    x            A variable holding an atmospheric surface.
     \param    dim          The atmospheric dimensionality.
-    \param    lat_grid   The latitude grid.
-    \param    lon_grid    The longitude grid.
+    \param    lat_grid     The latitude grid.
+    \param    lon_grid     The longitude grid.
 
     \author Patrick Eriksson 
-    \date   2004-04-15
+    \date   2002-04-15
 */
 void chk_atm_surface( 
 	const String&     x_name,
@@ -438,5 +436,104 @@ void chk_atm_surface(
          << "Expected size is " << nrows << " x " << ncols << ","
          << "while actual size is " << x.nrows() << " x " << x.ncols() << ".";
       throw runtime_error( os.str() );
+    }
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Function(s) releated with the cloud box.
+///////////////////////////////////////////////////////////////////////////////
+
+//// chk_cloudbox /////////////////////////////////////////////////////////////
+/** 
+    Checks the consistency of the cloud box workspace variables. 
+
+    The consistency is checked both internally and with respect to the grids.
+
+    The function gives an error message if a consistency failure is found.
+
+    \param    dim          	 The atmospheric dimensionality.
+    \param    p_grid       	 The pressure grid.
+    \param    lat_grid     	 The latitude grid.
+    \param    lon_grid           The longitude grid.
+    \param    blackbody_ground   Flag for treating the ground as a blackbody.
+    \param    cloudbox_on        Flag to active the cloud box.
+    \param    cloudbox_limits    Index limits of the cloud box.
+
+    \author Patrick Eriksson 
+    \date   2002-05-11
+*/
+void chk_cloudbox(
+	const Index&          dim,
+	ConstVectorView       p_grid,
+	ConstVectorView       lat_grid,
+	ConstVectorView       lon_grid,
+        const Index&          blackbody_ground,
+        const Index&          cloudbox_on,    
+        const ArrayOfIndex&   cloudbox_limits )
+{
+  chk_if_bool(  "cloudbox_on", cloudbox_on );
+
+  if( cloudbox_on )
+    {
+      if( cloudbox_limits.nelem() != dim*2 )
+	{
+	  ostringstream os;
+	  os << "The array *cloudbox_limits* has incorrect length.\n"
+	     << "For dim = " << dim << " the length shall be " << dim*2
+	     << " but it is " << cloudbox_limits.nelem() << ".";
+	  throw runtime_error( os.str() );
+	}
+      if( !blackbody_ground && cloudbox_limits[0]!=0 )
+	{
+	  ostringstream os;
+	  os << "The lower pressure limit for cloud box must be 0 when the"
+             << "ground\nis not treated to be a blackbody, but the limit is"
+	     << "set to be " << cloudbox_limits[0] << ".";
+	  throw runtime_error( os.str() );
+	}
+       if( cloudbox_limits[1]<=cloudbox_limits[0] || cloudbox_limits[0]<0 ||
+                                           cloudbox_limits[1]>=p_grid.nelem() )
+	{
+	  ostringstream os;
+	  os << "Incorrect value(s) for cloud box pressure limit(s) found."
+	     << "\nValues are either out of range or upper limit is not "
+	     << "greater than lower limit.\nWith present length of "
+             << "*p_grid*, OK values are 0 - " << p_grid.nelem()-1
+             << ".\nThe pressure index limits are set to " 
+	     << cloudbox_limits[0] << " - " << cloudbox_limits[1] << ".";
+	  throw runtime_error( os.str() );
+	}
+      if( dim >= 2 )
+	{
+	  if( cloudbox_limits[3]<=cloudbox_limits[2] || cloudbox_limits[2]<1 ||
+                                cloudbox_limits[3]>=lat_grid.nelem()-1 )
+	    {
+	      ostringstream os;
+	      os << "Incorrect value(s) for cloud box latitude limit(s) found."
+		 << "\nValues are either out of range or upper limit is not "
+		 << "greater than lower limit.\nWith present length of "
+                 << "*lat_grid*, OK values are 1 - " << lat_grid.nelem()-2
+                 << ".\nThe latitude index limits are set to " 
+		 << cloudbox_limits[2] << " - " << cloudbox_limits[3] << ".";
+	      throw runtime_error( os.str() );
+	    }
+	}
+      if( dim >= 3 )
+	{
+	  if( cloudbox_limits[5]<=cloudbox_limits[4] || cloudbox_limits[4]<1 ||
+                                cloudbox_limits[5]>=lon_grid.nelem()-1 )
+	    {
+	      ostringstream os;
+	      os << "Incorrect value(s) for cloud box longitude limit(s) found"
+		 << ".\nValues are either out of range or upper limit is not "
+		 << "greater than lower limit.\nWith present length of "
+                 << "*lon_grid*, OK values are 1 - " << lon_grid.nelem()-2
+                 << ".\nThe longitude limits are set to " 
+		 << cloudbox_limits[4] << " - " << cloudbox_limits[5] << ".";
+	      throw runtime_error( os.str() );
+	    }
+	}
     }
 }

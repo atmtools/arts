@@ -48,6 +48,7 @@ arts_SOURCES = \
 	m_io.cc \
 	m_method_list.cc \
 	m_ppath.cc \
+	m_rte.cc \
 	m_xml.cc \
 	main.cc \
 	make_array.h \

@@ -34,7 +34,14 @@
 #ifndef physics_h
 #define physics_h
 
+#include <math.h>
+#include <stdexcept>
+#include "arts.h"
 #include "matpackI.h"
+#include "messages.h"          
+#include "math_funcs.h"          
+#include "make_vector.h"
+#include "physics_funcs.h"
 
 
 

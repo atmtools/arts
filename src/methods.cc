@@ -597,6 +597,23 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("NoCloudbox"),
+	DESCRIPTION
+        (
+         "Deactivates the cloud box. \n"
+         "\n"
+         "The function sets *cloudbox_on* to 0, and *cloudbox_limits* to be\n"
+         "a an empty vector."
+        ),
+	OUTPUT( cloudbox_on_, cloudbox_limits_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("NumericReadXML"),
 	DESCRIPTION(
                     "Reads a numeric value from an XML file.\n"
@@ -680,6 +697,23 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("SetAtmosphericDimensionality"),
+	DESCRIPTION
+        (
+         "Sets *atmosphere_dim* and gives some variables dummy values.\n"
+         "\n"
+         "The function sets *atmosphere_dim* to the selected value. The\n"
+         "latitude and longitude grids are set to be empty."
+        ),
+	OUTPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "dim" ),
+	TYPES(    Index_t )));
 
   md_data.push_back
     ( MdRecord

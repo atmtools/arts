@@ -22,11 +22,11 @@
 //   File description
 ////////////////////////////////////////////////////////////////////////////
 /*!
-  \file   m_cloudbox.cc
-  \brief  Workspace functions releated to the cloud box.
+  \file   m_rte.cc
+  \brief  Workspace functions for solving clear sky radiative transfer.
 
   \author Patrick Eriksson
-  \date 2002-05-08 
+  \date 2002-05-11 
 */
 
 
@@ -36,27 +36,12 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "arts.h"
-#include "array.h"
+#include "check_input.h"
+#include "messages.h"
 
 
 
 ////////////////////////////////////////////////////////////////////////////
 //   The functions
 ////////////////////////////////////////////////////////////////////////////
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-11
-*/
-void NoCloudbox(
-        // WS Output:
-        Index&          cloudbox_on,
-        ArrayOfIndex&   cloudbox_limits )
-{
-  cloudbox_on = 0;
-  cloudbox_limits.resize(0);
-}
-
 
