@@ -285,6 +285,7 @@ test_matpack_SOURCES = \
 test_xml_SOURCES = \
 	absorption.cc \
 	absorption.h \
+	partition_function_data.cc \
 	matpackI.cc \
 	matpackI.h \
 	matpackIII.cc \
