@@ -188,8 +188,8 @@ bool is_whitespace(const char c)
     The whitespace cases implemented here must be consistent with
     is_whitespace! 
     @see is_whitespace    
-  
-    @exceptions UnexpectedChar Non-whitespace character encountered. */
+
+    @exception UnexpectedChar Non-whitespace character encountered. */
 void eat_whitespace(SourceText& text)
 {
   char dummy;
