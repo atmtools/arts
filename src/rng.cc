@@ -33,6 +33,7 @@ generator from the GNU Scientific Library <http://www.gnu.org/software/gsl/>.
 */
 
 #include "rng.h"
+#include <cstring>
 #include <iostream>
 #include "arts.h"
 /*!
