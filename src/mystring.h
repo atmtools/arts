@@ -31,6 +31,14 @@
 #include <string>
 #include "arts.h"
 
+// String stream library. This is included with the ARTS source code
+// for now, because it is missing in gcc <= 2.95.2
+#ifdef HAVE_SSTREAM
+#include <sstream>
+#else
+#include "sstream.h"
+#endif
+
 /**
    The implementation for String, the ARTS string class. 
 
