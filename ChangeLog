@@ -1,3 +1,24 @@
+2003-04-02  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-517
+
+	* doc/uguide/main.tex: Put Stefan and me as editors and created a
+	table of authors. Take a look at the table and change if I got
+	something wrong. I would have preferred to have this table on the
+	first page, but the list of authors can eventually be long and I
+	don't think that the table fit on the first page. This solution
+	was a suggestion from Stefan to avoid the problem in how to order
+	the author list. The author table is in alphabetical order. Please,
+	keep the table updated and give comments if you don't like it.
+	Feel free to give the table a nicer appearance.
+
+	* src/methods.cc: Changed doc for ppath_stepGeometric to make clear
+	that lmax=0 is the same as lmax<0.
+
+	* doc/uguide/fm_definitions.tex: Added a sub-section to discuss the
+	role of atmospheric grids and the path step length. I was not very
+	inspired and there is nothing that it is not discussed in my emails.
+
 2003-04-02  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-516

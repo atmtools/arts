@@ -19,27 +19,31 @@
   \vspace*{2cm}
   {\Huge \verb|ARTS User Guide|\\}
   \vspace*{1cm}
-  {\large by \\}
+  {\large edited by \\}
   \vspace*{1cm}
-  {\large \bf Patrick Eriksson\footnote{Department of
-    Radio and Space Science, Chalmers University of Technology, Sweden},
-    Stefan B\"uhler\footnote{Institute of Environmental
-      Physics, University of Bremen, Germany},   
-    Claudia Emde\footnotemark[2], Sreerekha T.R.\footnotemark[2],\\ 
-    Christian Melsheimer\footnotemark[2] and Oliver Lemke\footnotemark[2] 
+  {\large \bf Patrick Eriksson\footnote{
+      Department of Radio and Space Science, 
+      Chalmers University of Technology, SE-41296 G\"oteborg, Sweden
+      (patrick@rss.chalmers.se)} and
+    Stefan B\"uhler\footnote{
+      Institute of Environmental Physics, University of Bremen, 
+      P.O. Box 33044, D-28334 Bremen, Germany
+      (sbuehler@uni-bremen.de)}  
     }\\
    \vspace*{2cm}
    {\large \today\\
     ARTS Version \input{auto_version}
    }
 \end{center}
-  \vspace*{4cm}
+\vspace*{4cm}
 {\normalsize \bf
   \noindent
   This is a working document. The implementation approaches and the
-  algorithms are preliminary and can be subject to changes. In addition,
-  not all features described in this document are implemented in ARTS.
-  
+  algorithms are preliminary and can be subject to changes.  For
+  continuous reports on changes of the source code and this user guide,
+  subscribe to the ARTS developers mailing list at 
+  \verb|www.sat.uni-bremen.de/lists|.
+
   We welcome gladly comments and reports on errors in the document.
   Send then an e-mail to: \verb|patrick@rss.chalmers.se| or 
   \verb|sbuehler@uni-bremen.de|.
@@ -62,7 +66,7 @@ version 2, or (at your option) any later version.
 This program is distributed in the hope that it will be
 useful, but WITHOUT ANY WARRANTY; without even the implied
 warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the GNU General Public License for more
+PURPOSE. See the GNU General Public License for more
 details. 
 
 You should have received a copy of the GNU General Public
@@ -70,7 +74,66 @@ License along with the program; if not, write to the Free
 Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA. 
 \end{verbatim}
-\cleardoublepage
+
+
+
+%--- Contributing authors -----------------------------------------------------
+%
+\newpage
+\thispagestyle{plain}
+%
+\begin{center}
+
+{\Large \bf Contributing authors}
+\vspace*{20mm}
+
+\begin{tabular}{lp{10mm}l}
+\hline
+{\bf Author/email} & & {\bf Main contribution(s)} \\
+\hline
+  Stefan B\"uhler$^a$ & & Editor, Sections \ref{sec:concept},  
+     \ref{sec:absorption}, \ref{sec:development}, \ref{sec:agendas},
+     \ref{sec:matpack} and \ref{sec:interpolation}.\\
+  sbuehler@uni-bremen.de & &        \\
+\hline
+  Claudia Emde$^a$ & & Sections \ref{sec:scattering} and \ref{sec:lin_alg}.\\
+  claudia@sat.physik.uni-bremen.de & & \\
+\hline
+  Patrick Eriksson$^b$ &  & Editor, report structure, 
+    Sections \ref{sec:fm_defs:atmosphere}, \ref{sec:fm_defs:sensor1}, \\
+  Patrick.Eriksson@rss.chalmers.se & & 
+    \ref{sec:fm_defs:rte}, \ref{sec:formalism}, \ref{sec:ppath} and 
+    \ref{sec:rte_theory}.\\
+\hline
+  Oliver Lemke$^a$ & & Latex fixes and automatic generation of\\
+  olemke@sat.physik.uni-bremen.de & & appendices\\
+\hline
+  Christian Melsheimer$^a$ & & Section \ref{sec:polarization}.\\
+  cmels@sat.physik.uni-bremen.de & & \\
+\hline
+  Sreerekha T.R.$^a$ & & Section \ref{sec:integration}.\\
+  rekha@sat.physik.uni-bremen.de & & \\
+\hline
+ && \\
+\multicolumn{3}{l}{ $^a$
+      Institute of Environmental Physics, University of Bremen, } \\
+\multicolumn{3}{l}{\rule{1.5ex}{0pt}P.O. Box 33044, D-28334 Bremen, Germany} \\
+\multicolumn{3}{l}{ $^b$
+      Department of Radio and Space Science, 
+      Chalmers University of Technology,} \\
+\multicolumn{3}{l}{\rule{1.5ex}{0pt}SE-41296 G\"oteborg, Sweden} \\
+
+\end{tabular}
+\end{center}
+
+
+
+%--- Create an empty page
+%
+\newpage
+\thispagestyle{empty}
+\rule{0pt}{10pt}
+\newpage
 
 \pagenumbering{roman}
 \tableofcontents

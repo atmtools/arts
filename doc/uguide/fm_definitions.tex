@@ -426,10 +426,9 @@ variables for the sensor that always must be specified are
 \artsstyle{sensor\_pol}, \artsstyle{antenna\_dim},
 \artsstyle{mblock\_za\_grid}, \artsstyle{mblock\_aa\_grid} and
 \artsstyle{Hb}. These variables are presented separately below. The
-discussion of sensor workspace variables is continued in
-Section~[**].%\ref{sec:fm_defs:sensor2}. 
-Section~\ref{sec:fm_defs:rte} gives
-further insights in how the sensor is treated in ARTS.
+discussion of sensor workspace variables is continued in Section~[**].
+Section~\ref{sec:fm_defs:rte} gives further insights in how the sensor
+is treated in ARTS.
 
 
 \levelc{Sensor position\index{sensor position}}
@@ -982,24 +981,6 @@ is possible to use \artsstyle{rte\_agenda} also outside of
 \artsstyle{RteCalc}, as long as \wsvindex{i\_rte} and
 \artsstyle{ppath} are set correctly.
 
-%\begin{algorithm}[!b]
-% \begin{algorithmic}
-%   \STATE{determine the temperature along the propagation path by
-%     interpolating \wsvindex{t\_field}}
-%   \FORALL{propagation path steps}
-%   \STATE{absorption ??}
-%    \FORALL{frequencies}
-%    \STATE{solve the raditaive transfer problem by an expression such 
-%      as Eq.~\ref{eq:fm_defs:rte_step}}
-%    \ENDFOR
-%   \ENDFOR
-% \end{algorithmic}
-% \caption{Typical structure of a workspace method to 
-%   be part of \artsstyle{rte\_agenda}. The example is valid for a
-%   method considering emission.}
-% \label{alg:fm_defs:rte_agenda}
-%\end{algorithm}
-
 The radiative transfer equation can be solved in many ways, and with
 different level of refinement. The standard approach in ARTS is to
 solve the radiative transfer from one point of the propagation path to
@@ -1075,6 +1056,60 @@ in Section [**].
  \end{center}
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath_cases.
+
+
+
+\levelc{Calculation accuracy}
+%===================
+\label{sec:fm_defs:accuracy}
+
+The accuracy of the calculations depends on many factors. For many
+factors, such as spectroscopic parameters, there is nothing else to do
+than using best avaliable data. On the other hand, for other factors
+there is a trade-off between accuracy and speed. More accurate
+calculations requires normally also more computer memory. All
+different grids and the propagation path step length fall into this
+category of accuracy factors. It could be worth discussing the
+selection of atmospheric grids and the path step length as there can
+be some confusion about how that affects the accuracy.
+
+The main purpose of the atmospheric grids (\artsstyle{p\_grid},
+\artsstyle{lat\_grid} and \artsstyle{lon\_grid}) is to build up the
+mesh on which the atmospheric fields are defined. This means that the
+spacing of these grids shall be selected having the representation of
+the atmospheric fields in mind. That is, the spacing shall be fine
+enough that the atmospheric field is sufficiently well approximated by
+the piecewise (multi-)linear representation between the grid
+crossings. The result is that a finer spacing must be used to
+represent correctly atmospheric fields with a lot of structure, while
+the grids can have fewer points when the atmsopheric fields are
+smooth. 
+
+The accuracy when performing the actual radiative transfer
+calculations depends on the refinement of the expressions used and the
+discretization of the propagation path. If
+Equation~\ref{eq:fm_defs:rte_step} is used, the underlaying
+assumptions are that the temperature is constant, and that the
+absorption varies linearly, along the propagation path step. These
+assumptions are of course less violated if the path step length is
+made small. An upper limit of the path step length is set by the
+keyword argument \artsstyle{lmax}. In many cases it should suffice to
+just include path points at the crossings of the atmsopheric grids
+(\artsstyle{lmax}$\leq0$). An exception can be limb sounding where the
+path step length can be very long around the tangent point, but a
+limit of about 25~km should suffice normally. 
+
+As points are always included in the propagation paths at the
+crossings of the atmospheric grids, finer grids will give shorter path
+steps. However, it is neither good practice or effecient to use the
+atmsopheric grids to control the accuracy of the radiative transfer
+calculations. An upper limit on the path step length shall be applied
+for this purpose.\footnote{Further discussion can be found in message
+  399 and 410 of the ARTS developers mailing list.}
+
+
+
+
 
 
 %\levelc{Simulation of transmission measurements}

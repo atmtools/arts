@@ -2383,7 +2383,7 @@ void define_md_data_raw()
          "gives the option to include additional points to ensure that the\n"
          "distance along the path between the points does not exceed the \n"
          "selected maximum length. No additional points are included if\n"
-         "*lmax* is set to be negative.\n"
+         "*lmax* is set to <= 0.\n"
          "\n"
          "As functions of this kind should very seldom be called directly,\n"
          "and that the functions can be called a high number of times, these\n"
