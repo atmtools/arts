@@ -47,7 +47,67 @@
 #include "agenda_class.h"
 #include "absorption.h"
 #include "gas_abs_lookup.h"
-#include "xml_io_private.h"
+
+
+////////////////////////////////////////////////////////////////////////////
+//   XML parser classes
+////////////////////////////////////////////////////////////////////////////
+
+//! XML attribute class
+/*!
+  Holds the name and value of an XML attribute.
+*/
+
+class XMLAttribute
+{
+public:
+  String name;                  /*!< Attribute name */
+  String value;                 /*!< Attribute value */
+};
+
+
+//! The ARTS XML tag class
+/*!
+  Handles reading, writing and constructing of XML tags.
+*/
+class ArtsXMLTag
+{
+public:
+
+  String&
+  get_name () { return (name); }
+
+  void
+  check_name (const String& expected_name);
+
+  void
+  set_name (const String& new_name) { name = new_name; }
+
+  void
+  add_attribute (const String& aname, const String& value);
+
+  void
+  add_attribute (const String& aname, const Index& value);
+
+  void
+  check_attribute (const String& aname, const String& value);
+
+  void
+  get_attribute_value (const String& aname, String& value);
+
+  void
+  get_attribute_value (const String& aname, Index& value);
+
+  void
+  read_from_stream (istream& is);
+
+  void
+  write_to_stream (ostream& os);
+
+private:
+  String name;                  /*!< Tag name */
+  Array<XMLAttribute> attribs;  /*!< List of attributes */
+};
 
 
 ////////////////////////////////////////////////////////////////////////////
