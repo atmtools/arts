@@ -1,3 +1,11 @@
+2001-03-16  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-140
+
+	* Added Makefile and Makefile.in files in the ami tree to the
+	.cvsignore files. (I had forgotten to do this for version 139.) 
+	
+
 2001-03-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-139
