@@ -1,8 +1,33 @@
 2002-11-28  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-319
+
+	* ami/xml/xmlReadTensor*.m: Bug fix in indexing. The indexing is now
+	the same as in arts.
+	Example:  t = xmlLoad('tensor5.xml');   % Read tensor5
+	          t(1,1,1,1,:)         % Print first row of tensor
+	          t(:,1,1,1,1)         % Print first element of each shelf
+
+	Array are treat as cells:
+                  a = xmlLoad('arrmatrix.xml');   % Read array of matrix
+	          a{1}(1,1)         % Print first element of first matrix
+	          a{2}{1,:)         % Print first row of second matrix
+	          a{2}              % Print second matrix
+	
+	* ami/xml/xmlReadTag.m: Added. Splitted tag parsing routine
+	from xmlLoad.
+
+	* ami/xml/xmlLoad.m: Moved parsing of tags to xmlReadTag.m.
+
+	* ami/xml/xmlReadArray.m: Simplified by using xmlReadTag.
+
+	* ami/xml/xmlReadGasAbsLookup.m: Added.
+
+2002-11-28  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-318
 
-	* configure.in: Added -Wconversion more flags to warnings.
+	* configure.in: Added -Wconversion flag to warnings.
 
 	Don't use -Wno-unused but -Wno-unused-parameter instead. Because
 	we don't want to be harassed with unused function parameters but
