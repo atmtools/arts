@@ -463,70 +463,92 @@ void mult( MatrixView A,
 
 //! Transpose of sparse matrix
 /*!
+  Computes the transpose of the sparse matrix B.
+
+  The output matrix A must have been initialized with the correct size.
+
   \param A Output: Transposed matrix.
   \param B Original matrix.
 
   \author Mattias Ekstroem
-  \date   2003-04-04  
+  \date   2003-08-05
 */
 void transpose( Sparse& A,
                 const Sparse& B )
 {
-  /*
-    FIXME: Mattias, since this is a friend function, you can access the
-    internal data elements directly. Then you don't have to use the
-    .rw() operator to insert elements in the new matrix, but can reserve
-    the right amount of space right away. 
-
-    I don't understand your code, so I'm not attempting to fix it. I've
-    just commented it out for now. Just use my other functions as
-    samples and formulate your algorithm.
-
-    I strongly recommend to use more explicit comments. ;-)
-
-    - Stefan
-  */
-
-  exit(1);
-
-  /*
-  // Check that sizes match
+  // Check dimensions
   assert( A.nrows() == B.ncols() );
   assert( A.ncols() == B.nrows() );
 
-  // Create a vector with all row indices, sorted in strict ascending order
-  std::vector<Index> rowind = *B.mrowind;
-  sort(rowind.begin(), rowind.end());
-  std::vector<Index>::iterator last = unique(rowind.begin(), rowind.end());
-  rowind.erase(last, rowind.end());
+  // Here we allocate memory for the A.mdata and A.mrowind vectors so that
+  // it matches the input matrix. (NB: that mdata and mrowind already has
+  // the same size.)
+  A.mdata->resize( B.mdata->size() );
+  A.mrowind->resize( B.mrowind->size() );
 
-  // Loop through the existing rows of B and check them vs columns of C
-  for (Index l=0; l<(signed)rowind.size(); l++) {
-    Index i = (rowind[l]-B.mrr.get_start ())/B.mrr.get_stride ();
+  // Find the minimum and maximum existing row number in B.
+  // (This maybe unnecessary in our case since we mostly treat diagonally
+  // banded matrices where the minimum and maximum existing row numbers
+  // coincide with the border numbers of the matrix.)
+  std::vector<Index>::iterator startrow, stoprow;
+  startrow = min_element( B.mrowind->begin(), B.mrowind->end() );
+  stoprow = max_element( B.mrowind->begin(), B.mrowind->end() );
 
-    // Loop through columns and get the values for the specific row
-    for (Index j=0; j<B.ncols(); j++) {
-      // Get index of first data element of this column:
-      Index begin = (*B.mcolptr)[j];
+  // To create the A.mcolptr vector we loop through the existing row
+  // numbers of B and count how many there are in B.mrowind.
+  // First we make sure it is initialized to all zeros.
+  A.mcolptr->assign( A.mcr+1, 0 );
+  for (Index i=*startrow; i<=*stoprow; i++)
+    {
+      Index n = count( B.mrowind->begin(), B.mrowind->end(), i);
 
-      // Get index of first data element of next column. (This always works,
-      // because mcolptr has one extra element pointing behind the last
-      // column.)
-      Index end = (*B.mcolptr)[j+1];
-
-      // If row index is within the span of this column, search for it
-      Index firstB = ((*B.mrowind)[begin]-B.mrr.get_start ())/B.mrr.get_stride ();
-      Index lastB = ((*B.mrowind)[end-1]-B.mrr.get_start ())/B.mrr.get_stride ();
-      if (i>=firstB && i<=lastB) {
-        for (Index k=begin; k<end; ++k) {
-          if ( i == ((*B.mrowind)[k]-B.mrr.get_start ())/B.mrr.get_stride ())
-            A.rw(j,i) = B.ro(i,j);
-        }
-      }
+      // The column pointers for all columns above the current one in A
+      // are then increased with this amount.
+      for ( std::vector<Index>::iterator j = A.mcolptr->begin() + i + 1;
+             j < A.mcolptr->end();
+             ++j )
+        (*j) += n;
     }
-  }
-  */
+
+  // Next we loop through the columns of A and search for the corresponding
+  // row index within each column of B (i.e. two loops). The elements are
+  // then stored in A. We know that for every column in B we will have the
+  // the corresponding rowindex in A.
+  std::vector<Numeric>::iterator dataA_it = A.mdata->begin();
+  std::vector<Index>::iterator rowindA_it = A.mrowind->begin();
+
+  // Looping over columns in A to keep track of what row number we are
+  // looking for.
+  for (size_t c=0; c<A.mcolptr->size(); ++c)
+    {
+      // Looping over columns in B to get the elements in the right order,
+      // this will turn in to row index in A.
+      for (size_t i=0; i<B.mcolptr->size(); ++i)
+        {
+          // Since only one element can occupy one row in a column, we
+          // only need to call find() once per column in B.
+          std::vector<Index>::iterator elem_it =
+            find(B.mrowind->begin()+*(B.mcolptr->begin()+i),
+                 B.mrowind->begin()+*(B.mcolptr->begin()+i+1), c);
+
+          // If we found the element, store it in A.mrowind and A.mdata
+          if (elem_it != B.mrowind->begin()+*(B.mcolptr->begin()+i+1))
+            {
+              *rowindA_it = i;
+              rowindA_it++;
+
+              // To get the corresponding element in B.mdata we subtract
+              // the initial value of the row index iterator from elem_it
+              // and add the difference to a mdata iterator.
+              Index diff = elem_it - B.mrowind->begin();
+              std::vector<Numeric>::iterator elemdata_it=B.mdata->begin() + diff;
+              *dataA_it = *elemdata_it;
+              dataA_it++;
+            }
+        }
+    }
 }
+
 
 //! Sparse - Sparse multiplication.
 /*!
@@ -536,168 +558,70 @@ void transpose( Sparse& A,
 
   Dimensions of A, B, and C must match. No memory reallocation takes
   place, only the data is copied.
-  
+
   \param A Output: Result matrix.
   \param B First product matrix.
   \param C Second product matrix.
 
   \author Mattias Ekstroem
-  \date   2003-04-04  
+  \date   2003-08-06
 */
 void mult( Sparse& A,
            const Sparse& B,
            const Sparse& C )
 {
-  /*
-    FIXME: Mattias, as for transpose, I don't understand your code, so
-    I'm commenting it out for now. ;-)
-
-    - Stefan
-  */
-
-  exit(1);
-
-  /*
-  //Check dimensions:
+  // Check dimensions and make sure that A is empty
   assert( A.nrows() == B.nrows() );
   assert( A.ncols() == C.ncols() );
   assert( B.ncols() == C.nrows() );
+  A.mcolptr->assign( A.mcr+1, 0);
+  A.mrowind->clear();
+  A.mdata->clear();
 
-  //Transpose B to simplify multiplication algorithm
+  // Transpose B to simplify multiplication algorithm, after transposing we
+  // can extract columns form the two matrices and multiply them, (which is
+  // easier than extacting rows.)
   Sparse Bt(B.ncols(), B.nrows());
   transpose(Bt,B);
 
-  //Loop over columns in C and multiply them with every column in Bt
-  for (size_t cC=0; cC<C.mcolptr->size()-1; ++cC) {
-    //Get row indices of this column
-    Index beginC = (*C.mcolptr)[cC];
-    Index endC = (*C.mcolptr)[cC+1];
+  // By looping over columns in C and multiply them with every column in Bt
+  // (instead of the conventional loooping over Bt), we get the output
+  // elements in the right order for storing them.
+  for (size_t c=0; c<C.mcolptr->size()-1; ++c)
+    {
+      // Get row indices of this column
+      //Index beginC = (*C.mcolptr)[c];
+      //Index endC = (*C.mcolptr)[c+1];
 
-    for (size_t cBt=0; cBt<Bt.mcolptr->size()-1; ++cBt) {
-      //Get row indices for this column too
-      Index beginBt = (*Bt.mcolptr)[cBt];
-      Index endBt = (*Bt.mcolptr)[cBt+1];
+      for (size_t b=0; b<Bt.mcolptr->size()-1; ++b)
+        {
+          // Get row indices for this column too
+          //Index beginBt = (*Bt.mcolptr)[b];
+          //Index endBt = (*Bt.mcolptr)[b+1];
 
-//       cout << "Test: "<<(*Bt.mcolptr)[cBt]<<":"<<(*Bt.mcolptr)[cBt+1]<<"-"<<(*C.mcolptr)[cC]<<":"<<(*C.mcolptr)[cC+1]<<" ";
-//       if( endBt-beginBt!=0 )
-//         cout << "Bt ok";
-//       if( endC-beginC!=0 )
-//         cout << ", C ok";
-//       if( (*Bt.mrowind)[endBt-1]>=(*C.mrowind)[beginC] )
-//         cout << ", Bt(end)>C(first) ok";
-//       if( (*Bt.mrowind)[beginBt]<=(*C.mrowind)[endC-1] )
-//         cout << ", Bt(first)<C(end) ok";
-//       cout << "\n";
+          // Get the intersection between the elements in the two columns and
+          // and store them in a temporary vector
+          std::set<Index> colintersec;
+          set_intersection(C.mrowind->begin()+*(C.mcolptr->begin()+c),
+            C.mrowind->begin()+*(C.mcolptr->begin()+c+1),
+            Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b),
+            Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b+1),
+            inserter(colintersec, colintersec.begin()));
 
-      //Check that the columns are non-empty, ...
-      Index firstBt = ((*Bt.mrowind)[beginBt]-Bt.mrr.get_start ())
-        / Bt.mrr.get_stride ();
-      Index lastBt = ((*Bt.mrowind)[endBt-1]-Bt.mrr.get_start ())
-        / Bt.mrr.get_stride ();
-      Index firstC = ((*C.mrowind)[beginC]-C.mrr.get_start ())
-        / C.mrr.get_stride ();
-      Index lastC = ((*C.mrowind)[endC-1]-C.mrr.get_start ())
-        / C.mrr.get_stride ();
-      if ( endBt-beginBt!=0 && endC-beginC!=0
-          // (NB: last index actually points to next columns first)
-          // that they are overlapping and ...
-          && lastBt>=firstC && firstBt<=lastC
-          //&& (*Bt.mrowind)[endBt-1]>=(*C.mrowind)[beginC]
-          //&& (*Bt.mrowind)[beginBt]<=(*C.mrowind)[endC-1]
-          // that this special case of overlapping is not included.
-          // && beginBt!=endC && beginC!=endBt ) {
-        Numeric tempA=0.0;
-
-        //Go through columns and find matching indices
-        Index i=beginBt, j=beginC;
-        while ( j<endC && i<endBt ) {
-          //cout<<"B("<<cBt<<","<<i<<")*C("<<j<<","<<cC<<")="<<Bt.ro(i,cBt)<<"*"<<C.ro(j,cC)<<"="<<Bt.ro(i,cBt)*C.ro(j,cC)<<endl;
-          //cout <<"i="<<(*Bt.mrowind)[i]<<",j="<<(*C.mrowind)[j]<<",";
-          Index c = ((*C.mrowind)[j]-C.mrr.get_start ())/C.mrr.get_stride ();
-          Index bt =((*Bt.mrowind)[i]-Bt.mrr.get_start ())/Bt.mrr.get_stride ();
-          //if ((*C.mrowind)[j]>(*Bt.mrowind)[i]) {
-          if (c>bt) {
-            i++;
-            //cout << "i++,";
-          //} else if ((*C.mrowind)[j]<(*Bt.mrowind)[i]) {
-          } else if (c<bt) {
-            j++;
-            //cout << "j++,";
-          } else {
-            tempA += (*Bt.mdata)[i] * (*C.mdata)[j];
-            i++;
-            j++;
-          }
+          // If we got an intersection, loop through it and multiply the
+          // element pairs from C and Bt and store result in A
+          if (!colintersec.empty())
+            {
+              Numeric tempA = 0.0;
+              for (set<Index>::iterator i=colintersec.begin();
+                i!=colintersec.end(); ++i)
+                {
+                  // FIXME: Testa att colsintersec funkar
+                  tempA += Bt(*i,b) * C(*i,c);
+                }
+              A.rw(b,c) = tempA;
+            }
         }
-        //cout << " tempA " << tempA << "\n";
-
-        //Did we get a sum?
-        if (tempA!=0.0) {
-          //Yes, write it to product A
-          A.rw(cBt,cC) = tempA;
-        }
-      }
     }
-  }
-*/
 }
 
-//! Sparse - Sparse multiplication, version 2.
-/*!
-  This is a second version of the sparse-sparse multiplication
-  algorithm. The aim is to hold down the memory usage created when
-  making a transposed copy of B.
-  
-  \param A Output: Result matrix.
-  \param B First product matrix.
-  \param C Second product matrix.
-
-  \author Mattias Ekstroem
-  \date   2003-06-27  
-*/
-void mult2( Sparse A,
-           const Sparse B,
-           const Sparse C )
-{
-  exit(1);
-
-  /*
-  //Check dimensions:
-  assert( A.nrows() == B.nrows() );
-  assert( A.ncols() == C.ncols() );
-  assert( B.ncols() == C.nrows() );
-
-  // Create a vector with all row indices, sorted in strict ascending order
-  std::vector<Index> rowind = *B.mrowind;
-  sort(rowind.begin(), rowind.end());
-  std::vector<Index>::iterator last = unique(rowind.begin(), rowind.end());
-  rowind.erase(last, rowind.end());
-
-  // Loop through the existing rows of B and check them vs columns of C
-  for (Index l=0; l<(signed)rowind.size(); l++) {
-    Index i = (rowind[l]-B.mrr.mstart)/B.mrr.mstride;
-
-    // Loop through columns and get the values for the specific row
-    for (Index j=0; j<B.ncols(); j++) {
-      // Get index of first data element of this column:
-      Index begin = (*B.mcolptr)[j];
-
-      // Get index of first data element of next column. (This always works,
-      // because mcolptr has one extra element pointing behind the last
-      // column.)
-      Index end = (*B.mcolptr)[j+1];
-
-      // If row index is within the span of this column, search for it
-      Index firstB = ((*B.mrowind)[begin]-B.mrr.mstart)/B.mrr.mstride;
-      Index lastB = ((*B.mrowind)[end-1]-B.mrr.mstart)/B.mrr.mstride;
-      if (i>=firstB && i<=lastB) {
-        for (Index k=begin; k<end; ++k) {
-          if ( i == ((*B.mrowind)[k]-B.mrr.mstart)/B.mrr.mstride )
-            A.rw(j,i) = B.ro(i,j);
-        }
-      }
-    }
-  }
-  // Should rowind be destructed?
-*/
-}

@@ -205,12 +205,50 @@ void test40()
   cout << "E = A*D (should be [11,22],[44,88],[99,198]):\n" << E << "\n";
 }
 
+void test41()
+{
+  cout << "Testing transpose for the new simplified sparse matrices:\n";
+  
+  Sparse B(4,5);
+  Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
+  Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
+  for ( Index i=0; i<9; i++ )
+    B.rw(r[i],c[i]) = i+1;
+
+  cout << "B:\n" << B << "\n";
+
+  Sparse A(5,4);
+  
+  transpose(A, B);
+
+  cout << "A:\n" << A << "\n";
+}
+
+void test42()
+{
+  cout << "Testing sparse-sparse matrix multiplication:\n";
+  
+  Sparse B(4,5);
+  Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
+  Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
+  for ( Index i=0; i<9; i++ )
+    B.rw(r[i],c[i]) = i+1;
+
+  Sparse A(4,4), Bt(5,4);
+  transpose(Bt,B);
+  mult(A,B,Bt);
+  
+  cout << "A:\n" << A << "\n";
+}
+
 int main()
 {
   //  test3();
   //  test38();
   //  test39();
-  test40();
+  //  test40();
+  //  test41();
+  test42();
 
   return 0;
 }

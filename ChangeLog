@@ -1,3 +1,17 @@
+2003-08-06  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-630
+
+	* src/matpackII.cc: Remade the sparse-sparse mulitplication method and
+	the transpose method for the new simplified sparse matrix. Removed old
+	functions.
+
+	* src/matpackII.h: Removed old functions and added inclution of 
+	<algorithm> and <set> needed by transpose and mult.
+
+	* src/test_sparse.cc: Added two test function for testing transpose and
+	multiplication.
+
 2003-07-31  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-629

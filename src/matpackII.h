@@ -41,6 +41,8 @@
 #define matpackII_h
 
 #include <vector>
+#include <algorithm>
+#include <set>
 #include "matpackI.h"
 #include "mystring.h"
 
@@ -88,9 +90,8 @@ public:
   friend void mult (MatrixView A, const Sparse& B, ConstMatrixView C );
   friend void mult (Sparse& A, const Sparse& B, const Sparse& C );
   friend void transpose (Sparse& A, const Sparse& B );
-  friend void transpose2 (Sparse& A, const Sparse& B );
   // IO functions must be friends:
-  friend void xml_write_to_stream (ostream& os_xml, const Sparse& sparse, 
+  friend void xml_write_to_stream (ostream& os_xml, const Sparse& sparse,
                                    bofstream *pbofs, const String& name);
 
 private:
