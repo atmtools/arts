@@ -1,3 +1,12 @@
+2002-03-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-19
+
+	* src/poly_roots.cc: Changed order of coefficients. Removed debug
+	output.
+
+	* src/test_poly.cc: Tweaked the example a little bit.
+
 2002-03-07  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-18
