@@ -2443,14 +2443,18 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("refr_indexBoudouris"),
+      ( NAME("refr_indexThayer"),
         DESCRIPTION
         (
-         "Calculates the refractive index using the parameterization\n"
-	 "by Boudouris 1963. \n"
-	 "\n"
-	 "The parameter values are taken Section 5.1.1 of the Janssen book. \n"
-	 "The Z parameters are set to 1. "
+         "Calculates the microwave refractive index due to gases in the\n"
+         "Earth's atmosphere. \n"
+         "\n"
+         "The refractivity of dry air and water vapour is summed. All\n"
+         "other gases has a negligible contribution.  \n"
+         "\n"
+         "The parameterisation of Thayer (Radio Science, 9, 803-807, 1974)\n"
+         "is used. See also Eq. 3 and 5 of Solheim et al. (JGR, 104, \n"
+         "pp. 9664). "
         ),
         OUTPUT( refr_index_ ),
         INPUT( a_pressure_, a_temperature_, a_vmr_list_, gas_species_ ),

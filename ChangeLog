@@ -1,3 +1,11 @@
+2003-01-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-375
+
+	* src/m_refraction.cc (refr_indexThayer): Renamed refr_indexBoudouris.
+
+	Add now added this file to the CVS repository. Sorry for the miss.
+
 2003-01-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-374
