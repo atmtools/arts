@@ -1,3 +1,11 @@
+2001-10-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-1-4
+
+	* Absorption was not interpolated using log(p) as altitude coordinate.
+	Fixed.
+	
+
 2001-10-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-3

@@ -1303,7 +1303,7 @@ void transCalc(
     if ( np > 0 )
     {
       abs2.resize( nf, np );
-      interp_lin_matrix( abs2, p_abs, abs, los.p[i] );
+      interpp( abs2, p_abs, abs, los.p[i] );
       trans[i].resize( nf, np-1 );
       w  =  -0.5*los.l_step[i];
       for ( row=0; row<nf; row++ )
