@@ -1,3 +1,73 @@
+2003-12-06  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-744
+
+	* autogen.sh: Ripped from gnome-common. Adapted for arts.
+	Call configure with --enable-more-warnings.
+
+	* COPYING: Updated.
+
+	* configure.in: Removed -pedantic from compiler flags.
+	Removed -Wunreachable-code from more warnings.
+	Add -Wshadow only for gcc3. gcc2 gives false alarms if this warning is
+	enabled (also in system header files).
+	Add -Werror if configure is called with --enable-more-warnings.
+
+	* src/bifstream.cc (getByte): Renamed variable 'read' to avoid
+	shadowing of member attribute.
+
+	* src/b[io]fstream.{cc,h} (seek): Renamed parameter 'pos' to
+	avoid shadowing of member attribute.
+
+	* src/m_cloudbox.cc: Commented out names of unused function parameters
+	to omit warning.
+
+	* src/m_io.cc (VectorWriteAscii): Removed static_cast.
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): Commented out unused
+	variable K11.
+
+	* src/m_sensor.cc (sensor_responseAntenna1D): Renamed some
+	ostringstream to avoid shadowing of other local variable.
+
+	* src/ppath.cc (ppath_start_stepping): Rename itw to itw2 in inner
+	block to avoid shadowing of itw defined in outer block.
+	(ppath_calc): Commented out name of unused parameter.
+
+	* src/rte.cc (rte_calc): Commented out unused variables.
+
+	* src/sensor.cc (mixer_transfer_matrix), (sensor_integration_vector):
+	Renamed loop variable i to e to avoid later shadowing of i.
+
+	* src/scatrte.cc (cloud_fieldsCalc): Commented out unused parameters.
+	(cloud_ppath_update1D): Renamed stokes_vec to stokes_vec2 in inner
+	block to avoid shadowing of afore defined variable.
+	(cloud_ppath_update3D): Commented out unused variable atmosphere_dim.
+	(cloud_ppath_update1D_planeparallel): Inner and outer loop variables
+	where both called i. :-( This is very confusing and should be avoided.
+	Renamed inner loop vars to k.
+	Renamed stokes_vec in inner block to stokes_vec2 to avoid shadowing of
+	variable defined in outer block.
+	Commented out names of unused parameters.
+	FIXME: Indentation in this file uses tabs!
+
+	* src/zeemanproperties.cc (Zeemann): Removed first definition of
+	Matrix P. It was never used but defined again in inner block.
+
+	* src/test_matpack.cc (test10): Replaced static_cast by normal cast to
+	const Vector.
+
+	* src/test_sparse.cc (test41): Renamed loop variable to ri and ci to
+	avoid shadowing of other local variables.
+
+	* src/test_zeemanproperties.cc (main): Removed first declaration of
+	f_grid. Only redefined variable from inner block is used.
+
+	* src/test_integration.cc (get_stepsize): Removed empty function.
+
+	* src/m_abs_o2_models.cc: Include cstdlib for abs(int). With gcc2 abs
+	is not overloaded for int in cmath.
+
 2003-12-07  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-743
@@ -41,7 +111,6 @@
 	for line mixing stuff (function PWRO2VoigtMixing, but not 
 	working yet).
 
-	
 2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-741
@@ -340,7 +409,6 @@
 	FILE FOR SIMPLE O2 ABSORPTION/EXTINCTION CALCULATIONS. NOTE THIS 
 	IS ONLY FOR INTERNAL USE AT THIS MOMENT.
 	
->>>>>>> 1.1119
 2003-11-28  Cory Davis   <cory@met.ed.ac.uk>
 
 	* arts-1-1-724
