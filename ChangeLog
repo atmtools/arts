@@ -1,3 +1,14 @@
+2003-07-04  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-599
+	
+	* src/test_mpi.cc: Implemented broadcasting and sending routines for
+	Matrix. Only a first test version for performance testing.
+
+	* src/matpackI.h (Matrix): Added get_raw_data function return the
+	mdata pointer. Needed for mpi transfer routines to get direct access
+	to the data.
+
 2003-07-03  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-598
