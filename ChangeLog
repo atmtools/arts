@@ -1,3 +1,15 @@
+2002-11-29  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-321
+
+	* src/ppath.cc (ppath_step_refr_2d): Finished this function.
+
+	* src/ppath.cc (raytrace_2d_linear_euler): Created this function.
+	Basically works but there are bugs to be removed.
+
+	* src/ppath.cc (psurface_crossing_2d): Fixed a bug for cases with
+	presssure surfaces without any slope.
+
 2002-11-28  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-320

@@ -287,7 +287,7 @@ void ppathCalc(
       //
       
       // (CE:) Included istep here to execute the agenda silently.
-      ppath_step_agenda.execute(istep);
+      ppath_step_agenda.execute(istep-1);
       
       //PpathPrint(ppath_step,"ppath_step");
 

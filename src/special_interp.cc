@@ -606,7 +606,7 @@ void z_at_lat_2d(
 	     VectorView   	 z,
         ConstVectorView   	 p_grid,
         ConstVectorView   	 lat_grid,
-        ConstTensor3View         z_field,
+        ConstMatrixView          z_field,
         const ArrayOfGridPos&    gp_lat )
 {
   const Index   np = p_grid.nelem();
@@ -621,7 +621,7 @@ void z_at_lat_2d(
 
   gridpos( gp_z, p_grid, p_grid );
   interpweights( itw, gp_z, gp_lat );
-  interp( z_matrix, itw, z_field(Range(joker),Range(joker),0), gp_z, gp_lat );
+  interp( z_matrix, itw, z_field, gp_z, gp_lat );
 
   z = z_matrix(Range(joker),0);
 }

@@ -496,6 +496,7 @@ Numeric refraction_ppc(
    The refractive index is assumed to be a bi-linear function (as a
    function of radius and latitude).
 
+   \param   n        Out: Refractive index at the given point.
    \param   dndr     Out: Radial derivative.
    \param   dndlat   Out: Latitudinal derivative.
    \param   r1       Radius of lower-left corner.
@@ -515,6 +516,7 @@ Numeric refraction_ppc(
    \date   2002-11-18
 */
 void refraction_gradient_2d( 
+	      Numeric&   n,			   
 	      Numeric&   dndr,
 	      Numeric&   dndlat,
         const Numeric&   r1, 
@@ -536,23 +538,32 @@ void refraction_gradient_2d(
   const Numeric   rhigh = r4 + xlat * c4;
   const Numeric   dr    = rhigh - rlow;
   const Numeric   dlat  = lat3 - lat1;
+        Numeric   na, nb;
 
   assert( r1 < r4 );
   assert( lat1 < lat3 );
-  assert( lat >= lat1  &&  lat <= lat3 );
-  assert( r >= rlow  &&  r <= rhigh );
+  assert( lat >= lat1 );
+  assert( lat <= lat3 );
+  assert( r >= rlow );
+  assert( r <= rhigh );
 
   // Fractional distance for latitude
   Numeric   fd = xlat / dlat;
 
+  na = fd*n2 + (1-fd)*n1;
+  nb = fd*n3 + (1-fd)*n4;
+
   // Derivative in the radius direction
-  dndr = ( ( fd*n3 + (1-fd)*n4 ) - ( fd*n2 + (1-fd)*n1 ) ) / dr; 
+  dndr = ( nb - na ) / dr; 
 
   // Fractional distance for radius
   fd   = ( r - rlow ) / dr; 
 
+  // Refractive index at the point
+  n = fd * nb + (1-fd) * na;
+
   // Derivative in the latitude direction
-  dndr = ( ( fd*n3 + (1-fd)*n2 ) - ( fd*n4 + (1-fd)*n1 ) ) / dlat; 
+  dndlat = ( ( fd*n3 + (1-fd)*n2 ) - ( fd*n4 + (1-fd)*n1 ) ) / dlat; 
 }
 
 
@@ -753,8 +764,11 @@ Numeric psurface_crossing_2d(
   // The case with c1=c2=0 can be handled analytically
   if( c1 == 0  &&  c2 == 0 )
     {
-      return geompath_lat_at_za( za, 0, 
-		       geompath_za_at_r( geometrical_ppc( rp, za ), za, r0 ) );
+      Numeric   ppc = geometrical_ppc( rp, za );
+      if( r0 >= ppc )
+	{ return geompath_lat_at_za( za, 0, geompath_za_at_r( ppc, za, r0 ) );}
+      else
+	{ return no_crossing; }	
     }
 
 
@@ -1037,8 +1051,6 @@ void do_gridcell_2d(
   // and not based on dlat2end.
   //
   Numeric r_end = -1;
-  //
-  out3 << "  end face number code : " << endface << "\n";
   //
   if( endface == 1 )
     { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat1 ); }
@@ -1726,9 +1738,9 @@ void ppath_start_stepping(
 	    { geom_tan_pos[1] = geompath_lat_at_za( a_los[0], a_pos[1], 90 ); }
 	  else
 	    { geom_tan_pos[1] = geompath_lat_at_za( a_los[0], a_pos[1], -90 );}
-	  out2 << "  geom. tangent radius         : " << geom_tan_pos[0] / 1e3
+	  out2 << "  geom. tangent radius   : " << geom_tan_pos[0] / 1e3
 	       <<" km\n";
-	  out2 << "  geom. tangent latitude       : " << geom_tan_pos[1] 
+	  out2 << "  geom. tangent latitude : " << geom_tan_pos[1] 
 	       << "\n";
 	  //
 	  if( geom_tan_pos[1] >= lat_grid[0]  &&  
@@ -1743,7 +1755,7 @@ void ppath_start_stepping(
 	      geom_tan_z = geom_tan_pos[0] - v1_tmp[0];
 	      interp( v2_tmp, itw_tmp, z_field(np-1,Range(joker),0), gp_tmp );
 	      geom_tan_atmtop = v2_tmp[0];
-	      out2 << "  geom. tangent altitude       : " << geom_tan_z/1e3 
+	      out2 << "  geom. tangent altitude : " << geom_tan_z/1e3 
 		   << " km\n";
 	    }
 	}
@@ -1787,7 +1799,8 @@ void ppath_start_stepping(
 	  // Create a vector with the geometrical altitude of the pressure 
 	  // surfaces for the sensor latitude and use it to get ppath.gp_p.
 	  Vector z_grid(np);
-          z_at_lat_2d( z_grid, p_grid, lat_grid, z_field, gp_lat );
+          z_at_lat_2d( z_grid, p_grid, lat_grid, 
+		                z_field(Range(joker),Range(joker),0), gp_lat );
 	  gridpos( ppath.gp_p, z_grid, ppath.z );
 
 	  // Is the sensor on the ground looking down?
@@ -2498,6 +2511,8 @@ void ppath_end_2d(
   // Number of path points
   const Index   np = r_v.nelem();
 
+  out3 << "  end face number code : " << endface << "\n";
+
   // Re-allocate ppath for return results and fill the structure
   //
   ppath_init_structure(  ppath, 2, np );
@@ -2537,8 +2552,6 @@ void ppath_end_2d(
     }
   else if( endface == 6 )
     { ppath.los(np-1,0) = sign(za_start)*90; }
-
-
 }
 
 
@@ -2960,15 +2973,15 @@ void raytrace_1d_linear_euler(
 
   while( !ready )
     {
-      const Numeric ppc_step = r * sin( DEG2RAD * za );
-            Numeric l_step = lraytrace;
+      const Numeric   ppc_step = geometrical_ppc( r, za );;
+            Numeric   l_step   = lraytrace;
 
       Numeric r_new = geompath_r_at_l( ppc_step, 
                                      geompath_l_at_r( ppc_step, r ) + l_step );
 
       if( r_new >= rstop )
 	{
-	  r_new   = rstop;
+	  r_new  = rstop;
 	  l_step = geompath_l_at_r( ppc_step, r_new ) - 
                                                 geompath_l_at_r( ppc_step, r );
 	  ready  = true;
@@ -2995,6 +3008,105 @@ void raytrace_1d_linear_euler(
     }
 }
 
+
+
+void raytrace_2d_linear_euler(
+  	      Array<Numeric>&   r_array,
+  	      Array<Numeric>&   lat_array,
+  	      Array<Numeric>&   za_array,
+  	      Array<Numeric>&   l_array,
+	      Index&           	endface,
+              Numeric          	r,
+              Numeric         	lat,
+              Numeric         	za,
+        const Numeric&         	lraytrace,
+        const Numeric&         	r1,
+        const Numeric&         	r2,
+        const Numeric&         	r3,
+        const Numeric&         	r4,
+        const Numeric&         	lat1,
+        const Numeric&         	lat3,
+        const Numeric&         	c2,
+        const Numeric&         	c4,
+        const Numeric&          n1, 
+	const Numeric&          n2, 
+	const Numeric&          n3,
+	const Numeric&          n4,
+        const bool&            	at_lower_psurf,
+        const bool&            	at_upper_psurf,
+        const Numeric&         	rground1,
+        const Numeric&         	rground2,
+        const Numeric&         	cground )
+{
+  // Loop boolean
+  bool ready = false;
+
+  // Variables for output from do_gridcell_2d
+  Vector    r_v, lat_v, za_v;
+  Numeric   lstep, r_new = -9999, lat_new = 9999, dlat = 9999;
+
+  while( !ready )
+    {
+      // Constant for the geometrical step to make
+      const Numeric   ppc = geometrical_ppc( r, za );
+
+      // Where will this path exit the grid cell?
+      do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, 
+                     r, lat, za, ppc, -1, r1, r2, r3, r4, 
+                     lat1, lat3, c2, c4, at_lower_psurf, at_upper_psurf, 
+                                                 rground1, rground2, cground );
+      assert( r_v.nelem() == 2 );
+
+      // If *lstep* is < *lraytrace*, extract the found end point and
+      // we are ready.
+      // Otherwise, we make a geometrical step with length *lraytrace*.
+
+      if( lstep <= lraytrace )
+	{
+	  r_new   = r_v[1];
+	  lat_new = lat_v[1];
+	  dlat    = lat_new - lat;
+	  ready   = true;
+	}
+      else
+	{
+	  if( fabs(za) <= 90 )
+	    { lstep = lraytrace; }
+	  else
+	    { lstep = -lraytrace; }
+	  r_new = geompath_r_at_l( ppc, geompath_l_at_r(ppc,r) + lstep ); 
+
+	  dlat = RAD2DEG * acos( ( r_new*r_new + r*r - 
+                                             lstep*lstep ) / ( 2 * r_new*r ) );
+	  if( za < 0 )
+	    { dlat = -dlat; }
+	  lat_new = lat + dlat;
+	}
+
+      // Calculate LOS zenith angle at found point.
+      Numeric   n, dndr, dndlat;
+      refraction_gradient_2d( n, dndr, dndlat, r1, r4, c2, c4, lat1, lat3, 
+      		                                      n1, n2, n3, n4, r, lat );
+
+      if( endface == 6 )
+	{ za = 90; }
+      else
+	{
+	  const Numeric   za_rad = DEG2RAD * za;
+	  za += -dlat + 
+                    lstep / n * ( -sin(za_rad) * dndr + cos(za_rad) * dndlat );
+	}
+
+      r   = r_new;
+      lat = lat_new;
+
+      // Store found point
+      r_array.push_back( r );
+      lat_array.push_back( lat );
+      za_array.push_back( za );
+      l_array.push_back( fabs(lstep) );
+    }  
+}
 
 
 
@@ -3191,8 +3303,16 @@ void ppath_step_refr_1d(
   lat_array.push_back( lat );
   za_array.push_back( za );
   //
+  // String to store description of ray tracing method
+  String   method;
+  //
   if( rtrace_method  == "linear_euler" )
     {
+      if( lmax < 0 )
+	{ method = "1D linear Euler"; }
+      else
+	{ method = "1D linear Euler, with length criterion"; }
+
       raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, 
         r, rstop, lat, za, lraytrace, ppc, p_grid, z_field, t_field, r_geoid );
     }
@@ -3256,13 +3376,6 @@ void ppath_step_refr_1d(
 
 
   // Fill *ppath*
-  //
-  String   method;
-  if( lmax < 0 )
-    { method     = "1D with refraction (Euler)"; }
-  else
-    { method     = "1D with refraction and length criterion (Euler)"; }
-  //
   ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, ground, 
 		                                    tanpoint, method, 1, ppc );
 
@@ -3331,6 +3444,9 @@ void ppath_step_refr_2d(
   // Lower grid index for the grid cell of interest.
   Index   ip, ilat;
 
+  // Number of input path points
+  Index   np = ppath.np;
+
   // Radius for corner points, and latitude and slope of faces of the grid cell
   //
   // The corners and the faces of the grid cell are numbered in anti-clockwise
@@ -3358,41 +3474,111 @@ void ppath_step_refr_2d(
                                                   z_field, t_field, r4, lat1 );
 
 
-  //--- Ray tracing
+  // Perform the ray tracing
   //
+  // Ground radius at latitude end points, and ground slope
+  const Numeric rground1 = r_geoid[ilat] + z_ground[ilat];
+  const Numeric rground2 = r_geoid[ilat+1] + z_ground[ilat+1];
+  const Numeric cground = psurface_slope_2d( lat_grid, r_geoid, 
+		                 z_ground, ppath.gp_lat[np-1], za_start >= 0 );
+  //
+  // Is the start point on top of the lower or upper pressure surface?
+  const bool  at_lower_psurf = is_gridpos_at_index_i( ppath.gp_p[np-1], ip );
+  const bool  at_upper_psurf = is_gridpos_at_index_i( ppath.gp_p[np-1], ip+1 );
+  //
+  // Arrays to store found ray tracing points
+  // (Vectors don't work here as we don't know how many points there will be)
   Array<Numeric>   r_array, lat_array, za_array, l_array;
-  Numeric          r = r_start, lat = lat_start, za = za_start; 
   //
-  r_array.push_back( r );
-  lat_array.push_back( lat );
-  za_array.push_back( za );
+  // Store the start point
+  r_array.push_back( r_start );
+  lat_array.push_back( lat_start );
+  za_array.push_back( za_start );
   //
-  bool   ready = false;
+  // String to store description of ray tracing method
+  String   method;
   //
-  while( !ready )
+  // Number coding for end face
+  Index   endface;
+  //
+  if( rtrace_method  == "linear_euler" )
     {
-      // Radial and latitudinal gradient of refractive index
-      Numeric   dndr, dndlat;
-      refraction_gradient_2d( dndr, dndlat, r1,  r4, c2, c4, lat1, lat3, 
-			                              n1, n2, n3, n4, r, lat );
+      if( lmax < 0 )
+	{ method = "2D linear Euler"; }
+      else
+	{ method = "2D linear Euler, with length criterion"; }
 
-      // Perform ray a tracing step of length *lraytrace*.
-      //
-      const Numeric ppc_step = r * sin( DEG2RAD * za );
-            Numeric l_step = lraytrace;
+      raytrace_2d_linear_euler( r_array, lat_array, za_array, l_array, endface,
+                 r_start, lat_start, za_start, lraytrace, r1, r2, r3, r4, 
+                 lat1, lat3, c2, c4, n1, n2, n3, n4, 
+                 at_lower_psurf, at_upper_psurf, rground1, rground2, cground );
+    }
+  else
+    {
+      bool   known_ray_trace_method = false;
+      assert( known_ray_trace_method );
+    }
 
-      Numeric r_new = geompath_r_at_l( ppc_step, 
-                                     geompath_l_at_r( ppc_step, r ) + l_step );
 
-      Numeric lat_new = lat + RAD2DEG * acos( ( r_new*r_new + r*r - 
-                                           l_step*l_step ) / ( 2 * r_new*r ) );
+  // Copy arrays to vectors for later interpolation
+  //
+  // The copying differ depending on the true direction (upward/downward) of
+  // the path step.
+  //
+  // Number of ray tracing points
+  const Index   nrt=r_array.nelem();
+  //
+  Vector    r_rt(nrt), lat_rt(nrt), za_rt(nrt), l_rt(nrt-1);    
+  //
+  for( Index i=0; i<nrt; i++ )
+    {
+      r_rt[i]   = r_array[i];
+      lat_rt[i] = lat_array[i]; 
+      za_rt[i]  = za_array[i];
+      if( i < (nrt-1) )
+	{ l_rt[i]   = l_array[i]; }
+    }
 
-      // Check if the new point is outside of the grid cell. 
-      // If yes, set *r_new* and *lat_new* to the crossong point.
+  //VectorPrint(r_rt,"r_rt");
+  //VectorPrint(lat_rt,"lat_rt");
+  //VectorPrint(za_rt,"za_rt");
+  //VectorPrint(l_rt,"l_rt");
+  //IndexPrint(endface,"endface");
 
-      // Store found point
-      r_array.push_back( r );
-      lat_array.push_back( lat );
-      za_array.push_back( za );
+  // Interpolate the radii, zenith angles and latitudes to a set of points
+  // linearly spaced along the path. If *lmax* <= 0, then only the end points
+  //
+  // Interpolated data, stored as vectors, and the step length obtained.
+  Vector    r_v, lat_v, za_v;
+  Numeric   lstep;
+  Vector    dummy;   // Dummy vector for output variables not used
+  //
+  interpolate_raytracing_points( r_v, lat_v, dummy, za_v, dummy, lstep,
+      r_rt, lat_rt, Vector(0), za_rt, Vector(0), l_rt, lmax );
+
+
+  // Fill *ppath*
+  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
+	              ip, ilat, lat1, lat3, za_start, endface, method, 0, -1 );
+
+
+  // Make part after a tangent point.
+  //
+  if( endface == 6 )
+    {
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      out3 << "  --- Recursive step to include tangent point --------\n"; 
+
+      // Call this function recursively
+      ppath_step_refr_2d( ppath2, p_grid, lat_grid, z_field, t_field,
+			   r_geoid, z_ground, rtrace_method, lraytrace, lmax );
+
+      out3 << "  ----------------------------------------------------\n"; 
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
     }
 }

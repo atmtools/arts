@@ -135,7 +135,7 @@ void z_at_lat_2d(
 	     VectorView   	 z,
         ConstVectorView   	 p_grid,
         ConstVectorView   	 lat_grid,
-        ConstTensor3View         z_field,
+        ConstMatrixView          z_field,
 	const ArrayOfGridPos&    gp_lat );
 
 
