@@ -18,8 +18,8 @@ Main {
 
   #---< i_space >--------------------------------------------------------------
 
-  i_spaceCBR{
-  }
+ #  i_spaceCBR{
+ #  }
 
 
 
@@ -99,18 +99,22 @@ VectorNLinSpace( scat_aa_grid ) {
      value = 0
   }
 
-  MatrixSet( t_ground ) {
-     nrows = 1
-     ncols = 1
-     value = 300
+NumericSet( t_ground ) {
+    value = 300
   }
+ #Numeric(t_ground){300}
+ #  MatrixSet( t_ground ) {
+  #    nrows = 1
+  #    ncols = 1
+  #    value = 300
+ #  }
   
   FlagOn ( blackbody_ground ) {
   }
   
-  e_groundSet {
-     value = 0.8
-  }
+  # e_groundSet {
+  #    value = 0.8
+  # }
 
 
 
@@ -119,8 +123,8 @@ VectorNLinSpace( scat_aa_grid ) {
 	value = 0
 	}	
   CloudboxSetManually {
-      p1   = 202e2
-      p2   = 200e2
+      p1   = 360e2
+      p2   = 280e2
       lat1 = 0
       lat2 = 0
       lon1 = 0
@@ -143,16 +147,18 @@ VectorNLinSpace( scat_aa_grid ) {
 #amp_matCalc{}	
 ReadXML(amp_mat){""}
 
-Tensor7Set (scat_i_p){
-	nlibraries = 2
-	nvitrines = 2
-	nshelfs = 1
-	nbooks = 1
-	npages = 19
-	nrows = 1
-	ncols = 1
-	value = 1e-15	
-	}
+ReadXML(scat_i_p){"clearsky_field.xml"}
+
+#Tensor7Set (scat_i_p){
+#	nlibraries = 2
+#	nvitrines = 2
+#	nshelfs = 1
+#	nbooks = 1
+#	npages = 19
+#	nrows = 1
+#	ncols = 1
+#	value = 1e-15	
+#	}
 Tensor7Set (scat_i_lat){
 	nlibraries = 2
 	nvitrines = 1
@@ -190,7 +196,7 @@ Tensor4Set (pnd_field){
 	npages = 16
 	nrows = 1
 	ncols = 1
-	value = 1
+	value = 1297
 	}
 
 
@@ -218,14 +224,16 @@ AgendaSet( ppath_step_agenda ) { ppath_stepGeometric{} }
 
 AgendaSet( scat_rte_agenda ) { stokes_vecScalar{} }
 
-AgendaSet( convergence_test_agenda) {
+	AgendaSet( convergence_test_agenda) {
 	convergence_flagAbs{
 	#epsilon =[1e-20, 1e-21, 1e-21, 1e-21] 
-	epsilon =[1e-7]
+	epsilon =[1e-10]
 	 }
 	 }
 
 i_fieldIterate{}
 
-
+WriteXML(i_field){""}
+i_fieldtoTb{}
+WriteXML(i_field_Tb){""}
 }	
