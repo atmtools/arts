@@ -173,7 +173,7 @@ void sensorOff(
     {
       ostringstream os;
       os << "The number of rows of sensor_pos and sensor_los must be "
-         << "identical,\Nbut sensor_pos has " << sensor_pos.nrows() 
+         << "identical,but sensor_pos has " << sensor_pos.nrows() 
          << " rows, while sensor_los has " << sensor_los.nrows() << " rows.";
       throw runtime_error( os.str() );
     }
