@@ -1683,7 +1683,7 @@ void CloudboxGetIncoming(// WS Output:
 
   if(atmosphere_dim == 1)
     {
-      if( scat_za_grid[0] != 0. || scat_za_grid[Nza] != 180. )
+      if( scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180. )
         throw runtime_error(
                             "*scat_za_grid* must include 0° and 180° as"
                             "endpoints."
@@ -1772,13 +1772,13 @@ void CloudboxGetIncoming(// WS Output:
     {
       Index Naa = scat_aa_grid.nelem();
 
-      if( scat_za_grid[0] != 0. || scat_za_grid[Nza] != 180. )
+      if( scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180. )
         throw runtime_error(
                             "*scat_za_grid* must include 0° and 180° as"
                             "endpoints."
                             );
 
-      if( scat_aa_grid[0] != 0. || scat_aa_grid[Naa] != 360. )
+      if( scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360. )
         throw runtime_error(
                             "*scat_aa_grid* must include 0° and 360° as"
                             "endpoints."
@@ -2210,13 +2210,13 @@ void CloudboxGetIncoming1DAtm(// WS Output:
  
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
-  if( scat_za_grid[0] != 0. || scat_za_grid[Nza] != 180. )
+  if( scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180. )
         throw runtime_error(
                             "*scat_za_grid* must include 0° and 180° as"
                             "endpoints."
                             );
 
-  if( scat_aa_grid[0] != 0. || scat_aa_grid[Naa] != 360. )
+  if( scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360. )
     throw runtime_error(
                         "*scat_aa_grid* must include 0° and 360° as"
                         "endpoints."
