@@ -1,6 +1,14 @@
+2003-09-22  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-688
+
+	* ChangeLog: Corrected version numbers in recent entries.
+
+	* src/methods.cc, src/m_basic_types.cc: Removed ArrayOfMatrixAppend.
+
 2003-09-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
-	* arts-1-687
+	* arts-1-1-687
 	
 	* src/gas_abs_lookup.cc: Fixed bug reported by Patrick and Cory:
 	No runtime error was thrown if the frequencies of the calculation
@@ -12,7 +20,7 @@
 
 2003-09-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-686
+	* arts-1-1-686
 	
 	* src/m_optproperties.cc (pha_mat_labCalc): Included analytically
 	calculated limiting values for the cases were the transformation formulas
@@ -21,7 +29,7 @@
 
 2003-09-18  Cory Davis <cory@met.ed.ac.uk>
 
-	* arts-1-685
+	* arts-1-1-685
 
 	* src/m_ppath.cc (rte_pos_and_losFromTangentPressure): Cory gets the
 	record for the WSM with the longest name.  For limb sounding
@@ -36,7 +44,7 @@
 	
 2003-09-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-684
+	* arts-1-1-684
 	
 	* src/m_scatrte.cc (scat_fieldCalc): Fixed the bug in the calculation of 
 	the scattering integral. Now, the model results are in good agreement 
