@@ -1,3 +1,10 @@
+2002-11-14  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-285
+
+	* ami/xml/xmlReadTensor6.xml: Quick hack for Sreerekha. Exchanged
+	order of col/rows.
+
 2002-11-13  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-284
