@@ -1,8 +1,22 @@
 2001-09-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-0-0-246
+
+	* An incorrect assert fixed in kContAbs
+
+	* auto_wsv.txt now used in AMI instead of wsv.txt.
+
+	* wsv.txt removed from /src (again?)
+
+	* Fixed an incorrect error message when a variable of incorrect type
+	is selected as global input or output. 
+	
+
+2001-09-28  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-0-0-245
 
-	* Due to a proble in the HDF part, I couldn't easily check what I did
+	* Due to a problem in the HDF part, I couldn't easily check what I did
 	yeasterday. There were plenty of bugs in the input checks. These
 	are removed. My test case is at least running.
 
