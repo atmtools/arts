@@ -404,9 +404,10 @@ total_title= 'z='+string_title_alt+' / '+ $
 ;; calculate the total absorption in necessary
 if (plotsum EQ 1) then begin
     abstotal = dblarr(nrows)
-    for i = 0,nmats-1 do begin
-        for j = 0,nrows-1 do begin
-            abstotal[j] = abs[i,j,ialtitude]
+    for j = 0,nrows-1 do begin
+        for i = 0,nmats-1 do begin ;sum over tags (nmats)
+;            abstotal[j] = abs[i,j,ialtitude]
+            abstotal[j] = abstotal[j] + abs[i,j,ialtitude]
         endfor
     endfor
 endif
@@ -531,7 +532,8 @@ endif else begin
     for i = 0,tag_index_max-1 do charlegendarray[i] = tg[tag_index[i]]
 endelse
 ch_length = N_ELEMENTS(charlegendarray)
-aii_plot_legend, charlegendarray[0:tag_index_max-1], $
+;aii_plot_legend, charlegendarray[0:tag_index_max-1], $
+aii_plot_legend, charlegendarray, $
                box=0,$
                usersym=usersym, $
                spacing=2.0,$

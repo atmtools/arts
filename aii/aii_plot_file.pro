@@ -319,7 +319,7 @@ if (STRLOWCASE(action) EQ 'begin') then begin
 ;              !P.background = dummy
               SET_PLOT, 'PS'
               DEVICE, FILENAME=USERFILENAME, /times, /LANDSCAPE, $
-                      YSIZE=21.0, XSIZE=29.6, XOFFS=0.0,  YOFFS=0.0, /COLOR  
+                      YSIZE=21.0, XSIZE=29.6, XOFFS=0.0,  YOFFS=29.6, /COLOR  
 ;              DEVICE, /LANDSCAPE
 ;              DEVICE, /COLOR
 ;              DEVICE, SET_FONT='Times'

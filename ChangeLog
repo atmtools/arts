@@ -1,3 +1,19 @@
+2003-06-27  Christian Melsheimer  <melsheimer@uni-bremen.de>
+
+	* arts-1-0-90
+
+	* aii/aii_plot_file.pro:  
+	In line 322, set YOFFS from 0.0 to 29.6 to make plot appear on the
+	actual A4 area (and not somewhere outside because of negative bounding
+	box values);
+	* aii/plot_abs_per_tg_2.pro:  
+	modified lines 407-412 such that abstotal[] is really the sum of
+	absorption by all tags;
+	in line 536, passed the whole array of strings (charlegendarray)
+	to aii_plot_legend, otherwise an error occurs for plotsum=1
+	(i.e. when the total absorption is plotted in addition to the
+	absorption per tag).
+
 2003-06-26  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-0-89
