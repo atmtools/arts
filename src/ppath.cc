@@ -72,8 +72,8 @@ extern const Numeric RAD2DEG;
 // found to be outside the grid range, this will result in an error.
 // The problem is especially tricky for the radius when the pressure surfaces
 // are tilted (their radius changes with latitude and longitude).
-// The variable R_EPS gives the accepted inaccuracy in radius when checking
-// if a position is inside a grid cell. 
+// The problem is handled with the variable R_EPS, that gives the accepted 
+// inaccuracy in radius when checking if a position is inside a grid cell. 
 //
 const Numeric R_EPS = 1e-3;
 
@@ -586,7 +586,7 @@ bool is_los_downwards_2d(
    Taylor expansions where the two first terms are kept. This should
    be OK as in practical situations, the latitude difference inside a
    grid cell should not exceed 2 degrees, and the accuracy should be
-   sufficient for values up to 5 degrees.
+   sufficient for values up to 3 degrees.
 
    The problem and its solution is further described in AUG. See ???
 
@@ -597,8 +597,8 @@ bool is_los_downwards_2d(
    value of the zenith angle is < 90, no crossing will be found (if
    not the slope of the pressure surface happen to be very strong).
    
-   If the given path point is on the pressure surface (r=r1), 
-   all solution with a value < 1e-6 are rejected.
+   If the given path point is on the pressure surface (r=r1), the
+   solution 0 is rejected.
  
    The latitude difference is set to 999 of no possible value is found, but
    there will normally be some value < 360 degrees. 
@@ -679,6 +679,8 @@ Numeric psurface_crossing_2d(
   Matrix roots(n-1,2);
   poly_root_solve( roots, p );
 
+  //MatrixPrint(roots,"roots");
+
   // Find first root with imaginary part = 0, and real part > 0 or >= 0.
   // The solution dlat = 0 is not of interest if r = r1.
   Numeric dlat = no_crossing;
@@ -686,8 +688,7 @@ Numeric psurface_crossing_2d(
     {
       if( roots(i,1) == 0  &&   roots(i,0) >= 0 )
 	{
-	  if( ( r != r1  ||  roots(i,0) > 0 )  &&  
-                                                  RAD2DEG * roots(i,0) < dlat )
+	  if( ( r != r1 || roots(i,0) > 0 )  &&  RAD2DEG * roots(i,0) < dlat )
 	    { dlat = RAD2DEG * roots(i,0); }
 	}
     }  
@@ -1050,6 +1051,64 @@ void ppath_append(
 
 
 
+//! ppath_fill_1d
+/*!
+   Fills a 1D Ppath structure with position and LOS values.
+
+   The function fills the fields: pos, los, z, l_step and gp_p.
+
+   The structure fields must be allocated to correct size before calling the 
+   function. The field size must be at least as large as the length of r,
+   lat and za vectors.
+
+   The length along the path shall be the same between all points.
+
+   \param   ppath      Output: Ppath structure.
+   \param   r          Vector with radius for the path points.
+   \param   lat        Vector with latitude for the path points.
+   \param   za         Vector with zenith angle for the path points.
+   \param   lstep      Length along the path between the points.
+   \param   r_geoid    Geoid radii.
+   \param   z_grid     Geometrical altitudes.
+   \param   ip         Pressure grid range.
+
+   \author Patrick Eriksson
+   \date   2002-07-18
+*/
+void ppath_fill_1d(
+	   Ppath&      ppath,
+     ConstVectorView   r,
+     ConstVectorView   lat,
+     ConstVectorView   za,
+     const Numeric&    lstep,
+     const Numeric&    r_geoid,
+     ConstVectorView   z_grid,
+     const Index&      ip )
+{
+  // Help variables that are common for all points.
+  const Numeric   r1 = r_geoid + z_grid[ip];
+  const Numeric   dr = z_grid[ip+1] - z_grid[ip];
+
+  for( Index i=0; i<r.nelem(); i++ )
+    {
+      ppath.pos(i,0) = r[i];
+      ppath.pos(i,1) = lat[i];
+      ppath.los(i,0) = za[i];
+      
+      ppath.gp_p[i].idx   = ip;
+      ppath.gp_p[i].fd[0] = ( r[i] - r1 ) / dr;
+      ppath.gp_p[i].fd[1] = 1 - ppath.gp_p[i].fd[0];
+      gridpos_check_fd( ppath.gp_p[i] );
+
+      ppath.z[i] = r[i] - r_geoid;
+
+      if( i > 0 )
+	{ ppath.l_step[i-1] = lstep; }
+    }
+}
+
+
+
 //! ppath_fill_2d
 /*!
    Fills a 2D Ppath structure with position and LOS values.
@@ -1088,35 +1147,33 @@ void ppath_fill_2d(
      const Index&      ip,
      const Index&      ilat )
 {
+  // Help variables that are common for all points.
+  const Numeric   dlat  = lat_grid[ilat+1] - lat_grid[ilat];
+  const Numeric   r1low = r_geoid[ilat] + z_field(ip,ilat);
+  const Numeric   drlow = r_geoid[ilat+1] + z_field(ip,ilat+1) -r1low;
+  const Numeric   r1upp = r_geoid[ilat] + z_field(ip+1,ilat);
+  const Numeric   drupp = r_geoid[ilat+1] + z_field(ip+1,ilat+1) - r1upp;
+  const Numeric   z1low =  z_field(ip,ilat);
+  const Numeric   dzlow =  z_field(ip,ilat+1) -z1low;
+  const Numeric   z1upp =  z_field(ip+1,ilat);
+  const Numeric   dzupp =  z_field(ip+1,ilat+1) - z1upp;
+
   for( Index i=0; i<r.nelem(); i++ )
     {
       ppath.pos(i,0) = r[i];
       ppath.pos(i,1) = lat[i];
       ppath.los(i,0) = za[i];
       
-      // Some help variables
-      Numeric r1, r2, w = ( lat[i] - lat_grid[ilat] ) / 
-                                         ( lat_grid[ilat+1] - lat_grid[ilat] );
+      // Weigt in the latitude direction
+      Numeric w = ( lat[i] - lat_grid[ilat] ) / dlat;
 
       // Radius of lower and upper face at present latitude
-      //
-      r1 = r_geoid[ilat] + z_field(ip,ilat);
-      r2 = r_geoid[ilat+1] + z_field(ip,ilat+1);
-      const Numeric rlow = r1 + w * ( r2 - r1 );
-      //
-      r1 = r_geoid[ilat] + z_field(ip+1,ilat);
-      r2 = r_geoid[ilat+1] + z_field(ip+1,ilat+1);
-      const Numeric rupp = r1 + w * ( r2 - r1 );
+      const Numeric rlow = r1low + w * drlow;
+      const Numeric rupp = r1upp + w * drupp;
 
       // Geometrical altitude of lower and upper face at present latitude
-      //
-      r1 = z_field(ip,ilat);
-      r2 = z_field(ip,ilat+1);
-      const Numeric zlow = r1 + w * ( r2 - r1 );
-      //
-      r1 = z_field(ip+1,ilat);
-      r2 = z_field(ip+1,ilat+1);
-      const Numeric zupp = r1 + w * ( r2 - r1 );
+      const Numeric zlow = z1low + w * dzlow;
+      const Numeric zupp = z1upp + w * dzupp;
 
       ppath.gp_p[i].idx   = ip;
       ppath.gp_p[i].fd[0] = ( r[i] - rlow ) / ( rupp - rlow );
@@ -1126,8 +1183,7 @@ void ppath_fill_2d(
       ppath.z[i] = zlow + ppath.gp_p[i].fd[0] * ( zupp -zlow );
 
       ppath.gp_lat[i].idx   = ilat;
-      ppath.gp_lat[i].fd[0] = ( lat[i] - lat_grid[ilat] ) / 
-                                         ( lat_grid[ilat+1] - lat_grid[ilat] );
+      ppath.gp_lat[i].fd[0] = ( lat[i] - lat_grid[ilat] ) / dlat;
       ppath.gp_lat[i].fd[1] = 1 - ppath.gp_lat[i].fd[0];
       gridpos_check_fd( ppath.gp_lat[i] );
 
@@ -1791,6 +1847,7 @@ void ppath_step_geom_1d(
   assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], npl-1 )  && 
                                                             za_start <= 90 ) );
 
+
   // If the field "constant" is negative, this is the first call of the
   // function and the path constant shall be calculated.
   Numeric ppc;
@@ -1802,103 +1859,60 @@ void ppath_step_geom_1d(
 
   // Determine index of the pressure surface being the lower limit for the
   // grid range of interest.
-  const Index ilow = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
+  //
+  const Index ip = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
 
-  // Get end/lowest radius of the path step (r_end) and check:
-  // if a tangent point is passed
-  // if there is an intersection with the ground
+
+  // Get end radius of the path step (r_end). If looking downwards, it must 
+  // be checked if:
+  //    a tangent point is passed
+  //    there is an intersection with the ground
+  //
   Numeric r_end;
   bool    tanpoint = false, ground = false;
+  //
   if( za_start <= 90 )
-    { r_end = r_geoid + z_grid[ ilow + 1 ]; }
+    { r_end = r_geoid + z_grid[ ip + 1 ]; }
   else
     {
+      // Lowest possible radius for the path step
+      Numeric r_lowest  = r_geoid + z_grid[ ip ];
+
       // Ground radius
       Numeric r_ground = r_geoid + z_ground;
 
-      // Lowest possible radius for the path step
-      Numeric r_lowest  = r_geoid + z_grid[ ilow ];
-      bool    ground_is_low = false;
-      if( r_ground >= r_lowest )
-	{
-	  r_lowest = r_ground;
-	  ground_is_low = true;
-	}
+      // The tangent radius equals here ppc.
 
-      // Looking down but not crossing r_lower. Note that ppc
-      // here equals the tangent radius.
-      if( ppc >= r_lowest )
+      if( ( r_lowest > r_ground )  &&  ( r_lowest > ppc ) )
 	{
-	  r_end = ppc;
+	  r_end    = r_lowest;
+	}
+      else if( ppc >= r_ground )
+	{
+	  r_end    = ppc;
 	  tanpoint = true;
 	}
       else
 	{
-	  r_end = r_lowest;
-	  if( r_ground == r_lowest )
-	    { ground = true; }
+	  r_end    = r_ground;
+	  ground   = true;
 	}
     }
 
-  // Create a vector with a minimum set of radi to describe the path step.
-  //
-  Vector rs;
-  //
-  // Upward, down to next pressure surface or intersection with blackbody 
-  // ground.
-  if( za_start<=90 || (!tanpoint && !ground) || (ground && blackbody_ground) ) 
-    {
-      rs.resize(2);
-      rs[1] = r_end;
-    }
-  // Ground reflection, or passing a tangent point.
-  else
-    {
-      // If the starting point is not at the upper pressure surface, that 
-      // surface must be put in as last radius.
-      if( r_start == r_geoid + z_grid[ ilow + 1 ] )
-	{ rs.resize(3); }
-      else
-	{
-	  rs.resize(4);
-          rs[3] = r_geoid + z_grid[ ilow + 1 ];
-	}
-      rs[1] = r_end;
-      rs[2] = r_start;
-    }
-  rs[0] = r_start;
 
-  // Create a vector (ls) with the length between the points in rs and the 
-  // tangent point, and another vector (ns) with the number of sub-steps needed
-  // to go from one radius in rs to next. The last value in ns is one, which
-  // corresponds to the last point.
+  // Calculate basic variables from r_start to r_end.
   //
-  const Index    nr = rs.nelem();
-  Vector         ls( nr );
-  ArrayOfIndex   ns( nr ); 
-  Index          np = 0;           // The sum of ns. The number one corresponds
-  //                                  to the starting point.
-  for( Index i=0; i<nr; i++ )
-    {
-      ls[i] = geompath_l_at_r( ppc, rs[i] );
-      if( i > 0 )
-	{
-	  if( lmax > 0 )
-	    {
-	      // The absolute value of the length distance is needed here
-	      ns[i-1] = Index( ceil( fabs(ls[i]-ls[i-1]) / lmax ) );
-	    }
-	  else
-	    { ns[i-1] = 1; }
-	  np   += ns[i-1];
-	}
-    }
-  // Last point
-  ns[nr-1] = 1;
-  np++;
+  Vector    r_v, lat_v, za_v;
+  Numeric   lstep;
+  //
+  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
+                                                       za_start, r_end, lmax );
+  //
+  const Index ilast = r_v.nelem() - 1;
 
-  // Re-allocate ppath for return results and put in some variables
-  ppath_init_structure(  ppath, atmosphere_dim, np );
+  // Re-allocate ppath for return results and fill the structure
+  //
+  ppath_init_structure(  ppath, atmosphere_dim, r_v.nelem() );
   //
   if( lmax < 0 )
     { ppath.method     = "1D basic geometrical"; }
@@ -1907,94 +1921,71 @@ void ppath_step_geom_1d(
   ppath.refraction = 0;
   ppath.constant   = ppc;
   //
-  np = 0;   // Now used as counter for points done
+  ppath_fill_1d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_grid, ip );
   //
-  // Any angle valid for the path on the present side of the tangent point. 
-  Numeric a_za = za_start; 
-  //
-  // A reference zenith angle and latitude for the calculation of latitudes.
-  // This solution is needed as there is a step in the zenith angles at ground
-  // reflections.
-  Numeric za_lat0 = za_start;
-  Numeric lat0    = lat_start;
-  //
-  // Go from one radius to next and calculate radii, zenith angles etc. and
-  // fill the return structure.
-  //
-  for( Index i=0; i<nr; i++ )
+  if( ground )
     {
-      // Note that dl is allowed to be negative
-      Numeric dl;
-      if( i < ( nr-1 ) )
-	{ dl = ( ls[i+1] - ls[i] ) / ns[i]; }
+      if( blackbody_ground )
+	{ ppath_set_background( ppath, 2 ); }
       else
-	{ dl = 0; }
-
-      Numeric dz   = z_grid[ilow+1] - z_grid[ilow];
-
-      for( Index j=0; j<ns[i]; j++ )
 	{
-	  if( j == 0 )
-	    { ppath.pos(np,0)  = rs[i]; }
-	  else
-	    { ppath.pos(np,0)  = geompath_r_at_l( ppc, ls[i]+dl*j ); }
-	  ppath.z[np]      = ppath.pos(np,0) - r_geoid;
-	  if( i < ( nr-1 ) )
-	    { ppath.l_step[np] = fabs(dl); }
-          ppath.los(np,0)  = geompath_za_at_r( ppc, a_za, ppath.pos(np,0) );
-	  a_za             = ppath.los(np,0);
-          ppath.pos(np,1)  = geompath_lat_at_za( za_lat0, lat0, a_za );
-
-	  // Calculate grid position. Things to consider:
-	  // Rounding errors can give fd-values below 0 or above 1, and the
-	  // last point must have a fd-value of exactly 0 and 1, if not ending
-	  // at a blackbody ground.
-          ppath.gp_p[np].idx   = ilow;
-	  ppath.gp_p[np].fd[0] = ( ppath.z[np] - z_grid[ilow] ) / dz;
-	  ppath.gp_p[np].fd[1] = 1 - ppath.gp_p[np].fd[0];
-          gridpos_check_fd( ppath.gp_p[np] );
-	  if( i == (nr-1)  &&  j == (ns[i]-1)  && 
-                                              !( ground && blackbody_ground ) )
-	    { gridpos_force_end_fd( ppath.gp_p[np] ); }
-
-	  np ++;
-	}
-
-      // Handle tangent points and ground reflections
-      if( i == 0 )
-	{
-	  if( tanpoint )
-	    {
-	      ppath.symmetry   = 1;
-	      ppath.i_symmetry = np - 1;
-              ppath.tan_pos.resize(2);
-	      ppath.tan_pos[0] = ppc;
-	      ppath.tan_pos[1] = geompath_lat_at_za( za_start, lat_start, 90 );
-	      a_za = 80;   // Any value below 90 degrees is OK
-	    }
-	  else if( ground )
-	    {
-	      // Only a_za must be set to the zenith angle after ground 
-              // reflection. As the zenith angle shall be valid for the path
-	      // when leaving the point, the value in ppath.los is correct.
-	      a_za    = ppath.los(np-1,0);
-	      angle_after_ground_1d( a_za );
-	      za_lat0 = a_za;
-	      lat0    = ppath.pos(np-1,1);
-
-	      if( blackbody_ground )
-		{ ppath_set_background( ppath, 2 ); }
-	      else
-		{
-		  ppath.symmetry   = 1;
-		  ppath.i_symmetry = np - 1;
-		  ppath.ground     = 1;
-		  ppath.i_ground   = np - 1;
-		}
-	    }
+	  ppath.ground     = 1;
+	  ppath.i_ground   = ilast;
+	  ppath.symmetry   = 1;
+	  ppath.i_symmetry = ilast;
 	}
     }
+  else if( tanpoint )
+    {
+      ppath.tan_pos.resize(2);
+      ppath.tan_pos[0] = r_v[ilast];
+      ppath.tan_pos[1] = lat_v[ilast];
+      ppath.symmetry   = 1;
+      ppath.i_symmetry = ilast;
+    }
+
+
+  // Make second part if not ready with path step:
+  //
+  if( tanpoint  ||  ( ground  &&  !blackbody_ground ) )
+    {
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      // Adjust zenith angle and path constant if ground reflection
+      if( ground )
+	{
+	  // Angle after ground reflection
+	  angle_after_ground_1d( ppath2.los(ilast,0) );
+
+	  // New propagation path constant. It must be put copied to ppath as
+	  // the path constant is taken from this structure when appending
+	  // ppath and ppath2.
+	  ppath2.constant = geometrical_ppc( ppath2.pos(ilast,0), 
+                                                         ppath2.los(ilast,0) );
+	  ppath.constant  = ppath2.constant; 
+
+	  out3 << "  --- Recursive step to handle ground reflection -----\n"; 
+	}
+      else
+	{
+	  out3 << "  --- Recursive step to include tangent point --------\n"; 
+	}
+
+      // Call this function recursively
+      ppath_step_geom_1d( ppath2, atmosphere_dim, p_grid, z_grid, r_geoid,
+			                    z_ground, blackbody_ground, lmax );
+
+      out3 << "  ----------------------------------------------------\n"; 
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
+
 }
+
+
 
 
 
@@ -2002,7 +1993,8 @@ void ppath_step_geom_1d(
 /*! 
    Calculates 2D geometrical propagation path steps.
 
-   Works as the same function for 1D.
+   Works as the same function for 1D despite that some input arguments are
+   of different type.
 
    \param   ppath             Output: A Ppath structure.
    \param   atmosphere_dim    The atmospheric dimensionality.
@@ -2206,11 +2198,15 @@ void ppath_step_geom_2d(
     {
       Numeric r_surface = r1+c2*dlat_left;
 
-      // We must assure that rounding errors not has caused that 
-      // r_start <= r_surface + R_EPS. 
+      // We must check that numerical inaccuracies not have caused that the
+      // starting radius is below the pressure surface.
+      // Similar checks are done below for the ground and the upper pressure
+      // surface.
+      //
       Numeric r_tmp = r_start;
-      if( r_tmp < r_surface + R_EPS )
-	{ r_tmp = r_surface + R_EPS; }
+      //
+      if( r_tmp < r_surface )
+	{ r_tmp = r_surface; }
 
       dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c2 );
       endface = 2;  // This variable will be re-set if there was no crossing
@@ -2236,8 +2232,8 @@ void ppath_step_geom_2d(
                                !( ppath.ground  &&   ppath.i_ground == imax ) )
       {
 	Numeric r_tmp = r_start;
-	if( r_tmp < r_ground + R_EPS )
-	  { r_tmp = r_ground + R_EPS; }
+	if( r_tmp < r_ground )
+	  { r_tmp = r_ground; }
 
 	Numeric dlat2ground = psurface_crossing_2d( r_tmp, za_start, r_ground,
 						                     cground );
@@ -2266,13 +2262,11 @@ void ppath_step_geom_2d(
       Numeric r_tmp = r_start;
       if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 ) )
 	{ r_tmp = r_surface; }
-      else if( r_tmp > r_surface - R_EPS )
-	{ r_tmp = r_surface - R_EPS; }
+      else if( r_tmp > r_surface )
+	{ r_tmp = r_surface; }
 
-      if( ( za_start >= 0  &&  
-            za_start <= za_geom2other_point( r_tmp, lat_start, r3, lat3 ) )  
-                 ||
-	  ( za_start >= za_geom2other_point( r_tmp, lat_start, r4, lat1 ) ) )
+      if( za_start >= za_geom2other_point( r_tmp, lat_start, r4, lat1 )  &&
+                za_start <= za_geom2other_point( r_tmp, lat_start, r3, lat3 ) )
 	{
 	  dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c4 );
 	  assert( dlat2end < 999 );
@@ -2294,8 +2288,9 @@ void ppath_step_geom_2d(
   if( fabs(za_start) > 90  &&  ( fabs(za_start) - fabs(dlat2end) ) < 90 ) 
     { endface  = 6; }
 
+
   // Calculate radius for end point.
-  // To obtain bestpossible accuracy it is calculated folowing found end face,
+  // To obtain best possible accuracy it is calculated folowing found end face,
   // and not based on dlat2end.
   //
   Numeric r_end = -1;
@@ -2358,7 +2353,9 @@ void ppath_step_geom_2d(
     }
 
   // To avoid numerical inaccuracy as far as possible, we set values to match
-  // the end of grid ranges when possible:
+  // the end of grid ranges when possible (radius of end point is handled
+  // by geompath_from_r1_to_r2):
+  //
   if( endface == 1 )
     {
       ppath.pos(ilast,1) = lat1;
@@ -2376,6 +2373,7 @@ void ppath_step_geom_2d(
 
 
   // Make second part if not ready with path step:
+  //
   if( endface == 6  ||  ( endface == 5  &&  !blackbody_ground ) )
     {
       Ppath ppath2;

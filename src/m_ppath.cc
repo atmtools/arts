@@ -495,23 +495,23 @@ void ppathCalc(
 	  // Fields just set once
 	  if( ppath_array[i].ground )
 	    {
-	      ppath.ground                    = ppath_array[i].ground;
-	      ppath.i_ground                  = np + ppath_array[i].i_ground;
+	      ppath.ground                = ppath_array[i].ground;
+	      ppath.i_ground              = np + ppath_array[i].i_ground - 1;
 	    }
 	  if( ppath_array[i].tan_pos.nelem() )
 	    {
 	      ppath.tan_pos.resize( ppath_array[i].tan_pos.nelem() );
-	      ppath.tan_pos                   = ppath_array[i].tan_pos; 
+	      ppath.tan_pos               = ppath_array[i].tan_pos; 
 	    }
 	  if( ppath_array[i].geom_tan_pos.nelem() )
 	    {
 	      ppath.geom_tan_pos.resize( ppath_array[i].tan_pos.nelem() );
-	      ppath.geom_tan_pos              = ppath_array[i].geom_tan_pos; 
+	      ppath.geom_tan_pos          = ppath_array[i].geom_tan_pos; 
 	    }
 	  if( ppath_array[i].symmetry )
 	    {
-	      ppath.symmetry                  = ppath_array[i].symmetry;
-	      ppath.i_symmetry                = np + ppath_array[i].i_symmetry;
+	      ppath.symmetry              = ppath_array[i].symmetry;
+	      ppath.i_symmetry            = np + ppath_array[i].i_symmetry - 1;
 	    }
 
 	  // Increase number of points done

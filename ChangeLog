@@ -1,3 +1,16 @@
+2002-07-18  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-192
+
+	* src/ppath.cc (ppath_step_geom_1d): Made a new version of this 
+	function, using the same approach as in the same function for 2D. The
+	code of the function is now much shorter and easier to understand.
+	
+	* src/ppath.cc (ppath_step_geom_2d): Fixed one bug. 
+
+	* The 1D and 2D functions give the same result, for cases when this 
+	shall be the case. The both functions are now hopefully finished.
+
 2002-07-18  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-191
