@@ -1,3 +1,19 @@
+2003-03-05  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-469
+
+	* configure.in: Don't use -Wno-unused (gcc2) and
+	-Wno-unused-parameter (gcc3) any longer.
+	Removed check for gcc version.
+
+	* src/agenda_class.h: Added dummy method touch to MRecord.
+
+	* src/make_auto_wsv_h.cc: Added dummy method touch to WorkSpace.
+
+	* src/make_auto_md_cc.cc: If WorkSpace is not used in method call
+	ws.touch to avoid unused parameter warning.
+	Same for MRecord.
+
 2003-03-04  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-468
