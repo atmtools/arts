@@ -1,3 +1,16 @@
+2002-06-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-169
+
+	* src/test_griddedtensorcheck.cc: Added. Optimized gridded tensor
+	validation routines. Temporarily added for testing, could be
+	removed in the near future when everything works as expected.
+
+	* src/Makefile.am: Added target test_griddedtensorcheck.
+
+	* src/xml_io.cc (xml_read_from_stream): Added better error output
+	when data reading fails (Only for tensor6 at the moment).
+
 2002-06-26  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-1-168
