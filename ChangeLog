@@ -1,5 +1,17 @@
 2004-10-06  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-892
+
+	* src/check-code-tab-indent.sh:
+
+	Added. Checks if tabs are used in source code for indentation.
+
+	* src/check-code-cheaders.pl: Less output.
+
+	* src/Makefile.am: Added check-code-tab-indent.sh to tests.
+
+2004-10-06  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-891
 
 	* tests/Makefile.am: Added.

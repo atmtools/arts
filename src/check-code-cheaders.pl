@@ -27,8 +27,6 @@ my @cheaders = (
     "wctype.h"
 );
 
-print "\nChecking for inclusion of plain c header files:\n";
-
 open (TPUT, "tput bold 2>/dev/null|");
 while (<TPUT>) { $boldface = $_; }
 close (TPUT);
@@ -77,7 +75,5 @@ if ($cincludes) {
     print "\n$cincludes plain C header files included.\n";
     print "These should be replaced with the C++ version.\n";
     die 1;
-} else {
-    print "None found. Good.\n"
 }
 
