@@ -19,7 +19,11 @@ struct Parameters {
     help(false),
     version(false),
     basename(""),
-    controlfiles()
+    controlfiles(),
+    reporting(-1),
+    methods(""),
+    workspacevariables(""),
+    describe("")
   { /* Nothing to be done here */ }
   /** Short message how to call the program. */
   string usage;
@@ -36,6 +40,25 @@ struct Parameters {
   /** The filenames of the controlfiles. Can be only one or as many as
       you want. */
   ARRAY<string> controlfiles;
+  /** This should be a two digit integer. The first digit specifies
+      the output level for stdout (stderr for error messages), the
+      second digit the output level for the report file. The levels
+      can reach from 0 (show only error messages) to 3 (show
+      everything). Example:
+
+      03 = only errors to the screen, everything to the file. */
+  int reporting;
+  /** If this is given the argument `all', it simply prints a list of 
+      all methods. If it is given the name of a variable, it
+      prints all methods that produce this variable as output. */
+  string methods;
+  /** If this is given the argument `all', it simply prints a list of 
+      all workspace variables. If it is given the name of a method,
+      it prints all variables needed by that method. */
+  string workspacevariables; 
+  /** Print the description string of the given workspace variable or
+      method. */
+  string describe;
 };
 
 

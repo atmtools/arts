@@ -104,11 +104,24 @@ void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
 }
 
 
+/** Remind the user of --help and exit return value 1. */
+void polite_goodby()
+{
+  cerr << "Try `arts --help' for help.\n";
+  exit(1);
+}
 
 
 /** This is the main function of ARTS. (You never guessed that, did you?)
     The getopt_long function is used to parse the command line parameters.
  
+    \begin{verbatim}
+    Overview:
+    1. Get command line parameters.
+    2. Evaluate the command line parameters. (This also checks if the
+       parameters make sense, where necessary.) 
+    \end{verbatim}
+
     @return    0=ok, 1=error
     @param     argc Number of command line parameters 
     @param     argv Values of command line parameters
@@ -118,14 +131,14 @@ int main (int argc, char **argv)
   extern const Parameters parameters; // Global variable that holds
                                       // all command line parameters. 
 
-  //--------------------< Get command line parameters >--------------------
+  //---------------< 1. Get command line parameters >---------------
   if ( get_parameters(argc, argv) )
     {
       // Print an error message and exit:
-      cerr << "Try `arts --help' for help.\n";
-      exit(1);
+      polite_goodby();
     }
 
+  //----------< 2. Evaluate the command line parameters >----------
   if (parameters.help)
     {
       // Just print a help message and then exit.
@@ -142,9 +155,85 @@ int main (int argc, char **argv)
       return(0);
     }
 
-  // There must be at least one controlfile (if not this must be
-  // caught by get_parameters).
-  assert(0  != parameters.controlfiles.size());
+
+  // Set the reporting level, either the default or based on
+  // reporting. If reporting was specified, check if the values make
+  // sense. The value -1 for reporting means that it was (probably)
+  // not given on the command line, since this is the initialization
+  // value.
+  {
+    // The global variable that specifies the output level for screen
+    // and file:
+    extern Messages messages;
+    int r = parameters.reporting;
+
+    if ( -1 == r )
+      {
+	// Reporting was not specified, set default. (Only the
+	// important stuff to the screen, everything to the file.)
+	messages.screen = 1;
+	messages.file   = 3;
+      }
+    else
+      {
+	// Reporting was specified. Check consistency and set report
+	// level accordingly. 
+	
+	// Separate the two digits by taking modulo 10:
+	int s = r / 10;
+	int f = r % 10;
+	//	cout << "s=" << s << " f=" << f << '\n';
+
+	if ( s<0 || s>3 || f<0 || f>3 )
+	  {
+	    cerr << "Illegal value specified for --reporting (-r).\n"
+		 << "The specified value is " << r << ", which would be\n"
+		 << "interpreted as screen=" << s << ", file=" << f << ".\n"
+		 << "Only values of 0-3 are allowed for screen and file.\n";
+	    return(1);
+	  }
+	messages.screen = s;
+	messages.file   = f;
+      }
+  }
+
+  // React to option `methods'. If given the argument `all', it
+  // should simply prints a list of all methods. If given the name of
+  // a variable, it should print all methods that produce this
+  // variable as output.
+  if ( "" != parameters.methods )
+    {
+      cerr << "Option `methods' is not yet implemented, sorry.\n";
+      return(1);
+    }
+  
+  // React to option `workspacevariables'. If given the argument `all',
+  // it should simply prints a list of all variables. If given the
+  // name of a method, it should print all variables that are needed
+  // by that method.
+  if ( "" != parameters.workspacevariables )
+    {
+      cerr << "Option `workspacevariables' is not yet implemented, sorry.\n";
+      return(1);
+    }
+
+  // React to option `describe'. This should print the description
+  // string of the given workspace variable or method.
+  if ( "" != parameters.describe )
+    {
+      cerr << "Option `describe' is not yet implemented, sorry.\n";
+      return(1);
+    }
+
+
+  // Ok, we are past all the special options. This means the user
+  // wants to get serious and really do a calculation. Check if we
+  // have at least one control file:
+  if ( 0 == parameters.controlfiles.size() )
+    {
+      cerr << "You must specify at least one control file name.\n";
+      polite_goodby();
+    }
 
   // Set the basename according to the first control file, if not
   // explicitly specified.
@@ -157,6 +246,8 @@ int main (int argc, char **argv)
       // Kill everything starting from the `.'
       basename.erase(p);
     }
+
+
 
   //--------------------< Open report file >--------------------
   // This one needs its own little try block, because we have to

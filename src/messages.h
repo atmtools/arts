@@ -27,8 +27,9 @@
    @author Stefan Buehler */
 class Messages {
 public:
-  /** Default constructor. Set both levels to 3. */
-  Messages() : screen(3), file(3) { /* nothing to do here */ }
+  /** Default constructor. Set both levels to -1. The default output
+      level is set explicitly in main. */
+  Messages() : screen(-1), file(-1) { /* nothing to do here */ }
   /** Verbosity of screen output. */
   int screen;
   /** Verbosity of file output. */

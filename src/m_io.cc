@@ -22,7 +22,7 @@
 
     @author Stefan Buehler */
 void write_array_of_matrix_to_stream(ostream& os,
-				     const ARRAYofMATRIX& am)
+                                     const ARRAYofMATRIX& am)
 {
   extern const string full_name;
 
@@ -52,16 +52,16 @@ void write_array_of_matrix_to_stream(ostream& os,
       os << setprecision(precision);
       // Write the elements:
       for (size_t r=0; r<am[i].dim(1); ++r)
-	{
-	  os << am[i][r][0];
+        {
+          os << am[i][r][0];
       
-	  for (size_t c=1; c<am[i].dim(2); ++c)
-	    {
-	      os << " " << am[i][r][c];
-	    }
+          for (size_t c=1; c<am[i].dim(2); ++c)
+            {
+              os << " " << am[i][r][c];
+            }
 
-	  os << '\n';
-	}
+          os << '\n';
+        }
     }
 }
 
@@ -74,7 +74,7 @@ void write_array_of_matrix_to_stream(ostream& os,
 
     @author Stefan Buehler */
 void write_array_of_matrix_to_file(const string& filename,
-				   const ARRAYofMATRIX& am)
+                                   const ARRAYofMATRIX& am)
 {
   ofstream of;
 
@@ -93,7 +93,7 @@ void write_array_of_matrix_to_file(const string& filename,
 
     @author Stefan Buehler */
 void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
-				      istream& is)
+                                      istream& is)
 {
   // First, skip all the lines that have a # at the beginning. (Maybe
   // preceded by whitespace.)
@@ -105,15 +105,15 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
       is >> ws;
       is.get(c);
       if ('#'==c)
-	{
-	  getline(is,linebuffer);
-	  //	  cout << "C: " << linebuffer << endl;
-	}
+        {
+          getline(is,linebuffer);
+          //      cout << "C: " << linebuffer << endl;
+        }
       else
-	{
-	  is.unget();
-	  comments = false;
-	}
+        {
+          is.unget();
+          comments = false;
+        }
     }
 
   // Read the array of matrix. The TNT package expects exactly this input
@@ -142,7 +142,7 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
 
     @author Stefan Buehler */
 void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
-				    const string& filename)
+                                    const string& filename)
 {
   ifstream ifs;
 
@@ -162,7 +162,7 @@ void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
     {
       std::ostrstream os;
       os << "Error reading file: " << filename << '\n'
-	 << x.what();
+         << x.what();
       throw runtime_error(os.str());
     }
 }
@@ -208,9 +208,9 @@ void VectorSet(           VECTOR&  x,
 {
   x.newsize(n);
   x = value;
-  out3 << "Creating " << x_name << " as a constant vector\n"; 
-  out3 << "       length: " << n << "\n";
-  out3 << "        value: " << value << "\n";
+  out3 << "  Creating " << x_name << " as a constant vector\n"; 
+  out3 << "         length: " << n << "\n";
+  out3 << "          value: " << value << "\n";
 }
 
 void VectorLinSpace(      VECTOR&  x, 
@@ -220,13 +220,13 @@ void VectorLinSpace(      VECTOR&  x,
                     const Numeric& step )
 {
   x = linspace(start,stop,step);
-  out3 << "Creating " << x_name << " as linearly spaced vector\n";
-  out3 << "       length: " << x.size() << "\n";
-  out3 << "  first value: " << x(1) << "\n";
+  out3 << "  Creating " << x_name << " as linearly spaced vector\n";
+  out3 << "         length: " << x.size() << "\n";
+  out3 << "    first value: " << x(1) << "\n";
   if ( x.size() > 1 )
   {
-    out3 << "    step size: " << x(2)-x(1) << "\n";
-    out3 << "   last value: " << x(x.size()) << "\n";
+    out3 << "      step size: " << x(2)-x(1) << "\n";
+    out3 << "     last value: " << x(x.size()) << "\n";
   }
 }
 
@@ -237,13 +237,13 @@ void VectorNLinSpace(     VECTOR&  x,
                     const int& n )
 {
   x = nlinspace(start,stop,n);
-  out3 << "Creating " << x_name << " as linearly spaced vector\n";
-  out3 << "       length: " << n << "\n";
-  out3 << "  first value: " << x(1) << "\n";
+  out3 << "  Creating " << x_name << " as linearly spaced vector\n";
+  out3 << "         length: " << n << "\n";
+  out3 << "    first value: " << x(1) << "\n";
   if ( x.size() > 1 )
   {
-    out3 << "    step size: " << x(2)-x(1) << "\n";
-    out3 << "   last value: " << x(x.size()) << "\n";
+    out3 << "      step size: " << x(2)-x(1) << "\n";
+    out3 << "     last value: " << x(x.size()) << "\n";
   }
 }
 
@@ -254,11 +254,11 @@ void VectorNLogSpace(     VECTOR&  x,
                     const int& n )
 {
   x = nlogspace(start,stop,n);
-  out3 << "Creating " << x_name << " as logarithmically spaced vector\n";
-  out3 << "       length: " << n << "\n";
-  out3 << "  first value: " << x(1) << "\n";
+  out3 << "  Creating " << x_name << " as logarithmically spaced vector\n";
+  out3 << "         length: " << n << "\n";
+  out3 << "    first value: " << x(1) << "\n";
   if ( x.size() > 1 )
-    out3 << "   last value: " << x(x.size()) << "\n";
+    out3 << "     last value: " << x(x.size()) << "\n";
 }
 
 
@@ -268,9 +268,9 @@ void VectorNLogSpace(     VECTOR&  x,
 //
 
 void ArrayOfMatrixWriteToFile(// WS Generic Input:
-			      const ARRAYofMATRIX& am,
-			      // WS Generic Input Names:
-			      const string& am_name)
+                              const ARRAYofMATRIX& am,
+                              // WS Generic Input Names:
+                              const string& am_name)
 {
   extern const string basename;                       
   string filename = basename+"."+am_name+".a";
@@ -280,11 +280,11 @@ void ArrayOfMatrixWriteToFile(// WS Generic Input:
 }
 
 void ArrayOfMatrixWriteToNamedFile(// WS Generic Input:
-				   const ARRAYofMATRIX& am,
-				   // WS Generic Input Names:
-				   const string& am_name,
-				   // Control Parameters:
-				   const string& filename)
+                                   const ARRAYofMATRIX& am,
+                                   // WS Generic Input Names:
+                                   const string& am_name,
+                                   // Control Parameters:
+                                   const string& filename)
 {
 
   // Write the array of matrix to the file.
@@ -292,9 +292,9 @@ void ArrayOfMatrixWriteToNamedFile(// WS Generic Input:
 }
 
 void ArrayOfVectorWriteToFile(// WS Generic Input:
-			      const ARRAYofVECTOR& av,
-			      // WS Generic Input Names:
-			      const string& av_name)
+                              const ARRAYofVECTOR& av,
+                              // WS Generic Input Names:
+                              const string& av_name)
 {
   extern const string basename;                       
   string filename = basename+"."+av_name+".a";
@@ -311,11 +311,11 @@ void ArrayOfVectorWriteToFile(// WS Generic Input:
 }
 
 void ArrayOfVectorWriteToNamedFile(// WS Output:
-				   const ARRAYofVECTOR& av,
-				   // WS Variable Names:
-				   const string& av_name,
-				   // Control Parameters:
-				   const string& filename)
+                                   const ARRAYofVECTOR& av,
+                                   // WS Variable Names:
+                                   const string& av_name,
+                                   // Control Parameters:
+                                   const string& filename)
 {
 
   // Convert the array of vector to an array of matrix:
@@ -384,11 +384,11 @@ void VectorWriteToFile(// WS Generic Input:
 }
 
 void VectorWriteToNamedFile(// WS Output:
-			    const VECTOR& v,
-			    // WS Variable Names:
-			    const string& v_name,
-			    // Control Parameters:
-			    const string& filename)
+                            const VECTOR& v,
+                            // WS Variable Names:
+                            const string& v_name,
+                            // Control Parameters:
+                            const string& filename)
 {
 
   // Convert the vector to a matrix:
@@ -409,9 +409,9 @@ void VectorWriteToNamedFile(// WS Output:
 //
 
 void ArrayOfVectorReadFromFile(// WS Generic Output:
-			       ARRAYofVECTOR& av,
-			       // WS Generic Output Names:
-			       const string& av_name)
+                               ARRAYofVECTOR& av,
+                               // WS Generic Output Names:
+                               const string& av_name)
 {
   extern const string basename;                       
   string filename = basename+"."+av_name+".a";
@@ -429,9 +429,9 @@ void ArrayOfVectorReadFromFile(// WS Generic Output:
 }
 
 void ArrayOfMatrixReadFromFile(// WS Generic Output:
-			       ARRAYofMATRIX& am,
-			       // WS Generic Output Names:
-			       const string& am_name)
+                               ARRAYofMATRIX& am,
+                               // WS Generic Output Names:
+                               const string& am_name)
 {
   extern const string basename;                       
   string filename = basename+"."+am_name+".a";
@@ -461,7 +461,7 @@ void VectorReadFromFile(// WS Generic Output:
   // Convert the array of matrix to a matrix.
   if ( 1 != am.dim() )
     throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
-			"but the dimension of the array is not 1.");
+                        "but the dimension of the array is not 1.");
   MATRIX m(am[0]);
 
   // Convert the matrix to a vector:
@@ -483,7 +483,7 @@ void MatrixReadFromFile(// WS Generic Output:
   // Convert the array of matrix to a matrix.
   if ( 1 != am.dim() )
     throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
-			"but the dimension of the array is not 1.");
+                        "but the dimension of the array is not 1.");
 
   m = am[0];
 }

@@ -12,7 +12,14 @@
 
 #VectorWriteToNamedFile(p_abs){"dummy.p_abs.a"}
 
-ArrayOfMatrixReadFromFile(source){}
+#ArrayOfMatrixReadFromFile(source){}
 
-ArrayOfMatrixWriteToNamedFile(source){"dummy.source.a"}
+#ArrayOfMatrixWriteToNamedFile(source){"dummy.source.a"}
 
+VectorLinSpace(p_abs){
+	start = 0
+	stop  = 10
+	step  = .1
+}
+
+VectorWriteToFile(p_abs){}

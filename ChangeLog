@@ -1,3 +1,35 @@
+2000-04-30  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-17
+
+	* Added the command line parameter --reporting (-r).
+	This should be a two digit integer. The first digit specifies
+      	the output level for stdout (stderr for error messages), the
+      	second digit the output level for the report file. The levels
+      	can reach from 0 (show only error messages) to 3 (show
+      	everything). Example:
+  
+      	03 = only errors to the screen, everything to the file.
+
+	* Added some other cool command line parameters. However,
+	currently they only produce a message that the implementation is
+	still lacking. These are:
+
+	string methods:    
+	If this is given the argument `all', it simply prints a list of
+ 	all methods. If it is given the name of a variable, it prints all
+ 	methods that produce this variable as output.
+        
+	string workspacevariables:
+       	If this is given the argument `all', it simply prints a list of
+ 	all workspace variables. If it is given the name of a method, it
+ 	prints all variables needed by that method.
+
+        string describe:
+  	Print the description string of the given workspace variable or
+ 	method.
+
+	
 2000-04-29  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-16
