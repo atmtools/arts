@@ -28,7 +28,7 @@
 
 /** @mainpage
     
-    This automatic documentation is still @em very experimental. We
+    This automatic documentation is still @e very experimental. We
     have just switched from doc++ to doxygen. You can use the HTML
     version to browse the source text. Just point and click, and
     eventually you will see the real implementation of functions and

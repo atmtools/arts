@@ -82,7 +82,6 @@ Makefile
       doc/uguide/version.tex 
          doc/uguide/Figs/Makefile 
       doc/examples/Makefile 
-#      doc/examples/example1.arts
    m4/Makefile 
    src/Makefile 
       src/tnt/Makefile 

@@ -430,12 +430,12 @@ void option_describe(const string& describe)
 /** This is the main function of ARTS. (You never guessed that, did you?)
     The getopt_long function is used to parse the command line parameters.
  
-    \begin{verbatim}
+    \verbatim
     Overview:
     1. Get command line parameters.
     2. Evaluate the command line parameters. (This also checks if the
        parameters make sense, where necessary.) 
-    \end{verbatim}
+    \endverbatim
 
     @return    0=ok, 1=error
     @param     argc Number of command line parameters 

@@ -44,14 +44,14 @@ WorkSpace workspace;
 
 /** The names associated with Wsv groups as strings. 
     
-    \begin{verbatim}
+    \verbatim
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     Must be consistent with the enum in workspace.h! Later on,
     these enums could also be generated automatically, but that would
     have to take place before the wsv_data is defined, since that
     needs these enums.
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    \end{verbatim}  */
+    \endverbatim  */
 ARRAY<string> wsv_group_names;
 
 /** The lookup information for the workspace variables. */

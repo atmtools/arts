@@ -15,6 +15,16 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+/*!
+  \file   messages.cc
+  \brief  Definitions having to do with the four output streams.
+
+  See file messages.h for more explanations.
+
+  \author Stefan Buehler
+  \date   2000-07-31
+*/
+
 #include "arts.h"
 #include "messages.h"
 

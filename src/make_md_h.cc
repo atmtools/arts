@@ -194,9 +194,9 @@ int main()
 	    else
 	      {
 		ofs << '\n'
-		    << "    \\begin{verbatim}\n"
+		    << "    \\verbatim\n"
 		    << "    " << rest << '\n'
-		    << "    \\end{verbatim} */\n";
+		    << "    \\endverbatim */\n";
 	      }
 	  }
 

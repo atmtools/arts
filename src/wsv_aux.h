@@ -33,9 +33,9 @@ HISTORY:   10.06.2000 Created by Stefan Buehler
 /** Template for Wsv Pointers. All you have to do when you want to add
     a new Wsv group `Smurf' is add a virtual method
 
-    \begin{verbatim}
+    \verbatim
     virtual operator MATRIX*() = 0;
-    \end{verbatim}
+    \endverbatim
 
     to the common base class WsvP. */
 template<class T>

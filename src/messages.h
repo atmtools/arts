@@ -15,10 +15,26 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-// For some strange reason, I cannot get the program to compile unless 
-// the definitions (not only the declarations) of the template
-// functions MessagePrint and the << operators for out1, out2, and
-// out3 are in this file.
+/*!
+  \file   messages.h
+  \brief  Declarations having to do with the four output streams.
+
+  ARTS uses four output streams: \a out0 to \a out3, where \a out0 has
+  the highest priority, \a out3 the lowest. These are global
+  variables. They are intended to be
+  used as follows:
+
+  \arg \a  out0: Error messages
+  \arg \a  out1: Output of the `engine'
+  \arg \a  out2: Important workspace method output
+  \arg \a  out3: Unimportant workspace method output
+
+  The classes associated with the four output stream variables have
+  the same name, but start with a capital letter: Out0, Out1, Out2,
+  and Out3.
+
+  \author Stefan Buehler
+  \date 2000-07-31 */
 
 #ifndef messages_h
 #define messages_h
@@ -34,12 +50,12 @@
    (except error messages), 1 = only out1, 2 = out1+out2, 3 = all
    output.
 
-   \begin{verbatim}
+   \verbatim
    History:
    SAB 30.06.99 Created.
    SAB 03.11.99 Introduced Out0, which prints to stderr rather than
                 stdout. 
-   \end{verbatim}
+   \endverbatim
 
    @author Stefan Buehler */
 class Messages {

@@ -67,3 +67,5 @@ main.ps: main.dvi
 
 
 CLEANFILES = *.aux *.log
+
+MAINTAINERCLEANFILES = main.bbl main.blg main.dvi main.ps main.toc version.tex

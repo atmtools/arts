@@ -205,7 +205,7 @@ private:
     should also be able to use a single line file). The suggested line
     format is:
 
-    \begin{verbatim}
+    \verbatim
     Col  Variable                Label    Unit     Comment
     ------------------------------------------------------------------      
     0   `@'                      ENTRY       -     marks start of entry
@@ -236,13 +236,13 @@ private:
     25   information source of I0
     26   information source of line width variables
     27   information source of overlap constants
-    \end{verbatim}
+    \endverbatim
 
     One line could be:
     {\small
-    \begin{verbatim}
+    \verbatim
     @ O3-666 110.83604e9 0 12.43453e-22 300 17.5973 1.52 2.03 0.73 0.73 296 ....   
-    \end{verbatim}}
+    \endverbatim}
 
     The format used in the line file used by the FM
     can be a truncated version of the full line format.
@@ -415,7 +415,7 @@ public:
   /** Read one line from a stream associated with a HITRAN file. The HITRAN
     format is as follows (directly from the HITRAN documentation):
 
-    \begin{verbatim}
+    \verbatim
     Each line consists of 100
     bytes of ASCII text data, followed by a line feed (ASCII 10) and
     carriage return (ASCII 13) character, for a total of 102 bytes per line.
@@ -457,7 +457,7 @@ public:
      18=  ClO   19=  OCS   20= H2CO   21= HOCl   22=   N2   23=  HCN
      24=CH3Cl   25= H2O2   26= C2H2   27= C2H6   28=  PH3   29= COF2
      30=  SF6   31=  H2S   32=HCOOH
-    \end{verbatim}
+    \endverbatim
 
     The function attempts to read a line of data from the
     catalogue. It returns false if it succeeds. Otherwise, if eof is
@@ -558,11 +558,11 @@ public:
 
   /** Return the full name of this tag according to Bredbeck
       convention. Examples:
-      \begin{verbatim}
+      \verbatim
       O3-*-*-*         : All O3 lines
       O3-666-*-*       : All O3-666 lines
       O3-*-500e9-501e9 : All O3 lines between 500 and 501 GHz.
-      \end{verbatim} */
+      \endverbatim */
   string Name() const;
     
   /** Molecular species index. */

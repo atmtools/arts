@@ -31,7 +31,7 @@ HISTORY:   10.06.2000 Created by Stefan Buehler
 #include "vecmat.h"
 
 /** The line of sight (LOS). The LOS structure has the fields:
-    \begin{verbatim}
+    \verbatim
        ARRAYofVECTOR  p;
        VECTOR         l_step;
        ARRAY<int>     ground;
@@ -44,7 +44,7 @@ HISTORY:   10.06.2000 Created by Stefan Buehler
        stop     stop index for the iteration
        ground   O if no intersection with the ground. Else, GROUND
                 gives the index for the ground.  
-    \end{verbatim}
+    \endverbatim
 
     The LOS is defined in equal long geometrical steps along the path.
     This step length (L_STEP) can vary between the viewing angles.

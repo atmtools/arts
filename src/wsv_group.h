@@ -38,12 +38,12 @@ HISTORY:   10.06.2000 Created by Stefan Buehler
     This is used to group workspace variables of the same type
     together, so that generic methods can operate on any of them. 
 
-    \begin{verbatim}
+    \verbatim
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     Has to be consistent with the group names in workspace.cc
     And with the WsvP classes!
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    \end{verbatim}
+    \endverbatim
 
     @author Stefan Buehler */
 enum WsvGroup{
