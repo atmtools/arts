@@ -335,7 +335,7 @@ agenda_data.push_back
        (
        "Performs the monochromatic scattering calculation."
        "\n"
-       "Normally this agenda consists of tree methods: \n"
+       "Normally this agenda consists of three methods: \n"
        "   1. i_fieldSetClearsky or i_fieldSetConst \n"
        "   2. i_fieldIterate (Other solution methods might be implemented\n"
        "      later.) \n"

@@ -61,23 +61,16 @@ void ext_mat_sptCalc(
     throw runtime_error(" The dimension of the tensor ext_mat_spt should "
 			"agree to stokes_dim");
   }
-  //cout << "The stokes dimension is :" << stokes_dim<<"\n";
-  //cout << "The scat_za_index : " << scat_za_index  << " \n " ;
-  //cout << "The scat_aa_index : " << scat_aa_index  << " \n " ;
-  // cout << "Number of particle type : " << npt  << " \n " ;
-  
-  
+    
   if (amp_mat.ncols() != 8)
     throw runtime_error(
 			"Amplitude matrix must have 8 columns.");
   
  
-
+ 
   //find out frequency
   Numeric freq = f_grid[scat_f_index];
 
-  //cout << "The frequency: " << freq  << " \n " ;
-  
   for (Index i = 0; i < npt; ++i)
     {
       ConstVectorView amp_coeffs = amp_mat(i,
@@ -91,7 +84,8 @@ void ext_mat_sptCalc(
 	      amp_coeffs,
 	      freq);
     }
-  cout<<"Extinction matrix for single particle type"<<""<<ext_mat_spt<<"\n";
+  cout<<"ext_mat_spt"<<endl;
+  cout<<ext_mat_spt<<endl;
 }
 
 //! Calculate extinction matrix (spt) for the convergence test.  
@@ -203,7 +197,7 @@ void pha_mat_sptCalc(
   
   for (Index i = 0; i < npt; ++i)
     {
-      const Tensor3 amp_coeffs = amp_mat(i,
+      ConstTensor3View amp_coeffs = amp_mat(i,
 					 scat_za_index,
 					 scat_aa_index,
 					 Range(joker),
@@ -292,7 +286,8 @@ void abs_vec_sptCalc(
 	      scat_aa_grid);
      
     }	   
-  cout<<"Absorption Vector for single particle type"<<""<<abs_vec_spt<<"\n";
+ cout<<"abs_vec_spt"<<endl;
+  cout<<abs_vec_spt<<endl;
 }
 
 
@@ -360,8 +355,7 @@ void ext_mat_partCalc(
 	    }
 	}
     }
-  cout <<  "The Extinction Matrix for particle: " << " \n " 
-     <<ext_mat_part << " \n " ;
+ 
   if (atmosphere_dim == 3)
     {
       
@@ -442,8 +436,6 @@ void abs_vec_partCalc(
 	}
     }
   
-  cout <<  "The Absorption Vector for particle : " << " \n " 
-     <<abs_vec_part << " \n " ;
   if (atmosphere_dim == 3)
     {
       // this is a loop over the different particle types
@@ -744,15 +736,12 @@ void ext_matCalc(
 {
   Index stokes_dim = ext_mat_part.nrows(); 
   
-  cout << "ext_mat_part..."<< ext_mat_part << endl;
-  cout << "ext_mat_gas..." << ext_mat_gas << endl;
-  
-  //(CE:) Define size of ext_mat:
+ 
   ext_mat.resize(stokes_dim, stokes_dim);
   //Addition of the two matrices, ext_mat_part and ext_mat_gas.
   ext_mat = ext_mat_part;
   ext_mat += ext_mat_gas;
-   cout<<"Totaal extinction matrix"<<"\n"<< ext_mat<< endl;
+ 
 }
 
 //! Total Absorption Vector
@@ -772,16 +761,11 @@ void abs_vecCalc(
   
 {
   Index stokes_dim = abs_vec_part.nelem(); 
-   
-  cout << "abs_vec_part..." << abs_vec_part << endl;
-  cout << "abs_vec_gas..." << abs_vec_gas << endl;
-  //(CE:) Resize abs_vec
+   // Resize abs_vec
   abs_vec.resize(stokes_dim);
   // addition of abs_vec_part and abs_vec_gas
   abs_vec = abs_vec_part;
   abs_vec += abs_vec_gas;
-  cout << "abs_vec..." << abs_vec << endl;
-
 }
 
 
@@ -841,8 +825,6 @@ void ext_mat_partScat(
 	    }
 	}
     }
-  cout <<  "The Extinction Matrix for particle: " << " \n " 
-     <<ext_mat_part << " \n " ;
   if (atmosphere_dim == 3)
     {
       

@@ -174,6 +174,7 @@ void amp2pha(Tensor4View phasemat,
     {
       for (Index j = 0; j < naa; ++j)
 	{
+	 
 	   phasemat(i, j, 0, 0) = 0.5 * 1e-12 * (Re_S11ij * Re_S11ij + 
 						Im_S11ij * Im_S11ij + 
 						Re_S12ij * Re_S12ij + 
@@ -196,6 +197,7 @@ void amp2pha(Tensor4View phasemat,
     {
       for (Index j = 0; j < naa; ++j)
 	{
+	 
 	  phasemat(i, j, 0, 1) = 0.5 * 1e-12  * (Re_S11ij * Re_S11ij + 
 						 Im_S11ij * Im_S11ij - 
 						 Re_S12ij * Re_S12ij - 
@@ -249,7 +251,7 @@ void amp2pha(Tensor4View phasemat,
 					     Im_S11ij * Im_S21ij + 
 					     Re_S22ij * Re_S12ij + 
 					     Im_S22ij * Im_S12ij);
-	  
+
 	  phasemat(i, j, 2, 1) = - 1e-12 *  (Re_S11ij * Re_S21ij + 
 					     Im_S11ij * Im_S21ij -
 					     Re_S22ij * Re_S12ij - 
@@ -388,14 +390,18 @@ void amp2ext_scat(MatrixView ext_scat,
     }
 
   ext_scat(1,0) = Z21_integrated;
-  
+
+  // if stokes_dim =2 only these 2 elements need be evaluated.
   if(2 == stokes_dim){
     return;
   }
 
-  // if stokes_dim =2 only these 2 elements need be evaluated.
-
+  
+  
   Matrix Z31_mat = pha (Range(joker), Range(joker), 2, 0);
+
+  
+
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
@@ -492,7 +498,7 @@ void amp2abs(VectorView abs,
     }
 
   abs[0] = ext(0, 0) - Z11_integrated;
-    
+  //cout<<"Z11"<<" "<<Z11_mat<<endl;  
   if(1 == stokes_dim){
     return;
   }
@@ -500,6 +506,7 @@ void amp2abs(VectorView abs,
   //only the first element is required if stokes_dim =1
   
   Matrix Z21_mat = pha (Range(joker), Range(joker), 1, 0);
+  //cout<<"Z21"<<" "<<Z21_mat<<endl; 
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
@@ -510,7 +517,7 @@ void amp2abs(VectorView abs,
 	}
     }
 
-  abs[1] = ext(1, 1)- Z21_integrated;
+  abs[1] = ext(1, 0)- Z21_integrated;
   
   if(2 == stokes_dim){
     return;
@@ -519,6 +526,8 @@ void amp2abs(VectorView abs,
   // if stokes_dim =2 only these 2 elements need be evaluated.
 
   Matrix Z31_mat = pha (Range(joker), Range(joker), 2, 0);
+  //cout<<"--------------------------------------------- "<<endl; 
+  //cout<<"Z31"<<" "<<Z31_mat<<endl; 
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
@@ -529,7 +538,7 @@ void amp2abs(VectorView abs,
 	}
     }
   
-  abs[2] = ext(2, 2) - Z31_integrated;
+  abs[2] = ext(2, 0) - Z31_integrated;
   
   if(3 == stokes_dim){
     return;
@@ -538,6 +547,8 @@ void amp2abs(VectorView abs,
    // if stokes_dim =3 only these 3 elements need be evaluated.
 
   Matrix Z41_mat = pha (Range(joker), Range(joker), 3, 0);
+  //cout<<"--------------------------------------------- "<<endl; 
+  // cout<<"Z41"<<" "<<Z41_mat<<endl; 
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
@@ -549,7 +560,7 @@ void amp2abs(VectorView abs,
 	}
     }
 
-  abs[3] = ext(3, 3) - Z41_integrated;
+  abs[3] = ext(3, 0) - Z41_integrated;
 
   if(4 == stokes_dim){
     return;
