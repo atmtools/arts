@@ -1,3 +1,9 @@
+2003-07-28  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-107
+
+	* src/message.h (MessagePrint): Flush output file stream after write.
+
 2003-07-28  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-1-0-106
