@@ -156,6 +156,17 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("NumericSet"),
+	DESCRIPTION("Sets a workspace variable of type Numeric to a value."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(Numeric_),
+	GINPUT(),
+	KEYWORDS("value"),
+	TYPES(num_)));
   
 
 }

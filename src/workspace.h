@@ -17,10 +17,11 @@
 enum WsvGroup{
   VECTOR_,
   MATRIX_,
+  Numeric_
 };
 
 // For consistency check:
-#define N_WSV_GROUPS 2
+#define N_WSV_GROUPS 3
 
 
 // Yes, this is the declaration of the great workspace itself.
@@ -30,6 +31,7 @@ public:
   VECTOR f_abs;
   VECTOR t_abs;
   MATRIX abs;
+  Numeric dummy;
 };
 
 
@@ -46,6 +48,7 @@ public:
   virtual operator string*() { safety(); return NULL; };
   virtual operator VECTOR*() { safety(); return NULL; };
   virtual operator MATRIX*() { safety(); return NULL; };
+  virtual operator Numeric*() { safety(); return NULL; };
       
 private:
   /** Safety check. This is called by all the virtual conversion

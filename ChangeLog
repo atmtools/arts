@@ -1,3 +1,53 @@
+2000-04-04  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0.0.6
+
+	* Quickly implemented NumericSet for Patrick
+
+	* workspace.h:
+	- Added Numeric_ in WsvGroup 
+	- Changed N_WSV_GROUPS to 3
+	- Added   Numeric dummy to class WorkSpace
+	- Added
+	  virtual operator Numeric*() { safety(); return NULL; };
+	  in class WsvP
+
+	* notes.txt
+	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	The last point above was missing in notes.txt. I have added it
+	now. Sorry for that.  
+	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	* workspace.cc:
+	- Added: wsv_group_names.push_back("Numeric");
+	- Added:
+ 	  {
+	  static WsvPointer<Numeric> p(&workspace.dummy);
+	  wsv_data.push_back
+	  (WsvRecord
+	  ("dummy",
+	  "This is just to test Numeric WSVs.",
+	  Numeric_,
+	  &p));
+	  }
+
+	* methods.cc:
+	- Added:
+	  md_data.push_back
+	  ( MdRecord
+	  ( NAME("NumericSet"),
+	  DESCRIPTION("Sets a workspace variable of type Numeric to a value."),
+	  OUTPUT(),
+	  INPUT(),
+	  GOUTPUT(Numeric_),
+	  GINPUT(),
+	  KEYWORDS("value"),
+	  TYPES(num_)));
+
+	* m_io.cc:
+	- Added the implementation of NumericSet
+
+
 2000-03-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0.0.5

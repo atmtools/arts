@@ -251,3 +251,13 @@ void MatrixReadFromFile(// WS Generic Output:
 }
 
 
+void NumericSet(// WS Generic Output:
+                Numeric& x,
+                // WS Generic Output Names:
+                const string& x_name,
+                // Control Parameters:
+                const Numeric& value)
+{
+  out3 << "Setting " << x_name << " to " << value << ".\n";
+  x = value;
+}
