@@ -48,5 +48,26 @@ legendre_poly_deriv (Index l, Index m, Numeric x);
 Numeric
 legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x);
 
+Numeric
+g_legendre_poly (Index l, Index m, Numeric x);
+
+Numeric
+g_legendre_poly_norm_schmidt (Index l, Index m, Numeric x);
+
+Numeric
+g_legendre_poly_deriv (Index l, Index m, Numeric x);
+
+Numeric
+g_legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x);
+
+Numeric
+g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x);
+
+Numeric
+g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x);
+
+Numeric
+g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x);
+
 #endif  /* legendre_h */
 

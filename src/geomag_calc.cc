@@ -53,10 +53,10 @@ void magfield_nk(  // Output
   // first and second coefficient of of the IGRF model. 
   
   
-  // Loop over the degree number l of the Legendre polynommes.
+  // Loop over the degree number l of the Legendre polynomes.
   for (Index l = 1; l <= 10; l++)
     {
-      // Loop over the order number m of the Legendre polynommes.
+      // Loop over the order number m of the Legendre polynomes.
       for (Index m = 0; m <= l; m++)
 	{
 	  
@@ -67,18 +67,19 @@ void magfield_nk(  // Output
 	  // Calculating the associated Schmidt quasi-normalized Legendre 
 	  // polynomial for a degree number l and order number m.
 	  Numeric P_lm = 
-	    legendre_poly_norm_schmidt (l, m, cos(Theta));
+	    g_legendre_poly_norm_schmidt (l, m, cos(Theta));
 
 	  // Calculating the derivative of the associated Schmidt quasi-normalized 
 	  // Legendre polynomial for a degree number l and order number m.
 	  Numeric dP_lm = 
-	    legendre_poly_norm_schmidt_deriv (l, m, cos(Theta));
+	    g_legendre_poly_norm_schmidt_deriv (l, m, cos(Theta));
+
 	  
 	  // Calculating the radial (upward) component of the magnetic field.
 	  B_r += pow(l + 2, a / r) * (l + 1) * 
 	    ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
 	     + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) 
-	       * P_lm;
+	      * P_lm;
 	  
 	  // Calculating the latitudinal (southward) component of the magnetic field. 
 	  B_th += pow(l + 2, a / r) * 

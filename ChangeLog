@@ -1,3 +1,15 @@
+2003-09-04  Nikolay Koulev  <nkoulev@bremen.de>
+
+	* arts-1-1-681
+
+	* src/legendre.cc: Added new functions with prefix (g_) for the
+	calculations of the legendre polynomes and their derivatives
+	specially for the case of utilization of the IGRF coefficients.
+	
+	* src/legendre.h: Changed accordingly.
+	
+	* src/geomag_calc.cc: Changed accordingly.
+		
 2003-08-28  Nikolay Koulev  <nkoulev@bremen.de>
 
 	* arts-1-1-680
