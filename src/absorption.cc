@@ -102,7 +102,7 @@ ostream& operator << (ostream& os, const LineRecord& lr)
 }
 
 
-/** Extract something from a HITRAN line. This is just a small helper
+/** Extract something from a catalogue line. This is just a small helper
     function to safe some typing. 
 
     \retval x    What was extracted from the beginning of the line.
@@ -284,10 +284,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
       // If mo == 0 this is just a comment line:
       if ( 0 != mo )
 	{
-	  // See if we know this species. At the moment, because I
-	  // only implemented 3 species, we will only give a warning
-	  // if a species is unknown, and not an error. FIXME: This should
-	  // probably be changed in the future.
+	  // See if we know this species. Exit with an error if the species is unknown. 
 	  if ( missing != hspec[mo] )	    comment = false ;
 	  else
 	    {
@@ -491,6 +488,608 @@ bool LineRecord::ReadFromHitranStream(istream& is)
   // That's it!
   return false;
 }
+
+
+bool LineRecord::ReadFromMytran2Stream(istream& is)
+{
+  // Global species lookup data:
+  extern ARRAY<SpeciesRecord> species_data;
+
+  // This value is used to flag missing data both in species and
+  // isotope lists. Could be any number, it just has to be made sure
+  // that it is neither the index of a species nor of an isotope.
+  const size_t missing = species_data.size() + 100;
+
+  // We need a species index sorted by MYTRAN tag. Keep this in a
+  // static variable, so that we have to do this only once.  The ARTS
+  // species index is hind[<MYTRAN tag>]. The value of
+  // missing means that we don't have this species.
+  //
+  // Allow for up to 100 species in MYTRAN in the future.
+  static ARRAY< size_t >        hspec(100,missing);	
+
+  // This is  an array of arrays for each mytran tag. It contains the
+  // ARTS indices of the MYTRAN isotopes. 
+  static ARRAY< ARRAY<size_t> > hiso(100);
+
+  // Remeber if this stuff has already been initialized:
+  static bool hinit = false;
+
+  // Remember, about which missing species we have already issued a
+  // warning: 
+  static ARRAY<size_t> warned_missing;
+
+  if ( !hinit )
+    {
+      for ( size_t i=0; i<species_data.size(); ++i )
+	{
+	  const SpeciesRecord& sr = species_data[i];
+
+	  // We have to be careful and check for the case that all
+	  // MYTRAN isotope tags are -1 (this species is missing in MYTRAN).
+
+	  if ( 0 < sr.Isotope()[0].MytranTag() )
+	    {
+	      // The MYTRAN tags are stored as species plus isotope tags
+	      // (MO and ISO)
+	      // in the Isotope() part of the species record.
+	      // We can extract the MO part from any of the isotope tags,
+	      // so we use the first one. We do this by taking an integer
+	      // division by 10.
+	  
+	      size_t mo = sr.Isotope()[0].MytranTag() / 10;
+	      //	  cout << "mo = " << mo << endl;
+	      hspec[mo] = i; 
+	  
+	      // Get a nicer to handle array of MYTRAN iso tags:
+	      size_t n_iso = sr.Isotope().size();
+	      ARRAY<int> iso_tags;
+	      iso_tags.resize(n_iso);
+	      for ( size_t j=0; j<n_iso; ++j )
+		{
+		  iso_tags[j] = sr.Isotope()[j].MytranTag();
+		}
+
+	      // Reserve elements for the isotope tags. How much do we
+	      // need? This depends on the largest MYTRAN tag that we know
+	      // about!
+	      // Also initialize the tags to missing.
+	      // 	  cout << "iso_tags = " << iso_tags << endl;
+	      // 	  cout << "static_cast<size_t>(max(iso_tags))%10 + 1 = "
+	      // 	       << static_cast<size_t>(max(iso_tags))%10 + 1 << endl;
+	      hiso[mo].resize( static_cast<size_t>(max(iso_tags))%10 + 1,
+			       missing );
+	      //	  cout << "hiso[mo].size() = " << hiso[mo].size() << endl;
+
+	      // Set the isotope tags:
+	      for ( size_t j=0; j<n_iso; ++j )
+		{
+		  if ( 0 < iso_tags[j] )				  // ignore -1 elements
+		    {
+		      // To get the iso tags from MytranTag() we also have to take
+		      // modulo 10 to get rid of mo.
+		      //		  cout << "iso_tags[j] % 10 = " << iso_tags[j] % 10 << endl;
+		      hiso[mo][iso_tags[j] % 10] = j;
+		    }
+		}
+	    }
+	}
+      
+//      cout << "hiso = " << hiso << endl << "***********" << endl;
+
+
+      // Print the generated data structures (for debugging):
+      out3 << "  MYTRAN index table:\n";
+      for ( size_t i=0; i<hspec.size(); ++i )
+	{
+	  if ( missing != hspec[i] )
+	    {
+	      // The explicit conversion of Name to a c-string is
+	      // necessary, because setw does not work correctly for
+	      // stl strings.
+	      out3 << "  mo = " << i << "   Species = "
+		   << setw(10) << setiosflags(ios::left)
+		   << species_data[hspec[i]].Name().c_str()
+		   << "iso = ";
+	      for ( size_t j=1; j<hiso[i].size(); ++j )
+		{
+		  if ( missing==hiso[i][j] )
+		    out3 << " " << "m";
+		  else
+		    out3 << " " << species_data[hspec[i]].Isotope()[hiso[i][j]].Name();
+		}
+	      out3 << "\n";
+	    }
+	}
+
+      hinit = true;
+    }
+
+
+  // This contains the rest of the line to parse. At the beginning the
+  // entire line. Line gets shorter and shorter as we continue to
+  // extract stuff from the beginning.
+  string line;
+
+  // The first item is the molecule number:
+  size_t mo;
+
+  // Look for more comments?
+  bool comment = true;
+
+  while (comment)
+    {
+      // Return true if eof is reached:
+      if (is.eof()) {
+	//	cout << "Eof" << endl;
+	return true;
+      }
+
+      // Throw runtime_error if stream is bad:
+      if (!is) throw runtime_error ("Stream bad.");
+
+      // Read line from file into linebuffer:
+      getline(is,line);
+      //      cout << line << endl;
+
+      // Because of the fixed FORTRAN format, we need to break up the line
+      // explicitly in apropriate pieces. Not elegant, but works!
+
+      // Extract molecule number:
+      mo = 0;
+      // Initialization of mo is important, because mo stays the same
+      // if line is empty.
+      extract(mo,line,2);
+      //           cout << "mo = " << mo << endl;
+  
+      // If mo == 0 this is just a comment line:
+      if ( 0 != mo )
+	{
+	  // See if we know this species. We will give a warning
+	  // if a species is unknown, and not an error. FIXME: This should
+	  // probably be changed in the future.
+	  if ( missing != hspec[mo] )	    comment = false ;
+	  else
+	    {
+	      // See if this is already in warned_missing, use
+	      // std::count for that:
+	      if ( 0 == std::count(warned_missing.begin(),
+				   warned_missing.end(),
+				   mo) )
+		{
+		  out0 << "Error: MYTRAN mo = " << mo << " is not "
+		       << "known to ARTS.\n";
+		  warned_missing.push_back(mo);
+		  exit(1);
+		  // SAB 08.08.2000 If you want to make the program
+		  // continue anyway, just comment out the exit
+		  // line.
+		}
+	    }
+	}
+    }
+
+  // Ok, we seem to have a valid species here.
+
+  // Set mspecies from my cool index table:
+  mspecies = hspec[mo];
+
+  // Extract isotope:
+  size_t iso;				  
+  extract(iso,line,1);
+  //  cout << "iso = " << iso << endl;
+
+
+  // Set misotope from the other cool index table.
+  // We have to be careful to issue an error for unknown iso tags. Iso
+  // could be either larger than the size of hiso[mo], or set
+  // explicitly to missing. Unfortunately we have to test both cases. 
+  misotope = missing;
+  if ( iso < hiso[mo].size() )
+    if ( missing != hiso[mo][iso] )
+      misotope = hiso[mo][iso];
+
+  // Issue error message if misotope is still missing:
+  if (missing == misotope)
+    {
+      ostringstream os;
+      os << "Species: " << species_data[mspecies].Name()
+	 << ", isotope iso = " << iso
+	 << " is unknown.";
+      throw runtime_error(os.str());
+    }
+
+  
+  // Position.
+  {
+    // MYTRAN position in MHz:
+    Numeric v;
+
+    // Extract MYTRAN postion:
+    extract(v,line,13);
+
+    // ARTS position in Hz:
+    mf = v * 1E6;
+//    cout << "mf = " << mf << endl;
+  }
+
+  // skip transition frequency error
+  {
+    Numeric r;
+    extract(r,line,8);
+  } 
+  
+  // Intensity.
+  {
+    extern const Numeric SPEED_OF_LIGHT; // in [m/s]
+
+    // MYTRAN2 intensity is in cm-1/(molec * cm-2) at 296 Kelvin.
+    // (just like HITRAN, only isotopic ratio is not included)
+    // The first cm-1 is the frequency unit (it cancels with the
+    // 1/frequency unit of the line shape function). 
+    //
+    // We need to do the following:
+    // 1. Convert frequency from wavenumber to Hz (factor 1e2 * c)
+    // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4)
+    // 3. Multiply with the isotopic ratio
+
+    const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
+
+    Numeric s;
+
+    // Extract HITRAN intensity:
+    extract(s,line,10);
+
+    // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
+    mi0 = s * hi2arts;
+
+    // multiply with the isotopic ratio
+    mi0 *= species_data[mspecies].Isotope()[misotope].Abundance();
+  }
+
+  
+  // Air broadening parameters.
+  {
+    // MYTRAN parameter is in MHz/Torr at reference temperature
+    // All parameters are HWHM
+    Numeric gam;
+    // External constant from constants.cc: Converts torr to
+    // Pa. Multiply value in torr by this number to get value in Pa. 
+    extern const Numeric TORR2PA;
+
+    // Extract HITRAN AGAM value:
+    extract(gam,line,5);
+
+    // ARTS parameter in Hz/Pa:
+    magam = gam * 1E6 / TORR2PA;
+
+    // Extract MYTRAN SGAM value:
+    extract(gam,line,5);
+
+    // ARTS parameter in Hz/Pa:
+    msgam = gam * 1E6 / TORR2PA;
+
+//    cout << "agam, sgam = " << magam << ", " << msgam << endl;
+  }
+
+
+  // Lower state energy.
+  {
+    // HITRAN parameter is in wavenumbers (cm^-1).
+    // The same unit as in ARTS, we can extract directly!
+    extract(melow,line,10);
+//    cout << "mf, melow = " << mf << ", " << setprecision(20) << melow << endl;
+  }
+
+  
+  // Temperature coefficient of broadening parameters.
+  {
+    // This is dimensionless, we can also extract directly.
+    extract(mnair,line,4);
+
+    // Extract the self broadening parameter:
+    extract(mnself,line,4);
+//    cout << "mnair = " << mnair << endl;
+  }
+
+  
+  // Reference temperature for broadening parameter in K:
+  {
+    // correct units, extract directly
+    extract(mtgam,line,7);
+  }
+
+
+  // Pressure shift.
+  {
+    // MYTRAN value in MHz/Torr
+    Numeric d;
+    // External constant from constants.cc: Converts torr to
+    // Pa. Multiply value in torr by this number to get value in Pa. 
+    extern const Numeric TORR2PA;
+
+    // Extract MYTRAN value:
+    extract(d,line,8);
+
+    // ARTS value in Hz/Pa
+    mpsf = d * 1E6 / TORR2PA;
+  }
+
+
+  // These were all the parameters that we can extract from
+  // MYTRAN. However, we still have to set the reference temperatures
+  // to the appropriate value:
+
+  // Reference temperature for Intensity in K.
+  // (This is fix for MYTRAN2)
+  mti0 = 296.0;
+
+  // calculate the partition fct at the reference temperature. This is
+  // done for all lines read from the catalogue, even the ones never
+  // used in calculation. FIXME: are there better ways to implement this?
+  species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 );
+
+
+
+  // That's it!
+  return false;
+}
+
+
+bool LineRecord::ReadFromJplStream(istream& is)
+{
+  // Global species lookup data:
+  extern ARRAY<SpeciesRecord> species_data;
+
+  // We need a species index sorted by JPL tag. Keep this in a
+  // static variable, so that we have to do this only once.  The ARTS
+  // species index is JplMap[<JPL tag>]. We need int in this map,
+  // because the tag array within the species data is an int array.
+  static map<int, JplSpecIsoMap> JplMap;
+
+  // Remeber if this stuff has already been initialized:
+  static bool hinit = false;
+
+  if ( !hinit )
+    {
+
+      out3 << "  JPL index table:\n";
+
+      for ( size_t i=0; i<species_data.size(); ++i )
+	{
+	  const SpeciesRecord& sr = species_data[i];
+
+
+	  for ( size_t j=0; j<sr.Isotope().size(); ++j)
+	    {
+	      
+	      for (size_t k=0; k<sr.Isotope()[j].JplTags().size(); ++k)
+		{
+
+		  JplSpecIsoMap indicies(i,j);
+
+		  JplMap[sr.Isotope()[j].JplTags()[k]] = indicies;
+
+		  // Print the generated data structures (for debugging):
+		  // The explicit conversion of Name to a c-string is
+		  // necessary, because setw does not work correctly for
+		  // stl strings.
+		  const size_t& i1 = JplMap[sr.Isotope()[j].JplTags()[k]].Speciesindex();
+		  const size_t& i2 = JplMap[sr.Isotope()[j].JplTags()[k]].Isotopeindex();
+					 
+		  out3 << "  JPL TAG = " << sr.Isotope()[j].JplTags()[k] << "   Species = "
+		       << setw(10) << setiosflags(ios::left)
+		       << species_data[i1].Name().c_str()
+		       << "iso = " 
+		       << species_data[i1].Isotope()[i2].Name().c_str()
+		       << "\n";
+		}
+
+	    }
+	}
+      hinit = true;
+    }
+
+
+  // This contains the rest of the line to parse. At the beginning the
+  // entire line. Line gets shorter and shorter as we continue to
+  // extract stuff from the beginning.
+  string line;
+
+
+
+
+
+
+
+  // Look for more comments?
+  bool comment = true;
+
+  while (comment)
+    {
+      // Return true if eof is reached:
+      if (is.eof()) {
+	//	cout << "Eof" << endl;
+	return true;
+      }
+
+      // Throw runtime_error if stream is bad:
+      if (!is) throw runtime_error ("Stream bad.");
+
+      // Read line from file into linebuffer:
+      getline(is,line);
+
+      // Because of the fixed FORTRAN format, we need to break up the line
+      // explicitly in apropriate pieces. Not elegant, but works!
+
+      // Extract center frequency:
+      // Initialization of mo is important, because v stays the same
+      // if line is empty.
+      // JPL position in MHz:
+      Numeric v = 0.0;
+      
+      // Extract JPL position:
+      extract(v,line,13);
+	
+      // check for empty line
+      if (v != 0.0)
+	{
+	  // ARTS position in Hz:
+	  mf = v * 1E6;
+	  
+	  comment = false;
+	}
+    }
+
+
+  // skip transition frequency error
+  {
+    Numeric r;
+    extract(r,line,8);
+  } 
+  
+  // Intensity.
+  {
+    // JPL has log (10) of intensity in nm2 MHz at 300 Kelvin.
+    //
+    // We need to do the following:
+    // 1. take 10^intensity 
+    // 2. convert to cm-1/(molecule * cm-2): devide by c * 1e10
+    // 3. Convert frequency from wavenumber to Hz (factor 1e2 * c)
+    // 4. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4)
+    // 5. Multiply with the isotopic ratio (done later after the tag 
+    //    is extracted)
+
+    Numeric s;
+
+    // Extract JPL intensity:
+    extract(s,line,8);
+
+    // remove log
+    s = pow(10,s);
+
+    // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
+    mi0 = s / 1E12;
+  }
+
+  // Degrees of freedom
+  {
+    size_t dr;
+
+    // Extract degrees of freedom
+    extract(dr,line,2);
+  }
+
+  // Lower state energy.
+  {
+    // JPL parameter is in wavenumbers (cm^-1).
+    // The same unit as in ARTS, we can extract directly!
+    extract(melow,line,10);
+  }
+
+  // Upper state degeneracy
+  {
+    size_t gup;
+
+    // Extract upper state degeneracy
+    extract(gup,line,3);
+  }
+
+  // Tag number
+  int tag;
+  {
+    // Extract Tag number
+    extract(tag,line,7);
+
+    // make sure tag is not negative (damned jpl cat):
+    tag = abs(tag);
+  }
+
+  // ok, now for the cool index map:
+
+  // is this tag valid?
+  const map<int, JplSpecIsoMap>::const_iterator i = JplMap.find(tag);
+  if ( i == JplMap.end() )
+    {
+      ostringstream os;
+      os << "JPL Tag: " << tag << " is unknown.";
+      throw runtime_error(os.str());
+    }
+
+  JplSpecIsoMap id = i->second;
+
+
+  // Set mspecies:
+  mspecies = id.Speciesindex();
+
+  // Set misotope:
+  misotope = id.Isotopeindex();
+
+  // multiply intensity with the isotopic ratio
+  mi0 *= species_data[mspecies].Isotope()[misotope].Abundance();
+
+  // Air broadening parameters: unknown to jpl, use old iup forward
+  // model default values, which is mostly set to 0.0025 GHz/hPa, even
+  // though for some lines the pressure broadening is given explicitly
+  // in the program code. The explicitly given values are ignored and
+  // only the default value is set. Self broadening was in general not
+  // considered in the old forward model.
+  {
+    // ARTS parameter in Hz/Pa:
+    magam = 2.5E4;
+
+    // ARTS parameter in Hz/Pa:
+    msgam = 0.0;
+  }
+
+
+  // Temperature coefficient of broadening parameters. Was set to 0.75
+  // in old forward model, even though for some lines the parameter is
+  // given explicitly in the program code. The explicitly given values
+  // are ignored and only the default value is set. Self broadening
+  // not considered.
+  {
+    mnair = 0.75;
+    mnself = 0.0;
+  }
+
+  
+  // Reference temperature for broadening parameter in K, was
+  // generally set to 300 K in old forward model, with the exceptions
+  // as already mentioned above:
+  {
+    mtgam = 300.0;
+  }
+
+
+  // Pressure shift: not given in JPL, set to 0
+  {
+    mpsf = 0.0;
+  }
+
+
+  // These were all the parameters that we can extract from
+  // JPL. However, we still have to set the reference temperatures
+  // to the appropriate value:
+
+  // Reference temperature for Intensity in K.
+  // (This is fix for JPL)
+  mti0 = 300.0;
+
+  // calculate the partition fct at the reference temperature. This is
+  // done for all lines read from the catalogue, even the ones never
+  // used in calculation. FIXME: are there better ways to implement this?
+  species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 );
+
+
+
+  // That's it!
+  return false;
+}
+
+
+
+
 
 OneTag::OneTag(string def) 
 {

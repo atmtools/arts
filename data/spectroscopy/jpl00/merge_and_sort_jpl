@@ -1,0 +1,177 @@
+#!/bin/sh
+# script merges all the selected cat files found in current directory 
+# and sorts them according to frequency.
+#
+# All available jpl tag numbers were extracted from the arts output
+# (arts -r33 with a jpl cat file does the trick) and copies into this 
+# file (rather complicated, but I couldn't think of a better way. 
+#
+# The list tag gives all possible tag numbers, to mark the end of 
+# the list, the last entry is 0 !!!!
+# Compile a new catalogue by adding or removing jpl tags to/from the 
+# tag list.
+#
+# AvE and OL 01.11.00
+
+# handle ctrl c events:
+trap 'echo "Cleaning up."; rm -f $$.tmp; exit' 2
+
+
+# generate this file
+JPLCAT='jpl_catalogue.cat'
+
+
+# these are all the jpl tag numbers currently allowed in arts, you can get 
+# a listing by running arts with a jpl cat file and the option -r 33
+# to identify the end of the list, the last entry is 0 !!!!!!!!!!!!
+   tag[0]=18003 
+   tag[1]=18005 
+   tag[2]=20003 
+   tag[3]=19003 
+   tag[4]=19002 
+   tag[5]=21001 
+   tag[6]=20001 
+   tag[7]=46013 
+   tag[8]=45012 
+   tag[9]=48004 
+  tag[10]=48005 
+  tag[11]=48006 
+  tag[12]=48007 
+  tag[13]=48008 
+  tag[14]=50004 
+  tag[15]=50006 
+  tag[16]=50003 
+  tag[17]=50005 
+  tag[18]=49002 
+  tag[19]=49001 
+  tag[20]=44004 
+  tag[21]=44009 
+  tag[22]=44012 
+  tag[23]=45007 
+  tag[24]=45008 
+  tag[25]=46007 
+  tag[26]=28001 
+  tag[27]=29001 
+  tag[28]=30001 
+  tag[29]=29006 
+  tag[30]=17003 
+  tag[31]=32001 
+  tag[32]=32002 
+  tag[33]=32005 
+  tag[34]=34001 
+  tag[35]=33002 
+  tag[36]=30008 
+  tag[37]=64002 
+  tag[38]=64005 
+  tag[39]=66002 
+  tag[40]=65001 
+  tag[41]=66004
+  tag[42]=46006 
+  tag[43]=17002 
+  tag[44]=17004 
+  tag[45]=18002 
+  tag[46]=18004 
+  tag[47]=63001 
+  tag[48]=63002 
+  tag[49]=63003 
+  tag[50]=63004 
+  tag[51]=63005 
+  tag[52]=63006 
+  tag[53]=17001 
+  tag[54]=19001 
+  tag[55]=18001 
+  tag[56]=20002 
+  tag[57]=21002 
+  tag[58]=36001 
+  tag[59]=38001 
+  tag[60]=37001 
+  tag[61]=39004 
+  tag[62]=80001 
+  tag[63]=82001 
+  tag[64]=51002 
+  tag[65]=51003 
+  tag[66]=53002 
+  tag[67]=53006 
+  tag[68]=60001 
+  tag[69]=62001 
+  tag[70]=61001 
+  tag[71]=62002 
+  tag[72]=30004 
+  tag[73]=31002 
+  tag[74]=32004 
+  tag[75]=31003 
+  tag[76]=32006 
+  tag[77]=52006 
+  tag[78]=54005 
+  tag[79]=27001 
+  tag[80]=27003 
+  tag[81]=28002 
+  tag[82]=28003 
+  tag[83]=28004 
+  tag[84]=50007 
+  tag[85]=52009 
+  tag[86]=34004 
+  tag[87]=34003 
+  tag[88]=66001 
+  tag[89]=34002 
+  tag[90]=35001 
+  tag[91]=46005 
+  tag[92]=47002 
+  tag[93]=47003 
+  tag[94]=47004 
+  tag[95]=33001 
+  tag[96]=16001 
+  tag[97]=97002 
+  tag[98]=99001 
+  tag[99]=30011 
+ tag[100]=67001 
+ tag[101]=69001 
+ tag[102]=95001 
+ tag[103]=97001 
+ tag[104]=98001 
+ tag[105]=102001
+ tag[106]=104001
+ tag[107]=0
+
+
+echo 
+echo 'Generating merged and sorted catalogue file ': $JPLCAT
+
+# make sure file is not present
+if [ -s $JPLCAT ] 
+  then
+    echo 'Error: File '$JPLCAT' exists!'
+    echo 'Please rename or remove before running script.'
+    echo 
+    exit 1
+fi
+ 
+# merge the cat files defined in tag list:
+typeset -i i=0
+while [ ${tag[$i]} -ne 0 ] 
+  do
+    # add an additional 0
+    if [ ${tag[$i]} -lt 99999 ]
+      then
+        file='c0'${tag[$i]}'.cat'
+    else 
+        file='c'${tag[$i]}'.cat'
+    fi
+    # now merge the files
+    cat ${file} >> $$.tmp
+    i=i+1
+done
+
+
+# now sort the files according to frequency
+
+# first add a 0 to frequency, if only . is present:
+# .001 -> 0.001
+# otherwise the sort does not work
+sed "s/\(^ *\)\ \./\10\./" $$.tmp | sort +0 -13 -g > $JPLCAT
+
+# remove tmp file
+rm -f $$.tmp
+
+echo 'Done'
+echo 

@@ -1,0 +1,128 @@
+# An example ARTS controlfile that calculates absorption
+# coefficients. 
+
+
+# --------------------< A specific method >--------------------
+#                      -------------------
+# Read the spectroscopic line data from the MYTRAN catalogue and
+# create the workspace variable `lines':
+# NOTE: MYTRAN IS LIMITED TO DEDICATED BANDS!!!!
+#linesReadFromMytran2 {
+#   filename = "../../../spectroscopy/mytran/mytran_catalogue.my2"
+#   fmin     = 200e9
+#   fmax     = 400e9
+#}
+
+# Read the spectroscopic line data from the JPL catalogue and
+# create the workspace variable `lines':
+# Note: Catalogue contains only species known to arts!
+linesReadFromJpl {
+   filename = "../../../data/spectroscopy/jpl00/jpl_catalogue.cat"
+   fmin     = 200e9
+   fmax     = 400e9
+}
+
+# Read the spectroscopic line data from the HITRAN catalogue and
+# create the workspace variable `lines':
+#linesReadFromHitran {
+#   filename = "../../../data/spectroscopy/hitran96/hitran96_lowfreq.par"
+#   fmin     = 200e9
+#   fmax     = 400e9
+#}
+
+# Optionally write the line list to a file:
+linesWriteToFile{""} 
+
+ 
+# This defines the list of tag groups (`tag_groups'). Absorption
+# coefficients will be calculated separately for each tag group. This
+# is necessary in order to calculate weighting functions later on.
+# The lines are assigned to the tag groups in the order as the groups
+# are specified here. That means the last group H2O gets assigned all
+# the H2O lines that do not fit in any other group.
+tag_groupsDefine{
+      ["H2O",
+       "HCN",
+       "CO",
+       "H2CO",
+       "NO",
+       "O2",
+       "H2O2",
+       "HCl",
+       "N2O",
+       "NO2",
+       "O3",
+       "O3",
+       "O3",
+       "CH3Cl",
+       "ClO",
+       "HOCl",
+       "OCS",
+       "HNO3",
+       "SO2",
+       "COF2"]
+}
+
+# This separates the lines into the different tag groups and creates
+# the workspace variable `lines_per_tg':
+lines_per_tgCreateFromLines{}
+
+#lines_per_tgWriteToFile{""} 
+
+
+# --------------------< A generic method >--------------------
+#                      ------------------
+# Read the pressure, temperature, and altitude profiles and create 
+# the workspace variable `raw_ptz_1d':
+MatrixReadFromFile (raw_ptz_1d) 
+        {"../../../data/atmosphere/fascod/midlatitude-summer.tz.am"}
+
+# The same for the input VMR profiles:
+raw_vmrs_1dReadFromScenario
+        {"../../../data/atmosphere/fascod/midlatitude-summer"}
+
+# Optionally write this to a file:
+#ArrayOfMatrixWriteToFile (raw_vmrs_1d) {""}
+
+
+# Create the pressure grid `p_abs':
+# VectorNLogSpace(p_abs){
+#         start = 100000
+#         stop  = 10
+#         n     = 140
+#}
+
+# read the pressure grid used in the iup forward program
+VectorReadFromFile(p_abs){"master_b.iup_old.p_abs"}
+
+
+VectorWriteToFile(p_abs){""}
+
+
+# Now interpolate all the raw atmospheric input onto the pressure 
+# grid and create the atmospheric variables `t_abs', `z_abs', `vmrs'
+AtmFromRaw1D{}
+
+# Optionally write these to files:
+#VectorWriteToFile (t_abs) {""}
+VectorWriteToFile (z_abs) {""}
+#ArrayOfVectorWriteToFile (vmrs)  {""}
+
+
+# Create the frequency grid `f_mono':
+VectorNLinSpace(f_mono){
+        start = 295e9
+        stop  = 305e9
+        n     = 1000    
+}
+
+# Write frequency grid to file:
+VectorWriteToFile (f_mono) {""}
+
+# Calculate absorption coefficients, both total (`abs') and 
+# separately for each tag group (`abs_per_tg'):
+absCalc{}
+
+# These we definitely want to write to files!
+MatrixWriteToFile (abs) {""}
+ArrayOfMatrixWriteToFile (abs_per_tg) {""}

@@ -63,6 +63,77 @@ void linesReadFromHitran(// WS Output:
 }
 
 
+void linesReadFromMytran2(// WS Output:
+			  ARRAYofLineRecord& lines,
+                          // Control Parameters:
+			  const string& filename,
+			  const Numeric& fmin,
+			  const Numeric& fmax)
+{
+  ifstream is;
+
+  out2 << "  Reading file: " << filename << '\n';
+  open_input_file(is, filename);
+
+  bool go_on = true;
+  while ( go_on )
+    {
+      LineRecord lr;
+      if ( lr.ReadFromMytran2Stream(is) )
+	{
+	  // If we are here the read function has reached eof and has
+	  // returned no data.
+	  go_on = false;
+	}
+      else
+	{
+	  // lines are not necessarily frequency sorted 
+	  if ( fmin <= lr.F() )
+	    if ( lr.F() <= fmax )
+	      lines.push_back(lr);
+	}
+    }
+  out2 << "  Read " << lines.dim() << " lines.\n";
+}
+
+void linesReadFromJpl(// WS Output:
+		      ARRAYofLineRecord& lines,
+		      // Control Parameters:
+		      const string& filename,
+		      const Numeric& fmin,
+		      const Numeric& fmax)
+{
+  ifstream is;
+
+  out2 << "  Reading file: " << filename << '\n';
+  open_input_file(is, filename);
+
+  bool go_on = true;
+  while ( go_on )
+    {
+      LineRecord lr;
+      if ( lr.ReadFromJplStream(is) )
+	{
+	  // If we are here the read function has reached eof and has
+	  // returned no data.
+	  go_on = false;
+	}
+      else
+	{
+	  // we expect lines to be sorted
+	  if ( fmin <= lr.F() )
+	    {
+	      if ( lr.F() <= fmax )
+		lines.push_back(lr);
+	      else
+		go_on = false;
+	    }
+	}
+    }
+  out2 << "  Read " << lines.dim() << " lines.\n";
+}
+
+
 void lines_per_tgCreateFromLines(// WS Output:
                                   ARRAYofARRAYofLineRecord& lines_per_tg,
                                   // WS Input:

@@ -751,6 +751,52 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("linesReadFromMytran2"),
+  	DESCRIPTION(
+          "Read all the lines from a MYTRAN2 catalogue file that\n"
+	  "correspond to legal species / isotope combinations.\n"
+	  "\n"
+	  "The output line array is not overwritten, but the new data\n"
+	  "is appended!\n" 
+	  "\n"
+	  "This is mainly for testing, the method probably will become\n"
+	  "more complicated later on.\n"
+	  "\n"
+	  "filename = Name (and path) of the catalogue file.\n"
+	  "fmin     = Minimum frequency for lines to read in Hz.\n"
+	  "fmax     = Maximum frequency for lines to read in Hz."),
+	OUTPUT(   lines_   ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "filename",  "fmin",    "fmax"),
+	TYPES(    string_t,    Numeric_t, Numeric_t)));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("linesReadFromJpl"),
+  	DESCRIPTION(
+          "Read all the lines from a JPL catalogue file that\n"
+	  "correspond to legal species / isotope combinations.\n"
+	  "\n"
+	  "The output line array is not overwritten, but the new data\n"
+	  "is appended!\n" 
+	  "\n"
+	  "This is mainly for testing, the method probably will become\n"
+	  "more complicated later on.\n"
+	  "\n"
+	  "filename = Name (and path) of the catalogue file.\n"
+	  "fmin     = Minimum frequency for lines to read in Hz.\n"
+	  "fmax     = Maximum frequency for lines to read in Hz."),
+	OUTPUT(   lines_   ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "filename",  "fmin",    "fmax"),
+	TYPES(    string_t,    Numeric_t, Numeric_t)));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("lines_per_tgCreateFromLines"),
   	DESCRIPTION(
           "Split lines up into the different tag groups.\n"

@@ -141,3 +141,12 @@ extern const Numeric PI             = 3.14159265358979;
     \date   2000-06-17
 */
 extern const Numeric ATM2PA         = 1.01325e5;
+
+/** Global constant, converts torr to Pa.
+
+    Multiply your value in torr by this constant to get the value in Pa.
+
+    \author Axel von Engeln
+    \date   2000-10-31
+*/
+extern const Numeric TORR2PA        = 133.3227;

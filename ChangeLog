@@ -1,3 +1,33 @@
+2000-11-07  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-72
+
+	* JPL catalogs can now be read, they have to be frequency sorted.
+	A merged catalog is now included in the arts distribution at:
+	data/spectroscopy/jpl00/jpl00.cat, it contains only species know
+	to arts. The script merge_and_sort_jpl does the merging and
+	sorting, for more info refer to the script.
+
+	* MYTRAN catalogs can now be read, they do not have to be
+	frequency sorted. A slightly modified version of the mytran
+	catalog of the ESTEC Spectroscopy Study is now included in the
+	distribution, it can be found at:
+	data/spectroscopy/mytran/mytran98.my2. This catalog is slightly
+	modified, since the original included a HO2 species not know to
+	arts.
+
+	* comparisons scenarios are now sorted according to the chosen
+	scenario:
+	aux/iup_forward_comp/H2O_183GHz : contains the water vapor
+	                                  comparison at 183GHz
+	aux/iup_forward_comp/master_b   : contains some comparisons for
+                              	          the master B band
+	aux/iup_forward_comp/fascod     : the fascod files in the old iup
+	                                  forward format.
+
+	* abundance: Information on the source and calculation of the
+	abundance used in arts is located at: aux/abundances/
+
 2000-11-06  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-71
