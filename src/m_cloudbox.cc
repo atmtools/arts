@@ -1577,12 +1577,12 @@ void CloudboxGetIncoming(// WS Output:
       Matrix sensor_pos(1,3);
 
       // Get scat_i_p at lower boundary
-
+      cout<<"Lower p.\n";
       for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
         {
+          IndexPrint( lat_index, "ilat" );
           for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
             {
-       
               sensor_pos(0,0) = r_geoid(lat_index + cloudbox_limits[2],
                                         lon_index + cloudbox_limits[4]) 
                 + z_field(cloudbox_limits[0],
@@ -1618,12 +1618,6 @@ void CloudboxGetIncoming(// WS Output:
                                antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy );
 
-                      IndexPrint( i_rte.nrows(), "nrows" );
-                      IndexPrint( i_rte.ncols(), "ncols" );
-                      IndexPrint( lat_index, "lat_index" );
-                      IndexPrint( lon_index, "lon_index" );
-                      
-
                       scat_i_p( Range(joker), 0, lat_index, lon_index, 
                                 scat_za_index, scat_aa_index,
                                 Range(joker)) 
@@ -1633,10 +1627,9 @@ void CloudboxGetIncoming(// WS Output:
                 }
             }
         }
-
       
       // Get scat_i_p at upper boundary
-      
+      cout<<"Upper p.\n";      
        for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
         {
           for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
@@ -1689,7 +1682,7 @@ void CloudboxGetIncoming(// WS Output:
        
        
       // Get scat_i_lat (1st boundary):
-      
+      cout<<"Lower lat.\n";            
       for (Index p_index = 0; p_index < Np_cloud; p_index++ )
         {
           for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
@@ -1741,7 +1734,7 @@ void CloudboxGetIncoming(// WS Output:
 
       
       // Get scat_i_lat (2nd boundary)
-      
+      cout<<"Upper lat.\n";            
       for (Index p_index = 0; p_index < Np_cloud; p_index++ )
         {
           for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
@@ -1793,7 +1786,7 @@ void CloudboxGetIncoming(// WS Output:
 
 
        // Get scat_i_lon (1st boundary):
-       
+      cout<<"Lower lon.\n";                   
       for (Index p_index = 0; p_index < Np_cloud; p_index++ )
         {
           for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
@@ -1845,7 +1838,7 @@ void CloudboxGetIncoming(// WS Output:
 
       
       // Get scat_i_lon (2nd boundary)
-      
+      cout<<"Upper lon.\n";                         
       for (Index p_index = 0; p_index < Np_cloud; p_index++ )
         {
           for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )

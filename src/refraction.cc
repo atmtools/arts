@@ -58,10 +58,10 @@
    longitude dimensions are removed from the atmospheric fields. For
    example, the temperature is given as a vector (the vertical profile).
 
+   \param   refr_index          Output: As the WSV with the same name.
    \param   a_pressure          Output: As the WSV with the same name.
    \param   a_temperature       Output: As the WSV with the same name.
    \param   a_vmr_list          Output: As the WSV with the same name.
-   \param   refr_index          Output: As the WSV with the same name.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   z_field             The geometric altitude of each pressure surface
@@ -130,10 +130,10 @@ void get_refr_index_1d(
    dimension is removed from the atmospheric fields. For example,
    the temperature is given as a matrix.
 
+   \param   refr_index          Output: As the WSV with the same name.
    \param   a_pressure          Output: As the WSV with the same name.
    \param   a_temperature       Output: As the WSV with the same name.
    \param   a_vmr_list          Output: As the WSV with the same name.
-   \param   refr_index          Output: As the WSV with the same name.
    \param   refr_index_agenda   As the WSV with the same name.
    \param   p_grid              As the WSV with the same name.
    \param   lat_grid            As the WSV with the same name.
@@ -146,7 +146,7 @@ void get_refr_index_1d(
    \param   lat                 The latitude of the position of interest.
 
    \author Patrick Eriksson
-   \date   2003-01-17
+   \date   2003-01-14
 */
 void get_refr_index_2d(
               Numeric&    refr_index,
@@ -205,6 +205,127 @@ void get_refr_index_2d(
 
 
 
+/*! 
+   Extracts the refractive index for 3D cases.
+
+   The function interpolates the atmospheric pressure and fields, and
+   calls *refr_index_agenda* to determine the refractive index for the
+   given point.
+
+   \param   refr_index          Output: As the WSV with the same name.
+   \param   a_pressure          Output: As the WSV with the same name.
+   \param   a_temperature       Output: As the WSV with the same name.
+   \param   a_vmr_list          Output: As the WSV with the same name.
+   \param   refr_index_agenda   As the WSV with the same name.
+   \param   p_grid              As the WSV with the same name.
+   \param   lat_grid            As the WSV with the same name.
+   \param   lon_grid            As the WSV with the same name.
+   \param   z_field             As the WSV with the same name.
+   \param   t_field             As the WSV with the same name.
+   \param   vmr_field           As the WSV with the same name.
+   \param   z                   The geometric altitude of the position of
+                                interest.
+   \param   lat                 The latitude of the position of interest.
+   \param   lon                 The longitude of the position of interest.
+
+   \author Patrick Eriksson
+   \date   2003-01-17
+*/
+void get_refr_index_3d(
+              Numeric&    refr_index,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,
+        ConstTensor3View  z_field,
+        ConstTensor3View  t_field,
+        ConstTensor4View  vmr_field,
+        const Numeric&    z,
+        const Numeric&    lat,
+        const Numeric&    lon )
+{ 
+  // Determine the geometric altitudes at *lat* and *lon*
+  const Index      np = p_grid.nelem();
+  Vector           z_grid(np);
+  ArrayOfGridPos   gp_lat(1), gp_lon(1);
+  //
+  gridpos( gp_lat, lat_grid, lat );
+  gridpos( gp_lat, lat_grid, lon );
+  z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, 
+                                                        gp_lat[0], gp_lon[0] );
+  
+  // Altitude (equal to pressure) grid position
+  ArrayOfGridPos   gp_p(1);
+  gridpos( gp_p, z_grid, Vector(1,z) );
+
+  // Altitude interpolation weights
+  Matrix   itw(1,2);
+  interpweights( itw, gp_p );
+
+  // Pressure
+  Vector   dummy(1);
+  itw2p( dummy, p_grid, gp_p, itw );
+  a_pressure = dummy[0];
+
+  // Temperature
+  itw.resize(1,8);
+  interpweights( itw, gp_p, gp_lat, gp_lon );
+  interp( dummy, itw, t_field, gp_p, gp_lat, gp_lon );
+  a_temperature = dummy[0];
+
+  // VMR
+  const Index   ns = vmr_field.npages();
+  //
+  a_vmr_list.resize(ns);
+  //
+  for( Index is=0; is<ns; is++ )
+    {
+      interp( dummy, itw, vmr_field(is,joker,joker,joker), gp_p, gp_lat, 
+                                                                      gp_lon );
+      a_vmr_list[is] = dummy[0];
+    }
+
+  refr_index_agenda.execute();
+}
+
+
+
+//! refr_gradients_2d
+/*! 
+   Determines the refractive index, and its gradients, for the given position.
+
+   The gradients are calculated in pure numerical way. That is, the
+   refractive index is calculated for slightly shifted radius or
+   latitude and the difference to the refractive index at the given
+   point determines the gradient.
+
+   The atmosphere is given by its 2D view. That is, the longitude
+   dimension is removed from the atmospheric fields. For example,
+   the temperature is given as a matrix.
+
+   \param   refr_index          Output: As the WSV with the same name.
+   \param   dndr                Output: Radial gradient of refractive index.
+   \param   dndlat              Output: Latitude gradient of refractive index.
+   \param   a_pressure          Output: As the WSV with the same name.
+   \param   a_temperature       Output: As the WSV with the same name.
+   \param   a_vmr_list          Output: As the WSV with the same name.
+   \param   refr_index_agenda   As the WSV with the same name.
+   \param   p_grid              As the WSV with the same name.
+   \param   lat_grid            As the WSV with the same name.
+   \param   z_field             The geometric altitude of each pressure surface
+                                at each latitude.
+   \param   t_field             The temperature 2D field.
+   \param   vmr_field           The VMR 2D field for each species.
+   \param   z                   The geometric altitude of the position of
+                                interest.
+   \param   lat                 The latitude of the position of interest.
+
+   \author Patrick Eriksson
+   \date   2003-01-14
+*/
 void refr_gradients_2d(
               Numeric&    refr_index,
               Numeric&    dndr,
@@ -243,6 +364,90 @@ void refr_gradients_2d(
 
    refr_index = n0;
 }
+
+
+
+//! refr_gradients_3d
+/*! 
+   Determines the refractive index, and its gradients, for the given position.
+
+   The gradients are calculated in pure numerical way. That is, the
+   refractive index is calculated for slightly shifted radius,
+   latitude or longitude and the difference to the refractive index at
+   the given point determines the gradient.
+
+   \param   refr_index          Output: As the WSV with the same name.
+   \param   dndr                Output: Radial gradient of refractive index.
+   \param   dndlat              Output: Latitude gradient of refractive index.
+   \param   dndlat              Output: Longitude gradient of refractive index.
+   \param   a_pressure          Output: As the WSV with the same name.
+   \param   a_temperature       Output: As the WSV with the same name.
+   \param   a_vmr_list          Output: As the WSV with the same name.
+   \param   refr_index_agenda   As the WSV with the same name.
+   \param   p_grid              As the WSV with the same name.
+   \param   lat_grid            As the WSV with the same name.
+   \param   lon_grid            As the WSV with the same name.
+   \param   z_field             As the WSV with the same name.
+   \param   t_field             As the WSV with the same name.
+   \param   vmr_field           As the WSV with the same name.
+   \param   z                   The geometric altitude of the position of
+                                interest.
+   \param   lat                 The latitude of the position of interest.
+   \param   lon                 The longitude of the position of interest.
+
+   \author Patrick Eriksson
+   \date   2003-01-17
+*/
+void refr_gradients_3d(
+              Numeric&    refr_index,
+              Numeric&    dndr,
+              Numeric&    dndlat,
+              Numeric&    dndlon,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,
+        ConstTensor3View  z_field,
+        ConstTensor3View  t_field,
+        ConstTensor4View  vmr_field,
+        const Numeric&    z,
+        const Numeric&    lat,
+        const Numeric&    lon )
+{ 
+   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+                      refr_index_agenda, p_grid, lat_grid, lon_grid, z_field, 
+                      t_field, vmr_field, z, lat, lon );
+
+   const Numeric   n0 = refr_index;
+
+   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+                      refr_index_agenda, p_grid, lat_grid, lon_grid, z_field, 
+                      t_field, vmr_field, z+1, lat, lon );
+
+   dndr = refr_index - n0;
+
+   const Numeric   dlat = 1e-4;
+
+   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+                      refr_index_agenda, p_grid, lat_grid, lon_grid, z_field, 
+                      t_field, vmr_field, z, lat+dlat, lon );
+
+   dndlat = ( refr_index - n0 ) / dlat; 
+
+   const Numeric   dlon = 1e-4;
+
+   get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+                      refr_index_agenda, p_grid, lat_grid, lon_grid, z_field, 
+                      t_field, vmr_field, z, lat, lon+dlon );
+
+   dndlat = ( refr_index - n0 ) / dlon; 
+
+   refr_index = n0;
+}
+
 
 
 //! refr_index_thayer_1974

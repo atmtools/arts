@@ -69,6 +69,22 @@ void get_refr_index_2d(
         const Numeric&    z,
         const Numeric&    lat );
 
+void get_refr_index_3d(
+              Numeric&    refr_index,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,
+        ConstTensor3View  z_field,
+        ConstTensor3View  t_field,
+        ConstTensor4View  vmr_field,
+        const Numeric&    z,
+        const Numeric&    lat,
+        const Numeric&    lon );
+
 void refr_gradients_2d(
               Numeric&    refr_index,
               Numeric&    dndr,
@@ -84,6 +100,25 @@ void refr_gradients_2d(
         ConstTensor3View  vmr_field,
         const Numeric&    z,
         const Numeric&    lat );
+
+void refr_gradients_3d(
+              Numeric&    refr_index,
+              Numeric&    dndr,
+              Numeric&    dndlat,
+              Numeric&    dndlon,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+        const Agenda&     refr_index_agenda,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,
+        ConstTensor3View  z_field,
+        ConstTensor3View  t_field,
+        ConstTensor4View  vmr_field,
+        const Numeric&    z,
+        const Numeric&    lat,
+        const Numeric&    lon );
 
 void refr_index_thayer_1974(
               Numeric&   refr_index,
