@@ -196,9 +196,9 @@ void abs_scalar_gas_fieldCalc(// WS Output:
   
   // Check grids:
   chk_atm_grids( atmosphere_dim,
-                      p_grid,
-                      lat_grid,
-                      lon_grid );
+                 p_grid,
+                 lat_grid,
+                 lon_grid );
   
   // Check if t_field is ok:
   chk_atm_field( "t_field",

@@ -1,3 +1,14 @@
+2003-02-28  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-465
+
+	* src/gas_abs_lookup.cc (Extract): Calculate number density with
+	the physics_funcs function number_density.
+	(Extract): Fixed bug reported by Patrick: VMR scaling for the case
+	with temperature variations was missing.
+	(Extract): Fixed bug related to pressure interpolation for the
+	variable T case.
+
 2003-02-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-464

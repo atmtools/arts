@@ -30,7 +30,7 @@
 #include "logic.h"
 #include "check_input.h"
 #include "messages.h"
-
+#include "physics_funcs.h"
 
 //! Find positions of new grid points in old grid.
 /*! 
@@ -462,9 +462,6 @@ void GasAbsLookup::Extract( Matrix&         sga,
                             const Numeric&  T,
                             ConstVectorView vmrs ) const
 {
-  // Boltzmann constant
-  extern const Numeric BOLTZMAN_CONST;
-
   // Obtain some properties of the lookup table:
   
   // Number of gas species in the table:
@@ -537,7 +534,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
   // Calculate the number density for the given pressure and
   // temperature: 
   // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
-  const Numeric n = p / BOLTZMAN_CONST / T;
+  const Numeric n = number_density( p, T );
 
   // For sure, we need to store the pressure grid position. 
   GridPos pgp;
@@ -649,13 +646,13 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
           // The two lookup table pressure levels in question are
           // pgp.idx and pgp.idx+1
-          for ( Index pi=pgp.idx; pi<2; ++pi )
+          for ( Index pi=0; pi<2; ++pi )
             {
               t_grid = t_pert;
               // Now t_grid contains just the perturbations. We
               // need to add the reference value for the given
               // pressure:
-              t_grid += t_ref[pi];
+              t_grid += t_ref[pi+pgp.idx];
 
               // Temperature grid position:
               GridPos tgp;       // only a scalar
@@ -673,10 +670,10 @@ void GasAbsLookup::Extract( Matrix&         sga,
                       // Get the right view on xsec. (Only a vector of
                       // temperature for this particular pressure
                       // level, species and frequency):
-                      ConstVectorView this_xsec = xsec( joker,  // T
-                                                        i,      // species
-                                                        s,      // frequency
-                                                        pi      // p
+                      ConstVectorView this_xsec = xsec( joker,      // T
+                                                        i,          // species
+                                                        s,          // frequency
+                                                        pi+pgp.idx  // p
                                                         );
 
                       // Get the right view on our result variable,
@@ -722,7 +719,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
 
                   // Watch out, this is not yet the final result, we
                   // need to multiply with the number density n:
-                  this_sga *= n;
+                  this_sga *= ( n * vmrs[i] );
                 }
             }
         }
