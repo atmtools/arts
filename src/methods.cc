@@ -623,17 +623,21 @@ void define_md_data_raw()
 	(
 	 "Convergence test (maximum absolute difference).\n"
 	 "\n"
-	 "The function calculates the absolute differences for two successive \n"
+	 "The function calculates the absolute differences for two successive\n"
          "iteration fields. It picks out the maximum values for each Stokes \n"
          "component separately. The convergence test is fullfilled under the\n"
          "following conditions: \n"
-         "|I(m+1) - I(m)| <                 Intensity.\n"
-         "|Q(m+1) - Q(m)| <                 The other Stokes components.\n" 
-         "|U(m+1) - U(m)| <  \n"
-         "|V(m+1) - V(m)| <  \n" 
-         "These conditions have to be valid for all positions in the cloudbox \n"
+         "|I(m+1) - I(m)| < epsilon_1     Intensity.\n"
+         "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
+         "|U(m+1) - U(m)| < epsilon_3    \n"
+         "|V(m+1) - V(m)| < epsilon_4    \n" 
+         "\n"
+         "The limits for convergence have to be set in the controlfile by \n"
+         "setting the vector *epsilon* to appropriate values.\n"
+         "\n"
+         "The conditions have to be valid for all positions in the cloudbox \n"
          "and for all directions.\n"  
-         "Then convergence_flag is set to 1.\n" 
+         "Then *convergence_flag* is set to 1.\n" 
 	),
 	OUTPUT(convergence_flag_),
 	INPUT(i_field_, i_field_old_, cloudbox_limits_, scat_za_grid_, 
@@ -858,14 +862,37 @@ void define_md_data_raw()
       ( NAME( "i_fieldIterate" ),
 	DESCRIPTION
         (
-	 "Performs iterative solution method of the RT with scattering. It\n"
-         "calculates *i_field* inside the cloudbox.\n"
-         "   " 
-        ),
+         "Iterative solution of the RTE.\n"
+         "\n"
+         "A solution for the RTE with scattering is found using an iterative\n"
+         "scheme:\n"
+         "\n"
+         "1. Calculate scattering integral.\n"
+         "   To calculate the scattering integral the total scattering \n"
+         "   matrix is required. This is obtained using the functions \n"
+         "   *pha_mat_sptCalc* and  *pha_matCalc*. The method *.....* \n"
+         "   performs the integration.\n"
+         "2. Calculate RT with fixed scattered field.\n"
+         "   The radiative transfer equation with fixed scattering integral\n"
+         "   can be solved analytically if the coefficients are assumed to \n"
+         "   be constant.\n"
+         "   According to *atmosphere_dim* either *i_fieldUpdate1D* or \n"
+         "   *i_fieldUpdate2D* are called to perform the calculation. Inside\n"
+         "   these methods the agenda *scat_rte_agenda* is executed. \n"
+         "3. Convergence test.\n"
+         "   Here the *convergence_test_agenda* is executed.\n"
+         "\n"
+         "Note: The atmospheric dimensionality *atmosphere_dim* can be \n"
+         "      either 1 or 3. To these dimensions the method adapts \n"
+         "      automatically. \n"
+         "      If *atmosphere_dim* equals 2, it returns an error message,\n"
+         "      as 2D scattering calculations can not be performed.\n"
+         ),
 	OUTPUT(i_field_, ppath_step_, i_field_old_, scat_field_, sca_vec_, 
                stokes_vec_, planck_function_, l_step_,
                convergence_flag_, pha_mat_part_, pha_mat_spt_, abs_vec_spt_,
-               ext_mat_spt_),
+               ext_mat_spt_, ext_mat_, abs_vec_, scat_p_index_, 
+               scat_lat_index_, scat_lon_index_),
 	INPUT(ext_mat_agenda_, abs_vec_agenda_, convergence_test_agenda_,
               ppath_step_agenda_, scat_rte_agenda_, 
               amp_mat_, cloudbox_limits_,
@@ -890,11 +917,12 @@ void define_md_data_raw()
         ),
 	OUTPUT(i_field_, ppath_step_, stokes_vec_, 
                sca_vec_, planck_function_, l_step_,
-               abs_vec_spt_, ext_mat_spt_),
+               abs_vec_spt_, ext_mat_spt_, ext_mat_, abs_vec_,
+               scat_p_index_),
 	INPUT(ext_mat_agenda_, abs_vec_agenda_, ppath_step_agenda_,
               scat_rte_agenda_, amp_mat_, scat_field_, cloudbox_limits_,
               scat_za_grid_, p_grid_, t_field_, z_field_, 
-              r_geoid_, f_grid_, scat_f_index_,
+              r_geoid_, f_grid_, scat_f_index_, 
 	      pnd_field_, stokes_dim_, atmosphere_dim_, part_types_,
               pha_mat_spt_),
 	GOUTPUT(),

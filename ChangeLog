@@ -1,3 +1,13 @@
+2002-06-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-159
+
+	* m/scatrte.cc (i_fieldUpdate1D) and (i_fieldIterate): Some
+	modifications to include the scattering integral. 
+	Calculation of optical properties modified.
+
+	* src/methods.cc: Changed interfaces for the methods above.
+	
 2002-06-21  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-158

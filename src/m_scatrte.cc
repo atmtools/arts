@@ -52,6 +52,12 @@
 #include "lin_alg.h"
 #include "math_funcs.h"
 
+extern const Numeric PI;
+
+
+/*===========================================================================
+  === The functions (in alphabetical order)
+  ===========================================================================*/
 
 
 //! Convergence test (maximum absolute difference). 
@@ -60,11 +66,14 @@
   iteration fields. It picks out the maximum values for each Stokes 
   component separately. The convergence test is fullfilled under the following
   conditions:
-  |I(m+1) - I(m)| <                 Intensity.
-  |Q(m+1) - Q(m)| <                 The other Stokes components.
-  |U(m+1) - U(m)| <  
-  |V(m+1) - V(m)| <  
-  These conditions have to be valid for all positions in the cloudbox and
+  |I(m+1) - I(m)| < epsilon_1                Intensity.
+  |Q(m+1) - Q(m)| < epsilon_2                The other Stokes components.
+  |U(m+1) - U(m)| < epsilon_3 
+  |V(m+1) - V(m)| < epsilon_4
+  The limits for convergence have to be set in the controlfile by setting the 
+  vector *epsilon* to appropriate values.
+
+  The conditions have to be valid for all positions in the cloudbox and
   for all directions.
   Then convergence_flag is set to 1. 
 
@@ -97,7 +106,20 @@ void convergence_flagAbs(//WS Output:
                       // Keyword:
                       const Vector& epsilon)
 {
+  //Check the input:
   assert( convergence_flag == 0 );
+  assert( atmosphere_dim == 1 | atmosphere_dim == 2 );
+  assert( cloudbox_limits.nelem() == 2*atmosphere_dim);
+  assert( 0 < stokes_dim < 5 );
+
+  // Check keyword "epsilon":
+  if ( epsilon.nelem() != stokes_dim )
+    throw runtime_error(
+                        "You have to specify limiting values for the "
+                        "convergence test for each Stokes component "
+                        "separately. That means that *epsilon* must "
+                        "have *stokes_dim* elements!"
+                        );
   
   Index N_scat_za = scat_za_grid.nelem();
   Index N_scat_aa = scat_aa_grid.nelem();
@@ -182,9 +204,24 @@ void convergence_flagAbs(//WS Output:
 //! Iterative solution of the RTE.
 /*! 
   A solution for the RTE with scattering is found using an iterative scheme:
+
   1. Calculate scattering integral.
+       To calculate the scattering integral the total scattering matrix is 
+       required. This is obtained using the functions *pha_mat_sptCalc* and 
+       *pha_matCalc*. The method *.....* performs the integration.
   2. Calculate RT with fixed scattered field.
+       The radiative transfer equation with fixed scattering integral can be 
+       solved analytically if the coefficients are assumed to be constant.
+       According to *atmosphere_dim* either *i_fieldUpdate1D* or 
+       *i_fieldUpdate2D* are called to perform the calculation. Inside these
+       methods the agenda *scat_rte_agenda* is executed.  
   3. Convergence test.
+       Here the *convergence_test_agenda* is executed.
+
+  Note: The atmospheric dimensionality *atmosphere_dim* can be either 1 or 3. 
+        To these dimensions the method adapts automatically. 
+        If *atmosphere_dim* equals 2, it returns an error message, as 2D
+        scattering calculations can not be performed.
 
   WS Output:
   \param i_field       Intensity field.
@@ -202,6 +239,9 @@ void convergence_flagAbs(//WS Output:
   \param pha_mat_spt   Scattering matrix for a single particle type.
   \param abs_vec_spt   Absorption vector for a single particle type.
   \param ext_mat_spt   Extinction matrix for a single particle type.
+  \param scat_p_index  Pressure index.
+  \param scat_lat_index Latitude index.
+  \param scat_lon_index Longitude index.
                                       
   WS Input:
   \param ext_mat_agenda Agenda to compute total extinction matrix.
@@ -245,6 +285,11 @@ i_fieldIterate(
                     Tensor5& pha_mat_spt,
                     Matrix& abs_vec_spt,
                     Tensor3& ext_mat_spt,
+                    Matrix& ext_mat,
+                    Vector& abs_vec,
+                    Index& scat_p_index,
+                    Index& scat_lat_index,
+                    Index& scat_lon_index,
                     // WS Input:
                     const Agenda& ext_mat_agenda,
                     const Agenda& abs_vec_agenda,
@@ -339,9 +384,13 @@ i_fieldIterate(
         pha_mat_sptCalc(pha_mat_spt, amp_mat, scat_za_index, 0);
       }
     
+    
     // Total scattering matrix.
+    
+
     //pha_mat_partCalc(pha_mat_part, pha_mat_spt, pnd_field, 
-    //cloudbox_limits, atmosphere_dim);
+    //cloudbox_limits, atmosphere_dim, scat_p_index, scat_lat_index, 
+    //                 scat_lon_index);
     
     
     scat_field = i_field;
@@ -354,12 +403,13 @@ i_fieldIterate(
         i_fieldUpdate1D(//Output:
                         i_field, ppath_step, stokes_vec, 
                         sca_vec, planck_function, l_step,  
-                        abs_vec_spt, ext_mat_spt, 
+                        abs_vec_spt, ext_mat_spt,ext_mat, abs_vec,
+                        scat_p_index,
                         //Input:
                         ext_mat_agenda, abs_vec_agenda, ppath_step_agenda,
                         scat_rte_agenda,  amp_mat, scat_field,
                         cloudbox_limits, scat_za_grid, p_grid, 
-                        t_field, z_field, r_geoid, f_grid, scat_f_index,  
+                        t_field, z_field, r_geoid, f_grid, scat_f_index, 
                         pnd_field, stokes_dim, atmosphere_dim, part_types,
                         pha_mat_spt);
       }
@@ -392,6 +442,9 @@ i_fieldIterate(
   \param l_step        Pathlength step.
   \param abs_vec_spt   Absorption vector for a single particle type.
   \param ext_mat_spt   Extinction matrix for a single particle type.
+  \param ext_mat       Extinction matrix (4x4 matrix).
+  \param abs_vec       Absorprion vector (4 elements).
+  \param scat_p_index  Pressure index.
   WS Input:
   \param ext_mat_agenda Agenda to calculate extinction matrix.
   \param abs_vec_agenda Agenda to calculate absorption vector.
@@ -437,6 +490,9 @@ i_fieldUpdate1D(// WS Output:
                 Numeric& l_step,
                 Matrix& abs_vec_spt,
                 Tensor3& ext_mat_spt,
+                Matrix& ext_mat,
+                Vector& abs_vec,
+                Index& scat_p_index,
                 // WS Input:
                 const Agenda& ext_mat_agenda,
                 const Agenda& abs_vec_agenda,
@@ -452,7 +508,7 @@ i_fieldUpdate1D(// WS Output:
 		const Matrix& r_geoid,
 		const Vector& f_grid,
 		const Index& scat_f_index,
-		const Tensor4& pnd_field,
+                const Tensor4& pnd_field,
                 const Index& stokes_dim,
                 const Index& atmosphere_dim,
                 const Vector& part_types,
@@ -505,8 +561,8 @@ i_fieldUpdate1D(// WS Output:
     
 
       //Loop over all positions inside the cloud box defined by scat_p_grid
-      for(Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-	  p_index ++)
+      for(Index p_index = cloudbox_limits[0]; p_index
+            <= cloudbox_limits[1]; p_index ++)
 	{
 	  //Print the loop indices (just for testing the function)
 
@@ -515,37 +571,16 @@ i_fieldUpdate1D(// WS Output:
 	  cout << "\n p_index       ---------"<< p_index;
           cout << "\n stokes_dim    ---------"<< stokes_dim;
 
-	  //Get the coefficients for the radiative transfer:
           
-          //1.Extinction Matrix.
-          ext_mat_agenda.execute();
-
-          //3. Absorption Vector.
-	  abs_vec_agenda.execute();
-
-
-          // Get sca_vec and stokes_vec from the fields.
-          sca_vec.resize(stokes_dim);
-          stokes_vec.resize(stokes_dim);
-          
-	  for (Index i = 0; i < stokes_dim; i++)
-	    {
-              //Extract sca_vec from sca_field.
-	      sca_vec[i] = scat_field(p_index, 0, 0,
-				      scat_za_index, 0, i);
-              //Extract stokes_vec from i_field.
-              stokes_vec[i] = i_field(p_index, 0, 0,
-                                         scat_za_index, 0, i);
-	     }
-	
-
-	  //Generate Planck function.
+          //Generate Planck function.
 	  Numeric T1 = t_field(p_index, 0, 0);
           Numeric T2 = t_field(p_index + 1, 0, 0); 
 	  Numeric f = f_grid[scat_f_index];
 	  planck_function = 0.5*(planck(f, T1)+planck(f,T2));
 
-	  //Initialize ppath for 1D.
+	  
+          
+          //Initialize ppath for 1D.
 	  ppath_init_structure(ppath_step, 1, 1);
 	  
 	  // Assign value to ppath.pos:
@@ -565,16 +600,141 @@ i_fieldUpdate1D(// WS Output:
 	  
 	  // Check if the agenda has returned ppath.step with reasonable 
 	  // values. 
-          //	  cout << "\n ";
-	  //PpathPrint( ppath_step, "ppath");
+          	  cout << "\n ";
+	  PpathPrint( ppath_step, "ppath");
+
+
+
+
+	  //Get the coefficients for the radiative transfer:
+          // We need the average value for the traversed layer.
+
+          //1.Extinction Matrix.
+
+          // Calculate ext_mat for the given point:
+          Matrix ext_mat_0(stokes_dim, stokes_dim); 
+          scat_p_index = p_index;
+          ext_mat_agenda.execute();
+          ext_mat_0 = ext_mat;
+
+          // Calculate ext_mat for the grid point above:
+          Matrix ext_mat_above(stokes_dim, stokes_dim);
+          scat_p_index = p_index + 1;
+          ext_mat_agenda.execute();
+          ext_mat_above = ext_mat;
+
+          // Calculate ext_mat for the grid point below:
+          Matrix ext_mat_below(stokes_dim, stokes_dim);
+          scat_p_index = p_index - 1;
+          ext_mat_agenda.execute();
+          ext_mat_below = ext_mat;
+
+          // Calculate the mean value:
+          for (Index i=0; i < stokes_dim; i++)
+            {
+            for (Index j=0; j < stokes_dim; j++)
+              { 
+              if ( ppath_step.z[0] < ppath_step.z[1] )
+                ext_mat = 0.5*( ext_mat_0(i,j) + ext_mat_above(i,j));
+              else if ( ppath_step.z[0] > ppath_step.z[1] )
+                ext_mat = 0.5*( ext_mat_0(i,j) + ext_mat_above(i,j));
+              else if ( ppath_step.z[0] == ppath_step.z[1] )
+                throw runtime_error(
+                                    "Zenith angle too close to 90°"
+                                    "FIXTHIS!!!!"
+                                    );
+              }
+            }
           
+          //3. Absorption Vector.
+          
+          // Calculate abs_vec for the given point:
+          Vector abs_vec_0(stokes_dim); 
+          scat_p_index = p_index;
+          abs_vec_agenda.execute();
+          abs_vec_0 = abs_vec;
+
+          // Calculate abs_vec for the grid point above:
+          Vector abs_vec_above(stokes_dim);
+          scat_p_index = p_index + 1;
+          abs_vec_agenda.execute();
+          abs_vec_above = abs_vec;
+
+          // Calculate abs_vec for the grid point below:
+          Vector abs_vec_below(stokes_dim);
+          scat_p_index = p_index - 1;
+          abs_vec_agenda.execute();
+          abs_vec_below = abs_vec;
+
+          // Calculate the mean value:
+          for( Index i=0; i<stokes_dim; i++ )
+            {
+              if ( ppath_step.z[0] < ppath_step.z[1] )
+                abs_vec = 0.5*( abs_vec_0[i] + abs_vec_above[i] );
+              else if ( ppath_step.z[0] > ppath_step.z[1] )
+                abs_vec = 0.5*( abs_vec_0[i] + abs_vec_above[i] );
+              else if ( ppath_step.z[0] == ppath_step.z[1] )
+                throw runtime_error(
+                                    "Zenith angle too close to 90°"
+                                    "FIXTHIS!!!!"
+                                    );
+            }
+	 
+          // Get sca_vec and stokes_vec from the fields and calculate
+          // the average values for the layer. 
+          sca_vec.resize(stokes_dim);
+          stokes_vec.resize(stokes_dim);
+          
+          if ( ppath_step.z[0] < ppath_step.z[1] )
+            {
+              for (Index i = 0; i < stokes_dim; i++)
+                {
+                  //Extract sca_vec from sca_field.
+                  sca_vec[i] = 0.5*( scat_field(p_index, 0, 0, 
+                                                scat_za_index, 0, i)
+                                     + scat_field(p_index+1, 0, 0, 
+                                                  scat_za_index, 0, i)) ;
+                  //Extract stokes_vec from i_field.
+                  stokes_vec[i] = 0.5*( i_field(p_index, 0, 0,
+                                          scat_za_index, 0, i)
+                                        +i_field(p_index+1, 0, 0,
+                                          scat_za_index, 0, i));
+                }
+            }
+          else if ( ppath_step.z[0] > ppath_step.z[1] )
+            {
+              for (Index i = 0; i < stokes_dim; i++)
+                {
+                  //Extract sca_vec from sca_field.
+                  sca_vec[i] = 0.5*( scat_field(p_index, 0, 0, 
+                                                scat_za_index, 0, i)
+                                     + scat_field(p_index-1, 0, 0, 
+                                                  scat_za_index, 0, i)) ;
+                  //Extract stokes_vec from i_field.
+                  stokes_vec[i] = 0.5*( i_field(p_index, 0, 0,
+                                          scat_za_index, 0, i)
+                                        +i_field(p_index-1, 0, 0,
+                                          scat_za_index, 0, i));
+                }
+	     }
+           else if ( ppath_step.z[0] == ppath_step.z[1] )
+             {
+                throw runtime_error(
+                                    "Zenith angle too close to 90°"
+                                    "FIXTHIS!!!!"
+                                    );
+             }
+	
+
+          // Length of the path between the two layers.
           l_step = ppath_step.l_step[0];
           
           // Call scat_rte_agenda:
           scat_rte_agenda.execute();
 
 	  // Assign calculated Stokes Vector to i_field. 
-	  i_field(p_index, 0, 0, scat_za_index, 0, Range(joker)) = stokes_vec;
+	  i_field(p_index, 0, 0, scat_za_index, 0, Range(joker)) =
+            stokes_vec;
   
 	  // Close all loops.
 	}
