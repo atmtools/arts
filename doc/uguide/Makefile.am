@@ -84,4 +84,4 @@ uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles)
 
 CLEANFILES = *.aux *.log
 
-MAINTAINERCLEANFILES = uguide_pdf.bbl uguide_pdf.blg uguide.bbl uguide.blg uguide.dvi uguide.ps uguide_pdf.pdf main.toc version.tex
+MAINTAINERCLEANFILES = uguide_pdf.bbl uguide_pdf.blg uguide.bbl uguide.blg uguide.dvi uguide.ps uguide_pdf.pdf main.toc auto_version.tex
