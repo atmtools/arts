@@ -375,9 +375,9 @@ void geompath_from_r1_to_r2(
 */
 Numeric za_geom2other_point(
        const double&    r1,
-       const double&    lat1,
+       const Numeric&   lat1,
        const double&    r2,
-       const double&    lat2 )
+       const Numeric&   lat2 )
 {
   // Double hard coded above to improve the accuracy for Numeric=float
 
@@ -748,11 +748,17 @@ void gridcell_crossing_3d(
        const Index&     known_dim,
        const double     rlatlon )
 {
+  // Double hard coded above to improve the accuracy for Numeric=float
+
   assert( known_dim >= 1 );
   assert( known_dim <= 3 );
 
   // Length limit to reject solutions close 0
+#ifdef USE_DOUBLE
   const double   llim = 1e-6;
+#else
+  const double   llim = 10;
+#endif
 
   // Assert that LOS vector is normalised
   assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
@@ -808,7 +814,7 @@ void gridcell_crossing_3d(
         {
           const double   latrad = DEG2RAD * rlatlon;
                 double   t2     = tan( latrad );
-                          t2     = t2 * t2;
+                         t2     = t2 * t2;
       	  const double   a      = dx*dx + dz*dz - dy*dy/t2;
       	  const double   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
       	  const double   pp     = p * p;
@@ -901,11 +907,22 @@ void geompath_tanpos_3d(
   assert( za >= 90 );
   assert( r >= ppc );
 
-  double   x, y, z, dx, dy, dz;   // double to match declaration of function
+  double   x, y, z, dx, dy, dz;   // double to match declaration of poslos2cart
                                   // and maximum precision
+
   poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa );
 
   l_tan = sqrt( r*r - ppc*ppc );
+
+  // We seperate here float/double to avoid unnecessary copying for
+  // Numeric=double. A solution like this is needed to avoid compiler
+  // warnings.
+
+#ifdef USE_DOUBLE
+
+  cart2sph( r_tan, lat_tan, lon_tan, x+dx*l_tan, y+dy*l_tan, z+dz*l_tan );
+
+#else
 
   double   rtmp, lattmp, lontmp;
   cart2sph( rtmp, lattmp, lontmp, x+dx*l_tan, y+dy*l_tan, z+dz*l_tan );
@@ -913,7 +930,7 @@ void geompath_tanpos_3d(
   lat_tan = lattmp;
   lon_tan = lontmp;
 
-  assert( abs( r_tan - ppc ) < 0.1 );
+#endif
 }
 
 
@@ -1097,6 +1114,8 @@ Numeric psurface_slope_3d(
                                                 r15, r35, r36, r16, lat, lon );
 
   // Convert position and an imaginary LOS to cartesian coordinates
+  // double is hard-coded to match declaration of poslos2cart and for
+  // maximum precision  
   double   x, y, z, dx, dy, dz;
   poslos2cart( x, y, z, dx, dy, dz, r0, lat, lon, 90, aa );
 
@@ -1451,6 +1470,8 @@ void psurface_crossing_3d(
        const double&    dy,
        const double&    dz )
 {
+  // Double hard coded above to improve the accuracy for Numeric=float
+
   assert( za_start >=   0 );
   assert( za_start <= 180 );
 
@@ -2310,13 +2331,13 @@ void do_gridcell_3d(
       // Some extra marginal is needed due to rounding errors.
       // The values for the end point are corrected as far as possible below.
       assert( endface );
-      assert( lat_best + 1e-6 >= lat1 );
-      assert( lat_best - 1e-6 <= lat3 );
-      assert( lon_best + 1e-6 >= lon5 );
-      assert( lon_best - 1e-6 <= lon6 );
-      assert( r_best + 1e-6  >= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+      assert( lat_best + 1e-5 >= lat1 );
+      assert( lat_best - 1e-5 <= lat3 );
+      assert( lon_best + 1e-5 >= lon5 );
+      assert( lon_best - 1e-5 <= lon6 );
+      assert( r_best + 1e-5  >= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                 r15a, r35a, r36a, r16a, lat_best, lon_best ) );
-      assert( r_best - 1e-6  <= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+      assert( r_best - 1e-5  <= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                 r15b, r35b, r36b, r16b, lat_best, lon_best ) );
 
 
@@ -2328,14 +2349,24 @@ void do_gridcell_3d(
 
           if( l_try < l_best )
             {
+              // We seperate here float/double to avoid unnecessary
+              // copying for Numeric=double. A solution like this is
+              // needed to avoid compiler warnings.
+
+#ifdef USE_DOUBLE
+              geompath_tanpos_3d( r_best, lat_best, lon_best, l_best,
+                                  r_start, lat_start, lon_start, 
+                                  za_start, aa_start, ppc );
+#else
               Numeric   rtmp, lattmp, lontmp, ltmp;
-                geompath_tanpos_3d( rtmp, lattmp, lontmp, ltmp,
-                                    r_start, lat_start, lon_start, 
-                                    za_start, aa_start, ppc );
+              geompath_tanpos_3d( rtmp, lattmp, lontmp, ltmp,
+                                  r_start, lat_start, lon_start, 
+                                  za_start, aa_start, ppc );
               r_best   = rtmp;
               lat_best = lattmp;
               lon_best = lontmp;
               l_best   = ltmp;
+#endif
               endface  = 0;
               tanpoint = 1;
             }
@@ -2387,6 +2418,16 @@ void do_gridcell_3d(
   for( Index j=1; j<=n; j++ )
     {
       const double   l  = ldouble * j;
+
+      // We seperate here float/double to avoid unnecessary copying for
+      // Numeric=double. A solution like this is needed to avoid compiler
+      // warnings.
+
+#ifdef USE_DOUBLE
+
+      cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j],
+                                          x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
+#else
       double   rtmp, lattmp, lontmp, zatmp, aatmp;
       cart2poslos( rtmp, lattmp, lontmp, zatmp, aatmp,
                                           x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
@@ -2395,6 +2436,7 @@ void do_gridcell_3d(
       lon_v[j] = lontmp;
       za_v[j]  = zatmp;
       aa_v[j]  = aatmp;
+#endif
    }
 
 
@@ -4659,10 +4701,13 @@ void raytrace_3d_linear_euler(
             }
 
           // Shall lon values be shifted?
+#ifdef USE_DOUBLE
+          resolve_lon( lon_new, lon5, lon6 );
+#else
           Numeric   lontmp = lon_new;
           resolve_lon( lontmp, lon5, lon6 );
           lon_new = lontmp;
-
+#endif
           za = za_new;
           aa = aa_new;
         }
@@ -6181,12 +6226,17 @@ void ppath_start_stepping(
                                             ppath.gp_lat[0], ppath.gp_lon[0] );
               //
               // LOS
+#ifdef USE_DOUBLE
+              cart2poslos( r_top, lat_top, lon_top, 
+                           ppath.los(0,0), ppath.los(0,1),
+                           x+dx*l_top, y+dy*l_top, z+dz*l_top, dx, dy, dz );
+#else
               double   zatmp, aatmp;
               cart2poslos( r_top, lat_top, lon_top, zatmp, aatmp,
                            x+dx*l_top, y+dy*l_top, z+dz*l_top, dx, dy, dz );
               ppath.los(0,0) = zatmp;
               ppath.los(0,1) = aatmp;
-              //
+#endif
               // Correct found LOS for some special cases
               if( a_los[0] == 180 )
                 { ppath.los(0,0) = 180; }

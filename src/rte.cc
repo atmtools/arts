@@ -38,7 +38,6 @@
 
 #include <cmath>
 #include <stdexcept>
-#include <iostream>
 #include "auto_md.h"
 #include "check_input.h"
 #include "logic.h"

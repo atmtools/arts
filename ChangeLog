@@ -1,3 +1,18 @@
+2003-01-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-427
+
+	* src/ppath.cc: Further work on 3D and float. Unfortunately (or
+	maybe it could have been foreseen) it turned out that the spatial
+	precision for 3D and float is as bad as 10 m. The smallest
+	rounding error when going going to cartesian coordinates and back to
+	spherical, shifts the position with about 1 m and some accumaled errors
+	rise the error up to 10m. This high uncertainty makes the present
+	solution in do_gridcell_3d impossible, it is very likely to end up
+	in a situation that cannot be resolved. For double the spatial precison
+	is about 1e-6 m, and the risk to end up in problems is very very small.
+	I have to think about what to do.
+
 2003-01-24  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-426
