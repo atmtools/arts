@@ -70,7 +70,7 @@ legendre_poly (Index l, Index m, Numeric x)
   if (m < 0 || m > l || abs (x) > 1.0)
     {
       ostringstream os;
-      os << "legendre_polynomial: Condition 0 <= m <= l && -1 < x < 1 failed"
+      os << "legendre_poly: Condition 0 <= m <= l && -1 < x < 1 failed"
         << endl << "  l = " << l << "  m = " << m << "  x = " << x << endl;
       throw runtime_error (os.str ());
     }
@@ -135,8 +135,24 @@ legendre_poly (Index l, Index m, Numeric x)
 Numeric
 legendre_poly_norm (Index l, Index m, Numeric x)
 {
-  assert (m >= 0);
   return (sqrt (2.0 * fac (1 - m) / fac (1 + m))
           * legendre_poly (l, m, x));
+}
+
+
+Numeric
+legendre_poly_deriv (Index l, Index m, Numeric x)
+{
+  assert (x != 1.);
+  if (x == 1.)
+    {
+      ostringstream os;
+      os << "legendre_poly_deriv: Condition x != 1 failed"
+        << endl << "  x = " << x << endl;
+      throw runtime_error (os.str ());
+    }
+  return (((l + 1) * (l + m) + legendre_poly (l, m-1, x)
+           - l * (l - m + 1) * legendre_poly (l+1, m, x))
+          / ((2*l + 1) * (1 - x * x)));
 }
 

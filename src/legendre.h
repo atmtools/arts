@@ -42,5 +42,8 @@ legendre_poly (Index l, Index m, Numeric x);
 Numeric
 legendre_poly_norm (Index l, Index m, Numeric x);
 
+Numeric
+legendre_poly_deriv (Index l, Index m, Numeric x);
+
 #endif  /* legendre_h */
 
