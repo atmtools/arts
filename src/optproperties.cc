@@ -55,11 +55,22 @@ extern const Numeric PI;
 //! Transformation of absorption vector.
 /*! 
   In the single scattering database the data of the absorption vector is 
-  stored in different coordinate systems, depending on the type of hydrometeor 
-  species. See AUG for information about the different
+  stored in different coordinate systems, depending on the type of 
+  hydrometeor species.
 
-Documentation will be written (CE). 
- 
+  See AUG for information about different classifications of 
+  the hydrometeor species. 
+
+  Output and Input:
+  \param abs_vec_lab Absorption vector in Laboratory frame.
+  Input:
+  \param abs_vec_data Absorption vector in database.
+  \param za_datagrid Zenith angle grid in the database.
+  \param aa_datagrid Zenith angle grid in the database.
+  \param ptype Clasiification of the hydometeor species.
+  \param za_sca Zenith angle of scattered direction.
+  \param aa_sca Azimuth angle of scattered direction.
+     
   \author Claudia Emde
   \date   2003-05-24 
 */
@@ -93,7 +104,7 @@ void abs_vecTransform(//Output and Input
       
       abs_vec_lab = 0;
 
-      abs_vec_lab[0] = abs_vec_data(0,0,0) * 1e-12;
+      abs_vec_lab[0] = abs_vec_data(0,0,0);
       break;
     }
    default:
@@ -106,8 +117,23 @@ void abs_vecTransform(//Output and Input
 
 //! Transformation of extinction matrix.
 /*! 
- 
-Documentation will be written (CE). 
+  In the single scattering database the data of the extinction matrix is 
+  stored in different coordinate systems, depending on the type of 
+  hydrometeor species.
+
+  See AUG for information about different classifications of 
+  the hydrometeor species. 
+
+  Output and Input:
+  \param ext_mat_lab Absorption vector in Laboratory frame.
+  Input:
+  \param ext_mat_data Absorption vector in database.
+  \param za_datagrid Zenith angle grid in the database.
+  \param aa_datagrid Zenith angle grid in the database.
+  \param ptype Clasiification of the hydometeor species.
+  \param za_sca Zenith angle of scattered direction.
+  \param aa_sca Azimuth angle of scattered direction.
+
   \author Claudia Emde
   \date   2003-05-24 
 */
@@ -144,26 +170,26 @@ void ext_matTransform(//Output and Input
      
       ext_mat_lab = 0.;
       
-      ext_mat_lab(0,0) = ext_mat_data(0,0,0) * 1e-12;
+      ext_mat_lab(0,0) = ext_mat_data(0,0,0);
       
       
       if( stokes_dim == 1 ){
         break;
       }
       
-      ext_mat_lab(1,1) = ext_mat_data(0,0,0) * 1e-12;
+      ext_mat_lab(1,1) = ext_mat_data(0,0,0);
       
       if( stokes_dim == 2 ){
         break;
       }
       
-      ext_mat_lab(2,2) = ext_mat_data(0,0,0) * 1e-12;
+      ext_mat_lab(2,2) = ext_mat_data(0,0,0);
       
       if( stokes_dim == 3 ){
         break;
       }
       
-      ext_mat_lab(3,3) = ext_mat_data(0,0,0) * 1e-12;
+      ext_mat_lab(3,3) = ext_mat_data(0,0,0);
       break;
     }
 
@@ -176,10 +202,27 @@ void ext_matTransform(//Output and Input
 
 //! Transformation of phase matrix.
 /*! 
-  
+  In the single scattering database the data of the phase matrix is 
+  stored in different coordinate systems, depending on the type of 
+  hydrometeor  species.
 
-\author Claudia Emde
-\date   2003-05-24
+  See AUG for information about different classifications of 
+  the hydrometeor species. 
+
+  Output and Input:
+  \param ext_mat_lab Absorption vector in Laboratory frame.
+  Input:
+  \param ext_mat_data Absorption vector in database.
+  \param za_datagrid Zenith angle grid in the database.
+  \param aa_datagrid Zenith angle grid in the database.
+  \param ptype Clasiification of the hydometeor species.
+  \param za_sca Zenith angle of scattered direction.
+  \param aa_sca Azimuth angle of scattered direction.
+  \param za_inc Zenith angle of incoming direction.
+  \param aa_inc Azimuth angle of incoming direction.
+
+  \author Claudia Emde
+  \date   2003-05-24
 */
 void pha_matTransform(//Output
                       MatrixView pha_mat_lab,
@@ -198,9 +241,6 @@ void pha_matTransform(//Output
   const Numeric za_inc_rad = za_inc * DEG2RAD;
   const Numeric aa_sca_rad = aa_sca * DEG2RAD;
   const Numeric aa_inc_rad = aa_inc * DEG2RAD;
-  
-  //out3 << "Transformation of phase matrix in laboratory coordinate system. \n";
-
   const Index stokes_dim = pha_mat_lab.ncols();
     
   if (stokes_dim > 4 || stokes_dim < 1){
@@ -221,7 +261,9 @@ void pha_matTransform(//Output
       Vector pha_mat_int(6);
       Numeric theta_rad;
 
-      interpolate_scat_angle(pha_mat_int, theta_rad, pha_mat_data, za_datagrid, 
+      // Interpolation of the data on the scattering angle:
+      interpolate_scat_angle(pha_mat_int, theta_rad, pha_mat_data,
+                             za_datagrid, 
                              aa_datagrid, za_sca_rad, aa_sca_rad,
                              za_inc_rad, aa_inc_rad);
 
@@ -241,8 +283,28 @@ void pha_matTransform(//Output
 
 //! Interpolate data on the scattering angle.
 /*! 
- 
-Documentation will be written (CE). 
+  This function is used for the transformation of the phase matrix 
+  from scattering frame to the laboratory frame for randomly oriented
+  scattering media (case PTYPE_MACRO_ISO).
+
+  The scattering angle is calculated from the angles defining
+  the directions of the incoming and scattered radiation.
+  After that the data (which is stored in the data files as a function
+  of the scattering angle) is interpolated on the calculated 
+  scattering angle.
+
+  Output:
+  \param pha_mat_int Interpolated phase matrix.
+  \param theta_rad Scattering angle [rad].
+  Input:
+  \param pha_mat_data Phase matrix in database.
+  \param za_datagrid Zenith angle grid in the database.
+  \param aa_datagrid Zenith angle grid in the database.
+  \param za_sca_rad Zenith angle of scattered direction [rad].
+  \param aa_sca_rad Azimuth angle of scattered direction [rad].
+  \param za_inc_rad Zenith angle of incoming direction [rad].
+  \param aa_inc_rad Azimuth angle of incoming direction [rad].
+     
   \author Claudia Emde
   \date   2003-05-13 
 */
@@ -260,9 +322,6 @@ void interpolate_scat_angle(//Output:
 {
   assert (pha_mat_data.ncols() == 6);
 
-  // The transformation formulas can be found in Mishchenkho (p.90)
-  // (book: Scattering, absorption and emission ...)
-  
   // Calculation of the scattering angle:
   theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
                    sin(za_sca_rad) * sin(za_inc_rad) * 
@@ -281,22 +340,41 @@ void interpolate_scat_angle(//Output:
     {
       pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), 
                               thet_gp);
-
     }
 } 
 
 
+
 //! Calculate phase matrix in laboratory coordinate system.
 /*! 
- 
-Documentation will be written (CE). 
+  Transformation function for the phase matrix for the case of
+  randomly oriented particles (case PTYPE_MACRO_ISO).
+  
+  Some of the formulas can be found in 
+
+  Mishchenkho: "Scattering, Absorption and Emission of Light 
+  by Small Particles", Cambridge University Press, 2002
+  Capter 4
+
+  The full set of formulas will be documented in AUG.
+
+  Output and Input:
+  \param pha_mat_lab Phase matrix in laboratory frame.
+  Input: 
+  \param pha_mat_int Interpolated phase matrix.
+  \param za_sca Zenith angle of scattered direction.
+  \param aa_sca Azimuth angle of scattered direction.
+  \param za_inc Zenith angle of incoming direction.
+  \param aa_inc Azimuth angle of incoming direction.
+  \param theta_rad Scattering angle [rad].
+  
   \author Claudia Emde
   \date   2003-05-13 
 */
 void pha_mat_labCalc(//Output:
                       MatrixView pha_mat_lab,
                       //Input:
-                      VectorView pha_mat_int,
+                      const VectorView pha_mat_int,
                       const Numeric& za_sca,
                       const Numeric& aa_sca,
                       const Numeric& za_inc,
@@ -309,6 +387,8 @@ void pha_mat_labCalc(//Output:
   const Numeric aa_inc_rad = aa_inc * DEG2RAD;
   const Numeric theta = RAD2DEG * theta_rad;
   const Index stokes_dim = pha_mat_lab.ncols();
+
+  
   
   // Scattering matrix elements:
   const Numeric F11 = pha_mat_int[0];
@@ -321,25 +401,15 @@ void pha_mat_labCalc(//Output:
   // For stokes_dim = 1, we only need Z11=F11:
   pha_mat_lab(0,0) = F11;
   
-  // cout << "za_inc: " << za_inc << " za _sca: " << za_sca << " aa_sca: " 
-  //          << aa_sca << " pha_mat: " << pha_mat_int[0]<<"ext_mat" << ext_mat;
-  //     cout << "F11: " << F11 << endl;
-  
   if( stokes_dim > 1 ){
     //
     // Several cases have to be considered:
     //
-    if(
+   if(
         // Forward scattering
         ((theta > -.01) && (theta < .01) ) ||
         // Backward scattering
-        ((theta > 179.99) && (theta < 180.01)) ||
-        // Scattering frame equals laboratory frame
-        (za_inc == 0) || (za_sca == 180) ||
-        // Scattering frame is "mirrored" laboratory frame
-        (za_sca == 0) || (za_inc == 180) ||
-        // "Grosskreis"
-        (aa_sca == aa_inc) || (aa_sca == aa_inc-360) || (aa_inc == aa_sca-360)
+        ((theta > 179.99) && (theta < 180.01)) 
         )
       {
         pha_mat_lab(0,1) = F12;
@@ -364,29 +434,35 @@ void pha_mat_labCalc(//Output:
           }
         }
       }
-    else if( (aa_sca - aa_inc) > 0 && (aa_sca - aa_inc) < 180)
+    else if(// Scattering frame equals laboratory frame
+            (za_inc == 0) || (za_sca == 180) ||
+        // Scattering frame is "mirrored" laboratory frame
+        (za_sca == 0) || (za_inc == 180) ||
+        // "Grosskreis"
+        (aa_sca == aa_inc) || (aa_sca == aa_inc-360) || 
+            (aa_inc == aa_sca-360) )
       {
-        const Numeric sigma1 = acos( (cos(za_sca_rad) - cos(za_inc_rad)
+        // FIXME: Wich formulas do we need in these special cases. The values
+        // are very small, so the overall error is small ... but this needs to
+        // be fixed 
+        pha_mat_lab = 0;
+      } 
+    else if( (aa_sca - aa_inc) > 0 && (aa_sca - aa_inc) < 180 ||  
+             (aa_sca - aa_inc) > -360 && (aa_sca - aa_inc) < -180 )
+      {
+        const Numeric cos_sigma1 =  (cos(za_sca_rad) - cos(za_inc_rad)
                                       * cos(theta_rad))/
-                                 (sin(za_inc_rad)*sin(theta_rad)));
-        const Numeric sigma2 = acos( (cos(za_inc_rad) - cos(za_sca_rad)
+                                 (sin(za_inc_rad)*sin(theta_rad));
+        const Numeric cos_sigma2 =  (cos(za_inc_rad) - cos(za_sca_rad)
                                       *cos(theta_rad))/
-                                     (sin(za_sca_rad)*sin(theta_rad)));
+                                     (sin(za_sca_rad)*sin(theta_rad));
         
-        if( isnan(sigma1) || isnan(sigma2))
-          {
-            
-            cout << "theta: "<< theta << " za_inc: "<<za_inc << " za_sca: " 
-                 << za_sca << endl; 
-         }
+               
+        const Numeric C1 = 2 * cos_sigma1 * cos_sigma1 - 1;
+        const Numeric C2 = 2 * cos_sigma2 * cos_sigma2 - 1;
         
-        const Numeric C1 = cos( 2*sigma1 );
-        const Numeric C2 = cos( 2*sigma2 );
-        
-        const Numeric S1 = sin( 2*sigma1 );
-        const Numeric S2 = sin( 2*sigma2 );
-        
-        cout << "C1: " << C1 << " C2: " << C2 << " S1: " << S1 << " S2 " << S2 << endl;
+        const Numeric S1 = 2 * sqrt(1 - cos_sigma1) * cos_sigma1;
+        const Numeric S2 = 2 * sqrt(1 - cos_sigma2) * cos_sigma2;
         
         pha_mat_lab(0,1) = C1 * F12;
         pha_mat_lab(1,0) = C2 * F12;
@@ -411,29 +487,24 @@ void pha_mat_labCalc(//Output:
             pha_mat_lab(3,3) = F44;
           }
         }     
-      }
-    else
+  }
+  else if ( (aa_sca - aa_inc) > -180 && (aa_sca - aa_inc) < 0 ||
+              (aa_sca - aa_inc) > 180 && (aa_sca - aa_inc) < 360 )
       {
-        const Numeric sigma1 = acos( (cos(za_sca_rad) - cos(za_inc_rad)
-                                      * cos(theta_rad))/
-                                     (sin(za_inc_rad)*sin(theta_rad)));
-        const Numeric sigma2 = acos( (cos(za_inc_rad) - cos(za_sca_rad)
-                                      *cos(theta_rad))/
-                                     (sin(za_sca_rad)*sin(theta_rad)));
+        const Numeric cos_sigma1 =  (cos(za_sca_rad) - cos(za_inc_rad)
+                                     * cos(theta_rad))/
+                                     (sin(za_inc_rad)*sin(theta_rad));
+        const Numeric cos_sigma2 =  (cos(za_inc_rad) - cos(za_sca_rad)
+                                     *cos(theta_rad))/
+          (sin(za_sca_rad)*sin(theta_rad));
         
-        const Numeric C1 = cos( 2*sigma1 );
-        const Numeric C2 = cos( 2*sigma2 );
+               
+        const Numeric C1 = 2 * cos_sigma1 * cos_sigma1 - 1;
+        const Numeric C2 = 2 * cos_sigma2 * cos_sigma2 - 1;
         
-        const Numeric S1 = sin( 2*sigma1 );
-        const Numeric S2 = sin( 2*sigma2 );
+        const Numeric S1 = 2 * sqrt(1 - cos_sigma1) * cos_sigma1;
+        const Numeric S2 = 2 * sqrt(1 - cos_sigma2) * cos_sigma2;
         
-        if(isnan(sigma1) || isnan(sigma2))
-          {
-            cout << "theta: "<< theta_rad << " za_inc: "<<za_inc << " za_sca: " 
-                 << za_sca<< " aa_inc: " << aa_inc << " aa_sca: " << aa_sca
-                 << endl; 
-          }
-         
         pha_mat_lab(0,1) = C1 * F12;
         pha_mat_lab(1,0) = C2 * F12;
         pha_mat_lab(1,1) = C1 * C2 * F22 - S1 * S2 * F33;
@@ -456,6 +527,6 @@ void pha_mat_labCalc(//Output:
           }
         }
       }
-  }
+   }
 }
      

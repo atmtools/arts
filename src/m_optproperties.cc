@@ -26,6 +26,7 @@
 #include "messages.h"
 #include "xml_io.h"
 #include "optproperties.h"
+#include "math_funcs.h"
 
 extern const Numeric PI;
 
@@ -205,15 +206,38 @@ void pha_mat_sptCalc(
                           Range(joker), Range(joker)),
               amp_coeffs); 
     }
-  xml_write_to_file("pha_mat_spt.xml", pha_mat_spt); 
+  //  xml_write_to_file("pha_mat_spt.xml", pha_mat_spt); 
 }
+
+
 
 //! Calculates phase matrix for the single particle types.
 /*! 
- 
-Documentation will be written (CE). 
- 
+  In this function the phase matrix calculated
+  in the laboratory frame. This function is used in the calculation
+  of the scattering integral (*scat_fieldCalc*).
+  
+  The interpolation of the data on the actual frequency is the first 
+  step in this function. 
+  
+  Then the transformation from the database coordinate system to to 
+  laboratory coordinate system is done.
+
+  WS Output:
+  \param pha_mat_spt Extinction matrix for a single particle type.
+  WS Input:
+  \param scat_data_raw Raw data containing optical properties.
+  \param scat_za_grid Zenith angle grid for scattering calculation.
+  \param scat_aa_grid Azimuth angle grid for scattering calculation.
+  \param scat_za_index Index specifying the propagation direction.
+  \param scat_za_index Index specifying the propagation direction.
+  \param f_index Index specifying the frequency.
+  \param f_grid Frequency grid.
+
+  \author Claudia Emde
+  \date   2003-05-14
 */
+
 void pha_mat_sptFromData( // Output:
                          Tensor5& pha_mat_spt,
                          // Input:
@@ -279,8 +303,7 @@ void pha_mat_sptFromData( // Output:
                               pha_mat_data.npages(), pha_mat_data.nrows(), 
                               pha_mat_data.ncols());
 
-      Numeric ext_mat_data_int = 0.;
-
+      
       // Gridpositions:
       GridPos freq_gp;
       gridpos(freq_gp, f_datagrid, f_grid[f_index]); 
@@ -331,32 +354,47 @@ void pha_mat_sptFromData( // Output:
                Numeric za_inc = scat_za_grid[j]; 
                Numeric aa_inc = scat_aa_grid[k];
                
-               //  pha_matTransform(pha_mat_spt(i_pt, j, k, joker, joker),
                pha_matTransform(pha_mat_lab,
                                 pha_mat_data_int, 
                                 za_datagrid, aa_datagrid,
                                 part_type, za_sca, aa_sca, za_inc, aa_inc);
-               //  xml_write_to_file("pha_mat_lab.xml", Matrix(pha_mat_lab));
                pha_mat_spt(i_pt, j, k, joker, joker) = pha_mat_lab;
-               // cout << "pha_mat_spt " <<  pha_mat_spt(i_pt, j, k, 0, 0) << endl;
              }
-
-
          }
-        xml_write_to_file("pha_mat_spt.xml", pha_mat_spt);
-      
     }
-
-
-    
 }
   
     
 //! Calculates opticle properties for the single particle types.
 /*! 
- 
-Documentation will be written (CE). 
- 
+  In this function extinction matrix and absorption vector are calculated
+  in the laboratory frame. These properties are required for the RT
+  calculation, inside the the i_fieldUpdateXXX functions. 
+  
+  The interpolation of the data on the actual frequency is the first 
+  step in this function. 
+  
+  Then the transformation from the database coordinate system to to 
+  laboratory coordinate system is done.
+
+  Output of the function are *ext_mat_spt*, and *abs_vec_spt* which hold 
+  the optical properties for a specified propagation direction for 
+  each particle type. 
+
+  WS Output:
+  \param ext_mat_spt Extinction matrix for a single particle type.
+  \param abs_vec_spt Absorption vector for a single particle type.
+  WS Input:
+  \param scat_data_raw Raw data containing optical properties.
+  \param scat_za_grid Zenith angle grid for scattering calculation.
+  \param scat_aa_grid Azimuth angle grid for scattering calculation.
+  \param scat_za_index Index specifying the propagation direction.
+  \param scat_za_index Index specifying the propagation direction.
+  \param f_index Index specifying the frequency.
+  \param f_grid Frequency grid.
+
+  \author Claudia Emde
+  \date   2003-05-14
 */
 void opt_prop_sptFromData( // Output and Input:
                          Tensor3& ext_mat_spt,
@@ -1526,5 +1564,75 @@ void amp_matCalc(Tensor6& amp_mat,
 	    }//close column index
 	}//close particle index loop
       //cout<< amp_mat<<"\n";
+    }
+}
+
+
+//! Check the scattering data in the database.
+/*! 
+  This function can be used to check datafiles containing data for 
+  randomly oriented scattering media.
+  It is checked whether the data is consistent. The integral over the phase 
+  matrix should result the scattering cross section <C_sca>.
+  
+  The check is if:
+  <C_ext> - <C_sca> = <C_abs>
+  
+  The result is printed on the screen.
+  
+  \param scat_data_raw (Input) Single scattering data.
+  
+  \author Claudia Emde
+  \date   2003-05-20
+*/
+void scat_data_rawCheck(//Input:
+                         const ArrayOfSingleScatteringData& scat_data_raw
+                         )
+{
+
+  xml_write_to_file("SingleScatteringData", scat_data_raw);
+  
+  const Index N_pt = scat_data_raw.nelem();
+  SingleScatteringData single_scattering_data;
+
+  PType part_type;
+  Vector f_datagrid;
+  Vector za_datagrid;
+  Vector aa_datagrid;
+  Tensor6 pha_mat_data;
+  Tensor4 ext_mat_data;
+  Tensor4 abs_vec_data;
+
+  // Loop over the included particle_types
+  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+    {
+      // Extract SingleScatteringData from raw data.
+      single_scattering_data = scat_data_raw[i_pt];
+      
+      part_type = single_scattering_data.ptype;
+      f_datagrid = single_scattering_data.f_grid;
+      za_datagrid = single_scattering_data.za_grid;
+      aa_datagrid = single_scattering_data.aa_grid;
+      pha_mat_data = single_scattering_data.pha_mat_data;
+      ext_mat_data = single_scattering_data.ext_mat_data;
+      abs_vec_data = single_scattering_data.abs_vec_data;
+
+      Numeric Csca = AngIntegrate_trapezoid
+        (pha_mat_data(0, joker, 0, 0, 0, 0), za_datagrid);
+
+      Numeric Cext = ext_mat_data(0,0,0,0);
+
+      Numeric Cabs = Cext - Csca;
+
+      Numeric Cabs_data = abs_vec_data(0,0,0,0);
+
+      Numeric Csca_data = Cext - Cabs_data;
+
+      out1 << " Coefficients in database: \n"
+           << "Cext: " << Cext << " Cabs: " << Cabs_data << " Csca: " << Csca_data  
+           << " \n Calculated absorption cooefficient: \n"
+           << "Cabs calculated: " << Cabs   
+           << " Csca: " << Csca << "\n";
+      
     }
 }

@@ -139,7 +139,7 @@ void interpolate_scat_angle(//Output:
 void pha_mat_labCalc(//Output:
                       MatrixView pha_mat_lab,
                       //Input:
-                      VectorView pha_mat_int,
+                      const VectorView pha_mat_int,
                       const Numeric& za_sca,
                       const Numeric& aa_sca,
                       const Numeric& za_inc,

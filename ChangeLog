@@ -1,3 +1,21 @@
+2003-05-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* src/methods.cc: Included documentation for recently added
+	methods related to the new database format.
+
+	* src/m_optproperties.cc: Documented and claened up the code.
+
+	* src/optproperties.{cc,h}: Fixed inconcistencies. Now the data
+	in the database has to be stored in SI units (m^2 for the optical
+	properties). Before it was (um^2).
+
+	Note: The new database works for stokes_dim = 1. There is still a 
+	problem for higher Stokes dimensions. I think that I do not handle 
+	some special cases correctly in the transformation from the 
+	scattering frame to the laboratory frame.  For stokes_dim = 1 the 
+	transformation is very easy, but for higher Stokes dimensions the
+	transformation formulas become rather complicated.
+
 2003-05-15  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-550

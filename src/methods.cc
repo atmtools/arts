@@ -2246,7 +2246,23 @@ void define_md_data_raw()
       ( NAME("opt_prop_sptFromData"),
         DESCRIPTION
         (
-         "To be written by CE."
+         "Calculates opticle properties for the single particle types.\n"
+         "\n"
+         "In this function extinction matrix and absorption vector are \n"
+         "calculated in the laboratory frame. These properties are required\n"
+         "for the RT calculation, inside the the i_fieldUpdateXXX \n"
+         "functions.\n" 
+         "\n"
+         "The interpolation of the data on the actual frequency is the \n"
+         "first step in this function. \n"
+         "\n"
+         "Then the transformation from the database coordinate system to to \n"
+         "laboratory coordinate system is done.\n"
+         "\n"
+         "Output of the function are *ext_mat_spt*, and *abs_vec_spt* which\n"
+         "hold the optical properties for a specified propagation direction\n"
+         "for each particle type. \n"
+         "\n"
         ),
         OUTPUT( ext_mat_spt_, abs_vec_spt_ ),
         INPUT(  ext_mat_spt_, abs_vec_spt_, scat_data_raw_,
@@ -2407,12 +2423,17 @@ void define_md_data_raw()
       ( NAME( "pha_mat_sptFromData" ),
         DESCRIPTION
         (
-         "This method calculates the phase matrix for a single particle type.\n"
+         "Calculation of the phase matrix for the single particle types.\n"
          "\n"
-         "The phase matrix explains the tranformation of Stokes parameters of \n"
-         "incident plane wave into those of the scattered spherical wave \n"
-         "due to scattering of radiation by the particle. The phase \n"
-         "matrix elements are calculated from the single scattering database.\n" 
+         "In this function the phase matrix calculated \n"
+         "in the laboratory frame. This function is used in the calculation\n"
+         "of the scattering integral (*scat_fieldCalc*).\n"
+         "\n"
+         "The interpolation of the data on the actual frequency is the first\n"
+         "step in this function. \n"
+         "\n"
+         "Then the transformation from the database coordinate system to to \n"
+         "laboratory coordinate system is done.\n"
          "\n"
          ),
 	OUTPUT(pha_mat_spt_),
@@ -2566,7 +2587,7 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS( "lraytrace", "lmax"    ),
         TYPES(    Numeric_t,   Numeric_t )));
-
+        
   md_data_raw.push_back
     ( MdRecord
       ( NAME("ReadXML"),
@@ -2810,6 +2831,33 @@ void define_md_data_raw()
         OUTPUT( r_geoid_ ),
         INPUT( atmosphere_dim_, lat_grid_, lon_grid_, lat_1d_,
                meridian_angle_1d_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_data_rawCheck" ),
+        DESCRIPTION
+        (
+         "Method for checking the consistency of the optical properties\n"
+         "in the database. \n"
+         "\n"
+         "This function can be used to check datafiles containing data for \n"
+         "randomly oriented scattering media.\n"
+         "It is checked whether the data is consistent. The integral over \n"
+         "the phase matrix should result the scattering cross section \n"
+         "<C_sca>.\n"
+         "\n"
+         "The check is if:\n"
+         "<C_ext> - <C_sca> = <C_abs>\n"
+         "\n"
+         "The result is printed on the screen.\n"
+         "\n"
+         ),
+        OUTPUT( ),
+        INPUT( scat_data_raw_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3709,7 +3757,7 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES()));
 
-md_data_raw.push_back
+ md_data_raw.push_back
     ( MdRecord
       ( NAME( "VectorZtanToZaRefr" ),
         DESCRIPTION
