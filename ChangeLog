@@ -1,3 +1,10 @@
+2003-01-24  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-425
+
+	* src/continua.cc: Fixed pow(Numeric n, int i) calls. For simple cases
+	with i = 2 replaced by n*n. For other cases using 2. instead of 2
+
 2003-01-23  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-424
