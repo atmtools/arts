@@ -197,6 +197,7 @@ noinst_PROGRAMS = \
 	test_matpack \
 	test_sparse \
 	test_poly \
+	test_readpp \
 	test_tensor \
 	test_legendre \
 	test_linalg \
@@ -743,6 +744,13 @@ test_integration_SOURCES = \
 	logic.h \
 	constants.cc \
 	test_integration.cc 
+
+test_readpp_SOURCES = \
+	bifstream.h \
+	bifstream.cc \
+	binio.h \
+	binio.cc \
+	test_readpp.cc
 
 make_auto_wsv_groups_h_SOURCES = \
 	arts.cc \

@@ -34,6 +34,7 @@ test_linalg
 test_matpack
 test_mpi
 test_poly
+test_readpp
 test_scatproperties
 test_sensor
 test_sorting
