@@ -17,23 +17,13 @@
 
 /*!
   \file   complex.cc
-  \author Stefan Buehler <sbuehler@uni-bremen.de>
-  \date   Monday, December 16 2002
+  \author Oliver Lemke <olemke@uni-bremen.de>
+  \date   2002-12-19
   
   \brief  A class implementing complex numbers for ARTS.
 */
 
 #include "complex.h"
 
-//! Output operator.
-/*! 
-  \param os Output stream.
-  
-  \return Output stream.
-*/
-std::ostream& operator<<( std::ostream& os,
-                          const Complex& x )
-{
-  os << "(" << x.Re() << "+" << x.Im() << "i)";
-  return os;
-}
+/* All additional functions for complex numbers should be added here */
+
