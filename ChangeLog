@@ -1,3 +1,34 @@
+2001-09-21  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-221
+	
+	* configure.in: Added new options:
+
+	  --with-arts-data=ARG: This should be set to the location where
+	  the arts-data package is installed. Per default it is set to
+	  $PREFIX/share/arts-data. If you run configure on a smiles pc it
+	  is set to /pool/lookup2/arts-data.
+
+	  The data path can now be automatically inserted into the example
+	  files.
+
+	  There's also a define called ARTS_DATA_PATH in config.h.
+
+	  --without-arts-data: Force arts to not use the arts-data package
+	  even if it is installed.
+
+	  --with-hdf, --without-hdf: As default, if hdf is installed on
+	  the system, support for reading/writing binary files is
+	  automatically compiled in. --without-hdf forces the deactivation
+	  of HDF support.
+
+	  NOTE: This is a dummy at the moment. The option is there but has
+	  no effect on compilation.
+
+	* doc/examples/auto_full.arts.in: Example control file with
+	automatic data path expansion.
+
+	
 2001-09-21  Mashrab  <kmashrab@uni-bremen.de>
 
 	* arts-0-0-220
