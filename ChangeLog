@@ -1,3 +1,13 @@
+2001-11-16  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-1-45
+	
+	* doc/examples/Makefile.am: Added check target. Call make check to
+	see if the example files are working.
+	
+	* doc/examples/cont.arts: Quick fix to get it running. Name will
+	change to cont_example.arts when Thomas updates it.
+	
 2001-11-16  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-1-44
