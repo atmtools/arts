@@ -75,7 +75,7 @@ void i_spaceCBR(
   i_space.resize(n);
   out2 << "  Setting i_space to hold cosmic background radiation.\n";
   for( Index i=0; i<n; i++ )
-    { planck( i_space[i], f_grid[i], COSMIC_BG_TEMP ); }
+    {i_space[i] = planck( f_grid[i], COSMIC_BG_TEMP ); }
 }
 
 

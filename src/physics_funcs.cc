@@ -59,19 +59,19 @@ extern const Numeric BOLTZMAN_CONST;
 /*!
    Convert radiance to Plack brightness temperature.
 
-    \param y Output:spectrum vector       
+    \return y Output:spectrum vector       
     \param  f       frequency
     \param  za      zenith angle
 
     \author Patrick Eriksson 
     \date   2000-09-28 
 */
-void invplanck (
-		Numeric&   y,
+Numeric invplanck (
 		const Numeric&  f,
 		const Numeric&  za )
 {
- 
+  Numeric y;
+
   // Use always double to avoid numerical problem (see invrayjean)
   const double   a = PLANCK_CONST/BOLTZMAN_CONST;
   const double   b = 2*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
@@ -85,6 +85,7 @@ void invplanck (
   c = a*f;
   d = b*pow(f,3);
   y = c / ( log(d/y+1) );
+  return y;
 }
 
 
@@ -93,18 +94,18 @@ void invplanck (
 /*! 
    Converts radiance to Rayleigh-Jean brightness temperature.
 
-    \param y Output:spectrum vector       
+    \return y Output:spectrum vector       
     \param  f       frequency
     \param  za      zenith angle
 
     \author Patrick Eriksson 
     \date   2000-09-28 
 */
-void invrayjean (
-		 Numeric&   y,
+Numeric invrayjean (
 		 const Numeric&  f,
 		 const Numeric&  za )
 {
+  Numeric y;
   
  // The function returned NaNs when a and b were set to be Numeric (PE 010404)
   const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
@@ -117,6 +118,7 @@ void invrayjean (
 	
   b = a/(f*f);
   y = b * y;
+  return y;
 }
 
 
@@ -124,21 +126,22 @@ void invrayjean (
 /*! 
    Calculates the number density.
    
-   \param  np Output: number density
+   \return  nd Output: number density
    \param  p  Input: pressure
    \param  t  Input: temperature
    
    \author Patrick Eriksson 
    \date   2000-04-08 
 */
-void number_density (  
-		     Numeric& nd,
+Numeric number_density (  
 		     const Numeric& p,
 		     const Numeric& t )
 {
+  Numeric nd;
   // Calculate p / (t*BOLTZMAN_CONST):
   assert( t > 0 );
-  nd = p/(t*BOLTZMAN_CONST);			
+  nd = p/(t*BOLTZMAN_CONST);
+  return nd;
 }
 
 
@@ -147,24 +150,26 @@ void number_density (
 /*! 
   Calculates the Planck function for a single temperature.
   
-  \param B Output: the blackbody radiation
+  \return B Output: the blackbody radiation
   \param  f Input: frequency value
   \param  t Input: temperature value
   
   \author Patrick Eriksson 
   \date   2000-04-08 
 */
-void planck (
-             Numeric&    B,
-	     const Numeric& f,
-	     const Numeric& t )
+Numeric planck (
+	       const Numeric& f,
+	       const Numeric& t )
 {
+  Numeric B;
+
   // Double must be used here (if not, a becomes 0 when using float)
   static const double  a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
   static const double  b = PLANCK_CONST/BOLTZMAN_CONST;
   const double  c = b/t; 
   
   B = a * f*f*f / ( exp( f*c ) - 1.0 );
+  return B;
 }
 
 

@@ -1,3 +1,15 @@
+2002-06-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-120
+
+	* src/workspace.cc: Included workspace variable amp_mat_raw.
+		
+	* src/physics_funcs.cc: Modified functions again, so that they 
+	return numeric values. 
+
+	* src/m_rte.cc and cloudbox.cc: Adjusted to the new Planck
+	function.
+
 2002-06-06  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-119

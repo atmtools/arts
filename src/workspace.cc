@@ -102,7 +102,7 @@ void define_wsv_data()
   wsv_data.push_back
    (WsvRecord
     ("amp_mat",
-     "Amplitude matrix.\n"
+     "Monochromatic amplitude matrix.\n"
      "\n"
      "The amplitude matrix is required for scattering calculations.\n"
      "It contains all optical properties of the scattering particles.\n"
@@ -120,6 +120,39 @@ void define_wsv_data()
      "Dimensions: [ part_types, scat_za_grid, scat_aa_grid, \n"
      "              scat_za_grid, scat_aa_grid, amplitude matrix element]", 
       Tensor6_ ));
+
+ wsv_data.push_back
+   (WsvRecord
+    ("amp_mat_raw",
+     "Amplitude matrix data.\n"
+     "\n"
+     "The amplitude matrix is required for scattering calculations.\n"
+     "It contains all optical properties of the scattering particles.\n"
+     "It depends on the frequency, the particle type, the propagation \n"
+     "direction and the scattered direction.\n"
+     "*amp_mat_raw* contains is an Array of Tensor6. Each Tensor6 corresonds \n"
+     "to one particle type and contains the amplitude matrix for all \n"
+     "defined in *f_grid* and all prpagation and scattering directions.\n"
+     "Furthermore it contains the grids where the data is stored on, i.e. \n"
+     "*f_grid*, *scat_za_grid*, *scat_aa_grid*, *scat_za_grid* and \n"
+     "*scat_aa_grid*. These are stored in the first element in each dimension, \n"
+     "therefore the size of the frequency dimension for example is the number\n"
+     "of frequencies plus one. \n"
+     "The amplitude matrix is a 2x2 complex matrix. The workspace variable\n"
+     "*amp_mat* stores the real and imaginary elements (i.e. 8 elements)\n"
+     "separately. \n" 
+     "\n"
+     "Usage: not clear yet \n"     
+     "\n "
+     "Size: Array[N_pt] \n "
+     "      [N_f+1, N_za+1, N_aa+1, N_za+1, N_aa+1, 8] \n"
+     "Dimensions: Array [part_types] \n"
+     "      [f_grid, scat_za_grid, scat_aa_grid, scat_za_grid, \n"
+     "       scat_aa_grid, amplitude matrix element]\n"
+     "\n"
+     "Later the variable type has to be changed!!!! (when Array of Tensors \n"
+     "will be defined",
+     Tensor6_ ));
 
   wsv_data.push_back
    (WsvRecord

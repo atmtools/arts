@@ -151,7 +151,7 @@ void i_field_update1D(
 	  Numeric T = t_field(p_index, 0, 0);
 	  Numeric B;
 	  Numeric f = f_grid[scat_f_index];
-	  planck(B, f, T);
+	  B = planck(f, T);
 
 	  //Initialize ppath for 1D.
 	  Ppath ppath_step;
