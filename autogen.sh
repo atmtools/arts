@@ -10,7 +10,7 @@
 
 
 # Remove the links:
-rm INSTALL install-sh missing mkinstalldirs 2> /dev/null
+rm -f INSTALL install-sh missing mkinstalldirs
 
 rm -f config.cache
 rm -f acconfig.h

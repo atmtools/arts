@@ -1,3 +1,10 @@
+2003-03-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-508
+
+	* autogen.sh: Don't redirect output of rm command. Prevents
+	autogen.sh from running properly with plain bourne shell.
+
 2003-03-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-507
