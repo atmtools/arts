@@ -2109,8 +2109,7 @@ void kTemp (
     if ( los.p.nelem() != trans.nelem() )
       throw runtime_error(
             "The number of zenith angles of *los* and *trans* are different.");
-    check_length_nrow( f_mono, "f_mono", trans[0], 
-                                       "the transmission matrices (in trans)");
+
     if ( los.p.nelem() != absloswfs.nelem() )
       throw runtime_error(
       "The number of zenith angles is not the same in *los* and *absloswfs*.");
@@ -2640,8 +2639,6 @@ void kEground(
   if ( los.p.nelem() != trans.nelem() )
     throw runtime_error(
             "The number of zenith angles of *los* and *trans* are different.");
-  check_length_nrow( f_mono, "f_mono", trans[0], 
-                                       "the transmission matrices (in trans)");
   //
   if ( emission )
   {
