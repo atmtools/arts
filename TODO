@@ -1,11 +1,11 @@
 SAB 17.01.2000 Change copyright to FSF.
-SAB 29.01.2000 do not compile documentation as default (maybe put it
-               on target doc)
 SAB 30.01.2000 Turn off all debugging options with ./configure flag.
                (Do not give the -g flag to the compiler, set NDEBUG.)
 SAB 27.03.2000 Add an author field to MdRecord?
 SAB 15.06.2000 Rename data to artsdata, so that paths in example
                control files work both in the source tree and in the
                installed version. 
-SAB 16.06.2000 Move uguide to doc/uguide.
 SAB 17.06.2000 Change interpolation in absorption part to interpp.
+SAB 10.08.2000 Change define_wsv_data, etc. to be default
+               constructors. That way, we don't have to call them
+               explicitly.   

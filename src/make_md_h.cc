@@ -61,7 +61,6 @@
 #include "vecmat.h"
 #include "file.h"
 #include "wsv.h"
-#include "workspace.h"
 #include "methods.h"
 
 
@@ -126,7 +125,7 @@ int main()
       ofs << "#define md_h\n\n";
 
       ofs << "#include \"vecmat.h\"\n"
-	  << "#include \"workspace.h\"\n"
+	  << "#include \"wsv.h\"\n"
 	  << "#include \"parser.h\"\n"
 	  << "\n";
 
@@ -438,7 +437,11 @@ int main()
 	  << "\n";
 
       // Declare wsv_data:
-      ofs << "extern const ARRAY<WsvRecord> wsv_data;\n\n";
+      ofs << "// The workspace variable pointers:\n"
+	  << "extern const ARRAY<WsvP*> wsv_pointers;\n\n"
+
+	  << "// Other wsv data:\n"
+	  << "extern const ARRAY<WsvRecord> wsv_data;\n\n";
 
 
       // Write all get-away functions:
@@ -496,16 +499,16 @@ int main()
 	  for (size_t j=0; j<vgo.size(); ++j)
 	    {
 	      ofs << "  " << wsv_group_names[md_data[i].GOutput()[j]]
-		  << " *GO" << j << " = *wsv_data[mr.Output()[" << j
-		  << "]].Pointer();\n";
+		  << " *GO" << j << " = *wsv_pointers[mr.Output()[" << j
+		  << "]];\n";
 	    }
 
 	  // Define generic input pointers
 	  for (size_t j=0; j<vgi.size(); ++j)
 	    {
 	      ofs << "  " << wsv_group_names[md_data[i].GInput()[j]]
-		  << " *GI" << j << " = *wsv_data[mr.Input()[" << j
-		  << "]].Pointer();\n";
+		  << " *GI" << j << " = *wsv_pointers[mr.Input()[" << j
+		  << "]];\n";
 	    }
 
 	  ofs << "  " << md_data[i].Name() << "(";

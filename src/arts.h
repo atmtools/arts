@@ -121,25 +121,15 @@ typedef double Numeric;
 
 
 
-
-//---------------< Our own header files: >---------------
-/* It's not a good idea to include our own headers here, since then
-   everything will depend on everything else. So we have to always
-   include the headers we need. */
-// #include "exceptions.h"
-// #include "messages.h"
-// #include "token_4.h"
-// #include "tracer.h"
-// #include "workspace.h"
-// #include "make_vector.h"
-
 //---------------< Global variable declarations >---------------
 // (Definitions of these are in FIXME: where?)
 
 
 //---------------< Global function declarations: >---------------
-void define_wsv_group_names();	// Documentation is with function definition.
-
+// Documentations are with function definitions.
+void define_wsv_group_names();	
+void define_species_data();
+void define_wsv_pointers();
 
 //
 // Physical constants are now in constants.cc

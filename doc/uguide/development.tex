@@ -212,7 +212,6 @@ includes the complete source code!
       
   The name must be \emph{exactly} like you use it in the source code,
   because this is used to generate interface functions.
-\item Add the variable to the workspace in \verb|workspace.h|.
 \item That's it!
 \end{enumerate}
 
@@ -221,7 +220,7 @@ includes the complete source code!
 %--------------------------------------------
 \begin{enumerate}
 \item Add a \verb|wsv_group_names.push_back("your_type")| function to
-  the function \verb|define_wsv_data()| in \verb|workspace.cc|. The
+  the function \verb|define_wsv_group_names()| in \verb|groups.cc|. The
   name must be \emph{exactly} like you use it in the source code,
   because this is used to generate interface functions.
 \item That's it! (But as stated above, use this feature wisely)
@@ -232,7 +231,7 @@ includes the complete source code!
 \levelc{How to add a workspace method}
 %-------------------------------------
 \begin{enumerate}
-\item Create an entry in \verb|md_data| in file \verb|methods.cc|.
+\item Create an entry in the function \verb|define_md_data| in file \verb|methods.cc|.
   (Make a copy of an existing entry (one of the
   \verb|md_data.push_back(...)| blocks) and edit it to fit your new
   method.) Don't forget the documentation string! It should contain

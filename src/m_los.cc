@@ -25,7 +25,7 @@ INCLUDES:  This file includes functions for a 1D atmosphere to determine:
             3. Integration of the RTE
 
            The LOS is defined by a structure of type Los, defined in
-           workspace.h. The first point of LOS (index 1) is here
+           los.h. The first point of LOS (index 1) is here
            placed at the tangent point, the ground or the platform,
            that is, data are stored with increasing altitudes. When
            applicable, LOS is assumed to be symmetric around either
@@ -49,7 +49,7 @@ HISTORY:   27.06.99 Created by Patrick Eriksson.
 #include "arts.h"
 #include "vecmat.h"
 #include "messages.h"          
-#include "workspace.h"          
+#include "wsv.h"          
 #include "math_funcs.h"          
 #include "atm_funcs.h"          
 #include "los.h"

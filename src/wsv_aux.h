@@ -28,6 +28,7 @@
 #ifndef wsv_aux_h
 #define wsv_aux_h
 
+#include "wsv_groups.h"
 
 /*! Template for Wsv Pointers. This defines for each pointer class the
     conversion operator back to the type that it is pointing
@@ -48,60 +49,60 @@ private:
 
 
 
-/** This class contains all static information for one workspace
-    variable. */
+/*! This class contains all static information for one workspace
+    variable.
+
+    The program make_wsv_h.cc uses these records to generate the file
+    wsv.h, which contains both the declaration of the wsv handles and
+    the declaration of the workspace itself.
+
+    \author Stefan Buehler */
 class WsvRecord {
 public:
+  /*! Initializing constructor.
+
+    This is used by define_wsv_data() to set the information for each
+    workspace variable. */
   WsvRecord(const char name[],
 	    const char description[],
-	    const size_t group,
-	    WsvP* const pointer)
+	    const size_t group)
     : mname(name),
       mdescription(description),
-      mgroup(group),
-      mpointer(pointer)
+      mgroup(group)
   {
-    // Assign mtotal to mid and increase mtotal by 1:
-    //    mid = mtotal++;
+    //    Nothing to do here.
   }
-  //  const int      Total()       const { return mtotal;       }
-  //  const int      Id()          const { return mid;          }
+  /*! Name of this workspace variable. */
   const string&  Name()        const { return mname;        }   
+  /*! A text describing this workspace variable. */
   const string&  Description() const { return mdescription; }
+  /*! The wsv group to which this variable belongs. */
   const size_t   Group()       const { return mgroup;       }
-  WsvP* const    Pointer()     const { return mpointer;     }
 private:
-  // Total number of WsvRecords around:
-  //  static int mtotal;
-  // Id of this record:
-  // (The Id is not really used, only for debugging. Eventually, the
-  // Handle of this record should have the same value as Id.)
-  //  int mid;
-  /** Name of this workspace variable. */
   string mname;
-  /** A text describing this workspace variable. */
   string mdescription;
-  /** The wsv group to which this variable belongs. */
   size_t mgroup;
-  /** Pointer to smart pointer to the variable itself. */
-  WsvP* mpointer;
 };
 
-/** Output operator for WsvRecord.
-    @author Stefan Buehler */
+/*! Output operator for WsvRecord.
+  \author Stefan Buehler */
 ostream& operator<<(ostream& os, const WsvRecord& wr);
 
 
-/** Define the lookup data for the workspace variables. The array
+/*! Define the lookup data for the workspace variables. The array
     wsv_data contains all that we need to know about each workspace
     variable. The array WsvGroupName contains the names of the work
     space variable groups. These two lookup tables are global
     variables. They can be made visible anywhere with an extern
-    declaration. */
+    declaration.
+
+    \author Stefan Buehler */
 void define_wsv_data();
 
-/** Define WsvMap. WsvMap can be used to find workspace variable data
-    by name. */ 
+/*! Define WsvMap. WsvMap can be used to find workspace variable data
+    by name.
+
+    \author Stefan Buehler */ 
 void define_wsv_map();
 
 

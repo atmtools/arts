@@ -21,7 +21,7 @@
 #include "exceptions.h"
 #include "file.h"
 #include "wsv.h"		// Automatically generated!
-#include "workspace.h"
+#include "wsv.h"
 #include "methods.h"
 #include "parser.h"
 #include "md.h"
@@ -508,6 +508,9 @@ int main (int argc, char **argv)
 
   // Initialize the wsv data:
   define_wsv_data();
+
+  // Initialize wsv pointers:
+  define_wsv_pointers();
 
   // Initialize MdMap
   define_md_map();

@@ -15,9 +15,9 @@ int main()
       const size_t n_wsv_groups = wsv_group_names.size();
 
       ofstream ofs;
-      open_output_file(ofs,"wsv_group.h");
+      open_output_file(ofs,"wsv_groups.h");
 
-      ofs << "/*! \\file  wsv_group.h\n"
+      ofs << "/*! \\file  wsv_groups.h\n"
 	  << "    \\brief Defines the enum type that acts as a\n"
 	  << "    handle for workspace variables groups.\n\n"
 
@@ -32,8 +32,11 @@ int main()
 	  << __DATE__ << ", "
 	  << __TIME__ << " */\n\n";
 
-      ofs << "#ifndef wsv_group_h\n"
-	  << "#define wsv_group_h\n\n";
+      ofs << "#ifndef wsv_groups_h\n"
+	  << "#define wsv_groups_h\n\n";
+
+      ofs << "#include \"los.h\"\n"
+	  << "#include \"absorption.h\"\n\n";
       
       ofs << "/*! This is only used for a consistency check. You can get the\n"
 	  << "    number of groups from wsv_group_names.size(). */\n"
@@ -85,7 +88,7 @@ int main()
       ofs << "};\n\n";
 
 
-      ofs << "#endif  // wsv_group_h\n";      
+      ofs << "#endif  // wsv_groups_h\n";      
     }
   catch (runtime_error x)
     {

@@ -28,7 +28,7 @@ HISTORY:
 #include "arts.h"
 #include "vecmat.h"
 #include "messages.h"          
-#include "workspace.h"          
+#include "wsv.h"          
 #include "math_funcs.h"          
 #include "atm_funcs.h"          
 

@@ -18,7 +18,7 @@
 /*-----------------------------------------------------------------------
 FILE:      los.h
 
-INCLUDES:  The declaration of the Los data type, moved here from workspace.h
+INCLUDES:  The declaration of the Los data type.
 
 FUNCTIONS: None
 

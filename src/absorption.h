@@ -57,44 +57,6 @@ public:
 	assert( (0<mhitrantag) || (-1==mhitrantag) );
 	for ( size_t i=0; i<mjpltags.size(); ++i )
 	  assert( (0<mjpltags[i]) || (-1==mjpltags[i]) );
-
-
-	/* 2. Check, whether the isotope name (e.g., 686) is consistent with the mass.
-	      (And with JPL tag numbers.) */
-
-	/* Convert string to number: */
-	int name_as_number;
-	istringstream is(mname);
-	is >> name_as_number;
-	//	cout << "name_as_number = " << name_as_number << endl;
-
-	// Collect the sum of the individual digits:
-	int sum = 0;
-	while (0 < name_as_number)
-	  {
-	    sum += name_as_number % 10;
-	    name_as_number /= 10;
-	  }
-
-	//	cout << "sum = " << sum << endl;
-	sum %= 10;
-
-	// Make sure that modulo 10, sum and rounded mass are the
-	// same.  This is so complicated, because we have to convert
-	// the mass to an integer first.
-	Numeric rm  = floor(mmass+.5);
-	int    irm = static_cast<int>(rm); 
-	//	assert( sum == irm%10 );
-	// SAB&AvE 08.08.2000 Disabled this check, since not
-	// always all atoms are explicitly listed in the isotope name.
-
-	// Same test for JPL tag numbers:
-	for ( size_t i=0; i<mjpltags.size(); ++i )
-	  {
-	    //	    assert( sum == (mjpltags[i] / 1000) % 10 );
-	    // SAB&AvE 08.08.2000 Disabled this check, since not
-	    // always all atoms are explicitly listed in the isotope name.
-	  }
       }
 #endif // ifndef NDEBUG
   }
@@ -523,17 +485,6 @@ typedef ARRAY< ARRAY<LineRecord> > ARRAYofARRAYofLineRecord;
 ostream& operator << (ostream& os, const LineRecord& lr);
 
 
-/** Define species lookup data.
-
-    Molecular masses: From looking at the table in forward_4_96,
-    glob_def.c, the difference between the actual mass and the mass
-    simply estimated from the Atom number is only 0.001. This seems
-    not worth the trouble. Anyway, the field for the mass is
-    there. Should anybody feel like adding the true numbers, just go
-    ahead.
-
-    @author Stefan Buehler  */
-void define_species_data();
 
 /** Define the species data map.
 

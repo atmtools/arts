@@ -22,7 +22,7 @@
 #include "messages.h"
 #include "file.h"
 #include "absorption.h"
-#include "workspace.h"
+#include "wsv.h"
 #include "md.h"
 #include "math_funcs.h"
 

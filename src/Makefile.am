@@ -28,8 +28,7 @@ parameters.h \
 vecmat.h \
 exceptions.h \
 file.h \
-workspace.h \
-wsv_group.h \
+wsv_groups.h \
 wsv_aux.h \
 methods.h \
 token.h \
@@ -44,7 +43,6 @@ constants.cc \
 getopt.c \
 getopt1.c \
 main.cc \
-globals_1.cc \
 globals_2.cc \
 version.cc \
 messages.cc \
@@ -64,7 +62,9 @@ m_abs.cc \
 m_io.cc \
 m_los.cc \
 m_wfs.cc \
-absorption.cc
+absorption.cc \
+wsv_pointers.cc \
+species_data.cc
 
 # When making changes to the list of sources above, please remember to
 # also change the lists in the files:
@@ -72,38 +72,47 @@ absorption.cc
 # 	doc/doc++/tex/Makefile.am
 
 
-noinst_PROGRAMS = make_wsv_group_h make_wsv_h make_md_h
+noinst_PROGRAMS = make_wsv_groups_h make_wsv_h make_wsv_pointers_cc make_md_h
 
-make_wsv_group_h_SOURCES = \
+make_wsv_groups_h_SOURCES = \
 arts.h vecmat.h file.h \
-file.cc version.cc messages.cc groups.cc make_wsv_group_h.cc
+version.cc file.cc messages.cc groups.cc make_wsv_groups_h.cc
 
 make_wsv_h_SOURCES = \
 arts.h vecmat.h file.h absorption.h los.h \
-wsv_group.h wsv_aux.h \
-groups.cc globals_1.cc \
-messages.cc file.cc workspace.cc workspace_aux.cc make_wsv_h.cc version.cc
+wsv_groups.h wsv_aux.h \
+version.cc groups.cc \
+messages.cc file.cc workspace.cc workspace_aux.cc make_wsv_h.cc
+
+make_wsv_pointers_cc_SOURCES = \
+arts.h vecmat.h file.h wsv_aux.h \
+version.cc groups.cc messages.cc file.cc workspace.cc make_wsv_pointers_cc.cc
 
 make_md_h_SOURCES = \
 arts.h vecmat.h wsv.h token.h messages.h file.h \
 absorption.h los.h \
-workspace.h wsv_group.h wsv_aux.h \
+wsv_groups.h wsv_aux.h \
 methods.h make_array.h \
-globals_1.cc globals_2.cc \
+version.cc globals_2.cc \
 token.cc messages.cc file.cc groups.cc workspace.cc workspace_aux.cc \
-methods.cc methods_aux.cc make_md_h.cc version.cc
+methods.cc methods_aux.cc make_md_h.cc
 
-make_wsv_h_DEPENDENCIES = wsv_group.h
+make_wsv_h_DEPENDENCIES = wsv_groups.h
+
+make_wsv_pointers_cc_DEPENDENCIES  = wsv_groups.h wsv.h
 
 make_md_h_DEPENDENCIES  = wsv.h
 
-wsv_group.h: make_wsv_group_h
-	./make_wsv_group_h
+wsv_groups.h: make_wsv_groups_h
+	$(top_builddir)/src/make_wsv_groups_h
 
 wsv.h: make_wsv_h
-	./make_wsv_h
+	$(top_builddir)/src/make_wsv_h
+
+wsv_pointers.cc: make_wsv_pointers_cc
+	$(top_builddir)/src/make_wsv_pointers_cc
 
 md.h: make_md_h
-	./make_md_h
+	$(top_builddir)/src/make_md_h
 
-BUILT_SOURCES = wsv_group.h wsv.h md.h
+BUILT_SOURCES = wsv_groups.h wsv.h wsv_pointers.cc md.h

@@ -32,18 +32,20 @@
 #include "file.h"
 #include "absorption.h"
 #include "los.h"
-#include "wsv_group.h"
+#include "wsv_groups.h"
 #include "wsv_aux.h"
 
 int main()
 {
   try
     {
-      // Initialize wsv data.
+      // Initialize wsv data and wsv group names.
       define_wsv_data();
+      define_wsv_group_names();
 
-      // Make wsv data visible.
+      // Make the data visible.
       extern const ARRAY<WsvRecord> wsv_data;
+      extern const ARRAY<string> wsv_group_names;
 
       const size_t n_wsv = wsv_data.size();
 
@@ -53,8 +55,9 @@ int main()
       open_output_file(ofs,"wsv.h");
 
       ofs << "/*! \\file  wsv.h\n"
-	  << "    \\brief Defines the enum type that acts as a\n"
-	  << "    handle for workspace variables.\n\n"
+	  << "    \\brief Declares the enum type that acts as a\n"
+	  << "    handle for workspace variables. Also declares the\n"
+	  << "    workspace itself.\n\n"
 
 	  << "    This file was generated automatically by make_wsv_h.cc.\n"
 
@@ -66,6 +69,13 @@ int main()
 
       ofs << "#ifndef wsv_h\n";
       ofs << "#define wsv_h\n\n";
+
+      ofs << "#include \"arts.h\"\n"
+	  << "#include \"absorption.h\"\n"
+	  << "#include \"los.h\"\n"
+	  << "#include \"wsv_groups.h\"\n"
+	  << "#include \"wsv_aux.h\"\n\n";
+
       
       ofs << "/*! This is only used for a consistency check. You can get the\n"
 	  << "    number of workspace variables from wsv_data.size(). */\n"
@@ -79,6 +89,64 @@ int main()
       ofs << "  " << wsv_data[n_wsv-1].Name() << "_\n";
       ofs << "};\n\n";
 
+      // Now the workspace itself:
+
+      ofs << "/*! The declaration of the (great) workspace. */\n";
+      ofs << "class WorkSpace {\n"
+	  << "public:\n";
+      for (size_t i=0; i<n_wsv; ++i)
+	{
+	  // First of all write the comment as a doxygen header.
+	  // For this we have to make some small replacements for
+	  // indendation and put everything starting from the second
+	  // sentence into a verbatim environment.  
+	  {
+	    // Local copy of the description string:
+	    string s = wsv_data[i].Description();
+
+	    // Add indentation:
+	    replace_all(s,"\n","\n    "); 
+
+	    // Look for the end of the first sentence. There we have
+	    // to include the beginning of the verbatim
+	    // environment. Not earlier, because the first sentence
+	    // has a special meaning.
+	    size_t full_stop = s.find('.') + 1;
+	    string first(s,0,full_stop);
+	    string rest (s,full_stop);
+
+	    // Remove leading whitespace and linebreaks in rest:
+	    while (
+		   0 < rest.size() &&
+		   ( ' ' == rest[0] || '\n' == rest[0] )
+		   )
+	      {
+		rest.erase(0,1);
+	      }
+
+	    ofs << "/** " << first;
+	    if ( 0==rest.size() )
+	      {
+		ofs << " */\n";
+	      }
+	    else
+	      {
+		ofs << '\n'
+		    << "    \\verbatim\n"
+		    << "    " << rest << '\n'
+		    << "    \\endverbatim */\n";
+	      }
+	  }
+
+// 	  ofs << "  /*! \\verbatim\n"
+// 	      << wsv_data[i].Description() << "\n"
+// 	      << "\\endverbatim */\n"
+	  ofs << "  "
+	      << wsv_group_names[wsv_data[i].Group()]
+	      << " "
+	      << wsv_data[i].Name() << ";\n";
+	}
+      ofs << "};\n\n";
 
       ofs << "#endif  // wsv_h\n";
     }

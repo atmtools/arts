@@ -21,11 +21,11 @@ noinst_DATA = doxyfied
 # enduser installs the package, due to the automatically generated
 # sources wsv.h, md.h, and md.cc
 #
-# Take toexamine from arts_SOURCES in file src/Makefile.am, but withou
-# wsv_group.h, wsv.h, md.h, and md.cc. 
+# Take toexamine from arts_SOURCES in file src/Makefile.am, but without
+# wsv_groups.h, wsv.h, md.h, and md.cc. 
 # Additionally add dependence on:
 # - configure.in
-# - make_wsv_group.cc 
+# - make_wsv_groups.cc 
 # - make_wsv_h.cc 
 # - make_md_h.cc    
 # The dependece on configure.in is there to make sure that the
@@ -34,7 +34,7 @@ noinst_DATA = doxyfied
 
 toexamine = \
 $(top_srcdir)/configure.in \
-$(top_srcdir)/src/make_wsv_group_h.cc \
+$(top_srcdir)/src/make_wsv_groups_h.cc \
 $(top_srcdir)/src/make_wsv_h.cc \
 $(top_srcdir)/src/make_md_h.cc \
 $(top_srcdir)/src/arts.h \
@@ -46,7 +46,6 @@ $(top_srcdir)/src/parameters.h \
 $(top_srcdir)/src/vecmat.h \
 $(top_srcdir)/src/exceptions.h \
 $(top_srcdir)/src/file.h \
-$(top_srcdir)/src/workspace.h \
 $(top_srcdir)/src/wsv_aux.h \
 $(top_srcdir)/src/methods.h \
 $(top_srcdir)/src/token.h \
@@ -61,7 +60,6 @@ $(top_srcdir)/src/constants.cc \
 $(top_srcdir)/src/getopt.c \
 $(top_srcdir)/src/getopt1.c \
 $(top_srcdir)/src/main.cc \
-$(top_srcdir)/src/globals_1.cc \
 $(top_srcdir)/src/globals_2.cc \
 $(top_srcdir)/src/version.cc \
 $(top_srcdir)/src/messages.cc \
@@ -81,8 +79,9 @@ $(top_srcdir)/src/m_abs.cc \
 $(top_srcdir)/src/m_io.cc \
 $(top_srcdir)/src/m_los.cc \
 $(top_srcdir)/src/m_wfs.cc \
-$(top_srcdir)/src/absorption.cc
+$(top_srcdir)/src/absorption.cc \
+$(top_srcdir)/src/species_data.cc
 
 doxyfied: $(toexamine)
-	doxygen Doxyfile
+	doxygen Doxyfile > /dev/null
 	touch doxyfied

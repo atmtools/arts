@@ -35,7 +35,7 @@ HISTORY:   10.06.2000 Created by Stefan Buehler
 
 #include "arts.h"
 #include "make_array.h"
-#include "workspace.h"
+#include "wsv.h"
 #include "methods.h"
 
 

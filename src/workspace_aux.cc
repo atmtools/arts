@@ -22,8 +22,7 @@ INCLUDES:  This file contains auxiliary material for the
            workspace, which used to be in workspace.cc. The reason for
 	   the separation is that the stuff here hardly ever should be
 	   changed, whereas workspace.cc has to be edited each time
-	   a new variable is added. See workspace.h for more
-	   documentation. 
+	   a new variable is added. 
 
 FUNCTIONS: void define_wsv_map()
            ostream& operator<<(ostream& os, const WsvRecord& wr)
@@ -33,8 +32,10 @@ HISTORY:   10.06.2000 Created by Stefan Buehler
 
 #include "arts.h"
 #include "vecmat.h"
-#include "workspace.h"
+#include "wsv_aux.h"
 
+/*! The map assiciated with wsv_data. */
+std::map<string, size_t> WsvMap;
 
 void define_wsv_map()
 {
@@ -58,4 +59,3 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
 
   return os;
 }
-

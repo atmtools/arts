@@ -19,7 +19,7 @@
 #include "messages.h"
 #include "exceptions.h"
 #include "file.h"
-#include "workspace.h"
+#include "wsv.h"
 #include "methods.h"
 #include "parser.h"
 

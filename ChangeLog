@@ -1,3 +1,42 @@
+2000-08-10  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-40
+
+	* Rearranged almost everything. :-)
+
+	* Automatic sources include now also workspace variable groups and
+	the workspace itself. This makes adding new variables (and groups)
+	easier. See Howto in Uguide how it's done now. There are quite a
+	few new files:
+
+	* goups.cc: NEW: Contains the lookup data for WSV groups. Here you can
+	add new groups if you want to.
+
+	* wsv_groups_h.cc: NEW: Automatically generates wsv_groups.
+
+	* wsv_groups.h: NEW: Declares the enum type that is used to identify
+	WSV groups. Also some other stuff related groups. AUTOMATIC FILE.
+
+	* wsv_pointers_cc.cc: NEW: Automatically generates wsv_pointers.cc.
+
+	* wsv_pointers.cc: NEW: Generates WSV pointers which are
+	used by the engine. Now these pointers don't have to be specified
+	with the wsv_data anymore, which makes the wsv_data
+	nicer. AUTOMATIC FILE.
+
+	* species_data.cc: NEW: Species specific lookup information (for
+	example isotope ratios).
+
+	* wsv.h: Now contains also the workspace itself.
+
+	* workspace.h: REMOVED.
+
+	* globals_1.cc: REMOVED.
+
+	* make_wsv_group_h.cc: Renamed to make_wsv_groups_h.cc
+
+	* make_wsv_groups_h.cc: Renamed from make_wsv_group_h.cc
+
 2000-08-08  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-39
