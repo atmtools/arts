@@ -22,11 +22,11 @@ public:
   void Adapt();
 
   // Documentation is with the implementation!
-  void GasAbsLookup::Extract( MatrixView sga,
-                              Index      f_index,
-                              Numeric    p,
-                              Numeric    T,
-                              VectorView vmrs );
+  void Extract( MatrixView sga,
+                Index      f_index,
+                Numeric    p,
+                Numeric    T,
+                VectorView vmrs );
 
   // Documentation is with the implementation!
   void Extract( Tensor3View     sga,
