@@ -1,3 +1,9 @@
+2003-07-21  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-96
+
+	* configure.in: Look for arts-data in /usr/share on smiles PCs.
+
 2003-07-17  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-0-95
