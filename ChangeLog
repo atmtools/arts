@@ -1,3 +1,9 @@
+2002-07-18  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-191
+
+	* src/interpolation.cc: Included iostream.
+
 2002-07-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-190
