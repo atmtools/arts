@@ -361,7 +361,12 @@ void sensor_responseAntenna1D(
        // WS Input:
        const Vector&                f_grid,
        const Vector&                mblock_za_grid,
+// FIXME parameter only used in assertion
+#ifndef NDEBUG
        const Index&                 antenna_dim,
+#else
+       const Index&,
+#endif
        const Matrix&                sensor_pol,
        const ArrayOfArrayOfMatrix&  diag,
        // WS Generic Input:
