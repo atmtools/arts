@@ -1,5 +1,12 @@
 2002-06-28  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-174
+	
+	* src/m_cloudbox.cc (ParticleTypeAdd): Bugfix - endl not working
+	in out2, replaced by newline.
+	
+2002-06-28  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-173
 	
 	* src/gridded_fields.cc: Include iostream.
