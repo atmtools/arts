@@ -53,14 +53,14 @@ Makefile \
       doc/doc++/Makefile \
          doc/doc++/html/Makefile \
          doc/doc++/tex/Makefile \
+      doc/uguide/Makefile \
+      doc/uguide/version.tex \
+         doc/uguide/Figs/Makefile \
    m4/Makefile \
    src/Makefile \
       src/tnt/Makefile \
    data/Makefile \
       data/atmosphere/Makefile \
-         data/atmosphere/fascod/Makefile \
-   uguide/Makefile \
-      uguide/version.tex \
-   uguide/Figs/Makefile \
+         data/atmosphere/fascod/Makefile
 )
 

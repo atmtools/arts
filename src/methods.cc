@@ -469,8 +469,8 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("AllAbsExample"),
-	DESCRIPTION("Reads all important absorption related variables from the\n"
-		    "given files."),
+	DESCRIPTION("Reads all important absorption related variables\n"
+		    "from the given files."),
 	OUTPUT(f_abs_, p_abs_, t_abs_, abs_),
 	INPUT(),
 	GOUTPUT(),
