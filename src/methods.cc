@@ -1185,24 +1185,36 @@ void define_md_data_raw()
         (
          "Set angular grids for DOIT calculation."
          "\n"
-         "In this method the grid sizes (number of points of zenith grid \n"
-         "and azimuth  angle grid) for the scattering integral calculation \n"
-         "can be specified. For the calculation of the scattering integral\n"
-         "equidistant grids are appropriate as the peak of the phase \n"
-         "function can be anywhere, depending on incoming and scattered \n"
-         "directions." 
-         "FIXME: scat_za_grid should also be included here.\n"
+          "In this method the angular grids for a DOIT calculation are"
+         "specified.\n"
+         "For down-looking geometries it is sufficient to define\n"
+         "\n"  
+         "N_za_grid: number of grid points in zenith angle grid\n"
+         "N_aa_grid: number of grid points in zenith angle grid\n"
          "\n"
-         "Keywords: \n"
-         "  N_za_grid : Number of points in zenith angle grid. \n"
-         "  N_aa_grid : Number of points in azimuth angle grid. \n"
+         "From these numbers equally spaced grids are created and stored"
+         "in the\n" 
+         "WSVs *scat_za_grid* and *scat_aa_grid*.\n" 
+         "\n"
+         "For limb simulations it is important to use an optimized zenith "
+         "angle \n"
+         "grid with a very fine resolution about 90° for the RT calculations."
+         "\n"
+         "Such a grid can be generated \n"
+         "using *doit_za_grid_optCalc*. This method requires the filename"
+         "of the \n"
+         "optimized grid. If no filename is specified, \n"
+         "(za_grid_opt_file = \"\")"
+         "the equidistant grid is \n"
+         "taken also in the scattering integral and in the RT part.\n"
+         "\n"
          ),
-        OUTPUT( doit_za_grid_size_, scat_aa_grid_),
+        OUTPUT( doit_za_grid_size_, scat_aa_grid_, scat_za_grid_),
         INPUT(),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("N_za_grid", "N_aa_grid"),
-        TYPES(Index_t, Index_t)));
+        KEYWORDS("N_za_grid", "N_aa_grid", "za_grid_opt_file"),
+        TYPES(Index_t, Index_t, String_t)));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1692,10 +1704,12 @@ md_data_raw.push_back
          "simulations.\n"
          "\n"
          ),
-        OUTPUT( doit_scat_field_, pha_mat_, pha_mat_spt_, scat_za_index_,
-                scat_aa_index_, rte_temperature_, scat_p_index_, 
-                scat_lat_index_, scat_lon_index_),
-        INPUT( pha_mat_spt_agenda_, doit_i_field_, pnd_field_, scat_za_grid_,
+        OUTPUT(  scat_za_index_,
+                 scat_aa_index_, rte_temperature_, scat_p_index_, 
+                 scat_lat_index_, scat_lon_index_,
+                 doit_scat_field_, pha_mat_, pha_mat_spt_),
+        INPUT( doit_scat_field_, pha_mat_, pha_mat_spt_, pha_mat_spt_agenda_,
+               doit_i_field_, pnd_field_, scat_za_grid_,
                scat_aa_grid_,  
                atmosphere_dim_, cloudbox_limits_, doit_za_grid_size_, 
                doit_za_interp_, t_field_),

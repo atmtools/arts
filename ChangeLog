@@ -1,3 +1,20 @@
+2005-04-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-937
+
+	* src/m_scatrte.cc (DoitAngularGridsSet): Included all
+	angular grids here (fine grid for RT calculation and coarse
+	grid for scattering integral). 
+	(ScatteringDoit): Included check, whether *DoitInit* is performed
+	before calling this function.
+
+	* src/m_optproperties.cc: Adapted some variable names. 
+	
+	* src/workspace.cc: Corrected online docu for 
+	*single_scattering_data*.
+
+	* src/methods.cc: Included changes above. 
+		
 2005-04-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-936

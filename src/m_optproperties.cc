@@ -181,7 +181,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
                          // Input:
                          const ArrayOfTensor7& pha_mat_sptDOITOpt,
                          const ArrayOfSingleScatteringData& scat_data_mono,
-                         const Index& za_grid_size,
+                         const Index& doit_za_grid_size,
                          const Vector& scat_aa_grid,
                          const Index& scat_za_index, // propagation directions
                          const Index& scat_aa_index,
@@ -199,40 +199,33 @@ void pha_mat_sptFromDataDOITOpt( // Output:
       // I assume that if the size is o.k. for one particle type is will 
       // also be o.k. for more particle types. 
       assert(pha_mat_sptDOITOpt[0].nlibraries() == scat_data_mono[0].T_grid.nelem());
-      assert(pha_mat_sptDOITOpt[0].nvitrines() == za_grid_size);
+      assert(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
       assert(pha_mat_sptDOITOpt[0].nshelves() == scat_aa_grid.nelem() );
-    assert(pha_mat_sptDOITOpt[0].nbooks() == za_grid_size);
-    assert(pha_mat_sptDOITOpt[0].npages() == scat_aa_grid.nelem()); 
+      assert(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
+      assert(pha_mat_sptDOITOpt[0].npages() == scat_aa_grid.nelem()); 
     }
   
   // atmosphere_dim = 1, only zenith angle required for scattered directions. 
   else if ( pnd_field.ncols() == 1 )
     {
-      //assert(is_size(scat_theta, za_grid_size, 1,
-      //                za_grid_size, scat_aa_grid.nelem()));
+      //assert(is_size(scat_theta, doit_za_grid_size, 1,
+      //                doit_za_grid_size, scat_aa_grid.nelem()));
       
       assert(pha_mat_sptDOITOpt.nelem() == scat_data_mono.nelem());
       // I assume that if the size is o.k. for one particle type is will 
       // also be o.k. for more particle types. 
       assert(pha_mat_sptDOITOpt[0].nlibraries() == scat_data_mono[0].T_grid.nelem());
-      assert(pha_mat_sptDOITOpt[0].nvitrines() == za_grid_size);
+      assert(pha_mat_sptDOITOpt[0].nvitrines() == doit_za_grid_size);
       assert(pha_mat_sptDOITOpt[0].nshelves() == 1);
-      assert(pha_mat_sptDOITOpt[0].nbooks() == za_grid_size);
+      assert(pha_mat_sptDOITOpt[0].nbooks() == doit_za_grid_size);
       assert(pha_mat_sptDOITOpt[0].npages() == scat_aa_grid.nelem()); 
     }
   
-  // Check, whether pha_mat_spt is initialized
-  if (pha_mat_spt.nshelves() != scat_data_mono.nelem() )
-    throw runtime_error( 
-      "*pha_mat_spt* is  not initialized. Please use *ScatteringInit* before\n"
-        "starting a DOIT calculation."
-      );
-  
-  assert(za_grid_size > 0);
+  assert(doit_za_grid_size > 0);
   
   // Create equidistant zenith angle grid
   Vector za_grid;
-  nlinspace(za_grid, 0, 180, za_grid_size);  
+  nlinspace(za_grid, 0, 180, doit_za_grid_size);  
   
   const Index N_pt = scat_data_mono.nelem();
   const Index stokes_dim = pha_mat_spt.ncols();
@@ -287,7 +280,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
       
 
       
-      for (Index za_inc_idx = 0; za_inc_idx < za_grid_size;
+      for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
            za_inc_idx ++)
         {
           for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
@@ -1142,7 +1135,7 @@ void DoitScatteringDataPrepare( //Output:
                                ArrayOfTensor7& pha_mat_sptDOITOpt,
                                ArrayOfSingleScatteringData& scat_data_mono,
                                //Input:
-                               const Index& za_grid_size,
+                               const Index& doit_za_grid_size,
                                const Vector& scat_aa_grid,
                                const ArrayOfSingleScatteringData&
                                scat_data_raw,
@@ -1182,7 +1175,7 @@ void DoitScatteringDataPrepare( //Output:
     N_aa_sca = scat_aa_grid.nelem();
   
   Vector za_grid;
-  nlinspace(za_grid, 0, 180, za_grid_size);
+  nlinspace(za_grid, 0, 180, doit_za_grid_size);
 
   assert( scat_data_raw.nelem() == scat_data_mono.nelem() );
   
@@ -1193,8 +1186,8 @@ void DoitScatteringDataPrepare( //Output:
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
       Index N_T = scat_data_mono[i_pt].T_grid.nelem();
-      pha_mat_sptDOITOpt[i_pt].resize(N_T, za_grid_size, N_aa_sca, 
-                                      za_grid_size, scat_aa_grid.nelem(), 
+      pha_mat_sptDOITOpt[i_pt].resize(N_T, doit_za_grid_size, N_aa_sca, 
+                                      doit_za_grid_size, scat_aa_grid.nelem(), 
                                       stokes_dim, stokes_dim);
       
       //    Initialize:
@@ -1205,12 +1198,12 @@ void DoitScatteringDataPrepare( //Output:
       for (Index t_idx = 0; t_idx < N_T; t_idx ++)
         {
           // These are the scattered directions as called in *scat_field_calc*
-          for (Index za_sca_idx = 0; za_sca_idx < za_grid_size; za_sca_idx ++)
+          for (Index za_sca_idx = 0; za_sca_idx < doit_za_grid_size; za_sca_idx ++)
             {
               for (Index aa_sca_idx = 0; aa_sca_idx < N_aa_sca; aa_sca_idx ++)
                 {
                   // Integration is performed over all incoming directions
-                  for (Index za_inc_idx = 0; za_inc_idx < za_grid_size;
+                  for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
                        za_inc_idx ++)
                     {
                       for (Index aa_inc_idx = 0; aa_inc_idx <
@@ -1573,7 +1566,7 @@ void pha_mat_sptFromMonoData( // Output:
                          Tensor5& pha_mat_spt,
                          // Input:
                          const ArrayOfSingleScatteringData& scat_data_mono,
-                         const Index& za_grid_size,
+                         const Index& doit_za_grid_size,
                          const Vector& scat_aa_grid,
                          const Index& scat_za_index, // propagation directions
                          const Index& scat_aa_index,
@@ -1587,7 +1580,7 @@ void pha_mat_sptFromMonoData( // Output:
   out3 << "Calculate *pha_mat_spt* from scat_data_mono. \n";
   
   Vector za_grid;
-  nlinspace(za_grid, 0, 180, za_grid_size); 
+  nlinspace(za_grid, 0, 180, doit_za_grid_size); 
 
   const Index N_pt = scat_data_mono.nelem();
   const Index stokes_dim = pha_mat_spt.ncols();
@@ -1639,7 +1632,7 @@ void pha_mat_sptFromMonoData( // Output:
         }
       
       // Do the transformation into the laboratory coordinate system.
-      for (Index za_inc_idx = 0; za_inc_idx < za_grid_size;
+      for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
            za_inc_idx ++)
         {
           for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();

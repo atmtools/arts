@@ -56,6 +56,7 @@
 #include "special_interp.h"
 #include "scatrte.h"
 #include "m_general.h"
+#include "wsv_aux.h"
 
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
@@ -64,6 +65,62 @@ extern const Numeric RAD2DEG;
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+//! Set angular grids for DOIT calculation.
+/*!
+  In this method the angular grids for a DOIT calculation are specified.
+  For down-looking geometries it is sufficient to define
+  
+  N_za_grid: number of grid points in zenith angle grid
+  N_aa_grid: number of grid points in zenith angle grid
+
+  From these numbers equally spaced grids are created and stored in the 
+  WSVs *scat_za_grid* and *scat_aa_grid*. 
+
+  For limb simulations it is important to use an optimized zenith angle 
+  grid with a very fine resolution about 90° for the RT calculations.
+  Such a grid can be generated 
+  using *doit_za_grid_optCalc*. This method requires the filename of the 
+  optimized grid. If no filename is specified 
+  (za_grid_opt_file = ""), the equidistant grid is 
+  taken also in the scattering integral and in the RT part.
+
+  WS output:
+  \param doit_grid_size Number of points in zenith angle grid for 
+                      scattering integral calculation 
+  \param scat_aa_grid Azimuth angle grid.
+  \param scat_za_grid
+  Keywords:
+  \param N_za_grid  Number of grid points for scattering    
+  \param N_aa_grid  integral calculation
+  \param za_grid_opt_file   Filename of optimized za grid.
+
+  \author Claudia Emde
+  \date 2003-11-17
+*/
+void DoitAngularGridsSet(// WS Output:
+                  Index& doit_grid_size,
+                  Vector& scat_aa_grid,
+                  Vector& scat_za_grid,
+                  // Keywords:
+                  const Index& N_za_grid,
+                  const Index& N_aa_grid,
+                  const String& za_grid_opt_file)
+{
+  
+  // Azimuth angle grid (the same is used for the scattering integral and
+  // for the radiative transfer.
+  nlinspace(scat_aa_grid, 0, 360, N_aa_grid);
+  
+  // Zenith angle grid: 
+  // Number of zenith angle grid points (only for scattering integral): 
+  doit_grid_size = N_za_grid; 
+
+  if( za_grid_opt_file == "" ) 
+    nlinspace(scat_za_grid, 0, 180, N_za_grid);
+  else
+    xml_read_from_file(za_grid_opt_file, scat_za_grid);
+
+}
 
 //! Convergence test (maximum absolute difference). 
 /*! 
@@ -179,126 +236,6 @@ void doit_conv_flagAbs(//WS Output:
   doit_conv_flag = 1;
   out2 << "Number of DOIT-iterations: " << doit_iteration_counter << "\n";
 }
-
-
-//! Convergence test (Least Square). 
-/*! 
-  The function perferms a least square convergence test of two successive
-  iteration fields. 
-  The Vector *epsilon* includes values determining the accuracy in Rayleigh 
-  Jeans BT. 
-  Elements of *epsilon* correspond to elements of the Stokes vector. At least 
-  the accuracy of the intensity (first element) has to be specified. The other 
-  elements are optional input. 
-
-  The conditions have to be valid for all positions in the cloudbox and
-  for all directions.
-  Then doit_conv_flag is set to 1. 
-
-  WS Output:
-  \param doit_conv_flag Flag for convergence test.
-  \param doit_iteration_counter
-  WS Input:
-  \param doit_i_field Radiation field.
-  \param doit_i_field_old Old radiation field.
-  \param f_grid Frequency grid
-  \param f_index Frequency index
-  Keyword : 
-  \param epsilon   Limiting values for the convergence test
-
-  \author Claudia Emde
-  \date 2004-03-17
-
-*/
-void doit_conv_flagLsq(//WS Output:
-                      Index& doit_conv_flag,
-                      Index& doit_iteration_counter,
-                      // WS Input:
-                      const Tensor6& doit_i_field,
-                      const Tensor6& doit_i_field_old,
-                      const Vector& f_grid,
-                      const Index& f_index,
-                      // Keyword:
-                      const Vector& epsilon)
-{
-  //Check the input:
-  assert( doit_conv_flag == 0 );
-  
-  const Index N_p = doit_i_field.nvitrines();
-  const Index N_lat = doit_i_field.nshelves();
-  const Index N_lon = doit_i_field.nbooks();
-  const Index N_za = doit_i_field.npages();
-  const Index N_aa = doit_i_field.nrows();
-    
-  out2 << "Number of iteration: " << doit_iteration_counter << "\n";
-
-  if (doit_iteration_counter > 50)
-    throw runtime_error("Error in DOIT calculation: \n"
-                        "Method does not converge. Please check"
-                        "numerical grids!");
-
-  Vector lqs(4, 0.);
-  doit_iteration_counter += 1;
-  
-  // Check if doit_i_field and doit_i_field_old have the same dimensions:
-  assert(is_size( doit_i_field_old, 
-                  N_p, N_lat, N_lon, N_za, N_aa, doit_i_field.ncols()));
-
-  //The number of elements in epsilon must be between 1 and 4.
-  assert( 1 <= epsilon.nelem() <= 4);
- 
-  
-  for (Index i = 0; i < epsilon.nelem(); i ++)
-    {
-      for (Index p_index = 0; p_index < N_p; p_index++)
-        { 
-          for (Index lat_index = 0; lat_index < N_lat; lat_index++)
-            {
-              for (Index lon_index = 0; lon_index <N_lon; lon_index++)
-                {
-                  for (Index scat_za_index = 0; scat_za_index < N_za;
-                       scat_za_index++)
-                    {
-                      for (Index scat_aa_index = 0; scat_aa_index < N_aa;
-                           scat_aa_index++)
-                        {
-                          lqs[i] 
-                            += pow(
-                                   doit_i_field(p_index, lat_index, lon_index, 
-                                           scat_za_index, scat_aa_index, i) -
-                                   doit_i_field_old(p_index, lat_index, 
-                                               lon_index, scat_za_index,
-                                               scat_aa_index, i) 
-                                   , 2);
-                        }// End loop scat_aa_grid. 
-                    }// End loop scat_za_grid.
-                }// End loop lon_grid. 
-            }// End loop lat_grid.
-        } // End p_grid.
-   
-
-      lqs[i] = sqrt(lqs[i]);
-      lqs[i] /= (N_p*N_lat*N_lon*N_za*N_aa);
-
-      // Convert difference to Rayleigh Jeans BT
-      lqs[i] = invrayjean(lqs[i], f_grid[f_index]);
-      out1 << "lqs: " << lqs << "\n";
-      
-      if (lqs[i] >= epsilon[i])
-        {
-        doit_conv_flag = 0;
-        }
-      else
-        {
-        // Convergence test has been successful,
-        // doit_conv_flag can be set to 1.
-        doit_conv_flag = 1;
-        out1 << "Number of DOIT-iterations: " << doit_iteration_counter << "\n";
-        }
-    } // end loop stokes_index
-  
-}
-
 
 //! Convergence test in BT(maximum absolute difference in BT(RJ)). 
 /*! 
@@ -417,46 +354,125 @@ void doit_conv_flagAbsBT(//WS Output:
 }
 
 
-//! Set grid_stepsize for scattering integral.
-/*!
-  In this method the grid stepsizes (zenith angle grid and azimuth angle grid)
-  for the scattering integral calculation
-  can be specified. For the calculation of the scattering integral equidistant
-  grids are appropriate as the peak of the phase function can be anywhere, 
-  depending on incoming and scattered directions. 
+//! Convergence test (Least Square). 
+/*! 
+  The function performs a least square convergence test of two successive
+  iteration fields. 
+  The Vector *epsilon* includes values determining the accuracy in Rayleigh 
+  Jeans BT. 
+  Elements of *epsilon* correspond to elements of the Stokes vector. At least 
+  the accuracy of the intensity (first element) has to be specified. 
+  The other elements are optional input. 
 
-  grid_stepsize[0] <-> scat_za_grid
-  grid_stepsize[1] <-> scat_aa_grid
+  The conditions have to be valid for all positions in the cloudbox and
+  for all directions.
+  Then doit_conv_flag is set to 1. 
 
-  WS output:
-  \param doit_grid_size Number of points in zenith angle grid for 
-                      scattering integral calculation 
-  \param scat_aa_grid Azimuth angle grid.
-  Keywords:
-  \param N_za_grid  Number of grid points for scattering    
-  \param N_aa_grid  integral calculation 
+  WS Output:
+  \param doit_conv_flag Flag for convergence test.
+  \param doit_iteration_counter
+  WS Input:
+  \param doit_i_field Radiation field.
+  \param doit_i_field_old Old radiation field.
+  \param f_grid Frequency grid
+  \param f_index Frequency index
+  Keyword : 
+  \param epsilon   Limiting values for the convergence test
 
   \author Claudia Emde
-  \date 2003-11-17
+  \date 2004-03-17
 
-  */
-void DoitAngularGridsSet(// WS Output:
-                  Index& doit_grid_size,
-                  Vector& scat_aa_grid,
-                  // Keywords:
-                  const Index& N_za_grid,
-                  const Index& N_aa_grid)
+*/
+void doit_conv_flagLsq(//WS Output:
+                      Index& doit_conv_flag,
+                      Index& doit_iteration_counter,
+                      // WS Input:
+                      const Tensor6& doit_i_field,
+                      const Tensor6& doit_i_field_old,
+                      const Vector& f_grid,
+                      const Index& f_index,
+                      // Keyword:
+                      const Vector& epsilon)
 {
-
-  // Number of zenith angle grid points (only for scattering integral): 
-  doit_grid_size = N_za_grid; 
+  //Check the input:
+  assert( doit_conv_flag == 0 );
+  
+  const Index N_p = doit_i_field.nvitrines();
+  const Index N_lat = doit_i_field.nshelves();
+  const Index N_lon = doit_i_field.nbooks();
+  const Index N_za = doit_i_field.npages();
+  const Index N_aa = doit_i_field.nrows();
     
-  // Azimuth angle grid (the same is used for the scattering integral and
-  // for the radiative transfer.
-  nlinspace(scat_aa_grid, 0, 360, N_aa_grid);
+  out2 << "Number of iteration: " << doit_iteration_counter << "\n";
+
+  if (doit_iteration_counter > 50)
+    throw runtime_error("Error in DOIT calculation: \n"
+                        "Method does not converge. Please check"
+                        "numerical grids!");
+
+  Vector lqs(4, 0.);
+  doit_iteration_counter += 1;
+  
+  // Check if doit_i_field and doit_i_field_old have the same dimensions:
+  assert(is_size( doit_i_field_old, 
+                  N_p, N_lat, N_lon, N_za, N_aa, doit_i_field.ncols()));
+
+  //The number of elements in epsilon must be between 1 and 4.
+  assert( 1 <= epsilon.nelem() <= 4);
+ 
+  
+  for (Index i = 0; i < epsilon.nelem(); i ++)
+    {
+      for (Index p_index = 0; p_index < N_p; p_index++)
+        { 
+          for (Index lat_index = 0; lat_index < N_lat; lat_index++)
+            {
+              for (Index lon_index = 0; lon_index <N_lon; lon_index++)
+                {
+                  for (Index scat_za_index = 0; scat_za_index < N_za;
+                       scat_za_index++)
+                    {
+                      for (Index scat_aa_index = 0; scat_aa_index < N_aa;
+                           scat_aa_index++)
+                        {
+                          lqs[i] 
+                            += pow(
+                                   doit_i_field(p_index, lat_index, 
+                                                lon_index, 
+                                           scat_za_index, scat_aa_index, i) -
+                                   doit_i_field_old(p_index, lat_index, 
+                                               lon_index, scat_za_index,
+                                               scat_aa_index, i) 
+                                   , 2);
+                        }// End loop scat_aa_grid. 
+                    }// End loop scat_za_grid.
+                }// End loop lon_grid. 
+            }// End loop lat_grid.
+        } // End p_grid.
+   
+
+      lqs[i] = sqrt(lqs[i]);
+      lqs[i] /= (N_p*N_lat*N_lon*N_za*N_aa);
+
+      // Convert difference to Rayleigh Jeans BT
+      lqs[i] = invrayjean(lqs[i], f_grid[f_index]);
+      out1 << "lqs: " << lqs << "\n";
+      
+      if (lqs[i] >= epsilon[i])
+        {
+        doit_conv_flag = 0;
+        }
+      else
+        {
+        // Convergence test has been successful,
+        // doit_conv_flag can be set to 1.
+        doit_conv_flag = 1;
+        out1 << "Number of DOIT-iterations: " << doit_iteration_counter 
+             << "\n";
+        }
+    } // end loop stokes_index
+  
 }
-
-
 
 //! Iterative solution of the RTE.
 /*! 
@@ -484,8 +500,7 @@ void DoitAngularGridsSet(// WS Output:
   \author Claudia Emde
   \date 2002-05-29
 */
-void
-doit_i_fieldIterate(
+void doit_i_fieldIterate(
                // WS Input and Output:
                Tensor6& doit_i_field,
                Tensor6& doit_i_field_old,
@@ -519,7 +534,6 @@ doit_i_fieldIterate(
 
   }//end of while loop, convergence is reached.
 }
-
 
 //! 1D RT calculation inside the cloud box.
 /*! 
@@ -2314,10 +2328,13 @@ void doit_i_fieldUpdateSeq3D(// WS Output:
 
 //! 1D RT calculation inside the cloud box in a plane parallel geometry.
 /*! 
-  This function is baseically same as doit_i_fieldUpdateSeq1D in that it updates the
-  doit_i_field.  The difference is that it assumes that inside the cloudbox the 
-  atmosphere is planeparallel.  This is included with the intention that it 
-  can be faster compared to the spherical.  Also it will be good for comparisons.
+  This function is baseically same as doit_i_fieldUpdateSeq1D 
+  in that it updates the
+  doit_i_field.  The difference is that it assumes that inside the
+  cloudbox the 
+  atmosphere is planeparallel.  This is included with the intention 
+  that it can be faster compared to the spherical.
+  Also it will be good for comparisons.
   
 
   WS Output:
@@ -2536,6 +2553,136 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
     }// Closes loop over scat_za_grid.
 }// End of the function.
 
+
+//! Initialize variables for a DOIT calculation
+/*! 
+  Variables needed in the scattering calculations are initialzed here. This 
+  method has to be executed before using *ScatteringDoit*.
+
+  \param scat_p_index: Index for a position inside the cloudbox
+  \param scat_lat_index: Index for a position inside the cloudbox
+  \param scat_lon_index: Index for a position inside the cloudbox
+  \param scat_za_index: Index for a zenith direction.
+  \param scat_aa_index: Index for an azimuth direction.
+  \param doit_iteration_counter: Index for counting iterations.
+  \param pha_mat : Phase matrix.
+  \param pha_mat_spt: Phase matrix for a single particle type.
+  \param ext_mat_spt: Extinction matrix for a single particle type.
+  \param abs_vec_spt: Absorption vector for a single particle type.
+  \param doit_i_field : Radiation field
+  \param doit_iteration_counter: Iteration counter.
+  \param doit_za_interp: Interpolation method. 
+  \param doit_scat_field: Scattered field.
+  \param stokes_dim: Stokes dimension.
+  \param atmosphere_dim: Atmospheric dimension.
+  \param scat_za_grid: Zenith angle grid for scattering calculation.
+  \param scat_aa_grid: Azimuth angle grid for scattering calculation.
+  \param cloudbox_limits: Limits of cloudbox.
+  \param scat_data_raw: Single scattering data.
+*/
+void DoitInit(
+              Index& scat_p_index,
+              Index& scat_lat_index,
+              Index& scat_lon_index,
+              Index& scat_za_index,
+              Index& scat_aa_index,
+              Tensor4& pha_mat,
+              Tensor5& pha_mat_spt,
+              Tensor3& ext_mat_spt,
+              Matrix& abs_vec_spt,
+              Tensor6& doit_scat_field,
+              Tensor6& doit_i_field,
+              Index& doit_iteration_counter,
+              const Index& stokes_dim,
+              const Index& atmosphere_dim,
+              const Vector& scat_za_grid,
+              const Vector& scat_aa_grid,
+              const Index& doit_grid_size,
+              const ArrayOfIndex& cloudbox_limits,
+              const ArrayOfSingleScatteringData& scat_data_raw
+              )
+{
+  // Check the input:
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  
+  if (stokes_dim < 0 || stokes_dim > 4)
+    throw runtime_error(
+                        "The dimension of stokes vector must be"
+                        "1,2,3, or 4");
+
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains the"
+                        "upper and lower limit of the cloud for all "
+                        "atmospheric dimensions. So its dimension must"
+                        "be 2 x *atmosphere_dim*"); 
+  scat_p_index = 0;
+  scat_lat_index = 0;
+  scat_lon_index = 0;
+  scat_za_index = 0;
+  scat_aa_index = 0;
+  
+  // Number of particle types:
+  const Index N_pt = scat_data_raw.nelem();
+  
+  pha_mat.resize(doit_grid_size, scat_aa_grid.nelem(), stokes_dim,
+                 stokes_dim);
+  
+  pha_mat_spt.resize(N_pt, doit_grid_size, 
+                     scat_aa_grid.nelem(), stokes_dim, stokes_dim);
+  
+  abs_vec_spt.resize(N_pt, stokes_dim);
+  abs_vec_spt = 0.;
+
+  ext_mat_spt.resize(N_pt, stokes_dim, stokes_dim);
+  ext_mat_spt = 0.;  
+  doit_iteration_counter = 0;
+
+  if (atmosphere_dim == 1)
+    {
+      doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                     1, 
+                     1,
+                     scat_za_grid.nelem(), 
+                     1,
+                     stokes_dim);
+      
+      doit_scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                        1, 
+                        1,
+                        scat_za_grid.nelem(), 
+                        1,
+                        stokes_dim);  
+    }
+  else if (atmosphere_dim == 3)
+    {
+      doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                     (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                     (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                     scat_za_grid.nelem(), 
+                     scat_aa_grid.nelem(),
+                     stokes_dim);
+      
+      doit_scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                        (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                        (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                        scat_za_grid.nelem(), 
+                        scat_aa_grid.nelem(),
+                        stokes_dim);
+    }
+  else 
+    {
+      throw runtime_error(
+                        "Scattering calculations are not possible for a 2D"
+                        "atmosphere. If you want to do scattering calculations"
+                        "*atmosphere_dim* has to be either 1 or 3"
+                          );
+    }
+  
+  doit_i_field = 0.;
+  doit_scat_field = 0.;
+
+}
 
 //! This method computes the scattering integral
 /*! 
@@ -3005,15 +3152,16 @@ doit_scat_fieldCalc1D(//WS Output:
 */
 void
 doit_scat_fieldCalcLimb(//WS Output:
-               Tensor6& doit_scat_field,
-               Tensor4& pha_mat,
-               Tensor5& pha_mat_spt,
-               Index& scat_za_index, 
+                        Index& scat_za_index, 
                Index& scat_aa_index,
                Numeric& rte_temperature,
                Index& scat_p_index,
                Index& scat_lat_index, 
                Index& scat_lon_index,
+               // WS Output and Input
+               Tensor6& doit_scat_field,
+               Tensor4& pha_mat,
+               Tensor5& pha_mat_spt,
                //WS Input:
                const Agenda& pha_mat_spt_agenda,
                const Tensor6& doit_i_field,
@@ -3343,169 +3491,8 @@ doit_scat_fieldCalcLimb(//WS Output:
 }
 
 
-//! Initialize variables for a scattering calculation
-/*! 
-  Variables needed in the scattering calculations are initialzed here. This 
-  method has to be executed before using *ScatteringMain*.
-
-  \param scat_p_index: Index for a position inside the cloudbox
-  \param scat_lat_index: Index for a position inside the cloudbox
-  \param scat_lon_index: Index for a position inside the cloudbox
-  \param scat_za_index: Index for a zenith direction.
-  \param scat_aa_index: Index for an azimuth direction.
-  \param doit_iteration_counter: Index for counting iterations.
-  \param pha_mat : Phase matrix.
-  \param pha_mat_spt: Phase matrix for a single particle type.
-  \param ext_mat_spt: Extinction matrix for a single particle type.
-  \param abs_vec_spt: Absorption vector for a single particle type.
-  \param doit_i_field : Radiation field
-  \param doit_iteration_counter
-  \param doit_za_interp
-  \param doit_scat_field: Scattered field.
-  \param stokes_dim: Stokes dimension.
-  \param atmosphere_dim: Atmospheric dimension.
-  \param scat_za_grid: Zenith angle grid for scattering calculation.
-  \param scat_aa_grid: Azimuth angle grid for scattering calculation.
-  \param cloudbox_limits: Limits of cloudbox.
-  \param scat_data_raw FIXME: Add documentation.
-*/
-void DoitInit(
-                    Index& scat_p_index,
-                    Index& scat_lat_index,
-                    Index& scat_lon_index,
-                    Index& scat_za_index,
-                    Index& scat_aa_index,
-                    Tensor4& pha_mat,
-                    Tensor5& pha_mat_spt,
-                    Tensor3& ext_mat_spt,
-                    Matrix& abs_vec_spt,
-                    Tensor6& doit_scat_field,
-                    Tensor6& doit_i_field,
-                    Index& doit_iteration_counter,
-                    const Index& stokes_dim,
-                    const Index& atmosphere_dim,
-                    const Vector& scat_za_grid,
-                    const Vector& scat_aa_grid,
-                    const Index& doit_grid_size,
-                    const ArrayOfIndex& cloudbox_limits,
-                    const ArrayOfSingleScatteringData& scat_data_raw
-                    )
-{
-  // Check the input:
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  
-  if (stokes_dim < 0 || stokes_dim > 4)
-    throw runtime_error(
-                        "The dimension of stokes vector must be"
-                        "1,2,3, or 4");
-
-  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
-    throw runtime_error(
-                        "*cloudbox_limits* is a vector which contains the"
-                        "upper and lower limit of the cloud for all "
-                        "atmospheric dimensions. So its dimension must"
-                        "be 2 x *atmosphere_dim*"); 
-  scat_p_index = 0;
-  scat_lat_index = 0;
-  scat_lon_index = 0;
-  scat_za_index = 0;
-  scat_aa_index = 0;
-  
-  // Number of particle types:
-  const Index N_pt = scat_data_raw.nelem();
-  
-  pha_mat.resize(doit_grid_size, scat_aa_grid.nelem(), stokes_dim,
-                 stokes_dim);
-  
-  pha_mat_spt.resize(N_pt, doit_grid_size, 
-                     scat_aa_grid.nelem(), stokes_dim, stokes_dim);
-  
-  abs_vec_spt.resize(N_pt, stokes_dim);
-  abs_vec_spt = 0.;
-
-  ext_mat_spt.resize(N_pt, stokes_dim, stokes_dim);
-  ext_mat_spt = 0.;  
-
-  doit_iteration_counter = 0;
-
-  if (atmosphere_dim == 1)
-    {
-      doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                     1, 
-                     1,
-                     scat_za_grid.nelem(), 
-                     1,
-                     stokes_dim);
-      
-      doit_scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                        1, 
-                        1,
-                        scat_za_grid.nelem(), 
-                        1,
-                        stokes_dim);  
-    }
-  else if (atmosphere_dim == 3)
-    {
-      doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                     (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-                     (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-                     scat_za_grid.nelem(), 
-                     scat_aa_grid.nelem(),
-                     stokes_dim);
-      
-      doit_scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                        (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-                        (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-                        scat_za_grid.nelem(), 
-                        scat_aa_grid.nelem(),
-                        stokes_dim);
-    }
-  else 
-    {
-      throw runtime_error(
-                        "Scattering calculations are not possible for a 2D"
-                        "atmosphere. If you want to do scattering calculations"
-                        "*atmosphere_dim* has to be either 1 or 3"
-                          );
-    }
-  
-  doit_i_field = 0.;
-  doit_scat_field = 0.;
-
-}
 
 
-//! Main function for the radiative transfer in cloudbox.  
-/*!
-  This function executes *doit_mono_agenda* for each frequency in *f_grid*.  
-  
-  \param f_index Frequency index
-  \param f_grid Frequency grid
-  \param doit_mono_agenda Agenda for monochromatic scattering calculation. 
-  
-  \author Claudia Emde
-*/
-void ScatteringDoit(
-                    Index& f_index,
-                    const Vector& f_grid,
-                    const Agenda& doit_mono_agenda
-                    )
-                  
-{
-
-  Index Nf = f_grid.nelem();
-
-  // Is the frequency index valid?
-  assert( f_index <= f_grid.nelem() );
-
-  for ( f_index = 0; f_index < Nf; ++ f_index)
-    {
-      out1 << "----------------------------------------------\n";
-      out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
-      out1 << "----------------------------------------------\n";
-      doit_mono_agenda.execute(); 
-    }
-}
 
 //! Execute *doit_grid_optimization_agenda*.
 /*! 
@@ -3521,20 +3508,20 @@ void ScatteringDoit(
   \date 2003-04-15
 */
 void DoitGridOptimization(
-                                //WS Input
-                                const Vector& f_grid, 
-                                const Agenda& doit_grid_optimization_agenda
-                                )
+                          //WS Input
+                          const Vector& f_grid, 
+                          const Agenda& doit_grid_optimization_agenda
+                          )
 {
   if(f_grid.nelem() > 1)
     throw runtime_error("*f_grid* contains more than one frequency. \n"
                         "Grid optimization is only possible for "
                         "monochromatic calculations. \n"
                         );
-
+  
   doit_grid_optimization_agenda.execute();
 }
- 
+
 
 
 //! Zenith angle grid optimization for scattering calculation.
@@ -3631,6 +3618,51 @@ void doit_za_interpSet(
   else
     throw runtime_error("Possible interpolation methods are 'linear' "
                         "and 'cubic'.\n");
+}
+
+//! Main function for the radiative transfer in cloudbox.  
+/*!
+  This function executes *doit_mono_agenda* for each frequency in *f_grid*.  
+  
+  \param f_index Frequency index
+  \param f_grid Frequency grid
+  \param doit_mono_agenda Agenda for monochromatic scattering calculation. 
+  
+  \author Claudia Emde
+*/
+void ScatteringDoit(
+                    Index& f_index,
+                    const Vector& f_grid,
+                    const Agenda& doit_mono_agenda
+                    )
+                  
+{
+  
+  // Check whether DoitInit was executed
+  extern const map<String, Index> WsvMap;
+  extern WorkSpace workspace;
+  
+  map<String, Index>::const_iterator mi =
+    WsvMap.find( "scat_p_index" );
+
+  if (!workspace.is_occupied(mi->second))
+    throw runtime_error(
+                        "Initialization method *DoitInit* is has to be"
+                        "put before\n"
+                        "start of *ScatteringDoit*");
+  
+  Index Nf = f_grid.nelem();
+  
+  // Is the frequency index valid?
+  assert( f_index <= f_grid.nelem() );
+
+  for ( f_index = 0; f_index < Nf; ++ f_index)
+    {
+      out1 << "----------------------------------------------\n";
+      out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
+      out1 << "----------------------------------------------\n";
+      doit_mono_agenda.execute(); 
+    }
 }
 
  
