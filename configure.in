@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.64)
+AM_INIT_AUTOMAKE(arts,1.0.65)
 #
 # First of all set the default PREFIX if not given
 # (needed for arts data path later)
@@ -309,15 +309,9 @@ esac
 #
 # Compile flag switches
 #
-if test x$ac_maintainer_mode = xyes; then
-  CFLAGS="$WARNING_FLAGS"
-  CXXFLAGS="-ftemplate-depth-40 $WARNING_FLAGS"
-  CXXFLAGS_FIXED="$CXXFLAGS"
-else
-  CFLAGS="$CFLAGS $WARNING_FLAGS"
-  CXXFLAGS="$CXXFLAGS -ftemplate-depth-40 $WARNING_FLAGS"
-  CXXFLAGS_FIXED="-ftemplate-depth-40 $WARNING_FLAGS"
-fi
+CFLAGS="$CFLAGS $WARNING_FLAGS"
+CXXFLAGS="$CXXFLAGS -ftemplate-depth-40 $WARNING_FLAGS"
+CXXFLAGS_FIXED="-ftemplate-depth-40 $WARNING_FLAGS"
 	
 if test x$ac_debug = xyes; then
   CFLAGS="$CFLAGS -g"
