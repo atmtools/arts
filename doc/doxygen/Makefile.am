@@ -28,6 +28,7 @@ if ARTS_GENDOCS
 
 doxyfied: $(toexamine)
 	doxygen Doxyfile > /dev/null
+	cp ../arts-splash.gif html/
 	touch doxyfied
 
 else
