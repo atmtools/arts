@@ -20,23 +20,23 @@ calculations for a number of atmospheric states taken from some
 atmospheric model, generate a set of spectra to create a training
 database for regression based inversions or perform a numeric
 inversion error analysis. For such calculations it is inefficient to
-perform the calculations by calling ARTS repeatedly.or example, as
+perform the calculations by calling ARTS repeatedly. For example, as
 data must be imported for each call even if the data are identical
 between the cases. Cases such as the ones described above are here
 denoted commonly as batch calculations.
 
-It is impossible to put all possible batch calculations inside a
-simple framework and the task of organising, or creating, the input
-data is left to more flexible programming environments, such as
+It is impossible to put all possible types of batch calculations
+inside a simple framework and the task of organising, or creating, the
+input data is left to more flexible programming environments, such as
 Matlab (where you of course use Atmlab) and Python. Instead, a general
-core functionality has been created that should hopefully be useful
-for a large range of tasks. This functionality consists mainly of the
-four batch agendas.
+core functionality has been created that is useful for a large range
+of tasks. This functionality consists mainly of the three batch
+agendas.
 
 
 \section{Workspace variables and methods}
 %
-The calculation flow is described be setting three agendas:\\
+The calculation flow is controled be setting three agendas:\\
 \indent \wsaindex{batch\_update\_agenda} \\
 \indent \wsaindex{batch\_calc\_agenda} \\
 \indent \wsaindex{batch\_post\_agenda} \\
@@ -48,13 +48,14 @@ remaining cases are just ignored. There are few formal requirements on
 the involved agendas. Execution of \artsstyle{batch\_calc\_agenda}
 must result in new spectrum vector, \artsstyle{y}, most likely by a
 call of \artsstyle{RteCalc}, and the agenda
-\artsstyle{batch\_post\_agenda} is intended to modify \wsvindex{ybatch}.
+\artsstyle{batch\_post\_agenda} is intended to modify the output
+variable \wsvindex{ybatch}.
 
 The actual calculations are made by calling \wsmindex{ybatchCalc}. The
-basic idea is simple, each loop inside this method (see below) shall
+basic idea is simple, each loop inside this method shall
 produce a new spectrum vector, where each realisation is stored in
 \artsstyle{ybatch}. Variables are updated to a new batch case by
-\artsstyle{batch\_update\_agenda}, where \wsvindex{ybatch\_i}, set by
+\artsstyle{batch\_update\_agenda}, where \wsvindex{ybatch\_index}, set by
 \artsstyle{ybatchCalc}, tells the agenda which case to select.
 More in detail, \artsstyle{ybatchCalc} makes the following operations:\\
 \indent 1. Performs a-d with \artsstyle{ybatch\_index} looped from 0 to (\artsstyle{ybatch\_n}-1)\\
@@ -75,9 +76,9 @@ There exist some special workspace methods for
 store the batch cases in tensors with one dimension extra compared to
 corresponding workspace variables. For example, a set of
 \artsstyle{t\_field} (which is of type \artsstyle{Tensor4}) is stored
-as \artsstyle{Tensor4}.
+as \artsstyle{Tensor3}.
 
-In the following 1D example, the five atmospheric scenarios (Fascod)
+In the following 1D example, five atmospheric scenarios
 have been put into the three first loaded files, and a random vector
 of zenith angles is found in the last file. The batch calculations
 are then performed as:
