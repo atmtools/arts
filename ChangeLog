@@ -1,5 +1,17 @@
 2001-05-16  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-0-0-170
+
+	* When running Carmen's SMILES example we got NaNs in Kx. The reason
+	to this was that the optical thicknesses when looking down to the 
+	ground were very high which results in division with zero.
+	I have not changed the equations, instead absloswfs is checked for
+	NaNs and Inf and those values are set to zero. This should be perfectly
+	alright as those values shall be very, very small anyhow.
+
+
+2001-05-16  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-0-0-169
 
 	* Fixed a size check in yCalc that gave wrong error message when a LOS

@@ -1837,6 +1837,25 @@ void absloswfsCalc (
   else
     absloswfs_rte ( absloswfs, los, source, trans, y, y_space, f_mono,     
                                                           e_ground, t_ground );
+
+  // The equations used can produce NaNs and Infs when the optical thickness
+  // is very high. This corresponds to extremly low values for the ABS LOS WFs
+  // so we set NaNs and Infs to zero.
+  INDEX     irow, icol, ncol;
+  Numeric   w;
+  for( INDEX im=0; im<absloswfs.size(); im++ )
+  {
+    for( irow=0; irow<absloswfs[im].nrows(); irow++ )
+    {
+      ncol = absloswfs[im].ncols();
+      for( icol=0; icol<ncol; icol++ )
+      {
+        w = absloswfs[im][irow][icol];
+        if ( isnan(w) || isinf(w) )
+          absloswfs[im][irow][icol] = 0.0;
+      }
+    }
+  }
 }
 
 
