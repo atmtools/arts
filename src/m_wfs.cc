@@ -1608,7 +1608,10 @@ void k_temp_nohydro (
 	MATRIX  is;                        // matrix for storing LOS index
         VECTOR  w;                         // weights for LOS WFs
         VECTOR  a(nv), b(nv), pl(f_mono.size());  // temporary vectors
-       Numeric  c,d;                       // temporary values
+
+ // The scalars are declared to be double to avoid possible numerical problems
+ // when using float
+        double  c,d;                       // temporary values
 
 
   // Set up K and additional data. Set all values of K to 0

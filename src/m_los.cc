@@ -1198,9 +1198,10 @@ void yTB (
   const size_t   nza = za_sensor.size();
   const size_t   ny  = y.size();
         size_t   i0;
-  const Numeric  a = PLANCK_CONST/BOLTZMAN_CONST;
-  const Numeric  b = 2*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-        Numeric  c,d;
+  // Following the change in yTRJ below (just to be safe)
+  const double   a = PLANCK_CONST/BOLTZMAN_CONST;
+  const double   b = 2*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+        double   c,d;
 
   if ( max(y) > 1e-4 )  
     throw runtime_error("The spectrum is not in expected intensity unit "
@@ -1241,8 +1242,9 @@ void yTRJ (
   const size_t   nza = za_sensor.size();
   const size_t   ny  = y.size();
         size_t   i0;
-  const Numeric  a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
-        Numeric  b;
+  // The function returned NaNs when a and b were set to be Numeric (PE 010404)
+  const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
+        double   b;
 
   if ( max(y) > 1e-4 )  
     throw runtime_error("The spectrum is not in expected intensity unit "

@@ -1,5 +1,20 @@
 2001-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-0-0-152
+
+	* NaNs were obtained when using float and a conversion to brightness
+	temperatures was performed. Some scalars have been hardcoded to be
+	double to avoid this problem.
+
+	* A similar problem was found in the vector version of planck.
+
+	* A warning, when using very large or small values, as the Planck and
+	Boltzman constants, I would recomment to hard-code double to avoid 
+	these disturbing problems.
+	
+
+2001-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-0-0-151
 
 	* Deleted wsv.txt in ami/arts from CVS. This function is auto-generated

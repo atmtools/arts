@@ -77,8 +77,8 @@ void planck (
         const VECTOR&     t )
 {
   // Double must be used here (if not, a becomes 0 when using float)
-  static const double a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  static const double b = PLANCK_CONST/BOLTZMAN_CONST;
+  static const double  a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const double  b = PLANCK_CONST/BOLTZMAN_CONST;
 
   const size_t    n_f  = f.size();
   const size_t    n_t  = t.size();
@@ -133,9 +133,10 @@ void planck (
        const VECTOR&    f,
        const Numeric&   t )
 {
-  static const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  static const Numeric b = PLANCK_CONST/BOLTZMAN_CONST;
-         const Numeric c = b/t; 
+  // Double must be used here (if not, a becomes 0 when using float)
+  static const double  a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const double  b = PLANCK_CONST/BOLTZMAN_CONST;
+         const double  c = b/t; 
 
   assert( B.size()==f.size() );
 
