@@ -1,5 +1,12 @@
 2003-09-22  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-689
+
+	* src/legendre.cc: Added missing 'include cmath' to fix compilation
+	problem with gcc2.96 as reported by Cory.
+
+2003-09-22  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-688
 
 	* ChangeLog: Corrected version numbers in recent entries.
