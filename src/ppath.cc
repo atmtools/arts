@@ -5235,7 +5235,7 @@ void ppath_start_stepping(
 
       // Get grid position for the end point, if it is inside the atmosphere.
       if( ppath.z[0] <= z_field(np-1,0,0) )
-        { gridpos( ppath.gp_p, z_field(Range(joker),0,0), ppath.z ); }
+        { gridpos( ppath.gp_p, z_field(joker,0,0), ppath.z ); }
 
       // Set geometrical tangent point position
       if( geom_tan_pos.nelem() == 2 )
@@ -5268,15 +5268,14 @@ void ppath_start_stepping(
           gridpos( gp_lat, lat_grid, a_pos[1] );
           interpweights( itw, gp_lat );
 
-          rv_geoid  = interp( itw, r_geoid(Range(joker),0), gp_lat );
-          rv_ground = rv_geoid + 
-                               interp( itw, z_ground(Range(joker),0), gp_lat );
+          rv_geoid  = interp( itw, r_geoid(joker,0), gp_lat );
+          rv_ground = rv_geoid + interp( itw, z_ground(joker,0), gp_lat );
 
           out2 << "  sensor altitude        : " << (a_pos[0]-rv_geoid)/1e3 
                << " km\n";
 
           if( a_pos[0] < ( rv_geoid + 
-                        interp( itw, z_field(np-1,Range(joker),0), gp_lat ) ) )
+                               interp( itw, z_field(np-1,joker,0), gp_lat ) ) )
             { is_inside = true; }
         }
 
@@ -5308,9 +5307,9 @@ void ppath_start_stepping(
               gridpos( gp_tan, lat_grid, geom_tan_pos[1] );
               interpweights( itw_tan, gp_tan );
               geom_tan_z = geom_tan_pos[0] - 
-                            interp( itw_tan, r_geoid(Range(joker),0), gp_tan );
+                                   interp( itw_tan, r_geoid(joker,0), gp_tan );
               geom_tan_atmtop = 
-                       interp( itw_tan, z_field(np-1,Range(joker),0), gp_tan );
+                              interp( itw_tan, z_field(np-1,joker,0), gp_tan );
               out2 << "  geom. tangent altitude : " << geom_tan_z/1e3 
                    << " km\n";
             }
@@ -5357,7 +5356,7 @@ void ppath_start_stepping(
           // surfaces for the sensor latitude and use it to get ppath.gp_p.
           Vector z_grid(np);
           z_at_lat_2d( z_grid, p_grid, lat_grid, 
-                                z_field(Range(joker),Range(joker),0), gp_lat );
+                                              z_field(joker,joker,0), gp_lat );
           gridpos( ppath.gp_p, z_grid, ppath.z );
 
           // Is the sensor on the ground looking down?
@@ -5365,7 +5364,7 @@ void ppath_start_stepping(
             {
               // Calculate radial slope of the ground
               const Numeric rslope = psurface_slope_2d( lat_grid, 
-                        r_geoid(Range(joker),0), z_ground(Range(joker),0), 
+                        r_geoid(joker,0), z_ground(joker,0), 
                                                       gp_lat, ppath.los(0,0) );
 
               // Calculate angular tilt of the ground
@@ -5396,9 +5395,9 @@ void ppath_start_stepping(
                   // the cloud box at the latitude of the sensor
 
                   const Numeric   rv_low = rv_geoid + interp( itw, 
-                          z_field(cloudbox_limits[0],Range(joker),0), gp_lat );
+                                 z_field(cloudbox_limits[0],joker,0), gp_lat );
                   const Numeric   rv_upp = rv_geoid + interp( itw, 
-                          z_field(cloudbox_limits[1],Range(joker),0), gp_lat );
+                                 z_field(cloudbox_limits[1],joker,0), gp_lat );
 
                   if( ppath.pos(0,0) >= rv_low  &&  ppath.pos(0,0) <= rv_upp )
                     { ppath_set_background( ppath, 4 ); }       
@@ -5633,7 +5632,7 @@ void ppath_start_stepping(
                << " km\n";
 
           if( a_pos[0] < ( rv_geoid + interp( itw, 
-                  z_field(np-1,Range(joker),Range(joker)), gp_lat, gp_lon ) ) )
+                                z_field(np-1,joker,joker), gp_lat, gp_lon ) ) )
             { is_inside = true; }
         }
 
@@ -5672,7 +5671,7 @@ void ppath_start_stepping(
               geom_tan_z = geom_tan_pos[0] - 
                               interp( itw_tan, r_geoid, gp_tanlat, gp_tanlon );
               geom_tan_atmtop = interp( itw_tan, 
-               z_field(np-1,Range(joker),Range(joker)), gp_tanlat, gp_tanlon );
+               z_field(np-1,joker,joker), gp_tanlat, gp_tanlon );
               out2 << "  geom. tangent altitude : " << geom_tan_z/1e3 
                    << " km\n";
             }
@@ -5775,11 +5774,9 @@ void ppath_start_stepping(
                   // the cloud box at the latitude of the sensor
 
                   const Numeric   rv_low = rv_geoid + interp( itw, 
-                        z_field(cloudbox_limits[0],Range(joker),Range(joker)),
-                                                              gp_lat, gp_lon );
+                     z_field(cloudbox_limits[0],joker,joker), gp_lat, gp_lon );
                   const Numeric   rv_upp = rv_geoid + interp( itw, 
-                        z_field(cloudbox_limits[1],Range(joker),Range(joker)), 
-                                                              gp_lat, gp_lon );
+                     z_field(cloudbox_limits[1],joker,joker), gp_lat, gp_lon );
 
                   if( ppath.pos(0,0) >= rv_low  &&  ppath.pos(0,0) <= rv_upp )
                     { ppath_set_background( ppath, 4 ); }       
@@ -6291,10 +6288,10 @@ void ppath_calc(
 
           // Vectors and matrices that can be handled by ranges.
           ppath.z[ Range(np,n-i1) ] = ppath_array[i].z[ Range(i1,n-i1) ];
-          ppath.pos( Range(np,n-i1), Range(joker) ) = 
-                            ppath_array[i].pos( Range(i1,n-i1), Range(joker) );
-          ppath.los( Range(np,n-i1), Range(joker) ) = 
-                            ppath_array[i].los( Range(i1,n-i1), Range(joker) );
+          ppath.pos( Range(np,n-i1), joker ) = 
+                                   ppath_array[i].pos( Range(i1,n-i1), joker );
+          ppath.los( Range(np,n-i1), joker ) = 
+                                   ppath_array[i].los( Range(i1,n-i1), joker );
 
           // For i==1, there is no defined l_step. For higher i, all 
           // values in l_step shall be copied.

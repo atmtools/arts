@@ -158,7 +158,7 @@ void get_radiative_background(
   a_pos.resize( atmosphere_dim );
   a_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
   a_los.resize( ppath.los.ncols() );
-  a_los = ppath.los(np-1,Range(joker));
+  a_los = ppath.los(np-1,joker);
   gridpos_copy( a_gp_p, ppath.gp_p[np-1] );
   if( atmosphere_dim > 1 )
     { gridpos_copy( a_gp_lat, ppath.gp_lat[np-1] ); }
@@ -215,8 +215,8 @@ void get_radiative_background(
         Matrix   sensor_los( nlos, a_los.nelem() );
         for( Index ilos=0; ilos < nlos; ilos++ )
           {
-            sensor_pos( ilos, Range(joker) ) = a_pos;
-            sensor_los( ilos, Range(joker) ) = ground_los( ilos, Range(joker));
+            sensor_pos( ilos, joker ) = a_pos;
+            sensor_los( ilos, joker ) = ground_los( ilos, joker);
           }
         Vector   mblock_za_grid(1,0);
         Vector   mblock_aa_grid(0);
@@ -244,7 +244,7 @@ void get_radiative_background(
           {
             Matrix i_ground(nf,stokes_dim);
 
-            i_ground = y_rte_local(Range(ilos*nf,nf),Range(joker));
+            i_ground = y_rte_local(Range(ilos*nf,nf),joker);
             
             for( Index iv=0; iv<nf; iv++ )
               {
@@ -257,8 +257,8 @@ void get_radiative_background(
                   {
                     Vector stokes_vec(stokes_dim);
                     mult( stokes_vec, 
-                       ground_refl_coeffs(ilos,iv,Range(joker),Range(joker)), 
-                                                   i_ground(iv,Range(joker)) );
+                       ground_refl_coeffs(ilos,iv,joker,joker), 
+                                                          i_ground(iv,joker) );
                     for( Index is=0; is < stokes_dim; is++ )
                       { i_rte(iv,is) += stokes_vec[is]; }
                   }
@@ -366,8 +366,8 @@ void ground_specular_los(
                                     z_ground, "z_ground", a_gp_lat, a_gp_lon );
 
       // Calculate ground slope (unit is m/deg).
-      Numeric slope = psurface_slope_2d( lat_grid, r_geoid(Range(joker),0), 
-                                z_ground(Range(joker),0), a_gp_lat, a_los[0] );
+      Numeric slope = psurface_slope_2d( lat_grid, r_geoid(joker,0), 
+                                       z_ground(joker,0), a_gp_lat, a_los[0] );
 
       // Calculate ground (angular) tilt (unit is deg).
       Numeric tilt = psurface_angletilt( r_ground, slope );

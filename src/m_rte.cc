@@ -140,7 +140,7 @@ void RteCalc(
         {
           // I could not get the compliler to accept a solution without dummy!!
           Vector dummy(z_field.npages());
-          dummy = z_field(Range(joker),row,col);
+          dummy = z_field(joker,row,col);
           ostringstream os;
           os << "z_field (for latitude nr " << row << " and longitude nr " 
              << col << ")";
@@ -263,7 +263,7 @@ void RteCalc(
               const Index  agenda_verb = iaa + iza + mblock_index;
 
               // LOS of interest
-              los     = sensor_los( mblock_index, Range(joker) );
+              los     = sensor_los( mblock_index, joker );
               los[0] += mblock_za_grid[iza];
               if( antenna_dim == 2 )
                 { los[1] += mblock_aa_grid[iaa]; }
@@ -273,7 +273,7 @@ void RteCalc(
                               atmosphere_dim, p_grid, lat_grid, lon_grid, 
                               z_field, t_field, r_geoid, z_ground,
                               cloudbox_on, cloudbox_limits, 
-                     sensor_pos(mblock_index,Range(joker)), los, agenda_verb );
+                     sensor_pos(mblock_index,joker), los, agenda_verb );
 
               // Determine the radiative background
               get_radiative_background( i_rte, ppath_step, 
@@ -291,7 +291,7 @@ void RteCalc(
               rte_agenda.execute( agenda_verb );
               
               // Copy i_rte to ib
-              ib(Range(nbdone,nf),Range(joker)) = i_rte;
+              ib(Range(nbdone,nf),joker) = i_rte;
             
               // Increase nbdone
               nbdone += nf;
@@ -300,7 +300,7 @@ void RteCalc(
 
       // Copy ib to y_rte
       // The matrix Hb shall be applied here
-      y_rte(Range(nydone,nblock),Range(joker)) = ib;
+      y_rte(Range(nydone,nblock),joker) = ib;
 
       // Increase nbdone
       nydone += nblock;
@@ -382,9 +382,9 @@ void RteEmissionStd(
       // 
       for( Index is=0; is<ns; is++ )
         {
-          interp_atmfield_by_itw( vmr_ppath(is, Range(joker)), atmosphere_dim,
+          interp_atmfield_by_itw( vmr_ppath(is, joker), atmosphere_dim,
                     p_grid, lat_grid, lon_grid, 
-                    vmr_field(is, Range(joker), Range(joker),  Range(joker)), 
+                    vmr_field(is, joker, joker,  joker), 
               "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
         }
       
@@ -480,7 +480,7 @@ void RteEmissionStd(
               assert (!is_singular( ext_mat_av ));   
 
               // Perform the RTE step.
-              rte_step( i_rte(iv, Range(joker)), ext_mat_av, abs_vec_av,
+              rte_step( i_rte(iv, joker), ext_mat_av, abs_vec_av,
                              sca_vec_dummy, ppath.l_step[ip-1], planck_value );
             }
         }
@@ -508,5 +508,5 @@ void yNoPolarisation(
 
   y.resize( y_rte.nrows() );
 
-  y = y_rte( Range(joker), 0 );
+  y = y_rte( joker, 0 );
 }

@@ -110,7 +110,7 @@ void a_posAddGeoidWGS84(
 
   // Use *sensor_posAddGeoidWGS84* to perform the calculations.
   Matrix m(1,a_pos.nelem());
-  m(0,Range(joker)) = a_pos;
+  m(0,joker) = a_pos;
   sensor_posAddGeoidWGS84( m, atmosphere_dim, latitude_1d, meridian_angle_1d);
   a_pos[0] = m(0,0);
 }
@@ -139,7 +139,7 @@ void a_posAddRgeoid(
 
   // Use *sensor_posAddRgeoid* to perform the calculations.
   Matrix m(1,a_pos.nelem());
-  m(0,Range(joker)) = a_pos;
+  m(0,joker) = a_pos;
   sensor_posAddRgeoid( m, atmosphere_dim, lat_grid, lon_grid, r_geoid );
   a_pos[0] = m(0,0);
 }
@@ -355,22 +355,20 @@ void ppath_stepGeometric(
   // here.
 
   if( atmosphere_dim == 1 )
-    { ppath_step_geom_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
-                                           r_geoid(0,0), z_ground(0,0), lmax );
-    }
+    { ppath_step_geom_1d( ppath_step, p_grid, z_field(joker,0,0), 
+                                         r_geoid(0,0), z_ground(0,0), lmax ); }
+
   else if( atmosphere_dim == 2 )
     { ppath_step_geom_2d( ppath_step, p_grid, lat_grid,
-             z_field(Range(joker),Range(joker),0), r_geoid(Range(joker),0), 
-                                              z_ground(Range(joker),0), lmax );
-    }
+         z_field(joker,joker,0), r_geoid(joker,0), z_ground(joker,0), lmax ); }
+
+
   else if( atmosphere_dim == 3 )
     { ppath_step_geom_3d( ppath_step, p_grid, lat_grid, lon_grid,
-                                            z_field, r_geoid, z_ground, lmax );
-    }
+                                          z_field, r_geoid, z_ground, lmax ); }
+
   else
-    {
-      throw runtime_error( "The atmospheric dimensionality must be 1-3." );
-    }
+    { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
 }
 
 
@@ -407,26 +405,22 @@ void ppath_stepRefractionEuler(
   assert( refrindex == "calc"  ||  refrindex == "interp" );
 
   if( atmosphere_dim == 1 )
-    { ppath_step_refr_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
-                   t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), 
-                                  "linear_euler", lraytrace, lmax, refrindex );
-    }
+    { ppath_step_refr_1d( ppath_step, p_grid, z_field(joker,0,0), 
+                   t_field(joker,0,0), r_geoid(0,0), z_ground(0,0), 
+                                "linear_euler", lraytrace, lmax, refrindex ); }
+
   else if( atmosphere_dim == 2 )
-    { ppath_step_refr_2d( ppath_step, p_grid, lat_grid,
-                       z_field(Range(joker),Range(joker),0), 
-                       t_field(Range(joker),Range(joker),0), 
-                       r_geoid(Range(joker),0), z_ground(Range(joker),0), 
-                                  "linear_euler", lraytrace, lmax, refrindex );
-    }
+    { ppath_step_refr_2d( ppath_step, p_grid, lat_grid, z_field(joker,joker,0),
+                 t_field(joker,joker,0), r_geoid(joker,0), z_ground(joker,0), 
+                                "linear_euler", lraytrace, lmax, refrindex ); }
+
   else if( atmosphere_dim == 3 )
-    { ppath_step_refr_3d( ppath_step, p_grid, lat_grid, lon_grid,
-                             z_field, t_field, r_geoid, z_ground, 
-                                  "linear_euler", lraytrace, lmax, refrindex );
-    }
+    { ppath_step_refr_3d( ppath_step, p_grid, lat_grid, lon_grid, z_field, 
+                                t_field, r_geoid, z_ground, 
+                                "linear_euler", lraytrace, lmax, refrindex ); }
+
   else
-    {
-      throw runtime_error( "The atmospheric dimensionality must be 1-3." );
-    }
+    { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
 }
 
 
@@ -509,7 +503,7 @@ void sensor_posAddGeoidWGS84(
       r_geoidWGS84( r, 1, lats, Vector(0), latitude_1d, meridian_angle_1d );
       
       // Add the geoid radius to the geometric altitudes
-      sensor_pos(Range(joker),0) += r(0,0);
+      sensor_pos(joker,0) += r(0,0);
     }
 
   else
@@ -571,19 +565,19 @@ void sensor_posAddRgeoid(
     throw runtime_error("The number of positions is 0, must be at least 1.");
 
   if( atmosphere_dim == 1 )
-    { sensor_pos(Range(joker),0) += r_geoid(0,0); }
+    { sensor_pos(joker,0) += r_geoid(0,0); }
 
   else
     {
       // Check that positions in sensor_pos are inside the lat and lon grids
-      if( min(sensor_pos(Range(joker),1)) < lat_grid[0]  || 
-                             max(sensor_pos(Range(joker),1)) > last(lat_grid) )
+      if( min(sensor_pos(joker,1)) < lat_grid[0]  || 
+                                    max(sensor_pos(joker,1)) > last(lat_grid) )
         throw runtime_error(
              "You have given a position with a latitude outside *lat_grid*." );
       if( atmosphere_dim == 3 )
         {
-          if( min(sensor_pos(Range(joker),2)) < lon_grid[0]  || 
-                            max(sensor_pos(Range(joker),2)) > last(lon_grid) )
+          if( min(sensor_pos(joker,2)) < lon_grid[0]  || 
+                                    max(sensor_pos(joker,2)) > last(lon_grid) )
             throw runtime_error(
             "You have given a position with a longitude outside *lon_grid*." );
         }
@@ -592,10 +586,10 @@ void sensor_posAddRgeoid(
         {
           ArrayOfGridPos gp(npos);
           Matrix itw(npos,2);
-          gridpos( gp, lat_grid, sensor_pos(Range(joker),1) );
+          gridpos( gp, lat_grid, sensor_pos(joker,1) );
           interpweights( itw, gp );
           Vector v_rgeoid(npos);
-          interp( v_rgeoid, itw, r_geoid(Range(joker),0), gp );
+          interp( v_rgeoid, itw, r_geoid(joker,0), gp );
           for( Index i=0; i<npos; i++ )
             { sensor_pos(i,0) += v_rgeoid[i]; } 
         }
@@ -603,8 +597,8 @@ void sensor_posAddRgeoid(
         {
           ArrayOfGridPos gp_lat(npos), gp_lon(npos);
           Matrix itw(npos,4);
-          gridpos( gp_lat, lat_grid, sensor_pos(Range(joker),1) );
-          gridpos( gp_lon, lon_grid, sensor_pos(Range(joker),2) );
+          gridpos( gp_lat, lat_grid, sensor_pos(joker,1) );
+          gridpos( gp_lon, lon_grid, sensor_pos(joker,2) );
           interpweights( itw, gp_lat, gp_lon );
           Vector v_rgeoid(npos);
           interp( v_rgeoid, itw, r_geoid, gp_lat, gp_lon );
