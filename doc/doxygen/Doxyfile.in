@@ -347,7 +347,7 @@ HTML_FOOTER           =
 # fine-tune the look of the HTML output. If the tag is left blank doxygen 
 # will generate a default style sheet 
 
-HTML_STYLESHEET       = 
+HTML_STYLESHEET       = doxygen.css
 
 # If the HTML_ALIGN_MEMBERS tag is set to YES, the members of classes, 
 # files or namespaces will be aligned in HTML using tables. If set to 
