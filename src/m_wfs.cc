@@ -38,6 +38,10 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#ifdef SUNOS
+# include <ieeefp.h>
+#endif
+
 #include <math.h>
 #include "arts.h"
 #include "auto_md.h"
@@ -1777,7 +1781,11 @@ void k_temp_nohydro (
             
 	    // The result for very small values can be NaN. So NaNs (and Infs)
 	    // are set to 0.
-            if ( isnan(k(iv0+iv,ip)) || isinf(k(iv0+iv,ip)) )
+#ifdef HPUX
+            if ( !isfinite(k(iv0+iv,ip)) )
+#else
+            if ( !finite(k(iv0+iv,ip)) )
+#endif
               k(iv0+iv,ip) = 0.0;
 
 	  }
@@ -1916,7 +1924,11 @@ void absloswfsCalc (
       for( icol=0; icol<ncol; icol++ )
       {
         w = absloswfs[im](irow,icol);
-        if ( isnan(w) || isinf(w) )
+#ifdef HPUX
+        if ( !isfinite(w) )
+#else
+        if ( !finite(w) )
+#endif
           absloswfs[im](irow,icol) = 0.0;
       }
     }
