@@ -820,77 +820,6 @@ wsv_data.push_back
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "surface_emission" ),
-       DESCRIPTION
-       (
-        "The emission from the surface at a specified position.\n"
-        "\n"
-        "See further *surface_agenda* and the user guide.\n"
-        "\n"
-        "Usage:      Output from *surface_agenda*.. \n"
-        "\n"
-        "Unit:       W / (m^2 Hz sr)\n"
-        "\n"
-        "Dimensions: [ f_grid, stokes_dim ]"
-        ), 
-       GROUP( Matrix_ )));
- 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "surface_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc."
-       ),
-      GROUP( Agenda_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_refl_coeffs" ),
-       DESCRIPTION
-       (
-        "The reflection coefficients from the directions given by\n"
-        "*surface_los* to the direction of interest.\n"
-        "\n"
-        "The rows and columns of this tensor holds the reflection\n"
-        "coefficient matrix for one frequency and one LOS. The reflection\n"
-        "coefficinets shall take into accound the angular weighting if the\n"
-        "downwelling radiation. For example, if the surface has isotropic\n"
-        "scattering, without absorbing and incoming radiation, and the\n"
-        "downwelling radiation is calculated at ten angles (i.e. the length\n"
-        "of *surface_los* is ten), the surface reflection coefficients \n"
-        "are 0.1.\n"
-        "\n"
-        "See further *surface_agenda* and the user guide.\n"
-        "\n"
-        "Usage:      Output from *surface_agenda*. \n"
-        "\n"
-        "Units:      -\n"
-        "\n"
-        "Dimensions: [ surface_los, f_grid, stokes_dim, stokes_dim ]"
-        ), 
-       GROUP( Tensor4_ )));
- 
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_los" ),
-       DESCRIPTION
-       (
-        "Directions for which to calculate downwelling radiation when \n"
-        "considerin g a surface reflection.\n"
-        "\n"
-        "See further *surface_agenda* and the user guide.\n"
-        "\n"
-        "Usage: Output from *surface_agenda*. \n"
-        "\n"
-        "Units: degrees\n"
-        "\n"
-        "Size:  [ any number, 1 or 2 ]"
-        ), 
-       GROUP( Matrix_ )));
-
-  wsv_data.push_back
-    (WsvRecord
      ( NAME( "i_montecarlo_error" ),
        DESCRIPTION
        (
@@ -2521,6 +2450,210 @@ wsv_data.push_back
        "Usage:      Calculated internally."
        ),
       GROUP( Vector_ )));
+ 
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "surface_agenda" ),
+	DESCRIPTION
+	(
+	 "See agendas.cc."
+	 ),
+	GROUP( Agenda_ )));
+   
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "surface_emission" ),
+	DESCRIPTION
+	(
+	 "The emission from the surface at a specified position.\n"
+	 "\n"
+	 "See further *surface_agenda* and the user guide.\n"
+	 "\n"
+	 "Usage:      Output from *surface_agenda*.. \n"
+	 "\n"
+	 "Unit:       W / (m^2 Hz sr)\n"
+	 "\n"
+	 "Dimensions: [ f_grid, stokes_dim ]"
+	 ), 
+	GROUP( Matrix_ )));
+   
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "surface_emission_field" ),
+	DESCRIPTION
+	(
+	 "The emission from the surface which is stored in latitude and \n"
+	 " longitude grids.\n"
+	 "\n"
+	 "An emissivity calculation using the method *surfaceFastem* \n"
+	 "calculates surface_emission_field at the same grid points as \n"
+	 "lat_grid and lon_grid. The surface_emission_field is then \n"
+	 "interpolated on to the grid crossing position using the \n"
+	 "method *surfaceInterpolate* to get value of *surface_emission*\n"
+	 "at a specified position. \n"
+	 "\n"
+	 "Usage:      Output from *surfaceFastem*. \n"
+	 "\n"
+	 "Unit:       W / (m^2 Hz sr)\n"
+	 "\n"
+	 "Dimensions: [lat_grid, lon_grid, f_grid, stokes_dim ]"
+	 ), 
+       GROUP( Tensor4_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_emissivity_field" ),
+       DESCRIPTION
+       (
+        "This variable holds the value of surface emissivity.\n"
+	"\n"
+        "This field is stored in a Tensor3 where the first two dimensions\n"
+        "holds the latitude and longitude grid and the third dimension holds\n"
+        "the value for each *stokes_dim*.  The surface_emissivity_field takes \n"
+        "values between 0 and 1. If only a prescribed value of surface \n"
+        "emissivity is to be used, then set the value accordingly, and use the method \n"
+        "*surfaceNoScatteringSingleEmissivity* in the *surface_agenda*. The value\n"
+        "of the field is set to -1 if one wants to calculate the surface emissivity \n"
+        "using FASTEM.  Accordingly, the method surfaceFastem has to be used in\n"
+	"*surface_agenda*\n"
+        "\n"
+	"Usage:    Set from the control file as a workspace variable. \n"
+        "\n"
+        "Units:      -\n"
+        "\n"
+        "Dimensions: [ lat_grid, lon_grid, stokes_dim ]"
+        ), 
+       GROUP( Tensor3_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_fastem_constants" ),
+       DESCRIPTION
+       (
+        "This variable holds some constant parameters used in fastem model.\n"
+	"\n"
+        "There are 59  ocean surface emissivity model constants that are \n"
+	"used in the fastem calculations.\n"
+        "\n"
+	"Usage:    Read in from file to be used as input for fastem calculations. \n"
+        "\n"
+        "Units:      -\n"
+        "\n"
+        "Size: [ 59 ]"
+        ), 
+       GROUP( Vector_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_los" ),
+       DESCRIPTION
+       (
+        "Directions for which to calculate downwelling radiation when \n"
+        "considerin g a surface reflection.\n"
+        "\n"
+        "See further *surface_agenda* and the user guide.\n"
+        "\n"
+        "Usage: Output from *surface_agenda*. \n"
+        "\n"
+        "Units: degrees\n"
+        "\n"
+        "Size:  [ any number, 1 or 2 ]"
+        ), 
+       GROUP( Matrix_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_refl_coeffs" ),
+       DESCRIPTION
+       (
+        "The reflection coefficients from the directions given by\n"
+        "*surface_los* to the direction of interest.\n"
+        "\n"
+        "The rows and columns of this tensor holds the reflection\n"
+        "coefficient matrix for one frequency and one LOS. The reflection\n"
+        "coefficinets shall take into accound the angular weighting if the\n"
+        "downwelling radiation. For example, if the surface has isotropic\n"
+        "scattering, without absorbing and incoming radiation, and the\n"
+        "downwelling radiation is calculated at ten angles (i.e. the length\n"
+        "of *surface_los* is ten), the surface reflection coefficients \n"
+        "are 0.1.\n"
+        "\n"
+        "See further *surface_agenda* and the user guide.\n"
+        "\n"
+        "Usage:      Output from *surface_agenda*. \n"
+        "\n"
+        "Units:      -\n"
+        "\n"
+        "Dimensions: [ surface_los, f_grid, stokes_dim, stokes_dim ]"
+        ), 
+       GROUP( Tensor4_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_refl_coeffs_field" ),
+       DESCRIPTION
+       (
+        "The reflection coefficients from the directions given by\n"
+        "*surface_los* to the direction of interest at the lat_grid\n"
+	"and lon_grid. \n"
+        "\n"
+        "The difference with *surface_refl_coeffs* is that, here the \n"
+        "coefficient matrix is held in latitude and longitude grid \n"
+        "positions whereas *surface_refl_coeffs* corresponds to only\n"
+        "a specific position. Like *surface_emission_field*, \n"
+	"*surface_refl_coeffs_field* can also be calculated using the \n"
+	"method *surfaceFastem*. The variable *surface_refl_coeffs_field*\n"
+        "is interpolated onto the specific grid crossing points using the\n"
+        "method *surfaceInterpolate*. \n"
+	"\n"
+        "See further *surface_refl_coeffs* and *surfaceInterpolate*.\n"
+        "\n"
+        "Usage:      Output from *surfaceFastem*. \n"
+        "\n"
+        "Units:      -\n"
+        "\n"
+        "Dimensions: [ lat_grid, lon_grid, surface_los, f_grid, stokes_dim, stokes_dim ]"
+        ), 
+       GROUP( Tensor6_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_temperature" ),
+       DESCRIPTION
+       (
+        "This variable holds the surface temperature values for all \n"
+	"latitude - longitude grid points. \n"
+	"\n"
+	"Usage:    Input to FASTEM calculations. Can be set from the control file \n"
+	"as a workspace variable. \n"
+        "\n"
+        "Units:      K"
+        "\n"
+        "Dimensions: [ lat_grid, lon_grid, 1 ]"
+        ), 
+       GROUP( Tensor3_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_wind_field" ),
+       DESCRIPTION
+       (
+        "This variable gives the u- and v- components of surface wind.\n"
+	"\n"
+        "This field is stored in a Tensor3 where the first two dimensions\n"
+        "holds the latitude and longitude grid and the third dimension holds\n"
+        "the value for u- and v- components respectively.  The  \n"
+        "surface_wind_field(lat_grid, lon_grid, 0) gives the u- component and  \n"
+        "surface_wind_field(lat_grid, lon_grid, 1) gives the v- component in m/s.\n"
+	"\n"
+	"Usage:    Input to FASTEM calculations. Can be set from the control file \n"
+	"as a workspace variable. \n"
+        "\n"
+        "Units:      m/s"
+        "\n"
+        "Dimensions: [ lat_grid, lon_grid, 2 ]"
+        ), 
+       GROUP( Tensor3_ )));
 
   wsv_data.push_back
    (WsvRecord

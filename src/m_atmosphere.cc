@@ -54,6 +54,7 @@
 #include "interpolation.h"
 #include "logic.h"
 #include "xml_io.h"
+#include "fastem.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -508,7 +509,6 @@ void AtmosphereSet3D(
 }
 
 
-
 //! surfaceNoScatteringSingleEmissivity
 /*!
    See the the online help (arts -d FUNCTION_NAME)
@@ -527,7 +527,7 @@ void surfaceNoScatteringSingleEmissivity(
         const GridPos&   rte_gp_lon,
         const Vector&    rte_los,
         const Index&     atmosphere_dim,
-        const Vector&    p_grid,
+	const Vector&    p_grid,
         const Vector&    lat_grid,
         const Vector&    lon_grid,
         const Matrix&    r_geoid,
@@ -598,6 +598,99 @@ void surfaceNoScatteringSingleEmissivity(
            << surface_los(0,1) << "\n";
     }
 }
+
+
+//! surfaceFastem
+/*!
+  The method decides whether to use *surfaceNoScatteringSingleEmissivity* or 
+  *surfaceFastem*. If *surfaceFastem*, then calculates surface emissivity using
+  fastem model implementation.
+  The decision whether to use *surfaceNoScatteringSingleEmissivity* or
+  *surfaceFastem* is made based on the value of the first element of 
+  *surface_emissivity_field*. If this value is set to be between 0 and 1
+  *surface_emissivity_field* will be returned with the same value.  If this 
+  value is -1 *surfaceFastem* will calculate the emissivity based on the 
+  fastem model implementation in ARTS. The output of this function is 
+  *surface_emission_field* and *surface_refl_coeffs_field+ stored in the
+  latitude and longitude grid points. 
+  
+
+   \author Sreerekha Ravi
+   \date   2004-08-10
+*/
+
+void surfaceFastem(
+		     Tensor3&   surface_emissivity_field,
+		   Tensor4&    surface_emission_field, 
+		   Tensor6&   surface_refl_coeffs_field,
+		   const Vector&    f_grid,
+		   const Index&     stokes_dim,
+		   const Index&     atmosphere_dim,
+		   const Vector&    p_grid,
+		   const Vector&    lat_grid,
+		   const Vector&    lon_grid,
+		   const Matrix&    r_geoid,
+		   const Matrix&    z_surface,
+		   const Tensor3&   t_field,
+		   const Vector& surface_fastem_constants,		   
+		   const Tensor3&   surface_wind_field,
+		   const Tensor3&   surface_temperature)
+{
+  //--- Check input -----------------------------------------------------------
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
+  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid ); 
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+  //-----------------------------------------------------------------------------
+   const Index   nf = f_grid.nelem();
+   
+   surface_emission_field.resize(lat_grid.nelem(), lon_grid.nelem(), 
+				 f_grid.nelem(), stokes_dim);
+   surface_refl_coeffs_field.resize(lat_grid.nelem(), lon_grid.nelem(), 
+				    1, f_grid.nelem(),  stokes_dim, stokes_dim);
+   
+   if (surface_emissivity_field(0, 0, 0) >= 0||
+       surface_emissivity_field(0, 0, 0) <= 1.0)
+     {
+       return;
+     }
+   else
+     if (surface_emissivity_field(0, 0, 0) == -1)
+       {
+	 //call FASTEM functions for each latitude and longitude grid
+	 //points 
+	 for (Index lat_ind = 0; lat_ind < lat_grid.nelem(); ++ lat_ind)
+	   {
+	     for (Index lon_ind = 0; lon_ind < lon_grid.nelem(); ++ lon_ind)
+	       {
+		 		 
+		 for( Index i=0; i<nf; i++ )
+		   { 
+		     //Calculate surf_emis_field using fastem
+		     fastem(surface_emissivity_field(lat_ind, lon_ind, joker),
+			    surface_temperature(lat_ind, lon_ind, 0),
+			    surface_wind_field(lat_ind, lon_ind, joker) , 
+			    surface_fastem_constants, f_grid[i]);
+		     
+		     //Calculate emission by multiplying surface
+		     //emissivity with surface temperature.
+		     surface_emission_field(lat_ind, lon_ind, i, joker) = 
+		       surface_emissivity_field(lat_ind, lon_ind, joker) *
+		       planck( f_grid[i], surface_temperature (lat_ind, lon_ind, 0) ); 
+		     
+		     for( Index is=0; is<stokes_dim; is++ )
+		       { 
+			 surface_refl_coeffs_field(lat_ind, lon_ind, 0,i,is,is) = 
+			   1 - surface_emission_field(lat_ind, lon_ind, i, is);
+		       } //stokes_dim
+		   }//frequency grid
+	       }//lon grid
+	   }//lat_grid
+       }// if fastem
+}// end of function
 
 
 

@@ -2053,74 +2053,6 @@ md_data_raw.push_back
         TYPES(Index_t, Index_t)));
 
 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("surfaceNoScatteringSingleEmissivity"),
-        DESCRIPTION
-        (
-         "Treats the surface to not cause any scattering, and to have a\n"
-         "reflection coefficient of 1-e. \n"
-         "\n"
-         "The size of *surface_emission* is set to [ nf, stokes_dim ] where \n"
-         "nf is the length of *f_grid*. Columns 2-4 are set to zero.\n"
-         "The temperature of the surface is obtained by interpolating \n"
-         "*t_field* to the position of the surface reflection. The obtained \n"
-         "temperature and *f_grid* are then used as input to the Planck\n"
-         "function. The emission from the surface is then calculated as eB,\n"
-         "where B is the Planck function.\n"
-         "\n"
-         "It is here assumed that the downwelling radiation to consider\n"
-         "comes from a single direction and the returned *surface_los*\n"
-         "contains only one LOS. The slope of the surface is considered\n"
-         "when calculating the LOS for the downwelling radiation. The\n"
-         "reflection matrices in *surface_refl_coeffs* are all set to be\n"
-         "diagonal matrices, where all diagonal elements are 1-e.\n"
-         "\n"
-         "Keywords: \n"
-         "   e : Surface emissivity. Must be a value in the range [0,1].\n"
-         "       All frequencies are assumed to have the same e."
-        ),
-        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_ ),
-        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
-               rte_los_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               r_geoid_,z_surface_, t_field_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS(    "e"    ),
-        TYPES(    Numeric_t )));
- 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("surfaceTreatAsBlackbody"),
-        DESCRIPTION
-        (
-         "Sets the surface variables (see below) to model a blackbdoy surface.\n"
-         "\n"
-         "The function creates the variables *surface_emission*, *surface_los*\n"
-         "and *surface_refl_coeffs*. When the surface is treated to act as a\n"
-         "blackbody, no downwelling radiation needs to be calculated and\n"
-         "*surface_los* and *surface_refl_coeffs* are set to be empty.\n"
-         "\n"
-         "The size of *surface_emission* is set to [ nf, stokes_dim ] where \n"
-         "nf is the length of *f_grid*. Columns 2-4 are set to zero.\n"
-         "\n"
-         "The temperature of the surface is obtained by interpolating \n"
-         "*t_field* to the position of the surface reflection. The obtained \n"
-         "temperature and *f_grid* are then used as input to the Planck\n"
-         "function and the calculated blackbody radiation is put into the\n"
-         "first column of *surface_emission*.\n"
-         "\n"
-         "Note that this function does not use *rte_los*, *r_geoid* and\n"
-         "*z_surface* as input, and if used inside *surface_agenda*,\n"
-         "ignore commands for those variables must be added to the agenda."
-        ),
-        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_ ),
-        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_,
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3886,6 +3818,103 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "text"   ),
         TYPES(    String_t )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("surfaceFastem"),
+        DESCRIPTION
+        (
+         "The method decides whether to use *surfaceNoScatteringSingleEmissivity* or \n"
+         "*surfaceFastem*. If *surfaceFastem*, then calculates surface emissivity using\n"
+	 "fastem model implementation.\n"
+         "\n"
+         "The decision whether to use *surfaceNoScatteringSingleEmissivity* or\n"
+	 "*surfaceFastem* is made based on the value of the first element of \n"
+         "surface_emissivity_field. If this value is set to be between 0 and 1\n"
+	 "*surface_emissivity_field* will be returned with the same value.  If this \n"
+         "value is -1 *surfaceFastem* will calculate the emissivity based on the \n"
+	 "fastem model implementation in ARTS. The output of this function is \n"
+	 "*surface_emission_field* and *surface_refl_coeffs_field* stored in the\n"
+         "latitude and longitude grid points. \n"
+	 ),
+        OUTPUT( surface_emissivity_field_, surface_emission_field_,
+		surface_refl_coeffs_field_),
+        INPUT( surface_emissivity_field_, f_grid_, stokes_dim_, atmosphere_dim_, p_grid_,
+	       lat_grid_, lon_grid_, r_geoid_,z_surface_, t_field_, surface_fastem_constants_,
+	       surface_wind_field_, surface_temperature_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+ 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("surfaceNoScatteringSingleEmissivity"),
+        DESCRIPTION
+        (
+         "Treats the surface to not cause any scattering, and to have a\n"
+         "reflection coefficient of 1-e. \n"
+         "\n"
+         "The size of *surface_emission* is set to [ nf, stokes_dim ] where \n"
+         "nf is the length of *f_grid*. Columns 2-4 are set to zero.\n"
+         "The temperature of the surface is obtained by interpolating \n"
+         "*t_field* to the position of the surface reflection. The obtained \n"
+         "temperature and *f_grid* are then used as input to the Planck\n"
+         "function. The emission from the surface is then calculated as eB,\n"
+         "where B is the Planck function.\n"
+         "\n"
+         "It is here assumed that the downwelling radiation to consider\n"
+         "comes from a single direction and the returned *surface_los*\n"
+         "contains only one LOS. The slope of the surface is considered\n"
+         "when calculating the LOS for the downwelling radiation. The\n"
+         "reflection matrices in *surface_refl_coeffs* are all set to be\n"
+         "diagonal matrices, where all diagonal elements are 1-e.\n"
+         "\n"
+         "Keywords: \n"
+         "   e : Surface emissivity. Must be a value in the range [0,1].\n"
+         "       All frequencies are assumed to have the same e."
+        ),
+        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_ ),
+        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
+               rte_los_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+               r_geoid_,z_surface_, t_field_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS(    "e"    ),
+        TYPES(    Numeric_t )));
+  
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("surfaceTreatAsBlackbody"),
+        DESCRIPTION
+        (
+         "Sets the surface variables (see below) to model a blackbdoy surface.\n"
+         "\n"
+         "The function creates the variables *surface_emission*, *surface_los*\n"
+         "and *surface_refl_coeffs*. When the surface is treated to act as a\n"
+         "blackbody, no downwelling radiation needs to be calculated and\n"
+         "*surface_los* and *surface_refl_coeffs* are set to be empty.\n"
+         "\n"
+         "The size of *surface_emission* is set to [ nf, stokes_dim ] where \n"
+         "nf is the length of *f_grid*. Columns 2-4 are set to zero.\n"
+         "\n"
+         "The temperature of the surface is obtained by interpolating \n"
+         "*t_field* to the position of the surface reflection. The obtained \n"
+         "temperature and *f_grid* are then used as input to the Planck\n"
+         "function and the calculated blackbody radiation is put into the\n"
+         "first column of *surface_emission*.\n"
+         "\n"
+         "Note that this function does not use *rte_los*, *r_geoid* and\n"
+         "*z_surface* as input, and if used inside *surface_agenda*,\n"
+         "ignore commands for those variables must be added to the agenda."
+        ),
+        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_ ),
+        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_,
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord

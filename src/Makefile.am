@@ -38,6 +38,8 @@ arts_SOURCES = \
 	complex.cc \
 	constants.cc \
 	exceptions.h \
+	fastem.cc \
+	fastem.h \
 	file.cc \
 	file.h \
 	geomag_calc.cc \

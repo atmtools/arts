@@ -1,3 +1,30 @@
+2004-08-12  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-857
+	
+	* src/m_atmosphere.cc (surfaceFastem): First implementation of
+	Fastem emissivity model. This method is not tested and would need
+	modifications.
+
+	* src/fastem.cc : The core fastem calculations are done here.
+
+	* src/fastem.cc (fastem): The function which contains the fastem
+	model. 
+
+	* src/fastem.h: Added.
+
+	* src/Makefile.am: Added fastem.cc and fastem.h.
+
+	* src/methods.cc: Added the method (surfaceFastem).  The surface
+	methods are moved to their right place after renaming them from
+	ground_xxx.
+
+	* srf/workspace.cc:  Added new workspace variables for
+	surface. They are *surface_emissivity_field*,
+	*surface_wind_field*, *surface_temperature*,
+	*surface_emission_field*, *surface_refl_coeffs_field*,
+	*surface_fastem_constants*. 	
+
 2004-08-12  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 	
 	* arts-1-1-856
