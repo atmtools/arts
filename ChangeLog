@@ -1,3 +1,16 @@
+2001-03-01  Wolfram Haas  <wolhaas@hermes.fho-emden.de>
+
+	* arts-0-0-133
+
+	* read_datafile.pro: Keyword changed ('check' instead of
+	                                      'optimize').
+	* read_artsvar.pro: Keyword changed ('check' instead of
+	                                     'optimize').
+	* write_datafile.pro: Unnecessary 'print'-command removed.
+
+	* utilities.tex: Upgrading of the description.
+	
+
 2001-02-26  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-132
@@ -15,7 +28,6 @@
 
 	* The text for continuum absorption changed.
 
-	
 
 2001-02-23  Patrick Eriksson  <patrick@rss.chalmers.se>
 
@@ -37,6 +49,7 @@
 	* math_funcs.h: output error corrected
 
 	* aii_klegend_d.pro: klegend_d file, needed in plot_abs_per_tg.pro
+
 
 2001-02-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
@@ -133,6 +146,7 @@
 
 	* lineshape cutoff seems to work
 	
+
 2001-02-14  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-123

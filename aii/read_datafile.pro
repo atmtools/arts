@@ -5,21 +5,20 @@
 ;
 ;           The data is returned as an array or a structure of arrays.
 ;           For example, to get matrix 2, type
-;              m = x.mat2
+;              m = x.mat1
 ;
 ;
-; Format:   x = read_datafile(filename [, /optimize])
+; Format:   x = read_datafile(filename [, /check])
 ;
 ; Inputs:   filename      full file name
-; Optional: optimize      Keyword to accelerate reading in
+; Optional: check         Keyword to check the data
 ;
 ; Output:   x             the data  
 ;
-; History:  13.11.00  Wolfram Haas
-;           25.01.01  Axel von Engeln: changed matrix index from 1 to 0
+; History:  28.02.00  Wolfram Haas
 ;******************************************************************************
 
-FUNCTION read_datafile, filename, optimize = optimize
+FUNCTION read_datafile, filename, check = check
 
 ; Open file for reading
 openr, unit, filename, error = err, /get_lun
@@ -78,10 +77,7 @@ FOR i = 0, nmat - 1 DO BEGIN
   reads, s, j, k
   nrow(i) = j & ncol(i) = k
 
-  IF keyword_set(optimize) THEN BEGIN
-    mat = dblarr(k, j)
-    readf, unit, mat
-  ENDIF ELSE BEGIN
+  IF keyword_set(check) THEN BEGIN
     sa = strarr(k, j)
 
     ; Read the matrix row by row
@@ -111,6 +107,9 @@ FOR i = 0, nmat - 1 DO BEGIN
     mat = dblarr(k, j)
 
     mat(*, *) = sa(*, *)
+  ENDIF ELSE BEGIN
+    mat = dblarr(k, j)
+    readf, unit, mat
   ENDELSE
  
   pa(i) = ptr_new(mat)                     ; returns a pointer to pa(i)
@@ -120,9 +119,9 @@ IF nmat EQ 1 THEN mat = *pa(0) ELSE BEGIN  ; create structure
   s1 = 'mat = {' & s2 = ''
   FOR i = 0, nmat - 1 DO BEGIN
     s1 = s1 + 'mat' + string(i, format = '(I0)') $
-            + ': dblarr(' + string(ncol(i), format = '(I0)') + ', ' $      
+            + ': dblarr(' + string(ncol(i), format = '(I0)') + ', ' $
                           + string(nrow(i), format = '(I0)') + '), '
-    s2 = s2 + 'mat.mat' + string(i, format = '(I0)') $ 
+    s2 = s2 + 'mat.mat' + string(i, format = '(I0)') $
             + ' = *pa(' + string(i, format = '(I0)') + ') & '
   ENDFOR
   s1 = strmid(s1, 0, strlen(s1) - 2) + '}'
@@ -153,5 +152,3 @@ free_lun, unit
 RETURN, mat
 
 END
-
-

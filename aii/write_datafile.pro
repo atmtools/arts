@@ -17,7 +17,7 @@
 ;                             
 ; Output:   -
 ;
-; History:  13.11.00  Wolfram Haas
+; History:  28.02.01  Wolfram Haas
 ;******************************************************************************
 
 PRO write_mat, unit, x, prec
@@ -79,7 +79,6 @@ printf, unit, '# This file is created by IDL.'
 ; Write the data
 
 v = size(x) & ndim = v(0) & type = v(2)
-print, v
 
 IF ndim EQ 1 AND type EQ 8 THEN BEGIN     ; x is a structure of arrays
   nmat = n_tags(x)
@@ -117,4 +116,3 @@ ENDELSE
 ; Close the file
 free_lun, unit
 END
-

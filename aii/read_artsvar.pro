@@ -8,24 +8,25 @@
 ;
 ;           See further read_datafile.
 ;
-; Format:   x = read_artsvar(basename, varname [, /optimize])
+; Format:   x = read_artsvar(basename, varname [, /check])
 ;
 ;
 ; Inputs:   basename    the ARTS basename 
 ;           varname     variable name
-; Optional: optimize    Keyword to accelerate reading in
+; Optional: check       Keyword to check the data
 ;
 ; Output:   x           the data
 ;
-; History:  13.11.00  Wolfram Haas
+; History:  28.02.01  Wolfram Haas
 ;******************************************************************************
 
-FUNCTION read_artsvar, basename, varname, optimize = optimize
+FUNCTION read_artsvar, basename, varname, check = check
 
 ; Create full file name
 name = basename + '.' + varname + '.aa'
 
 ; Read the data by using read_datafile
-RETURN, read_datafile(name, /optimize)
+IF keyword_set(check) THEN RETURN, read_datafile(name, /check) $
+                      ELSE RETURN, read_datafile(name)
 
 END
