@@ -42,6 +42,8 @@
 
 #include <stdexcept>
 #include <cstdlib>
+#include <cmath>
+
 #include "arts.h"
 #include "array.h"
 #include "auto_md.h"
@@ -2093,7 +2095,7 @@ void ybatchMetProfiles(//Output
 	  lat_prec--;
 	  if(abs(lat[i])>=100 ) lat_prec--;
 	}
-      lat_os<<showpoint<<fixed<<setprecision(lat_prec)<<lat[i];
+      lat_os<<ios::showpoint<<ios::fixed<<setprecision(lat_prec)<<lat[i];
       
       Index lon_prec = 4;
       if(lon[i] < 0) lon_prec--;
@@ -2102,7 +2104,7 @@ void ybatchMetProfiles(//Output
 	  lon_prec--;
 	  if(abs(lon[i])>=100 ) lon_prec--;
 	}
-      lon_os<<showpoint<<fixed<<setprecision(lon_prec)<<lon[i];
+      lon_os<<ios::showpoint<<ios::fixed<<setprecision(lon_prec)<<lon[i];
       cout<<lat_os.str()<<endl;
       cout<<lon_os.str()<<endl;
       sat_za = sat_za_from_profile[i];
