@@ -1,3 +1,13 @@
+2002-11-15  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-290
+
+	* src/gas_abs_lookup.h: Continued to work on the structure of the table.
+
+	* src/gas_abs_lookup.cc: Continued to work on the extraction function.
+
+	* src/xml_io.cc: Adaptations to changed lookup table structure.
+
 2002-11-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-289

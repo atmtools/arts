@@ -22,13 +22,26 @@ public:
   void Adapt();
 
   // Documentation is with the implementation!
-  void Extract( Tensor3 sga,
-		ConstVectorView& p,
-		ConstVectorView& T);
+  void GasAbsLookup::Extract( VectorView sga,
+                              Index      f_index,
+                              Numeric    p,
+                              Numeric    T,
+                              VectorView vmrs );
+
+  // Documentation is with the implementation!
+  void Extract( Tensor3View     sga,
+		ConstVectorView p,
+		ConstVectorView T);
 //private:
 
-  //! This contains the tag groups for which the table is valid:
-  ArrayOfArrayOfSpeciesTag gas_tgs; 
+  //! The species tags for which the table is valid.
+  ArrayOfArrayOfSpeciesTag species; 
+
+  //! The species tags with non-linear treatment.
+  /*! This must be inside the range of species. If nonlinear_species
+    is an empty vector, it means that all species should be treated
+    linearly. (No absorption for perturbed species profiles is stored.) */
+  ArrayOfIndex nonlinear_species; 
 
   //! The frequency grid [Hz].
   /*! Must be sorted in ascending order. */
@@ -44,15 +57,15 @@ public:
     vertical interpolation should be linear in log(p). */
   Vector   log_p_grid;  
 
-  //! The VMR profiles.
+  //! The reference VMR profiles.
   /*! The VMRs for all species, associated with p_grid. Dimension:
-    [N_gas_tgs, N_p_grid]. These VMRs are needed to scale the
+    [n_species, n_p_grid]. These VMRs are needed to scale the
     absorption coefficient to other VMRs. We are never working with
     "absorption cross-sections", always with real absorption coefficients,
     so we have to remember the associated VMR values. 
 
     Physical unit: Absolute value. */
-  Matrix    vmrs;
+  Matrix    vmrs_ref;
 
   //! The reference temperature profile [K].
   /*! This is a temperature profile. The dimension must be the same as
@@ -73,29 +86,49 @@ public:
     t_pert. */
   Vector    t_pert;
 
-  //! The vector of H2O VMR perturbations.
-  /*! This can hold perturbations for the H2O profile, in analogy to
-    t_pert. Fractional units are used! Example: [0,.5,1,10,100],
-    meaning from H2O VMR 0 to 100 times the H2O profile given in
+  //! The vector of perturbations for the VMRs of the nonlinear species.
+  /*!
+    These apply to all the species that have been set as
+    nonlinear_species.
+
+    Fractional units are used! Example: [0,.5,1,10,100],
+    meaning from VMR 0 to 100 times the profile given in
     vmrs. The reference value should normally be included, hence
-    h2o_pert should always include the value 1.
+    nls_pert should always include the value 1.
 
-    The vector h2o_pert may be an empty vector (nelem()=0), in which
-    case H2O is treated like all other gases. As in the case of
-    temperature, you cannot extract absorption for H2O VMR values
-    outside h2o_pert, if h2o_pert is not empty.
-
-    Per definition, h2o_pert refers to the first H2O tag in gas_tgs,
-    should there be more than one. If there is no H2O tag in gas_tgs,
-    h2o_pert must be an empty vector.*/
-  Vector    h2o_pert;
+    If nonlinear_species is an empty vector, it means that there are
+    no nonlinear species. Then nls_pert must also be an empty vector.
+  */
+  Vector    nls_pert;
 
   //! Absorption coefficients.
-  /*! Physical unit: 1/m
-    Dimension: [ N_gas_tgs (N_gas_tgs+N_h2o_pert-1 if special treatment for H2O),<br>
-    N_t_pert (or 1 if N_t_pert=0),<br>
-    N_p_grid,<br>
-    N_f_grid] */
+  /*!
+    Physical unit: 1/m
+
+    Dimension: [ a, b, c, d ]
+
+    Simplest case (no temperature perturbations, no vmr perturbations): <br>
+    a = 1 <br>
+    b = n_species <br>
+    c = n_f_grid <br>
+    d = n_p_grid <br>
+
+    Standard case (temperature perturbations, but no vmr perturbations): <br>
+    a = n_t_pert <br>
+    b = n_species <br>
+    c = n_f_grid <br>
+    d = n_p_grid <br>
+
+    Full case (with temperature perturbations and vmr perturbations): <br>
+    a = n_t_pert <br>
+    b = n_species + n_nonlinear_species * ( n_nls_pert - 1 ) <br>
+    c = n_f_grid <br>
+    d = n_p_grid <br>
+
+    Note that the last three dimensions are identical to the
+    dimensions of abs_per_tg in ARTS-1-0. This should simplify
+    computation of the lookup table with this old ARTS version.
+  */
   Tensor4 abs;
 
 };

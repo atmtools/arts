@@ -1490,13 +1490,13 @@ xml_read_from_stream (istream&      is,
   tag.read_from_stream (is);
   tag.check_name ("GasAbsLookup");
 
-  xml_read_from_stream (is, gal.gas_tgs);
+  xml_read_from_stream (is, gal.species);
   xml_read_from_stream (is, gal.f_grid);
   xml_read_from_stream (is, gal.p_grid);
-  xml_read_from_stream (is, gal.vmrs);
+  xml_read_from_stream (is, gal.vmrs_ref);
   xml_read_from_stream (is, gal.t_ref);
   xml_read_from_stream (is, gal.t_pert);
-  xml_read_from_stream (is, gal.h2o_pert);
+  xml_read_from_stream (is, gal.nls_pert);
   xml_read_from_stream (is, gal.abs);
 
   tag.read_from_stream (is);
@@ -1519,13 +1519,13 @@ xml_write_to_stream (ostream&            os,
   open_tag.set_name ("GasAbsLookup");
   open_tag.write_to_stream (os);
 
-  xml_write_to_stream (os, gal.gas_tgs);
+  xml_write_to_stream (os, gal.species);
   xml_write_to_stream (os, gal.f_grid);
   xml_write_to_stream (os, gal.p_grid);
-  xml_write_to_stream (os, gal.vmrs);
+  xml_write_to_stream (os, gal.vmrs_ref);
   xml_write_to_stream (os, gal.t_ref);
   xml_write_to_stream (os, gal.t_pert);
-  xml_write_to_stream (os, gal.h2o_pert);
+  xml_write_to_stream (os, gal.nls_pert);
   xml_write_to_stream (os, gal.abs);
 
   close_tag.set_name ("/GasAbsLookup");
