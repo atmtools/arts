@@ -1,6 +1,13 @@
+2003-07-28  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-622
+
+	* src/rng.cc (rng::seed):  temporarily enabled output of random number
+	generator seed for use in debugging
+
 2003-07-28  Cory Davis <cory@met.ed.ac.uk>
 	
-	* arts-1-1-620
+	* arts-1-1-621
 
 	* src/methods.cc: added control parameter "silent" to ScatteringMonteCarlo WSM.
 	This disables/enables iterative output.

@@ -719,7 +719,7 @@ void test37(const Index& i)
   v1 /= i;
   v2 /=(Numeric) i;
   cout.precision(12);
-  cout.setf(ios_base::scientific,ios_base::floatfield);
+  //  cout.setf(ios_base::scientific,ios_base::floatfield);
   v1*=v1;
   v2*=v2;  
 cout << v1 << endl;
