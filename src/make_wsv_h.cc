@@ -17,10 +17,10 @@
 
 /*!
   \file   make_wsv_h.cc
-  \brief  Generates the file wsv.h.
+  \brief  Generates the file auto_wsv.h.
 
   This is a little C++ program that generates the header file from the
-  workspace data in workspace.cc. The file wsv.h declares the enum
+  workspace data in workspace.cc. The file auto_wsv.h declares the enum
   type that is used to access the workspace data.
 
   \author Stefan Buehler
@@ -32,7 +32,7 @@
 #include "file.h"
 #include "absorption.h"
 #include "los.h"
-#include "wsv_groups.h"
+#include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 
 int main()
@@ -52,10 +52,10 @@ int main()
       //      cout << "size = " << wsv_data.size() << '\n';
 
       ofstream ofs,ofs2;
-      open_output_file(ofs,"wsv.h");
+      open_output_file(ofs,"auto_wsv.h");
       open_output_file(ofs2,"wsv.txt");
 
-      ofs << "/*! \\file  wsv.h\n"
+      ofs << "/*! \\file  auto_wsv.h\n"
 	  << "    \\brief Declares the enum type that acts as a\n"
 	  << "    handle for workspace variables. Also declares the\n"
 	  << "    workspace itself.\n\n"
@@ -68,13 +68,13 @@ int main()
 	  << __DATE__ << ", "
 	  << __TIME__ << " */\n\n";
 
-      ofs << "#ifndef wsv_h\n";
-      ofs << "#define wsv_h\n\n";
+      ofs << "#ifndef auto_wsv_h\n";
+      ofs << "#define auto_wsv_h\n\n";
 
       ofs << "#include \"arts.h\"\n"
 	  << "#include \"absorption.h\"\n"
 	  << "#include \"los.h\"\n"
-	  << "#include \"wsv_groups.h\"\n"
+	  << "#include \"auto_wsv_groups.h\"\n"
 	  << "#include \"wsv_aux.h\"\n\n";
 
       
@@ -147,7 +147,7 @@ int main()
 	}
       ofs << "};\n\n";
 
-      ofs << "#endif  // wsv_h\n";
+      ofs << "#endif  // auto_wsv_h\n";
 
       // Write text information file
       // If you make changes here for the "VARIABLE" and "DATA TYPE" rows,
