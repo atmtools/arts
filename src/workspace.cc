@@ -721,6 +721,24 @@ void define_wsv_data()
        ),
       GROUP( Tensor6_ )));
 
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "i_field_Tb" ), 
+       DESCRIPTION
+      (
+       "The *i_field* expressed in brightness temperature units.\n"
+       "\n"
+       "Usage: Input to i_fieldtoTb. \n"    
+       "\n"
+       "Unit: Kelvin.\n"
+       "\n"
+       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+       "        N_za, N_aa, N_i ]"
+       ),
+       GROUP( Tensor6_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "i_rte" ),

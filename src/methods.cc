@@ -967,6 +967,7 @@ void define_md_data_raw()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
  md_data_raw.push_back
     ( MdRecord
       ( NAME( "i_fieldSet" ),
@@ -995,6 +996,22 @@ void define_md_data_raw()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "i_fieldtoTb" ),
+	DESCRIPTION
+        (
+	 "Converts *i_field* in radiance units to brightness temperature \n"
+	 "units \n"
+	 ),
+	OUTPUT(i_field_Tb_),
+	INPUT( f_grid_, scat_f_index_, i_field_, atmosphere_dim_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
  md_data_raw.push_back
     ( MdRecord
       ( NAME( "i_fieldUpdate1D" ),
@@ -1011,7 +1028,7 @@ void define_md_data_raw()
                scat_p_index_),
 	INPUT(ext_mat_agenda_, abs_vec_agenda_, ppath_step_agenda_,
               scat_rte_agenda_, amp_mat_, scat_field_, cloudbox_limits_,
-              scat_za_grid_, scat_aa_grid_, p_grid_, t_field_, z_field_, //scat_aa_grid by STR
+              scat_za_grid_, scat_aa_grid_, p_grid_, t_field_, z_field_, 
               r_geoid_, f_grid_, scat_f_index_, 
 	      pnd_field_, stokes_dim_, atmosphere_dim_, part_types_,
               pha_mat_spt_),

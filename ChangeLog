@@ -1,3 +1,35 @@
+2002-08-19  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-207
+	
+	* src/m_scatrte.cc (i_fieldtoTb): This method converts the i_field
+	in radiance units to Planck brightness temperature.  This uses the
+	function *invplanck* in physics_funcs.cc 
+
+	* src/methods.cc : Added the method i_fieldtoTb.
+
+	* src/workspace.cc : Added the workspace variable i_field_Tb.
+
+	* doc/examples/clearskyfield.xml : This is an example file added
+	to give realistic input to the interface at cloudbox boundaries.
+	This is created from ARTS.1.0.  The boundaries in pressure
+	altitudes are 360 hPa and 280 hPa.
+
+	* doc/examples/i_field_example.arts.in : The cloudbox boundary is
+	changed to 360 hPa and 280 hPa. The example can now read the
+	interface field from the above file.  The pnd_field is changed
+	from 1 to a more realistic value 1297m^(-3).  The example file was
+	giving a decent output until the last update.  After the last
+	update the i_field is giving 0 and nan at some places because of
+	which I cannot run this example.  But for having a look at the
+	initial result I have a copy of the result in my smiles_local
+	which I can add to the repositary which can be removed later.  
+
+	* doc/examples/i_field_example.i_field_Tb.xml : This is the
+	i_field in brightness temperature unit for 4 pressure grids(2 at
+	cloudbox boundary and 2 inside the cloud box) inside
+	the cloudbox. 
+
 2002-08-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-206	

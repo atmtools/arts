@@ -447,6 +447,51 @@ i_fieldIterate(
   }//end of while loop, convergence is reached.
 }
 
+//! Method converts i_field in radiance unit to brightness temperature unit
+/*! 
+  
+\param i_field_Tb i_field in brightness temperature units
+\param f_grid frequency grid
+\param scat_f_index frequency index
+\param i_field intensity field in the scattering box
+\param atmosphere_dim atmospheric dimension
+*/
+void
+i_fieldtoTb(// WS Output:
+	    Tensor6& i_field_Tb,
+	    // WS Input:
+	    const Vector& f_grid,
+	    const Index& scat_f_index,
+	    const Tensor6& i_field,
+	    const Index& atmosphere_dim)
+  
+{
+  Numeric f = f_grid[scat_f_index];
+  //  i_field_Tb has same dimension as i_field
+  i_field_Tb.resize(i_field.nvitrines(),
+		    i_field.nshelves(),
+		    i_field.nbooks(),
+		    i_field.npages(),
+		    i_field.nrows(),
+		    i_field.ncols());
+  //now implemented only when atmosphere_dim = 1
+  if(atmosphere_dim == 1)
+    {
+      for (Index i = 0; i < i_field.nvitrines(); ++ i)
+	{
+	  for (Index l = 0; l < i_field.npages(); ++ l)
+	    {
+	      for (Index n = 0; n < i_field.ncols(); ++ n)
+		{
+		  // invplanck is a function in phhysics_funcs.cc
+		  i_field_Tb ( i, 0, 0, l, 0, n )
+		    = invplanck( i_field ( i, 0, 0, l, 0, n ), f);
+		} 
+	    } 
+	}  
+    } 
+  
+}
 
 
 //! 1D RT calculation inside the cloud box.
@@ -876,6 +921,7 @@ i_fieldUpdate1D(// WS Output:
       
         } //Closes loop over p_grid.
     } //Closes loop over scat_za_index.
+ 
 } // End of the function.
 
 
