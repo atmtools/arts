@@ -391,7 +391,9 @@ i_fieldIterate(
                         "upper and lower limit of the cloud for all "
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*"); 
-  
+
+   cout<<"N_lat_grid in IfieldIterate function"<<" "<<lat_grid.nelem()<<"\n";
+    cout<<"N_lon_grid in IfieldIterate function"<<" "<<lon_grid.nelem()<<"\n";
   if (atmosphere_dim == 3){
     
     // Does i_field have the right dimension? 
@@ -445,7 +447,7 @@ i_fieldIterate(
     abs_vec_spt.resize(part_types.nelem(), stokes_dim);
     pha_mat_spt.resize(part_types.nelem(), scat_za_grid.nelem(), 
                        scat_aa_grid.nelem(), stokes_dim, stokes_dim);
-    
+   
     // Calculate the scattered field.
     scat_fieldCalc(scat_field, pha_mat, pha_mat_spt, amp_mat, i_field,
                    pnd_field, 
@@ -841,7 +843,7 @@ i_fieldUpdate1D(// WS Output:
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-            
+	      cout << "p_index......."<< p_index<<"\n";
               //Initialize ppath for 1D.
               ppath_init_structure(ppath_step, 1, 1);
               // See documentation of ppath_init_structure for
@@ -1195,7 +1197,10 @@ scat_fieldCalc(//WS Output:
 		     i_field.npages(),
 		     i_field.nrows(),
 		     i_field.ncols() );
-  
+  cout<<"N_pt"<<" "<<N_pt;
+  cout<<"N_p_grid"<<" "<<p_grid.nelem();
+  cout<<"N_lat_grid"<<" "<<lat_grid.nelem();
+  cout<<"N_lon_grid"<<" "<<lon_grid.nelem();
   //Note that the size of i_field and scat_field are the same 
   if (atmosphere_dim ==3){
     
@@ -1213,6 +1218,11 @@ scat_fieldCalc(//WS Output:
 		      scat_za_grid.nelem(), 
 		      scat_aa_grid.nelem(),
 		      stokes_dim));
+    assert ( is_size( pnd_field, 
+		      N_pt,
+		      p_grid.nelem(),
+		      lat_grid.nelem(), 
+		      lon_grid.nelem()));
     
   }
   
@@ -1231,8 +1241,14 @@ scat_fieldCalc(//WS Output:
 		      scat_za_grid.nelem(), 
 		      1,
 		      stokes_dim));
+    assert ( is_size( pnd_field, 
+		      N_pt,
+		      p_grid.nelem(),
+		      1, 
+		      1));
   }
-  //When atmospheric dimension , atmosphere_dim = 1
+  
+   //When atmospheric dimension , atmosphere_dim = 1
   if( atmosphere_dim == 1 ){
   
     // Get pha_mat at the grid positions
@@ -1255,6 +1271,7 @@ scat_fieldCalc(//WS Output:
                         0);
 	    // za_in and aa_in are for incoming zenith and azimutha 
 	    //angle direction for which pha_mat is calculated
+	    
 	    for (Index za_in = 0; za_in < Nza; ++ za_in)
 	      { 
 		for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
@@ -1289,7 +1306,7 @@ scat_fieldCalc(//WS Output:
 	    /*integration of the product of ifield_in and pha
 	      over zenith angle and azimuth angle grid. It calls
 	      here the integration routine AngIntegrate_trapezoid*/
-	  	    
+	   
 	    for (Index i = 0; i < stokes_dim; i++)
 	      {
 		
@@ -1459,7 +1476,7 @@ void Tensor6WriteIteration(//WS input
   // All iterations are written to files
   if( iterations[0] == 0 )
     {
-      xml_write_to_file(field_name + os.str() + ".xml", field);  
+      xml_write_to_file(field_name + os.str() + "_mlw.xml", field);  
    }
   // Only the iterations given by the keyword are written to a file
   else
@@ -1467,7 +1484,7 @@ void Tensor6WriteIteration(//WS input
       for (Index i = 0; i<iterations.nelem(); i++)
         {
           if (iteration_counter == iterations[i])
-            xml_write_to_file(field_name + os.str() + ".xml", field);  
+            xml_write_to_file(field_name + os.str() + "_mlw.xml", field);  
         }
     }
 }

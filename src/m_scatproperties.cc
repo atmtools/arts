@@ -507,30 +507,29 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
 
  //This is a typical absorption calculated from arts.1.0 (mls)
   
-          MakeVector typical_abs(0.0164163638663716,
-                            0.00768271579907592,
-                            0.00294668635075111,
-                            0.00125411825404778,
-                            0.000570445848162073,
-                            0.000236462958473072,
-                            4.40975932116215e-05,
-                            7.31218846316807e-06,
-                            3.643089167928e-06,
-                            3.12497184475723e-06);
-
-
-
-//     //This is a typical absorption calculated from arts.1.0 (winter)
-//      MakeVector typical_abs(0.016414284648894,
-// 			   0.00065204114511011,
-// 			   0.000156049846860233,
-// 			   4.54320063675961e-05,
-// 			   1.52191594739311e-05,
-// 			   5.13136166733503e-06,
-// 			   1.37451108959307e-06,
-// 			   6.70848900165098e-07,
-// 			   4.06285725309355e-07,
-// 			   2.57499613700983e-07);
+    /* MakeVector typical_abs(0.0164163638663716,
+			   0.00768271579907592,
+			   0.00294668635075111,
+			   0.00125411825404778,
+			   0.000570445848162073,
+			   0.000236462958473072,
+			   4.40975932116215e-05,
+			   7.31218846316807e-06,
+			   3.643089167928e-06,
+			   3.12497184475723e-06);*/
+    
+//This is a typical absorption calculated from arts.1.0 (mlw)
+  
+    MakeVector typical_abs(0.00433659795310861,
+			   0.00267195350007522,
+			   0.00122676231151285,
+			   0.000524902357458338,
+			   0.000142742001685155,
+			   4.65799636740885e-05,
+			   1.07249251986862e-05,
+			   5.85896298848906e-06,
+			   4.94996692358466e-06,
+			   4.35302994835574e-06);
 
 
     //The pressure grid for the above calculation (mls)
@@ -642,7 +641,7 @@ void pha_matCalc(
   Index Nza = pha_mat_spt.nbooks();
   Index Naa = pha_mat_spt.npages();
   Index stokes_dim = pha_mat_spt.nrows();
-
+  cout<<"scat_lat_index"<<""<<scat_lat_index<<"\n";
   //(CE:) Resize pha_mat:
   pha_mat.resize(Nza, Naa, stokes_dim, stokes_dim);
 

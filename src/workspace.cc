@@ -805,12 +805,12 @@ void define_wsv_data()
 
  wsv_data.push_back
     (WsvRecord
-     ( NAME( "i_field_Tb" ), 
+     ( NAME( "Tensor6_1" ), 
        DESCRIPTION
       (
        "The *i_field* expressed in brightness temperature units.\n"
        "\n"
-       "Usage: Input to i_fieldtoTb. \n"    
+       "Usage: Input to Tensor6ToTbByPlanck. \n"    
        "\n"
        "Unit: Kelvin.\n"
        "\n"

@@ -305,7 +305,7 @@ void MatrixToTbByRJ(
 
 
 
-//! Converts intensity in radiance units to brightness temperature unit
+//! Converts i_field(Tensor6) in radiance units to brightness temperature unit
 /*! 
  This is used to convert intensity in radiance units to brightness temperature 
 units for a Tensor6. It uses the function invplanck from physics_funcs.cc.  
