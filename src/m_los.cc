@@ -45,7 +45,7 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
-#include <math.h>
+#include <cmath>
 #include "arts.h"
 #include "atm_funcs.h"          
 #include "matpackI.h"
@@ -209,9 +209,9 @@ void los_refraction(
               const Numeric&    za,
               const Numeric&    atm_limit,
               const Numeric&    r_geoid,
-              const Vector&     p_abs,
+              const Vector&     /* p_abs */,
               const Vector&     z_abs,
-              const Index&      refr,
+              const Index&      /* refr */,
               const Index&      refr_lfac,
               const Vector&     refr_index,
               const Numeric&    c )
@@ -1029,7 +1029,7 @@ void losCalc(       Los&        los,
 void zaFromZtan(
         // WS Goutput
               Vector&       za,
-        const String&       za_name,
+        const String&       /* za_name */,
          // WS input
         const Vector&       z_tan,
         const Numeric&      z_plat,
@@ -1095,7 +1095,7 @@ void zaFromDeltat(
         // WS Generic Output:
         Vector&             za,
         // WS Generic Output Names:
-        const String&       za_name,
+        const String&       /* za_name */,
         // WS Input:
         const Numeric&      z_plat,
         const Vector&       p_abs,
@@ -1691,8 +1691,8 @@ void CoolingRates(
       // Skip 0 and 180 degrees as result anyhow will be zero (due to sin term)
       for( Index iza=1; iza<nza-1; iza++ )
         {
-          Numeric lstep = lstep0 / fabs( cos( DEG2RAD*za_pencil[iza] ) ); 
-          if( lstep > lstep_limit  ||  fabs( za_pencil[iza] - 90 ) < 0.01 )
+          Numeric lstep = lstep0 / abs( cos( DEG2RAD*za_pencil[iza] ) ); 
+          if( lstep > lstep_limit  ||  abs( za_pencil[iza] - 90 ) < 0.01 )
             lstep = lstep_limit;
 
           losCalc( los, z_tan, z_coolrate[ip], Vector(1,za_pencil[iza]), 
