@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.231)
+AM_INIT_AUTOMAKE(arts,0.0.232)
 
 
 #
@@ -99,6 +99,7 @@ if test $ac_hdf = yes; then
   AC_DEFINE_UNQUOTED(HDF_SUPPORT, , Compile with HDF support)
 fi
 
+AM_CONDITIONAL(HDF_SUPPORT, test x$ac_hdf_support = xyes)
 
 #
 # Default floating-point type
