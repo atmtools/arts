@@ -30,6 +30,7 @@
 */
 
 #include "arts.h"
+#include "arts_mpi.h"
 #include <algorithm>
 #include <map>
 #include "parameters.h"
@@ -613,6 +614,8 @@ int main (int argc, char **argv)
   extern const Parameters parameters; // Global variable that holds
                                       // all command line parameters. 
 
+  MPI_ONLY( mpi_startup (argc, argv); )
+
   //---------------< 1. Get command line parameters >---------------
   if ( get_parameters(argc, argv) )
     {
@@ -881,5 +884,5 @@ int main (int argc, char **argv)
     }
 
   out1 << "Goodbye.\n";
-  return(0);
+  arts_exit (0);
 }
