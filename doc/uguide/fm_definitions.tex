@@ -25,31 +25,31 @@
 %
 % Symbol table, format:
 %  \startsymbols
-%    ... & \verb|...| & text ... \\
-%    ... & \verb|...| & text ... \\
+%    ... & \artsstyle{...} & text ... \\
+%    ... & \artsstyle{...} & text ... \\
 %    ....
 %  \stopsymbols
 %
 %
 \startsymbols
-  \Ind           & \verb|i|          & vector/matrix/tensor index           \\
-  \aInd{\Lat}    & \verb|i_alpha|    & the \Ind:th latitude                 \\
-  \VctLng        & \verb|n|          & vector length or size of matrix/tensor for a dimension \\
-  \aVctLng{\Lat} & \verb|n_alpha|    & length of the latitude grid          \\
-  $e_g$          & \verb|e_ground|   & ground emissivity                    \\
-  \Prs           & \verb|p|          & pressure                             \\
-  \PrsAlt        & \verb|pz|         & pressure altitude                    \\
-  \Rds           & \verb|r|          & radius from the centre of the coordinate system         \\
-  \Tmp           & \verb|t|          & temperature \\
-  \Alt           & \verb|z|          & geometrical altitude above the geoid \\
-  \Planck        & \verb|source|     & Planck function                      \\
-  \Lat           & \verb|alpha|      & latitude                             \\
-  \Lon           & \verb|beta|       & longitude                            \\
-  \ZntAng        & \verb|psi|        & zenith angle                         \\
-  \AzmAng        & \verb|omega|      & azimuthal angle                      \\
-  \MpiVct        & \verb|mpi|        & vector with monochromatic pencil beam values \\
-  \MsrVct        & \verb|y|          & measurement vector                   \\
-  \SnsMtr        & \verb|h|          & sensor and data reduction transfer matrix \\
+  \Ind           & \artsstyle{i}         & vector/matrix/tensor index        \\
+  \aInd{\Lat}    & \artsstyle{i\_alpha}  & the \Ind:th latitude              \\
+  \VctLng        & \artsstyle{n}         & vector length or size of matrix/tensor for a dimension \\
+  \aVctLng{\Lat} & \artsstyle{n\_alpha}  & length of the latitude grid       \\
+  $e_g$          & \artsstyle{e\_ground} & ground emissivity                 \\
+  \Prs           & \artsstyle{p}         & pressure                          \\
+  \PrsAlt        & \artsstyle{pz}        & pressure altitude                 \\
+  \Rds           & \artsstyle{r}         & radius from the centre of the coordinate system         \\
+  \Tmp           & \artsstyle{t}         & temperature                       \\
+  \Alt           & \artsstyle{z}         & geometrical altitude above the geoid \\
+  \Planck        & \artsstyle{source}    & Planck function                   \\
+  \Lat           & \artsstyle{alpha}     & latitude                          \\
+  \Lon           & \artsstyle{beta}      & longitude                         \\
+  \ZntAng        & \artsstyle{psi}       & zenith angle                      \\
+  \AzmAng        & \artsstyle{omega}     & azimuthal angle                   \\
+  \MpiVct        & \artsstyle{mpi}       & vector with monochromatic pencil beam values \\
+  \MsrVct        & \artsstyle{y}         & measurement vector                \\
+  \SnsMtr        & \artsstyle{h}         & sensor and data reduction transfer matrix \\
  \label{symtable:fm_defs}     
 \stopsymbols
 
@@ -110,22 +110,22 @@ Vectors are bold lowercase (e.g. \MsrVct), matrices bold uppercase
 \label{sec:fm_defs:atmdim}
 
 The structure of the modelled atmosphere can be selected to have different
-degree of complexity, the \qindex{atmospheric dimensionality}. There
+degree of complexity, the \textindex{atmospheric dimensionality}. There
 exist three levels for the complexity of the atmosphere, 1D, 2D and
 3D, where 1D and 2D can be treated as special cases of 3D. The
 significance of these different atmospheric dimensionalities and the
 coordinate systems used are described below in this section. The
 atmospheric dimensionality is selected by setting the workspace
-variable \verb|atmosphere_dim| to a value between 1 and 3. Variables
+variable \wsvindex{atmosphere\_dim} to a value between 1 and 3. Variables
 for which the size depends on the atmospheric dimensionality are
 checked, when used, to have a size consistent with
-\verb|atmosphere_dim|.
+\artsstyle{atmosphere\_dim}.
 
 \begin{description}
   
-\item[\qindex{3D}\,\,\,] In this, the most general, case, the
+\item[\textindex{3D}\,\,\,] In this, the most general, case, the
   atmospheric fields vary in all three spatial coordinates, as in a
-  true atmosphere. A \qindex{spherical coordinate system} is used where the
+  true atmosphere. A \textindex{spherical coordinate system} is used where the
   dimensions are radius (\Rds), latitude (\Lat) and longitude (\Lon),
   and a position is given as $(\Rds,\Lat,\Lon)$. With other words, the
   standard way to specify a geographical position is followed.
@@ -144,7 +144,7 @@ checked, when used, to have a size consistent with
   the whole globe is covered. Otherwise, the longitude is shifted with
   360\degree\ in the relevant direction.
 
-\item[\qindex{1D}\,\,\,] A 1D atmosphere can be described as being
+\item[\textindex{1D}\,\,\,] A 1D atmosphere can be described as being
   spherically symmetric. The term 1D is used here for simplicity and
   historical reasons, not because it is a true 1D case (a strictly 1D
   atmosphere would just extend along a line). A spherical symmetry
@@ -165,7 +165,7 @@ checked, when used, to have a size consistent with
   is set to be the zero point for the latitudes. A 1D atmosphere is shown
   in Figure~\ref{fig:fm_defs:1d}.
   
-\item[\qindex{2D}\,\,\,] In contrast to the 1D and 3D cases, a 2D
+\item[\textindex{2D}\,\,\,] In contrast to the 1D and 3D cases, a 2D
   atmosphere extends only inside a plane. A spherical coordinate
   system is accordingly not needed and a polar system\index{polar
     coordinate system}, consisting of a radial and an angular
@@ -220,7 +220,7 @@ checked, when used, to have a size consistent with
   pressure. This is most clearly manifested by the fact that the
   vertical atmospheric grid consists of surfaces with equal pressure.
   The vertical grid is consistently denoted as the pressure grid and
-  the corresponding workspace variable is called \verb|p_grid|. The
+  the corresponding workspace variable is called \wsvindex{p\_grid}. The
   choice of having pressure as main altitude coordinate results in
   that atmospheric quantities are retrieved as a function pressure,
   not as a function of geometrical altitude.
@@ -237,7 +237,7 @@ checked, when used, to have a size consistent with
    \label{eq:fm_defs:prsalt}
   \end{equation}
   where \aPrsAlt{s} and \aPrs{0} are arbitrary parameters (set in
-  \verb|arts.h|), but suitably selected in such way that the pressure
+  \fileindex{arts.h}), but suitably selected in such way that the pressure
   altitude corresponds roughly with the geometrical altitude.  This
   correspondence is achieved if the two parameters are treated as a
   fixed scale height (for decreases of the pressure with a factor of
@@ -274,7 +274,7 @@ checked, when used, to have a size consistent with
 \label{sec:fm_defs:grids}
 
 As mentioned above, the vertical grid of the atmosphere consists of a
-set of layers with equal pressure, the pressure grid (\verb|p_grid|).
+set of layers with equal pressure, the pressure grid (\wsvindex{p\_grid}).
 This grid must of course always be specified. It is not allowed that
 there is an altitude gap between the ground and the lowermost pressure
 surface.  That is, the ground pressure must be smaller than the
@@ -285,18 +285,18 @@ pressure grid gives the practical upper limit of the atmosphere as
 vacuum is assumed above. With other words, no absorption and
 refraction take place above the uppermost pressure surface.
 
-A \qindex{latitude} grid (\verb|alpha_grid|) must be specified for 2D and 3D.
-For 2D, the latitudes shall be treated as the angular distance along
-the orbit track, as described above in
+A \textindex{latitude} grid (\wsvindex{alpha\_grid}) must be specified
+for 2D and 3D.  For 2D, the latitudes shall be treated as the angular
+distance along the orbit track, as described above in
 Section~\ref{sec:fm_defs:atmdim}.  The latitude angle is throughout
 calculated for the vector going from the centre of the coordinate
 system to the point of concern. Hence, the latitudes here correspond
 to the definition of the geocentric latitude, and not geodetic
 latitudes (see Section~\ref{sec:ppath:geoid}). This is an accordance
-to the definition of geometric altitudes found above. 
-For 3D, a \qindex{longitude} grid (\verb|beta_grid|) must also be specified.
+to the definition of geometric altitudes found above.  For 3D, a
+\textindex{longitude} grid (\wsvindex{beta\_grid}) must also be specified.
 Valid ranges for latitude and longitude values are given in
-Section~\ref{sec:fm_defs:atmdim}. 
+Section~\ref{sec:fm_defs:atmdim}.
 
 The atmosphere is treated to be undefined outside the latitude and
 longitude ranges covered by the grids, if not the whole globe is
@@ -305,7 +305,7 @@ cross a latitude or longitude end face of the atmosphere, if such
 exists, it can only enter or leave the atmosphere through the top of
 the atmosphere (the uppermost pressure level). See further
 Section~\ref{sec:fm_defs:ppaths}. The volume (or area for 2D) covered
-by the grids is denoted as the \qindex{model atmosphere}.
+by the grids is denoted as the \textindex{model atmosphere}.
 
 If the longitude and latitude grids are not used for the selected
 atmospheric dimensionality, then the longitude grid (for 1D and 2D)
@@ -321,8 +321,8 @@ Figure~\ref{fig:fm_defs:2d}), or for 1D at each pressure surface
 (thick dots in Figure~\ref{fig:fm_defs:1d}). This representation is
 denoted as the field\index{atmospheric field} of the quantity. The
 field must, at least, be specified for the geometric altitude of the
-pressure surfaces (\verb|z_field|), the temperature (\verb|t_field|)
-and considered atmospheric species (\verb|????|). The atmospheric
+pressure surfaces (\wsvindex{z\_field}), the temperature (\wsvindex{t\_field})
+and considered atmospheric species (\artsstyle{????}). The atmospheric
 fields are tensors of order 3 with size
 $[\aVctLng{\Prs},\aVctLng{\Lat},\aVctLng{\Lon}]$.
 
@@ -332,8 +332,8 @@ Section~\ref{sec:fm_defs:altitudes}), and along the latitude and
 longitude edges of 2D and 3D grid boxes. For points inside 2D and 3D
 grid boxes, multidimensional linear interpolation is applied (that is,
 bilinear interpolation for 2D etc.). Note especially that this is also
-valid for the field of geometrical altitudes (\verb|z_field|).  Fields
-are rank-3 tensors with dimension
+valid for the field of geometrical altitudes (\artsstyle{z\_field}).
+Fields are rank-3 tensors with dimension
 $[\aVctLng{\Prs},\aVctLng{\Lat},\aVctLng{\Lon}]$.  That means each
 field is like a book, with one page for each pressure grid point, one
 row for each latitude grid point, and one column for each longitude
@@ -346,7 +346,7 @@ each page.
 %===================
 \label{sec:fm_defs:geoid}
 
-The \qindex{geoid} is an imaginary surface used as a
+The \textindex{geoid} is an imaginary surface used as a
 reference when specifying the ground altitude and the altitude
 of pressure surfaces. Any shape of the geoid is allowed but a smoothly
 varying geoid is the natural choice, with the centres of the geoid and
@@ -355,7 +355,7 @@ the reference ellipsoid for some global geodetic datum, such as
 WGS-84. For further reading on geoid ellipsoids and WGS-84, see
 Section~\ref{sec:ppath:geoid}.
 
-Inside ARTS, the geoid is represented as a matrix (\verb|r_geoid|),
+Inside ARTS, the geoid is represented as a matrix (\wsvindex{r\_geoid}),
 holding the geoid radius, \aRds{\odot}, for each crossing of the latitude and
 longitude grids. The size of the matrix is accordingly $\aRds{\odot}
 \SzeSmb [\aVctLng{\Lat},\aVctLng{\Lon}]$ and the geoid radius for a
@@ -373,8 +373,8 @@ As described in
 Section~\ref{sec:fm_defs:grids}, it is not allowed that there is a gap
 between the ground and the lowermost pressure level.
 
-The ARTS variable for the \qindex{ground altitude}
-(\verb|z_ground|) is a matrix of the same size as the geoid
+The ARTS variable for the \textindex{ground altitude}
+(\wsvindex{z\_ground}) is a matrix of the same size as the geoid
 matrix. For 1D, the ground is a sphere by definition (as the geoid),
 while for 2D and 3D any shape is allowed and a rough model of the
 ground topography can be made. For example, for limb sounding into the
@@ -387,8 +387,8 @@ Section~\ref{sec:fm_defs:groundrefl}).
 
 The temperature of the ground\index{ground temperature} (\aTmp{g}) is
 treated to be the same as for the temperature field for the altitude
-of the ground. The \qindex{ground emission} is described by the
-variable \verb|e_ground|, holding the ground emission factor
+of the ground. The \textindex{ground emission} is described by the
+variable \wsvindex{e\_ground}, holding the ground emission factor
 $(e_g)$ of the ground, as a function of frequency for each
 latitude/longitude position. This workspace variable is a tensor of
 order 3, with size $e_g \SzeSmb
@@ -403,7 +403,7 @@ $e_g=1$ the ground acts as a blackbody for that particular frequency.
   whole shall be treated as blackbody, which is of importance for the
   cloud box and determination of propagation paths
   (Section~\ref{sec:fm_defs:cloudbox} and \ref{sec:fm_defs:ppaths},
-  respectively), all values of \verb|e_ground| must be 1.
+  respectively), all values of \artsstyle{e\_ground} must be 1.
 \end{description}
 
 
@@ -414,7 +414,7 @@ $e_g=1$ the ground acts as a blackbody for that particular frequency.
 In order to save computational time, scattering calculations are
 limited as far as possible to the part of the atmosphere containing
 clouds and other scattering objects. The atmospheric region in which
-scattering shall be considered is denoted as the \qindex{cloud box},
+scattering shall be considered is denoted as the \textindex{cloud box},
 and it is discussed here as it acts as an additional atmospheric limit
 when calculating propagation paths (see
 Section~\ref{sec:fm_defs:rte}).
@@ -440,8 +440,8 @@ must be set to the lowest pressure surface (index 0). For 2D, the
 angular extension of the cloud box is between two points of the
 latitude grid (Figure~\ref{fig:fm_defs:2d}), and likewise for 3D but
 then also with a longitude extension between two grid points. The cloud
-box is activated by setting the variable \verb|cloudbox_on| to 1. The
-limits of the cloud box are stored in \verb|cloudbox_limits|.
+box is activated by setting the variable \wsvindex{cloudbox\_on} to 1. The
+limits of the cloud box are stored in \wsvindex{cloudbox\_limits}.
 
 There exists in fact a small risk for 2D or 3D, and with a reflecting
 ground, that a propagation path into the cloud box has earlier crossed
@@ -458,9 +458,9 @@ box.
 \label{sec:fm_defs:absorption}
 
 [* Considerations for the calculation of absorption and refractive
-index ...  Tags, line-by-line, absorption models etc. The old \verb|f_mono|
-should be called \verb|f_grid|, or? (Note that I have used the name
-\verb|f_grid| elsewhere.)*]
+index ...  Tags, line-by-line, absorption models etc. The old
+\artsstyle{f\_mono} should be called \artsstyle{f\_mono}, or? (Note that I
+have used the name \wsvindex{f\_grid} elsewhere.)*]
 
 
 
@@ -475,9 +475,10 @@ pencil beam radiation is of interest, the positions and directions for
 which the radiation shall be calculated are given by specifying an
 imaginary sensor with infinite frequency and angular resolution. The
 workspace variables for the sensor that always must be specified are
-\verb|sensor_pos|, \verb|sensor_los|, \verb|sensor_pol|,
-\verb|antenna_dim|, \verb|psi_block_grid|, \verb|omega_block_grid| and
-\verb|Hb|. These variables are presented separately below in this
+\artsstyle{sensor\_pos}, \artsstyle{sensor\_los},
+\artsstyle{sensor\_pol}, \artsstyle{antenna\_dim},
+\artsstyle{psi\_block\_grid}, \artsstyle{omega\_block\_grid} and
+\artsstyle{Hb}. These variables are presented separately below in this
 section. The discussion of sensor workspace variables is continued in
 Section~\ref{sec:fm_defs:sensor2}. The Section~\ref{sec:fm_defs:rte}
 gives further insights in how the sensor is treated in ARTS.
@@ -488,14 +489,14 @@ gives further insights in how the sensor is treated in ARTS.
 \label{sec:fm_defs:sensorpos}
 
 The observation positions of the sensor are stored in
-\verb|sensor_pos|. This is a matrix where each row corresponds to a
+\wsvindex{sensor\_pos}. This is a matrix where each row corresponds to a
 sensor position. The number of columns in the matrix equals the
 atmospheric dimensionality (1 column for 1D etc.). The columns of the
 matrix (from first to last) are radius, latitude and longitude.
-Accordingly, row $i$ of \verb|sensor_pos| for a 3D case is
+Accordingly, row $i$ of \artsstyle{sensor\_pos} for a 3D case is
 $(\aRds{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
 value, but the resulting propagation paths (also dependent on
-\verb|sensor_los|) must be valid with respect to the model atmosphere
+\artsstyle{sensor\_los}) must be valid with respect to the model atmosphere
 (see Section~\ref{sec:fm_defs:ppaths}). An obviously incorrect choice
 is to place the senor below the ground altitude. If the sensor is
 placed inside the model atmosphere, any sensor line-of-sight is
@@ -505,12 +506,13 @@ the cloud box and looks into the box. The sensor can also be placed
 inside the cloud box.
 
 The fact that the sensor position can be given any value results in
-that the radius must be used in \verb|sensor_pos|, in contrast to
-\verb|z_ground| and \verb|z_field| where the altitude above the geoid
-is applied. This is the case as the sensor can for 2D and 3D be placed
-outside the covered latitude and longitude ranges, thus outside the
-defined geoid and the geometrical altitude is undefined. See
-Section~[**] for hints on how to simply set the sensor position.
+that the radius must be used in \artsstyle{sensor\_pos}, in contrast
+to \artsstyle{z\_ground} and \artsstyle{z\_field} where the altitude
+above the geoid is applied. This is the case as the sensor can for 2D
+and 3D be placed outside the covered latitude and longitude ranges,
+thus outside the defined geoid and the geometrical altitude is
+undefined. See Section~[**] for hints on how to simply set the sensor
+position.
 
 The sensor is treated to be motionless when calculating the spectrum,
 or spectra, for each given observation position. One or several
@@ -532,7 +534,7 @@ path taken by the observed radiation
 (Section~\ref{sec:fm_defs:ppaths}).  The zenith and azimuthal angles
 are defined identical in these two contexts. This is expected as the
 position of the sensor is the end point of the propagation path. The
-line-of-sight of \qindex{propagation path}s is defined in the
+line-of-sight of \textindex{propagation path}s is defined in the
 direction the radiation travels to reach the sensor, while the sensor
 line-of-sight is the direction the antenna is pointed to receive the
 radiation. This means that the sensor and path line-of-sights (at the
@@ -573,7 +575,7 @@ the centre of the antenna pattern is directed.
  \end{center}
 \end{figure}           
  
-The \qindex{zenith angle}, \ZntAng, is simply the angle between the
+The \textindex{zenith angle}, \ZntAng, is simply the angle between the
 line-of-sight and the zenith direction
 (Figure~\ref{fig:fm_defs:los}). It should be mentioned that the
 zenith and nadir directions are here defined to be along the line
@@ -586,8 +588,8 @@ treated identically, while for 2D a distinction is made. In the case
 of 2D, positive and negative zenith angles mean that the viewing
 direction is towards higher and lower latitudes, respectively.
 
-The \qindex{azimuthal angle}, \AzmAng, is given with respect to the
-\qindex{meridian plane}, that is, the plane going through the north
+The \textindex{azimuthal angle}, \AzmAng, is given with respect to the
+\textindex{meridian plane}, that is, the plane going through the north
 and south poles of the coordinate system $(\Lat=\pm90\degree)$ and the
 sensor. The valid range is $[-180\degree,180\degree]$ where angles are
 counted clockwise and 0\degree means that the viewing or propagation
@@ -596,12 +598,12 @@ of concern goes eastward.
 
 The line-of-sight for propagation paths is discussed further in
 Section~\ref{sec:fm_defs:ppaths}. The sensor line-of-sights are stored in
-\verb|sensor_los|. This workspace variable is a matrix, where the
+\wsvindex{sensor\_los}. This workspace variable is a matrix, where the
 first column holds zenith angles and the second column is azimuthal
 angles. For 1D and 2D there is only one column in the matrix, while
 for 3D a row $i$ of the matrix is $(\aZntAng{i},\aAzmAng{i})$. The
-number of rows for \verb|sensor_los| must be the same as for
-\verb|sensor_pos|.
+number of rows for \artsstyle{sensor\_los} must be the same as for
+\artsstyle{sensor\_pos}.
 
 
 \levelc{Sensor polarisation\index{sensor polarisation}}
@@ -609,7 +611,7 @@ number of rows for \verb|sensor_los| must be the same as for
 \label{sec:fm_defs:sensorpol}
 
 [* How shall this be handled? Can a transfer matrix be used?
-\verb|sensor_pol| *]
+\wsvindex{sensor\_pol} *]
 
 
 \levelc{Sensor characteristics and data reduction}
@@ -624,7 +626,7 @@ example, the antenna pattern, the side-band filtering and response of
 the spectrometer channels are normally the most important
 characteristics for a microwave heterodyne radiometer. Any processing
 of the spectral data that takes place before the retrieval is denoted
-as \qindex{data reduction}. The most common processing is to represent
+as \textindex{data reduction}. The most common processing is to represent
 the original spectra with a smaller set of values, that is, a
 reduction of the data size. The most common data reduction techniques
 is binning and Hotelling transformation by an eigenvector expansion
@@ -643,13 +645,13 @@ The creation of sensor and data reduction transfer matrices is not
 the individual sensor parts etc. The sensor and data reduction are
 described as a series of units, each having its own transfer matrix.
 There is only one compulsory transfer matrix and it is \aSnsMtr{b}
-(\verb|Hb|), where the subscript $b$ stands for block (see further
+(\wsvindex{Hb}), where the subscript $b$ stands for block (see further
 Section~\ref{sec:fm_defs:seqsandblocks}). There are several workspace
 variables associated with this transfer matrix where
-\verb|antenna_dim|, \verb|psi_block_grid| and \verb|omega_block_grid|
-are the compulsory ones.
+\wsvindex{antenna\_dim}, \wsvindex{psi\_block\_grid} and
+\wsvindex{omega\_block\_grid} are the compulsory ones.
 
-The variable \verb|antenna_dim| gives the dimensionality of the
+The variable \artsstyle{antenna\_dim} gives the dimensionality of the
 antenna pattern\index{antenna pattern dimensionality}, where the
 options are 1 and 2, standing for 1D and 2D, respectively. A 1D
 antenna dimensionality means that the azimuthal extension of the
@@ -657,29 +659,30 @@ antenna pattern is neglected, there is only a zenith angle variation
 of the response. A 2D antenna pattern is converted to a 1D pattern by
 integrating the azimuthal response for each zenith angle. ARTS handles
 not yet 2D antenna patterns, the only allowed choice for
-\verb|antenna_dim| is 1, and the variable \verb|omega_block_grid| has
-yet no importance (but it must be initiated, to be empty, before
-calling \verb|retCalc|). The presentation below assumes that the 2D
-option is implemented.
+\artsstyle{antenna\_dim} is 1, and the variable
+\artsstyle{omega\_block\_grid} has yet no importance (but it must be
+initiated, to be empty, before calling \artsstyle{rteCalc}). The
+presentation below assumes that the 2D option is implemented.
 
 For each sensor position, a number of monochromatic pencil beam
 spectra are calculated. The monochromatic frequencies are given by
-\verb|f_grid| (Section~\ref{sec:fm_defs:absorption}). The pencil beam
-directions are obtained by summing the line-of-sight angles
-(\verb|sensor_los|) for the position and the values of
-\verb|psi_block_grid| and \verb|omega_block_grid|. For example, pencil
-beam zenith angle $i$ is calculated as
+\artsstyle{f\_grid} (Section~\ref{sec:fm_defs:absorption}). The pencil
+beam directions are obtained by summing the line-of-sight angles
+(\artsstyle{sensor\_los}) for the position and the values of
+\artsstyle{psi\_block\_grid} and \artsstyle{omega\_block\_grid}. For
+example, pencil beam zenith angle $i$ is calculated as
 \begin{equation}
   \aZntAng{i} = \aZntAng{0} + \Delta\aZntAng{i}
   \label{eq:fm_defs:psi_grid}
 \end{equation}
 where \aZntAng{0} is the sensor line-of-sight for the position of
-concern and $\Delta\aZntAng{i}$ is value $i$ of \verb|psi_block_grid|.
-With other words, \verb|psi_block_grid| and \verb|omega_block_grid|
-give the grid (relative to the sensor line-of-sight) for the
-calculation of the intensity field that will be weighted with the
-antenna response. For cases with 1D antenna patterns,
-\verb|omega_block_grid| must be set to be an empty vector.
+concern and $\Delta\aZntAng{i}$ is value $i$ of
+\artsstyle{psi\_block\_grid}.  With other words,
+\artsstyle{psi\_block\_grid} and \artsstyle{omega\_block\_grid} give
+the grid (relative to the sensor line-of-sight) for the calculation of
+the intensity field that will be weighted with the antenna response.
+For cases with 1D antenna patterns, \artsstyle{omega\_block\_grid}
+must be set to be an empty vector.
 
 
 \levelc{Measurement sequences and blocks}
@@ -687,10 +690,10 @@ antenna response. For cases with 1D antenna patterns,
 \label{sec:fm_defs:seqsandblocks}
 
 The series of observations modelled by the simulations is denoted as
-the \qindex{measurement sequence}. That is, a measurement sequence
+the \textindex{measurement sequence}. That is, a measurement sequence
 covers all spectra recorded at all considered sensor positions
-(\verb|sensor_pos|). A measurement sequence consists of one or several
-\qindex{measurement block}s. The observations inside the various
+(\artsstyle{sensor\_pos}). A measurement sequence consists of one or several
+\textindex{measurement block}s. The observations inside the various
 blocks differ only with an off-set of the line-of-sight, all other
 factors should be common for all blocks. A block can be treated as a
 measurement cycle that is repeated, an integer number of times, to
@@ -731,12 +734,13 @@ spectra must be the same for all blocks, otherwise \aSnsMtr{b} cannot
 be applied for all blocks as done in Equation~\ref{eq:fm_defs:measseq}.
 
 For each block, pencil beam spectra are calculated for the
-line-of-sights obtained when summing \verb|sensor_los| and
-\verb|psi_block_grid| (and possibly \verb|omega_block_grid|), as
-described in Section~\ref{sec:fm_defs:sensorchar}. The pencil beam
-spectra for each line-of-sight are appended vertically to form a
-common vector, \aMpiVct{b}. Values are put in following the order
-in \verb|f_grid|. Hence, the frequencies for this vector are
+line-of-sights obtained when summing \wsvindex{sensor\_los} and
+\wsvindex{psi\_block\_grid} (and possibly
+\wsvindex{omega\_block\_grid}), as described in
+Section~\ref{sec:fm_defs:sensorchar}. The pencil beam spectra for each
+line-of-sight are appended vertically to form a common vector,
+\aMpiVct{b}. Values are put in following the order in
+\artsstyle{f\_grid}. Hence, the frequencies for this vector are
 \begin{equation}
   \aMpiVct{b} = 
   \left[ \begin{array}{c} 
@@ -750,16 +754,16 @@ in \verb|f_grid|. Hence, the frequencies for this vector are
      \end{array} \right]
   \label{eq:fm_defs:freqs_of_ib}
 \end{equation}
-where \aFrq{i} is element $i$ of \verb|f_grid| and $n_\Frq$ the length of
-the same vector. The order of the angles inside \verb|psi_block_grid|
-and \verb|omega_block_grid| is followed when looping the pencil beam
+where \aFrq{i} is element $i$ of \artsstyle{f\_grid} and $n_\Frq$ the length of
+the same vector. The order of the angles inside \artsstyle{psi\_block\_grid}
+and \artsstyle{omega\_block\_grid} is followed when looping the pencil beam
 directions, where the zenith angle direction is the innermost loop.
 That is, for 2D antenna patterns all zenith angles are looped for the
 first azimuthal angle etc. 
 
 The transfer matrix \aSnsMtr{b} is applied on each \aMpiVct{b} and the
 results are appended vertically, following the order of the positions
-in \verb|sensor_pos|:
+in \artsstyle{sensor\_pos}
 \begin{equation}
   \MsrVct = \left[ \begin{array}{c} \aSnsMtr{b}\aMpiVct{{b,1}} \\ 
                                     \aSnsMtr{b}\aMpiVct{{b,2}} \\
@@ -770,8 +774,8 @@ in \verb|sensor_pos|:
 \end{equation}
 where \MsrVct\ is defined in Equation~\ref{eq:formalism:fm} and $1$
 indicates the first sensor position etc. This equation shows that
-\verb|Hb| shall contain at least a description of the antenna
-response. The matrix \verb|Hb| can also cover other sensor
+\wsvindex{Hb} shall contain at least a description of the antenna
+response. The matrix \artsstyle{Hb} can also cover other sensor
 characteristics and data reduction if the features of concern are
 common for all measurement blocks. If this is not the case, those
 features must be handled by the other existing transfer matrices or, by
@@ -784,22 +788,22 @@ corrected accordingly. For example, if the simulations deal with limb
 sounding and a 1D atmosphere, where normally a single block should be
 used despite a number of spectra are recorded, it could be practical
 to set the line-of-sight to the viewing direction of the uppermost or
-lowermost spectrum, and the zenith angles in \verb|psi_block_grid|
+lowermost spectrum, and the zenith angles in \artsstyle{psi\_block\_grid}
 will not be centred around zero which is the case when the ``true''
 line-of-sight is used.
 
 It should be noted that the compulsory sensor variables give no
 information about the content of the obtained \MsrVct, as it is not
 clear which parts and features the block transfer matrix covers. If
-\verb|Hb| only incorporates the antenna pattern, the result is a set
+\artsstyle{Hb} only incorporates the antenna pattern, the result is a set
 of hypothetical spectra corresponding to a point inside the sensor. On
-the other hand, if \verb|Hb| includes the whole of the sensor and an
+the other hand, if \artsstyle{Hb} includes the whole of the sensor and an
 eigenvector data reduction, the result is not even a spectrum is
 traditional way, it is just a row of coefficients with a vague
 physical meaning. To handle quantities appearing at a stage between
 monochromatic pencil beam intensities and the final representation of
 the measurements (where the total transformation can involve more
-steps than the multiplication with \verb|Hb|), additional sensor
+steps than the multiplication with \artsstyle{Hb}), additional sensor
 variables must be introduced, as described in
 Section~\ref{sec:fm_defs:sensor2}.
 
@@ -875,7 +879,7 @@ The specific intensity vector $\Int$
 
 The overall structure of the part solving the radiative transfer
 equation is fixed. The corresponding workspace function is
-\verb|rteCalc|. The calculation procedure of \verb|rteCalc| is
+\wsfindex{rteCalc}. The calculation procedure of \artsstyle{rteCalc} is
 outlined in Algorithm~\ref{alg:fm_defs:rteCalc}. For further details
 of each calculation step, see the indicated equation or section.
 
@@ -886,11 +890,11 @@ performed against a sufficient strong source, such as the sun. The
 background source is not included in the simulations, the output is
 instead the transmission through the atmosphere (in form of the
 optical thickness, see below). The type of spectra is selected by the
-workspace variable \verb|emission_on|. In some cases it is of interest
+workspace variable \wsvindex{emission\_on}. In some cases it is of interest
 to have both the emission and the transmission spectra at hand
 simultaneously. This is achieved by [* How? Can we have optional
 output parameters? *]. Weighting functions are only calculated for the
-option selected by \verb|emission_on|.
+option selected by \artsstyle{emission\_on}.
 
 The primary unit for emission spectra, the unit of \aMpiVct{b} in
 Equation~\ref{eq:fm_defs:measseq}, is [W/(Hz$\cdot$m$^2\cdot$sr)].
@@ -901,7 +905,7 @@ transmission is provided as the optical thickness (Equation~[**]).
 The optical thickness includes the absorption of the ground if there
 is a ground reflection along the propagation path.
 
-The function \verb|rteCalc|, beside providing atmospheric spectra,
+The function \artsstyle{rteCalc}, beside providing atmospheric spectra,
 performs also the calculation of weighting functions for atmospheric
 variables where analytical expressions are used. The core of these
 calculations follows Algorithm~\ref{alg:fm_defs:rteCalc}, but is not
@@ -949,28 +953,28 @@ Section~\ref{sec:fm_defs:wfs}.
 
 A pencil beam path through the atmosphere to reach a specified
 position from a specified line-of-sight is denoted as the
-\qindex{propagation path}. The forward direction of the propagation
+\textindex{propagation path}. The forward direction of the propagation
 paths is towards the position for which the radiative intensity will
 be calculated. It should be noted that with scattering there exist an
 infinite number of propagation paths for a given combination of
 observation point and line-of-sight.
 
-Propagation paths are described by a set of points on the
-path, and the distance along the path between the points. These
-quantities, and a number of auxiliary variables, are stored together in
-a structure described in Section~[**]. The path points are primarily
-placed at the crossings of the path with the atmospheric grids
-(\verb|p_grid|, \verb|alpha_grid| and \verb|beta_grid|). A path point
-is also placed at the sensor if it is placed inside the atmosphere.
+Propagation paths are described by a set of points on the path, and
+the distance along the path between the points. These quantities, and
+a number of auxiliary variables, are stored together in a structure
+described in Section~[**]. The path points are primarily placed at the
+crossings of the path with the atmospheric grids (\artsstyle{p\_grid},
+\artsstyle{alpha\_grid} and \artsstyle{beta\_grid}). A path point is
+also placed at the sensor if it is placed inside the atmosphere.
 Ground reflections and tangent points are also included if such exist.
 There exists also the possibility to set an upper limit for the
 distance along the path between the points by the workspace variable
-\verb|ppath_lmax|. If \verb|ppath_lmax| is set to a value $\leq 0$ then
-no points are added to the path, otherwise points are included to
-fulfil the length criterion. 
+\wsvindex{ppath\_lmax}. If \artsstyle{ppath\_lmax} is set to a value $\leq 0$
+then no points are added to the path, otherwise points are included to
+fulfil the length criterion.
 
 The propagation paths are determined basically by starting at the
-sensor and following the path backwards by some \qindex{ray tracing}
+sensor and following the path backwards by some \textindex{ray tracing}
 technique.  If the sensor is placed above the model atmosphere,
 geometrical calculations are used (as there is no refraction in space)
 to find the crossing between the path and the top of the atmosphere
@@ -1007,14 +1011,14 @@ paths are shown in Figure~\ref{fig:fm_defs:ppath_cases1}.
 The radiative intensity at the starting point of the path, and in the
 direction of the line-of-sight at that point, is denoted as the
 radiative background. The radiative background at the top of the
-atmosphere is given by the workspace variable \verb|i_space|. This
+atmosphere is given by the workspace variable \wsvindex{i\_space}. This
 variable should normally be set to cosmic background radiation, if
 not the sensor is directed towards the sun. Remaining possible
 radiative backgrounds are blackbody radiation from the ground or the
 outgoing intensity field at the boundary of a cloud box. If a
 propagation path is totally outside the model atmosphere, the
 observed monochromatic pencil beam intensity (\MpiVct\ in
-Algorithm~\ref{alg:fm_defs:rteCalc}) equals \verb|i_space|
+Algorithm~\ref{alg:fm_defs:rteCalc}) equals \artsstyle{i\_space}.
 
 Not all propagation paths are allowed for 2D and 3D. The paths can
 only enter and leave the model atmosphere at the top of the atmosphere
@@ -1115,14 +1119,14 @@ scattering of the sea surface? *]
 %===================
 \label{sec:fm_defs:sensor2}
 
-\verb|antenna_psi_grid|, \aSnsMtr{b}, \aSnsMtr{c}
+\artsstyle{antenna\_psi\_grid}, \aSnsMtr{b}, \aSnsMtr{c}
 
 
 \levelc{How to model different measurement sequences in best way?}
 %===================
 \label{sec:fm_defs:howtomeasseq}
 
-[* Discuss e.g. the relationship between \verb|sensor_los| and the block LOS grids. *]
+[* Discuss e.g. the relationship between \artsstyle{sensor\_los} and the block LOS grids. *]
 
 
 \levelb{Scattering}

@@ -24,8 +24,8 @@
 %
 % Symbol table, format:
 %  \startsymbols
-%    ... & \verb|...| & text ... \\
-%    ... & \verb|...| & text ... \\
+%    ... & \artsstyle{...} & text ... \\
+%    ... & \artsstyle{...} & text ... \\
 %    ....
 %  \stopsymbols
 %
@@ -35,14 +35,14 @@
 %  \aInd{\Lat}    & -                 & the \Ind:th latitude                 \\
 %  \VctLng        & -                 & vector length or size of matrix/tensor for a dimension \\
 %  \aVctLng{\Lat} & -                 & length of the latitude grid \\
-%  \Prs           & \verb|p|          & pressure                             \\
-%  \PrsAlt        & \verb|pz|         & pressure altitude                    \\
-%  \Rds           & \verb|r|          & radius from the geoid centre         \\
-%  \Alt           & \verb|z|          & geometrical altitude above the geoid \\
-%  \Lat           & \verb|alpha|      & latitude                             \\
-%  \Lon           & \verb|beta|       & longitude                            \\
-%  \ZntAng        & \verb|psi|        & zenith angle                         \\
-%  \AzmAng        & \verb|omega|      & azimuthal angle                      \\
+%  \Prs           & \artsstyle{p}     & pressure                             \\
+%  \PrsAlt        & \artsstyle{pz}    & pressure altitude                    \\
+%  \Rds           & \artsstyle{r}     & radius from the geoid centre         \\
+%  \Alt           & \artsstyle{z}     & geometrical altitude above the geoid \\
+%  \Lat           & \artsstyle{alpha} & latitude                             \\
+%  \Lon           & \artsstyle{beta}  & longitude                            \\
+%  \ZntAng        & \artsstyle{psi}   & zenith angle                         \\
+%  \AzmAng        & \artsstyle{omega} & azimuthal angle                      \\
 % \label{symtable:ppath_defs}     
 %\stopsymbols
 
@@ -55,7 +55,7 @@
 
 This section defines the geoid ellipsoid and discusses releated
 issues. The geoid is introduced in Section~\ref{sec:fm_defs:geoid}.
-The workspace variable representing the geoid is \verb|r_geoid|.
+The workspace variable representing the geoid is \wsvindex{r\_geoid}.
 
 
 \levelc{Geoid ellipsoids}
@@ -86,7 +86,7 @@ north-south direction, the curvature radius is smaller then the local
 radius, while at the poles (for all directions) it is greater
 (see further Figure~\ref{fig:ppath:wgs84radii}). 
 
-The \qindex{curvature radius}, \aRds{c}, of an ellipsoid is 
+The \textindex{curvature radius}, \aRds{c}, of an ellipsoid is 
 \citep{rodgers:00}
 \begin{equation}
  \aRds{c} = \frac{1}{\aRds{ns}^{-1}\cos^2 \Lat + \aRds{ew}^{-1}\sin^2 \Lat}
@@ -153,7 +153,8 @@ shall rather be valid for a middle point of the propagation paths
  \includegraphics*[width=0.96\textwidth]{ppath/wgs84_radii}
  \end{minipage}%
  \begin{minipage}[c]{0.35\textwidth}
-  \caption{Ellipsoid (\aRds{\odot}) and curvature (\aRds{c}) radii for the
+  \caption{The ellipsoid radius (\aRds{\odot}) and curvature radius (\aRds{c})
+    for the
     WGS-84 reference ellipsoid. The curvature radii are valid for the
     north-south direction.}
   \label{fig:ppath:wgs84radii}
@@ -179,9 +180,9 @@ shall rather be valid for a middle point of the propagation paths
 
 The fact that the geoid is an ellipsoid, instead of a sphere, opens up
 for the two different definitions of the latitude. The
-\qindex{geocentric latitude}, which is the the one used here, is the
+\textindex{geocentric latitude}, which is the the one used here, is the
 angle between the equatorial plane and the vector from the coordinate
-system centre to the position of concern. The \qindex{geodetic
+system centre to the position of concern. The \textindex{geodetic
   latitude} is also defined with respect to the equatorial plane, but
 the angle to the normal to the reference ellipsoid is considered here, as
 shown in Figure~\ref{fig:ppath:lats}. It could be mentioned that a
@@ -202,7 +203,7 @@ The value of $f$ for the Earth is about 1/298.26. This means that the
 largest differences between \Lat\ and $\Lat^*$ are found at
 mid-latitudes and the maximum value is about 12 arc-minutes.
 
-The \qindex{zenith} and \qindex{nadir} directions shall normally be
+The \textindex{zenith} and \textindex{nadir} directions shall normally be
 defined to follow the normal to the reference ellipsoid, but, if
 nothing else is mentioned, these directions are here treated to go
 along the vector the centre of the coordinate system, as indicated in
@@ -231,7 +232,8 @@ of the reference ellipsoid for the geodetic datums handled by ARTS.
      WGS-84 & 6378.137 km & \emph{6356.752 km} & 298.257223563 & {\small \citet{montenbruck:00}}  \rule{0mm}{5mm} \vspace*{1mm} \\
      \hline
     \end{tabular}
-    \caption{Radii of reference ellipsoids. Values given as \emph{italic} are 
+    \caption{Equatorial and polar radius of reference ellipsoids. Values 
+      given as \emph{italic} are 
       derived by the other two values and Equation~\ref{eq:ppath:flattening}.}
     \label{tab:ppath:geodatums}
   \end{center}
@@ -244,15 +246,15 @@ of the reference ellipsoid for the geodetic datums handled by ARTS.
 \label{sec:ppath:Ppath}
 
 The ARTS definition of a propagation path is given in
-Section~\ref{sec:fm_defs:ppaths}.  A propagation path is represented by
-a structure of type \verb|Ppath|. This structure holds also
+Section~\ref{sec:fm_defs:ppaths}.  A propagation path is represented
+by a structure of type \structindex{Ppath}. This structure holds also
 auxiliary variables to facilitate the radiative transfer calculations
-and to speed up the interpolation (if performed). The fields of \verb|Ppath|
-where the data type is given inside square
-brackets, are:
+and to speed up the interpolation (if performed). The fields of
+\artsstyle{Ppath} where the data type is given inside square brackets,
+are:
 \begin{description}
   \item[dim] [Index] The atmospheric dimensionality. This field shall always 
-     be equal to the workspace variable \verb|atmosphere_dim|.
+     be equal to the workspace variable \artsstyle{atmosphere\_dim}.
   \item[np] [Index] Number of positions to define the propagation path. The 
      number of rows, or the length, of $\mathbf{pos}$, $\mathbf{z}$, 
      $\mathbf{indexpos}$, $\mathbf{l\_step}$ and $\mathbf{los}$ shall be
@@ -388,7 +390,7 @@ equation, if not stated explicitely.
    \end{center}
   \end{minipage}%
   \begin{minipage}[c]{0.35\textwidth}
-   \caption{Radius (\Rds) and zenith angle (\ZntAng) for two points along
+   \caption{The radius (\Rds) and zenith angle (\ZntAng) for two points along
      the propagation path, and the distance along the path ($\Delta\PpathLng$)
      and the latitude difference ($\Delta\Lat$) between these points.}
    \label{fig:ppath:1d2dgeom}
@@ -404,7 +406,7 @@ along the propagation path (cf. Equation~[**]):
 \end{equation}
 The propagation path constant $p_c$ is determined by the position and
 line-of-sight of the sensor, a calculation done by the function
-\verb|ppath_constant|. The constant equals also the radius of the path
+\wsfindex{ppath\_constant}. The constant equals also the radius of the path
 tangent point of the path, that is found along an imaginary
 prolongation of the path behind the sensor if the viewing direction is
 upwards. The expressions below are based on $p_c$ as the usage of a
@@ -415,7 +417,7 @@ accumulate when going from one point to next.
 
 The relationship between the distance along the path for an
 infinitesimal change in radius is here denoted as the
-\qindex{geometrical factor}, $g$. If refraction is neglected, three
+\textindex{geometrical factor}, $g$. If refraction is neglected, three
 expressions for the geometrical factor are
 \begin{equation}
   g = \frac{1}{\cos(\ZntAng)} = \frac{1}{\sqrt{1-\sin^2(\ZntAng)}}
@@ -425,12 +427,12 @@ expressions for the geometrical factor are
 The primitive function [* correct term? *] of the geometrical factor is
 \begin{equation}
   \int{g(\Rds)}\,\DiffD r = \sqrt{\Rds^2-c^2}
-  \label{eq:ppath:geomfac}
+  \label{eq:ppath:primofg}
 \end{equation}
 
 
 %The distance
-%along the path to point 2 is (\verb|r1_za1_r2_2_dl|)
+%along the path to point 2 is ()
 \begin{equation}
   \Delta\PpathLng = 
   \label{eq:ppath:}

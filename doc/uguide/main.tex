@@ -90,11 +90,40 @@
 % === Symbol definitions
 %
 \input{symbol_defs}
+
+
+
 %
-% Macro to make a quick index reference when text and index reference
-% are equal
-\newcommand{\qindex}[1]      {#1\index{#1}}  
- 
+% === Command to write a ARTS variable or function with special style
+%
+\newcommand{\artsstyle}[1]      {\texttt{#1}}
+
+
+
+%
+% === Commands for easy indexing of term
+%
+% Index command to use when text and index reference are equal. Otherwise
+% the normal \index command must be used.
+\newcommand{\textindex}[1]   {#1\index{#1}}  
+%
+% Index command to make index for workspace function. It writes out the
+% function name in verbatim style and makes an index reference.
+\newcommand{\wsfindex}[1]    {\artsstyle{#1}\index{workspace functions!#1}}  
+%
+% Index command to make index for workspace variable. Works as \wsfindex.
+\newcommand{\wsvindex}[1]    {\artsstyle{#1}\index{workspace variables!#1}}  
+%
+% Index command to make index A ARTS file. Works as \wsfindex.
+\newcommand{\fileindex}[1]   {\artsstyle{#1}\index{ARTS files!#1}}
+%
+% Index command to make index for an internal function. Works as \wsfindex.
+\newcommand{\funcindex}[1]   {\artsstyle{#1}\index{internal ARTS functions!#1}}
+%
+% Index command to make index for a ARTS data structure. Works as \wsfindex.
+\newcommand{\structindex}[1] {\artsstyle{#1}\index{data structures!#1}}
+
+
 
 
 %===   Start of report   ===================================================

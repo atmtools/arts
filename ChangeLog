@@ -1,5 +1,40 @@
 2002-04-11  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-1-1-49
+
+	* doc/uguide/main.tex: Added the commands \artsstyle, \textindex,
+	\wsfindex, \wsvindex, \fileindex, \funcindex and \structindex.
+	The command replaces the old \qindex. 
+
+	ARTS workspace methods, variables etc. are no longer written using the
+	\verb environment. Use now the \artsstyle command. This command will
+	write the text with style \texttt. I made the change as verbatim
+	cannot be used inside commands, figure text etc., which has been a 
+	problem for me several times. The drawback of using \texttt is that
+	underscores must be proceeded with a backslash (e.g. \_).
+
+	The other commands, ending with "index", writes the text and makes
+	on the same time a index mark. The commands beside \textindex are 
+	releated to ARTS and writes the text by using \artsstyle and puts
+	the reference as a subentry to an appropiate text string. For example,
+	\wsvindex is the command to use when defining a ARTS workspace 
+	variable. See the index page for the result.
+
+	I hope that these indexes will help us to link AUG and ARTS better.
+	The old AUG did very few direct references to ARTS. I am trying now
+	to improve this by stating which function that does a special
+	calculation etc. This can work the other way around, when writing the
+	header of a function it should now be easier to make a reference to
+	AUG if the function is indexed in AUG. Before you did not know in
+	what section a description ended up (the section could be moved 
+	around). We can now refer to the index page to find where a function
+	is discussed.
+
+	* doc/uguide: Included the new commands in the files that are presently
+	included. You have to adapt the other files when they are included.
+
+2002-04-11  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-1-1-48
 
 	* doc/uguide/ppath.tex: Description of the propagation path structure,

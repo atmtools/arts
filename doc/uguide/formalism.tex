@@ -53,7 +53,7 @@ of the sensor is here included for completness.
  spectrum becomes a vector, \MsrVct, instead of a continuous function.
  The atmospheric radiative transfer is simulated by a computer model
  using a limited number of parameters as input (that is, a discrete
- model), and the \qindex{forward model}, \FrwMdl, used in practice can
+ model), and the \textindex{forward model}, \FrwMdl, used in practice can
  be expressed as
  \begin{equation}
    \MsrVct = \FrwMdl(\aSttVct{\FrwMdl},\aFrwMdlVct{\FrwMdl}) + 
@@ -63,10 +63,10 @@ of the sensor is here included for completness.
  where \aSttVct{\FrwMdl}, \aFrwMdlVct{\FrwMdl}, \aSttVct{\MsrErrVct}\ 
  and \aFrwMdlVct{\MsrErrVct} together give a total description of both
  the atmospheric and sensor states, and \MsrErrVct\ is the
- \qindex{measurement errors}. The parameters are divided in such way
- that \SttVct, the \qindex{state vector}, contains the parameters to
+ \textindex{measurement errors}. The parameters are divided in such way
+ that \SttVct, the \textindex{state vector}, contains the parameters to
  be retrieved, and the remainder is given by \FrwMdlVct, the
- \qindex{model parameter vector}. The total state vector is
+ \textindex{model parameter vector}. The total state vector is
  \begin{equation}
    \SttVct = \left[ \begin{array}{c} \aSttVct{\FrwMdl} \\ 
                                      \aSttVct{\MsrErrVct} \end{array} \right]
@@ -86,8 +86,8 @@ of the sensor is here included for completness.
  Both for the theoretical formalism and the practical implementation,
  it is suitable to make a separation of the forward model into two
  main sections, a first part describing the atmospheric radiative
- transfer for \qindex{pencil beam} (infinite spatial resolution)
- \qindex{monochromatic} (infinite frequency resolution) signals
+ transfer for \textindex{pencil beam} (infinite spatial resolution)
+ \textindex{monochromatic} (infinite frequency resolution) signals
  \citep{eriksson:99},
  \begin{equation}
    \MpiVct = \FrwMdl_r(\aSttVct{r},\aFrwMdlVct{r})
@@ -134,9 +134,9 @@ of the sensor is here included for completness.
    \MsrVct = \SnsMtr \MpiVct + \MsrErrVct
   \label{eq:formalism:H}
  \end{equation}
- where \SnsMtr\ is here denoted as the \qindex{sensor transfer
+ where \SnsMtr\ is here denoted as the \textindex{sensor transfer
    matrix}.  The matrix \SnsMtr\ can further incorporate effects of a
- \qindex{data reduction} and the total transfer matrix is then
+ \textindex{data reduction} and the total transfer matrix is then
  \begin{equation}
    \SnsMtr = \aSnsMtr{d} \aSnsMtr{s}
   \label{eq:formalism:Hs}
@@ -147,7 +147,7 @@ of the sensor is here included for completness.
                                     \MsrErrVct') = \SnsMtr \MpiVct + \MsrErrVct
   \label{eq:formalism:datared}
  \end{equation}
- where \aSnsMtr{d}\ is the \qindex{data reduction matrix},
+ where \aSnsMtr{d}\ is the \textindex{data reduction matrix},
  \aSnsMtr{s}\ the sensor matrix, and $\MsrVct'$ and $\MsrErrVct'$ are
  the measurement vector and the measurement errors, respectively,
  before data reduction.
@@ -159,7 +159,7 @@ of the sensor is here included for completness.
  
  \levelc{Basics} 
  
- A \qindex{weighting function} is the partial derivative of the
+ A \textindex{weighting function} is the partial derivative of the
  spectrum vector \MsrVct\ with respect to some variable used by the
  forward model. As the input of the forward model is divided between
  \SttVct\ or \FrwMdlVct, the weighting functions are divided
@@ -192,7 +192,7 @@ of the sensor is here included for completness.
 % detail in Sections \ref{sec:wfuns} and \ref{sec:wfuns_sens}.
 
 
- \levelc{Transformation between \qindex{vector space}s}
+ \levelc{Transformation between \textindex{vector space}s}
  
  It could be of interest to transform a weighting function matrix from
  one vector space to another\footnote{This subject is also discussed
