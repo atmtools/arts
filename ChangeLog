@@ -1,5 +1,14 @@
 2001-09-03  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
+	* arts-0-0-200
+
+	* Added function sFromFile.m in /ami/math, equivalent
+	to the obsolete -one day- sFromFile arts method, see
+	the mscript help.
+
+
+2001-09-03  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
 	* arts-0-0-199
 
 	* Added function hRedLimb to ami/hmatrix to make a
