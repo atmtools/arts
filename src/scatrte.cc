@@ -91,8 +91,8 @@ void cloud_fieldsCalc(// Output:
                         Tensor3& ext_mat,
                         Matrix& abs_vec,  
                         // Input:
-                        const Index& scat_za_index,
-                        const Index& scat_aa_index,
+                        const Index& /* scat_za_index */,
+                        const Index& /* scat_aa_index */,
                         const Agenda& spt_calc_agenda,
                         const Agenda& opt_prop_part_agenda,
                         const ArrayOfIndex& cloudbox_limits
@@ -557,8 +557,8 @@ void cloud_ppath_update1D(
 		}
 	      else 
 		{
-		  Vector stokes_vec(stokes_dim);
-		  mult( stokes_vec, 
+		  Vector stokes_vec2(stokes_dim);
+		  mult( stokes_vec2, 
 			ground_refl_coeffs(ilos,0,joker,joker), 
 			i_field(cloudbox_limits[0],
 				0, 0,
@@ -566,7 +566,7 @@ void cloud_ppath_update1D(
 				joker));
 		  for( Index is=0; is < stokes_dim; is++ )
 		    { 
-		      i_field_sum[is] += stokes_vec[is];
+		      i_field_sum[is] += stokes_vec2[is];
 		    }
 		  
 		}
@@ -761,7 +761,7 @@ void cloud_ppath_update3D(
 			  )
 {
   const Index stokes_dim = i_field.ncols();
-  const Index atmosphere_dim = 3;   
+  // (ole) FIXME const Index atmosphere_dim = 3;   
  
   Vector sca_vec_av(stokes_dim,0);
   Vector aa_grid(scat_aa_grid.nelem());
@@ -1312,7 +1312,7 @@ void cloud_ppath_update1D_planeparallel(
 					Vector& rte_pos,
 					GridPos& rte_gp_p,
 					// ppath_step_agenda:
-					Ppath& ppath_step, 
+					Ppath& /* ppath_step */,
 					const Index& p_index,
 					const Index& scat_za_index,
 					ConstVectorView scat_za_grid,
@@ -1324,7 +1324,7 @@ void cloud_ppath_update1D_planeparallel(
 					// Gas absorption:
 					const Agenda& opt_prop_gas_agenda,
 					// Propagation path calculation:
-					const Agenda& ppath_step_agenda,
+					const Agenda& /* ppath_step_agenda */,
 					ConstVectorView p_grid,
 					ConstTensor3View z_field,
 					ConstMatrixView r_geoid,
@@ -1391,9 +1391,9 @@ void cloud_ppath_update1D_planeparallel(
 	      //
 	      const Index N_species = vmr_field.nbooks();
 	      // Average vmrs
-	      for (Index i = 0; i < N_species; i++)
-		rte_vmr_list[i] = 0.5 * (vmr_field(i,p_index,0,0) + 
-					 vmr_field(i,p_index + 1,0,0));
+	      for (Index j = 0; i < N_species; i++)
+          rte_vmr_list[i] = 0.5 * (vmr_field(j,p_index,0,0) + 
+                                   vmr_field(j,p_index + 1,0,0));
 	      //
 	      // Calculate scalar gas absorption and add it to abs_vec 
 	      // and ext_mat.
@@ -1406,28 +1406,28 @@ void cloud_ppath_update1D_planeparallel(
 	      //
 	      // Add average particle extinction to ext_mat. 
 	
-	      for (Index i = 0; i < stokes_dim; i++)
+	      for (Index k = 0; k < stokes_dim; k++)
 		{
 		  for (Index j = 0; j < stokes_dim; j++)
 		    {
 		      
-		      ext_mat(0,i,j) += 0.5 *
-			(ext_mat_field(p_index - cloudbox_limits[0],0,0,i,j) + 
-			 ext_mat_field(p_index - cloudbox_limits[0]+ 1,0,0,i,j));
+		      ext_mat(0,k,j) += 0.5 *
+			(ext_mat_field(p_index - cloudbox_limits[0],0,0,k,j) + 
+			 ext_mat_field(p_index - cloudbox_limits[0]+ 1,0,0,k,j));
 		    }
 		  //
 		  // Add average particle absorption to abs_vec.
 		  //
-		  abs_vec(0,i) += 0.5 * 
-		    (abs_vec_field(p_index- cloudbox_limits[0],0,0,i) + 
-		     abs_vec_field(p_index - cloudbox_limits[0]+ 1,0,0,i));
+		  abs_vec(0,k) += 0.5 * 
+		    (abs_vec_field(p_index- cloudbox_limits[0],0,0,k) + 
+		     abs_vec_field(p_index - cloudbox_limits[0]+ 1,0,0,k));
 		  
 		  //
 		  // Averaging of sca_vec:
 		  //
-		  sca_vec_av[i] += 0.5 * 
-		    (scat_field(p_index- cloudbox_limits[0],0,0,scat_za_index,0, i) + 
-		     scat_field(p_index - cloudbox_limits[0]+ 1,0,0,scat_za_index,0,i));
+		  sca_vec_av[k] += 0.5 * 
+		    (scat_field(p_index- cloudbox_limits[0],0,0,scat_za_index,0, k) + 
+		     scat_field(p_index - cloudbox_limits[0]+ 1,0,0,scat_za_index,0,k));
 		   
 		}
 	      // Frequency
@@ -1495,9 +1495,9 @@ void cloud_ppath_update1D_planeparallel(
 	      //
 	      const Index N_species = vmr_field.nbooks();
 	      // Average vmrs
-	      for (Index i = 0; i < N_species; i++)
-		rte_vmr_list[i] = 0.5 * (vmr_field(i,p_index,0,0) + 
-					 vmr_field(i,p_index - 1,0,0));
+	      for (Index k = 0; k < N_species; k++)
+		rte_vmr_list[k] = 0.5 * (vmr_field(k,p_index,0,0) + 
+					 vmr_field(k,p_index - 1,0,0));
 	      //
 	      // Calculate scalar gas absorption and add it to abs_vec 
 	      // and ext_mat.
@@ -1513,28 +1513,28 @@ void cloud_ppath_update1D_planeparallel(
 	     
 	      // cout<<"cloudbox_limits[1]"<<cloudbox_limits[1]<<endl;
 // 	      cout<<"p_index - cloudbox_limits[0]"<<p_index - cloudbox_limits[0]<<endl;
-	      for (Index i = 0; i < stokes_dim; i++)
+	      for (Index k = 0; k < stokes_dim; k++)
 		{
 		  for (Index j = 0; j < stokes_dim; j++)
 		    {
 		      
-		      ext_mat(0,i,j) += 0.5 *
-			(ext_mat_field(p_index - cloudbox_limits[0],0,0,i,j) + 
-			 ext_mat_field(p_index  - cloudbox_limits[0]- 1,0,0,i,j));
+		      ext_mat(0,k,j) += 0.5 *
+			(ext_mat_field(p_index - cloudbox_limits[0],0,0,k,j) + 
+			 ext_mat_field(p_index  - cloudbox_limits[0]- 1,0,0,k,j));
 		    }
 		  //
 		  // Add average particle absorption to abs_vec.
 		  //
-		  abs_vec(0,i) += 0.5 * 
-		    (abs_vec_field(p_index - cloudbox_limits[0],0,0,i) + 
-		     abs_vec_field(p_index  - cloudbox_limits[0]- 1,0,0,i));
+		  abs_vec(0,k) += 0.5 * 
+		    (abs_vec_field(p_index - cloudbox_limits[0],0,0,k) + 
+		     abs_vec_field(p_index  - cloudbox_limits[0]- 1,0,0,k));
 		  
 		  //
 		  // Averaging of sca_vec:
 		  //
-		  sca_vec_av[i] += 0.5 * 
-		    (scat_field(p_index- cloudbox_limits[0],0,0,scat_za_index,0, i) + 
-		     scat_field(p_index - cloudbox_limits[0]- 1,0,0,scat_za_index,0,i));
+		  sca_vec_av[k] += 0.5 * 
+		    (scat_field(p_index- cloudbox_limits[0],0,0,scat_za_index,0, k) + 
+		     scat_field(p_index - cloudbox_limits[0]- 1,0,0,scat_za_index,0,k));
 		  
 		}
 	      // Frequency
@@ -1626,8 +1626,8 @@ void cloud_ppath_update1D_planeparallel(
 		}
 	      else 
 		{
-		  Vector stokes_vec(stokes_dim);
-		  mult( stokes_vec, 
+		  Vector stokes_vec2(stokes_dim);
+		  mult( stokes_vec2, 
 			ground_refl_coeffs(ilos,0,joker,joker), 
 			i_field(cloudbox_limits[0],
 				0, 0,
@@ -1635,7 +1635,7 @@ void cloud_ppath_update1D_planeparallel(
 				joker));
 		  for( Index is=0; is < stokes_dim; is++ )
 		    { 
-		      i_field_sum[is] += stokes_vec[is];
+		      i_field_sum[is] += stokes_vec2[is];
 		    }
 		  
 		}
@@ -1685,10 +1685,10 @@ void cloud_ppath_update1D_planeparallel(
 	  //
 	  const Index N_species = vmr_field.nbooks();
 	  // Average vmrs
-	  for (Index i = 0; i < N_species; i++)
+	  for (Index k = 0; k < N_species; k++)
 	    {
-	      rte_vmr_list[i] = 0.5 * (vmr_field(i,p_index,0,0) + 
-				       vmr_field(i,p_index + 1,0,0));
+	      rte_vmr_list[k] = 0.5 * (vmr_field(k,p_index,0,0) + 
+				       vmr_field(k,p_index + 1,0,0));
 	    }
 	  //
 	  // Calculate scalar gas absorption and add it to abs_vec 
@@ -1703,13 +1703,13 @@ void cloud_ppath_update1D_planeparallel(
 	  // Add average particle extinction to ext_mat. 
 	  //
           //cout<<"Reached Here ????????????????????????????????????????????????";
-	  for (Index i = 0; i < stokes_dim; i++)
+	  for (Index k = 0; k < stokes_dim; k++)
 	    {
 	      for (Index j = 0; j < stokes_dim; j++)
 		{
-		  ext_mat(0,i,j) += 0.5 *
-		    (ext_mat_field(p_index - cloudbox_limits[0],0,0,i,j) + 
-		     ext_mat_field(p_index - cloudbox_limits[0]+ 1,0,0,i,j));
+		  ext_mat(0,k,j) += 0.5 *
+		    (ext_mat_field(p_index - cloudbox_limits[0],0,0,k,j) + 
+		     ext_mat_field(p_index - cloudbox_limits[0]+ 1,0,0,k,j));
 		}
 	      
 	      
@@ -1717,16 +1717,16 @@ void cloud_ppath_update1D_planeparallel(
 	      //
 	      // Add average particle absorption to abs_vec.
 	      //
-	      abs_vec(0,i) += 0.5 * 
-		(abs_vec_field(p_index - cloudbox_limits[0],0,0,i) + 
-		 abs_vec_field(p_index - cloudbox_limits[0]+1,0,0,i));
+	      abs_vec(0,k) += 0.5 * 
+		(abs_vec_field(p_index - cloudbox_limits[0],0,0,k) + 
+		 abs_vec_field(p_index - cloudbox_limits[0]+1,0,0,k));
 	      //
 	      // Averaging of sca_vec:
 	      //
-	      sca_vec_av[i] = 0.5*( scat_field(p_index- cloudbox_limits[0], 
-					       0, 0, scat_za_index, 0, i)
+	      sca_vec_av[k] = 0.5*( scat_field(p_index- cloudbox_limits[0], 
+					       0, 0, scat_za_index, 0, k)
 				    + scat_field(p_index- cloudbox_limits[0]+1,
-						 0, 0, scat_za_index, 0, i)) ;
+						 0, 0, scat_za_index, 0, k)) ;
 	      
 	    }
 	  // Frequency
