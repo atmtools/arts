@@ -419,6 +419,21 @@ void define_wsv_data()
        ),
       GROUP( ArrayOfMatrix_ )));
 
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "arrayofstring_1" ),
+       DESCRIPTION
+       (
+        "An arbitrary array of strings.\n"
+        "\n"
+        "This variable shall be treated as a general variable of type\n"
+        "ArrayOfString. \n"
+        "\n"
+        "Usage: Set by user."
+        ),
+       GROUP( ArrayOfString_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "atmosphere_dim" ),
