@@ -22,7 +22,7 @@
 %                      For ASCII files, PREC gives the number of decimals 
 %                      to use.
 %                      PREC can be empty ([]).
-%                      Default: 2 for binary, 6 for ASCII.
+%                      Default: 2 for binary, 9 for ASCII.
 %                      The precision is neglected for strings.
 %          heading     Heading text as character matrix (see STR2MAT).
 %                      The text is only included in ASCII files.
@@ -59,7 +59,7 @@ if ~exist('toascii')
 end 
 if ~exist('prec') | isempty(prec)
   if toascii
-    prec = 6;
+    prec = 9;
   else
     prec = 2;
   end 
