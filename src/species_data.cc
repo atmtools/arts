@@ -80,18 +80,20 @@ Array<SpeciesRecord> species_data;
        <table>
        <tr>
        <td> 1: <td> hitran 96 isotopic ratio, taken from cd: file
-          	    software/generic/tables_96.txt or HITRAN 2000 edition
-                    (default, even if jpl and hitran isotopic ratios are 
-		    available).
+            software/generic/tables_96.txt or HITRAN 2000 edition
+            (default, even if jpl and hitran isotopic ratios are
+            available).
+
        <tr>
-       <td >2: <td> jpl isotopic ratio, taken from the documentation coming
-          	    along with the catalogue. latest catalogue version
-          	    extracted 27.07.00, can be found at
-          	    /pool/lookup/jpl/cat7_00/doc/d<tag_nr>.cat 
+       <td> 2: <td> jpl isotopic ratio, taken from the documentation coming
+            along with the catalogue. latest catalogue version
+            extracted 27.07.00, can be found at
+            /pool/lookup/jpl/cat7_00/doc/d<tag_nr>.cat
+
        <tr>
-       <td> 3: <td> jpl isotopic ratio is multiplied with the maximum isotopic ratio
-          	    of this species found in hitran. is only performed when
-          	    isotopic ratios of 1 were found in the jpl catalogue.
+       <td> 3: <td> jpl isotopic ratio is multiplied with the maximum isotopic
+            ratio of this species found in hitran. is only performed when
+            isotopic ratios of 1 were found in the jpl catalogue.
        </table>
 
   <dt> Mass: 
