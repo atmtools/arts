@@ -187,8 +187,8 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
   \caption{A schematic cross-section of a 1D atmosphere. The atmosphere is 
     here spherically symmetric. This means that the radius of the
     geoid, the ground and all the pressure surfaces are constant. The
-    cloud box extends here from the ground up to the thin solid line
-    (no blackbody ground assumed). The upper limit of the cloud box
+    cloud box extends here from the ground up to the thin solid line. 
+    The upper limit of the cloud box
     coincides always with a pressure surface. }
   \label{fig:fm_defs:1d}  
  \end{center}
@@ -201,8 +201,7 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
   \caption{ Schematic of a 2D atmosphere. The radii of the geoid, the ground
     and all the pressure surfaces are for 2D atmospheres allowed to
     have a latitude variation. The limits of the cloud box coincide
-    always with grid box boundaries. A blackbody ground is assumed
-    here as the cloud box does not extend down to the ground. }
+    always with grid box boundaries. }
   \label{fig:fm_defs:2d}
  \end{center}
 \end{figure}
@@ -293,7 +292,7 @@ Section~\ref{sec:fm_defs:atmdim}.  The latitude angle is throughout
 calculated for the vector going from the center of the coordinate
 system to the point of concern. Hence, the latitudes here correspond
 to the definition of the geocentric latitude, and not geodetic
-latitudes (see Section~\ref{sec:ppath:geoid}). This is an accordance
+latitudes (see Section~\ref{sec:ppath:geoid}). This is in accordance
 to the definition of geometric altitudes found above.  For 3D, a
 \textindex{longitude} grid (\wsvindex{lon\_grid}) must also be specified.
 Valid ranges for latitude and longitude values are given in
@@ -372,36 +371,8 @@ The ARTS variable for the \textindex{ground altitude}
 (\wsvindex{z\_ground}) is a matrix of the same size as the geoid
 matrix. For 1D, the ground is a sphere by definition (as the geoid),
 while for 2D and 3D any shape is allowed and a rough model of the
-ground topography can be made. For example, for limb sounding into the
-troposphere, it could be of importance to capture the intersection of
-the antenna beam by the Himalayas, and maybe other mountain ranges.
-However, it should be noted that ground reflections are treated in a
-simplified manner and accurate results cannot be expected, except when
-some conditions are fulfilled (see
-Section~\ref{sec:fm_defs:groundrefl}).
-
-The workspace variables for the effective emission temperature of the
-ground \index{ground temperature} (\aTmp{g}) and the emissivity of the
-ground \textindex{ground emissivity} ($e_g$) are \wsvindex{t\_ground}
-and \wsvindex{e\_ground}, respectively. These variables are both set
-by a specific agenda (\wsvindex{t\_ground\_agenda} and
-\wsvindex{e\_ground\_agenda}). For information about these agendas,
-see Section~[**] and the on-line documentation (e.g. \artsstyle{arts -d
-  e\_ground\_agenda}). The modelling of the ground emission and reflectivity
-is discussed in Section~\ref{sec:fm_defs:groundrefl}.
-
-\begin{description}
-\item[Blackbody ground\index{blackbody ground}] The ground can be
-  treated to act as a blackbody, which is of importance for the cloud
-  box and determination of propagation paths
-  (Section~\ref{sec:fm_defs:cloudbox} and \ref{sec:fm_defs:ppaths},
-  respectively). This feature is selected by the variable
-  \wsvindex{blackbody\_ground}. When this variable is set to 1, the
-  content of \artsstyle{e\_ground\_agenda} is neglected, it is assumed
-  that the agenda returns the value 1 for all positions and line-of-sights.
-  A blackbody ground is most easily selected by the function
-  \wsmindex{GroundSetToBlackbody}.
-\end{description}
+ground topography can be made. The treatment of ground emission
+and reflectivity is discussed in Section~\ref{sec:fm_defs:groundrefl}.
 
 
 \levelc{The cloud box}
@@ -416,44 +387,42 @@ and it is discussed here as it acts as an additional atmospheric limit
 when calculating propagation paths (see
 Section~\ref{sec:fm_defs:rte}).
 
-The cloud box is defined in such a way that a propagation path entering
-the cloud box at one position has not crossed the cloud box boundary
-at any other location (remember that there is no scattering outside
-the cloud box). This requires in general that the lower limit of the
-cloud box is the ground. This is the case as if there is a gap between
-the ground and the cloud box, paths entering the cloud box from below
-after a ground reflection have passed through the cloud box on the way
-down, at least for propagations paths close to nadir. However, with a
-blackbody ground (Section~\ref{sec:fm_defs:geoid}), there is
-effectively no ground reflection
-(Section~\ref{sec:fm_defs:groundrefl}) and a gap below the cloud box
-is allowed.
-
 The cloud box is defined to be rectangular in the used coordinate
 system, with limits exactly at points of the involved grids. This
 means, for example, that the vertical limits of the cloud box are two
-pressure surfaces. If the ground is not a blackbody, the lower limit
-must be set to the lowest pressure surface (index 0). For 2D, the
-angular extension of the cloud box is between two points of the
-latitude grid (Figure~\ref{fig:fm_defs:2d}), and likewise for 3D but
-then also with a longitude extension between two grid points.  The
-latitude and longitude limits for the cloud box cannot be placed at
-the end points of the corresponding grid as it must be possible to
-calculate the incoming intensity field. The cloud box is activated by
-setting the variable \wsvindex{cloudbox\_on} to 1. The limits of the
-cloud box are stored in \wsvindex{cloudbox\_limits}. It is recommnded
-to use the method \wsmindex{CloudboxOff} when no scattering
-calculations shall be performed. This method assigns dummy values to
-all workspace variables not needed when scattering is neglected.
+pressure surfaces. For 2D, the angular extension of the cloud box is
+between two points of the latitude grid (Figure~\ref{fig:fm_defs:2d}),
+and likewise for 3D but then also with a longitude extension between
+two grid points.  The latitude and longitude limits for the cloud box
+cannot be placed at the end points of the corresponding grid as it
+must be possible to calculate the incoming intensity field. The cloud
+box is activated by setting the variable \wsvindex{cloudbox\_on} to 1.
+The limits of the cloud box are stored in \wsvindex{cloudbox\_limits}.
+It is recommnded to use the method \wsmindex{CloudboxOff} when no
+scattering calculations shall be performed. This method assigns dummy
+values to all workspace variables not needed when scattering is
+neglected.
 
-There exists in fact a small risk for 2D or 3D, and with a reflecting
-ground, that a propagation path into the cloud box has earlier crossed
-the box boundaries. This can happen for propagation paths close to the
-nadir direction and if the ground is tilted in such a way that the
-surface of the ground points towards the cloud box. The first crossing
-of the cloud box is neglected for such cases, the cloud box is simply
-turned off when determining the radiation field going into the cloud
-box.
+When the radiation entering the cloud box is calculated this is done
+with the cloud box turned off. This to avoid to end up in the
+situation that the radiation entering the cloud box depends on the
+radiation coming out from the cloud box. {\bf It is the task of the
+  user to define the cloud box in such way that the link between the
+  outgoing and ingoing radiation fields of the cloud box can be
+  neglected}. The main point to consider here is radiation reflected
+by the ground. To be formally correct there should never be a gap
+between the ground and the cloud box. This is the case as radiation
+leaving the cloud box can then be reflected back into the cloud box by
+the ground. If it is considered that the ground is a scattering object
+it is clear that the ground should in general be part of the cloud
+box. However, for many cases it can be accepted to have a gap between
+the ground and the cloud box, with the gain that the cloud box can be
+made smaller. Such a case is when the ground is treated to act as
+blackbody, the ground is then not reflecting any radiation.
+Reflections from the ground can also be neglected if the zenith
+optical thickness of the atmosphere between the ground and cloud box
+is sufficiently high.
+
 
 
 \levelb{Absorption and refractive index}
@@ -721,7 +690,7 @@ size and the spatial resolution, in the direction of the movement, that
 is hoped to be achieved. If this intermediate solution shall be an
 option, the difference in zenith and azimuth angles between the
 spectra must be the same for all blocks, otherwise \aSnsMtr{b} cannot
-be applied for all blocks as done in Equation~\ref{eq:fm_defs:measseq}.
+be applied for all blocks as done below in Equation~\ref{eq:fm_defs:measseq}.
 
 For each block, pencil beam spectra are calculated for the
 line-of-sights obtained when summing \wsvindex{sensor\_los} and
@@ -846,6 +815,7 @@ is a ground reflection along the propagation path.
                                     {pencil beam directions of the block}
     \STATE{determine the propagation path by \artsstyle{ppathCalc}}
     \COMMENT{Section \ref{sec:fm_defs:ppaths}}
+    \STATE{determine the radiation at the start of the propagation path}
     \STATE{call \artsstyle{rte\_agenda}}
     \COMMENT{Algorithm \ref{alg:fm_defs:rte_agenda}}
     \STATE{copy \artsstyle{i\_rte} to correct part of \aMpiVct{b}}
