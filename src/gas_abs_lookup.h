@@ -37,7 +37,7 @@ class bofstream;
 /*! This class holds an absorption lookup table, as well as all
     information that is necessary to use the table to extract
     absorption. Extraction routines are implemented as member functions. */
-struct GasAbsLookup {
+class GasAbsLookup {
 public:
   // Documentation is with the implementation!
   void Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
@@ -173,5 +173,7 @@ private:
   Tensor4 xsec;
 
 };
+
+ostream& operator<< (ostream &os, const GasAbsLookup &gal);
 
 #endif //  gas_abs_lookup_h

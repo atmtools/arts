@@ -1062,3 +1062,9 @@ void GasAbsLookup::Extract( Matrix&         sga,
 //     }
 // }
 
+ostream& operator<< (ostream &os, const GasAbsLookup & /* gal */)
+{
+  os << "GasAbsLookup: Output operator not implemented";
+  return os;
+}
+
