@@ -1243,6 +1243,48 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "cloudboxSetManuallyAltitude" ),
+        DESCRIPTION
+        (
+         "Sets the cloud box to encompass the given positions.\n"
+         "\n"
+         "The function sets *cloudbox_on* to 1 and sets *cloudbox_limits*\n"
+         "following the given altitude, latitude and longitude positions.\n"
+         "The index limits in *cloudbox_limits* are selected to give the\n" 
+         "smallest possible cloud box that encompass the given points. \n"
+         "\n"
+         "The points must be given in the same order as used in\n"
+         "*cloudbox_limits*. That means that altitude, latitude\n"
+         "and longitude points are given in increasing order. Positions\n"
+         "given for dimensions not used by the selected atmospheric\n"
+         "dimensionality are ignored.\n"
+         "\n"
+         "The given altitude points can be outside the range of *z_field*.\n"
+         "The altitude limit is then set to the end point of *p_grid*.\n"
+         "The given latitude and longitude points must be inside the range\n"
+         "of the corresponding grid. In addition, the latitude and longitude\n"
+         "points cannot be inside the outermost grid ranges as the latitude\n"
+         "and longitude limits in *cloudbox_limits* are not allowed to be\n"
+         "grid end points.\n"
+         "\n"
+         "Keywords: \n"
+         "   z1   : Lower altitude point.\n"
+         "   z2   : Upper altitude point.\n"
+         "   lat1 : Lower latitude point.\n"
+         "   lat2 : Upper latitude point.\n"
+         "   lon1 : Lower longitude point.\n"
+         "   lon2 : Upper longitude point."
+        ),
+        OUTPUT( cloudbox_on_, cloudbox_limits_ ),
+        INPUT( atmosphere_dim_, z_field_, lat_grid_, lon_grid_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "z1", "z2", "lat1", "lat2", "lon1", "lon2" ),
+        TYPES( Numeric_t, Numeric_t, Numeric_t, Numeric_t, Numeric_t, 
+               Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("ConvertIFToRF"),
         DESCRIPTION
         (
@@ -1786,8 +1828,7 @@ md_data_raw.push_back
          ),
         OUTPUT(i_field_, i_field_old_, convergence_flag_),
         INPUT( scat_field_agenda_, scat_rte_agenda_, 
-               convergence_test_agenda_, f_grid_,
-               f_index_),
+               convergence_test_agenda_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3467,7 +3508,7 @@ md_data_raw.push_back
         OUTPUT( scat_field_, pha_mat_, pha_mat_spt_, scat_za_index_,
                 scat_aa_index_),
         INPUT( pha_mat_spt_agenda_, i_field_, pnd_field_, scat_za_grid_, 
-               scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, 
+               scat_aa_grid_,  
                atmosphere_dim_, cloudbox_limits_, za_grid_size_),
         GOUTPUT(),
         GINPUT(),
@@ -3505,7 +3546,7 @@ md_data_raw.push_back
         OUTPUT( scat_field_, pha_mat_, pha_mat_spt_, scat_za_index_,
                 scat_aa_index_),
         INPUT( pha_mat_spt_agenda_, i_field_, pnd_field_, scat_za_grid_,
-               scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, 
+               scat_aa_grid_,  
                atmosphere_dim_, cloudbox_limits_, za_grid_size_),
         GOUTPUT(),
         GINPUT(),

@@ -470,8 +470,8 @@ void define_agenda_data()
         "\n"
         ),
         OUTPUT( scat_field_ ),
-        INPUT(  i_field_, pnd_field_, scat_za_grid_, scat_aa_grid_, p_grid_, 
-                lat_grid_, lon_grid_, cloudbox_limits_)));
+        INPUT(  i_field_, pnd_field_, scat_za_grid_, scat_aa_grid_, 
+                cloudbox_limits_, pha_mat_spt_agenda_)));
 
 
   agenda_data.push_back

@@ -125,8 +125,7 @@ void convergence_flagAbs(//WS Output:
                         "have *stokes_dim* elements!"
                         );
   
-  //3D atmosphere:
-  for (Index p_index = 0; p_index < N_p; p_index++)
+   for (Index p_index = 0; p_index < N_p; p_index++)
     { 
       for (Index lat_index = 0; lat_index < N_lat; lat_index++)
         {
@@ -398,21 +397,9 @@ i_fieldIterate(
                // WS Input:  
                const Agenda& scat_field_agenda,
                const Agenda& scat_rte_agenda,
-               const Agenda& convergence_test_agenda,
-// FIXME only used in assertion
-#ifndef NDEBUG
-               const Vector& f_grid,
-               const Index& f_index
-#else
-               const Vector&,
-               const Index&
-#endif
+               const Agenda& convergence_test_agenda
                )
 {
- 
-  // Is the frequency index valid?
-  assert( f_index <= f_grid.nelem() );
-  
   convergence_flag = 0;
   while(convergence_flag == 0) {
     
@@ -2478,17 +2465,6 @@ scat_fieldCalc(//WS Output:
                const Tensor4& pnd_field,
                const Vector& scat_za_grid,
                const Vector& scat_aa_grid,
-// FIXME parameters only used for assertions
-#ifndef NDEBUG
-               const Vector& p_grid,
-               const Vector& lat_grid,
-               const Vector& lon_grid,
-#else
-               const Vector&,
-               const Vector&,
-               const Vector&,
-#endif
-
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
                const Index& za_grid_size
@@ -2498,17 +2474,13 @@ scat_fieldCalc(//WS Output:
   Index stokes_dim = scat_field.ncols();
 
   // Some useful indices :
-// FIXME variable only used for assertion
-#ifndef NDEBUG
-  Index N_pt = pha_mat_spt.nshelves();
-#endif
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
   if (za_grid_size != Nza)
     throw runtime_error("Error in *scat_fieldCalc*: \n"
                         "Zenith angle grids for radiative transfer \n"
-                        "(*zcat_za_grid*) and computation of scattering  \n"
+                        "(*scat_za_grid*) and computation of scattering  \n"
                         "integral (specified in *grid_stepsizeSet*) must \n"
                         "be equal.\n"
                         "If you need different grids (for Limb calculations)\n"
@@ -2539,12 +2511,7 @@ scat_fieldCalc(//WS Output:
                       scat_za_grid.nelem(), 
                       1,
                       stokes_dim));
-    assert ( is_size( pnd_field, 
-                      N_pt,
-                      p_grid.nelem(),
-                      1, 
-                      1));
- 
+   
     scat_aa_index = 0;
     
     // Get pha_mat at the grid positions
@@ -2631,12 +2598,6 @@ scat_fieldCalc(//WS Output:
                       scat_za_grid.nelem(), 
                       scat_aa_grid.nelem(),
                       stokes_dim));
-    assert ( is_size( pnd_field, 
-                      N_pt,
-                      p_grid.nelem(),
-                      lat_grid.nelem(), 
-                      lon_grid.nelem()));
-    
     
     /*there is a loop over pressure, latitude and longitudeindex
       when we calculate the pha_mat from pha_mat_spt and pnd_field
@@ -2651,16 +2612,13 @@ scat_fieldCalc(//WS Output:
             for (Index lon_index = 0; lon_index <= 
                    cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
               {
-                for (scat_za_index = 0; scat_za_index < Nza; 
-                     scat_za_index++)
+                for (scat_aa_index = 1; scat_aa_index < Naa; 
+                     scat_aa_index++)
                   {
-                    for (scat_aa_index = 0; scat_aa_index < Naa; 
-                         scat_aa_index ++)
+                    for (scat_za_index = 0; scat_za_index < Nza; 
+                         scat_za_index ++)
                       {
-                        pha_mat_spt_agenda.execute(scat_za_index || p_index 
-                                                   || scat_aa_index || 
-                                                   lat_index  ||
-                                                   lon_index  );
+                        pha_mat_spt_agenda.execute( true );
 
                         pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                     atmosphere_dim, 
@@ -2717,7 +2675,8 @@ scat_fieldCalc(//WS Output:
       }// end lat loop
   }// end p loop
   // end atmosphere_dim = 3
-
+  scat_field(joker, joker, joker, joker, 0, joker) =
+    scat_field(joker, joker, joker, joker, Naa-1, joker);
 }
 
 
@@ -2771,16 +2730,6 @@ scat_fieldCalcLimb(//WS Output:
                const Tensor4& pnd_field,
                const Vector& scat_za_grid,
                const Vector& scat_aa_grid,
-// FIXME parameters only used in assertions
-#ifndef NDEBUG
-               const Vector& p_grid,
-               const Vector& lat_grid,
-               const Vector& lon_grid,
-#else
-               const Vector&,
-               const Vector&,
-               const Vector&,
-#endif
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
                const Index& za_grid_size
@@ -2790,10 +2739,6 @@ scat_fieldCalcLimb(//WS Output:
   Index stokes_dim = scat_field.ncols();
 
   // Some useful indices :
-// FIXME variable only used in assertion
-#ifndef NDEBUG
-  Index N_pt = pha_mat_spt.nshelves();
-#endif
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
@@ -2848,15 +2793,8 @@ scat_fieldCalcLimb(//WS Output:
                         scat_za_grid.nelem(), 
                         1,
                         stokes_dim));
-      assert ( is_size( pnd_field, 
-                        N_pt,
-                        p_grid.nelem(),
-                        1, 
-                        1)); 
-  
+    
       scat_aa_index = 0;
-
-      
   
       // Get pha_mat at the grid positions
       // Since atmosphere_dim = 1, there is no loop over lat and lon grids
@@ -2965,12 +2903,6 @@ scat_fieldCalcLimb(//WS Output:
                       scat_za_grid.nelem(), 
                       scat_aa_grid.nelem(),
                       stokes_dim));
-    assert ( is_size( pnd_field, 
-                      N_pt,
-                      p_grid.nelem(),
-                      lat_grid.nelem(), 
-                      lon_grid.nelem()));
-
       
     // Loop over all positions
     for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
@@ -3656,7 +3588,10 @@ void ScatteringMain(
 {
 
   Index Nf = f_grid.nelem();
-  
+
+  // Is the frequency index valid?
+  assert( f_index <= f_grid.nelem() );
+
   for ( f_index = 0; f_index < Nf; ++ f_index)
     {
       out1 << "----------------------------------------------\n";

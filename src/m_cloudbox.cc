@@ -263,6 +263,121 @@ void cloudboxSetManually(
 }
 
 
+
+//! cloudboxSetManuallyAltitude
+/*!
+  This is basically the same function as *cloudboxSetManually* but one 
+  can specify the cloudbox altitude instead of pressure.
+  It takes pressure indices corresponding to the requested cloud altitude 
+  at the first latitude/longitude limit.
+
+  See the the online help (arts -d FUNCTION_NAME)
+
+  \author Claudia Emde
+  \date   2004-02-20
+*/
+void cloudboxSetManuallyAltitude(
+        // WS Output:
+        Index&          cloudbox_on,
+        ArrayOfIndex&   cloudbox_limits,
+        // WS Input:
+        const Index&    atmosphere_dim,
+        const Tensor3&  z_field,
+        const Vector&   lat_grid,
+        const Vector&   lon_grid,
+        // Control Parameters:
+        const Numeric& z1,
+        const Numeric& z2,
+        const Numeric& lat1,
+        const Numeric& lat2,
+        const Numeric& lon1,
+        const Numeric& lon2 )
+{
+  // Check existing WSV
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  
+  if( atmosphere_dim == 2 )
+    { throw runtime_error( "The cloud box is not defined for 2D." ); }
+
+  // Check keyword arguments
+  if( z1 >= z2 )
+    throw runtime_error( 
+                        "The altitude in *z1* must be smaller than the altitude in *z2*." );
+  if( z1 <= z_field(0, 0, 0) )
+    throw runtime_error( "The altitude in *z1* must be larger than the "
+                         "first value in *z_field*." );
+  if( z2 >= z_field(z_field.npages()-1, 0, 0) )
+    throw runtime_error( "The altitude in *z2* must be smaller than the "
+                         "last value in *z_field*." );
+  if( atmosphere_dim == 3 )
+    {
+      if( lat2 <= lat1 )
+        throw runtime_error( 
+                            "The latitude in *lat2* must be bigger than the latitude in *lat1*.");
+      if( lat1 < lat_grid[1] )
+        throw runtime_error( "The latitude in *lat1* must be >= than the "
+                             "second value in *lat_grid*." );
+      if( lat2 > lat_grid[lat_grid.nelem()-2] )
+        throw runtime_error( "The latitude in *lat2* must be <= than the "
+                             "next to last value in *lat_grid*." );
+      if( lon2 <= lon1 )
+        throw runtime_error
+          ("The longitude in *lon2* must be bigger than the longitude in *lon1*.");
+      if( lon1 < lon_grid[1] )
+        throw runtime_error( "The longitude in *lon1* must be >= than the "
+                             "second value in *lon_grid*." );
+      if( lon2 > lon_grid[lon_grid.nelem()-2] )
+        throw runtime_error( "The longitude in *lon2* must be <= than the "
+                             "next to last value in *lon_grid*." );
+    }
+  
+  // Set cloudbox_on
+  cloudbox_on = 1;
+
+  // Allocate cloudbox_limits
+  cloudbox_limits.resize( atmosphere_dim*2 );
+
+  // Pressure/altitude limits
+  if( z1 < z_field(1, 0, 0) )
+    {
+      cloudbox_limits[0] = 0;
+    }
+  else
+    {
+      for( cloudbox_limits[0]=1; z_field(cloudbox_limits[0]+1, 0, 0) <= z1; 
+                                                     cloudbox_limits[0]++ ) {}
+    }
+  if( z2 > z_field(z_field.npages()-2, 0, 0) )
+    {
+      cloudbox_limits[1] = z_field.npages() - 1;
+    }
+  else
+    {
+      for( cloudbox_limits[1]=z_field.npages()- 2; 
+           z_field(cloudbox_limits[1]-1, 0, 0) >= z2; cloudbox_limits[1]-- ) {}
+    }
+
+  // Latitude limits
+  if( atmosphere_dim >= 2 )
+    {
+      for( cloudbox_limits[2]=1; lat_grid[cloudbox_limits[2]+1]<=lat1; 
+                                                     cloudbox_limits[2]++ ) {}
+      for( cloudbox_limits[3]=lat_grid.nelem()-2; 
+                lat_grid[cloudbox_limits[3]-1]>=lat2; cloudbox_limits[3]-- ) {}
+    }
+
+  // Longitude limits
+  if( atmosphere_dim == 3 )
+    {
+      for( cloudbox_limits[4]=1; lon_grid[cloudbox_limits[4]+1]<=lon1; 
+                                                     cloudbox_limits[4]++ ) {}
+      for( cloudbox_limits[5]=lon_grid.nelem()-2; 
+                lon_grid[cloudbox_limits[5]-1]>=lon2; cloudbox_limits[5]-- ) {}
+    }
+}
+
+
+
 //! This method interpolates clear sky field on the cloudbox boundary 
 //on all grid points inside the cloud box. 
 

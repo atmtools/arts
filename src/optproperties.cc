@@ -397,6 +397,7 @@ void pha_matTransform(//Output
       
       break;
     }
+
   case PTYPE_HORIZ_AL://Added by Cory Davis
     //Data is already stored in the laboratory frame, but it is compressed
     //a little.  Details elsewhere
@@ -609,7 +610,7 @@ void interpolate_scat_angleDOIT(//Output:
   \param aa_inc Azimuth angle of incoming direction [rad].
      
   \author Claudia Emde
-  \date   2003-081-19
+  \date   2003-08-19
 */
 void interpolate_scat_angle(//Output:
                             VectorView pha_mat_int,
@@ -624,10 +625,12 @@ void interpolate_scat_angle(//Output:
                             )
 {
   Numeric ANG_TOL=1e-7;
+
   //Calculate scattering angle from incident and scattered directions.
   //The two special cases are implemented here to avoid NaNs that can 
   //sometimes occur in in the acos... formula in forward and backscatter
-  //cases. CPD 5/10/03.  
+  //cases. CPD 5/10/03.
+  
   if(abs(aa_sca-aa_inc)<ANG_TOL)
     {
       theta_rad=DEG2RAD*abs(za_sca-za_inc);

@@ -1,3 +1,22 @@
+2004-02-20  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-789
+	
+	* src/m_cloudbox.cc (cloudboxSetManuallyAltitude): Added this function.
+	Cloudbox limits can be specified in altitude instead of pressure. In 
+	the altitudes corresponding to the first latitude and first longitude 
+	are used.
+
+	* src/m_scatrte.cc (scat_fieldCalc), (scat_fieldCalcLimb): Removed 
+	variables only used in assertions. 
+	(i_fieldIterate): Moved frequency assertion to (ScatteringMain) and 
+	removed variables only used in assertions. 
+
+	* src/methods.cc: Included (cloudboxSetManuallyAltitude) and modified
+	(scat_fieldCalc), (scat_fieldCalcLimb).
+
+	* src/agendas.cc: Modified scat_field_aganda input variables. 
+
 2004-02-20  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-788
