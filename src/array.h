@@ -239,7 +239,7 @@ Index find_first( const Array<base>& x,
   \date   2002-11-28
 */
 template <class base>
-void find_all( ArrayOfIndex       pos,
+void find_all( ArrayOfIndex&      pos,
                const Array<base>& x,
                const base&        w )
 {
