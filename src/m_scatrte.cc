@@ -1311,6 +1311,10 @@ i_fieldUpdate3D(// WS Output:
 
   Tensor4 scalar_gas_array;
   
+  Vector aa_grid(scat_aa_grid.nelem());
+  for(Index i = 0; i<scat_aa_grid.nelem(); i++)
+    aa_grid[i] = scat_aa_grid[i] - 180;
+  
   for(Index p_index = cloudbox_limits[0]; p_index
         <= cloudbox_limits[1]; p_index ++)
     {
@@ -1398,8 +1402,9 @@ i_fieldUpdate3D(// WS Output:
                       out3 << "--------------------------------------------\n";
                       out3 << " Cloudbox limits: "<< cloudbox_limits[0] << " " 
                            << cloudbox_limits[1] << "\n";
-                      out3 << " Zenith angle index: "<< scat_za_index << "\n";
-                      out3 << " Pressure index: "<< p_index << "\n";
+                      out3 << " Zenith angle: "<< scat_za_grid[scat_za_index] << "\n";
+                      out3 << " Azimuth angle: "<< scat_aa_grid[scat_aa_index] << "\n";
+                      out3 << " Pressure: "<< p_grid[p_index] << "\n";
                       
                       // Calculate abs_vec_array 
           
@@ -1492,7 +1497,7 @@ i_fieldUpdate3D(// WS Output:
               
                     // Define the direction:
                     ppath_step.los(0,0) = scat_za_grid[scat_za_index];
-                    ppath_step.los(0,1) = scat_aa_grid[scat_aa_index];
+                    ppath_step.los(0,1) = aa_grid[scat_aa_index];
               
                     // Define the grid positions:
                     ppath_step.gp_p[0].idx   = p_index;
@@ -1519,7 +1524,7 @@ i_fieldUpdate3D(// WS Output:
               
                     // Check if the agenda has returned ppath.step with 
                     // reasonable values. 
-                    //PpathPrint( ppath_step, "ppath");
+                    PpathPrint( ppath_step, "ppath");
               
                     // Check whether the next point is inside or outside the
                     // cloudbox. Only if the next point lies inside the
@@ -1632,9 +1637,6 @@ i_fieldUpdate3D(// WS Output:
                               {
                                 // Interpolation of ext_mat
                                 //
-                                cout << "p_grid_range" << 
-                                  p_grid[p_range]<< endl;
-
                                 interp_atmfield_by_itw
                                   (ext_mat_int(i, j, joker),
                                    atmosphere_dim,
@@ -1678,7 +1680,6 @@ i_fieldUpdate3D(// WS Output:
                             // Interpolation of sca_vec:
                             //
                             out3 << "Interpolate scat_field:\n";
-                            cout << "fjeowö#1" << endl;
                             interp_atmfield_by_itw
                               (sca_vec_int(i, joker),
                                atmosphere_dim,
@@ -1694,7 +1695,6 @@ i_fieldUpdate3D(// WS Output:
                             //
                             // Averaging of sca_vec:
                             //
-                            cout <<"nfwerjoöhfrp #2"<<endl;
                             sca_vec_av[i] =  0.5*
                               (sca_vec_int(i,0) + sca_vec_int(i,1));
                             //
@@ -1782,11 +1782,11 @@ i_fieldUpdate3D(// WS Output:
                         //
                       } //end if
                     // 
-                    // If the intersection point is outside the clodbox
+                    // If the intersection point is outside the cloudbox
                     // no radiative transfer step is performed.
                     // The value on the cloudbox boundary remains unchanged.
                     //
-                    else return;
+                    
                     //
                   } // end of loop over lon_grid
                 }  // end of loop over lat_grid
@@ -2416,63 +2416,53 @@ scat_fieldCalc(//WS Output:
           {
             for (Index lon_index = 0; lon_index <= 
                    cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
-              {
-                pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-                            atmosphere_dim, p_index, lat_index, 
-                            lon_index);
-              }
-          }
-        
-      }
-    
-    // Get pha_mat at the grid positions
-    for (Index p_index = 0; p_index < cloudbox_limits[1]-cloudbox_limits[0];
-         p_index++)
-      {
-        for (Index lat_index = 0; lat_index < 
-               cloudbox_limits[3]-cloudbox_limits[2]; lat_index++)
-          {
-            for (Index lon_index = 0; lon_index < 
-                   cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
-              {
-                //za_prop and aa_prop are the propagation directions
-                for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
-                  {
-                    for (Index aa_prop = 0; aa_prop < Naa_prop; ++ aa_prop)
-                      {
-                        //za_in and aa_in are the incoming directions
-                        //for which pha_mat_spt is calculated
-                        for (Index za_in = 0; za_in < Nza; ++ za_in)
-                          {
-                            for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
-                              { 
-                                
-                                ConstMatrixView pha = pha_mat(za_in,
+              for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
+                {
+                  for (Index aa_prop = 0; aa_prop < Naa_prop; ++ aa_prop)
+                    {
+              
+                      pha_mat_sptCalc(pha_mat_spt,
+                                      amp_mat,
+                                      za_prop,
+                                      aa_prop);
+                      pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+                                  atmosphere_dim, p_index, lat_index, 
+                                  lon_index);
+                   
+                                          
+                      //za_in and aa_in are the incoming directions
+                      //for which pha_mat_spt is calculated
+                      for (Index za_in = 0; za_in < Nza; ++ za_in)
+                        {
+                          for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
+                            { 
+                              
+                              ConstMatrixView pha = pha_mat(za_in,
+                                                            aa_in,
+                                                            Range(joker),
+                                                            Range(joker));
+                              
+                              ConstVectorView i_field_in = 
+                                i_field(p_index,
+                                        lat_index,
+                                        lon_index,
+                                        za_prop,
+                                        aa_prop,
+                                        Range(joker));
+                              
+                              mult(product_field( za_in,
                                                   aa_in,
-                                                  Range(joker),
-                                                  Range(joker));
-
-                                ConstVectorView i_field_in = 
-                                  i_field(p_index,
-                                          lat_index,
-                                          lon_index,
-                                          za_prop,
-                                          aa_prop,
-                                          Range(joker));
-                                
-                                mult(product_field( za_in,
-                                                    aa_in,
-                                                    Range(joker)),
-                                     pha, 
-                                     i_field_in);
-                                
-                              }//end aa_in loop
-                          }//end za_in loop
+                                                  Range(joker)),
+                                   pha, 
+                                   i_field_in);
+                              
+                            }//end aa_in loop
+                        }//end za_in loop
                         //integration of the product of ifield_in and pha
                         //over zenith angle and azimuth angle grid. It 
                         //calls here the integration routine 
                         //AngIntegrate_trapezoid
-                        for (Index i = 0; i < stokes_dim; i++)
+                      for (Index i = 0; i < stokes_dim; i++)
                           {
                             MatrixView product_field_mat =
                               product_field( Range(joker),
@@ -2488,13 +2478,14 @@ scat_fieldCalc(//WS Output:
                                                      scat_za_grid,
                                                      scat_aa_grid);
                           }//end i loop
-                      }//end aa_prop loop
-                  }//end za_prop loop
-              }//end lon loop
-          }// end lat loop
-      }// end p loop
-  }// end atmosphere_dim = 3
-
+                    }//end aa_prop loop
+                }//end za_prop loop
+          }//end lon loop
+      }// end lat loop
+  }// end p loop
+  // end atmosphere_dim = 3
+  
+  xml_write_to_file("scat_field.xml", scat_field);
   out2 <<"Finished scattered field.\n"; 
  
 }
@@ -2606,7 +2597,7 @@ void ScatteringMain(//WS Output
                          "field can be returned." );
 
 
-  //  CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
+ //  CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
 //                       i_rte, y_rte, i_space, ground_emission, ground_los, 
 //                       ground_refl_coeffs,mblock_index, a_los,
 //                        a_pos, a_gp_p, a_gp_lat, a_gp_lon,

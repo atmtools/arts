@@ -335,24 +335,24 @@ void i_fieldSetClearsky(Tensor6& i_field,
         throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
                             "same frequency dimension");
       }
-      Index N_p = scat_i_lat.nvitrines();
+      Index N_p = cloudbox_limits[1] - cloudbox_limits[0] + 1;
       if(scat_i_lon.nvitrines() != N_p ||
-         p_grid.nelem()         != N_p ){
+         scat_i_lat.nvitrines() != N_p ){
         throw runtime_error("scat_i_lat and scat_i_lon should have  "
                             "same pressure grid dimension as p_grid");
       }
       
-      Index N_lat = scat_i_p.nshelves();
+      Index N_lat =  cloudbox_limits[3] - cloudbox_limits[2] + 1;
       
       if(scat_i_lon.nshelves() != N_lat ||
-         lat_grid.nelem()      != N_lat){
+         scat_i_p.nshelves()   != N_lat){
         throw runtime_error("scat_i_p and scat_i_lon should have  "
                             "same latitude grid dimension as lat_grid");
       }
   
-      Index N_lon = scat_i_p.nbooks();
+      Index N_lon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
       if(scat_i_lat.nbooks() != N_lon ||
-         lon_grid.nelem()    != N_lon ){
+         scat_i_p.nbooks()   != N_lon ){
         throw runtime_error("scat_i_p and scat_i_lat should have  "
                             "same longitude grid dimension as lon_grid");
       }
@@ -408,6 +408,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
                      N_aa,
                      N_i);
       
+
       
       ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
       ArrayOfGridPos lat_gp((cloudbox_limits[3]- cloudbox_limits[2])+1);
@@ -435,7 +436,8 @@ void i_fieldSetClearsky(Tensor6& i_field,
                              (cloudbox_limits[5]- cloudbox_limits[4]))],
               lon_grid[Range(cloudbox_limits[4], 
                              (cloudbox_limits[5]- cloudbox_limits[4])+1)]);
-      
+
+ 
       //interpolation weights corresponding to pressure, latitude and 
       //longitude grids.
 
@@ -508,7 +510,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
                                                             aa_index,
                                                             i);
                           
-                          ConstVectorView source_field = scat_i_p(f_index,
+                          ConstVectorView source_field = scat_i_lat(f_index,
                                                                   p_index,
                                                                   Range(joker),    
                                                                   lon_index,
@@ -547,7 +549,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
                                                             aa_index,
                                                             i);
                           
-                          ConstVectorView source_field = scat_i_p(f_index,
+                          ConstVectorView source_field = scat_i_lon(f_index,
                                                                   p_index,    
                                                                   lat_index,
                                                                   Range(joker),

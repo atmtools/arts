@@ -1,3 +1,18 @@
+2003-01-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-429
+
+	* src/m_cloudbox.cc (i_fieldSetClearsky): Bug fixed in 3D part. The 
+	limits of some loops were wrong.
+
+	* src/m_scatrte.cc (scat_fieldCalc): Fixed 3D part:
+	Included (pha_mat_sptCalc), this function was missing, so that the 
+	value of the scattering integral was always 0.
+	Included also some dubugging outputs which will be removed
+	later.
+
+	* src/special_interp.cc: Reincluded iostream.
+
 2003-01-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-428
