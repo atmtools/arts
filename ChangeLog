@@ -1,5 +1,13 @@
 2003-11-27  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-0-140
+
+	* src/file.cc (skip_comments): Throw runtime error if line in input
+	file starts with <. And make the user aware that he's probably trying
+	to read an XML file. (requested by Claudia :-))
+
+2003-11-27  Oliver Lemke  <olemke@uni-bremen.de>
+
         * arts-1-0-139
 
 	* reconf: Output message telling the user to use autogen.sh. Makes
