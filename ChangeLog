@@ -1,3 +1,13 @@
+2003-06-18  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-576
+
+	* src/xml_io_basic_types.cc: Updated sparse reading/writing functions.
+	nnz is now stored along with the SparseData, RowIndex and ColIndex
+	vector. This is somehow redundant but matches the concept of xml that
+	attributes should be stored with their object. Also, it is necessary
+	for the atmlab xml routines.
+
 2003-06-17  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-575
