@@ -1,5 +1,12 @@
 2003-07-30  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-0-114
+
+	* src/methods.cc, src/m_los (sourcetransyCalcSaveMemory):
+	Added keyword f_chunksize.
+
+2003-07-30  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-0-113
 
 	* src/m_los.cc (y_rte, y_tau): Changed input parameters to Views.
