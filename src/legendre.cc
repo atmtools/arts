@@ -197,7 +197,26 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
 	 << endl << "  x = " << x << endl;
       throw runtime_error (os.str ());
     }
-  return (((l + 1) * (l + m) + legendre_poly_norm_schmidt (l-1, m, x)
-           - l * (l - m + 1) * legendre_poly_norm_schmidt (l+1, m, x))
-          / ((2*l + 1) * (1 - x * x)));
+
+  Numeric result;
+
+  if (l == 1)
+    {
+      if (m == 0)
+        {
+          result = 1;
+        }
+      else
+        {
+          result = x / sqrt(1 - x*x);
+        }
+    }
+  else
+    {
+      result = ((l + 1) * (l + m) + legendre_poly_norm_schmidt (l-1, m, x)
+                - l * (l - m + 1) * legendre_poly_norm_schmidt (l+1, m, x))
+                / ((2*l + 1) * (1 - x * x));
+    }
+
+  return (result);
 }
