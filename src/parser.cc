@@ -170,6 +170,7 @@ bool is_whitespace(const char c)
   switch (c) 
     {
     case ' ':
+    case '\r':
     case '\t':
     case '#':
       return true;
@@ -198,6 +199,7 @@ void eat_whitespace(SourceText& text)
       switch (dummy)
 	{
 	case ' ':
+        case '\r':
 	case '\t':
 	  text.AdvanceChar();
 	  break;
