@@ -264,9 +264,9 @@ fi
 WARNING_FLAGS=
 if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
   if test x$ac_more_warnings = xyes; then
-    WARNING_FLAGS="-pedantic -ansi -W -Wall -Wno-unused"
+    WARNING_FLAGS="-pedantic -W -Wall -Wno-unused"
   else
-    WARNING_FLAGS="-pedantic -ansi"
+    WARNING_FLAGS="-pedantic"
   fi
 fi
 
