@@ -823,6 +823,245 @@ Numeric psurface_crossing_2d(
 
 
 
+//! do_gridcell_2d
+/*!
+   Calculates the geometrical path through a 2D grid cell.
+
+   The function determines the geometrical path from the given start
+   point to the boundary of the grid cell. The face where the path
+   exits the grid cell is denoted as the end face. The following
+   number coding is used for the variable *endface*: <br>
+   1: The face at the lower latitude point.
+   2: The face at the lower (geometrically) pressure surface.
+   3: The face at the upper latitude point.
+   4: The face at the upper (geometrically) pressure surface.
+   5: The end point is an intersection with the ground.
+   6: The end point is a tangent point.
+
+   The same coding is used when naming the input variables to define
+   the grid cell, where corner i is at the end of face i when going
+   around the grid cell in the anti-clockwise direction.
+
+   Path points are included if *lmax*>0 and the distance to the end
+   point is > than *lmax*.
+
+   The return vectors (*r_v* etc.) can have any length when handed to
+   the fuinction.
+
+   \param   r_v         Out: Vector with radius of found path points.
+   \param   lat_v       Out: Vector with latitude of found path points.
+   \param   za_v        Out: Vector with LOS zenith angle at found path points.
+   \param   lstep       Out: Vector with length along the path between points.
+   \param   endface     Out: Number coding for exit face. See above.
+   \param   r_start     Radius of start point.
+   \param   lat_start   Latitude of start point.
+   \param   za_start    LOS zenith angle at start point.
+   \param   ppc         Propagation path constant.
+   \param   lmax        Maximum allowed length along the path. -1 = no limit.
+   \param   r1          Radius of lower-left corner of the grid cell.
+   \param   r2          Radius of lower-right corner of the grid cell.
+   \param   r3          Radius of upper-right corner of the grid cell (r3>r2).
+   \param   r4          Radius of upper-left corner of the grid cell (r4>r1).
+   \param   c2          Slope of lower pressure surface [m/deg].
+   \param   c4          Slope of upper pressure surface [m/deg].
+   \param   lat1        Latitude of left end face (face 1) of the grid cell.
+   \param   lat3        Latitude of right end face (face 3) of the grid cell.
+   \param   at_lower_psurface   Boolean that is true if start point is on top
+                                of the lower pressure surface (face 2).
+   \param   at_upper_psurface   Boolean that is true if start point is on top
+                                of the upper pressure surface (face 4).
+   \param   rground1    Radius for the ground at *lat1*.
+   \param   rground2    Radius for the ground at *lat3*.
+   \param   cground     Slope of the ground [m/deg].
+
+   \author Patrick Eriksson
+   \date   2002-11-28
+*/
+void do_gridcell_2d(
+	      Vector&    r_v,
+	      Vector&    lat_v,
+	      Vector&    za_v,
+	      Numeric&   lstep,
+	      Index&     endface,
+        const Numeric&   r_start,
+        const Numeric&   lat_start,
+        const Numeric&   za_start,
+        const Numeric&   ppc,
+        const Numeric&   lmax,
+        const Numeric&   r1,
+        const Numeric&   r2,
+        const Numeric&   r3,
+        const Numeric&   r4,
+        const Numeric&   lat1,
+        const Numeric&   lat3,
+        const Numeric&   c2,
+        const Numeric&   c4,
+        const bool&      at_lower_psurface,
+        const bool&      at_upper_psurface,
+        const Numeric&   rground1,
+        const Numeric&   rground2,
+        const Numeric&   cground )
+{
+  // Define some useful variables:
+
+  // Latitude distance between start point and left grid cell boundary
+  const Numeric dlat_left  = lat_start - lat1;
+
+  // Latitude distance to latitude end face in the viewing direction
+  Numeric dlat_endface;
+  if( za_start >= 0 )
+    { dlat_endface = lat3 - lat_start; }
+  else
+    { dlat_endface = -dlat_left; }
+
+
+  // Assert that start point is inside the grid cell
+  assert( lat_start >= lat1 );
+  assert( lat_start <= lat3 );
+  assert( r_start >= r1 + c2*dlat_left );
+  assert( r_start <= r4 + c4*dlat_left );
+
+
+  // The end point is most easily determined by the latitude difference to 
+  // the start point. For some cases there exist several crossings and we want 
+  // the one closest in latitude to the start point. The latitude distance 
+  // for the crossing shall not exceed dlat2end.
+  //
+  Numeric dlat2end = 999;
+
+
+  // --- Lower face 
+  //
+  // This face is tricky as there can be two crossings with the
+  // pressure surface before the next latitude grid point is
+  // reached. This is the case as the face is bended inwards. The
+  // zenith angles to the corner points of the cell cannot be used to
+  // determine if there is a crossing or not. Instead we have to call
+  // psurface_crossing_2d for all cases to test if there is a
+  // crossing. We don't need to consider the face if we are standing
+  // on the pressure surface.
+  //
+  if( !at_lower_psurface )
+    {
+      Numeric r_surface = r1 + c2*dlat_left;
+
+      // We must check that numerical inaccuracies not have caused that the
+      // starting radius is below the pressure surface.
+      // Similar checks are done below for the ground and the upper pressure
+      // surface.
+      //
+      Numeric r_tmp = r_start;
+      //
+      if( r_tmp < r_surface )
+	{ r_tmp = r_surface; }
+
+      dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c2, 0 );
+      endface = 2;  // This variable will be re-set if there was no crossing
+    }
+
+
+  // --- The ground.
+  //
+  // Check shall be done only if the ground is, at least partly, inside 
+  // the grid cell.
+  //
+  if( rground1 >= r1  ||  rground2 >= r2 )
+    {
+      Numeric r_ground = rground1 + cground * dlat_left;
+     
+      assert( r_start >= r_ground - R_EPS );
+
+      Numeric r_tmp = r_start;
+      if( r_tmp < r_ground )
+	{ r_tmp = r_ground; }
+      
+      Numeric dlat2ground = psurface_crossing_2d( r_tmp, za_start, r_ground,
+						                  cground, 0 );
+      if( fabs(dlat2ground) <= fabs(dlat2end) )
+	{
+	  dlat2end = dlat2ground;
+	  endface  = 5;
+	}
+    }
+
+
+  // If dlat2end <= dlat_endface we are ready. Otherwise we have to check
+  // remaining cell faces. The same applies after testing upper face.
+
+
+  // --- Upper face  (pressure surface ip+1).
+  //
+  if( fabs(dlat2end) > fabs(dlat_endface) )
+    {
+      // We can here determine by zenith angles if there is a crossing with
+      // the pressure surface. This should save some time compared to call
+      // psurface_crossing_2d blindly.
+      // Note that the path step can both start and end at the face.
+
+      Numeric r_surface = r4 + c4 * dlat_left;
+
+      Numeric r_tmp = r_start;
+      if( at_upper_psurface )
+	{ r_tmp = r_surface; }
+      else if( r_tmp > r_surface )
+	{ r_tmp = r_surface; }
+
+      if( za_start >= za_geom2other_point( r_tmp, lat_start, r4, lat1 )  &&
+                za_start <= za_geom2other_point( r_tmp, lat_start, r3, lat3 ) )
+	{
+	  dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c4, 0 );
+	  assert( dlat2end < 999 );
+	  endface  = 4;
+	}
+    }
+
+
+  // Left or right end face
+  if( fabs(dlat2end) > fabs(dlat_endface) )
+    { 
+      dlat2end = dlat_endface; 
+      if( za_start >= 0 )
+	{ endface  = 3; }
+      else
+	{ endface  = 1; }
+    }
+
+
+  // Check if a tangent point is passed before dlat2end is reached.
+  if( fabs(za_start) > 90  &&  ( fabs(za_start) - fabs(dlat2end) ) < 90 ) 
+    { endface  = 6; }
+
+
+  // Calculate radius for end point.
+  // To obtain best possible accuracy it is calculated to match found end face,
+  // and not based on dlat2end.
+  //
+  Numeric r_end = -1;
+  //
+  out3 << "  end face number code : " << endface << "\n";
+  //
+  if( endface == 1 )
+    { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat1 ); }
+  else if( endface == 2 )
+    { r_end = r1 + c2 * ( dlat_left + dlat2end ); }
+  else if( endface == 3 )
+    { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat3 ); }
+  else if( endface == 4 )
+    { r_end = r4 + c4 * ( dlat_left + dlat2end ); }
+  else if( endface == 5 )
+    { r_end = rground1 + cground * ( dlat_left + dlat2end ); }
+  else if( endface == 6 )
+    { r_end = geompath_r_at_za( ppc, sign(za_start) * 90 ); }
+
+
+  // Fill the return vectors
+  //
+  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
+                                                       za_start, r_end, lmax );
+}
+
+
+
 
 
 /*===========================================================================
@@ -2225,6 +2464,85 @@ void ppath_start_2d(
 
 
 
+//! ppath_end_2d
+/*! 
+   Internal help function for 2D path calculations.
+
+   The function performs the end part of the calculations, that are common
+   for geometrical and refraction calculations.
+
+   See the code fo details.
+
+   \author Patrick Eriksson
+   \date   2002-11-29
+*/
+void ppath_end_2d(
+	      Ppath&      ppath,
+        ConstVectorView   r_v,
+        ConstVectorView   lat_v,
+        ConstVectorView   za_v,
+	const Numeric&    lstep,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        ConstVectorView   r_geoid,
+	const Index&      ip,
+	const Index&      ilat,
+	const Numeric&    lat1,
+	const Numeric&    lat3,
+	const Numeric&    za_start,
+	const Index&      endface,
+	const String&     method,
+	const Index&      refraction,
+	const Numeric&    ppc )
+{
+  // Number of path points
+  const Index   np = r_v.nelem();
+
+  // Re-allocate ppath for return results and fill the structure
+  //
+  ppath_init_structure(  ppath, 2, np );
+  //
+  ppath.method     = method;
+  ppath.refraction = refraction;
+  ppath.constant   = ppc;
+  //
+  ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_field, lat_grid, 
+		                                                    ip, ilat );
+
+  // Do end-face specific tasks
+  if( endface == 5 )
+    { ppath_set_background( ppath, 2 ); }
+  else if( endface == 6 )
+    {
+      ppath.tan_pos.resize(2);
+      ppath.tan_pos[0] = r_v[np-1];
+      ppath.tan_pos[1] = lat_v[np-1];
+    }
+
+  // To avoid numerical inaccuracy as far as possible, we set values to match
+  // the end of grid ranges when possible (radius of end point is handled
+  // by geompath_from_r1_to_r2):
+  //
+  if( endface == 1 )
+    {
+      ppath.pos(np-1,1) = lat1;
+      gridpos_force_end_fd( ppath.gp_lat[np-1] );
+    }
+  else if( endface == 2  ||  endface == 4 )
+    { gridpos_force_end_fd( ppath.gp_p[np-1] ); }
+  else if( endface == 3 )
+    {
+      ppath.pos(np-1,1) = lat3;
+      gridpos_force_end_fd( ppath.gp_lat[np-1] );
+    }
+  else if( endface == 6 )
+    { ppath.los(np-1,0) = sign(za_start)*90; }
+
+
+}
+
+
+
 //! interpolate_raytracing_points
 /*! 
    Interpolates a set of ray tracing points to a set of points linearly
@@ -2489,6 +2807,9 @@ void ppath_step_geom_2d(
   // Lower grid index for the grid cell of interest.
   Index   ip, ilat;
 
+  // Number of input path points
+  Index   np = ppath.np;
+
   // Radius for corner points, and latitude and slope of faces of the grid cell
   //
   // The corners and the faces of the grid cell are numbered in anti-clockwise
@@ -2512,215 +2833,40 @@ void ppath_step_geom_2d(
     { ppc = ppath.constant; }
 
 
-  // Define some useful variables:
-  //
-  // Number of points in the incoming ppath
-  const Index imax = ppath.np - 1;
-  //
-  // Latitude distance between start point and left grid cell boundary
-  const Numeric dlat_left  = lat_start - lat1;
-  //
-  // Latitude distance to latitude end face in the viewing direction
-  Numeric dlat_endface;
-  if( za_start >= 0 )
-    { dlat_endface = lat3 - lat_start; }
-  else
-    { dlat_endface = -dlat_left; }
-
-
-  // We shall now determine at what face of the grid cell the path step ends.
-  // If the step passes a tangent point or the ground, we call this function
-  // iteratively for the second part.
-
-  // The end point is most easily determined by the latitude difference to 
-  // the start point. For some cases there exist several crossings and we want 
-  // the one closest in latitude to the start point. The latitude distance 
-  // for the crossing shall not exceed dlat2end.
-  // The variable endface is a number coding of at what cell face (including 
-  // the ground and tangent points) the end point is found. This is needed to
-  // set values for the end point in most accurate way.
-  //
-  Numeric dlat2end = 999;
-  Index   endface  = 999;   
-
-  // --- Lower face (pressure surface ip).
-  //
-  // This face is tricky as there can two crossings with the pressure surface
-  // before the next latitude grid point is reached. This is the case as the
-  // face is bended inwards. 
-  // The zenith angles to the corner points of the cell cannot be used to 
-  // determine if there is a crossing or not. Instead we have to call 
-  // psurface_crossing_2d for all cases to test if there is a crossing.
-  // We don't need to consider the face if we are standing on the pressure 
-  // surface.
-  //
-  if( !is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
-    {
-      Numeric r_surface = r1+c2*dlat_left;
-
-      // We must check that numerical inaccuracies not have caused that the
-      // starting radius is below the pressure surface.
-      // Similar checks are done below for the ground and the upper pressure
-      // surface.
-      //
-      Numeric r_tmp = r_start;
-      //
-      if( r_tmp < r_surface )
-	{ r_tmp = r_surface; }
-
-      dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c2, 0 );
-      endface = 2;  // This variable will be re-set if there was no crossing
-    }
-
-  // --- The ground.
+  // The path is determined by another function. Determine some variables
+  // needed bý that function and call the function.
   //
   // Ground radius at latitude end points, and ground slope
   const Numeric rground1 = r_geoid[ilat] + z_ground[ilat];
   const Numeric rground2 = r_geoid[ilat+1] + z_ground[ilat+1];
   const Numeric cground = psurface_slope_2d( lat_grid, r_geoid, 
-		                 z_ground, ppath.gp_lat[imax], za_start >= 0 );
+		                 z_ground, ppath.gp_lat[np-1], za_start >= 0 );
   //
-  {
-    Numeric r_ground = rground1 + cground * dlat_left;
-
-    assert( r_start >= r_ground - R_EPS );
-
-    // Check shall be done only if the ground is, at least partly, inside 
-    //the grid cell.
-    //
-    if( rground1 >= r1  ||  rground2 >= r2 )
-      {
-	Numeric r_tmp = r_start;
-	if( r_tmp < r_ground )
-	  { r_tmp = r_ground; }
-
-	Numeric dlat2ground = psurface_crossing_2d( r_tmp, za_start, r_ground,
-						                  cground, 0 );
-	if( fabs(dlat2ground) <= fabs(dlat2end) )
-	  {
-	    dlat2end = dlat2ground;
-	    endface  = 5;
-	  }
-      }
-  }
-
-  // If dlat2end <= dlat_endface we are ready. Otherwise we have to check
-  // remaining cell faces. The same applies after testing upper face.
-
-  // --- Upper face  (pressure surface ip+1).
+  // Is the start point on top of the lower or upper pressure surface?
+  const bool  at_lower_psurf = is_gridpos_at_index_i( ppath.gp_p[np-1], ip );
+  const bool  at_upper_psurf = is_gridpos_at_index_i( ppath.gp_p[np-1], ip+1 );
   //
-  if( fabs(dlat2end) > fabs(dlat_endface) )
-    {
-      // We can here determine by zenith angles if there is a crossing with
-      // the pressure surface. This should save some time compared to call
-      // psurface_crossing_2d blindly.
-      // Note that the path step can both start and end at the face.
-
-      Numeric r_surface = r4 + c4 * dlat_left;
-
-      Numeric r_tmp = r_start;
-      if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 ) )
-	{ r_tmp = r_surface; }
-      else if( r_tmp > r_surface )
-	{ r_tmp = r_surface; }
-
-      if( za_start >= za_geom2other_point( r_tmp, lat_start, r4, lat1 )  &&
-                za_start <= za_geom2other_point( r_tmp, lat_start, r3, lat3 ) )
-	{
-	  dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c4, 0 );
-	  assert( dlat2end < 999 );
-	  endface  = 4;
-	}
-    }
-
-  // Left or right end face
-  if( fabs(dlat2end) > fabs(dlat_endface) )
-    { 
-      dlat2end = dlat_endface; 
-      if( za_start >= 0 )
-	{ endface  = 3; }
-      else
-	{ endface  = 1; }
-    }
-
-  // Check if a tangent point is passed before dlat2end is reached.
-  if( fabs(za_start) > 90  &&  ( fabs(za_start) - fabs(dlat2end) ) < 90 ) 
-    { endface  = 6; }
-
-
-  // Calculate radius for end point.
-  // To obtain best possible accuracy it is calculated folowing found end face,
-  // and not based on dlat2end.
-  //
-  Numeric r_end = -1;
-  //
-  out3 << "  end face number code : " << endface << "\n";
-  //
-  if( endface == 1 )
-    { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat1 ); }
-  else if( endface == 2 )
-    { r_end = r1 + c2 * ( dlat_left + dlat2end ); }
-  else if( endface == 3 )
-    { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat3 ); }
-  else if( endface == 4 )
-    { r_end = r4 + c4 * ( dlat_left + dlat2end ); }
-  else if( endface == 5 )
-    { r_end = rground1 + cground * ( dlat_left + dlat2end ); }
-  else if( endface == 6 )
-    { r_end = geompath_r_at_za( ppc, sign(za_start) * 90 ); }
-
-
-  // Calculate basic variables from r_start to r_end.
-  //
+  // Vars to hold found path points, path step length and coding for end face
   Vector    r_v, lat_v, za_v;
   Numeric   lstep;
+  Index     endface;
   //
-  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
-                                                       za_start, r_end, lmax );
-  //
-  const Index ilast = r_v.nelem() - 1;
+  do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, 
+                  r_start, lat_start, za_start, ppc, lmax, r1, r2, r3, r4, 
+                  lat1, lat3, c2, c4, at_lower_psurf, at_upper_psurf, 
+                                                 rground1, rground2, cground );
 
-  // Re-allocate ppath for return results and fill the structure
+
+  // Fill *ppath*
   //
-  ppath_init_structure(  ppath, 2, r_v.nelem() );
-  //
+  String   method;
   if( lmax < 0 )
-    { ppath.method     = "2D basic geometrical"; }
+    { method     = "2D geometrical"; }
   else
-    { ppath.method     = "2D geometrical with length criterion"; }
-  ppath.refraction = 0;
-  ppath.constant   = ppc;
+    { method     = "2D geometrical with length criterion"; }
   //
-  ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_field, lat_grid, 
-		                                                    ip, ilat );
-  //
-  if( endface == 5 )
-    { ppath_set_background( ppath, 2 ); }
-  else if( endface == 6 )
-    {
-      ppath.tan_pos.resize(2);
-      ppath.tan_pos[0] = r_v[ilast];
-      ppath.tan_pos[1] = lat_v[ilast];
-    }
-
-  // To avoid numerical inaccuracy as far as possible, we set values to match
-  // the end of grid ranges when possible (radius of end point is handled
-  // by geompath_from_r1_to_r2):
-  //
-  if( endface == 1 )
-    {
-      ppath.pos(ilast,1) = lat1;
-      gridpos_force_end_fd( ppath.gp_lat[ilast] );
-    }
-  else if( endface == 2  ||  endface == 4 )
-    { gridpos_force_end_fd( ppath.gp_p[ilast] ); }
-  else if( endface == 3 )
-    {
-      ppath.pos(ilast,1) = lat3;
-      gridpos_force_end_fd( ppath.gp_lat[ilast] );
-    }
-  else if( endface == 6 )
-    { ppath.los(ilast,0) = sign(za_start)*90; }
+  ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
+	             ip, ilat, lat1, lat3, za_start, endface, method, 0, ppc );
 
 
   // Make part after a tangent point.

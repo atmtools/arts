@@ -1,3 +1,11 @@
+2002-11-28  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-320
+
+	* src/ppath.cc (ppath_step_geom_2d): Moved parts of this function to
+	seperate functions, to be used by the corresponding functions for
+	refraction.
+
 2002-11-28  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-319
