@@ -28,7 +28,7 @@
 void MethodListDefine(// WS Generic Output:
                       ArrayOfIndex& ml,
                       // WS Generic Output Names:
-                      const String& ml_name,
+                      const String& /* ml_name */,
                       // Control Parameters:
                       const ArrayOfString& methods)
 {
