@@ -1,5 +1,13 @@
 2001-05-02  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+        * arts-0-0-165
+
+	* data/atmosphere/tstrad: Added this directory. It contains a test
+	case for comparison with RTTOV-6.
+	
+
+2001-05-02  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-0-0-164
 
 	* m_los.cc: Added method MatrixTRJ which calls yTRJ for all rows
