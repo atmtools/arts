@@ -1,3 +1,10 @@
+2001-09-26  Claudia Emde  <emde@uni-bremen.de>
+
+	* arts-0-0-235
+
+	* src/methods.cc: format of absorption methods changed
+
+	
 2001-09-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-234

@@ -2007,16 +2007,17 @@ void define_md_data()
 
 //=== 1D absorption methods ===============================================
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("absCalc"),
-	DESCRIPTION("Calculate absorption coefficients. This\n"
-		    "calculates both the total absorption and the\n"
-		    "absorption per tag group."),
-	OUTPUT(	    abs_  , abs_per_tg_                         ),
-	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, 
-                    lines_per_tg_, lineshape_,
-		    cont_description_names_, cont_description_parameters_ ),
+ ( NAME( "absCalc" ),
+	DESCRIPTION(
+	   "Calculate absorption coefficients. \n"
+	   "\n"
+	   "This function calculates both, the total absorption and the\n"
+	   "absorption per tag group.\n"
+           "   " ) ,
+	OUTPUT(abs_  , abs_per_tg_ ),
+	INPUT(tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, 
+              lines_per_tg_, lineshape_,
+	      cont_description_names_, cont_description_parameters_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2025,25 +2026,38 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("absCalcFromXsec"),
-	DESCRIPTION("Calculate absorption coefficients from cross sections.\n"
+	DESCRIPTION(
+		    "Calculate absorption coefficients from cross sections.\n"
+		    "\n"
 		    "This calculates both the total absorption and the\n"
-		    "absorption per tag group."),
-	OUTPUT(	    abs_  , abs_per_tg_                         ),
+		    "absorption per tag group. \n"
+		    "This method calls three methods:\n"
+		    "1. 'xsec_per_tgInit' - initialize xsec_per_tg \n"
+		    "2. 'xsec_per_tgAddLine' - calculate cross sections per \n"
+		    "                   tag group for line spectra.\n"
+		    "3. 'xsec_per_tgAddConts' - calculate cross sections per \n"
+		    "                   tag group for continua.\n"
+                    "   " ),
+	OUTPUT(	    abs_  , abs_per_tg_ ),
 	INPUT( 	    xsec_per_tg_, vmrs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+md_data.push_back
     ( MdRecord
-      ( NAME("xsec_per_tgInit"),
-	DESCRIPTION("Initialize xsec_per_tg. The initialization is\n"
-		    "necessary, because methods `xsec_per_tgAddLines'\n"
-		    "and `xsec_per_tgAddConts' just add to xsec_per_tg.\n"
-		    "The size is determined from `tgs'."),
-	OUTPUT(	    xsec_per_tg_                             ),
-	INPUT(      tgs_, f_mono_, p_abs_ ),
+      ( NAME( "xsec_per_tgInit" ),
+	DESCRIPTION(
+	   "Initialize xsec_per_tg.\n"
+	   "\n"
+	   "The initialization is\n"
+	   "necessary, because methods `xsec_per_tgAddLines'\n"
+	   "and `xsec_per_tgAddConts' just add to xsec_per_tg.\n"
+	   "The size is determined from `tgs'.\n"
+           "   " ),
+	OUTPUT( xsec_per_tg_ ),
+	INPUT(tgs_, f_mono_, p_abs_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2052,7 +2066,9 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("xsec_per_tgAddLines"),
-	DESCRIPTION("Calculate cross sections per tag group for line spectra."),
+	DESCRIPTION(
+		    "Calculate cross sections per tag group for line spectra.\n"
+		    "   " ),
 	OUTPUT(	    xsec_per_tg_                             ),
 	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
 		    lines_per_tg_, lineshape_ ),
@@ -2064,7 +2080,9 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("xsec_per_tgAddConts"),
-	DESCRIPTION("Calculate cross sections per tag group for continua."),
+	DESCRIPTION(
+		    "Calculate cross sections per tag group for continua.\n"
+                    "   " ),
 	OUTPUT(	    xsec_per_tg_                             ),
 	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_,
 		    cont_description_names_, cont_description_parameters_ ),
@@ -2079,9 +2097,11 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("abs_per_tgReduce"),
-	DESCRIPTION("Reduces absorption coefficients. Only absorption\n"
+	DESCRIPTION(
+		    "Reduces absorption coefficients. Only absorption\n"
 		    "coefficients for which weighting functions are\n"
-		    "calculated are kept in memory."),
+		    "calculated are kept in memory.\n"
+		    "   " ),
 	OUTPUT(	    abs_per_tg_ ),
 	INPUT( 	    abs_per_tg_, tgs_, wfs_tgs_ ),
 	GOUTPUT(),
