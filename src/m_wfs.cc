@@ -1772,7 +1772,7 @@ void k_temp_nohydro (
               b[iv] += absloswfs[iza](iv,iw) * w[iw-i1];
 	    }
             d = c * f_mono[iv];
-            k(iv0+iv,ip) = a[iv] * d/t[ip] / (1-exp(-d)) * pl[iv] +
+            k(iv0+iv,ip) = a[iv] * d/t[ip] / (exp(d)-1) * pl[iv] +
                                                       b[iv] * dabs_dt(iv,ip);
 	  }
         }            

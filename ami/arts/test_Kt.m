@@ -11,7 +11,8 @@
 %           settings for the weighting function calculation.
 %
 %	    A perfect match between dY and Kt shall not be expected but the
-%           results shall be (very?) similar.
+%           results shall be (very?) similar. The function works best when
+%           p_abs is a dense grid.
 %
 % FORMAT:   [Kt,dY] = test_Kt(Q)
 %
@@ -80,17 +81,18 @@ n    = length(grid);
 %= Loop and calculate spectra
 dY = zeros( size(Kt) );
 
+t_dist = 0.01;
 
 for i = 1:n
 
   dt = zeros(n,1);
-  dt(i) = 1;
+  dt(i) = t_dist;
 
   t = ptz(:,2) + interpp(grid,dt,ptz(:,1));
 
   write_datafile(Q.APRIORI_PTZ,[ptz(:,1),t,ptz(:,3)],'MATRIX');
 
-  dY(:,i) = qp_y( Q ) - y;
+  dY(:,i) = (qp_y( Q ) - y)/t_dist;
 
 end
 

@@ -1,3 +1,18 @@
+2002-03-22  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-17
+
+	* src/m_wfs.cc (k_temp_nohydro): Code changed according to the bug
+	in the equation discussed below. Temperature WFs without HSE seems now
+	to be OK. Checks have ben performed with text_Kt.m.
+
+	To summerize, all temperature WFs have been looked at and everything
+	seem to be OK. There were bugs for all three versions before. Sorry
+	for that.
+
+	* doc/uguide/wfuns_atm.tex: A mistake in the equation giving the
+	temperature derivative of the Planck function found.
+
 2002-03-21  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-16
