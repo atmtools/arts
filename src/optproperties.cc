@@ -552,3 +552,17 @@ void pha_mat_labCalc(//Output:
    }
 }
      
+
+ostream& operator<< (ostream &os, const SingleScatteringData &/*ssd*/)
+{
+  os << "SingleScatteringData: Output operator not implemented";
+  return os;
+}
+
+
+ostream& operator<< (ostream &os, const ArrayOfSingleScatteringData &/*assd*/)
+{
+  os << "ArrayOfSingleScatteringData: Output operator not implemented";
+  return os;
+}
+

@@ -82,6 +82,9 @@ struct SingleScatteringData {
 
 typedef Array<SingleScatteringData> ArrayOfSingleScatteringData;
 
+ostream& operator<< (ostream &os, const SingleScatteringData &ssd);
+ostream& operator<< (ostream &os, const ArrayOfSingleScatteringData &assd);
+
 
 // General functions:
 // =============================================================
