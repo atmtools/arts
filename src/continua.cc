@@ -217,6 +217,7 @@
 #include "absorption.h"
 #include "messages.h"
 #include "continua.h"
+#include "math_funcs.h"
 
 // #################################################################################
 
