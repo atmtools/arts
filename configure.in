@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.307)
+AM_INIT_AUTOMAKE(arts,1.1.308)
 
 AM_MAINTAINER_MODE
 
@@ -262,9 +262,11 @@ if test x$ac_docgen = xyes; then
 fi
 
 WARNING_FLAGS=
-if test x$ac_more_warnings = xyes; then
-  if test x$CC = xgcc; then
-    WARNING_FLAGS="-W -Wall -Wno-unused"
+if test x$CC = xgcc; then
+  if test x$ac_more_warnings = xyes; then
+    WARNING_FLAGS="-pedantic -ansi -W -Wall -Wno-unused"
+  else
+    WARNING_FLAGS="-pedantic -ansi"
   fi
 fi
 
