@@ -1,6 +1,12 @@
+2003-08-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-670
+	
+	* src/legendre.cc: Improved handling of runtime errors.
+
 2003-08-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-669		
+	* arts-1-1-669
 	
 	* src/agendas.cc (pha_mat_spt_agenda): Included this agenda 
 	to be able to include optimizations. To use the general methods
