@@ -3072,6 +3072,22 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("sourcetransyCalcSaveMemory"),
+  	DESCRIPTION(
+          "Combines:\nsourceCalc\ntransCalc\nyCalc\n\n"
+          "Calculation is performed in frequency chunks thus allowing\n"
+          "larger jobs to run. This means you cannot use it if you want \n"
+           "to calculate Jacobians later on. "),
+	OUTPUT( y_ ),
+	INPUT( emission_, los_, p_abs_, t_abs_, f_mono_, abs_, y_space_,
+                                          e_ground_, t_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("yTB"),
   	DESCRIPTION(
            "Converts a radiance spectrum to Planck brightness temperatures.\n"

@@ -1396,7 +1396,75 @@ void yCalc (
     y_rte( y, los, f_mono, y_space, source, trans, e_ground, t_ground );
 }
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
 
+   \author Axel von Engeln and Oliver Lemke
+   \date   2003-07-30
+*/
+void sourcetransyCalcSaveMemory(
+                                Vector&          y,
+                        const Index&           emission,
+                        const Los&             los,   
+                        const Vector&          p_abs,
+                        const Vector&          t_abs,
+                        const Vector&          f_mono,
+                        const Matrix&          abs,
+                        const Vector&          y_space,
+                        const Vector&          e_ground,
+                        const Numeric&         t_ground )
+{
+
+  // Some variables
+  const Index   n=los.start.nelem();  // Number of zenith angles 
+  const Index   nf=f_mono.nelem();    // Number of frequencies 
+
+  // make y the right size
+  y.resize(  nf*n );
+
+
+  // these have to be defined inside the loop
+  Vector f_monolocal;
+  Vector e_groundlocal;
+  Vector y_spacelocal;
+  Matrix abslocal;
+
+      // Calculate source:
+      ArrayOfMatrix sourcelocal;
+      sourceCalc(// Output:
+                 sourcelocal,
+                 // Input:
+                 emission,
+                 los,
+                 p_abs,
+                 t_abs,
+                 f_monolocal);
+
+      // Calculate transmittances:
+      ArrayOfMatrix translocal;
+      transCalc(// Output:
+                translocal,
+                //Input:
+                los,
+                p_abs,
+                abslocal);
+
+      // Calculate Spectrum:
+      Vector ylocal;
+      yCalc(// Output:
+            ylocal,
+            // Input:
+            emission,
+            los,
+            f_monolocal,
+            y_spacelocal,
+            sourcelocal,
+            translocal,
+            e_groundlocal,
+            t_ground);
+
+
+}
 
 /**
    See the the online help (arts -d FUNCTION_NAME)
