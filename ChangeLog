@@ -1,3 +1,31 @@
+2003-06-11  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-572
+
+	* Cleaned-up/restructured XML sources.
+
+	* src/Makefile.am: Added xml_io_basic_types.{cc,h},
+	xml_io_compound_types.{cc,h}, xml_io_array_types.{cc,h}, and
+	xml_io_instantiation.h.
+	Link test_linalg against constants.o for joker.
+
+	* src/xml_io_basic_types.{cc,h}: Added. Contains the reading/writing
+	routines for basic types like Index, Numeric and all matpack types.
+
+	* src/xml_io_compound_types.{cc,h}: Added. Contains the reading/writing
+	routines for compound types like structures. Compound types consist of
+	basic types.
+
+	* src/xml_io_array_types.{cc,h}: Added. Contains the reading/writing
+	routines for array types. Arrays can contain basic or compound types
+	or other arrays.
+
+	* src/xml_io_instantiation.h: Added. Contains explicit template
+	instantiations for xml_{read_from,write_to}_file functions.
+
+	* src/xml_io.cc, src/xml_io_private.h: Removed functions which have
+	moved to xml_io_*_types.{h,cc}.
+
 2003-06-11  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-571
