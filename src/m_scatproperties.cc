@@ -33,6 +33,7 @@
 \param scat_f_index  Input : frequency index
 \param scat_za_index  Input : local zenith angle
 \param scat_aa_index  Input : local azimuth angle
+
 */
 
 void ext_mat_sptCalc(
@@ -100,6 +101,7 @@ void ext_mat_sptCalc(
  \param amp_mat  Input : amplitude matrix
  \param scat_za_index  Input : zenith angle index
  \param scat_aa_index  Input : azimuth angle index
+
   
 */
 
@@ -599,6 +601,11 @@ void amp_matCalc(Tensor6& amp_mat,
   Index N_za = scat_za_grid.nelem();
   Index N_aa = scat_aa_grid.nelem();
   Index N_i = amp_mat_raw [ 0 ] [ 6 ].ncols();
+
+  if (N_i != 8)
+    throw runtime_error(
+			"Amplitude matrix must have 8 columns.");
+
   amp_mat.resize(N_pt, N_za, N_aa, N_za, N_aa, N_i);  
   /*amp_mat_raw is an ArrayOfArrayOfTensor6 from which we can get the 
     amplitude matrix which is a tensor 6 with size(Nf, Nza, Naa, Nza,Naa,8). 
@@ -621,7 +628,7 @@ void amp_matCalc(Tensor6& amp_mat,
        Index N_i = amp_mat_raw [ ipt ] [ 6 ].ncols();
        //calling the interpolation routines.  
        
-       //Get the grid position arrays. 
+       //Define the grid position arrays. 
 
        // for  frequency : 
        ArrayOfGridPos f_gp(f_grid.nelem()); 
@@ -638,7 +645,7 @@ void amp_matCalc(Tensor6& amp_mat,
        // for incoming azimuth angle grids : rows
        ArrayOfGridPos aa_in_gp(scat_aa_grid.nelem());
        
-       // Grid positions is got by calling the function gridpos.
+       // Set up Grid position arrays by calling the function gridpos.
        
        /*for frequency :
 

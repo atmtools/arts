@@ -918,7 +918,11 @@ angles.
 \param stokes_dim dimension of stokes vector
 \param atmosphere_dim atmospheric dimension
 \param cloudbox_limits Limits of the cloudbox.
+
+\author Sreerekha Ravi
+\date 2002-06-20
 */
+
 void
 scat_fieldCalc(//WS Output:
 	       Tensor6& scat_field,

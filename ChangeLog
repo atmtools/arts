@@ -1,3 +1,10 @@
+2002-07-03  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-181
+		
+	* doc/uguide/scattering.tex: Added documentation for the method
+	*amp_matCalc*
+
 2002-07-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-180
