@@ -1671,7 +1671,7 @@ void define_md_data()
     ( MdRecord
       ( NAME("lines_per_tgWriteAscii"),
   	DESCRIPTION(
-                    "Write the workspace variable `lines_per_tg` to an ASCII file.\n"
+                    "Writes the workspace variable `lines_per_tg` to an ASCII file.\n"
                     "\n"
                     "The content of the workspace variable `lines_per_tg`\n"
                     "is written in ARTS line format to the file with\n"
