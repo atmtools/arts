@@ -1,3 +1,14 @@
+2003-12-08  Mashrab Kuvatov  <kmashrab@sat.physik.uni-bremen.de>
+
+	* arts-1-0-146
+	
+	* src/atm_funcs.cc (e_eq_ice): Added this function. It calculates
+	the equilibrium water vapor pressure over ice.
+	
+	* src/atm_funcs.cc (e_eq_water): Added this function. It calculates
+	the equilibrium water vapor pressure over liquid water.
+	
+
 2003-12-08  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-145

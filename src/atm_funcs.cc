@@ -978,3 +978,84 @@ Numeric ztan_refr(
   }
 }
                            
+//// e_eq_water ////////////////////////////////////////////////
+//
+/** Calculates the equilibrium water vapor pressure over liquid water.
+    Calculation is done using Sontag's formula.  Sonntag, D.,
+    Advancements in the field of hygrometry, Meteorologische
+    Zeitschrift, 3, 51-66, 1994.
+
+    Sontag's formula:
+    
+    e = exp( a/T + b + c*T + d*T^2 + e*log(T) )
+
+    Returns equilibrium water vapor pressure in [Pa].
+
+    \param  t       a temperature value in [K]
+
+    \author Mashrab Kuvatov
+    \date   2003-12-08 
+*/
+Vector e_eq_water(
+                  Vector      t)
+{
+  Vector e_eq;
+  Index cur_elem;
+  double a, b, c, d, e, t_cur;
+
+  // Coefficients for Sontag's formula
+  a = -6096.9385;
+  b = 21.2409642;
+  c = -2.711193e-2;
+  d = 1.673952e-5;
+  e = 2.433502;
+
+  for ( cur_elem = 0; cur_elem < t.nelem(); cur_elem++ )
+    {
+      t_cur = t[cur_elem];
+      e_eq[cur_elem] = exp( a / t_cur + b + c * t_cur + d * t_cur * t_cur + e * log( t_cur ) );
+    }
+  return  e_eq;
+
+}
+
+//// e_eq_ice ////////////////////////////////////////////////
+//
+/** Calculates the equilibrium water vapor pressure over ice.
+    Calculation is done using Sontag's formula.  Sonntag, D.,
+    Advancements in the field of hygrometry, Meteorologische
+    Zeitschrift, 3, 51-66, 1994.
+
+    Sontag's formula:
+    
+    e = exp( a/T + b + c*T + d*T^2 + e*log(T) )
+
+    Returns equilibrium water vapor pressure in [Pa].
+
+    \param  t       a temperature value in [K]
+
+    \author Mashrab Kuvatov
+    \date   2003-12-08 
+*/
+Vector e_eq_ice(
+                  Vector      t)
+{
+  Vector e_eq;
+  Index cur_elem;
+  double a, b, c, d, e, t_cur;
+  
+  // Coefficients for Sontag's formula
+  a = -6024.5282;
+  b = 29.32707;
+  c = 1.0613868e-2;
+  d = -1.3198825e-5;
+  e = -0.49382577;
+
+  for ( cur_elem = 0; cur_elem < t.nelem(); cur_elem++ )
+    {
+      t_cur = t[cur_elem];
+      e_eq[cur_elem] = exp( a / t_cur + b + c * t_cur + d * t_cur * t_cur + e * log( t_cur ) );
+    }
+  return  e_eq;
+
+}
