@@ -1,3 +1,17 @@
+2001-09-27  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-0-0-241
+	
+	* src/methods.cc (define_md_data): Changed the online
+	documentation of the following methods
+	- raw_vmrsReadFromFiles
+	- raw_vmrsReadFromScenario
+	- AtmFromRaw
+	- h2o_absSet
+	- n2_absSet
+	- vmrsScale
+	
+
 2001-09-27  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-240

@@ -1860,9 +1860,22 @@ void define_md_data()
     ( MdRecord
       ( NAME("raw_vmrsReadFromFiles"),
         DESCRIPTION(
-          "Read the individual VMR profile for each TAGS from the list of\n"
-          "files given as keyword parameters. One file name must be specified for\n"
-          "each TAGS. The name may include a path."
+          "Reads the individual VMR profile for each TAGS from file.\n"
+          "\n"
+          "Using this function one can read VMRs of specific TAGS from\n"
+          "explicitly specified files and the remaing from a scenario.\n"
+          "The filenames and the base name of atmospheric scenario\n"
+          "should be specified as keywords. One file name must\n"
+          "be specified for each tag group(each element of *tgs*).\n"
+          "The name may include a path.\n"
+	  "\n"
+	  "Keywords:\n"
+	  "   seltags   : Must be a sub group of tags which should be read from files.\n"
+	  "   filenames : Names of the files containing VMR profiles of seltags.\n"
+	  "   basename  : The name of a particular atmospheric scenario.\n"
+	  "               See *raw_vmrsReadFromScenario* for details. Remaining\n"
+	  "               VMRs will be read from the scenario.\n"
+	  "\n"
           ),
         OUTPUT(   raw_vmrs_         ),
         INPUT(    tgs_                 ),
@@ -1875,15 +1888,25 @@ void define_md_data()
     ( MdRecord
       ( NAME("raw_vmrsReadFromScenario"),
   	DESCRIPTION(
-	  "Read the individual VMR profile for each tag group from a standard\n"
-	  "atmospheric scenario. Files must look like this example:\n"
-	  "<basename>.ClO.aa\n"
+	  "Reads the individual VMR profile for each tag group from a standard\n"
+	  "atmospheric scenario.\n" 
 	  "\n"
-	  "The basename can include a path, i.e., the files can be anywhere,\n"
+          "Five different atmospheric scenarios are available in arts data:\n"
+          "tropical, midlatitude-summer, midlatitude-winter, subartic-summer\n"
+          "and subartic-winter.\n"
+	  "\n"
+	  "   Files in the scenarios look like this: tropical.H2O.aa\n"
+	  "\n"
+	  "   The basename must include the path, i.e., the files can be anywhere,\n"
 	  "but they must be all in the same directory.\n"
+	  "   The profile is chosen by the species name. If you have more than one\n"
+	  "tag group for the same species, the same profile will be used.\n"
 	  "\n"
-	  "The profile is chosen by the species name. If you have more than one\n"
-	  "tag group for the same species, the same profile will be used."
+	  "Keywords:\n"
+	  "   basename :The name and path of a particular atmospheric scenario.\n"
+	  "   For example:\n"
+	  "   /pool/lookup2/arts-data/atmosphere/fascod/tropical\n"
+	  "\n"
 	  ),
 	OUTPUT(   raw_vmrs_    ),
 	INPUT(    tgs_                 ),
@@ -1897,15 +1920,25 @@ void define_md_data()
       ( NAME("AtmFromRaw"),
   	DESCRIPTION(
 	  "Interpolates temperature, altitude, and VMRs to the pressure grid\n"
-	  "given by p_abs. The altitude is not used by the absorption routines,\n"
-	  "But later on by the RT routines."
+	  "given by p_abs.\n" 
 	  "\n"
-	  "Interpolations used: FIXME: Add these.\n"
-	  "Temperature [K]: \n"
-	  "Altitude    [m]: \n"
-	  "VMRs        [1]: \n"
+          "The altitude is not used by the absorption routines,\n"
+	  "but later on by the RT routines.\n"
 	  "\n"
-	  "Uses interp_lin(...)."
+	  "Interpolations used: \n"
+	  "\n"
+	  "Temperature      : Linear interpolation in ln(p)\n"
+	  "Altitude         : Linear interpolation in ln(p)\n"
+	  "VMRs             : Linear interpolation in ln(p)\n"
+	  "Cloud Parameters : Linear interpolation in p\n"
+	  "\n"
+          "   This function is also used for water vapour saturation adjustment\n"
+	  "inside cloud(This may be soon moved out of this function.)\n"
+	  "FIXME: Thomas, please update...\n"
+	  "\n"
+	  "Keywords:\n"
+	  "   CloudSatWV : a flag for setting saturation inside cloud.\n"
+	  "                FIXME: Thomas, please update...\n"
 	  ),
 	OUTPUT(   t_abs_    , z_abs_   , vmrs_           ),
 	INPUT(    tgs_, p_abs_    , raw_ptz_ , raw_vmrs_ ),
@@ -1919,7 +1952,13 @@ void define_md_data()
       ( NAME("vmrsScale"),
 	DESCRIPTION(
           "Scales the vmr input of the tgs given in scaltgs by the\n"
-	  "factors given in scalfac."),
+	  "factors given in scalfac.\n"
+	  "\n"
+	  "Keywords:\n"
+	  "   scaltgs : subgroup of tags which has to be scaled.\n"
+	  "   scalfac : the factor with which vmr to be scaled.\n"
+	  "\n"
+	  ),
 	OUTPUT(	vmrs_ ),
 	INPUT( 	tgs_, vmrs_  ),
 	GOUTPUT(),
@@ -1932,7 +1971,15 @@ void define_md_data()
       ( NAME("h2o_absSet"),
 	DESCRIPTION(
           "Sets h2o_abs to the profile of the first tag group containing\n"
-	  "water."),
+	  "water.\n" 
+	  "\n"
+          "This is necessary, because for example *absCalc* requires h2o_abs\n"
+	  "to contain the water vapour profile(the reason for this is the\n"
+          "calculation of oxygen line brodening requires water vapour profile).\n"
+	  "Then this function can be used to copy the profile of the first tag\n"
+          "group of water.\n"
+	  "\n"
+	  ),
 	OUTPUT(	h2o_abs_ ),
 	INPUT( 	tgs_, vmrs_  ),
 	GOUTPUT(),
@@ -1945,7 +1992,9 @@ void define_md_data()
       ( NAME("n2_absSet"),
 	DESCRIPTION(
           "Sets n2_abs to the profile of the first tag group containing\n"
-	  "molecular nitrogen."),
+	  "molecular nitrogen. See *h2o_absSet* for more details.\n"
+	  "\n"
+	  ),
 	OUTPUT(	    n2_abs_ ),
 	INPUT( 	tgs_, vmrs_  ),
 	GOUTPUT(),
