@@ -29,7 +29,7 @@
   \brief  Functions releated to calculation of propagation paths.
   
   Functions to determine propagation paths for different atmospheric
-  dimensionalities, wioth and without refraction.
+  dimensionalities, with and without refraction.
 
   The term propagation path is here shortened to ppath.
 */
@@ -57,6 +57,26 @@
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 
+
+
+/*===========================================================================
+  === Common precision variables
+  ===========================================================================*/
+
+// This variable defines how much zenith and azimuth angles can
+// deviate from 0 and 180 degrees, but still be treated to be 0 or 180.
+// For example, an azimuth angle of 180-DEV0AND180/2 will be treated as
+// a strictly southward obstervation.
+// However, the angles are not allowed to go outside their defined range.
+// This means, for example, that values above 180 are never allowed.
+//
+const double   DEV0AND180 = 1e-4; 
+
+
+// Latitudes > POLELAT are considered to be on the south or north pole
+// for 3D.
+//
+const double   POLELAT = 89.9999;
 
 
 
@@ -191,7 +211,7 @@ double geompath_lat_at_za(
    \return         Length along the path from the tangent point.
    \param   ppc    Propagation path constant.
    \param   r      Radius of the point of concern.
-g
+
    \author Patrick Eriksson
    \date   2002-05-20
 */
@@ -199,8 +219,6 @@ double geompath_l_at_r(
        const double&   ppc,
        const double&   r )
 {
-  // Double hard coded above to improve the accuracy for Numeric=float
-
   assert( ppc >= 0 );
   assert( r >= ppc );
   
@@ -227,8 +245,6 @@ double geompath_r_at_l(
        const double&   ppc,
        const double&   l )
 {
-  // Double hard coded above to improve the accuracy for Numeric=float
-
   assert( ppc >= 0 );
   assert( l >= 0 );
   
@@ -291,9 +307,9 @@ double geompath_r_at_lat(
    \date   2002-07-03
 */
 void geompath_from_r1_to_r2( 
-             Vector&    r,
-             Vector&    lat,
-             Vector&    za,
+             Vector&   r,
+             Vector&   lat,
+             Vector&   za,
              double&   lstep,
        const double&   ppc,
        const double&   r1,
@@ -343,7 +359,7 @@ void geompath_from_r1_to_r2(
   za[n]  = geompath_za_at_r( ppc, za1, r[n] );
 
   // Ensure that zenith and nadir observations keep their zenith angle
-  if( za1 == 0  ||  abs(za1) == 180 )
+  if( abs(za1) < DEV0AND180  ||  abs(za1) > 180-DEV0AND180 )
     { za = za1; }
 
   // Calculate latitudes
@@ -379,8 +395,6 @@ double za_geom2other_point(
        const double&    r2,
        const double&   lat2 )
 {
-  // Double hard coded above to improve the accuracy for Numeric=float
-
   if( lat2 == lat1 )
     {
       if( r1 <= r2 )
@@ -440,13 +454,12 @@ void sph2cart(
       const double&   lat,
       const double&   lon )
 {
-  // Double hard coded above to improve the accuracy for Numeric=float
   assert( r > 0 );
   assert( abs( lat ) <= 90 );
   assert( abs( lon ) <= 360 );
 
-  const double latrad = DEG2RAD * lat;
-  const double lonrad = DEG2RAD * lon;
+  const double   latrad = DEG2RAD * lat;
+  const double   lonrad = DEG2RAD * lon;
 
   x = r * cos( latrad );   // Common term for x and z
   z = x * sin( lonrad );
@@ -478,8 +491,6 @@ void cart2sph(
        const double&    y,
        const double&    z )
 {
-  // Double hard coded above to improve the accuracy for Numeric=float
-
   r   = sqrt( x*x + y*y + z*z );
   lat = RAD2DEG * asin( y / r );
   lon = RAD2DEG * atan2( z, x ); 
@@ -525,12 +536,10 @@ void poslos2cart(
        const double&   za,
        const double&   aa )
 {
-  // Double hard coded above to improve the accuracy for Numeric=float
-
-  // lat=+-90 
+  // lat = +-90 
   // For lat = +- 90 the azimuth angle gives the longitude along which the
   // LOS goes
-  if( abs( lat ) == 90 )
+  if( abs( lat ) > POLELAT )
     {
       const double   s = sign( lat );
 
@@ -612,8 +621,6 @@ void cart2poslos(
        const double&   dy,
        const double&   dz )
 {
-  // Double hard coded above to improve the accuracy for Numeric=float
-
   // Assert that LOS vector is normalised
   assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
 
@@ -632,10 +639,10 @@ void cart2poslos(
   // LOS angles
   za = RAD2DEG * acos( dr );
   //
-  if( za < 1e-6  ||  za > 179.999999  )
+  if( za < DEV0AND180  ||  za > 180-DEV0AND180  )
     { aa = 0; }
 
-  else if( abs( lat ) < 90 )
+  else if( abs( lat ) <= POLELAT )
     {
       aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
 
@@ -771,8 +778,6 @@ void gridcell_crossing_3d(
        const Index&     known_dim,
        const double     rlatlon )
 {
-  // Double hard coded above to improve the accuracy for Numeric=float
-
   assert( known_dim >= 1 );
   assert( known_dim <= 3 );
 
@@ -930,8 +935,7 @@ void geompath_tanpos_3d(
   assert( za >= 90 );
   assert( r >= ppc );
 
-  double   x, y, z, dx, dy, dz;   // double to match declaration of poslos2cart
-                                  // and maximum precision
+  double   x, y, z, dx, dy, dz; 
 
   poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa );
 
@@ -979,7 +983,7 @@ double psurface_slope_2d(
         ConstVectorView   r_geoid,
         ConstVectorView   z_surf,
         const GridPos&    gp,
-        const double&    za )
+        const double&     za )
 {
   Index i1 = gridpos2gridrange( gp, abs( za ) >= 0 );
   const double r1 = r_geoid[i1] + z_surf[i1];
@@ -1114,7 +1118,7 @@ double psurface_slope_3d(
         const double&   aa )
 {
   // Size of test angular distance. Unit is degrees.
-  const double   dang = 1e-3;
+  const double   dang = 1e-4;
 
   // Radius at point of interest
   const double   r0 = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -1184,7 +1188,7 @@ double psurface_slope_3d(
   Index ilon = gridpos2gridrange( gp_lon, aa >= 0 );
 
   // Restore latitude and longitude values
-  Vector   itw(2);
+  Vector  itw(2);
   double  lat, lon;
   interpweights( itw, gp_lat );
   lat = interp( itw, lat_grid, gp_lat );
@@ -1323,14 +1327,14 @@ double psurface_crossing_2d(
   const double no_crossing = 999;
 
   // Handle the cases of za=0 and za=180. 
-  if( za == 0 )
+  if( abs(za) < DEV0AND180 )
     {
       if( rp < r0 )
         { return 0; }
       else
         { return no_crossing; }
     }
-  if( abs(za) == 180 )
+  if( abs(za) > 180-DEV0AND180 )
     {
       if( rp > r0 )
         { return 0; }
@@ -1462,20 +1466,20 @@ void psurface_crossing_3d(
              double&    lat,
              double&    lon,
              double&    l,
-       const double&   lat1,
-       const double&   lat3,
-       const double&   lon5,
-       const double&   lon6,
-       const double    r15,
-       const double    r35,
-       const double    r36,
-       const double    r16,
-       const double    r_start,         // No & to avoid problems if these
-       const double    lat_start,       // variables are the same as the
-       const double    lon_start,       // output ones.
-       const double    za_start,
-       const double    aa_start,
-       const double    rlatlon,
+       const double&    lat1,
+       const double&    lat3,
+       const double&    lon5,
+       const double&    lon6,
+       const double     r15,
+       const double     r35,
+       const double     r36,
+       const double     r16,
+       const double     r_start,         // No & to avoid problems if these
+       const double     lat_start,       // variables are the same as the
+       const double     lon_start,       // output ones.
+       const double     za_start,
+       const double     aa_start,
+       const double     rlatlon,
        const double&    x,
        const double&    y,
        const double&    z,
@@ -1483,8 +1487,6 @@ void psurface_crossing_3d(
        const double&    dy,
        const double&    dz )
 {
-  // Double hard coded above to improve the accuracy for Numeric=float
-
   assert( za_start >=   0 );
   assert( za_start <= 180 );
 
@@ -1495,8 +1497,8 @@ void psurface_crossing_3d(
   l   = -1;
 
   // Handle the cases of za=0 and za=180. 
-  if( ( za_start == 0  &&  r_start < rlatlon )  || 
-                                   ( za_start == 180  &&  r_start > rlatlon ) )
+  if( ( za_start < DEV0AND180  &&  r_start < rlatlon )  || 
+                         ( za_start > 180-DEV0AND180  &&  r_start > rlatlon ) )
     {
       r   = rlatlon;
       lat = lat_start;
@@ -1577,12 +1579,12 @@ void psurface_crossing_3d(
    \date   2002-12-02
 */
 void do_gridrange_1d(
-              Vector&    r_v,
-              Vector&    lat_v,
-              Vector&    za_v,
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   za_v,
               double&   lstep,
-              Index&     endface,
-              Index&     tanpoint,
+              Index&    endface,
+              Index&    tanpoint,
         const double&   r_start,
         const double&   lat_start,
         const double&   za_start,
@@ -1695,12 +1697,12 @@ void do_gridrange_1d(
    \date   2002-11-28
 */
 void do_gridcell_2d(
-              Vector&    r_v,
-              Vector&    lat_v,
-              Vector&    za_v,
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   za_v,
               double&   lstep,
-              Index&     endface,
-              Index&     tanpoint,
+              Index&    endface,
+              Index&    tanpoint,
         const double&   r_start,
         const double&   lat_start,
         const double&   za_start,
@@ -1750,7 +1752,7 @@ void do_gridcell_2d(
   //
   double   dlat2end = 999;
   double   abs_za_start = abs( za_start );
-            endface = 0;
+           endface = 0;
 
 
   // --- Lower face 
@@ -1764,7 +1766,7 @@ void do_gridcell_2d(
   // crossing. We don't need to consider the face if we are standing
   // on the pressure surface.
   //
-  if( r_start > rlow  &&  za_start != 0 )
+  if( r_start > rlow  &&  abs(za_start) > DEV0AND180 )
     {
       dlat2end = psurface_crossing_2d( r_start, za_start, rlow, c2 );
       endface = 2;  // This variable will be re-set if there was no crossing
@@ -1798,7 +1800,7 @@ void do_gridcell_2d(
 
   // --- Upper face  (pressure surface ip+1).
   //
-  if( abs(dlat2end) > abs(dlat_endface)  &&  abs_za_start < 180 )
+  if( abs(dlat2end) > abs(dlat_endface)  &&  abs_za_start < 180-DEV0AND180 )
     {
       // For cases when the tangent point is in-between *r_start* and
       // the pressure surface, 999 is returned. This case will anyhow
@@ -1939,14 +1941,14 @@ void do_gridcell_2d(
    \date   2002-11-28
 */
 void do_gridcell_3d(
-              Vector&    r_v,
-              Vector&    lat_v,
-              Vector&    lon_v,
-              Vector&    za_v,
-              Vector&    aa_v,
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   lon_v,
+              Vector&   za_v,
+              Vector&   aa_v,
               double&   lstep,
-              Index&     endface,
-              Index&     tanpoint,
+              Index&    endface,
+              Index&    tanpoint,
         const double&   r_start,
         const double&   lat_start,
         const double&   lon_start,
@@ -2012,6 +2014,7 @@ void do_gridcell_3d(
       assert( is_los_downwards( za_start, tilt ) );
     }
 
+
   // Position and LOS in cartesian coordinates
   double   x, y, z, dx, dy, dz;
   poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
@@ -2025,45 +2028,25 @@ void do_gridcell_3d(
   //
   double   r_end, lat_end, lon_end, l_end;
 
-  // Local debug option
-  const bool   debug = false;
-  //
-  if( debug )
-    {
-      NumericPrint( lat1, "lat1" );
-      NumericPrint( lat3, "lat3" );
-      NumericPrint( lon5, "lon5" );
-      NumericPrint( lon6, "lon6" );
-      NumericPrint( rlow, "rlow" );
-      NumericPrint( rupp, "rupp" );
-    }
 
   // Zenith and nadir looking are handled as special cases
 
   // Zenith looking
-  if( za_start == 0 )
+  if( za_start < DEV0AND180 )
     {
       r_end   = rupp;
       lat_end = lat_start;
       lon_end = lon_start;
       l_end   = rupp - r_start;
       endface  = 4;
-      if( debug )
-        {
-          IndexPrint( 4, "face" );
-          NumericPrint( r_end, "r_end" );
-          NumericPrint( lat_end, "lat_end" );
-          NumericPrint( lon_end, "lon_end" );
-          NumericPrint( l_end, "l_end" );
-        }
     }
 
   // Nadir looking
-  else if( za_start == 180 )
+  else if( za_start > 180-DEV0AND180 )
     {
       const double   rground = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                    rground15, rground35, rground36, rground16, 
-                                                        lat_start, lon_start );
+                                                lat_start, lon_start );
       
       if( rlow > rground )
         {
@@ -2078,14 +2061,6 @@ void do_gridcell_3d(
       lat_end = lat_start;
       lon_end = lon_start;
       l_end   = r_start - r_end;
-      if( debug )
-        {
-          IndexPrint( 4, "face" );
-          NumericPrint( r_end, "r_end" );
-          NumericPrint( lat_end, "lat_end" );
-          NumericPrint( lon_end, "lon_end" );
-          NumericPrint( l_end, "l_end" );
-        }
     }
 
   // Check faces in number order
@@ -2102,12 +2077,6 @@ void do_gridcell_3d(
       lat_corr -= lat_start;
       lon_corr -= lon_start;
 
-      if( debug )
-        {
-          NumericPrint( r_corr, "r_corr" );
-          NumericPrint( lat_corr, "lat_corr" );
-          NumericPrint( lon_corr, "lon_corr" );
-        }
 
       // The end point is found by testing different step lengths until the
       // step length has been determined by a precision of *l_acc*.
@@ -2128,7 +2097,6 @@ void do_gridcell_3d(
       if( za_start > 90 )
         { l_tan = sqrt( r_start*r_start - ppc*ppc ); }
 
-
       bool   do_ground = false;
       if( rground15 >= r15a  ||  rground35 >= r35a  ||  
                                      rground36 >= r36a  ||  rground16 >= r16a )
@@ -2143,20 +2111,12 @@ void do_gridcell_3d(
           lat_end -= lat_corr;
           lon_end -= lon_corr;
 
-          if( abs( lat_start ) < 90  &&  ( aa_start == 0  ||  
-                                                      abs( aa_start) == 180 ) )
+          if( abs( lat_start ) < 90  &&  ( abs(aa_start) < DEV0AND180  ||  
+                                           abs(aa_start) > 180-DEV0AND180 ) )
             { lon_end = lon_start; }
           else
             { resolve_lon( lon_end, lon5, lon6 ); }
           
-          if( debug )
-            {
-              NumericPrint( l_end, "l_end" );
-              NumericPrint( r_end, "r_end" );
-              NumericPrint( lat_end, "lat_end" );
-              NumericPrint( lon_end, "lon_end" );
-            }
-
           bool   inside = true;
 
           if( lat_end < lat1 )
@@ -2168,11 +2128,8 @@ void do_gridcell_3d(
           else if( lon_end > lon6 )
             { inside = false;   endface = 6; }
 
-          // For Numeric=float and short steps, the numerical inaccuarcy
-          // can move a point outside the grid cell incorrectly.
-          // To avoid this, only step lengths above some limit are tested.
           if( inside  ) 
-           {
+            {
               rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                     r15a, r35a, r36a, r16a, lat_end, lon_end );
               rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -2185,10 +2142,11 @@ void do_gridcell_3d(
 
               if( do_ground )
                 {
-                  const double   r_ground = rsurf_at_latlon( 
-                                  lat1, lat3, lon5, lon6, 
+                  const double   r_ground = 
+                                  rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                   rground15, rground35, rground36, rground16, 
                                                             lat_end, lon_end );
+
                   if( r_ground >= rlow  &&  r_end < r_ground )
                     { inside = false;   endface = 7; }
                 }
@@ -2222,15 +2180,6 @@ void do_gridcell_3d(
               if( ( l_out - l_in ) < l_acc )
                 { ready = true; }
             }
-
-          if( debug )
-            {
-              IndexPrint( inside, "inside" );
-              IndexPrint( endface, "endface" );
-              IndexPrint( startup, "startup" );
-              NumericPrint( l_in, "l_in" );
-              NumericPrint( l_out, "l_out" );
-            }
         }
 
       // Now when we are ready, we remove the correction terms. Otherwise
@@ -2245,22 +2194,20 @@ void do_gridcell_3d(
       if( endface == 1 )
         { lat_end = lat1; }
       else if( endface == 2 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                  r15a, r35a, r36a, r16a, lat_end, lon_end ); }
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15a, r35a, r36a, 
+                                                    r16a, lat_end, lon_end ); }
       else if( endface == 3 )
         { lat_end = lat3; }
       else if( endface == 4 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                  r15b, r35b, r36b, r16b, lat_end, lon_end ); }
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15b, r35b, r36b, 
+                                                    r16b, lat_end, lon_end ); }
       else if( endface == 5 )
         { lon_end = lon5; }
       else if( endface == 6 )
         { lon_end = lon6; }
       else if( endface == 7 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                  rground15, rground35, rground36, rground16, 
-                                                          lat_end, lon_end ); }
-
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, rground15, 
+                         rground35, rground36, rground16, lat_end, lon_end ); }
 
       //--- Tangent point?
       //
@@ -2268,10 +2215,6 @@ void do_gridcell_3d(
         {
           if( l_tan < l_end )
             {
-              // We seperate here float/double to avoid unnecessary
-              // copying for Numeric=double. A solution like this is
-              // needed to avoid compiler warnings.
-
               geompath_tanpos_3d( r_end, lat_end, lon_end, l_end,
                                   r_start, lat_start, lon_start, 
                                   za_start, aa_start, ppc );
@@ -2280,19 +2223,6 @@ void do_gridcell_3d(
             }
           else if( l_tan == l_end )
             { tanpoint = 1; }
-        }
-     }
-
-  if( debug )
-    {
-      IndexPrint( endface, "endface" );
-      IndexPrint( tanpoint, "tanpoint" );
-      if( endface )
-        {
-          NumericPrint( r_end, "r_end" );
-          NumericPrint( lat_end, "lat_end" );
-          NumericPrint( lon_end, "lon_end" );
-          NumericPrint( l_end, "l_end" );
         }
     }
 
@@ -2330,9 +2260,7 @@ void do_gridcell_3d(
       // We seperate here float/double to avoid unnecessary copying for
       // Numeric=double. A solution like this is needed to avoid compiler
       // warnings.
-
 #ifdef USE_DOUBLE
-
       cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j],
                                           x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
 #else
@@ -2354,7 +2282,7 @@ void do_gridcell_3d(
   lon_v[n] = lon_end;
 
   //--- Set last zenith angle to be as accurate as possible
-  if( za_start == 0  ||  za_start == 180 )
+  if( za_start < DEV0AND180  ||  za_start > 180-DEV0AND180 )
     { za_v[n] = za_start; }
   else if( tanpoint )
     { za_v[n] = 90; }
@@ -2363,7 +2291,8 @@ void do_gridcell_3d(
 
   //--- Set last azimuth angle to be as accurate as possible for
   //    zenith and nadir observations
-  if( abs( lat_start ) < 90  &&  ( aa_start == 0  ||  abs( aa_start) == 180 ) )
+  if( abs( lat_start ) < 90  &&  
+          ( abs(aa_start) < DEV0AND180  ||  abs( aa_start) > 180-DEV0AND180 ) )
     {  
       aa_v[n]  = aa_start; 
       lon_v[n] = lon_start;
@@ -2371,528 +2300,6 @@ void do_gridcell_3d(
 
   // Shall lon values be shifted (value 0 and n+1 are already OK)?
   for( Index j=1; j<n; j++ )
-    { resolve_lon( lon_v[j], lon5, lon6 ); }
-}
-
-
-
-void do_gridcell_3d_old(
-              Vector&    r_v,
-              Vector&    lat_v,
-              Vector&    lon_v,
-              Vector&    za_v,
-              Vector&    aa_v,
-              double&   lstep,
-              Index&     endface,
-              Index&     tanpoint,
-        const double&   r_start,
-        const double&   lat_start,
-        const double&   lon_start,
-        const double&   za_start,
-        const double&   aa_start,
-        const double&   ppc,
-        const double&   lmax,
-        const double&   lat1,
-        const double&   lat3,
-        const double&   lon5,
-        const double&   lon6,
-        const double&   r15a,
-        const double&   r35a,
-        const double&   r36a,
-        const double&   r16a,
-        const double&   r15b,
-        const double&   r35b,
-        const double&   r36b,
-        const double&   r16b,
-        const double&   rground15,
-        const double&   rground35,
-        const double&   rground36,
-        const double&   rground16 )
-{
-  // Assert latitude and longitude
-  assert( lat_start >= lat1 );
-  assert( lat_start <= lat3 );
-  assert( !( abs( lat_start) < 90  &&  lon_start < lon5 ) );
-  assert( !( abs( lat_start) < 90  &&  lon_start > lon6 ) );
-
-  // Radius of lower and upper pressure surface at the start position
-  const double   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15a, r35a, r36a, r16a, lat_start, lon_start );
-  const double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15b, r35b, r36b, r16b, lat_start, lon_start );
-
-  // Assert radius
-  assert( r_start >= rlow );
-  assert( r_start <= rupp );
-  assert( r_start >= ppc );
-
-  // Assert that not standing at the edge looking out.
-  // As these asserts are rather costly, they should maybe be removed
-  // when everything is carefully tested.
-  assert( !( lat_start==lat1 && lat_start!=-90 && abs( aa_start ) > 90 ) );
-  assert( !( lat_start==lat3 && lat_start!= 90 && abs( aa_start ) < 90 ) );
-  assert( !( lon_start==lon5 && abs(lat_start)!=90 &&  aa_start < 0 ) );
-  assert( !( lon_start==lon6 && abs(lat_start)!=90 &&  aa_start > 0 ) );
-  //
-  if( r_start == rlow )
-    {
-      const double c = psurface_slope_3d( lat1, lat3, lon5, lon6, 
-                      r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
-      const double tilt = psurface_angletilt( r_start, c );
-
-      assert( !is_los_downwards( za_start, tilt ) );
-    }
-  else if( r_start == rupp )
-    {
-      const double c = psurface_slope_3d( lat1, lat3, lon5, lon6, 
-                      r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
-      const double tilt = psurface_angletilt( r_start, c );
-
-      assert( is_los_downwards( za_start, tilt ) );
-    }
-
-  // Position and LOS in cartesian coordinates
-  double   x, y, z, dx, dy, dz;
-  poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
-                                                          za_start, aa_start );
-
-  // Check possible crossing with faces in number order, buth where zenith 
-  // and nadir looking are treated seperately.
-  // The crossing with the lowest distance *l* is what we want.
-  // It is very hard to rule out options, most things can happen, and we
-  // test basically everything.
-  //
-  endface  = 0;
-  tanpoint = 0;
-  //
-  double   l_best  = 99999e3;
-  double   r_best, lat_best, lon_best, r_try, lat_try, lon_try, l_try;
-  double   rlow_try, rhigh_try;
-
-  // Local debug option
-  const bool   debug = false;
-  //
-  if( debug )
-    {
-      NumericPrint( lat1, "lat1" );
-      NumericPrint( lat3, "lat3" );
-      NumericPrint( lon5, "lon5" );
-      NumericPrint( lon6, "lon6" );
-      NumericPrint( rlow, "rlow" );
-      NumericPrint( rupp, "rupp" );
-    }
-
-
-  // Zenith looking
-  if( za_start == 0 )
-    {
-      r_best   = rupp;
-      lat_best = lat_start;
-      lon_best = lon_start;
-      l_best   = rupp - r_start;
-      endface  = 4;
-      if( debug )
-        {
-          IndexPrint( 4, "face" );
-          NumericPrint( r_best, "r_best" );
-          NumericPrint( lat_best, "lat_best" );
-          NumericPrint( lon_best, "lon_best" );
-          NumericPrint( l_best, "l_best" );
-        }
-    }
-
-  // Nadir looking
-  else if( za_start == 180 )
-    {
-      const double   rground = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-            rground15, rground35, rground36, rground16, lat_start, lon_start );
-      
-      if( rlow > rground )
-        {
-          r_best  = rlow;
-          endface = 2;
-        }
-      else
-        {
-          r_best  = rground;
-          endface = 7;
-        }
-      lat_best = lat_start;
-      lon_best = lon_start;
-      l_best   = r_start - r_best;
-      if( debug )
-        {
-          IndexPrint( 4, "face" );
-          NumericPrint( r_best, "r_best" );
-          NumericPrint( lat_best, "lat_best" );
-          NumericPrint( lon_best, "lon_best" );
-          NumericPrint( l_best, "l_best" );
-        }
-    }
-
-  // Check faces in number order
-  else
-    {
-
-      //--- Face 1: along lat1
-      //
-      if( lat_start != -90 )
-        {
-          gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
-                                                x, y, z, dx, dy, dz, 2, lat1 );
-          if( debug )
-            {
-              IndexPrint( 1, "face" );
-              NumericPrint( r_try, "r_try" );
-              if( r_try > 0 )
-                {
-                  NumericPrint( lat_try, "lat_try" );
-                  NumericPrint( lon_try, "lon_try" );
-                  NumericPrint( l_try, "l_try" );
-                }
-            }
-          if( r_try > 0  &&  l_try < l_best )
-            {
-              r_best   = r_try;
-              lat_best = lat_try;
-              lon_best = lon_try;
-              l_best   = l_try;
-              endface  = 1;
-            }
-        }
-
-
-      //--- Face 2: lower pressure surface
-      //
-      // Can't be both start and end face
-      //
-      if( r_start > rlow )
-        {
-          psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, 
-                        lon5, lon6, r15a, r35a, r36a, r16a, r_start, lat_start,
-                     lon_start, za_start, aa_start,rlow, x, y, z, dx, dy, dz );
-          if( debug )
-            {
-              IndexPrint( 2, "face" );
-              NumericPrint( r_try, "r_try" );
-              if( r_try > 0 )
-                {
-                  NumericPrint( lat_try, "lat_try" );
-                  NumericPrint( lon_try, "lon_try" );
-                  NumericPrint( l_try, "l_try" );
-                }
-            }
-          if( r_try > 0  &&  l_try < l_best )
-            {
-              r_best   = r_try;
-              lat_best = lat_try;
-              lon_best = lon_try;
-              l_best   = l_try;
-              endface  = 2;
-            }
-        }
-
-
-      //--- Face 3: along lat3
-      //
-      if( lat_start != 90 )
-        {
-          gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
-                                                x, y, z, dx, dy, dz, 2, lat3 );
-          if( debug )
-            {
-              IndexPrint( 3, "face" );
-              NumericPrint( r_try, "r_try" );
-              if( r_try > 0 )
-                {
-                  NumericPrint( lat_try, "lat_try" );
-                  NumericPrint( lon_try, "lon_try" );
-                  NumericPrint( l_try, "l_try" );
-                }
-            }
-          if( r_try > 0  &&  l_try < l_best )
-            {
-              r_best   = r_try;
-              lat_best = lat_try;
-              lon_best = lon_try;
-              l_best   = l_try;
-              endface  = 3;
-            }
-        }
-
-
-      //--- Face 4: upper pressure surface
-      //
-      // A step can both start and end on the surface, so must test all cases
-        {
-          psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, 
-                        lon5, lon6, r15b, r35b, r36b, r16b, r_start, lat_start,
-                    lon_start, za_start, aa_start, rupp, x, y, z, dx, dy, dz );
-          if( debug )
-            {
-              IndexPrint( 4, "face" );
-              NumericPrint( r_try, "r_try" );
-              if( r_try > 0 )
-                {
-                  NumericPrint( lat_try, "lat_try" );
-                  NumericPrint( lon_try, "lon_try" );
-                  NumericPrint( l_try, "l_try" );
-                }
-            }
-          if( r_try > 0  &&  l_try < l_best )
-            {
-              r_best   = r_try;
-              lat_best = lat_try;
-              lon_best = lon_try;
-              l_best   = l_try;
-              endface  = 4;
-            }
-        }
-      
-
-      //--- Face 5: along lon5
-      //
-      if( aa_start < 0 )
-        {
-          gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
-                                                x, y, z, dx, dy, dz, 3, lon5 );
-          if( debug )
-            {
-              IndexPrint( 5, "face" );
-              NumericPrint( r_try, "r_try" );
-              if( r_try > 0 )
-                {
-                  NumericPrint( lat_try, "lat_try" );
-                  NumericPrint( lon_try, "lon_try" );
-                  NumericPrint( l_try, "l_try" );
-                }
-            }
-          if( r_try > 0  &&  l_try < l_best )
-            {
-              r_best   = r_try;
-              lat_best = lat_try;
-              lon_best = lon_try;
-              l_best   = l_try;
-              endface  = 5;
-            }
-        }
-      
-
-      //--- Face 6: along lon6
-      //
-      if( aa_start > 0 )
-        {
-          gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
-                                                x, y, z, dx, dy, dz, 3, lon6 );
-          if( debug )
-            {
-              IndexPrint( 6, "face" );
-              NumericPrint( r_try, "r_try" );
-              if( r_try > 0 )
-                {
-                  NumericPrint( lat_try, "lat_try" );
-                  NumericPrint( lon_try, "lon_try" );
-                  NumericPrint( l_try, "l_try" );
-                }
-            }
-          if( r_try > 0  &&  l_try < l_best )
-            {
-              r_best   = r_try;
-              lat_best = lat_try;
-              lon_best = lon_try;
-              l_best   = l_try;
-              endface  = 6;
-            }
-        }
-      
-
-      //--- Face 7: the ground
-      //
-      // Note "l_try <= l_best", whick means that the ground will be picked
-      // if lower pressure surface and the ground are at the same radius.
-      //
-      if( rground15 >= r15a  ||  rground35 >= r35a  ||  
-                                     rground36 >= r36a  ||  rground16 >= r16a )
-        {
-          // Ground radius
-          const double   r_ground = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                  rground15, rground35, rground36, rground16, 
-                                                        lat_start, lon_start );
-          
-          bool check_ground = true;
-
-          if( r_start == r_ground )
-            {
-              // Numerical inaccuarcy can give problems if
-              // *psurface_crossing_3d* is called blindly when *r_start*
-              // equals the ground radius. So it is better to check if the
-              // zenith angle is downwards with respect to the ground tilt 
-              // to check in more detail if there can be a ground crossing.
-
-              // Ground slope [m/deg]
-              const double slope = psurface_slope_3d( lat1, lat3, lon5, lon6, 
-                                  rground15, rground35, rground36, rground16, 
-                                              lat_start, lon_start, aa_start );
-
-              // Calculate ground (angular) tilt [deg].
-              const double   tilt = psurface_angletilt( r_ground, slope );
-
-              // Check that a_los contains a downward LOS
-              if( !is_los_downwards( za_start, tilt ) )
-                { check_ground = false; }
-            }
-
-          if( check_ground )
-            {
-              psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
-                                    lat1, lat3, lon5, lon6, 
-                                    rground15, rground35, rground36, rground16,
-                                    r_start, lat_start, lon_start, za_start, 
-                                     aa_start, r_ground, x, y, z, dx, dy, dz );
-              if( debug )
-                {
-                  IndexPrint( 6, "face" );
-                  NumericPrint( r_try, "r_try" );
-                  if( r_try > 0 )
-                    {
-                      NumericPrint( lat_try, "lat_try" );
-                      NumericPrint( lon_try, "lon_try" );
-                      NumericPrint( l_try, "l_try" );
-                    }
-                }
-              if( r_try > 0  &&  l_try <= l_best )
-                {
-                  r_best   = r_try;
-                  lat_best = lat_try;
-                  lon_best = lon_try;
-                  l_best   = l_try;
-                  endface  = 7;
-                }
-            }
-        }
-
-
-      // Check that some OK end face has been found.
-      // Some extra marginal is needed due to rounding errors.
-      // The values for the end point are corrected as far as possible below.
-      assert( endface );
-      assert( lat_best + 1e-5 >= lat1 );
-      assert( lat_best - 1e-5 <= lat3 );
-      assert( lon_best + 1e-5 >= lon5 );
-      assert( lon_best - 1e-5 <= lon6 );
-      assert( r_best + 1e-5  >= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15a, r35a, r36a, r16a, lat_best, lon_best ) );
-      assert( r_best - 1e-5  <= rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15b, r35b, r36b, r16b, lat_best, lon_best ) );
-
-
-      //--- Tangent point?
-      //
-      if( za_start > 90 )
-        {
-          l_try = sqrt( r_start*r_start - ppc*ppc ); 
-
-          if( l_try < l_best )
-            {
-              geompath_tanpos_3d( r_best, lat_best, lon_best, l_best,
-                                  r_start, lat_start, lon_start, 
-                                  za_start, aa_start, ppc );
-              endface  = 0;
-              tanpoint = 1;
-            }
-          else if( l_try == l_best )
-            { tanpoint = 1; }
-        }
-     }
-
-  if( debug )
-    {
-      IndexPrint( endface, "endface" );
-      IndexPrint( tanpoint, "tanpoint" );
-      if( endface )
-        {
-          NumericPrint( r_best, "r_best" );
-          NumericPrint( lat_best, "lat_best" );
-          NumericPrint( lon_best, "lon_best" );
-          NumericPrint( l_best, "l_best" );
-        }
-    }
-
-
-  //--- Create return vectors
-  //
-  Index n = 1;
-  //
-  if( lmax > 0 )
-    {
-      n = Index( ceil( abs( l_best / lmax ) ) );
-      if( n < 1 )
-        { n = 1; }
-    }
-  //
-  r_v.resize( n+1 );
-  lat_v.resize( n+1 );
-  lon_v.resize( n+1 );
-  za_v.resize( n+1 );
-  aa_v.resize( n+1 );
-  //
-  r_v[0]   = r_start;
-  lat_v[0] = lat_start;
-  lon_v[0] = lon_start;
-  za_v[0]  = za_start;
-  aa_v[0]  = aa_start;
-  //
-  double  ldouble = l_best / n;
-  lstep = ldouble;
-  // 
-  for( Index j=1; j<=n; j++ )
-    {
-      const double   l  = ldouble * j;
-
-      // We seperate here float/double to avoid unnecessary copying for
-      // Numeric=double. A solution like this is needed to avoid compiler
-      // warnings.
-
-#ifdef USE_DOUBLE
-
-      cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j],
-                                          x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
-#else
-      double   rtmp, lattmp, lontmp, zatmp, aatmp;
-      cart2poslos( rtmp, lattmp, lontmp, zatmp, aatmp,
-                                          x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
-      r_v[j]   = rtmp;
-      lat_v[j] = lattmp;
-      lon_v[j] = lontmp;
-      za_v[j]  = zatmp;
-      aa_v[j]  = aatmp;
-#endif
-   }
-
-
-  //--- Set last point especially, which should improve the accuracy
-  r_v[n]   = r_best;
-  lat_v[n] = lat_best;
-  lon_v[n] = lon_best;
-
-  //--- Set last zenith angle to be as accurate as possible
-  if( za_start == 0  ||  za_start == 180 )
-    { za_v[n] = za_start; }
-  else if( tanpoint )
-    { za_v[n] = 90; }
-  else
-    { za_v[n] = geompath_za_at_r( ppc, za_start, r_v[n] ); }
-
-  //--- Set last azimuth angle and lon. to be as accurate as possible for
-  //    zenith and nadir observations
-  if( abs( lat_start ) < 90  &&  ( aa_start == 0  ||  abs( aa_start) == 180 ) )
-    { 
-      aa_v[n] = aa_start; 
-      lon_v[n] = lon_start;
-    }
-
-  // Shall lon values be shifted?
-  for( Index j=1; j<=n; j++ )
     { resolve_lon( lon_v[j], lon5, lon6 ); }
 }
 
@@ -3203,7 +2610,7 @@ void ppath_fill_1d(
      ConstVectorView   lat,
      ConstVectorView   za,
      ConstVectorView   lstep,
-     const double&    r_geoid,
+     const double&     r_geoid,
      ConstVectorView   z_field,
      const Index&      ip )
 {
@@ -3262,7 +2669,7 @@ void ppath_fill_2d(
      ConstVectorView   r,
      ConstVectorView   lat,
      ConstVectorView   za,
-     const double&    lstep,
+     const double&     lstep,
      ConstVectorView   r_geoid,
      ConstMatrixView   z_field,
      ConstVectorView   lat_grid,
@@ -3353,7 +2760,7 @@ void ppath_fill_3d(
      ConstVectorView   lon,
      ConstVectorView   za,
      ConstVectorView   aa,
-     const double&    lstep,
+     const double&     lstep,
      ConstMatrixView   r_geoid,
      ConstTensor3View  z_field,
      ConstVectorView   lat_grid,
@@ -3464,9 +2871,9 @@ void ppath_fill_3d(
    \date   2002-05-17
 */
 double refraction_ppc( 
-        const double& r, 
-        const double& za, 
-        const double& refr_index )
+        const double&   r, 
+        const double&   za, 
+        const double&   refr_index )
 {
   assert( r > 0 );
   assert( abs(za) <= 180 );
@@ -3499,15 +2906,15 @@ double refraction_ppc(
    \date   2002-11-13
 */
 void ppath_start_1d(
-              double&    r_start,
-              double&    lat_start,
-              double&    za_start,
+              double&     r_start,
+              double&     lat_start,
+              double&     za_start,
               Index&      ip,
         const Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
-        const double&    r_geoid,
-        const double&    z_ground )
+        const double&     r_geoid,
+        const double&     z_ground )
 {
   // Number of points in the incoming ppath
   const Index   imax = ppath.np - 1;
@@ -3565,15 +2972,15 @@ void ppath_end_1d(
         ConstVectorView   r_v,
         ConstVectorView   lat_v,
         ConstVectorView   za_v,
-        const double&    lstep,
+        const double&     lstep,
         ConstVectorView   z_field,
-        const double&    r_geoid,
+        const double&     r_geoid,
         const Index&      ip,
         const Index&      endface,
         const Index&      tanpoint,
         const String&     method,
         const Index&      refraction,
-        const double&    ppc )
+        const double&     ppc )
 {
   out3 << "  end face number code : " << endface << "\n";
 
@@ -3628,19 +3035,19 @@ void ppath_end_1d(
    \date   2002-11-18
 */
 void ppath_start_2d(
-              double&    r_start,
-              double&    lat_start,
-              double&    za_start,
+              double&     r_start,
+              double&     lat_start,
+              double&     za_start,
               Index&      ip,
               Index&      ilat,
-              double&    lat1,
-              double&    lat3,
-              double&    r1a,
-              double&    r3a,
-              double&    r3b,
-              double&    r1b,
-              double&    rground1,
-              double&    rground3,
+              double&     lat1,
+              double&     lat3,
+              double&     r1a,
+              double&     r3a,
+              double&     r3b,
+              double&     r1b,
+              double&     rground1,
+              double&     rground3,
         const Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -3711,16 +3118,6 @@ void ppath_start_2d(
   double   c2 = psurface_slope_2d( lat1, lat3, r1a, r3a );
   double   c4 = psurface_slope_2d( lat1, lat3, r1b, r3b );
 
-  //NumericPrint( r_start, "r_start" );
-  //NumericPrint( r_start-(r1a+c2*(lat_start-lat1)), "dr" );
-  //NumericPrint( r_start-(r1b+c4*(lat_start-lat1)), "dr" );
-  //NumericPrint( z_field(ip,ilat), "z_field(ip,ilat)" );
-  //NumericPrint( z_field(ip,ilat+1), "z_field(ip,ilat+1)" );
-  //NumericPrint( z_field(ip+1,ilat), "z_field(ip+1,ilat)" );
-  //NumericPrint( z_field(ip+1,ilat+1), "z_field(ip+1,ilat+1)" );
-  //NumericPrint( za_start, "za" );
-  //NumericPrint( psurface_angletilt( r_start, c4 ), "tilt" );
-
   // Check if the LOS zenith angle happen to be between 90 and the zenith angle
   // of the pressure surface (that is, 90 + tilt of pressure surface), and in
   // that case if ip must be changed. This check is only needed when the
@@ -3780,7 +3177,7 @@ void ppath_end_2d(
         ConstVectorView   r_v,
         ConstVectorView   lat_v,
         ConstVectorView   za_v,
-        const double&    lstep,
+        const double&     lstep,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
@@ -3790,7 +3187,7 @@ void ppath_end_2d(
         const Index&      tanpoint,
         const String&     method,
         const Index&      refraction,
-        const double&    ppc )
+        const double&     ppc )
 {
   // Number of path points
   const Index   np = r_v.nelem();
@@ -3841,30 +3238,30 @@ void ppath_end_2d(
    \date   2002-12-30
 */
 void ppath_start_3d(
-              double&    r_start,
-              double&    lat_start,
-              double&    lon_start,
-              double&    za_start,
-              double&    aa_start,
+              double&     r_start,
+              double&     lat_start,
+              double&     lon_start,
+              double&     za_start,
+              double&     aa_start,
               Index&      ip,
               Index&      ilat,
               Index&      ilon,
-              double&    lat1,
-              double&    lat3,
-              double&    lon5,
-              double&    lon6,
-              double&    r15a,
-              double&    r35a,
-              double&    r36a,
-              double&    r16a,
-              double&    r15b,
-              double&    r35b,
-              double&    r36b,
-              double&    r16b,
-              double&    rground15,
-              double&    rground35,
-              double&    rground36,
-              double&    rground16,
+              double&     lat1,
+              double&     lat3,
+              double&     lon5,
+              double&     lon6,
+              double&     r15a,
+              double&     r35a,
+              double&     r36a,
+              double&     r16a,
+              double&     r15b,
+              double&     r35b,
+              double&     r36b,
+              double&     r16b,
+              double&     rground15,
+              double&     rground35,
+              double&     rground36,
+              double&     rground16,
               Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -4061,7 +3458,7 @@ void ppath_end_3d(
         ConstVectorView   lon_v,
         ConstVectorView   za_v,
         ConstVectorView   aa_v,
-        const double&    lstep,
+        const double&     lstep,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
         ConstTensor3View  z_field,
@@ -4073,7 +3470,7 @@ void ppath_end_3d(
         const Index&      tanpoint,
         const String&     method,
         const Index&      refraction,
-        const double&    ppc )
+        const double&     ppc )
 {
   // Number of path points
   const Index   np = r_v.nelem();
@@ -4133,14 +3530,14 @@ void interpolate_raytracing_points(
              Vector&     lon_v,
              Vector&     za_v,
              Vector&     aa_v,
-             double&    lstep,
+             double&     lstep,
        ConstVectorView   r_rt,
        ConstVectorView   lat_rt,
        ConstVectorView   lon_rt,
        ConstVectorView   za_rt,
        ConstVectorView   aa_rt,
        ConstVectorView   l_rt,
-       const double&    lmax )
+       const double&     lmax )
 {
   // Interpolate the radii, zenith angles and latitudes to a set of points
   // linearly spaced along the path. If *lmax* <= 0, then only the end points
@@ -4213,15 +3610,15 @@ void interpolate_raytracing_points(
    \date   2002-12-02
 */
 void from_raytracingarrays_to_ppath_vectors_1d_and_2d(
-             Vector&           r_v,
-             Vector&           lat_v,
-             Vector&           za_v,
+             Vector&          r_v,
+             Vector&          lat_v,
+             Vector&          za_v,
              double&          lstep,
        const Array<double>&   r_array,
        const Array<double>&   lat_array,
        const Array<double>&   za_array,
        const Array<double>&   l_array,
-       const Index&            reversed,
+       const Index&           reversed,
        const double&          lmax )
 {
   // Copy arrays to vectors for later interpolation
@@ -4275,11 +3672,11 @@ void from_raytracingarrays_to_ppath_vectors_1d_and_2d(
    \date   2003-01-18
 */
 void from_raytracingarrays_to_ppath_vectors_3d(
-             Vector&           r_v,
-             Vector&           lat_v,
-             Vector&           lon_v,
-             Vector&           za_v,
-             Vector&           aa_v,
+             Vector&          r_v,
+             Vector&          lat_v,
+             Vector&          lon_v,
+             Vector&          za_v,
+             Vector&          aa_v,
              double&          lstep,
        const Array<double>&   r_array,
        const Array<double>&   lat_array,
@@ -4352,9 +3749,9 @@ void ppath_step_geom_1d(
               Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
-        const double&    r_geoid,
-        const double&    z_ground,
-        const double&    lmax )
+        const double&     r_geoid,
+        const double&     z_ground,
+        const double&     lmax )
 {
   // Starting radius, zenith angle and latitude
   double r_start, lat_start, za_start;
@@ -4447,7 +3844,7 @@ void ppath_step_geom_2d(
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
-        const double&    lmax )
+        const double&     lmax )
 {
   // Radius, zenith angle and latitude of start point.
   double   r_start, lat_start, za_start;
@@ -4548,7 +3945,7 @@ void ppath_step_geom_3d(
         ConstTensor3View   z_field,
         ConstMatrixView    r_geoid,
         ConstMatrixView    z_ground,
-        const double&     lmax )
+        const double&      lmax )
 {
   // Radius, zenith angle and latitude of start point.
   double   r_start, lat_start, lon_start, za_start, aa_start;
@@ -4680,26 +4077,26 @@ void raytrace_1d_linear_euler(
               Array<double>&   lat_array,
               Array<double>&   za_array,
               Array<double>&   l_array,
-              Index&            endface,
-              Index&            tanpoint,
+              Index&           endface,
+              Index&           tanpoint,
               double           r,
               double           lat,
               double           za,
-              Numeric&          a_pressure,
-              Numeric&          a_temperature,
-              Vector&           a_vmr_list,
-              Numeric&          refr_index,
-        const Agenda&           refr_index_agenda,
+              Numeric&         a_pressure,
+              Numeric&         a_temperature,
+              Vector&          a_vmr_list,
+              Numeric&         refr_index,
+        const Agenda&          refr_index_agenda,
         const double&          ppc,
         const double&          lraytrace,
         const double&          r1,
         const double&          r3,
         const double&          r_ground,
         const double&          r_geoid,
-        ConstVectorView         p_grid,
-        ConstVectorView         z_field,
-        ConstVectorView         t_field,
-        ConstMatrixView         vmr_field )
+        ConstVectorView        p_grid,
+        ConstVectorView        z_field,
+        ConstVectorView        t_field,
+        ConstMatrixView        vmr_field )
 {
   // Loop boolean
   bool ready = false;
@@ -4768,7 +4165,6 @@ void raytrace_1d_linear_euler(
         { za = geompath_za_at_r( ppc_local, za, r ); }
       else
         {           
-          Exit();        
           if( za > 90 )
             { 
               ready    = true;  
@@ -4778,7 +4174,6 @@ void raytrace_1d_linear_euler(
           r        = ppc_local;
           za       = 90;
         }
-      NumericPrint( za, "za" );
   
       // Store found point
       r_array.push_back( r );
@@ -4850,16 +4245,16 @@ void raytrace_2d_linear_euler(
               Array<double>&   lat_array,
               Array<double>&   za_array,
               Array<double>&   l_array,
-              Index&            endface,
-              Index&            tanpoint,
+              Index&           endface,
+              Index&           tanpoint,
               double           r,
               double           lat,
               double           za,
-              Numeric&          a_pressure,
-              Numeric&          a_temperature,
-              Vector&           a_vmr_list,
-              Numeric&          refr_index,
-        const Agenda&           refr_index_agenda,
+              Numeric&         a_pressure,
+              Numeric&         a_temperature,
+              Vector&          a_vmr_list,
+              Numeric&         refr_index,
+        const Agenda&          refr_index_agenda,
         const double&          lraytrace,
         const double&          lat1,
         const double&          lat3,
@@ -4869,12 +4264,12 @@ void raytrace_2d_linear_euler(
         const double&          r1b,
         const double&          rground1,
         const double&          rground3,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         r_geoid,
-        ConstMatrixView         z_field,
-        ConstMatrixView         t_field,
-        ConstTensor3View        vmr_field )
+        ConstVectorView        p_grid,
+        ConstVectorView        lat_grid,
+        ConstVectorView        r_geoid,
+        ConstMatrixView        z_field,
+        ConstMatrixView        t_field,
+        ConstTensor3View       vmr_field )
 {
   // Loop boolean
   bool ready = false;
@@ -5047,18 +4442,18 @@ void raytrace_3d_linear_euler(
               Array<double>&   za_array,
               Array<double>&   aa_array,
               Array<double>&   l_array,
-              Index&            endface,
-              Index&            tanpoint,
+              Index&           endface,
+              Index&           tanpoint,
               double           r,
               double           lat,
               double           lon,
               double           za,
               double           aa,
-              Numeric&          a_pressure,
-              Numeric&          a_temperature,
-              Vector&           a_vmr_list,
-              Numeric&          refr_index,
-        const Agenda&           refr_index_agenda,
+              Numeric&         a_pressure,
+              Numeric&         a_temperature,
+              Vector&          a_vmr_list,
+              Numeric&         refr_index,
+        const Agenda&          refr_index_agenda,
         const double&          lraytrace,
         const double&          lat1,
         const double&          lat3,
@@ -5076,13 +4471,13 @@ void raytrace_3d_linear_euler(
         const double&          rground35,
         const double&          rground36,
         const double&          rground16,
-        ConstVectorView         p_grid,
-        ConstVectorView         lat_grid,
-        ConstVectorView         lon_grid,
-        ConstMatrixView         r_geoid,
-        ConstTensor3View        z_field,
-        ConstTensor3View        t_field,
-        ConstTensor4View        vmr_field )
+        ConstVectorView        p_grid,
+        ConstVectorView        lat_grid,
+        ConstVectorView        lon_grid,
+        ConstMatrixView        r_geoid,
+        ConstTensor3View       z_field,
+        ConstTensor3View       t_field,
+        ConstTensor4View       vmr_field )
 {
   // Loop boolean
   bool ready = false;
@@ -5138,14 +4533,15 @@ void raytrace_3d_linear_euler(
           // the same checks are made inside *do_gridcell_3d*.
 
           //--- Set zenith angle to be as accurate as possible
-          if( za == 0  ||  za == 180 )
+          if( za < DEV0AND180  ||  za > 180-DEV0AND180 )
             { za_new = za; }
           else
             { za_new = geompath_za_at_r( ppc_step, za, r_new ); }
 
           //--- Set azimuth angle and lon. to be as accurate as possible for
           //    north-south observations
-          if( abs( lat ) < 90  &&  ( aa == 0  ||  abs( aa ) == 180 ) )
+          if( abs( lat ) < 90  &&  
+                     ( abs(aa) < DEV0AND180  ||  abs( aa ) > 180-DEV0AND180 ) )
             { 
               aa_new  = aa; 
               lon_new = lon;
@@ -5191,7 +4587,7 @@ void raytrace_3d_linear_euler(
           if( abs( lat ) < 90  &&  
                          ( abs( dndlat ) > 1e-15  ||  abs( dndlon ) > 1e-15 ) )
             {
-              if( za == 0  ||  za == 180 )
+              if( za < DEV0AND180  ||  za > 180-DEV0AND180 )
                 { aa = RAD2DEG * atan2( dndlon, dndlat); }
               else
                 { aa += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); }
@@ -5280,11 +4676,11 @@ void ppath_step_refr_1d(
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
-        const double&    r_geoid,
-        const double&    z_ground,
+        const double&     r_geoid,
+        const double&     z_ground,
         const String&     rtrace_method,
-        const double&    lraytrace,
-        const double&    lmax )
+        const double&     lraytrace,
+        const double&     lmax )
 {
   // Starting radius, zenith angle and latitude
   double   r_start, lat_start, za_start;
@@ -5438,8 +4834,8 @@ void ppath_step_refr_2d(
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
         const String&     rtrace_method,
-        const double&    lraytrace,
-        const double&    lmax )
+        const double&     lraytrace,
+        const double&     lmax )
 {
   // Radius, zenith angle and latitude of start point.
   double   r_start, lat_start, za_start;
@@ -5590,8 +4986,8 @@ void ppath_step_refr_3d(
         ConstMatrixView   r_geoid,
         ConstMatrixView   z_ground,
         const String&     rtrace_method,
-        const double&    lraytrace,
-        const double&    lmax )
+        const double&     lraytrace,
+        const double&     lmax )
 {
   // Radius, zenith angle and latitude of start point.
   double   r_start, lat_start, lon_start, za_start, aa_start;
@@ -6647,8 +6043,8 @@ void ppath_start_stepping(
                   lat_top = a_pos[1];
                   lon_top = a_pos[2];
                 }
-              else if( abs( a_pos[1] ) < 90  && 
-                                ( a_los[1] == 0  ||  abs( a_los[1] ) == 180 ) )
+              else if( abs( a_pos[1] ) < 90  && ( abs(a_los[1]) < DEV0AND180  
+                                       ||  abs( a_los[1] ) > 180-DEV0AND180 ) )
                 { lon_top = a_pos[2]; } 
 
               // Move found values to *ppath*
@@ -6681,8 +6077,8 @@ void ppath_start_stepping(
               // Correct found LOS for some special cases
               if( a_los[0] == 180 )
                 { ppath.los(0,0) = 180; }
-              if( abs( a_pos[1] ) < 90  &&  
-                                ( a_los[1] == 0  ||  abs( a_los[1] ) == 180 ) )
+              if( abs( a_pos[1] ) < 90  &&  ( abs( a_los[1] ) < DEV0AND180  
+                                       ||  abs( a_los[1] ) > 180-DEV0AND180 ) )
                 { ppath.los(0,1) = a_los[1]; } 
             }
 

@@ -1,3 +1,11 @@
+2003-02-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-441
+
+	* src/ppath.cc: Started to remove code not used. Introduced the
+	file-common variables DEV0AND180 and POLELAT to make the accuracy 
+	tuning more transperant.
+
 2003-02-03  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-440
