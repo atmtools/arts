@@ -1,5 +1,24 @@
 2003-05-07  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-536
+
+	* src/Makefile.am: Added arts_mpi.h.
+
+	* src/arts_mpi.h: Added.
+
+	* src/arts_mpi.cc: Added.
+	Implemented basic mpi_startup and mpi_shutdown functions.
+
+	* src/main.cc: Call mpi_startup at the beginning.
+	Instead of return, call arts_exit at the end of main to cleany
+	finalize mpi.
+
+	* src/xml_io.cc: Replaced another exit.
+
+	* src/arts.cc: Use MPI_ONLY macro.
+
+2003-05-07  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-535
 
 	* src/methods.h, src/agenda_record.h, src/absorption.cc,
