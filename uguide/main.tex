@@ -1,11 +1,14 @@
 %
 % === General definitions and packages to use
 %
-\documentclass[11pt,twoside,a4paper,fleqn]{book} 
+\documentclass[11pt,twoside,a4paper,fleqn,draft]{book} 
+%
+\includeonly{development}
 %
 \usepackage[dvips]{graphicx}    % includegraphics
 \usepackage[]{fancyhdr}   
 \usepackage[]{natbib}
+\usepackage{alltt}
 %
 \sloppy
 
@@ -165,7 +168,8 @@
   \vspace*{3mm}
   {\large \bf Patrick Eriksson\\Department of Radio and Space Science\\Chalmers University of Technology, Sweden\\}
   \vspace*{2cm}
-  {\large \today\\}
+  {\large \today\\
+    ARTS Version \input{version.tex}}
 \end{center}
   \vspace*{4cm}
 {\large \bf
@@ -199,6 +203,7 @@
 \include{wfuns_atm}
 \include{measerr}
 \include{wfuns_sensor}
+\include{development}
 
 
 %

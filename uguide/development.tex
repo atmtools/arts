@@ -1,0 +1,408 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{The art of developing ARTS}
+ \label{sec:development}
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  000615 & Created by Stefan Buehler. For now, this is basically the
+  former content of the file \verb|notes.txt|. \\
+\stophistory
+
+%
+% Symbol table, format:
+%  \startsymbols
+%    ... & \verb|...| & text ... \\
+%    ... & \verb|...| & text ... \\
+%    ....
+%  \stopsymbols
+%
+%
+
+%
+% Introduction
+%
+This section is supposed to become the ARTS developers manual one day.
+Its aim is to describe how the program is organized and to give
+detailed instructions how to make extensions.
+
+\levelb{Organization}
+%====================
+ \label{sec:development:org}
+
+FIXME: This still needs to be written.
+
+\levelb{Conventions}
+%===================
+ \label{sec:development:conv}
+
+here are some general rules for ARTS programming:
+
+\levelc{} Never use \verb|float| or \verb|double| explicitly, use the type \verb|Numeric|
+instead.  This is set in \verb|arts.h| (to \verb|double| by default). Thus, it is
+possible to compile the program for \verb|float| by simply changing the
+\verb|typedef| in \verb|arts.h|.
+
+\levelc{} Use \verb|VECTOR| and \verb|MATRIX| for mathematical vectors
+and matrices (with elements of type \verb|Numeric|). Use
+\verb|ARRAY<string>| for example to create an array of strings (and
+likewise for any other type). This should work for everything except
+\verb|bool| (dunno why not for \verb|bool|, strange things happen).
+ARRAYs can be used just like VECTORs. In particular, you can use round
+braces to get 1-based indexing, and they do range checks.
+
+\levelc{Terminology}
+Calculations are carried out in the so called workspace (WS), on
+workspace variables (WSVs). A WSV is for example the variable
+containing the absorption coefficients. The WSVs are manipulated by 
+workspace methods (WSMs). The WSMs to use are specified in the
+contollfile in the same order in which they will be
+executed. (FIXME: This should be explained somewhere else. Delete
+it here, then.)
+
+\levelc{Global variables}
+   Are not visible by default. To use them you have to declare them
+   like this:
+   \begin{quote}
+   \verb|extern const Numeric PI;|
+   \end{quote}
+   which will make the global constant PI=3.14... available. Other important globals are:
+
+   \begin{quote}
+   \begin{tabular}{ll}
+   \verb|full_name|&         Full name of the program, including version.\\
+   \verb|parameters|&        All command line parameters.\\
+   \verb|basename|&          Used to construct output file names.\\
+   \verb|out_path|&          Output path.\\
+   \verb|messages|&          Controls the verbosity level.\\
+   \verb|wsv_data|&          WSV lookup data.\\
+   \verb|wsv_group_names|&   Lookup table for the names of \emph{types} of WSVs.\\
+   \verb|WsvMap|&            The map associated with \verb|wsv_data|. \\
+   \verb|md_data|&           WSM lookup data.\\
+   \verb|MdMap|&             The map associated with \verb|md_data|. \\
+   \verb|workspace|&         The workspace itself.\\
+   \verb|species_data|&      Lookup information for spectroscopic species.\\
+   \verb|SpeciesMap|&        The map associated with \verb|species_data|.
+   \end{tabular}
+   \end{quote}
+   The only exception from this rule are the output streams \verb|out0| to
+   \verb|out3|, which are visible by default.
+
+\levelc{Files}
+Always use the \verb|open_output_file| and \verb|open_input_file|
+functions to open files. This switches on exceptions, so that any
+error occuring later on with this file will result in an
+exception. (Currently not really implemented in the GNU compiler,
+but please use it anyway.)
+
+\levelc{Version numbers} 
+The package version number is set in file \verb|configure.in| in the
+top level ARTS directory. Always increase this when you make a new
+distribution.  The minor version number is set in
+\verb|src/version.cc|. Always increase this before you do a CVS
+commit, even for small changes.
+
+\levelc{Global header file} 
+The global header file \verb|arts.h| \emph{must} be included by every
+file, for example because it turns on or off assertions (see also
+Section \ref{sec:development:assert}).
+
+\levelc{Documentation} 
+DOC++ is used to generate automatic documentation. See\\
+\verb|https://zeus.imaginator.com/doc++|\\
+for information. There is a complete 
+DOC++ user manual there. Generated are HTML and TeX documentation.
+
+
+\levelb{Extending ARTS}
+%======================
+ \label{sec:development:extending}
+
+\levelc{How to add a workspace variable}
+%---------------------------------------
+\begin{enumerate}
+\item Create a record entry in file \verb|workspace.cc|. (One of the
+  \verb|wsv_data.push_back| blocks.) Take the already existing
+  entries as templates. The ARTS concept works best if WSVs are only
+  of a rather limited number of different types, so that generic WSMs
+  can be used extensively, for example for IO.
+      
+  The name must be \emph{exactly} like you use it in the source code,
+  because this is used to generate interface functions.
+\item Add the variable to the workspace in \verb|workspace.h|.
+\item That's it!
+\end{enumerate}
+
+
+\levelc{How to add a workspace variable group}
+%--------------------------------------------
+\begin{enumerate}
+\item Add a \verb|your_type_| handle to the \verb|enum WsvGroup| in
+  \verb|wsv_group.h|.  
+\item Add a function\\
+  \verb|virtual operator your_type_*() { safety(); return NULL; };|\\
+  to \verb|class WsvP| in \verb|wsv_group.h|.
+\item Add a \verb|wsv_group_names.push_back("your_type")| function to
+  the function \verb|define_wsv_data()| in \verb|workspace.cc|. The
+  name must be \emph{exactly} like you use it in the source code,
+  because this is used to generate interface functions.
+\item That's it! (But as stated above, use this feature wisely)
+\end{enumerate}
+
+
+
+\levelc{How to add a workspace method}
+%-------------------------------------
+\begin{enumerate}
+\item Create an entry in \verb|md_data| in file \verb|methods.cc|.
+  (Make a copy of an existing entry (one of the
+  \verb|md_data.push_back(...)| blocks) and edit it to fit your new
+  method.) Don't forget the dokumentation string! It should contain
+  line breaks and even double line breaks (= blank lines) in
+  apropriate places.
+  
+  For the future, maybe also an \verb|author| field would be nice
+  here. (FIXME: Update this.)
+\item Run:
+  \verb|make|.
+\item Look in \verb|md.h|. There is a new function prototype\\
+  \verb|void <YourNewMethod>(...)|\\
+  Check that everything looks nice.
+  If necessary, change the documentation string.
+\item Add your function to one of the \verb|.cc| files which contain method
+  functions. Such files must have names starting with \verb|m_|. (See
+  separate HowTo if you want to create a new source file.) The header
+  of your function must be compatible with the prototype in \verb|md.h|.
+\item Thats it!
+\end{enumerate}
+
+
+\levelc{How to add a source code file}
+%---------------------------------------
+\begin{enumerate}
+\item Create your file. Names of files containing workspace methods should
+  start with \verb|m_|.
+\item You have to register your file in the file \verb|src/Makefile.am|.
+  This file states which source files are needed for arts. Should be
+  self-explanatory where you have to add your file. The above goes for
+  source (\verb|.cc|) and header (\verb|.h|) files likewise.
+\item Go to the top level arts directory and run: \verb|reconf|.
+\item In the same directory, run: \verb|configure|.  This will create
+  new makefiles which take your new file into account.
+\item Go to \verb|src| and run: \verb|cvs add <my_file>| to make your
+  file known to CVS.
+\end{enumerate}
+
+
+\levelb{CVS issues}
+%======================
+ \label{sec:development:cvs}
+
+The arts project is controlled by CVS. This section describes some
+basic CVS commands. For more information see the extensive CVS
+documentation. 
+
+
+\levelc{How to check out arts}
+%-----------------------------
+\begin{enumerate}
+\item Go to a temporary directory.
+\item Run: \verb|cvs co arts|.
+\end{enumerate}
+
+
+\levelc{How to update (if you already have a copy)}
+%--------------------------------------------------
+\begin{enumerate}
+\item Go to the top ARTS directory (called simply \verb|arts|).
+\item Run: \verb|cvs update|
+   
+  \textbf{IMPORTANT!} Always update, before you start to make changes
+  to the program, especially after a longer pause. If you edit an
+  outdated copy, it will be a lot more work to bring your changes into
+  the current copy of the program.
+\end{enumerate}
+
+
+\levelc{How to commit your changes}
+%---------------------------------------
+\begin{enumerate}
+\item You should make sure that the program compiles and runs without
+  obvious errors before you commit.
+\item If you have created a new source file, make it known to CVS by
+  running: \verb|cvs add <my_file>| in the directory where the file
+  resides.
+  
+  In general, when you run \verb|cvs update|, it will warn you about
+  any files it doesn't know by marking them with a \verb|?|. Files
+  that are created during the compilation process, but should not be
+  part of the package are listed in the \verb|.cvsignore| files in
+  each directory.
+\item Have you added the documentation for your new features?
+\item Increase the subversion number in file \verb|src/version.cc|.
+\item Open the file \verb|ChangeLog| in the top level ARTS directory
+  with your favorite editor.
+  
+  With Emacs, you can very easily add an entry by typing either
+  \begin{quote}
+    \verb|M-x add-change-log-entry|
+  \end{quote}
+  or \verb|C-x 4 a|.
+
+  Specify the new version number and describe your changes.
+\item Make sure that you have saved all your files. Go to the top
+  level ARTS directory and run: \verb|cvs commit|.
+\item This will pop up an editor. Use the mouse to cut and paste the
+  ChangeLog message also to this editor window. Safe the file and exit
+  the editor. If you made changes in different directories, another
+  editor will pop up, already containing your message. Save again and
+  exit. Do this until no more editors come up. (Note: This works well
+  if you set
+  \begin{quote}
+    \verb|export EDITOR=xedit|
+  \end{quote}
+  in you shell startup file.
+ 
+  With smarter editors there might be problems, because they might
+  refuse to safe your file if you haven't made changes to it. So you
+  would have to add a blank to the message each time a new directory
+  is commited.)
+\item You have to give your version of the program a symbolic name, so
+  that it can be retrieved later on if necessary. Do this by running:
+  \verb|cvs tag arts-x-y-z| where x,y,z must be replace by the version
+  numbers. You have to use dashes to separate the numbers, a point
+  (\verb|.|) will not work.
+\item Tell the other developers about it. (Guess we should set up a
+  mailing list. FIXME: Update this.)
+\end{enumerate}
+
+
+\levelc{How to move your arts working directory}
+%----------------------------------------------
+\textbf{Never try to move CVS directories!} Instead:
+\begin{enumerate}
+\item Commit your changes.
+\item Go \emph{above} the top level ARTS directory.
+\item Run: \verb|cvs release -d arts|.
+  
+  This will ask for confirmation, and if you say \verb|y| delete your
+  working copy of arts.
+\item Go to the directory where you want to have your ARTS copy in the
+  future.
+\item Check out a new copy (see other howto above).
+\end{enumerate}
+
+
+
+\levelb{Configuration}
+%=====================
+
+Here are some interesting options for \verb|configure|:
+
+\begin{description}
+\item[--disable-warnings:] 
+  Compile without \verb|-Wall| on g++ compilers (by default warnings are on).
+\item[--disable-assert:]
+   Include \verb|#define NDEBUG 1| in \verb|config.h|.
+   This is (will be FIXME: Implement this) the central switch to turn
+   off all debugging features (index range checking for vectors, the
+   trace facility, assertions,...) \textbf{Not yet implemented.}
+
+\end{description}
+
+
+\levelb{Debugging (use of assert)}
+%================================
+ \label{sec:development:assert}
+
+This section is taken more or less literally from the GNU tools manual
+of Eleftherios Gkioulekas:\\
+\verb|http://www.amath.washington.edu/~lf/tutorials/autoconf/index.html|.
+
+The idea behind assert is simple. Suppose that at a certain point in
+your code, you expect two variables to be equal.  If this expectation
+is a precondition that must be satisfied in order for the subsequent
+code to execute correctly, you must assert it with a statement like
+this:
+\begin{quote}
+\verb|assert(var1 == var2);|
+\end{quote}
+
+In general assert takes as argument a boolean expression. If the
+boolean expression is true, execution continues. Otherwise the
+\verb|abort| system call is invoked and the program execution is
+stopped. If a bug prevents the precondition from being true, then you
+can trace the bug at the point where the precondition breaks down
+instead of further down in execution or not at all.  The \verb|assert| call
+is implemented as a C preprocessor macro, so it can be enabled or
+disabled at will. One way to enable assertions is to include
+\verb|assert.h|.
+\begin{quote}
+  \verb|#include <assert.h>|
+\end{quote}
+Then it's possible to disable them by defining the `NDEBUG' macro.
+
+In ARTS, assertions are turned on and off with the global NDEBUG
+preprocessor macro, which can be set or unset in file
+\verb|arts.h|. In the future there will be also a configure option to
+achieve this (FIXME: Update this).
+
+During debugging and testing it is a good idea to leave assertions
+enabled. However, for production runs it's best to disable them. If
+your program crashes at an assertion, then the first thing you should
+do is to find out where the error happens. To do this, run the program
+under the \verb|gdb| debugger. First invoke the debugger:
+\begin{quote}
+\verb|gdb|
+\end{quote}
+Then load the executable and set a breakpoint at the \verb|exit|
+system call:
+\begin{quote}
+  \verb|(gdb) file arts|
+  \verb|(gdb) break exit| (or \verb|break __assert_fail|)
+\end{quote}
+Now run the program: 
+\begin{quote}
+  \verb|(gdb) run|
+\end{quote}
+
+Instead of crashing, under the debugger the program will be paused
+when the \verb|exit| system call is invoked, and you will get back the
+debugger prompt. Now type:
+\begin{quote}
+  \verb|(gdb) where| 
+\end{quote}  
+to see where the crash happened. You can use the \verb|print| command to
+look at the contents of variables and you can use the \verb|up| and \verb|down|
+commands to navigate the stack. For more information, see the GDB
+documentation or type \verb|help| at the prompt of gdb.
+
+For ARTS, the assertion failures mostly happen inside the matrix /
+vector package TNT (usually because you trigered a range check error,
+i.e., you tried to read or write beyond array bounds). In this case the
+\verb|up| command of GDB is particularly useful. If you give this a
+couple of times you will finally end up in the part of your code that
+caused the error.
+
+Recommendation: In Emacs there is a special GDB mode. With this you
+can very conveniently step through your code.
+
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

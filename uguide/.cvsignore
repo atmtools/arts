@@ -1,0 +1,12 @@
+*.aux
+Makefile.in
+auto
+Makefile
+version.tex
+config.log
+confdefs.h
+config.cache
+main.log
+main.dvi
+main.blg
+main.bbl    

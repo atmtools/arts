@@ -1,3 +1,14 @@
+
+2000-06-15  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-32
+
+	* Now compilation without optimization is the default. In fact,
+	for now it is impossible to turn optiomization on. :-)
+
+	* Merged notes.txt with the uguide. Removed notes.txt.
+
+
 2000-06-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-31
@@ -22,6 +33,7 @@
 
 	* INTERPP now also in matrix-row version.
 
+
 2000-06-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-30
@@ -33,6 +45,7 @@
 	* lines_per_tg (type ARRAYofARRAYofLineRecord ): This stores the
 	line lists for the individual tag groups. This will be input the
 	absortion coefficient calculation. 
+
 
 2000-06-11  Stefan Buehler  <sbuehler@uni-bremen.de>
 
