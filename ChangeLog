@@ -1,5 +1,17 @@
 2003-02-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-442
+
+	* src/ppath.cc (do_gridcell_3d): Had to introduce a correction in
+	radius to handle Numeric=float as points can end up slightly
+	outside the grid cell (up to 1 m for float). 
+
+	* src/ppath.cc (psurface_crossing_3d): This function handles now
+	only surfaces with slope. Moved code from gridcell_crossing_3d to
+	this function and removed gridcell_crossing_3d.
+
+2003-02-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-441
 
 	* src/ppath.cc: Started to remove code not used. Introduced the

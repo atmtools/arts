@@ -73,8 +73,8 @@ extern const Numeric RAD2DEG;
 const double   DEV0AND180 = 1e-4; 
 
 
-// Latitudes > POLELAT are considered to be on the south or north pole
-// for 3D.
+// Latitudes with an absolute value > POLELAT are considered to be on
+// the south or north pole for 3D.
 //
 const double   POLELAT = 89.9999;
 
@@ -733,173 +733,6 @@ void resolve_lon(
 #endif
 
 
-//! gridcell_crossing_3d
-/*! 
-   Position of crossing between path and a grid face
-
-   This is the basic function to determine where the path exits a 3D
-   grid cell, given a single grid face. Or rather, the function
-   determines the position of the path for a given radius, latitude or
-   longitude.
-
-   The function considers only crossings in the forward direction,
-   with a distance > 0. If no crossing is found, *r* is set to -1. The
-   length criterion is in practice set to 1e-6, to avoid problems with
-   numerical inaccuracy.
-
-   \param   r           Out: Radius of observation position.
-   \param   lat         Out: Latitude of observation position.
-   \param   lon         Out: Longitude of observation position.
-   \param   l           Out: Distance along path between (x,y,z) and the
-                             crossing point.
-   \param   x           x-coordinate of observation position.
-   \param   y           y-coordinate of observation position.
-   \param   z           z-coordinate of observation position.
-   \param   dx          x-part of LOS unit vector.
-   \param   dy          y-part of LOS unit vector.
-   \param   dz          z-part of LOS unit vector.
-   \param   known_dim   Given spherical dimension, 1=r, 2=lat and 3=lon.
-   \param   rlatlon     The value for the known dimension.
-
-   \author Patrick Eriksson
-   \date   2002-12-30
-*/
-void gridcell_crossing_3d(
-             double&    r,
-             double&    lat,
-             double&    lon,
-             double&    l,
-       const double&    x,
-       const double&    y,
-       const double&    z,
-       const double&    dx,
-       const double&    dy,
-       const double&    dz,
-       const Index&     known_dim,
-       const double     rlatlon )
-{
-  assert( known_dim >= 1 );
-  assert( known_dim <= 3 );
-
-  // Length limit to reject solutions close 0
-#ifdef USE_DOUBLE
-  const double   llim = 1e-6;
-#else
-  const double   llim = 10;
-#endif
-
-  // Assert that LOS vector is normalised
-  assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
-
-  // Set dummy values to be used if there is no crossing
-  // Note that rlatlon is copied by value (no &) and *r*, *lat* or *lon* 
-  // can be the same variable as *rlatlon*.
-
-  r   = -1;
-  lat = 999;
-  lon = 999;
-  l   = -1;
-
-  if( known_dim == 1 )
-    {   
-      assert( rlatlon > 0 );
-
-      const double   p  = x*dx + y*dy + z*dz;
-      const double   pp = p * p;
-      const double   q  = x*x + y*y + z*z - rlatlon*rlatlon;
-
-      const double   l1 = -p + sqrt( pp - q );
-      const double   l2 = -p - sqrt( pp - q );
-
-      if( l1 < llim  &&  l2 > llim )
-        { l = l2; }
-      else if( l1 > llim  &&  l2 < llim )
-        { l = l1; }
-      else if( l1 < l2 )
-        { l = l1; }
-      else
-        { l = l2; }
-
-      if( l > llim )
-        {
-          r   = rlatlon;
-          lat = RAD2DEG * asin( ( y+dy*l ) / r );
-          lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
-        }
-    }
-
-  else if( known_dim == 2 )
-    {
-      assert( rlatlon >= -90 );
-      assert( rlatlon <= 90 );
-
-      // The case lat=0 must be handled seperately
-      if( abs( rlatlon ) < 1e-9 )
-        {
-          l = -y / dy;
-        } 
-      else
-        {
-          const double   latrad = DEG2RAD * rlatlon;
-                double   t2     = tan( latrad );
-                         t2     = t2 * t2;
-      	  const double   a      = dx*dx + dz*dz - dy*dy/t2;
-      	  const double   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
-      	  const double   pp     = p * p;
-      	  const double   q      = ( x*x + z*z - y*y/t2 ) / a;
-
-          const double   l1 = -p + sqrt( pp - q );
-          const double   l2 = -p - sqrt( pp - q );
-
-          if( l1 < llim  &&  l2 > llim )
-            { l = l2; }
-          else if( l1 > llim  &&  l2 < llim )
-            { l = l1; }
-          else if( l1 < l2 )
-            { l = l1; }
-          else
-            { l = l2; }
-        }
-
-      if( l > llim )
-        {
-          lat = rlatlon;
-          r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(z+dz*l,2.) );
-          lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
-        }
-    }
-
-  else
-    {
-      assert( abs( rlatlon ) <= 360 );
-
-      const double   lonrad = DEG2RAD * rlatlon;
-      const double   tanlon = tan( lonrad );
-
-      l = ( z - tanlon*x ) / ( tanlon*dx - dz );
-
-      if( l > llim )
-        {
-          const double   coslon = cos( lonrad );
-          const double   xpdxl  = x+dx*l;
-
-          if( xpdxl != 0 )
-            { lat = RAD2DEG * atan( coslon * ( y+dy*l ) / (x+dx*l) ); }
-          else
-            {
-              if( y+dy*l > 0 )
-                { lat = 90; }
-              else
-                { lat = -90; }
-            }
-
-          lon = rlatlon;
-          r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(z+dz*l,2.) );
-        }
-    }
-}
-
-
 
 //! geompath_tanpos_3d
 /*! 
@@ -1445,12 +1278,9 @@ double psurface_crossing_2d(
    \param   lat3      Upper latitude of grid cell.
    \param   lon5      Lower longitude of grid cell.
    \param   lon6      Upper longitude of grid cell.
-   \param   r15       Radius at crossing of *lat1* and *lon5*.
-   \param   r35       Radius at crossing of *lat3* and *lon5*.
-   \param   r36       Radius at crossing of *lat3* and *lon6*.
-   \param   r16       Radius at crossing of *lat1* and *lon6*.
+   \param   r_surf    Radius of the surface
    \param   r_start   Radius of observation point.
-   \param   za_start   Zenith angle at observation point.
+   \param   za_start  Zenith angle at observation point.
    \param   x         x-coordinate of observation position.
    \param   y         y-coordinate of observation position.
    \param   z         z-coordinate of observation position.
@@ -1466,20 +1296,12 @@ void psurface_crossing_3d(
              double&    lat,
              double&    lon,
              double&    l,
-       const double&    lat1,
-       const double&    lat3,
-       const double&    lon5,
-       const double&    lon6,
-       const double     r15,
-       const double     r35,
-       const double     r36,
-       const double     r16,
+       const double     r_surf,
        const double     r_start,         // No & to avoid problems if these
        const double     lat_start,       // variables are the same as the
        const double     lon_start,       // output ones.
        const double     za_start,
        const double     aa_start,
-       const double     rlatlon,
        const double&    x,
        const double&    y,
        const double&    z,
@@ -1497,50 +1319,40 @@ void psurface_crossing_3d(
   l   = -1;
 
   // Handle the cases of za=0 and za=180. 
-  if( ( za_start < DEV0AND180  &&  r_start < rlatlon )  || 
-                         ( za_start > 180-DEV0AND180  &&  r_start > rlatlon ) )
+  if( ( za_start < DEV0AND180  &&  r_start < r_surf )  || 
+                         ( za_start > 180-DEV0AND180  &&  r_start > r_surf ) )
     {
-      r   = rlatlon;
+      r   = r_surf;
       lat = lat_start;
       lon = lon_start;
-      l   = rlatlon - r_start;
+      l   = abs( r_surf - r_start );
     }
 
   else
     {
-      Vector rvalues(4);
-      rvalues[0] = r15; rvalues[1] = r35; rvalues[2] = r36; rvalues[3] = r16;
-      const double   rmin = min( rvalues );
-      const double   rmax = max( rvalues );
+      const double   p  = x*dx + y*dy + z*dz;
+      const double   pp = p * p;
+      const double   q  = x*x + y*y + z*z - r_surf*r_surf;
 
-      // The case with constant radius can be handled analytically
-      if( rmax == rmin )
-        { 
-          gridcell_crossing_3d( r, lat, lon, l, x, y, z, dx, dy, dz, 1, rmin );
-        }
+      const double   l1 = -p + sqrt( pp - q );
+      const double   l2 = -p - sqrt( pp - q );
 
+      if( l1 < 0  &&  l2 > 0 )
+        { l = l2; }
+      else if( l1 > 0  &&  l2 < 0 )
+        { l = l1; }
+      else if( l1 < l2 )
+        { l = l1; }
       else
-        {
-          // Calculate radial slope of the ground
-          const double   c = psurface_slope_3d( lat1, lat3, lon5, lon6, 
-                          r15, r35, r36, r16, lat_start, lon_start, aa_start );
+        { l = l2; }
 
-          // Determine a radius that can be used as start value for an
-          // iteratively search.
-          double   riter;
-          
-          if( r_start < rlatlon )
-            {
-              if( c >= 0 )
-                { riter = rlatlon; }
-              else if( r_start <= rmin )
-                { riter = rmin; }
-              else
-                { riter = rlatlon; }
-            }          
-          throw runtime_error( 
-           "The case of varying surface radius is not yet handled properly." );
+      if( l > 0 )
+        {
+          r   = r_surf;
+          lat = RAD2DEG * asin( ( y+dy*l ) / r );
+          lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
         }
+
     }
 }
 
@@ -1949,7 +1761,7 @@ void do_gridcell_3d(
               double&   lstep,
               Index&    endface,
               Index&    tanpoint,
-        const double&   r_start,
+        const double&   r_start0, 
         const double&   lat_start,
         const double&   lon_start,
         const double&   za_start,
@@ -1973,6 +1785,8 @@ void do_gridcell_3d(
         const double&   rground36,
         const double&   rground16 )
 {
+  double   r_start = r_start0;
+
   // Assert latitude and longitude
   assert( lat_start >= lat1 );
   assert( lat_start <= lat3 );
@@ -1986,8 +1800,15 @@ void do_gridcell_3d(
                                 r15b, r35b, r36b, r16b, lat_start, lon_start );
 
   // Assert radius (some extra tolerance is needed for radius)
-  assert( r_start >= rlow - 1e-6 );
-  assert( r_start <= rupp + 1e-6 );
+  assert( r_start >= rlow - 1 );
+  assert( r_start <= rupp + 1 );
+
+  // Shift radius if outside
+  if( r_start < rlow )
+    { r_start = rlow; }
+  else if( r_start > rupp )
+    { r_start = rupp; }
+
 
   // Assert that not standing at the edge looking out.
   // As these asserts are rather costly, they should maybe be removed
@@ -2128,7 +1949,7 @@ void do_gridcell_3d(
           else if( lon_end > lon6 )
             { inside = false;   endface = 6; }
 
-          if( inside  ) 
+          if( inside ) 
             {
               rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                     r15a, r35a, r36a, r16a, lat_end, lon_end );
@@ -2151,7 +1972,7 @@ void do_gridcell_3d(
                     { inside = false;   endface = 7; }
                 }
             }              
-             
+
           if( startup )
             {
               if( inside )
@@ -5953,10 +5774,8 @@ void ppath_start_stepping(
               // Determine the entrance point for the minimum of *r_atmtop*
               double   r_top, lat_top, lon_top, l_top;
               psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
-                         lat_grid[0], lat_grid[nlat-1], lon_grid[0], 
-                         lon_grid[nlon-1], rtopmin, rtopmin, rtopmin, rtopmin,
-                         a_pos[0], a_pos[1], a_pos[2], a_los[0], a_los[1],
-                                                rtopmin, x, y, z, dx, dy, dz );
+                                    rtopmin, a_pos[0], a_pos[1], a_pos[2], 
+                                    a_los[0], a_los[1], x, y, z, dx, dy, dz );
 
               // If no crossing was found for min radius, or it is outside
               // covered lat and lon ranges, try max radius and make the same
@@ -5965,10 +5784,8 @@ void ppath_start_stepping(
                   lon_top < lat_grid[0]  ||  lon_top > lat_grid[nlat-1] )
                 {
                   psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
-                          lat_grid[0], lat_grid[nlat-1], lon_grid[0], 
-                          lon_grid[nlon-1], rtopmax, rtopmax, rtopmax, rtopmax,
-                          a_pos[0], a_pos[1], a_pos[2], a_los[0], a_los[1],
-                                                rtopmax, x, y, z, dx, dy, dz );
+                                     rtopmax, a_pos[0], a_pos[1], a_pos[2], 
+                                     a_los[0], a_los[1], x, y, z, dx, dy, dz );
 
                   if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
                       lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
@@ -6005,10 +5822,8 @@ void ppath_start_stepping(
                   // entrance radius
                   double   lat_top2, lon_top2;
                   psurface_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
-                                lat_grid[0], lat_grid[nlat-1], lon_grid[0], 
-                                lon_grid[nlon-1], r_top, r_top, r_top, r_top,
-                                a_pos[0], a_pos[1], a_pos[2], a_los[0], 
-                                        a_los[1], r_top, x, y, z, dx, dy, dz );
+                                     r_top, a_pos[0], a_pos[1], a_pos[2], 
+                                     a_los[0], a_los[1], x, y, z, dx, dy, dz );
                   
                   // Check if new position is sufficiently close to old
                   if( abs( lat_top2 - lat_top ) < 1e-6  &&  
@@ -6456,6 +6271,3 @@ void ppath_calc(
            << "is not below 60 km.\n";
     }
 }
-
-
-
