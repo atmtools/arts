@@ -594,6 +594,58 @@ void lines_per_tgAddMirrorLines(// WS Output:
 
 }
 
+void lines_per_tgCompact(// WS Output:
+			 ARRAYofARRAYofLineRecord& lines_per_tg,
+			 // WS Input:
+			 const ARRAYofLineshapeSpec& lineshape,
+			 const VECTOR& f_mono)
+{
+
+  // make sure lines_per_tg and lineshape have the same dimension
+  if ( lines_per_tg.size() != lineshape.size() ) 
+    {
+      ostringstream os;
+      os << "lines_per_tgCompact: number of lines_per_tg does\n"
+	 << "not match the number of lineshapes defined.";
+      throw runtime_error(os.str());
+    }
+  
+  // cycle through all lines_per_tg groups
+  for (INDEX i=0; i<lines_per_tg.size(); i++)
+    {
+      // get cutoff frequency of this tag group
+      Numeric cutoff = lineshape[i].Cutoff();
+
+      // check whether cutoff is defined
+      if ( cutoff != -1)
+	{
+	  // number of lines
+	  INDEX nl = lines_per_tg[i].size();
+
+	  // calculate the borders
+	  Numeric upp = f_mono[f_mono.size()-1] + cutoff;
+	  Numeric low = f_mono[0] - cutoff;
+
+	  // cycle through all lines within that tag group, do it
+	  // backwards in order not to mess up the index
+	  INDEX j=nl;
+	  do 
+	    {
+	      j--;
+
+	      // center frequency
+	      Numeric F0 = lines_per_tg[i][j].F();
+
+	      if ( ( F0 < low) || 
+		   ( F0 > upp) ) 
+		erase_vector_element( lines_per_tg[i], j );
+	    }
+	  while ( j > 0);
+
+	}
+    }
+}
+
 
 void linesWriteToFile(// WS Input:
 		      const ARRAYofLineRecord& lines,

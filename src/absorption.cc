@@ -1889,19 +1889,20 @@ void xsec_species( MATRIX&                  xsec,
 	  {
 	    // check whether we have elements in ls that have to be
 	    // set to zero at lower frequencies of f_mono
-	    if ( (F0 - cutoff) >= f_mono[0] )
+	    if ( (F0 - cutoff) > f_mono[0] )
 	      {
 		// loop through all frequencies, finding min value and
 		// set all values to zero on that way
-		while ( it_min != f_mono.end() && (F0 - cutoff) >= *it_min )
+		while ( it_min != f_mono.end() && (F0 - cutoff) > *it_min )
 		  {
 		    ls[it_min.index()] = 0;
 		    it_min++;
 		  }
 	      }
+
 	    // check whether we have elements in ls that have to be
 	    // set to zero at higher frequencies of f_mono
-	    if ( (F0 + cutoff) <= f_mono[nf-1] )
+	    if ( (F0 + cutoff) < f_mono[nf-1] )
 	      {
 		it_max--;
 		// loop through all frequencies, finding max value and
@@ -1911,7 +1912,7 @@ void xsec_species( MATRIX&                  xsec,
 		    ls[it_max.index()] = 0;
 		    it_max--;
 		  }
-		while ( it_max != f_mono.begin()-1 && (F0 + cutoff) <= *it_max );
+		while ( it_max != f_mono.begin()-1 && (F0 + cutoff) < *it_max );
 		it_max++;
 	      }
 	    // index to these iterators

@@ -1,3 +1,16 @@
+2001-02-15  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-124
+
+	* lines_per_tgCompact workspace method included, it just cycles
+	through all lines per tag groop and looks whether they are in or
+	outside the defined cutoff frequency of the lineshape. All lines
+	outside are removed. This should save some computational time, but
+	something similar is done in the absorption calculation when a
+	cutoff frequency is present.
+
+	* lineshape cutoff seems to work
+	
 2001-02-14  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-123
@@ -96,7 +109,7 @@
 
 	* arts-0-0-117
 
-	* abs_per_tgReduce workspace method nano little bug removed.
+	* abs_per_tgReduce workspace method and little bug removed.
 
 2001-02-02  Axel von_Engeln  <engeln@uni-bremen.de>
 

@@ -127,12 +127,12 @@ if not keyword_set(xrange) then $
 
 ;; check for eps output
 if keyword_set(epsfile) then begin
-    if not arg_present(epsfile) then filename = jobname $ 
+    if epsfile eq 1 then filename = jobname $ 
     else filename=epsfile
     ps=2
 endif else begin
     if keyword_set(psfile) then begin
-        if not arg_present(psfile) then filename = jobname $ 
+        if psfile eq 1 then filename = jobname $ 
           else filename=psfile
         ps=1
     endif else begin

@@ -1081,6 +1081,19 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("lines_per_tgCompact"),
+  	DESCRIPTION(
+          "Removes all lines outside the defined lineshape cutoff frequency\n"
+	  "from the lines_per_tg, in order to save computation time"),
+	OUTPUT(   lines_per_tg_      ),
+	INPUT(    lines_per_tg_, lineshape_, f_mono_  ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("linesWriteToFile"),
   	DESCRIPTION(
           "Write the content of the workspace variable lines to the\n"
