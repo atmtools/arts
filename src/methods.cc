@@ -1145,7 +1145,7 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
- md_data_raw.push_back
+/* md_data_raw.push_back
     ( MdRecord
       ( NAME( "i_fieldUpdatePlaneParallel" ),
 	DESCRIPTION
@@ -1168,7 +1168,7 @@ md_data_raw.push_back
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
-	TYPES()));
+	TYPES()));*/
 
  md_data_raw.push_back     
     ( MdRecord
