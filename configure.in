@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.74)
+AM_INIT_AUTOMAKE(arts,1.1.75)
 
 
 #
@@ -65,12 +65,22 @@ AC_CHECK_SIZEOF(size_t, 8)
 # AC_HAVE_HEADERS(getopt.h) (now included in the source)
 AC_CHECK_HEADER(math.h, , AC_MSG_ERROR(required header file <math.h> missing))
 
-
 #
 # Check for math library
 #
 AC_CHECK_LIB(m, sin, ,
   AC_MSG_ERROR(function $func not found in math library) )
+
+
+#
+# Check for sstream header
+#
+AC_LANG_CPLUSPLUS
+AC_CHECK_HEADER(sstream, ac_sstream=yes, ac_sstream=no)
+if test x$ac_sstream = xyes; then
+  AC_DEFINE_UNQUOTED(HAVE_SSTREAM, , Use system sstream include)
+fi
+AM_CONDITIONAL(HAVE_SSTREAM, test x$ac_sstream = xyes)
 
 
 #
