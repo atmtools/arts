@@ -65,13 +65,12 @@ extern const Numeric PI;
 */
 Numeric fac(const Index n)
 {
-  Index i;
   Numeric sum;
 
-  if ( n == 0) return (1.0);
+  if (n == 0) return (1.0);
 
   sum = 1.0;
-  for (i = 1; i <= n; i++)
+  for (Index i = 1; i <= n; i++)
     sum = sum * Numeric(i);
 
   return(sum);
