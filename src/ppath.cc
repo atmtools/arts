@@ -395,7 +395,6 @@ Numeric za_geom2other_point(
 
       // The zenith angle is obtained by a combination of the lawes of sine
       // and cosine.
-      // Type casting to double to improve the accuracy for Numeric=float
       Numeric za = dlat + RAD2DEG * asin( r1 * sin( DEG2RAD * dlat ) / 
                  sqrt( r1*r1 + r2*r2 - 2 * r1 * r2 * cos( DEG2RAD * dlat ) ) );
 
@@ -434,13 +433,14 @@ Numeric za_geom2other_point(
    \date   2002-12-17
 */
 void sph2cart(
-            Numeric&   x,
-            Numeric&   y,
-            Numeric&   z,
-      const Numeric&   r,
-      const Numeric&   lat,
-      const Numeric&   lon )
+            double&   x,
+            double&   y,
+            double&   z,
+      const double&   r,
+      const double&   lat,
+      const double&   lon )
 {
+  // Double hard coded above to improve the accuracy for Numeric=float
   assert( r > 0 );
   assert( abs( lat ) <= 90 );
   assert( abs( lon ) <= 360 );
@@ -471,9 +471,9 @@ void sph2cart(
    \date   2002-12-30
 */
 void cart2sph(
-             Numeric&   r,
-             Numeric&   lat,
-             Numeric&   lon,
+             double&    r,
+             double&    lat,
+             double&    lon,
        const double&    x,
        const double&    y,
        const double&    z )
@@ -513,18 +513,20 @@ void cart2sph(
    \date   2002-12-30
 */
 void poslos2cart(
-             Numeric&   x,
-             Numeric&   y,
-             Numeric&   z,
-             Numeric&   dx,
-             Numeric&   dy,
-             Numeric&   dz,
-       const Numeric&   r,
-       const Numeric&   lat,
-       const Numeric&   lon,
-       const Numeric&   za,
-       const Numeric&   aa )
+             double&   x,
+             double&   y,
+             double&   z,
+             double&   dx,
+             double&   dy,
+             double&   dz,
+       const double&   r,
+       const double&   lat,
+       const double&   lon,
+       const double&   za,
+       const double&   aa )
 {
+  // Double hard coded above to improve the accuracy for Numeric=float
+
   // lat=+-90 
   // For lat = +- 90 the azimuth angle gives the longitude along which the
   // LOS goes
@@ -544,25 +546,25 @@ void poslos2cart(
 
   else
     {
-      const Numeric   latrad = DEG2RAD * lat;
-      const Numeric   lonrad = DEG2RAD * lon;
-      const Numeric   zarad  = DEG2RAD * za;
-      const Numeric   aarad  = DEG2RAD * aa;
+      const double   latrad = DEG2RAD * lat;
+      const double   lonrad = DEG2RAD * lon;
+      const double   zarad  = DEG2RAD * za;
+      const double   aarad  = DEG2RAD * aa;
 
       sph2cart( x, y, z, r, lat, lon );
 
-      const Numeric   coslat = cos( latrad );
-      const Numeric   sinlat = sin( latrad );
-      const Numeric   coslon = cos( lonrad );
-      const Numeric   sinlon = sin( lonrad );
-      const Numeric   cosza  = cos( zarad );
-      const Numeric   sinza  = sin( zarad );
-      const Numeric   cosaa  = cos( aarad );
-      const Numeric   sinaa  = sin( aarad );
+      const double   coslat = cos( latrad );
+      const double   sinlat = sin( latrad );
+      const double   coslon = cos( lonrad );
+      const double   sinlon = sin( lonrad );
+      const double   cosza  = cos( zarad );
+      const double   sinza  = sin( zarad );
+      const double   cosaa  = cos( aarad );
+      const double   sinaa  = sin( aarad );
 
-      const Numeric   dr   = cosza;
-      const Numeric   dlat = sinza * cosaa;         // r-terms cancel out below
-      const Numeric   dlon = sinza * sinaa / coslat; 
+      const double   dr   = cosza;
+      const double   dlat = sinza * cosaa;         // r-terms cancel out below
+      const double   dlon = sinza * sinaa / coslat; 
 
       dx = coslat*coslon * dr - sinlat*coslon * dlat - coslat*sinlon * dlon;
       dy =        sinlat * dr +        coslat * dlat;
@@ -598,18 +600,20 @@ void poslos2cart(
    \date   2002-12-30
 */
 void cart2poslos(
-             Numeric&   r,
-             Numeric&   lat,
-             Numeric&   lon,
-             Numeric&   za,
-             Numeric&   aa,
-       const Numeric&   x,
-       const Numeric&   y,
-       const Numeric&   z,
-       const Numeric&   dx,
-       const Numeric&   dy,
-       const Numeric&   dz )
+             double&   r,
+             double&   lat,
+             double&   lon,
+             double&   za,
+             double&   aa,
+       const double&   x,
+       const double&   y,
+       const double&   z,
+       const double&   dx,
+       const double&   dy,
+       const double&   dz )
 {
+  // Double hard coded above to improve the accuracy for Numeric=float
+
   // Assert that LOS vector is normalised
   assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
 
@@ -617,13 +621,13 @@ void cart2poslos(
   cart2sph( r, lat, lon, x, y, z );
 
   // Spherical derivatives
-  const Numeric   coslat = cos( DEG2RAD * lat );
-  const Numeric   sinlat = sin( DEG2RAD * lat );
-  const Numeric   coslon = cos( DEG2RAD * lon );
-  const Numeric   sinlon = sin( DEG2RAD * lon );
-  const Numeric   dr   = coslat*coslon*dx + sinlat*dy + coslat*sinlon*dz;
-  const Numeric   dlat = -sinlat*coslon/r*dx + coslat/r*dy -sinlat*sinlon/r*dz;
-  const Numeric   dlon = -sinlon/coslat/r*dx + coslon/coslat/r*dz;
+  const double   coslat = cos( DEG2RAD * lat );
+  const double   sinlat = sin( DEG2RAD * lat );
+  const double   coslon = cos( DEG2RAD * lon );
+  const double   sinlon = sin( DEG2RAD * lon );
+  const double   dr   = coslat*coslon*dx + sinlat*dy + coslat*sinlon*dz;
+  const double   dlat = -sinlat*coslon/r*dx + coslat/r*dy -sinlat*sinlon/r*dz;
+  const double   dlon = -sinlon/coslat/r*dx + coslon/coslat/r*dz;
 
   // LOS angles
   za = RAD2DEG * acos( dr );
@@ -735,20 +739,20 @@ void gridcell_crossing_3d(
              Numeric&   lat,
              Numeric&   lon,
              Numeric&   l,
-       const Numeric&   x,
-       const Numeric&   y,
-       const Numeric&   z,
-       const Numeric&   dx,
-       const Numeric&   dy,
-       const Numeric&   dz,
+       const double&    x,
+       const double&    y,
+       const double&    z,
+       const double&    dx,
+       const double&    dy,
+       const double&    dz,
        const Index&     known_dim,
-       const Numeric    rlatlon )
+       const double     rlatlon )
 {
   assert( known_dim >= 1 );
   assert( known_dim <= 3 );
 
   // Length limit to reject solutions close 0
-  const Numeric   llim = 1e-6;
+  const double   llim = 1e-6;
 
   // Assert that LOS vector is normalised
   assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
@@ -766,12 +770,12 @@ void gridcell_crossing_3d(
     {   
       assert( rlatlon > 0 );
 
-      const Numeric   p  = x*dx + y*dy + z*dz;
-      const Numeric   pp = p * p;
-      const Numeric   q  = x*x + y*y + z*z - rlatlon*rlatlon;
+      const double   p  = x*dx + y*dy + z*dz;
+      const double   pp = p * p;
+      const double   q  = x*x + y*y + z*z - rlatlon*rlatlon;
 
-      const Numeric   l1 = -p + sqrt( pp - q );
-      const Numeric   l2 = -p - sqrt( pp - q );
+      const double   l1 = -p + sqrt( pp - q );
+      const double   l2 = -p - sqrt( pp - q );
 
       if( l1 < llim  &&  l2 > llim )
         { l = l2; }
@@ -802,16 +806,16 @@ void gridcell_crossing_3d(
         } 
       else
         {
-          const Numeric   latrad = DEG2RAD * rlatlon;
-                Numeric   t2     = tan( latrad );
+          const double   latrad = DEG2RAD * rlatlon;
+                double   t2     = tan( latrad );
                           t2     = t2 * t2;
-      	  const Numeric   a      = dx*dx + dz*dz - dy*dy/t2;
-      	  const Numeric   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
-      	  const Numeric   pp     = p * p;
-      	  const Numeric   q      = ( x*x + z*z - y*y/t2 ) / a;
+      	  const double   a      = dx*dx + dz*dz - dy*dy/t2;
+      	  const double   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
+      	  const double   pp     = p * p;
+      	  const double   q      = ( x*x + z*z - y*y/t2 ) / a;
 
-          const Numeric   l1 = -p + sqrt( pp - q );
-          const Numeric   l2 = -p - sqrt( pp - q );
+          const double   l1 = -p + sqrt( pp - q );
+          const double   l2 = -p - sqrt( pp - q );
 
           if( l1 < llim  &&  l2 > llim )
             { l = l2; }
@@ -835,15 +839,15 @@ void gridcell_crossing_3d(
     {
       assert( abs( rlatlon ) <= 360 );
 
-      const Numeric   lonrad = DEG2RAD * rlatlon;
-      const Numeric   tanlon = tan( lonrad );
+      const double   lonrad = DEG2RAD * rlatlon;
+      const double   tanlon = tan( lonrad );
 
       l = ( z - tanlon*x ) / ( tanlon*dx - dz );
 
       if( l > llim )
         {
-          const Numeric   coslon = cos( lonrad );
-          const Numeric   xpdxl  = x+dx*l;
+          const double   coslon = cos( lonrad );
+          const double   xpdxl  = x+dx*l;
 
           if( xpdxl != 0 )
             { lat = RAD2DEG * atan( coslon * ( y+dy*l ) / (x+dx*l) ); }
@@ -887,22 +891,29 @@ void geompath_tanpos_3d(
              Numeric&   lat_tan,
              Numeric&   lon_tan,
              Numeric&   l_tan,
-       const Numeric&   r,
-       const Numeric&   lat,
-       const Numeric&   lon,
-       const Numeric&   za,
-       const Numeric&   aa,
-       const Numeric&   ppc )
+       const double&    r,
+       const double&    lat,
+       const double&    lon,
+       const double&    za,
+       const double&    aa,
+       const double&    ppc )
 {
   assert( za >= 90 );
   assert( r >= ppc );
 
-  Numeric   x, y, z, dx, dy, dz;
+  double   x, y, z, dx, dy, dz;   // double to match declaration of function
+                                  // and maximum precision
   poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa );
 
-  l_tan  = sqrt( r*r - ppc*ppc );
+  const double   ltmp = sqrt( r*r - ppc*ppc );
 
-  cart2sph( r_tan, lat_tan, lon_tan, x+dx*l_tan, y+dy*l_tan, z+dz*l_tan );
+  l_tan = Numeric( ltmp );
+
+  double rtmp, lattmp, lontmp;
+  cart2sph( rtmp, lattmp, lontmp, x+dx*ltmp, y+dy*ltmp, z+dz*ltmp );
+  r_tan   = Numeric( rtmp );
+  lat_tan = Numeric( lattmp );
+  lon_tan = Numeric( lontmp );
 
   assert( abs( r_tan - ppc ) < 0.1 );
 }
@@ -1088,15 +1099,15 @@ Numeric psurface_slope_3d(
                                                 r15, r35, r36, r16, lat, lon );
 
   // Convert position and an imaginary LOS to cartesian coordinates
-  Numeric   x, y, z, dx, dy, dz;
+  double   x, y, z, dx, dy, dz;
   poslos2cart( x, y, z, dx, dy, dz, r0, lat, lon, 90, aa );
 
   // Calculate the distance corresponding to *dang*
-  const Numeric   l = r0 * DEG2RAD * dang;
+  const double   l = r0 * DEG2RAD * dang;
 
   // Calculate radius of the pressure surface at the lat/lon, the distance
   // *l* away.
-  Numeric   r2, lat2, lon2, za2, aa2;
+  double   r2, lat2, lon2, za2, aa2;
   cart2poslos( r2, lat2, lon2, za2, aa2, x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
   r2 = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15, r35, r36, r16, lat2,lon2);
   
@@ -1977,7 +1988,7 @@ void do_gridcell_3d(
     }
 
   // Position and LOS in cartesian coordinates
-  Numeric   x, y, z, dx, dy, dz;
+  double   x, y, z, dx, dy, dz;
   poslos2cart( x, y, z, dx, dy, dz, r_start, lat_start, lon_start, 
                                                           za_start, aa_start );
 
@@ -4577,7 +4588,8 @@ void raytrace_3d_linear_euler(
 
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
-  Numeric   lstep, r_new, lat_new, lon_new;
+  double    r_new, lat_new, lon_new;
+  Numeric   lstep;
   Index     agenda_verb = 0;
 
   while( !ready )
@@ -4609,7 +4621,7 @@ void raytrace_3d_linear_euler(
       else
         {
           // Sensor pos and LOS in cartesian coordinates
-          Numeric   x, y, z, dx, dy, dz, za_new, aa_new;
+          double   x, y, z, dx, dy, dz, za_new, aa_new;
           poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa ); 
 
           lstep = lraytrace;
@@ -6031,7 +6043,7 @@ void ppath_start_stepping(
                 }
 
               // Sensor pos and LOS in cartesian coordinates
-              Numeric   x, y, z, dx, dy, dz;
+              double   x, y, z, dx, dy, dz;
               poslos2cart( x, y, z, dx, dy, dz, a_pos[0], a_pos[1], a_pos[2], 
                                                           a_los[0], a_los[1] );
 

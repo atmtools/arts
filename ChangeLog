@@ -1,3 +1,11 @@
+2003-01-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-420
+	
+	* src/ppath.cc: Continued the work to hard-code double in the most 
+	critical functions. Don't compile without warnings with Numeric=float,
+	but other parts don't compile at all with that option.
+	
 2003-01-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-419
