@@ -48,6 +48,37 @@ void define_wsv_data()
   // Initialize to empty, just in case.
   wsv_data.resize(0);
 
+  /* Template for description strings:
+
+     ----------------------------------------------------------------------
+     Brief description of the variable (1 line).
+     
+     Detailed description of the variable. Don't be too short here,
+     this is the main place where your documentation should be. I
+     really recommend to edit this in a text buffer, so that you can
+     do some re-formatting until it looks nice. Only at the end put it
+     in quotes and add the line breaks.
+
+     Use blank lines to separate paragraphs.  There really should be a
+     detailed descriptions of all component of your variable, if it
+     has a complicated type. Also some detailed discussion of the
+     dimensions if necessary. Also some detailed discussion of the
+     members if your variable is a structure.
+
+     Units:      E.g., kg/m
+
+     Dimensions: [ first dimension, second dimension, ... ]
+
+     Members:    Here you would list the members if your
+                 variable is a structure.
+     ----------------------------------------------------------------------
+
+     The dashed lines are not part of the template, they just show you
+     where it starts and ends. 
+
+     Give the keywords above only if they apply, i.e., Members only
+     for a structure, Units only for a physical variable. 
+  */
 
   //--------------------< Spectroscopy Stuff >--------------------
   //                     --------------------

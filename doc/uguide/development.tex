@@ -17,6 +17,7 @@
 %  \stophistory
 %
 \starthistory
+  020425 & Stefan Buehler: Put this part back in the AUG. Updated.\\
   011005 & Stefan Buehler: Fixed TeX warnings, updated. \\
   000728 & Stefan Buehler: Added stuff about build system and howto cut a release. \\
   000615 & Created by Stefan Buehler. For now, this is basically the
@@ -36,9 +37,13 @@
 %
 % Introduction
 %
-This section is supposed to become the ARTS developers manual one day.
-Its aim is to describe how the program is organized and to give
-detailed instructions how to make extensions.
+The aim of this section is to describe how the program is organized
+and to give detailed instructions how to make extensions. That means,
+it is addressed to the ARTS developers, not the users. If you only
+want to use ARTS, you should not need to read it. \textbf{But if you
+  want to make changes or additions, you should definitely read this
+  carefully, since it can safe you a lot of work to understand how
+  things are organized.}
 
 \levelb{Organization}
 %====================
@@ -64,9 +69,8 @@ easier to merge your changes with the `official' ARTS program.
 Furthermore, for serious development work you need a computer running
 Unix, the GNU development tools, LaTeX, and the Doxygen program.  All
 this is freely and easily available on the Internet, and, what is
-more, all these tools are included in the Suse linux
-distribution. (Most likely they are also included in the Redhat
-distribution, but I did not check.)
+more, all these tools are included in the standard linux
+distributions like Suse and Redhat.
 
 The end-user version contains everything that you need in order to
 compile and install ARTS in a fairly automatic manner. The only
@@ -79,7 +83,7 @@ far.
 \levelb{The ARTS build system}
 %============================
 
-As mentionend above, GNU tools are used to construct the ARTS
+As mentioned above, GNU tools are used to construct the ARTS
 build system. A good introduction to the GNU build system can be found in:
 \begin{quote}
   \footnotesize
@@ -94,31 +98,42 @@ special make target `dist' that you can use to cut a release. How this
 is done in detail is described in Section \ref{sec:release}. Mostly,
 the GNU tools are smart enough to figure out automatically what should
 go into the release. However, this can be controlled by editing the
-Makefile.am files which can be found in almost all directories.
+\verb|Makefile.am| files which can be found in almost all directories.
 
 The support for documentation other than info and man pages is not
 very good in the GNU system, so we had to use some tricks to make sure
 that the Doxygen automatic documentation and the User Guide work as they
 should. 
-%
-% FIXME: Oliver, please update.
-%
-%I've set it up so that these documents need not to be built by
-%the installer of the program, since he or she might not have the
-%necessary programs (Doxygen and LaTeX). However, this could (and
-%hopefully will) be done much more nicely in the future. For example,
-%there should be an automatik check for Doxygen and LaTeX, with
-%apropriate actions taken depending on if the programs are found or
-%not. 
 
-\textbf{If you add directories or just files, you have to make sure
-  that they also go into the distribution.} For program source code
-files, this is done automatically. \textbf{But if you add any other
-  kind of file, for example a data or a documentation file, you have
-  to edit the} \verb|Makefile.am| \textbf{file in that directory to
-  make sure that your stuff goes into the distribution.} It is a good
-idea to always check the release in order to see if the things you
-added are really there.
+%\levelc{Configure options}
+%%============================
+
+% FIXME: Oliver, please put in a part here about the different
+% ARTS specific configure options. (Particularly maintainer-mode.)
+
+% Here are some interesting options for \verb|configure|:
+%
+%\begin{description}
+%\item[--disable-warnings:] 
+%  Compile without \verb|-Wall| on g++ compilers (by default warnings are on).
+%\item[--disable-assert:] Include \verb|#define NDEBUG 1| in
+%  \verb|config.h|.  The central switch to turn off all debugging
+%  features (index range checking for vectors, the trace facility,
+%  assertions,...) \textbf{Not yet implemented.}
+%
+%\end{description}
+
+
+\levelc{Adding Directories or files}
+%==================================
+
+If you add directories or just files, you have to make sure that they
+also go into the distribution. In some cases (e.g., program source
+code files) this is done automatically. But if you add any other kind
+of file, for example a data or a documentation file, you have to edit
+the \verb|Makefile.am| file in that directory to make sure that your
+stuff goes into the distribution. It is a good idea to always check
+the release in order to see if the things you added are really there.
 
 \levelb{Conventions}
 %===================
@@ -197,10 +212,10 @@ can add the last digit to indicate this.
 The global header file \verb|arts.h| \emph{must} be included by every
 file. Apart from that you have to see yourself what header files you
 need. If you use functions from the C or C++ standard library, you
-have to also include the apropriate header file.
+have to also include the appropriate header file.
 
 \levelc{Documentation}
-Doxygen is used to generate automatic sourec code documentation. See
+Doxygen is used to generate automatic source code documentation. See
 \begin{quote}
   \verb|http://www.stack.nl/~dimitri/doxygen/|
 \end{quote}
@@ -208,7 +223,7 @@ for information. There is a complete User manual there. At the moment
 we only generate the output as HTML, although latex, man-page, and rtf
 format is also possible. The HTML version is particularly useful for
 source code browsing, since it includes the complete source code! You
-should add doxygen headers to the following:
+should add Doxygen headers to the following:
 
 \begin{enumerate}
 \item Files
@@ -221,63 +236,112 @@ The documentation headers are comment blocks that look like the
 examples below. They should be put above the \emph{definition} of a
 function, i.e., in the \verb|.cc| file.  Some functions are defined in
 the \verb|.h| file (e.g., inline member functions). In that case the
-comment can be put in the \verb|.h| file.  \textbf{The first sentence
-  will be used as a short description for the entity, so it should be
-  explanatory.}
+comment can be put in the \verb|.h| file.
 
-There are some emacs macros that insert these comment blocks
-automatically. You can find them in the ARTS distribution in
-\verb|doc/emacs|. Documentation on the macros can be found in
-\verb|doc/index.html|. 
+There is an Emacs package (Doxymacs) that makes the insertion of
+documentation headers particularly easy. You can find documentation of
+this on the Doxymacs webpage: \verb|http://doxymacs.sourceforge.net/|.
+To use it for ARTS (provided you have it), put the following in your
+Emacs initialization file:
+
+\begin{verbatim}
+(require 'doxymacs)
+
+(setq doxymacs-doxygen-style "Qt")
+
+(defun my-doxymacs-font-lock-hook ()
+  (if (or (eq major-mode 'c-mode) (eq major-mode 'c++-mode))
+      (progn
+        (doxymacs-font-lock)
+        (doxymacs-mode))))
+
+(add-hook 'font-lock-mode-hook 'my-doxymacs-font-lock-hook)
+
+(setq doxymacs-doxygen-root "../doc/doxygen/html/")
+(setq doxymacs-doxygen-tags "../doc/doxygen/arts.tag")
+\end{verbatim}
+
+The only really important lines are the first two, where the second
+line is the one selecting the style of documentation. The next block
+just turns on syntax highlighting for the Doxygen headers, which looks
+nice. The last two lines are needed if you want to use the tag lookup
+features (see Doxymacs documentation if you want to find out what this
+is).  The package allows you to automatically insert headers. The
+standard key-bindings are:
+\begin{quote}
+\begin{tabularx}{.8\hsize}{@{}lX}
+\texttt{C-c d ?} & look up documentation for the symbol under the point.\\
+\texttt{C-c d r} & rescan your Doxygen tags file.\\
+\texttt{C-c d f} & insert a Doxygen comment for the next function.\\
+\texttt{C-c d i} & insert a Doxygen comment for the current file.\\
+\texttt{C-c d ;} & insert a Doxygen comment for a member variable on the current line (like M-;).\\
+\texttt{C-c d m} & insert a blank multi-line Doxygen comment.\\
+\texttt{C-c d s} & insert a blank single-line Doxygen comment.\\
+\texttt{C-c d @} & insert grouping comments around the current region.\\
+\end{tabularx}
+\end{quote}
+You can call the macros also by name, e.g., \verb|doxymacs-insert-file-comment|.
 
 \leveld{File comment:}
-\begin{verbatim}
-/**
-   \file   dummy.cc
 
-   A dummy file.
-   This file has no purpose at all,
-   it just servers as an example... 
-  
-   \author Stefan Buehler
-   \date   2000-09-13
-*/    
+Generated by \verb|doxymacs-insert-file-comment|.
+
+\begin{verbatim}
+/*!
+\file   dummy.cc
+\author Stefan Buehler <sbuehler@uni-bremen.de>
+\date   Thu Apr 25 15:58:50 2002
+
+\brief  A dummy file.
+
+ This file has no purpose at all,
+ it just servers as an example... 
+*/
 \end{verbatim}
 
 \leveld{Function comment:}
 
-The emacs macro here inserts only \verb|\param| for all
+Generated by \verb|doxymacs-insert-function-comment|.
+The macro here inserts only \verb|\param| for all
 arguments. If arguments are modified by the function you should
 change this to \verb|\retval|.
 
+Author and date tags are not inserted by default, since they would be
+overkill if you have many small functions. However, you should include
+them for important functions. 
+
 \begin{verbatim}
-/** 
-   A dummy function.
-   This function has no purpose at all,
-   it just serves as an example...
+//! A dummy function.
+/*! 
+ This function has no purpose at all,
+ it just serves as an example... 
 
-   \retval a This parameter is modified by the function.
-   \param  b This is the other input parameter.
-   \return A dummy value computed from a and b.
-
-   \author Stefan Buehler
-   \date   2000-09-13
+\retval a This parameter is modified by the function.
+\param  b This is the other parameter.         
+\return   Dummy value computed from a and b.         
 */
 int dummy(int& a, int b);
 \end{verbatim}
 
+\leveld{Generic multi-line comment:}
 
+Generated by \verb|doxymacs-insert-blank-multiline-comment|.
 
-
-\leveld{Generic comment:}
 \begin{verbatim}
-/**
-   This is a dummy comment. You can
-   write as much as you want here... 
+//! A dummy comment.
+/*! 
+ Some more elaborate description about this variable, 
+ class, or whatever. 
 */
 \end{verbatim}
 
+\leveld{Generic single-line comment:}
 
+Generated by \verb|doxymacs-insert-blank-singleline-comment|.
+
+\begin{verbatim}
+//! Short comment here.
+\end{verbatim}
 
 
 \levelb{Extending ARTS}
@@ -300,7 +364,9 @@ int dummy(int& a, int b);
   variable and its purpose well. \textbf{In particular, state the
     dimensions (in the case of matrices) and the units!} This string
   is used for the online documentation. Please take some time to write
-  it carefully.
+  it carefully. Use the template at the beginning of function
+  \verb|define_wsv_data()| in file \verb|workspace.cc| as a
+  guideline. 
 
 \item That's it!
 \end{enumerate}
@@ -370,10 +436,10 @@ int dummy(int& a, int b);
   the path to the data package (e.g. \verb|/pool/lookup2/arts-data|)
   with \verb|@ac_arts_data@|. Configure will replace this with the
   correct path.
-\item Add your file to the variable \verb|arts_examples| in the file
+\item Add your file to the variable \verb|arts_examples| in the file\newline
   \verb|doc/examples/Makefile.am|.
 \item Add your file to the AC\_OUTPUT list near the end of configure.in.
-\item The next time when you call make the \verb|.arts.in| file will
+\item The next time when you call \verb|make| the \verb|.arts.in| file will
   be automatically converted to \verb|.arts|.
 \end{enumerate}
 
@@ -444,7 +510,7 @@ documentation or our own CVS Howto on:
   \textbf{These keystrokes work also while you are editing some other
     file in Emacs. Thus it is best to write your ChangeLog entry
     already while you work on a file}. Whenever you make a change to a
-  file, there should be a Changelog Entry!
+  file, there should be a ChangeLog Entry!
 \item Make sure that you have saved all your files. Go to the top
   level ARTS directory and run: \verb|cvs commit|.
 \item This will pop up an editor. Use the mouse to cut and paste the
@@ -458,10 +524,9 @@ documentation or our own CVS Howto on:
   \end{quote}
   in you shell startup file.
  
-  With smarter editors there might be problems, because they might
-  refuse to safe your file if you haven't made changes to it. So you
-  would have to add a blank to the message each time a new directory
-  is commited.)
+  With smart editors there can be problems, because they might
+  refuse to safe your file if you haven't made changes to it. With
+  xedit you just have to push the save button twice to override.
 \item You have to give your version of the program a symbolic name, so
   that it can be retrieved later on if necessary. Do this by running:
   \verb|cvs tag arts-x-y-z| where x,y,z must be replace by the version
@@ -507,26 +572,6 @@ documentation or our own CVS Howto on:
   future.
 \item Check out a new copy (see other howto above).
 \end{enumerate}
-
-
-%
-% FIXME: Oliver, maybe update this?
-%
-%\levelb{Configuration}
-%%=====================
-%
-%Here are some interesting options for \verb|configure|:
-%
-%\begin{description}
-%\item[--disable-warnings:] 
-%  Compile without \verb|-Wall| on g++ compilers (by default warnings are on).
-%\item[--disable-assert:] Include \verb|#define NDEBUG 1| in
-%  \verb|config.h|.  The central switch to turn off all debugging
-%  features (index range checking for vectors, the trace facility,
-%  assertions,...) \textbf{Not yet implemented.}
-%
-%\end{description}
-
 
 \levelb{Debugging (use of assert)}
 %================================

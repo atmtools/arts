@@ -1,3 +1,23 @@
+2002-04-25  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-55
+
+	* doc/uguide/development.tex: Updated this file. Some small
+	changes. Most significant are the new recommendations for
+	documentation headers.
+
+	* doc/uguide/main.tex: Put development.tex back in.
+
+	* src/workspace.cc (define_wsv_data): Added template for
+	documentation strings.
+
+	* doc/emacs/: Removed everything in this directory. There is now a
+	better Doxygen package for Emacs:
+	Doxymacs (http://doxymacs.sourceforge.net/). 
+
+	* doc/examples/fantasy2.arts: Added this file, which contains more
+	thinking about agendas.
+
 2002-04-17  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-54
