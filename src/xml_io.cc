@@ -2116,7 +2116,14 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, ssdata.f_grid, pbifs);
   xml_read_from_stream (is_xml, ssdata.za_grid, pbifs);
   xml_read_from_stream (is_xml, ssdata.aa_grid, pbifs);
+
   xml_read_from_stream (is_xml, ssdata.pha_mat_data, pbifs);
+  if (ssdata.pha_mat_data.nvitrines () != ssdata.f_grid.nelem ())
+    {
+      throw runtime_error("Number of frequencies in f_grid and pha_mat_data "
+                          "not matching!!!");
+    }
+
   xml_read_from_stream (is_xml, ssdata.ext_mat_data, pbifs);
   xml_read_from_stream (is_xml, ssdata.abs_vec_data, pbifs);
 
@@ -2171,7 +2178,7 @@ xml_write_to_stream (ostream& os_xml,
 void
 xml_read_from_stream (istream& is_xml,
                       SpeciesTag& stag,
-                      bifstream * = NULL)
+                      bifstream * /* pbifs */ = NULL)
 {
   ArtsXMLTag tag;
   stringbuf  strbuf;
@@ -2229,7 +2236,7 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const SpeciesTag& stag,
-                     bofstream * = NULL)
+                     bofstream * /* pbofs */ = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2259,7 +2266,7 @@ xml_write_to_stream (ostream& os_xml,
 void
 xml_read_from_stream (istream& is_xml,
                       String&  str,
-                      bifstream * = NULL)
+                      bifstream * /* pbifs */ = NULL)
 {
   ArtsXMLTag tag;
   stringbuf  strbuf;
@@ -2317,7 +2324,7 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const String& str,
-                     bofstream * = NULL)
+                     bofstream * /* pbofs */ = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -3115,7 +3122,7 @@ xml_write_to_stream (ostream& os_xml,
 void
 xml_read_from_stream (istream&,
                       Agenda&,
-                      bifstream * = NULL)
+                      bifstream * /* pbifs */ = NULL)
 {
   throw runtime_error("Method not implemented!");
 }
@@ -3123,7 +3130,7 @@ xml_read_from_stream (istream&,
 void
 xml_write_to_stream (ostream&,
                      const Agenda&,
-                     bofstream * = NULL)
+                     bofstream * /* pbofs */ = NULL)
 {
   throw runtime_error("Method not implemented!");
 }
