@@ -1,3 +1,34 @@
+2000-12-09    <sbuehler@uni-bremen.de>
+
+	* arts-0-0-86
+
+	* All ARRAYs are based on MTL now. This was a tough bit because
+	of the indexing problems. The absorption part seems to run the
+	same as before. For the RT part I had no way to check. It is
+	possible or even likely that I have introduced bugs. Please
+	check. 
+
+	* It's not so good changing other people's code. However, I see no
+	other way for MATRIX/VECTOR than doing it in the same way: All at
+	once for all files. It is not possible to do it gradually, since
+	TNT and MTL matrices are incompatible.
+
+	* The indexing scheme must be changed beforehand from x(1) to x[0]
+	for VECTORs and from A(1,1) to A[0][0] for matrices. This is the
+	only more or less safe way for the transition. Round brackets will
+	work for MTL, but mean 0-based indices!
+
+	* src/docu.txt: Documentation on MTL and ARRAY
+	implementation. This should go in the Uguide eventually.
+
+	* linalg.h: MTL interface. Probably eventually I will put
+	everything back in vecmat.h again, so this file will vanish. At
+	the moment vecmat.h includes linalg.h.
+
+	* demonstrate_linalg.cc: A sample program demonstrating MTL
+	features. Compile with `make demonstrate_linalg' or with `g++
+	demonstrate_linalg'. 
+	
 2000-12-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-85

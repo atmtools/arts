@@ -7,7 +7,7 @@ VARIABLE : lines_per_tg
 DATA TYPE: ARRAYofARRAYofLineRecord
 DESCRIPTION:
 A list of spectral line data for each tag.
-Dimensions: (tag_groups.dim()) (# of lines for this tag)
+Dimensions: (tag_groups.size()) (# of lines for this tag)
 
 VARIABLE : tag_groups
 DATA TYPE: TagGroups
@@ -88,7 +88,7 @@ DESCRIPTION:
 2D VMRs associated with the pressures in p_abs [absolute number].Array coordinate is the profile index, i.e., the horizontal
 dimension. This dimension must be consistent with t_abs_2d
 z_abs_2d, and abs_2d.
-The matrix dimensions are [tag_groups.dim(),p_abs.dim()].
+The matrix dimensions are [tag_groups.size(),p_abs.size()].
 
 VARIABLE : abs_2d
 DATA TYPE: ARRAYofMATRIX
@@ -96,7 +96,7 @@ DESCRIPTION:
 The array of absorption coefficient matrices.Array coordinate is the profile index, i.e., the horizontal
 dimension. This dimension must be consistent with t_abs_2d
 and z_abs_2d.
-The matrix dimensions are [f_mono.dim(),p_abs.dim()].
+The matrix dimensions are [f_mono.size(),p_abs.size()].
 
 VARIABLE : t_abs
 DATA TYPE: VECTOR
@@ -117,13 +117,13 @@ VARIABLE : vmrs
 DATA TYPE: ARRAYofVECTOR
 DESCRIPTION:
 The VMRs (unit: absolute number) on the p_abs grid.
-Dimensions: [tag_groups.dim(), p_abs.dim()]
+Dimensions: [tag_groups.size(), p_abs.size()]
 
 VARIABLE : abs
 DATA TYPE: MATRIX
 DESCRIPTION:
 The matrix of absorption coefficients (in units of [1/m]).
-Dimensions: [f_mono.dim(), p_abs.dim()]
+Dimensions: [f_mono.size(), p_abs.size()]
 
 VARIABLE : abs_per_tg
 DATA TYPE: ARRAYofMATRIX

@@ -66,8 +66,8 @@
 */
 void sqrt( VECTOR& y, const VECTOR& x ) 
 {
-  int n = x.dim();
-  y.newsize(n);
+  int n = x.size();
+  y.resize(n);
   for ( int i=1; i<=n; i++ )
     y(i) = sqrt(x(i));
 }
@@ -101,8 +101,8 @@ VECTOR sqrt( const VECTOR& x )
 */
 void exp( VECTOR& y, const VECTOR& x ) 
 {
-  int n = x.dim();
-  y.newsize(n);
+  int n = x.size();
+  y.resize(n);
   for ( int i=1; i<=n; i++ )
     y(i) = exp(x(i));
 }
@@ -134,7 +134,7 @@ void exp( MATRIX& Y, const MATRIX& X )
 {
   int m = X.dim(1);
   int n = X.dim(2);
-  Y.newsize(m,n);
+  Y.resize(m,n);
   for ( int i=1; i<=m; i++ ) {
     for ( int j=1; j<=n; j++ )
       Y(i,j) = exp(X(i,j)); }
@@ -169,8 +169,8 @@ MATRIX exp( const MATRIX& X )
 */
 void log( VECTOR& y, const VECTOR& x )   // vector parameter version
 {
-  int n = x.dim();
-  y.newsize(n);
+  int n = x.size();
+  y.resize(n);
   for ( int i=1; i<=n; i++ )
     y(i) = log(x(i));
 }
@@ -202,7 +202,7 @@ void log( MATRIX& Y, const MATRIX& X )   // matrix parameter version
 {
   int m = X.dim(1);
   int n = X.dim(2);
-  Y.newsize(m,n);
+  Y.resize(m,n);
   for ( int i=1; i<=m; i++ ) {
     for ( int j=1; j<=n; j++ )
       Y(i,j) = log(X(i,j)); }
@@ -242,7 +242,7 @@ void mean_row( VECTOR& m, const MATRIX& x )
         size_t  col,row;
         Numeric rowsum;
 
-  m.newsize(nrows);
+  m.resize(nrows);
   for ( row=1; row<=nrows; row++ )
   {
     rowsum = 0;
@@ -268,10 +268,10 @@ void std_row( VECTOR& s, const MATRIX& x, const VECTOR& m  )
         size_t  col,row;
         Numeric rowsum;
 
-  if ( nrows != m.dim() )
+  if ( nrows != m.size() )
     throw runtime_error("The size of the given mean profile does not match the data."); 
 
-  s.newsize(nrows);
+  s.resize(nrows);
   for ( row=1; row<=nrows; row++ )
   {
     rowsum = 0;
@@ -295,7 +295,7 @@ void std_row( VECTOR& s, const MATRIX& x, const VECTOR& m  )
 */
 Numeric min( const VECTOR& x )
 {
-  int n = x.dim();
+  int n = x.size();
   Numeric y=x(1);
   for ( int i=2; i<=n; i++ )
   {
@@ -339,7 +339,7 @@ Numeric min( const MATRIX& A )
 */
 Numeric max( const VECTOR& x )
 {
-  int n = x.dim();
+  int n = x.size();
   Numeric y=x(1);
   for ( int i=2; i<=n; i++ )
   {
@@ -400,7 +400,7 @@ Numeric first( const VECTOR& x )
 */
 Numeric last( const VECTOR& x )
 {
-  return x(x.dim()); 
+  return x(x.size()); 
 }
 
 
@@ -460,7 +460,7 @@ void linspace(
   int n = (int) floor( (stop-start)/step ) + 1;
   if ( n<1 )
     n=1;
-  x.newsize(n);
+  x.resize(n);
   for ( int i=1; i<=n; i++ )
     x(i) = start + (i-1)*step;
 }
@@ -514,7 +514,7 @@ void nlinspace(
 {
   if ( n<2 )
     throw runtime_error("NLINSPACE: The number of points must be > 1"); 
-  x.newsize(n);
+  x.resize(n);
   Numeric step = (stop-start)/(n-1) ;
   for ( int i=1; i<=n; i++ )
     x(i) = start + (i-1)*step;
@@ -573,7 +573,7 @@ void nlogspace(
     throw runtime_error("NLOGSPACE: The number of points must be > 1"); 
   if ( (start<=0) || (stop<=0) )
     throw runtime_error("NLOGSPACE: Only positive numbers are allowed"); 
-  x.newsize(n);
+  x.resize(n);
   Numeric a = log(start);
   Numeric step = (log(stop)-a)/(n-1) ;
   x(1) = start;
@@ -626,8 +626,8 @@ int interp_check(
         const VECTOR&  xi,
         const size_t   n_y )
 {
-  size_t  n  = x.dim();
-  size_t  ni = xi.dim();
+  size_t  n  = x.size();
+  size_t  ni = xi.size();
   int     order=1;          // flag for pos. or neg. order, assume pos.
 
   // Determine the order, -1=decreasing and 1=increasing
@@ -689,11 +689,11 @@ void interp_lin(
         const VECTOR&  xi )
 {
   // Check grids and get order of grids
-  int order = interp_check( x, xi, y.dim() ); 
+  int order = interp_check( x, xi, y.size() ); 
 
-  size_t        i, j=1, n=xi.dim();
+  size_t        i, j=1, n=xi.size();
   Numeric       w;
-  yi.newsize(n); 
+  yi.resize(n); 
 
   for ( i=1; i<=n; i++ )
   {
@@ -770,9 +770,9 @@ void interp_lin_row(
   // Check grids and get order of grids
   int order = interp_check( x, xi, Y.dim(2) ); 
 
-  int        k, j=1, n=xi.dim(), nrow=Y.dim(1);
+  int        k, j=1, n=xi.size(), nrow=Y.dim(1);
   Numeric    w;
-  Yi.newsize( nrow, n ); 
+  Yi.resize( nrow, n ); 
 
   for (int i=1; i<=n; i++ )
   {
@@ -826,9 +826,9 @@ void interp_lin_col(
   // Check grids and get order of grids
   int order = interp_check( x, xi, Y.dim(1) ); 
 
-  int        k, j=1, n=xi.dim(), ncol=Y.dim(2);
+  int        k, j=1, n=xi.size(), ncol=Y.dim(2);
   Numeric    w;
-  Yi.newsize( n, ncol ); 
+  Yi.resize( n, ncol ); 
 
   for (int i=1; i<=n; i++ )
   {
@@ -877,12 +877,12 @@ Numeric integr_lin(                // Integrates Y over X assuming that Y is
         const VECTOR&  x,          // linear between the given points
         const VECTOR&  y )
 {
-  size_t i, n = x.dim();
+  size_t i, n = x.size();
   Numeric w=0.0; 
 
   if ( n < 2 )
     throw runtime_error("INTEGR_LIN: Vector length must be >= 2");
-  if ( n != y.dim() )
+  if ( n != y.size() )
     throw runtime_error("INTEGR_LIN: Sizes of input data do not match");
 
   for( i=1; i<n; i++ )
@@ -905,12 +905,12 @@ void integr_lin(                // Integrates the rows of M assuming that
 {
   size_t i,j,rows= M.dim(1), cols= M.dim(2);
   Numeric w; 
-  W.newsize(rows,1);
+  W.resize(rows,1);
   W = 0.0;
 
   if ( cols < 2 )
     throw runtime_error("Vector length for integration must be >= 2");
-  if ( cols != x.dim() )
+  if ( cols != x.size() )
     throw runtime_error("Sizes of input data for integration do not match");
 
   for ( i=1; i<cols; i++ ) 
@@ -954,8 +954,8 @@ void to_matrix(MATRIX& W, const VECTOR& x)
 {
   // FIXME: I'm sure this can be made more efficient when TNT has more
   // functionality.  
-  W.newsize(x.dim(),1);
-  for (size_t i=1; i<=x.dim() ; ++i)
+  W.resize(x.size(),1);
+  for (size_t i=1; i<=x.size() ; ++i)
     {
       W(i,1) = x(i);
     }
@@ -1067,7 +1067,7 @@ void row(VECTOR& x,
   assert ( i <= A.dim(1) );
 
   const size_t n = A.dim(2);
-  x.newsize(n);
+  x.resize(n);
   for ( size_t j=1; j<=n; ++j )
     {
       x(j) = A(i,j);
@@ -1114,7 +1114,7 @@ void row(MATRIX& X,
 
   const size_t n = A.dim(2);
   const size_t m = k-i + 1;
-  X.newsize(m,n);
+  X.resize(m,n);
   for ( size_t j=1; j<=n; ++j )
     for ( size_t l=1; l<=m; ++l )
       {
@@ -1163,7 +1163,7 @@ void col(VECTOR& x,
   assert ( i <= A.dim(2) );
 
   const size_t n = A.dim(1);
-  x.newsize(n);
+  x.resize(n);
   for ( size_t j=1; j<=n; ++j )
     {
       x(j) = A(j,i);
@@ -1212,7 +1212,7 @@ void col(MATRIX& X,
 
   const size_t n = A.dim(1);
   const size_t m = k-i + 1;
-  X.newsize(n,m);
+  X.resize(n,m);
   for ( size_t j=1; j<=n; ++j )
     for ( size_t l=1; l<=m; ++l )
       {
@@ -1268,7 +1268,7 @@ void put_in_col(
   assert ( i <= A.dim(2) );
 
   // Check length of x
-  assert ( n == x.dim()  );
+  assert ( n == x.size()  );
 
   for ( size_t j=1; j<=n; ++j )
     A(j,i) =  x(j);
@@ -1303,7 +1303,7 @@ void rand_uniform(
 {
   const Numeric dx = x_high-x_low;
 
-  r.newsize(n);
+  r.resize(n);
   for ( size_t i=1; i<=n; i ++)
     r(i) = x_low + dx* (double(rand())/double(RAND_MAX));
 }
@@ -1336,7 +1336,7 @@ void rand_gaussian(
   Numeric rad;  // The radiues cooresponding to z
   Numeric fac;  // Normalisation factor
  
-  r.newsize(n);
+  r.resize(n);
   for ( size_t i=0; i<n; )
   {
     rand_uniform( z, 2, -1, 1 );
@@ -1380,7 +1380,7 @@ void rand_matrix_uniform(
 {
   VECTOR r;
   size_t row,col;
-  m.newsize(nrows,ncols);
+  m.resize(nrows,ncols);
   for ( col=1; col<=ncols; col++)
   {
     rand_uniform( r, nrows, x_low, x_high );
@@ -1416,7 +1416,7 @@ void rand_matrix_gaussian(
 {
   VECTOR r;
   size_t row,col;
-  m.newsize(nrows,ncols);
+  m.resize(nrows,ncols);
   for ( col=1; col<=ncols; col++)
   {
     rand_gaussian( r, nrows, s );
@@ -1450,7 +1450,7 @@ void rand_data_gaussian(
         const VECTOR&    z0,
         const MATRIX&    s )
 {
-  const size_t   nrows = z0.dim();
+  const size_t   nrows = z0.size();
         size_t   row,col;
 
   if ( nrows != s.dim(1) )

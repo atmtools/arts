@@ -147,3 +147,8 @@ Implement this method:
 	GINPUT(                        ),
 	KEYWORDS( "filenames"          ),
 	TYPES(    ARRAY_string_t       )));
+
+SAB 2000-12-09: Remove all resize calls when MTL is completely in place. 
+
+SAB 2000-12-09: Include a good example file for RT. Patrick?
+

@@ -22,7 +22,6 @@ typedef mtl::matrix<Numeric,mtl::rectangle<>,mtl::compressed<> >::type SPARSE_MA
 
 #define ARRAY mtl::dense1D       
 
-
 /** Output function for vectors (for example VEC and ARRAY).
 
     This function is taken directly from MTL, with the only difference

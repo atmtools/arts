@@ -87,10 +87,10 @@ class Fortran_Sparse_Vector
     
     // assignments
 
-    Fortran_Sparse_Vector<T> & newsize(Subscript N, Subscript nz)
+    Fortran_Sparse_Vector<T> & resize(Subscript N, Subscript nz)
     {
-        val_.newsize(nz);
-        index_.newsize(nz);
+        val_.resize(nz);
+        index_.resize(nz);
         dim_ = N;
         return *this;
     }
@@ -139,7 +139,7 @@ istream& operator>>(istream &s, Fortran_Sparse_Vector<T> &A)
 
     s >> N >> nz;
 
-    A.newsize(N, nz);
+    A.resize(N, nz);
 
     for (Subscript i=1; i<=nz; i++)
             s >>  A.val(i) >> A.index(i);

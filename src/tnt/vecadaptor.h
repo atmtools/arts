@@ -34,7 +34,7 @@ namespace TNT
 //      o)  adds 1-offset operator() access ([] is always 0 offset)
 //      o)  adds TNT_BOUNDS_CHECK to () and []
 //      o)  adds initialization from strings, e.g.  "1.0 2.0 3.0";
-//      o)  adds newsize(N) function (does not preserve previous values)
+//      o)  adds resize(N) function (does not preserve previous values)
 //      o)  adds dim() and dim(1)
 //      o)  adds free() function to release memory used by vector
 //      o)  adds regions, e.g. A(Index(1,10)) = ... 
@@ -169,12 +169,12 @@ class Vector_Adaptor
         return *this;
     }
 
-    Vector_Adaptor<BBVec>& newsize(Subscript N)
+    Vector_Adaptor<BBVec>& resize(Subscript N)
     {
         // NOTE: this is not as efficient as it could be
         // but to retain compatiblity with STL interface
         // we cannot assume underlying implementation
-        // has a newsize() function.
+        // has a resize() function.
 
         return *this = Vector_Adaptor<BBVec>(N);
 

@@ -74,11 +74,11 @@ void planck (
 {
   static const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
   static const Numeric b = PLANCK_CONST/BOLTZMAN_CONST;
-  const size_t  n_f  = f.dim();
-  const size_t  n_t  = t.dim();
+  const size_t  n_f  = f.size();
+  const size_t  n_t  = t.size();
   size_t        i_f, i_t;
   Numeric       c, d;
-  B.newsize(n_f,n_t);
+  B.resize(n_f,n_t);
   
   for ( i_f=1; i_f<=n_f; i_f++ )
   {
@@ -384,7 +384,7 @@ void bl (
         int   iy;                      // frequency index
 
   // Init Y
-  y.newsize(nf);
+  y.resize(nf);
   y = 1.0;
 
   // Loop steps passed twice
@@ -435,7 +435,7 @@ void z2p(
         const VECTOR&     p0,
         const VECTOR&     z )
 {
-  if ( z.dim() > 0 )
+  if ( z.size() > 0 )
     p = exp( interp_lin( z0, log(p0), z ) );
 }
 
@@ -651,7 +651,7 @@ Numeric ztan_refr(
     return ztan_geom( za, z_plat);
   else
   {
-    const size_t  n = z_abs.dim();
+    const size_t  n = z_abs.size();
           size_t  i;
 
     for ( i=n; (i>0) && (EARTH_RADIUS+z_abs(i))*refr_index(i)>c; i-- ) 

@@ -76,13 +76,13 @@ ostream& operator<<(ostream& os, const TokVal& a)
       os << a.mx;
       break;
     case ARRAY_string_t:
-      os << a.msv;
+      print_vector(os,a.msv);
       break;
     case ARRAY_int_t:
-      os << a.mnv;
+      print_vector(os,a.mnv);
       break;
     case ARRAY_Numeric_t:
-      os << a.mxv;
+      print_vector(os,a.mxv);
       break;
     default:
       out0 << "Undefined token type.\n";

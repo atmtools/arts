@@ -626,7 +626,7 @@ void Atm2dFromRaw1D(// WS Output:
     // The first dimension is the number of profiles (= the number of
     // tag groups). The second dimension is the dimension of the new
     // pressure grid.
-    intp.newsize( raw_vmrs_1d.size() , p_abs.size() );
+    intp.resize( raw_vmrs_1d.size() , p_abs.size() );
   
     // We need this for each profile, therefore we define it here:
     VECTOR target;
@@ -775,7 +775,7 @@ void z_absHydrostatic(
     const Numeric&   zref,
     const int&       niter )
 {
-  const size_t   np = p_abs.dim();
+  const size_t   np = p_abs.size();
         size_t   i;                     // altitude index
         Numeric  g;                     // gravitational acceleration
         Numeric  r;                     // water mixing ratio in gram/gram
@@ -784,7 +784,7 @@ void z_absHydrostatic(
         VECTOR   ztmp(np);              // temporary storage for z_abs
   extern const Numeric EARTH_RADIUS;
 
-  if ( (z_abs.dim()!=np) || (t_abs.dim()!=np) || (h2o_abs.dim()!=np) )
+  if ( (z_abs.size()!=np) || (t_abs.size()!=np) || (h2o_abs.size()!=np) )
     throw runtime_error("The vectors p_abs, t_abs, z_abs and h2o_abs do not all have the same length.");
 
   if ( niter < 1 )
@@ -840,14 +840,14 @@ void absCalc(// WS Output:
     {
       ostringstream os;
       os << "Variable vmrs must have the same dimension as lines_per_tg.\n"
-	 << "vmrs.dim() = " << vmrs.size() << '\n'
-	 << "lines_per_tg.dim() = " << lines_per_tg.size();
+	 << "vmrs.size() = " << vmrs.size() << '\n'
+	 << "lines_per_tg.size() = " << lines_per_tg.size();
       throw runtime_error(os.str());
     }
   
   // Initialize abs and abs_per_tg. The array dimension of abs_per_tg
   // is the same as that of lines_per_tag.
-  abs.newsize(f_mono.dim(), p_abs.dim());
+  abs.resize(f_mono.size(), p_abs.size());
   abs = 0;
   abs_per_tg.resize(0);
   abs_per_tg.resize(lines_per_tg.size());
@@ -858,7 +858,7 @@ void absCalc(// WS Output:
       out2 << "  Tag group " << i << '\n';
       
       // Make this element of abs_per_tg the right size:
-      abs_per_tg[i].newsize(f_mono.dim(), p_abs.dim());
+      abs_per_tg[i].resize(f_mono.size(), p_abs.size());
       abs_per_tg[i] = 0;
 
       abs_species( abs_per_tg[i],

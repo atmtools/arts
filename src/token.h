@@ -61,21 +61,24 @@ public:
   }
 
   /** To set TokVal from an array of strings. */
-  TokVal(ARRAY<string> sv) {
+  TokVal(ARRAY<string> sv) : msv(sv.size())
+  {
     mtype = ARRAY_string_t;
-    msv = sv;
+    copy(sv, msv);
   }
 
   /** To set TokVal from an array of integers. */
-  TokVal(ARRAY<int> nv) {
+  TokVal(ARRAY<int> nv) : mnv(nv.size())
+  {
     mtype = ARRAY_int_t;
-    mnv = nv;
+    copy(nv, mnv);
   }
 
   /** To set TokVal from an array of Numerics. */
-  TokVal(ARRAY<Numeric> xv) {
+  TokVal(ARRAY<Numeric> xv) : mxv(xv.size())
+  {
     mtype = ARRAY_Numeric_t;
-    mxv = xv;
+    copy(xv, mxv);
   }
 
   // Conversion functions to return TokVal for the 6 different types: 

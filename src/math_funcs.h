@@ -106,7 +106,9 @@ Numeric max( const VECTOR& x );
 
 Numeric max( const MATRIX& A );
 
-/** Gives the maximum value of an array.
+// Max and min are not needed for array, due to MTL builtin functions.
+
+/* Gives the maximum value of an array.
 
     Because this is a template function, the definition has to be also 
     in the header file, and not in file math_func.cc.
@@ -117,20 +119,20 @@ Numeric max( const MATRIX& A );
     \author Stefan Buehler
     \date   2000-06-27
 */
-template<class T>
-T max( const ARRAY<T>& x )
-{
-  size_t n = x.dim();
-  T y=x(1);
-  for ( size_t i=2; i<=n; i++ )
-  {
-    if ( x(i) > y )
-      y = x(i);
-  }
-  return y; 
-}
+// template<class T>
+// T max( const ARRAY<T>& x )
+// {
+//   size_t n = x.size();
+//   T y=x[0];
+//   for ( size_t i=1; i<n; i++ )
+//     {
+//       if ( x[i] > y )
+// 	y = x[i];
+//     }
+//   return y; 
+// }
 
-/** Gives the minimum value of an array.
+/* Gives the minimum value of an array.
 
     Because this is a template function, the definition has to be also 
     in the header file, and not in file math_func.cc.
@@ -141,18 +143,18 @@ T max( const ARRAY<T>& x )
     \author Stefan Buehler
     \date   2000-06-27
 */
-template<class T>
-T min( const ARRAY<T>& x )
-{
-  size_t n = x.dim();
-  T y=x(1);
-  for ( size_t i=2; i<=n; i++ )
-  {
-    if ( x(i) < y )
-      y = x(i);
-  }
-  return y; 
-}
+// template<class T>
+// T min( const ARRAY<T>& x )
+// {
+//   size_t n = x.size();
+//   T y=x(1);
+//   for ( size_t i=2; i<=n; i++ )
+//   {
+//     if ( x(i) < y )
+//       y = x(i);
+//   }
+//   return y; 
+// }
 
 
 

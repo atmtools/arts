@@ -108,12 +108,12 @@ class Fortran_Sparse_Col_Matrix
             return *this;
         }
 
-       Fortran_Sparse_Col_Matrix& newsize(Subscript M, Subscript N, 
+       Fortran_Sparse_Col_Matrix& resize(Subscript M, Subscript N, 
                 Subscript nz)
         {
-            val_.newsize(nz);
-            rowind_.newsize(nz);
-            colptr_.newsize(N+1);
+            val_.resize(nz);
+            rowind_.resize(nz);
+            colptr_.resize(N+1);
             return *this;
         }
 };

@@ -72,7 +72,7 @@ void h_apply (
 {
   if ( h.issparse == 0 )
   {
-    if ( h.full.dim(2) != y1.dim() )
+    if ( h.full.dim(2) != y1.size() )
       throw  runtime_error("Size of h and length of y do not match.");
     y2 = h.full * y1;
   }

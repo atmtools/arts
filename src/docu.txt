@@ -2,17 +2,15 @@ Basic types:
 ============
 
 1. The floating point type: Numeric
-2. The integer type:        Integer
+2. The integer type:        INDEX
 
 Always use these two types for numbers, unless you have a very good
 reason to use something else.
 
 The program should run with Numeric beeing either float or
-double. With float it should be faster. If you change the Integer type
-you have to be sure to be consistent with MTL. MTL at the moment uses
-int internally, so Integer is also an int. In g++ int has the same
-range as long so there is no problems. With compilers where int is
-very small there could be trouble. 
+double. With float it should be faster. If you change the INDEX type
+you have to be sure to be consistent with MTL. At the moment it is
+size_t.
 
 
 General MTL information:
@@ -44,8 +42,16 @@ MTL installation (for MTL-2.1.2-19):
 
 5. Go back to top directory, become root, type make install.
 
-VEC:
+
+VEC: (description also valid for ARRAY!)
 =======
+
+There is no technical need to distinguish between ARRAY and VEC. At
+the moment the two are separate, but one could simply use
+ARRAY<Numeric> in place of VEC. Unfortunately, this nice symmetry
+brakes down for matrices. Leaving the type open (using MAT<Numeric>
+instad of MAT) does not work in this case, due to the design of MTL
+(if I understand correcly).
 
 1. Define a vector:   
 
@@ -53,7 +59,17 @@ VEC x(10);
 
 1.a. Resize a vector:
 
+There is a resize function:
+
 x.resize(20);
+
+This is at the moment heavily used in the program. However, I
+discovered that sometimes resize is dangerous, in particular if you
+resize a vector that is part of another vector. The better way to
+resize is by assigning a vector of the desired size:
+
+x = VEC(20) 
+
 
 2. Element access:
 
@@ -61,15 +77,15 @@ x[i] = i;
 
 3. Print vector to output stream:
 
-out1 << x << "\n";
+print_vector(cout,x);
 
-Or use MTLs own function:
-
-print_vector(x);
-
-The latter prints only to stdout but is more general in the vector
-types it supports. Use this if you have problems with using <<. Of
-course this could be easily extended to allow other output streams.
+One could easily overload the << operator for VEC. In fact I tried
+this, but discovered that then there is a loss of generality. With MTL
+you have not just VEC, but also some derived types (for example for
+subranges). Function print_vector (and print_all_matrix below) will
+work for all these types because it uses genericity. It is not
+possible to program a general solution for the << operator and having
+separate ones for each subtype would be a mess.
 
 
 4. Vector algorithms:
@@ -115,7 +131,9 @@ VEC::subrange_type     // the type of a subrange
 
 a(s,f)                 // access subrange s to f
 
-ARR<type>:
+
+
+ARRAY<type>:
 ===========
 
 Is just like VEC, just that the type can be anything.
@@ -135,19 +153,27 @@ MAT A(10,20);
 
 2. Element access:
 
+You could use:
+
 A(i,j)  = 1.0;
+
+THIS IS DANGEROUS, because in TNT the same notation meant a different
+thing (1-based indices).
+
+Recommended access:
+
+A[i][j] = 1.0
+
+This means the same thing in TNT, so it is safe. ARTS code should be
+changed to this notation BEFORE switching to MTL.
+
 
 3. Print matrix to output stream:
 
-out1 << A << "\n";
+print_all_matrix(cout,A);
 
-Or use MTLs own function:
+See also what I wrote for print_vector.
 
-print_all_matrix(A);
-
-The latter prints only to stdout but is more general in the matrix
-types it supports. Use this if you have problems with using <<. Of
-course this could be easily extended to allow other output streams.
 
 4. Select a row of a matrix:
 
@@ -203,8 +229,8 @@ MAT::submatrix_type     // for submatrices
 MAT::value_type         // in our case Numeric
 
 OneD and submatrix_type are very useful for row, column, or submatrix
-access (the usage examples). Sparsity should be useful for the
-maybe_sparse types. 
+access (see usage examples in demonstrate_linalg.cc). Sparsity should
+be useful for the maybe_sparse types.
 
 10. Matrix methods:
 

@@ -146,11 +146,10 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
   // We need a species index sorted by HITRAN tag. Keep this in a
   // static variable, so that we have to do this only once.  The ARTS
-  // species index is hind[<HITRAN tag>]. The value of
-  // missing means that we don't have this species.
+  // species index is hind[<HITRAN tag>]. 
   //
   // Allow for up to 100 species in HITRAN in the future.
-  static ARRAY< size_t >        hspec(100,missing);	
+  static ARRAY< size_t >        hspec(100);
 
   // This is  an array of arrays for each hitran tag. It contains the
   // ARTS indices of the HITRAN isotopes. 
@@ -165,6 +164,10 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
   if ( !hinit )
     {
+      // Initialize hspec.
+      // The value of missing means that we don't have this species.
+      mtl::set(hspec,missing);
+
       for ( size_t i=0; i<species_data.size(); ++i )
 	{
 	  const SpeciesRecord& sr = species_data[i];
@@ -201,9 +204,8 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 	      // 	  cout << "iso_tags = " << iso_tags << endl;
 	      // 	  cout << "static_cast<size_t>(max(iso_tags))%10 + 1 = "
 	      // 	       << static_cast<size_t>(max(iso_tags))%10 + 1 << endl;
-	      hiso[mo].resize( static_cast<size_t>(max(iso_tags))%10 + 1,
-			       missing );
-	      //	  cout << "hiso[mo].size() = " << hiso[mo].size() << endl;
+	      hiso[mo] = ARRAY<size_t>( max(iso_tags)%10 + 1 );
+	      mtl::set(hiso[mo], missing);
 
 	      // Set the isotope tags:
 	      for ( size_t j=0; j<n_iso; ++j )
@@ -212,15 +214,11 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 		    {
 		      // To get the iso tags from HitranTag() we also have to take
 		      // modulo 10 to get rid of mo.
-		      //		  cout << "iso_tags[j] % 10 = " << iso_tags[j] % 10 << endl;
 		      hiso[mo][iso_tags[j] % 10] = j;
 		    }
 		}
 	    }
 	}
-      
-//      cout << "hiso = " << hiso << endl << "***********" << endl;
-
 
       // Print the generated data structures (for debugging):
       out3 << "  HITRAN index table:\n";
@@ -1471,46 +1469,46 @@ void abs_species( MATRIX&                  abs,
   // Define the vector for the line shape function and the
   // normalization factor of the lineshape here, so that we don't need
   // so many free store allocations.
-  VECTOR ls(f_mono.dim());
-  VECTOR fac(f_mono.dim());
+  VECTOR ls(f_mono.size());
+  VECTOR fac(f_mono.size());
 
   // Check that p_abs, t_abs, and vmr all have the same
   // dimension. This could be a user error, so we throw a
   // runtime_error. 
 
-  if ( t_abs.dim() != p_abs.dim() )
+  if ( t_abs.size() != p_abs.size() )
     {
       ostringstream os;
       os << "Variable t_abs must have the same dimension as p_abs.\n"
-	 << "t_abs.dim() = " << t_abs.dim() << '\n'
-	 << "p_abs.dim() = " << p_abs.dim();
+	 << "t_abs.size() = " << t_abs.size() << '\n'
+	 << "p_abs.size() = " << p_abs.size();
       throw runtime_error(os.str());
     }
 
-  if ( vmr.dim() != p_abs.dim() )
+  if ( vmr.size() != p_abs.size() )
     {
       ostringstream os;
       os << "Variable vmr must have the same dimension as p_abs.\n"
-	 << "vmr.dim() = " << vmr.dim() << '\n'
-	 << "p_abs.dim() = " << p_abs.dim();
+	 << "vmr.size() = " << vmr.size() << '\n'
+	 << "p_abs.size() = " << p_abs.size();
       throw runtime_error(os.str());
     }
 
-  // Check that the dimension of abs is indeed [f_mono.dim(),
-  // p_abs.dim()]:
-  if ( abs.dim(1) != f_mono.dim() || abs.dim(2) != p_abs.dim() )
+  // Check that the dimension of abs is indeed [f_mono.size(),
+  // p_abs.size()]:
+  if ( abs.dim(1) != f_mono.size() || abs.dim(2) != p_abs.size() )
     {
       ostringstream os;
-      os << "Variable abs must have dimensions [f_mono.dim(),p_abs.dim()].\n"
+      os << "Variable abs must have dimensions [f_mono.size(),p_abs.size()].\n"
 	 << "[abs.dim(1),abs.dim(2)] = [" << abs.dim(1)
 	 << ", " << abs.dim(2) << "]\n"
-	 << "f_mono.dim() = " << f_mono.dim() << '\n'
-	 << "p_abs.dim() = " << p_abs.dim();
+	 << "f_mono.size() = " << f_mono.size() << '\n'
+	 << "p_abs.size() = " << p_abs.size();
       throw runtime_error(os.str());
     }
 
   // Loop all pressures:
-  for ( size_t i=1; i<=p_abs.dim(); ++i )
+  for ( size_t i=1; i<=p_abs.size(); ++i )
   {
 
     out3 << "  p = " << p_abs(i) << " Pa\n";
@@ -1533,7 +1531,7 @@ void abs_species( MATRIX&                  abs,
 
 
     // Loop all lines:
-    for ( size_t l=0; l<lines.dim(); ++l )
+    for ( size_t l=0; l<lines.size(); ++l )
       {
 
 	// lines[l] is used several times, this construct should be
@@ -1623,7 +1621,7 @@ void abs_species( MATRIX&                  abs,
 	const Numeric sqrt_1_pi =  0.564189584;
 
 	Numeric factor = 1.0 / sigma * sqrt_1_pi;
-	for ( size_t j=1; j<=f_mono.dim(); ++j )
+	for ( size_t j=1; j<=f_mono.size(); ++j )
 	  {
 	    abs(j,i) = abs(j,i)
 	      + n * vmr(i) * intensity * ls(j) * factor * fac(j);

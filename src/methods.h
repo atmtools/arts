@@ -41,23 +41,33 @@ public:
 
   /** The only one non-trivial constructor, which sets all the
       fields. */
-  MdRecord(const char name[],
-	   const char description[],
-	   const ARRAY<size_t>&  output,
-	   const ARRAY<size_t>&  input,   
-	   const ARRAY<size_t>&  goutput,
-	   const ARRAY<size_t>&  ginput,   
+  MdRecord(const char 		    name[],
+	   const char 		    description[],
+	   const ARRAY<size_t>&     output,
+	   const ARRAY<size_t>&     input,   
+	   const ARRAY<size_t>&     goutput,
+	   const ARRAY<size_t>&     ginput,   
 	   const ARRAY<string>&     keywords,
 	   const ARRAY<TokValType>& types) :
-    mname(name),
-    mdescription(description),
-    moutput(output),  
-    minput(input),   
-    mgoutput(goutput),  
-    mginput(ginput),   
-    mkeywords(keywords),
-    mtypes(types)
+    mname(        name            ),
+    mdescription( description     ),
+    moutput(      output.size()   ),  
+    minput(       input.size()    ),   
+    mgoutput(     goutput.size()  ),  
+    mginput(      ginput.size()   ),   
+    mkeywords(    keywords.size() ),
+    mtypes(       types.size()    )
     { 
+      // We need to use copy to initialize the ARRAY members. If we use
+      // the assignment operator they end up all pointing to the same
+      // data!
+      copy( output   , moutput   );
+      copy( input    , minput    );
+      copy( goutput  , mgoutput  );
+      copy( ginput   , mginput   );
+      copy( keywords , mkeywords );
+      copy( types    , mtypes    );
+
       // Keywords and type must have the same number of
       // elements. (Types specifies the types associated with each
       // keyword.)

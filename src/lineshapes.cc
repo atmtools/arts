@@ -53,9 +53,9 @@ void lineshape_lorentz(VECTOR&       ls,
   extern const Numeric PI;
   static const Numeric invPI = 1. / PI;
 
-  assert( ls.dim() == f_mono.dim() );
+  assert( ls.size() == f_mono.size() );
 
-  for ( size_t i=0; i<f_mono.dim(); ++i )
+  for ( size_t i=0; i<f_mono.size(); ++i )
     {
       ls[i] = invPI * gamma / ( pow( f_mono[i]-f0, 2) + pow(gamma,2) );
     }
@@ -156,11 +156,11 @@ void lineshape_voigt_kuntz1(VECTOR&       prb,
       // parameter. As well, nx should be defined somewhere else.
       size_t nx;
       Numeric y;
-      VECTOR x(f_mono.dim());
+      VECTOR x(f_mono.size());
       Numeric fak;
 
       // dimension of arrays
-      nx = f_mono.dim();
+      nx = f_mono.size();
 
       // Ratio of the Lorentz halfwidth to the Doppler halfwidth
       y = gamma / sigma;
@@ -432,9 +432,9 @@ void lineshape_norm_no_norm(VECTOR&       fac,
 			    const VECTOR& f_mono)
 {
 
-  assert( fac.dim() == f_mono.dim() );
+  assert( fac.size() == f_mono.size() );
 
-  for ( size_t i=0; i<f_mono.dim(); ++i )
+  for ( size_t i=0; i<f_mono.size(); ++i )
     {
       fac[i] = 1.0;
     }
@@ -455,9 +455,9 @@ void lineshape_norm_linear(VECTOR&       fac,
 {
   // FIXME: Maybe try if call by reference is faster for f0?
 
-  assert( fac.dim() == f_mono.dim() );
+  assert( fac.size() == f_mono.size() );
 
-  for ( size_t i=0; i<f_mono.dim(); ++i )
+  for ( size_t i=0; i<f_mono.size(); ++i )
     {
       fac[i] = f_mono[i] / f0;
     }
@@ -476,12 +476,12 @@ void lineshape_norm_quadratic(VECTOR&       fac,
 {
   // FIXME: Maybe try if call by reference is faster for f0?
 
-  assert( fac.dim() == f_mono.dim() );
+  assert( fac.size() == f_mono.size() );
 
   // don't do this for the whole loop
   Numeric f0_2 = f0 * f0;
 
-  for ( size_t i=0; i<f_mono.dim(); ++i )
+  for ( size_t i=0; i<f_mono.size(); ++i )
     {
       fac[i] = f_mono[i] * f_mono[i] / f0_2;
     }

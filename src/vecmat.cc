@@ -82,9 +82,9 @@
 
   VECTOR emult( const VECTOR &A, const VECTOR &B)
   {
-    SUBSCRIPT N = A.dim();
+    SUBSCRIPT N = A.size();
 
-    assert(N==B.dim());
+    assert(N==B.size());
 
     VECTOR tmp(N);
     SUBSCRIPT i;
@@ -97,9 +97,9 @@
 
   VECTOR ediv( const VECTOR &A, const VECTOR &B)
   {
-    SUBSCRIPT N = A.dim();
+    SUBSCRIPT N = A.size();
 
-    assert(N==B.dim());
+    assert(N==B.size());
 
     VECTOR tmp(N);
     SUBSCRIPT i;
@@ -224,7 +224,7 @@
 //
   VECTOR operator+(const VECTOR &A, const Numeric scalar)
   {
-    SUBSCRIPT N = A.dim();
+    SUBSCRIPT N = A.size();
 
     VECTOR tmp(N);
     SUBSCRIPT i;
@@ -244,7 +244,7 @@
 //
   VECTOR operator-(const VECTOR &A, const Numeric scalar)
   {
-    SUBSCRIPT N = A.dim();
+    SUBSCRIPT N = A.size();
 
     VECTOR tmp(N);
     SUBSCRIPT i;
@@ -257,7 +257,7 @@
 
   VECTOR operator-(const Numeric scalar, const VECTOR &A)
   {
-    SUBSCRIPT N = A.dim();
+    SUBSCRIPT N = A.size();
 
     VECTOR tmp(N);
     SUBSCRIPT i;
@@ -272,7 +272,7 @@
 //
   VECTOR operator*(const VECTOR &A, const Numeric scalar)
   {
-    SUBSCRIPT N = A.dim();
+    SUBSCRIPT N = A.size();
 
     VECTOR tmp(N);
     SUBSCRIPT i;
@@ -292,7 +292,7 @@
 //
   VECTOR operator/(const VECTOR &A, const Numeric scalar)
   {
-    SUBSCRIPT N = A.dim();
+    SUBSCRIPT N = A.size();
 
     VECTOR tmp(N);
     SUBSCRIPT i;
@@ -305,7 +305,7 @@
 
   VECTOR operator/(const Numeric scalar, const VECTOR &A)
   {
-    SUBSCRIPT N = A.dim();
+    SUBSCRIPT N = A.size();
 
     VECTOR tmp(N);
     SUBSCRIPT i;

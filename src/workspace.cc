@@ -59,7 +59,7 @@ void define_wsv_data()
     (WsvRecord
      ("lines_per_tg",
       "A list of spectral line data for each tag.\n"
-      "Dimensions: (tag_groups.dim()) (# of lines for this tag)", 
+      "Dimensions: (tag_groups.size()) (# of lines for this tag)", 
       ARRAYofARRAYofLineRecord_));
 
   wsv_data.push_back
@@ -162,7 +162,7 @@ void define_wsv_data()
       "dimension. This dimension must be consistent with t_abs_2d\n"
       "z_abs_2d, and abs_2d."
       "\n"
-      "The matrix dimensions are [tag_groups.dim(),p_abs.dim()].", 
+      "The matrix dimensions are [tag_groups.size(),p_abs.size()].", 
       ARRAYofMATRIX_));
 
   wsv_data.push_back
@@ -173,7 +173,7 @@ void define_wsv_data()
       "dimension. This dimension must be consistent with t_abs_2d\n"
       "and z_abs_2d."
       "\n"
-      "The matrix dimensions are [f_mono.dim(),p_abs.dim()].", 
+      "The matrix dimensions are [f_mono.size(),p_abs.size()].", 
       ARRAYofMATRIX_));
 
 
@@ -201,14 +201,14 @@ void define_wsv_data()
     (WsvRecord
      ("vmrs",
       "The VMRs (unit: absolute number) on the p_abs grid.\n"
-      "Dimensions: [tag_groups.dim(), p_abs.dim()]",
+      "Dimensions: [tag_groups.size(), p_abs.size()]",
       ARRAYofVECTOR_));
 
   wsv_data.push_back
     (WsvRecord
      ("abs",
       "The matrix of absorption coefficients (in units of [1/m]).\n"
-      "Dimensions: [f_mono.dim(), p_abs.dim()]",
+      "Dimensions: [f_mono.size(), p_abs.size()]",
       MATRIX_));
 
   wsv_data.push_back

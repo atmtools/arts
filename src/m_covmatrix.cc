@@ -21,7 +21,7 @@
 //   File description
 ////////////////////////////////////////////////////////////////////////////
 /**
-   \file   m_batch.cc
+   \file   m_covmatrix.cc
 
    This file contains functions associated with covariance matrices. 
 
@@ -95,12 +95,12 @@ void setup_covmatrix(
              const VECTOR&    sdev,
              const VECTOR&    clength )
 {
-  const size_t   n = kg.dim();
+  const size_t   n = kg.size();
         size_t   row, col;
         VECTOR   sd, cl;
         Numeric  c;          // correlation
 
-  if ( sdev.dim() != clength.dim() )
+  if ( sdev.size() != clength.size() )
     throw runtime_error("The standard deviation and correlation length vectors must have the same length.");
 
   if ( (min(kg)<min(kp)) || (max(kg)>max(kp)) )
@@ -115,7 +115,7 @@ void setup_covmatrix(
   interp_lin( cl, kp, clength, kg );
 
   // Resize s and fill with 0
-  s.newsize(n,n);
+  s.resize(n,n);
   s = 0;  
 
   // Diagonal matrix
@@ -204,7 +204,7 @@ void sDiagonal(
         VECTOR   kp(2);
 
   kp(1) = grid(1);
-  kp(2) = grid(grid.dim());
+  kp(2) = grid(grid.size());
   out2 << "  Creating a diagonal covariance matrix.\n";
   out3 << "    Standard deviation = " << stddev << "\n";
   setup_covmatrix( s, grid, 0, 0, kp, sdev, clength );
@@ -226,7 +226,7 @@ void sSimple(
         VECTOR   kp(2);
 
   kp(1) = grid(1);
-  kp(2) = grid(grid.dim());
+  kp(2) = grid(grid.size());
   out2 << "  Creating a simple covariance matrix.\n";
   out3 << "    Standard deviation   = " << stddev << "\n";
   out3 << "    Correlation function = " << corrfun << "\n";
@@ -272,9 +272,9 @@ void sFromFile(
 
     // Move definition values to vectors
     np = am[i].dim(1);
-    kp.newsize(np);
-    sdev.newsize(np);
-    clength.newsize(np);
+    kp.resize(np);
+    sdev.resize(np);
+    clength.resize(np);
     for ( j=1; j<=np; j++ )
     {
       kp(j)      = am[i](j,1);
@@ -302,7 +302,7 @@ void CovmatrixInit(
               MATRIX&   s,
         const string&   s_name)
 {
-  s.newsize(0,0);
+  s.resize(0,0);
 }
 
 
@@ -320,7 +320,7 @@ void sxAppend(
     throw runtime_error("A covariance matrix must be square.");
     
   stmp = sx;
-  sx.newsize(nsx+ns,nsx+ns);
+  sx.resize(nsx+ns,nsx+ns);
   sx = 0;
   for ( row=1; row<=nsx; row++ )
   {

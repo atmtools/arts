@@ -76,7 +76,7 @@ int LU_factor( MaTRiX &A, VecToRSubscript &indx)
 
     if (M == 0 || N==0) return 0;
     if (indx.dim() != M)
-        indx.newsize(M);
+        indx.resize(M);
 
     Subscript i=0,j=0,k=0;
     Subscript jp=0;

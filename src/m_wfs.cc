@@ -82,10 +82,10 @@ void k_append (
   // Size of Kx and K
   const size_t  ny1 = kx.dim(1);        // length of measurement vector (y)
   const size_t  nx1 = kx.dim(2);        // length of state vector (x)
-  const size_t  nri1 = kx_names.dim();  // number of retrieval identities
+  const size_t  nri1 = kx_names.size();  // number of retrieval identities
   const size_t  ny2 = k.dim(1);  
   const size_t  nx2 = k.dim(2);  
-  const size_t  nri2 = k_names.dim();
+  const size_t  nri2 = k_names.size();
         size_t  iy, ix, iri;
 
 
@@ -102,16 +102,16 @@ void k_append (
     ktemp       = kx;
     ktemp_index = kx_index;
     ktemp_aux   = kx_aux;
-    ktemp_names.newsize(nri1);
-    for ( iri=1; iri<=nri1; iri++ )
-      ktemp_names(iri) = kx_names(iri);
+    ktemp_names.resize(nri1);
+    for ( iri=0; iri<nri1; iri++ )
+      ktemp_names[iri] = kx_names[iri];
   }
 
   // Reallocate the Kx data
-  kx.newsize(ny2,nx1+nx2);
-  kx_names.newsize(nri1+nri2);
-  kx_index.newsize(nri1+nri2,2);
-  kx_aux.newsize(nx1+nx2,3);
+  kx.resize(ny2,nx1+nx2);
+  kx_names.resize(nri1+nri2);
+  kx_index.resize(nri1+nri2,2);
+  kx_aux.resize(nx1+nx2,3);
 
   // Move Kx to Ktot
   if ( nx1 > 0 )
@@ -126,7 +126,7 @@ void k_append (
     }    
     for ( iri=1; iri<=nri1; iri++ )
     {
-      kx_names(iri)   = ktemp_names(iri);
+      kx_names[iri-1]   = ktemp_names[iri-1];
       kx_index(iri,1) = ktemp_index(iri,1);
       kx_index(iri,2) = ktemp_index(iri,2);
     } 
@@ -145,7 +145,7 @@ void k_append (
   size_t l = (size_t) floor(nx2/nri2);
   for ( iri=1; iri<=nri2; iri++ )
   {
-    kx_names(nri1+iri)   = k_names(iri);
+    kx_names[nri1+iri-1]   = k_names[iri-1];
     kx_index(nri1+iri,1) = nx1 + (iri-1)*l + 1;
     kx_index(nri1+iri,2) = nx1 + iri*l;
   } 
@@ -217,12 +217,12 @@ void grid2grid_index (
               const VECTOR&   x0,
               const VECTOR&   xp )
 {
-  const size_t n0 = x0.dim();        // length of original grid
-  const size_t np = xp.dim();        // length if retrieval grid
+  const size_t n0 = x0.size();        // length of original grid
+  const size_t np = xp.size();        // length if retrieval grid
         size_t i0, ip;               // counter for each grid
 
   // Resize is and set all values to 0
-  is.newsize(np,2);
+  is.resize(np,2);
   is = 0.0;
  
   // Some checks
@@ -316,12 +316,12 @@ void grid2grid_weights (
               const VECTOR&   xp,
               const size_t&   ip )
 {
-  const size_t   np =xp.dim();        // number of retrieval points
+  const size_t   np =xp.size();        // number of retrieval points
   const size_t   nw = i2-i1+1;        // number of LOS points affected
         size_t   i;
 
   // Reallocate w
-  w.newsize(nw);
+  w.resize(nw);
 
   // First point of the retrieval grid
   if ( ip == 1 )
@@ -401,7 +401,7 @@ void absloswfs_1pass (
     throw logic_error("The ground cannot be at one of the end points."); 
 
   // Resize K
-  k.newsize( nf, start_index );
+  k.resize( nf, start_index );
 
   // We start here at the LOS point closest to the sensor, that is,
   // reversed order compared to RTE_ITERATE  
@@ -503,7 +503,7 @@ void absloswfs_limb (
   t1q = sqrt(t1q);
 
   // Resize K
-  k.newsize( nf, start_index );
+  k.resize( nf, start_index );
 
   // We start at the outermost point
   q  = start_index;       
@@ -591,7 +591,7 @@ void absloswfs_down (
         VECTOR   tr0;            // see below
 
   // Resize K
-  k.newsize( nf, start_index );
+  k.resize( nf, start_index );
 
   // Calculate Y0, the intensity reaching the platform altitude at the far
   // end of LOS, that is, from above.
@@ -686,7 +686,7 @@ void sourceloswfs_1pass (
     throw logic_error("The ground cannot be at one of the end points."); 
 
   // Resize K
-  k.newsize( nf, start_index );
+  k.resize( nf, start_index );
 
   // We start here at the LOS point closest to the sensor, that is,
   // reversed order compared to RTE_ITERATE  
@@ -766,7 +766,7 @@ void sourceloswfs_limb (
   t1q = sqrt(t1q);
 
   // Resize K
-  k.newsize( nf, start_index );
+  k.resize( nf, start_index );
 
   // We start at the outermost point
   q  = start_index;       
@@ -829,7 +829,7 @@ void sourceloswfs_down (
         VECTOR   tr0;            // see below
 
   // Resize K
-  k.newsize( nf, start_index );
+  k.resize( nf, start_index );
 
   // Calculate TR0, the transmission from the platform altitude down to the
   // tangent point or the ground, and up to the platform again.
@@ -892,38 +892,38 @@ void sourceloswfs (
               const VECTOR&          e_ground,
               const VECTOR&          t_ground )
 {
-  const size_t  nza = los.start.dim();   // number of zenith angles  
+  const size_t  nza = los.start.size();   // number of zenith angles  
 
   // Resize the LOS WFs array
-  sourceloswfs.newsize(nza);
+  sourceloswfs.resize(nza);
 
   // Loop zenith angles
   out3 << "    Zenith angle nr:\n      ";
-  for (size_t i=1; i<=nza; i++ ) 
+  for (size_t i=0; i<nza; i++ ) 
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
     out3 << " " << i; cout.flush();
     
     // Do something only if LOS has any points
-    if ( los.p(i).dim() > 0 )
+    if ( los.p[i].size() > 0 )
     {
       // The calculations are performed in 3 sub-functions
       //
       // Upward looking (=single pass)
-      if ( los.stop(i)==1 )
-        sourceloswfs_1pass( sourceloswfs(i), los.start(i), 1, trans(i), 
-                                                     los.ground(i), e_ground );
+      if ( los.stop[i]==1 )
+        sourceloswfs_1pass( sourceloswfs[i], los.start[i], 1, trans[i], 
+                                                     los.ground[i], e_ground );
       //
       // 1D limb sounding
-      else if ( los.start(i) == los.stop(i) )
-        sourceloswfs_limb( sourceloswfs(i), los.start(i), trans(i), 
-                                                     los.ground(i), e_ground );
+      else if ( los.start[i] == los.stop[i] )
+        sourceloswfs_limb( sourceloswfs[i], los.start[i], trans[i], 
+                                                     los.ground[i], e_ground );
       //
       // 1D downward looking
       else 
-        sourceloswfs_down( sourceloswfs(i), los.start(i), los.stop(i), 
-                                           trans(i), los.ground(i), e_ground );
+        sourceloswfs_down( sourceloswfs[i], los.start[i], los.stop[i], 
+                                           trans[i], los.ground[i], e_ground );
     }
   }
   out3 << "\n";
@@ -989,10 +989,10 @@ void k_species (
               const size_t&          unit )
 {
   // Main sizes
-  const size_t  nza = los.start.dim();     // number of zenith angles  
-  const size_t  nv  = abs_per_tg(1).dim(1);// number of frequencies
-  const size_t  ntg = tg_nr.dim();         // number of retrieval tags to do
-  const size_t  np  = k_grid.dim();        // number of retrieval altitudes
+  const size_t  nza = los.start.size();     // number of zenith angles  
+  const size_t  nv  = abs_per_tg[0].dim(1);// number of frequencies
+  const size_t  ntg = tg_nr.size();         // number of retrieval tags to do
+  const size_t  np  = k_grid.size();        // number of retrieval altitudes
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
@@ -1018,10 +1018,10 @@ void k_species (
 
 
   // Set up K and additional data. Set all values of K to 0
-  k.newsize(nza*nv,ntg*np);
+  k.resize(nza*nv,ntg*np);
   k = 0.0;
-  k_names.newsize(ntg);
-  k_aux.newsize(ntg*np,3);
+  k_names.resize(ntg);
+  k_aux.resize(ntg*np,3);
 
   // The calculations
   // Loop order:
@@ -1029,15 +1029,15 @@ void k_species (
   //   2 zenith angle
   //   3 retrieval altitudes 
   //   4 frequencies
-  for ( itg=1; itg<=ntg; itg++ ) 
+  for ( itg=0; itg<ntg; itg++ ) 
   {
     // Present tag nr
-    tg = tg_nr(itg);
+    tg = tg_nr[itg];
 
     // Check that the selected tag nr exist
-    if ( tg <= 0 )
-      throw runtime_error("The tag nr must be > 0."); 
-    if ( tg > abs_per_tg.dim() )
+    if ( tg < 0 )
+      throw runtime_error("The tag nr must be >= 0."); 
+    if ( tg > abs_per_tg.size()-1 )
       throw runtime_error("You have selected a non-existing tag nr."); 
 
     if ( ntg==1 )
@@ -1046,15 +1046,15 @@ void k_species (
       out2 << "  Doing tag " << tg << " (" << itg << " of " << ntg << ")\n";
 
     // Fill K_NAMES and K_INDEX
-    k_names(itg)   = tags(tg)(1).Name();
+    k_names[itg]   = tags[tg][0].Name();
 
     // Interpolate to get the total absorption and the VMR values at the 
     // retrieval points and scale the absorption to the selected unit:
     //   1 normalised to a mean profile
     //   2 VMR
     //   3 number density
-    interpp( abs, p_abs, abs_per_tg(tg), k_grid );
-    interpp( vmr, p_abs, vmrs(tg), k_grid ); 
+    interpp( abs, p_abs, abs_per_tg[tg], k_grid );
+    interpp( vmr, p_abs, vmrs[tg], k_grid ); 
     if ( unit == 1 )
       for ( ip=1; ip<=np; ip++ )
         k_aux(ip0+ip,2) = 1.0;
@@ -1093,17 +1093,17 @@ void k_species (
 
     // Loop zenith angles
     out3 << "    Zenith angle nr:\n      ";
-    for ( iza=1; iza<=nza; iza++ ) 
+    for ( iza=0; iza<nza; iza++ ) 
     {
-      if ( (iza%20)==0 )
+      if ( ((iza+1)%20)==0 )
         out3 << "\n      ";
       out3 << " " << iza; cout.flush();
       
       // Do something only if LOS has any points
-      if ( los.p(iza).dim() > 0 )
+      if ( los.p[iza].size() > 0 )
       {
         // Get the LOS points affected by each retrieval point
-        lplos = -1.0 * log(los.p(iza));
+        lplos = -1.0 * log(los.p[iza]);
         grid2grid_index( is, lplos, lgrid );
 
         // Loop retrieval points
@@ -1124,7 +1124,7 @@ void k_species (
             for ( iv=1; iv<=nv; iv++ )
 	    {
               for ( iw=i1; iw<=(size_t)is(ip,2); iw++ )
-                a(iv) += absloswfs(iza)(iv,iw) * w(iw-i1+1);
+                a(iv) += absloswfs[iza](iv,iw) * w(iw-i1+1);
               k(iv0+iv,ip0+ip) = a(iv) * abs(iv,ip);                    
 	    }
           }            
@@ -1182,9 +1182,9 @@ void k_contabs (
               const size_t&          order )
 {
   // Main sizes
-  const size_t  nza = los.start.dim();     // number of zenith angles  
-  const size_t  nv  = f_mono.dim();        // number of frequencies
-  const size_t  np  = k_grid.dim();        // number of retrieval altitudes
+  const size_t  nza = los.start.size();     // number of zenith angles  
+  const size_t  nv  = f_mono.size();        // number of frequencies
+  const size_t  np  = k_grid.size();        // number of retrieval altitudes
   const size_t  npoints = order+1;         // number of off-set points
 
   // -log(p) is used as altitude variable. The minus is included to get
@@ -1213,10 +1213,10 @@ void k_contabs (
     throw runtime_error("The polynomial order must be >= 0."); 
 
   // Set up K and additional data. Set all values of K to 0
-  k.newsize(nza*nv,npoints*np);
+  k.resize(nza*nv,npoints*np);
   k = 0.0;
-  k_names.newsize(npoints);
-  k_aux.newsize(npoints*np,3);
+  k_names.resize(npoints);
+  k_aux.resize(npoints*np,3);
 
   // Calculate the frequencies of the off-set points
   nlinspace( fpoints, f_mono(1), f_mono(nv), npoints );
@@ -1232,7 +1232,7 @@ void k_contabs (
   // function consistent with k_species, this loop order was selected.)
   //
   out2 << "  You have selected " << npoints << " off-set fit points.\n";
-  for ( ipoint=1; ipoint<=npoints; ipoint++ ) 
+  for ( ipoint=0; ipoint<npoints; ipoint++ ) 
   {
     out2 << "  Doing point " << ipoint << "\n";
 
@@ -1240,7 +1240,7 @@ void k_contabs (
     {
       ostringstream os;
       os << "Continuum absorption, point " << ipoint;
-      k_names(ipoint) = os.str();
+      k_names[ipoint] = os.str();
     }
     for ( ip=1; ip<=np; ip++ )
     {
@@ -1253,12 +1253,12 @@ void k_contabs (
     b = 1.0;
     if ( npoints > 1 )
     {
-      for ( ip=1; ip<=npoints; ip++ )
+      for ( ip=0; ip<npoints; ip++ )
       {
         if ( ip != ipoint )
 	{ 
-          for ( iv=1; iv<=nv; iv++ )
-            b(iv) *= (f_mono(iv)-fpoints(ip)) / (fpoints(ipoint)-fpoints(ip));
+          for ( iv=0; iv<nv; iv++ )
+            b[iv] *= (f_mono[iv]-fpoints[ip]) / (fpoints[ipoint]-fpoints[ip]);
 	}
       }
     }
@@ -1268,17 +1268,17 @@ void k_contabs (
 
     // Loop zenith angles
     out3 << "    Zenith angle nr:\n      ";
-    for ( iza=1; iza<=nza; iza++ ) 
+    for ( iza=0; iza<nza; iza++ ) 
     {
-      if ( (iza%20)==0 )
+      if ( ((iza+1)%20)==0 )
         out3 << "\n      ";
       out3 << " " << iza; cout.flush();
       
       // Do something only if LOS has any points
-      if ( los.p(iza).dim() > 0 )
+      if ( los.p[iza].size() > 0 )
       {
         // Get the LOS points affected by each retrieval point
-        lplos = -1.0 * log(los.p(iza));
+        lplos = -1.0 * log(los.p[iza]);
         grid2grid_index( is, lplos, lgrid );
 
         // Loop retrieval points
@@ -1299,7 +1299,7 @@ void k_contabs (
             for ( iv=1; iv<=nv; iv++ )
 	    {
               for ( iw=i1; iw<=(size_t)is(ip,2); iw++ )
-                a(iv) += absloswfs(iza)(iv,iw) * w(iw-i1+1);
+                a(iv) += absloswfs[iza](iv,iw) * w(iw-i1+1);
               k(iv0+iv,ip0+ip) = a(iv) * b(iv);                    
 	    }
           }            
@@ -1373,9 +1373,9 @@ void k_temp_nohydro (
 		     const VECTOR&          k_grid )
 {
   // Main sizes
-  const size_t  nza = los.start.dim();     // number of zenith angles  
-  const size_t  nv  = f_mono.dim();        // number of frequencies
-  const size_t  np  = k_grid.dim();        // number of retrieval altitudes
+  const size_t  nza = los.start.size();     // number of zenith angles  
+  const size_t  nv  = f_mono.size();        // number of frequencies
+  const size_t  np  = k_grid.size();        // number of retrieval altitudes
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
@@ -1402,11 +1402,11 @@ void k_temp_nohydro (
 
 
   // Set up K and additional data. Set all values of K to 0
-  k.newsize(nza*nv,np);
+  k.resize(nza*nv,np);
   k = 0.0;
-  k_names.newsize(1);
-  k_names(1) = "Temperature";
-  k_aux.newsize(np,3);
+  k_names.resize(1);
+  k_names[0] = "Temperature";
+  k_aux.resize(np,3);
   interpp( t, p_abs, t_abs, k_grid ); 
   for ( ip=1; ip<=np; ip++ )
   {
@@ -1428,7 +1428,7 @@ void k_temp_nohydro (
   //
   abs1k = abs1k - abs;
   interpp( dabs_dt, p_abs, abs1k, k_grid );
-  abs1k.newsize(0,0);
+  abs1k.resize(0,0);
 
   // Calculate source LOS WFs
   out2 << "  Calculating source LOS WFs\n";
@@ -1446,17 +1446,17 @@ void k_temp_nohydro (
   //
   out2 << "  Calculating the weighting functions\n";
   out3 << "    Zenith angle nr:\n      ";
-  for ( iza=1; iza<=nza; iza++ ) 
+  for ( iza=0; iza<nza; iza++ ) 
   {
-    if ( (iza%20)==0 )
+    if ( ((iza+1)%20)==0 )
       out3 << "\n      ";
     out3 << " " << iza; cout.flush();
     
     // Do something only if LOS has any points
-    if ( los.p(iza).dim() > 0 )
+    if ( los.p[iza].size() > 0 )
     {
       // Get the LOS points affected by each retrieval point
-      lplos = -1.0 * log(los.p(iza));
+      lplos = -1.0 * log(los.p[iza]);
       grid2grid_index( is, lplos, lgrid );
 
       // Loop retrieval points
@@ -1486,8 +1486,8 @@ void k_temp_nohydro (
 	  {
             for ( iw=i1; iw<=(size_t)is(ip,2); iw++ )
 	    {
-              a(iv) += sloswfs(iza)(iv,iw) * w(iw-i1+1);
-              b(iv) += absloswfs(iza)(iv,iw) * w(iw-i1+1);
+              a(iv) += sloswfs[iza](iv,iw) * w(iw-i1+1);
+              b(iv) += absloswfs[iza](iv,iw) * w(iw-i1+1);
 	    }
             d = c * f_mono(iv);
             k(iv0+iv,ip) = a(iv) * d/t(ip) / (1-exp(-d)) * pl(iv) +
@@ -1521,8 +1521,8 @@ void absloswfsCalc (
               const VECTOR&          e_ground,
               const Numeric&         t_ground )
 {
-  const size_t  nza = los.start.dim();   // number of zenith angles  
-  const size_t  nf  = f_mono.dim();      // number of frequencies  
+  const size_t  nza = los.start.size();   // number of zenith angles  
+  const size_t  nf  = f_mono.size();      // number of frequencies  
         VECTOR  yp(nf);                  // part of Y
         size_t  iy, iy0=0;               // y indices
 
@@ -1532,41 +1532,41 @@ void absloswfsCalc (
     planck( y_ground, f_mono, t_ground );
 
   // Resize the LOS WFs array
-  absloswfs.newsize(nza);
+  absloswfs.resize(nza);
 
   // Loop zenith angles
   out3 << "    Zenith angle nr:\n      ";
-  for (size_t i=1; i<=nza; i++ ) 
+  for (size_t i=0; i<nza; i++ ) 
   {
-    if ( (i%20)==0 )
+    if ( ((i+1)%20)==0 )
       out3 << "\n      ";
     out3 << " " << i; cout.flush();
     
     // Do something only if LOS has any points
-    if ( los.p(i).dim() > 0 )
+    if ( los.p[i].size() > 0 )
     {
 
       // Pick out the part of Y corresponding to the present zenith angle
-      for ( iy=1; iy<=nf; iy++ )    
-        yp(iy) = y(iy0+iy);
+      for ( iy=0; iy<nf; iy++ )    
+        yp[iy] = y[iy0+iy];
       iy0 += nf;        
 
       // The calculations are performed in 3 sub-functions
       //
       // Upward looking (=single pass)
-      if ( los.stop(i)==1 )
-        absloswfs_1pass( absloswfs(i), yp, los.start(i), 1, los.l_step(i), 
-                     trans(i), source(i), los.ground(i), e_ground, y_ground );
+      if ( los.stop[i]==1 )
+        absloswfs_1pass( absloswfs[i], yp, los.start[i], 1, los.l_step[i], 
+                     trans[i], source[i], los.ground[i], e_ground, y_ground );
       //
       // 1D limb sounding
-      else if ( los.start(i) == los.stop(i) )
-        absloswfs_limb( absloswfs(i), yp, y_space, los.start(i), los.l_step(i),
-                     trans(i), source(i), los.ground(i), e_ground );
+      else if ( los.start[i] == los.stop[i] )
+        absloswfs_limb( absloswfs[i], yp, y_space, los.start[i], los.l_step[i],
+                     trans[i], source[i], los.ground[i], e_ground );
       //
       // 1D downward looking
       else 
-        absloswfs_down( absloswfs(i), yp, y_space, los.start(i), los.stop(i), 
-                        los.l_step(i), trans(i), source(i), los.ground(i), 
+        absloswfs_down( absloswfs[i], yp, y_space, los.start[i], los.stop[i], 
+                        los.l_step[i], trans[i], source[i], los.ground[i], 
                         e_ground, y_ground );
     }
   }
@@ -1630,12 +1630,12 @@ void kSpeciesAll (
               const VECTOR&          k_grid,
               const int&             unit )
 {
-  const size_t  ntg = abs_per_tg.dim();     // number of retrieval tags
+  const size_t  ntg = abs_per_tg.size();     // number of retrieval tags
   ARRAYofsizet  tg_nr;
   
-  tg_nr.newsize(ntg);
-  for ( size_t i=1; i<=ntg; i++ )
-    tg_nr(i) = i;
+  tg_nr.resize(ntg);
+  for ( size_t i=0; i<ntg; i++ )
+    tg_nr[i] = i;
 
   k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
                                  tags, abs_per_tg, vmrs, k_grid, tg_nr, unit );
@@ -1718,9 +1718,9 @@ void kManual(
               const Numeric&         apriori )
 {
   k = to_matrix( (y-y0)/delta );
-  k_names.newsize(1);
-  k_names(1) = name;
-  k_aux.newsize(1,3);
+  k_names.resize(1);
+  k_names[0] = name;
+  k_aux.resize(1,3);
   k_aux(1,1) = grid;
   k_aux(1,1) = apriori;
   k_aux(1,1) = 0.0;  
@@ -1744,9 +1744,9 @@ void kDiffHSmall(
   h_apply( y1, h1, y );
   h_apply( y2, h2, y );
   k = to_matrix( (y2-y1)/delta );
-  k_names.newsize(1);
-  k_names(1) = name;
-  k_aux.newsize(1,3);
+  k_names.resize(1);
+  k_names[0] = name;
+  k_aux.resize(1,3);
   k_aux(1,1) = grid;
   k_aux(1,1) = apriori;
   k_aux(1,1) = 0.0;  
@@ -1771,9 +1771,9 @@ void kDiffHFast(
   h_diff( hd, h2, h1 );
   h_apply( yd, hd, y );
   k = to_matrix( yd/delta );
-  k_names.newsize(1);
-  k_names(1) = name;
-  k_aux.newsize(1,3);
+  k_names.resize(1);
+  k_names[0] = name;
+  k_aux.resize(1,3);
   k_aux(1,1) = grid;
   k_aux(1,1) = apriori;
   k_aux(1,1) = 0.0;  
@@ -1787,10 +1787,10 @@ void kxInit (
                     MATRIX&          kx_index,
                     MATRIX&          kx_aux )
 {
-  kx.newsize(0,0);
-  kx_names.newsize(0);
-  kx_index.newsize(0,0);
-  kx_aux.newsize(0,0);
+  kx.resize(0,0);
+  kx_names.resize(0);
+  kx_index.resize(0,0);
+  kx_aux.resize(0,0);
 }
 
 

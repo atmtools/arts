@@ -83,8 +83,8 @@ int QR_factor(Matrix &A, Vector& C, Vector &D)
 
     // adjust the shape of C and D, if needed...
 
-    if (N != C.size())  C.newsize(N);
-    if (N != D.size())  D.newsize(N);
+    if (N != C.size())  C.resize(N);
+    if (N != D.size())  D.resize(N);
 
     for (k=1; k<N; k++)
     {

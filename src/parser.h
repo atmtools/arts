@@ -40,13 +40,21 @@ public:
 	  const ARRAY<size_t>& output,
 	  const ARRAY<size_t>& input)
     : mid(id),
-      mvalues(values),
-      moutput(output),
-      minput(input) { /* Nothing to do here. */ }
+      mvalues( values.size() ),
+      moutput( output.size() ),
+      minput(  input.size()  )
+  { 
+    // We need to use copy to initialize the ARRAY members. If we use
+    // the assignment operator they end up all pointing to the same
+    // data!
+    copy(values, mvalues);
+    copy(output, moutput);
+    copy(input,  minput);
+  }
   int                  Id()     const { return mid;     }
   const ARRAY<TokVal>& Values() const { return mvalues; }
   const ARRAY<size_t>& Output() const { return moutput; }
-  const ARRAY<size_t>& Input()  const { return minput; }
+  const ARRAY<size_t>& Input()  const { return minput;  }
 
 private:
   /** Method id. */

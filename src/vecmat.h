@@ -94,11 +94,6 @@ using namespace TNT;
     @see VECTOR ARRAY */
 typedef TNT::Fortran_Matrix<Numeric> MATRIX;
 
-/** Sparse Matrix.
-    @author Stefan Buheler
-    @date   2000-08-16. */
-//typedef Fortran_Sparse_Col_Matrix<Numeric> SPARSEMATRIX;
-
 
 /** Regions for matrices.
     @author Stefan Buehler 11.06.2000. */
@@ -125,42 +120,6 @@ typedef TNT::const_Region2D<VECTOR> const_REGION1D;
     @date 2000-08-16 */
 typedef TNT::Subscript SUBSCRIPT;
 
-/** For arrays. This can be used in the same way as VECTOR, but can
-    store arbitrary elements. Furthermore, this has the
-    member function get_vector, which returns the underlying
-    std::vector. Thus, all STL functions and algorithms can be used on
-    this. WARNING! You should know what you are doing if you want to
-    use STL functions directly. Some of them will not work or cause
-    very strange results. (Basically all functions that re-allocate
-    the memory so that pointers become invalid.)
-    
-    Because constructors are not inherited, I have to re-define all
-    costructors.  
-
-    @see MATRIX ARRAY */
-// template<class EE>
-// class ARRAY : public TNT::Vector_Adaptor< std::vector<EE> >
-// {
-// public:
-
-//   typedef std::vector<EE> mybase;
-
-//   ARRAY() : TNT::Vector_Adaptor<mybase>() {};
-//   ARRAY(const ARRAY<EE> &A) :
-//     TNT::Vector_Adaptor<mybase>(A) {};
-  
-//   ARRAY(SUBSCRIPT N, /*const*/ char *s) :
-//     TNT::Vector_Adaptor<mybase>(N, s) {};
-  
-//   ARRAY(SUBSCRIPT N, const EE& value = EE()) :
-//     TNT::Vector_Adaptor<mybase>(N, value) {};
-
-//   ARRAY(SUBSCRIPT N, const EE* values) :
-//     TNT::Vector_Adaptor<mybase>(N, values) {};
-
-//   ARRAY(const EE & A) :
-//     TNT::Vector_Adaptor<mybase>(A) {};
-// };
 
 
 

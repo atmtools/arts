@@ -152,8 +152,8 @@ int eigenvalue_solve(const Fortran_Matrix<double> &A,
     Vector<double> work(worksize, 0.0);
     Fortran_Matrix<double> Tmp = A;
 
-    wr.newsize(N);
-    wi.newsize(N);
+    wr.resize(N);
+    wi.resize(N);
 
 //  void F77_DGEEV(cfch_ jobvl, cfch_ jobvr, cfi_ N, fda_ A, cfi_ lda,
 //      fda_ wr, fda_ wi, fda_ vl, cfi_ ldvl, fda_ vr, 

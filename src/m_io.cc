@@ -77,8 +77,8 @@ void IndexWriteAscii(
 
   // Store the value in an ARRAYofMATRIX and write to file
   ARRAYofMATRIX am(1);
-  am(1).newsize(1,1);
-  am(1) = (Numeric) v;
+  am[0].resize(1,1);
+  am[0] = (Numeric) v;
   write_array_of_matrix_to_file(filename,am);
 }
 
@@ -97,14 +97,14 @@ void IndexReadAscii(
   // Read the value as ARRAYofMATRIX and move to Numeric
   ARRAYofMATRIX am;
   read_array_of_matrix_from_file(am,filename);
-  if ( (am.dim()!=1) || (am(1).dim(1)!=1) || (am(1).dim(2)!=1) )
+  if ( (am.size()!=1) || (am[0].dim(1)!=1) || (am[0].dim(2)!=1) )
   {
     ostringstream os;
     os << "The file " << filename << " contains not a single value.";
     throw runtime_error(os.str());
   }
 
-  Numeric a = am(1)(1,1);
+  Numeric a = am[0](1,1);
 
   if ( (a-floor(a)) != 0 )
     throw runtime_error("The value in the file is not an integer.");
@@ -162,8 +162,8 @@ void NumericWriteAscii(
 
   // Store the value in an ARRAYofMATRIX and write to file
   ARRAYofMATRIX am(1);
-  am(1).newsize(1,1);
-  am(1) = v;
+  am[0].resize(1,1);
+  am[0] = v;
   write_array_of_matrix_to_file(filename,am);
 }
 
@@ -181,14 +181,14 @@ void NumericReadAscii(
   // Read the value as ARRAYofMATRIX and move to Numeric
   ARRAYofMATRIX am;
   read_array_of_matrix_from_file(am,filename);
-  if ( (am.dim()!=1) || (am(1).dim(1)!=1) || (am(1).dim(2)!=1) )
+  if ( (am.size()!=1) || (am[0].dim(1)!=1) || (am[0].dim(2)!=1) )
   {
     ostringstream os;
     os << "The file " << filename << " contains not a single numeric value";
     throw runtime_error(os.str());
   }
 
-  v = am(1)(1,1);
+  v = am[0](1,1);
 }
 
 
@@ -267,7 +267,7 @@ void VectorReadAscii(// WS Generic Output:
   read_array_of_matrix_from_file(am,filename);
 
   // Convert the array of matrix to a matrix.
-  if ( 1 != am.dim() )
+  if ( 1 != am.size() )
    throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
                        "but the dimension of the array is not 1.");
   MATRIX m(am[0]);
@@ -348,7 +348,7 @@ void MatrixReadAscii(// WS Generic Output:
   read_array_of_matrix_from_file(am,filename);
 
   // Convert the array of matrix to a matrix.
-  if ( 1 != am.dim() )
+  if ( 1 != am.size() )
    throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
                        "but the dimension of the array is not 1.");
 
@@ -401,11 +401,11 @@ void ArrayOfIndexWriteAscii(
   filename_ascii( filename, v_name );
 
   // Store the value in an ARRAYofMATRIX and write to file
-  const size_t  n = v.dim();
+  const size_t  n = v.size();
   ARRAYofMATRIX am(1);
-  am(1).newsize(n,1);
-  for ( size_t i=1; i<=n; i++ )
-    am(1)(i,1) = (Numeric) v(i);
+  am[0].resize(n,1);
+  for ( size_t i=0; i<n; i++ )
+    am[0](i+1,1) = (Numeric) v[i];
   write_array_of_matrix_to_file(filename,am);
 }
 
@@ -424,7 +424,7 @@ void ArrayOfIndexReadAscii(
   // Read the value as ARRAYofMATRIX 
   ARRAYofMATRIX am;
   read_array_of_matrix_from_file(am,filename);
-  if ( (am.dim()!=1) )
+  if ( (am.size()!=1) )
   {
     ostringstream os;
     os << "The file " << filename << " contains more than one vector.";
@@ -433,16 +433,16 @@ void ArrayOfIndexReadAscii(
 
   // Move values to v using a vector
   VECTOR x;
-  to_vector( x, am(1) );
-  const size_t  n = x.dim();
-  v.newsize(n);
-  for ( size_t i=1; i<=n; i++ )
+  to_vector( x, am[0] );
+  const size_t  n = x.size();
+  v.resize(n);
+  for ( size_t i=0; i<n; i++ )
   {  
-    if ( (x(i)-floor(x(i))) != 0 )
+    if ( (x[i]-floor(x[i])) != 0 )
       throw runtime_error("A value in the file is not an integer.");
-    if ( x(i) < 0 )
+    if ( x[i] < 0 )
       throw runtime_error("A value in the file is negative.");
-    v(i) = (int) x(i);
+    v[i] = (size_t) x[i];
   }
 }
 
@@ -493,8 +493,8 @@ void ArrayOfVectorWriteAscii(// WS Output:
   filename_ascii( filename, av_name );
 
   // Convert the array of vector to an array of matrix:
-  ARRAYofMATRIX am(av.dim());
-  for (size_t i=0; i<av.dim(); ++i)
+  ARRAYofMATRIX am(av.size());
+  for (size_t i=0; i<av.size(); ++i)
     {
       to_matrix(am[i],av[i]);
     }
@@ -522,8 +522,8 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
   read_array_of_matrix_from_file(am,filename);
 
   // Convert the array of matrix to an array of vector.
-  av.newsize(am.dim());
-  for (size_t i=0; i<am.dim(); ++i)
+  av.resize(am.size());
+  for (size_t i=0; i<am.size(); ++i)
     {
       to_vector(av[i],am[i]);
     }
@@ -670,7 +670,7 @@ void StringReadAscii(   // WS Generic Output:
   read_array_of_string_from_file(as,filename);
 
   // Convert the array of string to a string.
-  if ( 1 != as.dim() )
+  if ( 1 != as.size() )
    throw runtime_error("You tried to convert an array of string to a string,\n"
                        "but the dimension of the array is not 1.");
 
@@ -887,7 +887,7 @@ void VectorSet(           VECTOR&  x,
                     const int&     n,
                     const Numeric& value )
 {
-  x.newsize(n);
+  x.resize(n);
   x = value;
   out2 << "  Creating " << x_name << " as a constant vector\n"; 
   out3 << "         length: " << n << "\n";
@@ -902,8 +902,8 @@ void VectorSet2(          VECTOR&  x,
                     const string&  z_name,
                     const Numeric& value )
 {
-  const size_t  n = z.dim();
-  x.newsize(n);
+  const size_t  n = z.size();
+  x.resize(n);
   x = value;
   out2 << "  Creating " << x_name << " as a constant vector\n"; 
   out3 << "         length: " << n << "\n";
@@ -921,11 +921,11 @@ void VectorLinSpace(      VECTOR&  x,
   x = linspace(start,stop,step);
   out2 << "  Creating " << x_name << " as linearly spaced vector\n";
   out3 << "         length: " << x.size() << "\n";
-  out3 << "    first value: " << x(1) << "\n";
+  out3 << "    first value: " << x[0] << "\n";
   if ( x.size() > 1 )
   {
-    out3 << "      step size: " << x(2)-x(1) << "\n";
-    out3 << "     last value: " << x(x.size()) << "\n";
+    out3 << "      step size: " << x[1]-x[0] << "\n";
+    out3 << "     last value: " << x[x.size()-1] << "\n";
   }
 }
 
@@ -940,11 +940,11 @@ void VectorNLinSpace(     VECTOR&  x,
   x = nlinspace(start,stop,n);
   out2 << "  Creating " << x_name << " as linearly spaced vector\n";
   out3 << "         length: " << n << "\n";
-  out3 << "    first value: " << x(1) << "\n";
+  out3 << "    first value: " << x[0] << "\n";
   if ( x.size() > 1 )
   {
-    out3 << "      step size: " << x(2)-x(1) << "\n";
-    out3 << "     last value: " << x(x.size()) << "\n";
+    out3 << "      step size: " << x[1]-x[0] << "\n";
+    out3 << "     last value: " << x[x.size()-1] << "\n";
   }
 }
 
@@ -959,9 +959,9 @@ void VectorNLogSpace(     VECTOR&  x,
   x = nlogspace(start,stop,n);
   out2 << "  Creating " << x_name << " as logarithmically spaced vector\n";
   out3 << "         length: " << n << "\n";
-  out3 << "    first value: " << x(1) << "\n";
+  out3 << "    first value: " << x[0] << "\n";
   if ( x.size() > 1 )
-    out3 << "     last value: " << x(x.size()) << "\n";
+    out3 << "     last value: " << x[x.size()-1] << "\n";
 }
 
 
@@ -985,18 +985,18 @@ void VectorCopyFromArrayOfVector(
                 const string&          va_name,
                 const int&             i )
 {
-  if ( i < 1 )
-    throw runtime_error("The index must be > 0.");
-  if ( size_t(i) > va.dim() )
+  if ( i < 0 )
+    throw runtime_error("The index must be >= 0.");
+  if ( size_t(i) > va.size() )
   {
     ostringstream os;
-    os << "The vector array has only " << va.dim() << "elements.";
+    os << "The vector array has only " << va.size() << "elements.";
     throw runtime_error(os.str());
   }
 
   out2 << "  Copies " << v_name << " from vector " << i << " in " << va_name
                                                                    << "\n";
-  v = va(i);
+  v = va[i];
 }
 
 

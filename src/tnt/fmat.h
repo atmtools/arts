@@ -236,7 +236,7 @@ class Fortran_Matrix
     Subscript num_rows() const { return m_; }
     Subscript num_cols() const { return n_; }
 
-    Fortran_Matrix<T>& newsize(Subscript M, Subscript N)
+    Fortran_Matrix<T>& resize(Subscript M, Subscript N)
     {
         if (num_rows() == M && num_cols() == N)
             return *this;
@@ -328,7 +328,7 @@ std::istream& operator>>(std::istream &s, Fortran_Matrix<T> &A)
 
     if ( !(M == A.num_rows() && N == A.num_cols()))
     {
-        A.newsize(M,N);
+        A.resize(M,N);
     }
 
 
@@ -475,7 +475,7 @@ inline int matmult(Fortran_Matrix<T>& C, const Fortran_Matrix<T>  &A,
     Subscript N = A.num_cols();
     Subscript K = B.num_cols();
 
-    C.newsize(M,K);         // adjust shape of C, if necessary
+    C.resize(M,K);         // adjust shape of C, if necessary
 
 
     T sum; 

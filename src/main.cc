@@ -74,6 +74,16 @@ void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
 
   out3 << "\nExecuting methods:\n";
 
+//   for (size_t i=0; i<tasklist.size(); ++i)
+//     {
+//       const MRecord&  mrr = tasklist[i];
+//       cout << "id, input: " << mrr.Id() << ", ";
+//       print_vector(mrr.Input());
+//       cout << "id, output: " << mrr.Id() << ", ";
+//       print_vector(mrr.Output());
+//     }
+
+
   for (size_t i=0; i<tasklist.size(); ++i)
     {
       // Runtime method data for this method:
@@ -98,6 +108,7 @@ void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
 
 	  { // Check if all generic input variables are occupied:
 	    v = mrr.Input();
+	    //	    cout << "v.size(): " << v.size() << endl;
 	    for (size_t s=0; s<v.size(); ++s)
 	      if (!occupied[v[s]])
 		give_up("Generic Method "+mdd.Name()+" needs input variable: "+

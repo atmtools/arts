@@ -14,12 +14,12 @@ void test_math()
                      "4 5 6"); //                  |4,5,6|
 
   // Reallocation
-  x.newsize(9);          // Gives a vector of length 9
-  A.newsize(4,5);        // Gives a matrix with 4 rows and 5 columns
+  x.resize(9);          // Gives a vector of length 9
+  A.resize(4,5);        // Gives a matrix with 4 rows and 5 columns
   A = transpose(B);      // Transpose of matrix
 
   // To get dimensions
-  x.dim();               // Gives the length of the vector
+  x.size();               // Gives the length of the vector
   A.dim(1);              // Gives the number of rows of the matrix
   A.dim(2);              // Gives the number of columns of the matrix
 

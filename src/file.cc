@@ -1176,7 +1176,7 @@ void binfile_read2(
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
-  x.newsize(nrows,ncols);
+  x.resize(nrows,ncols);
 
   if ( (nrows > 0) && (ncols > 0) )
   {
@@ -1451,7 +1451,7 @@ void binfile_read_vector(
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "VECTOR", 0, 1 );
   binfile_read2( a, vdata_id, nrows, ncols, filename, dataname );
-  x.newsize(nrows);
+  x.resize(nrows);
   for ( size_t i=1; i<=nrows; i++ )
     x(i) = a(i,1);
   binfile_read_end( vdata_id, filename, dataname );

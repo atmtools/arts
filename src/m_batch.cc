@@ -126,7 +126,7 @@ void temperature_profiles(
   filename_batch( fname, batchname, "t_abs" );
   out2 << "  Filling the file " << fname << "\n"
        << "  with random temperature profiles.\n";
-  out3 << "    Generating random data (" <<t_abs.dim()<<"x"<<n<<").\n";
+  out3 << "    Generating random data (" <<t_abs.size()<<"x"<<n<<").\n";
   rand_data_gaussian( t, n, t_abs, s );
   MatrixWriteBinary( t, "", fname );
 }
@@ -155,7 +155,7 @@ void BatchdataGaussianTemperatureProfiles(
   string fname;
   MATRIX ts;
   temperature_profiles( ts, fname, t_abs, s, batchname, n );
-  MATRIX zs(t_abs.dim(),n);
+  MATRIX zs(t_abs.size(),n);
   VECTOR z, t;
   fname = "";
   filename_batch( fname, batchname, "z_abs" );
@@ -223,7 +223,7 @@ void BatchdataGaussianSpeciesProfiles(
     filename_batch( fname, batchname, molname );
     out2 << "  Filling the file " << fname << "\n"
          << "  with random species profiles.\n";
-    out3 << "    Generating random data (" <<p_abs.dim()<<"x"<<n<<").\n";
+    out3 << "    Generating random data (" <<p_abs.size()<<"x"<<n<<").\n";
 
     // Handle the different units
     if ( unit == 1 )               // Relative
@@ -309,7 +309,7 @@ void ybatchAbsAndRte(
         const int&                        do_za,
         const string&                     za_file )
 {
-  const size_t   np = p_abs.dim();         // Number of pressure levels
+  const size_t   np = p_abs.size();         // Number of pressure levels
   const size_t   ntags = do_tags.size();    // Number of tags to do here 
   ARRAYofsizet   tagindex;                 // Index in tags for do_tags 
    
@@ -337,13 +337,13 @@ void ybatchAbsAndRte(
   VECTOR f = f_mono;
   MATRIX Fs;
   if ( do_f )
-    read_batchdata( Fs, batchname, f_file, "f_mono", f_mono.dim(), ncalc );
+    read_batchdata( Fs, batchname, f_file, "f_mono", f_mono.size(), ncalc );
   //
   // Zenith angles
   VECTOR za = za_pencil;
   MATRIX ZAs;
   if ( do_za )
-    read_batchdata( ZAs, batchname, za_file, "za_pencil", za_pencil.dim(), 
+    read_batchdata( ZAs, batchname, za_file, "za_pencil", za_pencil.size(), 
                                                                       ncalc );
   //
   // Species profiles
@@ -400,7 +400,7 @@ void ybatchAbsAndRte(
     
     // Move to ybatch
     if ( i == 1 )
-      ybatch.newsize( y.dim(), ncalc );
+      ybatch.resize( y.size(), ncalc );
     put_in_col( ybatch, i, y );
   }
   out2 << "  ------------------------------------\n";

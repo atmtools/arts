@@ -44,6 +44,11 @@ typedef void (*lsf_type)(VECTOR&,
     \date   2000-08-21  */
 class LineshapeRecord{
 public:
+
+  /** Default constructor. */
+  LineshapeRecord(){};
+
+  /** Initializing constructor, used to build the lookup table. */
   LineshapeRecord(const string& name,
 		  const string& description,
 		  Numeric       cutoff,
@@ -88,6 +93,11 @@ typedef void (*lsnf_type)(VECTOR&,
     \date   2000-11-30  */
 class LineshapeNormRecord{
 public:
+
+  /** Default constructor. */
+  LineshapeNormRecord(){};
+
+  /** Initializing constructor, used to build the lookup table. */
   LineshapeNormRecord(const string& name,
 		      const string& description,
 		      lsnf_type      function)
@@ -126,8 +136,13 @@ public:
       mmass(mass),
       mmytrantag(mytrantag),
       mhitrantag(hitrantag),
-      mjpltags(jpltags)
+      mjpltags(jpltags.size())
   {
+    // We need to use copy to initialize the ARRAY members. If we use
+    // the assignment operator they end up all pointing to the same
+    // data!
+    copy(jpltags,mjpltags);
+
     // Some consistency checks whether the given data makes sense.
 #ifndef NDEBUG
       {
@@ -207,14 +222,23 @@ private:
     \author Stefan Buehler  */
 class SpeciesRecord{
 public:
+
+  /** Default constructor. */
+  SpeciesRecord(){}  ;
+  
   /** The constructor used in define_species_data. */
   SpeciesRecord(const char name[],
 		const int degfr,
 		const ARRAY<IsotopeRecord>& isotope)
     : mname(name),
       mdegfr(degfr),
-      misotope(isotope)
+      misotope(isotope.size())
   {
+    // We need to use copy to initialize the ARRAY members. If we use
+    // the assignment operator they end up all pointing to the same
+    // data!
+    copy(isotope,misotope);
+
 #ifndef NDEBUG
       {
 	/* Check that the isotopes are correctly sorted. */
@@ -380,20 +404,25 @@ public:
 	      Numeric 	     	    nself,
 	      Numeric 	     	    tgam,
 	      const ARRAY<Numeric>& aux       )
-    : mspecies (species),
-      misotope (isotope),
-      mf       (f      ),
-      mpsf     (psf    ),
-      mi0      (i0     ),
-      mti0     (ti0    ),
-      melow    (elow   ),
-      magam    (agam   ),
-      msgam    (sgam   ),
-      mnair    (nair   ),
-      mnself   (nself  ),
-      mtgam    (tgam   ),
-      maux     (aux    )
+    : mspecies (species	   ),
+      misotope (isotope	   ),
+      mf       (f      	   ),
+      mpsf     (psf    	   ),
+      mi0      (i0     	   ),
+      mti0     (ti0    	   ),
+      melow    (elow   	   ),
+      magam    (agam   	   ),
+      msgam    (sgam   	   ),
+      mnair    (nair   	   ),
+      mnself   (nself  	   ),
+      mtgam    (tgam   	   ),  
+      maux     (aux.size() )
   {
+    // We need to use copy to initialize the ARRAY members. If we use
+    // the assignment operator they end up all pointing to the same
+    // data!
+    copy(aux,maux);
+
     // Check if this species is legal, i.e., if species and isotope
     // data exists.
     extern ARRAY<SpeciesRecord> species_data;
@@ -752,7 +781,7 @@ private:
 typedef ARRAY<LineRecord> ARRAYofLineRecord;
 
 /** Holds a lists of spectral line data for each tag group.
-    Dimensions: (tag_groups.dim()) (number of lines for this tag)
+    Dimensions: (tag_groups.size()) (number of lines for this tag)
     \author Stefan Buehler */
 typedef ARRAY< ARRAY<LineRecord> > ARRAYofARRAYofLineRecord;
 

@@ -181,7 +181,7 @@ class Vector
 
     // methods
     // 
-    Vector<T>& newsize(Subscript N)
+    Vector<T>& resize(Subscript N)
     {
         if (n_ == N) return *this;
 
