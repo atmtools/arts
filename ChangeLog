@@ -1,3 +1,26 @@
+2003-06-30  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-594
+
+	* src/matpackI.h (Range): Added selectors for start, extent and range
+	to avoid unnecessary need for friend declarations.
+	Removed friend declaration of Sparse output operator, transpose and
+	mult.
+
+	* src/matpackII.{cc,h} (operator<<, mult, transpose): Use selector
+	functions instead of direct member access. This has a little impact
+
+	The operator() is for read-only access. To write elements the rw()
+	modifier has to be used. Otherwise, e.g cout << sparse(1,1); will
+	create the element instead of just outputting it.
+
+	* src/m_sensor.cc (sensor_responseInit): Use rw() instead of
+	operater().
+
+	* src/xml_io_basic_types.cc (xml_write_to_stream): Use selector
+	functions instead of direct access for the Sparse range member
+	attributes.
+
 2003-06-30  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-593
