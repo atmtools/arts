@@ -285,6 +285,7 @@ public:
   
   // Assignment operators:
   VectorView operator=(const ConstVectorView& v);
+  VectorView operator=(const Vector& v);
   VectorView operator=(const Array<Numeric>& v);
   VectorView operator=(Numeric x);
 
@@ -1108,7 +1109,23 @@ inline VectorView VectorView::operator=(const ConstVectorView& v)
 
   // Check that sizes are compatible:
   assert(mrange.mextent==v.mrange.mextent);
+  
   copy( v.begin(), v.end(), begin() );
+
+  return *this;
+}
+
+/** Assignment from Vector. This is important to avoid a bug when
+    assigning a Vector to a VectorView. */
+inline VectorView VectorView::operator=(const Vector& v)
+{
+  //  cout << "Assigning VectorView from Vector.\n";
+
+  // Check that sizes are compatible:
+  assert(mrange.mextent==v.mrange.mextent);
+  
+  copy( v.begin(), v.end(), begin() );
+
   return *this;
 }
 

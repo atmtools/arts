@@ -1024,7 +1024,7 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
       // Determine the name.
       String name =
 	basename + "." +
-	species_data[tgs[i][0].Species()].Name() + ".am";
+	species_data[tgs[i][0].Species()].Name() + ".aa";
       
       // Add an element for this tag group to the vmr profiles:
       raw_vmrs_1d.push_back(Matrix());
@@ -1080,7 +1080,7 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
   for ( Index i=0; i<tgs.nelem(); ++i )
     {
      true_filenames[i] +=
-	species_data[tgs[i][0].Species()].Name() + ".am";
+	species_data[tgs[i][0].Species()].Name() + ".aa";
      // Should be identical to how the filenames are constructed in
      // raw_vmrs_1dReadFromScenario! 
     }

@@ -1480,7 +1480,7 @@ void binfile_write_vector(
   for ( Index i=0; i<n; i++ )
     {
       a[i] = x[i];
-      cout << "a[i] = " << a[i] << "\n";
+      //      cout << "a[i] = " << a[i] << "\n";
     }
   
   binfile_write( fid,  filename, dataname, "VECTOR", "NUMERIC", n, 1, 

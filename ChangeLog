@@ -1,3 +1,22 @@
+2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-215
+
+	* General: Changed default ascii file extensions from .am to .aa.
+	Fixed bug that lead to spectra being zero. (Hopefully)
+
+	* src/methods.cc (define_md_data): Changed default ascii file
+	extensions from .am to .aa. 
+
+	* src/m_abs.cc (raw_vmrs_1dReadFromFiles): Changed default ascii
+	file extensions from .am to .aa. 
+
+	* src/matpackI.h (operator=): Added an assignment operator for
+	VectorView = Vector. In that case only the reference was copied
+	before. Assignment operators have proven so far the biggest bug
+	source in Matpack! There could be more...
+
+	
 2001-09-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-214

@@ -163,7 +163,7 @@ void define_md_data()
       ( NAME("IndexWriteAscii"),
 	DESCRIPTION("Writes an integer value to an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -177,7 +177,7 @@ void define_md_data()
       ( NAME("IndexReadAscii"),
 	DESCRIPTION("Reads an integer value from an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -245,7 +245,7 @@ void define_md_data()
       ( NAME("NumericWriteAscii"),
 	DESCRIPTION("Writes a numeric value to an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -259,7 +259,7 @@ void define_md_data()
       ( NAME("NumericReadAscii"),
 	DESCRIPTION("Reads a numeric value from an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -408,7 +408,7 @@ void define_md_data()
       ( NAME("VectorWriteAscii"),
 	DESCRIPTION("Writes a vector to an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -422,7 +422,7 @@ void define_md_data()
       ( NAME("VectorReadAscii"),
 	DESCRIPTION("Reads a vector from an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -551,7 +551,7 @@ void define_md_data()
       ( NAME("MatrixWriteAscii"),
 	DESCRIPTION("Writes a matrix to an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -565,7 +565,7 @@ void define_md_data()
       ( NAME("MatrixReadAscii"),
 	DESCRIPTION("Reads a matrix from an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -621,7 +621,7 @@ void define_md_data()
       ( NAME("ArrayOfIndexWriteAscii"),
 	DESCRIPTION("Writes an integer array to an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -635,7 +635,7 @@ void define_md_data()
       ( NAME("ArrayOfIndexReadAscii"),
 	DESCRIPTION("Reads an integer array from an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -679,7 +679,7 @@ void define_md_data()
       ( NAME("ArrayOfVectorWriteAscii"),
 	DESCRIPTION("Writes an ArrayOfVector to an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -693,7 +693,7 @@ void define_md_data()
       ( NAME("ArrayOfVectorReadAscii"),
 	DESCRIPTION("Reads an ArrayOfVector from an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -738,7 +738,7 @@ void define_md_data()
       ( NAME("ArrayOfMatrixWriteAscii"),
 	DESCRIPTION("Writes an ArrayOfMatrix to an ASCII file.\n"
 		    "The filename can also be an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "The format is as follows:\n\n"
 		    "# <comments>\n"
 		    "<n_array_elements>\n"
@@ -769,7 +769,7 @@ void define_md_data()
       ( NAME("ArrayOfMatrixReadAscii"),
 	DESCRIPTION("Reads an ArrayOfMatrix from an ASCII file.\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -1356,7 +1356,7 @@ void define_md_data()
   	DESCRIPTION(
 	  "Read the individual VMR profile for each tag group from a standard\n"
 	  "atmospheric scenario. Files must look like this example:\n"
-	  "<basename>.ClO.am\n"
+	  "<basename>.ClO.aa\n"
 	  "\n"
 	  "The basename can include a path, i.e., the files can be anywhere,\n"
 	  "but they must be all in the same directory.\n"

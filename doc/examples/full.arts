@@ -23,45 +23,31 @@
 tgsDefine           { [
        "O3",
        "ClO",
-       "H2O,H2O-ContStandardForeign,H2O-ContStandardSelf",
-       "N2O",
-       "N2-ContRosenkranzSelf" ] }
+       "H2O",
+       "N2O" ] }
 wfs_tgsDefine       { ["O3","ClO"] }
 lineshapeDefine     { shape               = "Voigt_Kuntz6"
                       normalizationfactor = "quadratic"
                       cutoff              = -1 } 
 #
-linesReadFromHitran { filename = "/smiles_local/Qpack/Samples/Spectroscopy/lines501.4"
+linesReadFromHitran { filename = "/pool/lookup2/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
 		      fmin     = 498e9
                       fmax     = 505e9 }
 lines_per_tgCreateFromLines {}  
 #
 cont_descriptionInit{
 }
-cont_descriptionAppend{
-    name       = "H2O-ContStandardSelf"
-    parameters = [ 17.96e-34, 4.5 ]
-}
-cont_descriptionAppend{
-    name       = "H2O-ContStandardForeign"
-    parameters = [ 5.43e-35, 0.0 ]
-}
-cont_descriptionAppend{
-    name       = "N2-ContRosenkranzSelf"
-    parameters = [ 1.05e-38, 3.55 ]
-}
-
 
 
 ### Load an atmosphere ########################################################
-MatrixReadAscii (raw_ptz_1d) { "/smiles_local/arts/data/atmosphere/fascod/midlatitude-winter.tz.am" }
-raw_vmrs_1dReadFromScenario  { "/smiles_local/arts/data/atmosphere/fascod/midlatitude-winter" }
+MatrixReadAscii (raw_ptz_1d) { "/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-winter.tz.aa" }
+raw_vmrs_1dReadFromScenario  { "/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-winter" }
 
 
 ### Monochromatic frequency grid ##############################################
-VectorLinSpace (f_mono)    { start = 501.18e+9
+VectorNLinSpace (f_mono)    { start = 501.18e+9
                              stop  = 501.58e+9
-		             step  = 1e6       }
+		             n     = 5       }
 VectorWriteAscii (f_mono) {""}
 
 
@@ -74,7 +60,7 @@ r_geoidStd{}
 VectorNLogSpace (p_abs)    { start = 1.013300e+05
                              stop  = 0.0914023919463313
                              n     = 101 }
-AtmFromRaw1D               {}
+AtmFromRaw1D{""}
 h2o_absSet{}
 n2_absSet{}
 #hseSet{
@@ -150,9 +136,10 @@ transCalc{}
 ### Calculate spectra #########################################################
 yCalc{}
 VectorWriteBinary( y ) {""}
+VectorWriteAscii( y ) {""}
 #yTau{}
 
-
+Exit{}
 
 
 ### Calculate Kx ##############################################################
@@ -193,8 +180,6 @@ ArrayOfIndexWriteBinary(kx_lengths){""}
 MatrixWriteBinary(kx_aux){""}  
 ArrayOfStringWriteBinary(kx_names){""}
 
-Exit{}
-
 
 ### Conversion to different temperature scales ################################
 VectorCopy(f_sensor,f_mono){}
@@ -209,93 +194,87 @@ yTRJ{}
 
 
 ### Save spectra #############################################################
+VectorWriteAscii( y ) {""}
 VectorWriteBinary( y ) {""}
 
-
-
-### Produce batch data for varoius variables ##################################
-
-StringSet( batchname ) { "fullbatch" }
-
-sDiagonalLengthFromVector ( p_abs )
-{ 
-  stddev     = 3
-}
-
-BatchdataGaussianTemperatureProfiles{
-   n     = 20
-}
-
-sDiagonalLengthFromVector ( p_abs )
-{ 
-  stddev     = 0.3
-}
-
-BatchdataGaussianSpeciesProfiles{
-   n       = 20
-   do_tags = ["O3-666"]
-   unit    = "frac"
-}
-
-
-BatchdataUniformOffSets ( za_sensor ) {
-   n    = 20
-   low  = -0.01
-   high = 0.01
-}
-
-# These lines produce thermal noise, but the covariance cannot be 
-# created for the selected f_sensor and za_sensor without 
-# diagonal/banded covariance matrices.
-#
-#sDiagonalLengthFromVectors ( f_sensor, za_sensor )
-#{ 
-#  stddev     = 0.2
-#}
-#
-#BatchdataGaussianZeroMean {
-#   n       = 20
-#   varname = "noise"
-#}
-
-BatchdataSinusoidalRippleNoCorrelations( f_sensor, za_sensor )
-{
-  n         = 20
-  period    = 20e6
-  amplitude = 0.2
-  pdf       = "gaussian"
-  varname   = "ripple"
-}
-
-
-### Calculate spectra for the batch data,  ####################################
-### convert to RJ and add noise and ripple
-
-ybatchAbsAndRte{
-   ncalc     = 10
-   do_t      = 1
-   t_file    = ""
-   do_z      = 1
-   z_file    = ""
-   do_tags   = ["O3-666"]
-   tag_files = [""]
-   do_f      = 0
-   f_file    = ""
-   do_za     = 1
-   za_file   = ""
-}
-
-MatrixTRJ( ybatch, ybatch ){}
-#MatrixFillWithVector( ybatch, y ){ 10 }
-
-ybatchAdd{ "ripple" }
-#ybatchAdd{ "noise" }
-
-MatrixWriteBinary( ybatch ) {""}
-
-
-
-
-
-
-
+# 
+# 
+# ### Produce batch data for varoius variables ##################################
+# 
+# StringSet( batchname ) { "fullbatch" }
+# 
+# sDiagonalLengthFromVector ( p_abs )
+# { 
+#   stddev     = 3
+# }
+# 
+# BatchdataGaussianTemperatureProfiles{
+#    n     = 20
+# }
+# 
+# sDiagonalLengthFromVector ( p_abs )
+# { 
+#   stddev     = 0.3
+# }
+# 
+# BatchdataGaussianSpeciesProfiles{
+#    n       = 20
+#    do_tags = ["O3-666"]
+#    unit    = "frac"
+# }
+# 
+# 
+# BatchdataUniformOffSets ( za_sensor ) {
+#    n    = 20
+#    low  = -0.01
+#    high = 0.01
+# }
+# 
+# # These lines produce thermal noise, but the covariance cannot be 
+# # created for the selected f_sensor and za_sensor without 
+# # diagonal/banded covariance matrices.
+# #
+# #sDiagonalLengthFromVectors ( f_sensor, za_sensor )
+# #{ 
+# #  stddev     = 0.2
+# #}
+# #
+# #BatchdataGaussianZeroMean {
+# #   n       = 20
+# #   varname = "noise"
+# #}
+# 
+# BatchdataSinusoidalRippleNoCorrelations( f_sensor, za_sensor )
+# {
+#   n         = 20
+#   period    = 20e6
+#   amplitude = 0.2
+#   pdf       = "gaussian"
+#   varname   = "ripple"
+# }
+# 
+# 
+# ### Calculate spectra for the batch data,  ####################################
+# ### convert to RJ and add noise and ripple
+# 
+# ybatchAbsAndRte{
+#    ncalc     = 10
+#    do_t      = 1
+#    t_file    = ""
+#    do_z      = 1
+#    z_file    = ""
+#    do_tags   = ["O3-666"]
+#    tag_files = [""]
+#    do_f      = 0
+#    f_file    = ""
+#    do_za     = 1
+#    za_file   = ""
+# }
+# 
+# MatrixTRJ( ybatch, ybatch ){}
+# #MatrixFillWithVector( ybatch, y ){ 10 }
+# 
+# ybatchAdd{ "ripple" }
+# #ybatchAdd{ "noise" }
+# 
+# MatrixWriteBinary( ybatch ) {""}
