@@ -368,6 +368,7 @@ ArtsXMLTag::read_from_stream (istream& is)
   stringbuf     tag;
   istringstream sstr ("");
   XMLAttribute  attr;
+  char          ch;
 
   attribs.clear ();
 
@@ -376,18 +377,22 @@ ArtsXMLTag::read_from_stream (istream& is)
       is.get ();
     }
 
+  is >> ch;
+
+  if (ch != '<')
+    {
+      is >> token;
+      token = ch + token;
+
+      xml_parse_error ("'<' expected but " + token + " found.");
+    }
+
   is.get (tag, '>');
 
   // Hit EOF while looking for '>'
   if (is.bad () || is.eof ())
     {
       xml_parse_error ("Unexpected end of file while looking for '>'");
-    }
-
-  if (tag.str ()[0] != '<')
-    {
-      xml_parse_error ("Expected tag but found: "
-                       + tag.str ());
     }
 
   if (is.get () != '>')
@@ -400,9 +405,6 @@ ArtsXMLTag::read_from_stream (istream& is)
   out2 << "Read: " << sstr.str () << '\n';
 
   sstr >> name;
-
-  // Remove opening < of tag
-  name.erase (0, 1);
 
   if (name [name.length () - 1] == '>')
     {
