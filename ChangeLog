@@ -1,3 +1,28 @@
+2002-05-15  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-81
+	
+	* src/xml_io.{h,cc}: Implemented XML parser.
+
+	To read the XML header I implemented a template function. Which
+	reduces the number of needed read_from_file functions from n
+	(n = Number of data types) to 1. From there the overloaded
+	function read_from_stream is called to do the data type specific
+	part.
+
+	Currently there's only Index and Numeric ASCII read support. ASCII
+	write support will follow, binary later.
+
+	* src/methods.cc (define_md_data): Corrected indentation of XML
+	functions.
+
+	* src/m_xml.cc: Throw runtime error when unimplemented function is
+	called.
+
+	Implemented IndexReadXML and NumericReadXML.
+
+	* src/file.cc (open_input_file): Documentation changed.
+
 2002-05-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-80
