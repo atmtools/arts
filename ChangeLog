@@ -1,3 +1,11 @@
+2003-11-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-722
+
+	* src/test_sparse.cc: Added test45() to test sparse-sparse
+	multiplication using matrices from xml files. However, need help with 
+	enabling xml support in test_sparse.
+
 2003-11-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-721	

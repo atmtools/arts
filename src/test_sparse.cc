@@ -29,6 +29,7 @@
 
 #include <iostream>
 #include "matpackII.h"
+#include "xml_io.h"
 
 Joker joker;
 
@@ -249,7 +250,7 @@ void test42()
   Sparse A(4,4), Bt(5,4);
   transpose(Bt,B);
   mult(A,B,Bt);
-  
+
   cout << "A:\n" << A << "\n";
 }
 
@@ -300,16 +301,34 @@ void test44()
   cout << "B (after insertion):\n" << B << "\n";
 }
 
+void test45()
+{
+  cout << "Test Sparse-Sparse multiplication reading matrices from xml "
+          "files:\n";
+
+  Sparse A, B;
+
+  //xml_read_from_file ("antenna.xml", A);
+  //xml_read_from_file ("backend.xml", B);
+
+  Sparse C(A.nrows(),B.ncols());
+  mult(C,A,B);
+
+  cout << "C=A*B:\n" << A << "\n";
+}
+
+
 int main()
 {
   //  test3();
   //  test38();
   //  test39();
   //  test40();
-  test41();
+  //  test41();
   //  test42();
   //  test43();
   //  test44();
+    test45();
 
   return 0;
 }

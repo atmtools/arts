@@ -107,7 +107,9 @@ void CloudboxSetIncomingForTauCalc1D(// WS Output:
                                      const Index& atmosphere_dim,
                                      const Index& stokes_dim,
                                      const Vector&  scat_za_grid,
-                                     const Vector&  f_grid )
+                                     const Vector&  f_grid,
+                                     // Control Parameters:
+                                     const Numeric& za_low )
 {
   // Check the atmosphere dimensionality and that only the first Stokes
   // component is used(?)
@@ -116,6 +118,9 @@ void CloudboxSetIncomingForTauCalc1D(// WS Output:
       "atmosphere.\n");
   if( stokes_dim != 1 )
     throw runtime_error( "Only the first Stokes component must be set.\n");
+  if( za_low <= 90 )
+    throw runtime_error( "Lower zenith angle limit for incoming radiation "
+      "must be higher than 90.\n" );
 
   out2 <<"Setting clearsky field on cloudbox boundary for transmission "
        <<"calculation.\n" ;
@@ -128,9 +133,9 @@ void CloudboxSetIncomingForTauCalc1D(// WS Output:
   scat_i_p.resize(Nf, 2, 1, 1, Nza, 1, 1);
 
   // Calculate the clearsky field on the lower side. Calculations are made for
-  // zenith angles over 90 degrees.
+  // zenith angles higher than za_low.
   for( Index k=0; k<Nza; k++ ) {
-    if( scat_za_grid[k]>90 ) {
+    if( scat_za_grid[k]>za_low ) {
       scat_i_p(Range(joker),0,0,0,k,0,0)=1/-cos(scat_za_grid[k]*DEG2RAD);
     } else {
       scat_i_p(Range(joker),0,0,0,k,0,0)=0.0;

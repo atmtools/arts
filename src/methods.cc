@@ -1048,14 +1048,16 @@ md_data_raw.push_back
          "\n"
          "This is implemented only for the case of 1D atmosphere at present\n"
          "\n"
+         "Keywords: \n"
+         "   za_low : Lower zenith angle limit for incoming intensity.\n"
          ),
         OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_ ),
         INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
                f_grid_ ),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS(),
-        TYPES()));
+        KEYWORDS( "za_low" ),
+        TYPES( Numeric_t )));
 
 
   md_data_raw.push_back
