@@ -1,3 +1,11 @@
+2003-02-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-458
+	
+	* src/m_rte.cc (RteEmissionStd): Removed a variable not used (with
+	apossible size of up to 10 Mb!) and moved some lines to outside a
+	for loop (to maybe save some time).
+
 2003-02-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-457

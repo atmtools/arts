@@ -206,15 +206,14 @@ void RteEmissionStd(
       // Calculate absorption vector and extinction matrix for all points 
       // along the propagation path.
 
-      // Define a variable which holds the scalar gas absorption for 
-      // all pressure values and all frequencies.
-      // Dimensions: [ # frequencies, # pressure levels, # species ]
-      Tensor3 scalar_gas_array;
-
       // Variables for extinction matrix and absorption vector at each 
       // propagation path point.
       ArrayOfTensor3   ext_mat_ppath(np);
       ArrayOfMatrix    abs_vec_ppath(np);
+
+      // If f_index < 0, scalar gas absorption is calculated for 
+      // all frequencies in f_grid.
+      f_index = -1;
     
       for ( Index ip = 0; ip < np; ip ++)
         { 
@@ -222,21 +221,8 @@ void RteEmissionStd(
           a_temperature = t_ppath[ip];
           a_vmr_list    = vmr_ppath(joker,ip);
           
-          // If f_index < 0, scalar gas absorption is calculated for 
-          // all frequencies in f_grid.
-          f_index = -1;
           scalar_gas_absorption_agenda.execute( ip );
           
-          // We don't know how many gas species we have before the first
-          // call of scalar_gas_absorption_agenda. So we have to resize
-          // scalar_gas_array after the first call:
-          //
-          if ( ip == 0 )
-            { scalar_gas_array.resize( nf, np, abs_scalar_gas.ncols() ); }
-          //
-          scalar_gas_array(joker,ip,joker) = abs_scalar_gas(joker,joker);
-            
-
           // Calculate extinction matrix and absorption vector
           // for all propagation path points.
           
@@ -261,6 +247,10 @@ void RteEmissionStd(
       // Define variables which hold averaged coefficients:
       Matrix   ext_mat_av(stokes_dim, stokes_dim,0.);
       Vector   abs_vec_av(stokes_dim,0.);
+
+      // Dummy vector for scattering integral. It has to be 
+      // set to 0 for clear sky calculations.
+      Vector sca_vec_dummy(stokes_dim, 0.);
               
       for( Index ip=np-1; ip>0; ip-- )
         {
@@ -270,13 +260,10 @@ void RteEmissionStd(
               // absorption vector.
               for (Index i = 0; i < stokes_dim; i++)
                 {
-                  // Extinction matrix requires a second loop over 
-                  // stokes_dim:
+                  // Extinction matrix requires a second loop over stokes_dim:
                   for (Index j = 0; j < stokes_dim; j++)
-                    {
-                      ext_mat_av(i, j) = 0.5*( ext_mat_ppath[ip](iv, i, j) +
-                                                ext_mat_ppath[ip-1](iv, i, j));
-                    }
+                    { ext_mat_av(i, j) = 0.5*( ext_mat_ppath[ip](iv, i, j) +
+                                              ext_mat_ppath[ip-1](iv, i, j)); }
                  
                   // Absorption vector
                   abs_vec_av[i] = 0.5*( abs_vec_ppath[ip](iv,i) +
@@ -288,10 +275,6 @@ void RteEmissionStd(
               Numeric planck_value = 
                            planck( f_grid[iv], (t_ppath[ip]+t_ppath[ip-1])/2 );
                   
-              // Dummy vector for scattering integral. It has to be 
-              // set to 0 for clear sky calculations.
-              Vector sca_vec_dummy(stokes_dim, 0.);
-
               assert (!is_singular( ext_mat_av ));   
 
               // Perform the RTE step.
