@@ -1,3 +1,12 @@
+2002-07-04  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-185
+	
+	* src/matpackVI.h (Tensor6), src/matpackVII (Tensor7): Replaced
+	',' in member element initialization list in constructors by
+	'*'. This was the reason for random segfaults while copying
+	Tensor6 and Tensor7.
+
 2002-07-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-184
