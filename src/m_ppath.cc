@@ -694,3 +694,68 @@ void ZaSatOccultation(
 
 }
 
+//! rte_pos_and_losFromTangentPressure
+/*!
+  See the the online help (arts -d FUNCTION_NAME)
+
+  \author Cory Davis
+  \date   2003-09-18
+*/
+void rte_pos_and_losFromTangentPressure(
+					// WS Output:
+					Vector&          rte_pos,
+					Vector&          rte_los,
+					Ppath&           ppath,
+					Ppath&           ppath_step,
+					// WS Input:
+					const Index&     atmosphere_dim,
+					const Vector&    p_grid,
+					const Tensor3&   z_field,
+					const Vector &     lat_grid,      
+					const Vector &     lon_grid,
+					const Agenda &     ppath_step_agenda,
+					const Matrix &     r_geoid,
+					const Matrix &     z_ground,
+					// Control Parameters:
+					const Numeric&   tan_p
+					)
+{
+  //This function is only ready for 1D calculations
+  if (atmosphere_dim > 1)
+    throw runtime_error(
+      "Sorry, this function currently only works for atmosphere_dim==1");
+  
+
+  Index np=p_grid.nelem();
+  Vector log_p_grid(np);
+  Numeric log_p=log10(tan_p);
+  GridPos gp;
+  Vector itw(2);
+  Numeric z;
+  rte_pos.resize(atmosphere_dim);
+  rte_los.resize(atmosphere_dim);
+  
+  //find z for given tangent pressure
+  for (Index i=0;i<np;i++){log_p_grid[i]=log10(p_grid[i]);}
+  
+  gridpos(gp,log_p_grid,log_p);
+  out1 << "gp.index = " << gp.idx << "\n";
+  interpweights(itw,gp);
+  z = interp(itw,z_field(Range(joker),0,0),gp);
+  out1 <<  " Tangent pressure corresponds to an altitude of " << z << "m.\n";
+  
+  //Use ppath to find the desired point on the edge of the atmosphere
+  rte_pos[0]=z+r_geoid(0,0);
+  rte_los[0]=90;
+
+  Index cloudbox_on=0;
+  ArrayOfIndex cloudbox_limits(2);
+  bool outside_cloudbox=true;
+  Index agenda_verb=1;
+  ppath_calc(ppath,ppath_step,ppath_step_agenda,atmosphere_dim,p_grid,lat_grid,
+	     lon_grid,z_field, r_geoid, z_ground,cloudbox_on, cloudbox_limits,
+	     rte_pos, rte_los, outside_cloudbox,agenda_verb);
+  rte_pos = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
+  rte_los = ppath.los(ppath.np-1,joker);
+  rte_los[0]=180.0-rte_los[0];
+}

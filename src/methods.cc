@@ -2957,6 +2957,25 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "rte_pos_and_losFromTangentPressure" ),
+        DESCRIPTION
+        (
+         "If you are doing limb calculations it can be useful to specify\n"
+	 "viewing direction and sensor position by the tangent pressure.\n"
+	 "This function takes tan_p as a keyword argument and sets rte_los\n"
+	 "and rte_pos to the apropriate position on the edge of the modelled\n"
+	 "atmosphere\n\n"
+	 "This function is a work in progress. Only 1D is currently supported"
+        ),
+        OUTPUT( rte_pos_, rte_los_, ppath_, ppath_step_ ),
+        INPUT( atmosphere_dim_, p_grid_, z_field_, lat_grid_, lon_grid_,
+	       ppath_step_agenda_, r_geoid_, z_ground_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("tan_p"),
+        TYPES(Numeric_t)));
 
   md_data_raw.push_back
     ( MdRecord

@@ -1,3 +1,19 @@
+2003-09-18  Cory Davis <cory@met.ed.ac.uk>
+
+	* arts-1-685
+
+	* src/ppath.cc (rte_pos_and_losFromTangentPressure): Cory gets the
+	record for the WSM with the longest name.  For limb sounding
+	calculations I wanted to be able to easily set up the sensor los
+	and pos by specifying the tangent pressure.  The method
+	interpolates z from z_field and log p and then uses ppath_calc to
+	find the appropriate sensor point at the edge of the atmosphere.  Since
+	ppath_calc is used, refraction can be considered by setting
+	ppath_step_agenda accordingly.  Only works in the 1-D case at the moment.
+
+	* src/methods.cc: Added rte_pos_and_losFromTangentPressure.
+	
+
 2003-09-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-684
