@@ -227,6 +227,10 @@ void define_partition_species_data()
   // present, so that the consistency check between species_data and
   // partition_function_data is successful. Thomas, you will also need
   // to add more dummy entries here in case you add more continuum tags.
+  //
+  // 2001-05-30 Stefan Buehler: 
+  // - Added isotope 172 (HITRAN 2000 tag 16)
+  //   The Q coefficients for this are just copied from the main isotope!!
   spec(it_species, it_isotope, "H2O");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -235,6 +239,7 @@ void define_partition_species_data()
   iso(it_isotope,	"171",	Qcoeff(	-2.5767E+01	,1.6458E+00	,7.6905E-03	,-3.1668E-06) );
   iso(it_isotope,	"162",	Qcoeff(	-2.3916E+01	,1.3793E+00	,6.1246E-03	,-2.1530E-06) );
   iso(it_isotope,	"182",	Qcoeff(	-5.1056E+00	,2.4408E-01	,1.0230E-03	,-4.2596E-07) );
+  iso(it_isotope,	"172",	Qcoeff(	-4.4405E+00	,2.7678E-01	,1.2536E-03	,-4.8938E-07) );
   iso(it_isotope,	"262",	Qcoeff(	-3.6689E+01	,1.7119E+00	,7.2123E-03	,-3.0200E-06) );
   iso(it_isotope,	"ContStandardSelf",      Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"ContStandardForeign",   Qcoeff( 0	,0		,0		,0          ) );

@@ -159,7 +159,7 @@ void define_basic_species_data()
 
 
   // H2O
-  // Isotopic Ratio: 1 1 1 1 3 3
+  // Isotopic Ratio: 1 1 1 1 1 1 3 
   //
   // Some tags relate to empirical continuum correction terms. Thomas,
   // this would be the place to add additional continuum tags, should
@@ -172,6 +172,13 @@ void define_basic_species_data()
   // 
   // You also have to change the entry in the file
   // partition_function_data.cc consistently! 
+  //
+  // 2001-05-30 Stefan Buehler: 
+  // - Added isotope 172 (HITRAN 2000 tag 16)
+  // - Gave HITRAN tag 15 to isotope 182, which was already in ARTS,
+  //   but previously not in HITRAN. Changed isotopic ratio of this
+  //   one to the HITRAN value, which is 6.23e-7, instead of the
+  //   previous value of 6.11e-7.
   species_data.push_back
     ( SpeciesRecord
       ( NAME("H2O"),
@@ -183,7 +190,8 @@ void define_basic_species_data()
 	 REC( "181"		,0.00199983	,20.	,12	,12	,TAGS(20003) ),
 	 REC( "171"		,0.00037200	,19.	,13	,13	,TAGS(19003) ),
 	 REC( "162"		,0.00031069	,19.	,14	,14	,TAGS(19002) ),
-	 REC( "182"		,6.1070746E-07	,21.	,-1	,-1	,TAGS(21001) ),
+	 REC( "182"		,6.23003E-07	,21.	,-1	,15	,TAGS(21001) ),
+	 REC( "172"		,1.15853E-07	,20.	,-1	,16	,TAGS()      ),
 	 REC( "262"		,2.2430204E-08	,20.	,-1	,-1	,TAGS(20001) ),
 	 REC( "ContStandardSelf"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "ContStandardForeign"	,-1.	,-1.	,-1	,-1	,TAGS()      ),

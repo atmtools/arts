@@ -1,9 +1,27 @@
+2001-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-172
+
+	* continua.cc: Removed `^' character.
+
+	* species_data.cc: Added isotope 172 (HITRAN 2000 tag 16)
+
+	* species_data.cc: Gave HITRAN tag 15 to isotope 182, which was
+	already in ARTS, but previously not in HITRAN. Changed isotopic
+	ratio of this one to the HITRAN value, which is 6.23e-7, instead
+	of the previous value of 6.11e-7.
+
+	* partition_function_data.cc: Added isotope 172 (HITRAN 2000 tag 16)
+        The Q coefficients for this are just copied from the main isotope!!
+
+	
 2001-05-25  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-171
 
 	* Fixed wrong parameters in continua.cc
 
+	
 2001-05-16  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-170
