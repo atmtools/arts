@@ -48,6 +48,7 @@
 #include "optproperties.h"
 #include "bifstream.h"
 #include "bofstream.h"
+#include "jacobian.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -151,6 +152,14 @@ xml_read_from_stream (istream&,ArrayOfArrayOfMatrix&, bifstream * = NULL);
 
 void
 xml_write_to_stream (ostream&, const ArrayOfArrayOfMatrix&,
+                     bofstream * = NULL, const String& = "");
+
+void
+xml_read_from_stream (istream&, ArrayOfRetrievalQuantity&,
+                      bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfRetrievalQuantity&,
                      bofstream * = NULL, const String& = "");
 
 void

@@ -943,7 +943,113 @@ wsv_data.push_back
         "See agendas.cc."
         ),
        GROUP(  Agenda_ )));
-  
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobian" ),
+      DESCRIPTION
+      (
+       "Jacobian matrix.\n"
+       "\n"
+       "FIXME: Add text, Usage, Dimension ..."
+      ),
+      GROUP( Sparse_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobian_lat_grid" ),
+      DESCRIPTION
+      (
+       "The latitude grid for the Jacobian matrix."
+       "\n"
+       "The latitudes for which the Jacobian is determined. The jacobian\n"
+       "is undefined outside the range covered by the grid. The grid must\n"
+       "be sorted in increasing order, with no repetitions.\n"
+       "\n"
+       "Geocentric latitudes shall be used.\n"
+       "\n"
+       "The latitude grid can differ between retrieval quantities, and it\n"
+       "is the grid defined when the retrieval quantity is added that is\n"
+       "used.\n"
+       "For 1D calculations this vector shall be set to be empty, but the\n"
+       "number of latitudes shall be considered to be 1 when examining the\n"
+       "size of variables.\n"
+       "\n"
+       "In the case of 2D, the latitudes shall be interpreted as the angular\n"
+       "distance inside the orbit plane from an arbitrary zero point. Any\n"
+       "latitude values are accepted for 2D.\n"
+       "\n"
+       "For 3D, the valid latitude range is [-90,90].\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       "\n"
+       "Unit:       degrees"
+      ),
+      GROUP( Vector_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobian_lon_grid" ),
+      DESCRIPTION
+      (
+       "The longitude grid for the Jacobian matrix."
+       "\n"
+       "The longitudes for which the Jacobian is determined. The jacobian\n"
+       "is undefined outside the range covered by the grid. The grid must\n"
+       "be sorted in increasing order, with no repetitions.\n"
+       "\n"
+       "Geocentric latitudes shall be used.\n"
+       "\n"
+       "The latitude grid can differ between retrieval quantities, and it\n"
+       "is the grid defined when the retrieval quantity is added that is\n"
+       "used.\n"
+       "\n"
+       "For 1D and 2D calculations this vector shall be set to be empty, but\n"
+       "the number of latitudes shall be considered to be 1 when examining\n"
+       "the size of variables.\n"
+       "\n"
+       "Allowed values for 3D, is [-360,360].\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       "\n"
+       "Unit:       degrees"
+      ),
+      GROUP( Vector_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobian_p_grid" ),
+      DESCRIPTION
+      (
+       "The pressure grid for the Jacobian matrix.\n"
+       "\n"
+       "The pressure surfaces on which the Jacobian matrix is determined.\n"
+       "This variable has to be defined when calculating the the Jacobian.\n"
+       "It must be sorted in decreasing order, with no repetitions.\n"
+       "\n"
+       "Usage:       Set by the user.\n"
+       "\n"
+       "Unit:        Pa"
+      ),
+      GROUP( Vector_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobian_quantities" ),
+      DESCRIPTION
+      (
+       "The retrieval quantities in the Jacobian matrix.\n"
+       "\n"
+       "An array of retrieval quantities for which the jacobians are\n"
+       "calculated.\n"
+       "\n"
+       "Usage: Quantities are added by specific WSM;\n"
+       "         jacobianAddGas,\n"
+       "         jacobianAddTemp,\n"
+       "         ..."
+      ),
+      GROUP( ArrayOfRetrievalQuantity_ )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "l_step" ),
@@ -995,7 +1101,7 @@ wsv_data.push_back
        "For 1D calculations this vector shall be set to be empty, but the\n"
        "number of latitudes shall be considered to be 1 when examining the\n"
        "size of variables.\n"
-       "\n" 
+       "\n"
        "In the case of 2D, the latitudes shall be interpreted as the angular\n"
        "distance inside the orbit plane from an arbitrary zero point. Any\n"
        "latitude values are accepted for 2D.\n"

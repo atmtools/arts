@@ -41,6 +41,7 @@
 #include "gridded_fields.h"
 #include "bifstream.h"
 #include "bofstream.h"
+#include "jacobian.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -88,6 +89,13 @@ xml_read_from_stream (istream&, Ppath&, bifstream * = NULL);
 void
 xml_write_to_stream (ostream&, const Ppath&, bofstream * = NULL,
                      const String& = "");
+
+void
+xml_read_from_stream (istream&, RetrievalQuantity&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const RetrievalQuantity&,
+                     bofstream * = NULL, const String& = "");
 
 void
 xml_read_from_stream (istream&, SingleScatteringData&,

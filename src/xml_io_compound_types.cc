@@ -40,6 +40,7 @@
 #include "matpackVI.h"
 #include "matpackVII.h"
 #include "gridded_fields.h"
+#include "jacobian.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -432,6 +433,84 @@ xml_write_to_stream (ostream& os_xml,
                        "GeometricalTangentPointPosition");
 
   close_tag.set_name ("/Ppath");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+}
+
+
+//=== RetrievalQuantity =========================================
+
+//! Reads RetrievalQuantity from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param rq      RetrievalQuantity return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      RetrievalQuantity& rq,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag     tag;
+  String         maintag;
+  String         subtag;
+  String         unit;
+  Index          method;
+  Numeric        perturbation;
+  ArrayOfVector  grids;
+  Index          speciesindex;
+  Matrix         jacobianindices;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("RetrievalQuantity");
+
+  xml_read_from_stream (is_xml, maintag, pbifs);
+  xml_read_from_stream (is_xml, subtag, pbifs);
+  xml_read_from_stream (is_xml, unit, pbifs);
+  xml_read_from_stream (is_xml, method, pbifs);
+  xml_read_from_stream (is_xml, perturbation, pbifs);
+  xml_read_from_stream (is_xml, grids, pbifs);
+  xml_read_from_stream (is_xml, speciesindex, pbifs);
+  xml_read_from_stream (is_xml, jacobianindices, pbifs);
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/RetrievalQuantity");
+
+  rq = RetrievalQuantity( maintag, subtag, unit, method, perturbation,
+                          grids, speciesindex, jacobianindices );
+}
+
+//! Writes RetrievalQuantity to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param rq      RetrievalQuantity
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const RetrievalQuantity& rq,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("RetrievalQuantity");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+  open_tag.write_to_stream (os_xml);
+
+  xml_write_to_stream (os_xml, rq.MainTag(), pbofs, "MainTag");
+  xml_write_to_stream (os_xml, rq.Subtag(), pbofs, "Subtag");
+  xml_write_to_stream (os_xml, rq.Unit(), pbofs, "Unit");
+  xml_write_to_stream (os_xml, rq.Method(), pbofs, "Method");
+  xml_write_to_stream (os_xml, rq.Perturbation(), pbofs, "Perturbation");
+  xml_write_to_stream (os_xml, rq.Grids(), pbofs, "Grids");
+  xml_write_to_stream (os_xml, rq.SpeciesIndex(), pbofs, "SpeciesIndex");
+  xml_write_to_stream (os_xml, rq.JacobianIndices(), pbofs, "JacobianIndices");
+
+  close_tag.set_name ("/RetrievalQuantity");
   close_tag.write_to_stream (os_xml);
   os_xml << '\n';
 }

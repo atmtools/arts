@@ -54,6 +54,8 @@ arts_SOURCES = \
 	interpolation.cc \
 	interpolation.h \
 	iotraits.h \
+	jacobian.cc \
+	jacobian.h \
 	legendre.cc \
 	legendre.h \
 	m_lineshapes.cc \
@@ -73,6 +75,7 @@ arts_SOURCES = \
 	m_abs_o2_models.cc \
 	m_copy.h \
 	m_ignore.h \
+	m_jacobian.cc \
 	m_montecarlo.cc \
 	m_sensor.cc \
 	m_xml.cc \

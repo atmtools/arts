@@ -62,7 +62,8 @@ int main()
           << "#include \"absorption.h\"\n\n"
           << "#include \"gas_abs_lookup.h\"\n\n"
           << "#include \"optproperties.h\"\n\n"
-          << "#include \"gridded_fields.h\"\n\n";
+          << "#include \"gridded_fields.h\"\n\n"
+          << "#include \"jacobian.h\"\n\n";
 
       ofs << "// Declare existence of class Agenda. We cannot include agenda.h here,\n"
           << "// because that would generate a dependency loop.\n"

@@ -82,6 +82,7 @@ int main()
           << "#include \"optproperties.h\"\n"
           << "#include \"m_general.h\"\n"
           << "#include \"gridded_fields.h\"\n"
+          << "#include \"jacobian.h\"\n"
           << "\n";
       
       ofs << "//! Total number of workspace variables.\n"

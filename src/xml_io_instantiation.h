@@ -142,6 +142,9 @@ template void
 xml_read_from_file<Ppath> (const String&, Ppath&);
 
 template void
+xml_read_from_file<RetrievalQuantity> (const String&, RetrievalQuantity&);
+
+template void
 xml_read_from_file<SingleScatteringData> (const String&, SingleScatteringData&);
 
 template void
@@ -169,6 +172,10 @@ xml_write_to_file<IsotopeRecord> (const String&, const IsotopeRecord&,
 
 template void
 xml_write_to_file<Ppath> (const String&, const Ppath&, FileType);
+
+template void
+xml_write_to_file<RetrievalQuantity> (const String&,
+                                      const RetrievalQuantity&, FileType);
 
 template void
 xml_write_to_file<SingleScatteringData> (const String&,
@@ -238,6 +245,10 @@ xml_read_from_file<ArrayOfArrayOfMatrix>
 (const String&, ArrayOfArrayOfMatrix&);
 
 template void
+xml_read_from_file<ArrayOfRetrievalQuantity> (const String&,
+                                              ArrayOfRetrievalQuantity&);
+
+template void
 xml_read_from_file<ArrayOfSpeciesTag> (const String&, ArrayOfSpeciesTag&);
 
 template void
@@ -281,10 +292,15 @@ xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&, FileType);
 template void
 xml_write_to_file<ArrayOfMatrix> (const String&, const ArrayOfMatrix&,
                                   FileType);
-                                  
+
 template void
-xml_write_to_file<ArrayOfArrayOfMatrix> 
+xml_write_to_file<ArrayOfArrayOfMatrix>
 (const String&, const ArrayOfArrayOfMatrix&, FileType);
+
+template void
+xml_write_to_file<ArrayOfRetrievalQuantity> (const String&,
+                                             const ArrayOfRetrievalQuantity&,
+                                             FileType);
 
 template void
 xml_write_to_file<ArrayOfTensor3> (const String&, const ArrayOfTensor3&,

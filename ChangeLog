@@ -1,3 +1,39 @@
+2004-09-15  Mattias Ekström <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-866
+
+	* src/jacobian.[cc,h]: Added these to files. The header files 
+	describes the class RetrievalQuantity, which will be used to set up 
+	the jacobian matrix. It also defines ArrayOfRetrievalQuantity.
+
+	* src/m_jacobian.cc: Added this file. Empty so far.
+
+	* src/Makefile.am: Added the above mentioned files to arts sources.
+
+	* src/groups.cc: Added ArrayOfRetrievalQuantity.
+
+	* src/make_auto_wsv_groups_h.cc: Included jacobian.h in
+	auto_wsv_groups.h.
+
+	* src/make_auto_wsv_h.cc: Included jacobian.h in auto_wsv.h.
+
+	* src/workspace.cc: Added *jacobia*,*jacobian_quantities*,
+	*jacobian_lat_grid*,*jacobian_lon_grid* and *jacobian_p_grid*.
+	The *jacobian* variable is the Jacobian matrix itself, 
+	*jacobian_quantities* describes the retrieval quantities and the
+	grid variables are definition grid for the jacobian quantities.
+
+	* src/xml_io_compund_types.[cc,h]: Added functions for reading and
+	writing RetrievalQuantity to xml files.
+
+	* src/xml_io_array_types.[cc,h]: Added functions for reading and
+	writing ArrayOfRetrievalQuantity.
+
+	* src/xml_io_instantiation.h: Added headers for the functions
+	added in xml_io_compund_types.[cc,h] and xml_io_array_types.[cc,h].
+
+	* src/sensor.cc: Changes made to multi_mixer_matrix.
+
 2004-09-13  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-865
