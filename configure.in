@@ -1,0 +1,52 @@
+#  
+# This file is free software; as a special exception the author gives
+# unlimited permission to copy and/or distribute it, with or without 
+# modifications, as long as this notice is preserved.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+AC_INIT(reconf)
+AM_CONFIG_HEADER(src/config.h)
+
+# The ARTS release number must go here:
+AM_INIT_AUTOMAKE(arts,0.0)
+
+# C Compiler:
+AC_PROG_CC
+AC_PROG_CPP
+# C++ Compiler:
+AC_PROG_CXX
+# C++ Preprocessor:
+AC_PROG_CXXCPP
+
+# LF_CONFIGURE_CC
+
+# Configure the C++ Compiler
+# LF_CONFIGURE_CXX
+# LF_HOST_TYPE
+
+# Allow --with-warnings flag to configure:
+LF_SET_WARNINGS
+
+# Omitted, because we are not building libraries.
+# AC_PROG_RANLIB
+
+# What's used by make install:
+AC_PROG_INSTALL
+
+# Provide standard headers:
+AC_STDC_HEADERS
+
+# Special headers that we need:
+# AC_HAVE_HEADERS(getopt.h) (now included in the source)
+
+AC_OUTPUT(Makefile \
+             doc/Makefile \
+                doc/doc++/Makefile \
+                   doc/doc++/html/Makefile \
+                   doc/doc++/tex/Makefile \
+             m4/Makefile \
+             src/Makefile \
+                src/tnt/Makefile)

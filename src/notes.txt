@@ -1,0 +1,149 @@
+
+Some notes about the art of programing on ARTS:
+
+1. Never use float or double explicitly, use the type numeric
+   instead. This is set in arts.h (to double by defaults). Thus, it is 
+   possible to compile the program for real by simply changing the
+   typedef in arts.h.
+
+2. Terminology:
+   Calculations are carried out in the so called workspace (WS), on
+   workspace variables (WSVs). A WSV is for example the variable
+   containing the absorption coefficients. The WSVs are manipulated by 
+   workspace methods (WSMs). The WSMs to use are specified in the
+   contollfile in the same order in which they shall be used. For each 
+   WSM the controllfile contains a block of definitions, called
+   workspace method parameters (WSMPs). Internally, the WSMPs are
+   stored in method descriptors (MDs). To do this the MDs contain
+   method descriptor elements (MDE). There are 6 types of MDEs:
+   `MdeInteger', `MdeNumeric', `MdeString', and the associated vector
+   types `MdeIntegerVec', `MdeNumericVec', and `MdeStringVec'.
+
+3. Patrick, how should we write vectors: [1,2,3] or [1 2 3]? How
+   strings: 'string' or "string"? 
+   I vote for [1,2,3] and "string"
+
+4. Is it possible to make keyword and comment in MdeImpl static? How? 
+
+5. Global variables:
+   Are not visible by default. To use them you have to declare them
+   like this:
+   external Numeric Pi;
+   which will make the global constant Pi=3.14... available.
+   Other important globals:
+   parameters:  All command line parameters
+   out_path:    Output path
+   messages:    Controls the verbosity level
+
+   The only exception from this rule are the output streams out0 to
+   out3, which are visible by default.
+----------------------------------------------------------------------
+
+Build stuff:
+
+1. Interesting ./configure options:
+
+   --disable-warnings:
+   Compile with -Wall on g++ compilers (by default warnings are on).
+
+   THIS DOES NOT WORK (REQUIRES AUTO-TOOLS):
+   --disable-assert:
+   Include #define NDEBUG 1 in config.h.
+   This is (will be FIXME: Implement this) the central switch to turn
+   off all debugging features (index range checking for vectors, the
+   trace facility, assertions,...)
+
+2. Version numbers:
+   Package version number is set in configure.in. Always increase this 
+   when you make a new distribution. The minor version number is set
+   in src/version.cc. Always increase this before you do a CVS commit, 
+   even for small changes.
+
+3. This is from Eleftherios Gkioulekas
+
+   Assert: The idea behind assert is simple. Suppose that at a certain
+   point in your code, you expect two variables to be equal.  If this
+   expectation is a precondition that must be satisfied in order for
+   the subsequent code to execute correctly, you must assert it with a
+   statement like this:
+
+      assert(var1 == var2);
+
+   In general assert takes as argument a boolean expression. If the
+   boolean expression is true, execution continues. Otherwise the
+   `abort' system call is invoked and the program execution is
+   stopped. If a bug prevents the precondition from being true, then
+   you can trace the bug at the point where the precondition breaks
+   down instead of further down in execution or not at all.  The
+   `assert' call is implemented as a C preprocessor macro, so it can
+   be enabled or disabled at will. One way to enable assertions is to
+   include `assert.h'.
+
+      #include <assert.h>
+
+   Then it's possible to disable them by defining the `NDEBUG'
+   macro. 
+
+   During debugging and testing it is a good idea to leave
+   assertions enabled. However, for production runs it's best to
+   disable them. If your program crashes at an assertion, then the
+   first thing you should do is to find out where the error
+   happens. To do this, run the program under the `gdb'
+   debugger. First invoke the debugger:
+
+      % gdb
+      ...copyright notice...
+
+   Then load the executable and set a breakpoint at the `abort'
+   system call:
+
+      (gdb) file arts
+      (gdb) break exit
+
+   Now run the program: 
+
+      (gdb) run
+
+   Instead of crashing, under the debugger the program will be
+   paused when the `abort' system call is invoked, and you will get
+   back the debugger prompt. Now type:
+
+      (gdb) where
+
+   to see where the crash happened. You can use the `print' command
+   to look at the contents of variables and you can use the `up' and
+   `down' commands to navigate the stack. For more information, see
+   the GDB documentation or type `help' at the prompt of gdb. Another
+   suggestion is to never call the abort system call
+   directly. Instead, please do this:
+
+      assert(false);
+      exit(1);
+
+   This way if assertions are enabled, the program will stop and
+   the stack will be retained. Otherwise the program will simply exit.
+
+4. The global header file arts.h *must* be included by every file, for
+   example because it turns on or off assert.
+----------------------------------------------------------------------
+
+TNT stuff:
+
+Want to use 
+
+# define ARRAY(a)  TNT::Vector_Adaptor< std::vector<a> >
+
+because I want to have consistency with TNT vectors, but also need STL
+funktionality (push_back method).
+
+Using push_back() on getVector leads to upredictable behaviour, since
+push_back() changes the memory allocation.
+--> added push_back() method to vector_adaptor.
+
+
+
+Documentation:
+
+DOC++ is used to generate automatic documentation. See
+https://zeus.imaginator.com/doc++ for information. There is a complete 
+DOC++ User Manual there. Generate are HTML and TeX documentation.

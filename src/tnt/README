@@ -1,0 +1,17 @@
+Changes in vecadaptor.h:
+
+I Want to use 
+
+# define ARRAY(a)  TNT::Vector_Adaptor< std::vector<a> >
+
+because I want to have consistency with TNT vectors, but also need STL
+funktionality (push_back method).
+
+Using push_back() on getVector leads to upredictable behaviour, since
+push_back() changes the memory allocation.
+--> added push_back() method to vector_adaptor.
+
+Also un-commented begin() and end() methods. Which R. Pozzo had
+commented out for compatibility with valarray.
+
+SAB 30.01.2000
