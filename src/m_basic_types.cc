@@ -101,12 +101,12 @@ void ArrayOfMatrixSet(// WS Generic Output:
 {
   // Check input index, if larger than number of elements in
   // the array, return error message
-  if (element>aom.nelem()-1) {
+  if (element>aom.nelem()) {
     ostringstream os;
     os << "The element index "<<element<<" is too large, there are only "
        << aom.nelem() <<" elements in "<<aom_name<<".\n";
     throw runtime_error(os.str());
-  } else if (element<0) {
+  } else if (element<0 || element==aom.nelem()) {
     aom.push_back(m);
     out2 << "  Appending Matrix " << m_name << " to ArrayOfMatrix "
        << aom_name << ".\n";

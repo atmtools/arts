@@ -1,5 +1,11 @@
 2003-08-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
+	* arts-1-1-678
+
+	* src/m_basic_types.cc: Changed behaviour of ArrayOfMatrixSet.
+
+2003-08-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
 	* arts-1-1-677
 
 	* src/sensor.cc: Corrected loop in spectrometer_transfer_matrix
