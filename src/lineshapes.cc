@@ -1795,12 +1795,14 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
+    \param  T      Temperature (unused here)
     \param  nf     Dimension of f_mono.
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_no_norm(Vector&       fac,
                             Numeric       f0,
                             VectorView f_mono,
+                            const Numeric T,
                             const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -1821,12 +1823,14 @@ void lineshape_norm_no_norm(Vector&       fac,
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
+    \param  T      Temperature (unused here)
     \param  nf     Dimension of f_mono.
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_linear(Vector&       fac,
                            Numeric       f0,
                            VectorView f_mono,
+                           const Numeric T,
                            const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -1845,6 +1849,7 @@ void lineshape_norm_linear(Vector&       fac,
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
+    \param  T      Temperature (unused here)
     \param  nf     Dimension of f_mono.
 
 
@@ -1852,6 +1857,7 @@ void lineshape_norm_linear(Vector&       fac,
 void lineshape_norm_quadratic(Vector&       fac,
                               Numeric       f0,
                               VectorView f_mono,
+                              const Numeric T,
                               const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -1865,6 +1871,50 @@ void lineshape_norm_quadratic(Vector&       fac,
   for ( Index i=0; i<nf; ++i )
     {
       fac[i] = (f_mono[i] * f_mono[i]) / f0_2;
+    }
+}
+
+/*!  Van Vleck Huber normalization factor of the lineshape function
+  with (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))). The
+  denominator is a result of catalogue intensities. See P. Rayer, The
+  VVH and VVW Spectral Functions, Atmospheric Millimeter and
+  Sub-Millimeter Wave Radiative Transfer Modeling II, Editors:
+  P. Eriksson, S. Buehler, Berichte aus derm Institut fuer
+  Umweltphysik, Band 4, 2001.
+
+    \retval fac    Normalization factor to the lineshape function.
+    \param  f0     Line center frequency.
+    \param  f_mono The frequency grid.
+    \param  T      Temperature
+    \param  nf     Dimension of f_mono.
+
+
+    \author Axel von Engeln 2003-07-28 */
+void lineshape_norm_VVH(Vector&       fac,
+                        Numeric       f0,
+                        VectorView f_mono,
+                        const Numeric T,
+                        const Index   nf)
+{
+  extern const Numeric PI;
+  extern const Numeric PLANCK_CONST;
+  extern const Numeric BOLTZMAN_CONST;
+
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
+
+  // 2kT is constant for the loop
+  Numeric kT = 2.0 * BOLTZMAN_CONST * T;
+
+  // denominator is constant for the loop
+  Numeric denom = f0 * tanh( PLANCK_CONST * f0 / kT );
+
+  for ( Index i=0; i<nf; ++i )
+    {
+      fac[i] = f_mono[i] * tanh( PLANCK_CONST * f_mono[i] / kT ) /
+        denom;
     }
 }
 
@@ -1968,4 +2018,12 @@ void define_lineshape_norm_data()
      ("quadratic",
       "Quadratic normalization of the lineshape with (f/f0)^2.",
       lineshape_norm_quadratic));
+
+  lineshape_norm_data.push_back
+    (LineshapeNormRecord
+     ("VVH",
+      "Van Vleck Huber normalization of the lineshape with\n"
+      "             (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))).\n"
+      "             The denominator is a result of catalogue intensities."
+      lineshape_norm_VVH));
 }

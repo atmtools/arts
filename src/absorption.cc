@@ -2201,7 +2201,7 @@ void xsec_species( MatrixView               xsec,
               // Calculate the chosen normalization factor:
               lineshape_norm_data[ind_lsn].Function()(fac,F0,
                                                       f_local[Range(i_f_min,nfls)],
-                                                      nfls);
+                                                      t_i,nfls);
 
               // Get a handle on the range of xsec that we want to change.
               // We use nfl here, which could be one less than nfls.

@@ -708,7 +708,7 @@ void lines_per_tgAddMirrorLines(// WS Output:
     lines_per_tgAddMirrorLines.
 
     \retval lines_per_tg the old and newly compacted line list
-    \param  lineshape the lineshape spceifications
+    \param  lineshape the lineshape specifications
     \param  f_mono the frequency grid
 
     \author Axel von Engeln and Stefan Buehler */

@@ -1,3 +1,15 @@
+2003-07-28  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-1-0-104
+
+	* src/absorption.h, absorption.cc, lineshapes.cc: added
+	temperature to lineshape normalization factor. Added new
+	normalization factor VVH, based on the normalization to the
+	Van-Vleck Huber lineshape. This should be the correct norm for IR
+	calculations if using HITRAN similar catalogues.
+
+	* m_abs.cc: typo removed
+
 2003-07-25  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-1-0-103

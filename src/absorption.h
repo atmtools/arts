@@ -80,6 +80,7 @@ private:
 typedef void (*lsnf_type)(Vector&,
                           Numeric,
                           VectorView,
+                          const Numeric,
                           const Index);
 
 /** Lineshape related normalization function information. There is one
