@@ -12,8 +12,9 @@ VectorReadFromFile(p_abs){}
 
 VectorWriteToNamedFile(p_abs){"dummy.p_abs.a"}
 
-NumericSet(dummy1){3.5}
+NumericSet(dummy1){3.5} 
+NumericSet(dummy1){value=620.0e3}
+NumericSet(dummy1){620e3} 
 
-losTest{}
-losTest{}
+losTest{} 
 losTest{}

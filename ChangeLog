@@ -1,3 +1,24 @@
+2000-04-05  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-11
+
+	* Fixed the bugs reported by Patrick. This is not a running
+	version of the program, because the file src/m_los.cc is missing!
+
+	* parser.cc: Fixed bugs 1:
+
+	The case with the optionally missing keyword for one parameter
+	methods was not handled correctly. Now the current character is
+	used to recognize this case. THIS MEANS THAT KEYWORD NAMES
+	STARTING WITH A NUMBER WILL BREAK THE PARSER! I don't know a
+	better solution without look-ahead.
+
+	* parser.cc: Fixed bugs 2:
+
+	The last method was executed twice in some cases, due to incorrect
+	flagging of Eof in function SourceText::AdvanceChar.
+
+
 2000-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0.0.10

@@ -22,10 +22,9 @@ void SourceText::AdvanceChar()
   else
     {
       mLineBreak = true;
-      mColumn = 0;
       do
 	{
-	  if (mLine>=mText.size()-1)
+	  if (mLine>=mText.size()-2)
 	    {
 	      throw Eot( "",
 			 this->File(),
@@ -38,6 +37,7 @@ void SourceText::AdvanceChar()
 	    }
 	}
       while ( 1 > mText[mLine].size() ); // Skip empty lines.
+      mColumn = 0;
     }
 }
 
@@ -808,11 +808,28 @@ bool parse_method(size_t& id,
   assertain_character('{',text);
   eat_whitespace(text);
   
-  // Look for the keywords and read the parameters:
+  // Now we have to deal with two different cases: Keywords with
+  // parameters, or (optionally) only a parameter without a keyword
+  // for methods that have only a single argument.
+  //
+  // We can distinguish the two cases if we check whether the current
+  // character is a letter. (If the parameter is specified directly it
+  // must be either a number, a +- sign or a quotation mark)
+  //
+  // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
+  //
   for ( size_t i=0 ; i<md_data[id].Keywords().size() ; ++i )
     {
-      try 
+      if (!isalpha(text.Current()) && 1==md_data[id].Keywords().size())
 	{
+	  // Parameter specified directly, without a keyword. This is only
+	  // allowed for single parameter methods!
+
+	  // We don't have to do anything here.
+	}
+      else  
+	{      // Look for the keywords and read the parameters:
+	  
 	  string keyname;
 	  read_name(keyname,text);
 
@@ -831,16 +848,6 @@ bool parse_method(size_t& id,
 	  assertain_character('=',text);
 	  eat_whitespace(text);
 	}
-      catch (UnexpectedKeyword x)
-	{
-	  // Does this method take only a single parameter? In that that case
-	  // the keyword is optional, so we should simply proceed and
-	  // try to read the value.
-	  if (1!=md_data[id].Keywords().size())
-	    {
-	      throw;		// re-throw the exception
-	    }
-	}
 
       // Now parse the key value. This can be:
       // str_,    int_,    num_,
@@ -850,7 +857,7 @@ bool parse_method(size_t& id,
 	case str_:
 	  {
 	    string dummy;
- 	    parse_string(dummy, text);
+	    parse_string(dummy, text);
 	    values.push_back(dummy);
 	    break;
 	  }
@@ -900,6 +907,7 @@ bool parse_method(size_t& id,
       //      cout << "Value: " << md_data[id].Values()[i] << '\n';
     }
 
+
   // Now look for the closing curly braces.
   // We have to catch Eot, because after a method description is a
   // good place to end the control file. 
@@ -909,6 +917,7 @@ bool parse_method(size_t& id,
     }
   catch (const Eot x)
     {
+      //      cout << "EOT!!!!" << endl;
       return true;
     }
   return false;
