@@ -15,6 +15,7 @@ bin_PROGRAMS = arts
 # not needed at the moment: -ljpeg -lnsl -lm
 
 arts_SOURCES = \
+	abs_o2_models.h \
 	absorption.cc \
 	absorption.h \
 	array.h \
@@ -72,6 +73,7 @@ arts_SOURCES = \
 	m_rte.cc \
 	m_scatrte.cc \
 	m_absorption.cc \
+	m_abs_o2_models.cc \
 	m_copy.h \
 	m_ignore.h \
 	m_montecarlo.cc \
@@ -303,6 +305,7 @@ test_geomag_calc_SOURCES = \
 	m_scatrte.cc \
 	m_sensor.cc \
 	m_absorption.cc \
+	m_abs_o2_models.cc \
 	m_copy.h \
 	m_ignore.h \
 	m_xml.cc \
@@ -678,6 +681,7 @@ test_zeemanproperties_SOURCES = \
 	m_scatrte.cc \
 	m_sensor.cc \
 	m_absorption.cc \
+	m_abs_o2_models.cc \
 	m_copy.h \
 	m_ignore.h \
 	m_xml.cc \
