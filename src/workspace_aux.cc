@@ -50,9 +50,13 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
 {
   extern const Array<String> wsv_group_names;
 
-  os << "Name = "         << wr.Name() << '\n'
-     << "Description =\n" << wr.Description() << '\n'
-     <<	"Group = "        << wsv_group_names[wr.Group()];
+  os << "\n*--------------------------------------------------------------*\n"
+     << "Workspace variable = " << wr.Name() 
+     << "\n----------------------------------------------------------------\n"
+     << "\n" << wr.Description() << "\n" 
+     << "\n----------------------------------------------------------------\n"
+     <<	"Group = " << wsv_group_names[wr.Group()]
+     << "\n*--------------------------------------------------------------*\n";
 
   return os;
 }

@@ -644,3 +644,130 @@ void chol(
       }
 
 }
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+//   Assert functions
+/////////////////////////////////////////////////////////////////////////////
+
+//// assert_bool ////////////////////////////////////////////////////////////
+//
+/** Asserts that an integer is 0 or 1.
+
+    A runtime error is thrown if the integer is not a boolean.
+
+    \param    x        an integer
+    \param    x_name   the name of the integer (in upper case letters)
+
+    \author Patrick Eriksson
+    \date   2001-09-19
+*/
+void assert_bool( const int& x, const string& x_name ) 
+{
+  if ( !(x==0 || x==1) )
+  {
+    ostringstream os;
+    os << "The boolean " << x_name <<  " must either be 0 or 1.\n" 
+       << "The present value of "<< x_name <<  " is " << x << ".";
+    throw runtime_error( os.str() );
+  }
+}
+
+
+
+//// assert_lengths (vector-vector) ///////////////////////////////////////////
+//
+/** Asserts that two vectors have the same length
+
+    A runtime error is thrown if the lengths of the vector differ.
+
+    \param    x1        vector 1
+    \param    x1_name   the name of vector1 (in upper case letters)
+    \param    x2        vector 2
+    \param    x2_name   the name of vector2 (in upper case letters)
+
+    \author Patrick Eriksson
+    \date   2001-09-19
+*/
+void assert_lengths( const Vector& x1, const string& x1_name,
+                     const Vector& x2, const string& x2_name ) 
+{
+  if ( x1.size() != x2.size() )
+  {
+    ostringstream os;
+    os << "The vectors " << x1_name <<  " and " << x2_name << "\n"
+       << "must have the same lengths. \nThe lengths are: \n"
+       << x1_name << ": " << x1.size() << "\n"
+       << x2_name << ": " << x2.size() << "\n";
+    throw runtime_error( os.str() );
+  }
+}
+
+
+
+//// assert_length_nrow  /////////////////////////////////////////////////////
+//
+/** Asserts that the length of a vector and the number of rows of a matrix
+    match.
+
+    A runtime error is thrown if the length of the vector differs from
+    the number of rows.
+
+    \param    x        a vector
+    \param    x_name   the name of the vector (in upper case letters)
+    \param    A        a matrix
+    \param    A_name   the name of the matrix (in upper case letters)
+
+    \author Patrick Eriksson
+    \date   2001-09-19
+*/
+void assert_length_nrow( const Vector& x, const string& x_name,
+                         const Matrix& A, const string& A_name ) 
+{
+  if ( x.size() != A.nrows() )
+  {
+    ostringstream os;
+    os << "The length of vector " << x_name <<  " must be the same as \n"
+       << "the number of rows of " << A_name << ".\n"
+       << "The length of " << x_name <<  " is " << x.size() << ".\n"
+       << "The number of rows of " << A_name <<  " is " << A.nrows() << ".\n";
+    throw runtime_error( os.str() );
+  }
+}
+
+
+
+//// assert_length_ncol  /////////////////////////////////////////////////////
+//
+/** Asserts that the length of a vector and the number of columns of a matrix
+    match.
+
+    A runtime error is thrown if the length of the vector differs from
+    the number of columns.
+
+    \param    x        a vector
+    \param    x_name   the name of the vector (in upper case letters)
+    \param    A        a matrix
+    \param    A_name   the name of the matrix (in upper case letters)
+
+    \author Patrick Eriksson
+    \date   2001-09-19
+*/
+void assert_length_ncol( const Vector& x, const string& x_name,
+                         const Matrix& A, const string& A_name ) 
+{
+  if ( x.size() != A.ncols() )
+  {
+    ostringstream os;
+    os << "The length of vector " << x_name <<  " must be the same as \n"
+       << "the number of columns of " << A_name << ".\n"
+       << "The length of " << x_name <<  " is " << x.size() << ".\n"
+       << "The number of columns of " << A_name <<  " is " << A.ncols()
+       << ".\n";
+    throw runtime_error( os.str() );
+  }
+}
+
+
+

@@ -489,6 +489,21 @@ void chol(
 
 
 
+/////////////////////////////////////////////////////////////////////////////
+//   Assert functions
+/////////////////////////////////////////////////////////////////////////////
+
+void assert_bool( const int& x, const string& x_name );
+
+void assert_lengths( const Vector& x1, const string& x1_name,
+                     const Vector& x2, const string& x2_name );
+
+void assert_length_nrow( const Vector& x, const string& x_name,
+                         const Matrix& A, const string& A_name );
+
+void assert_length_ncol( const Vector& x, const string& x_name,
+                         const Matrix& A, const string& A_name );
+
 
 
 #endif  // math_funcs_h

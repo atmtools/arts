@@ -2432,6 +2432,123 @@ void kPointingOffSet(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
+   \date   2001-09-18
+ */
+void kEground(
+                    Matrix&          k,
+                    ArrayofString&   k_names,
+                    Matrix&          k_aux,
+              const Vector&          za_pencil,
+              const Vector&          f_mono,
+  	      const int&             emission,
+              const Vector&          y_space,
+              const Vector&          e_ground,
+              const Numeric&         t_ground,
+              const LOS&             los,           
+              const ArrayofMatrix&   source,
+              const ArrayofMatrix&   trans,
+              const int&             single_e )
+{
+  if ( !isbool( emission ) )  
+    throw runtime_error("The variable EMISSION must either be 0 or 1.");
+
+  if ( !isbool( single_e ) )  
+    throw runtime_error("The variable SINGLE_E must either be 0 or 1.");
+
+  // If single_e, check that all values of e are identical
+
+  // Main sizes
+  const Index  nza  = za_pencil.size();   // number of zenith angles  
+  const Index  nv   = f_mono.size();      // number of frequencies
+
+  // Loop variables
+  Index iv, iza;
+
+  // Make calculations assuming a single e
+  Vector ksingle( nza*nv );
+
+  // Emission
+  if ( emission )
+  {
+    // Set all values to zero (k is zero if no ground intersection)
+    setto( ksingle, 0.0 );
+
+    // Local vectors
+    Vector bground(nv), y_in(nv), tr(nv);
+
+    for ( iza=0; iza<nza; iza++ )
+    {
+      if ( los.ground[iza] )
+      {
+        // Calculate blackbody radiation of the ground
+        planck( bground, f_mono, t_ground );
+
+        // Calculate the intensity reflected by the ground
+        rte( y_in, los.start[iza], los.ground[iza]-1, trans[iza], source[iza], 
+                                               y_space, 0, e_ground, bground );
+
+        // Calculate transmission from the ground to the sensor
+        setto( tr, 1.0 );
+        bl_iterate( tr, los.ground[iza]-1, los.stop[iza]-1, trans[iza], nv );
+
+        for ( iv=0; iv<nv; iv++ )
+          ksingle[iza*nv+iv] = ( bground[iv] - y_in[iv] ) * tr[iv];      
+      }
+    }
+  }
+
+  // Optical thicknesses
+  else
+  {
+    Numeric a;
+    for ( iv=0; iv<nv; iv++ )
+    {
+      a = 1 / ( 1 - e_ground[iv] );
+      for ( iza=0; iza<nza; iza++ )
+        ksingle[iza*nv+iv] = a;
+    }
+  }
+
+  // A single value for the ground emission, k is a column vector
+  if ( single_e )
+  {
+    resize( k, nza*nv, 1 );
+    copy( ksingle, columns(k)[0] );
+    resize( k_names, 1 );
+    k_names[0] = "Ground emission: single";
+    resize( k_aux, 1, 2 );
+    k_aux[0][0] = 0;
+    k_aux[0][1] = e_ground[0];    
+  }
+
+  // An e for each monochromatic frequency, k has nv columns
+  else
+  {
+    resize( k, nza*nv, nv );
+    setto( k, 0.0 );
+    resize( k_names, nv );
+    resize( k_aux, nv, 2 );
+    for ( iv=0; iv<nv; iv++ )
+    {
+      for ( iza=0; iza<nza; iza++ )
+        k[iza*nv+iv][iv] = ksingle[iza*nv+iv];
+      {
+        ostringstream os;
+        os << "Ground emission: " << f_mono[iv] << " Hz";
+        k_names[iv] = os.str();
+      }
+      k_aux[iv][0] = 0;
+      k_aux[iv][1] = e_ground[iv];    
+    }
+  }
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
    \date   2001-01-21
  */
 void kCalibration(

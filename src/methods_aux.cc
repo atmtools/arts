@@ -113,8 +113,14 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   extern const String TokValTypeName[];
   bool first;
 
-  os << "Name = " << mdr.Name() << '\n'
-     << "Description =\n" << mdr.Description() << "\n\n";
+  os << "\n*--------------------------------------------------------------*\n"
+     << "Workspace method = " << mdr.Name() << 
+        "\n----------------------------------------------------------------\n"
+     << "\n" << mdr.Description() << "\n" << 
+        "\n----------------------------------------------------------------\n";
+
+  //  os << "\n-----\nName = " << mdr.Name() << '\n\n'
+  //     << "Description =\n" << mdr.Description() << "\n\n";
 
   // Output:
   first = true;
@@ -186,7 +192,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
 
       os << TokValTypeName[mdr.Types()[i]];
     }
-  os << '\n';
+  os << "\n*--------------------------------------------------------------*\n";
 
   return os;
 }

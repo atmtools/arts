@@ -422,6 +422,10 @@ void bl (
        const Index&    ground,
        const Vector&   e_ground )
 {
+  if ( start_index < stop_index )
+    throw runtime_error(
+                    "The start index cannot be smaller than the stop index." );
+
   const size_t   nf = tr.nrows();      // number of frequencies
         size_t   iy;                   // frequency index
 

@@ -42,19 +42,71 @@ void define_md_data()
   // Initialize to zero, just in case:
   resize(md_data,0);
 
-  /* Here's an empty template record entry:
+  /* Here's a template record entry:  (PE 2001-09-18)
 
   md_data.push_back
     ( MdRecord
-      ( NAME(""),
-	DESCRIPTION(""),
+      ( NAME( "FunctionName" ),
+	DESCRIPTION(
+	   "A summary of the function in one sentence.\n"
+           "\n"
+           "A detailed description of the function. Please, try to be as \n"
+           "clear and detailed as possible, this will help both you and \n"
+           "others in the long run. \n"
+           "   Additional paragraphs are indented with three blanks, as \n"
+           "exemplified here.\n"
+           "   The name of workspace variables are written by upper case \n"
+           "letters, for example Z_PLAT. \n"
+           "   Global input and output, and keywords shall be described \n"
+           "as exemplified below. If there is no variables of a group, \n"
+           "(e.g. global input) remove that part totally. Note that the \n"
+           "on-line help just gives the type of global input/output and the \n"
+           "keyword names, and additional information is for sure needed.\n"
+           "   Leave space and brake lines whem listing input and output \n"
+           "variabales to make the code easier to read. See example below. \n"
+           "\n"
+           "Global input: \n"
+           "   Vector : Vector giving some very important input. Don't \n"
+           "            be too short. Use the type of indention used here. \n"
+           "\n"
+           "Global output: \n"
+           "   Vector : Return vector for the zenith angles. The normal \n"
+           "            options are ZA_PENCIL and ZA_SENSOR. \n"
+           "\n"
+           "Keywords:\n"
+           "   delta_t   : Time increment between observations.\n"
+           "   z_tan_lim : Vector with start and stop tangent altitudes." ),
+	OUTPUT(),
+	INPUT( z_plat_, p_abs_, z_abs_, l_step_, refr_, refr_lfac_, 
+               refr_index_, r_geoid_, z_ground_ ),
+	GOUTPUT( Vector_ ),
+	GINPUT(),
+	KEYWORDS( "delta_t", "z_tan_lim" ),
+	TYPES(    Numeric_t, Vector_t    )));
+  */
+
+  /* Here's an empty record entry:  (PE 2001-09-18)
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "" ),
+	DESCRIPTION(
+	   "\n"
+           "\n"
+           "Global input: \n"
+           "   \n"
+           "\n"
+           "Global output: \n"
+           "   \n"
+           "\n"
+           "Keywords:\n"
+           "   " ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS(""),
-	TYPES()
-	));
+	KEYWORDS(),
+	TYPES()));
   */
 
 
@@ -1118,11 +1170,7 @@ void define_md_data()
 	  "The output line array is not overwritten, but the new data\n"
 	  "is appended!\n" 
 	  "\n"
-	  "This is mainly for testing, the method probably will become\n"
-	  "more complicated later on.\n"
-	  "\n"
-	  "filename = Name (and path) of the catalogue file.\n"
-	  "fmin     = Minimum frequency for lines to read in Hz.\n"
+	  "This is mainly for testing, the method probably will becomum frequency for lines to read in Hz.\n"
 	  "fmax     = Maximum frequency for lines to read in Hz."),
 	OUTPUT(   lines_   ),
 	INPUT(),
@@ -1742,28 +1790,33 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("zaFromDeltat"),
+      ( NAME( "zaFromDeltat" ),
 	DESCRIPTION(
-           "Calculates the zenith angles for a LEO-LEO cross-link\n"
-           "geometry corresponding to a given increment in time in the\n"
-           "motion of the LEOs. The LEOs are supposed to be moving\n"
-           "in opposite directions in nearly identical orbits (but not \n"
-           "colliding!). The time window where the LEOs are interacting is \n"
-           "defined by a start and stop tangent altitudes.\n"
-           "To estimate a time interval think about the angular velocity of\n"
-           "the LEOs and the psi angle corresponding to the given z_tan\n"
-           "range. Remember that the angular velocity in an orbit of\n"
-           "radius h is given by sqrt(mu/h^3) where mu=3.98e14 m3/s.\n" 
+	   "Calculates the zenith angles for a LEO-LEO cross-link.\n"
+           "\n"
+           "The function calculates the zenith angles corresponding to a \n"
+           "LEO-LEO cross-link for an occultation between two altitudes and \n"
+           "the given time increment. The LEOs are supposed to be moving \n"
+           "in opposite directions in identical orbits (but not colliding!).\n"
+           "   The time window where the LEOs are interacting is defined by \n"
+           "a start and stop tangent altitudes.\n"
+           "   The function uses REFR to determine if refraction shall be \n"
+           "considered or not. \n"
+           "\n"
+           "Global output: \n"
+           "   Vector : Return vector for the zenith angles. The normal \n"
+           "            options are ZA_PENCIL and ZA_SENSOR. \n"
+           "\n"
            "Keywords:\n"
-           "     delta_t   : time difference\n"
-           "     z_tan_lim : vector with start and stop tangent altitudes"  ),
+           "   delta_t   : Time increment between observations.\n"
+           "   z_tan_lim : Vector with start and stop tangent altitudes." ),
 	OUTPUT(),
-	INPUT( z_plat_ , p_abs_, z_abs_, l_step_, refr_, refr_lfac_, refr_index_, r_geoid_,
-               z_ground_ ),
-	GOUTPUT(Vector_ ),
+	INPUT( z_plat_ , p_abs_, z_abs_, l_step_, refr_, refr_lfac_, 
+               refr_index_, r_geoid_, z_ground_ ),
+	GOUTPUT( Vector_ ),
 	GINPUT(),
-	KEYWORDS("delta_t","z_tan_lim"),
-	TYPES(   Numeric_t, Vector_t )));
+	KEYWORDS( "delta_t", "z_tan_lim" ),
+	TYPES(    Numeric_t, Vector_t    )));
 
   md_data.push_back
     ( MdRecord
@@ -2259,6 +2312,32 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "delta"   ),
 	TYPES(    Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "kEground" ),
+	DESCRIPTION(
+	   "Calculates the WF(s) for ground emission coefficent(s).\n"
+           "\n"
+           "The ground emission WF(s) are calculated by semi-analytical\n"
+           "expressions (see AUG). With SINGLE_E=0, a WF is returned for \n"
+           "the emission coefficient of each monochromatic frequency. \n"
+           "On the other hand, when SINGLE_E=1, the ground emission is \n"
+           "treated as a single varaible (that is, no frequency dependency) \n"
+           "and there is only a single WF to be calculated. The latter \n"
+           "option requieres that all elements of E_GROUND are set to the \n"
+           "same value. \n"
+           "\n"
+           "Keywords:\n"
+           "   single_e : Boolean to treat the ground emission as a single\n"
+           "              variable. See further above." ),
+	OUTPUT( k_, k_names_, k_aux_ ),
+	INPUT( za_pencil_, f_mono_, emission_, y_space_, e_ground_, t_ground_,
+               los_, source_, trans_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "single_e" ),
+	TYPES(    int_t )));
 
   md_data.push_back
     ( MdRecord
@@ -3155,3 +3234,4 @@ void define_md_data()
 
 
 }
+

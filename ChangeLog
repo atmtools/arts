@@ -1,3 +1,33 @@
+2001-09-19  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-205
+
+	* !!!! Corrected a bug in sFRomFile.m for gaussian correlation 
+	function. If you have used this option in Qpack, your results have
+	been wrong. 
+
+	* WF(s) for ground emission is now implemented. The function is 
+	called kEground. See the online help.
+
+	* The file methods.cc now includes (at the top) templates for writing
+	the information for the online help. Please comment this suggestion
+	to format. The information for the function zaFromDelta is in this
+	format. 
+
+	* I have tried to make the output for the online help a bit clearer
+	and nicer by putting in some space and lines.
+
+	* Started a series of assert functions to be used to check the input
+	to functions. These functions are for the moment found at the end of
+	math_funcs.cc. Please add more similar functions. An example:
+
+	   assert_lengths( f_mono, "F_MONO", e_ground, "E_GROUND" );
+
+	will check if the ground emission vector has the correct length and
+	issue an informative error message if this is not the case.
+	
+	
+
 2001-09-17  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-204

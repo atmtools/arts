@@ -91,13 +91,9 @@ void RandSetSeed( )
 void Test( )
 {
   // This function can be used to test stuff.
-  Matrix z(5,3);
-  Vector z0(5,1.0);
-  SYMMETRIC s;
 
-  SymmetricDiagonal( s, "xxx", 5, 2 );
-
-  rand_data_gaussian( z, z0, s );
+  //  assert_bool( 2, "XCVF" );
+  assert_length_ncol( Vector(6), "XCVF", Matrix(5,5), "ERTFD" );
 }
 
 

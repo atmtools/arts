@@ -231,11 +231,16 @@ void option_methods(const String& methods)
 
   if ( "all" == methods )
     {
-      cout << "Complete list of ARTS methods:\n";
+      cout << 
+        "\n*--------------------------------------------------------------*\n"
+     << "Complete list of ARTS workspace methods:\n"
+     << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<md_data.size(); ++i )
 	{
 	  cout << "- " << md_data[i].Name() << '\n';
 	}
+      cout << 
+        "*--------------------------------------------------------------*\n\n";
       return;
     }
 
@@ -252,7 +257,11 @@ void option_methods(const String& methods)
 
       // List generic methods:
       hitcount = 0;
-      cout << "Generic methods that can generate " << wsv_data[wsv_key].Name() << ":\n";
+      cout 
+      << "\n*--------------------------------------------------------------*\n"
+      << "Generic methods that can generate " << wsv_data[wsv_key].Name() 
+      << ":\n"
+      << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<md_data.size(); ++i )
 	{
 	  // This if statement checks whether GOutput, the list
@@ -271,7 +280,11 @@ void option_methods(const String& methods)
 
       // List specific methods:
       hitcount = 0;
-      cout << "Specific methods that can generate " << wsv_data[wsv_key].Name() << ":\n";
+      cout 
+      << "\n----------------------------------------------------------------\n"
+      << "Specific methods that can generate " << wsv_data[wsv_key].Name() 
+      << ":\n"
+      << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<md_data.size(); ++i )
 	{
 	  // This if statement checks whether Output, the list
@@ -287,6 +300,9 @@ void option_methods(const String& methods)
 	}
       if ( 0==hitcount )
 	cout << "none\n";
+
+      cout << 
+        "*--------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -307,8 +323,11 @@ void option_methods(const String& methods)
     {
       // List generic methods:
       hitcount = 0;
-      cout << "Generic methods that can generate variables "
-	   << "of group " << wsv_group_names[group_key] << ":\n";
+      cout 
+      << "\n*--------------------------------------------------------------*\n"
+      << "Generic methods that can generate variables of group " 
+      << wsv_group_names[group_key] << ":\n"
+      << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<md_data.size(); ++i )
 	{
 	  // This if statement checks whether GOutput, the list
@@ -324,6 +343,9 @@ void option_methods(const String& methods)
 	}
       if ( 0==hitcount )
 	cout << "none\n";
+
+      cout << 
+        "*--------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -369,7 +391,10 @@ void option_input(const String& input)
 
       // List generic methods:
       hitcount = 0;
-      cout << "Generic methods that can use " << wsv_data[wsv_key].Name() << ":\n";
+      cout 
+      << "\n*--------------------------------------------------------------*\n"
+      << "Generic methods that can use " << wsv_data[wsv_key].Name() << ":\n"
+      << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<md_data.size(); ++i )
 	{
 	  // This if statement checks whether GInput, the list
@@ -388,7 +413,11 @@ void option_input(const String& input)
 
       // List specific methods:
       hitcount = 0;
-      cout << "Specific methods that require " << wsv_data[wsv_key].Name() << ":\n";
+      cout 
+      << "\n----------------------------------------------------------------\n"
+      << "Specific methods that require " << wsv_data[wsv_key].Name() 
+      << ":\n"
+      << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<md_data.size(); ++i )
 	{
 	  // This if statement checks whether Output, the list
@@ -404,6 +433,9 @@ void option_input(const String& input)
 	}
       if ( 0==hitcount )
 	cout << "none\n";
+
+      cout << 
+        "*--------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -424,8 +456,11 @@ void option_input(const String& input)
     {
       // List generic methods:
       hitcount = 0;
-      cout << "Generic methods that require a variable "
-	   << "of group " << wsv_group_names[group_key] << ":\n";
+      cout
+      << "\n*--------------------------------------------------------------*\n"
+      << "Generic methods that require a variable of group " 
+      << wsv_group_names[group_key] << ":\n"
+      << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<md_data.size(); ++i )
 	{
 	  // This if statement checks whether GOutput, the list
@@ -441,6 +476,9 @@ void option_input(const String& input)
 	}
       if ( 0==hitcount )
 	cout << "none\n";
+
+      cout << 
+        "*--------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -477,11 +515,16 @@ void option_workspacevariables(const String& workspacevariables)
 
   if ( "all" == workspacevariables )
     {
-      cout << "Complete list of ARTS workspace variables:\n";
+      cout << 
+         "\n*--------------------------------------------------------------*\n"
+       << "Complete list of ARTS workspace variables:\n"
+       << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<wsv_data.size(); ++i )
 	{
 	  cout << "- " << wsv_data[i].Name() << '\n';
 	}
+      cout << 
+        "*--------------------------------------------------------------*\n\n";
       return;
     }
 
@@ -498,11 +541,14 @@ void option_workspacevariables(const String& workspacevariables)
       
       // List generic variables required by this method.
       hitcount = 0;
-      cout << "Generic workspace variables required by " << mdr.Name()
-	   << " are of type:\n";
+      cout
+      << "\n*--------------------------------------------------------------*\n"
+      << "Generic workspace variables required by " << mdr.Name()
+      << " are of type:\n"
+      << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<mdr.GInput().size(); ++i )
 	{
-	  cout << "- " << wsv_group_names[mdr.GInput()[i]] << '\n';
+	  cout << "- " << wsv_group_names[mdr.GInput()[i]] << "\n";
 	  ++hitcount;
 	}
       if ( 0==hitcount )
@@ -510,7 +556,10 @@ void option_workspacevariables(const String& workspacevariables)
 
       // List specific variables required by this method.
       hitcount = 0;
-      cout << "Specific workspace variables required by " << mdr.Name() << ":\n";
+      cout 
+      << "\n----------------------------------------------------------------\n"
+      << "Specific workspace variables required by " << mdr.Name() << ":\n"
+      << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<mdr.Input().size(); ++i )
 	{
 	  cout << "- " << wsv_data[mdr.Input()[i]].Name() << '\n';
@@ -518,6 +567,9 @@ void option_workspacevariables(const String& workspacevariables)
 	}
       if ( 0==hitcount )
 	cout << "none\n";
+
+      cout << 
+        "*--------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -742,12 +794,16 @@ int main (int argc, char **argv)
   // workspace variable groups.
   if ( parameters.groups )
     {
-      cout << "Complete list of ARTS workspace variable groups:\n";
+      cout << 
+         "\n*--------------------------------------------------------------*\n"
+       << "Complete list of ARTS workspace variable groups:\n"
+       << "----------------------------------------------------------------\n";
       for ( size_t i=0; i<wsv_group_names.size(); ++i )
 	{
 	  cout << "- " << wsv_group_names[i] << '\n';
 	}
-
+      cout <<
+        "*--------------------------------------------------------------*\n\n";
       return(0);
     }
 

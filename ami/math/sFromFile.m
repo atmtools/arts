@@ -224,7 +224,8 @@ elseif corrfun == 3
   s = zeros(n,n);
   for row=1:n
     for col=row:n
-      c = exp( -1 * ( (kg(row)-kg(col)) /(cl(row)+cl(col)) /2  )^ 2  );
+%      c = exp( -1 * ( (kg(row)-kg(col))/(cl(row)+cl(col)) /2  )^ 2  );
+      c = exp( -4 * ( (kg(row)-kg(col))/(cl(row)+cl(col)) )^2  );
       if c > cutoff
         s(row,col) = c*sd(row)*sd(col); 
         s(col,row) = s(row,col);
