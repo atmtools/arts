@@ -10,7 +10,6 @@
 	 src/test_linalg.cc: Formatted the files according to Olivers
 	 remarks on coding style.
 
-
 2002-06-12  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-132
