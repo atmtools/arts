@@ -1471,10 +1471,7 @@ void ScatteringMain(//WS Output
 		   Tensor7& scat_i_lat,
 		   Tensor7& scat_i_lon,
 		   Index& scat_f_index,
-		   GridPos& a_gp_p,
-                   GridPos& a_gp_lat,
-                   GridPos& a_gp_lon,
-		   Ppath& ppath,
+                   Ppath& ppath,
 		   Ppath& ppath_step,
 		   Matrix& i_rte,
 		   Matrix& y_rte,
@@ -1485,7 +1482,10 @@ void ScatteringMain(//WS Output
 		   Index& mblock_index,
 		   Vector& a_los,
 		   Vector& a_pos,
-		   //WS  Input :
+                   GridPos& a_gp_p,
+                   GridPos& a_gp_lat,
+                   GridPos& a_gp_lon,
+                   //WS  Input :
                    const Agenda& scat_mono_agenda,
 		   const Index& cloudbox_on, 
 		   const ArrayOfIndex& cloudbox_limits,
@@ -1503,9 +1503,8 @@ void ScatteringMain(//WS Output
 		   const Vector& lon_grid,
 		   const Tensor3& z_field,
 		   const Matrix& r_geoid,
-		   const Matrix& z_ground,
-		   const Index& antenna_dim,
-		   const Vector& mblock_aa_grid)
+		   const Matrix& z_ground
+                   )
 		  
 {
   Index Nza = scat_za_grid.nelem();
@@ -1524,65 +1523,24 @@ void ScatteringMain(//WS Output
   if( !cloudbox_on )
     throw runtime_error( "The cloud box is not activated and no outgoing "
 			 "field can be returned." );
-  if(atmosphere_dim == 1)
-    {
-     // Get scat_i_p at lower boundary 
-      a_gp_p.idx = cloudbox_limits[0];
-      a_gp_p.fd[0] = 0;
-      a_gp_p.fd[1] = 1;
-      a_gp_lat.idx = 0;
-      a_gp_lat.fd[0] = 0;
-      a_gp_lat.fd[1] = 1;
-      a_gp_lon.idx = 0;
-      a_gp_lon.fd[0] = 0;
-      a_gp_lon.fd[1] = 1;
-      
-      CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
-			  i_rte, y_rte, i_space, ground_emission, ground_los, 
-			  ground_refl_coeffs,mblock_index, a_los,
-			  a_pos, a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on,
-			  cloudbox_limits, atmosphere_dim, stokes_dim,
-			  scat_za_grid, scat_aa_grid, f_grid, 
-			  ppath_step_agenda, rte_agenda, i_space_agenda,
-			  ground_refl_agenda, p_grid,lat_grid,
-			  lon_grid, z_field, r_geoid, z_ground, antenna_dim, 
-			  mblock_aa_grid );
+  CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
+                      i_rte, y_rte, i_space, ground_emission, ground_los, 
+                      ground_refl_coeffs,mblock_index, a_los,
+                       a_pos, a_gp_p, a_gp_lat, a_gp_lon,
+                      cloudbox_limits, atmosphere_dim, stokes_dim,
+                      scat_za_grid, scat_aa_grid, f_grid, 
+                      ppath_step_agenda, rte_agenda, i_space_agenda,
+                      ground_refl_agenda, p_grid,lat_grid,
+                      lon_grid, z_field, r_geoid, z_ground);
 
-      // Get scat_i_p at upper boundary 
-      a_gp_p.idx = cloudbox_limits[1];
-      a_gp_p.fd[0] = 0;
-      a_gp_p.fd[1] = 1;
-      a_gp_lat.idx = 0;
-      a_gp_lat.fd[0] = 0;
-      a_gp_lat.fd[1] = 1;
-      a_gp_lon.idx = 0;
-      a_gp_lon.fd[0] = 0;
-      a_gp_lon.fd[1] = 1;
-
-      CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
-			  i_rte, y_rte, i_space, ground_emission, ground_los, 
-			  ground_refl_coeffs,mblock_index, a_los,
-			  a_pos, a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on,
-			  cloudbox_limits, atmosphere_dim, stokes_dim,
-			  scat_za_grid, scat_aa_grid, f_grid, 
-			  ppath_step_agenda, rte_agenda,i_space_agenda,
-			  ground_refl_agenda, p_grid,lat_grid, 
-			  lon_grid, z_field, r_geoid, z_ground,antenna_dim,
-			  mblock_aa_grid);
-			 
-    }
+  
   for (Index scat_f_index = 0; scat_f_index < Nf; ++ scat_f_index)
     {
       scat_mono_agenda.execute(); 
     }
-
-
-  if(atmosphere_dim == 3)
-    {
-      throw runtime_error( "This method is not implemented for atmosphere_dim  = 3" );
-    }
 }
-  
+ 
+ 
 //! Write iterated fields.
 /*!
   This function writed intermediate resultes, the iterations of fields to xml 
