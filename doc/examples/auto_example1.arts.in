@@ -7,7 +7,7 @@
 # Read the spectroscopic line data from the HITRAN catalogue and
 # create the workspace variable `lines':
 linesReadFromHitran {
-   filename = "/pool/lookup2/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
+   filename = "@ac_arts_data@/spectroscopy/hitran96/hitran96_lowfreq.par"
    fmin     = 1e9
    fmax     = 200e9
 }
@@ -33,7 +33,7 @@ linesReadFromHitran {
 #}
 
 # Select all species that we can find in the scenario:
-tgsDefineAllInScenario{"/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer"}
+tgsDefineAllInScenario{"@ac_arts_data@/atmosphere/fascod/midlatitude-summer"}
 
 # define the tag groups for which weighting functions will be calculated
 # must be a subgroup of tgsDefine tag groups
@@ -49,8 +49,8 @@ lines_per_tgCreateFromLines{}
 # read the different defined tag groups from individual catalogues
 # these are the tgsDefine tag groups
 # lines_per_tgReadFromCatalogues{
-#   filenames = ["/pool/lookup2/arts-data/spectroscopy/jpl00/jpl00.cat",
-#                "/pool/lookup2/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"]
+#   filenames = ["@ac_arts_data@/spectroscopy/jpl00/jpl00.cat",
+#                "@ac_arts_data@/spectroscopy/hitran96/hitran96_lowfreq.par"]
 #   formats = [ "JPL", "HITRAN96" ]
 #   fmin    = [ 0,         0      ]       
 #   fmax    = [ 200e9,     200e9  ]   
@@ -64,11 +64,11 @@ lines_per_tgWriteAscii{""}
 # Read the pressure, temperature, and altitude profiles and create 
 # the workspace variable `raw_ptz':
 MatrixReadAscii (raw_ptz) 
-        {"/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer.tz.aa"}
+        {"@ac_arts_data@/atmosphere/fascod/midlatitude-summer.tz.aa"}
 
 # The same for the input VMR profiles:
 raw_vmrsReadFromScenario
-        {"/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer"}
+        {"@ac_arts_data@/atmosphere/fascod/midlatitude-summer"}
 
 # Optionally write this to a file:
 #ArrayOfMatrixWriteAscii (raw_vmrs) {""}

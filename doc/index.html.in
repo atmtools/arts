@@ -77,13 +77,12 @@
 
     <ul>
       <li>
-	<a href="examples/example1.arts"> example1.arts</a> (calculates
+	<a href="examples/auto_example1.arts"> auto_example1.arts</a> (calculates
 	absorption coefficients).
       <li>
-	<a href="examples/h2o.arts"> h2o.arts</a> (calculates
-	radiances and jacobian from given absorption data).
+	<a href="examples/cont.arts"> cont.arts</a> (shows how to use continua).
       <li>
-	<a href="examples/full.arts"> full.arts</a> (an end-to-end
+	<a href="examples/auto_full.arts"> auto_full.arts</a> (an end-to-end
 	job).
     </ul>
 

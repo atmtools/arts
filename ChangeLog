@@ -1,3 +1,24 @@
+2001-10-05  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-265
+
+	* doc/index.html: Changed names of example1.arts and full.arts to
+	auto_ 
+	Replaced h2o.arts by cont.arts.
+
+	* doc/examples/auto_example1.arts.in: Created from example1.arts.
+
+	* doc/examples/example1.arts: Removed.
+
+	* doc/uguide/development.tex: Fixed TeX warnings and updated.
+
+	* doc/uguide/app_math.tex: Removed.
+
+	* doc/uguide/main.tex: Removed appendix with math
+	operations. Commented out app_units. What was this appendix? Who
+	removed it? There is no ChangeLog entry.
+	
+
 2001-10-05  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-264
