@@ -610,6 +610,40 @@ public:
 	const base& a29,
 	const base& a30
 	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20,
+	const base& a21,
+	const base& a22,
+	const base& a23,
+	const base& a24,
+	const base& a25,
+	const base& a26,
+	const base& a27,
+	const base& a28,
+	const base& a29,
+	const base& a30,
+	const base& a31
+	);
 };
 
 
@@ -1766,6 +1800,75 @@ MakeArray<base>::MakeArray<base>(
   std::vector<base>::operator[](28) = a28;
   std::vector<base>::operator[](29) = a29;
   std::vector<base>::operator[](30) = a30;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20,
+		     const base& a21,
+		     const base& a22,
+		     const base& a23,
+		     const base& a24,
+		     const base& a25,
+		     const base& a26,
+		     const base& a27,
+		     const base& a28,
+		     const base& a29,
+		     const base& a30,
+		     const base& a31
+		     ) : Array<base>(32)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+  std::vector<base>::operator[](21) = a21;
+  std::vector<base>::operator[](22) = a22;
+  std::vector<base>::operator[](23) = a23;
+  std::vector<base>::operator[](24) = a24;
+  std::vector<base>::operator[](25) = a25;
+  std::vector<base>::operator[](26) = a26;
+  std::vector<base>::operator[](27) = a27;
+  std::vector<base>::operator[](28) = a28;
+  std::vector<base>::operator[](29) = a29;
+  std::vector<base>::operator[](30) = a30;
+  std::vector<base>::operator[](31) = a31;
 }
 
 

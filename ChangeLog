@@ -1,3 +1,19 @@
+2002-03-21  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-16
+
+	* src/m_wfs.cc: Fixed several bugs for kTemp with HSE turned on.
+	The function kTemp seems now to work with HSE, this both the fast
+	and accurate version. However, there are differences between the two
+	versions. How important this is for practical inversions should be
+	investigated.
+
+	A test by test_Kt without HSE showed a notable difference and
+	something can be wrong but that is work for tomorrow.
+
+	* ami/arts/test_Kt.m: Added this function for tests of the temperature
+	weighting functions provided by ARTS.
+
 2002-03-21  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-1-0-15
