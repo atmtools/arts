@@ -1,3 +1,9 @@
+2000-08-08  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-38
+
+	* absorption.cc: Included all molecules from JPL/HITRAN.
+
 2000-08-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-37
