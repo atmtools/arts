@@ -29,6 +29,15 @@
 function [H,f_new] = h_backend(f1,f2,za,f_back,w_back,o_ch,o_y)
 
 
+if( o_ch ~= 1  |  o_y ~= 1 )
+  fprintf('\nThere seems to be some smaller bug(s) for cubic treatment of\n');
+  fprintf('the variables. In addition, that option will probably not be\n');
+  fprintf('maintained in the future. For these reasons, only linear\n');
+  fprintf('treatment (XXX_ORDER = 1 ) is now the only possible choice.\n\n');
+  error('Only linear treatment of the variables is now allowed.');
+end
+
+
 f_new  = vec2col(f2);
 
 

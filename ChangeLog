@@ -1,3 +1,17 @@
+2002-05-31  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-25
+
+	* ami/hmatrix: Turned off the option to treat variables as piecewise
+	cubic functions as there seems to be some small bug there. The code
+	is still there but there will be an error message if the any of the
+	XXX_ORDER fileds is set to anything than 1.
+
+	Error messages included in:
+	   h_mixer.m: 
+	   h_antenna.m
+	   h_backend.m
+
 2002-05-21  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-1-0-24

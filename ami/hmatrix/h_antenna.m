@@ -41,6 +41,15 @@ function [H,za_new] = ...
                  h_antenna(f,za1,za2,za_ant,w_ant,o_ant,o_y,fscale,f0,move,dza)
 
 
+if( o_ant ~= 1  |  o_y ~= 1 )
+  fprintf('\nThere seems to be some smaller bug(s) for cubic treatment of\n');
+  fprintf('the variables. In addition, that option will probably not be\n');
+  fprintf('maintained in the future. For these reasons, only linear\n');
+  fprintf('treatment (XXX_ORDER = 1 ) is now the only possible choice.\n\n');
+  error('Only linear treatment of the variables is now allowed.');
+end
+
+
 za1    = vec2col(za1);
 za_ant = vec2col(za_ant);
 w_ant  = vec2col(w_ant);

@@ -42,6 +42,15 @@
 function [H,f_new] = h_mixer(f,za,lo,fprimary,f_filter,w_filter,o_filter,o_y)
 
 
+if( o_filter ~= 1  |  o_y ~= 1 )
+  fprintf('\nThere seems to be some smaller bug(s) for cubic treatment of\n');
+  fprintf('the variables. In addition, that option will probably not be\n');
+  fprintf('maintained in the future. For these reasons, only linear\n');
+  fprintf('treatment (XXX_ORDER = 1 ) is now the only possible choice.\n\n');
+  error('Only linear treatment of the variables is now allowed.');
+end
+
+
 %=== Main sizes
 nf    = length(f);
 nza   = length(za);
