@@ -1900,7 +1900,61 @@ wsv_data.push_back
         "See agendas.cc."
        ),
       GROUP( Agenda_ ))); 
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_theta" ),
+      DESCRIPTION
+      (
+       "Scattering angles.\n"
+       "\n"
+       "The scattering angles (angle between incident and scattered direction) \n"
+       "for all angle combinations of *scat_za_grid* and *scat_aa_grid. \n"
+       "The scattering angles are used for the case of randomly oriented \n"
+       "particles. \n" 
+       "\n"
+       "Usage: Output of *single_scattering_dataPrepare* and used in the DOIT\n"
+       "       method. \n"
+       "\n"
+       ),
+      GROUP( Tensor4_ ))); 
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_theta_gps" ),
+      DESCRIPTION
+      (
+       "Grid positions of scattering angles.\n"
+       "\n"
+       "The scattering angles (angle between incident and scattered direction) \n"
+       "for all angle combinations of *scat_za_grid* and *scat_aa_grid. \n"
+       "The scattering angles are used for the case of randomly oriented \n"
+       "particles. \n" 
+       "\n"
+       "Usage: Output of *single_scattering_dataPrepare* and used in the DOIT\n"
+       "       method. \n"
+       "\n"
+       ),
+      GROUP( ArrayOfArrayOfArrayOfArrayOfGridPos_ ))); 
  
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_theta_itws" ),
+      DESCRIPTION
+      (
+       "Interpolation weights of scattering angles.\n"
+       "\n"
+       "The scattering angles (angle between incident and scattered direction) \n"
+       "for all angle combinations of *scat_za_grid* and *scat_aa_grid. \n"
+       "The scattering angles are used for the case of randomly oriented \n"
+       "particles \n" 
+       "\n"
+       "Usage: Output of *single_scattering_dataPrepare* and used in the DOIT\n"
+       "       method. \n"
+       "\n"
+       ),
+      GROUP( Tensor5_ ))); 
+
 
  wsv_data.push_back
    (WsvRecord

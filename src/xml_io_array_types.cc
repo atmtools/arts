@@ -447,6 +447,251 @@ xml_write_to_stream (ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== ArrayOfArrayOfGridPos =====================================
+
+//! Reads ArrayOfArrayOfArrayOfArrayOfGridPos from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param agpos   ArrayOfGridPos return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfArrayOfGridPos& aagpos,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "ArrayOfGridPos");
+
+  tag.get_attribute_value ("nelem", nelem);
+  aagpos.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, aagpos[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfArrayOfGridPos: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfArrayOfGridPos to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param agpos   ArrayOfGridPos
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfArrayOfGridPos& aagpos,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("type", "ArrayOfGridPos");
+  open_tag.add_attribute ("nelem", aagpos.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < aagpos.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, aagpos[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+//=== ArrayOfArrayOfArrayOfGridPos =====================================
+
+//! Reads ArrayOfArrayOfArrayOfArrayOfGridPos from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param agpos   ArrayOfGridPos return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfArrayOfArrayOfGridPos& aaagpos,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "ArrayOfArrayOfGridPos");
+
+  tag.get_attribute_value ("nelem", nelem);
+  aaagpos.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, aaagpos[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfArrayOfArrayOfGridPos: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfArrayOfArrayOfGridPos to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param agpos   ArrayOfGridPos
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfArrayOfArrayOfGridPos& aaagpos,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("type", "ArrayOfArrayOfGridPos");
+  open_tag.add_attribute ("nelem", aaagpos.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < aaagpos.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, aaagpos[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+
+//=== ArrayOfArrayOfArrayOfArrayOfGridPos =====================================
+
+//! Reads ArrayOfArrayOfArrayOfArrayOfGridPos from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param agpos   ArrayOfGridPos return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfArrayOfArrayOfArrayOfGridPos& aaaagpos,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "ArrayOfArrayOfArrayOfGridPos");
+
+  tag.get_attribute_value ("nelem", nelem);
+  aaaagpos.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, aaaagpos[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfArrayOfArrayOfArrayOfGridPos: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfArrayOfArrayOfArrayOfGridPos to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param agpos   ArrayOfGridPos
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfArrayOfArrayOfArrayOfGridPos& aaaagpos,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("type", "ArrayOfArrayOfArrayOfGridPos");
+  open_tag.add_attribute ("nelem", aaaagpos.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < aaaagpos.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, aaaagpos[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+
 
 //=== ArrayOfIndex ===========================================================
 

@@ -1,3 +1,63 @@
+2003-08-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-661	
+
+	* src/m_optproperties.{cc,h}: Included new methods for speed 
+	optimization
+	of the DOIT (Discrete Order of ITerative) - this is now the official
+	name - method. The program is slow because of the transformation 
+	from the scattering frame into the laboratory frame. For each 
+	combination of incoming and scatterd direction the scattering angle
+	is calculated and then the data is interpolated on the scattering 
+	angle. The calculation of the gridpositions is most time consuming.
+	To avoid recalculating gridpositions and scattering angle over and
+	over again I included a new method:
+
+	(ScatteringDataPrepareDOIT): The method shall calculate scattering
+	angle, gridpositions and interpolation weights and stores them in 
+	the WSVs *scat_theta*, *scat_theta_gps*, *scat_theta_itws*. These 
+	variables are used then in (pha_matTransform).
+	- The method is not finished yet- 
+
+	If you do not want to use the DOIT method you have to include
+	(ScatteringDataPrepareOFF) in yopur control file and everything works 
+	as before. This methods sets the WSVs *scat_theta*, *scat_theta_gps*,
+	*scat_theta_itws* empty.
+
+	* src/optproperties.{cc,h} (pha_matTransform): Included switch. If 
+	*scat_theta* is empty the old transformation including the full 
+	interpllation is performed. 
+	If not, a now function (interpolate_scat_angleDOIT) is executed.
+	- this function is also not finished yet-
+	
+	* src/m_optproperties (pha_mat_sptFromData): Adjusted function call 
+	to (pha_matTransform).
+	
+	* src/m_scatrte.cc (scat_fieldCalc): Adjusted function call to 
+	(pha_mat_sptFromData) and included new WSVs as input.
+	(i_fieldUpdate***): Removed unused variables. 
+	
+	* src/m_montecarlo.cc: Adjusted function call to (pha_mat_sptFromData)
+	and included new WSVs as input.
+	
+	* src/methods.cc: Included the new methods and adjusted interfaces of 
+	(scat_fieldCalc), (ScatteringMonteCarlo) and (i_fieldUpdate***). 
+
+	* src/workspace.cc: Included WSVs *scat_theta*, *scat_theta_gps*,
+	*scat_theta_itws*.
+	
+	* src/groups.cc: Included ArrayOfArrayOfArrayOfArrayOfGridPos needed
+ 	for *scat_theta_gps*.
+	
+	* src/interpolation.h: Included typedefs for ArrayOfArrayOfGridPos,
+		ArrayOfArrayOfArrayOfGridPos and 
+		ArrayOfArrayOfArrayOfArrayOfGridPos.
+
+	* src/xml_io_array_types.{cc,h}: Added reading and writing routines for
+	the grid position arrays.
+
+	* src/xml_io_instantiation.h: Included templates for xml routines.
+
 2003-08-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-660

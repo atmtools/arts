@@ -461,7 +461,6 @@ void
 i_fieldUpdate1D(// WS Output:
                 Tensor6& i_field,
                 // scalar_gas_abs_agenda:
-                Matrix& abs_scalar_gas,
                 Numeric& rte_pressure,
 	        Numeric& rte_temperature,
 		Vector& rte_vmr_list,
@@ -485,7 +484,6 @@ i_fieldUpdate1D(// WS Output:
                 const Vector& scat_za_grid,
                 // Optical properties for gases and particles:
                 const Agenda& opt_prop_part_agenda,
-                const Tensor4& pnd_field, // FIXME: not needed in this function
                 const Agenda& opt_prop_gas_agenda,
                 // Propagation path calculation:
                 const Agenda& ppath_step_agenda,
@@ -996,7 +994,6 @@ void
 i_fieldUpdateSeq1D(// WS Output:
 		   Tensor6& i_field,
 		   // scalar_gas_abs_agenda:
-		   Matrix& abs_scalar_gas,
 		   Numeric& rte_pressure,
 		   Numeric& rte_temperature,
 		   Vector& rte_vmr_list,
@@ -1016,7 +1013,6 @@ i_fieldUpdateSeq1D(// WS Output:
 		   Vector& rte_pos,
 		   GridPos& rte_gp_p,
 		   // WS Input:
-		   const Tensor6& i_field_old,
 		   const Tensor6& scat_field,
 		   const ArrayOfIndex& cloudbox_limits,
 		   // Calculate scalar gas absorption:
@@ -1027,7 +1023,6 @@ i_fieldUpdateSeq1D(// WS Output:
 		   const Vector& scat_za_grid,
 		   // Optical properties for gases and particles:
 		   const Agenda& opt_prop_part_agenda,
-		   const Tensor4& pnd_field, // FIXME: not needed in this function
 		   const Agenda& opt_prop_gas_agenda,
 		   // Propagation path calculation:
 		   const Agenda& ppath_step_agenda,
@@ -1277,7 +1272,6 @@ i_fieldUpdateSeq1D(// WS Output:
 void i_fieldUpdate3D(// WS Output:
                      Tensor6& i_field,
                      // scalar_gas_abs_agenda:
-                     Matrix& abs_scalar_gas,
                      Numeric& rte_pressure,
                      Numeric& rte_temperature,
                      Vector& rte_vmr_list,
@@ -1305,7 +1299,6 @@ void i_fieldUpdate3D(// WS Output:
                      const Vector& scat_aa_grid,
                      // Optical properties for gases and particles:
                      const Agenda& opt_prop_part_agenda,
-                     const Tensor4& pnd_field,
                      const Agenda& opt_prop_gas_agenda,
                      // Propagation path calculation:
                      const Agenda& ppath_step_agenda,
@@ -1896,7 +1889,6 @@ void i_fieldUpdate3D(// WS Output:
 void i_fieldUpdateSeq3D(// WS Output:
                      Tensor6& i_field,
                      // scalar_gas_abs_agenda:
-                     Matrix& abs_scalar_gas,
                      Numeric& rte_pressure,
                      Numeric& rte_temperature,
                      Vector& rte_vmr_list,
@@ -1912,7 +1904,6 @@ void i_fieldUpdateSeq3D(// WS Output:
                      // ppath_step_agenda:
                      Ppath& ppath_step, 
                      // WS Input:
-                     const Tensor6& i_field_old,
                      const Tensor6& scat_field,
                      const ArrayOfIndex& cloudbox_limits,
                      // Calculate scalar gas absorption:
@@ -1924,7 +1915,6 @@ void i_fieldUpdateSeq3D(// WS Output:
                      const Vector& scat_aa_grid,
                      // Optical properties for gases and particles:
                      const Agenda& opt_prop_part_agenda,
-                     const Tensor4& pnd_field,
                      const Agenda& opt_prop_gas_agenda,
                      // Propagation path calculation:
                      const Agenda& ppath_step_agenda,
@@ -1944,7 +1934,6 @@ void i_fieldUpdateSeq3D(// WS Output:
   out2 << "------------------------------------------------------------- \n";
 
   const Index stokes_dim = scat_field.ncols();
-  const Index atmosphere_dim = 3;
 
   // The definition of the azimth angle grids is different for clearsky and
   // cloudbox. (SHOULD BE FIXED!!!!)
@@ -3015,7 +3004,11 @@ scat_fieldCalc(//WS Output:
                const ArrayOfIndex& cloudbox_limits,
                const Vector& f_grid,
                const Index& f_index,
-               const Vector& grid_stepsize
+               const Vector& grid_stepsize,
+               const Tensor4& scat_theta,
+               const ArrayOfArrayOfArrayOfArrayOfGridPos&
+               scat_theta_gps,
+               const Tensor5& scat_theta_itws
                )
   
 {
@@ -3099,7 +3092,8 @@ scat_fieldCalc(//WS Output:
           {
             pha_mat_sptFromData(pha_mat_spt,
                                 scat_data_raw, scat_za_grid, scat_aa_grid, 
-                                za_prop, 0, f_index, f_grid);
+                                za_prop, 0, f_index, f_grid, scat_theta,
+                                scat_theta_gps, scat_theta_itws);
                             
             
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
@@ -3195,9 +3189,11 @@ scat_fieldCalc(//WS Output:
                 {
                   for (Index aa_prop = 0; aa_prop < Naa; ++ aa_prop)
                     {
-                      pha_mat_sptFromData(pha_mat_spt,
-                                scat_data_raw, scat_za_grid, scat_aa_grid, 
-                                za_prop, aa_prop, f_index, f_grid);
+                      pha_mat_sptFromData(pha_mat_spt, scat_data_raw, 
+                                          scat_za_grid, scat_aa_grid, 
+                                          za_prop, aa_prop, f_index, f_grid,
+                                          scat_theta, scat_theta_gps, 
+                                          scat_theta_itws);
                       pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                   atmosphere_dim, p_index, lat_index, 
                                   lon_index);
@@ -3599,7 +3595,6 @@ void ScatteringInit(
                     Index& scat_lon_index,
                     Index& scat_za_index,
                     Index& scat_aa_index,
-                    Index& iteration_counter,
                     Tensor4& pha_mat,
                     Tensor5& pha_mat_spt,
                     Tensor3& ext_mat_spt,
@@ -3633,8 +3628,7 @@ void ScatteringInit(
   scat_lon_index = 0;
   scat_za_index = 0;
   scat_aa_index = 0;
-  //  iteration_counter = 0;
-
+  
   // Number of particle types:
   const Index N_pt = scat_data_raw.nelem();
   

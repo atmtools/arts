@@ -1,6 +1,7 @@
 /*!
   \file   m_optproperties.cc
-  \author Sreerekha T.R. <rekha@uni-bremen.de>
+  \author Sreerekha T.R. <rekha@uni-bremen.de>, 
+          Claudia Emde <claudia@sat.physik.uni-bremen.de
   \date   Mon Jun 10 11:19:11 2002 
   \brief  This file contains workspace methods for calculating the optical 
   properties for the radiative transfer. 
@@ -256,7 +257,11 @@ void pha_mat_sptFromData( // Output:
                          const Index& scat_za_index, // propagation directions
                          const Index& scat_aa_index,
                          const Index& f_index,
-                         const Vector& f_grid
+                         const Vector& f_grid,
+                         const Tensor4& scat_theta,
+                         const ArrayOfArrayOfArrayOfArrayOfGridPos&
+                         scat_theta_gps,
+                         const Tensor5& scat_theta_itws
                          )
 {
 
@@ -334,8 +339,7 @@ void pha_mat_sptFromData( // Output:
        
        Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);
        
-      
-
+       
        // Do the transformation into the laboratory coordinate system.
        for (Index j = 0; j < scat_za_grid.nelem(); j ++)
          {
@@ -344,10 +348,12 @@ void pha_mat_sptFromData( // Output:
                Numeric za_inc = scat_za_grid[j]; 
                Numeric aa_inc = scat_aa_grid[k];
                
+
                pha_matTransform(pha_mat_lab,
                                 pha_mat_data_int, 
                                 za_datagrid, aa_datagrid,
-                                part_type, za_sca, aa_sca, za_inc, aa_inc);
+                                part_type, za_sca, aa_sca, za_inc, aa_inc,
+                                scat_theta, scat_theta_gps, scat_theta_itws);
                pha_mat_spt(i_pt, j, k, joker, joker) = pha_mat_lab;
              }
          }
@@ -1586,4 +1592,89 @@ void scat_data_rawCheck(//Input:
            << " Csca: " << Csca << "\n";
       
     }
+}
+
+//! Prepare single scattering data for a DOIT scattering calculation.
+/*! 
+  This function has to be used for scattering calculations using the 
+  DOIT method. It prepares the data in such a way that the code can be 
+  speed-optimized.
+  
+  For different hydrometeor species different preparations are required. 
+  So far, we only the case of randomly oriented particles is implemented. 
+
+  For randomly oriented hydrometeor species the scattering angles in the 
+  scattering frame are precalculated for all possible incoming and 
+  scattered directions and stored the the WSV *scat_theta*. In the program 
+  all phase matrix emements have to be interpolated on the scattering angle.
+  This has to be done for each iteration and for all frequencies.
+  
+  Output:
+  \param scat_theta All scattering angles.
+  \param scat_theta_gps Grid positions of scattering angles.
+  \param scat_theta_itws Interpolation weights.
+  Input:
+  \param scat_za_grid Zenith angle grid for scattering calculations.
+  \param scat_aa_grid Azimuth angle grid for scattering calculations.
+  \param scat_data_raw Array of single scattering data for all hydrometeor
+                      species
+
+  \author Claudia Emde
+  \date   2003-08-20
+*/
+void ScatteringDataPrepareDOIT( //Output:
+                               Tensor4& scat_theta,
+                               ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
+                               Tensor5& scat_theta_itws,
+                               //Input:
+                               const Vector& scat_za_grid,
+                               const Vector& scat_aa_grid,
+                               const ArrayOfSingleScatteringData& scat_data_raw
+                    )
+{ 
+  // Calculate all scattering angles and store them in a vector. The looping
+  //order over the angles must be identical to the order used in 
+  //pha_mat_sptFromData.
+  
+  for (Index za_prop = 0; za_prop < scat_za_grid.nelem(); za_prop ++)
+    {
+      for (Index aa_prop = 0; aa_prop < scat_aa_grid.nelem(); aa_prop ++)
+        {
+          for (Index za_inc = 0; za_inc < scat_za_grid.nelem(); za_inc ++)
+            {
+              for (Index aa_inc = 0; aa_inc < scat_aa_grid.nelem(); aa_inc ++)
+                {
+
+                }
+            }
+          
+          
+        }
+    }
+}
+
+
+//! No preparation of single scattering data.
+/*! 
+  The parameters below are set to be empty. If this function is used 
+  scattering angles, grid positions and interpolation weights are calculated
+  inside the WSM *pha_mat_sptFromData*. 
+  
+  Output:
+  \param scat_theta All scattering angles.
+  \param scat_theta_gps Grid positions of scattering angles.
+  \param scat_theta_itws Interpolation weights.
+  
+  \author Claudia Emde
+  \date   2003-08-20
+*/
+void ScatteringDataPrepareOFF( //Output:
+                               Tensor4& scat_theta,
+                               ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
+                               Tensor5& scat_theta_itws
+                               )
+{ 
+  scat_theta.resize(0,0,0,0);
+  scat_theta_gps.resize(0);
+  scat_theta_itws.resize(0,0,0,0,0);
 }

@@ -104,6 +104,29 @@ xml_write_to_stream (ostream&, const ArrayOfGridPos&, bofstream * = NULL,
                      const String& = "");
 
 void
+xml_read_from_stream (istream&, ArrayOfArrayOfGridPos&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfArrayOfGridPos&, 
+                     bofstream * = NULL, const String& = "");
+
+void
+xml_read_from_stream (istream&, ArrayOfArrayOfArrayOfGridPos&, 
+                      bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfArrayOfArrayOfGridPos&, 
+                     bofstream * = NULL, const String& = "");
+
+void
+xml_read_from_stream (istream&, ArrayOfArrayOfArrayOfArrayOfGridPos&,
+                      bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfArrayOfArrayOfArrayOfGridPos&, 
+                     bofstream * = NULL, const String& = "");
+
+void
 xml_read_from_stream (istream&, ArrayOfIndex&, bifstream * = NULL);
 
 void

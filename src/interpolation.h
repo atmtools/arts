@@ -83,6 +83,9 @@ struct GridPos {
 */
 
 typedef Array<GridPos> ArrayOfGridPos;
+typedef Array<Array<GridPos> > ArrayOfArrayOfGridPos;  
+typedef Array<Array<Array<GridPos> > > ArrayOfArrayOfArrayOfGridPos;  
+typedef Array<Array<Array<Array<GridPos> > > > ArrayOfArrayOfArrayOfArrayOfGridPos;  
 
 // Function headers (documentation is in .cc file):
 

@@ -212,6 +212,18 @@ template void
 xml_read_from_file<ArrayOfGridPos> (const String&, ArrayOfGridPos&);
 
 template void
+xml_read_from_file<ArrayOfArrayOfGridPos> 
+(const String&, ArrayOfArrayOfGridPos&);
+
+template void
+xml_read_from_file<ArrayOfArrayOfArrayOfGridPos> 
+(const String&, ArrayOfArrayOfArrayOfGridPos&);
+
+template void
+xml_read_from_file<ArrayOfArrayOfArrayOfArrayOfGridPos>
+(const String&, ArrayOfArrayOfArrayOfArrayOfGridPos&);
+
+template void
 xml_read_from_file<ArrayOfIndex> (const String&, ArrayOfIndex&);
 
 template void
@@ -283,6 +295,26 @@ template void
 xml_write_to_file<ArrayOfArrayOfSpeciesTag> (const String&,
                                              const ArrayOfArrayOfSpeciesTag&,
                                              FileType);
+
+template void
+xml_write_to_file<ArrayOfGridPos> (const String&,
+                                   const ArrayOfGridPos&,
+                                   FileType);
+
+template void
+xml_write_to_file<ArrayOfArrayOfGridPos> (const String&,
+                                   const ArrayOfArrayOfGridPos&,
+                                   FileType);
+
+template void
+xml_write_to_file<ArrayOfArrayOfArrayOfGridPos> (const String&,
+                                                 const ArrayOfArrayOfArrayOfGridPos&,
+                                                 FileType);
+
+template void
+xml_write_to_file<ArrayOfArrayOfArrayOfArrayOfGridPos> (const String&,
+                                   const ArrayOfArrayOfArrayOfArrayOfGridPos&,
+                                   FileType);
 
 #endif /* xml_io_instantiation_h */
 

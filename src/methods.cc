@@ -1448,13 +1448,13 @@ md_data_raw.push_back
          "in *scat_field*.\n"
          "\n" 
         ),
-        OUTPUT(i_field_, abs_scalar_gas_, rte_pressure_, rte_temperature_,
+        OUTPUT(i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
                scat_p_index_, ppath_step_),
         INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
-              opt_prop_part_agenda_, pnd_field_, opt_prop_gas_agenda_,
+              opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
               f_grid_, f_index_),
         GOUTPUT(),
@@ -1473,14 +1473,14 @@ md_data_raw.push_back
          "in *scat_field*.\n"
          "\n" 
          ),
-        OUTPUT(i_field_, abs_scalar_gas_, rte_pressure_, rte_temperature_,
+        OUTPUT(i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
                scat_p_index_, ppath_step_, ground_los_, ground_emission_,
 	       ground_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
-        INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
+        INPUT(scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
-              opt_prop_part_agenda_, pnd_field_, opt_prop_gas_agenda_,
+              opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
               f_grid_, f_index_, ground_refl_agenda_),
         GOUTPUT(),
@@ -1499,13 +1499,13 @@ md_data_raw.push_back
          "in *scat_field*.\n"
          "\n " 
         ),
-        OUTPUT(i_field_, abs_scalar_gas_, rte_pressure_, rte_temperature_,
+        OUTPUT(i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_, abs_vec_,
                scat_p_index_, scat_lat_index_, scat_lon_index_,  ppath_step_),
         INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, scat_aa_grid_,
-              opt_prop_part_agenda_, pnd_field_, opt_prop_gas_agenda_,
+              opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,
               r_geoid_, t_field_,
               f_grid_, f_index_),
@@ -1525,13 +1525,13 @@ md_data_raw.push_back
          "in *scat_field*.\n"
          "\n " 
         ),
-        OUTPUT(i_field_, abs_scalar_gas_, rte_pressure_, rte_temperature_,
+        OUTPUT(i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_, abs_vec_,
                scat_p_index_, scat_lat_index_, scat_lon_index_,  ppath_step_),
-        INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
+        INPUT(scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, scat_aa_grid_,
-              opt_prop_part_agenda_, pnd_field_, opt_prop_gas_agenda_,
+              opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,
               r_geoid_, t_field_,
               f_grid_, f_index_),
@@ -2453,7 +2453,8 @@ md_data_raw.push_back
          ),
 	OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, scat_data_raw_, scat_za_grid_, scat_aa_grid_, 
-              scat_za_index_, scat_aa_index_, f_index_, f_grid_),
+              scat_za_index_, scat_aa_index_, f_index_, f_grid_, scat_theta_,
+              scat_theta_gps_, scat_theta_itws_),
 	GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -2911,7 +2912,7 @@ md_data_raw.push_back
         INPUT( scat_data_raw_, i_field_, pnd_field_, scat_za_grid_, 
                scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, 
                atmosphere_dim_, cloudbox_limits_, f_grid_, f_index_,
-               grid_stepsize_ ),
+               grid_stepsize_, scat_theta_, scat_theta_gps_, scat_theta_itws_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3015,7 +3016,7 @@ md_data_raw.push_back
          "\n"
          ),
         OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
-               scat_za_index_, scat_aa_index_, iteration_counter_, pha_mat_,
+               scat_za_index_, scat_aa_index_, pha_mat_,
                pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_field_,
                i_field_),
         INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
@@ -3070,7 +3071,7 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
  
-md_data_raw.push_back
+ md_data_raw.push_back
     ( MdRecord
       ( NAME( "ScatteringMonteCarlo" ),
         DESCRIPTION
@@ -3101,7 +3102,8 @@ md_data_raw.push_back
 	      t_field_, scat_za_grid_,
 	      scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
 	      opt_prop_part_agenda_,scalar_gas_absorption_agenda_, vmr_field_,
-	      scat_data_raw_, pnd_field_),
+	      scat_data_raw_, pnd_field_, scat_theta_, scat_theta_gps_,
+              scat_theta_itws_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath","silent", 
@@ -3301,6 +3303,53 @@ md_data_raw.push_back
         KEYWORDS( "lo", "primary_band" ),
         TYPES( Numeric_t, String_t )));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ScatteringDataPrepareDOIT"),
+        DESCRIPTION
+        (
+         "Prepare single scattering data for a DOIT scattering calculation.\n"
+         "\n"
+         "This function has to be used for scattering calculations using the\n"
+         "DOIT method. It prepares the data in such a way that the code can be\n"
+         "speed-optimized.\n"
+         "\n"
+         "For different hydrometeor species different preparations are required.\n" 
+         "So far, we only the case of randomly oriented particles is implemented.\n" 
+         "\n"
+         "For randomly oriented hydrometeor species the scattering angles in the\n"
+         "scattering frame are precalculated for all possible incoming and\n" 
+         "scattered directions and stored the the WSV *scat_theta*. In the program\n" 
+         "all phase matrix emements have to be interpolated on the scattering angle.\n"
+         "This has to be done for each iteration and for all frequencies.\n"
+         "\n" 
+         ),
+        OUTPUT( scat_theta_, scat_theta_gps_,  scat_theta_itws_),
+        INPUT( scat_za_grid_, scat_aa_grid_, scat_data_raw_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ScatteringDataPrepareOFF"),
+        DESCRIPTION
+        (
+        "No preparation of single scattering data.\n"
+        "\n"
+        "The parameters below are set to be empty. If this function is used\n" 
+        "scattering angles, grid positions and interpolation weights are\n"
+        "calculated inside the WSM *pha_mat_sptFromData*.\n"
+        "The output variables are set to be empty. \n"
+        "\n" 
+         ),
+        OUTPUT( scat_theta_, scat_theta_gps_,  scat_theta_itws_),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord

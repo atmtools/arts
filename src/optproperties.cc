@@ -244,9 +244,12 @@ void ext_matTransform(//Output and Input
   \param aa_sca Azimuth angle of scattered direction.
   \param za_inc Zenith angle of incoming direction.
   \param aa_inc Azimuth angle of incoming direction.
+  \param scat_theta Scattering angles.
+  \param scat_theta_gps Grid positions of scattering angles.
+  \param scat_theta_itws Interpolation weights of scattering angles.
 
   \author Claudia Emde
-  \date   2003-05-24
+  \date   2003-08-19
 */
 void pha_matTransform(//Output
                       MatrixView pha_mat_lab,
@@ -258,7 +261,11 @@ void pha_matTransform(//Output
                       const Numeric& za_sca,
                       const Numeric& aa_sca,
                       const Numeric& za_inc,
-                      const Numeric& aa_inc)
+                      const Numeric& aa_inc,
+                      const Tensor4View scat_theta,
+                      const ArrayOfArrayOfArrayOfArrayOfGridPos&
+                         scat_theta_gps,
+                      const Tensor5View scat_theta_itws)
 {
 
   const Numeric za_sca_rad = za_sca * DEG2RAD;
@@ -286,13 +293,29 @@ void pha_matTransform(//Output
     {
       // Calculate the scattering and interpolate the data on the scattering
       // angle:
+      
       Vector pha_mat_int(6);
       Numeric theta_rad;
+      
+      if ( is_size(scat_theta, 0, 0, 0, 0))
+        {
 
-      // Interpolation of the data on the scattering angle:
-      interpolate_scat_angle(pha_mat_int, theta_rad, pha_mat_data,
-                             za_datagrid, za_sca_rad, aa_sca_rad,
-                             za_inc_rad, aa_inc_rad);
+          // Interpolation of the data on the scattering angle:
+          interpolate_scat_angle(pha_mat_int, theta_rad, pha_mat_data,
+                                 za_datagrid, za_sca_rad, aa_sca_rad,
+                                 za_inc_rad, aa_inc_rad);
+               
+        }
+      
+      else
+        {
+          // Interpolation of the data on the scattering angle. Use 
+          // precalculated interpolation weights.
+          interpolate_scat_angleDOIT(pha_mat_int, theta_rad, pha_mat_data,
+                                 za_datagrid, za_sca_rad, aa_sca_rad,
+                                 za_inc_rad, aa_inc_rad, scat_theta, 
+                                 scat_theta_gps, scat_theta_itws);
+        }
 
       // Caclulate the phase matrix in the laboratory frame:
       pha_mat_labCalc(pha_mat_lab, pha_mat_int, za_sca, aa_sca, za_inc, 
@@ -306,6 +329,80 @@ void pha_matTransform(//Output
     
   }
 }
+
+
+
+
+//! Interpolate data on the scattering angle.
+/*! 
+  This function is used for the transformation of the phase matrix 
+  from scattering frame to the laboratory frame for randomly oriented
+  scattering media (case PTYPE_MACRO_ISO).
+
+  The scattering angle is calculated from the angles defining
+  the directions of the incoming and scattered radiation.
+  After that the data (which is stored in the data files as a function
+  of the scattering angle) is interpolated on the calculated 
+  scattering angle.
+
+  Output:
+  \param pha_mat_int Interpolated phase matrix.
+  \param theta_rad Scattering angle [rad].
+  Input:
+  \param pha_mat_data Phase matrix in database.
+  \param za_datagrid Zenith angle grid in the database.
+  \param aa_datagrid Zenith angle grid in the database.
+  \param za_sca_rad Zenith angle of scattered direction [rad].
+  \param aa_sca_rad Azimuth angle of scattered direction [rad].
+  \param za_inc_rad Zenith angle of incoming direction [rad].
+  \param aa_inc_rad Azimuth angle of incoming direction [rad].
+  \param scat_theta Scattering angles.
+  \param scat_theta_gps Array of gridposizions for scattering angle.
+  \param scat_theta_itws Interpolation weights belonging to the scattering angles.
+     
+  \author Claudia Emde
+  \date   2003-05-13 
+*/
+void interpolate_scat_angleDOIT(//Output:
+                            VectorView pha_mat_int,
+                            Numeric& theta_rad,
+                            //Input:
+                            const Tensor5View pha_mat_data,
+                            const VectorView za_datagrid,
+                            const Numeric& za_sca_rad,
+                            const Numeric& aa_sca_rad,
+                            const Numeric& za_inc_rad,
+                            const Numeric& aa_inc_rad,
+                            const Tensor4View scat_theta,
+                            const ArrayOfArrayOfArrayOfArrayOfGridPos&
+                                scat_theta_gps,
+                            const Tensor5View scat_theta_itws
+                            )
+{
+  // cout << "Interpolation on scattering angle" << endl;
+  assert (pha_mat_data.ncols() == 6);
+
+  // Calculation of the scattering angle:
+  theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
+                   sin(za_sca_rad) * sin(za_inc_rad) * 
+                   cos(aa_sca_rad - aa_inc_rad));
+  
+  const Numeric theta = RAD2DEG * theta_rad;
+  
+  // Interpolation of the data on the scattering angle:
+ 
+  GridPos thet_gp;
+  gridpos(thet_gp, za_datagrid, theta);
+  
+  Vector itw(2);
+  interpweights(itw, thet_gp);
+
+  for (Index i = 0; i < 6; i++)
+    {
+      pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), 
+                              thet_gp);
+    }
+} 
 
 
 //! Interpolate data on the scattering angle.
@@ -333,7 +430,7 @@ void pha_matTransform(//Output
   \param aa_inc_rad Azimuth angle of incoming direction [rad].
      
   \author Claudia Emde
-  \date   2003-05-13 
+  \date   2003-081-19
 */
 void interpolate_scat_angle(//Output:
                             VectorView pha_mat_int,
@@ -344,7 +441,8 @@ void interpolate_scat_angle(//Output:
                             const Numeric& za_sca_rad,
                             const Numeric& aa_sca_rad,
                             const Numeric& za_inc_rad,
-                            const Numeric& aa_inc_rad)
+                            const Numeric& aa_inc_rad
+                            )
 {
   // cout << "Interpolation on scattering angle" << endl;
   assert (pha_mat_data.ncols() == 6);
@@ -357,9 +455,10 @@ void interpolate_scat_angle(//Output:
   const Numeric theta = RAD2DEG * theta_rad;
   
   // Interpolation of the data on the scattering angle:
+ 
   GridPos thet_gp;
   gridpos(thet_gp, za_datagrid, theta);
-    
+  
   Vector itw(2);
   interpweights(itw, thet_gp);
 
@@ -369,6 +468,7 @@ void interpolate_scat_angle(//Output:
                               thet_gp);
     }
 } 
+
 
 
 

@@ -426,9 +426,12 @@ void ScatteringMonteCarlo (
 			   const Agenda& opt_prop_part_agenda,
 			   const Agenda& scalar_gas_absorption_agenda,
 			   const Tensor4&   vmr_field,
-			   //Other Stuff
+                           //Other Stuff
 			   const ArrayOfSingleScatteringData& scat_data_raw,
 			   const Tensor4& pnd_field,
+                           const Tensor4& scat_theta, // CE: Included 
+                           const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
+                           const Tensor5& scat_theta_itws,
 			    // Control Parameters:
 			   const Index& maxiter,
 			   const Index& rng_seed,
@@ -437,7 +440,8 @@ void ScatteringMonteCarlo (
 			   const Index& silent,
 			   const Index& record_histdata,
 			   const String& histdata_filename,
-			   const Index& los_sampling_method)
+			   const Index& los_sampling_method
+                           )
 
 {		
   //Internal Declarations
@@ -613,7 +617,7 @@ void ScatteringMonteCarlo (
 	      aa_prop=0;
 	      pha_mat_sptFromData(pha_mat_spt,
 				  scat_data_raw, pha_mat_za_grid, pha_mat_aa_grid, 
-				  za_prop, aa_prop, f_index, f_grid);
+				  za_prop, aa_prop, f_index, f_grid, scat_theta, scat_theta_gps, scat_theta_itws);
 	      //There should probably be some interpolation here for now just use the 
 	      //low gridpoint
 	      
