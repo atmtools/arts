@@ -54,6 +54,7 @@
 #include "rte.h"
 #include "special_interp.h"
 #include "scatrte.h"
+#include "m_general.h"
 
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
@@ -669,7 +670,7 @@ i_fieldUpdate1D(// WS Output:
               
               // Check if the agenda has returned ppath.step with reasonable 
               // values. 
-              //PpathPrint( ppath_step, "ppath");
+              //Print( ppath_step, "ppath", 0);
               
               // Gridpositions inside the cloudbox.
               // The optical properties are stored only inside the
@@ -1479,7 +1480,7 @@ void i_fieldUpdate3D(// WS Output:
                     
                     // Check if the agenda has returned ppath.step with 
                     // reasonable values. 
-                    // PpathPrint( ppath_step, "ppath");
+                    // Print( ppath_step, "ppath", 0);
               
                     // Check whether the next point is inside or outside the
                     // cloudbox. Only if the next point lies inside the
