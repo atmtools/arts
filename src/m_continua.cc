@@ -228,9 +228,8 @@ void absMPM02_H2O(// WS Output:
 
 
 
+//! Lagrange Interpolation.
 /*! 
-  See arts -d LagrangeInterpol4 for detailed documentation.
-
   This function calculates the Lagrange interpolation of four interpolation 
   points as described in 
   <a href="http://mathworld.wolfram.com/LagrangeInterpolatingPolynomial.html">
@@ -244,7 +243,9 @@ void absMPM02_H2O(// WS Output:
   \param y     y-vector with four elements: yj = y(xj), j=0,1,2,3
   \param a     interpolation point on the x-axis with x1 =< a < x2 
 
-  \author Thomas Kuhn, Stefan Buehler (new interface)
+  \return FIXME
+
+  \author Thomas Kuhn
   \date   2003-11-25
 */
 
@@ -252,8 +253,6 @@ Numeric LagrangeInterpol4( const Vector& x,
 			   const Vector& y,
 			   const Numeric a)
 {
-
-  
   // lowermost grid spacing on x-axis
   const Numeric Dlimit = 1.00000e-15;
 

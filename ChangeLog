@@ -1,3 +1,11 @@
+2003-11-27  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-719
+
+	* src/m_continua.cc: Cosmetic changes in doxygen headers.
+
+	* doc/examples/cont_simple_example.arts.in: Tested Thomas new method.
+
 2003-11-27  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-718

@@ -35,7 +35,7 @@ WriteXML(abs_vmr){""}
 # Set the "model" string.
 # (This string is used by some absorption models to switch 
 # between different options.)
-StringSet(abs_model){"MPM02"}
+StringSet(abs_model){"CKDMT100"}
 
 # Set the user parameters.
 # These are also used by some models, for example to scale 
@@ -43,7 +43,7 @@ StringSet(abs_model){"MPM02"}
 VectorSetExplicitly(abs_user_parameters){[]}
 
 # Call the MPM02_H2O model to calculte H2O absorption:
-absMPM02_H2O{}
+abs_CKDMT_H2O_AIR{}
 
 # Write result to file:
 WriteXML(abs){""}
