@@ -1793,3 +1793,16 @@ Numeric min(const ConstMatrixView& x)
   return *this;
 }*/
 
+////////////////////////////////
+// Helper function for debugging
+#ifndef NDEBUG
+
+Numeric debug_matrixview_get_elem (MatrixView &mv, Index r, Index c)
+{
+  return mv(r, c);
+}
+
+#endif
+////////////////////////////////
+
+

@@ -801,5 +801,13 @@ ostream& operator<<(ostream& os, const ConstVectorView& v);
 
 ostream& operator<<(ostream& os, const ConstMatrixView& v);
 
+////////////////////////////////
+// Helper function for debugging
+#ifndef NDEBUG
+
+Numeric debug_matrixview_get_elem (MatrixView &mv, Index r, Index c);
+
+#endif
+////////////////////////////////
 
 #endif    // matpackI_h

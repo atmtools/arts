@@ -1,3 +1,13 @@
+2004-05-06  Oliver Lemke  <olemke@linux.net>
+
+        * arts-1-1-814
+
+	* src/matpackI.{h,cc}: Added debugging helper function
+	debug_matrixview_get_elem. This function makes it possible to access
+	Matrix elements in gdb. The operator() could not be used because of
+	inlining.
+	I'll add the same for Tensors tomorrow.
+
 2004-04-27  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
         * arts-1-1-813
