@@ -19,6 +19,7 @@
 %  \stophistory
 %
 \starthistory
+  030109 & Documentation for using jokers without Range added by Stefan Buehler.\\
   020516 & Tensors added by Stefan Buehler.\\
   011018 & Created and written by Stefan Buehler.\\
 \stophistory
@@ -414,12 +415,22 @@ cout << a.ncols();
 Vector x = a(0,Range(joker));           // First row.
 Vector y = a(Range(joker),a.ncols()-1); // Last column.
 \end{verbatim}
-
 Of course, you can use more complicated Range expressions to refer to
-only parts of a row or column. Technically, expressions of this kind
-return the type \artsstyle{VectorView}. This means, they can be used
-in all cases where an object of that type is expected, for example
-with the function defined in Section \ref{sec:vector_views}:
+only parts of a row or column. However, the case that you want all
+elements of a given dimension is so
+much more common than the more sophisticated uses of the
+\artsstyle{Range} class, that it is worth to introduce a simplified
+notation for this case. Therefore, you are allowed to
+omit the \artsstyle{Range} and just write:
+\begin{verbatim}
+Vector x = a(0,joker);           // First row.
+Vector y = a(joker,a.ncols()-1); // Last column.
+\end{verbatim}
+
+Technically, expressions of this kind return the type
+\artsstyle{VectorView}. This means, they can be used in all cases
+where an object of that type is expected, for example with the
+function defined in Section \ref{sec:vector_views}:
 
 \begin{verbatim}
 silly_function(a(0,Range(joker)),
@@ -427,6 +438,8 @@ silly_function(a(0,Range(joker)),
                                    // with first and 
                                    // second row of a.
 \end{verbatim}
+
+
 
 \leveld{Element access:}
 \begin{verbatim}
@@ -615,17 +628,21 @@ Tensor3 d=c;          // Make d a copy of c.
 %-------------------------------------------------------------------------
 
 Tensor views work exactly like matrix and vector views. Example:
-
 \begin{verbatim}
 Tensor4 a(10,20,5,4);
-Tensor3View b = a(3,Range(joker),Range(joker),Range(joker));
+Tensor3View b = a(3,Range(1,3),joker,joker);
 \end{verbatim}
+If you have read the previous sections carefully, it should be clear
+what this expression does.
 
-This is what is meant by slicing: You can easily create a
-view of a tensor that picks out an object of lower dimension. Note
-that you can use either an \artsstyle{Index} or a \artsstyle{Range} argument for
-any of the dimensions. The dimensionality of the result will adjust
-accordingly, as in the example above.
+This is what is meant by slicing: You can easily create a view of a
+tensor that picks out an object of lower dimension. Note that you can
+use either an \artsstyle{Index} or a \artsstyle{Range}
+argument\footnote{Using just \artsstyle{joker} is equivalent to using
+  \artsstyle{Range(joker)}, as explained in Section
+  \ref{sec:matpack:matrices}.} for any of the dimensions. The
+dimensionality of the result will adjust accordingly, as in the
+example above.
 
 Everything that was said about matrix and vector views holds also
 here. In particular, please always use views as function arguments. 
@@ -663,7 +680,7 @@ names for your variables that refer so some dimension of a tensor.
 
 \leveld{Slicing:}
 \begin{verbatim}
-Vector x = a(0,2,1,8,3,4,Range(joker));
+Vector x = a(0,2,1,8,3,4,joker);
 // Select row 4
 // on page 3 
 // in book 8 

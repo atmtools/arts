@@ -708,6 +708,14 @@ void test35()
   cout << "b = " << b << "\n";
 }
 
+void test36()
+{
+  cout << "Test using naked joker on Vector.\n";
+  Vector a(1,4,1);
+  VectorView b = a[joker];
+  cout << "a = " << a << "\n";
+  cout << "b = " << b << "\n";
+}
 
 int main()
 {
@@ -744,6 +752,7 @@ int main()
 //   test32();
 //   test33();
 //   test34();
-  test35();
+//  test35();
+  test36();
   return 0;
 }
