@@ -443,6 +443,7 @@ void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old )
 */
 void gridpos_check_fd( GridPos&   gp )
 {
+  // Catch values that "must" be wrong
   assert( gp.fd[0] > -0.01 );
   assert( gp.fd[0] < 1.01 );
   assert( gp.fd[1] > -0.01 );

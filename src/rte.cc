@@ -196,37 +196,44 @@ void get_radiative_background(
 
         i_rte = ground_emission;
 
-        // Calculate the spectra hitting the ground
-        //
-        // Some local variables must be used not to over-write WSVs that must
-        // be preserved.
-        Matrix     y_rte_local;            
-        Matrix     i_rte_local;            
-        Ppath      ppath_local;
-        Index      mblock_index_local;
-        Matrix     ground_emission_local;       
-        Matrix     ground_los_local;
-        Tensor4    ground_refl_coeffs_local;
-        // Set zenith and azimuthal angles (note that these variables are not
-        // function input). Each ground los is here treated as a measurement
-        // block, with no za and aa grids.
-        Index    nlos = ground_los.nrows();
-        Matrix   sensor_pos( nlos, a_pos.nelem() );
-        Matrix   sensor_los( nlos, a_los.nelem() );
-        for( Index ilos=0; ilos < nlos; ilos++ )
+        // Calculate the spectra hitting the ground, if any reflection
+        // directions have been set (*ground_los*). If *ground_los* is empty,
+        // we are ready.
+
+        if( ground_los.nrows() > 0 )
           {
-            sensor_pos( ilos, joker ) = a_pos;
-            sensor_los( ilos, joker ) = ground_los( ilos, joker);
-          }
-        Vector   mblock_za_grid(1,0);
-        Vector   mblock_aa_grid(0);
-        if( antenna_dim > 1 )
-          {
-            mblock_aa_grid.resize(1);
-            mblock_aa_grid = 0;
-          }
-        //
-        RteCalc( y_rte_local, ppath_local, ppath_step, i_rte_local, 
+
+            // Some local variables must be used not to over-write
+            // WSVs that must be preserved.
+            Matrix     y_rte_local;            
+            Matrix     i_rte_local;            
+            Ppath      ppath_local;
+            Index      mblock_index_local;
+            Matrix     ground_emission_local;       
+            Matrix     ground_los_local;
+            Tensor4    ground_refl_coeffs_local;
+
+            // Set zenith and azimuthal angles (note that these variables are 
+            // not function input). Each ground los is here treated as a 
+            // measurement block, with no za and aa grids.
+
+            Index    nlos = ground_los.nrows();
+            Matrix   sensor_pos( nlos, a_pos.nelem() );
+            Matrix   sensor_los( nlos, a_los.nelem() );
+            for( Index ilos=0; ilos < nlos; ilos++ )
+              {
+                sensor_pos( ilos, joker ) = a_pos;
+                sensor_los( ilos, joker ) = ground_los( ilos, joker);
+              }
+            Vector   mblock_za_grid(1,0);
+            Vector   mblock_aa_grid(0);
+            if( antenna_dim > 1 )
+              {
+                mblock_aa_grid.resize(1);
+                mblock_aa_grid = 0;
+              }
+
+            RteCalc( y_rte_local, ppath_local, ppath_step, i_rte_local, 
                  mblock_index_local, a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon,
                  i_space, ground_emission_local, ground_los_local, 
                  ground_refl_coeffs_local, ppath_step_agenda, rte_agenda, 
@@ -238,29 +245,30 @@ void get_radiative_background(
                  sensor_los, f_grid, stokes_dim, antenna_dim, 
                  mblock_za_grid, mblock_aa_grid );
 
-        // Decompose the calculated spectra (y_rte_local) and add the values
-        // to i_rte, considering the ground reflection coeff. matrix.
-        for( Index ilos=0; ilos < nlos; ilos++ )
-          {
-            Matrix i_ground(nf,stokes_dim);
-
-            i_ground = y_rte_local(Range(ilos*nf,nf),joker);
-            
-            for( Index iv=0; iv<nf; iv++ )
+            // Decompose the calculated spectra (y_rte_local) and add the 
+            // values to i_rte, considering the reflection coeff. matrix.
+            for( Index ilos=0; ilos < nlos; ilos++ )
               {
-                if( stokes_dim == 1 )
+                Matrix i_ground(nf,stokes_dim);
+
+                i_ground = y_rte_local(Range(ilos*nf,nf),joker);
+            
+                for( Index iv=0; iv<nf; iv++ )
                   {
-                    i_rte(iv,0) += ground_refl_coeffs(ilos,iv,0,0) * 
+                    if( stokes_dim == 1 )
+                      {
+                        i_rte(iv,0) += ground_refl_coeffs(ilos,iv,0,0) * 
                                                                 i_ground(iv,0);
-                  }
-                else
-                  {
-                    Vector stokes_vec(stokes_dim);
-                    mult( stokes_vec, 
-                       ground_refl_coeffs(ilos,iv,joker,joker), 
+                      }
+                    else
+                      {
+                        Vector stokes_vec(stokes_dim);
+                        mult( stokes_vec, 
+                              ground_refl_coeffs(ilos,iv,joker,joker), 
                                                           i_ground(iv,joker) );
-                    for( Index is=0; is < stokes_dim; is++ )
-                      { i_rte(iv,is) += stokes_vec[is]; }
+                        for( Index is=0; is < stokes_dim; is++ )
+                          { i_rte(iv,is) += stokes_vec[is]; }
+                      }
                   }
               }
           }
@@ -504,8 +512,7 @@ void ground_specular_los(
     \author Patrick Eriksson, Claudia Emde 
     \date   2002-11-22
 */
-void
-rte_step(//Output and Input:
+void rte_step(//Output and Input:
               VectorView stokes_vec,
               //Input
               ConstMatrixView ext_mat_av,

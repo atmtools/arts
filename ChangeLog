@@ -1,3 +1,16 @@
+2003-01-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-390
+
+	* src/ppath.cc: Work on 3D paths to handle all possible problems
+	due to numerical inaccuracy. More work to be done (despite I have
+	spent most of the day on this!), at least for cases with highly
+	distorted grid cells. Can maybe work for nicer cases.
+
+	* src/rte.cc (get_radiative_background): RteCalc is now not called
+	if the ground is set to be a blackbody. Everything worked, but this
+	saves some time.
+
 2003-01-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-389	

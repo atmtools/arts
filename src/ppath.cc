@@ -733,8 +733,10 @@ void resolve_lon(
    cell, given a single grid face. Or rather, the function determines
    the position of the path for a given radius, latitude or longitude.
 
-   The function considers only crossings in the forward direction, with
-   a distance > 0. If no crossing is found, *r* is set to -1.
+   The function considers only crossings in the forward direction,
+   with a distance > 0. If no crossing is found, *r* is set to -1. The
+   length criterion is in practice set to 1e-6, to avoid problems with
+   numerical inaccuracy.
 
    \param   r           Out: Radius of observation position.
    \param   lat         Out: Latitude of observation position.
@@ -795,7 +797,7 @@ void gridcell_crossing_3d(
       else
         { l = l2; }
 
-      if( l > 0 )
+      if( l > 1e-6 )
         {
           r   = rlatlon;
           lat = RAD2DEG * asin( ( y+dy*l ) / r );
@@ -833,7 +835,7 @@ void gridcell_crossing_3d(
             { l = l2; }
         }
 
-      if( l > 0 )
+      if( l > 1e-6 )
         {
           lat = rlatlon;
           r   = sqrt( pow(x+dx*l,2) + pow(y+dy*l,2) + pow(z+dz*l,2) );
@@ -849,7 +851,7 @@ void gridcell_crossing_3d(
 
       l = ( z - tanlon*x ) / ( tanlon*dx - dz );
 
-      if( l > 0 )
+      if( l > 1e-6 )
         {
           lon = rlatlon;
           lat = RAD2DEG * atan( coslon * ( y+dy*l ) / (x+dx*l) );
@@ -1389,24 +1391,26 @@ Numeric psurface_crossing_2d(
  
    The radius *r* is set to -1 if no crossing is found.
 
-   \param   r      Out: Radius of found crossing.
-   \param   lat    Out: Latitude of found crossing.
-   \param   lon    Out: Longitude of found crossing.
-   \param   l      Out: Length along the path to the crossing.
-   \param   lat1   Lower latitude of grid cell.
-   \param   lat3   Upper latitude of grid cell.
-   \param   lon5   Lower longitude of grid cell.
-   \param   lon6   Upper longitude of grid cell.
-   \param   r15    Radius at crossing of *lat1* and *lon5*.
-   \param   r35    Radius at crossing of *lat3* and *lon5*.
-   \param   r36    Radius at crossing of *lat3* and *lon6*.
-   \param   r16    Radius at crossing of *lat1* and *lon6*.
-   \param   x      x-coordinate of observation position.
-   \param   y      y-coordinate of observation position.
-   \param   z      z-coordinate of observation position.
-   \param   dx     x-part of LOS unit vector.
-   \param   dy     y-part of LOS unit vector.
-   \param   dz     z-part of LOS unit vector.
+   \param   r         Out: Radius of found crossing.
+   \param   lat       Out: Latitude of found crossing.
+   \param   lon       Out: Longitude of found crossing.
+   \param   l         Out: Length along the path to the crossing.
+   \param   lat1      Lower latitude of grid cell.
+   \param   lat3      Upper latitude of grid cell.
+   \param   lon5      Lower longitude of grid cell.
+   \param   lon6      Upper longitude of grid cell.
+   \param   r15       Radius at crossing of *lat1* and *lon5*.
+   \param   r35       Radius at crossing of *lat3* and *lon5*.
+   \param   r36       Radius at crossing of *lat3* and *lon6*.
+   \param   r16       Radius at crossing of *lat1* and *lon6*.
+   \param   r_start   Radius of observation point.
+   \param   za_start   Zenith angle at observation point.
+   \param   x         x-coordinate of observation position.
+   \param   y         y-coordinate of observation position.
+   \param   z         z-coordinate of observation position.
+   \param   dx        x-part of LOS unit vector.
+   \param   dy        y-part of LOS unit vector.
+   \param   dz        z-part of LOS unit vector.
 
    \author Patrick Eriksson
    \date   2002-12-30
@@ -1424,6 +1428,8 @@ void psurface_crossing_3d(
        const Numeric&   r35,
        const Numeric&   r36,
        const Numeric&   r16,
+       const Numeric&   r_start,
+       const Numeric&   za_start,
        const Numeric&   x,
        const Numeric&   y,
        const Numeric&   z,
@@ -1440,15 +1446,21 @@ void psurface_crossing_3d(
         Vector    rtest;
 
   if( rmax == rmin )
-    {
-      gridcell_crossing_3d( r, lat, lon, l, x, y, z, dx, dy, dz, 1, rmin );
-    }
+    { gridcell_crossing_3d( r, lat, lon, l, x, y, z, dx, dy, dz, 1, rmin ); }
 
   else
     {
       ntest  = 5;
       rtest.resize( ntest );
-      nlinspace( rtest, rmin, rmax, ntest );
+
+      Numeric   r1 = rmin,   r2 = rmax;
+
+      if( za_start <= 90  &&  r_start > rmin )
+        { r1 = r_start; }
+      else if( za_start > 90  &&  r_start < rmax )    
+        { r2 = r_start; }
+
+      nlinspace( rtest, r1, r2, ntest );
 
       Vector   rfound(ntest), latfound(ntest), lonfound(ntest), lfound(ntest);
       bool     ok = false;
@@ -1473,6 +1485,9 @@ void psurface_crossing_3d(
                                                    ( 1 - rq1 ) / ( rq2 - rq1 );
                   gridcell_crossing_3d( rfound[0], latfound[0], lonfound[0], 
                                  lfound[0], x, y, z, dx, dy, dz, 1, rtest[0] );
+                  rfound[0] = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15, r35, r36, r16, latfound[0], lonfound[0] );
+
                   ok = true;
                 }
             }
@@ -1893,9 +1908,9 @@ void do_gridcell_3d(
   const Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                 r15b, r35b, r36b, r16b, lat_start, lon_start );
 
-  // Assert radius (allow 1 mm marginals!)
-  assert( r_start >= rlow - 1e-3 );
-  assert( r_start <= rupp + 1e-3 );
+  // Assert radius
+  assert( r_start >= rlow );
+  assert( r_start <= rupp );
 
   // Position and LOS in cartesian coordinates
   Numeric   x, y, z, dx, dy, dz;
@@ -1963,7 +1978,7 @@ void do_gridcell_3d(
         }
       lat_best = lat_start;
       lon_best = lon_start;
-      l_best   = r_best - r_start;
+      l_best   = r_start - r_best;
       if( debug )
         {
           IndexPrint( 4, "face" );
@@ -1983,7 +1998,7 @@ void do_gridcell_3d(
 
       //--- Face 1: along lat1
       //
-      if( ( abs( aa_start ) > 90  ||  lat_start == 90 )  &&  lat_start != -90 )
+      if( lat_start == 90  ||  ( abs( aa_start >= 180 ) && lat_start != -90 ) )
         {
           gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 2, lat1 );
@@ -2014,7 +2029,8 @@ void do_gridcell_3d(
       if( r_start > rlow )
         {
           psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, 
-                     lon5, lon6, r15a, r35a, r36a, r16a, x, y, z, dx, dy, dz );
+                                lon5, lon6, r15a, r35a, r36a, r16a, 
+                                      r_start, za_start, x, y, z, dx, dy, dz );
           if( debug )
             {
               IndexPrint( 2, "face" );
@@ -2039,7 +2055,7 @@ void do_gridcell_3d(
 
       //--- Face 3: along lat3
       //
-      if( ( abs( aa_start ) < 90  ||  lat_start == -90 )  && lat_start != 90 )
+      if( lat_start == -90  ||  ( aa_start != 0  &&  lat_start != 90 ) )
         {
           gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 2, lat3 );
@@ -2070,7 +2086,8 @@ void do_gridcell_3d(
       if( r_start < rupp )
         {
           psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, 
-                     lon5, lon6, r15b, r35b, r36b, r16b, x, y, z, dx, dy, dz );
+                                lon5, lon6, r15b, r35b, r36b, r16b, 
+                                      r_start, za_start, x, y, z, dx, dy, dz );
           if( debug )
             {
               IndexPrint( 4, "face" );
@@ -2181,8 +2198,9 @@ void do_gridcell_3d(
             {
 
               psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
-                               lat1, lat3, lon5, lon6, rground15, rground35, 
-                                   rground36, rground16, x, y, z, dx, dy, dz );
+                                    lat1, lat3, lon5, lon6, 
+                                    rground15, rground35, rground36, rground16,
+                                    r_start, za_start, x, y, z, dx, dy, dz );
               if( debug )
                 {
                   IndexPrint( 6, "face" );
@@ -2215,13 +2233,12 @@ void do_gridcell_3d(
                            x+dx*l_best, y+dy*l_best, z+dz*l_best, dx, dy, dz );
           if( debug )
             {
-              IndexPrint( 6, "face" );
+              IndexPrint( 8, "face" );
               NumericPrint( r_try, "r_try" );
               if( r_try > 0 )
                 {
                   NumericPrint( lat_try, "lat_try" );
                   NumericPrint( lon_try, "lon_try" );
-                  NumericPrint( l_try, "l_try" );
                 }
             }
           if( za_try <= 90 )
@@ -2229,23 +2246,6 @@ void do_gridcell_3d(
               geompath_tanpos_3d( r_best, lat_best, lon_best, l_best, r_start, 
                                lat_start, lon_start, za_start, aa_start, ppc );
               endface = 8;
-            }
-        }
-
-      // If no endface has been found, the reason can be:
-      // For positions on a pressure surface, numerical problems can result
-      // in that the wrong gridcell is found for first step of a path.
-      if( endface == 0 )
-        {
-          if( r_start == rlow )
-            {
-              r_best = r_start; lat_best = lat_start; lon_best = lon_start;
-              l_best = 0; endface = 2;
-            }
-          else if( r_start == rupp )
-            {
-              r_best = r_start; lat_best = lat_start; lon_best = lon_start;
-              l_best = 0; endface = 4;
             }
         }
      }
@@ -3270,7 +3270,7 @@ void ppath_start_3d(
               Numeric&    rground35,
               Numeric&    rground36,
               Numeric&    rground16,
-        const Ppath&      ppath,
+              Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
@@ -3380,6 +3380,19 @@ void ppath_start_3d(
   r35b = r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon); 
   r36b = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1); 
   r16b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);
+
+  // This part is a fix to catch start postions on top of a pressure surface
+  // that does not have an end fractional distance for the first step.
+  {
+    // Radius of lower and upper pressure surface at the start position
+    const Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15a, r35a, r36a, r16a, lat_start, lon_start );
+    const Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                r15b, r35b, r36b, r16b, lat_start, lon_start );
+
+    if( r_start == rlow  ||  r_start == rupp )
+      { gridpos_force_end_fd( ppath.gp_p[imax] ); }
+  }
 
   // Check if the LOS zenith angle happen to be between 90 and the zenith angle
   // of the pressure surface (that is, 90 + tilt of pressure surface), and in
@@ -4791,6 +4804,9 @@ void ppath_start_stepping(
       if( ppath.z[0] <= z_field(np-1,0,0) )
         { gridpos( ppath.gp_p, z_field(joker,0,0), ppath.z ); }
 
+      // Handle possible numerical problems for grid positions
+      gridpos_check_fd( ppath.gp_p[0] );
+
       // Set geometrical tangent point position
       if( geom_tan_pos.nelem() == 2 )
         {
@@ -5145,6 +5161,10 @@ void ppath_start_stepping(
             }
         }      
 
+      // Handle possible numerical problems for grid positions
+      gridpos_check_fd( ppath.gp_p[0] );
+      gridpos_check_fd( ppath.gp_lat[0] );
+
       // Set geometrical tangent point position
       if( geom_tan_pos.nelem() == 2 )
         {
@@ -5446,7 +5466,8 @@ void ppath_start_stepping(
               Numeric   r_top, lat_top, lon_top, l_top;
               psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
                  lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1], 
-                     rtopmin, rtopmin, rtopmin, rtopmin, x, y, z, dx, dy, dz );
+                                    rtopmin, rtopmin, rtopmin, rtopmin, 
+                                    a_pos[0], a_los[0], x, y, z, dx, dy, dz );
 
               // If no crossing was found for min radius, or it is outside
               // covered lat and lon ranges, try max radius and make the same
@@ -5456,7 +5477,8 @@ void ppath_start_stepping(
                 {
                   psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
                   lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1],
-                     rtopmax, rtopmax, rtopmax, rtopmax, x, y, z, dx, dy, dz );
+                                        rtopmax, rtopmax, rtopmax, rtopmax, 
+                                     a_pos[0], a_los[0], x, y, z, dx, dy, dz );
                   if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
                       lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
                     { failed = true; }
@@ -5476,11 +5498,11 @@ void ppath_start_stepping(
                   gridpos( gp_lattop, lat_grid, lat_top );
                   ilat = gridpos2gridrange( gp_lattop, abs( a_los[1] ) >= 90 );
                   gridpos( gp_lontop, lon_grid, lon_top );
-                  ilon = gridpos2gridrange( gp_lontop, a_los[1] > 0 );   
-                  r15 = r_geoid(ilat,ilon) + z_field(np-1,ilat,ilon);
-                  r35 = r_geoid(ilat+1,ilon) + z_field(np-1,ilat+1,ilon);
-                  r36 = r_geoid(ilat+1,ilon+1) + z_field(np-1,ilat+1,ilon+1);
-                  r16 = r_geoid(ilat,ilon+1) + z_field(np-1,ilat,ilon+1);
+                  ilon  = gridpos2gridrange( gp_lontop, a_los[1] > 0 );   
+                  r15   = r_geoid(ilat,ilon) + z_field(np-1,ilat,ilon);
+                  r35   = r_geoid(ilat+1,ilon) + z_field(np-1,ilat+1,ilon);
+                  r36   = r_geoid(ilat+1,ilon+1) + z_field(np-1,ilat+1,ilon+1);
+                  r16   = r_geoid(ilat,ilon+1) + z_field(np-1,ilat,ilon+1);
                   lat1  = lat_grid[ilat];
                   lat3  = lat_grid[ilat+1];
                   lon5  = lon_grid[ilon];
@@ -5492,8 +5514,10 @@ void ppath_start_stepping(
                   // entrance radius
                   Numeric   lat_top2, lon_top2;
                   psurface_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
-                  lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1],
-                             r_top, r_top, r_top, r_top, x, y, z, dx, dy, dz );
+                                        lat_grid[0], lat_grid[nlat-1], 
+                                        lon_grid[0], lon_grid[nlon-1],
+                                        r_top, r_top, r_top, r_top, 
+                                     a_pos[0], a_los[0], x, y, z, dx, dy, dz );
                   
                   // Check if new position is sufficiently close to old
                   if( abs( lat_top2 - lat_top ) < 1e-6  &&  
@@ -5547,6 +5571,11 @@ void ppath_start_stepping(
             }
 
         } // else
+
+      // Handle possible numerical problems for grid positions
+      gridpos_check_fd( ppath.gp_p[0] );
+      gridpos_check_fd( ppath.gp_lat[0] );
+      gridpos_check_fd( ppath.gp_lon[0] );
 
       // Set geometrical tangent point position
       if( geom_tan_pos.nelem() == 3 )
