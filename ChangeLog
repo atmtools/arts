@@ -1,6 +1,12 @@
+2003-08-21  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-662
+
+	* src/sorting.h: Include functional.
+
 2003-08-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-661	
+	* arts-1-1-661
 
 	* src/m_optproperties.{cc,h}: Included new methods for speed 
 	optimization
