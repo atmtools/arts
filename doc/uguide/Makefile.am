@@ -14,7 +14,7 @@ artsdocdir = $(pkgdatadir)/doc
 
 uguidedocdir = $(artsdocdir)/uguide
 
-uguidedoc_DATA = uguide.ps uguide.pdf
+uguidedoc_DATA = uguide.pdf
 
 artsexecutable = $(top_builddir)/src/arts
 
@@ -65,8 +65,6 @@ autotexfiles = \
 EXTRA_DIST = \
 	$(texfiles) \
 	$(autotexfiles) \
-	uguide.dvi \
-	uguide.ps \
 	uguide.pdf
 
 if MAINTAINER_MODE
@@ -80,32 +78,13 @@ if MAINTAINER_MODE
 # 
 # Here also, auto_groups.tex is added independently.
 
-uguide.dvi: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.tex
-	latex  uguide
-	makeindex uguide.idx
-	bibtex uguide
-	latex  uguide
-	latex  uguide
-	rm -f  *.aux uguide.toc uguide.ind
-
-uguide.ps: uguide.dvi
-	dvips -o uguide.ps uguide
-
 uguide.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.tex
 	pdflatex uguide
 	makeindex uguide.idx
 	bibtex uguide
 	pdflatex  uguide
 	pdflatex  uguide
-	rm -f  *.aux uguide.toc uguide.ind
 
-
-#html: main.ps
-#	latex2html -dir html -split 0 -no_math -local_icons main
-#
-# This does not work and I don't know why. Somehow neither figures nor
-# equations show up in the output, also the redifined sectioning
-# command (levela, etc.) confuse the translator.
 
 auto_groups.tex: arts_groups_to_latex.sh $(artsexecutable)
 	./arts_groups_to_latex.sh $(artsexecutable) > auto_groups.tex
@@ -131,28 +110,6 @@ MAINTAINERCLEANFILES = \
 	auto_version.tex
 
 else
-
-uguide.dvi: $(texfiles)
-	@echo
-	@echo "=========================================================="
-	@echo
-	@echo "The documentation is only re-generated in maintainer mode."
-	@echo "To activate maintainer mode call configure with the option"
-	@echo "--enable-maintainer-mode"
-	@echo
-	@echo "=========================================================="
-	@echo
-
-uguide.ps: uguide.dvi
-	@echo
-	@echo "=========================================================="
-	@echo
-	@echo "The documentation is only re-generated in maintainer mode."
-	@echo "To activate maintainer mode call configure with the option"
-	@echo "--enable-maintainer-mode"
-	@echo
-	@echo "=========================================================="
-	@echo
 
 uguide.pdf:
 	@echo
