@@ -62,7 +62,7 @@ extern const Numeric PI;
 //! antenna_diagramAppendArray
 /*!
    See the online help (arts -d FUNCTION_NAME)
-   
+
    \author Mattias Ekström
    \date   2003-08-25
 */
@@ -165,6 +165,7 @@ void ConvertIFToRF(
   if( lo.nelem()!=1 )
     throw runtime_error(
       "The *ConvertIFToRF* function only supports single mixer setups.");
+  Numeric l = lo[0];
 
   // Check that frequencies are not too high. This might be a floating limit.
   // For this we use the variable f_lim, given in Hz.
@@ -190,7 +191,7 @@ void ConvertIFToRF(
     Vector f_out =
       sensor_response_f[Range(sensor_response_f.nelem()-1, joker, -1)];
     f_out *= -1;
-    f_out += lo;
+    f_out += l;
 
     // The measurement vector *y* then also has to be reversed for each
     // zenith and azimuth angle, and polarisation to match the frequency
@@ -211,7 +212,7 @@ void ConvertIFToRF(
     // Only upper sideband will be output, as above the sizes will not change
     // This time we only need to add *lo* to *sensor_response_f*
     // The measurement vector *y* is untouched.
-    sensor_response_f += lo;
+    sensor_response_f += l;
 
   } else if( output=="double") {
     // Both upper and lower sideband will be output. The size of both the
@@ -225,7 +226,7 @@ void ConvertIFToRF(
     // Subtract f_out from *lo* for the first half, and then add *lo* to
     // f_out for the second half
     f_out[Range(0,n_freq)] *= -1;
-    f_out += lo;
+    f_out += l;
 
     // The measurement vector *y* is also unfolded in a similar manner.
     Vector y_out( y.nelem()*2 );
