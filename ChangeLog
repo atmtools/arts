@@ -1,5 +1,11 @@
 2004-04-16  Oliver Lemke  <olemke@linux.net>
 
+	* arts-1-0-164
+
+	* configure.in: Fix check for szip.
+
+2004-04-16  Oliver Lemke  <olemke@linux.net>
+
 	* arts-1-0-163
 
 	* configure.in: On some systems HDF is compiled with szip support. In

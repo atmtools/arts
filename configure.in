@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.163)
+AM_INIT_AUTOMAKE(arts,1.0.164)
 
 AM_MAINTAINER_MODE
 
@@ -105,7 +105,7 @@ fi
 if test x$ac_hdf_support = xno; then
   ac_hdf=no
 else
-  AC_CHECK_LIB(szlib, SZ_DecompressInit, ac_szlib=yes, ac_szlib=no, -lszlib )
+  AC_CHECK_LIB(sz, SZ_DecompressInit, , ac_szlib=no, )
   AC_CHECK_LIB(z, gzopen,, ac_hdf=no, )
   AC_CHECK_LIB(jpeg, jpeg_start_compress,, ac_hdf=no, -lz )
   AC_CHECK_HEADER(hdf.h, ac_hdf=yes, ac_hdf=no)
