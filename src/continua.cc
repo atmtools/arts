@@ -2607,7 +2607,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
   const Numeric xf_MPM93  =  1.500;             // frequency exponent [1]
   const Numeric gxf_MPM93 =  9.000*xf_MPM93;    // needed for the unit conversion of G_MPM93
   const Numeric S_MPM93   =  2.296e-31;         // line strength  [1/Pa² * 1/Hz]
-  const Numeric G_MPM93   =  1.930e-5*pow(10.000, -gxf_MPM93); // frequency factor [1/Hz^xf]
+  const Numeric G_MPM93   =  1.930e-5*pow(10.000f, -gxf_MPM93); // frequency factor [1/Hz^xf]
   // ---------------------------------------------------------------------------------------
   
   // select the parameter set (!!model dominates values!!):
@@ -2774,7 +2774,7 @@ void Rosenkranz_N2_self_continuum( MatrixView          xsec,
           // calculation: abs = vmr * xsec.
           xsec(s,i) += C *                        // strength [1/(m*Hz²Pa²)] 
                        f_mono[s] * f_mono[s] *      // quadratic f dependence [Hz²]
-                       pow( 300.0/t_abs[i], x ) * // free T dependence      [1]
+                       pow( 300.0f/t_abs[i], x ) * // free T dependence      [1]
                        p_abs[i] * p_abs[i] *       // quadratic p dependence [Pa²]
                        vmr[i];                    // second N2-VMR at the stage 
                                                   // of absorption calculation
@@ -2889,7 +2889,7 @@ void Standard_N2_self_continuum( MatrixView          xsec,
           // The second N2-VMR will be multiplied at the stage of absorption 
           // calculation: abs = vmr * xsec.
           xsec(s,i) += C                            * // strength [1/(m*Hz²Pa²)]  
-                       pow( (300.00/t_abs[i]), xt ) * // T dependence        [1] 
+                       pow( (300.00f/t_abs[i]), xt ) * // T dependence        [1] 
                        pow( f_mono[s], xf )         * // f dependence    [Hz^xt]  
                        pow( p_abs[i], xp )          * // p dependence    [Pa^xp]
                        pow( vmr[i], (xp-1) );         // last N2-VMR at the stage 
@@ -2987,7 +2987,7 @@ void Rosenkranz_CO2_self_continuum( MatrixView          xsec,
       // The second vmr of CO2 will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
       Numeric dummy =
-        C * pow( 300./t_abs[i], x ) * p_abs[i] * p_abs[i] * vmr[i];
+        C * pow( 300.f/t_abs[i], x ) * p_abs[i] * p_abs[i] * vmr[i];
 
       // Loop over frequency grid:
       for ( Index s=0; s<n_f; ++s )
@@ -3086,7 +3086,7 @@ void Rosenkranz_CO2_foreign_continuum( MatrixView          xsec,
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The vmr of CO2 will be multiplied at the stage of absorption 
       // calculation: abs = vmr * xsec.
-      Numeric dummy = C * pow( 300./t_abs[i], x ) * p_abs[i] * p_abs[i] * n2_abs[i];
+      Numeric dummy = C * pow( 300.f/t_abs[i], x ) * p_abs[i] * p_abs[i] * n2_abs[i];
 
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
@@ -3600,7 +3600,7 @@ Numeric WVSatPressureLiquidWater(const Numeric t)
                         1.3816e-7 * ( pow( 10.00, (11.344*(1.00-(1.00/theta))) ) - 1.000 ) +
                         8.1328e-3 * ( pow( 10.00, (-3.49149*(theta-1.00))) - 1.000) +
                         log10(1013.246) );
-  Numeric es_MPM93 = 100.000 * pow(10.00,exponent);
+  Numeric es_MPM93 = 100.000 * pow(10.00f,exponent);
 
   return es_MPM93; // [Pa]
 }
@@ -3648,7 +3648,7 @@ Numeric WVSatPressureIce(const Numeric t)
                        0.876793 * (1.000-(1.000/theta)) +
                        log10(6.1071) );
 
-  Numeric es_MPM93 = 100.000 * pow(10.00,exponent);
+  Numeric es_MPM93 = 100.000 * pow(10.00f,exponent);
 
   return es_MPM93;
 }
