@@ -4,8 +4,8 @@ ARTS=$1
 
 if [ ! -x "$ARTS" ]
 then
-	echo "Error: Unable to execute arts" 1>&2
-	exit 1
+    echo "Error: Unable to execute arts" 1>&2
+    exit 1
 fi
 
 METHOD_LIST=`$ARTS -m all | tail +5 | sed 's/^-//' | sed 's/^.-*.$//'`
@@ -28,38 +28,51 @@ do
     $ARTS -d $i > $TMPFILE
 
     echo "Processing $i..." >&2
-    INSIDE_VERB=no
+    INSIDE_DESC=no
     while read j
     do
-	if [ "`echo $j | grep '^\*--*\*$'`" ]
-	then 
-	    echo "%$j"
-	elif [ "`echo $j | grep '^Workspace method = '`" ]
-	then
-	    echo "$j" | sed 's/^Workspace method = \(.*\)$/\\levelb{\1}/' | sed 's/_/\\_/g'
-	elif [ "`echo $j | grep '^--*$'`" ]
-	then
-	    if [ x$INSIDE_VERB = xno ]
-	    then
-		echo '\footnotesize\begin{verbatim}'
-		INSIDE_VERB=yes
-	    else
-		echo "$j"
-#		echo '\end{verbatim}'
-#		INSIDE_VERB=no
-	    fi
-	elif [ "`echo $j | grep '^Types ='`" ]
-	then
-	    echo "$j"
-	    echo '\end{verbatim}'
-	    INSIDE_VERB=no
-	else
-	    echo "$j"
-	fi
+        case "$j" in
+         \*--*\*)
+             echo "%$j"
+             ;;
+         "Workspace method = "*)
+             echo "$j" \
+              | sed "s/^Workspace method = \(.*\)$/\\levelb{\1}/" \
+              | sed "s/_/\\\_/g"
+             ;;
+         --------------------------------------------*)
+             if [ x$INSIDE_DESC = xno ]
+             then
+                 cat << EOF
+\\footnotesize\\begin{verbatim}
+EOF
+                 INSIDE_DESC=yes
+             else
+                 echo "$j"
+             fi
+             ;;
+         "Types ="*)
+             echo "$j"
+             echo "\\end{verbatim}"
+             INSIDE_DESC=no
+             ;;
+         *)
+             echo "$j"
+             ;;
+        esac
 
-	
     done < $TMPFILE
 
     rm -f $TMPFILE
 done
 
+# Local variables:
+# mode: ksh
+# ksh-indent: 4
+# ksh-group-offset: -4
+# ksh-brace-offset: -2
+# ksh-case-item-offset: 1
+# ksh-case-indent: 4
+# ksh-tab-always-indent: nil
+# indent-tabs-mode: nil
+# End:
