@@ -181,7 +181,8 @@ private:
 
 
 /** Spectral line catalog data. Here is a description of the ARTS
-    catalogue format, taken from the Bredbeck book:
+    catalogue format, largely taken from the Bredbeck book, except
+    that some units are slightly changed:
 
     The line catalogue should not have any fixed column widths because the
     precision of the parameters should not be limited by the format.  The
@@ -202,16 +203,16 @@ private:
     \begin{verbatim}
     Col  Variable                Label    Unit     Comment
     ------------------------------------------------------------------      
-    0   `@'                      ENTRY      -     marks start of entry
-    1   name                     NAME       -     e.g. O3-666
-    2   center frequency            F      Hz     e.g. 501.12345e9 
-    3   pressure shift of F       PSF  MHz/hPa    
-    4   line intensity             I0  m^2/Hz 
-    5   reference temp. for I0   T_I0       K
-    6   lower state energy       ELOW    cm-1
-    7   air broadened width      AGAM  MHz/hPa     values around 2
-    8   self broadened width     SGAM  MHz/hPa
-    9   AGAM temp. exponent      NAIR       -
+    0   `@'                      ENTRY       -     marks start of entry
+    1   name                     NAME        -     e.g. O3-666
+    2   center frequency            F       Hz     e.g. 501.12345e9 
+    3   pressure shift of F       PSF    Hz/Pa    
+    4   line intensity             I0   m^2/Hz 
+    5   reference temp. for I0   T_I0        K
+    6   lower state energy       ELOW     cm-1
+    7   air broadened width      AGAM    Hz/Pa     values around 2
+    8   self broadened width     SGAM    Hz/Pa
+    9   AGAM temp. exponent      NAIR        -
     10   SGAM temp. exponent     NSELF       - 
     11   ref. temp. for AGAM, SGAM T_GAM     K
     12   number of aux. parameters N_AUX     -
@@ -369,7 +370,7 @@ public:
   /** The line center frequency in #Hz#. */
   Numeric F() const     { return mf; }
 
-  /** The pressure shift parameter in #MHz/hPa#. */
+  /** The pressure shift parameter in #Hz/Pa#. */
   Numeric Psf() const   { return mpsf; }
 
   /** The line intensity in #m^2/Hz#. */
@@ -381,10 +382,10 @@ public:
   /** Lower state energy in #cm^-1#: */
   Numeric Elow() const  { return melow; }
 
-  /** Air broadened width in #MHz/hPa#: */
+  /** Air broadened width in #Hz/Pa#: */
   Numeric Agam() const  { return magam; }
 
-  /** Self broadened width in #MHz/hPa#: */
+  /** Self broadened width in #Hz/Pa#: */
   Numeric Sgam() const  { return msgam; }
 
   /** AGAM temperature exponent (dimensionless): */
@@ -473,7 +474,7 @@ private:
   size_t misotope;
   // The line center frequency in Hz:
   Numeric mf;
-  // The pressure shift parameter in MHz/hPa:
+  // The pressure shift parameter in Hz/Pa:
   Numeric mpsf;
   // The line intensity in m^2/Hz:
   Numeric mi0;
@@ -481,9 +482,9 @@ private:
   Numeric mti0;
   // Lower state energy in cm^-1:
   Numeric melow;
-  // Air broadened width in MHz/hPa:
+  // Air broadened width in Hz/Pa:
   Numeric magam;
-  // Self broadened width in MHz/hPa:
+  // Self broadened width in Hz/Pa:
   Numeric msgam;
   // AGAM temperature exponent (dimensionless):
   Numeric mnair;
@@ -616,5 +617,28 @@ void write_lines_to_stream(ostream& os,
 			   const ARRAYofLineRecord& lines);
 
 
+/** Calculate absorption coefficients for one tag group. All lines in
+    the line list must belong to the same species. This must be
+    ensured by lines_per_tgCreateFromLines, so it is only verified
+    with assert. Also, the input vectors p_abs, t_abs, and vmr must
+    all have the same dimension.
+
+    This is a strongly simplified routine which seves mainly
+    the purpose of demonstration.
+
+    @param abs Output. Absorption coefficients.
+    @param f_abs Frequency grid.
+    @param p_abs Pressure grid.
+    @param t_abs Temperatures associated with p_abs.
+    @param vmrs  Volume mixing ratios of the species.
+    @param lines The spectroscopic line list.
+
+    @author Stefan Buehler 16.06.2000. */
+void abs_species( MATRIX&                  abs,
+		  const VECTOR&  	   f_abs,
+		  const VECTOR&  	   p_abs,
+		  const VECTOR&  	   t_abs,           
+		  const VECTOR&            vmr,
+		  const ARRAYofLineRecord& lines );
 
 #endif // absorption_h

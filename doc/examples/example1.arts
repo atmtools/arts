@@ -8,8 +8,8 @@
 # create the workspace variable `lines':
 linesReadFromHitran {
    filename = "../../data/spectroscopy/hitran96/hitran96_h2o.par"
-   fmin     = 0
-   fmax     = 1000e12 
+   fmin     = 183e9
+   fmax     = 184e9
 }
 
 # Optionally write the line list to a file:
@@ -52,13 +52,13 @@ raw_vmrs_1dReadFromScenario
 
 
 # Create the pressure grid `p_abs':
-VectorLinSpace(p_abs){
-        start = 1000
-        stop  = 1
-        step  = -1 
+VectorNLogSpace(p_abs){
+        start = 100000
+        stop  = 100
+        n     = 4
 }
 
-#VectorWriteToFile(p_abs){""}
+VectorWriteToFile(p_abs){""}
 
 
 # Now interpolate all the raw atmospheric input onto the pressure 
@@ -72,12 +72,14 @@ AtmFromRaw1D{}
 
 
 # Create the frequency grid `f_abs':
-VectorLinSpace(f_abs){
-        start = 1
-        stop  = 1000
-        step  = 1    
+VectorNLinSpace(f_abs){
+        start = 180e9
+        stop  = 185e9
+        n     = 200    
 }
 
+# Write frequency grid to file:
+VectorWriteToFile (f_abs) {""}
 
 # Calculate absorption coefficients, both total (`abs') and 
 # separately for each tag group (`abs_per_tg'):

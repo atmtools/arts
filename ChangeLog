@@ -1,3 +1,17 @@
+2000-06-17  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-34
+
+	* absCalc: Tested this method.
+
+	* full.arts: I wanted to preserve Patricks example, so this one is a
+	combination of my absorption and your example h2o.arts.
+	I have taken the midlatitude-winter atmospheric scenario of
+	data/atmosphere/fascod, since it is the only one for which
+	Patrick's p_grid and k_grid are inside the pressure range. Also,
+	k_grid had to be slightly changed. The spectrum y looks
+	reasonable, but the k matrix looks strange (ragged).
+
 2000-06-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-33

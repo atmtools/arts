@@ -59,6 +59,7 @@ void linesReadFromHitran(// WS Output:
 	    }
 	}
     }
+  out2 << "  Read " << lines.dim() << " lines.\n";
 }
 
 
@@ -586,5 +587,41 @@ void absCalc(// WS Output:
              const ARRAYofVECTOR&            vmrs,
              const ARRAYofARRAYofLineRecord& lines_per_tg)
 {
+  // Check that vmrs and lines_per_tg really have the
+  // same array dimension:
+  if ( vmrs.dim() != lines_per_tg.dim() )
+    {
+      ostringstream os;
+      os << "Variable vmrs must have the same dimension as lines_per_tg.\n"
+	 << "vmrs.dim() = " << vmrs.dim() << '\n'
+	 << "lines_per_tg.dim() = " << lines_per_tg.dim();
+      throw runtime_error(os.str());
+    }
+  
+  // Initialize abs and abs_per_tg. The array dimension of abs_per_tg
+  // is the same as that of lines_per_tag.
+  abs.newsize(f_abs.dim(), p_abs.dim());
+  abs = 0;
+  abs_per_tg.clear();
+  abs_per_tg.newsize(lines_per_tg.dim());
 
+  // Call abs_species for each tag group.
+  for ( size_t i=0; i<lines_per_tg.dim(); ++i )
+    {
+      out2 << "  Tag group " << i+1 << '\n';
+      
+      // Make this element of abs_per_tg the right size:
+      abs_per_tg[i].newsize(f_abs.dim(), p_abs.dim());
+      abs_per_tg[i] = 0;
+
+      abs_species( abs_per_tg[i],
+		   f_abs,
+		   p_abs,
+		   t_abs,
+		   vmrs[i],
+		   lines_per_tg[i] );
+      
+      // Add up to the total absorption:
+      abs = abs + abs_per_tg[i];
+    }
 }

@@ -121,7 +121,7 @@ void define_wsv_data()
       (WsvRecord
        ("raw_ptz_1d",
 	"Matrix has rows:\n"
-	"1. Pressure in hPa\n"
+	"1. Pressure in Pa\n"
 	"2. Temperature in K\n"
 	"3. Altitude in km", 
 	MATRIX_,
@@ -137,7 +137,7 @@ void define_wsv_data()
 	"pressure profile. The different species can hence be on different grids.\n"
 	"\n"
 	"Matrix has rows:\n"
-	"1. Pressure in hPa\n"
+	"1. Pressure in Pa\n"
 	"2. VMR profile (absolute number)\n"
 	"\n"
 	"The array dimension is determined by the number of tag groups.", 
@@ -152,7 +152,7 @@ void define_wsv_data()
     wsv_data.push_back
       (WsvRecord
        ("p_abs",
-	"The pressure grid for the absorption coefficients [hPa]. This\n"
+	"The pressure grid for the absorption coefficients [Pa]. This\n"
 	"is the basic independent grid, both in the 1D and 2D\n"
 	"case. Therefore it remains a vector, even in 2D.",
 	VECTOR_,
@@ -267,7 +267,7 @@ void define_wsv_data()
     wsv_data.push_back
       (WsvRecord
        ("abs",
-	"The matrix of absorption coefficients.\n"
+	"The matrix of absorption coefficients (in units of [1/m]).\n"
 	"Dimensions: [f_abs.dim(), p_abs.dim()]",
 	MATRIX_,
 	&p));

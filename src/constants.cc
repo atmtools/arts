@@ -35,12 +35,15 @@ CONSTANTS: EARTH_RADIUS
            NAT_LOG_2
            PI
 	   WAVENUM2Hz
-	   ATM2HPA
+	   ATM2PA
 
 HISTORY:   08.04.2000 Created by Patrick Eriksson.
            22.05.2000 Stefan Buehler: 
 	   	      - Put # around units.
 		      - Added ATM2HPA
+           17.06.2000 Stefan Buehler:
+                      - Changed ATM2HPA to ATM2PA. Pascal is now the
+		        standard pressure unit in ARTS.
 -----------------------------------------------------------------------*/
 
 #include "arts.h"
@@ -90,8 +93,13 @@ extern const Numeric NAT_LOG_2      = 0.69314718055994;
     @author Patrick Eriksson 08.04.2000 */
 extern const Numeric PI             = 3.14159265358979;
 
-/** Global constant, converts atm to hPa. Multiply the your value in
-    atm by this constant to get the value in hPa.
+/** Global constant, converts atm to Pa. Multiply your value in
+    atm by this constant to get the value in Pa.
+
+    \begin{verbatim}
+    History: 
+    Stefan Buehler 17.06.2000: Changed unit from hPa to Pa.
+    \end{verbatim}
 
     @author Stefan Buehler 22.05.2000  */
-extern const Numeric ATM2HPA        = 1.01325e3;
+extern const Numeric ATM2PA         = 1.01325e5;

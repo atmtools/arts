@@ -334,7 +334,13 @@ int interp_check(
     throw runtime_error("Sizes of input data to interpolation do not match");
 
   if ( (order*xi(1)<order*x(1)) || (order*xi(ni)>order*x(n)) ) 
-   throw runtime_error("Interpolation points must be inside the original range");
+    {
+      ostringstream os;
+      os << "Interpolation points must be inside the original range.\n"
+	 << "Int.:  xi(1) = " << xi(1) << ", xi(ni) = " << xi(ni) << '\n'
+	 << "Orig.: x(1)  = " << x(1)  << ", x(n)   = " << x(n);
+      throw runtime_error(os.str());
+    }
 
   for (size_t i=1; i<n; i++ )
   {

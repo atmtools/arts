@@ -1,0 +1,76 @@
+# Spectroscopy:
+linesReadFromHitran 	    	{ filename = "../../data/spectroscopy/hitran96/hitran96_h2o.par"
+		    	    	  fmin     = 0e9
+                    	    	  fmax     = 184e9 }
+tag_groupsDefine    	    	{ ["H2O"] }
+lines_per_tgCreateFromLines 	{}  
+
+
+# Model Atmosphere:
+MatrixReadFromFile (raw_ptz_1d) { "../../data/atmosphere/fascod/midlatitude-winter.tz.am" }
+raw_vmrs_1dReadFromScenario     { "../../data/atmosphere/fascod/midlatitude-winter" }
+
+
+# Absorption
+VectorNLogSpace (p_abs)    { start = 1.013300e+05
+                             stop  = 0.0914023919463313
+                             n     = 187 }
+VectorWriteToFile (p_abs)  {""}
+AtmFromRaw1D               {}
+VectorWriteToFile (z_abs)  {""}
+VectorLinSpace (f_abs)     { start = 22.188e+9
+                             stop  = 22.270e+9
+#                             n     = 1164 
+		             step  = 1e5       }
+VectorWriteToFile (f_abs)  {""}
+absCalc                    {}
+MatrixWriteToFile (abs)    {""}
+
+
+# Refraction
+IntSet     (refr)        { 0 }
+NumericSet (l_step_refr) { 1.0e3 }
+VectorSet  (refr_index)  { length = 201
+                           value  = 1.0 }
+
+# The ground
+NumericSet (z_ground) { 40 }
+NumericSet (t_ground) { 290.0 }
+VectorSet  (e_ground) { length = 1164
+                        value  = 0.5 } 
+
+# Observation geometry
+NumericSet (z_plat) { 20e3 }
+VectorSet  (view1)  { length = 1
+                      value  = 45 }
+NumericSet (l_step) { 0.5e3 }
+
+# Cosmic radiation
+y_spaceStd{0}
+#y_spacePlanck{300}
+
+
+# Line of sight (LOS)
+los1d{}
+# A function assuming no refraction
+#los1dNoRefraction{}
+# A function assuming no refraction and no ground intersection
+#los1dUpward{}
+source1d{}
+trans1d{}
+
+# Calculate and save spectra
+yRte{}
+#yRteNoGround{}
+#yBl{}
+#yBlNoGround{}
+VectorWriteToFile(y){""}
+
+# Calculate species weighting function matrx and save
+klos1d{}
+VectorNLogSpace (k_grid) { start = 1.013300e+05
+                           stop  = 0.0914023919463313
+                           n     = 100 }
+kSpecies1d{}
+MatrixWriteToFile(k){""}  
+

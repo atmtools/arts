@@ -452,26 +452,26 @@ bool LineRecord::ReadFromHitranStream(istream& is)
     // All parameters are HWHM (I hope this is true!)
     Numeric gam;
     // External constant from constants.cc: Converts atm to
-    // hPa. Multiply value in atm by this number to get value in hPa. 
-    extern const Numeric ATM2HPA;
+    // Pa. Multiply value in atm by this number to get value in Pa. 
+    extern const Numeric ATM2PA;
     // External constant from constants.cc:
     extern const Numeric SPEED_OF_LIGHT;
-    // Conversion from wavenumber to MHz. If you multiply a value in
-    // wavenumber (cm^-1) by this constant, you get the value in MHz.
-    const Numeric w2Hz = SPEED_OF_LIGHT * 1e-4;
+    // Conversion from wavenumber to Hz. If you multiply a value in
+    // wavenumber (cm^-1) by this constant, you get the value in Hz.
+    const Numeric w2Hz = SPEED_OF_LIGHT * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / ATM2HPA;
+    const Numeric hi2arts = w2Hz / ATM2PA;
 
     // Extract HITRAN AGAM value:
     extract(gam,line,5);
 
-    // ARTS parameter in MHz/hPa:
+    // ARTS parameter in Hz/Pa:
     magam = gam * hi2arts;
 
     // Extract HITRAN SGAM value:
     extract(gam,line,5);
 
-    // ARTS parameter in MHz/hPa:
+    // ARTS parameter in Hz/Pa:
     msgam = gam * hi2arts;
 
 //    cout << "agam, sgam = " << magam << ", " << msgam << endl;
@@ -506,20 +506,20 @@ bool LineRecord::ReadFromHitranStream(istream& is)
     // parameters. 
     Numeric d;
     // External constant from constants.cc: Converts atm to
-    // hPa. Multiply value in atm by this number to get value in hPa. 
-    extern const Numeric ATM2HPA;
+    // Pa. Multiply value in atm by this number to get value in Pa. 
+    extern const Numeric ATM2PA;
     // External constant from constants.cc:
     extern const Numeric SPEED_OF_LIGHT;
-    // Conversion from wavenumber to MHz. If you multiply a value in
-    // wavenumber (cm^-1) by this constant, you get the value in MHz.
-    const Numeric w2Hz = SPEED_OF_LIGHT * 1e-4;
+    // Conversion from wavenumber to Hz. If you multiply a value in
+    // wavenumber (cm^-1) by this constant, you get the value in Hz.
+    const Numeric w2Hz = SPEED_OF_LIGHT * 1e2;
     // Ok, put together the end-to-end conversion that we need:
-    const Numeric hi2arts = w2Hz / ATM2HPA;
+    const Numeric hi2arts = w2Hz / ATM2PA;
 
     // Extract HITRAN value:
     extract(d,line,8);
 
-    // ARTS value in MHz/hPa
+    // ARTS value in Hz/Pa
     mpsf = d * hi2arts;
   }
 
@@ -790,4 +790,164 @@ void write_lines_to_stream(ostream& os,
     {
       os << lines[i] << '\n';
     }
+}
+
+/** The Lorentz line shape. This is a quick and dirty implementation.
+
+    @param F     Output: The shape function.
+    @param f0    Line center frequency.
+    @param f_abs The frequency grid.
+    @param gamma The pressure broadening parameter.
+
+    @author Stefan Buehler 16.06.2000 */
+void line_shape_lorentz(VECTOR&       ls,
+			Numeric	      f0,
+			Numeric       gamma,
+			const VECTOR& f_abs)
+{
+  // FIXME: Maybe try if call by reference is faster for f0 and gamma?
+
+  // 1/PI:
+  extern const Numeric PI;
+  static const Numeric invPI = 1. / PI;
+
+  assert( ls.dim() == f_abs.dim() );
+
+  for ( size_t i=0; i<f_abs.dim(); ++i )
+    {
+      ls[i] = invPI * gamma / ( pow( f_abs[i]-f0, 2) + pow(gamma,2) );
+    }
+}
+
+void abs_species( MATRIX&                  abs,
+		  const VECTOR&  	   f_abs,
+		  const VECTOR&  	   p_abs,
+		  const VECTOR&  	   t_abs,           
+		  const VECTOR&            vmr,
+		  const ARRAYofLineRecord& lines )
+{
+  // Define the vector for the line shape function here, so that we
+  // don't need so many free store allocations.
+  VECTOR ls(f_abs.dim());
+
+  // Check that p_abs, t_abs, and vmr all have the same
+  // dimension. This could be a user error, so we throw a
+  // runtime_error. 
+
+  if ( t_abs.dim() != p_abs.dim() )
+    {
+      ostringstream os;
+      os << "Variable t_abs must have the same dimension as p_abs.\n"
+	 << "t_abs.dim() = " << t_abs.dim() << '\n'
+	 << "p_abs.dim() = " << p_abs.dim();
+      throw runtime_error(os.str());
+    }
+
+  if ( vmr.dim() != p_abs.dim() )
+    {
+      ostringstream os;
+      os << "Variable vmr must have the same dimension as p_abs.\n"
+	 << "vmr.dim() = " << vmr.dim() << '\n'
+	 << "p_abs.dim() = " << p_abs.dim();
+      throw runtime_error(os.str());
+    }
+
+  // Check that the dimension of abs is indeed [f_abs.dim(),
+  // p_abs.dim()]:
+  if ( abs.dim(1) != f_abs.dim() || abs.dim(2) != p_abs.dim() )
+    {
+      ostringstream os;
+      os << "Variable abs must have dimensions [f_abs.dim(),p_abs.dim()].\n"
+	 << "[abs.dim(1),abs.dim(2)] = [" << abs.dim(1)
+	 << ", " << abs.dim(2) << "]\n"
+	 << "f_abs.dim() = " << f_abs.dim() << '\n'
+	 << "p_abs.dim() = " << p_abs.dim();
+      throw runtime_error(os.str());
+    }
+
+  // Loop all pressures:
+  for ( size_t i=0; i<p_abs.dim(); ++i )
+  {
+    out3 << "  p = " << p_abs[i] << " Pa\n";
+    // Loop all lines:
+    for ( size_t l=0; l<lines.dim(); ++l )
+      {
+	// 1. Convert intensity to units of [ m^-1 * Hz / Pa ]
+	Numeric intensity = lines[l].I0();
+	// FIXME: Move the constants here to constants.cc?
+	  {
+	    // I have no time to find out about the correct intensity
+	    // conversion. So, as a quick hack, we will convert to
+	    // MYTRAN intensiy (HITRAN, except isotopic ratio is taken
+	    // out, and then use the old conversion from abs_my.c. See
+	    // LineRecord::ReadFromHitranStream for the below two
+	    // conversions. 
+
+	    // Conversion from HITRAN intensities to JPL intensities 
+	    // (nm^2 MHz). This factor is given in the JPL documentation. 
+	    const Numeric hi2jpl = 2.99792458e18;
+	    // Because we want SI units m and Hz instead of nm and MHz, we
+	    // need to shift the decimals a bit.
+	    // More importantly, we have to take out the isotope ratio, which
+	    // is included in the HITRAN intensity.
+	    const Numeric hi2arts = hi2jpl * 1e-12;
+
+	    intensity = intensity / hi2arts;
+
+	    // intensity is now MYTRAN intensity.
+
+	    // From abs_my.c:
+	    const Numeric T_0_C = 273.15;  	       /* temp. of 0 Celsius in [K]  */
+	    const Numeric p_0   = 101300.25; 	       /* standard p in [Pa]        */
+	    const Numeric n_0   = 2.686763E19;         /* Loschmidt constant [cm^-3] */
+	    const Numeric c     = 29.9792458;          /*  	     [ GHz / cm^-1 ] */
+
+	    intensity = intensity * n_0 * T_0_C / (p_0*t_abs[i]);
+	    /* n = n0*T0/p0 * p/T, ideal gas law
+	       ==> [intensity] = [cm^2 / Pa] */
+
+	    intensity = intensity * c; 			/* [cm^-1 * GHz / Pa] */
+	    intensity = intensity * 1E5; 		/* [km^-1 * GHz / Pa] */
+	    intensity = intensity * 1e6; 		/* [m^-1 * Hz / Pa] */
+	  }
+
+	// FIXME: Are the units of the intensity correct?
+	
+	// FIXME: We should calculate the temperature dependence of the
+	// intensities here.
+
+	// Scale with isotopic ratio. FIXME: This is inefficient. The
+	// scaled intensities could be stored in lines.
+	intensity = intensity * lines[l].IsotopeData().Abundance();
+
+	// 2. Get pressure broadened line width:
+	// (Agam is in Hz/Pa, p_abs is in Pa, f_abs is in Hz,
+	// gamma is in Hz/Pa)
+	// FIXME: This is inefficient, the scaling to Hz could be
+	// stored in lines.
+
+	const Numeric theta = lines[l].Tgam() / t_abs[i];
+
+	const Numeric p_partial = p_abs[i] * vmr[i];
+
+	Numeric gamma
+	  = lines[l].Agam() * pow(theta, lines[l].Nair())  * (p_abs[i] - p_partial)
+	  + lines[l].Sgam() * pow(theta, lines[l].Nself()) * p_partial;
+
+	// Ignore Doppler broadening for now. FIXME: Add this.
+
+	// Get line shape:
+	line_shape_lorentz(ls,
+			   lines[l].F(),
+			   gamma,
+			   f_abs);
+
+	// Add line to abs:
+	for ( size_t j=0; j<f_abs.dim(); ++j )
+	  {
+	    abs[j][i] = abs[j][i]
+	      + p_partial * intensity * ls[j];
+	  }
+      }
+  }
 }

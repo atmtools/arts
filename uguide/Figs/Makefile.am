@@ -7,5 +7,30 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-EXTRA_DIST = reconf configure
-SUBDIRS = uguide src m4 doc data 
+EXTRA_DIST = \
+	contfit.eps \
+	contfit.fig \
+	fig_absbasis.m \
+	fig_absbasis_l.eps \
+	fig_absbasis_z.eps \
+	fig_baselinefit.eps \
+	fig_corrfuns.eps \
+	fig_corrfuns.m \
+	generic_method.eps \
+	geoms.eps \
+	geoms.fig \
+	kpol.eps \
+	kpol.fig \
+	los.eps \
+	los.fig \
+	method.eps \
+	sideband.eps \
+	sideband.fig \
+	snell.eps \
+	snell.fig \
+	vecintegr.eps \
+	vecintegr.fig \
+	wf1.eps \
+	wf1.fig \
+	wf2.eps \
+	wf2.fig

@@ -8,7 +8,7 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 
-# SUBDIRS = Figs
+SUBDIRS = Figs
 
 artsdocdir = $(prefix)/artsdoc
 

@@ -8,3 +8,4 @@ SAB 15.06.2000 Rename data to artsdata, so that paths in example
                control files work both in the source tree and in the
                installed version. 
 SAB 16.06.2000 Move uguide to doc/uguide.
+SAB 17.06.2000 Change interpolation in absorption part to interpp.

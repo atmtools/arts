@@ -61,5 +61,6 @@ Makefile \
          data/atmosphere/fascod/Makefile \
    uguide/Makefile \
       uguide/version.tex \
+   uguide/Figs/Makefile \
 )
 
