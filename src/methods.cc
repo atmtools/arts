@@ -3749,8 +3749,29 @@ md_data_raw.push_back
          "The output polarisations are given by matrix *sensor_pol*."
         ),
         OUTPUT( sensor_response_, sensor_response_pol_ ),
-        INPUT( sensor_pol_, sensor_response_za_, sensor_response_f_,
-               stokes_dim_),
+        INPUT( sensor_pol_, sensor_response_za_, sensor_response_aa_,
+               sensor_response_f_, stokes_dim_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("sensor_responseRotation"),
+        DESCRIPTION
+        (
+         "Adds rotation to the response matrix.\n"
+         "\n"
+         "The rotations are given by *sensor_rot* combined with *antenna_los*.\n"
+         "The rotations are performed within each measurement block for the\n"
+         "individual antennae.\n"
+         "\n"
+         "If used this method has to be run prior to sensor_responsePolarisation."
+        ),
+        OUTPUT( sensor_response_ ),
+        INPUT( sensor_rot_, antenna_los_, antenna_dim_, stokes_dim_,
+               sensor_response_f_, sensor_response_za_, sensor_response_aa_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),

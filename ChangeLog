@@ -1,3 +1,20 @@
+2004-06-18  Mattias Ekström <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-833
+
+	* src/physics_funcs.cc: Added note to header for planck function.
+
+	* src/methods.cc: Added sensor_responseRotation.
+
+	* src/workspace.cc: Added *antenna_los*. Changed definition of
+	*sensor_rot*
+
+	* src/m_sensor.cc: Changed polarisation function to include azimuth
+	angle grid. Added rotation function, but so far only performs tests.
+
+	* src/rte.cc: Fixed bug found by Sreerekha. Now rte_calc should set
+	*y* to the correct size.
+
 2004-06-17  Mattias Ekström <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-832

@@ -613,7 +613,7 @@ void rte_calc(
 //   y.resize( nmblock*nf*nza*naa*stokes_dim );
   // FIXME: this is an ugly solution, but works if appropriate checks are
   // preformed
-  y.resize( sensor_response.nrows() );
+  y.resize( nmblock*sensor_response.nrows() );
 
   // Create vector for MPB radiances for 1 measurement block.
   Vector ib( nf*nza*naa*stokes_dim );

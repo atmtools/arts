@@ -136,6 +136,8 @@ Numeric number_density(
 //! planck
 /*! 
   Calculates the Planck function for a single temperature.
+
+  Note that this expression gives the intensity for both polarisations.
   
   \return     blackbody radiation
   \param  f   frequency

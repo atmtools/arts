@@ -815,13 +815,19 @@ void sensor_responsePolarisation(// WS Output:
                                  // WS Input:
                                  const Matrix&    sensor_pol,
                                  const Vector&    sensor_response_za,
+                                 const Vector&    sensor_response_aa,
                                  const Vector&    sensor_response_f,
                                  const Index&     stokes_dim )
 {
-  Index n_f_za = sensor_response_f.nelem()*sensor_response_za.nelem();
+  Index n_aa;
+  if( sensor_response_aa.nelem()==0 )
+    n_aa = 1;
+  else
+    n_aa = sensor_response_aa.nelem();
+  Index n_f_a = sensor_response_f.nelem()*sensor_response_za.nelem()*n_aa;
 
   // Check that the initial sensor_response has the right size.
-  if( sensor_response.nrows() != sensor_response_pol*n_f_za ) {
+  if( sensor_response.nrows() != sensor_response_pol*n_f_a ) {
     ostringstream os;
     os << "The sensor block response matrix *sensor_response* does not have\n"
        << "the right size. Check that at least *sensor_responseInit* has been\n"
@@ -836,6 +842,7 @@ void sensor_responsePolarisation(// WS Output:
     throw runtime_error(os.str());
   }
 
+  /*
   // Check that *sensor_pol* is not a identity matrix. If so this method is
   // not just unnecessary but also gives wrong output.
   if( sensor_pol.nrows()==sensor_pol.ncols() ) {
@@ -875,18 +882,20 @@ void sensor_responsePolarisation(// WS Output:
        << "also be 1.";
     throw runtime_error(os.str());
   }
+  */
 
   // Output to the user.
-  out2 << "  Calculating the polarisation response using *sensor_pol*.\n";
+  out2 << "  Calculating the polarisation response using *sensor_pol* with\n"
+       << "  rotation from *sensor_rot*.\n";
 
   // Call to calculating function
-  Sparse pol_response( sensor_pol.nrows()*n_f_za, stokes_dim*n_f_za );
+  Sparse pol_response( sensor_pol.nrows()*n_f_a, stokes_dim*n_f_a );
   polarisation_transfer_matrix( pol_response, sensor_pol,
     sensor_response_f.nelem(), sensor_response_za.nelem(), stokes_dim );
 
   // Multiply with sensor_response
   Sparse tmp = sensor_response;
-  sensor_response.resize( sensor_pol.nrows()*n_f_za, tmp.ncols());
+  sensor_response.resize( sensor_pol.nrows()*n_f_a, tmp.ncols());
   mult( sensor_response, pol_response, tmp);
 
   // Some extra output.
@@ -895,4 +904,51 @@ void sensor_responsePolarisation(// WS Output:
 
   // Update sensor_response variable
   sensor_response_pol = sensor_pol.nrows();
+}
+
+void sensor_responseRotation(// WS Output:
+                             Sparse&        sensor_response,
+                             // WS Input:
+                             const Vector&  sensor_rot,
+                             const Matrix&  antenna_los,
+                             const Index&   antenna_dim,
+                             const Index&   stokes_dim,
+                             const Vector&  sensor_response_f,
+                             const Vector&  sensor_response_za,
+                             const Vector&  sensor_response_aa)
+{
+  // Check that the antenna dimension and the columns of antenna_los is ok.
+  if( antenna_dim!=antenna_los.ncols() ) {
+    ostringstream os;
+    os << "The antenna line-of-sight is not defined in consistency with the\n"
+       << "antenna dimension. The number of columns in *antenna_los* should be\n"
+       << "equal to *antenna_dim*";
+    throw runtime_error(os.str());
+  }
+
+  // Check that the incoming sensor response matrix has the right size. Here
+  // we use *stokes_dim* instead of *sensor_response_pol* since this function
+  // should be used on the 'raw' stokes components.
+  Index n = stokes_dim*sensor_response_f.nelem()*sensor_response_za.nelem();
+  if( antenna_dim==1 )
+    n *= sensor_response_aa.nelem();
+  if( sensor_response.ncols()!=n ) {
+    ostringstream os;
+    os << "The size of *sensor_response* is wrong. Either sensor_responseInit\n"
+       << "has not been run or sensor_responsePolarisation has been run prior\n"
+       << "to sensor_responseRotation.";
+    throw runtime_error(os.str());
+  }
+
+  // Check the size of *sensor_rot* vs. the number rows of *antenna_los*.
+  if( sensor_rot.nelem()!=1 || sensor_rot.nelem()!=antenna_los.nrows() ) {
+    ostringstream os;
+    os << "The size of *sensor_rot* and number of rows in *antenna_los* has\n"
+       << "to be equal.";
+    throw runtime_error(os.str());
+  }
+
+  // Setup L-matrix, iterate through rotation and insert in sensor_response
+
+
 }

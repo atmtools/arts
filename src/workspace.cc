@@ -363,7 +363,7 @@ void define_wsv_data()
       DESCRIPTION
       (
        "The dimensionality of the antenna pattern (1-2).\n"
-       "\n"       
+       "\n"
        "A dimensionality of 1 means that only the respons variation in the\n"
        "zenith direction is considered. The respons is then integrated in \n"
        "the azimuth direction. For 2D, the respons of the antenna has both a\n"
@@ -373,6 +373,36 @@ void define_wsv_data()
        "\n"
        ),
       GROUP( Index_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "antenna_los" ),
+      DESCRIPTION
+      (
+       "The line-of-sight of individual antennae.\n"
+       "\n"
+       "This variable describes the line-of-sight of the individual antennae\n"
+       "relative to *sensor_los*. If only one antenna is present the matrix\n"
+       "should contain a row of zero(s). The number of columns corresponds to\n"
+       "the *antenna_dim*, with the first column containing zenith angles\n"
+       "and the second azimuth angles.\n"
+       "\n"
+       "The number of rows also describes the number of antennae to consider\n"
+       "and shall be consistent with the number of elements in *sensor_rot*.\n"
+       "A special case is when *sensor_rot* only has one element, see\n"
+       "*sensor_rot* for more details.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  [ degrees, degrees ]\n"
+       "\n"
+       "Size:  [ number of antennae, 1 or 2 ]"
+       ),
+      GROUP( Matrix_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2390,7 +2420,7 @@ wsv_data.push_back
     ( NAME( "sensor_rot" ),
       DESCRIPTION
       (
-       "The rotation of the sensor for each measurement block.\n"
+       "The rotation of the sensor for each antenna line-of-sight.\n"
        "\n"
        "The rotation is the angle between the atmospheric and sensor frames\n"
        "for polarisation. The angle increases with clockwise rotation of the\n"
@@ -2399,7 +2429,11 @@ wsv_data.push_back
        "If the purpose of the simulations is to extract the polarisation\n"
        "of the radiation coming from the atmosphere (no sensor), the angles\n"
        "shall be set to 0.\n"
-       "\n"       
+       "\n"
+       "The size of the vector shall either be equal to the number of rows in\n"
+       "*antenna_los* or be one. In the latter case the constant rotation\n"
+       "will be applied for all antennae line-of-sight.\n"
+       "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
@@ -2408,7 +2442,7 @@ wsv_data.push_back
        "\n"
        "Unit:  [ degrees ]\n"
        "\n"
-       "Size:  [ number of measurement blocks ]"
+       "Size:  [ number of antennae or one ]"
        ),
       GROUP( Vector_ )));
 
