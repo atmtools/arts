@@ -4,6 +4,8 @@
 
 	* data: Data directory and all subdirectories removed.
 	Use package arts-data!!!!
+
+	* Makefile.am: Removed data from subdirectories.
 	
 
 2001-07-05  Stefan Buehler  <sbuehler@uni-bremen.de>

@@ -9,7 +9,7 @@
 
 EXTRA_DIST = reconf configure make_parallel
 
-DEFAULT_SUBDIRS = src ami m4 data
+DEFAULT_SUBDIRS = src ami m4
 
 if ARTS_GENDOCS
 SUBDIRS    = $(DEFAULT_SUBDIRS) doc
