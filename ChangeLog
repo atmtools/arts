@@ -1,3 +1,10 @@
+2002-10-17  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-265
+	
+	* src/m_cloudbox.cc (scat_iPut): The size of scat_i_p was resized
+	to the 1D case.  
+
 2002-10-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-264
