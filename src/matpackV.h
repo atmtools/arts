@@ -129,6 +129,9 @@ public:
   ConstMatrixView  operator()( const Range& s, Index b,        Index p,        const Range& r, Index c        ) const;
   ConstMatrixView  operator()( const Range& s, Index b,        Index p,        Index r,        const Range& c ) const;
   ConstMatrixView  operator()( Index s,        const Range& b, Index p,        Index r,        const Range& c ) const;
+  ConstMatrixView  operator()( Index s,        const Range& b, Index p,        const Range& r, Index c        ) const;
+  ConstMatrixView  operator()( Index s,        const Range& b, const Range& p, Index r,        Index c        ) const;
+  ConstMatrixView  operator()( Index s,        Index b,        const Range& p, const Range& r, Index c        ) const;
   ConstMatrixView  operator()( Index s,        Index b,        const Range& p, Index r,        const Range& c ) const;
   ConstMatrixView  operator()( Index s,        Index b,        Index p,        const Range& r, const Range& c ) const;
 
@@ -209,6 +212,9 @@ public:
   ConstMatrixView  operator()( const Range& s, Index b,        Index p,        const Range& r, Index c        ) const;
   ConstMatrixView  operator()( const Range& s, Index b,        Index p,        Index r,        const Range& c ) const;
   ConstMatrixView  operator()( Index s,        const Range& b, Index p,        Index r,        const Range& c ) const;
+  ConstMatrixView  operator()( Index s,        const Range& b, Index p,        const Range& r, Index c        ) const;
+  ConstMatrixView  operator()( Index s,        const Range& b, const Range& p, Index r,        Index c        ) const;
+  ConstMatrixView  operator()( Index s,        Index b,        const Range& p, const Range& r, Index c        ) const;
   ConstMatrixView  operator()( Index s,        Index b,        const Range& p, Index r,        const Range& c ) const;
   ConstMatrixView  operator()( Index s,        Index b,        Index p,        const Range& r, const Range& c ) const;
 
@@ -246,6 +252,9 @@ public:
   MatrixView  operator()( const Range& s, Index b,        Index p,        const Range& r, Index c        );
   MatrixView  operator()( const Range& s, Index b,        Index p,        Index r,        const Range& c );
   MatrixView  operator()( Index s,        const Range& b, Index p,        Index r,        const Range& c );
+  MatrixView  operator()( Index s,        const Range& b, Index p,        const Range& r, Index c        );
+  MatrixView  operator()( Index s,        const Range& b, const Range& p, Index r,        Index c        );
+  MatrixView  operator()( Index s,        Index b,        const Range& p, const Range& r, Index c        );
   MatrixView  operator()( Index s,        Index b,        const Range& p, Index r,        const Range& c );
   MatrixView  operator()( Index s,        Index b,        Index p,        const Range& r, const Range& c );
 
@@ -939,6 +948,78 @@ inline ConstMatrixView ConstTensor5View::operator()(Index s,
 /** Const index operator returning an object of type
     ConstMatrixView. (Reducing the dimension by three.) */
 inline ConstMatrixView ConstTensor5View::operator()(Index s,
+                                                    const Range& b,
+                                                    Index p,
+                                                    const Range& r,
+                                                    Index c       ) const
+{
+  // Check that s, p and c are valid:
+  assert( 0 <= s );
+  assert( 0 <= p );
+  assert( 0 <= c );
+  assert( s < msr.mextent );
+  assert( p < mpr.mextent );
+  assert( c < mcr.mextent );
+
+  return ConstMatrixView(mdata +
+                         msr.mstart + s * msr.mstride +
+                         mpr.mstart + p * mpr.mstride +
+                         mcr.mstart + c * mcr.mstride,
+                         mbr, mrr,
+                         b,   r);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) */
+inline ConstMatrixView ConstTensor5View::operator()(Index s,
+                                                    const Range& b,
+                                                    const Range& p,
+                                                    Index r,
+                                                    Index c       ) const
+{
+  // Check that s, r and c are valid:
+  assert( 0 <= s );
+  assert( 0 <= r );
+  assert( 0 <= c );
+  assert( s < msr.mextent );
+  assert( r < mrr.mextent );
+  assert( c < mcr.mextent );
+
+  return ConstMatrixView(mdata +
+                         msr.mstart + s * msr.mstride +
+                         mrr.mstart + r * mrr.mstride +
+                         mcr.mstart + c * mcr.mstride,
+                         mbr, mpr,
+                         b,   p);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) */
+inline ConstMatrixView ConstTensor5View::operator()(Index s,
+                                                    Index b,
+                                                    const Range& p,
+                                                    const Range& r,
+                                                    Index c       ) const
+{
+  // Check that s, b and c are valid:
+  assert( 0 <= s );
+  assert( 0 <= b );
+  assert( 0 <= c );
+  assert( s < msr.mextent );
+  assert( b < mbr.mextent );
+  assert( c < mcr.mextent );
+
+  return ConstMatrixView(mdata +
+                         msr.mstart + s * msr.mstride +
+                         mbr.mstart + b * mbr.mstride +
+                         mcr.mstart + c * mcr.mstride,
+                         mpr, mrr,
+                         p,   r);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) */
+inline ConstMatrixView ConstTensor5View::operator()(Index s,
                                                     Index b,
                                                     const Range& p,
                                                     Index r,
@@ -1528,6 +1609,45 @@ inline ConstMatrixView Tensor5View::operator()(Index s,
     redefined here, since it is hiden by the non-const operator of the
     derived class. */
 inline ConstMatrixView Tensor5View::operator()(Index s,
+                                               const Range& b,
+                                               Index p,
+                                               const Range& r,
+                                               Index c       ) const
+{
+  ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+inline ConstMatrixView Tensor5View::operator()(Index s,
+                                               const Range& b,
+                                               const Range& p,
+                                               Index r,
+                                               Index c       ) const
+{
+  ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+inline ConstMatrixView Tensor5View::operator()(Index s,
+                                               Index b,
+                                               const Range& p,
+                                               const Range& r,
+                                               Index c       ) const
+{
+  ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+inline ConstMatrixView Tensor5View::operator()(Index s,
                                                Index b,
                                                const Range& p,
                                                Index r,
@@ -2057,6 +2177,78 @@ inline MatrixView Tensor5View::operator()(Index s,
                     mrr.mstart + r * mrr.mstride,
                     mbr, mcr,
                     b,   c);
+}
+
+/** Index operator returning an object of type
+    MatrixView. (Reducing the dimension by three.) */
+inline MatrixView Tensor5View::operator()(Index s,
+                                          const Range& b,
+                                          Index p,
+                                          const Range& r,
+                                          Index c       )
+{
+  // Check that s, p and c are valid:
+  assert( 0 <= s );
+  assert( 0 <= p );
+  assert( 0 <= c );
+  assert( s < msr.mextent );
+  assert( p < mpr.mextent );
+  assert( c < mcr.mextent );
+
+  return MatrixView(mdata +
+                    msr.mstart + s * msr.mstride +
+                    mpr.mstart + p * mpr.mstride +
+                    mcr.mstart + c * mcr.mstride,
+                    mbr, mrr,
+                    b,   r);
+}
+
+/** Index operator returning an object of type
+    MatrixView. (Reducing the dimension by three.) */
+inline MatrixView Tensor5View::operator()(Index s,
+                                          const Range& b,
+                                          const Range& p,
+                                          Index r,
+                                          Index c       )
+{
+  // Check that s, r and c are valid:
+  assert( 0 <= s );
+  assert( 0 <= r );
+  assert( 0 <= c );
+  assert( s < msr.mextent );
+  assert( r < mrr.mextent );
+  assert( c < mcr.mextent );
+
+  return MatrixView(mdata +
+                    msr.mstart + s * msr.mstride +
+                    mrr.mstart + r * mrr.mstride +
+                    mcr.mstart + c * mcr.mstride,
+                    mbr, mpr,
+                    b,   p);
+}
+
+/** Index operator returning an object of type
+    MatrixView. (Reducing the dimension by three.) */
+inline MatrixView Tensor5View::operator()(Index s,
+                                          Index b,
+                                          const Range& p,
+                                          const Range& r,
+                                          Index c       )
+{
+  // Check that s, b and c are valid:
+  assert( 0 <= s );
+  assert( 0 <= b );
+  assert( 0 <= c );
+  assert( s < msr.mextent );
+  assert( b < mbr.mextent );
+  assert( c < mcr.mextent );
+
+  return MatrixView(mdata +
+                    msr.mstart + s * msr.mstride +
+                    mbr.mstart + b * mbr.mstride +
+                    mcr.mstart + c * mcr.mstride,
+                    mpr, mrr,
+                    p,   r);
 }
 
 /** Index operator returning an object of type

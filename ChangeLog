@@ -1,3 +1,9 @@
+2002-03-12  Wolfram Haas  <wolhaas@hermes.fho-emden.de>
+
+	* arts-1-1-23
+
+	* src/matpackV.h: Added three index functions with 2 Range and 3 Index.
+
 2002-03-11  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-22
