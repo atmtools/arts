@@ -346,18 +346,6 @@ for i = 0,tag_index_max-1 do print, ' ',i,': ',tg[tag_index[i]]
 
 ;; save settings
 P_ini = !P
-
-;; make 1 plot per page
-!P.multi    = [0,1,1]
-
-;; settings for the plot
-if (plotfileformat gt 2) then begin
-    plotpos = [0.25, 0.2, 0.75, 0.9]
-endif else begin
-    plotpos = [0.1, 0.1, 0.7, 0.9]
-endelse
-!P.THICK = 8
-thick = !P.THICK
  
 ;; get datum to write it on the top of the plot:
 spawn,'date +"%y"',year
@@ -366,7 +354,7 @@ spawn,'date +"%d"',day
 spawn,'date +"%H"',hour
 spawn,'date +"%M"',minute
 spawn,'whoami',who
-datum = who+':20'+string(year, FORMAT='(A2)')+'-'+$
+datum = 'ARTS/aii: '+who+'/20'+string(year, FORMAT='(A2)')+'-'+$
 string(month, FORMAT='(A2)')+'-'+string(day, FORMAT='(A2)')+'/'+$
 string(hour, FORMAT='(A2)')+':'+string(minute, FORMAT='(A2)')
 
@@ -376,8 +364,20 @@ if not keyword_set(color) then color=1
 ;; use aii_plot_file for writing into plot output file
 if not keyword_set(plotfilename)   then plotfilename=jobname+'_plot'
 if not keyword_set(plotfileformat) then plotfileformat=2
-aii_plot_file, action='begin', fname=plotfilename, fformat=plotfileformat
+ok = PSPlotOpen(plotfilename, plotfileformat)
+;aii_plot_file, action='begin', fname=plotfilename, fformat=plotfileformat
 
+
+;; make 1 plot per page
+!P.multi    = [0,1,1]
+
+;; settings for the plot
+if (plotfileformat gt 2) then begin
+    plotpos = [0.23, 0.2, 0.83, 0.9]
+endif else begin
+    plotpos = [0.1, 0.1, 0.7, 0.9]
+endelse
+thick = !P.THICK
 
 ;; set line thickness
 ;thick      = 4.                ; standard value of thick
@@ -489,8 +489,8 @@ ENDFOR
 
 
 ; print datum and user name:
-xyouts, 0.85, plotpos[1]-0.05, datum, CHARSIZE=0.75, CHARTHICK=1.0, /NORMAL
-
+;xyouts, 0.85, plotpos[1]-0.075, datum, CHARSIZE=0.75, CHARTHICK=1.0, /NORMAL
+xyouts, 0.13, plotpos[1]-0.12, datum, CHARSIZE=0.5, CHARTHICK=1.0, /NORMAL
 
 ;; legend of the plot
 if (plotsum EQ 1) then begin
@@ -503,14 +503,15 @@ endif else begin
 endelse
 ch_length = N_ELEMENTS(charlegendarray)
 ;aii_plot_legend, charlegendarray[0:tag_index_max-1], $
-aii_plot_legend, charlegendarray, $
-               box=0,$
-               usersym=usersym, $
-               spacing=1.8,$
-               pspacing=1.8, $
-               psym=intarr(ch_length), $
+aii_plot_legend, charlegendarray,           $
+               charsize=0.8,                $
+               box=0,                       $
+               usersym=usersym,             $
+               spacing=1.8,                 $
+               pspacing=1.8,                $
+               psym=intarr(ch_length),      $
                colors=colors[0:ch_length-1],$
-               line=ls[0:ch_length-1], $
+               line=ls[0:ch_length-1],      $
                position=[plotpos[2]-0.01,plotpos[3]+0.02], thick=thick*1.4
 
 
@@ -521,8 +522,10 @@ P_ini = !P
 ; --- end of procedure -----------------------------------------------------
 ende:
 ;; close plot output file
-aii_plot_file, action='end', show='yes', print='no', $
-               outdir=outdir
+;; ok INTEGER flag if everything went well (0=ok, 1=error)
+ok = PSPlotClose('yes', 'no', outdir, 'no')
+;aii_plot_file, action='end', show='yes', print='no', $
+;               outdir=outdir
 ;
 END
 ; ==========================================================================

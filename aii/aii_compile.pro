@@ -63,6 +63,8 @@ print, ' '
 .COMPILE aii_epilogue
 .COMPILE aii_plot_legend
 .COMPILE aii_plot_file
+.COMPILE PSPlotOpen
+.COMPILE PSPlotClose
 
 ;; water vapor saturation pressure calculation
 .COMPILE WaterVaporSatPressure
@@ -83,7 +85,7 @@ print, ' '
 ;; fit of H2O continuum parameters
 ;;.COMPILE WVContParamFit
 
-
+.COMPILE aii_help
 
 print, ' '
 print,'======================< end of AII_COMPILE >======================'

@@ -100,11 +100,7 @@ print, ' !Y.charsize               =',!Y.charsize
 print, ' !PATH                     =',!PATH
 print, ' '
 
-; generating HTML help file with documentation of all aii files
-helpfile='aii_help.html'
-print,'Generating HTML documentation of AII procedures/functions'
-mk_html_help, '.', helpfile, TITLE = "Arts IDL Interface Documentation"
-print,'Documentation written to ' + helpfile
+
 ;
 print,''
 print,'======================< end of AII_STARTUP >======================'

@@ -1,3 +1,14 @@
+2003-11-21  Thomas Kuhn <tkuhn@uni-bremen.de>
+
+	* arts-1-0-134
+
+	* src/continua.cc: check of the CKD model implementations for the
+	versions 2.2.2, 2.4.2, and MT.1.00. A IDL toos is developed to
+	make the check on the basis of the absorption coefficients
+	calculated by the original F77 code and by the arts-CKD
+	implementation. This IDL tool is a separate cvs package
+	called "arts_abs_model_implementation_check".
+	
 2003-10-23  Thomas Kuhn <tkuhn@uni-bremen.de>
 
 	* arts-1-0-133

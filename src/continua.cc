@@ -21,10 +21,10 @@
 
 
    \retval xsec  Absorption cross section, defined such that the
-                 absorption coefficient alpha is:<br>
-                 alpha [1/m] = xsec * VMR.<br>
-		 The functions adds to xsec, rather than replacing the
-		 previous content. <br>
+                 absorption coefficient \f$\alpha\f$ (in units of 1/m) is:<br>
+                 \f$\alpha\f$ = xsec * VMR.<br>
+		 The absorption model functions adds absorption to xsec, 
+                 rather than replacing the previous content. <br>
    <br>
    <br>
    <H3>The following full water vapor models are implemented:</H3><br>
@@ -96,11 +96,59 @@
          Radio Science, Vol. 34, No 4, Page 1025, 1999 
          <a href="ftp://mesa.mit.edu/phil/lbl_rt">(WWW access)</a>.
    </li>
+   <li><b>H2O-H2O (H2O-SelfContCKD222)</b>:<br> 
+         CKDv2.2.2 H2O self continuum from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   </li>
+   <li><b>H2O-H2O (H2O-SelfContCKD242)</b>:<br> 
+         CKDv2.4.2 H2O self continuum from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   </li>
+   <li><b>H2O-H2O (H2O-SelfContCKDMT100)</b>:<br> 
+         CKD_MTv1.00 H2O self continuum from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   </li>
    <li><b>H2O-air (H2O-ForeignContStandardType)</b>: <br>
          P. W. Rosenkranz,<br> 
          Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and <br>
          Radio Science, Vol. 34, No 4, Page 1025, 1999
          <a href="ftp://mesa.mit.edu/phil/lbl_rt">(WWW access)</a>.
+   </li>
+   <li><b>H2O-air (H2O-foreignContCKD222)</b>:<br> 
+         CKDv2.2.2 H2O foreign continuum from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   </li>
+   <li><b>H2O-air (H2O-foreignContCKD242)</b>:<br> 
+         CKDv2.4.2 H2O foreign continuum from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   </li>
+   <li><b>H2O-air (H2O-foreignContCKDMT100)</b>:<br> 
+         CKD_MTv1.00 H2O foreign continuum from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
    </li>
    <li><b>H2O-air (H2O-ForeignContMaTippingType)</b>: <br>
          Q. Ma and R. H. Tipping,<br> 
@@ -128,6 +176,44 @@
 	 Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
          <a href="ftp://ftp.its.bldrdoc.gov/pub/mpm93/">(WWW access)</a>.
    </li>
+   <li><b>O2-air (O2-CIAfunCKDMT100)</b>:<br> 
+         CKD_MT version 1.00 O2 CIA fundamental band from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   </li>
+   <li><b>O2-air (O2-v0v0CKDMT100)</b>:<br> 
+         CKD_MT version 1.00 O2 band absorption model for the \f$a^1\Delta_g\f$ 
+	 \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly 
+	 \f$X^3\Sigma^-_g\f$ band system 
+	 (\f$\nu=0\f$
+	 \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly 
+	 \f$\nu=0\f$
+	 transitions around 1.27 microns).<br>  
+         Source code from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   </li>
+   <li><b>O2-air (O2-v1v0CKDMT100)</b>:<br> 
+                  CKD_MT version 1.00 O2 band absorption model for the \f$a^1\Delta_g\f$ 
+	 \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly 
+	 \f$X^3\Sigma^-_g\f$ band system 
+	 (\f$\nu=1\f$
+	 \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly 
+	 \f$\nu=0\f$
+	 transitions around 1.06 microns).<br>
+         Source code from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   </li>
    <li><b>N2-N2 (N2-SelfContStandardType)</b>:<br> 
          P. W. Rosenkranz,<br>
          Chapter 2, in M. A. Janssen, <br>
@@ -143,6 +229,23 @@
 	 Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
          <a href="ftp://ftp.its.bldrdoc.gov/pub/mpm93/">(WWW access)</a>.
    </li>
+   <li><b>N2-N2 (N2-CIArotCKDMT100)</b>:<br> 
+         CKD_MT version 1.00 N2-N2 CIA rotational band absorption model.<br>
+         Source code from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   <li><b>N2-N2 (N2-CIAfunCKDMT100)</b>:<br> 
+         CKD_MT version 1.00 N2-N2 CIA fundamental band absorption model.<br>
+         Source code from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   </li>
    <li><b>CO2-CO2 (CO2-SelfContPWR93)</b>:<br> 
          P. W. Rosenkranz,<br>
          Chapter 2, in M. A. Janssen, <br>
@@ -156,6 +259,22 @@
 	 <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
 	 John Wiley & Sons, Inc., 1993 
          <a href="ftp://mesa.mit.edu/phil/lbl_rt">(WWW access)</a>.
+   </li>
+   <li><b>CO2-air (CO2-CKD241)</b>:<br> 
+         CKDv2.4.1 CO2 continuum from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
+   </li>
+   <li><b>CO2-air (CO2-CKDMT100)</b>:<br> 
+         CKD_MT version 1.00 CO2 continuum from the FORTRAN77 code written by<br>  
+         <a href="http://www.rtweb.aer.com/continuum_frame.html">Atmospheric and 
+         Environmental Research Inc. (AER),</a><br>
+	 Radiation and Climate Group<br>
+	 131 Hartwell Avenue<br>
+	 Lexington, MA 02421, USA
    </li>
    </ol>
    <br>
@@ -211,7 +330,7 @@
 <br>
 
    \author Thomas Kuhn
-   \date   2001-11-01
+   \date   2003-11-19
 */
 
 #include <math.h>
@@ -1492,17 +1611,17 @@ void CP98H2OAbsModel( MatrixView        xsec,
 // #################################################################################
 //
 /**
-   \retval    xsec          cross section (absorption/volume mixing ratio) of the 
+   \retval   xsec           cross section (absorption/volume mixing ratio) of the 
                             H2O-H2O continuum [1/m]
-   \param    C              constant absorption strength    [1/m / (Hz*Pa)²]
-   \param    x              temperature exponent of (300/T) [1]
+   \param    Cin            constant absorption strength     [1/m / (Hz*Pa)²]
+   \param    xin            temperature exponent of (300/T)  [1]
    \param    model          allows user defined input parameter set 
                             (C and x)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
-   \param    f_mono         predefined frequency grid       [Hz]
-   \param    t_abs          predefined temperature grid     [K] 
-   \param    p_abs          predefined pressure grid       [Pa]
-   \param    vmr            H2O volume mixing ratio        [1]
+   \param    f_mono         predefined frequency grid        [Hz]
+   \param    p_abs          predefined pressure grid         [Pa]
+   \param    t_abs          predefined temperature grid      [K] 
+   \param    vmr            H2O volume mixing ratio          [1]
 
    \note     Except for  model 'user' the input parameters C and x 
              are neglected (model dominates over parameters).<br>
@@ -1615,8 +1734,8 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
 /**
    \retval   xsec           cross section (absorption/volume mixing ratio) of the 
                             H2O-dry air continuum [1/m]
-   \param    C              constant absorption strength [1/m / (Hz*Pa)²]
-   \param    x              temperature exponent         [1] 
+   \param    Cin            constant absorption strength [1/m / (Hz*Pa)²]
+   \param    xin            temperature exponent         [1] 
    \param    model          allows user defined input parameter set 
                             (C and x)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
@@ -1637,8 +1756,8 @@ void Standard_H2O_self_continuum( MatrixView        xsec,
    \date 2001-08-03
  */ 
 void Standard_H2O_foreign_continuum( MatrixView        xsec,
-				     const Numeric	 Cin,
-				     const Numeric	 xin,
+				     const Numeric     Cin,
+				     const Numeric     xin,
 				     const String&     model,
 				     ConstVectorView   f_mono,
 				     ConstVectorView   p_abs,
@@ -1738,14 +1857,14 @@ void Standard_H2O_foreign_continuum( MatrixView        xsec,
 /**
    \retval   xsec           cross section (absorption/volume mixing ratio) of the 
                             H2O-dry air continuum [1/m]
-   \param    C              constant absorption strength [1/m / (Hz*Pa)²]
-   \param    x              temperature exponent         [1] 
+   \param    Cin            constant absorption strength [1/m / (Hz*Pa)²]
+   \param    xin            temperature exponent         [1] 
    \param    model          allows user defined input parameter set 
                             (C and x)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
    \param    f_mono         predefined frequency grid    [Hz]
-   \param    t_abs          predefined temperature grid  [K] 
    \param    p_abs          predefined pressure          [Pa]
+   \param    t_abs          predefined temperature grid  [K] 
    \param    vmr            H2O volume mixing ratio     [1] 
 
    \note     Except for  model 'user' the input parameters C and x 
@@ -1922,7 +2041,7 @@ Numeric RADFN_FUN (const Numeric VI,
       
       if (XVIOKT <= 0.01e0)
 	{
-	  RADFN = 0.50e0 * XVIOKT * XVI;
+	  RADFN = 0.500e0 * XVIOKT * XVI;
 	}
       else if (XVIOKT <= 10.0e0)
 	{
@@ -1944,12 +2063,12 @@ Numeric RADFN_FUN (const Numeric VI,
 
 // =================================================================================
 
-// CKD version MT 1.00 H2O self continuum absorption model
+// CKD version 2.2.2 H2O self continuum absorption model
 /**
 
    \retval   xsec           cross section (absorption/volume mixing ratio) of 
-                            H2O self continuum according to CKD_MT 1.00   [1/m]
-   \param    Cin            strength scaling factor                  [1]
+                            H2O self continuum according to CKD_2_2_2  [1/m]
+   \param    Cin            strength scaling factor                    [1]
    \param    model          allows user defined input parameter set 
                             (Cin)<br> 
                             or choice of 
@@ -1960,36 +2079,334 @@ Numeric RADFN_FUN (const Numeric VI,
    \param    vmr            H2O volume mixing ratio profile      [1]
    \param    n2_abs         N2 volume mixing ratio profile       [1]
 
-   \note     http://www.rtweb.aer.com/continuum_frame.html<br>
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD version 2.2.2 written by<br>  
              Atmospheric and Environmental Research Inc. (AER),<br> 
              Radiation and Climate Group<br>
              131 Hartwell Avenue<br>
-             Lexington, MA 02421<br>
-             USA<br>
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
              
    \author Thomas Kuhn
-   \date 2002-28-08
- */ 
-void CKD_mt_self_h2o( MatrixView          xsec,
-		      const Numeric       Cin,
-		      const String&       model,
-		      ConstVectorView     f_mono,
-		      ConstVectorView     p_abs,
-		      ConstVectorView     t_abs,
-		      ConstVectorView     vmr,
-		      ConstVectorView     n2_abs )
+   \date 2002-31-10
+*/ 
+void CKD_222_self_h2o( MatrixView          xsec,
+		       const Numeric       Cin,
+		       const String&       model,
+		       ConstVectorView     f_mono,
+		       ConstVectorView     p_abs,
+		       ConstVectorView     t_abs,
+		       ConstVectorView     vmr,
+		       ConstVectorView     n2_abs )
 {
 
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKD222"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKDv2.2.2 H2O self continuum:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKD222\n";
+      throw runtime_error(os.str());
+    }
+
+
   // scaling factor of the self H2O cont. absorption
-  Numeric  ScalingFac = 0.0000e0;
+  Numeric  ScalingFac = 1.0000e0;
   if ( model == "user" )
     {
       ScalingFac = Cin; // input scaling factor of calculated absorption
     }
-  else
+
+
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
+
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+
+  // ************************** CKD stuff ************************************
+
+  const Numeric xLosmt   = 2.686763e19; // [molecules/cm^3]
+  const Numeric T1       =  273.0e0;
+  const Numeric TO       =  296.0e0;
+  const Numeric PO       = 1013.0e0;
+
+  // CKD2.2.2 specific self continuum correction function parameters
+  const Numeric ALPHA2 = 200.000 * 200.000;
+  const Numeric ALPHS2 = 120.000 * 120.000;
+  const Numeric BETAS  = 5.000e-06;
+  const Numeric V0S    = 1310.000;
+  const Numeric FACTRS = 0.150;
+  
+  // These are self-continuum modification factors from 700-1200 cm-1
+  const Numeric XFAC[51] = {  
+    1.00000,1.01792,1.03767,1.05749,1.07730,1.09708,
+    1.10489,1.11268,1.12047,1.12822,1.13597,1.14367,
+    1.15135,1.15904,1.16669,1.17431,1.18786,1.20134,
+    1.21479,1.22821,1.24158,1.26580,1.28991,1.28295,
+    1.27600,1.26896,1.25550,1.24213,1.22879,1.21560,
+    1.20230,1.18162,1.16112,1.14063,1.12016,1.10195,
+    1.09207,1.08622,1.08105,1.07765,1.07398,1.06620,
+    1.05791,1.04905,1.03976,1.02981,1.00985,1.00000,
+    1.00000,1.00000,1.00000};
+
+  // wavenumber range where CKD H2O self continuum is valid
+  const Numeric VABS_min = SL260_ckd_0_v1; // [cm^-1]
+  const Numeric VABS_max = SL260_ckd_0_v2; // [cm^-1]
+
+
+  // It is assumed here that f_mono is monotonically increasing with index!
+  // In future change this return into a change of the loop over
+  // the frequency f_mono. n_f_new < n_f
+  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
+       (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
-      ScalingFac = 1.0000e0;
+      out3  << "WARNING:\n"
+            << "  CKD2.2.2 H2O self continuum:\n"
+	    << "  input frequency vector exceeds range of model validity\n"
+	    << "  " << SL296_ckd_0_v1 << "<->" << SL296_ckd_0_v2 << "cm^-1\n";
     }
+
+
+  // ------------------- subroutine SL296/SL260 ----------------------------
+
+  if (SL296_ckd_0_v1 != SL260_ckd_0_v1)
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD2.2.2 H2O self continuum:\n"
+	 << "parameter V1 not the same for different ref. temperatures.\n";
+      throw runtime_error(os.str());
+    }
+  if (SL296_ckd_0_v2 != SL260_ckd_0_v2)
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD2.2.2 H2O self continuum:\n"
+	 << "parameter V2 not the same for different ref. temperatures.\n";
+	throw runtime_error(os.str());
+    }
+  if (SL296_ckd_0_dv != SL260_ckd_0_dv)
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD2.2.2 H2O self continuum:\n"
+	 << "parameter DV not the same for different ref. temperatures.\n";
+      throw runtime_error(os.str());
+    }
+  if (SL296_ckd_0_npt != SL260_ckd_0_npt)
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD2.2.2 H2O self continuum:\n"
+	 << "parameter NPT not the same for different ref. temperatures.\n";
+      throw runtime_error(os.str());
+    }
+  
+  // retrieve the appropriate array sequence of the self continuum
+  // arrays of the CKD model.
+  Numeric DVC = SL296_ckd_0_dv;
+  Numeric V1C = V1ABS - DVC;
+  Numeric V2C = V2ABS + DVC;
+  
+  int I1 = (int) ((V1C-SL296_ckd_0_v1) / SL296_ckd_0_dv);
+  if (V1C < SL296_ckd_0_v1) I1 = -1;
+  V1C = SL296_ckd_0_v1 + (SL296_ckd_0_dv * (Numeric)I1);
+
+  int I2 = (int) ((V2C-SL296_ckd_0_v1) / SL296_ckd_0_dv);
+
+  int NPTC = I2-I1+3;
+  if (NPTC > SL296_ckd_0_npt) NPTC = SL296_ckd_0_npt+1;
+
+  V2C = V1C + SL296_ckd_0_dv * (Numeric)(NPTC-1);  
+  
+  if (NPTC < 1)
+    {
+      ostringstream os;
+      out3 << "WARNING:\n"  
+	   << "  CKD2.2.2 H2O self continuum:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.";
+      return;
+    }
+
+  Numeric SH2OT0[NPTC+addF77fields]; // [cm^3/molecules]
+  Numeric SH2OT1[NPTC+addF77fields]; // [cm^3/molecules]
+
+  for (Index J = 1 ; J <= NPTC ; ++J)
+    {
+      Index I = I1+J;
+      if ( (I < 1) || (I > SL296_ckd_0_npt) ) 
+	{
+	  SH2OT0[J] = 0.0e0;   // at T=296 K
+	  SH2OT1[J] = 0.0e0;   // at T=260 K
+	}
+      else
+	{
+	  SH2OT0[J] = SL296_ckd_0[I];    // at T=296 K
+	  SH2OT1[J] = SL260_ckd_0[I];    // at T=260 K 
+	}
+    }
+
+  // ------------------- subroutine SL296/SL260 ----------------------------
+  
+  Numeric SFAC = 1.00e0;
+  Numeric VS2  = 0.00e0;
+  Numeric VS4  = 0.00e0;
+  
+  // Loop pressure/temperature:
+  for ( Index i = 0 ; i < n_p ; ++i )
+    {
+
+      // atmospheric state parameters
+      Numeric Tave   = t_abs[i];                                     // [K]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                          // [hPa]
+      Numeric Patm   = Pave/PO;                                      // [1]
+      Numeric vmrh2o = vmr[i];                                       // [1]
+      Numeric Ph2o   = Patm * vmrh2o;                                // [1]
+      // second vmr in absCalc multiplied
+      Numeric Rh2o   = Patm * (TO/Tave);                             // [1]
+      Numeric Tfac   = (Tave-TO)/(260.0-TO);                         // [1]
+      Numeric WTOT   = xLosmt * (Pave/1.013000e3) * (2.7300e2/Tave); // [molecules/cm^2]
+      Numeric W1     = vmrh2o * WTOT;                                // [molecules/cm^2]
+      Numeric XKT    = Tave / 1.4387752e0;                           // = (T*k_B)/(h*c)    
+      
+      // Molecular cross section calculated by CKD.
+      // The cross sectionis calculated on the predefined 
+      // CKD wavenumber grid.
+      Numeric k[NPTC+addF77fields]; // [1/cm]
+      k[0] = 0.00e0; // not used array field
+      for (Index J = 1 ; J <= NPTC ; ++J)
+	{
+	  Numeric VJ   = V1C + (DVC * (Numeric)(J-1)); 
+	  Numeric SH2O = 0.0e0;
+	  if (SH2OT0[J] > 0.0e0)
+	    {
+	      SH2O = SH2OT0[J] * pow( (SH2OT1[J]/SH2OT0[J]), Tfac ); 
+	      SFAC = 1.00e0;
+
+	      if ( (VJ >= 700.0e0) && (VJ <= 1200.0e0) )
+		{
+		  int JFAC = (int)((VJ - 700.0e0)/10.0e0 + 0.00001e0);
+		  if ( (JFAC >= 0) && (JFAC <= 50) )
+		    SFAC = XFAC[JFAC];
+		}
+
+	      // ---------------------------------------------------------
+	      // Correction to self continuum (1 SEPT 85); factor of    
+	      // 0.78 at 1000 and  .......
+
+	      VS2  = (VJ-V0S) * (VJ-V0S);
+
+	      SFAC = SFAC * 
+		( 1.000e0 + 0.3000e0 * (1.000e4 / ((VJ*VJ)                         + 1.000e4))  ) *   
+		( 1.000e0 - 0.2333e0 * (ALPHA2  / ((VJ-1050.000e0)*(VJ-1050.000e0) + ALPHA2))   ) *   
+		( 1.000e0 - FACTRS   * (ALPHS2  / (VS2+(BETAS*VS2*VS2)+ALPHS2))                 );
+
+	      SH2O = SFAC * SH2O;
+	    }
+
+	  // CKD cross section with radiative field [1/cm]
+	  // the VMRH2O will be multiplied in absCalc, hence Rh2o does not contain 
+	  // VMRH2O as multiplicative term
+	  k[J] = W1 * Rh2o * (SH2O*1.000e-20) * RADFN_FUN(VJ,XKT); // [1]
+
+	}
+      
+
+      // Loop input frequency array. The previously calculated cross section 
+      // has therefore to be interpolated on the input frequencies.
+      for ( Index s = 0 ; s < n_f ; ++s )
+	{
+	  // calculate the associated wave number (= 1/wavelength)
+	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  if ( (V >= 0.000e0) && (V < SL296_ckd_0_v2) )
+	    {
+	      // arts cross section [1/m]
+	      // interpolate the k vector on the f_mono grid
+	      // The factor 100 comes from the conversion from 1/cm to 1/m for
+	      // the absorption coefficient
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+	    }
+	}
+    }
+  
+}
+
+
+
+// =================================================================================
+
+// CKD version 2.2.2 H2O foreign continuum absorption model
+/**
+
+   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+                            H2O foreign continuum according to CKDv.2.2.2    [1/m]
+   \param    Cin            strength scaling factor                          [1]
+   \param    model          allows user defined input parameter set 
+                            (Cin)<br> 
+                            or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid            [Hz]
+   \param    p_abs          predefined pressure grid             [Pa]
+   \param    t_abs          predefined temperature grid          [K] 
+   \param    vmr            H2O volume mixing ratio profile      [1]
+   \param    n2_abs         N2 volume mixing ratio profile       [1]
+
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD version 2.2.2 written by<br>  
+             Atmospheric and Environmental Research Inc. (AER),<br> 
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
+             
+   \author Thomas Kuhn
+   \date 2002-28-08
+*/ 
+void CKD_222_foreign_h2o( MatrixView          xsec,
+			  const Numeric       Cin,
+			  const String&       model,
+			  ConstVectorView     f_mono,
+			  ConstVectorView     p_abs,
+			  ConstVectorView     t_abs,
+			  ConstVectorView     vmr,
+			  ConstVectorView     n2_abs )
+{
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKD222"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKDv2.2.2 H2O foreign continuum:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKD222\n";
+      throw runtime_error(os.str());
+    }
+
+
+  // scaling factor of the foreign H2O cont. absorption
+  Numeric  ScalingFac = 1.0000e0;
+  if ( model == "user" )
+    {
+      ScalingFac = Cin; // input scaling factor of calculated absorption
+    }
+
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
   const Index n_f = f_mono.nelem();	// Number of frequencies
@@ -2008,9 +2425,780 @@ void CKD_mt_self_h2o( MatrixView          xsec,
   // ************************** CKD stuff ************************************
 
   const Numeric xLosmt = 2.686763e19; // [molecules/cm^3]
+  const Numeric T1     =  273.000e0;
+  const Numeric TO     =  296.000e0;
+  const Numeric PO     = 1013.000e0;
+
+  // CKD2.2.2 foreign H2O continuum correction function parameters
+  const Numeric HWSQF  = 330.000e0 * 330.000e0;
+  const Numeric BETAF  = 8.000e-11;
+  const Numeric V0F    = 1130.000e0;
+  const Numeric FACTRF = 0.970e0;
+  
+  const Numeric V0F2   = 1900.000e0;
+  const Numeric HWSQF2 = 150.000e0 * 150.000e0;
+  const Numeric BETA2  = 3.000e-6;
+
+  // wavenumber range where CKD H2O foreign continuum is valid
+  const Numeric VABS_min = FH2O_ckd_0_v1; // [cm^-1]
+  const Numeric VABS_max = FH2O_ckd_0_v2; // [cm^-1]
+
+
+  // It is assumed here that f_mono is monotonically increasing with index!
+  // In future change this return into a change of the loop over
+  // the frequency f_mono. n_f_new < n_f
+  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
+       (V2ABS < VABS_min) || (V2ABS > VABS_max) )
+    {
+      out3  << "WARNING:\n"
+            << "  CKD2.2.2 H2O foreign continuum:\n"
+	    << "  input frequency vector exceeds range of model validity\n"
+	    << "  " << FH2O_ckd_0_v1 << "<->" << FH2O_ckd_0_v2 << "cm^-1\n";
+    }
+
+
+  // ---------------------- subroutine FRN296 ------------------------------
+
+  // retrieve the appropriate array sequence of the foreign continuum
+  // arrays of the CKD model.
+  Numeric DVC = FH2O_ckd_0_dv;
+  Numeric V1C = V1ABS - DVC;
+  Numeric V2C = V2ABS + DVC;
+  
+  int I1 = (int) ((V1C-FH2O_ckd_0_v1) / FH2O_ckd_0_dv);
+  if (V1C < FH2O_ckd_0_v1) I1 = -1;
+  V1C = FH2O_ckd_0_v1 + (FH2O_ckd_0_dv * (Numeric)I1);
+
+  int I2 = (int) ((V2C-FH2O_ckd_0_v1) / FH2O_ckd_0_dv);
+
+  int NPTC = I2-I1+3;
+  if (NPTC > FH2O_ckd_0_npt) NPTC = FH2O_ckd_0_npt+1;
+
+  V2C = V1C + FH2O_ckd_0_dv * (Numeric)(NPTC-1);  
+  
+  if (NPTC < 1)
+    {
+      out3 << "WARNING:\n" 
+	   << "  CKD2.2.2 H2O foreign continuum:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.";
+      return;
+    }
+
+  Numeric FH2OT0[NPTC+addF77fields]; // [cm^3/molecules]
+
+  for (Index J = 1 ; J <= NPTC ; ++J)
+    {
+      Index I = I1+J;
+      if ( (I < 1) || (I > FH2O_ckd_0_npt) ) 
+	{
+	  FH2OT0[J] = 0.0e0;
+	}
+      else
+	{
+	  FH2OT0[J] = FH2O_ckd_0[I];
+	}
+    }
+
+  // ---------------------- subroutine FRN296 ------------------------------
+  
+  Numeric VF2   = 0.000e0;
+  Numeric VF4   = 0.000e0;
+  Numeric VF6   = 0.000e0;
+  Numeric FSCAL = 0.000e0;
+  Numeric FH2O  = 0.000e0;
+  
+  // Loop pressure/temperature:
+  for ( Index i = 0 ; i < n_p ; ++i )
+    {
+
+      // atmospheric state parameters
+      Numeric Tave   = t_abs[i];                               // [K]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric vmrh2o = vmr[i];                                 // [1]
+      Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
+      Numeric PFRGN  = (Pave/PO) * (1.00000e0 - vmrh2o);       // dry air pressure [hPa]
+      Numeric RFRGN  = PFRGN  * (TO/Tave);                     // [hPa]
+      Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
+      Numeric W1     = vmrh2o * WTOT;                          // [molecules/cm^2]
+      Numeric XKT    = Tave   / 1.4387752;                     // = (T*k_B) / (h*c)
+      
+      // Molecular cross section calculated by CKD.
+      // The cross sectionis calculated on the predefined 
+      // CKD wavenumber grid.
+      Numeric k[NPTC+addF77fields]; // [1/cm]
+      k[0] = 0.00e0; // not used array field
+      for (Index J = 1 ; J <= NPTC ; ++J)
+	{
+	  Numeric VJ = V1C + (DVC * (Numeric)(J-1)); 
+
+	  // CORRECTION TO FOREIGN CONTINUUM
+	  VF2   = (VJ-V0F)  * (VJ-V0F);
+	  VF6   = VF2 * VF2 * VF2;
+	  FSCAL = (1.000e0 - FACTRF*(HWSQF/(VF2+(BETAF*VF6)+HWSQF)));
+
+	  VF2   = (VJ-V0F2) * (VJ-V0F2);
+	  VF4   = VF2 * VF2;
+	  FSCAL = FSCAL * (1.000e0 - 0.600e0*(HWSQF2/(VF2 + BETA2*VF4 + HWSQF2)));
+     
+	  FH2O  = FH2OT0[J] * FSCAL;
+
+	  // CKD cross section with radiative field [1/cm]
+	  // The VMRH2O will be multiplied in absCalc, hence WTOT and not W1
+	  // as multiplicative term
+	  k[J] = WTOT * RFRGN * (FH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
+
+	}
+      
+
+      // Loop input frequency array. The previously calculated cross section 
+      // has therefore to be interpolated on the input frequencies.
+      for ( Index s = 0 ; s < n_f ; ++s )
+	{
+	  // calculate the associated wave number (= 1/wavelength)
+	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  if ( (V > 0.000e0) && (V < VABS_max) )
+	    {
+	      // arts CKD2.2.2 foreign H2O continuum cross section [1/m]
+	      // interpolate the k vector on the f_mono grid
+	      // The factor 100 comes from the conversion from (1/cm) to (1/m) 
+	      // of the abs. coeff.
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+	    }
+	}
+    }
+  
+}
+
+
+// =================================================================================
+
+// CKD version 2.4.2 H2O self continuum absorption model
+/**
+
+   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+                            H2O self continuum according to CKD_2_4_2  [1/m]
+   \param    Cin            strength scaling factor                    [1]
+   \param    model          allows user defined input parameter set 
+                            (Cin)<br> 
+                            or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid            [Hz]
+   \param    p_abs          predefined pressure grid             [Pa]
+   \param    t_abs          predefined temperature grid          [K] 
+   \param    vmr            H2O volume mixing ratio profile      [1]
+   \param    n2_abs         N2 volume mixing ratio profile       [1]
+
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD version 2.4.2 written by<br>  
+             Atmospheric and Environmental Research Inc. (AER),<br> 
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
+             
+   \author Thomas Kuhn
+   \date 2002-30-10
+*/ 
+void CKD_242_self_h2o( MatrixView          xsec,
+		       const Numeric       Cin,
+		       const String&       model,
+		       ConstVectorView     f_mono,
+		       ConstVectorView     p_abs,
+		       ConstVectorView     t_abs,
+		       ConstVectorView     vmr,
+		       ConstVectorView     n2_abs )
+{
+
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKD242"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKDv2.4.2 H2O self continuum:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKD242\n";
+      throw runtime_error(os.str());
+    }
+
+
+  // scaling factor of the self H2O cont. absorption
+  Numeric  ScalingFac = 1.0000e0;
+  if ( model == "user" )
+    {
+      ScalingFac = Cin; // input scaling factor of calculated absorption
+    }
+
+
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
+
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+
+  // ************************** CKD stuff ************************************
+
+  const Numeric xLosmt   = 2.686763e19; // [molecules/cm^3]
+  const Numeric T1       =  273.0e0;
+  const Numeric TO       =  296.0e0;
+  const Numeric PO       = 1013.0e0;
+
+  // CKD2.4.2 specific correction functions
+  const Numeric V0S1     = 0.000e+00;
+  const Numeric HWSQ1    = (1.000e+02 * 1.000e+02);
+  const Numeric BETAS1   = 1.000e-04;
+  const Numeric FACTRS1  = 0.688e+00;
+  
+  const Numeric V0S2     = 1.050e+03;
+  const Numeric HWSQ2    = (2.000e+02 * 2.000e+02);
+  const Numeric FACTRS2  = -0.2333e+00;
+  
+  const Numeric V0S3     = 1.310e+03;
+  const Numeric HWSQ3    = (1.200e+02 * 1.200e+02);
+  const Numeric BETAS3   = 5.000e-06;
+  const Numeric FACTRS3  = -0.150e+00;
+  
+  const Numeric XFAC[51] = {  
+    1.00000,1.01792,1.03767,1.05749,1.07730,1.09708,
+    1.10489,1.11268,1.12047,1.12822,1.13597,1.14367,
+    1.15135,1.15904,1.16669,1.17431,1.18786,1.20134,
+    1.21479,1.22821,1.24158,1.26580,1.28991,1.28295,
+    1.27600,1.26896,1.25550,1.24213,1.22879,1.21560,
+    1.20230,1.18162,1.16112,1.14063,1.12016,1.10195,
+    1.09207,1.08622,1.08105,1.07765,1.07398,1.06620,
+    1.05791,1.04905,1.03976,1.02981,1.00985,1.00000,
+    1.00000,1.00000,1.00000};
+
+  // wavenumber range where CKD H2O self continuum is valid
+  const Numeric VABS_min = SL260_ckd_0_v1; // [cm^-1]
+  const Numeric VABS_max = SL260_ckd_0_v2; // [cm^-1]
+
+
+  // It is assumed here that f_mono is monotonically increasing with index!
+  // In future change this return into a change of the loop over
+  // the frequency f_mono. n_f_new < n_f
+  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
+       (V2ABS < VABS_min) || (V2ABS > VABS_max) )
+    {
+      out3  << "WARNING:\n"
+            << "  CKD2.4.2 H2O self continuum:\n"
+	    << "  input frequency vector exceeds range of model validity\n"
+	    << "  " << SL296_ckd_0_v1 << "<->" << SL296_ckd_0_v2 << "cm^-1\n";
+    }
+
+
+  // ------------------- subroutine SL296/SL260 ----------------------------
+
+  if (SL296_ckd_0_v1 != SL260_ckd_0_v1)
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD2.4.2 H2O self continuum:\n"
+	 << "parameter V1 not the same for different ref. temperatures.\n";
+      throw runtime_error(os.str());
+    }
+  if (SL296_ckd_0_v2 != SL260_ckd_0_v2)
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD2.4.2 H2O self continuum:\n"
+	 << "parameter V2 not the same for different ref. temperatures.\n";
+	throw runtime_error(os.str());
+    }
+  if (SL296_ckd_0_dv != SL260_ckd_0_dv)
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD2.4.2 H2O self continuum:\n"
+	 << "parameter DV not the same for different ref. temperatures.\n";
+      throw runtime_error(os.str());
+    }
+  if (SL296_ckd_0_npt != SL260_ckd_0_npt)
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD2.4.2 H2O self continuum:\n"
+	 << "parameter NPT not the same for different ref. temperatures.\n";
+      throw runtime_error(os.str());
+    }
+  
+  // retrieve the appropriate array sequence of the self continuum
+  // arrays of the CKD model.
+  Numeric DVC = SL296_ckd_0_dv;
+  Numeric V1C = V1ABS - DVC;
+  Numeric V2C = V2ABS + DVC;
+  
+  int I1 = (int) ((V1C-SL296_ckd_0_v1) / SL296_ckd_0_dv);
+  if (V1C < SL296_ckd_0_v1) I1 = -1;
+  V1C = SL296_ckd_0_v1 + (SL296_ckd_0_dv * (Numeric)I1);
+
+  int I2 = (int) ((V2C-SL296_ckd_0_v1) / SL296_ckd_0_dv);
+
+  int NPTC = I2-I1+3;
+  if (NPTC > SL296_ckd_0_npt) NPTC = SL296_ckd_0_npt+1;
+
+  V2C = V1C + SL296_ckd_0_dv * (Numeric)(NPTC-1);  
+  
+  if (NPTC < 1)
+    {
+      ostringstream os;
+      out3 << "WARNING:\n"  
+	   << "  CKDv2.4.2 H2O self continuum:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.";
+      return;
+    }
+
+  Numeric SH2OT0[NPTC+addF77fields]; // [cm^3/molecules]
+  Numeric SH2OT1[NPTC+addF77fields]; // [cm^3/molecules]
+
+  for (Index J = 1 ; J <= NPTC ; ++J)
+    {
+      Index I = I1+J;
+      if ( (I < 1) || (I > SL296_ckd_0_npt) ) 
+	{
+	  SH2OT0[J] = 0.0e0;   // at T=296 K
+	  SH2OT1[J] = 0.0e0;   // at T=260 K
+	}
+      else
+	{
+	  SH2OT0[J] = SL296_ckd_0[I];    // at T=296 K
+	  SH2OT1[J] = SL260_ckd_0[I];    // at T=260 K 
+	}
+    }
+
+  // ------------------- subroutine SL296/SL260 ----------------------------
+  
+  Numeric SFAC = 1.00e0;
+  Numeric VS2  = 0.00e0;
+  Numeric VS4  = 0.00e0;
+  
+  // Loop pressure/temperature:
+  for ( Index i = 0 ; i < n_p ; ++i )
+    {
+
+      // atmospheric state parameters
+      Numeric Tave   = t_abs[i];                                     // [K]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                          // [hPa]
+      Numeric Patm   = Pave/PO;                                      // [1]
+      Numeric vmrh2o = vmr[i];                                       // [1]
+      Numeric Ph2o   = Patm * vmrh2o;                                // [1]
+      // second vmr in absCalc multiplied
+      Numeric Rh2o   = Patm * (TO/Tave);                             // [1]
+      Numeric Tfac   = (Tave-TO)/(260.0-TO);                         // [1]
+      Numeric WTOT   = xLosmt * (Pave/1.013000e3) * (2.7300e2/Tave); // [molecules/cm^2]
+      Numeric W1     = vmrh2o * WTOT;                                // [molecules/cm^2]
+      Numeric XKT    = Tave / 1.4387752e0;                           // = (T*k_B)/(h*c)   
+      
+      // Molecular cross section calculated by CKD.
+      // The cross sectionis calculated on the predefined 
+      // CKD wavenumber grid.
+      Numeric k[NPTC+addF77fields]; // [1/cm]
+      k[0] = 0.00e0; // not used array field
+      for (Index J = 1 ; J <= NPTC ; ++J)
+	{
+	  Numeric VJ   = V1C + (DVC * (Numeric)(J-1)); 
+	  Numeric SH2O = 0.0e0;
+	  if (SH2OT0[J] > 0.0e0)
+	    {
+	      SH2O = SH2OT0[J] * pow( (SH2OT1[J]/SH2OT0[J]), Tfac ); 
+	      SFAC = 1.00e0;
+
+	      if ( (VJ >= 700.0e0) && (VJ <= 1200.0e0) )
+		{
+		  int JFAC = (int)((VJ - 700.0e0)/10.0e0 + 0.00001e0);
+		  if ( (JFAC >= 0) && (JFAC <= 50) )
+		    SFAC = XFAC[JFAC];
+		}
+
+	      // ---------------------------------------------------------
+	      // Correction to self continuum (1 SEPT 85); factor of    
+	      // 0.78 at 1000 and  .......
+
+	      VS2  = (VJ-V0S1) * (VJ-V0S1);
+	      VS4  = VS2*VS2;
+	      SFAC = SFAC * 
+		(1.000e0 + FACTRS1*(HWSQ1/((VJ*VJ)+(BETAS1*VS4)+HWSQ1))); 
+
+	      VS2  = (VJ-V0S2) * (VJ-V0S2);
+	      SFAC = SFAC *
+		(1.000e0 + FACTRS2*(HWSQ2/(VS2+HWSQ2)));
+
+	      VS2  = (VJ-V0S3) * (VJ-V0S3);
+	      VS4  = VS2*VS2;
+	      SFAC = SFAC *
+		(1.000e0 + FACTRS3*(HWSQ3/(VS2+(BETAS3*VS4)+HWSQ3))); 
+	      
+	      SH2O = SFAC * SH2O;
+	    }
+
+	  // CKD cross section with radiative field [1/cm]
+	  // The VMRH2O will be multiplied in absCalc, hence Rh2o does not contain 
+	  // VMRH2O as multiplicative term
+	  k[J] = W1 * Rh2o * (SH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
+
+	}
+      
+
+      // Loop input frequency array. The previously calculated cross section 
+      // has therefore to be interpolated on the input frequencies.
+      for ( Index s = 0 ; s < n_f ; ++s )
+	{
+	  // calculate the associated wave number (= 1/wavelength)
+	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  if ( (V >= 0.000e0) && (V < SL296_ckd_0_v2) )
+	    {
+	      // arts cross section [1/m]
+	      // interpolate the k vector on the f_mono grid
+	      // The factor 100 comes from the conversion from 1/cm to 1/m for
+	      // the absorption coefficient
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+	    }
+	}
+    }
+  
+}
+
+
+// =================================================================================
+
+// CKD version 2.4.2 H2O foreign continuum absorption model
+/**
+
+   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+                            H2O foreign continuum according to CKDv.2.4.2    [1/m]
+   \param    Cin            strength scaling factor                          [1]
+   \param    model          allows user defined input parameter set 
+                            (Cin)<br> 
+                            or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid            [Hz]
+   \param    p_abs          predefined pressure grid             [Pa]
+   \param    t_abs          predefined temperature grid          [K] 
+   \param    vmr            H2O volume mixing ratio profile      [1]
+   \param    n2_abs         N2 volume mixing ratio profile       [1]
+
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD version 2.4.2 written by<br>  
+             Atmospheric and Environmental Research Inc. (AER),<br> 
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
+             
+   \author Thomas Kuhn
+   \date 2002-28-08
+*/ 
+void CKD_242_foreign_h2o( MatrixView          xsec,
+			  const Numeric       Cin,
+			  const String&       model,
+			  ConstVectorView     f_mono,
+			  ConstVectorView     p_abs,
+			  ConstVectorView     t_abs,
+			  ConstVectorView     vmr,
+			  ConstVectorView     n2_abs )
+{
+
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKD242"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKDv2.4.2 H2O foreign continuum:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKD242\n";
+      throw runtime_error(os.str());
+    }
+
+
+  // scaling factor of the foreign H2O cont. absorption
+  Numeric  ScalingFac = 1.0000e0;
+  if ( model == "user" )
+    {
+      ScalingFac = Cin; // input scaling factor of calculated absorption
+    }
+
+
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+
+  // ************************** CKD stuff ************************************
+
+  const Numeric xLosmt = 2.686763e19; // [molecules/cm^3]
   const Numeric T1     =  273.0e0;
   const Numeric TO     =  296.0e0;
   const Numeric PO     = 1013.0e0;
+
+  // CKD2.4.2 foreign H2O continuum correction function parameters
+  const Numeric V0F1     = 350.000e0;
+  const Numeric HWSQF1   = 200.000e0 * 200.000e0;
+  const Numeric BETAF1   = 5.000e-9 ;
+  const Numeric FACTRF1  = -0.700e0;
+  
+  const Numeric V0F1a    = 630.000e0;
+  const Numeric HWSQF1a  = 65.000e0*65.000e0;
+  const Numeric BETAF1a  = 2.000e-08 ;
+  const Numeric FACTRF1a = 0.750e0;
+  
+  const Numeric V0F2     = 1130.000e0;
+  const Numeric HWSQF2   = 330.000e0 * 330.000e0;
+  const Numeric BETAF2   = 8.000e-11;
+  const Numeric FACTRF2  = -0.970e0;
+  
+  const Numeric V0F3     = 1975.000e0;
+  const Numeric HWSQF3   = 250.000e0 * 250.000e0;
+  const Numeric BETAF3   = 5.000e-06;
+  const Numeric FACTRF3  = -0.650e0;
+
+  // wavenumber range where CKD H2O foreign continuum is valid
+  const Numeric VABS_min = FH2O_ckd_0_v1; // [cm^-1]
+  const Numeric VABS_max = FH2O_ckd_0_v2; // [cm^-1]
+
+
+  // It is assumed here that f_mono is monotonically increasing with index!
+  // In future change this return into a change of the loop over
+  // the frequency f_mono. n_f_new < n_f
+  Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+  if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
+       (V2ABS < VABS_min) || (V2ABS > VABS_max) )
+    {
+      out3  << "WARNING:\n"
+            << "  CKDv2.4.2 H2O foreign continuum:\n"
+	    << "  input frequency vector exceeds range of model validity\n"
+	    << "  " << FH2O_ckd_0_v1 << "<->" << FH2O_ckd_0_v2 << "cm^-1\n";
+    }
+
+
+  // ---------------------- subroutine FRN296 ------------------------------
+
+  // retrieve the appropriate array sequence of the foreign continuum
+  // arrays of the CKD model.
+  Numeric DVC = FH2O_ckd_0_dv;
+  Numeric V1C = V1ABS - DVC;
+  Numeric V2C = V2ABS + DVC;
+  
+  int I1 = (int) ((V1C-FH2O_ckd_0_v1) / FH2O_ckd_0_dv);
+  if (V1C < FH2O_ckd_0_v1) I1 = -1;
+  V1C = FH2O_ckd_0_v1 + (FH2O_ckd_0_dv * (Numeric)I1);
+
+  int I2 = (int) ((V2C-FH2O_ckd_0_v1) / FH2O_ckd_0_dv);
+
+  int NPTC = I2-I1+3;
+  if (NPTC > FH2O_ckd_0_npt) NPTC = FH2O_ckd_0_npt+1;
+
+  V2C = V1C + FH2O_ckd_0_dv * (Numeric)(NPTC-1);  
+  
+  if (NPTC < 1)
+    {
+      out3 << "WARNING:\n" 
+	   << "  CKDv2.4.2 H2O foreign continuum:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.";
+      return;
+    }
+
+  Numeric FH2OT0[NPTC+addF77fields]; // [cm^3/molecules]
+
+  for (Index J = 1 ; J <= NPTC ; ++J)
+    {
+      Index I = I1+J;
+      if ( (I < 1) || (I > FH2O_ckd_0_npt) ) 
+	{
+	  FH2OT0[J] = 0.0e0;
+	}
+      else
+	{
+	  FH2OT0[J] = FH2O_ckd_0[I];
+	}
+    }
+
+  // ---------------------- subroutine FRN296 ------------------------------
+  
+  Numeric VF2   = 0.000e0;
+  Numeric VF4   = 0.000e0;
+  Numeric VF6   = 0.000e0;
+  Numeric FSCAL = 0.000e0;
+  Numeric FH2O  = 0.000e0;
+  
+  // Loop pressure/temperature:
+  for ( Index i = 0 ; i < n_p ; ++i )
+    {
+
+      // atmospheric state parameters
+      Numeric Tave   = t_abs[i];                               // [K]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric vmrh2o = vmr[i];                                 // [1]
+      Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
+      Numeric PFRGN  = (Pave/PO) * (1.00000e0 - vmrh2o);       // dry air pressure [hPa]
+      Numeric RFRGN  = PFRGN  * (TO/Tave);                     // [hPa]
+      Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
+      Numeric W1     = vmrh2o * WTOT;                          // [molecules/cm^2]
+      Numeric XKT    = Tave   / 1.4387752;                     // = (T*k_B) / (h*c)    
+      
+      // Molecular cross section calculated by CKD.
+      // The cross sectionis calculated on the predefined 
+      // CKD wavenumber grid.
+      Numeric k[NPTC+addF77fields]; // [1/cm]
+      k[0] = 0.00e0; // not used array field
+      for (Index J = 1 ; J <= NPTC ; ++J)
+	{
+	  Numeric VJ = V1C + (DVC * (Numeric)(J-1)); 
+
+	  // CORRECTION TO FOREIGN CONTINUUM
+	  VF2   = (VJ-V0F1) * (VJ-V0F1);
+	  VF6   = VF2 * VF2 * VF2;
+	  FSCAL = (1.000e0 + FACTRF1*(HWSQF1/(VF2+(BETAF1*VF6)+HWSQF1)));
+
+	  VF2   = (VJ-V0F1a) * (VJ-V0F1a);
+	  VF6   = VF2 * VF2  * VF2;
+	  FSCAL = FSCAL * 
+	          (1.000e0 + FACTRF1a*(HWSQF1a/(VF2+(BETAF1a*VF6)+HWSQF1a)));
+
+	  VF2   = (VJ-V0F2) * (VJ-V0F2);
+	  VF6   = VF2 * VF2 * VF2;
+	  FSCAL = FSCAL * 
+	          (1.000e0 + FACTRF2*(HWSQF2/(VF2+(BETAF2*VF6)+HWSQF2)));
+
+	  VF2   = (VJ-V0F3) * (VJ-V0F3);
+	  VF4   = VF2 * VF2;
+	  FSCAL = FSCAL * 
+		  (1.000e0 + FACTRF3*(HWSQF3/(VF2+BETAF3*VF4+HWSQF3)));
+     
+	  FH2O  = FH2OT0[J] * FSCAL;
+
+	  // CKD cross section without radiative field
+	  // The VMRH2O will be multiplied in absCalc, hence WTOT and not W1
+	  // as multiplicative term
+	  k[J] = WTOT * RFRGN * (FH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
+
+	}
+      
+
+      // Loop input frequency array. The previously calculated cross section 
+      // has therefore to be interpolated on the input frequencies.
+      for ( Index s = 0 ; s < n_f ; ++s )
+	{
+	  // calculate the associated wave number (= 1/wavelength)
+	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
+	  if ( (V >= 0.000e0) && (V < VABS_max) )
+	    {
+	      // arts CKD2.4.2 foreign H2O continuum cross section [1/m]
+	      // interpolate the k vector on the f_mono grid
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
+	    }
+	}
+    }
+  
+}
+
+
+// =================================================================================
+
+// CKD version MT 1.00 H2O self continuum absorption model
+/**
+
+   \retval   xsec           cross section (absorption/volume mixing ratio) of 
+                            H2O self continuum according to CKD_MT 1.00   [1/m]
+   \param    Cin            strength scaling factor                  [1]
+   \param    model          allows user defined input parameter set 
+                            (Cin)<br> 
+                            or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid            [Hz]
+   \param    p_abs          predefined pressure grid             [Pa]
+   \param    t_abs          predefined temperature grid          [K] 
+   \param    vmr            H2O volume mixing ratio profile      [1]
+   \param    n2_abs         N2 volume mixing ratio profile       [1]
+
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD_MT version 1.00 written by<br>  
+             Atmospheric and Environmental Research Inc. (AER),<br> 
+             Radiation and Climate Group<br>
+             131 Hartwell Avenue<br>
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
+             
+   \author   Thomas Kuhn
+   \date     2002-28-08
+*/ 
+void CKD_mt_100_self_h2o( MatrixView          xsec,
+			  const Numeric       Cin,
+			  const String&       model,
+			  ConstVectorView     f_mono,
+			  ConstVectorView     p_abs,
+			  ConstVectorView     t_abs,
+			  ConstVectorView     vmr,
+			  ConstVectorView     n2_abs )
+{
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKDMT100"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD_MT1.00 H2O self continuum:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKDMT100\n";
+      throw runtime_error(os.str());
+    }
+
+
+  // scaling factor of the self H2O cont. absorption
+  Numeric  ScalingFac = 1.0000e0;
+  if ( model == "user" )
+    {
+      ScalingFac = Cin; // input scaling factor of calculated absorption
+    }
+
+
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
+
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+
+  // ************************** CKD stuff ************************************
+
+  const Numeric xLosmt =    2.68675e19; // [molecules/cm^3]
+  const Numeric T1     =  273.000e0;    // [K]
+  const Numeric TO     =  296.000e0;    // [K]
+  const Numeric PO     = 1013.000e0;    // [hPa]
 
   const Numeric XFACREV[15] = 
     {1.003, 1.009, 1.015, 1.023, 1.029,1.033,
@@ -2120,23 +3308,33 @@ void CKD_mt_self_h2o( MatrixView          xsec,
 
   // ------------------- subroutine SL296/SL260 ----------------------------
   
-  
-
+  Numeric SFAC = 1.00e0;  
 
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
     {
-      Numeric Tave   = t_abs[i];                               // [K]
-      Numeric p      = (p_abs[i]*1.000e-2);                    // [hPa]
-      Numeric vmrh2o = vmr[i];                                 // [1]
-      Numeric ph2o   = (p/PO) * (vmrh2o/(1.000e0+vmrh2o)) ;    // [hPa]
-      Numeric Rh2o   = ph2o * (TO/Tave);                       // [hPa]
-      Numeric Tfac   = (Tave-TO)/(260.0-TO);                   // [1]
-      Numeric WTOT   = xLosmt * (p/PO) * (T1/Tave);            // [molecules/cm^2]
-      Numeric WW     = WTOT / (1.000e0 + vmrh2o);              // [molecules/cm^2]
-      Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
-      
 
+      // atmospheric state parameters
+      Numeric Tave   = t_abs[i];                                     // [K]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                          // [hPa]
+      Numeric Patm   = Pave/PO;                                      // [1]
+      Numeric vmrh2o = vmr[i];                                       // [1]
+      Numeric Ph2o   = Patm * vmrh2o;                                // [1]
+      // second vmr in absCalc multiplied
+      Numeric Rh2o   = Patm * (TO/Tave);                             // [1]
+      Numeric Tfac   = (Tave-TO)/(260.0-TO);                         // [1]
+      Numeric WTOT   = xLosmt * (Pave/1.013000e3) * (2.7300e2/Tave); // [molecules/cm^2]
+      Numeric W1     = vmrh2o * WTOT;                                // [molecules/cm^2]
+      Numeric XKT    = Tave / 1.4387752e0;                           // = (T*k_B)/(h*c)    
+
+      cout << "vmrh2o = " << vmrh2o  << "\n"
+           << "Pave   = " << Pave    << "\n"
+	   << "Tave   = " << Tave    << "\n"
+           << "Patm   = " << Patm    << "\n"
+           << "W1     = " << W1      << "\n"
+           << "WTOT   = " << WTOT    << "\n"
+           << "XKT    = " << XKT     << "\n";
+      
       // Molecular cross section calculated by CKD.
       // The cross sectionis calculated on the predefined 
       // CKD wavenumber grid.
@@ -2148,23 +3346,24 @@ void CKD_mt_self_h2o( MatrixView          xsec,
 	  Numeric SH2O = 0.0e0;
 	  if (SH2OT0[J] > 0.0e0)
 	    {
-	      SH2O         = SH2OT0[J] * pow( (SH2OT1[J]/SH2OT0[J]), Tfac ); 
-	      Numeric SFAC = 1.00e0;
+	      SH2O = SH2OT0[J] * pow( (SH2OT1[J]/SH2OT0[J]), Tfac ); 
+	      SFAC = 1.00e0;
+
 	      if ( (VJ >= 820.0e0) && (VJ <= 960.0e0) )
 		{
 		  int JFAC = (int)((VJ - 820.0e0)/10.0e0 + 0.00001e0);
 		  if ( (JFAC >= 0) && (JFAC <=14) )
 		    SFAC = XFACREV[JFAC];
 		}
+
 	      SH2O = SFAC * SH2O;
 	    }
 
-	  // CKD cross section without radiative field
-	  k[J] = WW * Rh2o * (SH2O*1.000e-20); // [1]
+	  // CKD cross section with radiative field [1/cm]
+	  // The VMRH2O will be multiplied in absCalc, hence Rh2o does not contain 
+	  // VMRH2O as multiplicative term
+	  k[J] = W1 * Rh2o * (SH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
 
-	  // csh2or seems so be ok !!
-	  // Numeric csh2or = (SH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
-	  // cout << "self: " << VJ << " " << csh2or << "\n";
 	}
       
 
@@ -2178,9 +3377,9 @@ void CKD_mt_self_h2o( MatrixView          xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      //	      cout << " V1C=" << V1C << " V2C=" << V2C << " DVC=" << DVC << " V=" << V << "\n";
-	      //              cout << " lower end of k=" << 1  << " upper end of k=" << NPTC << "\n";
-	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
+	      // The factor 100 comes from the conversion from 1/cm to 1/m for
+	      // the absorption coefficient
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
     }
@@ -2205,36 +3404,47 @@ void CKD_mt_self_h2o( MatrixView          xsec,
    \param    vmr            H2O volume mixing ratio profile      [1]
    \param    n2_abs         N2 volume mixing ratio profile       [1]
 
-   \note     http://www.rtweb.aer.com/continuum_frame.html<br>
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD_MT version 1.00 written by<br>  
              Atmospheric and Environmental Research Inc. (AER),<br> 
              Radiation and Climate Group<br>
              131 Hartwell Avenue<br>
-             Lexington, MA 02421<br>
-             USA<br>
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
              
    \author Thomas Kuhn
    \date 2002-28-08
- */ 
-void CKD_mt_foreign_h2o( MatrixView          xsec,
-			 const Numeric       Cin,
-			 const String&       model,
-			 ConstVectorView     f_mono,
-			 ConstVectorView     p_abs,
-			 ConstVectorView     t_abs,
-			 ConstVectorView     vmr,
-			 ConstVectorView     n2_abs )
+*/ 
+void CKD_mt_100_foreign_h2o( MatrixView          xsec,
+			     const Numeric       Cin,
+			     const String&       model,
+			     ConstVectorView     f_mono,
+			     ConstVectorView     p_abs,
+			     ConstVectorView     t_abs,
+			     ConstVectorView     vmr,
+			     ConstVectorView     n2_abs )
 {
 
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKDMT100"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD_MT1.00 H2O foreign continuum:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKDMT100\n";
+      throw runtime_error(os.str());
+    }
+
+
   // scaling factor of the foreign H2O cont. absorption
-  Numeric  ScalingFac = 0.0000e0;
+  Numeric  ScalingFac = 1.0000e0;
   if ( model == "user" )
     {
       ScalingFac = Cin; // input scaling factor of calculated absorption
     }
-  else
-    {
-      ScalingFac = 1.0000e0;
-    }
+
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
   const Index n_f = f_mono.nelem();	// Number of frequencies
@@ -2252,10 +3462,10 @@ void CKD_mt_foreign_h2o( MatrixView          xsec,
 
   // ************************** CKD stuff ************************************
 
-  const Numeric xLosmt = 2.686763e19; // [molecules/cm^3]
-  const Numeric T1     =  273.0e0;
-  const Numeric TO     =  296.0e0;
-  const Numeric PO     = 1013.0e0;
+  const Numeric xLosmt = 2.68675e19; // [molecules/cm^3]
+  const Numeric T1     =  273.000e0;
+  const Numeric TO     =  296.000e0;
+  const Numeric PO     = 1013.000e0;
 
   // wavenumber range where CKD H2O self continuum is valid
   const Numeric VABS_min = -2.000e1; // [cm^-1]
@@ -2329,17 +3539,17 @@ void CKD_mt_foreign_h2o( MatrixView          xsec,
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
     {
+      // atmospheric state parameters
       Numeric Tave   = t_abs[i];                               // [K]
-      Numeric p      = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmrh2o = vmr[i];                                 // [1]
-      Numeric ph2o   = vmrh2o * p;                             // [hPa]
-      Numeric PFRGN  = (p/PO) * (1.000e0/(1.000e0 + vmrh2o));  // dry air pressure [hPa]
-      Numeric RFRGN  = PFRGN * (TO/Tave);                      // [hPa]
-      Numeric WTOT   = xLosmt * (p/PO) * (T1/Tave);            // [molecules/cm^2]
-      Numeric WW     = WTOT / (1.000e0 + vmrh2o);              // [molecules/cm^2]
-      Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
+      Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
+      Numeric PFRGN  = (Pave/PO) * (1.00000e0 - vmrh2o);       // dry air pressure [hPa]
+      Numeric RFRGN  = PFRGN  * (TO/Tave);                     // [hPa]
+      Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
+      Numeric W1     = vmrh2o * WTOT;                          // [molecules/cm^2]
+      Numeric XKT    = Tave   / 1.4387752;                     // = (T*k_B) / (h*c)    
       
-
       // Molecular cross section calculated by CKD.
       // The cross sectionis calculated on the predefined 
       // CKD wavenumber grid.
@@ -2350,28 +3560,26 @@ void CKD_mt_foreign_h2o( MatrixView          xsec,
 	  Numeric VJ   = V1C + (DVC * (Numeric)(J-1)); 
 	  Numeric FH2O = FH2OT0[J];
 
-	  // CKD cross section without radiative field
-	  k[J] = WW * RFRGN * (FH2O*1.000e-20); // [1]
+	  // CKD cross section with radiative field [1/cm]
+	  // The VMRH2O will be multiplied in absCalc, hence WTOT and not W1
+	  // as multiplicative term
+	  k[J] = WTOT * RFRGN * (FH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
 
-	  // cfh2or seems so be ok !!
-	  // Numeric cfh2or = (FH2O*1.000e-20) * RADFN_FUN(VJ,XKT);
-	  // cout << "foreign CKD_MT 1.00: " << VJ << " " << cfh2or << "\n";
 	}
       
-
       // Loop input frequency array. The previously calculated cross section 
       // has therefore to be interpolated on the input frequencies.
       for ( Index s = 0 ; s < n_f ; ++s )
 	{
 	  // calculate the associated wave number (= 1/wavelength)
 	  Numeric V = f_mono[s] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-	  if ( (V > 0.000e0) && (V < VABS_max) )
+	  if ( (V >= 0.000e0) && (V < VABS_max) )
 	    {
-	      // arts cross section [1/m]
+	      // arts CKD_MT.100 cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      //	      cout << " V1C=" << V1C << " V2C=" << V2C << " DVC=" << DVC << " V=" << V << "\n";
-	      //              cout << " lower end of k=" << 1  << " upper end of k=" << NPTC << "\n";
-	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
+	      // The factor 100 comes from the conversion from (1/cm) to (1/m) 
+	      // of the abs. coeff.
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
     }
@@ -2398,12 +3606,13 @@ void CKD_mt_foreign_h2o( MatrixView          xsec,
    \param    vmr            CO2 volume mixing ratio profile      [1]
    \param    h2o_abs        H2O volume mixing ratio profile      [1]
 
-   \note     http://www.rtweb.aer.com/continuum_frame.html<br>
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD version 2.4.1 written by<br>  
              Atmospheric and Environmental Research Inc. (AER),<br> 
              Radiation and Climate Group<br>
              131 Hartwell Avenue<br>
-             Lexington, MA 02421<br>
-             USA<br>
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
 
    \author Thomas Kuhn
    \date 2002-28-08
@@ -2414,9 +3623,20 @@ void CKD_241_co2( MatrixView         xsec,
 		 ConstVectorView     f_mono,
 		 ConstVectorView     p_abs,
 		 ConstVectorView     t_abs,
-		 ConstVectorView     vmr,
-                 ConstVectorView     h2o_abs)
+		 ConstVectorView     vmr )
 {
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKD241"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKDv2.4.1 CO2 continuum:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKD241\n";
+      throw runtime_error(os.str());
+    }
+
 
   // scaling factor of the CO2 absorption
   Numeric  ScalingFac = 0.0000e0;
@@ -2523,13 +3743,10 @@ void CKD_241_co2( MatrixView         xsec,
   for ( Index i = 0 ; i < n_p ; ++i )
     {
       Numeric Tave   = t_abs[i];                               // [K]
-      Numeric p      = (p_abs[i]*1.000e-2);                    // [hPa]
-      Numeric vmrh2o = h2o_abs[i];                             // [1]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmrco2 = vmr[i];                                 // [1]
-      Numeric pco2   = vmrco2 * p;                             // [hPa]
-      Numeric Rhoave = (p/PO) * (TO/Tave);                     // [hPa]
-      Numeric WTOT   = xLosmt * (p/PO) * (T1/Tave);            // [molecules/cm^2]
-      Numeric WW     = WTOT / (1.000e0 + vmrh2o);              // [molecules/cm^2]
+      Numeric Rhoave = (Pave/PO) * (TO/Tave);                  // [hPa]
+      Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
       Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
       
 
@@ -2543,8 +3760,9 @@ void CKD_241_co2( MatrixView         xsec,
 	  Numeric VJ   = V1C + (DVC * (Numeric)(J-1)); 
 	  Numeric FCO2 = FCO2T0[J];
 
-	  // CKD cross section without radiative field
-	  k[J] = WW * Rhoave * (FCO2*1.000e-20); // [1]
+	  // CKD cross section times number density with radiative field [1]
+	  // the VMRCO2 will be multiplied in absCalc
+	  k[J] = ((WTOT * Rhoave) * (FCO2*1.000e-20) * RADFN_FUN(VJ,XKT));
 
 	}
       
@@ -2559,9 +3777,7 @@ void CKD_241_co2( MatrixView         xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      //	      cout << " V1C=" << V1C << " V2C=" << V2C << " DVC=" << DVC << " V=" << V << "\n";
-	      //              cout << " lower end of k=" << 1  << " upper end of k=" << NPTC << "\n";
-	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
     }
@@ -2588,15 +3804,16 @@ void CKD_241_co2( MatrixView         xsec,
    \param    vmr            CO2 volume mixing ratio profile      [1]
    \param    h2o_abs        H2O volume mixing ratio profile      [1]
 
-   \note     http://www.rtweb.aer.com/continuum_frame.html<br>
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD_MT version 1.00 written by<br>  
              Atmospheric and Environmental Research Inc. (AER),<br> 
              Radiation and Climate Group<br>
              131 Hartwell Avenue<br>
-             Lexington, MA 02421<br>
-             USA<br>
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
 
-   \author Thomas Kuhn
-   \date 2002-28-08
+   \author   Thomas Kuhn
+   \date     2002-28-08
  */ 
 void CKD_mt_co2( MatrixView          xsec,
 		 const Numeric       Cin,
@@ -2604,9 +3821,21 @@ void CKD_mt_co2( MatrixView          xsec,
 		 ConstVectorView     f_mono,
 		 ConstVectorView     p_abs,
 		 ConstVectorView     t_abs,
-		 ConstVectorView     vmr,
-                 ConstVectorView     h2o_abs)
+		 ConstVectorView     vmr)
 {
+
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKDMT100"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD_MT.1.00 CO2 continuum:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKDMT100\n";
+      throw runtime_error(os.str());
+    }
+
 
   // scaling factor of the CO2 absorption
   Numeric  ScalingFac = 0.0000e0;
@@ -2641,8 +3870,8 @@ void CKD_mt_co2( MatrixView          xsec,
   const Numeric PO     = 1013.0e0;
 
   // wavenumber range where CKD CO2 continuum is valid
-  const Numeric VABS_min = -2.000e1; // [cm^-1]
-  const Numeric VABS_max =  1.000e4; // [cm^-1]
+  const Numeric VABS_min = FCO2_ckd_mt_100_v1; // [cm^-1]
+  const Numeric VABS_max = FCO2_ckd_mt_100_v2; // [cm^-1]
 
 
   // It is assumed here that f_mono is monotonically increasing with index!
@@ -2713,13 +3942,10 @@ void CKD_mt_co2( MatrixView          xsec,
   for ( Index i = 0 ; i < n_p ; ++i )
     {
       Numeric Tave   = t_abs[i];                               // [K]
-      Numeric p      = (p_abs[i]*1.000e-2);                    // [hPa]
-      Numeric vmrh2o = h2o_abs[i];                             // [1]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmrco2 = vmr[i];                                 // [1]
-      Numeric pco2   = vmrco2 * p;                             // [hPa]
-      Numeric Rhoave = (p/PO) * (TO/Tave);                     // [hPa]
-      Numeric WTOT   = xLosmt * (p/PO) * (T1/Tave);            // [molecules/cm^2]
-      Numeric WW     = WTOT / (1.000e0 + vmrh2o);              // [molecules/cm^2]
+      Numeric Rhoave = (Pave/PO) * (TO/Tave);                  // [hPa]
+      Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
       Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
       
 
@@ -2739,8 +3965,9 @@ void CKD_mt_co2( MatrixView          xsec,
 	      FCO2 = 7.000e0 * FCO2; 
 	    }
 
-	  // CKD cross section without radiative field
-	  k[J] = WW * Rhoave * (FCO2*1.000e-20); // [1]
+	  // CKD cross section times number density with radiative field [1]
+	  // the VMRCO2 will be multiplied in absCalc
+	  k[J] = ((WTOT * Rhoave) * (FCO2*1.000e-20) * RADFN_FUN(VJ,XKT));
 
 	}
       
@@ -2755,9 +3982,7 @@ void CKD_mt_co2( MatrixView          xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      //	      cout << " V1C=" << V1C << " V2C=" << V2C << " DVC=" << DVC << " V=" << V << "\n";
-	      //              cout << " lower end of k=" << 1  << " upper end of k=" << NPTC << "\n";
-	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
     }
@@ -2792,12 +4017,13 @@ void CKD_mt_co2( MatrixView          xsec,
              pairs for temperatures from 50 to 300 K,<br> 
              The Astrophysical Journal, 311, 1043-1057, 1986.
 
-   \note     http://www.rtweb.aer.com/continuum_frame.html<br>
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD_MT version 1.00 written by<br>  
              Atmospheric and Environmental Research Inc. (AER),<br> 
              Radiation and Climate Group<br>
              131 Hartwell Avenue<br>
-             Lexington, MA 02421<br>
-             USA
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
              
    \author Thomas Kuhn
    \date 2002-28-08
@@ -2808,9 +4034,20 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
 		      ConstVectorView     f_mono,
 		      ConstVectorView     p_abs,
 		      ConstVectorView     t_abs,
-		      ConstVectorView     vmr,
-		      ConstVectorView     h2o_abs )
+		      ConstVectorView     vmr )
 {
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKDMT100"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD_MT1.00 N2 CIA rotational band:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKDMT100\n";
+      throw runtime_error(os.str());
+    }
+
 
   // scaling factor of the N2-N2 CIA rot. band absorption
   Numeric  ScalingFac = 0.0000e0;
@@ -2954,14 +4191,11 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
   for ( Index i = 0 ; i < n_p ; ++i )
     {
       Numeric Tave   = t_abs[i];                               // [K]
-      Numeric p      = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmrn2  = vmr[i];                                 // [1]
-      Numeric vmrh2o = h2o_abs[i];                             // [1]
-      Numeric WTOT   = xLosmt * (p/PO) * (T1/Tave);            // [molecules/cm^2]
-      Numeric WW     = WTOT / (1.000e0 + vmrh2o);              // [molecules/cm^2]
-      Numeric WN2    = vmrn2 * WW;                             // [molecules/cm^2]
-      Numeric WXN2   = WN2 / xLosmt;
-      Numeric Rhofac = (WN2 / WTOT) * (p/PO) * (T1/Tave);      // [amagat]
+      Numeric facfac = vmrn2 * (Pave/PO) * (Pave/PO) * 
+                               (T1/Tave) * (T1/Tave);
+
       Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
       Numeric Tfac   = (Tave - TO) / (220.0e0 - TO);
 
@@ -2972,15 +4206,16 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
       k[0] = 0.00e0; // not used array field
       for (Index J = 1 ; J <= NPTC ; ++J)
 	{
-	  Numeric VJ   = V1C + (DVC * (Numeric)(J-1)); 
-	  Numeric SN2  = 0.0e0;
-	  if ( (C0[J] > 0.0e0) && (C1[J] > 0.0e0) )
+	  k[J] = 0.000e0;
+	  Numeric VJ  = V1C + (DVC * (Numeric)(J-1)); 
+	  Numeric SN2 = 0.000e0;
+	  if ( (C0[J] > 0.000e0) && (C1[J] > 0.000e0) )
 	    {
-	      SN2 = WXN2 * Rhofac * C0[J] * pow( (C1[J]/C0[J]), Tfac ); 
+	      SN2 = facfac* C0[J] * pow( (C1[J]/C0[J]), Tfac ); 
 	    }
 
-	  // CKD cross section without radiative field
-	  k[J] = SN2; // [1]
+	  // CKD cross section with radiative field
+	  k[J] = SN2 * RADFN_FUN(VJ,XKT); // [1]
 	}
       
 
@@ -2994,9 +4229,7 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      //	      cout << " V1C=" << V1C << " V2C=" << V2C << " DVC=" << DVC << " V=" << V << "\n";
-	      //              cout << " lower end of k=" << 1  << " upper end of k=" << NPTC << "\n";
-	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
     }
@@ -3035,12 +4268,13 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
              Measurements and emprirical modeling, <br> 
              Appl. Optics, 35, 5911-5917, (1996)
 
-   \note     http://www.rtweb.aer.com/continuum_frame.html<br>
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD_MT version 1.00 written by<br>  
              Atmospheric and Environmental Research Inc. (AER),<br> 
              Radiation and Climate Group<br>
              131 Hartwell Avenue<br>
-             Lexington, MA 02421<br>
-             USA
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
              
 
    \author Thomas Kuhn
@@ -3052,20 +4286,28 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
 		      ConstVectorView     f_mono,
 		      ConstVectorView     p_abs,
 		      ConstVectorView     t_abs,
-		      ConstVectorView     vmr,
-		      ConstVectorView     h2o_abs )
+		      ConstVectorView     vmr )
 {
 
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKDMT100"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD_MT1.00 N2 CIA fundamental band:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKDMT100\n";
+      throw runtime_error(os.str());
+    }
+
+
   // scaling factor of the N2-N2 CIA fundamental band absorption
-  Numeric  ScalingFac = 0.0000e0;
+  Numeric  ScalingFac = 1.0000e0;
   if ( model == "user" )
     {
       ScalingFac = Cin; // input scaling factor of calculated absorption
     }
-  else
-    {
-      ScalingFac = 1.0000e0;
-    }
+
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
   const Index n_f = f_mono.nelem();	// Number of frequencies
@@ -3087,7 +4329,6 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
   const Numeric T1     =  273.0e0;
   const Numeric TO     =  296.0e0;
   const Numeric PO     = 1013.0e0;
-  const Numeric vmr_n2 = 0.7800e0;
   const Numeric a1     = 0.8387e0;
   const Numeric a2     = 0.0754e0;
 
@@ -3159,15 +4400,13 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
   for ( Index i = 0 ; i < n_p ; ++i )
     {
       Numeric Tave   = t_abs[i];                               // [K]
-      Numeric p      = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmrn2  = vmr[i];                                 // [1]
-      Numeric vmrh2o = h2o_abs[i];                             // [1]
-      Numeric WTOT   = xLosmt * (p/PO) * (T1/Tave);            // [molecules/cm^2]
-      Numeric WW     = WTOT / (1.000e0 + vmrh2o);              // [molecules/cm^2]
-      Numeric WN2    = vmrn2 * WW;                             // [molecules/cm^2]
-      Numeric Rhofac = (p/PO) * (T1/Tave);                     // [1]
-      Numeric tau_fac= WN2 * Rhofac;
-      Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
+      Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
+      Numeric tau_fac= WTOT   * (Pave/PO) * (T1/Tave); 
+
+      Numeric XKT    = Tave / 1.4387752e0;                     // = (T*k_B) / (h*c)    
+
       Numeric Tfac   = (Tave - TO) / (220.0e0 - TO);           // [1]
       Numeric xktfac = (1.000e0/TO) - (1.000e0/Tave);          // [1/K]
       Numeric factor = 0.000e0;
@@ -3180,19 +4419,20 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
       // The cross sectionis calculated on the predefined 
       // CKD wavenumber grid.
       Numeric k[NPTC+addF77fields]; // [1/cm]
-      k[0] = 0.00e0; // not used array field
+      k[0] = 0.000e0; // not used array field
       for (Index J = 1 ; J <= NPTC ; ++J)
 	{
+	  k[J] = 0.000e0;
 	  Numeric VJ  = V1C + (DVC * (Numeric)(J-1)); 
-	  Numeric SN2 = 0.0e0;
-	  if (xn2[J] > 0.0e0)
+	  Numeric SN2 = 0.000e0;
+	  if (xn2[J] > 0.000e0)
 	    {
 	      Numeric C0 = factor * xn2[J] * exp(xn2t[J]*xktfac) / VJ;
 	      SN2 = tau_fac * C0;
 	    }
 
-	  // CKD cross section without radiative field
-	  k[J] = SN2; // [1]
+	  // CKD cross section with radiative field
+	  k[J] = SN2 * RADFN_FUN(VJ,XKT); // [1/cm]
 	}
       
 
@@ -3206,7 +4446,7 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
     }
@@ -3243,12 +4483,13 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
              atmospheric applications: measurements and emprirical modeling,<br>
              Appl. Optics, 35, 5911-5917, (1996).
 
-   \note     http://www.rtweb.aer.com/continuum_frame.html<br>
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD_MT version 1.00 written by<br>  
              Atmospheric and Environmental Research Inc. (AER),<br> 
              Radiation and Climate Group<br>
              131 Hartwell Avenue<br>
-             Lexington, MA 02421<br>
-             USA
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html
              
    \author Thomas Kuhn
    \date 2002-28-08
@@ -3259,20 +4500,28 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
 		      ConstVectorView     f_mono,
 		      ConstVectorView     p_abs,
 		      ConstVectorView     t_abs,
-		      ConstVectorView     vmr,
-		      ConstVectorView     h2o_abs )
+		      ConstVectorView     vmr )
 {
 
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKDMT100"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD_MT1.00 O2 CIA fundamental band:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKDMT100\n";
+      throw runtime_error(os.str());
+    }
+
+
   // scaling factor of the O2-O2 CIA fundamental band absorption
-  Numeric  ScalingFac = 0.0000e0;
+  Numeric  ScalingFac = 1.0000e0;
   if ( model == "user" )
     {
       ScalingFac = Cin; // input scaling factor of calculated absorption
     }
-  else
-    {
-      ScalingFac = 1.0000e0;
-    }
+
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
   const Index n_f = f_mono.nelem();	// Number of frequencies
@@ -3363,15 +4612,13 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
   for ( Index i = 0 ; i < n_p ; ++i )
     {
       Numeric Tave   = t_abs[i];                               // [K]
-      Numeric p      = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmro2  = vmr[i];                                 // [1]
-      Numeric vmrh2o = h2o_abs[i];                             // [1]
-      Numeric WTOT   = xLosmt * (p/PO) * (T1/Tave);            // [molecules/cm^2]
-      Numeric WW     = WTOT / (1.000e0 + vmrh2o);              // [molecules/cm^2]
-      Numeric WO2    = vmro2 * WW;                             // [molecules/cm^2]
-      Numeric Rhofac = (p/PO) * (T1/Tave);                     // [1]
-      Numeric tau_fac= WO2 * Rhofac;
+      Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
+      Numeric tau_fac= WTOT * (Pave/PO) * (T1/Tave);
+
       Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
+
       Numeric xktfac = (1.000e0/TO) - (1.000e0/Tave);          // [1/K]
       Numeric factor = (1.000e0 / xLosmt);
 
@@ -3388,12 +4635,10 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
 	    {
 	      Numeric C0 = factor * xo2[J] * exp(xo2t[J]*xktfac) / VJ;
 	      SO2 = tau_fac * C0;
-	      //cout << "factor=" << factor  << " xo2t=" << xo2t[J] 
-              //     << " xktfac=" << xktfac << " C0=" << C0 << " tau_fac=" << tau_fac ;
 	    }
 
 	  // CKD cross section without radiative field
-	  k[J] = SO2; // [1]
+	  k[J] = SO2 * RADFN_FUN(VJ,XKT); // [1]
 	}
       
 
@@ -3407,7 +4652,7 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
     }
@@ -3452,15 +4697,24 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
              Absolute Intensities for the O2 1.27 micron continuum absorption,<br>   
              J. Geophys. Res., 104, 30,585-30,590, 1999. 
 
-   \note     http://www.rtweb.aer.com/continuum_frame.html<br>
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD_MT version 1.00 written by<br>  
              Atmospheric and Environmental Research Inc. (AER),<br> 
              Radiation and Climate Group<br>
              131 Hartwell Avenue<br>
-             Lexington, MA 02421<br>
-             USA
+             Lexington, MA 02421, USA<br> 
+             http://www.rtweb.aer.com/continuum_frame.html<br>
+             <br> 
+	     Oxygen band absorption model for the \f$a^1\Delta_g\f$ 
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly 
+             \f$X^3\Sigma^-_g\f$ band system considering the 
+             \f$\nu=0\f$
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly 
+             \f$\nu=0\f$
+             transitions.
              
-   \author Thomas Kuhn
-   \date 2002-28-08
+   \author   Thomas Kuhn
+   \date     2002-28-08
  */ 
 void CKD_mt_v0v0_o2( MatrixView          xsec,
 		     const Numeric       Cin,
@@ -3469,20 +4723,28 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
 		     ConstVectorView     p_abs,
 		     ConstVectorView     t_abs,
 		     ConstVectorView     vmr,
-		     ConstVectorView     n2_abs,
-		     ConstVectorView     h2o_abs )
+		     ConstVectorView     n2_abs)
 {
 
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKDMT100"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD_MT1.00 O2 band at 1.27 micrometer:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKDMT100\n";
+      throw runtime_error(os.str());
+    }
+
+
   // scaling factor of the O2 v0<-v0 band absorption
-  Numeric  ScalingFac = 0.0000e0;
+  Numeric  ScalingFac = 1.0000e0;
   if ( model == "user" )
     {
       ScalingFac = Cin; // input scaling factor of calculated absorption
-    }
-  else
-    {
-      ScalingFac = 1.0000e0;
-    }
+    };
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
   const Index n_f = f_mono.nelem();	// Number of frequencies
@@ -3504,7 +4766,6 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
   const Numeric T1        =  273.0e0;
   const Numeric TO        =  296.0e0;
   const Numeric PO        = 1013.0e0;
-  const Numeric vmr_argon = 9.000e-3;    // VMR of argon is assumed to be const.
 
   // It is assumed here that f_mono is monotonically increasing with index!
   // In future change this return into a change of the loop over
@@ -3571,24 +4832,17 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
   for ( Index i = 0 ; i < n_p ; ++i )
     {
       Numeric Tave   = t_abs[i];                               // [K]
-      Numeric p      = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmro2  = vmr[i];                                 // [1]
-      Numeric vmrh2o = h2o_abs[i];                             // [1]
       Numeric vmrn2  = n2_abs[i];                              // [1]
-      Numeric WTOT   = xLosmt * (p/PO) * (T1/Tave);            // [molecules/cm^2]
-      Numeric WW     = WTOT / (1.000e0 + vmrh2o);              // [molecules/cm^2]
-      Numeric WK7    = vmro2 * WW;                             // [molecules/cm^2]
-      Numeric WO2    = (WK7 / xLosmt)* ((p/PO)*(T1/Tave)); 
-      Numeric CHIO2  = WK7 / WTOT; 
-      Numeric WBROAD = (vmrn2+vmr_argon) * WW;
-      Numeric CHIN2  = WBROAD / WTOT;
-      Numeric ADJFAC = (CHIO2 + 0.300e0*CHIN2) / 0.446e0;
-      Numeric ADJWO2 = ADJFAC * WO2;
-      Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
+      Numeric ADJWO2 = (vmro2 + 0.300e0*vmrn2) / 0.446e0 * 
+                       (Pave/PO) * (Pave/PO) * (T1/Tave) * (T1/Tave);
+      Numeric XKT    = Tave / 1.4387752e0;                     // = (T*k_B) / (h*c)    
 
       // Molecular cross section calculated by CKD.
       // The cross sectionis calculated on the predefined 
-      // CKD wavenumber grid.
+      // CKD wavenumber grid. The abs. coeff. is then the 
+      // cross section times the number density.
       Numeric k[NPTC+addF77fields]; // [1/cm]
       k[0] = 0.00e0; // not used array field
       for (Index J = 1 ; J <= NPTC ; ++J)
@@ -3600,8 +4854,8 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
 	      SO2 = ADJWO2 * CO[J];
 	    }
 
-	  // CKD cross section without radiative field
-	  k[J] = SO2; // [1]
+	  // CKD (cross section * number density) with radiative field
+	  k[J] = SO2 * RADFN_FUN(VJ,XKT); // [1/cm]
 	}
       
 
@@ -3615,7 +4869,7 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
     }
@@ -3650,12 +4904,21 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
              Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands,<br>
              J. Geophys. Res., 103, D4, 3859-3863, 1998. 
 
-   \note     http://www.rtweb.aer.com/continuum_frame.html<br>
+   \note     This absorption model is taken from the FORTRAN77 code of 
+             CKD_MT version 1.00 written by<br>  
              Atmospheric and Environmental Research Inc. (AER),<br> 
              Radiation and Climate Group<br>
              131 Hartwell Avenue<br>
-             Lexington, MA 02421<br>
-             USA
+             Lexington, MA 02421, USA<br> 
+	     http://www.rtweb.aer.com/continuum_frame.html<br>
+             <br> 
+	     Oxygen band absorption model for the \f$a^1\Delta_g\f$ 
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly 
+             \f$X^3\Sigma^-_g\f$ band system considering the 
+             \f$\nu=0\f$
+             \htmlonly&larr;\endhtmlonly \latexonly$\leftarrow$\endlatexonly 
+             \f$\nu=1\f$
+             transitions.
              
    \author Thomas Kuhn
    \date 2002-28-08
@@ -3666,21 +4929,27 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
 		     ConstVectorView     f_mono,
 		     ConstVectorView     p_abs,
 		     ConstVectorView     t_abs,
-		     ConstVectorView     vmr,
-		     ConstVectorView     n2_abs,
-		     ConstVectorView     h2o_abs )
+		     ConstVectorView     vmr )
 {
 
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKDMT100"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKD_MT1.00 O2 band at 1.06 micrometer:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKDMT100\n";
+      throw runtime_error(os.str());
+    }
+
+
   // scaling factor of the O2 v1<-v0 band absorption
-  Numeric  ScalingFac = 0.0000e0;
+  Numeric  ScalingFac = 1.0000e0;
   if ( model == "user" )
     {
       ScalingFac = Cin; // input scaling factor of calculated absorption
-    }
-  else
-    {
-      ScalingFac = 1.0000e0;
-    }
+    };
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
   const Index n_f = f_mono.nelem();	// Number of frequencies
@@ -3709,9 +4978,9 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
   // Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,
   // "Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands",
   // Journal of Geophysical Research, vol 103, no. D4, pp. 3859-3863, 1998.
-  const Numeric V1S    =  9100.000e0;
-  const Numeric V2S    = 11000.000e0;
-  const Numeric DVS    =     2.000e0;
+  const Numeric V1S    = O2_10_ckd_mt_100_v1;
+  const Numeric V2S    = O2_10_ckd_mt_100_v2;
+  const Numeric DVS    = O2_10_ckd_mt_100_dv;
   const Numeric V1_osc =  9375.000e0;
   const Numeric HW1    =    58.960e0;
   const Numeric V2_osc =  9439.000e0;
@@ -3725,13 +4994,13 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
   // the frequency f_mono. n_f_new < n_f
   Numeric V1ABS = f_mono[0]     / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
   Numeric V2ABS = f_mono[n_f-1] / (SPEED_OF_LIGHT * 1.00e2); // [cm^-1]
-  if ( (V1ABS < O2_00_ckd_mt_100_v1) || (V1ABS > O2_00_ckd_mt_100_v2) ||
-       (V2ABS < O2_00_ckd_mt_100_v1) || (V2ABS > O2_00_ckd_mt_100_v2) )
+  if ( (V1ABS < O2_10_ckd_mt_100_v1) || (V1ABS > O2_10_ckd_mt_100_v2) ||
+       (V2ABS < O2_10_ckd_mt_100_v1) || (V2ABS > O2_10_ckd_mt_100_v2) )
     {
       out3  << "WARNING:\n"
             << "   CKD_MT 1.00 O2 v1<-v0 band:\n"
 	    << "   input frequency vector exceeds range of model validity\n"
-	    << "  " << O2_00_ckd_mt_100_v1 << "<->" << O2_00_ckd_mt_100_v2 << "cm^-1\n";
+	    << "  " << O2_10_ckd_mt_100_v1 << "<->" << O2_10_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -3789,27 +5058,18 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
 	}
     }
 
+
   // ------------------- subroutine O2INF2 ----------------------------
   
   
-
-
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
     {
       Numeric Tave   = t_abs[i];                               // [K]
-      Numeric p      = (p_abs[i]*1.000e-2);                    // [hPa]
+      Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmro2  = vmr[i];                                 // [1]
-      Numeric vmrh2o = h2o_abs[i];                             // [1]
-      Numeric vmrn2  = n2_abs[i];                              // [1]
-      Numeric WTOT   = xLosmt * (p/PO) * (T1/Tave);            // [molecules/cm^2]
-      Numeric WW     = WTOT / (1.000e0 + vmrh2o);              // [molecules/cm^2]
-      Numeric WK7    = vmro2 * WW;                             // [molecules/cm^2]
-      Numeric RHOAVE = (p/PO) * (TO/Tave); 
-      Numeric WO2    = WK7 * RHOAVE* 1.000e-20; 
-      Numeric CHIO2  = WK7 / WTOT; 
-      Numeric ADJFAC = CHIO2 / 0.209e0;
-      Numeric ADJWO2 = ADJFAC * WO2;
+      Numeric WTOT   = 1.000e-20 * xLosmt * (Pave/PO) * (T1/Tave); // [molecules/cm^2]
+      Numeric ADJWO2 = (vmro2 / 0.209e0) * WTOT * (Pave/PO) * (TO/Tave);
       Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
 
       // Molecular cross section calculated by CKD.
@@ -3827,7 +5087,7 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
 	    }
 
 	  // CKD cross section without radiative field
-	  k[J] = SO2; // [1]
+	  k[J] = SO2 * RADFN_FUN(VJ,XKT); // [1]
 	}
       
 
@@ -3841,7 +5101,7 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
+	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V);
 	    }
 	}
     }
@@ -3855,6 +5115,7 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
 
    \retval   xsec           cross section (absorption/volume mixing ratio) of 
                             H2O continuum according to CKD2.4    [1/m]
+   \param    isf            =0 self continuum, =1 foreign continuum
    \param    Cin            strength scaling factor              [1]
    \param    model          allows user defined input parameter set 
                             (Cin)<br> or choice of 
@@ -3866,7 +5127,7 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
    \param    n2_abs         N2 volume mixing ratio profile       [1]
 
    \note     this "crude" version of the CKD2.4 model is a f2c 
-             conversion of the F77 code taken out of MonoRTM RT-model written by 
+             conversion of the F77 code taken out of MonoRTM RT-model written by<br> 
              S. BOUKABARA, S.A. CLOUGH, and R. HOFFMAN<br>
              Atmospheric and Environmental Research Inc. (AER),<br> 
              Radiation and Climate Group<br>
@@ -3912,6 +5173,19 @@ void CKD24_H20( MatrixView          xsec,
   Numeric  XFAC  =  1.0000;             // scaling factor
   // ---------------------------------------------------------------------------------------
   
+
+  // check the model name about consistency
+  if ((model != "user") &&  (model != "CKD24"))
+    {
+      ostringstream os;
+      os << "!!ERROR!!\n"  
+	 << "CKDv2.4.2 H2O self/foreign continuum:\n"
+	 << "INPUT model name is: " << model << ".\n"
+	 << "VALID model names are user and CKD24\n";
+      throw runtime_error(os.str());
+    }
+
+
   // select the parameter set (!!model dominates values!!):
   if ( model == "CKD24" )
     {
@@ -4029,10 +5303,9 @@ void CKD24_H20( MatrixView          xsec,
 // #################################################################################
 //
 /** 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval   xsec           cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
-   \param    xTin           continuum strength temperature exponent [1]
    \param    model          allows user defined input parameter set 
                             (Cin and xTin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
@@ -6033,12 +7306,12 @@ void PWR93O2AbsModel( MatrixView        xsec,
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 /** 
 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval   xsec           cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to MPM93 [1/m]
    \param    S0in           O2-continuum strength [1/Pa]
    \param    G0in           O2-continuum width [Hz/Pa]
-   \param    xS0in          O2-continuum strength temperature exponent [1]
-   \param    xG0in          O2-continuum width temperature exponent    [1]
+   \param    XS0in          O2-continuum strength temperature exponent [1]
+   \param    XG0in          O2-continuum width temperature exponent    [1]
    \param    model          allows user defined input parameter set 
                             (S0in, G0in, xS0in, and xG0in)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
@@ -6302,9 +7575,9 @@ void Rosenkranz_O2_continuum( MatrixView        xsec,
 // #################################################################################
 //
 /**
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval   xsec           cross section (absorption/volume mixing ratio) of 
                             O2-continuum according to Rosenkranz 1993 [1/m]
-   \param    S0in           line strength                             [1/(Hz*Pa*m)]
+   \param    Cin            O2-continuum coefficient                  [1/(Hz*Pa*m)]
    \param    G0in           line width                                [Hz/Pa]
    \param    G0Ain          dry air broadening parameter              [1]
    \param    G0Bin          water vapor broadening parameter          [1]
@@ -6733,17 +8006,17 @@ void MPM93_N2_continuum( MatrixView          xsec,
 // #################################################################################
 //
 /** 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval   xsec           cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
-   \param    xTin           continuum strength temperature exponent [1]
    \param    model          allows user defined input parameter set 
                             (Cin and xTin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
    \param    f_mono         predefined frequency grid      [Hz]
    \param    p_abs          predefined pressure grid       [Pa]
    \param    t_abs          predefined temperature grid    [K] 
-   \param    vmr            H2O volume mixing ratio        [1]
+   \param    vmr            N2  volume mixing ratio        [1]
+   \param    h2ovmr         H2O volume mixing ratio        [1]
 
    \note     Except for  model 'user' the input parameters Cin and xTin 
              are neglected (model dominates over parameters).<br>
@@ -6758,13 +8031,13 @@ void MPM93_N2_continuum( MatrixView          xsec,
  */ 
 
 void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
-				  const Numeric       Cin,
-				  const String&       model,
-				  ConstVectorView     f_mono,
-				  ConstVectorView     p_abs,
-				  ConstVectorView     t_abs,
-				  ConstVectorView     vmr,
-				  ConstVectorView     h2ovmr	 )
+				 const Numeric       Cin,
+				 const String&       model,
+				 ConstVectorView     f_mono,
+				 ConstVectorView     p_abs,
+				 ConstVectorView     t_abs,
+				 ConstVectorView     vmr,
+				 ConstVectorView     h2ovmr	 )
 {
   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the Pardo et al. model (IEEE, Trans. Ant. Prop., 
@@ -6822,10 +8095,10 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
 	      // canceled out here which is later in absCalc multiplied 
 	      // (calculation: abs = vmr * xsec):
 	      xsec(s,i) += C *                    // strength [1/(m*Hz²Pa²)] 
-		pow( (f_mono[s]/(Numeric)2.25e11), (Numeric)2. )   * // quadratic f dependence [Hz²]
-		pow( ((Numeric)300.0/t_abs[i]), (Numeric)3.5 ) * // free T dependence      [1]
-		pow( (pd/(Numeric)1.01300e5), (Numeric)2. )   / // quadratic p dependence [Pa²]
-		vmr[i];                           // cancel the vmr dependency
+		pow( (f_mono[s]/(Numeric)2.25e11), (Numeric)2. ) * // quadratic f dependence [Hz²]
+		pow( ((Numeric)300.0/t_abs[i]), (Numeric)3.5 )   * // free T dependence      [1]
+		pow( (pd/(Numeric)1.01300e5), (Numeric)2. )      / // quadratic p dependence [Pa²]
+		vmr[i];                                            // cancel the vmr dependency
 	    }
 	}
     }
@@ -6834,10 +8107,10 @@ void Pardo_ATM_N2_dry_continuum( MatrixView          xsec,
 // #################################################################################
 //
 /** 
-   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+   \retval   xsec           cross section (absorption/volume mixing ratio) of 
                             N2-continuum according to Rosenkranz, 1993 [1/m]
    \param    Cin            continuum strength [1/m * 1/(Hz*Pa)²]
-   \param    xTin           continuum strength temperature exponent [1]
+   \param    xin            temperature exponent of N2-continuum [1]
    \param    model          allows user defined input parameter set 
                             (Cin and xTin)<br> or choice of 
                             pre-defined parameters of specific models (see note below).
@@ -8120,11 +9393,11 @@ Numeric WVSatPressureIce(const Numeric t)
     \param  f_mono     Frequency grid [Hz]
     \param  p_abs      Pressure grid [Pa]
     \param  t_abs      Temperatures associated with the pressure grid, p_abs [K]
-    \param  vmrh2o     Total volume mixing ratio profile of water vapor.<br> 
-                       This will be needed only for the oxygen continuum <br> 
-                       however one is forced to give this input [1]
-    \param  vmrn2      Total volume mixing ratio profile of molecular nitrogen.<br> 
+    \param  n2_abs     Total volume mixing ratio profile of molecular nitrogen.<br> 
                        This will be needed only for the CO2 foreign continuum [1]<br> 
+                       however one is forced to give this input [1]
+    \param  h2o_abs    Total volume mixing ratio profile of water vapor.<br> 
+                       This will be needed only for the oxygen continuum <br> 
                        however one is forced to give this input [1]
     \param  vmr        Volume mixing ratio profile of the actual species [1]
 
@@ -8517,6 +9790,266 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	}
     }
   // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "H2O-SelfContCKD222"==name )
+    {
+      // OUTPUT:
+      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //                  H2O self continuum according to CKD2.2.2    [1/m]
+      // INPUT:
+      //   parameters[0]  strength scaling factor              [1]
+      //   model          allows user defined input parameter set 
+      //                  (Cin) or choice of 
+      //                  pre-defined parameters of specific models (see note below).
+      //   f_mono         predefined frequency grid            [Hz]
+      //   p_abs          predefined pressure grid             [Pa]
+      //   t_abs          predefined temperature grid          [K] 
+      //   vmr            H2O volume mixing ratio profile      [1]
+      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //
+      // WWW resource: ftp.aer.com/aer_contnm_ckd
+      const int Nparam = 1;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Continuum model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  CKD_222_self_h2o( xsec,
+			    parameters[0],
+			    model,
+			    f_mono,
+			    p_abs,
+			    t_abs,
+			    vmr,
+			    n2_abs );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Continuum model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Continuum model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  CKD_222_self_h2o( xsec,
+			    0.000,
+			    model,
+			    f_mono,
+			    p_abs,
+			    t_abs,
+			    vmr,
+			    n2_abs );
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+       {
+	  ostringstream os;
+	  os << "ERROR: continuum model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters.\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 3.\n";
+	  throw runtime_error(os.str());
+       }
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "H2O-ForeignContCKD222"==name )
+    {
+      // OUTPUT:
+      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //                  H2O foreign continuum according to CKD2.2.2    [1/m]
+      // INPUT:
+      //   parameters[0]  strength scaling factor              [1]
+      //   model          allows user defined input parameter set 
+      //                  (Cin) or choice of 
+      //                  pre-defined parameters of specific models (see note below).
+      //   f_mono         predefined frequency grid            [Hz]
+      //   p_abs          predefined pressure grid             [Pa]
+      //   t_abs          predefined temperature grid          [K] 
+      //   vmr            H2O volume mixing ratio profile      [1]
+      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //
+      // WWW resource: ftp.aer.com/aer_contnm_ckd
+      const int Nparam = 1;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Continuum model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  CKD_222_foreign_h2o( xsec,
+			       parameters[0],
+			       model,
+			       f_mono,
+			       p_abs,
+			       t_abs,
+			       vmr,
+			       n2_abs );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Continuum model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Continuum model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  CKD_222_foreign_h2o( xsec,
+			       0.000,
+			       model,
+			       f_mono,
+			       p_abs,
+			       t_abs,
+			       vmr,
+			       n2_abs );
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+       {
+	  ostringstream os;
+	  os << "ERROR: continuum model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters.\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 3.\n";
+	  throw runtime_error(os.str());
+       }
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "H2O-SelfContCKD242"==name )
+    {
+      // OUTPUT:
+      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //                  H2O self continuum according to CKD2.4.2    [1/m]
+      // INPUT:
+      //   parameters[0]  strength scaling factor              [1]
+      //   model          allows user defined input parameter set 
+      //                  (Cin) or choice of 
+      //                  pre-defined parameters of specific models (see note below).
+      //   f_mono         predefined frequency grid            [Hz]
+      //   p_abs          predefined pressure grid             [Pa]
+      //   t_abs          predefined temperature grid          [K] 
+      //   vmr            H2O volume mixing ratio profile      [1]
+      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //
+      // WWW resource: ftp.aer.com/aer_contnm_ckd
+      const int Nparam = 1;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Continuum model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  CKD_242_self_h2o( xsec,
+			    parameters[0],
+			    model,
+			    f_mono,
+			    p_abs,
+			    t_abs,
+			    vmr,
+			    n2_abs );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Continuum model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Continuum model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  CKD_242_self_h2o( xsec,
+			    0.000,
+			    model,
+			    f_mono,
+			    p_abs,
+			    t_abs,
+			    vmr,
+			    n2_abs );
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+       {
+	  ostringstream os;
+	  os << "ERROR: continuum model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters.\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 3.\n";
+	  throw runtime_error(os.str());
+       }
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "H2O-ForeignContCKD242"==name )
+    {
+      // OUTPUT:
+      //   xsec           cross section (absorption/volume mixing ratio) of 
+      //                  H2O foreign continuum according to CKD2.4.2    [1/m]
+      // INPUT:
+      //   parameters[0]  strength scaling factor              [1]
+      //   model          allows user defined input parameter set 
+      //                  (Cin) or choice of 
+      //                  pre-defined parameters of specific models (see note below).
+      //   f_mono         predefined frequency grid            [Hz]
+      //   p_abs          predefined pressure grid             [Pa]
+      //   t_abs          predefined temperature grid          [K] 
+      //   vmr            H2O volume mixing ratio profile      [1]
+      //   n2_abs         N2 volume mixing ratio profile       [1]
+      //
+      // WWW resource: ftp.aer.com/aer_contnm_ckd
+      const int Nparam = 1;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Continuum model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  CKD_242_foreign_h2o( xsec,
+			       parameters[0],
+			       model,
+			       f_mono,
+			       p_abs,
+			       t_abs,
+			       vmr,
+			       n2_abs );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Continuum model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Continuum model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  CKD_242_foreign_h2o( xsec,
+			       0.000,
+			       model,
+			       f_mono,
+			       p_abs,
+			       t_abs,
+			       vmr,
+			       n2_abs );
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "ERROR: continuum model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters.\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 3.\n";
+	  throw runtime_error(os.str());
+       }
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   else if ( "H2O-SelfContCKDMT100"==name )
     {
       // OUTPUT:
@@ -8539,14 +10072,14 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	{
 	  out3 << "Continuum model " << name << " is running with \n"
 	       << "user defined parameters according to model " << model << ".\n";
-	  CKD_mt_self_h2o( xsec,
-			   parameters[0],
-			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   vmr,
-			   n2_abs );
+	  CKD_mt_100_self_h2o( xsec,
+			       parameters[0],
+			       model,
+			       f_mono,
+			       p_abs,
+			       t_abs,
+			       vmr,
+			       n2_abs );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -8561,14 +10094,14 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	{
 	  out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-	  CKD_mt_self_h2o( xsec,
-			   0.000,
-			   model,
-			   f_mono,
-			   p_abs,
-			   t_abs,
-			   vmr,
-			   n2_abs );
+	  CKD_mt_100_self_h2o( xsec,
+			       0.000,
+			       model,
+			       f_mono,
+			       p_abs,
+			       t_abs,
+			       vmr,
+			       n2_abs );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
        {
@@ -8604,14 +10137,14 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	{
 	  out3 << "Continuum model " << name << " is running with \n"
 	       << "user defined parameters according to model " << model << ".\n";
-	  CKD_mt_foreign_h2o( xsec,
-			      parameters[0],
-			      model,
-			      f_mono,
-			      p_abs,
-			      t_abs,
-			      vmr,
-			      n2_abs );
+	  CKD_mt_100_foreign_h2o( xsec,
+				  parameters[0],
+				  model,
+				  f_mono,
+				  p_abs,
+				  t_abs,
+				  vmr,
+				  n2_abs );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -8626,14 +10159,14 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	{
 	  out3 << "Continuum model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
-	  CKD_mt_foreign_h2o( xsec,
-			      0.000,
-			      model,
-			      f_mono,
-			      p_abs,
-			      t_abs,
-			      vmr,
-			      n2_abs );
+	  CKD_mt_100_foreign_h2o( xsec,
+				  0.000,
+				  model,
+				  f_mono,
+				  p_abs,
+				  t_abs,
+				  vmr,
+				  n2_abs );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -9141,8 +10674,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    f_mono,
 			    p_abs,
 			    t_abs,
-			    vmr,
-			    h2o_abs );
+			    vmr );
 	}  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -9163,8 +10695,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    f_mono,
 			    p_abs,
 			    t_abs,
-			    vmr,
-			    h2o_abs );
+			    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -9212,8 +10743,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			  p_abs,
 			  t_abs,
 			  vmr,
-			  n2_abs,
-			  h2o_abs );
+			  n2_abs );
 	}  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -9235,8 +10765,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			  p_abs,
 			  t_abs,
 			  vmr,
-			  n2_abs,
-			  h2o_abs );
+			  n2_abs );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -9282,9 +10811,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			  f_mono,
 			  p_abs,
 			  t_abs,
-			  vmr,
-			  n2_abs,
-			  h2o_abs );
+			  vmr );
 	}  
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -9305,9 +10832,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			  f_mono,
 			  p_abs,
 			  t_abs,
-			  vmr,
-			  n2_abs,
-			  h2o_abs );
+			  vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -10572,8 +12097,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    f_mono,
 			    p_abs,
 			    t_abs,
-			    vmr,
-			    h2o_abs );
+			    vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -10594,8 +12118,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    f_mono,
 			    p_abs,
 			    t_abs,
-			    vmr,
-			    h2o_abs );
+			    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -10630,8 +12153,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    f_mono,
 			    p_abs,
 			    t_abs,
-			    vmr,
-			    h2o_abs );
+			    vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -10652,8 +12174,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			    f_mono,
 			    p_abs,
 			    t_abs,
-			    vmr,
-			    h2o_abs );
+			    vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -10698,8 +12219,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		      f_mono,
 		      p_abs,
 		      t_abs,
-		      vmr,
-		      h2o_abs );
+		      vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -10720,8 +12240,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		      f_mono,
 		      p_abs,
 		      t_abs,
-		      vmr,
-		      h2o_abs);
+		      vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -10766,8 +12285,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		      f_mono,
 		      p_abs,
 		      t_abs,
-		      vmr,
-		      h2o_abs );
+		      vmr );
 	}
       else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
 	{
@@ -10788,8 +12306,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 		      f_mono,
 		      p_abs,
 		      t_abs,
-		      vmr,
-		      h2o_abs);
+		      vmr );
 	}
       else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
 	{
@@ -14775,8 +16292,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.15 $ */
-/*     created:	        $Date: 2003/10/23 15:07:42 $ */
+/*     revision:	        $Revision: 1.26.2.16 $ */
+/*     created:	        $Date: 2003/11/21 10:51:42 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

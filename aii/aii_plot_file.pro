@@ -29,6 +29,8 @@ aii_plot_file, action='begin', fname=text, fformat=n
 ;
 ok = 0
 ;
+DEVICE, /times, font_size=12
+;
 !P.MULTI     = 0
 !P.FONT      = 1
 !P.CHARSIZE  = 1.5
@@ -41,20 +43,20 @@ ok = 0
 !Y.CHARSIZE  = 1.5
 !P.CHARSIZE  = 1.5
 !P.CHARTHICK = 4
-;!X.MARGIN    = [0,0]
-;!Y.MARGIN    = [0,0]
-;
-DEVICE, /times, font_size=12
+!X.MARGIN    = [10, 3] ;; default values 
+!Y.MARGIN    = [4, 2]  ;; default values 
+!X.OMARGIN   = [0, 0]  ;; default values
+!Y.OMARGIN   = [0, 0]  ;; default values 
 ;
 !P.MULTI     = [0,1,1]
-!P.POSITION  = [0.2, 0.2, 0.9, 0.8]
+!P.POSITION  = [0.23, 0.2, 0.9, 0.8]
 ;
 RETURN, ok
 END
 ;;
 ;; ============================================================================
 ;;
-FUNCTION PSPlotClose, a, b, c
+FUNCTION PSPlotClose, a, b, c, d
 ;;
 ;; ------------------------------------------------------------------------
 ;+

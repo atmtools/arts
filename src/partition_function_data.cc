@@ -254,6 +254,10 @@ void define_partition_species_data()
   iso(it_isotope,       "ContMPM93",               Qcoeff( 0    ,0              ,0              ,0          ) );
   iso(it_isotope,       "SelfContCKDMT100",        Qcoeff( 0    ,0              ,0              ,0          ) );
   iso(it_isotope,       "ForeignContCKDMT100",     Qcoeff( 0    ,0              ,0              ,0          ) );
+  iso(it_isotope,       "SelfContCKD222",          Qcoeff( 0    ,0              ,0              ,0          ) );
+  iso(it_isotope,       "ForeignContCKD222",       Qcoeff( 0    ,0              ,0              ,0          ) );
+  iso(it_isotope,       "SelfContCKD242",          Qcoeff( 0    ,0              ,0              ,0          ) );
+  iso(it_isotope,       "ForeignContCKD242",       Qcoeff( 0    ,0              ,0              ,0          ) );
   iso(it_isotope,       "SelfContCKD24",           Qcoeff( 0    ,0              ,0              ,0          ) );
   iso(it_isotope,       "ForeignContCKD24",        Qcoeff( 0    ,0              ,0              ,0          ) );
   iso(it_isotope,       "ForeignContATM01",        Qcoeff( 0    ,0              ,0              ,0          ) );
