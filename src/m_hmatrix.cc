@@ -190,15 +190,25 @@ void VectorApplyH(
 {
   out2<<"  "<<name_y2<<"="<<name_h<<"*"<<name_y1<<"\n";
 
+  // Get output dimension.
+  // FIXME: This has to be adapted for sparse matrices!
+  size_t n = h.full.nrows();
+
+  // For efficiency we distinguish between the case that input and
+  // output argument are the same and the case that they are
+  // different. In the latter case the output vector does not have to
+  // be copied.
   if ( name_y1 == name_y2 )
   {
-    VECTOR y(h.full.nrows());
-    // FIXME: This has to be adapted for sparse matrices!
+    VECTOR y(n);
     h_apply( y, h, y1 );
     y2 = y;
   }
   else
-    h_apply( y2, h, y1 ); 
+    {
+      resize(  y2, n );
+      h_apply( y2, h, y1 ); 
+    }
 }
 
 

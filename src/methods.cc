@@ -1926,6 +1926,34 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("MatrixTRJ"),
+	DESCRIPTION("Converts a matrix of radiance to Rayleigh-Jeans Brightness\n"
+		    "temperatures. This generic method does exatly the\n"
+		    "same as the old specific method ybatchTRJ. It can\n"
+		    "be used on ybatch or on k-matrices."),
+	OUTPUT(),
+	INPUT(   f_sensor_, za_sensor_ ),
+	GOUTPUT( MATRIX_ ),
+	GINPUT(  MATRIX_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixTB"),
+	DESCRIPTION("Converts a matrix of radiance to Planck Brightness\n"
+		    "temperatures. This generic method does exatly the\n"
+		    "same as the old specific method ybatchTB. It can\n"
+		    "be used on ybatch or on k-matrices."),
+	OUTPUT(),
+	INPUT(   f_sensor_, za_sensor_ ),
+	GOUTPUT( MATRIX_ ),
+	GINPUT(  MATRIX_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("yLoadCalibration"),
   	DESCRIPTION(
           "Simulates a load switch calibration as\n"
@@ -2966,31 +2994,33 @@ void define_md_data()
                  ARRAY_string_t, ARRAY_string_t,
                  int_t,  string_t, int_t,   string_t  )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("ybatchTB"),
-  	DESCRIPTION(
-          "Converts a batch of spectra from intensity to brightness\n"
-          "temperature. The used frequency vector is f_sensor."),
-	OUTPUT( ybatch_ ),
-	INPUT( ybatch_, f_sensor_, za_sensor_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("ybatchTB"),
+//   	DESCRIPTION(
+//           "Converts a batch of spectra from intensity to brightness\n"
+//           "temperature. The used frequency vector is f_sensor."),
+// 	OUTPUT( ybatch_ ),
+// 	INPUT( ybatch_, f_sensor_, za_sensor_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("ybatchTRJ"),
-  	DESCRIPTION(
-          "Converts a batch of spectra from intensity to Rayleigh-Jeans\n"
-          "temperature. The used frequency vetor is f_sensor."),
-	OUTPUT( ybatch_ ),
-	INPUT( ybatch_, f_sensor_, za_sensor_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("ybatchTRJ"),
+//   	DESCRIPTION(
+//           "Converts a batch of spectra from intensity to Rayleigh-Jeans\n"
+//           "temperature. The used frequency vector is f_sensor.\n"
+// 	  "The same job can be done with generic method kMatrixTRJ.\n"
+// 	  "Should we remove ybatchTRJ?"),
+// 	OUTPUT( ybatch_ ),
+// 	INPUT( ybatch_, f_sensor_, za_sensor_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
 
   md_data.push_back
     ( MdRecord

@@ -1318,8 +1318,16 @@ void yTRJ (
                         "(impossible value detected).");
 
   if ( nf*nza != ny )  
-    throw runtime_error(
-                     "The length of y does not match f_sensor and za_sensor.");
+    {
+      ostringstream os;
+      os << "The length of y does not match f_sensor and za_sensor.\n"
+	 << "y.size():         " << y.size() << "\n"
+	 << "Should be f_sensor.size()*za_sensor.size(): "
+	 << f_sensor.size() * za_sensor.size() << "\n"
+	 << "f_sensor.size():  " << f_sensor.size() << "\n"
+	 << "za_sensor.size(): " << za_sensor.size();
+      throw runtime_error(os.str());
+    }
 
   out2 << "  Converts the spectrum to Rayleigh-Jean temperature.\n";
 
@@ -1334,6 +1342,71 @@ void yTRJ (
   }
 }
 
+/**
+   Convert a matrix containing radiances to Rayleigh-Jeans
+   BTs. 
+
+   \author Stefan, Viju, Sreerekha
+   \date   2001-05-02
+*/
+void MatrixTRJ (// WS Generic Output:
+                MATRIX& kout,
+                // WS Generic Output Names:
+                const string& kout_name,
+                // WS Input:
+                const VECTOR& f_sensor,
+                const VECTOR& za_sensor,
+                // WS Generic Input:
+                const MATRIX& kin,
+                // WS Generic Input Names:
+                const string& kin_name)
+{
+  // Resize kout if necessary:
+  if (kout.nrows()!=kin.nrows() ||
+      kout.ncols()!=kin.ncols())
+    resize(kout,kin.nrows(),kin.ncols());
+  
+  VECTOR y(kin.nrows());
+  for ( size_t i=0; i<kin.ncols(); i++ )
+  {
+    copy( columns(kin)[i], y );    
+    yTRJ( y, f_sensor, za_sensor );
+    copy( y, columns(kout)[i] );
+  }
+}
+
+/**
+   Convert a matrix containing radiances to Planck
+   BTs. 
+
+   \author Stefan, Viju, Sreerekha
+   \date   2001-05-02
+*/
+void MatrixTB (// WS Generic Output:
+                MATRIX& kout,
+                // WS Generic Output Names:
+                const string& kout_name,
+                // WS Input:
+                const VECTOR& f_sensor,
+                const VECTOR& za_sensor,
+                // WS Generic Input:
+                const MATRIX& kin,
+                // WS Generic Input Names:
+                const string& kin_name)
+{
+  // Resize kout if necessary:
+  if (kout.nrows()!=kin.nrows() ||
+      kout.ncols()!=kin.ncols())
+    resize(kout,kin.nrows(),kin.ncols());
+  
+  VECTOR y(kin.nrows());
+  for ( size_t i=0; i<kin.ncols(); i++ )
+  {
+    copy( columns(kin)[i], y );    
+    yTB( y, f_sensor, za_sensor );
+    copy( y, columns(kout)[i] );
+  }
+}
 
 
 /**

@@ -720,21 +720,23 @@ void ybatchAbsAndRte(
    \author Patrick Eriksson
    \date   2000-12-06
 */
-void ybatchTB (
-                    MATRIX&          ybatch,
-              const VECTOR&          f_sensor,
-              const VECTOR&          za_sensor )
-{
-  VECTOR y(ybatch.nrows());
-  for ( size_t i=0; i<ybatch.ncols(); i++ )
-  {
-    //    col ( y, i+1, ybatch );
-    copy( columns(ybatch)[i], y );
-    yTB( y, f_sensor, za_sensor );
-    //    put_in_col( ybatch, i+1, y );
-    copy( y, columns(ybatch)[i] );
-  }
-}
+// Obsolete! Use MatrixTRJ
+//
+// void ybatchTB (
+//                     MATRIX&          ybatch,
+//               const VECTOR&          f_sensor,
+//               const VECTOR&          za_sensor )
+// {
+//   VECTOR y(ybatch.nrows());
+//   for ( size_t i=0; i<ybatch.ncols(); i++ )
+//   {
+//     //    col ( y, i+1, ybatch );
+//     copy( columns(ybatch)[i], y );
+//     yTB( y, f_sensor, za_sensor );
+//     //    put_in_col( ybatch, i+1, y );
+//     copy( y, columns(ybatch)[i] );
+//   }
+// }
 
 
 
@@ -744,21 +746,23 @@ void ybatchTB (
    \author Patrick Eriksson
    \date   2000-12-06
 */
-void ybatchTRJ (
-                    MATRIX&          ybatch,
-              const VECTOR&          f_sensor,
-              const VECTOR&          za_sensor )
-{
-  VECTOR y(ybatch.nrows());
-  for ( size_t i=0; i<ybatch.ncols(); i++ )
-  {
-    //    col ( y, i+1, ybatch );
-    copy( columns(ybatch)[i], y );    
-    yTRJ( y, f_sensor, za_sensor );
-    //    put_in_col( ybatch, i+1, y );
-    copy( y, columns(ybatch)[i] );
-  }
-}
+// Obsolete! Use MatrixTRJ
+//
+// void ybatchTRJ (
+//                     MATRIX&          ybatch,
+//               const VECTOR&          f_sensor,
+//               const VECTOR&          za_sensor )
+// {
+//   VECTOR y(ybatch.nrows());
+//   for ( size_t i=0; i<ybatch.ncols(); i++ )
+//   {
+//     //    col ( y, i+1, ybatch );
+//     copy( columns(ybatch)[i], y );    
+//     yTRJ( y, f_sensor, za_sensor );
+//     //    put_in_col( ybatch, i+1, y );
+//     copy( y, columns(ybatch)[i] );
+//   }
+// }
 
 
 

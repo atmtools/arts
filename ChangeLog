@@ -1,3 +1,16 @@
+2001-05-02  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-164
+
+	* m_los.cc: Added method MatrixTRJ which calls yTRJ for all rows
+	of a weighting function matrix. This is exactly the same
+	as the specific method ybatchTRJ. Therefore I have removed this
+	specific method. Replace in control files by
+	MatrixTRJ(ybatch,ybatch){}. Similar, I added MatrixTB.
+
+	* m_batch.cc: Removed ybatchTRJ and ybatchTB.
+
+	
 2001-04-30  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-163
@@ -5,6 +18,7 @@
 	* add additional O2 absorption model of Rosenkranz in
 	  continua.cc and continua.h
 
+	
 2001-04-27  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-162
@@ -32,6 +46,7 @@
 	added. Preliminary stored in continua.cc, but this will be
 	changed in future.
 
+	
 2001-04-25  Oliver Lemke  <oliver@uni-bremen.de>
 
 	* arts-0-0-160
@@ -58,6 +73,7 @@
         * Temperature WFs with hydrostatic eq. now implemented. Two versions
         exist, kTemp and kTempFast. Use the fast one!
 
+	
 2001-04-20  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-158
@@ -97,6 +113,7 @@
 	opposite directions in nearly identical orbits (but not \n"
         "colliding!).
 
+	
 2001-04-09  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-154
