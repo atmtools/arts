@@ -222,6 +222,18 @@ void test41()
   transpose(A, B);
 
   cout << "A:\n" << A << "\n";
+
+  cout << "Testing with a fully occupied matrix:\n";
+
+  for ( Index r=0; r<4; r++ )
+    for ( Index c=0; c<5; c++ )
+      {
+        B.rw(r,c) = r*10+c;
+      }
+
+  cout << "B:\n" << B << "\n";
+  transpose(A, B);
+  cout << "A:\n" << A << "\n";
 }
 
 void test42()
@@ -294,10 +306,10 @@ int main()
   //  test38();
   //  test39();
   //  test40();
-  //  test41();
+  test41();
   //  test42();
   //  test43();
-  test44();
+  //  test44();
 
   return 0;
 }

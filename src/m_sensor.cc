@@ -269,6 +269,8 @@ void sensor_responseAntenna1D(
 {
   // Check that the antenna has the right dimension, this implies that the
   // mblock_aa_grid is empty (as set by AntennaSet1D).
+  // FIXME: Mattias, I think this should be a runtime error check, not an assertion:
+  //  if( antenna_dim!=1 ) throw runtime_error( "Antenna dimension must be 1." );
   assert(antenna_dim==1);
 
   // Initialise ostringstream and error flag to collect error messages.

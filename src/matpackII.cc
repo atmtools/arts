@@ -258,7 +258,8 @@ Sparse::Sparse(const Sparse& m) :
   mcr(m.mcr)
 {
   // Nothing to do here. 
-  //  cout << "Copied:\n" << *this << "\n";
+//   cout << "Original:\n" << m << "\n";
+//   cout << "Copied:\n" << *this << "\n";
 }
 
 
@@ -793,6 +794,8 @@ void mult( Sparse& A,
   // can extract columns form the two matrices and multiply them, (which is
   // easier than extacting rows.)
   Sparse Bt(B.ncols(), B.nrows());
+  //  cout << "B.nrows, B.ncols = " << B.nrows() << ", " << B.ncols() << "\n";
+  //  cout << "B = \n" << B << "\n";
   transpose(Bt,B);
 
   // By looping over columns in C and multiply them with every column in Bt
