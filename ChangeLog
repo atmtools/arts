@@ -1,3 +1,14 @@
+2003-08-15  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-650
+
+ 	* src/legendre.{cc,h}: Added function to calculate legendre
+	derivatives.
+
+	* src/test_legendre.cc: Added test for legendre derivative.
+
+	* src/math_funcs.cc (fac): Cosmetics.
+
 2003-08-15  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-649
