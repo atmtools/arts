@@ -1492,6 +1492,7 @@ xml_read_from_stream (istream&      is,
   tag.check_name ("GasAbsLookup");
 
   xml_read_from_stream (is, gal.species);
+  xml_read_from_stream (is, gal.nonlinear_species);
   xml_read_from_stream (is, gal.f_grid);
   xml_read_from_stream (is, gal.p_grid);
   xml_read_from_stream (is, gal.vmrs_ref);
@@ -1521,6 +1522,7 @@ xml_write_to_stream (ostream&            os,
   open_tag.write_to_stream (os);
 
   xml_write_to_stream (os, gal.species);
+  xml_write_to_stream (os, gal.nonlinear_species);
   xml_write_to_stream (os, gal.f_grid);
   xml_write_to_stream (os, gal.p_grid);
   xml_write_to_stream (os, gal.vmrs_ref);
