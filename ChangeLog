@@ -1,3 +1,11 @@
+2002-02-08  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-6
+
+	* src/los.cc: Started to work on interpolation and assert functions. 
+	We should make set of functions for making asserts and size checks 
+	simpler (as started by the check_xx functions ion arts1).
+
 2002-02-07  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-5
