@@ -289,6 +289,8 @@ test_geomag_calc_SOURCES = \
 	interpolation.cc \
 	interpolation.h \
 	iotraits.h \
+	jacobian.cc \
+	jacobian.h \
 	legendre.cc \
 	legendre.h \
 	m_lineshapes.cc \

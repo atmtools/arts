@@ -1,5 +1,12 @@
 2004-09-15  Mattias Ekström <ekstrom@rss.chalmers.se>
 
+	* arts-1-1-867
+
+	* src/Makefile.am: Added jacobian.h and jacobian.cc to 
+	test_geomag_calc sources to remove compilation problem.
+
+2004-09-15  Mattias Ekström <ekstrom@rss.chalmers.se>
+
 	* arts-1-1-866
 
 	* src/jacobian.[cc,h]: Added these to files. The header files 
