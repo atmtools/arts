@@ -258,9 +258,10 @@ void iy_calc(
         const bool&           agenda_verb )
 {
   // Determine propagation path
+  const bool   outside_cloudbox = true;
   ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
-              cloudbox_on, cloudbox_limits, pos, los, 1 );
+              cloudbox_on, cloudbox_limits, pos, los, outside_cloudbox );
 
   // Determine the radiative background
   get_radiative_background( iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,

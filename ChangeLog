@@ -1,3 +1,25 @@
+2004-09-27  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-882
+
+	* src/m_cloudbox.cc (iyFromCloudboxField): Just a start for a
+	replecement of CloudboxGetOutgoing.
+
+	* src/m_atmosphere.cc (surfaceTreatAsBlackbody): Reintroduced this
+	method. Just for the purpose to get a test case running (needed 
+	to define an old surface_agenda for i_fieldUpdateSeq1D).
+
+	* src/m_cloudbox.cc 
+	(CloudboxGetIncoming): Made new version of
+	this function. Now works with new agendas, iy_calc etc.
+
+	(CloudboxGetIncomingOld): The old version, renamed.
+
+	* src/rte.cc (iy_calc): Introduced local variable outside_cloudbox.
+
+	* src/interpolation.cc (gridpos_force_end_fd): Small change
+	in header.
+
 2004-09-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-881

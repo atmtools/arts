@@ -915,6 +915,38 @@ void define_md_data_raw()
       ( NAME( "CloudboxGetIncoming" ),
         DESCRIPTION
         (
+         "Calculates incoming radiation field of cloud box by repeated\n"
+         "radiative transfer calculations.\n"
+         "cloudbox.\n"
+         "\n"
+         "The method uses *PpathCalc* and *rte_agenda*.  The input to\n"
+         "this method is the position of the cloudbox given by the \n"
+         "variable *cloudbox_limits*. Then for each propagation direction\n"
+         "it calls the function *PpathCalc* and executes the agenda \n"
+         "*rte_agenda*.  This gives *i_rte* which holds the Stokes vector\n"
+         "for all frequencies btained by the monochromatic pencil beam \n"
+         "calculations performed by *rte_agenda*. Then this is copied to\n"
+         "the interface variable. \n"
+         "\n"
+         ),
+        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
+                rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
+               iy_surface_agenda_, iy_cloudbox_agenda_,
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
+               f_grid_, stokes_dim_, scat_za_grid_, scat_aa_grid_ ),
+ 
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "CloudboxGetIncomingOld" ),
+        DESCRIPTION
+        (
          "This method gives the intensity field at the boundary of the\n"
          "cloudbox.\n"
          "\n"
@@ -4221,29 +4253,6 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surfaceSingleEmissivity" ),
-        DESCRIPTION
-        (
-         "Creates variables to mimic specular reflection by a surface with\n"
-         "a single emissivity.\n"
-         "\n"
-         "A constant emissivity is assumed as a function of frequency and\n"
-         "polarisation (vertical and horisontal reflection coefficients are\n"
-         "equal. The number of directions in *surface_los* is one.\n"
-         "\n"
-         "Generic Input: \n"
-         "   Numeric : Surface emissivity (a value between 0 and 1)."
-        ),
-        OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
-        INPUT( f_grid_, stokes_dim_, atmosphere_dim_, rte_los_, 
-               surface_skin_t_ ),
-        GOUTPUT(),
-        GINPUT( Numeric_t ),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME( "surfaceFlat" ),
         DESCRIPTION
         (
@@ -4275,6 +4284,44 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "epsmodel" ),
         TYPES(    String_t   )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surfaceSingleEmissivity" ),
+        DESCRIPTION
+        (
+         "Creates variables to mimic specular reflection by a surface with\n"
+         "a single emissivity.\n"
+         "\n"
+         "A constant emissivity is assumed as a function of frequency and\n"
+         "polarisation (vertical and horisontal reflection coefficients are\n"
+         "equal. The number of directions in *surface_los* is one.\n"
+         "\n"
+         "Generic Input: \n"
+         "   Numeric : Surface emissivity (a value between 0 and 1)."
+        ),
+        OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
+        INPUT( f_grid_, stokes_dim_, atmosphere_dim_, rte_los_, 
+               surface_skin_t_ ),
+        GOUTPUT(),
+        GINPUT( Numeric_t ),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("surfaceTreatAsBlackbody"),
+        DESCRIPTION
+        (
+         "Will be removed"
+        ),
+        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_ ),
+        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_,
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord

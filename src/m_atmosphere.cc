@@ -954,6 +954,64 @@ void surfaceSingleEmissivity(
 
 
 
+//! surfaceTreatAsBlackbody
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-09-17
+*/
+void surfaceTreatAsBlackbody(
+              Matrix&    surface_emission, 
+              Matrix&    surface_los, 
+              Tensor4&   surface_refl_coeffs,
+        const Vector&    f_grid,
+        const Index&     stokes_dim,
+        const GridPos&   rte_gp_p,
+        const GridPos&   rte_gp_lat,
+        const GridPos&   rte_gp_lon,
+        const Index&     atmosphere_dim,
+        const Vector&    p_grid,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Tensor3&   t_field )
+{
+  //--- Check input -----------------------------------------------------------
+  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+  //---------------------------------------------------------------------------
+
+  out2 << "  Sets the surface to be a blackbody.\n";
+  out3 << 
+        "     Surface temperature is obtained by interpolation of *t_field*.\n";
+
+  // Set surface_los and surface_refl_coeffs to be empty as no downwelling
+  // spectra shall be calculated
+  surface_los.resize(0,0);
+  surface_refl_coeffs.resize(0,0,0,0);
+  
+  // Some sizes
+  const Index   nf = f_grid.nelem();
+
+  // Resize surface_emission.
+  surface_emission.resize(nf,stokes_dim);
+
+  // Determine the temperature at the point of the surface reflection
+  const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
+              lon_grid, t_field, "t_field", rte_gp_p, rte_gp_lat, rte_gp_lon );
+
+  // Fill surface_emission with unpolarised blackbody radiation
+  for( Index i=0; i<nf; i++ )
+    { 
+      surface_emission(i,0) = planck( f_grid[i], t ); 
+      for( Index is=1; is<stokes_dim; is++ )
+        { surface_emission(i,is) = 0; }
+    }
+}
+
 
 
 
@@ -1448,48 +1506,6 @@ void surfaceSingleEmissivity(
 //    \author Patrick Eriksson
 //    \date   2002-09-17
 // */
-// void surfaceTreatAsBlackbody(
-//               Matrix&    iy,
-//         const Vector&    f_grid,
-//         const Index&     stokes_dim,
-//         const Vector&    rte_pos,
-//         const Vector&    rte_los,
-//         const Index&     atmosphere_dim,
-//         const Vector&    p_grid,
-//         const Vector&    lat_grid,
-//         const Vector&    lon_grid,
-//         const Tensor3&   t_field )
-// {
-//   //--- Check input -----------------------------------------------------------
-//   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-//   // *atmosphere_dim* checked in rte_pos2gps
-//   chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
-//                                                                     lon_grid );
-//   //---------------------------------------------------------------------------
-
-//   out2 << "  Sets the surface to be a blackbody.\n";
-//   out3 << 
-//        "     Surface temperature is obtained by interpolation of *t_field*.\n";
-
-//   // Determine grid position(s)
-//   GridPos   gp_p, gp_lat, gp_lon;
-//   rte_pos2gps( gp_p, gp_lat, gp_lon, atmosphere_dim, p_grid, lat_grid, 
-//                                                                     lon_grid );
-
-//   // Some sizes
-//   const Index   nf = f_grid.nelem();
-
-//   // Resize *iy*
-//   iy.resize( nf, stokes_dim );
-
-//   // Determine the temperature at the point of the surface reflection
-//   const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
-//                           lon_grid, t_field, "t_field", gp_p, gp_lat, gp_lon );
-
-//   // Fill surface_emission with unpolarised blackbody radiation
-//   for( Index i=0; i<nf; i++ )
-//     { iy(i,0) = planck( f_grid[i], t ); }
-// }
 
 
 

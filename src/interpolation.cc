@@ -475,7 +475,7 @@ void gridpos_check_fd( GridPos&   gp )
    be called for every point.
 
    The input fractional distances are not allowed to deviate freom 0 and 1
-   with more than 1e-6.
+   with more than 1e-2.
 
    \param   gp     Output: Grid position structure.
 
