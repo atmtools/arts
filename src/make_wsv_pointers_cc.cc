@@ -18,9 +18,9 @@ int main()
       const size_t n_wsv = wsv_data.size();
 
       ofstream ofs;
-      open_output_file(ofs,"wsv_pointers.cc");
+      open_output_file(ofs,"auto_wsv_pointers.cc");
 
-      ofs << "/** \\file  wsv_pointers.cc\n"
+      ofs << "/** \\file  auto_wsv_pointers.cc\n"
 	  << "    Defines the smart pointers that are used by\n"
 	  << "    the engine to access workspace variables.\n\n"
 
@@ -34,9 +34,9 @@ int main()
 
       ofs << "#include \"arts.h\"\n"
 	  << "#include \"vecmat.h\"\n"
-	  << "#include \"wsv_groups.h\"\n"
+	  << "#include \"auto_wsv_groups.h\"\n"
 	  << "#include \"wsv_aux.h\"\n"
-	  << "#include \"wsv.h\"\n\n";
+	  << "#include \"auto_wsv.h\"\n\n";
 
       ofs << "/** The array of WSV pointers.\n"
 	  << "    This can be used to access a WSV by its index. */\n"
