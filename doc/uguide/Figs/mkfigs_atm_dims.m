@@ -25,6 +25,12 @@ cloudbox_limits  = [5 4 10];
 
 figure(1)
 [h,ltext]=plot_atm_1d(dalpha,z_field,r_geoid,z_ground,cloudbox_on,cloudbox_limits,1);
+for i = 1:size(z_field,3)
+  hp = plot( 0, (r_geoid(1,i)+z_field(1,1,i))/1e3, 'k.' );
+end
+nh = length(h)+1;
+h(nh) = hp;
+ltext{nh} = 'atmospheric field';
 hf = gca;
 hl = legend2(8,h,ltext); 
 set(hl,'Visible','Off'); 
@@ -37,17 +43,26 @@ axis tight
 
 figure(2)
 [h,ltext]=plot_atm_2d(alpha_grid,z_field,r_geoid,z_ground,cloudbox_on,cloudbox_limits,1);
+for i = 1:size(z_field,3)
+  for j = 1:nalpha
+    [x1,y1] = cyl2cart( r_geoid(1,j)+z_field(1,j,i), alpha_grid(j) );
+    hp = plot( x1/1e3, y1/1e3, 'k.' );
+  end
+end
+nh = length(h)+1;
+h(nh) = hp;
+ltext{nh} = 'atmospheric field';
 hf = gca;
-%hl = legend(h,ltext); 
-%set(hl,'Visible','Off'); 
+hl = legend2(8,h,ltext); 
+set(hl,'Visible','Off'); 
 axis equal 
 hide_axes(hf);
-%disp('Adjust the legend');
-%pause;
+disp('Adjust the legend');
+pause;
 axis tight
 
 
-if if_yes('Print figures')
+if answer_is_yes('Print figures')
   print atm_dim_2d.eps -depsc
   ! ps2pdf atm_dim_2d.eps atm_dim_2d.pdf
   figure(1)

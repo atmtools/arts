@@ -1,3 +1,39 @@
+2002-03-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-25
+
+	* doc/uguide/main.tex: I have introduced index into AUG. The idea
+	is not to make a complete index register, that is to ambitious.  I
+	think it is sufficient, and a good help for the readers, just to
+	make a reference to the page where a term is defined or
+	introduced.  Is this a good idea? I have put in some test indexes
+	in fm_definitions.  Note the macro \qindex, defined in main.tex,
+	that makes it easier to put in an index. I don't think we shall
+	have index of several levels, if the term consists of several words
+	(normally not more than 2), refer to the words as one unit to make
+	things simple.
+
+	If anybody knows how to change the title for the index page from
+	"Index" to "Definition of terms", please go ahead.
+
+	To update the index list, you have to run "makeindex uguide"
+	
+	* doc/uguide/fm_definitions.tex: Started to write in this chapter.
+	Please read the introduction part (present Chapter 1-2) and give
+	comments, both on layout and content.
+
+	* doc/uguide/symbol_defs: Moved symbol macros to this file. An idea
+	with this is that it should be possible to use this macro file for
+	other documents. The old macro names are changed and changes will
+	be needed when re-introducing the chapters. Sorry for this, but as
+	the old macro names were just a mess, I made this change. If it is a
+	comfort, I will be the one that will have to most of the changes.
+	I have tried to come up with a consistent naming scheme so it should
+	be possible to remember, or figure out, the name of the macros.
+	Note especially the aXxx macros which are handy and would help us
+	to have a uniform style without making a macro for each subscript
+	to a variable.
+
 2002-03-14  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-24

@@ -1,4 +1,5 @@
 *.aux
+*.log
 Makefile
 Makefile.in
 auto
@@ -14,6 +15,9 @@ main.toc
 uguide.bbl    
 uguide.blg
 uguide.dvi
+uguide.idx
+uguide.ind
+uguide.ilg
 uguide.log
 uguide.ps
 uguide.toc

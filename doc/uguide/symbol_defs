@@ -1,0 +1,294 @@
+% This file defines the general math macros.
+% Mathematical symbols used only once, or for a particular purpose, 
+% should not be included here. Note that the scalar quantities exist 
+% in a subscript version, and it is not necessary to define macros for
+% all possible subscripts of a variable.
+% A lot of macros have been defined for the Rodgers formalism is it
+% used extensively.
+
+% If you add new definitions, please try to follow the rules below to
+% get a naming scheme as consistent as possible. Just check how a 
+% similar macro is defined and use it as an example.
+
+% Patrick Eriksson 2001-03-13
+
+%-----------------------------------------------------------------------------
+
+% Most of the macros are named by putting 3-letters acronyms together. 
+% The acronyms are mainly formed by taking the first letter and the two 
+% first following consonants. The list below shows the used acronyms.
+% Please, if you introduce a new acronym, add it to this list.
+%
+% altitude     Alt
+% angel        Ang
+% average      Avr
+% azimuthal    Azm
+% constant     Cns
+% contribution Cnt
+% covariance   Cvr
+% derivative   Drv
+% error        Err
+% frequency    Frq
+% forward      Frw
+% function     Fnc
+% identity     Idn
+% inverse      Inv
+% kernel       Krn
+% latitude     Lat       (exception from general naming scheme)
+% length       Lng
+% longitude    Lon       (exception from general naming scheme)
+% matrix       Mtr
+% measurement  Msr
+% model        Mdl
+% partial      Prt
+% population   Ppl
+% pressure     Prs
+% radius       Rds
+% retrieval/ed Rtr
+% sensor       Sns
+% size         Sze
+% space        Spc
+% state        Stt
+% style        Stl
+% symbol       Smb
+% temperature  Tmp
+% transfer     Trf
+% transpose    Trp
+% vector       Vct
+% zenith       Znt
+%
+% a priori                              Apr
+% monochromatic pencil beam intensity   Mpi
+% weighting function                    Wfn
+
+% For other terms or features, use as far as possible complete strings to get 
+% macros with clear names.
+
+
+%--- General math ------------------------------------------------------------
+
+% Vector style
+\newcommand{\VctStl}[1]     {\ensuremath{\mathbf{#1}}}
+
+% Matrix style
+\newcommand{\MtrStl}[1]     {\ensuremath{\mathbf{#1}}}
+
+% The identity matrix
+\newcommand{\IdnMtr}        {\MtrStl{I}}  
+
+% Scalar or matrix inverse
+\newcommand{\Inv}           {^{-1}}  
+
+% Vector or matrix transpose
+\newcommand{\Trp}           {^T}  
+
+% Size symbol
+\newcommand{\SzeSmb}        {\ensuremath{\in}}  
+
+% Vector space
+\newcommand{\VctSpc}[1]     {\ensuremath{\mathbf{R}^#1}}
+
+% Matrix space
+\newcommand{\MtrSpc}[2]     {\ensuremath{\mathbf{R}^{#1 \times #2}}}
+
+% Vector length (simple)
+\newcommand{\VctLng}        {\ensuremath{n}}  
+\newcommand{\aVctLng}[1]    {\ensuremath{n_#1}}  
+
+% Index (to vector, matrix ...)
+\newcommand{\Ind}           {\ensuremath{i}}  
+\newcommand{\aInd}[1]       {\ensuremath{i_#1}}  
+
+% Partial derivative symbol
+\newcommand{\PrtDrv}        {\ensuremath{\mathrm{d}}}  
+
+
+
+%--- Powers, degrees and other special units, etc.
+
+% *10^#1
+\newcommand{\topowerten}[1]   {\ensuremath{\cdot10^{#1}}}
+
+% degrees
+\newcommand{\degree}          {\ensuremath{^\circ}}
+
+
+
+%--- Plotting line styles ----------------------------------------------------
+
+\def \lsolid     {\mbox{------}}
+\def \ldashed    {\mbox{--~--~--}}
+\def \ldashdot   {\mbox{--~$\cdot$~--}}
+\def \ldotted    {\mbox{$\cdot~\cdot~\cdot$}}
+
+
+
+%--- Physical constants ------------------------------------------------------
+
+% Speed of light in vaccum [m/s]
+\newcommand{\speedoflight}   {\ensuremath{c}}  
+
+% Planck constant [Js]
+\newcommand{\planckCns}      {\ensuremath{h}}  
+
+% Boltzmann constant [J/K]
+\newcommand{\boltzmannCns}   {\ensuremath{k_b}}  
+
+% Avogadro's number [molec/kg]
+\newcommand{\avogadrosCns}   {\ensuremath{N_a}}  
+
+
+
+%--- The Rodgers formalism ---------------------------------------------------
+
+% True (natural) forward model
+\newcommand{\trueFrwMdl}       {\ensuremath{F}}  
+
+% Discrete forward model
+\newcommand{\FrwMdl}           {\ensuremath{\mathcal{F}}}  
+
+% Inverse model  
+\newcommand{\InvMdl}           {\ensuremath{\mathcal{I}}}  
+
+% Transfer model  
+\newcommand{\TrfMdl}           {\ensuremath{\mathcal{T}}}  
+
+% A priori symbol
+\newcommand{\AprSmb}           {\ensuremath{_a}}  
+
+% Measurement vector
+\newcommand{\MsrVct}           {\VctStl{y}}  
+
+% Vector of monochromatic pencil beam intensities
+\newcommand{\MpiVct}           {\VctStl{i}}  
+
+% Measurement error vector
+\newcommand{\MsrErrVct}        {\ensuremath{\varepsilon}}  
+
+% State vector 
+\newcommand{\SttVct}           {\VctStl{x}}  
+
+% A priori state vector 
+\newcommand{\AprSttVct}        {\SttVct\AprSmb}
+
+% Retrieved state vector
+\newcommand{\RtrVct}           {\ensuremath{\hat{\SttVct}}}
+
+% A state vector with subscript
+\newcommand{\aSttVct}[1]       {\SttVct\ensuremath{_#1}}
+
+% A state vector with subscript and transpose
+\newcommand{\aSttVctTrp}[1]    {\SttVct\ensuremath{_#1\Trp}}
+
+% Forward model parameter vector
+\newcommand{\FrwMdlVct}        {\VctStl{b}}  
+
+% A priori forward model parameter vector 
+\newcommand{\AprFrwMdlVct}     {\FrwMdlVct\AprSmb}
+
+% A forward model parameters vector with subscript
+\newcommand{\aFrwMdlVct}[1]    {\FrwMdlVct\ensuremath{_#1}}
+
+% A forward model parameters vector with subscript and transpose
+\newcommand{\aFrwMdlVctTrp}[1] {\FrwMdlVct\ensuremath{_#1\Trp}}
+
+% Inverse model parameters
+\newcommand{\InvMdlVct}        {\VctStl{c}}  
+
+% Weighting function matrix
+\newcommand{\WfnMtr}           {\MtrStl{K}}
+
+% A weighting function matrix with a subscript
+\newcommand{\aWfnMtr}[1]       {\WfnMtr\ensuremath{_#1}}
+
+% A weighting function matrix with a subscript and transpose
+\newcommand{\aWfnMtrTrp}[1]    {\WfnMtr\ensuremath{_#1\Trp}}
+
+% Contribution function matrix
+\newcommand{\CtrFncMtr}        {\MtrStl{D_y}}  
+
+% Averaging kernel matrix
+\newcommand{\AvrKrnMtr}        {\MtrStl{A}}  
+
+% A averaging kernel matrix with subscript
+\newcommand{\aAvrKrnMtr}[1]    {\AvrKrnMtr\ensuremath{_#1}}
+
+% Sensor (and data reduction) matrix
+\newcommand{\SnsMtr}           {\MtrStl{H}} 
+
+% Sensor (and data reduction) matrix with subscript.
+\newcommand{\aSnsMtr}[1]       {\SnsMtr\ensuremath{_#1}} 
+
+% Transformation between vector spaces
+\newcommand{\VctTrfMtr}        {\MtrStl{B}}  
+
+% Population matrix
+\newcommand{\PplMtr}           {\MtrStl{\Sigma}}
+
+% A population matrix with a subscript
+\newcommand{\aPplMtr}[1]       {\PplMtr\ensuremath{_#1}}
+
+% A population matrix with a subscript and invererse
+\newcommand{\aPplMtrTrp}[1]    {\PplMtr\ensuremath{_#1\Inv}}
+
+% Covariance matrix
+\newcommand{\CvrMtr}           {\MtrStl{S}}
+
+% A covariance matrix with a subscript
+\newcommand{\aCvrMtr}[1]       {\CvrMtr\ensuremath{_#1}}
+
+% A covariance matrix with a subscript and invererse
+\newcommand{\aCvrMtrTrp}[1]    {\CvrMtr\ensuremath{_#1\Inv}}
+
+
+
+% --- General scalar quantities ----------------------------------------------
+%
+% All quantities shall have a subscript version named as aXxx.
+
+% Altitude (above geoid)
+\newcommand{\Alt}        {\ensuremath{z}}  
+\newcommand{\aAlt}[1]    {\ensuremath{z_#1}}  
+
+% Azimuthal angle
+\newcommand{\AzmAng}     {\ensuremath{\omega}}  
+\newcommand{\aAzmAng}[1] {\ensuremath{\omega_#1}}  
+
+% Frequency 
+\newcommand{\Frq}        {\ensuremath{\nu}}  
+\newcommand{\aFrq}[1]    {\ensuremath{\nu_#1}}  
+
+% Latitude
+\newcommand{\Lat}        {\ensuremath{\alpha}}  
+\newcommand{\aLat}[1]    {\ensuremath{\alpha_#1}}  
+
+% Longitude
+\newcommand{\Lon}        {\ensuremath{\beta}}  
+\newcommand{\aLon}[1]    {\ensuremath{\beta_#1}}  
+
+% Monochromatic pencil beam intensity
+\newcommand{\Mpi}        {\ensuremath{I}}  
+\newcommand{\aMpi}[1]    {\ensuremath{I_#1}}  
+
+% Pressure
+\newcommand{\Prs}        {\ensuremath{P}}  
+\newcommand{\aPrs}[1]    {\ensuremath{P_#1}}  
+
+% Pressure altitude
+\newcommand{\PrsAlt}     {\ensuremath{\zeta}}  
+\newcommand{\aPrsAlt}[1] {\ensuremath{\zeta_#1}}  
+
+% Radius
+\newcommand{\Rds}        {\ensuremath{r}}  
+\newcommand{\aRds}[1]    {\ensuremath{r_#1}}  
+
+% Temperature
+\newcommand{\Tmp}        {\ensuremath{T}}  
+\newcommand{\aTmp}[1]    {\ensuremath{T_#1}}  
+
+% Zenith angle
+\newcommand{\ZntAng}     {\ensuremath{\psi}}  
+\newcommand{\aZntAng}[1] {\ensuremath{\psi_#1}}  
+
+
+
