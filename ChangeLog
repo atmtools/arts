@@ -1,5 +1,15 @@
 2003-03-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-473
+
+	* doc/uguide/fm_definitions.tex: Improved and updated text.
+	Added two figures (ppath_badcases.pdf and atm_dim_3dcross.pdf).
+
+	Check out the figures of the chapter (except from last page).
+	I think they are nice (of course).
+
+2003-03-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-472
 
 	* doc/uguide/fm_definitions.tex: Included figure for 3D atmosphere 

@@ -9,7 +9,7 @@ lon_grid = [];
 z_field  = (1:18)';
 r_geoid  = 50;
 z_ground = 1.5;
-cb_lims  = [6 9];
+cb_lims  = {5 8};
 %
 figure(1)
 clf
@@ -33,7 +33,7 @@ lon_grid = [];
 z_field  = (1:18)'*ones(1,nlat) - ones(18,1)*linspace(0,0.8,nlat);
 r_geoid  = 50 * ones(nlat,1);
 z_ground = 1.5 + 0.5*randn(nlat,1);
-cb_lims  = [6 9 8 13];
+cb_lims  = [];
 %
 figure(2)
 clf
@@ -41,9 +41,30 @@ clf
                                                r_geoid, z_ground, cb_lims, 1 );
 axes_frame( gca, 'off' )
 axis tight
-%hl = legend( h, hs );
-%disp('Adjust the legend');
-%pause;
+hl = legend( h, hs );
+disp('Adjust the legend');
+pause;
+
+
+
+%--- 3D cross section
+%
+nlat     = 16;
+%
+dim      = 2;
+lat_grid = linspace(45,135,nlat);
+lon_grid = [];
+z_field  = (1:18)'*ones(1,nlat);
+r_geoid  = 50 * ones(nlat,1);
+z_ground = 1.5 + 0.5*randn(nlat,1);
+cb_lims  = {5 8 7 12};
+%
+figure(3)
+clf
+[h,hs] = arts_plot_atmgrids( dim, lat_grid, lon_grid, z_field,...
+                                               r_geoid, z_ground, cb_lims, 1 );
+axes_frame( gca, 'off' )
+axis tight
 
 
 
@@ -60,7 +81,7 @@ r_geoid  = 50 * ones(nlat,nlon);
 z_ground = 1.5 + 0.5*randn(nlat,nlon);
 cb_lims  = [];
 %
-figure(3)
+figure(4)
 clf
 [h,hs] = arts_plot_atmgrids( dim, lat_grid, lon_grid, z_field,...
                                                r_geoid, z_ground, cb_lims, 1 );
@@ -76,6 +97,10 @@ if yes_or_no('Print figures')
   print atm_dim_3d.eps -depsc
   ! epstopdf atm_dim_3d.eps
   ! rm  atm_dim_3d.eps
+  figure(3)
+  print atm_dim_3dcross.eps -depsc
+  ! epstopdf atm_dim_3dcross.eps
+  ! rm  atm_dim_3dcross.eps
   figure(2)
   print atm_dim_2d.eps -depsc
   ! epstopdf atm_dim_2d.eps
