@@ -624,7 +624,6 @@ void ybatchAbsAndRte(
   {
     // Determine the name of the molecule for itag
     string molname = species_data[tgs[tagindex[itag]][0].Species()].Name();
-    cout << "itag" << itag  <<"\n";
     read_batchdata( VMRs[itag], batchname, tag_files[itag], molname, np, ncalc );
   }
 
@@ -711,58 +710,6 @@ void ybatchAbsAndRte(
   }
   out2 << "  ------------------------------------\n";
 }
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-12-06
-*/
-// Obsolete! Use MatrixTRJ
-//
-// void ybatchTB (
-//                     MATRIX&          ybatch,
-//               const VECTOR&          f_sensor,
-//               const VECTOR&          za_sensor )
-// {
-//   VECTOR y(ybatch.nrows());
-//   for ( size_t i=0; i<ybatch.ncols(); i++ )
-//   {
-//     //    col ( y, i+1, ybatch );
-//     copy( columns(ybatch)[i], y );
-//     yTB( y, f_sensor, za_sensor );
-//     //    put_in_col( ybatch, i+1, y );
-//     copy( y, columns(ybatch)[i] );
-//   }
-// }
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-12-06
-*/
-// Obsolete! Use MatrixTRJ
-//
-// void ybatchTRJ (
-//                     MATRIX&          ybatch,
-//               const VECTOR&          f_sensor,
-//               const VECTOR&          za_sensor )
-// {
-//   VECTOR y(ybatch.nrows());
-//   for ( size_t i=0; i<ybatch.ncols(); i++ )
-//   {
-//     //    col ( y, i+1, ybatch );
-//     copy( columns(ybatch)[i], y );    
-//     yTRJ( y, f_sensor, za_sensor );
-//     //    put_in_col( ybatch, i+1, y );
-//     copy( y, columns(ybatch)[i] );
-//   }
-// }
 
 
 

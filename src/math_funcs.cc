@@ -440,7 +440,7 @@ void rand_matrix_uniform(
    \date   2000-12-07
 */
 void rand_matrix_gaussian(
-		   MATRIX&    m,
+		         MATRIX&    m,
 		   const Numeric&   s )
 {
   for ( INDEX i=0; i<m.nrows(); ++i )
@@ -474,14 +474,14 @@ void rand_matrix_gaussian(
    \author Stefan Buehler
 */
 void rand_data_gaussian(
-			MATRIX&    z,
-			const VECTOR&    z0,
+		              MATRIX&       z,
+			const VECTOR&       z0,
 			const SYMMETRIC&    s )
 {
   INDEX n = z.ncols();
 
   const size_t   nrows = z0.size();
-        size_t   row,col;
+        size_t   col;
 
   if ( nrows != s.nrows() )
     throw runtime_error("The length of the mean vector and the size of the covariance matrix do not match."); 
@@ -490,13 +490,6 @@ void rand_data_gaussian(
   MATRIX   l(nrows,nrows);
   setto(l,0.0);
   chol(l,s);
-
-
-  
-  //setto(l,0.0);
-  //for ( row=0; row<nrows; row++ )
-    //l[row][row] = sqrt( s[row][row] );
-  
 
   // Create matrix with gaussian data having zero mean and standard deviation 1
   MATRIX   r(nrows,n);

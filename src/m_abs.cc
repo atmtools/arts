@@ -1294,7 +1294,7 @@ void hseCalc(
     if ( niter < 1 )
       throw runtime_error("The number of iterations must be > 0.");
   
-    for ( int iter=0; iter<niter; iter++ )
+    for ( INDEX iter=0; iter<niter; iter++ )
     {
       // Init ztmp
       ztmp[0] = z_abs[0];

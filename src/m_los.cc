@@ -794,12 +794,13 @@ void groundSet(
         const VECTOR&    p_abs,
         const VECTOR&    t_abs,
         const VECTOR&    z_abs,
+        const VECTOR&    f_mono,
 	const Numeric&   z,
 	const Numeric&   e )
 {
   z_ground = z;
   t_ground = interpz( p_abs, z_abs, t_abs, z );
-  resize( e_ground, p_abs.size() );
+  resize( e_ground, f_mono.size() );
   setto( e_ground, e );
 }
 
@@ -817,11 +818,12 @@ void groundAtBottom(
               VECTOR&    e_ground,
         const VECTOR&    t_abs,
         const VECTOR&    z_abs,
+        const VECTOR&    f_mono,
 	const Numeric&   e )
 {
   z_ground = z_abs[0];
   t_ground = t_abs[0];
-  resize( e_ground, z_abs.size() );
+  resize( e_ground, f_mono.size() );
   setto( e_ground, e );
 }
 

@@ -82,6 +82,24 @@ void RandSetSeed( )
 }
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-05-15
+*/
+void Test( )
+{
+  // This function can be used to test stuff.
+  MATRIX z(5,3);
+  VECTOR z0(5,1.0);
+  SYMMETRIC s;
+
+  SymmetricDiagonal( s, "xxx", 5, 2 );
+
+  rand_data_gaussian( z, z0, s );
+}
+
 
 
 

@@ -73,6 +73,17 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("Test"),
+	DESCRIPTION("A dummy function that can be used for test purposes."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
 
 
 
@@ -1730,7 +1741,7 @@ void define_md_data()
           "  z : Altitude above the geoid of the ground.\n"
           "  e : Emission factor."),
 	OUTPUT( z_ground_, t_ground_, e_ground_ ),
-	INPUT( p_abs_, t_abs_, z_abs_ ),
+	INPUT( p_abs_, t_abs_, z_abs_, f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "z",       "e"       ),
@@ -1747,7 +1758,7 @@ void define_md_data()
           "Keywords \n"
           "  e : Emission factor."),
 	OUTPUT( z_ground_, t_ground_, e_ground_ ),
-	INPUT( t_abs_, z_abs_ ),
+	INPUT( t_abs_, z_abs_, f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "e"       ),

@@ -226,11 +226,13 @@ void rand_gaussian(
     if ( (rad<1) && (rad>0) )
     {
       fac = sqrt( -2*log(rad)/rad );
-      i++;
       r[i] = s*fac*z[0];
       i++;
       if ( i < n )
+      {
         r[i] = s*fac*z[1];        
+        i++;
+      }
     }
   }
 }

@@ -1,3 +1,12 @@
+2001-05-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-168
+
+	* Fixed bugs in groundSet, groundAtBottom, and rand_gaussian.
+
+	* Some crap code had got into qtool.
+	
+
 2001-05-14  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-167
