@@ -67,7 +67,7 @@
 void Exit()
 {
   out1 << "  Forced exit.\n";
-  exit(1);
+  exit(0);
 }
 
 
