@@ -1865,7 +1865,7 @@ md_data_raw.push_back
          "controlfiles must define this method. It is executed automatically\n"
          "when ARTS is run on the controlfile." 
         ),
-        OUTPUT(),
+        OUTPUT( ),
         INPUT(),
         GOUTPUT(),
         GINPUT(),
@@ -2242,6 +2242,34 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "value"   ),
         TYPES(    Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("output_file_formatSetAscii"),
+        DESCRIPTION
+        (
+         "Sets the output file format to ASCII."
+        ),
+        OUTPUT( output_file_format_),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("output_file_formatSetBinary"),
+        DESCRIPTION
+        (
+         "Sets the output file format to binary."
+        ),
+        OUTPUT( output_file_format_),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -2809,7 +2837,6 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS(),
         TYPES()));
-
 
   md_data_raw.push_back     
     ( MdRecord
@@ -3419,7 +3446,7 @@ md_data_raw.push_back
          "   filename : Name of the output file."
          ),
         OUTPUT(),
-        INPUT(),
+        INPUT( output_file_format_ ),
         GOUTPUT( ),
         GINPUT(  Any_ ),
         KEYWORDS( "filename" ),
