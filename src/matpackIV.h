@@ -1,4 +1,5 @@
-/* Copyright (C) 2001 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2002 Stefan Buehler <sbuehler@uni-bremen.de>
+                      Wolfram-Andre Haas <wolhaas@hermes.fho-emden.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -18,10 +19,12 @@
 /**
   Implementation of Tensors of Rank 4.
 
+  Based on Tensor3 by Stefan Buehler.
+
   The four dimensions are called: book, page, row, column.
 
-  \author Stefan Buehler
-  \date   2001-11-22
+  \author Wolfram-Andre Haas
+  \date   2002-03-01
  */
 
 #ifndef matpackIV_h

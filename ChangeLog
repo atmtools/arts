@@ -1,3 +1,13 @@
+2002-03-11  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-21
+
+	* src/test_tensor.cc: Added Wolfram to copyright notice.
+
+	* src/matpackIV.h: Changed author to Wolfram.
+
+	* src/matpackV.h: Changed author to Wolfram.
+
 2002-03-08  Wolfram Haas  <wolhaas@hermes.fho-emden.de>
 
 	* arts-1-1-20

@@ -1,4 +1,5 @@
-/* Copyright (C) 2001 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2002 Stefan Buehler <sbuehler@uni-bremen.de>
+                      Wolfram-Andre Haas <wolhaas@hermes.fho-emden.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
