@@ -1,3 +1,15 @@
+2002-06-19  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-153	
+
+	* src/agendas.cc: Added the agendas ext_mat_agenda
+	and abs_vec_agenda.
+
+	* src/m_scatproperties.cc : The dimension of pnd field
+	is changed from pnd_field ( p_grid, lat_grid, long_grid, 
+	part_types) to  pnd_field ( part_types, p_grid, lat_grid,
+	long_grid)
+	
 2002-06-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-152
