@@ -1,5 +1,12 @@
 2002-02-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
+	* arts-1-1-11
+
+	* src/absorption.h: Changes on the comments concerning the 
+	different line intensity units in the catalogs.
+	
+2002-02-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
 	* arts-1-1-10
 
 	* src/absorption.h: Fixed the wrong line intensity units

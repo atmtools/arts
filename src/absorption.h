@@ -658,9 +658,9 @@ public:
       IREFS (I2) = lookup index for intensity
       IREFH (I2) = lookup index for halfwidth
 
-    * The unit of the line intensity given in HITRAN is [cm-1/(molec * cm-2)] but 
-      we use instead [cm-1/(molec / cm-2)] in compliance with our model as well as
-      with JPL.
+    * The unit of the line intensity given in HITRAN is [cm-1/(molec * cm-2)] 
+      but we use instead [cm-1/(molec / cm-2)] as we think that the unit in
+      HITRAN is a typo.
       
     The molecule numbers are encoded as shown in the table below:
 
@@ -723,7 +723,7 @@ public:
        IREFH (I2)    = lookup index for AGAM
    
     The single asterisks mark entries that are different from HITRAN.
-    The double asterisks mark the differnt line intensity unit we use
+    The double asterisks mark the different line intensity unit we use
     [cm-1/(molec / cm-2)] instead of [cm-1/(molec * cm-2)] as in HITRAN.
  
     Note that AGAM and SGAM are for the temperature Tref, while S is
