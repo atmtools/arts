@@ -167,8 +167,9 @@ void nlinspace(
   assert( 1<n );                // Number of points must be greatere 1.
   x.resize(n);
   Numeric step = (stop-start)/(n-1) ;
-  for ( Index i=0; i<n; i++ )
+  for ( Index i=0; i<n-1; i++ )
     x[i] = start + i*step;
+  x[n-1] = stop;
 }
 
 
@@ -196,7 +197,7 @@ void nlogspace(
                const Numeric     stop,        
                const Index         n )
 {
-  // Number of points must be greatere 1:
+  // Number of points must be greater than 1:
   assert( 1<n );        
   // Only positive numbers are allowed for start and stop:
   assert( 0<start );
@@ -211,34 +212,6 @@ void nlogspace(
   x[n-1] = stop;
 }
 
-
-
-//! nlogspace
-/*! 
-    Logarithmically spaced vector with specified length (return version). 
-
-    Returns a vector logarithmically spaced vector between start and 
-    stop of length n (equals the Matlab function logspace)
-
-    The length must be > 1.
-
-    \return   x       logarithmically spaced vector
-    \param    start   first value in x
-    \param    stop    last value of x <= stop
-    \param    n       length of x
-
-    \author Patrick Eriksson
-    \date   2000-06-27
-*/
-Vector nlogspace(  
-                 const Numeric start, 
-                 const Numeric stop,  
-                 const Index     n )
-{
-  Vector x;
-  nlogspace( x, start, stop, n );
-  return x; 
-}                     
 
 
 //! pow

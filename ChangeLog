@@ -1,3 +1,25 @@
+2003-02-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-439
+
+	* src/ppath.cc: I found more new numerical problems with Numeric=float.
+	This time for calculations with refrcation. It turned out that step
+	lengths of e.g. 1 km could not be used. Decided then to test to
+	hard-code double as far as possible in the function. Everything
+	compiles without warnings. Not yet checked if things work better for
+	Numeric=float.
+
+	* src/math_funcs.h: Removed declaration of non-existing return version
+	of function of type linspace.
+
+	* src/m_basic_types.cc (VectorNLogSpace): Not using removed return
+	version of nlogspace.
+
+	* src/math_funcs.cc (nlinspace): The last value is now set to be stop
+	exactly (not start + i*strep). 
+
+	Removed old return version of nlogspace.
+
 2003-02-02  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-438

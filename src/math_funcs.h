@@ -52,32 +52,17 @@ void linspace(
               const Numeric  stop,        
               const Numeric  step );
 
-Vector linspace(             
-                const Numeric  start, 
-                const Numeric  stop,  
-                const Numeric  step );
-
 void nlinspace(         
               Vector&     x, 
               const Numeric     start,     
               const Numeric     stop,        
               const Index       n );
 
-Vector nlinspace(         
-                 const Numeric     start, 
-                 const Numeric     stop,  
-                 const Index         n );
-
 void nlogspace(         
                Vector&     x, 
                const Numeric     start,     
                const Numeric     stop,        
                const Index         n );
-
-Vector nlogspace(  
-                 const Numeric     start, 
-                 const Numeric     stop,  
-                 const Index         n );
 
 double pow (float f, double d);
 

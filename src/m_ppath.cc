@@ -199,7 +199,7 @@ void DoGridcell2D(
   const Numeric   ppc = geometrical_ppc( r_start, za_start );
 
   Vector    r, lat, za;
-  Numeric   lstep;
+  double    lstep;
   Index     endface, tanpoint;
 
   do_gridcell_2d( r, lat, za, lstep, endface, tanpoint, r_start, lat_start, 
@@ -219,7 +219,7 @@ void DoGridcell2D(
   xml_write_to_file ( filename, za );
   filename = "";
   filename_xml( filename, "lstep" );
-  xml_write_to_file ( filename, lstep );
+  xml_write_to_file ( filename, Numeric(lstep) );
   filename = "";
   filename_xml( filename, "endface" );
   xml_write_to_file ( filename, endface );
@@ -261,7 +261,7 @@ void DoGridcell3D(
   const Numeric   ppc = geometrical_ppc( r_start, za_start );
 
   Vector    r, lat, lon, za, aa;
-  Numeric   lstep;
+  double    lstep;
   Index     endface, tanpoint;
 
   do_gridcell_3d( r, lat, lon, za, aa, lstep, endface, tanpoint, 
@@ -289,7 +289,7 @@ void DoGridcell3D(
   xml_write_to_file ( filename, aa );
   filename = "";
   filename_xml( filename, "lstep" );
-  xml_write_to_file ( filename, lstep );
+  xml_write_to_file ( filename, Numeric(lstep) );
   filename = "";
   filename_xml( filename, "endface" );
   xml_write_to_file ( filename, endface );

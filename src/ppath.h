@@ -80,94 +80,94 @@ struct Ppath {
   === Functions from ppath.cc
   ===========================================================================*/
 
-Numeric geometrical_ppc( const Numeric& r, const Numeric& za );
+double geometrical_ppc( const double& r, const double& za );
 
-Numeric geompath_za_at_r(
-       const Numeric&   ppc,
-       const Numeric&   a_za,
-       const Numeric&   r );
+double geompath_za_at_r(
+       const double&   ppc,
+       const double&   a_za,
+       const double&   r );
 
 bool is_los_downwards( 
-        const Numeric&   za,
-        const Numeric&   tilt );
+        const double&   za,
+        const double&   tilt );
 
-Numeric psurface_slope_2d(
+double psurface_slope_2d(
         ConstVectorView   lat_grid,           
         ConstVectorView   r_geoid,
         ConstVectorView   z_surf,
         const GridPos&    gp,
-        const Numeric&    za );
+        const double&     za );
 
-Numeric psurface_slope_3d(
-        const Numeric&   lat1,
-        const Numeric&   lat3,
-        const Numeric&   lon5,
-        const Numeric&   lon6,
-        const Numeric&   r15,
-        const Numeric&   r35,
-        const Numeric&   r36,
-        const Numeric&   r16,
-        const Numeric&   lat,
-        const Numeric&   lon,
-        const Numeric&   aa );
+double psurface_slope_3d(
+        const double&   lat1,
+        const double&   lat3,
+        const double&   lon5,
+        const double&   lon6,
+        const double&   r15,
+        const double&   r35,
+        const double&   r36,
+        const double&   r16,
+        const double&   lat,
+        const double&   lon,
+        const double&   aa );
 
-Numeric psurface_angletilt(
-        const Numeric&   r,
-        const Numeric&   c );
+double psurface_angletilt(
+        const double&   r,
+        const double&   c );
 
 void do_gridcell_2d(
-              Vector&    r_v,
-              Vector&    lat_v,
-              Vector&    za_v,
-              Numeric&   lstep,
-              Index&     endface,
-              Index&     tanpoint,
-        const Numeric&   r_start,
-        const Numeric&   lat_start,
-        const Numeric&   za_start,
-        const Numeric&   ppc,
-        const Numeric&   lmax,
-        const Numeric&   lat1,
-        const Numeric&   lat3,
-        const Numeric&   r1a,
-        const Numeric&   r3a,
-        const Numeric&   r3b,
-        const Numeric&   r1b,
-        const Numeric&   rground1,
-        const Numeric&   rground3 );
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   za_v,
+              double&   lstep,
+              Index&    endface,
+              Index&    tanpoint,
+        const double&   r_start,
+        const double&   lat_start,
+        const double&   za_start,
+        const double&   ppc,
+        const double&   lmax,
+        const double&   lat1,
+        const double&   lat3,
+        const double&   r1a,
+        const double&   r3a,
+        const double&   r3b,
+        const double&   r1b,
+        const double&   rground1,
+        const double&   rground3 );
 
 void do_gridcell_3d(
-              Vector&    r_v,
-              Vector&    lat_v,
-              Vector&    lon_v,
-              Vector&    za_v,
-              Vector&    aa_v,
-              Numeric&   lstep,
-              Index&     endface,
-              Index&     tanpoint,
-        const Numeric&   r_start,
-        const Numeric&   lat_start,
-        const Numeric&   lon_start,
-        const Numeric&   za_start,
-        const Numeric&   aa_start,
-        const Numeric&   ppc,
-        const Numeric&   lmax,
-        const Numeric&   lat1,
-        const Numeric&   lat3,
-        const Numeric&   lon5,
-        const Numeric&   lon6,
-        const Numeric&   r15a,
-        const Numeric&   r35a,
-        const Numeric&   r36a,
-        const Numeric&   r16a,
-        const Numeric&   r15b,
-        const Numeric&   r35b,
-        const Numeric&   r36b,
-        const Numeric&   r16b,
-        const Numeric&   rground15,
-        const Numeric&   rground35,
-        const Numeric&   rground36,
-        const Numeric&   rground16 );
+              Vector&   r_v,
+              Vector&   lat_v,
+              Vector&   lon_v,
+              Vector&   za_v,
+              Vector&   aa_v,
+              double&   lstep,
+              Index&    endface,
+              Index&    tanpoint,
+        const double&   r_start,
+        const double&   lat_start,
+        const double&   lon_start,
+        const double&   za_start,
+        const double&   aa_start,
+        const double&   ppc,
+        const double&   lmax,
+        const double&   lat1,
+        const double&   lat3,
+        const double&   lon5,
+        const double&   lon6,
+        const double&   r15a,
+        const double&   r35a,
+        const double&   r36a,
+        const double&   r16a,
+        const double&   r15b,
+        const double&   r35b,
+        const double&   r36b,
+        const double&   r16b,
+        const double&   rground15,
+        const double&   rground35,
+        const double&   rground36,
+        const double&   rground16 );
 
 void ppath_init_structure( 
               Ppath&      ppath,
@@ -184,9 +184,9 @@ void ppath_step_geom_1d(
               Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
-        const Numeric&    r_geoid,
-        const Numeric&    z_ground,
-        const Numeric&    lmax );
+        const double&     r_geoid,
+        const double&     z_ground,
+        const double&     lmax );
 
 void ppath_step_geom_2d(
               Ppath&      ppath,
@@ -195,7 +195,7 @@ void ppath_step_geom_2d(
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
-        const Numeric&    lmax );
+        const double&     lmax );
 
 void ppath_step_geom_3d(
               Ppath&       ppath,
@@ -205,7 +205,7 @@ void ppath_step_geom_3d(
         ConstTensor3View   z_field,
         ConstMatrixView    r_geoid,
         ConstMatrixView    z_ground,
-	const Numeric&     lmax );
+	const double&      lmax );
 
 void ppath_step_refr_1d(
               Ppath&      ppath,
@@ -218,11 +218,11 @@ void ppath_step_refr_1d(
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
-        const Numeric&    r_geoid,
-        const Numeric&    z_ground,
+        const double&     r_geoid,
+        const double&     z_ground,
         const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax );
+        const double&     lraytrace,
+        const double&     lmax );
 
 void ppath_step_refr_2d(
               Ppath&      ppath,
@@ -239,8 +239,8 @@ void ppath_step_refr_2d(
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
         const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax );
+        const double&     lraytrace,
+        const double&     lmax );
 
 void ppath_step_refr_3d(
               Ppath&      ppath,
@@ -258,8 +258,8 @@ void ppath_step_refr_3d(
         ConstMatrixView   r_geoid,
         ConstMatrixView   z_ground,
         const String&     rtrace_method,
-        const Numeric&    lraytrace,
-        const Numeric&    lmax );
+        const double&     lraytrace,
+        const double&     lmax );
 
 void ppath_calc(
               Ppath&          ppath,

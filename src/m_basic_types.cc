@@ -781,8 +781,7 @@ void VectorNLogSpace(       Vector&    x,
   if ( (start<=0) || (stop<=0) )
     throw runtime_error("Only positive numbers are allowed."); 
 
-  x.resize(n);
-  x = nlogspace(start,stop,n);
+  nlogspace(x,start,stop,n);
   out2 << "  Creating " << x_name << " as logarithmically spaced vector.\n";
   out3 << "            length : " << n << "\n";
   out3 << "       first value : " << x[0] << "\n";
