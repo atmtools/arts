@@ -1,3 +1,17 @@
+2002-06-25  Christian Melsheimer  <melsheimer@uni-bremen.de>
+
+	* arts-1-1-164
+
+	* doc/uguide/fm_definitions.tex: Americanized spelling
+
+	* doc/uguide/symbol_defs: Redefined \Re and \Im (real and imaginary
+	part (now: non-italic "Re" and "Im", like function names)
+
+	* doc/uguide/ppath.tex: Americanized spelling.
+
+	* doc/uguide/scattering.tex: Added section "Polarization and
+	Stokes Parameters", did spell check and americanized spelling.
+
 2002-06-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-163
