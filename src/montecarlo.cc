@@ -460,6 +460,7 @@ assert(is_size(itw,2));       // We need 2 interpolation
    \param   T             Output: transmittance matrix ( I may have made this term up ).
    \param   K_abs         Output: absorption coefficient vector
    \param   temperature   Output: 
+   \param   K             Output: extinction matrix at interpolation point
    \param   rte_pos         Output: position at pathlength along ppath
    \param   rte_los         Output: LOS at pathlength along ppath
    \param   gp            Output: Gridpos of interpolated point
@@ -482,6 +483,7 @@ assert(is_size(itw,2));       // We need 2 interpolation
 void interpTArray(Matrix& T,
 		  Vector& K_abs,
 		  Numeric& temperature,
+		  MatrixView& K,
 		  Vector& rte_pos,
 		  Vector& rte_los,
 		  ArrayOfGridPos& gp,
@@ -497,7 +499,6 @@ void interpTArray(Matrix& T,
 {
   //Internal Declarations
   Matrix incT(stokes_dim,stokes_dim);
-  Matrix K(stokes_dim,stokes_dim);
   Matrix opt_depth_mat(stokes_dim,stokes_dim);
   Vector itw(2);
   Numeric delta_s;
@@ -573,9 +574,6 @@ void Sample_los (
 /*!
    Randomly samples path length from an exponential distribution based on the 
    extinction matrix along the line of sight
-   Note: currently the same sequence of pathlengths will be produced for every 
-   arts run.  This is useful during development for replicating errors.  For 
-   serious calculations this will be changed.
 
    \param   ppathlength       Output: the pathlength.
    \param   g                 Output: the probability density of the returned pathlength.
@@ -583,27 +581,72 @@ void Sample_los (
    \param   ext_matArray      An array of extinction matrices along the line of sight.
    
    \author Cory Davis
-   \date   2003-06-19
+   \date   2003-10-03
 */
 void Sample_ppathlength (
 			 Numeric& pathlength, 
 			 Numeric& g,
+			 Numeric& K11,
 			 Rng& rng,
 			 const ArrayOfMatrix& ext_matArray
 			 )
 {		
 	//Since we already have an array 
-	//of extinction matrix elements we could choos a number of ways
-	//to sample the pathlength.  To start with we'll try using the 
-	//extinction matrix at the point in question. 
+	//of extinction matrix elements we could choose a number of ways
+	//to sample the pathlength.  To start with we'll try using the mean 
+	//extinction matrix along the line of sight.
 	Matrix K = ext_matArray[0];
-        Numeric K11 = K(0,0);
+	for (Index i=1;i<ext_matArray.nelem();i++){
+	  K+=ext_matArray[i];
+	}
+	K/=ext_matArray.nelem();
+        K11 = K(0,0);
 	//	cout << "K11 = "<< K11 <<"\n";
 	pathlength = -log(rng.draw())/K11;
 
         g=K11*exp(-pathlength*K11);	
 }		
 
+//! Sample_ppathlengthLOS
+
+/*!
+   Similar to Sample_ppathlength, but ensures that the sampled point lies within the cloudbox
+
+   \param   ppathlength       Output: the pathlength.
+   \param   g                 Output: the probability density of the returned pathlength.
+   \param   rng               Rng random number generator instance
+   \param   ext_matArray      An array of extinction matrices along the line of sight.
+   \param   dist_to_boundary  the distance from the current position to the far boundary 
+                              along the line of sight
+   \author Cory Davis
+   \date   2003-03-10
+*/
+
+void Sample_ppathlengthLOS (
+			 Numeric& pathlength, 
+			 Numeric& g,
+			 Rng& rng,
+			 const ArrayOfMatrix& ext_matArray,
+			 const Numeric& dist_to_boundary
+			 )
+{		
+	//Since we already have an array 
+	//of extinction matrix elements we could choose a number of ways
+	//to sample the pathlength.  To start with we'll try using the mean 
+	//extinction matrix along the line of sight.
+	Matrix K = ext_matArray[0];
+	for (Index i=1;i<ext_matArray.nelem();i++){
+	  K+=ext_matArray[i];
+	}
+	K/=ext_matArray.nelem();
+        Numeric K11 = K(0,0);
+	//	cout << "K11 = "<< K11 <<"\n";
+	Numeric r=rng.draw();
+
+	pathlength = -log(exp(-K11*dist_to_boundary)*(1-r)+r)/K11;
+
+        g=K11*exp(-pathlength*K11)/(1-exp(-K11*dist_to_boundary));	
+}		
 
 //!  TArrayCalc
 /*! 

@@ -1,3 +1,20 @@
+2003-10-03  Cory Davis    <cory@met.ed.ac.uk>
+
+	* arts-1-1-695 
+
+	* src/m_montecarlo.cc(ScatteringMonteCarlo): Some significant
+	changes to the monte carlo algorithm in the name of improving 
+	performance.
+	New random number determines whether we have scattering or
+	emission. In original line of sight direction pathlength is chosen
+	from a different PDF so that a scattering/emission event is
+	guaranteed. These changes have not been tested.
+
+	* src/montecarlo{cc,h}: Added Sample_ppathlengthLOS - a new PDF
+	for the initial line of sight.  Added the extinction matrix to the
+	output of interpTArray.  (Sample_ppathlength) Changed PDF so that
+	it is based on the ppath averaged extinction matrix.
+
 2003-10-03  Mattias Ekström  <ekstrom@rss.chalmers.se> 
 
 	* arts-1-1-694

@@ -108,7 +108,8 @@ Vector interp( ConstVectorView itw,
 void interpTArray(Matrix& T,
 		  Vector& Kabs,
 		  Numeric& temperature,
-		  Vector& rte_pos,
+		  MatrixView&  K,
+		  Vector& rte_pos,//maybe these should be VectorViews?
 		  Vector& rte_los,
 		  ArrayOfGridPos& gp,
 		  const ArrayOfMatrix& TArray,
@@ -131,9 +132,19 @@ void Sample_los (
 void Sample_ppathlength (
 			 Numeric& pathlength, 
 			 Numeric& g,
+			 Numeric& K,
 			 Rng& rng,
 			 const ArrayOfMatrix& ext_matArray
 			 );
+
+void Sample_ppathlengthLOS (
+			 Numeric& pathlength, 
+			 Numeric& g,
+			 Rng& rng,
+			 const ArrayOfMatrix& ext_matArray,
+			 const Numeric& dist_to_boundary
+			 );
+
 
 void TArrayCalc(
 		//output

@@ -450,6 +450,7 @@ void ScatteringMonteCarlo (
   for (Index i=0; i<stokes_dim; i++){identity(i,i)=1.0;}
   Matrix Q(stokes_dim,stokes_dim),T(stokes_dim,stokes_dim);
   Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
+  Matrix K(stokes_dim,stokes_dim);
   bool keepgoing;
   Index scattering_order;
   Index photon_number;
@@ -493,6 +494,9 @@ void ScatteringMonteCarlo (
   Vector boundarycontri(stokes_dim);
   Vector pathinc(stokes_dim);
   Numeric g_los_csc_theta;
+  Numeric albedo;
+  Numeric dist_to_boundary;
+  Numeric K11;
   time_t start_time=time(NULL);
 
   //If necessary, open file for histogram data output
@@ -542,6 +546,7 @@ void ScatteringMonteCarlo (
       if (silent==0){cout<<"photon_number = "<<photon_number<<"\n";}
       while (keepgoing)
 	{
+	  dist_to_boundary=cum_l_step[ppathcloud.np-1];
 	  if (scattering_order>0)
 	    {
 	      //We need to calculate a new propagation path. In the future, we may be 
@@ -561,15 +566,15 @@ void ScatteringMonteCarlo (
 				     i_space_agenda, ground_refl_agenda, f_grid, photon_number
 				     , scattering_order);
 	      Iboundary=i_rte(0,joker);
+	      Sample_ppathlength (pathlength,g,K11,rng,ext_matArray);
 	    }
-	  
-	  Sample_ppathlength (pathlength,g,rng,ext_matArray);
-	  //	  cout << "pathlength = " << pathlength << "\n";
-
-
+	  else
+	    {
+	      Sample_ppathlengthLOS (pathlength,g,rng,ext_matArray,dist_to_boundary);
+	    }
 	  assert(cum_l_step.nelem()==ppathcloud.np);
 	  assert(TArray.nelem()==ppathcloud.np);
-	  if (pathlength>cum_l_step[ppathcloud.np-1])
+	  if (pathlength>dist_to_boundary)
 	    //Then the path has left the cloud box
 	    {
 	      if (scattering_order>0)
@@ -577,7 +582,8 @@ void ScatteringMonteCarlo (
 		  T=TArray[ppathcloud.np-1];
 		  mult(boundarycontri,T,Iboundary);
 		  mult(pathinc,Q,boundarycontri);
-		  pathI += pathinc;
+		  pathI = pathinc;
+		  pathI*=exp(K11*dist_to_boundary);
 		}
 	      keepgoing=false;     
 	      //stop here
@@ -586,62 +592,68 @@ void ScatteringMonteCarlo (
 	    {
 	       //we have another scattering/emission point
 	      //Interpolate T, s_0, etc from ppath and Tarray
-	      interpTArray(T, K_abs, temperature, rte_pos, rte_los, pathlength_gp,TArray, 
+	      interpTArray(T, K_abs, temperature, K, rte_pos, rte_los, pathlength_gp,TArray, 
 			   ext_matArray,abs_vecArray, t_ppath, cum_l_step,pathlength, 
 			   stokes_dim, ppathcloud);
-	      //Calculate emission
-	      Numeric planck_value = planck( f_grid[f_index], temperature );
-	      Vector emission=K_abs;
-	      emission*=planck_value;
-	      Vector emissioncontri(stokes_dim);
-	      mult(emissioncontri,T,emission);
-	      emissioncontri/=g;
-	      if (scattering_order>0)
+	      //Estimate single scattering albedo
+	      albedo=1-K_abs[0]/K(0,0);
+	      //cout<<"albedo = "<<albedo<<" K(0,0) = "<<K(0,0)<<" K_abs[0] = "<<K_abs[0]<<"\n";
+	      //determine whether photon is emitted or scattered
+	      if (rng.draw()>albedo)
 		{
-		  mult(boundarycontri,TArray[ppathcloud.np-1],Iboundary);
-		  emissioncontri+=boundarycontri;  
+		  //Calculate emission
+		  Numeric planck_value = planck( f_grid[f_index], temperature );
+		  Vector emission=K_abs;
+		  emission*=planck_value;
+		  Vector emissioncontri(stokes_dim);
+		  mult(emissioncontri,T,emission);
+		  emissioncontri/=(g*(1-albedo));//yuck!
+		  mult(pathinc,Q,emissioncontri);
+		  pathI = pathinc;
+		  keepgoing=false;
 		}
-	      mult(pathinc,Q,emissioncontri);
-	      pathI += pathinc;
+	      else
+		{
+		  //Sample new line of sight.
+		  Sample_los(new_rte_los,g_los_csc_theta,rng, los_sampling_method);
+		  
+		  //Calculate Phase matrix////////////////////////////////
+		  pha_mat_za_grid[0]=180-rte_los[0];
+		  pha_mat_za_grid[1]=180-new_rte_los[0];
+		  pha_mat_aa_grid[0]= (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
+		  pha_mat_aa_grid[1]= (new_rte_los[1]>=0) ?-180+new_rte_los[1]:pha_mat_aa_grid[1]=180+new_rte_los[1];
+		  
+		  za_prop=0;
+		  aa_prop=0;
+		  pha_mat_sptFromData(pha_mat_spt,
+				      scat_data_raw, pha_mat_za_grid, pha_mat_aa_grid, 
+				      za_prop, aa_prop, f_index, f_grid, scat_theta, scat_theta_gps, scat_theta_itws);
+		  //There should probably be some interpolation here for now just use the 
+		  //low gridpoint
+		  
+		  p_index=ppathcloud.gp_p[pathlength_gp[0].idx].idx;
+		  lat_index=ppathcloud.gp_lat[pathlength_gp[0].idx].idx;
+		  lon_index=ppathcloud.gp_lon[pathlength_gp[0].idx].idx;
 
-	      //Sample new line of sight.
-	      Sample_los(new_rte_los,g_los_csc_theta,rng, los_sampling_method);
-	      
-	      //Calculate Phase matrix////////////////////////////////
-	      pha_mat_za_grid[0]=180-rte_los[0];
-	      pha_mat_za_grid[1]=180-new_rte_los[0];
-	      pha_mat_aa_grid[0]= (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
-	      pha_mat_aa_grid[1]= (new_rte_los[1]>=0) ?-180+new_rte_los[1]:pha_mat_aa_grid[1]=180+new_rte_los[1];
-	      
-	      za_prop=0;
-	      aa_prop=0;
-	      pha_mat_sptFromData(pha_mat_spt,
-				  scat_data_raw, pha_mat_za_grid, pha_mat_aa_grid, 
-				  za_prop, aa_prop, f_index, f_grid, scat_theta, scat_theta_gps, scat_theta_itws);
-	      //There should probably be some interpolation here for now just use the 
-	      //low gridpoint
-	      
-	      p_index=ppathcloud.gp_p[pathlength_gp[0].idx].idx;
-	      lat_index=ppathcloud.gp_lat[pathlength_gp[0].idx].idx;
-	      lon_index=ppathcloud.gp_lon[pathlength_gp[0].idx].idx;
+		  pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+			      atmosphere_dim, p_index, lat_index, 
+			      lon_index);
+		  
+		  
+		  Z=pha_mat(1,1,joker,joker);
+		  Z*=2*PI/g/g_los_csc_theta/albedo;
+		  mult(q,T,Z);
+		  mult(newQ,Q,q);
+		  Q=newQ;
+		  scattering_order+=1;
+		  rte_los=new_rte_los;
+		  if (silent==0){cout <<"photon_number = "<<photon_number << 
+				   ", scattering_order = " <<scattering_order <<"\n";}
+		  //Q-value truncation. These seems to stop rounding errors in 
+		  //opticallythick cases
+		  //if (Q(0,0)<1e-4){ keepgoing=false;}
+		}
 
-	      pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-			  atmosphere_dim, p_index, lat_index, 
-			  lon_index);
-
-
-	      Z=pha_mat(1,1,joker,joker);
-	      Z*=2*PI/g/g_los_csc_theta;
-	      mult(q,T,Z);
-	      mult(newQ,Q,q);
-	      Q=newQ;
-	      scattering_order+=1;
-	      rte_los=new_rte_los;
-	      if (silent==0){cout <<"photon_number = "<<photon_number << 
-			       ", scattering_order = " <<scattering_order <<"\n";}
-	      //Q-value truncation. These seems to stop rounding errors in 
-	      //opticallythick cases
-	      if (Q(0,0)<1e-4){ keepgoing=false;}
 	    }
  
 	}
