@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.503)
+AM_INIT_AUTOMAKE(arts,1.1.504)
 
 AM_MAINTAINER_MODE
 
@@ -261,6 +261,12 @@ if test x$ac_docgen = xyes; then
     if test x$ac_doxygen = xno; then
         AC_MSG_ERROR(Doxygen is required to build the documentation - Get it from http://www.doxygen.org/)
     fi
+
+    AC_CHECK_PROG(ac_dot, dot, yes, no)
+    if test x$ac_dot = xno; then
+      AC_MSG_WARN(The dot tool from the graphviz package is needed to generate dependency plots in the documentation - Get it from http://www.graphviz.org/)
+    fi
+    AC_SUBST(ac_dot)
 
     AC_CHECK_PROG(ac_latex, latex, yes, no)
     if test x$ac_latex = xno; then
