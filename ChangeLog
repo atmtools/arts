@@ -1,3 +1,12 @@
+2003-06-10  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-1-1-566
+
+	* aux/part_fct/: updated with new JPL partition functions and
+	added some file output for Carmens work on a comparison between
+	JPL and HITRAN part. fct. Fit for JPL is done now between 150K and
+	300K, as Carmens matlab fit.
+
 2003-06-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-565
