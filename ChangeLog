@@ -1,3 +1,22 @@
+2002-08-13  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-0-39
+
+	* src/absorption.cc: Fixed bug reported by Thomas. The local copy
+	of the frequency grid was initialized only once. But it was
+	gradually destroyed in the case of lineshape with cutoff, because
+	the cutoff frequency was added in different places for different
+	lines. The only way to fix the bug was to copy the frequency grid
+	inside the line loop. This adds some overhead, but the computation
+	with cutoff should be still much faster than without.
+
+	Wow, it took me a while to find this one! The absorption part
+	sucks, good that we have to redo this in a clean way for ARTS-1-1.
+
+	Incidentally, lineshapes with cutoff only work correctly if the
+	frequency grid is sorted (duplicate values allowed). I have put in
+	an appropriate runtime error check now.
+
 2002-07-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-38

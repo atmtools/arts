@@ -1693,6 +1693,31 @@ void write_lines_to_stream(ostream& os,
 }
 
 
+//! Checks if a vector is sorted in ascending order.
+/*!
+  Duplicated values are allowed.
+
+  We need this to make sure that the frequency grid is sorted in the
+  case of lineshape with cutoff. Duplicate values are allowed.
+
+  THIS FUNCTION IS TAKEN FROM ARTS-1-1.
+
+  \param   x   A vector.
+  \return      True if sorted.
+*/
+bool is_sorted( ConstVectorView   x )
+{
+  if( x.nelem() > 1 )
+    {
+      for( Index i=1; i<x.nelem(); i++ )
+	{
+	  if( x[i] < x[i-1] )
+	    return false;
+	}
+    }
+  return true;
+}
+
 /** Calculate line absorption cross sections for one tag group. All
     lines in the line list must belong to the same species. This must
     be ensured by lines_per_tgCreateFromLines, so it is only verified
@@ -1763,27 +1788,29 @@ void xsec_species( MatrixView               xsec,
   Vector ls(nf+1);
   Vector fac(nf+1);
 
+  bool cut = (cutoff != -1) ? true : false;
+
+  // Check that the frequency grid is sorted in the case of lineshape
+  // with cutoff. Duplicate frequency values are allowed.
+  if (cut)
+    {
+      if ( ! is_sorted( f_mono ) )
+	{
+	  ostringstream os;
+	  os << "If you use a lineshape function with cutoff, your\n"
+	     << "frequency grid *f_mono* must be sorted.\n"
+	     << "(Duplicate values are allowed.)";
+	  throw runtime_error(os.str());
+	}
+    }
+  
   // We need a local copy of f_mono which is 1 element longer, because
   // we append a possible cutoff to it.
-  bool cut = (cutoff != -1) ? true : false;
-  Index nfl = nf;			// This will hold the actual number of
-		 		        // frequencies to add to xsec
-		 		        // later on.
-  Index nfls = nf;			// This will hold the actual
-					// nubmer of frequencies for
-					// the call to the lineshape
-					// functions later on.
-
+  // The initialization of this has to be inside the line loop!
   Vector f_local( nf + 1 );
-  f_local[Range(0,nf)] = f_mono; // Copy f_mono to the beginning of
-				 // f_local. There could be one
-				 // element left at the end of f_local.
-
-  // The baseline to substract for cutoff frequency
-  Numeric base=0.0;
 
   // Voigt generally needs a different frequency grid. If we allocate
-  // that in the outer loop, insted of in voigt, we don't have the
+  // that in the outer loop, instead of in voigt, we don't have the
   // free store allocation at each lineshape call. Calculation is
   // still done in the voigt routine itself, this is just an auxillary
   // parameter, passed to lineshape. For selected lineshapes (e.g.,
@@ -1864,6 +1891,22 @@ void xsec_species( MatrixView               xsec,
       // Loop all lines:
       for ( Index l=0; l< nl; ++l )
 	{
+	  // Copy f_mono to the beginning of f_local. There is one
+	  // element left at the end of f_local.  
+	  // THIS HAS TO BE INSIDE THE LINE LOOP, BECAUSE THE CUTOFF
+	  // FREQUENCY IS ALWAYS PUT IN A DIFFERENT PLACE!
+	  f_local[Range(0,nf)] = f_mono;
+
+	  // This will hold the actual number of frequencies to add to
+	  // xsec later on:
+	  Index nfl = nf;
+
+	  // This will hold the actual number of frequencies for the
+	  // call to the lineshape functions later on:
+	  Index nfls = nf;	
+
+	  // The baseline to substract for cutoff frequency
+	  Numeric base=0.0;
 
 	  // lines[l] is used several times, this construct should be
 	  // faster (Oliver Lemke)
@@ -1961,26 +2004,26 @@ void xsec_species( MatrixView               xsec,
 	  // cutoff ?
 	  if ( cut )
 	    {
-	      // Check whether we have elements in ls that have to be
-	      // set to zero at lower frequencies of f_mono.
+	      // Check whether we have elements in ls that can be
+	      // ignored at lower frequencies of f_mono.
 	      //
 	      // Loop through all frequencies, finding min value and
 	      // set all values to zero on that way.
 	      while ( i_f_min < nf && (F0 - cutoff) > f_mono[i_f_min] )
 		{
-		  ls[i_f_min] = 0;
+		  //		  ls[i_f_min] = 0;
 		  ++i_f_min;
 		}
 	      
 
-	      // Check whether we have elements in ls that have to be
-	      // set to zero at higher frequencies of f_mono.
+	      // Check whether we have elements in ls that can be
+	      // ignored at higher frequencies of f_mono.
 	      //
 	      // Loop through all frequencies, finding max value and
 	      // set all values to zero on that way.
 	      while ( i_f_max >= 0 && (F0 + cutoff) < f_mono[i_f_max] )
 		{
-		  ls[i_f_max] = 0;
+		  //		  ls[i_f_max] = 0;
 		  --i_f_max;
 		}
 	      
@@ -2001,7 +2044,7 @@ void xsec_species( MatrixView               xsec,
 	      // Nothing to do here. Note that nfl and nfls are both still set to nf.
 	    }
 
-	  //	  cout << "nf, nfl, nlfs = " << nf << ", " << nfl << ", " << nfls << ".\n";
+	  //	  cout << "nf, nfl, nfls = " << nf << ", " << nfl << ", " << nfls << ".\n";
 	
 	  // Maybe there are no frequencies left to compute?  Note that
 	  // the number that counts here is nfl, since only these are
@@ -2010,7 +2053,8 @@ void xsec_species( MatrixView               xsec,
 	  if ( nfl > 0 )
 	    {
 	      // Calculate the line shape:
-	      lineshape_data[ind_ls].Function()(ls,aux,F0,gamma,sigma,
+	      lineshape_data[ind_ls].Function()(ls,
+						aux,F0,gamma,sigma,
 						f_local[Range(i_f_min,nfls)],
 						nfls);
 
