@@ -59,3 +59,6 @@ AvE 04.09.2000: Agnes Perrin mentioned that the simple scheme to calculate
 SAB 2000-09-13: Remove `1D' from WSV names.
 
 SAB 2000-09-13: Change names of automatically generated files to _auto...
+
+AvE 2000-09-27: There is optimization potential in the lineshape.cc file,
+		read FIXME comments over there.

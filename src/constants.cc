@@ -97,6 +97,12 @@ extern const Numeric BOLTZMAN_CONST = 1.380662e-23;
 */
 extern const Numeric AVOGADROS_NUMB = 6.0220450e26;
 
+/** Atomic mass unit, 12th of a C^12_6 atom.
+    \author Oliver Lemke
+    \date   27.09.2000
+*/
+extern const Numeric ATOMIC_MASS_UNIT = 1.6606E-27;
+
 /** Global constant, Planck temperature for cosmic background radiation [K]
     \author Patrick Eriksson 
     \date   08.04.2000
@@ -114,6 +120,12 @@ extern const Numeric SUN_TEMP = 6000.0;
     \date   08.04.2000
 */
 extern const Numeric NAT_LOG_2      = 0.69314718055994;
+
+/** Global constant, sqrt(ln(2))
+    \author Axel von Engeln
+    \date   25.09.2000
+*/
+extern const Numeric SQRT_NAT_LOG_2      = 0.832554611;
 
 /** Global constant, pi
     \author Patrick Eriksson 

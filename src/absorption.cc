@@ -33,7 +33,7 @@
 #include "messages.h"
 
 
-/*! The map associated with species_data. */
+/** The map associated with species_data. */
 std::map<string, size_t> SpeciesMap;
 
 
@@ -710,7 +710,7 @@ ostream& operator << (ostream& os, const OneTag& ot)
 }
 
 
-/*! A helper function that writes lines in a line list to a stream. 
+/** A helper function that writes lines in a line list to a stream. 
 
     \retval os      The stream to write to.
     \param  lines   The line list to write.
@@ -727,7 +727,7 @@ void write_lines_to_stream(ostream& os,
 }
 
 
-/*! Calculate absorption coefficients for one tag group. All lines in
+/** Calculate absorption coefficients for one tag group. All lines in
     the line list must belong to the same species. This must be
     ensured by lines_per_tgCreateFromLines, so it is only verified
     with assert. Also, the input vectors p_abs, t_abs, and vmr must
@@ -751,8 +751,18 @@ void abs_species( MATRIX&                  abs,
 		  const VECTOR&            vmr,
 		  const ARRAYofLineRecord& lines )
 {
-  // Make lineshape lookup data visible:
+  // Make lineshape and species lookup data visible:
   extern const ARRAY<LineshapeRecord> lineshape_data;
+  extern const ARRAY<SpeciesRecord> species_data;
+
+  // speed of light constant
+  extern const Numeric SPEED_OF_LIGHT;
+
+  // Boltzmann constant
+  extern const Numeric BOLTZMAN_CONST;
+
+  // Avogadros constant
+  extern const Numeric AVOGADROS_NUMB;
 
   // Define the vector for the line shape function here, so that we
   // don't need so many free store allocations.
@@ -817,10 +827,15 @@ void abs_species( MATRIX&                  abs,
     // Loop all lines:
     for ( size_t l=0; l<lines.dim(); ++l )
       {
+
+	// lines[l] is used several times, this construct should be
+	// faster (Oliver Lemke)
+	LineRecord l_l = lines[l];
+
 	// Intensity is already in the right units (Hz*m^2). It also
 	// includes already the isotopic ratio. Needs
 	// only to be multiplied by total number density, VMR, and lineshape. 
-	Numeric intensity = lines[l].I0();
+	Numeric intensity = l_l.I0();
 
 	// FIXME: We should calculate the temperature dependence of the
 	// intensities here.
@@ -832,20 +847,30 @@ void abs_species( MATRIX&                  abs,
 	// FIXME: This is inefficient, the scaling to Hz could be
 	// stored in lines.
 
-	const Numeric theta = lines[l].Tgam() / t_abs(i);
+	const Numeric theta = l_l.Tgam() / t_abs(i);
 
 	Numeric gamma
-	  = lines[l].Agam() * pow(theta, lines[l].Nair())  * (p_abs(i) - p_partial)
-	  + lines[l].Sgam() * pow(theta, lines[l].Nself()) * p_partial;
+	  = l_l.Agam() * pow(theta, l_l.Nair())  * (p_abs(i) - p_partial)
+	  + l_l.Sgam() * pow(theta, l_l.Nself()) * p_partial;
 
-	// Ignore Doppler broadening for now. FIXME: Add this.
+	// Doppler broadening without the sqrt(ln(2)) factor, which
+	// seems to be redundant FIXME: verify .
+	Numeric sigma
+	  = l_l.F() / SPEED_OF_LIGHT * 
+	  sqrt( 2.0 * BOLTZMAN_CONST * t_abs(i) * AVOGADROS_NUMB / 
+		species_data[l_l.Species()].Isotope()[l_l.Isotope()].Mass());
 
 	// Get line shape:
-	// We have only one, so just take it!
-	lineshape_data[0].Function()(ls,
-				     lines[l].F(),
+	// FIXME: we need an index to this, extracted from the
+	// controlfile. 
+	// Current lineshapes:
+	// 0 : Lorentz
+	// 1 : Voigt, Kuntz approximation, accuracy better than 2*10-6.
+
+	lineshape_data[1].Function()(ls,
+				     l_l.F(),
 				     gamma,
-				     0,
+				     sigma,
 				     f_mono);
 
 	// Add line to abs:

@@ -1,3 +1,13 @@
+2000-09-27  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-55
+
+	* Voigt lineshape included, Kuntz approximation to it. 
+
+	* Doppler parameter calculation included.
+
+	* Constants required included.
+
 2000-09-26  Oliver Lemke  <oliver@uni-bremen.de>
 
 	* arts-0-0-54

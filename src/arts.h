@@ -90,6 +90,7 @@
     reason. Always use this type instead.  */
 typedef double Numeric;
 
+
 //--------------------< Set NDEBUG? >--------------------
 /* Define this in order to turn off all debuggin feature (TNT range
     checking, assertions, ...) */

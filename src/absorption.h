@@ -15,7 +15,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*! \file
+/** \file
     Declarations required for the calculation of absorption coefficients.
 
     \author Stefan Buehler
@@ -29,7 +29,7 @@
 #include <iostream>
 #include "vecmat.h"
 
-/*! The type that is used to store pointers to lineshape
+/** The type that is used to store pointers to lineshape
     functions.  */
 typedef void (*lsf_type)(VECTOR&,
 			 Numeric,
@@ -37,7 +37,7 @@ typedef void (*lsf_type)(VECTOR&,
 			 Numeric,
 			 const VECTOR&);
 
-/*! Lineshape related information. There is one LineshapeRecord for
+/** Lineshape related information. There is one LineshapeRecord for
     each available lineshape function.
 
     \author Stefan Buehler
@@ -53,34 +53,34 @@ public:
       mcutoff(cutoff),
       mfunction(function)
   { /* Nothing to do here. */ }
-  /*! Return the name of this lineshape. */
+  /** Return the name of this lineshape. */
   const string&  Name()        const { return mname;        }   
-  /*! Return the description text. */
+  /** Return the description text. */
   const string&  Description() const { return mdescription; }
-  /*! Return the cutoff frequency (in Hz). This is the distance from
+  /** Return the cutoff frequency (in Hz). This is the distance from
     the line center outside of which the lineshape is defined to be
     zero. Negative means no cutoff.*/
   Numeric Cutoff() const { return mcutoff; }
-  /*! Return pointer to lineshape function. */
+  /** Return pointer to lineshape function. */
   lsf_type Function() const { return mfunction; }
 private:	
-  string  mname;        //!< Name of the function (e.g., Lorentz).
-  string  mdescription; //!< Short description.
-  Numeric mcutoff;      /*!< Cutoff frequency (in Hz). This is the
+  string  mname;        ///< Name of the function (e.g., Lorentz).
+  string  mdescription; ///< Short description.
+  Numeric mcutoff;      /**< Cutoff frequency (in Hz). This is the
   			     distance from the line center outside of
 			     which the lineshape is defined to be
 			     zero. Negative means no cutoff. */ 
-  lsf_type mfunction;       /*!< Pointer to lineshape function. */
+  lsf_type mfunction;   ///< Pointer to lineshape function.
 
 };
 
-/*! Contains the lookup data for one isotope.
+/** Contains the lookup data for one isotope.
     \author Stefan Buehler */
 class IsotopeRecord{
 public:
-  /*! Default constructor. Needed by make_array. */
+  /** Default constructor. Needed by make_array. */
   IsotopeRecord() { /* Nothing to do here */ }
-  /*! Constructor that sets the values. */
+  /** Constructor that sets the values. */
   IsotopeRecord(const string&  	  name,
 		const Numeric& 	  abundance,
 		const Numeric& 	  mass,
@@ -106,18 +106,18 @@ public:
 #endif // ifndef NDEBUG
   }
 
-  /*! Isotope name. */
+  /** Isotope name. */
   const string&       Name()         const { return mname;  }
-  /*! Normal abundance ( = isotopic ratio). (Absolute number.) */
+  /** Normal abundance ( = isotopic ratio). (Absolute number.) */
   const Numeric&      Abundance()    const { return mabundance; }
-  /*! Mass of the isotope. (In unified atomic mass units u)
+  /** Mass of the isotope. (In unified atomic mass units u)
       If I understand this correctly this is the same as g/mol. */
   const Numeric&      Mass()         const { return mmass;    }
-  /*! MYTRAN2 tag numers for all isotopes. -1 means not included. */
+  /** MYTRAN2 tag numers for all isotopes. -1 means not included. */
   const int&          MytranTag()    const { return mmytrantag;    }
-  /*! HITRAN-96 tag numers for all isotopes. -1 means not included. */
+  /** HITRAN-96 tag numers for all isotopes. -1 means not included. */
   const int&          HitranTag()    const { return mhitrantag;    }
-  /*! JPL tag numbers for all isotopes. Empty array means not included. There
+  /** JPL tag numbers for all isotopes. Empty array means not included. There
       can be more than one JPL tag for an isotopic species, because in
       JPL different vibrational states have different tags. */
   const ARRAY<int>&   JplTags()      const { return mjpltags;      }
@@ -132,12 +132,12 @@ private:
 };
 
 
-/*! Contains the lookup data for one species.
+/** Contains the lookup data for one species.
 
     \author Stefan Buehler  */
 class SpeciesRecord{
 public:
-  /*! The constructor used in define_species_data. */
+  /** The constructor used in define_species_data. */
   SpeciesRecord(const char name[],
 		const int degfr,
 		const ARRAY<IsotopeRecord>& isotope)
@@ -185,16 +185,16 @@ public:
   const ARRAY<IsotopeRecord>& Isotope()  const { return misotope;  }
   
 private:
-  /*! Species name. */
+  /** Species name. */
   string mname;
-  /*! Degrees of freedom. */
+  /** Degrees of freedom. */
   int mdegfr;
-  /*! Isotope data. */
+  /** Isotope data. */
   ARRAY<IsotopeRecord> misotope;
 };
 
 
-/*! Spectral line catalog data. Here is a description of the ARTS
+/** Spectral line catalog data. Here is a description of the ARTS
     catalogue format, largely taken from the Bredbeck book, except
     that some units are slightly changed:
 
@@ -273,7 +273,7 @@ private:
 class LineRecord {
 public:
 
-  /*! Default constructor. Initialize to default values. The indices
+  /** Default constructor. Initialize to default values. The indices
       are initialized to large numbers, so that we at least get range
       errors when we try to used un-initialized data. */
   LineRecord()
@@ -292,7 +292,7 @@ public:
       maux     (       )
  { /* Nothing to do here. */ }
 
-  /*! Constructor that sets all data elements explicitly. If
+  /** Constructor that sets all data elements explicitly. If
       assertions are not disabled (i.e., if NDEBUG is not #defined),
       assert statements check that the species and isotope data
       exists. */
@@ -330,16 +330,16 @@ public:
     assert( misotope < species_data[mspecies].Isotope().size() );
   }
 
-  /*! The index of the molecular species that this line belongs
+  /** The index of the molecular species that this line belongs
       to. The species data can be accessed by species_data[Species()]. */
   size_t Species() const { return mspecies; }
 
-  /*! The index of the isotopic species that this line belongs
+  /** The index of the isotopic species that this line belongs
       to. The isotopic species data can be accessed by
       species_data[Species()].Isotope()[Isotope()].  */
   size_t Isotope() const { return misotope; }
 
-  /*! The full name of the species and isotope. E.g., `O3-666'. The
+  /** The full name of the species and isotope. E.g., `O3-666'. The
       name is found by looking up the information in species_data,
       using the species and isotope index. */
   string Name() const {
@@ -349,7 +349,7 @@ public:
     return sr.Name() + "-" + sr.Isotope()[misotope].Name();
   }
 
-  /*! The matching SpeciesRecord from species_data. To get at the
+  /** The matching SpeciesRecord from species_data. To get at the
       species data of a LineRecord lr, you can use:
       \begin{enumerate}
       \item species_data[lr.Species()]
@@ -364,7 +364,7 @@ public:
     return species_data[mspecies];
   }
 
-  /*! The matching IsotopeRecord from species_data. The IsotopeRecord
+  /** The matching IsotopeRecord from species_data. The IsotopeRecord
       is a subset of the SpeciesRecord. To get at the isotope data of
       a LineRecord lr, you can use:
       \begin{enumerate}
@@ -381,10 +381,10 @@ public:
     return species_data[mspecies].Isotope()[misotope];
   }
 
-  /*! The line center frequency in <b> Hz</b>. */
+  /** The line center frequency in <b> Hz</b>. */
   Numeric F() const     { return mf; }
 
-  /*! The pressure shift parameter in <b> Hz/Pa</b>. */
+  /** The pressure shift parameter in <b> Hz/Pa</b>. */
   Numeric Psf() const   { return mpsf; }
 
   /** The line intensity in <b> m^2*Hz</b> at the reference temperature \c Ti0. 
@@ -401,38 +401,38 @@ public:
     \f$F(\nu)\f$ is the lineshape function. */
   Numeric I0() const    { return mi0; }
 
-  /*! Reference temperature for I0 in <b> K</b>: */
+  /** Reference temperature for I0 in <b> K</b>: */
   Numeric Ti0() const   { return mti0; }
 
-  /*! Lower state energy in <b> cm^-1</b>: */
+  /** Lower state energy in <b> cm^-1</b>: */
   Numeric Elow() const  { return melow; }
 
-  /*! Air broadened width in <b> Hz/Pa</b>: */
+  /** Air broadened width in <b> Hz/Pa</b>: */
   Numeric Agam() const  { return magam; }
 
-  /*! Self broadened width in <b> Hz/Pa</b>: */
+  /** Self broadened width in <b> Hz/Pa</b>: */
   Numeric Sgam() const  { return msgam; }
 
-  /*! AGAM temperature exponent (dimensionless): */
+  /** AGAM temperature exponent (dimensionless): */
   Numeric Nair() const  { return mnair; }
 
-  /*! SGAM temperature exponent (dimensionless): */
+  /** SGAM temperature exponent (dimensionless): */
   Numeric Nself() const { return mnself; }
 
-  /*! Reference temperature for AGAM and SGAM in <b> K</b>: */
+  /** Reference temperature for AGAM and SGAM in <b> K</b>: */
   Numeric Tgam() const  { return mtgam; }
 
-  /*! Number of auxiliary parameters. This function is actually
+  /** Number of auxiliary parameters. This function is actually
       redundant, since the number of auxiliary parameters can also be
       obtained directly with Aux.size(). I just added the function in
       order to have consistency of the interface with the catalgue
       format. */
   size_t Naux() const   { return maux.size(); }
 
-  /*! Auxiliary parameters. */
+  /** Auxiliary parameters. */
   const ARRAY<Numeric>& Aux() const { return maux; }
 
-  /*! Read one line from a stream associated with a HITRAN file. The HITRAN
+  /** Read one line from a stream associated with a HITRAN file. The HITRAN
     format is as follows (directly from the HITRAN documentation):
 
     \verbatim
@@ -523,18 +523,18 @@ private:
 
 
 
-/*! Holds a list of spectral line data.
+/** Holds a list of spectral line data.
     \author Stefan Buehler */
 typedef ARRAY<LineRecord> ARRAYofLineRecord;
 
-/*! Holds a lists of spectral line data for each tag group.
+/** Holds a lists of spectral line data for each tag group.
     Dimensions: (tag_groups.dim()) (number of lines for this tag)
     \author Stefan Buehler */
 typedef ARRAY< ARRAY<LineRecord> > ARRAYofARRAYofLineRecord;
 
 
 
-/*! Output operator for LineRecord. The result should look like a
+/** Output operator for LineRecord. The result should look like a
     catalogue line.
 
     \author Stefan Buehler */
@@ -542,20 +542,20 @@ ostream& operator << (ostream& os, const LineRecord& lr);
 
 
 
-/*! Define the species data map.
+/** Define the species data map.
 
     \author Stefan Buehler  */
 void define_species_map();
 
 
-/*! Contains the lookup data of the partition function coefficients
+/** Contains the lookup data of the partition function coefficients
     for one isotope. 
     \author Axel von Engeln */
 class QIsotopeRecord{
 public:
-  /*! Default constructor. Needed by make_array. */
+  /** Default constructor. Needed by make_array. */
   QIsotopeRecord() { /* Nothing to do here */ }
-  /*! Constructor that sets the values. */
+  /** Constructor that sets the values. */
   QIsotopeRecord(const string&         name,
 		 const ARRAY<Numeric>& coeff)
     : mname(name),
@@ -574,22 +574,22 @@ public:
   const ARRAY<Numeric>& Coeff()        const { return mcoeff; }
   
 private:
-  /*! Isotope names. */
+  /** Isotope names. */
   string mname;
-  /*! coefficients of the 3rd order polynmial in temperature:
+  /** coefficients of the 3rd order polynmial in temperature:
       c0,c1,c2,c3 */
   ARRAY<Numeric> mcoeff;
 };
 
 
-/*! Contains the lookup data for the partition function of each
+/** Contains the lookup data for the partition function of each
     species.
     \author Axel von Engeln */
 class QRecord{
 public:
-  /*! Default constructor. Needed by make_array. */
+  /** Default constructor. Needed by make_array. */
   QRecord() { /* Nothing to do here */ }
-  /*! Constructor used in define_q_data. */
+  /** Constructor used in define_q_data. */
   QRecord(const string&      	         name,
 	  const ARRAY<QIsotopeRecord>&   isotope)
     : mname(name),
@@ -608,9 +608,9 @@ public:
   const ARRAY<QIsotopeRecord>& Isotope()      const { return misotope;   }
   
 private:
-  /*! Species names. */
+  /** Species names. */
   string mname;
-  /*! isotope name (arts convention) and coefficients of the 3rd order
+  /** isotope name (arts convention) and coefficients of the 3rd order
       polynmial in temperature: c0,c1,c2,c3 */
   ARRAY<QIsotopeRecord> misotope;
 };
@@ -619,22 +619,22 @@ private:
 
 //------------------------------< Tag Group Stuff >------------------------------
 
-/*! A tag group can consist of the sum of several of these.
+/** A tag group can consist of the sum of several of these.
 
     \author Stefan Buehler */
 class OneTag {
 public:
-  /*! Default constructor. */
+  /** Default constructor. */
   OneTag() { /* Nothing to be done here. */ }
 
-  /*! Constructor from a tag definition string (Bredbeck
+  /** Constructor from a tag definition string (Bredbeck
       notation). For examples see member function Name(). 
 
       \exception runtime_error The given string could not be mapped to
       a sensible tag description. */
   OneTag(string def); 
 
-  /*! Return the full name of this tag according to Bredbeck
+  /** Return the full name of this tag according to Bredbeck
       convention. Examples:
       \verbatim
       O3-*-*-*         : All O3 lines
@@ -643,19 +643,19 @@ public:
       \endverbatim */
   string Name() const;
     
-  /*! Molecular species index. */
+  /** Molecular species index. */
   size_t Species() const { return mspecies; }
 
-  /*! Isotopic species index.
+  /** Isotopic species index.
       If this is equal to the number of isotopes (one more than
       allowed) it means all isotopes of this species. */ 
   size_t Isotope() const { return misotope; }
 
-  /*! The lower line center frequency in Hz.
+  /** The lower line center frequency in Hz.
       If this is <0 it means no lower limit. */
   Numeric Lf() const { return mlf; }
 
-  /*! The upper line center frequency in Hz:
+  /** The upper line center frequency in Hz:
       If this is <0 it means no upper limit. */
   Numeric Uf() const { return muf; }
 
@@ -675,13 +675,13 @@ private:
 };
 
 
-/*! Output operator for OneTag. 
+/** Output operator for OneTag. 
 
     \author Stefan Buehler */
 ostream& operator << (ostream& os, const OneTag& ot);
 
 
-/*! Contains the available tag groups. Contrary to the Bredbeck
+/** Contains the available tag groups. Contrary to the Bredbeck
     definition, tag groups may only consist of tags belonging to the
     same species. The reason for this is that there is one VMR profile
     associated with each tag group.
