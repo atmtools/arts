@@ -207,7 +207,7 @@ lines_per_tgReadFromCatalogues{
 # Read the pressure, temperature, and altitude profiles and create 
 # the workspace variable `raw_ptz':
 MatrixReadAscii (raw_ptz) 
-        {"/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer.tz.am"}
+        {"/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer.tz.aa"}
 
 # The same for the input VMR profiles:
 #raw_vmrsReadFromScenario
@@ -216,8 +216,8 @@ MatrixReadAscii (raw_ptz)
 raw_vmrsReadFromFiles
          {seltags   = ["liquidcloud-MPM93",
                        "icecloud-MPM93"]
-          filenames = ["/pool/lookup2/arts-data/atmosphere/particles/midlatitude-summer.cumulonimbus.MPM93droplet.am",
-	               "/pool/lookup2/arts-data/atmosphere/particles/midlatitude-summer.cirrus.MPM93ice.am"]
+          filenames = ["/pool/lookup2/arts-data/atmosphere/particles/midlatitude-summer.cumulonimbus.MPM93droplet.aa",
+	               "/pool/lookup2/arts-data/atmosphere/particles/midlatitude-summer.cirrus.MPM93ice.aa"]
           basename  =  "/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer"
          }
 
