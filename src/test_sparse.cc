@@ -27,6 +27,7 @@
   Add more tests here as necessary...
 */
 
+#include <stdexcept>
 #include <iostream>
 #include "matpackII.h"
 #include "xml_io.h"
@@ -308,8 +309,12 @@ void test45()
 
   Sparse A, B;
 
-  //xml_read_from_file ("antenna.xml", A);
-  //xml_read_from_file ("backend.xml", B);
+  try {
+    xml_read_from_file ("antenna.xml", A);
+    xml_read_from_file ("backend.xml", B);
+  } catch (runtime_error e) {
+    cerr << e.what () << endl;
+  }
 
   Sparse C(A.nrows(),B.ncols());
   mult(C,A,B);
