@@ -699,13 +699,13 @@ i_fieldUpdate1D(// WS Output:
   // repeting the calculation for each direction.
 
   for(Index p_index = cloudbox_limits[0]; p_index
-                <= cloudbox_limits[1]-1; p_index ++)
+        <= cloudbox_limits[1]-1; p_index ++)
     {
       Vector scalar_gas_array((cloudbox_limits[1] - cloudbox_limits[0]) + 1);
       //   scalar_gas_abs_agenda.execute();
       //    scalar_gas_array[p_index] = abs_scalar_gas;
     }
-
+  
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
@@ -713,7 +713,8 @@ i_fieldUpdate1D(// WS Output:
       scat_aa_index = 0;
       //Calculate optical properties for single particle types:
 
-      spt_calc_agenda.execute();
+      
+      spt_calc_agenda.execute(scat_za_index);
     
    //    //Calculate ext_mat_spt for the direction 
 //       //corresponding to the outer loop:
@@ -765,10 +766,10 @@ i_fieldUpdate1D(// WS Output:
 
       ArrayOfVector abs_vec_array;
       abs_vec_array.resize(cloudbox_limits[1]-cloudbox_limits[0]+1);
-
+      
       Vector T_vector(cloudbox_limits[1]-cloudbox_limits[0]+1,0.);
       
-
+      
      
       // Loop over all positions inside the cloudbox defined by the 
       // cloudbox_limits.
@@ -806,8 +807,10 @@ i_fieldUpdate1D(// WS Output:
           //abs_scalar_gas = scalar_gas_array[p_index];
 
           // Calculate total ext_mat and abs_vec.
-          opt_prop_gas_agenda.execute();
-          opt_prop_part_agenda.execute();
+          opt_prop_gas_agenda.execute(scat_za_index && 
+                                      (p_index - cloudbox_limits[0]));
+          opt_prop_part_agenda.execute(scat_za_index &&
+                                      (p_index - cloudbox_limits[0]));
           
           // Store coefficients in arrays for the whole cloudbox.
           abs_vec_array[p_index-cloudbox_limits[0]] = 

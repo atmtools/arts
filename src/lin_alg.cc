@@ -55,7 +55,7 @@ ludcmp(MatrixView LU,
        ArrayOfIndex& indx, 
        ConstMatrixView A) 
 {
-  Index imax;
+  Index imax = 0;
   const Numeric TINY=1.0e-20;
   Numeric big, dum, sum, temp, d;
  

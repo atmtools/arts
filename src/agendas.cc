@@ -196,17 +196,19 @@ void define_agenda_data()
         "agenda.\n"
 	"\n"
 	"Output :\n"
+        "   ext_mat     : Extinction matrix.\n"
 	"   abs_vec     : Absorption vector.\n"
 	"\n"
 	"Input:\n"
+        "   ext_mat     : Extinction matrix.\n"
         "   abs_vec     : Absorption vector. \n"
-        "   abs_vec_spt : Absorption vector for single particle type. \n"
-        "   pnd_field   : Particle number density field. \n"
+        "   abs_scalar_gas : Scalar gas absorption. \n"
+        "   f_index     : Frequency index. \n"
 	),
-       OUTPUT( abs_vec_ ),
-       INPUT( abs_vec_, 
-              abs_vec_spt_,
-              pnd_field_ )));
+       OUTPUT( ext_mat_, abs_vec_ ),
+       INPUT( ext_mat_, abs_vec_, 
+              abs_scalar_gas_,
+              f_index_ )));
 
 
  agenda_data.push_back
@@ -232,15 +234,18 @@ void define_agenda_data()
 	"\n"
 	"Output :\n"
 	"   ext_mat     : Extinction matrix.\n"
+        "   abs_vec     : Absorption vector. \n"
 	"\n"
 	"Input:\n"
         "   ext_mat     : Extinction matrix. \n"
         "   ext_mat_spt : Extinction matrix for single particle type. \n"
+        "   abs_vec     : Absorption vector. \n"
+        "   abs_vec_spt : Absorption vector for single particle type. \n"
         "   pnd_field   : Particle number density field. \n"
 	),
-       OUTPUT( ext_mat_ ),
-       INPUT( ext_mat_, 
-              ext_mat_spt_,
+       OUTPUT( ext_mat_, abs_vec_ ),
+       INPUT( ext_mat_, abs_vec_, 
+              ext_mat_spt_, abs_vec_spt_,
               pnd_field_ )));
 
 
