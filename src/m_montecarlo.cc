@@ -365,11 +365,11 @@ void scat_iPutMonteCarlo(
 /*! 
  
    This workspace method uses a Monte Carlo method to calculate the monochromatic
-   radiance leaving the cloudbox in one direction.  At this stage it is a very basic
-   function - the phase matrix is not used to sample incident propagation directions.
-   For phase matrix LOS sampling to be worthwhile, other features need to be added, 
-   for example stratified sampling.  In the meantime, this function should give the 
-   correct result, but may not be very efficient.See the online help 
+   radiance leaving the cloudbox in one direction.  
+   The theoretical basis for this algorithm can be found at 
+   http://www.met.ed.ac.uk/~cory/davis_MRad04.pdf
+   
+   See the online help 
    (arts -d FUNCTION_NAME) for a description of parameters.
  
 
@@ -446,62 +446,65 @@ void ScatteringMonteCarlo (
                            )
 
 {               
-  //Internal Declarations
-   Matrix identity(stokes_dim,stokes_dim,0.0);
-  //Identity matrix
+  //INTERNAL DECLARATIONS/////////////////////////////////////////////////
+  Matrix identity(stokes_dim,stokes_dim,0.0); //The identity matrix
   for (Index i=0; i<stokes_dim; i++){identity(i,i)=1.0;}
-  Matrix Q(stokes_dim,stokes_dim),T(stokes_dim,stokes_dim);
-  Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
-  Matrix K(stokes_dim,stokes_dim);
-  bool keepgoing;
-  Index scattering_order;
-  Index photon_number;
-  Vector new_rte_los(2);
-  Ppath ppathLOS,ppathcloud;
-  Numeric g;
-  Numeric pathlength;
-  Numeric temperature;          
-  ArrayOfMatrix TArrayLOS(ppath.np);
-  ArrayOfMatrix TArray(ppath.np);
-  ArrayOfMatrix ext_matArray(ppath.np);
-  ArrayOfMatrix ext_matArrayLOS(ppath.np);
-  ArrayOfVector abs_vecArray(ppath.np);
-  ArrayOfVector abs_vecArrayLOS(ppath.np);
-  Vector Isum(stokes_dim,0.0);
-  Vector Isquaredsum(stokes_dim,0.0);
-  Vector Iboundary(stokes_dim,0.0);
-  Vector IboundaryLOScontri(stokes_dim,0.0);
-  Vector pha_mat_za_grid(2);
-  Vector pha_mat_aa_grid(2);
-  Matrix Z(stokes_dim,stokes_dim,0.0);
-  Matrix q(stokes_dim,stokes_dim,0.0);
-  Matrix newQ(stokes_dim,stokes_dim,0.0);
-  Vector cum_l_step;
-  Vector cum_l_stepLOS;
-  Vector t_ppath;
-  Vector t_ppathLOS;
-  Matrix pnd_ppath;
-  Matrix pnd_ppathLOS;
-  Tensor5 pha_mat_spt(scat_data_mono.nelem(),2,2,stokes_dim,stokes_dim);
-  Tensor4 pha_mat(2,2,stokes_dim,stokes_dim);
-  ArrayOfGridPos pathlength_gp(1);
-  Vector K_abs(stokes_dim);
-  Vector I(stokes_dim);
-  i_montecarlo_error.resize(stokes_dim);
-  Rng rng;
-  Vector pathI(stokes_dim);
-  Vector boundarycontri(stokes_dim);
-  Vector pathinc(stokes_dim);
-  Numeric g_los_csc_theta;
-  Numeric albedo;
-  Numeric dist_to_boundary;
-  Index N_pt=pnd_field.nbooks();
-  Vector pnd_vec(N_pt);
+
+  Matrix Q(stokes_dim,stokes_dim);//defined in eq 12 of ref1
+  Matrix T(stokes_dim,stokes_dim);//evolution operator (symbol O in ref1)
+  Matrix K(stokes_dim,stokes_dim);//extinction matrix
+  bool keepgoing; // flag indicating whether to stop tracing a photons path
+  Index scattering_order;       //k in ref1
+  Index photon_number;          //i in ref1
+  Vector new_rte_los(2);        //Stores new line of sight
+  Ppath ppathLOS;               // propagation path in the original line of sight
+  Ppath ppathcloud;             //prop. path inside cloud box
+  Numeric g;             //Probability density for pathlength sampling
+  Numeric pathlength;           //\Delta s in ref1
+  Numeric temperature;          //thermodynamic temperature
+  ArrayOfMatrix TArrayLOS;//array of evolution operators along 
+                                //original line of sight                
+  ArrayOfMatrix TArray;//array of evolution operators for higher 
+                                //scattering orders
+  ArrayOfMatrix ext_matArray;//array of extinction matrices along 
+                                //propagation path
+  ArrayOfMatrix ext_matArrayLOS;//array of extinction matrices along
+                                //original LOS
+  ArrayOfVector abs_vecArray;//array of abs. coeff. vectors along 
+                                //propagation path
+  ArrayOfVector abs_vecArrayLOS;//array of abs. coeff. vectors along 
+                                //original LOS
+  Vector Isum(stokes_dim,0.0);//Sum of all photon contributions to the Stokes vector
+  Vector Isquaredsum(stokes_dim,0.0);//Used to estimate error
+  Vector Iboundary(stokes_dim,0.0);//Incoming Stokes vector at the cloudbox boundary
+  Vector IboundaryLOScontri(stokes_dim,0.0);//1st term RHS eq 2 ref1.
+  Matrix Z(stokes_dim,stokes_dim,0.0);//bulk phase matrix
+  Matrix q(stokes_dim,stokes_dim,0.0);//Eqs. 12-13 ref1
+  Matrix newQ(stokes_dim,stokes_dim,0.0);//Eq 12 ref1
+  Vector cum_l_step;//vector of cumulative distance along a propagation path
+  Vector cum_l_stepLOS;// "    "  for the original LOS
+  Vector t_ppath;//vector of temperatures along a propagation path
+  Vector t_ppathLOS;//" "  " along the original LOS
+  Matrix pnd_ppath;//ppath.np by Nptypes matrix of pasrticle number density
+  Matrix pnd_ppathLOS;// "   "    "
+  ArrayOfGridPos pathlength_gp(1);//for optical properties along a propagation 
+                                //path according to pathlength
+  Vector K_abs(stokes_dim);//absorption coefficient vector
+  Vector I(stokes_dim);//Cloudbox exit Stokes Vector
+  i_montecarlo_error.resize(stokes_dim);//Error in Cloudbox exit Stokes vector
+  Rng rng;                      //Random Nuimber generator
+  Vector I_i(stokes_dim);//photon contribution to Stokes vector
+  Vector boundarycontri(stokes_dim);//eq 16 ref1
+  Numeric g_los_csc_theta;//eq. 11 ref1 divided by sin(\theta) 
+  Numeric albedo;//eq. 9 ref1
+  Numeric dist_to_boundary; //Distance to the far boundary of the cloudbox
+  Index N_pt=pnd_field.nbooks();//Number of particle types
+  Vector pnd_vec(N_pt); //Vector of particle number densities used at each point
   time_t start_time=time(NULL);
-  Numeric za_scat;
-  Vector za_grid=scat_data_mono[0].za_grid;
-  /////////////////////////////////////////
-  Vector Z11maxvector;
+  Numeric za_scat;//zenith angle of scattering direction
+  Vector Z11maxvector;//Vector holding the maximum phase function for each 
+  //particle type. Used in Rejection method for sampling incident direction
+  //////////////////////////////////////////////////////////////////////////////
   bool anyptype30=is_anyptype30(scat_data_mono);
   if (anyptype30)
     {
@@ -544,9 +547,8 @@ void ScatteringMonteCarlo (
       keepgoing=true; //flag indicating whether to continue tracing a photon path
       scattering_order=0;       //scattering order
       Q=identity;               //identity matrix
-      pathI=0.0;
+      I_i=0.0;
       boundarycontri=0.0;
-      pathinc=0.0;
       //while the reversed traced photon path remains in the cloud box
       //
       TArray=TArrayLOS;
@@ -587,11 +589,11 @@ void ScatteringMonteCarlo (
               dist_to_boundary=cum_l_step[ppathcloud.np-1];
          
               //              Iboundary=i_rte(0,joker);
-              Sample_ppathlength (pathlength,g,rng,ext_matArray,TArray,cum_l_step);
+              Sample_ppathlength (pathlength,g,rng,TArray,cum_l_step);
             }
           else
             {
-              Sample_ppathlengthLOS (pathlength,g,rng,ext_matArray,TArray,cum_l_step);
+              Sample_ppathlengthLOS (pathlength,g,rng,TArray,cum_l_step);
             }
           assert(cum_l_step.nelem()==ppathcloud.np);
           assert(TArray.nelem()==ppathcloud.np);
@@ -620,9 +622,8 @@ void ScatteringMonteCarlo (
               ////////////////////
               T=TArray[ppathcloud.np-1];
               mult(boundarycontri,T,Iboundary);
-              mult(pathinc,Q,boundarycontri);
-              pathI = pathinc;
-              pathI/=g;//*=exp(K11*dist_to_boundary);
+              mult(I_i,Q,boundarycontri);
+              I_i/=g;
               keepgoing=false; //stop here. New photon.
             }
           else
@@ -647,8 +648,7 @@ void ScatteringMonteCarlo (
                   Vector emissioncontri(stokes_dim);
                   mult(emissioncontri,T,emission);
                   emissioncontri/=(g*(1-albedo));//yuck!
-                  mult(pathinc,Q,emissioncontri);
-                  pathI = pathinc;
+                  mult(I_i,Q,emissioncontri);
                   keepgoing=false;
                    
                 }
@@ -656,12 +656,12 @@ void ScatteringMonteCarlo (
                 {
                   //Sample new line of sight.
                   
-		  Sample_los (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
-				scat_data_mono,stokes_dim,scat_theta,
-				scat_theta_gps,scat_theta_itws,
-				pnd_vec,anyptype30,Z11maxvector,K(0,0)-K_abs[0]);
+                  Sample_los (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
+                                scat_data_mono,stokes_dim,scat_theta,
+                                scat_theta_gps,scat_theta_itws,
+                                pnd_vec,anyptype30,Z11maxvector,K(0,0)-K_abs[0]);
                                            
-		  Z/=g*g_los_csc_theta*albedo;
+                  Z/=g*g_los_csc_theta*albedo;
                   
                   mult(q,T,Z);
                   mult(newQ,Q,q);
@@ -676,13 +676,13 @@ void ScatteringMonteCarlo (
             }
  
         }
-      Isum += pathI;
-      if (record_histdata==1){histfile << pathI << "\n";}
+      Isum += I_i;
+      if (record_histdata==1){histfile << I_i << "\n";}
       for(Index j=0; j<stokes_dim; j++)
-	{
-	  assert(!isnan(pathI[j]));
-	  Isquaredsum[j] += pathI[j]*pathI[j];
-	}
+        {
+          assert(!isnan(I_i[j]));
+          Isquaredsum[j] += I_i[j]*I_i[j];
+        }
       
       
       if (photon_number==500)

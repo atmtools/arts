@@ -1,3 +1,13 @@
+2004-02-03  Cory Davis <cory@met.ed.ac.uk>
+
+        * arts-1-1-785
+	
+	* src/montecarlo.{cc} (Sample_ppathlength, Sample_ppathlengthLOS)
+	Removed parameters only used in asserts.
+
+	* src/m_montecarlo.cc: changed calls to Sample_ppathlength,
+	Sample_ppathlengthLOS. Improved comments.
+	
 2004-02-04  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-784
