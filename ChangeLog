@@ -1,3 +1,10 @@
+2003-07-23  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-101
+
+	* src/methods.cc, src/m_io.cc: Added Echo workspace method.
+	Added VectorCopyFromMatrix method.
+
 2003-07-22  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-100
