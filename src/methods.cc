@@ -947,18 +947,7 @@ void define_md_data_raw()
       ( NAME( "CloudboxGetIncomingOld" ),
         DESCRIPTION
         (
-         "This method gives the intensity field at the boundary of the\n"
-         "cloudbox.\n"
-         "\n"
-         "The method uses *PpathCalc* and *rte_agenda*.  The input to\n"
-         "this method is the position of the cloudbox given by the \n"
-         "variable *cloudbox_limits*. Then for each propagation direction\n"
-         "it calls the function *PpathCalc* and executes the agenda \n"
-         "*rte_agenda*.  This gives *i_rte* which holds the Stokes vector\n"
-         "for all frequencies btained by the monochromatic pencil beam \n"
-         "calculations performed by *rte_agenda*. Then this is copied to\n"
-         "the interface variable. \n"
-         "\n"
+         "Will be removed"
          ),
         OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_,
                i_rte_, i_space_, surface_emission_, surface_los_,
@@ -1904,6 +1893,56 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
   
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyInterpCloudboxField" ),
+        DESCRIPTION
+        (
+         "Interpolates the intensity field of the cloud box.\n"
+         "\n"
+         "This is the standard method to put in *iy_cloudbox_agenda* if the\n"
+         "the scattering inside the cloud box is handled by the DOIT method.\n"
+         "\n"
+         "The intensity field is interpolated to the position and direction\n"
+         "given (specified by *rte_XXX*). A linear interpolation is used in\n"
+         "all dimensions.\n"
+         "\n"
+         "The intensity field on the cloux box boundaries is provided by\n"
+         "*scat_i_p/lat/lon* and these variables are interpolated if the.\n"
+         "given position is at any boundary.\n"
+         "\n"
+         "Interpolation of the internal field is not yet possible."
+         ),
+        OUTPUT( iy_ ),
+        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, rte_gp_p_, rte_gp_lat_,
+               rte_gp_lon_, rte_los_,  cloudbox_on_, cloudbox_limits_,
+               atmosphere_dim_, stokes_dim_, scat_za_grid_, scat_aa_grid_, 
+               f_grid_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "iyInterpCubicCloudboxField" ),
+        DESCRIPTION
+        (
+         "As *iyInterpCloudboxField* but performs cubic interpolation.\n"
+         "\n"
+         "Works so far only for 1D cases, and accordingly a cubic\n"
+         "interpolation along *scat_za_grid* is performed."
+         ),
+        OUTPUT( iy_ ),
+        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, rte_gp_p_, rte_gp_lat_,
+               rte_gp_lon_, rte_los_,  cloudbox_on_, cloudbox_limits_,
+               atmosphere_dim_, stokes_dim_, scat_za_grid_, scat_aa_grid_, 
+               f_grid_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
    md_data_raw.push_back
     ( MdRecord
       ( NAME( "i_fieldIterate" ),

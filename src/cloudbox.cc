@@ -574,3 +574,176 @@ void cloudbox_boundary_check(// Output:
     }
       
 }
+
+
+// Copy old header with Claudia and Rekha as authors
+void iy_interp_cloudbox_field(
+            Matrix&         iy,
+      const Tensor7&        scat_i_p,
+      const Tensor7&        scat_i_lat,
+      const Tensor7&        scat_i_lon,
+      const GridPos&        rte_gp_p,
+      const GridPos&        rte_gp_lat,
+      const GridPos&        rte_gp_lon,
+      const Vector&         rte_los,
+      const Index&          cloudbox_on,
+      const ArrayOfIndex&   cloudbox_limits,
+      const Index&          atmosphere_dim,
+      const Index&          stokes_dim,
+      const Vector&         scat_za_grid,
+      const Vector&         scat_aa_grid,
+      const Vector&         f_grid,
+      const String&         interpmeth )
+{
+  //--- Check input -----------------------------------------------------------
+  if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )
+    throw runtime_error( "The atmospheric dimensionality must be 1 or 3.");
+  if( !cloudbox_on )
+    throw runtime_error( "The cloud box is not activated and no outgoing "
+                         "field can be returned." );
+  if ( cloudbox_limits.nelem() != 2*atmosphere_dim )
+    throw runtime_error(
+       "*cloudbox_limits* is a vector which contains the upper and lower\n"
+       "limit of the cloud for all atmospheric dimensions.\n"
+       "So its length must be 2 x *atmosphere_dim*" ); 
+  if( scat_za_grid.nelem() == 0 )
+    throw runtime_error( "The variable *scat_za_grid* is empty. Are dummy "
+                         "values from *cloudboxOff used?" );
+  if( interpmeth == "linear"  ||  interpmeth == "cubic" )
+    throw runtime_error( "Unknown interpolation method. Possible choices are"
+                                                 "\"linear\" and \"cubic\"." );
+  if( interpmeth == "cubic"  &&  atmosphere_dim != 1  )
+    throw runtime_error( "Cubic interpolation method is only available for"
+                                                     "*atmosphere_dim* = 1." );
+  // Size of scat_i_p etc is checked below
+  //---------------------------------------------------------------------------
+
+
+  //--- Determine if at border or inside of cloudbox (or outside!)
+  //
+  // Let us introduce a number coding for cloud box borders.
+  // Borders have the same number as position in *cloudbox_limits*.
+  // Innside cloud box is coded as 99, and outside as > 100.
+  Index  border  = 999;
+  //
+  //- Check if at any border
+  if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[0] ) )
+    { border = 0; }
+  else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[1] ) )
+    { border = 1; }
+  if( atmosphere_dim == 3  &&  border > 100 )
+    {
+      if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[2] ) )
+        { border = 2; }
+      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[3] ) )
+        { border = 3; }
+      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[4] ) )
+        { border = 4; }
+      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[5] ) )
+        { border = 5; }
+    }
+  //
+  //- Check if inside
+  if( border > 100 )
+    {
+      // Assume inside as it is easiest to detect if outside (can be detected
+      // check in one dimension at the time)
+      bool inside = true;
+      Numeric fgp;
+
+      // Check in pressure dimension
+      fgp = fractional_gp( rte_gp_p );
+      if( fgp < Numeric(cloudbox_limits[0])  || 
+          fgp > Numeric(cloudbox_limits[1]) )
+        { inside = false; }
+
+      // Check in lat and lon dimensions
+     if( atmosphere_dim == 3  &&  inside )
+       {
+         fgp = fractional_gp( rte_gp_lat );
+         if( fgp < Numeric(cloudbox_limits[2])  || 
+             fgp > Numeric(cloudbox_limits[3]) )
+           { inside = false; }
+         fgp = fractional_gp( rte_gp_lon );
+         if( fgp < Numeric(cloudbox_limits[4])  || 
+             fgp > Numeric(cloudbox_limits[5]) )
+           { inside = false; }
+       }
+
+     if( inside )
+       { border = 99; }
+    }
+
+  // If outside, something is wrong
+  if( border > 100 )
+    {
+      throw runtime_error( 
+                 "Given position has been found to be outside the cloudbox." );
+    }
+
+  // We are not yet handling points inside the cloud box
+  if( border == 99 )
+    {
+      throw runtime_error( 
+               "Observations from inside the cloud box are not yet handled." );
+    }
+
+   
+  //- Sizes
+  const Index   nf  = f_grid.nelem();
+
+  //- Resize *iy*
+  iy.resize( nf, stokes_dim );
+
+
+  // --- 1D ------------------------------------------------------------------
+  if( atmosphere_dim == 1 )
+    {
+      // Use assert to check *scat_i_p* as this variable should to 99% be
+      // calculated internally, and thus make it possible to avoid this check.
+      assert( is_size( scat_i_p, nf,2,1,1,scat_za_grid.nelem(),1,stokes_dim ));
+      
+      // Grid position in *scat_za_grid*
+      GridPos gp;
+      gridpos( gp, scat_za_grid, rte_los[0] );
+
+      // Corresponding interpolation weights
+      Vector itw(2);
+      interpweights( itw, gp );
+
+      // Pressure index in *scat_i_p*
+      const Index   ip = border;
+
+      if( interpmeth == "linear" )
+        {
+          for(Index is = 0; is < stokes_dim; is++ )
+            {
+              for(Index iv = 0; iv < nf; iv++ )
+                {
+                  iy(iv,is) = interp( itw, 
+                                 scat_i_p( iv, ip, 0, 0, joker, 0, is ) , gp );
+                }
+            }
+        }
+      else
+        {
+          for(Index is = 0; is < stokes_dim; is++ )
+            {
+              for(Index iv = 0; iv < nf; iv++ )
+                {
+                  iy(iv,is) = interp_cubic( itw, 
+                     scat_i_p( iv, ip, 0, 0, joker, 0, is ) , rte_los[0], gp );
+                }
+            }
+        }
+    }
+  
+  // --- 3D ------------------------------------------------------------------
+  else
+    {
+      cout << scat_i_lat;
+      cout << scat_i_lon;
+      cout << scat_aa_grid;
+    }
+}
+

@@ -1,3 +1,20 @@
+2004-09-29  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-884
+
+	* WARNING: There seems to be some problem in the ppath part.
+	Anyhow, no correct spectra are provided. Will look at this ASAP,
+	but can not right now.
+	
+	* src/cloudbox.cc (iy_interp_cloudbox_field): Moved code from
+	iyFromCloudboxField to create this function, and continued coding.
+	1D is now complete but not tested.
+
+	* src/m_cloudbox.cc: 
+	(iyInterpCloudboxField): Introduced this WSM.
+	(iyInterpCubicCloudboxField): Introduced this WSM.
+	(iyFromCloudboxField): Removed.
+
 2004-09-28  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-883

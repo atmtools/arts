@@ -82,5 +82,23 @@ void cloudbox_boundary_check(// Output:
                              const ArrayOfIndex& cloudbox_limits
                              );
 
+void iy_interp_cloudbox_field(
+            Matrix&         iy,
+      const Tensor7&        scat_i_p,
+      const Tensor7&        scat_i_lat,
+      const Tensor7&        scat_i_lon,
+      const GridPos&        rte_gp_p,
+      const GridPos&        rte_gp_lat,
+      const GridPos&        rte_gp_lon,
+      const Vector&         rte_los,
+      const Index&          cloudbox_on,
+      const ArrayOfIndex&   cloudbox_limits,
+      const Index&          atmosphere_dim,
+      const Index&          stokes_dim,
+      const Vector&         scat_za_grid,
+      const Vector&         scat_aa_grid,
+      const Vector&         f_grid,
+      const String&         interpmeth );
+
 #endif //cloudbox_h
 

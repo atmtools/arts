@@ -58,6 +58,7 @@
 #include "cloudbox.h"
 #include "optproperties.h"
 #include "math_funcs.h"
+#include "physics_funcs.h"
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
@@ -1715,7 +1716,7 @@ void CloudboxGetIncoming(
       Vector   pos(1);
 
       //--- Get scat_i_p at lower boundary
-      pos[0] = r_geoid(0,0) + z_field(cloudbox_limits[0], 0, 0);
+      pos[0] = r_geoid(0,0) + z_field( cloudbox_limits[0], 0, 0 );
 
       for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
         {
@@ -1729,11 +1730,11 @@ void CloudboxGetIncoming(
                    pos, los, f_grid, stokes_dim, agenda_verb );
 
           scat_i_p( joker, 0, 0, 0, scat_za_index, 0, joker ) = iy;
-
+          cout <<  invrayjean(iy(0,0),f_grid[0]) << "\n";
         }
 
       //--- Get scat_i_p at upper boundary
-      pos[0] = r_geoid(0,0)+z_field(cloudbox_limits[1],0,0);
+      pos[0] = r_geoid(0,0) + z_field( cloudbox_limits[1], 0, 0 );
 
       for (Index scat_za_index = 0; scat_za_index < Nza;  scat_za_index ++)
         {
@@ -1747,6 +1748,7 @@ void CloudboxGetIncoming(
                    pos, los, f_grid, stokes_dim, agenda_verb );
 
           scat_i_p( joker, 1, 0, 0, scat_za_index, 0, joker ) = iy;
+          cout <<  invrayjean(iy(0,0),f_grid[0]) << "\n";
         }
     }
 
@@ -3462,17 +3464,14 @@ void ybatchMetProfilesClear(//Output
 
 
 
-//! iyFromCloudboxField
+//! iyInterpCloudboxField
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
-  \author Claudia Emde
-  \date 2002-09-10
-  \date 2004-01-22 Fixed 3d part.
-  \date 2004-03-20 Created subfuctions top split this method.
-  \date 2004-09-27 Modified by Patrick Eriksson.
+  \author Patrick Eriksson
+  \date 2004-09-29
 */
-void iyFromCloudboxField(
+void iyInterpCloudboxField(
             Matrix&         iy,
       const Tensor7&        scat_i_p,
       const Tensor7&        scat_i_lat,
@@ -3487,110 +3486,42 @@ void iyFromCloudboxField(
       const Index&          stokes_dim,
       const Vector&         scat_za_grid,
       const Vector&         scat_aa_grid,
-      const Vector&         f_grid,
-      const String&         interpmeth )
+      const Vector&         f_grid )
 {
-  //--- Check input -----------------------------------------------------------
-  if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )
-    throw runtime_error( "The atmospheric dimensionality must be 1 or 3.");
-  if( !cloudbox_on )
-    throw runtime_error( "The cloud box is not activated and no outgoing "
-                         "field can be returned." );
-  if ( cloudbox_limits.nelem() != 2*atmosphere_dim )
-    throw runtime_error(
-       "*cloudbox_limits* is a vector which contains the upper and lower\n"
-       "limit of the cloud for all atmospheric dimensions.\n"
-       "So its length must be 2 x *atmosphere_dim*" ); 
-  if( scat_za_grid.nelem() == 0 )
-    throw runtime_error( "The variable *scat_za_grid* is empty. Are dummy "
-                         "values from *cloudboxOff used?" );
-  if( interpmeth == "linear"  ||  interpmeth == "cubic" )
-    throw runtime_error( "Unknown interpolation method. Possible choices are"
-                                                 "\"linear\" and \"cubic\"." );
-  if( interpmeth == "cubic"  &&  atmosphere_dim != 1  )
-    throw runtime_error( "Cubic interpolation method is only available for"
-                                                     "*atmosphere_dim* = 1." );
-  //---------------------------------------------------------------------------
-
-
-  //--- Determine if at border or inside of cloudbox (or outside!)
-  //
-  // Let us introduce a number coding for cloud box borders.
-  // Borders have the same number as position in *cloudbox_limits*.
-  // Innside cloud box is coded as 99, and outside as > 100.
-  Index  border  = 999;
-  //
-  //- Check if at any border
-  if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[0] ) )
-    { border = 0; }
-  else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[1] ) )
-    { border = 1; }
-  if( atmosphere_dim == 3  &&  border > 100 )
-    {
-      if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[2] ) )
-        { border = 2; }
-      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[3] ) )
-        { border = 3; }
-      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[4] ) )
-        { border = 4; }
-      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[5] ) )
-        { border = 5; }
-    }
-  //
-  //- Check if inside
-  if( border > 100 )
-    {
-      // Assume inside as it is easiest to detect if outside (can be detected
-      // check in one dimension at the time)
-      bool inside = true;
-      Numeric fgp;
-
-      // Check in pressure dimension
-      fgp = fractional_gp( rte_gp_p );
-      if( fgp < Numeric(cloudbox_limits[0])  || 
-          fgp > Numeric(cloudbox_limits[1]) )
-        { inside = false; }
-
-      // Check in lat and lon dimensions
-     if( atmosphere_dim == 3  &&  inside )
-       {
-         fgp = fractional_gp( rte_gp_lat );
-         if( fgp < Numeric(cloudbox_limits[2])  || 
-             fgp > Numeric(cloudbox_limits[3]) )
-           { inside = false; }
-         fgp = fractional_gp( rte_gp_lon );
-         if( fgp < Numeric(cloudbox_limits[4])  || 
-             fgp > Numeric(cloudbox_limits[5]) )
-           { inside = false; }
-       }
-
-     if( inside )
-       { border = 99; }
-    }
-
-  // If outside, something is wrong
-  if( border > 100 )
-    {
-      throw runtime_error( 
-                 "Given position has been found to be outside the cloudbox." );
-    }
-
-  // We are not yet handling points inside the cloud box
-  if( border == 99 )
-    {
-      throw runtime_error( 
-               "Observations from inside the cloud box are not yet handled." );
-    }
-
-
-  if( atmosphere_dim == 1 )
-    cloudbox_getOutgoing1D( iy, scat_i_p, rte_gp_p, rte_los, 
-                           cloudbox_limits, stokes_dim, scat_za_grid, f_grid);
-  
-  else if( atmosphere_dim == 3 )
-    cloudbox_getOutgoing3D( iy, scat_i_p, scat_i_lat, scat_i_lon, 
-                           rte_gp_p, rte_gp_lat, rte_gp_lon,  rte_los, 
-                           cloudbox_limits, stokes_dim, scat_za_grid, 
-                           scat_aa_grid, f_grid);
+  iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, rte_gp_p, 
+                            rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
+                            cloudbox_limits, atmosphere_dim, stokes_dim, 
+                            scat_za_grid, scat_aa_grid, f_grid, "linear" );
 }
 
+
+
+//! iyInterpCubicCloudboxField
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+  \author Patrick Eriksson
+  \date 2004-09-29
+*/
+void iyInterpCubicCloudboxField(
+            Matrix&         iy,
+      const Tensor7&        scat_i_p,
+      const Tensor7&        scat_i_lat,
+      const Tensor7&        scat_i_lon,
+      const GridPos&        rte_gp_p,
+      const GridPos&        rte_gp_lat,
+      const GridPos&        rte_gp_lon,
+      const Vector&         rte_los,
+      const Index&          cloudbox_on,
+      const ArrayOfIndex&   cloudbox_limits,
+      const Index&          atmosphere_dim,
+      const Index&          stokes_dim,
+      const Vector&         scat_za_grid,
+      const Vector&         scat_aa_grid,
+      const Vector&         f_grid )
+{
+  iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, rte_gp_p, 
+                            rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
+                            cloudbox_limits, atmosphere_dim, stokes_dim, 
+                            scat_za_grid, scat_aa_grid, f_grid, "cubic" );
+}

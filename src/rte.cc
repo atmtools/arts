@@ -263,6 +263,8 @@ void iy_calc(
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, pos, los, outside_cloudbox );
 
+  Print( ppath, "ppath", 1 );
+
   // Determine the radiative background
   get_radiative_background( iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
           rte_los, ppath, 
