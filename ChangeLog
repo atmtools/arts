@@ -1,3 +1,14 @@
+2002-12-19  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-345
+
+	* src/complex.{h,cc}: Removed Complex class implementation and
+	replaced it with a typedef complex<Numeric> Complex. If there is any
+	need to implement functionality for complex numbers not covered by the
+	STL class, add them here.
+
+	* src/test_complex.cc: Adapted for new complex class.
+
 2002-12-19  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-344
