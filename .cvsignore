@@ -9,3 +9,4 @@ config.status
 configure
 stamp-h
 stamp-h.in
+arts.spec

@@ -1,3 +1,49 @@
+2001-06-20  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-176
+
+	* .cvsignore: Added arts.spec.
+
+	* src/absorption.h: Made the intensity to mean intensity per
+	molecule, i.e., not containing the isotopic ratio. This could
+	create errors when older ARTS catalogues are used, because there
+	the intensity included the isotope ratio, similar to HITRAN. To
+	avoid this error, I've introduced a format tag, which should
+	now be first in every ARTS catalogue file. It looks like this:
+	ARTSCAT-2. There is a member function Version() to line_data that
+	returns this version string.
+
+	See doxygen documentation for LineRecord for a (hopefully precise
+	enough) description of the format.
+
+	* doc/examples/example1.arts: This file didn't run anymore. Kicked
+	out the continua to make it run. There is a bug in the continuum
+	tags. For some reason, none of the continua is accepted, although
+	the tag specified is among the valid tags suggested by the error
+	message. 
+
+	* src/absorption.cc
+	(write_lines_to_stream): Added output of version tag. Also output
+	number of lines.
+	(LineRecord::ReadFromHitranStream): Divide by isotopic ratio when
+	reading HITRAN intensity.
+	(LineRecord::ReadFromJplStream): Leave intensities as they are, do
+	not any longer multiply with isotopic ratio
+	(LineRecord::ReadFromMytran2Stream): Leave intensities as they
+	are, do not any longer multiply with isotopic ratio
+	(xsec_species): Apply isotopic ratio. This is done in the final
+	loop, where xsec is summed up for all lines.
+	(xsec_species): Also removed a try catch block around the
+	partition function ratio calculation. This means that now the
+	program will stop with an error message if partition functions can
+	not be calculated. Before, it just gave a warning.
+
+	* src/m_abs.cc (lines_per_tgWriteToFile): Do not any longer write
+	the number of lines in each tag (since this is now added
+	automatically after the format tag).
+	(linesReadFromArts): Added check for correct version tag.
+
+
 2001-06-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-175

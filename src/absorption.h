@@ -226,8 +226,7 @@ public:
 	ostringstream os;
 	os << "Partition function of "
 	   << "Isotope = " << mname
-	   << "is unknown."
-	   << endl;
+	   << "is unknown.";
 	throw runtime_error(os.str());
       }
     return mqcoeff_at_t_ref / qtemp;
@@ -330,8 +329,18 @@ private:
 
 
 /** Spectral line catalog data. Here is a description of the ARTS
-    catalogue format, largely taken from the Bredbeck book, except
-    that some units are slightly changed:
+    catalogue format:
+
+    To keep track of changes in the catalog format, every catalogue
+    file must start with ARTSCAT-x. The current version is x=2. Files
+    with different or missing version will be rejected. The current
+    version is stored in the private member variable mversion. It can
+    be read with member function Version, which returns a string
+    `ARTSCAT-x'. 
+
+    After the version tag (ARTSCAT-x), ARTS outputs the number of
+    lines when catalogue files are written. This number is not used by
+    reading routines, though.
 
     The line catalogue should not have any fixed column widths because the
     precision of the parameters should not be limited by the format.  The
@@ -343,11 +352,14 @@ private:
     with a `@' character.
 
     The first column will contain the species and isotope, following
-    the naming scheme described below.  Scientific notation is allowed,
-    e.g. 501.12345e9.  The transitions of different isotopes should be
-    kept in separate files (this is for the catalogue, the forward model
-    should also be able to use a single line file). The suggested line
-    format is:
+    the naming scheme described below.  Scientific notation is
+    allowed, e.g. 501.12345e9.  
+
+    Note that starting with ARTSCAT-2, the intensity is per molecule,
+    i.e., it does not contain the isotope ratio. This is similar to
+    JPL, but different to HITRAN.
+
+    The line format is:
 
     \verbatim
     Col  Variable                Label    Unit     Comment
@@ -356,12 +368,12 @@ private:
      1   name                         NAME        -     e.g. O3-666
      2   center frequency         	 F       Hz     e.g. 501.12345e9 
      3   pressure shift of F           PSF    Hz/Pa    
-     4   line intensity                 I0   m^2/Hz 
+     4   line intensity                 I0   m^2/Hz     per isotope, not per species
      5   reference temp. for I0       T_I0        K
      6   lower state energy           ELOW     cm-1
-     7   air broadened width          AGAM    Hz/Pa     values around 2 GHz/Pa
+     7   air broadened width          AGAM    Hz/Pa     values around 20 GHz/Pa
      8   self broadened width         SGAM    Hz/Pa
-     9   AGAM temp. exponent          NAIR        -
+     9   AGAM temp. exponent          NAIR        -     values around .5
     10   SGAM temp. exponent         NSELF    	  - 
     11   ref. temp. for AGAM, SGAM   T_GAM    	  K
     12   number of aux. parameters   N_AUX    	  -
@@ -384,25 +396,26 @@ private:
     29   information source of auxiliary parameters   IAUX
     \endverbatim
 
+    The parameters 0-12 must be present, the others can be missing,
+    since they are not needed for the calculation.
+
     For the error fields (15-21), a -1 means that no value exist.
 
     Fields 22-29 are string inside quotes ("") for maximum flexibility.
 
-    One line could be:
-    {\small
+    A valid ARTS line file would be:
     \verbatim
-    @ O3-666 110.83604e9 0 12.43453e-22 300 17.5973 1.52 2.03 0.73 0.73 296 ....   
-    \endverbatim}
-
-    The format used in the line file used by the FM
-    can be a truncated version of the full line format.
+    ARTSCAT-2 2
+    @ CH4-211 1011349857.063 0 2.96070344144819e-27 296 2183.6851 13314.2468393782 21302.7949430052 0.75 0.75 296 0
+    @ O3-666 1088246622.54 0 2.82913939200384e-22 296 522.5576 21361.9693734024 27723.2206411054 0.76 0.76 296 0
+    \endverbatim
 
     Some species need special parameters that are not needed by other
     species (for example overlap coefficients for O2). In the case of
     oxygen two parameters are sufficient to describe the overlap, but
     other species, e.g., methane, may need more coefficients. The
     default for \texttt{N\_AUX} is zero. In that case, no further
-    \texttt{AUX} fields are present.
+    \texttt{AUX} fields are present. [FIXME: Check Oxygen.]
 
     The names of the private members and public access functions of
     this data structure follow the above table. The only difference is
@@ -410,7 +423,8 @@ private:
     is capitalized. This is for consistency with the notation
     elsewhere in the program.
 
-    \author Stefan Buehler */
+    \author Stefan Buehler 
+*/
 class LineRecord {
 public:
 
@@ -477,6 +491,14 @@ public:
     // if ever this constructor is used, here is the calculation of
     // the partition fct at the reference temperature
     species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 ) ;
+  }
+
+  /** Return the version string. */
+  string Version() const
+  {
+    ostringstream os;
+    os << "ARTSCAT-" << mversion;
+    return os.str();
   }
 
   /** The index of the molecular species that this line belongs
@@ -775,24 +797,31 @@ public:
 
   /** Read one line from a stream associated with an Arts file.
 
-      Format: see arts distribution
+      Format: see Documentation of class LineRecord
 
-    The function attempts to read a line of data from the
-    catalogue. It returns false if it succeeds. Otherwise, if eof is
-    reached, it returns true. If an error occurs, a runtime_error is
-    thrown. When the function looks for a data line, comment lines are
-    automatically skipped.
+      The function attempts to read a line of data from the
+      catalogue. It returns false if it succeeds. Otherwise, if eof is
+      reached, it returns true. If an error occurs, a runtime_error is
+      thrown. When the function looks for a data line, comment lines are
+      automatically skipped.
 
-    \param is Stream from which to read
-    \exception runtime_error Some error occured during the read
-    \return false=ok (data returned), true=eof (no data returned)
+      \param is Stream from which to read
+      \exception runtime_error Some error occured during the read
+      \return false=ok (data returned), true=eof (no data returned)
 
-    \date 15.12.00
-    \author Oliver Lemke*/
+      \date   2000-12-15
+      \author Oliver Lemke
+
+      
+      \date   2001-06-20
+      \author Stefan Buehler
+*/
   bool ReadFromArtsStream(istream& is);
 
 
 private:
+  // Versin number:
+  const static size_t mversion = 2;
   // Molecular species index: 
   size_t mspecies;
   // Isotopic species index:

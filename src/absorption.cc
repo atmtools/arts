@@ -370,8 +370,9 @@ bool LineRecord::ReadFromHitranStream(istream& is)
     // 1/frequency unit of the line shape function). 
     //
     // We need to do the following:
-    // 1. Convert frequency from wavenumber to Hz (factor 1e2 * c)
-    // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4)
+    // 1. Convert frequency from wavenumber to Hz (factor 1e2 * c).
+    // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4).
+    // 3. Take out the isotopic ratio.
 
     const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
 
@@ -382,7 +383,9 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s * hi2arts;
-//    cout << "mi0 = " << mi0 << endl;
+
+    // Take out isotopic ratio:
+    mi0 /= species_data[mspecies].Isotope()[misotope].Abundance();    
   }
 
   
@@ -733,7 +736,6 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
     // We need to do the following:
     // 1. Convert frequency from wavenumber to Hz (factor 1e2 * c)
     // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4)
-    // 3. Multiply with the isotopic ratio
 
     const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
 
@@ -744,9 +746,6 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 
     // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s * hi2arts;
-
-    // multiply with the isotopic ratio
-    mi0 *= species_data[mspecies].Isotope()[misotope].Abundance();
   }
 
   
@@ -959,8 +958,6 @@ bool LineRecord::ReadFromJplStream(istream& is)
     // 2. convert to cm-1/(molecule * cm-2): devide by c * 1e10
     // 3. Convert frequency from wavenumber to Hz (factor 1e2 * c)
     // 4. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4)
-    // 5. Multiply with the isotopic ratio (done later after the tag 
-    //    is extracted)
 
     Numeric s;
 
@@ -1026,9 +1023,6 @@ bool LineRecord::ReadFromJplStream(istream& is)
 
   // Set misotope:
   misotope = id.Isotopeindex();
-
-  // multiply intensity with the isotopic ratio
-  mi0 *= species_data[mspecies].Isotope()[misotope].Abundance();
 
   // Air broadening parameters: unknown to jpl, use old iup forward
   // model default values, which is mostly set to 0.0025 GHz/hPa, even
@@ -1141,11 +1135,10 @@ bool LineRecord::ReadFromArtsStream(istream& is)
     }
 
 
-  // This contains the rest of the line to parse. At the beginning the
-  // entire line. Line gets shorter and shorter as we continue to
-  // extract stuff from the beginning.
+  // This always contains the rest of the line to parse. At the
+  // beginning the entire line. Line gets shorter and shorter as we
+  // continue to extract stuff from the beginning.
   string line;
-
 
   // Look for more comments?
   bool comment = true;
@@ -1666,15 +1659,25 @@ string get_tag_group_name( const ARRAY<OneTag>& tg )
     \retval os      The stream to write to.
     \param  lines   The line list to write.
 
+    \date 2000-06-12 
     \author Stefan Buehler 
-    \date 2000-06-12 */
+*/
 void write_lines_to_stream(ostream& os,
 			   const ARRAYofLineRecord& lines)
 {
-  for ( size_t i=0; i<lines.size(); ++i )
+  // This if statement is just there to make sure that we can access
+  // the version string from the first line record.  
+  if ( 0 < lines.size() )
     {
-      //      out3 << lines[i] << "\n";
-      os << lines[i] << "\n";
+      // Output version string first, followed by number of lines:
+      os << lines[0].Version() << " " << lines.size() << "\n";
+
+      // Now output the line data:
+      for ( size_t i=0; i<lines.size(); ++i )
+	{
+	  //      out3 << lines[i] << "\n";
+	  os << lines[i] << "\n";
+	}
     }
 }
 
@@ -1836,22 +1839,10 @@ void xsec_species( MATRIX&                  xsec,
 	// Upper state energy
 	Numeric e_upper = e_lower + F0 * PLANCK_CONST;
 
-	// get the ratio of the partition function
-	// FIXME: a try catch block is slow, maybe use an if instead.
-	Numeric part_fct_ratio = 0.0;
-	try 
-	  {
-	    part_fct_ratio =
+	// Get the ratio of the partition function.
+	// This will throw a runtime error if no data exists.
+	Numeric part_fct_ratio =
 	      l_l.IsotopeData().CalculatePartitionFctRatio( t_i );
-	  }
-
-	catch (runtime_error e)
-	  {
-	    ostringstream os;
-	    os << "Partition function of "
-	       << "Species-Isotope = " << l_l.Name()
-	       << "is unknown." << endl;
-	  }
 
 	// Boltzmann factors
 	Numeric nom = exp(- e_lower / ( BOLTZMAN_CONST * t_i ) ) - 
@@ -1981,13 +1972,24 @@ void xsec_species( MATRIX&                  xsec,
 	  }
 	
 
+	// Add line to xsec. 
+	{
+	  // To make the loop a bit faster, precomputer all constant
+	  // factors. These are:
+	  // 1. Total number density of the air.
+	  // 2. Line intensity.
+	  // 3. Isotopic ratio.
+	  //
+	  // The isotopic ratio must be applied here, since we are
+	  // summing up lines belonging to different isotopes.
 
-	// Add line to xsec:
-	for ( long j=it_min_ind, j1=0; j<it_max_ind; ++j,++j1 )
-	  {
-	    xsec[j][i] += 
-	      n * intensity * ls[j1] * fac[j1];
-	  }
+	  const Numeric factors = n * intensity * l_l.IsotopeData().Abundance();
+
+	  for ( long j=it_min_ind, j1=0; j<it_max_ind; ++j,++j1 )
+	    {
+	      xsec[j][i] += factors * ls[j1] * fac[j1];
+	    }
+	}
       }
   }
 }

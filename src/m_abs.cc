@@ -157,15 +157,46 @@ void linesReadFromArts(// WS Output:
 		       const Numeric& fmin,
 		       const Numeric& fmax)
 {
+  // The input stream:
   ifstream is;
+
+  // We will use this line record to read in the line records in the
+  // file one after another:
+  LineRecord lr;
 
   out2 << "  Reading file: " << filename << '\n';
   open_input_file(is, filename);
 
+  // Get version tag and check that it corresponds to the current version.
+  {
+    string v;
+    is >> v;
+    if ( v!=lr.Version() )
+      {
+	ostringstream os;
+	
+	// If what we read is the version string, it should have at elast 9 characters.
+	if ( 9 <= v.size() )
+	  {
+	    if ( "ARTSCAT" == v.substr(0,7) )
+	    {
+	      os << "The ARTS line file you are trying contains a version tag "
+		 << "different from the current version.\n"
+		 << "Tag in file:     " << v << "\n"
+		 << "Current version: " << lr.Version();
+	      throw runtime_error(os.str());
+	    }
+	  }
+
+	os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
+	   << "Probably it was created with an older version of ARTS that used different units.";
+	throw runtime_error(os.str());
+      }
+  }
+
   bool go_on = true;
   while ( go_on )
     {
-      LineRecord lr;
       if ( lr.ReadFromArtsStream(is) )
 	{
 	  // If we are here the read function has reached eof and has
@@ -710,7 +741,6 @@ void lines_per_tgWriteToFile(// WS Input:
   for ( size_t i=0; i<lines_per_tg.size(); ++i )
     {
       const ARRAYofLineRecord& lines = lines_per_tg[i];
-      os << lines.size() << '\n';
       write_lines_to_stream( os, lines );
     }
 }
