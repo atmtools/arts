@@ -99,7 +99,7 @@ field), thus:
 \begin{eqnarray}
   F 
   &=& 
-  \sqrt{\frac{\epsilon}{\mu}}\overline{(\VctStl{E}(\VctStl{x},t))^2}\\
+  \sqrt{\frac{\epsilon}{\mu}}\overline{(\VctStl{\tilde{E}}(\VctStl{x},t))^2}\\
    \nonumber
   &=&
   \sqrt{\frac{\epsilon}{\mu}}\left(
@@ -147,6 +147,9 @@ are defined as in the following equations. They are called
   \label{eq:polarization:stokesparam_V}
   V &=& i(E_h E_v^\ast - E_v E_h^\ast)
 \end{eqnarray}
+Written as a row or column vector, $(I,Q,U,V)$ is called
+\emph{Stokes vector}. Note that sometimes, $S_0$, $S_1$, $S_2$, $S_3$
+is used instead of $I$, $Q$, $U$, $V$.
 Using the amplitude/phase notation from
 Eq.~(\ref{eq:polarization:compl_ampl}),
 we can rewrite the Stokes parameters as 
@@ -167,7 +170,11 @@ intensities (fluxes), describing electromagnetic radiation by the
 Stokes parameters is more practical than describing it by the electric
 (or magnetic) field vector. Furthermore, the Stokes parameters are
 always real numbers.
-
+Note that the Stokes parameters are sometimes defined with different
+signs of $Q$, $U$, or $V$. Moreover, their normalization may vary. In
+particular, the Stokes parameters can be normalized to represent
+radiance or irradiance (instead of intensity), which is usually done
+in radiative transfer contexts.
  
 In order understand what the Stokes parameters mean, we have to go
 back to the electric field vector and see what polarization state it
@@ -204,8 +211,10 @@ the vector $\VctStl{\tilde{E}}$ describes a circle for $\beta = \pm
 45\degree$ (circular polarization), oscillates along the $h$-axis for
 $\beta = 0$ (linear polarization) and else describes an ellipse (cf.
 Figure~\ref{fig:polarization:ellipse_aligned}). The sense of rotation
-is counterclockwise for positive $\beta$ and clockwise for negative
-$\beta$.
+is counterclockwise for positive $\beta$ (corresponding to left-circular
+or left-elliptic polarization) and clockwise for negative
+$\beta$ (corresponding to right-circular
+or right-elliptic polarization).
 %which corresponds to left-handed
 Since $|\tan\beta|$ is the ratio of the semi-minor and semi-major axes
 of the ellipse (the ellipticity), $\beta$ is called the ellipticity
@@ -253,10 +262,12 @@ Figure~\ref{fig:polarization:ellipse_arbitrary}):
   \end{minipage}
  \end{center}
 \end{figure}   
-
-%FIXME: include image pol\_ellipse.fig here (similar to Fig.4, p.25 in
-%\textit{Mishchenko} [2000])!
-
+With these definitions, horizontal polarization corresponds to
+$\beta=0\degree$ and $\zeta=0\degree$; vertical polarization to 
+$\beta=0\degree$ and $\zeta=90\degree$; left-circular to 
+$\beta=45\degree$ and any value of $\zeta$; right-circular to 
+$\beta=-45\degree$ and any value of $\zeta$.
+    
 Now we want to establish a direct connection between the parameters
 $\beta$ and $\zeta$ describing the shape (ellipticity) and orientation
 of the polarization ellipse on the one hand, and the amplitudes $a_v$
@@ -336,6 +347,10 @@ as
   \label{eq:polarization:stokesparam_alt2_V}
  V &=& -a_0^2 \sin(2\beta)
 \end{eqnarray}
+FIXME: $\beta<0$ is right-handed pol. (see above, consistent with
+Jackson and others); thus $V>0$. This conflicts with Mishchenko's book
+(p.26).
+  
 
 Thus, we can get the orientation angle $\zeta$ of the ellipse from
 \begin{equation}
@@ -369,7 +384,8 @@ following equality applies:
   \label{eq:polarization:Isquare}
   I^2 = Q^2 + U^2 + V^2
 \end{equation}
-
+Some examples of Stokes parameters for specific polarizations are given
+at the end of the next section (p.~\pageref{stokes-examples})
 \levelb{Measuring Stokes Parameters}
 %=====================================================================
 \label{sec:polarization:measuring}
@@ -382,7 +398,9 @@ we are going to rewrite them while keeping in mind that most
 instruments can just measure intensities of radiation.
 
 We have seen above that the Stokes parameter $Q$ is the difference in
-the intensity of the vertically and horizontally polarized components,
+the intensity of the vertically and horizontally polarized components 
+(Eq.~\ref{eq:polarization:stokesparam_Q},
+or~\ref{eq:polarization:stokesparam_alt_Q})
 \begin{equation}
   \label{eq:polarization:Q_Idiff}
   Q = I_v - I_h
@@ -582,6 +600,20 @@ orthogonal components:
 We see that $Q$ and $U$ are both related to linear polarization, while
 $V$ is related to circular polarization.
 
+Here are the Stokes parameters for some standard polarizations:
+\begin{center}
+\label{stokes-examples}
+\begin{tabular}{r@{\hspace{2em}(}r@{,}r@{,}r@{,}r@{)}}
+\hline
+polarization & $I$ &   $Q$   &   $U$  &   $V$ \\ \hline
+horizontal   & $I$ &  $-I$   &    0   &   0   \\ 
+vertical     & $I$ &  $+I$   &    0   &   0   \\ 
+linear $\pm 45\degree$
+             & $I$ &   0     &$\mp I$ &   0   \\ 
+right-circular& $I$ &  0     &    0   &   $I$ \\ 
+left-circular& $I$ &   0     &    0   &  $-I$ \\ \hline
+\end{tabular}
+\end{center}
 
 
 
@@ -598,20 +630,33 @@ $a_h$ and the phases $\delta_v$ and $\delta_v$ are fixed and do not
 vary with time. This means that the plane wave is emitted by one
 coherent source.
 
-In reality, the amplitudes and phases fluctuate, since the radiation
+In reality, i.e. in the case of natural radiation, 
+the amplitudes and phases fluctuate, since the radiation
 originates from several sources that do not emit radiation coherently,
-or since the emission from one source is not coherent with time. This
-means that the polarization state fluctuates as well and that in
-addition we usually have a superposition of several incoherent waves.
+and since the emission from one source usually has very short
+coherence times. This
+means that we usually have a superposition of radiation from several incoherent
+sources, and that the polarization state of the radiation from each
+source fluctuates as well\footnote{This does, of course, not apply to
+  coherent sources like lasers or coherent radars}. 
 Typically, such fluctuations have time scales that are longer than the
 period ($2\pi/\omega$) of the oscillation, but that are still shorter
 than the integration time of the instrument that measures the
-radiation. Thus, the instrument measures a superposition of time averages
+radiation. Thus, the instrument measures an incoherent
+ superposition of time averages
 over of the fluctuating polarization. If the fluctuations are
-completely random for all the sources or if the different sources are
-incoherent (uncorrelated?), then there is no preferred(??)
-orientation, ellipticity or handedness, and the radiation is called
-unpolarized. If the fluctuations are not completely random, the
+random for all the sources and if the different sources emit 
+incoherently and are not in any way oriented, then there is no preferred
+orientation, ellipticity or handedness of the emitted radiation, which
+is then called unpolarized. This is the case for radiation from the sun
+%, but also to
+%a large extent for thermal radiation emitted by the atmosphere:
+%While the emission from individual molecules might be polarized
+%depending on the direction into which it is emitted, the random
+%orientation of the molecules causes the resulting radiation to be
+%unpolarized.
+
+If the fluctuations are not completely random, the
 radiation is called partially polarized.
 
 To quantify this rather heuristic argumentation, we express the
@@ -632,14 +677,14 @@ simply be added up:
 \end{equation}
 In the case of unpolarized radiation, i.e. when the amplitudes and
 phases, or equivalently, the orientation angle $\zeta$ and the
-ellipticity angle $\beta$ are completely random (FIXME: really
-completely random? or uncorrelated, fluctuating?), $Q$, $U$, and $V$
+ellipticity angle $\beta$ are random (uniformly distributed), 
+$Q$, $U$, and $V$
 each cancel out.
 
 For each $i$, the equality $I_i^2 = Q_i^2 + U_i^2 + V_i^2$
 holds. Thus, we get for partially polarized radiation:
 \begin{eqnarray}
-  I^2 &=& \left(\sum_i I\right)^2\\ \nonumber
+  I^2 &=& \left(\sum_i I_i\right)^2\\ \nonumber
       &\geq& \sum_i I_i^2 = \sum_i (Q_i^2  + U_i^2 + V_i^2)\\ \nonumber
       &=& Q^2 + U^2 + V^2
   \label{eq:polarization:stokes_inequality}
@@ -653,8 +698,6 @@ Now we can define a measure for the degree of polarization, $p$:
   \label{eq:polarization:pol_degree}
   p = \frac{\sqrt{Q^2 + U^2 + V^2}}{I}
 \end{equation}
-%FIXME: Should the $p$ be squared (cf. equ.~\ref{eq:polarization:p_lin}
-%and~\ref{eq:polarization:p_circ}?
 For completely polarized radiation, $Q^2 + U^2 + V^2 = I^2$, so $p =
 1$, and for unpolarized radiation, $Q = U = V = 0$, so $p = 0$.
 
@@ -669,9 +712,17 @@ and the unpolarized component as
   \label{eq:polarization:unpol_component}
   I_u = I - I_p
 \end{equation}
+Thus, partially polarized radiation, described by a Stokes vector $(I,
+Q, U, V)$ can be regarded as as a superposition of completely
+polarized radiation described by the Stokes vector $(I_p, Q, U, V)$
+and unpolarized radiation described by the Stokes vector $(I_u,
+0,0,0)$.  We see that the Stokes parameter formalism can conveniently
+deal with partially polarized and unpolarized radiation, much in
+contrast to the formalism using the electric field (amplitude and
+phase).
 
-In addition, we can define measures for the circularity and the
-linearity of the polarization.
+In addition to the degree of polarization, $p$, we can define measures
+for the circularity and the linearity of the polarization.
 Recalling Eqs.~(\ref{eq:polarization:stokesparam_Idiff_U})%
 ~and~(\ref{eq:polarization:stokesparam_Idiff_V}),
 we can define the degree of linear polarization, $p_{lin}$, as
@@ -686,10 +737,29 @@ and the the degree of circular polarization, $p_{circ}$, as
 \end{equation}
 %(Stephens p.61)
 
+
+\subsection{Polarization of Radiation in the Atmosphere}
+\label{sec:polarization:atmosphere}
+The radiation encountered in atmospheric sounding (for which ARTS is
+intended) is natural radiation, coming from the sun, space (cosmic
+background), and/or the atmosphere and the Earth surface (thermal
+radiation, scattered radiation)\footnote{This is not so for active
+  sounding techniques that use coherent source, such as lidar.}.
+Radiation from the sun is unpolarized, as already mentioned; the same
+applies for the cosmic background (??really??).  In contrast,
+radiation emitted by the ground can be weakly polarized, dependent on
+material, texture and direction.  Radiation emitted by the atmosphere
+(thermal radiation) is almost unpolarized because of the random
+orientation of the air molecules.  An exception might be caused by the
+Zeeman effect induced in oxygen molecules by the -- anisotropic --
+Earth's magnetic field .  Scattering of radiation by oriented
+particles, e.g.\ cirrus clouds, is sensitive to polarization, and
+generally increases the degree of polarization.  Typically $I > |Q| >
+|U|,|V|$.
+
 FIXME: Give some typical numbers for the relative magnitude of $I$,
 $Q$, $U$, $V$
-for realistic radiation in relevant cases ($I \gg Q \gg U,V$ for
-atmosphere?)
+for realistic radiation in relevant cases ($I \gg Q \gg U,V$ when?)
 
 
 %This is $S_{\mathrm{H_2 O}}$.
@@ -702,4 +772,4 @@ atmosphere?)
 %%% TeX-master: "uguide"
 %%% End: 
 % LocalWords:  ext matrix abs vec pha pnd sca lat lon za aa pt FIXME Eq LH RH
-% LocalWords:  Eqs mishchenko scatt nonsp partic RTE Melsheimer overline
+% LocalWords:  Eqs mishchenko scatt nonsp partic RTE Melsheimer overline Zeeman
