@@ -1,18 +1,17 @@
+#include <ctime>
+#include <cstdlib>
 #include <iostream>
 using namespace std;
 
 #include "matpackI.h"
 #include "sorting.h"
 
-int
-main (void)
+void
+testVector ()
 {
   // Array for output of sorted indexes
   ArrayOfIndex i;
 
-  /*
-   * First sort a vector
-   */
   Vector v (10);
   v [0] = 2.2;
   v [1] = 1.1;
@@ -33,9 +32,14 @@ main (void)
     cout << " " << setw (3) << v[i[j]];
   cout << endl << endl;
 
-  /*
-   * Now sorting an ArrayOfIndex
-   */
+}
+
+void
+testArray ()
+{
+  // Array for output of sorted indexes
+  ArrayOfIndex i;
+
   ArrayOfIndex a (10);
   a [0] = 2;
   a [1] = 1;
@@ -54,7 +58,30 @@ main (void)
   cout << "Sorted Array:          ";
   for (Index j = 0; j < a.nelem (); j++)
     cout << " " << setw (3) << a[i[j]];
-  cout << endl;
+  cout << endl << endl;
+}
+
+void
+profileVector (Index n)
+{
+  cout << "Creating Vector with random numbers" << endl;
+
+  srandom (time (NULL));
+  Vector v(n);
+  for (Index i = 0; i < n; i++)
+    v[i] = Numeric (random ());
+
+  cout << "Now sorting" << endl;
+  ArrayOfIndex i;
+  get_sorted_indexes (i, v);
+}
+
+int
+main (void)
+{
+  testVector ();
+  testArray ();
+//  profileVector (100 * 100 * 20 * 20);
 
   return (0);
 }
