@@ -288,7 +288,7 @@ $S^{real}_{21}$, $S^{real}_{22}$) and the imaginary components
 ($S^{imag}_{11}$, $S^{imag}_{12}$,$S^{imag}_{21}$, $S^{imag}_{22}$).
 
 You can read the database using the function
-\wsfindex{read\_amp\_fromDb}.\\
+\wsmindex{read\_amp\_fromDb}.\\
 Output of the function is a tensor containing amplitude matrices for
 a fixed angle combination stored in the variable
 \wsvindex{amp\_mat}. Its dimension is [$N_{sp}, N_{I}, N_{I}$]
@@ -314,7 +314,7 @@ in the control file.
 %==================================================================
 \label{sec:scattering:ext_mat_agenda}
 
-The agenda \wsfindex{ext\_mat\_agenda} calculates the total extinction
+The agenda \wsvindex{ext\_mat\_agenda} calculates the total extinction
 matrix \ExtMat{}
 for each grid point. It is the physical extinction matrix, that means
 that it includes the gaseous extinction and the particle
@@ -351,7 +351,7 @@ The agenda can for example be defined in the following manner:
 %==================================================================0
 \label{sec:scattering:ext_mat_part}
 
-The workspace method \wsfindex{ext\_mat\_partCalc} gives as output the
+The workspace method \wsmindex{ext\_mat\_partCalc} gives as output the
 particle extinction matrix \aExtMat{p} stored in the variable
 \wsvindex{ext\_mat\_part} which has the chosen Stokes dimension. So in
 the most general case it is a 4x4 matrix.\\
@@ -378,7 +378,7 @@ weighted with the particle number density:
 From the database for single scattering properties (see Section 
 \ref{sec:scattering:database}) the extinction matrices for each
 particle type can be derived using the workspace method
-\wsfindex{ext\_mat\_sptCalc}.\\
+\wsmindex{ext\_mat\_sptCalc}.\\
 Output is a tensor including local extinction matrices for each
 particle type, so it is of the dimension [$N_{pt}, N_{I}, N_{I}$],
 where $N_{I}$ denotes the Stokes dimension.\\
@@ -387,7 +387,7 @@ where $N_{I}$ denotes the Stokes dimension.\\
 As input variables it needs the amplitude matrix (\wsvindex{amp\_mat})
 and the propagation direction given by the local zenith and azimuth
 angle (\artsstyle{za} and \artsstyle{aa}). \wsvindex{amp\_mat} is
-obtained using the reading routine \wsfindex{get\_amp\_fromDb} which is
+obtained using the reading routine \wsmindex{get\_amp\_fromDb} which is
 explained in Section \ref{sec:scattering:database}.\\
 %============================================================
 
@@ -421,7 +421,7 @@ file. The following formulas are used:
 %=======================================================================
 \label{sec:scattering:sca_mat}
 
-Output of the workspace method \wsfindex{sca\_matCalc} is the phase
+Output of the workspace method \wsmindex{sca\_matCalc} is the phase
 matrix stored in the variable \wsvindex{sca\_mat}  with dimension
 according to the chosen Stokes
 dimension, so in general it is a 4x4 matrix.\\
@@ -441,7 +441,7 @@ weighted with the particle number density.
 
 From the amplitude matrix the phase matrix for each
 particle type is calculated using the workspace method
-\wsfindex{pha\_mat\_sptCalc}.\\
+\wsmindex{pha\_mat\_sptCalc}.\\
 Output is a tensor including phase matrices for all particle
 types. Therefore it is  of  dimension
 [$N_{pt}, N_{I}, N_{I}$], where $N_{pt}$ is the number of particle
@@ -478,7 +478,7 @@ defined in analogy to those generating the extinction coefficient matrix.
 %==================================================================
 \label{sec:scattering:abs_vec_agenda}
 
-The agenda \wsfindex{abs\_vec\_agenda} calculates the total absorption
+The agenda \wsvindex{abs\_vec\_agenda} calculates the total absorption
 matrix \AbsVec{}
 for each grid point. It is the physical absorption vector including
 particle absorption and gaseous absorption.\\
@@ -515,7 +515,7 @@ The definition of the agenda is listed below:
 %=======================================================================
 \label{sec:scattering:abs_vec_part}
 
-The workspace method \wsfindex{abs\_vec\_partCalc} gives as output the
+The workspace method \wsmindex{abs\_vec\_partCalc} gives as output the
 particle absorption vector \aAbsVec{p} stored in the variable
 \wsvindex{abs\_vec\_part} which has the chosen Stokes dimension, so in
 general a four component vector.\\
@@ -541,7 +541,7 @@ weighted with the particle number density.
 
 From the amplitude matrix the absorption vector for each
 particle type is calculated using the workspace method
-\wsfindex{abs\_vec\_sptCalc}.\\
+\wsmindex{abs\_vec\_sptCalc}.\\
 Output is the absorption vector tensor, which is  of  dimension
 [$N_{pt}, N_{I}$], where $N_{pt}$ is the number of particle
 types  and $N_{I}$ denotes the Stokes dimension.\\
@@ -636,21 +636,21 @@ is required. The other interface variables are empty.
 %=====================================
 \label{sec:scattering:main_function}
 
-The scattering main function \wsfindex{scat\_iterateCalc} requires the clear sky radiation 
+The scattering main function \wsmindex{scat\_iterateCalc} requires the clear sky radiation 
 field on the cloud box boundary as input.
 It loops over the frequencies and in each loop it executes the agenda 
 \wsvindex{scat\_mono\_agenda}
 (see Section \ref{sec:scattering:scat_mono_ag}).\\
-Output of \wsfindex{ScatCalc} is the scattered radiation field on the
+Output of \wsmindex{ScatCalc} is the scattered radiation field on the
 boundary also stored in the variables \wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
 \wsvindex{scat\_i\_lon}.
 
-\levelc{Agenda \wsfindex{scat\_mono\_agenda}}
+\levelc{Agenda \wsvindex{scat\_mono\_agenda}}
 %===================================
 \label{sec:scattering:scat_mono_ag}
 
 The iteration scheme outlined in \ref{sec:scattering:solution_rte} is
-performed by \wsfindex{scat\_mono\_agenda} for one frequency specified
+performed by \wsvindex{scat\_mono\_agenda} for one frequency specified
 by the frequency index \artsstyle{scat\_f\_index}. 
 The agenda consists of a number of methods which have to be executed in
 the correct order.
@@ -678,17 +678,17 @@ which is stored in the internal variable
 The method \funcindex{i\_fieldCalc} performs the following steps 
 until convergence is obtained. As input the initial field stored in
 \artsstyle{i\_field} is required. Furthermore the method needs two
-agendas, the \wsfindex{scattered\_field\_agenda} and the
-\wsfindex{i\_field\_update\_agenda}.
+agendas, the \wsvindex{scattered\_field\_agenda} and the
+\wsvindex{i\_field\_update\_agenda}.
 
 \begin{itemize}
 \item \artsstyle{i\_field} is copied to \artsstyle{i\_field\_old}.
 \item The scattered field is calculated using
-  \wsfindex{scattered\_field\_agenda}
+  \wsvindex{scattered\_field\_agenda}
     (see Sections \ref{sec:scattering:scat_field_ag} and
     \ref{sec:scattering:scat_int}).
 \item Calculate the new radiation field using
-  \wsfindex{i\_field\_update\_agenda}
+  \wsvindex{i\_field\_update\_agenda}
  (see Sections \ref{sec:scattering:RT_ag} and
   \ref{sec:scattering:RTE}).
 \item Do the convergence test (see Sections
@@ -714,7 +714,7 @@ to put \artsstyle{i\_field}.
 \levelc{Agenda for RT with fixed scattering integral}
 %=====================================
 \label{sec:scattering:RT_ag}
-The \wsfindex{i\_field\_update\_agenda} needs the variables
+The \wsvindex{i\_field\_update\_agenda} needs the variables
 \artsstyle{i\_field\_old}, \artsstyle{scattered\_field}, \wsvindex{ext\_mat}
 and  \wsvindex{abs\_vec} as input.\\ 
 According to Equation(\ref{eq:scattering:RTE_sol}) it computes the new
@@ -732,15 +732,19 @@ between the grid points using the interpolation routine (*** give
 reference to section here ***)
 %\ref{sec:interpolation}. \\
 Computing the matrix exponential is done using the method
-\wsfindex{matrix\_exp} explained in Section
+\funcindex{matrix\_exp} explained in Section
 \ref{sec:lin_alg:mat_exp}.\\
  The term
 \ExtMat$^{-1}$[\AbsVec\Planck+\ScaInt] can be computed numerically  
 performing a LU decomposition. This is implemented in the workspace
-methods \wsfindex{ludcmp} and \wsfindex{lubacksub} which are described
+methods \wsmindex{ludcmp} and \wsmindex{lubacksub} which are described
 in the Sections \ref{sec:lin_alg:backsub} and
-\ref{sec:lin_alg:lu_decomp}. \\
-Output of the \wsfindex{i\_field\_update\_agenda} is the variable 
+\ref{sec:lin_alg:lu_decomp}. 
+
+{\Large \bf FIXME: Are these realle WSVs? In that case the names are
+  not according to the convention. SAB 04.06.2002}
+
+Output of the \wsvindex{i\_field\_update\_agenda} is the variable 
 \artsstyle{i\_field} which contains the new radiation field at all
 grid points in the cloudbox for all directions defined by 
 \wsvindex{scat\_za\_grid} and \wsvindex{scat\_aa\_grid}.

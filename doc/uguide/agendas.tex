@@ -5,8 +5,8 @@
 %  \levelb{...}
 %  \levelc{...}
 %
-\levela{Propagation paths}
- \label{sec:ppath}
+\levela{WSVs, WSMs, and agendas}
+ \label{sec:agendas}
 
 %
 % Document history, format:
@@ -17,7 +17,7 @@
 %  \stophistory
 %
 \starthistory
-  02xxxx & xxx.\\
+  020605 & Created by Stefan Buehler.\\
 \stophistory
 
 
@@ -46,6 +46,13 @@
 % \label{symtable:ppath_defs}     
 %\stopsymbols
 
+This chapter deals with the main components of ARTS: \emph{Workspace
+  variables}\index{workspace variables} (\textindex{WSVs}) and
+\emph{workspace methods}\index{workspace methods} (\textindex{WSMs}).
+Furthermore, it explains the use of \textindex{agendas}, a special
+group of WSVs.
+
+
 
 A propagation path is the way the radiation travels to reach the
 sensor for a specified line-of-sight. A general description of
@@ -69,11 +76,11 @@ The first file, \artsstyle{ppath.h}, contains the definition of the
 structure to describe propagation paths, \typeindex{Ppath}. The
 second file, \artsstyle{ppath.cc}, contains functions to perform
 calculations to determine propagation paths. The third file,
-\artsstyle{m\_ppath.cc}, contains the workspace methods related to
-propagation path, but these methods mainly check the input and the
+\artsstyle{m\_ppath.cc}, contains the workspace functions related to
+propagation path, but these functions mainly checks the input and the
 actual calculations are performed by sub-functions in
 \artsstyle{ppath.cc}. The fourth file, \artsstyle{m\_atmosphere.cc},
-contains methods to set the geoid radius.
+contains functions to set the geoid radius.
 
 
 
@@ -95,13 +102,13 @@ point inside the atmosphere, such as the sensor position. Only points
 inside the model atmosphere are handled. The path steps are stored in
 the workspace variable \wsvindex{ppath\_step}, that is of the same
 type as \artsstyle{ppath}. The path steps are calculated by an agenda
-called \wsvindex{ppath\_step\_agenda}. Example on methods that can
+called \wsvindex{ppath\_step\_agenda}. Example on functions that can
 be used in \artsstyle{ppath\_step\_agenda} are
 \wsmindex{ppath\_stepGeometric} and
 \wsmindex{ppath\_stepGeometricWithLmax}.
 
-Propagation paths are calculated with the workspace method
-\wsmindex{ppathCalc}. The communication between this method and
+Propagation paths are calculated with the workspace function
+\wsmindex{ppathCalc}. The communication between this function and
 \artsstyle{ppath\_step\_agenda} is handled by \artsstyle{ppath\_step}.
 That variable is used both as input and output to
 \artsstyle{ppath\_step\_agenda}.  The agenda gets back
@@ -140,7 +147,7 @@ blackbody ground and the cloud box.
 
 The \artsstyle{ppath\_step\_agenda} put in points along the
 propagation path at all crossings with the grids, tangent points and
-points of ground reflection. There exists also methods for
+points of ground reflection. There exists also functions for
 \artsstyle{ppath\_step\_agenda}, such as
 \artsstyle{ppath\_stepGeometricWithLmax}, that put in additional
 points to ensure that the length along the path between the points
@@ -289,7 +296,7 @@ propagation path when refraction is neglected. The expressions deal
 only with propagation path inside a plane, where the latitude angle is
 the angular distance from an arbitrary point. This means that the
 expressions given here can be directly applied for 1D and 2D, but not for
-3D. The ARTS method for making the calculation of concern is given
+3D. The ARTS function for making the calculation of concern is given
 inside parenthesis above each equation, if not stated explicitly. A
 part of a geometrical propagation path is shown in
 Figure~\ref{fig:ppath:1d2dgeom}.
@@ -414,12 +421,12 @@ towards higher latitudes.
 This section describes the calculation of the propagation path steps
 for different atmospheric dimensionalities, and when refraction is
 considered or not. The case when refraction is neglected is also
-denoted as geometrical calculations. The workspace methods for
+denoted as geometrical calculations. The workspace functions for
 propagation path step calculations adjust automatically to the
 atmospheric dimensionality, but the actual calculations are performed
 a sub-functions for each dimensionality.
 
-Workspace methods to calculate geometrical propagation steps are:
+Workspace functions to calculate geometrical propagation steps are:
 \begin{itemize}
 \item \artsstyle{ppath\_stepGeometric}
 \item \artsstyle{ppath\_stepGeometricWithLmax}

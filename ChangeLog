@@ -1,3 +1,41 @@
+2002-06-05  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-116
+
+	* doc/uguide/agendas.tex: Started this file. It contains
+	documentations about WSVs, WSMs, and particularly agendas. By
+	doing this I noticed that WSM are sometimes called "workspace
+	methods" and sometimes "workspace functions". But names should be
+	consistent within AUG. Method is the older and more established
+	term (that's for example why WSM files are called
+	m_something.cc). So, I tried to enforce "method"
+	everywhere. Please use the name "method" in future.
+
+	* doc/uguide/main.tex: Renamed \structindex to \typeindex, as
+	suggested by Sreerekha/Patrick. Replaced "workspace functions" by
+	"workspace methods". Replaced \wsfindex by \wsmindex.
+
+	* doc/uguide/scattering.tex: Replaced \wsfindex by \wsmindex.
+	Replaced \wsmindex by \wsvindex for agendas, since agendas are
+	WSVs, not WSMs. Replaced \wsmindex by \funcindex for matrix_exp,
+	since this is a normal function, not a WSM. I suspect there are
+	more functions marked by \wsmindex that really should be marked by
+	\funcindex.
+
+	* doc/uguide/lin_alg.tex: Replaced \wsfindex by \wsmindex.
+
+	* doc/uguide/fm_definitions.tex: Replaced "workspace functions" by
+	"workspace methods". Replaced \wsfindex by \wsmindex.
+
+	* doc/uguide/concept.tex: Replaced "functions" by "methods".
+
+	* doc/uguide/ppath.tex: Renamed \structindex to \typeindex, as
+	suggested by Sreerekha/Patrick. Replaced "workspace functions" by
+	"workspace methods". Replaced \wsfindex by \wsmindex.
+
+	* doc/uguide/interpolation.tex: Renamed \structindex to \typeindex, as
+	suggested by Sreerekha/Patrick.
+
 2002-06-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-115

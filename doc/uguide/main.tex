@@ -106,21 +106,21 @@
 % the normal \index command must be used.
 \newcommand{\textindex}[1]   {#1\index{#1}}  
 %
-% Index command to make index for workspace function. It writes out the
+% Index command to make index for a workspace method. It writes out the
 % function name in verbatim style and makes an index reference.
-\newcommand{\wsfindex}[1]    {\artsstyle{#1}\index{workspace functions!#1}}  
+\newcommand{\wsmindex}[1]    {\artsstyle{#1}\index{workspace methods!#1}}  
 %
-% Index command to make index for workspace variable. Works as \wsfindex.
+% Index command to make index for workspace variable. Works as \wsmindex.
 \newcommand{\wsvindex}[1]    {\artsstyle{#1}\index{workspace variables!#1}}  
 %
-% Index command to make index for a ARTS file. Works as \wsfindex.
+% Index command to make index for a ARTS file. Works as \wsmindex.
 \newcommand{\fileindex}[1]   {\artsstyle{#1}\index{ARTS files!#1}}
 %
-% Index command to make index for an internal function. Works as \wsfindex.
+% Index command to make index for an internal function. Works as \wsmindex.
 \newcommand{\funcindex}[1]   {\artsstyle{#1}\index{internal ARTS functions!#1}}
 %
-% Index command to make index for a ARTS data structure. Works as \wsfindex.
-\newcommand{\structindex}[1] {\artsstyle{#1}\index{data structures!#1}}
+% Index command to make index for a ARTS data structure. Works as \wsmindex.
+\newcommand{\typeindex}[1] {\artsstyle{#1}\index{data structures!#1}}
 
 
 
@@ -208,7 +208,7 @@ Boston, MA 02111-1307, USA.
 %
 \part{Algorithm Descriptions}
 \include{formalism}
-%\include{absorption}
+\include{absorption}
 %\include{rte}
 \include{ppath}
 %\include{los1d}
@@ -220,6 +220,7 @@ Boston, MA 02111-1307, USA.
 %\include{wfuns_sensor} 
 \part{Implementation Issues}
 \include{development}
+\include{agendas}
 \part{Linear Algebra Functions}
 \include{matrix_vector}
 \include{interpolation}

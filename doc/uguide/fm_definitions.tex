@@ -117,8 +117,8 @@ the workspace variable \wsvindex{atmosphere\_dim} to a value between 1
 and 3. Variables for which the size depends on the atmospheric
 dimensionality are checked, when used, to have a size consistent with
 \artsstyle{atmosphere\_dim}. The atmospheric dimensionality is most
-easily set by the functions \wsfindex{SetAtmosphere1D},
-\wsfindex{SetAtmosphere2D} and \wsfindex{SetAtmosphere3D}.
+easily set by the functions \wsmindex{SetAtmosphere1D},
+\wsmindex{SetAtmosphere2D} and \wsmindex{SetAtmosphere3D}.
 
 \begin{description}
   
@@ -407,7 +407,7 @@ particular frequency.
   \artsstyle{blackbody\_ground} is set to 0, the calculations will be
   performed such as the radiation is reflected by the ground. A
   blackbody ground is most easily selected by the function
-  \wsfindex{SetBlackbodyGround}.
+  \wsmindex{SetBlackbodyGround}.
 \end{description}
 
 
@@ -635,7 +635,7 @@ described in Section~\ref{sec:formalism:sensor}. The application of
 these transfer matrices assumes that each step is a linear operation,
 which should be the case for the response of the parts of a well
 designed instrument. Non-linear data reduction is handled by special
-workspace functions.
+workspace methods.
 
 The creation of sensor and data reduction transfer matrices is not
 (yet?) included in ARTS and no workspace variables exist to describe
@@ -868,8 +868,8 @@ Section~\ref{sec:fm_defs:sensor2}.
 \label{sec:fm_defs:calcproc}
 
 The overall structure of the part solving the radiative transfer
-equation is fixed. The corresponding workspace function is
-\wsfindex{rteCalc}. The calculation procedure of \artsstyle{rteCalc} is
+equation is fixed. The corresponding workspace method is
+\wsmindex{rteCalc}. The calculation procedure of \artsstyle{rteCalc} is
 outlined in Algorithm~\ref{alg:fm_defs:rteCalc}. For further details
 of each calculation step, see the indicated equation or section.
 
@@ -1015,7 +1015,7 @@ atmosphere, as long as the viewing direction is downward and the
 lowest point of the path, then tangent point, is inside the latitude
 and longitude limits of the model atmosphere.
 
-Propagation paths are determined by the function \wsfindex{ppathCalc}.
+Propagation paths are determined by the function \wsmindex{ppathCalc}.
 This function is normally only called from \artsstyle{rteCalc}, but it
 can be called separately if needed. The calculation of the path from
 one crossing of the grids to next crossing is defined by
@@ -1023,8 +1023,8 @@ one crossing of the grids to next crossing is defined by
 selected for \artsstyle{ppath\_step\_agenda}, refraction will be
 considered or not, a length criterion between the path points will be
 applied etc. Functions intended for \artsstyle{ppath\_step\_agenda}
-include \wsfindex{ppath\_step\_geometric} and
-\wsfindex{ppath\_step\_refraction}.
+include \wsmindex{ppath\_step\_geometric} and
+\wsmindex{ppath\_step\_refraction}.
 
 
 \levelc{Solving the radiative transfer equation}

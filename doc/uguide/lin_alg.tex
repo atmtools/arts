@@ -60,7 +60,7 @@ of the algorithm described in
 is the Gauss-Jordan elimination, but this method is three times
 slower than the LU decomposition method
 [\cite{numerical_recipes_C:97}, p.36]. The LU decomposition method
-reqires two functions, \wsfindex{ludcmp} and \wsfindex{lubacksub},
+reqires two functions, \wsmindex{ludcmp} and \wsmindex{lubacksub},
 which will be decribed below.
 \vspace{0.5cm}\\
 The following example for a three dimensional equation sytem 
@@ -308,7 +308,7 @@ q & $\epsilon$(q,q) \\ \hline
 \hline
 \end{tabular}
 \vspace{0.5cm}\\
-The algorithm is implemented in the function \wsfindex{matrix\_exp}. Input
+The algorithm is implemented in the function \wsmindex{matrix\_exp}. Input
 to this function is the matrix ${\bf A}$ and the parameter $q$. As output
 it gives the matrix ${\bf F}$ which is defined above.\\
 The following example shows how to use the \verb|matrix_exp| function:
