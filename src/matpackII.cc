@@ -449,9 +449,9 @@ void transpose( SparseView A,
   rowind.erase(last, rowind.end());
 
   // Loop through the existing rows of B and check them vs columns of C
-  for (Index l=0; l<rowind.size(); l++) {
-    Index i = rowind[l];
-    
+  for (Index l=0; l<(signed)rowind.size(); l++) {
+    Index i = (rowind[l]-B.mrr.mstart)/B.mrr.mstride;
+
     // Loop through columns and get the values for the specific row
     for (Index j=0; j<B.ncols(); j++) {
       // Get index of first data element of this column:
@@ -463,9 +463,11 @@ void transpose( SparseView A,
       Index end = (*B.mcolptr)[j+1];
 
       // If row index is within the span of this column, search for it
-      if (i>=(*B.mrowind)[begin] && i<=(*B.mrowind)[end-1]) {
+      Index firstB = ((*B.mrowind)[begin]-B.mrr.mstart)/B.mrr.mstride;
+      Index lastB = ((*B.mrowind)[end-1]-B.mrr.mstart)/B.mrr.mstride;
+      if (i>=firstB && i<=lastB) {
         for (Index k=begin; k<end; ++k) {
-          if ( i == (*B.mrowind)[k] )
+          if ( i == ((*B.mrowind)[k]-B.mrr.mstart)/B.mrr.mstride )
             A.rw(j,i) = B.ro(i,j);
         }
       }
@@ -524,11 +526,16 @@ void mult( SparseView A,
       */
 
       //Check that the columns are non-empty, ...
+      Index firstBt = ((*Bt.mrowind)[beginBt]-Bt.mrr.mstart)/Bt.mrr.mstride;
+      Index lastBt = ((*Bt.mrowind)[endBt-1]-Bt.mrr.mstart)/Bt.mrr.mstride;
+      Index firstC = ((*C.mrowind)[beginC]-C.mrr.mstart)/C.mrr.mstride;
+      Index lastC = ((*C.mrowind)[endC-1]-C.mrr.mstart)/C.mrr.mstride;
       if ( endBt-beginBt!=0 && endC-beginC!=0
           // (NB: last index actually points to next columns first)
           // that they are overlapping and ...
-          && (*Bt.mrowind)[endBt-1]>=(*C.mrowind)[beginC]
-          && (*Bt.mrowind)[beginBt]<=(*C.mrowind)[endC-1]
+          && lastBt>=firstC && firstBt<=lastC
+          //&& (*Bt.mrowind)[endBt-1]>=(*C.mrowind)[beginC]
+          //&& (*Bt.mrowind)[beginBt]<=(*C.mrowind)[endC-1]
           // that this special case of overlapping is not included.
           /*&& beginBt!=endC && beginC!=endBt*/ ) {
         Numeric tempA=0.0;
@@ -538,10 +545,14 @@ void mult( SparseView A,
         while ( j<endC && i<endBt ) {
           //cout<<"B("<<cBt<<","<<i<<")*C("<<j<<","<<cC<<")="<<Bt.ro(i,cBt)<<"*"<<C.ro(j,cC)<<"="<<Bt.ro(i,cBt)*C.ro(j,cC)<<endl;
           //cout <<"i="<<(*Bt.mrowind)[i]<<",j="<<(*C.mrowind)[j]<<",";
-          if ((*C.mrowind)[j]>(*Bt.mrowind)[i]) {
+          Index c = ((*C.mrowind)[j]-C.mrr.mstart)/C.mrr.mstride;
+          Index bt =((*Bt.mrowind)[i]-Bt.mrr.mstart)/Bt.mrr.mstride;
+          //if ((*C.mrowind)[j]>(*Bt.mrowind)[i]) {
+          if (c>bt) {
             i++;
             //cout << "i++,";
-          } else if ((*C.mrowind)[j]<(*Bt.mrowind)[i]) {
+          //} else if ((*C.mrowind)[j]<(*Bt.mrowind)[i]) {
+          } else if (c<bt) {
             j++;
             //cout << "j++,";
           } else {
@@ -561,3 +572,56 @@ void mult( SparseView A,
     }
   }
 }
+
+/** Sparse - Sparse multiplication. A = B*C, where result A is sparse.
+
+    This is a second version of the sparse-sparse multiplication
+    algorithm. The aim is to hold down the memory usage created when
+    making a transposed copy of B.
+
+    2003-06-27  Mattias Ekström
+/
+void mult2( SparseView A,
+           const SparseView B,
+           const SparseView C )
+{
+  //Check dimensions:
+  assert( A.nrows() == B.nrows() );
+  assert( A.ncols() == C.ncols() );
+  assert( B.ncols() == C.nrows() );
+
+  // Create a vector with all row indices, sorted in strict ascending order
+  std::vector<Index> rowind = *B.mrowind;
+  sort(rowind.begin(), rowind.end());
+  std::vector<Index>::iterator last = unique(rowind.begin(), rowind.end());
+  rowind.erase(last, rowind.end());
+
+  // Loop through the existing rows of B and check them vs columns of C
+  for (Index l=0; l<(signed)rowind.size(); l++) {
+    Index i = (rowind[l]-B.mrr.mstart)/B.mrr.mstride;
+
+    // Loop through columns and get the values for the specific row
+    for (Index j=0; j<B.ncols(); j++) {
+      // Get index of first data element of this column:
+      Index begin = (*B.mcolptr)[j];
+
+      // Get index of first data element of next column. (This always works,
+      // because mcolptr has one extra element pointing behind the last
+      // column.)
+      Index end = (*B.mcolptr)[j+1];
+
+      // If row index is within the span of this column, search for it
+      Index firstB = ((*B.mrowind)[begin]-B.mrr.mstart)/B.mrr.mstride;
+      Index lastB = ((*B.mrowind)[end-1]-B.mrr.mstart)/B.mrr.mstride;
+      if (i>=firstB && i<=lastB) {
+        for (Index k=begin; k<end; ++k) {
+          if ( i == ((*B.mrowind)[k]-B.mrr.mstart)/B.mrr.mstride )
+            A.rw(j,i) = B.ro(i,j);
+        }
+      }
+    }
+  }
+  // Should rowind be destructed?
+}
+
+*/

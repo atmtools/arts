@@ -819,8 +819,8 @@ void test38()
   mult(A,B,C);
 
   cout << "\n(Sparse) A = \n" << A;
-  //cout << "\n(Sparse) B = \n" << B;
-  //cout << "\n(Sparse) C = \n" << C;
+  cout << "\n(Sparse) B = \n" << B;
+  cout << "\n(Sparse) C = \n" << C;
 
   Matrix a(5,15), b(5,15), c(15,15);
 
@@ -850,7 +850,7 @@ void test38()
 void test39() 
 {
   //Test sparse transpose function
-  Sparse B(10,20);
+  Sparse B(1000,2000);
   Sparse Bt(B.ncols(), B.nrows());
 
   Index i=0;
@@ -908,8 +908,8 @@ int main()
 //   test35();
 //   test36();
 //  test37();
-  test38();
-//  test39();
+//  test38();
+  test39();
 
   return 0;
 }

@@ -1,3 +1,18 @@
+2003-06-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-591
+
+	* src/matpackI.h: Added Sparse transpose- and multiplication function
+	as friends in Range. Also added declaration of class bofstream.
+
+	* src/matpackII.cc: Fixed bug in transpose- and multiplication
+	function by changing to apparent row and column indices.
+
+	* src/xml_io_basic_types.cc: Added corrections in xml_write_to_stream
+	for Sparse to write the apparent row indices. The corrections are not
+	yet implemented, since there is a problem with Range and private
+	members.
+
 2003-06-26  Cory Davis    <cory@met.ed.ac.uk>
 
 	* arts-1-1-590

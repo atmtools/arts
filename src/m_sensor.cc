@@ -138,8 +138,8 @@ void sensor_responseAntenna1D(// WS Output:
 
   //cout << "sensor_response (pre):\n" << sensor_response << "\n";
   //xml_write_to_file ("sensor_response.xml", sensor_response);
-  Sparse sr_t( sensor_response.ncols(), sensor_response.nrows() );
-  transpose( sr_t, sensor_response );
+  //Sparse sr_t( sensor_response.ncols(), sensor_response.nrows() );
+  //transpose( sr_t, sensor_response );
 
   Sparse sensor_response_tmp(sensor_response);
   sensor_response.resize( f_grid.nelem(), n);

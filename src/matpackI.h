@@ -98,6 +98,9 @@
 #include "arts.h"
 #include "array.h"
 
+// Declare existance of some classes
+class bofstream;
+
 /** The Joker class.
 
     This class is used by Vector and Matrix in connection with Range
@@ -105,7 +108,7 @@
 
     This class has no members. We just need a special type to indicate
     the joker. There is a global joker object defined somewhere:
-    
+
     Joker joker;
 */
 class Joker {
@@ -118,7 +121,7 @@ extern Joker joker;
 // Declare the existence of class VectorView:
 class VectorView;
 
-/** The range class. 
+/** The range class.
 
     This is used to specifiy a range of a vector. In general, a range is
     given by a start index, an extent, and a stride. The entire vector
@@ -181,6 +184,8 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const SparseView& v);
   friend void mult (VectorView y, const SparseView& M, const ConstVectorView& x );
   friend void mult (MatrixView A, const SparseView B, const MatrixView C );
+  friend void transpose ( SparseView A, const SparseView B );
+  friend void mult( SparseView A, const SparseView B, const SparseView C );
 
 private:
   /** The start index. */
