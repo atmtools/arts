@@ -639,7 +639,7 @@ void sensor_responseMixer(// WS Output:
 
   // and that it covers the whole sensor_response_f range.
   Numeric df_high = filter(filter.nrows()-1,0)-last(sensor_response_f);
-  Numeric df_low = filter(0,0)-sensor_response_f[0];
+  Numeric df_low = sensor_response_f[0]-filter(0,0);
   if( df_high<0 && df_low<0 )
   {
     os << "The frequency grid of the sideband filter matrix *" << filter_name

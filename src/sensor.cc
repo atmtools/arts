@@ -510,6 +510,9 @@ void sensor_summation_vector(
   h[gp_upp[0].idx+1] = filt_upp/filt_sum * gp_upp[0].fd[0];
   h[gp_low[0].idx] = filt_low/filt_sum * gp_low[0].fd[1];
   h[gp_low[0].idx+1] = filt_low/filt_sum * gp_low[0].fd[0];
+
+  // FIXME: Normalise h?
+  // h /= h.sum();
 }
 
 //! spectrometer_transfer_matrix

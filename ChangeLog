@@ -1,3 +1,11 @@
+2003-10-03  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+
+	* arts-1-1-694
+
+	* src/sensor.cc: Should h in mixer_transfer_matrix be normalised?
+
+	* src/msensor.cc: Fixed bug.
+
 2003-10-02  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-693
