@@ -133,7 +133,6 @@ void interpolate_scat_angle(//Output:
                             //Input:
                             const Tensor5View pha_mat_data,
                             const VectorView za_datagrid,
-                            const VectorView aa_datagrid,
                             const Numeric& za_sca_rad,
                             const Numeric& aa_sca_rad,
                             const Numeric& za_inc_rad,

@@ -1,3 +1,19 @@
+2003-08-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-657
+
+	* src/optproperties.{cc,h}: Fixed bug in (pha_matCalc). If incoming
+	and outgoing directions lie on a great circle through the 
+	north pole the transformations are not defined. This was 
+	the reason for the nan values, which sometimes appeared.
+	
+   	Furthermore cleaned up the code: Removed unused vaiable and 
+	included dummys to remove warnings during compilation. 
+
+	Included some defines to avoid copying variables. 
+	
+	* src/m_optproperties.cc: Included defines.
+
 2003-08-19  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-656

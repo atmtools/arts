@@ -30,6 +30,15 @@
 
 extern const Numeric PI;
 
+#define part_type scat_data_raw[i_pt].ptype
+#define f_datagrid scat_data_raw[i_pt].f_grid
+#define za_datagrid scat_data_raw[i_pt].za_grid
+#define aa_datagrid scat_data_raw[i_pt].aa_grid
+#define pha_mat_data scat_data_raw[i_pt].pha_mat_data
+#define ext_mat_data scat_data_raw[i_pt].ext_mat_data
+#define abs_vec_data scat_data_raw[i_pt].abs_vec_data
+
+
 //! Calculate single particle extinction. 
 /*!
   This method computes the extinction matrix for a single particle
@@ -266,15 +275,6 @@ void pha_mat_sptFromData( // Output:
   
   assert( pha_mat_spt.nshelves() == N_pt );
   
-  SingleScatteringData single_scattering_data;
-
-  PType part_type;
-  Vector f_datagrid;
-  Vector za_datagrid;
-  Vector aa_datagrid;
-  Tensor6 pha_mat_data;
-  Tensor4 ext_mat_data;
-
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
   Tensor5 pha_mat_data_int;
@@ -283,15 +283,6 @@ void pha_mat_sptFromData( // Output:
   // Loop over the included particle_types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      // Extract SingleScatteringData from raw data.
-      single_scattering_data = scat_data_raw[i_pt];
-      
-      part_type = single_scattering_data.ptype;
-      f_datagrid = single_scattering_data.f_grid;
-      za_datagrid = single_scattering_data.za_grid;
-      aa_datagrid = single_scattering_data.aa_grid;
-      pha_mat_data = single_scattering_data.pha_mat_data;
-      
       // First we have to transform the data from the coordinate system 
       // used in the database (depending on the kind of particle type 
       // specified by *ptype*) to the laboratory coordinate sytem. 
@@ -421,15 +412,6 @@ void opt_prop_sptFromData( // Output and Input:
   assert( ext_mat_spt.npages() == N_pt );
   assert( abs_vec_spt.nrows() == N_pt );
 
-  SingleScatteringData single_scattering_data;
-
-  PType part_type;
-  Vector f_datagrid;
-  Vector za_datagrid;
-  Vector aa_datagrid;
-  Tensor4 ext_mat_data;
-  Tensor4 abs_vec_data;
-
   // Phase matrix in laboratory coordinate system. Dimensions:
   // [frequency, za_inc, aa_inc, stokes_dim, stokes_dim]
   Tensor3 ext_mat_data_int;
@@ -443,17 +425,6 @@ void opt_prop_sptFromData( // Output and Input:
   // Loop over the included particle_types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      //  Extract SingleScatteringData from raw data.
-      single_scattering_data = scat_data_raw[i_pt];
-      
-      part_type = single_scattering_data.ptype;
-      f_datagrid = single_scattering_data.f_grid;
-      za_datagrid = single_scattering_data.za_grid;
-      Vector aa_datagrid = single_scattering_data.aa_grid;
-      ext_mat_data = single_scattering_data.ext_mat_data;
-      abs_vec_data = single_scattering_data.abs_vec_data;
-      
-
       // First we have to transform the data from the coordinate system 
       // used in the database (depending on the kind of particle type 
       // specified by *ptype*) to the laboratory coordinate sytem. 
@@ -1593,30 +1564,10 @@ void scat_data_rawCheck(//Input:
   xml_write_to_file("SingleScatteringData", scat_data_raw);
   
   const Index N_pt = scat_data_raw.nelem();
-  SingleScatteringData single_scattering_data;
-
-  PType part_type;
-  Vector f_datagrid;
-  Vector za_datagrid;
-  Vector aa_datagrid;
-  Tensor6 pha_mat_data;
-  Tensor4 ext_mat_data;
-  Tensor4 abs_vec_data;
-
+  
   // Loop over the included particle_types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      // Extract SingleScatteringData from raw data.
-      single_scattering_data = scat_data_raw[i_pt];
-      
-      part_type = single_scattering_data.ptype;
-      f_datagrid = single_scattering_data.f_grid;
-      za_datagrid = single_scattering_data.za_grid;
-      aa_datagrid = single_scattering_data.aa_grid;
-      pha_mat_data = single_scattering_data.pha_mat_data;
-      ext_mat_data = single_scattering_data.ext_mat_data;
-      abs_vec_data = single_scattering_data.abs_vec_data;
-
       Numeric Csca = AngIntegrate_trapezoid
         (pha_mat_data(0, joker, 0, 0, 0, 0), za_datagrid);
 

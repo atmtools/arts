@@ -52,6 +52,14 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;
 
+
+#define F11 pha_mat_int[0]
+#define F12 pha_mat_int[1]
+#define F22 pha_mat_int[2]
+#define F33 pha_mat_int[3]
+#define F34 pha_mat_int[4]
+#define F44 pha_mat_int[5]
+
 //! Transformation of absorption vector.
 /*! 
   In the single scattering database the data of the absorption vector is 
@@ -94,6 +102,14 @@ void abs_vecTransform(//Output and Input
   switch (ptype){
 
   case PTYPE_GENERAL:
+    // This is only included to remove warnings about unused variables 
+    // during compilation
+    Numeric x;
+    x = za_datagrid[0];
+    x = aa_datagrid[0];
+    x = za_sca;
+    x = aa_sca;
+        
     cout << "Case PTYPE_GENERAL not yet implemented. \n"; 
     break;
     
@@ -157,6 +173,14 @@ void ext_matTransform(//Output and Input
   switch (ptype){
 
   case PTYPE_GENERAL:
+    // This is only included to remove warnings about unused variables 
+    // during compilation
+    Numeric x;
+    x = za_datagrid[0];
+    x = aa_datagrid[0];
+    x = za_sca;
+    x = aa_sca;
+
     cout << "Case PTYPE_GENERAL not yet implemented. \n"; 
     break;
     
@@ -251,6 +275,10 @@ void pha_matTransform(//Output
   switch (ptype){
 
   case PTYPE_GENERAL:
+    // to remove warnings during compilation. 
+    Numeric x;
+    x = aa_datagrid[0];
+
     cout << "Case PTYPE_GENERAL not yet implemented. \n"; 
     break;
     
@@ -263,8 +291,7 @@ void pha_matTransform(//Output
 
       // Interpolation of the data on the scattering angle:
       interpolate_scat_angle(pha_mat_int, theta_rad, pha_mat_data,
-                             za_datagrid, 
-                             aa_datagrid, za_sca_rad, aa_sca_rad,
+                             za_datagrid, za_sca_rad, aa_sca_rad,
                              za_inc_rad, aa_inc_rad);
 
       // Caclulate the phase matrix in the laboratory frame:
@@ -314,7 +341,6 @@ void interpolate_scat_angle(//Output:
                             //Input:
                             const Tensor5View pha_mat_data,
                             const VectorView za_datagrid,
-                            const VectorView aa_datagrid,
                             const Numeric& za_sca_rad,
                             const Numeric& aa_sca_rad,
                             const Numeric& za_inc_rad,
@@ -384,20 +410,15 @@ void pha_mat_labCalc(//Output:
 {
   Numeric za_sca_rad = za_sca * DEG2RAD;
   Numeric za_inc_rad = za_inc * DEG2RAD;
-  Numeric aa_sca_rad = aa_sca * DEG2RAD;
-  Numeric aa_inc_rad = aa_inc * DEG2RAD;
+  //Numeric aa_sca_rad = aa_sca * DEG2RAD;
+  //Numeric aa_inc_rad = aa_inc * DEG2RAD;
+
   const Numeric theta = RAD2DEG * theta_rad;
   const Index stokes_dim = pha_mat_lab.ncols();
 
   // cout << "Transformation of phase matrix:" <<endl; 
   
-  // Scattering matrix elements:
-  const Numeric F11 = pha_mat_int[0];
-  const Numeric F12 = pha_mat_int[1];
-  const Numeric F22 = pha_mat_int[2];
-  const Numeric F33 = pha_mat_int[3];
-  const Numeric F34 = pha_mat_int[4];
-  const Numeric F44 = pha_mat_int[5];
+ 
   
   // For stokes_dim = 1, we only need Z11=F11:
   pha_mat_lab(0,0) = F11;
@@ -414,7 +435,10 @@ void pha_mat_labCalc(//Output:
         // Forward scattering
         ((theta > -.01) && (theta < .01) ) ||
         // Backward scattering
-        ((theta > 179.99) && (theta < 180.01)) 
+        ((theta > 179.99) && (theta < 180.01)) ||
+        // "Grosskreis" through poles: no rotation required
+        ((aa_sca == aa_inc) || (aa_sca == 360-aa_inc) || (aa_inc == 360-aa_sca) ||
+         (aa_sca == 180-aa_inc) || (aa_inc == 180-aa_sca) )  
         )
       {
         pha_mat_lab(0,1) = F12;
@@ -439,53 +463,55 @@ void pha_mat_labCalc(//Output:
           }
         }
       }
-   //  else if(// Scattering frame equals laboratory frame
-//             (za_inc == 0) || (za_sca == 180) ||
-//         // Scattering frame is "mirrored" laboratory frame
-//         (za_sca == 0) || (za_inc == 180) ||
-//         // "Grosskreis"
-//         (aa_sca == aa_inc) || (aa_sca == aa_inc-360) || 
-//             (aa_inc == aa_sca-360) )
-//       {
-//         // FIXME: Wich formulas do we need in these special cases. The values
-//         // are very small, so the overall error is small ... but this needs to
-//         // be fixed
-//         pha_mat_lab = 0;
-//       } 
-   else if( (aa_sca - aa_inc) > 0 && (aa_sca - aa_inc) < 180 ||  
-	    (aa_sca - aa_inc) > -360 && (aa_sca - aa_inc) < -180 )
-      {
-        // In these cases we have to take limiting value
-        // (according personal communication with Mishchenko)
-        if (za_inc_rad < ANGTOL)
-          za_inc_rad = ANGTOL;
-        if (za_inc_rad > PI-ANGTOL)
-           za_inc_rad = PI - ANGTOL;
-        if (za_sca_rad < ANGTOL)
-          za_sca_rad = ANGTOL; 
-        if (za_sca_rad > PI - ANGTOL)
-           za_sca_rad = PI - ANGTOL;
-        
-        const Numeric cos_sigma1 =  (cos(za_sca_rad) - cos(za_inc_rad)
-                                      * cos(theta_rad))/
-                                 (sin(za_inc_rad)*sin(theta_rad));
-        const Numeric cos_sigma2 =  (cos(za_inc_rad) - cos(za_sca_rad)
-                                      *cos(theta_rad))/
-                                     (sin(za_sca_rad)*sin(theta_rad));
-        
+   
+   else 
+     {
+       // In these cases we have to take limiting value
+       // (according personal communication with Mishchenko)
+       if (za_inc_rad < ANGTOL)
+         za_inc_rad = ANGTOL;
+       if (za_inc_rad > PI-ANGTOL)
+         za_inc_rad = PI - ANGTOL;
+       if (za_sca_rad < ANGTOL)
+         za_sca_rad = ANGTOL; 
+       if (za_sca_rad > PI - ANGTOL)
+         za_sca_rad = PI - ANGTOL;
+       
+       const Numeric sigma1 =  acos((cos(za_sca_rad) - cos(za_inc_rad)
+                                    * cos(theta_rad))/
+                                    (sin(za_inc_rad)*sin(theta_rad)));
+       const Numeric sigma2 =  acos((cos(za_inc_rad) - cos(za_sca_rad)
+                                    *cos(theta_rad))/
+                                    (sin(za_sca_rad)*sin(theta_rad)));
+       
                
-        const Numeric C1 = 2 * cos_sigma1 * cos_sigma1 - 1;
-        const Numeric C2 = 2 * cos_sigma2 * cos_sigma2 - 1;
+       const Numeric C1 = cos(2*sigma1);
+       const Numeric C2 = cos(2*sigma2);
         
-        const Numeric S1 = 2 * sqrt(1 - cos_sigma1 * cos_sigma1) * cos_sigma1;
-        const Numeric S2 = 2 * sqrt(1 - cos_sigma2 * cos_sigma2) * cos_sigma2;
+       const Numeric S1 = sin(2*sigma1);
+       const Numeric S2 = sin(2*sigma2);
         
         pha_mat_lab(0,1) = C1 * F12;
         pha_mat_lab(1,0) = C2 * F12;
         pha_mat_lab(1,1) = C1 * C2 * F22 - S1 * S2 * F33;
-	assert(!isnan(pha_mat_lab(0,1)));        
-	assert(!isnan(pha_mat_lab(1,0)));
-	assert(!isnan(pha_mat_lab(1,1)));
+
+         if( isnan(pha_mat_lab(0,1)) || isnan(pha_mat_lab(1,0)) || isnan(pha_mat_lab(1,1)))
+        {
+          cout << "pha_mat_lab(0,1) = " << pha_mat_lab(0,1) << endl
+               << "pha_mat_lab(1,0) = " << pha_mat_lab(1,0) << endl
+               << "pha_mat_lab(1,1) = " << pha_mat_lab(1,1) << endl
+               << "za_sca = " << za_sca << endl
+               << "aa_sca = " << aa_sca << endl
+               << "za_inc = " << za_inc << endl
+               << "aa_inc = " << aa_inc << endl
+               << "theta_rad = " << theta << endl
+               << "sigma1 = " << sigma1 << endl
+               << "sigma2 = " << sigma2 << endl ;
+           }
+            //	assert(!isnan(pha_mat_lab(0,1)));        
+            //assert(!isnan(pha_mat_lab(1,0)));
+            //assert(!isnan(pha_mat_lab(1,1)));
+
         if( stokes_dim > 2 ){
                             
           pha_mat_lab(0,2) = S1 * F12;
@@ -505,56 +531,7 @@ void pha_mat_labCalc(//Output:
             pha_mat_lab(3,3) = F44;
           }
         }     
-  }
-  else if ( (aa_sca - aa_inc) > -180 && (aa_sca - aa_inc) < 0 ||
-              (aa_sca - aa_inc) > 180 && (aa_sca - aa_inc) < 360 )
-      {
-        // In these cases we have to take limiting value
-        // (according personal communication with Mishchenko)
-        if (za_inc_rad < ANGTOL)
-          za_inc_rad = ANGTOL;
-        if (za_inc_rad > PI-ANGTOL)
-           za_inc_rad = PI - ANGTOL;
-        if (za_sca_rad < ANGTOL)
-          za_sca_rad = ANGTOL; 
-        if (za_sca_rad > PI - ANGTOL)
-           za_sca_rad = PI - ANGTOL;
-        
-        const Numeric cos_sigma1 =  (cos(za_sca_rad) - cos(za_inc_rad)
-                                     * cos(theta_rad))/
-                                     (sin(za_inc_rad)*sin(theta_rad));
-        const Numeric cos_sigma2 =  (cos(za_inc_rad) - cos(za_sca_rad)
-                                     *cos(theta_rad))/
-          (sin(za_sca_rad)*sin(theta_rad));
-        
-        const Numeric C1 = 2 * cos_sigma1 * cos_sigma1 - 1;
-        const Numeric C2 = 2 * cos_sigma2 * cos_sigma2 - 1;
-        
-        const Numeric S1 = 2 * sqrt(1 - cos_sigma1) * cos_sigma1;
-        const Numeric S2 = 2 * sqrt(1 - cos_sigma2) * cos_sigma2;
-        
-        pha_mat_lab(0,1) = C1 * F12;
-        pha_mat_lab(1,0) = C2 * F12;
-        pha_mat_lab(1,1) = C1 * C2 * F22 - S1 * S2 * F33;
-        
-        if( stokes_dim > 2 ){
-          pha_mat_lab(0,2) = S1 * F12;
-          pha_mat_lab(1,2) = S1 * C2 * F22 + C1 * S2 * F33;
-          pha_mat_lab(2,0) = -S2 * F12;
-          pha_mat_lab(2,1) = -C1 * S2 * F22 + S1 * C2 * F33;
-          pha_mat_lab(2,2) = -S1 * S2 * F22 + C1 * C2 * F33;
-          
-          if( stokes_dim > 3 ){
-            pha_mat_lab(0,3) = 0;
-            pha_mat_lab(1,3) = S2 * F34;
-            pha_mat_lab(2,3) = C2 * F34;
-            pha_mat_lab(3,0) = 0;
-            pha_mat_lab(3,1) = S1 * F34;
-            pha_mat_lab(3,2) = -C1 * F34;
-            pha_mat_lab(3,3) = F44;
-          }
-        }
-      }
+     }
    }
 }
      
