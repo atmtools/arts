@@ -40,32 +40,24 @@
 
 
 void invplanck (
-              VectorView   y,
-         ConstVectorView   f,
-	 ConstVectorView   za );
+		Numeric   y,
+		const Numeric f,
+		const Numeric   za );
 
 void invrayjean (
-              VectorView   y,
-         ConstVectorView   f,
-         ConstVectorView   za );
+              Numeric   y,
+         const Numeric   f,
+         const Numeric   za );
 
-Numeric number_density (
+void number_density (
+	     Numeric  nd,
        const Numeric   p,
        const Numeric   t );
 
-Vector number_density (
-       ConstVectorView    p,
-       ConstVectorView    t );
-
 void planck (
-             MatrixView   B, 
-        ConstVectorView   f,
-        ConstVectorView   t );
-
-void planck (
-              VectorView   B, 
-         ConstVectorView   f,
-         const Numeric     t );
+	     Numeric   B, 
+         const Numeric   f,
+         const Numeric   t );
 
 
 #endif // physics_h

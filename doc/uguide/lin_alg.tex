@@ -56,10 +56,10 @@ For solving a set of linear equations
 \end{eqnarray}
 the LU decomposition method is implemented.A slightly modified version
 of the algorithm described in
-[\cite{numerical_recipes_C:96}] is used here. An alternative method
+[\cite{numerical_recipes_C:97}] is used here. An alternative method
 is the Gauss-Jordan elimination, but this method is three times
 slower than the LU decomposition method
-[\cite{numerical_recipes_C:96}, p.36]. The LU decomposition method
+[\cite{numerical_recipes_C:97}, p.36]. The LU decomposition method
 reqires two functions, \wsfindex{ludcmp} and \wsfindex{lubacksub},
 which will be decribed below.
 \vspace{0.5cm}\\
@@ -224,7 +224,7 @@ equation system.
 \begin{itemize}
 \item Inverse of a matrix:\\
   To compute $(\bf K)^{-1}\cdot{\bf b}$, which is a part of the
-solution to the vector radiative transfer equation (\ref{?}) the LU
+solution to the vector radiative transfer equation (\ref{eq:scattering:RTE}) the LU
 decomposition method can be used. The following equations show, that
 the problem is equivalent to  solving a linear equation system of the type
 \ref{eq:lin_equ_sys}.

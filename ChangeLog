@@ -1,3 +1,13 @@
+2002-05-28 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-97 
+
+	* src/physics_funcs.cc/h: Changed the interfaces of the functions. 
+	Input and Output variables are now for all physical functions 
+	(Planck function, number density, ...) of type Numeric.
+
+	* doc/uguide/lin_alg.tex: Fixed some undefined references.
+	
 2002-05-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-96
