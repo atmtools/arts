@@ -551,10 +551,10 @@ a~$-1$ means that no value exist. Fields 22-29 are String inside quotes
 \verb ""  for maximum flexibility.\\
 Thus a valid ARTS line file would be:
 \begin{verbatim}
-    ARTSCAT-2 2
-    @ CH4-211 1011349857.063 0 2.96070344144819e-27 296 \
+ARTSCAT-2 2
+@ CH4-211 1011349857.063 0 2.96070344144819e-27 296
 2183.6851 13314.2468393782 21302.7949430052 0.75 0.75 296 0
-    @ O3-666 1088246622.54 0 2.82913939200384e-22 296   \
+@ O3-666 1088246622.54 0 2.82913939200384e-22 296
 522.5576 21361.9693734024 27723.2206411054 0.76 0.76 296 0
 \end{verbatim}
 where the back slash is here used only for technical reasons.
@@ -753,6 +753,7 @@ linesReadfromHitran {
    fmin     = 0
    fmax     = 1e12
 }
+ \end{verbatim}
 for HITRAN96,
 \begin{verbatim}
 linesReadfromJpl {
@@ -763,7 +764,8 @@ linesReadfromJpl {
 \end{verbatim}     
 for JPL, and 
 \begin{verbatim}
-linesReadfromMytran {
+linesR
+eadfromMytran {
    filename = "mytran98.my"
    fmin     = 0
    fmax     = 1e12
@@ -790,18 +792,18 @@ lineshape_per_tgDefine{
 \end{verbatim}
 More elucidation on the three parameters {\verb shape } ,
 {\verb normalizationfactor } and {\verb cutoff }  is needed. The first
-one accounts for the different lineshape models now in ARTS
-available. It's done by setting {\verb shape } to a given model name
+one accounts for the different lineshape models now available in
+ARTS. It's done by setting {\verb shape } to a given model name
 :
 \begin{description} 
 \item{{\verb Lorenz }~:} Lorenz line shape;
 \item{{\verb Doppler }~:} Doppler line shape
 \item{{\verb Voigt_Kuntz6 }~:} Kuntz approximation to the Voigt line
   shape with relative accuracy better than $ 2 \times 10^{-6} $;
-\item{{\verb Voigt_Kuntz6 }~:} Kuntz approximation to the Voigt line
-  shape with relative accuracy better than $ 2 \times 10^{-4} $;
-\item{{\verb Voigt_Kuntz6 }~:} Kuntz approximation to the Voigt line
-  shape with relative accuracy better than $ 2 \times 10^{-2} $;
+\item{{\verb Voigt_Kuntz4 }~:} Kuntz approximation to the Voigt line
+  shape with relative acc uracy better than $ 2 \times 10^{-4} $;
+\item{{\verb Voigt_Kuntz3 }~:} Kuntz approximation to the Voigt line
+  shape with relative accuracy better than $ 2 \times 10^{-3} $;
 \item{{\verb Voigt_Drayson }~:} Drayson approximation to the Voigt
   profile;
 \item{{\verb Rosenkranz_Voigt_Kuntz6 }~:} Rosenkranz oxygen
@@ -823,8 +825,8 @@ factors of the line shape:
 \end{description}
 The {\verb cutoff } can  be set to -1 for no cutoff or to a positive
 number for a cutoff at a given frequency in~ [Hz], e.g. 650e9.\\
-Thus we have all input workspace variables for {\verb absCalc }
-generated. Therefore this part of the subsection is a little bit short
+Thus we have generated all input workspace variables for 
+{\verb absCalc }. Therefore this part of the subsection is a little bit short
 of being able to serve as a control file in ARTS for absorption,
 provided that just one method is used where more alternatives are
 available and superfluous methods are skipped. The only addition to make
