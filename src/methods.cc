@@ -36,7 +36,7 @@
 #include "auto_wsv_groups.h"
 
 // Some #defines and typedefs to make the records better readable:
-#define NAME(x) x 
+#define NAME(x) x
 #define DESCRIPTION(x) x
 #define OUTPUT   MakeArray<Index>
 #define INPUT    MakeArray<Index>
@@ -44,8 +44,8 @@
 #define GINPUT   MakeArray<Index>
 #define KEYWORDS MakeArray<String>
 #define TYPES    MakeArray<TokValType>
-#define AGENDAMETHOD(x) x   
-#define SUPPRESSHEADER(x) x   
+#define AGENDAMETHOD(x) x
+#define SUPPRESSHEADER(x) x
 
 
 /* Here's a template record entry:  (PE 2001-09-18)
@@ -85,10 +85,10 @@
          "\n"
          "Keywords:\n"
          "   delta_t   : Time increment between observations.\n"
-         "   z_tan_lim : Vector with start and stop tangent altitudes." 
+         "   z_tan_lim : Vector with start and stop tangent altitudes."
         ),
         OUTPUT(),
-        INPUT( z_plat_, p_abs_, z_abs_, l_step_, refr_, refr_lfac_, 
+        INPUT( z_plat_, p_abs_, z_abs_, l_step_, refr_, refr_lfac_,
                refr_index_, r_geoid_, z_ground_ ),
         GOUTPUT( Vector_ ),
         GINPUT(),
@@ -112,7 +112,7 @@
          "   \n"
          "\n"
          "Keywords:\n"
-         "   " 
+         "   "
         ),
         OUTPUT(),
         INPUT(),
@@ -159,7 +159,7 @@ void define_md_data_raw()
 //      GINPUT(),
 //      KEYWORDS(),
 //      TYPES()));
-  
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("amp_matCalc"),
@@ -2219,7 +2219,7 @@ md_data_raw.push_back
          "   Matrix : A matrix with radiance values."
         ),
         OUTPUT(),
-        INPUT( sensor_pos_, sensor_los_, sensor_response_f_, 
+        INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
                sensor_response_za_, sensor_response_aa_, sensor_pol_ ),
         GOUTPUT( Matrix_ ),
         GINPUT( Matrix_ ),
@@ -2245,7 +2245,7 @@ md_data_raw.push_back
          "   Matrix : A matrix with radiance values."
         ),
         OUTPUT(),
-        INPUT( sensor_pos_, sensor_los_, sensor_response_f_, 
+        INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
                sensor_response_za_, sensor_response_aa_, sensor_pol_ ),
         GOUTPUT( Matrix_ ),
         GINPUT( Matrix_ ),
@@ -3228,7 +3228,7 @@ md_data_raw.push_back
          "   mblock_aa_grid  : Empty."
         ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
-                sensor_response_aa_, sensor_pol_, sensor_rot_, 
+                sensor_response_aa_, sensor_pol_, sensor_rot_,
                 antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         INPUT( atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_, 
                f_grid_ ),
@@ -3338,18 +3338,18 @@ md_data_raw.push_back
          "Returns the response block matrix after it has been modified by\n"
          "a spectrometer backend response.\n"
          "\n"
-         "The channel response is given as the generic input array of matrices,\n"
-         "where each element in the array represent different polarisations\n"
-         "given by *sensor_pol*. The individual matrices describe the channel\n"
-         "responses as function of frequency, where the first column describes\n"
-         "a relative grid of frequencies and the rest of the columns describe\n"
-         "the backend response.\n"
+         "The channel response is given as the generic input array of\n"
+         "matrices, where each element in the array represent different\n"
+         "polarisations given by *sensor_pol*. The individual matrices\n"
+         "describe the channel responses as function of frequency, where the\n"
+         "first column describes a relative grid of frequencies and the rest\n"
+         "of the columns describe the backend response.\n"
          "\n"
-         "For each level, the response can be described in two ways. Either one\n"
-         "single array element/matrix column is given and then used for each\n"
-         "polarisation/frequency. Or a complete set of array elements/matrix\n"
-         "columns covering all polarisations/frequencies are given and in each\n"
-         "case a individual response will be used.\n"
+         "For each level, the response can be described in two ways. Either\n"
+         "one single array element/matrix column is given and then used for\n"
+         "each polarisation/frequency. Or a complete set of array\n"
+         "elements/matrix columns covering all polarisations/frequencies are\n"
+         "given and in each case a individual response will be used.\n"
          "Note that for both cases there must allways be a column in the\n"
          "matrices, the first, of a relative frequency grid.\n"
          "\n"
@@ -3394,25 +3394,30 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Returns the response block matrix after it has been modified by\n"
-         "the mixer and sideband filter.\n"
+         "the mixer and sideband filter. The returned matrix converts RF to\n"
+         "IF.\n"
          "\n"
          "The generic input matrix is a two-column matrix where the first\n"
          "column should be equal to *f_grid* and the second column desrcibes\n"
          "the sideband filter function.\n"
          "\n"
+         "The local oscillator frequency is set by the keyword *lo*.\n"
+         "\n"
          "Generic Input: \n"
          "       Matrix : The sideband filter response matrix.\n"
          "\n"
          "Keywords:\n"
-         "           lo : The LO frequency.\n"
-         " primary_band : \"upper\" or \"lower\"."
+         "           lo : The local oscillator frequency.\n"
+         "     multiply : 0 - no sensor_response multiplication\n"
+         "                  the returned sparse is the backend response\n"
+         "                  1 - the total sensor response is returned."
         ),
-        OUTPUT( sensor_response_, f_mixer_ ),
-        INPUT( f_grid_ ),
+        OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
+        INPUT( sensor_pol_, sensor_response_za_ ),
         GOUTPUT( ),
         GINPUT( Matrix_ ),
-        KEYWORDS( "lo", "primary_band" ),
-        TYPES( Numeric_t, String_t )));
+        KEYWORDS( "lo", "multiply" ),
+        TYPES( Numeric_t, Index_t )));
 
  md_data_raw.push_back
     ( MdRecord

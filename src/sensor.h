@@ -62,9 +62,10 @@ void mixer_transfer_matrix(
               Sparse&   H,
               Vector&   f_mixer,
       ConstVectorView   f_grid,
-           const bool   is_upper,
         const Numeric   lo,
-      ConstMatrixView   sfrm );
+      ConstMatrixView   filter,
+          const Index   n_pol,
+          const Index   n_za );
 
 void scale_antenna_diagram(
            VectorView   sc,

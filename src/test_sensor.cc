@@ -239,15 +239,14 @@ void test5()
   f_grid[4]=13;
   f_grid[5]=15;
   f_grid[6]=17;
-  bool is_upper=true;
   Numeric lo=10;
-  Matrix sfrm(2,2);
-  sfrm(0,0)=0;
-  sfrm(1,0)=20;
-  sfrm(0,1)=0;
-  sfrm(1,1)=2;
+  Matrix filter(2,2);
+  filter(0,0)=0;
+  filter(1,0)=20;
+  filter(0,1)=0;
+  filter(1,1)=2;
 
-  mixer_transfer_matrix( H, f_mixer, f_grid, is_upper, lo, sfrm);
+  mixer_transfer_matrix( H, f_mixer, f_grid, lo, filter, 2, 2);
 
   cout << "H:\n" << H << "\n";
 
@@ -309,11 +308,11 @@ void test7()
 
 int main()
 {
-  test1();
+//  test1();
 //  test2();
 //  test3();
 //  test4();
-//  test5();
+  test5();
 //  test6();
 //  test7();
 

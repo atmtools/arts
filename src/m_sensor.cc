@@ -338,15 +338,6 @@ void sensor_responseAntenna1D(
            << "frequencies plus one.\n";
         error_found = true;
       }
-      /* FIXME: Debugging
-      cout << "za_dlow =" <<za_dlow<< " (diag[i])[j](0,0):"<<(diag[i])[j](0,0)
-           <<" antenna_za[i]:"<<antenna_za[i]<<" mblock_za_grid[0]:"<<mblock_za_grid[0]
-           <<" sum:"<<((diag[i])[j](0,0)+antenna_za[i])-mblock_za_grid[0]<<endl;
-      cout << "za_dhigh =" <<za_dhigh<< " last(mblock_za_grid):"<<last(mblock_za_grid)
-           <<" (diag[i])[j]((diag[i])[j].nrows()-1,0):"<<(diag[i])[j]((diag[i])[j].nrows()-1,0)
-           <<" last(antenna_za):"<<last(antenna_za)<<" sum:"<<last(mblock_za_grid)
-           -(diag[i])[j]((diag[i])[j].nrows()-1,0)-last(antenna_za)<<endl;
-      */
 
       // Also get the difference between the relative zenith angle grid
       // (modified by the antenna viewing directions) and mblock_za_grid,
@@ -405,7 +396,7 @@ void sensor_responseAntenna1D(
     out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
          << "x" << sensor_response.ncols() << "\n";
   } else {
-    // Don't multiply antenna_response with sensor_response, just 
+    // Don't multiply antenna_response with sensor_response, just
     // return antenna_response
     sensor_response = antenna_response;
   }
@@ -499,6 +490,11 @@ void sensor_responseBackend(// WS Output:
        << "front of *sensor_responseBackend*\n";
     error_found = true;
   }
+
+  // If errors where found throw runtime_error with the collected error
+  // message.
+  if (error_found)
+    throw runtime_error(os.str());
 
   // Give some output to the user.
   out2 << "  Calculating the backend response using values and grid from\n"
@@ -604,58 +600,116 @@ void sensor_responseInit(// WS Output:
 
 void sensor_responseMixer(// WS Output:
                           Sparse&           sensor_response,
+                          Vector&           sensor_response_f,
                           Vector&           f_mixer,
                           // WS Input:
-                          const Vector&     f_grid,
+                          const Matrix&     sensor_pol,
+                          const Vector&     sensor_response_za,
                           // WS Generic Input:
-                          const Matrix&     sfrm,
+                          const Matrix&     filter,
                           // WS Generic Input Names:
-                          const String&     sfrm_name,
+                          const String&     filter_name,
                           // Control Parameters:
                           const Numeric&    lo,
-                          const String&     primary_band)
+                          const Index&      multiply)
 {
-  //Check that sensor_response has the right size, i.e. has been initialised
-  if( sensor_response.nrows() != f_grid.nelem()) {
-    ostringstream os;
-    os << "The sensor block response matrix *sensor_response* has not been\n"
-       << "initialised or some sensor in front of the mixer has not been\n"
-       << "considered.";
-    throw runtime_error( os.str() );
+  // Initialise a output stream for runtime errors, a flag for errors
+  // and counters for difference between sensor_response_f and the
+  // relative frequency grid.
+  ostringstream os;
+  bool error_found = false;
+  Index n_za_pol = sensor_response_za.nelem()*sensor_pol.nrows();
+
+  // Check that sensor_response has the right size, i.e. has been initialised
+  if( sensor_response.nrows() != sensor_response_f.nelem()*n_za_pol)
+  {
+    os << "The sensor block response matrix *sensor_response* does not have\n"
+       << "right size. Either it has not been initialised or some part in\n"
+       << "front of the mixer has not been considered.\n";
+    error_found = true;
   }
 
-  //Check that the sideband filter matrix has been initialised
-  if( sfrm.ncols()!=2 ) {
-    ostringstream os;
-    os << "The sideband filter response matrix *" << sfrm_name << "* has not"
-       << " been\n correctly initialised. A two column matrix is expected.";
-    throw runtime_error( os.str() );
+  // Check that the sideband filter matrix has been initialised...
+  if( filter.ncols()!=2 )
+  {
+    os << "The sideband filter response matrix *" << filter_name << "* has not"
+       << " been\n correctly initialised. A two column matrix is expected.\n";
+    error_found = true;
   }
 
-  //Determine if primary band is upper or not.
-  bool is_upper;
-  if( primary_band=="upper" ) {
-    is_upper = true;
-  } else if ( primary_band=="lower" ) {
-    is_upper = false;
-  } else {
-    ostringstream os;
-    os << "The primary band has to be specified by either \"upper\" or \"lower\".\n";
-    throw runtime_error( os.str());
+  // and that it covers the whole sensor_response_f range.
+  Numeric df_high = filter(filter.nrows()-1,0)-last(sensor_response_f);
+  Numeric df_low = filter(0,0)-sensor_response_f[0];
+  if( df_high<0 && df_low<0 )
+  {
+    os << "The frequency grid of the sideband filter matrix *" << filter_name
+       << "*\n must be extended by at least " << -df_low << " Hz in the "
+       << "lower\n end and " << -df_high << " Hz in the upper end to cover"
+       << "the *sensor_response_f* grid.\n";
+    error_found = true;
+  }
+  else if( df_high<0 )
+  {
+    os << "The frequency grid of the sideband filter matrix *" << filter_name
+       << "*\n must be extended by at least " << -df_high << " Hz in the "
+       << "upper\n end to cover the *sensor_response_f* grid.\n";
+    error_found = true;
+  }
+  else if( df_low<0 )
+  {
+   os << "The frequency grid of the sideband filter matrix *" << filter_name
+       << "*\n must be extended by at least " << -df_low << " Hz in the "
+       << "lower\n end to cover the *sensor_response_f* grid.\n";
+    error_found = true;
   }
 
+  // Check that the lo frequency is within the sensor_response_f grid
+  if( lo<sensor_response_f[0] || lo>last(sensor_response_f) )
+  {
+    os << "The given local oscillator frequency is outside the sensor\n"
+       << "frequency grid. It must be within the *sensor_response_f* grid.\n";
+    error_found = true;
+  }
+
+  // If errors where found throw runtime_error with the collected error
+  // message.
+  if (error_found)
+    throw runtime_error(os.str());
+
+  // Give some output to the user.
   out2 << "  Calculating the mixer and sideband filter response using values\n"
-       << "  and grid from *" << sfrm_name << "*.\n";
+       << "  and grid from *" << filter_name << "*.\n";
 
   //Call to calculating function
-  Sparse mixer_response(1,1);
-  mixer_transfer_matrix( mixer_response, f_mixer, f_grid, is_upper, lo, sfrm );
+  Sparse mixer_response;
+  mixer_transfer_matrix( mixer_response, f_mixer, sensor_response_f, lo,
+    filter, sensor_pol.nrows(), sensor_response_za.nelem() );
 
-  Sparse sensor_response_tmp = sensor_response;
-  sensor_response.resize( f_mixer.nelem(), f_grid.nelem());
-  mult( sensor_response, mixer_response, sensor_response_tmp);
+  // FIXME: This should only be here because mult doesn't work properly
+  // Check if we should multiply backend_response with sensor_response
+  // and return the product or if we just return the backend_response
+  if( multiply==1 ) {
 
+    // Here we need a temporary sparse that is copy of the sensor_response
+    // sparse matrix. We need it since the multiplication function can not
+    // take the same object as both input and output.
+    Sparse sensor_response_tmp = sensor_response;
+    sensor_response.resize( f_mixer.nelem()*n_za_pol,
+      sensor_response_tmp.ncols());
+    mult( sensor_response, mixer_response, sensor_response_tmp);
+  }
+  else
+  {
+    // Just return the mixer response
+    sensor_response = mixer_response;
+  }
+
+  // Some extra output.
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
        << "x" << sensor_response.ncols() << "\n";
+
+  // Update the sensor_response_f variable
+  sensor_response_f = f_mixer;
+  out3 << "  *sensor_response_f* set to *f_mixer*\n";
 }
 

@@ -1,3 +1,17 @@
+2003-10-01  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+
+	* arts-1-1-692
+
+	* src/methods.cc: Changed input parameters for sensor_responseMixer.
+
+	* src/m_sensor.cc: Added consistency checks for all input, and made
+	new call to underlying function mixer_transfer_matrix.
+
+	* src/sensor.{cc,h}: Changed sensor_summation_vector to calculate IF
+	band frequencies, instead of RF. Now this function doesn't need to
+	know about primary- and image band. Also altered mixer_transfer_matrix
+	to incorporate number of polarisations and zenith angles/antennas.
+
 2003-09-22  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-691

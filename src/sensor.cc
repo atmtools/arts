@@ -167,7 +167,7 @@ void antenna_transfer_matrix( Sparse&   H,
         // we first check if the same antenna diagram applies for all
         // polarisations, i.e. p_step = 0, if so insert it n_pol times.
         Index p_step_tmp = p_this;
-        Index p_tmp = p_this;
+        //Index p_tmp = p_this;
         if (p_step==0)
           p_step_tmp = n_pol-1;
         //for (p_tmp; p_tmp<=p_step_tmp; p_tmp++) {
@@ -196,112 +196,103 @@ void antenna_transfer_matrix( Sparse&   H,
    The size of the transfer matrix has to be set up before calling the function
    as follows:
      nrows = f_mixer.nelem()
-	 ncols = f_grid.nelem()
+     ncols = f_grid.nelem()
 
-   The primary frequency band is specified to be upper or lower, that means the
-   frequencies in the frequency grid above or below the LO frequency. The image
-   band when mirrored has to cover the whole primary band.
+   The returned frequencies are given in IF, so both primary and mirror band
+   is converted down.
 
    \param   H         The mixer/sideband filter transfer matrix
    \param   f_mixer   The frequency grid of the mixer
    \param   f_grid    The original frequency grid of the spectrum
-   \param   is_upper  Specifies if the primary band is the upper or not.
-   \param   lo		  The local oscillator frequency
-   \param   sfrm      The sideband filter response matrix
+   \param   lo        The local oscillator frequency
+   \param   filter    The sideband filter matrix
+   \param   n_pol     The number of polarisations to consider
+   \param   n_za      The number of zenith angles/antennas
 
    \author Mattias Ekström
    \date   2003-05-27
 */
 void mixer_transfer_matrix(
-               Sparse&   H,
+              Sparse&   H,
               Vector&   f_mixer,
       ConstVectorView   f_grid,
-		   const bool   is_upper,
-	    const Numeric   lo,
-      ConstMatrixView   sfrm )
+        const Numeric   lo,
+      ConstMatrixView   filter,
+          const Index   n_pol,
+          const Index   n_za )
 {
-  //Check that the sideband filter matrix at least has two columns
-  assert( sfrm.ncols()==2 );
+  // Check that the sideband filter matrix at least has two columns and
+  // that its frequency grid expands outside f_grid.
+  assert( filter.ncols()==2 );
+  assert( filter(0,0)<=f_grid[0] );
+  assert( filter(filter.nrows()-1,0)>=f_grid[f_grid.nelem()-1] );
 
-  //Get min and max indices for the primary band
-  GridPos gp_lo;
-  gridpos( gp_lo, f_grid, lo);
-  Index lo_idx = gp_lo.idx;
+  // Check that the lo frequency is within the f_grid
+  assert( lo>f_grid[0] && lo<f_grid[f_grid.nelem()-1] );
 
-  Index f_low, f_high;
-  if( is_upper ) {
-  	f_low = lo_idx+1;
-	f_high = f_grid.nelem()-1;
-  } else {
-    f_low = 0;
-	if (gp_lo.fd[0]==0) {
-	  f_high = lo_idx-1;
-	} else {
-	  f_high = lo_idx;
-	}
+  // Find indices in f_grid where f_grid is just below and above the
+  // lo frequency.
+  Index i_low = 0, i_high = f_grid.nelem()-1, i_mean;
+  while (i_high-i_low>1)
+  {
+    i_mean = (Index) (i_high+i_low)/2;
+    if (f_grid[i_mean]<lo)
+    {
+      i_low = i_mean;
+    }
+    else
+    {
+      i_high = i_mean;
+    }
   }
+  if (f_grid[i_high]==lo)
+    i_high++;
 
-  //Check that the LO and sidebands span are consistent?
-  assert( f_high-f_low>0 );
+  // Calculate the cut-off limits to assure that all frequencies in IF are
+  // computable, i.e. possible to interpolate, in RF.
+  const Numeric lim_low = max(lo-f_grid[i_low], f_grid[i_high]-lo);
+  const Numeric lim_high = min(lo-f_grid[0], f_grid[f_grid.nelem()-1]-lo);
 
-  //Since we want to interpolate the image frequencies, we want the image band
-  //to cover the primary band.
-  Vector f_im(2);
-  f_im[0] = 2*lo-f_grid[f_high];
-  f_im[1] = 2*lo-f_grid[f_low];
-
-  //Find the indices for f_im_min and f_im_max in f_grid
-  ArrayOfGridPos gp_im(2);
-  gridpos( gp_im, f_grid, f_im);
-  Index f_im_low = gp_im[0].idx+1;
-  Index f_im_high = gp_im[1].idx;
-
-  //Check that image band indices are consistent
-  assert( f_im_low >= 0 );		 //FIXME: unnecessary? does gridpos this?
-  assert( f_im_high-f_im_low > 0 );
-  assert( f_im_high < f_grid.nelem() );
-
-  //Set up f_mixer with the correct size and with the frequencies from both
-  //the primary band and the image band strictly sorted.
-  Numeric f_im_im;
-  list<Numeric> l_f;
-  for (Index i=f_low; i<=f_high; i++)
-  	l_f.push_back(f_grid[i]);
-  for (Index i=f_im_low; i<=f_im_high; i++) {
-    f_im_im = 2*lo-f_grid[i];
-	l_f.push_back(f_im_im);
+  // Convert sidebands to IF and use std::list to make a unique sorted
+  // vector, this sorted vector is f_mixer.
+  list<Numeric> l_mixer;
+  for (Index i=0; i<f_grid.nelem(); i++)
+  {
+    if (fabs(f_grid[i]-lo)>=lim_low && fabs(f_grid[i]-lo)<=lim_high)
+      l_mixer.push_back(fabs(f_grid[i]-lo));
   }
-
-  l_f.sort();
-  l_f.unique();
-
-  f_mixer.resize((Index) l_f.size());
+  l_mixer.unique();
+  l_mixer.sort();
+  f_mixer.resize((Index) l_mixer.size());
   Index i=0;
-  for (list<Numeric>::iterator li=l_f.begin(); li != l_f.end(); li++) {
-	f_mixer[i] = *li;
-	i++;
+  for (list<Numeric>::iterator li=l_mixer.begin(); li != l_mixer.end(); li++)
+  {
+    f_mixer[i] = *li;
+    i++;
   }
 
-  //Now we know the final size of H, so resize it
-  H.resize( f_mixer.nelem(), f_grid.nelem() );
+  // Now we know the final size of H, so resize it
+  H.resize( f_mixer.nelem()*n_pol*n_za, f_grid.nelem()*n_pol*n_za );
 
-  //FIXME: Allocate a temporary vector to keep values before sorting them into
-  //the final sparse matrix, could (should) be fixed with a
-  //SparseView(range, range) operator
-  Vector temp( f_mixer.nelem()*f_grid.nelem(), 0.0);
-
-  //Calculate the sensor summation vector and put values in the temp vector
+  // Calculate the sensor summation vector and insert the values in the
+  // final matrix taking number of polarisations and zenith angles into
+  // account.
+  Vector row_temp(f_grid.nelem());
+  Vector row_final(f_grid.nelem()*n_pol*n_za);
   for (Index i=0; i<f_mixer.nelem(); i++) {
-	sensor_summation_vector(
-	  temp[Range(i*f_grid.nelem(), f_grid.nelem())],
-      f_mixer[i], f_grid, lo, sfrm );
-  }
-
-  //Copy values to the sensor matrix
-  for (Index j=0; j<f_grid.nelem(); j++) {
-    for (Index i=0; i<f_mixer.nelem(); i++) {
-      if (temp[i+j*f_mixer.nelem()]!=0)
-        H.rw(i, j) = temp[i+j*f_mixer.nelem()];
+    sensor_summation_vector(row_temp, f_mixer[i], f_grid, lo, filter );
+    // Loop over number of polarisations
+    for (Index p=0; p<n_pol; p++)
+    {
+      // Loop over number of zenith angles/antennas
+      for (Index a=0; a<n_za; a++)
+      {
+        // Distribute elements of row_temp to row_final.
+        row_final = 0.0;
+        row_final[Range(a*f_grid.nelem()*n_pol+p,f_grid.nelem(),n_pol)]
+          = row_temp;
+        H.insert_row(a*f_mixer.nelem()*n_pol+p+i*n_pol,row_final);
+      }
     }
   }
 }
@@ -454,9 +445,9 @@ void sensor_integration_vector(
    function and its relative grid should cover the whole frequency grid.
 
    \param   h      The summation (row) vector.
-   \param   f      The primary frequency.
+   \param   f      The frequency in the IF band.
    \param   f_grid The grid points of function f(x).
-   \param   lo	   The local oscillator frequency
+   \param   lo     The local oscillator frequency
    \param   sfrm   The sideband filter response matrix.
 
    \author Mattias Ekström
@@ -466,63 +457,59 @@ void sensor_summation_vector(
            VectorView   h,
         const Numeric   f,
       ConstVectorView   f_grid,
-	    const Numeric   lo,
+        const Numeric   lo,
       ConstMatrixView   sfrm )
 {
   //Check that the (row) vector has the right dimensions
   assert( h.nelem() == f_grid.nelem() );
 
-  //Check that sfrm has the right size
+  //Check that sfrm has the right size and that it covers f_grid
   assert( sfrm.ncols()==2 );
-  //FIXME:assert( sfrm.nrows()==f_grid.nelem() );
+  assert( sfrm(0,0)<=f_grid[0] );
+  assert( sfrm(sfrm.nrows()-1,0)>=f_grid[f_grid.nelem()-1] );
 
-  //Check that the primary frequency lies within the frequency grid
-  assert( f >= f_grid[0] );
-  assert( f <= f_grid[f_grid.nelem()-1] );
+  //Calculate the upper and lower sideband frequencies
+  const Numeric f_low = lo - f;
+  const Numeric f_upp = lo + f;
 
-  //Calculate the image frequency
-  const Numeric f_im = 2*lo-f;
+  //Check that the sideband frequencies lies within the frequency grid
+  assert( f_low >= f_grid[0] && f_low <= f_grid[f_grid.nelem()-1] );
+  assert( f_upp >= f_grid[0] && f_upp <= f_grid[f_grid.nelem()-1] );
 
-  //Check that the image frequency exist within the frequency span assuming
-  //that f_grid is sorted and each value is unique.
-  //This should already have been made sure by the calling function.
-  assert( f_im >= f_grid[0] );
-  assert( f_im <= f_grid[f_grid.nelem()-1] );
+  //Interpolate the intensity and sideband filter response for the upper
+  //frequency. This should work even if the filter grid and the frequency
+  //grid are the same.
+  ArrayOfGridPos gp_upp(1), gp_upp_filt(1);
+  gridpos( gp_upp, f_grid, f_upp);
+  gridpos( gp_upp_filt, sfrm(joker,0), f_upp);
 
-  //Interpolate the intensity and sideband filter response for the primary
-  //frequency. This should work even if the filter grid and the frequency grid
-  //are the same.
-  ArrayOfGridPos gp_prim(1), gp_prim_filt(1);
-  gridpos( gp_prim, f_grid, f);
-  gridpos( gp_prim_filt, sfrm(joker,0), f);
+  Matrix itw_upp(1,2);
+  interpweights( itw_upp, gp_upp_filt);
 
-  Matrix itw_prim(1,2);
-  interpweights( itw_prim, gp_prim_filt);
+  Numeric filt_upp;
+  interp( filt_upp, itw_upp, sfrm(joker,1), gp_upp_filt);
 
-  Numeric filt_prim;
-  interp( filt_prim, itw_prim, sfrm(joker,1), gp_prim_filt);
-
-  //Interpolate the intensity and sideband filter response for the image
+  //Interpolate the intensity and sideband filter response for the lower
   //frequency. Since different grids are used for the intensity and the
   //filter, different gridpos has to be set up. Also since we don't know
   //the intensity values, only gridpos are calculated.
-  ArrayOfGridPos gp_im(1), gp_im_filt(1);
-  gridpos( gp_im, f_grid, f_im);
-  gridpos( gp_im_filt, sfrm(joker,0), f_im);
+  ArrayOfGridPos gp_low(1), gp_low_filt(1);
+  gridpos( gp_low, f_grid, f_low);
+  gridpos( gp_low_filt, sfrm(joker,0), f_low);
 
   Matrix itw_filt(1,2);
-  interpweights( itw_filt, gp_im_filt);
+  interpweights( itw_filt, gp_low_filt);
 
-  Numeric filt_im;
-  interp( filt_im, itw_filt, sfrm(joker,1), gp_im_filt);
+  Numeric filt_low;
+  interp( filt_low, itw_filt, sfrm(joker,1), gp_low_filt);
 
   //Initialise h at zero and store calculated weighting components
   h = 0.0;
-  Numeric filt_sum = filt_prim + filt_im;
-  h[gp_prim[0].idx] = filt_prim/filt_sum * gp_prim[0].fd[1];
-  h[gp_prim[0].idx+1] = filt_prim/filt_sum * gp_prim[0].fd[0];
-  h[gp_im[0].idx] = filt_im/filt_sum * gp_im[0].fd[1];
-  h[gp_im[0].idx+1] = filt_im/filt_sum * gp_im[0].fd[0];
+  Numeric filt_sum = filt_upp + filt_low;
+  h[gp_upp[0].idx] = filt_upp/filt_sum * gp_upp[0].fd[1];
+  h[gp_upp[0].idx+1] = filt_upp/filt_sum * gp_upp[0].fd[0];
+  h[gp_low[0].idx] = filt_low/filt_sum * gp_low[0].fd[1];
+  h[gp_low[0].idx+1] = filt_low/filt_sum * gp_low[0].fd[0];
 }
 
 //! spectrometer_transfer_matrix
@@ -533,14 +520,14 @@ void sensor_summation_vector(
    The size of the spectrometer transfer matrix has to be set by the calling
    function, and the number of rows must match the number of spectrometer
    channels times the number of viewing angles and polarisations while the
-   number of columns must match the number of frequency grid points times 
+   number of columns must match the number of frequency grid points times
    the number of viewing angles and polarisations.
 
    The spectrometer response ArrayOfMatrix decribes how the spectrometer
    behaves on a relative frequency grid for each polarisation. Each element
-   corresponds to a polarisation and in the matrices the first column 
+   corresponds to a polarisation and in the matrices the first column
    contains the relative grid points and the following holds the response
-   values. Both the array and the individual matrices work on the 
+   values. Both the array and the individual matrices work on the
    single/full principle, which means that either only one element/column
    is given and used for all polarisations/channel frequencies or every
    polarisation/frequency is given its individual response.
