@@ -1976,7 +1976,7 @@ Index absPWRO2Model(// WS Output:
       // Zeeman effect on/off switch
       if ( (zeeman_o2_onoff == 1)           && 
            (p < zeeman_o2_pressure_limit)   &&
-           ( abs(Index(QM[l])) > 0) )
+           (abs(int(QM[l])) > 0) )
 	{
 	  cout << "***absPWRO2Model***  Zeeman,  QM=" << QM[l] << "\n";
 	  // call Zeeman splitting function for a single spectral line

@@ -334,10 +334,10 @@ void montecarlo_p_from_belowCscaAdapt(
     {
       for (Index za_index=0;za_index<N_za;za_index++)
 	{
-	  gridpos(gp,f_grid,freq);
+	  gridpos(gp,old_grid,freq);
 	  interpweights(itw,gp);
 	  new_p_from_belowCsca(pt_index,0,za_index)=interp(itw,
-		 montecarlo_p_from_belowCsca(pt_index,joker,za_index),gp);
+		 montecarlo_p_from_belowCsca(pt_index,Range(joker),za_index),gp);
 	}
     }
   montecarlo_p_from_belowCsca=new_p_from_belowCsca;
@@ -550,14 +550,14 @@ void ScatteringMonteCarlo (
   time_t start_time=time(NULL);
   //Stratified sampling variables//////////
   Numeric p_from_below;
-  Vector I_from_below_sum(stokes_dim);
-  Vector I_from_below_squaredsum(stokes_dim);
+  Vector I_from_below_sum(stokes_dim,0.0);
+  Vector I_from_below_squaredsum(stokes_dim,0.0);
   Index I_from_below_N=0;
-  Vector I_from_above_sum(stokes_dim);
-  Vector I_from_above_squaredsum(stokes_dim);
+  Vector I_from_above_sum(stokes_dim,0.0);
+  Vector I_from_above_squaredsum(stokes_dim,0.0);
   Index I_from_above_N=0;
-  Vector I_emission_sum(stokes_dim);
-  Vector I_emission_squaredsum(stokes_dim);
+  Vector I_emission_sum(stokes_dim,0.0);
+  Vector I_emission_squaredsum(stokes_dim,0.0);
   Index I_emission_N=0;
   Numeric za_scat;
   Vector za_grid=scat_data_raw[0].za_grid;
@@ -684,7 +684,8 @@ void ScatteringMonteCarlo (
 		  p_from_below=p_from_belowCscaCalc(za_scat,
 						    montecarlo_p_from_belowCsca,
 						    pnd_vec,za_grid)/(K(0,0)-K_abs[0]);
-		  if(rte_los[0]<90)
+		  
+		  if(rte_los[0]>90)
 		    {
 		      pathI*=p_from_below;//Needs to be renormalised
 		      I_from_below_sum+=pathI;
@@ -771,12 +772,19 @@ void ScatteringMonteCarlo (
 					 f_grid,scat_theta,scat_theta_gps,
 					 scat_theta_itws,pnd_vec);
 		    }
-		  Z/=g*g_los_csc_theta*albedo;
+		  if(strat_sampling)
+		    {
+		      Z/=g*g_los_csc_theta;
+		    }
+		  else
+		    {
+		      Z/=g*g_los_csc_theta*albedo;
+		    }
 		  mult(q,T,Z);
 		  mult(newQ,Q,q);
 		  Q=newQ;
 		  scattering_order+=1;
-		  za_scat=rte_los[0];
+		  za_scat=180-rte_los[0];
 		  rte_los=new_rte_los;
 		  if (silent==0){cout <<"photon_number = "<<photon_number << 
 				   ", scattering_order = " <<scattering_order <<"\n";}
@@ -805,10 +813,13 @@ void ScatteringMonteCarlo (
     {
       Vector I_emission=I_emission_sum;
       I_emission/=I_emission_N;
+      //cout<<I_emission<<"\n";
       Vector I_from_below=I_from_below_sum;
       I_from_below/=I_from_below_N;
+      //cout<<I_from_below<<"\n";
       Vector I_from_above=I_from_above_sum;
       I_from_above/=I_from_above_N;
+      //cout<<I_from_above<<"\n";
       for(Index j=0; j<stokes_dim; j++)	
 	{
 	  I[j]=I_emission[j]+I_from_below[j]+I_from_above[j];

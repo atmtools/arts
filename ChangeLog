@@ -1,3 +1,22 @@
+2003-12-07  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-743
+
+	* src/m_abs_o2_models.cc: This file wouldn't let me compile again
+	:( This time I got the following error -
+	m_abs_o2_models.cc:1979: call of overloaded `abs (const long int
+	&)' is ambiguous
+	/usr/include/stdlib.h:699: candidates are: int abs (int)
+	/usr/include/g++-3/cmath:40:                 float abs (float)
+	/usr/include/g++-3/cmath:42:                 double abs (double)
+	/usr/include/g++-3/cmath:72:                 long double abs (long
+	double)
+	As a quick fix I changed the offending line to ...(abs(int(QM[l]))
+	> 0) ). Please tell me off if this was a daft thing to do.
+
+	* src/montecarlo.cc, src/m_montecarlo.cc: Some bug fixes.
+
+
 2003-12-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-1-1-742
