@@ -59,6 +59,7 @@
 %
 % a priori                              Apr
 % monochromatic pencil beam intensity   Mpi
+% optical thickness                     Oth
 % weighting function                    Wfn
 
 % For other terms or features, use as far as possible complete strings to get 
@@ -279,6 +280,10 @@
 % Monochromatic pencil beam intensity
 \newcommand{\Mpi}        {\ensuremath{I}}  
 \newcommand{\aMpi}[1]    {\ensuremath{I_#1}}  
+
+% Pressure altitude
+\newcommand{\Oth}        {\ensuremath{\tau}}  
+\newcommand{\aOth}[1]    {\ensuremath{\tau_#1}}  
 
 % Pressure
 \newcommand{\Prs}        {\ensuremath{P}}  

@@ -1,3 +1,23 @@
+2002-04-01  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-42
+
+	* Please read, comment and/or correct what I have written in
+	Chapter 2 of AUG.
+
+	* doc/uguide/main.tex: Included the epic and eepic packages for drawing
+	figures inside LaTex. Are these the best packages for this? These seem
+	at least to be standard packages. But do you have any better sugestion?
+
+	* doc/uguide/fm_definitions.tex: New figure for LOS angles and
+	some new text. Corrected and polished existing text slightly. I am
+	now ready with what I will write in this chapter this time. So,
+	please read it.  I am sure that there are many language
+	errors. Please fix what you find.
+
+	* doc/uguide/ppath.tex: Added section headings and made a figure for
+	geocentric and geodetic latitudes.
+
 2002-03-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-41

@@ -5,7 +5,7 @@
 %  \levelb{...}
 %  \levelc{...}
 %
-\levela{Calculation of propagation paths}
+\levela{Propagation paths}
  \label{sec:ppath}
 
 %
@@ -54,17 +54,126 @@ xxx
 
 \levelb{Geoid ellipsoids and geodetic datums}
 %===================
+\label{sec:ppath:geoids}
+
+
+\levelc{Geoid ellipsoids}
+%===================
 \label{sec:ppath:geoid}
+
+
+
+\levelc{Geocentric and geodetic latitudes}
+%===================
+\label{sec:ppath:geolat}
 
 A geocentric latitude is not changed if the shape of the geoid is
 changed.
 
 Define \qindex{zenith} and \qindex{nadir}.
 
+\begin{figure}[!t]
+ \begin{center}
+  \begin{minipage}[c]{0.58\textwidth}
+   \begin{picture}(200,165)
+    \put(30,10){\arc{300}{-1.1}{-0.5}}
+    \put(40,147){{\small geoid ellipsoid}}
+    \put(0,10){\vector(1,0){70}}
+    \put(70,4){$x$}
+    \put(10,0){\vector(0,1){70}}
+    \put(4,70){$y$}
+    \dottedline(30,10)(170,150)
+    \put(30,10){\arc{20}{-.76}{0}}
+    \put(40,13){\Lat$^*$}
+    \put(136.07,116.07){\line(1,-1){25}}
+    \put(136.07,116.07){\line(-1,1){25}}
+    \put(162,98){{\small local}}
+    \put(162,90){{\small tangent}}
+    \drawline(10,10)(170,144.4)
+    \put(10,10){\arc{20}{-.73}{0}}
+    \put(160,130){{\small zenith}}
+    \put(20,13){\Lat}
+   \end{picture}
+  \end{minipage}%
+  \begin{minipage}[c]{0.42\textwidth}
+   \caption{Definition of geocentric latitude, \Lat, and geodetic latitude, 
+     \Lat$^*$. The dotted line is the normal to the local tangent of
+     the geoid ellipsoid. The zenith and nadir directions, and
+     geometrical altitudes, are here defined to go along the solid
+     line.}
+   \label{fig:ppath:lats}
+  \end{minipage}
+ \end{center}
+\end{figure}           
 
+
+%\levelc{Geodetic datums}
+%===================
+%\label{sec:ppath:geodatums}
+
+
+
+\levelb{The propagation path data structure}
+%===================
+\label{sec:ppath:Ppath}
+
+
+
+\levelb{Some basic geometrical relationships}
+%===================
+\label{sec:ppath:basicgeom}
+
+
+
+\levelb{1D propagations paths}
+%===================
+\label{sec:ppath:1D}
+
+
+\levelc{Without refraction}
+%===================
+\label{sec:ppath:1Dwithout}
+
+
+\levelc{With refraction}
+%===================
+\label{sec:ppath:1Dwith}
+
+
+
+\levelb{2D propagations paths}
+%===================
+\label{sec:ppath:2D}
+
+
+\levelc{Without refraction}
+%===================
+\label{sec:ppath:2Dwithout}
+
+
+\levelc{With refraction}
+%===================
+\label{sec:ppath:2Dwith}
+
+
+
+\levelb{3D propagations paths}
+%===================
+\label{sec:ppath:3D}
+
+
+\levelc{Without refraction}
+%===================
+\label{sec:ppath:3Dwithout}
+
+
+\levelc{With refraction}
+%===================
+\label{sec:ppath:3Dwith}
 
 
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "uguide"
 %%% End: 
+

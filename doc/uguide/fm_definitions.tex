@@ -17,7 +17,8 @@
 %  \stophistory
 %
 \starthistory
-  020314 & Layout made by Patrick Eriksson.\\
+  020330 & Structure for the chapter fixed, and absorption, compulsory sensor 
+           variables and part of RTE sections written by Patrick Eriksson.\\
 \stophistory
 
 
@@ -31,21 +32,24 @@
 %
 %
 \startsymbols
-  \Ind           & -                 & vector/matrix/tensor index           \\
-  \aInd{\Lat}    & -                 & the \Ind:th latitude                 \\
-  \VctLng        & -                 & vector length or size of matrix/tensor for a dimension \\
-  \aVctLng{\Lat} & -                 & length of the latitude grid \\
+  \Ind           & \verb|i|          & vector/matrix/tensor index           \\
+  \aInd{\Lat}    & \verb|i_alpha|    & the \Ind:th latitude                 \\
+  \VctLng        & \verb|n|          & vector length or size of matrix/tensor for a dimension \\
+  \aVctLng{\Lat} & \verb|n_alpha|    & length of the latitude grid          \\
   $e_g$          & \verb|e_ground|   & ground emissivity                    \\
   \Prs           & \verb|p|          & pressure                             \\
   \PrsAlt        & \verb|pz|         & pressure altitude                    \\
   \Rds           & \verb|r|          & radius from the centre of the coordinate system         \\
   \Tmp           & \verb|t|          & temperature \\
   \Alt           & \verb|z|          & geometrical altitude above the geoid \\
-  \Planck        & -                 & Planck function                      \\
+  \Planck        & \verb|source|     & Planck function                      \\
   \Lat           & \verb|alpha|      & latitude                             \\
   \Lon           & \verb|beta|       & longitude                            \\
   \ZntAng        & \verb|psi|        & zenith angle                         \\
   \AzmAng        & \verb|omega|      & azimuthal angle                      \\
+  \MpiVct        & \verb|mpi|        & vector with monochromatic pencil beam values \\
+  \MsrVct        & \verb|y|          & measurement vector                   \\
+  \SnsMtr        & \verb|h|          & sensor and data reduction transfer matrix \\
  \label{symtable:fm_defs}     
 \stopsymbols
 
@@ -60,7 +64,7 @@ more general nature. Most of the quantities treated here should be
 part of any forward model of the same complexity as ARTS, where only
 details regarding the definition should differ. The aim of this
 chapter is to give an overview of the forward model and to describe
-important terms and concepts, in such way that, the content of this user
+important terms and concepts, in such way that the content of this user
 guide can be fully appreciated and that you shall understand how to
 construct a control file for your simulation problem.
 
@@ -89,7 +93,10 @@ used for sizes. A size is given as $
 The concept of rows, columns, pages etc. should be described so a
 particular dimension can be identified in a consistent manner.
 
-The indexing is 0-based as in ARTS. *]
+The indexing is 0-based as in ARTS. 
+
+Vectors are bold lowercase (e.g. \MsrVct), matrices bold uppercase
+(e.g. \SnsMtr), or? What about tensors? *]
 
 
 
@@ -102,12 +109,12 @@ The indexing is 0-based as in ARTS. *]
 %===================
 \label{sec:fm_defs:atmdim}
 
-The structure of the atmosphere can be defined to have different
+The structure of the modelled atmosphere can be selected to have different
 degree of complexity, the \qindex{atmospheric dimensionality}. There
 exist three levels for the complexity of the atmosphere, 1D, 2D and
 3D, where 1D and 2D can be treated as special cases of 3D. The
-significance of these different atmospheric dimensionalities, and the
-coordinate systems used, are described below in this section. The
+significance of these different atmospheric dimensionalities and the
+coordinate systems used are described below in this section. The
 atmospheric dimensionality is selected by setting the workspace
 variable \verb|atmosphere_dim| to a value between 1 and 3. Variables
 for which the size depends on the atmospheric dimensionality are
@@ -120,22 +127,22 @@ checked, when used, to have a size consistent with
   atmospheric fields vary in all three spatial coordinates, as in a
   true atmosphere. A \qindex{spherical coordinate system} is used where the
   dimensions are radius (\Rds), latitude (\Lat) and longitude (\Lon),
-  and a position is given as $(\Lon,\Lat,\Rds)$. With other words, the
+  and a position is given as $(\Rds,\Lat,\Lon)$. With other words, the
   standard way to specify a geographical position is followed.
   However, the way to specify the radial position differs depending on
   the context, which is described in
   Section~\ref{sec:fm_defs:altitudes}. The valid range for latitudes
-  is [-90\degree,+90\degree], where +90\degree corresponds to the
+  is $[-90\degree,+90\degree]$, where +90\degree corresponds to the
   North pole etc. Longitudes are counted from the Greenwich meridian
   with positive values towards the east. Longitudes can have values
   from -360\degree to +360\degree. When the difference between the
   last and first value of the longitude grid is $\geq 360\degree$ then
   the whole globe is considered to be covered. The user must ensure
-  that the atmospheric fields for \Lon and $\Lon+360\degree$ are
+  that the atmospheric fields for \Lon\ and $\Lon+360\degree$ are
   equal. If a point of propagation path is found to be outside the
   range of the longitude grid, this will results in an error if not
   the whole globe is covered. Otherwise, the longitude is shifted with
-  360\degree in the relevant direction.
+  360\degree\ in the relevant direction.
 
 \item[\qindex{1D}\,\,\,] A 1D atmosphere can be described as being
   spherically symmetric. The term 1D is used here for simplicity and
@@ -154,8 +161,8 @@ checked, when used, to have a size consistent with
   where the coordinate additional to the radius gives the angular
   distance inside the viewing plane between the sensor and the point
   of interest (see further Section~[**]). This latter coordinate
-  system coincides with the one used for 2D where the sensor position
-  is set to be the zero point for latitude. A 1D atmosphere is shown
+  system coincides with the one used for 2D if the sensor position
+  is set to be the zero point for the latitudes. A 1D atmosphere is shown
   in Figure~\ref{fig:fm_defs:1d}.
   
 \item[\qindex{2D}\,\,\,] In contrast to the 1D and 3D cases, a 2D
@@ -175,33 +182,32 @@ checked, when used, to have a size consistent with
 
 \end{description}
 
- \begin{figure}[!t]
-  \begin{center}
-   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/atm_dim_1d}
-   \caption{A schematic cross-section of a 1D atmosphere. The atmosphere is 
-     here spherically symmetric. This means that the radius of the
-     geoid, the ground and all the pressure surfaces is constant. The
-     cloud box extends here from the ground up to the thin solid line
-     (no blackbody ground assumed). The upper limit of the cloud box
-     coincides always with a pressure surface. }
-   \label{fig:fm_defs:1d}  
-  \end{center}
- \end{figure}
- % This figure was produced by the Matlab function mkfigs_atm_dims.
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/atm_dim_1d}
+  \caption{A schematic cross-section of a 1D atmosphere. The atmosphere is 
+    here spherically symmetric. This means that the radius of the
+    geoid, the ground and all the pressure surfaces is constant. The
+    cloud box extends here from the ground up to the thin solid line
+    (no blackbody ground assumed). The upper limit of the cloud box
+    coincides always with a pressure surface. }
+  \label{fig:fm_defs:1d}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_atm_dims.
 
- \begin{figure}[!t]
-  \begin{center}
-   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/atm_dim_2d}
-   \caption{ Schematic of a 2D atmosphere. The radii of the geoid, the ground
-     and all the pressure surfaces are for 2D atmospheres allowed to
-     have a latitude variation. The limits of the cloud box coincide
-     always with grid box boundaries. A blackbody ground is assumed
-     here as the cloud box does not extend down to the ground.
-     Plotting symbols as in Figure~\ref{fig:fm_defs:1d}. }
-   \label{fig:fm_defs:2d}
-  \end{center}
- \end{figure}
- % This figure was produced by the Matlab function mkfigs_atm_dims.
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/atm_dim_2d}
+  \caption{ Schematic of a 2D atmosphere. The radii of the geoid, the ground
+    and all the pressure surfaces are for 2D atmospheres allowed to
+    have a latitude variation. The limits of the cloud box coincide
+    always with grid box boundaries. A blackbody ground is assumed
+    here as the cloud box does not extend down to the ground. }
+  \label{fig:fm_defs:2d}
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_atm_dims.
 
 
 \levelc{Altitude coordinates}
@@ -227,7 +233,7 @@ checked, when used, to have a size consistent with
   the pressure, the quantity pressure altitude, \PrsAlt, is
   introduced, and it is defined as
   \begin{equation}
-   \PrsAlt = \aPrsAlt{s}(\log_{10}\aPrs{0} - \log_{10}\Prs)
+   \PrsAlt = \aPrsAlt{s}\left( \log_{10}(\aPrs{0}) - \log_{10}(\Prs) \right)
    \label{eq:fm_defs:prsalt}
   \end{equation}
   where \aPrsAlt{s} and \aPrs{0} are arbitrary parameters (set in
@@ -239,7 +245,7 @@ checked, when used, to have a size consistent with
   $\aPrsAlt{s}=15.5$~km and $\aPrs{0}=1013$~hPa are suitable for
   simulations dealing with the Earth's atmosphere.
   
-\item[Radius\index{radius}] Beside pressure, geometrical altitudes are
+\item[Radius\index{radius}] Geometrical altitudes are
   needed to determine the propagation path through the atmosphere etc.
   The main geometrical altitude coordinate is the distance to the
   centre of the coordinate system used, the radius. This is a natural
@@ -251,8 +257,8 @@ checked, when used, to have a size consistent with
 \item[Geometrical altitude\index{geometrical altitude}] The term
   geometrical altitude signifies here the difference in radius between
   a point and the geoid (Section~\ref{sec:fm_defs:geoid}) along the
-  vector to the centre of the coordinate system (see for example
-  Equation~\ref{eq:fm_defs:zground}). Hence, the geometrical altitude
+  vector to the centre of the coordinate system
+  (Equation~\ref{eq:fm_defs:zground}). Hence, the geometrical altitude
   is not measured along the local zenith direction (the normal to the
   reference geoid). Geometrical altitudes are mainly used to
   facilitate the input of the ground altitude, the sensor position and
@@ -298,9 +304,8 @@ covered. This results in that a propagation path is not allowed to
 cross a latitude or longitude end face of the atmosphere, if such
 exists, it can only enter or leave the atmosphere through the top of
 the atmosphere (the uppermost pressure level). See further
-Sections~\ref{sec:fm_defs:atmdim} and \ref{sec:fm_defs:rte}. The
-volume (or area for 2D) covered by the grids is denoted as the
-\qindex{model atmosphere}.
+Section~\ref{sec:fm_defs:ppaths}. The volume (or area for 2D) covered
+by the grids is denoted as the \qindex{model atmosphere}.
 
 If the longitude and latitude grids are not used for the selected
 atmospheric dimensionality, then the longitude grid (for 1D and 2D)
@@ -328,12 +333,12 @@ longitude edges of 2D and 3D grid boxes. For points inside 2D and 3D
 grid boxes, multidimensional linear interpolation is applied (that is,
 bilinear interpolation for 2D etc.). Note especially that this is also
 valid for the field of geometrical altitudes (\verb|z_field|).  Fields
-are rank-3 tensors, for example \verb|z_field| has the dimensions
+are rank-3 tensors with dimension
 $[\aVctLng{\Prs},\aVctLng{\Lat},\aVctLng{\Lon}]$.  That means each
 field is like a book, with one page for each pressure grid point, one
 row for each latitude grid point, and one column for each longitude
-grid point. In the 1-D case there is just one row and one column on each
-page.
+grid point. In the 1-D case there is just one row and one column on
+each page.
 
 
 
@@ -341,8 +346,8 @@ page.
 %===================
 \label{sec:fm_defs:geoid}
 
-The \qindex{geoid}, \aRds{\odot}, is an imaginary surface used as a
-reference surface when specifying the ground altitude and the altitude
+The \qindex{geoid} is an imaginary surface used as a
+reference when specifying the ground altitude and the altitude
 of pressure surfaces. Any shape of the geoid is allowed but a smoothly
 varying geoid is the natural choice, with the centres of the geoid and
 the coordinate system coinciding. The geoid should normally be set to
@@ -351,7 +356,7 @@ WGS-84. For further reading on geoid ellipsoids and WGS-84, see
 Section~\ref{sec:ppath:geoid}.
 
 Inside ARTS, the geoid is represented as a matrix (\verb|r_geoid|),
-holding the geoid radius for each crossing of the latitude and
+holding the geoid radius, \aRds{\odot}, for each crossing of the latitude and
 longitude grids. The size of the matrix is accordingly $\aRds{\odot}
 \SzeSmb [\aVctLng{\Lat},\aVctLng{\Lon}]$ and the geoid radius for a
 specific position is $\aRds{\odot}(\aInd{\Lat},\aInd{\Lon})$. The
@@ -369,7 +374,7 @@ Section~\ref{sec:fm_defs:grids}, it is not allowed that there is a gap
 between the ground and the lowermost pressure level.
 
 The ARTS variable for the \qindex{ground altitude}
-(\verb|ground_altitude|) is a matrix of the same size as the geoid
+(\verb|z_ground|) is a matrix of the same size as the geoid
 matrix. For 1D, the ground is a sphere by definition (as the geoid),
 while for 2D and 3D any shape is allowed and a rough model of the
 ground topography can be made. For example, for limb sounding into the
@@ -383,7 +388,7 @@ Section~\ref{sec:fm_defs:groundrefl}).
 The temperature of the ground\index{ground temperature} (\aTmp{g}) is
 treated to be the same as for the temperature field for the altitude
 of the ground. The \qindex{ground emission} is described by the
-variable \verb|ground_emissivity|, holding the ground emission factor
+variable \verb|e_ground|, holding the ground emission factor
 $(e_g)$ of the ground, as a function of frequency for each
 latitude/longitude position. This workspace variable is a tensor of
 order 3, with size $e_g \SzeSmb
@@ -398,7 +403,7 @@ $e_g=1$ the ground acts as a blackbody for that particular frequency.
   whole shall be treated as blackbody, which is of importance for the
   cloud box and determination of propagation paths
   (Section~\ref{sec:fm_defs:cloudbox} and \ref{sec:fm_defs:ppaths},
-  respectively), all values of \verb|ground_emissivity| must be 1.
+  respectively), all values of \verb|e_ground| must be 1.
 \end{description}
 
 
@@ -408,10 +413,10 @@ $e_g=1$ the ground acts as a blackbody for that particular frequency.
 
 In order to save computational time, scattering calculations are
 limited as far as possible to the part of the atmosphere containing
-clouds and other scattering objects (beside the ground). The
-atmospheric region in which scattering shall be considered is denoted
-as the \qindex{cloud box}, and it is discussed here as it acts as an
-additional atmospheric limit when calculating propagation paths (see
+clouds and other scattering objects. The atmospheric region in which
+scattering shall be considered is denoted as the \qindex{cloud box},
+and it is discussed here as it acts as an additional atmospheric limit
+when calculating propagation paths (see
 Section~\ref{sec:fm_defs:rte}).
 
 The cloud box is defined in such way that a propagation path entering
@@ -421,11 +426,11 @@ the cloud box). This requires in general that the lower limit of the
 cloud box is the ground. This is the case as if there is a gap between
 the ground and the cloud box, paths entering the cloud box from below
 after a ground reflection have passed through the cloud box on the way
-down, at least for propagations paths close to nadir. However, if with
-a blackbody ground (Section~\ref{sec:fm_defs:geoid}), there is
+down, at least for propagations paths close to nadir. However, with a
+blackbody ground (Section~\ref{sec:fm_defs:geoid}), there is
 effectively no ground reflection
 (Section~\ref{sec:fm_defs:groundrefl}) and a gap below the cloud box
-is allowed. 
+is allowed.
 
 The cloud box is defined to be rectangular in the used coordinate
 system, with limits exactly at points of the involved grids. This
@@ -434,9 +439,11 @@ pressure surfaces. If the ground is not a blackbody, the lower limit
 must be set to the lowest pressure surface (index 0). For 2D, the
 angular extension of the cloud box is between two points of the
 latitude grid (Figure~\ref{fig:fm_defs:2d}), and likewise for 3D but
-then also with a longitude extension between two grid points.
+then also with a longitude extension between two grid points. The cloud
+box is activated by setting the variable \verb|cloudbox_on| to 1. The
+limits of the cloud box are stored in \verb|cloudbox_limits|.
 
-There exists in fact a small risk for 2D and 3D, and with a reflecting
+There exists in fact a small risk for 2D or 3D, and with a reflecting
 ground, that a propagation path into the cloud box has earlier crossed
 the box boundaries. This can happen for propagation paths close to the
 nadir direction and if the ground is tilted in such way that the
@@ -453,7 +460,7 @@ box.
 [* Considerations for the calculation of absorption and refractive
 index ...  Tags, line-by-line, absorption models etc. The old \verb|f_mono|
 should be called \verb|f_grid|, or? (Note that I have used the name
-\verb|f_grid| above.)*]
+\verb|f_grid| elsewhere.)*]
 
 
 
@@ -469,16 +476,11 @@ which the radiation shall be calculated are given by specifying an
 imaginary sensor with infinite frequency and angular resolution. The
 workspace variables for the sensor that always must be specified are
 \verb|sensor_pos|, \verb|sensor_los|, \verb|sensor_pol|,
-\verb|antenna_dim|, \verb|psi_block_grid| and \verb|Hb|. For cases
-with 2D antenna patterns (a feature not yet implemented), the
-workspace variable \verb|omega_block_grid| is also compulsory.  These
-variables are presented separately below in this section.  The
-discussion of sensor workspace variables is continued in
-Section~\ref{sec:fm_defs:sensor2}, where it is also described how
-different measurement sequences are modelled in the most practical way
-(Section~\ref{sec:fm_defs:howtomeasseq}). The
-Section~\ref{sec:fm_defs:rte} gives further insights in how the sensor
-is treated in ARTS.
+\verb|antenna_dim|, \verb|psi_block_grid|, \verb|omega_block_grid| and
+\verb|Hb|. These variables are presented separately below in this
+section. The discussion of sensor workspace variables is continued in
+Section~\ref{sec:fm_defs:sensor2}. The Section~\ref{sec:fm_defs:rte}
+gives further insights in how the sensor is treated in ARTS.
 
 
 \levelc{Sensor position\index{sensor position}}
@@ -494,15 +496,16 @@ Accordingly, row $i$ of \verb|sensor_pos| for a 3D case is
 $(\aRds{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
 value, but the resulting propagation paths (also dependent on
 \verb|sensor_los|) must be valid with respect to the model atmosphere
-(see Section~\ref{sec:fm_defs:rte}). An obviously incorrect choice is to
+(see Section~\ref{sec:fm_defs:ppaths}). An obviously incorrect choice is to
 place the senor below the ground altitude.
 
 The fact that the sensor position can be given any value results in
 that the radius must be used in \verb|sensor_pos|, in contrast to
 \verb|z_ground| and \verb|z_field| where the altitude above the geoid
-is applied. This is the case as the sensor can for 2D and 3D be
-placed outside the covered latitude and longitude ranges, thus
-outside the defined geoid and the geometrical altitude is undefined.
+is applied. This is the case as the sensor can for 2D and 3D be placed
+outside the covered latitude and longitude ranges, thus outside the
+defined geoid and the geometrical altitude is undefined. See
+Section~[**] for hints on how to simply set the sensor position.
 
 The sensor is treated to be motionless when calculating the spectrum,
 or spectra, for each given observation position. One or several
@@ -520,25 +523,55 @@ with two angles, the zenith angle (\ZntAng) and the azimuth angle
 dimensionalities, while the azimuthal angle is defined only for 3D.
 The term line-of-sight is not only used in connection with the sensor,
 it is also used to describe the local propagation direction along the
-path taken by the observed radiation (Section~\ref{sec:fm_defs:ppaths}).
-The zenith and azimuthal angles are defined identical in these two
-contexts. This is expected as the position of the sensor is the end
-point of the propagation path. The line-of-sight of propagation paths
-is defined in the direction a photon travels to reach the sensor,
-while the sensor line-of-sight is the direction the antenna is pointed
-to receive the photons. This means that the sensor and path
-line-of-sights (at the sensor) are parallel but go in opposite
-directions. As a true sensor has a limited spatial resolution
-(described by the antenna pattern), theoretically there are an
-infinite number of line-of-sights associated with the sensor, but in
-the forward model spectra are only calculated for a discrete set of
-directions. If a sensor line-of-sight is mentioned without any
-comments, it refers to the direction in which the centre of the
-antenna pattern is directed.
+path taken by the observed radiation
+(Section~\ref{sec:fm_defs:ppaths}).  The zenith and azimuthal angles
+are defined identical in these two contexts. This is expected as the
+position of the sensor is the end point of the propagation path. The
+line-of-sight of \qindex{propagation path}s is defined in the
+direction the radiation travels to reach the sensor, while the sensor
+line-of-sight is the direction the antenna is pointed to receive the
+radiation. This means that the sensor and path line-of-sights (at the
+sensor) are parallel but go in opposite directions. As a true sensor
+has a limited spatial resolution (described by the antenna pattern),
+theoretically there are an infinite number of line-of-sights
+associated with the sensor, but in the forward model spectra are only
+calculated for a discrete set of directions. If a sensor line-of-sight
+is mentioned without any comments, it refers to the direction in which
+the centre of the antenna pattern is directed.
 
+\begin{figure}[!t]
+ \begin{center}
+  \begin{minipage}[c]{0.4\textwidth}
+   \begin{picture}(100,110)
+    \put(10,10){\vector(0,1){100}}
+    \put(0,114){zenith}
+    \put(10,10){\vector(1,0){100}}
+    \put(97,0){north}
+    \put(10,10){\vector(-1,0){20}}
+    \put(-20,0){south}
+    \put(10,10){\vector(1,1){80}}
+    \put(65,93){line-of-sight}
+    \put(10,10){\arc{40}{-1.5708}{-0.7854}}
+    \put(18,34){\ZntAng}
+    \dottedline(90,90)(90,35)(10,10)
+    \drawline(85,33.4)(85,38.4)(90,40)
+    \put(10,10){\arc{50}{-.3}{0}}
+    \put(38,12){\AzmAng}
+   \end{picture}
+  \end{minipage}%
+  \begin{minipage}[c]{0.50\textwidth}
+   \caption{Definition of zenith angle, \ZntAng, and azimuthal angle, 
+       \AzmAng, for a line-of-sight. The figure shows a line-of-sight
+       with a negative azimuthal angle.}
+   \label{fig:fm_defs:los}
+  \end{minipage}
+ \end{center}
+\end{figure}           
+ 
 The \qindex{zenith angle}, \ZntAng, is simply the angle between the
-line-of-sight and the zenith direction. It should be mentioned that
-the zenith and nadir directions are here defined to be along the line
+line-of-sight and the zenith direction
+(Figure~\ref{fig:fm_defs:los}). It should be mentioned that the
+zenith and nadir directions are here defined to be along the line
 passing the centre of the coordinate system and the point of concern
 (Section~\ref{sec:ppath:geoid}). A nadir observation,
 $\ZntAng=180\degree$, is thus a measurement towards the centre of the
@@ -608,17 +641,19 @@ There is only one compulsory transfer matrix and it is \aSnsMtr{b}
 Section~\ref{sec:fm_defs:seqsandblocks}). There are several workspace
 variables associated with this transfer matrix where
 \verb|antenna_dim|, \verb|psi_block_grid| and \verb|omega_block_grid|
-are the possibly compulsory ones.
+are the compulsory ones.
 
 The variable \verb|antenna_dim| gives the dimensionality of the
 antenna pattern\index{antenna pattern dimensionality}, where the
-options are 1 and 2, standing for 1D and 2D, respectively. A 1D antenna
-dimensionality means that the azimuthal extension of the antenna
-pattern is neglected, there is only a zenith angle variation of the
-response. A 2D antenna pattern is converted to a 1D pattern by
+options are 1 and 2, standing for 1D and 2D, respectively. A 1D
+antenna dimensionality means that the azimuthal extension of the
+antenna pattern is neglected, there is only a zenith angle variation
+of the response. A 2D antenna pattern is converted to a 1D pattern by
 integrating the azimuthal response for each zenith angle. ARTS handles
-not yet 2D antenna patterns and the only allowed choice for
-\verb|antenna_dim| is 1. The presentation below assumes that the 2D
+not yet 2D antenna patterns, the only allowed choice for
+\verb|antenna_dim| is 1, and the variable \verb|omega_block_grid| has
+yet no importance (but it must be initiated, to be empty, before
+calling \verb|retCalc|). The presentation below assumes that the 2D
 option is implemented.
 
 For each sensor position, a number of monochromatic pencil beam
@@ -632,13 +667,13 @@ beam zenith angle $i$ is calculated as
   \aZntAng{i} = \aZntAng{0} + \Delta\aZntAng{i}
   \label{eq:fm_defs:psi_grid}
 \end{equation}
-where \aZntAng{0} is the sensor line-of-sight for the position and
-$\Delta\aZntAng{i}$ is value $i$ of \verb|psi_block_grid|.  With other
-words, \verb|psi_block_grid| and \verb|omega_block_grid| are the
-calculation grids to use when the intensity field is weighted with the
-antenna response. For 1D antenna patterns, \verb|omega_block_grid| is
-assumed to be a vector of length 1 with the value 0 (any existing
-values are ignored). 
+where \aZntAng{0} is the sensor line-of-sight for the position of
+concern and $\Delta\aZntAng{i}$ is value $i$ of \verb|psi_block_grid|.
+With other words, \verb|psi_block_grid| and \verb|omega_block_grid|
+give the grid (relative to the sensor line-of-sight) for the
+calculation of the intensity field that will be weighted with the
+antenna response. For cases with 1D antenna patterns,
+\verb|omega_block_grid| must be set to be an empty vector.
 
 
 \levelc{Measurement sequences and blocks}
@@ -646,30 +681,48 @@ values are ignored).
 \label{sec:fm_defs:seqsandblocks}
 
 The series of observations modelled by the simulations is denoted as
-the \qindex{measurement sequence}. That is, a measurement sequence covers all
-spectra recorded at all considered sensor positions
-(\verb|sensor_pos|). The observations performed at one position is
-referred to as a \qindex{measurement block}. 
+the \qindex{measurement sequence}. That is, a measurement sequence
+covers all spectra recorded at all considered sensor positions
+(\verb|sensor_pos|). A measurement sequence consists of one or several
+\qindex{measurement block}s. The observations inside the various
+blocks differ only with an off-set of the line-of-sight, all other
+factors should be common for all blocks. A block can be treated as a
+measurement cycle that is repeated, an integer number of times, to
+form the measurement sequence.  The measurement blocks correspond
+normally to each unique sensor position of the sequence.
 
-A measurement block corresponds to one or several recorded spectra,
-depending on the measurement conditions and the atmospheric
-dimensionality. A block can consists of several spectra when there is
-no effective motion of the sensor with respect to the atmospheric
-fields. It should be noted that for 1D cases, a motion along a
-constant radius has no influence on the simulated spectra as the same
-atmospheric fields are seen for a given viewing direction. It is
-normally favourable, if possible, to handle all spectra as a single
-block, instead of using a block for each sensor position. This is the
-case as the antenna patterns for the different line-of-sights are
-normally overlapping and a pencil beam spectrum can be used in
-connection with several measurement spectra. If a measurement sequence
-is divided into several blocks even if a single block would be
-sufficient, pencil beam spectra for close line-of-sights can be
-calculated several times, which of course if unnecessary.  To
+A measurement block cover one or several recorded spectra, depending
+on the measurement conditions and the atmospheric dimensionality. A
+block can consists of several spectra when there is no effective
+motion of the sensor with respect to the atmospheric fields. It should
+be noted that for 1D cases, a motion along a constant radius has no
+influence on the simulated spectra as the same atmospheric fields are
+seen for a given viewing direction. It is favourable, if possible, to
+handle all spectra as a single block, instead of using a block for
+each sensor position. This is the case as the antenna patterns for the
+different line-of-sights are normally overlapping and a pencil beam
+spectrum can be used in connection with several measurement spectra to
+estimate the intensity field. If a measurement sequence is divided
+into several blocks even if a single block would be sufficient, pencil
+beam spectra for basically identical propagation paths can be
+calculated several times, which of course is unnecessary. To
 summerise, for cases when the sensor is not in motion, or with a 1D
 atmosphere and a sensor not moving vertically, the aim should be to
-use a single block for the measurement sequence. This discussion is
-continued in Section~\ref{sec:fm_defs:howtomeasseq}.
+use a single block for the measurement sequence.
+
+If not a single block is used, the standard option should be that the
+blocks cover one spectrum each. There could exist reasons to select an
+intermediate solution, to let the extent of the blocks be several
+spectra (but not the full measurement sequence). This could be the
+case when the atmospheric dimensionality is 2D or 3D, and the sensor
+is moving but the movement during some subsequent spectra can be
+neglected. If this can be done must be judged by comparing the
+movement of the satellite during the extent of the considered block
+size and the spatial resolution, in the direction of the movement, that
+is hoped to be achieved. If this intermediate solution shall be an
+option, the difference in zenith and azimuthal angles between the
+spectra must be the same for all blocks, otherwise \aSnsMtr{b} cannot
+be applied for all blocks as done in Equation~\ref{eq:fm_defs:measseq}.
 
 For each block, pencil beam spectra are calculated for the
 line-of-sights obtained when summing \verb|sensor_los| and
@@ -682,29 +735,29 @@ in \verb|f_grid|. Hence, the frequencies for this vector are
   \aMpiVct{b} = 
   \left[ \begin{array}{c} 
      \left[
-          \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{n} \end{array} 
+          \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{{n_\Frq}} \end{array} 
      \right] \\
      \vdots \\
      \left[
-          \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{n} \end{array} 
+          \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{{n_\Frq}} \end{array} 
      \right]
      \end{array} \right]
   \label{eq:fm_defs:freqs_of_ib}
 \end{equation}
-where \aFrq{i} is element $i$ of \verb|f_grid| and $n$ the length of
+where \aFrq{i} is element $i$ of \verb|f_grid| and $n_\Frq$ the length of
 the same vector. The order of the angles inside \verb|psi_block_grid|
 and \verb|omega_block_grid| is followed when looping the pencil beam
 directions, where the zenith angle direction is the innermost loop.
 That is, for 2D antenna patterns all zenith angles are looped for the
-first azimuthal angle etc.
+first azimuthal angle etc. 
 
-The transfer matrix \verb|Hb| is applied on each \aMpiVct{b} and the
+The transfer matrix \aSnsMtr{b} is applied on each \aMpiVct{b} and the
 results are appended vertically, following the order of the positions
 in \verb|sensor_pos|:
 \begin{equation}
   \MsrVct = \left[ \begin{array}{c} \aSnsMtr{b}\aMpiVct{{b,1}} \\ 
                                     \aSnsMtr{b}\aMpiVct{{b,2}} \\
-                                    \vdots                  \\
+                                    \vdots                     \\
                                     \aSnsMtr{b}\aMpiVct{{b,n}} 
             \end{array} \right]
   \label{eq:fm_defs:measseq}
@@ -715,8 +768,19 @@ indicates the first sensor position etc. This equation shows that
 response. The matrix \verb|Hb| can also cover other sensor
 characteristics and data reduction if the features of concern are
 common for all measurement blocks. If this is not the case, those
-features must be handled by the other existing transfer matrices or by
+features must be handled by the other existing transfer matrices or, by
 other means, as described in Section~\ref{sec:fm_defs:howtomeasseq}.
+
+As the sensor line-of-sight and block grid values are just added,
+there is an ambiguity of the line-of-sight. It is possible to apply a
+constant off-set to the line-of-sights, if the block grids are
+corrected accordingly. For example, if the simulations deal with limb
+sounding and a 1D atmosphere, where normally a single block should be
+used despite a number of spectra are recorded, it could be practical
+to set the line-of-sight to the viewing direction of the uppermost or
+lowermost spectrum, and the zenith angles in \verb|psi_block_grid|
+will not be centred around zero which is the case when the ``true''
+line-of-sight is used.
 
 It should be noted that the compulsory sensor variables give no
 information about the content of the obtained \MsrVct, as it is not
@@ -796,7 +860,7 @@ The specific intensity vector $\Int$
  the LOS, $I_1$ the intensity at $l_1$, $\kappa$ the total absorption
  along the LOS and $\sigma$ the source function.
 
-
+[* Please consider also transmission measurements. *]
 
 
 \levelc{Calculation procedure}
@@ -809,31 +873,54 @@ equation is fixed. The corresponding workspace function is
 outlined in Algorithm~\ref{alg:fm_defs:rteCalc}. For further details
 of each calculation step, see the indicated equation or section.
 
+Two types of spectra can be produced, emission and transmission
+spectra. A transmission spectrum means that emission of the atmosphere
+and the ground is neglected. This can be done if the measurements are
+performed against a sufficient strong source, such as the sun. The
+background source is not included in the simulations, the output is
+instead the transmission through the atmosphere (in form of the
+optical thickness, see below). The type of spectra is selected by the
+workspace variable \verb|emission_on|. In some cases it is of interest
+to have both the emission and the transmission spectra at hand
+simultaneously. This is achieved by [* How? Can we have optional
+output parameters? *]. Weighting functions are only calculated for the
+option selected by \verb|emission_on|.
+
+The primary unit for emission spectra, the unit of \aMpiVct{b} in
+Equation~\ref{eq:fm_defs:measseq}, is [W/(Hz$\cdot$m$^2\cdot$sr)].
+The emission intensity corresponds directly with the definition of the
+Planck function in Equation~[**], no scaling terms are applied.
+Conversion to brightness temperature is treated in Section~[**].  The
+transmission is provided as the optical thickness (Equation~[**]).
+The optical thickness includes the absorption of the ground if there
+is a ground reflection along the propagation path.
+
 The function \verb|rteCalc|, beside providing atmospheric spectra,
 performs also the calculation of weighting functions for atmospheric
-variables where analytical expressions are used. These calculations
-follow the same outline but are not included here for simplicity, they
-are instead considered in Section~\ref{sec:fm_defs:wfs}. 
+variables where analytical expressions are used. The core of these
+calculations follows Algorithm~\ref{alg:fm_defs:rteCalc}, but is not
+considered here for simplicity. Weighting functions are treated in
+Section~\ref{sec:fm_defs:wfs}.
 
-\begin{algorithm}
+\begin{algorithm}[!t]
  \begin{algorithmic}
   \IF[{Section \ref{sec:fm_defs:scattering}}]{cloud box is turned on}
    \STATE{determine the intensity field inside the cloud box}
   \ENDIF
   \STATE{allocate memory for the measurement vector, \MsrVct}
   \COMMENT{Equation \ref{eq:formalism:fm}}
-  \FOR{each sensor position}
+  \FORALL{sensor positions}
    \STATE{allocate memory for the vector \aMpiVct{b}}
    \COMMENT{Equation \ref{eq:fm_defs:freqs_of_ib}}
-   \FOR[Section \ref{sec:fm_defs:seqsandblocks}]
-                                    {each pencil beam direction of the block}
+   \FORALL[Section \ref{sec:fm_defs:seqsandblocks}]
+                                    {pencil beam directions of the block}
     \STATE{determine the propagation path}
     \COMMENT{Section \ref{sec:fm_defs:ppaths}}
     \STATE{initialise the vector \MpiVct\ with the radiative background}
     \COMMENT{Section \ref{sec:fm_defs:ppaths}}
-    \FOR{each step along propagation path}
+    \FORALL{steps along propagation path}
      \STATE{update \MpiVct\ following Equation [**]}
-     \IF{at ground reflection}
+     \IF{at a point of ground reflection}
       \STATE{update \MpiVct\ following Equation [**]}
      \ENDIF
     \ENDFOR
@@ -842,10 +929,10 @@ are instead considered in Section~\ref{sec:fm_defs:wfs}.
    \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of \MsrVct}
   \ENDFOR
  \end{algorithmic}
- \caption{Outline of the clear sky radiative transfer calculations. An emission
-   measurement, without any weighting function calculations, is
-   assumed here. Optical thicknesses and weighting functions are
-   calculated following the same scheme.}
+ \caption{Outline of the clear sky radiative transfer calculations. Only
+   calculation of emission spectra is treated here.
+   Optical thicknesses and weighting functions are
+   determined in parallel, if selected, following the same scheme.}
  \label{alg:fm_defs:rteCalc}
 \end{algorithm}
 
@@ -855,76 +942,101 @@ are instead considered in Section~\ref{sec:fm_defs:wfs}.
 \label{sec:fm_defs:ppaths}
 
 A pencil beam path through the atmosphere to reach a specified
-position from a specified line-of-sight is denoted as a propagation
-path. The forward direction of the propgations paths is towards the
-position for which the radiative intensity will be calculated. It
-should be noted that with scattering there exist an infinite number
-of propgation paths for a given combination of observation point and
-line-of-sight. 
+position from a specified line-of-sight is denoted as the
+\qindex{propagation path}. The forward direction of the propagation
+paths is towards the position for which the radiative intensity will
+be calculated. It should be noted that with scattering there exist an
+infinite number of propagation paths for a given combination of
+observation point and line-of-sight.
 
-Propagation paths are described by storing a set of points on the
+Propagation paths are described by a set of points on the
 path, and the distance along the path between the points. These
-quantities, and a number of auxilary variables, are stored together in
+quantities, and a number of auxiliary variables, are stored together in
 a structure described in Section~[**]. The path points are primarily
 placed at the crossings of the path with the atmospheric grids
 (\verb|p_grid|, \verb|alpha_grid| and \verb|beta_grid|). A path point
 is also placed at the sensor if it is placed inside the atmosphere.
-Ground reflections and tangent points are also included if usch exist.
+Ground reflections and tangent points are also included if such exist.
 There exists also the possibility to set an upper limit for the
 distance along the path between the points by the workspace variable
 \verb|ppath_lmax|. If \verb|ppath_lmax| is set to a value $\leq 0$ then
 no points are added to the path, otherwise points are included to
-fulfill the length criterion. 
+fulfil the length criterion. 
 
 The propagation paths are determined basically by starting at the
-sensor and following the path backwards, by geometrical calculations
-or some ray tracing technique depending on if refraction is considered
-or not, until the other end point is found. If the sensor is placed
-above the model atmosphere, geometrical calculations are used (as
-there is no refraction in space) to find the crossing between the path
-and the top of the atmosphere where the ray tracing then starts.  If
-there is no cloud box and the ground not acts as a blackbody, the
-starting point of the propagation paths is always found at the top of
-the atmosphere (where the path enters the atmosphere). Propagation
-paths are not followed inside cloud boxes and the starting point is
-set to the cloud box boundary. If there is an intersection with path
-of a blackbody ground (Section~\ref{sec:fm_defs:geoid}), the
-propagation path is considered to start at the ground. This is the
-case as a blackbody ground absorbs all incoming radiation and the
-radiative transfer along the path before the ground reflection is of
-no interest. Example on propagation paths are shown in
-Figure~\ref{fig:fm_defs:ppath_cases1}.
+sensor and following the path backwards by some \qindex{ray tracing}
+technique.  If the sensor is placed above the model atmosphere,
+geometrical calculations are used (as there is no refraction in space)
+to find the crossing between the path and the top of the atmosphere
+where the ray tracing then starts. If there is no cloud box and the
+ground not acts as a blackbody, the starting point of the propagation
+paths is always found at the top of the atmosphere (where the path
+enters the atmosphere). Propagation paths are not followed inside
+cloud boxes and the starting point is set to the cloud box boundary.
+If there is an intersection with path of a blackbody ground
+(Section~\ref{sec:fm_defs:geoid}), the propagation path is considered
+to start at the ground. This is the case as a blackbody ground absorbs
+all incoming radiation and the radiative transfer along the path
+before the ground reflection is of no interest
+(Equation~\ref{eq:fm_defs_ground_reflection}). Example on propagation
+paths are shown in Figure~\ref{fig:fm_defs:ppath_cases1}.
 
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_cases1}
+  \caption{Propagation path examples for a 2D atmosphere. The atmosphere 
+    and the cloud box are plotted as in Figure~\ref{fig:fm_defs:2d}
+    beside that the points for the atmospheric fields are not
+    emphasised. For the propagation paths to the left, with a the
+    sensor placed inside the model atmosphere, a reflecting ground is
+    assumed. The paths to the right are valid for a sensor placed
+    outside the atmosphere (at the $*$) and a blackbody ground. No
+    value for the maximum path step length was applied. Note the tangent
+    point inserted for the uppermost propagation path, plotted as $\oplus$.}
+  \label{fig:fm_defs:ppath_cases1}
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_ppath_cases.
+ 
 The radiative intensity at the starting point of the path, and in the
 direction of the line-of-sight at that point, is denoted as the
 radiative background. The radiative background at the top of the
 atmosphere is given by the workspace variable \verb|i_space|. This
-variable should normally be set to cosmic background radiation, if not
-the sensor is directed towards the sun. Remaining possible radiative
-backgrounds are blackbody radiation from the ground or the outgoing
-intensity field at the boundary of a cloud box.
+variable should normally be set to cosmic background radiation, if
+not the sensor is directed towards the sun. Remaining possible
+radiative backgrounds are blackbody radiation from the ground or the
+outgoing intensity field at the boundary of a cloud box. If a
+propagation path is totally outside the model atmosphere, the
+observed monochromatic pencil beam intensity (\MpiVct\ in
+Algorithm~\ref{alg:fm_defs:rteCalc}) equals \verb|i_space|
 
- \begin{figure}[!t]
-  \begin{center}
-   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_cases1}
-   \caption{Propagation path examples for a 2D atmosphere. The atmosphere 
-     and the cloud box are plotted as in Figure~\ref{fig:fm_defs:2d}
-     beside that the points for the atmospheric fields are not
-     emphesised. For the propagation paths to the left, with a the
-     sensor placed inside the model atmosphere, a reflecting ground is
-     assumed. The paths to the right are valid for a sensor placed
-     outside the atmosphere (at the $*$) and a blackbody ground. No
-     value for the maximum path step length was applied. Note the tangent
-     point inserted for the uppermost propagation path, plotted as $\oplus$.}
-   \label{fig:fm_defs:ppath_cases1}
-  \end{center}
- \end{figure}
- % This figure was produced by the Matlab function mkfigs_ppath_cases.
+Not all propagation paths are allowed for 2D and 3D. The paths can
+only enter and leave the model atmosphere at the top of the atmosphere
+as the atmospheric fields are treated to be undefined outside the
+covered latitude and longitude ranges. In addition, if the sensor is
+placed outside the model atmosphere, the line-of-sight zenith angles
+must be $\geq90\degree$, and the tangent point position of the
+propagation paths must be inside the end points of the latitude and
+longitude grids, but can be above the top of the atmosphere. Hence, it
+is allowed that the propagation path is totally outside the
+atmosphere, as long as the viewing direction is downward and the
+lowest point of the path, then tangent point, is inside the latitude
+and longitude limits of the model atmosphere. All combinations of
+sensor position and sensor line-of-sight result in an allowed
+propagation path for 1D atmospheres. 
 
 
 \levelc{Solving the radiative transfer equation}
 %===================
 \label{sec:fm_defs:solverte}
+
+[* Assumption on absorption and source function between the points of
+the propagation path. Can the equation 
+\begin{equation}
+  \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
+\end{equation}
+be extended to cover Stokes vectors when there is no scattering? *]
+
 
 
 \levelc{Ground reflections}
@@ -934,27 +1046,27 @@ intensity field at the boundary of a cloud box.
 The ground is treated to be a totally flat surface; incoming radiation
 is only reflected in a single direction, with the normal assumption
 that the angle to the surface normal is equal for the incoming and
-outgoing line-of-sight. If there is slope of the ground (a variation
-of the ground radius), this slope is considered when determining the
-line-of-sight for the incoming radiation (remember that propagation
-paths are followed backwards). This is exemplified in
-Figure~\ref{fig:fm_defs:ppath_cases2}, for a case with a very strong
-ground slope.
+outgoing line-of-sight. If there is slope of the ground\index{ground
+  slope} (a variation of the ground radius), this slope is considered
+when determining the line-of-sight for the incoming radiation
+(remember that propagation paths are followed backwards). This is
+exemplified in Figure~\ref{fig:fm_defs:ppath_cases2}, for a case with
+a very strong ground slope.
 
- \begin{figure}[!t]
-  \begin{center}
-   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_cases2}
-   \caption{The influence of a ground slope on the propagation path. The zenith
-     angle of the sensor line-of-sight is the same for the two paths (but with
-     different sign, which matters here as this is a 2D case), and the paths
-     would have been symmetric around the latitude of the sensor without a 
-     ground slope. The maximum path step length is here set to be a value
-     equaling half the vertical distance between the two shown pressure
-     surfaces.}
-   \label{fig:fm_defs:ppath_cases2}
-  \end{center}
- \end{figure}
- % This figure was produced by the Matlab function mkfigs_ppath_cases.
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_cases2}
+  \caption{The influence of a ground slope on the propagation path. The zenith
+    angle of the sensor line-of-sight is the same for the two paths (but with
+    different sign, which matters here as this is a 2D case), and the paths
+    would have been symmetric around the latitude of the sensor without a 
+    ground slope. The maximum path step length is here set to be a value
+    equalling half the vertical distance between the two shown pressure
+    surfaces.}
+  \label{fig:fm_defs:ppath_cases2}
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_ppath_cases.
 
 When solving the radiative transfer equation, a ground reflection is
 included as
@@ -968,7 +1080,7 @@ Note that the ground emissivity can vary both with frequency and
 position (Section~\ref{sec:fm_defs:geoid}).
 Equation~\ref{eq:fm_defs_ground_reflection} shows that the path before
 a reflection with a blackbody ground can be neglected. For such cases,
-$\Mpi(\Frq)$ equals $B(\Frq,\aTmp{g})$ independently of the prevoius
+$\Mpi(\Frq)$ equals $B(\Frq,\aTmp{g})$ independently of the previous
 value of $\Mpi(\Frq)$. The ground emission is treated to be
 unpolarised.
 
@@ -977,13 +1089,13 @@ account the scattering properties of the ground and this limitation of
 the simulations should be considered. However, a requirement for that
 the recorded spectra shall be affected considerably by the ground
 properties is that the optical thickness of the lower troposphere is
-not too high. If it is too high, the radiation is absorbed before it
+not too high. If it is high, the radiation is absorbed before it
 reaches the sensor. For moderate values on the optical thickness (in
-rough numbers, $1.5\leq\tau\leq4$), when some radiation can propagate
+rough numbers, $1.5<\tau<4$), when some radiation can propagate
 from the ground to the sensor, it should be noted that the intensity
 field (as a function of zenith angle) reaching the ground should be
-relatively homogenous and the negliance of ground scattering will not
-influence the accuracy of the results too seroiusly. With a high or
+relatively homogenous and the negligence of ground scattering will not
+influence the accuracy of the results too seriously. With a high or
 moderate optical thickness of the lower troposphere, the emission
 reaching the ground will have brightness temperature close to the
 physical temperatures of the lower troposphere, with a relatively low
