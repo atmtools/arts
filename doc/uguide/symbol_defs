@@ -339,6 +339,16 @@
 % Phase matrix
 \newcommand{\PhaMat} 	{\ensuremath{{\bf Z}}}
 
+% Radiation field
+\newcommand{\IFld}	{\ensuremath{{\mathcal I}}}
+% Radiation field index
+\newcommand{\aIFld}[1]	{\ensuremath{{\mathcal I}^{(#1)}}}
+
+% Scattered field
+\newcommand{\SFld}	{\ensuremath{{\mathcal S}}}
+% Scattered field index
+\newcommand{\aSFld}[1]	{\ensuremath{{\mathcal S}^{(#1)}}}
+
 % Amplitude matrix
 \newcommand{\AmpMat} 	{\ensuremath{{\bf S}}}
 % Amplitude matrix index

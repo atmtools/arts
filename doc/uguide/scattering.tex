@@ -73,57 +73,46 @@ box\\
 \newcommand{\DirFrePr} {\ensuremath{(\PDir, \PDir^\prime, \Frq, \Tmp)}}
 
 
-\levelb{General radiative transfer equation}
+\levelb{Vector radiative transfer equation (VRTE)}
 %=====================================================================
 \label{sec:scattering:general_rte}
  
-
 The radiative transfer equation for a medium with thermal emission
-comprising sparsely and randomly distributed, spherical or
-arbitrarily oriented nonspherical particles is 
-\citep{mishchenko00:_light_scatt_nonsp_partic}: 
+comprising sparsely and randomly distributed, spherical or arbitrarily
+oriented non-spherical particles is \cite{sree02}:
 \begin{eqnarray}
-     \frac{\DiffD \StoVec}{\DiffD s}(\PDir, \Frq, \Tmp) =
-     -\ExtMat\DirFre\StoVec(\PDir, \Frq, \Tmp)+\AbsVec\DirFre
-     \Planck(\Tmp, \Frq) \\ \nonumber
-     +\int_{4\pi} \DiffD \PDir^\prime \SEfMat\DirFrePr
-     \StoVec(\PDir^\prime, \Frq, \Tmp) 
 \label{eq:scattering:RTE} 
+     \frac{\DiffD \StoVec}{\DiffD s}(\PDir, \Frq) =
+     -\ExtMat\DirFre\StoVec(\PDir, \Frq)+\AbsVec\DirFre
+     \Planck(\Frq) \\ \nonumber
+     +\int_{4\pi} \DiffD \PDir^\prime \SEfMat\DirFrePr
+     \StoVec(\PDir^\prime, \Frq) 
 \end{eqnarray} 
 Formally it is an inhomogeneous four dimensional vector differential
- equation for the Stokes vector \StoVec
-$(I,Q,U,V)$. To describe the full state of an
-electromagnetic wave you could use the electromagnetic field
-vector, which consists of two complex numbers. This is the common
-notation in Maxwell's theory. An alternative notation is the Stokes
-vector which is more convenient for experimental purposes, as it
-consists of real numbers which can be associated more directly with the
-measurements.
-The first component of the Stokes vector $I$ signifies the monochromatic flux
-or the intensity of
-the radiation. The other components describe the polarization state: the
-second and third components $Q$ and $U$ signify the state of linear
-polarization and the last component $V$ signifies the state of circular
-polarization. More details about the physical meaning of the Stokes
-vector and about possibilities to measure the Stokes components
-can be
-found in Chapter \ref{sec:polarization}.\\
-In Equation  (\ref{eq:scattering:RTE})
-\PDir\ denotes the propagation direction and
-\DiffD $s$ the pathlength element along this direction. The radiation
-field depends on frequency \Frq\ and temperature \Tmp.
-
-\vspace{1ex}
-The first term of Equation (\ref{eq:scattering:RTE}) corresponds to the extinction of
-radiation determined by the extinction coefficient matrix \ExtMat
-. For microwave radiation traveling through the atmosphere there is
-extinction due to gaseous
-absorption, particle absorption and  particle scattering. Lambert's law
-states that the extinction process is
-proportional to the amount of matter. Therefore
-\ExtMat\ can be written as
-a sum of two matrices, the first for particle extinction ( \aExtMat{p})
-and the second for gaseous extinction (\aExtMat{g}):
+equation for the Stokes vector \StoVec $(I,Q,U,V)$. To describe the
+full state of an electromagnetic wave one could use the
+electromagnetic field vector, which consists of two complex numbers.
+This is the common notation in Maxwell's theory. An alternative
+notation is the Stokes vector which is more convenient for
+experimental purposes, as it consists of real numbers which can be
+associated more directly with the measurements.  The first component
+of the Stokes vector $I$ signifies the monochromatic flux or the
+intensity of the radiation. The other components describe the
+polarization state: the second and third components $Q$ and $U$
+signify the state of linear polarization and the last component $V$
+signifies the state of circular polarization.\\
+In Equation (\ref{eq:scattering:RTE}) \PDir\ denotes the propagation
+direction and \DiffD $s$ the path-length element along this direction.
+The radiation field depends on position, propagation direction {\bf
+  n}, and frequency \Frq.  \vspace{1ex} The first term of Equation
+(\ref{eq:scattering:RTE}) corresponds to the extinction of radiation
+determined by the extinction coefficient matrix \ExtMat . For
+microwave radiation traveling through the atmosphere there is
+extinction due to gaseous absorption, particle absorption and particle
+scattering. Lambert's law states that the extinction process is
+proportional to the amount of matter. Therefore \ExtMat\ can be
+written as a sum of two matrices, the first for particle extinction (
+\aExtMat{p}) and the second for gaseous extinction (\aExtMat{g}):
 \begin{eqnarray}
   \ExtMat\DirFre &=&
   \aExtMat{p}\DirFre+\aExtMat{g}\DirFre
@@ -135,153 +124,273 @@ corresponding to one particle type:
   \aExtMat{p}\DirFre = \sum_i \PDen_i \aSExMat{p}_i \DirFre
 \end{eqnarray}
 
-Here $\PDen_i$ is the particle number density of the
-{\sl i}th particle type and  $\aSExMat{p}_i\DirFre$  the particle
-extinction cross section matrix of the
-{\sl i}th particle type.
+Here $\PDen_i$ is the particle number density of the {\sl i}th
+particle type and $\aSExMat{p}_i\DirFre$ the particle extinction cross
+section matrix of the {\sl i}th particle type.
 
-The second term in Equation (\ref{eq:scattering:RTE})  describes the thermal
-emission. Therefore \Planck\  is the Planck
-function at temperature \Tmp\ and \AbsVec\  is the absorption
-coefficient vector which can be written as
+The second term in Equation (\ref{eq:scattering:RTE}) describes the
+thermal emission. \Planck\ is the Planck function and \AbsVec\ is the
+absorption coefficient vector which can be written as
  \begin{eqnarray}
   \AbsVec \DirFre  &=& \aAbsVec{p} \DirFre + \aAbsVec{g} \DirFre 
   \end{eqnarray}
-with \aAbsVec{p} and \aAbsVec{g} as the particle
-absorption 
-coefficient
-and the gaseous absorption coefficient, respectively. 
-
-The particle absorption term can also be written as a sum over all
-particle types:
+  with \aAbsVec{p} and \aAbsVec{g} as the particle absorption
+  coefficient and the gaseous absorption coefficient, respectively.
+  
+  The particle absorption term can also be written as a sum over all
+  particle types:
 \begin{eqnarray}
   \aAbsVec{p}\DirFre = \sum_i \PDen_i \aSAbVec{p}_i \DirFre
 \end{eqnarray}
-Here $\aSAbVec{p}_i$ is the single particle absorption cross section
-vector. 
+Here $\aSAbVec{p}_i$ is the particle absorption cross section vector
+of the {\sl i}th particle type.
 
-The last term in Equation (\ref{eq:scattering:RTE}) is the scattering source
-term. It is the 
-amount of radiation which is scattered from all directions \PDir$^\prime$   
-into the propagation direction \PDir.  The scattering efficiency matrix
-\SEfMat\ is the sum of products  
-of the particle densities \PDen\  and the phase matrices \PhaMat
+The last term in Equation (\ref{eq:scattering:RTE}) is the scattering
+source term. It is the amount of radiation which is scattered from all
+directions \PDir$^\prime$ into the propagation direction \PDir.  The
+scattering efficiency matrix \SEfMat\ is the sum of products of the
+particle densities \PDen\ and the phase matrices \PhaMat
 \begin{eqnarray}
-\SEfMat(\PDir, \PDir', \Frq, \Tmp) = \sum_i{\PDen_i\PhaMat_i(\PDir,
-  \PDir', \Frq, \Tmp)}.
+\SEfMat(\PDir, \PDir', \Frq) = \sum_i{\PDen_i\PhaMat_i(\PDir,
+  \PDir', \Frq)}.
 \end{eqnarray}
 
-Molecular scattering is neglected as it is not important in the 
-considered frequency range from 10 to 1000 GHz. 
+Molecular scattering is neglected as it is not important in the
+considered frequency range from 10 to 1000 GHz.
+
 
 \levelb{Scalar radiative transfer equation}
 %======================================================
 \label{sec:scattering:scalar_rte}
 
-If we know that the radiation field is unpolarized we may use the scalar
-radiative transfer equation, which is easier to handle than the vector
-equation. It can directly be derived from the general equation
-provided that there are no nonspherical particles in the scattering
-medium. If there are nonspherical particles the polarization state of
+If we know that the radiation field is unpolarized we may use the
+scalar radiative transfer equation, which is easier to handle than the
+vector equation. It can directly be derived from the general equation
+provided that there are no non-spherical particles in the scattering
+medium. If there are non-spherical particles the polarization state of
 the radiation will be changed, in this case the medium is called
-dichroistic.
-For spherical particles the extinction matrix has only elements on the
-diagonal and all of them have equal values. Only the first component
-of the absorption vector will be nonzero. Instead of taking the
-full scattering 
-matrix, commonly only its first element, which is usually called the
-phase function, is used although there is no physical justification for
-doing this.
+dichroistic.  For spherical particles the extinction matrix has only
+elements on the diagonal and all of them have equal values. Only the
+first component of the absorption vector will be nonzero.
+
+Instead of taking the full phase matrix, commonly only its first
+element, which is usually called the phase function, is used, for
+aspherical particles as well as for spherical particles. For
+aspherical particles this concept has no physical justification as
+there are non-diagonal terms in the phase matrix.
 
 Thus to write down the scalar radiative transfer equation the
 extinction matrix in (\ref{eq:scattering:RTE}) is replaced by the
-first element of the extinction matrix
-$K_{11}$, the scalar absorption coefficient is replaced by the first
-element of the absorption vector $a_1$ and the scalar scattering
-coefficient by the first element of the scattering efficiency matrix
-$Y_{11}$:
+first element of the extinction matrix $K_{11}$, the scalar absorption
+coefficient is replaced by the first element of the absorption vector
+$a_1$ and the scalar scattering coefficient by the first element of
+the scattering efficiency matrix $Y_{11}$:
 \begin{eqnarray}
   \label{eq:scattering:scalar_rte}
-\frac{\DiffD I}{\DiffD s} (\PDir, \Frq, \Tmp) = -K_{11}(\PDir, \Frq)I
-(\PDir, \Frq, \Tmp) + a_1(\PDir, \Frq)\Planck(\Tmp,\Frq) + \\ \nonumber
+\frac{\DiffD I}{\DiffD s} (\PDir, \Frq) = -K_{11}(\PDir, \Frq)I
+(\PDir, \Frq) + a_1(\PDir, \Frq)\Planck(\Frq) + \\ \nonumber
  +\int_{4\pi} \DiffD \PDir^\prime Y_{11}\DirFrePr I(\PDir^\prime,
-  \Frq, \Tmp)
+  \Frq)
 \end{eqnarray}
 
 \levelb{Iteration scheme for solving the vector RTE}
 %===============================
 \label{sec:scattering:solution_rte}
 
-It is not possible to find an analytical solution to the general
-radiative transfer equation. We use an iterative method to find a
-numerical solution. For this purpose the radiation field has to be
-discretized. This is done by defining cloudbox (cf. Section
-\ref{sec:fm_defs:cloudbox}). In the 3D atmosphere the cloudbox
-consists of a specific number of grid points which are the corners of
-the so called grid cells. Inside the grid cells we assume that the
-extinction matrix, the absorption vector and the scattering matrix are
-constant. 
+There exists no analytical solution for differential equations as the general
+radiative transfer equation. A numerical solution can be obtained using for example an iterative method. The method implementes in ARTS is described in this section. 
 
+\levelc{Basic definitions}
 \begin{itemize}
-\item {\bf Scattering integral}
+\item{\bf Cloudbox}
+It is not necessary to solve the VRTE in the whole atmosphere. In ARTS it is possible to define a region, in which cloud prticles can exist, this region is called the cloudbox. Only in this particular region the VRTE is solved, this saves computation time and memory. 
+The cloudbox is defined by its corner points which have to correspond to atmospheric grid points (cp. Figure \ref{fig:scattering:cloudbox}). For a 3D calulation the user has to define lower and upper pressure limit (\aPrs{1} and \aPrs{2}), two latitude limits (\aLat{1} and \aLat{2}) and two longitude limits (\aLon{1} and \aLon{2}). 
 
-The first step  of the iterative method is solving the scattering integral
+\begin{figure}[htbp]
+ \begin{center}
+  \begin{minipage}[c]{0.65\textwidth}
+   \begin{center}
+    \includegraphics*[width=0.9\hsize]{Figs/scattering/cloudbox}
+   \end{center}
+  \end{minipage}%
+  \begin{minipage}[c]{0.35\textwidth}
+   \caption{2D cloudbox defined by lower and upper pressure limit (\aPrs{1} and \aPrs{2}) and two latitude limits (\aLat{1} and \aLat{2}).}
+   \label{fig:scattering:cloudbox}
+  \end{minipage}
+ \end{center}
+\end{figure}   
+
+The aim is to calculate the radiation at all grid points inside the cloudbox for all viewing angles, this quantity we call the radiation field. 
+
+\item{\bf Radiation field}
+
+To describe the radiation field inside the cloudbox completely we need the Stokes vectors at all grid points. The Stokes vector depends not only on the position in the cloudbox but also on the propagation direction of the radiation (cp. equation \ref{eq:scattering:RTE}). Thus the radiation field is defined to be a set including the Stokes vectors at all grid points in the cloudbox, which are elements of the atmospheric grids, and for all propagation directions defined by special angular grids for the scattering calculation: 
+
+\begin{eqnarray}
+{\mathcal I} = \left\{ \StoVec \left( p_i, \alpha_i, \beta_i, \theta_i, \phi_i\right)\right\}   \quad
+\forall \quad p_i &\in& p\_grid,\\
+ \alpha_i &\in& lat\_grid, \\
+ \beta_i &\in& lon\_grid, \\
+ \theta_i &\in& scat\_za\_grid, \\
+ \phi_i &\in& scat\_aa\_grid 
+\end{eqnarray}
+
+Of course the Stokes vector also depends on the frequency of the radiation. But in orden to save computation memory, the scattering calculation is only done for one frequency at a time.
+
+\end{itemize}
+
+
+\levelc{First guess field}
+%===========================================================================
+
+The starting point of the iteration method is the first guess field  \aIFld{0}. This is restricted by the boundary condition given by the radiation coming from the clear
+sky part of the atmosphere traveling into the cloudbox. To take into
+account this condition, the first guess field on the cloudbox boundary
+has to be set to the clear sky field on the cloudbox boundary. 
+
+Inside
+the cloudbox any field can be chosen as a first guess. In order to minimize the number of iterations it should be close to the iterative solution. Our test calculations have shown, that taking the clearsky field as first guess is reasonable.
+
+
+\levelc{First Scattering integral field}
+%============================================================================
+
+  The next step is solving the scattering
+  integral
 \begin{eqnarray}
   \ScaInt^{(0)} = \int_{4\pi} \DiffD \PDir^\prime
   \SEfMat \StoVec^{(0)}
+\label{eq:scat_int}
 \end{eqnarray}
-using a first guess initial field \StoVec$^{(0)}$. To do the
-integration we also need a discretized angular grid to define the
-directions. The initial field depends on the
-position inside the cloudbox and on the incident direction of the
-radiation. For
-convenience the frequency and temperature dependence is omitted in
-this equation and in the following equations. 
+using the first guess initial field. For the integration we use again the angular grid defined for scattering calculations.
 
 The integration has to be performed over all incident directions
-$\PDir^\prime$ for each 
-propagation direction \PDir{}. The evaluation of the scattering
-integral is done for all grid points inside the cloudbox. The result
-is the first guess scattered field $\ScaInt^{(0)}$
-which has the same dimension as the intensity field \StoVec$^{(0)}$. 
+$\PDir^\prime$ for each propagation direction \PDir{}. The evaluation
+of the scattering integral is done for all grid points inside the
+cloudbox. The result is the first guess scattered field \aSFld{0} which is a set of scatterd field vectors at all positions in the cloudbox for all directions:
+
+\begin{eqnarray}
+{\mathcal S}^{(0)} = \left\{ \bf{S}^{(0)} \left( p_i, \alpha_i, \beta_i, \theta_i, \phi_i\right)\right\}  \qquad  
+&\forall& {\rm positions } (p_i,\alpha_i, \beta_i)\\
+&\forall& {\rm directions } (\theta_i,\phi_i)
+\end{eqnarray}
 
 
+\levelc{Averaging of the coefficients of the VRTE}
+%============================================================================
 
-
-\item{\bf Radiative transfer with fixed scattered field}
-
-We can substitute  $\ScaInt^{(0)}$ as a fixed scattered field into the
-radiative transfer 
-Equation (\ref{eq:scattering:RTE}):   
+  In the following we are looking at one grid point inside the
+  cloudbox into one specified direction.  We can substitute
+  $\ScaInt^{(0)}$, the scattering integral vector calculated in the
+  previous step at this point for the specified direction, into
+  Equation (\ref{eq:scattering:RTE}), in order to get the VRTE for
+  this point and direction:
 \begin{eqnarray}
      \frac{\DiffD \StoVec^{(1)}}{\DiffD s} =
      -\ExtMat \StoVec^{(1)} + \AbsVec \Planck
      +\ScaInt^{(0)}
-\label{eq:rad_fs_sol}
+\label{eq:scattering:vrte_fs}
 \end{eqnarray} 
-As the coefficients are constant in each
-grid cell Equation (\ref{eq:rad_fs_sol}) is formally a linear differential
-equation with constant coefficients which can be solved analytically
-leading to the result (cf. FIXME Appendix: exact solution method) 
-\begin{eqnarray}
-  \label{eq:scattering:RTE_sol}
-  \StoVec^{(1)} = e^{-\ExtMat s}\cdot\StoVec^{(0)} + (\IdnMat - e^{-\ExtMat
-    s}) \ExtMat\Inv (\AbsVec \Planck + \ScaInt^{(0)})
+Here $\StoVec^{(1)}$ is the Stokes vector at the considered grid point
+for the specified direction.
+
+\begin{figure}[htbp]
+ \begin{center}
+  \begin{minipage}[c]{0.65\textwidth}
+   \begin{center}
+    \includegraphics*[width=0.9\hsize]{Figs/scattering/average}
+   \end{center}
+  \end{minipage}%
+  \begin{minipage}[c]{0.35\textwidth}
+   \caption{Path from one grid point (black) to the intersection point with the next grid cell boundary. Multilinear intepolation is done from the grid points on the intersection point. The coefficients are averaged between the black grid point and the intersection point.}
+   \label{fig:scattering:averaging}
+  \end{minipage}
+ \end{center}
+\end{figure}   
+
+As mentioned before, all optical properties are assumed to vary
+linearly between the grid points. Equation \ref{eq:scattering:vrte_fs} is
+formally a linear differential equation, which could be solved
+analytically if the coefficients were constant.  To find a constant
+approximation for the coefficients, we follow a propagation path from
+the considered point into the specified direction until the path
+intersects a grid cell boundary (cp. Figure \ref{fig:scattering:averaging}). By multi-linear interpolation we
+obtain all coefficients and the temperature at the intersection point.
+Also the scattering integral vector is obtained for the intersection
+point by multi-linear interpolation of the first guess scattered
+field. Now we approximate the coefficients (extinction matrix and
+absorption vector) in Equation \ref{eq:scattering:vrte_fs} by taking the
+average of the coefficients at the intersection point and the
+coefficients at the considered point element-vise for each
+matrix-/vector-element. The same averaging is done for the scattering
+integral vector and the temperature. The average value of the
+temperature is used to get the averaged Planck function.
+
+Then Equation \ref{eq:scattering:vrte_fs} can be written as follows:
+ \begin{eqnarray}
+     \frac{\DiffD \StoVec^{(1)}}{\DiffD s} =
+     -\bar{\ExtMat} \StoVec^{(1)} + \bar{\AbsVec} \bar{\Planck}
+     +\bar{\ScaInt^{(0)}}
+\label{eq:scattering:vrte_fs_av}
+\end{eqnarray} 
+Here $\bar{\ExtMat}$, $\bar{\AbsVec}$, $\bar{\Planck}$ and
+$\bar{\ScaInt^{(0)}}$ are the averaged quantities.
+
+
+\levelc{Radiative transfer with fixed scattered field and averaged coefficients}
+%===================================================================
+
+Equation (\ref{eq:scattering:vrte_fs_av}) can be solved analytically using the following matrix exponential approach:
+ \begin{eqnarray}
+ \label{eq:scattering:ansatz}
+&   \StoVec^{(1)} = e^{-\bar{\ExtMat}s}{\bf C_1} + {\bf C_2}
 \end{eqnarray}
-Here \IdnMat\ denotes the identity matrix. 
-$\StoVec^{(0)}$ is given by the initial condition, which in this
-case is given by the first guess initial field. For each grid
-point inside the cloudbox the intersection points with the adjacent
-grid cell boundaries are calculated and then the initial field is
-interpolated on these points.
+Here ${\bf C_1}$ and ${\bf C_2}$ are constants which have to be determined. Substituting (\ref{eq:scattering:ansatz}) into (\ref{eq:scattering:vrte_fs_av}) gives the constant  ${\bf C_1}$:
+\begin{eqnarray}
+ \Rightarrow& -\bar{\ExtMat}e^{-\bar{\ExtMat}s}{\bf C_1} = -\bar{\ExtMat}e^{-\bar{\ExtMat}s}{\bf C_1} - \bar{\ExtMat} {\bf C_2}+ \bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\\
+\Rightarrow&  \bar{\ExtMat} {\bf C_2} = \bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\\
+\Rightarrow& {\bf C_2} =  \bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)
+ \label{eq:scattering:c1}
+\end{eqnarray}
+${\bf C_2}$ can be determined using the initial condition, which is the radiation at the intersection point ($s=0$) travelling towards the considered gridpoint:
+\begin{eqnarray}
+   \StoVec^{(1)}(s=0) &=& \StoVec^{(0)} {\rm(at\ intersection\ point)}\\
+\rm{From\ Ansatz:} &&\\
+\StoVec^{(0)} &=& {\bf C_1} +  \bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt^{(0)}}\right)\\
+\Rightarrow   {\bf C_1} &=& \bar{\StoVec^{(0)}} -  \bar{\ExtMat}\Inv \left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt^{(0)}}\right)
+\label{eq:scattering:c2}
+\end{eqnarray}
+Substituting  (\ref{eq:scattering:c1}) and (\ref{eq:scattering:c2}) into Equation (\ref{eq:scattering:ansatz}) leads to the solution: 
+\begin{eqnarray}
+  \StoVec^{(1)} =  e^{-\bar{\ExtMat}s}\cdot\left(\StoVec^{(0)} -\bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)\right) + 
+ \bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)
+\end{eqnarray}
+The can be resorted to obtain the following form:
+\begin{eqnarray}
+\label{eq:scattering:vrte_sol}
+ \StoVec^{(1)} =  e^{-\bar{\ExtMat}s} \StoVec^{(0)} + \left( {\bf E} -  e^{-\bar{\ExtMat}s}\right)  \bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)
+\end{eqnarray}
 
-$\StoVec^{(1)}$ is called the first iteration field.
+Here \IdnMat\ denotes the identity matrix.  $\StoVec^{(0)}$ is given
+by the initial condition. It is the Stokes vector at the intersection
+point which is obtained by interpolation of the first guess field.
+
+This radiative transfer step calculation is done for all points inside
+the cloudbox in all directions. The resulting Stokes Vectors (
+$\StoVec^{(1)}$ for all points in all directions) form the first
+iteration field \aIFld{1}:
+
+\begin{eqnarray}
+{\mathcal I}^{(0)} = \left\{ \bf{I}^{(0)} \left( p_i, \alpha_i, \beta_i, \theta_i, \phi_i\right)\right\}  \qquad  
+&\forall& {\rm positions } (p_i,\alpha_i, \beta_i)\\
+&\forall& {\rm directions } (\theta_i,\phi_i)
+\end{eqnarray}
 
 
-\item {\bf Iteration}
+\levelc{Iterations}
 
-The first iteration field $\StoVec^{(1)}$ is used to evaluate the
-scattered field \ScaInt\ again at all grid points inside the cloudbox:
+  The first iteration field is used to evaluate the scattered field
+  \ScaInt\ again at all grid points inside the cloudbox:
 \begin{eqnarray}
   \ScaInt^{(1)} = \int_{4\pi} \DiffD \PDir^\prime
   \SEfMat \StoVec^{(1)} 
@@ -290,56 +399,61 @@ Now $\ScaInt^{(1)}$ is used as fixed scattering term in the radiative
 transfer equation for the second iteration field $\StoVec^{(2)}$
 \begin{eqnarray}
      \frac{\DiffD \StoVec^{(2)}}{\DiffD s} =
-     -\ExtMat \StoVec^{(2)} + \AbsVec \Planck
-     +\ScaInt^{(1)}
+     -\bar{\ExtMat} \StoVec^{(2)} + \bar{\AbsVec} \bar{\Planck}
+     +\bar{\ScaInt}^{(1)}.
 \end{eqnarray} 
-which is solved by
+This equation contains already the averaged values and is valid for
+specified position and direction.
+ 
+The solution is given by:
 \begin{eqnarray}
-   \StoVec^{(2)} = e^{-\ExtMat s}\cdot\StoVec^{(1)} + (\IdnMat - e^{-\ExtMat
-    s}) \ExtMat\Inv (\AbsVec \Planck + \ScaInt^{(1)})
+   \StoVec^{(2)} = e^{-\bar{\ExtMat} s}\cdot\StoVec^{(1)} + (\IdnMat - e^{-\bar{\ExtMat}
+    s}) \bar{\ExtMat}\Inv (\bar{\AbsVec} \bar{\Planck} + \bar{\ScaInt}^{(1)})
 \end{eqnarray}
+Thus the Stokes vectors ( $\StoVec^{(2)}$ for all points in all
+directions) form the second iteration field.
+
 After that the scattering integral and higher order iteration fields
 are calculated alternately. We can formulate a differential equation
 for the $n$-th order iteration field. The fixed scattering integral
-term in this equation is 
+term in this equation is
  \begin{eqnarray}
   \ScaInt^{(n-1)} = \int_{4\pi} \DiffD \PDir^\prime
   \SEfMat \StoVec^{(n-1)}
 \end{eqnarray}
-and the differential equation is given by
+and the differential equation for specified position and direction is
+given by
 \begin{eqnarray}
      \frac{\DiffD \StoVec^{(n)}}{\DiffD s} =
-     -\ExtMat \StoVec^{(n)} + \AbsVec \Planck
-     +\ScaInt^{(n-1)}.
+     -\bar{\ExtMat} \StoVec^{(n)} + \bar{\AbsVec} \bar{\Planck}
+     +\bar{\ScaInt}^{(n-1)}.
 \end{eqnarray} 
-So the  $n$-th order iteration field is given by:
+Thus the $n$-th order iteration is given by:
 \begin{eqnarray}
-   \StoVec^{(n)} = e^{-\ExtMat s}\cdot\StoVec^{(n-1)} + (\IdnMat - e^{-\ExtMat
-    s}) \ExtMat\Inv (\AbsVec \Planck + \ScaInt^{(n-1)})
+   \StoVec^{(n)} = e^{-\bar{\ExtMat} s}\cdot\StoVec^{(n-1)} + (\IdnMat - e^{-\bar{\ExtMat}
+    s}) \bar{\ExtMat}\Inv (\bar{\AbsVec} \bar{\Planck} + \bar{\ScaInt}^{(n-1)})
 \end{eqnarray}
 
 
-\item {\bf Convergence test}
+\levelc{Convergence test}
 
-After each iteration the convergence is checked. If 
+  After each iteration the convergence is checked. If
 \begin{eqnarray}
-|\StoVec^{(m)} \DirFre -  \StoVec^{(m-1)} \DirFre| < {\bf \epsilon}
+|\StoVec^{(m)} \DirFre -  \StoVec^{(m-1)} \DirFre| < {\bf \epsilon}, \qquad 1<m<n
 \end{eqnarray}
-a solution to the vector radiative transfer Equation (\ref{eq:scattering:RTE})
-has been
-found. 
-\end{itemize}
+for all points inside the cloudbox and all directions a solution to
+the vector radiative transfer Equation (\ref{eq:scattering:RTE}) has
+been found.
 
 
 \levelb{Iteration scheme for solving the scalar RTE}
 %===============================
 \label{sec:scattering:solution_rte_scalar}
-
 \begin{itemize}
 \item {\bf Scattering integral}
-
-In analogy to the scattering integral vector field the scalar
-scattering integral field is obtained:
+  
+  In analogy to the scattering integral vector field the scalar
+  scattering integral field is obtained:
 \begin{eqnarray}
   S^{(0)}  = \int_{4\pi} \DiffD \PDir^\prime Y_{11} I^{(0)} 
 \end{eqnarray}
@@ -347,37 +461,46 @@ As first guess field only the first Stokes component of the initial
 field is needed.
 
 \item{\bf Radiative transfer with fixed scattered field}
-
-The scalar radiative transfer equation
-(\ref{eq:scattering:scalar_rte})  with fixed scattering integral
-is 
+  
+  The scalar radiative transfer equation
+  (\ref{eq:scattering:scalar_rte}) with fixed scattering integral is
 \begin{eqnarray}
   \label{eq:scattering:scalar_rte_scatint}
 \frac{\DiffD I^{(1)}}{\DiffD s} = -K_{11} I^{(1)}
- + a_1 \Planck + S^{(0)}.
+ + a_1 \bar{\Planck} + S^{(0)}.
 \end{eqnarray} 
 Assuming constant coefficients this equation is solved analytically
-leading to the result
+after averaging extinction coefficient, absorption coefficient,
+scattered vector and the temperature. The averaging procedure is done
+analogously to the procedure described for solving the VRTE (see
+Section \ref{sec:scattering:solution_rte}).  The solution of the
+averaged differential equation is
 \begin{eqnarray}
    \label{eq:scattering:scalar_rte_sol}
-I^{(1)} = I^{(0)} e^{-K_{11}s} + \frac{a_1
-  B + S^{(0)}}{K_{11}}\left(1-e^{-K_{11}s}\right)
+I^{(1)} = I^{(0)} e^{-\bar{K_{11}}s} + \frac{\bar{a_1}
+  \bar{B} + \bar{S^{(0)}}}{\bar{K_{11}}}\left(1-e^{-\bar{K_{11}}s}\right)
 \end{eqnarray}
-where $I^{(0)}$ again is specified by the initial field.
+where $I^{(0)}$ again obtained by interpolating the initial field.
+$\bar{K_{11}}$, $\bar{a_1}$, $\bar{B}$ and $\bar{S^{(0)}}$ are the
+averaged values for extinction coefficient, absorption coefficient,
+Planck function and the scattered integral respectively.
 
 Applying this equation leads to first iteration scalar intensity
-field  $I^{(1)}$.  
+field, consisting of the intensities $I^{(1)}$ at all points in the
+cloudbox for all directions.
 
 \item{\bf Iteration and Convergence}
-
-As the solution to the vector radiative transfer
-equation the solution to the scalar radiative transfer equation is
-found numerically by iterations. 
-
-The convergence test for the scalar equation compares the values
-of the calculated intensities of two successive radiation fields.
+  
+  As the solution to the vector radiative transfer equation the
+  solution to the scalar radiative transfer equation is found
+  numerically by iterations.
+  
+  The convergence test for the scalar equation compares the values of
+  the calculated intensities of two successive radiation fields.
 
 \end{itemize}
+
+
 \levelb{Scattering databases}
 %============================================================
 \label{sec:scattering:database}
