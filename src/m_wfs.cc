@@ -1283,7 +1283,7 @@ void k_contabs (
     // Fill K_NAMES and K_AUX
     {
       ostringstream os;
-      os << "Continuum absorption: Point " << ipoint;
+      os << "Continuum absorption: " << fpoints[ipoint] << " Hz";
       k_names[ipoint] = os.str();
     }
     for ( ip=0; ip<np; ip++ )
