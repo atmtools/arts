@@ -675,12 +675,14 @@ void los_1za(
 void y_rte (
                     Vector&          y,
               const Los&             los,   
-              const Vector&          f_mono,
-              const Vector&          y_space,
+              ConstVectorView        f_mono,
+              ConstVectorView        y_space,
               const ArrayOfMatrix&   source,
               const ArrayOfMatrix&   trans,
-              const Vector&          e_ground,
-              const Numeric&         t_ground )
+              ConstVectorView        e_ground,
+              const Numeric&         t_ground,
+              const Index&           z_start,
+              const Index&           z_end )
 {
   // Some variables
   const Index   n=los.start.nelem();  // Number of zenith angles 
@@ -689,6 +691,9 @@ void y_rte (
         Index   iy0=0;               // Reference index for output vector
 
   out2 << "  Integrating the radiative transfer eq. with emission.\n";
+
+  assert (z_start >= 0);
+  assert (z_end < n);
 
   // Resize y
   y.resize( nf*n );
@@ -713,7 +718,7 @@ void y_rte (
 
   // Loop zenith angles
   out3 << "    Zenith angle nr:      ";
-  for ( Index i=0; i<n; i++ )
+  for ( Index i = z_start; i < z_end; i++ )
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
@@ -733,7 +738,6 @@ void y_rte (
 }
 
 
-
 /**
    \author Patrick Eriksson
    \date   2000-??-??
@@ -742,13 +746,18 @@ void y_tau (
                     Vector&          y,
               const Los&             los,   
               const ArrayOfMatrix&   trans,
-              const Vector&          e_ground )
+              ConstVectorView        e_ground,
+              const Index&           z_start,
+              const Index&           z_end )
 {
   // Some variables
   const Index   n=los.start.nelem();    // Number of zenith angles 
   const Index   nf=trans[0].nrows();    // Number of frequencies 
         Index   iy, iy0=0;              // Index for output vector
         Vector  y_tmp;                  // Temporary storage for spectra
+
+  assert (z_start >= 0);
+  assert (z_end < n);
 
   out2 << "  Calculating optical thicknesses.\n";
 
@@ -769,7 +778,7 @@ void y_tau (
         
   // Loop zenith angles
   out3 << "    Zenith angle nr:     ";
-  for ( Index i=0; i<n; i++ )
+  for ( Index i = z_start; i < z_end; i++ )
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
@@ -1378,7 +1387,7 @@ void yCalc (
   // Check input
   // (ground emission and temperature are checked in the sub-functions)
   //
-  check_if_bool( emission, "emission" );                                      
+  check_if_bool( emission, "emission" );
   if ( los.p.nelem() != trans.nelem() )
     throw runtime_error(
       "The number of zenith angles of *los* and *trans* are different.");
@@ -1391,9 +1400,10 @@ void yCalc (
   }
 
   if ( emission == 0 )
-    y_tau( y, los, trans, e_ground );
+    y_tau( y, los, trans, e_ground, 0, los.start.nelem () - 1 );
   else
-    y_rte( y, los, f_mono, y_space, source, trans, e_ground, t_ground );
+    y_rte( y, los, f_mono, y_space, source, trans, e_ground, t_ground,
+           0, los.start.nelem () - 1 );
 }
 
 /**
@@ -1405,7 +1415,7 @@ void yCalc (
 void sourcetransyCalcSaveMemory(
                                 Vector&          y,
                         const Index&           emission,
-                        const Los&             los,   
+                        const Los&             los,
                         const Vector&          p_abs,
                         const Vector&          t_abs,
                         const Vector&          f_mono,
@@ -1414,20 +1424,30 @@ void sourcetransyCalcSaveMemory(
                         const Vector&          e_ground,
                         const Numeric&         t_ground )
 {
-
   // Some variables
-  const Index   n=los.start.nelem();  // Number of zenith angles 
-  const Index   nf=f_mono.nelem();    // Number of frequencies 
+  const Index   n=los.start.nelem();  // Number of zenith angles
+  const Index   nf=f_mono.nelem();    // Number of frequencies
+
+  const Index chunksize = 1000;
 
   // make y the right size
   y.resize(  nf*n );
 
+  for (Index i = 0; i < nf / chunksize + 1; i++)
+    {
+      Index nf_local;
 
-  // these have to be defined inside the loop
-  Vector f_monolocal;
-  Vector e_groundlocal;
-  Vector y_spacelocal;
-  Matrix abslocal;
+      if (i * chunksize <= nf)
+        nf_local = chunksize;
+      else
+        nf_local = nf % (i * chunksize);
+
+      Range r (i * chunksize, nf_local);
+
+      ConstVectorView f_monolocal (f_mono [r]);
+      ConstVectorView e_groundlocal (e_ground [r]);
+      ConstVectorView y_spacelocal (y_space [r]);
+      ConstMatrixView abslocal (abs (r, joker));
 
       // Calculate source:
       ArrayOfMatrix sourcelocal;
@@ -1449,20 +1469,37 @@ void sourcetransyCalcSaveMemory(
                 p_abs,
                 abslocal);
 
-      // Calculate Spectrum:
-      Vector ylocal;
-      yCalc(// Output:
-            ylocal,
-            // Input:
-            emission,
-            los,
-            f_monolocal,
-            y_spacelocal,
-            sourcelocal,
-            translocal,
-            e_groundlocal,
-            t_ground);
+      for (Index j = 0; j < n; j++)
+        {
+          // Calculate Spectrum:
+          Vector ylocal;
 
+          // Check input
+          // (ground emission and temperature are checked in the sub-functions)
+          //
+          check_if_bool( emission, "emission" );
+          if ( los.p.nelem() != translocal.nelem() )
+            throw runtime_error( "The number of zenith angles of *los* and "
+                                 "*translocal* are different.");
+          if ( emission )
+            {
+              check_lengths( f_monolocal, "f_monolocal",
+                             y_spacelocal, "y_spacelocal" );
+              if ( los.p.nelem() != sourcelocal.nelem() )
+                throw runtime_error( "The number of zenith angles of *los* "
+                                     "and *sourcelocal* are different.");
+            }
+
+          if ( emission == 0 )
+            y_tau( ylocal, los, translocal, e_groundlocal, j, j );
+          else
+            y_rte( ylocal, los, f_monolocal, y_spacelocal, sourcelocal,
+                   translocal, e_groundlocal, t_ground, j, j );
+
+          // Move values to output vector
+          y[Range(i * chunksize + j * nf, nf_local)] = ylocal;
+        }
+    }
 
 }
 
