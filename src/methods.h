@@ -35,6 +35,10 @@
 /** This class contains all information for one workspace method. */
 class MdRecord {
 public:
+
+  /** Default constructor. */
+  MdRecord(){};
+
   /** The only one non-trivial constructor, which sets all the
       fields. */
   MdRecord(const char name[],

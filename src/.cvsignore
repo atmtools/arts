@@ -18,3 +18,5 @@ make_wsv_groups_h
 wsv_pointers.cc
 make_wsv_pointers_cc
 wsv_groups.h
+a.out
+demonstrate_linalg

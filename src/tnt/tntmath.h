@@ -21,10 +21,10 @@
 namespace TNT 
 {
 
-inline double abs(double t)
-{
-    return ( t > 0 ? t : -t);
-}
+// inline double abs(double t)
+// {
+//     return ( t > 0 ? t : -t);
+// }
 
 inline double min(double a, double b)
 {

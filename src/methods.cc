@@ -40,7 +40,7 @@ void define_md_data()
   extern ARRAY<MdRecord> md_data;
 
   // Initialize to zero, just in case:
-  md_data.clear();
+  md_data.resize(0);
 
   /* Here's an empty template record entry:
 

@@ -530,7 +530,7 @@ void parse_numeric(Numeric& n, SourceText& text)
 void parse_stringvector(ARRAY<string>& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
-  res.clear();			// Clear the result vector (just in case).
+  res.resize(0);			// Clear the result vector (just in case).
 
   // Make sure that the current character really is `[' and proceed.
   assertain_character('[',text);
@@ -574,7 +574,7 @@ void parse_stringvector(ARRAY<string>& res, SourceText& text)
 void parse_intvector(ARRAY<int>& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
-  res.clear();			// Clear the result vector (just in case).
+  res.resize(0);			// Clear the result vector (just in case).
 
   // Make sure that the current character really is `[' and proceed.
   assertain_character('[',text);
@@ -618,7 +618,7 @@ void parse_intvector(ARRAY<int>& res, SourceText& text)
 void parse_numvector(ARRAY<Numeric>& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
-  res.clear();			// Clear the result vector (just in case).
+  res.resize(0);			// Clear the result vector (just in case).
 
   // Make sure that the current character really is `[' and proceed.
   assertain_character('[',text);
@@ -692,9 +692,9 @@ bool parse_method(size_t& id,
 
   // Clear all output variables:
   id = 0;
-  values.clear();
-  output.clear();
-  input.clear();
+  values.resize(0);
+  output.resize(0);
+  input.resize(0);
 
   {
     string methodname;

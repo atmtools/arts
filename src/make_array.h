@@ -52,39 +52,39 @@ class make_array {
   // All the constructors for the different dimensions:
   make_array() : v(0,T()) {}
   make_array(const T& a1) : v(1,T()) {
-    v(1) = a1;
+    v[0] = a1;
   }
   make_array(const T& a1,
 	     const T& a2) : v(2,T()) {
-    v(1) = a1;
-    v(2) = a2;
+    v[0] = a1;
+    v[1] = a2;
   }
   make_array(const T& a1,
 	     const T& a2,
 	     const T& a3) : v(3,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
   }
   make_array(const T& a1,
 	     const T& a2,
 	     const T& a3,
 	     const T& a4) : v(4,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
   }
   make_array(const T& a1,
 	     const T& a2,
 	     const T& a3,
 	     const T& a4,
 	     const T& a5) : v(5,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -92,12 +92,12 @@ class make_array {
 	     const T& a4,
 	     const T& a5,
 	     const T& a6) : v(6,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -106,13 +106,13 @@ class make_array {
 	     const T& a5,
 	     const T& a6,
 	     const T& a7) : v(7,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -122,14 +122,14 @@ class make_array {
 	     const T& a6,
 	     const T& a7,
 	     const T& a8) : v(8,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -140,15 +140,15 @@ class make_array {
 	     const T& a7,
 	     const T& a8,
 	     const T& a9) : v(9,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -160,16 +160,16 @@ class make_array {
 	     const T& a8,
 	     const T& a9,
 	     const T& a10) : v(10,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -182,17 +182,17 @@ class make_array {
 	     const T& a9,
 	     const T& a10,
 	     const T& a11) : v(11,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -206,18 +206,18 @@ class make_array {
 	     const T& a10,
 	     const T& a11,
 	     const T& a12) : v(12,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -232,19 +232,19 @@ class make_array {
 	     const T& a11,
 	     const T& a12,
 	     const T& a13) : v(13,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -260,20 +260,20 @@ class make_array {
 	     const T& a12,
 	     const T& a13,
 	     const T& a14) : v(14,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
-    v(14) = a14;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
+    v[13] = a14;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -290,21 +290,21 @@ class make_array {
 	     const T& a13,
 	     const T& a14,
 	     const T& a15) : v(15,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
-    v(14) = a14;
-    v(15) = a15;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
+    v[13] = a14;
+    v[14] = a15;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -322,22 +322,22 @@ class make_array {
 	     const T& a14,
 	     const T& a15,
 	     const T& a16) : v(16,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
-    v(14) = a14;
-    v(15) = a15;
-    v(16) = a16;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
+    v[13] = a14;
+    v[14] = a15;
+    v[15] = a16;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -356,23 +356,23 @@ class make_array {
 	     const T& a15,
 	     const T& a16,
 	     const T& a17) : v(17,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
-    v(14) = a14;
-    v(15) = a15;
-    v(16) = a16;
-    v(17) = a17;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
+    v[13] = a14;
+    v[14] = a15;
+    v[15] = a16;
+    v[16] = a17;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -392,24 +392,24 @@ class make_array {
 	     const T& a16,
 	     const T& a17,
 	     const T& a18) : v(18,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
-    v(14) = a14;
-    v(15) = a15;
-    v(16) = a16;
-    v(17) = a17;
-    v(18) = a18;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
+    v[13] = a14;
+    v[14] = a15;
+    v[15] = a16;
+    v[16] = a17;
+    v[17] = a18;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -430,25 +430,25 @@ class make_array {
 	     const T& a17,
 	     const T& a18,
 	     const T& a19) : v(19,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
-    v(14) = a14;
-    v(15) = a15;
-    v(16) = a16;
-    v(17) = a17;
-    v(18) = a18;
-    v(19) = a19;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
+    v[13] = a14;
+    v[14] = a15;
+    v[15] = a16;
+    v[16] = a17;
+    v[17] = a18;
+    v[18] = a19;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -470,26 +470,26 @@ class make_array {
 	     const T& a18,
 	     const T& a19,
 	     const T& a20) : v(20,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
-    v(14) = a14;
-    v(15) = a15;
-    v(16) = a16;
-    v(17) = a17;
-    v(18) = a18;
-    v(19) = a19;
-    v(20) = a20;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
+    v[13] = a14;
+    v[14] = a15;
+    v[15] = a16;
+    v[16] = a17;
+    v[17] = a18;
+    v[18] = a19;
+    v[19] = a20;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -512,27 +512,27 @@ class make_array {
 	     const T& a19,
 	     const T& a20,
 	     const T& a21) : v(21,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
-    v(14) = a14;
-    v(15) = a15;
-    v(16) = a16;
-    v(17) = a17;
-    v(18) = a18;
-    v(19) = a19;
-    v(20) = a20;
-    v(21) = a21;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
+    v[13] = a14;
+    v[14] = a15;
+    v[15] = a16;
+    v[16] = a17;
+    v[17] = a18;
+    v[18] = a19;
+    v[19] = a20;
+    v[20] = a21;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -556,28 +556,28 @@ class make_array {
 	     const T& a20,
 	     const T& a21,
 	     const T& a22) : v(22,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
-    v(14) = a14;
-    v(15) = a15;
-    v(16) = a16;
-    v(17) = a17;
-    v(18) = a18;
-    v(19) = a19;
-    v(20) = a20;
-    v(21) = a21;
-    v(22) = a22;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
+    v[13] = a14;
+    v[14] = a15;
+    v[15] = a16;
+    v[16] = a17;
+    v[17] = a18;
+    v[18] = a19;
+    v[19] = a20;
+    v[20] = a21;
+    v[21] = a22;
   }
   make_array(const T& a1,
 	     const T& a2,
@@ -602,29 +602,29 @@ class make_array {
 	     const T& a21,
 	     const T& a22,
 	     const T& a23) : v(23,T()) {
-    v(1) = a1;
-    v(2) = a2;
-    v(3) = a3;
-    v(4) = a4;
-    v(5) = a5;
-    v(6) = a6;
-    v(7) = a7;
-    v(8) = a8;
-    v(9) = a9;
-    v(10) = a10;
-    v(11) = a11;
-    v(12) = a12;
-    v(13) = a13;
-    v(14) = a14;
-    v(15) = a15;
-    v(16) = a16;
-    v(17) = a17;
-    v(18) = a18;
-    v(19) = a19;
-    v(20) = a20;
-    v(21) = a21;
-    v(22) = a22;
-    v(23) = a23;
+    v[0] = a1;
+    v[1] = a2;
+    v[2] = a3;
+    v[3] = a4;
+    v[4] = a5;
+    v[5] = a6;
+    v[6] = a7;
+    v[7] = a8;
+    v[8] = a9;
+    v[9] = a10;
+    v[10] = a11;
+    v[11] = a12;
+    v[12] = a13;
+    v[13] = a14;
+    v[14] = a15;
+    v[15] = a16;
+    v[16] = a17;
+    v[17] = a18;
+    v[18] = a19;
+    v[19] = a20;
+    v[20] = a21;
+    v[21] = a22;
+    v[22] = a23;
   }
 
   // Conversion operator to ARRAY:

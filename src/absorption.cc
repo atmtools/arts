@@ -1362,38 +1362,38 @@ void get_tagindex_for_strings(
         const TagGroups&      tags1, 
         const ARRAYofstring&  tags2_strings )
 {
-  const size_t   n1 = tags1.dim();
-  const size_t   n2 = tags2_strings.dim();
+  const size_t   n1 = tags1.size();
+  const size_t   n2 = tags2_strings.size();
      TagGroups   tags2;                // Internal tag names for tag_strings
         size_t   i1, i2, nj, j, found, ok;
 
-  tags1_index.newsize(n2);
+  tags1_index.resize(n2);
   tag_groupsDefine( tags2, tags2_strings );
-  for ( i2=1; i2<=n2; i2++ )
+  for ( i2=0; i2<n2; i2++ )
   {
     found = 0;
-    for ( i1=1; (i1<=n1) && !found; i1++ )
+    for ( i1=0; (i1<n1) && !found; i1++ )
     {
-      nj = tags2(i2).dim(); 
-      if ( nj  == tags1(i1).dim() )
+      nj = tags2[i2].size(); 
+      if ( nj  == tags1[i1].size() )
       {
         ok = 1;
-        for ( j=1; j<=nj; j++ )
+        for ( j=0; j<nj; j++ )
 	{
-          if ( tags2(i2)(j).Name() != tags1(i1)(j).Name() )
+          if ( tags2[i2][j].Name() != tags1[i1][j].Name() )
             ok = 0;
 	}
         if ( ok )
 	{
           found = 1;
-          tags1_index(i2) = i1;
+          tags1_index[i2] = i1;
 	}
       }
     } 
     if ( !found )
     {
       ostringstream os;
-      os << "The tag string \"" << tags2_strings(i2) << 
+      os << "The tag string \"" << tags2_strings[i2] << 
             "\" does not match any of the given tags.\n";
       throw runtime_error(os.str());
     }

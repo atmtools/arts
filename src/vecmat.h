@@ -57,6 +57,9 @@
 // TNT Vector addapter for Array:
 #include "vecadaptor.h"
 
+// This is dirty!!!!!!!
+// Somehow we have to make a transition from TNT to MTL.
+#include "linalg.h"
 
 using namespace TNT;
 
@@ -135,29 +138,29 @@ typedef TNT::Subscript SUBSCRIPT;
     costructors.  
 
     @see MATRIX ARRAY */
-template<class EE>
-class ARRAY : public TNT::Vector_Adaptor< std::vector<EE> >
-{
-public:
+// template<class EE>
+// class ARRAY : public TNT::Vector_Adaptor< std::vector<EE> >
+// {
+// public:
 
-  typedef std::vector<EE> mybase;
+//   typedef std::vector<EE> mybase;
 
-  ARRAY() : TNT::Vector_Adaptor<mybase>() {};
-  ARRAY(const ARRAY<EE> &A) :
-    TNT::Vector_Adaptor<mybase>(A) {};
+//   ARRAY() : TNT::Vector_Adaptor<mybase>() {};
+//   ARRAY(const ARRAY<EE> &A) :
+//     TNT::Vector_Adaptor<mybase>(A) {};
   
-  ARRAY(SUBSCRIPT N, /*const*/ char *s) :
-    TNT::Vector_Adaptor<mybase>(N, s) {};
+//   ARRAY(SUBSCRIPT N, /*const*/ char *s) :
+//     TNT::Vector_Adaptor<mybase>(N, s) {};
   
-  ARRAY(SUBSCRIPT N, const EE& value = EE()) :
-    TNT::Vector_Adaptor<mybase>(N, value) {};
+//   ARRAY(SUBSCRIPT N, const EE& value = EE()) :
+//     TNT::Vector_Adaptor<mybase>(N, value) {};
 
-  ARRAY(SUBSCRIPT N, const EE* values) :
-    TNT::Vector_Adaptor<mybase>(N, values) {};
+//   ARRAY(SUBSCRIPT N, const EE* values) :
+//     TNT::Vector_Adaptor<mybase>(N, values) {};
 
-  ARRAY(const EE & A) :
-    TNT::Vector_Adaptor<mybase>(A) {};
-};
+//   ARRAY(const EE & A) :
+//     TNT::Vector_Adaptor<mybase>(A) {};
+// };
 
 
 

@@ -15,7 +15,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*!
+/**
   \file   wsv_aux.h
   \brief  Auxiliary header stuff related to workspace variable
           groups. Normally you should not need to edit this file. 
@@ -30,7 +30,7 @@
 
 #include "wsv_groups.h"
 
-/*! Template for Wsv Pointers. This defines for each pointer class the
+/** Template for Wsv Pointers. This defines for each pointer class the
     conversion operator back to the type that it is pointing
     to. 
 
@@ -49,7 +49,7 @@ private:
 
 
 
-/*! This class contains all static information for one workspace
+/** This class contains all static information for one workspace
     variable.
 
     The program make_wsv_h.cc uses these records to generate the file
@@ -59,7 +59,11 @@ private:
     \author Stefan Buehler */
 class WsvRecord {
 public:
-  /*! Initializing constructor.
+
+  /** Default constructor. */
+  WsvRecord(){};
+
+  /** Initializing constructor.
 
     This is used by define_wsv_data() to set the information for each
     workspace variable. */
@@ -72,11 +76,11 @@ public:
   {
     //    Nothing to do here.
   }
-  /*! Name of this workspace variable. */
+  /** Name of this workspace variable. */
   const string&  Name()        const { return mname;        }   
-  /*! A text describing this workspace variable. */
+  /** A text describing this workspace variable. */
   const string&  Description() const { return mdescription; }
-  /*! The wsv group to which this variable belongs. */
+  /** The wsv group to which this variable belongs. */
   const size_t   Group()       const { return mgroup;       }
 private:
   string mname;
@@ -84,12 +88,12 @@ private:
   size_t mgroup;
 };
 
-/*! Output operator for WsvRecord.
+/** Output operator for WsvRecord.
   \author Stefan Buehler */
 ostream& operator<<(ostream& os, const WsvRecord& wr);
 
 
-/*! Define the lookup data for the workspace variables. The array
+/** Define the lookup data for the workspace variables. The array
     wsv_data contains all that we need to know about each workspace
     variable. The array WsvGroupName contains the names of the work
     space variable groups. These two lookup tables are global
@@ -99,7 +103,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr);
     \author Stefan Buehler */
 void define_wsv_data();
 
-/*! Define WsvMap. WsvMap can be used to find workspace variable data
+/** Define WsvMap. WsvMap can be used to find workspace variable data
     by name.
 
     \author Stefan Buehler */ 

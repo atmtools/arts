@@ -250,14 +250,14 @@ void sFromFile(
   // Read the array of matrix from the file:
   read_array_of_matrix_from_file(am,filename);
 
-  const size_t n = am.dim()-1;
+  const size_t n = am.size()-1;
 
   // Some checks of sizes
   if ( n < 1 )
     throw runtime_error("The file must contain > 1 matrix.");
-  if ( am(1).dim(1) != 2 )
+  if ( am[0].dim(1) != 2 )
     throw runtime_error("The first matrix in the file must have 2 rows.");
-  if ( am(1).dim(2) != n )
+  if ( am[0].dim(2) != n )
     throw runtime_error("The number of columns of the first matrix must equal the number of matrices - 1.");
 
   out2 << "  Reading a covariance matrix from file " << filename << ".\n";
@@ -267,29 +267,29 @@ void sFromFile(
   for ( i=1; i<=n; i++ )
   {
     // Check if the corrfun flag is an integer
-    if ( (am(1)(1,i)-floor(am(1)(1,i))) != 0 )
+    if ( (am[0](1,i)-floor(am[0](1,i))) != 0 )
       throw runtime_error("The first row of matrix 1 shall only contain integers..");
 
     // Move definition values to vectors
-    np = am(i+1).dim(1);
+    np = am[i].dim(1);
     kp.newsize(np);
     sdev.newsize(np);
     clength.newsize(np);
     for ( j=1; j<=np; j++ )
     {
-      kp(j)      = am(i+1)(j,1);
-      sdev(j)    = am(i+1)(j,2);
-      clength(j) = am(i+1)(j,3);
+      kp(j)      = am[i](j,1);
+      sdev(j)    = am[i](j,2);
+      clength(j) = am[i](j,3);
     }
 
     if ( i == 1 )
-      setup_covmatrix( s, grid, size_t(am(1)(1,i)), am(1)(2,i), kp, 
+      setup_covmatrix( s, grid, size_t(am[0](1,i)), am[0](2,i), kp, 
                                                               sdev, clength );
       
     else
     {
       MATRIX stmp;
-      setup_covmatrix( stmp, grid, size_t(am(1)(1,i)), am(1)(2,i), kp, 
+      setup_covmatrix( stmp, grid, size_t(am[0](1,i)), am[0](2,i), kp, 
                                                               sdev, clength );
       s = s + stmp;
     }

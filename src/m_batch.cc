@@ -199,7 +199,7 @@ void BatchdataGaussianSpeciesProfiles(
         const ARRAYofstring&   do_tags,
         const int&             unit )
 {
-  const size_t   ntags = do_tags.dim();    // Number of tags to do here 
+  const size_t   ntags = do_tags.size();    // Number of tags to do here 
   ARRAYofsizet   tagindex;                 // Index in tags for do_tags 
         string   fname;
         MATRIX   x;
@@ -211,12 +211,12 @@ void BatchdataGaussianSpeciesProfiles(
     get_tagindex_for_strings( tagindex, tags, do_tags );
   
   // Loop the tags
-  for ( size_t itag=1; itag<=ntags; itag++ )
+  for ( size_t itag=0; itag<ntags; itag++ )
   {
     // Determine the name of the molecule for itag
     // The species lookup data:
     extern const ARRAY<SpeciesRecord> species_data;
-    string molname = species_data[tags(tagindex(itag))(1).Species()].Name();
+    string molname = species_data[tags[tagindex[itag]][0].Species()].Name();
 
     // Create filename
     fname = "";
@@ -228,24 +228,24 @@ void BatchdataGaussianSpeciesProfiles(
     // Handle the different units
     if ( unit == 1 )               // Relative
     {
-      size_t   np = vmrs(tagindex(itag)).dim();
+      size_t   np = vmrs[tagindex[itag]].size();
       size_t   row, col;
       Numeric  a;
       rand_data_gaussian( x, n, VECTOR(np,1.0), s );
       for ( row=1; row<=np; row++ )
       {
-        a = vmrs(tagindex(itag))(row);
+        a = vmrs[tagindex[itag]](row);
         for ( col=1; col<=size_t(n); col++ )
           x(row,col) *= a;
       }
     }
 
     else if ( unit == 2 )          // VMR
-      rand_data_gaussian( x, n, vmrs(tagindex(itag)), s );
+      rand_data_gaussian( x, n, vmrs[tagindex[itag]], s );
 
     else if ( unit == 3 )          // Number density
     {
-      size_t   np = vmrs(tagindex(itag)).dim();
+      size_t   np = vmrs[tagindex[itag]].size();
       size_t   row, col;
       Numeric  a;
       rand_data_gaussian( x, n, VECTOR(np,0.0), s );
@@ -253,7 +253,7 @@ void BatchdataGaussianSpeciesProfiles(
       {
         a = number_density ( p_abs(row), t_abs(row) );
         for ( col=1; col<=size_t(n); col++ )
-          x(row,col) = vmrs(tagindex(itag))(row) + x(row,col)/a;
+          x(row,col) = vmrs[tagindex[itag]](row) + x(row,col)/a;
       }
     }
 
@@ -310,7 +310,7 @@ void ybatchAbsAndRte(
         const string&                     za_file )
 {
   const size_t   np = p_abs.dim();         // Number of pressure levels
-  const size_t   ntags = do_tags.dim();    // Number of tags to do here 
+  const size_t   ntags = do_tags.size();    // Number of tags to do here 
   ARRAYofsizet   tagindex;                 // Index in tags for do_tags 
    
   // Check if do_tags can be found in tag_groups and store indeces
@@ -350,13 +350,13 @@ void ybatchAbsAndRte(
          size_t itag;
   ARRAYofVECTOR vs = vmrs;
   ARRAYofMATRIX VMRs(ntags);
-  for ( itag=1; itag<=ntags; itag++ )
+  for ( itag=0; itag<ntags; itag++ )
   {
     // The species lookup data:
     extern const ARRAY<SpeciesRecord> species_data;
     // Determine the name of the molecule for itag
-    string molname = species_data[tags(tagindex(itag))(1).Species()].Name();
-    read_batchdata( VMRs(itag), batchname, tag_files(itag), molname, np, 
+    string molname = species_data[tags[tagindex[itag]][0].Species()].Name();
+    read_batchdata( VMRs[itag], batchname, tag_files[itag], molname, np, 
                                                                       ncalc );
   }
 
@@ -383,8 +383,8 @@ void ybatchAbsAndRte(
       col( f, i, Fs );
     if ( do_za )
       col( za, i, ZAs );
-    for ( itag=1; itag<=ntags; itag++ )
-      col( vs(tagindex(itag)), i, VMRs(itag) );
+    for ( itag=0; itag<ntags; itag++ )
+      col( vs[tagindex[itag]], i, VMRs[itag] );
 
     // Do the calculations
     if ( (i==1) || do_t || ntags || do_f )

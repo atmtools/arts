@@ -84,7 +84,12 @@ test_math.cc
 #       doc/doxygen/Makefile.am
 
 
-noinst_PROGRAMS = make_wsv_groups_h make_wsv_h make_wsv_pointers_cc make_md_h
+noinst_PROGRAMS = \
+demonstrate_linalg \
+make_wsv_groups_h make_wsv_h make_wsv_pointers_cc make_md_h
+
+demonstrate_linalg_SOURCES = \
+arts.h linalg.h demonstrate_linalg.cc
 
 make_wsv_groups_h_SOURCES = \
 arts.h vecmat.h file.h \

@@ -1422,7 +1422,7 @@ void k_temp_nohydro (
   //
   absCalc( abs1k, abs_dummy, f_mono, p_abs, t_abs+1.0, vmrs, lines_per_tg, 
 	   lineshape, lineshape_norm );
-  abs_dummy.clear();
+  abs_dummy.resize(0);
   //
   out2 << "  ----- Back from absCalc ----------\n";
   //

@@ -137,7 +137,7 @@ void define_basic_species_data()
   extern ARRAY<SpeciesRecord> species_data;
 
   // Initialize to zero, just in case:
-  species_data.clear();
+  species_data.resize(0);
 
   /* Here's an empty template record entry:
 

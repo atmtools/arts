@@ -421,8 +421,8 @@ Numeric last( const VECTOR& x )
 */
 bool any( const ARRAYofsizet& x ) 
 {
-  for ( size_t i=1; i<=x.dim(); i++ ) {
-    if ( x(i) )
+  for ( size_t i=0; i<x.size(); i++ ) {
+    if ( x[i] )
       return true;
   }
   return false;

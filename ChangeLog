@@ -1,3 +1,13 @@
+2000-12-08  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-85
+
+	* In the middle of changing ARRAY implementation to MTL (including
+	changing from 1-based to 0-based indexing)
+
+	* Don't update to this version!
+	
+
 2000-12-07  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-84

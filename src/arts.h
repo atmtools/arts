@@ -84,11 +84,17 @@
 // using namespace std;       
 
 
-//--------------------< Set precision >--------------------
+//--------------------< Set floating point type >--------------------
 /** The type to use for all floating point numbers. You should never
     use float or double explicitly, unless you have a very good
     reason. Always use this type instead.  */
 typedef double Numeric;
+
+//--------------------< Set integer type >--------------------
+/** The type to use for all integer numbers and indices. You should never
+    use int or size_t explicitly, unless you have a very good
+    reason. Always use this type instead.  */
+typedef size_t INDEX;
 
 
 //--------------------< Set NDEBUG? >--------------------

@@ -60,7 +60,7 @@ void linesReadFromHitran(// WS Output:
 	    }
 	}
     }
-  out2 << "  Read " << lines.dim() << " lines.\n";
+  out2 << "  Read " << lines.size() << " lines.\n";
 }
 
 
@@ -94,7 +94,7 @@ void linesReadFromMytran2(// WS Output:
 	      lines.push_back(lr);
 	}
     }
-  out2 << "  Read " << lines.dim() << " lines.\n";
+  out2 << "  Read " << lines.size() << " lines.\n";
 }
 
 void linesReadFromJpl(// WS Output:
@@ -131,7 +131,7 @@ void linesReadFromJpl(// WS Output:
 	    }
 	}
     }
-  out2 << "  Read " << lines.dim() << " lines.\n";
+  out2 << "  Read " << lines.size() << " lines.\n";
 }
 
 
@@ -156,7 +156,7 @@ void lines_per_tgCreateFromLines(// WS Output:
   std::vector<bool> species_used (species_data.size(),false);
       
   // Make lines_per_tg the right size:
-  lines_per_tg.newsize(tag_groups.size());
+  lines_per_tg.resize(tag_groups.size());
 
   // Loop all lines in the input line list:
   for ( size_t i=0; i<lines.size(); ++i )
@@ -555,6 +555,8 @@ void Atm2dFromRaw1D(// WS Output:
                     const MATRIX&  	 raw_ptz_1d,
                     const ARRAYofMATRIX& raw_vmrs_1d)
 {
+  // FIXME: This function is terrible! Make this better using MTL functionality.
+
   // This function uses a lot of copying. Rather inefficient. The
   // problem is that the raw matrices do not directly fit the
   // interpolation routines. If this turns out to be too slow, it
@@ -598,14 +600,14 @@ void Atm2dFromRaw1D(// WS Output:
 		    p_raw, tz_raw, p_abs );
 
     // Extract t_abs_2d:
-    t_abs_2d.clear();
+    t_abs_2d.resize(0);
     t_abs_2d.push_back(VECTOR());
-    col( t_abs_2d(1), 1, tz_intp );
+    col( t_abs_2d[0], 1, tz_intp );
 
     // Extract z_abs_2d:
-    z_abs_2d.clear();
+    z_abs_2d.resize(0);
     z_abs_2d.push_back(VECTOR());
-    col( z_abs_2d(1), 2, tz_intp );
+    col( z_abs_2d[0], 2, tz_intp );
   }
 
   //---------------< 2. Interpolation of VMR profiles >---------------
@@ -614,26 +616,26 @@ void Atm2dFromRaw1D(// WS Output:
     // (more array elements would only be used in a 2D calculation).
 
     // Get room for our results:
-    vmrs_2d.clear();
+    vmrs_2d.resize(0);
     vmrs_2d.push_back(MATRIX());
   
     // Get a convenient reference:
-    MATRIX& intp = vmrs_2d(1);
+    MATRIX& intp = vmrs_2d[0];
 
     // Set dimensions.
     // The first dimension is the number of profiles (= the number of
     // tag groups). The second dimension is the dimension of the new
     // pressure grid.
-    intp.newsize( raw_vmrs_1d.dim() , p_abs.dim() );
+    intp.newsize( raw_vmrs_1d.size() , p_abs.size() );
   
     // We need this for each profile, therefore we define it here:
     VECTOR target;
 
     // For sure, we need to loop through all VMR profiles:
-    for ( size_t j=1; j<=raw_vmrs_1d.dim(); ++j )
+    for ( size_t j=0; j<raw_vmrs_1d.size(); ++j )
       {
 	// Get a reference to the profile we are concerned with
-	const MATRIX& raw = raw_vmrs_1d(j);
+	const MATRIX& raw = raw_vmrs_1d[j];
 
 	// Raw should be a matrix with dimension [x,2], the first column
 	// is the raw pressure grid, the second column the VMR values.
@@ -661,9 +663,9 @@ void Atm2dFromRaw1D(// WS Output:
 		    p_raw, vmr_raw, p_abs );
 
 	// Put the result in the apropriate row of intp:
-	for ( size_t i=1; i<=p_abs.dim(); ++i )
+	for ( size_t i=0; i<p_abs.size(); ++i )
 	  {
-	    intp(j,i) = target(i);
+	    intp(j+1,i+1) = target[i];
 	  }
       }
   }
@@ -718,17 +720,17 @@ void AtmFromRaw1D(// WS Output:
   //---------------< 2. Interpolation of VMR profiles >---------------
   {
     // Make vmrs the right size:
-    vmrs.newsize(raw_vmrs_1d.dim());
+    vmrs.resize(raw_vmrs_1d.size());
     
     // For sure, we need to loop through all VMR profiles:
-    for ( size_t j=1; j<=raw_vmrs_1d.dim(); ++j )
+    for ( size_t j=0; j<raw_vmrs_1d.size(); ++j )
       {
 	// Get a reference to the profile we are concerned with:
-	const MATRIX& raw = raw_vmrs_1d(j);
+	const MATRIX& raw = raw_vmrs_1d[j];
 
 	// Get a reference to the place where we want to put the
 	// interpolated profile:
-	VECTOR& this_vmr = vmrs(j);
+	VECTOR& this_vmr = vmrs[j];
 
 	// Raw should be a matrix with dimension [x,2], the first column
 	// is the raw pressure grid, the second column the VMR values.
@@ -834,12 +836,12 @@ void absCalc(// WS Output:
 {
   // Check that vmrs and lines_per_tg really have the
   // same array dimension:
-  if ( vmrs.dim() != lines_per_tg.dim() )
+  if ( vmrs.size() != lines_per_tg.size() )
     {
       ostringstream os;
       os << "Variable vmrs must have the same dimension as lines_per_tg.\n"
-	 << "vmrs.dim() = " << vmrs.dim() << '\n'
-	 << "lines_per_tg.dim() = " << lines_per_tg.dim();
+	 << "vmrs.dim() = " << vmrs.size() << '\n'
+	 << "lines_per_tg.dim() = " << lines_per_tg.size();
       throw runtime_error(os.str());
     }
   
@@ -847,13 +849,13 @@ void absCalc(// WS Output:
   // is the same as that of lines_per_tag.
   abs.newsize(f_mono.dim(), p_abs.dim());
   abs = 0;
-  abs_per_tg.clear();
-  abs_per_tg.newsize(lines_per_tg.dim());
+  abs_per_tg.resize(0);
+  abs_per_tg.resize(lines_per_tg.size());
 
   // Call abs_species for each tag group.
-  for ( size_t i=0; i<lines_per_tg.dim(); ++i )
+  for ( size_t i=0; i<lines_per_tg.size(); ++i )
     {
-      out2 << "  Tag group " << i+1 << '\n';
+      out2 << "  Tag group " << i << '\n';
       
       // Make this element of abs_per_tg the right size:
       abs_per_tg[i].newsize(f_mono.dim(), p_abs.dim());

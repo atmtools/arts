@@ -310,23 +310,23 @@ void write_array_of_matrix_to_stream(ostream& os,
      << __TIME__ << "\n";
 
   // Number of array elements:
-  const size_t n = am.dim();
+  const size_t n = am.size();
   os << n << '\n';
 
-  for (size_t i=1; i<=n; ++i)
+  for (size_t i=0; i<n; ++i)
     {
       // Number of elements:
-      os << am(i).dim(1) << ' ' << am(i).dim(2) << '\n';
+      os << am[i].dim(1) << ' ' << am[i].dim(2) << '\n';
 
       os << setprecision(precision);
       // Write the elements:
-      for (size_t r=1; r<=am(i).dim(1); ++r)
+      for (size_t r=1; r<=am[i].dim(1); ++r)
         {
-          os << am(i)(r,1);
+          os << am[i](r,1);
       
-          for (size_t c=2; c<=am(i).dim(2); ++c)
+          for (size_t c=2; c<=am[i].dim(2); ++c)
             {
-              os << " " << am(i)(r,c);
+              os << " " << am[i](r,c);
             }
 
           os << '\n';
@@ -387,13 +387,11 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
         }
     }
 
-  // Read the array of matrix. The TNT package expects exactly this input
-  // format.
-  // For ARRAY: First one number indicating the dimension, then the
-  // elements. 
-  // For MATRIX: First two numbers indicating the dimensions, then the
-  // elements. 
-  is >> am;
+  // Read the array of matrix. The function read_vector_from_stream
+  // will call the >> operator for each element of the ARRAY. In the
+  // name it says vector, refering to MTL vector. That function works
+  // for both VEC and ARRAY.
+  read_vector_from_stream(am, is);
 
   if ( is.fail() || is.bad() )
     throw runtime_error("Stream gave fail or bad.");
@@ -405,7 +403,7 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
 
   // Some output to the lowest priority stream:
   out3 << "  Dimensions: "
-       << am.dim() << ", ";
+       << am.size() << ", ";
   for ( size_t i=0; i<am.size(); ++i )
     {
        out3 << am[i].dim(1) << ", "
@@ -479,11 +477,11 @@ void write_array_of_string_to_stream(
      << __TIME__ << "\n";
 
   // Number of array elements:
-  const size_t n = as.dim();
+  const size_t n = as.size();
   os << n << '\n';
 
-  for (size_t i=1; i<=n; ++i)
-    os << as(i) << '\n';
+  for (size_t i=0; i<n; ++i)
+    os << as[i] << '\n';
 }
 
 
@@ -546,7 +544,7 @@ void read_array_of_string_from_stream(
         }
     }
 
-  is >> as;
+  read_vector_from_stream(as, is);
 
   if ( is.fail() || is.bad() )
     throw runtime_error("Stream gave fail or bad.");
@@ -557,7 +555,7 @@ void read_array_of_string_from_stream(
 
   // Some output to the lowest priority stream:
   out3 << "  Dimension: "
-       << as.dim() << ", ";
+       << as.size() << ", ";
 }
 
 
@@ -1116,7 +1114,7 @@ void binfile_read1(
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
-  x.newsize(n);
+  x.resize(n);
 
   if ( n > 0 )
   {
@@ -1335,7 +1333,7 @@ void binfile_read_index(
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "SCALAR", 1, 1 );
   binfile_read1( a, vdata_id, nrows, filename, dataname );
-  x = a(1);
+  x = a[0];
   binfile_read_end( vdata_id, filename, dataname );
 }
 
@@ -1417,7 +1415,7 @@ void binfile_write_vector(
         const VECTOR&   x,
         const string&   dataname )
 {
-  const size_t  n = x.dim();
+  const size_t  n = x.size();
 
   Numeric a[n];
   for ( size_t i=0; i<n; i++ )
@@ -1544,11 +1542,11 @@ void binfile_write_indexarray(
         const ARRAYofsizet&   x,
         const string&         dataname )
 {
-  const size_t  n = x.dim();
+  const size_t  n = x.size();
 
   size_t a[n];
   for ( size_t i=0; i<n; i++ )
-    a[i] = x(i+1);
+    a[i] = x[i];
   binfile_write( fid,  filename, dataname, "ARRAY", "INDEX", n, 1, 
                                                                 (uint8*)a );
 }
@@ -1602,17 +1600,17 @@ void binfile_write_vectorarray(
         const ARRAYofVECTOR&   x,
         const string&          dataname )
 {
-  const size_t  n = x.dim();
+  const size_t  n = x.size();
 
   // Write number of vectors
   binfile_write_index( filename, fid, n, "N_"+dataname );  
 
   // Write each matrix seperately
-  for (size_t i=1; i<=n; i++ )
+  for (size_t i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
-    binfile_write_vector( filename, fid, x(i), os.str() );    
+    binfile_write_vector( filename, fid, x[i], os.str() );    
   }
 }
 
@@ -1641,12 +1639,12 @@ void binfile_read_vectorarray(
   binfile_read_index( n, filename, fid, "N_"+dataname );  
 
   // Reallocate x and read vectors
-  x.newsize(n);
-  for (size_t i=1; i<=n; i++ )
+  x.resize(n);
+  for (size_t i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
-    binfile_read_vector( x(i), filename, fid, os.str() );    
+    binfile_read_vector( x[i], filename, fid, os.str() );    
   }
 }
 
@@ -1670,17 +1668,17 @@ void binfile_write_matrixarray(
         const ARRAYofMATRIX&   x,
         const string&          dataname )
 {
-  const size_t  n = x.dim();
+  const size_t  n = x.size();
 
   // Write number of matrices
   binfile_write_index( filename, fid, n, "N_"+dataname );  
 
   // Write each matrix seperately
-  for ( size_t i=1; i<=n; i++ )
+  for ( size_t i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
-    binfile_write_matrix( filename, fid, x(i), os.str() );    
+    binfile_write_matrix( filename, fid, x[i], os.str() );    
   }
 }
 
@@ -1709,12 +1707,12 @@ void binfile_read_matrixarray(
   binfile_read_index( n, filename, fid, "N_"+dataname );  
 
   // Reallocate x and read matrices
-  x.newsize(n);
-  for (size_t i=1; i<=n; i++ )
+  x.resize(n);
+  for (size_t i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
-    binfile_read_matrix( x(i), filename, fid, os.str() );    
+    binfile_read_matrix( x[i], filename, fid, os.str() );    
   }
 }
 
@@ -1793,17 +1791,17 @@ void binfile_write_stringarray(
         const ARRAYofstring&   x,
         const string&          dataname )
 {
-  const size_t  n = x.dim();
+  const size_t  n = x.size();
 
   // Write number of matrices
   binfile_write_index( filename, fid, n, "N_"+dataname );  
 
   // Write each string seperately
-  for ( size_t i=1; i<=n; i++ )
+  for ( size_t i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
-    binfile_write_string( filename, fid, x(i), os.str() );    
+    binfile_write_string( filename, fid, x[i], os.str() );    
   }
 }
 
@@ -1832,11 +1830,11 @@ void binfile_read_stringarray(
   binfile_read_index( n, filename, fid, "N_"+dataname );  
 
   // Reallocate x and read matrices
-  x.newsize(n);
-  for (size_t i=1; i<=n; i++ )
+  x.resize(n);
+  for (size_t i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
-    binfile_read_string( x(i), filename, fid, os.str() );    
+    binfile_read_string( x[i], filename, fid, os.str() );    
   }
 }

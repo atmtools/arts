@@ -501,7 +501,7 @@ ARRAY<LineshapeRecord> lineshape_data;
 void define_lineshape_data()
 {
   // Initialize to empty, just in case.
-  lineshape_data.clear();
+  lineshape_data.resize(0);
 
   lineshape_data.push_back
     (LineshapeRecord
@@ -525,7 +525,7 @@ ARRAY<LineshapeNormRecord> lineshape_norm_data;
 void define_lineshape_norm_data()
 {
   // Initialize to empty, just in case.
-  lineshape_norm_data.clear();
+  lineshape_norm_data.resize(0);
 
   lineshape_norm_data.push_back
     (LineshapeNormRecord

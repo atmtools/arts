@@ -59,14 +59,6 @@ SAB 2000-09-13: Change names of automatically generated files to _auto...
 AvE 2000-09-27: There is optimization potential in the lineshape.cc file,
 		read FIXME comments over there.
 
-SAB 2000-10-05: Remove name of argument from generic methods
-                (i.e., WriteToFile instead fo
-                VectorWriteToFile). Internally, unique names have to
-                be assigned to the specific functions for the
-                different WSV types. Will make the program internally
-                somewhat more complicated, but much more user
-                friendly.
-
 SAB 2000-10-05: Implement a mechanism for `meta-methods', i.e.,
                 methods that can execute parts of the controlfile with
                 changed parameters in a private copy of the
@@ -135,3 +127,23 @@ AvE 2000-11-30: Check that assert does not have a negative impact on
                 calls, this can be done in the lineshape.cc file,
                 where assert is called for each lineshape function and
                 lineshape normalization factor.
+
+SAB 2000-12-04: Make WSV groups (groups.cc) and Token types (token.h,
+                token.cc) consistent.
+
+SAB 2000-12-04: 
+Implement this method:
+  md_data.push_back
+    ( MdRecord
+      ( NAME("raw_vmrs_1dReadFromFiles"),
+  	DESCRIPTION(
+	  "Read the individual VMR profile for each TAGS from the list of\n"
+	  "files given as keyword parameters. One file name must be specified for\n"
+	  "each TAGS. The name may include a path."
+	  ),
+	OUTPUT(   raw_vmrs_1d_         ),
+	INPUT(    tag_groups_          ),
+	GOUTPUT(                       ),
+	GINPUT(                        ),
+	KEYWORDS( "filenames"          ),
+	TYPES(    ARRAY_string_t       )));
