@@ -554,3 +554,66 @@ Numeric interp_lin(
   interp_lin_vector( yi, x, y, make_vector(xi) );
   return yi[0];
 }        
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+//   Factorization of matrices
+/////////////////////////////////////////////////////////////////////////////
+
+
+//// chol //// //////////////////////////////////////////////////////////////
+
+/** Choleski factorization (columnwise version). 
+
+    Given s positive definite, the upper triangular matrix z with 
+    positive diagonal elements such as c=r'*r is calculated.
+    Algorithm used from Numerical Methods, Åke Björck, 1990, p46.
+
+    \retval   r       Choleski factor of c
+    \param    c       matrix to be factorized
+ 
+    \author Carlos Jimenez
+    \date   2001-02-14
+
+    Adapted to MTL.
+*/
+
+void chol(
+                MATRIX&       r, 
+          const SYMMETRIC&    c )
+{
+  const INDEX nrows = c.nrows(), ncols = c.ncols();
+  INDEX j, i, k;
+  Numeric a = 0;
+
+  assert( nrows == r.nrows());
+  assert( ncols == r.ncols());
+
+
+  setto( r, 0.0 );
+
+  for (j=0; j<nrows; ++j)
+  {
+    if (j>0)
+    {
+      for (i=0; i<j; ++i)
+      {
+        a = 0;
+        if (i>0)
+	{
+          for (k=0; k<i; ++k)
+	      a = a + r[k][i] * r[k][j];
+	}  
+        r[i][j] = ( c[i][j] - a ) / r[i][i];       
+      }
+    
+      a = 0;
+      for (k=0; k<j; ++k)
+	 a = a + r[k][j] * r[k][j];
+      
+    }
+    r[j][j] = sqrt( c[j][j] - a);
+    
+  }
+}

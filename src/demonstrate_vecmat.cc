@@ -248,6 +248,35 @@ main()
   cout << "As:\n"       << As              << "\n";
 
 
+
+  // Demonstrate Choleski factorization
+  cout << "\nCholesky Factorization:\n";
+  // Copying a symmetric positive definite matrix    
+  SYMMETRIC C(4,4);
+  
+  C[0][0] = 3.33;
+  C[0][1] = 1.33;
+  C[0][2] = -0.67;
+  C[0][3] = -2.67;
+ 
+  C[1][1] = 0.67;
+  C[1][2] = 0;
+  C[1][3] = -0.67;
+
+  C[2][2] = 0.67;
+  C[2][3] = 1.33;
+
+  C[3][3] = 3.33;
+  cout << "Symmetric matrix:\n";
+  cout << "C:\n"       << C              << "\n";
+
+  // Getting the Choleski factor of C
+  MATRIX R(4,4);
+  chol(R,C);
+  cout << "R:\n"       << R              << "\n";
+
+  
+
   // Demonstrate BANDEDSYM
   cout << "\nBanded Symmetric Matrices:\n";
   SYMMETRIC Abs(5,1);
