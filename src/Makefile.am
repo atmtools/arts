@@ -19,9 +19,9 @@ LDADD = -lmfhdf -ldf -ljpeg -lz
 # Does not work (source file in separate dir)
 
 arts_SOURCES   = \
-wsv_groups.h \
-wsv.h \
-md.cc \
+auto_wsv_groups.h \
+auto_wsv.h \
+auto_md.cc \
 arts.h \
 getopt.h \
 sstream.h \
@@ -71,7 +71,7 @@ m_los.cc \
 m_wfs.cc \
 absorption.cc \
 continua.cc \
-wsv_pointers.cc \
+auto_wsv_pointers.cc \
 species_data.cc \
 partition_function_data.cc \
 lineshapes.cc \
@@ -85,7 +85,7 @@ vecmat.cc
 
 noinst_PROGRAMS = \
 demonstrate_vecmat \
-make_wsv_groups_h make_wsv_h make_wsv_pointers_cc make_md_h
+make_wsv_groups_h make_wsv_h make_wsv_pointers_cc make_md_h make_md_cc
 
 demonstrate_vecmat_SOURCES = \
 arts.h vecmat.h \
@@ -97,7 +97,7 @@ vecmat.cc version.cc file.cc messages.cc groups.cc make_wsv_groups_h.cc
 
 make_wsv_h_SOURCES = \
 arts.h vecmat.h file.h absorption.h los.h hmatrix.h \
-wsv_groups.h wsv_aux.h \
+auto_wsv_groups.h wsv_aux.h \
 vecmat.cc version.cc groups.cc \
 messages.cc file.cc workspace.cc workspace_aux.cc make_wsv_h.cc
 
@@ -106,30 +106,43 @@ arts.h vecmat.h file.h wsv_aux.h \
 vecmat.cc version.cc groups.cc messages.cc file.cc workspace.cc make_wsv_pointers_cc.cc
 
 make_md_h_SOURCES = \
-arts.h vecmat.h wsv.h token.h messages.h file.h \
+arts.h vecmat.h auto_wsv.h token.h messages.h file.h \
 absorption.h los.h hmatrix.h \
-wsv_groups.h wsv_aux.h \
+auto_wsv_groups.h wsv_aux.h \
 methods.h make_array.h \
 vecmat.cc version.cc globals_2.cc \
 token.cc messages.cc file.cc groups.cc workspace.cc workspace_aux.cc \
 methods.cc methods_aux.cc make_md_h.cc
 
-# make_wsv_h_DEPENDENCIES = wsv_groups.h
+make_md_cc_SOURCES = \
+arts.h vecmat.h auto_wsv.h token.h messages.h file.h \
+absorption.h los.h hmatrix.h \
+auto_wsv_groups.h wsv_aux.h \
+methods.h make_array.h \
+vecmat.cc version.cc globals_2.cc \
+token.cc messages.cc file.cc groups.cc workspace.cc workspace_aux.cc \
+methods.cc methods_aux.cc make_md_cc.cc
 
-# make_wsv_pointers_cc_DEPENDENCIES  = wsv_groups.h wsv.h
+# make_wsv_h_DEPENDENCIES = auto_wsv_groups.h
 
-# make_md_h_DEPENDENCIES  = wsv.h
+# make_wsv_pointers_cc_DEPENDENCIES  = auto_wsv_groups.h auto_wsv.h
 
-wsv_groups.h: make_wsv_groups_h
+# make_md_h_DEPENDENCIES  = auto_wsv.h
+
+auto_wsv_groups.h: make_wsv_groups_h
 	$(top_builddir)/src/make_wsv_groups_h
 
-wsv.h: make_wsv_h
+auto_wsv.h: make_wsv_h
 	$(top_builddir)/src/make_wsv_h
 
-wsv_pointers.cc: make_wsv_pointers_cc
+auto_wsv_pointers.cc: make_wsv_pointers_cc
 	$(top_builddir)/src/make_wsv_pointers_cc
 
-md.h: make_md_h
+auto_md.h: make_md_h
 	$(top_builddir)/src/make_md_h
 
-BUILT_SOURCES = wsv_groups.h wsv.h wsv_pointers.cc md.h
+auto_md.cc: make_md_cc
+	$(top_builddir)/src/make_md_cc
+
+BUILT_SOURCES = \
+auto_wsv_groups.h auto_wsv.h auto_wsv_pointers.cc auto_md.h auto_md.cc
