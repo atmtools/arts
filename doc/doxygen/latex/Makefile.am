@@ -7,18 +7,20 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+
 artsdocdir = $(pkgdatadir)/doc
 
 thisdocdir = $(artsdocdir)/doxygen/latex
 
 thisdoc_DATA         = refman.ps
 
-EXTRA_DIST           = $(wildcard *.tex *.eps doxygen.sty refman.dvi refman.ps)
+#EXTRA_DIST           = $(wildcard *.tex *.eps doxygen.sty refman.dvi refman.ps)
 
 CLEANFILES           = $(wildcard *.aux refman.idx refman.log refman.toc refman.ilg refman.ind)
 
 MAINTAINERCLEANFILES = $(wildcard *.tex *.eps doxygen.sty refman.dvi refman.ps)
 
+all:
 
 # Cancel the implicit rule for .dvi and .ps files, since they
 # introduces the wrong clean files: 
