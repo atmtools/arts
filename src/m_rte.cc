@@ -172,8 +172,7 @@ void RteEmissionStd(
   const Index   np = ppath.np;
   // Number of species:
   const Index   ns = vmr_field.nbooks();
-
-
+  
   // If the number of propagation path points is 0 or 1, we are already ready,
   // the observed spectrum equals then the radiative background.
   if( np > 1 )
@@ -189,6 +188,7 @@ void RteEmissionStd(
       // each propagation path point
       Vector   t_ppath(np);
       Matrix   vmr_ppath(ns,np), itw_field;
+      a_vmr_list.resize(ns);
       //
       interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
                             lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
@@ -216,28 +216,6 @@ void RteEmissionStd(
       // If f_index < 0, scalar gas absorption is calculated for 
       // all frequencies in f_grid.
       f_index = -1;
-    
-      for ( Index ip = 0; ip < np; ip ++)
-        { 
-          a_pressure    = p_ppath[ip];
-          a_temperature = t_ppath[ip];
-          a_vmr_list    = vmr_ppath(joker,ip);
-          
-          scalar_gas_absorption_agenda.execute( ip );
-          
-          // Calculate extinction matrix and absorption vector
-          // for all propagation path points.
-          
-          abs_vec_ppath[ip].resize(nf,stokes_dim);
-          ext_mat_ppath[ip].resize(nf,stokes_dim,stokes_dim);
-          
-          opt_prop_gas_agenda.execute( ip );
-              
-          abs_vec_ppath[ip] = abs_vec;
-          ext_mat_ppath[ip] = ext_mat;
-          
-        }
-
       
       // Loop the propagation path steps
       //
@@ -256,26 +234,29 @@ void RteEmissionStd(
               
       for( Index ip=np-1; ip>0; ip-- )
         {
+          a_pressure    = 0.5*(p_ppath[ip] + p_ppath[ip-1]);
+          a_temperature = 0.5*(t_ppath[ip] + t_ppath[ip-1]);
+
+          for( Index is = 0; is < ns; is ++)
+            {
+              a_vmr_list[is]    = 0.5*(vmr_ppath(is,ip) + vmr_ppath(is, ip-1));
+            }
+
+          scalar_gas_absorption_agenda.execute( ip );
+
+          opt_prop_gas_agenda.execute( ip ); 
+
           for( Index iv=0; iv<nf; iv++ )
             {
               // Calculate averaged values for extinction matrix and 
               // absorption vector.
-              for (Index i = 0; i < stokes_dim; i++)
-                {
-                  // Extinction matrix requires a second loop over stokes_dim:
-                  for (Index j = 0; j < stokes_dim; j++)
-                    { ext_mat_av(i, j) = 0.5*( ext_mat_ppath[ip](iv, i, j) +
-                                              ext_mat_ppath[ip-1](iv, i, j)); }
-                 
-                  // Absorption vector
-                  abs_vec_av[i] = 0.5*( abs_vec_ppath[ip](iv,i) +
-                                                   abs_vec_ppath[ip-1](iv,i) );
-                }
-                  
+              ext_mat_av = ext_mat(iv, joker, joker);
+              abs_vec_av = abs_vec(iv, joker);
+              
               // Calculate an effective blackbody radiation for the step
               // The mean of the temperature at the end points is used.
               Numeric planck_value = 
-                           planck( f_grid[iv], (t_ppath[ip]+t_ppath[ip-1])/2 );
+                           planck( f_grid[iv], a_temperature);
                   
               assert (!is_singular( ext_mat_av ));   
 

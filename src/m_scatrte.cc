@@ -56,7 +56,8 @@
 #include "scatrte.h"
 
 extern const Numeric PI;
-
+extern const Numeric RAD2DEG;
+  
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -1108,59 +1109,21 @@ i_fieldUpdateSeq1D(// WS Output:
       // Radiative transfer inside the cloudbox
       //=====================================================================
       
-      // Sequential update for uplooking angles
-      //
+      // Calculate the tangent point for g 
+
       // Lower boundary of cloudbox
       Index p_low = cloudbox_limits[0];
-
+      //
+      // Upper boundary of cloudbox
+      Index p_up = cloudbox_limits[1];
+      //
       Vector stokes_vec(stokes_dim,0.);
+      
+      Numeric theta_lim = 180 - asin((r_geoid(0,0)+z_field(p_low,0,0))/
+                                     (r_geoid(0,0)+z_field(p_up,0,0)))*RAD2DEG;
 
-      //
-      // Stokes vector:
-      //
-      // For the radiative transfer equation we 
-
-      // need the Stokes vector at the upper cloudbox boundary
-      stokes_vec[joker] = i_field(cloudbox_limits[1] - p_low, 0, 0,
-                                  scat_za_index, 0, joker);
-
-      
-      // Find out, if the next point is in the cloudbox. 
-      // For most angles it is clear, but we don not now exactly, for which
-      // angle we go from up_looking to down_looking in spherical geometry.
-      // The ppath stepagenda can be used to fing out, whether the 
-      // intersection point with the next grid point lies inside or outside 
-      // cloudbox. 
-      
-      //Initialize ppath for 1D.
-      ppath_init_structure(ppath_step, 1, 1);
-      // See documentation of ppath_init_structure for understanding
-      // the parameters.
-  
-      // Assign value to ppath.pos:
-      ppath_step.z[0]     = z_field(p_low,0,0);
-      ppath_step.pos(0,0) = r_geoid(0,0) + ppath_step.z[0];
-      
-      // Define the direction:
-      ppath_step.los(0,0) = scat_za_grid[scat_za_index];
-      
-      // Define the grid positions:
-      ppath_step.gp_p[0].idx   = p_low;
-      ppath_step.gp_p[0].fd[0] = 0;
-      ppath_step.gp_p[0].fd[1] = 1;
-      
-      // Call ppath_step_agenda: 
-      ppath_step_agenda.execute((scat_za_index + 
-                                 (p_low - cloudbox_limits[0])));
-      
-      // Check whether the next point is inside or outside the
-      // cloudbox. Only if the next point lies inside the
-      // cloudbox a radiative transfer step caclulation has to
-      // be performed.
-      if ((cloudbox_limits[0] <= ppath_step.gp_p[1].idx) &&
-          cloudbox_limits[1] > ppath_step.gp_p[1].idx ||
-          (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
-           fabs(ppath_step.gp_p[1].fd[0]) < 1e-6)) 
+      // Sequential update for uplooking angles
+      if ( scat_za_grid[scat_za_index] <= theta_lim) 
         {
           
           // Loop over all positions inside the cloud box defined by the 
@@ -1171,7 +1134,7 @@ i_fieldUpdateSeq1D(// WS Output:
           for(Index p_index = cloudbox_limits[1]-1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-               cloud_ppath_update1D(i_field, stokes_vec, 
+               cloud_ppath_update1D(i_field, 
                                     a_pressure, a_temperature, a_vmr_list,
                                     ext_mat, abs_vec, ppath_step, 
                                     p_index, scat_za_index, scat_za_grid,
@@ -1183,67 +1146,15 @@ i_fieldUpdateSeq1D(// WS Output:
                                     abs_vec_field); 
             }
         }
-
+      else if ( scat_za_grid[scat_za_index] > theta_lim) 
+        {
       //
       // Sequential updating for downlooking angles
       //
-      // Upper boundary of cloudbox
-      Index p_up = cloudbox_limits[1];
-      //
-      // Stokes vector:
-      //
-      // For the radiative transfer equation we 
-      // need the Stokes vector at the lower cloudbox boundary
-      //
-      stokes_vec[joker] = i_field_old(0, 0, 0, scat_za_index, 0, joker);
-      
-      // Find out, if the next point is in the cloudbox. 
-      // For most angles it is clear, but we don not now exactly, for which
-      // angle we go from up_looking to down_looking in spherical geometry.
-      // The ppath step agenda can be used to fing out, whether the 
-      // intersection point with the next grid point lies inside or outside 
-      // cloudbox. 
-      
-      //Initialize ppath for 1D.
-      ppath_init_structure(ppath_step, 1, 1);
-      // See documentation of ppath_init_structure for understanding
-      // the parameters.
-      
-      // Assign value to ppath.pos:
-      ppath_step.z[0]     = z_field(p_up,0,0);
-      ppath_step.pos(0,0) = r_geoid(0,0) + ppath_step.z[0];
-      
-      // Define the direction:
-      ppath_step.los(0,0) = scat_za_grid[scat_za_index];
-      
-      // Define the grid positions:
-      ppath_step.gp_p[0].idx   = p_up;
-      ppath_step.gp_p[0].fd[0] = 0;
-      ppath_step.gp_p[0].fd[1] = 1;
-     
-      // Call ppath_step_agenda: 
-      ppath_step_agenda.execute((scat_za_index + 
-                                 (p_up - cloudbox_limits[0])));
-      
-      // Check whether the next point is inside or outside the
-      // cloudbox. Only if the next point lies inside the
-      // cloudbox a radiative transfer step caclulation has to
-      // be performed.
-      if ((cloudbox_limits[0] <= ppath_step.gp_p[1].idx) &&
-          cloudbox_limits[1] > ppath_step.gp_p[1].idx ||
-          (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
-           fabs(ppath_step.gp_p[1].fd[0]) < 1e-6)) 
-        {
-          
-          // Loop over all positions inside the cloud box defined by the 
-          // cloudbox_limits. For downlooking
-          // directions, we start from cloudbox_limits[0] and go up
-          // to cloudbox_limits[1] to do a sequential update of the
-          // aradiation field
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              cloud_ppath_update1D(i_field, stokes_vec, 
+              cloud_ppath_update1D(i_field,  
                                    a_pressure, a_temperature, a_vmr_list,
                                    ext_mat, abs_vec, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
@@ -1255,9 +1166,7 @@ i_fieldUpdateSeq1D(// WS Output:
                                    abs_vec_field); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
-
     }// Closes loop over scat_za_grid.
-  
 } // End of the function.
 
 

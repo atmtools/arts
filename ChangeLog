@@ -1,3 +1,19 @@
+2003-06-20  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-581
+
+	* src/m_scatrte.cc (i_fieldUpdate1D): Modified sequential 
+	update. Should be a bit more efficient and the code is better readable.
+
+	* src/scatrte.cc (cloud_ppath_update1D): Fixed a bug. The intensity
+	field was not interpolated on the correct zenith angles.
+	This caused bad results in limb direction.
+
+	* src/m_rte.cc (RteEmissionStd): Averaged temperature and pressure 
+	instead of absorption coefficients in the radiative transfer 
+	calculation. This has been an inconsistency between 
+	clearsky radiative transfer and RT in the cloudbox.
+	
 2003-06-19  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-580

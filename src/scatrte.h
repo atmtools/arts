@@ -54,8 +54,7 @@ void cloud_fieldsCalc(// Output:
 
 void cloud_ppath_update1D(
                   Tensor6View i_field,
-                  VectorView stokes_vec,
-                   // scalar_gas_abs_agenda:
+                  // scalar_gas_abs_agenda:
                   Numeric& a_pressure,
                   Numeric& a_temperature,
                   Vector& a_vmr_list,
