@@ -1,3 +1,19 @@
+2003-03-18  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-501
+	
+	* src/m_scatrte.cc (i_fieldUpdate1D): Modified gaseous absorption
+	coefficients calculation. In the first version I calculated the 
+	coefficients for all grid points and interpolated the values inside
+	the RT calculation. Now gaseous absorption is calculated inside the
+	RT part using interpolated pressure, temperature and VMR. This 
+	reduces interpolation errors significantly. 
+	Attention: Extinction matrix and absorption vector have to be
+	initialized also in *opt_prop_part_agenda* (You should put  
+	ext_matInit and abs_vecInit in this agenda, otherwise you will get
+	an error message). 
+	This modification will be implemented in 3D later.
+
 2003-03-18  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-500

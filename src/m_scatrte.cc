@@ -464,40 +464,15 @@ i_fieldUpdate1D(// WS Output:
                               (cloudbox_limits[1] - cloudbox_limits[0]+1) );
   
   //=======================================================================
-  // Calculate coefficients for all positions in the cloudbox 
+  // Calculate scattering coefficients for all positions in the cloudbox 
   //=======================================================================
 
-
-  // Create scalar absorption and store it in an array. This avoids 
-  // repeating the calculation for each direction.
-  // Actually, this variable is not an array, but a matrix, because we
-  // need to store the gas absorption for each species.
-  // Dimensions: [ # levels in cloudbox, # species ]
-  // 
-  // We can only create this here, the dimensions are set below.
-  Matrix scalar_gas_array;
-  
-  for(Index p_index = cloudbox_limits[0]; p_index
-        <= cloudbox_limits[1]; p_index ++)
-    {
-      a_pressure = p_grid[p_index];
-      a_temperature = t_field(p_index, 0, 0);	
-      a_vmr_list = vmr_field( joker, p_index, 0, 0);	
-      scalar_gas_absorption_agenda.execute(p_index - cloudbox_limits[0]);
-
-      // We don't know how many gas species we have before the first
-      // call of scalar_gas_absorption_agenda. So we have to resize
-      // scalar_gas_array after the first call:
-      if ( p_index == cloudbox_limits[0] )
-        scalar_gas_array.resize( (cloudbox_limits[1] - cloudbox_limits[0])+ 1,
-                                 abs_scalar_gas.ncols() );
-
-      scalar_gas_array( p_index - cloudbox_limits[0], joker )
-        = abs_scalar_gas(0,joker);
-      // We ignore the first dimension of abs_scalar_gas, which would
-      // be the frequency dimension.
-    }
-     
+  // At this place only the particle properties are calculated. Gaseous
+  // absorption is calculated inside the radiative transfer part. Inter-
+  // polating absorption coefficients for gaseous species gives very bad
+  // results, so they are 
+  // calulated for interpolated VMRs, temperature and pressure.
+       
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
@@ -529,24 +504,13 @@ i_fieldUpdate1D(// WS Output:
           out3 << " Zenith angle index: "<< scat_za_index << "\n";
           out3 << " Pressure index: "<< p_index << "\n";
           
-          // Calculate abs_vec_array 
-          // Get scalar gas absorption from array.
-          
-          abs_scalar_gas(0,joker)
-            = scalar_gas_array( p_index - cloudbox_limits[0], joker );
-          
-        
-          // Calculate total ext_mat and abs_vec.
           // The required workspace variable is scat_p_index.
           scat_p_index = p_index; 
           
-          //   opt_prop_gas_agenda.execute();
-          //           opt_prop_part_agenda.execute();
-           
           // Execute agendas silently, only the first call is output on
           // the screen (no other reason for argument in agenda.execute).
-          opt_prop_gas_agenda.execute((scat_za_index + 
-                                      (p_index - cloudbox_limits[0])) );
+          //  opt_prop_gas_agenda.execute((scat_za_index + 
+          //                          (p_index - cloudbox_limits[0])) );
           opt_prop_part_agenda.execute((scat_za_index + 
                                        (p_index - cloudbox_limits[0])) );
           
@@ -662,6 +626,8 @@ i_fieldUpdate1D(// WS Output:
               Matrix sca_vec_int(stokes_dim, ppath_step.np);
               Matrix sto_vec_int(stokes_dim, ppath_step.np);
               Vector t_int(ppath_step.np);
+              Vector vmr_int(ppath_step.np);
+              Vector p_int(ppath_step.np);
 
 
               // Calculate the average of the coefficients for the layers
@@ -689,10 +655,10 @@ i_fieldUpdate1D(// WS Output:
                          cloud_gp_p, dummy_gp, dummy_gp,
                          itw_field);
                     }
-                  // Absorption vector:
+                  // Particle absorption vector:
                   //
                   // Interpolation of abs_vec
-                  //
+                 //  //
                   out3 << "Interpolate abs_vec:\n";
                   interp_atmfield_by_itw
                     (abs_vec_int(i,joker),
@@ -755,7 +721,38 @@ i_fieldUpdate1D(// WS Output:
                  ppath_step.gp_p,
                  dummy_gp, dummy_gp,
                  itw_field);
+
+              // 
+              // The vmr_field is needed for the gaseous absorption 
+              // calculation.
+              //
+              const Index N_species = vmr_field.nbooks();
+              //
+              // Interpolated vmr_list, holds a vmr_list for each point in 
+              // ppath_step.
+              //
+              Matrix vmr_list_int(N_species, ppath_step.np);
+
+              for (Index i = 0; i < N_species; i++)
+                {
+                  out3 << "Interpolate vmr field\n";
+                  interp_atmfield_by_itw
+                    (vmr_int,
+                     atmosphere_dim,
+                     p_grid, dummy_grid, dummy_grid,
+                     vmr_field(i, joker, joker, joker),
+                     "vmr_field",
+                     ppath_step.gp_p,
+                     dummy_gp, dummy_gp,
+                     itw_field);
+                  
+                  vmr_list_int(i, joker) = vmr_int;
+                }
               
+              // 
+              // Interpolate pressure
+              //
+              itw2p( p_int, p_grid, ppath_step.gp_p, itw_field);  
 
               // Radiative transfer from one layer to the next, starting
               // at the intersection with the next layer and propagating
@@ -763,20 +760,38 @@ i_fieldUpdate1D(// WS Output:
               
               for( Index k= ppath_step.np-1; k > 0; k--)
                 {
+
+                  // Average temperature
+                  a_temperature =   0.5 * (t_int[k] + t_int[k-1]);
                   //
-                  // Averaging of ext_mat
+                  // Average pressure
+                  a_pressure = 0.5 * (p_int[k] + p_int[k-1]);
+                  //
+                  // Average vmrs
+                  for (Index i = 0; i < N_species; i++)
+                    a_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
+                                           vmr_list_int(i,k-1));
+                  //
+                  // Calculate scalar gas absorption and add it to abs_vec 
+                  // and ext_mat.
+                  //
+                  scalar_gas_absorption_agenda.execute(p_index);
+                  opt_prop_gas_agenda.execute(p_index);
+                  
+                  //
+                  // Add average particle extinction to ext_mat. 
                   //
                   for (Index i = 0; i < stokes_dim; i++)
                     {
                       for (Index j = 0; j < stokes_dim; j++)
                         {
-                          ext_mat_av(i,j) = 0.5 *
+                          ext_mat(0,i,j) += 0.5 *
                             (ext_mat_int(i,j,k) + ext_mat_int(i,j,k-1));
                         }
                       //
-                      // Averaging of abs vec
+                      // Add average particle absorption to abs_vec.
                       //
-                      abs_vec_av[i] = 0.5 * 
+                      abs_vec(0,i) += 0.5 * 
                         (abs_vec_int(i,k) + abs_vec_int(i,k-1));
                       //
                       // Averaging of sca_vec:
@@ -785,15 +800,14 @@ i_fieldUpdate1D(// WS Output:
                         (sca_vec_int(i,k) + sca_vec_int(i,k-1));
                       // 
                     }
-                  // Average temperature
-                  Numeric T =   0.5 * (t_int[k] + t_int[k-1]);
-                  //
+                  
+                                  
                   // Frequency
                   Numeric f = f_grid[f_index];
                   //
                   // Calculate Planck function
-                      //
-                  Numeric a_planck_value = planck(f, T);
+                  //
+                  Numeric a_planck_value = planck(f, a_temperature);
                   
                   // Some messages:
                   out3 << "-----------------------------------------\n";
@@ -808,15 +822,16 @@ i_fieldUpdate1D(// WS Output:
                   out3 << "Averaged coefficients: \n";
                   out3 << "Planck function: " << a_planck_value << "\n";
                   out3 << "Scattering vector: " << sca_vec_av << "\n"; 
-                  out3 << "Absorption vector: " << abs_vec_av << "\n"; 
-                  out3 << "Extinction matrix: " << ext_mat_av << "\n"; 
+                  out3 << "Absorption vector: " << abs_vec(0,joker) << "\n"; 
+                  out3 << "Extinction matrix: " << ext_mat(0,joker,joker) << "\n"; 
                       
                   
-                  assert (!is_singular( ext_mat_av ));
+                   assert (!is_singular( ext_mat(0,joker,joker)));
                       
                   // Radiative transfer step calculation. The Stokes vector
                   // is updated until the considered point is reached.
-                  rte_step(stokes_vec, ext_mat_av, abs_vec_av, 
+                  rte_step(stokes_vec, ext_mat(0,joker,joker), 
+                           abs_vec(0,joker), 
                            sca_vec_av, l_step, a_planck_value);
                   
                 }
@@ -2364,11 +2379,7 @@ void ScatteringMain(
 {
 
   Index Nf = f_grid.nelem();
-    // Calculation for monochromatic radiation field inside cloudbox:
-  // We have to define at least 2 frequencies in f_grid, but the scattering
-  // calculation should be done only for 1 frequency.
-  if (f_grid.nelem() == 2) Nf = 1;
-
+ 
   for ( f_index = 0; f_index < Nf; ++ f_index)
     {
       out2 << "---------------------------------------------\n";
