@@ -48,6 +48,32 @@ void define_agenda_data()
     No distinction is made between uppercase and lowercase letters. 
     The sign "_" comes after all letters.
     ----------------------------------------------------------------------*/
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "convergence_test_agenda" ),
+       DESCRIPTION
+       (
+	"Compute the convergence test.\n"
+	"\n"
+	"The method *i_fieldIterate* solves the RTE including all Stokes \n"
+        "components as well as scattering iterativly. This method requires \n"
+        "a convergence test. The user can choose different convergence tests\n"
+        "which have to be defined in this agenda.\n"
+        "\n"
+        "Possible workspace methods are:\n"
+        "*convergence_flagAbs*: Calculates the absolute differences, for \n"
+        "                       each Stokes component separately.\n"
+	),
+       OUTPUT( convergence_flag_ ),
+       INPUT(  i_field_,
+               i_field_old_,
+               cloudbox_limits_,
+               scat_za_grid_,
+	       scat_aa_grid_,
+               stokes_dim_)));
+
+
  
   agenda_data.push_back
     (AgRecord

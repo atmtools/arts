@@ -426,6 +426,29 @@ void define_wsv_data()
        ),
       GROUP( ArrayOfIndex_ )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "convergence_flag" ),
+      DESCRIPTION
+      (
+       "Flag for the convergence test.\n"
+       "\n"
+       "This variable is initialized with 0 inside the method \n"
+       "*i_fieldIterate*.\n"
+       "If after an iteration the convergence test is fulfilled 1 is \n"
+       "assigned which means that the iteration in completed. \n"
+      ), 
+      GROUP( Index_ ))); 
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "convergence_test_agenda" ),
+      DESCRIPTION
+      (
+	"See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "e_ground" ),
@@ -552,20 +575,20 @@ wsv_data.push_back
 	"The frequency grid for monochromatic pencil beam\n"
 	"calculations.\n"
 	"\n"
-	"Text will be written (PE).\n"
-	"\n"
-	"Usage:      Set by the user.\n"
-	"\n"
-	"Unit:       Hz"
-	),
+	"Text will be written (PE).\n" 
+	"\n" 
+	"Usage:      Set by the user.\n "
+	"\n"   
+	"Unit:        Hz"
+	), 
        GROUP( Vector_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "i_field" ),
-      DESCRIPTION
+ 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "i_field" ), 
+       DESCRIPTION
       (
-       "Intensity field inside the cloudbox.\n"
+       "Radiation field.\n" 
        "\n"
        "This variable is used to store the intensity field inside the\n"
        "cloudbox which is found by an iterative solution.\n"
@@ -579,7 +602,22 @@ wsv_data.push_back
        "              scat_aa_grid, stokes_dim ]"
        ),
       GROUP( Tensor6_ )));
-
+  
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "i_field_dim" ), 
+       DESCRIPTION
+      (
+       "Dimension of the radiation field.\n" 
+       "\n"
+       "This variable is important if a 1D atmosphere is considered.\n"
+       "1D atmosphere means that all profiles only depend on altitude or \n"
+       "equivalently pressure. Nevertheless it can be useful to allow the \n"
+       "radiation field to be 2D or 3D. Solar radiation or scattering can \n"
+       "be sources of inhomogeneities in the radiation field.\n" 
+       ),
+      GROUP( Index_ )));
+ 
  wsv_data.push_back
    (WsvRecord
     ( NAME( "i_field_old" ),

@@ -28,7 +28,7 @@
   \author Patrick Eriksson and Claudia Emde
   \date   2002-05-08 
 
-  \brief  Workspace functions releated to the cloud box.
+  \brief  Workspace functions related to the cloud box.
 
   These functions are listed in the doxygen documentation as entries of the
   file auto_md.h.*/
@@ -41,6 +41,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <stdlib.h>
 #include <math.h>
 #include "arts.h"
 #include "array.h"
@@ -197,6 +198,100 @@ void CloudboxSetManually(
 }
 
 
+
+//! Convergence test (maximum absolute difference). 
+/*! 
+  The function calculates the absolute differences for two successive 
+  iteration fields. It picks out the maximum values for each Stokes 
+  component separately. The convergence test is fullfilled under the following
+  conditions:
+  |I(m+1) - I(m)| <                 Intensity.
+  |Q(m+1) - Q(m)| <                 The other Stokes components.
+  |U(m+1) - U(m)| <  
+  |V(m+1) - V(m)| <  
+  These conditions have to be valid for all positions in the cloudbox and
+  for all directions.
+  Then convergence_flag is set to 1. 
+
+  WS Output:
+  \param convergence_flag Fag for convergence test.
+  WS Input:
+  \param i_field Radiation field.
+  \param i_field_old Old radiation field.
+  \param cloudbox_limits Limits of the cloudbox.
+  \param scat_za_grid 	Zenith angle grid.
+  \param scat_aa_grid Azimuth angle grid.
+
+  \author Claudia Emde
+  \date 2002-06-17
+
+*/
+void convergence_flagAbs(//WS Output:
+                      Index& convergence_flag,
+                      //WS Input:
+                      Tensor6& i_field,
+                      Tensor6& i_field_old,
+                      ArrayOfIndex& cloudbox_limits, 
+                      Vector& scat_za_grid,
+                      Vector& scat_aa_grid,
+                      Index stokes_dim)
+{
+  assert( convergence_flag == 0 );
+  
+  Index N_scat_za = scat_za_grid.nelem();
+  Index N_scat_aa = scat_aa_grid.nelem();
+
+  // define the limiting values
+  Vector epsilon(4);
+  epsilon[0] = 1e-20;
+  epsilon[1] = 1e-21;
+  epsilon[2] = 1e-21;
+  epsilon[3] = 1e-21;
+
+  //Loop over all components of the intensity field. 
+  for (Index stokes_index = 0; stokes_index < stokes_dim; stokes_index++ )
+    {
+      for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
+            p_index++)
+        { 
+          for (Index lat_index = cloudbox_limits[2]; lat_index <= 
+                  cloudbox_limits[3]; lat_index++)
+            {
+              for (Index lon_index = cloudbox_limits[4]; lon_index <= 
+                  cloudbox_limits[5]; lon_index++)
+                {
+                  for (Index scat_za_index = 0; scat_za_index < N_scat_za;
+                       scat_za_index++)
+                    {
+                      for (Index scat_aa_index = 0; scat_aa_index < N_scat_aa;
+                       scat_aa_index++)
+                        {
+                          Numeric diff = fabs( i_field( p_index, lat_index,
+                                                        lon_index, scat_za_index,
+                                                        scat_aa_index, 
+                                                        stokes_index) -
+                                               i_field_old( p_index, lat_index,
+                                                            lon_index, 
+                                                            scat_za_index,
+                                                            scat_aa_index, 
+                                                            stokes_index ));
+                          
+                          // If the absolute difference of the components is 
+                          // larger than the pre-defined values, return to
+                          // *i_fieldIterarte and do another iteration
+                          if( diff > epsilon[stokes_index])
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+  // Convergence test has been successful, convergence_flag can be set to 1.
+  convergence_flag = 1;
+}
+
 //! Iterative solution of the RTE.
 /*! 
   A solution for the RTE with scattering is found using an iterative scheme:
@@ -216,8 +311,11 @@ void CloudboxSetManually(
   \param stokes_vec    Stokes vector.    
   \param planck_function Planck function.
   \param l_step        Pathlength step. 
+  \param convergence_flag 1 if convergence is reached after an 
+                       iteration. 0 else.
                             
-  WS Input:   
+  WS Input:
+  \param convergence_test_agenda Agenda to perform the convergence test.
   \param ppath_step_agenda Agenda to compute a propagation path step.
   \param scat_rte_agenda Agenda to compute the RTE.
   \param amp_mat       Amplitude matrix. 
@@ -254,7 +352,9 @@ i_fieldIterate(
                     Vector& stokes_vec,
                     Numeric& planck_function,
                     Numeric& l_step,
+                    Index& convergence_flag,
 		    // WS Input:
+                    const Agenda& convergence_test_agenda,
                     const Agenda& ppath_step_agenda,
                     const Agenda& scat_rte_agenda,
 		    const Tensor6& amp_mat,
@@ -293,9 +393,13 @@ i_fieldIterate(
 		      scat_aa_grid.nelem(), stokes_dim));
   }
 
+  //The following steps are repeated until convergence is reached.
+  convergence_flag = 0;
+  while(convergence_flag == 0) {
+  
+
   // Copy i_field to i_field_old.
- 
-  i_field_old = i_field;
+   i_field_old = i_field;
   
   //Calculate scattered field vector for all points in the cloudbox.
 
@@ -318,7 +422,9 @@ i_fieldIterate(
 		      stokes_dim);
     }
   
-  //Convergence test has to be here.
+  //Convergence test.
+  convergence_test_agenda.execute();
+  }//end of while loop, convergence is reached.
 }
 
 
@@ -548,7 +654,7 @@ stokes_vecGeneral(//WS Output and Input:
                const Index& stokes_dim)
 { 
   // Stokes dimension
-  assert(stokes_dim <= 4 && stokes_dim != 1);
+  assert(stokes_dim <= 4 && stokes_dim != 0);
  
   // check, if ext_mat is quadratic
   assert(is_size(ext_mat, stokes_dim, stokes_dim)); 

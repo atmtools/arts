@@ -707,6 +707,33 @@ void define_md_data()
 
   md_data.push_back     
     ( MdRecord
+      ( NAME("convergence_flagAbs"),
+	DESCRIPTION
+	(
+	 "Convergence test (maximum absolute difference).\n"
+	 "\n"
+	 "The function calculates the absolute differences for two successive \n"
+         "iteration fields. It picks out the maximum values for each Stokes \n"
+         "component separately. The convergence test is fullfilled under the\n"
+         "following conditions: \n"
+         "|I(m+1) - I(m)| <                 Intensity.\n"
+         "|Q(m+1) - Q(m)| <                 The other Stokes components.\n" 
+         "|U(m+1) - U(m)| <  \n"
+         "|V(m+1) - V(m)| <  \n" 
+         "These conditions have to be valid for all positions in the cloudbox \n"
+         "and for all directions.\n"  
+         "Then convergence_flag is set to 1.\n" 
+	),
+	OUTPUT(convergence_flag_),
+	INPUT(i_field_, i_field_old_, cloudbox_limits_, scat_za_grid_, 
+              scat_aa_grid_, stokes_dim_),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data.push_back     
+    ( MdRecord
       ( NAME("Exit"),
 	DESCRIPTION
 	(
@@ -836,8 +863,10 @@ void define_md_data()
          "   " 
         ),
 	OUTPUT(i_field_, ppath_step_, i_field_old_, scat_field_, ext_mat_,
-               abs_vec_, sca_vec_, stokes_vec_, planck_function_, l_step_),
-	INPUT(ppath_step_agenda_, scat_rte_agenda_, amp_mat_, cloudbox_limits_,
+               abs_vec_, sca_vec_, stokes_vec_, planck_function_, l_step_,
+               convergence_flag_),
+	INPUT(convergence_test_agenda_, ppath_step_agenda_, scat_rte_agenda_, 
+              amp_mat_, cloudbox_limits_,
               scat_za_grid_, scat_aa_grid_, 
 	      p_grid_, lat_grid_, lon_grid_, t_field_, z_field_, z_ground_,
 	      r_geoid_, f_grid_, scat_f_index_, part_types_, blackbody_ground_,
