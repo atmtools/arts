@@ -66,7 +66,7 @@ void antenna_diagram_gaussian(
 
 void test1()
 {
-  //Test antenna_transfer_matrix with ArrayOfArrayOfMatrix
+  //Test antenna_matrix with ArrayOfArrayOfMatrix
   cout << "\nTest 1:\n";
 
   Vector ant_za(-0.03,2,0.06);
@@ -123,7 +123,7 @@ void test1()
   cout << "done.\n";
 
   cout << " Calculating antenna transfer matrix H...";
-  antenna_transfer_matrix(H,m_za,aadiag,f,ant_za,n_pol,1);
+  antenna_matrix(H,m_za,aadiag,f,ant_za,n_pol,1);
   cout << "done.\n";
 
   cout << "H:["<<H.nrows()<<","<<H.ncols()<<"]:\n"<<H<<"\n";
@@ -154,7 +154,7 @@ void test1()
 
 void test2()
 {
-  //Test spectrometer_transfer_matrix
+  //Test spectrometer_matrix
   cout << "\nTest 2:\n";
 
   Vector sensor_f(10,5,10);
@@ -181,7 +181,7 @@ void test2()
 
   Sparse H(ch_f.nelem()*n_za*n_pol,sensor_f.nelem()*n_za*n_pol);
 
-  spectrometer_transfer_matrix(H,aresp,ch_f,sensor_f,n_za,n_pol,1);
+  spectrometer_matrix(H,aresp,ch_f,sensor_f,n_za,n_pol,1);
 
   cout << "H:\n" << H << "\n";
 //  cout << "ch_response1:\n" << ch_response1 << "\n";
@@ -227,7 +227,7 @@ void test4()
 
 void test5()
 {
-  //Test mixer_transfer_matrix
+  //Test mixer_matrix
   cout << "\nTest 5:\n";
 
   Sparse H(1,1);
@@ -247,7 +247,7 @@ void test5()
   filter(0,1)=0;
   filter(1,1)=2;
 
-  mixer_transfer_matrix( H, f_mixer, f_grid, lo, filter, 2, 2,1);
+  mixer_matrix( H, f_mixer, f_grid, lo, filter, 2, 2,1);
 
   cout << "H:\n" << H << "\n";
 
@@ -256,7 +256,7 @@ void test5()
 
 void test6()
 {
-  // Test spectrometer_transfer_matrix with one polarisation and
+  // Test spectrometer_matrix with one polarisation and
   // one viewing angle
   cout << "\nTest 6:\n";
 
@@ -277,7 +277,7 @@ void test6()
 
   Sparse H(ch_f.nelem()*n_za*n_pol,sensor_f.nelem()*n_za*n_pol);
 
-  spectrometer_transfer_matrix(H,aresp,ch_f,sensor_f,n_za,n_pol,1);
+  spectrometer_matrix(H,aresp,ch_f,sensor_f,n_za,n_pol,1);
 
   cout << "H["<<H.nrows()<<","<<H.ncols()<<"]:\n" << H << "\n";
 }

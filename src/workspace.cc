@@ -437,7 +437,7 @@ void define_wsv_data()
        "changed. However, not all methods are working for higher dimesnions.\n"
        "\n"
        "The atmospheric dimensionalities (1D, 2D and 3D) are defined in the\n"
-       "user guide (look for \"atmospheric dimensionality\" in the index).\n" 
+       "user guide (look for \"atmospheric dimensionality\" in the index).\n"
        "\n"
        "Usage:      Set by the user."
        ),
@@ -1107,7 +1107,7 @@ wsv_data.push_back
        "\n"
        "Usage: Set by the user."
        ),
-      GROUP( Numeric_ )));
+      GROUP( Vector_ )));
 
   wsv_data.push_back
    (WsvRecord

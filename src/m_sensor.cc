@@ -155,12 +155,18 @@ void ConvertIFToRF(
                    const Matrix&    sensor_pol,
                    const Vector&    sensor_response_za,
                    const Vector&    sensor_response_aa,
-                   const Numeric&   lo,
+                   const Vector&    lo,
                    const Index&     atmosphere_dim,
                    // Control Parameters:
                    const String&    output )
 {
-  // Check that frequencies are not too low. This might be a floating limit.
+  // This function only supports single mixer spectra, so far. So first
+  // check that *lo* only has one element.
+  if( lo.nelem()!=1 )
+    throw runtime_error(
+      "The *ConvertIFToRF* function only supports single mixer setups.");
+
+  // Check that frequencies are not too high. This might be a floating limit.
   // For this we use the variable f_lim, given in Hz.
   Numeric f_lim = 20e9;
   if( min(sensor_response_f) > f_lim )
@@ -300,7 +306,6 @@ void sensorOff(
               Vector&   sensor_response_za,
               Vector&   sensor_response_aa,
               Index&    sensor_response_pol,
-              Matrix&   sensor_pol,
               Vector&   sensor_rot,
               Index&    antenna_dim,
               Vector&   mblock_za_grid,
@@ -323,11 +328,13 @@ void sensorOff(
       throw runtime_error( os.str() );
     }
 
+  /*
   out2 << "  Sets *sensor_pol* to be the identity matrix.\n";
   sensor_pol.resize( stokes_dim, stokes_dim );
   sensor_pol = 0;
   for( Index i=0; i<stokes_dim; i++ )
     { sensor_pol(i,i) = 1; }
+  */
 
   out2 << "  Sets *sensor_rot* to a vector of zeros.\n";
   sensor_rot.resize( sensor_pos.nrows() );
@@ -348,7 +355,7 @@ void sensorOff(
 
   sensor_responseInit( sensor_response, sensor_response_f, sensor_response_za,
     sensor_response_aa, sensor_response_pol, f_grid, mblock_za_grid,
-    mblock_aa_grid, antenna_dim, sensor_pol, atmosphere_dim, stokes_dim,
+    mblock_aa_grid, antenna_dim, atmosphere_dim, stokes_dim,
     sensor_norm );
 }
 
@@ -371,14 +378,13 @@ void sensor_responseAntenna1D(
        const Index&                 antenna_dim,
        const ArrayOfArrayOfMatrix&  diag,
        const Index&                 sensor_norm,
-       // WS Generic Input:
-       const Vector&                antenna_za,
-       // WS Generic Input Names:
-       const String&                antenna_za_name)
+       const Matrix&                antenna_los)
 {
   // Check that the antenna has the right dimension, this implies that the
   // mblock_aa_grid is empty (as set by AntennaSet1D).
   if( antenna_dim!=1 ) throw runtime_error( "Antenna dimension must be 1." );
+  if( antenna_los.ncols()>1 ) throw runtime_error(
+    "Too many columns in *antenna_los*, only zenith angles is considered." );
 
   // Initialise ostringstream and error flag to collect error messages.
   // This way, if several errors occur, they can all be displayed at the
@@ -405,23 +411,21 @@ void sensor_responseAntenna1D(
   // elements in antenna_za. That is if the same values are used for all
   // directions (or there exist only one viewing angle) or if each angle
   // has its individual values.
-  if (diag.nelem()==0 || antenna_za.nelem()==0) {
+  if (diag.nelem()==0 || antenna_los.nrows()==0) {
     ostringstream os2;
     os2 << "The antenna response array *antenna_diagram* and the viewing\n"
-       << "angle vector " << antenna_za_name << " must contain at least\n"
-       << "one element.\n";
+       << "angle matrix *antenna_los* must contain at least one element.\n";
     error_found = true;
-  } else if (diag.nelem()==1 && antenna_za.nelem()>1) {
+  } else if (diag.nelem()==1 && antenna_los.nrows()>1) {
     //FIXME: Give output about the same antenna diagram is used for all
     // viewing directions
-  } else if (diag.nelem()==antenna_za.nelem()) {
+  } else if (diag.nelem()==antenna_los.nrows()) {
     //FIXME: Give output that each viewing direction uses individual values
   } else {
     ostringstream os2;
     os2 << "The antenna response array *antenna_diagram* does not have the"
        << " right\n size. It should either has one element or as many elements"
-       << " as\n the number of viewing angles given by " << antenna_za_name
-       << ".\n";
+       << " as\n the number of viewing angles given by *antenna_los*.\n";
     error_found = true;
   }
 
@@ -452,10 +456,10 @@ void sensor_responseAntenna1D(
       // (modified by the antenna viewing directions) and mblock_za_grid,
       // store the value if it is lower than previous differences.
       za_dlow = min(za_dlow,
-        ((diag[i])[j](0,0)+antenna_za[i])-mblock_za_grid[0]);
+        ((diag[i])[j](0,0)+antenna_los(i,0))-mblock_za_grid[0]);
       za_dhigh = min(za_dhigh,
         last(mblock_za_grid)-(diag[i])[j]((diag[i])[j].nrows()-1,0)
-        -last(antenna_za));
+        -antenna_los(antenna_los.nrows()-1,0));
 
     }
   }
@@ -480,14 +484,14 @@ void sensor_responseAntenna1D(
 
   // Tell the user what is happening
   out2 << "  Calculating the antenna response using *antenna_diagram* and "
-       << "  zenith angles from *" << antenna_za_name << "*.";
+       << "  zenith angles from *antenna_los*.";
 
   // Create the response matrix for the antenna, this matrix will later be
   // multiplied with the original sensor_response matrix.
-  Index nout = sensor_response_f.nelem()*sensor_response_pol*antenna_za.nelem();
+  Index nout = sensor_response_f.nelem()*sensor_response_pol*antenna_los.nrows();
   Sparse antenna_response( nout, n);
-  antenna_transfer_matrix(antenna_response, sensor_response_za, diag,
-    sensor_response_f, antenna_za, sensor_response_pol, sensor_norm);
+  antenna_matrix(antenna_response, sensor_response_za, diag,
+    sensor_response_f, antenna_los(joker,0), sensor_response_pol, sensor_norm);
 
   // It's forbidden to have same matrix as input twice to mult and we
   // want to multiply antenna_response with sensor_response and store the
@@ -502,9 +506,9 @@ void sensor_responseAntenna1D(
        << "x" << sensor_response.ncols() << "\n";
 
   // Update some descriptive variables
-  sensor_response_za = antenna_za;
-  out3 << "  *sensor_response_za* set to *sensor_los* with *"
-       << antenna_za_name << "* added to it.\n";
+  sensor_response_za = antenna_los(joker,0);
+  out3 << "  *sensor_response_za* set to *sensor_los* with *antenna_los* "
+       << "added to it.\n";
 }
 
 //! sensor_responseBackend
@@ -599,7 +603,7 @@ void sensor_responseBackend(// WS Output:
   // Call the function that calculates the sensor transfer matrix.
   Sparse backend_response(f_backend.nelem()*n_za_pol,
     sensor_response_f.nelem()*n_za_pol);
-  spectrometer_transfer_matrix(backend_response,ch_response,
+  spectrometer_matrix(backend_response,ch_response,
     f_backend,sensor_response_f,sensor_response_za.nelem(),
     sensor_response_pol, sensor_norm);
 
@@ -638,7 +642,6 @@ void sensor_responseInit(// WS Output:
                          const Vector&      mblock_za_grid,
                          const Vector&      mblock_aa_grid,
                          const Index&       antenna_dim,
-                         const Matrix&      sensor_pol,
                          const Index&       atmosphere_dim,
                          const Index&       stokes_dim,
                          const Index&       sensor_norm )
@@ -665,9 +668,11 @@ void sensor_responseInit(// WS Output:
                       "The measurement block azimuthal angle grid is empty." );
       chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
     }
+  /* FIXME: sensor_pol should not be used here
   if( sensor_pol.ncols() != stokes_dim )
-    throw runtime_error( 
+    throw runtime_error(
          "The number of columns in *sensor_pol* must be equal *stokes_dim*." );
+  */
   if (sensor_norm!=1 && sensor_norm!=0)
     throw runtime_error(
       "The normalisation flag, *sensor_norm*, has to be either 0 or 1." );
@@ -706,7 +711,7 @@ void sensor_responseMixer(// WS Output:
                           // WS Input:
                           const Index&      sensor_response_pol,
                           const Vector&     sensor_response_za,
-                          const Numeric&    lo,
+                          const Vector&     lo,
                           const Index&      sensor_norm,
                           // WS Generic Input:
                           const Matrix&     filter,
@@ -763,8 +768,16 @@ void sensor_responseMixer(// WS Output:
     error_found = true;
   }
 
-  // Check that the lo frequency is within the sensor_response_f grid
-  if( lo<sensor_response_f[0] || lo>last(sensor_response_f) )
+  // Check that there is only one lo frequency and that it is within the
+  // sensor_response_f grid
+  if( lo.nelem()!=1 )
+  {
+    os << "Only one local oscillator frequency should be given when using\n"
+       << "the *sensor_responseMixer* method. This method only simulates\n"
+       << "one mixer/sideband filter unit.\n";
+    error_found = true;
+  }
+  if( lo[0]<sensor_response_f[0] || lo[0]>last(sensor_response_f) )
   {
     os << "The given local oscillator frequency is outside the sensor\n"
        << "frequency grid. It must be within the *sensor_response_f* grid.\n";
@@ -782,7 +795,7 @@ void sensor_responseMixer(// WS Output:
 
   //Call to calculating function
   Sparse mixer_response;
-  mixer_transfer_matrix( mixer_response, f_mixer, sensor_response_f, lo,
+  mixer_matrix( mixer_response, f_mixer, sensor_response_f, lo[0],
     filter, sensor_response_pol, sensor_response_za.nelem(), sensor_norm );
 
   // Here we need a temporary sparse that is copy of the sensor_response
@@ -801,6 +814,89 @@ void sensor_responseMixer(// WS Output:
   sensor_response_f = f_mixer;
   out3 << "  *sensor_response_f* set to *f_mixer*\n";
 }
+
+//! sensor_responseMultiMixerBackend
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2004-07-06
+*/
+void sensor_responseMultiMixerBackend(
+     // WS Output:
+     Sparse&                sensor_response,
+     Vector&                sensor_response_f,
+     Vector&                f_mixer,
+     // WS Input:
+     const Index&           sensor_response_pol,
+     const Vector&          sensor_response_za,
+     const Vector&          sensor_response_aa,
+     const Vector&          lo,
+     const Index&           sensor_norm,
+     const Vector&          f_backend,
+     const Matrix&          sensor_pol,
+     // WS Generic Input:
+     const Matrix&          sb_filter,
+     const ArrayOfMatrix&   ch_resp,
+     // WS Generic Input Names:
+     const String&          sb_filter_name,
+     const String&          ch_resp_name)
+{
+  // Check if a *lo* is given for each polarisation (row in *sensor_pol*).
+  if( lo.nelem()!=1 || lo.nelem()!=sensor_pol.nrows() )
+  {
+    ostringstream os;
+    os << "The number of elements in *lo* has to be either one or equal the\n"
+       << "number of polarisations given by *sensor_pol*.";
+    throw runtime_error(os.str());
+  }
+
+  // Check size of *sensor_response*
+  Index n_fap = sensor_response_f.nelem()*sensor_response_za.nelem()*
+    sensor_response_pol;
+  if( sensor_response_aa.nelem()!=0 )
+    n_fap *= sensor_response_aa.nelem();
+  if( sensor_response.nrows()!=n_fap )
+  {
+    ostringstream os;
+    os << "The sensor block response matrix *sensor_response* does not have\n"
+       << "the right size. Check that at least *sensor_responseInit* has been\n"
+       << "run prior to this method.\n";
+    throw runtime_error(os.str());
+  }
+
+
+
+
+  // Check if *f_backend* contains IF or RF. The frequency limit for IF
+  // is taken from ConvertIFToRF.
+  Numeric f_lim = 20e9;
+  Vector f_backend_tmp;
+  Index nf = f_backend.nelem();
+  if( max(f_backend) < f_lim )
+  {
+    // Channel centre frequencies given in IF, so we have to unfold them
+    // to get RF. Here we unfold them around zero, so all we have to do
+    // is to add the different *lo* elements.
+    f_backend_tmp.resize(nf*2);
+    f_backend_tmp[Range(nf-1,nf,-1)] = f_backend;
+    f_backend_tmp[Range(0,nf)] *= -1;
+    f_backend_tmp[Range(nf,nf)] = f_backend;
+  }
+  else
+  {
+    f_backend_tmp = f_backend;
+  }
+
+  // Dummies
+  f_mixer.nelem();
+  sb_filter.nrows();
+  ch_resp[0].nrows();
+  ostringstream os;
+  os << sb_filter_name << ch_resp_name << sensor_norm;
+
+}
+
 
 //! sensor_responsePolarisation
 /*!
@@ -885,12 +981,11 @@ void sensor_responsePolarisation(// WS Output:
   */
 
   // Output to the user.
-  out2 << "  Calculating the polarisation response using *sensor_pol* with\n"
-       << "  rotation from *sensor_rot*.\n";
+  out2 << "  Calculating the polarisation response using *sensor_pol*.\n";
 
   // Call to calculating function
   Sparse pol_response( sensor_pol.nrows()*n_f_a, stokes_dim*n_f_a );
-  polarisation_transfer_matrix( pol_response, sensor_pol,
+  polarisation_matrix( pol_response, sensor_pol,
     sensor_response_f.nelem(), sensor_response_za.nelem(), stokes_dim );
 
   // Multiply with sensor_response
@@ -914,9 +1009,16 @@ void sensor_responseRotation(// WS Output:
                              const Index&   antenna_dim,
                              const Index&   stokes_dim,
                              const Vector&  sensor_response_f,
-                             const Vector&  sensor_response_za,
-                             const Vector&  sensor_response_aa)
+                             const Vector&  sensor_response_za)
 {
+  // Check that at least 3 stokes components are simulated. This since no 2
+  // and 3 are weighted together.
+  if( stokes_dim<3 ) {
+    ostringstream os;
+    os << "For a rotating sensor *stokes_dim* has to be at least 3.";
+    throw runtime_error(os.str());
+  }
+
   // Check that the antenna dimension and the columns of antenna_los is ok.
   if( antenna_dim!=antenna_los.ncols() ) {
     ostringstream os;
@@ -928,27 +1030,45 @@ void sensor_responseRotation(// WS Output:
 
   // Check that the incoming sensor response matrix has the right size. Here
   // we use *stokes_dim* instead of *sensor_response_pol* since this function
-  // should be used on the 'raw' stokes components.
-  Index n = stokes_dim*sensor_response_f.nelem()*sensor_response_za.nelem();
-  if( antenna_dim==1 )
-    n *= sensor_response_aa.nelem();
-  if( sensor_response.ncols()!=n ) {
+  // should be used on the 'raw' stokes components. Also check that a antenna
+  // response has been run prior to this method.
+  // NOTE: Here we test that sensor_response_za has the same length as
+  // antenna_los number of rows. Because for 1D, 2D and 3D cases the zenith
+  // angles are allways represented (so far).
+  Index n = stokes_dim*antenna_los.nrows()*sensor_response_f.nelem();
+  if( sensor_response.nrows()!=n ||
+      sensor_response_za.nelem()!=antenna_los.nrows() ) {
     ostringstream os;
-    os << "The size of *sensor_response* is wrong. Either sensor_responseInit\n"
-       << "has not been run or sensor_responsePolarisation has been run prior\n"
-       << "to sensor_responseRotation.";
+    os << "A sensor_response antenna function has to be run prior to\n"
+       << "*sensor_responseRotation*.";
     throw runtime_error(os.str());
   }
 
   // Check the size of *sensor_rot* vs. the number rows of *antenna_los*.
-  if( sensor_rot.nelem()!=1 || sensor_rot.nelem()!=antenna_los.nrows() ) {
+  if( sensor_rot.nelem()!=1 && sensor_rot.nelem()!=antenna_los.nrows() ) {
     ostringstream os;
     os << "The size of *sensor_rot* and number of rows in *antenna_los* has\n"
        << "to be equal.";
     throw runtime_error(os.str());
   }
 
-  // Setup L-matrix, iterate through rotation and insert in sensor_response
+  // Output to the user.
+  out2 << "  Calculating the rotation response with rotation from "
+       << "*sensor_rot*.\n";
 
+  // Setup L-matrix, iterate through rotation and insert in sensor_response
+  Sparse rot_resp( n, n);
+  rotation_matrix(rot_resp, sensor_rot, sensor_response_f.nelem(),
+    stokes_dim );
+
+  // Multiply with sensor_response
+  Sparse tmp = sensor_response;
+  sensor_response.resize( n, tmp.ncols());
+  mult( sensor_response, rot_resp, tmp);
+
+  // Some extra output.
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
 
 }
+

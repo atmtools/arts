@@ -48,12 +48,13 @@
 //#include "special_interp.h"
 
   extern const Numeric DEG2RAD;
+  extern const Numeric PI;
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! antenna_transfer_matrix
+//! antenna_matrix
 /*!
    Constructs the sparse matrix that multiplied with the spectral values
    for one or several line-of-sights models the antenna transfer matrix.
@@ -84,7 +85,7 @@
    \author Mattias Ekström
    \date   2003-04-09
 */
-void antenna_transfer_matrix( Sparse&   H,
+void antenna_matrix( Sparse&   H,
                       ConstVectorView   m_za,
           const ArrayOfArrayOfMatrix&   diag,
                       ConstVectorView   x_f,
@@ -239,7 +240,7 @@ void merge_grids(
 }
 */
 
-//! mixer_transfer_matrix
+//! mixer_matrix
 /*!
    Sets up the sparse matrix that models the response from sideband filtering
    and the mixer.
@@ -264,7 +265,7 @@ void merge_grids(
    \author Mattias Ekström
    \date   2003-05-27
 */
-void mixer_transfer_matrix(
+void mixer_matrix(
               Sparse&   H,
               Vector&   f_mixer,
       ConstVectorView   f_grid,
@@ -354,7 +355,177 @@ void mixer_transfer_matrix(
   }
 }
 
-//! polarisation_transfer_matrix
+//! multi_mixer_matrix
+/*!
+   Sets up the transfer matrix for multiple mixer configurations. It includes
+   the sidebandfilter and the backend.
+
+   The channel frequencies should be given in the RF domain.
+
+   The number of local oscillator frequencies must equal the number of
+   polarisations.
+
+   The size of the matrix has to be correct before calling this function.
+     nrows = number of channel frequencies times polarisations and angles.
+     ncols = number of monochromatic frequencies times polarisation and angles.
+
+   \param  H         The multiple mixer transfer matrix
+   \param  f_mono    The monochromatic frequency vector
+   \param  f_ch      The channel centre frequency vector
+   \param  lo        The local oscillator frequency vector
+   \param  sb_filter The sideband filter matrix
+   \param  ch_resp   The backend channel response array of matrices
+   \param  n_za      The number of zenith angles
+   \param  n_aa      The number of azimuth angles
+   \param  n_pol     The number of polarisations
+
+   \author Mattias Ekström
+   \date   2004-07-07
+*/
+void multi_mixer_matrix(
+     Sparse&                H,
+     ConstVectorView        f_mono,
+     ConstVectorView        f_ch,
+     ConstVectorView        lo,
+     ConstMatrixView        sb_filter,
+     const ArrayOfMatrix&   ch_resp,
+     const Index&           n_za,
+     const Index&           n_aa,
+     const Index&           n_pol)
+{
+  // Check that the transfer matrix has the right size
+  assert (H.nrows()==f_ch.nelem()*n_za*n_aa*n_pol);
+  assert (H.ncols()==f_mono.nelem()*n_za*n_aa*n_pol);
+
+  // Assert that the number of *lo* elements equal the number of
+  // polarisations
+  assert (lo.nelem()==n_pol);
+
+  // Check that the channel response has the right number of elements
+  // and if the same response will be used for all frequencies or if
+  // there is one response for each frequency.
+  assert (ch_resp.nelem()==1 || ch_resp.nelem()==n_pol);
+  Index pol_single = 0;
+  if (ch_resp.nelem()==1)
+    pol_single = 1;
+
+  // Allocate memory for temporary vectors, temp_long is used to store the
+  // expanded result from sensor_integration_vector before inserting them in
+  // the transfer matrix. The second vector, temp, is used for the output
+  // from sensor_integration_vector.
+  Vector temp_long(f_mono.nelem()*n_za*n_aa*n_pol, 0.0);
+  Vector temp(f_mono.nelem(), 0.0);
+
+  // Loop over *lo* frequencies (and polarisations) and calculate responses.
+  // Here we definitely have different responses for different polarisations.
+  for (Index l=0; l<lo.nelem(); l++)
+  {
+    //Check if matrix has one frequency column or one for every channel
+    // frequency
+    assert (ch_resp[l].ncols()==2 ||
+            ch_resp[l].ncols()==f_ch.nelem()+1);
+    Index freq_full = 1;
+    if (ch_resp[l].ncols()==2)
+      freq_full = 0;
+
+    // Loop over channel frequencies
+    for (Index f=0; f<f_ch.nelem(); f++)
+    {
+      // Create temporary vector that holds the primary and mirrored channel
+      // response
+      Index nr = ch_resp[l].nrows();
+      Index nc = ch_resp[l].ncols();
+      Matrix tmp_resp(nr+2,nc);
+      tmp_resp(Range(0,nr),joker)=ch_resp[l];
+      tmp_resp(Range(0,nr),0) += f_ch[l];
+      /*
+        Here we add two extra grid points in between to ensure that we have
+        zero response outside the given fields.
+        FIXME: Preferably we would use the smallest value for Numeric
+        (FLT_MIN, DBL_MIN), but for now we use the distance between the last
+        gridpoints divided with some factor.
+      */
+      Numeric d_resp = ch_resp[l](nr-1,0)-ch_resp[l](nr-2,0);
+      d_resp /= 1000;
+      tmp_resp(nr,0)=ch_resp[l](nr-1,0)+d_resp;
+      tmp_resp(nr,Range(1,joker)) = 0.0;
+      tmp_resp(nr+1,0)=2*lo[l]-ch_resp[l](nr-1,0)-d_resp;
+      tmp_resp(nr+1,Range(1,joker)) = 0.0;
+      tmp_resp(Range(tmp_resp.nrows()-1,nr,-1),joker)=ch_resp[l];
+      tmp_resp(Range(nr+2,nr),0) += 2*lo[l]-f_ch[l];
+
+      // Call sensor_integration matrix
+
+      // Apply sideband filter
+      sb_filter.nrows();
+
+      // Distribute for all azimuth angles
+
+      // Distribute for all zenith angles
+
+    }
+  }
+
+  /*
+  // Loop over elements in ch_response and calculate responses, if the same
+  // response applies to all polarisations run inner loop once and
+  // distribute values. Initialise a temporary vector for the frequency
+  // grid shifted by channel frequency
+  for (Index p=0;p<ch_resp.nelem();p++) {
+    Vector ch_resp_f(ch_resp[p].nrows());
+
+    //Check if matrix has one frequency column or one for every channel
+    // frequency
+    assert (ch_resp[p].ncols()==2 ||
+            ch_resp[p].ncols()==f_ch.nelem()+1);
+    Index freq_full = 1;
+    if (ch_resp[p].ncols()==2)
+      freq_full = 0;
+
+    //Calculate the sensor integration vector and put values in the temporary
+    //vector, then copy vector to the transfer matrix
+    for (Index i=0; i<f_ch.nelem(); i++) {
+      //The spectrometer response is shifted for each centre frequency step
+      ch_resp_f = ch_resp[p](joker,0);
+      ch_resp_f += f_ch[i];
+
+      // Call sensor_integration_vector and store it in the temp vector
+      sensor_integration_vector(temp,ch_resp[p](joker,1+i*freq_full),
+        ch_resp_f,f_mono);
+
+      // Normalise if flag is set
+      if (do_norm)
+        temp /= temp.sum();
+
+      // Loop over the viewing angles, here we only need on computation
+      // which is then copied to all angles.
+      for (Index za=0;za<n_za;za++) {
+        // Here we loop if pol_single == 1, that is if the same response
+        // apply to all polarisations. If pol_single == 0 the outermost
+        // loop over polarisations take care of this.
+        for (Index p_tmp=0;p_tmp<=(n_pol-1)*pol_single;p_tmp++) {
+          // Get the current polarisation index, this works since
+          // either we are looping over p_tmp or pol_single is zero
+          // and we are looping over p.
+          Index p_this = p_tmp+p*(1-pol_single);
+
+          // Distribute the compact temp vector into temp_long
+          temp_long[Range(n_pol*f_mono.nelem()*za+p_this,
+            f_mono.nelem(),n_pol)] = temp;
+
+          // Insert temp_long into H at the correct row
+          H.insert_row(n_pol*f_ch.nelem()*za+i*n_pol+p_this,temp_long);
+
+          // Reset temp_long to zero.
+          temp_long = 0.0;
+        }
+      }
+    }
+  }
+  */
+}
+
+//! polarisation_matrix
 /*!
    Sets up the polarisation transfer matrix from stokes vectors describing
    the sensor polarisation.
@@ -375,7 +546,7 @@ void mixer_transfer_matrix(
    \author Mattias Ekström
    \date   2004-06-02
 */
-void polarisation_transfer_matrix(
+void polarisation_matrix(
               Sparse&   H,
       ConstMatrixView   pol,
           const Index   n_f,
@@ -406,6 +577,62 @@ void polarisation_transfer_matrix(
 
           if ( pol(p,d)!=0.0 )
             H.rw(za*n_f*n_pol+f*n_pol+p,za*n_f*dim+f*dim+d)=pol_half(p,d);
+        }
+      }
+    }
+  }
+}
+
+
+//! rotation_matrix
+/*!
+   Sets up the rotation transfer matrix from the sensor rotation vector.
+
+   The sensor rotation vector should contain the rotation for each
+   direction. It is coupled with the antenna line-of-sight and has to have the
+   same number of elements/rows.
+
+   The size of the transfer matrix has to be set up before calling the function
+   and it is a quadratic matrix with sizes equal the product of stokes_dim and
+   number of antenna line-of-sight (number of rotations).
+
+   \param   H         The polarisation transfer matrix
+   \param   rot       The polarisation matrix
+   \param   n_f       The number of frequencies
+   \param   dim       The stokes dimension
+
+   \author Mattias Ekström
+   \date   2004-06-02
+*/
+void rotation_matrix(
+              Sparse&   H,
+      ConstVectorView   rot,
+          const Index   n_f,
+          const Index   dim )
+{
+  // Assert that the matrix has the right size
+  assert( H.nrows()==H.ncols() );
+  assert( H.nrows()==dim*n_f*rot.nelem() );
+
+  // Setup the L matrix for each rotation and distribute the elements for
+  // all frequencies in the rotation matrix.
+  Matrix L(dim,dim,0.0);
+  if( dim==4 )
+    L(3,3) = 1.0;
+  L(0,0) = 1.0;
+  Index tmp;
+
+  for( Index rit=0; rit<rot.nelem(); rit++ ) {
+    L(1,1) = cos(2*rot[rit]*PI/180.);
+    L(2,2) = L(1,1);
+    L(1,2) = sin(2*rot[rit]*PI/180.);
+    L(2,1) = -L(1,2);
+
+    for( Index fit=0; fit<n_f; fit++ ) {
+      for( Index Lcit=0; Lcit<dim; Lcit++ ) {
+        for( Index Lrit=0; Lrit<dim; Lrit++ ) {
+          tmp = (rit*n_f+fit)*dim;
+          H.rw(tmp+Lrit,tmp+Lcit)=L(Lrit,Lcit);
         }
       }
     }
@@ -628,7 +855,7 @@ void sensor_summation_vector(
 
 }
 
-//! spectrometer_transfer_matrix
+//! spectrometer_matrix
 /*!
    Constructs the sparse matrix that multiplied with the spectral values
    gives the spectra from the spectrometer.
@@ -659,7 +886,7 @@ void sensor_summation_vector(
    \author Mattias Ekström
    \date   2003-08-26
 */
-void spectrometer_transfer_matrix( Sparse&                H,
+void spectrometer_matrix( Sparse&                H,
                                    const ArrayOfMatrix&   ch_response,
                                    ConstVectorView        ch_f,
                                    ConstVectorView        sensor_f,

@@ -3088,7 +3088,7 @@ md_data_raw.push_back
                t_field_, r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
                scat_i_p_, scat_i_lat_, scat_i_lon_, 
                scat_za_grid_, scat_aa_grid_, sensor_response_,
-               sensor_pos_, sensor_los_, sensor_rot_, f_grid_, stokes_dim_,
+               sensor_pos_, sensor_los_, f_grid_, stokes_dim_,
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_, 
                scat_za_interp_),
         GOUTPUT(),
@@ -3542,9 +3542,8 @@ md_data_raw.push_back
          "   mblock_aa_grid  : Empty."
         ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
-                sensor_response_aa_, sensor_response_pol_, sensor_pol_,
-                sensor_rot_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_,
-                sensor_norm_ ),
+                sensor_response_aa_, sensor_response_pol_, sensor_rot_,
+                antenna_dim_, mblock_za_grid_, mblock_aa_grid_, sensor_norm_ ),
         INPUT( atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_,
                f_grid_ ),
         GOUTPUT(),
@@ -3616,7 +3615,7 @@ md_data_raw.push_back
          "ArrayOfMatrix then contains antenna diagrams for each polarisation\n"
          "given by the rows of *sensor_pol* and at the top level, the\n"
          "*antenna_diagram* contains antenna diagrams for each viewing angle\n"
-         "of the antennas/beams described by the generic input Vector.\n"
+         "of the antennas/beams described by *antenna_los*.\n"
          "\n"
          "The individual antenna diagrams, described by the matrices,\n"
          "contain at least two columns where the first column describes a\n"
@@ -3628,15 +3627,12 @@ md_data_raw.push_back
          "this element/column will then be used for all directions/-\n"
          "polarisations/frequencies. Or else each direction/polarisation/-\n"
          "frequency is given its individual element/column.\n"
-         "\n"
-         "Generic Input: \n"
-         "   Vector : The antenna/beam zenith angle grid."
         ),
         OUTPUT( sensor_response_, sensor_response_za_ ),
         INPUT( sensor_response_f_, sensor_response_pol_, mblock_za_grid_,
-               antenna_dim_, antenna_diagram_, sensor_norm_ ),
+               antenna_dim_, antenna_diagram_, sensor_norm_, antenna_los_ ),
         GOUTPUT( ),
-        GINPUT( Vector_ ),
+        GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
@@ -3688,7 +3684,7 @@ md_data_raw.push_back
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
                 sensor_response_aa_, sensor_response_pol_  ),
         INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
-               sensor_pol_, atmosphere_dim_, stokes_dim_, sensor_norm_ ),
+               atmosphere_dim_, stokes_dim_, sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -3721,6 +3717,52 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("sensor_responseMultiMixerBackend"),
+        DESCRIPTION
+        (
+         "Returns the response block matrix after it has been modified by\n"
+         "a mixer-sideband filter-spectrometer configuration, where several\n"
+         "mixers are allowed.\n"
+         "\n"
+         "The returned matrix converts RF to\n"
+         "IF.\n"
+         "\n"
+         "The sideband filter is represented by the generic input matrix,\n"
+         "is a two-column matrix where the first column should be equal to\n"
+         "*f_grid* and the second column desrcibes the sideband filter\n"
+         "function.\n"
+         "\n"
+         "The local oscillator frequencies is set by the WSV *lo*.\n"
+         "\n"
+         "The channel response is given as the generic input array of\n"
+         "matrices, where each element in the array represent different\n"
+         "polarisations given by *sensor_pol*. The individual matrices\n"
+         "describe the channel responses as function of frequency, where the\n"
+         "first column describes a relative grid of frequencies and the rest\n"
+         "of the columns describe the backend response.\n"
+         "\n"
+         "For each level, the response can be described in two ways. Either\n"
+         "one single array element/matrix column is given and then used for\n"
+         "each polarisation/frequency. Or a complete set of array\n"
+         "elements/matrix columns covering all polarisations/frequencies are\n"
+         "given and in each case a individual response will be used.\n"
+         "Note that for both cases there must allways be a column in the\n"
+         "matrices, the first, of a relative frequency grid.\n"
+         "\n"
+         "Generic Input: \n"
+         "         Matrix : The sideband filter response matrix."
+         "  ArrayOfMatrix : The backend channel response."
+        ),
+        OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
+        INPUT( sensor_response_pol_, sensor_response_za_, sensor_response_aa_,
+               lo_, sensor_norm_, f_backend_, sensor_pol_ ),
+        GOUTPUT( ),
+        GINPUT( Matrix_, ArrayOfMatrix_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("sensor_responsePolarisation"),
         DESCRIPTION
         (
@@ -3747,11 +3789,12 @@ md_data_raw.push_back
          "The rotations are performed within each measurement block for the\n"
          "individual antennae.\n"
          "\n"
-         "If used this method has to be run prior to sensor_responsePolarisation."
+         "If used this method has to be run after the antenna response\n"
+         "function and prior to sensor_responsePolarisation."
         ),
         OUTPUT( sensor_response_ ),
         INPUT( sensor_rot_, antenna_los_, antenna_dim_, stokes_dim_,
-               sensor_response_f_, sensor_response_za_, sensor_response_aa_ ),
+               sensor_response_f_, sensor_response_za_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),

@@ -143,7 +143,6 @@ void rte_calc(
         const Sparse&         sensor_response,
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los,
-        const Vector&         sensor_rot,
         const Vector&         f_grid,
         const Index&          stokes_dim,
         const Index&          antenna_dim,

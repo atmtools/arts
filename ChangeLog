@@ -1,3 +1,30 @@
+2004-07-09  Mattias Ekström <ekstrom@rss.chalmers.se>
+
+	* src/methods.cc: Removed sensor_pol as input to RteCalc.
+	Added sensor_responseMultiMixerBackend, which intended to
+	be used instead of sensor_responseMixer and
+	sensor_responseBackend whenever there are more than one
+	mixer in the sensor configuration.
+	Implemented sensor_responseRotation
+
+	* src/m_sensor.cc: Removed sensor_pol as a required WSV and
+	adjusted calls to sensor matrix functions.
+
+	* src/rte.[cc,h]: Removed sensor_pol as input to rte_calc.
+
+	* src/[montecarlo,m_cloudbox].cc: Removed sensor_rot dummy
+	variables and in calls to rte_calc.
+
+	* src/sensor.[cc,h]: Changed from *_transfer_matrix to
+	*_matrix. Added multi_mixer_matrix. Implemented
+	rotation_matrix that called by sensor_responseRotation.
+
+	* src/test_sensor.cc: Adjusted calls to sensor matrix
+	functions.
+
+	* src/workspace.cc: Changed *lo* from numeric to vector for
+	use with multiple mixer configuration.
+
 2004-07-07  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-844

@@ -1665,7 +1665,7 @@ void CloudboxGetIncoming(// WS Output:
   bool     apply_sensor = false;
   Vector   mblock_za_grid_dummy(1);
            mblock_za_grid_dummy[0] = 0;
-  Vector   mblock_aa_grid_dummy(0), sensor_rot_dummy(0);
+  Vector   mblock_aa_grid_dummy(0);
   Index    antenna_dim_dummy = 1;
   Sparse   sensor_response_dummy;
 
@@ -1720,7 +1720,7 @@ void CloudboxGetIncoming(// WS Output:
                z_surface, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
                scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid, scat_aa_grid,
                sensor_response_dummy, sensor_pos, sensor_los,
-               sensor_rot_dummy, f_grid, stokes_dim, antenna_dim_dummy,
+               f_grid, stokes_dim, antenna_dim_dummy,
                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                check_input, apply_sensor, 1, 0 );
 
@@ -1751,7 +1751,7 @@ void CloudboxGetIncoming(// WS Output:
                  scat_i_lat_dummy,
                  scat_i_lon_dummy, scat_za_grid, scat_aa_grid,
                  sensor_response_dummy, sensor_pos, sensor_los,
-                 sensor_rot_dummy, f_grid, stokes_dim, antenna_dim_dummy,
+                 f_grid, stokes_dim, antenna_dim_dummy,
                  mblock_za_grid_dummy, mblock_aa_grid_dummy,
                     check_input, apply_sensor, 1, 0 );
 
@@ -1846,7 +1846,7 @@ void CloudboxGetIncoming(// WS Output:
                                cloudbox_limits, scat_i_p_dummy,
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid, aa_grid, sensor_response_dummy,
-                               sensor_pos, sensor_los, sensor_rot_dummy,
+                               sensor_pos, sensor_los,
                                f_grid, stokes_dim, antenna_dim_dummy,
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                check_input, apply_sensor, 1, 0 );
@@ -1901,7 +1901,7 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, sensor_rot_dummy, f_grid,
+                               sensor_los, f_grid,
                                stokes_dim, antenna_dim_dummy,
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                 check_input, apply_sensor, 1, 0 );
@@ -1954,7 +1954,7 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, sensor_rot_dummy,
+                               sensor_los,
                                f_grid, stokes_dim, antenna_dim_dummy,
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                 check_input, apply_sensor, 1, 0 );
@@ -2007,7 +2007,7 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, sensor_rot_dummy,
+                               sensor_los,
                                f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                 check_input, apply_sensor, 1, 0 );
@@ -2060,7 +2060,7 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, sensor_rot_dummy,
+                               sensor_los,
                                f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                 check_input, apply_sensor, 1, 0 );
@@ -2113,7 +2113,7 @@ void CloudboxGetIncoming(// WS Output:
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
                                aa_grid, sensor_response_dummy, sensor_pos,
-                               sensor_los, sensor_rot_dummy,
+                               sensor_los,
                                f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
                                 check_input, apply_sensor, 1, 0 );
@@ -2225,7 +2225,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
   bool     apply_sensor = false;
   Vector   mblock_za_grid_dummy(1);
            mblock_za_grid_dummy[0] = 0;
-  Vector   mblock_aa_grid_dummy(0), sensor_rot_dummy(0);
+  Vector   mblock_aa_grid_dummy(0);
   Index    antenna_dim_dummy = 1;
   Sparse   sensor_response_dummy;
 
@@ -2306,7 +2306,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                 scat_i_lat_dummy, scat_i_lon_dummy,
                 scat_za_grid,
                 aa_grid, sensor_response_dummy, sensor_pos,
-                sensor_los, sensor_rot_dummy,
+                sensor_los,
                 f_grid, stokes_dim, 
                 antenna_dim_dummy, 
                 mblock_za_grid_dummy, mblock_aa_grid_dummy, 
@@ -2357,7 +2357,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                 scat_i_lat_dummy, scat_i_lon_dummy,
                 scat_za_grid,
                 aa_grid, sensor_response_dummy, sensor_pos,
-                sensor_los, sensor_rot_dummy,
+                sensor_los,
                 f_grid, stokes_dim, antenna_dim_dummy, 
                 mblock_za_grid_dummy, mblock_aa_grid_dummy,
                 check_input, apply_sensor, 1, 0 );
@@ -2410,7 +2410,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                     scat_i_lat_dummy, scat_i_lon_dummy,
                     scat_za_grid,
                     aa_grid, sensor_response_dummy, sensor_pos,
-                    sensor_los, sensor_rot_dummy,
+                    sensor_los,
                     f_grid, stokes_dim, antenna_dim_dummy, 
                     mblock_za_grid_dummy, mblock_aa_grid_dummy,
                     check_input, apply_sensor, 1, 0 );
@@ -2461,7 +2461,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                     scat_i_lat_dummy, scat_i_lon_dummy,
                     scat_za_grid,
                     aa_grid, sensor_response_dummy, sensor_pos,
-                    sensor_los, sensor_rot_dummy,
+                    sensor_los,
                     f_grid, stokes_dim, antenna_dim_dummy, 
                     mblock_za_grid_dummy, mblock_aa_grid_dummy,
                     check_input, apply_sensor, 1, 0 );
@@ -2509,8 +2509,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                     scat_i_lat_dummy, scat_i_lon_dummy,
                     scat_za_grid,
                     aa_grid, sensor_response_dummy, sensor_pos,
-                    sensor_los, sensor_rot_dummy,
-                    f_grid, stokes_dim, antenna_dim_dummy, 
+                    sensor_los, f_grid, stokes_dim, antenna_dim_dummy,
                     mblock_za_grid_dummy, mblock_aa_grid_dummy,
                     check_input, apply_sensor, 1, 0 );
 
@@ -2556,7 +2555,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                     scat_i_lat_dummy, scat_i_lon_dummy,
                     scat_za_grid,
                     aa_grid, sensor_response_dummy, sensor_pos,
-                    sensor_los, sensor_rot_dummy,
+                    sensor_los, 
                     f_grid, stokes_dim, antenna_dim_dummy, 
                     mblock_za_grid_dummy, mblock_aa_grid_dummy,
                     check_input, apply_sensor, 1, 0 );

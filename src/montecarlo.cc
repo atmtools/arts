@@ -138,7 +138,7 @@ void Cloudbox_ppath_rteCalc(
   // Assign dummies for variables associated with sensor.
   Vector   mblock_za_grid_dummy(1);
            mblock_za_grid_dummy[0] = 0;
-  Vector   mblock_aa_grid_dummy(0), sensor_rot_dummy(0);
+  Vector   mblock_aa_grid_dummy(0);
   Index    antenna_dim_dummy = 1;
   Sparse   sensor_response_dummy;
 
@@ -197,7 +197,7 @@ void Cloudbox_ppath_rteCalc(
             r_geoid, z_ground, cloudbox_on_dummy, cloudbox_limits, 
             scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
             scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
-            sensor_rot_dummy, f_grid,stokes_dim, antenna_dim_dummy,
+            f_grid,stokes_dim, antenna_dim_dummy,
             mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
   
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(i_rte(0,i)));}
@@ -674,7 +674,7 @@ void montecarloGetIncoming(
   // Assign dummies for variables associated with sensor.
   Vector   mblock_za_grid_dummy(1);
   mblock_za_grid_dummy[0] = 0;
-  Vector   mblock_aa_grid_dummy(0), sensor_rot_dummy(0);
+  Vector   mblock_aa_grid_dummy(0);
   Index    antenna_dim_dummy = 1;
   Sparse   sensor_response_dummy;
   
@@ -703,7 +703,7 @@ void montecarloGetIncoming(
             r_geoid, z_ground, cloudbox_on_dummy, cloudbox_limits, 
             scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
             scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
-            sensor_rot_dummy, f_grid,stokes_dim, antenna_dim_dummy,
+            f_grid,stokes_dim, antenna_dim_dummy,
             mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
   
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(i_rte(0,i)));}

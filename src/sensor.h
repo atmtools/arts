@@ -50,7 +50,7 @@
   === Functions from sensor.cc
   ===========================================================================*/
 
-void antenna_transfer_matrix(
+void antenna_matrix(
                       Sparse&   H,
               ConstVectorView   m_za,
   const ArrayOfArrayOfMatrix&   diag,
@@ -66,7 +66,7 @@ void merge_grids(
       ConstVectorView   rel );
 */
 
-void mixer_transfer_matrix(
+void mixer_matrix(
               Sparse&   H,
               Vector&   f_mixer,
       ConstVectorView   f_grid,
@@ -76,11 +76,28 @@ void mixer_transfer_matrix(
           const Index   n_za,
           const Index   do_norm );
 
-void polarisation_transfer_matrix(
+void multi_mixer_matrix(
+     Sparse&                H,
+     ConstVectorView        f_mono,
+     ConstVectorView        f_ch,
+     ConstVectorView        lo,
+     ConstMatrixView        sb_filter,
+     const ArrayOfMatrix&   ch_resp,
+     const Index&           n_za,
+     const Index&           n_aa,
+     const Index&           n_pol);
+
+void polarisation_matrix(
               Sparse&   H,
       ConstMatrixView   pol,
           const Index   n_f,
           const Index   n_za,
+          const Index   dim );
+
+void rotation_matrix(
+              Sparse&   H,
+      ConstVectorView   rot,
+          const Index   n_f,
           const Index   dim );
 
 void scale_antenna_diagram(
@@ -102,7 +119,7 @@ void sensor_summation_vector(
         const Numeric   lo,
       ConstMatrixView   sfrm );
 
-void spectrometer_transfer_matrix(
+void spectrometer_matrix(
               Sparse&   H,
  const ArrayOfMatrix&   ch_response,
       ConstVectorView   ch_f,

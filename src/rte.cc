@@ -239,9 +239,8 @@ void get_radiative_background(
 
             // Use some local variables to avoid unwanted side effects
             Vector   y_local;
-            
+
             // Use a dummy variables for the sensor
-            Vector   sensor_rot;
             Sparse   sensor_response;
             Index    antenna_dim = 1;
             Vector   mblock_za_grid(1,0);
@@ -261,7 +260,7 @@ void get_radiative_background(
                    cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat,
                    scat_i_lon, scat_za_grid, scat_aa_grid, 
                    sensor_response, sensor_pos, sensor_los,
-                          sensor_rot, f_grid, stokes_dim, antenna_dim,
+                          f_grid, stokes_dim, antenna_dim,
                           mblock_za_grid, mblock_aa_grid, false, false, 
                           agenda_verb, 0 );
 
@@ -588,7 +587,6 @@ void rte_calc(
         const Sparse&         sensor_response,
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los,
-        const Vector&         sensor_rot,
         const Vector&         f_grid,
         const Index&          stokes_dim,
         const Index&          antenna_dim,
@@ -729,12 +727,9 @@ void rte_calc(
              << "response methods has not been correctly configured.";
           throw runtime_error( os.str() );
         }
-      if( sensor_rot.nelem() != nmblock )
-          throw runtime_error( 
-                       "The length of *sensor_rot* must match *sensor_pos*." );
       }
 
-      // Sensor position and LOS. 
+      // Sensor position and LOS.
       //
       // That the angles are inside OK ranges are checked inside ppathCalc.
       //
