@@ -12,7 +12,7 @@ artsdocdir = $(pkgdatadir)/doc
 
 thisdocdir = $(artsdocdir)/doxygen/latex
 
-thisdoc_DATA         = refman.ps
+#thisdoc_DATA         = refman.ps
 
 #EXTRA_DIST           = $(wildcard *.tex *.eps doxygen.sty refman.dvi refman.ps)
 
