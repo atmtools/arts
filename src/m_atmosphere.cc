@@ -44,6 +44,8 @@
 #include "agenda_class.h"
 #include "arts.h"
 #include "check_input.h"
+#include "interpolation.h"
+#include "physics_funcs.h"
 #include "matpackI.h"
 #include "messages.h"
 
@@ -127,6 +129,70 @@ void AtmosphereSet3D(
   atmosphere_dim = 3;
   latitude_1d = -999;
   meridian_angle_1d = -999;
+}
+
+
+
+//! GroundTreatAsBlackbody
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-09-17
+*/
+void GroundTreatAsBlackbody(
+              Matrix&    ground_emission, 
+              Matrix&    ground_los, 
+              Tensor4&   ground_refl_coeffs,
+        const Vector&    f_grid,
+	const Index&     stokes_dim,
+	const GridPos&   a_gp_p,
+	const GridPos&   a_gp_lat,
+	const GridPos&   a_gp_lon,
+        const Index&     atmosphere_dim,
+        const Vector&    p_grid,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Tensor3&   t_field )
+{
+  // Set ground_los and ground_refl_coeffs to be empty as no downwelling
+  // spectra shall be calculated
+  ground_los.resize(0,0);
+  ground_refl_coeffs.resize(0,0,0,0);
+  
+  // Some sizes
+  const Index   nf = f_grid.nelem();
+
+  // Resize ground_emission.
+  ground_emission.resize(nf,stokes_dim);
+
+  // Determine the temperature at the point of the ground reflection
+  //
+  Vector t(1);
+  //
+  ArrayOfGridPos   agp_p(1), agp_lat(0), agp_lon(0);
+  gridpos_copy( agp_p[0], a_gp_p );
+  if( atmosphere_dim > 1 )
+    { 
+      agp_lat.resize(1);
+      gridpos_copy( agp_lat[0], a_gp_lat ); 
+    } 
+  if( atmosphere_dim > 2 )
+    { 
+      agp_lon.resize(1);
+      gridpos_copy( agp_lon[0], a_gp_lon ); 
+    }
+  //
+  interp_atmfield( t, atmosphere_dim, p_grid, lat_grid, lon_grid,
+      	                         t_field, "t_field", agp_p, agp_lat, agp_lon );
+
+  // Fill ground_emission with unpolarised blackbody radiation
+  for( Index i=0; i<nf; i++ )
+    { 
+      ground_emission(i,0) = planck( f_grid[i], t[0] ); 
+      for( Index is=1; is<stokes_dim; is++ )
+	{ ground_emission(i,is) = 0; }
+    }
 }
 
 

@@ -51,20 +51,48 @@
   === Functions in rte.cc
   ===========================================================================*/
 
-void set_to_radiative_background(
+void rte_step_clearsky_with_emission(
+	      Vector&       stokes_vec,		       
+        const Index&        stokes_dim,
+	ConstMatrixView&    ext_mat_gas,
+	ConstVectorView&    abs_vec_gas,
+	const Numeric&      l_step,
+        const Numeric&      a_planck_value );
+
+void get_radiative_background(
               Matrix&         i_rte,
-              Matrix&         i_space,
+	      Ppath&          ppath_step,
 	      Vector&         a_pos,
 	      Vector&         a_los,
+	      GridPos&        a_gp_p,
+	      GridPos&        a_gp_lat,
+	      GridPos&        a_gp_lon,
+              Matrix&         i_space,
               Matrix&         ground_emission, 
               Matrix&         ground_los, 
 	      Tensor4&        ground_refl_coeffs,
+	const Ppath&          ppath,
+	const Index&          mblock_index,
+	const Agenda&         ppath_step_agenda,
+	const Agenda&         rte_agenda,
 	const Agenda&         i_space_agenda,
 	const Agenda&         ground_refl_agenda,
-	const Ppath&          ppath,
-        const Vector&         f_grid,
-	const Index&          stokes_dim );
-
-
+        const Index&          atmosphere_dim,
+        ConstVectorView       p_grid,
+        ConstVectorView       lat_grid,
+        ConstVectorView       lon_grid,
+        const Tensor3&        z_field,
+        ConstMatrixView       r_geoid,
+        ConstMatrixView       z_ground,
+        const Index&          cloudbox_on, 
+        const ArrayOfIndex&   cloudbox_limits,
+        const Tensor7&        scat_i_p,
+        const Tensor7&        scat_i_lat,
+        const Tensor7&        scat_i_lon,
+        ConstVectorView       scat_za_grid,
+        ConstVectorView       scat_aa_grid,
+        ConstVectorView       f_grid,
+	const Index&          stokes_dim,
+	const Index&          antenna_dim );
 
 #endif  // rte_h

@@ -66,11 +66,21 @@
 */
 void CloudboxOff(
         // WS Output:
-        Index&          cloudbox_on,
-        ArrayOfIndex&   cloudbox_limits )
+        Index&           cloudbox_on,
+        ArrayOfIndex&    cloudbox_limits,
+        Tensor7&   	 scat_i_p,
+        Tensor7&   	 scat_i_lat,
+        Tensor7&   	 scat_i_lon,
+        Vector&    	 scat_za_grid,
+        Vector&    	 scat_aa_grid )
 {
   cloudbox_on = 0;
   cloudbox_limits.resize(0);
+  scat_i_p.resize(0,0,0,0,0,0,0);
+  scat_i_lat.resize(0,0,0,0,0,0,0);
+  scat_i_lon.resize(0,0,0,0,0,0,0);
+  scat_za_grid.resize(0);
+  scat_aa_grid.resize(0);
 }
 
 
@@ -832,6 +842,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
                          const GridPos& a_gp_lat,
                          const GridPos& a_gp_lon,
                          const Vector& a_los,
+			 const Index& cloudbox_on, 
                          const ArrayOfIndex& cloudbox_limits,
                          const Index& atmosphere_dim,
                          const Index& stokes_dim,
@@ -839,6 +850,13 @@ void CloudboxGetOutgoing(// WS Generic Output:
                          const Vector& scat_aa_grid,
                          const Vector& f_grid)
 {
+  if( !cloudbox_on )
+    throw runtime_error( "The cloud box is not activated and no outgoing "
+			                            "field can be returned." );
+
+  if( scat_za_grid.nelem() == 0 )
+    throw runtime_error( "The variable *scat_za_grid* is empty. Are dummy "
+			                    "values from *CloudboxOff used?" );
 
  if(atmosphere_dim == 1)
    {

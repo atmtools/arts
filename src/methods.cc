@@ -574,8 +574,9 @@ void define_md_data_raw()
          ),
 	OUTPUT(),
 	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, a_gp_p_, a_gp_lat_, 
-               a_gp_lon_, a_los_,  cloudbox_limits_, atmosphere_dim_,
-               stokes_dim_, scat_za_grid_, scat_aa_grid_, f_grid_),
+               a_gp_lon_, a_los_,  cloudbox_on_, cloudbox_limits_, 
+               atmosphere_dim_, stokes_dim_, 
+	       scat_za_grid_, scat_aa_grid_, f_grid_),
 	GOUTPUT(Matrix_),
 	GINPUT(),
 	KEYWORDS(),
@@ -589,9 +590,12 @@ void define_md_data_raw()
          "Deactivates the cloud box. \n"
          "\n"
          "The function sets *cloudbox_on* to 0, and *cloudbox_limits* to be\n"
-         "an empty vector."
+         "an empty vector. The variables *scat_i_p*, *scat_i_lat*,  \n"
+	 "*scat_i_lon*, *scat_za_grid* and *scat_aa_grid* are also set to be\n"
+	 "empty."
         ),
-	OUTPUT( cloudbox_on_, cloudbox_limits_ ),
+	OUTPUT( cloudbox_on_, cloudbox_limits_, scat_i_p_, scat_i_lat_,
+                scat_i_lon_, scat_za_grid_, scat_aa_grid_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
@@ -1198,6 +1202,39 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("GroundTreatAsBlackbody"),
+	DESCRIPTION
+	(
+	 "Sets the ground variables (see below) to model a blackbdoy ground.\n"
+	 "\n"
+	 "The function creates the variables *ground_emission*, *ground_los*\n"
+	 "and *ground_refl_coeffs*. When the ground is treated to act as a\n"
+	 "blackbody, no downwelling radiation needs to be calculated and\n"
+	 "*ground_los* and *ground_refl_coeffs* are set to be empty.\n"
+	 "\n"
+	 "The size of *ground_emission* is set to [ nf, stokes_dim ] where \n"
+	 "nf is the length of *f_grid*. Columns 2-4 are set to zero.\n"
+	 "\n"
+	 "The temperature of the ground is obtained by interpolating \n"
+	 "*t_field* to the position of the ground reflection. The obtained \n"
+	 "temperature and *f_grid* are then used as input to the Planck\n"
+	 "function and the calculated blackbody radiation is put into the\n"
+	 "first column of *ground_emission*.\n"
+	 "\n"
+	 "Note that this function does not use *a_los* as input, and if used\n"
+	 "inside *ground_refl_agenda*, the command Ignore(a_los){} must be\n"
+	 "added to the agenda."
+	),
+	OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_ ),
+	INPUT( f_grid_, stokes_dim_, a_gp_p_, a_gp_lat_, a_gp_lon_, 
+	       atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+ 
   md_data_raw.push_back
     ( MdRecord
       ( NAME("lsWithCutoffAdd"),
@@ -1749,12 +1786,16 @@ md_data_raw.push_back
          "\n"
          "More text will be written (PE)."
         ),
-	OUTPUT( y_rte_, ppath_, ppath_step_, i_rte_, mblock_index_ ),
-	INPUT( ppath_step_agenda_, rte_agenda_, 
+	OUTPUT( y_rte_, ppath_, ppath_step_, i_rte_, mblock_index_,
+		a_pos_, a_los_, a_gp_p_, a_gp_lat_, a_gp_lon_, i_space_, 
+		ground_emission_, ground_los_, ground_refl_coeffs_ ),
+	INPUT( ppath_step_agenda_, rte_agenda_, i_space_agenda_,
+	       ground_refl_agenda_,
 	       atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
-               r_geoid_, z_ground_, cloudbox_on_,  
-	       cloudbox_limits_, sensor_pos_, sensor_los_, f_grid_, 
-	       stokes_dim_,
+               r_geoid_, z_ground_, cloudbox_on_, cloudbox_limits_, 
+	       scat_i_p_, scat_i_lat_, scat_i_lon_, 
+	       scat_za_grid_, scat_aa_grid_,
+	       sensor_pos_, sensor_los_, f_grid_, stokes_dim_,
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1770,10 +1811,8 @@ md_data_raw.push_back
          "\n"
          "More text will be written (PE)."
         ),
-	OUTPUT( i_rte_, a_pos_, a_los_, i_space_, 
-		ground_emission_, ground_los_, ground_refl_coeffs_ ),
-	INPUT( i_space_agenda_, ground_refl_agenda_, 
-	       ppath_, f_grid_, stokes_dim_, 
+	OUTPUT( i_rte_ ),
+	INPUT( i_rte_, ppath_, f_grid_, stokes_dim_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
 	GOUTPUT(),
 	GINPUT(),

@@ -182,7 +182,7 @@ void define_agenda_data()
 	"To be written (PE)."
 	),
        OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_  ),
-       INPUT(  f_grid_, stokes_dim_, a_pos_, a_los_, r_geoid_, z_ground_ )));
+       INPUT(  f_grid_, stokes_dim_, a_gp_p_, a_gp_lat_, a_gp_lon_, a_los_ )));
 
   agenda_data.push_back
     (AgRecord

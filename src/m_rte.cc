@@ -58,13 +58,12 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-
 //! RteCalc
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2002-08-09
+   \date   2002-09-17
 */
 void RteCalc(
         // WS Output:
@@ -73,9 +72,20 @@ void RteCalc(
 	      Ppath&          ppath_step,
 	      Matrix&         i_rte,
 	      Index&          mblock_index,
+	      Vector&         a_pos,
+	      Vector&         a_los,
+	      GridPos&        a_gp_p,
+	      GridPos&        a_gp_lat,
+	      GridPos&        a_gp_lon,
+              Matrix&         i_space,
+              Matrix&         ground_emission, 
+              Matrix&         ground_los, 
+	      Tensor4&        ground_refl_coeffs,
         // WS Input:
 	const Agenda&         ppath_step_agenda,
 	const Agenda&         rte_agenda,
+	const Agenda&         i_space_agenda,
+	const Agenda&         ground_refl_agenda,
         const Index&          atmosphere_dim,
         const Vector&         p_grid,
         const Vector&         lat_grid,
@@ -85,6 +95,11 @@ void RteCalc(
         const Matrix&         z_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
+        const Tensor7&        scat_i_p,
+        const Tensor7&        scat_i_lat,
+        const Tensor7&        scat_i_lon,
+        const Vector&         scat_za_grid,
+        const Vector&         scat_aa_grid,
         const Matrix&         sensor_pos,
 	const Matrix&         sensor_los,
         const Vector&         f_grid,
@@ -101,7 +116,7 @@ void RteCalc(
 
   //--- Check input -----------------------------------------------------------
 
-  // Agendas
+  // Agendas (agendas not always used are checked when actually used)
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda );
   chk_not_empty( "rte_agenda", rte_agenda );
 
@@ -193,7 +208,7 @@ void RteCalc(
   //
   if( sensor_pos.ncols() != atmosphere_dim )
     throw runtime_error( "The number of columns of sensor_pos must be equal "
-                                         "to the atmospheric dimensionality" );
+                                        "to the atmospheric dimensionality." );
   if( atmosphere_dim <= 2  &&  sensor_los.ncols() != 1 )
     throw runtime_error( "For 1D and 2D, sensor_los shall have one column." );
   if( atmosphere_dim == 3  &&  sensor_los.ncols() != 2 )
@@ -250,6 +265,17 @@ void RteCalc(
 			      cloudbox_on, cloudbox_limits, 
 			          sensor_pos(mblock_index,Range(joker)), los );
 
+	      // Determine the radiative background
+	      get_radiative_background( i_rte, ppath_step, 
+		      a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon, i_space, 
+	              ground_emission, ground_los, ground_refl_coeffs, ppath, 
+                      mblock_index, ppath_step_agenda, rte_agenda, 
+                      i_space_agenda, ground_refl_agenda, atmosphere_dim, 
+                      p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground, 
+                      cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat, 
+                      scat_i_lon, scat_za_grid, scat_aa_grid, f_grid, 
+                      stokes_dim, antenna_dim );
+
 	      // Execute the *rte_agenda*
 	      rte_agenda.execute();
 	      
@@ -277,20 +303,12 @@ void RteCalc(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2002-08-16
+   \date   2002-09-17
 */
 void RteEmissionStd(
         // WS Output:
               Matrix&         i_rte,
-	      Vector&         a_pos,
-	      Vector&         a_los,
-              Matrix&         i_space,
-              Matrix&         ground_emission, 
-              Matrix&         ground_los, 
-	      Tensor4&        ground_refl_coeffs,
         // WS Input:
-	const Agenda&         i_space_agenda,
-	const Agenda&         ground_refl_agenda,
 	const Ppath&          ppath,
         const Vector&         f_grid,
 	const Index&          stokes_dim,
@@ -301,18 +319,12 @@ void RteEmissionStd(
         const Tensor3&        t_field )
 {
   // Checks performed in RteCalc do not need to be repeated here.
-  // Some of the input variables are also checked in sub-functions.
 
   // Some sizes
   const Index nf      = f_grid.nelem();
   const Index np      = ppath.np;
 
-  // Init i_rte to the radiative background (space, ...)
-  set_to_radiative_background( i_rte, i_space, a_pos, a_los, 
-                              ground_emission, ground_los, ground_refl_coeffs,
-               i_space_agenda, ground_refl_agenda, ppath, f_grid, stokes_dim );
-
-  // If the number of propagation path points is 1, we are already ready,
+  // If the number of propagation path points is 0 or 1, we are already ready,
   // the observed spectrum equals then the radiative background.
   if( np > 1 )
     {
@@ -321,14 +333,18 @@ void RteEmissionStd(
       interp_atmfield( t_ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
       	          t_field, "t_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
 
-      // Determine the total absorption at each propagation path point
-      // As a temporary solution, the absorption is set to 1-e6 1/m.
-      Matrix abs_ppath(nf,np,1e-6);
+      // Absorption
+      // So far dummy values are used
+      //
+      Numeric alpha = 1e-6;
+      //
+      Vector abs_vec_gas(stokes_dim,0);
+      Matrix ext_mat_gas(stokes_dim,stokes_dim,0);
+      //
+      for( Index i=0; i<stokes_dim; i++ )
+        { ext_mat_gas(i,i) = alpha; }
+      abs_vec_gas[0] = alpha;
 
-      // Some variables used below
-      Index     iv;      // Frequency index
-      Numeric   trans;   // Transmission for a path step for one frequency
-      Numeric   source;  // Effective source value for one step and 1 frequency
 
       // Loop the propagation path steps
       //
@@ -340,18 +356,23 @@ void RteEmissionStd(
 	{
 	  // Consider absorption and emission from point ip to ip-1 for
 	  // all frequencies
-	  for( iv=0; iv<nf; iv++ )
+	  for( Index iv=0; iv<nf; iv++ )
 	    {
-	      // Transmission along the path for the step
-	      trans = exp( -ppath.l_step[ip-1] * 
-			       ( abs_ppath(iv,ip) + abs_ppath(iv,ip-1) ) / 2 );
+	      // Calculate an effective blackbdoy radiation for the step
+	      // The mean of the temperature at the ned points is used.
+	      Numeric planck_value = 
+                           planck( f_grid[iv], (t_ppath[ip]+t_ppath[ip-1])/2 );
 
-	      // The Planck function for the mean of the end temperatures
-	      source = planck( f_grid[iv], (t_ppath[ip]+t_ppath[ip-1])/2 );
-	      
-	      // Go from point ip to point ip-1 using the constant source term
-	      // approximation.
-	      i_rte(iv,0) = i_rte(iv,0) * trans + source * ( 1 - trans );
+	      // Perform the RTE step
+	      //
+	      // I had to introduce this vector to make the compiler happy
+	      Vector stokes_vec( stokes_dim );
+	      stokes_vec = i_rte( iv, Range(joker) ); 
+	      //
+	      rte_step_clearsky_with_emission( stokes_vec, stokes_dim, 
+                  ext_mat_gas, abs_vec_gas, ppath.l_step[ip-1], planck_value );
+	      //
+	      i_rte( iv, Range(joker) ) = stokes_vec;
 	    }
 	}
     }

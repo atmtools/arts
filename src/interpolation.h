@@ -92,6 +92,8 @@ void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
               ConstVectorView new_grid );
 
+void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old );
+
 void gridpos_check_fd( GridPos&   gp );
 
 void gridpos_force_end_fd( GridPos&   gp );

@@ -1,3 +1,63 @@
+2002-09-17  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-243
+
+	* There have been rather big changes for the clear sky RTE part.
+	Some comments are given below. However, as I am the only one working
+	with this part I am saving the energy to later to describe the RTE
+	part in a good way in AUG and the online documentation.
+
+	The problems I encountered for the ground reflections made me think
+	in somewhat new ways, and voila, I found a new and better structure
+	for the calculations. So right now I am happy.
+
+	The RTE part is now rather complete, but I have only done practical
+	tests for a few simple cases. So much bug checking is to be done.
+	
+	* src/m_rte.cc (RteEmissionStd) and (RteCalc): The functions are to a
+	large extent restructured. Several tasks have been lifted from 
+	rte_agenda functions (where RteEmissionStd is the only existing one so
+	far) which is an advantage. The task of rte_agenda methods is now much
+	clearer. 
+	The restructuring made it possible to call RteCalc in a recursive way.
+	This was needed to handle ground reflections following the new
+	approach. In fact, the appraoch for ground reflections could be 
+	followed to make scattering calculations in another way (which however
+	would require changes to the ppath calculations). It is my hope
+	that this approach will allow calculation of weighting functions 
+	without to much problems (the first task will be to fix WFs with
+	a scattering ground).
+
+	* src/rte.cc (get_radiative_background): The old function 
+	set_to_radiative_background has been renamed and to large parts been
+	rewritten. All cases execpt when the path starts inside the cloud box
+	are now handled (but not tested).
+	
+	(rte_step_clearsky_with_emission): This function was created before
+	last commit but I forgot to mention it. This function makes an 
+	automatic switch to the best way to calculate the matrix exponential.
+	Shall a simialr function be made for the cloud box?
+	That is, there is no agenda for this for the clear sky part.
+
+	* src/m_atmosphere.cc (GroundTreatAsBlackbody): Created this function.
+	This is the first function implemented for ground_refl_agenda.
+
+	* src/interpolation.cc (gridpos_copy): Created this function to copy
+	a GridPos.
+
+	* src/m_cloudbox.cc (CloudboxOff): The function now also sets 
+	scat_i_p, scat_i_lat, scat_i_lon, scat_za_grid and scat_aa_grid to be
+	empty. This is needed as the variables must be input to RteCalc.
+
+	(CloudboxGetOutgoing): Added to cloudbox_on is input to check that the
+	cloud box is actually turned on. Added also a check that scat_za_grid
+	not is empty, which would be the case if CloudboxOff is called and
+	later cloudbox_on is set to 1 but no cloud box calculations have been
+	performed. 
+	
+	Claudia, should some more safety checks be added? The header of the
+	file is not updated since the re-naming of the function.
+
 2002-09-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-242

@@ -328,6 +328,23 @@ void gridpos( ArrayOfGridPos& gp,
 
 
 
+//! gridpos_copy
+/*!
+   Copies the content of a GridPos structure.
+
+   \param   gp_new   Output: The GridPos structure to be filled. 
+   \param   gp_old   Input:  The GridPos structure to be copied. 
+
+   \author Patrick Eriksson
+   \date   2002-09-17
+*/
+void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old )
+{
+  gp_new.idx   = gp_old.idx;
+  gp_new.fd[0] = gp_old.fd[0];
+  gp_new.fd[1] = gp_old.fd[1];
+}
+
 //! gridpos_check_fd
 /*!
    Checks that the fractional distances have a value in the range [0,1].

@@ -933,24 +933,16 @@ void ppath_copy(
       ppath1.pos(i,1)      = ppath2.pos(i,1);
       ppath1.los(i,0)      = ppath2.los(i,0);
       ppath1.z[i]          = ppath2.z[i];
-      ppath1.gp_p[i].idx   = ppath2.gp_p[i].idx;
-      ppath1.gp_p[i].fd[0] = ppath2.gp_p[i].fd[0];
-      ppath1.gp_p[i].fd[1] = ppath2.gp_p[i].fd[1];
+      gridpos_copy( ppath1.gp_p[i], ppath2.gp_p[i] );
       
       if( ppath1.dim >= 2 )
-	{
-	  ppath1.gp_lat[i].idx   = ppath2.gp_lat[i].idx;
-	  ppath1.gp_lat[i].fd[0] = ppath2.gp_lat[i].fd[0];
-	  ppath1.gp_lat[i].fd[1] = ppath2.gp_lat[i].fd[1];
-	}
+	{ gridpos_copy( ppath1.gp_lat[i], ppath2.gp_lat[i] ); }
       
       if( ppath1.dim == 3 )
 	{
 	  ppath1.pos(i,2)        = ppath2.pos(i,2);
 	  ppath1.los(i,1)        = ppath2.los(i,1);
-	  ppath1.gp_lon[i].idx   = ppath2.gp_lon[i].idx;
-	  ppath1.gp_lon[i].fd[0] = ppath2.gp_lon[i].fd[0];
-	  ppath1.gp_lon[i].fd[1] = ppath2.gp_lon[i].fd[1];
+	  gridpos_copy( ppath1.gp_lon[i], ppath2.gp_lon[i] ); 
 	}
       
       if( i > 0 )
@@ -1013,24 +1005,16 @@ void ppath_append(
       ppath1.pos(i1,1)      = ppath2.pos(i,1);
       ppath1.los(i1,0)      = ppath2.los(i,0);
       ppath1.z[i1]          = ppath2.z[i];
-      ppath1.gp_p[i1].idx   = ppath2.gp_p[i].idx;
-      ppath1.gp_p[i1].fd[0] = ppath2.gp_p[i].fd[0];
-      ppath1.gp_p[i1].fd[1] = ppath2.gp_p[i].fd[1];
+      gridpos_copy( ppath1.gp_p[i1], ppath2.gp_p[i] );
 
       if( ppath1.dim >= 2 )
-	{
-	  ppath1.gp_lat[i1].idx   = ppath2.gp_lat[i].idx;
-	  ppath1.gp_lat[i1].fd[0] = ppath2.gp_lat[i].fd[0];
-	  ppath1.gp_lat[i1].fd[1] = ppath2.gp_lat[i].fd[1];
-	}
+	{ gridpos_copy( ppath1.gp_lat[i1], ppath2.gp_lat[i] ); }
       
       if( ppath1.dim == 3 )
 	{
 	  ppath1.pos(i1,2)        = ppath2.pos(i,2);
 	  ppath1.los(i1,1)        = ppath2.los(i,1);
-	  ppath1.gp_lon[i1].idx   = ppath2.gp_lon[i].idx;
-	  ppath1.gp_lon[i1].fd[0] = ppath2.gp_lon[i].fd[0];
-	  ppath1.gp_lon[i1].fd[1] = ppath2.gp_lon[i].fd[1];
+	  gridpos_copy( ppath1.gp_lon[i1], ppath2.gp_lon[i] ); 
 	}
       
       ppath1.l_step[i1-1] = ppath2.l_step[i-1];
