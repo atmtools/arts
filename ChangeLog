@@ -1,3 +1,15 @@
+2003-06-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-589
+
+	* src/xml_io_array_types.cc: Fixed tag attribute in read function for
+	SpeciesData.
+
+	* src/xml_io_compound_types.cc: Fixed check for end tag in reading
+	function for IsotopeRecord.
+
+	* src/test_xml.cc: Updated.
+
 2003-06-24  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-588
