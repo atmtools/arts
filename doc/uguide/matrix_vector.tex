@@ -1001,11 +1001,16 @@ b = a;
 As in the case of Vectors, the `=' operator adjusts the size of the
 target automatically.
 
-\leveld{Transpose:}
-The function \artsstyle{transpose} works a bit different for Sparse than
-for Vector and Matrix. This is due to the fact that we don't have any
-views for Sparse. Therefor the transposed Sparse with the right dimensions
-has to be initialized before calling the function.
+\leveld{Transpose:} The function \artsstyle{transpose} works a bit
+differently for Sparse than for Vector and Matrix. This is due to the
+fact that we don't have any views for Sparse. Thus,
+\artsstyle{transpose} for a Sparse creates a new Sparse variable that
+contains the transpose of the original Sparse, whereas
+\artsstyle{transpose} for a Matrix just creates a transposed view of
+the original Matrix.
+
+The target variable for the transposed Sparse has to have the right
+dimensions before the function is called.
 \begin{verbatim}
 Sparse b(a.ncols(),a.nrows());
 transpose(b,a);     // Make b the transpose of a.
@@ -1026,7 +1031,7 @@ mult(d,a,e);        // d = a * e
 Sparse f(a.nrows(),5), g(a.ncols(),5);
 mult(f,a,g);        // f = a * g
 \end{verbatim}
-Tthe result is put in the first argument, consistent with the Matrix class.
+The result is put in the first argument, consistent with the Matrix class.
 Note that for the Sparse -- Matrix multiplication the output is a Matrix.
 \textbf{Important: As for Matrix, the matrices or vectors
 that you give for the three arguments must not overlap, or you will get

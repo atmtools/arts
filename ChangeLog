@@ -1,3 +1,24 @@
+2003-08-12  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-640
+
+	* src/matpackII.cc (operator=): I had forgotten to delete previous
+	content of the target in the assignment operator, introducing a
+	memory leak. Fixed this.
+
+	* src/test_sparse.cc: Extended copying test to confirm memory
+	leak. 
+
+	* src/m_hdf.cc (binfile_write_vector): Fixed mismatched delete
+	operator bug.
+	(binfile_write_matrix): Fixed mismatched delete
+	operator bug.
+
+	* src/mystring.h (operator=): Correction in doxygen header.
+
+	* doc/uguide/matrix_vector.tex: Fixed typo.
+	Rephrased the part about transpose for sparse slightly.
+
 2003-08-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-639

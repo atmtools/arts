@@ -925,7 +925,7 @@ void binfile_write_vector(
   binfile_write( fid,  filename, dataname, "VECTOR", "NUMERIC", n, 1, 
                                                                (uint8*)a );
 
-  delete a;
+  delete[] a;
 }
 
 
@@ -995,7 +995,7 @@ void binfile_write_matrix(
 
   binfile_write( fid,  filename, dataname, "MATRIX", "NUMERIC", nrows, ncols, 
                  (uint8*)a );
-  delete a;
+  delete[] a;
 }
 
 

@@ -169,10 +169,9 @@ inline my_basic_string<charT>::my_basic_string(const char A[]) : std::basic_stri
 
 /** Assignment from another my_basic_string.
 
-    Note that my_basic_string behaves differently from Vector, Matrix, and
-    Array here. The two partners do not have to have the same
-    size. Size of the target string is adjusted automatically, just as
-    std::string does it.
+    The two partners do not have to have the same size. Size of the
+    target string is adjusted automatically, just as std::string does
+    it.
 */
 template<class charT>
 inline my_basic_string<charT>& my_basic_string<charT>::operator=(const my_basic_string<charT>& A)

@@ -326,11 +326,23 @@ void Sparse::resize(Index r, Index c)
 */
 Sparse& Sparse::operator=(const Sparse& m)
 {
+  // It is important that we first delete previous content of the
+  // target, otherwise we create a memory leak!
+  //
+  // The scalar delete operator is the correct one to use here, since
+  // only one std::vector object has been allocated by new in each
+  // case. (That the object itself is a vector does not matter.)
+  delete mdata;
+  delete mrowind;
+  delete mcolptr;
+
   mdata   = new std::vector<Numeric>(*m.mdata);
   mrowind = new std::vector<Index>(*m.mrowind);
   mcolptr = new std::vector<Index>(*m.mcolptr);
+
   mrr     = m.mrr;
   mcr     = m.mcr;
+
   return *this;
 }
 

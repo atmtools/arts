@@ -258,6 +258,14 @@ void test43()
   A = B;
 
   cout << "A:\n" << A << "\n";
+
+  for ( Index i=0; i<100; ++i )
+    {
+      B.rw(0,0) += 1;
+      A = B;
+    }
+
+  cout << "A now:\n" << A << "\n";
 }
 
 int main()
