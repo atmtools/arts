@@ -1,3 +1,11 @@
+2003-08-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-668
+
+	* src/legendre.cc (legendre_poly_norm_schmidt_deriv),
+	(legendre_poly_deriv): Throw runtime error if l==1 && m!=1 && m!=0.
+	Include exceptions.h.
+
 2003-08-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-667
