@@ -110,7 +110,8 @@ noinst_PROGRAMS = \
 	make_auto_wsv_pointers_cc \
 	test_matpack \
 	test_poly \
-	test_tensor
+	test_linalg \
+	test_tensor 
 
 test_poly_SOURCES = \
 	array.h \
@@ -149,6 +150,16 @@ test_matpack_SOURCES = \
 	matpackIII.h \
 	mystring.h \
 	test_matpack.cc
+
+test_linalg_SOURCES = \
+	arts.h \
+	matpackI.h \
+	matpackI.cc \
+	make_vector.h\
+	make_vector.cc\
+	lin_alg.cc \
+	lin_alg.h \
+	test_linalg.cc
 
 make_auto_wsv_groups_h_SOURCES = \
 	arts.h \
