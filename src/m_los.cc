@@ -1040,7 +1040,7 @@ void zaFromZtan(
 
   for (Index i=0; i<nz; i++)
   {
-    if (za[i]>z_plat)
+    if (z_tan[i]>z_plat)
       throw runtime_error(
         "One tangent altitude is larger than the platform altitude");      
 

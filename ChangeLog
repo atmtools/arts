@@ -1,3 +1,11 @@
+2001-12-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* doc/examples/fullmodels_example.arts: The O2 and N2 examples
+	were wrong. The model names all ended with Continuum.
+
+	* src/m_los.cc (zaFromZtan): The statement: if (z_tan[i]>z_plat)
+	was before wrongly: if (za[i]>z_plat)
+
 2001-12-14  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-68
