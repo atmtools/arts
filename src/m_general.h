@@ -17,7 +17,7 @@
  */
 
 /*!
-  \file   m_xml.h
+  \file   m_general.h
   \author Oliver Lemke <olemke@uni-bremen.de>
   \date   2003-07-24
  
@@ -37,6 +37,7 @@
 #define m_general_h
 
 #include <iostream>
+#include <sys/times.h>
 #include "messages.h"
 #include "ppath.h"
 #include "special_interp.h"
@@ -51,6 +52,11 @@ case 3: out3 << y;break; \
 default: throw runtime_error ("Output level must have value from 0-3"); \
 }
 
+
+typedef struct {
+  struct tms cputime;
+  clock_t realtime;
+} Timer;
 
 //! Print
 /*!
@@ -78,7 +84,7 @@ Print(
         // WS Generic Input Names:
         const String&         x_name,
         // Keywords:
-        const Index&    level );
+        const Index&          level );
 
 void
 Print(
@@ -87,7 +93,7 @@ Print(
         // WS Generic Input Names:
         const String&          x_name,
         // Keywords:
-        const Index&    level );
+        const Index&           level );
 
 void
 Print(
@@ -97,6 +103,15 @@ Print(
       const String&   x_name,
       // Keywords:
       const Index&    level );
+
+void
+Print(
+      // WS Generic Input:
+      const Timer&   x,
+      // WS Generic Input Names:
+      const String&  x_name,
+      // Keywords:
+      const Index&   level);
 
 #endif /* m_general_h */
 
