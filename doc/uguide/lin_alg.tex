@@ -59,8 +59,8 @@ of the algorithm described in
 [\cite{numerical_recipes_C:96}] is used here. An alternative method
 is the Gauss-Jordan elimination, but this method is three times
 slower than the LU decomposition method
-[\cite{numerical_recipes_C:97}, p.36]. The LU decomposition method
-reqires two functions, \artsstyle{ludcmp} and \artsstyle{lubacksub},
+[\cite{numerical_recipes_C:96}, p.36]. The LU decomposition method
+reqires two functions, \wsfindex{ludcmp} and \wsfindex{lubacksub},
 which will be decribed below.
 \vspace{0.5cm}\\
 The following example for a three dimensional equation sytem 
@@ -81,9 +81,9 @@ equation sytem of the type
   \verb|x = Vector(3);|\\
   \verb|LU = Matrix(3,3);|\\
   \verb|indx = ArrayOfIndex(3);|
-\item Call LU decomposition function (see Section \ref{sec:lu_decomp}): \\
+\item Call LU decomposition function (see Section \ref{sec:lin_alg:lu_decomp}): \\
   \verb|ludcmp(LU, indx, A);|
-\item Call LU backsubstitution function (see Section \ref{sec:backsub}): \\
+\item Call LU backsubstitution function (see Section \ref{sec:lin_alg:backsub}): \\
   \verb|lubacksub(x, LU, b, indx);|
 \item Print the solution vector:\\
   \verb|cout << x;|
@@ -91,7 +91,7 @@ equation sytem of the type
 
 \levelc{LU Decomposition}
 %------------------------------------------------------------------------
-\label{sec:lu_decomp}
+\label{sec:lin_alg:lu_decomp}
 
 A LU decomposition is a procedure for decomposing a square matrix {\bf
   A} with
@@ -136,7 +136,7 @@ First
   {\bf L} \cdot{\bf y} = {\bf b}
 \end{equation}
 is solved for the vector ${\bf y}$ which can be done by
-forward substitution (see section \ref{sec:backsub}). Then 
+forward substitution (see section \ref{sec:lin_alg:backsub}). Then 
 \begin{equation}
   {\bf U} \cdot{\bf x} = {\bf y}
 \end{equation}
@@ -177,7 +177,7 @@ the last row of a three dimensional matrix would be exchanged.
 
 \levelc{Forward- and Backsubstitution}
 %---------------------------------------------------------------
-\label{sec:backsub}
+\label{sec:lin_alg:backsub}
 An equation system of the form
 \[ 
 \left(
@@ -211,7 +211,7 @@ lower triangular matrix is named forward substitution.
 
 The function \artsstyle{lubacksub} does forward and backward
 substitution to solve the equation system described in
-\ref{sec:lu_decomp}. As input it requires the output variables of
+\ref{sec:lin_alg:lu_decomp}. As input it requires the output variables of
 \artsstyle{ludcmp} which are the {\sl Crout matrix} and the index
 vector. Output of the function is the solution vector ${\bf x}$ to the
 equation system.
@@ -308,7 +308,7 @@ q & $\epsilon$(q,q) \\ \hline
 \hline
 \end{tabular}
 \vspace{0.5cm}\\
-The algorithm is implemented in the function \verb|matrix_exp|. Input
+The algorithm is implemented in the function \wsfindex{matrix\_exp}. Input
 to this function is the matrix ${\bf A}$ and the parameter $q$. As output
 it gives the matrix ${\bf F}$ which is defined above.\\
 The following example shows how to use the \verb|matrix_exp| function:

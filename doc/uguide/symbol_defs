@@ -310,4 +310,67 @@
 \newcommand{\aZntAng}[1] {\ensuremath{\psi_{#1}}}  
 
 
+% --- Quantities concerning scattering  -------------------
+%
+
+% Total extinction matrix
+\newcommand{\ExtMat}	{\ensuremath{{\bf K}}}
+\newcommand{\aExtMat}[1]{\ensuremath{{\bf K}^{#1}}}
+
+% Total absorption vector
+\newcommand{\AbsVec} 	{\ensuremath{{\bf a}}}
+\newcommand{\aAbsVec}[1]{\ensuremath{{\bf a}^{#1}}}	
+
+% Scattering efficiency matrix
+\newcommand{\SEfMat}	{\ensuremath{{\bf Y}}}
+
+% Stokes vector
+\newcommand{\StoVec} 	{\ensuremath{{\bf I}}}
+\newcommand{\aStoVec}[1]{\ensuremath{{\bf I}^{#1}}}
+
+% Propagation direction
+\newcommand{\PDir}  	{\ensuremath{{\bf n}}}
+
+% Particle density
+\newcommand{\PDen} 	{\ensuremath{n^p}}
+
+% Phase matrix
+\newcommand{\PhaMat} 	{\ensuremath{{\bf Z}}}
+
+% Amplitude matrix
+\newcommand{\AmpMat} 	{\ensuremath{{\bf S}}}
+% Amplitude matrix index
+\newcommand{\IAmp} 	{\ensuremath{i_{amp}}}
+
+% Single extinction matrix
+\newcommand{\SExMat} 	{\ensuremath{{\bf L}}}
+\newcommand{\aSExMat}[1]{\ensuremath{{\bf L}^{#1}}}	
+
+% Single absorption vector
+\newcommand{\SAbVec} 	{\ensuremath{{\bf b}}}
+\newcommand{\aSAbVec}[1]{\ensuremath{{\bf b}^{#1}}}
+
+% Scattered field
+\newcommand{\ScaInt} 	{\ensuremath{{\bf S}^{int}}}
+
+% Identity matrix
+\newcommand{\IdnMat} 	{\ensuremath{{\bf E}}}
+
+% Cloud box pressure grid
+\newcommand{\ScaP}	{\ensuremath{{ P_s}}}
+
+% Cloud box latitude
+\newcommand{\ScaLat}	{\ensuremath{{\alpha_s}}}
+
+% Cloud boc longitude
+\newcommand{\ScaLon}	{\ensuremath{{\beta_s}}}
+
+% Scattering zenith angle
+\newcommand{\ScaZa} 	{\ensuremath{{\theta}}}
+
+% Scattering azimuth angle
+\newcommand{\ScaAa} 	{\ensuremath{{\phi}}}
+
+% Particle type index
+\newcommand{\IPart} 	{\ensuremath{{i_{part}}}}
 
