@@ -11,11 +11,11 @@
 #            input files with the random realizations are needed. 
 #            The following are needed here:
 #
-#            -  batch_test.O3.ab
-#            -  batch_test.HNO3.ab
-#            -  batch_test.z_abs.ab
-#            -  batch_test.t_abs.ab
-#            -  batch_test.za_pencil.ab
+#            -  batch_input.O3.ab
+#            -  batch_input.HNO3.ab
+#            -  batch_input.z_abs.ab
+#            -  batch_input.t_abs.ab
+#            -  batch_input.za_pencil.ab
 #
 #            and are provided in arts/doc/examples
 #
@@ -181,7 +181,7 @@ MatrixWriteBinary( vmrs ) {
 
 
 ### Name ##################################################################
-StringSet( batchname ) { "batch_test" }
+StringSet( batchname ) { "batch_input" }
 
 
 ### Calculate spectra for the batch data ##################################
