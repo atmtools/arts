@@ -576,13 +576,6 @@ void GroundNoScatteringSingleEmissivity(
         "  Sets the ground to have no scattering and a constant emissivity.\n";
   out3 << 
         "     Ground temperature is obtained by interpolation of *t_field*.\n";
-  out3 << "     Zenith angle for upwelling radiation is   : " 
-       << a_los[0] << "\n";
-  if( atmosphere_dim > 2 )
-    {
-      out3 << "     Azimuth angle for upwelling radiation is  : " << a_los[1] 
-           << "\n";
-    }
 
   // Some sizes
   const Index   nf = f_grid.nelem();
@@ -596,6 +589,8 @@ void GroundNoScatteringSingleEmissivity(
   // Determine the temperature at the point of the ground reflection
   const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
                     lon_grid, t_field, "t_field", a_gp_p, a_gp_lat, a_gp_lon );
+
+  out3 << "     Ground temperature is                     : " << t << "\n";
 
   // Fill ground_emission and ground_refl_coeffs
   for( Index i=0; i<nf; i++ )
@@ -614,6 +609,13 @@ void GroundNoScatteringSingleEmissivity(
   ground_specular_los( ground_los(0,Range(joker)), atmosphere_dim, r_geoid,
                       z_ground, lat_grid, lon_grid, a_gp_lat,a_gp_lon, a_los );
 
+  out3 << "     Zenith angle for upwelling radiation is   : " 
+       << a_los[0] << "\n";
+  if( atmosphere_dim > 2 )
+    {
+      out3 << "     Azimuth angle for upwelling radiation is  : " << a_los[1] 
+           << "\n";
+    }
   out3 << "     Zenith angle for downwelling radiation is : " 
        << ground_los(0,0) << "\n";
   if( atmosphere_dim > 2 )

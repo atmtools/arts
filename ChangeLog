@@ -1,3 +1,22 @@
+2003-02-27  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-463
+
+	* src/rte.cc (get_radiative_background): Fixed a bug for cases with 
+	ground reflection. Bug reported by Sreerekha. The bug had no effect
+	for a blackbody ground.
+
+	The solution with agendas makes some things difficult. My solution
+	for ground reflections involve a recursive call of RteCalc. The
+	output from get_radiative_background is the WSV i_rte. When
+	calling RteCalc recursively, I did this with a local variable,
+	but RteCalc calls rte_agenda which will change the value of i_rte.
+	The problem was that i_rte already contained interesting values.
+	So I got a side effect from the agenda that I missed. I hope that
+	there are now no such side effects left in this part. But changes
+	for the agendas can easily affect this part, so we ahve to be careful
+	when changing things for the agendas.
+
 2003-02-27  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-462

@@ -48,8 +48,7 @@
 
 //! get_radiative_background
 /*!
-    Sets a vector (normally *i_rte*) to the radiative background for a 
-    propagation path.
+    Sets *i_rte* to the radiative background for a propagation path.
 
     The function uses *ppath* to determine the radiative background for a 
     propagation path. The possible backgrounds are listed in the header of
@@ -188,35 +187,36 @@ void get_radiative_background(
         chk_not_empty( "ground_refl_agenda", ground_refl_agenda );
         ground_refl_agenda.execute( agenda_verb );
 
+        // Check returned variables
         if( ground_emission.nrows() != nf  ||  
                                         ground_emission.ncols() != stokes_dim )
           throw runtime_error(
                   "The size of the created *ground_emission* is not correct.");
 
-        i_rte = ground_emission;
+        // Copy to local variables as the ground variables can be changed by
+        // by call of RteCalc. There is no need to copy *ground_los*.
+        Index     nlos = ground_los.nrows();
+        Matrix    ground_emission_local(nf,stokes_dim);
+        Tensor4   ground_refl_coeffs_local(nlos,nf,stokes_dim,stokes_dim);
+        //
+        ground_emission_local    = ground_emission;
+        ground_refl_coeffs_local = ground_refl_coeffs;
+
 
         // Calculate the spectra hitting the ground, if any reflection
         // directions have been set (*ground_los*). If *ground_los* is empty,
         // we are ready.
-
-        if( ground_los.nrows() > 0 )
+        //
+        if( nlos == 0 )
           {
-
-            // Some local variables must be used not to over-write
-            // WSVs that must be preserved.
-            Matrix     y_rte_local;            
-            Matrix     i_rte_local;            
-            Ppath      ppath_local;
-            Index      mblock_index_local;
-            Matrix     ground_emission_local;       
-            Matrix     ground_los_local;
-            Tensor4    ground_refl_coeffs_local;
-
-            // Set zenith and azimuthal angles (note that these variables are 
-            // not function input). Each ground los is here treated as a 
+            i_rte = 0;    // This operation is also performed inside
+          }               // the else-block
+        else
+          {
+            // Set zenith and azimuthal angles (note that these variables 
+            // are local variables). Each ground los is here treated as a 
             // measurement block, with no za and aa grids.
 
-            Index    nlos = ground_los.nrows();
             Matrix   sensor_pos( nlos, a_pos.nelem() );
             Matrix   sensor_los( nlos, a_los.nelem() );
             for( Index ilos=0; ilos < nlos; ilos++ )
@@ -226,50 +226,63 @@ void get_radiative_background(
               }
             Vector   mblock_za_grid(1,0);
             Vector   mblock_aa_grid(0);
+            Index    mblock_index_local;
             if( antenna_dim > 1 )
               {
                 mblock_aa_grid.resize(1);
                 mblock_aa_grid = 0;
               }
 
-            RteCalc( y_rte_local, ppath_local, ppath_step, i_rte_local, 
+            // Use some local variables to avoid unwanted  side effects
+            Ppath    ppath_local;
+            Matrix   y_rte_local;
+
+            RteCalc( y_rte_local, ppath_local, ppath_step, i_rte, 
                  mblock_index_local, a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon,
-                 i_space, ground_emission_local, ground_los_local, 
-                 ground_refl_coeffs_local, ppath_step_agenda, rte_agenda, 
-                 i_space_agenda, ground_refl_agenda, 
-                 atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field,
-                 r_geoid, 
-                 z_ground, cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat,
+                 i_space, ground_emission, ground_los, ground_refl_coeffs, 
+                 ppath_step_agenda, rte_agenda, i_space_agenda, 
+                 ground_refl_agenda, atmosphere_dim, p_grid, lat_grid, 
+                 lon_grid, z_field, t_field, r_geoid, z_ground, 
+                 cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat,
                  scat_i_lon, scat_za_grid, scat_aa_grid, sensor_pos, 
                  sensor_los, f_grid, stokes_dim, antenna_dim, 
                  mblock_za_grid, mblock_aa_grid );
 
-            // Decompose the calculated spectra (y_rte_local) and add the 
-            // values to i_rte, considering the reflection coeff. matrix.
+
+            // Add the the calculated spectra (y_rte_local) to *i_rte*, 
+            // considering the reflection coeff. matrix.
+            //
+            i_rte = 0;
+            //
             for( Index ilos=0; ilos < nlos; ilos++ )
               {
-                Matrix i_ground(nf,stokes_dim);
-
-                i_ground = y_rte_local(Range(ilos*nf,nf),joker);
+                Index   i0 = ilos*nf;
             
                 for( Index iv=0; iv<nf; iv++ )
                   {
                     if( stokes_dim == 1 )
                       {
                         i_rte(iv,0) += ground_refl_coeffs(ilos,iv,0,0) * 
-                                                                i_ground(iv,0);
+                                                          y_rte_local(i0+iv,0);
                       }
                     else
                       {
                         Vector stokes_vec(stokes_dim);
                         mult( stokes_vec, 
                               ground_refl_coeffs(ilos,iv,joker,joker), 
-                                                          i_ground(iv,joker) );
+                              y_rte_local(i0+iv,joker) );
                         for( Index is=0; is < stokes_dim; is++ )
                           { i_rte(iv,is) += stokes_vec[is]; }
                       }
                   }
               }
+          }
+        
+        // Add the ground emission (the local copy) to *i_rte*
+        for( Index iv=0; iv<nf; iv++ )
+          {
+            for( Index is=0; is < stokes_dim; is++ )
+              { i_rte(iv,is) += ground_emission_local(iv,is); }
           }
       }
       break;
