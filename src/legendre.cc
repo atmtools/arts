@@ -39,7 +39,10 @@
 #endif
 #include <stdexcept>
 
-//! legendre_polynomial
+#include "math_funcs.h"
+
+
+//! legendre_poly
 /*!
     Returns the associated Legendre polynomial Plm(x).
 
@@ -59,7 +62,7 @@
     \date   2003-08-14
 */
 Numeric
-legendre_polynomial (Index l, Index m, Numeric x)
+legendre_poly (Index l, Index m, Numeric x)
 {
   Numeric pmm;
   Numeric result;
@@ -107,5 +110,33 @@ legendre_polynomial (Index l, Index m, Numeric x)
     }
 
   return (result);
+}
+
+
+//! legendre_poly_norm
+/*!
+    Returns the normalized associated Legendre polynomial Plm(x).
+
+    The input parameters must fulfill the following conditions:
+    0 <= m <= l and |x| <= 1
+
+    The code is based on the Numerical recipes. Results were compared
+    to the Legendre calculations from the GNU Scientific library and found
+    to be identical.
+
+    \return      Plm
+    \param   l   Index
+    \param   m   Index
+    \param   x   Value
+
+    \author Oliver Lemke
+    \date   2003-08-15
+*/
+Numeric
+legendre_poly_norm (Index l, Index m, Numeric x)
+{
+  assert (m >= 0);
+  return (sqrt (2.0 * fac (1 - m) / fac (1 + m))
+          * legendre_poly (l, m, x));
 }
 

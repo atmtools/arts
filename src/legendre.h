@@ -37,7 +37,10 @@
 #include "matpackI.h"
 
 Numeric
-legendre_polynomial (Index l, Index m, Numeric x);
+legendre_poly (Index l, Index m, Numeric x);
+
+Numeric
+legendre_poly_norm (Index l, Index m, Numeric x);
 
 #endif  /* legendre_h */
 
