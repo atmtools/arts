@@ -1,3 +1,9 @@
+2003-01-28  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-435
+
+	* src/zeemanproperties.cc: Fixed several bugs.
+
 2003-01-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 	
  	* arts-1-1-434	

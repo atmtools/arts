@@ -242,32 +242,40 @@ void Zeeman (Vector& f_grid,
     {
       k_0=twoPI_c*f_grid[f_grid_index];
 
-     G_s[f_grid_index*4+0]  = complex_i*k_0*(1.+ G_s[f_grid_index*4+0]);
+     G_s[f_grid_index*4+0]  = complex_i*k_0*(1. + G_s[f_grid_index*4+0]);
      G_s[f_grid_index*4+1] *= complex_i*k_0;
      G_s[f_grid_index*4+2] *= complex_i*k_0;
-     G_s[f_grid_index*4+3]  = complex_i*k_0*(1.+G_s[f_grid_index*4+3]);
+     G_s[f_grid_index*4+3]  = complex_i*k_0*(1. + G_s[f_grid_index*4+3]);
     
-     ext_mat_zee(f_grid_index,0,0) = -0.5*(2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]));
-     ext_mat_zee(f_grid_index,0,1) = -0.5*(4.*real(G_s[f_grid_index*4+1]));
-     ext_mat_zee(f_grid_index,0,2) =  0;
-     ext_mat_zee(f_grid_index,0,3) = -0.5*(2.*real(G_s[f_grid_index*4+0]) - 2.*real(G_s[f_grid_index*4+3]));
-     ext_mat_zee(f_grid_index,1,0) = -0.5*(2.*real(G_s[f_grid_index*4+1]));
-     ext_mat_zee(f_grid_index,1,1) = -0.5*(2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]));
-     ext_mat_zee(f_grid_index,1,2) = -0.5*(2.*imag(G_s[f_grid_index*4+0]) - 2.*real(G_s[f_grid_index*4+3]));
-     ext_mat_zee(f_grid_index,1,3) =  0;
-     ext_mat_zee(f_grid_index,2,0) =  0;
-     ext_mat_zee(f_grid_index,2,1) = -0.5*(2.*imag(G_s[f_grid_index*4+0]) - 2.*real(G_s[f_grid_index*4+3]));
-     ext_mat_zee(f_grid_index,2,2) = -0.5*(2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]));
-     ext_mat_zee(f_grid_index,2,3) = -0.5*(4.*imag(-G_s[f_grid_index*4+1]));
-     ext_mat_zee(f_grid_index,3,0) = -0.5*(2.*real(G_s[f_grid_index*4+0]) - 2.*real(G_s[f_grid_index*4+3])); 
-     ext_mat_zee(f_grid_index,3,1) =  0;
-     ext_mat_zee(f_grid_index,3,2) = -0.5*(4.*imag(-G_s[f_grid_index*4+1]));
-     ext_mat_zee(f_grid_index,3,3) = -0.5*(2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]));  
- 
-     abs_vec_zee(f_grid_index,0) = -0.5*(2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]));
-     abs_vec_zee(f_grid_index,1) = -0.5*(4.*real(G_s[f_grid_index*4+1]));
-     abs_vec_zee(f_grid_index,2) =  0;
-     abs_vec_zee(f_grid_index,3) = -0.5*(2.*real(G_s[f_grid_index*4+0]) - 2.*real(G_s[f_grid_index*4+3]));
+     //! First row of the extinction matrix.
+     ext_mat_zee(f_grid_index,0,0) = 0.5*(2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]));
+     ext_mat_zee(f_grid_index,0,1) = 0.5*(2.*real(G_s[f_grid_index*4+1]) + 2.*real(G_s[f_grid_index*4+2]));
+     ext_mat_zee(f_grid_index,0,2) = 0;
+     ext_mat_zee(f_grid_index,0,3) = 0.5*(2.*real(G_s[f_grid_index*4+0]) - 2.*real(G_s[f_grid_index*4+3]));
+
+     //! Second row of the extinction matrix.
+     ext_mat_zee(f_grid_index,1,0) = 0.5*(2.*real(G_s[f_grid_index*4+1]) + 2.*real(G_s[f_grid_index*4+2]));
+     ext_mat_zee(f_grid_index,1,1) = 0.5*(2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]));
+     ext_mat_zee(f_grid_index,1,2) = 0.5*(2.*imag(G_s[f_grid_index*4+0]) - 2.*imag(G_s[f_grid_index*4+3]));
+     ext_mat_zee(f_grid_index,1,3) = 0;
+
+     //! Third row of the extinction matrix.
+     ext_mat_zee(f_grid_index,2,0) = 0;
+     ext_mat_zee(f_grid_index,2,1) = 0.5*(2.*imag(G_s[f_grid_index*4+0]) - 2.*imag(G_s[f_grid_index*4+3]));
+     ext_mat_zee(f_grid_index,2,2) = 0.5*(2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]));
+     ext_mat_zee(f_grid_index,2,3) = 0.5*(2.*imag(G_s[f_grid_index*4+1]) + 2.*imag(G_s[f_grid_index*4+2]));
+
+     //! Fourth row of the extinction matrix.
+     ext_mat_zee(f_grid_index,3,0) = 0.5*(2.*real(G_s[f_grid_index*4+0]) - 2.*real(G_s[f_grid_index*4+3])); 
+     ext_mat_zee(f_grid_index,3,1) = 0;
+     ext_mat_zee(f_grid_index,3,2) = 0.5*(2.*imag(G_s[f_grid_index*4+1]) + 2.*imag(G_s[f_grid_index*4+2]));
+     ext_mat_zee(f_grid_index,3,3) = 0.5*(2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]));  
+     
+     //! Absorption vector components.
+     abs_vec_zee(f_grid_index,0) = 2.*real(G_s[f_grid_index*4+0]) + 2.*real(G_s[f_grid_index*4+3]);
+     abs_vec_zee(f_grid_index,1) = 2.*real(G_s[f_grid_index*4+1]) + 2.*real(G_s[f_grid_index*4+2]);
+     abs_vec_zee(f_grid_index,2) = 0;
+     abs_vec_zee(f_grid_index,3) = 2.*real(G_s[f_grid_index*4+0]) - 2.*real(G_s[f_grid_index*4+3]);
     } 
 
 
