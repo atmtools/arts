@@ -750,6 +750,30 @@ void define_md_data_raw()
         KEYWORDS( "r_or_z",  "lat",     "lon"     ),
         TYPES(    Numeric_t, Numeric_t, Numeric_t )));
 
+md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Cloudbox_ppathCalc" ),
+        DESCRIPTION
+        (
+         "Main function for calculation of propagation paths within the \n"
+	   "cloud box. This function will be used in *ScatteringMonteCarlo*\n"
+         "\n"
+         "\n"
+         "The definition of a propgation path cannot be accomodated here.\n"
+         "For more information read the chapter on propagation paths in the\n"
+         "ARTS user guide and read the  on-line information for\n"
+         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
+        ),
+        OUTPUT( ppath_, ppath_step_ ),
+        INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
+               lon_grid_, z_field_, r_geoid_, z_ground_, 
+               cloudbox_limits_, a_pos_, a_los_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "CloudboxGetIncoming" ),
@@ -3075,6 +3099,41 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+ 
+md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatteringMonteCarlo" ),
+        DESCRIPTION
+        (
+         "This method performs a single pencil beam monochromatic scattering\n"
+         "calculation using a Monte Carlo algorithm \n"
+	 "\n"
+	 "\n"
+	 "The main output variables *I* and *Ierror* represent the Stokes vector,\n"
+	 "and the estimated error in the Stokes vector respectively.\n"
+	 "The keyword parameter `maxiter\' describes the number of `photons\'\n"
+	 "used in the simulation (more photons means smaller *Ierror*).\n"
+	 "Non-zero values of keyword parameters record_ppathcloud and record_ppath\n"
+	 "enable the saving of internal and external ppath data for diagnostic purposes.\n"
+	 "  record_ppathcloud and record_ppath should be set to 0 for large values of\n"
+	 " max_iter\n"
+          ),
+        OUTPUT(ppath_, ppath_step_, I_, Ierror_, a_pos_, a_los_,
+	       a_gp_p_, a_gp_lat_, a_gp_lon_, i_space_, ground_emission_,
+	       ground_los_, ground_refl_coeffs_, y_rte_,  i_rte_, 
+	       scat_za_grid_,scat_aa_grid_, a_pressure_, a_temperature_, 
+	       a_vmr_list_, ext_mat_, abs_vec_, f_index_),
+        INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
+	      lon_grid_, z_field_, r_geoid_, z_ground_, cloudbox_limits_,
+	      stokes_dim_, rte_agenda_, i_space_agenda_, ground_refl_agenda_,
+	      t_field_, scat_za_grid_,
+	      scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
+	      opt_prop_part_agenda_,scalar_gas_absorption_agenda_, vmr_field_,
+	      scat_data_raw_, pnd_field_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("maxiter","record_ppathcloud","record_ppath" ),
+        TYPES( Index_t, Index_t, Index_t )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -3120,6 +3179,20 @@ void define_md_data_raw()
         ),
         OUTPUT( sensor_pos_ ),
         INPUT( sensor_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+ 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "shift_a_pos" ),
+        DESCRIPTION
+        (
+         "Changes *a_pos* and *a_los* to the last positions in *ppath*"
+        ),
+        OUTPUT( a_pos_, a_los_ ),
+        INPUT( ppath_, a_pos_, a_los_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3256,6 +3329,26 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS( "text"   ),
         TYPES(    String_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "TArrayCalc" ),
+        DESCRIPTION
+        (
+         "Calculates an array of transmittance matrices, extinction matrices, and other.\n"
+         "properties at or between points on a propagation path.\n"
+ 	 "This function is called by Scattering Monte Carlo and shouldn't be needed directly\n"
+	 "other than for diagnostic purposes.  One day it may be required for an Agenda\n"
+        ),
+        OUTPUT( TArray_, ext_matArray_, abs_vecArray_,t_ppath_, scat_za_grid_, scat_aa_grid_, ext_mat_,
+		abs_vec_, a_pressure_, a_temperature_, a_vmr_list_),
+        INPUT( ppath_,  opt_prop_gas_agenda_, opt_prop_part_agenda_, 
+	       scalar_gas_absorption_agenda_, stokes_dim_, p_grid_, lat_grid_,
+	       lon_grid_ , t_field_, vmr_field_, atmosphere_dim_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord

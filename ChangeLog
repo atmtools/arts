@@ -1,3 +1,44 @@
+<<<<<<< ChangeLog
+2003-06-24  Cory Davis    <cory@met.ed.ac.uk>
+
+	* arts-1-1-587
+
+	* src/Makefile.am: Added m_montecarlo.cc, montecarlo.cc, and 
+	montecarlo.h.
+
+	* src/methods.cc: Added Cloudbox_ppathCalc - an equivalent of 
+	ppathCalc for within the cloudbox, ScatteringMonteCarlo - 3D
+	scattering calculation, shift_a_pos - shifts a_pos and a_los to the 
+	end of ppath, TArrayCalc - calculates arrays of several useful 
+	quantities along a propagation path within the cloud box.
+
+	* src/workspace.cc: Added I - the stokes vector exiting the cloudbox
+	in the direction of the sensor, Ierror - the estimated error in I. 
+	abs_vecArray - an array of absorbtion coefficient vectors along a 
+	cloudbox propagation path. ext_matArray - an array of extinction 
+	matrices along a cloudbox propagation path,  TArray - an array of 
+	transmittance matrices along a cloudbox propagation path, t_ppath - a 
+	vector of temperatures along a cloudbox propagation path, ppathLOS - 
+	the propagation path for the initial line of sight.
+
+	I realise that 'I' might be redundant, since i_rte is already available.
+	This is something I will sort out once I have addressed radiative 
+	transfer from the cloudbox exit to the sensor.
+	
+	* src/m_montecarlo.cc:  Added.  This file includes WSM
+	ScatteringMonteCarlo, which performs a 3D scattering calculation.
+	A control file using this method is available on request.  There
+	are several issues that need to be addressed in this code, including 
+	efficiency issues, random number generation, and radiative transfer
+	from the cloud box to the sensor.  However, in it's current state it
+	should be ready for comparison with the existing scattering code.
+
+	* src/montecarlo.cc: Added.  Helper functions for ScatteringMonteCarlo.
+
+	* src/ppath.cc: fixed bug in ppath_start_3d() - removed double == double 
+	lines 03267-03268
+
+=======
 2003-06-24  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-586
@@ -14,6 +55,7 @@
 
 	* src/test_xml.cc: Updated to test writing of species_data.
 
+>>>>>>> 1.966
 2003-06-24  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-585

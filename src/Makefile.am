@@ -71,6 +71,7 @@ arts_SOURCES = \
 	m_absorption.cc \
 	m_copy.h \
 	m_ignore.h \
+	m_montecarlo.cc \
 	m_sensor.cc \
 	m_xml.cc \
 	m_xml.h \
@@ -99,6 +100,8 @@ arts_SOURCES = \
 	methods.cc \
 	methods.h \
 	methods_aux.cc \
+	montecarlo.cc \
+	montecarlo.h \
 	optproperties.cc \
 	optproperties.h \
 	parameters.cc \
@@ -466,6 +469,7 @@ test_zeemanproperties_SOURCES = \
 	m_general.cc \
 	m_hdf.cc \
 	m_io.cc \
+	m_montecarlo.cc \
 	m_optproperties.cc \
 	m_physics.cc \
 	m_ppath.cc \
@@ -502,6 +506,8 @@ test_zeemanproperties_SOURCES = \
 	methods.cc \
 	methods.h \
 	methods_aux.cc \
+	montecarlo.cc \
+	montecarlo.h \
 	optproperties.cc \
 	optproperties.h \
 	parameters.cc \

@@ -3260,11 +3260,12 @@ void ppath_start_3d(
   {
     // Radius of lower and upper pressure surface at the start position
     const double   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15a, r35a, r36a, r16a, lat_start, lon_start );
+				     r15a, r35a, r36a, r16a, lat_start, lon_start );
     const double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15b, r35b, r36b, r16b, lat_start, lon_start );
-
-    if( r_start == rlow  ||  r_start == rupp )
+				     r15b, r35b, r36b, r16b, lat_start, lon_start );
+    const double epsilon = 1e-6;//CPD: 24-06-03
+    //if( r_start == rlow  || r_start == rupp )//CPD: replaced to avoid false falses
+    if (abs(r_start-rlow) < epsilon || abs(r_start-rupp) < epsilon)
       { gridpos_force_end_fd( ppath.gp_p[imax] ); }
   }
 
