@@ -419,18 +419,18 @@ ground state. Thus the total particle number $N$ is given by
  N=\frac{N_0}{g_0}\sum_{n=0}^\infty e^{-E_n/kT}=\frac{N_0}{g_0}~Q(T)
 \label{}
 \end{equation}
-The quantity $Q(T)$ is {\it{partition function}\nocorr} of the gas. At
-one hand all thermodynamic quantities can expressed through it, and at
+The quantity $Q(T)$ is the {\it{partition function}\nocorr} of the gas. At
+one hand all thermodynamic quantities can be expressed through it, and at
 another it comes into play by the calculation line intensities.\\
 Generally speaking, the partition fuction for a perfect gas can be
-represented by the product of {\it{translational}\nocorr} and {\it{internal}\nocorr} partition functions
+represented by the product of the {\it{translational}\nocorr} and the {\it{internal}\nocorr} partition functions
 \begin{equation}
- Q &  = &  Q_{tr}~Q_{int}
+ Q  =  Q_{tr}~Q_{int}
 \label{}
 \end{equation}
 bearing in mind that the respective energies are independent of each
-other. The quantitity, however, which we are interested in in (3.13) is
-{\it{internal}\nocorr} partition function (or the  {\it{total internal
+other. The quantitity, however, which we are interested in in (3.13)
+is the {\it{internal}\nocorr} partition function (or the  {\it{total internal
     partition function}\nocorr}). It describes, in general terms, the energy
 distribution and redistribution during the radiation process. 
 
@@ -450,18 +450,66 @@ multiplet ground state ($NO_2$ , $ClO_2$ , and free radicals) has the
 electronic contibution to be considered.\\
 If we neglect the anharmonicities, the vibratioanal partition
 function, with vibrational levels measured with respect to the ground
-state, the term $h\omega_n/2$ is omitted in the energy expression.
+state, the term $h\omega_n/2$ is omitted in the energy expression for
+the {\it{harmonic oscilator}\nocorr}, is 
+\begin{equation}
+ Q_v=\left(\sum_{\nu_1}e^{-\nu_1 h\omega_1/kT}\right)\left(\sum_{\nu_2}e^{-\nu_2 h\omega_2/kT}\right)...
+\label{}
+\end{equation}
+where $\nu_1$, $\nu_2$,..., the vibrational quantum numbers, can each
+have the valies 0,1,2,... and $\omega_1$, $\omega_2$,..are the
+frequencies of the fundamental modes of vibration. The summation is
+taken over all values of $\nu_1$, $\nu_2$,..., and each fundamental
+mode is counted separately. This result is valid for non-degenerate
+vibrations. If we use the simple exprassion for geometric progression
+\begin{equation}
+ \sum_{\nu_i}e^{-\nu_i h\omega_i/kT}=\frac{1}{1-e^{h\omega_i/kT}}
+\label{}
+\end{equation}
+and the degeneracies $d_1$, $d_2$,... of the fundamental modes, we ge
+finally for vibrational partition function
+\begin{equation}
+Q_v=\left(1-e^{h\omega_1/kT}\right)^{-d_1}\left(1-e^{h\omega_2/kT}\right)^{-d_2}...
+\label{}
+\end{equation}
 
-
-
-
-
-
-
-
-
-
-
+The rotational partition function looks differently for the different
+symmetry types of molecules.
+For diatomic and linear  polyatomic molecules with no center of
+symmetry the corresponding expression is 
+\begin{eqnarray}
+Q_r & = & \sum_{J=0}^\infty (2J+1)e^{-hBJ(J+1)/kT}\nonumber\\
+   & = & \frac{kT}{hB}+\frac{1}{3}+\frac{1}{15}\frac{hB}{kT}+\frac{4}{315}\left(\frac{hB}{kT}\right)^2+...\nonumber\\
+   & \cong & \frac{kT}{hB}
+\label{}
+\end{eqnarray}
+By {\it{symmetric-}}, {\it{asymmetric-}}, and {\it{spherical}} top molecules there are also
+other factors to be taken into consideration, such as the
+spatial structure of the molecules, nuclear spin, inversion and
+internal rotation. The general expression in tis case us
+\begin{equation}
+Q_r  =  \frac{1}{\sigma}\sum_{J=0}^\infty \sum_{K=-J}^{J}(2J+1)~e^{-h[BJ(J+1)+(A-B)K^2]/kT}
+\label{}
+\end{equation}
+where $\sigma$ is ameasure of the degree of symmetry. For the usual
+symmetric top has $C_3$ or $C_{3\nu}$ symmetry, $\sigma$ = 3. To a good
+aprroximation, the summation above can expressed as
+\begin{equation}
+Q_r  = 
+\frac{1}{\sigma}\left[\left(\frac{\pi}{B^2A}\right)\left(\frac{kT}{h}\right)^3\right]^{1/2}=
+\frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{B^{2}A}\right)^{1/2}
+\label{}
+\end{equation}
+For asymmetric top the formula would then be 
+\begin{equation}
+Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{ABC}\right)^{1/2}
+\label{}
+\end{equation}
+and for sprherical top
+\begin{equation}
+Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
+\label{}
+\end{equation}
 
 
 
