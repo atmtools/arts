@@ -31,6 +31,7 @@
   ===========================================================================*/
 
 #include <cmath>
+#include <list>
 #include "matpackI.h"
 #include "matpackII.h"
 //#include <stdexcept>
@@ -86,34 +87,34 @@ void sensor_integration_vector(
   }
   Vector x_f = x_ftot[Range(i1_f, i2_f-i1_f+1)];
 
-  //Create a reference grid vector containing all x_f and x_g
-  //strictly sorted by adding the in a sorted way.
-  Vector x_reftot( x_f.nelem() + x_g.nelem() );
-
-  Index i_f = 0, i_g = 0, i=0;
-  while( i_f<x_f.nelem() || i_g<x_g.nelem() ) {
-    if (x_f[i_f] < x_g[i_g]) {
-      x_reftot[i] = x_f[i_f];
-      i_f++;
-    } else if (x_f[i_f] > x_g[i_g]) {
-      x_reftot[i] = x_g[i_g];
-      i_g++;
-    } else {
-      // x_f and x_g are equal
-      x_reftot[i] = x_f[i_f];
-      i_f++;
-      i_g++;
-    }
-  i++;
+  //Create a reference grid vector, x_ref that containing the values of
+  //x_f and x_g strictly sorted.
+  list<Index> l_x;
+  for (Index i=0; i<x_f.nelem(); i++)
+  	l_x.push_back(x_f[i]);
+  for (Index i=0; i<x_g.nelem(); i++) {
+    if( x_g[i] > l_x.front() && x_g[i]<l_x.back() )
+      l_x.push_back(x_g[i]);
   }
-  Vector x_ref = x_reftot[Range(0,i)];
+
+  l_x.sort();
+  l_x.unique();
+
+  Vector x_ref(l_x.size());
+  Index i=0;
+  for (list<Index>::iterator li=l_x.begin(); li != l_x.end(); li++) {
+	x_ref[i] = *li;
+	i++;
+  }
 
   //Initiate output vector, with equal size as x_g, with zeros.
   //Start calculations
   h = 0.0;
-  i_f = 0;
-  i_g = 0;
+  Index i_f = 0;
+  Index i_g = 0;
+  //i = 0;
   Numeric dx,a0,b0,c0,a1,b1,c1,x3,x2,x1;
+  //while( i_g < x_g.nelem() && i_f < x_f.nelem() ) {
   for( Index i=0; i<x_ref.nelem()-1; i++ ) {
     //Find for what index in x_g (which is the same as for h) and f
     //calculation corresponds to
@@ -122,6 +123,7 @@ void sensor_integration_vector(
     }
     while( x_f[i_f+1] <= x_ref[i] ) {
      i_f++;
+	 //cout << "i_f: " << i_f << "\n";
     }
 
     //If x_ref[i] is out of x_f's range then that part of the integral
@@ -148,15 +150,11 @@ void sensor_integration_vector(
       h[i_g+1] += (a1*x3+b1*x2+c1*x1) / dx;
 
     }
+	//i++;
   }
-  
-  //Normalize h, start with summing all elements...
-  Numeric h_sum = 0;
-  for (Index i=0; i<h.nelem(); i++ ) {
-	h_sum += h[i];
-  }
-  //and divide each element of h with the sum.
-  h /= h_sum;
+
+  //Normalize h.
+  h /= h.sum();
 }
 
 //! antenna_transfer_matrix
@@ -172,17 +170,15 @@ void sensor_integration_vector(
     ncols = x_f.nelem() * m_za.nelem()
 
    The number of line-of-sights is determined by the length of the
-   measurement block grid. The number of antenna diagram columns and
-   grid points must match, but they don't need to match the number
-   of frequency grid points.
+   measurement block grid. The number of sensor response matrix rows
+   don't need to match the number of frequency grid points.
 
    FIXME: The antenna diagram values could be set up and scaled using the
    antenna_diagram_gaussian and scale_antenna_diagram functions.
 
    \param   H      The antenna transfer matrix.
    \param   m_za   The measurement block grid of zenith angles.
-   \param   a      The antenna diagram values.
-   \param   x_a    The antenna diagram grid points.
+   \param   srm	   The sensor response matrix, i.e. the antenna diagram
    \param   x_f    The frequency grid points.
 
    \author Mattias Ekström
@@ -191,22 +187,21 @@ void sensor_integration_vector(
 void antenna_transfer_matrix(
            SparseView   H,
       ConstVectorView   m_za,
-      ConstVectorView   a,
-      ConstVectorView   x_a,
+      ConstMatrixView   srm,
       ConstVectorView   x_f )
 {
   //Assert that the transfer matrix has the right size
   assert( H.nrows()==x_f.nelem() && H.ncols()==m_za.nelem()*x_f.nelem() );
 
   //FIXME: Allocate a temporary vector to keep values before sorting them into the
-  //final sparse matrix
+  //final sparse matrix, could (should) be fixed with a SparseView(range, range) operator
   Vector temp(m_za.nelem()*x_f.nelem(), 0.0);
 
   //Calculate the sensor integration vector and put values in the temp vector
   //FIXME: Scale the antenna diagram?? If so, do it here.
   for (Index i=0; i<x_f.nelem(); i++) {
     sensor_integration_vector( temp[Range(i, m_za.nelem(), x_f.nelem())],
-      a[Range(joker)], x_a, m_za);
+      srm(Range(joker),1), srm(Range(joker),0), m_za);
   }
 
   //Copy values to the antenna matrix
@@ -220,32 +215,32 @@ void antenna_transfer_matrix(
 
 //! antenna_diagram_gaussian
 /*!
-   Sets up an vector containing a standardised Gaussian antenna diagram,
+   Sets up a matrix containing a standardised Gaussian antenna diagram,
    described for a certain frequency. The function is called with the
    half-power beam width that determines the shape of the curve for the
-   reference frequency, and a grid that sets up the antenna diagram.
+   reference frequency, and a matrix that must contain the grid that sets
+   up the antenna diagram as the first column. The antenna diagram values
+   will the be put in the second column.
 
-   \param   a       The antenna diagram vector.
-   \param   a_grid  The antenna diagram grid of angles.
+   \param   srm     The antenna diagram matrix.
    \param   theta   The antenna average width
 
    \author Mattias Ekström
    \date   2003-03-11
 */
 void antenna_diagram_gaussian(
-           VectorView   a,
-      ConstVectorView   a_grid,
+           MatrixView   srm,
        const Numeric&   theta )
 {
   //Assert that a has the right size
-  assert( a.nelem()==a_grid.nelem() );
+  assert( srm.ncols()==2 );
 
   //Initialise variables
   Numeric ln2 = log(2.0);
 
   //Loop over grid points to calculate antenna diagram
-  for (Index i=0; i<a_grid.nelem(); i++) {
-    a[i]=exp(-4*ln2*pow(a_grid[i]*DEG2RAD/theta,2));
+  for (Index i=0; i<srm.nrows(); i++) {
+    srm(i,1)=exp(-4*ln2*pow(srm(i,0)*DEG2RAD/theta,2));
   }
 }
 
@@ -255,29 +250,82 @@ void antenna_diagram_gaussian(
    the new frequency.
 
    \return          The scaled antenna diagram
-   \param   a       The antenna diagram vector
+   \param   srm     The antenna diagram matrix
    \param   f_ref   The reference frequency
    \param   f_new   The new frequency
 
    \author Mattias Ekström
    \date   2003-03-11
 */
-Vector scale_antenna_diagram(
-        ConstVectorView   a,
+Matrix scale_antenna_diagram(
+        ConstMatrixView   srm,
          const Numeric&   f_ref,
          const Numeric&   f_new )
 {
   //Initialise new vector
-  Vector a_new( a.nelem() );
+  Matrix srm_new = srm;
 
   //Get scale factor
   Numeric s = f_new / f_ref;
 
   //Scale
-  for (Index i=0; i<a.nelem(); i++) {
-    a_new[i]=pow(a[i], s);
+  for (Index i=0; i<srm.nrows(); i++) {
+    srm_new(i,1)=pow(srm(i,1), s);
   }
 
-  return a_new;
+  return srm_new;
 }
 
+//! spectrometer_transfer_matrix
+/*!
+   Constructs the sparse matrix that multiplied with the spectral values.
+   There are no dependency on line-of-sights, therefor the antenna transfer
+   matrix has to be applied before the spectrometer.
+
+   The size of the spectrometer transfer matrix has to be set by the calling
+   function, and the number of rows must match the number of spectrometer
+   channels while the number of columns must match the number of frequency
+   grid points.
+
+   The spectrometer response matrix decribes how the spectrometer behaves on a
+   relative frequency grid. The first column contains the relative grid points
+   and the second holds the response values.
+   NB:(FIXME?) The same spectrometer response is used for all channels, it is only
+   shifted to the right centre frequency.
+
+   \param   H      The transfer matrix.
+   \param   srm    The spectrometer response matrix.
+   \param   x_s    The spectrometer channel centre frequencies.
+   \param   x_f    The frequency grid points.
+
+   \author Mattias Ekström
+   \date   2003-05-12
+*/
+void spectrometer_transfer_matrix(
+           SparseView   H,
+      ConstMatrixView   srm,
+      ConstVectorView   x_s,
+      ConstVectorView   x_f )
+{
+  //Assert that the transfer matrix has the right size
+  assert( H.nrows()==x_s.nelem() && H.ncols()==x_f.nelem() );
+
+  //Allocate memory for temporary vectors
+  Vector temp(x_f.nelem(), 0.0);
+  Vector x_srm(srm.nrows());
+
+  //Calculate the sensor integration vector and put values in the temporary
+  //vector, then copy vector to the transfer matrix
+  for (Index i=0; i<x_s.nelem(); i++) {
+    //The spectrometer response is shifted for each centre frequency step
+	x_srm = srm(Range(joker),0);
+	x_srm += x_s[i];
+    sensor_integration_vector( temp, srm(Range(joker),1), x_srm, x_f);
+
+	//FIXME: Should be fixed by a SparseView(Range, Range) -> VectorView
+	//This might take more time than needed
+	for (Index j=0; j<temp.nelem(); j++) {
+	  H.rw(i,j) = temp[j];
+    }
+  }
+}

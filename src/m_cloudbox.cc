@@ -2073,13 +2073,13 @@ void ybatchMetProfiles(//Output
 
   y.resize(f_grid.nelem());
   ybatch.resize(no_profiles, f_grid.nelem());
-  
+
   Vector sat_za_from_profile;
   sat_za_from_profile = met_amsu_data(Range(joker),3);
   Numeric sat_za;
   
   sensor_los.resize(1,1);
-  
+
   
   Vector lat, lon;
   lat = met_amsu_data(Range(joker),0);
@@ -2096,7 +2096,7 @@ void ybatchMetProfiles(//Output
 	  if(abs(lat[i])>=100 ) lat_prec--;
 	}
       lat_os<<ios::showpoint<<ios::fixed<<setprecision(lat_prec)<<lat[i];
-      
+
       Index lon_prec = 4;
       if(lon[i] < 0) lon_prec--;
       if(abs(lon[i])>=10 )

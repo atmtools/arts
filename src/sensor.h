@@ -59,18 +59,22 @@ void sensor_integration_vector(
 void antenna_transfer_matrix(
            SparseView   H,
       ConstVectorView   m_za,
-      ConstVectorView   a,
-      ConstVectorView   x_a,
+      ConstMatrixView   srm,
       ConstVectorView   x_f );
 
 void antenna_diagram_gaussian(
-           VectorView   a,
-      ConstVectorView   theta_grid,
+           MatrixView   srm,
        const Numeric&   theta );
 
 Vector scale_antenna_diagram(
-      ConstVectorView   a,
+      ConstMatrixView   srm,
        const Numeric&   f_ref,
        const Numeric&   f_new );
+	   
+void spectrometer_transfer_matrix(
+           SparseView   H,
+      ConstMatrixView   srm,
+      ConstVectorView   x_s,
+      ConstVectorView   x_f );
 
 #endif  // sensor_h

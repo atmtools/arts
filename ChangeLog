@@ -1,3 +1,19 @@
+2003-05-19  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-546
+	
+	* src/sensor.{cc,h}: Added spectrometer_transfer_matrix that
+	models the backend response for spectrometers. Also made fixed
+	bugs in sensor_integration_vector.
+	
+	* src/refraction.{cc,h}: Added function refr_index_ir that
+	calculates refraction index in the IR region, using formula from
+	Michael Höpfner, Forchungszentrum Karlsruhe.
+	
+	* src/m_refraction.cc: Added refr_indexIR to interface with refr_index_ir.
+	
+	* src/methods.cc: Added refr_indexIR entry.
+
 2003-05-19  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-545

@@ -28,7 +28,6 @@
 
 */
 
-
 #include "arts.h"
 #include "xml_io.h"
 #include "xml_io_private.h"

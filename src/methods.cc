@@ -2605,7 +2605,28 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("refr_indexIR"),
+        DESCRIPTION
+        (
+         "Calculates the microwave refractive index due to gases in the\n"
+         "Earth's atmosphere. \n"
+         "\n"
+         "Only refractivity of dry air is considered. All other gases has\n"
+		 "a negligible contribution.  \n"
+         "\n"
+         "The formula used is contributed by Michael Höpfner,\n"
+		 "Forschungszentrum Karlsruhe."
+        ),
+        OUTPUT( refr_index_ ),
+        INPUT( a_pressure_, a_temperature_, a_vmr_list_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("refr_indexThayer"),
         DESCRIPTION

@@ -579,6 +579,27 @@ void refr_index_thayer_1974(
 {
   const Numeric   e = p * h2o_vmr;
 
-  refr_index = 1 + ( 77.6e-8 * ( p - e ) + 
+  refr_index = 1 + ( 77.6e-8 * ( p - e ) +
                                           ( 64.8e-8 + 3.776e-3 / t ) * e ) / t;
+}
+
+//! refr_index_ir
+/*!
+   Calculation of refractive index for the infrared frequency band.
+   The function uses a definition from Michael Höpfner,
+   Forschungszentrum Karlsruhe.
+
+   \author Mattias Ekström
+   \date   2003-05-15
+*/
+void refr_index_ir(
+			  Numeric&   refr_index,
+        const Numeric&   p,
+		const Numeric&   t )
+{
+  const Numeric bn0 = 1.000272620045304;
+  const Numeric bk = 288.16*(pow(bn0,2.0)-1.0)/(1013.25*(pow(bn0,2.0)+2.0));
+
+  // Pa -> HPa
+  refr_index = sqrt((2.0*bk*p/100.0+t)/(t-bk*p/100.0));
 }

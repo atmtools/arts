@@ -1,5 +1,5 @@
 /* Copyright (C) 2003 Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
-                            
+
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -221,10 +221,29 @@ void RefrIndexFieldAndGradients(
     }
 }
 
+//! refr_indexIR
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+   
+   \author Mattias Ekström
+   \date   2003-05-15
+*/
+void refr_indexIR(
+		// WS Output
+              Numeric&                  refr_index,
+		// WS Input
+		const Numeric&                  a_pressure,
+		const Numeric&                  a_temperature,
+		const Vector&					a_vmr_list )
+{
+  // touch( a_vmr_list );
+
+  refr_index_ir( refr_index, a_pressure, a_temperature );
+}
 
 
 //! refr_indexThayer
-/*! 
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -241,21 +260,21 @@ void refr_indexThayer(
     throw runtime_error( "The number of tag groups differ between "
                                            "*a_vmr_list* and *gas_species*." );
 
-  Index   firstH2O = find_first_species_tg( gas_species, 
+  Index   firstH2O = find_first_species_tg( gas_species,
                                       species_index_from_species_name("H2O") );
 
   if( firstH2O < 0 )
-    throw runtime_error( 
+    throw runtime_error(
        "Water vapour is a requiered (must be a tag group in *gas_species*)." );
 
-  refr_index_thayer_1974( refr_index, a_pressure, a_temperature, 
+  refr_index_thayer_1974( refr_index, a_pressure, a_temperature,
                                                         a_vmr_list[firstH2O] );
 }
 
 
 
 //! refr_indexUnit
-/*! 
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
