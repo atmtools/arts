@@ -12,8 +12,8 @@
 
 Solving the vector radiative transfer equation requires the
 computation of linear equation systems and the matrix
-exponential. This section describes the methods which are implemented
-in ARTS and it gives instructions how these methods can be used, also
+exponential. This section describes the functions which are implemented
+in ARTS and it gives instructions how these functions can be used, also
 for other purposes than the radiative transfer calculations.
 
 \levelb{Implementation files}
@@ -54,7 +54,9 @@ For solving a set of linear equations
 \label{eq:lin_equ_sys}
 {\bf A} {\bf x} = {\bf b}
 \end{eqnarray}
-the LU Decomposition method is implemented. An alternative method
+the LU decomposition method is implemented.A slightly modified version
+of the algorithm described in
+[\cite{numerical_recipes_C:96}] is used here. An alternative method
 is the Gauss-Jordan elimination, but this method is three times
 slower than the LU decomposition method
 [\cite{numerical_recipes_C:97}, p.36]. The LU decomposition method
@@ -64,7 +66,7 @@ which will be decribed below.
 The following example for a three dimensional equation sytem 
 demonstrates how to solve a linear
 equation sytem of the type
-\ref{eq:lin_equ_sys}:
+(\ref{eq:lin_equ_sys}):
 \begin{itemize}
 \item Create matrix A, vector b: \\
   \verb|A = Matrix(3,3);| \\
@@ -74,14 +76,14 @@ equation sytem of the type
   \verb|b = Vector(3);|\\
   \verb|b(1) = 7;|\\
   $\cdots$
-\item Initialize solution vector x and to other variables needed for
+\item Initialize solution vector x and two other variables needed for
   storing intermediate results:\\
   \verb|x = Vector(3);|\\
   \verb|LU = Matrix(3,3);|\\
   \verb|indx = ArrayOfIndex(3);|
-\item Call LU decomposition function (\ref{sec:lu_decomp}): \\
+\item Call LU decomposition function (see Section \ref{sec:lu_decomp}): \\
   \verb|ludcmp(LU, indx, A);|
-\item Call LU backsubstitution function (\ref{sec:backsub}): \\
+\item Call LU backsubstitution function (see Section \ref{sec:backsub}): \\
   \verb|lubacksub(x, LU, b, indx);|
 \item Print the solution vector:\\
   \verb|cout << x;|
@@ -134,7 +136,7 @@ First
   {\bf L} \cdot{\bf y} = {\bf b}
 \end{equation}
 is solved for the vector ${\bf y}$ which can be done by
-forward substitution \ref{sec:backsub}. Then 
+forward substitution (see section \ref{sec:backsub}). Then 
 \begin{equation}
   {\bf U} \cdot{\bf x} = {\bf y}
 \end{equation}
@@ -169,7 +171,7 @@ essential for the stability of
 Crout's algorithm. Here partial pivoting,
 i.e. interchange of rows is implemented. That means that not {\bf A} is
 decomposed into $LU$-form but a rowwise permutation of {\bf A}. If the
-index vector contains for example the elements $(3,2,1)$ the first and
+index vector contains for example the elements $(2,1,0)$ the first and
 the last row of a three dimensional matrix would be exchanged.
 
 
@@ -224,7 +226,7 @@ equation system.
   To compute $(\bf K)^{-1}\cdot{\bf b}$, which is a part of the
 solution to the vector radiative transfer equation (\ref{?}) the LU
 decomposition method can be used. The following equations show, that
-the problem is equal to  solving a linear equation system of the type
+the problem is equivalent to  solving a linear equation system of the type
 \ref{eq:lin_equ_sys}.
 \begin{eqnarray}
   {\bf K}^{-1}\cdot{\bf b} &=& {\bf x}\\
@@ -257,7 +259,7 @@ matrix exponential:
 \end{eqnarray}
 In principle it could be computed using the Taylor power series but 
  this method is not efficient. {\sc Moler} and {\sc Van
-  Loan} have shown for a simple example [\cite{ref:Moler_Loan:79}]
+  Loan} have shown for the simple example [\cite{Moler_Loan:79}]
 \[ {\bf A} =
 \left(
   \begin{array}{cc}
@@ -274,7 +276,7 @@ result due to rounding errors.
 
 One of the better algorithms for computing the matrix exponential is
 the Pad\'e approximation which is also shortly described in
-[\cite{ref:Moler_Loan:79}] and outlined in the book ``Matrix
+[\cite{Moler_Loan:79}] and outlined in the book ``Matrix
 Computations'' by \cite{Golub_Loan:91}. 
 The method uses perturbation theorie as well as the so called Pad\'e
 functions. It is possible to derive an algorithm which calculates
