@@ -109,7 +109,6 @@ int main()
           << "  bool is_occupied(Index i) const;\n"
           << "  void set(Index i);\n"
           << "  void free(Index i);\n"
-          << "  void touch() const {};\n"
           << "private:\n"
           << "  /** Keeps track which elements are occupied.\n"
           << "      For some strange reason, Array<bool> does not work, hence\n"
