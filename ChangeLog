@@ -1,3 +1,12 @@
+2002-12-18  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-341
+
+	* src/xml_io.cc: Implemented reading/writing of SpeciesTag.
+
+	* src/Makefile.am: Added absorption.* and species_data.cc to
+	test_xml_SOURCES.
+
 2002-12-17  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-340
