@@ -1,5 +1,13 @@
 2001-11-21  Thomas Kuhn  <tkuhn@uni-bremen.de>
 	
+        * arts-0-1-51
+
+	* changes: 
+	  - file src/continua.cc:
+	    Online documentation changed.
+
+2001-11-21  Thomas Kuhn  <tkuhn@uni-bremen.de>
+	
         * arts-0-1-50
 
 	* changes: 

@@ -110,14 +110,13 @@
          Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
          <a href="ftp://ftp.its.bldrdoc.gov/pub/mpm93/">(WWW access)</a>.
    </li>
-   <li><b>O2-air (O2-SelfContPWR93)</b>:<br> 
+   <li><b>O2-air (O2-SelfContStandardType)</b>:<br> 
          P. W. Rosenkranz,<br> 
          Chapter 2, in M. A. Janssen, <br>
          <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
          John Wiley & Sons, Inc., 1993
-         <a href="ftp://mesa.mit.edu/phil/lbl_rt">(WWW access)</a>.
-   </li>
-   <li><b>O2-air (O2-SelfContMPM93)</b>: <br>
+         <a href="ftp://mesa.mit.edu/phil/lbl_rt">(WWW access)</a>.<br>
+         and<br>
          H. J. Liebe and G. A. Hufford and M. G. Cotton,<br>
 	 <i>Propagation modeling of moist air and suspended water/ice<br>
 	 particles at frequencies below 1000 GHz</i>,<br>
