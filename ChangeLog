@@ -1,3 +1,29 @@
+2002-10-18  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-266
+
+	* ami/xml/xmlLoad.m: Removed debug output.
+
+	* ami/xml/xmlReadArray: Bug fixes.
+
+	* ami/xml/xmlReadTensor[3-5]: Added.
+
+	* ami/xml/xmlCheckSize: Added. Checks whether the number of read data
+	item corresponds to the intended number.
+
+	* ami/xml/xmlReadTensor6, ami/xml/xmlReadMatrix: Corrected permutation
+	of input vector.
+
+	NOTE: The function name which is called for reading a data type from
+	an XML file is put together in xmlLoad.m. So, for every new data type
+	only a file called xmlRead<DATATYPE>.m has to be put into the
+	directory.  Array and ArrayOfArray are working automatically
+	(hopefully).
+	
+	WARNING: All implemented reading routines work as long as the input
+	file is correct. There is currently nearly no error checking. All
+	kinds of strange things may happen.
+
 2002-10-17  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-265
