@@ -294,14 +294,14 @@ A.ncols()                 // number of columns
 A.nnz()                   // number of nonzero elements
 
 
-SPARSE_MATRIX:
-===========
+SPARSE:
+=======
 
 You can use basically all algorithms and member functions of MATRIX.
 
 1. Define:
 
-SPARSE_MATRIX S(n,m);        // n,m are the dimensions, the number of
+SPARSE S(n,m);        // n,m are the dimensions, the number of
                              nonzero elements is 0 at first
 
 2. Set elements by:
@@ -312,6 +312,31 @@ S[3][4] = 1;
 
 S.nnz()
 
+
+SYMMETRIC:
+==========
+
+Actually this should (in theory) be Banded and Symmetric. 
+
+1. Define:
+
+SYMMETRIC S(n,z);        // n is the dimension, z should be the number
+                         // of off diagonals 
+
+Hence,
+
+SYMMETRIC(5,1)
+
+should define a matix like this:
+
+xx000
+xxx00
+0xxx0
+00xxx
+000xx
+
+However, in practise it seems to be just symmetric. I don't know
+what's going wrong.
 
 
 

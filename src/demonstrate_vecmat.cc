@@ -155,7 +155,7 @@ main()
   cout << "Sparse Matrices:\n";
   cout << "----------------\n";
 
-  SPARSE_MATRIX S(n,2*n);
+  SPARSE S(n,2*n);
 
   // How many nonzero elements?
   cout << "S.nnz():\n" << S.nnz() << "\n";
@@ -237,5 +237,40 @@ main()
   // transf even with functions taking another (scalar) argument:
   //  cout << "pow(A,3):\n" << transf(A,std::binder2nd(sqrt,3)) << "\n";
   // FIXME: Dunno how to make this work.
+
+
+  // Demonstrate SYMMETRIC
+  cout << "\nSymmetric Matrices:\n";
+  SYMMETRIC As(3,3);
+
+  As[0][0] = 1;
+  As[0][1] = 2;
+  cout << "As:\n"       << As              << "\n";
+
+
+  // Demonstrate BANDEDSYM
+  cout << "\nBanded Symmetric Matrices:\n";
+  SYMMETRIC Abs(5,1);
+
+  mtl::set(Abs,1); 
+
+  // This does not seem to work either... :-(
+//    {
+//      SYMMETRIC::iterator ri = Abs.begin();
+//      while (ri != Abs.end()) {
+//        SYMMETRIC::Row::iterator i = (*ri).begin();
+//        while (i != (*ri).end()) {
+//  	*i = 1;
+//  	++i;
+//        }
+//        ++ri;
+//      }
+//    }
+
+  cout << "Abs (all elements set to 1):\n"       << Abs              << "\n";
+  cout << "Only the diagonal +- 1 should be set.\n"
+       << "Dunno why this does not work.\n";
+
+
 }
 

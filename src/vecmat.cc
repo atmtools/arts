@@ -69,12 +69,20 @@ std::ostream& operator<<(std::ostream& s, const MATRIX::submatrix_type& A)
   return s;
 }
 
-// Output operator for SPARSE_MATRIX:
-std::ostream& operator<<(std::ostream& s, const SPARSE_MATRIX& A)
+// Output operator for SPARSE:
+std::ostream& operator<<(std::ostream& s, const SPARSE& A)
 {
   print_all_matrix(s, A);
   return s;
 }
+
+// Output operator for SYMMETRIC:
+std::ostream& operator<<(std::ostream& s, const SYMMETRIC& A)
+{
+  print_all_matrix(s, A);
+  return s;
+}
+
 
 
 // Input operator for VECTOR:

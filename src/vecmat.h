@@ -60,7 +60,10 @@ typedef mtl::dense1D<Numeric> VECTOR;
 
 typedef mtl::matrix<Numeric>::type MATRIX;
 
-typedef mtl::matrix<Numeric,mtl::rectangle<>,mtl::compressed<> >::type SPARSE_MATRIX;
+typedef mtl::matrix<Numeric,mtl::rectangle<>,mtl::compressed<> >::type SPARSE;
+
+typedef mtl::matrix<Numeric,mtl::symmetric<mtl::upper>,mtl::banded<> >::type SYMMETRIC;
+
 
 #define ARRAY mtl::dense1D       
 //#define ARRAY std::vector
@@ -221,8 +224,12 @@ std::ostream& operator<<(std::ostream& s, const MATRIX& A);
 // Output operator for sub MATRIX:
 std::ostream& operator<<(std::ostream& s, const MATRIX::submatrix_type& A);
 
-// Output operator for SPARSE_MATRIX:
-std::ostream& operator<<(std::ostream& s, const SPARSE_MATRIX& A);
+// Output operator for SPARSE:
+std::ostream& operator<<(std::ostream& s, const SPARSE& A);
+
+// Output operator for SYMMETRIC:
+std::ostream& operator<<(std::ostream& s, const SYMMETRIC& A);
+
 
 // Input operator for ARRAY:
 template <class T>

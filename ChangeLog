@@ -1,3 +1,25 @@
+2001-02-13  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-122
+
+	* vecmat.h, vecmat.cc: Added matrix type SYMMETRIC. This should be
+	both banded and symmetric. (Having just symmetric is a special
+	case of this.) 
+
+	SYMMETRIC A(5);   // generates 5x5 symmetric matrix
+	SYMMETRIC A(5,1); // generates 5x5 banded symmetric matrix like this:
+	                  // xx000
+	                  // xxx00
+	                  // 0xxx0
+	                  // 00xxx
+	                  // 000xx
+
+	However, the latter case seems not to work and I don't understand
+	why. Best would be to write email about this to the MTL people.
+
+	* demonstrate_vecmat.cc: Included test cases for the SYMMETRIC type.
+
+	
 2001-02-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-121
@@ -222,7 +244,7 @@
 	for van Vleck-Weiskopf should be OK.
 	
 
-2001-01-17  Wolfram Haas  <engeln@uni-bremen.de>
+2001-01-17  Wolfram Haas  <wolhaas@hermes.fho-emden.de>
 
 	* arts-0-0-106
 
