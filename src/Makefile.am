@@ -1036,3 +1036,6 @@ CLEANFILES = \
 	auto_md.h \
 	auto_md.cc
 
+TESTS = ./check-code-cheaders.pl
+
+
