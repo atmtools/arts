@@ -2072,7 +2072,7 @@ void xsec_per_tgAddLines(// WS Output:
     // conversion) are just to make the output nice. They are not used
     // in subsequent calculations.
     out2 << "  Calculating line spectra.\n";
-    out3 << "  Transitions to do: \n";
+    //    cout << "  Transitions to do: \n";
     Index nlines = 0;
     String funit;
     Numeric ffac;
@@ -2089,9 +2089,9 @@ void xsec_per_tgAddLines(// WS Output:
       {
 	for ( Index l=0; l<lines_per_tg[i].nelem(); ++l )
 	  {
-	    out3 << "    " << lines_per_tg[i][l].Name() << " @ " 
-		 << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
-		 << lines_per_tg[i][l].I0() << ")\n"; 
+// 	    cout << "    " << lines_per_tg[i][l].Name() << " @ " 
+// 		 << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
+// 		 << lines_per_tg[i][l].I0() << ")\n"; 
 	    nlines++;
 	  }
       }
