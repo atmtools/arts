@@ -1,3 +1,9 @@
+2003-09-08  Sho  <sho@sat.physik.uni-bremen.de>
+
+	* arts-1-0-124
+
+	* ami/retrieval/opt_fmono.m: Added. 
+	
 2003-09-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-123
