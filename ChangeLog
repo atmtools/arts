@@ -1,3 +1,11 @@
+2003-10-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-711	
+	
+	* src/m_scatrte.cc (scat_fieldCalc): Fixed new bug. I changed
+	loop indicies and forgot to adjust p_index for pha_matCalc. 
+	Initialization of product_field shifted to right place. 
+
 2003-10-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-710

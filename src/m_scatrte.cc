@@ -3100,10 +3100,11 @@ scat_fieldCalc(//WS Output:
 
             // Sum over all particle types
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-                         atmosphere_dim, p_index, 0, 
+                         atmosphere_dim, p_index + cloudbox_limits[0], 0, 
                          0);
 
-            
+             product_field = 0;
+
             // za_in and aa_in are for incoming zenith and azimutha 
             //angle direction for which pha_mat is calculated
             for (Index za_in = 0; za_in < Nza; ++ za_in)
@@ -3112,22 +3113,26 @@ scat_fieldCalc(//WS Output:
                   {
                     // Multiplication of phase matrix with incoming 
                     // intensity field.
-                    
+
                     for ( Index i = 0; i < stokes_dim; i++)
-                      {
-                        for (Index j = 0; j< stokes_dim; j++)
-                          {
+                       {
+                       for (Index j = 0; j< stokes_dim; j++)
+                        {
                             product_field(za_in, aa_in, i) +=
                               pha_mat(za_in, aa_in, i, j) * 
                               i_field(p_index, 0, 0, za_in, 0, j);
-                          }
-                      }
+                        }
+                       }
                     
                   }//end aa_in loop
               }//end za_in loop
             /*integration of the product of ifield_in and pha
               over zenith angle and azimuth angle grid. It calls
-              here the integration routine AngIntegrate_trapezoid_opti*/
+              here for (Index za_in = 0; za_in < Nza; ++ za_in)
+              { 
+                for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
+                  {
+                    the integration routine AngIntegrate_trapezoid_opti*/
            
             for (Index i = 0; i < stokes_dim; i++)
               {
@@ -3190,10 +3195,12 @@ scat_fieldCalc(//WS Output:
                                                    lon_index  );
 
                         pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-                                    atmosphere_dim, p_index, lat_index, 
+                                    atmosphere_dim, 
+                                    p_index + cloudbox_limits[0], lat_index, 
                                     lon_index);
                    
-                                          
+                        product_field = 0;
+
                         //za_in and aa_in are the incoming directions
                         //for which pha_mat_spt is calculated
                         for (Index za_in = 0; za_in < Nza; ++ za_in)
@@ -3209,7 +3216,8 @@ scat_fieldCalc(//WS Output:
                                         product_field(za_in, aa_in, i) +=
                                           pha_mat(za_in, aa_in, i, j) * 
                                           i_field(p_index, lat_index, 
-                                                  lon_index, za_in, aa_in, j);
+                                                  lon_index, scat_za_index,
+                                                  scat_aa_index, j);
                                       }
                                   }
                               }//end aa_in loop
