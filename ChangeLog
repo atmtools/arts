@@ -1,3 +1,13 @@
+2001-01-10  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-101
+
+	* had to check in again my changes, because I just updated to
+	Stefans MTL version arts-0-0-99. This does not work, because
+	directories are not removed (e.g., I checked in tnt again). I
+	don't know what else could go wrong, so I checked out Stefans
+	version and redid my version 100.
+
 2001-01-08  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-100

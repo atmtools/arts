@@ -60,7 +60,7 @@
 
   // CO
   // Coeff:       1      1      1      1      1      1
-  // Quality:    0.03   0.01   0.01   0.02   ----   ----
+  // Quality:    0.03   0.02   0.02   0.02   ----   ----
   spec(it_species, it_isotope, "CO");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -134,13 +134,13 @@
 
   // NH3
   // Coeff:       1      1      2
-  // Quality:    1.36  21.42   0.71
+  // Quality:    1.09  21.12   0.78
   spec(it_species, it_isotope, "NH3");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"4111",	Qcoeff(	-6.2293E+01	,3.0915E+00	,9.4575E-03	,1.8416E-06) );
   iso(it_isotope,	"5111",	Qcoeff(	-4.2130E+01	,2.0569E+00	,6.3387E-03	,1.2127E-06) );
-  iso(it_isotope,	"4112",	Qcoeff(	-7.4642E+01	,4.4740E+00	,3.3126E-02	,-1.6003E-05) );
+  iso(it_isotope,	"4112",	Qcoeff(	-6.5172E+01	,4.3080E+00	,3.3865E-02	,-1.6513E-05) );
 
 
 
@@ -213,7 +213,7 @@
 
   // ClO
   // Coeff:       1      1
-  // Quality:    0.83   0.81
+  // Quality:   19.45  19.46
   spec(it_species, it_isotope, "ClO");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|

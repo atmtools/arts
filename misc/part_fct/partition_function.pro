@@ -1,5 +1,5 @@
 ;
-; $Id: partition_function.pro,v 1.5 2001/01/08 19:41:27 axel Exp $
+; $Id: partition_function.pro,v 1.6 2001/01/10 15:29:08 axel Exp $
 ;
 pro HAK, dummy, mesg=mesg
 ; NAME:
@@ -133,10 +133,22 @@ case species of
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
-;;    28001 : begin ; CO main, no info found in  JANAF
-;;        vib=[] ; [cm^-1]
-;;        jpl_part=calculate_partition_functions(jpl_part,vib)
-;;    end
+    28001 : begin ; CO main, Janssen - Rosenkranz
+        vib=[2143.5] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    29001 : begin ; CO isotope, taken main
+        vib=[2143.5] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    30001 : begin ; CO isotope, taken main
+        vib=[2143.5] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    29006 : begin ; CO isotope, taken main
+        vib=[2143.5] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
 
     17003 : begin ; CH4 isotope, taken main CH4 JANAF values
         vib=[1306,1306,1306,1534,1534,2917,3019] ; [cm^-1]
@@ -184,15 +196,15 @@ case species of
     end
 
     17002 : begin ; NH3 main, JANAF
-        vib=[1022,1691,1691,3506,3577,3577] ; [cm^-1]
+        vib=[950, 1629, 1629, 3335, 3414, 3414] ; [cm^-1]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     18002 : begin ; NH3 isotope, taken main values
-        vib=[1022,1691,1691,3506,3577,3577] ; [cm^-1]
+        vib=[950, 1629, 1629, 3335, 3414, 3414 ] ; [cm^-1]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
     18004 : begin ; NH3 isotope, taken main values
-        vib=[1022,1691,1691,3506,3577,3577] ; [cm^-1]
+        vib=[950, 1629, 1629, 3335, 3414, 3414 ] ; [cm^-1]
         jpl_part=calculate_partition_functions(jpl_part,vib)
     end
 
@@ -210,6 +222,16 @@ case species of
 ;	      1226,1294,1303,1326,1335,1341,1368,1409,1710,3550] ; [cm^-1]
 ;        jpl_part=calculate_partition_functions(jpl_part,vib)
 ;    end
+
+    51002 : begin ; ClO main, Janssen-Rosenkranz
+        vib=[842.4] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    53002 : begin ; ClO isotope, taken main
+        vib=[842.4] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+
 
     60001 : begin ; OCS main, JANAF
         vib=[524,524,859,2064] ; [cm^-1]
