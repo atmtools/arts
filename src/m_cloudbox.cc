@@ -271,7 +271,9 @@ void i_fieldSetClearsky(Tensor6& i_field,
                      N_i);
 
       i_field = 0.;
+
       
+
       /*the old grid is having only two elements, corresponding to the 
         cloudbox_limits and the new grid have elements corresponding to
         all grid points inside the cloudbox plus the cloud_box_limits*/
@@ -287,7 +289,9 @@ void i_fieldSetClearsky(Tensor6& i_field,
       
       Matrix itw((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
       interpweights ( itw, p_gp );
-      
+
+     
+ 
       for (Index za_index = 0; za_index < N_za ; ++ za_index)
         {
           for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
@@ -395,7 +399,6 @@ void i_fieldSetClearsky(Tensor6& i_field,
       
    
       //i_field
-      
       i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
                      (cloudbox_limits[3]- cloudbox_limits[2])+1,
                      (cloudbox_limits[5]- cloudbox_limits[4])+1,
@@ -443,11 +446,12 @@ void i_fieldSetClearsky(Tensor6& i_field,
       interpweights ( itw_lon, lon_gp );
 
       // interpolation - pressure grid
-      for (Index lat_index = cloudbox_limits[2]; 
-           lat_index < cloudbox_limits[3] ; ++ lat_index)
+      for (Index lat_index = 0; 
+           lat_index < (cloudbox_limits[3]-cloudbox_limits[2]); ++ lat_index)
         {
-          for (Index lon_index = cloudbox_limits[4]; 
-               lon_index < cloudbox_limits[5] ; ++ lon_index)
+          for (Index lon_index = 0; 
+               lon_index < (cloudbox_limits[5]-cloudbox_limits[4]);
+                            ++ lon_index)
             {
               for (Index za_index = 0; za_index < N_za ; ++ za_index)
                 {
@@ -481,11 +485,12 @@ void i_fieldSetClearsky(Tensor6& i_field,
             } 
         }
       //interpolation latitude
-      for (Index p_index = cloudbox_limits[0]; 
-           p_index < cloudbox_limits[1] ; ++ p_index)
+      for (Index p_index = 0; 
+           p_index < (cloudbox_limits[1]-cloudbox_limits[0]) ; ++ p_index)
         {
-          for (Index lon_index = cloudbox_limits[4]; 
-               lon_index < cloudbox_limits[5] ; ++ lon_index)
+          for (Index lon_index = 0; 
+               lon_index < (cloudbox_limits[5]-cloudbox_limits[4]) ;
+               ++ lon_index)
             {
               for (Index za_index = 0; za_index < N_za ; ++ za_index)
                 {
@@ -519,11 +524,12 @@ void i_fieldSetClearsky(Tensor6& i_field,
             } 
         }
       //interpolation -longitude
-      for (Index p_index = cloudbox_limits[0]; 
-           p_index < cloudbox_limits[1] ; ++ p_index)
+      for (Index p_index = 0; 
+           p_index < (cloudbox_limits[1]-cloudbox_limits[0]); ++ p_index)
         {
-          for (Index lat_index = cloudbox_limits[2]; 
-               lat_index < cloudbox_limits[3] ; ++ lat_index)
+          for (Index lat_index = 0; 
+               lat_index < (cloudbox_limits[3]-cloudbox_limits[2]);
+               ++ lat_index)
             {
               for (Index za_index = 0; za_index < N_za ; ++ za_index)
                 {
@@ -1563,7 +1569,7 @@ void CloudboxGetIncoming(// WS Output:
       // LOS for 1 measurement block defined by zenith angle and azimuth angle.
       Matrix sensor_los(1,2); 
 
-      // Position defined by pressure latitude, longitude.
+      // Position defined by pressure, latitude, longitude.
       Matrix sensor_pos(1,3);
 
       // Get scat_i_p at lower boundary
@@ -1875,5 +1881,6 @@ void CloudboxGetIncoming(// WS Output:
     }// End atmosphere_dim = 3.
   //
   out3 << "Finished calculation of incoming field on cloudbox boundary.\n";
+  exit(0);
 
 }

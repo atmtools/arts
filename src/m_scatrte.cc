@@ -386,6 +386,14 @@ i_fieldIterate(
                     )
 {
   // Check the input:
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  
+  // Grids have to be adapted to atmosphere_dim.
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  
+  // Is the frequency index valid?
+  assert( f_index <= f_grid.nelem() );
+
   if (stokes_dim < 0 || stokes_dim > 4)
     throw runtime_error(
                         "The dimension of stokes vector must be"
@@ -408,6 +416,7 @@ i_fieldIterate(
                         "used a pre-calculated amplituded matrix for "
                         "another scattering angle grid.");
 
+
   if (atmosphere_dim == 3){
     
     // Does i_field have the right dimension? 
@@ -418,6 +427,21 @@ i_fieldIterate(
                       scat_za_grid.nelem(), 
                       scat_aa_grid.nelem(),
                       stokes_dim));
+    
+    i_field_old.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                       (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                       scat_za_grid.nelem(), 
+                       scat_aa_grid.nelem(),
+                       stokes_dim);
+
+    scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                       (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                       scat_za_grid.nelem(), 
+                       scat_aa_grid.nelem(),
+                       stokes_dim);
+
    
   }
  
@@ -429,6 +453,21 @@ i_fieldIterate(
                       scat_za_grid.nelem(), 
                       1,
                       stokes_dim));
+
+    i_field_old.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                     stokes_dim);
+    
+    
+    scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim);  
   }
   
   else if (atmosphere_dim == 2){
@@ -439,29 +478,10 @@ i_fieldIterate(
                         );
   }
   
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  
-  // Grids have to be adapted to atmosphere_dim.
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  
-  // Is the frequency index valid?
-  assert( f_index <= f_grid.nelem() );
-
+ 
   // Initialize variables:
-  i_field_old.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                      1, 
-                      1,
-                      scat_za_grid.nelem(), 
-                      1,
-                     stokes_dim);
-  i_field_old = 0.;
 
-  scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                      1, 
-                      1,
-                      scat_za_grid.nelem(), 
-                      1,
-                     stokes_dim);
+  i_field_old = 0.;
   scat_field = 0.;
 
   sca_vec.resize(stokes_dim);
@@ -1206,6 +1226,9 @@ i_fieldUpdate3D(// WS Output:
                 )
 {
 
+  out2 << "i_fieldUpdate3D: RAdiative transfer calculatiuon in cloudbox. \n";
+  out3 << "------------------------------------------------------------- \n"; 
+
   //Check the input
   
   assert( atmosphere_dim == 3);
@@ -1275,8 +1298,10 @@ i_fieldUpdate3D(// WS Output:
   // 
   // We can only create this here, the dimensions are set below.
 
-  Tensor4 scalar_gas_array;
+  out3 << " Gas absorption: \n";
 
+  Tensor4 scalar_gas_array;
+  
   for(Index p_index = cloudbox_limits[0]; p_index
         <= cloudbox_limits[1]; p_index ++)
     {
@@ -1307,14 +1332,16 @@ i_fieldUpdate3D(// WS Output:
                                     abs_scalar_gas.ncols() );
 
           scalar_gas_array(p_index - cloudbox_limits[0],
-                           lat_index - cloudbox_limits[1],
-                           lon_index - cloudbox_limits[2],
+                           lat_index - cloudbox_limits[2],
+                           lon_index - cloudbox_limits[4],
                            joker)
             = abs_scalar_gas(0, joker);
         }
       }
     }
      
+  out3 << "Calculate single particle properties \n";
+
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
@@ -1370,8 +1397,8 @@ i_fieldUpdate3D(// WS Output:
                       // Get scalar gas absorption from array.
                       abs_scalar_gas(0, joker) = scalar_gas_array
                         (p_index- cloudbox_limits[0],
-                         lat_index - cloudbox_limits[1],
-                         lon_index - cloudbox_limits[2],
+                         lat_index - cloudbox_limits[2],
+                         lon_index - cloudbox_limits[4],
                          joker);
                               
                       // Calculate total ext_mat and abs_vec.
@@ -1395,14 +1422,14 @@ i_fieldUpdate3D(// WS Output:
 
           // Store coefficients in arrays for the whole cloudbox.
                       abs_vec_array(p_index-cloudbox_limits[0],
-                                    lat_index - cloudbox_limits[1],
-                                    lon_index - cloudbox_limits[2],
+                                    lat_index - cloudbox_limits[2],
+                                    lon_index - cloudbox_limits[4],
                                     Range(joker)) = 
                         abs_vec(0, Range(joker));
                       
                       ext_mat_array(p_index-cloudbox_limits[0],
-                                    lat_index - cloudbox_limits[1],
-                                    lon_index - cloudbox_limits[2],
+                                    lat_index - cloudbox_limits[2],
+                                    lon_index - cloudbox_limits[4],
                                     Range(joker), Range(joker)) = 
                         ext_mat(0, Range(joker), Range(joker));
 
@@ -1410,7 +1437,7 @@ i_fieldUpdate3D(// WS Output:
                 }
             }// end loops over cloudbox positions.
 
-
+          
       //======================================================================
       // Radiative transfer inside the cloudbox
       //=====================================================================
@@ -1475,8 +1502,8 @@ i_fieldUpdate3D(// WS Output:
                     ppath_step_agenda.execute(scat_za_index &&
                                               scat_aa_index &&
                                               p_index - cloudbox_limits[0] &&
-                                              lat_index - cloudbox_limits[1]&&
-                                              lon_index - cloudbox_limits[2]);
+                                              lat_index - cloudbox_limits[2]&&
+                                              lon_index - cloudbox_limits[4]);
               
                     // Length of the path between the two layers.
                     l_step = ppath_step.l_step[0];
@@ -1713,7 +1740,7 @@ i_fieldUpdate3D(// WS Output:
         }// end loop over scat_aa_grid
     }// end loop over scat_za_grid
   
-  
+  out2 << "Finished i_fieldUpdate3D.\n";
 }// end of function.
 
                         
@@ -2179,7 +2206,7 @@ scat_fieldCalc(//WS Output:
 
   Tensor3 product_field(Nza, Naa, stokes_dim,0);
  
-  
+  out2 << "Calculate the scattered field\n";
   /*
   cout<<"N_pt"<<" "<<N_pt;
   cout<<"N_p_grid"<<" "<<p_grid.nelem();
@@ -2327,14 +2354,14 @@ scat_fieldCalc(//WS Output:
       when we calculate the pha_mat from pha_mat_spt and pnd_field
       using the method pha_matCalc.  */
     
-    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
+    for (Index p_index = 0; p_index < cloudbox_limits[1]-cloudbox_limits[0];
          p_index++)
       {
-        for (Index lat_index = cloudbox_limits[2]; lat_index <= 
-               cloudbox_limits[3]; lat_index++)
+        for (Index lat_index = 0; lat_index < 
+               cloudbox_limits[3]-cloudbox_limits[2]; lat_index++)
           {
-            for (Index lon_index = cloudbox_limits[4]; lon_index <= 
-                   cloudbox_limits[5]; lon_index++)
+            for (Index lon_index = 0; lon_index <= 
+                   cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
               {
                 pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                             atmosphere_dim, p_index, lat_index, 
@@ -2345,14 +2372,14 @@ scat_fieldCalc(//WS Output:
       }
     
     // Get pha_mat at the grid positions
-    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
+    for (Index p_index = 0; p_index < cloudbox_limits[1]-cloudbox_limits[0];
          p_index++)
       {
-        for (Index lat_index = cloudbox_limits[2]; lat_index <= 
-               cloudbox_limits[3]; lat_index++)
+        for (Index lat_index = 0; lat_index < 
+               cloudbox_limits[3]-cloudbox_limits[2]; lat_index++)
           {
-            for (Index lon_index = cloudbox_limits[4]; lon_index <= 
-                   cloudbox_limits[5]; lon_index++)
+            for (Index lon_index = 0; lon_index < 
+                   cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
               {
                 //za_prop and aa_prop are the propagation directions
                 for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
@@ -2372,9 +2399,9 @@ scat_fieldCalc(//WS Output:
                                                   Range(joker));
 
                                 ConstVectorView i_field_in = 
-                                  i_field((p_index - cloudbox_limits[0]),
-                                          (lat_index - cloudbox_limits[1]),
-                                          (lon_index - cloudbox_limits[2]),
+                                  i_field(p_index,
+                                          lat_index,
+                                          lon_index,
                                           za_prop,
                                           aa_prop,
                                           Range(joker));
@@ -2397,9 +2424,9 @@ scat_fieldCalc(//WS Output:
                               product_field( Range(joker),
                                              Range(joker),
                                              i);
-                            scat_field( (p_index - cloudbox_limits[0]),
-                                        (lat_index - cloudbox_limits[1]),
-                                        (lon_index - cloudbox_limits[2]),
+                            scat_field( p_index,
+                                        lat_index,
+                                        lon_index,
                                         za_prop, 
                                         aa_prop,
                                         i)  =  
@@ -2413,6 +2440,8 @@ scat_fieldCalc(//WS Output:
           }// end lat loop
       }// end p loop
   }// end atmosphere_dim = 3
+
+  out2 <<"Finished scattered field.\n"; 
  
 }
 
@@ -2523,15 +2552,15 @@ void ScatteringMain(//WS Output
                          "field can be returned." );
 
 
-  CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
-                      i_rte, y_rte, i_space, ground_emission, ground_los, 
-                      ground_refl_coeffs,mblock_index, a_los,
-                       a_pos, a_gp_p, a_gp_lat, a_gp_lon,
-                      cloudbox_limits, atmosphere_dim, stokes_dim,
-                      scat_za_grid, scat_aa_grid, f_grid, 
-                      ppath_step_agenda, rte_agenda, i_space_agenda,
-                      ground_refl_agenda, p_grid,lat_grid,
-                      lon_grid, z_field, t_field, r_geoid, z_ground);
+  //  CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
+//                       i_rte, y_rte, i_space, ground_emission, ground_los, 
+//                       ground_refl_coeffs,mblock_index, a_los,
+//                        a_pos, a_gp_p, a_gp_lat, a_gp_lon,
+//                       cloudbox_limits, atmosphere_dim, stokes_dim,
+//                       scat_za_grid, scat_aa_grid, f_grid, 
+//                       ppath_step_agenda, rte_agenda, i_space_agenda,
+//                       ground_refl_agenda, p_grid,lat_grid,
+//                       lon_grid, z_field, t_field, r_geoid, z_ground);
 
   
   // Calculation for monochromatic radiation field inside cloudbox:

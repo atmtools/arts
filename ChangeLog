@@ -1,3 +1,15 @@
+2003-01-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-395
+	
+	* src/m_cloudbox.cc (i_fieldSetClearsky). Fixed some bugs here. Limits 
+	of the loops were wrong. Tested now for 3D.
+
+	* src/m_scatrte.cc (scat_fieldCalc). Fixed similar bug here. Now the
+	3D function works. 
+	(i_fieldUpdate3D) Also wrong limits at some places. A problem in the
+	interpolation on the intersection point still has to be fixed.
+
 2003-01-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-394
