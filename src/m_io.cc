@@ -29,7 +29,7 @@ void write_matrix_to_stream(ostream& os,
      << __TIME__ << "\n";
 
   // Number of elements:
-  os << m.num_rows() << ' ' << m.num_cols() << '\n';
+  os << m.dim(1) << ' ' << m.dim(2) << '\n';
 
   // Determine the precision, depending on whether Numeric is double
   // or float:  
@@ -42,11 +42,11 @@ void write_matrix_to_stream(ostream& os,
 
   os << setprecision(precision);
   // Write the elements:
-  for (size_t r=0; r<m.num_rows(); ++r)
+  for (size_t r=0; r<m.dim(1); ++r)
     {
       os << m[r][0];
       
-      for (size_t c=1; c<m.num_cols(); ++c)
+      for (size_t c=1; c<m.dim(2); ++c)
 	{
 	  os << " " << m[r][c];
 	}

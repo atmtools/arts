@@ -41,6 +41,7 @@ void define_wsv_data()
   wsv_group_names.push_back("Numeric");
   wsv_group_names.push_back("VECTOR");
   wsv_group_names.push_back("MATRIX");
+  wsv_group_names.push_back("MATARRAY");
   wsv_group_names.push_back("Los");
 
   // As a primitive consistency check, compare the size of
@@ -152,12 +153,12 @@ void define_wsv_data()
   }
 
   {
-    static WsvPointer<int> p(&workspace.cbgr);
+    static WsvPointer<VECTOR> p(&workspace.refr_index);
     wsv_data.push_back
       (WsvRecord
-       ("cbgr",
-	"Boolean to consider cosmic background radiation (0=no cbgr).",
-	int_,
+       ("refr_index",
+	"The refractive index associated with the pressures in p_abs [-].",
+	VECTOR_,
 	&p));
   }
 
@@ -187,6 +188,46 @@ void define_wsv_data()
       (WsvRecord
        ("e_ground",
 	"The emission factor for the ground at the frequencies in f_abs [0-1].",
+	VECTOR_,
+	&p));
+  }
+
+  {
+    static WsvPointer<MATARRAY> p(&workspace.source);
+    wsv_data.push_back
+      (WsvRecord
+       ("source",
+	"Mean source functions between the points of the LOS [W/(m3Hzsr)].",
+	MATARRAY_,
+	&p));
+  }
+
+  {
+    static WsvPointer<MATARRAY> p(&workspace.trans);
+    wsv_data.push_back
+      (WsvRecord
+       ("trans",
+	"The transmissions between the points of the LOS [-].",
+	MATARRAY_,
+	&p));
+  }
+
+  {
+    static WsvPointer<VECTOR> p(&workspace.y_space);
+    wsv_data.push_back
+      (WsvRecord
+       ("y_space",
+	"Radiation entering the atmosphere at the start of the LOS.",
+	VECTOR_,
+	&p));
+  }
+
+  {
+    static WsvPointer<VECTOR> p(&workspace.y);
+    wsv_data.push_back
+      (WsvRecord
+       ("y",
+	"The final spectrum, including sensor effects and data reduction.",
 	VECTOR_,
 	&p));
   }

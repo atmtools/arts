@@ -1,3 +1,47 @@
+2000-04-12  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-15
+
+	* This version can produce spectra (without refraction).
+	  General functions to determine the LOS, to get transmission and
+	  the source function along the LOS and to solving the RTE along
+	  LOS are ready.
+ 	
+	* A first list on vector and matrix functionality written. It is
+	  found in vecmat.h. Some functions changed and added to match
+	  the stated functionality.
+
+	* Some workspace variables added and some renamed. The variables 
+	  are now
+	    VECTOR     p_abs;
+	    VECTOR     t_abs;
+	    VECTOR     z_abs;
+	    VECTOR     f_abs;
+	    MATRIX     abs;
+	    VECTOR     view1;
+	    Numeric    z_plat;
+	    Numeric    l_step;
+	    int        refr;
+	    Numeric    l_step_refr;
+	    VECTOR     refr_index;
+	    Numeric    z_ground;
+	    Numeric    t_ground;
+	    VECTOR     e_ground;
+	    Los        los; 
+	    MATARRAY   source;
+	    MATARRAY   trans;
+	    VECTOR     y_space;
+	    VECTOR     y;
+
+	* Example on new method calls:
+	    y_spaceStd{1}
+            y_spacePlanck{300}
+            losBasic{}
+            sourceBasic{}
+            transBasic{}
+            yGeneral{}
+
+
 2000-04-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-14

@@ -13,6 +13,7 @@ CONSTANTS: EARTH_RADIUS
            BOLTZMAN_CONST
            AVOGADROS_NUMB
            COSMIC_BG_TEMP
+           SUN_TEMP
            NAT_LOG_2
            PI
 
@@ -53,6 +54,10 @@ extern const Numeric AVOGADROS_NUMB = 6.0220450e26;
 /** Global constant, Planck temperature for cosmic background radiation [K]
     @author Patrick Eriksson 08.04.2000 */
 extern const Numeric COSMIC_BG_TEMP = 2.735;
+
+/** Global constant, Planck temperature for solar radiation [K]
+    @author Patrick Eriksson 12.04.2000 */
+extern const Numeric SUN_TEMP = 6000.0;
 
 /** Global constant, ln(2)
     @author Patrick Eriksson 08.04.2000 */

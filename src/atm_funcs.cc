@@ -16,6 +16,48 @@ HISTORY:   10.04.00 Started by Patrick Eriksson.
 extern const Numeric EARTH_RADIUS;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
+extern const Numeric PLANCK_CONST;
+extern const Numeric SPEED_OF_LIGHT;
+extern const Numeric BOLTZMAN_CONST;
+
+
+
+//==========================================================================
+//=== Physical functions.
+//==========================================================================
+
+void planck (
+              MATRIX&     B, 
+        const VECTOR&     f,
+        const VECTOR&     t )
+{
+  static const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const Numeric b = PLANCK_CONST/BOLTZMAN_CONST;
+  const size_t  n_f  = f.dim();
+  const size_t  n_t  = t.dim();
+  size_t        i_f, i_t;
+  Numeric       c, d;
+  B.newsize(n_f,n_t);
+  
+  for ( i_f=1; i_f<=n_f; i_f++ )
+  {
+    c = a * f(i_f)*f(i_f)*f(i_f);
+    d = b * f(i_f);
+    for ( i_t=1; i_t<=n_t; i_t++ )
+      B(i_f,i_t) = c / (exp(d/t(i_t)) - 1.0);
+  }
+}
+
+void planck (
+             VECTOR&    B,
+       const VECTOR&    f,
+       const Numeric&   t )
+{
+  static const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const Numeric b = PLANCK_CONST/BOLTZMAN_CONST;
+  
+  B = ediv( a*emult(f,emult(f,f)), exp(f*(b/t))-1.0 ) ;
+}
 
 
 
@@ -23,14 +65,6 @@ extern const Numeric RAD2DEG;
 //=== Tangent altitudes.
 //==========================================================================
 
-/** Calculates the geometrical tangent altitude.
-    That is, refraction is neglected.
-
-    @return        the tangent altitude
-    @param view    the angle between zenith and the LOS
-    @param z_plat  the platform altitude
-
-    @author Patrick Eriksson 08.04.2000 */
 Numeric ztan_geom(
         const Numeric&     view,
         const Numeric&     z_plat )
@@ -46,25 +80,95 @@ Numeric ztan_geom(
 
 
 //==========================================================================
-//=== Conversion between pressures and vertical altitudes.
+//=== Conversion and interpolation of pressure and altitude grids.
 //==========================================================================
 
-/** Converts an altitude vector to pressures.
-    The log. of the pressures are interpolated linearly, 
-    i.e. (Matlab notation):
-
-      p = exp(interp1(z0,log(p0),z,'linear'))
-
-    @return        the pressures at z
-    @param z0      original altitude grid
-    @param p0      original pressure grid
-    @param z       new altitude grid
-
-    @author Patrick Eriksson 10.04.2000 */
-VECTOR z2p(
+void z2p(
+              VECTOR&     p,
         const VECTOR&     z0,
         const VECTOR&     p0,
         const VECTOR&     z )
 {
-  return exp( interp_lin(z0,log(p0),z) );
+  p = exp( interp_lin( z0, log(p0), z ) );
+}
+
+
+void interpp(
+              VECTOR&     x, 
+        const VECTOR&     p0,
+        const VECTOR&     x0,
+        const VECTOR&     p )
+{
+  x = interp_lin( log(p0), x0, log(p) );
+}
+
+
+//==========================================================================
+//=== RTE_ITERATE
+//==========================================================================
+
+void rte_iterate (
+             VECTOR&   y,
+       const int&      start_index,
+       const int&      stop_index,
+       const MATRIX&   Tr,
+       const MATRIX&   S,
+       const VECTOR&   y_space,
+       const int&      ground,
+       const VECTOR&   e_ground,
+       const VECTOR&   y_ground )
+{
+  const int   n_f = Tr.dim(1);               // number of frequencies
+        int   i_f, i_z;                      // indicies
+        int   i_start, i_step, i_break;      // loop variables
+
+  // If LOS starts at ground, init. with Y_GROUND  
+  if ( start_index == 1 )
+    y = y_ground;
+
+  // If LOS starts in space, init with Y_SPACE
+  else
+    y = y_space;
+
+  // Check if LOS inside the atmosphere (if START_INDEX=0, the result is Y_SPACE)
+  if ( start_index > 0 )
+  {
+    // Set up index and make first loop. Note that the transmission is 
+    // given between the points
+    //
+    if ( start_index == 1 )
+    {
+      i_start = 1;
+      i_step  = 1;
+      i_break = stop_index;
+    }
+    else 
+    {       
+      i_start = start_index - 1;         
+      i_step  = -1;
+      i_break = 0;       
+    }
+    for ( i_z=i_start; i_z!=i_break; i_z+=i_step ) 
+    {
+      for ( i_f=1; i_f<=n_f; i_f++ )    
+        y(i_f) = y(i_f)*Tr(i_f,i_z) + S(i_f,i_z) * ( 1.0-Tr(i_f,i_z) );
+    }
+ 
+    // For limb sounding, also loop upwards. Include ground reflection
+    // if necessary.
+    //
+    if ( (i_step == -1) && (stop_index > 1) )
+    {
+      if ( ground )               // If intersection with the ground, include 
+      {                           // ground reflection
+        for ( i_f=1; i_f<=n_f; i_f++ )    
+          y(i_f) = y(i_f) * (1.0-e_ground(i_f)) + y_ground(i_f) * e_ground(i_f);
+      }
+      for ( i_z=1; i_z<stop_index; i_z++ ) // Loop upwards
+      {
+        for ( i_f=1; i_f<=n_f; i_f++ )    
+          y(i_f) = y(i_f)*Tr(i_f,i_z) + S(i_f,i_z) * ( 1.0-Tr(i_f,i_z) );
+      }
+    } // second part
+  } // if any values
 }

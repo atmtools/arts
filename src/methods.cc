@@ -265,22 +265,90 @@ void define_md_data()
 
 
 //======================================================================
-//=== LOS methods
+//=== LOS/RTE methods
 //======================================================================
 
   md_data.push_back
     ( MdRecord
-      ( NAME("losGeneral"),
-  	DESCRIPTION("A general function to determine LOS for a 1D atmosphere\n"
-                  "Refraction variables and ground altitude and emission\n"
-                  "must be set when using this function."),
+      ( NAME("losBasic"),
+  	DESCRIPTION(
+          "A general function to determine LOS for a 1D atmosphere.\n"
+          "Refraction variables and ground altitude and emission\n"
+          "must be set when using this function."),
 	OUTPUT(los_),
-	INPUT(z_plat_ ,view1_, l_step_, p_abs_, z_abs_, refr_, l_step_refr_, 
-              z_ground_, e_ground_ ),
+	INPUT( z_plat_ ,view1_, l_step_, p_abs_, z_abs_, 
+               refr_, l_step_refr_, refr_index_,
+               z_ground_, e_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("sourceBasic"),
+  	DESCRIPTION(
+          "Determines the mean source function between the points a 1D LOS,\n" 
+          "assuming no scattering and local thermodynamic equilibrium, i.e.\n"
+          "the source function equals the Planck function."),
+	OUTPUT( source_ ),
+	INPUT( los_, p_abs_, t_abs_, f_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("transBasic"),
+  	DESCRIPTION(
+          "Calculates the transmission between the points a 1D LOS."),
+	OUTPUT( trans_ ),
+	INPUT( los_, p_abs_, abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("y_spaceStd"),
+  	DESCRIPTION(
+          "Standard selection for the radiation entering the atmosphere at the\n"
+          "start of the LOS. The selections are:\n"
+          "  0 no radiation\n"
+          "  1 cosmic background radiation (planck for 2.7 K)\n"
+          "  2 solar radiation (planck for 6000 K)"),
+	OUTPUT( y_space_ ),
+	INPUT( f_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS("nr"),
+	TYPES(int_t)));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("y_spacePlanck"),
+  	DESCRIPTION(
+          "Sets the radiation entering the atmosphere at the start of the LOS\n"
+          "to the Planck function for the given temperature."),
+	OUTPUT( y_space_ ),
+	INPUT( f_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS("temp"),
+	TYPES(Numeric_t)));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("yGeneral"),
+  	DESCRIPTION(
+          "Solves the radiative transfer equation (RTE) along the LOS."),
+	OUTPUT( y_ ),
+	INPUT( los_, f_abs_, y_space_, source_, trans_, e_ground_, t_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
 
 }
