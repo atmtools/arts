@@ -63,6 +63,17 @@ extern const Numeric RAD2DEG;
   === Common precision variables
   ===========================================================================*/
 
+// This variable defines the maximum allowed error tolerance for radius.
+// The variable is, for example, used to check that a given a radius is
+// consistent with the specified grid cell.
+//
+#ifdef USE_DOUBLE
+const double   RTOL = 1e-6;
+#else
+const double   RTOL = 1;
+#endif
+
+
 // This variable defines how much zenith and azimuth angles can
 // deviate from 0 and 180 degrees, but still be treated to be 0 or 180.
 // For example, an azimuth angle of 180-DEV0AND180/2 will be treated as
@@ -220,9 +231,12 @@ double geompath_l_at_r(
        const double&   r )
 {
   assert( ppc >= 0 );
-  assert( r >= ppc );
+  assert( r >= ppc - RTOL );
   
-  return sqrt( r*r - ppc*ppc );
+  if( r > ppc )
+    { return   sqrt( r*r - ppc*ppc ); }
+  else
+    { return   0; }
 }
 
 
@@ -1175,24 +1189,21 @@ double psurface_crossing_2d(
         { return no_crossing; }
     }
 
-  // Check if the given LOS goes in the direction towards the pressure surface.
-  // If not, return 999.
+  // If rp>=r0, check if the given LOS goes in the direction towards
+  // the pressure surface.  If not, return 999.
   //
-  const bool downwards = is_los_downwards( za, psurface_angletilt( r0, c ) );
-  //
-  if( ( rp < r0  &&  downwards )  ||  ( rp >= r0  &&  !downwards ) )
+  if( rp >= r0   &&  !is_los_downwards( za,  psurface_angletilt( r0, c ) ) )
     { return no_crossing; }
 
-
   // The case with c=0 can be handled analytically
-  // If r0==rp, there is no crossing on this side of the tangent point.
   if( c == 0 )
     {
       double   ppc = geometrical_ppc( rp, za );
-      if( r0 >= ppc  &&  r0 != rp )
+      if( ( rp < r0  &&  abs(za) <= 90 )  ||  
+                                 ( rp > r0  &&  abs(za) > 90  &&  r0 >= ppc ) )
         { return geompath_lat_at_za( za, 0, geompath_za_at_r( ppc, za, r0 ) );}
       else
-        { return no_crossing; } 
+        { return no_crossing; }
     }
 
 
@@ -1397,7 +1408,7 @@ void do_gridrange_1d(
               double&   lstep,
               Index&    endface,
               Index&    tanpoint,
-        const double&   r_start,
+        const double&   r_start0,
         const double&   lat_start,
         const double&   za_start,
         const double&   ppc,
@@ -1406,9 +1417,17 @@ void do_gridrange_1d(
         const double&   rb,
         const double&   rground )
 {
+  double   r_start = r_start0;
+
   assert( rb > ra );
-  assert( r_start >= ra );
-  assert( r_start <= rb );
+  assert( r_start >= ra - RTOL );
+  assert( r_start <= rb + RTOL );
+
+  // Shift radius if outside
+  if( r_start < ra )
+    { r_start = ra; }
+  else if( r_start > rb )
+    { r_start = rb; }
 
   // Get end radius of the path step (r_end). If looking downwards, it must 
   // be checked if:
@@ -1515,7 +1534,7 @@ void do_gridcell_2d(
               double&   lstep,
               Index&    endface,
               Index&    tanpoint,
-        const double&   r_start,
+        const double&   r_start0,
         const double&   lat_start,
         const double&   za_start,
         const double&   ppc,
@@ -1529,6 +1548,12 @@ void do_gridcell_2d(
         const double&   rground1,
         const double&   rground3 )
 {
+  double   r_start = r_start0;
+
+  // Assert latitudes
+  assert( lat_start >= lat1 );
+  assert( lat_start <= lat3 );
+
   // Slopes of pressure surfaces
   const double  c2 = psurface_slope_2d( lat1, lat3, r1a, r3a );
   const double  c4 = psurface_slope_2d( lat1, lat3, r1b, r3b );
@@ -1548,14 +1573,15 @@ void do_gridcell_2d(
   else
     { dlat_endface = -dlat_left; }
 
+  // Assert radius (some extra tolerance is needed for radius)
+  assert( r_start >= rlow - RTOL );
+  assert( r_start <= rupp + RTOL );
 
-  // Assert that start point is inside the grid cell
-  // (some extra tolerance is needed for radius)
-  assert( lat_start >= lat1 );
-  assert( lat_start <= lat3 );
-  assert( r_start >= rlow - 1 );
-  assert( r_start <= rupp + 1 );
-
+  // Shift radius if outside
+  if( r_start < rlow )
+    { r_start = rlow; }
+  else if( r_start > rupp )
+    { r_start = rupp; }
 
   // The end point is most easily determined by the latitude difference to 
   // the start point. For some cases there exist several crossings and we want 
@@ -1675,12 +1701,10 @@ void do_gridcell_2d(
   else if( endface == 7 )
     { r_end = rground1 + cground * ( dlat_left + dlat2end ); }
 
-
   // Fill the return vectors
   //
   geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
                                                        za_start, r_end, lmax );
-
 
   // Force end latitude and zenith angle to be exact as possible
   if( tanpoint )
@@ -1800,8 +1824,8 @@ void do_gridcell_3d(
                                 r15b, r35b, r36b, r16b, lat_start, lon_start );
 
   // Assert radius (some extra tolerance is needed for radius)
-  assert( r_start >= rlow - 1 );
-  assert( r_start <= rupp + 1 );
+  assert( r_start >= rlow - RTOL );
+  assert( r_start <= rupp + RTOL );
 
   // Shift radius if outside
   if( r_start < rlow )
@@ -5421,32 +5445,37 @@ void ppath_start_stepping(
                     }
                 }
 
+
               // Loop until entrance point is found
               Index ready = 0;
               while( !ready )
                 {
+                  // The slope c is here calculated for the viewing direction
+                  // and the zenith angle to apply shall then be positive.
+
                   // Calculate radius and zenith angle of path at lat0
                   double r0  = geompath_r_at_lat( ppath.constant, a_pos[1], 
                                                               a_los[0], lat0 );
-                  double za0 = geompath_za_at_r( ppath.constant, a_los[0], 
-                                                                          r0 );
+                  double za0 = abs( geompath_za_at_r( ppath.constant, 
+                                                              a_los[0], r0 ) );
 
                   // Calculate radius and slope to use in psurface_crossing_2d
                   double rv1 = r_geoid(ilat0,0) + z_field(np-1,ilat0,0);
                   double rv2 = r_geoid(ilat0+istep,0) + 
                                                    z_field(np-1,ilat0+istep,0);
-                  double latstep = lat_grid[ilat0+istep] - lat_grid[ilat0];
-                  double c = istep * ( rv2 - rv1 ) / latstep;
+                  double latstep = abs( lat_grid[ilat0+istep] - 
+                                                             lat_grid[ilat0] );
+                  double c = ( rv2 - rv1 ) / latstep;
 
                   if( lat0 != lat_grid[ilat0] )
-                    { rv1 = rv1 + c * ( lat0 - lat_grid[ilat0] ); } 
+                    { rv1 = rv1 + c * abs( lat0 - lat_grid[ilat0] ); } 
 
                   double dlat = psurface_crossing_2d( r0, za0, rv1, c );
 
-                  if( abs(dlat) <= abs(latstep) )
+                  if( dlat <= latstep )
                     {
                       ready = 1;
-                      ppath.pos(0,1) = lat0 + dlat;
+                      ppath.pos(0,1) = lat0 + istep*dlat;
                       ppath.pos(0,0) = rv1 + c * dlat;
                       ppath.los(0,0) = geompath_za_at_r( ppath.constant, 
                                                     a_los[0], ppath.pos(0,0) );
@@ -5454,8 +5483,8 @@ void ppath_start_stepping(
                       rv1 = r_geoid(ilat0,0);
                       rv2 = r_geoid(ilat0+istep,0);
                       c   = ( rv2 - rv1 ) / latstep;
-                      ppath.z[0] = ppath.pos(0,0) - ( rv1 + istep * c *
-                                        ( ppath.pos(0,1) - lat_grid[ilat0] ) );
+                      ppath.z[0] = ppath.pos(0,0) - ( rv1 + c * 
+                                     abs( ppath.pos(0,1) - lat_grid[ilat0] ) );
                       ppath.gp_p[0].idx = np - 2;
                       ppath.gp_p[0].fd[0] = 1;
                       ppath.gp_p[0].fd[1] = 0;

@@ -1,3 +1,17 @@
+2003-02-04  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-444
+
+	* src/ppath.cc (do_gridrange_1d and do_gridcell_2d): Same correction
+	as for 3D in last commit.
+	
+	* src/ppath.cc (psurface_crossing_2d): Some upward cases were handled
+	incorrectly. Fixed bug for c=0.
+
+	* src/ppath.cc (ppath_start_stepping): The entrance point for negative
+	zenith angles and the sensor outisde the atmosphere was calculated
+	wrongly.
+
 2003-02-03  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-443
@@ -12,6 +26,7 @@
 	* m_cloudbox.cc (CloudboxGetIncoming): Fixed 1D part. Didn't work 
 	after some modifications for the 3D part.
 
+>>>>>>> 1.819
 2003-02-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-442
