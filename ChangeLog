@@ -1,3 +1,13 @@
+2003-07-02  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-597
+
+	* src/Makefile.am: Added test_mpi target.
+
+	* src/test_mpi.cc: Added.
+
+	* src/.cvsignore: Added test_mpi.
+
 2003-07-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-596
