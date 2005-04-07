@@ -91,6 +91,13 @@ void rte_step_std(
          const Numeric& l_step,
          const Numeric& rte_planck_value );
 
+void surface_calc(
+              Matrix&         iy,
+        const Tensor3&        I,
+        const Matrix&         surface_los,
+        const Tensor4&        surface_rmatrix,
+        const Matrix&         surface_emission );
+
 void surface_specular_los(
               VectorView   los,
         const Index&       atmosphere_dim );

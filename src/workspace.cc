@@ -1065,15 +1065,6 @@ wsv_data.push_back
       GROUP( Matrix_ )));
 
  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "i_space_agenda" ),
-       DESCRIPTION
-       (
-        "See agendas.cc."
-        ),
-       GROUP(  Agenda_ )));
-
- wsv_data.push_back
    (WsvRecord
     ( NAME( "jacobian" ),
       DESCRIPTION
@@ -2838,6 +2829,15 @@ wsv_data.push_back
         ), 
        GROUP( Matrix_ )));
 
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_prop_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc."
+        ),
+       GROUP(  Agenda_ )));
+  
   wsv_data.push_back
     (WsvRecord
      ( NAME( "surface_rmatrix" ),

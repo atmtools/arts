@@ -808,12 +808,9 @@ void surfaceCalc(
   //---------------------------------------------------------------------------
 
 
-  // Use local variable to sum up contributions. Start by adding
-  // *surface_emission. (*iy* can not be used as it will be affected
-  // by calls of *iy_calc*)
-  //
-  Matrix   itmp( nf, stokes_dim );
-  itmp = surface_emission;
+  // Variables to hold downvelling radiation
+  Matrix    itmp( nf, stokes_dim );
+  Tensor3   I( nlos, nf, stokes_dim );
 
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if( nlos > 0 )
@@ -827,7 +824,8 @@ void surfaceCalc(
         {
           // Calculate downwelling radiation for LOS ilos 
           const Index   agenda_verb = 0;
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
+          iy_calc( itmp, ppath, ppath_step, rte_pos, 
+                   rte_gp_p, rte_gp_lat,
                    rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
@@ -835,15 +833,7 @@ void surfaceCalc(
                    rte_pos, surface_los(ilos,joker),
                    f_grid, stokes_dim, agenda_verb );
 
-          // Include reflected radiation part in *itmp*
-          //
-          Vector rtmp(stokes_dim);  // Reflected Stokes vector for 1 frequency
-          //
-          for( Index iv=0; iv<nf; iv++ )
-            {
-              mult( rtmp, surface_rmatrix(ilos,iv,joker,joker), iy(iv,joker) );
-              itmp(iv,joker) += rtmp;
-            }
+          I(ilos,joker,joker) = itmp;
         }
 
       // Copy data back to *ppath*.
@@ -851,8 +841,7 @@ void surfaceCalc(
       ppath_copy( ppath, pp_copy );
     }
 
-  // Fill *iy* with found radiances
-  iy = itmp;
+  surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
 }
 
 
@@ -887,7 +876,7 @@ void surfaceFlat(
 
   surface_los.resize( 1, rte_los.nelem() );
   surface_los(0,joker) = rte_los;
-  surface_specular_los( rte_los, atmosphere_dim );
+  surface_specular_los( surface_los(0,joker), atmosphere_dim );
 
   surface_emission.resize( nf, stokes_dim );
   surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
@@ -965,7 +954,7 @@ void surfaceSingleEmissivity(
 
   surface_los.resize( 1, rte_los.nelem() );
   surface_los(0,joker) = rte_los;
-  surface_specular_los( rte_los, atmosphere_dim );
+  surface_specular_los( surface_los, atmosphere_dim );
 
   surface_emission.resize( nf, stokes_dim );
   surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);

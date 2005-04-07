@@ -474,6 +474,56 @@ void rte_step_std(//Output and Input:
 
 
 
+//! surface_calc
+/*!
+    Weights together downwelling radiation and surface emission.
+
+    *iy* must have correct size when function is called.
+
+    \param   iy                 In/Out: Radiation matrix, amtching 
+                                        the WSV with the same name.
+    \param   I                  Input: Downwelling radiation, with dimensions
+                                       matching: 
+                                       (surface_los, f_grid, sokes_dim)
+    \param   surface_los        Input: As the WSV with the same name.
+    \param   surface_rmatrix    Input: As the WSV with the same name.
+    \param   surface_emission   Input: As the WSV with the same name.
+
+    \author Patrick Eriksson 
+    \date   2005-04-07
+*/
+void surface_calc(
+              Matrix&         iy,
+        const Tensor3&        I,
+        const Matrix&         surface_los,
+        const Tensor4&        surface_rmatrix,
+        const Matrix&         surface_emission )
+{
+  // Some sizes
+  const Index   nf         = I.nrows();
+  const Index   stokes_dim = I.ncols();
+  const Index   nlos       = surface_los.nrows();
+
+  iy = surface_emission;
+
+  // Loop *surface_los*-es. If no such LOS, we are ready.
+  if( nlos > 0 )
+    {
+      for( Index ilos=0; ilos<nlos; ilos++ )
+        {
+          Vector rtmp(stokes_dim);  // Reflected Stokes vector for 1 frequency
+
+          for( Index iv=0; iv<nf; iv++ )
+            {
+          mult( rtmp, surface_rmatrix(ilos,iv,joker,joker), I(ilos,iv,joker) );
+          iy(iv,joker) += rtmp;
+            }
+        }
+    }
+}
+
+
+
 //! surface_specular_los
 /*!
     Calculates the LOS for a specular surface reflection.

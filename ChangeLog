@@ -1,3 +1,47 @@
+2005-04-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-938
+
+	* Changed slightly handling of surface properties, and fixed bug
+	in surface WSMs.
+
+	The old way works. An example:
+	
+	    AgendaSet(iy_surface_agenda){
+	       InterpAtmFieldToRteGps(surface_skin_t,t_field){}
+	       surfaceFlat{"water-liebe93"}
+	       surfaceCalc{}
+	    }
+
+	The new is that the surface properties can be specified seperately.
+	This will make DOIT implementation simpler and needed for future
+	Jacobian calculations (and for MC?). An example:
+
+	    AgendaSet(surface_prop_agenda){
+	       InterpAtmFieldToRteGps(surface_skin_t,t_field){}
+	       surfaceFlat{"water-liebe93"}
+	    }
+	    AgendaSet(iy_surface_agenda){
+	       AgendaExecute(surface_prop_agenda){}
+	       surfaceCalc{}
+	    }
+
+	This tested through Qarts runs. Tests in /tests did not work. See email
+	to arts-dev.
+
+	* Fixed also a bug. I knew that I hade tested
+	
+	* src/agendas.cc: Added surface_prop_agenda. Removed i_space_agenda.
+
+	* src/rte.cc (surface_calc): Created this function. Most code
+	extracted from surfaceCalc.
+
+	* src/m_atmosphere.cc (surfaceCalc): Now using surface_calc.
+
+	* src/m_atmosphere.cc (surfaceFlat): Fixed bug. LOS was not changed
+	to specular reflection. Got stuck in endless loop.
+	(surfaceSingleEmissivity): As above.
+	
 2005-04-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-937

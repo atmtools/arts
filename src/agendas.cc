@@ -329,10 +329,11 @@ void define_agenda_data()
         "and LOS. \n"
         "\n"
         "The upwelling radiation is the sum of surface emission and\n"
-        "reflected downwelling radiation. See the user guide for different\n"
+        "reflected downwelling radiation. Surface properties provided by\n"
+        "*surface_prop_agenda*. See the user guide for different\n"
         "options to determine the upwelling radiation.\n"
         "\n"
-        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
+        "A function calling this agenda shall set *rte_gp_p/lat/lon* to\n"
         "the position and line-of-sight for which the entering radiation \n"
         "shall be determined. \n"
         "\n"
@@ -340,16 +341,6 @@ void define_agenda_data()
         ),
        OUTPUT( iy_ ),
        INPUT()));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "i_space_agenda" ),
-       DESCRIPTION
-       (
-        "Will be removed."
-        ),
-       OUTPUT( i_space_ ),
-       INPUT(  f_grid_, stokes_dim_, rte_pos_, rte_los_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -679,6 +670,24 @@ void define_agenda_data()
        INPUT(  abs_vec_spt_, ext_mat_spt_,
                scat_za_index_, scat_aa_index_,
                scat_za_grid_, scat_aa_grid_ )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "surface_prop_agenda" ),
+       DESCRIPTION
+       (
+        "Returns RT properties of the surface. \n"
+        "\n"
+        "See the user guide for closer definitions of the variables \n"
+        "that describe the surface properties. These variables are:\n"
+        "   *surface_emission*, *surface_los* and *surface_rmatrix* \n"
+        "\n"
+        "A function calling this agenda shall set *rte_p/lat/lon* to\n"
+        "the position of intersection with the surface."
+        ),
+       OUTPUT( surface_emission_, surface_los_, surface_rmatrix_ ),
+       INPUT()));
+
 
 //  agenda_data.push_back
 //     (AgRecord
