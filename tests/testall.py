@@ -57,8 +57,22 @@ class MonteCarloTest2(unittest.TestCase):
         dQ=self.MCrun.get_val('mc_error')[1]
         assert abs(Q-7.6) < 4*Q, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
         
-
-
+class DoitTest(unittest.TestCase):
+    """Testing the ARTS-DOIT algorithm"""
+    DOITrun=ArtsRun('simpleDOIT.arts')
+    def test1(self):
+        """Simple DOIT test should run with no errors"""
+        self.DOITrun.run()
+        assert self.DOITrun.error=='','Error running simpleDOIT.arts: '+self.DOITrun.error
+    def test2(self):
+        """Total radiance should be close to 255.5 K"""
+        I=self.DOITrun.get_val('y')[0]
+        assert abs(I-255.) < 1, 'I (='+str(I)+'K) is too far away from 255.5 K'
+    def test3(self):
+        """Polarization difference should be close to 1.0 K"""
+        Q=self.DOITrun.get_val('y')[1]
+        assert abs(Q-1.) < 0.2, 'Q (='+str(Q)+'K) is too far away from 1. K'
+        
 if __name__=='__main__':
     unittest.main()
 

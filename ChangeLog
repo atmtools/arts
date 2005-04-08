@@ -1,3 +1,33 @@
+2005-04-08  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-939
+	
+	* tests/simpleDOIT.arts: Added. It uses almost the same data as
+	the Monte Carlo test file, only a different pnd_field for 1D and
+	an optimized zenith angle grid for DOIT.
+
+	* tests/data/doit_za_grid_opt.xml, pnd_field_1D.xml: Added.
+
+	* tests/testall.py: Included simple DOIT test here. 
+
+	* src/m_cloudbox.cc(ParticleTypeAdd): Included a warning, if no
+	pnd_field_file is specified. Now it works to use (ParticleTypeAdd)
+	and read pnd_field_raw separately, but I think it is not such a
+	nice solution. In my opinion it is nicer to use
+	(ParticleTypeAddAll) instead.
+
+	* src/m_atmosphere.cc: Fixed a bug:
+	
+	surface_specular_los( surface_los , atmosphere_dim );
+
+	needs as first input a vector but surface_los is a
+	matrix. Included 
+
+	surface_los(0, joker)
+
+	instead. 
+	Patrick, please check whether this is correct. 
+
 2005-04-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-938

@@ -1110,11 +1110,16 @@ void ParticleTypeAdd( //WS Output:
                              scat_data_file, f_grid);       
   
   out2 << "Read particle number density field\n";
-  xml_read_from_file(pnd_field_file,
-                     pnd_field_raw[pnd_field_raw.nelem()-1]);
+  if (pnd_field_file.nelem() < 1)
+    out1 << "Warning: No pnd_field_file specified. Ignored. \n";
+  else
+    {
+    xml_read_from_file(pnd_field_file,
+                       pnd_field_raw[pnd_field_raw.nelem()-1]);
   
-  chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
+    chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
                pnd_field_file, atmosphere_dim);
+    }
 }
 
 
