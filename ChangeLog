@@ -1,3 +1,21 @@
+2005-04-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-941
+
+	* src/matpackI.{h,cc}: Added two new VectorView constructors.
+
+	(VectorView::VectorView(const Vector&)): Fail immediately if someone
+	tries to create a VectorView from a const Vector.
+
+	(VectorView::VectorView(Vector&)): Added to allow the creation of a
+	VectorView from a non-constant Vector. Without this constructor, the
+	VectorView::VectorView(const Vector&) will always be called which is
+	not what we want.
+
+	* src/cloudbox.{cc,h} (chk_single_scattering_data):
+	
+	Use ConstVectorView instead of 'const VectorView'.
+
 2005-04-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-940

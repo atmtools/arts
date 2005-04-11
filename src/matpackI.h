@@ -353,6 +353,9 @@ protected:
     constant index operators and iterators. */
 class VectorView : public ConstVectorView {
 public:
+  VectorView (const Vector &);
+  VectorView (Vector &v);
+
   // Typedef for compatibility with STL
   typedef Iterator1D iterator;
 

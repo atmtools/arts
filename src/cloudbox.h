@@ -47,7 +47,7 @@ void chk_pnd_raw_data(
 void chk_single_scattering_data(
                                 const SingleScatteringData& scat_data_raw,
                                 const String& scat_data_file,
-                                const VectorView f_grid);
+                                ConstVectorView f_grid);
 
 void iy_interp_cloudbox_field(
             Matrix&         iy,

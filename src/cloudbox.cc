@@ -135,7 +135,7 @@ void chk_pnd_raw_data(
 void chk_single_scattering_data(
                                 const SingleScatteringData& scat_data_raw,
                                 const String& scat_data_file,
-                                const VectorView f_grid
+                                ConstVectorView f_grid
                                 )
 {
   out2 << "Check single scattering properties file "<< scat_data_file 
