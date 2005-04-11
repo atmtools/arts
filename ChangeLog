@@ -1,3 +1,23 @@
+2005-04-11  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-175
+
+	* Merge of Hermann Berg's <h.berg (at) utoronto.ca> Hitran 2004 support
+
+	* src/absorption.cc (LineRecord::ReadFromHitran2004Stream):
+
+	New function.
+
+	* src/absorption.h: Updated online docs.
+
+	(LineRecord::ReadFromHitran2004Stream): New function.
+
+	* src/m_abs.cc (linesReadFromHitran2004): New WSM.
+
+	* src/methods.cc: New WSM linesReadFromHitran2004.
+
+	* doc/uguide/absorption.tex: Updated Hitran documentation.
+
 2005-03-17  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-1-0-174

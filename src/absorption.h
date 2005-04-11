@@ -407,22 +407,12 @@ private:
     19   error for NAIR              DNAIR        %
     20   error for NSELF            DNSELF        %
     21   error for PSF                DPSF        %
-    22   quantum number code         QCODE            
-    23   lower state quanta         QLOWER            
-    24   upper state quanta         QUPPER            
-    25   information source of F                      IF
-    26   information source of I0                     II0
-    27   information source of line width variables   ILW
-    28   information source of pressure shift         IPSF
-    29   information source of auxiliary parameters   IAUX
     \endverbatim
 
     The parameters 0-12 must be present, the others can be missing,
     since they are not needed for the calculation.
 
     For the error fields (15-21), a -1 means that no value exist.
-
-    Fields 22-29 are String inside quotes ("") for maximum flexibility.
 
     A valid ARTS line file would be:
     \verbatim
@@ -682,8 +672,8 @@ public:
   Numeric dPsf() const { return mdpsf; }
 
 
-  /** Read one line from a stream associated with a HITRAN file. The HITRAN
-    format is as follows (directly from the HITRAN documentation):
+  /** Read one line from a stream associated with a HITRAN 1986-2002 file. The
+    HITRAN format is as follows (directly from the HITRAN documentation):
 
     \verbatim
     Each line consists of 100
@@ -733,7 +723,8 @@ public:
     catalogue. It returns false if it succeeds. Otherwise, if eof is
     reached, it returns true. If an error occurs, a runtime_error is
     thrown. When the function looks for a data line, comment lines are
-    automatically skipped.
+    automatically skipped. It is checked if the data record has the right
+    number of characters. If not, a runtime_error is thrown.
 
     \param is Stream from which to read
     \exception runtime_error Some error occured during the read
@@ -741,6 +732,80 @@ public:
 
     \author Stefan Buehler */
   bool ReadFromHitranStream(istream& is);
+
+
+
+  /** Read one line from a stream associated with a HITRAN 2004 file. The
+    HITRAN format is as follows:
+
+    \verbatim
+    Each line consists of 160 ASCII characters, followed by a line feed (ASCII 10)
+    and carriage return (ASCII 13) character, for a total of 162 bytes per line.
+
+    Each item is defined below, with its Fortran format shown in parenthesis.
+
+    (I2)     molecule number
+    (I1)     isotopologue number (1 = most abundant, 2 = second, etc)
+    (F12.6)  vacuum wavenumbers (cm-1)
+    (E10.3)  intensity in cm-1/(molec * cm-2) at 296 Kelvin
+    (E10.3)  Einstein-A coefficient (s-1)
+    (F5.4)   air-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
+    (F5.4)   self-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
+    (F10.4)  lower state energy (cm-1)
+    (F4.2)   coefficient of temperature dependence of air-broadened halfwidth
+    (F8.6)   air-broadened pressure shift of line transition at 296 K (cm-1)
+    (A15)    upper state global quanta
+    (A15)    lower state global quanta
+    (A15)    upper state local quanta
+    (A15)    lower state local quanta
+    (I1)     uncertainty index for wavenumber
+    (I1)     uncertainty index for intensity
+    (I1)     uncertainty index for air-broadened half-width
+    (I1)     uncertainty index for self-broadened half-width
+    (I1)     uncertainty index for temperature dependence
+    (I1)     uncertainty index for pressure shift
+    (I2)     index for table of references correspond. to wavenumber
+    (I2)     index for table of references correspond. to intensity
+    (I2)     index for table of references correspond. to air-broadened half-width
+    (I2)     index for table of references correspond. to self-broadened half-width
+    (I2)     index for table of references correspond. to temperature dependence
+    (I2)     index for table of references correspond. to pressure shift
+    (A1)     flag (*) for lines supplied with line-coupling algorithm
+    (F7.1)   upper state statistical weight
+    (F7.1)   lower state statistical weight
+
+     The molecule numbers are encoded as shown in the table below:
+
+      0= Null    1=  H2O    2=  CO2    3=   O3    4=  N2O    5=    CO
+      6=  CH4    7=   O2    8=   NO    9=  SO2   10=  NO2   11=   NH3
+     12= HNO3   13=   OH   14=   HF   15=  HCl   16=  HBr   17=    HI
+     18=  ClO   19=  OCS   20= H2CO   21= HOCl   22=   N2   23=   HCN
+     24=CH3Cl   25= H2O2   26= C2H2   27= C2H6   28=  PH3   29=  COF2
+     30=  SF6   31=  H2S   32=HCOOH   33=  HO2   34=    O   35=ClONO2
+     36=  NO+   37= HOBr   38= C2H4
+    \endverbatim
+
+    CH3OH is not included in ARTS because its total internal partition
+    sum is not known yet.
+
+    The function attempts to read a line of data from the
+    catalogue. It returns false if it succeeds. Otherwise, if eof is
+    reached, it returns true. If an error occurs, a runtime_error is
+    thrown. When the function looks for a data line, comment lines are
+    automatically skipped. It is checked if the data record has the right number
+    of characters (comment lines are ignored). If not, a runtime_error is thrown.
+    If the molecule is unknown to ARTS, a warning is prompted but the
+    program continues (ignoring this record). For CH3OH this
+    warning will be issued even when using the regular Hitran 2004 data base
+    (see above).
+
+    \param is Stream from which to read
+    \exception runtime_error Some error occured during the read
+    \return false=ok (data returned), true=eof (no data returned)
+
+    \author Stefan Buehler, Hermann Berg */
+  bool ReadFromHitran2004Stream(istream& is);
+
 
 
 

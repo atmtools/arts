@@ -1914,12 +1914,14 @@ void define_md_data()
     ( MdRecord
       ( NAME("linesReadFromHitran"),
   	DESCRIPTION(
-		    "Read all the lines from a HITRAN catalogue file in the \n"
-		    "given frequency range. Otherwise a runtime error will be\n"
-		    "thrown\n"
+		    "Read all the lines from a HITRAN 1986-2002 catalogue file in\n"
+		    "the given frequency range. Otherwise a runtime error will be\n"
+		    "thrown. For HITRAN 2004 line data use the workspace method \n"
+		    "linesReadFromHitran. \n"
 		    "\n"
-		    "Please note that all lines must correspond\n"
-		    "to the legal species / isotope combinations\n"
+		    "Please note that all lines must correspond to the legal\n"
+ 		    "species / isotope combinations and that the line data \n"
+		    "file must be sorted by increasing frequency\n"
 		    "\n"
 		    "Keywords: \n"
 		    "   filename = Name (and path) of the catalogue file.\n"
@@ -1932,6 +1934,34 @@ void define_md_data()
 	KEYWORDS( "filename",  "fmin",    "fmax"),
 	TYPES(    String_t,    Numeric_t, Numeric_t)));
   
+  md_data.push_back
+    ( MdRecord
+      ( NAME("linesReadFromHitran2004"),
+  	DESCRIPTION(
+	"Read all the lines from a HITRAN 2004 catalogue file in the \n"
+	"given frequency range. Otherwise a runtime error is thrown. \n"
+	"\n"
+        "Records of molecules unknown to ARTS are ignored but a \n"
+        "warning is issued. In particular this happens to CH3OH \n"
+        "(HITRAN molecule number 39) because there is no total internal \n"
+        "partition sum available. \n"
+        "\n"
+        "The database must be sorted by increasing frequency!\n"
+		    "\n"
+		    "For data in the Hitran 1986-2002 format use the workspace \n"
+		    "method: linesReadFromHitran\n"
+		    "\n"
+		    "Keywords: \n"
+		    "   filename = Name (and path) of the catalogue file.\n"
+		    "   fmin     = Minimum frequency for lines to read in Hz.\n"
+		    "   fmax     = Maximum frequency for lines to read in Hz."),
+	OUTPUT(   lines_   ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "filename",  "fmin",    "fmax"),
+	TYPES(    String_t,    Numeric_t, Numeric_t)));
+
   md_data.push_back
     ( MdRecord
       ( NAME("linesReadFromMytran2"),

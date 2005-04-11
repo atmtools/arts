@@ -604,19 +604,11 @@ Col  Variable                     Label    Unit
 19   error for NAIR              DNAIR        %
 20   error for NSELF            DNSELF        %
 21   error for PSF                DPSF        %
-22   quantum number code         QCODE           
-23   lower state quanta         QLOWER            
-24   upper state quanta         QUPPER            
-25   information source of F                      IF
-26   information source of I0                     II0
-27   information source of line width variables   ILW
-28   information source of pressure shift         IPSF
-29   information source of auxiliary parameters   IAUX
+
 \end{verbatim}
 The parameters 0-12 must be present, the others can be missing, since
 they are not needed for the calculation. For the error fields (15-21),
-a~$-1$ means that no value exists. Fields 22-29 are strings inside quotes
-\verb ""  for maximum flexibility.\\
+a~$-1$ means that no value exists.\\
 Thus a valid ARTS line file would be:
 \begin{verbatim}
 ARTSCAT-2 2
@@ -875,8 +867,8 @@ of the JPL00 catalog.
   HOBr & 169&  371&    371&  96001\\
        & 161&  372&    372&  98002\\
 \hline                  
-  C2H4 & 221&  381&    371&       \\
-       & 231&  382&    372&       \\
+  C2H4 & 221&  381&    381&       \\
+       & 231&  382&    382&       \\
 \hline                  
 CH3CN & 211124&-1 & -1    & 41001 \\
       & 311124&-1 & -1    & 42006 \\
@@ -1569,7 +1561,15 @@ linesReadfromHitran {
    fmax     = 1e12
 }
  \end{verbatim}
-for HITRAN96,
+for HITRAN96--02,
+\begin{verbatim}
+linesReadfromHitran2004 {
+   filename = "hitran04.par"
+   fmin     = 0
+   fmax     = 1e12
+}
+ \end{verbatim}
+for HITRAN04,
 \begin{verbatim}
 linesReadfromJpl {
    filename = "jpl100.cat"

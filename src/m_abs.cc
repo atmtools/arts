@@ -66,7 +66,9 @@ void lines_per_tgSetEmpty(// WS Output:
 }
 
 /**
- 
+   Reads line data in the Hitran 1986-2002 format (100 characters/record). For
+   Hitran version 2004 use linesReadFromHitran2004().
+
    \remark  <a href="http://www.hitran.com/>WWW access of the HITRAN catalog</a>.
 
    \author Thomas Kuhn
@@ -92,6 +94,55 @@ void linesReadFromHitran(// WS Output:
     {
       LineRecord lr;
       if ( lr.ReadFromHitranStream(is) )
+        {
+          // If we are here the read function has reached eof and has
+          // returned no data.
+          go_on = false;
+        }
+      else
+        {
+          if ( fmin <= lr.F() )
+            {
+              if ( lr.F() <= fmax )
+                lines.push_back(lr);
+              else
+                go_on = false;
+            }
+        }
+    }
+  out2 << "  Read " << lines.nelem() << " lines.\n";
+}
+
+
+/**
+   Reads line data in the Hitran 2004 format (160 characters/record). For Hitran
+   versions 1986-2002 use linesReadFromHitran().
+
+   \remark  <a href="http://www.hitran.com/>WWW access of the HITRAN catalog</a>.
+
+   \author Hermann Berg based on Thomas Kuhn
+   \date 2005-03-29
+ */
+void linesReadFromHitran2004(// WS Output:
+                         ArrayOfLineRecord& lines,
+                          // Control Parameters:
+                         const String& filename,
+                         const Numeric& fmin,
+                         const Numeric& fmax)
+{
+  ifstream is;
+
+  // Reset lines in case it already existed:
+  lines.resize(0);
+
+  out2 << "  Reading file: " << filename << '\n';
+  open_input_file(is, filename);
+
+  bool go_on = true;
+  while ( go_on )
+    {
+      LineRecord lr;
+      if ( lr.ReadFromHitran2004Stream(is) )
         {
           // If we are here the read function has reached eof and has
           // returned no data.
