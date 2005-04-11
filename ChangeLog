@@ -1,3 +1,20 @@
+2005-04-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-940
+
+	* tests/data/pnd_field_1D.xml: Modified. The pnd_field did not
+	match the p_grid for Cory's simpleMC, which resulted in a
+	assertion error. This is now fixed. 	
+
+	* tests/data/(gas_abs_lookup.xml, gas_abs_lookup.xml.bin): Converted
+	lookup table to binary format to make reading faster. 
+	
+	* tests/simpleDOIT.arts: Slightly modified.
+	
+	* tests/testall.py: Modified DOIT test. 
+
+	python testall.py -v works !!!
+	
 2005-04-08  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-939
