@@ -1,5 +1,33 @@
 2005-04-11  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-942
+
+	* src/matpackI.cc:
+
+	Move VectorView constructor to the other VectorView functions.
+
+	* src/make_array.h:
+
+	Changed MakeArray<base>::MakeArray<base> to
+	MakeArray<base>::MakeArray.
+	Avoids invalid use of the constructor as a template.
+
+	* src/make_auto_wsv_groups_h.cc:
+
+	Add virtual destructor to class WsvP as every class that defines 
+	virtual functions must have a virtual destructor.
+
+	* src/m_abs_o2_models.cc:
+
+	Comment out unused Numeric BE[] constant.
+
+	(Zeeman_o2_line_splitting):
+
+	Use BN_r++ instead of BN_r = BN_r++ to avoid undefined behaviour.
+	Same for AN_r--.
+
+2005-04-11  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-941
 
 	* src/matpackI.{h,cc}: Added two new VectorView constructors.

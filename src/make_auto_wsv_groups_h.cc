@@ -103,6 +103,8 @@ int main()
               << "*(){safety();return NULL;};\n";
         }
 
+      ofs << "\nvirtual ~WsvP(){};\n";
+
       ofs << "\nprivate:\n";
 
       ofs << "/*! Safety check. This is called by all the virtual conversion\n"

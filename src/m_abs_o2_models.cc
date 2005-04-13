@@ -596,13 +596,13 @@ void Zeeman_o2_line_splitting(// Output:
   if (N_r>0)
     { 
       // N+ Zeeman transition (N -> N+1)
-      BN_r = BN_r++;
+      BN_r++;
     }
   else
     {
       // N- Zeeman transition (N -> N-1)
-      AN_r = AN_r--;
-      BN_r = BN_r--;
+      AN_r--;
+      BN_r--;
     };
 
 
@@ -959,7 +959,7 @@ static const Numeric Y88[]  = {0, -0.0244,  0.2772, -0.4068,  0.6270,
                                0.0000,	 0.0000,  0.0000,  0.0000};
 
 // temperature exponent of the line strength in [1]
-static const Numeric BE[] = {	0,   0.009,   0.015,   0.083,   0.084, 
+/*static const Numeric BE[] = {	0,   0.009,   0.015,   0.083,   0.084, 
                                   0.212,	 0.212,	  0.391,   0.391, 
                                   0.626,	 0.626,	  0.915,   0.915, 
                                   1.260,	 1.260,	  1.660,   1.665,   
@@ -968,7 +968,7 @@ static const Numeric BE[] = {	0,   0.009,   0.015,   0.083,   0.084,
                                   4.484,	 4.484,	  5.224,   5.224, 
                                   6.004,	 6.004,	  6.844,   6.844, 
                                   7.744,	 7.744,	  0.048,   0.044, 
-                                  0.049,	 0.145,	  0.141,   0.145};
+                                  0.049,	 0.145,	  0.141,   0.145};*/
 
 // line width parameter [GHz/bar]
 static const Numeric W300[] = { 0, 1.630,   1.646,   1.468,   1.449, 

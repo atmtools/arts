@@ -651,23 +651,23 @@ public:
 // Define the functions here, to avoid inlining:
 
 template<class base>
-MakeArray<base>::MakeArray<base>() : Array<base>(0)
+MakeArray<base>::MakeArray() : Array<base>(0)
 {
   // Just an empty array.
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(Array<base> &narray) : Array<base> (narray)
+MakeArray<base>::MakeArray(Array<base> &narray) : Array<base> (narray)
 {
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0
                      ) : Array<base>(1)
 {
   vector<base>::operator[](0) = a0;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1
                      ) : Array<base>(2)
@@ -676,7 +676,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](1) = a1;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2
@@ -687,7 +687,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](2) = a2;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -700,7 +700,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](3) = a3;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -715,7 +715,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](4) = a4;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -732,7 +732,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](5) = a5;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -751,7 +751,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](6) = a6;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -772,7 +772,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](7) = a7;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -795,7 +795,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](8) = a8;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -820,7 +820,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](9) = a9;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -847,7 +847,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](10) = a10;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -876,7 +876,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](11) = a11;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -907,7 +907,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](12) = a12;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -940,7 +940,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](13) = a13;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -975,7 +975,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](14) = a14;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1012,7 +1012,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](15) = a15;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1051,7 +1051,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](16) = a16;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1092,7 +1092,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](17) = a17;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1135,7 +1135,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](18) = a18;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1180,7 +1180,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](19) = a19;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1227,7 +1227,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](20) = a20;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1276,7 +1276,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](21) = a21;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1327,7 +1327,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](22) = a22;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1380,7 +1380,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](23) = a23;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1435,7 +1435,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](24) = a24;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1492,7 +1492,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](25) = a25;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1551,7 +1551,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](26) = a26;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1612,7 +1612,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](27) = a27;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1675,7 +1675,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](28) = a28;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1740,7 +1740,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](29) = a29;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,
@@ -1807,7 +1807,7 @@ MakeArray<base>::MakeArray<base>(
   vector<base>::operator[](30) = a30;
 }
 template<class base>
-MakeArray<base>::MakeArray<base>(
+MakeArray<base>::MakeArray(
                      const base& a0,
                      const base& a1,
                      const base& a2,

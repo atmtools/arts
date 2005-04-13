@@ -185,22 +185,6 @@ Numeric ConstVectorView::sum() const
   return s;
 }
 
-/** Bail out immediately if somebody tries to create a VectorView from
-    a const Vector. */
-VectorView::VectorView (const Vector &)
-{
-  throw runtime_error("Creating a VectorView from a const Vector is not allowed.");
-
-  exit (1);
-}
-
-/** Create VectorView from a Vector. */
-VectorView::VectorView (Vector &v)
-{
-  mdata = v.mdata;
-  mrange = v.mrange;
-}
-
 /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Vector. This allows
     correct recursive behavior.  */
@@ -304,6 +288,22 @@ ostream& operator<<(ostream& os, const ConstVectorView& v)
 
 // Functions for VectorView:
 // ------------------------
+
+/** Bail out immediately if somebody tries to create a VectorView from
+    a const Vector. */
+VectorView::VectorView (const Vector &)
+{
+  throw runtime_error("Creating a VectorView from a const Vector is not allowed.");
+
+  exit (1);
+}
+
+/** Create VectorView from a Vector. */
+VectorView::VectorView (Vector &v)
+{
+  mdata = v.mdata;
+  mrange = v.mrange;
+}
 
 /** Const index operator for subrange. We have to also account for the case,
     that *this is already a subrange of a Vector. This allows correct
