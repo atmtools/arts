@@ -1,3 +1,15 @@
+2005-04-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-176
+
+	* Updates from Herman Berg.
+
+	* src/absorption.{cc,h}, src/methods.cc, doc/uguide/absorption.tex:
+
+	Hitran 1986-2002 -> 1986-2001.
+
+	* src/m_abs.cc (lines_per_tgReadFromCatalogues): Added Hitran2004.
+
 2005-04-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-175

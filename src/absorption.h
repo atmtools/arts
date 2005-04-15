@@ -672,7 +672,7 @@ public:
   Numeric dPsf() const { return mdpsf; }
 
 
-  /** Read one line from a stream associated with a HITRAN 1986-2002 file. The
+  /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
     HITRAN format is as follows (directly from the HITRAN documentation):
 
     \verbatim

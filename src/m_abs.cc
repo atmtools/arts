@@ -66,7 +66,7 @@ void lines_per_tgSetEmpty(// WS Output:
 }
 
 /**
-   Reads line data in the Hitran 1986-2002 format (100 characters/record). For
+   Reads line data in the Hitran 1986-2001 format (100 characters/record). For
    Hitran version 2004 use linesReadFromHitran2004().
 
    \remark  <a href="http://www.hitran.com/>WWW access of the HITRAN catalog</a>.
@@ -116,7 +116,7 @@ void linesReadFromHitran(// WS Output:
 
 /**
    Reads line data in the Hitran 2004 format (160 characters/record). For Hitran
-   versions 1986-2002 use linesReadFromHitran().
+   versions 1986-2001 use linesReadFromHitran().
 
    \remark  <a href="http://www.hitran.com/>WWW access of the HITRAN catalog</a>.
 
@@ -339,7 +339,8 @@ void linesElowToJoule(// WS Output:
   This method needs as input WSVs the list of tag groups. Keyword
   parameters must specify the names of the catalogue files to use and
   the matching formats. Names can be anything, formats can currently
-  be HITRAN96, MYTRAN2, JPL, or ARTS. Furthermore, keyword parameters
+  be HITRAN96 (for HITRAN 1986-2001 databases), HITRAN04 (for HITRAN 2004
+  databse), MYTRAN2, JPL, or ARTS. Furthermore, keyword parameters
   have to specify minimum and maximum frequency for each tag group. To
   safe typing, if there are less elements in the keyword parameters
   than there are tag groups, the last parameters are applied to all
@@ -532,6 +533,10 @@ void lines_per_tgReadFromCatalogues(// WS Output:
         {
           linesReadFromHitran( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
         }
+      else if ( "HITRAN04"==real_formats[i] )
+        {
+          linesReadFromHitran2004( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+        }
       else if ( "MYTRAN2"==real_formats[i] )
         {
           linesReadFromMytran2( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
@@ -549,7 +554,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
           ostringstream os;
           os << "lines_per_tgReadFromCatalogues: You specified the\n"
              << "format `" << real_formats[i] << "', which is unknown.\n"
-             << "Allowd formats are: HITRAN96, MYTRAN2, JPL, ARTS.";
+             << "Allowd formats are: HITRAN96, HITRAN04, MYTRAN2, JPL, ARTS.";
           throw runtime_error(os.str());
         }
 

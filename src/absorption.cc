@@ -150,7 +150,7 @@ void extract(T&      x,
 }
 
 
-// This function reads line data in the Hitran 1986-2002 format. For the Hitran
+// This function reads line data in the Hitran 1986-2001 format. For the Hitran
 // 2004 data format use ReadFromHitran2004Stream.
 //
 // 2005/03/29: A check for the right data record length (100 characters) has
@@ -313,14 +313,14 @@ bool LineRecord::ReadFromHitranStream(istream& is)
               comment = false;
 
               // Check if data record has the right number of characters for the
-              // in Hitran 1986-2002 format
+              // in Hitran 1986-2001 format
               Numeric nChar = line.nelem()+1; // number of characters in data record;
                    // the string terminator '\0' counts in 'nelem()' and 2
                    // characters of 'mo' are already missing; so add 1 in total
               if ( nChar != 100 )
                 {
                   ostringstream os;
-                  os << "Invalid HITRAN 1986-2002 line data record with " << nChar <<
+                  os << "Invalid HITRAN 1986-2001 line data record with " << nChar <<
                         " characters (expected: 100).";
                   throw runtime_error(os.str());
                 }
