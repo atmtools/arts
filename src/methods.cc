@@ -1370,7 +1370,7 @@ md_data_raw.push_back
         OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
                scat_za_index_, scat_aa_index_, pha_mat_,
                pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, doit_scat_field_,
-               doit_i_field_, doit_iteration_counter_),
+               doit_i_field_),
         INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
               doit_za_grid_size_, 
               cloudbox_limits_, scat_data_raw_),
@@ -1400,7 +1400,7 @@ md_data_raw.push_back
          "      If *atmosphere_dim* equals 2, it returns an error message,\n"
          "      as 2D scattering calculations can not be performed.\n"
          ),
-        OUTPUT(doit_i_field_, doit_i_field_old_, doit_conv_flag_),
+        OUTPUT(doit_i_field_, doit_i_field_old_, doit_conv_flag_, doit_iteration_counter_),
         INPUT( doit_scat_field_agenda_, doit_rte_agenda_, 
                doit_conv_test_agenda_),
         GOUTPUT(),

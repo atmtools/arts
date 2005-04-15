@@ -147,7 +147,7 @@ void DoitAngularGridsSet(// WS Output:
   \param doit_i_field_old Old radiation field.
   Keyword : 
   \param epsilon   Limiting values for the convergence test
-
+  
   \author Claudia Emde
   \date 2002-06-17
 
@@ -506,6 +506,7 @@ void doit_i_fieldIterate(
                Tensor6& doit_i_field_old,
                // WS Output
                Index& doit_conv_flag,
+               Index& doit_iteration_counter,
                // WS Input:  
                const Agenda& doit_scat_field_agenda,
                const Agenda& doit_rte_agenda,
@@ -513,6 +514,8 @@ void doit_i_fieldIterate(
                )
 {
   doit_conv_flag = 0;
+  doit_iteration_counter = 0;
+
   while(doit_conv_flag == 0) {
     
     // 1. Copy doit_i_field to doit_i_field_old.
@@ -2564,7 +2567,6 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
   \param scat_lon_index: Index for a position inside the cloudbox
   \param scat_za_index: Index for a zenith direction.
   \param scat_aa_index: Index for an azimuth direction.
-  \param doit_iteration_counter: Index for counting iterations.
   \param pha_mat : Phase matrix.
   \param pha_mat_spt: Phase matrix for a single particle type.
   \param ext_mat_spt: Extinction matrix for a single particle type.
@@ -2592,7 +2594,6 @@ void DoitInit(
               Matrix& abs_vec_spt,
               Tensor6& doit_scat_field,
               Tensor6& doit_i_field,
-              Index& doit_iteration_counter,
               const Index& stokes_dim,
               const Index& atmosphere_dim,
               const Vector& scat_za_grid,
@@ -2636,8 +2637,7 @@ void DoitInit(
 
   ext_mat_spt.resize(N_pt, stokes_dim, stokes_dim);
   ext_mat_spt = 0.;  
-  doit_iteration_counter = 0;
-
+  
   if (atmosphere_dim == 1)
     {
       doit_i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
