@@ -1758,7 +1758,7 @@ void Sample_ppathlengthLOS (
         {
           //then we need to truncate T11vector at this point
           T11vector=T11vector[Range(0,i+1)];
-          npoints=i;
+          npoints=i+1;
           break;
         }
     }

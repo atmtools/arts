@@ -1,3 +1,14 @@
+2005-04-20  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-944
+
+	* src/montecarlo.cc (Sample_ppathlengthLOS): Fixed a very silly
+	bug that caused MC to fail for very optically thick cases. This
+	bug only caused failure for cases where the first ppath step
+	inside the cloud had a transmittance of less than 1e-12. (Patrick:
+	This was the cause of problems I had with 640 GHz simulations last
+	month)
+	
 2005-04-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-943
