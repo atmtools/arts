@@ -1,3 +1,19 @@
+2005-04-26  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-946
+
+	* src/scatrte.cc (cloud_ppath_update1D_planeparallel): Fixed a bug
+	in this function.  The function was not working before for
+	stokes_dim > 1.  
+
+	* src/m_optproperties.cc (pha_mat_sptFromDataDOITOpt,
+	pha_mat_sptFromData): Another small bug.  Here, if you had more 
+	than one pnd profile and if the first file had zero pnd, the function
+	returned without going to the next profile. 
+
+	* src/cloudbox.cc: In the temperature check, the maximum was set
+	to 320 K, instead of 300 K. 
+
 2005-04-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-945

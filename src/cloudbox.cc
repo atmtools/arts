@@ -173,7 +173,7 @@ void chk_single_scattering_data(
   // functions where the multiplication with the particle number density is 
   // done. 
 
-  if (!(0. < scat_data_raw.T_grid[0] && last(scat_data_raw.T_grid) < 300.))
+  if (!(0. < scat_data_raw.T_grid[0] && last(scat_data_raw.T_grid) < 321.))
     {
       ostringstream os;
       os << "The temperature values in " <<  scat_data_file 

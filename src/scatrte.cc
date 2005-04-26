@@ -1439,9 +1439,6 @@ void cloud_ppath_update1D_planeparallel(
     {
       bkgr = 0;
     }
-  for (Index i = 0; i < stokes_dim; i++)
-    {
-
       
       // if 0, there is no background
       if (bkgr == 0)
@@ -1477,8 +1474,8 @@ void cloud_ppath_update1D_planeparallel(
               //
               const Index N_species = vmr_field.nbooks();
               // Average vmrs
-              for (Index j = 0; i < N_species; i++)
-          rte_vmr_list[i] = 0.5 * (vmr_field(j,p_index,0,0) + 
+              for (Index j = 0; j < N_species; j++)
+		rte_vmr_list[j] = 0.5 * (vmr_field(j,p_index,0,0) + 
                                    vmr_field(j,p_index + 1,0,0));
               //
               // Calculate scalar gas absorption and add it to abs_vec 
@@ -1670,7 +1667,6 @@ void cloud_ppath_update1D_planeparallel(
       // bkgr=2 indicates that the background is surface
       else if (bkgr == 2)
         {
-          cout<<"Does it ever reach here---------Then it is wrong..!!!"<<endl;
           //Set rte_pos, rte_gp_p and rte_los to match the last point
           //in ppath.
           //pos
@@ -1843,7 +1839,6 @@ void cloud_ppath_update1D_planeparallel(
                   joker) = stokes_vec_local;
       */  
         }//end else loop over surface
-    }//end if inside cloudbox
 }
 
 

@@ -253,11 +253,11 @@ void pha_mat_sptFromDataDOITOpt( // Output:
       // If the particle number density at a specific point in the atmosphere  
       // for the i_pt particle type is zero, we don't need to do the 
       // transfromation!
-      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index)< pnd_limit)
+      if (pnd_field(i_pt, scat_p_index, scat_lat_index, scat_lon_index) > pnd_limit) //TRS
         {
-         pha_mat_spt = 0.;
-         return;
-        }
+	  //pha_mat_spt = 0.;//; commented by TRS 
+	  //return;//commented by TRS 
+	  //}//commented by TRS 
 
       // Temporary phase matrix wich icludes the all temperatures.
       Tensor3 pha_mat_spt_tmp(scat_data_mono[i_pt].T_grid.nelem(), 
@@ -315,6 +315,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
                 }
             }
         }
+      }// TRS
     }
 }
 
