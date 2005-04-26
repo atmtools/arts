@@ -173,7 +173,7 @@ void doit_conv_flagAbs(//WS Output:
    
   out2 << "Number of iteration: " << doit_iteration_counter << "\n";
 
-  if (doit_iteration_counter > 50)
+  if (doit_iteration_counter > 100)
     throw runtime_error("Error in DOIT calculation: \n"
                         "Method does not converge. Please check"
                         "numerical grids!");
@@ -287,10 +287,13 @@ void doit_conv_flagAbsBT(//WS Output:
 
   out2 << "Number of iteration: " << doit_iteration_counter << "\n";
 
-  if (doit_iteration_counter > 50)
-    throw runtime_error("Error in DOIT calculation: \n"
-                        "Method does not converge. Please check"
-                        "numerical grids!");
+  if (doit_iteration_counter > 100)
+    {
+      doit_conv_flag = 1;
+      out1 << "Warning: Error in DOIT calculation: \n"
+           << "No convergence reached, that means the result is wrong.\n"
+           << "Finer grid resolutions are required!!!.\n";
+    }  
 
   doit_iteration_counter += 1;
   
@@ -405,7 +408,7 @@ void doit_conv_flagLsq(//WS Output:
     
   out2 << "Number of iteration: " << doit_iteration_counter << "\n";
 
-  if (doit_iteration_counter > 50)
+  if (doit_iteration_counter > 100)
     throw runtime_error("Error in DOIT calculation: \n"
                         "Method does not converge. Please check"
                         "numerical grids!");

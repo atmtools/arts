@@ -1,3 +1,13 @@
+2005-04-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-945
+	
+	* src/cloudbox.cc (chk_single_scattering_data): Removed azimuth
+	angle check for p20, because it is not needed. 
+
+	* src/m_scatrte.cc: Increased maximum number of iterations in the
+	convergence test functions, now it is 100. 
+
 2005-04-20  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-944

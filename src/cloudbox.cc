@@ -221,7 +221,7 @@ void chk_single_scattering_data(
         throw runtime_error( os.str() );
     }   
   
-  if (last(scat_data_raw.aa_grid) != 180.)
+  if (scat_data_raw.ptype == 30 && last(scat_data_raw.aa_grid) != 180.)
     {
       ostringstream os;
       os << "The last value of the aa grid in the single"
