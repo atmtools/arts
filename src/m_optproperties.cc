@@ -229,20 +229,17 @@ void pha_mat_sptFromDataDOITOpt( // Output:
   
   const Index N_pt = scat_data_mono.nelem();
   const Index stokes_dim = pha_mat_spt.ncols();
-
-  
-  
   
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
-                         "must be 1,2,3 or 4");
+                        "must be 1,2,3 or 4");
   }
   
   assert( pha_mat_spt.nshelves() == N_pt );
 
   GridPos T_gp;
   Vector itw(2);
-
+  
   
   // Initialisation
   pha_mat_spt = 0.;
@@ -259,63 +256,53 @@ void pha_mat_sptFromDataDOITOpt( // Output:
 	  //return;//commented by TRS 
 	  //}//commented by TRS 
 
-      // Temporary phase matrix wich icludes the all temperatures.
-      Tensor3 pha_mat_spt_tmp(scat_data_mono[i_pt].T_grid.nelem(), 
-                          pha_mat_spt.nrows(), pha_mat_spt.ncols());
-  
-      pha_mat_spt_tmp = 0.; 
-    
-      if( scat_data_mono[i_pt].T_grid.nelem() > 1)
-        {
-          //     chk_if_in_range("T_grid", rte_temperature, 
-          //                scat_data_mono[i_pt].T_grid[0],
-          //                scat_data_mono[i_pt].T_grid
-          //                [scat_data_mono[i_pt].T_grid.nelem()-1]);
-          
-          // Gridpositions:
-          gridpos(T_gp, scat_data_mono[i_pt].T_grid, rte_temperature); 
-          // Interpolationweights:
-          interpweights(itw, T_gp);
-        }
-      
-
-      
-      for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
-           za_inc_idx ++)
-        {
-          for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
-               aa_inc_idx ++) 
+          if( scat_data_mono[i_pt].T_grid.nelem() > 1)
             {
-                  
-              for (Index t_idx = 0; t_idx < 
-                     scat_data_mono[i_pt].T_grid.nelem();
-                     t_idx ++)
+              //     chk_if_in_range("T_grid", rte_temperature, 
+              //                scat_data_mono[i_pt].T_grid[0],
+              //                scat_data_mono[i_pt].T_grid
+              //                [scat_data_mono[i_pt].T_grid.nelem()-1]);
+              
+              // Gridpositions:
+              gridpos(T_gp, scat_data_mono[i_pt].T_grid, rte_temperature); 
+              // Interpolationweights:
+              interpweights(itw, T_gp);
+            }
+          
+          
+          
+          for (Index za_inc_idx = 0; za_inc_idx < doit_za_grid_size;
+               za_inc_idx ++)
+            {
+              for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
+                   aa_inc_idx ++) 
                 {
-                  pha_mat_spt_tmp(t_idx, joker, joker)=
-                    pha_mat_sptDOITOpt[i_pt](t_idx, scat_za_index,
-                                             scat_aa_index, za_inc_idx, 
-                                             aa_inc_idx, joker, joker);
-                }
-              // Temperature interpolation
-              if( scat_data_mono[i_pt].T_grid.nelem() > 1)
-                {
-                  for (Index i = 0; i< stokes_dim; i++)
+                  if( scat_data_mono[i_pt].T_grid.nelem() == 1)
                     {
-                      for (Index j = 0; j< stokes_dim; j++)
+                      pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, joker, joker) =
+                        pha_mat_sptDOITOpt[i_pt](0, scat_za_index,
+                                                 scat_aa_index, za_inc_idx, 
+                                                 aa_inc_idx, joker, joker);
+                    }
+                  
+                  // Temperature interpolation
+                  else
+                    {
+                      for (Index i = 0; i< stokes_dim; i++)
                         {
-                          pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, i, j)=
-                            interp(itw, pha_mat_spt_tmp(joker, i, j), T_gp);
+                          for (Index j = 0; j< stokes_dim; j++)
+                            {
+                              pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, i, j)=
+                                interp(itw,pha_mat_sptDOITOpt[i_pt]
+                                       (joker, scat_za_index,
+                                        scat_aa_index, za_inc_idx, 
+                                        aa_inc_idx, i, j) , T_gp);
+                            }
                         }
                     }
                 }
-              else // no temperatue interpolation required
-                {
-                  pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, joker, joker) =
-                    pha_mat_spt_tmp(0, joker, joker);
-                }
             }
-        }
-      }// TRS
+        }// TRS
     }
 }
 
@@ -993,27 +980,13 @@ void pha_matCalc(
   pha_mat.resize(Nza, Naa, stokes_dim, stokes_dim);
 
   // Initialisation
-  for (Index za_index = 0; za_index < Nza; ++ za_index)
-    {
-      for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-        {
-          for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim;
-               ++ stokes_index_1)
-            {
-              for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim; 
-                   ++ stokes_index_2)
-                pha_mat(za_index, aa_index, stokes_index_1, stokes_index_2)
-
-                  = 0.0;
-            }
-        }
-    }
+  pha_mat = 0.0;
+          
   if (atmosphere_dim == 1)
     {
       // this is a loop over the different particle types
       for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
         {
-                  
           // these are loops over zenith angle and azimuth angle
           for (Index za_index = 0; za_index < Nza; ++ za_index)
             {

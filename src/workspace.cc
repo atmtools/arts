@@ -298,7 +298,7 @@ void define_wsv_data()
      ( NAME("abs_vec_spt"),
        DESCRIPTION
        (
-        "Absorption Vector for a single particle type.\n"
+        "Absorption vector for a single particle type.\n"
         "\n"
         "This variable contains the elements of absorption vector of a \n"
         "single particle, given  It is calculated in the agenda \n"
@@ -590,7 +590,7 @@ void define_wsv_data()
        "Radiation field.\n" 
        "\n"
        "This variable is used to store the intensity field inside the\n"
-       "cloudbox which is found by an iterative solution.\n"
+       "cloudbox which is found by an iterative solution (DOIT).\n"
        "Refer to AUG for further information.\n"
        "\n"
        "Usage: Method output. \n"    
@@ -634,10 +634,10 @@ void define_wsv_data()
     ( NAME( "doit_iteration_counter" ),
       DESCRIPTION
       (
-       "Counter for iterations.\n"
+       "Counter for number of iterations.\n"
        "\n"
-       "This variable holds the number of iterations which have been \n"
-       "while solving the VRTE with scattering (DOIT). \n"
+       "This variable holds the number of iterations \n"
+       "while solving the VRTE using the DOIT method. \n"
        "\n"
        ),
       GROUP( Index_ )));
@@ -698,9 +698,10 @@ void define_wsv_data()
        (
         "Optimized zenith angle grid.\n"
         "\n"
-        "Output of the method *DoitGridOptimization*. It is very \n"
-        "important to use optimized grids  for both, accuracy and speed of \n"
-        "scattering calculations.\n"
+        "Output of the method *DoitGridOptimization*. For limb simulations \n"
+        "with scattering it is very \n"
+        "important to use optimized grids for both, accuracy and speed of \n"
+        "the calculations.\n"
         "\n"
         "Usage:   Output of *DoitGridOptimization*   \n"
         "\n"
@@ -715,10 +716,10 @@ void define_wsv_data()
       DESCRIPTION
       (
        "This vector contains the discretisation of the zenith angle grid \n"
-       "for the scattering integral caluclation. \n"
+       "for the scattering integral calculation. \n"
        "\n"
        "The zenith angle grid is defined from 0 to 180.\n"
-       "za_grid_size is the number of points of the zenith angle grid and \n"
+       "*doit_za_grid_size* is the number of points of the zenith angle grid.\n"
        "\n"
        "Usage: Output of *DoitAngularGridsSet*.\n"
        "\n"
@@ -731,7 +732,7 @@ void define_wsv_data()
       DESCRIPTION
       (
        "Flag for interplation method in zenith angle dimension.\n"
-       " \n"
+       "\n"
        "0 - linear interpolation \n"
        "1 - cubic interpolation \n"
        "Default is linear interpolation. \n"
@@ -848,10 +849,6 @@ wsv_data.push_back
        "This variable contains the elements for extinction matrix of a  \n"
        "single particle for a given propagation direction. It is calculated\n"
        "input as well as the output of the agenda *spt_calc_agenda*.  \n"
-       "\n"
-       "ARTS user guide (AUG) gives the formulae used for computing all \n"
-       "the elements of the extinction matrix for a given particle  \n"
-       "type. \n"
        "\n"
        "Usage:      Output of *spt_calc_agenda* \n"
        "\n"
@@ -1390,7 +1387,7 @@ wsv_data.push_back
        "which are *sto_vecGeneral* and *sto_vecScalar*.\n"
        "It can be calculated using the *ppath_step_agenda*.\n"
        "\n"
-       "Usage:      Calculated in *i_fieldUpdate1D*."
+       "Usage:      Used in *doit_i_fieldUpdateXXX."
        "\n"
        "Unit:       m \n"
        ),
@@ -1696,17 +1693,17 @@ wsv_data.push_back
     ( NAME( "pha_mat" ),
       DESCRIPTION
       (
-       "Physical phase matrix for particle.\n"
+       "Ensemble averaged phase matrix.\n"
        "\n"
        "This workspace variable represents the actual physical phase\n"
-       "matrix of the particles chosen for the study for given propagation\n"
-       "directions.  This is calculated by the method *pha_matCalc*\n"
+       "matrix (averaged over all particle types) for given propagation\n"
+       "directions. It is calculated in the method *pha_matCalc*\n"
        "\n"
        "ARTS user guide (AUG) gives the formula used for computing this\n"
        "variable. Use the index to find where this variable is discussed.\n"
        "The variable is listed as a subentry to \"workspace variables\".\n"
        "\n"
-       "Usage:      Output of the method pha_matCalc\n"
+       "Usage:      Output of the method *pha_matCalc*\n"
        "\n"
        "Unit:        m^2\n"
        "\n"
@@ -1775,15 +1772,10 @@ wsv_data.push_back
     ( NAME( "pnd_field" ),
       DESCRIPTION
       (
-       "The field representing particle number densities.\n"
+       "Particle number density field.\n"
        "\n"
        "This variable gives the particle number density of the chosen particle\n"
        "types as a function of p_grid, lat_grid, lon_grid. \n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
        "\n"
        "Usage:      Calculated internally.\n"
        "\n"
@@ -1827,16 +1819,15 @@ wsv_data.push_back
       (
        "The particle number density field data.\n"
        "\n"
-       "This variable contains the particle number densities for all \n"
+       "This variable contains the particle number density data for all \n"
        "chosen particle types. It includes the grids corresponding to the \n"
        "grids in the database. \n"
-       "*pnd_field_raw* is an Array of GriddedField3. It contains \n"
+       "*pnd_field_raw* is an Array of GriddedField3. It includes a\n"
        "GriddedField3 for each particle type which contains the data and \n"
        "also the grids.\n"
-       "For the calculation the data is \n"
-       "interpolated on *p_grid*, *lat_grid* and *lon_grid*\n"  
        "\n"
-       "Usage:      Used in the method *ParticleTypeAdd*.\n"
+       "Usage:      Used in the methods *ParticleTypeAdd* and \n"
+       "                  *ParticleTypeAddAll*\n"
        "\n"
        "Unit:        m^-3\n"
        "\n"
@@ -2197,13 +2188,9 @@ wsv_data.push_back
         "the flag *cloudbox_on*.\n"
         "The grid must be sorted in increasing order, with no repetitions.\n"
         "\n"
-        "See further the ARTS user guide (AUG). Use the index to find where\n"
-        "this variable is discussed. The variable is listed as a subentry to\n"
-        "\"workspace variables\".\n"
-       "\n"
-       "Usage:      Set by the user.\n"
-       "\n"
-       "Unit:       degrees "
+        "Usage:      Set by the user.\n"
+        "\n"
+        "Unit:       degrees "
        ),
       GROUP( Vector_ )));
 
@@ -2216,9 +2203,9 @@ wsv_data.push_back
        "\n"
        "This variable is used in methods used for computing scattering\n"
        "properties. \n"
-       "This holds the information about the azimuth angles for which the \n"
+       "It holds the information about the azimuth angles for which the \n"
        "scattering calculations are done.  The angles used for computing \n"
-       "scattering properties of particle can be different from that used \n"
+       "scattering properties of particles can be different from that used \n"
        "for radiative transfer calculation. \n"
        "\n"
        "Usage:    Method output.\n"
@@ -2250,8 +2237,8 @@ wsv_data.push_back
          "\n"
          "This variable holds the single scattering properties for all \n"
          "hydrometeor species included in a calculation by using the \n"
-         "method *ParticleTypeAdd*.\n" 
-         "For more information refer to AUG.\n"
+         "methods *ParticleTypeAdd* or *ParticleTypeAddAll*. \n" 
+         "For more information refer to ArtsWiki.\n"
          "The unit of the single scattering properties is m^2.\n"
          "\n"
          "Usage: Method ouput.\n"
@@ -2284,8 +2271,7 @@ wsv_data.push_back
        "This variable gives the intensity field from all directions defined \n"
        "in *scat_aa_grid* and *scat_za_grid* on each grid point on the two \n"
        "equal \n"
-       "latitude surfaces of the boundary of the cloudbox, which is defined \n"
-       "by the workspace variable *cloudbox_limits*. It contains all four \n"
+       "latitude surfaces of the cloudbox boundary. It contains all four \n"
        "components of the Stokes vector.\n"
        "\n"
        "This variable is used as interface between the clear sky and the \n"
@@ -2342,8 +2328,7 @@ wsv_data.push_back
        "\n"
        "This variable gives the intensity field from all directions defined \n"
        "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal\n"
-       "latitude surfaces of the boundary of the cloudbox, which is defined \n"
-       "by the workspace variable *cloudbox_limits*. It contains all four \n"
+       "latitude surfaces of the cloudbox boundary. It contains all four \n"
        "components of the Stokes vector.\n"
        "\n"
        "This variable is used as interface between the clear sky and the \n"
@@ -2370,8 +2355,8 @@ wsv_data.push_back
        "Latitude index for scattering calculations.\n"
        "\n"
        "This variable is used in methods used for computing scattering\n"
-       "properties of particles like ext_mat_partCalc and pha_matCalc.\n"
-       "This holds the information about the position for which the \n"
+       "properties of particles like *ext_mat_partCalc* and *pha_matCalc*.\n"
+       "It holds the information about the position for which the \n"
        "scattering calculations are done. \n"
        "\n"
        "Usage:    Input to the methods *spt_calc_agenda*,\n"
@@ -2388,8 +2373,8 @@ wsv_data.push_back
        "Longitude index for scattering calculations.\n"
        "\n"
        "This variable is used in methods used for computing scattering\n"
-       "properties of particles like ext_mat_partCalc and pha_matCalc.\n"
-       "This holds the information about the position for which the \n"
+       "properties of particles like *ext_mat_partCalc* and *pha_matCalc*.\n"
+       "It holds the information about the position for which the \n"
        "scattering calculations are done.  \n"
        "\n"
        "Usage:    Input to the methods *spt_calc_agenda*,\n"
@@ -2406,8 +2391,8 @@ wsv_data.push_back
        "Pressure index for scattering calculations.\n"
        "\n"
        "This variable is used in methods used for computing scattering\n"
-       "properties of particles like ext_mat_partCalc and pha_matCalc.\n"
-       "This holds the information about the location for which the \n"
+       "properties of particles like *ext_mat_partCalc* and *pha_matCalc*.\n"
+       "It holds the information about the location for which the \n"
        "scattering calculations are done.\n"  
        "\n"
        "Usage:    Input to the methods *spt_calc_agenda*,\n"
@@ -2425,7 +2410,7 @@ wsv_data.push_back
         "\n"
         "The zenith angle grid, on which the intensity field is stored. \n"
         "This grid is used for RT calculations inside the cloudbox, therefore\n"
-        "he grid has to be defined\n"
+        "the grid has to be defined\n"
         "if the cloudbox is activated by the flag *cloudbox_on*.\n"
         "The grid must be sorted in increasing order, with no repetitions.\n"
         "\n"
@@ -2443,7 +2428,7 @@ wsv_data.push_back
       (
        "Zenith angle index for scattering calculations.\n"
        " \n"
-       "This variable is used in methods used for computing scattering \n"
+       "This variable is used internally in WSMs for computing scattering \n"
        "properties. \n"
        "\n"
        "Usage:    Input to the agendas *spt_calc_agenda*, \n "
@@ -2753,9 +2738,9 @@ wsv_data.push_back
        "For example species_index[2] gives the first H2Otag position in the\n"
        "controle file specified list of tags for which calculations should\n"
        "be performed."
-  ),
+       ),
       GROUP( ArrayOfIndex_ )));
-
+ 
 
   wsv_data.push_back
    (WsvRecord

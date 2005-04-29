@@ -1,3 +1,17 @@
+2005-04-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-947
+	
+	* src/m_cloudbox.cc, m_scatrte.cc, m_batch.cc: Moved default setting of
+	*doit_za_interp* from (cloudboxSetManually/Altitude) to
+	(DoitInit), where it fits better.
+
+	* src/m_optproperties.cc (pha_mat_sptFromDataDoitOpt): Modified
+	temperature interpolation to make it a bit more efficient.
+	
+	* src/methods.cc, workspace.cc: Looked through online docu of functions related
+	to DOIT. Minor corrections and modifications.
+	
 2005-04-26  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-946

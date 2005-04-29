@@ -144,7 +144,6 @@ void cloudboxSetManually(
         // WS Output:
         Index&          cloudbox_on,
         ArrayOfIndex&   cloudbox_limits,
-        Index&          scat_za_interp,
         // WS Input:
         const Index&    atmosphere_dim,
         const Vector&   p_grid,
@@ -158,9 +157,6 @@ void cloudboxSetManually(
         const Numeric& lon1,
         const Numeric& lon2 )
 {
-  // Default interpolation is linear (scat_za_interp = 0)
-  scat_za_interp = 0;
-
   // Check existing WSV
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
@@ -266,7 +262,6 @@ void cloudboxSetManuallyAltitude(
         // WS Output:
         Index&          cloudbox_on,
         ArrayOfIndex&   cloudbox_limits,
-        Index&          scat_za_interp,
         // WS Input:
         const Index&    atmosphere_dim,
         const Tensor3&  z_field,
@@ -280,9 +275,6 @@ void cloudboxSetManuallyAltitude(
         const Numeric& lon1,
         const Numeric& lon2 )
 {
-  // Default interpolation is linear (scat_za_interp = 0)
-  scat_za_interp = 0;
-
   // Check existing WSV
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   

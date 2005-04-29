@@ -2597,6 +2597,7 @@ void DoitInit(
               Matrix& abs_vec_spt,
               Tensor6& doit_scat_field,
               Tensor6& doit_i_field,
+              Index& doit_za_interp,
               const Index& stokes_dim,
               const Index& atmosphere_dim,
               const Vector& scat_za_grid,
@@ -2684,7 +2685,11 @@ void DoitInit(
   
   doit_i_field = 0.;
   doit_scat_field = 0.;
-
+  
+  // Default interpolation method is "linear"
+  if (doit_za_interp != 1)
+    doit_za_interp = 0;
+  
 }
 
 //! This method computes the scattering integral
@@ -3572,7 +3577,7 @@ void doit_za_grid_optCalc(//WS Output
   doit_i_field.resize(doit_i_field_opt_mat.nrows(), 1, 1, 
                       doit_i_field_opt_mat.ncols(),
                       1, 1);
-  doit_i_field = 0;
+  doit_i_field = 0.;
   
   doit_i_field(joker, 0, 0, joker, 0, 0) = doit_i_field_opt_mat;
 }
@@ -3584,8 +3589,7 @@ void doit_za_grid_optCalc(//WS Output
 //! Define interpolation method for zenith angle dimension
 /*!
   You can use this method to choose the inerpolation method for 
-  interpolations in the zenith angle dimension. This method has to be used 
-  after (!) *cloudboxSetManually*.
+  interpolations in the zenith angle dimension. 
   By default, linear interpolation is used.
       
   WS Output: 

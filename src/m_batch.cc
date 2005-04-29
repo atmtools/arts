@@ -518,11 +518,9 @@ void ybatchMetProfiles(//Output
       cl_grid_max = p_grid[1];
     }
       
-      Index dummy_interp;
-
       //Cloudbox is set.
       cloudboxSetManually(cloudbox_on, 
-              cloudbox_limits, dummy_interp,
+              cloudbox_limits,
               atmosphere_dim,
               p_grid,
               lat_grid,
