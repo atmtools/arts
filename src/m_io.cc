@@ -659,6 +659,25 @@ void ArrayOfStringReadAscii(   // WS Generic Output:
 }
 
 
+//=== tgs ====================================================
+
+void TagGroupsSpeciesWriteAscii( // WS Generic Input:
+                                const TagGroups& tgs,
+                                // WS Generic Input Names:
+                                const String& tgs_name,
+                                // Control Parameters:
+                                const String& f)
+{
+  String filename = f;
+  
+  // Create default filename if empty  
+  filename_ascii( filename, tgs_name );
+
+  // Write the tag groups to the file.
+  write_tag_groups_species_to_file(filename,tgs);
+}
+
+
 
 //**************************************************************************
 //

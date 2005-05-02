@@ -1773,6 +1773,31 @@ void define_md_data()
 	TYPES(    String_t   )));
 #endif // HDF_SUPPORT
 
+//==== tgs =================================================================
+
+md_data.push_back
+    ( MdRecord
+      ( NAME("TagGroupsSpeciesWriteAscii"),
+	DESCRIPTION(
+                    "Writes TagGroup Species to an ASCII file.\n"
+                    "\n"
+                    "The tags which are defined by *tgsDefine*\n"
+                    "is written to the file with the specified name.\n"
+                    "If the filename is omitted, the string is written\n"
+                    "to <basename>.<variable_name>.aa.\n"
+                    "\n"
+                    "Generic input: \n"
+                    "   tgs : The tags which are defined.\n"
+                    "\n"
+                    "Keywords: \n"
+                    "   filename : Name of the output file.\n"
+                    ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( TagGroups_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
 
 
 //=== LOS ==================================================================

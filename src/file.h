@@ -36,6 +36,7 @@
 #include <fstream>
 #include "matpackI.h"
 #include "mystring.h"
+#include "absorption.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names
@@ -105,6 +106,13 @@ void read_array_of_String_from_file(
            ArrayOfString&   as,
      const String&          filename );
 
+void write_tag_groups_species_to_stream(
+              ostream&     os,
+              const TagGroups&   tgs );
+
+void write_tag_groups_species_to_file(
+        const String&          filename,
+        const TagGroups&   tgs );
 
 
 ////////////////////////////////////////////////////////////////////////////

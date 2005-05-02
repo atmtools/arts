@@ -1,3 +1,16 @@
+2005-05-02  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-1-0-177
+	
+	* src/m_io.cc (TagGroupsSpeciesWriteAscii): Added this function to
+	write the tag names to a file.
+	
+	* src/file.cc (write_tag_groups_species_to_file): Added this
+	helper function.
+	
+	* src/file.cc (write_tag_groups_species_to_stream): Added this
+	helper function.
+
 2005-04-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-176
@@ -34,7 +47,7 @@
 
 	* arts-1-0-174
 
-	* configure.in: increased version number
+	* configure.in: increased version number.
 	
 	* src/m_batch.cc (ybatchFromRadiosonde): Added a keyword
 	*za_per_profile* to use separate za_pencil for each radiosonde.  

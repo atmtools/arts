@@ -117,6 +117,8 @@ make_auto_wsv_groups_h_SOURCES = \
 	groups.cc \
 	make_auto_wsv_groups_h.cc \
 	messages.cc \
+	partition_function_data.cc \
+	species_data.cc \
 	version.cc
 
 make_auto_wsv_h_SOURCES = \
@@ -130,6 +132,8 @@ make_auto_wsv_h_SOURCES = \
 	make_auto_wsv_h.cc \
 	matpackI.h \
 	messages.cc \
+	partition_function_data.cc \
+	species_data.cc \
 	version.cc \
 	workspace.cc \
 	workspace_aux.cc \
@@ -144,6 +148,8 @@ make_auto_wsv_pointers_cc_SOURCES = \
 	make_auto_wsv_pointers_cc.cc \
 	matpackI.h \
 	messages.cc \
+	partition_function_data.cc \
+	species_data.cc \
 	version.cc \
 	workspace.cc \
 	wsv_aux.h
@@ -167,6 +173,8 @@ make_auto_md_h_SOURCES = \
 	methods.cc \
 	methods.h \
 	methods_aux.cc \
+	partition_function_data.cc \
+	species_data.cc \
 	token.cc \
 	token.h \
 	version.cc \
@@ -193,6 +201,8 @@ make_auto_md_cc_SOURCES = \
 	methods.cc \
 	methods.h \
 	methods_aux.cc \
+	partition_function_data.cc \
+	species_data.cc \
 	token.cc \
 	token.h \
 	version.cc \
