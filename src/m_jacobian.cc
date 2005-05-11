@@ -67,6 +67,9 @@ void jacobianAddGas(// WS Output:
                     // WS Input:
                     const Sparse&             jac,
                     const Index&              atmosphere_dim,
+                    const Vector&             p_grid,
+                    const Vector&             lat_grid,
+                    const Vector&             lon_grid,
                     // WS Generic Input:
                     const Vector&             rq_p_grid,
                     const Vector&             rq_lat_grid,
@@ -96,7 +99,8 @@ void jacobianAddGas(// WS Output:
   ArrayOfVector grids(atmosphere_dim);
   {
   ostringstream os;
-  if (!check_retrieval_grids( grids, os, rq_p_grid, rq_lat_grid, rq_lon_grid,
+  if (!check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+        rq_p_grid, rq_lat_grid, rq_lon_grid,
         rq_p_grid_name, rq_lat_grid_name, rq_lon_grid_name, atmosphere_dim))
     throw runtime_error(os.str());
   }
@@ -206,6 +210,9 @@ void jacobianAddParticle(// WS Output:
                          // WS Input:
                          const Sparse&             jac,
                          const Index&              atmosphere_dim,
+                         const Vector&             p_grid,
+                         const Vector&             lat_grid,
+                         const Vector&             lon_grid,
                          const Tensor4&            pnd_field,
                          const Tensor5&            pnd_perturb,
                          // WS Generic Input:
@@ -264,9 +271,9 @@ void jacobianAddParticle(// WS Output:
   ArrayOfVector grids(atmosphere_dim);
   {
   ostringstream os;
-  if (!check_retrieval_grids( grids, os, rq_p_grid, rq_lat_grid, 
-        rq_lon_grid, rq_p_grid_name, rq_lat_grid_name, 
-        rq_lon_grid_name, atmosphere_dim))
+  if (!check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+        rq_p_grid, rq_lat_grid, rq_lon_grid, 
+        rq_p_grid_name, rq_lat_grid_name, rq_lon_grid_name, atmosphere_dim))
     throw runtime_error(os.str());
   }
   // First retrieval grid is the first dimension of pnd_field_perturb, 
@@ -408,7 +415,10 @@ void jacobianAddTemperature(// WS Output:
                     // WS Input:
                     const Sparse&             jac,
                     const Index&              atmosphere_dim,
-                    // WS Generic Input:
+                    const Vector&             p_grid,
+                    const Vector&             lat_grid,
+                    const Vector&             lon_grid,
+                   // WS Generic Input:
                     const Vector&             rq_p_grid,
                     const Vector&             rq_lat_grid,
                     const Vector&             rq_lon_grid,
@@ -436,7 +446,8 @@ void jacobianAddTemperature(// WS Output:
   ArrayOfVector grids(atmosphere_dim);
   {
   ostringstream os;
-  if (!check_retrieval_grids( grids, os, rq_p_grid, rq_lat_grid, rq_lon_grid,
+  if (!check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
+        rq_p_grid, rq_lat_grid, rq_lon_grid,
         rq_p_grid_name, rq_lat_grid_name, rq_lon_grid_name, atmosphere_dim))
     throw runtime_error(os.str());
   }
@@ -657,38 +668,12 @@ void jacobianCalcGas(
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
-  if (!get_perturbation_grid( p_pert,p_gp,p_grid,jg[0], true))
-  {
-    ostringstream os;
-    os << "The atmospheric pressure grid *p_grid* is not defined "
-       << "for all gridpoints \nin the retrieval pressure grid for "
-       << "quantity " << rq;
-    throw runtime_error(os.str());
-  }
-  
   if (atmosphere_dim>=2) 
   {
     j_lat = jg[1].nelem();
-    if (!get_perturbation_grid( lat_pert, lat_gp, lat_grid, jg[1], false))
-    {
-      ostringstream os;
-      os << "The atmospheric latitude grid *lat_grid* is not defined "
-         << "for all gridpoints \nin the retrieval latitude grid for "
-         << "quantity " << rq;
-      throw runtime_error(os.str());
-    }
-    
     if (atmosphere_dim==3) 
     {
       j_lon = jg[2].nelem();
-      if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2], false))
-      {
-        ostringstream os;
-        os << "The atmospheric latitude grid *lon_grid* is not defined "
-           << "for all gridpoints \nin the retrieval latitude grid for "
-           << "quantity " << rq;
-        throw runtime_error(os.str());
-      }
     }
   }
   
@@ -744,30 +729,33 @@ void jacobianCalcGas(
           }
         }
                               
-        // Calculate the perturbed field according to atmosphere_dim
+        // Calculate the perturbed field according to atmosphere_dim, 
+        // the number of perturbations is the length of the retrieval 
+        // grid +2 (for the end points)
         switch (atmosphere_dim)
         {
           case 1:
           {
             // Here we perturb a vector
             perturbation_field_1d( vmr_field(si,joker,lat_it,lon_it), 
-              p_gp, p_pert, p_range, rq.Perturbation(), method);
+              p_gp, jg[0].nelem()+2, p_range, rq.Perturbation(), method);
             break;
           }
           case 2:
           {
             // Here we perturb a matrix
             perturbation_field_2d( vmr_field(si,joker,joker,lon_it),
-              p_gp, lat_gp, p_pert, lat_pert, p_range, lat_range, 
-              rq.Perturbation(), method);
+              p_gp, lat_gp, jg[0].nelem()+2, jg[1].nelem()+2, p_range, 
+              lat_range, rq.Perturbation(), method);
             break;
           }    
           case 3:
           {  
             // Here we need to perturb a tensor3
             perturbation_field_3d( vmr_field(si,joker,joker,joker), 
-              p_gp, lat_gp, lon_gp, p_pert, lat_pert, lon_pert, p_range, 
-              lat_range, lon_range, rq.Perturbation(), method);
+              p_gp, lat_gp, lon_gp, jg[0].nelem()+2, jg[1].nelem()+2, 
+              jg[2].nelem()+2, p_range, lat_range, lon_range, 
+              rq.Perturbation(), method);
             break;
           }
         }
@@ -888,41 +876,17 @@ void jacobianCalcParticle(
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
-  if (!get_perturbation_grid( p_pert,p_gp,p_grid,jg[0], true))
-  {
-    ostringstream os;
-    os << "The atmospheric pressure grid *p_grid* is not defined "
-       << "for all gridpoints \nin the retrieval pressure grid for "
-       << "quantity " << rq;
-    throw runtime_error(os.str());
-  }
   get_perturbation_limit( p_lim, jg[0], p_grid[Range(cloudbox_limits[0],
     cloudbox_limits[1]-cloudbox_limits[0]+1)]);
   if (atmosphere_dim==3) 
   {
     j_lat = jg[1].nelem();
-    if (!get_perturbation_grid( lat_pert, lat_gp, lat_grid, jg[1], false))
-    {
-      ostringstream os;
-      os << "The atmospheric latitude grid *lat_grid* is not defined "
-         << "for all gridpoints \nin the retrieval latitude grid for "
-         << "quantity " << rq;
-      throw runtime_error(os.str());
-    }
     get_perturbation_limit( lat_lim, jg[1], lat_grid[
       Range(cloudbox_limits[2], cloudbox_limits[3]-cloudbox_limits[2]+1)]);
     
     j_lon = jg[2].nelem();
-    if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2], false))
-    {
-      ostringstream os;
-      os << "The atmospheric latitude grid *lon_grid* is not defined "
-         << "for all gridpoints \nin the retrieval latitude grid for "
-         << "quantity " << rq;
-      throw runtime_error(os.str());
     get_perturbation_limit( lon_lim, jg[2], lon_grid[
       Range(cloudbox_limits[4], cloudbox_limits[5]-cloudbox_limits[4]+1)]);
-    }
   }
 
   // Give verbose output
@@ -970,7 +934,9 @@ void jacobianCalcParticle(
             // Make empty copy of pnd_pert for base functions
             base_pert *= 0;
             
-            // Calculate the perturbed field according to atmosphere_dim
+            // Calculate the perturbed field according to atmosphere_dim, 
+            // the number of perturbations is the length of the retrieval 
+            // grid +2 (for the end points)
             switch (atmosphere_dim)
             {
               case 1:
@@ -980,7 +946,7 @@ void jacobianCalcParticle(
                   // Here we perturb the pnd_pert vector, for each particle type
                   // with relative perturbation of size 1
                   perturbation_field_1d( base_pert(typ_it,joker,lat_it,lon_it), 
-                    p_gp, p_pert, p_range, 1.0, 1);
+                    p_gp, jg[0].nelem()+2, p_range, 1.0, 1);
                 }
                 break;
               }
@@ -990,8 +956,8 @@ void jacobianCalcParticle(
                 {
                   // Here we need to perturb a tensor3
                   perturbation_field_3d( base_pert(typ_it,joker,joker,joker), 
-                    p_gp, lat_gp, lon_gp, p_pert, lat_pert, lon_pert, p_range, 
-                    lat_range, lon_range, 1.0, 1);
+                    p_gp, lat_gp, lon_gp, jg[0].nelem()+2, jg[1].nelem()+2, 
+                    jg[2].nelem()+2, p_range, lat_range, lon_range, 1.0, 1);
                 }
                 break;
               }
@@ -1301,38 +1267,12 @@ void jacobianCalcTemperature(
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
-  if (!get_perturbation_grid( p_pert,p_gp,p_grid,jg[0], true))
-  {
-    ostringstream os;
-    os << "The atmospheric pressure grid *p_grid* is not defined "
-       << "for all gridpoints \nin the retrieval pressure grid for "
-       << "quantity " << rq;
-    throw runtime_error(os.str());
-  }
-  
   if (atmosphere_dim>=2) 
   {
     j_lat = jg[1].nelem();
-    if (!get_perturbation_grid( lat_pert, lat_gp, lat_grid, jg[1], false))
-    {
-      ostringstream os;
-      os << "The atmospheric latitude grid *lat_grid* is not defined "
-         << "for all gridpoints \nin the retrieval latitude grid for "
-         << "quantity " << rq;
-      throw runtime_error(os.str());
-    }
-    
     if (atmosphere_dim==3) 
     {
       j_lon = jg[2].nelem();
-      if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2],false))
-      {
-        ostringstream os;
-        os << "The atmospheric latitude grid *lat_grid* is not defined "
-           << "for all gridpoints \nin the retrieval latitude grid for "
-           << "quantity " << rq;
-        throw runtime_error(os.str());
-      }
     }
   }
   
@@ -1380,21 +1320,23 @@ void jacobianCalcTemperature(
           }
         }
                               
-        // Calculate the perturbed field according to atmosphere_dim
+        // Calculate the perturbed field according to atmosphere_dim, 
+        // the number of perturbations is the length of the retrieval 
+        // grid +2 (for the end points)
         switch (atmosphere_dim)
         {
           case 1:
           {
             // Here we perturb a vector
             perturbation_field_1d( t_field(joker,lat_it,lon_it), 
-              p_gp, p_pert, p_range, rq.Perturbation(), method);
+              p_gp, jg[0].nelem()+2, p_range, rq.Perturbation(), method);
             break;
           }
           case 2:
           {
             // Here we perturb a matrix
             perturbation_field_2d( t_field(joker,joker,lon_it), 
-              p_gp, lat_gp, p_pert, lat_pert, p_range, lat_range, 
+              p_gp, lat_gp, jg[0].nelem()+2, jg[1].nelem()+2, p_range, lat_range, 
               rq.Perturbation(), method);
             break;
           }    
@@ -1402,8 +1344,9 @@ void jacobianCalcTemperature(
           {  
             // Here we need to perturb a tensor3
             perturbation_field_3d( t_field(joker,joker,joker), 
-              p_gp, lat_gp, lon_gp, p_pert, lat_pert, lon_pert, p_range, 
-              lat_range, lon_range, rq.Perturbation(), method);
+              p_gp, lat_gp, lon_gp, jg[0].nelem()+2, jg[1].nelem()+2, 
+              jg[2].nelem()+2, p_range, lat_range, lon_range, 
+              rq.Perturbation(), method);
             break;
           }
         }

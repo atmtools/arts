@@ -88,76 +88,105 @@ void agenda_append(       Agenda& agenda,
 
 //! Check that the retrieval grids are defined for each atmosphere dim
 /*!
-   This function checks that the retrieval grids needed for the atmosphere
-   dimension are defined. If not returns false and an output to print to
-   the user. If they are defined they are stored in an array and true is
-   returned.
+   This function checks for the given atmosphere dimension that 
+     I)  the retrieval grids are defined 
+     II) and that they are covered by the corresponding atmospheric grid. 
+   If not the return is false and an output string is created to print 
+   the error to the user. If the grids are ok they are stored in an array 
+   and true is  returned.
    
    \param grids         The array of retrieval grids.
    \param os            The output string stream.
-   \param p_grid        The pressure retrieval grid.
-   \param lat_grid      The latitude retrieval grid.
-   \param lon_grid      The longitude retrieval grid.
-   \param p_grid_name   The control file name used for the pressure grid.
-   \param lat_grid_name The control file name for the latitude grid.
-   \param lon_grid_name The control file name for the longitude grid.
+   \param p_grid        The atmospheric pressure grid
+   \param lat_grid      The atmospheric latitude grid
+   \param lon_grid      The atmospheric longitude grid
+   \param p_retr        The pressure retrieval grid.
+   \param lat_retr      The latitude retrieval grid.
+   \param lon_retr      The longitude retrieval grid.
+   \param p_retr_name   The control file name used for the pressure retrieval grid.
+   \param lat_retr_name The control file name for the latitude retrieval grid.
+   \param lon_retr_name The control file name for the longitude retrieval grid.
    \param dim           The atmosphere dimension
    \return              Boolean for check.
    
-   \author Mattias Ekström
-   \date   2004-10-14
+   \author Mattias Ekstrom
+   \date   2005-05-11
 */ 
 bool check_retrieval_grids(       ArrayOfVector& grids,
                                   ostringstream& os,
                             const Vector&        p_grid,
                             const Vector&        lat_grid,
                             const Vector&        lon_grid,
-                            const String&        p_grid_name,
-                            const String&        lat_grid_name,
-                            const String&        lon_grid_name,
+                            const Vector&        p_retr,
+                            const Vector&        lat_retr,
+                            const Vector&        lon_retr,
+                            const String&        p_retr_name,
+                            const String&        lat_retr_name,
+                            const String&        lon_retr_name,
                             const Index&         dim)
 {
-  if (p_grid.nelem()==0)
+  if ( p_retr.nelem()==0 )
   {
-    os << "The grid vector *" << p_grid_name << "* is empty,"
+    os << "The grid vector *" << p_retr_name << "* is empty,"
        << " at least one pressure level\n"
        << "should be specified.";
+    return false;
+  }
+  else if ( p_retr[0]>p_grid[0] || 
+            p_retr[p_retr.nelem()-1]<p_grid[p_grid.nelem()-1] ) 
+  {
+    os << "The grid vector *" << p_retr_name << "* is not covered by the\n"
+       << "corresponding atmospheric grid.";
     return false;
   }
   else
   {
     // Pressure grid ok, add it to grids
-    grids[0]=p_grid;  
+    grids[0]=p_retr;  
   }
   if (dim>=2)
   {
     // If 2D and 3D atmosphere, check latitude grid
-    if (lat_grid.nelem()==0)
+    if ( lat_retr.nelem()==0 )
     {
-      os << "The grid vector *" << lat_grid_name << "* is empty,"
+      os << "The grid vector *" << lat_retr_name << "* is empty,"
          << " at least one latitude\n"
          << "should be specified for a 2D/3D atmosphere.";
+      return false;
+    }
+    else if ( lat_retr[0]<lat_grid[0] || 
+              lat_retr[lat_retr.nelem()-1]>lat_grid[lat_grid.nelem()-1] )
+    {
+      os << "The grid vector *" << lat_retr_name << "* is not covered by the\n"
+         << "corresponding atmospheric grid.";
       return false;
     }
     else
     {
       // Latitude grid ok, add it to grids
-      grids[1]=lat_grid;
+      grids[1]=lat_retr;
     }
     if (dim==3)
     {
       // For 3D atmosphere check longitude grid
-      if (lon_grid.nelem()==0)
+      if ( lon_retr.nelem()==0 )
       {
-        os << "The grid vector *" << lon_grid_name << "* is empty,"
+        os << "The grid vector *" << lon_retr_name << "* is empty,"
            << " at least one longitude\n"
            << "should be specified for a 3D atmosphere.";
+        return false;
+      }
+      else if ( lon_retr[0]<lon_grid[0] || 
+                lon_retr[lon_retr.nelem()-1]>lon_grid[lon_grid.nelem()-1] )
+      {
+        os << "The grid vector *" << lon_retr_name << "* is not covered by the\n"
+           << "corresponding atmospheric grid.";
         return false;
       }
       else
       {
         // Longitude grid ok, add it to grids      
-        grids[2]=lon_grid;
+        grids[2]=lon_retr;
       }
     }
   }
@@ -327,19 +356,19 @@ void get_perturbation_range(       Range& range,
    This is a helper function that interpolated the perturbation field for
    a 1D relative perturbation onto the atmospheric field. 
    
-   \param field    The interpolated perturbation field.
-   \param p_gp     The GridPos for interpolation.
-   \param p_pert   The perturbation grid.
-   \param p_range  The range in the perturbation grid for the perturbation.
-   \param size     The size of the perturbation.
-   \param method   Relative perturbation==0, absolute==1
+   \param field     The interpolated perturbation field.
+   \param p_gp      The GridPos for interpolation.
+   \param p_pert_n  The number of perturbations.
+   \param p_range   The perturbation range in the perturbation grid.
+   \param size      The size of the perturbation.
+   \param method    Relative perturbation==0, absolute==1
    
-   \author Mattias Ekström
-   \date   2004-10-14
+   \author Mattias Ekstrom
+   \date   2005-05-11
 */   
 void perturbation_field_1d(       VectorView      field,
                             const ArrayOfGridPos& p_gp,
-                            const Vector&         p_pert,
+                            const Index&          p_pert_n,
                             const Range&          p_range,
                             const Numeric&        size,
                             const Index&          method)
@@ -349,7 +378,7 @@ void perturbation_field_1d(       VectorView      field,
   Matrix itw(p_gp.nelem(),2);
   interpweights(itw,p_gp);
   // For relative pert_field should be 1.0 and for absolute 0.0
-  Vector pert_field(p_pert.nelem(),1.0-(Numeric)method);
+  Vector pert_field(p_pert_n,1.0-(Numeric)method);
   pert_field[p_range] += size;
   interp( pert, itw, pert_field, p_gp);
   if (method==0)
@@ -368,24 +397,24 @@ void perturbation_field_1d(       VectorView      field,
    This is a helper function that interpolated the perturbation field for
    a 2D relative perturbation onto the atmospheric field. 
    
-   \param field     The interpolated perturbation field.
-   \param p_gp      The GridPos for interpolation in the 1st dim.
-   \param lat_gp    The GridPos for interpolation in the 2nd dim.
-   \param p_pert    The perturbation grid in the 1st dim.
-   \param lat_pert  The perturbation grid in the 2nd dim.
-   \param p_range   The perturbation range in the 1st dim.
-   \param lat_range The perturbation range in the 2nd dim.
-   \param size      The size of the perturbation.
-   \param method    Relative perturbation==0, absolute==1
+   \param field       The interpolated perturbation field.
+   \param p_gp        The GridPos for interpolation in the 1st dim.
+   \param lat_gp      The GridPos for interpolation in the 2nd dim.
+   \param p_pert_n    The number of perturbations in the 1st dim.
+   \param lat_pert_n  The number of perturbations in the 2nd dim.
+   \param p_range     The perturbation range in the 1st dim.
+   \param lat_range   The perturbation range in the 2nd dim.
+   \param size        The size of the perturbation.
+   \param method      Relative perturbation==0, absolute==1
    
-   \author Mattias Ekström
-   \date   2004-10-14
+   \author Mattias Ekstrom
+   \date   2005-05-11
 */   
 void perturbation_field_2d(       MatrixView      field,
                             const ArrayOfGridPos& p_gp,
                             const ArrayOfGridPos& lat_gp,
-                            const Vector&         p_pert,
-                            const Vector&         lat_pert,
+                            const Index&          p_pert_n,
+                            const Index&          lat_pert_n,
                             const Range&          p_range,
                             const Range&          lat_range,
                             const Numeric&        size,
@@ -396,7 +425,7 @@ void perturbation_field_2d(       MatrixView      field,
   Tensor3 itw(p_gp.nelem(),lat_gp.nelem(),4);
   interpweights(itw,p_gp,lat_gp);
   // Init pert_field to 1.0 for relative and 0.0 for absolute
-  Matrix pert_field(p_pert.nelem(),lat_pert.nelem(),1.0-(Numeric)method);
+  Matrix pert_field(p_pert_n,lat_pert_n,1.0-(Numeric)method);
   pert_field(p_range,lat_range) += size;
   interp( pert, itw, pert_field, p_gp, lat_gp);
   if (method==0)
@@ -415,29 +444,29 @@ void perturbation_field_2d(       MatrixView      field,
    This is a helper function that interpolated the perturbation field for
    a 3D relative perturbation onto the atmospheric field. 
    
-   \param field     The interpolated perturbation field.
-   \param p_gp      The GridPos for interpolation in the 1st dim.
-   \param lat_gp    The GridPos for interpolation in the 2nd dim.
-   \param lon_gp    The GridPos for interpolation in the 3rd dim.
-   \param p_pert    The perturbation grid in the 1st dim.
-   \param lat_pert  The perturbation grid in the 2nd dim.
-   \param lon_pert  The perturbation grid in the 3rd dim.
-   \param p_range   The perturbation range in the 1st dim.
-   \param lat_range The perturbation range in the 2nd dim.
-   \param lon_range The perturbation range in the 3rd dim.
-   \param size      The size of the perturbation.
-   \param method    Set to 0 for relative, and 1 for absolute.
+   \param field       The interpolated perturbation field.
+   \param p_gp        The GridPos for interpolation in the 1st dim.
+   \param lat_gp      The GridPos for interpolation in the 2nd dim.
+   \param lon_gp      The GridPos for interpolation in the 3rd dim.
+   \param p_pert_n    The number of perturbations in the 1st dim.
+   \param lat_pert_n  The number of perturbations in the 2nd dim.
+   \param lon_pert_n  The number of perturbations in the 3rd dim.
+   \param p_range     The perturbation range in the 1st dim.
+   \param lat_range   The perturbation range in the 2nd dim.
+   \param lon_range   The perturbation range in the 3rd dim.
+   \param size        The size of the perturbation.
+   \param method      Set to 0 for relative, and 1 for absolute.
    
-   \author Mattias Ekström
-   \date   2004-10-14
+   \author Mattias Ekstrom
+   \date   2005-05-11
 */   
 void perturbation_field_3d(       Tensor3View     field,
                             const ArrayOfGridPos& p_gp,
                             const ArrayOfGridPos& lat_gp,
                             const ArrayOfGridPos& lon_gp,
-                            const Vector&         p_pert,
-                            const Vector&         lat_pert,
-                            const Vector&         lon_pert,
+                            const Index&          p_pert_n,
+                            const Index&          lat_pert_n,
+                            const Index&          lon_pert_n,
                             const Range&          p_range,
                             const Range&          lat_range,
                             const Range&          lon_range,
@@ -449,8 +478,7 @@ void perturbation_field_3d(       Tensor3View     field,
   Tensor4 itw(p_gp.nelem(),lat_gp.nelem(),lon_gp.nelem(),8);
   interpweights(itw,p_gp,lat_gp,lon_gp);
   // Init pert_field to 1.0 for relative and 0.0 for absolute
-  Tensor3 pert_field(p_pert.nelem(),lat_pert.nelem(), lon_pert.nelem(),
-    1.0-(Numeric)method);
+  Tensor3 pert_field(p_pert_n,lat_pert_n,lon_pert_n,1.0-(Numeric)method);
   pert_field(p_range,lat_range,lon_range) += size;
   interp( pert, itw, pert_field, p_gp, lat_gp, lon_gp);
   if (method==0)

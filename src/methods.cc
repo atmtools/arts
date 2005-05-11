@@ -2395,7 +2395,7 @@ md_data_raw.push_back
          "  dx      : Size of perturbation."
         ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_, gas_species_ ),
-        INPUT( jacobian_, atmosphere_dim_ ),
+        INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
         KEYWORDS( "species", "method", "unit", "dx" ),
@@ -2424,7 +2424,8 @@ md_data_raw.push_back
          "  Vector : The longitude grid of the retrieval field.\n"
         ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
-        INPUT( jacobian_, atmosphere_dim_, pnd_field_, pnd_field_perturb_ ),
+        INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+               pnd_field_, pnd_field_perturb_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
         KEYWORDS(),
@@ -2498,7 +2499,7 @@ md_data_raw.push_back
          "  dx      : Size of perturbation."
         ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
-        INPUT( jacobian_, atmosphere_dim_ ),
+        INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
         KEYWORDS( "method", "unit", "dx" ),

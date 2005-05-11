@@ -1,3 +1,19 @@
+2005-05-11  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-950
+
+	* src/methods.cc: Added atmospheric grids as input to the jacobian
+	add-functions. They are used to check the consistency of the 
+	retrieval grids.
+
+	* src/jacobian.[cc,h]: Moved check done in get_perturbation_grid
+	to check_retrieval_grids, which is called from jacobianAdd...
+	The function get_perturbation_grid is now obsolete, but not
+	removed yet...
+
+	* src/m_jacobian.cc: Changes to the function affected by the above
+	mentioned changes i jacobian.cc.
+
 2005-05-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-949
