@@ -1,5 +1,11 @@
 2005-05-11  Oliver Lemke  <olemke@core-dump.info>
 
+	*  arts-1-1-949
+
+	* src/wsv_aux.cc: Go away!
+
+2005-05-11  Oliver Lemke  <olemke@core-dump.info>
+
 	*  arts-1-1-948
 
 	* Merged changes from WORKSPACE_REWORK_BRANCH back to HEAD.
