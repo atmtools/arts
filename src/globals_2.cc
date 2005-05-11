@@ -40,10 +40,10 @@
 #include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 #include "methods.h"
+#include "workspace_ng.h"
 
-//! The workspace itself.
-WorkSpace workspace;
-
+//! The new workspace.
+Workspace workspace;
 
 //                     ---------------
 //--------------------< Methods Stuff >--------------------

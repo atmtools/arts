@@ -46,11 +46,6 @@
 #include "agenda_record.h"
 #include "mystring.h"
 
-// This must be here rather than in arts.h, because arts.h does not
-// know about Array.
-void define_wsv_pointers(Array<WsvP*>&    wsv_pointers,
-                         WorkSpace&       workspace);
-
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby()
 {
@@ -685,18 +680,6 @@ int main (int argc, char **argv)
 
   // Initialize the wsv data:
   define_wsv_data();
-
-  // Initialize wsv pointers:
-  {
-    // We need to make the workspace and the wsv_pointers visible for
-    // a moment. This is because the pointers will be inititalized for
-    // this particular workspace. There can be other (local)
-    // workspaces, which have their own pointers associated with
-    // them. 
-    extern WorkSpace workspace;
-    extern Array<WsvP*> wsv_pointers;
-    define_wsv_pointers(wsv_pointers,workspace);
-  }
 
   // Initialize MdMap:
   define_md_map();

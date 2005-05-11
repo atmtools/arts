@@ -96,10 +96,7 @@ int main()
           << "\n";
 
       // Declare wsv_data:
-      ofs << "// The workspace variable pointers:\n"
-          << "extern const Array<WsvP*> wsv_pointers;\n\n"
-
-          << "// Other wsv data:\n"
+      ofs << "// Other wsv data:\n"
           << "extern const Array<WsvRecord> wsv_data;\n\n";
 
 
@@ -152,10 +149,11 @@ int main()
 
               // Use parameter name only if it is used inside the function
               // to avoid warnings
-              if (vo.nelem () || vi.nelem ())
-                {
-                  ws = " ws";
-                }
+              ws = " ws";
+              if (!vo.nelem () && !vi.nelem () && !vgo.nelem () && !vgi.nelem ())
+              {
+                ws = "";
+              }
 
               // Use parameter name only if it is used inside the function
               // to avoid warnings
@@ -169,14 +167,14 @@ int main()
                 {
                   ofs << "void " << mdd.Name()
                     << "_sg_" << wsv_group_names[mdd.ActualGroup()]
-                    << "_g(WorkSpace&" << ws
+                    << "_g(Workspace&" << ws
                     << ", const MRecord&" << mr << ")\n"
                     << "{\n";
                 }
               else
                 {
                   ofs << "void " << mdd.Name()
-                    << "_g(WorkSpace&" << ws
+                    << "_g(Workspace&" << ws
                     << ", const MRecord&" << mr << ")\n"
                     << "{\n";
                 }
@@ -192,7 +190,7 @@ int main()
               assert( vgo[j] < wsv_group_names.nelem() );
 
               ofs << "  " << wsv_group_names[vgo[j]]
-                  << " *GO" << j << " = *wsv_pointers[mr.Output()[" << j
+                  << " *GO" << j << " = (" << wsv_group_names[vgo[j]] << " *)ws[mr.Output()[" << j
                   << "]];\n";
             }
 
@@ -206,7 +204,7 @@ int main()
               assert( vgi[j] < wsv_group_names.nelem() );
 
               ofs << "  " << wsv_group_names[vgi[j]]
-                  << " *GI" << j << " = *wsv_pointers[mr.Input()[" << j
+                  << " *GI" << j << " = (" << wsv_group_names[vgi[j]] << " *)ws[mr.Input()[" << j
                   << "]];\n";
             }
 
@@ -218,7 +216,9 @@ int main()
               // Add comma and line break, if not first element:
               align(ofs,is_first_parameter,indent);
 
-              ofs << "ws." << wsv_data[vo[j]].Name();
+              //ofs << "ws." << wsv_data[vo[j]].Name();
+              ofs << "*((" << wsv_group_names[wsv_data[vo[j]].Group()] <<  " *)ws["
+                << vo[j] << "])";
             }
 
           // Write the Generic output workspace variables:
@@ -247,7 +247,9 @@ int main()
               // Add comma and line break, if not first element:
               align(ofs,is_first_parameter,indent);
 
-              ofs << "ws." << wsv_data[vi[j]].Name();
+              //ofs << "ws." << wsv_data[vi[j]].Name();
+              ofs << "*((" << wsv_group_names[wsv_data[vi[j]].Group()] <<  " *)ws["
+                << vi[j] << "])";
             }
 
           // Write the Generic input workspace variables:
@@ -302,7 +304,7 @@ int main()
         bool is_first_parameter = true;
 
         ofs << "// The array holding the pointers to the getaway functions.\n"
-            << "void (*getaways[])(WorkSpace&, const MRecord&)\n"
+            << "void (*getaways[])(Workspace&, const MRecord&)\n"
             << "  = {";
         for (Index i=0; i<n_md; ++i)
           {

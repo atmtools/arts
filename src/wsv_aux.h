@@ -30,25 +30,6 @@
 
 #include "auto_wsv_groups.h"
 
-/** Template for Wsv Pointers. This defines for each pointer class the
-    conversion operator back to the type that it is pointing
-    to. 
-
-    This makes it possible to store arbitrary pointers in an array of
-    pointers to WsvP.
-
-    /author Stefan Buehler */
-template<class T>
-class WsvPointer : public WsvP {
-public:
-  WsvPointer(T* x) : mx(x) { /* Nothing to do here. */ };
-  operator T*() { return mx; }
-private:
-  T* mx;
-};
-
-
-
 /** This class contains all static information for one workspace
     variable.
 

@@ -28,9 +28,6 @@
 
 #include "token.h"
 
-// Declare existance of class WorkSpace
-class WorkSpace;
-
 // ... and MRecord
 class MRecord;
 

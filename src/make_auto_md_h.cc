@@ -30,7 +30,7 @@
   have the same arguments:
 
   \code
-     void get_away_example_g(WorkSpace& ws,
+     void get_away_example_g(Workspace& ws,
      const MRecord& mr);
   \endcode
 
@@ -379,6 +379,7 @@ int main()
           << "#include \"absorption.h\"\n"
           << "#include \"auto_wsv.h\"\n"
           << "#include \"parser.h\"\n"
+          << "#include \"workspace_ng.h\"\n"
           << "\n";
 
       ofs << "// This is only used for a consistency check. You can get the\n"
@@ -416,12 +417,12 @@ int main()
                 {
                   ofs << "void " << mdd.Name()
                       << "_sg_" << wsv_group_names[mdd.ActualGroup()]
-                      << "_g(WorkSpace& ws, const MRecord& mr);\n";
+                      << "_g(Workspace& ws, const MRecord& mr);\n";
                 }
               else
                 {
                   ofs << "void " << mdd.Name()
-                      << "_g(WorkSpace& ws, const MRecord& mr);\n";
+                      << "_g(Workspace& ws, const MRecord& mr);\n";
                 }
         }
       ofs << "\n";

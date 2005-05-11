@@ -29,6 +29,7 @@
 #include "wsv_aux.h"
 #include "messages.h"
 #include "auto_wsv.h"
+#include "workspace_ng.h"
 
 //! Append a new method to end of list.
 /*! 
@@ -59,7 +60,7 @@ void give_up(const String& message)
 void Agenda::execute(bool silent) const
 {
   // The workspace:
-  extern WorkSpace workspace;
+  extern Workspace workspace;
 
   // The method description lookup table:
   extern const Array<MdRecord> md_data;
@@ -68,7 +69,7 @@ void Agenda::execute(bool silent) const
   extern const Array<WsvRecord> wsv_data;
   
   // The array holding the pointers to the getaway functions:
-  extern const void (*getaways[])(WorkSpace&, const MRecord&);
+  extern const void (*getaways[])(Workspace&, const MRecord&);
 
     // The messages level. We will manipulate it in this function, if
   // silent execution is desired.
@@ -136,13 +137,15 @@ void Agenda::execute(bool silent) const
           // data pased by the calling method, such as line-width, etc.. 
 
           { // Flag the specific output variables as occupied:
-            const ArrayOfIndex& v(mdd.Output());
-            for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
+            //OLE: FIXME
+          //  const ArrayOfIndex& v(mdd.Output());
+          //  for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
           }
 
           { // Flag the generic output variables as occupied:
-            const ArrayOfIndex& v(mrr.Output());
-            for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
+            //OLE: FIXME
+           // const ArrayOfIndex& v(mrr.Output());
+           // for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
           }
 
           // Call the getaway function:

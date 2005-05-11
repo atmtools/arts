@@ -84,6 +84,7 @@ int main()
           << "#include \"gridded_fields.h\"\n"
           << "#include \"jacobian.h\"\n"
           << "#include \"mc_interp.h\"\n"
+          << "#include \"supergeneric.h\"\n"
           << "\n";
       
       ofs << "//! Total number of workspace variables.\n"
@@ -106,90 +107,59 @@ int main()
       ofs << "  " << wsv_data[n_wsv-1].Name() << "_\n";
       ofs << "};\n\n";
 
-      // Now the workspace itself:
-
-      ofs << "/** The declaration of the (great) workspace. */\n"
-          << "class WorkSpace {\n"
-          << "public:\n"
-          << "  WorkSpace();\n"
-          << "  bool is_occupied(Index i) const;\n"
-          << "  void set(Index i);\n"
-          << "  void free(Index i);\n"
-          << "private:\n"
-          << "  /** Keeps track which elements are occupied.\n"
-          << "      For some strange reason, Array<bool> does not work, hence\n"
-          << "      this is implemented internally as an Array of Index.*/\n"     
-          << "  Array<Index> moccupied;\n"
-          << "public:\n";
-      
-      for (Index i=0; i<n_wsv; ++i)
+      ////////////////////////////////////////////////////////////////////
+      // WorkspaceMemoryHandler class
+      //
+      ofs << "class WorkspaceMemoryHandler {\n"
+        <<   "private:\n"
+        <<   "  // List of function pointers to allocation routines\n"
+        <<   "  void *(*allocfp[" << wsv_data.nelem () << "])();\n"
+        <<   "  // List of function pointers to deallocation routines\n"
+        <<   "  void (*deallocfp[" << wsv_data.nelem () << "])(void *);\n\n"
+        <<   "  // Allocation and deallocation routines for workspace groups\n";
+      for (Index i = 0; i < wsv_group_names.nelem (); ++i)
         {
-          // First of all write the comment as a doxygen header.
-          // For this we have to make some small replacements for
-          // indendation and put everything starting from the second
-          // sentence into a verbatim environment.  
-          {
-            // Local copy of the description String:
-            String s = wsv_data[i].Description();
-
-            // Add indentation:
-            replace_all(s,"\n","\n    "); 
-
-            // Look for the end of the first sentence. There we have
-            // to include the beginning of the verbatim
-            // environment. Not earlier, because the first sentence
-            // has a special meaning.
-            Index full_stop = s.find('.');
-
-            // We have to check against the case that the point was
-            // not found. In that case we set full_stop to the length
-            // of the entire test. If it was found, we increase the
-            // value by one, since we want to include the point in the
-            // first part.
-            if ( full_stop==s.npos )
-              full_stop = s.nelem();
-            else
-              full_stop += 1;
-
-            String first(s,0,full_stop);
-
-            // Rest will contain the rest of the documentation. It could
-            // be empty!
-            String rest = "";
-
-            if ( full_stop!=s.nelem() )
-              rest = String(s,full_stop);
-
-            // Remove leading whitespace and linebreaks in rest:
-            while (
-                   0 < rest.nelem() &&
-                   ( ' ' == rest[0] || '\n' == rest[0] )
-                   )
-              {
-                rest.erase(0,1);
-              }
-
-            ofs << "/** " << first;
-            if ( 0==rest.nelem() )
-              {
-                ofs << " */\n";
-              }
-            else
-              {
-                ofs << '\n'
-                    << "    \\verbatim\n"
-                    << "    " << rest << '\n'
-                    << "    \\endverbatim */\n";
-              }
-          }
-
-          ofs << "  "
-              << wsv_group_names[wsv_data[i].Group()]
-              << " "
-              << wsv_data[i].Name() << ";\n";
-
+          ofs << "  static void *allocate_wsvg_" << wsv_group_names[i] << "()\n"
+            <<   "    { return (void *)new " << wsv_group_names[i] << "; }\n\n"
+            <<   "  static void deallocate_wsvg_" << wsv_group_names[i] << "(void *vp)\n"
+            <<   "    { delete (" << wsv_group_names[i] << " *)vp; }\n\n";
         }
+
+      ofs << "public:\n"
+        <<   "  /** Default constructor. Initialize allocation and "
+        <<   "deallocation\n"
+        <<   "      function pointer lists.\n"
+        <<   "  */\n"
+        <<   "  WorkspaceMemoryHandler ()\n"
+        <<   "    {\n";
+
+      for (Index i = 0; i < wsv_data.nelem (); ++i)
+        {
+          ofs << "      allocfp[" << i << "] = allocate_wsvg_"
+            <<            wsv_group_names[wsv_data[i].Group()] << ";\n"
+            <<   "      deallocfp[" << i << "] = deallocate_wsvg_"
+            <<            wsv_group_names[wsv_data[i].Group()] << ";\n";
+        }
+
+      ofs << "    }\n\n"
+        <<   "  /** Getaway function to call the allocation function for the\n"
+        <<   "      workspace variable with the given Index.\n"
+        <<   "  */\n"
+        <<   "  void *allocate (Index wsv)\n"
+        <<   "    {\n"
+        <<   "      return allocfp[wsv]();\n"
+        <<   "    }\n\n"
+        <<   "  /** Getaway function to call the deallocation function for the\n"
+        <<   "      workspace variable with the given Index.\n"
+        <<   "  */\n"
+        <<   "  void deallocate (Index wsv, void *vp)\n"
+        <<   "    {\n"
+        <<   "      deallocfp[wsv](vp);\n"
+        <<   "    }\n\n";
+
       ofs << "};\n\n";
+      //
+      ////////////////////////////////////////////////////////////////////
 
       ofs << "#endif  // auto_wsv_h\n";
 

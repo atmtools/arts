@@ -1,3 +1,140 @@
+2005-05-11  Oliver Lemke  <olemke@core-dump.info>
+
+	*  arts-1-1-948
+
+	* Merged changes from WORKSPACE_REWORK_BRANCH back to HEAD.
+
+	* This was lying around for some time now. As it doesn't break
+	anything (hopefully), further development can be done in HEAD.
+
+	* src/m_scatrte.cc (ScatteringDoit):
+
+	Use new Workspace instead of old WorkSpace.
+
+	* src/wsv_aux.cc: Removed.
+
+	* src/Makefile.am: Removed wsv_aux.cc.
+
+	2004-11-26  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-911-wr3
+
+	* src/make_auto_wsv_h.cc (main):
+
+	More documentation.
+
+	Better function names in WorkspaceMemoryHandler.
+	alloc->allocate, free->deallocate
+
+	* src/workspace_ng.h: Adapt to new function names in WMH.
+
+	2004-11-18  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-911-wr2
+
+	* src/workspace_ng.cc:
+
+	Added documentation.
+
+	(Workspace::~Workspace): Empty ws array in destructor.
+
+	(Workspace::Workspace): Define void pointer inside loop.
+
+	* src/workspace_ng.{cc,h}: Added documentation.
+
+	* ChangeLog: Fixed some typos in my previous entries.
+
+	2004-11-04  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-907-wr5
+
+	* src/{main.cc,make_auto_md_cc.cc,wsv_aux.h,Makefile.am}:
+
+	We don't need wsv_pointers anymore.
+
+	* src/make_auto_wsv_pointers_cc.cc: Removed.
+
+	* src/workspace_ng.h: Don't include vector.
+
+	* src/{globals_2.cc,wsv_aux.cc,agenda_class.h,make_auto_wsv_h.cc}:
+
+	Remove leftovers from old workspace.
+
+	2004-11-01  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-907-wr4
+
+	* First working version of the new workspace. No new features yet, but
+	at least it does the same as the old one in the same amount of time.
+
+	* src/workspace_ng.{cc,h}:
+
+	Make wsv_data only visible in cc file.
+
+	Use Array instead of vector for ws.
+
+	Added function is_occupied to imitate functionality of old workspace.
+
+	Implemented destructor to clean up the mess we create on the heap.
+
+	Kick out wsv_data, we only need N_WSV (include auto_wsv.h for this).
+
+	(Workspace::operator[]): Allocate memory for wsv on first access.
+
+	* src/agenda_class.cc:
+
+	(Agenda::execute): Use the new workspace.
+
+	Commented out workspace.set which no longer exists.
+
+	* src/{globals_2.cc,make_auto_md_cc.cc,make_auto_md_h.cc}:
+
+	Switch over to the new workspace.
+
+	2004-10-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-907-wr3
+
+	* src/workspace_ng.{cc,h}:
+
+	(Workspace::Workspace): Allocate a null pointer for each workspace
+	variable.
+
+	(Workspace::operator[]): Return the top of the stack of the workspace
+	variable at index i.
+
+	* src/Makefile.am:
+
+	Added workspace_ng.{cc,h} to arts_SOURCES and make_auto_md_h_SOURCES.
+
+	* src/make_auto_wsv_h.cc:
+
+	Include supergeneric.h in auto source.
+
+	Created class WorkspaceMemoryHandler. It contains a list of allocation
+	and deallocation routines for all workspace groups. Additionally, it
+	defines two lists of function pointers which link to the
+	corresponding allocation/deallocation routine for each workspace
+	variable. These lists enable the Workspace class to dynamically
+	allocate workspace variables at runtime.
+
+	2004-10-29  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-907-wr2
+
+	* src/workspace_ng.{cc,h}: Added.
+
+	* src/Makefile.am: Added workspace_ng.{cc,h}.
+
+	* src/globals_2.cc: Also create global instance of the new workspace.
+
+	2004-10-28  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-907-wr1
+
+	* Created branch for reworking the workspace and agendas. Also
+	includes creation of scope handling in control files.
+
 2005-04-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-947

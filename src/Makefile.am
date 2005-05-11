@@ -23,7 +23,6 @@ arts_SOURCES = \
 	auto_md.h \
 	auto_wsv.h \
 	auto_wsv_groups.h \
-	auto_wsv_pointers.cc \
 	bifstream.h \
 	bifstream.cc \
 	bofstream.h \
@@ -145,8 +144,9 @@ arts_SOURCES = \
 	version.cc \
 	workspace.cc \
 	workspace_aux.cc \
+	workspace_ng.cc \
+	workspace_ng.h \
 	wsv_aux.h \
-	wsv_aux.cc \
 	xml_io.h \
 	xml_io_instantiation.h \
 	xml_io_private.h \
@@ -194,7 +194,6 @@ noinst_PROGRAMS = \
 	make_auto_md_h \
 	make_auto_wsv_groups_h \
 	make_auto_wsv_h \
-	make_auto_wsv_pointers_cc \
 	test_binaryio \
 	test_geomag_calc \
 	test_matpack \
@@ -264,7 +263,6 @@ test_geomag_calc_SOURCES = \
 	auto_md.h \
 	auto_wsv.h \
 	auto_wsv_groups.h \
-	auto_wsv_pointers.cc \
 	bifstream.h \
 	bifstream.cc \
 	bofstream.h \
@@ -381,8 +379,9 @@ test_geomag_calc_SOURCES = \
 	version.cc \
 	workspace.cc \
 	workspace_aux.cc \
+	workspace_ng.cc \
+	workspace_ng.h \
 	wsv_aux.h \
-	wsv_aux.cc \
 	xml_io.h \
 	xml_io_instantiation.h \
 	xml_io_private.h \
@@ -796,23 +795,6 @@ make_auto_wsv_h_SOURCES = \
 	workspace_aux.cc \
 	wsv_aux.h
 
-make_auto_wsv_pointers_cc_SOURCES = \
-	arts.cc \
-	arts.h \
-	auto_wsv_groups.h \
-	binio.cc \
-	binio.h \
-	file.cc \
-	file.h \
-	groups.cc \
-	make_auto_wsv_pointers_cc.cc \
-	matpackI.cc \
-	matpackI.h \
-	messages.cc \
-	version.cc \
-	workspace.cc \
-	wsv_aux.h
-
 make_auto_md_h_SOURCES = \
 	absorption.h \
 	arts.cc \
@@ -851,8 +833,9 @@ make_auto_md_h_SOURCES = \
 	version.cc \
 	workspace.cc \
 	workspace_aux.cc \
-	wsv_aux.h \
-	wsv_aux.cc
+	workspace_ng.cc \
+	workspace_ng.h \
+	wsv_aux.h
 
 make_auto_md_cc_SOURCES = \
 	absorption.h \
@@ -893,17 +876,15 @@ make_auto_md_cc_SOURCES = \
 	version.cc \
 	workspace.cc \
 	workspace_aux.cc \
-	wsv_aux.h \
-	wsv_aux.cc
+	workspace_ng.cc \
+	workspace_ng.h \
+	wsv_aux.h
 
 auto_wsv.h: make_auto_wsv_h$(EXEEXT)
 	$(top_builddir)/src/make_auto_wsv_h$(EXEEXT)
 
 auto_wsv_groups.h: make_auto_wsv_groups_h$(EXEEXT)
 	$(top_builddir)/src/make_auto_wsv_groups_h$(EXEEXT)
-
-auto_wsv_pointers.cc: make_auto_wsv_pointers_cc$(EXEEXT)
-	$(top_builddir)/src/make_auto_wsv_pointers_cc$(EXEEXT)
 
 auto_md.h: make_auto_md_h$(EXEEXT)
 	$(top_builddir)/src/make_auto_md_h$(EXEEXT)
@@ -914,14 +895,12 @@ auto_md.cc: make_auto_md_cc$(EXEEXT)
 BUILT_SOURCES = \
 	auto_wsv_groups.h \
 	auto_wsv.h \
-	auto_wsv_pointers.cc \
 	auto_md.h \
 	auto_md.cc
 
 CLEANFILES = \
 	auto_wsv.h \
 	auto_wsv_groups.h \
-	auto_wsv_pointers.cc \
 	auto_md.h \
 	auto_md.cc
 
