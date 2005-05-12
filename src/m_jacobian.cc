@@ -655,28 +655,25 @@ void jacobianCalcGas(
   else
     method = 1;
   
-  /* For each atmospheric dimension option
-     1. Check that the retrieval grids are contained within the atmospheric
-        grids.
-     2. Create perturbation grids by adding points outside the atmospheric
-        grids to the retrieval grids.
-     3. Finally calculate a ArrayOfGridPos for each grid, these will be
-        used to interpolate a perturbation into the atmospheric grids.
-     Vector sizes initiated to 1 for correct sizing of perturbation field.*/
-  Vector p_pert(1),lat_pert(1),lon_pert(1);
+  // For each atmospheric dimension option calculate a ArrayOfGridPos, 
+  // these will be used to interpolate a perturbation into the atmospheric 
+  // grids.
   ArrayOfGridPos p_gp,lat_gp,lon_gp;
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
+  get_perturbation_gridpos(p_gp, p_grid, jg[0], true);
   if (atmosphere_dim>=2) 
   {
     j_lat = jg[1].nelem();
+    get_perturbation_gridpos( lat_gp, lat_grid, jg[1], false);
     if (atmosphere_dim==3) 
     {
       j_lon = jg[2].nelem();
+      get_perturbation_gridpos( lon_gp, lon_grid, jg[2], false);
     }
   }
-  
+
   // Give verbose output
   out2 << "  Calculating retrieval quantity " << rq << "\n";
   
@@ -869,22 +866,24 @@ void jacobianCalcParticle(
   // For the particle perturbation the last position in the retrieval grids
   // is the user defined retrieval scenarios. The first are the ordinary
   // atmospheric retrieval grids, pressure, latitude and longitude.
-  // As for gas species, we set up the perturbation grid
-  Vector p_pert(1),lat_pert(1),lon_pert(1);
+  // As for gas species, we set up a ArrayOfGridPos.
   ArrayOfGridPos p_gp,lat_gp,lon_gp;
   ArrayOfIndex p_lim(2,0), lat_lim(2,0), lon_lim(2,0);
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
+  get_perturbation_gridpos(p_gp, p_grid, jg[0], true);
   get_perturbation_limit( p_lim, jg[0], p_grid[Range(cloudbox_limits[0],
     cloudbox_limits[1]-cloudbox_limits[0]+1)]);
   if (atmosphere_dim==3) 
   {
     j_lat = jg[1].nelem();
+    get_perturbation_gridpos( lat_gp, lat_grid, jg[1], false);
     get_perturbation_limit( lat_lim, jg[1], lat_grid[
       Range(cloudbox_limits[2], cloudbox_limits[3]-cloudbox_limits[2]+1)]);
     
     j_lon = jg[2].nelem();
+    get_perturbation_gridpos( lon_gp, lon_grid, jg[2], false);
     get_perturbation_limit( lon_lim, jg[2], lon_grid[
       Range(cloudbox_limits[4], cloudbox_limits[5]-cloudbox_limits[4]+1)]);
   }
@@ -1254,25 +1253,22 @@ void jacobianCalcTemperature(
   else
     method = 1;
       
-  /* For each atmospheric dimension option
-     1. Check that the retrieval grids are contained within the atmospheric
-        grids.
-     2. Create perturbation grids by adding points outside the atmospheric
-        grids to the retrieval grids.
-     3. Finally calculate a ArrayOfGridPos for each grid, these will be
-        used to interpolate a perturbation into the atmospheric grids.
-     Vector sizes initiated to 1 for correct sizing of perturbation field.*/
-  Vector p_pert(1),lat_pert(1),lon_pert(1);
+  // For each atmospheric dimension option calculate a ArrayOfGridPos, 
+  // these will be used to interpolate a perturbation into the atmospheric 
+  // grids.
   ArrayOfGridPos p_gp,lat_gp,lon_gp;
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
+  get_perturbation_gridpos(p_gp, p_grid, jg[0], true);
   if (atmosphere_dim>=2) 
   {
     j_lat = jg[1].nelem();
+    get_perturbation_gridpos( lat_gp, lat_grid, jg[1], false);
     if (atmosphere_dim==3) 
     {
       j_lon = jg[2].nelem();
+      get_perturbation_gridpos( lon_gp, lon_grid, jg[2], false);
     }
   }
   

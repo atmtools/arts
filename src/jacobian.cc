@@ -194,57 +194,48 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
 }             
 
 
-//! Make perturbation grid and calculate array of GridPos
+//! Calculate array of GridPos for perturbation interpolation
 /*!
    This function constructs a perturbation grid which consists of the
    given retrieval grid with an extra endpoint added at each end.
    These endpoints lies outside the atmospheric grid. This enables the
    interpolation of an perturbation on the perturbation grid to be
-   interpolated to the atmospheric grid. For this reason also the 
-   ArrayOfGridPos is calculated. 
-   
-   The function returns false if the atmospheric grid does not cover the
-   retrieval grid. If everything is fine, it returns true.
+   interpolated to the atmospheric grid. For this reason the function
+   returns an ArrayOfGridPos. 
    
    If the atmospheric grid is a pressure grid, interpolation is made
    in logarithm of the atmospheric grid.
    
-   \param pert        The perturbation grid.
    \param gp          Array of GridPos for interpolation.
    \param atm_grid    Atmospheric grid.
    \param jac_grid    Retrieval grid.
    \param is_pressure True for pressure grid 
-   \return            Boolean for check failure.
    
-   \author Mattias Ekström
-   \date   2004-10-14
+   \author Mattias Ekstrom
+   \date   2005-05-12
 */   
-bool get_perturbation_grid(       Vector&         pert,
-                                  ArrayOfGridPos& gp,
-                            const Vector&         atm_grid,
-                            const Vector&         jac_grid,
-                            const bool&           is_pressure)
+void get_perturbation_gridpos(       ArrayOfGridPos& gp,
+                               const Vector&         atm_grid,
+                               const Vector&         jac_grid,
+                               const bool&           is_pressure)
 {
   Index nj = jac_grid.nelem();
   Index na = atm_grid.nelem();
-  Numeric ext = 1.0;
+  Vector pert(nj+2);
+  Numeric ext;
   
-  // Check if the atmospheric grid is decreasing or increasing, and then
-  // check that the atmospheric grid covers the jacobian grid
+  // Check if the atmospheric grid is decreasing or increasing, 
+  // and set the extension to be half of the lowest value
   if (is_decreasing(atm_grid))
   {
-    ext *= -1;
-    if (jac_grid[0]>atm_grid[0] || jac_grid[nj-1]<atm_grid[na-1])
-      return false;
+    ext = atm_grid[na-1]/2.0 * -1;
   }
   else
   {    
-    if (jac_grid[0]<atm_grid[0] || jac_grid[nj-1]>atm_grid[na-1]) 
-      return false;
+    ext = atm_grid[0]/2.0;
   }
   
   // Atmospheric grid ok, create perturbation grid
-  pert.resize(nj+2);
   pert[0] = atm_grid[0]-ext;
   pert[Range(1,nj)] = jac_grid;
   pert[nj+1] = atm_grid[na-1]+ext;
@@ -256,8 +247,6 @@ bool get_perturbation_grid(       Vector&         pert,
   { 
     gridpos( gp, pert, atm_grid);
   }
-    
-  return true;
 }
 
 

@@ -1,5 +1,18 @@
 2005-05-11  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
+	* arts-1-1-951
+
+	* src/jacobian.{cc,h}: Turned get_perturbation_grid into
+	get_perturbation_gridpos and re-used it in m_jacobian.cc.
+	This was crucial, since the function creates the interpolation
+	GridPos which are used as basefunctions for adding the 
+	perturbation to the atmospheric fields.
+
+	* src/m_jacobian.cc: Added the call to get_perturbation_gridpos
+	in jacobianCalc-functions.
+
+2005-05-11  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
 	* arts-1-1-950
 
 	* src/methods.cc: Added atmospheric grids as input to the jacobian
