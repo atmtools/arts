@@ -1,3 +1,47 @@
+2005-05-12  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-952
+	
+	* src/m_cloudbox.cc: Included additional checks in 
+	(ParticleTypeAdd{All}).
+	The size of pnd_field will be changed later and checks will be 
+	adapted accordingly. Included warning if pnd is zero on cloudbox
+	boundary.
+	Cory: For you nothing changes if you still use *ParticleTypeAdd* 
+	with empty filename for pnd. 
+
+	* src/cloudbox.{cc,h}: Included and modified several functions to check
+	pnd_field: (chk_pnd_raw_data), (chk_pnd_data),
+	(chk_if_pnd_zero_p), (chk_if_pnd_zero_lat), (chk_if_pnd_zero_lon)
+
+	* src/m_scatrte.cc: Included missing checks for input variables of 
+	the following methods: 
+	DoitAngularGridsSet
+	doit_conv_flagXXX
+	doit_i_fieldIterate
+	i_fieldUpdateSeq1D
+	i_fieldUpdate1D
+
+	(i_fieldUpdate1D): Updated this function, it was not working 
+	anymore as we haven't used it for a long time. 
+
+	(i_fieldUpdate3D): Removed this functions, because it is very,
+	very inefficient and it is not worth to update it.
+
+	* src/scatrte.{cc,h} (cloud_ppath_update1D_noseq): Added. Used in 
+	*i_fieldUpdate1D*.
+	
+	* src/methods.cc: Improved online docu for some DOIT related methods. 
+	Commented entry for *i_fieldUpdate3D*.
+	
+	* tests/simpleDOIT.arts: Decreased number of azimuth angles. 10 is
+	usually sufficient.
+
+	* tests/data/pnd_field_1D.xml: Modified. Now pnd = 0 on cloudbox
+	boundary. 
+
+	* tests/testall.py: Adapted DOIT test to modifications.
+	
 2005-05-11  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-951

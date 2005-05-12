@@ -42,10 +42,136 @@
 #include "check_input.h"
 
 
+//! Check whether particle number density is zero at a specified pressure level
+/*!
+  \param i_p Pressure index
+  \param pnd_field_raw Particle number density data
+
+  \author Claudia Emde
+  \date   2005-05-09
+*/ 
+void chk_if_pnd_zero_p(
+                       const Index& i_p,
+                       const GriddedField3& pnd_field_raw,
+                       const String& pnd_field_file
+                       )
+  
+{
+  for (Index i = 0; i < pnd_field_raw.lat_grid.nelem(); i++ ) 
+    {
+      for (Index j = 0; j < pnd_field_raw.lon_grid.nelem(); j++ )
+        {
+          if ( pnd_field_raw.data(i_p, i, j) != 0. )
+            {
+              ostringstream os;
+              os << "Warning: \n"
+                 << "The particle number density field contained in the file '"
+                 << pnd_field_file << "'\nis non-zero outside the cloudbox "
+                 << "or close the cloudbox boundary at the \n"
+                 << "following position:\n"
+                 << "pressure = " << pnd_field_raw.p_grid[i_p] 
+                 << ", p_index = " << i_p << "\n"
+                 << "latitude = " << pnd_field_raw.lat_grid[i] 
+                 << ", lat_index = " << i << "\n"
+                 << "longitude = " << pnd_field_raw.lon_grid[j] 
+                 << ", lon_index = " << j << "\n"
+                 << "\n";
+              // throw runtime_error( os.str() );
+              out1 << os.str();
+            }
+        }
+    }
+}
+
+//! Check whether particle number density is zero at a specified latitude
+/*!
+  \param i_lat Latitude index
+  \param pnd_field_raw Particle number density data
+
+  \author Claudia Emde
+  \date   2005-05-09
+*/           
+void chk_if_pnd_zero_lat(
+                       const Index& i_lat,
+                       const GriddedField3& pnd_field_raw,
+                       const String& pnd_field_file
+                       )
+  
+{
+  for (Index i = 0; i < pnd_field_raw.p_grid.nelem(); i++ ) 
+    {
+      for (Index j = 0; j < pnd_field_raw.lon_grid.nelem(); j++ )
+        {
+          if ( pnd_field_raw.data(i, i_lat, j) != 0. )
+            {
+              ostringstream os;
+              os << "Warning: \n" 
+                 << "The particle number density field contained in the file '"
+                 << pnd_field_file << "'\nis non-zero outside the cloudbox "
+                 << "or close the cloudbox boundary at the \n"
+                 << "following position:\n"
+                 << "pressure = " << pnd_field_raw.p_grid[i] << ", p_index = "
+                 << i << "\n"
+                 << "latitude = " << pnd_field_raw.lat_grid[i_lat] 
+                 << ", lat_index = "<<i_lat<< "\n"
+                 << "longitude = " << pnd_field_raw.lon_grid[j] 
+                 << ", lon_index = " << j << "\n"
+                 << "\n";
+                //throw runtime_error( os.str() );
+              out1 << os.str();
+            }
+        }
+    }
+}
+
+//! Check whether particle number density is zero at a specified longitude
+/*!
+  \param i_lon Latitude index
+  \param pnd_field_raw Particle number density data
+
+  \author Claudia Emde
+  \date   2005-05-09
+*/           
+void chk_if_pnd_zero_lon(
+                       const Index& i_lon,
+                       const GriddedField3& pnd_field_raw,
+                       const String& pnd_field_file
+                       )
+  
+{
+  for (Index i = 0; i < pnd_field_raw.p_grid.nelem(); i++ ) 
+    {
+      for (Index j = 0; j < pnd_field_raw.lat_grid.nelem(); j++ )
+        {
+          if ( pnd_field_raw.data(i, j, i_lon) != 0. )
+            {
+              ostringstream os;
+              os << "Warning: \n" 
+                 << "The particle number density field contained in the file '"
+                 << pnd_field_file << "'\nis non-zero outside the cloudbox "
+                 << "or close the cloudbox boundary at the \n"
+                 << "following position:\n"
+                 << "pressure = " << pnd_field_raw.p_grid[i] 
+                 << ", p_index = " << i << "\n"
+                 << "latitude = " << pnd_field_raw.lat_grid[j] 
+                 << ", lat_index = " << j << "\n"
+                 << "longitude = " << pnd_field_raw.lon_grid[i_lon] 
+                 << ", lon_index = "
+                 << i_lon << "\n"
+                 << "\n";
+              //throw runtime_error( os.str() );
+              out1 << os.str();
+            }
+        }
+    }
+}
+
+
 //! Check particle number density files
 /*!
   This function checks, whether the particle number density file
-  has the right atmospheric dimension.
+  has the right atmospheric dimension and whether the cloudbox includes
+  all points where the particle number density is non-zero. 
 
   \param pnd_field_raw pnd field data
   \param pnd_field_file pnd field filename
@@ -57,17 +183,36 @@
 void chk_pnd_data(
                   const GriddedField3& pnd_field_raw,
                   const String& pnd_field_file,
-                  const Index& atmosphere_dim
+                  const Index& atmosphere_dim,
+                  ConstVectorView p_grid,
+                  ConstVectorView lat_grid,
+                  ConstVectorView lon_grid,
+                  const ArrayOfIndex& cloudbox_limits
                   )
 {
   // The consistency of the dimensions is checked in the reading routine. 
-  // We only need to check here, whether the atmospheric dimension is correct.
+  // Here we have to check whether the atmospheric dimension is correct and whether 
+  // the particle number density is 0 on the cloudbox boundary and outside the cloudbox.
   
   out3 << "Check particle number density file " << pnd_field_file 
        << "\n"; 
-
+ 
+  Index i_p;
+ 
+  // Lower pressure limit
+  for (i_p = 0; pnd_field_raw.p_grid[i_p] > p_grid[cloudbox_limits[0]]; i_p++)
+    chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
+  // The first point inside the cloudbox also needs to be zero !!
+  chk_if_pnd_zero_p(i_p+1, pnd_field_raw, pnd_field_file);
+  
+  //Upper pressure limit 
+  for (i_p = pnd_field_raw.p_grid.nelem()-1;
+       pnd_field_raw.p_grid[i_p] < p_grid[cloudbox_limits[1]]; i_p--)
+    chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
+  chk_if_pnd_zero_p(i_p-1, pnd_field_raw, pnd_field_file);
+  
   if (atmosphere_dim == 1 && (pnd_field_raw.lat_grid.nelem() != 1 
-                              || pnd_field_raw.lon_grid.nelem() != 1))
+                              || pnd_field_raw.lon_grid.nelem() != 1) )
     {
       ostringstream os; 
       os << "The atmospheric dimension is 1D but the particle "
@@ -75,18 +220,49 @@ void chk_pnd_data(
          << " is for a 3D atmosphere. \n";
       throw runtime_error( os.str() );
     }
+      
   
-  else if( atmosphere_dim == 3 &&   (pnd_field_raw.lat_grid.nelem() == 1 
-                                     || pnd_field_raw.lon_grid.nelem() == 1))
+  else if( atmosphere_dim == 3) 
     {
-     ostringstream os; 
-      os << "The atmospheric dimension is 3D but the particle "
-         << "number density file * " << pnd_field_file 
-         << " is for a 1D or a 2D atmosphere. \n";
-      throw runtime_error( os.str() );
+      if(pnd_field_raw.lat_grid.nelem() == 1 
+         || pnd_field_raw.lon_grid.nelem() == 1)
+        {
+          ostringstream os; 
+          os << "The atmospheric dimension is 3D but the particle "
+             << "number density file * " << pnd_field_file 
+             << " is for a 1D or a 2D atmosphere. \n";
+          throw runtime_error( os.str() );
+        }
+
+      Index i_lat;
+      Index i_lon;
+      
+      // Lower latitude limit
+      for (i_lat = 0; pnd_field_raw.lat_grid[i_lat] > lat_grid[cloudbox_limits[0]]; i_lat++)
+        chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file);
+      // The first point inside the cloudbox also needs to be zero !!
+      chk_if_pnd_zero_lat(i_lat+1, pnd_field_raw, pnd_field_file);
+      
+      //Upper latitude limit 
+      for (i_lat = pnd_field_raw.lat_grid.nelem()-1;
+           pnd_field_raw.lat_grid[i_lat] < lat_grid[cloudbox_limits[1]]; i_lat--)
+        chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file);
+      chk_if_pnd_zero_lat(i_lat-1, pnd_field_raw, pnd_field_file);
+      
+      // Lower longitude limit
+      for (i_lon = 0; pnd_field_raw.lon_grid[i_lon] > lon_grid[cloudbox_limits[0]]; i_lon++)
+        chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file);
+      // The first point inside the cloudbox also needs to be zero !!
+      chk_if_pnd_zero_lon(i_lon+1, pnd_field_raw, pnd_field_file);
+      
+      //Upper longitude limit 
+      for (i_lon = pnd_field_raw.lon_grid.nelem()-1;
+           pnd_field_raw.lon_grid[i_lon] < lon_grid[cloudbox_limits[1]]; i_lon--)
+        chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file);
+      chk_if_pnd_zero_lon(i_lon-1, pnd_field_raw, pnd_field_file);
     } 
-  else
-    out3 << "Particle number density data is o.k. \n";
+  
+  out3 << "Particle number density data is o.k. \n";
   
 }
 
@@ -105,14 +281,19 @@ void chk_pnd_data(
 void chk_pnd_raw_data(
                       const ArrayOfGriddedField3& pnd_field_raw,
                       const String& pnd_field_file,
-                      const Index& atmosphere_dim
+                      const Index& atmosphere_dim,
+                      ConstVectorView p_grid,
+                      ConstVectorView lat_grid,
+                      ConstVectorView lon_grid,
+                      const ArrayOfIndex& cloudbox_limits
                       )
 {
   for( Index i = 0; i < pnd_field_raw.nelem(); i++)
     {
       out3 << "Element in pnd_field_raw_file:" << i << "\n";
       chk_pnd_data(pnd_field_raw[i],
-                   pnd_field_file, atmosphere_dim);
+                   pnd_field_file, atmosphere_dim,
+                   p_grid, lat_grid, lon_grid, cloudbox_limits);
     }
 }
 

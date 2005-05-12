@@ -228,6 +228,7 @@ void cloud_fieldsCalc(// Output:
   \date 2002-06-04
 */
 void cloud_ppath_update1D(
+                          // Input and output
                           Tensor6View doit_i_field,
                           // scalar_gas_abs_agenda:
                           Numeric& rte_pressure,
@@ -344,8 +345,10 @@ void cloud_ppath_update1D(
       //Tensor3 ext_mat_gas(stokes_dim, stokes_dim, ppath_step.np);
       //Matrix abs_vec_gas(stokes_dim, ppath_step.np);
       // For cubic interpolation
-      Tensor3 sca_vec_int_za(stokes_dim, ppath_step.np, scat_za_grid.nelem(), 0.);
-      Tensor3 doit_i_field_int_za(stokes_dim, ppath_step.np, scat_za_grid.nelem(), 0.);
+      Tensor3 sca_vec_int_za(stokes_dim, ppath_step.np, scat_za_grid.nelem(), 
+                             0.);
+      Tensor3 doit_i_field_int_za(stokes_dim, ppath_step.np, 
+                                  scat_za_grid.nelem(), 0.);
 
 
       // Calculate the average of the coefficients for the layers
@@ -707,6 +710,546 @@ void cloud_ppath_update1D(
 
 
 
+//! Radiative transfer calculation along a path inside the cloudbox (1D).
+/*! 
+  This function calculates the radiation field along a propagation path 
+  step for a specified zenith direction. This function is used for the 
+  sequential update if the radiation field and called inside a loop over
+  the pressure grid. 
+  In the function the intersection point of the propagation path with the 
+  next layer is calculated and all atmospheric properties are 
+  interpolated an the intersection point. Then a radiative transfer step is 
+  performed using the stokes vector as output and input. The inermediate
+  Stokes vectors are stored in the WSV doit_i_field.
+
+ WS Output:
+  \param doit_i_field Updated radiation field inside the cloudbox. 
+  Variables used in scalar_gas_abs_agenda:
+  \param rte_pressure
+  \param rte_temperature
+  \param rte_vmr_list
+  Variables used in opt_prop_xxx_agenda:
+  \param ext_mat
+  \param abs_vec 
+  \param rte_los
+  \param rte_pos
+  \param rte_gp_p
+  Variables used in ppath_step_agenda:
+  \param ppath_step
+  WS Input:
+  \param p_index // Pressure index
+  \param scat_za_index // Index for proagation direction
+  \param scat_za_grid
+  \param cloudbox_limits 
+  \param doit_scat_field Scattered field.
+  Calculate scalar gas absorption:
+  \param scalar_gas_absorption_agenda
+  \param vmr_field
+  Scalar gas absorption:
+  \param opt_prop_gas_agenda
+  Propagation path calculation:
+  \param ppath_step_agenda
+  \param p_grid
+  \param z_field
+  \param r_geoid
+  Calculate thermal emission:
+  \param t_field
+  \param f_grid
+  \param f_index
+  Optical properties of particles
+  \param ext_mat_field
+  \param abs_vec_field
+  \param iy_surface_agenda
+  \param scat_za_interp
+
+  \author Claudia Emde
+  \date 2002-06-04
+*/
+void cloud_ppath_update1D_noseq(
+                          // Input and output
+                          Tensor6View doit_i_field,
+                          // scalar_gas_abs_agenda:
+                          Numeric& rte_pressure,
+                          Numeric& rte_temperature,
+                          Vector& rte_vmr_list,
+                          // opt_prop_xxx_agenda:
+                          Tensor3& ext_mat,
+                          Matrix& abs_vec,  
+                          Vector& rte_los,
+                          Vector& rte_pos,
+                          GridPos& rte_gp_p,
+                          // ppath_step_agenda:
+                          Ppath& ppath_step, 
+                          const Index& p_index,
+                          const Index& scat_za_index,
+                          ConstVectorView scat_za_grid,
+                          const ArrayOfIndex& cloudbox_limits,
+                          // Input
+                          const Tensor6& doit_i_field_old,
+                          ConstTensor6View doit_scat_field,
+                          // Calculate scalar gas absorption:
+                          const Agenda& scalar_gas_absorption_agenda,
+                          ConstTensor4View vmr_field,
+                          // Gas absorption: 
+                          const Agenda& opt_prop_gas_agenda,
+                          // Propagation path calculation:
+                          const Agenda& ppath_step_agenda,
+                          ConstVectorView p_grid,
+                          ConstTensor3View z_field,
+                          ConstMatrixView r_geoid,
+                          // Calculate thermal emission:
+                          ConstTensor3View t_field,
+                          ConstVectorView f_grid,
+                          const Index& f_index,
+                          //particle optical properties
+                          ConstTensor5View ext_mat_field,
+                          ConstTensor4View abs_vec_field,
+                          const Agenda& iy_surface_agenda, 
+                          const Index& scat_za_interp
+                         )
+{
+  const Index stokes_dim = doit_i_field.ncols();
+  const Index atmosphere_dim = cloudbox_limits.nelem()/2;   
+ 
+  assert(atmosphere_dim == 1);
+
+  Vector sca_vec_av(stokes_dim,0);
+ 
+  //Initialize ppath for 1D.
+  ppath_init_structure(ppath_step, 1, 1);
+  // See documentation of ppath_init_structure for understanding
+  // the parameters.
+  
+  // Assign value to ppath.pos:
+  ppath_step.z[0]     = z_field(p_index,0,0);
+  ppath_step.pos(0,0) = r_geoid(0,0) + ppath_step.z[0];
+  
+  // Define the direction:
+  ppath_step.los(0,0) = scat_za_grid[scat_za_index];
+  
+  
+  // Define the grid positions:
+  ppath_step.gp_p[0].idx   = p_index;
+  ppath_step.gp_p[0].fd[0] = 0;
+  ppath_step.gp_p[0].fd[1] = 1;
+  
+  // Call ppath_step_agenda: 
+  ppath_step_agenda.execute(true);
+  
+  // Check whether the next point is inside or outside the
+  // cloudbox. Only if the next point lies inside the
+  // cloudbox a radiative transfer step caclulation has to
+  // be performed.
+  
+  if((cloudbox_limits[0] <= ppath_step.gp_p[1].idx) &&
+     cloudbox_limits[1] > ppath_step.gp_p[1].idx ||
+     (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
+      abs(ppath_step.gp_p[1].fd[0]) < 1e-6))
+    {
+      
+      // Gridpositions inside the cloudbox.
+      // The optical properties are stored only inside the
+      // cloudbox. For interpolation we use grids
+      // inside the cloudbox.
+      ArrayOfGridPos cloud_gp_p = ppath_step.gp_p;
+      
+      for(Index i = 0; i < ppath_step.np; i++ )
+        cloud_gp_p[i].idx -= cloudbox_limits[0];
+      
+      Matrix itw(cloud_gp_p.nelem(),2);
+      interpweights( itw, cloud_gp_p );
+      
+      // The zenith angles of the propagation path are needed as we have to 
+      // interpolate the intensity field and the scattered field on the 
+      // right angles.
+      Vector los_grid = ppath_step.los(joker,0);
+      
+      ArrayOfGridPos gp_za(los_grid.nelem()); 
+      gridpos(gp_za, scat_za_grid, los_grid);
+      
+      Matrix itw_p_za(cloud_gp_p.nelem(), 4);
+      interpweights(itw_p_za, cloud_gp_p, gp_za );
+      
+      // Ppath_step normally has 2 points, the starting
+      // point and the intersection point.
+      // But there can be points in between, when a maximum 
+      // l_step is given. We have to interpolate on all the 
+      // points in the ppath_step.
+      
+      Tensor3 ext_mat_int(stokes_dim, stokes_dim, ppath_step.np);
+      Matrix abs_vec_int(stokes_dim, ppath_step.np);
+      Matrix sca_vec_int(stokes_dim, ppath_step.np, 0.);
+      Matrix doit_i_field_int(stokes_dim, ppath_step.np, 0.);
+      Vector t_int(ppath_step.np);
+      Vector vmr_int(ppath_step.np);
+      Vector p_int(ppath_step.np);
+      Vector stokes_vec(stokes_dim);
+      //Tensor3 ext_mat_gas(stokes_dim, stokes_dim, ppath_step.np);
+      //Matrix abs_vec_gas(stokes_dim, ppath_step.np);
+      // For cubic interpolation
+      Tensor3 sca_vec_int_za(stokes_dim, ppath_step.np, scat_za_grid.nelem(), 
+                             0.);
+      Tensor3 doit_i_field_int_za(stokes_dim, ppath_step.np, 
+                                  scat_za_grid.nelem(), 0.);
+
+
+      // Calculate the average of the coefficients for the layers
+      // to be considered in the 
+      // radiative transfer calculation.
+      
+      for (Index i = 0; i < stokes_dim; i++)
+        {
+          // Extinction matrix requires a second loop 
+          // over stokes_dim
+          out3 << "Interpolate ext_mat:\n";
+          for (Index j = 0; j < stokes_dim; j++)
+            {
+              //
+              // Interpolation of ext_mat
+              //
+              interp( ext_mat_int(i, j, joker), itw, 
+                      ext_mat_field(joker, 0, 0, i, j), cloud_gp_p ); 
+            }
+          // Particle absorption vector:
+          //
+          // Interpolation of abs_vec
+          //  //
+          out3 << "Interpolate abs_vec:\n";
+          interp( abs_vec_int(i,joker), itw, 
+                  abs_vec_field(joker, 0, 0, i), cloud_gp_p ); 
+          //
+          // Scattered field:
+          //
+          //
+          out3 << "Interpolate doit_scat_field and doit_i_field_old:\n";
+          if(scat_za_interp == 0) // linear interpolation
+            {
+              interp( sca_vec_int(i, joker), itw_p_za, 
+                      doit_scat_field(joker, 0, 0, joker, 0, i), cloud_gp_p, 
+                      gp_za);
+              interp( doit_i_field_int(i, joker), itw_p_za, 
+                      doit_i_field_old(joker, 0, 0, joker, 0, i),
+                      cloud_gp_p, gp_za);
+            }
+          else if (scat_za_interp == 1) //cubic interpolation
+            {
+              for (Index za = 0; za < scat_za_grid.nelem(); za++)
+                {
+                  interp( sca_vec_int_za(i, joker, za), itw, 
+                          doit_scat_field(joker, 0, 0, za, 0, i), cloud_gp_p);
+                  out3 << "Interpolate doit_i_field:\n";
+                  interp( doit_i_field_int_za(i, joker, za), itw, 
+                          doit_i_field(joker, 0, 0, za, 0, i), cloud_gp_p);
+                }
+              for (Index ip = 0; ip < ppath_step.np; ip ++)
+                {
+                  sca_vec_int(i, ip) = 
+                    interp_cubic(scat_za_grid, 
+                                 sca_vec_int_za(i, ip, joker),
+                                 los_grid[ip],
+                                 gp_za[ip]);
+                  doit_i_field_int(i, ip) = 
+                    interp_cubic(scat_za_grid, 
+                                 doit_i_field_int_za(i, ip, joker),
+                                 los_grid[ip],
+                                 gp_za[ip]);
+                }
+            }
+        }
+      //
+      // Planck function
+      // 
+      // Interpolate temperature field
+      //
+      out3 << "Interpolate temperature field\n";
+      interp( t_int, itw, 
+              t_field(joker, 0, 0), ppath_step.gp_p );
+      
+      // 
+      // The vmr_field is needed for the gaseous absorption 
+      // calculation.
+      //
+      const Index N_species = vmr_field.nbooks();
+      rte_vmr_list.resize(N_species);
+      //
+      // Interpolated vmr_list, holds a vmr_list for each point in 
+      // ppath_step.
+      //
+      Matrix vmr_list_int(N_species, ppath_step.np);
+      
+      for (Index i = 0; i < N_species; i++)
+        {
+          out3 << "Interpolate vmr field\n";
+          interp( vmr_int, itw, 
+                  vmr_field(i, joker, 0, 0), ppath_step.gp_p );
+          vmr_list_int(i, joker) = vmr_int;
+        }
+      
+      // 
+      // Interpolate pressure
+      //
+      itw2p( p_int, p_grid, ppath_step.gp_p, itw);
+      
+      // Radiative transfer from one layer to the next, starting
+      // at the intersection with the next layer and propagating
+      // to the considered point.
+      stokes_vec = doit_i_field_int(joker, ppath_step.np-1);
+      
+      // ppath_what_background(ppath_step) tells the 
+      // radiative background.  More information in the 
+      // function get_radiative_background.
+      // if there is no background we proceed the RT
+      
+      Index bkgr = ppath_what_background(ppath_step);
+      
+      // if 0, there is no background
+      if (bkgr == 0)
+        {
+          
+          for( Index k= ppath_step.np-1; k > 0; k--)
+            {
+              // Length of the path between the two layers.
+              Numeric l_step = ppath_step.l_step[k-1];
+              // Average temperature
+              rte_temperature =   0.5 * (t_int[k] + t_int[k-1]);
+              //
+              // Average pressure
+              rte_pressure = 0.5 * (p_int[k] + p_int[k-1]);
+              //
+              // Average vmrs
+              for (Index i = 0; i < N_species; i++)
+                rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) +
+                                       vmr_list_int(i,k-1));
+              //
+              // Calculate scalar gas absorption and add it to abs_vec 
+              // and ext_mat.
+              //
+              
+              scalar_gas_absorption_agenda.execute(true);
+              
+              opt_prop_gas_agenda.execute(true);
+              
+              //
+              // Add average particle extinction to ext_mat. 
+              //
+              for (Index i = 0; i < stokes_dim; i++)
+                {
+                  for (Index j = 0; j < stokes_dim; j++)
+                    {
+                      ext_mat(0,i,j) += 0.5 *
+                        (ext_mat_int(i,j,k) + ext_mat_int(i,j,k-1));
+                    }
+                  //
+                  // Add average particle absorption to abs_vec.
+                  //
+                  abs_vec(0,i) += 0.5 * 
+                    (abs_vec_int(i,k) + abs_vec_int(i,k-1));
+                  
+                  //
+                  // Averaging of sca_vec:
+                  //
+                  sca_vec_av[i] =  0.5 *
+                    (sca_vec_int(i, k) + sca_vec_int(i, k-1));
+                  
+            }
+              // Frequency
+              Numeric f = f_grid[f_index];
+              //
+              // Calculate Planck function
+              //
+              Numeric rte_planck_value = planck(f, rte_temperature);
+              
+              // Some messages:
+              out3 << "-----------------------------------------\n";
+              out3 << "Input for radiative transfer step \n"
+                   << "calculation inside"
+                   << " the cloudbox:" << "\n";
+              out3 << "Stokes vector at intersection point: \n" 
+                   << stokes_vec 
+                   << "\n"; 
+              out3 << "l_step: ..." << l_step << "\n";
+              out3 << "------------------------------------------\n";
+              out3 << "Averaged coefficients: \n";
+              out3 << "Planck function: " << rte_planck_value << "\n";
+              out3 << "Scattering vector: " << sca_vec_av << "\n"; 
+              out3 << "Absorption vector: " << abs_vec(0,joker) << "\n"; 
+              out3 << "Extinction matrix: " << ext_mat(0,joker,joker) << "\n"; 
+              
+              
+              assert (!is_singular( ext_mat(0,joker,joker)));
+              
+              // Radiative transfer step calculation. The Stokes vector
+              // is updated until the considered point is reached.
+              rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
+                       abs_vec(0,joker), 
+                       sca_vec_av, l_step, rte_planck_value);
+              
+            }// End of loop over ppath_step. 
+          // Assign calculated Stokes Vector to doit_i_field. 
+          doit_i_field(p_index - cloudbox_limits[0],
+                  0, 0,
+                  scat_za_index, 0,
+                  joker) = stokes_vec;
+        }// if loop end - for non_ground background
+
+      // bkgr=2 indicates that the background is surface
+      else if (bkgr == 2)
+        {
+          //Set rte_pos, rte_gp_p and rte_los to match the last point
+          //in ppath.
+          Index np = ppath_step.np;
+          //pos
+          rte_pos.resize( atmosphere_dim );
+          rte_pos = ppath_step.pos(np-1,Range(0,atmosphere_dim));
+          //los
+          rte_los.resize( ppath_step.los.ncols() );
+          rte_los = ppath_step.los(np-1,joker);
+          //gp_p
+          gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
+
+      throw runtime_error( 
+                     "Surface reflections inside cloud box not yet handled." );
+          // Executes the surface agenda
+          chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
+          iy_surface_agenda.execute(true);
+      /*
+
+      Modify code below !!!
+      You need to include *iy* as function output argument.
+      Ask me (Patrick) for what has to be done
+
+          // Check returned variables
+          if( surface_emission.nrows() != f_grid.nelem()  ||  
+              surface_emission.ncols() != stokes_dim )
+            throw runtime_error(
+                  "The size of the created *surface_emission* is not correct.");
+
+          Index nlos = surface_los.nrows();
+
+          // Define a local vector doit_i_field_sum which adds the 
+          // products of groudnd_refl_coeffs with the downwelling 
+          // radiation for each elements of surface_los
+          Vector doit_i_field_sum(stokes_dim,0);
+          // Loop over the surface_los elements
+          for( Index ilos=0; ilos < nlos; ilos++ )
+            {
+              if( stokes_dim == 1 )
+                {
+                  doit_i_field_sum[0] += surface_refl_coeffs(ilos,f_index,0,0) *
+                    doit_i_field(cloudbox_limits[0],
+                            0, 0,
+                            (scat_za_grid.nelem() -1 - scat_za_index), 0,
+                            0);
+                }
+              else 
+                {
+                  Vector stokes_vec2(stokes_dim);
+                  mult( stokes_vec2, 
+                        surface_refl_coeffs(ilos,0,joker,joker), 
+                        doit_i_field(cloudbox_limits[0],
+                                0, 0,
+                                (scat_za_grid.nelem() -1 - scat_za_index), 0,
+                                joker));
+                  for( Index is=0; is < stokes_dim; is++ )
+                    { 
+                      doit_i_field_sum[is] += stokes_vec2[is];
+                    }
+                  
+                }
+            }
+          // Copy from *doit_i_field_sum* to *doit_i_field*, and add the surface emission
+          for( Index is=0; is < stokes_dim; is++ )
+            {
+              doit_i_field (cloudbox_limits[0],
+                       0, 0,
+                       scat_za_index, 0,
+                       is) = doit_i_field_sum[is] + surface_emission(f_index,is);
+            }
+          // now the RT is done to the next point in the path.
+          // 
+          Vector stokes_vec_local;
+          stokes_vec_local = doit_i_field (cloudbox_limits[0],
+                                      0, 0,
+                                      scat_za_index, 0,
+                                      joker);
+          
+          for( Index k= ppath_step.np-1; k > 0; k--)
+            {
+              // Length of the path between the two layers.
+              Numeric l_step = ppath_step.l_step[k-1];
+              // Average temperature
+              rte_temperature =   0.5 * (t_int[k] + t_int[k-1]);
+          
+              //
+              // Average pressure
+              rte_pressure = 0.5 * (p_int[k] + p_int[k-1]);
+           
+              //
+              // Average vmrs
+              for (Index i = 0; i < N_species; i++)
+                {
+                  rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
+                                         vmr_list_int(i,k-1));
+                }
+              //
+              // Calculate scalar gas absorption and add it to abs_vec 
+              // and ext_mat.
+              //
+              
+              scalar_gas_absorption_agenda.execute(true);
+              
+              opt_prop_gas_agenda.execute(true);
+              
+              //
+              // Add average particle extinction to ext_mat. 
+              //
+              for (Index i = 0; i < stokes_dim; i++)
+                {
+                  for (Index j = 0; j < stokes_dim; j++)
+                    {
+                      ext_mat(0,i,j) += 0.5 *
+                        (ext_mat_int(i,j,k) + ext_mat_int(i,j,k-1));
+                    }
+                  
+          
+                  //
+                  //
+                  // Add average particle absorption to abs_vec.
+                  //
+                  abs_vec(0,i) += 0.5 * 
+                    (abs_vec_int(i,k) + abs_vec_int(i,k-1));
+                  
+                  //
+                  // Averaging of sca_vec:
+                  //
+                  sca_vec_av[i] =  0.5 *
+                    (sca_vec_int(i, k) + sca_vec_int(i, k-1));
+                  
+                }
+              // Frequency
+              Numeric f = f_grid[f_index];
+              //
+              // Calculate Planck function
+              //
+              Numeric rte_planck_value = planck(f, rte_temperature);
+              
+              assert (!is_singular( ext_mat(0,joker,joker)));
+              
+              // Radiative transfer step calculation. The Stokes vector
+              // is updated until the considered point is reached.
+              rte_step_std(stokes_vec_local, ext_mat(0,joker,joker), 
+                       abs_vec(0,joker), 
+                       sca_vec_av, l_step, rte_planck_value);
+            }// End of loop over ppath_step.
+          // Assign calculated Stokes Vector to doit_i_field. 
+          doit_i_field(p_index - cloudbox_limits[0],
+                  0, 0,
+                  scat_za_index, 0,
+                  joker) = stokes_vec_local;
+      */  
+        }//end else loop over surface
+    }//end if inside cloudbox
+}
 
 
 //! Radiative transfer calculation along a path inside the cloudbox (3D).

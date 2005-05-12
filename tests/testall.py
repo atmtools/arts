@@ -65,13 +65,13 @@ class DoitTest(unittest.TestCase):
         self.DOITrun.run()
         assert self.DOITrun.error=='','Error running simpleDOIT.arts: '+self.DOITrun.error
     def test2(self):
-        """Total radiance should be close to 187.7 K"""
+        """Total radiance should be close to 204.5 K"""
         I=self.DOITrun.get_val('y')[0]
-        assert abs(I-187.) < 1., 'I (='+str(I)+'K) is too far away from 187.7 K'
+        assert abs(I-204.5) < 1., 'I (='+str(I)+'K) is too far away from 204.5 K'
     def test3(self):
-        """Polarization difference should be close to 8.1 K"""
+        """Polarization difference should be close to 7.2 K"""
         Q=self.DOITrun.get_val('y')[1]
-        assert abs(Q-8.) < 1., 'Q (='+str(Q)+'K) is too far away from 8.1 K'
+        assert abs(Q-7.2) < 1., 'Q (='+str(Q)+'K) is too far away from 7.2 K'
         
 if __name__=='__main__':
     unittest.main()

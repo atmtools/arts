@@ -168,7 +168,6 @@ lon1=0
 lon2=0
 }
 
-
 # Specification of cloud
 # -----------------------
 ParticleTypeInit{}
@@ -186,11 +185,11 @@ pnd_fieldCalc{}
 # Select interpolation method ('linear' or 'cubic'):
 # ----------------------------------------------------
 
-#    For limb calculations is is very important to have a fine resolution 
+#    For limb calculations is is very important to have a fine resolution     
 #    about 90°.
-#    If "cubic" is selected one has to use an optimized grid. Please 
+#    If "cubic" is selected one has to use an optimized grid. Please           
 #    use *doit_grid_optimization_agenda* to optimize the grid.    
-doit_za_interpSet{interp_method = "cubic" }
+doit_za_interpSet{interp_method = "cubic" }                                        
 
 # As one needs for the RT calculations in limb direction a much finer
 # zenith angle grid resolution as for the computation of the scattering 
@@ -202,7 +201,7 @@ doit_za_interpSet{interp_method = "cubic" }
 # This option can only be used for down-looking geometries. 
 DoitAngularGridsSet{
 	N_za_grid = 19
-	N_aa_grid = 37
+	N_aa_grid = 10
 	za_grid_opt_file = "./data/doit_za_grid_opt.xml"
 	}
 
@@ -242,10 +241,9 @@ AgendaSet(pha_mat_spt_agenda){
 }
 
 AgendaSet(doit_scat_field_agenda){
-# Use grids defined in *grid_sizeSet*
-   doit_scat_fieldCalcLimb{}
-# Alternative: use *scat_za_grid*, which is used in RT calculations
-  # scat_fieldCalc{} 
+ doit_scat_fieldCalcLimb{}
+ # Alternative: use *scat_za_grid*, which is used in RT calculations
+ # doit_scat_fieldCalc{} 
 }
 
 # 2. Radiative transfer with fixed scattering integral term

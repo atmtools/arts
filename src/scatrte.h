@@ -92,6 +92,49 @@ void cloud_ppath_update1D(
                   const Index& scat_za_interp
                   );
 
+void cloud_ppath_update1D_noseq(
+                          // Input and output
+                          Tensor6View doit_i_field,
+                          // scalar_gas_abs_agenda:
+                          Numeric& rte_pressure,
+                          Numeric& rte_temperature,
+                          Vector& rte_vmr_list,
+                          // opt_prop_xxx_agenda:
+                          Tensor3& ext_mat,
+                          Matrix& abs_vec,  
+                          Vector& rte_los,
+                          Vector& rte_pos,
+                          GridPos& rte_gp_p,
+                          // ppath_step_agenda:
+                          Ppath& ppath_step, 
+                          const Index& p_index,
+                          const Index& scat_za_index,
+                          ConstVectorView scat_za_grid,
+                          const ArrayOfIndex& cloudbox_limits,
+                          // Input
+                          const Tensor6& doit_i_field_old,
+                          ConstTensor6View doit_scat_field,
+                          // Calculate scalar gas absorption:
+                          const Agenda& scalar_gas_absorption_agenda,
+                          ConstTensor4View vmr_field,
+                          // Gas absorption: 
+                          const Agenda& opt_prop_gas_agenda,
+                          // Propagation path calculation:
+                          const Agenda& ppath_step_agenda,
+                          ConstVectorView p_grid,
+                          ConstTensor3View z_field,
+                          ConstMatrixView r_geoid,
+                          // Calculate thermal emission:
+                          ConstTensor3View t_field,
+                          ConstVectorView f_grid,
+                          const Index& f_index,
+                          //particle optical properties
+                          ConstTensor5View ext_mat_field,
+                          ConstTensor4View abs_vec_field,
+                          const Agenda& iy_surface_agenda, 
+                          const Index& scat_za_interp
+                          );
+
 void cloud_ppath_update1D_planeparallel(
                   Tensor6View i_field,
                   // scalar_gas_abs_agenda:

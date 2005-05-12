@@ -998,21 +998,9 @@ void ParticleTypeInit( //WS Output:
 }
 
 
-//! Read single scattering data and particle number densities
-/*! 
- The particle number densities *pnd_field_raw* can also be generated 
- without using the ARTS database. In this case it is easier to generate one 
- file including the data for all particle types than generating 
- a pnd file for each particle type. This means, that for such cases it is 
- more handy to us *ParticleTypeAddAll* instead of *ParticleTypeAdd*.
-  
-  \param scat_data_raw Single scattering data.
-  \param pnd_field_raw Particle number density field data.
-  \param atmosphere_dim Atmospheric dimension.
-  \param f_grid Frequency grid.
-  \param filename_scat_data Filename of file, which contains the 
-  filenames of the single scattering data files.
-  \param pnd_field_file Filename for pnd field data.
+//! ParticleTypeAddAll
+/*!
+  See the the online help (arts -d FUNCTION_NAME)
   
   \author Claudia Emde
   \date 2004-03-08
@@ -1020,16 +1008,37 @@ void ParticleTypeInit( //WS Output:
 void ParticleTypeAddAll( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
                  ArrayOfGriddedField3&  pnd_field_raw,
-                 // WS Input
+                 // WS Input(needed for checking the datafiles):
                  const Index& atmosphere_dim,
                  const Vector& f_grid,
-                 // Keyword:
+                 const Vector& p_grid,
+                 const Vector& lat_grid,
+                 const Vector& lon_grid,
+                 const ArrayOfIndex& cloudbox_limits,
+                 // Keywords:
                  const String& filename_scat_data,
                  const String& pnd_field_file)
 {
+  //--- Check input ---------------------------------------------------------
+  
   // Atmosphere
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   
+  // Cloudbox limits
+  if ( cloudbox_limits.nelem() != 2*atmosphere_dim )
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains"
+                        "the upper and lower\n"
+                        "limit of the cloud for all atmospheric dimensions.\n"
+                        "So its length must be 2 x *atmosphere_dim*" ); 
+  // Frequency grid
+  if( f_grid.nelem() == 0 )
+    throw runtime_error( "The frequency grid is empty." );
+  chk_if_increasing( "f_grid", f_grid );
+  
+  
+  //--- Reading the data ---------------------------------------------------
   ArrayOfString data_files;
   xml_read_from_file(filename_scat_data, data_files);
   scat_data_raw.resize(data_files.nelem());
@@ -1050,25 +1059,15 @@ void ParticleTypeAddAll( //WS Output:
   xml_read_from_file(pnd_field_file, pnd_field_raw);
   
   chk_pnd_raw_data(pnd_field_raw,
-                   pnd_field_file, atmosphere_dim);
-
+                   pnd_field_file, atmosphere_dim, p_grid, lat_grid,
+                   lon_grid, cloudbox_limits);
 }
 
 
-//! Read single scattering data and particle number density field from 
-//  data base
+//! ParticleTypeAdd
 /*! 
-  This method allows the user to chose hydro-meteor species and particle
-  number density fields. The data is added to *scat_data_raw* and 
-  *pnd_field_raw*. 
+  See the the online help (arts -d FUNCTION_NAME)
   
-  \param scat_data_raw Single scattering data.
-  \param pnd_field_raw Particle number density field data.
-  \param atmosphere_dim Atmospheric dimension.
-  \param f_grid Frequency grid.
-  \param scat_data_file Filename for scattering data.
-  \param pnd_field_file Filename for pnd field data.
-
   \author Claudia Emde
   \date 2003-02-24
 
@@ -1077,17 +1076,39 @@ void ParticleTypeAddAll( //WS Output:
 void ParticleTypeAdd( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
                  ArrayOfGriddedField3&  pnd_field_raw,
-                 // WS Input:
+                 // WS Input (needed for checking the datafiles):
                  const Index& atmosphere_dim,
                  const Vector& f_grid,
+                 const Vector& p_grid,
+                 const Vector& lat_grid,
+                 const Vector& lon_grid,
+                 const ArrayOfIndex& cloudbox_limits,
                  // Keywords:
                  const String& scat_data_file,
                  const String& pnd_field_file
           )
 {
+  //--- Check input ---------------------------------------------------------
+  
   // Atmosphere
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+
+  // Cloudbox limits
+  if ( cloudbox_limits.nelem() != 2*atmosphere_dim )
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains"
+                        "the upper and lower\n"
+                        "limit of the cloud for all atmospheric dimensions.\n"
+                        "So its length must be 2 x *atmosphere_dim*" ); 
+  // Frequency grid
+  if( f_grid.nelem() == 0 )
+    throw runtime_error( "The frequency grid is empty." );
+  chk_if_increasing( "f_grid", f_grid );
   
+
+  //--- Reading the data ---------------------------------------------------
+
   // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
   SingleScatteringData scat_data;
   scat_data_raw.push_back(scat_data);
@@ -1110,7 +1131,8 @@ void ParticleTypeAdd( //WS Output:
                        pnd_field_raw[pnd_field_raw.nelem()-1]);
   
     chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
-               pnd_field_file, atmosphere_dim);
+                 pnd_field_file, atmosphere_dim, p_grid, lat_grid,
+                 lon_grid, cloudbox_limits);
     }
 }
 

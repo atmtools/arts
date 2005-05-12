@@ -1185,27 +1185,33 @@ void define_md_data_raw()
         (
          "Set angular grids for DOIT calculation."
          "\n"
-         "In this method the angular grids for a DOIT calculation are"
+         "In this method the angular grids for a DOIT calculation are "
          "specified.\n"
          "For down-looking geometries it is sufficient to define\n"
          "\n"  
          "N_za_grid: number of grid points in zenith angle grid\n"
+         "           recommended value: 19\n"
          "N_aa_grid: number of grid points in zenith angle grid\n"
+         "           recommended value: 10\n"
          "\n"
-         "From these numbers equally spaced grids are created and stored"
-         "in the\n" 
+         "From these numbers equally spaced grids are created and stored in "
+         "the\n" 
          "WSVs *scat_za_grid* and *scat_aa_grid*.\n" 
          "\n"
          "For limb simulations it is important to use an optimized zenith "
          "angle \n"
-         "grid with a very fine resolution about 90° for the RT calculations."
-         "Such a grid can be generated \n"
-         "using *doit_za_grid_optCalc*. This method requires the filename"
-         "of the \n"
-         "optimized grid. If no filename is specified, \n"
-         "(za_grid_opt_file = \"\" ) the equidistant grid is \n "
-         "taken everywhere. This option makes sense for down-looking \n"
-         "cases to speed up the calculations. \n"
+         "grid with a very fine resolution about 90° for the "
+         "RT calculations.\n"
+         "Such a grid can be generated using *doit_za_grid_optCalc*. \n"
+         "The filename of the optimized zenith angle grid can be given \n"
+         "as a keyword. If a filename is given, the equidistant grid is \n"
+         "taken for the calculation of the scattering integrals and the\n"
+         "optimized grid is taken for the radiative transfer part.\n"
+         "Otherwise, if no filename is specified \n"
+         "( za_grid_opt_file = \"\" ) the equidistant grid is \n"
+         "taken for the calculation of the scattering integrals and for \n"
+         "the RT calculations. This option makes sense for down-looking \n"
+         "cases to speed up the calculation. \n"
          "\n"
          ),
         OUTPUT( doit_za_grid_size_, scat_aa_grid_, scat_za_grid_),
@@ -1246,7 +1252,7 @@ md_data_raw.push_back
         (
          "Convergence test (maximum absolute difference).\n"
          "\n"
-         "The function calculates the absolute differences for two"
+         "The function calculates the absolute differences for two " 
          "successive\n"
          "iteration fields. It picks out the maximum values for each Stokes \n"
          "component separately. The convergence test is fullfilled under the\n"
@@ -1255,18 +1261,19 @@ md_data_raw.push_back
          "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
          "|U(m+1) - U(m)| < epsilon_3    \n"
          "|V(m+1) - V(m)| < epsilon_4    \n" 
-         "These conditions have to be valid for all positions in the cloudbox \n"
-         "and for all directions.\n"  
+         "These conditions have to be valid for all positions in the \n"
+         "cloudbox and for all directions.\n"  
          "\n"
-         "The limits for convergence have to be set in the controlfile by \n"
+         "The limits for convergence are set in the controlfile by \n"
          "setting the vector *epsilon* to appropriate values.\n"
-         "The unit of *epsilon* is that of radiance.\n"
+         "The unit of *epsilon* is radiance [W / (m^2 Hz sr)].\n"
          "\n"
          "This method can be used in *doit_convergence_test_agenda*.\n"
          "\n"
         ),
         OUTPUT(doit_conv_flag_, doit_iteration_counter_),
-        INPUT(doit_i_field_, doit_i_field_old_),
+        INPUT(doit_conv_flag_, doit_iteration_counter_,
+              doit_i_field_, doit_i_field_old_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS("epsilon"),
@@ -1279,15 +1286,21 @@ md_data_raw.push_back
         (
          "Convergence test (Least square).\n"
          "\n"
-         "This method performs a least square convergence test for two successive \n"
-         "iteration fields.\n"
+         "This method performs a least square convergence test for two \n"
+         "successive iteration fields.\n"
          "\n"
-         "Warning: This method is not recommended because this kind of convergence \n"
-         "test is not strict enough, so that the DOIT result can be wrong. \n" 
+         "The limits for convergence are set in the controlfile by \n"
+         "setting the vector *epsilon* to appropriate values.\n"
+         "The unit of *epsilon* is Rayleigh Jeans BT [K].\n"
+         "\n"
+         "Warning: This method is not recommended because this kind of \n"
+         "convergence test is not sufficiently strict, so that the \n"
+         "DOIT result might be wrong. \n" 
          "\n"
         ),
         OUTPUT(doit_conv_flag_, doit_iteration_counter_),
-        INPUT(doit_i_field_, doit_i_field_old_, f_grid_, f_index_),
+        INPUT(doit_conv_flag_, doit_iteration_counter_, 
+              doit_i_field_, doit_i_field_old_, f_grid_, f_index_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS("epsilon"),
@@ -1298,15 +1311,10 @@ md_data_raw.push_back
       ( NAME("doit_conv_flagAbsBT"),
         DESCRIPTION
         (
-         "Convergence test (maximum absolute difference in Rayleigh-Jeans\n"
-         "Brightness temperature units)\n"
+         "Convergence test (maximum absolute difference in Rayleigh Jeans "
+         "BT)\n"
          "\n"
-         "This method works is similar to *convergence_flagAbs*. Only \n"
-         "the convergence limit (*epsilon*) here has to be given in \n"
-         "Brightness"
-         "temperature units. /n"
-         "\n"
-         "The function calculates the absolute differences for two "
+         "The function calculates the absolute differences for two " 
          "successive\n"
          "iteration fields. It picks out the maximum values for each Stokes \n"
          "component separately. The convergence test is fullfilled under the\n"
@@ -1315,19 +1323,19 @@ md_data_raw.push_back
          "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
          "|U(m+1) - U(m)| < epsilon_3    \n"
          "|V(m+1) - V(m)| < epsilon_4    \n" 
+         "These conditions have to be valid for all positions in the \n"
+         "cloudbox and for all directions.\n"  
          "\n"
-         "The limits for convergence have to be set in the controlfile by \n"
+         "The limits for convergence are set in the controlfile by \n"
          "setting the vector *epsilon* to appropriate values.\n"
+         "The unit of *epsilon* is Rayleigh Jeans BT [K].\n"
          "\n"
-         "The conditions have to be valid for all positions in the cloudbox \n"
-         "and for all directions.\n"  
-         "Then *convergence_flag* is set to 1.\n"
+         "This method can be used in *doit_convergence_test_agenda*.\n"
          "\n"
-         "The unit of *epsilon* is that of brightness temperature (RJ).\n"
-         "\n"
-        ),
+         ),
         OUTPUT(doit_conv_flag_, doit_iteration_counter_),
-        INPUT(doit_i_field_, doit_i_field_old_, f_grid_, f_index_),
+        INPUT(doit_conv_flag_, doit_iteration_counter_,
+              doit_i_field_, doit_i_field_old_, f_grid_, f_index_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS("epsilon"),
@@ -1382,25 +1390,25 @@ md_data_raw.push_back
       ( NAME( "doit_i_fieldIterate" ),
         DESCRIPTION
         (
-         "Iterative solution of the VRTE (DOIT-mathod).\n"
+         "Iterative solution of the VRTE (DOIT method).\n"
          "\n"
          "A solution for the RTE with scattering is found using the\n"
          "DOIT method:\n"
          "\n"
          "1. Calculate scattering integral using *doit_scat_field_agenda*.\n"
          "2. Calculate RT with fixed scattered field using \n"
-         "*doit_rte_agenda*.\n"
+         "   *doit_rte_agenda*.\n"
          "3. Convergence test using *doit_conv_test_agenda*.\n"
          "\n"
          "Note: The atmospheric dimensionality *atmosphere_dim* can be \n"
          "      either 1 or 3. To these dimensions the method adapts \n"
-         "      automatically. \n"
-         "      If *atmosphere_dim* equals 2, it returns an error message,\n"
-         "      as 2D scattering calculations can not be performed.\n"
+         "      automatically. 2D scattering calculations are not \n"
+         "      supported.\n"
+         "\n"
          ),
         OUTPUT(doit_i_field_, doit_i_field_old_, doit_conv_flag_, 
                doit_iteration_counter_),
-        INPUT( doit_scat_field_agenda_, doit_rte_agenda_, 
+        INPUT( doit_i_field_, doit_scat_field_agenda_, doit_rte_agenda_, 
                doit_conv_test_agenda_),
         GOUTPUT(),
         GINPUT(),
@@ -1462,7 +1470,7 @@ md_data_raw.push_back
       ( NAME( "doit_i_fieldUpdate1D" ),
         DESCRIPTION
         (
-         "RT calculation in cloudbox with fixed scattering integral. \n"
+         "RT calculation in cloudbox with fixed scattering integral (1D). \n"
          "\n"
          "Update the radiation field (DOIT method). The method loops\n"
          "through the cloudbox to update the radiation field for all \n"
@@ -1475,13 +1483,13 @@ md_data_raw.push_back
         ),
         OUTPUT(doit_i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
-               scat_p_index_, ppath_step_),
+               scat_p_index_, ppath_step_, rte_los_, rte_pos_, rte_gp_p_),
         INPUT(doit_i_field_old_, doit_scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
-              f_grid_, f_index_),
+              f_grid_, f_index_, iy_surface_agenda_, doit_za_interp_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -1496,19 +1504,19 @@ md_data_raw.push_back
          "\n"
          "Update radiation field (*doit_i_field*) in DOIT module.\n"
          "This method loops through the cloudbox to update the \n"
-         "radiation field for all \n"
-         "positions and directions in the 1D cloudbox. The method applies\n"
-         "the sequential update. For more information refer to AUG.\n"
+         "radiation field for all positions and directions in the 1D \n"
+         "cloudbox. The method applies the sequential update. For more \n"
+         "information refer to AUG.\n"
          "\n"
          "Note: This is the commonly used WSM for the radiation field \n"
-         "update (can be used in *doit_rte_agenda*). This WSM is recommended \n"
+         "update (can be used in *doit_rte_agenda*). It is recommended \n"
          "because it is the most efficient and accurate method.\n"
          "\n"
          ),
         OUTPUT(doit_i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
                scat_p_index_, ppath_step_, rte_los_, rte_pos_, rte_gp_p_),
-        INPUT(doit_scat_field_, cloudbox_limits_, 
+        INPUT(doit_i_field_, doit_scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
@@ -1550,40 +1558,40 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "doit_i_fieldUpdate3D" ),
-        DESCRIPTION
-        (
-         "RT calculation in cloudbox with fixed scattering integral. \n"
-         "\n"
-         "Update the radiation field (DOIT). This method loops\n"
-         "through the cloudbox to update the radiation field for all \n"
-         "positions and directions in the 3D cloudbox.\n"
-         "\n"
-         "Notes: This method is very inefficient, because the number of \n"
-         "iterations scales with the number of cloudbox pressure levels.\n"
-         "It is recommended to take *doit_i_fieldUpdateSeq3D*.\n"
-         "\n"
-         "Surface reflection is not yet implemented in 3D scattering \n"
-         "calculations.\n"
-         "\n " 
-        ),
-        OUTPUT(doit_i_field_, rte_pressure_, rte_temperature_,
-               rte_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_,
-               abs_vec_,
-               scat_p_index_, scat_lat_index_, scat_lon_index_,  ppath_step_),
-        INPUT(doit_i_field_old_, doit_scat_field_, cloudbox_limits_, 
-              scalar_gas_absorption_agenda_,
-              vmr_field_, spt_calc_agenda_, scat_za_grid_, scat_aa_grid_,
-              opt_prop_part_agenda_, opt_prop_gas_agenda_,
-              ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,
-              r_geoid_, t_field_,
-              f_grid_, f_index_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
+ // md_data_raw.push_back
+//     ( MdRecord
+//       ( NAME( "doit_i_fieldUpdate3D" ),
+//         DESCRIPTION
+//         (
+//          "RT calculation in cloudbox with fixed scattering integral. \n"
+//          "\n"
+//          "Update the radiation field (DOIT). This method loops\n"
+//          "through the cloudbox to update the radiation field for all \n"
+//          "positions and directions in the 3D cloudbox.\n"
+//          "\n"
+//          "Notes: This method is very inefficient, because the number of \n"
+//          "iterations scales with the number of cloudbox pressure levels.\n"
+//          "It is recommended to take *doit_i_fieldUpdateSeq3D*.\n"
+//          "\n"
+//          "Surface reflection is not yet implemented in 3D scattering \n"
+//          "calculations.\n"
+//          "\n " 
+//         ),
+//         OUTPUT(doit_i_field_, rte_pressure_, rte_temperature_,
+//                rte_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_,
+//                abs_vec_,
+//                scat_p_index_, scat_lat_index_, scat_lon_index_,  ppath_step_),
+//         INPUT(doit_i_field_old_, doit_scat_field_, cloudbox_limits_, 
+//               scalar_gas_absorption_agenda_,
+//               vmr_field_, spt_calc_agenda_, scat_za_grid_, scat_aa_grid_,
+//               opt_prop_part_agenda_, opt_prop_gas_agenda_,
+//               ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,
+//               r_geoid_, t_field_,
+//               f_grid_, f_index_),
+//         GOUTPUT(),
+//         GINPUT(),
+//         KEYWORDS(),
+//         TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3239,7 +3247,7 @@ md_data_raw.push_back
       ( NAME("opt_prop_sptFromMonoData"),
         DESCRIPTION
         (
-         "Calculates opticle properties for the single particle types.\n"
+         "Calculates optical properties for the single particle types.\n"
          "\n"
          "In this function extinction matrix and absorption vector are \n"
          "calculated in the laboratory frame. "
@@ -3297,12 +3305,11 @@ md_data_raw.push_back
         (
          "Read single scattering data and particle number densities.\n"
          "\n"
-         "The particle number densities *pnd_field_raw* can be generated \n"
-         "without using the ARTS database. In this case it is easier to \n"
-         "generate one file including the data for all particle types \n"
-         "(*pnd_field_raw*) compared to generating one file for each particle type.\n"
-         "It this case it is more handy to us *ParticleTypeAddAll* \n"
-         "instead of *ParticleTypeAdd*.\n"
+         "The WSV *pnd_field_raw* containing particle number densities for all \n"
+         "hydrometeor species can be generated outside ARTS, for example by using\n"
+         "PyARTS. This method needs as input a file containing filenames of \n"
+         "single scattering data and a file containing the corresponding \n"
+         "*pnd_field_raw*.\n"
          "\n"
          "Very important note: \n"
          "The order of the filenames for the scattering data files has to\n"
@@ -3310,14 +3317,16 @@ md_data_raw.push_back
          "including the variable *pnd_field_raw*!\n" 
          "\n"
          "Keywords:\n"
-         "   filenames_scat_data : Array of String including the filenames \n"
-         "                         of th single scattering data files. \n"
-         "   filename_pnd_field :  Filename of the file including \n"
-         "                         *pnd_field_raw*.\n"
+         "   filename_scat_data : File containing an \n" 
+         "                        ArrayOfString of filenames of single scattering data files \n"
+         "                        corresponding the the particle number densities in \n"
+         "                        *pnd_field_raw*.\n"
+         "   filename_pnd_field : File including  the WSV *pnd_field_raw*.\n"
          "\n"
          ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
-        INPUT(atmosphere_dim_, f_grid_),
+        INPUT(atmosphere_dim_, f_grid_, p_grid_, lat_grid_, lon_grid_, 
+              cloudbox_limits_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("filename_scat_data", "filename_pnd_field"),
@@ -3328,21 +3337,20 @@ md_data_raw.push_back
       ( NAME( "ParticleTypeAdd" ),
         DESCRIPTION
         (
-         "This method reads single scattering data and particle number\n"
-         "density fields from a database. \n"
+         "This method reads single scattering data and the corresonding\n"
+         "particle number density fields. \n"
          "\n"
-         "The method allows the user to chose hydro-meteor species and \n"
-         "particle \n"
-         "number density fields. The methods reads from the chosen files \n"
+         "The methods reads the  specified files \n"
          "and appends the variables *scat_data_raw* and *pnd_field_raw*. \n"
          "\n"
          "Keywords:\n"
-         "   filename_scat_data : Filenames of single scattering data \n"
-         "   filename_pnd_field :  Filename of the corresponding pnd_field\n"
+         "   filename_scat_data : Filename of single scattering data \n"
+         "   filename_pnd_field : Filename of the corresponding pnd_field \n"
          "\n"
          ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
-        INPUT(atmosphere_dim_, f_grid_),
+        INPUT(atmosphere_dim_, f_grid_, p_grid_, lat_grid_, lon_grid_, 
+              cloudbox_limits_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("filename_scat_data", "filename_pnd_field"),

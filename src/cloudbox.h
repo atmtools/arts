@@ -34,15 +34,38 @@
 #include "array.h"
 #include "gridded_fields.h"
 
+void chk_if_pnd_zero_p(
+                       const Index& i_p,
+                       const GriddedField3& pnd_field_raw,
+                       const String& pnd_field_file);
+
+void chk_if_pnd_zero_lat(
+                       const Index& i_lat,
+                       const GriddedField3& pnd_field_raw,
+                       const String& pnd_field_file);
+
+void chk_if_pnd_zero_lon(
+                       const Index& i_lon,
+                       const GriddedField3& pnd_field_raw,
+                       const String& pnd_field_file);
+
 void chk_pnd_data(
                   const GriddedField3& pnd_field_raw,
                   const String& pnd_field_file,
-                  const Index& atmosphere_dim);
+                  const Index& atmosphere_dim,
+                  ConstVectorView p_grid,
+                  ConstVectorView lat_grid,
+                  ConstVectorView lon_grid,
+                  const ArrayOfIndex& cloudbox_limits);
 
 void chk_pnd_raw_data(
                       const ArrayOfGriddedField3& pnd_field_raw,
                       const String& pnd_field_file,
-                      const Index& atmosphere_dim);
+                      const Index& atmosphere_dim,
+                      ConstVectorView p_grid,
+                      ConstVectorView lat_grid,
+                      ConstVectorView lon_grid,
+                      const ArrayOfIndex& cloudbox_limits);
 
 void chk_single_scattering_data(
                                 const SingleScatteringData& scat_data_raw,
