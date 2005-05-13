@@ -1,3 +1,22 @@
+2005-05-13  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-954
+	
+	Splitted the function (cloud_ppath_update1D), because it was 
+	getting too complex. 
+	
+	* src/scat_rte.{cc,h} (cloud_RT_no_background): Radiative transfer
+	without background (inside cloudbox). 
+
+	(cloud_RT_surface): Dummy function for the surface part.
+	Copied the commented surface part from *cloud_ppath_update1D* to 
+	this function. 
+	Sreerekha: You can put everything related to the surface into this
+	function. 
+	
+	(cloud_ppath_update1D),(cloud_ppath_update1D_noseq) 
+	Included new functions here. 
+
 2005-05-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-953

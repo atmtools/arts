@@ -217,6 +217,38 @@ void cloud_ppath_update3D(
                           const Index& scat_za_interp
                          );
 
+void cloud_RT_no_background(//Output
+                            Tensor6View doit_i_field,
+                            VectorView stokes_vec,
+                            //Communication variables for 
+                            //scalar_gas_abs_agenda:
+                            Numeric& rte_pressure,
+                            Numeric& rte_temperature,
+                            Vector& rte_vmr_list,
+                            // opt_prop_xxx_agenda:
+                            Tensor3& ext_mat,
+                            Matrix& abs_vec,  
+                            // Input
+                            const Agenda& scalar_gas_absorption_agenda,
+                            const Agenda& opt_prop_gas_agenda,
+                            const Ppath& ppath_step, 
+                            ConstVectorView t_int,
+                            ConstMatrixView vmr_list_int,
+                            ConstTensor3View ext_mat_int,
+                            ConstMatrixView abs_vec_int,
+                            ConstMatrixView sca_vec_int,
+                            ConstVectorView p_int,
+                            const ArrayOfIndex& cloudbox_limits,
+                            ConstVectorView f_grid,
+                            const Index& f_index,
+                            const Index& p_index,
+                            const Index& scat_za_index);
+
+void cloud_RT_surface(//Input
+                      const Agenda& iy_surface_agenda, 
+                      const Ppath& ppath_step, 
+                      const Index& atmosphere_dim);
+
 
 void ppath_step_in_cloudbox(Ppath& ppath_step,
                             const Agenda& ppath_step_agenda,
@@ -243,5 +275,6 @@ void za_gridOpt(//Output:
                 ConstTensor6View i_field,
                 const Numeric& acc,
                 const Index& scat_za_interp);
+
 
 #endif //scatrte_h
