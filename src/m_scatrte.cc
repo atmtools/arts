@@ -2631,7 +2631,7 @@ void ScatteringDoit(
   
   // Check whether DoitInit was executed
   extern const map<String, Index> WsvMap;
-  extern WorkSpace workspace;
+  extern Workspace workspace;
   
   map<String, Index>::const_iterator mi =
     WsvMap.find( "scat_p_index" );

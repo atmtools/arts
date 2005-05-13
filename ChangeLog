@@ -1,3 +1,11 @@
+2005-05-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-953
+	
+	* src/m_scatrte.cc:
+
+	Fix broken build. Replay my change from arts-1-1-948.
+
 2005-05-12  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-952
@@ -79,7 +87,7 @@
 
 2005-05-11  Oliver Lemke  <olemke@core-dump.info>
 
-	*  arts-1-1-948
+	* arts-1-1-948
 
 	* Merged changes from WORKSPACE_REWORK_BRANCH back to HEAD.
 
