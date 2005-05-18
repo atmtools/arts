@@ -1,3 +1,14 @@
+2005-05-18  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-955
+
+	* src/m_atmosphere.cc (surfaceCalc): Results were completely wrong. 
+	Sent local variable to iy_calc, instead of *iy* which (obviously) 
+	does not work.
+
+	* src/cloudbox.cc (chk_pnd_data): The index for cloudbox_limits were
+	wrong for lat and lon checks.
+
 2005-05-13  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-954

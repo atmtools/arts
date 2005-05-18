@@ -809,9 +809,8 @@ void surfaceCalc(
 
 
   // Variables to hold downvelling radiation
-  Matrix    itmp( nf, stokes_dim );
   Tensor3   I( nlos, nf, stokes_dim );
-
+ 
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if( nlos > 0 )
     {
@@ -824,7 +823,7 @@ void surfaceCalc(
         {
           // Calculate downwelling radiation for LOS ilos 
           const Index   agenda_verb = 0;
-          iy_calc( itmp, ppath, ppath_step, rte_pos, 
+          iy_calc( iy, ppath, ppath_step, rte_pos, 
                    rte_gp_p, rte_gp_lat,
                    rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
@@ -833,7 +832,7 @@ void surfaceCalc(
                    rte_pos, surface_los(ilos,joker),
                    f_grid, stokes_dim, agenda_verb );
 
-          I(ilos,joker,joker) = itmp;
+          I(ilos,joker,joker) = iy;
         }
 
       // Copy data back to *ppath*.

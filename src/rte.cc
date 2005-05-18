@@ -505,6 +505,12 @@ void surface_calc(
   const Index   nlos       = surface_los.nrows();
 
   iy = surface_emission;
+  
+  /*
+  cout << surface_emission << "\n";
+  cout << iy << "\n";
+  cout << I << "\n";
+  */
 
   // Loop *surface_los*-es. If no such LOS, we are ready.
   if( nlos > 0 )
