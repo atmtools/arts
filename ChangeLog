@@ -1,3 +1,11 @@
+2005-05-19  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-178
+	
+	* misc/: The directory formerly known as aux.
+
+	* misc/part_fct/partition_function.pro: Updates from axel.
+
 2005-05-02  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-1-0-177

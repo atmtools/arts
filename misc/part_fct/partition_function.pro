@@ -1,5 +1,5 @@
 ;
-; $Id: partition_function.pro,v 1.9.2.2 2004/05/26 10:44:59 axel Exp $
+; $Id: partition_function.pro,v 1.9.2.3 2005/05/19 09:59:40 olemke Exp $
 ;
 Function read_carmens_Q_file,carmens_hitran_file,spe,t_arr,Q_temp_hit
 ;; reads a new tips profile partition function output file, which was
@@ -596,12 +596,12 @@ plot,t_arr[ind],part_fct[0,ind],title=title, $
 for i=1,data_def-1 do oplot,t_arr[ind],part_fct[i,ind],linestyle=i
         
 ;; make a simple legend
-arr1=indgen(data_def) - indgen(data_def)
+arr1=intarr(data_def)
 arr2=indgen(data_def)
 legend,leg_str,$
-  arr1,arr2,arr1,$
-  !x.crange(1)-(!x.crange(1)-!x.crange(0))/1.2, $
-  !y.crange(1)-!y.crange(1)/7, (abs(!y.crange(1)) + abs(!y.crange(0)))/15
+  lines=arr2,$
+  position=[!x.crange(1)-(!x.crange(1)-!x.crange(0))/1.2, $
+  !y.crange(1)-!y.crange(1)/7, (abs(!y.crange(1)) + abs(!y.crange(0)))/15]
 end
 
 
@@ -1290,7 +1290,6 @@ for ii=0,n_elements(loop_index)-1 do begin
 
     endif
     
-
     if not keyword_set(make_arts_entry) then begin
     
         ;; store all partition functions in this array, we generally
@@ -1408,9 +1407,9 @@ for ii=0,n_elements(loop_index)-1 do begin
                 legend,['(JPL - HITRAN)/JPL','(JPL - JPL!dpoly!n)/JPL',$
                         '(JPL!dpoly!n-HITRAN)/JPL!dpoly!n','(JPL - HITRAN!dSIDF in!n)/JPL',$
                         '(JPL - JPL!dpoly full fit!n)/JPL'],$
-                  [0,0,0,0,0],[0,1,2,3,4],[0,0,0,0,0],$
-                  !x.crange(1)-(!x.crange(1)-!x.crange(0))/1.2, $
-                  !y.crange(1)-!y.crange(1)/7, (abs(!y.crange(1)) + abs(!y.crange(0)))/15
+                  lines=[0,1,2,3,4],$
+                  position=[!x.crange(1)-(!x.crange(1)-!x.crange(0))/1.2, $
+                  !y.crange(1)-!y.crange(1)/7, (abs(!y.crange(1)) + abs(!y.crange(0)))/15]
                 
                 ;; compare ratio of Q at 300 K to Q at other values
                 plot,t_arr,( (Q_temp_jpl[ind300[0]]/Q_temp_jpl) - $
@@ -1430,9 +1429,9 @@ for ii=0,n_elements(loop_index)-1 do begin
                 ;; make a simple legend
                 legend,['1: JPL, 2: HITRAN','1: JPL, 2: JPL poly 70-500K',$
                         '1: JPL, 2: JPL poly 150-300K'],$
-                  [0,0,0],[0,1,2],[0,0,0],$
-                  !x.crange(1)-(!x.crange(1)-!x.crange(0))/1.2, $
-                  !y.crange(1)-!y.crange(1)/7, (abs(!y.crange(1)) + abs(!y.crange(0)))/15
+                  lines=[0,1,2],$
+                  position=[!x.crange(1)-(!x.crange(1)-!x.crange(0))/1.2, $
+                  !y.crange(1)-!y.crange(1)/7, (abs(!y.crange(1)) + abs(!y.crange(0)))/15]
                 
                 
                 !P.multi=0
@@ -1457,9 +1456,9 @@ for ii=0,n_elements(loop_index)-1 do begin
                     ;; make a simple legend
                     legend,['1: JPL, 2: JPL poly 70-500K',$
                             '1: JPL, 2: JPL poly 150-300K'],$
-                      [0,0],[0,1],[0,0],$
-                      !x.crange(1)-(!x.crange(1)-!x.crange(0))/1.2, $
-                      !y.crange(1)-!y.crange(1)/7, (abs(!y.crange(1)) + abs(!y.crange(0)))/15
+                      lines=[0,1],$
+                      position=[!x.crange(1)-(!x.crange(1)-!x.crange(0))/1.2, $
+                      !y.crange(1)-!y.crange(1)/7, (abs(!y.crange(1)) + abs(!y.crange(0)))/15]
                     
                     
                 endif else begin
