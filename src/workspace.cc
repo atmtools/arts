@@ -779,14 +779,43 @@ void define_wsv_data()
        "\n"
        "This is a local copy of the global f_grid. The copy is necessary,\n"
        "because in cases with cutoff we have to add the cutoff frequency to\n"
-       "the frequency grid, so that we can subtract the lineshape value at the\n"
-       "cutoff. \n"
+       "the frequency grid, so that we can subtract the lineshape value at\n"
+       "the cutoff. \n"
        "\n"
        "Usage: Agenda input, set automatically by calling method.\n"
        "\n"
        "Unit: Hz"
        ),
       GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "emission" ),
+      DESCRIPTION
+      (
+       "Thermal emission source term.\n"
+       "\n"
+       "This variable holds the emission at one position along\n"
+       "the propagation path. This source term is used for calculations\n"
+       "inside *rte_agenda*. Inside scattering methods, such as DOIT,\n"
+       "the calculation of the source term can be hard coded.\n"
+       "\n"
+       "Usage:      Set by *emission_agenda.\n"
+       "\n"
+       "Unit:       W / (m^2 Hz sr) or optical thickness \n"
+       "\n"
+       "Dimensions: [ f_grid ]"
+       ),
+      GROUP( Vector_ )));
+
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "emission_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc."
+        ),
+       GROUP(  Agenda_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -857,6 +886,19 @@ wsv_data.push_back
        "Dimensions: [part_types, stokes_dim, stokes_dim]"
        ),
       GROUP( Tensor3_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "file_index" ),
+       DESCRIPTION
+       (
+        "Index number for files.\n"
+        "\n"
+        "See *WriteXMLIndexed* for further information.\n"
+        "\n"
+        "Usage:   Input to *WriteXMLIndexed* and *ReadXMLIndexed*. "
+        ),
+        GROUP( Index_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1008,7 +1050,7 @@ wsv_data.push_back
        "\n"
        "Usage:      Used by radiative transfer methods.\n"
        "\n"
-       "Unit:       W / (m^2 Hz sr) or optical thickness \n"
+       "Unit:       W / (m^2 Hz sr) or transmission.\n"
        "\n"
        "Dimensions: [ f_grid, stokes_dim ]"
        ),
@@ -1039,8 +1081,8 @@ wsv_data.push_back
        (
         "See agendas.cc."
         ),
-       GROUP(  Agenda_ )));
-  
+       GROUP(  Agenda_ )));  
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "i_space" ),
@@ -1053,7 +1095,7 @@ wsv_data.push_back
        "background radiation, but could also be radiation from the sun or \n"
        "a transmitting satellite.\n"
        "\n"
-       "Usage:      Output from *i_space_agenda*.\n"
+       "Usage:      Input to *iy_space_agenda*.\n"
        "\n"
        "Unit:       W / (m^2 Hz sr) \n"
        "\n"
@@ -1876,7 +1918,18 @@ wsv_data.push_back
        ),
       GROUP( Index_ )));
 
-wsv_data.push_back
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_p" ),
+      DESCRIPTION
+      (
+       "Pressure at each point of propagation path.\n"
+       "\n"
+       "Usage:  Set whenever a clear sky spectrum is calculated."
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "ppath_step" ),
       DESCRIPTION
@@ -1905,6 +1958,47 @@ wsv_data.push_back
         "See agendas.cc."
        ),
       GROUP( Agenda_ )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_t" ),
+      DESCRIPTION
+      (
+       "Temperature at each point of propagation path.\n"
+       "\n"
+       "Usage:  Set whenever a clear sky spectrum is calculated."
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_transmissions" ),
+      DESCRIPTION
+      (
+       "Transmission matrices for each ppath step.\n"
+       "\n"
+       "This variable holds the transmission matrix for each propagation\n"
+       "path step. Firts index corresponds to the path step closest to the\n"
+       "sensor.\n"
+       "\n"
+       "Usage:      Output from *rte_agenda*.\n"
+       "\n"
+       "Dimensions: [ ppath.np-1, f_grid, stokes_dim, stokes_dim ]"
+       ),
+      GROUP( Tensor4_ )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_vmr" ),
+      DESCRIPTION
+      (
+       "VMR values at each point of propagation path.\n"
+       "\n"
+       "Usage:  Set whenever a clear sky spectrum is calculated."
+       "\n"
+       "Dimensions: [ vmr_field.npages, ppath.np ]"
+       ),
+      GROUP( Matrix_ )));
 
    wsv_data.push_back
    (WsvRecord

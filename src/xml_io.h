@@ -47,6 +47,12 @@ void
 filename_xml (String&  filename,
               const String&  varname);
 
+void
+filename_xml_with_index (
+                    String&  filename,
+              const Index&   file_index,
+              const String&  varname );
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   Generic IO routines for XML files

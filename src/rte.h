@@ -56,6 +56,9 @@ void iy_calc(
               Matrix&         iy,
               Ppath&          ppath,
               Ppath&          ppath_step,
+              Vector&         ppath_p,
+              Vector&         ppath_t,
+              Matrix&         ppath_vmr,
               Vector&         rte_pos,
               GridPos&        rte_gp_p,
               GridPos&        rte_gp_lat,
@@ -71,6 +74,8 @@ void iy_calc(
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
+        const Tensor3&        t_field,
+        const Tensor4&        vmr_field,
         const Matrix&         r_geoid,
         const Matrix&         z_surface,
         const Index&          cloudbox_on, 
@@ -84,12 +89,35 @@ void iy_calc(
 void rte_step_std(
          //Output and Input:
          VectorView stokes_vec,
+         MatrixView trans_mat,
          //Input
          ConstMatrixView ext_mat_av,
          ConstVectorView abs_vec_av,
          ConstVectorView sca_vec_av, 
          const Numeric& l_step,
          const Numeric& rte_planck_value );
+
+void rte_std(
+             Matrix&    iy,
+             Vector&    emission,
+             Matrix&    abs_vec,
+             Tensor3&   ext_mat,
+             Numeric&   rte_pressure,
+             Numeric&   rte_temperature,
+             Vector&    rte_vmr_list,
+             Index&     f_index,
+             Index&     ppath_index,
+             Tensor4&   ppath_transmissions,
+       const Ppath&     ppath,
+       const Vector&    ppath_p,
+       const Vector&    ppath_t,
+       const Matrix&    ppath_vmr,
+       const Vector&    f_grid,
+       const Index&     stokes_dim,
+       const Agenda&    emission_agenda,
+       const Agenda&    scalar_gas_absorption_agenda,
+       const Agenda&    opt_prop_gas_agenda,
+       const bool&      do_transmissions );
 
 void surface_calc(
               Matrix&         iy,

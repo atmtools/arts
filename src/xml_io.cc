@@ -359,6 +359,39 @@ filename_xml (String&  filename,
 
 
 
+//! Gives the default filename, with file index, for the XML formats.
+/*!
+  The default name is only used if the filename is empty.
+
+  \param filename filename
+  \param varname variable name
+*/
+void
+filename_xml_with_index (
+                    String&  filename,
+              const Index&   file_index,
+              const String&  varname )
+{
+  Index dummy = file_index;
+  dummy += 1;
+
+  if ("" == filename)
+    {
+      extern const String out_basename;
+      ostringstream os;
+      os << out_basename << "." << varname << "." << file_index << ".xml";
+      filename = os.str();
+    }
+  else
+    {
+      ostringstream os;
+      os << filename << "." << file_index << ".xml";
+      filename = os.str();
+    }
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Functions to open and read XML files
 ////////////////////////////////////////////////////////////////////////////

@@ -70,6 +70,10 @@ AgendaSet( scalar_gas_absorption_agenda ){
 
 AtmFieldsCalc{}
 
+AgendaSet( emission_agenda ){
+   emissionPlanck{}
+}
+
 AgendaSet( opt_prop_gas_agenda ){
    ext_matInit{}
    abs_vecInit{}
@@ -156,7 +160,7 @@ AgendaSet( iy_space_agenda ){
 }
 
 AgendaSet( rte_agenda ){
-   RteEmissionStd{}
+   RteStd{}
 }
 
 cloudboxSetManually{

@@ -69,6 +69,9 @@ void RteCalc(
               Vector&         y,
               Ppath&          ppath,
               Ppath&          ppath_step,
+              Vector&         ppath_p,
+              Vector&         ppath_t,
+              Matrix&         ppath_vmr,
               Matrix&         iy,
               Vector&         rte_pos,
               GridPos&        rte_gp_p,
@@ -85,6 +88,8 @@ void RteCalc(
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
+        const Tensor3&        t_field,
+        const Tensor4&        vmr_field,
         const Matrix&         r_geoid,
         const Matrix&         z_surface,
         const Index&          cloudbox_on, 
@@ -273,11 +278,12 @@ void RteCalc(
                 { los[1] += mblock_aa_grid[iaa]; }
 
               // Calculate *iy*
-              iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
-                 rte_gp_lon, rte_los, 
+              iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+                 rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los, 
                  ppath_step_agenda, rte_agenda, iy_space_agenda, 
                  iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, 
-                 p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+                 p_grid, lat_grid, lon_grid, z_field, t_field, vmr_field,
+                 r_geoid, z_surface, 
                  cloudbox_on,  cloudbox_limits, sensor_pos(mblock_index,joker),
                  los, f_grid, stokes_dim, ag_verb );
 
@@ -300,16 +306,17 @@ void RteCalc(
 
 
 
-//! RteEmissionStd
+//! RteStd
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Claudia Emde and Patrick Eriksson
    \date   2003-01-07
 */
-void RteEmissionStd(
+void RteStd(
       // WS Output:
              Matrix&    iy,
+             Vector&    emission,
              Matrix&    abs_vec,
              Tensor3&   ext_mat,
              Numeric&   rte_pressure,
@@ -319,107 +326,61 @@ void RteEmissionStd(
              Index&     ppath_index,
        // WS Input:
        const Ppath&     ppath,
+       const Vector&    ppath_p,
+       const Vector&    ppath_t,
+       const Matrix&    ppath_vmr,
        const Vector&    f_grid,
        const Index&     stokes_dim,
-       const Index&     atmosphere_dim,
-       const Vector&    p_grid,
-       const Vector&    lat_grid,
-       const Vector&    lon_grid,
-       const Tensor3&   t_field,
-       const Tensor4&   vmr_field,
+       const Agenda&    emission_agenda,
        const Agenda&    scalar_gas_absorption_agenda,
        const Agenda&    opt_prop_gas_agenda )
 {
-  // Relevant checks are assumed to be done in RteCalc
+  Tensor4 dummy(0,0,0,0);
 
-  // Some sizes
-  const Index   nf = f_grid.nelem();
-  const Index   np = ppath.np;
-  const Index   ns = vmr_field.nbooks();    // Number of species
-  
-  // If the number of propagation path points is 0 or 1, we are already ready,
-  // the observed spectrum equals then the radiative background.
-  if( np > 1 )
-    {
-      // Determine the pressure at each propagation path point
-      Vector   p_ppath(np);
-      Matrix   itw_p(np,2);
-      //
-      interpweights( itw_p, ppath.gp_p );      
-      itw2p( p_ppath, p_grid, ppath.gp_p, itw_p );
+  rte_std( iy, emission, abs_vec, ext_mat, rte_pressure, rte_temperature, 
+           rte_vmr_list, f_index, ppath_index, dummy, 
+           ppath, ppath_p, ppath_t, ppath_vmr, f_grid, stokes_dim, 
+           emission_agenda, scalar_gas_absorption_agenda, opt_prop_gas_agenda,
+           false );
+}
 
-      // Log of pressure
-      Vector   logp_ppath(np);
-      transform( logp_ppath, log, p_ppath  );
 
-      // Determine the atmospheric temperature and species VMR at 
-      // each propagation path point
-      Vector   t_ppath(np);
-      Matrix   vmr_ppath(ns,np), itw_field;
-      rte_vmr_list.resize(ns);
-      //
-      interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
-                            lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
-      //
-      interp_atmfield_by_itw( t_ppath,  atmosphere_dim, p_grid, lat_grid, 
-                              lon_grid, t_field, "t_field", ppath.gp_p, 
-                              ppath.gp_lat, ppath.gp_lon, itw_field );
-      // 
-      for( Index is=0; is<ns; is++ )
-        {
-          interp_atmfield_by_itw( vmr_ppath(is, joker), atmosphere_dim,
-            p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
-            "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-        }
 
-      // Variables for extinction matrix and absorption vector at each 
-      // propagation path point.
-      ArrayOfTensor3   ext_mat_ppath(np);
-      ArrayOfMatrix    abs_vec_ppath(np);
+//! RteStdWithTransmissions
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
 
-      // If f_index < 0, scalar gas absorption is calculated for 
-      // all frequencies in f_grid.
-      f_index = -1;
-      
-      // Loop the propagation path steps
-      //
-      // The number of path steps is np-1.
-      // The path points are stored in such way that index 0 corresponds to
-      // the point closest to the sensor.
-
-      // Dummy vector for scattering integral. It has to be 
-      // set to 0 for clear sky calculations.
-      Vector sca_vec_dummy(stokes_dim, 0.);
-              
-      for( Index ip=np-1; ip>0; ip-- )
-        {
-          // Calculate mean of atmospheric parameters
-          rte_pressure    = exp( 0.5 * ( logp_ppath[ip] + logp_ppath[ip-1] ) );
-          rte_temperature = 0.5*(t_ppath[ip] + t_ppath[ip-1]);
-          for( Index is = 0; is < ns; is ++)
-            { rte_vmr_list[is] = 0.5*(vmr_ppath(is,ip) + vmr_ppath(is, ip-1));}
-          
-          // The absO2ZeemanModel needs the position in the propagation
-          // path. 
-          ppath_index = ip;
-          
-          scalar_gas_absorption_agenda.execute( ip );
-
-          opt_prop_gas_agenda.execute( ip ); 
-
-          for( Index iv=0; iv<nf; iv++ )
-            {
-              // Calculate an effective blackbody radiation for the step
-              // The mean of the temperature at the end points is used.
-              Numeric planck_value = planck( f_grid[iv], rte_temperature);
-                  
-              // Perform the RTE step.
-              rte_step_std( iy(iv,joker), ext_mat(iv,joker,joker), 
-                            abs_vec(iv,joker), sca_vec_dummy, 
-                            ppath.l_step[ip-1], planck_value );
-            }
-        }
-    }
+   \author Patrick Eriksson
+   \date   2005-05-19
+*/
+void RteStdWithTransmissions(
+      // WS Output:
+             Matrix&    iy,
+             Vector&    emission,
+             Matrix&    abs_vec,
+             Tensor3&   ext_mat,
+             Numeric&   rte_pressure,
+             Numeric&   rte_temperature,
+             Vector&    rte_vmr_list,
+             Index&     f_index,
+             Index&     ppath_index,
+             Tensor4&   ppath_transmissions,
+       // WS Input:
+       const Ppath&     ppath,
+       const Vector&    ppath_p,
+       const Vector&    ppath_t,
+       const Matrix&    ppath_vmr,
+       const Vector&    f_grid,
+       const Index&     stokes_dim,
+       const Agenda&    emission_agenda,
+       const Agenda&    scalar_gas_absorption_agenda,
+       const Agenda&    opt_prop_gas_agenda )
+{
+  rte_std( iy, emission, abs_vec, ext_mat, rte_pressure, rte_temperature, 
+           rte_vmr_list, f_index, ppath_index, ppath_transmissions, 
+           ppath, ppath_p, ppath_t, ppath_vmr, f_grid, stokes_dim, 
+           emission_agenda, scalar_gas_absorption_agenda, opt_prop_gas_agenda,
+           true );
 }
 
 

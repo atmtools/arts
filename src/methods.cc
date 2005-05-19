@@ -943,14 +943,15 @@ void define_md_data_raw()
          "conditions when scattering inside the cloud box is solved by the\n"
          "DOIT method."
          ),
-        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
+        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, 
+                ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_,
                 rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
-               f_grid_, stokes_dim_, scat_za_grid_, scat_aa_grid_ ),
- 
+               t_field_, vmr_field_, r_geoid_, z_surface_, cloudbox_on_, 
+               cloudbox_limits_, f_grid_, stokes_dim_, 
+               scat_za_grid_, scat_aa_grid_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -971,13 +972,14 @@ void define_md_data_raw()
          "This method can only be used for 3D cases."
          ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
+                ppath_p_, ppath_t_, ppath_vmr_,                
                 rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
-               f_grid_, stokes_dim_, scat_za_grid_, scat_aa_grid_ ),
- 
+               t_field_, vmr_field_, r_geoid_, z_surface_, cloudbox_on_, 
+               cloudbox_limits_, f_grid_, stokes_dim_, 
+               scat_za_grid_, scat_aa_grid_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -1799,6 +1801,31 @@ md_data_raw.push_back
  
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("DoNothing"),
+        DESCRIPTION
+        (
+         "As *Ignore* but for agenda output..\n"
+         "\n"
+         "This method is handy for use in agendas in order to suppress\n"
+         "warnings about unused output workspace variables. What it does is:\n"
+         "Nothing!\n"
+         "\n"
+         "See further *Ignore*.\n"
+         "\n"
+         "Supergeneric output:\n"
+         "   Any_ : The input variable."
+         ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Any_ ),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES(),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("elsDoppler"),
         DESCRIPTION
         (
@@ -1911,6 +1938,23 @@ md_data_raw.push_back
         ),
         OUTPUT( els_ ),
         INPUT(  ls_sigma_, ls_gamma_, els_f_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("emissionPlanck"),
+        DESCRIPTION
+        (
+         "Emission source term for LTE.\n"
+         "\n"
+         "Sets *emission* for cases when emission is considered and local\n"
+         "thermodynamic equilibrium is valid."
+        ),
+        OUTPUT( emission_ ),
+        INPUT( f_grid_, rte_temperature_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -2234,8 +2278,6 @@ md_data_raw.push_back
         KEYWORDS( "fwhm", "tot_width", "max_spacing" ),
         TYPES( Numeric_t, Numeric_t, Numeric_t )));
 
- 
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME("Ignore"),
@@ -2292,6 +2334,20 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value" ),
         TYPES(     Index_t   )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("IndexStep"),
+        DESCRIPTION
+        (
+         "Adds 1 to an index WSV.\n"
+        ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( Index_ ),
+        GINPUT( ),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -2408,6 +2464,20 @@ md_data_raw.push_back
         GINPUT( Vector_, Vector_, Vector_ ),
         KEYWORDS( "species", "method", "unit", "dx" ),
         TYPES( String_t, String_t, String_t, Numeric_t )));
+         
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianAddGasAnalytical" ),
+        DESCRIPTION
+        (
+         "As *jacobianAddGas* but assumes analytical calculations."
+        ),
+        OUTPUT( jacobian_quantities_, jacobian_agenda_, gas_species_ ),
+        INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
+        GOUTPUT(),
+        GINPUT( Vector_, Vector_, Vector_ ),
+        KEYWORDS( "species", "unit" ),
+        TYPES( String_t, String_t )));
          
   md_data_raw.push_back
     ( MdRecord
@@ -2537,12 +2607,14 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddGas\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, iy_, rte_pos_,
-                rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, ppath_p_, 
+                ppath_t_, ppath_vmr_, iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, 
+                rte_gp_lon_, rte_los_ ),
         INPUT( jacobian_quantities_, gas_species_, ppath_step_agenda_, 
                rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
                iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_on_, 
+               lon_grid_, z_field_, t_field_, 
+               r_geoid_, z_surface_, cloudbox_on_, 
                cloudbox_limits_, sensor_response_, sensor_pos_, sensor_los_, 
                f_grid_, stokes_dim_, antenna_dim_, mblock_za_grid_, 
                mblock_aa_grid_ ),
@@ -2562,14 +2634,15 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, pnd_field_, y_, ppath_, ppath_step_, iy_, rte_pos_,
-                rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( jacobian_, pnd_field_, y_, ppath_, ppath_step_, ppath_p_, 
+                ppath_t_, ppath_vmr_, iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, 
+                rte_gp_lon_, rte_los_ ),
         INPUT( jacobian_quantities_, pnd_field_perturb_, 
                jacobian_particle_update_agenda_,
                ppath_step_agenda_, rte_agenda_, iy_space_agenda_, 
                iy_surface_agenda_, iy_cloudbox_agenda_, atmosphere_dim_, 
-               p_grid_, lat_grid_, lon_grid_, z_field_, r_geoid_, 
-               z_surface_, cloudbox_on_, cloudbox_limits_, 
+               p_grid_, lat_grid_, lon_grid_, z_field_, t_field_, vmr_field_,
+               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
                sensor_response_, sensor_pos_, sensor_los_, f_grid_, 
                stokes_dim_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         GOUTPUT(),
@@ -2587,12 +2660,14 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, y_, ppath_, ppath_step_, iy_, rte_pos_, rte_gp_p_,
+        OUTPUT( jacobian_, y_, ppath_, ppath_step_, ppath_p_, ppath_t_, 
+                ppath_vmr_, iy_, rte_pos_, rte_gp_p_,
                 rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( jacobian_quantities_, sensor_time_, ppath_step_agenda_, 
                rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
                iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_on_, 
+               lon_grid_, z_field_, t_field_, vmr_field_,
+               r_geoid_, z_surface_, cloudbox_on_, 
                cloudbox_limits_, sensor_response_, sensor_pos_, sensor_los_, 
                f_grid_, stokes_dim_, antenna_dim_, mblock_za_grid_, 
                mblock_aa_grid_ ),
@@ -2611,12 +2686,14 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, t_field_, y_, ppath_, ppath_step_, iy_, rte_pos_, 
-                rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( jacobian_, t_field_, y_, ppath_, ppath_step_, ppath_p_, 
+                ppath_t_, ppath_vmr_, iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, 
+                rte_gp_lon_, rte_los_ ),
         INPUT( jacobian_quantities_, ppath_step_agenda_, rte_agenda_, 
                iy_space_agenda_, iy_surface_agenda_, iy_cloudbox_agenda_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
+               vmr_field_, r_geoid_, z_surface_, 
+               cloudbox_on_, cloudbox_limits_, 
                sensor_response_, sensor_pos_, sensor_los_, f_grid_, 
                stokes_dim_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         GOUTPUT(),
@@ -2757,7 +2834,7 @@ md_data_raw.push_back
          "temperature given by the global constant COSMIC_BG_TEMP, set in \n"
          "the file constants.cc. The frequencies are taken from the generic \n"
          "input vector:\n"
-         "   MatrixCBR(i_space,f_grid){} \n"
+         "   MatrixCBR(iy_space,f_grid){} \n"
          "\n"
          "Generic output: \n"
          "   Matrix : Matrix with cosmic background radiation. \n"
@@ -2918,7 +2995,7 @@ md_data_raw.push_back
          "Sets a matrix to hold blackbody radiation.\n"
          "\n"
          "Generic output: \n"
-         "   Matrix : Matrix with balckbody radiation. \n"
+         "   Matrix : Matrix with blackbody radiation. \n"
          "\n"
          "Generic input: \n"
          "   Vector  : A set of frequencies. \n"
@@ -3029,6 +3106,26 @@ md_data_raw.push_back
                sensor_response_pol_ ),
         GOUTPUT( Matrix_ ),
         GINPUT( Matrix_ ),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("MatrixUnitIntensity"),
+        DESCRIPTION
+        (
+         "Sets a matrix to hold unpolarised radiation with unit intensity.\n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix : Matrix with unit radiation. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector  : A set of frequencies. "
+        ),
+        OUTPUT(),
+        INPUT( stokes_dim_ ),
+        GOUTPUT( Matrix_ ),
+        GINPUT( Vector_ ),
         KEYWORDS(),
         TYPES()));
 
@@ -3788,14 +3885,14 @@ md_data_raw.push_back
          "\n"
          "See further the user guide."
         ),
-        OUTPUT( y_, ppath_, ppath_step_, iy_, rte_pos_, rte_gp_p_, 
-                rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( y_, ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_,
+                iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
-               sensor_response_, sensor_pos_, sensor_los_, 
-               f_grid_, stokes_dim_, 
+               t_field_, vmr_field_, r_geoid_, z_surface_, 
+               cloudbox_on_, cloudbox_limits_, sensor_response_, sensor_pos_, 
+               sensor_los_, f_grid_, stokes_dim_, 
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         GOUTPUT(),
         GINPUT(),
@@ -3804,30 +3901,47 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "RteEmissionStd" ),
+      ( NAME( "RteStd" ),
         DESCRIPTION
         (
-         "Standard RTE function with emission.\n"
+         "Standard RTE function.\n"
          "\n"
          "This function does a clearsky radiative transfer calculation for\n"
          "a given propagation path. Designed to be part of *rte_agenda*.\n"
          "\n"
-         "Gaseous emission and absorption is calculated for each propagation\n"
-         "path point using the agenda *gas_absorption_agenda*. \n"
-         "Absorption vector and extinction matrix are created using \n" 
-         "*opt_prop_part_agenda*.\n"
-         "Absorption and extinction variables are averaged between two\n" 
-         "successive propagation path points. The same applies to the\n"
-         "Planck function values.\n"
+         "The overall strategy is to average basic atmospheric quantities\n"
+         "(such as temperature) between the end points of each step of \n"
+         "the propagation path, and to calculate source term and absorption\n"
+         "for these averaged values.\n" 
          "\n"
          "See further the user guide."
         ),
-        OUTPUT( iy_, abs_vec_, ext_mat_, rte_pressure_, rte_temperature_,
-                rte_vmr_list_, f_index_, ppath_index_ ),
-        INPUT( iy_, ppath_, f_grid_, stokes_dim_, 
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_,
-               vmr_field_, scalar_gas_absorption_agenda_, 
-               opt_prop_gas_agenda_),
+        OUTPUT( iy_, emission_, abs_vec_, ext_mat_, rte_pressure_, 
+                rte_temperature_, rte_vmr_list_, f_index_, ppath_index_ ),
+        INPUT( iy_, ppath_, ppath_p_, ppath_t_, ppath_vmr_, f_grid_, 
+               stokes_dim_, emission_agenda_, scalar_gas_absorption_agenda_, 
+               opt_prop_gas_agenda_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "RteStdWithTransmissions" ),
+        DESCRIPTION
+        (
+         "As *RteStd*, but also returns path transmissions.\n"
+         "\n"
+         "The transmission to each point of the propagation path is returned\n"
+         "in *iy_aux*."
+        ),
+        OUTPUT( iy_, emission_, abs_vec_, ext_mat_, rte_pressure_, 
+                rte_temperature_, rte_vmr_list_, f_index_, ppath_index_,
+                ppath_transmissions_ ),
+        INPUT( iy_, ppath_, ppath_p_, ppath_t_, ppath_vmr_, f_grid_, 
+               stokes_dim_, emission_agenda_, scalar_gas_absorption_agenda_, 
+               opt_prop_gas_agenda_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -4054,7 +4168,8 @@ md_data_raw.push_back
          "The incoming_lookup keyword determines if incoming radiance is obtained from"
          "a precalculated grid (mc_incoming) or calculated on the fly"
           ),
-        OUTPUT(ppath_, ppath_step_, mc_error_, mc_iteration_count_, 
+        OUTPUT(ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_,
+               mc_error_, mc_iteration_count_, 
                rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, iy_, 
                rte_pressure_, rte_temperature_, 
                rte_vmr_list_, ext_mat_, abs_vec_, f_index_,mc_incoming_),
@@ -4432,13 +4547,14 @@ md_data_raw.push_back
          "\n"
          "See further the user guide."
         ),
-        OUTPUT( iy_, ppath_, ppath_step_, rte_pos_, rte_gp_p_, 
-                rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( iy_, ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_, 
+                rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
-              iy_surface_agenda_, iy_cloudbox_agenda_,
-              atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-              r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, f_grid_, 
-              stokes_dim_, surface_los_, surface_rmatrix_, surface_emission_ ),
+               iy_surface_agenda_, iy_cloudbox_agenda_,
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
+               t_field_, vmr_field_, r_geoid_, z_surface_, 
+               cloudbox_on_, cloudbox_limits_, f_grid_, stokes_dim_, 
+               surface_los_, surface_rmatrix_, surface_emission_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -5216,6 +5332,39 @@ md_data_raw.push_back
          ),
         OUTPUT(),
         INPUT( output_file_format_ ),
+        GOUTPUT( ),
+        GINPUT(  Any_ ),
+        KEYWORDS( "filename" ),
+        TYPES(    String_t   ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("WriteXMLIndexed"),
+        DESCRIPTION
+        (
+         "As *WriteXML*, but creates indexed file names.\n"
+         "\n"
+         "The variable is written to a file with name:\n"
+         "   <filename>.<file_index>.xml.\n"
+         "where <file_index> is the value of *file_index*. This:\n"
+         "  IndexSet(file_index){0} \n"
+         "  IndexStep(file_index){} \n"
+         "  WriteXML(ppath_t){\"ppath_t\"}\n"
+         "will create the file ppath_t.1.xml.\n"
+         "\n"
+         "This means that *filename* shall here not include the .xml\n"
+         "extension. Omitting filename works as for *WriteXML*.\n"
+         "\n"
+         "Supergeneric input:\n"
+         "   Any_     : The variable to write.\n"
+         "\n"
+         "Keywords:\n"
+         "   filename : Name of the output file."
+         ),
+        OUTPUT(),
+        INPUT( output_file_format_, file_index_ ),
         GOUTPUT( ),
         GINPUT(  Any_ ),
         KEYWORDS( "filename" ),

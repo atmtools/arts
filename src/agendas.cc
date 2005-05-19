@@ -257,6 +257,24 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "emission_agenda" ),
+       DESCRIPTION
+       (
+        "Calculates the thermal emission source term.\n"
+        "\n"
+        "This agenda shall return the emission at one position along\n"
+        "the propagation path. This source term is used for calculations\n"
+        "inside *rte_agenda*. Inside scattering methods, such as DOIT,\n"
+        "the calculation of the source term can be hard coded.\n"
+        "\n"
+        "By setting *emission* to zeros and *iy_space* to ones, the\n"
+        "obtained spectrum will be the transmission through the atmosphere."
+        ),
+       OUTPUT( emission_ ),
+       INPUT( )));
+ 
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "geomag_los_calc_agenda" ),
        DESCRIPTION
        (
@@ -611,8 +629,7 @@ void define_agenda_data()
         "along the propagation path and returns the result in *iy*."
         ),
        OUTPUT( iy_ ),
-       INPUT(  iy_, ppath_, atmosphere_dim_, stokes_dim_, f_grid_, p_grid_,
-               lat_grid_, lon_grid_, t_field_, vmr_field_,
+       INPUT(  ppath_, ppath_p_, ppath_t_, ppath_vmr_, stokes_dim_, f_grid_, 
                scalar_gas_absorption_agenda_, opt_prop_gas_agenda_ )));
 
   agenda_data.push_back
@@ -642,7 +659,6 @@ void define_agenda_data()
        INPUT(  f_index_,
                rte_pressure_, rte_temperature_, rte_vmr_list_ )));
   
- 
  agenda_data.push_back
     (AgRecord
      ( NAME( "spt_calc_agenda" ),
@@ -682,7 +698,7 @@ void define_agenda_data()
         "that describe the surface properties. These variables are:\n"
         "   *surface_emission*, *surface_los* and *surface_rmatrix* \n"
         "\n"
-        "A function calling this agenda shall set *rte_p/lat/lon* to\n"
+        "A function calling this agenda shall set *rte_gp_p/lat/lon* to\n"
         "the position of intersection with the surface."
         ),
        OUTPUT( surface_emission_, surface_los_, surface_rmatrix_ ),

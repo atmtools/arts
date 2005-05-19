@@ -1271,8 +1271,8 @@ void cloud_ppath_update3D(
 
           // Radiative transfer step calculation. The Stokes vector
           // is updated until the considered point is reached.
-          rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
-                       abs_vec(0,joker), 
+          rte_step_std(stokes_vec, Matrix(stokes_dim,stokes_dim),
+                       ext_mat(0,joker,joker), abs_vec(0,joker), 
                        sca_vec_av, l_step, rte_planck_value);
 
         }// End of loop over ppath_step. 
@@ -1403,8 +1403,8 @@ void cloud_RT_no_background(//Output
               
       // Radiative transfer step calculation. The Stokes vector
       // is updated until the considered point is reached.
-      rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
-                   abs_vec(0,joker), 
+      rte_step_std(stokes_vec, Matrix(stokes_dim,stokes_dim), 
+                   ext_mat(0,joker,joker), abs_vec(0,joker), 
                    sca_vec_av, l_step, rte_planck_value);
               
     }// End of loop over ppath_step. 
@@ -1931,9 +1931,9 @@ void cloud_ppath_update1D_planeparallel(
               
               // Radiative transfer step calculation. The Stokes vector
               // is updated until the considered point is reached.
-              rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
-                       abs_vec(0,joker), 
-                       sca_vec_av, l_step, rte_planck_value);
+              rte_step_std(stokes_vec, Matrix(stokes_dim,stokes_dim), 
+                           ext_mat(0,joker,joker), abs_vec(0,joker), 
+                           sca_vec_av, l_step, rte_planck_value);
               
               // Assign calculated Stokes Vector to doit_i_field. 
               doit_i_field(p_index - cloudbox_limits[0],
@@ -2040,9 +2040,9 @@ void cloud_ppath_update1D_planeparallel(
               
               // Radiative transfer step calculation. The Stokes vector
               // is updated until the considered point is reached.
-              rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
-                       abs_vec(0,joker), 
-                       sca_vec_av, l_step, rte_planck_value);
+              rte_step_std(stokes_vec, Matrix(stokes_dim,stokes_dim), 
+                           ext_mat(0,joker,joker), abs_vec(0,joker), 
+                           sca_vec_av, l_step, rte_planck_value);
               
               // Assign calculated Stokes Vector to doit_i_field. 
               doit_i_field(p_index - cloudbox_limits[0],

@@ -180,6 +180,9 @@ void ScatteringMonteCarlo (
                            // WS Output:
                            Ppath&                ppath,
                            Ppath&                ppath_step,
+                           Vector&               ppath_p,
+                           Vector&               ppath_t,
+                           Matrix&               ppath_vmr,
                            Vector&               mc_error,
                            Index&                mc_iteration_count,
                            Vector&               rte_pos,
@@ -330,7 +333,8 @@ void ScatteringMonteCarlo (
   //if rng_seed is < 0, keep time based seed, otherwise...
   if(rng_seed>=0){rng.seed(rng_seed);}
   Agenda iy_cloudbox_agenda;
-  Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, rte_pos, rte_los, 
+  Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, ppath_p, ppath_t,
+                         ppath_vmr, rte_pos, rte_los, 
                          cum_l_stepLOS, TArrayLOS, ext_matArrayLOS, 
                          abs_vecArrayLOS,t_ppathLOS, ext_mat, abs_vec, rte_pressure, 
                          rte_temperature, rte_vmr_list, iy, rte_gp_p, 
@@ -412,10 +416,12 @@ void ScatteringMonteCarlo (
                 {
                   montecarloGetIncoming(iy,rte_pos,rte_los,rte_gp_p,
                                         rte_gp_lat,rte_gp_lon,ppath,ppath_step,
+                                        ppath_p, ppath_t, ppath_vmr,
                                         ppath_step_agenda,
                                         rte_agenda,iy_space_agenda,iy_surface_agenda,
                                         iy_cloudbox_agenda,
-                                        p_grid,lat_grid,lon_grid,z_field,r_geoid,
+                                        p_grid,lat_grid,lon_grid,z_field,
+                                        t_field, vmr_field, r_geoid,
                                         z_surface,cloudbox_limits, atmosphere_dim,
                                         f_grid,stokes_dim);
                   

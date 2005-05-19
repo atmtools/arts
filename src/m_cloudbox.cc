@@ -1480,6 +1480,9 @@ void CloudboxGetIncoming(
               Matrix&         iy,
               Ppath&          ppath,
               Ppath&          ppath_step,
+              Vector&         ppath_p,
+              Vector&         ppath_t,
+              Matrix&         ppath_vmr,
               Vector&         rte_pos,
               GridPos&        rte_gp_p,
               GridPos&        rte_gp_lat,
@@ -1495,6 +1498,8 @@ void CloudboxGetIncoming(
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
+        const Tensor3&        t_field,
+        const Tensor4&        vmr_field,
         const Matrix&         r_geoid,
         const Matrix&         z_surface,
         const Index&          cloudbox_on, 
@@ -1547,10 +1552,12 @@ void CloudboxGetIncoming(
         {
           los[0] =  scat_za_grid[scat_za_index];
 
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
+          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+                   rte_pos, rte_gp_p, rte_gp_lat,
                    rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,
+                   t_field, vmr_field,
                    r_geoid, z_surface, cloudbox_on_dummy,  cloudbox_limits, 
                    pos, los, f_grid, stokes_dim, agenda_verb );
 
@@ -1564,10 +1571,12 @@ void CloudboxGetIncoming(
         {
           los[0] =  scat_za_grid[scat_za_index];
 
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
+          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+                   rte_pos, rte_gp_p, rte_gp_lat,
                    rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                   t_field, vmr_field,
                    r_geoid, z_surface, cloudbox_on_dummy,  cloudbox_limits, 
                    pos, los, f_grid, stokes_dim, agenda_verb );
 
@@ -1632,11 +1641,13 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, 
+                          ppath_vmr, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+                          lat_grid, lon_grid, z_field, t_field, vmr_field,
+                          r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
@@ -1677,11 +1688,13 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, 
+                          ppath_vmr, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+                          lat_grid, lon_grid, z_field, t_field, vmr_field,
+                          r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
@@ -1722,11 +1735,13 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, 
+                          ppath_vmr, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+                          lat_grid, lon_grid, z_field, t_field, vmr_field,
+                          r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
@@ -1767,11 +1782,13 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, 
+                          ppath_vmr, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+                          lat_grid, lon_grid, z_field, t_field, vmr_field,
+                          r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
@@ -1812,11 +1829,13 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, 
+                          ppath_vmr, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+                          lat_grid, lon_grid, z_field, t_field, vmr_field,
+                          r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
@@ -1857,11 +1876,13 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, 
+                          ppath_vmr, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+                          lat_grid, lon_grid, z_field, t_field, vmr_field,
+                          r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
@@ -1892,6 +1913,9 @@ void CloudboxGetIncoming1DAtm(
               Matrix&         iy,
               Ppath&          ppath,
               Ppath&          ppath_step,
+              Vector&         ppath_p,
+              Vector&         ppath_t,
+              Matrix&         ppath_vmr,
               Vector&         rte_pos,
               GridPos&        rte_gp_p,
               GridPos&        rte_gp_lat,
@@ -1907,6 +1931,8 @@ void CloudboxGetIncoming1DAtm(
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
+        const Tensor3&        t_field,
+        const Tensor4&        vmr_field,
         const Matrix&         r_geoid,
         const Matrix&         z_surface,
         const Index&          cloudbox_on, 
@@ -1985,12 +2011,13 @@ void CloudboxGetIncoming1DAtm(
     {
       los[0] = scat_za_grid[scat_za_index];
       
-      iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+      iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+               rte_pos, rte_gp_p, rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
-               z_surface, cloudbox_on_dummy,  cloudbox_limits, 
-               pos, los, f_grid, stokes_dim, agenda_verb );
+               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+               vmr_field, r_geoid, z_surface, cloudbox_on_dummy,  
+               cloudbox_limits, pos, los, f_grid, stokes_dim, agenda_verb );
 
       for (Index lat = 0; lat < Nlat_cloud; lat ++)
         {
@@ -2016,12 +2043,13 @@ void CloudboxGetIncoming1DAtm(
     {
       los[0] = scat_za_grid[scat_za_index];
       
-      iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+      iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, 
+               rte_pos, rte_gp_p, rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
-               z_surface, cloudbox_on_dummy,  cloudbox_limits, 
-               pos, los, f_grid, stokes_dim, agenda_verb );
+               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+               vmr_field, r_geoid, z_surface, cloudbox_on_dummy, 
+               cloudbox_limits, pos, los, f_grid, stokes_dim, agenda_verb );
 
       for (Index lat = 0; lat < Nlat_cloud; lat ++)
         {
@@ -2051,12 +2079,13 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+               rte_pos, rte_gp_p, rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
-               z_surface, cloudbox_on_dummy,  cloudbox_limits, 
-               pos, los, f_grid, stokes_dim, agenda_verb );
+               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+               vmr_field, r_geoid, z_surface, cloudbox_on_dummy,  
+               cloudbox_limits, pos, los, f_grid, stokes_dim, agenda_verb );
 
           for (Index lon = 0; lon < Nlon_cloud; lon ++)
             {
@@ -2082,10 +2111,12 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+               rte_pos, rte_gp_p, rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
+               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+               vmr_field, r_geoid, 
                z_surface, cloudbox_on_dummy,  cloudbox_limits, 
                pos, los, f_grid, stokes_dim, agenda_verb );
           
@@ -2113,10 +2144,12 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+               rte_pos, rte_gp_p, rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
+               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+               vmr_field, r_geoid, 
                z_surface, cloudbox_on_dummy,  cloudbox_limits, 
                pos, los, f_grid, stokes_dim, agenda_verb );
 
@@ -2144,10 +2177,12 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+          iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+               rte_pos, rte_gp_p, rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
+               atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+               vmr_field, r_geoid, 
                z_surface, cloudbox_on_dummy,  cloudbox_limits, 
                pos, los, f_grid, stokes_dim, agenda_verb );
 

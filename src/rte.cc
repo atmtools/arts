@@ -266,6 +266,9 @@ void iy_calc(
               Matrix&         iy,
               Ppath&          ppath,
               Ppath&          ppath_step,
+              Vector&         ppath_p,
+              Vector&         ppath_t,
+              Matrix&         ppath_vmr,
               Vector&         rte_pos,
               GridPos&        rte_gp_p,
               GridPos&        rte_gp_lat,
@@ -281,6 +284,8 @@ void iy_calc(
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
+        const Tensor3&        t_field,
+        const Tensor4&        vmr_field,
         const Matrix&         r_geoid,
         const Matrix&         z_surface,
         const Index&          cloudbox_on, 
@@ -298,12 +303,50 @@ void iy_calc(
               cloudbox_on, cloudbox_limits, pos, los, outside_cloudbox );
 
   // Determine the radiative background
+  //
+  iy.resize(f_grid.nelem(),stokes_dim);
+  //
   get_radiative_background( iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
        rte_los, ppath, iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
        atmosphere_dim, f_grid, stokes_dim, agenda_verb );
 
-  // Execute the *rte_agenda*
-  rte_agenda.execute( agenda_verb );
+  const Index   np = ppath.np;
+
+  // If the number of propagation path points is 0 or 1, we are already ready,
+  // the observed spectrum equals then the radiative background.
+  if( np > 1 )
+    {
+      //- Determine atmospheric fields at each ppath point --------------------
+      //
+      //- Pressure:
+      ppath_p.resize(np);
+      Matrix itw_p(np,2);
+      interpweights( itw_p, ppath.gp_p );      
+      itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
+      //
+      //- Temperature:
+      ppath_t.resize(np);
+      Matrix   itw_field;
+      interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
+                            lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+      interp_atmfield_by_itw( ppath_t,  atmosphere_dim, p_grid, lat_grid, 
+                              lon_grid, t_field, "t_field", ppath.gp_p, 
+                              ppath.gp_lat, ppath.gp_lon, itw_field );
+      //
+      // - VMR fields:
+      const Index ns = vmr_field.nbooks();
+      ppath_vmr.resize(ns,np);
+      for( Index is=0; is<ns; is++ )
+        {
+          interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
+            p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
+            "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+        }
+      //-----------------------------------------------------------------------
+
+      // Execute the *rte_agenda*
+      rte_agenda.execute( agenda_verb );
+    }
 }
 
 
@@ -343,17 +386,19 @@ void iy_calc(
        3. The total general case.
 
     \param   stokes_vec         Input/Output: A Stokes vector.
+    \param   trans_mat          Input/Output: Transmission matrix of slab.
     \param   ext_mat_av         Input: Averaged extinction matrix.
     \param   abs_vec_av         Input: Averaged absorption vector.
     \param   sca_vec_av         Input: averaged scattering vector.
     \param   l_step             Input: The length of the RTE step.
-    \param   rte_planck_value     Input: Blackbody radiation.
+    \param   rte_planck_value   Input: Blackbody radiation.
 
     \author Claudia Emde and Patrick Eriksson, 
     \date   2002-11-22
 */
 void rte_step_std(//Output and Input:
               VectorView stokes_vec,
+              MatrixView trans_mat,
               //Input
               ConstMatrixView ext_mat_av,
               ConstVectorView abs_vec_av,
@@ -365,6 +410,7 @@ void rte_step_std(//Output and Input:
   Index stokes_dim = stokes_vec.nelem();
 
   //Check inputs:
+  assert(is_size(trans_mat, stokes_dim, stokes_dim)); 
   assert(is_size(ext_mat_av, stokes_dim, stokes_dim)); 
   assert(is_size(abs_vec_av, stokes_dim));
   assert(is_size(sca_vec_av, stokes_dim));
@@ -386,42 +432,48 @@ void rte_step_std(//Output and Input:
     if (sca_vec_av[i] != 0)
       unpol_sca_vec = false;
 
-  const Numeric   trans = exp(-ext_mat_av(0,0) * l_step);
 
-  // Scalar case: 
+  //--- Scalar case: ---------------------------------------------------------
   if( stokes_dim == 1 )
     { 
-      stokes_vec[0] = stokes_vec[0] * trans + 
-        (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) / ext_mat_av(0,0) 
-        * (1 - trans);
+      trans_mat(0,0) = exp(-ext_mat_av(0,0) * l_step);
+      stokes_vec[0]  = stokes_vec[0] * trans_mat(0,0) + 
+                       (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) / 
+        ext_mat_av(0,0) * (1 - trans_mat(0,0));
     }
-  // Vector case: 
+
+
+  //--- Vector case: ---------------------------------------------------------
     
-      // We have here two cases, diagonal or non-diagonal ext_mat_gas
-      // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
-      // non-zero value in position 1.
+  // We have here two cases, diagonal or non-diagonal ext_mat_gas
+  // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
+  // non-zero value in position 1.
     
-      // Unpolarised
+  //- Unpolarised
   else if( is_diagonal(ext_mat_av) && unpol_abs_vec && unpol_sca_vec )
     {
+      trans_mat      = 0;
+      trans_mat(0,0) = exp(-ext_mat_av(0,0) * l_step);
+
       // Stokes dim 1
-      //    assert( ext_mat_av(0,0) == abs_vec_av[0] );
+      //   assert( ext_mat_av(0,0) == abs_vec_av[0] );
       //   Numeric transm = exp( -l_step * abs_vec_av[0] );
-      stokes_vec[0] = stokes_vec[0] * trans + 
-        (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) / ext_mat_av(0,0) 
-        * (1 - trans);
+      stokes_vec[0] = stokes_vec[0] * trans_mat(0,0) + 
+                      (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) / 
+                      ext_mat_av(0,0) * (1 - trans_mat(0,0));
       
       // Stokes dims > 1
       for( Index i=1; i<stokes_dim; i++ )
         {
           //      assert( abs_vec_av[i] == 0.);
-          stokes_vec[i] = stokes_vec[i] * trans + 
-            sca_vec_av[i] / ext_mat_av(i,i)  * (1 - trans);
+          trans_mat(i,i) = trans_mat(0,0); 
+          stokes_vec[i]  = stokes_vec[i] * trans_mat(i,i) + 
+                       sca_vec_av[i] / ext_mat_av(i,i)  * (1 - trans_mat(i,i));
         }
     }
   
   
-  //General case
+  //- General case
   else
     {
       //Initialize internal variables:
@@ -449,8 +501,9 @@ void rte_step_std(//Output and Input:
       ext_mat_ds *= -l_step; // ext_mat_ds = -ext_mat*ds
       
       Index q = 10;  // index for the precision of the matrix exp function
-      Matrix exp_ext_mat(stokes_dim, stokes_dim);
-      matrix_exp(exp_ext_mat, ext_mat_ds, q);
+      //Matrix exp_ext_mat(stokes_dim, stokes_dim);
+      //matrix_exp(exp_ext_mat, ext_mat_ds, q);
+      matrix_exp( trans_mat, ext_mat_ds, q);
 
       Vector term1(stokes_dim);
       Vector term2(stokes_dim);
@@ -459,16 +512,121 @@ void rte_step_std(//Output and Input:
       for(Index i=0; i<stokes_dim; i++)
         {
           for(Index j=0; j<stokes_dim; j++)
-            LU(i,j) = I(i,j) - exp_ext_mat(i,j); // take LU as dummy variable
+            LU(i,j) = I(i,j) - trans_mat(i,j); // take LU as dummy variable
+          // LU(i,j) = I(i,j) - exp_ext_mat(i,j); // take LU as dummy variable
         }
       mult(term2, LU, x); // term2: second term of the solution of the RTE with
                           //fixed scattered field
 
       // term1: first term of solution of the RTE with fixed scattered field
-      mult(term1, exp_ext_mat, stokes_vec);
-                                        // 
+      //mult(term1, exp_ext_mat, stokes_vec);
+      mult( term1, trans_mat, stokes_vec );
+
       for (Index i=0; i<stokes_dim; i++) 
         stokes_vec[i] = term1[i] + term2[i];  // Compute the new Stokes Vector
+    }
+}
+
+
+
+//! rte_std
+/*! 
+   Core function for the different versions of WSM RteStd. 
+
+   See the the online help (arts -d RteStd)
+
+   All input and output arguments are identical to the WSV with identical name,
+   beside:
+
+    \param   do_transmission   Input: Boolean to fill *ppath_transmissions* or 
+                               not.
+
+   \author Patrick Eriksson
+   \date   2005-05-19
+*/
+void rte_std(
+             Matrix&    iy,
+             Vector&    emission,
+             Matrix&    abs_vec,
+             Tensor3&   ext_mat,
+             Numeric&   rte_pressure,
+             Numeric&   rte_temperature,
+             Vector&    rte_vmr_list,
+             Index&     f_index,
+             Index&     ppath_index,
+             Tensor4&   ppath_transmissions,
+       const Ppath&     ppath,
+       const Vector&    ppath_p,
+       const Vector&    ppath_t,
+       const Matrix&    ppath_vmr,
+       const Vector&    f_grid,
+       const Index&     stokes_dim,
+       const Agenda&    emission_agenda,
+       const Agenda&    scalar_gas_absorption_agenda,
+       const Agenda&    opt_prop_gas_agenda,
+       const bool&      do_transmissions )
+{
+  // Relevant checks are assumed to be done in RteCalc
+
+  // Some sizes
+  const Index   nf = f_grid.nelem();
+  const Index   np = ppath.np;
+  const Index   ns = ppath_vmr.nrows();    // Number of species
+
+  // Init output variables
+  rte_vmr_list.resize(ns);
+
+  // Log of pressure
+  Vector   logp_ppath(np);
+  transform( logp_ppath, log, ppath_p  );
+
+  // If f_index < 0, scalar gas absorption is calculated for 
+  // all frequencies in f_grid.
+  f_index = -1;
+      
+  // Dummy vector for scattering integral. It has to be 
+  // set to 0 for clear sky calculations.
+  Vector sca_vec_dummy(stokes_dim, 0.);
+          
+  // Transmission matrix for one path step
+  Matrix trans(stokes_dim,stokes_dim);
+
+  // Ppath transmissions
+  if( do_transmissions )
+    { ppath_transmissions.resize(np-1,nf,stokes_dim,stokes_dim); }
+
+  // Loop the propagation path steps
+  //
+  // The number of path steps is np-1.
+  // The path points are stored in such way that index 0 corresponds to
+  // the point closest to the sensor.
+  for( Index ip=np-1; ip>0; ip-- )
+    {
+      // Calculate mean of atmospheric parameters
+      rte_pressure    = exp( 0.5 * ( logp_ppath[ip] + logp_ppath[ip-1] ) );
+      rte_temperature = 0.5*(ppath_t[ip] + ppath_t[ip-1]);
+      for( Index is = 0; is < ns; is ++)
+        { rte_vmr_list[is] = 0.5*(ppath_vmr(is,ip)+ppath_vmr(is, ip-1)); }
+      
+      // The absO2ZeemanModel needs the position in the propagation
+      // path. 
+      ppath_index = ip;
+
+      // Call agendas for RT properties
+      emission_agenda.execute( ip );
+      scalar_gas_absorption_agenda.execute( ip );
+      opt_prop_gas_agenda.execute( ip ); 
+
+      for( Index iv=0; iv<nf; iv++ )
+        {
+          // Perform the RTE step.
+          rte_step_std( iy(iv,joker), trans, ext_mat(iv,joker,joker), 
+                        abs_vec(iv,joker), sca_vec_dummy, 
+                        ppath.l_step[ip-1], emission[iv] );
+
+          if( do_transmissions )
+            { ppath_transmissions(ip-1,iv,joker,joker) = trans; }
+        }
     }
 }
 

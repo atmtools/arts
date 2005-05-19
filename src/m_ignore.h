@@ -30,6 +30,7 @@
 #ifndef m_ignore_h
 #define m_ignore_h
 
+
 //! Supergeneric Copy.
 /*! 
   This is the implementation of the supergeneric Ignore method. See
@@ -46,6 +47,25 @@ void Ignore(// WS Generic Input:
 {
   // Nothing to do here.
   out2 << "  Ignoring " << inname << ".\n";
+}
+
+
+
+/*! 
+  This is the implementation of the supergeneric DoNothing method. See
+  arts -d DoNothing for a description what the method does.
+
+  \param inname Name of source WSV.
+*/
+template< class T >
+void DoNothing(
+            // WS Generic Output:
+                  T&,
+            // WS Generic Output Names:
+            const String& inname)
+{
+  // Nothing to do here.
+  out2 << "  Just touching " << inname << ".\n";
 }
 
 #endif // m_ignore_h

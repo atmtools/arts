@@ -426,6 +426,9 @@ void Cloudbox_ppath_rteCalc(
                              Ppath&                ppathcloud,
                              Ppath&                ppath,
                              Ppath&                ppath_step,
+                             Vector&               ppath_p,
+                             Vector&               ppath_t,
+                             Matrix&               ppath_vmr,
                              Vector&               rte_pos,
                              Vector&               rte_los,
                              Vector&               cum_l_step,
@@ -547,10 +550,11 @@ void Cloudbox_ppath_rteCalc(
   //         scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
   //         f_grid,stokes_dim, antenna_dim_dummy,
   //         mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
-  iy_calc(iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
-          rte_gp_lon,rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
-          iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, 
-          lon_grid, z_field,r_geoid, z_surface, cloudbox_on_dummy, cloudbox_limits,
+  iy_calc(iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, rte_pos, 
+          rte_gp_p, rte_gp_lat, rte_gp_lon,rte_los, ppath_step_agenda, 
+          rte_agenda, iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
+          atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field,
+          vmr_field, r_geoid, z_surface, cloudbox_on_dummy, cloudbox_limits,
           pos, los, f_grid,stokes_dim, 1);
 
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
@@ -1053,16 +1057,20 @@ void montecarloGetIncoming(
                            GridPos&              rte_gp_lon,
                            Ppath&                ppath,
                            Ppath&                ppath_step,
+                           Vector&               ppath_p,
+                           Vector&               ppath_t,
+                           Matrix&               ppath_vmr,
                            const Agenda&         ppath_step_agenda,
                            const Agenda&         rte_agenda,
                            const Agenda&         iy_space_agenda,
                            const Agenda&         iy_surface_agenda,
                            const Agenda&         iy_cloudbox_agenda,
-                           //const Tensor3&        t_field,
                            const Vector&         p_grid,
                            const Vector&         lat_grid,
                            const Vector&         lon_grid,
                            const Tensor3&        z_field,
+                           const Tensor3&        t_field,
+                           const Tensor4&        vmr_field,
                            const Matrix&         r_geoid,
                            const Matrix&         z_surface,
                            const ArrayOfIndex&   cloudbox_limits,
@@ -1090,11 +1098,12 @@ void montecarloGetIncoming(
   
   Vector pos = rte_pos;
   Vector los = rte_los;
-  iy_calc(iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
-          rte_gp_lon,rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
-          iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, 
-          lon_grid, z_field,r_geoid, z_surface, cloudbox_on_dummy, cloudbox_limits,
-          pos, los, f_grid,stokes_dim, 1);
+  iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, rte_pos, 
+           rte_gp_p, rte_gp_lat, rte_gp_lon,rte_los, ppath_step_agenda, 
+           rte_agenda, iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda,
+           atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field,
+           vmr_field, r_geoid, z_surface, cloudbox_on_dummy, cloudbox_limits,
+           pos, los, f_grid,stokes_dim, 1);
   
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
 }

@@ -62,6 +62,28 @@ extern const Numeric COSMIC_BG_TEMP;
 
 
 
+//! emissionPlanck
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2005-05-14
+*/
+void emissionPlanck(
+              Vector&   emission,
+        const Vector&   f,
+        const Numeric&  t )
+{
+  const Index   n = f.nelem();
+
+  emission.resize(n);
+
+  for( Index i=0; i<n; i++ )
+    { emission[i] = planck( f[i], t ); }
+}
+
+
+
 //! MatrixCBR
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
@@ -254,6 +276,45 @@ void MatrixToTbByRJ(
 
 
 
+//! MatrixUnitIntensity
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2005-05-18
+*/
+void MatrixUnitIntensity(
+        // WS Output:
+              Matrix&   m,
+        // WS Generic Output Names:
+        const String&   m_name,
+        // WS Input:
+        const Index&    stokes_dim,
+        // WS Generic Input:
+        const Vector&   f,
+        // WS Generic Input Names:
+        const String&   f_name )
+{
+  // To avoid compiler warnings
+  String s1 = f_name;
+
+  const Index n = f.nelem();
+
+  if( n == 0 )
+    throw runtime_error( "The given frequency vector is empty." );
+
+  out2 << "  Setting *" << m_name << "* to hold unpolarised radiation with\n"
+       << "an intensity of 1.\n";
+
+  m.resize(n,stokes_dim);
+  m = 0;
+
+  for( Index i=0; i<n; i++ )
+    { m(i,0) = 1.0; }
+}
+
+
+
 //! Tensor6ToTbByPlanck
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
@@ -310,6 +371,7 @@ void Tensor6ToTbByPlanck( // WS Generic Output:
         }
     }
 }
+
 
 
 

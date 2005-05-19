@@ -197,6 +197,45 @@ void jacobianAddGas(// WS Output:
 }                    
 
 
+//! jacobianAddGasAnalytical
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+   
+   \author Patrick Eriksson
+   \date   2005-05-11
+*/
+void jacobianAddGasAnalytical(
+                    // WS Output:
+                    ArrayOfRetrievalQuantity& jq,
+                    Agenda&                   jacobian_agenda,
+                    ArrayOfArrayOfSpeciesTag& gas_species,
+                    // WS Input:
+                    const Sparse&             jac,
+                    const Index&              atmosphere_dim,
+                    const Vector&             p_grid,
+                    const Vector&             lat_grid,
+                    const Vector&             lon_grid,
+                    // WS Generic Input:
+                    const Vector&             rq_p_grid,
+                    const Vector&             rq_lat_grid,
+                    const Vector&             rq_lon_grid,
+                    // WS Generic Input Names:
+                    const String&             rq_p_grid_name,
+                    const String&             rq_lat_grid_name,
+                    const String&             rq_lon_grid_name,
+                    // Control Parameters:
+                    const String&             species,
+                    const String&             unit )
+{
+  jacobianAddGas( jq, jacobian_agenda, gas_species, jac, atmosphere_dim,
+                  p_grid, lat_grid, lon_grid,
+                  rq_p_grid, rq_lat_grid, rq_lon_grid, rq_p_grid_name,
+                  rq_lat_grid_name, rq_lon_grid_name, species, "analytical",
+                  unit, 0 );
+}
+
+
+
 //! jacobianAddParticle
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -588,6 +627,9 @@ void jacobianCalcGas(
            Vector&                   y,
            Ppath&                    ppath,
            Ppath&                    ppath_step,
+           Vector&                   ppath_p,
+           Vector&                   ppath_t,
+           Matrix&                   ppath_vmr,
            Matrix&                   iy, 
            Vector&                   rte_pos,
            GridPos&                  rte_gp_p,
@@ -607,6 +649,7 @@ void jacobianCalcGas(
      const Vector&                   lat_grid,
      const Vector&                   lon_grid,
      const Tensor3&                  z_field,
+     const Tensor3&                  t_field,
      const Matrix&                   r_geoid,
      const Matrix&                   z_surface,
      const Index&                    cloudbox_on,
@@ -686,11 +729,13 @@ void jacobianCalcGas(
 
   // Calculate the reference spectrum, y. FIXME: Is this unnecessary if *y*
   out2 << "  Calculating the reference spectra.\n";  
-  RteCalc( y, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
+  RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, 
+           iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
            rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
            iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
-           lat_grid, lon_grid, z_field, r_geoid, z_surface, cloudbox_on, 
-           cloudbox_limits, sensor_response, sensor_pos, sensor_los, f_grid,
+           lat_grid, lon_grid, z_field, t_field, vmr_field, 
+           r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
+           sensor_response, sensor_pos, sensor_los, f_grid,
            stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
 
   // Declare variables for reference and difference spectrum
@@ -760,10 +805,12 @@ void jacobianCalcGas(
         // Calculate the perturbed spectrum  
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << j_p*j_lat*j_lon+ji[0] << "\n";
-        RteCalc( y, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat,
+        RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+                 iy, rte_pos, rte_gp_p, rte_gp_lat,
                  rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
                  iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                  atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                 t_field, vmr_field,
                  r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
                  sensor_response, sensor_pos, sensor_los, f_grid, 
                  stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
@@ -802,6 +849,9 @@ void jacobianCalcParticle(
            Vector&                   y,
            Ppath&                    ppath,
            Ppath&                    ppath_step,
+           Vector&                   ppath_p,
+           Vector&                   ppath_t,
+           Matrix&                   ppath_vmr,
            Matrix&                   iy, 
            Vector&                   rte_pos,
            GridPos&                  rte_gp_p,
@@ -822,6 +872,8 @@ void jacobianCalcParticle(
      const Vector&                   lat_grid,
      const Vector&                   lon_grid,
      const Tensor3&                  z_field,
+     const Tensor3&                  t_field,
+     const Tensor4&                  vmr_field,
      const Matrix&                   r_geoid,
      const Matrix&                   z_surface,
      const Index&                    cloudbox_on,
@@ -969,10 +1021,12 @@ void jacobianCalcParticle(
             jacobian_particle_update_agenda.execute();
             
             // Calculate the perturbed spectrum  
-            RteCalc( y, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat,
+            RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+                     iy, rte_pos, rte_gp_p, rte_gp_lat,
                      rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
                      iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                      atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                     t_field, vmr_field, 
                      r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
                      sensor_response, sensor_pos, sensor_los, f_grid, 
                      stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
@@ -1012,6 +1066,9 @@ void jacobianCalcPointing(
            Vector&                   y,
            Ppath&                    ppath,
            Ppath&                    ppath_step,
+           Vector&                   ppath_p,
+           Vector&                   ppath_t,
+           Matrix&                   ppath_vmr,
            Matrix&                   iy,
            Vector&                   rte_pos,
            GridPos&                  rte_gp_p,
@@ -1031,6 +1088,8 @@ void jacobianCalcPointing(
      const Vector&                   lat_grid,
      const Vector&                   lon_grid,
      const Tensor3&                  z_field,
+     const Tensor3&                  t_field,
+     const Tensor4&                  vmr_field,
      const Matrix&                   r_geoid,
      const Matrix&                   z_surface,
      const Index&                    cloudbox_on,
@@ -1096,10 +1155,12 @@ void jacobianCalcPointing(
   out2 << "  Calculating retrieval quantity " << rq << "\n";
   
   // Calculate the reference spectrum, y
-  RteCalc( y, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
+  RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+           iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
            rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
            iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
-           lat_grid, lon_grid, z_field, r_geoid, z_surface, cloudbox_on, 
+           lat_grid, lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface,
+           cloudbox_on, 
            cloudbox_limits, sensor_response, sensor_pos, sensor_los, f_grid,
            stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
   
@@ -1122,10 +1183,12 @@ void jacobianCalcPointing(
   }
      
   // Calculate the perturbed spectrum  
-  RteCalc( y, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat,
+  RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+           iy, rte_pos, rte_gp_p, rte_gp_lat,
            rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
            iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-           atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, 
+           atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+           vmr_field, r_geoid, 
            z_surface, cloudbox_on, cloudbox_limits, sensor_response, 
            sensor_pos, sensor_los_pert, f_grid, stokes_dim, antenna_dim, 
            mblock_za_grid, mblock_aa_grid);
@@ -1181,7 +1244,7 @@ void jacobianCalcPointing(
 /*!
    See the online help (arts -d FUNCTION_NAME)
 
-   \author Mattias Ekström�
+   \author Mattias Ekström
    \date   2004-10-15
 */
 void jacobianCalcTemperature(
@@ -1191,6 +1254,9 @@ void jacobianCalcTemperature(
            Vector&                   y,
            Ppath&                    ppath,
            Ppath&                    ppath_step,
+           Vector&                   ppath_p,
+           Vector&                   ppath_t,
+           Matrix&                   ppath_vmr,
            Matrix&                   iy, 
            Vector&                   rte_pos,
            GridPos&                  rte_gp_p,
@@ -1209,6 +1275,7 @@ void jacobianCalcTemperature(
      const Vector&                   lat_grid,
      const Vector&                   lon_grid,
      const Tensor3&                  z_field,
+     const Tensor4&                  vmr_field,
      const Matrix&                   r_geoid,
      const Matrix&                   z_surface,
      const Index&                    cloudbox_on,
@@ -1277,10 +1344,12 @@ void jacobianCalcTemperature(
   
   // Calculate the reference spectrum, y. FIXME: Is this unnecessary if *y*
   out2 << "  Calculating the reference spectra.\n";  
-  RteCalc( y, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
+  RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+           iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
            rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
            iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
-           lat_grid, lon_grid, z_field, r_geoid, z_surface, cloudbox_on, 
+           lat_grid, lon_grid, z_field, t_field, vmr_field, 
+           r_geoid, z_surface, cloudbox_on, 
            cloudbox_limits, sensor_response, sensor_pos, sensor_los, f_grid,
            stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
 
@@ -1350,10 +1419,12 @@ void jacobianCalcTemperature(
         // Calculate the perturbed spectrum  
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << j_p*j_lat*j_lon+ji[0] << "\n";
-        RteCalc( y, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat,
+        RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+                 iy, rte_pos, rte_gp_p, rte_gp_lat,
                  rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
                  iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                  atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                 t_field, vmr_field, 
                  r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
                  sensor_response, sensor_pos, sensor_los, f_grid, 
                  stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);

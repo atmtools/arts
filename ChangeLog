@@ -1,3 +1,58 @@
+2005-05-19  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-956
+
+	* Mail with control file examples for changes of this commit
+	sent to arts-dev.
+
+	Main changes are:
+ 	     - RteEmissionStd -> RteStd
+	     - You must set emission_agenda. Standard choice is:
+		AgendaSet( emission_agenda ){
+		   emissionPlanck{}
+		}
+	     - Atmospheric variables (pressure, temperature and VMR) along
+	       ppath now accessible.
+	       This change simplifies also to make new functions for 
+	       rte_agenda.
+               The transmission along ppath also accessible by 
+	       ppath_transmissions.
+	     - Files with index number can now be generated.
+	     - DoNothing implemented, to complement Ignore.
+
+	* Changes at many places to adapt to new WSVs ppath_p, ppath_t and 
+	ppath_vmr.
+	
+	* src/m_rte.cc: 
+	(RteStd): Renamed RteEmissionStd to RteStd.
+	(RteStdWithTransmissions): Made this interface to rte_std.
+
+	* src/rte.cc 
+	(rte_step_std): The function now returns trans_mat, the transmission 
+	of the path step.
+
+	(iy_calc): Included calculation of ppath_p, ppath_t and ppath_vmr.
+
+	(rte_std): Created this core function for versions of RteStd, and: 
+	   - Included emission and emission_agenda.
+	   - Removed unused variables ext_mat_ppath and abs_vec_ppath.
+	   - Adapted to ppath_p, ppath_t, ppath_vmr and ppath_transmission.
+
+	* src/m_physics.cc 
+	(emissionPlanck): Created.
+	(MatrixUnitIntensity): Created. 
+
+	* src/workspace.cc: Added emission, emission_agenda, ppath_p, ppath_t, 
+	ppath_vmr, ppath_transmission and file_index.
+	
+	* src/m_jacobian.cc (jacobianAddGasAnalytical): Created.
+
+	* src/xml_io.cc (filename_xml_with_index): Added.
+
+	* src/m_xml.h (WriteXMLIndexed): Added.
+
+	* src/m_ignore.h (DoNothing): Added.
+
 2005-05-18  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-955

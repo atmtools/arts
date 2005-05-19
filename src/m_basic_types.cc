@@ -167,6 +167,22 @@ void IndexSet(    Index&    x,
 
 
 
+//! IndexStep
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2005-05-19
+*/
+void IndexStep(    Index&    x,
+            const String&   x_name )
+{
+  x += 1;
+  out3 << "  " << x_name << " = " << x_name << " + 1\n";
+}
+
+
+
 //! MatrixCopy
 /*!
    See the online help (arts -d FUNCTION_NAME)

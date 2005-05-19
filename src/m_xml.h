@@ -67,6 +67,27 @@ WriteXML (//WS Input:
 }
 
 
+
+template<typename T> void
+WriteXMLIndexed (//WS Input:
+          const String& file_format,
+          const Index & file_index,
+          // WS Generic Output:
+          const T&            v,
+          // WS Generic Output Names:
+          const String& v_name,
+          // Control Parameters:
+          const String& f)
+{
+  String filename = f;
+
+  // Create default filename if empty
+  filename_xml_with_index( filename, file_index, v_name );
+
+  WriteXML( file_format, v, v_name, filename );
+}
+
+
 void
 output_file_formatSetAscii (// WS Output:
                             String &file_format);

@@ -87,6 +87,10 @@ AgendaSet(scalar_gas_absorption_agenda){
 
 }
 
+AgendaSet( emission_agenda ){
+   emissionPlanck{}
+}
+
 AgendaSet(opt_prop_gas_agenda){
   ext_matInit{
   }
@@ -142,7 +146,7 @@ AgendaSet(ppath_step_agenda){
 }
 
 AgendaSet(rte_agenda){
-  RteEmissionStd{
+  RteStd{
   }
 }
 
