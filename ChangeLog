@@ -1,3 +1,16 @@
+2005-05-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+	    	    
+	* arts-1-1-959
+	  	
+	* src/m_scatrte.cc: Included missing checks in the 
+	following functions:
+	(doit_i_fieldUpdateSeq3D)
+	(DoitInit)
+	(doit_scat_fieldCalc)
+	(doit_scat_fieldCalcLimb)
+
+	* src/methods.cc: Improved online docu the methods above.		
+
 2005-05-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-958
@@ -142,7 +155,7 @@
 	* src/m_cloudbox.cc: Included additional checks in 
 	(ParticleTypeAdd{All}).
 	The size of pnd_field will be changed later and checks will be 
-	adapted accordingly. Included warning if pnd is zero on cloudbox
+	adapted accordingly. Included warning if pnd is non-zero on cloudbox
 	boundary.
 	Cory: For you nothing changes if you still use *ParticleTypeAdd* 
 	with empty filename for pnd. 
