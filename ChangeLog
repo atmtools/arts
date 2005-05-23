@@ -1,5 +1,24 @@
 2005-05-23  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-958
+
+	* ChangeLog: Fixed typo in my last entry.
+
+	* src/workspace_ng.{cc,h}: Added push and pop functions.
+
+	* src/m_scatrte.cc (doit_i_fieldIterate):
+
+	Misuse this function as a test case for the new agenda wrapper.
+
+	* src/agenda_class.{cc,h}:
+	
+	New function doit_conv_test_agendaExecute. This is just for testing.
+	Later we'll have auto-generated functions for this.
+
+	* test/simpleDOIT.arts: convergence_flagAbs -> doit_conv_flagAbs.
+
+2005-05-23  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-957
 
 	* Fix compile errors with GCC 4.0.1. Mostly because now the use of
@@ -20,7 +39,7 @@
 
 	(chk_contains): 
 
-	Added dummy return at the end of the function so all (theoratically
+	Added dummy return at the end of the function so all (theoretically
 	possible) control paths return a value.
 
 2005-05-19  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>

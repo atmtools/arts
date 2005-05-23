@@ -481,7 +481,7 @@ void doit_i_fieldIterate(
                Tensor6& doit_i_field,
                // WS Output
                Tensor6& doit_i_field_old,
-               Index& doit_conv_flag,
+               Index& /*doit_conv_flag*/,
                Index& doit_iteration_counter,
                // WS Input:  
                const Agenda& doit_scat_field_agenda,
@@ -489,6 +489,8 @@ void doit_i_fieldIterate(
                const Agenda& doit_conv_test_agenda
                )
 {
+  Index doit_conv_flag_local;
+
   //---------------Check input---------------------------------
   chk_not_empty( "doit_scat_field_agenda", doit_scat_field_agenda);
   chk_not_empty( "doit_rte_agenda", doit_rte_agenda);
@@ -499,10 +501,10 @@ void doit_i_fieldIterate(
   //variables
   //-----------End of checks-------------------------------------- 
 
-  doit_conv_flag = 0;
+  doit_conv_flag_local = 0;
   doit_iteration_counter = 0;
 
-  while(doit_conv_flag == 0) {
+  while(doit_conv_flag_local == 0) {
     
     // 1. Copy doit_i_field to doit_i_field_old.
     doit_i_field_old = doit_i_field;
@@ -519,7 +521,10 @@ void doit_i_fieldIterate(
 
     //Convergence test.
     //out2 << "Execute doit_conv_test_agenda. \n";
-    doit_conv_test_agenda.execute(0);
+    doit_conv_test_agendaExecute(doit_conv_flag_local,
+                                 doit_i_field,
+                                 doit_i_field_old,
+                                 doit_conv_test_agenda);
 
   }//end of while loop, convergence is reached.
 }

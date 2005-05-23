@@ -69,6 +69,25 @@ Workspace::~Workspace ()
 
 }
 
+//! Pop the topmost wsv from its stack.
+/*!
+  Removes the topmost element from the wsv's stack.
+  If necessary, the calling function has to free the wsv's memory.
+ */
+void *Workspace::pop (Index i)
+{
+  void *vp = ws[i].top ();
+  ws[i].pop ();
+  return vp;
+}
+
+//! Push a new wsv onto its stack.
+/*! Adds the pointer to the variable to the wsv stack i. */
+void Workspace::push (Index i, void *wsv)
+{
+  ws[i].push (wsv);
+}
+
 //! Retrieve pointer to the given WSV.
 /*!
   This method returns a void pointer to the topmost instance of the
