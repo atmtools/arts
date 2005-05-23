@@ -120,6 +120,12 @@ extern Joker joker;
 // Declare the existence of class VectorView:
 class VectorView;
 
+// Declare the existence of class ConstVectorView:
+class ConstVectorView;
+
+// Declare the existence of class ConstMatrixView:
+class ConstMatrixView;
+
 /** The range class.
 
     This is used to specifiy a range of a vector. In general, a range is

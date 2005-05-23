@@ -45,6 +45,10 @@
 #include "arts.h"
 #include "matpackI.h"
 #include "matpackIII.h"
+#include "matpackIV.h"
+#include "matpackV.h"
+#include "matpackVI.h"
+#include "matpackVII.h"
 #include "mystring.h"
 
 
@@ -181,8 +185,8 @@ Index chk_contains( const String&   x_name,
   case 0:
     // Not found.
     os << "The array *" << x_name
-       <<  "* must contain the element " << what << ",\n"
-       << "but it does not.";
+      <<  "* must contain the element " << what << ",\n"
+      << "but it does not.";
     throw runtime_error( os.str() );
     break;
 
@@ -193,11 +197,14 @@ Index chk_contains( const String&   x_name,
   default:
     // Found more than once.
     os << "The array *" << x_name
-       <<  "* must contain the element " << what << "\n"
-       << "exactly once, but it does contain it "
-       << pos.nelem() << " times.";
+      <<  "* must contain the element " << what << "\n"
+      << "exactly once, but it does contain it "
+      << pos.nelem() << " times.";
     throw runtime_error( os.str() );
+    break;
   }
+
+  return -1;
 }
 
 /*===========================================================================

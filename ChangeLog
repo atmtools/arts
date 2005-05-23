@@ -1,3 +1,28 @@
+2005-05-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-957
+
+	* Fix compile errors with GCC 4.0.1. Mostly because now the use of
+	undeclared names is deprecated.
+
+	* src/matpackI.h:
+
+	Added forward declaration of classes ConstVectorView and
+	ConstMatrixView before using them.
+
+	* src/make_auto_wsv_groups_h.cc:
+
+	Include matpackII.h in auto-generated code to have Sparse declared.
+
+	* src/check_input.h:
+
+	Include matpack{IV,V,VI,VII} because we use Tensors here.
+
+	(chk_contains): 
+
+	Added dummy return at the end of the function so all (theoratically
+	possible) control paths return a value.
+
 2005-05-19  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-956
