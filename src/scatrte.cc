@@ -345,7 +345,7 @@ void cloud_ppath_update1D(
       Vector stokes_vec(stokes_dim);
       //Tensor3 ext_mat_gas(stokes_dim, stokes_dim, ppath_step.np);
       //Matrix abs_vec_gas(stokes_dim, ppath_step.np);
-      // For cubic interpolation
+      // For polynomial interpolation
       Tensor3 sca_vec_int_za(stokes_dim, ppath_step.np, scat_za_grid.nelem(), 
                              0.);
       Tensor3 doit_i_field_int_za(stokes_dim, ppath_step.np, 
@@ -388,7 +388,7 @@ void cloud_ppath_update1D(
               interp( doit_i_field_int(i, joker), itw_p_za, 
                       doit_i_field(joker, 0, 0, joker, 0, i), cloud_gp_p, gp_za);
             }
-          else if (scat_za_interp == 1) //cubic interpolation
+          else if (scat_za_interp == 1) //polynomial interpolation
             {
               for (Index za = 0; za < scat_za_grid.nelem(); za++)
                 {
@@ -401,12 +401,12 @@ void cloud_ppath_update1D(
               for (Index ip = 0; ip < ppath_step.np; ip ++)
                 {
                   sca_vec_int(i, ip) = 
-                    interp_cubic(scat_za_grid, 
+                    interp_poly(scat_za_grid, 
                                  sca_vec_int_za(i, ip, joker),
                                  los_grid[ip],
                                  gp_za[ip]);
                   doit_i_field_int(i, ip) = 
-                    interp_cubic(scat_za_grid, 
+                    interp_poly(scat_za_grid, 
                                  doit_i_field_int_za(i, ip, joker),
                                  los_grid[ip],
                                  gp_za[ip]);
@@ -662,7 +662,7 @@ void cloud_ppath_update1D_noseq(
       Vector stokes_vec(stokes_dim);
       //Tensor3 ext_mat_gas(stokes_dim, stokes_dim, ppath_step.np);
       //Matrix abs_vec_gas(stokes_dim, ppath_step.np);
-      // For cubic interpolation
+      // For polynomial interpolation
       Tensor3 sca_vec_int_za(stokes_dim, ppath_step.np, scat_za_grid.nelem(), 
                              0.);
       Tensor3 doit_i_field_int_za(stokes_dim, ppath_step.np, 
@@ -707,7 +707,7 @@ void cloud_ppath_update1D_noseq(
                       doit_i_field_old(joker, 0, 0, joker, 0, i),
                       cloud_gp_p, gp_za);
             }
-          else if (scat_za_interp == 1) //cubic interpolation
+          else if (scat_za_interp == 1) //polynomial interpolation
             {
               for (Index za = 0; za < scat_za_grid.nelem(); za++)
                 {
@@ -720,12 +720,12 @@ void cloud_ppath_update1D_noseq(
               for (Index ip = 0; ip < ppath_step.np; ip ++)
                 {
                   sca_vec_int(i, ip) = 
-                    interp_cubic(scat_za_grid, 
+                    interp_poly(scat_za_grid, 
                                  sca_vec_int_za(i, ip, joker),
                                  los_grid[ip],
                                  gp_za[ip]);
                   doit_i_field_int(i, ip) = 
-                    interp_cubic(scat_za_grid, 
+                    interp_poly(scat_za_grid, 
                                  doit_i_field_int_za(i, ip, joker),
                                  los_grid[ip],
                                  gp_za[ip]);
@@ -2238,7 +2238,7 @@ void cloud_ppath_update1D_planeparallel(
 
   This method optimizes the zenith angle grid. For optimization it uses the 
   interpolation method given by *scat_za_interp* (0 - linear interpolation,
-  1 - cubic interpolation). 
+  1 - polynomial interpolation). 
   As input it needs the intensity field calculated on a very fine zenith angle 
   grid (*za_grid_fine*). The function picks out as many grid points as required
   to achieve the required accuracy (*acc* [%]). This methods optimizes only 
@@ -2249,6 +2249,10 @@ void cloud_ppath_update1D_planeparallel(
 
   \param za_grid_opt Optimized zenith angle grid.
   \param doit_i_field_opt Optimized intensity field. 
+  \param za_grid_fine Fine zenith angle grid.
+  \param doit_i_field Radiation field calculated on a very fine za grid. 
+  \param acc Accuracy of optimization [%].
+  \param scat_za_interp Interpolation method. 
 
   \author Claudia Emde
   \date 2004-04-05
@@ -2320,7 +2324,7 @@ void za_gridOpt(//Output:
               for(Index i_za = 0; i_za < N_za; i_za ++)
                 {
                   i_approx_interp[i_za] = 
-                    interp_cubic(za_reduced, doit_i_field_opt(i_p, joker),
+                    interp_poly(za_reduced, doit_i_field_opt(i_p, joker),
                                  za_grid_fine[i_za],
                                  gp_za[i_za]);
                 }

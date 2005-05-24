@@ -575,15 +575,6 @@ void define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "doit_grid_optimization_agenda" ),
-      DESCRIPTION
-       (
-        "See agendas.cc."
-        ),
-      GROUP(  Agenda_ )));
-
- wsv_data.push_back
-   (WsvRecord
     ( NAME( "doit_i_field" ), 
       DESCRIPTION
       (

@@ -1343,26 +1343,6 @@ md_data_raw.push_back
         KEYWORDS("epsilon"),
         TYPES(Vector_t)));
 
-   md_data_raw.push_back
-   ( MdRecord
-      ( NAME( "DoitGridOptimization" ),
-        DESCRIPTION
-        (
-         "This methods executes *doit_grid_optimization_agenda*. \n"
-         "\n"
-         "Grid optimization takes a rather long time, as the whole \n"
-         "scattering calculation is performed on a very fine zenith angle \n"
-         "grid. If the number of elements in *f_grid* is greater than 1,\n"
-         "the calculation is canceled.\n"
-         "\n"
-         ),
-        OUTPUT(),
-        INPUT(f_grid_, doit_grid_optimization_agenda_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
  md_data_raw.push_back
    ( MdRecord
       ( NAME( "DoitInit" ),
@@ -1732,7 +1712,7 @@ md_data_raw.push_back
         (
          "Prepare single scattering data for a DOIT scattering calculation.\n"
          "\n"
-         "This function can be used for scatttering calcualtions using the \n" 
+         "This function can be used for scattering calcualtions using the \n" 
          "DOIT method. \n"
          "\n"
          "First the scattering data is interpolated on the frequency using\n"
@@ -1754,7 +1734,39 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
-  
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("DoitWriteIterationFields"),
+        DESCRIPTION
+        (
+         "Write DOIT iteration fields.\n"
+         "\n"
+         "This method writes intermediate iteration fields \n"
+         "to xml-files which is useful to check the DOIT method. \n"
+         "It can be interesting to look how the radiation fields \n"
+         "(*doit_i_field*) behave. The method can be used as a part of \n"
+         "*convergence_test_agenda*.\n"
+         "\n"
+         "The keyword 'iterations' includes the numbers of the iterations\n"
+         "which should be stored, e.g.,\n"
+         "    'iterations = [3, 6, 9]'. \n"
+         "In this case the 3rd, 6th and 9th iterations are \n"
+         "stored in the files 'doit_iteration_3.xml', \n"
+         "'doit_iteration_6.xml' ...\n If a number is larger than the \n"
+         "total number of iterations, this number is ignored. \n"
+         "\n"
+         "If all iterations should be stored please set the keyword \n"
+         "   'iterations = [0]'.\n"
+         "\n"
+         ),
+        OUTPUT( ),
+        INPUT(doit_iteration_counter_, doit_i_field_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS("iterations"),
+        TYPES(Array_Index_t )));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "doit_za_grid_optCalc" ),
@@ -1762,18 +1774,21 @@ md_data_raw.push_back
         (
          "Zenith angle grid optimization for scattering calculation.\n"
          "\n"
-         "This method performs a scattering calculation on a very fine \n"
-         "zenith angle grid. It uses the obtained field to optimize \n"
-         "the zenith angle grid for a DOIT calculation. \n"
+         "This method optimizes the zenith angle grid. As input it requires \n"
+         "a radiation field (*doit_i_field*) which is calculated on a very \n"
+         "fine zenith angle grid (*scat_za_grid*).  Based on this field \n"
+         "zenith angle grid points are selected, such that the maximum\n"
+         "difference between the radiation field represented on the very \n"
+         "fine zenith angle grid and the radiation field represented on the\n"
+         "optimized grid (*doit_za_grid_opt*) is less than the accuracy \n"
+         "(*acc*) provided as a keyword. The accuracy must be given in %.\n"
+         "Between the grid points theradiation field is interpolated \n"
+         "linearly or polynomially depending on *doit_za_interp*.\n"
          "\n"
-         "Keywords:\n"
-         "Index np: Number of grid points for fine (equidistant) grid\n"
-         "Index accuracy: Accuracy of optimization in % \n"
-         "String write_var: If yes, grids and according fields are\n"
-         "                  written to files. \n"
-         "\n"
+         "Note: The method works only for a 1D atmosphere and for one \n"
+         "frequency.\n"
          ),
-        OUTPUT(doit_za_grid_opt_, doit_i_field_),
+        OUTPUT(doit_za_grid_opt_),
         INPUT(doit_i_field_, scat_za_grid_, doit_za_interp_),
         GOUTPUT(),
         GINPUT(),
@@ -1792,7 +1807,7 @@ md_data_raw.push_back
          "By default, linear interpolation is used.\n"
          "\n"
          "Keyword:\n"
-         "  interp_method - 'linear' or 'cubic' \n"
+         "  interp_method - 'linear' or 'polynomial' \n"
          "\n"
          ),
         OUTPUT( doit_za_interp_ ),
@@ -2408,7 +2423,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "iyInterpCubicCloudboxField" ),
+      ( NAME( "iyInterpPolyCloudboxField" ),
         DESCRIPTION
         (
          "As *iyInterpCloudboxField* but performs cubic interpolation.\n"
@@ -4137,8 +4152,8 @@ md_data_raw.push_back
       ( NAME( "ScatteringDoit" ),
         DESCRIPTION
         (
-         "This method executes *doit_mono_agenda* for each frequency defined\n"
-         "in *f_grid* \n"
+         "This method executes *doit_mono_agenda* for each frequency \n"
+         "in *f_grid*. \n"
          "\n"
          ),
         OUTPUT(f_index_),
@@ -4915,39 +4930,6 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "value" ),
         TYPES(    Numeric_t )));
-
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME("Tensor6WriteIteration"),
-        DESCRIPTION
-        (
-       "Write iterated fields.\n"
-       "\n"
-       "This function writes intermediate resultes, the iterations of \n"
-       "fields to xml files. It can be used to check the solution method \n"
-       "for the RTE with scattering integral, which is an iterative \n"
-       "numerical method. It is useful to look how the radiation field \n"
-       "*i_field* and the scattered field *scat_field* behave. \n"
-       "\n"
-       "The user can give an array containing the iterations which shall \n"
-       "be written to files as a keyword to the method. E.g. if \n"
-       "'iterations = [3, 6, 9]', the 3rd, 6th and 9th iterations are \n"
-       "stored in the files 'iteration_field_3.xml', \n"
-       "'iteration_field_6.xml' ...\n"
-       "\n"
-       "If you want to save all the iterations the array has to contain \n"
-       "just one element set to 0: 'iterations = [0]'.\n"
-       "\n"
-       "Note: The workspace variable iteration_counter has to be set as 0 \n"
-       "in the control file before using this method.\n"
-       "\n"
-        ),
-        OUTPUT( ),
-        INPUT(doit_iteration_counter_),
-        GOUTPUT( ),
-        GINPUT(Tensor6_),
-        KEYWORDS("iterations"),
-        TYPES(Array_Index_t )));
 
   md_data_raw.push_back
     ( MdRecord

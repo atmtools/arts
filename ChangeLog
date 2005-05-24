@@ -1,3 +1,34 @@
+2005-05-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-961	    
+	    
+	* src/workspace.cc (define_wsv_data): Removed 
+	*doit_grid_optimization_agenda*. Agenda is not needed for this 
+	purpose. It is sufficent to use *doit_za_grid_optCalc*. 
+
+	* src/m_scatrte.cc: Removed (DoitGridOptimization). 
+	(doit_za_grid_optCalc): Included missing checks.
+	interp_cubic --> interp_poly
+	"cubic" --> "polynomial"
+	(ScatteringDoit): Included missing checks. 
+
+	* src/methods.cc: Improved online docu of the methods above.	
+	
+	* src/interp.{cc,h}: Renamed (interp_cubic) to (interp_poly). The name
+	was misleading, because what is done in the function is a 
+	3 point polynomial interpolation and not a cubic interpolation. 
+
+	* src/scatrte.cc: interp_cubic --> interp_poly
+	"cubic" --> "polynomial"
+	
+	* src/cloudbox.cc: interp_cubic --> interp_poly
+	"cubic" --> "polynomial"
+	
+	* src/m_cloudbox.cc: Renamed: (iyInterpCubicCloudboxField) -->
+	(iyInterpPolyCloudboxField)
+
+	* tests/simpleDOIT.arts: Adapted to changes above.
+	
 2005-05-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-960
@@ -15,7 +46,7 @@
 	(doit_scat_fieldCalc)
 	(doit_scat_fieldCalcLimb)
 
-	* src/methods.cc: Improved online docu the methods above.		
+	* src/methods.cc: Improved online docu of the methods above.	
 
 2005-05-23  Oliver Lemke  <olemke@core-dump.info>
 

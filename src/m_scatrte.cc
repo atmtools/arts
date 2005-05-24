@@ -1681,6 +1681,47 @@ void DoitInit(
   
 }
 
+//! DoitWriteIterationFields
+/*
+  See the the online help (arts -d FUNCTION_NAME)
+  
+  \author Claudia Emde
+  \date 2002-08-26
+     
+*/ 
+void DoitWriteIterationFields(//WS input 
+                           const Index& doit_iteration_counter,
+                           const Tensor6& doit_i_field,
+                           //Keyword:
+                           const ArrayOfIndex& iterations)
+{
+  // Checks of doit_i_field have been done elsewhere, e.g. in
+  // scat_fieldCalc(Limb).
+
+  // If the number of iterations is less than a number specified in the 
+  // keyword *iterations*, this number will be ignored.
+
+  ostringstream os;
+  os << doit_iteration_counter;
+  
+  // All iterations are written to files
+  if( iterations[0] == 0 )
+    {
+      xml_write_to_file("doit_iteration_" + os.str() + ".xml", 
+                        doit_i_field);  
+    }
+  
+  // Only the iterations given by the keyword are written to a file
+  else
+    {
+      for (Index i = 0; i<iterations.nelem(); i++)
+        {
+          if (doit_iteration_counter == iterations[i])
+            xml_write_to_file("doit_iteration_" + os.str() + ".xml", 
+                              doit_i_field);
+        }
+    }
+}
 
 //! doit_scat_fieldCalc
 /*
@@ -1777,6 +1818,13 @@ doit_scat_fieldCalc(//WS Output:
          << "is " << atmosphere_dim << ".";
       throw runtime_error( os.str() );
     }
+
+  // Check size of internally calculated variables pha_mat and pha_mat_spt,
+  // which should be initialized in *DoitInit*
+  assert( is_size( pha_mat, doit_za_grid_size, scat_aa_grid.nelem(), 
+                   stokes_dim, stokes_dim));
+  assert( is_size( pha_mat_spt, pha_mat_spt.nshelves(), doit_za_grid_size,
+                   scat_aa_grid.nelem(), stokes_dim, stokes_dim));
 
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
     throw runtime_error(
@@ -2209,6 +2257,17 @@ doit_scat_fieldCalcLimb(//WS Output:
          << "is " << atmosphere_dim << ".";
       throw runtime_error( os.str() );
     }
+  
+  // Check size of internally calculated variables pha_mat and pha_mat_spt,
+  // which should be initialized in *DoitInit*
+  assert( is_size( pha_mat, doit_za_grid_size, scat_aa_grid.nelem(), 
+                   stokes_dim, stokes_dim));
+  assert( is_size( pha_mat_spt, pha_mat_spt.nshelves(), doit_za_grid_size,
+                   scat_aa_grid.nelem(), stokes_dim, stokes_dim));
+
+  if( !(doit_za_interp == 0  ||  doit_za_interp == 1 ) )
+    throw runtime_error( "Interpolation method is not defined. Use \n"
+                         "*doit_za_interpSet*.\n");
 
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
     throw runtime_error(
@@ -2281,17 +2340,17 @@ doit_scat_fieldCalcLimb(//WS Output:
                 } 
               else if (doit_za_interp == 1)
                 {
-                  // Cubic
+                  // Polynomial
                   for(Index za = 0; za < za_grid.nelem(); za++)
                     {
                       doit_i_field_int(za, i) = 
-                        interp_cubic(scat_za_grid, 
+                        interp_poly(scat_za_grid, 
                                      doit_i_field(p_index, 0, 0, joker, 0, i),
                                      za_grid[za],
                                      gp_za_i[za]);
                     }
                 }
-              // doit_za_interp must be 0 or 1 (linear or cubic)!!!
+              // doit_za_interp must be 0 or 1 (linear or polynomial)!!!
               else assert(false);
             }       
           
@@ -2366,12 +2425,12 @@ doit_scat_fieldCalcLimb(//WS Output:
                        doit_scat_field_org(joker, i),
                        gp_za);
               }
-            else // cubic interpolation
+            else // polynomial interpolation
               {
                 for(Index za = 0; za < scat_za_grid.nelem(); za++)
                   {
                     doit_scat_field(p_index, 0, 0, za, 0, i) = 
-                      interp_cubic(za_grid, 
+                      interp_poly(za_grid, 
                                    doit_scat_field_org(joker, i),
                                    scat_za_grid[za],
                                    gp_za[za]);
@@ -2491,74 +2550,50 @@ doit_scat_fieldCalcLimb(//WS Output:
   out2 << "Finished scattered field.\n"; 
 }
 
-
-
-
-
-//! Execute *doit_grid_optimization_agenda*.
-/*! 
-  The methods checks whether *f_grid* contains just one frequency (only 
-  monochromatic grid optimization possible) and executes 
-  *scat_grid_optimization_agenda*.
+//! doit_za_grid_optCalc
+/*
+   See the the online help (arts -d FUNCTION_NAME)
   
-  WS Input:
-  \param f_grid Frequency grid. 
-  \param doit_grid_optimization_agenda 
-
-  \author Claudia Emde
-  \date 2003-04-15
-*/
-void DoitGridOptimization(
-                          //WS Input
-                          const Vector& f_grid, 
-                          const Agenda& doit_grid_optimization_agenda
-                          )
-{
-  if(f_grid.nelem() > 1)
-    throw runtime_error("*f_grid* contains more than one frequency. \n"
-                        "Grid optimization is only possible for "
-                        "monochromatic calculations. \n"
-                        );
-  
-  doit_grid_optimization_agenda.execute();
-}
-
-
-
-//! Zenith angle grid optimization for scattering calculation.
-/*! 
-
-  This method performes a scattering calculation on a very fine zenith angle
-  grid. It used the obtained field to optimize the zenith angle grid. 
-  
-  Keywords:
-  Index np: Number of grid points for fine (equidistant) grid
-  Index accuracy: Accuracy of optimization in % 
-  String write_var: If yes, grids and according fields are written to files
-
-   WS Output:
-   \param scat_za_grid optimized zenith angle grid
-
-   WS Input:
-   \param doit_mono_agenda Agenda performing monochromatic scattering
-   calculation
-   \param f_index 
-   \param doit_za_interp Interpolation method.
-   
    \author Claudia Emde
    \date 2003-04-15
  */
 void doit_za_grid_optCalc(//WS Output
                           Vector& doit_za_grid_opt,
-                          // WS Output and Input:
-                          Tensor6& doit_i_field,
-                          //WS Input
+                          // WS Input:
+                          const Tensor6& doit_i_field,
                           const Vector& scat_za_grid,
                           const Index& doit_za_interp,
                           //Keywords:
                           const Numeric& acc
                           )
 {
+  //-------- Check the input ---------------------------------
+  
+  // Here it is checked whether doit_i_field is 1D and whether it is 
+  // consistent with scat_za_grid. The number of pressure levels and the 
+  // number of stokes components does not matter. 
+  chk_size("doit_i_field", doit_i_field, 
+           doit_i_field.nvitrines() , 1, 1, scat_za_grid.nelem(), 1,
+           doit_i_field.ncols());
+  
+  if(doit_i_field.ncols()<1 || doit_i_field.ncols()>4)
+    throw runtime_error("The last dimension of *doit_i_field* corresponds\n"
+                        "to the Stokes dimension, therefore the number of\n"
+                        "columns in *doit_i_field* must be a number between\n"
+                        "1 and 4, but it is not!");
+  
+  if(scat_za_grid.nelem() < 500)
+    throw runtime_error("The fine grid (*scat_za_grid*) has less than \n"
+                        "500 grid points which is not sufficient for \n"
+                        "grid_optimization");
+
+  if( !(doit_za_interp == 0  ||  doit_za_interp == 1 ) )
+    throw runtime_error( "Interpolation method is not defined. Use \n"
+                         "*doit_za_interpSet*.\n");
+
+  // ------------- end of checks ------------------------------------- 
+  
+  // Here only used as dummy variable. 
   Matrix doit_i_field_opt_mat;
   doit_i_field_opt_mat = 0.;
   
@@ -2566,31 +2601,13 @@ void doit_za_grid_optCalc(//WS Output
   za_gridOpt(doit_za_grid_opt, doit_i_field_opt_mat,
              scat_za_grid, doit_i_field, acc,
              doit_za_interp);
- 
-  doit_i_field.resize(doit_i_field_opt_mat.nrows(), 1, 1, 
-                      doit_i_field_opt_mat.ncols(),
-                      1, 1);
-  doit_i_field = 0.;
-  
-  doit_i_field(joker, 0, 0, joker, 0, 0) = doit_i_field_opt_mat;
 }
 
 
-
-
-
-//! Define interpolation method for zenith angle dimension
-/*!
-  You can use this method to choose the inerpolation method for 
-  interpolations in the zenith angle dimension. 
-  By default, linear interpolation is used.
-      
-  WS Output: 
-  \param doit_za_interp Flag for interpolation method
+//! doit_za_interpSet
+/*
+  See the the online help (arts -d FUNCTION_NAME)
   
-  Keyword:
-  \param method Interpolation method: "linear" or "cubic"
-
   \author Claudia Emde
   \date 2004-03-18
      
@@ -2603,30 +2620,29 @@ void doit_za_interpSet(
                        
                        )
 {
-  if (atmosphere_dim != 1 && method == "cubic")
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+
+  if (atmosphere_dim != 1 && method == "polynomial")
     throw runtime_error(
-                        "Cubic interpolation is only implemented for 1D DOIT\n"
-                        "calculations as"   
-                        "in 3D, there can be numerical problems.\n"
+                        "Polynomial interpolation is only implemented for\n"
+                        "1D DOIT calculations as \n"   
+                        "in 3D there can be numerical problems.\n"
                         "Please use 'linear' interpolation method."
                         );
 
   if(method == "linear")
     doit_za_interp = 0;
-  else if (method == "cubic")
+  else if (method == "polynomial")
     doit_za_interp = 1;
   else
     throw runtime_error("Possible interpolation methods are 'linear' "
-                        "and 'cubic'.\n");
+                        "and 'polynomial'.\n");
 }
 
-//! Main function for the radiative transfer in cloudbox.  
-/*!
-  This function executes *doit_mono_agenda* for each frequency in *f_grid*.  
-  
-  \param f_index Frequency index
-  \param f_grid Frequency grid
-  \param doit_mono_agenda Agenda for monochromatic scattering calculation. 
+
+//! ScatteringDoit
+/*
+  See the the online help (arts -d FUNCTION_NAME)
   
   \author Claudia Emde
 */
@@ -2637,7 +2653,16 @@ void ScatteringDoit(
                     )
                   
 {
+  //-------- Check input -------------------------------------------
   
+  chk_not_empty( "doit_mono_agenda", doit_mono_agenda );
+
+  // Frequency grid
+  //
+  if( f_grid.nelem() == 0 )
+    throw runtime_error( "The frequency grid is empty." );
+  chk_if_increasing( "f_grid", f_grid );
+
   // Check whether DoitInit was executed
   extern const map<String, Index> WsvMap;
   extern Workspace workspace;
@@ -2650,13 +2675,10 @@ void ScatteringDoit(
                         "Initialization method *DoitInit* is has to be"
                         "put before\n"
                         "start of *ScatteringDoit*");
-  
-  Index Nf = f_grid.nelem();
-  
-  // Is the frequency index valid?
-  assert( f_index <= f_grid.nelem() );
 
-  for ( f_index = 0; f_index < Nf; ++ f_index)
+  //-------- end of checks ----------------------------------------
+
+  for ( f_index = 0; f_index < f_grid.nelem(); f_index ++)
     {
       out1 << "----------------------------------------------\n";
       out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
@@ -2666,64 +2688,4 @@ void ScatteringDoit(
 }
 
  
-//! Write iterated fields.
-/*!
-  This function writed intermediate resultes, the iterations of fields to xml 
-  files. It can be used to check the solution method for the RTE with 
-  scattering integral, which is an iterative numerical method. It is useful
-  to look how the radiation field *doit_i_field* and the scattered field
-  *doit_scat_field* behave.
-
-  The user can give an array containing the iterations which shall be written 
-  to files as a keyword to the method. E.g. if "iterations = [3, 6, 9]",
-  the 3rd, 6th and 9th iterations are stored in the files
-  "iteration_field_3.xml",  "iteration_field_6.xml" ...
-  
-  If you want to save all the iterations the array has to contain 
-  just one element set to 0: "iterations = [0]". 
-  
-  Note: The workspace variable doit_iteration_counter has to be set as 0 in the
-  control file before using this method.
-      
-  WS Input/Output: 
-  \param doit_iteration_counter Counter for the iterations. 
-  \param field Iterated field
-  \param field_name Name of intensity field.
-  \param iterations Array containing the iteration numbers to be written
-
-  \author Claudia Emde
-  \date 2002-08-26
-     
-*/ 
-void Tensor6WriteIteration(//WS input 
-                           const Index& doit_iteration_counter,
-                           //Global  Input :
-                           const Tensor6& field,
-                           const String& field_name,
-                           //Keyword:
-                           const ArrayOfIndex& iterations)
-{
-  // if(doit_iteration_counter>1000) return;
-   
-  ostringstream os;
-  os << doit_iteration_counter;
-  
-  // All iterations are written to files
-  if( iterations[0] == 0 )
-    {
-      xml_write_to_file(field_name + os.str() + ".xml", field);  
-   }
-  // Only the iterations given by the keyword are written to a file
-  else
-    {
-      for (Index i = 0; i<iterations.nelem(); i++)
-        {
-          if (doit_iteration_counter == iterations[i])
-            xml_write_to_file(field_name + os.str() + ".xml", field);  
-        }
-    }
-}
-
-
-
 

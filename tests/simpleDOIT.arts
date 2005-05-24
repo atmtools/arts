@@ -191,9 +191,9 @@ pnd_fieldCalc{}
 
 #    For limb calculations is is very important to have a fine resolution     
 #    about 90°.
-#    If "cubic" is selected one has to use an optimized grid. Please           
-#    use *doit_grid_optimization_agenda* to optimize the grid.    
-doit_za_interpSet{interp_method = "cubic" }                                        
+#    If "polynomial" is selected one has to use an optimized grid. Please     
+#    use *doit_za_grid_optCalc* to optimize the grid.
+doit_za_interpSet{interp_method = "polynomial" }
 
 # As one needs for the RT calculations in limb direction a much finer
 # zenith angle grid resolution as for the computation of the scattering 
@@ -289,6 +289,12 @@ AgendaSet( doit_conv_test_agenda) {
     # Alternative: Give limits in radiances
     #   doit_conv_flagAbs{
     # epsilon = [0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18]
+    #}
+    # If you want to investigat several iteration fields, for example 
+    # to investigate the convergence behavior, you can use
+    # the following method:
+    #DoitWriteIterationFields{
+    #	iterations = [2, 4]
     #}
 }
 

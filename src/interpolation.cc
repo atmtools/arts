@@ -2791,9 +2791,9 @@ void interp( Tensor6View           ia,
 }
 
 
-//! Cubic interpolation.
+//! Polynomial interpolation.
 /*! 
-  This function performs a cubic interpolation. Given two vectors x, y 
+  This function performs a polynomial interpolation. Given two vectors x, y 
   the value of y corresponding to x_i is returned. The function uses the
   common gridpositions (which are also used for linear interpolation).
    
@@ -2807,7 +2807,7 @@ void interp( Tensor6View           ia,
   \author Claudia Emde
   \date 2004-03-17
 */
-Numeric interp_cubic(ConstVectorView x,
+Numeric interp_poly(ConstVectorView x,
                      ConstVectorView y,
                      const Numeric& x_i, 
                      const GridPos& gp)
@@ -2822,8 +2822,8 @@ Numeric interp_cubic(ConstVectorView x,
   Numeric dy_int;
   y_int = 0.;
 
-  // 1 - cubic interpolation with grid position search
-  // 2 - cubic interpolation without grid position search
+  // 1 - polynomial interpolation (3 points) with grid position search
+  // 2 - polynomial interpolation (3 points) without grid position search
   // 3 - polynomial interpolation (4 points)
 
   Index interp_method = 1; 

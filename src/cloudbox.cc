@@ -273,13 +273,11 @@ void chk_pnd_data(
 
 //! Check particle number density files (pnd_field_raw)
 /*!
-  This function checks, whether the particle number density file
-  has the right atmospheric dimension.
-
-  \param pnd_field_raw pnd field raw data (array for all particle types)
-  \param pnd_field_file pnd field filename
-  \param atmosphere_dim atmospheric dimension
-
+  
+ \param pnd_field_raw pnd field raw data (array for all particle types)
+ \param pnd_field_file pnd field filename
+ \param atmosphere_dim atmospheric dimension
+ 
   \author Claudia Emde
   \date   2005-04-05
 */ 
@@ -518,7 +516,8 @@ void chk_single_scattering_data(
    \param scat_za_grid      In: As the WSV with same name. 
    \param scat_aa_grid      In: As the WSV with same name. 
    \param f_grid            In: As the WSV with same name.
-   \param interpmeth        Interpolation method. Can be "linear" or "cubic".
+   \param interpmeth        Interpolation method. Can be "linear" or 
+   "polynomial".
  
    \author Claudia Emde and Patrick Eriksson
    \date 2004-09-29
@@ -555,12 +554,12 @@ void iy_interp_cloudbox_field(
   if( scat_za_grid.nelem() == 0 )
     throw runtime_error( "The variable *scat_za_grid* is empty. Are dummy "
                          "values from *cloudboxOff used?" );
-  if( !( interpmeth == "linear"  ||  interpmeth == "cubic" ) )
+  if( !( interpmeth == "linear"  ||  interpmeth == "polynomial" ) )
     throw runtime_error( "Unknown interpolation method. Possible choices are "
-                                                 "\"linear\" and \"cubic\"." );
-  if( interpmeth == "cubic"  &&  atmosphere_dim != 1  )
-    throw runtime_error( "Cubic interpolation method is only available for"
-                                                     "*atmosphere_dim* = 1." );
+                         "\"linear\" and \"polynomial\"." );
+  if( interpmeth == "polynomial"  &&  atmosphere_dim != 1  )
+    throw runtime_error( "Polynomial interpolation method is only available"
+                         "for *atmosphere_dim* = 1." );
   // Size of scat_i_p etc is checked below
   //---------------------------------------------------------------------------
 
@@ -683,7 +682,7 @@ void iy_interp_cloudbox_field(
             {
               for(Index iv = 0; iv < nf; iv++ )
                 {
-                  iy(iv,is) = interp_cubic( itw, 
+                  iy(iv,is) = interp_poly( itw, 
                        scat_i_p( iv, border, 0, 0, joker, 0, is ) , rte_los[0],
                                             gp );
                 }

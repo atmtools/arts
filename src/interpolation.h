@@ -358,7 +358,7 @@ void interp( Tensor6View           ia,
              const ArrayOfGridPos& rgp,
              const ArrayOfGridPos& cgp);
 
-Numeric interp_cubic(ConstVectorView x,
+Numeric interp_poly(ConstVectorView x,
                      ConstVectorView y,
                      const Numeric& x_i, 
                      const GridPos& gp);

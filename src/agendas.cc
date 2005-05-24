@@ -113,23 +113,6 @@ void define_agenda_data()
 
  agenda_data.push_back
     (AgRecord
-     ( NAME( "doit_grid_optimization_agenda" ),
-       DESCRIPTION
-       (
-        "Grid optimization for DOIT calculations. \n"
-        "\n"
-        "Main WSM: *doit_za_gridOptimize*: \n"
-        "This requires as an input the radiation field computed on a very\n"
-        "fine grid which can be obtained by \n"
-        "      (a) *CloudboxGetIncoming* and *ScatteringMain* or\n "
-        "      (b) by reading a precalculated file \n"
-        "\n"
-        ),
-       OUTPUT(doit_za_grid_opt_, doit_i_field_ ),
-       INPUT(doit_za_interp_)));
- 
-  agenda_data.push_back
-    (AgRecord
      ( NAME( "doit_scat_field_agenda" ),
        DESCRIPTION
        (

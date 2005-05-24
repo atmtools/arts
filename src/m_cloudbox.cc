@@ -2239,7 +2239,7 @@ void iyInterpCloudboxField(
   \author Patrick Eriksson
   \date 2004-09-29
 */
-void iyInterpCubicCloudboxField(
+void iyInterpPolyCloudboxField(
             Matrix&         iy,
       const Tensor7&        scat_i_p,
       const Tensor7&        scat_i_lat,
@@ -2259,5 +2259,5 @@ void iyInterpCubicCloudboxField(
   iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
-                            scat_za_grid, scat_aa_grid, f_grid, "cubic" );
+                            scat_za_grid, scat_aa_grid, f_grid, "polynomial" );
 }
