@@ -424,7 +424,7 @@ void test06()
   }
 }
 
-// Test cubic interpolation
+// Test polynomial interpolation (included by CE)
 void test07()
 {
   // FileType ftype = FILE_TYPE_ASCII;
@@ -471,14 +471,14 @@ void test07()
 
    for(Index i = 0; i < new_x.nelem(); i++)
      {
-       y1_cub[i] = interp_cubic(x, y1, new_x[i], gp[i]);
-       y2_cub[i] = interp_cubic(x, y2, new_x[i], gp[i]);
-       y3_cub[i] = interp_cubic(x, y3, new_x[i], gp[i]);
+       y1_cub[i] = interp_poly(x, y1, new_x[i], gp[i]);
+       y2_cub[i] = interp_poly(x, y2, new_x[i], gp[i]);
+       y3_cub[i] = interp_poly(x, y3, new_x[i], gp[i]);
      }
    
-   xml_write_to_file( "./test/y1_cub.xml", y1_cub);
-   xml_write_to_file( "./test/y2_cub.xml", y2_cub);
-   xml_write_to_file( "./test/y3_cub.xml", y3_cub);
+   xml_write_to_file( "./test/y1_poly.xml", y1_cub);
+   xml_write_to_file( "./test/y2_poly.xml", y2_cub);
+   xml_write_to_file( "./test/y3_poly.xml", y3_cub);
 }
    
 

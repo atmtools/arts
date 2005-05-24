@@ -1,5 +1,14 @@
 2005-05-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
+	* arts-1-1-962	    
+	
+	* src/test_interpolation.cc (test07): interp_cubic --> interp_poly
+
+	* tests/simpleDOIT.arts: Only minor changes in documentation of 
+	file. 
+	
+2005-05-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
 	* arts-1-1-961	    
 	    
 	* src/workspace.cc (define_wsv_data): Removed 
