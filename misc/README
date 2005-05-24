@@ -1,8 +1,0 @@
-This module was abandoned in arts-1.1
-
-Run
-
-cvs co -rARTS-1-0 arts_aux
-
-to retrieve the version for arts 1.0.x
-
