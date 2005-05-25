@@ -1,3 +1,15 @@
+2005-05-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-966
+
+	* Some work towards analytical gas jacobians. Nothing yet operational
+	or used.
+	
+	* src/rte.cc 
+	(rte_step_std_clearsky): Started, not finished. 
+
+	(rte_std): Started to include jacobian code.
+	
 2005-05-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-965		    

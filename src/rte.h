@@ -102,6 +102,7 @@ void rte_std(
              Vector&    emission,
              Matrix&    abs_vec,
              Tensor3&   ext_mat,
+             Matrix&    abs_scalar_gas,
              Numeric&   rte_pressure,
              Numeric&   rte_temperature,
              Vector&    rte_vmr_list,

@@ -3930,8 +3930,9 @@ md_data_raw.push_back
          "\n"
          "See further the user guide."
         ),
-        OUTPUT( iy_, emission_, abs_vec_, ext_mat_, rte_pressure_, 
-                rte_temperature_, rte_vmr_list_, f_index_, ppath_index_ ),
+        OUTPUT( iy_, emission_, abs_vec_, ext_mat_, abs_scalar_gas_, 
+                rte_pressure_, rte_temperature_, rte_vmr_list_, f_index_, 
+                ppath_index_ ),
         INPUT( iy_, ppath_, ppath_p_, ppath_t_, ppath_vmr_, f_grid_, 
                stokes_dim_, emission_agenda_, scalar_gas_absorption_agenda_, 
                opt_prop_gas_agenda_ ),
@@ -3950,9 +3951,9 @@ md_data_raw.push_back
          "The transmission to each point of the propagation path is returned\n"
          "in *iy_aux*."
         ),
-        OUTPUT( iy_, emission_, abs_vec_, ext_mat_, rte_pressure_, 
-                rte_temperature_, rte_vmr_list_, f_index_, ppath_index_,
-                ppath_transmissions_ ),
+        OUTPUT( iy_, emission_, abs_vec_, ext_mat_, abs_scalar_gas_,
+                rte_pressure_, rte_temperature_, rte_vmr_list_, f_index_, 
+                ppath_index_, ppath_transmissions_ ),
         INPUT( iy_, ppath_, ppath_p_, ppath_t_, ppath_vmr_, f_grid_, 
                stokes_dim_, emission_agenda_, scalar_gas_absorption_agenda_, 
                opt_prop_gas_agenda_ ),

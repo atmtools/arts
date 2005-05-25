@@ -402,7 +402,7 @@ void rte_step_std(//Output and Input:
               //Input
               ConstMatrixView ext_mat_av,
               ConstVectorView abs_vec_av,
-              ConstVectorView sca_vec_av, 
+              ConstVectorView sca_vec_av,
               const Numeric& l_step,
               const Numeric& rte_planck_value )
 {
@@ -410,13 +410,13 @@ void rte_step_std(//Output and Input:
   Index stokes_dim = stokes_vec.nelem();
 
   //Check inputs:
-  assert(is_size(trans_mat, stokes_dim, stokes_dim)); 
-  assert(is_size(ext_mat_av, stokes_dim, stokes_dim)); 
+  assert(is_size(trans_mat, stokes_dim, stokes_dim));
+  assert(is_size(ext_mat_av, stokes_dim, stokes_dim));
   assert(is_size(abs_vec_av, stokes_dim));
   assert(is_size(sca_vec_av, stokes_dim));
   assert( rte_planck_value >= 0 );
   assert( l_step >= 0 );
-  assert (!is_singular( ext_mat_av ));   
+  assert (!is_singular( ext_mat_av ));
 
 
   // Check, if only the first component of abs_vec is non-zero:
@@ -425,7 +425,7 @@ void rte_step_std(//Output and Input:
   for (Index i = 1; i < stokes_dim; i++)
     if (abs_vec_av[i] != 0)
       unpol_abs_vec = false;
-  
+
   bool unpol_sca_vec = true;
 
   for (Index i = 1; i < stokes_dim; i++)
@@ -435,20 +435,20 @@ void rte_step_std(//Output and Input:
 
   //--- Scalar case: ---------------------------------------------------------
   if( stokes_dim == 1 )
-    { 
+    {
       trans_mat(0,0) = exp(-ext_mat_av(0,0) * l_step);
-      stokes_vec[0]  = stokes_vec[0] * trans_mat(0,0) + 
-                       (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) / 
+      stokes_vec[0]  = stokes_vec[0] * trans_mat(0,0) +
+                       (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) /
         ext_mat_av(0,0) * (1 - trans_mat(0,0));
     }
 
 
   //--- Vector case: ---------------------------------------------------------
-    
+
   // We have here two cases, diagonal or non-diagonal ext_mat_gas
   // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
   // non-zero value in position 1.
-    
+
   //- Unpolarised
   else if( is_diagonal(ext_mat_av) && unpol_abs_vec && unpol_sca_vec )
     {
@@ -458,38 +458,38 @@ void rte_step_std(//Output and Input:
       // Stokes dim 1
       //   assert( ext_mat_av(0,0) == abs_vec_av[0] );
       //   Numeric transm = exp( -l_step * abs_vec_av[0] );
-      stokes_vec[0] = stokes_vec[0] * trans_mat(0,0) + 
-                      (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) / 
+      stokes_vec[0] = stokes_vec[0] * trans_mat(0,0) +
+                      (abs_vec_av[0] * rte_planck_value + sca_vec_av[0]) /
                       ext_mat_av(0,0) * (1 - trans_mat(0,0));
-      
+
       // Stokes dims > 1
       for( Index i=1; i<stokes_dim; i++ )
         {
           //      assert( abs_vec_av[i] == 0.);
-          trans_mat(i,i) = trans_mat(0,0); 
-          stokes_vec[i]  = stokes_vec[i] * trans_mat(i,i) + 
+          trans_mat(i,i) = trans_mat(0,0);
+          stokes_vec[i]  = stokes_vec[i] * trans_mat(i,i) +
                        sca_vec_av[i] / ext_mat_av(i,i)  * (1 - trans_mat(i,i));
         }
     }
-  
-  
+
+
   //- General case
   else
     {
       //Initialize internal variables:
 
       // Matrix LU used for LU decompostion and as dummy variable:
-      Matrix LU(stokes_dim, stokes_dim); 
-      ArrayOfIndex indx(stokes_dim); // index for pivoting information 
-      Vector b(stokes_dim); // dummy variable 
+      Matrix LU(stokes_dim, stokes_dim);
+      ArrayOfIndex indx(stokes_dim); // index for pivoting information
+      Vector b(stokes_dim); // dummy variable
       Vector x(stokes_dim); // solution vector for K^(-1)*b
       Matrix I(stokes_dim, stokes_dim);
 
       Vector B_abs_vec(stokes_dim);
       B_abs_vec = abs_vec_av;
       B_abs_vec *= rte_planck_value;
-      
-      for (Index i=0; i<stokes_dim; i++) 
+
+      for (Index i=0; i<stokes_dim; i++)
         b[i] = B_abs_vec[i] + sca_vec_av[i];  // b = abs_vec * B + sca_vec
 
       // solve K^(-1)*b = x
@@ -499,7 +499,7 @@ void rte_step_std(//Output and Input:
       Matrix ext_mat_ds(stokes_dim, stokes_dim);
       ext_mat_ds = ext_mat_av;
       ext_mat_ds *= -l_step; // ext_mat_ds = -ext_mat*ds
-      
+
       Index q = 10;  // index for the precision of the matrix exp function
       //Matrix exp_ext_mat(stokes_dim, stokes_dim);
       //matrix_exp(exp_ext_mat, ext_mat_ds, q);
@@ -507,7 +507,7 @@ void rte_step_std(//Output and Input:
 
       Vector term1(stokes_dim);
       Vector term2(stokes_dim);
-      
+
       id_mat(I);
       for(Index i=0; i<stokes_dim; i++)
         {
@@ -522,8 +522,62 @@ void rte_step_std(//Output and Input:
       //mult(term1, exp_ext_mat, stokes_vec);
       mult( term1, trans_mat, stokes_vec );
 
-      for (Index i=0; i<stokes_dim; i++) 
+      for (Index i=0; i<stokes_dim; i++)
         stokes_vec[i] = term1[i] + term2[i];  // Compute the new Stokes Vector
+    }
+}
+
+
+
+void rte_step_std_clearsky(
+              //Output and Input:
+                    VectorView   stokes_vec,
+                    MatrixView   trans_mat,
+              //Input
+              const bool&        abs_polarised,
+              ConstMatrixView    ext_mat,
+              ConstVectorView    abs_vec,
+              const Numeric&     l_step,
+              const Numeric&     b )
+{
+  //Stokes dimension:
+  Index stokes_dim = stokes_vec.nelem();
+
+  //Check inputs:
+  assert( is_size( trans_mat, stokes_dim, stokes_dim ) ); 
+  assert( is_size( ext_mat, stokes_dim, stokes_dim ) ); 
+  assert( is_size( abs_vec, stokes_dim ) );
+  assert( b >= 0 );
+  assert( l_step >= 0 );
+
+
+  //--- Unpolarised absorption -----------------------------------------------
+  if( !abs_polarised )
+    {
+      // Init transmission matrix to zero
+      trans_mat      = 0;
+
+      // Stokes dim 1
+      trans_mat(0,0) = exp( -ext_mat(0,0) * l_step );
+      stokes_vec[0]  = stokes_vec[0] * trans_mat(0,0) + 
+                                                    b * ( 1 - trans_mat(0,0) );
+
+      // Higher Stokes dims
+      for( Index i=1; i<stokes_dim; i++ )
+        {
+          trans_mat(i,i) = trans_mat(0,0); 
+          stokes_vec[i]  *= trans_mat(i,i);
+        }
+      
+    }
+
+  //--- Polarised absorption -------------------------------------------------
+  else
+    { 
+      // We do not allow scalar case here
+      assert( stokes_dim > 1 );
+
+      throw runtime_error( "Polarised absorption not yet handled.");
     }
 }
 
@@ -549,6 +603,7 @@ void rte_std(
              Vector&    emission,
              Matrix&    abs_vec,
              Tensor3&   ext_mat,
+             Matrix&    abs_scalar_gas,
              Numeric&   rte_pressure,
              Numeric&   rte_temperature,
              Vector&    rte_vmr_list,
@@ -566,6 +621,10 @@ void rte_std(
        const Agenda&    opt_prop_gas_agenda,
        const bool&      do_transmissions )
 {
+  // Temporary variables
+  const bool   do_jacobians = false;
+        bool   abs_polarised = false;
+
   // Relevant checks are assumed to be done in RteCalc
 
   // Some sizes
@@ -588,12 +647,26 @@ void rte_std(
   // set to 0 for clear sky calculations.
   Vector sca_vec_dummy(stokes_dim, 0.);
           
-  // Transmission matrix for one path step
-  Matrix trans(stokes_dim,stokes_dim);
+  // Transmission variables
+  Matrix    trans(stokes_dim,stokes_dim);
+  bool      save_transmissions = false;
+  Tensor4   transmissions;
+  bool      any_abs_polarised = false;
+  //
+  if( do_transmissions  ||  do_jacobians ) 
+    {
+      save_transmissions = true;
+      transmissions.resize(np-1,nf,stokes_dim,stokes_dim); 
+    }
 
-  // Ppath transmissions
-  if( do_transmissions )
-    { ppath_transmissions.resize(np-1,nf,stokes_dim,stokes_dim); }
+  // Jacobian variables
+  Tensor4 abslosjacs;
+  if( do_jacobians )
+    { 
+      abslosjacs.resize(ns,np,nf,stokes_dim);
+      abslosjacs = 0;
+    }
+
 
   // Loop the propagation path steps
   //
@@ -605,7 +678,7 @@ void rte_std(
       // Calculate mean of atmospheric parameters
       rte_pressure    = exp( 0.5 * ( logp_ppath[ip] + logp_ppath[ip-1] ) );
       rte_temperature = 0.5*(ppath_t[ip] + ppath_t[ip-1]);
-      for( Index is = 0; is < ns; is ++)
+      for( Index is=0; is<ns; is++ )
         { rte_vmr_list[is] = 0.5*(ppath_vmr(is,ip)+ppath_vmr(is, ip-1)); }
       
       // The absO2ZeemanModel needs the position in the propagation
@@ -617,17 +690,84 @@ void rte_std(
       scalar_gas_absorption_agenda.execute( ip );
       opt_prop_gas_agenda.execute( ip ); 
 
+      // Polarised absorption?
+      if( abs_polarised )
+        { any_abs_polarised = true; }
+
+      // Loop frequencies
       for( Index iv=0; iv<nf; iv++ )
         {
+          // Jacobians
+          if( do_jacobians )
+            {
+              const Numeric   dd = 
+                       -0.5 * ppath.l_step[ip-1] * ( iy(iv,0) - emission[iv] );
+              for( Index is=0; is<ns; is++ )
+                {
+                  abslosjacs(is,ip,iv,0) += 
+                                 dd * abs_scalar_gas(iv,is) / ppath_vmr(is,ip);
+                  abslosjacs(is,ip-1,iv,0) += 
+                               dd * abs_scalar_gas(iv,is) / ppath_vmr(is,ip-1);
+                }
+            }
+
           // Perform the RTE step.
+          /*
+          rte_step_std_clearsky( iy(iv,joker), trans, abs_polarised, 
+                                 ext_mat(iv,joker,joker), abs_vec(iv,joker), 
+                                 ppath.l_step[ip-1], emission[iv] );
+          */
           rte_step_std( iy(iv,joker), trans, ext_mat(iv,joker,joker), 
                         abs_vec(iv,joker), sca_vec_dummy, 
                         ppath.l_step[ip-1], emission[iv] );
 
-          if( do_transmissions )
-            { ppath_transmissions(ip-1,iv,joker,joker) = trans; }
+          if( save_transmissions )
+            { transmissions(ip-1,iv,joker,joker) = trans; }
         }
     }
+
+  // Postprocessing of Jacobians
+  if( do_jacobians )
+    {
+      for( Index iv=0; iv<nf; iv++ )
+        {
+          // Transmission of 1
+          id_mat( trans );
+
+          if( any_abs_polarised )
+            {
+              Matrix  mtmp( stokes_dim, stokes_dim );
+              Vector  vtmp( stokes_dim );
+
+              for( Index ip=0; ip<np-1; ip++ )
+                {
+                  mtmp = trans;
+                  mult( trans, transmissions(ip,iv,joker,joker), mtmp );
+                  for( Index is=0; is<ns; is++ )
+                    { 
+                      vtmp = abslosjacs(is,ip+1,iv,joker); 
+                      mult( abslosjacs(is,ip+1,iv,joker), trans, vtmp );
+                    }
+                }
+            }
+          else
+            {
+              for( Index ip=0; ip<np-1; ip++ )
+                {
+                  for( Index ii=0; ii<stokes_dim; ii++ )
+                    {
+                      trans(ii,ii) *= transmissions(ip,iv,ii,ii);
+                      for( Index is=0; is<ns; is++ )
+                        { abslosjacs(is,ip+1,iv,ii) *= trans(ii,ii); }
+                    }
+                }
+            }
+        }
+    }
+
+  // Ppath transmissions
+  if( do_transmissions )
+    { ppath_transmissions = transmissions; }
 }
 
 

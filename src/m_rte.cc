@@ -319,6 +319,7 @@ void RteStd(
              Vector&    emission,
              Matrix&    abs_vec,
              Tensor3&   ext_mat,
+             Matrix&    abs_scalar_gas,
              Numeric&   rte_pressure,
              Numeric&   rte_temperature,
              Vector&    rte_vmr_list,
@@ -337,8 +338,8 @@ void RteStd(
 {
   Tensor4 dummy(0,0,0,0);
 
-  rte_std( iy, emission, abs_vec, ext_mat, rte_pressure, rte_temperature, 
-           rte_vmr_list, f_index, ppath_index, dummy, 
+  rte_std( iy, emission, abs_vec, ext_mat, abs_scalar_gas, rte_pressure, 
+           rte_temperature, rte_vmr_list, f_index, ppath_index, dummy, 
            ppath, ppath_p, ppath_t, ppath_vmr, f_grid, stokes_dim, 
            emission_agenda, scalar_gas_absorption_agenda, opt_prop_gas_agenda,
            false );
@@ -359,6 +360,7 @@ void RteStdWithTransmissions(
              Vector&    emission,
              Matrix&    abs_vec,
              Tensor3&   ext_mat,
+             Matrix&    abs_scalar_gas,
              Numeric&   rte_pressure,
              Numeric&   rte_temperature,
              Vector&    rte_vmr_list,
@@ -376,11 +378,11 @@ void RteStdWithTransmissions(
        const Agenda&    scalar_gas_absorption_agenda,
        const Agenda&    opt_prop_gas_agenda )
 {
-  rte_std( iy, emission, abs_vec, ext_mat, rte_pressure, rte_temperature, 
-           rte_vmr_list, f_index, ppath_index, ppath_transmissions, 
-           ppath, ppath_p, ppath_t, ppath_vmr, f_grid, stokes_dim, 
-           emission_agenda, scalar_gas_absorption_agenda, opt_prop_gas_agenda,
-           true );
+  rte_std( iy, emission, abs_vec, ext_mat, abs_scalar_gas, rte_pressure, 
+           rte_temperature, rte_vmr_list, f_index, ppath_index, 
+           ppath_transmissions, ppath, ppath_p, ppath_t, ppath_vmr, f_grid, 
+           stokes_dim, emission_agenda, scalar_gas_absorption_agenda, 
+           opt_prop_gas_agenda, true );
 }
 
 
