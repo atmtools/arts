@@ -502,7 +502,8 @@ void define_agenda_data()
         "\n"
         ),
        OUTPUT( pha_mat_spt_),
-       INPUT( pha_mat_spt_, doit_za_grid_size_, scat_aa_grid_)));
+       INPUT( pha_mat_spt_, scat_za_index_, scat_lat_index_, scat_lon_index_,
+              scat_p_index_, scat_aa_index_, rte_temperature_)));
        
 
   agenda_data.push_back

@@ -145,4 +145,17 @@ doit_rte_agendaExecute(// WS Output
                        const Agenda &input_agenda,
                        bool silent);
 
+void
+pha_mat_spt_agendaExecute(// WS Input & Output
+                          Tensor5 &pha_mat_spt,
+                          // WS Input
+                          Index &scat_za_index,
+                          Index &scat_lat_index,
+                          Index &scat_lon_index,
+                          Index &scat_p_index,
+                          Index &scat_aa_index,
+                          Numeric &rte_temperature,
+                          const Agenda &input_agenda,
+                          bool silent);
+
 #endif

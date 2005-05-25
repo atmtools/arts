@@ -1,3 +1,21 @@
+2005-05-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-964
+
+	* methods.cc:
+
+	Removed agenda communication variables from doit_scat_fieldCalcLimb.
+
+	* m_scatrte.cc (doit_scat_fieldCalcLimb):
+
+	Use new pha_mat_spt_agendaExecute wrapper.
+
+	Use local variables for agenda communication.
+
+	* agenda_class.{cc,h}: New wrapper pha_mat_spt_agendaExecute.
+
+	* agendas.cc: Adapt INPUT, OUTPUT for pha_mat_spt_agenda.
+
 2005-05-24  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-963

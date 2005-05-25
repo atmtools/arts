@@ -610,5 +610,42 @@ doit_rte_agendaExecute(// WS Input & Output
   workspace.pop (aout[0]);
 }
 
+void
+pha_mat_spt_agendaExecute(// WS Input & Output
+                          Tensor5 &pha_mat_spt,
+                          // WS Input
+                          Index &scat_za_index,
+                          Index &scat_lat_index,
+                          Index &scat_lon_index,
+                          Index &scat_p_index,
+                          Index &scat_aa_index,
+                          Numeric &rte_temperature,
+                          const Agenda &input_agenda,
+                          bool silent)
+{
+  extern Workspace workspace;
+  extern map<String, Index> AgendaMap;
+  extern const Array<AgRecord> agenda_data;
 
+  const AgRecord &agr = agenda_data[AgendaMap.find (input_agenda.name ())->second];
+  const ArrayOfIndex &aout = agr.Output();
+  const ArrayOfIndex &ain = agr.Input();
 
+  workspace.push (aout[0], (void *)&pha_mat_spt);
+  workspace.push (ain[1], (void *)&scat_za_index);
+  workspace.push (ain[2], (void *)&scat_lat_index);
+  workspace.push (ain[3], (void *)&scat_lon_index);
+  workspace.push (ain[4], (void *)&scat_p_index);
+  workspace.push (ain[5], (void *)&scat_aa_index);
+  workspace.push (ain[6], (void *)&rte_temperature);
+
+  input_agenda.execute (silent);
+
+  workspace.pop (aout[0]);
+  workspace.pop (ain[1]);
+  workspace.pop (ain[2]);
+  workspace.pop (ain[3]);
+  workspace.pop (ain[4]);
+  workspace.pop (ain[5]);
+  workspace.pop (ain[6]);
+}

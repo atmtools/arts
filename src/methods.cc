@@ -1691,10 +1691,7 @@ md_data_raw.push_back
          "For more information please refer to AUG.\n"
          "\n"
          ),
-        OUTPUT(  scat_za_index_,
-                 scat_aa_index_, rte_temperature_, scat_p_index_, 
-                 scat_lat_index_, scat_lon_index_,
-                 doit_scat_field_, pha_mat_, pha_mat_spt_),
+        OUTPUT(  doit_scat_field_, pha_mat_, pha_mat_spt_),
         INPUT( doit_scat_field_, pha_mat_, pha_mat_spt_, pha_mat_spt_agenda_,
                doit_i_field_, pnd_field_, scat_za_grid_,
                scat_aa_grid_,  

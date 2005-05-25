@@ -2177,14 +2177,7 @@ doit_scat_fieldCalc1D(//WS Output:
   
 */
 void
-doit_scat_fieldCalcLimb(//WS Output:
-                        Index& scat_za_index, 
-                        Index& scat_aa_index,
-                        Numeric& rte_temperature,
-                        Index& scat_p_index,
-                        Index& scat_lat_index, 
-                        Index& scat_lon_index,
-                        // WS Output and Input
+doit_scat_fieldCalcLimb(// WS Output and Input
                         Tensor6& doit_scat_field,
                         Tensor4& pha_mat,
                         Tensor5& pha_mat_spt,
@@ -2323,17 +2316,17 @@ doit_scat_fieldCalcLimb(//WS Output:
   grid_stepsize[1] = 360./(Naa - 1);
     
   Tensor3 product_field(doit_za_grid_size, Naa, stokes_dim, 0);
-  
+
   if  ( atmosphere_dim == 1 )
     {
-      scat_aa_index = 0;
+      Index scat_aa_index_local = 0;
       
       // Get pha_mat at the grid positions
       // Since atmosphere_dim = 1, there is no loop over lat and lon grids
       for (Index p_index = 0; p_index <= cloudbox_limits[1]-cloudbox_limits[0];
            p_index++)
         {
-          rte_temperature = t_field(p_index + cloudbox_limits[0], 0, 0);
+          Numeric rte_temperature_local = t_field(p_index + cloudbox_limits[0], 0, 0);
           // Interpolate intensity field:
           for (Index i = 0; i < stokes_dim; i++)
             {
@@ -2359,20 +2352,29 @@ doit_scat_fieldCalcLimb(//WS Output:
             }       
           
           //There is only loop over zenith angle grid; no azimuth angle grid.
-          for( scat_za_index = 0; scat_za_index < doit_za_grid_size;
-               scat_za_index ++)
+          for( Index scat_za_index_local = 0;
+               scat_za_index_local < doit_za_grid_size;
+               scat_za_index_local++)
             {
-              scat_p_index =  p_index + cloudbox_limits[0];
-              scat_lat_index = 0;
-              scat_lon_index = 0; 
+              Index scat_p_index_local =  p_index + cloudbox_limits[0];
+              Index scat_lat_index_local = 0;
+              Index scat_lon_index_local = 0; 
               
               // Calculate the phase matrix of a single particle type
               out3 << "Calculate the phase matrix \n"; 
-              pha_mat_spt_agenda.execute(true);
+              pha_mat_spt_agendaExecute(pha_mat_spt,
+                                        scat_za_index_local,
+                                        scat_lat_index_local,
+                                        scat_lon_index_local,
+                                        scat_p_index_local,
+                                        scat_aa_index_local,
+                                        rte_temperature_local,
+                                        pha_mat_spt_agenda,
+                                        true);
               
               // Sum over all particle types
               pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-                          atmosphere_dim, scat_p_index, 0, 
+                          atmosphere_dim, scat_p_index_local, 0, 
                           0);
 
               out3 << "Multiplication of phase matrix with incoming" << 
@@ -2405,7 +2407,7 @@ doit_scat_fieldCalcLimb(//WS Output:
               out3 << "Compute integral. \n"; 
               for (Index i = 0; i < stokes_dim; i++)
                 {
-                  doit_scat_field_org(scat_za_index, i)=
+                  doit_scat_field_org(scat_za_index_local, i)=
                     AngIntegrate_trapezoid_opti(product_field(joker, joker, i),
                                                 za_grid,
                                                 scat_aa_grid,
@@ -2458,37 +2460,48 @@ doit_scat_fieldCalcLimb(//WS Output:
                    cloudbox_limits[5] - cloudbox_limits[4]; lon_index++)
               {
                 
-                rte_temperature = t_field(p_index + cloudbox_limits[0],
-                                          lat_index + cloudbox_limits[2],
-                                          lon_index + cloudbox_limits[4]);
+                Numeric rte_temperature_local =
+                  t_field(p_index + cloudbox_limits[0],
+                          lat_index + cloudbox_limits[2],
+                          lon_index + cloudbox_limits[4]);
                 
                 // Loop over scattered directions
-                for (scat_aa_index = 1; scat_aa_index < Naa; 
-                     scat_aa_index ++)
+                for (Index scat_aa_index_local = 1;
+                     scat_aa_index_local < Naa; 
+                     scat_aa_index_local++)
                   {
                    // Interpolate intensity field:
                     for (Index i = 0; i < stokes_dim; i++)
                       {
                         interp(doit_i_field_int(joker, i), itw_za_i, 
                                doit_i_field(p_index, lat_index, lon_index,
-                                       joker, scat_aa_index, i), gp_za_i);
+                                       joker, scat_aa_index_local, i), gp_za_i);
                       }       
                     
-                    for (scat_za_index = 0; scat_za_index < 
-                           doit_za_grid_size; scat_za_index ++)
+                    for (Index scat_za_index_local = 0;
+                         scat_za_index_local < doit_za_grid_size;
+                         scat_za_index_local++)
                       {
-                        scat_p_index =  p_index + cloudbox_limits[0];
-                        scat_lat_index = lat_index + cloudbox_limits[2];
-                        scat_lon_index = lon_index + cloudbox_limits[4];
+                        Index scat_p_index_local =  p_index + cloudbox_limits[0];
+                        Index scat_lat_index_local = lat_index + cloudbox_limits[2];
+                        Index scat_lon_index_local = lon_index + cloudbox_limits[4];
                         
                         out3 << "Calculate phase matrix \n";
-                        pha_mat_spt_agenda.execute(true);
-                        
+                        pha_mat_spt_agendaExecute(pha_mat_spt,
+                                                  scat_za_index_local,
+                                                  scat_lat_index_local,
+                                                  scat_lon_index_local,
+                                                  scat_p_index_local, 
+                                                  scat_aa_index_local,
+                                                  rte_temperature_local,
+                                                  pha_mat_spt_agenda,
+                                                  true);
+  
                         pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                     atmosphere_dim, 
-                                    scat_p_index, 
-                                    scat_lat_index, 
-                                    scat_lon_index);
+                                    scat_p_index_local, 
+                                    scat_lat_index_local, 
+                                    scat_lon_index_local);
                         
                         product_field = 0;
                         
@@ -2520,7 +2533,7 @@ doit_scat_fieldCalcLimb(//WS Output:
 
                         for (Index i = 0; i < stokes_dim; i++)
                           {
-                            doit_scat_field_org(scat_za_index, i)  =  
+                            doit_scat_field_org(scat_za_index_local, i)  =  
                               AngIntegrate_trapezoid_opti(product_field
                                                      ( joker,
                                                        joker, i),
@@ -2538,7 +2551,7 @@ doit_scat_fieldCalcLimb(//WS Output:
                                           lat_index,
                                           lon_index,
                                           joker,
-                                          scat_aa_index,
+                                          scat_aa_index_local,
                                           i),
                                itw_za,
                                doit_scat_field_org(joker, i),
