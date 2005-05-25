@@ -479,17 +479,12 @@ void doit_conv_flagLsq(//WS Output:
 void doit_i_fieldIterate(
                // WS Input and Output:
                Tensor6& doit_i_field,
-               Tensor6& doit_scat_field,
                // WS Input:  
                const Agenda& doit_scat_field_agenda,
                const Agenda& doit_rte_agenda,
                const Agenda& doit_conv_test_agenda
                )
 {
-  Tensor6 doit_i_field_old_local;
-  Index doit_conv_flag_local;
-  Index doit_iteration_counter_local;
-
   //---------------Check input---------------------------------
   chk_not_empty( "doit_scat_field_agenda", doit_scat_field_agenda);
   chk_not_empty( "doit_rte_agenda", doit_rte_agenda);
@@ -499,6 +494,17 @@ void doit_i_fieldIterate(
   //to find out the size without including a lot more interface 
   //variables
   //-----------End of checks-------------------------------------- 
+
+  Tensor6 doit_i_field_old_local;
+  Index doit_conv_flag_local;
+  Index doit_iteration_counter_local;
+
+  // Resize and initialize doit_scat_field,
+  // which  has the same dimensions as doit_i_field
+  Tensor6 doit_scat_field_local
+    (doit_i_field.nvitrines(), doit_i_field.nshelves(),
+     doit_i_field.nbooks(), doit_i_field.npages(),
+     doit_i_field.nrows(), doit_i_field.ncols(), 0.);
 
   doit_conv_flag_local = 0;
   doit_iteration_counter_local = 0;
@@ -512,14 +518,15 @@ void doit_i_fieldIterate(
     
     // Calculate the scattered field.
     out2 << "Execute doit_scat_field_agenda. \n";
-    doit_scat_field_agendaExecute(doit_scat_field,
+    doit_scat_field_agendaExecute(doit_scat_field_local,
                                   doit_i_field,
                                   doit_scat_field_agenda,
-                                  false);
+                                  true);
     
     // Update doit_i_field.
     out2 << "Execute doit_rte_agenda. \n";
-    doit_rte_agendaExecute(doit_i_field, doit_rte_agenda, true);
+    doit_rte_agendaExecute(doit_i_field, doit_scat_field_local, 
+                           doit_rte_agenda, true);
 
     //Convergence test.
     //out2 << "Execute doit_conv_test_agenda. \n";

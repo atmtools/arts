@@ -142,6 +142,7 @@ doit_scat_field_agendaExecute(// WS Input & Output
 void
 doit_rte_agendaExecute(// WS Output
                        Tensor6 &doit_i_field,
+                       const Tensor6 &doit_scat_field, 
                        const Agenda &input_agenda,
                        bool silent);
 

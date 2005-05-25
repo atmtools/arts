@@ -202,7 +202,7 @@ void define_agenda_data()
         "\n"
         ),
         OUTPUT( doit_i_field_),
-        INPUT( doit_i_field_)));
+       INPUT( doit_i_field_, doit_scat_field_)));
  
  
   agenda_data.push_back

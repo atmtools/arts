@@ -57,12 +57,12 @@ void cloud_ppath_update1D(
                   // scalar_gas_abs_agenda:
                   Numeric& rte_pressure,
                   Numeric& rte_temperature,
-                  Vector& rte_vmr_list,
+                  VectorView rte_vmr_list,
                   // opt_prop_xxx_agenda:
-                  Tensor3& ext_mat,
-                  Matrix& abs_vec, 
-                  Vector& rte_los,
-                  Vector& rte_pos,
+                  Tensor3View ext_mat,
+                  MatrixView abs_vec, 
+                  VectorView rte_los,
+                  VectorView rte_pos,
                   GridPos& rte_gp_p,
                   // ppath_step_agenda:
                   Ppath& ppath_step, 
@@ -98,21 +98,21 @@ void cloud_ppath_update1D_noseq(
                           // scalar_gas_abs_agenda:
                           Numeric& rte_pressure,
                           Numeric& rte_temperature,
-                          Vector& rte_vmr_list,
+                          VectorView rte_vmr_list,
                           // opt_prop_xxx_agenda:
-                          Tensor3& ext_mat,
-                          Matrix& abs_vec,  
-                          Vector& rte_los,
-                          Vector& rte_pos,
-                          GridPos& rte_gp_p,
+                          Tensor3View ext_mat,
+                          MatrixView abs_vec,
+                          // iy_surface_agenda
+                          VectorView, //rte_los,
+                          VectorView, //rte_pos,
+                          GridPos&, //rte_gp_p,
                           // ppath_step_agenda:
                           Ppath& ppath_step, 
                           const Index& p_index,
                           const Index& scat_za_index,
                           ConstVectorView scat_za_grid,
                           const ArrayOfIndex& cloudbox_limits,
-                          // Input
-                          const Tensor6& doit_i_field_old,
+                          ConstTensor6View doit_i_field_old,
                           ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
                           const Agenda& scalar_gas_absorption_agenda,
@@ -121,12 +121,13 @@ void cloud_ppath_update1D_noseq(
                           const Agenda& opt_prop_gas_agenda,
                           // Propagation path calculation:
                           const Agenda& ppath_step_agenda,
-                          ConstVectorView p_grid,
+                          ConstVectorView  p_grid,
                           ConstTensor3View z_field,
                           ConstMatrixView r_geoid,
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
+                          // used for surface ?
                           const Index& f_index,
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
@@ -219,15 +220,14 @@ void cloud_ppath_update3D(
 
 void cloud_RT_no_background(//Output
                             Tensor6View doit_i_field,
-                            VectorView stokes_vec,
                             //Communication variables for 
                             //scalar_gas_abs_agenda:
                             Numeric& rte_pressure,
                             Numeric& rte_temperature,
-                            Vector& rte_vmr_list,
+                            VectorView rte_vmr_list,
                             // opt_prop_xxx_agenda:
-                            Tensor3& ext_mat,
-                            Matrix& abs_vec,  
+                            Tensor3View ext_mat,
+                            MatrixView abs_vec,  
                             // Input
                             const Agenda& scalar_gas_absorption_agenda,
                             const Agenda& opt_prop_gas_agenda,
@@ -237,6 +237,7 @@ void cloud_RT_no_background(//Output
                             ConstTensor3View ext_mat_int,
                             ConstMatrixView abs_vec_int,
                             ConstMatrixView sca_vec_int,
+                            ConstMatrixView doit_i_field_int,
                             ConstVectorView p_int,
                             const ArrayOfIndex& cloudbox_limits,
                             ConstVectorView f_grid,
@@ -263,6 +264,27 @@ void ppath_step_in_cloudbox(Ppath& ppath_step,
                             const Index& scat_aa_index,
                             ConstVectorView lat_grid,
                             ConstVectorView lon_grid);
+
+void interp_cloud_coeff1D(//Output
+                          Tensor3View ext_mat_int,
+                          MatrixView abs_vec_int,
+                          MatrixView sca_vec_int,
+                          MatrixView doit_i_field_int,
+                          VectorView t_int, 
+                          MatrixView vmr_list_int,
+                          VectorView p_int,
+                          //Input
+                          ConstTensor5View ext_mat_field, 
+                          ConstTensor4View abs_vec_field,
+                          ConstTensor6View doit_scat_field,
+                          ConstTensor6View doit_i_field,
+                          ConstTensor3View t_field, 
+                          ConstTensor4View vmr_field, 
+                          ConstVectorView p_grid,
+                          const Ppath& ppath_step,
+                          const ArrayOfIndex& cloudbox_limits,
+                          ConstVectorView scat_za_grid,
+                          const Index& scat_za_interp);
 
 bool is_inside_cloudbox(const Ppath& ppath_step,
                         const ArrayOfIndex& cloudbox_limits);

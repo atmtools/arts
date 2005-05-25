@@ -593,6 +593,7 @@ void
 doit_rte_agendaExecute(// WS Input & Output
                        Tensor6 &doit_i_field,
                        // WS Input
+                       const Tensor6 &doit_scat_field,
                        const Agenda &input_agenda,
                        bool silent)
 {
@@ -602,12 +603,15 @@ doit_rte_agendaExecute(// WS Input & Output
 
   const AgRecord &agr = agenda_data[AgendaMap.find (input_agenda.name ())->second];
   const ArrayOfIndex &aout = agr.Output();
+  const ArrayOfIndex &ain = agr.Input();
 
   workspace.push (aout[0], (void *)&doit_i_field);
+  workspace.push (ain[1], (void *)&doit_scat_field);
 
   input_agenda.execute (silent);
 
   workspace.pop (aout[0]);
+  workspace.pop (ain[1]);
 }
 
 void
