@@ -107,9 +107,9 @@ void define_agenda_data()
         "  because result can be inaccurate.\n"
         "\n"
         ),
-       OUTPUT( doit_conv_flag_ ),
-       INPUT(  doit_i_field_,
-               doit_i_field_old_)));
+       OUTPUT( doit_conv_flag_, doit_iteration_counter_ ),
+       INPUT(  doit_conv_flag_, doit_iteration_counter_,
+               doit_i_field_, doit_i_field_old_)));
 
  agenda_data.push_back
     (AgRecord
@@ -136,8 +136,7 @@ void define_agenda_data()
         "\n"
         ),
         OUTPUT( doit_scat_field_ ),
-        INPUT(  doit_i_field_, pnd_field_, scat_za_grid_, scat_aa_grid_, 
-                cloudbox_limits_, pha_mat_spt_agenda_)));
+        INPUT(  doit_scat_field_, doit_i_field_)));
 
   agenda_data.push_back
     (AgRecord
@@ -203,9 +202,7 @@ void define_agenda_data()
         "\n"
         ),
         OUTPUT( doit_i_field_),
-        INPUT(  scalar_gas_absorption_agenda_, spt_calc_agenda_,
-                opt_prop_part_agenda_, opt_prop_gas_agenda_,
-                ppath_step_agenda_)));
+        INPUT( doit_i_field_)));
  
  
   agenda_data.push_back

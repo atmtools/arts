@@ -533,12 +533,14 @@ ostream& operator<<(ostream& os, const MRecord& a)
  **************************************************************/
 
 void
-doit_conv_test_agendaExecute(// WS Output
+doit_conv_test_agendaExecute(// WS Input & Output
                              Index &doit_conv_flag,
+                             Index &doit_iteration_counter,
                              // WS Input
                              const Tensor6 &doit_i_field,
                              const Tensor6 &doit_i_field_old,
-                             const Agenda &input_agenda)
+                             const Agenda &input_agenda,
+                             bool silent)
 {
   extern Workspace workspace;
   extern map<String, Index> AgendaMap;
@@ -548,15 +550,64 @@ doit_conv_test_agendaExecute(// WS Output
   const ArrayOfIndex &aout = agr.Output();
   const ArrayOfIndex &ain = agr.Input();
 
+  out2 << aout.nelem() << " " << ain.nelem() << "\n";
   workspace.push (aout[0], (void *)&doit_conv_flag);
-  workspace.push (ain[0], (void *)&doit_i_field);
-  workspace.push (ain[1], (void *)&doit_i_field_old);
+  workspace.push (aout[1], (void *)&doit_iteration_counter);
+  workspace.push (ain[2], (void *)&doit_i_field);
+  workspace.push (ain[3], (void *)&doit_i_field_old);
 
-  input_agenda.execute (0);
+  input_agenda.execute (silent);
 
   workspace.pop (aout[0]);
-  workspace.pop (ain[0]);
+  workspace.pop (aout[1]);
+  workspace.pop (ain[2]);
+  workspace.pop (ain[3]);
+}
+
+void
+doit_scat_field_agendaExecute(// WS Input & Output
+                              Tensor6 &doit_scat_field,
+                              // WS Input
+                              const Tensor6 &doit_i_field,
+                              const Agenda &input_agenda,
+                              bool silent)
+{
+  extern Workspace workspace;
+  extern map<String, Index> AgendaMap;
+  extern const Array<AgRecord> agenda_data;
+
+  const AgRecord &agr = agenda_data[AgendaMap.find (input_agenda.name ())->second];
+  const ArrayOfIndex &aout = agr.Output();
+  const ArrayOfIndex &ain = agr.Input();
+
+  workspace.push (aout[0], (void *)&doit_scat_field);
+  workspace.push (ain[1], (void *)&doit_i_field);
+
+  input_agenda.execute (silent);
+
+  workspace.pop (aout[0]);
   workspace.pop (ain[1]);
+}
+
+void
+doit_rte_agendaExecute(// WS Input & Output
+                       Tensor6 &doit_i_field,
+                       // WS Input
+                       const Agenda &input_agenda,
+                       bool silent)
+{
+  extern Workspace workspace;
+  extern map<String, Index> AgendaMap;
+  extern const Array<AgRecord> agenda_data;
+
+  const AgRecord &agr = agenda_data[AgendaMap.find (input_agenda.name ())->second];
+  const ArrayOfIndex &aout = agr.Output();
+
+  workspace.push (aout[0], (void *)&doit_i_field);
+
+  input_agenda.execute (silent);
+
+  workspace.pop (aout[0]);
 }
 
 

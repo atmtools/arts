@@ -479,17 +479,16 @@ void doit_conv_flagLsq(//WS Output:
 void doit_i_fieldIterate(
                // WS Input and Output:
                Tensor6& doit_i_field,
-               // WS Output
-               Tensor6& doit_i_field_old,
-               Index& /*doit_conv_flag*/,
-               Index& doit_iteration_counter,
+               Tensor6& doit_scat_field,
                // WS Input:  
                const Agenda& doit_scat_field_agenda,
                const Agenda& doit_rte_agenda,
                const Agenda& doit_conv_test_agenda
                )
 {
+  Tensor6 doit_i_field_old_local;
   Index doit_conv_flag_local;
+  Index doit_iteration_counter_local;
 
   //---------------Check input---------------------------------
   chk_not_empty( "doit_scat_field_agenda", doit_scat_field_agenda);
@@ -502,29 +501,34 @@ void doit_i_fieldIterate(
   //-----------End of checks-------------------------------------- 
 
   doit_conv_flag_local = 0;
-  doit_iteration_counter = 0;
+  doit_iteration_counter_local = 0;
 
   while(doit_conv_flag_local == 0) {
     
     // 1. Copy doit_i_field to doit_i_field_old.
-    doit_i_field_old = doit_i_field;
+    doit_i_field_old_local = doit_i_field;
     
     // 2.Calculate scattered field vector for all points in the cloudbox.
     
     // Calculate the scattered field.
     out2 << "Execute doit_scat_field_agenda. \n";
-    doit_scat_field_agenda.execute(true);
+    doit_scat_field_agendaExecute(doit_scat_field,
+                                  doit_i_field,
+                                  doit_scat_field_agenda,
+                                  false);
     
     // Update doit_i_field.
     out2 << "Execute doit_rte_agenda. \n";
-    doit_rte_agenda.execute(true);
+    doit_rte_agendaExecute(doit_i_field, doit_rte_agenda, true);
 
     //Convergence test.
     //out2 << "Execute doit_conv_test_agenda. \n";
     doit_conv_test_agendaExecute(doit_conv_flag_local,
+                                 doit_iteration_counter_local,
                                  doit_i_field,
-                                 doit_i_field_old,
-                                 doit_conv_test_agenda);
+                                 doit_i_field_old_local,
+                                 doit_conv_test_agenda,
+                                 false);
 
   }//end of while loop, convergence is reached.
 }

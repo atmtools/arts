@@ -1,6 +1,31 @@
+2005-05-24  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-963
+
+	* src/agendas.cc:
+
+	Adapted INPUT and OUTPUT for doit_rte_agenda, doit_scat_field_agenda
+	and doit_conv_test_agenda.
+
+	* src/methods.cc:
+
+	Adapted INPUT, OUTPUT of doit_i_fieldIterate.
+
+	* src/m_scatrte.cc (doit_i_fieldIterate):
+
+	Use new agenda wrappers. Use local variables for communication with
+	the agendas.
+
+	* src/agenda_class.{cc,h}:
+
+	Pass silent flag to the agenda wrapper.
+
+	Added mockups for doit_rte_agendaExecute
+	doit_scat_field_agendaExecute wrappers.
+
 2005-05-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-962	    
+	* arts-1-1-962
 	
 	* src/test_interpolation.cc (test07): interp_cubic --> interp_poly
 
@@ -9,7 +34,7 @@
 	
 2005-05-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-961	    
+	* arts-1-1-961
 	    
 	* src/workspace.cc (define_wsv_data): Removed 
 	*doit_grid_optimization_agenda*. Agenda is not needed for this 

@@ -1387,9 +1387,9 @@ md_data_raw.push_back
          "      supported.\n"
          "\n"
          ),
-        OUTPUT(doit_i_field_, doit_i_field_old_, doit_conv_flag_, 
-               doit_iteration_counter_),
-        INPUT( doit_i_field_, doit_scat_field_agenda_, doit_rte_agenda_, 
+        OUTPUT(doit_i_field_, doit_scat_field_),
+        INPUT( doit_i_field_, doit_scat_field_,
+               doit_scat_field_agenda_, doit_rte_agenda_, 
                doit_conv_test_agenda_),
         GOUTPUT(),
         GINPUT(),

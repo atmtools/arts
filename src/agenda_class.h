@@ -122,11 +122,27 @@ ostream& operator<<(ostream& os, const MRecord& a);
  **************************************************************/
 
 void
-doit_conv_test_agendaExecute(// WS Output
+doit_conv_test_agendaExecute(// WS Input & Output
                              Index &doit_conv_flag,
+                             Index &doit_iteration_counter,
                              // WS Input
                              const Tensor6 &doit_i_field,
                              const Tensor6 &doit_i_field_old,
-                             const Agenda &doit_conv_test_agenda);
+                             const Agenda &input_agenda,
+                             bool silent);
+
+void
+doit_scat_field_agendaExecute(// WS Input & Output
+                              Tensor6 &doit_scat_field,
+                              // WS Input
+                              const Tensor6 &doit_i_field,
+                              const Agenda &input_agenda,
+                              bool silent);
+
+void
+doit_rte_agendaExecute(// WS Output
+                       Tensor6 &doit_i_field,
+                       const Agenda &input_agenda,
+                       bool silent);
 
 #endif
