@@ -1,3 +1,10 @@
+2005-05-26  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-0-179
+	
+	* src/partition_function_data.cc: Put in default values for linear
+	and non-linear molecules as comments at the beginning of the file.
+
 2005-05-19  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-178

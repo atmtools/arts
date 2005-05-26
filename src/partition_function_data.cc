@@ -35,7 +35,24 @@
 #include "make_array.h"
 #include "absorption.h"
 
+/*
+  Default values for a linear molecule:
 
+  c0        c1       c2       c3
+  0.0       1.0      0.0      0.0
+
+  and for non linear molecules:
+
+  c0        c1       c2           c3
+  -76.2339  6.95356  1.30510e-07  -1.17068e-11
+
+  Here we assumed that either
+
+  linear: Q = T
+  non-linear: Q = T^1.5
+
+  These numbers are from Axel von Engeln, May 2005.
+*/
 
 /*! \name Some #defines for better readability */
 //@{ 
