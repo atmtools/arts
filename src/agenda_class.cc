@@ -539,8 +539,9 @@ doit_conv_test_agendaExecute(// WS Input & Output
                              // WS Input
                              const Tensor6 &doit_i_field,
                              const Tensor6 &doit_i_field_old,
+                             // Wrapper input
                              const Agenda &input_agenda,
-                             bool silent)
+                             const bool silent)
 {
   extern Workspace workspace;
   extern map<String, Index> AgendaMap;
@@ -569,8 +570,9 @@ doit_scat_field_agendaExecute(// WS Input & Output
                               Tensor6 &doit_scat_field,
                               // WS Input
                               const Tensor6 &doit_i_field,
+                              // Wrapper input
                               const Agenda &input_agenda,
-                              bool silent)
+                              const bool silent)
 {
   extern Workspace workspace;
   extern map<String, Index> AgendaMap;
@@ -618,14 +620,15 @@ void
 pha_mat_spt_agendaExecute(// WS Input & Output
                           Tensor5 &pha_mat_spt,
                           // WS Input
-                          Index &scat_za_index,
-                          Index &scat_lat_index,
-                          Index &scat_lon_index,
-                          Index &scat_p_index,
-                          Index &scat_aa_index,
-                          Numeric &rte_temperature,
+                          const Index scat_za_index,
+                          const Index scat_lat_index,
+                          const Index scat_lon_index,
+                          const Index scat_p_index,
+                          const Index scat_aa_index,
+                          const Numeric rte_temperature,
+                          // Wrapper input
                           const Agenda &input_agenda,
-                          bool silent)
+                          const bool silent)
 {
   extern Workspace workspace;
   extern map<String, Index> AgendaMap;

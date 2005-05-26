@@ -1,3 +1,16 @@
+2005-05-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-967
+
+	* src/agenda_class.{cc,h}:
+
+	More constness in wrapper arguments.
+
+	Pass elementary data types (Index, Numeric) by value not by reference
+	if they are input parameters.
+	This avoids the need to declare local variables in the calling
+	function if you want to pass literals as input to the agenda.
+
 2005-05-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-966
@@ -36,19 +49,19 @@
 
 	* arts-1-1-964
 
-	* methods.cc:
+	* src/methods.cc:
 
 	Removed agenda communication variables from doit_scat_fieldCalcLimb.
 
-	* m_scatrte.cc (doit_scat_fieldCalcLimb):
+	* src/m_scatrte.cc (doit_scat_fieldCalcLimb):
 
 	Use new pha_mat_spt_agendaExecute wrapper.
 
 	Use local variables for agenda communication.
 
-	* agenda_class.{cc,h}: New wrapper pha_mat_spt_agendaExecute.
+	* src/agenda_class.{cc,h}: New wrapper pha_mat_spt_agendaExecute.
 
-	* agendas.cc: Adapt INPUT, OUTPUT for pha_mat_spt_agenda.
+	* src/agendas.cc: Adapt INPUT, OUTPUT for pha_mat_spt_agenda.
 
 2005-05-24  Oliver Lemke  <olemke@core-dump.info>
 
