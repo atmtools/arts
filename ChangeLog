@@ -1,3 +1,24 @@
+2005-05-26  Carlos Jimenez  <carlos.jimenez@ed.ac.uk>
+
+	* arts-1-0-180
+
+	* ami/hmatrix/h_backend.m: modified to allow different channel
+	response, so far only common response for all channels was
+	allowed. Nothing is changed concerning input-output, so it works
+	fine with all code.
+
+	* ami/hmatrix/hBackendFromFile.m: modified to allow different
+	channel response, so far only common response for all channels was
+	allowed. Nothing is changed concerning input-output, so it works
+	fine with all code. The script recognises wether the backend
+	response file corresponds to a common response for all channels -
+	an ARTS formated file with a MATRIX - or an individual response -
+	an ARTS formated file with an AOMATRIX -. For individual
+	responses, matrix {i} from the AOMATRIX correspsonds to the
+	response for channel i.
+
+	* ami/plot/ax_set.m: adding XTICK and YTICK fields to script.
+	
 2005-05-26  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-0-179

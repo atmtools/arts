@@ -42,7 +42,6 @@ A = read_datafile( filename, 'MATRIX' );
 [Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,A(:,1),A(:,2),...
                                                                  o_filter,o_y);
 
-
 %=== Include Hant in H
 H = h_x_h( Hmix, H );
 

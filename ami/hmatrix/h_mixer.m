@@ -197,7 +197,6 @@ for i = 1 : n_new
     w = interp1(f_filter,w_filter,[fprim,fimage],'cubic');
   end
 
-
   %=== Weights for primary band
   %
   np = length( ind_prim );

@@ -17,11 +17,13 @@
 %            XLABEL_SIZE
 %            XLABEL_WEIGHT
 %            XGRID
+%            XTICK
 %            XTICKLABEL
 %            YLABEL
 %            YLABEL_SIZE
 %            YLABEL_WEIGHT
 %            YGRID
+%            YTICK
 %            YTICKLABEL
 %
 %          Fields with a '_' (underscore) refers to properties of childrens.
@@ -35,7 +37,7 @@
 %------------------------------------------------------------------------
 
 % HISTORY: 2001.02.25  Created by Patrick Eriksson.
-
+%          2005.05.26  Adding more fields XTICK and YTICK (CJ) 
 
 function h = ax_set( A )
 
@@ -102,6 +104,10 @@ if isfield( A, 'XGRID' ) & ~isfield( A.XGRID )
   set( h, 'XGrid', A.XGRID );
 end
 %
+if isfield( A, 'XTICK' ) & ~isfield( A.XTICK )
+  set( h, 'XTick', A.XTICK );
+end
+%
 if isfield( A, 'XTICKLABEL' ) & ~isfield( A.XTICKLABEL )
   set( h, 'XTickLabel', A.XTICKLABEL );
 end
@@ -125,6 +131,11 @@ end
 if isfield( A, 'YGRID' ) & ~isfield( A.YGRID )
   set( h, 'YGrid', A.YGRID );
 end
+%
+if isfield( A, 'YTICK' ) & ~isfield( A.YTICK )
+  set( h, 'YTick', A.YTICK );
+end
+
 %
 if isfield( A, 'YTICKLABEL' ) & ~isfield( A.YTICKLABEL )
   set( h, 'YTickLabel', A.YTICKLABEL );
