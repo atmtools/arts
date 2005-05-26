@@ -72,6 +72,7 @@
 #include "auto_wsv.h"
 #include "methods.h"
 #include "wsv_aux.h"
+#include "agenda_record.h"
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
@@ -326,6 +327,7 @@ void write_method_header( ofstream& ofs,
   ofs << ");\n\n";
 }
 
+
 int main()
 {
   try
@@ -425,7 +427,22 @@ int main()
                       << "_g(Workspace& ws, const MRecord& mr);\n";
                 }
         }
+
       ofs << "\n";
+
+      // Create prototypes for the agenda wrappers
+
+      // Initialize agenda data.
+      define_wsv_map ();
+      define_agenda_data ();
+
+      extern const Array<AgRecord> agenda_data;
+      for (Index i = 0; i < agenda_data.nelem (); i++)
+        {
+          write_agenda_wrapper_header (ofs, agenda_data[i]);
+
+          ofs << ";\n\n";
+        }
 
       ofs << "\n#endif  // auto_md_h\n";
 

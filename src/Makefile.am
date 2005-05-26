@@ -797,6 +797,9 @@ make_auto_wsv_h_SOURCES = \
 
 make_auto_md_h_SOURCES = \
 	absorption.h \
+	agenda_record.cc \
+	agenda_record.h \
+	agendas.cc \
 	arts.cc \
 	arts.h \
 	auto_wsv.h \
@@ -839,6 +842,9 @@ make_auto_md_h_SOURCES = \
 
 make_auto_md_cc_SOURCES = \
 	absorption.h \
+	agenda_record.cc \
+	agenda_record.h \
+	agendas.cc \
 	arts.cc \
 	arts.h \
 	auto_wsv.h \

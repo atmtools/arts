@@ -253,3 +253,58 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
 
   return os;
 }
+
+//! Write a agenda wrapper header.
+/*!
+  \param ofs The stream to write to.
+  \param agr Agenda record.
+*/
+void write_agenda_wrapper_header( ofstream& ofs,
+                                  const AgRecord& agr )
+{
+  extern const ArrayOfString wsv_group_names;
+  extern const Array<WsvRecord> wsv_data;
+
+  // Wrapper function
+  ofs << "void " << agr.Name () << "Execute(\n";
+
+  // Wrapper function output parameters
+  const ArrayOfIndex &ago = agr.Output ();
+  ofs << "        // Output\n";
+  for (ArrayOfIndex::const_iterator j = ago.begin (); j != ago.end (); j++)
+    {
+      ofs << "        ";
+      ofs << wsv_group_names[wsv_data[*j].Group()] << " &";
+      ofs << wsv_data[*j].Name() << ",\n";
+    }
+
+  // Wrapper function input parameters
+  const ArrayOfIndex &agi = agr.Input ();
+  ofs << "        // Input\n";
+  for (ArrayOfIndex::const_iterator j = agi.begin (); j != agi.end (); j++)
+    {
+      // Ignore Input parameters that are also output
+      ArrayOfIndex::const_iterator it = ago.begin ();
+      while (it != ago.end () && *it != *j) it++;
+      if (it == ago.end ())
+        {
+          String group_name = wsv_group_names[wsv_data[*j].Group()];
+          if ( group_name == "Index" || group_name == "Numeric")
+            {
+              ofs << "        ";
+            }
+          else
+            {
+              ofs << "        const ";
+            }
+          ofs << group_name << " &";
+          ofs << wsv_data[*j].Name() << ",\n";
+        }
+    }
+
+  // Wrapper function agenda and silent parameters
+  ofs << "        // Wrapper Input\n";
+  ofs << "        const Agenda &input_agenda,\n";
+  ofs << "        const bool &silent)";
+}
+

@@ -94,6 +94,8 @@ void  define_agenda_map();
 
 bool check_agenda_data();
 
+void write_agenda_wrapper_header (ofstream& ofs, const AgRecord& agr);
+
 ostream& operator<<(ostream& os, const AgRecord& agr);
 
 #endif

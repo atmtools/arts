@@ -22,6 +22,7 @@
 #include "auto_wsv.h"
 #include "methods.h"
 #include "wsv_aux.h"
+#include "agenda_record.h"
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
@@ -93,6 +94,7 @@ int main()
           << "#include \"m_ignore.h\"\n"
           << "#include \"m_xml.h\"\n"
           << "#include \"m_basic_types.h\"\n"
+          << "#include \"agenda_record.h\"\n"
           << "\n";
 
       // Declare wsv_data:
@@ -327,6 +329,84 @@ int main()
         ofs << "};\n\n";
       }
 
+      // Create implementation of the agenda wrappers
+
+      // Initialize agenda data.
+      define_wsv_map ();
+      define_agenda_data ();
+
+      extern const Array<AgRecord> agenda_data;
+      for (Index i = 0; i < agenda_data.nelem (); i++)
+        {
+          const AgRecord &agr = agenda_data[i];
+          const ArrayOfIndex &ago = agr.Output ();
+          const ArrayOfIndex &agi = agr.Input ();
+          ostringstream ain_push_os, ain_pop_os;
+          ostringstream aout_push_os, aout_pop_os;
+
+          write_agenda_wrapper_header (ofs, agr);
+
+          ofs << "\n";
+          ofs << "{\n";
+          if (ago.nelem () || agi.nelem ())
+            {
+              ofs << "  extern Workspace workspace;\n"
+                << "  extern map<String, Index> AgendaMap;\n"
+                << "  extern const Array<AgRecord> agenda_data;\n"
+                << "\n"
+                << "  const AgRecord &agr =\n"
+                << "    agenda_data[AgendaMap.find (input_agenda.name ())->second];\n"
+                << "\n";
+            }
+          if (ago.nelem ())
+            {
+              for (Index i = 0; i < ago.nelem (); i++)
+                {
+                  aout_push_os << "  workspace.push (aout[" << i << "], "
+                    << "(void *)&" << wsv_data[ago[i]].Name () << ");\n";
+                  aout_pop_os << "  workspace.pop (aout[" << i << "]);\n";
+                }
+            }
+          if (agi.nelem ())
+            {
+              for (Index i = 0; i < agi.nelem (); i++)
+                {
+                  // Ignore Input parameters that are also output
+                  ArrayOfIndex::const_iterator it = ago.begin ();
+                  while (it != ago.end () && *it != agi[i]) it++;
+                  if (it == ago.end ())
+                    {
+                      ain_push_os << "  workspace.push (ain[" << i << "], "
+                        << "(void *)&" << wsv_data[agi[i]].Name () << ");\n";
+                      ain_pop_os << "  workspace.pop (ain[" << i << "]);\n";
+                    }
+                }
+            }
+
+          if (aout_push_os.str().length())
+            {
+              ofs << "  const ArrayOfIndex &aout = agr.Output ();\n";
+              ofs << aout_push_os.str () << "\n";
+            }
+          if (ain_push_os.str().length())
+            {
+              ofs << "  const ArrayOfIndex &ain = agr.Input ();\n";
+              ofs << ain_push_os.str () << "\n";
+            }
+
+          ofs << "  input_agenda.execute (silent);\n\n";
+
+          if (aout_pop_os.str().length())
+            {
+              ofs << aout_pop_os.str () << "\n";
+            }
+          if (ain_pop_os.str().length())
+            {
+              ofs << ain_pop_os.str () << "\n";
+            }
+
+          ofs << "}\n\n";
+        }
     }
   catch (exception x)
     {
