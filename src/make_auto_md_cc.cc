@@ -360,25 +360,25 @@ int main()
             }
           if (ago.nelem ())
             {
-              for (Index i = 0; i < ago.nelem (); i++)
+              for (Index j = 0; j < ago.nelem (); j++)
                 {
-                  aout_push_os << "  workspace.push (aout[" << i << "], "
-                    << "(void *)&" << wsv_data[ago[i]].Name () << ");\n";
-                  aout_pop_os << "  workspace.pop (aout[" << i << "]);\n";
+                  aout_push_os << "  workspace.push (aout[" << j << "], "
+                    << "(void *)&" << wsv_data[ago[j]].Name () << ");\n";
+                  aout_pop_os << "  workspace.pop (aout[" << j << "]);\n";
                 }
             }
           if (agi.nelem ())
             {
-              for (Index i = 0; i < agi.nelem (); i++)
+              for (Index j = 0; j < agi.nelem (); j++)
                 {
                   // Ignore Input parameters that are also output
                   ArrayOfIndex::const_iterator it = ago.begin ();
-                  while (it != ago.end () && *it != agi[i]) it++;
+                  while (it != ago.end () && *it != agi[j]) it++;
                   if (it == ago.end ())
                     {
-                      ain_push_os << "  workspace.push (ain[" << i << "], "
-                        << "(void *)&" << wsv_data[agi[i]].Name () << ");\n";
-                      ain_pop_os << "  workspace.pop (ain[" << i << "]);\n";
+                      ain_push_os << "  workspace.push (ain[" << j << "], "
+                        << "(void *)&" << wsv_data[agi[j]].Name () << ");\n";
+                      ain_pop_os << "  workspace.pop (ain[" << j << "]);\n";
                     }
                 }
             }

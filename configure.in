@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.969)
+AM_INIT_AUTOMAKE(arts,1.1.970)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -205,8 +205,8 @@ if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
     WARNING_FLAGS="$WARNING_FLAGS -Werror"
 
     # gcc2 produces warnings in standard headers, therefore only
-    # enable it with gcc3
-    if test x$GCC_MAJOR = x3; then
+    # enable it with gcc3 and gcc4
+    if test x$GCC_MAJOR = x3 -o x$GCC_MAJOR = x4; then
       WARNING_FLAGS="$WARNING_FLAGS -Wshadow"
     fi
   fi
