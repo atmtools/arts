@@ -1,5 +1,13 @@
 2005-05-26  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-969
+
+	* ChangeLog:
+
+	Add missing entry for src/make_auto_md_cc.cc in my previous commit.
+
+2005-05-26  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-968
 
 	* src/Makefile.am:
@@ -9,12 +17,16 @@
 
 	* src/agenda_record.{cc,h} (write_agenda_wrapper_header):
 
-	New function used by make_auto_md_{cc,h}.cc to generated the wrapper
+	New function used by make_auto_md_{cc,h}.cc to generate the wrapper
 	function headers.
 
 	* src/make_auto_md_h.cc (main):
 
 	Generate agenda wrapper function prototypes.
+
+	* src/make_auto_md_cc.cc (main):
+
+	Generate agenda wrapper functions.
 
 	* src/agenda_class.{cc,h}:
 
