@@ -289,15 +289,15 @@ void write_agenda_wrapper_header( ofstream& ofs,
       if (it == ago.end ())
         {
           String group_name = wsv_group_names[wsv_data[*j].Group()];
-          if ( group_name == "Index" || group_name == "Numeric")
+
+          ofs << "        const ";
+          ofs << group_name << " ";
+
+          // Don't pass by reference for elementary types
+          if ( group_name != "Index" && group_name != "Numeric")
             {
-              ofs << "        ";
+              ofs << "&";
             }
-          else
-            {
-              ofs << "        const ";
-            }
-          ofs << group_name << " &";
           ofs << wsv_data[*j].Name() << ",\n";
         }
     }
