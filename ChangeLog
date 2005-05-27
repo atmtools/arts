@@ -1,3 +1,34 @@
+2005-05-27  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-971
+	
+	* src/m_cloudbox.cc (pnd_fieldCalc): Changed the size *pnd_field*.
+	From now on it is defined only inside the cloudbox. 
+
+	* src/m_optproperties.cc: Adapted the following functions to 
+	pnd_field modification:
+        (pha_matCalc) only documentation
+
+	* src/m_scatrte.cc:  Adapted the following functions to 
+	pnd_field modification:
+	(doit_scat_fieldCalc)
+
+	* src/scatrte.cc (cloud_fieldsCalc): Adapted to pnd_field 
+	modification. 
+
+	* src/montecarlo.{cc,h}: 
+	Adapted the following functions to 
+	pnd_field modification:
+	(TArrayCalc), (atm_vars_at_ppath_end)
+
+	* src/special_interp.{cc,h} (fix_gridpos_at_boundary): Created
+	this functionn. It is needed to interpolate the pnd_field in 
+	montecarlo.cc.
+	
+	* src/m_workspace.cc: Modified entry for *pnd_field*.
+
+	* src/methods.cc: Adapted entry for (pnd_fieldCalc).
+
 2005-05-26  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-970
@@ -41,6 +72,7 @@
 	Removed agenda wrappers. They are now automatically generated in
 	auto_md.{cc,h}.
 
+>>>>>>> 1.1364
 2005-05-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-967

@@ -1137,18 +1137,18 @@ void ParticleTypeAdd( //WS Output:
 }
 
 
-//! Calculate particle number density fields.
-/*!
-  This method interpolates the data for particle number density fields
-  on the atmospheric grids used for the calculation.
+//! pnd_fieldCalc
+/*
+   See the online help (arts -d FUNCTION_NAME)
 
-   See also the the online help (arts -d FUNCTION_NAME)
-
-   \author Sreerekha T.R.
+   \author Sreerekha T.R. and Claudia Emde
    \date   2003-04-17
 
    \date   2004-02-23 (CE:) Used ArrayOfGriddedField3 instead of 
-           ArrayOfArrayOfTensor3. 
+   ArrayOfArrayOfTensor3. 
+   
+   \date   2005-05-26 (CE) Modified the size of pnd_field, now only defined
+   in the cloudbox. 
 
 */
 
@@ -1159,90 +1159,125 @@ void pnd_fieldCalc(//WS Output:
                    const Vector& lat_grid,
                    const Vector& lon_grid,
                    const ArrayOfGriddedField3& pnd_field_raw,
-                   const Index& atmosphere_dim
+                   const Index& atmosphere_dim,
+                   const ArrayOfIndex& cloudbox_limits
                    )
 {
-
   // Basic checks of input variables
   //
-  // Atmosphere
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  // Particle number density data
+  // 
+  if (pnd_field_raw.nelem() == 0)
+    throw runtime_error(
+                        "No particle number density data given. Please\n"
+                        "use WSMs *ParticleTypeInit* and \n"
+                        "*ParticleTypeAdd(All)* for reading cloud particle\n"
+                        "data.\n"
+                        );
   
+  // Atmosphere
+  if (!((atmosphere_dim == 1) || (atmosphere_dim == 3)))
+    throw runtime_error(
+                        "*atmosphere_dim* must be 1 or 3, because \n"
+                        "scattering is only implemented for 1D and 3D.\n"
+                        "DOIT works in 1D and 3D, Monte Carlo only in 3D.\n"
+                        );
+      
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains the"
+                        "upper and lower limit of the cloud for all "
+                        "atmospheric dimensions. So its dimension must"
+                        "be 2 x *atmosphere_dim*");
+
+  const Index Np_cloud = cloudbox_limits[1]-cloudbox_limits[0]+1;
+  
+  ConstVectorView p_grid_cloud = p_grid[Range(cloudbox_limits[0], Np_cloud)];
+      
   //==========================================================================
   if ( atmosphere_dim == 1)
     {
-      
       //Resize variables
-      pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), 1, 1);
+      pnd_field.resize(pnd_field_raw.nelem(), Np_cloud, 1, 1);
       
       // Gridpositions:
-      ArrayOfGridPos gp_p(p_grid.nelem());
+      ArrayOfGridPos gp_p(Np_cloud);
          
       // Interpolate pnd_field. 
       // Loop over the particle types:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid);
-      
+          p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid_cloud);
+         
           // Interpolation weights:
-       Matrix itw(p_grid.nelem(), 2);
-       // (2 interpolation weights are required for 1D interpolation)
+          Matrix itw(Np_cloud, 2);
+          // (2 interpolation weights are required for 1D interpolation)
           interpweights( itw, gp_p);
-               // Interpolate:
+          // Interpolate:
           interp( pnd_field(i, joker, 0, 0),
                   itw, pnd_field_raw[i].data(joker, 0, 0), gp_p);
         }
       
     }
-
   //=========================================================================
-  else if(atmosphere_dim == 2)
-    {
-      //Resize variables
-      pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
-                       1);
+  // (CE: Commented atmosphere_dim = 2, becaue scattering is only implemented 
+  // in 1D and 3D
+  //  else if(atmosphere_dim == 2)
+  //     {
+  //       //Resize variables
+  //       pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
+  //                        1);
       
       
-      // Gridpositions:
-      ArrayOfGridPos gp_p(p_grid.nelem());
-      ArrayOfGridPos gp_lat(lat_grid.nelem());
+  //       // Gridpositions:
+  //       ArrayOfGridPos gp_p(p_grid.nelem());
+  //       ArrayOfGridPos gp_lat(lat_grid.nelem());
                   
-      // Interpolate pnd_field. 
-      // Loop over the particle types:
-      for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
-        {
-          // Calculate grid positions:
-          p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid);
-          gridpos(gp_lat, pnd_field_raw[i].data(0, joker, 0), 
-                  lat_grid);
+  //       // Interpolate pnd_field. 
+  //       // Loop over the particle types:
+  //       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
+  //         {
+  //           // Calculate grid positions:
+  //           p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid);
+  //           gridpos(gp_lat, pnd_field_raw[i].data(0, joker, 0), 
+  //                   lat_grid);
       
-          // Interpolation weights:
-      Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), 4);
-      // (8 interpolation weights are required for 3D interpolation)
-          interpweights( itw, gp_p, gp_lat);
+  //           // Interpolation weights:
+  //       Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), 4);
+  //       // (8 interpolation weights are required for 3D interpolation)
+  //           interpweights( itw, gp_p, gp_lat);
           
-          // Interpolate:
-          interp( pnd_field(i, joker, joker, 0),
-                  itw, pnd_field_raw[i].data(joker, joker, 0),
-                  gp_p, gp_lat);
-        }
-    }
+  //           // Interpolate:
+  //           interp( pnd_field(i, joker, joker, 0),
+  //                   itw, pnd_field_raw[i].data(joker, joker, 0),
+  //                   gp_p, gp_lat);
+  //         }
+  //     }
 
   //================================================================
   // atmosphere_dim = 3    
+  //
   else
     {
+      const Index Nlat_cloud = cloudbox_limits[3]-cloudbox_limits[2]+1;
+      const Index Nlon_cloud = cloudbox_limits[5]-cloudbox_limits[4]+1;
+
+      ConstVectorView lat_grid_cloud = 
+        lat_grid[Range(cloudbox_limits[2], Nlat_cloud)];           
+      ConstVectorView lon_grid_cloud = 
+        lon_grid[Range(cloudbox_limits[4], Nlon_cloud)];
+      
       //Resize variables
-      pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
-                       lon_grid.nelem());
+      pnd_field.resize(pnd_field_raw.nelem(), Np_cloud, Nlat_cloud, 
+                       Nlon_cloud);
       
       
       // Gridpositions:
-      ArrayOfGridPos gp_p(p_grid.nelem());
-      ArrayOfGridPos gp_lat(lat_grid.nelem());
-      ArrayOfGridPos gp_lon(lon_grid.nelem());
+      ArrayOfGridPos gp_p(Np_cloud);
+      ArrayOfGridPos gp_lat(Nlat_cloud);
+      ArrayOfGridPos gp_lon(Nlon_cloud);
       
       
       // Interpolate pnd_field. 
@@ -1250,12 +1285,12 @@ void pnd_fieldCalc(//WS Output:
       for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
         {
           // Calculate grid positions:
-          p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid);
-          gridpos(gp_lat, pnd_field_raw[i].lat_grid, lat_grid);
-          gridpos(gp_lon, pnd_field_raw[i].lon_grid, lon_grid);
+          p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid_cloud);
+          gridpos(gp_lat, pnd_field_raw[i].lat_grid, lat_grid_cloud);
+          gridpos(gp_lon, pnd_field_raw[i].lon_grid, lon_grid_cloud);
           
           // Interpolation weights:
-          Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem(), 8);
+          Tensor4 itw(Np_cloud, Nlat_cloud, Nlon_cloud, 8);
           // (8 interpolation weights are required for 3D interpolation)
           interpweights( itw, gp_p, gp_lat, gp_lon );
           

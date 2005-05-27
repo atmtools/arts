@@ -1879,7 +1879,7 @@ doit_scat_fieldCalc(//WS Output:
           //There is only loop over zenith angle grid ; no azimuth angle grid.
           for (scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
             {
-              scat_p_index =  p_index + cloudbox_limits[0];
+              scat_p_index =  p_index;
               scat_lat_index = 0;
               scat_lon_index = 0;
  
@@ -1957,9 +1957,9 @@ doit_scat_fieldCalc(//WS Output:
                       for (scat_za_index = 0; scat_za_index < Nza; 
                            scat_za_index ++)
                         {
-                          scat_p_index =  p_index + cloudbox_limits[0];
-                          scat_lat_index = lat_index + cloudbox_limits[2];
-                          scat_lon_index = lon_index + cloudbox_limits[4];
+                          scat_p_index =  p_index;
+                          scat_lat_index = lat_index;
+                          scat_lon_index = lon_index;
                           
                           pha_mat_spt_agenda.execute( true );
                           
@@ -2363,17 +2363,16 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                scat_za_index_local < doit_za_grid_size;
                scat_za_index_local++)
             {
-              Index scat_p_index_local =  p_index + cloudbox_limits[0];
-              Index scat_lat_index_local = 0;
-              Index scat_lon_index_local = 0; 
+              // Dummy index
+              Index index_zero = 0;
               
               // Calculate the phase matrix of a single particle type
               out3 << "Calculate the phase matrix \n"; 
               pha_mat_spt_agendaExecute(pha_mat_spt,
                                         scat_za_index_local,
-                                        scat_lat_index_local,
-                                        scat_lon_index_local,
-                                        scat_p_index_local,
+                                        index_zero,
+                                        index_zero,
+                                        p_index,
                                         scat_aa_index_local,
                                         rte_temperature_local,
                                         pha_mat_spt_agenda,
@@ -2381,7 +2380,7 @@ doit_scat_fieldCalcLimb(// WS Output and Input
               
               // Sum over all particle types
               pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-                          atmosphere_dim, scat_p_index_local, 0, 
+                          atmosphere_dim, p_index, 0, 
                           0);
 
               out3 << "Multiplication of phase matrix with incoming" << 
@@ -2407,7 +2406,7 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                                 doit_i_field_int(za_in, j);
                             }
                         }
-                    
+                      
                     }//end aa_in loop
                 }//end za_in loop
             
@@ -2489,16 +2488,13 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                          scat_za_index_local < doit_za_grid_size;
                          scat_za_index_local++)
                       {
-                        Index scat_p_index_local =  p_index + cloudbox_limits[0];
-                        Index scat_lat_index_local = lat_index + cloudbox_limits[2];
-                        Index scat_lon_index_local = lon_index + cloudbox_limits[4];
                         
                         out3 << "Calculate phase matrix \n";
                         pha_mat_spt_agendaExecute(pha_mat_spt,
                                                   scat_za_index_local,
-                                                  scat_lat_index_local,
-                                                  scat_lon_index_local,
-                                                  scat_p_index_local, 
+                                                  lat_index,
+                                                  lon_index,
+                                                  p_index, 
                                                   scat_aa_index_local,
                                                   rte_temperature_local,
                                                   pha_mat_spt_agenda,
@@ -2506,9 +2502,9 @@ doit_scat_fieldCalcLimb(// WS Output and Input
   
                         pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                     atmosphere_dim, 
-                                    scat_p_index_local, 
-                                    scat_lat_index_local, 
-                                    scat_lon_index_local);
+                                    p_index, 
+                                    lat_index, 
+                                    lon_index);
                         
                         product_field = 0;
                         
@@ -2542,12 +2538,12 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                           {
                             doit_scat_field_org(scat_za_index_local, i)  =  
                               AngIntegrate_trapezoid_opti(product_field
-                                                     ( joker,
-                                                       joker, i),
-                                                        za_grid,
-                                                        scat_aa_grid,
-                                                        grid_stepsize
-                                                     );
+                                                          ( joker,
+                                                            joker, i),
+                                                          za_grid,
+                                                          scat_aa_grid,
+                                                          grid_stepsize
+                                                          );
                           }//end stokes_dim loop
 
                       }//end za_prop loop
@@ -2555,11 +2551,11 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                     for (Index i = 0; i < stokes_dim; i++)
                       {
                         interp(doit_scat_field(p_index,
-                                          lat_index,
-                                          lon_index,
-                                          joker,
-                                          scat_aa_index_local,
-                                          i),
+                                               lat_index,
+                                               lon_index,
+                                               joker,
+                                               scat_aa_index_local,
+                                               i),
                                itw_za,
                                doit_scat_field_org(joker, i),
                                gp_za);

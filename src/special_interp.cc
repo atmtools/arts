@@ -89,6 +89,63 @@ void ArrayOfGridPosPrint(
   === Interpolation functions for atmospheric grids, fields and surfaces
   ===========================================================================*/
 
+//! fix_gridpos_at_boudary
+/*!
+  This function fixes grid positions on the boundaries of the grids, on which 
+  one wants to interpolate. 
+  
+  The use of the function can be demonstrated using an example, 
+  the interpolation of the *pnd_field* on a propagation path inside the 
+  cloudbox. The gridpositions calculated in the ppath_agenda are given with 
+  respect to the atmospheric grids (p_grid, lat_grid, lon_grid), whereas the 
+  *pnd_field* is defined on a subset of these grids, only inside the cloudbox.
+  Hence the gridpositions need to be transformed. 
+  If a point is exactly at the lower boundary of the cloudbox, 
+  the gridposition index can be either cloudbox_limits[0] or
+  cloudbox_limits[0]-1, depending on random numerical errors.  To transform 
+  the gridpositions, cloudbox_limits[0] is substracted from the original 
+  gridposition index, which results in a new gridpostion index of -1. This is 
+  of coarse not allowed in the interpolation routines. 
+  
+  A more precise  example: 
+  If a point is exactly on the lower boundary (say p-index = 12) of cloudbox
+  the gridpositions can be
+              gp.idx = 12, gp.fd[0] = 1, gp.fd[1] = 0
+       or     gp.idx = 11, gp.fd[0] = 0, gp.fd[1] = 1
+   In the second case gp_cloud.idx will be -1 which gives an error. 
+
+   \param gp An array of gridpositions
+   \param grid_size Length of the data grid
+
+   \author Claudia Emde
+   \date 2005-05-27
+*/
+void fix_gridpos_at_boundary(//Input and Output
+                             ArrayOfGridPos& gp,
+                             const Index grid_size
+                             )
+{
+  // This limit is chosen arbitrarily
+  const Numeric epsilon = 1e-6;
+  
+  for( Index i = 0; i< gp.nelem(); i++)
+    {
+      if( gp[i].idx == -1 && abs(gp[i].fd[1]-1)<epsilon )
+        {
+          gp[i].idx += 1;
+          gp[i].fd[0] = 0.;
+          gp[i].fd[1] = 1.;
+        }
+      else if (gp[i].idx == grid_size-1 && abs(gp[i].fd[0])<epsilon)
+        {
+          gp[i].idx -= 1;
+          gp[i].fd[0] = 1.;
+          gp[i].fd[1] = 0.;
+        }
+    }
+}
+        
+
 //! interp_atmfield_gp2itw
 /*!
     Converts atmospheric grid positions to weights for interpolation of an

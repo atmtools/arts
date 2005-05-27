@@ -955,9 +955,9 @@ void abs_vecAddGasZeeman( Matrix&      abs_vec,
   \param pnd_field Input : particle number density givs the local 
   concentration for all particles.
   \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
-  \param scat_p_index Input : Pressure index for scattering calculations.
-  \param scat_lat_index Input : Latitude index for scattering calculations.
-  \param scat_lon_index Input : Longitude index for scattering calculations.
+  \param scat_p_index Input : Pressure index wrt. cloudbox.
+  \param scat_lat_index Input : Latitude index wrt. cloudbox.
+  \param scat_lon_index Input : Longitude index wrt. cloudbox.
 
   \author Sreerekha Ravi
 */

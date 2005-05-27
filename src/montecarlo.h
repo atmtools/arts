@@ -41,7 +41,8 @@ void atm_vars_at_ppath_end(
                            const Tensor3&   t_field,
                            const Tensor4&   vmr_field,
                            const Tensor4&   pnd_field,
-                           const ArrayOfSingleScatteringData& scat_data_mono
+                           const ArrayOfSingleScatteringData& scat_data_mono,
+                           const ArrayOfIndex& cloudbox_limits //added by (CE)
                            );
 
 void Cloudbox_ppathCalc(
@@ -325,7 +326,8 @@ void TArrayCalc(
                 const Tensor4&   vmr_field,
                 const Index&     atmosphere_dim,
                 const Tensor4&   pnd_field,
-                const ArrayOfSingleScatteringData& scat_data_mono
+                const ArrayOfSingleScatteringData& scat_data_mono,
+                const ArrayOfIndex& cloudbox_limits // added by CE
                 );
 
 #endif  // montecarlo_h

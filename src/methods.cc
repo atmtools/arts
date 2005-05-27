@@ -3587,20 +3587,18 @@ md_data_raw.push_back
         ("Interpolate the particle number density fields.\n"
          "\n"
          "This methods interpolates the particle number density field\n"
-         "from the raw data *pnd_field_raw* to pnd_field* which is definded on \n"
-         "the grids for the\n"
-         "calculation namely, *p_grid*, *lat_grid*, *lon_grid*.  The method is\n"
-         "similar to *AtmFieldsCalc*.\n"
+         "from the raw data *pnd_field_raw* to pnd_field* which is definded \n"
+         "on sub-grids of *p_grid*, *lat_grid*, *lon_grid*, exactly on the \n"
+         "part of the atmosphere where the cloudbox is defined. \n"
          "\n"
-         "The method takes as input the ArrayOfArrayOfTensor3 *pnd_field_raw* \n"
-         "which contains one gridded field for each\n"
-         "particle type. See the online documentation of *pnd_field_raw* for\n"
-         "more information about this variable.  The output *pnd_field* is a\n"
-         "Tensor4 with dimensions [part_types, p_grid, lat_grid,\n"
-         "lon_grid]. \n"
+         "The method takes as input the *pnd_field_raw* \n"
+         "which contains the particle number density for each\n"
+         "particle type. \n"
+         "\n"
          ),
         OUTPUT(pnd_field_),
-        INPUT(p_grid_, lat_grid_, lon_grid_, pnd_field_raw_, atmosphere_dim_),
+        INPUT(p_grid_, lat_grid_, lon_grid_, pnd_field_raw_, atmosphere_dim_,
+              cloudbox_limits_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

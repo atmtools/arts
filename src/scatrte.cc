@@ -111,22 +111,17 @@ void cloud_fieldsCalc(// Output:
   assert( ext_mat_field.ncols() == ext_mat_field.nrows() &&
           ext_mat_field.ncols() == abs_vec_field.ncols());
   
-  const Index p_low = cloudbox_limits[0];
-  const Index p_up = cloudbox_limits[1];
-
-  // If atmosohere_dim == 1
-  Index lat_low = 0;
-  Index lat_up = 0;
-  Index lon_low = 0;
-  Index lon_up = 0;
+  const Index Np_cloud = cloudbox_limits[1]-cloudbox_limits[0]+1;
   
-
+  // If atmosohere_dim == 1
+  Index Nlat_cloud = 1;
+  Index Nlon_cloud = 1;
+  
+  
   if (atmosphere_dim == 3)
     {
-      lat_low = cloudbox_limits[2]; 
-      lat_up = cloudbox_limits[3]; 
-      lon_low = cloudbox_limits[4]; 
-      lon_up = cloudbox_limits[5]; 
+      Nlat_cloud = cloudbox_limits[3]-cloudbox_limits[2]+1;
+      Nlon_cloud = cloudbox_limits[5]-cloudbox_limits[4]+1;
     }
   
   // Calculate ext_mat, abs_vec for all points inside the cloudbox.
@@ -140,33 +135,33 @@ void cloud_fieldsCalc(// Output:
   
   // Loop over all positions inside the cloudbox defined by the 
   // cloudbox_limits.
-  for(scat_p_index = p_low; scat_p_index <= p_up; scat_p_index ++)
+  for(scat_p_index = 0; scat_p_index < Np_cloud; scat_p_index ++)
     {
-      for(scat_lat_index = lat_low; scat_lat_index <= lat_up; scat_lat_index ++)
+      for(scat_lat_index = 0; scat_lat_index < Nlat_cloud; scat_lat_index ++)
         {
-          for(scat_lon_index = lon_low; scat_lon_index <= lon_up;
+          for(scat_lon_index = 0; scat_lon_index < Nlon_cloud; 
               scat_lon_index ++)
             {
-              rte_temperature = 
-                t_field(scat_p_index, scat_lat_index, scat_lon_index);
-                                        
+              if (atmosphere_dim == 1)
+                rte_temperature = 
+                  t_field(scat_p_index + cloudbox_limits[0], 0, 0);
+              else
+                rte_temperature = 
+                  t_field(scat_p_index + cloudbox_limits[0],
+                          scat_lat_index + cloudbox_limits[2],
+                          scat_lon_index + cloudbox_limits[4]);
+              
               //Calculate optical properties for single particle types:
               //( Execute agendas silently. )
               spt_calc_agenda.execute(true);
               opt_prop_part_agenda.execute(true);
            
               // Store coefficients in arrays for the whole cloudbox.
-              abs_vec_field(scat_p_index - p_low, 
-                            scat_lat_index - lat_low,
-                            scat_lon_index- lon_low,
-                            joker) = 
-                abs_vec(0, joker);
+              abs_vec_field(scat_p_index, scat_lat_index, scat_lon_index,
+                            joker) = abs_vec(0, joker);
               
-              ext_mat_field(scat_p_index - p_low, 
-                            scat_lat_index - lat_low,
-                            scat_lon_index - lon_low,
-                            joker, joker) = 
-                ext_mat(0, joker, joker);
+              ext_mat_field(scat_p_index, scat_lat_index, scat_lon_index,
+                            joker, joker) = ext_mat(0, joker, joker);
             } 
         }
     }
@@ -1390,6 +1385,14 @@ void ppath_step_in_cloudbox(//Output:
   ppath_step_agenda.execute(true);
 }
 
+//! interp_cloud_coeff1D 
+/*!  
+  Interpolate all inputs of the VRTE on a propagation path step. 
+  Used in the WSM cloud_ppath_update1D. 
+  
+  \author Claudia Emde
+  \date 2002-06-06
+*/
 void interp_cloud_coeff1D(//Output
                           Tensor3View ext_mat_int,
                           MatrixView abs_vec_int,

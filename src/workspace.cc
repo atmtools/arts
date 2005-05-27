@@ -1807,14 +1807,18 @@ wsv_data.push_back
       (
        "Particle number density field.\n"
        "\n"
-       "This variable gives the particle number density of the chosen particle\n"
-       "types as a function of p_grid, lat_grid, lon_grid. \n"
+       "This veriable corresponds to the particle number density fields \n"
+       "for all particle types being read in the WSMs *ParticleTypeAdd* \n"
+       "or *ParticleTypeAddAll*. \n"
        "\n"
        "Usage:      Calculated internally.\n"
        "\n"
        "Unit:        m^-3\n"
        "\n"
-       "Dimensions: [part_types, p_grid, lat_grid, lon_grid]\n"
+       "Size: [N_part_types, \n"
+       "       (cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1 ] \n"
         ),
       GROUP( Tensor4_ )));
 
