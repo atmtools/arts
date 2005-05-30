@@ -1,3 +1,13 @@
+2005-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-0-181
+
+	* I am merging the absorption part back to arts-1-1 from this
+	version. IF YOU MAKE CHANGES TO THE ABSORPTION HERE, PLEASE MAKE
+	THE SAME CHANGES IN ARTS-1-1!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	(For now, please do not make any changes to the absorption part at
+	all.)
+
 2005-05-26  Carlos Jimenez  <carlos.jimenez@ed.ac.uk>
 
 	* arts-1-0-180
