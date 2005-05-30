@@ -39,28 +39,18 @@
 void cloud_fieldsCalc(// Output:
                         Tensor5View ext_mat_field,
                         Tensor4View abs_vec_field,
-                        Index& scat_p_index,
-                        Index& scat_lat_index,
-                        Index& scat_lon_index, 
-                        Tensor3& ext_mat,
-                        Matrix& abs_vec,
-                        Numeric& rte_temperature,
                         // Input:
                         const Agenda& spt_calc_agenda,
                         const Agenda& opt_prop_part_agenda,
+                        const Index& scat_za_index, 
+                        const Index& scat_aa_index,
                         const ArrayOfIndex& cloudbox_limits,
-                        const Tensor3& t_field
+                        const Tensor3View t_field, 
+                        const Tensor4View pnd_field
                         );
 
 void cloud_ppath_update1D(
                   Tensor6View i_field,
-                  // scalar_gas_abs_agenda:
-                  Numeric& rte_pressure,
-                  Numeric& rte_temperature,
-                  VectorView rte_vmr_list,
-                  // opt_prop_xxx_agenda:
-                  Tensor3View ext_mat,
-                  MatrixView abs_vec, 
                   VectorView rte_los,
                   VectorView rte_pos,
                   GridPos& rte_gp_p,
@@ -96,12 +86,6 @@ void cloud_ppath_update1D_noseq(
                           // Input and output
                           Tensor6View doit_i_field,
                           // scalar_gas_abs_agenda:
-                          Numeric& rte_pressure,
-                          Numeric& rte_temperature,
-                          VectorView rte_vmr_list,
-                          // opt_prop_xxx_agenda:
-                          Tensor3View ext_mat,
-                          MatrixView abs_vec,
                           // iy_surface_agenda
                           VectorView, //rte_los,
                           VectorView, //rte_pos,
@@ -220,14 +204,6 @@ void cloud_ppath_update3D(
 
 void cloud_RT_no_background(//Output
                             Tensor6View doit_i_field,
-                            //Communication variables for 
-                            //scalar_gas_abs_agenda:
-                            Numeric& rte_pressure,
-                            Numeric& rte_temperature,
-                            VectorView rte_vmr_list,
-                            // opt_prop_xxx_agenda:
-                            Tensor3View ext_mat,
-                            MatrixView abs_vec,  
                             // Input
                             const Agenda& scalar_gas_absorption_agenda,
                             const Agenda& opt_prop_gas_agenda,

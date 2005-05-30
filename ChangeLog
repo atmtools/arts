@@ -1,3 +1,25 @@
+2005-05-30  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-973
+
+	* src/agendas.cc: Fixed INPUT and OUTPUT of the following 
+	agendas: 
+	scalar_gas_absorption_agenda, spt_calc_agenda,
+	opt_prop_part_agenda
+	
+	* src/m_scatrte.cc: Used new agenda wrappers for the agendas above in 
+	(i_fieldUpdateSeq1D), (i_fieldUpdate1D), (i_fieldUpdateSeq3D). 
+	3D function not yet completed.
+	
+	* src/methods.cc: Adaptes WS OUTPUT of methods above. Most of the 
+	output variables could be removed, only the communication
+	variables for *iy_surface_agenda* and *ppath_step_agenda* remain. 
+	
+	* src/scatrte.{cc,h}: Used new agenda wrappers in the following 
+	functions:
+	cloud_fieldsCalc, cloud_RT_no_background, cloud_ppath_update1D,
+	cloud_ppath_update1D_noseq				  
+
 2005-05-27  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-972

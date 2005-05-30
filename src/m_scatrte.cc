@@ -552,16 +552,6 @@ void
 doit_i_fieldUpdate1D(// WS Input and Output:
                    Tensor6& doit_i_field,
                    // Communication with agendas
-                   // scalar_gas_abs_agenda:
-                   Numeric& rte_pressure,
-                   Numeric& rte_temperature,
-                   Vector& rte_vmr_list,
-                   // spt_calc_agenda:
-                   Index& scat_za_index,
-                   // opt_prop_xxx_agenda:
-                   Tensor3& ext_mat,
-                   Matrix& abs_vec,  
-                   Index& scat_p_index,
                    // ppath_step_agenda:
                    Ppath& ppath_step, 
                    Vector& rte_los,
@@ -577,6 +567,7 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                    // Optical properties for single particle type:
                    const Agenda& spt_calc_agenda,
                    const Vector& scat_za_grid,
+                   const Tensor4& pnd_field,
                    // Optical properties for gases and particles:
                    const Agenda& opt_prop_part_agenda,
                    const Agenda& opt_prop_gas_agenda,
@@ -685,23 +676,23 @@ doit_i_fieldUpdate1D(// WS Input and Output:
   Tensor4 abs_vec_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
                         stokes_dim, 0.);
  
-  //Only dummy variables:
-  Index scat_lat_index = 0;
-  Index scat_lon_index = 0;
-  
+  //Only dummy variable:
+  Index scat_aa_index_local = 0; 
+
   //Loop over all directions, defined by scat_za_grid 
-  for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
+  for( Index scat_za_index_local = 0; scat_za_index_local < N_scat_za; 
+       scat_za_index_local ++)
     {
       // This function has to be called inside the angular loop, as
-      // spt_calc_agenda takes *scat_za_index* and *scat_aa_index* 
+      // spt_calc_agenda takes *scat_za_index_local* and *scat_aa_index* 
       // from the workspace.
       // *scat_p_index* is needed for communication with agenda 
       // *opt_prop_part_agenda*.
-      cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
-                       scat_lat_index, scat_lon_index,
-                       ext_mat, abs_vec, rte_temperature,
+      cloud_fieldsCalc(ext_mat_field, abs_vec_field,
                        spt_calc_agenda, 
-                       opt_prop_part_agenda, cloudbox_limits, t_field);
+                       opt_prop_part_agenda, scat_za_index_local, 
+                       scat_aa_index_local,
+                       cloudbox_limits, t_field, pnd_field);
       
       //======================================================================
       // Radiative transfer inside the cloudbox
@@ -711,11 +702,9 @@ doit_i_fieldUpdate1D(// WS Input and Output:
             <= cloudbox_limits[1]; p_index ++)
         {
           cloud_ppath_update1D_noseq(doit_i_field, 
-                                     rte_pressure, rte_temperature, 
-                                     rte_vmr_list,
-                                     ext_mat, abs_vec, 
                                      rte_los, rte_pos, rte_gp_p, ppath_step, 
-                                     p_index, scat_za_index, scat_za_grid,
+                                     p_index, scat_za_index_local, 
+                                     scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
                                      doit_scat_field,
                                      scalar_gas_absorption_agenda, vmr_field,
@@ -740,16 +729,6 @@ void
 doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    Tensor6& doit_i_field,
                    // Communication with agendas
-                   // scalar_gas_abs_agenda:
-                   Numeric& rte_pressure,
-                   Numeric& rte_temperature,
-                   Vector& rte_vmr_list,
-                   // spt_calc_agenda:
-                   Index& scat_za_index,
-                   // opt_prop_xxx_agenda:
-                   Tensor3& ext_mat,
-                   Matrix& abs_vec,  
-                   Index& scat_p_index,
                    // ppath_step_agenda:
                    Ppath& ppath_step, 
                    Vector& rte_los,
@@ -764,6 +743,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    // Optical properties for single particle type:
                    const Agenda& spt_calc_agenda,
                    const Vector& scat_za_grid,
+                   const Tensor4& pnd_field, 
                    // Optical properties for gases and particles:
                    const Agenda& opt_prop_part_agenda,
                    const Agenda& opt_prop_gas_agenda,
@@ -870,22 +850,21 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                         stokes_dim, 0.);
  
   //Only dummy variables:
-  Index scat_lat_index = 0;
-  Index scat_lon_index = 0;
+  Index scat_aa_index_local = 0;
   
   //Loop over all directions, defined by scat_za_grid 
-  for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
+  for(Index scat_za_index_local = 0; scat_za_index_local < N_scat_za; 
+      scat_za_index_local ++)
     {
       // This function has to be called inside the angular loop, as
       // spt_calc_agenda takes *scat_za_index* and *scat_aa_index* 
       // from the workspace.
       // *scat_p_index* is needed for communication with agenda 
       // *opt_prop_part_agenda*.
-      cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
-                       scat_lat_index, scat_lon_index,
-                       ext_mat, abs_vec, rte_temperature,
-                       spt_calc_agenda, 
-                       opt_prop_part_agenda, cloudbox_limits, t_field);
+      cloud_fieldsCalc(ext_mat_field, abs_vec_field, 
+                       spt_calc_agenda, opt_prop_part_agenda, 
+                       scat_za_index_local, scat_aa_index_local, 
+                       cloudbox_limits, t_field, pnd_field);
       
       //======================================================================
       // Radiative transfer inside the cloudbox
@@ -899,7 +878,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                                        z_field(cloudbox_limits[1],0,0)))*RAD2DEG;
       
       // Sequential update for uplooking angles
-      if ( scat_za_grid[scat_za_index] <= 90.) 
+      if ( scat_za_grid[scat_za_index_local] <= 90.) 
         {
           // Loop over all positions inside the cloud box defined by the 
           // cloudbox_limits exculding the upper boundary. For uplooking
@@ -910,10 +889,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                 >= cloudbox_limits[0]; p_index --)
             {
               cloud_ppath_update1D(doit_i_field, 
-                                   rte_pressure, rte_temperature, rte_vmr_list,
-                                   ext_mat, abs_vec, 
                                    rte_los, rte_pos, rte_gp_p, ppath_step, 
-                                   p_index, scat_za_index, scat_za_grid,
+                                   p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
@@ -923,7 +900,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                                    doit_za_interp); 
             }
         }
-      else if ( scat_za_grid[scat_za_index] > theta_lim) 
+      else if ( scat_za_grid[scat_za_index_local] > theta_lim) 
         {
           //
           // Sequential updating for downlooking angles
@@ -932,10 +909,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                 <= cloudbox_limits[1]; p_index ++)
             {
               cloud_ppath_update1D(doit_i_field,  
-                                   rte_pressure, rte_temperature, rte_vmr_list,
-                                   ext_mat, abs_vec, 
-                                    rte_los, rte_pos, rte_gp_p, ppath_step, 
-                                   p_index, scat_za_index, scat_za_grid,
+                                   rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                   p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
@@ -953,8 +928,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
       // To be save we loop over the full cloudbox. Inside the function 
       // cloud_ppath_update1D it is checked whether the intersection point is 
       // inside the cloudbox or not.
-      else if (  scat_za_grid[scat_za_index] > 90 &&
-                 scat_za_grid[scat_za_index] < theta_lim ) 
+      else if (  scat_za_grid[scat_za_index_local] > 90 &&
+                 scat_za_grid[scat_za_index_local] < theta_lim ) 
         {
           for(Index p_index = cloudbox_limits[0]; p_index
                 <= cloudbox_limits[1]; p_index ++)
@@ -963,14 +938,12 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
               // look downwards. These cases are outside the cloudbox and 
               // not needed. Switch is included here, as ppath_step_agenda 
               // gives an error for such cases.
-              if (!(p_index == 0 && scat_za_grid[scat_za_index] > 90.))
+              if (!(p_index == 0 && scat_za_grid[scat_za_index_local] > 90.))
                 {
                   cloud_ppath_update1D(doit_i_field,  
-                                       rte_pressure, rte_temperature, 
-                                       rte_vmr_list,
-                                       ext_mat, abs_vec, 
                                        rte_los, rte_pos, rte_gp_p, ppath_step, 
-                                       p_index, scat_za_index, scat_za_grid,
+                                       p_index, scat_za_index_local,
+                                       scat_za_grid,
                                        cloudbox_limits, doit_scat_field,
                                        scalar_gas_absorption_agenda, vmr_field,
                                        opt_prop_gas_agenda, ppath_step_agenda,
@@ -1005,9 +978,6 @@ doit_i_fieldUpdateSeq3D(// WS Output:
                         // opt_prop_xxx_agenda:
                         Tensor3& ext_mat,
                         Matrix& abs_vec,  
-                        Index& scat_p_index,
-                        Index& scat_lat_index,
-                        Index& scat_lon_index,
                         // ppath_step_agenda:
                         Ppath& ppath_step, 
                         // WS Input:
@@ -1020,6 +990,7 @@ doit_i_fieldUpdateSeq3D(// WS Output:
                         const Agenda& spt_calc_agenda,
                         const Vector& scat_za_grid,
                         const Vector& scat_aa_grid,
+                        const Tensor4& pnd_field,
                         // Optical properties for gases and particles:
                         const Agenda& opt_prop_part_agenda,
                         const Agenda& opt_prop_gas_agenda,
@@ -1162,11 +1133,11 @@ doit_i_fieldUpdateSeq3D(// WS Output:
           // This function has to be called inside the angular loop, as
           // it spt_calc_agenda takes *scat_za_index* and *scat_aa_index* 
           // from the workspace.
-          cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
-                           scat_lat_index, scat_lon_index,
-                           ext_mat, abs_vec, rte_temperature,
+          cloud_fieldsCalc(ext_mat_field, abs_vec_field, 
                            spt_calc_agenda, 
-                           opt_prop_part_agenda, cloudbox_limits, t_field);
+                           opt_prop_part_agenda, scat_za_index, 
+                           scat_aa_index, cloudbox_limits, t_field, 
+                           pnd_field);
           
 
           Vector stokes_vec(stokes_dim,0.);
@@ -1376,7 +1347,7 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 // opt_prop_xxx_agenda:
                 Tensor3& ext_mat,
                 Matrix& abs_vec,  
-                Index& scat_p_index,
+                Index&,// scat_p_index,
                 // ppath_step_agenda:
                 Ppath& ppath_step, 
                 Vector& rte_los,
@@ -1391,6 +1362,7 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 // Optical properties for single particle type:
                 const Agenda& spt_calc_agenda,
                 const Vector& scat_za_grid,
+                const Tensor4& pnd_field,
                 // Optical properties for gases and particles:
                 const Agenda& opt_prop_part_agenda,
                 const Agenda& opt_prop_gas_agenda,
@@ -1472,14 +1444,13 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
     {
       
       //Only dummy variables:
-      Index scat_lat_index = 0;
-      Index scat_lon_index = 0;
+      Index scat_aa_index = 0;
       
-      cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
-                       scat_lat_index, scat_lon_index,
-                       ext_mat, abs_vec, rte_temperature,
+      cloud_fieldsCalc(ext_mat_field, abs_vec_field, 
                        spt_calc_agenda, 
-                       opt_prop_part_agenda, cloudbox_limits, t_field);
+                       opt_prop_part_agenda, scat_za_index, scat_aa_index, 
+                       cloudbox_limits, t_field, 
+                       pnd_field);
 
       //======================================================================
       // Radiative transfer inside the cloudbox
@@ -1553,10 +1524,6 @@ void DoitInit(
               Index& scat_lon_index,
               Index& scat_za_index,
               Index& scat_aa_index,
-              Tensor4& pha_mat,
-              Tensor5& pha_mat_spt,
-              Tensor3& ext_mat_spt,
-              Matrix& abs_vec_spt,
               Tensor6& doit_scat_field,
               Tensor6& doit_i_field,
               Index& doit_za_interp,
@@ -1624,22 +1591,6 @@ void DoitInit(
   scat_za_index = 0;
   scat_aa_index = 0;
   
-  // Number of particle types:
-  const Index N_pt = scat_data_raw.nelem();
-
-  // Resize and initialize variables for storing optical properties
-  // of cloud particles
-  pha_mat.resize(doit_za_grid_size, scat_aa_grid.nelem(), stokes_dim,
-                 stokes_dim);
-  
-  pha_mat_spt.resize(N_pt, doit_za_grid_size, 
-                     scat_aa_grid.nelem(), stokes_dim, stokes_dim);
-  
-  abs_vec_spt.resize(N_pt, stokes_dim);
-  abs_vec_spt = 0.;
-
-  ext_mat_spt.resize(N_pt, stokes_dim, stokes_dim);
-  ext_mat_spt = 0.;  
   
   // Resize and initialize radiation field in the cloudbox
   if (atmosphere_dim == 1)
@@ -1745,27 +1696,18 @@ void DoitWriteIterationFields(//WS input
 */
 
 void
-doit_scat_fieldCalc(//WS Output:
-                    Index& scat_za_index, 
-                    Index& scat_aa_index,
-                    Numeric& rte_temperature,
-                    Index& scat_p_index,
-                    Index& scat_lat_index, 
-                    Index& scat_lon_index,
-                    // WS Output and Input
+doit_scat_fieldCalc(// WS Output and Input
                     Tensor6& doit_scat_field,
-                    Tensor4& pha_mat,
-                    Tensor5& pha_mat_spt,
                     //WS Input:
                     const Agenda& pha_mat_spt_agenda,
                     const Tensor6& doit_i_field,
                     const Tensor4& pnd_field,
-                    const Vector& scat_za_grid,
-                    const Vector& scat_aa_grid,
+                    const Tensor3& t_field,
                     const Index& atmosphere_dim,
                     const ArrayOfIndex& cloudbox_limits,
-                    const Index& doit_za_grid_size,
-                    const Tensor3& t_field
+                    const Vector& scat_za_grid,
+                    const Vector& scat_aa_grid,
+                    const Index& doit_za_grid_size
                     )
   
 {
@@ -1830,13 +1772,6 @@ doit_scat_fieldCalc(//WS Output:
       throw runtime_error( os.str() );
     }
 
-  // Check size of internally calculated variables pha_mat and pha_mat_spt,
-  // which should be initialized in *DoitInit*
-  assert( is_size( pha_mat, doit_za_grid_size, scat_aa_grid.nelem(), 
-                   stokes_dim, stokes_dim));
-  assert( is_size( pha_mat_spt, pha_mat_spt.nshelves(), doit_za_grid_size,
-                   scat_aa_grid.nelem(), stokes_dim, stokes_dim));
-
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
     throw runtime_error(
                         "*cloudbox_limits* is a vector which contains the"
@@ -1857,6 +1792,13 @@ doit_scat_fieldCalc(//WS Output:
 
   // ------ end of checks -----------------------------------------------
 
+  // Initialize variables *pha_mat* and *pha_mat_spt*
+  Tensor4 pha_mat_local(doit_za_grid_size, scat_aa_grid.nelem(), 
+                        stokes_dim, stokes_dim, 0.);
+  
+  Tensor5 pha_mat_spt_local(pnd_field.nbooks(), doit_za_grid_size,
+                            scat_aa_grid.nelem(), stokes_dim, stokes_dim, 0.);
+  
   // Equidistant step size for integration
   Vector grid_stepsize(2);
   grid_stepsize[0] = 180./(doit_za_grid_size - 1);
@@ -1868,29 +1810,42 @@ doit_scat_fieldCalc(//WS Output:
   
   if  ( atmosphere_dim == 1 )
     {
-      scat_aa_index = 0;
+      Index scat_aa_index_local = 0;
       
       // Get pha_mat at the grid positions
       // Since atmosphere_dim = 1, there is no loop over lat and lon grids
       for (Index p_index = 0; p_index<=cloudbox_limits[1]-cloudbox_limits[0] ;
-         p_index++)
+           p_index++)
         {
-          rte_temperature = t_field(p_index + cloudbox_limits[0], 0, 0);
+          Numeric rte_temperature_local =
+            t_field(p_index + cloudbox_limits[0], 0, 0);
           //There is only loop over zenith angle grid ; no azimuth angle grid.
-          for (scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
+          for (Index scat_za_index_local = 0;
+               scat_za_index_local < Nza; scat_za_index_local ++)
             {
-              scat_p_index =  p_index;
-              scat_lat_index = 0;
-              scat_lon_index = 0;
- 
+              // Dummy index
+              Index index_zero = 0;
+              
               // Calculate the phase matric of a single particle type
-              pha_mat_spt_agenda.execute(scat_za_index || p_index );
+              out3 << "Calculate the phase matrix \n"; 
+              pha_mat_spt_agendaExecute(pha_mat_spt_local,
+                                        scat_za_index_local,
+                                        index_zero,
+                                        index_zero,
+                                        p_index,
+                                        scat_aa_index_local,
+                                        rte_temperature_local,
+                                        pha_mat_spt_agenda,
+                                        true);
               
               // Sum over all particle types
-              pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-                          atmosphere_dim, scat_p_index, 0, 
+              pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field, 
+                          atmosphere_dim, p_index, 0, 
                           0);
 
+              out3 << "Multiplication of phase matrix with incoming" << 
+                " intensities \n";
+              
               product_field = 0;
               
               // za_in and aa_in are for incoming zenith and azimuth 
@@ -1907,7 +1862,7 @@ doit_scat_fieldCalc(//WS Output:
                           for (Index j = 0; j< stokes_dim; j++)
                             {
                               product_field(za_in, aa_in, i) +=
-                                pha_mat(za_in, aa_in, i, j) * 
+                                pha_mat_local(za_in, aa_in, i, j) * 
                                 doit_i_field(p_index, 0, 0, za_in, 0, j);
                           }
                       }
@@ -1918,11 +1873,12 @@ doit_scat_fieldCalc(//WS Output:
               //  over zenith angle and azimuth angle grid. It calls
               for (Index i = 0; i < stokes_dim; i++)
                 {
-                  doit_scat_field( p_index, 0, 0, scat_za_index, 0, i) = 
-                    AngIntegrate_trapezoid_opti(product_field(joker, joker, i),
-                                                scat_za_grid,
-                                                scat_aa_grid,
-                                                grid_stepsize);
+                  doit_scat_field( p_index, 0, 0, scat_za_index_local, 0, i)
+                    = AngIntegrate_trapezoid_opti
+                    (product_field(joker, joker, i),
+                     scat_za_grid,
+                     scat_aa_grid,
+                     grid_stepsize);
                   
                 }//end i loop
             }//end za_prop loop
@@ -1947,27 +1903,36 @@ doit_scat_fieldCalc(//WS Output:
               for (Index lon_index = 0; lon_index <= 
                      cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
                 {
-                  rte_temperature = t_field(p_index + cloudbox_limits[0],
-                                            lat_index + cloudbox_limits[2],
-                                            lon_index + cloudbox_limits[4]);
+                  Numeric rte_temperature_local = 
+                    t_field(p_index + cloudbox_limits[0],
+                            lat_index + cloudbox_limits[2],
+                            lon_index + cloudbox_limits[4]);
                 
-                  for (scat_aa_index = 1; scat_aa_index < Naa; 
-                       scat_aa_index++)
+                  for (Index scat_aa_index_local = 1; 
+                       scat_aa_index_local < Naa; 
+                       scat_aa_index_local++)
                     {
-                      for (scat_za_index = 0; scat_za_index < Nza; 
-                           scat_za_index ++)
+                      for (Index scat_za_index_local = 0; 
+                           scat_za_index_local < Nza; 
+                           scat_za_index_local ++)
                         {
-                          scat_p_index =  p_index;
-                          scat_lat_index = lat_index;
-                          scat_lon_index = lon_index;
+                          out3 << "Calculate phase matrix \n";
+                          pha_mat_spt_agendaExecute(pha_mat_spt_local,
+                                                    scat_za_index_local,
+                                                    lat_index,
+                                                    lon_index,
+                                                    p_index, 
+                                                    scat_aa_index_local,
+                                                    rte_temperature_local,
+                                                    pha_mat_spt_agenda,
+                                                    true);
                           
-                          pha_mat_spt_agenda.execute( true );
-                          
-                          pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+                          pha_matCalc(pha_mat_local, pha_mat_spt_local,
+                                      pnd_field, 
                                       atmosphere_dim, 
-                                      scat_p_index, 
-                                      scat_lat_index, 
-                                      scat_lon_index);
+                                      p_index, 
+                                      lat_index, 
+                                      lon_index);
                           
                           product_field = 0;
                           
@@ -1984,10 +1949,13 @@ doit_scat_fieldCalc(//WS Output:
                                       for (Index j = 0; j< stokes_dim; j++)
                                         {
                                           product_field(za_in, aa_in, i) +=
-                                            pha_mat(za_in, aa_in, i, j) * 
+                                            pha_mat_local
+                                            (za_in, aa_in, i, j) * 
                                             doit_i_field(p_index, lat_index, 
-                                                  lon_index, scat_za_index,
-                                                         scat_aa_index, j);
+                                                         lon_index, 
+                                                         scat_za_index_local,
+                                                         scat_aa_index_local,
+                                                         j);
                                         }
                                     }
                                 }//end aa_in loop
@@ -2001,8 +1969,8 @@ doit_scat_fieldCalc(//WS Output:
                               doit_scat_field( p_index,
                                                lat_index,
                                                lon_index,
-                                               scat_za_index, 
-                                               scat_aa_index,
+                                               scat_za_index_local, 
+                                               scat_aa_index_local,
                                                i)  =  
                                 AngIntegrate_trapezoid_opti(product_field
                                                             ( joker,
@@ -2186,20 +2154,18 @@ doit_scat_fieldCalc1D(//WS Output:
 void
 doit_scat_fieldCalcLimb(// WS Output and Input
                         Tensor6& doit_scat_field,
-                        Tensor4& pha_mat,
-                        Tensor5& pha_mat_spt,
                         //WS Input:
                         const Agenda& pha_mat_spt_agenda,
                         const Tensor6& doit_i_field,
                         const Tensor4& pnd_field,
-                        const Vector& scat_za_grid,
-                        const Vector& scat_aa_grid,
+                        const Tensor3& t_field,
                         const Index& atmosphere_dim,
                         const ArrayOfIndex& cloudbox_limits,
+                        const Vector& scat_za_grid,
+                        const Vector& scat_aa_grid,
                         const Index& doit_za_grid_size,
-                        const Index& doit_za_interp,
-                        const Tensor3& t_field
-               )
+                        const Index& doit_za_interp
+                        )
 {
   // ------------ Check the input -------------------------------
    
@@ -2262,13 +2228,6 @@ doit_scat_fieldCalcLimb(// WS Output and Input
       throw runtime_error( os.str() );
     }
   
-  // Check size of internally calculated variables pha_mat and pha_mat_spt,
-  // which should be initialized in *DoitInit*
-  assert( is_size( pha_mat, doit_za_grid_size, scat_aa_grid.nelem(), 
-                   stokes_dim, stokes_dim));
-  assert( is_size( pha_mat_spt, pha_mat_spt.nshelves(), doit_za_grid_size,
-                   scat_aa_grid.nelem(), stokes_dim, stokes_dim));
-
   if( !(doit_za_interp == 0  ||  doit_za_interp == 1 ) )
     throw runtime_error( "Interpolation method is not defined. Use \n"
                          "*doit_za_interpSet*.\n");
@@ -2290,6 +2249,14 @@ doit_scat_fieldCalcLimb(// WS Output and Input
   
   // ------ end of checks -----------------------------------------------
   
+  // Initialize variables *pha_mat* and *pha_mat_spt*
+  Tensor4 pha_mat_local(doit_za_grid_size, scat_aa_grid.nelem(), 
+                        stokes_dim, stokes_dim, 0.);
+
+  Tensor5 pha_mat_spt_local(pnd_field.nbooks(), doit_za_grid_size,
+                            scat_aa_grid.nelem(), stokes_dim, stokes_dim, 0.);
+
+
   // Create the grids for the calculation of the scattering integral.
   Vector za_grid;
   nlinspace(za_grid, 0, 180, doit_za_grid_size);
@@ -2330,10 +2297,12 @@ doit_scat_fieldCalcLimb(// WS Output and Input
       
       // Get pha_mat at the grid positions
       // Since atmosphere_dim = 1, there is no loop over lat and lon grids
-      for (Index p_index = 0; p_index <= cloudbox_limits[1]-cloudbox_limits[0];
+      for (Index p_index = 0;
+           p_index <= cloudbox_limits[1]-cloudbox_limits[0];
            p_index++)
         {
-          Numeric rte_temperature_local = t_field(p_index + cloudbox_limits[0], 0, 0);
+          Numeric rte_temperature_local = 
+            t_field(p_index + cloudbox_limits[0], 0, 0);
           // Interpolate intensity field:
           for (Index i = 0; i < stokes_dim; i++)
             {
@@ -2368,7 +2337,7 @@ doit_scat_fieldCalcLimb(// WS Output and Input
               
               // Calculate the phase matrix of a single particle type
               out3 << "Calculate the phase matrix \n"; 
-              pha_mat_spt_agendaExecute(pha_mat_spt,
+              pha_mat_spt_agendaExecute(pha_mat_spt_local,
                                         scat_za_index_local,
                                         index_zero,
                                         index_zero,
@@ -2379,7 +2348,7 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                                         true);
               
               // Sum over all particle types
-              pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+              pha_matCalc(pha_mat_local, pha_mat_spt_local, pnd_field, 
                           atmosphere_dim, p_index, 0, 
                           0);
 
@@ -2402,7 +2371,7 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                           for (Index j = 0; j< stokes_dim; j++)
                             {
                               product_field(za_in, aa_in, i) +=
-                                pha_mat(za_in, aa_in, i, j) * 
+                                pha_mat_local(za_in, aa_in, i, j) * 
                                 doit_i_field_int(za_in, j);
                             }
                         }
@@ -2490,7 +2459,7 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                       {
                         
                         out3 << "Calculate phase matrix \n";
-                        pha_mat_spt_agendaExecute(pha_mat_spt,
+                        pha_mat_spt_agendaExecute(pha_mat_spt_local,
                                                   scat_za_index_local,
                                                   lat_index,
                                                   lon_index,
@@ -2500,7 +2469,8 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                                                   pha_mat_spt_agenda,
                                                   true);
   
-                        pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+                        pha_matCalc(pha_mat_local, pha_mat_spt_local,
+                                    pnd_field, 
                                     atmosphere_dim, 
                                     p_index, 
                                     lat_index, 
@@ -2525,7 +2495,7 @@ doit_scat_fieldCalcLimb(// WS Output and Input
                                     for (Index j = 0; j< stokes_dim; j++)
                                       {
                                         product_field(za_in, aa_in, i) +=
-                                          pha_mat(za_in, aa_in, i, j) * 
+                                          pha_mat_local(za_in, aa_in, i, j) * 
                                           doit_i_field_int(za_in, j);
                                       }
                                   }

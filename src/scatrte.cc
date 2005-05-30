@@ -56,7 +56,7 @@
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
 
-//! Calculation of scattering properties in the cloudbox.
+//! cloud_fieldsCalc
 /*! 
   Calculate ext_mat, abs_vec for all points inside the cloudbox for one 
   propagation direction.
@@ -69,35 +69,29 @@ extern const Numeric RAD2DEG;
   // Output
   \param ext_mat_field extinction matrix field
   \param abs_vec_field absorption vector field
-  // Communication variables for *opt_prop_part_agenda*
-  \param scat_p_index pressure index in cloudbox
-  \param scat_lat_index latitude index in cloudbox
-  \param scat_lon_index longitude index in cloudbox
-  \param ext_mat extinction matrix
-  \param abs_vec absorption vector
   // Input
   \param spt_calc_agenda Agenda for calculation of single scattering properties
   \param opt_prop_part_agenda Agenda for summing over all hydrometeor species
+  \param scat_za_index Indices for
+  \param scat_aa_index    propagation direction
   \param cloudbox_limits Cloudbox limits.
+  \param t_field Temperature field
+  \param pnd_field Particle number density field. 
 
   \author Claudia Emde
   \date 2002-06-03
 */
-void cloud_fieldsCalc(// Output:
+void cloud_fieldsCalc(// Output and Input:
                         Tensor5View ext_mat_field,
                         Tensor4View abs_vec_field,
-                        // Communication variables for *opt_prop_part_agenda*
-                        Index& scat_p_index,
-                        Index& scat_lat_index,
-                        Index& scat_lon_index, 
-                        Tensor3& ext_mat,
-                        Matrix& abs_vec,  
-                        Numeric& rte_temperature,
                         // Input:
                         const Agenda& spt_calc_agenda,
                         const Agenda& opt_prop_part_agenda,
+                        const Index& scat_za_index, 
+                        const Index& scat_aa_index,
                         const ArrayOfIndex& cloudbox_limits,
-                        const Tensor3& t_field
+                        const Tensor3View t_field, 
+                        const Tensor4View pnd_field
                         )
 {
   // Input variables are checked in the WSMs i_fieldUpdateSeqXXX, from 
@@ -106,6 +100,8 @@ void cloud_fieldsCalc(// Output:
   out3 << "Calculate scattering properties in cloudbox \n";
   
   const Index atmosphere_dim = cloudbox_limits.nelem()/2;
+  const Index N_pt = pnd_field.nbooks();
+  const Index stokes_dim = ext_mat_field.ncols(); 
   
   assert( atmosphere_dim == 1 || atmosphere_dim ==3 );
   assert( ext_mat_field.ncols() == ext_mat_field.nrows() &&
@@ -117,12 +113,20 @@ void cloud_fieldsCalc(// Output:
   Index Nlat_cloud = 1;
   Index Nlon_cloud = 1;
   
-  
   if (atmosphere_dim == 3)
     {
       Nlat_cloud = cloudbox_limits[3]-cloudbox_limits[2]+1;
       Nlon_cloud = cloudbox_limits[5]-cloudbox_limits[4]+1;
     }
+  
+  // Initialize ext_mat(_spt), abs_vec(_spt)
+  // Resize and initialize variables for storing optical properties
+  // of cloud particles
+  Matrix abs_vec_spt_local(N_pt, stokes_dim, 0.);
+  Tensor3 ext_mat_spt_local(N_pt, stokes_dim, stokes_dim, 0.);
+  Matrix abs_vec_local;
+  Tensor3 ext_mat_local;
+  Numeric rte_temperature_local;
   
   // Calculate ext_mat, abs_vec for all points inside the cloudbox.
   // sca_vec can be obtained from the workspace variable doit_scat_field.
@@ -135,33 +139,55 @@ void cloud_fieldsCalc(// Output:
   
   // Loop over all positions inside the cloudbox defined by the 
   // cloudbox_limits.
-  for(scat_p_index = 0; scat_p_index < Np_cloud; scat_p_index ++)
+  for(Index scat_p_index_local = 0; scat_p_index_local < Np_cloud; 
+      scat_p_index_local ++)
     {
-      for(scat_lat_index = 0; scat_lat_index < Nlat_cloud; scat_lat_index ++)
+      for(Index scat_lat_index_local = 0; scat_lat_index_local < Nlat_cloud; 
+          scat_lat_index_local ++)
         {
-          for(scat_lon_index = 0; scat_lon_index < Nlon_cloud; 
-              scat_lon_index ++)
+          for(Index scat_lon_index_local = 0; 
+              scat_lon_index_local < Nlon_cloud; 
+              scat_lon_index_local ++)
             {
               if (atmosphere_dim == 1)
-                rte_temperature = 
-                  t_field(scat_p_index + cloudbox_limits[0], 0, 0);
+                rte_temperature_local = 
+                  t_field(scat_p_index_local + cloudbox_limits[0], 0, 0);
               else
-                rte_temperature = 
-                  t_field(scat_p_index + cloudbox_limits[0],
-                          scat_lat_index + cloudbox_limits[2],
-                          scat_lon_index + cloudbox_limits[4]);
+                rte_temperature_local = 
+                  t_field(scat_p_index_local + cloudbox_limits[0],
+                          scat_lat_index_local + cloudbox_limits[2],
+                          scat_lon_index_local + cloudbox_limits[4]);
               
               //Calculate optical properties for single particle types:
               //( Execute agendas silently. )
-              spt_calc_agenda.execute(true);
-              opt_prop_part_agenda.execute(true);
+              spt_calc_agendaExecute(ext_mat_spt_local, 
+                                     abs_vec_spt_local,
+                                     scat_p_index_local,
+                                     scat_lat_index_local,
+                                     scat_lon_index_local, 
+                                     rte_temperature_local,
+                                     scat_za_index,
+                                     scat_aa_index,
+                                     spt_calc_agenda,
+                                     true);
+
+              opt_prop_part_agendaExecute(ext_mat_local, abs_vec_local, 
+                                          ext_mat_spt_local, 
+                                          abs_vec_spt_local,
+                                          scat_p_index_local,
+                                          scat_lat_index_local,
+                                          scat_lon_index_local,
+                                          opt_prop_part_agenda,
+                                          true);
            
               // Store coefficients in arrays for the whole cloudbox.
-              abs_vec_field(scat_p_index, scat_lat_index, scat_lon_index,
-                            joker) = abs_vec(0, joker);
+              abs_vec_field(scat_p_index_local, scat_lat_index_local,
+                            scat_lon_index_local,
+                            joker) = abs_vec_local(0, joker);
               
-              ext_mat_field(scat_p_index, scat_lat_index, scat_lon_index,
-                            joker, joker) = ext_mat(0, joker, joker);
+              ext_mat_field(scat_p_index_local, scat_lat_index_local,
+                            scat_lon_index_local,
+                            joker, joker) = ext_mat_local(0, joker, joker);
             } 
         }
     }
@@ -171,27 +197,20 @@ void cloud_fieldsCalc(// Output:
 
 
 
-//! Radiative transfer calculation along a path inside the cloudbox (1D).
+//! cloud_ppath_update1D
 /*! 
   This function calculates the radiation field along a propagation path 
-  step for a specified zenith direction. This function is used for the 
-  sequential update if the radiation field and called inside a loop over
+  step for specified zenith direction and pressure level.
+  This function is used in the sequential update and called inside a loop over
   the pressure grid. 
   In the function the intersection point of the propagation path with the 
   next layer is calculated and all atmospheric properties are 
   interpolated an the intersection point. Then a radiative transfer step is 
-  performed using the stokes vector as output and input. The inermediate
-  Stokes vectors are stored in the WSV doit_i_field.
+  performed.
 
- WS Output:
+  WS Output:
   \param doit_i_field Updated radiation field inside the cloudbox. 
-  Variables used in scalar_gas_abs_agenda:
-  \param rte_pressure
-  \param rte_temperature
-  \param rte_vmr_list
-  Variables used in opt_prop_xxx_agenda:
-  \param ext_mat
-  \param abs_vec 
+  // Communication with iy_surface_agenda:
   \param rte_los
   \param rte_pos
   \param rte_gp_p
@@ -224,18 +243,11 @@ void cloud_fieldsCalc(// Output:
   \param scat_za_interp
 
   \author Claudia Emde
-  \date 2002-06-04
+  \date 2003-06-04
 */
 void cloud_ppath_update1D(
                           // Input and output
                           Tensor6View doit_i_field,
-                          // scalar_gas_abs_agenda:
-                          Numeric& rte_pressure,
-                          Numeric& rte_temperature,
-                          VectorView rte_vmr_list,
-                          // opt_prop_xxx_agenda:
-                          Tensor3View ext_mat,
-                          MatrixView abs_vec,
                           // iy_surface_agenda
                           VectorView, //rte_los,
                           VectorView, //rte_pos,
@@ -260,7 +272,6 @@ void cloud_ppath_update1D(
                           // Calculate thermal emission:
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
-                          // used for surface ?
                           const Index& f_index,
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
@@ -342,9 +353,7 @@ void cloud_ppath_update1D(
           // Radiative transfer from one layer to the next, starting
           // at the intersection with the next layer and propagating
           // to the considered point.
-          cloud_RT_no_background(doit_i_field,
-                                 rte_pressure, rte_temperature,
-                                 rte_vmr_list, ext_mat, abs_vec,
+          cloud_RT_no_background(doit_i_field, 
                                  scalar_gas_absorption_agenda,
                                  opt_prop_gas_agenda, ppath_step, 
                                  t_int, vmr_list_int,
@@ -374,13 +383,6 @@ void cloud_ppath_update1D(
 void cloud_ppath_update1D_noseq(
                           // Output
                           Tensor6View doit_i_field,
-                          // scalar_gas_abs_agenda:
-                          Numeric& rte_pressure,
-                          Numeric& rte_temperature,
-                          VectorView rte_vmr_list,
-                          // opt_prop_xxx_agenda:
-                          Tensor3View ext_mat,
-                          MatrixView abs_vec,
                           // iy_surface_agenda
                           VectorView, //rte_los,
                           VectorView, //rte_pos,
@@ -489,8 +491,6 @@ void cloud_ppath_update1D_noseq(
           // at the intersection with the next layer and propagating
           // to the considered point.
           cloud_RT_no_background(doit_i_field,
-                                 rte_pressure, rte_temperature,
-                                 rte_vmr_list, ext_mat, abs_vec,
                                  scalar_gas_absorption_agenda,
                                  opt_prop_gas_agenda, ppath_step, 
                                  t_int, vmr_list_int,
@@ -565,7 +565,7 @@ void cloud_ppath_update1D_noseq(
   \param abs_vec_field
 
   \author Claudia Emde
-  \date 2002-06-04
+  \date 2003-06-04
 */
 void cloud_ppath_update3D(
                           Tensor6View doit_i_field,
@@ -1000,23 +1000,38 @@ void cloud_ppath_update3D(
 
 //! cloud_RT_no_background
 /*
-  This function calculates RT in the cloudbox if the intersection 
+  This function calculates RT in the cloudbox (1D) if the intersection 
   point with the next layer is in the atmosphere (not on the surface). 
   It is used inside the functions cloud_ppath_update1DXXX.
-
+  
+  Output: 
+  \param doit_i_field Radiation field in cloudbox. This variable is filled
+  with the updated values for a given zenith angle (scat_za_index) and 
+  pressure (p_index).
+  Input:
+  \param scalar_gas_absorption_agenda Calculate scalar gas absorption. 
+  \param opt_prop_gas_agenda Calculate absorption vector and extiction matrix
+  due to gas. 
+  \param ppath_step Propagation path step from one pressure level to the next 
+  (this can include several points)
+  \param t_int Temperature values interpolated on propagation path points.
+  \param vmr_list_int Interpolated volume mixing ratios. 
+  \param ext_mat_int Interpolated particle extinction matrix.
+  \param abs_vec_int Interpolated particle absorption vector. 
+  \param sca_vec_int Interpolated particle scattering vector. 
+  \param doit_i_field_int Interpolated radiances. 
+  \param p_int Interpolated pressure values. 
+  \param cloudbox_limits Cloudbox_limits. 
+  \param f_grid Frequency grid.
+  \param f_index Frequency index of (monochromatic) scattering calculation. 
+  \param p_index Pressure index in *doit_i_field*.
+  \param scat_za_index Zenith angle index in *doit_i_field*.
+  
   \author Claudia Emde
-  \date 2002-05-13
+  \date 2005-05-13
 */
 void cloud_RT_no_background(//Output
                             Tensor6View doit_i_field,
-                            //Communication variables for 
-                            //scalar_gas_abs_agenda:
-                            Numeric& rte_pressure,
-                            Numeric& rte_temperature,
-                            VectorView rte_vmr_list,
-                            // opt_prop_xxx_agenda:
-                            Tensor3View ext_mat,
-                            MatrixView abs_vec,  
                             // Input
                             const Agenda& scalar_gas_absorption_agenda,
                             const Agenda& opt_prop_gas_agenda,
@@ -1034,12 +1049,16 @@ void cloud_RT_no_background(//Output
                             const Index& p_index,
                             const Index& scat_za_index)
 {
-  
   const Index N_species = vmr_list_int.nrows();
   const Index stokes_dim = doit_i_field.ncols();
 
   Vector sca_vec_av(stokes_dim,0);
   Vector stokes_vec(stokes_dim, 0.);
+  Vector rte_vmr_list_local(N_species,0.); 
+  
+  Matrix abs_scalar_gas_local(1, N_species, 0.);
+  Tensor3 ext_mat_local;
+  Matrix abs_vec_local;  
 
   // Incoming stokes vector
   stokes_vec = doit_i_field_int(joker, ppath_step.np-1);
@@ -1049,23 +1068,33 @@ void cloud_RT_no_background(//Output
       // Length of the path between the two layers.
       Numeric l_step = ppath_step.l_step[k-1];
       // Average temperature
-      rte_temperature =   0.5 * (t_int[k] + t_int[k-1]);
+      Numeric rte_temperature_local = 0.5 * (t_int[k] + t_int[k-1]);
       //
       // Average pressure
-      rte_pressure = 0.5 * (p_int[k] + p_int[k-1]);
+      Numeric rte_pressure_local = 0.5 * (p_int[k] + p_int[k-1]);
       //
       // Average vmrs
       for (Index i = 0; i < N_species; i++)
-        rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) +
-                                 vmr_list_int(i,k-1));
+        rte_vmr_list_local[i] = 0.5 * (vmr_list_int(i,k) +
+                                       vmr_list_int(i,k-1));
       //
       // Calculate scalar gas absorption and add it to abs_vec 
       // and ext_mat.
       //
               
-      scalar_gas_absorption_agenda.execute(true);
+      scalar_gas_absorption_agendaExecute(abs_scalar_gas_local, 
+                                          f_index, 
+                                          rte_pressure_local, 
+                                          rte_temperature_local, 
+                                          rte_vmr_list_local,
+                                          scalar_gas_absorption_agenda,
+                                          true);
               
-      opt_prop_gas_agenda.execute(true);
+      opt_prop_gas_agendaExecute(ext_mat_local, 
+                                  abs_vec_local, 
+                                  abs_scalar_gas_local,
+                                  opt_prop_gas_agenda,
+                                  true);
               
       //
       // Add average particle extinction to ext_mat. 
@@ -1074,15 +1103,15 @@ void cloud_RT_no_background(//Output
         {
           for (Index j = 0; j < stokes_dim; j++)
             {
-              ext_mat(0,i,j) += 0.5 *
+              ext_mat_local(0,i,j) += 0.5 *
                 (ext_mat_int(i,j,k) + ext_mat_int(i,j,k-1));
             }
           //
           // Add average particle absorption to abs_vec.
           //
-          abs_vec(0,i) += 0.5 * 
+          abs_vec_local(0,i) += 0.5 * 
             (abs_vec_int(i,k) + abs_vec_int(i,k-1));
-                  
+          
           //
           // Averaging of sca_vec:
           //
@@ -1095,7 +1124,7 @@ void cloud_RT_no_background(//Output
       //
       // Calculate Planck function
       //
-      Numeric rte_planck_value = planck(f, rte_temperature);
+      Numeric rte_planck_value = planck(f, rte_temperature_local);
               
       // Some messages:
       out3 << "-----------------------------------------\n";
@@ -1110,16 +1139,16 @@ void cloud_RT_no_background(//Output
       out3 << "Averaged coefficients: \n";
       out3 << "Planck function: " << rte_planck_value << "\n";
       out3 << "Scattering vector: " << sca_vec_av << "\n"; 
-      out3 << "Absorption vector: " << abs_vec(0,joker) << "\n"; 
-      out3 << "Extinction matrix: " << ext_mat(0,joker,joker) << "\n"; 
+      out3 << "Absorption vector: " << abs_vec_local(0,joker) << "\n"; 
+      out3 << "Extinction matrix: " << ext_mat_local(0,joker,joker) << "\n"; 
               
               
-      assert (!is_singular( ext_mat(0,joker,joker)));
+      assert (!is_singular( ext_mat_local(0,joker,joker)));
               
       // Radiative transfer step calculation. The Stokes vector
       // is updated until the considered point is reached.
       rte_step_std(stokes_vec, Matrix(stokes_dim,stokes_dim), 
-                   ext_mat(0,joker,joker), abs_vec(0,joker), 
+                   ext_mat_local(0,joker,joker), abs_vec_local(0,joker), 
                    sca_vec_av, l_step, rte_planck_value);
               
     }// End of loop over ppath_step. 
@@ -1138,7 +1167,7 @@ void cloud_RT_no_background(//Output
   FIXME: Surface models to be added by Sreerekha. 
 
   \author Claudia Emde
-  \date 2002-05-13
+  \date 2005-05-13
 */
 void cloud_RT_surface(//Input
                       const Agenda& iy_surface_agenda, 
@@ -1328,7 +1357,7 @@ void cloud_RT_surface(//Input
   \param lon_grid Longitude grid
 
   \author Claudia Emde
-  \date 2002-06-06
+  \date 2003-06-06
 */
 void ppath_step_in_cloudbox(//Output:
                             Ppath& ppath_step,
@@ -1391,7 +1420,7 @@ void ppath_step_in_cloudbox(//Output:
   Used in the WSM cloud_ppath_update1D. 
   
   \author Claudia Emde
-  \date 2002-06-06
+  \date 2003-06-06
 */
 void interp_cloud_coeff1D(//Output
                           Tensor3View ext_mat_int,
@@ -1551,7 +1580,7 @@ void interp_cloud_coeff1D(//Output
   \param cloudbox_limits The limits of the cloudbox.
  
   \author Claudia Emde
-  \date 2002-06-06
+  \date 2003-06-06
 */
 bool is_inside_cloudbox(const Ppath& ppath_step,
                         const ArrayOfIndex& cloudbox_limits)
