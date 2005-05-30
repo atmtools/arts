@@ -848,7 +848,15 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                         stokes_dim, stokes_dim, 0.);
   Tensor4 abs_vec_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
                         stokes_dim, 0.);
- 
+  
+     
+  // If theta is between 90° and the limiting value, the intersection point
+  // is exactly at the same level as the starting point (cp. AUG)
+  Numeric theta_lim = 180. - asin((r_geoid(0,0)+
+                                   z_field(cloudbox_limits[0],0,0))/
+                                  (r_geoid(0,0)+
+                                   z_field(cloudbox_limits[1],0,0)))*RAD2DEG;
+  
   //Only dummy variables:
   Index scat_aa_index_local = 0;
   
@@ -869,13 +877,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
       //======================================================================
       // Radiative transfer inside the cloudbox
       //=====================================================================
-      
-      // If theta is between 90° and the limiting value, the intersection point
-      // is exactly at the same level as the starting point (cp. AUG)
-      Numeric theta_lim = 180. - asin((r_geoid(0,0)+
-                                       z_field(cloudbox_limits[0],0,0))/
-                                      (r_geoid(0,0)+
-                                       z_field(cloudbox_limits[1],0,0)))*RAD2DEG;
+   
       
       // Sequential update for uplooking angles
       if ( scat_za_grid[scat_za_index_local] <= 90.) 
@@ -928,13 +930,13 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
       // To be save we loop over the full cloudbox. Inside the function 
       // cloud_ppath_update1D it is checked whether the intersection point is 
       // inside the cloudbox or not.
-      else if (  scat_za_grid[scat_za_index_local] > 90 &&
+      else if (  scat_za_grid[scat_za_index_local] > 90. &&
                  scat_za_grid[scat_za_index_local] < theta_lim ) 
         {
           for(Index p_index = cloudbox_limits[0]; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              // For this case the cloudbox goes down to the surface an we
+              // For this case the cloudbox goes down to the surface and we
               // look downwards. These cases are outside the cloudbox and 
               // not needed. Switch is included here, as ppath_step_agenda 
               // gives an error for such cases.
@@ -968,16 +970,6 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
 void
 doit_i_fieldUpdateSeq3D(// WS Output:
                         Tensor6& doit_i_field,
-                        // scalar_gas_abs_agenda:
-                        Numeric& rte_pressure,
-                        Numeric& rte_temperature,
-                        Vector& rte_vmr_list,
-                        // spt_calc_agenda:
-                        Index& scat_za_index,
-                        Index& scat_aa_index,
-                        // opt_prop_xxx_agenda:
-                        Tensor3& ext_mat,
-                        Matrix& abs_vec,  
                         // ppath_step_agenda:
                         Ppath& ppath_step, 
                         // WS Input:
@@ -1120,11 +1112,11 @@ doit_i_fieldUpdateSeq3D(// WS Output:
  
   
   //Loop over all directions, defined by scat_za_grid 
-  for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
+  for(Index scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
       //Loop over azimuth directions (scat_aa_grid). First and last point in 
       // azimuth angle grid are euqal. Start with second element.
-      for(scat_aa_index = 1; scat_aa_index < N_scat_aa; scat_aa_index ++)
+      for(Index scat_aa_index = 1; scat_aa_index < N_scat_aa; scat_aa_index ++)
         {
          //==================================================================
           // Radiative transfer inside the cloudbox
@@ -1163,8 +1155,6 @@ doit_i_fieldUpdateSeq3D(// WS Output:
                           lon_index ++)
                         {
                           cloud_ppath_update3D(doit_i_field, 
-                                               rte_pressure, rte_temperature, 
-                                               rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -1197,8 +1187,6 @@ doit_i_fieldUpdateSeq3D(// WS Output:
                           lon_index ++)
                         {
                           cloud_ppath_update3D(doit_i_field, 
-                                               rte_pressure, rte_temperature, 
-                                               rte_vmr_list, ext_mat, abs_vec,
                                                ppath_step, p_index, lat_index, 
                                                lon_index, scat_za_index, 
                                                scat_aa_index, scat_za_grid, 
@@ -1243,10 +1231,6 @@ doit_i_fieldUpdateSeq3D(// WS Output:
                               lon_index ++)
                             {
                               cloud_ppath_update3D(doit_i_field, 
-                                                   rte_pressure,
-                                                   rte_temperature, 
-                                                   rte_vmr_list,
-                                                   ext_mat, abs_vec,
                                                    ppath_step, p_index, 
                                                    lat_index, 
                                                    lon_index, scat_za_index, 
@@ -2637,7 +2621,10 @@ void doit_za_interpSet(
   \author Claudia Emde
 */
 void ScatteringDoit(
-                    Index& f_index,
+                    Tensor6& doit_i_field,
+                    Tensor7& scat_i_p, 
+                    Tensor7& scat_i_lat, 
+                    Tensor7& scat_i_lon,
                     const Vector& f_grid,
                     const Agenda& doit_mono_agenda
                     )
@@ -2668,12 +2655,14 @@ void ScatteringDoit(
 
   //-------- end of checks ----------------------------------------
 
-  for ( f_index = 0; f_index < f_grid.nelem(); f_index ++)
+  for (Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
     {
       out1 << "----------------------------------------------\n";
       out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
       out1 << "----------------------------------------------\n";
-      doit_mono_agenda.execute(); 
+      doit_mono_agendaExecute(doit_i_field, scat_i_p, scat_i_lat,
+                              scat_i_lon, f_index, doit_mono_agenda,
+                              false); 
     }
 }
 

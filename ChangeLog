@@ -1,5 +1,25 @@
 2005-05-30  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
+	* arts-1-1-974
+   	
+	* src/agendas.cc: Fixed entry for *doit_mono_agenda*.
+	
+	* src/m_scatrte.cc (ScatteringDoit): Used new agenda wrapper for 
+	*doit_mono_agenda*. Fixed WS OUTPUT of the function. 
+
+	(i_fieldUpdateSeq3D): Included new ageda wrappers, now here also 
+	only *iy_surface_agenda* and *ppath_step_agenda* remain. 
+
+	* src/scatrte.{cc,h} (cloud_ppath_update3D): Used new agenda 
+	wrappers, used (cloud_RT_no_background).
+
+	(cloud_RT_no_background): Generalized to handle 1D and 3D. Before
+	the function worked only for 1D.
+	
+	* src/methods.cc: Adapted ScatteringDoit and i_fieldUpdateSeq3D entries.
+	
+2005-05-30  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+	
 	* arts-1-1-973
 
 	* src/agendas.cc: Fixed INPUT and OUTPUT of the following 

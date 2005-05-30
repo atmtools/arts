@@ -146,11 +146,10 @@ void define_agenda_data()
        "Performs monochromatic DOIT calculation."
        "\n"
        "This agenda includes for example the following methods:\n"
-       "   1. *DoitInit* \n"
-       "   2. *DoitScatteringDataPrepare* \n"
-       "   3. *doit_i_fieldSetClearsky \n"
-       "   4. *doit_i_fieldIterate*\n"
-       "   5. *DoitCloudboxFieldPut*\n"
+       "   1. *DoitScatteringDataPrepare* \n"
+       "   2. *doit_i_fieldSetClearsky \n"
+       "   3. *doit_i_fieldIterate*\n"
+       "   4. *DoitCloudboxFieldPut*\n"
        "\n"
        "The result of the agenda is the radiation field inside the \n"
        "cloudbox and on the cloudbox boundary, which can be used \n"
@@ -163,14 +162,8 @@ void define_agenda_data()
        "\n"
         ),
        OUTPUT(doit_i_field_,scat_i_p_,scat_i_lat_, scat_i_lon_),
-       INPUT(scat_i_p_,
-             scat_i_lat_,
-             scat_i_lon_,
-             f_grid_,
-             f_index_,
-             scat_za_grid_,
-             scat_aa_grid_)));
-
+       INPUT(f_index_)));
+            
  agenda_data.push_back
     (AgRecord
      ( NAME( "doit_rte_agenda" ),

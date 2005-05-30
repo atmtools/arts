@@ -1588,10 +1588,8 @@ md_data_raw.push_back
          "module or an independent pixel approach applying DOIT-1D. \n"
          "\n"
          ),
-        OUTPUT(doit_i_field_, rte_pressure_, rte_temperature_,
-               rte_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_,
-               abs_vec_, ppath_step_),
-        INPUT(doit_scat_field_, cloudbox_limits_, 
+        OUTPUT(doit_i_field_, ppath_step_),
+        INPUT(doit_i_field_, doit_scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, scat_aa_grid_,
               pnd_field_,
@@ -4138,10 +4136,12 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "This method executes *doit_mono_agenda* for each frequency \n"
-         "in *f_grid*. \n"
+         "in *f_grid*. The output is the radiation field inside the cloudbox\n"
+         "(*doit_i_field*) and on the cloudbox boundary (*scat_i_p* (1D), \n"
+         "*scat_i_lat* and *scat_i_lon* (3D)).\n"
          "\n"
          ),
-        OUTPUT(f_index_),
+        OUTPUT(doit_i_field_, scat_i_p_, scat_i_lat_, scat_i_lon_),
         INPUT(f_grid_, doit_mono_agenda_),
         GOUTPUT(),
         GINPUT(),

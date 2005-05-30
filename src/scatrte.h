@@ -85,7 +85,6 @@ void cloud_ppath_update1D(
 void cloud_ppath_update1D_noseq(
                           // Input and output
                           Tensor6View doit_i_field,
-                          // scalar_gas_abs_agenda:
                           // iy_surface_agenda
                           VectorView, //rte_los,
                           VectorView, //rte_pos,
@@ -159,16 +158,8 @@ void cloud_ppath_update1D_planeparallel(
                   const Agenda& surface_agenda 
                   );
 
-
 void cloud_ppath_update3D(
-                          Tensor6View i_field,
-                          // scalar_gas_abs_agenda:
-                          Numeric& rte_pressure,
-                          Numeric& rte_temperature,
-                          Vector& rte_vmr_list,
-                          // opt_prop_xxx_agenda:
-                          Tensor3& ext_mat,
-                          Matrix& abs_vec,  
+                          Tensor6View doit_i_field,
                           // ppath_step_agenda:
                           Ppath& ppath_step, 
                           const Index& p_index,
@@ -179,7 +170,7 @@ void cloud_ppath_update3D(
                           ConstVectorView scat_za_grid,
                           ConstVectorView scat_aa_grid,
                           const ArrayOfIndex& cloudbox_limits,
-                          ConstTensor6View scat_field,
+                          ConstTensor6View doit_scat_field,
                           // Calculate scalar gas absorption:
                           const Agenda& scalar_gas_absorption_agenda,
                           ConstTensor4View vmr_field,
@@ -196,11 +187,11 @@ void cloud_ppath_update3D(
                           ConstTensor3View t_field,
                           ConstVectorView f_grid,
                           const Index& f_index,
-                          //particle opticla properties
+                          //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Index& scat_za_interp
-                         );
+                          const Index& //scat_za_interp
+                          );
 
 void cloud_RT_no_background(//Output
                             Tensor6View doit_i_field,
@@ -219,7 +210,10 @@ void cloud_RT_no_background(//Output
                             ConstVectorView f_grid,
                             const Index& f_index,
                             const Index& p_index,
-                            const Index& scat_za_index);
+                            const Index& lat_index,
+                            const Index& lon_index, 
+                            const Index& scat_za_index,
+                            const Index& scat_aa_index);
 
 void cloud_RT_surface(//Input
                       const Agenda& iy_surface_agenda, 
