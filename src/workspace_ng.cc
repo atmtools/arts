@@ -69,6 +69,11 @@ Workspace::~Workspace ()
 
 }
 
+void Workspace::duplicate (Index i)
+{
+  push (i, wsmh.duplicate (i, operator[](i)));
+}
+
 //! Pop the topmost wsv from its stack.
 /*!
   Removes the topmost element from the wsv's stack.
@@ -79,6 +84,17 @@ void *Workspace::pop (Index i)
   void *vp = ws[i].top ();
   ws[i].pop ();
   return vp;
+}
+
+//! Pop the topmost wsv from its stack and free its memory.
+/*!
+  Removes the topmost element from the wsv's stack and frees memory.
+ */
+void Workspace::pop_free (Index i)
+{
+  void *vp = pop (i);
+  if (vp)
+    wsmh.deallocate (i, vp);
 }
 
 //! Push a new wsv onto its stack.

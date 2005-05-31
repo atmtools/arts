@@ -1,3 +1,38 @@
+2005-05-31  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-980
+
+	* Preparations for full scoping in agendas.
+
+	* src/workspace_ng.{cc,h}
+
+	(Workspace::pop_free): New function. Pops a WSV and frees its memory.
+
+	(Workspace::duplicate): New function. Duplicates the topmost entry on
+	the WSVs stack.
+
+	* src/make_auto_wsv_h.cc (main):
+
+	Added new functions in WorkspaceMemoryHandler to duplicate WSVs.
+
+	* src/agenda_class.{cc.h}:
+
+	Move implementation of Agenda::operator=, Agenda::resize,
+	Agenda::nelem and MRecord::operator= from cc file to header file. We
+	need these functions for make_auto_wsv_h. But because agenda_class.cc
+	itself depends on auto_wsv.h we cannot link make_auto_wsv_h against
+	agenda_class.o as this would create a circular dependency.
+
+	(doit_rte_agendaScopeExecute): Test wrappers featuring scope.
+
+	* src/m_scatrte.cc (doit_i_fieldIterate):
+
+	Use doit_rte_agendaScopeExecute to test the scoping.
+
+	* src/Makefile.am (make_auto_wsv_h_SOURCES):
+
+	Depend on agenda_class.h.
+
 2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-979

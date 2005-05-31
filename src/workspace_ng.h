@@ -60,7 +60,11 @@ public:
   //! Checks existence of the given WSV.
   bool is_occupied(Index i) { return (ws[i].top() != NULL); }
 
-  void *Workspace::pop (Index i);
+  void duplicate (Index i);
+
+  void *pop (Index i);
+
+  void pop_free (Index i);
 
   void push (Index i, void *wsv);
 

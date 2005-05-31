@@ -770,6 +770,7 @@ make_auto_wsv_groups_h_SOURCES = \
 
 make_auto_wsv_h_SOURCES = \
 	absorption.h \
+	agenda_class.h \
 	arts.cc \
 	arts.h \
 	auto_wsv_groups.h \

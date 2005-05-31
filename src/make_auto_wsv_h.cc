@@ -116,13 +116,21 @@ int main()
         <<   "  void *(*allocfp[" << wsv_data.nelem () << "])();\n"
         <<   "  // List of function pointers to deallocation routines\n"
         <<   "  void (*deallocfp[" << wsv_data.nelem () << "])(void *);\n\n"
+        <<   "  // List of function pointers to duplication routines\n"
+        <<   "  void *(*duplicatefp[" << wsv_data.nelem () << "])(void *);\n\n"
         <<   "  // Allocation and deallocation routines for workspace groups\n";
       for (Index i = 0; i < wsv_group_names.nelem (); ++i)
         {
           ofs << "  static void *allocate_wsvg_" << wsv_group_names[i] << "()\n"
             <<   "    { return (void *)new " << wsv_group_names[i] << "; }\n\n"
             <<   "  static void deallocate_wsvg_" << wsv_group_names[i] << "(void *vp)\n"
-            <<   "    { delete (" << wsv_group_names[i] << " *)vp; }\n\n";
+            <<   "    { delete (" << wsv_group_names[i] << " *)vp; }\n\n"
+            <<   "  static void *duplicate_wsvg_" << wsv_group_names[i] << "(void *vp)\n"
+            <<   "    {\n"
+            <<   "      " << wsv_group_names[i] << " *nvp = new " << wsv_group_names[i] << ";\n"
+            <<   "      *nvp = *(" << wsv_group_names[i] << " *)vp;\n"
+            <<   "      return nvp;\n"
+            <<   "    }\n\n";
         }
 
       ofs << "public:\n"
@@ -138,6 +146,8 @@ int main()
           ofs << "      allocfp[" << i << "] = allocate_wsvg_"
             <<            wsv_group_names[wsv_data[i].Group()] << ";\n"
             <<   "      deallocfp[" << i << "] = deallocate_wsvg_"
+            <<            wsv_group_names[wsv_data[i].Group()] << ";\n"
+            <<   "      duplicatefp[" << i << "] = duplicate_wsvg_"
             <<            wsv_group_names[wsv_data[i].Group()] << ";\n";
         }
 
@@ -155,7 +165,15 @@ int main()
         <<   "  void deallocate (Index wsv, void *vp)\n"
         <<   "    {\n"
         <<   "      deallocfp[wsv](vp);\n"
+        <<   "    }\n\n"
+        <<   "  /** Getaway function to call the duplication function for the\n"
+        <<   "      workspace variable with the given Index.\n"
+        <<   "  */\n"
+        <<   "  void *duplicate (Index wsv, void *vp)\n"
+        <<   "    {\n"
+        <<   "      return duplicatefp[wsv](vp);\n"
         <<   "    }\n\n";
+
 
       ofs << "};\n\n";
       //
