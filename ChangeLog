@@ -1,8 +1,20 @@
 2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-1-1-977
+
+	* src/workspace.cc: Commented out abs_vec_zee, ext_mat_zee,
+	zeeman_o2_onoff, zeeman_o2_pressure_limit,
+	zeeman_o2_line. Move all these commented-out WSVs to the end of
+	the list.
+	Added planned new names for absorption variables as
+	comments. Sorted according to the new names. All absorption
+	variables are now at the beginning of the list.
+
+2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-1-1-976
 
-	* Removed obsolete ARTS-1-0 absorption files, WSVs, WSMs, and
+	* Removed obsolete ARTS-1-1 absorption files, WSVs, WSMs, and
 	agendas.
 	
 	* src/workspace.cc: Removed WSVs: abs_model, abs_user_parameters,

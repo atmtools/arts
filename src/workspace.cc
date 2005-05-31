@@ -104,6 +104,7 @@ void define_wsv_data()
     Patrick Eriksson 2002-05-08
   ----------------------------------------------------------------------*/
 
+  // New name: abs_coef
   wsv_data.push_back
     (WsvRecord
     ( NAME( "abs" ),
@@ -126,6 +127,37 @@ void define_wsv_data()
        "Unit: 1/m\n"
       ),
       GROUP( Matrix_ )));
+
+  // New name: abs_lookup.
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "gas_abs_lookup" ),
+       DESCRIPTION
+       (
+        "An absorption lookup table.\n"
+        "\n"
+        "This holds an absorption lookup table, as well as all information that\n"
+        "is necessary to use the table to extract absorption. Extraction\n"
+        "routines are implemented as member functions. \n"
+        "\n"
+        "This has quite a complicated structure. See Doxygen documentation for\n"
+        "class GasAbsLookup for details. FIXME: Add here a reference to AUG,\n"
+        "once the chapter on the lookup table has been written."
+        ), 
+       GROUP( GasAbsLookup_ )));
+
+  // New name: abs_lookup_is_adapted
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "gas_abs_lookup_is_adapted" ),
+       DESCRIPTION
+       (
+        "Flag to indicate whether *gas_abs_lookupAdapt* has already been\n"
+        "called.\n"
+        "\n"
+        "Values: 0=false, 1=true."
+        ), 
+       GROUP( Index_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -168,6 +200,16 @@ void define_wsv_data()
        ),
       GROUP( Matrix_ )));
 
+  // New name: abs_scalar_gas_agenda
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scalar_gas_absorption_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_)));
+  
   wsv_data.push_back
    (WsvRecord
     ( NAME( "abs_scalar_gas_field" ),
@@ -188,6 +230,21 @@ void define_wsv_data()
        "Dimensions: [species, f_grid, p_grid, lat_grid, lon_grid]"
         ),
       GROUP( Tensor5_ ))); 
+
+  // New name: abs_species
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "gas_species" ),
+       DESCRIPTION
+       (
+        "Tag groups for scalar gas absorption.\n"
+        "\n"
+        "This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
+        "available tag groups for the calculation of scalar gas absorption\n"
+        "coefficients.  See online documentation of method *gas_speciesSet* for\n"
+        "more detailed information how tag groups work and some examples."
+        ), 
+       GROUP( ArrayOfArrayOfSpeciesTag_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -230,35 +287,6 @@ void define_wsv_data()
        "\n"
        "Usage:      Output of the agendas *opt_prop_gas_agenda* \n"
        "                             and *opt_prop_part_agenda* \n"
-       "\n"
-       "Unit:        [Hz, m^2]\n"
-       "\n"
-       "Dimensions: [f_grid, stokes_dim]"
-        ),
-       GROUP( Matrix_ )));
-
-
- wsv_data.push_back
-    (WsvRecord
-    ( NAME( "abs_vec_zee" ),
-      DESCRIPTION
-      (
-       "Zeeman absorption vector.\n"
-       "\n"
-       "This variable contains the total absorption coefficient vector \n"
-       "used in the RTE calculation for user specified O2 (currently) lines, \n"
-       "affected by the Zeeman effect. The physical absorption includes  \n"
-       "O2 absorption from all 3 polarization components of the absorbed radiation. \n"
-       "\n"
-       "The vector is calculated by the agenda *zeeman_prop_agenda* \n"
-       "\n"
-       "The dimensision of the variable adapts to *stokes_dim*.\n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage:      Output of the agenda *zeeman_prop_agenda* \n"
        "\n"
        "Unit:        [Hz, m^2]\n"
        "\n"
@@ -799,27 +827,6 @@ void define_wsv_data()
        ),
        GROUP( Tensor3_ )));
 
-wsv_data.push_back
-    (WsvRecord
-     ( NAME( "ext_mat_zee" ),
-       DESCRIPTION
-      (
-       "Zeeman extinction matrix.\n"
-       "\n"
-       "This variable contains the total extinction matrix used \n"
-       "in the RTE calculation for user specified O2 (currently) lines, \n"
-       "affected by the Zeeman effect. It is the physical extinction matrix  \n"
-       "of all 3 polarization components of the radiation. \n"
-       "\n"
-       "Usage:      Output of the agendas *zeeman_prop_agenda* \n"
-       "\n"
-       "Unit:       [Hz, m^2, m^2] "
-       "\n"
-       "Dimensions: [f_grid, stokes_dim, stokes_dim]"
-       ),
-       GROUP( Tensor3_ )));
-
-
   wsv_data.push_back
      (WsvRecord
     ( NAME( "ext_mat_spt" ),
@@ -914,51 +921,7 @@ wsv_data.push_back
         "Unit:       Hz"
         ),
         GROUP( Vector_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "gas_abs_lookup" ),
-       DESCRIPTION
-       (
-        "An absorption lookup table.\n"
-        "\n"
-        "This holds an absorption lookup table, as well as all information that\n"
-        "is necessary to use the table to extract absorption. Extraction\n"
-        "routines are implemented as member functions. \n"
-        "\n"
-        "This has quite a complicated structure. See Doxygen documentation for\n"
-        "class GasAbsLookup for details. FIXME: Add here a reference to AUG,\n"
-        "once the chapter on the lookup table has been written."
-        ), 
-       GROUP( GasAbsLookup_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "gas_abs_lookup_is_adapted" ),
-       DESCRIPTION
-       (
-        "Flag to indicate whether *gas_abs_lookupAdapt* has already been\n"
-        "called.\n"
-        "\n"
-        "Values: 0=false, 1=true."
-        ), 
-       GROUP( Index_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "gas_species" ),
-       DESCRIPTION
-       (
-        "Tag groups for scalar gas absorption.\n"
-        "\n"
-        "This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
-        "available tag groups for the calculation of scalar gas absorption\n"
-        "coefficients.  See online documentation of method *gas_speciesSet* for\n"
-        "more detailed information how tag groups work and some examples."
-        ), 
-       GROUP( ArrayOfArrayOfSpeciesTag_ )));
-
-
+  
  wsv_data.push_back
    (WsvRecord
     ( NAME( "geomag_los_calc_agenda" ),
@@ -1781,18 +1744,18 @@ wsv_data.push_back
        ),
       GROUP( Ppath_ )));
 
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ppath_index" ),
-      DESCRIPTION
-      (
-       "Index for point in propagation path.\n"
-       "\n"
-       "Usage: This variable is needed only for communication with \n"
-       "zeeman_prop_agenda. \n"
-       "\n"
-       ),
-      GROUP( Index_ )));
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "ppath_index" ),
+       DESCRIPTION
+       (
+        "Index for point in propagation path.\n"
+        "\n"
+        "Usage: This variable is needed only for communication with \n"
+        "zeeman_prop_agenda. \n"
+        "\n"
+        ),
+       GROUP( Index_ )));
 
    wsv_data.push_back
    (WsvRecord
@@ -2161,15 +2124,6 @@ wsv_data.push_back
        ),
       GROUP( Matrix_ )));
 
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scalar_gas_absorption_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc."
-       ),
-      GROUP( Agenda_)));
-  
   wsv_data.push_back
     (WsvRecord
      ( NAME( "scat_aa_grid" ),
@@ -3199,53 +3153,6 @@ wsv_data.push_back
        ),
       GROUP( Index_ )));
 
-//  wsv_data.push_back
-//    (WsvRecord
-//     ( NAME( "zeeman_prop_agenda" ),
-//       DESCRIPTION
-//       (
-//         "See agendas.cc."
-//        ),
-//       GROUP( Agenda_ )));
-
-
-
-  wsv_data.push_back
-    (WsvRecord
-     (NAME( "zeeman_o2_onoff" ),
-      DESCRIPTION
-      (
-       "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
-       "splitting for the microwave range (1-1000 GHz).\n"
-       "If zeeman_o2_onoff=1 the Zeeman effect is considered,\n"
-       "and if zeeman_o2_onoff=0 the Zeeman effect is omitted."
-       ),
-      GROUP( Index_ )));
- 
-  wsv_data.push_back
-    (WsvRecord
-     (NAME( "zeeman_o2_pressure_limit" ),
-      DESCRIPTION
-      (
-       "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
-       "splitting for the microwave range (1-1000 GHz).\n"
-       "This variable sets the upper pressure limit [Pa] at which the\n"
-       " Zeeman splitting is taken into account\n"
-       ),
-      GROUP( Numeric_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     (NAME( "zeeman_o2_line" ),
-      DESCRIPTION
-      (
-       "Calculate this line with Zeeman splitting, lines are\n"
-       "identified by their upper rotational angular momentum quantum\n"
-       "number N, postive values of zeeman_o2_line are N+ transitions,\n"
-       "negative are N-."
-       ),
-      GROUP( Index_ )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "z_field" ),
@@ -3338,5 +3245,106 @@ wsv_data.push_back
        ),
       GROUP( Matrix_ )));
  
+
+  //--------------------------------------------------------------------------------
+  // Zeeman WSVs, commented out after back-porting absorption from arts-1-0.
+
+//  wsv_data.push_back
+//     (WsvRecord
+//     ( NAME( "abs_vec_zee" ),
+//       DESCRIPTION
+//       (
+//        "Zeeman absorption vector.\n"
+//        "\n"
+//        "This variable contains the total absorption coefficient vector \n"
+//        "used in the RTE calculation for user specified O2 (currently) lines, \n"
+//        "affected by the Zeeman effect. The physical absorption includes  \n"
+//        "O2 absorption from all 3 polarization components of the absorbed radiation. \n"
+//        "\n"
+//        "The vector is calculated by the agenda *zeeman_prop_agenda* \n"
+//        "\n"
+//        "The dimensision of the variable adapts to *stokes_dim*.\n"
+//        "\n"
+//        "See further the ARTS user guide (AUG). Use the index to find where\n"
+//        "this variable is discussed. The variable is listed as a subentry to\n"
+//        "\"workspace variables\".\n"
+//        "\n"
+//        "Usage:      Output of the agenda *zeeman_prop_agenda* \n"
+//        "\n"
+//        "Unit:        [Hz, m^2]\n"
+//        "\n"
+//        "Dimensions: [f_grid, stokes_dim]"
+//         ),
+//        GROUP( Matrix_ )));
+
+// wsv_data.push_back
+//     (WsvRecord
+//      ( NAME( "ext_mat_zee" ),
+//        DESCRIPTION
+//       (
+//        "Zeeman extinction matrix.\n"
+//        "\n"
+//        "This variable contains the total extinction matrix used \n"
+//        "in the RTE calculation for user specified O2 (currently) lines, \n"
+//        "affected by the Zeeman effect. It is the physical extinction matrix  \n"
+//        "of all 3 polarization components of the radiation. \n"
+//        "\n"
+//        "Usage:      Output of the agendas *zeeman_prop_agenda* \n"
+//        "\n"
+//        "Unit:       [Hz, m^2, m^2] "
+//        "\n"
+//        "Dimensions: [f_grid, stokes_dim, stokes_dim]"
+//        ),
+//        GROUP( Tensor3_ )));
+
+//  wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "zeeman_prop_agenda" ),
+//       DESCRIPTION
+//       (
+//         "See agendas.cc."
+//        ),
+//       GROUP( Agenda_ )));
+
+//   wsv_data.push_back
+//     (WsvRecord
+//      (NAME( "zeeman_o2_onoff" ),
+//       DESCRIPTION
+//       (
+//        "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
+//        "splitting for the microwave range (1-1000 GHz).\n"
+//        "If zeeman_o2_onoff=1 the Zeeman effect is considered,\n"
+//        "and if zeeman_o2_onoff=0 the Zeeman effect is omitted."
+//        ),
+//       GROUP( Index_ )));
+ 
+//   wsv_data.push_back
+//     (WsvRecord
+//      (NAME( "zeeman_o2_pressure_limit" ),
+//       DESCRIPTION
+//       (
+//        "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
+//        "splitting for the microwave range (1-1000 GHz).\n"
+//        "This variable sets the upper pressure limit [Pa] at which the\n"
+//        " Zeeman splitting is taken into account\n"
+//        ),
+//       GROUP( Numeric_ )));
+
+//   wsv_data.push_back
+//     (WsvRecord
+//      (NAME( "zeeman_o2_line" ),
+//       DESCRIPTION
+//       (
+//        "Calculate this line with Zeeman splitting, lines are\n"
+//        "identified by their upper rotational angular momentum quantum\n"
+//        "number N, postive values of zeeman_o2_line are N+ transitions,\n"
+//        "negative are N-."
+//        ),
+//       GROUP( Index_ )));
+
+
+
+
+
 
 }
