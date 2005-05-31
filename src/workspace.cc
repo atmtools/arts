@@ -547,6 +547,40 @@ void define_wsv_data()
        ),
       GROUP( ArrayOfIndex_ )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "diy_dt" ),
+      DESCRIPTION
+      (
+       "Derivative of *iy* with respect to temperature along the ppath.\n"
+       "\n"
+       "This variable holds the derivative of monochromatic pencil beam\n"
+       "radiances with respect to the temperature at each point along the \n"
+       "propagation path.\n"
+       "\n"
+       "Usage:      Set by *rte_agenda* (if treating jacobians).\n"
+       "\n"
+       "Dimensions: [ ppath.np, f_grid, stokes_dim ]"
+       ),
+      GROUP( Tensor3_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "diy_dvmr" ),
+      DESCRIPTION
+      (
+       "Derivative of *iy* with respect to VMR along the propagation path.\n"
+       "\n"
+       "This variable holds the derivative of monochromatic pencil beam\n"
+       "radiances with respect to the VMR of each species at each point\n"
+       "along the propagation path.\n"
+       "\n"
+       "Usage:      Set by *rte_agenda* (if treating jacobians).\n"
+       "\n"
+       "Dimensions: [ rte_do_vmr_species, ppath.np f_grid, stokes_dim ]"
+       ),
+      GROUP( Tensor4_ )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "doit_conv_flag" ),
@@ -1106,12 +1140,12 @@ wsv_data.push_back
         "columns in the matrix. The matrix has to be initialised before the\n"
         "quantities can be defined. Initialisation WSM is *jacobianInit*.\n"
         "Retrieval quantities are then added with *jacobianAdd...* methods.\n"
-        "See the online help. The calculation is controlled by an agenda, and\n"
-        "is performed by *jacobianCalc*.\n"
+        "See the online help. The calculation is controlled by an agenda,\n"
+        "and is performed by *jacobianCalc*.\n"
         "\n"
         "Units:   See the different retrieval quantities.\n"
         "\n"
-        "Dimension:      [ y, number of retrieval quantities and grids ]\n"
+        "Dimension:   [ y, number of retrieval quantities and grids ]\n"
       ),
       GROUP( Sparse_ )));
 
@@ -2055,6 +2089,31 @@ wsv_data.push_back
        ),
       GROUP( Agenda_ )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_do_vmr_jacs" ),
+      DESCRIPTION
+      (
+       "Index of gas species for which *rte_agenda* shall calculate "
+       "VMR jacobians.\n"
+       "\n"
+       "These indexes refer to the position in *gas_species*.\n"
+       "\n"
+       "Usage:   Set internally, by *RteCalc*."
+      ),
+      GROUP( ArrayOfIndex_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "rte_do_t_jacs" ),
+      DESCRIPTION
+      (
+       "Flag to *rte_agenda* to calculate jacobians for temperature.\n"
+       "\n"
+       "Usage:   Set internally, by *RteCalc*."
+      ),
+      GROUP( Index_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "rte_gp_p" ),
@@ -2829,7 +2888,6 @@ wsv_data.push_back
        "be performed."
        ),
       GROUP( ArrayOfIndex_ )));
- 
 
   wsv_data.push_back
    (WsvRecord

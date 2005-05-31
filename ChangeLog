@@ -1,3 +1,44 @@
+2005-05-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-975
+
+	* Main changes:
+           - DoNothing and IndexStep now need both global input and output.
+	   - Cfiles must now include jacobianOff{}
+	     (you can also use RteCalcNoJacobian, but it is mainly intended
+	      for internal use)
+
+	Otherwise some more jacobian code added (not yet activated).
+
+	* src/m_basic_types.cc (IndexStep): Now works as out = in + 1,
+	where in and out can be same WSV. This also ensures that the WSV
+	has been init correctly when doing a = a + 1.
+
+	(MatrixCopy): Removed this obselete function.
+
+	* src/m_ignore.h (DoNothing): The variable to ignore must now be
+	given as both input and output. This to ensure that the variable
+	has been init correctly.
+
+	* src/m_rte.cc (RteCalcTmp): Added this as a temporary solution to
+	test/develop jacobians, making old cfiles to run.
+	Started to make jacobian code.
+
+ 	(RteCalcNoJacobian): Added. 
+	
+	* src/workspace.cc: Added rte_do_gas_jacs and rte_do_t_jacs.
+
+	* src/jacobian.h: Removed speciesindex as field for RetrievalQuantity,
+	and renamed field method to analytical.
+
+	* src/m_jacobian.cc: Adopted to changes in fields for
+	RetrievalQuantity.
+
+	(jacobianOff): Added.
+
+	* src/xml_io_compound_types.cc: Adopted to changes in fields for
+	RetrievalQuantity.
+
 2005-05-30  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-974

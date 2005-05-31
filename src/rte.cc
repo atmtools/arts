@@ -599,31 +599,34 @@ void rte_step_std_clearsky(
    \date   2005-05-19
 */
 void rte_std(
-             Matrix&    iy,
-             Vector&    emission,
-             Matrix&    abs_vec,
-             Tensor3&   ext_mat,
-             Matrix&    abs_scalar_gas,
-             Numeric&   rte_pressure,
-             Numeric&   rte_temperature,
-             Vector&    rte_vmr_list,
-             Index&     f_index,
-             Index&     ppath_index,
-             Tensor4&   ppath_transmissions,
-       const Ppath&     ppath,
-       const Vector&    ppath_p,
-       const Vector&    ppath_t,
-       const Matrix&    ppath_vmr,
-       const Vector&    f_grid,
-       const Index&     stokes_dim,
-       const Agenda&    emission_agenda,
-       const Agenda&    scalar_gas_absorption_agenda,
-       const Agenda&    opt_prop_gas_agenda,
-       const bool&      do_transmissions )
+             Matrix&         iy,
+             Vector&         emission,
+             Matrix&         abs_vec,
+             Tensor3&        ext_mat,
+             Matrix&         abs_scalar_gas,
+             Numeric&        rte_pressure,
+             Numeric&        rte_temperature,
+             Vector&         rte_vmr_list,
+             Index&          f_index,
+             Index&          ppath_index,
+             Tensor4&        ppath_transmissions,
+             Tensor4&        diy_dvmr,
+             Tensor3&        diy_dt,
+       const Ppath&          ppath,
+       const Vector&         ppath_p,
+       const Vector&         ppath_t,
+       const Matrix&         ppath_vmr,
+       const Vector&         f_grid,
+       const Index&          stokes_dim,
+       const Agenda&         emission_agenda,
+       const Agenda&         scalar_gas_absorption_agenda,
+       const Agenda&         opt_prop_gas_agenda,
+       const ArrayOfIndex&   rte_do_gas_jacs,
+       const Index&          rte_do_t_jacs,
+       const bool&           do_transmissions )
 {
   // Temporary variables
-  const bool   do_jacobians = false;
-        bool   abs_polarised = false;
+  bool   abs_polarised = false;
 
   // Relevant checks are assumed to be done in RteCalc
 
@@ -647,26 +650,38 @@ void rte_std(
   // set to 0 for clear sky calculations.
   Vector sca_vec_dummy(stokes_dim, 0.);
           
+  // Jacobian variables
+  bool   do_vmr_jacobians = false; 
+  bool   do_t_jacobians   = false;
+  //
+  if( rte_do_gas_jacs.nelem() )
+    {
+      throw runtime_error("Analytical jacobians not yet handled.");
+      do_vmr_jacobians = true;
+      diy_dvmr.resize(rte_do_gas_jacs.nelem(),np,nf,stokes_dim);
+      diy_dvmr = 0.0;
+    }
+  //
+  if( rte_do_t_jacs )
+    {
+      throw runtime_error("Analytical jacobians not yet handled.");
+      do_t_jacobians = true;
+      diy_dt.resize(np,nf,stokes_dim);
+      diy_dt = 0.0;
+      throw runtime_error("Analytical temperature jacobians not yet handled.");
+    }
+
   // Transmission variables
   Matrix    trans(stokes_dim,stokes_dim);
   bool      save_transmissions = false;
   Tensor4   transmissions;
   bool      any_abs_polarised = false;
   //
-  if( do_transmissions  ||  do_jacobians ) 
+  if( do_transmissions  ||  do_vmr_jacobians  || do_t_jacobians ) 
     {
       save_transmissions = true;
       transmissions.resize(np-1,nf,stokes_dim,stokes_dim); 
     }
-
-  // Jacobian variables
-  Tensor4 abslosjacs;
-  if( do_jacobians )
-    { 
-      abslosjacs.resize(ns,np,nf,stokes_dim);
-      abslosjacs = 0;
-    }
-
 
   // Loop the propagation path steps
   //
@@ -698,16 +713,17 @@ void rte_std(
       for( Index iv=0; iv<nf; iv++ )
         {
           // Jacobians
-          if( do_jacobians )
+          if( do_vmr_jacobians )
             {
               const Numeric   dd = 
                        -0.5 * ppath.l_step[ip-1] * ( iy(iv,0) - emission[iv] );
-              for( Index is=0; is<ns; is++ )
+              for( Index is=0; is<rte_do_gas_jacs.nelem(); is++ )
                 {
-                  abslosjacs(is,ip,iv,0) += 
-                                 dd * abs_scalar_gas(iv,is) / ppath_vmr(is,ip);
-                  abslosjacs(is,ip-1,iv,0) += 
-                               dd * abs_scalar_gas(iv,is) / ppath_vmr(is,ip-1);
+                  const Index ig = rte_do_gas_jacs[is];
+                  diy_dvmr(ig,ip,iv,0) += 
+                                 dd * abs_scalar_gas(iv,ig) / ppath_vmr(ig,ip);
+                  diy_dvmr(ig,ip-1,iv,0) += 
+                               dd * abs_scalar_gas(iv,ig) / ppath_vmr(ig,ip-1);
                 }
             }
 
@@ -727,7 +743,7 @@ void rte_std(
     }
 
   // Postprocessing of Jacobians
-  if( do_jacobians )
+  if( do_vmr_jacobians )
     {
       for( Index iv=0; iv<nf; iv++ )
         {
@@ -743,10 +759,11 @@ void rte_std(
                 {
                   mtmp = trans;
                   mult( trans, transmissions(ip,iv,joker,joker), mtmp );
-                  for( Index is=0; is<ns; is++ )
-                    { 
-                      vtmp = abslosjacs(is,ip+1,iv,joker); 
-                      mult( abslosjacs(is,ip+1,iv,joker), trans, vtmp );
+                  for( Index is=0; is<rte_do_gas_jacs.nelem(); is++ )
+                    {
+                      const Index ig = rte_do_gas_jacs[is];
+                      vtmp = diy_dvmr(ig,ip+1,iv,joker); 
+                      mult( diy_dvmr(ig,ip+1,iv,joker), trans, vtmp );
                     }
                 }
             }
@@ -757,8 +774,11 @@ void rte_std(
                   for( Index ii=0; ii<stokes_dim; ii++ )
                     {
                       trans(ii,ii) *= transmissions(ip,iv,ii,ii);
-                      for( Index is=0; is<ns; is++ )
-                        { abslosjacs(is,ip+1,iv,ii) *= trans(ii,ii); }
+                      for( Index is=0; is<rte_do_gas_jacs.nelem(); is++ )
+                        {
+                          diy_dvmr(rte_do_gas_jacs[is],ip+1,iv,ii) *= 
+                                                                  trans(ii,ii);
+                        }
                     }
                 }
             }

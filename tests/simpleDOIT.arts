@@ -138,6 +138,9 @@ Matrix1ColFromVector( sensor_los, vector_1 ) {}
 # which are not modified by sensor properties
 sensorOff{}		
 
+# No jacobian claculations here
+jacobianOff{}		
+
 # Agendas for the calculation of propagation paths
 AgendaSet( refr_index_agenda ) {
   refr_indexThayer{}

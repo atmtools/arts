@@ -106,19 +106,19 @@ void jacobianAddGas(// WS Output:
   }
   
   // Check that method is either "analytic" or "perturbation"
-  Index method_index;
+  bool analytical;
   if (method=="perturbation")
-  {
-    method_index = 0;
-  }
+    {
+      analytical = 0;
+    }
   else if (method=="analytic")
-  {
+    {
     //FIXME: Only "perturbation" implemented so far
     throw runtime_error(
       "Only perturbation method implemented for gas retrieval quantities");
     
-    method_index = 1;
-  }
+      analytical = 1;
+    }
   else
   {
     ostringstream os;
@@ -153,7 +153,7 @@ void jacobianAddGas(// WS Output:
   rq.MainTag("Gas species");
   rq.Subtag(species);
   rq.Unit(unit);
-  rq.Method(method_index);
+  rq.Analytical(analytical);
   rq.Perturbation(dx);
   rq.Grids(grids);
 
@@ -167,23 +167,20 @@ void jacobianAddGas(// WS Output:
 
   out2 << "  Adding gas species: " << species << " to *jacobian_quantities*\n"
        << "  and *jacobian_agenda*\n";
-  if (method_index==0) 
+  if ( analytical ) 
+  {
+    out3 << "  Calculations done by analytical expression.\n"; 
+  }
+  else
   { 
     out3 << "  Calculations done by perturbation, size " << dx 
          << " " << unit << ".\n"; 
-  }
-  else if (method_index==1) 
-  {
-    out3 << "  Calculations done by analytical expression.\n"; 
   }
   
   // Add retrieval quantity to *gas_species*
   ArrayOfSpeciesTag tags;
   array_species_tag_from_string( tags, species );
   gas_species.push_back( tags );
-  // FIXME: Here we could just add rq.SpeciesIndex = gas_species.nelem()-1;
-  Index si = chk_contains( "species", gas_species, tags );
-  rq.SpeciesIndex(si);
   
   // Print list of added tag group to the most verbose output stream:
   out3 << "  Appended tag group:";
@@ -413,7 +410,7 @@ void jacobianAddPointing(// WS Output:
   rq.MainTag("Pointing");
   rq.Subtag(subtag);
   rq.Unit(unit);
-  rq.Method(0);
+  rq.Analytical(0);
   rq.Perturbation(dza);
   // To store the value or the polynomial order, create a vector with length
   // poly_order+1, in case of gitter set the size of the grid vector to be the
@@ -426,7 +423,6 @@ void jacobianAddPointing(// WS Output:
   }
   ArrayOfVector grids(1, grid);
   rq.Grids(grids);
-  rq.SpeciesIndex(-1);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -492,19 +488,19 @@ void jacobianAddTemperature(// WS Output:
   }
   
   // Check that method is either "analytic" or "perturbation"
-  Index method_index;
+  bool analytical;
   if (method=="perturbation")
-  {
-    method_index = 0;
-  }
+    {
+      analytical = 0;
+    }
   else if (method=="analytic")
-  {
+    {
     //FIXME: Only "perturbation" implemented so far
     throw runtime_error(
       "Only perturbation method implemented for temperature retrieval.");
     
-    method_index = 1;
-  }
+      analytical = 1;
+    }
   else
   {
     ostringstream os;
@@ -542,10 +538,9 @@ void jacobianAddTemperature(// WS Output:
   rq.MainTag("Temperature");
   rq.Subtag(subtag);
   rq.Unit(unit);
-  rq.Method(method_index);
+  rq.Analytical(analytical);
   rq.Perturbation(dx);
   rq.Grids(grids);
-  rq.SpeciesIndex(-1);
 
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
@@ -557,14 +552,14 @@ void jacobianAddTemperature(// WS Output:
   
   out2 << "  Adding temperature to *jacobian_quantities* and "
        << "*jacobian_agenda*.\n";
-  if (method_index==0) 
+  if( analytical ) 
+  {
+    out3 << "  Calculations done by analytical expression.\n"; 
+  }
+  else
   { 
     out3 << "  Calculations done by perturbation, size " << dx 
          << " " << unit << ".\n"; 
-  }
-  else if (method_index==1) 
-  {
-    out3 << "  Calculations done by analytical expression.\n"; 
   }
 }                    
 
@@ -724,12 +719,10 @@ void jacobianCalcGas(
   ArrayOfSpeciesTag tags;
   array_species_tag_from_string( tags, species );
   Index si = chk_contains( "species", gas_species, tags );
-  //FIXME: Why does the species index change???
-  //Index si = rq.SpeciesIndex();
 
   // Calculate the reference spectrum, y. FIXME: Is this unnecessary if *y*
   out2 << "  Calculating the reference spectra.\n";  
-  RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, 
+  RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, 
            iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
            rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
            iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
@@ -805,7 +798,7 @@ void jacobianCalcGas(
         // Calculate the perturbed spectrum  
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << j_p*j_lat*j_lon+ji[0] << "\n";
-        RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+        RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
                  iy, rte_pos, rte_gp_p, rte_gp_lat,
                  rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
                  iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
@@ -1021,8 +1014,8 @@ void jacobianCalcParticle(
             jacobian_particle_update_agenda.execute();
             
             // Calculate the perturbed spectrum  
-            RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
-                     iy, rte_pos, rte_gp_p, rte_gp_lat,
+            RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, 
+                     ppath_vmr, iy, rte_pos, rte_gp_p, rte_gp_lat,
                      rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
                      iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                      atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
@@ -1155,7 +1148,7 @@ void jacobianCalcPointing(
   out2 << "  Calculating retrieval quantity " << rq << "\n";
   
   // Calculate the reference spectrum, y
-  RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+  RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
            iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
            rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
            iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
@@ -1183,7 +1176,7 @@ void jacobianCalcPointing(
   }
      
   // Calculate the perturbed spectrum  
-  RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+  RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
            iy, rte_pos, rte_gp_p, rte_gp_lat,
            rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
            iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
@@ -1344,7 +1337,7 @@ void jacobianCalcTemperature(
   
   // Calculate the reference spectrum, y. FIXME: Is this unnecessary if *y*
   out2 << "  Calculating the reference spectra.\n";  
-  RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+  RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
            iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
            rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
            iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
@@ -1419,7 +1412,7 @@ void jacobianCalcTemperature(
         // Calculate the perturbed spectrum  
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << j_p*j_lat*j_lon+ji[0] << "\n";
-        RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+        RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
                  iy, rte_pos, rte_gp_p, rte_gp_lat,
                  rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
                  iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
@@ -1515,6 +1508,7 @@ void jacobianClose(// WS Output:
 }
 
 
+
 //! jacobianInit
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -1524,11 +1518,8 @@ void jacobianClose(// WS Output:
 */
 void jacobianInit(// WS Output:
                   Sparse&                    jacobian,
-                  ArrayOfRetrievalQuantity&  jacobian_quantities)
+                  ArrayOfRetrievalQuantity&  jacobian_quantities )
 {
-  // FIXME: Check if array and sparse has already been initialised?
-  // If so, what to do? Error/warning
-
   // Resize arrays and sparse to zero.
   jacobian_quantities.resize(0);
   jacobian.resize(0,0);
@@ -1536,4 +1527,26 @@ void jacobianInit(// WS Output:
   out2 <<
     "  Initialising *jacobian* and *jacobian_quantities*.\n";
 }
+
+
+
+//! jacobianOff
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2005-05-30
+*/
+void jacobianOff(
+      Sparse&                    jacobian,
+      ArrayOfRetrievalQuantity&  jacobian_quantities,
+      ArrayOfIndex&              rte_do_vmr_jacs,
+      Index&                     rte_do_t_jacs )
+{
+  jacobianInit( jacobian, jacobian_quantities );
+  rte_do_vmr_jacs.resize(0);
+  rte_do_t_jacs = 0;
+}
+
+
 

@@ -1806,13 +1806,16 @@ md_data_raw.push_back
       ( NAME("DoNothing"),
         DESCRIPTION
         (
-         "As *Ignore* but for agenda output..\n"
+         "As *Ignore* but for agenda output.\n"
          "\n"
          "This method is handy for use in agendas in order to suppress\n"
          "warnings about unused output workspace variables. What it does is:\n"
          "Nothing!\n"
          "\n"
-         "See further *Ignore*.\n"
+         "To ensure that the variable is already set, the variable must be \n"
+         "given is both global input and output. An example:\n"
+         "   DoNothing(emission,emission){}\n"
+         "Input and output MUST be identical.\n"
          "\n"
          "Supergeneric output:\n"
          "   Any_ : The input variable."
@@ -1820,7 +1823,7 @@ md_data_raw.push_back
         OUTPUT(),
         INPUT(),
         GOUTPUT( Any_ ),
-        GINPUT(),
+        GINPUT( Any_ ),
         KEYWORDS(),
         TYPES(),
         AGENDAMETHOD(   false ),
@@ -2342,12 +2345,14 @@ md_data_raw.push_back
       ( NAME("IndexStep"),
         DESCRIPTION
         (
-         "Adds 1 to an index WSV.\n"
+         "Performs GOUTPUT = GINPUT + 1\n"
+         "\n"
+         "Input and output can be same variable."
         ),
         OUTPUT( ),
         INPUT( ),
         GOUTPUT( Index_ ),
-        GINPUT( ),
+        GINPUT( Index_ ),
         KEYWORDS(),
         TYPES()));
 
@@ -2590,7 +2595,7 @@ md_data_raw.push_back
       ( NAME( "jacobianCalc" ),
         DESCRIPTION
         (
-         "Executes *jacobian_agenda* to calculate *jacobian*.\n"
+         "Executes *jacobian_agenda* to calculate (parts of) *jacobian*.\n"
         ),
         OUTPUT( jacobian_ ),
         INPUT( jacobian_agenda_, jacobian_quantities_ ),
@@ -2738,9 +2743,28 @@ md_data_raw.push_back
          "to be called before any subsequent calls to jacobianAddGas\n"
          "jacobianAddTemperature or jacobianAddPointing.\n"
          "\n"
-         "The Jacobian matrix is initialised as an empty matrix.\n"
+         "The Jacobian quantities are initialised to be empty."
         ),
          OUTPUT( jacobian_, jacobian_quantities_ ),
+         INPUT(),
+         GOUTPUT(),
+         GINPUT(),
+         KEYWORDS(),
+         TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianOff"),
+        DESCRIPTION
+        (
+         "Makes mandatory initialisation of some jacobian variables.\n"
+         "\n"
+         "Some jacobian WSVs must be initilised even if no such calculations\n"
+         "will be performed and this is handled with this method. That is,\n"
+         "this method must be called when no jacobians will be calculated"
+        ),
+        OUTPUT( jacobian_, jacobian_quantities_, rte_do_vmr_jacs_, 
+                rte_do_t_jacs_ ),
          INPUT(),
          GOUTPUT(),
          GINPUT(),
@@ -3883,7 +3907,34 @@ md_data_raw.push_back
          "transfer equation is solved to the end point of the propagation\n"
          "path. Finally, the response of the sensor is applied.\n"
          "\n"
+         "Analytical jacobians for gas species and temperature can be \n"
+         "calcultaed along with the spectrum.\n"
+         "\n"
          "See further the user guide."
+        ),
+        OUTPUT( y_, ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_,
+                iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_,
+                jacobian_, rte_do_vmr_jacs_, diy_dvmr_, rte_do_t_jacs_, 
+                diy_dt_ ),
+        INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
+               iy_surface_agenda_, iy_cloudbox_agenda_,
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+               t_field_, vmr_field_, gas_species_, r_geoid_, z_surface_, 
+               cloudbox_on_, cloudbox_limits_, sensor_response_, sensor_pos_, 
+               sensor_los_, f_grid_, stokes_dim_, 
+               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, 
+               jacobian_, jacobian_quantities_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "RteCalcNoJacobian" ),
+        DESCRIPTION
+        (
+         "As *RteCalc* but thorughout ignores jacobians."
         ),
         OUTPUT( y_, ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_,
                 iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
@@ -3918,10 +3969,10 @@ md_data_raw.push_back
         ),
         OUTPUT( iy_, emission_, abs_vec_, ext_mat_, abs_scalar_gas_, 
                 rte_pressure_, rte_temperature_, rte_vmr_list_, f_index_, 
-                ppath_index_ ),
+                ppath_index_, diy_dvmr_, diy_dt_ ),
         INPUT( iy_, ppath_, ppath_p_, ppath_t_, ppath_vmr_, f_grid_, 
                stokes_dim_, emission_agenda_, scalar_gas_absorption_agenda_, 
-               opt_prop_gas_agenda_ ),
+               opt_prop_gas_agenda_, rte_do_vmr_jacs_, rte_do_t_jacs_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3935,14 +3986,14 @@ md_data_raw.push_back
          "As *RteStd*, but also returns path transmissions.\n"
          "\n"
          "The transmission to each point of the propagation path is returned\n"
-         "in *iy_aux*."
+         "in *ppath_transmissions*."
         ),
         OUTPUT( iy_, emission_, abs_vec_, ext_mat_, abs_scalar_gas_,
                 rte_pressure_, rte_temperature_, rte_vmr_list_, f_index_, 
-                ppath_index_, ppath_transmissions_ ),
+                ppath_index_, ppath_transmissions_, diy_dvmr_, diy_dt_ ),
         INPUT( iy_, ppath_, ppath_p_, ppath_t_, ppath_vmr_, f_grid_, 
                stokes_dim_, emission_agenda_, scalar_gas_absorption_agenda_, 
-               opt_prop_gas_agenda_ ),
+               opt_prop_gas_agenda_, rte_do_vmr_jacs_, rte_do_t_jacs_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

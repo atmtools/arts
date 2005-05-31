@@ -51,10 +51,9 @@ public:
     mmaintag(x.mmaintag),
     msubtag(x.msubtag),
     munit(x.munit),
-    mmethod(x.mmethod),
+    manalytical(x.manalytical),
     mperturbation(x.mperturbation),
     mgrids(x.mgrids),
-    mspeciesindex(x.mspeciesindex),
     mjacobianindices(x.mjacobianindices)
   { /* Nothing left to do here. */ }
 
@@ -62,18 +61,16 @@ public:
   RetrievalQuantity(const String&             maintag,
                     const String&             subtag,
                     const String&             unit,
-                    const Index&              method,
+                    const Index&              analytical,
                     const Numeric&            perturbation,
                     const MakeArray<Vector>&  grids,
-                    const Index&              speciesindex,
                     const ArrayOfIndex&       jacobianindices) :
     mmaintag(maintag),
     msubtag(subtag),
     munit(unit),
-    mmethod(method),
+    manalytical(analytical),
     mperturbation(perturbation),
     mgrids(grids),
-    mspeciesindex(speciesindex),
     mjacobianindices(jacobianindices)
   {
     // With Matpack, initialization of mgrids from grids should work correctly.
@@ -90,19 +87,15 @@ public:
   /** Unit of retrieval quantity. Eg. "rel", "vmr" and "nd". */
   const String& Unit() const { return munit; }
   void Unit( const String& u ) { munit = u; }
-  /** Method of calculation. Perturbation (=0) or analytical (=1). */
-  const Index& Method() const { return mmethod; }
-  void Method( const Index& m ) { mmethod = m; }
+  /** Boolean to make analytical calculations (if possible). */
+  const Index& Analytical() const { return manalytical; }
+  void Analytical( const Index& m ) { manalytical = m; }
   /** Size of perturbation used for perturbation calculations. */
   const Numeric& Perturbation() const { return mperturbation; }
   void Perturbation( const Numeric& p ) { mperturbation = p; }
   /** Grids. Definition grids for the jacobian, eg. p, lat and lon. */
   const ArrayOfVector& Grids() const { return mgrids; }
   void Grids( const ArrayOfVector& g ) { mgrids = g; }
-  /** Species index (= index of species in *gas_species*).
-      Should be = -1 for other quantities, eg. Temp, Pointing. */
-  const Index& SpeciesIndex() const { return mspeciesindex; }
-  void SpeciesIndex( const Index& si ) { mspeciesindex = si; }
   /** Jacobian indices (= start and stop columns in jacobian). */
   const ArrayOfIndex& JacobianIndices() const { return mjacobianindices; }
   void JacobianIndices( const ArrayOfIndex& ji ) { mjacobianindices = ji; }
@@ -112,10 +105,9 @@ private:
   String mmaintag;
   String msubtag;
   String munit;
-  Index mmethod;
+  Index manalytical;
   Numeric mperturbation;
   ArrayOfVector mgrids;
-  Index mspeciesindex;
   ArrayOfIndex mjacobianindices;
 };
 

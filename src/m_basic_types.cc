@@ -174,32 +174,18 @@ void IndexSet(    Index&    x,
    \author Patrick Eriksson
    \date   2005-05-19
 */
-void IndexStep(    Index&    x,
-            const String&   x_name )
+void IndexStep(    
+            Index&     xout,       
+      const String&    outname,
+      const Index&     xin,
+      const String&    inname )
 {
-  x += 1;
-  out3 << "  " << x_name << " = " << x_name << " + 1\n";
+  xout = xin + 1;
+  out3 << "  " << outname << " = " << inname << " + 1\n";
 }
 
 
 
-//! MatrixCopy
-/*!
-   See the online help (arts -d FUNCTION_NAME)
-
-   \author ???
-   \date   ????-??-??
-*/
-void MatrixCopy(
-              Matrix&   y2,
-        const String&   name_y2,
-        const Matrix&   y1,
-        const String&   name_y1 )
-{
-  out2 << "  " << name_y2 << " = " << name_y1 << "\n";
-  y2.resize( y1.nrows(), y1.ncols() );
-  y2 = y1;
-}
 
 //! Matrix1ColFromVector
 /*!

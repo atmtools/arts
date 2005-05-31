@@ -60,12 +60,21 @@ void Ignore(// WS Generic Input:
 template< class T >
 void DoNothing(
             // WS Generic Output:
-                  T&,
+                  T&      out,
             // WS Generic Output Names:
-            const String& inname)
+            const String& outname,
+            // WS Generic Input:
+                  T&      in,
+            // WS Generic Input Names:
+            const String& inname )
 {
+  if( &out != &in )
+    throw runtime_error(
+                   "*DoNothing* requires that input and output is same WSV." );
+
   // Nothing to do here.
-  out2 << "  Just touching " << inname << ".\n";
+  String s = inname;
+  out2 << "  Just touching " << outname << ".\n";
 }
 
 #endif // m_ignore_h
