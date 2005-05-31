@@ -143,6 +143,48 @@ void define_md_data_raw()
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
 
+  // New name: abs_lookupAdapt
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("gas_abs_lookupAdapt"),
+        DESCRIPTION
+        (
+         "Adapts a gas absorption lookup table to the current calculation.\n"
+         "\n"
+         "The lookup table can contain more species and more frequencies than\n"
+         "are needed for the current calculation. This method cuts down the\n"
+         "table in memory, so that it contains just what is needed. Also, the\n"
+         "species in the table are brought in the same order as the species in\n"
+         "the current calculation.\n"
+         "\n"
+         "Of course, the method also performs quite a lot of checks on the\n"
+         "table. If something is not ok, a runtime error is thrown."
+        ),
+        OUTPUT( gas_abs_lookup_, gas_abs_lookup_is_adapted_ ),
+        INPUT(  gas_abs_lookup_, gas_species_, f_grid_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  // New name: abs_lookupInit
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("gas_abs_lookupInit"),
+        DESCRIPTION
+        (
+         "Creates an empty gas absorption lookup table.\n"
+         "\n"
+         "This is mainly there to help developers. For example, you can write\n"
+         "the empty table to an XML file, to see the file format."
+        ),
+        OUTPUT( gas_abs_lookup_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("abs_scalar_gasExtractFromLookup"),
@@ -208,6 +250,90 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
 
+  // New name: abs_speciesAdd
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("gas_speciesAdd"),
+        DESCRIPTION
+        (
+         "Adds species tag groups to the list of gas species.\n"
+         "\n"
+         "This WSM is similar to *gas_speciesSet*, the only difference is that\n"
+         "this method appends species to an existing list of gas species instead\n"
+         "of creating the whole list.\n"
+         "\n"
+         "See *gas_speciesSet* for details on how tags are defined and examples of\n"
+         "how to input them in the control file.\n"
+         "\n"
+         "Keywords:\n"
+         "   species : Specify one String for each tag group that you want to\n"
+         "             add. Inside the String, separate the tags by commas\n"
+         "             (plus optional blanks).\n"
+         ),
+        OUTPUT( gas_species_ ),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "species" ),
+        TYPES(    Array_String_t   )));
+ 
+  // New name: abs_speciesSet
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("gas_speciesSet"),
+        DESCRIPTION
+        (
+         "Set up the list of gas species tag groups.\n"
+         "\n"
+         "The workspace variable *gas_species* contains several tag groups. Each\n"
+         "tag group contain one or more tags. This method converts descriptions\n"
+         "of tag groups given in the keyword to the internal representation of\n"
+         "*gas_species*. A tag group selects spectral features which belong to\n"
+         "the same species.\n"
+         "\n"
+         "A tag is defined in terms of the name of the species, isotope, and a\n"
+         "range of frequencies. Species are named after the standard chemical\n"
+         "names, e.g., \"O3\".  Isotopes are given by the last digit of the atomic\n"
+         "weight, i.g., \"O3-668\" for the asymmetric ozone molecule including an\n"
+         "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
+         "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
+         "\n"
+         "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
+         "frequency range and isotope may be omitted.\n"
+         "\n"
+         "Finally, instead of the isotope the special letter \"nl\" may be given,\n"
+         "e.g., \"H2O-nl\". This means that no lines of this species should be\n"
+         "included in the general line-by-line calculation. This feature is\n"
+         "useful if you want to define a tag group just for a continuum, or for\n"
+         "a complete absorption model.\n"
+         "\n"
+         "Keywords:\n"
+         "   species : Specify one String for each tag group that you want to\n"
+         "             create. Inside the String, separate the tags by commas\n"
+         "             (plus optional blanks).\n"
+         "\n"
+         "Example:\n"
+         "\n"
+         "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
+         "               \"O3\",\n"
+         "               \"H2O-nl\" ]\n"
+         "\n"
+         "   The first tag group selects all O3-666 lines between 500 and\n"
+         "   501 GHz plus all O3-686 lines.  \n"
+         "\n"
+         "   The second tag group selects all remaining O3 transitions.\n"
+         "\n"
+         "   The third tag group selects H2O, but will not put any lines in the\n"
+         "   line list for this species. Presumably, we are using a complete\n"
+         "   absorption model like MPM89 for H2O in this case."
+         ),
+        OUTPUT( gas_species_ ),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "species" ),
+        TYPES(    Array_String_t   )));
+ 
  md_data_raw.push_back
     ( MdRecord
       ( NAME("abs_vecAddGas"),
@@ -1706,6 +1832,7 @@ md_data_raw.push_back
         KEYWORDS( ),
         TYPES( )));
 
+  // New name: f_gridFromAbsLookup
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("f_gridFromGasAbsLookup"),
@@ -1723,128 +1850,6 @@ md_data_raw.push_back
         KEYWORDS( ),
         TYPES( )));
 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("gas_abs_lookupAdapt"),
-        DESCRIPTION
-        (
-         "Adapts a gas absorption lookup table to the current calculation.\n"
-         "\n"
-         "The lookup table can contain more species and more frequencies than\n"
-         "are needed for the current calculation. This method cuts down the\n"
-         "table in memory, so that it contains just what is needed. Also, the\n"
-         "species in the table are brought in the same order as the species in\n"
-         "the current calculation.\n"
-         "\n"
-         "Of course, the method also performs quite a lot of checks on the\n"
-         "table. If something is not ok, a runtime error is thrown."
-        ),
-        OUTPUT( gas_abs_lookup_, gas_abs_lookup_is_adapted_ ),
-        INPUT(  gas_abs_lookup_, gas_species_, f_grid_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("gas_abs_lookupInit"),
-        DESCRIPTION
-        (
-         "Creates an empty gas absorption lookup table.\n"
-         "\n"
-         "This is mainly there to help developers. For example, you can write\n"
-         "the empty table to an XML file, to see the file format."
-        ),
-        OUTPUT( gas_abs_lookup_ ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("gas_speciesAdd"),
-        DESCRIPTION
-        (
-         "Adds species tag groups to the list of gas species.\n"
-         "\n"
-         "This WSM is similar to *gas_speciesSet*, the only difference is that\n"
-         "this method appends species to an existing list of gas species instead\n"
-         "of creating the whole list.\n"
-         "\n"
-         "See *gas_speciesSet* for details on how tags are defined and examples of\n"
-         "how to input them in the control file.\n"
-         "\n"
-         "Keywords:\n"
-         "   species : Specify one String for each tag group that you want to\n"
-         "             add. Inside the String, separate the tags by commas\n"
-         "             (plus optional blanks).\n"
-         ),
-        OUTPUT( gas_species_ ),
-        INPUT(),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS( "species" ),
-        TYPES(    Array_String_t   )));
- 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("gas_speciesSet"),
-        DESCRIPTION
-        (
-         "Set up the list of gas species tag groups.\n"
-         "\n"
-         "The workspace variable *gas_species* contains several tag groups. Each\n"
-         "tag group contain one or more tags. This method converts descriptions\n"
-         "of tag groups given in the keyword to the internal representation of\n"
-         "*gas_species*. A tag group selects spectral features which belong to\n"
-         "the same species.\n"
-         "\n"
-         "A tag is defined in terms of the name of the species, isotope, and a\n"
-         "range of frequencies. Species are named after the standard chemical\n"
-         "names, e.g., \"O3\".  Isotopes are given by the last digit of the atomic\n"
-         "weight, i.g., \"O3-668\" for the asymmetric ozone molecule including an\n"
-         "oxygen 18 atom. Groups of transitions are specified by giving a lower\n"
-         "and upper limit of a frequency range, e.g., \"O3-666-500e9-501e9\".\n"
-         "\n"
-         "The symbol \"*\" acts as a wild card. Furthermore, frequency range or\n"
-         "frequency range and isotope may be omitted.\n"
-         "\n"
-         "Finally, instead of the isotope the special letter \"nl\" may be given,\n"
-         "e.g., \"H2O-nl\". This means that no lines of this species should be\n"
-         "included in the general line-by-line calculation. This feature is\n"
-         "useful if you want to define a tag group just for a continuum, or for\n"
-         "a complete absorption model.\n"
-         "\n"
-         "Keywords:\n"
-         "   species : Specify one String for each tag group that you want to\n"
-         "             create. Inside the String, separate the tags by commas\n"
-         "             (plus optional blanks).\n"
-         "\n"
-         "Example:\n"
-         "\n"
-         "   species = [ \"O3-666-500e9-501e9, O3-686\",\n"
-         "               \"O3\",\n"
-         "               \"H2O-nl\" ]\n"
-         "\n"
-         "   The first tag group selects all O3-666 lines between 500 and\n"
-         "   501 GHz plus all O3-686 lines.  \n"
-         "\n"
-         "   The second tag group selects all remaining O3 transitions.\n"
-         "\n"
-         "   The third tag group selects H2O, but will not put any lines in the\n"
-         "   line list for this species. Presumably, we are using a complete\n"
-         "   absorption model like MPM89 for H2O in this case."
-         ),
-        OUTPUT( gas_species_ ),
-        INPUT(),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS( "species" ),
-        TYPES(    Array_String_t   )));
- 
   md_data_raw.push_back
     ( MdRecord
       ( NAME("GaussianResponse"),
@@ -3275,6 +3280,7 @@ md_data_raw.push_back
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
+  // New name: p_gridFromAbsLookup
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("p_gridFromGasAbsLookup"),

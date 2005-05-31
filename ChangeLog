@@ -1,5 +1,13 @@
 2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-1-1-978
+
+	* src/methods.cc: Added planned new names for absorption methods
+	as comments. Sorted according to the new names. All absorption
+	methods are now at the beginning of the list.
+
+2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-1-1-977
 
 	* src/workspace.cc: Commented out abs_vec_zee, ext_mat_zee,
