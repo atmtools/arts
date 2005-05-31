@@ -1,3 +1,12 @@
+2005-05-31  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-182
+
+	* configure.in: Version number not updated in last commit. Now synced
+	to ChangeLog.
+	(A bit important as this could be the version used for Odin-SMR 
+	processing v2)
+
 2005-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-0-181

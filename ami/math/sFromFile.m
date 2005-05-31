@@ -144,11 +144,11 @@ function  s = setup_covmatrix( kg, corrfun, cutoff, kp, sdev, clength )
 n = length(kg);
 %
 if length(sdev) ~= length(clength)
-  error(['The standard deviation and correlation length vectors',...
+  error(['The standard deviation and correlation length vectors ',...
          'must have the same length']);
 %
 elseif min(kg)<min(kp) | max(kg)>max(kp)
-  error(['The data defining the covariance do not cover all',...
+  error(['The data defining the covariance do not cover all ',...
          'retrieval/error points.']);
 %
 elseif cutoff >= 1
