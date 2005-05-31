@@ -1,7 +1,8 @@
-/* Copyright (C) 2000, 2001 Stefan Buehler   <sbuehler@uni-bremen.de>
-                            Patrick Eriksson <patrick@rss.chalmers.se>
-                            Axel von Engeln  <engeln@uni-bremen.de>
-                            Thomas Kuhn      <tkuhn@uni-bremen.de>
+/* Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
+   Stefan Buehler   <sbuehler@uni-bremen.de>
+   Patrick Eriksson <patrick@rss.chalmers.se>
+   Axel von Engeln  <engeln@uni-bremen.de>
+   Thomas Kuhn      <tkuhn@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -20,22 +21,19 @@
 
 // 
 
-//----------------------------------------------------------------------
-// This file is obsolete and should be removed after function have
-// been moved to m_absorption.cc!
-//----------------------------------------------------------------------
-
 /**
    \file   m_abs.cc
 
    Stuff related to the calculation of absorption coefficients.
 
+   This is the file from arts-1-0, back-ported to arts-1-1.
+
    \author Stefan Buehler
    \date   2001-03-12
 */
 
-#include <algorithm>
 #include <cmath>
+#include <algorithm>
 #include "arts.h"
 #include "matpackI.h"
 #include "array.h"
@@ -46,7 +44,8 @@
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "make_array.h"
-#include "physics_funcs.h"
+#include "atm_funcs.h"
+#include "continua.h"
 #include "make_vector.h"
 
 /**
@@ -70,7 +69,9 @@ void lines_per_tgSetEmpty(// WS Output:
 }
 
 /**
- 
+   Reads line data in the Hitran 1986-2001 format (100 characters/record). For
+   Hitran version 2004 use linesReadFromHitran2004().
+
    \remark  <a href="http://www.hitran.com/>WWW access of the HITRAN catalog</a>.
 
    \author Thomas Kuhn
@@ -96,6 +97,55 @@ void linesReadFromHitran(// WS Output:
     {
       LineRecord lr;
       if ( lr.ReadFromHitranStream(is) )
+        {
+          // If we are here the read function has reached eof and has
+          // returned no data.
+          go_on = false;
+        }
+      else
+        {
+          if ( fmin <= lr.F() )
+            {
+              if ( lr.F() <= fmax )
+                lines.push_back(lr);
+              else
+                go_on = false;
+            }
+        }
+    }
+  out2 << "  Read " << lines.nelem() << " lines.\n";
+}
+
+
+/**
+   Reads line data in the Hitran 2004 format (160 characters/record). For Hitran
+   versions 1986-2001 use linesReadFromHitran().
+
+   \remark  <a href="http://www.hitran.com/>WWW access of the HITRAN catalog</a>.
+
+   \author Hermann Berg based on Thomas Kuhn
+   \date 2005-03-29
+ */
+void linesReadFromHitran2004(// WS Output:
+                         ArrayOfLineRecord& lines,
+                          // Control Parameters:
+                         const String& filename,
+                         const Numeric& fmin,
+                         const Numeric& fmax)
+{
+  ifstream is;
+
+  // Reset lines in case it already existed:
+  lines.resize(0);
+
+  out2 << "  Reading file: " << filename << '\n';
+  open_input_file(is, filename);
+
+  bool go_on = true;
+  while ( go_on )
+    {
+      LineRecord lr;
+      if ( lr.ReadFromHitran2004Stream(is) )
         {
           // If we are here the read function has reached eof and has
           // returned no data.
@@ -240,11 +290,11 @@ void linesReadFromArts(// WS Output:
                  << "Current version: " << lr.Version();
               throw runtime_error(os.str());
             }
-          }
+           }
 
-        os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
-           << "Probably it was created with an older version of ARTS that used different units.";
-        throw runtime_error(os.str());
+            os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
+            << "Probably it was created with an older version of ARTS that used different units.";
+            throw runtime_error(os.str());
       }
   }
 
@@ -292,7 +342,8 @@ void linesElowToJoule(// WS Output:
   This method needs as input WSVs the list of tag groups. Keyword
   parameters must specify the names of the catalogue files to use and
   the matching formats. Names can be anything, formats can currently
-  be HITRAN96, MYTRAN2, JPL, or ARTS. Furthermore, keyword parameters
+  be HITRAN96 (for HITRAN 1986-2001 databases), HITRAN04 (for HITRAN 2004
+  databse), MYTRAN2, JPL, or ARTS. Furthermore, keyword parameters
   have to specify minimum and maximum frequency for each tag group. To
   safe typing, if there are less elements in the keyword parameters
   than there are tag groups, the last parameters are applied to all
@@ -485,6 +536,10 @@ void lines_per_tgReadFromCatalogues(// WS Output:
         {
           linesReadFromHitran( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
         }
+      else if ( "HITRAN04"==real_formats[i] )
+        {
+          linesReadFromHitran2004( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+        }
       else if ( "MYTRAN2"==real_formats[i] )
         {
           linesReadFromMytran2( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
@@ -502,7 +557,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
           ostringstream os;
           os << "lines_per_tgReadFromCatalogues: You specified the\n"
              << "format `" << real_formats[i] << "', which is unknown.\n"
-             << "Allowd formats are: HITRAN96, MYTRAN2, JPL, ARTS.";
+             << "Allowd formats are: HITRAN96, HITRAN04, MYTRAN2, JPL, ARTS.";
           throw runtime_error(os.str());
         }
 
@@ -545,7 +600,7 @@ void lines_per_tgCreateFromLines(// WS Output:
   // the stl vector directly. The other place where this is done is in
   // the function executor in main.cc.
   // FIXME: Fix this when Array<bool> works.
-  vector<bool> species_used (species_data.nelem(),false);
+  std::vector<bool> species_used (species_data.nelem(),false);
       
   // Make lines_per_tg the right size:
   lines_per_tg = ArrayOfArrayOfLineRecord(tgs.nelem());
@@ -581,7 +636,7 @@ void lines_per_tgCreateFromLines(// WS Output:
             {
               // Get a reference to the current tag (not really
               // necessary, but makes for nicer notation below):
-              const SpeciesTag& this_tag = tgs[j][k];
+              const OneTag& this_tag = tgs[j][k];
 
               // Now we will test different attributes of the line
               // against matching attributes of the tag. If any
@@ -640,7 +695,7 @@ void lines_per_tgCreateFromLines(// WS Output:
           // species are only partly covered by tags.
           if ( species_used[this_line.Species()] )
             {
-              out0 << "Your tags include other lines of species "
+              out2 << "Your tags include other lines of species "
                    << this_line.SpeciesData().Name()
                    << ",\n"
                    << "why do you not include line "
@@ -669,7 +724,7 @@ void lines_per_tgCreateFromLines(// WS Output:
     For each line at frequency +f in lines_per_tg a corresponding entry at
     frequency -f is added to lines_per_tg.
 
-    \param lines_per_tg Output: The array of arrays of lines for each tag group.
+    \retval lines_per_tg The array of arrays of lines for each tag group.
     
     \author Axel von Engeln and Stefan Buehler */
 void lines_per_tgAddMirrorLines(// WS Output:
@@ -711,8 +766,8 @@ void lines_per_tgAddMirrorLines(// WS Output:
     It should be particularly useful to call this method after
     lines_per_tgAddMirrorLines.
 
-    \param lines_per_tg Output: the old and newly compacted line list
-    \param  lineshape the lineshape spceifications
+    \retval lines_per_tg the old and newly compacted line list
+    \param  lineshape the lineshape specifications
     \param  f_mono the frequency grid
 
     \author Axel von Engeln and Stefan Buehler */
@@ -762,19 +817,36 @@ void lines_per_tgCompact(// WS Output:
           Numeric low = f_mono[0] - cutoff;
 
           // Cycle through all lines within this tag group. 
+          Array<ArrayOfLineRecord::iterator> keep;
           for ( ArrayOfLineRecord::iterator j=ll.begin(); j<ll.end(); ++j )
             {
               // Center frequency:
               const Numeric F0 = j->F();
 
-              if ( ( F0 < low) || ( F0 > upp) )
+              if ( ( F0 >= low) && ( F0 <= upp) )
                 {
-                  j = ll.erase(j) - 1;
-                  // We need the -1 here, otherwise due to the
-                  // following increment we would miss the element
-                  // behind the erased one, which is now at the
-                  // position of the erased one.
+                  // Build list of elements which should be kept
+                  keep.push_back (j);
+                  // The original implementation just erased the non-wanted
+                  // elements from the array. Problem: On every erase the
+                  // whole array will be copied which actually kills
+                  // performance.
                 }
+            }
+
+          // If next comparison is false, some elements have to be removed
+          if (keep.nelem () != ll.nelem ())
+            {
+              ArrayOfLineRecord nll;
+              // Copy all elements that should be kept to a new Array
+              for (Array<ArrayOfLineRecord::iterator>::iterator j
+                   = keep.begin(); j != keep.end(); j++)
+                {
+                  nll.push_back (**j);
+                }
+              // Overwrite the old array with the new one
+              ll.resize (nll.nelem ());
+              ll = nll;
             }
         }
     }
@@ -832,7 +904,6 @@ void lines_per_tgWriteAscii(// WS Input:
     }
 }
 
-
 void tgsDefineAllInScenario(// WS Output:
                             ArrayOfArrayOfSpeciesTag& tgs,
                             // Control Parameters:
@@ -862,11 +933,11 @@ void tgsDefineAllInScenario(// WS Output:
           // Add to included list:
           included.push_back(specname);
 
-          // Convert name of species to a SpeciesTag object:
-          SpeciesTag this_tag(specname);
+          // Convert name of species to a OneTag object:
+          OneTag this_tag(specname);
 
-          // Create Array of SpeciesTags with length 1 (our tag group has only one tag):
-          Array<SpeciesTag> this_group(1);
+          // Create Array of OneTags with length 1 (our tag group has only one tag):
+          ArrayOfSpeciesTag this_group(1);
           this_group[0] = this_tag;
 
           // Add this tag group to tgs:
@@ -1374,11 +1445,11 @@ void AtmFromRaw(// WS Output:
     // For the interpolated profiles:
     Matrix tz_intp( 2, p_abs.nelem() );
 
-    // The interpolation function must be replaced
-    /* interpp( tz_intp,
+    interpp( tz_intp,
              raw_ptz(Range(joker),0),
              transpose(raw_ptz(Range(joker),Range(1,joker))),
-             p_abs ); */
+             p_abs );
+
     // The first Matpack expression selects the first column of
     // raw_ptz as a vector. The second Matpack expression gives the
     // transpose of the last two columns of raw_ptz. The function
@@ -1399,9 +1470,6 @@ void AtmFromRaw(// WS Output:
 
   //---------------< 2. Interpolation of VMR profiles >---------------
   {
-    // The species lookup data
-    extern const Array<SpeciesRecord> species_data;
-
     // check size of input String vectors.
     assert ( tgs.nelem() == raw_vmrs.nelem() ); 
 
@@ -1443,11 +1511,10 @@ void AtmFromRaw(// WS Output:
         // else
         //   {
             // Interpolate VMRs:
-            // The interpolation function must be replaced
-            /* interpp( vmrs(j,Range(joker)),
+            interpp( vmrs(j,Range(joker)),
                      raw(Range(joker),0),
                      raw(Range(joker),1),
-                     p_abs ); */
+                     p_abs );
             // out3 << "This VMR: " << vmrs(j,Range(joker)) << "\n";
         //   }
         // The calls to interpp_cloud and inerpp contain some nice
@@ -1463,6 +1530,190 @@ void AtmFromRaw(// WS Output:
   }
 }
 
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-18
+*/
+void hseSet(
+          Vector&    hse,
+    const Numeric&   pref,
+    const Numeric&   zref,
+    const Numeric&   g0,
+    const Index&     niter )
+{
+  hse.resize( 5 );
+  
+  hse[0] = 1;
+  hse[1] = pref;
+  hse[2] = zref;
+  hse[3] = g0;
+  hse[4] = Numeric( niter );
+}
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Axel von Engeln
+   \date   2003-07-23
+*/
+void hseSetFromLatitude(
+                        Vector&    hse,
+                const Numeric&   pref,
+                const Numeric&   zref,
+                const Numeric&   latitude,
+                const Index&     niter )
+{
+
+  hse.resize( 5 );
+  
+  hse[0] = 1;
+  hse[1] = pref;
+  hse[2] = zref;
+  hse[3] = g_of_lat(latitude);
+  hse[4] = Numeric( niter );
+}
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Axel von Engeln
+   \date   2003-07-24
+*/
+void hseSetFromLatitudeIndex(
+                              Vector&    hse,
+                      const Vector&    p_abs,
+                      const Vector&    z_abs,
+                      const Numeric&   latitude,
+                      const Index&     index,
+                      const Index&     niter )
+{
+
+  /* check index range */
+  check_if_in_range( 0, p_abs.nelem()-1, index, "index" );
+
+  hse.resize( 5 );
+  
+  hse[0] = 1;
+  hse[1] = p_abs[index];
+  hse[2] = z_abs[index];
+  hse[3] = g_of_lat(latitude);
+  hse[4] = Numeric( niter );
+}
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-18
+*/
+void hseFromBottom(
+          Vector&    hse,
+    const Vector&    p_abs,
+    const Vector&    z_abs,
+    const Numeric&   g0,
+    const Index&       niter )
+{
+  hseSet( hse, p_abs[0], z_abs[0], g0, niter );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-18
+*/
+void hseOff(
+          Vector&    hse )
+{
+  hse.resize( 1 );
+  hse[0] = 0;
+}
+
+
+
+// Algorithm based on equations from my (PE) thesis (page 274) and the book
+// Meteorology today for scientists and engineers by R.B. Stull (pages 9-10). 
+//
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-19
+*/
+void hseCalc(
+          Vector&    z_abs,
+    const Vector&    p_abs,
+    const Vector&    t_abs,
+    const Vector&    h2o_abs,
+    const Numeric&   r_geoid,   
+    const Vector&    hse )
+{
+  check_if_bool( static_cast<Index>(hse[0]), 
+                                        "the HSE flag (first element of hse)");
+  
+  if ( hse[0] )
+  {
+    if ( hse.nelem() != 5 )
+      throw runtime_error("The length of the *hse* vector must be 5.");
+
+    const Index   np = p_abs.nelem();
+          Index   i;                     // altitude index
+          Numeric  g;                     // gravitational acceleration
+          Numeric  r;                     // water mixing ratio in gram/gram
+          Numeric  tv;                    // virtual temperature
+          Numeric  dz;                    // step geometrical altitude
+          Vector   ztmp(np);              // temporary storage for z_abs
+  
+    // Pick out values from hse
+    const Numeric   pref  = hse[1];
+    const Numeric   zref  = hse[2];
+    const Numeric   g0    = hse[3];
+    const Index     niter = Index( hse[4] );
+  
+    check_lengths( z_abs, "z_abs", t_abs, "t_abs" );  
+    check_lengths( z_abs, "z_abs", h2o_abs, "h2o_abs" );  
+    if ( niter < 1 )
+      throw runtime_error("The number of iterations must be > 0.");
+  
+    for ( Index iter=0; iter<niter; iter++ )
+    {
+      // Init ztmp
+      ztmp[0] = z_abs[0];
+  
+      // Calculate new altitudes (relative z_abs(1)) and store in ztmp
+      for ( i=0; i<np-1; i++ )
+      {
+        // Calculate g 
+        g  = ( g_of_z(r_geoid,g0,z_abs[i]) + 
+               g_of_z(r_geoid,g0,z_abs[i+1]) ) / 2.0;
+  
+        // Calculate weight mixing ratio for water assuming constant average
+        // molecular weight of the air
+        r  = 18/28.96 * (h2o_abs[i]+h2o_abs[i+1])/2;
+  
+        // The virtual temperature (no liquid water)
+        tv = (1+0.61*r) * (t_abs[i]+t_abs[i+1])/2;
+  
+        // The change in vertical altitude from i to i+1 
+        dz = 287.053*tv/g * log( p_abs[i]/p_abs[i+1] );
+        ztmp[i+1] = ztmp[i] + dz;
+      }
+  
+      // Match the altitude of the reference point
+      dz = interpp( p_abs, ztmp, pref ) - zref;
+
+      //  z_abs = ztmp - dz;
+      z_abs = ztmp;
+      z_abs -= dz;              
+    }
+  }
+}
 
 
 /**
@@ -1488,6 +1739,8 @@ void h2o_absSet(
       found = i;
   }
 
+  /* ----- original version -------------------------------------------
+
   if ( found < 0 )
     throw runtime_error("h2o_absSet: No tag group contains water!");
   
@@ -1497,6 +1750,22 @@ void h2o_absSet(
   // dimensions must be the same! The expression
   // vmrs(found,Range(joker)) selects the row with index corresponding
   // to found.
+
+  --------------------------------------------------------------------- 
+  */
+
+  h2o_abs.resize( vmrs.ncols() );
+  if ( found >= 0 )
+    {
+      h2o_abs = vmrs(found,Range(joker));       
+    } else {
+      out2 << "  WARNING in h2o_absSet: could not find any H2O tag. So H2O vmr is set to zero!\n";
+      for( Index i=0; i<h2o_abs.nelem(); i++ ) h2o_abs[i] = 0.0000000000e0;
+    }
+ 
+
+
+
 }
 
 
@@ -1563,6 +1832,8 @@ void n2_absSet(
       found = i;
   }
 
+  /* ----- original version -------------------------------------------
+
   if ( found < 0 )
     throw runtime_error("n2_absSet: No tag group contains nitrogen!");
   
@@ -1572,6 +1843,18 @@ void n2_absSet(
   // dimensions must be the same! The expression
   // vmrs(found,Range(joker)) selects the row with index corresponding
   // to found.
+
+  --------------------------------------------------------------------- 
+  */
+
+  n2_abs.resize( vmrs.ncols() );
+    if ( found >= 0 )
+    {
+      n2_abs = vmrs(found,Range(joker));        
+    } else {
+      out2 << "  WARNING in n2_absSet: could not find any N2 tag. So N2 vmr is set to zero!\n";
+      for( Index i=0; i<n2_abs.nelem(); i++ ) n2_abs[i] = 0.0000000000e0;
+    }
 }
 
 
@@ -1579,24 +1862,22 @@ void n2_absSet(
    cross sections per tag group and then the absorption from the cross
    sections.
 
-   \param   abs Output:            absorption coefficients
-   \param   abs_per_tg Output:     absorption coefficients per tag group
+   \retval   abs            absorption coefficients
+   \retval   abs_per_tg     absorption coefficients per tag group
 
-   \param    tgs            the list of tag groups
+   \param    tgs     the list of tag groups 
    \param    f_mono         monochromatic frequency grid
-   \param    p_abs          pressure levels
+   \param    p_abs          pressure levels 
    \param    t_abs          temperature at pressure level
-   \param    n2_abs         total volume mixing ratio of n2
    \param    h2o_abs        total volume mixing ratio of water vapor
    \param    vmrs           volume mixing ratios per tag group
    \param    lines_per_tg   transition lines per tag group
    \param    lineshape      lineshape specifications to use per tag group
    \param    cont_description_names names of different continuum
                                     models
-   \param    cont_description_models     FIXME: Add documentation.
    \param    cont_description_parameters continuum parameters for the
                                          models listed in
-                                         cont_description_names
+                                         cont_description_names 
 
    \author Axel von Engeln
    \date 2001-01-11
@@ -1607,7 +1888,7 @@ void n2_absSet(
 void absCalc(// WS Output:
              Matrix&                         abs,
              ArrayOfMatrix&                  abs_per_tg,
-             // WS Input:
+             // WS Input:                 
              const ArrayOfArrayOfSpeciesTag&                tgs,
              const Vector&                   f_mono,
              const Vector&                   p_abs,
@@ -1657,6 +1938,133 @@ void absCalc(// WS Output:
 
 }
 
+/** Calculates the absorption coefficients by first calculating the
+   cross sections per tag group and then the absorption from the cross
+   sections. 
+
+   This is done in a loop over species, in order to save memory. we
+   only calculate abs, not abs_per_tg!
+
+   \retval   abs            absorption coefficients
+   \param    tgs            the list of tag groups 
+   \param    f_mono         monochromatic frequency grid
+   \param    p_abs          pressure levels 
+   \param    t_abs          temperature at pressure level
+   \param    h2o_abs        total volume mixing ratio of water vapor
+   \param    vmrs           volume mixing ratios per tag group
+   \param    lines_per_tg   transition lines per tag group
+   \param    lineshape      lineshape specifications to use per tag group
+   \param    cont_description_names names of different continuum
+                                    models
+   \param    cont_description_parameters continuum parameters for the
+                                         models listed in
+                                         cont_description_names 
+
+   \author Stefan Buehler
+   \date 2003-07-17
+ */
+void absCalcSaveMemory(// WS Output:
+             Matrix&                         abs,
+             // WS Input:                 
+             const ArrayOfArrayOfSpeciesTag&                tgs,
+             const Vector&                   f_mono,
+             const Vector&                   p_abs,
+             const Vector&                   t_abs,
+             const Vector&                   n2_abs,
+             const Vector&                   h2o_abs,
+             const Matrix&                   vmrs,
+             const ArrayOfArrayOfLineRecord& lines_per_tg,
+             const ArrayOfLineshapeSpec&     lineshape,
+             const ArrayOfString&            cont_description_names,
+             const ArrayOfString&            cont_description_models,
+             const ArrayOfVector&            cont_description_parameters)
+{
+  // Dimension checks are performed in the executed functions
+
+  // Allocate local variable to hold the cross sections per tag group:
+  ArrayOfMatrix xsec_per_tg;
+
+  // Allocate local variable to hold the absorption for each tag group:
+  Matrix this_abs;
+
+  // Allocate local variable to hold abs_per_tg for each tag
+  // group. This is just a dummy, we need it, since it is a formal
+  // argument of absCalcFromXsec.
+  ArrayOfMatrix this_abs_per_tg;
+
+  // Define variable to hold a dummy list of tag groups with only 1 element:
+  ArrayOfArrayOfSpeciesTag this_tg(1);
+
+  // Local list of VMRs, only 1 element:
+  Matrix this_vmr(1,p_abs.nelem());
+
+  // Local lines_per_tg, only 1 element:
+  ArrayOfArrayOfLineRecord these_lines(1);
+
+  // Local lineshape list, only 1 element:
+  ArrayOfLineshapeSpec     this_lineshape(1);
+
+  // Initialize the output variable abs:
+  abs.resize( f_mono.nelem(), p_abs.nelem() );
+  abs = 0;                      // Matpack can set all elements like this.
+
+  out2 << "  Number of tag groups to do: " << tgs.nelem() << "\n";
+
+  // Loop over all species:
+  for ( Index i=0; i<tgs.nelem(); ++i )
+    {
+      out2 << "  Doing tag group " << i << ".\n";
+
+      // Get a dummy list of tag groups with only the current element:
+      this_tg[0].resize(tgs[i].nelem());
+      this_tg[0] = tgs[i];
+
+      // VMR for this species:
+      this_vmr(0,joker) = vmrs(i,joker);
+
+      // List of lines:
+      these_lines[0].resize(lines_per_tg[i].nelem());
+      these_lines[0] = lines_per_tg[i];
+
+      // List of lineshapes:
+      this_lineshape[0] = lineshape[i];
+
+      xsec_per_tgInit( xsec_per_tg, this_tg, f_mono, p_abs );
+
+      xsec_per_tgAddLines( xsec_per_tg,
+                           this_tg,
+                           f_mono,
+                           p_abs,
+                           t_abs,
+                           h2o_abs,
+                           this_vmr,
+                           these_lines,
+                           this_lineshape );
+
+      xsec_per_tgAddConts( xsec_per_tg,
+                           this_tg,
+                           f_mono,
+                           p_abs,
+                           t_abs,
+                           n2_abs,
+                           h2o_abs,
+                           this_vmr,
+                           cont_description_names,
+                           cont_description_parameters,
+                           cont_description_models);
+
+      absCalcFromXsec(this_abs,
+                      this_abs_per_tg,
+                      xsec_per_tg,
+                      this_vmr );
+
+      // Add absorption of this species to total absorption:
+      assert(abs.nrows()==this_abs.nrows());
+      assert(abs.ncols()==this_abs.ncols());
+      abs += this_abs;
+    }
+}
+
 
 /**
    Calculates the absorption from a given cross section.
@@ -1665,8 +2073,8 @@ void absCalc(// WS Output:
    that the vmrs are in the order of the cross sections, only the
    dimension is checked.
 
-   \param   abs Output:            absorption coefficients
-   \param   abs_per_tg Output:     absorption coefficients per tag group
+   \retval   abs            absorption coefficients
+   \retval   abs_per_tg     absorption coefficients per tag group
    \param    xsec_per_tg    cross sections per tag group
    \param    vmrs           volume mixing ratios per tag group
 
@@ -1744,7 +2152,7 @@ void absCalcFromXsec(// WS Output:
    necessary, because methods `xsec_per_tgAddLines'
    and `xsec_per_tgAddConts' just add to xsec_per_tg.
 
-   \param   xsec_per_tg Output:    cross section per tag group
+   \retval   xsec_per_tg    cross section per tag group
    \param    tgs            the list of tag groups
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
@@ -1782,7 +2190,7 @@ void xsec_per_tgInit(// WS Output:
    Calculates the line spectrum for each tag group and adds it to
    xsec_per_tg. 
 
-   \param   xsec_per_tg Output:    cross section per tag group
+   \retval   xsec_per_tg    cross section per tag group
    \param    tgs            the list of tag groups
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
@@ -1833,36 +2241,40 @@ void xsec_per_tgAddLines(// WS Output:
   }  
 
   // Print information:
-  {
-    // The variables defined here (in particular the frequency
-    // conversion) are just to make the output nice. They are not used
-    // in subsequent calculations.
-    out2 << "  Calculating line spectra.\n";
-//     out3 << "  Transitions to do: \n";
-    Index nlines = 0;
-    String funit;
-    Numeric ffac;
-    if ( f_mono[0] < 3e12 )
-      {
-        funit = "GHz"; ffac = 1e9;
-      }
-    else
-      {
-        extern const Numeric SPEED_OF_LIGHT;
-        funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
-      }
-    for ( Index i=0; i<lines_per_tg.nelem(); ++i )
-      {
-        for ( Index l=0; l<lines_per_tg[i].nelem(); ++l )
-          {
-//          out3 << "    " << lines_per_tg[i][l].Name() << " @ " 
-//               << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
-//               << lines_per_tg[i][l].I0() << ")\n"; 
-            nlines++;
-          }
-      }
-    out2 << "  Total number of transistions : " << nlines << "\n";
-  }
+  //
+  out2 << "  Calculating line spectra.\n";
+  //
+  // Uncomment the part below if you temporarily want detailed info about 
+  // transitions to be done
+
+      // The variables defined here (in particular the frequency
+      // conversion) are just to make the output nice. They are not used
+      // in subsequent calculations.
+  //    cout << "  Transitions to do: \n";
+  //    Index nlines = 0;
+  //    String funit;
+  //    Numeric ffac;
+  //    if ( f_mono[0] < 3e12 )
+  //      {
+  //        funit = "GHz"; ffac = 1e9;
+  //      }
+  //    else
+  //      {
+  //        extern const Numeric SPEED_OF_LIGHT;
+  //        funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
+  //      }
+  //    for ( Index i=0; i<lines_per_tg.nelem(); ++i )
+  //      {
+  //        for ( Index l=0; l<lines_per_tg[i].nelem(); ++l )
+  //          {
+  //          cout << "    " << lines_per_tg[i][l].Name() << " @ " 
+  //               << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
+  //               << lines_per_tg[i][l].I0() << "  "
+  //               << lines_per_tg[i][l].Agam() << ")\n"; 
+  //          nlines++;
+  //        }
+  //    }
+  //  out2 << "  Total number of transistions : " << nlines << "\n";
 
   // Call xsec_species for each tag group.
   for ( Index i=0; i<tgs.nelem(); ++i )
@@ -1989,7 +2401,7 @@ void xsec_per_tgAddLines(// WS Output:
    Calculates the continuum for each tag group and adds it to
    xsec_per_tg. 
 
-   \param   xsec_per_tg Output:    cross section per tag group
+   \retval   xsec_per_tg    cross section per tag group
    \param    tgs            the list of tag groups
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
@@ -2002,7 +2414,6 @@ void xsec_per_tgAddLines(// WS Output:
    \param    cont_description_parameters continuum parameters for the
                                          models listed in
                                          cont_description_names 
-   \param    cont_description_models     models of different continuum
 
    \throw runtime_error something went wrong
 
@@ -2182,7 +2593,7 @@ void xsec_per_tgAddConts(// WS Output:
 /** Reduces the size of abs_per_tg.  Only absorption coefficients for
     which weighting functions are calculated are kept in memory.
     
-    \param abs_per_tg Output: absorption coefficients
+    \retval abs_per_tg absorption coefficients
     \param  tgs        all selected tag groups
     \param  wfs_tgs    the tag groups for which we want weighting functions.
 
@@ -2226,6 +2637,102 @@ void abs_per_tgReduce(// WS Output:
                                 // this works correctly. Does my Array
                                 // implementation work as it should? 
 }
+
+
+
+//======================================================================
+//             Methods related to refraction
+//======================================================================
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-19
+*/
+void refrSet( 
+              Index&    refr,
+              Index&    refr_lfac,
+              String&   refr_model,
+        const Index&    on,
+        const String&   model,
+        const Index&    lfac )
+{
+  check_if_bool( on, "on" );
+  if ( lfac < 1 )
+    throw runtime_error("The length factor cannot be smaller than 1.");      
+
+  refr       = on;
+  refr_lfac  = lfac;
+  refr_model = model;
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-22
+*/
+void refrOff( 
+              Index&    refr,
+              Index&    refr_lfac,
+              String&   refr_model )
+{
+  refrSet( refr, refr_lfac, refr_model, 0, "", 1 );
+  refr_lfac = 0;
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-19
+*/
+void refrCalc (
+                    Vector&   refr_index,
+              const Vector&   p_abs,
+              const Vector&   t_abs,
+              const Vector&   h2o_abs,
+              const Index&    refr,
+              const String&   refr_model )
+{
+  check_if_bool( refr, "refr" );
+
+  if ( refr == 0 )
+    refr_index.resize( 0 );
+
+  else
+  {
+    if ( refr_model == "Unity" )
+    {
+      const Index n = p_abs.nelem();
+      refr_index.resize( n );
+      refr_index = 1.0;
+    }
+    
+    else if ( refr_model == "Boudouris" )
+      refr_index_Boudouris( refr_index, p_abs, t_abs, h2o_abs );
+
+    else if ( refr_model == "BoudourisDryAir" )
+      refr_index_BoudourisDryAir( refr_index, p_abs, t_abs );
+
+    else
+    {
+      ostringstream os;
+      os << "Unknown refraction parameterization: " << refr_model << "\n"
+         << "Existing parameterizations are: \n"
+         << "Unity\n"
+         << "Boudouris\n"
+         << "BoudourisDryAir";
+      throw runtime_error(os.str());
+    }
+  }
+}
+
 
 
 

@@ -28,6 +28,7 @@
 
 #include "matpackIV.h"
 #include "absorption.h"
+#include "abs_species_tags.h"
 
 // Declare existance of some classes:
 class bifstream;

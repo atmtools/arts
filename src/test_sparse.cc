@@ -32,8 +32,6 @@
 #include "matpackII.h"
 #include "xml_io.h"
 
-Joker joker;
-
 void test3()
 {
   Sparse M(10,15);

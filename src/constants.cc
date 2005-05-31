@@ -202,6 +202,14 @@ extern const Numeric LOSCHMIDT_CONST = 2.686763E25;
 */
 extern const Numeric EARTH_GRAV_CONST = 3.98601E14;
 
+/** Global constant, converts Hz to cm-1.
+
+    Multiply your value in Hz by this constant to get the value in cm-1.
+
+    \author Patrick Eriksson
+    \date   2003-09-07
+*/
+extern const Numeric HZ2CM =  0.01 / SPEED_OF_LIGHT;
 
 /** Define the global joker objekt. This is used by Matpack to specify joker ranges.  
     

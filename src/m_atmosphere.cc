@@ -51,6 +51,7 @@
 #include "rte.h"
 #include "special_interp.h"
 #include "absorption.h"
+#include "abs_species_tags.h"
 #include "gridded_fields.h"
 #include "interpolation.h"
 #include "logic.h"

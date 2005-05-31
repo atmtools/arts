@@ -1,3 +1,46 @@
+2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-981
+
+	* Most of the absorption code from arts-1-0 is here now. Methods
+	are not yet working.
+	
+	* src/test_sparse.cc: Removed definition of joker.
+
+	* src/species_data.cc: Moved code from arts-1-0 here.
+
+	* src/partition_function_data.cc: Moved code from arts-1-0 here.
+
+	* src/methods.cc: Not much changed.
+
+	* src/m_atmosphere.cc: Include abs_species_tags.h.
+
+	* src/m_abs_lookup.cc: Include <map>.
+
+	* src/m_abs.cc: Moved code from arts-1-0 here.
+
+	* src/lineshapes.cc: Moved code from arts-1-0 here.
+
+	* src/gas_abs_lookup.h: Include abs_species_tags.h.
+
+	* src/continua.h: Moved code from arts-1-0 here.
+
+	* src/continua.cc: Added. (From arts-1-0.)
+
+	* src/constants.cc: Added HZ2CM (from arts-1-0).
+
+	* src/absorption.h: Moved code from arts-1-0 here.
+
+	* src/absorption.cc: Moved code from arts-1-0 here.
+
+	* src/abs_species_tags.h: Added. Stuff related to species tags.
+
+	* src/abs_species_tags.cc: Added. Stuff related to species tags. 
+
+	* src/Makefile.am: Added abs_species_tags.h and
+	abs_species_tags.cc. Updated sources for all tests. (This is a
+	mess.) 
+
 2005-05-31  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-980

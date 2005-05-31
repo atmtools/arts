@@ -1,4 +1,6 @@
-/* Copyright (C) 2002 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
+   Stefan Buehler <sbuehler@uni-bremen.de>
+   Axel von Engeln <engeln@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -18,7 +20,9 @@
 /** \file
     Declarations required for the calculation of absorption coefficients.
 
-    \author Stefan Buehler
+    This is the file from arts-1-0, back-ported to arts-1-1.
+
+    \author Stefan Buehler, Axel von Engeln
 */
 
 #ifndef absorption_h
@@ -29,7 +33,136 @@
 #include "array.h"
 #include "mystring.h"
 #include "make_array.h"
-#include "bifstream.h"
+
+/** The type that is used to store pointers to lineshape
+    functions.  */
+typedef void (*lsf_type)(Vector&,
+                         Vector&,
+                         Numeric,
+                         Numeric,
+                         Numeric,
+                         VectorView,
+                         const Index);
+
+/** Lineshape related information. There is one LineshapeRecord for
+    each available lineshape function.
+
+    \author Stefan Buehler
+    \date   2000-08-21  */
+class LineshapeRecord{
+public:
+
+  /** Default constructor. */
+  LineshapeRecord(){};
+
+  /** Initializing constructor, used to build the lookup table. */
+  LineshapeRecord(const String& name,
+                  const String& description,
+                  lsf_type      function)
+    : mname(name),
+      mdescription(description),
+      mfunction(function)
+  { /* Nothing to do here. */ }
+  /** Return the name of this lineshape. */
+  const String&  Name()        const { return mname;        }   
+  /** Return the description text. */
+  const String&  Description() const { return mdescription; }
+  /** Return pointer to lineshape function. */
+  lsf_type Function() const { return mfunction; }
+private:        
+  String  mname;        ///< Name of the function (e.g., Lorentz).
+  String  mdescription; ///< Short description.
+  lsf_type mfunction;   ///< Pointer to lineshape function.
+
+};
+
+/** The type that is used to store pointers to lineshape
+    normalization functions.  */
+typedef void (*lsnf_type)(Vector&,
+                          Numeric,
+                          VectorView,
+                          const Numeric,
+                          const Index);
+
+/** Lineshape related normalization function information. There is one
+    LineshapeNormRecord for each available lineshape normalization
+    function.
+
+    \author Axel von Engeln
+    \date   2000-11-30  */
+class LineshapeNormRecord{
+public:
+
+  /** Default constructor. */
+  LineshapeNormRecord(){};
+
+  /** Initializing constructor, used to build the lookup table. */
+  LineshapeNormRecord(const String& name,
+                      const String& description,
+                      lsnf_type      function)
+    : mname(name),
+      mdescription(description),
+      mfunction(function)
+  { /* Nothing to do here. */ }
+  /** Return the name of this lineshape. */
+  const String&  Name()        const { return mname;        }   
+  /** Return the description text. */
+  const String&  Description() const { return mdescription; }
+  /** Return pointer to lineshape normalization function. */
+  lsnf_type Function() const { return mfunction; }
+private:        
+  String  mname;        ///< Name of the function (e.g., linear).
+  String  mdescription; ///< Short description.
+  lsnf_type mfunction;  ///< Pointer to lineshape normalization function.
+};
+
+/** Lineshape related specification like which lineshape to use, the
+normalizationfactor, and the cutoff.
+
+    \author Axel von Engeln
+    \date   2001-01-05  */
+class LineshapeSpec{
+public:
+
+  /** Default constructor. */
+  LineshapeSpec(){};
+
+  /** Initializing constructor. */
+  LineshapeSpec(const Index&    ind_ls,
+                const Index&    ind_lsn,
+                const Numeric&   cutoff)
+    : mind_ls(ind_ls),
+      mind_lsn(ind_lsn),
+      mcutoff(cutoff)
+  { /* Nothing to do here. */ }
+
+  /** Return the index of this lineshape. */
+  const Index&  Ind_ls()        const { return mind_ls; }   
+  /** Set it. */
+  void SetInd_ls( Index ind_ls ) { mind_ls = ind_ls; }
+
+  /** Return the index of the normalization factor. */
+  const Index&  Ind_lsn()       const { return mind_lsn; }
+  /** Set it. */
+  void SetInd_lsn( Index ind_lsn ) { mind_lsn = ind_lsn; }
+
+  /** Return the cutoff frequency (in Hz). This is the distance from
+      the line center outside of which the lineshape is defined to be
+      zero. Negative means no cutoff.*/
+  const Numeric& Cutoff() const { return mcutoff; }
+  /** Set it. */
+  void SetCutoff( Numeric cutoff ) { mcutoff = cutoff; }
+private:        
+  Index  mind_ls;
+  Index  mind_lsn;
+  Numeric mcutoff;
+};
+
+/** Holds a list of lineshape specifications: function, normalization, cutoff.
+    \author Axel von Engeln */
+typedef Array<LineshapeSpec> ArrayOfLineshapeSpec;
+
+
 
 /** Contains the lookup data for one isotope.
     \author Stefan Buehler */
@@ -97,12 +230,28 @@ public:
   void SetPartitionFctCoeff( const ArrayOfNumeric& qcoeff )
   {
     mqcoeff = qcoeff;
-    mqcoeff_at_t_ref = -1.;
   }
 
-  Numeric CalculatePartitionFctRatio( Numeric temperature ) const
+  //! Calculate partition function ratio.
+  /*!
+    This computes the partition function ratio Q(Tref)/Q(T). 
+
+    Unfortunately, we have to recalculate also Q(Tref) for each
+    spectral line, because the reference temperatures can be
+    different!
+    
+    \param reference_temperature The reference temperature.
+    \param actual_temperature The actual temperature.
+  
+    \return The ratio.
+  */
+  Numeric CalculatePartitionFctRatio( Numeric reference_temperature,
+                                      Numeric actual_temperature ) const
   {
-    Numeric qtemp = CalculatePartitionFctAtTemp( temperature );
+    Numeric qcoeff_at_t_ref =
+      CalculatePartitionFctAtTemp( reference_temperature );
+    Numeric qtemp =
+      CalculatePartitionFctAtTemp( actual_temperature    );
 
     if ( qtemp < 0. ) 
       {
@@ -112,14 +261,7 @@ public:
            << "is unknown.";
         throw runtime_error(os.str());
       }
-    return mqcoeff_at_t_ref / qtemp;
-  }
-
-  // calculate the partition function at the reference temperature
-  void CalculatePartitionFctAtRefTemp( Numeric temperature )
-  {
-    //    if (mqcoeff_at_t_ref <= -1.0 )     
-    mqcoeff_at_t_ref = CalculatePartitionFctAtTemp( temperature );
+    return qcoeff_at_t_ref / qtemp;
   }
 
 private:
@@ -135,7 +277,6 @@ private:
   Index mhitrantag;
   ArrayOfIndex mjpltags;
   ArrayOfNumeric mqcoeff;
-  Numeric mqcoeff_at_t_ref;
 };
 
 
@@ -195,14 +336,11 @@ public:
 #endif // #ifndef NDEBUG
   }
 
-  const String&               Name()     const { return mname;     }
-  Index                       Degfr()    const { return mdegfr;    }
+  const String&               Name()     const { return mname;     }   
+  Index                         Degfr()    const { return mdegfr;    }
   const Array<IsotopeRecord>& Isotope()  const { return misotope;  }
   Array<IsotopeRecord>&       Isotope()        { return misotope;  }
-
-  friend void xml_read_from_stream (istream& is_xml, SpeciesRecord &srecord,
-                                    bifstream *pbifs);
-
+  
 private:
   /** Species name. */
   String mname;
@@ -252,7 +390,7 @@ private:
      1   name                         NAME        -     e.g. O3-666
      2   center frequency                F       Hz     e.g. 501.12345e9 
      3   pressure shift of F           PSF    Hz/Pa    
-     4   line intensity                 I0   m^2*Hz     per isotope, not per species
+     4   line intensity                 I0   m^2/Hz     per isotope, not per species
      5   reference temp. for I0       T_I0        K
      6   lower state energy           ELOW        J    
      7   air broadened width          AGAM    Hz/Pa     values around 20 GHz/Pa
@@ -270,22 +408,12 @@ private:
     19   error for NAIR              DNAIR        %
     20   error for NSELF            DNSELF        %
     21   error for PSF                DPSF        %
-    22   quantum number code         QCODE            
-    23   lower state quanta         QLOWER            
-    24   upper state quanta         QUPPER            
-    25   information source of F                      IF
-    26   information source of I0                     II0
-    27   information source of line width variables   ILW
-    28   information source of pressure shift         IPSF
-    29   information source of auxiliary parameters   IAUX
     \endverbatim
 
     The parameters 0-12 must be present, the others can be missing,
     since they are not needed for the calculation.
 
     For the error fields (15-21), a -1 means that no value exist.
-
-    Fields 22-29 are String inside quotes ("") for maximum flexibility.
 
     A valid ARTS line file would be:
     \verbatim
@@ -298,8 +426,8 @@ private:
     species (for example overlap coefficients for O2). In the case of
     oxygen two parameters are sufficient to describe the overlap, but
     other species, e.g., methane, may need more coefficients. The
-    default for <PRE>N<SUB>AUX</SUB></PRE> is zero. In that case, no further
-    <PRE>AUX</PRE> fields are present. [FIXME: Check Oxygen.]
+    default for \texttt{N\_AUX} is zero. In that case, no further
+    \texttt{AUX} fields are present. [FIXME: Check Oxygen.]
 
     The names of the private members and public access functions of
     this data structure follow the above table. The only difference is
@@ -333,7 +461,14 @@ public:
       mnair    (0.     ),
       mnself   (0.     ),
       mtgam    (0.     ),
-      maux     (       )
+      maux     (       ),
+      mdf      (-1.    ),
+      mdi0     (-1.    ),
+      mdagam   (-1.    ),
+      mdsgam   (-1.    ),
+      mdnair   (-1.    ),
+      mdnself  (-1.    ),
+      mdpsf    (-1.    )
  { /* Nothing to do here. */ }
 
   /** Constructor that sets all data elements explicitly. If
@@ -352,7 +487,14 @@ public:
               Numeric               nair,
               Numeric               nself,
               Numeric               tgam,
-              const ArrayOfNumeric& aux       )
+              const ArrayOfNumeric& aux,
+              Numeric               /* df */,
+              Numeric               /* di0 */,
+              Numeric               /* dagam */,
+              Numeric               /* dsgam */,
+              Numeric               /* dnair */,
+              Numeric               /* dnself */,
+              Numeric               /* dpsf */)
     : mspecies (species    ),
       misotope (isotope    ),
       mf       (f          ),
@@ -364,7 +506,7 @@ public:
       msgam    (sgam       ),
       mnair    (nair       ),
       mnself   (nself      ),
-      mtgam    (tgam       ),  
+      mtgam    (tgam       ), 
       maux     (aux        )
   {
     // Thanks to Matpack, initialization of misotope with isotope
@@ -375,9 +517,6 @@ public:
     extern Array<SpeciesRecord> species_data;
     assert( mspecies < species_data.nelem() );
     assert( misotope < species_data[mspecies].Isotope().nelem() );
-    // if ever this constructor is used, here is the calculation of
-    // the partition fct at the reference temperature
-    species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 ) ;
   }
 
   /** Return the version String. */
@@ -409,10 +548,10 @@ public:
 
   /** The matching SpeciesRecord from species_data. To get at the
       species data of a LineRecord lr, you can use:
-      <OL>
-      <LI> species_data[lr.Species()]
-      <LI> lr.SpeciesData()
-      </OL>
+      \begin{enumerate}
+      \item species_data[lr.Species()]
+      \item lr.SpeciesData()
+      \end{enumerate}
       The only advantages of the latter are that the notation is
       slightly nicer and that you don't have to declare the external
       variable species_data. */
@@ -425,11 +564,11 @@ public:
   /** The matching IsotopeRecord from species_data. The IsotopeRecord
       is a subset of the SpeciesRecord. To get at the isotope data of
       a LineRecord lr, you can use:
-      <OL>
-      <LI> species_data[lr.Species()].Isotope()[lr.Isotope()]
-      <LI> lr.SpeciesData().Isotope()[lr.Isotope()]
-      <LI> lr.IsotopeData()
-      </OL>
+      \begin{enumerate}
+      \item species_data[lr.Species()].Isotope()[lr.Isotope()]
+      \item lr.SpeciesData().Isotope()[lr.Isotope()]
+      \item lr.IsotopeData()
+      \end{enumerate}
       The last option is clearly the shortest, and has the advantage
       that you don't have to declare the external variable
       species_data. */
@@ -448,6 +587,9 @@ public:
   /** The pressure shift parameter in <b> Hz/Pa</b>. */
   Numeric Psf() const   { return mpsf; }
 
+  /** Set the pressure shift parameter in <b> Hz/Pa</b>. */
+  void setPsf( Numeric new_mpsf ) { mpsf = new_mpsf; }
+
   /** The line intensity in <b> m^2*Hz</b> at the reference temperature \c Ti0. 
 
     The line intensity \f$I_0\f$ is defined by:
@@ -462,6 +604,9 @@ public:
     \f$F(\nu)\f$ is the lineshape function. */
   Numeric I0() const    { return mi0; }
 
+ /** Set Intensity */
+  void setI0( Numeric new_mi0 ) { mi0 = new_mi0; }
+
   /** Reference temperature for I0 in <b> K</b>: */
   Numeric Ti0() const   { return mti0; }
 
@@ -471,14 +616,26 @@ public:
   /** Air broadened width in <b> Hz/Pa</b>: */
   Numeric Agam() const  { return magam; }
 
+   /** Set Air broadened width in <b> Hz/Pa</b>: */
+  void setAgam( Numeric new_agam ) { magam = new_agam; }
+
   /** Self broadened width in <b> Hz/Pa</b>: */
   Numeric Sgam() const  { return msgam; }
+
+  /** Set Self  broadened width in <b> Hz/Pa</b>: */
+  void setSgam( Numeric new_sgam ) { msgam = new_sgam; }
 
   /** AGAM temperature exponent (dimensionless): */
   Numeric Nair() const  { return mnair; }
 
+  /** Set AGAM temperature exponent (dimensionless): */
+  void setNair( Numeric new_mnair ) { mnair = new_mnair; }
+
   /** SGAM temperature exponent (dimensionless): */
   Numeric Nself() const { return mnself; }
+
+ /** Set SGAM temperature exponent (dimensionless): */
+  void setNself( Numeric new_mnself ) { mnself = new_mnself; }
 
   /** Reference temperature for AGAM and SGAM in <b> K</b>: */
   Numeric Tgam() const  { return mtgam; }
@@ -492,9 +649,32 @@ public:
 
   /** Auxiliary parameters. */
   const ArrayOfNumeric& Aux() const { return maux; }
+  //
 
-  /** Read one line from a stream associated with a HITRAN file. The HITRAN
-    format is as follows (directly from the HITRAN documentation):
+  /** Accuracy for line position in <b> Hz </b>: */
+  Numeric dF() const  { return mdf; }
+
+  /** Accuracy for line intensity in <b> relative value </b>: */
+  Numeric dI0() const  { return mdi0; }
+
+ /** Accuracy for air broadened width in <b> relative value </b>: */
+  Numeric dAgam() const  { return mdagam; }
+
+  /** Accuracy for self broadened width in <b> relative value </b>: */
+  Numeric dSgam() const  { return mdsgam; }
+
+  /** Accuracy for AGAM temperature exponent in <b> relative value </b>: */
+  Numeric dNair() const  { return mdnair; }
+
+  /** Accuracy for SGAM temperature exponent in <b> relative value</b>: */
+  Numeric dNself() const { return mdnself; }
+
+ /** Accuracy for pressure shift in <b> relative value </b>: */
+  Numeric dPsf() const { return mdpsf; }
+
+
+  /** Read one line from a stream associated with a HITRAN 1986-2001 file. The
+    HITRAN format is as follows (directly from the HITRAN documentation):
 
     \verbatim
     Each line consists of 100
@@ -512,7 +692,7 @@ public:
       MO  (I2)  = molecule number
       ISO (I1)  = isotope number (1 = most abundant, 2 = second, etc)
       V (F12.6) = frequency of transition in wavenumbers (cm-1)
-    * S (E10.3) = intensity in cm-1/(molec / cm-2) at 296 Kelvin
+      S (E10.3) = intensity in cm-1/(molec * cm-2) at 296 Kelvin
       R (E10.3) = transition probability squared in Debyes**2
       AGAM (F5.4) = air-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
       SGAM (F5.4) = self-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
@@ -530,10 +710,6 @@ public:
       IREFS (I2) = lookup index for intensity
       IREFH (I2) = lookup index for halfwidth
 
-    * The unit of the line intensity given in HITRAN is [cm-1/(molec * cm-2)] 
-      but we use instead [cm-1/(molec / cm-2)] as we think that the unit in
-      HITRAN is a typo.
-      
     The molecule numbers are encoded as shown in the table below:
 
       0= Null    1=  H2O    2=  CO2    3=   O3    4=  N2O    5=   CO
@@ -548,7 +724,8 @@ public:
     catalogue. It returns false if it succeeds. Otherwise, if eof is
     reached, it returns true. If an error occurs, a runtime_error is
     thrown. When the function looks for a data line, comment lines are
-    automatically skipped.
+    automatically skipped. It is checked if the data record has the right
+    number of characters. If not, a runtime_error is thrown.
 
     \param is Stream from which to read
     \exception runtime_error Some error occured during the read
@@ -556,6 +733,80 @@ public:
 
     \author Stefan Buehler */
   bool ReadFromHitranStream(istream& is);
+
+
+
+  /** Read one line from a stream associated with a HITRAN 2004 file. The
+    HITRAN format is as follows:
+
+    \verbatim
+    Each line consists of 160 ASCII characters, followed by a line feed (ASCII 10)
+    and carriage return (ASCII 13) character, for a total of 162 bytes per line.
+
+    Each item is defined below, with its Fortran format shown in parenthesis.
+
+    (I2)     molecule number
+    (I1)     isotopologue number (1 = most abundant, 2 = second, etc)
+    (F12.6)  vacuum wavenumbers (cm-1)
+    (E10.3)  intensity in cm-1/(molec * cm-2) at 296 Kelvin
+    (E10.3)  Einstein-A coefficient (s-1)
+    (F5.4)   air-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
+    (F5.4)   self-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
+    (F10.4)  lower state energy (cm-1)
+    (F4.2)   coefficient of temperature dependence of air-broadened halfwidth
+    (F8.6)   air-broadened pressure shift of line transition at 296 K (cm-1)
+    (A15)    upper state global quanta
+    (A15)    lower state global quanta
+    (A15)    upper state local quanta
+    (A15)    lower state local quanta
+    (I1)     uncertainty index for wavenumber
+    (I1)     uncertainty index for intensity
+    (I1)     uncertainty index for air-broadened half-width
+    (I1)     uncertainty index for self-broadened half-width
+    (I1)     uncertainty index for temperature dependence
+    (I1)     uncertainty index for pressure shift
+    (I2)     index for table of references correspond. to wavenumber
+    (I2)     index for table of references correspond. to intensity
+    (I2)     index for table of references correspond. to air-broadened half-width
+    (I2)     index for table of references correspond. to self-broadened half-width
+    (I2)     index for table of references correspond. to temperature dependence
+    (I2)     index for table of references correspond. to pressure shift
+    (A1)     flag (*) for lines supplied with line-coupling algorithm
+    (F7.1)   upper state statistical weight
+    (F7.1)   lower state statistical weight
+
+     The molecule numbers are encoded as shown in the table below:
+
+      0= Null    1=  H2O    2=  CO2    3=   O3    4=  N2O    5=    CO
+      6=  CH4    7=   O2    8=   NO    9=  SO2   10=  NO2   11=   NH3
+     12= HNO3   13=   OH   14=   HF   15=  HCl   16=  HBr   17=    HI
+     18=  ClO   19=  OCS   20= H2CO   21= HOCl   22=   N2   23=   HCN
+     24=CH3Cl   25= H2O2   26= C2H2   27= C2H6   28=  PH3   29=  COF2
+     30=  SF6   31=  H2S   32=HCOOH   33=  HO2   34=    O   35=ClONO2
+     36=  NO+   37= HOBr   38= C2H4
+    \endverbatim
+
+    CH3OH is not included in ARTS because its total internal partition
+    sum is not known yet.
+
+    The function attempts to read a line of data from the
+    catalogue. It returns false if it succeeds. Otherwise, if eof is
+    reached, it returns true. If an error occurs, a runtime_error is
+    thrown. When the function looks for a data line, comment lines are
+    automatically skipped. It is checked if the data record has the right number
+    of characters (comment lines are ignored). If not, a runtime_error is thrown.
+    If the molecule is unknown to ARTS, a warning is prompted but the
+    program continues (ignoring this record). For CH3OH this
+    warning will be issued even when using the regular Hitran 2004 data base
+    (see above).
+
+    \param is Stream from which to read
+    \exception runtime_error Some error occured during the read
+    \return false=ok (data returned), true=eof (no data returned)
+
+    \author Stefan Buehler, Hermann Berg */
+  bool ReadFromHitran2004Stream(istream& is);
+
 
 
 
@@ -573,7 +824,7 @@ public:
        ISO (I1)      = isotope number (1 = most abundant, 2 = second, etc)
     *  F (F13.4)     = frequency of transition in MHz
     *  errf (F8.4)   = error in f in MHz
-    ** S (E10.3)     = intensity in cm-1/(molec / cm-2) at 296 K
+       S (E10.3)     = intensity in cm-1/(molec * cm-2) at 296 K
     *  AGAM (F5.4)   = air-broadened halfwidth (HWHM) in MHz/Torr at Tref
     *  SGAM (F5.4)   = self-broadened halfwidth (HWHM) in MHz/Torr at Tref
        E (F10.4)     = lower state energy in wavenumbers (cm-1)
@@ -582,7 +833,7 @@ public:
     *  N_self (F4.2) = coefficient of temperature dependence of 
                        self-broadened halfwidth
     *  Tref (F7.2)   = reference temperature for AGAM and SGAM 
-    *  d (F8.6)      = shift of transition due to pressure (MHz/Torr)
+    *  d (F9.7)      = shift of transition due to pressure (MHz/Torr)
        V1 (I3)       = upper state global quanta index
        V2 (I3)       = lower state global quanta index
        Q1 (A9)       = upper state local quanta
@@ -590,14 +841,10 @@ public:
        IERS (I1)     = accuracy index for S
        IERH (I1)     = accuracy index for AGAM
     *  IERN (I1)     = accuracy index for N
-       IREFF (I2)    = lookup index for F
-       IREFS (I2)    = lookup index for S
-       IREFH (I2)    = lookup index for AGAM
+
    
-    The single asterisks mark entries that are different from HITRAN.
-    The double asterisks mark the different line intensity unit we use
-    [cm-1/(molec / cm-2)] instead of [cm-1/(molec * cm-2)] as in HITRAN.
- 
+    The asterisks mark entries that are different from HITRAN.
+
     Note that AGAM and SGAM are for the temperature Tref, while S is
     still for 296 K!
    
@@ -741,6 +988,23 @@ private:
   Numeric mtgam;
   // Array to hold auxiliary parameters:
   ArrayOfNumeric maux;
+  //
+  // Fields for the spectroscopic parameters accuracies
+  //
+  // Accuracy for line center frequency in Hz:
+  Numeric mdf;
+  // Accuracy for line intensity in %:
+  Numeric mdi0;
+  // Accuracy for air broadened width in %:
+  Numeric mdagam;
+  // Accuracy for self broadened width in %:
+  Numeric mdsgam;
+  // Accuracy for AGAM temperature exponent in %:
+  Numeric mdnair;
+  //  Accuracy for SGAM temperature exponent in %:
+  Numeric mdnself;
+ //  Accuracy for pressure shift in %:
+  Numeric mdpsf;
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotope data within arts
@@ -783,116 +1047,12 @@ typedef Array< Array<LineRecord> > ArrayOfArrayOfLineRecord;
 ostream& operator << (ostream& os, const LineRecord& lr);
 
 
-// Documentation with implementation.
+
+/** Define the species data map.
+
+    \author Stefan Buehler  */
 void define_species_map();
 
-
-
-//------------------------------< Tag Group Stuff >------------------------------
-
-/** A tag group can consist of the sum of several of these.
-
-    \author Stefan Buehler */
-class SpeciesTag {
-public:
-  /** Default constructor. */
-  SpeciesTag() { /* Nothing to be done here. */ }
-
-  // Documentation is with implementation.
-  SpeciesTag(String def); 
-
-  // Documentation is with implementation.
-  String Name() const;
-    
-  /** Molecular species index. */
-  Index Species() const { return mspecies; }
-
-  /** Isotopic species index.
-      If this is equal to the number of isotopes (one more than
-      allowed) it means all isotopes of this species. */ 
-  Index Isotope() const { return misotope; }
-
-  /** The lower line center frequency in Hz.
-      If this is <0 it means no lower limit. */
-  Numeric Lf() const { return mlf; }
-
-  /** The upper line center frequency in Hz:
-      If this is <0 it means no upper limit. */
-  Numeric Uf() const { return muf; }
-
-  //! Comparison operator for species tags.
-  /*!
-    This returns false as soon as a singe discrepancy is
-    detected. Otherwise it returns true at the end.
-  
-    \param other The other tag to compare to.
-  
-    \return true if the two tags are equal.
-    
-    \author Stefan Buehler
-    \date   2002-11-29
-  */
-  bool operator==(const SpeciesTag& other) const
-  {
-    if ( other.mspecies != mspecies ) return false;
-    if ( other.misotope != misotope ) return false;
-    if ( other.mlf      != mlf      ) return false;
-    if ( other.muf      != muf      ) return false;
-    return true;
-  }
-
-private:
-
-  //! Molecular species index.
-  Index mspecies;
-
-  //! Isotopic species index.
-  /*!
-    If this is equal to the number of isotopes (one more than
-    allowed) it means all isotopes of this species. If it is <0 it
-    means no isotope (no lines), corresponding to "H2O-nl" */
-  Index misotope;
-
-  //! The lower limit line center frequency in Hz.
-  /*! If this is <0 it means no lower limit. */
-  Numeric mlf;
-
-  //! The upper line center frequency in Hz.
-  /*! If this is <0 it means no upper limit. */
-  Numeric muf;
-};
-
-
-/** Output operator for SpeciesTag. 
-
-    \author Stefan Buehler */
-ostream& operator << (ostream& os, const SpeciesTag& ot);
-
-
-/** A tag group is an array of SpeciesTags. This corresponds to one
-    "species" in the controlfile. Example: "O3-666, O3-668"
-
-    \author Stefan Buehler */
-typedef  Array<SpeciesTag> ArrayOfSpeciesTag;
-
-/** Contains the available tag groups. Contrary to the Bredbeck
-    definition, tag groups may only consist of tags belonging to the
-    same species. The reason for this is that there is one VMR profile
-    associated with each tag group.
-
-    \author Stefan Buehler */
-typedef  Array<ArrayOfSpeciesTag> ArrayOfArrayOfSpeciesTag;
-
-
-// void get_tagindex_for_Strings( 
-//               ArrayOfIndex&   tags1_index, 
-//         const ArrayOfArrayOfSpeciesTag&      tags1, 
-//         const ArrayOfString&  tags2_Strings );
-
-// void get_tag_group_index_for_tag_group( 
-//               Index&         tags1_index, 
-//         const ArrayOfArrayOfSpeciesTag&      tags1, 
-//         const Array<SpeciesTag>&  tags2 );
 
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,
@@ -916,20 +1076,6 @@ Numeric wavenumber_to_joule(Numeric e);
 
 
 //======================================================================
-//             Functions related to species and tags
-//======================================================================
-
-String get_tag_group_name( const Array<SpeciesTag>& tg );
-
-Index species_index_from_species_name( String name );
-
-Index find_first_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
-                             const Index& spec );
-
-void array_species_tag_from_string( ArrayOfSpeciesTag& tags,
-                                    const String& names );
-
-//======================================================================
 //             Functions related to refraction
 //======================================================================
 
@@ -944,15 +1090,29 @@ void refr_index_Boudouris (
               ConstVectorView   t_abs,
               ConstVectorView   h2o_abs );
 
-//=====================================================================
-//           Definitions for species_index
-//=====================================================================
+//======================================================================
+//             Functions to convert the accuracy index
+//======================================================================
 
-#define SPECIES_INDEX_N2 0
-#define SPECIES_INDEX_O2 1
-#define SPECIES_INDEX_H2O 2
-#define SPECIES_INDEX_O3 3
-#define SPECIES_INDEX_CO2 4
-#define SPECIES_INDEX_COUNT 5
+// ********* for HITRAN database *************
+// convert index for the frequency accuracy.
+void convHitranIERF(     
+                    Numeric&     mdf,
+              const Index&       df 
+                    );
+
+// convert to percents index for intensity and halfwidth accuracy.
+
+void convHitranIERSH(     
+                    Numeric&     mdh,
+              const Index&       dh 
+                    );
+
+// ********* for MYTRAN database *************
+// convert index for the halfwidth accuracy.
+void convMytranIER(     
+                    Numeric&     mdh,
+              const Index  &      dh 
+                    );
 
 #endif // absorption_h

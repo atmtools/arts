@@ -278,6 +278,7 @@ void define_md_data_raw()
         TYPES(    Array_String_t   )));
  
   // New name: abs_speciesSet
+  // This is duplicate with the 1-0 method tgsDefine. Merge!
   md_data_raw.push_back
     ( MdRecord
       ( NAME("gas_speciesSet"),
@@ -334,6 +335,49 @@ void define_md_data_raw()
         KEYWORDS( "species" ),
         TYPES(    Array_String_t   )));
  
+  // New name: abs_speciesSet
+  // This is duplicate with the 1-1 method gas_species set. Merge!
+//   md_data.push_back
+//     ( MdRecord
+//       ( NAME("tgsDefine"),
+//   	DESCRIPTION(
+// 		    "Set up the list of tag groups.\n"
+// 		    "\n"
+// 		    "The workspace variable *tgs* contains several tag groups. Each \n"
+// 		    "tag group contain one or more tags. This method converts \n"
+// 		    "description of tag groups  given in the keyword to the internal \n"
+// 		    "representation *tgs*. A tag group selects spectral features which \n"
+// 		    "belong to the same species. \n"
+// 		    "   A tag group can contain a mixture of general and special \n"
+// 		    "tags.  All the continuum tags belong to the special tags and \n"
+// 		    "the rest come under the general tags.\n"
+// 		    "   A general tag is defined in terms of the name of the species,\n"
+// 		    "isotope and a range of frequencies. Species are named after the \n"
+// 		    "standard chemical names,e.g., \"O3\".  Isotopes are given by the \n"
+// 		    "last digit of the atomic weight, i.e., \"O3-668\" for the \n"
+// 		    "asymmetric ozone molecule including an oxygen 18 atom.  Groups\n"
+// 		    "of transitions are specified by giving a lower and upper limit \n"
+// 		    "of a frequency range,\"O3-666-500e9-501e9\".Moreover the symbol\n"
+// 		    "'*' acts as a wild card. Furthermore, frequency range or frequency\n"
+// 		    "range and isotope may be omitted.\n"
+// 		    "Example for some tag groups containing only general tags:\n"
+// 		    "tags = [\"O3-666-500e9-501e9, O3-686\",\"O3\"]\n"
+// 		    "The first tag group consist of all O3-666 lines between 500 and\n"
+// 		    "501 GHz plus all O3-686 lines.  The second tag group will contain\n"
+// 		    "all remaining O3 transitions.\n"
+// 		    "\n"
+// 		    "Keywords:\n"
+// 		    "   tags : Specify one String for each tag group that you want to create.\n"
+// 		    "   Inside the String, separate the tags by comma (plus optional blanks).\n"
+// 		    "   Example:\n"
+// 		    "   tag = [\"O3-686\",\"H2O\"]"),
+// 	OUTPUT( tgs_ ),
+// 	INPUT(),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS( "tags" ),
+// 	TYPES(    Array_String_t   )));
+  
  md_data_raw.push_back
     ( MdRecord
       ( NAME("abs_vecAddGas"),

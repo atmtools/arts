@@ -1,5 +1,6 @@
-/* Copyright (C) 2000, 2001, 2002 Axel von Engeln <engeln@uni-bremen.de>
-                                  Stefan Buehler  <sbuehler@uni-bremen.de>
+/* Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
+   Axel von Engeln <engeln@uni-bremen.de>
+   Stefan Buehler  <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -16,11 +17,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-//----------------------------------------------------------------------
-// This file is obsolete and should be removed after function have
-// been moved to m_absorption.cc!
-//----------------------------------------------------------------------
-
 /*!
   \file   lineshapes.cc
   \brief  Stuff related to lineshape functions.
@@ -28,6 +24,8 @@
   This file contains both the lineshape functions themselves and the
   function define_lineshape_data which sets the lineshape lookup
   data. 
+
+  This is the file from arts-1-0, back-ported to arts-1-1.
 
   \author Stefan Buehler
   \date   2000-08-21
@@ -45,8 +43,8 @@
     continuum tags. It has to have the same arguments as all the other
     lineshapes, though...
 
-    \param ls Output:            The shape function.
-    \param X Output:             Auxillary parameter, only used in Voigt fct.
+    \retval ls            The shape function.
+    \retval X             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
@@ -59,13 +57,13 @@
     \date   2001-01-16 
     \author Stefan Buehler 
 */
-void lineshape_no_shape(  Vector&       ls,
-                          Vector&       X,
-                          Numeric       f0,
-                          Numeric       gamma,
-                          Numeric       sigma,
-                          VectorView f_mono,
-                          const Index  nf)
+void lineshape_no_shape(  Vector&       /* ls */,
+                          Vector&       /* X */,
+                          Numeric       /* f0 */,
+                          Numeric       /* gamma */,
+                          Numeric       /* sigma */,
+                          VectorView    /* f_mono */,
+                          const Index   /* nf */)
 {
   // This function should never be called so throw an error here: 
   throw runtime_error("The no_shape lineshape is only a placeholder, but you tried\n"
@@ -75,8 +73,8 @@ void lineshape_no_shape(  Vector&       ls,
 
 /*! The Lorentz line shape. This is a quick and dirty implementation.
 
-    \param ls Output:            The shape function.
-    \param X Output:             Auxillary parameter, only used in Voigt fct.
+    \retval ls            The shape function.
+    \retval X             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
@@ -86,10 +84,10 @@ void lineshape_no_shape(  Vector&       ls,
     \author Stefan Buehler 
     \date 2000-06-16 */
 void lineshape_lorentz(Vector&       ls,
-                       Vector&       X,
+                       Vector&       /* X */,
                        Numeric       f0,
                        Numeric       gamma,
-                       Numeric       sigma,
+                       Numeric       /* sigma */,
                        VectorView f_mono,
                        const Index  nf)
 {
@@ -114,8 +112,8 @@ void lineshape_lorentz(Vector&       ls,
 
 /*! The Doppler line shape.
 
-    \param ls Output:            The shape function.
-    \param x Output:             Auxillary parameter, only used in Voigt fct.
+    \retval ls            The shape function.
+    \retval x             Auxillary parameter, only used in Voigt fct.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter. (Not used.)
     \param  sigma         The Doppler broadening parameter.
@@ -125,9 +123,9 @@ void lineshape_lorentz(Vector&       ls,
     \author Axel von Engeln
     \date 2000-12-06 */
 void lineshape_doppler(Vector&       ls,
-                       Vector&       x,
+                       Vector&       /* x */,
                        Numeric       f0,
-                       Numeric       gamma,
+                       Numeric       /* gamma */,
                        Numeric       sigma,
                        VectorView f_mono,
                        const Index  nf)
@@ -148,7 +146,7 @@ void lineshape_doppler(Vector&       ls,
   
   for ( Index i=0; i<nf ; ++i )
     {
-      ls[i] = fac * exp(-pow(f_mono[i]-f0, 2)/sigma2);
+      ls[i] = fac * exp( - pow( f_mono[i]-f0, 2) / sigma2 );
     }
 }
 
@@ -184,8 +182,8 @@ long bfun6_(Numeric y, Numeric x)
 /*! The Voigt line shape. Kuntz approximation of the Voigt line
   shape. 
 
-    \param ls Output:            The shape function.
-    \param x Output:             Auxillary parameter to store frequency grid.
+    \retval ls            The shape function.
+    \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
@@ -600,8 +598,8 @@ long int bfun3_(Numeric y, Numeric x)
 /*! The Voigt line shape. Kuntz approximation of the Voigt line
   shape. 
 
-    \param ls Output:            The shape function.
-    \param x Output:             Auxillary parameter to store frequency grid.
+    \retval ls            The shape function.
+    \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
@@ -975,8 +973,8 @@ long bfun4_(Numeric y, Numeric x)
 /*! The Voigt line shape. Kuntz approximation of the Voigt line
   shape. 
 
-    \param ls Output:            The shape function.
-    \param x Output:             Auxillary parameter to store frequency grid.
+    \retval ls            The shape function.
+    \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter. (Not used.)
@@ -1373,8 +1371,8 @@ void lineshape_voigt_kuntz4(Vector&       ls,
 /*! The Voigt line shape. Drayson approximation of the Voigt line
   shape.
 
-    \param ls Output:            The shape function.
-    \param x Output:             Auxillary parameter to store frequency grid.
+    \retval ls            The shape function.
+    \retval x             Auxillary parameter to store frequency grid.
     \param  f0            Line center frequency.
     \param  gamma         The pressure broadening parameter.
     \param  sigma         The Doppler broadening parameter.
@@ -1562,8 +1560,8 @@ L104: for (K=0; K<(int) nf; K++)
   (kuntz6) for high altitudes and a lorentz one with overlap
   correction for lower altitudes.
 
-  \param ls Output:            The shape function.
-  \param x Output:             Auxillary parameter to store frequency grid.
+  \retval ls            The shape function.
+  \retval x             Auxillary parameter to store frequency grid.
                         Here used as well to pass parameters.
   \param  f0            Line center frequency.
   \param  gamma         The pressure broadening parameter.
@@ -1670,8 +1668,8 @@ void lineshape_rosenkranz_voigt_kuntz6(Vector&       ls,
   (drayson) for high altitudes and a lorentz one with overlap
   correction for lower altitudes.
 
-  \param ls Output:            The shape function.
-  \param x Output:             Auxillary parameter to store frequency grid.
+  \retval ls            The shape function.
+  \retval x             Auxillary parameter to store frequency grid.
                         Here used as well to pass parameters.
   \param  f0            Line center frequency.
   \param  gamma         The pressure broadening parameter.
@@ -1787,6 +1785,140 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
 
 
 
+/*! Chi factors according to Cousin
+
+    The CO2-CO2 self-broadening is neglected. Broadening factors for both
+    O2 and N2 are considered, assuming 79% N2 and 21% O2.
+
+    \param  chi  Out: The chi factor
+    \param  df   (f-f0) in Hz.
+
+    \author Patrick Eriksson 
+    \date 2000-09-07 
+*/
+void chi_cousin(
+            Numeric&   chi,
+      const Numeric&   df )
+{
+  // Conversion factor from Hz to cm-1
+  extern const Numeric HZ2CM;
+
+  const Numeric n2 = 0.79;
+  const Numeric o2 = 0.21;
+
+  const Numeric   df_cm     = df * HZ2CM;
+  const Numeric   df_cm_abs = fabs( df_cm );
+
+  chi = 0;  
+
+  // N2 term
+  if( df_cm_abs <= 5 )
+    { chi += n2; }
+  else if( df_cm_abs <= 22 )
+    { chi += n2 * 1.968 * exp( -0.1354 * df_cm_abs ); }
+  else if( df_cm_abs <= 50 )
+    { chi += n2 * 0.160 * exp( -0.0214 * df_cm_abs ); }
+  else
+    { chi += n2 * 0.162 * exp( -0.0216 * df_cm_abs ); }
+
+  // O2 term
+  if( df_cm_abs <= 5 )
+    { chi += o2; }
+  else if( df_cm_abs <= 22 )
+    { chi += o2 * 1.968 * exp( -0.1354 * df_cm_abs ); }
+  else if( df_cm_abs <= 50 )
+    { chi += o2 * 0.160 * exp( -0.0214 * df_cm_abs ); }
+  else
+    { chi += o2 * 0.162 * exp( -0.0216 * df_cm_abs ); }
+}
+
+
+
+/*! A CO2 IR line shape.
+
+    \retval ls            The shape function.
+    \retval X             Auxillary parameter, only used in Voigt fct.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter.
+    \param  sigma         The Doppler broadening parameter. (Not used.)
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
+
+    \author Patrick Eriksson 
+    \date 2000-09-04 */
+void lineshape_CO2_lorentz(
+            Vector&   ls,
+            Vector&   /* X */,
+            Numeric   f0,
+            Numeric   gamma,
+            Numeric   /* sigma */,
+      VectorView      f_mono,
+      const Index     nf )
+{
+  assert( f_mono.nelem() == nf );
+
+  // PI:
+  extern const Numeric PI;
+
+  // Some constant variables
+  const Numeric gamma2 = gamma * gamma;
+  const Numeric fac = gamma/PI;
+
+  for ( Index i=0; i<nf; ++i )
+    {
+      // f-f0
+      const Numeric df = f_mono[i] - f0;
+
+      // The chi factor
+      Numeric chi;
+      chi_cousin( chi, df );      
+
+      // chi * Lorentz
+      ls[i] =  chi * fac / ( df * df + gamma2 );
+    }
+}
+
+
+
+/*! A CO2 IR line shape.
+
+    \retval ls            The shape function.
+    \retval X             Auxillary parameter, only used in Voigt fct.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter.
+    \param  sigma         The Doppler broadening parameter. (Not used.)
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
+
+    \author Patrick Eriksson 
+    \date 2000-09-04 */
+void lineshape_CO2_drayson(
+            Vector&   ls,
+            Vector&   X,
+            Numeric   f0,
+            Numeric   gamma,
+            Numeric   sigma,
+      VectorView      f_mono,
+      const Index     nf )
+{
+  lineshape_voigt_drayson(  ls, X, f0, gamma, sigma, f_mono, nf );
+
+  for ( Index i=0; i<nf; ++i )
+    {
+      // f-f0
+      const Numeric df = f_mono[i] - f0;
+
+      // The chi factor
+      Numeric chi;
+      chi_cousin( chi, df );      
+
+      // chi * Lorentz
+      ls[i] *=  chi;
+    }
+}
+
+
+
 
 
 
@@ -1797,15 +1929,17 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
 
 /*!  No normalization of the lineshape function.
 
-    \param fac Output:    Normalization factor to the lineshape function.
+    \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
+    \param  T      Temperature (unused here)
     \param  nf     Dimension of f_mono.
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_no_norm(Vector&       fac,
-                            Numeric       f0,
-                            VectorView f_mono,
+                            Numeric       /* f0 */,
+                            VectorView    f_mono,
+                            const Numeric /* T */,
                             const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -1823,15 +1957,17 @@ void lineshape_norm_no_norm(Vector&       fac,
 
 /*!  Linear normalization factor of the lineshape function with f/f0.
 
-    \param fac Output:    Normalization factor to the lineshape function.
+    \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
+    \param  T      Temperature (unused here)
     \param  nf     Dimension of f_mono.
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_linear(Vector&       fac,
                            Numeric       f0,
-                           VectorView f_mono,
+                           VectorView    f_mono,
+                           const Numeric /* T */,
                            const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -1847,16 +1983,18 @@ void lineshape_norm_linear(Vector&       fac,
 
 /*!  Quadratic normalization factor of the lineshape function with (f/f0)^2.
 
-    \param fac Output:    Normalization factor to the lineshape function.
+    \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
+    \param  T      Temperature (unused here)
     \param  nf     Dimension of f_mono.
 
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_quadratic(Vector&       fac,
                               Numeric       f0,
-                              VectorView f_mono,
+                              VectorView    f_mono,
+                              const Numeric /* T */,
                               const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -1870,6 +2008,49 @@ void lineshape_norm_quadratic(Vector&       fac,
   for ( Index i=0; i<nf; ++i )
     {
       fac[i] = (f_mono[i] * f_mono[i]) / f0_2;
+    }
+}
+
+/*!  Van Vleck Huber normalization factor of the lineshape function
+  with (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))). The
+  denominator is a result of catalogue intensities. See P. Rayer, The
+  VVH and VVW Spectral Functions, Atmospheric Millimeter and
+  Sub-Millimeter Wave Radiative Transfer Modeling II, Editors:
+  P. Eriksson, S. Buehler, Berichte aus derm Institut fuer
+  Umweltphysik, Band 4, 2001.
+
+    \retval fac    Normalization factor to the lineshape function.
+    \param  f0     Line center frequency.
+    \param  f_mono The frequency grid.
+    \param  T      Temperature
+    \param  nf     Dimension of f_mono.
+
+
+    \author Axel von Engeln 2003-07-28 */
+void lineshape_norm_VVH(Vector&       fac,
+                        Numeric       f0,
+                        VectorView    f_mono,
+                        const Numeric T,
+                        const Index   nf)
+{
+  extern const Numeric PLANCK_CONST;
+  extern const Numeric BOLTZMAN_CONST;
+
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
+
+  // 2kT is constant for the loop
+  Numeric kT = 2.0 * BOLTZMAN_CONST * T;
+
+  // denominator is constant for the loop
+  Numeric denom = f0 * tanh( PLANCK_CONST * f0 / kT );
+
+  for ( Index i=0; i<nf; ++i )
+    {
+      fac[i] = f_mono[i] * tanh( PLANCK_CONST * f_mono[i] / kT ) /
+        denom;
     }
 }
 
@@ -1945,6 +2126,35 @@ void define_lineshape_data()
       "at high altitudes Drayson.",
       lineshape_rosenkranz_voigt_drayson));
 
+  lineshape_data.push_back
+    (LineshapeRecord
+     ("CO2_Lorentz",
+      "Special line shape for CO2 in the infrared, neglecting Doppler\n"
+      "broadening and details of line mixing. The line shape can be\n"
+      "expressed as\n"
+      "   chi(f,f0) * Lorentz(f,f0) \n"
+      "\n"
+      "The chi-factor follows Cousin et al. 1985. Broadening by N2 and O2\n"
+      "is considered, while self-broadening (CO2-CO2) is neglected."
+      "\n"
+      "NOTE: Temperature dependency is not yet included. The chi factor is\n"
+      "valid for 238 K.",
+      lineshape_CO2_lorentz));
+
+  lineshape_data.push_back
+    (LineshapeRecord
+     ("CO2_Drayson",
+      "Special line shape for CO2 in the infrared, neglecting details of\n"
+      "line mixing. The line shape can be expressed as\n"
+      "   chi(f,f0) * Drayson(f,f0) \n"
+      "\n"
+      "The chi-factor follows Cousin et al. 1985. Broadening by N2 and O2\n"
+      "is considered, while self-broadening (CO2-CO2) is neglected.\n"
+      "\n"
+      "NOTE: Temperature dependency is not yet included. The chi factor is\n"
+      "valid for 238 K.",
+      lineshape_CO2_drayson));
+
 }
 
 /*! The lookup data for the different normalization factors to the
@@ -1973,4 +2183,12 @@ void define_lineshape_norm_data()
      ("quadratic",
       "Quadratic normalization of the lineshape with (f/f0)^2.",
       lineshape_norm_quadratic));
+
+  lineshape_norm_data.push_back
+    (LineshapeNormRecord
+     ("VVH",
+      "Van Vleck Huber normalization of the lineshape with\n"
+      "             (f*tanh(h*f/(2*k*T))) / (f0*tanh(h*f0/(2*k*T))).\n"
+      "             The denominator is a result of catalogue intensities.",
+      lineshape_norm_VVH));
 }

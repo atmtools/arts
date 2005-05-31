@@ -1,5 +1,5 @@
 /*!
-  \file   m_absorption.cc
+  \file   m_abs_lookup.cc
   \author Stefan Buehler <sbuehler@uni-bremen.de>
   \date   Wed Nov 20 18:04:20 2002
   
@@ -7,6 +7,7 @@
 */
 
 #include <algorithm> 
+#include <map>
 #include "arts.h"
 #include "messages.h"
 #include "gas_abs_lookup.h"
@@ -77,8 +78,8 @@ void gas_speciesSet(// WS Output:
   // group. Let's work through them one by one.
   for ( Index i=0; i<names.nelem(); ++i )
     {
-      // This part has now been moved to array_species_tag_from_string
-      // in absorbtion.cc. Call this function
+      // This part has now been moved to array_species_tag_from_string.
+      // Call this function.
       array_species_tag_from_string( gas_species[i], names[i] );  
     }
 
