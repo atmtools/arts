@@ -11,7 +11,6 @@
 bin_PROGRAMS = arts
 
 arts_SOURCES = \
-	abs_o2_models.h \
 	absorption.cc \
 	absorption.h \
 	array.h \
@@ -57,7 +56,6 @@ arts_SOURCES = \
 	jacobian.h \
 	legendre.cc \
 	legendre.h \
-	m_lineshapes.cc \
 	m_agenda.cc \
         m_atmosphere.cc \
 	m_basic_types.cc \
@@ -72,7 +70,6 @@ arts_SOURCES = \
 	m_rte.cc \
 	m_scatrte.cc \
 	m_absorption.cc \
-	m_abs_o2_models.cc \
 	m_copy.h \
 	m_ignore.h \
 	m_jacobian.cc \
@@ -80,7 +77,6 @@ arts_SOURCES = \
 	m_sensor.cc \
 	m_xml.cc \
 	m_xml.h \
-	m_continua_ckd.cc \
 	m_batch.cc \
 	main.cc \
 	make_array.h \
@@ -295,7 +291,6 @@ test_geomag_calc_SOURCES = \
 	jacobian.h \
 	legendre.cc \
 	legendre.h \
-	m_lineshapes.cc \
 	m_agenda.cc \
 	m_atmosphere.cc \
 	m_basic_types.cc \
@@ -313,12 +308,10 @@ test_geomag_calc_SOURCES = \
 	m_scatrte.cc \
 	m_sensor.cc \
 	m_absorption.cc \
-	m_abs_o2_models.cc \
 	m_copy.h \
 	m_ignore.h \
 	m_xml.cc \
 	m_xml.h \
-	m_continua_ckd.cc \
 	make_array.h \
 	make_vector.cc \
 	make_vector.h \

@@ -127,20 +127,6 @@ void define_wsv_data()
       ),
       GROUP( Matrix_ )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "abs_model" ),
-      DESCRIPTION
-      (
-       "Model used for continuum or complete absorption calculation\n"
-       "\n"
-       "This is just a string that is used as input by some methods\n"
-       "calculating absorption. Its meaning depends on the model. See\n"
-       "documentation of methods taking this variable as input for more\n"
-       "explanations."
-       ),
-      GROUP( String_ )));
-
   wsv_data.push_back
     (WsvRecord
     ( NAME( "abs_p" ),
@@ -218,19 +204,6 @@ void define_wsv_data()
        "Dimension: [number of pressures]\n"
        "\n"
        "Unit: K"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-    ( NAME( "abs_user_parameters" ),
-      DESCRIPTION
-      (
-       "User parameters for absorption continua or complete models\n"
-       "\n"
-       "This is just a list of numbers, for example scaling factors of model\n"
-       "constants. Their meaning depends on the model. See documentation of\n"
-       "methods taking this variable as input for more explanations."
        ),
       GROUP( Vector_ )));
 
@@ -766,52 +739,6 @@ void define_wsv_data()
        " \n"
        ),
       GROUP( Index_ )));
-
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "els" ),
-      DESCRIPTION
-      (
-       "The elementary lineshape function.\n"
-       "\n"
-       "Holds the result of a method calculating the elementary lineshape\n"
-       "function for a vector of frequencies. The difference to the lineshape\n"
-       "functions ls is that the frequency grid associated with els is always\n"
-       "relative to the line center.\n"
-       "\n"
-       "Usage: Agenda output, set by elementary lineshape\n"
-       "       functions, e.g., elsLorentz.\n"
-       "\n"
-       "Unit: 1/Hz."
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "els_agenda" ),
-       DESCRIPTION
-       (
-        "See agendas.cc."
-        ),
-       GROUP(  Agenda_ )));
-  
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "els_f_grid" ),
-      DESCRIPTION
-      (
-       "The frequency grid for the lineshape calculation.\n"
-       "\n"
-       "This is a local copy of the global f_grid. The copy is necessary,\n"
-       "because in cases with cutoff we have to add the cutoff frequency to\n"
-       "the frequency grid, so that we can subtract the lineshape value at\n"
-       "the cutoff. \n"
-       "\n"
-       "Usage: Agenda input, set automatically by calling method.\n"
-       "\n"
-       "Unit: Hz"
-       ),
-      GROUP( Vector_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1362,86 +1289,6 @@ wsv_data.push_back
        "Unit:  degrees"
        ),
       GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ls" ),
-      DESCRIPTION
-      (
-       "The lineshape function.\n"
-       "\n"
-       "Holds the result of a method calculating the lineshape function for a\n"
-       "Vector of frequencies.\n"
-       "\n"
-       "Usage: Agenda output, set by lineshape functions, e.g., lsLorentz.\n"
-       "\n"
-       "Unit: 1/Hz."
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ls_cutoff" ),
-      DESCRIPTION
-      (
-       "The lineshape cutoff frequency.\n"
-       "\n"
-       "The cutoff is meant to limit the frequency range where the lineshape\n"
-       "is not zero. Method lsWithCutoffAdd uses this variable to set the\n"
-       "lineshape to zero for frequencies for which\n"
-       "\n"
-       "abs(f-f0) > ls_cutoff\n"
-       "\n"
-       "Unit: Hz\n"
-       "\n"
-       "Usage: Set by the user. A typical value is 750e9 Hz."
-       ),
-      GROUP( Numeric_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ls_f0" ),
-      DESCRIPTION
-      (
-       "The line center frequency.\n"
-       "\n"
-       "Used as input by methods calculating the lineshape function.\n"
-       "\n"
-       "Usage: Agenda input, set automatically by calling method.\n"
-       "\n"
-       "Unit: Hz."
-       ),
-      GROUP( Numeric_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ls_gamma" ),
-      DESCRIPTION
-      (
-       "The pressure broadened line width.\n"
-       "\n"
-       "Used as input by methods calculating the lineshape function.\n"
-       "\n"
-       "Usage: Agenda input, set automatically by calling method.\n"
-       "\n"
-       "Unit: Hz."
-       ),
-      GROUP( Numeric_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ls_sigma" ),
-      DESCRIPTION
-      (
-       "The Doppler broadened line width.\n"
-       "\n"
-       "Used as input by methods calculating the lineshape function.\n"
-       "\n"
-       "Usage: Agenda input, set automatically by calling method.\n"
-       "\n"
-       "Unit: Hz."
-       ),
-      GROUP( Numeric_ )));
 
  wsv_data.push_back
    (WsvRecord

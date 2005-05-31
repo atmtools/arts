@@ -1,3 +1,38 @@
+2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-976
+
+	* Removed obsolete ARTS-1-0 absorption files, WSVs, WSMs, and
+	agendas.
+	
+	* src/workspace.cc: Removed WSVs: abs_model, abs_user_parameters,
+	els, els_agenda, els_f_grid, ls, ls_cutoff, ls_f0, ls_gamma,
+	ls_sigma.
+	
+	* src/methods.cc: Removed WSMs: absCKDMT_H2O_AIR,
+	absCKDMT_H2O_H2O, absMPM02_H2O, absO2Model, elsDoppler,
+	elsLorentz, elsVoigt_Drayson, elsVoigt_Kuntz6, lsWithCutoffAdd.	
+	Commented out: absO2ZeemanModel, abs_vecAddGasZeeman,
+	ext_matAddGasZeeman, ZeemanO2Settings, test_zeeman. Moved the
+	commented-out Zeeman methods to the end of the list.
+
+	* src/agendas.cc: Removed els_agenda.
+
+	* src/Makefile.am: Removed m_lineshapes.cc and
+	m_continua_ckd.cc from the source file list. The files themselves
+	have also been deleted. Removed abs_o2_models.h and
+	m_abs_o2_models.cc from the source file list. The files themselves
+	are still there, in case somebody wants to resume the work on
+	Zeeman. 
+
+	* src/m_lineshapes.cc: Removed.
+
+	* src/m_continua.cc: Removed.
+
+	* src/m_continua_ckd.cc: Removed.
+
+	* src/old_absorption.cc: Removed.
+
 2005-05-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-975

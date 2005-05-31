@@ -197,37 +197,6 @@ void define_agenda_data()
         OUTPUT( doit_i_field_),
        INPUT( doit_i_field_, doit_scat_field_)));
  
- 
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "els_agenda" ),
-       DESCRIPTION
-       (
-        "Compute an elementary lineshape.\n"
-        "\n"
-        "The elementary lineshape is a simple and symmetric lineshape, for\n"
-        "example a Lorentz or Voigt shape. It does not include a cutoff. It\n"
-        "also does not include a fore-factor.\n"
-        "\n"
-        "The method lsWithCutoffAdd uses this agenda to produce a lineshape\n"
-        "with cutoff.\n"
-        "\n"
-        "Not all lineshapes use ls_sigma. (The Lorentz lineshape uses only\n"
-        "ls_gamma). \n"
-        "\n"
-        "Output:    \n"
-        "   els        : The lineshape function [1/Hz]  \n"
-        "\n"
-        "Input:    \n"
-        "   ls_gamma   : Pressure broadened line width [Hz].    \n"
-        "   ls_sigma   : Doppler broadened line width [Hz]. (Optional)    \n"
-        "   els_f_grid : Frequency grid [Hz]."
-        ),
-       OUTPUT( els_ ),
-       INPUT(  ls_gamma_,
-               ls_sigma_,
-               els_f_grid_ )));
-
   agenda_data.push_back
     (AgRecord
      ( NAME( "emission_agenda" ),
