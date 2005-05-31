@@ -1,5 +1,12 @@
 2005-05-31  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-0-183
+
+	* src/m_los.cc (groundFlatSea): Had to type cast some fixed numbers to
+	Numeric (such as Numeric(1.0)). This to get float compilation to work.
+
+2005-05-31  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-0-182
 
 	* configure.in: Version number not updated in last commit. Now synced

@@ -108,6 +108,7 @@ extern const Numeric DEG2RAD;
 
 void Test( )
 {
+  /*
   // This function can be used to test stuff.
 
   const Numeric f = 100e9;
@@ -155,6 +156,7 @@ void Test( )
 
       cout << "r = " << r << "\n"; 
       cout << "e = " << e << "\n"; 
+  */
 }
 
 

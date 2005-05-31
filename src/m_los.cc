@@ -996,8 +996,8 @@ void groundFlatSea(
     {
       const Complex  ifGHz( 0.0, f_mono[i]/1e9 );
 
-      const Complex  eps = e2 + (e1-e2) / (1.0-ifGHz/f2) + 
-                                (e0-e1) / (1.0-ifGHz/f1);
+      const Complex  eps = e2 + (e1-e2) / (Numeric(1.0)-ifGHz/f2) + 
+                                (e0-e1) / (Numeric(1.0)-ifGHz/f1);
       const Complex  n2 = sqrt( eps );
             Complex  a,b;
 
@@ -1016,7 +1016,7 @@ void groundFlatSea(
                         "The keyword argument *pol* must be \"v\" or \"h\"." );
 
       // Power reflection coefficient
-      const Numeric   r = pow( abs( ( a - b ) / ( a + b ) ), 2.0 );
+      const Numeric   r = pow( abs( ( a - b ) / ( a + b ) ), Numeric(2.0) );
 
       e_ground[i] = 1 - r;
     }
