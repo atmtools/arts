@@ -69,7 +69,7 @@ arts_SOURCES = \
 	m_refraction.cc \
 	m_rte.cc \
 	m_scatrte.cc \
-	m_absorption.cc \
+	m_abs_lookup.cc \
 	m_copy.h \
 	m_ignore.h \
 	m_jacobian.cc \
@@ -307,7 +307,7 @@ test_geomag_calc_SOURCES = \
 	m_rte.cc \
 	m_scatrte.cc \
 	m_sensor.cc \
-	m_absorption.cc \
+	m_abs_lookup.cc \
 	m_copy.h \
 	m_ignore.h \
 	m_xml.cc \
