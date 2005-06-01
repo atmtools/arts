@@ -270,8 +270,8 @@ void RteCalc(
 
   ArrayOfIndex    ji0_vmr(0);         // Start index in jacobian for anal. VMRs
   ArrayOfIndex    jin_vmr(0);         // Length of x for anal. VMRs
-  Index           ji0_t;              // As above, but for temperature
-  Index           jin_t;
+  Index           ji0_t = 0;              // As above, but for temperature
+  Index           jin_t = 0;
   ArrayOfMatrix   ib_vmr_jacs(0);
   Matrix          ib_t_jacs(0,0);
   ArrayOfString   gas_unit(0);

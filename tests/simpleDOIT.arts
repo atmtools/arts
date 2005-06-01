@@ -138,7 +138,7 @@ Matrix1ColFromVector( sensor_los, vector_1 ) {}
 # which are not modified by sensor properties
 sensorOff{}		
 
-# No jacobian claculations here
+# No jacobian calaculations here
 jacobianOff{}		
 
 # Agendas for the calculation of propagation paths

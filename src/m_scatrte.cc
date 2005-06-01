@@ -967,7 +967,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
   \date 2003-01-07
 */
 void
-doit_i_fieldUpdateSeq3D(// WS Output:
+doit_i_fieldUpdateSeq3D(// WS Output and Input:
                         Tensor6& doit_i_field,
                         // ppath_step_agenda:
                         Ppath& ppath_step, 

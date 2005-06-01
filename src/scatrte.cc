@@ -885,9 +885,9 @@ void cloud_ppath_update3D(
         }
       
       // Presssure (needed for the calculation of gas absorption)
-      itw2p( p_int, p_grid, ppath_step.gp_p, itw);
+      itw2p( p_int, p_grid, ppath_step.gp_p, itw_p);
       
-      
+      out3 << "Calculate radiative transfer inside cloudbox.\n";
       cloud_RT_no_background(doit_i_field, 
                              scalar_gas_absorption_agenda,
                              opt_prop_gas_agenda, ppath_step, 

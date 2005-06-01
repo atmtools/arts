@@ -1,3 +1,13 @@
+2005-06-01  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-983
+
+	* src/scatrte.cc (cloud_ppath_update3D): Fixed small bug
+	introduced in latest changes (pressure interpolation).
+
+	* src/m_rte.cc (RteCalc): Initialized ji0_t and jin_t because of
+	compiler warning.
+	
 2005-06-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-982
