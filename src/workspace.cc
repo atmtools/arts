@@ -1905,7 +1905,7 @@ void define_wsv_data()
       DESCRIPTION
       (
        "Index of gas species for which *rte_agenda* shall calculate "
-       "VMR jacobians.\n"
+       "VMR jacobians (with respect to changes along the propagation path).\n"
        "\n"
        "These indexes refer to the position in *gas_species*.\n"
        "\n"

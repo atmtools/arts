@@ -59,6 +59,21 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+void from_dvmr_to_dx(
+         MatrixView   diy_dx,
+    ConstMatrixView   diy_dvmr,
+    const Numeric&      w )
+{
+  for( Index iv=0; iv<diy_dx.nrows(); iv++ )
+    { 
+      for( Index is=0; is<diy_dx.ncols(); is++ )
+        { 
+          diy_dx(iv,is) += w * diy_dvmr(iv,is);
+        }
+    }
+}
+
+
 //! RteCalc
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
@@ -268,19 +283,21 @@ void RteCalc(
   rte_do_vmr_jacs.resize(0);
   rte_do_t_jacs   = 0;
 
+  ArrayOfIndex    jqi_vmr(0);         // Index in jacobian_quantities of VMRs
   ArrayOfIndex    ji0_vmr(0);         // Start index in jacobian for anal. VMRs
   ArrayOfIndex    jin_vmr(0);         // Length of x for anal. VMRs
-  Index           ji0_t = 0;              // As above, but for temperature
+  Index           jqi_t = 0;          // As above, but for temperature
+  Index           ji0_t = 0;        
   Index           jin_t = 0;
   ArrayOfMatrix   ib_vmr_jacs(0);
   Matrix          ib_t_jacs(0,0);
-  ArrayOfString   gas_unit(0);
 
   for( Index i=0; i<jacobian_quantities.nelem(); i++ )
     {
       if ( jacobian_quantities[i].MainTag() == "Gas species"  &&  
                                           jacobian_quantities[i].Analytical() )
         { 
+          jqi_vmr.push_back( i );
           // Find index in *gas_species* of jacobian species
           ArrayOfSpeciesTag   tags;
           array_species_tag_from_string( tags, 
@@ -292,48 +309,53 @@ void RteCalc(
           const Index  nx = ji[1]-ji[0]+1;
           ji0_vmr.push_back( ji[0] );
           jin_vmr.push_back( nx );
-          ib_vmr_jacs.push_back( Matrix(ib.nelem(),nx) );
-          gas_unit.push_back( jacobian_quantities[i].Unit() );
+          ib_vmr_jacs.push_back( Matrix(ib.nelem(),nx,0.0) );
         }
       if ( jacobian_quantities[i].MainTag() == "Temperature"  &&  
                                           jacobian_quantities[i].Analytical() )
         { 
+          jqi_t         = i;
           rte_do_t_jacs = 1; 
           // Set size of MPB matrix
           ArrayOfIndex ji = jacobian_quantities[i].JacobianIndices();
           const Index  nx = ji[1]-ji[0]+1;
           ji0_t = ji[0];
           jin_t = nx;
-          ib_t_jacs.resize( ib.nelem(), nx );
+          ib_t_jacs = Matrix(ib.nelem(),nx,0.0);
         }
     }
 
 
-  // Loop:  measurement block / zenith angle / azimuthal angle
+  //--- Loop:  measurement block / zenith angle / azimuthal angle
   //
   Index    nydone = 0;                 // Number of positions in y done
   Index    nbdone;                     // Number of positions in ib done
   Vector   los( sensor_los.ncols() );  // LOS of interest
-  Index    iaa, iza, is;
   //
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
       nbdone = 0;
 
-      for( iza=0; iza<nza; iza++ )
+      for( Index iza=0; iza<nza; iza++ )
         {
-          for( iaa=0; iaa<naa; iaa++ )
+          for( Index iaa=0; iaa<naa; iaa++ )
             {
-              // Argument for verbosity of agendas
+              //--- Argument for verbosity of agendas
               bool  ag_verb = ( (iaa + iza + mblock_index) != 0 );
 
-              // LOS of interest
+              //--- LOS of interest
               los     = sensor_los( mblock_index, joker );
               los[0] += mblock_za_grid[iza];
               if( antenna_dim == 2 )
                 { los[1] += mblock_aa_grid[iaa]; }
 
-              // Calculate *iy*
+              // Set the basic jacobian variables to be empty.
+              // If they are coming back empty, then the jacobains can be
+              // assumed to be zero.
+              diy_dvmr.resize(0,0,0,0);
+              diy_dt.resize(0,0,0);
+
+              //--- Calculate *iy*
               iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
                  rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los, 
                  ppath_step_agenda, rte_agenda, iy_space_agenda, 
@@ -343,60 +365,213 @@ void RteCalc(
                  cloudbox_on,  cloudbox_limits, sensor_pos(mblock_index,joker),
                  los, f_grid, stokes_dim, ag_verb );
 
-              // Copy *iy* to *ib*
-              for( is=0; is<stokes_dim; is++ )
+              //--- Copy *iy* to *ib*
+              for( Index is=0; is<stokes_dim; is++ )
                 { ib[Range(nbdone+is,nf,stokes_dim)] = iy(joker,is); }
 
-              // Same thing for jacobians
-              for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
+
+              //--- Jacobian part: --------------------------------------------
+
+              //--- Gas species
+              if( diy_dvmr.ncols() )  // See comment above
                 {
-                  // Scale to other species retrieval units
-                  if( gas_unit[ig] == "vmr" )
-                    {}
-                  else if( gas_unit[ig] == "rel" )
+                  for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
                     {
-                      for( Index ip=0; ip<ppath.np; ip++ )
-                        { diy_dvmr(joker,joker,ip,ig) *= 
+                      //- Scale to other species retrieval units
+                      const String unit = 
+                                       jacobian_quantities[jqi_vmr[ig]].Unit();
+                      if( unit == "vmr" )
+                        {}
+                      else if( unit == "rel" )
+                        {
+                          for( Index ip=0; ip<ppath.np; ip++ )
+                            { diy_dvmr(joker,joker,ip,ig) *= 
                                              ppath_vmr(rte_do_vmr_jacs[ig],ip);
+                            }
                         }
-                    }
-                  else if( gas_unit[ig] == "nd" )
-                    {
-                      for( Index ip=0; ip<ppath.np; ip++ )
-                        { 
-                          diy_dvmr(joker,joker,ip,ig) /= 
+                      else if( unit == "nd" )
+                        {
+                          for( Index ip=0; ip<ppath.np; ip++ )
+                            { 
+                              diy_dvmr(joker,joker,ip,ig) /= 
                                        number_density(ppath_p[ip],ppath_t[ip]);
+                            }
+                        }                  
+                      else
+                        { assert(0); }  // Should have been catched before
+
+                      //- Map to retrieval points
+                      Vector r_grid;
+                      //
+                      // Pressure
+                      r_grid = jacobian_quantities[jqi_vmr[ig]].Grids()[0];
+                      Index            nr1 = r_grid.nelem();
+                      ArrayOfGridPos   gp_p(ppath.np);
+                      p2gridpos( gp_p, r_grid, ppath_p );
+                      //
+                      // Latitude
+                      Index            nr2 = 1;
+                      ArrayOfGridPos   gp_lat;
+                      if( atmosphere_dim > 1 )
+                        {
+                          gp_lat.resize(ppath.np);
+                          r_grid = jacobian_quantities[jqi_vmr[ig]].Grids()[1];
+                          nr2    = r_grid.nelem();
+                          p2gridpos( gp_lat, r_grid, ppath.pos(joker,1) );
                         }
-                    }                  
-                  else
-                    { assert(0); }  // Should have been catched before
+                      //
+                      // Longitude
+                      Index            nr3 = 1;
+                      ArrayOfGridPos   gp_lon;
+                      if( atmosphere_dim > 2 )
+                        {
+                          gp_lon.resize(ppath.np);
+                          r_grid = jacobian_quantities[jqi_vmr[ig]].Grids()[2];
+                          nr3    = r_grid.nelem();
+                          p2gridpos( gp_lon, r_grid, ppath.pos(joker,2) );
+                        }
+                      
+                      Tensor3   diy_dx(nf,stokes_dim,nr1*nr2*nr3,0.0);
 
-                  // Go to retrieval points
+                      if( atmosphere_dim == 1 )
+                        {
+                          for( Index ip=0; ip<ppath.np; ip++ )
+                            {
+                              if( gp_p[ip].fd[0] < 1 )
+                                {
+                                  from_dvmr_to_dx( 
+                                              diy_dx(joker,joker,gp_p[ip].idx),
+                                              diy_dvmr(joker,joker,ip,ig), 
+                                              gp_p[ip].fd[1] );
+                                }
+                              if( gp_p[ip].fd[0] > 0 )
+                                {
+                                  from_dvmr_to_dx( 
+                                            diy_dx(joker,joker,gp_p[ip].idx+1),
+                                            diy_dvmr(joker,joker,ip,ig), 
+                                            gp_p[ip].fd[0] );
+                                }
+                            }
+                        }
+                      else if( atmosphere_dim == 2 )
+                        {
+                          for( Index ip=0; ip<ppath.np; ip++ )
+                            {
+                              Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
+                              // Low lat, low p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+                              // Low lat, high p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix+1),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+                              // High lat, low p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix+nr1),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+                              // High lat, high p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix+nr1+1),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
+                            }
+                        }
+                      else if( atmosphere_dim == 3 )
+                        {
+                          for( Index ip=0; ip<ppath.np; ip++ )
+                            {
+                              Index   ix = nr2*nr1*gp_lon[ip].idx +
+                                             nr1*gp_lat[ip].idx + gp_p[ip].idx;
+                              // Low lon, low lat, low p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lon[ip].fd[1]*
+                                             gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+                              // Low lon, low lat, high p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix+1),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lon[ip].fd[1]*
+                                             gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+                              // Low lon, high lat, low p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix+nr1),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lon[ip].fd[1]*
+                                             gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+                              // Low lon, high lat, high p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix+nr1+1),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lon[ip].fd[1]*
+                                             gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
 
-                  // Simlified code code
-                  Tensor3 diy_dx = diy_dvmr(joker,joker,joker,ig);
-                  
-                  for( is=0; is<stokes_dim; is++ )
-                    { 
-                      ib_vmr_jacs[ig](Range(nbdone+is,nf,stokes_dim),joker) = 
+                              // Increase *ix* (to be valid for high lon level)
+                              ix += nr2*nr1;
+
+                              // High lon, low lat, low p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lon[ip].fd[0]*
+                                             gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+                              // High lon, low lat, high p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix+1),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lon[ip].fd[0]*
+                                             gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+                              // High lon, high lat, low p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix+nr1),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lon[ip].fd[0]*
+                                             gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+                              // High lon, high lat, high p
+                              from_dvmr_to_dx( 
+                                             diy_dx(joker,joker,ix+nr1+1),
+                                             diy_dvmr(joker,joker,ip,ig), 
+                                             gp_lon[ip].fd[0]*
+                                             gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
+                            }
+                        }
+
+                      // Copy obtained values to *ib_vmr_jacs*
+                      for( Index is=0; is<stokes_dim; is++ )
+                        { 
+                         ib_vmr_jacs[ig](Range(nbdone+is,nf,stokes_dim),joker)=
                                                         diy_dx(joker,is,joker);
+                        }
                     }
                 }
-              if( rte_do_t_jacs )
+
+              //- Temperature
+              if( diy_dt.ncols() && rte_do_t_jacs )
                 {
                   // Dummy code
                   ib_t_jacs(0,0) = diy_dt(0,0,0);
                 }
 
+              //--- End of jacobian part --------------------------------------
+
+
               // Increase nbdone
               nbdone += nf*stokes_dim;
-            }
-        }
 
-      // Apply sensor response matrix on ib
+            } // iaa loop
+        } // iza loop
+
+
+      //--- Apply sensor response matrix on ib
       mult( y[Range(nydone,nblock)], sensor_response, ib );
 
-      // Apply sensor response matrix on jacobians
+
+      //--- Apply sensor response matrix on jacobians
       for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
         {
           Matrix  K(nblock,jin_vmr[ig]);
@@ -424,7 +599,8 @@ void RteCalc(
             }
         }
 
-      // Increase nydone
+
+      //--- Increase nydone
       nydone += nblock;
     }
 }

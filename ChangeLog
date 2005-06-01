@@ -1,3 +1,14 @@
+2005-06-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-984
+
+	* src/m_jacobian.cc (jacobianAddGas): Changed possible strings for
+	field unit and method.
+
+	* src/m_rte.cc (RteCalc): Complete code for analytical gas jacobians.
+	1D tested OK. No  tests for higher dimensions. Code shall be broken out
+	to be put in sub-functions.
+
 2005-06-01  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-983
