@@ -561,7 +561,7 @@ void define_wsv_data()
        "\n"
        "Usage:      Set by *rte_agenda* (if treating jacobians).\n"
        "\n"
-       "Dimensions: [ ppath.np, f_grid, stokes_dim ]"
+       "Dimensions: [ f_grid, stokes_dim, ppath.np ]"
        ),
       GROUP( Tensor3_ )));
 
@@ -578,7 +578,7 @@ void define_wsv_data()
        "\n"
        "Usage:      Set by *rte_agenda* (if treating jacobians).\n"
        "\n"
-       "Dimensions: [ rte_do_vmr_species, ppath.np f_grid, stokes_dim ]"
+       "Dimensions: [ f_grid, stokes_dim, ppath.np, rte_do_vmr_species ]"
        ),
       GROUP( Tensor4_ )));
 

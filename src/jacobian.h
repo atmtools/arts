@@ -38,7 +38,7 @@
 #include "agenda_class.h"
 
 /** Contains the data for one retrieval quantity.
-    \author Mattias Ekstr� */
+    \author Mattias Ekström */
 class RetrievalQuantity {
 public:
 
@@ -113,7 +113,7 @@ private:
 
 /** Output operator for RetrievalQuantity.
 
-    \author Mattias Ekstr� */
+    \author Mattias Ekström */
 ostream& operator << (ostream& os, const RetrievalQuantity& ot);
 
 typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;

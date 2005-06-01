@@ -621,12 +621,12 @@ void rte_std(
        const Agenda&         emission_agenda,
        const Agenda&         scalar_gas_absorption_agenda,
        const Agenda&         opt_prop_gas_agenda,
-       const ArrayOfIndex&   rte_do_gas_jacs,
+       const ArrayOfIndex&   rte_do_vmr_jacs,
        const Index&          rte_do_t_jacs,
        const bool&           do_transmissions )
 {
   // Temporary variables
-  bool   abs_polarised = false;
+  bool   abs_polarised = false;   // To become WSV?
 
   // Relevant checks are assumed to be done in RteCalc
 
@@ -646,42 +646,38 @@ void rte_std(
   // all frequencies in f_grid.
   f_index = -1;
       
-  // Dummy vector for scattering integral. It has to be 
-  // set to 0 for clear sky calculations.
-  Vector sca_vec_dummy(stokes_dim, 0.);
-          
   // Jacobian variables
+  //
   bool   do_vmr_jacobians = false; 
   bool   do_t_jacobians   = false;
+  const Index   ng = rte_do_vmr_jacs.nelem();
   //
-  if( rte_do_gas_jacs.nelem() )
+  if( ng )
     {
-      throw runtime_error("Analytical jacobians not yet handled.");
       do_vmr_jacobians = true;
-      diy_dvmr.resize(rte_do_gas_jacs.nelem(),np,nf,stokes_dim);
+      diy_dvmr.resize(nf,stokes_dim,np,ng);
       diy_dvmr = 0.0;
     }
   //
   if( rte_do_t_jacs )
     {
-      throw runtime_error("Analytical jacobians not yet handled.");
-      do_t_jacobians = true;
-      diy_dt.resize(np,nf,stokes_dim);
-      diy_dt = 0.0;
       throw runtime_error("Analytical temperature jacobians not yet handled.");
+      do_t_jacobians = true;
+      diy_dt.resize(nf,stokes_dim,np);
+      diy_dt = 0.0;
     }
 
   // Transmission variables
   Matrix    trans(stokes_dim,stokes_dim);
   bool      save_transmissions = false;
-  Tensor4   transmissions;
   bool      any_abs_polarised = false;
   //
   if( do_transmissions  ||  do_vmr_jacobians  || do_t_jacobians ) 
     {
       save_transmissions = true;
-      transmissions.resize(np-1,nf,stokes_dim,stokes_dim); 
+      ppath_transmissions.resize(np-1,nf,stokes_dim,stokes_dim); 
     }
+
 
   // Loop the propagation path steps
   //
@@ -717,28 +713,22 @@ void rte_std(
             {
               const Numeric   dd = 
                        -0.5 * ppath.l_step[ip-1] * ( iy(iv,0) - emission[iv] );
-              for( Index is=0; is<rte_do_gas_jacs.nelem(); is++ )
+              for( Index ig=0; ig<ng; ig++ )
                 {
-                  const Index ig = rte_do_gas_jacs[is];
-                  diy_dvmr(ig,ip,iv,0) += 
-                                 dd * abs_scalar_gas(iv,ig) / ppath_vmr(ig,ip);
-                  diy_dvmr(ig,ip-1,iv,0) += 
-                               dd * abs_scalar_gas(iv,ig) / ppath_vmr(ig,ip-1);
+                  const Index   is = rte_do_vmr_jacs[ig];
+                  const Numeric p  = dd*abs_scalar_gas(iv,is)/rte_vmr_list[is];
+                  diy_dvmr(iv,0,ip,is)   += p;
+                  diy_dvmr(iv,0,ip-1,is) += p;
                 }
             }
 
           // Perform the RTE step.
-          /*
           rte_step_std_clearsky( iy(iv,joker), trans, abs_polarised, 
                                  ext_mat(iv,joker,joker), abs_vec(iv,joker), 
                                  ppath.l_step[ip-1], emission[iv] );
-          */
-          rte_step_std( iy(iv,joker), trans, ext_mat(iv,joker,joker), 
-                        abs_vec(iv,joker), sca_vec_dummy, 
-                        ppath.l_step[ip-1], emission[iv] );
 
           if( save_transmissions )
-            { transmissions(ip-1,iv,joker,joker) = trans; }
+            { ppath_transmissions(ip-1,iv,joker,joker) = trans; }
         }
     }
 
@@ -758,12 +748,12 @@ void rte_std(
               for( Index ip=0; ip<np-1; ip++ )
                 {
                   mtmp = trans;
-                  mult( trans, transmissions(ip,iv,joker,joker), mtmp );
-                  for( Index is=0; is<rte_do_gas_jacs.nelem(); is++ )
+                  mult( trans, ppath_transmissions(ip,iv,joker,joker), mtmp );
+                  for( Index ig=0; ig<ng; ig++ )
                     {
-                      const Index ig = rte_do_gas_jacs[is];
-                      vtmp = diy_dvmr(ig,ip+1,iv,joker); 
-                      mult( diy_dvmr(ig,ip+1,iv,joker), trans, vtmp );
+                      const Index is = rte_do_vmr_jacs[ig];
+                      vtmp = diy_dvmr(iv,joker,ip+1,is); 
+                      mult( diy_dvmr(iv,joker,ip+1,is), trans, vtmp );
                     }
                 }
             }
@@ -773,10 +763,10 @@ void rte_std(
                 {
                   for( Index ii=0; ii<stokes_dim; ii++ )
                     {
-                      trans(ii,ii) *= transmissions(ip,iv,ii,ii);
-                      for( Index is=0; is<rte_do_gas_jacs.nelem(); is++ )
+                      trans(ii,ii) *= ppath_transmissions(ip,iv,ii,ii);
+                      for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
                         {
-                          diy_dvmr(rte_do_gas_jacs[is],ip+1,iv,ii) *= 
+                          diy_dvmr(iv,ii,ip+1,rte_do_vmr_jacs[ig]) *= 
                                                                   trans(ii,ii);
                         }
                     }
@@ -784,10 +774,6 @@ void rte_std(
             }
         }
     }
-
-  // Ppath transmissions
-  if( do_transmissions )
-    { ppath_transmissions = transmissions; }
 }
 
 

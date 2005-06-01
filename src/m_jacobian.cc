@@ -108,33 +108,23 @@ void jacobianAddGas(// WS Output:
   // Check that method is either "analytic" or "perturbation"
   bool analytical;
   if (method=="perturbation")
-    {
-      analytical = 0;
-    }
-  else if (method=="analytic")
-    {
-    //FIXME: Only "perturbation" implemented so far
-    throw runtime_error(
-      "Only perturbation method implemented for gas retrieval quantities");
-    
-      analytical = 1;
-    }
+    { analytical = 0; }
+  else if (method=="analytical")
+    { analytical = 1; }
   else
-  {
-    ostringstream os;
-    os << "The method for gas species retrieval can only be \"analytic\"\n"
-       << "or \"perturbation\".";
-    throw runtime_error(os.str());
-  }
+    {
+      ostringstream os;
+      os << "The method for gas species retrieval can only be \"analytical\"\n"
+         << "or \"perturbation\".";
+      throw runtime_error(os.str());
+    }
   
-  // Check that unit is either 'abs' or 'rel'
-  if (unit!="abs" && unit!="rel")
-  {
-    ostringstream os;
-    os << "The unit of perturbation for pointing offset can only be either\n"
-       << "absolute (\"abs\") or relative (\"rel\")."; 
-    throw runtime_error(os.str());
-  }
+  // Check that unit is either "vmr", "nd" or "rel"
+  if( unit!="vmr" && unit!="nd" && unit!="rel" )
+    {
+      throw runtime_error(
+                "The retrieval unit can only be \"vmr\", \"nd\" or \"rel\"." );
+    }
 
   // Check that this species is not already included in the jacobian.
   for (Index it=0; it<jq.nelem(); it++)
@@ -160,22 +150,21 @@ void jacobianAddGas(// WS Output:
   // Add it to the *jacobian_quantities*
   jq.push_back(rq);
   
-  // Add gas species method to the jacobian agenda
-  String methodname = "jacobianCalcGas";
-  String kwv = species;
-  agenda_append(jacobian_agenda, methodname, kwv);
-
-  out2 << "  Adding gas species: " << species << " to *jacobian_quantities*\n"
-       << "  and *jacobian_agenda*\n";
-  if ( analytical ) 
-  {
-    out3 << "  Calculations done by analytical expression.\n"; 
-  }
+  // Add gas species method to the jacobian agenda, if perturbation
+  if( analytical )
+    {
+      out3 << "  Calculations done by analytical expression.\n"; 
+    }
   else
-  { 
-    out3 << "  Calculations done by perturbation, size " << dx 
-         << " " << unit << ".\n"; 
-  }
+    {
+      out2 << "  Adding gas species: " << species 
+           << " to *jacobian_quantities*\n" << "  and *jacobian_agenda*\n";
+      out3 << "  Calculations done by perturbation, size " << dx 
+           << " " << unit << ".\n"; 
+      String methodname = "jacobianCalcGas";
+      String kwv = species;
+      agenda_append(jacobian_agenda, methodname, kwv);
+    }
   
   // Add retrieval quantity to *gas_species*
   ArrayOfSpeciesTag tags;
@@ -668,26 +657,34 @@ void jacobianCalcGas(
   // Find the retrieval quantity related to this method, i.e. Gas species -
   // species. This works since the combined MainTag and Subtag is individual.
   bool check_rq = false;
-  for (Index n=0; n<n_jq; n++)
-  {
-    if (jq[n].MainTag()=="Gas species" && jq[n].Subtag()==species)
+  for( Index n=0; n<n_jq && !check_rq; n++ )
     {
-      check_rq = true;
-      rq = jq[n];
+      if (jq[n].MainTag()=="Gas species" && jq[n].Subtag()==species)
+        {
+          check_rq = true;
+          rq = jq[n];
+        }
     }
-  }
-  if (!check_rq)
-  {
-    ostringstream os;
-    os << "There is no gas species retrieval quantities defined for:\n"
-       << species;
-    throw runtime_error(os.str());
-  }
+  if( !check_rq )
+    {
+      ostringstream os;
+      os << "There is no gas species retrieval quantities defined for:\n"
+         << species;
+      throw runtime_error(os.str());
+    }
+
+  // Should not be analytical
+  assert( !rq.Analytical() );
+   
   
   // Store the start JacobianIndices and the Grids for this quantity
   ArrayOfIndex ji = rq.JacobianIndices();
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
+
+  throw runtime_error(
+              "Correct handling of different retrieval units is not updated");
+
   if (rq.Unit()=="rel")
     method = 0;
   else

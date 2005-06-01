@@ -268,8 +268,13 @@ void RteCalc(
   rte_do_vmr_jacs.resize(0);
   rte_do_t_jacs   = 0;
 
+  ArrayOfIndex    ji0_vmr(0);         // Start index in jacobian for anal. VMRs
+  ArrayOfIndex    jin_vmr(0);         // Length of x for anal. VMRs
+  Index           ji0_t;              // As above, but for temperature
+  Index           jin_t;
   ArrayOfMatrix   ib_vmr_jacs(0);
   Matrix          ib_t_jacs(0,0);
+  ArrayOfString   gas_unit(0);
 
   for( Index i=0; i<jacobian_quantities.nelem(); i++ )
     {
@@ -284,16 +289,22 @@ void RteCalc(
           rte_do_vmr_jacs.push_back( si ); 
           // Set size of MPB matrix
           ArrayOfIndex ji = jacobian_quantities[i].JacobianIndices();
-          Matrix   mtmp(ib.nelem(), ji[1]-ji[0]+1 );
-          ib_vmr_jacs.push_back( mtmp );
+          const Index  nx = ji[1]-ji[0]+1;
+          ji0_vmr.push_back( ji[0] );
+          jin_vmr.push_back( nx );
+          ib_vmr_jacs.push_back( Matrix(ib.nelem(),nx) );
+          gas_unit.push_back( jacobian_quantities[i].Unit() );
         }
       if ( jacobian_quantities[i].MainTag() == "Temperature"  &&  
                                           jacobian_quantities[i].Analytical() )
         { 
-          rte_do_t_jacs = i; 
+          rte_do_t_jacs = 1; 
           // Set size of MPB matrix
           ArrayOfIndex ji = jacobian_quantities[i].JacobianIndices();
-          ib_t_jacs.resize( ib.nelem(), ji[1]-ji[0]+1 );
+          const Index  nx = ji[1]-ji[0]+1;
+          ji0_t = ji[0];
+          jin_t = nx;
+          ib_t_jacs.resize( ib.nelem(), nx );
         }
     }
 
@@ -303,7 +314,7 @@ void RteCalc(
   Index    nydone = 0;                 // Number of positions in y done
   Index    nbdone;                     // Number of positions in ib done
   Vector   los( sensor_los.ncols() );  // LOS of interest
-  Index    iaa, iza, ip;
+  Index    iaa, iza, is;
   //
   for( Index mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
@@ -333,22 +344,47 @@ void RteCalc(
                  los, f_grid, stokes_dim, ag_verb );
 
               // Copy *iy* to *ib*
-              for( ip=0; ip<stokes_dim; ip++ )
-                { ib[Range(nbdone+ip,nf,stokes_dim)] = iy(joker,ip); }
+              for( is=0; is<stokes_dim; is++ )
+                { ib[Range(nbdone+is,nf,stokes_dim)] = iy(joker,is); }
 
               // Same thing for jacobians
               for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
                 {
                   // Scale to other species retrieval units
+                  if( gas_unit[ig] == "vmr" )
+                    {}
+                  else if( gas_unit[ig] == "rel" )
+                    {
+                      for( Index ip=0; ip<ppath.np; ip++ )
+                        { diy_dvmr(joker,joker,ip,ig) *= 
+                                             ppath_vmr(rte_do_vmr_jacs[ig],ip);
+                        }
+                    }
+                  else if( gas_unit[ig] == "nd" )
+                    {
+                      for( Index ip=0; ip<ppath.np; ip++ )
+                        { 
+                          diy_dvmr(joker,joker,ip,ig) /= 
+                                       number_density(ppath_p[ip],ppath_t[ip]);
+                        }
+                    }                  
+                  else
+                    { assert(0); }  // Should have been catched before
 
                   // Go to retrieval points
 
-                  // Dummy code
-                  ib_vmr_jacs[ig](0,0) = diy_dvmr(0,0,0,0);
-                  ib_vmr_jacs[ig](0,0) = jacobian(0,0);
+                  // Simlified code code
+                  Tensor3 diy_dx = diy_dvmr(joker,joker,joker,ig);
+                  
+                  for( is=0; is<stokes_dim; is++ )
+                    { 
+                      ib_vmr_jacs[ig](Range(nbdone+is,nf,stokes_dim),joker) = 
+                                                        diy_dx(joker,is,joker);
+                    }
                 }
               if( rte_do_t_jacs )
                 {
+                  // Dummy code
                   ib_t_jacs(0,0) = diy_dt(0,0,0);
                 }
 
@@ -357,28 +393,36 @@ void RteCalc(
             }
         }
 
-      // Apply sensor response matrix
+      // Apply sensor response matrix on ib
       mult( y[Range(nydone,nblock)], sensor_response, ib );
-      //
-      /*
+
+      // Apply sensor response matrix on jacobians
       for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
         {
-              
-          ArrayOfIndex ji = 
-                    jacobian_quantities[rte_do_vmr_jacs[ig]].JacobianIndices();
-          const Index   np = ji[1]-ji[0]+1;
-          Matrix  mtmp(,np);
-          mult( jacobian(Range(nydone,nblock),Range(ji[0],)),
-                                            sensor_response, ib_vmr_jacs[ig] );
+          Matrix  K(nblock,jin_vmr[ig]);
+          mult( K, sensor_response, ib_vmr_jacs[ig] );
+          for( Index col=0; col<jin_vmr[ig]; col++ )
+            {
+              for( Index row=0; row<nblock; row++ )
+                {
+                  if( K(row,col) != 0 )
+                    { jacobian.rw(nydone+row,ji0_vmr[ig]+col) = K(row,col); }
+                }
+            }
         }
       if( rte_do_t_jacs )
         {
-          ArrayOfIndex ji =
-                          jacobian_quantities[rte_do_t_jacs].JacobianIndices();
-          mult( jacobian(Range(nydone,nblock),Range(ji[0],ji[1]-ji[0]+1)),
-                                                  sensor_response, ib_t_jacs );
+          Matrix  K(nblock,jin_t);
+          mult( K, sensor_response, ib_t_jacs );
+          for( Index col=0; col<jin_t; col++ )
+            {
+              for( Index row=0; row<nblock; row++ )
+                {
+                  if( K(row,col) != 0 )
+                    { jacobian.rw(nydone+row,ji0_t+col) = K(row,col); }
+                }
+            }
         }
-      */
 
       // Increase nydone
       nydone += nblock;

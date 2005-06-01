@@ -1,3 +1,22 @@
+2005-06-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-982
+
+	* src/m_rte.cc (RteCalc): More jacobian coding for gases. Mapping
+	from ppath to retrieval grids not yet included. But everything else
+	appears to work (can be tested for 1D with retrieval grid = p_grid).
+
+	* src/rte.cc (rte_std): Finished code for analytical VMR jacobian
+	calculations.
+
+	* src/m_jacobian.cc (jacobianCalcGas): Included assert to ensure that
+	not analytical calculations are selected.
+
+	(jacobianAddGas): Now nothing is added to jacobian_agenda if
+	analytical calculations selected.
+	Retrieval units are now: "vmr", "nd" and "rel".
+	Calculation methods are now: "analytical" and "perturbation"
+
 2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-981
