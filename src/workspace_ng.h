@@ -45,10 +45,15 @@
 */
 class Workspace {
 private:
+  typedef struct {
+    void *wsv;
+    bool auto_allocated;
+  } WsvStruct;
+
   void *EMPTY_WSV;
 
   //! Workspace variable container.
-  Array< stack< void * > > ws;
+  Array< stack<WsvStruct *> > ws;
 
   //! Memory handler for allocation and deallocation of WSVs.
   WorkspaceMemoryHandler wsmh;

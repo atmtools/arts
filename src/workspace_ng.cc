@@ -34,17 +34,11 @@
 
 //! Construct a new workspace
 /*!
-  Initialize the stacks for the WSVs. A NULL element is added to each
-  stack.
+  Create the stacks for the WSVs.
 */
 Workspace::Workspace () : EMPTY_WSV (NULL)
 {
   ws.resize (N_WSV);
-
-  for (int i = 0; i < N_WSV; i++)
-    {
-      ws[i].push (EMPTY_WSV);
-    }
 }
 
 //! Destruct the workspace
@@ -55,68 +49,110 @@ Workspace::~Workspace ()
 {
   for (int i = 0; i < ws.nelem (); i++)
     {
-      void *vp;
+      WsvStruct *wsvs;
 
-      // Store top of stack in vp
-      while ((vp = ws[i].top ()))
+      while (ws[i].size ())
         {
+          wsvs = ws[i].top ();
+          if (wsvs->auto_allocated && wsvs->wsv)
+            {
+              wsmh.deallocate (i, wsvs->wsv);
+            }
+          delete (wsvs);
           ws[i].pop ();
-          // And free memory if vp is not NULL.
-          wsmh.deallocate (i, vp);
         }
     }
   ws.empty ();
 
 }
 
+//! Duplicate WSV.
+/*!
+  Copies the topmost WSV and puts it back on the WSV stack.
+
+  \param i WSV index.
+ */
 void Workspace::duplicate (Index i)
 {
-  push (i, wsmh.duplicate (i, operator[](i)));
+  WsvStruct *wsvs = new WsvStruct;
+  wsvs->auto_allocated = true;
+  wsvs->wsv = wsmh.duplicate (i, operator[](i));
+  ws[i].push (wsvs);
 }
 
 //! Pop the topmost wsv from its stack.
 /*!
   Removes the topmost element from the wsv's stack.
   If necessary, the calling function has to free the wsv's memory.
+
+  \param i WSV index.
  */
 void *Workspace::pop (Index i)
 {
-  void *vp = ws[i].top ();
-  ws[i].pop ();
+  WsvStruct *wsvs = ws[i].top ();
+  void *vp = NULL;
+  if (wsvs)
+    {
+      vp = wsvs->wsv;
+      ws[i].pop ();
+    }
   return vp;
 }
 
 //! Pop the topmost wsv from its stack and free its memory.
 /*!
   Removes the topmost element from the wsv's stack and frees memory.
+
+  \param i WSV index.
  */
 void Workspace::pop_free (Index i)
 {
-  void *vp = pop (i);
-  if (vp)
-    wsmh.deallocate (i, vp);
+  WsvStruct *wsvs = ws[i].top ();
+  if (wsvs)
+    {
+      ws[i].pop ();
+
+      if (wsvs->wsv)
+        wsmh.deallocate (i, wsvs->wsv);
+
+      delete (wsvs);
+    }
 }
 
 //! Push a new wsv onto its stack.
-/*! Adds the pointer to the variable to the wsv stack i. */
+/*!
+  Adds the pointer to the variable to the stack of WSV with index i.
+
+  \param i WSV index.
+  \param wsv Void pointer to variable that should be put on the stack.
+  */
 void Workspace::push (Index i, void *wsv)
 {
-  ws[i].push (wsv);
+  WsvStruct *wsvs = new WsvStruct;
+  wsvs->auto_allocated = false;
+  wsvs->wsv = wsv;
+  ws[i].push (wsvs);
 }
 
 //! Retrieve pointer to the given WSV.
 /*!
   This method returns a void pointer to the topmost instance of the
   given workspace variable.
+
+  \param i WSV index.
 */
 void *Workspace::operator[](Index i)
 {
-  if (!ws[i].top ())
+  if (!ws[i].size ())
+    push (i, EMPTY_WSV);
+
+  if (!ws[i].top ()->wsv)
     {
-      ws[i].push (wsmh.allocate (i));
+      ws[i].top ()->auto_allocated = true;
+      ws[i].top ()->wsv = wsmh.allocate (i);
     }
 
-  return (ws[i].top());
+  return (ws[i].top()->wsv);
 }
 
 

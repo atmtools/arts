@@ -1,5 +1,16 @@
 2005-06-02  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-986
+
+	* src/workspace_ng.{cc,h}:
+
+	Let the workspace keep track of variables which were allocated by
+	itself and which where added from outside. The destructor only frees
+	WSVs which were allocated by the workspace itself. Avoids double
+	free corruption when runtime errors occur inside agendas.
+
+2005-06-02  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-985
 
 	* src/m_scatrte (doit_i_fieldIterate):
