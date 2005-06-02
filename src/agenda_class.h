@@ -46,8 +46,8 @@ public:
   void resize(Index n);
   Index nelem() const;
   Agenda& operator=(const Agenda& x);
-  void get_all_output(set<Index> &outputs) const;
-  void get_all_input(set<Index> &inputs) const;
+  void get_outputs_to_push_and_dup (set<Index> &outputs_to_push,
+                                    set<Index> &outputs_to_dup) const;
   bool is_input(Index var) const;
   bool is_output(Index var) const;
   void set_name(const String& nname);
@@ -185,16 +185,6 @@ inline Agenda& Agenda::operator=(const Agenda& x)
 
 // Documentation is with implementation.
 ostream& operator<<(ostream& os, const MRecord& a);
-
-// Test for full agenda scoping
-void doit_rte_agendaScopeExecute(
-        // Output
-        Tensor6 &doit_i_field,
-        // Input
-        const Tensor6 &doit_scat_field,
-        // Wrapper Input
-        const Agenda &input_agenda,
-        const bool &silent);
 
 #endif
 

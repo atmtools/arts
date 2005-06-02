@@ -348,10 +348,10 @@ int main()
 
           ofs << "\n";
           ofs << "{\n";
+          ofs << "  extern Workspace workspace;\n";
           if (ago.nelem () || agi.nelem ())
             {
-              ofs << "  extern Workspace workspace;\n"
-                << "  extern map<String, Index> AgendaMap;\n"
+              ofs << "  extern map<String, Index> AgendaMap;\n"
                 << "  extern const Array<AgRecord> agenda_data;\n"
                 << "\n"
                 << "  const AgRecord &agr =\n"
@@ -394,7 +394,29 @@ int main()
               ofs << ain_push_os.str () << "\n";
             }
 
+          ofs << "  set<Index> outputs_to_push;\n"
+              << "  set<Index> outputs_to_dup;\n"
+              << "\n"
+              << "  //input_agenda.get_outputs_to_push_and_dup (outputs_to_push, outputs_to_dup);\n"
+              << "\n"
+              << "  for (set<Index>::const_iterator it = outputs_to_push.begin ();\n"
+              << "       it != outputs_to_push.end (); it++)\n"
+              << "  { workspace.push (*it, NULL); }\n"
+              << "\n"
+              << "  for (set<Index>::const_iterator it = outputs_to_dup.begin ();\n"
+              << "       it != outputs_to_dup.end (); it++)\n"
+              << "  { workspace.duplicate (*it); }\n"
+              << "\n";
+
           ofs << "  input_agenda.execute (silent);\n\n";
+
+          ofs << "  for (set<Index>::const_iterator it = outputs_to_push.begin ();\n"
+              << "       it != outputs_to_push.end (); it++)\n"
+              << "    { workspace.pop_free (*it); }\n"
+              << "\n"
+              << "  for (set<Index>::const_iterator it = outputs_to_dup.begin ();\n"
+              << "       it != outputs_to_dup.end (); it++)\n"
+              << "    { workspace.pop_free (*it); }\n\n";
 
           if (aout_pop_os.str().length())
             {

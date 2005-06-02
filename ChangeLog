@@ -1,3 +1,20 @@
+2005-06-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-988
+
+	* src/make_auto_md_cc.cc (main):
+
+	Full agenda scoping nearly finished. Still commented out.
+	'make check' runs fine but there are some problem cases left
+	which need special treatment.
+
+	TODO: Trigger the get_outputs_to_push_and_dup on AgendaSet instead of
+	calling it on every Execute.
+
+	* src/agenda_class.{cc,h} (get_outputs_to_push_and_dup):
+
+	New function replacing get_all_{output,input}.
+
 2005-06-02  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-987

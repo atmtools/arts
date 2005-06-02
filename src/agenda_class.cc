@@ -179,50 +179,90 @@ void Agenda::execute(bool silent) const
     }
 }
 
-//! Retrieve indexes of all output WSVs
+//! Retrieve indexes of all input and output WSVs
 /*!
-  Returns set of output variables of all methods used by the agenda.
+  Returns sets of input and output variables of all methods used by the agenda.
 
+  \param inputs Set of input WSVs.
   \param outputs Set of output WSVs.
 */
-void Agenda::get_all_output(set<Index> &outputs) const
+void Agenda::get_outputs_to_push_and_dup (set<Index> &outputs_to_push,
+                                          set<Index> &outputs_to_dup) const
 {
   extern const Array<MdRecord>  md_data;
+
+  set<Index> inputs;
+  set<Index> outs2push;
+  set<Index> outs2dup;
 
   for (Array<MRecord>::const_iterator method = mml.begin();
        method != mml.end(); method++)
     {
       // Collect output WSVs
       const ArrayOfIndex &outs = md_data[method->Id()].Output();
-      outputs.insert (outs.begin (), outs.end ());
-
-      // Collect generic output WSVs
       const ArrayOfIndex &gouts = method->Output ();
-      outputs.insert (gouts.begin (), gouts.end ());
-    }
-}
 
-//! Retrieve indexes of all input WSVs
-/*!
-  Returns set of input variables of all methods used by the agenda.
+      // Put the outputs into a new set to sort them. Otherwise
+      // set_intersection and set_difference screw up.
+      set<Index> souts;
+      souts.insert ( outs.begin (), outs.end ());
+      souts.insert ( gouts.begin (), gouts.end ());
 
-  \param outputs Set of input WSVs.
-*/
-void Agenda::get_all_input(set<Index> &inputs) const
-{
-  extern const Array<MdRecord>  md_data;
+      set_intersection (souts.begin (), souts.end (),
+                        inputs.begin (), inputs.end (),
+                        insert_iterator< set<Index> >(outs2dup,
+                                                      outs2dup.begin()));
+      set_difference (souts.begin (), souts.end (),
+                      inputs.begin (), inputs.end (),
+                      insert_iterator< set<Index> >(outs2push,
+                                                    outs2push.begin()));
 
-  for (Array<MRecord>::const_iterator method = mml.begin();
-       method != mml.end(); method++)
-    {
-      // Collect output WSVs
+      // Collect input WSVs
       const ArrayOfIndex &ins = md_data[method->Id()].Input();
       inputs.insert (ins.begin (), ins.end ());
 
-      // Collect generic output WSVs
+      // Collect generic input WSVs
       const ArrayOfIndex &gins = method->Input ();
       inputs.insert (gins.begin (), gins.end ());
     }
+
+  extern map<String, Index> AgendaMap;
+  extern const Array<AgRecord> agenda_data;
+
+  const AgRecord &agr = agenda_data[AgendaMap.find (name ())->second];
+  const ArrayOfIndex &aout = agr.Output ();
+
+  // We have to build a new set of agenda output because the set_difference
+  // function only works properly on sorted input.
+  set<Index> saout;
+  saout.insert ( aout.begin (), aout.end ());
+
+  set_difference (outs2push.begin (), outs2push.end (),
+                  saout.begin (), saout.end (),
+                  insert_iterator< set<Index> >(outputs_to_push,
+                                                outputs_to_push.begin()));
+
+  set_difference (outs2dup.begin (), outs2dup.end (),
+                  saout.begin (), saout.end (),
+                  insert_iterator< set<Index> >(outputs_to_dup,
+                                                outputs_to_dup.begin()));
+
+/*  ostream_iterator<Index, char> out (cout, " ");
+
+  cout << "Agenda: " << name() << endl;
+  cout << "Agenda output              : ";
+  copy (saout.begin (), saout.end (), out);
+  cout << endl;
+
+  cout << "In+Out, to be copied       : ";
+  copy (outputs_to_dup.begin (), outputs_to_dup.end (), out);
+  cout << endl;
+
+  cout << "Only WSM Out, to be pushed : ";
+  copy (outputs_to_push.begin (), outputs_to_push.end (), out);
+  cout << endl;
+
+  cout << "/////////////////" << endl;*/
 }
 
 //! Check if given variable is agenda input.
@@ -501,87 +541,5 @@ ostream& operator<<(ostream& os, const MRecord& a)
 {
   a.print(os,"");
   return os;
-}
-
-// Test for full agenda scoping
-void doit_rte_agendaScopeExecute(
-        // Output
-        Tensor6 &doit_i_field,
-        // Input
-        const Tensor6 &doit_scat_field,
-        // Wrapper Input
-        const Agenda &input_agenda,
-        const bool &silent)
-{
-  extern Workspace workspace;
-  extern map<String, Index> AgendaMap;
-  extern const Array<AgRecord> agenda_data;
-
-  const AgRecord &agr =
-    agenda_data[AgendaMap.find (input_agenda.name ())->second];
-
-  const ArrayOfIndex &aout = agr.Output ();
-  workspace.push (aout[0], (void *)&doit_i_field);
-
-  const ArrayOfIndex &ain = agr.Input ();
-  workspace.push (ain[1], (void *)&doit_scat_field);
-
-  /////////////////////////////////////
-
-  set<Index> outputs;
-  set<Index> inputs;
-
-  input_agenda.get_all_output (outputs);
-  input_agenda.get_all_input (inputs);
-
-  ostream_iterator<Index, char> out (cout, " ");
-
-  // Remove WSVs from set which are output of the agenda
-  set<Index> out_no_ag;
-  set_difference (outputs.begin (), outputs.end (),
-                  aout.begin (), aout.end (),
-                  insert_iterator< set<Index> >(out_no_ag, out_no_ag.begin()));
-
-  // Find WSVs which are only output in the WSMs
-  set<Index> only_out;
-  set_difference (out_no_ag.begin (), out_no_ag.end (),
-                  inputs.begin (), inputs.end (),
-                  insert_iterator< set<Index> >(only_out, only_out.begin()));
-
-  // Find WSVs which are output and input in the WSMs
-  set<Index> out_and_in;
-  set_intersection (inputs.begin (), inputs.end (),
-                    out_no_ag.begin (), out_no_ag.end (),
-                    insert_iterator< set<Index> >(out_and_in, out_and_in.begin()));
-
-  cout << "In+Out, to be copied       : ";
-  copy (out_and_in.begin (), out_and_in.end (), out);
-  cout << endl;
-
-  cout << "Only WSM Out, to be pushed : ";
-  copy (only_out.begin (), only_out.end (), out);
-  cout << endl;
-
-  cout << "/////////////////" << endl;
-
-  for (set<Index>::const_iterator it = only_out.begin ();
-       it != only_out.end (); it++)
-    {
-      workspace.push (*it, NULL);
-    }
-  /////////////////////////////////////
-
-  input_agenda.execute (silent);
-
-  for (set<Index>::const_iterator it = only_out.begin ();
-       it != only_out.end (); it++)
-    {
-      workspace.pop_free (*it);
-    }
-
-  workspace.pop (aout[0]);
-
-  workspace.pop (ain[1]);
-
 }
 
