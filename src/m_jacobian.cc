@@ -81,7 +81,7 @@ void jacobianAddGas(// WS Output:
                     // Control Parameters:
                     const String&             species,
                     const String&             method,
-                    const String&             unit,
+                    const String&             mode,
                     const Numeric&            dx)
 {
   // Check that the jacobian matrix is empty. Otherwise it is either
@@ -119,11 +119,11 @@ void jacobianAddGas(// WS Output:
       throw runtime_error(os.str());
     }
   
-  // Check that unit is either "vmr", "nd" or "rel"
-  if( unit!="vmr" && unit!="nd" && unit!="rel" )
+  // Check that mode is either "vmr", "nd" or "rel"
+  if( mode!="vmr" && mode!="nd" && mode!="rel" )
     {
       throw runtime_error(
-                "The retrieval unit can only be \"vmr\", \"nd\" or \"rel\"." );
+                "The retrieval mode can only be \"vmr\", \"nd\" or \"rel\"." );
     }
 
   // Check that this species is not already included in the jacobian.
@@ -142,7 +142,7 @@ void jacobianAddGas(// WS Output:
   RetrievalQuantity rq = RetrievalQuantity();
   rq.MainTag("Gas species");
   rq.Subtag(species);
-  rq.Unit(unit);
+  rq.Mode(mode);
   rq.Analytical(analytical);
   rq.Perturbation(dx);
   rq.Grids(grids);
@@ -160,7 +160,7 @@ void jacobianAddGas(// WS Output:
       out2 << "  Adding gas species: " << species 
            << " to *jacobian_quantities*\n" << "  and *jacobian_agenda*\n";
       out3 << "  Calculations done by perturbation, size " << dx 
-           << " " << unit << ".\n"; 
+           << " " << mode << ".\n"; 
       String methodname = "jacobianCalcGas";
       String kwv = species;
       agenda_append(jacobian_agenda, methodname, kwv);
@@ -211,13 +211,13 @@ void jacobianAddGasAnalytical(
                     const String&             rq_lon_grid_name,
                     // Control Parameters:
                     const String&             species,
-                    const String&             unit )
+                    const String&             mode )
 {
   jacobianAddGas( jq, jacobian_agenda, gas_species, jac, atmosphere_dim,
                   p_grid, lat_grid, lon_grid,
                   rq_p_grid, rq_lat_grid, rq_lon_grid, rq_p_grid_name,
                   rq_lat_grid_name, rq_lon_grid_name, species, "analytical",
-                  unit, 0 );
+                  mode, 0 );
 }
 
 
@@ -342,7 +342,7 @@ void jacobianAddPointing(// WS Output:
                          const Vector&              sensor_time,
                          // Control Parameters:
                          const Numeric&             dza,
-                         const String&              unit,
+                         const String&              mode,
                          const Index&               poly_order)
 {
   // Check that the jacobian matrix is empty. Otherwise it is either
@@ -355,11 +355,11 @@ void jacobianAddPointing(// WS Output:
     throw runtime_error(os.str());
   }
   
-  // Check that unit is either 'abs' or 'rel'
-  if (unit!="abs" && unit!="rel")
+  // Check that mode is either 'abs' or 'rel'
+  if (mode!="abs" && mode!="rel")
   {
     ostringstream os;
-    os << "The unit of perturbation for pointing offset can only be either\n"
+    os << "The mode of perturbation for pointing offset can only be either\n"
        << "absolute (\"abs\") or relative (\"rel\")."; 
     throw runtime_error(os.str());
   }
@@ -398,7 +398,7 @@ void jacobianAddPointing(// WS Output:
   RetrievalQuantity rq = RetrievalQuantity();
   rq.MainTag("Pointing");
   rq.Subtag(subtag);
-  rq.Unit(unit);
+  rq.Mode(mode);
   rq.Analytical(0);
   rq.Perturbation(dza);
   // To store the value or the polynomial order, create a vector with length
@@ -452,7 +452,7 @@ void jacobianAddTemperature(// WS Output:
                     const String&             rq_lon_grid_name,
                     // Control Parameters:
                     const String&             method,
-                    const String&             unit,
+                    const String&             mode,
                     const Numeric&            dx)
 {
   // Check that the jacobian matrix is empty. Otherwise it is either
@@ -498,11 +498,11 @@ void jacobianAddTemperature(// WS Output:
     throw runtime_error(os.str());
   }
   
-  // Check that unit is either 'abs' or 'rel'
-  if (unit!="abs" && unit!="rel")
+  // Check that mode is either 'abs' or 'rel'
+  if (mode!="abs" && mode!="rel")
   {
     ostringstream os;
-    os << "The unit of perturbation for temperature can only be either\n"
+    os << "The mode of perturbation for temperature can only be either\n"
        << "absolute (\"abs\") or relative (\"rel\")."; 
     throw runtime_error(os.str());
   }
@@ -526,7 +526,7 @@ void jacobianAddTemperature(// WS Output:
   RetrievalQuantity rq = RetrievalQuantity();
   rq.MainTag("Temperature");
   rq.Subtag(subtag);
-  rq.Unit(unit);
+  rq.Mode(mode);
   rq.Analytical(analytical);
   rq.Perturbation(dx);
   rq.Grids(grids);
@@ -548,7 +548,7 @@ void jacobianAddTemperature(// WS Output:
   else
   { 
     out3 << "  Calculations done by perturbation, size " << dx 
-         << " " << unit << ".\n"; 
+         << " " << mode << ".\n"; 
   }
 }                    
 
@@ -683,9 +683,9 @@ void jacobianCalcGas(
   ArrayOfVector jg = rq.Grids();
 
   throw runtime_error(
-              "Correct handling of different retrieval units is not updated");
+              "Correct handling of different retrieval modes is not updated");
 
-  if (rq.Unit()=="rel")
+  if (rq.Mode()=="rel")
     method = 0;
   else
     method = 1;
@@ -1119,8 +1119,8 @@ void jacobianCalcPointing(
       "There is no pointing offset retrieval quantities defined.\n");
   }
 
-  // Assert that the chosen unit is implemented
-  assert( rq.Unit()=="abs" || rq.Unit()=="rel" );
+  // Assert that the chosen mode is implemented
+  assert( rq.Mode()=="abs" || rq.Mode()=="rel" );
   
   // FIXME: Should the size of *jacobian* be checked here?
   
@@ -1163,11 +1163,11 @@ void jacobianCalcPointing(
   
   // Add the pointing offset. It should be given as a relative change.
   // FIXME 2: this could be adjusted to account for azimuth offset
-  if (rq.Unit()=="abs")
+  if (rq.Mode()=="abs")
   {
     sensor_los_pert(joker,0) += rq.Perturbation();
   } 
-  else if (rq.Unit()=="rel")
+  else if (rq.Mode()=="rel")
   {
     sensor_los_pert(joker,0) *= 1+rq.Perturbation();
   }
@@ -1305,7 +1305,7 @@ void jacobianCalcTemperature(
   ArrayOfIndex ji = rq.JacobianIndices();
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
-  if (rq.Unit()=="rel")
+  if (rq.Mode()=="rel")
     method = 0;
   else
     method = 1;

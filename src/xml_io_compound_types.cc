@@ -454,7 +454,7 @@ xml_read_from_stream (istream& is_xml,
   ArtsXMLTag     tag;
   String         maintag;
   String         subtag;
-  String         unit;
+  String         mode;
   Index          analytical;
   Numeric        perturbation;
   ArrayOfVector  grids;
@@ -465,7 +465,7 @@ xml_read_from_stream (istream& is_xml,
 
   xml_read_from_stream (is_xml, maintag, pbifs);
   xml_read_from_stream (is_xml, subtag, pbifs);
-  xml_read_from_stream (is_xml, unit, pbifs);
+  xml_read_from_stream (is_xml, mode, pbifs);
   xml_read_from_stream (is_xml, analytical, pbifs);
   xml_read_from_stream (is_xml, perturbation, pbifs);
   xml_read_from_stream (is_xml, grids, pbifs);
@@ -474,7 +474,7 @@ xml_read_from_stream (istream& is_xml,
   tag.read_from_stream (is_xml);
   tag.check_name ("/RetrievalQuantity");
 
-  rq = RetrievalQuantity( maintag, subtag, unit, analytical, perturbation,
+  rq = RetrievalQuantity( maintag, subtag, mode, analytical, perturbation,
                           grids, jacobianindices );
 }
 
@@ -501,7 +501,7 @@ xml_write_to_stream (ostream& os_xml,
 
   xml_write_to_stream (os_xml, rq.MainTag(), pbofs, "MainTag");
   xml_write_to_stream (os_xml, rq.Subtag(), pbofs, "Subtag");
-  xml_write_to_stream (os_xml, rq.Unit(), pbofs, "Unit");
+  xml_write_to_stream (os_xml, rq.Mode(), pbofs, "Mode");
   xml_write_to_stream (os_xml, rq.Analytical(), pbofs, "Analytical");
   xml_write_to_stream (os_xml, rq.Perturbation(), pbofs, "Perturbation");
   xml_write_to_stream (os_xml, rq.Grids(), pbofs, "Grids");

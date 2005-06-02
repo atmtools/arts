@@ -1,4 +1,4 @@
-/* Copyright (C) 2004 Mattias Ekström  <ekstrom@rss.chalmers.se>
+/* Copyright (C) 2004 Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@
 
 /*!
   \file   jacobian.cc
-  \author Mattias Ekström <ekstrom@rss.chalmers.se>
+  \author Mattias Ekstrom <ekstrom@rss.chalmers.se>
   \date   2004-09-14
 
   \brief  Routines for setting up the jacobian.

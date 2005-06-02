@@ -1,4 +1,4 @@
-/* Copyright (C) 2004 Mattias Ekstr� <ekstrom@rss.chalmers.se>
+/* Copyright (C) 2004 Mattias Ekstrom <ekstrom@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -38,7 +38,7 @@
 #include "agenda_class.h"
 
 /** Contains the data for one retrieval quantity.
-    \author Mattias Ekström */
+    \author Mattias Ekstrom */
 class RetrievalQuantity {
 public:
 
@@ -50,7 +50,7 @@ public:
   RetrievalQuantity(const RetrievalQuantity& x) :
     mmaintag(x.mmaintag),
     msubtag(x.msubtag),
-    munit(x.munit),
+    mmode(x.mmode),
     manalytical(x.manalytical),
     mperturbation(x.mperturbation),
     mgrids(x.mgrids),
@@ -60,22 +60,20 @@ public:
   /** Constructor that sets the values. */
   RetrievalQuantity(const String&             maintag,
                     const String&             subtag,
-                    const String&             unit,
+                    const String&             mode,
                     const Index&              analytical,
                     const Numeric&            perturbation,
                     const MakeArray<Vector>&  grids,
                     const ArrayOfIndex&       jacobianindices) :
     mmaintag(maintag),
     msubtag(subtag),
-    munit(unit),
+    mmode(mode),
     manalytical(analytical),
     mperturbation(perturbation),
     mgrids(grids),
     mjacobianindices(jacobianindices)
   {
     // With Matpack, initialization of mgrids from grids should work correctly.
-
-    // FIXME: Do we want consistency checks? What kind of checks do we want??
   }
 
   /** Main tag. */
@@ -84,9 +82,9 @@ public:
   /** Subtag. Eg. for gas species: O3, ClO. */
   const String& Subtag() const { return msubtag; }
   void Subtag( const String& st ) { msubtag = st; }
-  /** Unit of retrieval quantity. Eg. "rel", "vmr" and "nd". */
-  const String& Unit() const { return munit; }
-  void Unit( const String& u ) { munit = u; }
+  /** Mode of retrieval quantity. Eg. "abs", "rel", "vmr" and "nd". */
+  const String& Mode() const { return mmode; }
+  void Mode( const String& m ) { mmode = m; }
   /** Boolean to make analytical calculations (if possible). */
   const Index& Analytical() const { return manalytical; }
   void Analytical( const Index& m ) { manalytical = m; }
@@ -104,7 +102,7 @@ private:
 
   String mmaintag;
   String msubtag;
-  String munit;
+  String mmode;
   Index manalytical;
   Numeric mperturbation;
   ArrayOfVector mgrids;
@@ -113,7 +111,7 @@ private:
 
 /** Output operator for RetrievalQuantity.
 
-    \author Mattias Ekström */
+    \author Mattias Ekstrom */
 ostream& operator << (ostream& os, const RetrievalQuantity& ot);
 
 typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;

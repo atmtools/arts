@@ -377,19 +377,19 @@ void RteCalc(
                 {
                   for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
                     {
-                      //- Scale to other species retrieval units
-                      const String unit = 
-                                       jacobian_quantities[jqi_vmr[ig]].Unit();
-                      if( unit == "vmr" )
+                      //- Scale to other species retrieval modes
+                      const String mode = 
+                                       jacobian_quantities[jqi_vmr[ig]].Mode();
+                      if( mode == "vmr" )
                         {}
-                      else if( unit == "rel" )
+                      else if( mode == "rel" )
                         {
                           for( Index ip=0; ip<ppath.np; ip++ )
                             { diy_dvmr(joker,joker,ip,ig) *= 
                                              ppath_vmr(rte_do_vmr_jacs[ig],ip);
                             }
                         }
-                      else if( unit == "nd" )
+                      else if( mode == "nd" )
                         {
                           for( Index ip=0; ip<ppath.np; ip++ )
                             { 

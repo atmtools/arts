@@ -1,3 +1,16 @@
+2005-06-02  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-987
+
+	* src/jacobian.[cc,h]: Change name of field Unit in the retrieval
+	quantity to Mode. This as it better represent the use of the field.
+
+	* src/m_jacobian.cc: See above.
+
+	* src/m_rte.cc: See above.
+
+	* src/xml_io_compound_types.cc: See above.
+
 2005-06-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-986
