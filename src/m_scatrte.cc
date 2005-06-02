@@ -525,7 +525,7 @@ void doit_i_fieldIterate(
     
     // Update doit_i_field.
     out2 << "Execute doit_rte_agenda. \n";
-    doit_rte_agendaScopeExecute(doit_i_field, doit_scat_field_local, 
+    doit_rte_agendaExecute(doit_i_field, doit_scat_field_local, 
                                 doit_rte_agenda, true);
 
     //Convergence test.
