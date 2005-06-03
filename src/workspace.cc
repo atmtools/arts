@@ -1048,6 +1048,20 @@ void define_wsv_data()
        ),
       GROUP( Agenda_ )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "jacobian_indices" ),
+      DESCRIPTION
+      (
+       "First and last column index in *jacobian* for each retrieval quantity."
+       "\n"
+       "This variable tells which part of *jacobian* that corresponds to \n"
+       "each jacobian quantity.\n"
+       "\n"
+       "Usage:      Set by *jacobianClose*.\n"
+      ),
+      GROUP( ArrayOfArrayOfIndex_ )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "jacobian_particle_update_agenda" ),

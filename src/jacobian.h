@@ -35,6 +35,7 @@
 #include "interpolation.h"
 #include "logic.h"
 #include "methods.h"
+#include "ppath.h"
 #include "agenda_class.h"
 
 /** Contains the data for one retrieval quantity.
@@ -53,8 +54,7 @@ public:
     mmode(x.mmode),
     manalytical(x.manalytical),
     mperturbation(x.mperturbation),
-    mgrids(x.mgrids),
-    mjacobianindices(x.mjacobianindices)
+    mgrids(x.mgrids)
   { /* Nothing left to do here. */ }
 
   /** Constructor that sets the values. */
@@ -63,15 +63,13 @@ public:
                     const String&             mode,
                     const Index&              analytical,
                     const Numeric&            perturbation,
-                    const MakeArray<Vector>&  grids,
-                    const ArrayOfIndex&       jacobianindices) :
+                    const MakeArray<Vector>&  grids ) :
     mmaintag(maintag),
     msubtag(subtag),
     mmode(mode),
     manalytical(analytical),
     mperturbation(perturbation),
-    mgrids(grids),
-    mjacobianindices(jacobianindices)
+    mgrids(grids)
   {
     // With Matpack, initialization of mgrids from grids should work correctly.
   }
@@ -94,9 +92,6 @@ public:
   /** Grids. Definition grids for the jacobian, eg. p, lat and lon. */
   const ArrayOfVector& Grids() const { return mgrids; }
   void Grids( const ArrayOfVector& g ) { mgrids = g; }
-  /** Jacobian indices (= start and stop columns in jacobian). */
-  const ArrayOfIndex& JacobianIndices() const { return mjacobianindices; }
-  void JacobianIndices( const ArrayOfIndex& ji ) { mjacobianindices = ji; }
 
 private:
 
@@ -106,7 +101,6 @@ private:
   Index manalytical;
   Numeric mperturbation;
   ArrayOfVector mgrids;
-  ArrayOfIndex mjacobianindices;
 };
 
 /** Output operator for RetrievalQuantity.
@@ -180,5 +174,12 @@ void perturbation_field_3d(       Tensor3View     field,
                             const Numeric&        size,
                             const Index&          method);
                                 
+void jacobian_from_path_to_rgrids(
+         Tensor3&             diy_dx,
+   ConstTensor3View           diy_dq,
+   const Index&               atmosphere_dim,
+   const Ppath&               ppath,
+   ConstVectorView            ppath_p,
+   const RetrievalQuantity&   jacobian_quantity );
                            
 #endif // jacobian_h

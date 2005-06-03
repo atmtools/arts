@@ -1,3 +1,38 @@
+2005-06-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-989
+
+	* src/: Introduced new workspace group ArrayOfArrayOfindex.
+
+	* src/workspace.cc: Introduced jacobian_indices. 
+
+	* src/m_physics.cc: Created SparseToTbByRJ and SparseToTbByPlanck.
+
+	* src/m_basic_types.h (ArrayInit): Created this supergeneric method.
+
+	* src/methods.cc: Added gas_species as input to gas_speciesAdd and
+	jacobianAddGas, to make sure that gas_species is properly set.
+
+	* src/m_jacobian.cc 
+	(jacobianInit): jacobianInit and jacobianOff are now internally
+	the same function, with functionality of old jacobianOff. This
+	means that jacobianInit can always be used
+	(this simplified the coding for qarts in Atmlab).
+
+	Changes here and there following introduction of jacobian_indices.
+
+	* src/m_rte.cc: Code extracted to create jacobian_from_path_to_rgrids.
+
+	* src/jacobian.cc (jacobian_from_path_to_rgrids): Help function to
+	RteCalc, to map jacobians from positions along the propagation path
+	to the retrieval grids.
+
+	* src: *opt_prop_agenda* is not any longer used by *rte_agenda*. 
+	A fixed mapping from *abs_scalar_gas* to extinction matrix is assumed.
+	The scheme must later be extended to include Zeeman.
+	
+	Changes in several files to adopt to this change.
+
 2005-06-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-988

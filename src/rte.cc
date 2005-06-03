@@ -529,38 +529,61 @@ void rte_step_std(//Output and Input:
 
 
 
+//! rte_step_std_clearsky
+/*!
+    Solves monochromatic clear sky VRTE for an atmospheric slab with constant
+    temperature and absorption. 
+
+    \param   stokes_vec         Input/Output: A Stokes vector.
+    \param   trans_mat          Input/Output: Transmission matrix of slab.
+    \param   absorption         Input: Gas absorption for each species.
+    \param   l_step             Input: The length of the RTE step.
+    \param   emission           Input: Blackbody radiation.
+
+    \author Patrick Eriksson, 
+    \date   2005-06-01
+*/
 void rte_step_std_clearsky(
               //Output and Input:
                     VectorView   stokes_vec,
                     MatrixView   trans_mat,
               //Input
-              const bool&        abs_polarised,
-              ConstMatrixView    ext_mat,
-              ConstVectorView    abs_vec,
+              const Vector&      absorption,
               const Numeric&     l_step,
-              const Numeric&     b )
+              const Numeric&     emission )
 {
   //Stokes dimension:
   Index stokes_dim = stokes_vec.nelem();
 
   //Check inputs:
   assert( is_size( trans_mat, stokes_dim, stokes_dim ) ); 
-  assert( is_size( ext_mat, stokes_dim, stokes_dim ) ); 
-  assert( is_size( abs_vec, stokes_dim ) );
-  assert( b >= 0 );
+  assert( emission >= 0 );
   assert( l_step >= 0 );
+
+  // Temporary solution
+  const bool abs_polarised = false;
+
+
+  //--- Polarised absorption -------------------------------------------------
+  if( abs_polarised )
+    { 
+      // We do not allow scalar case here
+      assert( stokes_dim > 1 );
+
+      throw runtime_error( "Polarised absorption not yet handled.");
+    }
 
 
   //--- Unpolarised absorption -----------------------------------------------
-  if( !abs_polarised )
+  else
     {
       // Init transmission matrix to zero
       trans_mat      = 0;
 
       // Stokes dim 1
-      trans_mat(0,0) = exp( -ext_mat(0,0) * l_step );
+      trans_mat(0,0) = exp( -absorption.sum() * l_step );
       stokes_vec[0]  = stokes_vec[0] * trans_mat(0,0) + 
-                                                    b * ( 1 - trans_mat(0,0) );
+                                             emission * ( 1 - trans_mat(0,0) );
 
       // Higher Stokes dims
       for( Index i=1; i<stokes_dim; i++ )
@@ -569,15 +592,6 @@ void rte_step_std_clearsky(
           stokes_vec[i]  *= trans_mat(i,i);
         }
       
-    }
-
-  //--- Polarised absorption -------------------------------------------------
-  else
-    { 
-      // We do not allow scalar case here
-      assert( stokes_dim > 1 );
-
-      throw runtime_error( "Polarised absorption not yet handled.");
     }
 }
 
@@ -601,8 +615,6 @@ void rte_step_std_clearsky(
 void rte_std(
              Matrix&         iy,
              Vector&         emission,
-             Matrix&         abs_vec,
-             Tensor3&        ext_mat,
              Matrix&         abs_scalar_gas,
              Numeric&        rte_pressure,
              Numeric&        rte_temperature,
@@ -620,14 +632,10 @@ void rte_std(
        const Index&          stokes_dim,
        const Agenda&         emission_agenda,
        const Agenda&         scalar_gas_absorption_agenda,
-       const Agenda&         opt_prop_gas_agenda,
        const ArrayOfIndex&   rte_do_vmr_jacs,
        const Index&          rte_do_t_jacs,
        const bool&           do_transmissions )
 {
-  // Temporary variables
-  bool   abs_polarised = false;   // To become WSV?
-
   // Relevant checks are assumed to be done in RteCalc
 
   // Some sizes
@@ -699,9 +707,10 @@ void rte_std(
       // Call agendas for RT properties
       emission_agenda.execute( ip );
       scalar_gas_absorption_agenda.execute( ip );
-      opt_prop_gas_agenda.execute( ip ); 
 
       // Polarised absorption?
+      // What check to do here?
+      bool abs_polarised = false;
       if( abs_polarised )
         { any_abs_polarised = true; }
 
@@ -711,21 +720,26 @@ void rte_std(
           // Jacobians
           if( do_vmr_jacobians )
             {
-              const Numeric   dd = 
-                       -0.5 * ppath.l_step[ip-1] * ( iy(iv,0) - emission[iv] );
-              for( Index ig=0; ig<ng; ig++ )
+              if( abs_polarised )
+                {}  // To be coded when format for polarised absorption is set
+              else
                 {
-                  const Index   is = rte_do_vmr_jacs[ig];
-                  const Numeric p  = dd*abs_scalar_gas(iv,is)/rte_vmr_list[is];
-                  diy_dvmr(iv,0,ip,is)   += p;
-                  diy_dvmr(iv,0,ip-1,is) += p;
+                  const Numeric   dd = -0.5 * ppath.l_step[ip-1] * 
+                                                   ( iy(iv,0) - emission[iv] );
+                  for( Index ig=0; ig<ng; ig++ )
+                    {
+                      const Index   is = rte_do_vmr_jacs[ig];
+                      const Numeric p  = dd * 
+                                      abs_scalar_gas(iv,is) / rte_vmr_list[is];
+                      diy_dvmr(iv,0,ip,is)   += p;
+                      diy_dvmr(iv,0,ip-1,is) += p;
+                    }
                 }
             }
 
           // Perform the RTE step.
-          rte_step_std_clearsky( iy(iv,joker), trans, abs_polarised, 
-                                 ext_mat(iv,joker,joker), abs_vec(iv,joker), 
-                                 ppath.l_step[ip-1], emission[iv] );
+          rte_step_std_clearsky( iy(iv,joker), trans, abs_scalar_gas(iv,joker),
+                                            ppath.l_step[ip-1], emission[iv] );
 
           if( save_transmissions )
             { ppath_transmissions(ip-1,iv,joker,joker) = trans; }

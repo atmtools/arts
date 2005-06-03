@@ -141,6 +141,13 @@ xml_write_to_stream (ostream&, const ArrayOfIndex&, bofstream * = NULL,
                      const String& = "");
 
 void
+xml_read_from_stream (istream&, ArrayOfArrayOfIndex&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfArrayOfIndex&,
+                     bofstream * = NULL, const String& = "");
+
+void
 xml_read_from_stream (istream&, ArrayOfMatrix&, bifstream * = NULL);
 
 void

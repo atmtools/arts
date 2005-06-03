@@ -573,7 +573,7 @@ void define_agenda_data()
         ),
        OUTPUT( iy_ ),
        INPUT(  ppath_, ppath_p_, ppath_t_, ppath_vmr_, stokes_dim_, f_grid_, 
-               scalar_gas_absorption_agenda_, opt_prop_gas_agenda_ )));
+               scalar_gas_absorption_agenda_ )));
 
   agenda_data.push_back
     (AgRecord

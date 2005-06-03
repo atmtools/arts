@@ -458,7 +458,6 @@ xml_read_from_stream (istream& is_xml,
   Index          analytical;
   Numeric        perturbation;
   ArrayOfVector  grids;
-  ArrayOfIndex   jacobianindices;
 
   tag.read_from_stream (is_xml);
   tag.check_name ("RetrievalQuantity");
@@ -469,13 +468,12 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, analytical, pbifs);
   xml_read_from_stream (is_xml, perturbation, pbifs);
   xml_read_from_stream (is_xml, grids, pbifs);
-  xml_read_from_stream (is_xml, jacobianindices, pbifs);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/RetrievalQuantity");
 
   rq = RetrievalQuantity( maintag, subtag, mode, analytical, perturbation,
-                          grids, jacobianindices );
+                          grids );
 }
 
 //! Writes RetrievalQuantity to XML output stream
@@ -505,7 +503,6 @@ xml_write_to_stream (ostream& os_xml,
   xml_write_to_stream (os_xml, rq.Analytical(), pbofs, "Analytical");
   xml_write_to_stream (os_xml, rq.Perturbation(), pbofs, "Perturbation");
   xml_write_to_stream (os_xml, rq.Grids(), pbofs, "Grids");
-  xml_write_to_stream (os_xml, rq.JacobianIndices(), pbofs, "JacobianIndices");
 
   close_tag.set_name ("/RetrievalQuantity");
   close_tag.write_to_stream (os_xml);

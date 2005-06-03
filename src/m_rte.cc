@@ -59,20 +59,6 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-void from_dvmr_to_dx(
-         MatrixView   diy_dx,
-    ConstMatrixView   diy_dvmr,
-    const Numeric&      w )
-{
-  for( Index iv=0; iv<diy_dx.nrows(); iv++ )
-    { 
-      for( Index is=0; is<diy_dx.ncols(); is++ )
-        { 
-          diy_dx(iv,is) += w * diy_dvmr(iv,is);
-        }
-    }
-}
-
 
 //! RteCalc
 /*! 
@@ -124,7 +110,9 @@ void RteCalc(
    const Index&                      antenna_dim,
    const Vector&                     mblock_za_grid,
    const Vector&                     mblock_aa_grid,
-   const ArrayOfRetrievalQuantity&   jacobian_quantities )
+   const ArrayOfRetrievalQuantity&   jacobian_quantities,
+   const ArrayOfArrayOfIndex&        jacobian_indices )
+
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -305,7 +293,7 @@ void RteCalc(
           Index si = chk_contains( "gas_species", gas_species, tags );
           rte_do_vmr_jacs.push_back( si ); 
           // Set size of MPB matrix
-          ArrayOfIndex ji = jacobian_quantities[i].JacobianIndices();
+          ArrayOfIndex ji = jacobian_indices[i];
           const Index  nx = ji[1]-ji[0]+1;
           ji0_vmr.push_back( ji[0] );
           jin_vmr.push_back( nx );
@@ -317,7 +305,7 @@ void RteCalc(
           jqi_t         = i;
           rte_do_t_jacs = 1; 
           // Set size of MPB matrix
-          ArrayOfIndex ji = jacobian_quantities[i].JacobianIndices();
+          ArrayOfIndex ji = jacobian_indices[i];
           const Index  nx = ji[1]-ji[0]+1;
           ji0_t = ji[0];
           jin_t = nx;
@@ -372,7 +360,7 @@ void RteCalc(
 
               //--- Jacobian part: --------------------------------------------
 
-              //--- Gas species
+              //--- Gas species ---
               if( diy_dvmr.ncols() )  // See comment above
                 {
                   for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
@@ -400,148 +388,14 @@ void RteCalc(
                       else
                         { assert(0); }  // Should have been catched before
 
-                      //- Map to retrieval points
-                      Vector r_grid;
-                      //
-                      // Pressure
-                      r_grid = jacobian_quantities[jqi_vmr[ig]].Grids()[0];
-                      Index            nr1 = r_grid.nelem();
-                      ArrayOfGridPos   gp_p(ppath.np);
-                      p2gridpos( gp_p, r_grid, ppath_p );
-                      //
-                      // Latitude
-                      Index            nr2 = 1;
-                      ArrayOfGridPos   gp_lat;
-                      if( atmosphere_dim > 1 )
-                        {
-                          gp_lat.resize(ppath.np);
-                          r_grid = jacobian_quantities[jqi_vmr[ig]].Grids()[1];
-                          nr2    = r_grid.nelem();
-                          p2gridpos( gp_lat, r_grid, ppath.pos(joker,1) );
-                        }
-                      //
-                      // Longitude
-                      Index            nr3 = 1;
-                      ArrayOfGridPos   gp_lon;
-                      if( atmosphere_dim > 2 )
-                        {
-                          gp_lon.resize(ppath.np);
-                          r_grid = jacobian_quantities[jqi_vmr[ig]].Grids()[2];
-                          nr3    = r_grid.nelem();
-                          p2gridpos( gp_lon, r_grid, ppath.pos(joker,2) );
-                        }
-                      
-                      Tensor3   diy_dx(nf,stokes_dim,nr1*nr2*nr3,0.0);
+                      //- Map from ppath to retrieval quantities
+                      Tensor3   diy_dx;
+                      jacobian_from_path_to_rgrids( 
+                                       diy_dx, diy_dvmr(joker,joker,joker,ig),
+                                       atmosphere_dim, ppath, ppath_p, 
+                                       jacobian_quantities[jqi_vmr[ig]] );
 
-                      if( atmosphere_dim == 1 )
-                        {
-                          for( Index ip=0; ip<ppath.np; ip++ )
-                            {
-                              if( gp_p[ip].fd[0] < 1 )
-                                {
-                                  from_dvmr_to_dx( 
-                                              diy_dx(joker,joker,gp_p[ip].idx),
-                                              diy_dvmr(joker,joker,ip,ig), 
-                                              gp_p[ip].fd[1] );
-                                }
-                              if( gp_p[ip].fd[0] > 0 )
-                                {
-                                  from_dvmr_to_dx( 
-                                            diy_dx(joker,joker,gp_p[ip].idx+1),
-                                            diy_dvmr(joker,joker,ip,ig), 
-                                            gp_p[ip].fd[0] );
-                                }
-                            }
-                        }
-                      else if( atmosphere_dim == 2 )
-                        {
-                          for( Index ip=0; ip<ppath.np; ip++ )
-                            {
-                              Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
-                              // Low lat, low p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
-                              // Low lat, high p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix+1),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
-                              // High lat, low p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix+nr1),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
-                              // High lat, high p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix+nr1+1),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
-                            }
-                        }
-                      else if( atmosphere_dim == 3 )
-                        {
-                          for( Index ip=0; ip<ppath.np; ip++ )
-                            {
-                              Index   ix = nr2*nr1*gp_lon[ip].idx +
-                                             nr1*gp_lat[ip].idx + gp_p[ip].idx;
-                              // Low lon, low lat, low p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lon[ip].fd[1]*
-                                             gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
-                              // Low lon, low lat, high p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix+1),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lon[ip].fd[1]*
-                                             gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
-                              // Low lon, high lat, low p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix+nr1),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lon[ip].fd[1]*
-                                             gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
-                              // Low lon, high lat, high p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix+nr1+1),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lon[ip].fd[1]*
-                                             gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
-
-                              // Increase *ix* (to be valid for high lon level)
-                              ix += nr2*nr1;
-
-                              // High lon, low lat, low p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lon[ip].fd[0]*
-                                             gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
-                              // High lon, low lat, high p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix+1),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lon[ip].fd[0]*
-                                             gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
-                              // High lon, high lat, low p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix+nr1),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lon[ip].fd[0]*
-                                             gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
-                              // High lon, high lat, high p
-                              from_dvmr_to_dx( 
-                                             diy_dx(joker,joker,ix+nr1+1),
-                                             diy_dvmr(joker,joker,ip,ig), 
-                                             gp_lon[ip].fd[0]*
-                                             gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
-                            }
-                        }
-
-                      // Copy obtained values to *ib_vmr_jacs*
+                      //- Copy obtained values to *ib_vmr_jacs*
                       for( Index is=0; is<stokes_dim; is++ )
                         { 
                          ib_vmr_jacs[ig](Range(nbdone+is,nf,stokes_dim),joker)=
@@ -550,11 +404,21 @@ void RteCalc(
                     }
                 }
 
-              //- Temperature
+              //--- Temperature ---
               if( diy_dt.ncols() && rte_do_t_jacs )
                 {
-                  // Dummy code
-                  ib_t_jacs(0,0) = diy_dt(0,0,0);
+                  //- Map from ppath to retrieval quantities
+                  Tensor3   diy_dx;
+                  jacobian_from_path_to_rgrids( 
+                           diy_dx, diy_dt(joker,joker,joker), atmosphere_dim, 
+                           ppath, ppath_p, jacobian_quantities[jqi_t] );
+
+                  //- Copy obtained values to *ib_vmr_jacs*
+                  for( Index is=0; is<stokes_dim; is++ )
+                    { 
+                      ib_t_jacs(Range(nbdone+is,nf,stokes_dim),joker)=
+                                                        diy_dx(joker,is,joker);
+                    }
                 }
 
               //--- End of jacobian part --------------------------------------
@@ -654,13 +518,15 @@ void RteCalcNoJacobian(
 {
   Sparse                     jacobian;
   ArrayOfRetrievalQuantity   jacobian_quantities;
+  ArrayOfArrayOfIndex        jacobian_indices;
   ArrayOfIndex               rte_do_vmr_jacs;
   Tensor4                    diy_dvmr(0,0,0,0);
   Index                      rte_do_t_jacs;
   Tensor3                    diy_dt(0,0,0);
   ArrayOfArrayOfSpeciesTag   gas_species(0);
   
-  jacobianOff( jacobian, jacobian_quantities, rte_do_vmr_jacs, rte_do_t_jacs );
+  jacobianOff( jacobian, jacobian_quantities, jacobian_indices, 
+               rte_do_vmr_jacs, rte_do_t_jacs );
 
   RteCalc( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, iy, rte_pos, 
            rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los, jacobian, 
@@ -670,7 +536,7 @@ void RteCalcNoJacobian(
            z_field, t_field, vmr_field, gas_species, r_geoid, z_surface, 
            cloudbox_on,  cloudbox_limits, sensor_response, sensor_pos, 
            sensor_los, f_grid, stokes_dim, antenna_dim, mblock_za_grid, 
-           mblock_aa_grid, jacobian_quantities );
+           mblock_aa_grid, jacobian_quantities, jacobian_indices );
 }
 
 
@@ -686,8 +552,6 @@ void RteStd(
       // WS Output:
              Matrix&         iy,
              Vector&         emission,
-             Matrix&         abs_vec,
-             Tensor3&        ext_mat,
              Matrix&         abs_scalar_gas,
              Numeric&        rte_pressure,
              Numeric&        rte_temperature,
@@ -705,17 +569,16 @@ void RteStd(
        const Index&          stokes_dim,
        const Agenda&         emission_agenda,
        const Agenda&         scalar_gas_absorption_agenda,
-       const Agenda&         opt_prop_gas_agenda,
        const ArrayOfIndex&   rte_do_gas_jacs,
        const Index&          rte_do_t_jacs )
 {
   Tensor4 dummy(0,0,0,0);
 
-  rte_std( iy, emission, abs_vec, ext_mat, abs_scalar_gas, rte_pressure, 
+  rte_std( iy, emission, abs_scalar_gas, rte_pressure, 
            rte_temperature, rte_vmr_list, f_index, ppath_index, 
            dummy, diy_dvmr, diy_dt,
            ppath, ppath_p, ppath_t, ppath_vmr, f_grid, stokes_dim, 
-           emission_agenda, scalar_gas_absorption_agenda, opt_prop_gas_agenda,
+           emission_agenda, scalar_gas_absorption_agenda,
            rte_do_gas_jacs, rte_do_t_jacs, false );
 }
 
@@ -732,8 +595,6 @@ void RteStdWithTransmissions(
       // WS Output:
              Matrix&         iy,
              Vector&         emission,
-             Matrix&         abs_vec,
-             Tensor3&        ext_mat,
              Matrix&         abs_scalar_gas,
              Numeric&        rte_pressure,
              Numeric&        rte_temperature,
@@ -752,15 +613,14 @@ void RteStdWithTransmissions(
        const Index&          stokes_dim,
        const Agenda&         emission_agenda,
        const Agenda&         scalar_gas_absorption_agenda,
-       const Agenda&         opt_prop_gas_agenda,
        const ArrayOfIndex&   rte_do_gas_jacs,
        const Index&          rte_do_t_jacs )
 {
-  rte_std( iy, emission, abs_vec, ext_mat, abs_scalar_gas, rte_pressure, 
+  rte_std( iy, emission, abs_scalar_gas, rte_pressure, 
            rte_temperature, rte_vmr_list, f_index, ppath_index, 
            ppath_transmissions, diy_dvmr, diy_dt,
            ppath, ppath_p, ppath_t, ppath_vmr, f_grid, stokes_dim, 
-           emission_agenda, scalar_gas_absorption_agenda, opt_prop_gas_agenda,
+           emission_agenda, scalar_gas_absorption_agenda,
            rte_do_gas_jacs, rte_do_t_jacs, true );
 }
 

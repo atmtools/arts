@@ -100,8 +100,6 @@ void rte_step_std(
 void rte_std(
              Matrix&         iy,
              Vector&         emission,
-             Matrix&         abs_vec,
-             Tensor3&        ext_mat,
              Matrix&         abs_scalar_gas,
              Numeric&        rte_pressure,
              Numeric&        rte_temperature,
@@ -119,7 +117,6 @@ void rte_std(
        const Index&          stokes_dim,
        const Agenda&         emission_agenda,
        const Agenda&         scalar_gas_absorption_agenda,
-       const Agenda&         opt_prop_gas_agenda,
        const ArrayOfIndex&   rte_do_gas_jacs,
        const Index&          rte_do_t_jacs,
        const bool&           do_transmissions );

@@ -29,15 +29,12 @@ void gas_abs_lookupInit(GasAbsLookup& /* x */)
   out2 << "  Created an empty gas absorption lookup table.\n";
 }
 
+
 void gas_speciesAdd(// WS Output:
                     ArrayOfArrayOfSpeciesTag& gas_species,
                     // Control Parameters:
                     const ArrayOfString& names)
 {
-//   gas_species.resize(names.nelem());
-
-  //cout << "Names: " << names << "\n";
-  
   // Size of initial array
   Index n_gs = gas_species.nelem();
   
@@ -64,6 +61,15 @@ void gas_speciesAdd(// WS Output:
     }
   out3 << '\n';
 }
+
+
+
+void gas_speciesInit( ArrayOfArrayOfSpeciesTag& gas_species )
+{
+  gas_species.resize(0);
+}
+
+
 
 void gas_speciesSet(// WS Output:
                     ArrayOfArrayOfSpeciesTag& gas_species,

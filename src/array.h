@@ -39,6 +39,8 @@ class Array;
 /** An array of Index. */
 typedef Array<Index> ArrayOfIndex;
 
+typedef Array<ArrayOfIndex> ArrayOfArrayOfIndex;
+
 /** An array of Numeric. */
 typedef Array<Numeric> ArrayOfNumeric;
 

@@ -564,10 +564,8 @@ void jacobianCalc(// WS Output:
                         Sparse&                    jacobian,
                   // WS Input:
                   const Agenda&                    jacobian_agenda,
-                  const ArrayOfRetrievalQuantity&  jq)
+                  const ArrayOfArrayOfIndex&       jacobian_indices )
 {
-  Index n_jq = jq.nelem();
-  
   // Check that the jacobian has been initialised. This is covered by the
   // next test, but gives a better output for this specific case.
   if (jacobian.ncols()==0)
@@ -578,8 +576,8 @@ void jacobianCalc(// WS Output:
     throw runtime_error(os.str());
   }
 
-  // Check that *jacobian_quantities* and *jacobian* are consistent
-  ArrayOfIndex last_ind = jq[n_jq-1].JacobianIndices();
+  // Check that *jacobian_indices* and *jacobian* are consistent
+  ArrayOfIndex last_ind = jacobian_indices[jacobian_indices.nelem()-1];
   if (jacobian.ncols()-1!=last_ind[1])
   {
     ostringstream os;
@@ -595,6 +593,7 @@ void jacobianCalc(// WS Output:
   // Run jacobian_agenda
   jacobian_agenda.execute();
 }
+
 
 
 //! jacobianCalcGas
@@ -622,6 +621,7 @@ void jacobianCalcGas(
            Vector&                   rte_los,
      // WS Input:
      const ArrayOfRetrievalQuantity& jq,
+     const ArrayOfArrayOfIndex&      jacobian_indices,
      const ArrayOfArrayOfSpeciesTag& gas_species,
      const Agenda&                   ppath_step_agenda,
      const Agenda&                   rte_agenda,
@@ -652,6 +652,7 @@ void jacobianCalcGas(
   // Set some useful (and needed) variables. 
   Index n_jq = jq.nelem();
   RetrievalQuantity rq;
+  ArrayOfIndex ji;
   Index it, method;
   
   // Find the retrieval quantity related to this method, i.e. Gas species -
@@ -663,6 +664,7 @@ void jacobianCalcGas(
         {
           check_rq = true;
           rq = jq[n];
+          ji = jacobian_indices[n];
         }
     }
   if( !check_rq )
@@ -678,7 +680,6 @@ void jacobianCalcGas(
    
   
   // Store the start JacobianIndices and the Grids for this quantity
-  ArrayOfIndex ji = rq.JacobianIndices();
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
 
@@ -850,6 +851,7 @@ void jacobianCalcParticle(
            Vector&                   rte_los,
      // WS Input:
      const ArrayOfRetrievalQuantity& jq,
+     const ArrayOfArrayOfIndex&      jacobian_indices,
      const Tensor5&                  pnd_field_perturb,
      const Agenda&                   jacobian_particle_update_agenda,
      const Agenda&                   ppath_step_agenda,
@@ -880,6 +882,7 @@ void jacobianCalcParticle(
   // Set some useful (and needed) variables. 
   Index n_jq = jq.nelem();
   RetrievalQuantity rq;
+  ArrayOfIndex ji;
   Index it;
   
   // Find the retrieval quantity related to this method, i.e. Particles - all.
@@ -891,6 +894,7 @@ void jacobianCalcParticle(
     {
       check_rq = true;
       rq = jq[n];
+      ji = jacobian_indices[n];
     }
   }
   if (!check_rq)
@@ -901,7 +905,6 @@ void jacobianCalcParticle(
   }
   
   // Store the start JacobianIndices and the Grids for this quantity
-  ArrayOfIndex ji = rq.JacobianIndices();
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
   
@@ -1067,6 +1070,7 @@ void jacobianCalcPointing(
            Vector&                   rte_los,
      // WS Input:
      const ArrayOfRetrievalQuantity& jq,
+     const ArrayOfArrayOfIndex&      jacobian_indices,
      const Vector&                   sensor_time,
      const Agenda&                   ppath_step_agenda,
      const Agenda&                   rte_agenda,
@@ -1097,6 +1101,7 @@ void jacobianCalcPointing(
   //  Index n_los = sensor_los.nrows();
   Matrix sensor_los_pert = sensor_los;
   RetrievalQuantity rq;
+  ArrayOfIndex ji;
   bool gitter = false;
   
   // Check that sensor_time is consistent with sensor_pos
@@ -1111,6 +1116,7 @@ void jacobianCalcPointing(
     {
       check_rq = true;
       rq = jq[n];
+      ji = jacobian_indices[n];
     }
   }
   if (!check_rq)
@@ -1157,10 +1163,7 @@ void jacobianCalcPointing(
   // Declare variables for reference and difference spectrum
   Vector y_ref = y;
   Vector dydx(y.nelem());
-  
-  // Calculate the jacobian for the zeroth order polynomial
-  ArrayOfIndex ji = rq.JacobianIndices();
-  
+    
   // Add the pointing offset. It should be given as a relative change.
   // FIXME 2: this could be adjusted to account for azimuth offset
   if (rq.Mode()=="abs")
@@ -1255,6 +1258,7 @@ void jacobianCalcTemperature(
            Vector&                   rte_los,
      // WS Input:
      const ArrayOfRetrievalQuantity& jq,
+     const ArrayOfArrayOfIndex&      jacobian_indices,
      const Agenda&                   ppath_step_agenda,
      const Agenda&                   rte_agenda,
      const Agenda&                   iy_space_agenda,
@@ -1281,6 +1285,7 @@ void jacobianCalcTemperature(
 {
   // Set some useful (and needed) variables. 
   RetrievalQuantity rq;
+  ArrayOfIndex ji;
   Index it, method;
   
   // Find the retrieval quantity related to this method, i.e. Temperature.
@@ -1292,6 +1297,7 @@ void jacobianCalcTemperature(
     {
       check_rq = true;
       rq = jq[n];
+      ji = jacobian_indices[n];
     }
   }
   if (!check_rq)
@@ -1302,7 +1308,6 @@ void jacobianCalcTemperature(
   }
   
   // Store the start JacobianIndices and the Grids for this quantity
-  ArrayOfIndex ji = rq.JacobianIndices();
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
   if (rq.Mode()=="rel")
@@ -1447,11 +1452,12 @@ void jacobianCalcTemperature(
    \date   2004-09-19
 */
 void jacobianClose(// WS Output:
-                   Sparse&                    jacobian,
-                   ArrayOfRetrievalQuantity&  jacobian_quantities,
+                   Sparse&                          jacobian,
+                   ArrayOfArrayOfIndex&             jacobian_indices,
                    // WS Input:
-                   const Matrix&              sensor_pos,
-                   const Sparse&              sensor_response)
+                   const ArrayOfRetrievalQuantity&  jacobian_quantities,
+                   const Matrix&                    sensor_pos,
+                   const Sparse&                    sensor_response)
 {
   // Check that *jacobian* has been initialised
   if (jacobian.nrows()!=0 && jacobian.ncols()!=0)
@@ -1497,7 +1503,7 @@ void jacobianClose(// WS Output:
 
     // Store stop index
     indices[1] = ncols-1;
-    jacobian_quantities[it].JacobianIndices(indices);
+    jacobian_indices.push_back(indices);
   }
   
   // Resize *jacobian*
@@ -1513,16 +1519,18 @@ void jacobianClose(// WS Output:
    \author Mattias Ekström
    \date   2004-09-14
 */
-void jacobianInit(// WS Output:
-                  Sparse&                    jacobian,
-                  ArrayOfRetrievalQuantity&  jacobian_quantities )
+void jacobianInit(
+      Sparse&                    jacobian,
+      ArrayOfRetrievalQuantity&  jacobian_quantities,
+      ArrayOfArrayOfIndex&       jacobian_indices,
+      ArrayOfIndex&              rte_do_vmr_jacs,
+      Index&                     rte_do_t_jacs )
 {
-  // Resize arrays and sparse to zero.
-  jacobian_quantities.resize(0);
   jacobian.resize(0,0);
-
-  out2 <<
-    "  Initialising *jacobian* and *jacobian_quantities*.\n";
+  jacobian_quantities.resize(0);
+  jacobian_indices.resize(0);
+  rte_do_vmr_jacs.resize(0);
+  rte_do_t_jacs = 0;
 }
 
 
@@ -1537,12 +1545,12 @@ void jacobianInit(// WS Output:
 void jacobianOff(
       Sparse&                    jacobian,
       ArrayOfRetrievalQuantity&  jacobian_quantities,
+      ArrayOfArrayOfIndex&       jacobian_indices,
       ArrayOfIndex&              rte_do_vmr_jacs,
       Index&                     rte_do_t_jacs )
 {
-  jacobianInit( jacobian, jacobian_quantities );
-  rte_do_vmr_jacs.resize(0);
-  rte_do_t_jacs = 0;
+  jacobianInit( jacobian, jacobian_quantities, jacobian_indices, 
+                                              rte_do_vmr_jacs, rte_do_t_jacs );
 }
 
 

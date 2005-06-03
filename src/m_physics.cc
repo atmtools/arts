@@ -315,6 +315,127 @@ void MatrixUnitIntensity(
 
 
 
+//! SparseToTbByPlanck
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2005-06-03
+*/
+void SparseToTbByPlanck(
+              Sparse&   y_out,
+        const String&   y_out_name,
+        const Matrix&   sensor_pos,
+        const Matrix&   sensor_los,
+        const Vector&   sensor_response_f,
+        const Vector&   sensor_response_za,
+        const Vector&   sensor_response_aa,
+        const Index&    sensor_response_pol,
+        const Sparse&   y_in,
+        const String&   y_in_name )
+{
+  Index   nf, npol, nspectra;
+
+  Vector ytest(y_in.nrows());
+
+  chk_y_with_sensor( nf, npol, nspectra, ytest, y_in_name, sensor_pos,
+                     sensor_los, sensor_response_f, sensor_response_za, 
+                     sensor_response_aa, sensor_response_pol );
+
+  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
+ 
+  const Index   ncols = y_in.ncols();
+
+  // Note that y_in and y_out can be the same matrix
+  if ( &y_out != &y_in )
+    { y_out.resize(y_in.nrows(),ncols); }
+
+  for( Index iv=0; iv<nf; iv++ )
+    {
+      for( Index isp=0; isp<nspectra; isp++ )
+        {  
+          const Index   i0 = nf*npol*isp + iv * npol;
+
+          for( Index ipol=0; ipol<npol; ipol++ )
+            {
+              for( Index icol=0; icol<ncols; icol++ )
+                { 
+                  if( y_out(i0+ipol,icol) > 0 )
+                    {
+                      y_out.rw(i0+ipol,icol) = 
+                       invplanck( y_in(i0+ipol,icol), sensor_response_f[iv] );
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+
+//! SparseToTbByRJ
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2005-06-03
+*/
+void SparseToTbByRJ(
+              Sparse&   y_out,
+        const String&   y_out_name,
+        const Matrix&   sensor_pos,
+        const Matrix&   sensor_los,
+        const Vector&   sensor_response_f,
+        const Vector&   sensor_response_za,
+        const Vector&   sensor_response_aa,
+        const Index&    sensor_response_pol,
+        const Sparse&   y_in,
+        const String&   y_in_name )
+{
+  Index   nf, npol, nspectra;
+
+  Vector ytest(y_in.nrows());
+
+  chk_y_with_sensor( nf, npol, nspectra, ytest, y_in_name, sensor_pos,
+                     sensor_los, sensor_response_f, sensor_response_za, 
+                     sensor_response_aa, sensor_response_pol );
+
+  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
+ 
+  const Index   ncols = y_in.ncols();
+
+  // Note that y_in and y_out can be the same matrix
+  if ( &y_out != &y_in )
+    { y_out.resize(y_in.nrows(),ncols); }
+
+
+  // Here we try to save time by determining the scaling from radiances
+  // to brightness temperature for each frequency, and applying this
+  // scaling on each repition for that frequency. Note that relationship
+  // between radiance and Tb is linear for a given frequency.
+
+  for( Index iv=0; iv<nf; iv++ )
+    {
+      const Numeric   scfac = invrayjean( 1, sensor_response_f[iv] );
+
+      for( Index isp=0; isp<nspectra; isp++ )
+        {  
+          const Index   i0 = nf*npol*isp + iv * npol;
+
+          for( Index ipol=0; ipol<npol; ipol++ )
+            {
+              for( Index icol=0; icol<ncols; icol++ )
+                { 
+                  if( y_out(i0+ipol,icol) > 0 )
+                    { y_out.rw(i0+ipol,icol) = scfac * y_in(i0+ipol,icol); }
+                }
+            }
+        }
+    }
+}
+
+
+
 //! Tensor6ToTbByPlanck
 /*! 
    See the the online help (arts -d FUNCTION_NAME)

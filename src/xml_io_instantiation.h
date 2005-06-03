@@ -245,6 +245,9 @@ template void
 xml_read_from_file<ArrayOfIndex> (const String&, ArrayOfIndex&);
 
 template void
+xml_read_from_file<ArrayOfArrayOfIndex> (const String&, ArrayOfArrayOfIndex&);
+
+template void
 xml_read_from_file<ArrayOfMatrix> (const String&, ArrayOfMatrix&);
 
 template void
@@ -295,6 +298,9 @@ xml_write_to_file<ArrayOfGriddedField3> (const String&,
 
 template void
 xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&, FileType);
+
+template void
+xml_write_to_file<ArrayOfArrayOfIndex> (const String&, const ArrayOfArrayOfIndex&, FileType);
 
 template void
 xml_write_to_file<ArrayOfMatrix> (const String&, const ArrayOfMatrix&,

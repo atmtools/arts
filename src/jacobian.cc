@@ -86,6 +86,8 @@ void agenda_append(       Agenda& agenda,
   agenda.push_back(MRecord(id,values,output,input,dummy));
 }
 
+
+
 //! Check that the retrieval grids are defined for each atmosphere dim
 /*!
    This function checks for the given atmosphere dimension that 
@@ -479,3 +481,186 @@ void perturbation_field_3d(       Tensor3View     field,
     field += pert;
   }
 }            
+
+
+
+//! jacobian_from_path_to_rgrids
+/*!
+    Maps jacobian values valid for changes at a propogatio path step, to
+    values for the retrieval grids.
+
+    See *rte_std* for usage of this function.
+
+    See AUG for derivation of used expressions.
+
+    \param   die_dx              Input/Output: Jacobians mapped to 
+                                               retrieval grids.
+    \param   diy_dq              Input/Output: Jacobian for changes at each
+                                               point of *ppath*.
+    \param   atmosphere_dim      Input: As WSV with same name.
+    \param   ppath               Input: As WSV with same name.
+    \param   ppath_p             Input: As WSV with same name.
+    \param   jacobian_quantity   Input: Element of WSV *jacobian_quantities*
+                                        of interest
+
+    \author Patrick Eriksson, 
+    \date   2005-06-02
+*/
+//
+// To make code below a bit clearer
+//
+void from_dq_to_dx(
+         MatrixView   diy_dx,
+    ConstMatrixView   diy_dq,
+    const Numeric&      w )
+{
+  for( Index iv=0; iv<diy_dx.nrows(); iv++ )
+    { 
+      for( Index is=0; is<diy_dx.ncols(); is++ )
+        { diy_dx(iv,is) += w * diy_dq(iv,is); }
+    }
+}
+//
+void jacobian_from_path_to_rgrids(
+         Tensor3&             diy_dx,
+   ConstTensor3View           diy_dq,
+   const Index&               atmosphere_dim,
+   const Ppath&               ppath,
+   ConstVectorView            ppath_p,
+   const RetrievalQuantity&   jacobian_quantity )
+{
+  // Retrieval grid of interest
+  Vector r_grid;
+
+  // Pressure
+  r_grid = jacobian_quantity.Grids()[0];
+  Index            nr1 = r_grid.nelem();
+  ArrayOfGridPos   gp_p(ppath.np);
+  p2gridpos( gp_p, r_grid, ppath_p );
+
+  // Latitude
+  Index            nr2 = 1;
+  ArrayOfGridPos   gp_lat;
+  if( atmosphere_dim > 1 )
+    {
+      gp_lat.resize(ppath.np);
+      r_grid = jacobian_quantity.Grids()[1];
+      nr2    = r_grid.nelem();
+      p2gridpos( gp_lat, r_grid, ppath.pos(joker,1) );
+    }
+
+  // Longitude
+  Index            nr3 = 1;
+  ArrayOfGridPos   gp_lon;
+  if( atmosphere_dim > 2 )
+    {
+      gp_lon.resize(ppath.np);
+      r_grid = jacobian_quantity.Grids()[2];
+      nr3    = r_grid.nelem();
+      p2gridpos( gp_lon, r_grid, ppath.pos(joker,2) );
+    }
+  
+  // Resize diy_dx and set to 0
+  diy_dx.resize(diy_dq.npages(),diy_dq.nrows(),nr1*nr2*nr3);
+  diy_dx = 0.0;
+
+  //- 1D
+  if( atmosphere_dim == 1 )
+    {
+      for( Index ip=0; ip<ppath.np; ip++ )
+        {
+          if( gp_p[ip].fd[0] < 1 )
+            {
+              from_dq_to_dx( diy_dx(joker,joker,gp_p[ip].idx),
+                             diy_dq(joker,joker,ip), 
+                             gp_p[ip].fd[1] );
+            }
+          if( gp_p[ip].fd[0] > 0 )
+            {
+              from_dq_to_dx( diy_dx(joker,joker,gp_p[ip].idx+1),
+                             diy_dq(joker,joker,ip), 
+                             gp_p[ip].fd[0] );
+            }
+        }
+    }
+
+  //- 2D
+  else if( atmosphere_dim == 2 )
+    {
+      for( Index ip=0; ip<ppath.np; ip++ )
+        {
+          Index   ix = nr1*gp_lat[ip].idx + gp_p[ip].idx;
+          // Low lat, low p
+          from_dq_to_dx( diy_dx(joker,joker,ix),
+                         diy_dq(joker,joker,ip), 
+                         gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+          // Low lat, high p
+          from_dq_to_dx( diy_dx(joker,joker,ix+1),
+                         diy_dq(joker,joker,ip), 
+                         gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+          // High lat, low p
+          from_dq_to_dx( diy_dx(joker,joker,ix+nr1),
+                         diy_dq(joker,joker,ip), 
+                         gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+          // High lat, high p
+          from_dq_to_dx( diy_dx(joker,joker,ix+nr1+1),
+                         diy_dq(joker,joker,ip), 
+                         gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
+        }
+    }
+
+  //- 3D
+  else if( atmosphere_dim == 3 )
+    {
+      for( Index ip=0; ip<ppath.np; ip++ )
+        {
+          Index   ix = nr2*nr1*gp_lon[ip].idx +
+                         nr1*gp_lat[ip].idx + gp_p[ip].idx;
+          // Low lon, low lat, low p
+          from_dq_to_dx( diy_dx(joker,joker,ix),
+                         diy_dq(joker,joker,ip), 
+                         gp_lon[ip].fd[1]*
+                         gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+          // Low lon, low lat, high p
+          from_dq_to_dx( diy_dx(joker,joker,ix+1),
+                         diy_dq(joker,joker,ip), 
+                         gp_lon[ip].fd[1]*
+                         gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+          // Low lon, high lat, low p
+          from_dq_to_dx( diy_dx(joker,joker,ix+nr1),
+                         diy_dq(joker,joker,ip), 
+                         gp_lon[ip].fd[1]*
+                         gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+          // Low lon, high lat, high p
+          from_dq_to_dx( diy_dx(joker,joker,ix+nr1+1),
+                         diy_dq(joker,joker,ip), 
+                         gp_lon[ip].fd[1]*
+                         gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
+
+          // Increase *ix* (to be valid for high lon level)
+          ix += nr2*nr1;
+
+          // High lon, low lat, low p
+          from_dq_to_dx( diy_dx(joker,joker,ix),
+                         diy_dq(joker,joker,ip), 
+                         gp_lon[ip].fd[0]*
+                         gp_lat[ip].fd[1]*gp_p[ip].fd[1] );
+          // High lon, low lat, high p
+          from_dq_to_dx( diy_dx(joker,joker,ix+1),
+                         diy_dq(joker,joker,ip), 
+                         gp_lon[ip].fd[0]*
+                         gp_lat[ip].fd[1]*gp_p[ip].fd[0] );
+          // High lon, high lat, low p
+          from_dq_to_dx( diy_dx(joker,joker,ix+nr1),
+                         diy_dq(joker,joker,ip), 
+                         gp_lon[ip].fd[0]*
+                         gp_lat[ip].fd[0]*gp_p[ip].fd[1] );
+          // High lon, high lat, high p
+          from_dq_to_dx( diy_dx(joker,joker,ix+nr1+1),
+                         diy_dq(joker,joker,ip), 
+                         gp_lon[ip].fd[0]*
+                         gp_lat[ip].fd[0]*gp_p[ip].fd[0] );
+        }
+    }
+}
+
