@@ -1,3 +1,9 @@
+2005-06-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-990
+
+	* src/workspace_ng.h (is_occupied): Fix crash.
+
 2005-06-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-989

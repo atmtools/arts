@@ -63,7 +63,7 @@ public:
   virtual ~Workspace ();
 
   //! Checks existence of the given WSV.
-  bool is_occupied(Index i) { return (ws[i].top() != NULL); }
+  bool is_occupied(Index i) { return (ws[i].size () && ws[i].top()->wsv); }
 
   void duplicate (Index i);
 
