@@ -245,7 +245,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
                         "be used only in *doit_conv_test_agenda*\n");
   
-  // if (doit_iteration_counter > 100)
+  if (doit_iteration_counter > 100)
 //   throw runtime_error("Error in DOIT calculation: \n"
 //                         "Method does not converge (number of iterations \n"
 //                         "is > 100). Either the cloud particle number density \n"
