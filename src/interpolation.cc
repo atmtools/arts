@@ -2808,9 +2808,9 @@ void interp( Tensor6View           ia,
   \date 2004-03-17
 */
 Numeric interp_poly(ConstVectorView x,
-                     ConstVectorView y,
-                     const Numeric& x_i, 
-                     const GridPos& gp)
+                    ConstVectorView y,
+                    const Numeric& x_i, 
+                    const GridPos& gp)
 {
   Index N_x = x.nelem();
 

@@ -1,3 +1,13 @@
+2005-06-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-991
+
+	* src/m_scatrte.cc: Made output from *scat_mono_agenda* silent, if
+	more than one frequency is calculated.
+
+	* src/cloudbox.cc (iy_interp_cloudbox_field): Fixed bug in polynomial 
+	interpolation.
+	
 2005-06-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-990

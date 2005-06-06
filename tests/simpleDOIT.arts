@@ -1,6 +1,6 @@
 #DEFINITIONS:  -*-sh-*-
 #
-# filename: scat_calc_example.arts
+# filename: simpleDOIT.arts
 #
 # Demonstration of a DOIT scattering calculation
 #
@@ -112,7 +112,6 @@ IndexSet(nelem){ 1 }
 VectorSet(vector_1){
         value = 99.7841941981
 }
- 
 
 #VectorNLinSpace(vector_1){
 #	start = 0
@@ -120,7 +119,7 @@ VectorSet(vector_1){
 #	n = 19
 #}
 
-# Sensor altitude from center of earth
+# Sensor altitude from earth surface
 nelemGet(vector_1){}
 VectorSet( vector_2 ) {
    value =  95000.1
@@ -198,7 +197,7 @@ pnd_fieldCalc{}
 # about 90°.
 # If "polynomial" is selected one has to use an optimized grid. Please     
 # use *doit_za_grid_optCalc* to optimize the grid.
-doit_za_interpSet{interp_method = "polynomial" }
+doit_za_interpSet{interp_method = "linear" }
 
 # As one needs for the RT calculations in limb direction a much finer
 # zenith angle grid resolution as for the computation of the scattering 

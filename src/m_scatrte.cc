@@ -245,15 +245,22 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
                         "be used only in *doit_conv_test_agenda*\n");
   
-  
-  if (doit_iteration_counter > 100)
-    throw runtime_error("Error in DOIT calculation: \n"
-                        "Method does not converge (number of iterations \n"
-                        "is > 100). Either the cloud particle number density \n"
-                        "is too large or the numerical setup for the DOIT \n"
-                        "calculation is not correct. In case of limb \n"
-                        "simulations please make sure that you use an \n"
-                        "optimized zenith angle grid. \n");
+  // if (doit_iteration_counter > 100)
+//   throw runtime_error("Error in DOIT calculation: \n"
+//                         "Method does not converge (number of iterations \n"
+//                         "is > 100). Either the cloud particle number density \n"
+//                         "is too large or the numerical setup for the DOIT \n"
+//                         "calculation is not correct. In case of limb \n"
+//                         "simulations please make sure that you use an \n"
+//                         "optimized zenith angle grid. \n");
+ 
+     out1 <<"Warning in DOIT calculation: \n"
+          <<"Method does not converge (number of iterations \n"
+          <<"is > 100). Either the cloud particle number density \n"
+          <<"is too large or the numerical setup for the DOIT \n"
+          <<"calculation is not correct. In case of limb \n"
+          <<"simulations please make sure that you use an \n"
+          <<"optimized zenith angle grid. \n";
   
   const Index N_p = doit_i_field.nvitrines();
   const Index N_lat = doit_i_field.nshelves();
@@ -2656,12 +2663,10 @@ void ScatteringDoit(
 
   for (Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
     {
-      out1 << "----------------------------------------------\n";
       out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
-      out1 << "----------------------------------------------\n";
       doit_mono_agendaExecute(doit_i_field, scat_i_p, scat_i_lat,
                               scat_i_lon, f_index, doit_mono_agenda,
-                              false); 
+                              f_index); 
     }
 }
 

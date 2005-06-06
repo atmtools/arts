@@ -203,13 +203,13 @@ void chk_pnd_data(
   for (i_p = 0; pnd_field_raw.p_grid[i_p] > p_grid[cloudbox_limits[0]]; i_p++)
     { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file); }
   // The first point inside the cloudbox also needs to be zero !!
-  chk_if_pnd_zero_p(i_p+1, pnd_field_raw, pnd_field_file);
+  chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
   
   //Upper pressure limit 
   for (i_p = pnd_field_raw.p_grid.nelem()-1;
        pnd_field_raw.p_grid[i_p] < p_grid[cloudbox_limits[1]]; i_p--)
     { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file); }
-  chk_if_pnd_zero_p(i_p-1, pnd_field_raw, pnd_field_file);
+  chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
   
   if (atmosphere_dim == 1 && (pnd_field_raw.lat_grid.nelem() != 1 
                               || pnd_field_raw.lon_grid.nelem() != 1) )
@@ -682,7 +682,7 @@ void iy_interp_cloudbox_field(
             {
               for(Index iv = 0; iv < nf; iv++ )
                 {
-                  iy(iv,is) = interp_poly( itw, 
+                  iy(iv,is) = interp_poly( scat_za_grid, 
                        scat_i_p( iv, border, 0, 0, joker, 0, is ) , rte_los[0],
                                             gp );
                 }
