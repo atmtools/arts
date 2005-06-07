@@ -50,8 +50,6 @@ private:
     bool auto_allocated;
   } WsvStruct;
 
-  void *EMPTY_WSV;
-
   //! Workspace variable container.
   Array< stack<WsvStruct *> > ws;
 
@@ -63,7 +61,8 @@ public:
   virtual ~Workspace ();
 
   //! Checks existence of the given WSV.
-  bool is_occupied(Index i) { return (ws[i].size () && ws[i].top()->wsv); }
+  bool is_occupied(Index i) { return ((ws[i].size () != 0)
+                                      && (ws[i].top()->wsv != NULL)); }
 
   void duplicate (Index i);
 

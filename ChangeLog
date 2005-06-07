@@ -1,3 +1,21 @@
+2005-06-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-994
+
+	* src/workspace_ng.{cc,h}:
+
+	Remove unneeded EMPTY_WSV.
+
+	(Workspace::is_occupied): Improve readability.
+
+	(Workspace::pop):
+
+	Fix memleak. Thanks to claudia and 'valgrind --tool=massif' :-)
+
+	(Workspace:operator[]): Use NULL instead of EMPTY_WSV.
+
+	(Workspace:Workspace): Removed EMPTY_WSV initialization.
+
 2005-06-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-993

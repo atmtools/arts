@@ -36,7 +36,7 @@
 /*!
   Create the stacks for the WSVs.
 */
-Workspace::Workspace () : EMPTY_WSV (NULL)
+Workspace::Workspace ()
 {
   ws.resize (N_WSV);
 }
@@ -94,6 +94,7 @@ void *Workspace::pop (Index i)
   if (wsvs)
     {
       vp = wsvs->wsv;
+      delete wsvs;
       ws[i].pop ();
     }
   return vp;
@@ -110,12 +111,11 @@ void Workspace::pop_free (Index i)
   WsvStruct *wsvs = ws[i].top ();
   if (wsvs)
     {
-      ws[i].pop ();
-
       if (wsvs->wsv)
         wsmh.deallocate (i, wsvs->wsv);
 
-      delete (wsvs);
+      delete wsvs;
+      ws[i].pop ();
     }
 }
 
@@ -144,7 +144,7 @@ void Workspace::push (Index i, void *wsv)
 void *Workspace::operator[](Index i)
 {
   if (!ws[i].size ())
-    push (i, EMPTY_WSV);
+    push (i, NULL);
 
   if (!ws[i].top ()->wsv)
     {
