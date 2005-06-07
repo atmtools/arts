@@ -91,6 +91,12 @@ typedef Array<Array<Array<Array<GridPos> > > > ArrayOfArrayOfArrayOfArrayOfGridP
 
 ostream& operator<<(ostream& os, const GridPos& gp);
 
+void gridpos_extpol( 
+              ArrayOfGridPos& gp,
+              ConstVectorView old_grid,
+              ConstVectorView new_grid,
+              const Numeric&  extpolfac );
+
 void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
               ConstVectorView new_grid );

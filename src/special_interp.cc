@@ -66,25 +66,6 @@
 
 
 
-//! ArrayOfGridPosPrint
-/*!
-   Prints a variable of type ArrayOfGridPos to the screen.
-
-   \author Patrick Eriksson
-   \date   2002-06-09
-*/
-void ArrayOfGridPosPrint(
-        const ArrayOfGridPos&   x,
-        const String&           x_name )
-{
-  cout << "  *" << x_name <<"*:\n";
-  for( Index i=0; i<x.nelem(); i++ )
-    cout << "     " << x[i].idx << "  " << x[i].fd[0] << "  " << x[i].fd[1] 
-         << "\n";
-}
-
-
-
 /*===========================================================================
   === Interpolation functions for atmospheric grids, fields and surfaces
   ===========================================================================*/
@@ -631,17 +612,17 @@ void itw2p(
 
 
 
-//! p2gridpos
+//! p2gridpos(_extpol)
 /*!
    Calculates grid positions for pressure values.
 
-   This function works as *gridpos*, but is adapted to handle pressure
-   grids. The ARTS defintions result in that pressures shall not be
-   interpolated directly, it is the log of the pressure that shall be
-   interpolated. This means that if some values shall be interpolated
-   to some given pressures, the grid positions shall be calculated
-   with this function. The interpolation can then be performed as
-   usual.
+   This function works as *gridpos(_extpol)*, but is adapted to handle
+   pressure grids. The ARTS defintions result in that pressures shall
+   not be interpolated directly, it is the log of the pressure that
+   shall be interpolated. This means that if some values shall be
+   interpolated to some given pressures, the grid positions shall be
+   calculated with this function. The interpolation can then be
+   performed as usual.
 
    \param   gp          Output: Grid position Array.
    \param   old_pgrid   The original pressure grid.
@@ -663,6 +644,21 @@ void p2gridpos(
   transform( lognew, log, new_pgrid );
   
   gridpos( gp, logold, lognew );
+}
+void p2gridpos_extpol(
+             ArrayOfGridPos&   gp,
+      ConstVectorView          old_pgrid,
+      ConstVectorView          new_pgrid,   
+      const Numeric&           extpolfac ) 
+{
+  // Local variable to store log of the pressure grids
+  Vector logold( old_pgrid.nelem() );
+  Vector lognew( new_pgrid.nelem() );
+
+  transform( logold, log, old_pgrid );
+  transform( lognew, log, new_pgrid );
+  
+  gridpos_extpol( gp, logold, lognew, extpolfac );
 }
 
 

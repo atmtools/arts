@@ -529,6 +529,10 @@ void jacobian_from_path_to_rgrids(
    ConstVectorView            ppath_p,
    const RetrievalQuantity&   jacobian_quantity )
 {
+  // We want here an extrapolation to infinity -> 
+  //                                        extremly high extrapolation factor
+  const Numeric   extpolfac = 1.0e99;
+
   // Retrieval grid of interest
   Vector r_grid;
 
@@ -536,7 +540,7 @@ void jacobian_from_path_to_rgrids(
   r_grid = jacobian_quantity.Grids()[0];
   Index            nr1 = r_grid.nelem();
   ArrayOfGridPos   gp_p(ppath.np);
-  p2gridpos( gp_p, r_grid, ppath_p );
+  p2gridpos_extpol( gp_p, r_grid, ppath_p, extpolfac );
 
   // Latitude
   Index            nr2 = 1;
@@ -546,7 +550,7 @@ void jacobian_from_path_to_rgrids(
       gp_lat.resize(ppath.np);
       r_grid = jacobian_quantity.Grids()[1];
       nr2    = r_grid.nelem();
-      p2gridpos( gp_lat, r_grid, ppath.pos(joker,1) );
+      gridpos_extpol( gp_lat, r_grid, ppath.pos(joker,1), extpolfac );
     }
 
   // Longitude
@@ -557,7 +561,7 @@ void jacobian_from_path_to_rgrids(
       gp_lon.resize(ppath.np);
       r_grid = jacobian_quantity.Grids()[2];
       nr3    = r_grid.nelem();
-      p2gridpos( gp_lon, r_grid, ppath.pos(joker,2) );
+      gridpos_extpol( gp_lon, r_grid, ppath.pos(joker,2), extpolfac );
     }
   
   // Resize diy_dx and set to 0

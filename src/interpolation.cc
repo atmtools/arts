@@ -131,21 +131,27 @@ ostream& operator<<(ostream& os, const GridPos& gp)
  Note also, that for this step you do not need the field itself at all!
 
  The new grid has basically to be inside the range covered by old
- grid, but some margins are given for practical reasons. An
+ grid, but some margins are given for practical reasons. For higher
+ flexibility, an selectable extrapolation is allowed. The allowed
+ extrapolation is given in fractions of the distance between the
+ outermost two points. For example, if *extpolfac* is set to 0.5 an
  extrapolation of half the distance between end points is allowed.
- For example, if point 0 is at 0 and point 1 is at 1, the new grid can
+ In this case, if point 0 is at 0 and point 1 is at 1, the new grid can
  be extended to -0.5.
 
  \param gp Output: Grid position Array.
- \param old_grid The original grid.
- \param new_grid The new grid where we want to have the interpolated values. 
+ \param old_grid   The original grid.
+ \param new_grid   The new grid where we want to have the interpolated values. 
+ \param extpolfac  Extrapolation factor.
 
  \author Stefan Buehler <sbuehler@uni-bremen.de>
  \date   Fri May  3 08:55:51 2002
 */
-void gridpos( ArrayOfGridPos& gp,
+void gridpos_extpol( 
+              ArrayOfGridPos& gp,
               ConstVectorView old_grid,
-              ConstVectorView new_grid )
+              ConstVectorView new_grid,
+              const Numeric&  extpolfac )
 {
   const Index n_old = old_grid.nelem();
   const Index n_new = new_grid.nelem();
@@ -179,12 +185,11 @@ void gridpos( ArrayOfGridPos& gp,
       // safety check.
       assert( is_increasing(old_grid) );
 
-      // Limits of extrapolation. We allow the new grid to be half a
-      // grid distance outside the old grid:
-      const Numeric og_min
-        = old_grid[0] - 0.5 * ( old_grid[1] - old_grid[0] );
-      const Numeric og_max
-        = old_grid[n_old-1] + 0.5 * ( old_grid[n_old-1] - old_grid[n_old-2] );
+      // Limits of extrapolation. 
+      const Numeric og_min = old_grid[0] - 
+                                     extpolfac * ( old_grid[1] - old_grid[0] );
+      const Numeric og_max = old_grid[n_old-1] + 
+                         extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
 
       // We will make no firm assumptions about the new grid. But the case
       // that we have in mind is that it is either also sorted, or at
@@ -310,10 +315,10 @@ void gridpos( ArrayOfGridPos& gp,
 
       // The max is now the first point, the min the last point!
       // I think the sign is right here...
-      const Numeric og_max
-        = old_grid[0] - 0.5 * ( old_grid[1] - old_grid[0] );
-      const Numeric og_min
-        = old_grid[n_old-1] + 0.5 * ( old_grid[n_old-1] - old_grid[n_old-2] );
+      const Numeric og_max = old_grid[0] - 
+                                     extpolfac * ( old_grid[1] - old_grid[0] );
+      const Numeric og_min = old_grid[n_old-1] + 
+                         extpolfac * ( old_grid[n_old-1] - old_grid[n_old-2] );
 
       // We have to take 1- here, because we are starting from the
       // high end.
@@ -403,6 +408,32 @@ void gridpos( ArrayOfGridPos& gp,
             }      
         }      
     }
+}
+
+
+
+//! gridpos
+/*!
+   Standard function to calculate grid positions.
+  
+   This function shall be used for ordinary interpolations.
+
+   The standard choice for extrapolation factor is 0.5.
+
+   \param   gp         Output: Obtained grid positions
+   \param   old_grid   The original grid.
+   \param   new_grid   The position where we want to have the interpolated 
+                       value.
+
+   \author Patrick Eriksson
+   \date   2005-06-03
+*/
+void gridpos( 
+              ArrayOfGridPos& gp,
+              ConstVectorView old_grid,
+              ConstVectorView new_grid )
+{
+   gridpos_extpol( gp, old_grid, new_grid, 0.5 );
 }
 
 

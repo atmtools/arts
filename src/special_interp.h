@@ -30,11 +30,6 @@
 
 
 
-void ArrayOfGridPosPrint(
-        const ArrayOfGridPos&   x,
-        const String&           x_name );
-
-
 
 /*===========================================================================
   === Interpolation functions for atmospheric grids, fields and surfaces
@@ -137,6 +132,12 @@ void p2gridpos(
              ArrayOfGridPos&   gp,
       ConstVectorView          old_pgrid,
       ConstVectorView          new_pgrid );
+
+void p2gridpos_extpol(
+             ArrayOfGridPos&   gp,
+      ConstVectorView          old_pgrid,
+      ConstVectorView          new_pgrid,   
+      const Numeric&           extpolfac );
 
 void z_at_lat_2d(
              VectorView   z,

@@ -338,7 +338,7 @@ void RteCalc(
                 { los[1] += mblock_aa_grid[iaa]; }
 
               // Set the basic jacobian variables to be empty.
-              // If they are coming back empty, then the jacobains can be
+              // If they are coming back empty, then the jacobians can be
               // assumed to be zero.
               diy_dvmr.resize(0,0,0,0);
               diy_dt.resize(0,0,0);
@@ -349,9 +349,9 @@ void RteCalc(
                  ppath_step_agenda, rte_agenda, iy_space_agenda, 
                  iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, 
                  p_grid, lat_grid, lon_grid, z_field, t_field, vmr_field,
-                 r_geoid, z_surface, 
-                 cloudbox_on,  cloudbox_limits, sensor_pos(mblock_index,joker),
-                 los, f_grid, stokes_dim, ag_verb );
+                 r_geoid, z_surface, cloudbox_on,  cloudbox_limits, 
+                 sensor_pos(mblock_index,joker), los, f_grid, stokes_dim, 
+                 ag_verb );
 
               //--- Copy *iy* to *ib*
               for( Index is=0; is<stokes_dim; is++ )

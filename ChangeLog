@@ -1,3 +1,26 @@
+2005-06-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-992
+
+	* src/m_jacobian.cc (jacobianCalcGas): Error is thrown if number
+	density is selected (not yet implemented).
+
+	* src/jacobian.cc (jacobian_from_path_to_rgrids): Now using the extpol
+	gridpos functions.
+
+	* src/interpolation.cc (gridpos_extpol): This is old gridpos, extended
+	with a selectable extrapolation factor. It turned out that the simplest
+	fix for a part of the analytical jacobian calculations is to allow
+	extrapolation to infinity and this was fixed in this way.
+
+	(gridpos): Is now only a filter to gridpos_extpol, with a hard-coded
+	extrapolation factor of 0.5.
+
+	* src/special_interp.cc (ArrayOfGridPosPrint): Removed this obselete
+	function.
+
+	(p2gridpos_extpol): Created.
+
 2005-06-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-991

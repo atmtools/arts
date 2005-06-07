@@ -183,6 +183,7 @@ void jacobianAddGas(// WS Output:
 }                    
 
 
+
 //! jacobianAddGasAnalytical
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -683,13 +684,12 @@ void jacobianCalcGas(
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
 
-  throw runtime_error(
-              "Correct handling of different retrieval modes is not updated");
-
   if (rq.Mode()=="rel")
     method = 0;
-  else
+  else if (rq.Mode()=="vmr")
     method = 1;
+  else
+    throw runtime_error("Number density option not yet implemented.");
   
   // For each atmospheric dimension option calculate a ArrayOfGridPos, 
   // these will be used to interpolate a perturbation into the atmospheric 
