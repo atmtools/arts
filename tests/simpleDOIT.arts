@@ -85,6 +85,8 @@ AgendaSet( opt_prop_gas_agenda ){
 # Definition of Earth surface
 # ----------------------------
 # spherical geoid 
+#r_geoidWGS84{}
+
 r_geoidSpherical{
     r = -1
 }

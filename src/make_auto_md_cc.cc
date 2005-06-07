@@ -394,27 +394,25 @@ int main()
               ofs << ain_push_os.str () << "\n";
             }
 
-          ofs << "  set<Index> outputs_to_push;\n"
-              << "  set<Index> outputs_to_dup;\n"
+          ofs << "  const ArrayOfIndex &outputs_to_push = input_agenda.get_output2push();\n"
+              << "  const ArrayOfIndex &outputs_to_dup = input_agenda.get_output2dup();\n"
               << "\n"
-              << "  //input_agenda.get_outputs_to_push_and_dup (outputs_to_push, outputs_to_dup);\n"
-              << "\n"
-              << "  for (set<Index>::const_iterator it = outputs_to_push.begin ();\n"
+              << "  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();\n"
               << "       it != outputs_to_push.end (); it++)\n"
               << "  { workspace.push (*it, NULL); }\n"
               << "\n"
-              << "  for (set<Index>::const_iterator it = outputs_to_dup.begin ();\n"
+              << "  for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin ();\n"
               << "       it != outputs_to_dup.end (); it++)\n"
               << "  { workspace.duplicate (*it); }\n"
               << "\n";
 
           ofs << "  input_agenda.execute (silent);\n\n";
 
-          ofs << "  for (set<Index>::const_iterator it = outputs_to_push.begin ();\n"
+          ofs << "  for (ArrayOfIndex::const_iterator it = outputs_to_push.begin ();\n"
               << "       it != outputs_to_push.end (); it++)\n"
               << "    { workspace.pop_free (*it); }\n"
               << "\n"
-              << "  for (set<Index>::const_iterator it = outputs_to_dup.begin ();\n"
+              << "  for (ArrayOfIndex::const_iterator it = outputs_to_dup.begin ();\n"
               << "       it != outputs_to_dup.end (); it++)\n"
               << "    { workspace.pop_free (*it); }\n\n";
 

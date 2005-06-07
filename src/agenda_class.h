@@ -46,17 +46,31 @@ public:
   void resize(Index n);
   Index nelem() const;
   Agenda& operator=(const Agenda& x);
-  void get_outputs_to_push_and_dup (set<Index> &outputs_to_push,
-                                    set<Index> &outputs_to_dup) const;
+  void set_outputs_to_push_and_dup ();
   bool is_input(Index var) const;
   bool is_output(Index var) const;
   void set_name(const String& nname);
   String name() const;
+  const ArrayOfIndex& get_output2push() const { return moutput_push; }
+  const ArrayOfIndex& get_output2dup() const { return moutput_dup; }
+  const ArrayOfIndex& get_agenda_only_out_wsm_in () const
+    { return magenda_only_out_wsm_in; }
+  const ArrayOfIndex& get_agenda_only_in_wsm_out () const
+    { return magenda_only_in_wsm_out; }
   void print( ostream& os,
               const String& indent ) const;
 private:
   String         mname; /*!< Agenda name. */
   Array<MRecord> mml;   /*!< The actual list of methods to execute. */
+
+  ArrayOfIndex moutput_push;
+
+  ArrayOfIndex moutput_dup;
+
+  ArrayOfIndex magenda_only_out_wsm_in;
+
+  ArrayOfIndex magenda_only_in_wsm_out;
+
 };
 
 // Documentation with implementation.

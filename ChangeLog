@@ -1,3 +1,44 @@
+2005-06-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-993
+
+	* src/methods.cc:
+
+	Add scat_i_p_, scat_i_lat_, scat_i_lon_ as Input to ScatteringDoit.
+
+	* src/agendas.cc:
+
+	Add scat_i_p_, scat_i_lat_, scat_i_lon_ as Input to doit_mono_agenda.
+
+	* src/agenda_class.{cc,h}:
+
+	(AgendaSet): Determine WSVs which need to be pushed and duplicated
+	here instead of doing it in the Execute wrappers.
+
+	(Agenda::get_output2push,
+	Agenda::get_output2dup,
+	Agenda::get_agenda_only_out_wsm_in,
+	Agenda::get_agenda_only_in_wsm_out): New functions.
+
+	(Agenda::set_outputs_to_push_and_dup):
+
+	Renamed get_ to set_.
+
+	Find out special cases. 1. A WSV is defined only as agenda input but
+	used as output in one of the WSMs. 2. A WSV is defined only as agenda
+	output but first used as input in one of the WSMs.
+	A warning message is shown if one of these cases occurs.
+
+	(printWsvNamesToOut3): Temporary debugging function.
+
+	* src/m_atmosphere.cc (InterpAtmFieldToRteGps):
+
+	Fix function name in doxygen header.
+
+	* src/make_auto_md_cc.cc (main):
+
+	Use agenda member functions to determine which WSVs need a push/dup.
+
 2005-06-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-992

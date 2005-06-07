@@ -109,6 +109,8 @@ void AgendaSet(// WS Generic Output:
           throw runtime_error (os.str());
         }
     }
+
+  output_agenda.set_outputs_to_push_and_dup ();
 }
 
 void Main(// Agenda from controlfile:

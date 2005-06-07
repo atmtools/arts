@@ -179,27 +179,40 @@ void Agenda::execute(bool silent) const
     }
 }
 
+/********************************/
+/* Temporary debugging function */
+void printWsvNamesToOut3 (ArrayOfIndex wsvs)
+{
+  extern const Array<WsvRecord> wsv_data;
+
+  for (ArrayOfIndex::const_iterator it = wsvs.begin ();
+       it != wsvs.end (); it++ )
+    {
+      out3 << wsv_data[*it].Name () << " ";
+    }
+}
+/********************************/
+
 //! Retrieve indexes of all input and output WSVs
 /*!
-  Returns sets of input and output variables of all methods used by the agenda.
-
-  \param inputs Set of input WSVs.
-  \param outputs Set of output WSVs.
+  Builds arrays of WSM output variables which need to be
+  duplicated or pushed on the WSV stack before the agenda
+  is executed.
 */
-void Agenda::get_outputs_to_push_and_dup (set<Index> &outputs_to_push,
-                                          set<Index> &outputs_to_dup) const
+void Agenda::set_outputs_to_push_and_dup ()
 {
   extern const Array<MdRecord>  md_data;
 
   set<Index> inputs;
+  set<Index> outputs;
   set<Index> outs2push;
   set<Index> outs2dup;
 
-  for (Array<MRecord>::const_iterator method = mml.begin();
-       method != mml.end(); method++)
+  for (Array<MRecord>::const_iterator method = mml.begin ();
+       method != mml.end (); method++)
     {
       // Collect output WSVs
-      const ArrayOfIndex &outs = md_data[method->Id()].Output();
+      const ArrayOfIndex &outs  = md_data[method->Id()].Output ();
       const ArrayOfIndex &gouts = method->Output ();
 
       // Put the outputs into a new set to sort them. Otherwise
@@ -208,14 +221,16 @@ void Agenda::get_outputs_to_push_and_dup (set<Index> &outputs_to_push,
       souts.insert ( outs.begin (), outs.end ());
       souts.insert ( gouts.begin (), gouts.end ());
 
+      // Add all outputs of this WSM to global list of outputs
+      outputs.insert (souts.begin (), souts.end ());
+
+      // Find out all output WSVs of current WSM which were
+      // already used as input. We have to place a copy of them on
+      // the WSV stack.
       set_intersection (souts.begin (), souts.end (),
                         inputs.begin (), inputs.end (),
                         insert_iterator< set<Index> >(outs2dup,
-                                                      outs2dup.begin()));
-      set_difference (souts.begin (), souts.end (),
-                      inputs.begin (), inputs.end (),
-                      insert_iterator< set<Index> >(outs2push,
-                                                    outs2push.begin()));
+                                                      outs2dup.begin ()));
 
       // Collect input WSVs
       const ArrayOfIndex &ins = md_data[method->Id()].Input();
@@ -226,43 +241,140 @@ void Agenda::get_outputs_to_push_and_dup (set<Index> &outputs_to_push,
       inputs.insert (gins.begin (), gins.end ());
     }
 
+  // Find all outputs which are not in the list of WSVs to duplicate
+  set_difference (outputs.begin (), outputs.end (),
+                  outs2dup.begin (), outs2dup.end (),
+                  insert_iterator< set<Index> >(outs2push,
+                                                outs2push.begin ()));
+
   extern map<String, Index> AgendaMap;
   extern const Array<AgRecord> agenda_data;
 
   const AgRecord &agr = agenda_data[AgendaMap.find (name ())->second];
   const ArrayOfIndex &aout = agr.Output ();
+  const ArrayOfIndex &ain = agr.Input ();
 
-  // We have to build a new set of agenda output because the set_difference
-  // function only works properly on sorted input.
+  // We have to build a new set of agenda input and output because the
+  // set_difference function only works properly on sorted input.
   set<Index> saout;
+  set<Index> sain;
+
   saout.insert ( aout.begin (), aout.end ());
+  sain.insert ( ain.begin (), ain.end ());
 
+  moutput_push.clear ();
+  moutput_dup.clear ();
+
+  // Remove the WSVs which are agenda input from the list of
+  // output variables for which we have to create an new
+  // entry on the stack. This is already done for agenda inputs.
+  set<Index> outs2push_without_agenda_input;
   set_difference (outs2push.begin (), outs2push.end (),
-                  saout.begin (), saout.end (),
-                  insert_iterator< set<Index> >(outputs_to_push,
-                                                outputs_to_push.begin()));
+                  sain.begin (), sain.end (),
+                  insert_iterator< set<Index> >(outs2push_without_agenda_input,
+                                                outs2push_without_agenda_input.begin ()));
 
+  // Same for agenda output variables.
+  set_difference (outs2push_without_agenda_input.begin (),
+                  outs2push_without_agenda_input.end (),
+                  saout.begin (), saout.end (),
+                  insert_iterator<ArrayOfIndex>(moutput_push,
+                                                moutput_push.begin ()));
+
+  // Remove the WSVs which are agenda input from the list of
+  // output variables for which we have to create a duplicate
+  // on the stack. This is already done for agenda inputs.
+  set<Index> outs2dup_without_agenda_input;
   set_difference (outs2dup.begin (), outs2dup.end (),
+                  sain.begin (), sain.end (),
+                  insert_iterator< set<Index> >(outs2dup_without_agenda_input,
+                                                outs2dup_without_agenda_input.begin ()));
+
+  // Same for agenda output variables.
+  set_difference (outs2dup_without_agenda_input.begin (),
+                  outs2dup_without_agenda_input.end (),
                   saout.begin (), saout.end (),
-                  insert_iterator< set<Index> >(outputs_to_dup,
-                                                outputs_to_dup.begin()));
+                  insert_iterator<ArrayOfIndex>(moutput_dup,
+                                                moutput_dup.begin ()));
 
-/*  ostream_iterator<Index, char> out (cout, " ");
+  // Special case: Variables which are defined in the agenda only
+  // as output but are used first as input in one of the WSMs
+  // For those the current WSV value must be copied to the agenda
+  // input variable
+  set<Index> saout_only;
 
-  cout << "Agenda: " << name() << endl;
-  cout << "Agenda output              : ";
-  copy (saout.begin (), saout.end (), out);
-  cout << endl;
+  set_difference (saout.begin (), saout.end (),
+                  sain.begin (), sain.end (),
+                  insert_iterator< set<Index> >(saout_only,
+                                                saout_only.begin ()));
 
-  cout << "In+Out, to be copied       : ";
-  copy (outputs_to_dup.begin (), outputs_to_dup.end (), out);
-  cout << endl;
+  magenda_only_out_wsm_in.clear ();
+  set_intersection (outs2dup.begin (), outs2dup.end (),
+                    saout_only.begin (), saout_only.end (),
+                    insert_iterator<ArrayOfIndex>(magenda_only_out_wsm_in,
+                                                  magenda_only_out_wsm_in.begin ()));
 
-  cout << "Only WSM Out, to be pushed : ";
-  copy (outputs_to_push.begin (), outputs_to_push.end (), out);
-  cout << endl;
+  // Special case: Variables which are defined in the agenda only
+  // as input but are used as output in one of the WSMs
+  // For those the current WSV value must be copied to the agenda
+  // input variable
+  set<Index> sain_only;
 
-  cout << "/////////////////" << endl;*/
+  set_difference (sain.begin (), sain.end (),
+                  saout.begin (), saout.end (),
+                  insert_iterator< set<Index> >(sain_only,
+                                                sain_only.begin ()));
+
+  magenda_only_in_wsm_out.clear ();
+  set_intersection (outs2push.begin (), outs2push.end (),
+                    sain_only.begin (), sain_only.end (),
+                    insert_iterator<ArrayOfIndex>(magenda_only_in_wsm_out,
+                                                  magenda_only_in_wsm_out.begin ()));
+
+  out3 << "  [Agenda::pushpop]                 : " << name() << "\n";
+  out3 << "  [Agenda::pushpop] - # Funcs in Ag : " << mml.nelem () << "\n";
+  out3 << "  [Agenda::pushpop] - AgOut         : ";
+  printWsvNamesToOut3 (aout);
+  out3 << "\n";
+  out3 << "  [Agenda::pushpop] - AgIn          : ";
+  printWsvNamesToOut3 (ain);
+  out3 << "\n";
+  out3 << "  [Agenda::pushpop] - All WSM output: ";
+  ArrayOfIndex out_arr;
+  copy (outputs.begin (), outputs.end (),
+        insert_iterator<ArrayOfIndex>(out_arr,out_arr.begin ()));
+  printWsvNamesToOut3 (out_arr);
+  out3 << "\n";
+  out3 << "  [Agenda::pushpop] - WSVs push     : ";
+  printWsvNamesToOut3 (moutput_push);
+  out3 << "\n";
+  out3 << "  [Agenda::pushpop] - WSVs dup      : ";
+  printWsvNamesToOut3 (moutput_dup);
+  out3 << "\n";
+  out3 << "  [Agenda::pushpop] - Ag inp dup    : ";
+  printWsvNamesToOut3 (magenda_only_in_wsm_out);
+  out3 << "\n";
+  out3 << "  [Agenda::pushpop] - Ag out dup    : ";
+  printWsvNamesToOut3 (magenda_only_out_wsm_in);
+  out3 << "\n";
+
+  if (magenda_only_in_wsm_out.nelem ())
+    {
+      out1 << "Warning!!!! At least one variable is only defined as input\n"
+        << "in agenda " << name () << ", but\n"
+        << "used as output in a WSM called by the agenda!!!\n"
+        << "This is not handled properly at the moment.\n"
+        << "Look at output level 3 to find out which variable(s) is/are affected.\n";
+    }
+  if (magenda_only_out_wsm_in.nelem ())
+    {
+      out1 << "Warning!!!! At least one variable is only defined as output\n"
+        << "in agenda " << name () << ", but\n"
+        << "first used as input in a WSM called by the agenda!!!\n"
+        << "This is not handled properly at the moment. The variable(s)\n"
+        << "might be used uninitialized. Look at output level 3 to\n"
+        << "find out which variable(s) is/are affected.\n";
+    }
 }
 
 //! Check if given variable is agenda input.

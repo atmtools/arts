@@ -531,7 +531,7 @@ void AtmRawRead(//WS Output:
   
 
 
-//! InterpAtmFieldToRtePos
+//! InterpAtmFieldToRteGps
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
