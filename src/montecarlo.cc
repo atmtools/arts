@@ -70,20 +70,19 @@ void atm_vars_at_ppath_end(
                            const Agenda& scalar_gas_absorption_agenda,
                            const Index& stokes_dim,
                            const Ppath& ppath,
-                           const Vector&         p_grid,
-                           const Vector&         lat_grid,
-                           const Vector&         lon_grid,
-                           const Tensor3&   t_field,
-                           const Tensor4&   vmr_field,
+                           const ConstVectorView         p_grid_cloud,
+                           const ConstVectorView         lat_grid_cloud,
+                           const ConstVectorView         lon_grid_cloud,
+                           const ConstTensor3View   t_field_cloud,
+                           const ConstTensor4View   vmr_field_cloud,
                            const Tensor4&   pnd_field,
                            const ArrayOfSingleScatteringData& scat_data_mono,
                            const ArrayOfIndex& cloudbox_limits //added by (CE)
                            )
 {
-  const Index   ns = vmr_field.nbooks();
+  const Index   ns = vmr_field_cloud.nbooks();
   const Index N_pt = pnd_field.nbooks();
   const Index np=ppath.np;
-    
   Matrix  pnd_ppath(N_pt,1);
   Vector t_ppath(1);
   Vector   p_ppath(1);//may not be efficient with unecessary vectors
@@ -99,61 +98,11 @@ void atm_vars_at_ppath_end(
   gp_lon[0]=ppath.gp_lon[np-1];
   
 
-  interpweights( itw_p, gp_p );
-  itw2p( p_ppath, p_grid, gp_p, itw_p );
-
-  interp_atmfield_gp2itw( itw_field, 3, p_grid, lat_grid, 
-                          lon_grid, gp_p, gp_lat,gp_lon );
-  interp_atmfield_by_itw( t_ppath, 3, p_grid, lat_grid, 
-                          lon_grid, t_field, "t_field", 
-                          gp_p,gp_lat,gp_lon, itw_field );
-  for( Index is=0; is<ns; is++ )
-    {
-      interp_atmfield_by_itw( vmr_ppath(is, joker), 3,
-                              p_grid, lat_grid, lon_grid, 
-                              vmr_field(is, joker, joker,  joker), 
-                              "vmr_field", gp_p,gp_lat,gp_lon, itw_field );
-    }
-   //Determine the particle number density for every particle type at 
-  // each propagation path point
-  
-  ConstVectorView p_grid_cloud = 
-    p_grid[Range(cloudbox_limits[0], 
-                 cloudbox_limits[1]-cloudbox_limits[0]+1)];
-  ConstVectorView lat_grid_cloud = 
-    lat_grid[Range(cloudbox_limits[2],
-                   cloudbox_limits[3]-cloudbox_limits[2]+1)];           
-  ConstVectorView lon_grid_cloud = 
-    lon_grid[Range(cloudbox_limits[4],
-                   cloudbox_limits[5]-cloudbox_limits[4]+1)];
-  
-  ArrayOfGridPos gp_p_cloud(1);
-  gp_p_cloud[0] = ppath.gp_p[np-1];
-  ArrayOfGridPos gp_lat_cloud(1);
-  gp_lat_cloud[0] = ppath.gp_lat[np-1];
-  ArrayOfGridPos gp_lon_cloud(1);
-  gp_lon_cloud = ppath.gp_lon[np-1];
-
-  gp_p_cloud[0].idx -= cloudbox_limits[0];
-  gp_lat_cloud[0].idx -= cloudbox_limits[2];
-  gp_lon_cloud[0].idx -= cloudbox_limits[4];
-  
-  fix_gridpos_at_boundary(gp_p_cloud, p_grid_cloud.nelem()); 
-  fix_gridpos_at_boundary(gp_lat_cloud, lat_grid_cloud.nelem()); 
-  fix_gridpos_at_boundary(gp_lon_cloud, lon_grid_cloud.nelem()); 
-  
-  for( Index ip=0; ip<N_pt; ip++ )
-    
-  {
-    interp_atmfield_by_itw( pnd_ppath(ip, joker), 3,
-                            p_grid_cloud, lat_grid_cloud, lon_grid_cloud, 
-                            pnd_field(ip, joker, joker,  joker), 
-                            "pnd_field", gp_p_cloud, gp_lat_cloud, 
-                            gp_lon_cloud, itw_field );
-    
-    
-  }
- 
+  cloud_atm_vars_by_gp(p_ppath,t_ppath,vmr_ppath,pnd_ppath,gp_p,
+                       gp_lat,gp_lon,cloudbox_limits,p_grid_cloud,
+                       lat_grid_cloud,lon_grid_cloud,t_field_cloud,
+                       vmr_field_cloud,pnd_field);
+   
   rte_pressure    = p_ppath[0];
   rte_temperature = t_ppath[0];
   rte_vmr_list    = vmr_ppath(joker,0);
@@ -177,8 +126,111 @@ void atm_vars_at_ppath_end(
 
 }
 
+//! cloud_atm_vars_by_gp
+/*! 
 
+  Returns pressure, temperature, VMRs and PNDs, at points corresponding
+  to arrays of gridpositions gp_p, gp_lat, and gp_lon.  The field and grid 
+  input variables all span only the cloudbox
 
+  \param pressure  Output: a vector of pressures
+  \param temperature  Output: a vector of temperatures
+  \param vmr          Output: a n_species by n matrix of VMRs
+  \param pnd          Output: a n_ptypes by n matrix of VMRs
+  \param gp_p         an array of pressre gridpoints
+  \param gp_lat       an array of latitude gridpoints
+  \param gp_lon       an array of longitude gridpoints
+  \param cloudbox_limits  the WSV
+  \param p_grid_cloud the subset of the p_grid corresponding to the cloudbox
+  \param lat_grid_cloud the subset of the lat_grid corresponding to the cloudbox
+  \param lon_grid_cloud the subset of the lon_grid corresponding to the cloudbox
+  \param t_field_cloud  the t_field within the cloudbox
+  \param vmr_field_cloud the t_field within the cloudbox
+  \param pnd_field             The WSV
+\author Cory Davis
+\date 2005-06-07
+*/
+
+void cloud_atm_vars_by_gp(
+                          VectorView pressure,
+                          VectorView temperature,
+                          MatrixView vmr,
+                          MatrixView pnd,
+                          const ArrayOfGridPos& gp_p,
+                          const ArrayOfGridPos& gp_lat,
+                          const ArrayOfGridPos& gp_lon,
+                          const ArrayOfIndex& cloudbox_limits,
+                          const ConstVectorView p_grid_cloud,
+                          const ConstVectorView lat_grid_cloud,
+                          const ConstVectorView lon_grid_cloud,
+                          const ConstTensor3View   t_field_cloud,
+                          const ConstTensor4View   vmr_field_cloud,
+                          const ConstTensor4View   pnd_field
+                          )
+{
+  Index np=gp_p.nelem();
+  assert(pressure.nelem()==np);
+  Index ns=vmr_field_cloud.nbooks();
+  Index N_pt=pnd_field.nbooks();
+  ArrayOfGridPos gp_p_cloud = gp_p;
+  ArrayOfGridPos gp_lat_cloud = gp_lat;
+  ArrayOfGridPos gp_lon_cloud = gp_lon;
+  Index atmosphere_dim=3;
+
+  for (Index i = 0; i < np; i++ ) 
+    {
+      // Calculate grid positions inside the cloud. 
+      gp_p_cloud[i].idx -= cloudbox_limits[0];
+      gp_lat_cloud[i].idx -= cloudbox_limits[2];
+      gp_lon_cloud[i].idx -= cloudbox_limits[4];
+    }      
+  
+  fix_gridpos_at_boundary(gp_p_cloud, p_grid_cloud.nelem()); 
+  fix_gridpos_at_boundary(gp_lat_cloud, lat_grid_cloud.nelem()); 
+  fix_gridpos_at_boundary(gp_lon_cloud, lon_grid_cloud.nelem());
+
+  // Determine the pressure at each propagation path point
+  Matrix   itw_p(np,2);
+  //
+  //interpweights( itw_p, ppath.gp_p );      
+  interpweights( itw_p, gp_p_cloud );
+  itw2p( pressure, p_grid_cloud, gp_p_cloud, itw_p );
+  
+  // Determine the atmospheric temperature and species VMR at 
+  // each propagation path point
+  Matrix   itw_field;
+  //
+  interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid_cloud, 
+                          lat_grid_cloud, lon_grid_cloud, 
+                          gp_p_cloud, gp_lat_cloud, gp_lon_cloud );
+  //
+  interp_atmfield_by_itw( temperature,  atmosphere_dim, p_grid_cloud, 
+                          lat_grid_cloud, lon_grid_cloud, t_field_cloud, 
+                          "t_field", gp_p_cloud, gp_lat_cloud, gp_lon_cloud, 
+                          itw_field );
+  // 
+  for( Index is=0; is<ns; is++ )
+    {
+      interp_atmfield_by_itw( vmr(is, joker), atmosphere_dim, p_grid_cloud, 
+                              lat_grid_cloud, lon_grid_cloud, 
+                              vmr_field_cloud(is, joker, joker, joker), 
+                              "vmr_field", gp_p_cloud, gp_lat_cloud, 
+                              gp_lon_cloud, itw_field );
+    }
+  
+  //Determine the particle number density for every particle type at 
+  // each propagation path point
+  for( Index ip=0; ip<N_pt; ip++ )
+    {
+      // if grid positions still outside the range the propagation path step 
+      // must be outside the cloudbox and pnd is set to zero
+      interp_atmfield_by_itw( pnd(ip, joker), atmosphere_dim,
+                              p_grid_cloud, lat_grid_cloud, lon_grid_cloud, 
+                              pnd_field(ip, joker, joker,  joker), 
+                              "pnd_field", gp_p_cloud, gp_lat_cloud, 
+                              gp_lon_cloud, itw_field );
+    }
+}
 
 
 //! Cloudbox_ppath_calc
@@ -555,14 +607,20 @@ void Cloudbox_ppath_rteCalc(
     }
 
   cum_l_stepCalc(cum_l_step,ppathcloud);
-  
-  
+  Range p_range(cloudbox_limits[0], 
+                cloudbox_limits[1]-cloudbox_limits[0]+1);
+  Range lat_range(cloudbox_limits[2], 
+                cloudbox_limits[3]-cloudbox_limits[2]+1);
+  Range lon_range(cloudbox_limits[4], 
+                cloudbox_limits[5]-cloudbox_limits[4]+1);
   //Calculate array of transmittance matrices
   TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, ext_mat, abs_vec, 
              rte_pressure, rte_temperature, 
              rte_vmr_list, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
              scalar_gas_absorption_agenda, stokes_dim, 
-             p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim,
+             p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
+             t_field(p_range,lat_range,lon_range), 
+             vmr_field(joker,p_range,lat_range,lon_range),
              pnd_field,scat_data_mono,cloudbox_limits);
   //Calculate contribution from the boundary of the cloud box
   //changed to dummy_rte_pos to see if rte_pos was causing assertion failure at ppath.cc:1880
@@ -571,19 +629,6 @@ void Cloudbox_ppath_rteCalc(
   Vector los = rte_los;
   rte_posShift(pos,los,rte_gp_p, rte_gp_lat,
             rte_gp_lon,ppathcloud, atmosphere_dim);
-  //sensor_pos(0,joker)=dummy_rte_pos;
-  //sensor_los(0,joker)=dummy_rte_los;
-  //call rte_calc without input checking, sensor stuff, or verbosity
-  //  rte_calc_old( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, 
-  //         rte_gp_lat,
-  //         rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
-  //         ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, 
-  //         atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
-  //         r_geoid, z_ground, cloudbox_on_dummy, cloudbox_limits, 
-  //         scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
-  //         scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
-  //         f_grid,stokes_dim, antenna_dim_dummy,
-  //         mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
   iy_calc(iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, rte_pos, 
           rte_gp_p, rte_gp_lat, rte_gp_lon,rte_los, ppath_step_agenda, 
           rte_agenda, iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
@@ -925,10 +970,18 @@ void mcPathTrace(MatrixView&           evol_op,
   cloudbox_ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
                                  lon_grid, z_field, r_geoid, z_surface, rte_pos,
                                  rte_los ,z_field_is_1D);
+  Range p_range(cloudbox_limits[0], 
+                cloudbox_limits[1]-cloudbox_limits[0]+1);
+  Range lat_range(cloudbox_limits[2], 
+                cloudbox_limits[3]-cloudbox_limits[2]+1);
+  Range lon_range(cloudbox_limits[4], 
+                cloudbox_limits[5]-cloudbox_limits[4]+1);
   atm_vars_at_ppath_end(ext_mat,abs_vec,pnd_vec,rte_temperature,rte_pressure,
                         rte_vmr_list, opt_prop_gas_agenda,
                         scalar_gas_absorption_agenda, stokes_dim, ppath_step,
-                        p_grid, lat_grid, lon_grid, t_field, vmr_field,
+                        p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
+                        t_field(p_range,lat_range,lon_range), 
+                        vmr_field(joker,p_range,lat_range,lon_range),
                         pnd_field,scat_data_mono, cloudbox_limits);
   ext_matArray[1]=ext_mat(0, Range(joker), Range(joker));
   abs_vecArray[1]=abs_vec(0, Range(joker));
@@ -953,7 +1006,9 @@ void mcPathTrace(MatrixView&           evol_op,
       atm_vars_at_ppath_end(ext_mat,abs_vec,pnd_vec,rte_temperature,rte_pressure,
                             rte_vmr_list, opt_prop_gas_agenda,
                             scalar_gas_absorption_agenda, stokes_dim, ppath_step,
-                            p_grid, lat_grid, lon_grid, t_field, vmr_field,
+                            p_grid[p_range], lat_grid[lat_range], lon_grid[lon_range], 
+                            t_field(p_range,lat_range,lon_range), 
+                            vmr_field(joker,p_range,lat_range,lon_range),
                             pnd_field,scat_data_mono, cloudbox_limits);
       ext_matArray[1]=ext_mat(0, Range(joker), Range(joker));
       abs_vecArray[1]=abs_vec(0, Range(joker));
@@ -1851,23 +1906,24 @@ void TArrayCalc(
                 const Agenda& opt_prop_gas_agenda,
                 const Agenda& scalar_gas_absorption_agenda,
                 const Index& stokes_dim,
-                const Vector&    p_grid,
-                const Vector&    lat_grid,
-                const Vector&    lon_grid,
-                const Tensor3&   t_field,
-                const Tensor4&   vmr_field,
-                const Index&     atmosphere_dim,
+                const ConstVectorView&    p_grid_cloud,
+                const ConstVectorView&    lat_grid_cloud,
+                const ConstVectorView&    lon_grid_cloud,
+                const ConstTensor3View&   t_field_cloud,
+                const ConstTensor4View&   vmr_field_cloud,
                 const Tensor4&   pnd_field,
                 const ArrayOfSingleScatteringData& scat_data_mono,
                 const ArrayOfIndex& cloudbox_limits
                 )
 { 
   const Index np=ppath.np;  
-  const Index   ns = vmr_field.nbooks();
+  const Index   ns = vmr_field_cloud.nbooks();
   const Index N_pt = pnd_field.nbooks();
   
-  Vector scat_za_grid(ppath.np);
-  Vector scat_aa_grid(ppath.np);
+  Vector scat_za_grid(np);
+  Vector scat_aa_grid(np);
+  Vector p_ppath(np);
+  Matrix vmr_ppath(ns,np);
 
   TArray.resize(np);
   ext_matArray.resize(np); 
@@ -1891,74 +1947,12 @@ void TArrayCalc(
   scat_aa_grid=ppath.los(Range(joker),1);
   scat_aa_grid+=180;
 
-  // Determine the pressure at each propagation path point
-  Vector   p_ppath(np);
-  Matrix   itw_p(np,2);
-  //
-  interpweights( itw_p, ppath.gp_p );      
-  itw2p( p_ppath, p_grid, ppath.gp_p, itw_p );
+  // Define cloud sub_grids and fields- this can actually happen one level above !!! ...
   
-  // Determine the atmospheric temperature and species VMR at 
-  // each propagation path point
-  Matrix   vmr_ppath(ns,np), itw_field;
-  //
-  interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
-                          lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
-  //
-  interp_atmfield_by_itw( t_ppath,  atmosphere_dim, p_grid, lat_grid, 
-                          lon_grid, t_field, "t_field", 
-                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-  // 
-  for( Index is=0; is<ns; is++ )
-    {
-      interp_atmfield_by_itw( vmr_ppath(is, joker), atmosphere_dim,
-                              p_grid, lat_grid, lon_grid, 
-                              vmr_field(is, joker, joker,  joker), 
-                              "vmr_field", ppath.gp_p, ppath.gp_lat, 
-                              ppath.gp_lon, itw_field );
-    }
-  
-  //===========(CE)=============================================
-
-  //Determine the particle number density for every particle type at 
-  // each propagation path point
-  
-  ConstVectorView p_grid_cloud = 
-    p_grid[Range(cloudbox_limits[0], 
-                 cloudbox_limits[1]-cloudbox_limits[0]+1)];
-  ConstVectorView lat_grid_cloud = 
-    lat_grid[Range(cloudbox_limits[2],
-                   cloudbox_limits[3]-cloudbox_limits[2]+1)];           
-  ConstVectorView lon_grid_cloud = 
-    lon_grid[Range(cloudbox_limits[4],
-                   cloudbox_limits[5]-cloudbox_limits[4]+1)];
-  
-  ArrayOfGridPos gp_p_cloud = ppath.gp_p;
-  ArrayOfGridPos gp_lat_cloud = ppath.gp_lat;
-  ArrayOfGridPos gp_lon_cloud = ppath.gp_lon;
-
-  for (Index i = 0; i < np; i++ ) 
-    {
-      // Calculate grid positions inside the cloud. 
-      gp_p_cloud[i].idx -= cloudbox_limits[0];
-      gp_lat_cloud[i].idx -= cloudbox_limits[2];
-      gp_lon_cloud[i].idx -= cloudbox_limits[4];
-    }      
-  
-  fix_gridpos_at_boundary(gp_p_cloud, p_grid_cloud.nelem()); 
-  fix_gridpos_at_boundary(gp_lat_cloud, lat_grid_cloud.nelem()); 
-  fix_gridpos_at_boundary(gp_lon_cloud, lon_grid_cloud.nelem()); 
-
-  for( Index ip=0; ip<N_pt; ip++ )
-    {
-      // if grid positions still outside the range the propagation path step 
-      // must be outside the cloudbox and pnd is set to zero
-      interp_atmfield_by_itw( pnd_ppath(ip, joker), atmosphere_dim,
-                              p_grid_cloud, lat_grid_cloud, lon_grid_cloud, 
-                              pnd_field(ip, joker, joker,  joker), 
-                              "pnd_field", gp_p_cloud, gp_lat_cloud, 
-                              gp_lon_cloud, itw_field );
-    }
+  cloud_atm_vars_by_gp(p_ppath,t_ppath,vmr_ppath,pnd_ppath,ppath.gp_p,
+                       ppath.gp_lat,ppath.gp_lon,cloudbox_limits,p_grid_cloud,
+                       lat_grid_cloud,lon_grid_cloud,t_field_cloud,
+                       vmr_field_cloud,pnd_field);
 
   //Create array of extinction matrices corresponding to each point in ppath
   for (Index scat_za_index=0; scat_za_index<ppath.np; scat_za_index++)

@@ -1,1482 +1,1509 @@
+2005-06-07  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+        * arts-1-1-995
+
+        This work was to address problems in the MC code caused by the
+        change in size of pnd_field.  There was a small problem in
+        Claudia's fix. itws were calculated using gps.  Then the gps were
+        "fixed", but in the final interpolation the old itws were used
+        with the new gps.  As well as solving this problem, all field
+        variables are now looked up in the same way - i.e. inside the
+        cloudbox only the appropriate subset of the *field variables are
+        used.  python testall.py -v now works again.
+
+        * src/montecarlo.{cc,h} (cloud_atm_vars_by_gp): Added.  Returns
+        pressure, temperature, VMRs and PNDs, at points corresponding to
+        arrays of grid positions gp_p, gp_lat, and gp_lon.  The field and
+        grid input variables all span only the cloudbox. 
+        (atm_vars_at_ppath_end): Changed to call
+        cloud_atm_vars_by_gp
+        (TArrayCalc): Changed to call
+        cloud_atm_vars_by_gp
+        (Cloudbox_ppath_rteCalc): updated call to TArrayCalc.
+        (mcPathTrace): updated call to atm_vars_at_ppath_end.
+
+        
+        
+
 2005-06-07  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-994
+        * arts-1-1-994
 
-	* src/workspace_ng.{cc,h}:
+        * src/workspace_ng.{cc,h}:
 
-	Remove unneeded EMPTY_WSV.
+        Remove unneeded EMPTY_WSV.
 
-	(Workspace::is_occupied): Improve readability.
+        (Workspace::is_occupied): Improve readability.
 
-	(Workspace::pop):
+        (Workspace::pop):
 
-	Fix memleak. Thanks to claudia and 'valgrind --tool=massif' :-)
+        Fix memleak. Thanks to claudia and 'valgrind --tool=massif' :-)
 
-	(Workspace:operator[]): Use NULL instead of EMPTY_WSV.
+        (Workspace:operator[]): Use NULL instead of EMPTY_WSV.
 
-	(Workspace:Workspace): Removed EMPTY_WSV initialization.
+        (Workspace:Workspace): Removed EMPTY_WSV initialization.
 
 2005-06-03  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-993
+        * arts-1-1-993
 
-	* src/methods.cc:
+        * src/methods.cc:
 
-	Add scat_i_p_, scat_i_lat_, scat_i_lon_ as Input to ScatteringDoit.
+        Add scat_i_p_, scat_i_lat_, scat_i_lon_ as Input to ScatteringDoit.
 
-	* src/agendas.cc:
+        * src/agendas.cc:
 
-	Add scat_i_p_, scat_i_lat_, scat_i_lon_ as Input to doit_mono_agenda.
+        Add scat_i_p_, scat_i_lat_, scat_i_lon_ as Input to doit_mono_agenda.
 
-	* src/agenda_class.{cc,h}:
+        * src/agenda_class.{cc,h}:
 
-	(AgendaSet): Determine WSVs which need to be pushed and duplicated
-	here instead of doing it in the Execute wrappers.
+        (AgendaSet): Determine WSVs which need to be pushed and duplicated
+        here instead of doing it in the Execute wrappers.
 
-	(Agenda::get_output2push,
-	Agenda::get_output2dup,
-	Agenda::get_agenda_only_out_wsm_in,
-	Agenda::get_agenda_only_in_wsm_out): New functions.
+        (Agenda::get_output2push,
+        Agenda::get_output2dup,
+        Agenda::get_agenda_only_out_wsm_in,
+        Agenda::get_agenda_only_in_wsm_out): New functions.
 
-	(Agenda::set_outputs_to_push_and_dup):
+        (Agenda::set_outputs_to_push_and_dup):
 
-	Renamed get_ to set_.
+        Renamed get_ to set_.
 
-	Find out special cases. 1. A WSV is defined only as agenda input but
-	used as output in one of the WSMs. 2. A WSV is defined only as agenda
-	output but first used as input in one of the WSMs.
-	A warning message is shown if one of these cases occurs.
+        Find out special cases. 1. A WSV is defined only as agenda input but
+        used as output in one of the WSMs. 2. A WSV is defined only as agenda
+        output but first used as input in one of the WSMs.
+        A warning message is shown if one of these cases occurs.
 
-	(printWsvNamesToOut3): Temporary debugging function.
+        (printWsvNamesToOut3): Temporary debugging function.
 
-	* src/m_atmosphere.cc (InterpAtmFieldToRteGps):
+        * src/m_atmosphere.cc (InterpAtmFieldToRteGps):
 
-	Fix function name in doxygen header.
+        Fix function name in doxygen header.
 
-	* src/make_auto_md_cc.cc (main):
+        * src/make_auto_md_cc.cc (main):
 
-	Use agenda member functions to determine which WSVs need a push/dup.
+        Use agenda member functions to determine which WSVs need a push/dup.
 
 2005-06-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-992
+        * arts-1-1-992
 
-	* src/m_jacobian.cc (jacobianCalcGas): Error is thrown if number
-	density is selected (not yet implemented).
+        * src/m_jacobian.cc (jacobianCalcGas): Error is thrown if number
+        density is selected (not yet implemented).
 
-	* src/jacobian.cc (jacobian_from_path_to_rgrids): Now using the extpol
-	gridpos functions.
+        * src/jacobian.cc (jacobian_from_path_to_rgrids): Now using the extpol
+        gridpos functions.
 
-	* src/interpolation.cc (gridpos_extpol): This is old gridpos, extended
-	with a selectable extrapolation factor. It turned out that the simplest
-	fix for a part of the analytical jacobian calculations is to allow
-	extrapolation to infinity and this was fixed in this way.
+        * src/interpolation.cc (gridpos_extpol): This is old gridpos, extended
+        with a selectable extrapolation factor. It turned out that the simplest
+        fix for a part of the analytical jacobian calculations is to allow
+        extrapolation to infinity and this was fixed in this way.
 
-	(gridpos): Is now only a filter to gridpos_extpol, with a hard-coded
-	extrapolation factor of 0.5.
+        (gridpos): Is now only a filter to gridpos_extpol, with a hard-coded
+        extrapolation factor of 0.5.
 
-	* src/special_interp.cc (ArrayOfGridPosPrint): Removed this obselete
-	function.
+        * src/special_interp.cc (ArrayOfGridPosPrint): Removed this obselete
+        function.
 
-	(p2gridpos_extpol): Created.
+        (p2gridpos_extpol): Created.
 
 2005-06-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-991
+        * arts-1-1-991
 
-	* src/m_scatrte.cc: Made output from *scat_mono_agenda* silent, if
-	more than one frequency is calculated.
+        * src/m_scatrte.cc: Made output from *scat_mono_agenda* silent, if
+        more than one frequency is calculated.
 
-	* src/cloudbox.cc (iy_interp_cloudbox_field): Fixed bug in polynomial 
-	interpolation.
-	
+        * src/cloudbox.cc (iy_interp_cloudbox_field): Fixed bug in polynomial 
+        interpolation.
+        
 2005-06-03  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-990
+        * arts-1-1-990
 
-	* src/workspace_ng.h (is_occupied): Fix crash.
+        * src/workspace_ng.h (is_occupied): Fix crash.
 
 2005-06-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-989
+        * arts-1-1-989
 
-	* src/: Introduced new workspace group ArrayOfArrayOfindex.
+        * src/: Introduced new workspace group ArrayOfArrayOfindex.
 
-	* src/workspace.cc: Introduced jacobian_indices. 
+        * src/workspace.cc: Introduced jacobian_indices. 
 
-	* src/m_physics.cc: Created SparseToTbByRJ and SparseToTbByPlanck.
+        * src/m_physics.cc: Created SparseToTbByRJ and SparseToTbByPlanck.
 
-	* src/m_basic_types.h (ArrayInit): Created this supergeneric method.
+        * src/m_basic_types.h (ArrayInit): Created this supergeneric method.
 
-	* src/methods.cc: Added gas_species as input to gas_speciesAdd and
-	jacobianAddGas, to make sure that gas_species is properly set.
+        * src/methods.cc: Added gas_species as input to gas_speciesAdd and
+        jacobianAddGas, to make sure that gas_species is properly set.
 
-	* src/m_jacobian.cc 
-	(jacobianInit): jacobianInit and jacobianOff are now internally
-	the same function, with functionality of old jacobianOff. This
-	means that jacobianInit can always be used
-	(this simplified the coding for qarts in Atmlab).
+        * src/m_jacobian.cc 
+        (jacobianInit): jacobianInit and jacobianOff are now internally
+        the same function, with functionality of old jacobianOff. This
+        means that jacobianInit can always be used
+        (this simplified the coding for qarts in Atmlab).
 
-	Changes here and there following introduction of jacobian_indices.
+        Changes here and there following introduction of jacobian_indices.
 
-	* src/m_rte.cc: Code extracted to create jacobian_from_path_to_rgrids.
+        * src/m_rte.cc: Code extracted to create jacobian_from_path_to_rgrids.
 
-	* src/jacobian.cc (jacobian_from_path_to_rgrids): Help function to
-	RteCalc, to map jacobians from positions along the propagation path
-	to the retrieval grids.
+        * src/jacobian.cc (jacobian_from_path_to_rgrids): Help function to
+        RteCalc, to map jacobians from positions along the propagation path
+        to the retrieval grids.
 
-	* src: *opt_prop_agenda* is not any longer used by *rte_agenda*. 
-	A fixed mapping from *abs_scalar_gas* to extinction matrix is assumed.
-	The scheme must later be extended to include Zeeman.
-	
-	Changes in several files to adopt to this change.
+        * src: *opt_prop_agenda* is not any longer used by *rte_agenda*. 
+        A fixed mapping from *abs_scalar_gas* to extinction matrix is assumed.
+        The scheme must later be extended to include Zeeman.
+        
+        Changes in several files to adopt to this change.
 
 2005-06-02  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-988
+        * arts-1-1-988
 
-	* src/make_auto_md_cc.cc (main):
+        * src/make_auto_md_cc.cc (main):
 
-	Full agenda scoping nearly finished. Still commented out.
-	'make check' runs fine but there are some problem cases left
-	which need special treatment.
+        Full agenda scoping nearly finished. Still commented out.
+        'make check' runs fine but there are some problem cases left
+        which need special treatment.
 
-	TODO: Trigger the get_outputs_to_push_and_dup on AgendaSet instead of
-	calling it on every Execute.
+        TODO: Trigger the get_outputs_to_push_and_dup on AgendaSet instead of
+        calling it on every Execute.
 
-	* src/agenda_class.{cc,h} (get_outputs_to_push_and_dup):
+        * src/agenda_class.{cc,h} (get_outputs_to_push_and_dup):
 
-	New function replacing get_all_{output,input}.
+        New function replacing get_all_{output,input}.
 
 2005-06-02  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-987
+        * arts-1-1-987
 
-	* src/jacobian.[cc,h]: Change name of field Unit in the retrieval
-	quantity to Mode. This as it better represent the use of the field.
+        * src/jacobian.[cc,h]: Change name of field Unit in the retrieval
+        quantity to Mode. This as it better represent the use of the field.
 
-	* src/m_jacobian.cc: See above.
+        * src/m_jacobian.cc: See above.
 
-	* src/m_rte.cc: See above.
+        * src/m_rte.cc: See above.
 
-	* src/xml_io_compound_types.cc: See above.
-
-2005-06-02  Oliver Lemke  <olemke@core-dump.info>
-
-	* arts-1-1-986
-
-	* src/workspace_ng.{cc,h}:
-
-	Let the workspace keep track of variables which were allocated by
-	itself and which where added from outside. The destructor only frees
-	WSVs which were allocated by the workspace itself. Avoids double
-	free corruption when runtime errors occur inside agendas.
+        * src/xml_io_compound_types.cc: See above.
 
 2005-06-02  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-985
+        * arts-1-1-986
 
-	* src/m_scatrte (doit_i_fieldIterate):
+        * src/workspace_ng.{cc,h}:
 
-	Don't use doit_rte_agendaScopeExecute.
+        Let the workspace keep track of variables which were allocated by
+        itself and which where added from outside. The destructor only frees
+        WSVs which were allocated by the workspace itself. Avoids double
+        free corruption when runtime errors occur inside agendas.
+
+2005-06-02  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-1-985
+
+        * src/m_scatrte (doit_i_fieldIterate):
+
+        Don't use doit_rte_agendaScopeExecute.
 
 2005-06-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-984
+        * arts-1-1-984
 
-	* src/m_jacobian.cc (jacobianAddGas): Changed possible strings for
-	field unit and method.
+        * src/m_jacobian.cc (jacobianAddGas): Changed possible strings for
+        field unit and method.
 
-	* src/m_rte.cc (RteCalc): Complete code for analytical gas jacobians.
-	1D tested OK. No  tests for higher dimensions. Code shall be broken out
-	to be put in sub-functions.
+        * src/m_rte.cc (RteCalc): Complete code for analytical gas jacobians.
+        1D tested OK. No  tests for higher dimensions. Code shall be broken out
+        to be put in sub-functions.
 
 2005-06-01  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-983
+        * arts-1-1-983
 
-	* src/scatrte.cc (cloud_ppath_update3D): Fixed small bug
-	introduced in latest changes (pressure interpolation).
+        * src/scatrte.cc (cloud_ppath_update3D): Fixed small bug
+        introduced in latest changes (pressure interpolation).
 
-	* src/m_rte.cc (RteCalc): Initialized ji0_t and jin_t because of
-	compiler warning.
-	
+        * src/m_rte.cc (RteCalc): Initialized ji0_t and jin_t because of
+        compiler warning.
+        
 2005-06-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-982
+        * arts-1-1-982
 
-	* src/m_rte.cc (RteCalc): More jacobian coding for gases. Mapping
-	from ppath to retrieval grids not yet included. But everything else
-	appears to work (can be tested for 1D with retrieval grid = p_grid).
+        * src/m_rte.cc (RteCalc): More jacobian coding for gases. Mapping
+        from ppath to retrieval grids not yet included. But everything else
+        appears to work (can be tested for 1D with retrieval grid = p_grid).
 
-	* src/rte.cc (rte_std): Finished code for analytical VMR jacobian
-	calculations.
+        * src/rte.cc (rte_std): Finished code for analytical VMR jacobian
+        calculations.
 
-	* src/m_jacobian.cc (jacobianCalcGas): Included assert to ensure that
-	not analytical calculations are selected.
+        * src/m_jacobian.cc (jacobianCalcGas): Included assert to ensure that
+        not analytical calculations are selected.
 
-	(jacobianAddGas): Now nothing is added to jacobian_agenda if
-	analytical calculations selected.
-	Retrieval units are now: "vmr", "nd" and "rel".
-	Calculation methods are now: "analytical" and "perturbation"
+        (jacobianAddGas): Now nothing is added to jacobian_agenda if
+        analytical calculations selected.
+        Retrieval units are now: "vmr", "nd" and "rel".
+        Calculation methods are now: "analytical" and "perturbation"
 
 2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
-	* arts-1-1-981
+        * arts-1-1-981
 
-	* Most of the absorption code from arts-1-0 is here now. Methods
-	are not yet working.
-	
-	* src/test_sparse.cc: Removed definition of joker.
+        * Most of the absorption code from arts-1-0 is here now. Methods
+        are not yet working.
+        
+        * src/test_sparse.cc: Removed definition of joker.
 
-	* src/species_data.cc: Moved code from arts-1-0 here.
+        * src/species_data.cc: Moved code from arts-1-0 here.
 
-	* src/partition_function_data.cc: Moved code from arts-1-0 here.
+        * src/partition_function_data.cc: Moved code from arts-1-0 here.
 
-	* src/methods.cc: Not much changed.
+        * src/methods.cc: Not much changed.
 
-	* src/m_atmosphere.cc: Include abs_species_tags.h.
+        * src/m_atmosphere.cc: Include abs_species_tags.h.
 
-	* src/m_abs_lookup.cc: Include <map>.
+        * src/m_abs_lookup.cc: Include <map>.
 
-	* src/m_abs.cc: Moved code from arts-1-0 here.
+        * src/m_abs.cc: Moved code from arts-1-0 here.
 
-	* src/lineshapes.cc: Moved code from arts-1-0 here.
+        * src/lineshapes.cc: Moved code from arts-1-0 here.
 
-	* src/gas_abs_lookup.h: Include abs_species_tags.h.
+        * src/gas_abs_lookup.h: Include abs_species_tags.h.
 
-	* src/continua.h: Moved code from arts-1-0 here.
+        * src/continua.h: Moved code from arts-1-0 here.
 
-	* src/continua.cc: Added. (From arts-1-0.)
+        * src/continua.cc: Added. (From arts-1-0.)
 
-	* src/constants.cc: Added HZ2CM (from arts-1-0).
+        * src/constants.cc: Added HZ2CM (from arts-1-0).
 
-	* src/absorption.h: Moved code from arts-1-0 here.
+        * src/absorption.h: Moved code from arts-1-0 here.
 
-	* src/absorption.cc: Moved code from arts-1-0 here.
+        * src/absorption.cc: Moved code from arts-1-0 here.
 
-	* src/abs_species_tags.h: Added. Stuff related to species tags.
+        * src/abs_species_tags.h: Added. Stuff related to species tags.
 
-	* src/abs_species_tags.cc: Added. Stuff related to species tags. 
+        * src/abs_species_tags.cc: Added. Stuff related to species tags. 
 
-	* src/Makefile.am: Added abs_species_tags.h and
-	abs_species_tags.cc. Updated sources for all tests. (This is a
-	mess.) 
+        * src/Makefile.am: Added abs_species_tags.h and
+        abs_species_tags.cc. Updated sources for all tests. (This is a
+        mess.) 
 
 2005-05-31  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-980
+        * arts-1-1-980
 
-	* Preparations for full scoping in agendas.
+        * Preparations for full scoping in agendas.
 
-	* src/workspace_ng.{cc,h}
+        * src/workspace_ng.{cc,h}
 
-	(Workspace::pop_free): New function. Pops a WSV and frees its memory.
+        (Workspace::pop_free): New function. Pops a WSV and frees its memory.
 
-	(Workspace::duplicate): New function. Duplicates the topmost entry on
-	the WSVs stack.
+        (Workspace::duplicate): New function. Duplicates the topmost entry on
+        the WSVs stack.
 
-	* src/make_auto_wsv_h.cc (main):
+        * src/make_auto_wsv_h.cc (main):
 
-	Added new functions in WorkspaceMemoryHandler to duplicate WSVs.
+        Added new functions in WorkspaceMemoryHandler to duplicate WSVs.
 
-	* src/agenda_class.{cc.h}:
+        * src/agenda_class.{cc.h}:
 
-	Move implementation of Agenda::operator=, Agenda::resize,
-	Agenda::nelem and MRecord::operator= from cc file to header file. We
-	need these functions for make_auto_wsv_h. But because agenda_class.cc
-	itself depends on auto_wsv.h we cannot link make_auto_wsv_h against
-	agenda_class.o as this would create a circular dependency.
+        Move implementation of Agenda::operator=, Agenda::resize,
+        Agenda::nelem and MRecord::operator= from cc file to header file. We
+        need these functions for make_auto_wsv_h. But because agenda_class.cc
+        itself depends on auto_wsv.h we cannot link make_auto_wsv_h against
+        agenda_class.o as this would create a circular dependency.
 
-	(doit_rte_agendaScopeExecute): Test wrappers featuring scope.
+        (doit_rte_agendaScopeExecute): Test wrappers featuring scope.
 
-	* src/m_scatrte.cc (doit_i_fieldIterate):
+        * src/m_scatrte.cc (doit_i_fieldIterate):
 
-	Use doit_rte_agendaScopeExecute to test the scoping.
+        Use doit_rte_agendaScopeExecute to test the scoping.
 
-	* src/Makefile.am (make_auto_wsv_h_SOURCES):
+        * src/Makefile.am (make_auto_wsv_h_SOURCES):
 
-	Depend on agenda_class.h.
-
-2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
-
-	* arts-1-1-979
-
-	* src/m_absorption.cc: Removed.
-
-	* src/m_abs_lookup.cc: Added. (Used to be m_absorption.cc)
-
-	* src/Makefile.am: Replaced m_absorption.cc by m_abs_lookup.cc.
+        Depend on agenda_class.h.
 
 2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
-	* arts-1-1-978
+        * arts-1-1-979
 
-	* src/methods.cc: Added planned new names for absorption methods
-	as comments. Sorted according to the new names. All absorption
-	methods are now at the beginning of the list.
+        * src/m_absorption.cc: Removed.
 
-2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
+        * src/m_abs_lookup.cc: Added. (Used to be m_absorption.cc)
 
-	* arts-1-1-977
-
-	* src/workspace.cc: Commented out abs_vec_zee, ext_mat_zee,
-	zeeman_o2_onoff, zeeman_o2_pressure_limit,
-	zeeman_o2_line. Move all these commented-out WSVs to the end of
-	the list.
-	Added planned new names for absorption variables as
-	comments. Sorted according to the new names. All absorption
-	variables are now at the beginning of the list.
+        * src/Makefile.am: Replaced m_absorption.cc by m_abs_lookup.cc.
 
 2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
-	* arts-1-1-976
+        * arts-1-1-978
 
-	* Removed obsolete ARTS-1-1 absorption files, WSVs, WSMs, and
-	agendas.
-	
-	* src/workspace.cc: Removed WSVs: abs_model, abs_user_parameters,
-	els, els_agenda, els_f_grid, ls, ls_cutoff, ls_f0, ls_gamma,
-	ls_sigma.
-	
-	* src/methods.cc: Removed WSMs: absCKDMT_H2O_AIR,
-	absCKDMT_H2O_H2O, absMPM02_H2O, absO2Model, elsDoppler,
-	elsLorentz, elsVoigt_Drayson, elsVoigt_Kuntz6, lsWithCutoffAdd.	
-	Commented out: absO2ZeemanModel, abs_vecAddGasZeeman,
-	ext_matAddGasZeeman, ZeemanO2Settings, test_zeeman. Moved the
-	commented-out Zeeman methods to the end of the list.
+        * src/methods.cc: Added planned new names for absorption methods
+        as comments. Sorted according to the new names. All absorption
+        methods are now at the beginning of the list.
 
-	* src/agendas.cc: Removed els_agenda.
+2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
-	* src/Makefile.am: Removed m_lineshapes.cc and
-	m_continua_ckd.cc from the source file list. The files themselves
-	have also been deleted. Removed abs_o2_models.h and
-	m_abs_o2_models.cc from the source file list. The files themselves
-	are still there, in case somebody wants to resume the work on
-	Zeeman. 
+        * arts-1-1-977
 
-	* src/m_lineshapes.cc: Removed.
+        * src/workspace.cc: Commented out abs_vec_zee, ext_mat_zee,
+        zeeman_o2_onoff, zeeman_o2_pressure_limit,
+        zeeman_o2_line. Move all these commented-out WSVs to the end of
+        the list.
+        Added planned new names for absorption variables as
+        comments. Sorted according to the new names. All absorption
+        variables are now at the beginning of the list.
 
-	* src/m_continua.cc: Removed.
+2005-05-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
-	* src/m_continua_ckd.cc: Removed.
+        * arts-1-1-976
 
-	* src/old_absorption.cc: Removed.
+        * Removed obsolete ARTS-1-1 absorption files, WSVs, WSMs, and
+        agendas.
+        
+        * src/workspace.cc: Removed WSVs: abs_model, abs_user_parameters,
+        els, els_agenda, els_f_grid, ls, ls_cutoff, ls_f0, ls_gamma,
+        ls_sigma.
+        
+        * src/methods.cc: Removed WSMs: absCKDMT_H2O_AIR,
+        absCKDMT_H2O_H2O, absMPM02_H2O, absO2Model, elsDoppler,
+        elsLorentz, elsVoigt_Drayson, elsVoigt_Kuntz6, lsWithCutoffAdd. 
+        Commented out: absO2ZeemanModel, abs_vecAddGasZeeman,
+        ext_matAddGasZeeman, ZeemanO2Settings, test_zeeman. Moved the
+        commented-out Zeeman methods to the end of the list.
+
+        * src/agendas.cc: Removed els_agenda.
+
+        * src/Makefile.am: Removed m_lineshapes.cc and
+        m_continua_ckd.cc from the source file list. The files themselves
+        have also been deleted. Removed abs_o2_models.h and
+        m_abs_o2_models.cc from the source file list. The files themselves
+        are still there, in case somebody wants to resume the work on
+        Zeeman. 
+
+        * src/m_lineshapes.cc: Removed.
+
+        * src/m_continua.cc: Removed.
+
+        * src/m_continua_ckd.cc: Removed.
+
+        * src/old_absorption.cc: Removed.
 
 2005-05-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-975
+        * arts-1-1-975
 
-	* Main changes:
+        * Main changes:
            - DoNothing and IndexStep now need both global input and output.
-	   - Cfiles must now include jacobianOff{}
-	     (you can also use RteCalcNoJacobian, but it is mainly intended
-	      for internal use)
+           - Cfiles must now include jacobianOff{}
+             (you can also use RteCalcNoJacobian, but it is mainly intended
+              for internal use)
 
-	Otherwise some more jacobian code added (not yet activated).
+        Otherwise some more jacobian code added (not yet activated).
 
-	* src/m_basic_types.cc (IndexStep): Now works as out = in + 1,
-	where in and out can be same WSV. This also ensures that the WSV
-	has been init correctly when doing a = a + 1.
+        * src/m_basic_types.cc (IndexStep): Now works as out = in + 1,
+        where in and out can be same WSV. This also ensures that the WSV
+        has been init correctly when doing a = a + 1.
 
-	(MatrixCopy): Removed this obselete function.
+        (MatrixCopy): Removed this obselete function.
 
-	* src/m_ignore.h (DoNothing): The variable to ignore must now be
-	given as both input and output. This to ensure that the variable
-	has been init correctly.
+        * src/m_ignore.h (DoNothing): The variable to ignore must now be
+        given as both input and output. This to ensure that the variable
+        has been init correctly.
 
-	* src/m_rte.cc (RteCalcTmp): Added this as a temporary solution to
-	test/develop jacobians, making old cfiles to run.
-	Started to make jacobian code.
+        * src/m_rte.cc (RteCalcTmp): Added this as a temporary solution to
+        test/develop jacobians, making old cfiles to run.
+        Started to make jacobian code.
 
- 	(RteCalcNoJacobian): Added. 
-	
-	* src/workspace.cc: Added rte_do_gas_jacs and rte_do_t_jacs.
+        (RteCalcNoJacobian): Added. 
+        
+        * src/workspace.cc: Added rte_do_gas_jacs and rte_do_t_jacs.
 
-	* src/jacobian.h: Removed speciesindex as field for RetrievalQuantity,
-	and renamed field method to analytical.
+        * src/jacobian.h: Removed speciesindex as field for RetrievalQuantity,
+        and renamed field method to analytical.
 
-	* src/m_jacobian.cc: Adopted to changes in fields for
-	RetrievalQuantity.
+        * src/m_jacobian.cc: Adopted to changes in fields for
+        RetrievalQuantity.
 
-	(jacobianOff): Added.
+        (jacobianOff): Added.
 
-	* src/xml_io_compound_types.cc: Adopted to changes in fields for
-	RetrievalQuantity.
+        * src/xml_io_compound_types.cc: Adopted to changes in fields for
+        RetrievalQuantity.
 
 2005-05-30  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-974
-   	
-	* src/agendas.cc: Fixed entry for *doit_mono_agenda*.
-	
-	* src/m_scatrte.cc (ScatteringDoit): Used new agenda wrapper for 
-	*doit_mono_agenda*. Fixed WS OUTPUT of the function. 
+        * arts-1-1-974
+        
+        * src/agendas.cc: Fixed entry for *doit_mono_agenda*.
+        
+        * src/m_scatrte.cc (ScatteringDoit): Used new agenda wrapper for 
+        *doit_mono_agenda*. Fixed WS OUTPUT of the function. 
 
-	(i_fieldUpdateSeq3D): Included new ageda wrappers, now here also 
-	only *iy_surface_agenda* and *ppath_step_agenda* remain. 
+        (i_fieldUpdateSeq3D): Included new ageda wrappers, now here also 
+        only *iy_surface_agenda* and *ppath_step_agenda* remain. 
 
-	* src/scatrte.{cc,h} (cloud_ppath_update3D): Used new agenda 
-	wrappers, used (cloud_RT_no_background).
+        * src/scatrte.{cc,h} (cloud_ppath_update3D): Used new agenda 
+        wrappers, used (cloud_RT_no_background).
 
-	(cloud_RT_no_background): Generalized to handle 1D and 3D. Before
-	the function worked only for 1D.
-	
-	* src/methods.cc: Adapted ScatteringDoit and i_fieldUpdateSeq3D entries.
-	
+        (cloud_RT_no_background): Generalized to handle 1D and 3D. Before
+        the function worked only for 1D.
+        
+        * src/methods.cc: Adapted ScatteringDoit and i_fieldUpdateSeq3D entries.
+        
 2005-05-30  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
-	
-	* arts-1-1-973
+        
+        * arts-1-1-973
 
-	* src/agendas.cc: Fixed INPUT and OUTPUT of the following 
-	agendas: 
-	scalar_gas_absorption_agenda, spt_calc_agenda,
-	opt_prop_part_agenda
-	
-	* src/m_scatrte.cc: Used new agenda wrappers for the agendas above in 
-	(i_fieldUpdateSeq1D), (i_fieldUpdate1D), (i_fieldUpdateSeq3D). 
-	3D function not yet completed.
-	
-	* src/methods.cc: Adaptes WS OUTPUT of methods above. Most of the 
-	output variables could be removed, only the communication
-	variables for *iy_surface_agenda* and *ppath_step_agenda* remain. 
-	
-	* src/scatrte.{cc,h}: Used new agenda wrappers in the following 
-	functions:
-	cloud_fieldsCalc, cloud_RT_no_background, cloud_ppath_update1D,
-	cloud_ppath_update1D_noseq				  
+        * src/agendas.cc: Fixed INPUT and OUTPUT of the following 
+        agendas: 
+        scalar_gas_absorption_agenda, spt_calc_agenda,
+        opt_prop_part_agenda
+        
+        * src/m_scatrte.cc: Used new agenda wrappers for the agendas above in 
+        (i_fieldUpdateSeq1D), (i_fieldUpdate1D), (i_fieldUpdateSeq3D). 
+        3D function not yet completed.
+        
+        * src/methods.cc: Adaptes WS OUTPUT of methods above. Most of the 
+        output variables could be removed, only the communication
+        variables for *iy_surface_agenda* and *ppath_step_agenda* remain. 
+        
+        * src/scatrte.{cc,h}: Used new agenda wrappers in the following 
+        functions:
+        cloud_fieldsCalc, cloud_RT_no_background, cloud_ppath_update1D,
+        cloud_ppath_update1D_noseq                                
 
 2005-05-27  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-972
-	
-	* src/agenda_record.cc (write_agenda_wrapper_header):
+        * arts-1-1-972
+        
+        * src/agenda_record.cc (write_agenda_wrapper_header):
 
-	Fixed stupid bug introduced by myself: Make all input 'const' but
-	omit the reference for Index and Numeric types. Not the other
-	way round!
+        Fixed stupid bug introduced by myself: Make all input 'const' but
+        omit the reference for Index and Numeric types. Not the other
+        way round!
 
 2005-05-27  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-971
-	
-	* src/m_cloudbox.cc (pnd_fieldCalc): Changed the size *pnd_field*.
-	From now on it is defined only inside the cloudbox. 
+        * arts-1-1-971
+        
+        * src/m_cloudbox.cc (pnd_fieldCalc): Changed the size *pnd_field*.
+        From now on it is defined only inside the cloudbox. 
 
-	* src/m_optproperties.cc: Adapted the following functions to 
-	pnd_field modification:
+        * src/m_optproperties.cc: Adapted the following functions to 
+        pnd_field modification:
         (pha_matCalc) only documentation
 
-	* src/m_scatrte.cc:  Adapted the following functions to 
-	pnd_field modification:
-	(doit_scat_fieldCalc)
+        * src/m_scatrte.cc:  Adapted the following functions to 
+        pnd_field modification:
+        (doit_scat_fieldCalc)
 
-	* src/scatrte.cc (cloud_fieldsCalc): Adapted to pnd_field 
-	modification. 
+        * src/scatrte.cc (cloud_fieldsCalc): Adapted to pnd_field 
+        modification. 
 
-	* src/montecarlo.{cc,h}: 
-	Adapted the following functions to 
-	pnd_field modification:
-	(TArrayCalc), (atm_vars_at_ppath_end)
+        * src/montecarlo.{cc,h}: 
+        Adapted the following functions to 
+        pnd_field modification:
+        (TArrayCalc), (atm_vars_at_ppath_end)
 
-	* src/special_interp.{cc,h} (fix_gridpos_at_boundary): Created
-	this functionn. It is needed to interpolate the pnd_field in 
-	montecarlo.cc.
-	
-	* src/m_workspace.cc: Modified entry for *pnd_field*.
+        * src/special_interp.{cc,h} (fix_gridpos_at_boundary): Created
+        this functionn. It is needed to interpolate the pnd_field in 
+        montecarlo.cc.
+        
+        * src/m_workspace.cc: Modified entry for *pnd_field*.
 
-	* src/methods.cc: Adapted entry for (pnd_fieldCalc).
-
-2005-05-26  Oliver Lemke  <olemke@core-dump.info>
-
-	* arts-1-1-970
-
-	* configure.in: Enable -Wshadow also for gcc 4.x.
-
-	* src/make_auto_md_cc.cc (main): Avoid shadowing of i.
+        * src/methods.cc: Adapted entry for (pnd_fieldCalc).
 
 2005-05-26  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-969
+        * arts-1-1-970
 
-	* ChangeLog:
+        * configure.in: Enable -Wshadow also for gcc 4.x.
 
-	Add missing entry for src/make_auto_md_cc.cc in my previous commit.
+        * src/make_auto_md_cc.cc (main): Avoid shadowing of i.
 
 2005-05-26  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-968
+        * arts-1-1-969
 
-	* src/Makefile.am:
+        * ChangeLog:
 
-	Added agendas.cc and agenda_record.{cc,h} to make_auto_md_h_SOURCES
-	and make_auto_md_cc_SOURCES.
+        Add missing entry for src/make_auto_md_cc.cc in my previous commit.
 
-	* src/agenda_record.{cc,h} (write_agenda_wrapper_header):
+2005-05-26  Oliver Lemke  <olemke@core-dump.info>
 
-	New function used by make_auto_md_{cc,h}.cc to generate the wrapper
-	function headers.
+        * arts-1-1-968
 
-	* src/make_auto_md_h.cc (main):
+        * src/Makefile.am:
 
-	Generate agenda wrapper function prototypes.
+        Added agendas.cc and agenda_record.{cc,h} to make_auto_md_h_SOURCES
+        and make_auto_md_cc_SOURCES.
 
-	* src/make_auto_md_cc.cc (main):
+        * src/agenda_record.{cc,h} (write_agenda_wrapper_header):
 
-	Generate agenda wrapper functions.
+        New function used by make_auto_md_{cc,h}.cc to generate the wrapper
+        function headers.
 
-	* src/agenda_class.{cc,h}:
+        * src/make_auto_md_h.cc (main):
 
-	Removed agenda wrappers. They are now automatically generated in
-	auto_md.{cc,h}.
+        Generate agenda wrapper function prototypes.
+
+        * src/make_auto_md_cc.cc (main):
+
+        Generate agenda wrapper functions.
+
+        * src/agenda_class.{cc,h}:
+
+        Removed agenda wrappers. They are now automatically generated in
+        auto_md.{cc,h}.
 
 2005-05-25  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-967
+        * arts-1-1-967
 
-	* src/agenda_class.{cc,h}:
+        * src/agenda_class.{cc,h}:
 
-	More constness in wrapper arguments.
+        More constness in wrapper arguments.
 
-	Pass elementary data types (Index, Numeric) by value not by reference
-	if they are input parameters.
-	This avoids the need to declare local variables in the calling
-	function if you want to pass literals as input to the agenda.
+        Pass elementary data types (Index, Numeric) by value not by reference
+        if they are input parameters.
+        This avoids the need to declare local variables in the calling
+        function if you want to pass literals as input to the agenda.
 
 2005-05-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-966
+        * arts-1-1-966
 
-	* Some work towards analytical gas jacobians. Nothing yet operational
-	or used.
-	
-	* src/rte.cc 
-	(rte_step_std_clearsky): Started, not finished. 
+        * Some work towards analytical gas jacobians. Nothing yet operational
+        or used.
+        
+        * src/rte.cc 
+        (rte_step_std_clearsky): Started, not finished. 
 
-	(rte_std): Started to include jacobian code.
-	
+        (rte_std): Started to include jacobian code.
+        
 2005-05-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-965		    
-	
-	* src/scatrte.{cc,h}(interp_cloud_coeff1D): Created this 
-	function in order to clean up the cloud_ppath_updateXX functions. 
+        * arts-1-1-965              
+        
+        * src/scatrte.{cc,h}(interp_cloud_coeff1D): Created this 
+        function in order to clean up the cloud_ppath_updateXX functions. 
 
-	(cloud_ppath_update1D),(cloud_ppath_update1D_noseq): Replaced a 
-	big part of the functions by calling (interp_cloud_coeff1D).	
+        (cloud_ppath_update1D),(cloud_ppath_update1D_noseq): Replaced a 
+        big part of the functions by calling (interp_cloud_coeff1D).    
 
-	* src/m_scatrte.cc (doit_i_fieldIterate):
-	Use new agenda wrappers. Use local variable dor doit_sact_field.
+        * src/m_scatrte.cc (doit_i_fieldIterate):
+        Use new agenda wrappers. Use local variable dor doit_sact_field.
 
-	* src/methods.cc:
-	Adapted INPUT, OUTPUT of doit_i_fieldIterate
-	    
-	* agenda_class.{cc,h}: Modified wrapper for
-	doit_scat_field_agendaExecute.
+        * src/methods.cc:
+        Adapted INPUT, OUTPUT of doit_i_fieldIterate
+            
+        * agenda_class.{cc,h}: Modified wrapper for
+        doit_scat_field_agendaExecute.
 
-	* src/agendas.cc:
-	Adapted INPUT and OUTPUT for doit_scat_field_agenda.
-	
+        * src/agendas.cc:
+        Adapted INPUT and OUTPUT for doit_scat_field_agenda.
+        
 2005-05-25  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-964
+        * arts-1-1-964
 
-	* src/methods.cc:
+        * src/methods.cc:
 
-	Removed agenda communication variables from doit_scat_fieldCalcLimb.
+        Removed agenda communication variables from doit_scat_fieldCalcLimb.
 
-	* src/m_scatrte.cc (doit_scat_fieldCalcLimb):
+        * src/m_scatrte.cc (doit_scat_fieldCalcLimb):
 
-	Use new pha_mat_spt_agendaExecute wrapper.
+        Use new pha_mat_spt_agendaExecute wrapper.
 
-	Use local variables for agenda communication.
+        Use local variables for agenda communication.
 
-	* src/agenda_class.{cc,h}: New wrapper pha_mat_spt_agendaExecute.
+        * src/agenda_class.{cc,h}: New wrapper pha_mat_spt_agendaExecute.
 
-	* src/agendas.cc: Adapt INPUT, OUTPUT for pha_mat_spt_agenda.
+        * src/agendas.cc: Adapt INPUT, OUTPUT for pha_mat_spt_agenda.
 
 2005-05-24  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-963
+        * arts-1-1-963
 
-	* src/agendas.cc:
+        * src/agendas.cc:
 
-	Adapted INPUT and OUTPUT for doit_rte_agenda, doit_scat_field_agenda
-	and doit_conv_test_agenda.
+        Adapted INPUT and OUTPUT for doit_rte_agenda, doit_scat_field_agenda
+        and doit_conv_test_agenda.
 
-	* src/methods.cc:
+        * src/methods.cc:
 
-	Adapted INPUT, OUTPUT of doit_i_fieldIterate.
+        Adapted INPUT, OUTPUT of doit_i_fieldIterate.
 
-	* src/m_scatrte.cc (doit_i_fieldIterate):
+        * src/m_scatrte.cc (doit_i_fieldIterate):
 
-	Use new agenda wrappers. Use local variables for communication with
-	the agendas.
+        Use new agenda wrappers. Use local variables for communication with
+        the agendas.
 
-	* src/agenda_class.{cc,h}:
+        * src/agenda_class.{cc,h}:
 
-	Pass silent flag to the agenda wrapper.
+        Pass silent flag to the agenda wrapper.
 
-	Added mockups for doit_rte_agendaExecute
-	doit_scat_field_agendaExecute wrappers.
+        Added mockups for doit_rte_agendaExecute
+        doit_scat_field_agendaExecute wrappers.
 
 2005-05-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-962
-	
-	* src/test_interpolation.cc (test07): interp_cubic --> interp_poly
+        * arts-1-1-962
+        
+        * src/test_interpolation.cc (test07): interp_cubic --> interp_poly
 
-	* tests/simpleDOIT.arts: Only minor changes in documentation of 
-	file. 
-	
+        * tests/simpleDOIT.arts: Only minor changes in documentation of 
+        file. 
+        
 2005-05-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-961
-	    
-	* src/workspace.cc (define_wsv_data): Removed 
-	*doit_grid_optimization_agenda*. Agenda is not needed for this 
-	purpose. It is sufficent to use *doit_za_grid_optCalc*. 
+        * arts-1-1-961
+            
+        * src/workspace.cc (define_wsv_data): Removed 
+        *doit_grid_optimization_agenda*. Agenda is not needed for this 
+        purpose. It is sufficent to use *doit_za_grid_optCalc*. 
 
-	* src/m_scatrte.cc: Removed (DoitGridOptimization). 
-	(doit_za_grid_optCalc): Included missing checks.
-	interp_cubic --> interp_poly
-	"cubic" --> "polynomial"
-	(ScatteringDoit): Included missing checks. 
+        * src/m_scatrte.cc: Removed (DoitGridOptimization). 
+        (doit_za_grid_optCalc): Included missing checks.
+        interp_cubic --> interp_poly
+        "cubic" --> "polynomial"
+        (ScatteringDoit): Included missing checks. 
 
-	* src/methods.cc: Improved online docu of the methods above.	
-	
-	* src/interp.{cc,h}: Renamed (interp_cubic) to (interp_poly). The name
-	was misleading, because what is done in the function is a 
-	3 point polynomial interpolation and not a cubic interpolation. 
+        * src/methods.cc: Improved online docu of the methods above.    
+        
+        * src/interp.{cc,h}: Renamed (interp_cubic) to (interp_poly). The name
+        was misleading, because what is done in the function is a 
+        3 point polynomial interpolation and not a cubic interpolation. 
 
-	* src/scatrte.cc: interp_cubic --> interp_poly
-	"cubic" --> "polynomial"
-	
-	* src/cloudbox.cc: interp_cubic --> interp_poly
-	"cubic" --> "polynomial"
-	
-	* src/m_cloudbox.cc: Renamed: (iyInterpCubicCloudboxField) -->
-	(iyInterpPolyCloudboxField)
+        * src/scatrte.cc: interp_cubic --> interp_poly
+        "cubic" --> "polynomial"
+        
+        * src/cloudbox.cc: interp_cubic --> interp_poly
+        "cubic" --> "polynomial"
+        
+        * src/m_cloudbox.cc: Renamed: (iyInterpCubicCloudboxField) -->
+        (iyInterpPolyCloudboxField)
 
-	* tests/simpleDOIT.arts: Adapted to changes above.
-	
+        * tests/simpleDOIT.arts: Adapted to changes above.
+        
 2005-05-24  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-960
-	  	
-	* misc/README: This file does not belong in this branch.
+        * arts-1-1-960
+                
+        * misc/README: This file does not belong in this branch.
 
 2005-05-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
-	    	    
-	* arts-1-1-959
-	  	
-	* src/m_scatrte.cc: Included missing checks in the 
-	following functions:
-	(doit_i_fieldUpdateSeq3D)
-	(DoitInit)
-	(doit_scat_fieldCalc)
-	(doit_scat_fieldCalcLimb)
+                    
+        * arts-1-1-959
+                
+        * src/m_scatrte.cc: Included missing checks in the 
+        following functions:
+        (doit_i_fieldUpdateSeq3D)
+        (DoitInit)
+        (doit_scat_fieldCalc)
+        (doit_scat_fieldCalcLimb)
 
-	* src/methods.cc: Improved online docu of the methods above.	
-
-2005-05-23  Oliver Lemke  <olemke@core-dump.info>
-
-	* arts-1-1-958
-
-	* ChangeLog: Fixed typo in my last entry.
-
-	* src/workspace_ng.{cc,h}: Added push and pop functions.
-
-	* src/m_scatrte.cc (doit_i_fieldIterate):
-
-	Misuse this function as a test case for the new agenda wrapper.
-
-	* src/agenda_class.{cc,h}:
-	
-	New function doit_conv_test_agendaExecute. This is just for testing.
-	Later we'll have auto-generated functions for this.
-
-	* test/simpleDOIT.arts: convergence_flagAbs -> doit_conv_flagAbs.
+        * src/methods.cc: Improved online docu of the methods above.    
 
 2005-05-23  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-957
+        * arts-1-1-958
 
-	* Fix compile errors with GCC 4.0.1. Mostly because now the use of
-	undeclared names is deprecated.
+        * ChangeLog: Fixed typo in my last entry.
 
-	* src/matpackI.h:
+        * src/workspace_ng.{cc,h}: Added push and pop functions.
 
-	Added forward declaration of classes ConstVectorView and
-	ConstMatrixView before using them.
+        * src/m_scatrte.cc (doit_i_fieldIterate):
 
-	* src/make_auto_wsv_groups_h.cc:
+        Misuse this function as a test case for the new agenda wrapper.
 
-	Include matpackII.h in auto-generated code to have Sparse declared.
+        * src/agenda_class.{cc,h}:
+        
+        New function doit_conv_test_agendaExecute. This is just for testing.
+        Later we'll have auto-generated functions for this.
 
-	* src/check_input.h:
+        * test/simpleDOIT.arts: convergence_flagAbs -> doit_conv_flagAbs.
 
-	Include matpack{IV,V,VI,VII} because we use Tensors here.
+2005-05-23  Oliver Lemke  <olemke@core-dump.info>
 
-	(chk_contains): 
+        * arts-1-1-957
 
-	Added dummy return at the end of the function so all (theoretically
-	possible) control paths return a value.
+        * Fix compile errors with GCC 4.0.1. Mostly because now the use of
+        undeclared names is deprecated.
+
+        * src/matpackI.h:
+
+        Added forward declaration of classes ConstVectorView and
+        ConstMatrixView before using them.
+
+        * src/make_auto_wsv_groups_h.cc:
+
+        Include matpackII.h in auto-generated code to have Sparse declared.
+
+        * src/check_input.h:
+
+        Include matpack{IV,V,VI,VII} because we use Tensors here.
+
+        (chk_contains): 
+
+        Added dummy return at the end of the function so all (theoretically
+        possible) control paths return a value.
 
 2005-05-19  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-956
+        * arts-1-1-956
 
-	* Mail with control file examples for changes of this commit
-	sent to arts-dev.
+        * Mail with control file examples for changes of this commit
+        sent to arts-dev.
 
-	Main changes are:
- 	     - RteEmissionStd -> RteStd
-	     - You must set emission_agenda. Standard choice is:
-		AgendaSet( emission_agenda ){
-		   emissionPlanck{}
-		}
-	     - Atmospheric variables (pressure, temperature and VMR) along
-	       ppath now accessible.
-	       This change simplifies also to make new functions for 
-	       rte_agenda.
+        Main changes are:
+             - RteEmissionStd -> RteStd
+             - You must set emission_agenda. Standard choice is:
+                AgendaSet( emission_agenda ){
+                   emissionPlanck{}
+                }
+             - Atmospheric variables (pressure, temperature and VMR) along
+               ppath now accessible.
+               This change simplifies also to make new functions for 
+               rte_agenda.
                The transmission along ppath also accessible by 
-	       ppath_transmissions.
-	     - Files with index number can now be generated.
-	     - DoNothing implemented, to complement Ignore.
+               ppath_transmissions.
+             - Files with index number can now be generated.
+             - DoNothing implemented, to complement Ignore.
 
-	* Changes at many places to adapt to new WSVs ppath_p, ppath_t and 
-	ppath_vmr.
-	
-	* src/m_rte.cc: 
-	(RteStd): Renamed RteEmissionStd to RteStd.
-	(RteStdWithTransmissions): Made this interface to rte_std.
+        * Changes at many places to adapt to new WSVs ppath_p, ppath_t and 
+        ppath_vmr.
+        
+        * src/m_rte.cc: 
+        (RteStd): Renamed RteEmissionStd to RteStd.
+        (RteStdWithTransmissions): Made this interface to rte_std.
 
-	* src/rte.cc 
-	(rte_step_std): The function now returns trans_mat, the transmission 
-	of the path step.
+        * src/rte.cc 
+        (rte_step_std): The function now returns trans_mat, the transmission 
+        of the path step.
 
-	(iy_calc): Included calculation of ppath_p, ppath_t and ppath_vmr.
+        (iy_calc): Included calculation of ppath_p, ppath_t and ppath_vmr.
 
-	(rte_std): Created this core function for versions of RteStd, and: 
-	   - Included emission and emission_agenda.
-	   - Removed unused variables ext_mat_ppath and abs_vec_ppath.
-	   - Adapted to ppath_p, ppath_t, ppath_vmr and ppath_transmission.
+        (rte_std): Created this core function for versions of RteStd, and: 
+           - Included emission and emission_agenda.
+           - Removed unused variables ext_mat_ppath and abs_vec_ppath.
+           - Adapted to ppath_p, ppath_t, ppath_vmr and ppath_transmission.
 
-	* src/m_physics.cc 
-	(emissionPlanck): Created.
-	(MatrixUnitIntensity): Created. 
+        * src/m_physics.cc 
+        (emissionPlanck): Created.
+        (MatrixUnitIntensity): Created. 
 
-	* src/workspace.cc: Added emission, emission_agenda, ppath_p, ppath_t, 
-	ppath_vmr, ppath_transmission and file_index.
-	
-	* src/m_jacobian.cc (jacobianAddGasAnalytical): Created.
+        * src/workspace.cc: Added emission, emission_agenda, ppath_p, ppath_t, 
+        ppath_vmr, ppath_transmission and file_index.
+        
+        * src/m_jacobian.cc (jacobianAddGasAnalytical): Created.
 
-	* src/xml_io.cc (filename_xml_with_index): Added.
+        * src/xml_io.cc (filename_xml_with_index): Added.
 
-	* src/m_xml.h (WriteXMLIndexed): Added.
+        * src/m_xml.h (WriteXMLIndexed): Added.
 
-	* src/m_ignore.h (DoNothing): Added.
+        * src/m_ignore.h (DoNothing): Added.
 
 2005-05-18  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-955
+        * arts-1-1-955
 
-	* src/m_atmosphere.cc (surfaceCalc): Results were completely wrong. 
-	Sent local variable to iy_calc, instead of *iy* which (obviously) 
-	does not work.
+        * src/m_atmosphere.cc (surfaceCalc): Results were completely wrong. 
+        Sent local variable to iy_calc, instead of *iy* which (obviously) 
+        does not work.
 
-	* src/cloudbox.cc (chk_pnd_data): The index for cloudbox_limits were
-	wrong for lat and lon checks.
+        * src/cloudbox.cc (chk_pnd_data): The index for cloudbox_limits were
+        wrong for lat and lon checks.
 
 2005-05-13  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-954
-	
-	Splitted the function (cloud_ppath_update1D), because it was 
-	getting too complex. 
-	
-	* src/scat_rte.{cc,h} (cloud_RT_no_background): Radiative transfer
-	without background (inside cloudbox). 
+        * arts-1-1-954
+        
+        Splitted the function (cloud_ppath_update1D), because it was 
+        getting too complex. 
+        
+        * src/scat_rte.{cc,h} (cloud_RT_no_background): Radiative transfer
+        without background (inside cloudbox). 
 
-	(cloud_RT_surface): Dummy function for the surface part.
-	Copied the commented surface part from *cloud_ppath_update1D* to 
-	this function. 
-	Sreerekha: You can put everything related to the surface into this
-	function. 
-	
-	(cloud_ppath_update1D),(cloud_ppath_update1D_noseq) 
-	Included new functions here. 
+        (cloud_RT_surface): Dummy function for the surface part.
+        Copied the commented surface part from *cloud_ppath_update1D* to 
+        this function. 
+        Sreerekha: You can put everything related to the surface into this
+        function. 
+        
+        (cloud_ppath_update1D),(cloud_ppath_update1D_noseq) 
+        Included new functions here. 
 
 2005-05-13  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-953
-	
-	* src/m_scatrte.cc:
+        * arts-1-1-953
+        
+        * src/m_scatrte.cc:
 
-	Fix broken build. Replay my change from arts-1-1-948.
+        Fix broken build. Replay my change from arts-1-1-948.
 
 2005-05-12  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-952
-	
-	* src/m_cloudbox.cc: Included additional checks in 
-	(ParticleTypeAdd{All}).
-	The size of pnd_field will be changed later and checks will be 
-	adapted accordingly. Included warning if pnd is non-zero on cloudbox
-	boundary.
-	Cory: For you nothing changes if you still use *ParticleTypeAdd* 
-	with empty filename for pnd. 
+        * arts-1-1-952
+        
+        * src/m_cloudbox.cc: Included additional checks in 
+        (ParticleTypeAdd{All}).
+        The size of pnd_field will be changed later and checks will be 
+        adapted accordingly. Included warning if pnd is non-zero on cloudbox
+        boundary.
+        Cory: For you nothing changes if you still use *ParticleTypeAdd* 
+        with empty filename for pnd. 
 
-	* src/cloudbox.{cc,h}: Included and modified several functions to check
-	pnd_field: (chk_pnd_raw_data), (chk_pnd_data),
-	(chk_if_pnd_zero_p), (chk_if_pnd_zero_lat), (chk_if_pnd_zero_lon)
+        * src/cloudbox.{cc,h}: Included and modified several functions to check
+        pnd_field: (chk_pnd_raw_data), (chk_pnd_data),
+        (chk_if_pnd_zero_p), (chk_if_pnd_zero_lat), (chk_if_pnd_zero_lon)
 
-	* src/m_scatrte.cc: Included missing checks for input variables of 
-	the following methods: 
-	DoitAngularGridsSet
-	doit_conv_flagXXX
-	doit_i_fieldIterate
-	i_fieldUpdateSeq1D
-	i_fieldUpdate1D
+        * src/m_scatrte.cc: Included missing checks for input variables of 
+        the following methods: 
+        DoitAngularGridsSet
+        doit_conv_flagXXX
+        doit_i_fieldIterate
+        i_fieldUpdateSeq1D
+        i_fieldUpdate1D
 
-	(i_fieldUpdate1D): Updated this function, it was not working 
-	anymore as we haven't used it for a long time. 
+        (i_fieldUpdate1D): Updated this function, it was not working 
+        anymore as we haven't used it for a long time. 
 
-	(i_fieldUpdate3D): Removed this functions, because it is very,
-	very inefficient and it is not worth to update it.
+        (i_fieldUpdate3D): Removed this functions, because it is very,
+        very inefficient and it is not worth to update it.
 
-	* src/scatrte.{cc,h} (cloud_ppath_update1D_noseq): Added. Used in 
-	*i_fieldUpdate1D*.
-	
-	* src/methods.cc: Improved online docu for some DOIT related methods. 
-	Commented entry for *i_fieldUpdate3D*.
-	
-	* tests/simpleDOIT.arts: Decreased number of azimuth angles. 10 is
-	usually sufficient.
+        * src/scatrte.{cc,h} (cloud_ppath_update1D_noseq): Added. Used in 
+        *i_fieldUpdate1D*.
+        
+        * src/methods.cc: Improved online docu for some DOIT related methods. 
+        Commented entry for *i_fieldUpdate3D*.
+        
+        * tests/simpleDOIT.arts: Decreased number of azimuth angles. 10 is
+        usually sufficient.
 
-	* tests/data/pnd_field_1D.xml: Modified. Now pnd = 0 on cloudbox
-	boundary. 
+        * tests/data/pnd_field_1D.xml: Modified. Now pnd = 0 on cloudbox
+        boundary. 
 
-	* tests/testall.py: Adapted DOIT test to modifications.
-	
+        * tests/testall.py: Adapted DOIT test to modifications.
+        
 2005-05-11  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-951
+        * arts-1-1-951
 
-	* src/jacobian.{cc,h}: Turned get_perturbation_grid into
-	get_perturbation_gridpos and re-used it in m_jacobian.cc.
-	This was crucial, since the function creates the interpolation
-	GridPos which are used as basefunctions for adding the 
-	perturbation to the atmospheric fields.
+        * src/jacobian.{cc,h}: Turned get_perturbation_grid into
+        get_perturbation_gridpos and re-used it in m_jacobian.cc.
+        This was crucial, since the function creates the interpolation
+        GridPos which are used as basefunctions for adding the 
+        perturbation to the atmospheric fields.
 
-	* src/m_jacobian.cc: Added the call to get_perturbation_gridpos
-	in jacobianCalc-functions.
+        * src/m_jacobian.cc: Added the call to get_perturbation_gridpos
+        in jacobianCalc-functions.
 
 2005-05-11  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-950
+        * arts-1-1-950
 
-	* src/methods.cc: Added atmospheric grids as input to the jacobian
-	add-functions. They are used to check the consistency of the 
-	retrieval grids.
+        * src/methods.cc: Added atmospheric grids as input to the jacobian
+        add-functions. They are used to check the consistency of the 
+        retrieval grids.
 
-	* src/jacobian.[cc,h]: Moved check done in get_perturbation_grid
-	to check_retrieval_grids, which is called from jacobianAdd...
-	The function get_perturbation_grid is now obsolete, but not
-	removed yet...
+        * src/jacobian.[cc,h]: Moved check done in get_perturbation_grid
+        to check_retrieval_grids, which is called from jacobianAdd...
+        The function get_perturbation_grid is now obsolete, but not
+        removed yet...
 
-	* src/m_jacobian.cc: Changes to the function affected by the above
-	mentioned changes i jacobian.cc.
+        * src/m_jacobian.cc: Changes to the function affected by the above
+        mentioned changes i jacobian.cc.
 
 2005-05-11  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-949
+        * arts-1-1-949
 
-	* src/wsv_aux.cc: Go away!
+        * src/wsv_aux.cc: Go away!
 
 2005-05-11  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-948
+        * arts-1-1-948
 
-	* Merged changes from WORKSPACE_REWORK_BRANCH back to HEAD.
+        * Merged changes from WORKSPACE_REWORK_BRANCH back to HEAD.
 
-	* This was lying around for some time now. As it doesn't break
-	anything (hopefully), further development can be done in HEAD.
+        * This was lying around for some time now. As it doesn't break
+        anything (hopefully), further development can be done in HEAD.
 
-	* src/m_scatrte.cc (ScatteringDoit):
+        * src/m_scatrte.cc (ScatteringDoit):
 
-	Use new Workspace instead of old WorkSpace.
+        Use new Workspace instead of old WorkSpace.
 
-	* src/wsv_aux.cc: Removed.
+        * src/wsv_aux.cc: Removed.
 
-	* src/Makefile.am: Removed wsv_aux.cc.
+        * src/Makefile.am: Removed wsv_aux.cc.
 
-	2004-11-26  Oliver Lemke  <olemke@core-dump.info>
+        2004-11-26  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-911-wr3
+        * arts-1-1-911-wr3
 
-	* src/make_auto_wsv_h.cc (main):
+        * src/make_auto_wsv_h.cc (main):
 
-	More documentation.
+        More documentation.
 
-	Better function names in WorkspaceMemoryHandler.
-	alloc->allocate, free->deallocate
+        Better function names in WorkspaceMemoryHandler.
+        alloc->allocate, free->deallocate
 
-	* src/workspace_ng.h: Adapt to new function names in WMH.
+        * src/workspace_ng.h: Adapt to new function names in WMH.
 
-	2004-11-18  Oliver Lemke  <olemke@core-dump.info>
+        2004-11-18  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-911-wr2
+        * arts-1-1-911-wr2
 
-	* src/workspace_ng.cc:
+        * src/workspace_ng.cc:
 
-	Added documentation.
+        Added documentation.
 
-	(Workspace::~Workspace): Empty ws array in destructor.
+        (Workspace::~Workspace): Empty ws array in destructor.
 
-	(Workspace::Workspace): Define void pointer inside loop.
+        (Workspace::Workspace): Define void pointer inside loop.
 
-	* src/workspace_ng.{cc,h}: Added documentation.
+        * src/workspace_ng.{cc,h}: Added documentation.
 
-	* ChangeLog: Fixed some typos in my previous entries.
+        * ChangeLog: Fixed some typos in my previous entries.
 
-	2004-11-04  Oliver Lemke  <olemke@core-dump.info>
+        2004-11-04  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-907-wr5
+        * arts-1-1-907-wr5
 
-	* src/{main.cc,make_auto_md_cc.cc,wsv_aux.h,Makefile.am}:
+        * src/{main.cc,make_auto_md_cc.cc,wsv_aux.h,Makefile.am}:
 
-	We don't need wsv_pointers anymore.
+        We don't need wsv_pointers anymore.
 
-	* src/make_auto_wsv_pointers_cc.cc: Removed.
+        * src/make_auto_wsv_pointers_cc.cc: Removed.
 
-	* src/workspace_ng.h: Don't include vector.
+        * src/workspace_ng.h: Don't include vector.
 
-	* src/{globals_2.cc,wsv_aux.cc,agenda_class.h,make_auto_wsv_h.cc}:
+        * src/{globals_2.cc,wsv_aux.cc,agenda_class.h,make_auto_wsv_h.cc}:
 
-	Remove leftovers from old workspace.
+        Remove leftovers from old workspace.
 
-	2004-11-01  Oliver Lemke  <olemke@core-dump.info>
+        2004-11-01  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-907-wr4
+        * arts-1-1-907-wr4
 
-	* First working version of the new workspace. No new features yet, but
-	at least it does the same as the old one in the same amount of time.
+        * First working version of the new workspace. No new features yet, but
+        at least it does the same as the old one in the same amount of time.
 
-	* src/workspace_ng.{cc,h}:
+        * src/workspace_ng.{cc,h}:
 
-	Make wsv_data only visible in cc file.
+        Make wsv_data only visible in cc file.
 
-	Use Array instead of vector for ws.
+        Use Array instead of vector for ws.
 
-	Added function is_occupied to imitate functionality of old workspace.
+        Added function is_occupied to imitate functionality of old workspace.
 
-	Implemented destructor to clean up the mess we create on the heap.
+        Implemented destructor to clean up the mess we create on the heap.
 
-	Kick out wsv_data, we only need N_WSV (include auto_wsv.h for this).
+        Kick out wsv_data, we only need N_WSV (include auto_wsv.h for this).
 
-	(Workspace::operator[]): Allocate memory for wsv on first access.
+        (Workspace::operator[]): Allocate memory for wsv on first access.
 
-	* src/agenda_class.cc:
+        * src/agenda_class.cc:
 
-	(Agenda::execute): Use the new workspace.
+        (Agenda::execute): Use the new workspace.
 
-	Commented out workspace.set which no longer exists.
+        Commented out workspace.set which no longer exists.
 
-	* src/{globals_2.cc,make_auto_md_cc.cc,make_auto_md_h.cc}:
+        * src/{globals_2.cc,make_auto_md_cc.cc,make_auto_md_h.cc}:
 
-	Switch over to the new workspace.
+        Switch over to the new workspace.
 
-	2004-10-29  Oliver Lemke  <olemke@core-dump.info>
+        2004-10-29  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-907-wr3
+        * arts-1-1-907-wr3
 
-	* src/workspace_ng.{cc,h}:
+        * src/workspace_ng.{cc,h}:
 
-	(Workspace::Workspace): Allocate a null pointer for each workspace
-	variable.
+        (Workspace::Workspace): Allocate a null pointer for each workspace
+        variable.
 
-	(Workspace::operator[]): Return the top of the stack of the workspace
-	variable at index i.
+        (Workspace::operator[]): Return the top of the stack of the workspace
+        variable at index i.
 
-	* src/Makefile.am:
+        * src/Makefile.am:
 
-	Added workspace_ng.{cc,h} to arts_SOURCES and make_auto_md_h_SOURCES.
+        Added workspace_ng.{cc,h} to arts_SOURCES and make_auto_md_h_SOURCES.
 
-	* src/make_auto_wsv_h.cc:
+        * src/make_auto_wsv_h.cc:
 
-	Include supergeneric.h in auto source.
+        Include supergeneric.h in auto source.
 
-	Created class WorkspaceMemoryHandler. It contains a list of allocation
-	and deallocation routines for all workspace groups. Additionally, it
-	defines two lists of function pointers which link to the
-	corresponding allocation/deallocation routine for each workspace
-	variable. These lists enable the Workspace class to dynamically
-	allocate workspace variables at runtime.
+        Created class WorkspaceMemoryHandler. It contains a list of allocation
+        and deallocation routines for all workspace groups. Additionally, it
+        defines two lists of function pointers which link to the
+        corresponding allocation/deallocation routine for each workspace
+        variable. These lists enable the Workspace class to dynamically
+        allocate workspace variables at runtime.
 
-	2004-10-29  Oliver Lemke  <olemke@core-dump.info>
+        2004-10-29  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-907-wr2
+        * arts-1-1-907-wr2
 
-	* src/workspace_ng.{cc,h}: Added.
+        * src/workspace_ng.{cc,h}: Added.
 
-	* src/Makefile.am: Added workspace_ng.{cc,h}.
+        * src/Makefile.am: Added workspace_ng.{cc,h}.
 
-	* src/globals_2.cc: Also create global instance of the new workspace.
+        * src/globals_2.cc: Also create global instance of the new workspace.
 
-	2004-10-28  Oliver Lemke  <olemke@core-dump.info>
+        2004-10-28  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-907-wr1
+        * arts-1-1-907-wr1
 
-	* Created branch for reworking the workspace and agendas. Also
-	includes creation of scope handling in control files.
+        * Created branch for reworking the workspace and agendas. Also
+        includes creation of scope handling in control files.
 
 2005-04-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-947
-	
-	* src/m_cloudbox.cc, m_scatrte.cc, m_batch.cc: Moved default setting of
-	*doit_za_interp* from (cloudboxSetManually/Altitude) to
-	(DoitInit), where it fits better.
+        * arts-1-1-947
+        
+        * src/m_cloudbox.cc, m_scatrte.cc, m_batch.cc: Moved default setting of
+        *doit_za_interp* from (cloudboxSetManually/Altitude) to
+        (DoitInit), where it fits better.
 
-	* src/m_optproperties.cc (pha_mat_sptFromDataDoitOpt): Modified
-	temperature interpolation to make it a bit more efficient.
-	
-	* src/methods.cc, workspace.cc: Looked through online docu of functions related
-	to DOIT. Minor corrections and modifications.
-	
+        * src/m_optproperties.cc (pha_mat_sptFromDataDoitOpt): Modified
+        temperature interpolation to make it a bit more efficient.
+        
+        * src/methods.cc, workspace.cc: Looked through online docu of functions related
+        to DOIT. Minor corrections and modifications.
+        
 2005-04-26  Sreerekha T.R.  <rekha@uni-bremen.de>
 
-	* arts-1-1-946
+        * arts-1-1-946
 
-	* src/scatrte.cc (cloud_ppath_update1D_planeparallel): Fixed a bug
-	in this function.  The function was not working before for
-	stokes_dim > 1.  
+        * src/scatrte.cc (cloud_ppath_update1D_planeparallel): Fixed a bug
+        in this function.  The function was not working before for
+        stokes_dim > 1.  
 
-	* src/m_optproperties.cc (pha_mat_sptFromDataDOITOpt,
-	pha_mat_sptFromData): Another small bug.  Here, if you had more 
-	than one pnd profile and if the first file had zero pnd, the function
-	returned without going to the next profile. 
+        * src/m_optproperties.cc (pha_mat_sptFromDataDOITOpt,
+        pha_mat_sptFromData): Another small bug.  Here, if you had more 
+        than one pnd profile and if the first file had zero pnd, the function
+        returned without going to the next profile. 
 
-	* src/cloudbox.cc: In the temperature check, the maximum was set
-	to 320 K, instead of 300 K. 
+        * src/cloudbox.cc: In the temperature check, the maximum was set
+        to 320 K, instead of 300 K. 
 
 2005-04-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-945
-	
-	* src/cloudbox.cc (chk_single_scattering_data): Removed azimuth
-	angle check for p20, because it is not needed. 
+        * arts-1-1-945
+        
+        * src/cloudbox.cc (chk_single_scattering_data): Removed azimuth
+        angle check for p20, because it is not needed. 
 
-	* src/m_scatrte.cc: Increased maximum number of iterations in the
-	convergence test functions, now it is 100. 
+        * src/m_scatrte.cc: Increased maximum number of iterations in the
+        convergence test functions, now it is 100. 
 
 2005-04-20  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
-	* arts-1-1-944
+        * arts-1-1-944
 
-	* src/montecarlo.cc (Sample_ppathlengthLOS): Fixed a very silly
-	bug that caused MC to fail for very optically thick cases. This
-	bug only caused failure for cases where the first ppath step
-	inside the cloud had a transmittance of less than 1e-12. (Patrick:
-	This was the cause of problems I had with 640 GHz simulations last
-	month)
-	
+        * src/montecarlo.cc (Sample_ppathlengthLOS): Fixed a very silly
+        bug that caused MC to fail for very optically thick cases. This
+        bug only caused failure for cases where the first ppath step
+        inside the cloud had a transmittance of less than 1e-12. (Patrick:
+        This was the cause of problems I had with 640 GHz simulations last
+        month)
+        
 2005-04-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-943
-	
-	* src/m_scatrte.cc (doit_iteration_counter): Put initialization of
-	iteration counter at the beginning of this function so that the
-	counting starts at zero for each frequency. 
+        * arts-1-1-943
+        
+        * src/m_scatrte.cc (doit_iteration_counter): Put initialization of
+        iteration counter at the beginning of this function so that the
+        counting starts at zero for each frequency. 
 
-	* src/m_scatrte.cc (DoitInit): Removed iteration counter here. 
-
-2005-04-11  Oliver Lemke  <olemke@core-dump.info>
-
-	* arts-1-1-942
-
-	* src/matpackI.cc:
-
-	Move VectorView constructor to the other VectorView functions.
-
-	* src/make_array.h:
-
-	Changed MakeArray<base>::MakeArray<base> to
-	MakeArray<base>::MakeArray.
-	Avoids invalid use of the constructor as a template.
-
-	* src/make_auto_wsv_groups_h.cc:
-
-	Add virtual destructor to class WsvP as every class that defines 
-	virtual functions must have a virtual destructor.
-
-	* src/m_abs_o2_models.cc:
-
-	Comment out unused Numeric BE[] constant.
-
-	(Zeeman_o2_line_splitting):
-
-	Use BN_r++ instead of BN_r = BN_r++ to avoid undefined behaviour.
-	Same for AN_r--.
+        * src/m_scatrte.cc (DoitInit): Removed iteration counter here. 
 
 2005-04-11  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-941
+        * arts-1-1-942
 
-	* src/matpackI.{h,cc}: Added two new VectorView constructors.
+        * src/matpackI.cc:
 
-	(VectorView::VectorView(const Vector&)): Fail immediately if someone
-	tries to create a VectorView from a const Vector.
+        Move VectorView constructor to the other VectorView functions.
 
-	(VectorView::VectorView(Vector&)): Added to allow the creation of a
-	VectorView from a non-constant Vector. Without this constructor, the
-	VectorView::VectorView(const Vector&) will always be called which is
-	not what we want.
+        * src/make_array.h:
 
-	* src/cloudbox.{cc,h} (chk_single_scattering_data):
-	
-	Use ConstVectorView instead of 'const VectorView'.
+        Changed MakeArray<base>::MakeArray<base> to
+        MakeArray<base>::MakeArray.
+        Avoids invalid use of the constructor as a template.
+
+        * src/make_auto_wsv_groups_h.cc:
+
+        Add virtual destructor to class WsvP as every class that defines 
+        virtual functions must have a virtual destructor.
+
+        * src/m_abs_o2_models.cc:
+
+        Comment out unused Numeric BE[] constant.
+
+        (Zeeman_o2_line_splitting):
+
+        Use BN_r++ instead of BN_r = BN_r++ to avoid undefined behaviour.
+        Same for AN_r--.
+
+2005-04-11  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-1-941
+
+        * src/matpackI.{h,cc}: Added two new VectorView constructors.
+
+        (VectorView::VectorView(const Vector&)): Fail immediately if someone
+        tries to create a VectorView from a const Vector.
+
+        (VectorView::VectorView(Vector&)): Added to allow the creation of a
+        VectorView from a non-constant Vector. Without this constructor, the
+        VectorView::VectorView(const Vector&) will always be called which is
+        not what we want.
+
+        * src/cloudbox.{cc,h} (chk_single_scattering_data):
+        
+        Use ConstVectorView instead of 'const VectorView'.
 
 2005-04-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-940
+        * arts-1-1-940
 
-	* tests/data/pnd_field_1D.xml: Modified. The pnd_field did not
-	match the p_grid for Cory's simpleMC, which resulted in a
-	assertion error. This is now fixed. 	
+        * tests/data/pnd_field_1D.xml: Modified. The pnd_field did not
+        match the p_grid for Cory's simpleMC, which resulted in a
+        assertion error. This is now fixed.     
 
-	* tests/data/(gas_abs_lookup.xml, gas_abs_lookup.xml.bin): Converted
-	lookup table to binary format to make reading faster. 
-	
-	* tests/simpleDOIT.arts: Slightly modified.
-	
-	* tests/testall.py: Modified DOIT test. 
+        * tests/data/(gas_abs_lookup.xml, gas_abs_lookup.xml.bin): Converted
+        lookup table to binary format to make reading faster. 
+        
+        * tests/simpleDOIT.arts: Slightly modified.
+        
+        * tests/testall.py: Modified DOIT test. 
 
-	python testall.py -v works !!!
-	
+        python testall.py -v works !!!
+        
 2005-04-08  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-939
-	
-	* tests/simpleDOIT.arts: Added. It uses almost the same data as
-	the Monte Carlo test file, only a different pnd_field for 1D and
-	an optimized zenith angle grid for DOIT.
+        * arts-1-1-939
+        
+        * tests/simpleDOIT.arts: Added. It uses almost the same data as
+        the Monte Carlo test file, only a different pnd_field for 1D and
+        an optimized zenith angle grid for DOIT.
 
-	* tests/data/doit_za_grid_opt.xml, pnd_field_1D.xml: Added.
+        * tests/data/doit_za_grid_opt.xml, pnd_field_1D.xml: Added.
 
-	* tests/testall.py: Included simple DOIT test here. 
+        * tests/testall.py: Included simple DOIT test here. 
 
-	* src/m_cloudbox.cc(ParticleTypeAdd): Included a warning, if no
-	pnd_field_file is specified. Now it works to use (ParticleTypeAdd)
-	and read pnd_field_raw separately, but I think it is not such a
-	nice solution. In my opinion it is nicer to use
-	(ParticleTypeAddAll) instead.
+        * src/m_cloudbox.cc(ParticleTypeAdd): Included a warning, if no
+        pnd_field_file is specified. Now it works to use (ParticleTypeAdd)
+        and read pnd_field_raw separately, but I think it is not such a
+        nice solution. In my opinion it is nicer to use
+        (ParticleTypeAddAll) instead.
 
-	* src/m_atmosphere.cc: Fixed a bug:
-	
-	surface_specular_los( surface_los , atmosphere_dim );
+        * src/m_atmosphere.cc: Fixed a bug:
+        
+        surface_specular_los( surface_los , atmosphere_dim );
 
-	needs as first input a vector but surface_los is a
-	matrix. Included 
+        needs as first input a vector but surface_los is a
+        matrix. Included 
 
-	surface_los(0, joker)
+        surface_los(0, joker)
 
-	instead. 
-	Patrick, please check whether this is correct. 
+        instead. 
+        Patrick, please check whether this is correct. 
 
 2005-04-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-938
+        * arts-1-1-938
 
-	* Changed slightly handling of surface properties, and fixed bug
-	in surface WSMs.
+        * Changed slightly handling of surface properties, and fixed bug
+        in surface WSMs.
 
-	The old way works. An example:
-	
-	    AgendaSet(iy_surface_agenda){
-	       InterpAtmFieldToRteGps(surface_skin_t,t_field){}
-	       surfaceFlat{"water-liebe93"}
-	       surfaceCalc{}
-	    }
+        The old way works. An example:
+        
+            AgendaSet(iy_surface_agenda){
+               InterpAtmFieldToRteGps(surface_skin_t,t_field){}
+               surfaceFlat{"water-liebe93"}
+               surfaceCalc{}
+            }
 
-	The new is that the surface properties can be specified seperately.
-	This will make DOIT implementation simpler and needed for future
-	Jacobian calculations (and for MC?). An example:
+        The new is that the surface properties can be specified seperately.
+        This will make DOIT implementation simpler and needed for future
+        Jacobian calculations (and for MC?). An example:
 
-	    AgendaSet(surface_prop_agenda){
-	       InterpAtmFieldToRteGps(surface_skin_t,t_field){}
-	       surfaceFlat{"water-liebe93"}
-	    }
-	    AgendaSet(iy_surface_agenda){
-	       AgendaExecute(surface_prop_agenda){}
-	       surfaceCalc{}
-	    }
+            AgendaSet(surface_prop_agenda){
+               InterpAtmFieldToRteGps(surface_skin_t,t_field){}
+               surfaceFlat{"water-liebe93"}
+            }
+            AgendaSet(iy_surface_agenda){
+               AgendaExecute(surface_prop_agenda){}
+               surfaceCalc{}
+            }
 
-	This tested through Qarts runs. Tests in /tests did not work. See email
-	to arts-dev.
+        This tested through Qarts runs. Tests in /tests did not work. See email
+        to arts-dev.
 
-	* Fixed also a bug. I knew that I hade tested
-	
-	* src/agendas.cc: Added surface_prop_agenda. Removed i_space_agenda.
+        * Fixed also a bug. I knew that I hade tested
+        
+        * src/agendas.cc: Added surface_prop_agenda. Removed i_space_agenda.
 
-	* src/rte.cc (surface_calc): Created this function. Most code
-	extracted from surfaceCalc.
+        * src/rte.cc (surface_calc): Created this function. Most code
+        extracted from surfaceCalc.
 
-	* src/m_atmosphere.cc (surfaceCalc): Now using surface_calc.
+        * src/m_atmosphere.cc (surfaceCalc): Now using surface_calc.
 
-	* src/m_atmosphere.cc (surfaceFlat): Fixed bug. LOS was not changed
-	to specular reflection. Got stuck in endless loop.
-	(surfaceSingleEmissivity): As above.
-	
+        * src/m_atmosphere.cc (surfaceFlat): Fixed bug. LOS was not changed
+        to specular reflection. Got stuck in endless loop.
+        (surfaceSingleEmissivity): As above.
+        
 2005-04-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-937
+        * arts-1-1-937
 
-	* src/m_scatrte.cc (DoitAngularGridsSet): Included all
-	angular grids here (fine grid for RT calculation and coarse
-	grid for scattering integral). 
-	(ScatteringDoit): Included check, whether *DoitInit* is performed
-	before calling this function.
+        * src/m_scatrte.cc (DoitAngularGridsSet): Included all
+        angular grids here (fine grid for RT calculation and coarse
+        grid for scattering integral). 
+        (ScatteringDoit): Included check, whether *DoitInit* is performed
+        before calling this function.
 
-	* src/m_optproperties.cc: Adapted some variable names. 
-	
-	* src/workspace.cc: Corrected online docu for 
-	*single_scattering_data*.
+        * src/m_optproperties.cc: Adapted some variable names. 
+        
+        * src/workspace.cc: Corrected online docu for 
+        *single_scattering_data*.
 
-	* src/methods.cc: Included changes above. 
-		
+        * src/methods.cc: Included changes above. 
+                
 2005-04-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-936
+        * arts-1-1-936
 
-	Renamed agenda, WSMs and WSVs. Long time back, we decided that all
-	variables/methods related to scattering should start with scat... 
-	Now it turned out theat most of the scat... variables are only
-	used for doit, so I renamed them doit.... 
-	I will put an updated working control file on the ARTS Wiki ASAP. 
-	
-	Updated the online documentation for many renamed agendas,
-	WSMs and WSVs. 
+        Renamed agenda, WSMs and WSVs. Long time back, we decided that all
+        variables/methods related to scattering should start with scat... 
+        Now it turned out theat most of the scat... variables are only
+        used for doit, so I renamed them doit.... 
+        I will put an updated working control file on the ARTS Wiki ASAP. 
+        
+        Updated the online documentation for many renamed agendas,
+        WSMs and WSVs. 
 
-	* src/agendas.cc: Renamed the following agendas: 
-	grid_optimization_agenda --> doit_grid_optimization_agenda
-	scat_field_agenda --> doit_scat_field_agenda
-	scat_mono_agenda --> doit_mono_agenda	
-	scat_rte_agenda --> doit_rte_agenda
-	convergence_test_agenda	--> doit_conv_test_agenda
+        * src/agendas.cc: Renamed the following agendas: 
+        grid_optimization_agenda --> doit_grid_optimization_agenda
+        scat_field_agenda --> doit_scat_field_agenda
+        scat_mono_agenda --> doit_mono_agenda   
+        scat_rte_agenda --> doit_rte_agenda
+        convergence_test_agenda --> doit_conv_test_agenda
 
-	* src/methods.cc: Renamed the following WSM:	
-	convergence_flagAbs --> doit_conv_flagAbs
-	convergence_flagLsq --> doit_conv_flagLsq
-	convergence_flagAbs_BT --> doit_conv_flagAbsBT
-	i_fieldIterate --> doit_i_fieldIterate
-	i_fieldSetClearsky --> doit_i_fieldSetClearsky
-	i_fieldSetConst --> doit_i_fieldSetConst
-	i_fieldUpdate1D --> doit_i_fieldUpdate1D
-	i_fieldUpdateSeq1D --> doit_i_fieldUpdateSeq1D
-	i_fieldUpdateSeq1D_PlaneParallel --> doit_i_fieldUpdateSeq1DPP 
-	i_fieldUpdate3D --> doit_i_fieldUpdate3D
-	i_fieldUpdateSeq3D --> doit_i_fieldUpdateSeq3D
-	ScatteringDataPrepareDoitOpt --> DoitScatteringDataPrepare
-	ScatteringGridOptimization --> DoitGridOptimization
-	ScatteringMain --> ScatteringDoit
-	scat_fieldCalc --> doit_scat_fieldCalc
-	scat_fieldCalc1D --> doit_scat_fieldCalc1D	
-	scat_fieldCalcLimb --> doit_scat_fieldCalcLimb
-	scat_iPut --> DoitCloudboxFieldPut
-	scat_za_gridOptimize --> doit_za_grid_optCalc
-	scat_za_interpSet --> doit_za_interpSet
-	grid_sizeSet --> DoitAngularGridsSet
-	
-	* src/workspace.cc: Renamed the following WSV:
-	convergence_flag --> doit_conv_flag
-	iteration_counter --> doit_iteration_counter
-	i_field --> doit_i_field
-	i_field_old --> doit_i_field_old
-	scat_field --> doit_scat_field
-	scat_za_grid_opt --> doit_za_grid_opt
-	scat_za_interp --> doit_za_interp
-	za_grid_size --> doit_za_grid_size
+        * src/methods.cc: Renamed the following WSM:    
+        convergence_flagAbs --> doit_conv_flagAbs
+        convergence_flagLsq --> doit_conv_flagLsq
+        convergence_flagAbs_BT --> doit_conv_flagAbsBT
+        i_fieldIterate --> doit_i_fieldIterate
+        i_fieldSetClearsky --> doit_i_fieldSetClearsky
+        i_fieldSetConst --> doit_i_fieldSetConst
+        i_fieldUpdate1D --> doit_i_fieldUpdate1D
+        i_fieldUpdateSeq1D --> doit_i_fieldUpdateSeq1D
+        i_fieldUpdateSeq1D_PlaneParallel --> doit_i_fieldUpdateSeq1DPP 
+        i_fieldUpdate3D --> doit_i_fieldUpdate3D
+        i_fieldUpdateSeq3D --> doit_i_fieldUpdateSeq3D
+        ScatteringDataPrepareDoitOpt --> DoitScatteringDataPrepare
+        ScatteringGridOptimization --> DoitGridOptimization
+        ScatteringMain --> ScatteringDoit
+        scat_fieldCalc --> doit_scat_fieldCalc
+        scat_fieldCalc1D --> doit_scat_fieldCalc1D      
+        scat_fieldCalcLimb --> doit_scat_fieldCalcLimb
+        scat_iPut --> DoitCloudboxFieldPut
+        scat_za_gridOptimize --> doit_za_grid_optCalc
+        scat_za_interpSet --> doit_za_interpSet
+        grid_sizeSet --> DoitAngularGridsSet
+        
+        * src/workspace.cc: Renamed the following WSV:
+        convergence_flag --> doit_conv_flag
+        iteration_counter --> doit_iteration_counter
+        i_field --> doit_i_field
+        i_field_old --> doit_i_field_old
+        scat_field --> doit_scat_field
+        scat_za_grid_opt --> doit_za_grid_opt
+        scat_za_interp --> doit_za_interp
+        za_grid_size --> doit_za_grid_size
 
-	* src/m_cloudbox.cc, m_optproperties.cc, m_scatrte.cc,
-	scatrte.cc: Included new WSM, WSV and agenda names.	
-	
+        * src/m_cloudbox.cc, m_optproperties.cc, m_scatrte.cc,
+        scatrte.cc: Included new WSM, WSV and agenda names.     
+        
 2005-04-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-935
-	
-	* src/m_atmosphere.cc (AtmFieldsCalc): Included checks for the 
-	dimension of the atmospheric data. 
+        * arts-1-1-935
+        
+        * src/m_atmosphere.cc (AtmFieldsCalc): Included checks for the 
+        dimension of the atmospheric data. 
 
-	* src/m_cloudbox.cc (ParticleTypeAdd, ParticleTypeAddAll):
-	Included checks for the single scattering data and the particle 
-	numbre density fields.
+        * src/m_cloudbox.cc (ParticleTypeAdd, ParticleTypeAddAll):
+        Included checks for the single scattering data and the particle 
+        numbre density fields.
 
-	* src/cloudbox.{cc,h} (chk_pnd_data, chk_pnd_raw_data  
-	chk_single_scattering_data): Created these functions. The last one
-	checks the consistency of the single scattering properties file, 
-	whether the dimensions of the data is consistent with the chosen 
- 	particle type. 
+        * src/cloudbox.{cc,h} (chk_pnd_data, chk_pnd_raw_data  
+        chk_single_scattering_data): Created these functions. The last one
+        checks the consistency of the single scattering properties file, 
+        whether the dimensions of the data is consistent with the chosen 
+        particle type. 
 
-	* src/methods.cc: Modified input of WSMs ParticleTypeAdd and
-	ParticleTypeAddAll.
+        * src/methods.cc: Modified input of WSMs ParticleTypeAdd and
+        ParticleTypeAddAll.
 
-	* AUTHORS: Updated.
-	
-	* doc/uguide/Figs/rte_theory/coordinate_system.pdf: Modified. Used the
-	common ARTS symbols in this plot.
-	
+        * AUTHORS: Updated.
+        
+        * doc/uguide/Figs/rte_theory/coordinate_system.pdf: Modified. Used the
+        common ARTS symbols in this plot.
+        
 2005-03-29  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-934
+        * arts-1-1-934
 
-	* src/matpackII.cc: Include cmath for abs.
+        * src/matpackII.cc: Include cmath for abs.
 
 2005-03-22  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-933
+        * arts-1-1-933
 
-	* src/m_montecarlo.cc (mc_errorApplySensor): Finished this function.
+        * src/m_montecarlo.cc (mc_errorApplySensor): Finished this function.
 
 2005-03-21  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-932
+        * arts-1-1-932
 
-	* doc/uguide/sensor.tex: Changed from MetaPost to pdf figures.
+        * doc/uguide/sensor.tex: Changed from MetaPost to pdf figures.
 
-	* doc/uguide/Figs/sensor/integration.[mps,pdf]: Removed the mps
-	version and added the pdf version.
+        * doc/uguide/Figs/sensor/integration.[mps,pdf]: Removed the mps
+        version and added the pdf version.
 
-	* doc/uguide/Figs/sensor/folding.[mps,pdf]: Removed the mps version
-	and added the pdf version.
+        * doc/uguide/Figs/sensor/folding.[mps,pdf]: Removed the mps version
+        and added the pdf version.
 
-	* src/matpackII.[cc,h]: Added function abs( Sparse, const Sparse)
-	that makes a copy of absolute values of the elements in the second
-	input matrix.
+        * src/matpackII.[cc,h]: Added function abs( Sparse, const Sparse)
+        that makes a copy of absolute values of the elements in the second
+        input matrix.
 
-	* src/test_sparse.cc: Test function for the abs method.
+        * src/test_sparse.cc: Test function for the abs method.
 
 2005-03-16  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
-	* arts-1-1-931
+        * arts-1-1-931
 
-	* src/rng.cc: Changed output of rng seed from stream out2 to 
-	stream out1.
+        * src/rng.cc: Changed output of rng seed from stream out2 to 
+        stream out1.
 
 2005-03-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-930
+        * arts-1-1-930
 
-	* src/m_montecarlo.cc (mc_errorApplySensor): Started on this method.
-	It is not completely finished. The absolute value of a sparse matrix
-	elements must calculated. Mattias help!
+        * src/m_montecarlo.cc (mc_errorApplySensor): Started on this method.
+        It is not completely finished. The absolute value of a sparse matrix
+        elements must calculated. Mattias help!
 
-	The only relevant sensor response with MC so far is polarisation.
-	The idea is that, if the sensor is set-up:
-	   mc_errorApplySensor{}
-	will give an error estimate for measured polarisations.
+        The only relevant sensor response with MC so far is polarisation.
+        The idea is that, if the sensor is set-up:
+           mc_errorApplySensor{}
+        will give an error estimate for measured polarisations.
 
-	Cory: What do you say. Look at on-line doc for assumptions.
-	
-	* src/m_atmosphere.cc (surfaceFlat): Fixed bug caused by unexpected
-	matrix/vector interaction. Mail sent to arts-dev on the subject.
+        Cory: What do you say. Look at on-line doc for assumptions.
+        
+        * src/m_atmosphere.cc (surfaceFlat): Fixed bug caused by unexpected
+        matrix/vector interaction. Mail sent to arts-dev on the subject.
 
-	(surfaceSingleEmissivity): As above.
+        (surfaceSingleEmissivity): As above.
 
-	* src/rng.cc: Changed output of rng seed from stream cout to 
-	stream out2.
+        * src/rng.cc: Changed output of rng seed from stream cout to 
+        stream out2.
 
 2005-03-11  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-929
+        * arts-1-1-929
 
-	* ChangeLog: Removed conflict marker.
+        * ChangeLog: Removed conflict marker.
 
 2005-03-07  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-928
+        * arts-1-1-928
 
-	* src/agendas.cc: Added *jacobian_paarticle_update_agenda* which
-	is used to update the scattered field when the particle number
-	density field is perturbed during the calculation of the Jacobian.
-	The agenda has to be specified by the user, and should for DOIT
-	at least contain a call to ScatteringMain.
+        * src/agendas.cc: Added *jacobian_paarticle_update_agenda* which
+        is used to update the scattered field when the particle number
+        density field is perturbed during the calculation of the Jacobian.
+        The agenda has to be specified by the user, and should for DOIT
+        at least contain a call to ScatteringMain.
 
-	* src/jacobian.[cc,h]: In get_perturbation_grid added flag for
-	when dealing with pressure grid. Also fixed problems with
-	finding the perturbation limits.
+        * src/jacobian.[cc,h]: In get_perturbation_grid added flag for
+        when dealing with pressure grid. Also fixed problems with
+        finding the perturbation limits.
 
-	* src/m_absorption.cc: Added WSM *gas_speciesAdd* that appends
-	species to the end of *gas_species*. Can be used together
-	with jacobianAddGas when you want the retrieval species first
-	in the list.
+        * src/m_absorption.cc: Added WSM *gas_speciesAdd* that appends
+        species to the end of *gas_species*. Can be used together
+        with jacobianAddGas when you want the retrieval species first
+        in the list.
 
-	* src/m_jacobian.cc: Rewritten the particle part. Now the 
-	particle jacobian is calculated using a predefined pertrubation
-	field *pnd_field_perturb*, that has the same setup as *pnd_field*
-	apart from having an extra dimension. The jacobian is calculated
-	by iterating through all retrieval grid points and applying the
-	the perturbation from *pnd_field_perturb* at that point. Note that
-	the jacobian is only calculated for retrieval points inside or just
-	outside the cloudbox, since no particles are allowed outside the 
-	cloudbox.
-	Also moved some stuff around for the pointing offset jacobian.
+        * src/m_jacobian.cc: Rewritten the particle part. Now the 
+        particle jacobian is calculated using a predefined pertrubation
+        field *pnd_field_perturb*, that has the same setup as *pnd_field*
+        apart from having an extra dimension. The jacobian is calculated
+        by iterating through all retrieval grid points and applying the
+        the perturbation from *pnd_field_perturb* at that point. Note that
+        the jacobian is only calculated for retrieval points inside or just
+        outside the cloudbox, since no particles are allowed outside the 
+        cloudbox.
+        Also moved some stuff around for the pointing offset jacobian.
 
-	* src/methods.cc: Added entry for *gas_speciesAdd*, and rewritten
-	some of the jacobian online help texts.
+        * src/methods.cc: Added entry for *gas_speciesAdd*, and rewritten
+        some of the jacobian online help texts.
 
-	* src/workspace.cc: Added text to *jacobian* and added the 
-	agenda *jacobian_particle_update_agenda*.
-
-2005-03-07  Oliver Lemke  <olemke@core-dump.info>
-
-	* arts-1-1-927
-	
-	* doc/index.html.in: Revert my previous change. OF COURSE we HAVE
-	examples. There were just missing in the dist-tarball. :-(
-
-	* doc/examples/Makefile.am: Add examples to EXTRA_DIST.
+        * src/workspace.cc: Added text to *jacobian* and added the 
+        agenda *jacobian_particle_update_agenda*.
 
 2005-03-07  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-926
-	
-	* doc/index.html.in: Removed examples section.
+        * arts-1-1-927
+        
+        * doc/index.html.in: Revert my previous change. OF COURSE we HAVE
+        examples. There were just missing in the dist-tarball. :-(
+
+        * doc/examples/Makefile.am: Add examples to EXTRA_DIST.
+
+2005-03-07  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-1-926
+        
+        * doc/index.html.in: Removed examples section.
 
 2005-03-02  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
-	* arts-1-1-925
-	
-	* src/montecarlo.cc (matrix_exp_p30): Added.  When we have p30
-	particles (or a mixture of p20 and p30) there is a very
-	simple and exact expression for the matrix exponential of the
-	extinction matrix.  Using this instead of matrix_exp has given me
-	a speed-up of approximately 2x for MC simulations.  Replaced all
-	calls to matrix_exp in montecarlo.cc.  Claudia: it might be worth
-	using this in DOIT?
+        * arts-1-1-925
+        
+        * src/montecarlo.cc (matrix_exp_p30): Added.  When we have p30
+        particles (or a mixture of p20 and p30) there is a very
+        simple and exact expression for the matrix exponential of the
+        extinction matrix.  Using this instead of matrix_exp has given me
+        a speed-up of approximately 2x for MC simulations.  Replaced all
+        calls to matrix_exp in montecarlo.cc.  Claudia: it might be worth
+        using this in DOIT?
 
-	* src/montecarlo.{cc,h}: Moved all interpolation functions to
-	mc_interp.{cc,h}
-	
-	* tests/simpleMC.arts : Modified for new
-	ScatteringMonteCarlo keyword "z_field_is_1D" 
+        * src/montecarlo.{cc,h}: Moved all interpolation functions to
+        mc_interp.{cc,h}
+        
+        * tests/simpleMC.arts : Modified for new
+        ScatteringMonteCarlo keyword "z_field_is_1D" 
 
-	* tests/simpleMCWithIncomingLookup.arts : Modified for new
-	ScatteringMonteCarlo keyword "z_field_is_1D" 
+        * tests/simpleMCWithIncomingLookup.arts : Modified for new
+        ScatteringMonteCarlo keyword "z_field_is_1D" 
 
 2005-03-01  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
-	* src/methods.cc (define_md_data_raw): removed scat_iPutMonteCarlo
-	and added z_field_is_1D keyword parameter in ScatteringMonteCarlo.
+        * src/methods.cc (define_md_data_raw): removed scat_iPutMonteCarlo
+        and added z_field_is_1D keyword parameter in ScatteringMonteCarlo.
 
-	* src/m_montecarlo.cc (scat_iPutMonteCarlo): removed. Not
-	used. Implemented z_field_is_1D keyword parameter in
-	ScatteringMonteCarlo.
-	
-	* src/montecarlo.{cc,h}: removed mcGetIncomingFromData,
-	ppathRecordMC, Sample_ppathlength
+        * src/m_montecarlo.cc (scat_iPutMonteCarlo): removed. Not
+        used. Implemented z_field_is_1D keyword parameter in
+        ScatteringMonteCarlo.
+        
+        * src/montecarlo.{cc,h}: removed mcGetIncomingFromData,
+        ppathRecordMC, Sample_ppathlength
 
 2005-02-28  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
@@ -1512,333 +1539,333 @@
 
 2005-02-25  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-923
+        * arts-1-1-923
 
-	* src/jacobian.[cc,h]: Made helper function for finding perturbation
-	limits for particle fields, considering that perturbations only take
-	place in the cloudbox.
+        * src/jacobian.[cc,h]: Made helper function for finding perturbation
+        limits for particle fields, considering that perturbations only take
+        place in the cloudbox.
 
-	* src/methods.cc: Added WSM AgendaExecute, and made changes to the
-	jacobian WSM online help.
+        * src/methods.cc: Added WSM AgendaExecute, and made changes to the
+        jacobian WSM online help.
 
-	* src/workspace.cc: Added WSV pnd_field_perturb, a Tensor5 that is
-	used to input the perturbation field for particle jacobians to the
-	WSM.
+        * src/workspace.cc: Added WSV pnd_field_perturb, a Tensor5 that is
+        used to input the perturbation field for particle jacobians to the
+        WSM.
 
-	* src/m_agenda.cc: Implemented AgendaExecute which takes an agenda
-	as a generic input and executes it.
+        * src/m_agenda.cc: Implemented AgendaExecute which takes an agenda
+        as a generic input and executes it.
 
-	* src/m_jacobian: New version of jacobianAddParticle and
-	jacobianCalcParticle, not finished yet. Needs method to calculate
-	the scattering properties.
+        * src/m_jacobian: New version of jacobianAddParticle and
+        jacobianCalcParticle, not finished yet. Needs method to calculate
+        the scattering properties.
 
 2005-02-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-922
-	
-	* doc/uguide/scattering.tex: Removed old scattering chapter and
-	included Chapter 4 from my thesis instead. How to use the
-	different WVM is not yet included. Remover old descriptions
-	because they are partly out-dated. 
+        * arts-1-1-922
+        
+        * doc/uguide/scattering.tex: Removed old scattering chapter and
+        included Chapter 4 from my thesis instead. How to use the
+        different WVM is not yet included. Remover old descriptions
+        because they are partly out-dated. 
 
-	* doc/uguide/rte_theory.tex: Included here Chpter 1 from my
-	thesis, a short description of radiative transfer theory in
-	scattering media. Patrick's text is kept as a special case. The
-	notation should be made consistent. 
+        * doc/uguide/rte_theory.tex: Included here Chpter 1 from my
+        thesis, a short description of radiative transfer theory in
+        scattering media. Patrick's text is kept as a special case. The
+        notation should be made consistent. 
 
-	Fixed some links to equations in scattering chapter in the
-	following files: 
-	* integration.tex
-	* lin_alg.tex
-	* polarization.tex	
-	* ppath.tex
-	* references.bib
+        Fixed some links to equations in scattering chapter in the
+        following files: 
+        * integration.tex
+        * lin_alg.tex
+        * polarization.tex      
+        * ppath.tex
+        * references.bib
 
-	* symbol_defs.tex: Included some new symbols for scattering part
-	and also added \charef, \secref ... 
-	May be we could all use these definitions in order to have
-	consistent references.
+        * symbol_defs.tex: Included some new symbols for scattering part
+        and also added \charef, \secref ... 
+        May be we could all use these definitions in order to have
+        consistent references.
 
-	* Figs/scattering: Included figures.
+        * Figs/scattering: Included figures.
 
-	* Figs/rte_theory: Included figures. 
-	
+        * Figs/rte_theory: Included figures. 
+        
 2005-02-21  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
-	* arts-1-1-921
+        * arts-1-1-921
 
-	* src/m_montecarlo.cc (ScatteringMonteCarlo): Incoroporated new
-	arguments (see below), switch for incoming radiance calculation,
-	and the use of mcPathTrace.  Changed variable name T to evol_op
-	(evolution operator).
+        * src/m_montecarlo.cc (ScatteringMonteCarlo): Incoroporated new
+        arguments (see below), switch for incoming radiance calculation,
+        and the use of mcPathTrace.  Changed variable name T to evol_op
+        (evolution operator).
 
-	* src/montecarlo.cc (mcGetIncomingFromData): Added.  For a given
-	rte_pos, rte_los, this function returns the incoming 1D clear sky
-	radiance by interpolating mc_incoming.
-	(mcPathTrace): Added.  Performs the tasks of pathlength sampling,
-	ray tracing (but now only as far as determined by pathlength
-	sampling) and calculation of the evolution operator and several 
-	atmospheric variables at the new point.
+        * src/montecarlo.cc (mcGetIncomingFromData): Added.  For a given
+        rte_pos, rte_los, this function returns the incoming 1D clear sky
+        radiance by interpolating mc_incoming.
+        (mcPathTrace): Added.  Performs the tasks of pathlength sampling,
+        ray tracing (but now only as far as determined by pathlength
+        sampling) and calculation of the evolution operator and several 
+        atmospheric variables at the new point.
 
-	* src/ppath.h: Added entry for ppath_start_stepping.
+        * src/ppath.h: Added entry for ppath_start_stepping.
 
-	* src/workspace.cc (mc_incoming): Added.  This is an ArrayOfMAtrix
-	that holds precalculated incoming radiances on an [r, za] grid.
+        * src/workspace.cc (mc_incoming): Added.  This is an ArrayOfMAtrix
+        that holds precalculated incoming radiances on an [r, za] grid.
 
-	* tests/simpleMC.arts: Updated for changes in
-	ScatteringMonteCarlo. Still does `on the fly' incoming radiance
-	calculations (incoming_lookup=0).  Will provide example using
-	incoming_lookup=1 soon.
+        * tests/simpleMC.arts: Updated for changes in
+        ScatteringMonteCarlo. Still does `on the fly' incoming radiance
+        calculations (incoming_lookup=0).  Will provide example using
+        incoming_lookup=1 soon.
 
-	* src/methods.cc (ScatteringMonteCarlo): Added mc_incoming as an
-	output variable.  This is really an input variable, but is listed
-	as an output so you dont have to define it if you are not using
-	the "incoming_lookup" option.  If anyone has a better idea ...
-	Added incoming_lookup keyword argument (boolean/Index). Updated
-	doxygen string.
-
-2005-02-16  Oliver Lemke  <olemke@core-dump.info>
-
-	* arts-1-1-920
-
-	* autogen.sh: Also test for automake 1.9.
-
-	* Update on my last commit: automake1.9 was not the
-	problem. SuSE picks up a dependency from make_auto_wsv_h.cc to class
-	binio through absorption.h which defines a friend function with
-	bifstream (derived from binio) as a parameter. So, I would tend to say
-	SuSE's gcc is right when complaining about
-	'undefined reference to `typeinfo for binio`' in
-	make_auto_wsv_h.o (and others), but why all other gcc's don't see this
-	is a mystery to me.
+        * src/methods.cc (ScatteringMonteCarlo): Added mc_incoming as an
+        output variable.  This is really an input variable, but is listed
+        as an output so you dont have to define it if you are not using
+        the "incoming_lookup" option.  If anyone has a better idea ...
+        Added incoming_lookup keyword argument (boolean/Index). Updated
+        doxygen string.
 
 2005-02-16  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-919
+        * arts-1-1-920
 
-	* src/Makefile.am:
+        * autogen.sh: Also test for automake 1.9.
 
-	Added binio.[cc,h] to make_auto_*SOURCES. Fixes build on SuSE 9.x.
-	It seems automake1.9 has a different (not sure if better or worse yet)
-	dependency tracking than prior versions.
+        * Update on my last commit: automake1.9 was not the
+        problem. SuSE picks up a dependency from make_auto_wsv_h.cc to class
+        binio through absorption.h which defines a friend function with
+        bifstream (derived from binio) as a parameter. So, I would tend to say
+        SuSE's gcc is right when complaining about
+        'undefined reference to `typeinfo for binio`' in
+        make_auto_wsv_h.o (and others), but why all other gcc's don't see this
+        is a mystery to me.
+
+2005-02-16  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-1-919
+
+        * src/Makefile.am:
+
+        Added binio.[cc,h] to make_auto_*SOURCES. Fixes build on SuSE 9.x.
+        It seems automake1.9 has a different (not sure if better or worse yet)
+        dependency tracking than prior versions.
 
 2005-02-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-918
+        * arts-1-1-918
 
-	* src/m_cloudbox.cc (cloudboxSetManuallyAltitude): The code allowed 
-	that given altitudes were outside *z_field*, but run time errors were
-	still issued. Removed these run time errors to more easily extend the
-	cloud box to the atmospheric vertical limits (surface and TOA).
+        * src/m_cloudbox.cc (cloudboxSetManuallyAltitude): The code allowed 
+        that given altitudes were outside *z_field*, but run time errors were
+        still issued. Removed these run time errors to more easily extend the
+        cloud box to the atmospheric vertical limits (surface and TOA).
 
 2005-02-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* src/m_cloudbox.cc (cloudboxSetManuallyAltitude): 
+        * src/m_cloudbox.cc (cloudboxSetManuallyAltitude): 
 
-	* arts-1-1-917
+        * arts-1-1-917
 
-	* src/ppath.cc (ppath_start_stepping): Included RTOL when comparing
-	surface radius with start of ppath. Numerical inaccuracy can here give
-	problems.
+        * src/ppath.cc (ppath_start_stepping): Included RTOL when comparing
+        surface radius with start of ppath. Numerical inaccuracy can here give
+        problems.
 
 2005-02-14  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-916
+        * arts-1-1-916
 
-	* doc/uguide/Figs/sensor/integration.mps: Added this figure.
+        * doc/uguide/Figs/sensor/integration.mps: Added this figure.
 
 2005-01-25  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-915
+        * arts-1-1-915
 
-	* doc/uguide/sensor.tex: Minor fixes.
+        * doc/uguide/sensor.tex: Minor fixes.
 
-	* src/methods.cc: Added WSM for calculating jacobians for particle
-	number densities; jacobianAddParticle and jacobianCalcParticle
+        * src/methods.cc: Added WSM for calculating jacobians for particle
+        number densities; jacobianAddParticle and jacobianCalcParticle
 
-	* src/m_jacobian.cc: Implemented jacobianAddParticle and 
-	jacobianCalcParticle. These functions bears a lot of similarities
-	with the functions related to gas species. But instead of perturbing
-	the vmr_field they change the pnd_field, and the perturbations are
-	applied to all particle types not just one.
-	The jacobianCalcParticle function is not yet functional, it still 
-	remains to implement the actual rte calculations. Now this method
-	only returns zero values for the jacobian.
+        * src/m_jacobian.cc: Implemented jacobianAddParticle and 
+        jacobianCalcParticle. These functions bears a lot of similarities
+        with the functions related to gas species. But instead of perturbing
+        the vmr_field they change the pnd_field, and the perturbations are
+        applied to all particle types not just one.
+        The jacobianCalcParticle function is not yet functional, it still 
+        remains to implement the actual rte calculations. Now this method
+        only returns zero values for the jacobian.
  
 2005-01-21  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-914
+        * arts-1-1-914
 
-	* doc/uguide/sensor.tex: Updated the sensor part of the user guide.
-	I've fixed all references and figures, but there are still a few
-	fixme's that has to be fixed and probably som polishing of the text.
+        * doc/uguide/sensor.tex: Updated the sensor part of the user guide.
+        I've fixed all references and figures, but there are still a few
+        fixme's that has to be fixed and probably som polishing of the text.
 
-	* doc/uguide/Figs/sensor/folding.mps: Added figure that visualises
-	the folding of the spectra in the mixer. 
+        * doc/uguide/Figs/sensor/folding.mps: Added figure that visualises
+        the folding of the spectra in the mixer. 
 
 2005-01-18  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-913
+        * arts-1-1-913
 
-	* src/m_sensor.cc: Made changes to sensor_responseMultiMixer.
+        * src/m_sensor.cc: Made changes to sensor_responseMultiMixer.
 
-	* src/sensor.[cc,h]: Adapted multi_mixer_matrix to the changes.
+        * src/sensor.[cc,h]: Adapted multi_mixer_matrix to the changes.
 
 2005-01-05  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-912
+        * arts-1-1-912
 
-	* doc/uguide/sensor.tex: Worked on the sensor chapter.
+        * doc/uguide/sensor.tex: Worked on the sensor chapter.
 
-	* src/jacobian.[cc,h]: Added function to automatically create the
-	agenda for the jacobian. The agenda is filled with the WSM 
-	jacobianCalc... methods, with gas species as keywords when needed.
+        * src/jacobian.[cc,h]: Added function to automatically create the
+        agenda for the jacobian. The agenda is filled with the WSM 
+        jacobianCalc... methods, with gas species as keywords when needed.
 
-	* src/m_jacobian.cc: Added the call to the agenda creating function.
+        * src/m_jacobian.cc: Added the call to the agenda creating function.
 
-	* src/m_sensor.cc: Included number of measurement blocks in the 
-	conversion of RF to IF.
+        * src/m_sensor.cc: Included number of measurement blocks in the 
+        conversion of RF to IF.
 
-	* src/methods.cc:  Included *jacobian_agenda* as output in the
-	jacobianAdd... methods.
+        * src/methods.cc:  Included *jacobian_agenda* as output in the
+        jacobianAdd... methods.
  
 2004-11-18  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-911
+        * arts-1-1-911
 
-	* src/m_sensor.cc (ConvertIFToRF): Fixed small bug.
+        * src/m_sensor.cc (ConvertIFToRF): Fixed small bug.
 
 2004-11-16  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
-	* arts-1-1-910
+        * arts-1-1-910
 
-	* src/m_montecarlo.cc (ScatteringMonteCarlo): Fixed bug in
-	termination condition for std_err
+        * src/m_montecarlo.cc (ScatteringMonteCarlo): Fixed bug in
+        termination condition for std_err
 
 2004-11-15  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
-	* arts-1-1-909
+        * arts-1-1-909
 
-	* src/m_montecarlo.cc (ScatteringMonteCarlo): Fixed bug in input
-	keyword check.
+        * src/m_montecarlo.cc (ScatteringMonteCarlo): Fixed bug in input
+        keyword check.
 
 2004-11-12  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
-	* arts-1-1-908
+        * arts-1-1-908
 
-	* doc/uguide/batch.tex: Some polishing of text. 
+        * doc/uguide/batch.tex: Some polishing of text. 
 
 2004-10-28  Oliver Lemke  <olemke@core-dump.info>
 
-	* arts-1-1-907
+        * arts-1-1-907
 
-	* src/{geomag_calc.h,geomag_calc.cc,special_interp.h,agendas.cc,
-	binio.cc,fastem.h,fastem.cc,legendre.cc,continua.h,m_abs_o2_models.cc,
-	math_funcs.cc,m_continua.cc,m_continua_ckd.cc,m_optproperties.cc,
-	m_scatrte.cc,optproperties.cc,montecarlo.h,scatrte.h,scatrte.cc}:
+        * src/{geomag_calc.h,geomag_calc.cc,special_interp.h,agendas.cc,
+        binio.cc,fastem.h,fastem.cc,legendre.cc,continua.h,m_abs_o2_models.cc,
+        math_funcs.cc,m_continua.cc,m_continua_ckd.cc,m_optproperties.cc,
+        m_scatrte.cc,optproperties.cc,montecarlo.h,scatrte.h,scatrte.cc}:
 
-	Reindented. Please run make check in the src directory before
-	committing to check whether your editor accidentally used tabs for
-	indentation. (X)Emacs users should put the following in their startup
-	file:
+        Reindented. Please run make check in the src directory before
+        committing to check whether your editor accidentally used tabs for
+        indentation. (X)Emacs users should put the following in their startup
+        file:
 
-	(add-hook 'c-mode-common-hook
+        (add-hook 'c-mode-common-hook
           (lambda ()
             (progn
               (setq indent-tabs-mode nil))))
 
-	Vim users please add this to .vim/ftplugin/c.vim:
+        Vim users please add this to .vim/ftplugin/c.vim:
 
-	setlocal expandtab
-	setlocal cindent
-	setlocal shiftwidth=2
-	setlocal tabstop=2
-	setlocal textwidth=78
-	setlocal cino=>2s,e-s,n-s,f0,{s,}0,^-s,:s,=s,l0,g0,hs,ps,t0,+s,c3,/N0,(0,u0,)100,*100
-	setlocal formatoptions=croqlt
+        setlocal expandtab
+        setlocal cindent
+        setlocal shiftwidth=2
+        setlocal tabstop=2
+        setlocal textwidth=78
+        setlocal cino=>2s,e-s,n-s,f0,{s,}0,^-s,:s,=s,l0,g0,hs,ps,t0,+s,c3,/N0,(0,u0,)100,*100
+        setlocal formatoptions=croqlt
 
 2004-10-27  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-906
-	
-	* src/cloudbox.cc (iy_interp_cloudbox_field): Fixed bugs in the
-	check, whether a pont is on the cloudbox boundary. rte_gp_p was is
-	several places wher is should be rte_gp_{lat, lon}.
+        * arts-1-1-906
+        
+        * src/cloudbox.cc (iy_interp_cloudbox_field): Fixed bugs in the
+        check, whether a pont is on the cloudbox boundary. rte_gp_p was is
+        several places wher is should be rte_gp_{lat, lon}.
 
 2004-10-26  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-905
+        * arts-1-1-905
 
-	* src/absorption.[cc,h]: Moved part functionality of gas_speciesSet
-	here to method array_species_tag_from_string.
+        * src/absorption.[cc,h]: Moved part functionality of gas_speciesSet
+        here to method array_species_tag_from_string.
 
-	* src/m_absorption.cc: Moved the conversion from String to 
-	ArrayOfSpeciesTag to absorption.cc. This function is also needed 
-	by the jacobian functions for gases.
+        * src/m_absorption.cc: Moved the conversion from String to 
+        ArrayOfSpeciesTag to absorption.cc. This function is also needed 
+        by the jacobian functions for gases.
 
-	* src/agendas.cc: Added *jacobian_agenda* used to perform the final
-	calculations of the Jacobian matrix.
+        * src/agendas.cc: Added *jacobian_agenda* used to perform the final
+        calculations of the Jacobian matrix.
 
-	* src/methods.cc: Added methods for setting up the Jacobian for
-	gas species (*jacobianAddGas* and *jacobianCalcGas*) and  temperature
-	(*jacobianAddTemperature* and *jacobianCalcTemperature*). Also 
-	implemented function for calculating the zenith angle pointing
-	jacobian (*jacobianCalcPointing*) and the function *jacobianCalc* 
-	that calls the *jacobian_agenda*.
+        * src/methods.cc: Added methods for setting up the Jacobian for
+        gas species (*jacobianAddGas* and *jacobianCalcGas*) and  temperature
+        (*jacobianAddTemperature* and *jacobianCalcTemperature*). Also 
+        implemented function for calculating the zenith angle pointing
+        jacobian (*jacobianCalcPointing*) and the function *jacobianCalc* 
+        that calls the *jacobian_agenda*.
 
-	* src/workspace.cc: Added *jacobian_agenda* and a vector 
-	*sensor_time* used to add a time dimension to the measurement
-	blocks. Currently only used while calculating polynomial pointing
-	offsets by *jacobianCalcPointing*.
+        * src/workspace.cc: Added *jacobian_agenda* and a vector 
+        *sensor_time* used to add a time dimension to the measurement
+        blocks. Currently only used while calculating polynomial pointing
+        offsets by *jacobianCalcPointing*.
 
-	* src/xml_io_compound_types.cc: Changed type of jacobianindices
-	from Vector to ArrayOfIndex.
+        * src/xml_io_compound_types.cc: Changed type of jacobianindices
+        from Vector to ArrayOfIndex.
 
-	* src/jacobian.[cc,h]: Changed JacobianIndices to ArrayOfIndex.
-	Added helper functions for the jacobian WSM.
-	check_retrieval_grids, get_perturbation_grid,
-	get_perturbation_range, perturbation_field_1d, perturbation_field_2d
-	and perturbation_field_3d.
+        * src/jacobian.[cc,h]: Changed JacobianIndices to ArrayOfIndex.
+        Added helper functions for the jacobian WSM.
+        check_retrieval_grids, get_perturbation_grid,
+        get_perturbation_range, perturbation_field_1d, perturbation_field_2d
+        and perturbation_field_3d.
 
-	* src/m_jacobian.cc: Implemented *jacobianAddGas*, 
-	*jacobianAddTemperature*, *jacobianCalc*, *jacobianCalcGas*,
-	*jacobianCalcPointing* and *jacobianCalcTemperature*. Some minor
-	changes to already existing functions. 
-	
+        * src/m_jacobian.cc: Implemented *jacobianAddGas*, 
+        *jacobianAddTemperature*, *jacobianCalc*, *jacobianCalcGas*,
+        *jacobianCalcPointing* and *jacobianCalcTemperature*. Some minor
+        changes to already existing functions. 
+        
 2004-10-26  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-1-904
 
-	* src/parameters.cc: Added commandline option --plain.
+        * src/parameters.cc: Added commandline option --plain.
 
-	* src/parameters.h: Added attribute plain to Parameters.
+        * src/parameters.h: Added attribute plain to Parameters.
 
-	* src/main.cc (option_methods, main):
+        * src/main.cc (option_methods, main):
 
-	Omit special formatting for method, group, and wsv lists if --plain
-	was specified.
+        Omit special formatting for method, group, and wsv lists if --plain
+        was specified.
 
-	* doc/reference/{arts_groups_to_latex.sh,arts_methods_to_latex.sh,
-	arts_variables_to_latex.sh}:
+        * doc/reference/{arts_groups_to_latex.sh,arts_methods_to_latex.sh,
+        arts_variables_to_latex.sh}:
 
-	Use --plain instead of grep/sed.
+        Use --plain instead of grep/sed.
 
 2004-10-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
         * arts-1-1-903
 
-	* doc/uguide/surface.tex: When looking for other stuff, I found 
-	that Vol. 1 of Ulaby contains equations that relates surface
-	reflectivity and emissivity. Based on this, I now feel more sure that
-	the general expression for emission from flat surfaces I derived is
-	correct. I then updated section.
+        * doc/uguide/surface.tex: When looking for other stuff, I found 
+        that Vol. 1 of Ulaby contains equations that relates surface
+        reflectivity and emissivity. Based on this, I now feel more sure that
+        the general expression for emission from flat surfaces I derived is
+        correct. I then updated section.
 
-	However, some things must be confirmed. Can anyone having the
-	Mischenko book check if it confirms Eq. 7.7, 7.8 and 7.14, or if
-	it says something different. As the scattering part is based on
-	Mischenko, we should use those definitions as far as possible. For
-	example, it seems that different text books differs with a factor
-	of -1 for the Fresnel expression of Rv. 
+        However, some things must be confirmed. Can anyone having the
+        Mischenko book check if it confirms Eq. 7.7, 7.8 and 7.14, or if
+        it says something different. As the scattering part is based on
+        Mischenko, we should use those definitions as far as possible. For
+        example, it seems that different text books differs with a factor
+        of -1 for the Fresnel expression of Rv. 
 
 2004-10-14  Cory Davis  <cory@geosl504>
 

@@ -35,15 +35,32 @@ void atm_vars_at_ppath_end(
                            const Agenda& scalar_gas_absorption_agenda,
                            const Index& stokes_dim,
                            const Ppath& ppath,
-                           const Vector&         p_grid,
-                           const Vector&         lat_grid,
-                           const Vector&         lon_grid,
-                           const Tensor3&   t_field,
-                           const Tensor4&   vmr_field,
+                           const ConstVectorView         p_grid_cloud,
+                           const ConstVectorView         lat_grid_cloud,
+                           const ConstVectorView         lon_grid_cloud,
+                           const ConstTensor3View   t_field_cloud,
+                           const ConstTensor4View   vmr_field_cloud,
                            const Tensor4&   pnd_field,
                            const ArrayOfSingleScatteringData& scat_data_mono,
                            const ArrayOfIndex& cloudbox_limits //added by (CE)
                            );
+
+void cloud_atm_vars_by_gp(
+                          VectorView pressure,
+                          VectorView temperature,
+                          MatrixView vmr,
+                          MatrixView pnd,
+                          const ArrayOfGridPos& gp_p,
+                          const ArrayOfGridPos& gp_lat,
+                          const ArrayOfGridPos& gp_lon,
+                          const ArrayOfIndex& cloudbox_limits,
+                          const ConstVectorView p_grid_cloud,
+                          const ConstVectorView lat_grid_cloud,
+                          const ConstVectorView lon_grid_cloud,
+                          const ConstTensor3View   t_field_cloud,
+                          const ConstTensor4View   vmr_field_cloud,
+                          const ConstTensor4View   pnd_field
+);
 
 void Cloudbox_ppathCalc(
                         //  Output:
@@ -194,12 +211,6 @@ void montecarloGetIncoming(
                            Vector&               ppath_p,
                            Vector&               ppath_t,
                            Matrix&               ppath_vmr,
-                           //Matrix&               i_space,
-                           //Matrix&               ground_emission,
-                           //Matrix&               ground_los, 
-                           //Tensor4&              ground_refl_coeffs,
-                           //Vector&               scat_za_grid,
-                           //Vector&               scat_aa_grid,
                            const Agenda&         ppath_step_agenda,
                            const Agenda&         rte_agenda,
                            const Agenda&         iy_space_agenda,
@@ -319,15 +330,14 @@ void TArrayCalc(
                 const Agenda& opt_prop_gas_agenda,
                 const Agenda& scalar_gas_absorption_agenda,
                 const Index& stokes_dim,
-                const Vector&    p_grid,
-                const Vector&    lat_grid,
-                const Vector&    lon_grid,
-                const Tensor3&   t_field,
-                const Tensor4&   vmr_field,
-                const Index&     atmosphere_dim,
+                const ConstVectorView&    p_grid_cloud,
+                const ConstVectorView&    lat_grid_cloud,
+                const ConstVectorView&    lon_grid_cloud,
+                const ConstTensor3View&   t_field_cloud,
+                const ConstTensor4View&   vmr_field_cloud,
                 const Tensor4&   pnd_field,
                 const ArrayOfSingleScatteringData& scat_data_mono,
-                const ArrayOfIndex& cloudbox_limits // added by CE
+                const ArrayOfIndex& cloudbox_limits
                 );
 
 #endif  // montecarlo_h
