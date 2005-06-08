@@ -47,6 +47,7 @@
 #include "jacobian.h"
 #include "rte.h"
 #include "absorption.h"
+#include "physics_funcs.h"
 
 
 /*===========================================================================
@@ -343,7 +344,6 @@ void jacobianAddPointing(// WS Output:
                          const Vector&              sensor_time,
                          // Control Parameters:
                          const Numeric&             dza,
-                         const String&              mode,
                          const Index&               poly_order)
 {
   // Check that the jacobian matrix is empty. Otherwise it is either
@@ -356,15 +356,6 @@ void jacobianAddPointing(// WS Output:
     throw runtime_error(os.str());
   }
   
-  // Check that mode is either 'abs' or 'rel'
-  if (mode!="abs" && mode!="rel")
-  {
-    ostringstream os;
-    os << "The mode of perturbation for pointing offset can only be either\n"
-       << "absolute (\"abs\") or relative (\"rel\")."; 
-    throw runtime_error(os.str());
-  }
-
   // Check that poly_order is -1 or positive
   if (poly_order<-1)
     throw runtime_error(
@@ -372,6 +363,7 @@ void jacobianAddPointing(// WS Output:
     
   // Define subtag here to easily expand function.
   String subtag="za offset";
+  String mode="abs";
 
   // Check that this type of pointing is not already included in the
   // jacobian.
@@ -452,6 +444,7 @@ void jacobianAddTemperature(// WS Output:
                     const String&             rq_lat_grid_name,
                     const String&             rq_lon_grid_name,
                     // Control Parameters:
+                    const String&             hse,
                     const String&             method,
                     const String&             mode,
                     const Numeric&            dx)
@@ -477,6 +470,28 @@ void jacobianAddTemperature(// WS Output:
     throw runtime_error(os.str());
   }
   
+  // Set subtag to "HSE off"
+  String subtag;
+  if (hse=="on")
+  {
+    subtag = "HSE on";
+    //FIXME: when implemented, remove this
+    ostringstream os;
+    os << "Temperature jacobian with HSE on is not implemented yet.";
+    throw runtime_error(os.str());
+  }
+  else if (hse=="off")
+  {
+    subtag = "HSE off";
+  }
+  else
+  {
+    ostringstream os;
+    os << "The keyword for hydrostatic equilibrium can only be set to\n"
+       << "\"on\" or \"off\"\n";
+    throw runtime_error(os.str());
+  }
+    
   // Check that method is either "analytic" or "perturbation"
   bool analytical;
   if (method=="perturbation")
@@ -508,9 +523,6 @@ void jacobianAddTemperature(// WS Output:
     throw runtime_error(os.str());
   }
   
-  // Set subtag to "HSE off"
-  String subtag = "HSE off";
-
   // Check that temperature is not already included in the jacobian.
   // We only check the main tag.
   for (Index it=0; it<jq.nelem(); it++)
@@ -684,16 +696,17 @@ void jacobianCalcGas(
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
 
+  // Check if a relative pertubation is used or not, this information is needed
+  // by the methods 'perturbation_field_?d'.
+  // Note: both 'vmr' and 'nd' are absolute perturbations
   if (rq.Mode()=="rel")
     method = 0;
-  else if (rq.Mode()=="vmr")
+  else 
     method = 1;
-  else
-    throw runtime_error("Number density option not yet implemented.");
   
-  // For each atmospheric dimension option calculate a ArrayOfGridPos, 
-  // these will be used to interpolate a perturbation into the atmospheric 
-  // grids.
+  // For each atmospheric dimension option calculate a ArrayOfGridPos, these
+  // are the base functions for interpolating the perturbations into the
+  // atmospheric grids.
   ArrayOfGridPos p_gp,lat_gp,lon_gp;
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
@@ -718,23 +731,15 @@ void jacobianCalcGas(
   array_species_tag_from_string( tags, species );
   Index si = chk_contains( "species", gas_species, tags );
 
-  // Calculate the reference spectrum, y. FIXME: Is this unnecessary if *y*
-  out2 << "  Calculating the reference spectra.\n";  
-  RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, 
-           iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
-           rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
-           iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
-           lat_grid, lon_grid, z_field, t_field, vmr_field, 
-           r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
-           sensor_response, sensor_pos, sensor_los, f_grid,
-           stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
-
-  // Declare variables for reference and difference spectrum
+  // Store the reference spectrum and vmr-field
   Vector y_ref = y;
-  
-  // Variables for vmr field perturbation
   Tensor4 vmr_ref = vmr_field;
-  //Tensor3 pert_field(p_pert.nelem(),lat_pert.nelem(),lon_pert.nelem());
+  
+  // Variables for vmr field perturbation unit conversion
+  Tensor3 nd_field(p_grid.nelem(),lat_grid.nelem(),lon_grid.nelem(), 1.0);
+  if (rq.Mode()!="nd")
+    calc_nd_field(nd_field, p_grid, t_field);
+  
   
   // Loop through the retrieval grid and calculate perturbation effect
   for (Index p_it=0; p_it<j_p; p_it++)
@@ -743,9 +748,6 @@ void jacobianCalcGas(
     {
       for (Index lon_it=0; lon_it<j_lon; lon_it++)
       {
-        // FIXME: Only relative perturbation implemented
-        // That is; pert_field is initiated to 1.0
-        
         // Here we calculate the ranges of the perturbation. We want the
         // perturbation to continue outside the atmospheric grids for the
         // edge values.
@@ -762,6 +764,11 @@ void jacobianCalcGas(
           }
         }
                               
+        // If perturbation given in ND convert the vmr-field to ND before
+        // the perturbation is added          
+        if (rq.Mode()=="nd")
+          vmr_field(si,joker,joker,joker) *= nd_field;
+        
         // Calculate the perturbed field according to atmosphere_dim, 
         // the number of perturbations is the length of the retrieval 
         // grid +2 (for the end points)
@@ -792,10 +799,14 @@ void jacobianCalcGas(
             break;
           }
         }
-          
+
+        // If perturbation given in ND convert back to VMR          
+        if (rq.Mode()=="nd")
+          vmr_field(si,joker,joker,joker) /= nd_field;
+        
         // Calculate the perturbed spectrum  
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
-             << j_p*j_lat*j_lon+ji[0] << "\n";
+             << ji[1]+1 << "\n";
         RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
                  iy, rte_pos, rte_gp_p, rte_gp_lat,
                  rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
@@ -943,9 +954,6 @@ void jacobianCalcParticle(
   // Loop through the retrieval grid and calculate perturbation effect
   for (Index scen_it=0; scen_it<jg[atmosphere_dim].nelem(); scen_it++)
   {
-    // Update the perturbation field
-//     pnd_pert = pnd_field_perturb(scen_it, joker, joker, joker, joker);
-    
     for (Index p_it=0; p_it<j_p; p_it++)
     {
       for (Index lat_it=0; lat_it<j_lat; lat_it++)
@@ -956,7 +964,7 @@ void jacobianCalcParticle(
           pnd_pert = pnd_field_perturb(scen_it, joker, joker, joker, joker);
           
           out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
-               << j_p*j_lat*j_lon*jg[atmosphere_dim].nelem()+ji[0] << "\n";
+               << ji[1]+1 << "\n";
           // Check if retrieval point is inside the box
           if ( p_it>=p_lim[0] && p_it<=p_lim[1] &&
                lat_it>=lat_lim[0] && lat_it<=lat_lim[1] &&
@@ -1125,10 +1133,8 @@ void jacobianCalcPointing(
       "There is no pointing offset retrieval quantities defined.\n");
   }
 
-  // Assert that the chosen mode is implemented
-  assert( rq.Mode()=="abs" || rq.Mode()=="rel" );
-  
-  // FIXME: Should the size of *jacobian* be checked here?
+  // This method only handles absolute perturbations
+  assert( rq.Mode()=="abs" );
   
   // Check if pointing is of type gitter
   if (rq.Grids()[0][0]==-1)
@@ -1150,32 +1156,14 @@ void jacobianCalcPointing(
   // Give verbose output
   out2 << "  Calculating retrieval quantity " << rq << "\n";
   
-  // Calculate the reference spectrum, y
-  RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
-           iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
-           rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
-           iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
-           lat_grid, lon_grid, z_field, t_field, vmr_field, r_geoid, z_surface,
-           cloudbox_on, 
-           cloudbox_limits, sensor_response, sensor_pos, sensor_los, f_grid,
-           stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
-  
   // Declare variables for reference and difference spectrum
   Vector y_ref = y;
   Vector dydx(y.nelem());
-    
-  // Add the pointing offset. It should be given as a relative change.
-  // FIXME 2: this could be adjusted to account for azimuth offset
-  if (rq.Mode()=="abs")
-  {
-    sensor_los_pert(joker,0) += rq.Perturbation();
-  } 
-  else if (rq.Mode()=="rel")
-  {
-    sensor_los_pert(joker,0) *= 1+rq.Perturbation();
-  }
+  
+  // Add the pointing offset. 
+  sensor_los_pert(joker,0) += rq.Perturbation();
      
-  // Calculate the perturbed spectrum  
+  // Calculate the perturbed spectrum for the zeroth order polynomial
   RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
            iy, rte_pos, rte_gp_p, rte_gp_lat,
            rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
@@ -1210,7 +1198,7 @@ void jacobianCalcPointing(
       exponent = 0.0;
     } 
     out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
-         << jacobian.ncols() << "\n";
+         << ji[1]+1 << "\n";
     Index y_it = 0;
     for (Index ns=0; ns<sensor_pos.nrows(); ns++)
     {
@@ -1307,6 +1295,9 @@ void jacobianCalcTemperature(
     throw runtime_error(os.str());
   }
   
+  // FIXME: Only HSE off is implemented
+  assert( rq.Subtag()=="HSE off" );
+  
   // Store the start JacobianIndices and the Grids for this quantity
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
@@ -1337,21 +1328,8 @@ void jacobianCalcTemperature(
   // Give verbose output
   out2 << "  Calculating retrieval quantity " << rq << "\n";
   
-  // Calculate the reference spectrum, y. FIXME: Is this unnecessary if *y*
-  out2 << "  Calculating the reference spectra.\n";  
-  RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
-           iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
-           rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
-           iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
-           lat_grid, lon_grid, z_field, t_field, vmr_field, 
-           r_geoid, z_surface, cloudbox_on, 
-           cloudbox_limits, sensor_response, sensor_pos, sensor_los, f_grid,
-           stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
-
-  // Declare variables for reference and difference spectrum
+  // Store the reference spectrum and temperature field
   Vector y_ref = y;
-  
-  // Variables for temperature field perturbation
   Tensor3 t_ref = t_field;
   
   // Loop through the retrieval grid and calculate perturbation effect
@@ -1361,9 +1339,6 @@ void jacobianCalcTemperature(
     {
       for (Index lon_it=0; lon_it<j_lon; lon_it++)
       {
-        // FIXME: Only relative perturbation implemented
-        // That is; pert_field is initiated to 1.0
-        
         // Here we calculate the ranges of the perturbation. We want the
         // perturbation to continue outside the atmospheric grids for the
         // edge values.
@@ -1413,7 +1388,7 @@ void jacobianCalcTemperature(
           
         // Calculate the perturbed spectrum  
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
-             << j_p*j_lat*j_lon+ji[0] << "\n";
+             << ji[1]+1 << "\n";
         RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
                  iy, rte_pos, rte_gp_p, rte_gp_lat,
                  rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
@@ -1424,7 +1399,7 @@ void jacobianCalcTemperature(
                  sensor_response, sensor_pos, sensor_los, f_grid, 
                  stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
     
-        // Restore the vmr_field
+        // Restore the temperature field
         t_field = t_ref;               
          
         // Add dy/dx as column in jacobian

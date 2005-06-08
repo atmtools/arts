@@ -118,6 +118,10 @@ void agenda_append(       Agenda& agenda,
                     const String& methodname,
                     const String& keywordvalue);
 
+void calc_nd_field(       Tensor3View& nd,
+                    const VectorView&  p,
+                    const Tensor3View& t);
+
 bool check_retrieval_grids(       ArrayOfVector& grids,
                                   ostringstream& os,
                             const Vector&        p_grid,

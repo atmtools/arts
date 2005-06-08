@@ -2192,9 +2192,8 @@ md_data_raw.push_back
          "The WSM *jacobianCalcPointing is automatically added to\n"
          "*jacobian_agenda*.\n"
          "\n"
-         "The perturbation can either be given as an absolute or a relative\n"
-         "perturbation, this perturbation is then applied to the sensor\n"
-         "line-of-sight angles.\n"
+         "The perturbation is defined as an absolute perturbation, this\n"
+         "perturbation is then applied to the sensor line-of-sight angles.\n"
          "\n"
          "The unit of the Jacobian is the unit of *y* per degree.\n"
          "\n"
@@ -2202,15 +2201,14 @@ md_data_raw.push_back
          "\n"
          "Keywords:\n"
          "  dza                 : The size of the perturbation.\n"
-         "  unit                : Unit of perturbation \"abs\"/\"rel\"\n"
          "  poly_order          : Order of the polynomial."
         ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, sensor_pos_, sensor_time_ ),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS( "dza", "unit", "poly_order" ),
-        TYPES( Numeric_t, String_t, Index_t )));
+        KEYWORDS( "dza", "poly_order" ),
+        TYPES( Numeric_t, Index_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2231,8 +2229,8 @@ md_data_raw.push_back
          "\n"
          "Unit of the Jacobian is the unit of *y* per Kelvin.\n"
          "\n"
-         "NOTE: So far hydrostatic equilibrium is not considered and only\n"
-         "\"perturbation\" method implemented.\n"
+         "NOTE: So far only \"perturbation\" method implemented without\n"
+         "hydrostatic equilibrium.\n"
          "\n"
          "Generic input:\n"
          "  Vector : The pressure grid of the retrieval field.\n"
@@ -2240,16 +2238,17 @@ md_data_raw.push_back
          "  Vector : The longitude grid of the retrieval field.\n"
          "\n"
          "Keywords:\n"
+         "  hse     : \"on\" or \"off\".\n"
          "  method  : \"analytic\" or \"perturbation\".\n"
-         "  unit    : Unit of the perturbation, \"rel\" or \"abs\".\n"
+         "  mode    : Mode of the perturbation, \"rel\" or \"abs\".\n"
          "  dx      : Size of perturbation."
         ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
-        KEYWORDS( "method", "unit", "dx" ),
-        TYPES( String_t, String_t, Numeric_t )));
+        KEYWORDS( "hse", "method", "mode", "dx" ),
+        TYPES( String_t, String_t, String_t, Numeric_t )));
   
   md_data_raw.push_back
     ( MdRecord

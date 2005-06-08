@@ -1,3 +1,26 @@
+2005-06-08  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-997
+
+	* src/methods.cc: Removed "mode" from keyword list of
+	jacobianAddPointing. This means absolute perturbation is hardcoded.
+	Added "hse" keyword for temperature jacobians, so far only "off"
+	is implemented.
+
+	* src/m_jacobian.cc: Implemented number density as unit for gas
+	perturbation. Removed calculations of reference spectra and fixed
+	some FIXMEs. Pointing jacobians are now calculated using an absolute
+	perturbation. 
+	The method to calculate temperature jacobians also check whether
+	HSE is "on" or "off". Only "off" is implemented, error message is
+	given for "on".
+	The calculation of gas jacobians can now take ND as input.
+
+	* src/jacobian.[cc,h]: Fixed FIXMEs. Added function calc_nd_field
+	to calculate number densities for each grid point in *vmr_field*.
+	Also fixed problem with perturbation grid extending outside the 
+	atmospheric grid.
+
 2005-06-08  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-1-996

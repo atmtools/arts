@@ -26,6 +26,7 @@
 #include "arts.h"
 #include "jacobian.h"
 #include "special_interp.h"
+#include "physics_funcs.h"
 
 ostream& operator << (ostream& os, const RetrievalQuantity& ot)
 {
@@ -86,6 +87,39 @@ void agenda_append(       Agenda& agenda,
   agenda.push_back(MRecord(id,values,output,input,dummy));
 }
 
+
+//! Calculate the number density field
+/*! 
+   This function returns the number density for each grid point in the 
+   Tensor3View.
+   
+   \param nd  The number density field
+   \param p   The pressure grid
+   \param t   The temperature field
+   
+   \author Mattias Ekstrom
+   \date   2005-06-03
+*/
+void calc_nd_field(       Tensor3View& nd,
+                    const VectorView&  p,
+                    const Tensor3View& t)
+{
+  assert( nd.npages()!=t.npages() );
+  assert( nd.nrows()!=t.nrows() );               
+  assert( nd.ncols()!=t.ncols() );
+  assert( nd.npages()!=p.nelem() );
+  
+  for (Index p_it=0; p_it<nd.npages(); p_it++)
+  {
+    for (Index lat_it=0; lat_it<nd.nrows(); lat_it++)
+    {
+      for (Index lon_it=0; lon_it<nd.ncols(); lon_it++)
+      {
+        nd(p_it,lat_it,lon_it) = number_density( p[p_it], t(p_it,lat_it,lon_it));
+      }
+    }
+  }
+}
 
 
 //! Check that the retrieval grids are defined for each atmosphere dim
@@ -224,23 +258,21 @@ void get_perturbation_gridpos(       ArrayOfGridPos& gp,
   Index nj = jac_grid.nelem();
   Index na = atm_grid.nelem();
   Vector pert(nj+2);
-  Numeric ext;
   
-  // Check if the atmospheric grid is decreasing or increasing, 
-  // and set the extension to be half of the lowest value
-  if (is_decreasing(atm_grid))
+  // Create perturbation grid, with extension outside the atmospheric grid
+  if ( is_pressure )
   {
-    ext = atm_grid[na-1]/2.0 * -1;
+    pert[0] = atm_grid[0]+1.0;
+    pert[nj+1] = 0;
   }
   else
   {    
-    ext = atm_grid[0]/2.0;
+    pert[0] = atm_grid[0]-1.0;
+    pert[nj+1] = atm_grid[na-1]+1.0;
   }
-  
-  // Atmospheric grid ok, create perturbation grid
-  pert[0] = atm_grid[0]-ext;
   pert[Range(1,nj)] = jac_grid;
-  pert[nj+1] = atm_grid[na-1]+ext;
+  
+  // Calculate the gridpos
   gp.resize(na);
   if( is_pressure ){
     p2gridpos( gp, pert, atm_grid);
@@ -325,7 +357,7 @@ void get_perturbation_limit(       ArrayOfIndex& limit,
    \param index     The index of the perturbation in the retrieval grid.
    \param length    The length of retrieval grid
    
-   \author Mattias Ekström
+   \author Mattias Ekstrom
    \date   2004-10-14
 */   
 void get_perturbation_range(       Range& range,
