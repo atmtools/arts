@@ -334,28 +334,25 @@ void Agenda::set_outputs_to_push_and_dup ()
   out3 << "  [Agenda::pushpop]                 : " << name() << "\n";
   out3 << "  [Agenda::pushpop] - # Funcs in Ag : " << mml.nelem () << "\n";
   out3 << "  [Agenda::pushpop] - AgOut         : ";
-  printWsvNamesToOut3 (aout);
+  PrintWsvNames (out3, aout);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - AgIn          : ";
-  printWsvNamesToOut3 (ain);
+  PrintWsvNames (out3, ain);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - All WSM output: ";
-  ArrayOfIndex out_arr;
-  copy (outputs.begin (), outputs.end (),
-        insert_iterator<ArrayOfIndex>(out_arr,out_arr.begin ()));
-  printWsvNamesToOut3 (out_arr);
+  PrintWsvNames (out3, outputs);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - WSVs push     : ";
-  printWsvNamesToOut3 (moutput_push);
+  PrintWsvNames (out3, moutput_push);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - WSVs dup      : ";
-  printWsvNamesToOut3 (moutput_dup);
+  PrintWsvNames (out3, moutput_dup);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - Ag inp dup    : ";
-  printWsvNamesToOut3 (magenda_only_in_wsm_out);
+  PrintWsvNames (out3, magenda_only_in_wsm_out);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - Ag out dup    : ";
-  printWsvNamesToOut3 (magenda_only_out_wsm_in);
+  PrintWsvNames (out3, magenda_only_out_wsm_in);
   out3 << "\n";
 
   if (magenda_only_in_wsm_out.nelem ())
@@ -364,7 +361,9 @@ void Agenda::set_outputs_to_push_and_dup ()
         << "in agenda " << name () << ", but\n"
         << "used as output in a WSM called by the agenda!!!\n"
         << "This is not handled properly at the moment.\n"
-        << "Look at output level 3 to find out which variable(s) is/are affected.\n";
+        << "Variable(s): ";
+      PrintWsvNames (out1, magenda_only_in_wsm_out);
+      out1 << "\n";
     }
   if (magenda_only_out_wsm_in.nelem ())
     {
@@ -374,6 +373,8 @@ void Agenda::set_outputs_to_push_and_dup ()
         << "This is not handled properly at the moment. The variable(s)\n"
         << "might be used uninitialized. Look at output level 3 to\n"
         << "find out which variable(s) is/are affected.\n";
+      PrintWsvNames (out1, magenda_only_out_wsm_in);
+      out1 << "\n";
     }
 }
 

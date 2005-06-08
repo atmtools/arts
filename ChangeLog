@@ -1,3 +1,23 @@
+2005-06-08  Oliver Lemke  <olemke@core-dump.info>
+
+        * arts-1-1-996
+
+	* src/wsv_aux.h:
+
+	(PrintWsvName): Prints the name of the WSV at given index to the
+	output stream.
+
+	(PrintWsvNames): Prints the names of the list of WSV indexes to the
+	output stream. The List can be any STL container with elements of type
+	index (Array, vector...).
+
+	* src/agenda_class.cc:
+
+	(printWsvNamesToOut3): Removed.
+
+	(Agenda::set_outputs_to_push_and_dup): Use new helper function
+	PrintWsvNames.
+
 2005-06-07  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
         * arts-1-1-995
@@ -21,9 +41,6 @@
         cloud_atm_vars_by_gp
         (Cloudbox_ppath_rteCalc): updated call to TArrayCalc.
         (mcPathTrace): updated call to atm_vars_at_ppath_end.
-
-        
-        
 
 2005-06-07  Oliver Lemke  <olemke@core-dump.info>
 
