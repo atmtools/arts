@@ -1675,8 +1675,8 @@ void cloud_ppath_update1D_planeparallel(
               const Index N_species = vmr_field.nbooks();
               // Average vmrs
               for (Index j = 0; j < N_species; j++)
-		rte_vmr_list[j] = 0.5 * (vmr_field(j,p_index,0,0) + 
-                                   vmr_field(j,p_index + 1,0,0));
+                rte_vmr_list[j] = 0.5 * (vmr_field(j,p_index,0,0) + 
+                                         vmr_field(j,p_index + 1,0,0));
               //
               // Calculate scalar gas absorption and add it to abs_vec 
               // and ext_mat.

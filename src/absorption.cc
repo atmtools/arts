@@ -2151,21 +2151,22 @@ void xsec_species( MatrixView               xsec,
 
 
           // intensity at temperature
-	  // (calculate the line intensity according to the standard 
+          // (calculate the line intensity according to the standard 
           // expression given in HITRAN)
-	  intensity *= part_fct_ratio * nom / denom;
+          intensity *= part_fct_ratio * nom / denom;
 
-	  if (lineshape_norm_data[ind_lsn].Name() == "quadratic")
-	    {
-	      // in case of the quadratic normalization factor use the 
-	      // so called 'microwave approximation' of the line intensity 
-	      // given by 
-	      // P. W. Rosenkranz, Chapter 2, Eq.(2.16), in M. A. Janssen, 
-	      // Atmospheric Remote Sensing by Microwave Radiometry, 
-	      // John Wiley & Sons, Inc., 1993
-	      Numeric mafac = (PLANCK_CONST * F0) / (2.000e0 * BOLTZMAN_CONST * t_i);
-	      intensity     = intensity * mafac / sinh(mafac);
-	    }
+          if (lineshape_norm_data[ind_lsn].Name() == "quadratic")
+            {
+              // in case of the quadratic normalization factor use the 
+              // so called 'microwave approximation' of the line intensity 
+              // given by 
+              // P. W. Rosenkranz, Chapter 2, Eq.(2.16), in M. A. Janssen, 
+              // Atmospheric Remote Sensing by Microwave Radiometry, 
+              // John Wiley & Sons, Inc., 1993
+              Numeric mafac = (PLANCK_CONST * F0) / (2.000e0 * BOLTZMAN_CONST
+                                                     * t_i);
+              intensity     = intensity * mafac / sinh(mafac);
+            }
 
 
           // 2. Get pressure broadened line width:
@@ -2292,9 +2293,9 @@ void xsec_species( MatrixView               xsec,
               // We use nfl here, which could be one less than nfls.
               VectorView this_xsec = xsec(Range(i_f_min,nfl),i);
 
-	      // Get handles on the range of ls and fac that we need.
-	      VectorView this_ls  = ls[Range(0,nfl)];
-	      VectorView this_fac = fac[Range(0,nfl)];
+              // Get handles on the range of ls and fac that we need.
+              VectorView this_ls  = ls[Range(0,nfl)];
+              VectorView this_fac = fac[Range(0,nfl)];
 
               // cutoff ?
               if ( cut )

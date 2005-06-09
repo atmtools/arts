@@ -179,20 +179,6 @@ void Agenda::execute(bool silent) const
     }
 }
 
-/********************************/
-/* Temporary debugging function */
-void printWsvNamesToOut3 (ArrayOfIndex wsvs)
-{
-  extern const Array<WsvRecord> wsv_data;
-
-  for (ArrayOfIndex::const_iterator it = wsvs.begin ();
-       it != wsvs.end (); it++ )
-    {
-      out3 << wsv_data[*it].Name () << " ";
-    }
-}
-/********************************/
-
 //! Retrieve indexes of all input and output WSVs
 /*!
   Builds arrays of WSM output variables which need to be
@@ -371,8 +357,8 @@ void Agenda::set_outputs_to_push_and_dup ()
         << "in agenda " << name () << ", but\n"
         << "first used as input in a WSM called by the agenda!!!\n"
         << "This is not handled properly at the moment. The variable(s)\n"
-        << "might be used uninitialized. Look at output level 3 to\n"
-        << "find out which variable(s) is/are affected.\n";
+        << "might be used uninitialized.\n"
+        << "Variable(s): ";
       PrintWsvNames (out1, magenda_only_out_wsm_in);
       out1 << "\n";
     }
