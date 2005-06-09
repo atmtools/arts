@@ -179,10 +179,11 @@ void perturbation_field_3d(       Tensor3View     field,
                             const Index&          method);
                                 
 void jacobian_from_path_to_rgrids(
-         Tensor3&             diy_dx,
-   ConstTensor3View           diy_dq,
+         MatrixView           ib_q_jacs,
+   const Index&               nbdone,
+   const ArrayOfTensor3&      diy_dq,
    const Index&               atmosphere_dim,
-   const Ppath&               ppath,
+   const ArrayOfPpath&        ppath_array,
    const RetrievalQuantity&   jacobian_quantity );
                            
 #endif // jacobian_h

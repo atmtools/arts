@@ -4251,13 +4251,16 @@ md_data_raw.push_back
          "\n"
          "See further the user guide."
         ),
-        OUTPUT( iy_, ppath_, ppath_step_, ppath_array_index_, 
-                rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        OUTPUT( iy_, ppath_, ppath_step_, 
+                rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_,
+                ppath_array_do_, ppath_array_, ppath_array_index_,
+                diy_dvmr_, diy_dt_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
                t_field_, vmr_field_, r_geoid_, z_surface_, 
                cloudbox_on_, cloudbox_limits_, f_grid_, stokes_dim_, 
+               rte_do_vmr_jacs_, rte_do_t_jacs_,
                surface_los_, surface_rmatrix_, surface_emission_ ),
         GOUTPUT(),
         GINPUT(),
@@ -4284,7 +4287,7 @@ md_data_raw.push_back
          " \"water-liebe93\"\n"
          "   Treats liquid water without salt. Not valid below 10 GHz.\n"
          "   Upper frequency limit not known. Model parameters taken from\n"
-         "   Atmlab function epswater93 (by C. M�zler), which refer to\n"
+         "   Atmlab function epswater93 (by C. Maetzler), which refer to\n"
          "   Liebe 93 without closer specifications.\n"
          "\n"
          "Keyword: \n"

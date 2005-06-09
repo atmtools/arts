@@ -360,7 +360,7 @@ void iy_calc_test(
               Index&                   ppath_array_do,
               ArrayOfPpath&            ppath_array,
               Index&                   ppath_array_index,
-              ArrayOfArrayOfTensor3&   diy_dvmr,
+              ArrayOfTensor4&          diy_dvmr,
               ArrayOfTensor3&          diy_dt,
         const Agenda&                  ppath_step_agenda,
         const Agenda&                  rte_agenda,
@@ -447,19 +447,14 @@ void iy_calc_test(
       //
       if( rte_do_vmr_jacs.nelem() )
         {
-          diy_dvmr.push_back( ArrayOfTensor3(rte_do_vmr_jacs.nelem()) );
-          for( Index i=0; i<rte_do_vmr_jacs.nelem(); i++ )
-            {
-              diy_dvmr[ppath_array_index][i].resize( 
-                                                 f_grid.nelem(),stokes_dim,n );
-              diy_dvmr[ppath_array_index][i] = 0.0;
-            }
+          diy_dvmr.push_back( 
+            Tensor4(rte_do_vmr_jacs.nelem(),n,f_grid.nelem(),stokes_dim,0.0) );
         }
       if( rte_do_t_jacs )
         {
           throw runtime_error(
                           "Analytical temperature jacobians not yet handled.");
-          diy_dt.push_back( Tensor3(f_grid.nelem(),stokes_dim,n,0.0) );
+          diy_dt.push_back( Tensor3(n,f_grid.nelem(),stokes_dim,0.0) );
         }
     }
   
@@ -751,7 +746,7 @@ void rte_std(
              Vector&                  rte_vmr_list,
              Index&                   f_index,
              Tensor4&                 ppath_transmissions,
-             ArrayOfArrayOfTensor3&   diy_dvmr,
+             ArrayOfTensor4&          diy_dvmr,
              ArrayOfTensor3&          diy_dt,
        const Ppath&                   ppath,
        const Index&                   ppath_array_index,
@@ -826,9 +821,9 @@ void rte_std(
     {
       // Calculate mean of atmospheric parameters
       rte_pressure    = exp( 0.5 * ( logp_ppath[ip] + logp_ppath[ip-1] ) );
-      rte_temperature = 0.5*(ppath.t[ip] + ppath.t[ip-1]);
+      rte_temperature = 0.5 * ( ppath.t[ip] + ppath.t[ip-1] );
       for( Index is=0; is<ns; is++ )
-        { rte_vmr_list[is] = 0.5*(ppath.vmr(is,ip)+ppath.vmr(is, ip-1)); }
+        { rte_vmr_list[is] = 0.5 * ( ppath.vmr(is,ip) + ppath.vmr(is, ip-1) );}
       
       // Call agendas for RT properties
       emission_agenda.execute( ip );
@@ -860,8 +855,8 @@ void rte_std(
                       const Index   is = rte_do_vmr_jacs[ig];
                       const Numeric p  = dd * 
                                       abs_scalar_gas(iv,is) / rte_vmr_list[is];
-                      diy_dvmr[ppath_array_index][is](iv,0,ip)   += p;
-                      diy_dvmr[ppath_array_index][is](iv,0,ip-1) += p;
+                      diy_dvmr[ppath_array_index](is,ip,iv,0)   += p;
+                      diy_dvmr[ppath_array_index](is,ip-1,iv,0) += p;
                     }
                 }
             }
@@ -905,8 +900,8 @@ void rte_std(
                   for( Index ig=0; ig<ng; ig++ )
                     {
                       const Index is = rte_do_vmr_jacs[ig];
-                      vtmp = diy_dvmr[ppath_array_index][is](iv,joker,ip+1); 
-                      mult( diy_dvmr[ppath_array_index][is](iv,joker,ip+1), 
+                      vtmp = diy_dvmr[ppath_array_index](is,ip+1,iv,joker); 
+                      mult( diy_dvmr[ppath_array_index](is,ip+1,iv,joker), 
                                                                  trans, vtmp );
                     }
                 }
@@ -921,7 +916,7 @@ void rte_std(
                       for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
                         {
                           const Index is = rte_do_vmr_jacs[ig];
-                          diy_dvmr[ppath_array_index][is](iv,ii,ip+1) *= 
+                          diy_dvmr[ppath_array_index](is,ip+1,iv,ii) *= 
                                                                   trans(ii,ii);
                         }
                     }

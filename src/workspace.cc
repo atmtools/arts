@@ -561,7 +561,7 @@ void define_wsv_data()
        "\n"
        "Usage:      Set by *iy_calc* and *rte_agenda*.\n"
        "\n"
-       "Dimensions: [ppath_array][ f_grid, stokes_dim, ppath.np ]"
+       "Dimensions: [ppath_array][ ppath.np, f_grid, stokes_dim ]"
        ),
       GROUP( ArrayOfTensor3_ )));
 
@@ -578,10 +578,10 @@ void define_wsv_data()
        "\n"
        "Usage:      Set by *iy_calc* and *rte_agenda*.\n"
        "\n"
-       "Dimensions: [ppath_array][rte_do_vmr_species]\n"
-       "                                     [ f_grid, stokes_dim, ppath.np ]"
+       "Dimensions: \n"
+       "     [ppath_array][ rte_do_vmr_species, ppath.np, f_grid, stokes_dim ]"
        ),
-      GROUP( ArrayOfArrayOfTensor3_ )));
+      GROUP( ArrayOfTensor4_ )));
 
  wsv_data.push_back
    (WsvRecord

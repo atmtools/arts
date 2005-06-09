@@ -1595,6 +1595,90 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+
+//=== ArrayOfTensor4=========================================================
+
+//! Reads ArrayOfTensor4 from XML input stream
+/*!
+  \param is_xml    XML Input stream
+  \param atensor4  ArrayOfTensor4 return value
+  \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfTensor4& atensor4,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "Tensor4");
+
+  tag.get_attribute_value ("nelem", nelem);
+  atensor4.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, atensor4[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfTensor4: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfTensor4 to XML output stream
+/*!
+  \param os_xml    XML Output stream
+  \param atensor4  ArrayOfTensor4
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfTensor4& atensor4,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("type", "Tensor4");
+  open_tag.add_attribute ("nelem", atensor4.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < atensor4.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, atensor4[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+
+
 //=== ArrayOfTensor6=========================================================
 
 //! Reads ArrayOfTensor6 from XML input stream

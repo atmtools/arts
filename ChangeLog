@@ -1,3 +1,18 @@
+2005-06-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1001
+
+	* Further work on jacobians. Not yet finished :-(
+	
+	* src/groups.cc (define_wsv_group_names): Introduced ArrayOfTensor4.
+	(Turned out that things become much simpler if diy_dvmr is of this
+	type).
+
+	* src/ppath.cc (ppath_copy): Included copying of new fields, and
+	replaced some loops by using joker and Range.
+
+	(ppath_append): Included handling of new fields.
+
 2005-06-09  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-1000

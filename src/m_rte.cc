@@ -79,7 +79,7 @@ void RteCalc(
          Vector&                     rte_los,
          Sparse&                     jacobian,
          ArrayOfIndex&               rte_do_vmr_jacs,
-         ArrayOfArrayOfTensor3&      diy_dvmr,
+         ArrayOfTensor4&             diy_dvmr,
          Index&                      rte_do_t_jacs,
          ArrayOfTensor3&             diy_dt,
          Index&                      ppath_array_do,
@@ -277,8 +277,8 @@ void RteCalc(
   Index           jqi_t = 0;          // As above, but for temperature
   Index           ji0_t = 0;        
   Index           jin_t = 0;
-  ArrayOfMatrix   ib_vmr_jacs(0);
-  Matrix          ib_t_jacs(0,0);
+  ArrayOfMatrix   ib_vmr_jacs(0);     // Correspondance to *ib* for VMR jac.
+  Matrix          ib_t_jacs(0,0);     // Correspondance to *ib* for t jac.
 
   for( Index i=0; i<jacobian_quantities.nelem(); i++ )
     {
@@ -298,6 +298,7 @@ void RteCalc(
           const Index  nx = ji[1]-ji[0]+1;
           ji0_vmr.push_back( ji[0] );
           jin_vmr.push_back( nx );
+          ib_vmr_jacs.push_back( Matrix(ib.nelem(),nx,0.0) );
         }
       if ( jacobian_quantities[i].MainTag() == "Temperature"  &&  
                                           jacobian_quantities[i].Analytical() )
@@ -310,6 +311,7 @@ void RteCalc(
           const Index  nx = ji[1]-ji[0]+1;
           ji0_t = ji[0];
           jin_t = nx;
+          ib_t_jacs = Matrix(ib.nelem(),nx,0.0);
         }
     }
 
@@ -344,7 +346,6 @@ void RteCalc(
               diy_dt.resize(0);
 
               //--- Calculate *iy*
-              /*
               iy_calc_test( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los, ppath_array_do, 
                             ppath_array, ppath_array_index, diy_dvmr, diy_dt,
@@ -355,7 +356,7 @@ void RteCalc(
                  r_geoid, z_surface, cloudbox_on,  cloudbox_limits, 
                  sensor_pos(mblock_index,joker), los, f_grid, stokes_dim, 
                  rte_do_vmr_jacs, rte_do_t_jacs, ag_verb );
-              */
+              /*
               iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los,
                             ppath_step_agenda, rte_agenda, iy_space_agenda, 
@@ -365,6 +366,7 @@ void RteCalc(
                  r_geoid, z_surface, cloudbox_on,  cloudbox_limits, 
                  sensor_pos(mblock_index,joker), los, f_grid, stokes_dim, 
                  ag_verb );
+              */
 
 
               //--- Copy *iy* to *ib*
@@ -385,8 +387,8 @@ void RteCalc(
                     {
                       for( Index ia=0; ia<ppath_array.nelem(); ia++ )
                         {
-                          for( Index ip=0; ip<ppath.np; ip++ )
-                            { diy_dvmr[ia][ig](joker,joker,ip) *= 
+                          for( Index ip=0; ip<ppath_array[ia].np; ip++ )
+                            { diy_dvmr[ia](ig,ip,joker,joker) *= 
                                    ppath_array[ia].vmr(rte_do_vmr_jacs[ig],ip);
                             }
                         }
@@ -395,9 +397,9 @@ void RteCalc(
                     {
                       for( Index ia=0; ia<ppath_array.nelem(); ia++ )
                         {
-                          for( Index ip=0; ip<ppath.np; ip++ )
+                          for( Index ip=0; ip<ppath_array[ia].np; ip++ )
                             { 
-                              diy_dvmr[ia][ig](joker,joker,ip) /= 
+                              diy_dvmr[ia](ig,ip,joker,joker) /= 
                                        number_density( ppath_array[ia].p[ip],
                                                        ppath_array[ia].t[ip] );
                             }
@@ -407,41 +409,23 @@ void RteCalc(
                     { assert(0); }  // Should have been catched before
 
                   //- Map from ppath to retrieval quantities
-                  Tensor3   diy_dx;
-                  for( Index ia=0; ia<ppath_array.nelem(); ia++ )
-                    {
-                      jacobian_from_path_to_rgrids( diy_dx, 
-                                          diy_dvmr[ia][ig](joker,joker,joker), 
-                                          atmosphere_dim, ppath, 
-                                          jacobian_quantities[jqi_vmr[ig]] );
-
-                      //- Copy obtained values to *ib_vmr_jacs*
-                      for( Index is=0; is<stokes_dim; is++ )
-                        { 
-                          ib_vmr_jacs[ig](Range(nbdone+is,nf,stokes_dim),joker)
-                                                      = diy_dx(joker,is,joker);
-                        }
-                    }
+                  {
+                    ArrayOfTensor3  diy_dvmr2( diy_dvmr.nelem() );
+                    for( Index ia=0; ia<diy_dvmr.nelem(); ia++ )
+                      { diy_dvmr2[ia] = diy_dvmr[ia](ig,joker,joker,joker); }
+                    jacobian_from_path_to_rgrids( ib_vmr_jacs[ig], nbdone,
+                                        diy_dvmr2, atmosphere_dim, ppath_array,
+                                        jacobian_quantities[jqi_vmr[ig]] );
+                  }
                 }
 
               //--- Temperature ---
               if( rte_do_t_jacs )
                 {
                   //- Map from ppath to retrieval quantities
-                  Tensor3   diy_dx;
-                  for( Index ia=0; ia<ppath_array.nelem(); ia++ )
-                    {
-                      jacobian_from_path_to_rgrids( diy_dx, 
-                                diy_dt[ia](joker,joker,joker), atmosphere_dim, 
-                                ppath, jacobian_quantities[jqi_t] );
-
-                      //- Copy obtained values to *ib_vmr_jacs*
-                      for( Index is=0; is<stokes_dim; is++ )
-                        { 
-                          ib_t_jacs(Range(nbdone+is,nf,stokes_dim),joker)=
-                                                        diy_dx(joker,is,joker);
-                        }
-                    }
+                  jacobian_from_path_to_rgrids( ib_t_jacs, nbdone, diy_dt,
+                                                atmosphere_dim, ppath_array, 
+                                                jacobian_quantities[jqi_t] );
                 }
 
               //--- End of jacobian part --------------------------------------
@@ -505,7 +489,7 @@ void RteCalc(
          Vector&                     rte_los,
          Sparse&                     jacobian,
          ArrayOfIndex&               rte_do_vmr_jacs,
-         ArrayOfArrayOfTensor3&      diy_dvmr,
+         ArrayOfArrayOfTensor4&      diy_dvmr,
          Index&                      rte_do_t_jacs,
          ArrayOfTensor3&             diy_dt,
    const Agenda&                     ppath_step_agenda,
@@ -940,7 +924,7 @@ void RteCalcNoJacobian(
   ArrayOfRetrievalQuantity   jacobian_quantities;
   ArrayOfArrayOfIndex        jacobian_indices;
   ArrayOfIndex               rte_do_vmr_jacs;
-  ArrayOfArrayOfTensor3      diy_dvmr;
+  ArrayOfTensor4             diy_dvmr;
   Index                      rte_do_t_jacs;
   ArrayOfTensor3             diy_dt;
   ArrayOfArrayOfSpeciesTag   gas_species(0);
@@ -984,7 +968,7 @@ void RteStd(
              Numeric&                 rte_temperature,
              Vector&                  rte_vmr_list,
              Index&                   f_index,
-             ArrayOfArrayOfTensor3&   diy_dvmr,
+             ArrayOfTensor4&          diy_dvmr,
              ArrayOfTensor3&          diy_dt,
        // WS Input:
        const Ppath&                   ppath,
@@ -1025,7 +1009,7 @@ void RteStdWithTransmissions(
              Vector&                  rte_vmr_list,
              Index&                   f_index,
              Tensor4&                 ppath_transmissions,
-             ArrayOfArrayOfTensor3&   diy_dvmr,
+             ArrayOfTensor4&          diy_dvmr,
              ArrayOfTensor3&          diy_dt,
        // WS Input:
        const Ppath&                   ppath,

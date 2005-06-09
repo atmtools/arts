@@ -79,6 +79,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfArrayOfMatrix");
   wsv_group_names.push_back("ArrayOfTensor3");
   wsv_group_names.push_back("ArrayOfArrayOfTensor3");
+  wsv_group_names.push_back("ArrayOfTensor4");
   wsv_group_names.push_back("ArrayOfTensor6");
   wsv_group_names.push_back("ArrayOfTensor7");
   wsv_group_names.push_back("ArrayOfArrayOfTensor6");
