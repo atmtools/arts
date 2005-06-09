@@ -333,7 +333,7 @@
    \date   2003-11-19
 */
 
-#include <math.h>
+#include <cmath>
 #include "arts.h"
 #include "matpackI.h"
 #include "array.h"
@@ -13024,41 +13024,41 @@ typedef doublereal E_f;	/* real function with -R not specified */
 
 /* Common Block Declarations */
 
-struct {
+struct s_blockin_ {
     double temp, fnumin, fnumax, dnu;
 } blockin_;
 
 #define blockin_1 blockin_
 
-struct {
+struct s_app3a_ {
     double slit, dx, wnrmax3;
 } app3a_;
 
 #define app3a_1 app3a_
 
-struct {
+struct s_app3b_ {
     int nsri, ns, nsriup;
 } app3b_;
 
 #define app3b_1 app3b_
 
-struct {
+struct s_rsilo_ {
     double rsilo[201];
 } rsilo_;
 
 #define rsilo_1 rsilo_
 
-struct {
+struct s_bou43_ {
     int initb;
 } bou43_;
 
 #define bou43_1 bou43_
 
-union {
-    struct {
+union u_bba_ {
+    struct s_m_1 {
 	double omeg[201], rsi[201], rsigg[201], alfa;
     } m_1;
-    struct {
+    struct s_m_2 {
 	double omeg[201], rsi[201], rsigg[201], beta;
     } m_2;
 } bba_;
@@ -13066,13 +13066,13 @@ union {
 #define bba_1 (bba_.m_1)
 #define bba_2 (bba_.m_2)
 
-struct {
+struct s_bbc_ {
     int nsol;
 } bbc_;
 
 #define bbc_1 bbc_
 
-struct {
+struct s_bf_ {
     double g0bf, delbf, om0;
 } bf_;
 
@@ -13085,13 +13085,13 @@ struct like_1_ {
 
 #define like_1 (*(struct like_1_ *) &like_)
 
-struct {
+struct s_k1k0_ {
     int ik1k0;
 } k1k0_;
 
 #define k1k0_1 k1k0_
 
-struct {
+struct s_bbb_ {
     int ibound;
 } bbb_;
 
@@ -13104,7 +13104,7 @@ struct energ_1_ {
 
 #define energ_1 (*(struct energ_1_ *) &energ_)
 
-struct {
+struct s_dimer_ {
     int nlines;
 } dimer_;
 
@@ -13122,11 +13122,11 @@ struct n2part_2_ {
 #define n2part_1 (*(struct n2part_1_ *) &n2part_)
 #define n2part_2 (*(struct n2part_2_ *) &n2part_)
 
-union {
-    struct {
+union u_bl3_ {
+    struct s_m_1 {
 	double rsi[401];
     } m_1;
-    struct {
+    struct s_m_2 {
 	double rsibb[401];
     } m_2;
 } bl3_;
@@ -13134,11 +13134,11 @@ union {
 #define bl3_1 (bl3_.m_1)
 #define bl3_2 (bl3_.m_2)
 
-union {
-    struct {
+union u_bbbb_ {
+    struct s_m_1 {
 	int idelv, iv, ivp, idell, il, ilp;
     } m_1;
-    struct {
+    struct s_m_2 {
 	int ldelvi, ivi, ivip, ldelel, ll, llp;
     } m_2;
 } bbbb_;
@@ -13148,7 +13148,7 @@ union {
 
 /* Initialized data */
 
-struct {
+struct s_energe_ {
     double e_1[246];
     int e_2[6];
     } energ_ = { {-54.99996, -54.86228, -54.58697, -54.17413, -53.62391, 
@@ -13181,13 +13181,13 @@ struct {
 	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}, {41, 32, 24, 17, 9, 2} }
 	    ;
 
-struct {
+struct s_n2part_ {
     double fill_1[1];
     double e_2[4];
     int fill_3[1];
     } n2part_ = { {0}, {2., 1., 1.98957, 5.8e-6}, {0} };
 
-struct {
+struct s_like_ {
     int fill_1[1];
     char e_2[5];
     } like_ = { {0}, "N2N2" };
@@ -15161,7 +15161,7 @@ struct consts_1_ {
 
 /* Initialized data */
 
-struct {
+struct s_fh2oa_ {
     double e_1[2003];
     } fh2oa_ = { {.012859, .011715, .011038, .011715, .012859, .015326, 
 	    .016999, .018321, .019402, .01957, .019432, .017572, .01676, 
@@ -15512,12 +15512,12 @@ struct {
 	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
 	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.} };
 
-struct {
+struct s_fh2ob_ {
     double e_1[3];
     int e_2;
     } fh2ob_ = { {-20., 2e4, 10.}, 2003 };
 
-struct {
+struct s_sh2oa_ {
     double e_1[2003];
     } sh2oa_ = { {.11109, .10573, .10162, .10573, .11109, .12574, .13499, 
 	    .14327, .15065, .15164, .15022, .13677, .13115, .12253, .11271, 
@@ -15882,12 +15882,12 @@ struct {
 	    1.6003e-16, 1.5469e-16, 1.4952e-16, 1.4453e-16, 1.397e-16, 
 	    1.3503e-16 } };
 
-struct {
+struct s_sh2ob_ {
     double e_1[3];
     int e_2;
     } sh2ob_ = { {-20., 2e4, 10.}, 2003 };
 
-struct {
+struct s_s260a_ {
     double e_1[2003];
     } s260a_ = { {.1775, .17045, .16457, .17045, .1775, .20036, .21347, .22454,
 	     .23428, .23399, .23022, .20724, .19712, .18317, .16724, .1478, 
@@ -16250,12 +16250,12 @@ struct {
 	    5.928e-16, 5.7545e-16, 5.586e-16, 5.4224e-16, 5.2636e-16, 
 	    5.1094e-16, 4.9596e-16} };
 
-struct {
+struct s_s260b_ {
     double e_1[3];
     int e_2;
     } s260b_ = { {-20., 2e4, 10.}, 2003 };
 
-struct {
+struct s_consts_ {
     double e_1[9];
     } consts_ = { {3.1415927410125732, 6.62606876e-27, 1.3806503e-16, 
 	    29979245800., 6.02214199e23, 2.6867775e19, 83144720., 
@@ -16276,8 +16276,8 @@ static int cs__0 = 0;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.20 $ */
-/*     created:	        $Date: 2003/12/08 21:13:55 $ */
+/*     revision:	        $Revision: 1.26.2.21 $ */
+/*     created:	        $Date: 2005/06/09 11:01:30 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

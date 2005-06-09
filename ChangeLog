@@ -1,3 +1,12 @@
+2005-06-09  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-184
+
+	* src/matpackI.h, src/make_array.h, src/make_auto_wsv_groups_h.cc,
+	src/continua.cc:
+
+	Fix compilation with gcc 4.
+
 2005-05-31  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-183

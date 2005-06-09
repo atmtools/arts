@@ -117,6 +117,9 @@ extern Joker joker;
 // Declare the existence of class VectorView:
 class VectorView;
 
+// Declare the existence of class SparseMatrixView:
+class SparseMatrixView;
+
 /** The range class. 
 
     This is used to specifiy a range of a vector. In general, a range is
@@ -216,6 +219,9 @@ class Vector;
 
 // Declare the MatrixView class
 class MatrixView;
+
+// Declare the ConstMatrixView class
+class ConstMatrixView;
 
 /** A constant view of a Vector.
 
