@@ -734,7 +734,7 @@ void jacobianCalcGas(
   
   // Variables for vmr field perturbation unit conversion
   Tensor3 nd_field(p_grid.nelem(),lat_grid.nelem(),lon_grid.nelem(), 1.0);
-  if (rq.Mode()!="nd")
+  if (rq.Mode()=="nd")
     calc_nd_field(nd_field, p_grid, t_field);
   
   

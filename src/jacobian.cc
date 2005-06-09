@@ -104,10 +104,10 @@ void calc_nd_field(       Tensor3View& nd,
                     const VectorView&  p,
                     const Tensor3View& t)
 {
-  assert( nd.npages()!=t.npages() );
-  assert( nd.nrows()!=t.nrows() );               
-  assert( nd.ncols()!=t.ncols() );
-  assert( nd.npages()!=p.nelem() );
+  assert( nd.npages()==t.npages() );
+  assert( nd.nrows()==t.nrows() );               
+  assert( nd.ncols()==t.ncols() );
+  assert( nd.npages()==p.nelem() );
   
   for (Index p_it=0; p_it<nd.npages(); p_it++)
   {
@@ -262,8 +262,8 @@ void get_perturbation_gridpos(       ArrayOfGridPos& gp,
   // Create perturbation grid, with extension outside the atmospheric grid
   if ( is_pressure )
   {
-    pert[0] = atm_grid[0]+1.0;
-    pert[nj+1] = 0;
+    pert[0] = atm_grid[0]*10.0;
+    pert[nj+1] = atm_grid[na-1]*0.1;
   }
   else
   {    

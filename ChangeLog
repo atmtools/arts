@@ -1,3 +1,15 @@
+2005-06-09  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-1000
+
+	* src/jacobian.cc: Fixed bug in get_perturbation_gridpos, The
+	perturbation pressure grid can not contain the value zero.
+	Now we use a tenth of the smallest value in the atmospheric grid.
+	Also fixed stupid assertion bug in calc_nd_field.
+
+	* src/m_jacobian.cc: Fixed bug, calc_nd_field should be called when
+	perturbation is given in ND, not the other way around.
+	
 2005-06-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-999
