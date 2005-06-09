@@ -623,9 +623,6 @@ void jacobianCalcGas(
            Vector&                   y,
            Ppath&                    ppath,
            Ppath&                    ppath_step,
-           Vector&                   ppath_p,
-           Vector&                   ppath_t,
-           Matrix&                   ppath_vmr,
            Matrix&                   iy, 
            Vector&                   rte_pos,
            GridPos&                  rte_gp_p,
@@ -807,7 +804,7 @@ void jacobianCalcGas(
         // Calculate the perturbed spectrum  
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << ji[1]+1 << "\n";
-        RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+        RteCalcNoJacobian( y, ppath, ppath_step,
                  iy, rte_pos, rte_gp_p, rte_gp_lat,
                  rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
                  iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
@@ -851,9 +848,6 @@ void jacobianCalcParticle(
            Vector&                   y,
            Ppath&                    ppath,
            Ppath&                    ppath_step,
-           Vector&                   ppath_p,
-           Vector&                   ppath_t,
-           Matrix&                   ppath_vmr,
            Matrix&                   iy, 
            Vector&                   rte_pos,
            GridPos&                  rte_gp_p,
@@ -1022,8 +1016,8 @@ void jacobianCalcParticle(
             jacobian_particle_update_agenda.execute();
             
             // Calculate the perturbed spectrum  
-            RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, 
-                     ppath_vmr, iy, rte_pos, rte_gp_p, rte_gp_lat,
+            RteCalcNoJacobian( y, ppath, ppath_step, 
+                     iy, rte_pos, rte_gp_p, rte_gp_lat,
                      rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
                      iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                      atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
@@ -1067,9 +1061,6 @@ void jacobianCalcPointing(
            Vector&                   y,
            Ppath&                    ppath,
            Ppath&                    ppath_step,
-           Vector&                   ppath_p,
-           Vector&                   ppath_t,
-           Matrix&                   ppath_vmr,
            Matrix&                   iy,
            Vector&                   rte_pos,
            GridPos&                  rte_gp_p,
@@ -1155,7 +1146,7 @@ void jacobianCalcPointing(
 
   // Give verbose output
   out2 << "  Calculating retrieval quantity " << rq << "\n";
-  
+
   // Declare variables for reference and difference spectrum
   Vector y_ref = y;
   Vector dydx(y.nelem());
@@ -1164,7 +1155,7 @@ void jacobianCalcPointing(
   sensor_los_pert(joker,0) += rq.Perturbation();
      
   // Calculate the perturbed spectrum for the zeroth order polynomial
-  RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+  RteCalcNoJacobian( y, ppath, ppath_step, 
            iy, rte_pos, rte_gp_p, rte_gp_lat,
            rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
            iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
@@ -1235,9 +1226,6 @@ void jacobianCalcTemperature(
            Vector&                   y,
            Ppath&                    ppath,
            Ppath&                    ppath_step,
-           Vector&                   ppath_p,
-           Vector&                   ppath_t,
-           Matrix&                   ppath_vmr,
            Matrix&                   iy, 
            Vector&                   rte_pos,
            GridPos&                  rte_gp_p,
@@ -1327,7 +1315,7 @@ void jacobianCalcTemperature(
   
   // Give verbose output
   out2 << "  Calculating retrieval quantity " << rq << "\n";
-  
+
   // Store the reference spectrum and temperature field
   Vector y_ref = y;
   Tensor3 t_ref = t_field;
@@ -1389,7 +1377,8 @@ void jacobianCalcTemperature(
         // Calculate the perturbed spectrum  
         out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
              << ji[1]+1 << "\n";
-        RteCalcNoJacobian( y, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr,
+
+        RteCalcNoJacobian( y, ppath, ppath_step,
                  iy, rte_pos, rte_gp_p, rte_gp_lat,
                  rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
                  iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
@@ -1498,14 +1487,18 @@ void jacobianInit(
       Sparse&                    jacobian,
       ArrayOfRetrievalQuantity&  jacobian_quantities,
       ArrayOfArrayOfIndex&       jacobian_indices,
+      Index&                     ppath_array_do,
+      Index&                     ppath_array_index,
       ArrayOfIndex&              rte_do_vmr_jacs,
       Index&                     rte_do_t_jacs )
 {
   jacobian.resize(0,0);
   jacobian_quantities.resize(0);
   jacobian_indices.resize(0);
+  ppath_array_do    = 0;
+  ppath_array_index = -1;
   rte_do_vmr_jacs.resize(0);
-  rte_do_t_jacs = 0;
+  rte_do_t_jacs     = 0;
 }
 
 
@@ -1521,11 +1514,14 @@ void jacobianOff(
       Sparse&                    jacobian,
       ArrayOfRetrievalQuantity&  jacobian_quantities,
       ArrayOfArrayOfIndex&       jacobian_indices,
+      Index&                     ppath_array_do,
+      Index&                     ppath_array_index,
       ArrayOfIndex&              rte_do_vmr_jacs,
       Index&                     rte_do_t_jacs )
 {
   jacobianInit( jacobian, jacobian_quantities, jacobian_indices, 
-                                              rte_do_vmr_jacs, rte_do_t_jacs );
+                ppath_array_do, ppath_array_index,
+                rte_do_vmr_jacs, rte_do_t_jacs );
 }
 
 

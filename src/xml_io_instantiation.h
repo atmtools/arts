@@ -141,6 +141,7 @@ xml_read_from_file<IsotopeRecord> (const String&, IsotopeRecord&);
 template void
 xml_read_from_file<Ppath> (const String&, Ppath&);
 
+
 template void
 xml_read_from_file<RetrievalQuantity> (const String&, RetrievalQuantity&);
 
@@ -217,6 +218,9 @@ xml_read_from_file<ArrayOfSingleScatteringData> (const String&,
 template void
 xml_read_from_file<ArrayOfGriddedField3> (const String&,
                                           ArrayOfGriddedField3&);
+
+template void
+xml_read_from_file<ArrayOfPpath> (const String&, ArrayOfPpath&);
 
 template void
 xml_read_from_file<ArrayOfArrayOfTensor3> (const String&,
@@ -314,6 +318,11 @@ template void
 xml_write_to_file<ArrayOfRetrievalQuantity> (const String&,
                                              const ArrayOfRetrievalQuantity&,
                                              FileType);
+
+template void
+xml_write_to_file<ArrayOfPpath> (const String&,
+                                   const ArrayOfPpath&,
+                                   FileType);
 
 template void
 xml_write_to_file<ArrayOfTensor3> (const String&, const ArrayOfTensor3&,

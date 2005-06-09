@@ -2255,7 +2255,12 @@ void ppath_init_structure(
   ppath_set_background( ppath, 0 );
   ppath.tan_pos.resize(0);
   ppath.geom_tan_pos.resize(0);
+  ppath.p.resize(0);
+  ppath.t.resize(0);
+  ppath.vmr.resize(0,0);
+  ppath.next_parts.resize(0);
 }
+
 
 
 

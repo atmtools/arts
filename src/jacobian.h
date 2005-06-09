@@ -183,7 +183,6 @@ void jacobian_from_path_to_rgrids(
    ConstTensor3View           diy_dq,
    const Index&               atmosphere_dim,
    const Ppath&               ppath,
-   ConstVectorView            ppath_p,
    const RetrievalQuantity&   jacobian_quantity );
                            
 #endif // jacobian_h

@@ -204,6 +204,91 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+
+//=== ArrayOfPpath =========================================================
+
+//! Reads ArrayOfPpath from XML input stream
+/*!
+  \param is_xml  XML Input stream
+  \param agpos   ArrayOfPpath return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfPpath& agpos,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "Ppath");
+
+  tag.get_attribute_value ("nelem", nelem);
+  agpos.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, agpos[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfPpath: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+
+//! Writes ArrayOfPpath to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param agpos   ArrayOfPpath
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfPpath& agpos,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("type", "Ppath");
+  open_tag.add_attribute ("nelem", agpos.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < agpos.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, agpos[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+
+
 //=== ArrayOfArrayOfTensor3==================================================
 
 //! Reads ArrayOfArrayOfTensor3 from XML input stream

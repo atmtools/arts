@@ -572,8 +572,7 @@ void define_agenda_data()
         "along the propagation path and returns the result in *iy*."
         ),
        OUTPUT( iy_ ),
-       INPUT(  ppath_, ppath_p_, ppath_t_, ppath_vmr_, stokes_dim_, f_grid_, 
-               scalar_gas_absorption_agenda_ )));
+       INPUT(  ppath_, stokes_dim_, f_grid_, scalar_gas_absorption_agenda_ )));
 
   agenda_data.push_back
     (AgRecord

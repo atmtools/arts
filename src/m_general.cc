@@ -141,6 +141,21 @@ Print(
     Print( x.geom_tan_pos, "geom_tan_pos", level );
 }
 
+void Print(
+        // WS Generic Input:
+        const ArrayOfPpath&   x,
+        // WS Generic Input Names:
+        const String&           x_name,
+        // Keywords:
+        const Index             level )
+{
+  ostringstream os;
+  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
+  for( Index i=0; i<x.nelem(); i++ )
+    Print( x[i], x_name, level );
+  SWITCH_OUTPUT (level, os.str ())
+}
+
 
 void Print(
         // WS Generic Input:

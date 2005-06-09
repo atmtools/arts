@@ -90,6 +90,13 @@ xml_write_to_stream (ostream&, const ArrayOfGriddedField3&,
                      bofstream * = NULL, const String & = "");
 
 void
+xml_read_from_stream (istream&, ArrayOfPpath&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfPpath&, bofstream * = NULL,
+                     const String& = "");
+
+void
 xml_read_from_stream (istream&, ArrayOfArrayOfTensor3&, bifstream * = NULL);
 
 void

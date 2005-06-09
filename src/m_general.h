@@ -106,6 +106,13 @@ Print(
       // Keywords:
       const Index     level );
 
+void Print(
+        // WS Generic Input:
+        const ArrayOfPpath&   x,
+        // WS Generic Input Names:
+        const String&           x_name,
+        // Keywords:
+        const Index             level );
 void
 Print(
       // WS Generic Input:

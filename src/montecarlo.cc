@@ -512,9 +512,6 @@ void Cloudbox_ppath_rteCalc(
                              Ppath&                ppathcloud,
                              Ppath&                ppath,
                              Ppath&                ppath_step,
-                             Vector&               ppath_p,
-                             Vector&               ppath_t,
-                             Matrix&               ppath_vmr,
                              Vector&               rte_pos,
                              Vector&               rte_los,
                              Vector&               cum_l_step,
@@ -629,7 +626,7 @@ void Cloudbox_ppath_rteCalc(
   Vector los = rte_los;
   rte_posShift(pos,los,rte_gp_p, rte_gp_lat,
             rte_gp_lon,ppathcloud, atmosphere_dim);
-  iy_calc(iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, rte_pos, 
+  iy_calc(iy, ppath, ppath_step, rte_pos, 
           rte_gp_p, rte_gp_lat, rte_gp_lon,rte_los, ppath_step_agenda, 
           rte_agenda, iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
           atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field,
@@ -1146,9 +1143,6 @@ void montecarloGetIncoming(
                            GridPos&              rte_gp_lon,
                            Ppath&                ppath,
                            Ppath&                ppath_step,
-                           Vector&               ppath_p,
-                           Vector&               ppath_t,
-                           Matrix&               ppath_vmr,
                            const Agenda&         ppath_step_agenda,
                            const Agenda&         rte_agenda,
                            const Agenda&         iy_space_agenda,
@@ -1187,7 +1181,7 @@ void montecarloGetIncoming(
   
   Vector pos = rte_pos;
   Vector los = rte_los;
-  iy_calc( iy, ppath, ppath_step, ppath_p, ppath_t, ppath_vmr, rte_pos, 
+  iy_calc( iy, ppath, ppath_step, rte_pos, 
            rte_gp_p, rte_gp_lat, rte_gp_lon,rte_los, ppath_step_agenda, 
            rte_agenda, iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda,
            atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field,

@@ -266,9 +266,6 @@ void iy_calc(
               Matrix&         iy,
               Ppath&          ppath,
               Ppath&          ppath_step,
-              Vector&         ppath_p,
-              Vector&         ppath_t,
-              Matrix&         ppath_vmr,
               Vector&         rte_pos,
               GridPos&        rte_gp_p,
               GridPos&        rte_gp_lat,
@@ -319,26 +316,26 @@ void iy_calc(
       //- Determine atmospheric fields at each ppath point --------------------
       //
       //- Pressure:
-      ppath_p.resize(np);
+      ppath.p.resize(np);
       Matrix itw_p(np,2);
       interpweights( itw_p, ppath.gp_p );      
-      itw2p( ppath_p, p_grid, ppath.gp_p, itw_p );
+      itw2p( ppath.p, p_grid, ppath.gp_p, itw_p );
       //
       //- Temperature:
-      ppath_t.resize(np);
+      ppath.t.resize(np);
       Matrix   itw_field;
       interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
                             lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
-      interp_atmfield_by_itw( ppath_t,  atmosphere_dim, p_grid, lat_grid, 
+      interp_atmfield_by_itw( ppath.t,  atmosphere_dim, p_grid, lat_grid, 
                               lon_grid, t_field, "t_field", ppath.gp_p, 
                               ppath.gp_lat, ppath.gp_lon, itw_field );
       //
       // - VMR fields:
       const Index ns = vmr_field.nbooks();
-      ppath_vmr.resize(ns,np);
+      ppath.vmr.resize(ns,np);
       for( Index is=0; is<ns; is++ )
         {
-          interp_atmfield_by_itw( ppath_vmr(is, joker), atmosphere_dim,
+          interp_atmfield_by_itw( ppath.vmr(is, joker), atmosphere_dim,
             p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
             "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
         }
@@ -347,6 +344,139 @@ void iy_calc(
       // Execute the *rte_agenda*
       rte_agenda.execute( agenda_verb );
     }
+}
+
+
+
+void iy_calc_test(
+              Matrix&                  iy,
+              Ppath&                   ppath,
+              Ppath&                   ppath_step,
+              Vector&                  rte_pos,
+              GridPos&                 rte_gp_p,
+              GridPos&                 rte_gp_lat,
+              GridPos&                 rte_gp_lon,
+              Vector&                  rte_los,
+              Index&                   ppath_array_do,
+              ArrayOfPpath&            ppath_array,
+              Index&                   ppath_array_index,
+              ArrayOfArrayOfTensor3&   diy_dvmr,
+              ArrayOfTensor3&          diy_dt,
+        const Agenda&                  ppath_step_agenda,
+        const Agenda&                  rte_agenda,
+        const Agenda&                  iy_space_agenda,
+        const Agenda&                  iy_surface_agenda,
+        const Agenda&                  iy_cloudbox_agenda,
+        const Index&                   atmosphere_dim,
+        const Vector&                  p_grid,
+        const Vector&                  lat_grid,
+        const Vector&                  lon_grid,
+        const Tensor3&                 z_field,
+        const Tensor3&                 t_field,
+        const Tensor4&                 vmr_field,
+        const Matrix&                  r_geoid,
+        const Matrix&                  z_surface,
+        const Index&                   cloudbox_on, 
+        const ArrayOfIndex&            cloudbox_limits,
+        const Vector&                  pos,
+        const Vector&                  los,
+        const Vector&                  f_grid,
+        const Index&                   stokes_dim,
+        const ArrayOfIndex&            rte_do_vmr_jacs,
+        const Index&                   rte_do_t_jacs,
+        const bool&                    agenda_verb )
+{
+  //- Determine propagation path
+  const bool   outside_cloudbox = true;
+  ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, p_grid, 
+              lat_grid, lon_grid, z_field, r_geoid, z_surface,
+              cloudbox_on, cloudbox_limits, pos, los, outside_cloudbox );
+  //
+  const Index   np = ppath.np;
+
+
+  //- Determine atmospheric fields at each ppath point --------------------
+  if( np > 1 )
+    {
+      // Pressure:
+      ppath.p.resize(np);
+      Matrix itw_p(np,2);
+      interpweights( itw_p, ppath.gp_p );      
+      itw2p( ppath.p, p_grid, ppath.gp_p, itw_p );
+      
+      // Temperature:
+      ppath.t.resize(np);
+      Matrix   itw_field;
+      interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
+                            lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+      interp_atmfield_by_itw( ppath.t,  atmosphere_dim, p_grid, lat_grid, 
+                              lon_grid, t_field, "t_field", ppath.gp_p, 
+                              ppath.gp_lat, ppath.gp_lon, itw_field );
+
+      //  VMR fields:
+      const Index ns = vmr_field.nbooks();
+      ppath.vmr.resize(ns,np);
+      for( Index is=0; is<ns; is++ )
+        {
+          interp_atmfield_by_itw( ppath.vmr(is, joker), atmosphere_dim,
+            p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
+            "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+        }
+    }
+
+
+  // Handle *ppath_array*
+  if( ppath_array_do )
+    {
+      // Include link from previous ppath part to calculated ppath part
+      if( ppath_array_index >= 0 )
+        { 
+          ppath_array[ppath_array_index].next_parts.push_back(
+                                                       ppath_array.nelem() );
+        }
+      
+      // Add this ppath part to *ppath_array*
+      ppath_array_index = ppath_array.nelem();
+      ppath_array.push_back( ppath );
+
+      // Jacobian quantities
+      //
+      Index n = np;
+      if( np == 1 )
+        { n = 0; }
+      //
+      if( rte_do_vmr_jacs.nelem() )
+        {
+          diy_dvmr.push_back( ArrayOfTensor3(rte_do_vmr_jacs.nelem()) );
+          for( Index i=0; i<rte_do_vmr_jacs.nelem(); i++ )
+            {
+              diy_dvmr[ppath_array_index][i].resize( 
+                                                 f_grid.nelem(),stokes_dim,n );
+              diy_dvmr[ppath_array_index][i] = 0.0;
+            }
+        }
+      if( rte_do_t_jacs )
+        {
+          throw runtime_error(
+                          "Analytical temperature jacobians not yet handled.");
+          diy_dt.push_back( Tensor3(f_grid.nelem(),stokes_dim,n,0.0) );
+        }
+    }
+  
+
+  // Determine the radiative background
+  //
+  iy.resize(f_grid.nelem(),stokes_dim);
+  //
+  get_radiative_background( iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
+       rte_los, ppath, iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
+       atmosphere_dim, f_grid, stokes_dim, agenda_verb );
+
+
+  // If the number of propagation path points is 0 or 1, we are already ready,
+  // the observed spectrum equals then the radiative background.
+  if( np > 1 )
+    { rte_agenda.execute( agenda_verb ); }
 }
 
 
@@ -613,47 +743,46 @@ void rte_step_std_clearsky(
    \date   2005-05-19
 */
 void rte_std(
-             Matrix&         iy,
-             Vector&         emission,
-             Matrix&         abs_scalar_gas,
-             Numeric&        rte_pressure,
-             Numeric&        rte_temperature,
-             Vector&         rte_vmr_list,
-             Index&          f_index,
-             Index&          ppath_index,
-             Tensor4&        ppath_transmissions,
-             Tensor4&        diy_dvmr,
-             Tensor3&        diy_dt,
-       const Ppath&          ppath,
-       const Vector&         ppath_p,
-       const Vector&         ppath_t,
-       const Matrix&         ppath_vmr,
-       const Vector&         f_grid,
-       const Index&          stokes_dim,
-       const Agenda&         emission_agenda,
-       const Agenda&         scalar_gas_absorption_agenda,
-       const ArrayOfIndex&   rte_do_vmr_jacs,
-       const Index&          rte_do_t_jacs,
-       const bool&           do_transmissions )
+             Matrix&                  iy,
+             Vector&                  emission,
+             Matrix&                  abs_scalar_gas,
+             Numeric&                 rte_pressure,
+             Numeric&                 rte_temperature,
+             Vector&                  rte_vmr_list,
+             Index&                   f_index,
+             Tensor4&                 ppath_transmissions,
+             ArrayOfArrayOfTensor3&   diy_dvmr,
+             ArrayOfTensor3&          diy_dt,
+       const Ppath&                   ppath,
+       const Index&                   ppath_array_index,
+       const Vector&                  f_grid,
+       const Index&                   stokes_dim,
+       const Agenda&                  emission_agenda,
+       const Agenda&                  scalar_gas_absorption_agenda,
+       const ArrayOfIndex&            rte_do_vmr_jacs,
+       const Index&                   rte_do_t_jacs,
+       const bool&                    do_transmissions )
 {
   // Relevant checks are assumed to be done in RteCalc
 
   // Some sizes
   const Index   nf = f_grid.nelem();
   const Index   np = ppath.np;
-  const Index   ns = ppath_vmr.nrows();    // Number of species
+  const Index   ns = ppath.vmr.nrows();        // Number of species
+  const Index   ng = rte_do_vmr_jacs.nelem();  // Number of jacobian species
 
   // Init output variables
   rte_vmr_list.resize(ns);
 
   // Log of pressure
   Vector   logp_ppath(np);
-  transform( logp_ppath, log, ppath_p  );
+  transform( logp_ppath, log, ppath.p  );
 
   // If f_index < 0, scalar gas absorption is calculated for 
   // all frequencies in f_grid.
   f_index = -1;
-      
+
+  /*      
   // Jacobian variables
   //
   bool   do_vmr_jacobians = false; 
@@ -674,13 +803,14 @@ void rte_std(
       diy_dt.resize(nf,stokes_dim,np);
       diy_dt = 0.0;
     }
+  */
 
   // Transmission variables
   Matrix    trans(stokes_dim,stokes_dim);
   bool      save_transmissions = false;
   bool      any_abs_polarised = false;
   //
-  if( do_transmissions  ||  do_vmr_jacobians  || do_t_jacobians ) 
+  if( do_transmissions  ||  ng  || rte_do_t_jacs ) 
     {
       save_transmissions = true;
       ppath_transmissions.resize(np-1,nf,stokes_dim,stokes_dim); 
@@ -696,14 +826,10 @@ void rte_std(
     {
       // Calculate mean of atmospheric parameters
       rte_pressure    = exp( 0.5 * ( logp_ppath[ip] + logp_ppath[ip-1] ) );
-      rte_temperature = 0.5*(ppath_t[ip] + ppath_t[ip-1]);
+      rte_temperature = 0.5*(ppath.t[ip] + ppath.t[ip-1]);
       for( Index is=0; is<ns; is++ )
-        { rte_vmr_list[is] = 0.5*(ppath_vmr(is,ip)+ppath_vmr(is, ip-1)); }
+        { rte_vmr_list[is] = 0.5*(ppath.vmr(is,ip)+ppath.vmr(is, ip-1)); }
       
-      // The absO2ZeemanModel needs the position in the propagation
-      // path. 
-      ppath_index = ip;
-
       // Call agendas for RT properties
       emission_agenda.execute( ip );
       scalar_gas_absorption_agenda.execute( ip );
@@ -714,11 +840,14 @@ void rte_std(
       if( abs_polarised )
         { any_abs_polarised = true; }
 
-      // Loop frequencies
+
+      //--- Loop frequencies
       for( Index iv=0; iv<nf; iv++ )
         {
-          // Jacobians
-          if( do_vmr_jacobians )
+          //--- Jacobians -----------------------------------------------------
+
+          //- Species
+          if( ng )  
             {
               if( abs_polarised )
                 {}  // To be coded when format for polarised absorption is set
@@ -731,11 +860,21 @@ void rte_std(
                       const Index   is = rte_do_vmr_jacs[ig];
                       const Numeric p  = dd * 
                                       abs_scalar_gas(iv,is) / rte_vmr_list[is];
-                      diy_dvmr(iv,0,ip,is)   += p;
-                      diy_dvmr(iv,0,ip-1,is) += p;
+                      diy_dvmr[ppath_array_index][is](iv,0,ip)   += p;
+                      diy_dvmr[ppath_array_index][is](iv,0,ip-1) += p;
                     }
                 }
             }
+          
+          //- Temperature
+          if( rte_do_t_jacs )
+            {
+              throw runtime_error(
+                          "Analytical temperature jacobians not yet handled.");
+              diy_dt[0] = 0.0;
+            }
+          //--- End jacobians -------------------------------------------------
+
 
           // Perform the RTE step.
           rte_step_std_clearsky( iy(iv,joker), trans, abs_scalar_gas(iv,joker),
@@ -747,7 +886,7 @@ void rte_std(
     }
 
   // Postprocessing of Jacobians
-  if( do_vmr_jacobians )
+  if( ng )
     {
       for( Index iv=0; iv<nf; iv++ )
         {
@@ -766,8 +905,9 @@ void rte_std(
                   for( Index ig=0; ig<ng; ig++ )
                     {
                       const Index is = rte_do_vmr_jacs[ig];
-                      vtmp = diy_dvmr(iv,joker,ip+1,is); 
-                      mult( diy_dvmr(iv,joker,ip+1,is), trans, vtmp );
+                      vtmp = diy_dvmr[ppath_array_index][is](iv,joker,ip+1); 
+                      mult( diy_dvmr[ppath_array_index][is](iv,joker,ip+1), 
+                                                                 trans, vtmp );
                     }
                 }
             }
@@ -780,7 +920,8 @@ void rte_std(
                       trans(ii,ii) *= ppath_transmissions(ip,iv,ii,ii);
                       for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
                         {
-                          diy_dvmr(iv,ii,ip+1,rte_do_vmr_jacs[ig]) *= 
+                          const Index is = rte_do_vmr_jacs[ig];
+                          diy_dvmr[ppath_array_index][is](iv,ii,ip+1) *= 
                                                                   trans(ii,ii);
                         }
                     }

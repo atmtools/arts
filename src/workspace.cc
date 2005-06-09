@@ -553,17 +553,17 @@ void define_wsv_data()
     ( NAME( "diy_dt" ),
       DESCRIPTION
       (
-       "Derivative of *iy* with respect to temperature along the ppath.\n"
+       "Derivative of *iy* with respect to temperature along the ppaths.\n"
        "\n"
        "This variable holds the derivative of monochromatic pencil beam\n"
-       "radiances with respect to the temperature at each point along the \n"
-       "propagation path.\n"
+       "radiances with respect to the temperature at each point along each \n"
+       "propagation path part.\n"
        "\n"
-       "Usage:      Set by *rte_agenda* (if treating jacobians).\n"
+       "Usage:      Set by *iy_calc* and *rte_agenda*.\n"
        "\n"
-       "Dimensions: [ f_grid, stokes_dim, ppath.np ]"
+       "Dimensions: [ppath_array][ f_grid, stokes_dim, ppath.np ]"
        ),
-      GROUP( Tensor3_ )));
+      GROUP( ArrayOfTensor3_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -574,13 +574,14 @@ void define_wsv_data()
        "\n"
        "This variable holds the derivative of monochromatic pencil beam\n"
        "radiances with respect to the VMR of each species at each point\n"
-       "along the propagation path.\n"
+       "along each propagation path part.\n"
        "\n"
-       "Usage:      Set by *rte_agenda* (if treating jacobians).\n"
+       "Usage:      Set by *iy_calc* and *rte_agenda*.\n"
        "\n"
-       "Dimensions: [ f_grid, stokes_dim, ppath.np, rte_do_vmr_species ]"
+       "Dimensions: [ppath_array][rte_do_vmr_species]\n"
+       "                                     [ f_grid, stokes_dim, ppath.np ]"
        ),
-      GROUP( Tensor4_ )));
+      GROUP( ArrayOfArrayOfTensor3_ )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1749,7 +1750,7 @@ void define_wsv_data()
        "also additional fields to faciliate the calculation of spectra and\n"
        "interpolation of the atmospheric fields.\n"
        "\n"
-       "The data struture is to extensive to be described here, but it is\n"
+       "The data struture is too extensive to be described here, but it is\n"
        "described carefully in the ARTS user guide (AUG). Use the index to\n"
        "find where the data structure, Ppath, for propagation paths is \n"
        "discussed. It is listed as a subentry to \"data structures\".\n"
@@ -1759,28 +1760,60 @@ void define_wsv_data()
       GROUP( Ppath_ )));
 
   wsv_data.push_back
-    (WsvRecord
-     ( NAME( "ppath_index" ),
-       DESCRIPTION
-       (
-        "Index for point in propagation path.\n"
-        "\n"
-        "Usage: This variable is needed only for communication with \n"
-        "zeeman_prop_agenda. \n"
-        "\n"
-        ),
-       GROUP( Index_ )));
-
-   wsv_data.push_back
    (WsvRecord
-    ( NAME( "ppath_p" ),
+    ( NAME( "ppath_array" ),
       DESCRIPTION
       (
-       "Pressure at each point of propagation path.\n"
+       "The complete set of propagation paths.\n"
        "\n"
-       "Usage:  Set whenever a clear sky spectrum is calculated."
+       "In the case of scattering (either inside the atmosphere or by the \n"
+       "surface) the propagation path is divided into parts, with one part\n"
+       "between each scattering event. This variable describes this complete\n"
+       "set of propagation paths, in contrast to *ppath* that describes only\n"
+       "one part.\n"
+       "\n"
+       "This variable is not always filled. It used as part of analytical \n"
+       "jacobian calculations for gases and temperature. This variable can\n"
+       "also be used for making plots. To force this variable to be filled,\n"
+       "activate *ppath_array_do*.\n"
+       "\n"
+       "See the user guide for further details.\n"
+       "\n"
+       "Usage: See above."
        ),
-      GROUP( Vector_ )));
+      GROUP( ArrayOfPpath_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_array_do" ),
+      DESCRIPTION
+      (
+       "Flag to fill *ppath_array*.\n"
+       "\n"
+       "Include FlagOn(ppath_array){} to fill *ppath_array* even if this is\n"
+       "not needed for internal purposes.\n"
+       "\n"
+       "Note that this variable is set to 0 by *jacobianOff/Init*.\n"
+       "\n"
+       "Usage: Set by *RteCalc*."
+       ),
+      GROUP( Index_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_array_index" ),
+      DESCRIPTION
+      (
+       "Index in *ppath_array* of present propagation path part.\n"
+       "\n"
+       "This variable shall point to correct position in *ppath_array* when\n"
+       "*iy_calc* is called. A negative value means that there is no\n"
+       "previous path part. The variable is then modified by *iy_calc* as\n"
+       "soon as a new propagation path is calculated.\n"
+       "\n"
+       "Usage: Communication with *iy_calc*."
+       ),
+      GROUP( Index_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1812,46 +1845,14 @@ void define_wsv_data()
        ),
       GROUP( Agenda_ )));
 
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ppath_t" ),
-      DESCRIPTION
-      (
-       "Temperature at each point of propagation path.\n"
-       "\n"
-       "Usage:  Set whenever a clear sky spectrum is calculated."
-       ),
-      GROUP( Vector_ )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "ppath_transmissions" ),
       DESCRIPTION
       (
-       "Transmission matrices for each ppath step.\n"
-       "\n"
-       "This variable holds the transmission matrix for each propagation\n"
-       "path step. Firts index corresponds to the path step closest to the\n"
-       "sensor.\n"
-       "\n"
-       "Usage:      Output from *rte_agenda*.\n"
-       "\n"
-       "Dimensions: [ ppath.np-1, f_grid, stokes_dim, stokes_dim ]"
+        "?"
        ),
       GROUP( Tensor4_ )));
-
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ppath_vmr" ),
-      DESCRIPTION
-      (
-       "VMR values at each point of propagation path.\n"
-       "\n"
-       "Usage:  Set whenever a clear sky spectrum is calculated."
-       "\n"
-       "Dimensions: [ vmr_field.npages, ppath.np ]"
-       ),
-      GROUP( Matrix_ )));
 
    wsv_data.push_back
    (WsvRecord

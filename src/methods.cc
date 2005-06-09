@@ -852,8 +852,7 @@ void define_md_data_raw()
          "conditions when scattering inside the cloud box is solved by the\n"
          "DOIT method."
          ),
-        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, 
-                ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_,
+        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
                 rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
@@ -881,7 +880,6 @@ void define_md_data_raw()
          "This method can only be used for 3D cases."
          ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
-                ppath_p_, ppath_t_, ppath_vmr_,                
                 rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
@@ -2274,9 +2272,8 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddGas\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, ppath_p_, 
-                ppath_t_, ppath_vmr_, iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, 
-                rte_gp_lon_, rte_los_ ),
+        OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, 
+                iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, gas_species_, 
                ppath_step_agenda_, 
                rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
@@ -2302,9 +2299,8 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, pnd_field_, y_, ppath_, ppath_step_, ppath_p_, 
-                ppath_t_, ppath_vmr_, iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, 
-                rte_gp_lon_, rte_los_ ),
+        OUTPUT( jacobian_, pnd_field_, y_, ppath_, ppath_step_,
+                iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, pnd_field_perturb_, 
                jacobian_particle_update_agenda_,
                ppath_step_agenda_, rte_agenda_, iy_space_agenda_, 
@@ -2328,8 +2324,7 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, y_, ppath_, ppath_step_, ppath_p_, ppath_t_, 
-                ppath_vmr_, iy_, rte_pos_, rte_gp_p_,
+        OUTPUT( jacobian_, y_, ppath_, ppath_step_, iy_, rte_pos_, rte_gp_p_,
                 rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, 
                sensor_time_, ppath_step_agenda_, 
@@ -2355,9 +2350,8 @@ md_data_raw.push_back
         "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
         "and should normally not be called by the user.\n"
         ),
-        OUTPUT( jacobian_, t_field_, y_, ppath_, ppath_step_, ppath_p_, 
-                ppath_t_, ppath_vmr_, iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, 
-                rte_gp_lon_, rte_los_ ),
+        OUTPUT( jacobian_, t_field_, y_, ppath_, ppath_step_, iy_, 
+                rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( jacobian_quantities_, jacobian_indices_, ppath_step_agenda_, 
                rte_agenda_, 
                iy_space_agenda_, iy_surface_agenda_, iy_cloudbox_agenda_, 
@@ -2409,7 +2403,8 @@ md_data_raw.push_back
          "The Jacobian quantities are initialised to be empty."
         ),
          OUTPUT( jacobian_, jacobian_quantities_, jacobian_indices_,
-                rte_do_vmr_jacs_, rte_do_t_jacs_ ),
+                 ppath_array_do_, ppath_array_index_,
+                 rte_do_vmr_jacs_, rte_do_t_jacs_ ),
          INPUT(),
          GOUTPUT(),
          GINPUT(),
@@ -2428,6 +2423,7 @@ md_data_raw.push_back
          "this method must be called when no jacobians will be calculated"
         ),
          OUTPUT( jacobian_, jacobian_quantities_, jacobian_indices_,
+                 ppath_array_do_, ppath_array_index_,
                  rte_do_vmr_jacs_, rte_do_t_jacs_ ),
          INPUT(),
          GOUTPUT(),
@@ -3522,10 +3518,10 @@ md_data_raw.push_back
          "\n"
          "See further the user guide."
         ),
-        OUTPUT( y_, ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_,
+        OUTPUT( y_, ppath_, ppath_step_, 
                 iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_,
                 jacobian_, rte_do_vmr_jacs_, diy_dvmr_, rte_do_t_jacs_, 
-                diy_dt_ ),
+                diy_dt_, ppath_array_do_, ppath_array_, ppath_array_index_  ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -3546,7 +3542,7 @@ md_data_raw.push_back
         (
          "As *RteCalc* but thorughout ignores jacobians."
         ),
-        OUTPUT( y_, ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_,
+        OUTPUT( y_, ppath_, ppath_step_, 
                 iy_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
@@ -3579,8 +3575,8 @@ md_data_raw.push_back
         ),
         OUTPUT( iy_, emission_, abs_scalar_gas_, 
                 rte_pressure_, rte_temperature_, rte_vmr_list_, f_index_, 
-                ppath_index_, diy_dvmr_, diy_dt_ ),
-        INPUT( iy_, ppath_, ppath_p_, ppath_t_, ppath_vmr_, f_grid_, 
+                diy_dvmr_, diy_dt_ ),
+        INPUT( iy_, ppath_, ppath_array_index_, f_grid_, 
                stokes_dim_, emission_agenda_, scalar_gas_absorption_agenda_, 
                rte_do_vmr_jacs_, rte_do_t_jacs_ ),
         GOUTPUT(),
@@ -3600,8 +3596,8 @@ md_data_raw.push_back
         ),
         OUTPUT( iy_, emission_, abs_scalar_gas_,
                 rte_pressure_, rte_temperature_, rte_vmr_list_, f_index_, 
-                ppath_index_, ppath_transmissions_, diy_dvmr_, diy_dt_ ),
-        INPUT( iy_, ppath_, ppath_p_, ppath_t_, ppath_vmr_, f_grid_, 
+                ppath_transmissions_, diy_dvmr_, diy_dt_ ),
+        INPUT( iy_, ppath_, ppath_array_index_, f_grid_, 
                stokes_dim_, emission_agenda_, scalar_gas_absorption_agenda_, 
                rte_do_vmr_jacs_, rte_do_t_jacs_ ),
         GOUTPUT(),
@@ -3832,7 +3828,7 @@ md_data_raw.push_back
          "The incoming_lookup keyword determines if incoming radiance is obtained from"
          "a precalculated grid (mc_incoming) or calculated on the fly"
           ),
-        OUTPUT(ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_,
+        OUTPUT(ppath_, ppath_step_, 
                mc_error_, mc_iteration_count_, 
                rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, iy_, 
                rte_pressure_, rte_temperature_, 
@@ -4255,7 +4251,7 @@ md_data_raw.push_back
          "\n"
          "See further the user guide."
         ),
-        OUTPUT( iy_, ppath_, ppath_step_, ppath_p_, ppath_t_, ppath_vmr_, 
+        OUTPUT( iy_, ppath_, ppath_step_, ppath_array_index_, 
                 rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
                iy_surface_agenda_, iy_cloudbox_agenda_,
@@ -5026,8 +5022,8 @@ md_data_raw.push_back
          "where <file_index> is the value of *file_index*. This:\n"
          "  IndexSet(file_index){0} \n"
          "  IndexStep(file_index){} \n"
-         "  WriteXML(ppath_t){\"ppath_t\"}\n"
-         "will create the file ppath_t.1.xml.\n"
+         "  WriteXML(ppath){\"ppath\"}\n"
+         "will create the file ppath.1.xml.\n"
          "\n"
          "This means that *filename* shall here not include the .xml\n"
          "extension. Omitting filename works as for *WriteXML*.\n"

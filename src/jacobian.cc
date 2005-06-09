@@ -531,7 +531,6 @@ void perturbation_field_3d(       Tensor3View     field,
                                                point of *ppath*.
     \param   atmosphere_dim      Input: As WSV with same name.
     \param   ppath               Input: As WSV with same name.
-    \param   ppath_p             Input: As WSV with same name.
     \param   jacobian_quantity   Input: Element of WSV *jacobian_quantities*
                                         of interest
 
@@ -558,7 +557,6 @@ void jacobian_from_path_to_rgrids(
    ConstTensor3View           diy_dq,
    const Index&               atmosphere_dim,
    const Ppath&               ppath,
-   ConstVectorView            ppath_p,
    const RetrievalQuantity&   jacobian_quantity )
 {
   // We want here an extrapolation to infinity -> 
@@ -572,7 +570,7 @@ void jacobian_from_path_to_rgrids(
   r_grid = jacobian_quantity.Grids()[0];
   Index            nr1 = r_grid.nelem();
   ArrayOfGridPos   gp_p(ppath.np);
-  p2gridpos_extpol( gp_p, r_grid, ppath_p, extpolfac );
+  p2gridpos_extpol( gp_p, r_grid, ppath.p, extpolfac );
 
   // Latitude
   Index            nr2 = 1;
@@ -699,4 +697,5 @@ void jacobian_from_path_to_rgrids(
         }
     }
 }
+
 

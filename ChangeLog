@@ -1,3 +1,25 @@
+2005-06-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-998
+
+	* Rearrengement to more easily handle jacobians for cases where the
+	propagation path has several parts, such as for surface reflections.
+
+	Not finished. New code in iy_calc_test. Started to update RteCalc
+	and RteStd.
+
+	Changes here and there as argument list for iy_calc and RteCalc
+	has been changed (again).
+
+	* src/ppath.h: Added definition of ArrayOfPpath. Added some fields to
+	Ppath structure: p t, vmr and next_parts.
+	
+	* src/workspace.cc: 
+	Removed: ppath_index, ppath_p, ppath_t and ppath_vmr.
+	Added: ppath_array and ppath_array_do.
+	Redefined diy_dvmr to ArrayOfArrayOfTensor3 and diy_dt to 
+	ArrayOfTensor3.
+
 2005-06-08  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-997
@@ -124,6 +146,7 @@
 
         Use agenda member functions to determine which WSVs need a push/dup.
 
+>>>>>>> 1.1392
 2005-06-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
         * arts-1-1-992
