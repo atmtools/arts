@@ -559,11 +559,14 @@ void define_wsv_data()
        "radiances with respect to the temperature at each point along each \n"
        "propagation path part.\n"
        "\n"
+       "The number of books is here always 1. This extra dimension is\n"
+       "included in order to have the same data type for all diy-variables.\n"
+       "\n"
        "Usage:      Set by *iy_calc* and *rte_agenda*.\n"
        "\n"
-       "Dimensions: [ppath_array][ ppath.np, f_grid, stokes_dim ]"
+       "Dimensions: [ppath_array][ 1 ppath.np, f_grid, stokes_dim ]"
        ),
-      GROUP( ArrayOfTensor3_ )));
+      GROUP( ArrayOfTensor4_ )));
 
   wsv_data.push_back
    (WsvRecord

@@ -1,3 +1,26 @@
+2005-06-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1002
+
+	* Code for gas analytical jacobians appears ready. But not complete 
+	tests have been performed.
+	
+	* src/m_rte.cc (RteCalc): Finished handling of jacobians.
+
+	* src/m_atmosphere.cc (surfaceCalc): Finished to include jacobian
+	part.
+
+	* src/rte.cc
+	(include_trans_in_diy_dq): Created.
+	(iy_calc): Now handling analytical jacobians.
+	(iy_calc_no_jacobian): Interface with dummy jacobian variables.
+	
+	* src/: Changed diy_dt to be ArrayOfTensor4. This to make it easy
+	to use same functions as for diy_dvmr. Caused smalle modifications 
+	in several functions.
+
+	iy_calc_no_jacobian is now used inside MC and DOIT parts.
+
 2005-06-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1001

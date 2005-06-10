@@ -181,7 +181,8 @@ void perturbation_field_3d(       Tensor3View     field,
 void jacobian_from_path_to_rgrids(
          MatrixView           ib_q_jacs,
    const Index&               nbdone,
-   const ArrayOfTensor3&      diy_dq,
+   const ArrayOfTensor4&      diy_dq,
+   const Index&               iq,
    const Index&               atmosphere_dim,
    const ArrayOfPpath&        ppath_array,
    const RetrievalQuantity&   jacobian_quantity );

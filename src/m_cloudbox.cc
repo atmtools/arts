@@ -1584,7 +1584,8 @@ void CloudboxGetIncoming(
         {
           los[0] =  scat_za_grid[scat_za_index];
 
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
+          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                               rte_gp_lat,
                    rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,
@@ -1602,7 +1603,8 @@ void CloudboxGetIncoming(
         {
           los[0] =  scat_za_grid[scat_za_index];
 
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
+          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                               rte_gp_lat,
                    rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                    iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
@@ -1671,7 +1673,8 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
+                                               rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
@@ -1717,7 +1720,8 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
+                                               rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
@@ -1763,7 +1767,8 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
+                                               rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
@@ -1809,7 +1814,8 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
+                                               rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
@@ -1855,7 +1861,8 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
+                                               rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
@@ -1901,7 +1908,8 @@ void CloudboxGetIncoming(
                                scat_za_index == (Nza-1) )  &&  
                              scat_aa_index == 0 ) )
                         {
-                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
+                                               rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
@@ -2032,7 +2040,8 @@ void CloudboxGetIncoming1DAtm(
     {
       los[0] = scat_za_grid[scat_za_index];
       
-      iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+      iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                           rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -2063,7 +2072,8 @@ void CloudboxGetIncoming1DAtm(
     {
       los[0] = scat_za_grid[scat_za_index];
       
-      iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+      iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                           rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -2098,7 +2108,8 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                               rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -2129,7 +2140,8 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                               rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -2161,7 +2173,8 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                               rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -2193,7 +2206,8 @@ void CloudboxGetIncoming1DAtm(
         {
           los[0] = scat_za_grid[scat_za_index];
           
-          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, 
+          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                               rte_gp_lat, 
                rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
                iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 

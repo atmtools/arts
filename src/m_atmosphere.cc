@@ -763,7 +763,7 @@ void surfaceCalc(
               ArrayOfPpath&            ppath_array,
               Index&                   ppath_array_index,
               ArrayOfTensor4&          diy_dvmr,
-              ArrayOfTensor3&          diy_dt,
+              ArrayOfTensor4&          diy_dt,
         const Agenda&                  ppath_step_agenda,
         const Agenda&                  rte_agenda,
         const Agenda&                  iy_space_agenda,
@@ -835,7 +835,7 @@ void surfaceCalc(
         {
           // Calculate downwelling radiation for LOS ilos 
           const Index   agenda_verb = 0;
-          iy_calc_test( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
+          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
                    rte_gp_lon, rte_los, 
                    ppath_array_do, ppath_array, ppath_array_index,
                    diy_dvmr, diy_dt,
@@ -849,6 +849,31 @@ void surfaceCalc(
                    rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb );
 
           I(ilos,joker,joker) = iy;
+
+          // Include reflection matrix in jacobian quantities
+          //
+          // Assume polarisation effects in surface_rmatrix
+          // (not of any impoartnce if stokes_dim=1)
+          const bool pol_r = true;
+          //
+          if( rte_do_vmr_jacs.nelem() )
+            {
+              for( Index iv=0; iv<nf; iv++ )
+                {
+                  include_trans_in_diy_dq( diy_dvmr, iv, pol_r,
+                                          surface_rmatrix(ilos,iv,joker,joker),
+                                          ppath_array, ppath_array_index );
+                }
+            }
+          if( rte_do_t_jacs )
+            {
+              for( Index iv=0; iv<nf; iv++ )
+                {
+                  include_trans_in_diy_dq( diy_dt, iv, pol_r,
+                                          surface_rmatrix(ilos,iv,joker,joker),
+                                          ppath_array, ppath_array_index );
+                }
+            }
 
           // Reset *ppath_array_index*
           ppath_array_index = pai;

@@ -1488,6 +1488,7 @@ void jacobianInit(
       ArrayOfRetrievalQuantity&  jacobian_quantities,
       ArrayOfArrayOfIndex&       jacobian_indices,
       Index&                     ppath_array_do,
+      ArrayOfPpath&              ppath_array, 
       Index&                     ppath_array_index,
       ArrayOfIndex&              rte_do_vmr_jacs,
       Index&                     rte_do_t_jacs )
@@ -1496,6 +1497,7 @@ void jacobianInit(
   jacobian_quantities.resize(0);
   jacobian_indices.resize(0);
   ppath_array_do    = 0;
+  ppath_array.resize(0);
   ppath_array_index = -1;
   rte_do_vmr_jacs.resize(0);
   rte_do_t_jacs     = 0;
@@ -1515,12 +1517,13 @@ void jacobianOff(
       ArrayOfRetrievalQuantity&  jacobian_quantities,
       ArrayOfArrayOfIndex&       jacobian_indices,
       Index&                     ppath_array_do,
+      ArrayOfPpath&              ppath_array, 
       Index&                     ppath_array_index,
       ArrayOfIndex&              rte_do_vmr_jacs,
       Index&                     rte_do_t_jacs )
 {
   jacobianInit( jacobian, jacobian_quantities, jacobian_indices, 
-                ppath_array_do, ppath_array_index,
+                ppath_array_do, ppath_array, ppath_array_index,
                 rte_do_vmr_jacs, rte_do_t_jacs );
 }
 

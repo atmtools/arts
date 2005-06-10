@@ -214,6 +214,124 @@ void get_radiative_background(
 
 
 
+void include_cumtrans_in_diy_dq( 
+           Tensor4&   diy_dq,
+           Matrix&    trans,
+     const Index&     iv,
+     const bool&      any_trans_polarised,
+     const Tensor3&   ppath_transmissions )
+{
+  const Index    stokes_dim = diy_dq.ncols();
+  const Index    np         = diy_dq.npages();
+  const Index    ng         = diy_dq.nbooks();
+
+  if( any_trans_polarised )
+    {
+      Matrix  mtmp( stokes_dim, stokes_dim );
+      Vector  vtmp( stokes_dim );
+
+      // Transmission of 1
+      id_mat( trans );
+
+      for( Index ip=0; ip<np-1; ip++ )
+        {
+          mtmp = trans;
+          mult( trans, ppath_transmissions(ip,joker,joker), mtmp );
+          for( Index ig=0; ig<ng; ig++ )
+            {
+              vtmp = diy_dq(ig,ip+1,iv,joker); 
+              mult( diy_dq(ig,ip+1,iv,joker), trans, vtmp );
+            }
+        }
+    }
+  else
+    {
+      // Transmission of 1
+      id_mat( trans );
+
+      for( Index ip=0; ip<np-1; ip++ )
+        {
+          for( Index is=0; is<stokes_dim; is++ )
+            {
+              trans(is,is) *= ppath_transmissions(ip,is,is);
+              for( Index ig=0; ig<ng; ig++ )
+                { diy_dq(ig,ip+1,iv,is) *= trans(is,is); }
+            }
+        }
+    }
+}
+
+
+
+//! include_trans_in_diy_dq
+/*!
+    Includes a transmission operator in a diy-variable.
+
+    The transmission is included for the propagation path part indicated by
+    *ppath_array_index*, and backwards from this ppath part.
+
+    The function handles only a single frequency.
+
+    \param   diy_dq              Input/Output: Corresponds to diy_vmr or
+                                               diy_dt.
+    \param   iv                  Input: Frequency index.
+    \param   pol_trans           Input: Boolean to indicate if *trans* gives
+                                        any polarisation effect. If set to 
+                                        false, a diagonal *trans* is assumed.
+    \param   trans               Input: A transmission, or reflection, matrix.
+    \param   ppath_array         Input: As the WSV
+    \param   ppath_array_index   Input: As the WSV
+
+    \author Patrick Eriksson, 
+    \date   2005-06-10
+*/
+void include_trans_in_diy_dq( 
+            ArrayOfTensor4&   diy_dq,  
+      const Index&            iv,
+            bool              pol_trans,
+      ConstMatrixView         trans,
+      const ArrayOfPpath&     ppath_array, 
+      const Index&            ppath_array_index )
+{
+  const Index   stokes_dim = diy_dq[0].ncols();
+
+  if( stokes_dim == 1 )
+    { pol_trans = false; }
+
+  Index   pai = ppath_array_index;
+
+  if( pol_trans )
+    {
+      for( Index ig=0; ig<diy_dq[pai].nbooks(); ig++ )
+        {
+          for( Index ip=0; ip<ppath_array[pai].np; ip++ )
+            {
+              const Vector  vtmp = diy_dq[pai](ig,ip,iv,joker);
+              mult( diy_dq[pai](ig,ip,iv,joker), trans, vtmp );
+            }
+        }
+    }
+  else
+    {
+      for( Index ig=0; ig<diy_dq[pai].nbooks(); ig++ )
+        {
+          for( Index ip=0; ip<ppath_array[pai].np; ip++ )
+            {
+              for( Index is=0; is<stokes_dim; is++ )
+                { diy_dq[pai](ig,ip,iv,is) *= trans(is,is); }
+            }
+        }
+    }
+
+  for( Index ia=0; ia<ppath_array[ppath_array_index].next_parts.nelem(); ia++ )
+    {
+      pai = ppath_array[ppath_array_index].next_parts[ia];
+      include_trans_in_diy_dq( diy_dq, iv, pol_trans, trans, ppath_array, pai);
+    }
+}
+
+
+
 //! iy_calc
 /*!
     Solves the monochromatic pencil beam RTE.
@@ -229,33 +347,8 @@ void get_radiative_background(
     It is NOT needed to set *iy* to the correct size before calling
     the function.
 
-    \param   iy                 Output: As the WSV with the same name.
-    \param   ppath              Output: As the WSV with the same name.
-    \param   ppath_step         Output: As the WSV with the same name.
-    \param   rte_pos            Output: As the WSV with the same name.
-    \param   rte_gp_p           Output: As the WSV with the same name.
-    \param   rte_gp_lat         Output: As the WSV with the same name.
-    \param   rte_gp_lon         Output: As the WSV with the same name.
-    \param   rte_los            Output: As the WSV with the same name.
-    \param   ppath_step_agenda  Input: As the WSV with the same name.
-    \param   rte_agenda         Input: As the WSV with the same name.
-    \param   iy_space_agenda    Input: As the WSV with the same name.
-    \param   iy_surface_agenda  Input: As the WSV with the same name.
-    \param   iy_cloudbox_agenda Input: As the WSV with the same name.
-    \param   atmosphere_dim     Input: As the WSV with the same name.
-    \param   p_grid             Input: As the WSV with the same name.
-    \param   lat_grid           Input: As the WSV with the same name.
-    \param   lon_grid           Input: As the WSV with the same name.
-    \param   z_field            Input: As the WSV with the same name.
-    \param   r_geoid            Input: As the WSV with the same name.
-    \param   z_surface          Input: As the WSV with the same name.
-    \param   cloudbox_on        Input: As the WSV with the same name.
-    \param   cloudbox_limits    Input: As the WSV with the same name.
-    \param   pos                Input: Observation position.
-    \param   los                Input: Observation LOS.
-    \param   f_grid             Input: As the WSV with the same name.
-    \param   stokes_dim         Input: As the WSV with the same name.
-    \param   antenna_dim        Input: As the WSV with the same name.
+    All input/output is as corresponding WSVs with same name, except:
+
     \param   agenda_verb        Input: Argument handed to agendas to control
                                 verbosity.
 
@@ -263,92 +356,6 @@ void get_radiative_background(
     \date   2002-09-17
 */
 void iy_calc(
-              Matrix&         iy,
-              Ppath&          ppath,
-              Ppath&          ppath_step,
-              Vector&         rte_pos,
-              GridPos&        rte_gp_p,
-              GridPos&        rte_gp_lat,
-              GridPos&        rte_gp_lon,
-              Vector&         rte_los,
-        const Agenda&         ppath_step_agenda,
-        const Agenda&         rte_agenda,
-        const Agenda&         iy_space_agenda,
-        const Agenda&         iy_surface_agenda,
-        const Agenda&         iy_cloudbox_agenda,
-        const Index&          atmosphere_dim,
-        const Vector&         p_grid,
-        const Vector&         lat_grid,
-        const Vector&         lon_grid,
-        const Tensor3&        z_field,
-        const Tensor3&        t_field,
-        const Tensor4&        vmr_field,
-        const Matrix&         r_geoid,
-        const Matrix&         z_surface,
-        const Index&          cloudbox_on, 
-        const ArrayOfIndex&   cloudbox_limits,
-        const Vector&         pos,
-        const Vector&         los,
-        const Vector&         f_grid,
-        const Index&          stokes_dim,
-        const bool&           agenda_verb )
-{
-  // Determine propagation path
-  const bool   outside_cloudbox = true;
-  ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, p_grid, 
-              lat_grid, lon_grid, z_field, r_geoid, z_surface,
-              cloudbox_on, cloudbox_limits, pos, los, outside_cloudbox );
-
-  // Determine the radiative background
-  //
-  iy.resize(f_grid.nelem(),stokes_dim);
-  //
-  get_radiative_background( iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
-       rte_los, ppath, iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-       atmosphere_dim, f_grid, stokes_dim, agenda_verb );
-
-  const Index   np = ppath.np;
-
-  // If the number of propagation path points is 0 or 1, we are already ready,
-  // the observed spectrum equals then the radiative background.
-  if( np > 1 )
-    {
-      //- Determine atmospheric fields at each ppath point --------------------
-      //
-      //- Pressure:
-      ppath.p.resize(np);
-      Matrix itw_p(np,2);
-      interpweights( itw_p, ppath.gp_p );      
-      itw2p( ppath.p, p_grid, ppath.gp_p, itw_p );
-      //
-      //- Temperature:
-      ppath.t.resize(np);
-      Matrix   itw_field;
-      interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
-                            lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
-      interp_atmfield_by_itw( ppath.t,  atmosphere_dim, p_grid, lat_grid, 
-                              lon_grid, t_field, "t_field", ppath.gp_p, 
-                              ppath.gp_lat, ppath.gp_lon, itw_field );
-      //
-      // - VMR fields:
-      const Index ns = vmr_field.nbooks();
-      ppath.vmr.resize(ns,np);
-      for( Index is=0; is<ns; is++ )
-        {
-          interp_atmfield_by_itw( ppath.vmr(is, joker), atmosphere_dim,
-            p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
-            "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-        }
-      //-----------------------------------------------------------------------
-
-      // Execute the *rte_agenda*
-      rte_agenda.execute( agenda_verb );
-    }
-}
-
-
-
-void iy_calc_test(
               Matrix&                  iy,
               Ppath&                   ppath,
               Ppath&                   ppath_step,
@@ -361,7 +368,7 @@ void iy_calc_test(
               ArrayOfPpath&            ppath_array,
               Index&                   ppath_array_index,
               ArrayOfTensor4&          diy_dvmr,
-              ArrayOfTensor3&          diy_dt,
+              ArrayOfTensor4&          diy_dt,
         const Agenda&                  ppath_step_agenda,
         const Agenda&                  rte_agenda,
         const Agenda&                  iy_space_agenda,
@@ -387,7 +394,7 @@ void iy_calc_test(
         const bool&                    agenda_verb )
 {
   //- Determine propagation path
-  const bool   outside_cloudbox = true;
+  const bool  outside_cloudbox = true;
   ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, p_grid, 
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, pos, los, outside_cloudbox );
@@ -429,19 +436,18 @@ void iy_calc_test(
   if( ppath_array_do )
     {
       // Include link from previous ppath part to calculated ppath part
+      // (if not first part, which is indicated by -1)
       if( ppath_array_index >= 0 )
-        { 
-          ppath_array[ppath_array_index].next_parts.push_back(
-                                                       ppath_array.nelem() );
-        }
+        { ppath_array[ppath_array_index].next_parts.push_back(
+                                                       ppath_array.nelem() ); }
       
       // Add this ppath part to *ppath_array*
       ppath_array_index = ppath_array.nelem();
       ppath_array.push_back( ppath );
 
-      // Jacobian quantities
+      // Extend jacobian quantities
       //
-      Index n = np;
+      Index   n = np;
       if( np == 1 )
         { n = 0; }
       //
@@ -454,7 +460,7 @@ void iy_calc_test(
         {
           throw runtime_error(
                           "Analytical temperature jacobians not yet handled.");
-          diy_dt.push_back( Tensor3(n,f_grid.nelem(),stokes_dim,0.0) );
+          diy_dt.push_back( Tensor4(1,n,f_grid.nelem(),stokes_dim,0.0) );
         }
     }
   
@@ -472,6 +478,61 @@ void iy_calc_test(
   // the observed spectrum equals then the radiative background.
   if( np > 1 )
     { rte_agenda.execute( agenda_verb ); }
+}
+
+
+
+//! iy_calc_no_jacobian
+/*!
+    Interface to *iy_calc* where jacobian variables can be left out.
+*/
+void iy_calc_no_jacobian(
+              Matrix&         iy,
+              Ppath&          ppath,
+              Ppath&          ppath_step,
+              Vector&         rte_pos,
+              GridPos&        rte_gp_p,
+              GridPos&        rte_gp_lat,
+              GridPos&        rte_gp_lon,
+              Vector&         rte_los,
+        const Agenda&         ppath_step_agenda,
+        const Agenda&         rte_agenda,
+        const Agenda&         iy_space_agenda,
+        const Agenda&         iy_surface_agenda,
+        const Agenda&         iy_cloudbox_agenda,
+        const Index&          atmosphere_dim,
+        const Vector&         p_grid,
+        const Vector&         lat_grid,
+        const Vector&         lon_grid,
+        const Tensor3&        z_field,
+        const Tensor3&        t_field,
+        const Tensor4&        vmr_field,
+        const Matrix&         r_geoid,
+        const Matrix&         z_surface,
+        const Index&          cloudbox_on, 
+        const ArrayOfIndex&   cloudbox_limits,
+        const Vector&         pos,
+        const Vector&         los,
+        const Vector&         f_grid,
+        const Index&          stokes_dim,
+        const bool&           agenda_verb )
+{
+  ArrayOfIndex               rte_do_vmr_jacs(0);
+  ArrayOfTensor4             diy_dvmr(0);
+  Index                      rte_do_t_jacs=0;
+  ArrayOfTensor4             diy_dt(0);
+  Index                      ppath_array_do = 0;
+  ArrayOfPpath               ppath_array(0);
+  Index                      ppath_array_index=-1;
+
+  iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon, 
+           rte_los, ppath_array_do, ppath_array, ppath_array_index, 
+           diy_dvmr, diy_dt, 
+           ppath_step_agenda, rte_agenda, iy_space_agenda, iy_surface_agenda, 
+           iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 
+           z_field, t_field, vmr_field, r_geoid, z_surface, cloudbox_on, 
+           cloudbox_limits, pos, los, f_grid, stokes_dim, 
+           rte_do_vmr_jacs, rte_do_t_jacs, agenda_verb );
 }
 
 
@@ -747,8 +808,9 @@ void rte_std(
              Index&                   f_index,
              Tensor4&                 ppath_transmissions,
              ArrayOfTensor4&          diy_dvmr,
-             ArrayOfTensor3&          diy_dt,
+             ArrayOfTensor4&          diy_dt,
        const Ppath&                   ppath,
+       const ArrayOfPpath&            ppath_array, 
        const Index&                   ppath_array_index,
        const Vector&                  f_grid,
        const Index&                   stokes_dim,
@@ -776,29 +838,6 @@ void rte_std(
   // If f_index < 0, scalar gas absorption is calculated for 
   // all frequencies in f_grid.
   f_index = -1;
-
-  /*      
-  // Jacobian variables
-  //
-  bool   do_vmr_jacobians = false; 
-  bool   do_t_jacobians   = false;
-  const Index   ng = rte_do_vmr_jacs.nelem();
-  //
-  if( ng )
-    {
-      do_vmr_jacobians = true;
-      diy_dvmr.resize(nf,stokes_dim,np,ng);
-      diy_dvmr = 0.0;
-    }
-  //
-  if( rte_do_t_jacs )
-    {
-      throw runtime_error("Analytical temperature jacobians not yet handled.");
-      do_t_jacobians = true;
-      diy_dt.resize(nf,stokes_dim,np);
-      diy_dt = 0.0;
-    }
-  */
 
   // Transmission variables
   Matrix    trans(stokes_dim,stokes_dim);
@@ -880,47 +919,21 @@ void rte_std(
         }
     }
 
-  // Postprocessing of Jacobians
+  //--- Postprocessing of Jacobians
   if( ng )
     {
       for( Index iv=0; iv<nf; iv++ )
-        {
-          // Transmission of 1
-          id_mat( trans );
-
-          if( any_abs_polarised )
+        {      
+          include_cumtrans_in_diy_dq( diy_dvmr[ppath_array_index], trans, 
+                                   iv, any_abs_polarised, 
+                                   ppath_transmissions(joker,iv,joker,joker) );
+          
+          for( Index ia=0; 
+                   ia<ppath_array[ppath_array_index].next_parts.nelem(); ia++ )
             {
-              Matrix  mtmp( stokes_dim, stokes_dim );
-              Vector  vtmp( stokes_dim );
-
-              for( Index ip=0; ip<np-1; ip++ )
-                {
-                  mtmp = trans;
-                  mult( trans, ppath_transmissions(ip,iv,joker,joker), mtmp );
-                  for( Index ig=0; ig<ng; ig++ )
-                    {
-                      const Index is = rte_do_vmr_jacs[ig];
-                      vtmp = diy_dvmr[ppath_array_index](is,ip+1,iv,joker); 
-                      mult( diy_dvmr[ppath_array_index](is,ip+1,iv,joker), 
-                                                                 trans, vtmp );
-                    }
-                }
-            }
-          else
-            {
-              for( Index ip=0; ip<np-1; ip++ )
-                {
-                  for( Index ii=0; ii<stokes_dim; ii++ )
-                    {
-                      trans(ii,ii) *= ppath_transmissions(ip,iv,ii,ii);
-                      for( Index ig=0; ig<rte_do_vmr_jacs.nelem(); ig++ )
-                        {
-                          const Index is = rte_do_vmr_jacs[ig];
-                          diy_dvmr[ppath_array_index](is,ip+1,iv,ii) *= 
-                                                                  trans(ii,ii);
-                        }
-                    }
-                }
+              const Index  pai = ppath_array[ppath_array_index].next_parts[ia];
+              include_trans_in_diy_dq( diy_dvmr, iv, any_abs_polarised,
+                                       trans, ppath_array, pai );
             }
         }
     }
