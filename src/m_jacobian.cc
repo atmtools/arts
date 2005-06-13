@@ -739,11 +739,11 @@ void jacobianCalcGas(
   
   
   // Loop through the retrieval grid and calculate perturbation effect
-  for (Index p_it=0; p_it<j_p; p_it++)
+  for (Index lon_it=0; lon_it<j_lon; lon_it++)
   {
     for (Index lat_it=0; lat_it<j_lat; lat_it++)
     {
-      for (Index lon_it=0; lon_it<j_lon; lon_it++)
+      for (Index p_it=0; p_it<j_p; p_it++)
       {
         // Here we calculate the ranges of the perturbation. We want the
         // perturbation to continue outside the atmospheric grids for the
@@ -948,11 +948,11 @@ void jacobianCalcParticle(
   // Loop through the retrieval grid and calculate perturbation effect
   for (Index scen_it=0; scen_it<jg[atmosphere_dim].nelem(); scen_it++)
   {
-    for (Index p_it=0; p_it<j_p; p_it++)
+    for (Index lon_it=0; lon_it<j_lon; lon_it++)
     {
       for (Index lat_it=0; lat_it<j_lat; lat_it++)
       {
-        for (Index lon_it=0; lon_it<j_lon; lon_it++)
+        for (Index p_it=0; p_it<j_p; p_it++)
         {
           // Update the perturbation field
           pnd_pert = pnd_field_perturb(scen_it, joker, joker, joker, joker);
@@ -1321,11 +1321,11 @@ void jacobianCalcTemperature(
   Tensor3 t_ref = t_field;
   
   // Loop through the retrieval grid and calculate perturbation effect
-  for (Index p_it=0; p_it<j_p; p_it++)
+  for (Index lon_it=0; lon_it<j_lon; lon_it++)
   {
     for (Index lat_it=0; lat_it<j_lat; lat_it++)
     {
-      for (Index lon_it=0; lon_it<j_lon; lon_it++)
+      for (Index p_it=0; p_it<j_p; p_it++)
       {
         // Here we calculate the ranges of the perturbation. We want the
         // perturbation to continue outside the atmospheric grids for the
