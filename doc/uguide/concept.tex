@@ -3,12 +3,11 @@
  \label{sec:concept}
 
 \starthistory
+  050613 & Updated by Patrick Eriksson.\\
   020613 & Updated and extended by Stefan Buehler.\\
-  011121 & Practical hints added by Stefan Buehler.\\
   000616 & Created by Stefan Buehler, based on my DPG2000 poster.
 \stophistory
 
-{\Large \bf FIXME: This is a construction site. Please don't read!}
 
 %
 % Introduction
@@ -16,8 +15,6 @@
 This section describes the basic ideas underlying the ARTS programme.
 It also introduces some terminology. You should read it if you want to
 understand how the program works and how it can be used efficiently.
-At the end of the chapter, there is also some practical information
-about useful command line parameters and such things.
 
 This section is not about physics, only about ARTS as a computer
 program. Refer to Section \ref{sec:fm_defs} for an introduction to the
@@ -70,15 +67,15 @@ can be made practically is described in Section \ref{sec:development}.
 %=================================
 \label{sec:concept:generic}
 
-Generic methods (Figure \ref{fig:generic_method}) allow the user of the
-program even more freedom than specific methods. A generic method is
-for example \artsstyle{VectorReadAscii}, which can be used to read any
-workspace variable which is a vector from an ASCII file. For example
+Generic methods (Figure \ref{fig:generic_method}) allow the user of
+the program even more freedom than specific methods. A generic method
+is for example \artsstyle{MatrixSet}, which can be used to set any
+workspace variable which is a matrix. For example
 \begin{quote}
-  \artsstyle{VectorReadAscii(f\_grid){"frequency\_grid.aa"}}
+  \artsstyle{MatrixSet(z\_surface){0.0}}
 \end{quote}
-will read the specified file and generate the workspace variable
-\artsstyle{f\_grid}.
+will set all elements of \artsstyle{z\_surface} to 0.0 (as long as
+\artsstyle{nrows} and \artsstyle{ncols} are set).
 
 \begin{figure}
   \begin{center}
@@ -90,21 +87,30 @@ will read the specified file and generate the workspace variable
   \end{center}
 \end{figure}
 
+Some methods are evn more flexible, the are super generic. This means
+that they can take any workspace variable as input. The most commonly
+used such methods are the XML file methods. A workspace variable is
+read from a file in this way
+\begin{quote}
+  \artsstyle{ReadXML(f\_grid)\{"frequency\_grid"\}}
+\end{quote}
 Generic methods are particularly useful for IO operations like in the
 example above. No new IO methods are necessary for new workspace
 variables, as long as they are of standard types already known to the
 program (for example vectors or matrices). 
 
+
+
 \section{Practical hints}
 %=================================
 \label{sec:concept:practical}
 
-The subdirectory \fileindex{examples} of the \fileindex{doc} directory contains
-some example controlfiles. You should study them to learn more about
-how the program works. You can also run these controlfiles like this:
+The subdirectory \fileindex{tests} contains some example controlfiles.
+You should study them to learn more about how the program works. You
+can also run these controlfiles like this:
 \begin{quote}
 \begin{verbatim}
-  arts absorption_example.arts
+  arts simpleMC.arts
 \end{verbatim}
 \end{quote}
 This assumes that you are inside the directory where the controlfiles
@@ -175,7 +181,7 @@ that \artsstyle{arts -i f\_grid} will list those methods that require
 those that produce \artsstyle{f\_grid} as output. Finally,
 \begin{quote}
 \begin{verbatim}
-  arts -w absCalc
+  arts -w surfaceFlat
 \end{verbatim}
 \end{quote}
 will give you all variables required by the method \artsstyle{absCalc}

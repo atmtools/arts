@@ -3,14 +3,16 @@
 
 
 \starthistory
-  040427 & Started by Patrick Eriksson. \\
+  050613 & First version finished by Patrick Eriksson. \\
 \stophistory
 
 An introduction to the treatment of surface emission and reflections
 is given in Section~\ref{sec:fm_defs:surface}. The methods developed
 to handle different surface properties all set the variables
 \wsvindex{surface\_emission}, \wsvindex{surface\_los} and
-\wsvindex{surface\_rmatrix}. Let us start with a simple example in
+\wsvindex{surface\_rmatrix}.
+
+Let us start with a simple example in
 order to explain the usage of these workspace variables. We will here
 assume that all downwelling radiation is reflected. This assumption is
 made for all polarisation states. We assume further a 1D simulation,
@@ -116,8 +118,6 @@ variables should then be set as follows:
  electromagnetic wave for vertical ($R_v$) and horizontal ($R_v$)
  polarisation is for a flat surface (if the relative magnetic
  permeability ($\mu_r$) of both media is 1) given by the Fresnel equations:
- \FIXME{One text book gives opposite sign for $R_v$. Different definitions? 
-     Anyhow put in a reference. (PE 041021)}
  \begin{eqnarray}
    \label{eq:surface_fresnel}
    R_v &=& \frac{n_2\cos\theta_1-n_1\cos\theta_2}
@@ -157,8 +157,6 @@ Equation~\ref{eq:polarisation:ampmatrix1} are simply
 \end{eqnarray}
 This leads to that the transformation matrix for a specular surface
 reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
-\FIXME{Check that definitions are consistent between Liou and Mischenko
-(PE 041021)}
 \begin{equation}
   \label{eq:surface:specular_matrix}
   \MtrStl{R} =
@@ -206,6 +204,30 @@ general method for the specular case (with internal models of the
 dielectric properties of different media) is \wsmindex{surfaceFlat},
 while \wsmindex{surfaceSingleEmissivity} and
 \wsmindex{surfaceBlackbody} treat some special cases.
+
+
+
+\section{Control file examples}
+%===================
+\label{sec:surface:cfile}
+
+The agenda \wsaindex{surface\_prop\_agenda} must not always be set, but
+it could anyhow be good practice to use it. An example:
+
+\begin{verbatim}
+
+AgendaSet(surface_prop_agenda){
+   InterpAtmFieldToRteGps(surface_skin_t,t_field){}
+   NumericSet(numeric_1){0.9}
+   surfaceSingleEmissivity(numeric_1){}
+}
+
+AgendaSet(iy_surface_agenda){
+   AgendaExecute(surface_prop_agenda){}
+   surfaceCalc{}
+}
+
+\end{verbatim}
 
 
 

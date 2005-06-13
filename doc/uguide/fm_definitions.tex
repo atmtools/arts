@@ -3,7 +3,8 @@
 
 
 \starthistory
-  030306 & Sections on atmosphere, sensor and RT written by Patrick Eriksson.\\
+  050613 & First complete version finished by Patrick Eriksson.\\
+  020315 & Started by Patrick Eriksson.\\
 \stophistory
 
 
@@ -34,7 +35,7 @@ construct a control file for your simulation problem.
 %===================
 \label{sec:fm_defs:atmdim}
 
-The structure of the modeled atmosphere can be selected to have
+The structure of the modelled atmosphere can be selected to have
 different degree of complexity, the \textindex{atmospheric
   dimensionality}. There exist three levels for the complexity of the
 atmosphere, 1D, 2D and 3D, where 1D and 2D can be seen as special
@@ -166,7 +167,7 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
     Plotting symbols as in Figure~\ref{fig:fm_defs:1d}. Radii and
     fields inside the cross section match the definitions for 2D.
     The vertical extension
-    of the cloud box is defined identical for 1D and 3D. The horisontal 
+    of the cloud box is defined identical for 1D and 3D. The horizontal 
     extension of the cloud box is between two latitude and longitude grid
     positions, where only one of the dimensions are visible in this figure.}
   \label{fig:fm_defs:3dcross}
@@ -215,7 +216,7 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
 \item[Radius\index{radius}] Geometrical altitudes are
   needed to determine the propagation path through the atmosphere etc.
   The main geometrical altitude coordinate is the distance to the
-  center of the coordinate system used, the radius. This is a natural
+  centre of the coordinate system used, the radius. This is a natural
   consequence of using a spherical or polar coordinate system. The
   radius is used inside ARTS for all geometrical calculations and to
   store the position of the sensor (Section~
@@ -224,14 +225,14 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
 \item[Geometrical altitude\index{geometrical altitude}] The term
   geometrical altitude signifies here the difference in radius between
   a point and the geoid (Section~\ref{sec:fm_defs:geoid}) along the
-  vector to the center of the coordinate system
+  vector to the centre of the coordinate system
   (Equation~\ref{eq:fm_defs:zsurface}). Hence, the geometrical altitude
   is not measured along the local zenith direction (the normal to the
   reference geoid). Geometrical altitudes are mainly used to
   facilitate the input of the surface altitude, the altitude of the
   pressure levels etc. This is the case as these quantities are known
   rather with respect to the geoid than with respect to the Earth's
-  center.
+  centre.
 
 \end{description}
 
@@ -257,7 +258,7 @@ A \textindex{latitude} grid (\wsvindex{lat\_grid}) must be specified
 for 2D and 3D.  For 2D, the latitudes shall be treated as the angular
 distance along the orbit track, as described above in
 Section~\ref{sec:fm_defs:atmdim}.  The latitude angle is throughout
-calculated for the vector going from the center of the coordinate
+calculated for the vector going from the centre of the coordinate
 system to the point of concern. Hence, the latitudes here correspond
 to the definition of the geocentric latitude, and not geodetic
 latitudes (see Section~\ref{sec:ppath:geoid}). This is in accordance
@@ -313,7 +314,7 @@ page.
 The \textindex{geoid} is an imaginary surface used as a
 reference when specifying the surface altitude and the altitude
 of pressure levels. Any shape of the geoid is allowed but a smoothly
-varying geoid is the natural choice, with the centers of the geoid and
+varying geoid is the natural choice, with the enters of the geoid and
 the coordinate system coinciding. The geoid should normally be set to
 the reference ellipsoid for some global geodetic datum, such as
 WGS-84. For further reading on geoid ellipsoids and WGS-84, see
@@ -331,8 +332,7 @@ above the geoid. The radius for the surface is accordingly
   \aRds{g} = \aRds{\odot} + \aAlt{g}
  \label{eq:fm_defs:zsurface}
 \end{equation}
-As described in
-Section~\ref{sec:fm_defs:grids}, a gap between the surface and the 
+As already mentioned, a gap between the surface and the 
 lowermost pressure level is not allowed.
 
 The ARTS variable for the \textindex{surface altitude}
@@ -359,14 +359,14 @@ performed in 1D and 3D mode, but not for 2D.
 The cloud box is defined to be rectangular in the used coordinate
 system, with limits exactly at points of the involved grids. This
 means, for example, that the vertical limits of the cloud box are two
-pressure levels. For 3D, the horisontal extension of the cloud box
+pressure levels. For 3D, the horizontal extension of the cloud box
 is between two points of the latitude grid and likewise in the
 longitude direction (Figure~\ref{fig:fm_defs:3dcross}). The latitude
 and longitude limits for the cloud box cannot be placed at the end
 points of the corresponding grid as it must be possible to calculate
 the incoming intensity field. The cloud box is activated by setting
 the variable \wsvindex{cloudbox\_on} to 1.  The limits of the cloud
-box are stored in \wsvindex{cloudbox\_limits}.  It is recommnded to
+box are stored in \wsvindex{cloudbox\_limits}.  It is recommended to
 use the method \wsmindex{CloudboxOff} when no scattering calculations
 shall be performed. This method assigns dummy values to all workspace
 variables not needed when scattering is neglected.
@@ -410,7 +410,7 @@ four elements. The Stokes vector, \StoVec, is here written as
 \end{equation}
 where the first component ($I$) is the full intensity of the
 radiation, the second component ($Q$) is the difference between
-vertical and horisontal polarisation, the third component ($U$) is the
+vertical and horizontal polarisation, the third component ($U$) is the
 difference for $\pm$45$^\circ$ polarisation and the last component
 ($Q$) is the difference between left and right circular polarisation.
 Further details on polarisation and definition of the Stokes vector
@@ -419,13 +419,13 @@ are found in Section~\ref{sec:polarization}.
 ARTS is a fully polarised forward model, but can be run with a smaller
 number of Stokes components. The selection is made with the workspace
 variable \wsvindex{stokes\_dim}. For example, gaseous absorption and
-emission are in general unpolarisad, and if not scattering has to be
-considered it is suffucient to only include the first Stokes
+emission are in general unpolarised, and if not scattering has to be
+considered it is sufficient to only include the first Stokes
 components in the simulations. To include higher order Stokes
-components only results in slower calculations. The general case is
-here denoted as \textindex{vector radiative transfer}, while
-\textindex{scalar radiative transfer} refers to the case when only
-the first Stokes component is considered.
+components results in this case only in slower calculations. The
+general case is here denoted as \textindex{vector radiative transfer},
+while \textindex{scalar radiative transfer} refers to the case when
+only the first Stokes component is considered.
 
 
 
@@ -435,7 +435,7 @@ the first Stokes component is considered.
 
 Absorption can not yet be calculated internally inside this ARTS
 version. So far absorption has to be imported, where for example the
-operation ARTS version (1.0.x) can be used to calculate the needed
+operational ARTS version (1.0.x) can be used to calculate the needed
 absorption coefficients. The absorption is put into a look-up table
 and the absorption is later extracted from this table by
 interpolation, as described in Section~\ref{sec:absorption}.
@@ -453,13 +453,13 @@ beam radiation is of interest, the positions and directions for which
 the radiation shall be calculated are given by specifying an imaginary
 sensor with infinite frequency and angular resolution. The workspace
 variables for the sensor that always must be specified are
-\artsstyle{sensor\_pos}, \artsstyle{sensor\_los},
-\artsstyle{sensor\_pol}, \artsstyle{antenna\_dim},
-\artsstyle{mblock\_za\_grid}, \artsstyle{mblock\_aa\_grid} and
-\artsstyle{Hb}. These variables are presented separately below. The
-discussion of sensor workspace variables is continued in
-Section~\ref{sec:sensor}. Section~\ref{sec:fm_defs:rte} gives further
-insights in how the sensor is treated in ARTS.
+\artsstyle{sensor\_response}, \artsstyle{sensor\_pos},
+\artsstyle{sensor\_los}, \artsstyle{antenna\_dim},
+\artsstyle{mblock\_za\_grid} and \artsstyle{mblock\_aa\_grid}. These
+variables are presented separately below. The discussion of sensor
+workspace variables is continued in Section~\ref{sec:sensor}.
+Section~\ref{sec:fm_defs:rte} gives further insights in how the sensor
+is treated in ARTS.
 
 
 \subsection{Sensor position\index{sensor position}}
@@ -522,7 +522,7 @@ theoretically there is an infinite number of line-of-sights associated
 with the sensor, but in the forward model, spectra are only calculated
 for a discrete set of directions. If a sensor line-of-sight is
 mentioned without any comments, it refers to the direction in which
-the center of the antenna pattern is directed.
+the centre of the antenna pattern is directed.
 
 \begin{figure}[!t]
  \begin{center}
@@ -545,10 +545,10 @@ of 2D, zenith angles down to -180\degree\ are also allowed, where the
 distinction is that positive angles mean a viewing direction towards
 higher latitudes, and negative angles mean a viewing direction towards
 lower latitudes. It should be mentioned that the zenith and nadir
-directions are here defined to be along the line passing the center of
+directions are here defined to be along the line passing the centre of
 the coordinate system and the point of concern
 (Section~\ref{sec:ppath:geoid}). A nadir observation,
-$\ZntAng=180\degree$, is thus a measurement towards the center of the
+$\ZntAng=180\degree$, is thus a measurement towards the centre of the
 coordinate system.
 
 The \textindex{azimuth angle}, \AzmAng, is given with respect to the
@@ -573,52 +573,36 @@ $(\aZntAng{i},\aAzmAng{i})$. The number of rows for
 \artsstyle{sensor\_pos}.
 
 
-\subsection{Sensor polarization\index{sensor polarization}}
-%===================
-\label{sec:fm_defs:sensorpol}
-
-[* To be written *]
-
-
-
 \subsection{Sensor characteristics and data reduction}
 %===================
 \label{sec:fm_defs:sensorchar}
 
-{\bf Please note:} \emph{The transfer matrix \aSnsMtr{b} is not yet
-  implemented, but will be introduced at a later stage. The other
-  variables described in this section exist. This means that ARTS so
-  far is only capable of performing monochromatic pencil beam
-  calculations.}
-
-The term ``sensor characteristics''\index{sensor characteristics} 
-is used here as a
-comprehensive term for the response of all sensor parts, beside
-polarization effects, that affect how the field of monochromatic
-pencil beam intensities are translated to the recorded spectrum. For
-example, the antenna pattern, the side-band filtering and response of
-the spectrometer channels are normally the most important
-characteristics for a microwave heterodyne radiometer. Any processing
-of the spectral data that takes place before the retrieval is denoted
-as \textindex{data reduction}. The most common processing is to represent
-the original spectra with a smaller set of values, that is, a
-reduction of the data size. The most common data reduction techniques
-is binning and Hotelling transformation by an eigenvector expansion.
+The term ``sensor characteristics''\index{sensor characteristics} is
+used here as a comprehensive term for the response of all sensor parts
+that affect how the field of monochromatic pencil beam intensities are
+translated to the recorded spectrum. For example, the antenna pattern,
+the side-band filtering and response of the spectrometer channels are
+normally the most important characteristics for a microwave heterodyne
+radiometer. Any processing of the spectral data that takes place
+before the retrieval is denoted as \textindex{data reduction}. The
+most common processing is to represent the original spectra with a
+smaller set of values, that is, a reduction of the data size. The most
+common data reduction techniques is binning and Hotelling
+transformation by an eigenvector expansion.
 
 In ARTS, the influence of sensor characteristics and data reduction is
 incorporated by transfer matrices\index{sensor transfer matrix}, as
 described in Section~\ref{sec:formalism:sensor} and \ref{sec:sensor}.
 The application of these transfer matrices assumes that each step is a
 linear operation, which should be the case for the response of the
-parts of a well designed instrument. Non-linear data reduction is
-handled by special workspace methods.
+parts of a well designed instrument. Non-linear data reduction could
+be handled by special workspace methods.
 
 The sensor and data reduction are described as a series of units, each
 having its own transfer matrix.  There is only one compulsory transfer
-matrix and it is \aSnsMtr{b} (\wsvindex{Hb}), where the subscript $b$
-stands for block (see Section~\ref{sec:fm_defs:seqsandblocks}). There
-are several workspace variables associated with this transfer matrix
-where \wsvindex{antenna\_dim}, \wsvindex{mblock\_za\_grid} and
+matrix and it is \wsvindex{sensor\_response}. There are several workspace
+variables associated with this transfer matrix where
+\wsvindex{antenna\_dim}, \wsvindex{mblock\_za\_grid} and
 \wsvindex{mblock\_aa\_grid} are the compulsory ones.
 
 The variable \artsstyle{antenna\_dim} gives the dimensionality of the
@@ -654,7 +638,7 @@ the intensity field that will be weighted with the antenna response.
 %===================
 \label{sec:fm_defs:seqsandblocks}
 
-The series of observations modeled by the simulations is denoted as
+The series of observations modelled by the simulations is denoted as
 the \textindex{measurement sequence}. That is, a measurement sequence
 covers all spectra recorded at all considered sensor positions. A
 measurement sequence consists of one or several \textindex{measurement
@@ -671,7 +655,7 @@ block can consist of several spectra when there is no effective motion
 of the sensor with respect to the atmospheric fields. It should be
 noted that for 1D cases, a motion along a constant radius has no
 influence on the simulated spectra as the same atmospheric fields are
-seen for a given viewing direction. It is favorable, if possible, to
+seen for a given viewing direction. It is favourable, if possible, to
 handle all spectra as a single block, instead of using a block for
 each sensor position. This is the case as the antenna patterns for the
 different line-of-sights are normally overlapping and a pencil beam
@@ -680,7 +664,7 @@ estimate the intensity field. If a measurement sequence is divided
 into several blocks even if a single block would be sufficient, pencil
 beam spectra for basically identical propagation paths can be
 calculated several times, which of course will increase the
-computational time. To summarize, for cases when the sensor is not in
+computational time. To summarise, for cases when the sensor is not in
 motion, or with a 1D atmosphere and a sensor not moving vertically,
 the aim should be to use a single block for the measurement sequence.
 
@@ -691,12 +675,13 @@ spectra (but not the full measurement sequence). This could be the
 case when the atmospheric dimensionality is 2D or 3D, and the sensor
 is moving but the movement during some subsequent spectra can be
 neglected. If this can be done must be judged by comparing the
-movement of the sensor during the extent of the considered block
-size and the spatial resolution, in the direction of the movement, that
-is hoped to be achieved. If this intermediate solution shall be an
+movement of the sensor during the extent of the considered block size
+and the spatial resolution, in the direction of the movement, that is
+hoped to be achieved. If this intermediate solution shall be an
 option, the difference in zenith and azimuth angles between the
-spectra must be the same for all blocks, otherwise \aSnsMtr{b} cannot
-be applied for all blocks as done below in Equation~\ref{eq:fm_defs:measseq}.
+spectra must be the same for all blocks, otherwise
+\artsstyle{sensor\_response} cannot be applied for all blocks as done
+below in Equation~\ref{eq:fm_defs:measseq}.
 
 For each block, pencil beam spectra are calculated for the
 line-of-sights obtained when summing \wsvindex{sensor\_los} and
@@ -726,11 +711,12 @@ directions, where the azimuth angle direction is the innermost loop.
 That is, for 2D antenna patterns all azimuth angles are looped for the
 first zenith angle etc. 
 
-The transfer matrix \aSnsMtr{b} is applied on each \aMpiVct{b} and the
-results are appended vertically, following the order of the positions
-in \artsstyle{sensor\_pos}
+The workspace variable \artsstyle{sensor\_response} is here denoted as
+\aSnsMtr{b}. It is applied on each \aMpiVct{b} and the results are
+appended vertically, following the order of the positions in
+\artsstyle{sensor\_pos}
 \begin{equation}
-  \MsrVct_{rte} = \left[ \begin{array}{c} \aSnsMtr{b}\aMpiVct{{b,1}} \\ 
+  \MsrVct = \left[ \begin{array}{c} \aSnsMtr{b}\aMpiVct{{b,1}} \\ 
                                     \aSnsMtr{b}\aMpiVct{{b,2}} \\
                                     \vdots                     \\
                                     \aSnsMtr{b}\aMpiVct{{b,n}} 
@@ -738,22 +724,10 @@ in \artsstyle{sensor\_pos}
   \label{eq:fm_defs:measseq}
 \end{equation}
 where $1$ indicates the first sensor position etc. This equation shows
-that \wsvindex{Hb} shall contain at least a description of the antenna
-response. The matrix \artsstyle{Hb} can also cover other sensor
-characteristics and data reduction if the features of concern are
-common for all measurement blocks. If this is not the case, those
-features must be handled by the other existing transfer matrices or,
-by other means, as described in Section~[**].
-%\ref{sec:fm_defs:howtomeasseq}.
-
-The quantities $\aMpiVct{b}$ and $\MsrVct_{rte}$ do not include the
-effect of the sensor polarisation, they include all Stokes components.
-This means that $\aMpiVct{b}$ and $\MsrVct_{rte}$ are matrices with
-number of columns equal to \wsvindex{stokes\_dim}. The matrix
-$\MsrVct_{rte}$ (\wsvindex{y\_rte}) is reduced to the measurement
-vector, \MsrVct\ (\wsvindex{y}), defined in Equation~\ref{eq:formalism:fm}, by
-applying the sensor polarisation as described in
-Section~\ref{sec:fm_defs:sensorpol}.
+that \wsvindex{sensor\_response} shall contain at least a description
+of the antenna response. The matrix \artsstyle{Hb} can also cover
+other sensor characteristics and data reduction if the features of
+concern are common for all measurement blocks. 
 
 As the sensor line-of-sight and block grid values are just added,
 there is an ambiguity of the line-of-sight. It is possible to apply a
@@ -763,7 +737,7 @@ sounding and a 1D atmosphere, where normally a single block should be
 used despite a number of spectra are recorded, it could be practical
 to set the line-of-sight to the viewing direction of the uppermost or
 lowermost spectrum, and the zenith angles in \artsstyle{mblock\_za\_grid}
-will not be centered around zero which is the case when the ``true''
+will not be centred around zero which is the case when the ``true''
 line-of-sight is used.
 
 It should be noted that the compulsory sensor variables give no
@@ -774,12 +748,7 @@ of hypothetical spectra corresponding to a point inside the sensor. On
 the other hand, if \artsstyle{Hb} includes the whole of the sensor and an
 eigenvector data reduction, the result is not even a spectrum in
 traditional way, it is just a column of coefficients with a vague
-physical meaning. To handle quantities appearing at a stage between
-monochromatic pencil beam intensities and the final representation of
-the measurements (where the total transformation can involve more
-steps than the multiplication with \artsstyle{Hb}), additional sensor
-variables must be introduced, as described in
-Section~[**]. %\ref{sec:fm_defs:sensor2}.
+physical meaning.
 
 
 
@@ -794,7 +763,7 @@ presentation assumes that the simulations deal with an emission
 measurement. Focus is put on emission measurements as ARTS is intended
 primarily for such observations. However, simulations of transmission
 measurements are also possible, which is discussed especially in
-Section~\ref{sec:fm_defs:trans_sim}.
+Section~\ref{sec:rte:trans_sim}.
 
 
 \subsection{Calculation procedure}
@@ -815,7 +784,7 @@ terms are applied.
 
 \begin{algorithm}[!t]
  \begin{algorithmic}
-  \STATE{allocate memory for the matrix $\MsrVct_{rte}$}
+  \STATE{allocate memory for the matrix $\MsrVct$}
   \COMMENT{Equation \ref{eq:fm_defs:measseq}}
   \STATE{allocate memory for the matrix \aMpiVct{b}}
   \COMMENT{Equation \ref{eq:fm_defs:freqs_of_ib}}
@@ -830,7 +799,7 @@ terms are applied.
     \STATE{copy \artsstyle{iy} to correct part of \aMpiVct{b}}
    \ENDFOR
    \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of 
-          $\MsrVct_{rte}$}
+          $\MsrVct$}
   \ENDFOR
  \end{algorithmic}
  \caption{Outline of the overall clear sky radiative transfer calculations
@@ -862,7 +831,7 @@ limit for the distance along the path between the points.
   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_cases2}
   \caption{Examples on allowed propagation paths for a 2D atmosphere. 
     The atmosphere is plotted as in Figure~\ref{fig:fm_defs:2d} beside
-    that the points for the atmospheric fields are not emphasized.
+    that the points for the atmospheric fields are not emphasised.
     The position of the sensor is indicated by an asterix $(\ast)$,
     the points defining the paths are plotted as circles $(\circ)$,
     joined by a solid line. The part of the path outside the
@@ -870,7 +839,7 @@ limit for the distance along the path between the points.
     dashed line. Path points corresponding to a tangent point are
     marked by an extra plus sign $(\oplus)$. The shown paths include
     the minimum set of definition points. There exists also the
-    possiblity to add points inside the grid cells, for example, to
+    possibility to add points inside the grid cells, for example, to
     ensure that the distance between the path points does not exceed
     a specified limit.}
   \label{fig:fm_defs:ppath_cases2}
@@ -964,7 +933,7 @@ exist:
   Algorithm~\ref{alg:fm_defs:RteCalc}) equals the output of
   \artsstyle{iy\_space\_agenda}.
 \item[The surface] The sum of surface emission and radiation reflected
-  by the surface is the radiative backsurface when the propagation path
+  by the surface is the radiative background when the propagation path
   intersects with the surface. The calculation of the up-welling
   radiation from the surface is described in
   Section~\ref{sec:fm_defs:surface}.
@@ -979,7 +948,7 @@ exist:
   background, and also the final spectrum, equals the internal
   intensity field of the cloud box at the position of the sensor, in
   the direction of the sensor line-of-sight. This case is also handled
-  by \artsstyle{iy\_cloudbox\_agenda} and can requiere some special
+  by \artsstyle{iy\_cloudbox\_agenda} and can require some special
   considerations, as described in
   Section~\ref{sec:fm_defs:scattering}.
 \end{description}
@@ -1038,22 +1007,22 @@ Section~\ref{sec:fm_defs:polarisation}).
 %===================
 \label{sec:fm_defs:surface}
 
-If there is an interception of the propagation path, the agenda
-\wsaindex{iy\_surface\_agenda} is supposed to provide the upwelling
-radiation at the interception point along the propagation path. The
-upwelling radiation is provided by setting \artsstyle{iy}. There exist
-a standard method for \artsstyle{iy\_surface\_agenda}, named as
-\wsmindex{surfaceCalc}. The primary input to this method are the
-workspace variables \wsvindex{surface\_emission},
-\wsvindex{surface\_los} and \wsvindex{surface\_rmatrix}. These
-three variables define together the properties of the surface, where
-the expression used to model surface emission and reflections is
+If there is an interception of the propagation path by the surface,
+the agenda \wsaindex{iy\_surface\_agenda} is supposed to provide the
+upwelling radiation at the interception point along the propagation
+path. The upwelling radiation is provided by setting \artsstyle{iy}.
+There exist a standard method for \artsstyle{iy\_surface\_agenda},
+named as \wsmindex{surfaceCalc}. The primary input to this method are
+the workspace variables \wsvindex{surface\_emission},
+\wsvindex{surface\_los} and \wsvindex{surface\_rmatrix}. These three
+variables define together the properties of the surface, where the
+expression used to model surface emission and reflections is
 (Figure~\ref{fig:fm_defs:surface_refl})
 \begin{equation}
   \MpiVct_s^u = \MpiVct_e + \sum_l^{} \mathbf{R}_l \MpiVct_l^d
   \label{eq:fm_defs:surfacerefl}
 \end{equation}
-where \MpiVct\ is the Stokes vector for one frequency, $\MpiVct_g^u$
+where \MpiVct\ is the Stokes vector for one frequency, $\MpiVct_s^u$
 is the total upward travelling intensity from the surface along the
 propagation path, $\MpiVct_e$ is the emission from the surface,
 $\MpiVct_l^d$ is the downward travelling intensity reaching the
@@ -1066,7 +1035,7 @@ reflection coefficients $(\mathbf{R})$ are stored in
 \artsstyle{surface\_rmatrix}. Surface reflections and emission are
 discussed further in Section~\ref{sec:surface}.
 
-\begin{figure}[!p]
+\begin{figure}[!tb]
  \begin{center}
   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ground_refl}
   \caption{Schematic of Equation \ref{eq:fm_defs:surfacerefl}.}
@@ -1114,39 +1083,31 @@ enough that the atmospheric field is sufficiently well approximated by
 the piecewise (multi-)linear representation between the grid
 crossings. The result is that a finer spacing must be used to
 represent correctly atmospheric fields with a lot of structure, while
-the grids can have fewer points when the atmsopheric fields are
+the grids can have fewer points when the atmospheric fields are
 smooth. 
 
 The accuracy when performing the actual radiative transfer
 calculations depends on the refinement of the expressions used and the
-discretization of the propagation path. If
+discretisation of the propagation path. If
 Equation~\ref{eq:fm_defs:rte_step} is used, the underlaying
 assumptions are that the temperature is constant, and that the
 absorption varies linearly, along the propagation path step. These
 assumptions are of course less violated if the path step length is
 made small. An upper limit of the path step length is set by the
 keyword argument \artsstyle{lmax}. In many cases it should suffice to
-just include path points at the crossings of the atmsopheric grids
+just include path points at the crossings of the atmospheric grids
 (\artsstyle{lmax}$\leq0$). An exception can be limb sounding where the
 path step length can be very long around the tangent point, but a
 limit of about 25~km should suffice normally. 
 
 As points are always included in the propagation paths at the
 crossings of the atmospheric grids, finer grids will give shorter path
-steps. However, it is neither good practice or effecient to use the
-atmsopheric grids to control the accuracy of the radiative transfer
+steps. However, it is neither good practice or efficient to use the
+atmospheric grids to control the accuracy of the radiative transfer
 calculations. An upper limit on the path step length shall be applied
 for this purpose.\footnote{Further discussion can be found in message
   399 and 410 of the ARTS developers mailing list.}
 
-
-
-\subsection{Simulation of transmission measurements}
-%===================
-\label{sec:fm_defs:trans_sim}
-
-This feature is not yet implemented, but could easily be added if such
-simulations are needed.
 
 
 
@@ -1154,9 +1115,38 @@ simulations are needed.
 %==============================================================================
 \label{sec:fm_defs:scattering}
 
-[* To be written. *]
+The scattering inside the cloud box can be handled by several methods.
+The different modules are here only quickly outlined, details are
+given in seperate chapters.
 
-%[* Special quantities and considerations for scattering ... *]
+
+\subsection{DOIT -- the discrete ordinate iterative module}
+%==============================================================================
+\label{sec:fm_defs:doit}
+
+In the DOIT module, the complete intensity field inside the cloud box
+is determined. This means that the intensity from a discrete set of
+directions is calculated at all positions of the grid mesh inside the
+cloud box. The intensity field is determined in an iterative manner,
+and this calculation must be performed before calling \artsstyle{RteCalc}.
+The DOIT module is described in Chapter \ref{sec:scattering}.
+
+
+\subsection{MC -- reversed Monte Carlo scattering module}
+%==============================================================================
+\label{sec:fm_defs:mc}
+
+The approach in the MC module is to follow propagation paths
+backwards, with scattering angles and path lengths randomly chosen
+from probability density functions determined by the scattering phase
+function, and a scalar extinction coefficient, respectively. The phase
+matrices for every scattering event and scalar extinction are then
+sequentially applied to the source Stokes vector to give the Stokes
+vector contribution for each photon. The tracking of the propagation
+paths starts at the cloud box boundary and continues backwards to the
+point of emission or the boundary of the cloud box (whatever comes
+first). See further Chapter \ref{sec:montecarlo}.
+
 
 
 

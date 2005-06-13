@@ -3,6 +3,7 @@
 
 
 \starthistory
+  050613 & Some new features described by Patrick Eriksson.\\
   030310 & First complete version written by Patrick Eriksson.\\
 \stophistory
 
@@ -142,6 +143,15 @@ propagation paths. For example, an upper distance between the points
 defining the path can be set for \artsstyle{ppath\_stepGeometric} by
 the keyword \artsstyle{lmax} (see Figure~\ref{fig:ppath:ex2}).
 
+In many cases the propagation path can/must be considered to consist
+of several parts. One exemple is surface reflection (see
+Figure~\ref{fig:fm_defs:surface_refl}). The variable \artsstyle{ppath}
+describes then only a single part of the propagation path, while the
+complete path is put into \wsvindex{ppath\_array}. The part closest to
+the sensor is first in this array (index 0). The order of the
+following parts is described by the \artsstyle{next\_parts} field
+of the \artsstyle{Ppath} structure (see below).
+
 
 
 \section{The propagation path data structure}
@@ -151,8 +161,9 @@ the keyword \artsstyle{lmax} (see Figure~\ref{fig:ppath:ex2}).
 A propagation path is represented by a structure of type
 \typeindex{Ppath}. This structure holds also auxiliary variables to
 facilitate the radiative transfer calculations and to speed up the
-interpolation. The fields of \artsstyle{Ppath}, where
-the data type is given inside square brackets, are:
+interpolation. The fields of \artsstyle{Ppath} are described below,
+where the data type is given inside square brackets. 
+
 \begin{description}
 
   \item[dim] [Index] The atmospheric dimensionality. This field shall always 
@@ -259,6 +270,28 @@ the data type is given inside square brackets, are:
      as for \artsstyle{tan\_pos}.
 \end{description}
 
+The fields above are set as when the propagation path is determined
+(inside(\artsstyle{ppath\_calc}). Remaining fields, listed below, are
+set at a later stage:
+
+\begin{description}
+
+\item[p] [Vector] The pressure for each path position. Length is
+  accordingly \artsstyle{np}. Set by \funcindex{iy\_calc}.
+
+\item[t] [Vector] The temperature for each path position. Length is
+  accordingly \artsstyle{np}. Set by \artsstyle{iy\_calc}.
+  
+\item[vmr] [Matrix] The VMR of each gas species at each path
+  position. Set by \artsstyle{iy\_calc}.
+  
+\item[\next\_parts] [ArrayOfIndex] The index in
+  \wsvindex{ppath\_array} of following propagation path parts. Not
+  defined for individual propagation paths. A negative value means
+  that there is no following part.
+  Set by functions where new propagation path are calculated, such as
+  \artsstyle{surfaceCalc}.
+\end{description}
 
 
 \section{Structure of implementation}

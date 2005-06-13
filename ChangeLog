@@ -1,3 +1,20 @@
+2005-06-13  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1003
+
+	* doc/uguide/surface.tex: Removed two FIXME about theory to check.
+	These things have not been looked at, and the equations appear to be
+	correct. Added a control file example.
+  
+	* doc/uguide/ppath.tex: Included new fields of Ppath structure, and
+	some comments on new WSV ppath_array.
+
+	* doc/uguide/concept.tex: Revised and added example on supergeneric
+	method.
+
+	* doc/uguide/fm_definitions.tex: Revised. Added some small text about
+	DOIT and MC.
+
 2005-06-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1002
