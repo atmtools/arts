@@ -49,6 +49,7 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include "lin_alg.h"
 #include "auto_md.h"
 #include "logic.h"
+#include "math_funcs.h"
 #include "physics_funcs.h"
 #include "xml_io.h"
 #include "montecarlo.h"

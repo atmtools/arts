@@ -22,6 +22,7 @@
 #include "interpolation.h"
 #include "make_vector.h"
 #include "xml_io.h"
+#include "math_funcs.h"
 
 void test01()
 {

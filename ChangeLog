@@ -1,3 +1,20 @@
+2005-06-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1006
+
+	* Fixes for float compilation.
+
+	* src/math_funcs.{cc,h} (pow):
+
+	Added overloaded pow function with first argument of type double and
+	second argument of type float.
+
+	* src/m_montecarlo.cc, src/test_interpolation.cc:
+
+	Include math_funcs.h for overloaded pow functions.
+
+	* ChangeLog: Removed conflict marker.
+
 2005-06-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1005
@@ -243,7 +260,6 @@
 
         Use agenda member functions to determine which WSVs need a push/dup.
 
->>>>>>> 1.1392
 2005-06-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
         * arts-1-1-992

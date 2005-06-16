@@ -332,6 +332,24 @@ double pow (float f, double d)
 }
 
 
+//! pow
+/*! 
+    Returns the value of d raised to the power of f.
+
+    \return      The value of f raised to the power of d.
+    \param   d   Double value.
+    \param   f   Float value.
+
+    \author Oliver Lemke
+    \date   2003-01-23
+*/
+
+double pow (double d, float f)
+{
+  return (pow (d, double (f)));
+}
+
+
 //! AngIntegrate_trapezoid
 /*! 
     Performs an integration of a matrix over all directions defined in angular
