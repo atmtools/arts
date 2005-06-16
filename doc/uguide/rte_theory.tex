@@ -12,8 +12,8 @@
 
 
 \starthistory
-  030305 & Copied from a compendium written by Patrick Eriksson.\\
-  050224 & Copied chapter 1 from Claudia Emde's phd-thesis. 
+  050224 & Copied chapter 1 from Claudia Emde's phd-thesis. \\
+  030305 & Copied from a compendium written by Patrick Eriksson.
 \stophistory
 
 
@@ -560,11 +560,12 @@ includes the Stokes vectors from all waves contributing to the
 electromagnetic radiation field.
 
 The vector radiative transfer equation (VRTE) is
-\begin{eqnarray}\label{eq:rtetheory:VRTE}
+\begin{eqnarray}
   \frac {\DiffD\StoVec(\PDir, \nu, T)}{\DiffD s} =
     &{}-\EnsAvr{\ExtMat(\PDir, \nu, T)} \StoVec(\PDir, \nu, T) +
-    \EnsAvr{\AbsVec(\PDir, \nu, T)} \rlap{$B(\nu, T)$} \\
+    \EnsAvr{\AbsVec(\PDir, \nu, T)} \rlap{$B(\nu, T)$} \nonumber \\
     &{}+ \int_{4\pi} \DiffD\PDir' \EnsAvr{\PhaMat(\PDir, \PDir', \nu, T)} \StoVec(\PDir', \nu, T),
+  \label{eq:rtetheory:VRTE}
   \end{eqnarray}
 where $\StoVec$ is the specific intensity vector, $\EnsAvr\ExtMat$ is the ensemble-averaged extinction matrix, $\EnsAvr\AbsVec$ is the ensemble-averaged absorption vector, $B$ is the
 Planck function and $\EnsAvr\PhaMat$ is the ensemble-averaged

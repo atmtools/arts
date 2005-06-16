@@ -7,7 +7,38 @@
 \stophistory
 
 
-To be written \dots
+This chapter deals with the ``clear sky'' part of ARTS. That is, the
+only physical features to consider are absorption and emission. A
+simulation can consists solely of clear sky calculations. A clear sky
+calculations can also treat the radiative transfer from the surface or
+the cloud box, to the sensor. How these calculations shall be
+performed is set by defining \artsstyle{rte\_agenda}. 
+
+
+\section{The vector radiative transfer equation}
+%---
+\label{sec:rte:vrte}
+
+The complete vector radiative transfer, including scattering, is given
+by Equation~\ref{eq:rtetheory:VRTE}. If scattering can be neglected,
+the equation can be written as
+\begin{equation}
+  \label{eq:rte:vrte}
+  \frac {\DiffD\StoVec}{\DiffD s} = -\ExtMat\StoVec + \AbsVec B,
+\end{equation}
+where \StoVec\ is the intensity vector (the Stokes vector), $s$ is the
+distance along the propagation path, \ExtMat\ is the extinction
+matrix, \AbsVec\ is the absorption vector and $B$ is the source
+function (a scalar). If local thermodynamic equilibrium applies, $B$
+equals the Planck function describing blackbody radiation. See further
+Chapter~\ref{sec:rte_theory}.
+
+As scattering here is neglected, the elements of \ExtMat\ and \AbsVec\ 
+are linked to each other, and we have that:
+\begin{eqnarray*}
+  \ExtMat^{-1}\AbsVec &=& \left[\begin{array}{c} \alpha\\0\\0\\0 \end{array}\right],
+\end{eqnarray*}
+where $\alpha$ is the total gas absorption coefficient. 
 
 
 \subsection{Simulation of transmission measurements}
