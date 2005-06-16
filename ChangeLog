@@ -1,3 +1,11 @@
+2005-06-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1008
+	
+	* doc/uguide/development.tex:
+
+	Updated section on how to add a WSV group.
+
 2005-06-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 	
 	* arts-1-1-1007

@@ -390,9 +390,29 @@ group can be added.
 
 \begin{enumerate}
 \item Add a \artsstyle{wsv\_group\_names.push\_back("your\_type")} function to
-  the function \artsstyle{define\_wsv\_group\_names()} in \fileindex{groups.cc}. The
-  name must be \emph{exactly} like you use it in the source code,
+  the function \artsstyle{define\_wsv\_group\_names()} in \fileindex{groups.cc}.
+  The name must be \emph{exactly} like you use it in the source code,
   because this is used to generate interface functions.
+\item XML reading/writing routines are mandatory for each workspace variable
+  group. Two steps are necessary to add xml support for the new group:
+  \begin{enumerate}
+  \item Implement an \artsstyle{xml\_read\_from\_stream}
+    and \artsstyle{xml\_write\_to\_stream} function. Depending
+    on the type of the group the implementation goes into one
+    of the three files \fileindex{xml\_io\_basic\_types.cc},
+    \fileindex{xml\_io\_compound\_types.cc}, or
+    \fileindex{xml\_io\_array\_types.cc}. Basic types are for example Index
+    or Numeric. Compound types are structures and classes. And array types are
+    arrays of basic or compound types. Also add the function declaration in the
+    corresponding \artsstyle{.h} file.
+  \item Add an explicit instantiation for
+    \artsstyle{xml\_read\_from\_file<GROUP>} and
+    \artsstyle{xml\_write\_to\_file<GROUP>} to \fileindex{xml\_io\_instantiation.h}.
+  \end{enumerate}
+\item If your new group does not implement the output operator
+  (\artsstyle{operator<<}), you have to add an explicit implementation
+  of the \artsstyle{Print} function in \fileindex{m\_general.h} and
+  \fileindex{m\_general.cc}.
 \item That's it! (But as stated above, use this feature wisely)
 \end{enumerate}
 
