@@ -130,7 +130,6 @@ void doit_conv_flagAbs(//WS Input and Output:
                       const Vector& epsilon)
 {
   //------------Check the input---------------------------------------
-  
   if( doit_conv_flag != 0 )
     throw runtime_error("Convergence flag is non-zero, which means that this\n"
                         "WSM is not used correctly. *doit_conv_flagAbs* should\n"
@@ -138,13 +137,17 @@ void doit_conv_flagAbs(//WS Input and Output:
   
   
   if (doit_iteration_counter > 100)
-    throw runtime_error("Error in DOIT calculation: \n"
-                        "Method does not converge (number of iterations \n"
-                        "is > 100). Either the cloud particle number density \n"
-                        "is too large or the numerical setup for the DOIT \n"
-                        "calculation is not correct. In case of limb \n"
-                        "simulations please make sure that you use an \n"
-                        "optimized zenith angle grid. \n");
+    {
+      out1 <<"Warning in DOIT calculation:" 
+           <<"Method does not converge (number of iterations \n"
+           <<"is > 100). Either the cloud particle number density \n"
+           <<"is too large or the numerical setup for the DOIT \n"
+           <<"calculation is not correct. In case of limb \n"
+           <<"simulations please make sure that you use an \n"
+           <<"optimized zenith angle grid. \n"
+           <<"*doit_i_field* might be wrong.\n";
+      doit_conv_flag = 1;
+    }
   
   const Index N_p = doit_i_field.nvitrines();
   const Index N_lat = doit_i_field.nshelves();
@@ -192,20 +195,23 @@ void doit_conv_flagAbs(//WS Input and Output:
                              stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                            abs( doit_i_field(p_index, lat_index, lon_index, 
-                                          scat_za_index, scat_aa_index, 
-                                          stokes_index) -
-                                  doit_i_field_old(p_index, lat_index, 
-                                              lon_index, scat_za_index,
-                                              scat_aa_index, 
-                                              stokes_index ));
-                          
+                             (doit_i_field(p_index, lat_index, lon_index, 
+                                               scat_za_index, scat_aa_index, 
+                                               stokes_index) -
+                              doit_i_field_old(p_index, lat_index, 
+                                               lon_index, scat_za_index,
+                                               scat_aa_index, 
+                                               stokes_index ));
+                            
                           // If the absolute difference of the components
                           // is larger than the pre-defined values, return
                           // to *doit_i_fieldIterarte* and do next iteration
                           
-                          if( diff > epsilon[stokes_index])
-                            return;
+                          if( abs(diff) > epsilon[stokes_index])
+                            {
+                              out1 << "difference: " << diff <<"\n";
+                              return;
+                            }
                           
                           
                         }// End loop stokes_dom.
@@ -246,21 +252,18 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                         "be used only in *doit_conv_test_agenda*\n");
   
   if (doit_iteration_counter > 100)
-//   throw runtime_error("Error in DOIT calculation: \n"
-//                         "Method does not converge (number of iterations \n"
-//                         "is > 100). Either the cloud particle number density \n"
-//                         "is too large or the numerical setup for the DOIT \n"
-//                         "calculation is not correct. In case of limb \n"
-//                         "simulations please make sure that you use an \n"
-//                         "optimized zenith angle grid. \n");
- 
-     out1 <<"Warning in DOIT calculation: \n"
-          <<"Method does not converge (number of iterations \n"
-          <<"is > 100). Either the cloud particle number density \n"
-          <<"is too large or the numerical setup for the DOIT \n"
-          <<"calculation is not correct. In case of limb \n"
-          <<"simulations please make sure that you use an \n"
-          <<"optimized zenith angle grid. \n";
+    {
+      out1 <<"Warning in DOIT calculation at frequency" << f_grid[f_index] 
+           << "GHz: \n"
+           <<"Method does not converge (number of iterations \n"
+           <<"is > 100). Either the cloud particle number density \n"
+           <<"is too large or the numerical setup for the DOIT \n"
+           <<"calculation is not correct. In case of limb \n"
+           <<"simulations please make sure that you use an \n"
+           <<"optimized zenith angle grid. \n"
+           <<"*doit_i_field* might be wrong.\n";
+      doit_conv_flag = 1;
+    }
   
   const Index N_p = doit_i_field.nvitrines();
   const Index N_lat = doit_i_field.nshelves();
@@ -277,7 +280,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                         "separately. That means that *epsilon* must "
                         "have *stokes_dim* elements!"
                         );
-
+  
   // Check if doit_i_field and doit_i_field_old have the same dimensions:
   if(!is_size( doit_i_field_old, 
                N_p, N_lat, N_lon, N_za, N_aa, stokes_dim))
@@ -317,7 +320,7 @@ void doit_conv_flagAbsBT(//WS Input and Output:
                              stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                            fabs( doit_i_field(p_index, lat_index, lon_index, 
+                            abs( doit_i_field(p_index, lat_index, lon_index, 
                                           scat_za_index, scat_aa_index, 
                                           stokes_index) -
                                   doit_i_field_old(p_index, lat_index, 
@@ -2666,8 +2669,8 @@ void ScatteringDoit(
       out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
       doit_mono_agendaExecute(doit_i_field, scat_i_p, scat_i_lat,
                               scat_i_lon, f_index, doit_mono_agenda,
-                              f_index); 
-    }
+                              false); 
+        }
 }
 
  

@@ -152,7 +152,7 @@ The solution of \eqnref{eq:scattering:vrte-fs-av} is found analytically using
 a matrix exponential approach: % \FIXME  (see \appref{app:A}):
 \begin{equation}
   \StoVec^{(1)} =
-  e^{-\overline{\EnsAvr\ExtMat}  s} \StoVec^{(0)}
+  e^{-\overline{\EnsAvr\ExtMat}  s} \StoVec^{(0)} + 
   \left( \IdnMtr -  e^{-\overline{\EnsAvr\ExtMat} s} \right)
   \overline{\EnsAvr\ExtMat}^{\,-1} \left(\overline{\EnsAvr\AbsVec}\,
     \bar{B} + \overline{\EnsAvr{\SVec^{(0)}}} \right),
@@ -226,7 +226,7 @@ Thus the \emph{$n$-th order iteration field }
 is given by
 \begin{equation}
   \StoVec^{(n)} =  e^{-\overline{\EnsAvr\ExtMat}
-    s}\cdot\StoVec^{(n-1)}  (\IdnMtr - e^{-\overline {\EnsAvr\ExtMat
+    s} + \cdot\StoVec^{(n-1)}  (\IdnMtr - e^{-\overline {\EnsAvr\ExtMat
     s}} ) \overline{\EnsAvr\ExtMat} ^{\,-1} ( \overline{\EnsAvr\AbsVec}\,\bar{B} + \overline{\EnsAvr{\SVec^{(n-1)}}} ),
 \end{equation}
 for all cloud box points and all directions defined in the numerical

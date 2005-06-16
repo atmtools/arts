@@ -203,13 +203,13 @@ void chk_pnd_data(
   for (i_p = 0; pnd_field_raw.p_grid[i_p] > p_grid[cloudbox_limits[0]]; i_p++)
     { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file); }
   // The first point inside the cloudbox also needs to be zero !!
-  chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
+  //chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
   
   //Upper pressure limit 
   for (i_p = pnd_field_raw.p_grid.nelem()-1;
        pnd_field_raw.p_grid[i_p] < p_grid[cloudbox_limits[1]]; i_p--)
     { chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file); }
-  chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
+  //chk_if_pnd_zero_p(i_p, pnd_field_raw, pnd_field_file);
   
   if (atmosphere_dim == 1 && (pnd_field_raw.lat_grid.nelem() != 1 
                               || pnd_field_raw.lon_grid.nelem() != 1) )
@@ -243,28 +243,28 @@ void chk_pnd_data(
         { chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file); }
 
       // The first point inside the cloudbox also needs to be zero !!
-      chk_if_pnd_zero_lat(i_lat+1, pnd_field_raw, pnd_field_file);
+      // chk_if_pnd_zero_lat(i_lat+1, pnd_field_raw, pnd_field_file);
 
       //Upper latitude limit 
       for (i_lat = pnd_field_raw.lat_grid.nelem()-1;
            pnd_field_raw.lat_grid[i_lat] < lat_grid[cloudbox_limits[3]]; 
            i_lat--)
         { chk_if_pnd_zero_lat(i_lat, pnd_field_raw, pnd_field_file); }
-      chk_if_pnd_zero_lat(i_lat-1, pnd_field_raw, pnd_field_file);
+      //chk_if_pnd_zero_lat(i_lat-1, pnd_field_raw, pnd_field_file);
       
       // Lower longitude limit
       for (i_lon = 0; pnd_field_raw.lon_grid[i_lon] > 
            lon_grid[cloudbox_limits[4]]; i_lon++)
         { chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file); }
       // The first point inside the cloudbox also needs to be zero !!
-      chk_if_pnd_zero_lon(i_lon+1, pnd_field_raw, pnd_field_file);
+      // chk_if_pnd_zero_lon(i_lon+1, pnd_field_raw, pnd_field_file);
       
       //Upper longitude limit 
       for (i_lon = pnd_field_raw.lon_grid.nelem()-1;
            pnd_field_raw.lon_grid[i_lon] < lon_grid[cloudbox_limits[5]]; 
            i_lon--)
         { chk_if_pnd_zero_lon(i_lon, pnd_field_raw, pnd_field_file); }
-      chk_if_pnd_zero_lon(i_lon-1, pnd_field_raw, pnd_field_file);
+      //chk_if_pnd_zero_lon(i_lon-1, pnd_field_raw, pnd_field_file);
     } 
   
   out3 << "Particle number density data is o.k. \n";

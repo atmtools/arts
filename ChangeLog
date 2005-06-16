@@ -1,3 +1,14 @@
+2005-06-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+	
+	* arts-1-1-1007
+	
+	* src/m_scatrte.cc (doit_conv_flagAbs, doit_conv_flagAbsBT):
+	Replaced runtime error with warning if number if iterations is
+	>100.
+
+	* doc/uguide/scattering.tex: Included missing '+' noticed by
+	Patrick. 
+
 2005-06-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1006
