@@ -71,7 +71,9 @@ emissionOn {}
 ArrayOfMatrixReadAscii(radiosonde_data){"radiosondes.aa"}
 
 ### Calculate all Radiances ###################################################
-ybatchFromRadiosonde {0}
+ybatchFromRadiosonde { finegrid = 0
+                       interp_rh = 0
+                       za_per_profile = 0 }
 
 ### Convert to brightness temperatures ########################################
 # MatrixTB(ybatch,ybatch) {}  

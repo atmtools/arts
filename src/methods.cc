@@ -3938,7 +3938,7 @@ md_data.push_back
          "\n"
          "  za_per_profile : Flag for giving separate za_pencils for each profile\n"
          "\n"
-         "  0 = As before, za_penil(s) will be same for all profiles\n"
+         "  0 = As before, za_pencil(s) will be same for all profiles\n"
          "  1 = separate za_pencil for each profile\n"
          "If this keyword is set to 1, please make sure that the number of elements\n"
          "in the za_pencil and the number of radiosonde profiles are the same. The\n"

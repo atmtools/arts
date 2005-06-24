@@ -7,8 +7,6 @@
 #        2. name of the indentities (*.k_names.aa)
 #        3. uncertainities in absolute (firs column) 
 #           and relative values (second column) (*.S_S.aa)
-#        4. correlation (*.Mcorr.aa). 
-#        The level of correlation is specified in control file (correlation)
 #        The parameters of all the lines corresponding to one species are 
 #        assumed to be correlated, and no intercorrelation between different
 #        spectro parameters or species.      
@@ -179,7 +177,6 @@ kbInit{}
 #
 # in this example the weighting function is calculated
 # for intensity (field set to 1) and agam (fiel set to 1) 
-# A correlation of 0.5 is assumed.
 #
 kSpectro{ 
  	do_intens=1 
@@ -189,7 +186,6 @@ kSpectro{
  	do_nair = 0
  	do_nself=0
  	do_pSift=0
-        correlation =.5
 }
 
 ### Save monochromatic spectra and K #####################################
@@ -211,7 +207,7 @@ MatrixWriteAscii( k ){""}
 ArrayOfStringWriteAscii(k_names){""}
 
 
-### Save matrix keeping the error and correlation matrix.
+### Save matrix keeping the error.
 # These are helpfull for the error analysis.
 MatrixWriteAscii( S_S ) {""}
-MatrixWriteAscii( Mcorr ){""}
+

@@ -1,3 +1,17 @@
+2005-06-22  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-0-185
+
+	* src/methods.cc: Fixed typo in online docs.
+
+	* docs/examples/radiosonde_example.arts.in:
+
+	Adapt for changed keywords in ybatchFromRadiosonde.
+
+	* docs/examples/wfs_spectro_example.arts.in:
+
+	Removed correlation stuff.
+
 2005-06-09  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-184
