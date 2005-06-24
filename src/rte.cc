@@ -850,7 +850,6 @@ void rte_std(
       ppath_transmissions.resize(np-1,nf,stokes_dim,stokes_dim); 
     }
 
-
   // Loop the propagation path steps
   //
   // The number of path steps is np-1.
@@ -894,8 +893,9 @@ void rte_std(
                       const Index   is = rte_do_vmr_jacs[ig];
                       const Numeric p  = dd * 
                                       abs_scalar_gas(iv,is) / rte_vmr_list[is];
-                      diy_dvmr[ppath_array_index](is,ip,iv,0)   += p;
-                      diy_dvmr[ppath_array_index](is,ip-1,iv,0) += p;
+
+                      diy_dvmr[ppath_array_index](ig,ip,iv,0)   += p;
+                      diy_dvmr[ppath_array_index](ig,ip-1,iv,0) += p;
                     }
                 }
             }
@@ -918,6 +918,7 @@ void rte_std(
             { ppath_transmissions(ip-1,iv,joker,joker) = trans; }
         }
     }
+
 
   //--- Postprocessing of Jacobians
   if( ng )

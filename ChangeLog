@@ -1,3 +1,24 @@
+2005-06-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1009
+
+	* src/m_jacobian.cc (jacobianAddTemperature): Removed options of
+	relative perturbations.
+
+	* src/m_jacobian.cc (jacobianCalcTemperature): Removed options of
+	relative perturbations.
+
+	* src/jacobian.cc (check_retrieval_grids): Included checks that grids
+	are sorted correctly.
+
+	* src/m_physics.cc (SparseToTbByXxx): DO NOT USE!!!
+	These functions appear not to work. 
+
+	* src/m_physics.cc (SparseToTbByPlanck): Innermost if-statement used
+	y_out. Should be y_in.
+
+	* src/m_physics.cc (SparseToTbByRJ): As above.
+	
 2005-06-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1008

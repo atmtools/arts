@@ -162,24 +162,31 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
                             const Index&         dim)
 {
   if ( p_retr.nelem()==0 )
-  {
-    os << "The grid vector *" << p_retr_name << "* is empty,"
-       << " at least one pressure level\n"
-       << "should be specified.";
-    return false;
-  }
+    {
+      os << "The grid vector *" << p_retr_name << "* is empty,"
+         << " at least one pressure level\n"
+         << "should be specified.";
+      return false;
+    }
+  else if( !is_decreasing( p_retr ) )
+    {
+      os << "The pressure grid vector *" << p_retr_name << "* is not a\n"
+         << "strictly decreasing vector, which is required.";
+      return false;      
+    }
   else if ( p_retr[0]>p_grid[0] || 
             p_retr[p_retr.nelem()-1]<p_grid[p_grid.nelem()-1] ) 
-  {
-    os << "The grid vector *" << p_retr_name << "* is not covered by the\n"
-       << "corresponding atmospheric grid.";
-    return false;
-  }
+    {
+      os << "The grid vector *" << p_retr_name << "* is not covered by the\n"
+         << "corresponding atmospheric grid.";
+      return false;
+    }
   else
-  {
-    // Pressure grid ok, add it to grids
-    grids[0]=p_retr;  
-  }
+    {
+      // Pressure grid ok, add it to grids
+      grids[0]=p_retr;  
+    }
+
   if (dim>=2)
   {
     // If 2D and 3D atmosphere, check latitude grid
@@ -189,6 +196,12 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
          << " at least one latitude\n"
          << "should be specified for a 2D/3D atmosphere.";
       return false;
+    }
+    else if( !is_increasing( lat_retr ) )
+    {
+      os << "The latitude grid vector *" << lat_retr_name << "* is not a\n"
+         << "strictly increasing vector, which is required.";
+      return false;      
     }
     else if ( lat_retr[0]<lat_grid[0] || 
               lat_retr[lat_retr.nelem()-1]>lat_grid[lat_grid.nelem()-1] )
@@ -211,6 +224,12 @@ bool check_retrieval_grids(       ArrayOfVector& grids,
            << " at least one longitude\n"
            << "should be specified for a 3D atmosphere.";
         return false;
+      }
+      else if( !is_increasing( lon_retr ) )
+      {
+      os << "The longitude grid vector *" << lon_retr_name << "* is not a\n"
+         << "strictly increasing vector, which is required.";
+      return false;      
       }
       else if ( lon_retr[0]<lon_grid[0] || 
                 lon_retr[lon_retr.nelem()-1]>lon_grid[lon_grid.nelem()-1] )

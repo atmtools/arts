@@ -446,7 +446,6 @@ void jacobianAddTemperature(// WS Output:
                     // Control Parameters:
                     const String&             hse,
                     const String&             method,
-                    const String&             mode,
                     const Numeric&            dx)
 {
   // Check that the jacobian matrix is empty. Otherwise it is either
@@ -514,15 +513,6 @@ void jacobianAddTemperature(// WS Output:
     throw runtime_error(os.str());
   }
   
-  // Check that mode is either 'abs' or 'rel'
-  if (mode!="abs" && mode!="rel")
-  {
-    ostringstream os;
-    os << "The mode of perturbation for temperature can only be either\n"
-       << "absolute (\"abs\") or relative (\"rel\")."; 
-    throw runtime_error(os.str());
-  }
-  
   // Check that temperature is not already included in the jacobian.
   // We only check the main tag.
   for (Index it=0; it<jq.nelem(); it++)
@@ -539,7 +529,7 @@ void jacobianAddTemperature(// WS Output:
   RetrievalQuantity rq = RetrievalQuantity();
   rq.MainTag("Temperature");
   rq.Subtag(subtag);
-  rq.Mode(mode);
+  rq.Mode("abs");
   rq.Analytical(analytical);
   rq.Perturbation(dx);
   rq.Grids(grids);
@@ -560,10 +550,10 @@ void jacobianAddTemperature(// WS Output:
   }
   else
   { 
-    out3 << "  Calculations done by perturbation, size " << dx 
-         << " " << mode << ".\n"; 
+    out3 << "  Calculations done by perturbations, of size " << dx << ".\n"; 
   }
 }                    
+
 
 
 //! jacobianCalc
@@ -1262,7 +1252,7 @@ void jacobianCalcTemperature(
   // Set some useful (and needed) variables. 
   RetrievalQuantity rq;
   ArrayOfIndex ji;
-  Index it, method;
+  Index it;
   
   // Find the retrieval quantity related to this method, i.e. Temperature.
   // For temperature only the main tag is checked.
@@ -1289,10 +1279,9 @@ void jacobianCalcTemperature(
   // Store the start JacobianIndices and the Grids for this quantity
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
-  if (rq.Mode()=="rel")
-    method = 0;
-  else
-    method = 1;
+
+  // "Perturbation method". 1 means absolute perturbations
+  const Index method = 1;
       
   // For each atmospheric dimension option calculate a ArrayOfGridPos, 
   // these will be used to interpolate a perturbation into the atmospheric 

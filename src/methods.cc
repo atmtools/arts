@@ -2224,7 +2224,6 @@ md_data_raw.push_back
          "perturbation, this perturbation is then applied to the temperature\n"
          "field at each retrieval grid point.\n"
          "\n"
-         "\n"
          "Unit of the Jacobian is the unit of *y* per Kelvin.\n"
          "\n"
          "NOTE: So far only \"perturbation\" method implemented without\n"
@@ -2238,15 +2237,14 @@ md_data_raw.push_back
          "Keywords:\n"
          "  hse     : \"on\" or \"off\".\n"
          "  method  : \"analytic\" or \"perturbation\".\n"
-         "  mode    : Mode of the perturbation, \"rel\" or \"abs\".\n"
          "  dx      : Size of perturbation."
         ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
-        KEYWORDS( "hse", "method", "mode", "dx" ),
-        TYPES( String_t, String_t, String_t, Numeric_t )));
+        KEYWORDS( "hse", "method", "dx" ),
+        TYPES( String_t, String_t, Numeric_t )));
   
   md_data_raw.push_back
     ( MdRecord

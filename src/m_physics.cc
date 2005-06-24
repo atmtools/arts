@@ -360,7 +360,7 @@ void SparseToTbByPlanck(
             {
               for( Index icol=0; icol<ncols; icol++ )
                 { 
-                  if( y_out(i0+ipol,icol) > 0 )
+                  if( y_in(i0+ipol,icol) > 0 )
                     {
                       y_out.rw(i0+ipol,icol) = 
                        invplanck( y_in(i0+ipol,icol), sensor_response_f[iv] );
@@ -426,7 +426,7 @@ void SparseToTbByRJ(
             {
               for( Index icol=0; icol<ncols; icol++ )
                 { 
-                  if( y_out(i0+ipol,icol) > 0 )
+                  if( y_in(i0+ipol,icol) > 0 )
                     { y_out.rw(i0+ipol,icol) = scfac * y_in(i0+ipol,icol); }
                 }
             }
