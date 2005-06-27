@@ -436,7 +436,7 @@ xml_write_to_stream (ostream& os_xml,
   xml_write_to_stream (os_xml, ppath.geom_tan_pos, pbofs,
                        "GeometricalTangentPointPosition");
   xml_write_to_stream (os_xml, ppath.p, pbofs, "Pressures"); 
-  xml_write_to_stream (os_xml, ppath.t, pbofs, "Temperaturess");
+  xml_write_to_stream (os_xml, ppath.t, pbofs, "Temperatures");
   xml_write_to_stream (os_xml, ppath.vmr, pbofs, "VMRs");
   xml_write_to_stream (os_xml, ppath.next_parts, pbofs, "NextPpathParts");
 

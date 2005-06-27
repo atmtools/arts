@@ -1,3 +1,13 @@
+2005-06-24  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-1010
+
+	* src/m_jacobian.cc (jacobianCalcGas): Fixed bug with nd_field, the
+	size of the tensor now matches the size of t_field to handle different
+	atmospheric dimensions.
+
+	* src/xml_io_compound_types.cc: Fixed typo for ppath.
+
 2005-06-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1009
