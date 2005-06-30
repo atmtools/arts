@@ -301,8 +301,8 @@ void jacobianAddParticle(// WS Output:
   // the cloudbox. Setup local atmospheric fields inside the cloudbox
   {
     Vector p_cbox = p_grid;
-    Vector lat_cbox = lat_cbox;
-    Vector lon_cbox = lon_cbox;
+    Vector lat_cbox = lat_grid;
+    Vector lon_cbox = lon_grid;
     switch (atmosphere_dim)
     {
       case 3:

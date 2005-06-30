@@ -1,5 +1,12 @@
 2005-06-30  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
+	* arts-1-1-1012
+
+	* src/m_jacobian.cc: Fixed bug with jacobianAddParticle eating up
+	all memory (and harddrive?).
+
+2005-06-30  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
 	* arts-1-1-1011
 
 	* doc/uguide/sensor.tex: Started on fixing FIXMEs.
