@@ -2153,8 +2153,8 @@ md_data_raw.push_back
          "Add particle number density as retrieval quantity to the Jacobian.\n"
          "\n"
          "The Jacobian is done by perturbation calculation by adding elements\n"
-         "of *pnd_field_perturb* to *pnd_field*. Only 3D atmosphere can be\n"
-         "handled by this method.\n"
+         "of *pnd_field_perturb* to *pnd_field*. Only 1D and 3D atmospheres\n"
+         "can be handled by this method.\n"
          "\n"
          "The perturbation field and the unit of it are defined outside ARTS.\n"
          "This method only returns the difference between the reference and\n"
@@ -2169,7 +2169,7 @@ md_data_raw.push_back
         ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
         INPUT( jacobian_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               pnd_field_, pnd_field_perturb_ ),
+               pnd_field_, pnd_field_perturb_, cloudbox_limits_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
         KEYWORDS(),

@@ -381,8 +381,6 @@ When initialised \MtrStl{P} is set to be the identity matrix, so to study all St
 components nothing more has to be done. 
 The \artsstyle{sensor\_pol} matrix is most easily read from XML-file, and the calculation of the sensor response of polarisation is done by calling \artsstyle{sensor\_responsePolarisation}. After this method the number of polarisations are equal to the rows of \MtrStl{P}. When applying a polarisation matrix to the monochromatic pencil beam spectra the intensities are no longer ordered by Stokes dimension, instead they get ordered by the polarisations given in \MtrStl{P}.
 
-\FIXME{Check if this can be run both after and before the antenna function, given that no rotation is included.}
-
 \subsection{Rotating sensor}
 \label{sec:sensor:pol:rotation}
 A rotating sensor configuration can be modelled by rotating the sensor frame between each measurement block by an angle $\chi$. The transformation matrix for an angle $\chi$ is given by \cite{liou:02},

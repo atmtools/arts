@@ -1,3 +1,17 @@
+2005-06-30  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-1011
+
+	* doc/uguide/sensor.tex: Started on fixing FIXMEs.
+
+	* src/m_jacobian.cc: Particle jacobians are now only calculated
+	within the cloudbox, the retrieval grids for particle jacobians
+	are therefore confined to the cloudbox range. Using grids that
+	extends outside the cloudbox will result in an error.
+
+	* src/methods.cc: Cloudbox limits are now needed for 
+	jacobianAddParticle.
+
 2005-06-24  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-1010

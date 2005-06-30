@@ -242,6 +242,7 @@ void jacobianAddParticle(// WS Output:
                          const Vector&             lon_grid,
                          const Tensor4&            pnd_field,
                          const Tensor5&            pnd_perturb,
+                         const ArrayOfIndex&       cloudbox_limits,
                          // WS Generic Input:
                          const Vector&             rq_p_grid,
                          const Vector&             rq_lat_grid,
@@ -296,12 +297,35 @@ void jacobianAddParticle(// WS Output:
     throw runtime_error(os.str());
   }
   ArrayOfVector grids(atmosphere_dim);
+  // The retrieval grids should only consists of gridpoints within
+  // the cloudbox. Setup local atmospheric fields inside the cloudbox
   {
-  ostringstream os;
-  if (!check_retrieval_grids( grids, os, p_grid, lat_grid, lon_grid,
-        rq_p_grid, rq_lat_grid, rq_lon_grid, 
-        rq_p_grid_name, rq_lat_grid_name, rq_lon_grid_name, atmosphere_dim))
-    throw runtime_error(os.str());
+    Vector p_cbox = p_grid;
+    Vector lat_cbox = lat_cbox;
+    Vector lon_cbox = lon_cbox;
+    switch (atmosphere_dim)
+    {
+      case 3:
+      {
+        lon_cbox = lon_grid[Range(cloudbox_limits[4], 
+                    cloudbox_limits[5]-cloudbox_limits[4]+1)];
+      }
+      case 2:
+      {
+        lat_cbox = lat_grid[Range(cloudbox_limits[2], 
+                    cloudbox_limits[3]-cloudbox_limits[2]+1)];
+      }    
+      case 1:
+      {  
+        p_cbox = p_grid[Range(cloudbox_limits[0], 
+                  cloudbox_limits[1]-cloudbox_limits[0]+1)];
+      }
+    }
+    ostringstream os;
+    if (!check_retrieval_grids( grids, os, p_cbox, lat_cbox, lon_cbox,
+          rq_p_grid, rq_lat_grid, rq_lon_grid, 
+          rq_p_grid_name, rq_lat_grid_name, rq_lon_grid_name, atmosphere_dim))
+      throw runtime_error(os.str());
   }
   // First retrieval grid is the first dimension of pnd_field_perturb, 
   // i.e. the number of user defined retrieval scenarios
@@ -880,6 +904,29 @@ void jacobianCalcParticle(
   ArrayOfIndex ji;
   Index it;
   
+  // Setup local atmospheric fields inside the cloudbox
+  Vector p_cbox = p_grid;
+  Vector lat_cbox = lat_cbox;
+  Vector lon_cbox = lon_cbox;
+  switch (atmosphere_dim)
+  {
+    case 3:
+    {
+      lon_cbox = lon_grid[Range(cloudbox_limits[4], 
+                  cloudbox_limits[5]-cloudbox_limits[4]+1)];
+    }
+    case 2:
+    {
+      lat_cbox = lat_grid[Range(cloudbox_limits[2], 
+                  cloudbox_limits[3]-cloudbox_limits[2]+1)];
+    }    
+    case 1:
+    {  
+      p_cbox = p_grid[Range(cloudbox_limits[0], 
+                cloudbox_limits[1]-cloudbox_limits[0]+1)];
+    }
+  }
+  
   // Find the retrieval quantity related to this method, i.e. Particles - all.
   // This works since the combined MainTag and Subtag is individual.
   bool check_rq = false;
@@ -908,24 +955,17 @@ void jacobianCalcParticle(
   // atmospheric retrieval grids, pressure, latitude and longitude.
   // As for gas species, we set up a ArrayOfGridPos.
   ArrayOfGridPos p_gp,lat_gp,lon_gp;
-  ArrayOfIndex p_lim(2,0), lat_lim(2,0), lon_lim(2,0);
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
-  get_perturbation_gridpos(p_gp, p_grid, jg[0], true);
-  get_perturbation_limit( p_lim, jg[0], p_grid[Range(cloudbox_limits[0],
-    cloudbox_limits[1]-cloudbox_limits[0]+1)]);
+  get_perturbation_gridpos(p_gp, p_cbox, jg[0], true);
   if (atmosphere_dim==3) 
   {
     j_lat = jg[1].nelem();
-    get_perturbation_gridpos( lat_gp, lat_grid, jg[1], false);
-    get_perturbation_limit( lat_lim, jg[1], lat_grid[
-      Range(cloudbox_limits[2], cloudbox_limits[3]-cloudbox_limits[2]+1)]);
+    get_perturbation_gridpos( lat_gp, lat_cbox, jg[1], false);
     
     j_lon = jg[2].nelem();
-    get_perturbation_gridpos( lon_gp, lon_grid, jg[2], false);
-    get_perturbation_limit( lon_lim, jg[2], lon_grid[
-      Range(cloudbox_limits[4], cloudbox_limits[5]-cloudbox_limits[4]+1)]);
+    get_perturbation_gridpos( lon_gp, lon_cbox, jg[2], false);
   }
 
   // Give verbose output
@@ -949,11 +989,6 @@ void jacobianCalcParticle(
           
           out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
                << ji[1]+1 << "\n";
-          // Check if retrieval point is inside the box
-          if ( p_it>=p_lim[0] && p_it<=p_lim[1] &&
-               lat_it>=lat_lim[0] && lat_it<=lat_lim[1] &&
-               lon_it>=lon_lim[0] && lon_it<=lon_lim[1] )
-          {
             // Here we calculate the ranges of the perturbation. We want the
             // perturbation to continue outside the atmospheric grids for the
             // edge values.
@@ -1025,7 +1060,6 @@ void jacobianCalcParticle(
             
             // Restore the reference pnd_field
             pnd_field = pnd_ref;
-          }
           it++;
         }
       }
