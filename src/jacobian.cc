@@ -30,7 +30,8 @@
 
 ostream& operator << (ostream& os, const RetrievalQuantity& ot)
 {
-  return os << ot.MainTag() << " " << ot.Subtag();
+  return os << "\n     Main tag = " << ot.MainTag() 
+            << "\n     Sub  tag = " << ot.Subtag();
 }
 
 /*===========================================================================

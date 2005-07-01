@@ -1,3 +1,19 @@
+2005-07-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1013
+	
+	* src/m_jacobian.cc (jacobianAddParticle): Old version contained at 
+	least two bugs. Wrong sizes were extracted, affecting the number of
+	particle types and particle retrieval quantities that were considered.
+
+	Each particle variable forms now a retrieval quantity.
+
+	All fields of jacobian_quantities are now set (though not used).
+
+	Changes and rearrangement of code to handle this.
+
+	(jacobianCalcParticle): As above.
+	
 2005-06-30  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-1012
