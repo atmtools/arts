@@ -1,3 +1,23 @@
+2005-07-04  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1014
+
+	* src/m_montecarlo.cc (MCGeneral): Added. A generalised 3D
+	reversed Monte Carlo radiative algorithm, that allows for 2D
+	antenna patterns, surface reflection and arbitrary sensor
+	positions. So far the sensor part has not been implemented so it
+	still only does pencil beam calculations - but the framework is
+	there to allow for antenna functions. All of the current
+	surface types should work.  This WSM has not yet been tested
+	Also did some general reworking in this file and montecarlo.cc
+	introducing the new Agenda system.
+
+	* src/methods.cc (define_md_data_raw): add MCGeneral
+
+2005-07-01  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* src/m_montecarlo.cc: (scat_iPutMonteCarlo): removed.
+
 2005-07-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1013

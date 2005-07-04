@@ -49,7 +49,6 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include "lin_alg.h"
 #include "auto_md.h"
 #include "logic.h"
-#include "math_funcs.h"
 #include "physics_funcs.h"
 #include "xml_io.h"
 #include "montecarlo.h"
@@ -103,60 +102,214 @@ void mc_errorApplySensor(
   transform( mc_error, sqrt, mc_error );
 }
 
+//! MCGeneral
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
 
-
-//! scat_iPutMonteCarlo
-/*! 
-calculates interface Tensors scat_i_p, scat_i_lat, and scat_i_lon.  This is
-the equivalent of scat_iPut for use after ScatteringMonteCarlo and before a final
-call to RteCalc.  See the online help (arts -d FUNCTION_NAME) for a description 
-of parameters.
-   
-\author Cory Davis
-\date 2003-06-30
-  
+   \author Cory Davis
+   \date   2005-06-29
 */
 
-void scat_iPutMonteCarlo(
-                         Tensor7& scat_i_p,
-                         Tensor7& scat_i_lat,
-                         Tensor7& scat_i_lon,
-                         const Matrix& iy,
-                         const Index& stokes_dim,
-                         const Vector& f_grid,
-                         const ArrayOfIndex& cloudbox_limits,
-                         const Vector& scat_za_grid,
-                         const Vector& scat_aa_grid
-                         )
+void MCGeneral(
+               Vector&               y,
+               Index&                mc_iteration_count,
+               Vector&               mc_error,
+               const Vector&         f_grid,
+               const Vector&         rte_pos,
+               const Vector&         rte_los,
+               const Index&          stokes_dim,
+               const Agenda&         iy_space_agenda,
+               const Agenda&         surface_prop_agenda,
+               const Agenda&         opt_prop_gas_agenda,
+               const Agenda&         scalar_gas_absorption_agenda, 
+               const Vector&         p_grid,
+               const Vector&         lat_grid, 
+               const Vector&         lon_grid, 
+               const Tensor3&        z_field, 
+               const Matrix&         r_geoid, 
+               const Matrix&         z_surface,
+               const Tensor3&        t_field, 
+               const Tensor4&        vmr_field, 
+               const ArrayOfIndex&   cloudbox_limits, 
+               const Tensor4&        pnd_field,
+               const ArrayOfSingleScatteringData& scat_data_mono,
+               const Numeric&        std_err,
+               const Index&          max_time,
+               const Index&          max_iter,
+               const Index&          rng_seed,
+               const Index&          z_field_is_1D
+               )
 {
+  //Check keyword input
+  if (max_time<0 && max_iter<0 && std_err<0){
+    throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );
+  }
 
-  Vector I = iy(0,joker);
-   Index Nf = f_grid.nelem();
-   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-
-   Index Nza = scat_za_grid.nelem();
-   
-   Index Ni = stokes_dim;
-   Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1; 
-   Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-   Index Naa = scat_aa_grid.nelem();
-   
-   scat_i_p.resize(Nf, 2, Nlat_cloud, Nlon_cloud, Nza, Naa, Ni);
-   scat_i_lat.resize(Nf, Np_cloud, 2, Nlon_cloud, Nza, Naa, Ni);
-   scat_i_lon.resize(Nf, Np_cloud, Nlat_cloud, 2, Nza, Naa, Ni);
-
-
-  for(Index i = 0;i<stokes_dim;i++)
+  Rng rng;                      //Random Nuimber generator
+  time_t start_time=time(NULL);
+  Index N_pt=pnd_field.nbooks();//Number of particle types
+  Vector pnd_vec(N_pt); //Vector of particle number densities used at each point
+  Vector Z11maxvector;//Vector holding the maximum phase function for each 
+  bool anyptype30=is_anyptype30(scat_data_mono);
+  if (anyptype30)
     {
-      scat_i_p(joker,joker,joker,joker,joker,joker,i)=I[i];
-      scat_i_lat(joker,joker,joker,joker,joker,joker,i)=I[i];
-      scat_i_lon(joker,joker,joker,joker,joker,joker,i)=I[i];
+      findZ11max(Z11maxvector,scat_data_mono);
+    }
+  if(rng_seed>=0){rng.seed(rng_seed);}
+  bool keepgoing,inside_cloud; // flag indicating whether to stop tracing a photons path
+  Numeric g_A,g,temperature,albedo,g_los_csc_theta;
+  Matrix A(stokes_dim,stokes_dim),Q(stokes_dim,stokes_dim),evol_op(stokes_dim,stokes_dim),
+    ext_mat_mono(stokes_dim,stokes_dim),q(stokes_dim,stokes_dim),newQ(stokes_dim,stokes_dim),
+    Z(stokes_dim,stokes_dim);
+  mc_iteration_count=0;
+  Vector vector1(stokes_dim),abs_vec_mono(stokes_dim),I_i(stokes_dim),Isum(stokes_dim),Isquaredsum(stokes_dim);
+  y.resize(stokes_dim);
+  y=0;
+  Index termination_flag=0;
+  mc_error.resize(stokes_dim);
+  //local versions of workspace
+  Matrix local_iy(1,stokes_dim),local_surface_emission(1,stokes_dim),local_surface_los;
+  Tensor4 local_surface_rmatrix;
+  Vector local_rte_pos=rte_pos;
+  Vector local_rte_los=rte_los;
+  Vector new_rte_los(2);
+  //Begin Main Loop
+  while (true)
+    {
+      mc_iteration_count+=1;
+      keepgoing=true; //flag indicating whether to continue tracing a photon path
+      //Sample a FOV direction
+      //sampleSensor(rte_los,g_A,A); Do this later.
+      id_mat(A);
+      g_A=1;
+      Q=A;
+      Q/=g_A;
+      while (keepgoing)
+        {
+          mcPathTraceGeneral(evol_op, abs_vec_mono, temperature, ext_mat_mono, rng, local_rte_pos, 
+                             local_rte_los, pnd_vec, g,termination_flag, inside_cloud, 
+                             opt_prop_gas_agenda,scalar_gas_absorption_agenda, 
+                             stokes_dim, p_grid, 
+                             lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                             t_field, vmr_field, cloudbox_limits, pnd_field,
+                             scat_data_mono,z_field_is_1D);
+          if (termination_flag==1)
+            {
+              iy_space_agendaExecute(local_iy,iy_space_agenda,true);
+              mult(vector1,evol_op,local_iy(0,joker));
+              mult(I_i,Q,vector1);
+              I_i/=g;
+              keepgoing=false; //stop here. New photon.
+            }
+          else if (termination_flag==2)
+            {
+              //decide whether we have reflection or emission
+              surface_prop_agendaExecute(local_surface_emission, local_surface_los, 
+                                         local_surface_rmatrix, surface_prop_agenda, true);
+              //deal with blackbody case
+              if (local_surface_los.nrows()==0)
+                {
+                  mult(vector1,evol_op,local_surface_emission(0,joker));
+                  mult(I_i,Q,vector1);
+                  keepgoing=false;
+                }
+              else
+                //decide between reflection and emission
+                {
+                  Numeric R11=local_surface_rmatrix(0,0,0,0);
+                  if (rng.draw()>R11)
+                    {
+                      //then we have emission
+                      mult(vector1,evol_op,local_surface_emission(0,joker));
+                      mult(I_i,Q,vector1);
+                      keepgoing=false;
+                    }
+                  else
+                    {
+                      //we have reflection
+                      local_rte_los=local_surface_los(0,joker);
+                      Matrix oneminusR(stokes_dim,stokes_dim);
+                      id_mat(oneminusR);
+                      oneminusR-=local_surface_rmatrix(0,0,joker,joker);
+                      oneminusR/=1-R11;
+                      mult(q,evol_op,oneminusR);
+                      mult(newQ,Q,q);
+                      Q=newQ;
+                    }
+                }
+            }
+          else if (inside_cloud)
+            {
+              //we have another scattering/emission point 
+              //Estimate single scattering albedo
+              albedo=1-abs_vec_mono[0]/ext_mat_mono(0,0);
+              //cout<<"albedo = "<<albedo<<" ext_mat_mono(0,0) = "<<ext_mat_mono(0,0)<<" abs_vec_mono[0] = "<<abs_vec_mono[0]<<"\n";
+              //determine whether photon is emitted or scattered
+              if (rng.draw()>albedo)
+                {
+                  //Calculate emission
+                  Numeric planck_value = planck( f_grid[0], temperature );
+                  Vector emission=abs_vec_mono;
+                  emission*=planck_value;
+                  Vector emissioncontri(stokes_dim);
+                  mult(emissioncontri,evol_op,emission);
+                  emissioncontri/=(g*(1-albedo));//yuck!
+                  mult(I_i,Q,emissioncontri);
+                  keepgoing=false;
+                  //cout << "emission contri" <<  I_i[0] << "\n";
+                }
+              else
+                {
+                  //we have a scattering event
+                  //Sample new line of sight.
+                  
+                  Sample_los (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
+                              scat_data_mono,stokes_dim,
+                              pnd_vec,anyptype30,Z11maxvector,ext_mat_mono(0,0)-abs_vec_mono[0],temperature);
+                                           
+                  Z/=g*g_los_csc_theta*albedo;
+                  
+                  mult(q,evol_op,Z);
+                  mult(newQ,Q,q);
+                  Q=newQ;
+                  //scattering_order+=1;
+                  local_rte_los=new_rte_los;
+                  //if (silent==0){cout <<"mc_iteration_count = "<<mc_iteration_count << 
+                  //                 ", scattering_order = " <<scattering_order <<"\n";}
+                }
+            }
+          else
+            {
+              //Must be clear sky emission point
+              //Calculate emission
+              Numeric planck_value = planck( f_grid[0], temperature );
+              Vector emission=abs_vec_mono;
+              emission*=planck_value;
+              Vector emissioncontri(stokes_dim);
+              mult(emissioncontri,evol_op,emission);
+              emissioncontri/=g;
+              mult(I_i,Q,emissioncontri);
+              keepgoing=false;
+              //cout << "emission contri" <<  I_i[0] << "\n";
+            }
+        }
+      Isum += I_i;
+      for(Index j=0; j<stokes_dim; j++)
+        {
+          assert(!isnan(I_i[j]));
+          Isquaredsum[j] += I_i[j]*I_i[j];
+        }
+      y=Isum;
+      y/=mc_iteration_count;
+      for(Index j=0; j<stokes_dim; j++) 
+        {
+          mc_error[j]=sqrt((Isquaredsum[j]/mc_iteration_count-y[j]*y[j])/mc_iteration_count);
+        }
+      if (std_err>0 && mc_iteration_count>=100 && mc_error[0]<std_err){break;}
+      if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time){break;}
+      if (max_iter>0 && mc_iteration_count>=max_iter){break;}
     }
 }
-
-
-
-
 
 
 
@@ -181,6 +334,9 @@ void ScatteringMonteCarlo (
                            // WS Output:
                            Ppath&                ppath,
                            Ppath&                ppath_step,
+                           //Vector&               ppath_p,
+                           //Vector&               ppath_t,
+                           //Matrix&               ppath_vmr,
                            Vector&               mc_error,
                            Index&                mc_iteration_count,
                            Vector&               rte_pos,
@@ -299,7 +455,6 @@ void ScatteringMonteCarlo (
   Index N_pt=pnd_field.nbooks();//Number of particle types
   Vector pnd_vec(N_pt); //Vector of particle number densities used at each point
   time_t start_time=time(NULL);
-  Numeric za_scat;//zenith angle of scattering direction
   Vector Z11maxvector;//Vector holding the maximum phase function for each 
   //particle type. Used in Rejection method for sampling incident direction
   bool left_cloudbox;
@@ -331,7 +486,9 @@ void ScatteringMonteCarlo (
   //if rng_seed is < 0, keep time based seed, otherwise...
   if(rng_seed>=0){rng.seed(rng_seed);}
   Agenda iy_cloudbox_agenda;
-  Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, rte_pos, rte_los, 
+  Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, 
+                         //ppath_p, ppath_t, ppath_vmr, 
+                         rte_pos, rte_los, 
                          cum_l_stepLOS, TArrayLOS, ext_matArrayLOS, 
                          abs_vecArrayLOS,t_ppathLOS, ext_mat, abs_vec, rte_pressure, 
                          rte_temperature, rte_vmr_list, iy, rte_gp_p, 
@@ -381,8 +538,7 @@ void ScatteringMonteCarlo (
            if (scattering_order>0)
             {
               mcPathTrace(evol_op, K_abs, rte_temperature, K, rng, rte_pos, 
-                          rte_los, pnd_vec, g,left_cloudbox, ext_mat, abs_vec,
-                          rte_pressure, rte_vmr_list, opt_prop_gas_agenda,
+                          rte_los, pnd_vec, g,left_cloudbox, opt_prop_gas_agenda,
                           scalar_gas_absorption_agenda, stokes_dim, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface,
                           t_field, vmr_field, cloudbox_limits, pnd_field,
@@ -413,6 +569,7 @@ void ScatteringMonteCarlo (
                 {
                   montecarloGetIncoming(iy,rte_pos,rte_los,rte_gp_p,
                                         rte_gp_lat,rte_gp_lon,ppath,ppath_step,
+                                        //ppath_p, ppath_t, ppath_vmr,
                                         ppath_step_agenda,
                                         rte_agenda,iy_space_agenda,iy_surface_agenda,
                                         iy_cloudbox_agenda,
@@ -465,7 +622,6 @@ void ScatteringMonteCarlo (
                   mult(newQ,Q,q);
                   Q=newQ;
                   scattering_order+=1;
-                  za_scat=180-rte_los[0];
                   rte_los=new_rte_los;
                   if (silent==0){cout <<"mc_iteration_count = "<<mc_iteration_count << 
                                    ", scattering_order = " <<scattering_order <<"\n";}

@@ -142,7 +142,7 @@ void define_md_data_raw()
   // "_" comes after all letters.
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
-
+  
   // New name: abs_lookupAdapt
   md_data_raw.push_back     
     ( MdRecord
@@ -2777,6 +2777,35 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( ),
         TYPES( )));
+  
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("MCGeneral"),
+        DESCRIPTION
+        ("A generalised 3D reversed Monte Carlo radiative algorithm, that \n"
+         "allows for 2D antenna patterns, surface reflection and arbitrary\n"
+         "sensor positions.\n\n"
+         "The main output variables *y* and *mc_error* represent the \n"
+         "Stokes vector integrated over the antenna function, and the \n"
+         "estimated error in this vector respectively.\n"
+         "The keyword parameter `maxiter\' describes the number of `photons\'\n"
+         "used in the simulation (more photons means smaller *mc_error*).\n"
+         "std_err is the desired value of mc_error, and max_time is the maximum\n"
+         "allowed number of seconds for MCGeneral.  MCGeneral\n"
+         "will terminate once any of the max_iter, std_err, max_time criteria are\n"
+         "met.  If negative values are given for these parameters then it is ignored.\n"
+         " Negative values of rng_seed seed the random number generator \n "
+         "according to system time, positive rng_seed values are taken literally."),
+        OUTPUT( y_, mc_iteration_count_, mc_error_ ),
+        INPUT( f_grid_, rte_pos_, rte_los_, stokes_dim_, iy_space_agenda_,
+               surface_prop_agenda_, opt_prop_gas_agenda_, 
+               scalar_gas_absorption_agenda_, p_grid_, lat_grid_, lon_grid_, 
+               z_field_, r_geoid_, z_surface_, t_field_, 
+               vmr_field_, cloudbox_limits_, pnd_field_, scat_data_mono_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "std_err", "max_time", "max_iter", "rng_seed", "z_field_is_1D"),
+        TYPES( Numeric_t, Index_t, Index_t, Index_t, Index_t)));
 
   md_data_raw.push_back
     ( MdRecord

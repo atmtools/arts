@@ -19,18 +19,44 @@
 #include "physics_funcs.h"
 #include "xml_io.h"
 #include "rng.h"
+#include "scatrte.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;
 
-void atm_vars_at_ppath_end(
-                           Tensor3& ext_mat,
-                           Matrix& abs_vec,
-                           Vector& pnd_vec,
-                           Numeric& rte_temperature,
-                           Numeric&   rte_pressure,
-                           Vector&    rte_vmr_list,
+void clear_atm_vars_at_ppath_end(
+                           MatrixView& ext_mat_mono,
+                           VectorView& abs_vec_mono,
+                           Numeric& temperature,
+                           const Agenda& opt_prop_gas_agenda,
+                           const Agenda& scalar_gas_absorption_agenda,
+                           //const Index& stokes_dim,
+                           const Ppath& ppath,
+                           const ConstVectorView         p_grid,
+                           const ConstVectorView         lat_grid,
+                           const ConstVectorView         lon_grid,
+                           const ConstTensor3View   t_field,
+                           const ConstTensor4View   vmr_field);
+void clear_atm_vars_by_gp(
+                          VectorView pressure,
+                          VectorView temperature,
+                          MatrixView vmr,
+                          const ArrayOfGridPos& gp_p,
+                          const ArrayOfGridPos& gp_lat,
+                          const ArrayOfGridPos& gp_lon,
+                          const ConstVectorView p_grid,
+                          const ConstVectorView lat_grid,
+                          const ConstVectorView lon_grid,
+                          const ConstTensor3View   t_field,
+                          const ConstTensor4View   vmr_field_cloud
+                          );
+
+void cloudy_atm_vars_at_ppath_end(
+                           MatrixView& ext_mat_mono,
+                           VectorView& abs_vec_mono,
+                           VectorView& pnd_vec,
+                           Numeric& temperature,
                            const Agenda& opt_prop_gas_agenda,
                            const Agenda& scalar_gas_absorption_agenda,
                            const Index& stokes_dim,
@@ -85,6 +111,9 @@ void Cloudbox_ppath_rteCalc(
                              Ppath&                ppathcloud,
                              Ppath&                ppath,
                              Ppath&                ppath_step,
+                             //Vector&               ppath_p,
+                             //Vector&               ppath_t,
+                             //Matrix&               ppath_vmr,
                              Vector&               rte_pos,
                              Vector&               rte_los,
                              Vector&               cum_l_step,
@@ -167,19 +196,15 @@ void matrix_exp_p30(MatrixView& M,
                     ConstMatrixView& A);
 
 void mcPathTrace(MatrixView&           evol_op,
-                 Vector& K_abs,
+                 VectorView& abs_vec_mono,
                  Numeric& temperature,
-                 MatrixView& K,
+                 MatrixView& ext_mat_mono,
                  Rng&                  rng,
                  Vector&               rte_pos,
                  Vector&               rte_los,
                  Vector& pnd_vec,
                  Numeric&    g,
                  bool&                 left_cloudbox,
-                 Tensor3& ext_mat,
-                 Matrix& abs_vec,
-                 Numeric&   rte_pressure,
-                 Vector&    rte_vmr_list,
                  const Agenda& opt_prop_gas_agenda,
                  const Agenda& scalar_gas_absorption_agenda,
                  const Index& stokes_dim,
@@ -196,6 +221,35 @@ void mcPathTrace(MatrixView&           evol_op,
                  const ArrayOfSingleScatteringData& scat_data_mono,
                  const Index& z_field_is_1D);
 
+void mcPathTraceGeneral(MatrixView&           evol_op,
+                        Vector&               abs_vec_mono,
+                        Numeric&              temperature,
+                        MatrixView&           ext_mat_mono,
+                        Rng&                  rng,
+                        Vector&               rte_pos,
+                        Vector&               rte_los,
+                        Vector&               pnd_vec,
+                        Numeric&              g,
+                        Index&                termination_flag,
+                        bool&                 inside_cloud,
+                        //Numeric&              rte_pressure,
+                        //Vector&               rte_vmr_list,
+                        const Agenda&         opt_prop_gas_agenda,
+                        const Agenda&         scalar_gas_absorption_agenda,
+                        const Index&          stokes_dim,
+                        const Vector&         p_grid,
+                        const Vector&         lat_grid,
+                        const Vector&         lon_grid,
+                        const Tensor3&        z_field,
+                        const Matrix&         r_geoid,
+                        const Matrix&         z_surface,
+                        const Tensor3&        t_field,
+                        const Tensor4&        vmr_field,
+                        const ArrayOfIndex&   cloudbox_limits,
+                        const Tensor4&        pnd_field,
+                        const ArrayOfSingleScatteringData& scat_data_mono,
+                        const Index&          z_field_is_1D);
+
 void montecarloGetIncoming(
                            Matrix&               iy,
                            Vector&               rte_pos,
@@ -205,6 +259,9 @@ void montecarloGetIncoming(
                            GridPos&              rte_gp_lon,
                            Ppath&                ppath,
                            Ppath&                ppath_step,
+                           //Vector&               ppath_p,
+                           //Vector&               ppath_t,
+                           //Matrix&               ppath_vmr,
                            const Agenda&         ppath_step_agenda,
                            const Agenda&         rte_agenda,
                            const Agenda&         iy_space_agenda,
