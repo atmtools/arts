@@ -144,7 +144,7 @@ void MCGeneral(
   if (max_time<0 && max_iter<0 && std_err<0){
     throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );
   }
-
+  Ppath ppath_step;
   Rng rng;                      //Random Nuimber generator
   time_t start_time=time(NULL);
   Index N_pt=pnd_field.nbooks();//Number of particle types
@@ -170,9 +170,12 @@ void MCGeneral(
   //local versions of workspace
   Matrix local_iy(1,stokes_dim),local_surface_emission(1,stokes_dim),local_surface_los;
   Tensor4 local_surface_rmatrix;
-  Vector local_rte_pos=rte_pos;
-  Vector local_rte_los=rte_los;
+  Vector local_rte_pos;
+  Vector local_rte_los;
   Vector new_rte_los(2);
+  Numeric std_err_i=f_grid[0]*f_grid[0]*2*BOLTZMAN_CONST/SPEED_OF_LIGHT/SPEED_OF_LIGHT*
+    std_err;
+  Index np;
   //Begin Main Loop
   while (true)
     {
@@ -184,10 +187,13 @@ void MCGeneral(
       g_A=1;
       Q=A;
       Q/=g_A;
+      local_rte_pos=rte_pos;
+      local_rte_los=rte_los;
+  
       while (keepgoing)
         {
           mcPathTraceGeneral(evol_op, abs_vec_mono, temperature, ext_mat_mono, rng, local_rte_pos, 
-                             local_rte_los, pnd_vec, g,termination_flag, inside_cloud, 
+                             local_rte_los, pnd_vec, g,ppath_step,termination_flag, inside_cloud, 
                              opt_prop_gas_agenda,scalar_gas_absorption_agenda, 
                              stokes_dim, p_grid, 
                              lat_grid, lon_grid, z_field, r_geoid, z_surface,
@@ -204,8 +210,11 @@ void MCGeneral(
           else if (termination_flag==2)
             {
               //decide whether we have reflection or emission
+              np=ppath_step.np;
               surface_prop_agendaExecute(local_surface_emission, local_surface_los, 
-                                         local_surface_rmatrix, surface_prop_agenda, true);
+                                         local_surface_rmatrix, ppath_step.gp_p[np-1],
+                                         ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],
+                                         surface_prop_agenda, true);
               //deal with blackbody case
               if (local_surface_los.nrows()==0)
                 {
@@ -305,7 +314,7 @@ void MCGeneral(
         {
           mc_error[j]=sqrt((Isquaredsum[j]/mc_iteration_count-y[j]*y[j])/mc_iteration_count);
         }
-      if (std_err>0 && mc_iteration_count>=100 && mc_error[0]<std_err){break;}
+      if (std_err>0 && mc_iteration_count>=100 && mc_error[0]<std_err_i){break;}
       if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time){break;}
       if (max_iter>0 && mc_iteration_count>=max_iter){break;}
     }

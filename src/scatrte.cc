@@ -1481,56 +1481,49 @@ void interp_cloud_coeff1D(//Output
 
 
 
-/*! Checks, whether the secon point of a propagation path 
+/*! Checks, whether the last point of a propagation path 
   is inside the cloudbox.
 
-  This function is needed in the sequential update
-  (doit_i_fieldUpdateSeq3D).
-  
-  \return true is returned if the point is inside the 
+    \return true is returned if the point is inside the 
           cloudbox.
           
   \param ppath_step Propagation path step.
   \param cloudbox_limits The limits of the cloudbox.
  
-  \author Claudia Emde
+  \author Claudia Emde (rewritten by Cory Davis 2005-07-03)
   \date 2003-06-06
+
 */
 bool is_inside_cloudbox(const Ppath& ppath_step,
                         const ArrayOfIndex& cloudbox_limits)
                         
 {
-  // Here the numerical accuracy is specified.
-  const Numeric TOL = 1e-2;
-
-  const Index p_low = cloudbox_limits[0];
-  const Index p_up = cloudbox_limits[1];
-  const Index lat_low = cloudbox_limits[2]; 
-  const Index lat_up = cloudbox_limits[3]; 
-  const Index lon_low = cloudbox_limits[4]; 
-  const Index lon_up = cloudbox_limits[5]; 
-
-  if (
-      // inside pressure boundaries
-      (p_low <= ppath_step.gp_p[1].idx) &&
-      (p_up > ppath_step.gp_p[1].idx ||
-       (p_up == ppath_step.gp_p[1].idx &&
-        abs(ppath_step.gp_p[1].fd[0]) < TOL)) &&
-      // inside latitude boundaries 
-      (lat_low <= ppath_step.gp_lat[1].idx) &&
-      (lat_up > ppath_step.gp_lat[1].idx ||
-       (lat_up == ppath_step.gp_lat[1].idx &&
-        abs(ppath_step.gp_lat[1].fd[0]) < TOL)) &&
-      // inside longitude boundaries 
-      (lon_low <= ppath_step.gp_lon[1].idx) &&
-      (lon_up > ppath_step.gp_lon[1].idx ||
-       (lon_up == ppath_step.gp_lon[1].idx &&
-        abs(ppath_step.gp_lon[1].fd[0]) < TOL )) 
-      )
-    {
-      return true;
-    }
-  return false;
+ const Index np=ppath_step.np;
+ bool result=true;
+ // Pressure dimension
+ double ipos = fractional_gp( ppath_step.gp_p[np-1] );
+ if( ipos <= double( cloudbox_limits[0] )  ||
+     ipos >= double( cloudbox_limits[1] ) )
+   { result=false; }
+ 
+ else {
+   // Latitude dimension
+   ipos = fractional_gp( ppath_step.gp_lat[np-1] );
+   if( ipos <= double( cloudbox_limits[2] )  || 
+       ipos >= double( cloudbox_limits[3] ) )
+     { result=false; }
+   
+   else
+     {
+       // Longitude dimension
+       ipos = fractional_gp( ppath_step.gp_lon[np-1] );
+       if( ipos <= double( cloudbox_limits[4] )  || 
+           ipos >= double( cloudbox_limits[5] ) )
+         { result=false; } 
+     }
+ }
+ return result;
+   
 }
 
 

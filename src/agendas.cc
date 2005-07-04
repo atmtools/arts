@@ -633,11 +633,11 @@ void define_agenda_data()
         "that describe the surface properties. These variables are:\n"
         "   *surface_emission*, *surface_los* and *surface_rmatrix* \n"
         "\n"
-        "A function calling this agenda shall set *rte_gp_p/lat/lon* to\n"
-        "the position of intersection with the surface."
+        //        "A function calling this agenda shall set *rte_gp_p/lat/lon* to\n"
+        //"the position of intersection with the surface."
         ),
        OUTPUT( surface_emission_, surface_los_, surface_rmatrix_ ),
-       INPUT()));
+       INPUT(rte_gp_p_, rte_gp_lat_, rte_gp_lon_  )));
 
 
 //  agenda_data.push_back

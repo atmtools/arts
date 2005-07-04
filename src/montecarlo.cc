@@ -1064,6 +1064,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
                         Vector&               rte_los,
                         Vector&               pnd_vec,
                         Numeric&              g,
+                        Ppath&                ppath_step,
                         Index&                termination_flag,
                         bool&                 inside_cloud,
                         //Numeric&              rte_pressure,
@@ -1091,7 +1092,6 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
   Vector tArray(2);
   Vector cum_l_step;
   Matrix T(stokes_dim,stokes_dim);
-  Ppath ppath_step;
   Numeric k;
   Numeric ds;
   Index np=0;
@@ -1102,14 +1102,15 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
   id_mat(evol_op);
   evol_opArray[1]=evol_op;
   //initialise Ppath with ppath_start_stepping
-  /*ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
+  Index rubbish=z_field_is_1D;rubbish+=1;
+  ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
                         lon_grid, z_field, r_geoid, z_surface,
-                        1, cloudbox_limits, false, 
-                        rte_pos, rte_los );*/
+                        0, cloudbox_limits, false, 
+                        rte_pos, rte_los );
   //Use cloudbox_ppath_start_stepping to avoid unnecessary z_at_latlon calls.
-  cloudbox_ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
-                                 lon_grid, z_field, r_geoid, z_surface, rte_pos,
-                                 rte_los ,z_field_is_1D);
+  //cloudbox_ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
+  //                               lon_grid, z_field, r_geoid, z_surface, rte_pos,
+  //                               rte_los ,z_field_is_1D);
   Range p_range(cloudbox_limits[0], 
                 cloudbox_limits[1]-cloudbox_limits[0]+1);
   Range lat_range(cloudbox_limits[2], 
@@ -1410,33 +1411,9 @@ void mcPathTrace(MatrixView&           evol_op,
         }
       mult(evol_op,evol_opArray[0],incT);
       evol_opArray[1]=evol_op;
-      // Here we need only check if we have gone outside the cloud box.
-      // Note that here it sufficient to detect that point is outside in
-      // any dimension.
-      
-      // Pressure dimension
-      double ipos = fractional_gp( ppath_step.gp_p[np-1] );
-      if( ipos <= double( cloudbox_limits[0] )  ||
-          ipos >= double( cloudbox_limits[1] ) )
-        { left_cloudbox=true; }
-      
-      else {
-        // Latitude dimension
-        ipos = fractional_gp( ppath_step.gp_lat[np-1] );
-        if( ipos <= double( cloudbox_limits[2] )  || 
-            ipos >= double( cloudbox_limits[3] ) )
-          { left_cloudbox=true; }
-        
-        else
-          {
-            // Longitude dimension
-            ipos = fractional_gp( ppath_step.gp_lon[np-1] );
-            if( ipos <= double( cloudbox_limits[4] )  || 
-                ipos >= double( cloudbox_limits[5] ) )
-              { left_cloudbox=true; } 
-          }
+      left_cloudbox=not(is_inside_cloudbox(ppath_step,cloudbox_limits));
       }
-    }
+
   if (left_cloudbox)
     {//we must have reached the cloudbox boundary
       //

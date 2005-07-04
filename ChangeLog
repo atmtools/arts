@@ -1,5 +1,19 @@
 2005-07-04  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
+	* arts-1-1-1015
+
+	* src/scatrte.cc (is_inside_cloudbox): re-wrote. It seems I am the
+	only one who now uses this function.
+
+	* src/montecarlo.cc (mcPathTraceGeneral): debugging.
+
+	* src/agendas.cc (define_agenda_data): surface_prop_agenda. Added
+	rte_gp_p, rte_gp_lat, rte_gp_lon as input variables. I think this
+	suits better the new agenda scheme. Well, its suits me anyway.
+
+	* src/m_montecarlo.cc (MCGeneral): debugging. Now its running but
+	not yet giving quite the right answers.
+
 	* arts-1-1-1014
 
 	* src/m_montecarlo.cc (MCGeneral): Added. A generalised 3D
