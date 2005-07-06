@@ -1,3 +1,35 @@
+2005-07-06  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1016
+
+	* MCGeneral now gives consistent results with ScatteringMonteCarlo
+	(and RteCalc) for pencil beam and blackbody surfaces, which are
+	the only cases I can actually compare.  Next step: try other
+	surface models (and compare with DOIT?)
+
+	* src/montecarlo.cc (mcPathTraceGeneral): Some tinkering,
+	including calls to is_inside_cloudbox. same for MCPathTrace.
+	
+	* src/m_montecarlo.cc (MCGeneral): changes input and output
+	arguments, and other minor fixes.
+	
+        * src/workspace.cc: Added mc_points, which is a Tensor3 that holds
+	the number of Monte Carlo end points in each grid cell.  Can be
+	used to make pictures like http://www.met.ed.ac.uk/~cory/plot1.png
+	
+	* src/methods.cc: Changed inputs to MCGeneral (sensor_{pos,los}
+	instead of rte_{los,pos}) and added mc_points as an output.
+
+	* src/special_interp.cc (fix_gridpos_at_boundary): fixed bug.
+
+	* src/scatrte.cc (is_inside_cloudbox): added include_boundaries
+	argument which lets you decide whether points on the boundary are
+	inside the cloudbox or not.
+
+	* tests/simpleMCGeneral.arts: Added. 
+
+	* tests/testall.py (MonteCarloTest3): Added test for MCGeneral. 
+
 2005-07-04  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1015

@@ -1119,7 +1119,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
                 cloudbox_limits[5]-cloudbox_limits[4]+1);
   termination_flag=0;
 
-  inside_cloud=is_inside_cloudbox( ppath_step, cloudbox_limits );
+  inside_cloud=is_inside_cloudbox( ppath_step, cloudbox_limits,true );
   
   if (inside_cloud)
     {
@@ -1136,6 +1136,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
       clear_atm_vars_at_ppath_end(ext_mat_mono,abs_vec_mono,temperature, opt_prop_gas_agenda,
                                    scalar_gas_absorption_agenda, ppath_step,
                                    p_grid, lat_grid, lon_grid, t_field, vmr_field);
+      pnd_vec=0.0;
     }
   ext_matArray[1]=ext_mat_mono;
   abs_vecArray[1]=abs_vec_mono;
@@ -1157,7 +1158,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
       cum_l_stepCalc(cum_l_step, ppath_step);
       //path_step should now have two elements.
       //calculate evol_op
-      inside_cloud=is_inside_cloudbox( ppath_step, cloudbox_limits );
+      inside_cloud=is_inside_cloudbox( ppath_step, cloudbox_limits, true );
       if (inside_cloud)
         {
           cloudy_atm_vars_at_ppath_end(ext_mat_mono,abs_vec_mono,pnd_vec,temperature,
@@ -1173,6 +1174,7 @@ void mcPathTraceGeneral(MatrixView&           evol_op,
           clear_atm_vars_at_ppath_end(ext_mat_mono,abs_vec_mono,temperature, opt_prop_gas_agenda,
                                       scalar_gas_absorption_agenda,  ppath_step,
                                       p_grid, lat_grid, lon_grid, t_field, vmr_field);
+          pnd_vec=0.0;
         }
       ext_matArray[1]=ext_mat_mono;
       abs_vecArray[1]=abs_vec_mono;
@@ -1411,7 +1413,7 @@ void mcPathTrace(MatrixView&           evol_op,
         }
       mult(evol_op,evol_opArray[0],incT);
       evol_opArray[1]=evol_op;
-      left_cloudbox=not(is_inside_cloudbox(ppath_step,cloudbox_limits));
+      left_cloudbox=not(is_inside_cloudbox(ppath_step,cloudbox_limits,false));
       }
 
   if (left_cloudbox)

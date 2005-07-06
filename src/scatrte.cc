@@ -1489,41 +1489,69 @@ void interp_cloud_coeff1D(//Output
           
   \param ppath_step Propagation path step.
   \param cloudbox_limits The limits of the cloudbox.
- 
+  \param include_boundaries boolean: determines whther or not points on the 
+  boundary are considered to be inside the cloudbox.
+
   \author Claudia Emde (rewritten by Cory Davis 2005-07-03)
   \date 2003-06-06
 
 */
 bool is_inside_cloudbox(const Ppath& ppath_step,
-                        const ArrayOfIndex& cloudbox_limits)
+                        const ArrayOfIndex& cloudbox_limits,
+                        const bool include_boundaries)
                         
 {
- const Index np=ppath_step.np;
- bool result=true;
- // Pressure dimension
- double ipos = fractional_gp( ppath_step.gp_p[np-1] );
- if( ipos <= double( cloudbox_limits[0] )  ||
-     ipos >= double( cloudbox_limits[1] ) )
-   { result=false; }
- 
- else {
-   // Latitude dimension
-   ipos = fractional_gp( ppath_step.gp_lat[np-1] );
-   if( ipos <= double( cloudbox_limits[2] )  || 
-       ipos >= double( cloudbox_limits[3] ) )
-     { result=false; }
-   
-   else
-     {
-       // Longitude dimension
-       ipos = fractional_gp( ppath_step.gp_lon[np-1] );
-       if( ipos <= double( cloudbox_limits[4] )  || 
-           ipos >= double( cloudbox_limits[5] ) )
-         { result=false; } 
-     }
- }
- return result;
-   
+  const Index np=ppath_step.np;
+  bool result=true;
+  // Pressure dimension
+  double ipos = fractional_gp( ppath_step.gp_p[np-1] );
+  if (include_boundaries){
+    if( ipos < double( cloudbox_limits[0] )  ||
+        ipos > double( cloudbox_limits[1] ) )
+      { result=false; }
+    
+    else {
+      // Latitude dimension
+      ipos = fractional_gp( ppath_step.gp_lat[np-1] );
+      if( ipos < double( cloudbox_limits[2] )  || 
+          ipos > double( cloudbox_limits[3] ) )
+        { result=false; }
+      
+      else
+        {
+          // Longitude dimension
+          ipos = fractional_gp( ppath_step.gp_lon[np-1] );
+          if( ipos < double( cloudbox_limits[4] )  || 
+              ipos > double( cloudbox_limits[5] ) )
+            { result=false; } 
+        }
+    }
+  }
+  else
+    {
+      if( ipos <= double( cloudbox_limits[0] )  ||
+          ipos >= double( cloudbox_limits[1] ) )
+        { result=false; }
+      
+      else {
+        // Latitude dimension
+        ipos = fractional_gp( ppath_step.gp_lat[np-1] );
+        if( ipos <= double( cloudbox_limits[2] )  || 
+            ipos >= double( cloudbox_limits[3] ) )
+          { result=false; }
+        
+        else
+          {
+            // Longitude dimension
+            ipos = fractional_gp( ppath_step.gp_lon[np-1] );
+            if( ipos <= double( cloudbox_limits[4] )  || 
+                ipos >= double( cloudbox_limits[5] ) )
+              { result=false; } 
+          }
+      }
+    }
+  return result;
+  
 }
 
 

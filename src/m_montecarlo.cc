@@ -114,9 +114,10 @@ void MCGeneral(
                Vector&               y,
                Index&                mc_iteration_count,
                Vector&               mc_error,
+               Tensor3&              mc_points,
                const Vector&         f_grid,
-               const Vector&         rte_pos,
-               const Vector&         rte_los,
+               const Matrix&         sensor_pos,
+               const Matrix&         sensor_los,
                const Index&          stokes_dim,
                const Agenda&         iy_space_agenda,
                const Agenda&         surface_prop_agenda,
@@ -161,8 +162,10 @@ void MCGeneral(
   Matrix A(stokes_dim,stokes_dim),Q(stokes_dim,stokes_dim),evol_op(stokes_dim,stokes_dim),
     ext_mat_mono(stokes_dim,stokes_dim),q(stokes_dim,stokes_dim),newQ(stokes_dim,stokes_dim),
     Z(stokes_dim,stokes_dim);
+  q=0.0;newQ=0.0;
   mc_iteration_count=0;
-  Vector vector1(stokes_dim),abs_vec_mono(stokes_dim),I_i(stokes_dim),Isum(stokes_dim),Isquaredsum(stokes_dim);
+  Vector vector1(stokes_dim),abs_vec_mono(stokes_dim),I_i(stokes_dim),Isum(stokes_dim),
+    Isquaredsum(stokes_dim);
   y.resize(stokes_dim);
   y=0;
   Index termination_flag=0;
@@ -170,12 +173,15 @@ void MCGeneral(
   //local versions of workspace
   Matrix local_iy(1,stokes_dim),local_surface_emission(1,stokes_dim),local_surface_los;
   Tensor4 local_surface_rmatrix;
-  Vector local_rte_pos;
-  Vector local_rte_los;
+  Vector local_rte_pos(2);
+  Vector local_rte_los(2);
   Vector new_rte_los(2);
   Numeric std_err_i=f_grid[0]*f_grid[0]*2*BOLTZMAN_CONST/SPEED_OF_LIGHT/SPEED_OF_LIGHT*
     std_err;
   Index np;
+  mc_points.resize(p_grid.nelem(),lat_grid.nelem(),lon_grid.nelem());
+  mc_points=0;
+  Isum=0.0;Isquaredsum=0.0;
   //Begin Main Loop
   while (true)
     {
@@ -187,9 +193,9 @@ void MCGeneral(
       g_A=1;
       Q=A;
       Q/=g_A;
-      local_rte_pos=rte_pos;
-      local_rte_los=rte_los;
-  
+      local_rte_pos=sensor_pos(0,joker);
+      local_rte_los=sensor_los(0,joker);
+      I_i=0.0;
       while (keepgoing)
         {
           mcPathTraceGeneral(evol_op, abs_vec_mono, temperature, ext_mat_mono, rng, local_rte_pos, 
@@ -199,6 +205,9 @@ void MCGeneral(
                              lat_grid, lon_grid, z_field, r_geoid, z_surface,
                              t_field, vmr_field, cloudbox_limits, pnd_field,
                              scat_data_mono,z_field_is_1D);
+          np=ppath_step.np;
+          mc_points(ppath_step.gp_p[np-1].idx,ppath_step.gp_lat[np-1].idx,
+                    ppath_step.gp_lon[np-1].idx)+=1;
           if (termination_flag==1)
             {
               iy_space_agendaExecute(local_iy,iy_space_agenda,true);
@@ -210,7 +219,6 @@ void MCGeneral(
           else if (termination_flag==2)
             {
               //decide whether we have reflection or emission
-              np=ppath_step.np;
               surface_prop_agendaExecute(local_surface_emission, local_surface_los, 
                                          local_surface_rmatrix, ppath_step.gp_p[np-1],
                                          ppath_step.gp_lat[np-1],ppath_step.gp_lon[np-1],
@@ -220,6 +228,7 @@ void MCGeneral(
                 {
                   mult(vector1,evol_op,local_surface_emission(0,joker));
                   mult(I_i,Q,vector1);
+                  I_i/=g;
                   keepgoing=false;
                 }
               else
@@ -231,6 +240,7 @@ void MCGeneral(
                       //then we have emission
                       mult(vector1,evol_op,local_surface_emission(0,joker));
                       mult(I_i,Q,vector1);
+                      I_i/=g;
                       keepgoing=false;
                     }
                   else
@@ -244,6 +254,7 @@ void MCGeneral(
                       mult(q,evol_op,oneminusR);
                       mult(newQ,Q,q);
                       Q=newQ;
+                      Q/=g;
                     }
                 }
             }
@@ -272,7 +283,7 @@ void MCGeneral(
                   //we have a scattering event
                   //Sample new line of sight.
                   
-                  Sample_los (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
+                  Sample_los (new_rte_los,g_los_csc_theta,Z,rng,local_rte_los,
                               scat_data_mono,stokes_dim,
                               pnd_vec,anyptype30,Z11maxvector,ext_mat_mono(0,0)-abs_vec_mono[0],temperature);
                                            

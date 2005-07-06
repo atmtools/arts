@@ -1400,6 +1400,17 @@ void define_wsv_data()
        GROUP( Index_)));
 
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_points" ),
+       DESCRIPTION
+       (
+        "Counts the number of MC endpoints in each grid cell\n"
+        "\n"
+        "Usage: Set by MCGeneral.\n"
+        ),
+       GROUP( Tensor3_)));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "meridian_angle_1d" ),
       DESCRIPTION

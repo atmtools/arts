@@ -257,7 +257,8 @@ void interp_cloud_coeff1D(//Output
                           const Index& scat_za_interp);
 
 bool is_inside_cloudbox(const Ppath& ppath_step,
-                        const ArrayOfIndex& cloudbox_limits);
+                        const ArrayOfIndex& cloudbox_limits,
+                        const bool include_boundaries);
 
 void za_gridOpt(//Output:
                 Vector& za_grid_opt,

@@ -111,7 +111,7 @@ void fix_gridpos_at_boundary(//Input and Output
   
   for( Index i = 0; i< gp.nelem(); i++)
     {
-      if( gp[i].idx == -1 && abs(gp[i].fd[1]-1)<epsilon )
+      if( gp[i].idx == -1 && abs(gp[i].fd[0]-1)<epsilon )
         {
           gp[i].idx += 1;
           gp[i].fd[0] = 0.;
