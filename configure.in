@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.1017)
+AM_INIT_AUTOMAKE(arts,1.1.1018)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -45,6 +45,13 @@ AC_PROG_CXXCPP
 AC_PROG_RANLIB
 # What's used by make install:
 AC_PROG_INSTALL
+
+# Check for python
+AC_CHECK_PROG(ac_python, python, yes, no)
+if test x$ac_python = xno; then
+  AC_MSG_ERROR([Python not found - Get it from http://www.python.org/])
+fi
+
 # Provide standard headers:
 AC_STDC_HEADERS
 # Check features of c++ compiler
