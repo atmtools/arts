@@ -53,10 +53,6 @@ public:
   String name() const;
   const ArrayOfIndex& get_output2push() const { return moutput_push; }
   const ArrayOfIndex& get_output2dup() const { return moutput_dup; }
-  const ArrayOfIndex& get_agenda_only_out_wsm_in () const
-    { return magenda_only_out_wsm_in; }
-  const ArrayOfIndex& get_agenda_only_in_wsm_out () const
-    { return magenda_only_in_wsm_out; }
   void print( ostream& os,
               const String& indent ) const;
 private:
@@ -66,11 +62,6 @@ private:
   ArrayOfIndex moutput_push;
 
   ArrayOfIndex moutput_dup;
-
-  ArrayOfIndex magenda_only_out_wsm_in;
-
-  ArrayOfIndex magenda_only_in_wsm_out;
-
 };
 
 // Documentation with implementation.

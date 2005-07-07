@@ -1,3 +1,26 @@
+2005-06-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1017
+
+	* src/agenda_class.{cc,h}:
+
+	Removed Agenda members magenda_only_out_wsm_in and
+	magenda_only_in_wsm_out.
+
+	(Agenda::get_agenda_only_out_wsm_in)
+	(Agenda::get_agenda_only_in_wsm_out): Removed.
+
+	(Agenda::set_outputs_to_push_and_dup): Use local variables for
+	agenda_only_in_wsm_out and agenda_only_out_wsm_in.
+
+	Through runtime error instead of warnings if agenda_only_in_wsm_out or
+	agenda_only_out_wsm_in are not empty.
+
+	* src/absorption.h (LineRecord):
+
+	Fix example value in documentation for air broadened width 20 -> 20000
+	Hz/Pa.
+
 2005-07-06  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1016

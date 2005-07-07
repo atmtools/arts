@@ -386,16 +386,16 @@ private:
     \verbatim
     Col  Variable                Label    Unit     Comment
     ------------------------------------------------------------------      
-     0   `@'                         ENTRY        -     marks start of entry
-     1   name                         NAME        -     e.g. O3-666
-     2   center frequency                F       Hz     e.g. 501.12345e9 
+     0   `@'                         ENTRY        -    marks start of entry
+     1   name                         NAME        -    e.g. O3-666
+     2   center frequency                F       Hz    e.g. 501.12345e9 
      3   pressure shift of F           PSF    Hz/Pa    
-     4   line intensity                 I0   m^2/Hz     per isotope, not per species
+     4   line intensity                 I0   m^2/Hz    per isotope, not per species
      5   reference temp. for I0       T_I0        K
      6   lower state energy           ELOW        J    
-     7   air broadened width          AGAM    Hz/Pa     values around 20 GHz/Pa
+     7   air broadened width          AGAM    Hz/Pa    values around 20000 Hz/Pa
      8   self broadened width         SGAM    Hz/Pa
-     9   AGAM temp. exponent          NAIR        -     values around .5
+     9   AGAM temp. exponent          NAIR        -    values around .5
     10   SGAM temp. exponent         NSELF        - 
     11   ref. temp. for AGAM, SGAM   T_GAM        K
     12   number of aux. parameters   N_AUX        -

@@ -294,11 +294,11 @@ void Agenda::set_outputs_to_push_and_dup ()
                   insert_iterator< set<Index> >(saout_only,
                                                 saout_only.begin ()));
 
-  magenda_only_out_wsm_in.clear ();
+  ArrayOfIndex agenda_only_out_wsm_in;
   set_intersection (outs2dup.begin (), outs2dup.end (),
                     saout_only.begin (), saout_only.end (),
-                    insert_iterator<ArrayOfIndex>(magenda_only_out_wsm_in,
-                                                  magenda_only_out_wsm_in.begin ()));
+                    insert_iterator<ArrayOfIndex>(agenda_only_out_wsm_in,
+                                                  agenda_only_out_wsm_in.begin ()));
 
   // Special case: Variables which are defined in the agenda only
   // as input but are used as output in one of the WSMs
@@ -311,11 +311,11 @@ void Agenda::set_outputs_to_push_and_dup ()
                   insert_iterator< set<Index> >(sain_only,
                                                 sain_only.begin ()));
 
-  magenda_only_in_wsm_out.clear ();
+  ArrayOfIndex agenda_only_in_wsm_out;
   set_intersection (outs2push.begin (), outs2push.end (),
                     sain_only.begin (), sain_only.end (),
-                    insert_iterator<ArrayOfIndex>(magenda_only_in_wsm_out,
-                                                  magenda_only_in_wsm_out.begin ()));
+                    insert_iterator<ArrayOfIndex>(agenda_only_in_wsm_out,
+                                                  agenda_only_in_wsm_out.begin ()));
 
   out3 << "  [Agenda::pushpop]                 : " << name() << "\n";
   out3 << "  [Agenda::pushpop] - # Funcs in Ag : " << mml.nelem () << "\n";
@@ -335,32 +335,34 @@ void Agenda::set_outputs_to_push_and_dup ()
   PrintWsvNames (out3, moutput_dup);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - Ag inp dup    : ";
-  PrintWsvNames (out3, magenda_only_in_wsm_out);
+  PrintWsvNames (out3, agenda_only_in_wsm_out);
   out3 << "\n";
   out3 << "  [Agenda::pushpop] - Ag out dup    : ";
-  PrintWsvNames (out3, magenda_only_out_wsm_in);
+  PrintWsvNames (out3, agenda_only_out_wsm_in);
   out3 << "\n";
 
-  if (magenda_only_in_wsm_out.nelem ())
+  if (agenda_only_in_wsm_out.nelem ())
     {
-      out1 << "Warning!!!! At least one variable is only defined as input\n"
+      ostringstream err;
+      err << "At least one variable is only defined as input\n"
         << "in agenda " << name () << ", but\n"
         << "used as output in a WSM called by the agenda!!!\n"
-        << "This is not handled properly at the moment.\n"
+        << "This is not allowed.\n"
         << "Variable(s): ";
-      PrintWsvNames (out1, magenda_only_in_wsm_out);
-      out1 << "\n";
+      PrintWsvNames (err, agenda_only_in_wsm_out);
+      throw runtime_error (err.str ());
     }
-  if (magenda_only_out_wsm_in.nelem ())
+  if (agenda_only_out_wsm_in.nelem ())
     {
-      out1 << "Warning!!!! At least one variable is only defined as output\n"
+      ostringstream err;
+      err << "At least one variable is only defined as output\n"
         << "in agenda " << name () << ", but\n"
         << "first used as input in a WSM called by the agenda!!!\n"
         << "This is not handled properly at the moment. The variable(s)\n"
         << "might be used uninitialized.\n"
         << "Variable(s): ";
-      PrintWsvNames (out1, magenda_only_out_wsm_in);
-      out1 << "\n";
+      PrintWsvNames (err, agenda_only_out_wsm_in);
+      throw runtime_error (err.str ());
     }
 }
 
