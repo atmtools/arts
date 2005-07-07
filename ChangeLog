@@ -13,7 +13,7 @@
 	(Agenda::set_outputs_to_push_and_dup): Use local variables for
 	agenda_only_in_wsm_out and agenda_only_out_wsm_in.
 
-	Through runtime error instead of warnings if agenda_only_in_wsm_out or
+	Throw runtime error instead of warnings if agenda_only_in_wsm_out or
 	agenda_only_out_wsm_in are not empty.
 
 	* src/absorption.h (LineRecord):
