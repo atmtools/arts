@@ -1,3 +1,11 @@
+2005-07-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-1019
+
+	* src/m_jacobian.cc (jacobianCalcParticle): Variables lat_cbox and
+	lon_cbox were not initialized in a good way. Caused assert
+	failure, but only sometimes!
+
 2005-07-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1018

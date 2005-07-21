@@ -290,13 +290,15 @@ void jacobianAddParticle(// WS Output:
   // Particle Jacobian only defined for 1D and 3D atmosphere. check the 
   // retrieval grids, here we just check the length of the grids vs. the 
   // atmosphere dimension
-  if( atmosphere_dim==2 )  
-    {
-      ostringstream os;
-      os << "Atmosphere dimension not equal 1 or 3. Jacobians for particle"
-         << " number\ndensity only available for 1D and 3D atmosphere.";
-      throw runtime_error(os.str());
-    }
+  if (atmosphere_dim==2) 
+  {
+    ostringstream os;
+    os << "Atmosphere dimension not equal to 1 or 3. " 
+       << "Jacobians for particle number\n"
+       << "density only available for 1D and 3D atmosphere.";
+    throw runtime_error(os.str());
+  }
+
   ArrayOfVector grids(atmosphere_dim);
   // The retrieval grids should only consists of gridpoints within
   // the cloudbox. Setup local atmospheric fields inside the cloudbox
@@ -910,8 +912,8 @@ void jacobianCalcParticle(
   
   // Setup local atmospheric fields inside the cloudbox
   Vector p_cbox = p_grid;
-  Vector lat_cbox = lat_cbox;
-  Vector lon_cbox = lon_cbox;
+  Vector lat_cbox = lat_grid;
+  Vector lon_cbox = lon_grid;
   switch (atmosphere_dim)
     {
     case 3:
