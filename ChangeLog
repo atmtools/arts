@@ -1,3 +1,14 @@
+2005-07-25  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1020
+
+	* src/absorption.cc:
+	(LineRecord::ReadFromHitran2004Stream)
+	(LineRecord::ReadFromHitranStream):
+
+	Handle catalogues in unix and dos encoding properly.
+	Merged from arts-1-0.
+
 2005-07-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-1019

@@ -299,6 +299,13 @@ bool LineRecord::ReadFromHitranStream(istream& is)
       // Read line from file into linebuffer:
       getline(is,line);
 
+      // If the catalogue is in dos encoding, throw away the
+      // additional carriage return
+      if (line[line.nelem () - 1] == 13)
+        {
+          line.erase (line.nelem () - 1, 1);
+        }
+
       // Because of the fixed FORTRAN format, we need to break up the line
       // explicitly in apropriate pieces. Not elegant, but works!
 
@@ -319,14 +326,12 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
               // Check if data record has the right number of characters for the
               // in Hitran 1986-2001 format
-              Numeric nChar = line.nelem()+1; // number of characters in data record;
-                   // the string terminator '\0' counts in 'nelem()' and 2
-                   // characters of 'mo' are already missing; so add 1 in total
+              Numeric nChar = line.nelem() + 2; // number of characters in data record;
               if ( nChar != 100 )
                 {
                   ostringstream os;
                   os << "Invalid HITRAN 1986-2001 line data record with " << nChar <<
-                        " characters (expected: 100).";
+                        " characters (expected: 100)." << endl << line << " n: " << line.nelem ();
                   throw runtime_error(os.str());
                 }
 
@@ -738,6 +743,13 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is)
       // Read line from file into linebuffer:
       getline(is,line);
 
+      // If the catalogue is in dos encoding, throw away the
+      // additional carriage return
+      if (line[line.nelem () - 1] == 13)
+        {
+          line.erase (line.nelem () - 1, 1);
+        }
+
       // Because of the fixed FORTRAN format, we need to break up the line
       // explicitly in apropriate pieces. Not elegant, but works!
 
@@ -758,9 +770,7 @@ bool LineRecord::ReadFromHitran2004Stream(istream& is)
               
               // Check if data record has the right number of characters for the
               // in Hitran 2004 format
-              Numeric nChar = line.nelem()+1; // number of characters in data record;
-                   // the string terminator '\0' counts in 'nelem()' and 2
-                   // characters of 'mo' are already missing; so add 1 in total
+              Numeric nChar = line.nelem() + 2; // number of characters in data record;
               if ( nChar != 160 )
                 {
                   ostringstream os;
