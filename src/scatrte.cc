@@ -340,7 +340,8 @@ void cloud_ppath_update1D(
                            doit_i_field, t_field, vmr_field, p_grid, 
                            ppath_step, cloudbox_limits, scat_za_grid, 
                            scat_za_interp);
-      
+     
+          
       // ppath_what_background(ppath_step) tells the 
       // radiative background.  More information in the 
       // function get_radiative_background.

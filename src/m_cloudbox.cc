@@ -118,7 +118,7 @@ void cloudboxSetEmpty(//WS Output:
   scat_data_raw[0].ptype = PTYPE_MACROS_ISO;
   scat_data_raw[0].description = " ";
   // Grids which contain full ranges which one wants to calculate
-  nlinspace(scat_data_raw[0].f_grid, 1e9, 10000e9, 5);  
+  nlinspace(scat_data_raw[0].f_grid, 1e9, 3.848043e+13 , 5);  
   nlinspace(scat_data_raw[0].T_grid, 0, 400, 5);
   nlinspace(scat_data_raw[0].za_grid, 0, 180, 5);
   nlinspace(scat_data_raw[0].aa_grid, 0, 360, 5);

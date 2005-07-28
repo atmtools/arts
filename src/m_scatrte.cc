@@ -865,7 +865,6 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                                    z_field(cloudbox_limits[0],0,0))/
                                   (r_geoid(0,0)+
                                    z_field(cloudbox_limits[1],0,0)))*RAD2DEG;
-  
   //Only dummy variables:
   Index scat_aa_index_local = 0;
   
@@ -882,6 +881,10 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                        spt_calc_agenda, opt_prop_part_agenda, 
                        scat_za_index_local, scat_aa_index_local, 
                        cloudbox_limits, t_field, pnd_field);
+  
+      
+     
+      xml_write_to_file("ext_mat_field.xml", ext_mat_field ); 
       
       //======================================================================
       // Radiative transfer inside the cloudbox
@@ -911,7 +914,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                                    doit_za_interp); 
             }
         }
-      else if ( scat_za_grid[scat_za_index_local] > theta_lim) 
+      else if ( scat_za_grid[scat_za_index_local] >= theta_lim) 
         {
           //
           // Sequential updating for downlooking angles

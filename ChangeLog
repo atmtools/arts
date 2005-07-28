@@ -1,3 +1,18 @@
+2005-07-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1021
+
+	* src/m_optproperties.cc (opt_prop_sptFromData),
+	(opt_prop_sptFromMonoData), (pha_mat_sptFromData),
+	(pha_mat_sptFromMonoData): Fixed a bug which is important if more
+	than one particle type is considered. The problem was that if the
+	pnd of the first particle type was zero, the pnds for the other
+	particle types were also assumed to be zero. This bug can cause
+	big errors, esprcially if liquid clouds are considered !!!
+
+	* src/m_cloudbox.cc (i_fieldSetClearsky): Modified, so that it can
+	be used also for IR calculations. 
+
 2005-07-25  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1020
