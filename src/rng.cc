@@ -38,13 +38,12 @@ generator from the GNU Scientific Library <http://www.gnu.org/software/gsl/>.
 #include "arts.h"
 #include "messages.h"
 /*!
-Constructor creates instance of gsl_rng of type gsl_rng_mt19937 and seeds it 
-with the system time
+Constructor creates instance of gsl_rng of type gsl_rng_mt19937
 */
 Rng::Rng()                            
 {
   r = gsl_rng_alloc (gsl_rng_mt19937);
-  seed();                             
+                               
 };                                     
 
 
@@ -64,7 +63,6 @@ void Rng::seed(unsigned long int n)
 {
 seed_no=n;
 gsl_rng_set(r,seed_no);
- out1 << "RNG seed: " << seed_no << "\n";
 };
 
 

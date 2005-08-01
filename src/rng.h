@@ -579,7 +579,7 @@ class Rng {
 
   //The default is to seed the Rng using the seconds elapsed since
   //1970.
-  void seed(unsigned long int n = (unsigned long int)time(NULL));
+  void seed(unsigned long int n);
     
   double draw();         //draw a random number between [0,1)
 

@@ -134,10 +134,10 @@ void MCGeneral(
                const ArrayOfIndex&   cloudbox_limits, 
                const Tensor4&        pnd_field,
                const ArrayOfSingleScatteringData& scat_data_mono,
+               const Index&          mc_seed,
                const Numeric&        std_err,
                const Index&          max_time,
                const Index&          max_iter,
-               const Index&          rng_seed,
                const Index&          z_field_is_1D
                )
 {
@@ -156,7 +156,7 @@ void MCGeneral(
     {
       findZ11max(Z11maxvector,scat_data_mono);
     }
-  if(rng_seed>=0){rng.seed(rng_seed);}
+  rng.seed(mc_seed);
   bool keepgoing,inside_cloud; // flag indicating whether to stop tracing a photons path
   Numeric g_A,g,temperature,albedo,g_los_csc_theta;
   Matrix A(stokes_dim,stokes_dim),Q(stokes_dim,stokes_dim),evol_op(stokes_dim,stokes_dim),
@@ -331,7 +331,21 @@ void MCGeneral(
     }
 }
 
+//! MCSetSeedFromTime
+/*!
 
+    Sets the value of mc_seed from system time
+
+   \author Cory Davis
+   \date   2003-06-19
+*/
+
+void MCSetSeedFromTime(
+                       Index&    mc_seed
+                       )
+{
+  mc_seed=(Index)time(NULL);
+}
 
 
 //! ScatteringMonteCarlo
@@ -398,11 +412,11 @@ void ScatteringMonteCarlo (
                            //Other Stuff
                            const ArrayOfSingleScatteringData& scat_data_mono,
                            const Tensor4& pnd_field,
+                           const Index& mc_seed,
                            // Control Parameters:
                            const Numeric& std_err,
                            const Index& max_time,
                            const Index& max_iter,
-                           const Index& rng_seed,
                            const Index& incoming_lookup,
                            const Index& z_field_is_1D
                            )
@@ -503,8 +517,7 @@ void ScatteringMonteCarlo (
     }
   //out1 << rte_pos << "\n";
   //out1 << rte_los << "\n";
-  //if rng_seed is < 0, keep time based seed, otherwise...
-  if(rng_seed>=0){rng.seed(rng_seed);}
+  rng.seed(mc_seed);
   Agenda iy_cloudbox_agenda;
   Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, 
                          //ppath_p, ppath_t, ppath_vmr, 

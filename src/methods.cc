@@ -2801,11 +2801,23 @@ md_data_raw.push_back
                surface_prop_agenda_, opt_prop_gas_agenda_, 
                scalar_gas_absorption_agenda_, p_grid_, lat_grid_, lon_grid_, 
                z_field_, r_geoid_, z_surface_, t_field_, 
-               vmr_field_, cloudbox_limits_, pnd_field_, scat_data_mono_ ),
+               vmr_field_, cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_ ),
         GOUTPUT( ),
         GINPUT( ),
-        KEYWORDS( "std_err", "max_time", "max_iter", "rng_seed", "z_field_is_1D"),
-        TYPES( Numeric_t, Index_t, Index_t, Index_t, Index_t)));
+        KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D"),
+        TYPES( Numeric_t, Index_t, Index_t, Index_t)));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("MCSetSeedFromTime"),
+        DESCRIPTION
+        ("Sets the value of mc_seed from system time"),
+        OUTPUT( mc_seed_ ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3865,11 +3877,11 @@ md_data_raw.push_back
               stokes_dim_, rte_agenda_, iy_space_agenda_, iy_surface_agenda_,
               t_field_, f_grid_, opt_prop_gas_agenda_,
               scalar_gas_absorption_agenda_, vmr_field_,
-              scat_data_mono_, pnd_field_),
+              scat_data_mono_, pnd_field_, mc_seed_),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("std_err","max_time","max_iter","rng_seed","incoming_lookup","z_field_is_1D"),
-        TYPES( Numeric_t, Index_t, Index_t, Index_t, Index_t, Index_t )));
+        KEYWORDS("std_err","max_time","max_iter","incoming_lookup","z_field_is_1D"),
+        TYPES( Numeric_t, Index_t, Index_t, Index_t, Index_t )));
 
   md_data_raw.push_back
     ( MdRecord

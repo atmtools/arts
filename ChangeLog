@@ -1,3 +1,27 @@
+2005-08-01  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1022
+
+	* src/methods.cc (MCSetSeedFromTime): Added
+
+	* src/workspace.cc (mc_seed): Added.  The integer seed for the
+	random number generator used by ScatteringMonteCarlo and
+	MCGeneral. Formerly a keyword argument. 
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): updated for new WSV mc_seed 
+	(MCGeneral): updated for new WSV mc_seed
+	(MCSetSeedFromTime): Added. Sets the value of mc_seed from system time.
+
+	* src/rng.cc (seed): removed annoying output to out1
+
+	* src/rng.h: removed default value for seed method.
+
+	* tests/simpleMCGeneral.arts: updated for new WSV mc_seed 
+
+	* tests/simpleMC.arts: updated for new WSV mc_seed 
+
+	* tests/simpleMCWithIncomingLookup.arts: updated for new WSV mc_seed 
+
 2005-07-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1021

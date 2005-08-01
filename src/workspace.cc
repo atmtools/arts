@@ -1411,6 +1411,18 @@ void define_wsv_data()
        GROUP( Tensor3_)));
 
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_seed" ),
+       DESCRIPTION
+       (
+        "The integer seed for the random number generator used by\n"
+        "ScatteringMonteCarlo and MCGeneral.\n"
+        "\n"
+        "Usage: Set by MCSetSeed.\n"
+        ),
+       GROUP( Index_)));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "meridian_angle_1d" ),
       DESCRIPTION

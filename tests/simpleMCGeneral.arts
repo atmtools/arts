@@ -169,11 +169,16 @@ sensorOff{
 jacobianOff{
 }
 
+MCSetSeedFromTime{}
+
+Print(mc_seed){
+level=1
+}
+
 MCGeneral{
     std_err=0.5
     max_time=20
     max_iter=-1
-    rng_seed=-1
     z_field_is_1D=1
 }
 
