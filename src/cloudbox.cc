@@ -587,6 +587,7 @@ void iy_interp_cloudbox_field(
       else if( is_gridpos_at_index_i( rte_gp_lon, cloudbox_limits[5] ) )
         { border = 5; }
     }
+
   //
   //- Check if inside
   if( border > 100 )
@@ -708,13 +709,13 @@ void iy_interp_cloudbox_field(
 
       out3 << "    Interpolating outgoing field:\n";
       out3 << "       zenith angle : " << rte_los[0] << "\n";
-      out3 << "       azimuth angle: " << rte_los[1]+180 << "\n";
+      out3 << "       azimuth angle: " << rte_los[1]+180. << "\n";
 
       
       // Scattering angle grid positions
       GridPos gp_za, gp_aa;
       gridpos( gp_za, scat_za_grid, rte_los[0] );
-      gridpos( gp_aa, scat_aa_grid, rte_los[1]+180 );
+      gridpos( gp_aa, scat_aa_grid, rte_los[1]+180. );
 
       // Interpolation weights (for 4D "red" interpolation)
       Vector   itw(16);

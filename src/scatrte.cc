@@ -607,6 +607,7 @@ void cloud_ppath_update3D(
   
   Vector sca_vec_av(stokes_dim,0);
   Vector aa_grid(scat_aa_grid.nelem());
+
   for(Index i = 0; i<scat_aa_grid.nelem(); i++)
     aa_grid[i] = scat_aa_grid[i]-180.;
 
@@ -616,7 +617,6 @@ void cloud_ppath_update3D(
   // understanding the parameters.
               
   // Assign value to ppath.pos:
-                    
   ppath_step.z[0] = z_field(p_index,lat_index,
                             lon_index);
 
@@ -650,105 +650,17 @@ void cloud_ppath_update3D(
   // Call ppath_step_agenda: 
   ppath_step_agenda.execute(true);
 
-  const Numeric TOL = 1e-6;  
-   // Check whether the next point is inside or outside the
+    // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
   // cloudbox a radiative transfer step caclulation has to
   // be performed.
-  // Tolerance value for checking if a point is exactly on
-  // a grid point.
-  if (
-      // inside pressure boundaries
-      (cloudbox_limits[0] <= ppath_step.gp_p[1].idx ||
-       ((cloudbox_limits[0]-1) == ppath_step.gp_p[1].idx &&
-        abs(ppath_step.gp_p[1].fd[0] -1.) < TOL)) &&
-      (cloudbox_limits[1] > ppath_step.gp_p[1].idx ||
-       (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
-        abs(ppath_step.gp_p[1].fd[0]) < TOL)) &&
-      // inside latitude boundaries 
-      (cloudbox_limits[2] <= ppath_step.gp_lat[1].idx ||
-       ((cloudbox_limits[2]-1) == ppath_step.gp_lat[1].idx  &&
-        abs(ppath_step.gp_lat[1].fd[0] -1. ) < TOL)) &&
-      (cloudbox_limits[3] > ppath_step.gp_lat[1].idx ||
-       (cloudbox_limits[3] == ppath_step.gp_lat[1].idx &&
-        abs(ppath_step.gp_lat[1].fd[0]) < TOL)) &&
-      // inside longitude boundaries 
-      (cloudbox_limits[4] <= ppath_step.gp_lon[1].idx ||
-       ((cloudbox_limits[4]-1) == ppath_step.gp_lon[1].idx &&
-       abs(ppath_step.gp_lon[1].fd[0] - 1.) < TOL) ) &&
-      (cloudbox_limits[5] > ppath_step.gp_lon[1].idx ||
-       (cloudbox_limits[5] == ppath_step.gp_lon[1].idx &&
-        abs(ppath_step.gp_lon[1].fd[0]) < TOL )) 
-      )
-    { 
-      for( Index i = 0; i<ppath_step.np; i++)
-        { 
-      // If the intersection points lies exactly on a 
-      // lower boundary the gridposition index is 
-      // increases by one and the first interpolation weight 
-      // is set to 0.
-          if (cloudbox_limits[0]-1 == ppath_step.gp_p[i].idx &&
-              abs(ppath_step.gp_p[i].fd[0]-1.) < TOL)
-            {
-              ppath_step.gp_p[i].idx += 1;
-              ppath_step.gp_p[i].fd[0] = 0.;
-              ppath_step.gp_p[i].fd[1] = 1.;
-            }
-                            
-          if (cloudbox_limits[2]-1==ppath_step.gp_lat[i].idx &&
-              abs(ppath_step.gp_lat[i].fd[0]-1.) < TOL)
-            {
-              ppath_step.gp_lat[i].idx += 1;
-              ppath_step.gp_lat[i].fd[0] = 0.;
-              ppath_step.gp_lat[i].fd[1] = 1.;
-            }
-                            
-          if (cloudbox_limits[4]-1==ppath_step.gp_lon[i].idx &&
-              abs(ppath_step.gp_lon[i].fd[0]-1.) < TOL)
-            {
-              ppath_step.gp_lon[i].idx += 1;
-              ppath_step.gp_lon[i].fd[0] = 0.;
-              ppath_step.gp_lon[i].fd[1] = 1.;
-            }
-
-
-
-          // If the intersection points lies exactly on a 
-          // upper boundary the gridposition index is 
-          // reduced by one and the first interpolation weight 
-          // is set to 1.
-                        
-     
-          if (cloudbox_limits[1] == ppath_step.gp_p[i].idx &&
-              abs(ppath_step.gp_p[i].fd[0]) < TOL)
-            {
-              ppath_step.gp_p[i].idx -= 1;
-              ppath_step.gp_p[i].fd[0] = 1.;
-              ppath_step.gp_p[i].fd[1] = 0.;
-            }
-                            
-          if (cloudbox_limits[3]==ppath_step.gp_lat[i].idx &&
-              abs(ppath_step.gp_lat[i].fd[0]) < TOL)
-            {
-              ppath_step.gp_lat[i].idx -= 1;
-              ppath_step.gp_lat[i].fd[0] = 1.;
-              ppath_step.gp_lat[i].fd[1] = 0.;
-            }
-                            
-          if (cloudbox_limits[5]==ppath_step.gp_lon[i].idx &&
-              abs(ppath_step.gp_lon[i].fd[0]) < TOL)
-            {
-              ppath_step.gp_lon[i].idx -= 1;
-              ppath_step.gp_lon[i].fd[0] = 1.;
-              ppath_step.gp_lon[i].fd[1] = 0.;
-            }
-        }
-                        
+  if (is_inside_cloudbox(ppath_step, cloudbox_limits, true))
+    {      
       // Gridpositions inside the cloudbox.
       // The optical properties are stored only inside the
       // cloudbox. For interpolation we use grids
       // inside the cloudbox.
-                        
+      
       ArrayOfGridPos cloud_gp_p = ppath_step.gp_p;
       ArrayOfGridPos cloud_gp_lat = ppath_step.gp_lat;
       ArrayOfGridPos cloud_gp_lon = ppath_step.gp_lon;
@@ -758,24 +670,29 @@ void cloud_ppath_update3D(
           cloud_gp_p[i].idx -= cloudbox_limits[0];  
           cloud_gp_lat[i].idx -= cloudbox_limits[2];
           cloud_gp_lon[i].idx -= cloudbox_limits[4];
-
+          
           // This is necessary because the ppath_step_agenda sometimes 
           // returns nan values. (FIXME: Report this problem to Patrick)
-          if (abs(ppath_step.los(0,0)) < TOL)
-            ppath_step.los(i,0) = 0.;
-          if (abs(ppath_step.los(0,0)-180.) < TOL)
-            ppath_step.los(i,0) = 180.;
-
+        //   const Numeric TOL = 1e-6;
+//           if (abs(ppath_step.los(0,0)) < TOL)
+//             ppath_step.los(i,0) = 0.;
+//           if (abs(ppath_step.los(0,0)-180.) < TOL)
+//             ppath_step.los(i,0) = 180.;
+          
         }
-
+      
+      fix_gridpos_at_boundary(cloud_gp_p, cloudbox_limits[1] - cloudbox_limits[0] +1);
+      fix_gridpos_at_boundary(cloud_gp_lat, cloudbox_limits[3] - cloudbox_limits[2] +1); 
+      fix_gridpos_at_boundary(cloud_gp_lon, cloudbox_limits[5] - cloudbox_limits[4] +1);
+      
       Matrix itw(ppath_step.np, 8);
       interpweights(itw, cloud_gp_p, cloud_gp_lat, cloud_gp_lon);
 
       Matrix itw_p(ppath_step.np, 2);
       interpweights(itw_p, cloud_gp_p);
  
-       // The zenith angles and azimuth of the propagation path are
-      //needed as we have to 
+      // The zenith angles and azimuth of the propagation path are
+      // needed as we have to 
       // interpolate the intensity field and the scattered field on the 
       // right angles.
       VectorView los_grid_za = ppath_step.los(joker,0);
@@ -793,8 +710,7 @@ void cloud_ppath_update3D(
       Matrix itw_p_za(ppath_step.np, 32);
       interpweights(itw_p_za, cloud_gp_p, cloud_gp_lat, cloud_gp_lon, 
                     gp_za, gp_aa);
-      
-      
+            
       // Ppath_step normally has 2 points, the starting
       // point and the intersection point.
       // But there can be points in between, when a maximum 
@@ -812,8 +728,7 @@ void cloud_ppath_update3D(
       //Tensor3 ext_mat_gas(stokes_dim, stokes_dim, ppath_step.np);
       //Matrix abs_vec_gas(stokes_dim, ppath_step.np);
       
-                        
-      // Calculate the average of the coefficients for the layers
+            // Calculate the average of the coefficients for the layers
       // to be considered in the 
       // radiative transfer calculation.
       
@@ -861,8 +776,8 @@ void cloud_ppath_update3D(
       //
       out3 << "Interpolate temperature field\n";
       interp( t_int, itw, 
-             t_field(joker, joker, joker), ppath_step.gp_p, 
-             ppath_step.gp_lat, ppath_step.gp_lon);
+              t_field(joker, joker, joker), ppath_step.gp_p, 
+              ppath_step.gp_lat, ppath_step.gp_lon);
       
       // 
       // The vmr_field is needed for the gaseous absorption 
@@ -898,8 +813,6 @@ void cloud_ppath_update3D(
                              p_int, cloudbox_limits, 
                              f_grid, f_index, p_index, lat_index, lon_index, 
                              scat_za_index, scat_aa_index);
-
-     
     }//end if inside cloudbox
 }
 

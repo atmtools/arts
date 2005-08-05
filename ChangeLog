@@ -1,3 +1,14 @@
+2005-08-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1023
+
+	* src/m_cloudbox.cc (CloudbocGetIncoming1DAtm): Made this function
+	more efficient. The same calculation was repeated unnecessarily
+	inside loops over latitudes and longitudes.
+
+	* sec/scatrte.cc (cloud_ppath_update3D): Made this function
+	shorter and nicer by using function (fix_gridpos_at_boundary).
+
 2005-08-01  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1022
