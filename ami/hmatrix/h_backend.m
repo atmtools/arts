@@ -38,10 +38,10 @@ function [H,f_new] = h_backend(f1,f2,za,f_back,w_back,o_ch,o_y)
 %=== Flagging whether calculation should be done assuming
 %    all channels identical or not
 
-if isvector( f_back )
-  do_ident = 1;
-else
+if iscell( f_back )
   do_ident = 0;
+else
+  do_ident = 1;
 end
 
 
