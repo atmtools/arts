@@ -238,23 +238,25 @@ void MCGeneral(
                   if (rng.draw()>R11)
                     {
                       //then we have emission
+                      //Matrix oneminusR(stokes_dim,stokes_dim);
+                      //id_mat(oneminusR);
+                      //oneminusR-=local_surface_rmatrix(0,0,joker,joker);
+                      //oneminusR/=1-R11;
+                      //mult(vector1,oneminusR,local_surface_emission(0,joker));
                       mult(vector1,evol_op,local_surface_emission(0,joker));
                       mult(I_i,Q,vector1);
-                      I_i/=g;
+                      I_i/=g*(1-R11);
                       keepgoing=false;
                     }
                   else
                     {
                       //we have reflection
                       local_rte_los=local_surface_los(0,joker);
-                      Matrix oneminusR(stokes_dim,stokes_dim);
-                      id_mat(oneminusR);
-                      oneminusR-=local_surface_rmatrix(0,0,joker,joker);
-                      oneminusR/=1-R11;
-                      mult(q,evol_op,oneminusR);
+                      
+                      mult(q,evol_op,local_surface_rmatrix(0,0,joker,joker));
                       mult(newQ,Q,q);
                       Q=newQ;
-                      Q/=g;
+                      Q/=g*R11;
                     }
                 }
             }

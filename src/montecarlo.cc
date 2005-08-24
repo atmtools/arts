@@ -331,7 +331,7 @@ void cloud_atm_vars_by_gp(
   fix_gridpos_at_boundary(gp_p_cloud, p_grid_cloud.nelem()); 
   fix_gridpos_at_boundary(gp_lat_cloud, lat_grid_cloud.nelem()); 
   fix_gridpos_at_boundary(gp_lon_cloud, lon_grid_cloud.nelem());
-
+  
   // Determine the pressure at each propagation path point
   Matrix   itw_p(np,2);
   //
