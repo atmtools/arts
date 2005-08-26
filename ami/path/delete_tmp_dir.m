@@ -28,6 +28,9 @@ end
 %=== could be found and system commands are used instead.
 if isunix
   eval([ '!rm -r ',dirname ])
+elseif ispc
+  [path, file] = fileparts(dirname);
+  dos([ 'rmdir /S/Q ', fullfile(path,file)]);
 else
   error('Unknown computer type.');
 end

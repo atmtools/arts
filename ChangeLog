@@ -1,3 +1,9 @@
+2005-08-26    <mathias@iup.physik.uni-bremen.de>
+
+       * arts-1-0-188
+	
+	* ami/path/delete_tmp_dir.m: Included function to delete dirs on a windows system
+
 2005-08-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-187
