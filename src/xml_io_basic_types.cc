@@ -535,14 +535,22 @@ xml_read_from_stream (istream& is_xml,
     {
       xml_parse_error ("String must begin with \"");
     }
-
-  is_xml.get (strbuf, '"');
-  if (is_xml.fail ())
+  
+  //catch case where string is empty. CPD 29/8/05
+  dummy=is_xml.peek();
+  if (dummy=='"')
     {
-      xml_parse_error ("String must end with \"");
+      str = "";
     }
-
-  str = strbuf.str ();
+  else
+    {
+      is_xml.get (strbuf, '"');
+      if (is_xml.fail ())
+        {
+          xml_parse_error ("String must end with \"");
+        }
+      str = strbuf.str ();
+    }
 
   // Ignore quote
   is_xml >> dummy;

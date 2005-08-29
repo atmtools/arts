@@ -1,3 +1,10 @@
+2005-08-29  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1025
+
+	* src/xml_io_basic_types.cc (xml_read_from_stream): this function
+	(for Strings) was failing for empty strings. 
+
 2005-08-23  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1024
