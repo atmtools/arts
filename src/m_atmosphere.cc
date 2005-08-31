@@ -1002,6 +1002,7 @@ void surfaceSingleEmissivity(
   surface_emission.resize( nf, stokes_dim );
   surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
   surface_rmatrix = 0.0;
+  surface_emission = 0.0;
 
   for( Index iv=0; iv<nf; iv++ )
     { 

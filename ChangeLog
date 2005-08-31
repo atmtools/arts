@@ -1,3 +1,11 @@
+2005-08-31  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1026
+
+	* src/m_atmosphere.cc (surfaceSingleEmissivity): surface_emission
+	was not being initialised, so there were some rubbish values for
+	Q,U,V.
+
 2005-08-29  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1025
