@@ -68,7 +68,7 @@ extern const Numeric RAD2DEG;
 // consistent with the specified grid cell.
 //
 #ifdef USE_DOUBLE
-const double   RTOL = 1e-4;
+const double   RTOL = 1e-2;
 #else
 const double   RTOL = 10;
 #endif

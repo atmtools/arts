@@ -1,3 +1,9 @@
+2005-09-01  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1027
+
+	* src/ppath.cc: increased RTOL to 1e-2 (for double)
+
 2005-08-31  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1026
