@@ -4308,6 +4308,28 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "surfaceEmissivityInterpolate" ),
+        DESCRIPTION
+        (
+         "Creates variables to mimic specular reflection by a surface with\n"
+         "emissivity interpolated from WSV surface_emissivity_field by lat..\n"
+         "and lon.\n"
+         "A constant emissivity is assumed as a function of frequency and\n"
+         "polarisation (vertical and horisontal reflection coefficients are\n"
+         "equal. The number of directions in *surface_los* is one.\n"
+         "\n"
+         ),
+        OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
+        INPUT( f_grid_, rte_gp_lat_,rte_gp_lon_,stokes_dim_, atmosphere_dim_, rte_los_, 
+               surface_skin_t_, surface_emissivity_field_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "surfaceFlat" ),
         DESCRIPTION
         (

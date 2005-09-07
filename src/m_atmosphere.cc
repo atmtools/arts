@@ -887,6 +887,47 @@ void surfaceCalc(
   surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
 }
 
+//! surfaceEmissivityInterpolate
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Cory Davis
+   \date   2005-09-07
+*/
+void surfaceEmissivityInterpolate(
+                                  Matrix&    surface_los,
+                                  Tensor4&   surface_rmatrix,
+                                  Matrix&    surface_emission,
+                                  const Vector&    f_grid,
+                                  const GridPos&   rte_gp_lat,
+                                  const GridPos&   rte_gp_lon,
+                                  const Index&     stokes_dim,
+                                  const Index&     atmosphere_dim,
+                                  const Vector&    rte_los,
+                                  const Numeric&   surface_skin_t,
+                                  const Matrix&  surface_emissivity_field)
+{
+  const Index   nf = f_grid.nelem();
+  Numeric e;
+  Vector itw(4);
+  surface_los.resize( 1, rte_los.nelem() );
+  surface_los(0,joker) = rte_los;
+  surface_specular_los( surface_los(0, joker) , atmosphere_dim );
+
+  surface_emission.resize( nf, stokes_dim );
+  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
+  surface_rmatrix = 0.0;
+  surface_emission = 0.0;
+
+  interpweights(itw,rte_gp_lat,rte_gp_lon);
+  e=interp(itw,surface_emissivity_field,rte_gp_lat,rte_gp_lon);
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      surface_emission(iv,0) = e * planck( f_grid[iv], surface_skin_t );
+      for( Index is=0; is<stokes_dim; is++ )
+        { surface_rmatrix(0,iv,is,is) = 1 - e; }
+    }
+}
 
 
 //! surfaceFlat

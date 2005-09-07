@@ -2785,6 +2785,16 @@ void define_wsv_data()
          ), 
         GROUP( Matrix_ )));
 
+   wsv_data.push_back
+     (WsvRecord
+      ( NAME( "surface_emissivity_field" ),
+        DESCRIPTION
+        ( "The surface emissivity specified on lat_grid and lon_grid.\n"
+          "\n"
+          "Dimensions: [ lat_grid, lon_grid ]"
+         ), 
+        GROUP( Matrix_ )));
+
   wsv_data.push_back
     (WsvRecord
      ( NAME( "surface_los" ),

@@ -1,3 +1,19 @@
+2005-09-07  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1028
+
+	* src/methods.cc (define_md_data_raw): Added
+	surfaceEmissivityInterpolate
+	
+	* src/workspace.cc (define_wsv_data): Added
+	surface_emissivity_field.  This is to allow for variation in
+	emissivity with latitude and longitude.  Useful for realistic 3D
+	simulations.
+	
+	* src/m_atmosphere.cc (surfaceEmissivityInterpolate): Added.
+	Interpolates surface emissivity from surface_emissivity_field -
+	otherwise the same as surfaceSingleEmissivity.
+
 2005-09-01  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1027
