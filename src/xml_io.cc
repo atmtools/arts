@@ -576,8 +576,8 @@ xml_read_header_from_stream (istream& is, FileType &ftype, NumericType &ntype,
     }
   if (strtype == "*N/A*")
     {
-      out1 << "  Warning: Endian type not specified in XML file, "
-        <<    "assuming little endian (PC)\n";
+/*      out1 << "  Warning: Endian type not specified in XML file, "
+        <<    "assuming little endian (PC)\n";*/
       etype = ENDIAN_TYPE_LITTLE;
     }
   else
@@ -600,8 +600,8 @@ xml_read_header_from_stream (istream& is, FileType &ftype, NumericType &ntype,
     }
   else if (strtype == "*N/A*")
     {
-      out1 << "  Warning: Numeric type not specified in XML file, "
-        <<    "assuming double\n";
+/*      out1 << "  Warning: Numeric type not specified in XML file, "
+        <<    "assuming double\n";*/
       ntype = NUMERIC_TYPE_DOUBLE;
     }
   else

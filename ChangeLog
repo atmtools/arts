@@ -1,3 +1,9 @@
+2005-09-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1029
+
+	* src/xml_io.cc: Kill endian and numeric type warnings.
+
 2005-09-07  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1028
