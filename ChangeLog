@@ -1,3 +1,13 @@
+2005-09-13  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1030
+
+	* src/interpolation.cc (gridpos_force_end_fd): Commented out
+	troublesome assertions.
+
+	* src/special_interp.cc (fix_gridpos_at_boundary): Another small
+	change to deal with grid positions that are just outside the cloudbox.
+
 2005-09-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1029

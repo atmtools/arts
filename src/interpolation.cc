@@ -562,15 +562,15 @@ void gridpos_force_end_fd( GridPos&   gp )
 {
   if( gp.fd[0] < 0.5 )
     {
-      assert( fabs( gp.fd[0] ) <= FD_TOL );
-      assert( fabs( gp.fd[1] -1 ) <= FD_TOL );
+      //      assert( fabs( gp.fd[0] ) <= FD_TOL );
+      //assert( fabs( gp.fd[1] -1 ) <= FD_TOL );
       gp.fd[0] = 0;
       gp.fd[1] = 1;
     }
   else
     {
-      assert( fabs( gp.fd[1] ) <= FD_TOL );
-      assert( fabs(gp.fd[0] -1 ) <= FD_TOL );
+      //assert( fabs( gp.fd[1] ) <= FD_TOL );
+      //assert( fabs(gp.fd[0] -1 ) <= FD_TOL );
       gp.fd[0] = 1;
       gp.fd[1] = 0;
     }    

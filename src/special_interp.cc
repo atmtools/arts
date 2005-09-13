@@ -125,13 +125,19 @@ void fix_gridpos_at_boundary(//Input and Output
           gp[i].fd[0] = 0.;
           gp[i].fd[1] = 1.;
         }
-      else if (gp[i].idx == grid_size-1 && abs(gp[i].fd[0])<epsilon)
+      else if (gp[i].idx == grid_size-1)
         {
+          if (abs(gp[i].fd[0])>epsilon)
+            {
+              out1 << "  --- WARNING ---, fix_gridpos_at_boundary encountered a strange "
+                   << "Gridpos: idx = " << gp[i].idx << ", fd[0] = " << gp[i].fd[0] 
+                   << ", fd[1] = " << gp[i].fd[1];
+            }
           gp[i].idx -= 1;
           gp[i].fd[0] = 1.;
           gp[i].fd[1] = 0.;
         }
-      if (gp[i].idx < 0)
+      if ((gp[i].idx < 0)||(gp[i].idx > grid_size-1))
         {
           ostringstream os;
           os << "Invalid GridPos: idx = " << gp[i].idx << ", fd[0] = " << gp[i].fd[0] << ", fd[1] = " << gp[i].fd[1];
