@@ -24,8 +24,10 @@ artsexecutable = $(top_builddir)/src/arts
 
 texfiles = \
 	agu.bst \
+	atmosphere.tex \
 	references.bib \
 	chapter_template.tex \
+	clouds.tex \
 	concept.tex \
 	fm_definitions.tex \
 	formalism.tex \
@@ -39,8 +41,8 @@ texfiles = \
 	main.tex \
 	montecarlo.tex \
 	measerr.tex \
-    ppath.tex \
-    batch.tex \
+	ppath.tex \
+        batch.tex \
 	polarization.tex \
 	reduction.tex \
 	rte.tex \

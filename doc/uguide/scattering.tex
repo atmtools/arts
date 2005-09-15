@@ -480,7 +480,13 @@ number of pressure levels.
 
 FIXME: Description for 3D sequential update.
 
-\section{Grid optimization and interpolation methods}
+
+
+\section{Numerical Issues}
+\label{sec:scattering:implementation_DOIT}
+
+
+\subsection{Grid optimization and interpolation}
 \label{sec:scattering:grid_opt_interp}
 
 The accuracy of the DOIT method depends very much on the
@@ -529,7 +535,7 @@ extent, because much less grid points are required.
 \end{figure}
 
 
-\subsection{Zenith angle grid optimization}
+\subsubsection{Zenith angle grid optimization}
 
 As a reference field for the grid optimization the DOIT method is
 applied for an empty cloud box using a very fine zenith angle grid. The
@@ -587,7 +593,7 @@ interpolation error is at most 0.14\% for grid accuracies of 0.2\% and 0.5\%
 and for a grid accuracy of 0.1\% it is below~0.02\%. 
 
 
-\subsection{Interpolation methods}
+\subsubsection{Interpolation methods}
 Two different interpolation methods can be chosen in ARTS for the
 interpolation of the radiation field in the zenith angle dimension:
 linear interpolation or three-point polynomial interpolation. The polynomial interpolation
@@ -625,7 +631,7 @@ than the linear interpolation method.
   \label{fig:scattering:interp}  
 \end{figure}
 
-\subsection{Error estimates}
+\subsubsection{Error estimates}
 The interpolation error for scattering calculations can be estimated
 by comparison of a scattering calculation performed on a very fine
 zenith angle grid (resolution 0.001$^\circ$ from 80$^\circ$ to
@@ -661,171 +667,16 @@ interpolation error is below~0.2\%.
   \label{fig:scattering:interp_err}  
 \end{figure}
 
-\section{Implementation in ARTS}
-\label{sec:scattering:implementation_DOIT}
+\section{Implementation}
 
-\subsection[Single scattering properties]{Single scattering properties}
-\label{sec:scattering:ssp}
+\FIXME{include files}
 
-Clouds consist of a variety of particle sizes and shapes. Furthermore,
-the cloud particles
-can be oriented, in most cases they are horizontally aligned.  It is
-not possible to model the clouds exactly as they are in nature,
-therefore we need some approximations.  In ARTS different kinds of
-scattering media are implemented. One kind consists of randomly
-oriented particles, which allows very efficient computation of single
-scattering properties.  Although this kind of scattering medium is
-only a special case, it provides a rather good numerical description
-of the scattering properties of clouds and is by far the most often
-used theoretical model in particle scattering theory.  As the
-polarization signal of clouds depends significantly on the cloud
-particle orientation, there is also a kind of
-scattering media consisting of horizontally aligned particles.
+\subsection{Control file example}
 
-\subsubsection[Coordinate systems]{Coordinate systems: The laboratory frame and the scattering frame}
-\label{sec:scattering:coordinate_sytems}
+\FIXME{take parts of simpleDOIT.arts and explain DOIT methods}
 
-For radiative transfer calculations we need a coordinate system to
-describe the direction of propagation. For this purpose we use the
-laboratory frame, which has been introduced in
-\secref{sec:fm_defs} and which is also shown in \figref{fig:RT_theory_coordinates}.
-The z-axis corresponds to the local zenith direction and the x-axis
-points towards the north-pole. The propagation direction is described
-by the local zenith angle $\theta$ and the local azimuth angle $\phi$.
-This coordinate system is the most appropriate frame to describe the
-propagation direction and the polarization state of the radiation.
-However, in order to describe scattering of radiation by a particle or
-a particle ensemble, it makes sense to define another coordinate
-system taking into consideration the symmetries of the particle or the
-scattering medium, as one gets much simpler expressions for the single
-scattering properties.  For macroscopically isotropic and
-mirror-symmetric scattering media it is convenient to use the
-scattering frame, in which the incidence direction is parallel to the
-z-axis and the x-axis coincides with the scattering plane, that is,
-the plane through the unit vectors \VctStl{\hat{n}^{\inc}}\ and
-\VctStl{\hat{n}^{\sca}}. The scattering frame is illustrated in
-\figref{fig:scattering:part_frame}. For symmetry reasons the single scattering
-properties defined with respect to the scattering frame can only
-depend on the scattering angle $\Theta$,
-\begin{equation}
-  \label{eq:scat_angle}
-  \Theta=\arccos(\hat{\PDir}^{\inc} \cdot {\hat{\PDir}^{\sca}}),
-\end{equation}
-between the incident and the scattering direction.
 
-\begin{figure}[htbp]
- \begin{center}
-   \includegraphics*[width=0.4\hsize]{./Figs/scattering/part_frame}
-   \caption{Illustration of the scattering frame. The z-axis coincides with the incident direction $\hat{\PDir}^{\inc}$. The scattering angle $\Theta$ is the angle between  $\hat{\PDir}^{\inc}$ and $\hat{\PDir}^{\sca}$.}
-   \label{fig:scattering:part_frame}  
- \end{center}
-\end{figure}
 
-\subsubsection{ARTS datafile stucture}
-\label{sec:scattering:ARTS_SSP_structure}
-
-The single scattering properties are pre-calculated, for example by using the T-matrix
-code by \citet{Mishchenko:02}, and stored in data-files. Different
-methods for the calculation of single scattering properties are
-reviewed in \citet{emde05:_phdthesis}. The structure of the data-files is
-shown in \tabref{tab:scattering:datastructure}.  The first field of the
-structure includes a value (\emph{enum}), which characterizes the kind
-of scattering medium, i.e., whether the particles are arbitrarily
-oriented, randomly oriented or horizontally aligned. This information
-is needed, since different scattering media types are treated
-differently inside the program. The next field is a string which
-includes a short description of the scattering medium contained in the
-data-file. This should include information about how the single
-scattering properties were generated. After that, numerical grids for
-variables, on which the single scattering properties depend on, are
-stored. These are the frequency grid, the temperature grid, the zenith
-angle grid and the azimuth angle grid. Note that the same numerical
-grids are used for incident and scattered directions. The last three
-fields contain the data. First the phase matrix data is stored as a
-seven-dimensional array, as the phase matrix depends on the frequency
-\Frq, the temperature \Tmp, the scattered direction $(\ZntAng,
-\AzmAng)$, the incident direction $(\ZntAng', \AzmAng')$ and it
-has in general sixteen matrix elements. The extinction matrix data and
-the absorption coefficient vector data are five-dimensional arrays.
-They have two dimensions less than the array holding the phase matrix
-data, since they are defined only for the forward direction.
-
-\begin{table}
-\label{tab:scattering:datastructure}
-\caption{Structure of single scattering data files}
-\begin{flushleft}
-\begin{tabular}{llll}
-\hline
-\multicolumn{1}{c}{Symbol}&Type&Dimensions&Description \\
-\hline
-  &enum& & specification of particle type \\
-  &String& & short description of particle type \\
-\Frq & Vector & (\Frq) & frequency grid \\
-\Tmp  & Vector & (\Tmp) & temperature grid \\
-\ZntAng & Vector & (\ZntAng) & zenith angle grid \\
-\AzmAng & Vector & (\AzmAng) & azimuth angle grid \\
-\EnsAvr{\PhaMat}  & Tensor7 & (\Frq, \Tmp, \ZntAng, \AzmAng, $\ZntAng'$, $\AzmAng'$, $i$ )  & phase matrix \\
-\EnsAvr{\ExtMat} & Tensor5  & (\Frq, \Tmp, \ZntAng, \AzmAng, $i$ ) & extinction matrix \\
-\EnsAvr{\AbsVec} & Tensor5 & (\Frq, \Tmp, \ZntAng, \AzmAng, $i$ ) & absorption vector\\
-\hline
-\end{tabular}
-\end{flushleft}
-\end{table}
-
-The following three kinds of scattering media are implemented in ARTS
-so far. The number in brackets is the corresponding \emph{enum}-value.
-\begin{description}
-\item[General case (p10):] If the scattering medium does not have any
-  symmetries, all sixteen elements of the phase matrix have to be
-  stored. The individual phase matrices can be calculated using
-  Mishchenko's T-matrix code for single particles in fixed
-  orientation.  The
-  extinction matrix has in general seven independent elements and the
-  absorption vector has four different elements.
-\item[Randomly oriented particles (p20):] For this case the scattering
-  medium is macroscopically isotropic and mirror-symmetric and we
-  calculate the single scattering properties in the particle frame
-  (\figref{fig:scattering:part_frame}) using the T- matrix code for randomly
-  oriented particles. This reduces the size of the datafiles
-  enormously, as the single scattering properties depend only on the
-  scattering angle, not on four angles needed to describe incident and
-  scattered directions. Furthermore the number of independent elements
-  of the phase matrix, the extinction matrix and the absorption
-  coefficient vector is reduced. Only six elements of the phase matrix
-  are independent and the extinction matrix is diagonal, therefore
-  only one element needs to be stored in the data files. Only the
-  first element of the absorption vector is non-zero. Moreover,
-  extinction and absorption are independent of the propagation
-  direction. The only drawback is that the single scattering data has
-  to be transformed from the particle frame representation to the
-  laboratory frame representation. These transformations are described
-  in the appendix of \citet{emde05:_phdthesis}.
-\item[Horizontally aligned plates and columns (p30):] For particles
-  that are azimuthally randomly oriented, one angular dimension of the
-  phase matrix data array is redundant, as the phase matrix is
-  independent of the incident azimuth angle. Furthermore, regarding
-  the symmetry of this case, it can be shown that for the scattered
-  directions only half of the angular grids are required. As for the
-  general case, the fixed orientation T-matrix code for single
-  scattering particles is used. The averaging over azimuthal
-  orientations is done using the exact $T$-matrix averaging method of
-  \citet{mishchenko00:_light_scatt_nonsp_partic} for the extinction
-  matrix, and by numerical integration for the phase matrix. The data
-  is stored in the laboratory frame omitting the redundant data.
-  Therefore this data does not need to be transformed. In order to use
-  it for the radiative transfer equation, we only need appropriate
-  reading and interpolation routines for this data format.
-\end{description} 
-
-It is very convenient to use the PYTHON module PyARTS, which has been
-developed especially for ARTS and which is freely available at
-\href{http://www.sat.uni-bremen.de/cgi-bin/cvsweb.cgi/PyARTS/}
-{\url{http://www.sat.uni-bremen.de/cgi-bin/cvsweb.cgi/PyARTS/}}. This
-module can be used to generate single scattering properties for
-horizontally aligned as well as for randomly oriented particles in the
-ARTS data-file-format. PyARTS has been developed by C. Davis, who has
-implemented the Monte Carlo scattering algorithm in ARTS (see
-\secref{sec:montecarlo}).
 
 %%% Local Variables: 
 %%% mode: latex

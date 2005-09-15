@@ -884,7 +884,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
   
       
      
-      xml_write_to_file("ext_mat_field.xml", ext_mat_field ); 
+      //  xml_write_to_file("ext_mat_field.xml", ext_mat_field );
+      // xml_write_to_file("abs_vec_field.xml", ext_mat_field );
       
       //======================================================================
       // Radiative transfer inside the cloudbox

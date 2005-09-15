@@ -1,0 +1,40 @@
+\chapter{Description of the atmosphere}
+ \label{sec:atmosphere}
+
+\starthistory
+ 050913 & Created by Claudia Emde. Included GriddedField3 description.\\ 
+\stophistory
+
+\FIXME{Patrick: Move parts from chapter 3.1  here}
+
+\section{Atmospheric fields} 
+
+\subsection{Gridded Fields} 
+
+In order to store three-dimensional atmospheric fields along with the
+atmospheric grids, the class \typeindex{GriddedField3} was
+implemented. It resides in the files \fileindex{gridded\_fields.h} and
+\fileindex{gridded\_fields.cc}.  The \typeindex{GriddedField3} is used
+for all atmospheric field: \wsvindex{z\_field}, \wsvindex{t\_field},
+\wsvindex{vmr\_field} and \wsvindex{pnd\_field}.\\
+
+The class \typeindex{GriddedField3} consists of the following fields:
+\begin{itemize}
+\item {\sl Vector} \artsstyle{p\_grid}: Pressure grid [Unit: Pa].
+\item {\sl Vector} \artsstyle{lat\_grid}: Latitude grid [Unit:
+  \degree].
+\item {\sl Vector} \artsstyle{lon\_grid}: Longitude grid [Unit:
+  \degree].
+\item {\sl Tensor3} \artsstyle{data}: Data of the atmospheric
+  field. The dimensions of the {\sl Tensor3} are:
+  \artsstyle{ [pressure latitude longitude]}\\
+  The unit is chosen according to the atmospheric field. 
+\end{itemize} 
+
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "uguide"
+%%% End: 

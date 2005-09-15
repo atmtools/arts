@@ -1,3 +1,27 @@
+2005-09-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1031
+	
+	* doc/uguide/clouds.tex: Created this file. This chapter should
+	include parts related to scattering, which are commonly used by MC
+	and DOIT. Included the desription of the class
+	SingleScatteringData.  Documentaion of pnd_field will be added. 
+
+	* doc/uguide/atmosphere.tex: Created this file. Should include
+	infromation about atmospheric grids and fields, mainly what is now
+	in Section 3.1, which is currently too long as introduction. 
+	Included a short description of the class GriddedField3 here. 
+
+	* doc/uguide/scattering.tex: Removed the short single scattering
+	data description from here. Some description of arts WSMs and WSVs
+	related to DOIT will be added. 
+
+	* doc/uguide/main.tex: Included new files. 
+
+	* doc/uguide/Makefile.am: Dito.
+
+	* doc/uguide/symbol_defs.tex: Included acronym \ScaMat. 
+	
 2005-09-13  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1030
