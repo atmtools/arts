@@ -514,9 +514,9 @@ public:
 
     // Check if this species is legal, i.e., if species and isotope
     // data exists.
-    extern Array<SpeciesRecord> species_data;
-    assert( mspecies < species_data.nelem() );
-    assert( misotope < species_data[mspecies].Isotope().nelem() );
+    ////    extern Array<SpeciesRecord> species_data;
+    //assert( mspecies < species_data.nelem() );
+    //assert( misotope < species_data[mspecies].Isotope().nelem() );
   }
 
   /** Return the version String. */

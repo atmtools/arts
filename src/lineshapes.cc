@@ -1944,8 +1944,11 @@ void lineshape_norm_no_norm(Vector&       fac,
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
   // future. For now, let's do an assertion that at least it is
-  // correct: 
-  assert( nf==f_mono.nelem() );
+  // correct:
+  if (f_mono.nelem()>-1)
+    {
+      assert( nf==f_mono.nelem() );
+    }
 
   for ( Index i=0; i<nf; ++i )
     {

@@ -699,7 +699,7 @@ void spec(Array<SpeciesRecord>::iterator& is,
     assert( name == is->Name() );
   }
 #endif
-
+  if (name ==  is->Name() ){}
   ii = is->Isotope().begin();
 
   is++;
@@ -716,7 +716,7 @@ void iso(Array<IsotopeRecord>::iterator& ii,
     assert( name == ii->Name() );
   }
 #endif
-
+  if (name ==  ii->Name() ){}
   ii->SetPartitionFctCoeff(coeff);
 
   ii++;
