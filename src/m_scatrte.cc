@@ -1604,7 +1604,7 @@ void DoitInit(
                         1,
                         scat_za_grid.nelem(), 
                         1,
-                        stokes_dim);  
+                        stokes_dim);
     }
   else if (atmosphere_dim == 3)
     {
@@ -1634,6 +1634,8 @@ void DoitInit(
   doit_i_field = 0.;
   doit_scat_field = 0.;
 
+                                    
+                                    
   // Default interpolation method is "linear"
   if (doit_za_interp != 1)
     doit_za_interp = 0;

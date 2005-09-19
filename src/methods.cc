@@ -1145,10 +1145,10 @@ void define_md_data_raw()
          "can be included.\n"
          "\n"
          ),
-        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_ ),
+        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, doit_i_field1D_spectrum_),
         INPUT( doit_i_field_, f_grid_, f_index_,   p_grid_, lat_grid_, 
                lon_grid_, scat_za_grid_, scat_aa_grid_, stokes_dim_,
-               atmosphere_dim_, cloudbox_limits_ ),
+               atmosphere_dim_, cloudbox_limits_, sensor_pos_, z_field_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -2053,7 +2053,8 @@ md_data_raw.push_back
          "Interpolation of the internal field is not yet possible."
          ),
         OUTPUT( iy_ ),
-        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, rte_gp_p_, rte_gp_lat_,
+        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, doit_i_field1D_spectrum_,
+               rte_gp_p_, rte_gp_lat_,
                rte_gp_lon_, rte_los_,  cloudbox_on_, cloudbox_limits_,
                atmosphere_dim_, stokes_dim_, scat_za_grid_, scat_aa_grid_, 
                f_grid_),
@@ -2073,7 +2074,8 @@ md_data_raw.push_back
          "interpolation along *scat_za_grid* is performed."
          ),
         OUTPUT( iy_ ),
-        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, rte_gp_p_, rte_gp_lat_,
+        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, doit_i_field1D_spectrum_,
+               rte_gp_p_, rte_gp_lat_,
                rte_gp_lon_, rte_los_,  cloudbox_on_, cloudbox_limits_,
                atmosphere_dim_, stokes_dim_, scat_za_grid_, scat_aa_grid_, 
                f_grid_),

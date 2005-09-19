@@ -1127,12 +1127,12 @@ void ParticleTypeAdd( //WS Output:
     out1 << "Warning: No pnd_field_file specified. Ignored. \n";
   else
     {
-    xml_read_from_file(pnd_field_file,
-                       pnd_field_raw[pnd_field_raw.nelem()-1]);
-
-    chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
-                 pnd_field_file, atmosphere_dim, p_grid, lat_grid,
-                 lon_grid, cloudbox_limits);
+      xml_read_from_file(pnd_field_file,
+                         pnd_field_raw[pnd_field_raw.nelem()-1]);
+      
+      chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
+                   pnd_field_file, atmosphere_dim, p_grid, lat_grid,
+                   lon_grid, cloudbox_limits);
     }
 }
 
@@ -1338,6 +1338,7 @@ void DoitCloudboxFieldPut(//WS Output:
                Tensor7&  scat_i_p,
                Tensor7& scat_i_lat,
                Tensor7& scat_i_lon,
+               Tensor4& doit_i_field1D_spectrum,
                //WS Input:
                const Tensor6& doit_i_field,
                const Vector& f_grid,
@@ -1349,7 +1350,10 @@ void DoitCloudboxFieldPut(//WS Output:
                const Vector& scat_aa_grid,
                const Index& stokes_dim,
                const Index& atmosphere_dim,
-               const ArrayOfIndex& cloudbox_limits)
+               const ArrayOfIndex& cloudbox_limits,
+               const Matrix& sensor_pos,
+               const Tensor3& z_field
+               )
 {
   // Some sizes:
   Index N_f = f_grid.nelem();
@@ -1379,11 +1383,25 @@ void DoitCloudboxFieldPut(//WS Output:
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*"); 
   // End of checks.
+  
+  // Resize and initialize *doit_i_field_spectra*
+  doit_i_field1D_spectrum.resize(N_f, N_p, N_za, stokes_dim); 
+  doit_i_field1D_spectrum = 0;
 
   // Put the doit_i_field at the cloudbox boundary into the interface variable 
   // scat_i_p.
   if(atmosphere_dim == 1)
     {
+      bool in_cloudbox = false;
+      // Check if sensor inside the cloudbox:
+      //loop over all sensor positions
+      for (Index i = 0; i < sensor_pos.ncols(); i++)
+        {
+          if(sensor_pos(i, 0) <= z_field(cloudbox_limits[0], 0, 0) ||
+             sensor_pos(i, 0) >= z_field(cloudbox_limits[1], 0, 0) )
+            in_cloudbox = true;
+        }
+      
       // Check size of doit_i_field.
       assert ( is_size( doit_i_field, 
                         (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
@@ -1410,9 +1428,19 @@ void DoitCloudboxFieldPut(//WS Output:
                        za, 0, i) = 
                 doit_i_field(cloudbox_limits[1] - cloudbox_limits[0],
                         0, 0, za, 0, i); 
+
+              // If a sensor pos is inside the cloudbox we also need to 
+              // define *doit_i_field1D_spectra*
+              if( in_cloudbox)
+                {
+                  doit_i_field1D_spectrum(f_index, joker, za, i) = 
+                    doit_i_field(joker, 0, 0, za, 0, i);
+                }
               
             }//end stokes_dim
         }//end za loop
+      
+      
     }//end atmosphere_dim = 1
         
   if(atmosphere_dim == 3)
@@ -2111,6 +2139,7 @@ void iyInterpCloudboxField(
       const Tensor7&        scat_i_p,
       const Tensor7&        scat_i_lat,
       const Tensor7&        scat_i_lon,
+      const Tensor4&        doit_i_field1D_spectrum,
       const GridPos&        rte_gp_p,
       const GridPos&        rte_gp_lat,
       const GridPos&        rte_gp_lon,
@@ -2121,9 +2150,10 @@ void iyInterpCloudboxField(
       const Index&          stokes_dim,
       const Vector&         scat_za_grid,
       const Vector&         scat_aa_grid,
-      const Vector&         f_grid )
+      const Vector&         f_grid)
 {
-  iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, rte_gp_p, 
+  iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, 
+                            doit_i_field1D_spectrum, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "linear" );
@@ -2143,6 +2173,7 @@ void iyInterpPolyCloudboxField(
       const Tensor7&        scat_i_p,
       const Tensor7&        scat_i_lat,
       const Tensor7&        scat_i_lon,
+      const Tensor4&        doit_i_field1D_spectrum,      
       const GridPos&        rte_gp_p,
       const GridPos&        rte_gp_lat,
       const GridPos&        rte_gp_lon,
@@ -2155,7 +2186,8 @@ void iyInterpPolyCloudboxField(
       const Vector&         scat_aa_grid,
       const Vector&         f_grid )
 {
-  iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, rte_gp_p, 
+  iy_interp_cloudbox_field( iy, scat_i_p, scat_i_lat, scat_i_lon, 
+                            doit_i_field1D_spectrum, rte_gp_p, 
                             rte_gp_lat, rte_gp_lon, rte_los, cloudbox_on, 
                             cloudbox_limits, atmosphere_dim, stokes_dim, 
                             scat_za_grid, scat_aa_grid, f_grid, "polynomial" );

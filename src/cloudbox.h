@@ -77,6 +77,7 @@ void iy_interp_cloudbox_field(
       const Tensor7&        scat_i_p,
       const Tensor7&        scat_i_lat,
       const Tensor7&        scat_i_lon,
+      const Tensor4&        doit_i_field1D_spectrum, 
       const GridPos&        rte_gp_p,
       const GridPos&        rte_gp_lat,
       const GridPos&        rte_gp_lon,

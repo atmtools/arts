@@ -1,3 +1,20 @@
+2005-09-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1033	
+	
+	* src/m_cloudbox.cc (iyInterpCloudboxField),
+	(iyInterpCloudboxField), (DoitCloudboxFieldPut): Modifications for
+	1D-calculations of observations inside the cloudbox.
+	(not yet tested !!!)
+	
+	* src/cloudbox.{cc,h} (iy_interp_cloudbox_field): Implemeted the
+	option to put the sensor inside the cloudbox. 
+
+	* src/methods.cc: Adapted Input/Output of WSM above.
+
+	* src/workspace.cc: Included WSV *doit_i_field1D_spectrum*
+	(Radiation field for a full freqeuncy spectrum). 
+	
 2005-09-16  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1032
@@ -36,7 +53,6 @@
 
 	* doc/uguide/symbol_defs.tex: Included acronym \ScaMat. 
 	
->>>>>>> 1.1427
 2005-09-13  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1030

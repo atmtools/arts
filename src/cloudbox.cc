@@ -505,6 +505,7 @@ void chk_single_scattering_data(
    \param scat_i_p          In: As the WSV with same name.
    \param scat_i_lat        In: As the WSV with same name.
    \param scat_i_lon        In: As the WSV with same name.
+   \param doit_i_field1D_spectrum In: As the WSV with same name.
    \param rte_gp_p          In: As the WSV with same name.
    \param rte_gp_lat        In: As the WSV with same name.
    \param rte_gp_lon        In: As the WSV with same name.
@@ -516,6 +517,7 @@ void chk_single_scattering_data(
    \param scat_za_grid      In: As the WSV with same name. 
    \param scat_aa_grid      In: As the WSV with same name. 
    \param f_grid            In: As the WSV with same name.
+   \param p_grid            In: As the WSV with same name.
    \param interpmeth        Interpolation method. Can be "linear" or 
    "polynomial".
  
@@ -523,22 +525,23 @@ void chk_single_scattering_data(
    \date 2004-09-29
 */
 void iy_interp_cloudbox_field(
-            Matrix&         iy,
-      const Tensor7&        scat_i_p,
-      const Tensor7&        scat_i_lat,
-      const Tensor7&        scat_i_lon,
-      const GridPos&        rte_gp_p,
-      const GridPos&        rte_gp_lat,
-      const GridPos&        rte_gp_lon,
-      const Vector&         rte_los,
-      const Index&          cloudbox_on,
-      const ArrayOfIndex&   cloudbox_limits,
-      const Index&          atmosphere_dim,
-      const Index&          stokes_dim,
-      const Vector&         scat_za_grid,
-      const Vector&         scat_aa_grid,
-      const Vector&         f_grid,
-      const String&         interpmeth )
+                              Matrix&               iy,
+                              const Tensor7&        scat_i_p,
+                              const Tensor7&        scat_i_lat,
+                              const Tensor7&        scat_i_lon,
+                              const Tensor4&        doit_i_field1D_spectrum, 
+                              const GridPos&        rte_gp_p,
+                              const GridPos&        rte_gp_lat,
+                              const GridPos&        rte_gp_lon,
+                              const Vector&         rte_los,
+                              const Index&          cloudbox_on,
+                              const ArrayOfIndex&   cloudbox_limits,
+                              const Index&          atmosphere_dim,
+                              const Index&          stokes_dim,
+                              const Vector&         scat_za_grid,
+                              const Vector&         scat_aa_grid,
+                              const Vector&         f_grid,
+                              const String&         interpmeth )
 {
   //--- Check input -----------------------------------------------------------
   if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )
@@ -628,20 +631,95 @@ void iy_interp_cloudbox_field(
                  "Given position has been found to be outside the cloudbox." );
     }
 
-  // We are not yet handling points inside the cloud box
-  if( border == 99 )
-    {
-      throw runtime_error( 
-               "Observations from inside the cloud box are not yet handled." );
-    }
-
-   
   //- Sizes
   const Index   nf  = f_grid.nelem();
+  const Index   np  = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  const Index   nza  = scat_za_grid.nelem();
 
   //- Resize *iy*
   iy.resize( nf, stokes_dim );
 
+  
+  // Sensor points inside the cloudbox
+  if( border == 99 )
+    {
+      if (atmosphere_dim == 3)
+        {
+          throw runtime_error(
+                              "3D DOIT calculations are not implemented\n"
+                              "for observations from inside the cloudbox.\n"
+                              );
+        }
+      else
+        {
+          assert(atmosphere_dim == 1);
+          
+          // *doit_i_field1D_spectra* is normally calculated internally:
+          assert( is_size(doit_i_field1D_spectrum, nf, np, nza, stokes_dim) );
+          
+          out3 << "    Interpolating outgoing field:\n";
+          out3 << "       zenith_angle: " << rte_los[0] << "\n";
+          out3 << " Sensor inside cloudbox at position:  " << 
+            rte_gp_p << "\n";
+          
+          // Grid position in *scat_za_grid*
+          GridPos gp_za;
+          gridpos( gp_za, scat_za_grid, rte_los[0] );
+          
+          // Corresponding interpolation weights
+          Vector itw_za(2);
+          interpweights( itw_za, gp_za );
+          
+          // Grid position in *p_grid* (only cloudbox part because 
+          // doit_i_field1D_spectra is only defined inside the cloudbox
+          GridPos gp_p;
+          gp_p = rte_gp_p;
+          gp_p.idx = rte_gp_p.idx - cloudbox_limits[0]; 
+
+          Vector itw_p(2);
+          interpweights( itw_p, gp_p );
+
+          Vector iy_p(nza);
+
+          if( interpmeth == "linear" )
+            {
+              for(Index is = 0; is < stokes_dim; is++ )
+                {
+                  for(Index iv = 0; iv < nf; iv++ )
+                    {
+                      for (Index i_za = 0; i_za < nza; i_za++)
+                        {
+                          iy_p[i_za] = interp
+                          (itw_p, doit_i_field1D_spectrum(iv, joker, i_za, is),
+                             gp_p);
+                        }
+                      iy(iv,is) = interp( itw_za, iy_p, gp_za);
+                    }
+                }
+            }
+          else
+            {   
+              for(Index is = 0; is < stokes_dim; is++ )
+                {
+                  for(Index iv = 0; iv < nf; iv++ )
+                    {
+                      for (Index i_za = 0; i_za < nza; i_za++)
+                        {
+                          iy_p[i_za] = interp
+                         (itw_p, doit_i_field1D_spectrum(iv, joker, i_za, is),
+                             gp_p);
+                        }
+                      iy(iv,is) =  interp_poly( scat_za_grid, iy_p, rte_los[0],
+                                                gp_za );
+                    }
+                }
+            }
+          
+        }
+      
+    }
+  
+  // Sensor outside the cloudbox
 
   // --- 1D ------------------------------------------------------------------
   if( atmosphere_dim == 1 )
@@ -671,6 +749,7 @@ void iy_interp_cloudbox_field(
             {
               for(Index iv = 0; iv < nf; iv++ )
                 {
+
                   iy(iv,is) = interp( itw, 
                                     scat_i_p( iv, border, 0, 0, joker, 0, is ),
                                       gp );
