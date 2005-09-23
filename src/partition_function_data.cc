@@ -694,11 +694,8 @@ void spec(Array<SpeciesRecord>::iterator& is,
           String name)
 {
   
-#ifndef NDEBUG
-  {
-    assert( name == is->Name() );
-  }
-#endif
+  assert( name == is->Name() );
+
   if (name ==  is->Name() ){}
   ii = is->Isotope().begin();
 
@@ -711,11 +708,8 @@ void iso(Array<IsotopeRecord>::iterator& ii,
          String name,
          const ArrayOfNumeric& coeff)
 {
-#ifndef NDEBUG
-  {
-    assert( name == ii->Name() );
-  }
-#endif
+  assert( name == ii->Name() );
+
   if (name ==  ii->Name() ){}
   ii->SetPartitionFctCoeff(coeff);
 

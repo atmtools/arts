@@ -481,12 +481,7 @@ void VectorZtanToZaRefr(// WS Output:
                         const Tensor3&      z_field,
                         const Tensor4&      vmr_field,
                         const Matrix&       r_geoid,
-// FIXME atmosphere_dim only used for assertion
-#ifndef NDEBUG
-                        const Index&        atmosphere_dim,
-#else
-                        const Index&        /* atmosphere_dim */,
-#endif
+                        const Index&        DEBUG_ONLY (atmosphere_dim),
                         // WS Generic Input:
                         const Vector&       ztan_vector,
                         // WS Generic Input Names:

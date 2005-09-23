@@ -1,3 +1,52 @@
+2005-09-23  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1035
+	
+	* src/arts.h:
+
+	New macro DEBUG_ONLY (). Use this macro around code that should only
+	be included in debug builds. E.g. around function parameter names
+	which are only used in assertions:
+
+	Instead of 
+
+	function x(
+	#ifndef NDEBUG
+	           Index a
+	#else
+		   Index
+	#endif
+	) { assert (a==1); }
+
+	please now write:
+
+	function x( Index DEBUG_ONLY (a) ) { assert (a==1); }
+
+	It can also be used around a single line of code. For example around
+	definitions of variables which are only used in assertions:
+
+	DEBUG_ONLY (const Index np = cloudbox_limits[1] - cloudbox_limits[0]);
+
+	Please don't use this macro around multiple statements. If you have
+	two 'assert-only' variable definitions put each of them in a separate
+	DEBUG_ONLY. For multiple line debug code use the common
+	#ifndef NDEBUG.
+
+	Hopefully that makes the code cleaner and clearer.
+
+	* src/{agenda_record,gas_abs_lookup,main,mc_interp,ppath,methods_aux,
+	m_ppath}.cc:
+
+	Use DEBUG_ONLY where appropriate.
+
+	* src/partition_function_data.cc:
+
+	Removed #ifndef NDEBUG around assertions. They are useless.
+
+	* src/cloudbox.cc (iy_interp_cloudbox_field):
+
+	Fix non-debug compilation.
+
 2005-09-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1034

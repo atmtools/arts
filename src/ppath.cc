@@ -1873,23 +1873,21 @@ void do_gridcell_3d(
   //
   if( r_start == rlow )
     {
-// FIXME only needed for assertion
-#ifndef NDEBUG
-      const double c = plevel_slope_3d( lat1, lat3, lon5, lon6, 
-                      r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
-      const double tilt = plevel_angletilt( r_start, c );
-#endif
+      DEBUG_ONLY (const double c = plevel_slope_3d( lat1, lat3, lon5, lon6, 
+                                                    r15a, r35a, r36a, r16a,
+                                                    lat_start, lon_start,
+                                                    aa_start ));
+      DEBUG_ONLY (const double tilt = plevel_angletilt( r_start, c ));
 
       assert( !is_los_downwards( za_start, tilt ) );
     }
   else if( r_start == rupp )
     {
-// FIXME only needed for assertion
-#ifndef NDEBUG
-      const double c = plevel_slope_3d( lat1, lat3, lon5, lon6, 
-                      r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
-      const double tilt = plevel_angletilt( r_start, c );
-#endif
+      DEBUG_ONLY (const double c = plevel_slope_3d( lat1, lat3, lon5, lon6, 
+                                                    r15b, r35b, r36b, r16b,
+                                                    lat_start, lon_start,
+                                                    aa_start ));
+      DEBUG_ONLY (const double tilt = plevel_angletilt( r_start, c ));
 
       assert( is_los_downwards( za_start, tilt ) );
     }
@@ -2827,28 +2825,18 @@ void ppath_start_1d(
               double&     za_start,
               Index&      ip,
         const Ppath&      ppath,
-// FIXME only needed for assertion
-#ifndef NDEBUG
-        ConstVectorView   p_grid,
-        ConstVectorView   z_field,
-        const double&     r_geoid,
-        const double&     z_surface
-#else
-        ConstVectorView,
-        ConstVectorView,
-        const double&,
-        const double&
-#endif
+        ConstVectorView   DEBUG_ONLY (p_grid),
+        ConstVectorView   DEBUG_ONLY (z_field),
+        const double&     DEBUG_ONLY (r_geoid),
+        const double&     DEBUG_ONLY (z_surface)
         )
 {
   // Number of points in the incoming ppath
   const Index   imax = ppath.np - 1;
 
 // FIXME only needed for assertion
-#ifndef NDEBUG
   // Number of pressure levels
-  const Index   npl = p_grid.nelem();
-#endif
+  DEBUG_ONLY (const Index   npl = p_grid.nelem());
 
   // Extract starting radius, zenith angle and latitude
   r_start   = ppath.pos(imax,0);
@@ -2977,12 +2965,7 @@ void ppath_start_2d(
               double&     rsurface1,
               double&     rsurface3,
         const Ppath&      ppath,
-// FIXME only used for assertion
-#ifndef NDEBUG
-        ConstVectorView   p_grid,
-#else
-        ConstVectorView,
-#endif
+        ConstVectorView   DEBUG_ONLY (p_grid),
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
@@ -2992,12 +2975,9 @@ void ppath_start_2d(
   // Number of points in the incoming ppath
   const Index imax = ppath.np - 1;
 
-// FIXME only needed for assertion
-#ifndef NDEBUG
   // Number of pressure levels and latitudes
-  const Index npl = p_grid.nelem();
-  const Index nlat = lat_grid.nelem();
-#endif
+  DEBUG_ONLY (const Index npl = p_grid.nelem());
+  DEBUG_ONLY (const Index nlat = lat_grid.nelem());
 
   // Extract starting radius, zenith angle and latitude
   r_start   = ppath.pos(imax,0);
@@ -3200,12 +3180,7 @@ void ppath_start_3d(
               double&     rsurface36,
               double&     rsurface16,
               Ppath&      ppath,
-// FIXME only used for assertion
-#ifndef NDEBUG
-              ConstVectorView   p_grid,
-#else
-              ConstVectorView,
-#endif
+              ConstVectorView   DEBUG_ONLY (p_grid),
               ConstVectorView   lat_grid,
               ConstVectorView   lon_grid,
               ConstTensor3View  z_field,
@@ -3215,11 +3190,8 @@ void ppath_start_3d(
   // Number of points in the incoming ppath
   const Index imax = ppath.np - 1;
 
-// FIXME only needed for assertion
-#ifndef NDEBUG
   // Number of pressure levels and latitudes
-  const Index npl = p_grid.nelem();
-#endif
+  DEBUG_ONLY (const Index npl = p_grid.nelem());
   const Index nlat = lat_grid.nelem();
   const Index nlon = lon_grid.nelem();
 

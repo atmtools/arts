@@ -120,10 +120,8 @@ MdRecord::MdRecord(const char                   name[],
 */
 void MdRecord::subst_any_with_group( Index g )
 {
-#ifndef NDEBUG
   // The group names, we need them for the expansion:
-  extern const ArrayOfString wsv_group_names;
-#endif
+  DEBUG_ONLY (extern const ArrayOfString wsv_group_names);
 
   // Make sure they are initialized:
   assert( 0 != wsv_group_names.nelem() );

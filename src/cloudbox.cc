@@ -633,7 +633,7 @@ void iy_interp_cloudbox_field(
 
   //- Sizes
   const Index   nf  = f_grid.nelem();
-  const Index   np  = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  DEBUG_ONLY (const Index   np  = cloudbox_limits[1] - cloudbox_limits[0] + 1);
   const Index   nza  = scat_za_grid.nelem();
 
   //- Resize *iy*

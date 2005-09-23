@@ -593,12 +593,10 @@ void option_describe(const String& describe)
 */
 void check_built_headers()
 {
-#ifndef NDEBUG
   // Make lookup data visible:
   //  extern const Array<MdRecord>  md_data;
-  extern const ArrayOfString wsv_group_names;
-  extern const Array<WsvRecord> wsv_data;
-#endif
+  DEBUG_ONLY (extern const ArrayOfString wsv_group_names);
+  DEBUG_ONLY (extern const Array<WsvRecord> wsv_data);
 
   // Checks:
   assert( N_WSV_GROUPS == wsv_group_names.nelem() );

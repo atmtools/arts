@@ -99,11 +99,9 @@ Matrix interp( ConstVectorView itw,
                 ArrayOfMatrix a,    
                 const GridPos&  tc )
 {
-#ifndef NDEBUG
-  const Numeric sum_check_epsilon = 1e-6;
-#endif
-  
-assert(is_size(itw,2));       // We need 2 interpolation
+  DEBUG_ONLY (const Numeric sum_check_epsilon = 1e-6);
+
+  assert(is_size(itw,2));       // We need 2 interpolation
                                 // weights.
 
   // Check that interpolation weights are valid. The sum of all
@@ -150,9 +148,7 @@ Vector interp( ConstVectorView itw,
                 ArrayOfVector a,    
                 const GridPos&  tc )
 {
-#ifndef NDEBUG
-  const Numeric sum_check_epsilon = 1e-6;
-#endif
+  DEBUG_ONLY (const Numeric sum_check_epsilon = 1e-6);
   
   assert(is_size(itw,2));       // We need 2 interpolation
                                 // weights.

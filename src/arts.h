@@ -172,7 +172,15 @@ void arts_exit (int status = 1);
 // Physical constants are now in constants.cc
 //
 
+//---------------< Global macro definitions: >---------------
 
+// Use this macro around function parameter names and variable definitions
+// which are only used in assertions
+#ifndef NDEBUG
+#define DEBUG_ONLY(...) __VA_ARGS__
+#else
+#define DEBUG_ONLY(...)
+#endif
 
 #endif // arts_h
 
