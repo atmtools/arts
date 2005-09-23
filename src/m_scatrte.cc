@@ -2640,6 +2640,7 @@ void ScatteringDoit(
                     Tensor7& scat_i_p, 
                     Tensor7& scat_i_lat, 
                     Tensor7& scat_i_lon,
+                    Tensor4& doit_i_field1D_spectrum,
                     const Vector& f_grid,
                     const Agenda& doit_mono_agenda
                     )
@@ -2674,7 +2675,8 @@ void ScatteringDoit(
     {
       out1 << "Frequency: " << f_grid[f_index]/1e9 <<" GHz \n" ;
       doit_mono_agendaExecute(doit_i_field, scat_i_p, scat_i_lat,
-                              scat_i_lon, f_index, doit_mono_agenda,
+                              scat_i_lon, doit_i_field1D_spectrum,
+                              f_index, doit_mono_agenda,
                               false); 
         }
 }

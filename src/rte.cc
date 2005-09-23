@@ -178,6 +178,7 @@ void get_radiative_background(
         // original data is needed when going back to *rte_calc*.
         Ppath   pp_copy;
         ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
+       
         ppath_copy( pp_copy, ppath );
         chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
 
@@ -198,19 +199,27 @@ void get_radiative_background(
       }
       break;
 
-    case 4:   //--- Inside of cloudbox ---------------------------------------
+    case 4: // inside the cloudbox
       {
-        throw runtime_error( "RTE calculations starting inside the cloud box "
-                                                       "are not yet handled" );
-      }
+        chk_not_empty( "iy_cloudbox_agenda", iy_cloudbox_agenda );
+        iy_cloudbox_agenda.execute( agenda_verb );
+
+        if( iy.nrows() != nf  ||  iy.ncols() != stokes_dim )
+          {
+            out1 << "expected size = [" << nf << "," << stokes_dim << "]\n";
+            out1 << "iy size = [" << iy.nrows() << "," << iy.ncols()<< "]\n";
+            throw runtime_error( "The size of *iy* returned from "
+                                 "*iy_cloudbox_agenda* is not correct." );
+          }
+      } 
       break;
-
-
+      
     default:  //--- ????? ----------------------------------------------------
       // Are we here, the coding is wrong somewhere
       assert( false );
-    }
+      }
 }
+
 
 
 

@@ -3839,7 +3839,8 @@ md_data_raw.push_back
          "*scat_i_lat* and *scat_i_lon* (3D)).\n"
          "\n"
          ),
-        OUTPUT(doit_i_field_, scat_i_p_, scat_i_lat_, scat_i_lon_),
+        OUTPUT(doit_i_field_, scat_i_p_, scat_i_lat_, scat_i_lon_,
+               doit_i_field1D_spectrum_),
         INPUT(f_grid_, scat_i_p_, scat_i_lat_, scat_i_lon_, doit_mono_agenda_),
         GOUTPUT(),
         GINPUT(),

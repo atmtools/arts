@@ -1,3 +1,22 @@
+2005-09-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1034
+	
+	* src/rte.cc (get_radiative_background): Included backgound
+	"inside cloudbox". I have now tested to put the sensor inside the
+	cloudbox and it works!!
+
+	* src/agendas.cc: Adapted INPUT of *doit_mono_agenda*.
+
+	* src/m_scatrte.cc: Adjusted INPUT of *doit_mono_agenda*.
+
+	* src/methods.cc: Adjusted INPUT of *doit_mono_agenda*.
+
+	* src/cloudbox.cc: Fixed small bug related to sensor in cloudbox. 
+
+	* src/m_cloudbox.cc: Included output message for sensor pos. in
+	cloudbox. 
+	
 2005-09-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1033	

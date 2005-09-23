@@ -161,7 +161,8 @@ void define_agenda_data()
        "the methods.\n"
        "\n"
         ),
-       OUTPUT(doit_i_field_,scat_i_p_,scat_i_lat_, scat_i_lon_),
+       OUTPUT(doit_i_field_,scat_i_p_,scat_i_lat_, scat_i_lon_, 
+              doit_i_field1D_spectrum_),
        INPUT(f_index_,scat_i_p_,scat_i_lat_, scat_i_lon_)));
             
  agenda_data.push_back

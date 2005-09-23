@@ -706,7 +706,7 @@ void iy_interp_cloudbox_field(
                       for (Index i_za = 0; i_za < nza; i_za++)
                         {
                           iy_p[i_za] = interp
-                         (itw_p, doit_i_field1D_spectrum(iv, joker, i_za, is),
+                          (itw_p, doit_i_field1D_spectrum(iv, joker, i_za, is),
                              gp_p);
                         }
                       iy(iv,is) =  interp_poly( scat_za_grid, iy_p, rte_los[0],
@@ -722,7 +722,7 @@ void iy_interp_cloudbox_field(
   // Sensor outside the cloudbox
 
   // --- 1D ------------------------------------------------------------------
-  if( atmosphere_dim == 1 )
+  else if( atmosphere_dim == 1 )
     {
       // Use assert to check *scat_i_p* as this variable should to 99% be
       // calculated internally, and thus make it possible to avoid this check.

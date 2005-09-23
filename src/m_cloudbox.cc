@@ -1399,7 +1399,11 @@ void DoitCloudboxFieldPut(//WS Output:
         {
           if(sensor_pos(i, 0) <= z_field(cloudbox_limits[0], 0, 0) ||
              sensor_pos(i, 0) >= z_field(cloudbox_limits[1], 0, 0) )
-            in_cloudbox = true;
+            {
+              in_cloudbox = true;
+              out2 << "Sensor position in cloudbox, store radiation field\n"
+                   << "in cloudbox for all frequencies. \n"; 
+            }
         }
       
       // Check size of doit_i_field.
