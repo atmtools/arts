@@ -1,3 +1,17 @@
+2005-09-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1036
+	
+	* doc/uguide/clouds.tex: Included a new section describing
+	particle number density fields and ARTS
+	workspace methods related to cloud properties. 
+
+	* doc/uguide/atmosphere.tex: Small correction. 
+
+	* doc/uguide/references.bib: Included new references.
+
+	* doc/uguide/symbol_defs.tex: Included symbols for IMC and Reff.
+
 2005-09-23  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1035

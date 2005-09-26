@@ -14,9 +14,12 @@
 In order to store three-dimensional atmospheric fields along with the
 atmospheric grids, the class \typeindex{GriddedField3} was
 implemented. It resides in the files \fileindex{gridded\_fields.h} and
-\fileindex{gridded\_fields.cc}.  The \typeindex{GriddedField3} is used
-for all atmospheric field: \wsvindex{z\_field}, \wsvindex{t\_field},
-\wsvindex{vmr\_field} and \wsvindex{pnd\_field}.\\
+\fileindex{gridded\_fields.cc}.  The reading routine
+\wsmindex{AtmRawRead} requires the volume mixing ratio profiles of all
+gas species and the altitude and temperature profiles in
+\typeindex{GriddedField3} format. The reading routines
+\wsmindex{ParticleTypeAdd} and \wsmindex{ParticleTypeAddAll} require
+the particle number density fields in \typeindex{GriddedField3} format.
 
 The class \typeindex{GriddedField3} consists of the following fields:
 \begin{itemize}

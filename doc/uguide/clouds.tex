@@ -29,14 +29,16 @@ database the single scattering properties are not always stored in the
 same coordinate system. For instance for randomly oriented particles
 it makes sense to store the single scattering properties in the
 so-called scattering frame in order to reduce memory requirements. 
-This chapter describes in detail the \typeindex{SingleScatteringData}
-class. 
+The following section describes in detail the \typeindex{SingleScatteringData}
+class.  The consequent section describes how to realize different
+kinds of size distributions in the ARTS frame by defining appropriate
+particle number density fields. 
 
 \section{Single scattering properties}
-\label{sec:scattering:ssp}
+\label{sec:clouds:ssp}
 
 \subsection[Coordinate systems]{Coordinate systems: The laboratory frame and the scattering frame}
-\label{sec:scattering:coordinate_sytems}
+\label{sec:clouds:coordinate_sytems}
 
 For radiative transfer calculations we need a coordinate system to
 describe the direction of propagation. For this purpose we use the
@@ -75,7 +77,7 @@ between the incident and the scattering direction.
 \end{figure}
 
 \subsection{Scattering datafile stucture}
-\label{sec:scattering:ARTS_SSP_structure}
+\label{sec:clouds:ARTS_SSP_structure}
  
 The single scattering properties are pre-calculated, for example by
 using the T-matrix 
@@ -198,7 +200,7 @@ $\ZntAng'$, $\AzmAng'$, $i$ )  & phase matrix \\
 \end{table}
 
 \subsection{Definition of particle types}
-\label{sec:scattering:ARTS_SSP_structure}
+\label{sec:clouds:particle_types}
 
 \subsubsection{Macroscopically isotropic and mirror-symmetric scattering
   media (p20)}
@@ -312,21 +314,238 @@ The ATMLAB package includes functions to generate single scattering
 properties for spherical particles (Mie-Theorie). 
 
 
-\section{Particle number density fields}
+\section[Particle size distributions]{Representation of the particle size distribution}
+\label{sec:clouds:size_distr}
 
+The particle size has an important impact on the scattering and
+absorption properties of cloud particles as shown for instance in 
+\citep{emde04:_doit_jgr}.  Clouds contain a whole range of
+different particle sizes, which can be described by a size
+distribution giving the number of particles per unit volume per unit
+radius interval as a function of radius.  It is most convenient to
+parameterize the size distribution by analytical functions, because in
+this case optical properties can be calculated much faster than for
+arbitrary size distributions. The T-matrix code for randomly oriented
+particles includes several types of analytical size distributions,
+e.g., the gamma distribution or the log-normal distribution.  This
+section presents the size distribution parameterizations, which were
+used for the ARTS simulations included in this thesis.
+
+\subsection{Mono-disperse particle distribution}
+
+The most simple assumption is, that all particles in the cloud have
+the same size.  In order to study scattering effects like polarization
+or the influence of particle shape, it makes sense to use this most
+simple assumption, because one can exclude effects resulting from the
+particle size distribution itself.  
+
+Along with the single scattering properties we need the particle
+number density field, which specifies the number of particles per
+cubic meter at each grid point, for ARTS scattering simulations.  For
+a given \imc\ and mono-disperse particles the particle number density
+$n^p$ is simply
+\begin{equation}
+\label{eq:pnd_mono}
+  n^p (\imc, r) =\frac{\imc}{m} = \frac{\imc}{V\rho}
+    =\frac{3}{4\pi}\frac{\imc}{\rho r^3},  
+\end{equation}
+where $m$ is the mass of a particle, $r$ is its equal volume sphere
+radius, $\rho$ is its density, and $V$ is its volume.
+     
+\subsection{Gamma size distribution}
+\label{sec:clouds:gamma_distr}
+
+A commonly used distribution for radiative transfer modeling in cirrus
+clouds is the \emph{gamma distribution}
+\begin{equation}
+  n(r) = a  r^\alpha \exp(-br).
+\label{eq:gamma_distr}
+\end{equation}
+The dimensionless parameter $\alpha$ describes the width of the
+distribution. The other two parameters can be linked to the effective
+radius \Reff\ and the ice mass content \imc\ as follows:
+\begin{eqnarray}
+  b &= \frac{\alpha+3}{\Reff},\\
+  a &= \frac{\imc}{4/3\pi\rho b^{-(\alpha+4)}\Gamma[\alpha+4]},
+\label{eq:gamma_coeff}
+\end{eqnarray}
+where $\rho$ is the density of the scattering medium and $\Gamma$ is
+the gamma function. For cirrus clouds $\rho$ corresponds to the bulk
+density of ice, which is approximately 917 kg/m$^3$.
+
+Generally, the effective radius \Reff\ is defined as the average
+radius weighted by the particle cross-section
+\begin{equation}
+  \label{eq:Reff}
+  \Reff= \frac{1}{\EnsAvr{A}} \int_{r_{min}}^{r_{max}} {A(r) r n(r) \DiffD r},
+\end{equation}
+where $A$ is the area of the geometric projection of a particle. The
+minimal and maximal particle sizes in the distribution are given by
+$r_{min}$ and $r_{max}$ respectively. In the case of spherical
+particles $A = \pi r^2$. The average area of the geometric projection
+per particle \EnsAvr{A} is given by
+\begin{equation}
+  \EnsAvr{A} = \frac{\int_{r_{min}}^{r_{max}} {A(r) n(r) \DiffD r}}{\int_{r_{min}}^{r_{max}} {n(r) \DiffD r}}.
+\end{equation}
+
+The question is how well a gamma distribution can represent the true
+particle size distribution in radiative transfer calculations. This
+question is investigated by \citet{evans:98}. The authors come to the
+conclusion that a gamma distribution represents the distribution of
+realistic clouds quite well, provided that the parameters \Reff, \imc\ 
+and $\alpha$ are chosen correctly. They show that setting $\alpha = 1$
+and calculating only \Reff\ gave an agreement within 15\% in 90\% of
+the considered measurements obtained during the First ISCCP Regional
+Experiment (FIRE).  Therefore, for all calculations including gamma
+size distributions for ice particles, $\alpha = 1$ was assumed.  
+
+The particle number density for size distributions is obtained by
+integration of the distribution function over all sizes:
+\begin{eqnarray}
+  n^p(\imc, \Reff) &= \int_0^\infty {n(r)\DiffD r} \\
+ &= \int_0^\infty {a  r^\alpha \exp(-br)
+    \DiffD r} = a \frac{\Gamma(\alpha+1)}{b^{\alpha+1}}.
+\end{eqnarray}
+
+After setting $\alpha$ = 1, inserting \eqnref{eq:gamma_coeff} and
+some simple algebra we obtain
+\begin{equation}
+  \label{eq:pnd_gamma}
+  n^p(\imc, \Reff) = \frac{2}{\pi} \frac{\imc}{\rho \Reff^3}.
+\end{equation}
+Comparing \eqnref{eq:pnd_mono} and \eqref{eq:pnd_gamma}, we see
+that the particle number density for mono-disperse particles with a
+particle size of $R$ is smaller than the particle number density for
+gamma distributed particles with $\Reff=R$. The reason is that in the
+gamma distribution most particles are smaller than~\Reff.
+
+\subsection[McFarquhar and Heymsfield parametrization]{Ice particle size parameterization by McFarquhar and Heymsfield}
+\label{sec:McFHey_distr}
+
+A more realistic parameterization of tropical cirrus ice crystal size
+distributions was derived by
+\citet{mcfarquar97:_param_tropic_cirrus_ice_cryst}, who derived the
+size distribution as a function of temperature and \imc. The
+parameterization was made based on observations during the Central
+Equatorial Pacific Experiment (CEPEX). Smaller ice crystals with an
+equal volume sphere radius of less than 50\,\mum\ are parametrized
+as a sum of first-order gamma functions:
+\begin{equation}
+  \label{eq:MH_gamma}
+  n(r) = \frac{12\cdot \imc_{<50}\alpha^5_{<50} r}{\pi \rho
+    \Gamma(5)} \exp(-2 \alpha_{<50} r), 
+\end{equation}
+where $\alpha_{<50}$ is a parameter of the distribution, and
+$\imc_{<50}$ is the mass of all crystals smaller than 50\,\mum\ in
+the observed size distribution.  Large ice crystals are represented
+better by a log-normal function
+\begin{equation}
+  \label{eq:MH_lognorm}
+  n(r) = \frac{3\cdot\imc_{>50}}{\pi^{3/2}\rho \sqrt{2}
+    \exp(3\mu_{>50}+(9/2)\sigma^2_{>50}) r \sigma_{>50} r_0^3}
+  \cdot \exp\left[-\frac{1}{2}\left(\frac{\log\frac{2r}{r_0} -
+          \mu_{>50}}{\sigma_{>50}}\right)^2\right], 
+\end{equation}
+where $\imc_{>50}$ is the mass of all ice crystals greater than
+50\,\mum\ in the observed size distribution, $r_0$ = 1\,\mum\ is a
+parameter used to ensure that the equation does not depend on the
+choice of unit for r, $\sigma_{>50}$ is the geometric standard
+deviation of the distribution, and $\mu_{>50}$ is the location of the
+mode of the log-normal distribution.  The fitted parameters of the
+distribution can be looked up in the article by
+\citet{mcfarquar97:_param_tropic_cirrus_ice_cryst}.  The particle
+number density field is obtained by numerical integration over a
+discrete set of size bins. This parameterization of particle size has
+been implemented in the PyARTS package, which was introduced in
+\secref{sec:clouds:ARTS_SSP_structure}. Using PyARTS one can calculate the size
+distributions, the corresponding single scattering properties and the
+particle number density fields for given \imc\ and temperature.
 \section{Implementation}
 
-\FIXME{Write down what is implemented in which files}
 \subsection{Work space methods and variables}
+
+The workspace methods related to cloud definition in ARTS are
+implemented in the file \fileindex{m\_cloudbox.cc}.
 
 \subsubsection{How to read scattering data}
 
-\FIXME{include ParticleTypeInit/Add common for MC and DOIT}
+The following controlfile section illustrates how a simple cloud can
+be included in an ARTS calculation. 
 
-\subsubsection{How to use the data in ARTS}
+First we have to define to cloudbox region, i.e. the region where
+scattering objects are found. To do this we use the method
+\wsmindex{cloudboxSetManuallyAltitude}:
+\begin{verbatim}
+cloudboxSetManuallyAltitude{
+z1=8000
+z2=120000
+lat1=0
+lat2=0
+lon1=0
+lon2=0
+}
+\end{verbatim}
+If we want to do a simulation for a
+cirrus cloud at an altitude from 9 to 11\,km the cloudbox limits can
+be set to 8 and 12\,km. The latitude and longitude limits are set to
+an arbitrary value for a 1D calculation. For 3D calculations they are
+also needed. Alternatively one can use the method
+\wsmindex{cloudboxSetManually}, where one has to provide pressure
+instead of altitude limits. 
+ 
+Now we have to specify the cloud particles inside the scattering
+region:
+\begin{verbatim}
+# Initialisation
+ParticleTypeInit{}
+# Only one particle type is added in this example 
+ParticleTypeAdd{
+filename_scat_data="ssd_sphere_50um_p20.xml"
+filename_pnd_field="pnd_sphere_50um_p20.xml"
+}
+\end{verbatim}
+In the workspace method \wsmindex{ParticleTypeAdd} the single
+scattering properties for one particle type are
+read. The first keyword \artsstyle{filename\_scat\_data} must be set to the filename of a
+datafile including scattering data (class \typeindex{SingleScatteringData})
+in xml-format. The second keyword \artsstyle{filename\_pnd\_field} must
+contain the filename of the corresponding particle number density
+field in xml-format (class \typeindex{GriddedField3}). If the cloud is
+composed of several different particle types
+\wsmindex{ParticleTypeAdd} can be used repeatedly for all particle
+types, e.g.: 
+\begin{verbatim}
+ParticleTypeAdd{
+filename_scat_data="ssd_cylinder_30um_p30.xml"
+filename_pnd_field="pnd_cylinder_30um_p30.xml"
+}
+\end{verbatim}
+Alternatively it is possible to use the method
+\wsmindex{ParticleTypeAddAll}, which is convenient to generate a size
+distribution using several size bins. In this case one needs to define
+one
+particle type for each size bin. For many size bins the control file
+becomes very lengthy if one uses \wsmindex{ParticleTypeAdd}
+repeatedly. \wsmindex{ParticleTypeAddAll} requires as input an array
+of string including all filenames of the single scattering data files
+and the variable \wsvindex{pnd\_field\_raw} which includes the particle
+number density fields for all particle types. Using this function, one
+has to make sure that the order of the filenames containing the single
+scattering data corresponds to the order of the particle number
+density fields in \wsvindex{pnd\_field\_raw}.
+After reading the data the workspace variable \wsvindex{pnd\_field} is
+calculated using \wsmindex{pnd\_fieldCalc}: 
+\begin{verbatim}
+# Calculate the particle number density field
+pnd_fieldCalc{}
+\end{verbatim}
 
-\FIXME{refer to DOIT and MC chpters since different functions are
-  used. }
+The definition of the single scattering data along with the
+corresponding particle number density fields is common in both
+scattering modules, the DOIT module described in 
+\charef{sec:scattering} and the Monte Carlo module described in
+\charef{sec:montecarlo}.
+
 
 %%% Local Variables: 
 %%% mode: latex
