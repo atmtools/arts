@@ -462,12 +462,14 @@ distributions, the corresponding single scattering properties and the
 particle number density fields for given \imc\ and temperature.
 \section{Implementation}
 
-\subsection{Work space methods and variables}
-
 The workspace methods related to cloud definition in ARTS are
 implemented in the file \fileindex{m\_cloudbox.cc}.
+Work space methods related to the optical properties of the clouds are
+implemented in the file \fileindex{m\_optproperties.cc}. The coodinate system
+transformations described above reside in the file
+\fileindex{optproperties.cc}.
 
-\subsubsection{How to read scattering data}
+\subsection{Work space methods and variables}
 
 The following controlfile section illustrates how a simple cloud can
 be included in an ARTS calculation. 

@@ -1,3 +1,12 @@
+2005-09-27  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1037
+	
+	* doc/uguide/scattering.tex: Included control file parts and
+	comments including descriptions of workspace methods. 
+
+	* doc/uguide/clouds.tex: Minor modifications. 
+
 2005-09-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1036

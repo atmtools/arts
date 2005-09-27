@@ -11,7 +11,12 @@ The Discrete Ordinate ITerative (DOIT) method is one of the scattering
 algorithms in ARTS. Besides the DOIT method a backward Monte Carlo
 scheme has been implemented (see \secref{sec:montecarlo}). The DOIT
 method is unique because a discrete ordinate iterative method is used to solve the
-scattering problem in a 3D spherical atmosphere. A literature review
+scattering problem in a spherical atmosphere. Although the DOIT module
+is implemented for 1D and 3D atmodphere, it is strongly recommended to
+use it only for 1D, because the Monte Carlo module
+(\charef{sec:montecarlo}) is much more appropriate for 3D
+calulations. More appropriate in the sense that it is much more
+efficient. A literature review
 about scattering models for the microwave region, which is presented
 in \citet{sreerekha04:_devel_rt_ghz_wp1}, shows that former implementations
 of discrete ordinate schemes are only applicable for
@@ -478,9 +483,6 @@ the number of iterations depends only on the optical thickness of the
 cloud or on the number of multiple-scattering events, not on the
 number of pressure levels.
 
-FIXME: Description for 3D sequential update.
-
-
 
 \section{Numerical Issues}
 \label{sec:scattering:implementation_DOIT}
@@ -669,11 +671,200 @@ interpolation error is below~0.2\%.
 
 \section{Implementation}
 
-\FIXME{include files}
+The workspace methods required for DOIT calculations are implemented
+in the files \fileindex{m\_scatrte.cc}, \fileindex{m\_cloudbox.cc} and
+\fileindex{m\_optproperties.cc}. 
 
 \subsection{Control file example}
+This example demonstrates how to set up a 1D DOIT calculation. 
 
-\FIXME{take parts of simpleDOIT.arts and explain DOIT methods}
+\subsection{DOIT frame}
+\label{sec:scattering:frame}
+
+\FIXME{angles}
+
+As a first step for a DOIT calculation we have to calculate the
+inoming field on the boundary of the cloudbox. This is done using the
+workspace method \wsmindex{CloudboxGetIncoming}:
+\begin{verbatim}
+CloudboxGetIncoming{}
+\end{verbatim}
+The next step is the initialization of varibles required for a DOIT
+calculation using \wsmindex{DoitInit}:
+\begin{verbatim}
+DoitInit{}
+\end{verbatim}
+The main agenda for a DOIT calculation in
+\wsaindex{doit\_mono\_agenda}. 
+The agenda is exectuted by the workspace method
+\wsmindex{ScatteringDoit}:
+\begin{verbatim}
+ScatteringDoit{}
+\end{verbatim}
+
+\subsubsection{The DOIT main agenda}
+
+This agenda requires the incoming
+clearsky field on the cloudbox boundary as an input in gives as
+output the scattered field on the cloudbox boundary if the sensor is
+placed outside the cloudbox or the full scattered field in the
+cloudbox if the sensor is placed inside the cloudbox.
+\begin{verbatim}
+AgendaSet(doit_mono_agenda){
+ # Prepare scattering data for DOIT calculation (Optimized method):
+   DoitScatteringDataPrepare{}
+ # Alternative method (needs less memory):
+ # scat_data_monoCalc{}
+ # Set first guress field:		
+   doit_i_fieldSetClearsky{}
+ # Perform iterations: 1. scattering integral. 2. RT calculations with 
+ #   fixed scattering integral field, 3. convergence test 
+   doit_i_fieldIterate{}
+ # Put solution into interface for clearsky calculation   
+   DoitCloudboxFieldPut{}
+ }		
+\end{verbatim}
+The first method \wsmindex{DoitScatteringDataPrepare} reads the
+single scattering data and interpolates it on the requested
+frequency. It also performes the transformation from the scattering
+frame into the laboratory frame. Alternatively the method
+\wsmindex{scat\_data\_monoCalc} can be used. In this case only the
+frequency interpolation is done and the transformations are done
+later. The advantage is that this method needs less memory. But for 1D
+calculation it is recommended to use
+\wsmindex{DoitScatteringDataPrepare} because it is much more
+efficient. 
+
+The method \wsmindex{doit\_i\_fieldSetClearsky} interpolates the
+incoming radiation field on all points inside the cloudbox to obtain
+the initial field (\wsvindex{doit\_i\_field}) for the DOIT calculation. 
+As a test one can start with a constant radiation field using the merthod
+\wsmindex{doit\_i\_fieldSetConst}. 
+
+The iteration is peröformed in the method
+\wsmindex{doit\_i\_fieldIterate}, which includes the calculation of
+the scattering integral field \wsvindex{doit\_scat\_field}, the
+radiative transfer calculations in 
+the cloudbox with fixed scattering integral and the convergence test.
+
+After convergence is obtained the radiation field inside the
+cloudbox is stored in the interface variable \wsvindex{scat\_i\_p} if
+the sensor positions are outside the cloudbox or in the variable 
+\wsvindex{doit\_i\_field1D\_spectrum} if the sensor is inside the
+cloudbox. This is done by the workspace method
+\wsmindex{DoitCloudboxFieldPut}. In contrast to
+\wsvindex{doit\_i\_field} the interface 
+variables include an additional dimension for the frequency.
+
+
+\subsubsection{Agendas used in \wsmindex{doit\_i\_fieldIterate}}
+
+There are several methods which can be used in
+\wsmindex{doit\_i\_fieldIterate}, for instance for the calculation of
+the scattering integral. The methods are selected in the controlfile by
+the defining several agendas.
+
+\paragraph{Calculation of the scattering integral}
+
+To calculate the scattering integral the phase matrix \wsmindex{pha\_mat} is required. How
+the phase matrix is calculated is defined in the agenda
+\wsaindex{pha\_mat\_spt\_agenda}:
+\begin{verbatim}
+# Calculation of the phase matrix
+AgendaSet(pha_mat_spt_agenda){
+ # Optimized option:
+   pha_mat_sptFromDataDOITOpt{}
+ # Alternative option:
+ #  pha_mat_sptFromMonoData{}
+}
+\end{verbatim}
+If in \wsaindex{doit\_mono\_agenda}
+the hoptimized method \wsmindex{DoitScatteringDataPrepare} is used we
+have to use here the corresponing method
+\wsmindex{pha\_mat\_sptFromDataDOITOpt}. Otherwise we have to use
+\wsmindex{pha\_mat\_sptFromMonoData}.
+
+To do the integration itself, we have to define
+\wsaindex{doit\_scat\_field\_agenda}:
+\begin{verbatim}
+AgendaSet(doit_scat_field_agenda){
+ doit_scat_fieldCalcLimb{}
+ # Alternative: 
+ # doit_scat_fieldCalc{} 
+}
+\end{verbatim}
+Here we have two options. One is \wsmindex{doit\_scat\_fieldCalcLimb},
+which should be used for limb silumations, for which we need a fine
+zenith angle grid resolution to represent the radiation field. The
+scattering integral can be calculated on a coarser grid resolution, so
+in \wsmindex{doit\_scat\_fieldCalcLimb}, the radiation field is
+interpolated on the equidistant angular grids specified in
+\wsmindex{DoitAngularGridsSet}. Alternatively, one can use
+\wsmindex{doit\_scat\_fieldCalc}, where this interpolation is not
+performed. This function is efficient for simulations in up- or
+down-looking geometry, where the we do not need the fine zenith angle
+grid resolution about 90°. How the angular grids are defined has been
+described in \secref{sec:scattering:frame}.
+
+\FIXME{Comments for following parts}
+ 
+\begin{verbatim}
+# 2. Radiative transfer with fixed scattering integral term
+# ---------------------------------------------------------
+
+AgendaSet(doit_rte_agenda){
+   # Sequential update for 1D
+  doit_i_fieldUpdateSeq1D{}
+   # Alternatives:
+   # Plane parallel approximation for determination of propagation path steps
+   #   i_fieldUpdateSeq1D_PlaneParallel{}
+   # Without sequential update (not efficient):
+   #   i_fieldUpdate1D
+   # 3D atmosphere:
+   #   i_fieldUpdateSeq3D{}
+}
+
+# Calculate opticle properties of particles and add particle absorption
+# and extiction to the gaseous properties to get total extinction and
+# absorption:
+
+AgendaSet(spt_calc_agenda){
+   opt_prop_sptFromMonoData{}
+}
+
+AgendaSet( opt_prop_part_agenda ){
+   ext_matInit{}
+   abs_vecInit{}
+   ext_matAddPart{}
+   abs_vecAddPart{}
+}
+	
+
+# 3. Convergence test
+# ----------------------
+AgendaSet( doit_conv_test_agenda) {
+    # Give limits for all Stokes components in Rayleigh Jeans BT:
+    doit_conv_flagAbsBT{
+    epsilon = [0.1, 0.01, 0.01, 0.01]
+    }
+    # Alternative: Give limits in radiances
+    #   doit_conv_flagAbs{
+    # epsilon = [0.1e-15, 0.1e-18, 0.1e-18, 0.1e-18]
+    #}
+    # If you want to investigat several iteration fields, for example 
+    # to investigate the convergence behavior, you can use
+    # the following method:
+    #DoitWriteIterationFields{
+    #	iterations = [2, 4]
+    #}
+}
+
+AgendaSet(iy_cloudbox_agenda){
+    iyInterpCloudboxField{}
+    }
+
+
+\end{verbatim}
 
 
 
