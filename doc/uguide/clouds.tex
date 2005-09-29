@@ -34,10 +34,11 @@ class.  The consequent section describes how to realize different
 kinds of size distributions in the ARTS frame by defining appropriate
 particle number density fields. 
 
-\section{Single scattering properties}
+\section{\textindex{Single scattering properties}}
 \label{sec:clouds:ssp}
 
-\subsection[Coordinate systems]{Coordinate systems: The laboratory frame and the scattering frame}
+\subsection[Coordinate systems]{\textindex{Coordinate systems}: The
+  \textindex{laboratory frame} and the \textindex{scattering frame} }
 \label{sec:clouds:coordinate_sytems}
 
 For radiative transfer calculations we need a coordinate system to
@@ -76,7 +77,7 @@ between the incident and the scattering direction.
  \end{center}
 \end{figure}
 
-\subsection{Scattering datafile stucture}
+\subsection{Scattering datafile structure}
 \label{sec:clouds:ARTS_SSP_structure}
  
 The single scattering properties are pre-calculated, for example by
@@ -87,7 +88,7 @@ reviewed in \citet{emde05:_phdthesis}.
 
 The format of the scattering database allows space reduction due to
 symmetry for certain special cases, e.g. random orientation or
-horizontal alignment. The file format is xml. The data is stored in a
+horizontal alignment. The file format is XML. The data is stored in a
 class called \typeindex{SingleScatteringData}, which resides in
 the files \fileindex{optproperties.h}. The class consists of the
 following 
@@ -116,7 +117,7 @@ fields (compare also \tabref{tab:scattering:datastructure}):
   furthermore we also have to specify the exact particle properties
   (i.e. size and shape distribution). This can be a longer text
   describing how the scattering properties were generated. It should
-  be formated for direct printout to screen or file.
+  be formatted for direct printout to screen or file.
   
 \item {\sl Vector} \artsstyle{f\_grid}: Frequency grid [Unit: Hz].
   
@@ -150,7 +151,7 @@ fields (compare also \tabref{tab:scattering:datastructure}):
 \item {\sl Tensor7} \artsstyle{pha\_mat\_data}: Phase matrix data
   \EnsAvr\PhaMat\ [Unit: m$^2$]. The dimensions of the data array are:  
   
-  \artsstyle{[frequency temperature za\_sca aa\_sca za\_inc aa\_inc matrix\_elment]}
+  \artsstyle{[frequency temperature za\_sca aa\_sca za\_inc aa\_inc matrix\_element]}
   
   The order of matrix elements depends on the chosen case. For most
   cases we do not need all matrix elements (see description of cases
@@ -199,7 +200,7 @@ $\ZntAng'$, $\AzmAng'$, $i$ )  & phase matrix \\
 \end{flushleft}
 \end{table}
 
-\subsection{Definition of particle types}
+\subsection{Definition of \textindex{particle types}}
 \label{sec:clouds:particle_types}
 
 \subsubsection{Macroscopically isotropic and mirror-symmetric scattering
@@ -254,7 +255,7 @@ The phase matrix (and also extinction matrix and absorption vector)
 become independent of the incident azimuth angle in this
 frame. Furthermore, regarding the symmetry of this case, it can be
 shown that for the scattered directions we need only half of the
-angular grids, as the two halfs must contain the same
+angular grids, as the two halves must contain the same
 data. \artsstyle{pha\_mat\_data} therefore has the following size:
 
 \artsstyle{[N\_f N\_T N\_za\_sca N\_aa\_sca N\_za\_inc/2+1 1 16]}\\
@@ -311,10 +312,10 @@ ARTS data-file-format. PyARTS has been developed by C. Davis, who has
 implemented the Monte Carlo scattering algorithm in ARTS (see
 \secref{sec:montecarlo}).
 The ATMLAB package includes functions to generate single scattering
-properties for spherical particles (Mie-Theorie). 
+properties for spherical particles (Mie-Theory). 
 
 
-\section[Particle size distributions]{Representation of the particle size distribution}
+\section[Particle size distributions]{Representation of the \textindex{particle size distribution}}
 \label{sec:clouds:size_distr}
 
 The particle size has an important impact on the scattering and
@@ -439,13 +440,14 @@ where $\alpha_{<50}$ is a parameter of the distribution, and
 $\imc_{<50}$ is the mass of all crystals smaller than 50\,\mum\ in
 the observed size distribution.  Large ice crystals are represented
 better by a log-normal function
-\begin{equation}
+\begin{eqnarray}
   \label{eq:MH_lognorm}
   n(r) = \frac{3\cdot\imc_{>50}}{\pi^{3/2}\rho \sqrt{2}
     \exp(3\mu_{>50}+(9/2)\sigma^2_{>50}) r \sigma_{>50} r_0^3}
+  \nonumber \\
   \cdot \exp\left[-\frac{1}{2}\left(\frac{\log\frac{2r}{r_0} -
           \mu_{>50}}{\sigma_{>50}}\right)^2\right], 
-\end{equation}
+\end{eqnarray}
 where $\imc_{>50}$ is the mass of all ice crystals greater than
 50\,\mum\ in the observed size distribution, $r_0$ = 1\,\mum\ is a
 parameter used to ensure that the equation does not depend on the
@@ -462,10 +464,10 @@ distributions, the corresponding single scattering properties and the
 particle number density fields for given \imc\ and temperature.
 \section{Implementation}
 
-The workspace methods related to cloud definition in ARTS are
+The workspace methods related to the description of clouds in ARTS are
 implemented in the file \fileindex{m\_cloudbox.cc}.
 Work space methods related to the optical properties of the clouds are
-implemented in the file \fileindex{m\_optproperties.cc}. The coodinate system
+implemented in the file \fileindex{m\_optproperties.cc}. The coordinate system
 transformations described above reside in the file
 \fileindex{optproperties.cc}.
 
@@ -515,7 +517,8 @@ contain the filename of the corresponding particle number density
 field in xml-format (class \typeindex{GriddedField3}). If the cloud is
 composed of several different particle types
 \wsmindex{ParticleTypeAdd} can be used repeatedly for all particle
-types, e.g.: 
+types, for instance one could add to the randomly oriented spherical
+particles above horizontally aligned cylindrical particles: 
 \begin{verbatim}
 ParticleTypeAdd{
 filename_scat_data="ssd_cylinder_30um_p30.xml"

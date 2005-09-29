@@ -1101,7 +1101,7 @@ void define_md_data_raw()
          "N_za_grid: number of grid points in zenith angle grid\n"
          "           recommended value: 19\n"
          "N_aa_grid: number of grid points in zenith angle grid\n"
-         "           recommended value: 10\n"
+         "           recommended value: 37\n"
          "\n"
          "From these numbers equally spaced grids are created and stored in "
          "the\n" 

@@ -1,3 +1,15 @@
+2005-09-29  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1039
+	
+	* doc/uguide/scattering.tex: Finished the technical descriptions. 
+
+	* doc/uguide/clouds.tex: Fixed some typos. 
+
+	* doc/uguide/atmosphere.tex: Minor corrections. 
+
+	* src/methods.cc: Fixed online documentation for (DoitAngularGridsSet).
+
 2005-09-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1038

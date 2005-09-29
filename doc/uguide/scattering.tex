@@ -4,15 +4,16 @@
 \starthistory
  020601 & Created and written by Claudia Emde\\ 
  050223 & Rewritten by Claudia Emde, mostly taken from
- Chapter 4 of Claudia's PhD thesis 
+ Chapter 4 of Claudia's PhD thesis \\
+ 050929 & Included technical part, example contol file
 \stophistory
 
-The Discrete Ordinate ITerative (DOIT) method is one of the scattering
+The \textindex{Discrete Ordinate ITerative (DOIT) method} is one of the scattering
 algorithms in ARTS. Besides the DOIT method a backward Monte Carlo
 scheme has been implemented (see \secref{sec:montecarlo}). The DOIT
 method is unique because a discrete ordinate iterative method is used to solve the
 scattering problem in a spherical atmosphere. Although the DOIT module
-is implemented for 1D and 3D atmodphere, it is strongly recommended to
+is implemented for 1D and 3D atmospheres, it is strongly recommended to
 use it only for 1D, because the Monte Carlo module
 (\charef{sec:montecarlo}) is much more appropriate for 3D
 calulations. More appropriate in the sense that it is much more
@@ -36,7 +37,7 @@ The Stokes vector depends on the
 position in the cloud box and on the propagation direction specified
 by the zenith angle ($\ZntAng$) and the azimuth angle ($\AzmAng$). All
 these dimensions are discretized inside the model; five
-numerical grids are required to represent the radiation field
+numerical grids are required to represent the \textindex{radiation field}
 $\IFld$:
 \begin{eqnarray}
   \vec{\Prs} &= \{ \Prs_1, \Prs_2, ... , \Prs_{N_\Prs}\}, \nonumber \\
@@ -71,8 +72,8 @@ In the following we will use the notation
 \label{sec:scattering:VRTE_sol}
 
 \figref{fig:scattering:iteration_scheme} shows a schematic of the iterative
-method, which is applied to solve the vector radiative transfer
-equation \eqref{eq:rtetheory:VRTE}
+method, which is applied to solve the \textindex{vector radiative transfer
+equation} \eqref{eq:rtetheory:VRTE}
 \begin{eqnarray}
   \frac {\DiffD\StoVec(\PDir, \nu, T)}{\DiffD s} =
     &{}-\EnsAvr{\ExtMat(\PDir, \nu, T)} \StoVec(\PDir, \nu, T) +
@@ -259,7 +260,7 @@ scattering integral field is obtained:
 \begin{equation}
   \EnsAvr{S^{(0)}_{ijklm}}  = \int_{4\pi} \DiffD \PDir' \EnsAvr{ Z_{11}} I^{(0)}_{ijklm}.
 \end{equation}
-The \emph{scalar radiative transfer} equation \eqref{eq:rtetheory:SRTE} with a
+The \emph{\textindex{scalar radiative transfer}} equation \eqref{eq:rtetheory:SRTE} with a
 fixed scattering integral is
 \begin{equation}
   \label{eq:scattering:SRTE-Int}
@@ -298,7 +299,8 @@ iteration fields.
 \subsection{Single scattering approximation}
 \label{sec:scattering:ss_approx}
 
-The DOIT method uses the single scattering approximation, which means
+The DOIT method uses the \textindex{single scattering approximation},
+which means 
 that for one propagation path step the optical depth is assumed to be
 much less than one so that multiple-scattering can be neglected along
 this propagation path step. It is possible to choose a rather
@@ -321,7 +323,7 @@ is done along the propagation path through one grid cell.  All
 coefficients of the VRTE are interpolated linearly on the propagation
 path points.
 
-\section{Sequential update}\label{chap:numerical_methods}
+\section{\textindex{Sequential update}}\label{chap:numerical_methods}
 \label{sec:scattering:sequential_update}
 
 In the previous \secref{sec:scattering:doit} the iterative solution method
@@ -645,7 +647,7 @@ ratio of 0.5 from 10 to 12\,km altitude. The ice mass content is
 assumed to be $4.3\cdot10^{-3}$\,g/m$^3$ at all pressure levels.  
 An equal volume sphere radius of 75$\,\mum$ is assumed. The particles are
 either completely randomly oriented (p20) or azimuthally randomly
-oriented (p30) (cf. FIXME).% \ \appref{sec:ssp_ARTS}).
+oriented (p30) (cf. \secref{sec:clouds:particle_types}).
 The top panels of
 \figref{fig:scattering:interp_err} show the interpolation errors of the
 intensity.  For both particle orientations the interpolation error is
@@ -680,30 +682,33 @@ in the files \fileindex{m\_scatrte.cc}, \fileindex{m\_cloudbox.cc} and
 This example demonstrates how to set up a 1D DOIT calculation. A full
 running controlfile example for a DOIT calculation can be found in the
 ARTS package in the tests directory. The file is called
-\artsstyle{simpleDOIT.arts}.  
+\artsstyle{simpleDOIT.arts}. For detailed descriptions of the
+workspace methods and variables please refer also to the online help
+(\artsstyle{arts -d ...}).
+ 
 \subsection{DOIT frame}
 \label{sec:scattering:frame}
 
 As a first step for a DOIT calculation we have to calculate the
-inoming field on the boundary of the cloudbox. This is done using the
+incoming field on the boundary of the cloudbox. This is done using the
 workspace method \wsmindex{CloudboxGetIncoming}:
 \begin{verbatim}
 CloudboxGetIncoming{}
 \end{verbatim}
-The next step is the initialization of varibles required for a DOIT
+The next step is the initialization of variables required for a DOIT
 calculation using \wsmindex{DoitInit}:
 \begin{verbatim}
 DoitInit{}
 \end{verbatim}
-The grid discretisation plays a very significant role in discrete
-ordinate method. In spherical geometry the zenith angular grid is of
-particular importance [cp. \secref{sec:scattering:grid_opt_interp}. 
-The angular discretization is defined in the workspce method
+The grid discretization plays a very significant role in discrete
+ordinate methods. In spherical geometry the zenith angular grid is of
+particular importance (cf. \secref{sec:scattering:grid_opt_interp}). 
+The angular discretization is defined in the workspace method
 \wsmindex{DoitAngularGridsSet}:
 \begin{verbatim} 
 DoitAngularGridsSet{
 	N_za_grid = 19
-	N_aa_grid = 10
+	N_aa_grid = 37
 	za_grid_opt_file = "./data/doit_za_grid_opt.xml"
 	}
 \end{verbatim}
@@ -712,7 +717,7 @@ For down-looking geometries it is sufficient to define the keywords:
   \artsstyle{N\_za\_grid}& Number of grid points in zenith angle grid,
   recommended value: 19\\
   \artsstyle{N\_aa\_grid}& Number of grid points in zenith angle grid,
-  recommended value: 10\\ 
+  recommended value: 37\\ 
 \end{tabular}
 From these numbers equally spaced grids are created and stored in the
 work space variables \wsvindex{scat\_za\_grid} and
@@ -730,12 +735,12 @@ optimized grid is taken for the radiative transfer part.
 Otherwise, if no filename is specified
 (\artsstyle{za\_grid\_opt\_file = ""}) the equidistant grid is
 taken for the calculation of the scattering integrals and for
-the radiativr transfer calculations. This option makes sense for
+the radiative transfer calculations. This option makes sense for
 down-looking cases to speed up the calculation.
 
 The main agenda for a DOIT calculation is
 \wsaindex{doit\_mono\_agenda}. 
-The agenda is exectuted by the workspace method
+The agenda is executed by the workspace method
 \wsmindex{ScatteringDoit}:
 \begin{verbatim}
 ScatteringDoit{}
@@ -744,8 +749,8 @@ ScatteringDoit{}
 \subsubsection{The DOIT main agenda}
 \label{sec:scattering:doit_main_agenda}
 
-This agenda requires the incoming
-clearsky field on the cloudbox boundary as an input in gives as
+The agenda \wsaindex{doit\_main\_agenda} requires the incoming
+clearsky field on the cloudbox boundary as an input and gives as
 output the scattered field on the cloudbox boundary if the sensor is
 placed outside the cloudbox or the full scattered field in the
 cloudbox if the sensor is placed inside the cloudbox.
@@ -766,11 +771,11 @@ AgendaSet(doit_mono_agenda){
 \end{verbatim}
 The first method \wsmindex{DoitScatteringDataPrepare} reads the
 single scattering data and interpolates it on the requested
-frequency. It also performes the transformation from the scattering
+frequency. It also performs the transformation from the scattering
 frame into the laboratory frame. Alternatively the method
 \wsmindex{scat\_data\_monoCalc} can be used. In this case only the
 frequency interpolation is done and the transformations are done
-later. The advantage is that this method needs less memory. But for 1D
+later. The advantage is that this method needs less memory. For 1D
 calculation it is recommended to use
 \wsmindex{DoitScatteringDataPrepare} because it is much more
 efficient. 
@@ -778,20 +783,20 @@ efficient.
 The method \wsmindex{doit\_i\_fieldSetClearsky} interpolates the
 incoming radiation field on all points inside the cloudbox to obtain
 the initial field (\wsvindex{doit\_i\_field}) for the DOIT calculation. 
-As a test one can start with a constant radiation field using the merthod
-\wsmindex{doit\_i\_fieldSetConst}. 
+As a test one can alternatively start with a constant radiation field
+using the method \wsmindex{doit\_i\_fieldSetConst}. 
 
-The iteration is peröformed in the method
+The iteration is performed in the method
 \wsmindex{doit\_i\_fieldIterate}, which includes the calculation of
-the scattering integral field \wsvindex{doit\_scat\_field}, the
+the scattering integral field (\wsvindex{doit\_scat\_field}), the
 radiative transfer calculations in 
 the cloudbox with fixed scattering integral and the convergence test.
 
 After convergence is obtained the radiation field inside the
 cloudbox is stored in the interface variable \wsvindex{scat\_i\_p} if
-the sensor positions are outside the cloudbox or in the variable 
-\wsvindex{doit\_i\_field1D\_spectrum} if the sensor is inside the
-cloudbox. This is done by the workspace method
+the sensor is located outside the cloudbox, or in the variable 
+\wsvindex{doit\_i\_field1D\_spectrum} if the sensor is located inside
+the cloudbox. This is done by the workspace method
 \wsmindex{DoitCloudboxFieldPut}. In contrast to
 \wsvindex{doit\_i\_field} the interface 
 variables include an additional dimension for the frequency.
@@ -801,12 +806,13 @@ variables include an additional dimension for the frequency.
 
 There are several methods which can be used in
 \wsmindex{doit\_i\_fieldIterate}, for instance for the calculation of
-the scattering integral. The methods are selected in the controlfile by
-the defining several agendas.
+the scattering integral. The methods are selected in the control-file by
+defining several agendas.
 
 \paragraph{Calculation of the scattering integral:}
 
-To calculate the scattering integral (\eqnref{eq:scattering:scat-int}) the phase matrix \wsmindex{pha\_mat} is required. How
+To calculate the scattering integral (\eqnref{eq:scattering:scat-int})
+the phase matrix (\wsvindex{pha\_mat}) is required. How 
 the phase matrix is calculated is defined in the agenda
 \wsaindex{pha\_mat\_spt\_agenda}:
 \begin{verbatim}
@@ -820,7 +826,7 @@ AgendaSet(pha_mat_spt_agenda){
 \end{verbatim}
 If in \wsaindex{doit\_mono\_agenda}
 the optimized method \wsmindex{DoitScatteringDataPrepare} is used we
-have to use here the corresponing method
+have to use here the corresponding method
 \wsmindex{pha\_mat\_sptFromDataDOITOpt}. Otherwise we have to use
 \wsmindex{pha\_mat\_sptFromMonoData}.
 
@@ -834,17 +840,19 @@ AgendaSet(doit_scat_field_agenda){
 }
 \end{verbatim}
 Here we have two options. One is \wsmindex{doit\_scat\_fieldCalcLimb},
-which should be used for limb silumations, for which we need a fine
-zenith angle grid resolution to represent the radiation field. The
-scattering integral can be calculated on a coarser grid resolution, so
+which should be used for limb simulations, for which we need a fine
+zenith angle grid resolution to represent the radiation field. This
+method has to be used if a zenith angle grid file is given in
+\wsmindex{DoitAngularGridsSet}. The
+scattering integral can be calculated on a coarser grid resolution, hence
 in \wsmindex{doit\_scat\_fieldCalcLimb}, the radiation field is
 interpolated on the equidistant angular grids specified in
-\wsmindex{DoitAngularGridsSet}. Alternatively, one can use
-\wsmindex{doit\_scat\_fieldCalc}, where this interpolation is not
+\wsmindex{DoitAngularGridsSet} by the keywords \artsstyle{Nza} and
+\artsstyle{Naa}. Alternatively, one can use 
+\wsmindex{doit\_scat\_fieldCalc}, where this interpolation is not 
 performed. This function is efficient for simulations in up- or
 down-looking geometry, where the we do not need the fine zenith angle
-grid resolution about 90°. How the angular grids are defined has been
-described in \secref{sec:scattering:frame}.
+grid resolution about 90\degree. 
 
 \paragraph{Radiative transfer with fixed scattering integral term:}
 
@@ -853,12 +861,13 @@ can be solved (\eqnref{eq:scattering:vrte-fs-av}). The workspace
 method to be used for this calculation is defined in
 \wsaindex{doit\_rte\_agenda}. The most efficient and recommended
 workspace method is \wsmindex{doit\_i\_fieldUpdateSeq1D} where the
-sequential update which was described in
+sequential update which is described in
 \secref{sec:scattering:sequential_update} is applied. The workspace
-method \wsmindex{doit\_i\_fieldUpdate1D} does the same without
-sequentioal update and is therefore much less efficient because the
-number of iterations depends on the number of pressure levels in the
-cloudbox.  Other options
+method \wsmindex{doit\_i\_fieldUpdate1D} does the same calculation
+without 
+sequential update and is therefore much less efficient because the
+number of iterations depends in this case on the number of pressure
+levels in the cloudbox.  Other options
 are to use a plane-parallel approximation implemented in the workspace
 method \wsmindex{doit\_i\_fieldUpdateSeq1DPP}. This method is not
 much more efficient than \wsmindex{doit\_i\_fieldUpdateSeq1D},
@@ -872,18 +881,18 @@ AgendaSet(doit_rte_agenda){
    # i_fieldUpdate1D{}
    }
 \end{verbatim}
-The optical properties of the particles, i.e. extinction matrix and
+The optical properties of the particles, i.e., extinction matrix and
 absorption vector are required for solving the radiative transfer
 equation. How they are calculated is specified in
 \wsaindex{spt\_calc\_agenda}. The workspace method
 \wsmindex{opt\_prop\_sptFromMonoData} requires that the raw data is
 already interpolated on the frequency of the monochromatic
-calculation. This requirement is fullfilled when
+calculation. This requirement is fulfilled when
 \wsmindex{DoitScatteringDataPrepare} of \wsmindex{scat\_data\_monoCalc}
 is executed before \wsmindex{doit\_i\_fieldIterate} (see
 \secref{sec:scattering:doit_main_agenda}). The work space method
 \wsmindex{ext\_matAddPart} and \wsmindex{abs\_vecAddPart} are used to
-extract the absorption vector \wsvindex{abs\_vec} and extintiction
+extract the absorption vector \wsvindex{abs\_vec} and extinction
 matrix \wsvindex{ext\_mat} from the workspace variable
 \wsvindex{opt\_prop\_spt}. The gas absorption is added internally. 
 \begin{verbatim}
@@ -907,16 +916,16 @@ agenda \wsaindex{doit\_conv\_test\_agenda}. There are several
 options. The workspace methods \wsmindex{doit\_conv\_flagAbsBT} and
 \wsmindex{doit\_conv\_flagAbs} compare the absolute differences of the
 radiation field element-wise as described in
-\eqnref{eq:scattering:conv_test}. The criterion is specicified by the
-keyword \artsstyle{epsilon} which specifies the convergence limit. It
-must be given for each Stokes component separately. In
-\wsmindex{doit\_conv\_flagAbsBT} the limit must be specified in
+\eqnref{eq:scattering:conv_test}. The convergence limits are specified by the
+keyword \artsstyle{epsilon} which specifies the convergence limit. A limit
+must be given for each Stokes component. In
+\wsmindex{doit\_conv\_flagAbsBT} the limits must be specified in
 Rayleigh Jeans brightness temperatures whereas in
-\wsmindex{doit\_conv\_flagAbs} is defined in the basic radiance unit
+\wsmindex{doit\_conv\_flagAbs} they must be defined in the basic radiance unit
 ([W/(m$^2$Hz sr)]. Another option is to perform a least square
 convergence test using the workspace method
-\wsmindex{doit\_conv\_flagLsq}. Test calculation have shown that this
-test is not safe, therefore a least square convergence test should
+\wsmindex{doit\_conv\_flagLsq}. Test calculations have shown that this
+test is not safe, therefore the least square convergence test should
 only be used for test purposes.
 \begin{verbatim}
 AgendaSet( doit_conv_test_agenda) {
@@ -938,7 +947,7 @@ AgendaSet( doit_conv_test_agenda) {
 \subsection{Propagation of the DOIT result towards the sensor}
 In order to propagate the result of the scattering calculation towards
 the sensor, the fields needs to be interpolated on the direction of
-the sensor line of sight. This is done in the workspace method
+the sensor's line of sight. This is done in the workspace method
 \wsmindex{iyInterpCloudboxField}, which has to be put into the agenda
 ·\wsaindex{iy\_cloudbox\_agenda}:
 
@@ -954,8 +963,8 @@ The DOIT method is implemented for 1D and 3D spherical atmospheres, but it is
 strongly recommended to use it only for 1D calculations, because there
 are several numerical difficulties related to the grid
 discretizations. It is difficult to find appropriate discretizations
-to get sufficientl accurate results in reasonnable computation
-time. Therefore only experieced ARTS users should use DOIT for 3D
+to get sufficiently accurate results in reasonable computation
+time. Therefore only experienced ARTS users should use DOIT for 3D
 calculations only for smaller cloud scenarios. Please refer to the online
 documentation for the workspace method for  3D scattering calculations
 (\wsmindex{doit\_i\_fieldUpdateSeq3D}). All other workspace
