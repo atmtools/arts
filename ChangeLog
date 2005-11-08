@@ -1,5 +1,11 @@
 2005-11-08  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1042
+
+	* tests/data/Makefile.am: Also distribute *.xml.bin.
+
+2005-11-08  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1041
 
 	* tests/Makefile.am: subdirs -> SUBDIRS
