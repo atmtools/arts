@@ -7,7 +7,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-subdirs = data
+SUBDIRS = data
 
 check:
 	python testall.py -v
