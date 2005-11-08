@@ -50,6 +50,7 @@
 #include "matpackVI.h"
 #include "matpackVII.h"
 #include "mystring.h"
+#include "exceptions.h"
 
 
 

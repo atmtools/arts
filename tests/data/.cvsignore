@@ -1,0 +1,4 @@
+*.rep
+*.swp
+Makefile
+Makefile.in

@@ -1,3 +1,24 @@
+2005-11-08  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1040
+	
+	* tests/data/Makefile.am: Added.
+
+	* tests/data/.cvsignore: Added.
+
+	* tests/Makefile.am:
+
+	Added *.arts and *.py to EXTRA_DIST.
+
+	Added data to subdirs.
+
+	* configure.in: Added test/data/Makefile.am to AC_OUTPUT.
+
+	* src/check_input.h:
+
+	Include exceptions.h for declaration of runtime_error. Fixes
+	compilation with gcc >4.0.2.
+
 2005-09-29  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1039
