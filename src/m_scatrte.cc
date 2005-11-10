@@ -566,6 +566,10 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                    Vector& rte_los,
                    Vector& rte_pos,
                    GridPos& rte_gp_p,
+		   Matrix& iy,
+		   Matrix& surface_emission,
+ 		   Matrix& surface_los,
+ 		   Tensor4& surface_rmatrix,
                    // WS Input:
                    const Tensor6& doit_i_field_old,
                    const Tensor6& doit_scat_field,
@@ -589,7 +593,8 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                    const Tensor3& t_field,
                    const Vector& f_grid,
                    const Index& f_index,
-                   const Agenda& iy_surface_agenda, //STR
+		   const Agenda& surface_prop_agenda,
+                   //const Agenda& iy_surface_agenda, //STR
                    const Index& doit_za_interp
                    )
 {
@@ -604,7 +609,7 @@ doit_i_fieldUpdate1D(// WS Input and Output:
   chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
   chk_not_empty( "opt_prop_gas_agenda", opt_prop_gas_agenda);
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda);
-  chk_not_empty( "iy_surface_agenda", iy_surface_agenda);
+  //chk_not_empty( "iy_surface_agenda", iy_surface_agenda);
   
   if (cloudbox_limits.nelem() != 2)
     throw runtime_error(
@@ -711,7 +716,9 @@ doit_i_fieldUpdate1D(// WS Input and Output:
             <= cloudbox_limits[1]; p_index ++)
         {
           cloud_ppath_update1D_noseq(doit_i_field, 
-                                     rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                     rte_los, rte_pos, rte_gp_p, 
+				     iy, surface_emission, surface_los, surface_rmatrix, 
+				     ppath_step, 
                                      p_index, scat_za_index_local, 
                                      scat_za_grid,
                                      cloudbox_limits, doit_i_field_old, 
@@ -720,7 +727,8 @@ doit_i_fieldUpdate1D(// WS Input and Output:
                                      opt_prop_gas_agenda, ppath_step_agenda,
                                      p_grid,  z_field, r_geoid, t_field, 
                                      f_grid, f_index, ext_mat_field, 
-                                     abs_vec_field, iy_surface_agenda,
+                                     abs_vec_field,
+				     surface_prop_agenda,
                                      doit_za_interp);
         }
     }// Closes loop over scat_za_grid.
@@ -743,6 +751,11 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    Vector& rte_los,
                    Vector& rte_pos,
                    GridPos& rte_gp_p,
+		   // WS output
+		   Matrix& iy,
+		   Matrix& surface_emission,
+		   Matrix& surface_los,
+		   Tensor4& surface_rmatrix,
                    // WS Input:
                    const Tensor6& doit_scat_field,
                    const ArrayOfIndex& cloudbox_limits,
@@ -765,7 +778,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                    const Tensor3& t_field,
                    const Vector& f_grid,
                    const Index& f_index,
-                   const Agenda& iy_surface_agenda, //STR
+		   const Agenda& surface_prop_agenda, //STR
+                   //const Agenda& iy_surface_agenda, //STR
                    const Index& doit_za_interp
                    )
 {
@@ -781,7 +795,7 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
   chk_not_empty( "opt_prop_part_agenda", opt_prop_part_agenda);
   chk_not_empty( "opt_prop_gas_agenda", opt_prop_gas_agenda);
   chk_not_empty( "ppath_step_agenda", ppath_step_agenda);
-  chk_not_empty( "iy_surface_agenda", iy_surface_agenda);
+  //chk_not_empty( "iy_surface_agenda", iy_surface_agenda);
   
   if (cloudbox_limits.nelem() != 2)
     throw runtime_error(
@@ -904,14 +918,17 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                 >= cloudbox_limits[0]; p_index --)
             {
               cloud_ppath_update1D(doit_i_field, 
-                                   rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                   rte_los, rte_pos, rte_gp_p, 
+				   iy, surface_emission, surface_los, surface_rmatrix, 
+				   ppath_step, 
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, t_field, 
                                    f_grid, f_index, ext_mat_field,
-                                   abs_vec_field, iy_surface_agenda,
+                                   abs_vec_field, 
+				   surface_prop_agenda,
                                    doit_za_interp); 
             }
         }
@@ -924,14 +941,17 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                 <= cloudbox_limits[1]; p_index ++)
             {
               cloud_ppath_update1D(doit_i_field,  
-                                   rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                   rte_los, rte_pos, rte_gp_p, 
+				   iy, surface_emission,surface_los, surface_rmatrix,
+				   ppath_step, 
                                    p_index, scat_za_index_local, scat_za_grid,
                                    cloudbox_limits, doit_scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, t_field, 
                                    f_grid, f_index, ext_mat_field, 
-                                   abs_vec_field, iy_surface_agenda,
+                                   abs_vec_field, 
+				   surface_prop_agenda,
                                    doit_za_interp); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
@@ -956,7 +976,9 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
               if (!(p_index == 0 && scat_za_grid[scat_za_index_local] > 90.))
                 {
                   cloud_ppath_update1D(doit_i_field,  
-                                       rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                       rte_los, rte_pos, rte_gp_p, 
+				       iy, surface_emission, surface_los, surface_rmatrix,
+				       ppath_step, 
                                        p_index, scat_za_index_local,
                                        scat_za_grid,
                                        cloudbox_limits, doit_scat_field,
@@ -964,7 +986,8 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
                                        opt_prop_gas_agenda, ppath_step_agenda,
                                        p_grid,  z_field, r_geoid, t_field, 
                                        f_grid, f_index, ext_mat_field, 
-                                       abs_vec_field, iy_surface_agenda,
+                                       abs_vec_field,
+				       surface_prop_agenda,
                                        doit_za_interp);
                 }
             }
@@ -1371,8 +1394,8 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                  // Calculate thermal emission:
                 const Tensor3& t_field,
                 const Vector& f_grid,
-                const Index& f_index,
-                const Agenda& iy_surface_agenda 
+                const Index& f_index
+                //const Agenda& iy_surface_agenda 
                 )
 {
 
@@ -1478,7 +1501,7 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                                                  opt_prop_gas_agenda, ppath_step_agenda,
                                                  p_grid,  z_field, r_geoid, t_field, 
                                                  f_grid, f_index, ext_mat_field,
-                                                 abs_vec_field, iy_surface_agenda); 
+                                                 abs_vec_field); 
             }   
         }
       else if ( scat_za_grid[scat_za_index] > 90) 
@@ -1499,7 +1522,7 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                                                  opt_prop_gas_agenda, ppath_step_agenda,
                                                  p_grid,  z_field, r_geoid, t_field, 
                                                  f_grid, f_index, ext_mat_field, 
-                                                 abs_vec_field, iy_surface_agenda); 
+                                                 abs_vec_field);  
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
       
@@ -2678,7 +2701,7 @@ void ScatteringDoit(
                               scat_i_lon, doit_i_field1D_spectrum,
                               f_index, doit_mono_agenda,
                               false); 
-        }
+    }
 }
 
  

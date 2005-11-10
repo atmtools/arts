@@ -249,9 +249,14 @@ void cloud_ppath_update1D(
                           // Input and output
                           Tensor6View doit_i_field,
                           // iy_surface_agenda
-                          VectorView, //rte_los,
+                          Vector& rte_los, //rte_los,
                           VectorView, //rte_pos,
                           GridPos&, //rte_gp_p,
+			  //Output
+			  Matrix& iy,
+			  Matrix& surface_emission,
+			  Matrix& surface_los,
+			  Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
                           Ppath& ppath_step, 
                           const Index& p_index,
@@ -276,7 +281,8 @@ void cloud_ppath_update1D(
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Agenda& iy_surface_agenda, 
+			  const Agenda& surface_prop_agenda,
+                          //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp
                          )
 {
@@ -347,11 +353,12 @@ void cloud_ppath_update1D(
       // function get_radiative_background.
       // if there is no background we proceed the RT
       Index bkgr = ppath_what_background(ppath_step);
+
       
       // if 0, there is no background
       if (bkgr == 0)
         {
-          // Radiative transfer from one layer to the next, starting
+	  // Radiative transfer from one layer to the next, starting
           // at the intersection with the next layer and propagating
           // to the considered point.
           cloud_RT_no_background(doit_i_field, 
@@ -368,7 +375,50 @@ void cloud_ppath_update1D(
       // bkgr=2 indicates that the background is surface
       else if (bkgr == 2)
         {
-          cloud_RT_surface(iy_surface_agenda, ppath_step, 1);  
+	   chk_not_empty( "surface_prop_agenda", surface_prop_agenda );
+	  // The rest here added by TRS.
+	  //Set rte_pos, rte_gp_p and rte_los to match the last point
+          //in ppath.
+	  
+	   Index np = ppath_step.np;
+
+	   rte_los.resize( ppath_step.los.ncols() );
+	   rte_los = ppath_step.los(np-1,joker);
+   
+	   GridPos dummy_ppath_step_gp_lat;
+	   GridPos dummy_ppath_step_gp_lon;
+	   
+	   //Execute the surface_prop_agenda which gives the surface 
+	   // parameters-
+
+	   surface_prop_agendaExecute(surface_emission, surface_los, 
+				      surface_rmatrix, ppath_step.gp_p[np-1],
+				      dummy_ppath_step_gp_lat, dummy_ppath_step_gp_lon,
+				      surface_prop_agenda, true);
+
+
+	   
+	   iy = surface_emission;
+	   
+	   Index nlos = surface_los.nrows();
+
+	   if( nlos > 0 )
+	     {
+	       for( Index ilos=0; ilos<nlos; ilos++ )
+		 {
+		   Vector rtmp(stokes_dim);  // Reflected Stokes vector for 1 frequency
+		   
+		   mult( rtmp, 
+			 surface_rmatrix(ilos,f_index,joker,joker), 
+			 doit_i_field(cloudbox_limits[0], 0, 0, (scat_za_grid.nelem() -1 - scat_za_index), 0, joker) );
+		   iy(f_index,joker) += rtmp;
+		   
+		   doit_i_field(cloudbox_limits[0], 0, 0,
+				scat_za_index, 0,
+				joker) = iy(0, joker);
+		 }
+	     }
+	   	   
         }//end else loop over surface
     }//end if inside cloudbox
 }
@@ -388,6 +438,11 @@ void cloud_ppath_update1D_noseq(
                           VectorView, //rte_los,
                           VectorView, //rte_pos,
                           GridPos&, //rte_gp_p,
+			  //Output
+			  Matrix& iy,
+			  Matrix& surface_emission,
+			  Matrix& surface_los,
+			  Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
                           Ppath& ppath_step, 
                           const Index& p_index,
@@ -414,7 +469,8 @@ void cloud_ppath_update1D_noseq(
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Agenda& iy_surface_agenda, 
+			  const Agenda& surface_prop_agenda,
+                          //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp
                          )
 {
@@ -505,7 +561,37 @@ void cloud_ppath_update1D_noseq(
       // bkgr=2 indicates that the background is surface
       else if (bkgr == 2)
         {
-          cloud_RT_surface(iy_surface_agenda, ppath_step, 1);  
+	  // chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
+// 	  // The rest here added by TRS.
+// 	  //Set rte_pos, rte_gp_p and rte_los to match the last point
+//           //in ppath.
+	  
+ 	  Index np = ppath_step.np;
+          
+// 	  const Index   nlos = surface_los.nrows();
+	  
+ 	  surface_prop_agendaExecute(surface_emission, surface_los, 
+ 				     surface_rmatrix, ppath_step.gp_p[np-1],
+                                      ppath_step.gp_lat[np-1], ppath_step.gp_lon[np-1],
+ 				     surface_prop_agenda, true);
+	  
+	   iy = surface_emission;
+// 	  // Variables to hold downvelling radiation
+// 	  Tensor3   I( nlos, f_grid.nelem(), stokes_dim );
+
+// 	  I(joker, 0, joker) = doit_i_field(cloudbox_limits[0], 0, 0,
+//                             joker, 0,
+//                             joker);
+ 
+
+// 	  surface_calc( iy, I, surface_los, surface_rmatrix, surface_emission );
+
+// 	  doit_i_field(cloudbox_limits[0] + 1, 0, 0,
+// 		       0, 0,
+// 		       joker) = iy(0, joker);
+	  cout<<"Reached here?????????ßß" <<endl;
+	  //cloud_RT_surface(iy, surface_emission, surface_los, surface_rmatrix, 
+	  //surface_prop_agenda,   iy_surface_agenda, f_grid, stokes_dim, ppath_step);  
         }//end else loop over surface
     }//end if inside cloudbox
 }
@@ -997,31 +1083,45 @@ void cloud_RT_no_background(//Output
   \author Claudia Emde
   \date 2005-05-13
 */
-void cloud_RT_surface(//Input
-                      const Agenda& iy_surface_agenda, 
-                      const Ppath&,// ppath_step, 
-                      const Index&) //atmosphere_dim)
-
+void cloud_RT_surface(
+		      //Output
+		      Matrix& iy,
+		      Matrix& surface_emission,
+		      Matrix& surface_los,
+		      Tensor4& surface_rmatrix,
+		      //Input
+		      const Agenda& surface_prop_agenda,
+                      const Agenda& iy_surface_agenda,
+		      const Vector& f_grid,
+		      const Index& stokes_dim,
+		      const Ppath& ppath_step
+		      )
 {
-
   //Set rte_pos, rte_gp_p and rte_los to match the last point
   //in ppath.
-  //Index np = ppath_step.np;
+  Index np = ppath_step.np;
   //pos
   //rte_pos.resize( atmosphere_dim );
   //rte_pos = ppath_step.pos(np-1,Range(0,atmosphere_dim));
   //los
-  //rte_los.resize( ppath_step.los.ncols() );
-  //rte_los = ppath_step.los(np-1,joker);
+  Vector rte_los;
+  rte_los.resize( ppath_step.los.ncols() );
+  rte_los = ppath_step.los(np-1,joker);
   //gp_p
   //gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
+  const Index   nf = f_grid.nelem();
+  
+  surface_los.resize( 1, rte_los.nelem() );
+  
+  surface_emission.resize( nf, stokes_dim );
+  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
 
-  throw runtime_error( 
-                      "Surface reflections inside cloud box not yet handled." );
-  // Executes the surface agenda
   chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
-  iy_surface_agenda.execute(true);
-  /*
+  chk_not_empty( "surface_prop_agenda", surface_prop_agenda );
+
+  iy_surface_agendaExecute(iy, iy_surface_agenda, true);
+  
+    /*
 
   Modify code below !!!
   You need to include *iy* as function output argument.
@@ -1552,8 +1652,8 @@ void cloud_ppath_update1D_planeparallel(
                                         const Index& f_index,
                                         //particle opticla properties
                                         ConstTensor5View ext_mat_field,
-                                        ConstTensor4View abs_vec_field,
-                                        const Agenda& iy_surface_agenda
+                                        ConstTensor4View abs_vec_field
+                                        //const Agenda& iy_surface_agenda
                                         )
 {
   const Index stokes_dim = doit_i_field.ncols();
@@ -1817,8 +1917,8 @@ void cloud_ppath_update1D_planeparallel(
           rte_gp_p.fd[1] = 1;
           //gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
           // Executes the surface agenda
-          chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
-          iy_surface_agenda.execute();
+          //chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
+          //iy_surface_agenda.execute();
 
       throw runtime_error( 
                      "Surface reflections inside cloud bix not yet handled." );

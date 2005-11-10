@@ -1552,6 +1552,7 @@ void CloudboxGetIncoming(
               GridPos&        rte_gp_lat,
               GridPos&        rte_gp_lon,
               Vector&         rte_los,
+	      Index&          cloudbox_on,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         iy_space_agenda,
@@ -1566,7 +1567,6 @@ void CloudboxGetIncoming(
         const Tensor4&        vmr_field,
         const Matrix&         r_geoid,
         const Matrix&         z_surface,
-        const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         f_grid,
         const Index&          stokes_dim,
@@ -1582,8 +1582,8 @@ void CloudboxGetIncoming(
   //--- Check input ----------------------------------------------------------
   if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )
     throw runtime_error( "The atmospheric dimensionality must be 1 or 3.");
-  if( cloudbox_on == 0  ||  cloudbox_limits.nelem() == 0 )
-    throw runtime_error( "The cloudbox must be activated, and it is not.");
+  //if( cloudbox_on == 0  ||  cloudbox_limits.nelem() == 0 )
+  // throw runtime_error( "The cloudbox must be activated, and it is not.");
   if( scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180. )
         throw runtime_error(
                      "*scat_za_grid* must include 0° and 180° as endpoints." );
@@ -1593,7 +1593,7 @@ void CloudboxGetIncoming(
   // Dummy variable for flag cloudbox_on. It has to be 0 here not to get
   // stuck in an infinite loop (if some propagation path hits the cloud
   // box at some other position.
-  Index cloudbox_on_dummy = 0;
+  cloudbox_on = 0;
 
   // Make all agendas silent
   const Index   agenda_verb = true;
@@ -1618,12 +1618,12 @@ void CloudboxGetIncoming(
 
           iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
                                rte_gp_lat,
-                   rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
-                   iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,
-                   t_field, vmr_field,
-                   r_geoid, z_surface, cloudbox_on_dummy,  cloudbox_limits, 
-                   pos, los, f_grid, stokes_dim, agenda_verb );
+			       rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
+			       iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
+			       atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,
+			       t_field, vmr_field,
+			       r_geoid, z_surface, cloudbox_on,  cloudbox_limits, 
+			       pos, los, f_grid, stokes_dim, agenda_verb );
 
           scat_i_p( joker, 0, 0, 0, scat_za_index, 0, joker ) = iy;
         }
@@ -1641,13 +1641,13 @@ void CloudboxGetIncoming(
                    iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
                    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
                    t_field, vmr_field,
-                   r_geoid, z_surface, cloudbox_on_dummy,  cloudbox_limits, 
+                   r_geoid, z_surface, cloudbox_on,  cloudbox_limits, 
                    pos, los, f_grid, stokes_dim, agenda_verb );
 
           scat_i_p( joker, 1, 0, 0, scat_za_index, 0, joker ) = iy;
         }
     }
-
+  
 
   //--- atmosphere_dim = 3: --------------------------------------------------
   else
@@ -1712,7 +1712,7 @@ void CloudboxGetIncoming(
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, t_field, vmr_field,
                           r_geoid, z_surface, 
-                          cloudbox_on_dummy,  cloudbox_limits, 
+                          cloudbox_on,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
 
@@ -1759,7 +1759,7 @@ void CloudboxGetIncoming(
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, t_field, vmr_field,
                           r_geoid, z_surface, 
-                          cloudbox_on_dummy,  cloudbox_limits, 
+                          cloudbox_on,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
 
@@ -1806,7 +1806,7 @@ void CloudboxGetIncoming(
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, t_field, vmr_field,
                           r_geoid, z_surface, 
-                          cloudbox_on_dummy,  cloudbox_limits, 
+                          cloudbox_on,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
 
@@ -1853,7 +1853,7 @@ void CloudboxGetIncoming(
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, t_field, vmr_field,
                           r_geoid, z_surface, 
-                          cloudbox_on_dummy,  cloudbox_limits, 
+                          cloudbox_on,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
 
@@ -1900,7 +1900,7 @@ void CloudboxGetIncoming(
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, t_field, vmr_field,
                           r_geoid, z_surface, 
-                          cloudbox_on_dummy,  cloudbox_limits, 
+                          cloudbox_on,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
 
@@ -1947,7 +1947,7 @@ void CloudboxGetIncoming(
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, t_field, vmr_field,
                           r_geoid, z_surface, 
-                          cloudbox_on_dummy,  cloudbox_limits, 
+                          cloudbox_on,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
                         }
 
@@ -1958,6 +1958,7 @@ void CloudboxGetIncoming(
             }
         }
     }// End atmosphere_dim = 3.
+  cloudbox_on = 1;
 }
 
 
@@ -1982,7 +1983,8 @@ void CloudboxGetIncoming1DAtm(
               GridPos&        rte_gp_lat,
               GridPos&        rte_gp_lon,
               Vector&         rte_los,
-        const Agenda&         ppath_step_agenda,
+	      Index& cloudbox_on,
+	const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         iy_space_agenda,
         const Agenda&         iy_surface_agenda,
@@ -1996,8 +1998,7 @@ void CloudboxGetIncoming1DAtm(
         const Tensor4&        vmr_field,
         const Matrix&         r_geoid,
         const Matrix&         z_surface,
-        const Index&          cloudbox_on, 
-        const ArrayOfIndex&   cloudbox_limits,
+	const ArrayOfIndex&   cloudbox_limits,
         const Vector&         f_grid,
         const Index&          stokes_dim,
         const Vector&         scat_za_grid,
@@ -2015,8 +2016,8 @@ void CloudboxGetIncoming1DAtm(
   //--- Check input ----------------------------------------------------------
   if( atmosphere_dim != 3 )
     throw runtime_error( "The atmospheric dimensionality must be 3.");
-  if( cloudbox_on == 0  ||  cloudbox_limits.nelem() == 0 )
-    throw runtime_error( "The cloudbox must be activated, and it is not.");
+//   if( cloudbox_on == 0  ||  cloudbox_limits.nelem() == 0 )
+//     throw runtime_error( "The cloudbox must be activated, and it is not.");
   if( scat_za_grid[0] != 0. || scat_za_grid[Nza-1] != 180. )
     throw runtime_error(
                      "*scat_za_grid* must include 0° and 180° as endpoints." );
@@ -2028,7 +2029,7 @@ void CloudboxGetIncoming1DAtm(
   // Dummy variable for flag cloudbox_on. It has to be 0 here not to get
   // stuck in an infinite loop (if some propagation path hits the cloud
   // box at some other position.
-  Index cloudbox_on_dummy = 0;
+  cloudbox_on = 0;
 
   // Make all agendas silent
   const Index   agenda_verb = true;
@@ -2073,7 +2074,7 @@ void CloudboxGetIncoming1DAtm(
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid,
                           lon_grid, z_field, t_field, vmr_field, r_geoid, 
-                          z_surface, cloudbox_on_dummy, cloudbox_limits, pos, 
+                          z_surface, cloudbox_on, cloudbox_limits, pos, 
                           los, f_grid, stokes_dim, agenda_verb );
           
           for (Index aa = 0; aa < Naa; aa ++)
@@ -2127,6 +2128,7 @@ void CloudboxGetIncoming1DAtm(
             }
         }
     }
+  cloudbox_on = 1;
 }
 
 

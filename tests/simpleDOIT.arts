@@ -99,13 +99,20 @@ MatrixSet( z_surface){
 }
 
 # Properties of surface
+
+AgendaSet(surface_prop_agenda){
+           Ignore (rte_gp_p) {}
+           Ignore (rte_gp_lat) {}
+           Ignore (rte_gp_lon) {}
+           InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
+           surfaceBlackbody{}
+        }
+
 AgendaSet(iy_surface_agenda){
-  InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
-  surfaceBlackbody{
-  }
-  surfaceCalc{
-  }
-}
+           AgendaExecute(surface_prop_agenda){}
+           surfaceCalc{}
+        } 
+
 
 # Definition of sensor position and LOS
 #--------------------------------------

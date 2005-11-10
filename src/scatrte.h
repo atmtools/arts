@@ -51,9 +51,14 @@ void cloud_fieldsCalc(// Output:
 
 void cloud_ppath_update1D(
                   Tensor6View i_field,
-                  VectorView rte_los,
+                  Vector& rte_los,
                   VectorView rte_pos,
                   GridPos& rte_gp_p,
+		  //Output
+		  Matrix& iy,
+		  Matrix& surface_emission,
+		  Matrix& surface_los,
+		  Tensor4& surface_rmatrix,
                   // ppath_step_agenda:
                   Ppath& ppath_step, 
                   const Index& p_index,
@@ -78,7 +83,8 @@ void cloud_ppath_update1D(
                   //particle opticla properties
                   ConstTensor5View ext_mat_field,
                   ConstTensor4View abs_vec_field,
-                  const Agenda& iy_surface_agenda, 
+		  const Agenda& surface_prop_agenda,
+                  //const Agenda& iy_surface_agenda, 
                   const Index& scat_za_interp
                   );
 
@@ -89,6 +95,11 @@ void cloud_ppath_update1D_noseq(
                           VectorView, //rte_los,
                           VectorView, //rte_pos,
                           GridPos&, //rte_gp_p,
+			    //Output
+			  Matrix& iy,
+			  Matrix& surface_emission,
+			  Matrix& surface_los,
+			  Tensor4& surface_rmatrix,
                           // ppath_step_agenda:
                           Ppath& ppath_step, 
                           const Index& p_index,
@@ -115,7 +126,8 @@ void cloud_ppath_update1D_noseq(
                           //particle optical properties
                           ConstTensor5View ext_mat_field,
                           ConstTensor4View abs_vec_field,
-                          const Agenda& iy_surface_agenda, 
+			  const Agenda& surface_prop_agenda,
+                          //const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp
                           );
 
@@ -154,8 +166,8 @@ void cloud_ppath_update1D_planeparallel(
                   const Index& f_index,
                   //particle opticla properties
                   ConstTensor5View ext_mat_field,
-                  ConstTensor4View abs_vec_field,
-                  const Agenda& surface_agenda 
+                  ConstTensor4View abs_vec_field
+		  //                  const Agenda& surface_agenda 
                   );
 
 void cloud_ppath_update3D(
@@ -215,10 +227,17 @@ void cloud_RT_no_background(//Output
                             const Index& scat_za_index,
                             const Index& scat_aa_index);
 
-void cloud_RT_surface(//Input
-                      const Agenda& iy_surface_agenda, 
-                      const Ppath& ppath_step, 
-                      const Index& atmosphere_dim);
+void cloud_RT_surface(//Output
+		      Matrix& iy,
+		      Matrix& surface_emission,
+ 		      Matrix& surface_los,
+ 		      Tensor4& surface_rmatrix,
+		      //Input
+		      const Agenda& surface_prop_agenda,
+                      const Agenda& iy_surface_agenda,
+		      const Vector& f_grid,
+		      const Index& stokes_dim,
+		      const Ppath& ppath_step);
 
 
 void ppath_step_in_cloudbox(Ppath& ppath_step,

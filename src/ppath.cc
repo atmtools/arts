@@ -2378,7 +2378,12 @@ void ppath_copy(
   ppath1.pos(Range(0,ppath2.np),joker) = ppath2.pos;
   ppath1.los(Range(0,ppath2.np),joker) = ppath2.los;
   ppath1.z[Range(0,ppath2.np)]         = ppath2.z;
-  ppath1.l_step[Range(0,ppath2.np-1)]  = ppath2.l_step;
+  for( Index i=0; i<ppath2.np; i++ )
+    {
+      if( i > 0 )
+        { ppath1.l_step[i-1] = ppath2.l_step[i-1]; }
+    }
+  //ppath1.l_step[Range(0,ppath2.np-1)]  = ppath2.l_step;
 
   for( Index i=0; i<ppath2.np; i++ )
     {

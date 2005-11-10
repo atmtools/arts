@@ -1,3 +1,33 @@
+2005-11-10  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-1043
+	
+	* src/scatrte.cc (cloud_ppath_update1D):  Included the doit surface
+	reflection part here. Updated the input and output variables for
+	this function.  Comparison with the old version looks fine.
+
+	* src/scatrte.h: Updated the list of input and output variables.
+
+	* src/m_cloudbox.cc: *cloudbox_on* variable is set to 0 in the
+	beginning of the function and set to 1 in the end.  The
+	*dummy_cloudbox_on* variable is removed. 
+
+	* src/m_scatrte.cc: Added surface variables as input and output in
+	the doit_i_field_UpdateSeq1D method.  
+
+	* src/methods.cc: Added surface variables as input and output in
+	the doit 1D update methods. 
+
+	* src/ppath.cc: Had a problem here. Copied the copying of
+	ppath.l_step from an old version of ARTS because as it is
+	implemented now, the program crashes when the cloudbox is extended
+	to the ground. This happened before the surface part was
+	implemented, if we try to put the lowest cloudbox_limit at the
+	lowest p_grid level.  Patrick perhaps can have a look.
+	
+	* tests/simpleDOIT.arts: Updated with surface part. The agenda
+	*surface_prop_agenda* has to be set.  All the tests are OK!
+
 2005-11-08  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1042
