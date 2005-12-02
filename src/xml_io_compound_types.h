@@ -43,6 +43,7 @@
 #include "bofstream.h"
 #include "jacobian.h"
 #include "mc_interp.h"
+#include "mc_antenna.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams
@@ -81,6 +82,13 @@ xml_read_from_stream (istream&, IsotopeRecord&, bifstream * = NULL);
 
 void
 xml_write_to_stream (ostream&, const IsotopeRecord&, bofstream * = NULL,
+                     const String& = "");
+
+void
+xml_read_from_stream (istream&, MCAntenna&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const MCAntenna&, bofstream * = NULL,
                      const String& = "");
 
 void

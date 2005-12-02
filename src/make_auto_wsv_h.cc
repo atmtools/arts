@@ -84,6 +84,7 @@ int main()
           << "#include \"gridded_fields.h\"\n"
           << "#include \"jacobian.h\"\n"
           << "#include \"mc_interp.h\"\n"
+          << "#include \"mc_antenna.h\"\n"
           << "#include \"supergeneric.h\"\n"
           << "\n";
       

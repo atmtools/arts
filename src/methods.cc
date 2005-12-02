@@ -2764,6 +2764,59 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("mc_antennaSetGaussian"),
+        DESCRIPTION
+        (
+         "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
+         "\n"
+         "The gaussian antenna pattern is determined by the keyword parameters\n"
+         "za_sigma, and aa_sigma, which represent the standard deviations in the\n"
+         "uncorrelated bivariate normal distribution\n"
+        ),
+        OUTPUT( mc_antenna_ ),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "za_sigma", "aa_sigma" ),
+        TYPES( Numeric_t, Numeric_t)));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("mc_antennaSetGaussianByFWHM"),
+        DESCRIPTION
+        (
+         "Makes mc_antenna (used by MCGeneral) a 2D Gaussian pattern.\n"
+         "\n"
+         "The gaussian antenna pattern is determined by the keyword parameters\n"
+         "za_fwhm, and aa_fwhm, which represent the full width half maximum (FWHM)\n"
+         "of the antenna response, in the zenith and azimuthal planes.\n"
+        ),
+        OUTPUT( mc_antenna_ ),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "za_fwhm", "aa_fwhm" ),
+        TYPES( Numeric_t, Numeric_t)));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("mc_antennaSetPencilBeam"),
+        DESCRIPTION
+        (
+         "Makes mc_antenna (used by MCGeneral) a pencil beam.\n"
+         "\n"
+         "This WSM makes the subsequent MCGeneral WSM perform pencil beam\n"
+         "RT calculations.\n" 
+        ),
+        OUTPUT( mc_antenna_ ),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("mc_errorApplySensor"),
         DESCRIPTION
         (
@@ -2800,12 +2853,13 @@ md_data_raw.push_back
          "met.  If negative values are given for these parameters then it is ignored.\n"
          " Negative values of rng_seed seed the random number generator \n "
          "according to system time, positive rng_seed values are taken literally."),
-        OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_ ),
+        OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_, 
+               mc_antenna_ ),
         INPUT( f_grid_, sensor_pos_, sensor_los_, stokes_dim_, iy_space_agenda_,
                surface_prop_agenda_, opt_prop_gas_agenda_, 
                scalar_gas_absorption_agenda_, p_grid_, lat_grid_, lon_grid_, 
                z_field_, r_geoid_, z_surface_, t_field_, 
-               vmr_field_, cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_ ),
+               vmr_field_, cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D"),

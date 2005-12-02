@@ -103,6 +103,8 @@ arts_SOURCES = \
 	matpackVI.h \
 	matpackVII.cc \
 	matpackVII.h \
+	mc_antenna.cc \
+	mc_antenna.h \
 	mc_interp.cc \
 	mc_interp.h \
 	messages.cc \
@@ -301,6 +303,8 @@ test_binaryio_SOURCES = \
 	matpackVI.h \
 	matpackVII.cc \
 	matpackVII.h \
+	mc_antenna.cc \
+	mc_antenna.h \
 	mc_interp.cc \
 	mc_interp.h \
 	messages.cc \
@@ -614,6 +618,8 @@ test_interpolation_SOURCES = \
 	matpackVI.h \
 	matpackVII.cc \
 	matpackVII.h \
+	mc_antenna.cc \
+	mc_antenna.h \
 	mc_interp.cc \
 	mc_interp.h \
 	messages.cc \
@@ -900,6 +906,8 @@ test_sparse_SOURCES = \
 	matpackVII.h \
 	mc_interp.cc \
 	mc_interp.h \
+	mc_antenna.cc \
+	mc_antenna.h \
 	messages.cc \
 	messages.h \
 	methods.cc \
@@ -1057,6 +1065,8 @@ test_xml_SOURCES = \
 	matpackVI.h \
 	matpackVII.cc \
 	matpackVII.h \
+	mc_antenna.cc \
+	mc_antenna.h \
 	mc_interp.cc \
 	mc_interp.h \
 	messages.cc \
@@ -1242,6 +1252,8 @@ test_sensor_SOURCES = \
 	matpackVI.h \
 	matpackVII.cc \
 	matpackVII.h \
+	mc_antenna.cc \
+	mc_antenna.h \
 	mc_interp.cc \
 	mc_interp.h \
 	messages.cc \

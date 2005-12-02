@@ -1,3 +1,36 @@
+2005-12-02  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1044
+
+	* src/mc_antenna.{cc,h}: Added. Now we can incorporate FOV
+	characteristics in ARTS-MC scattering calculations!!!More later.
+
+	* tests/simpleMCGeneralGaussian.arts: Added. 
+
+	* src/Makefile.am (test_xml_SOURCES): added mc_antenna.cc,
+	mc_antenna.h in several places.
+
+	* tests/simpleMCGeneral.arts: included mc_antennaSetPencilBeam{}
+
+	* src/make_auto_wsv_h.cc (main): include mc_antenna.h
+
+	* src/make_auto_wsv_groups_h.cc (main): include mc_antenna.h
+
+	* src/m_montecarlo.cc (mc_antennaSetGaussian): Added.
+	(mc_antennaSetPencilBeam): Added.
+	(mc_antennaSetGaussianByFWHM): Added
+
+	* src/methods.cc (define_md_data_raw): included mc_antenna in
+	MCGeneral arguments, and added all the functions above.
+
+	* src/m_montecarlo.cc (MCGeneral): implemented mc_antenna for
+	sampling the field of view. 
+
+	* src/workspace.cc (define_wsv_data): Added WSV mc_antenna
+
+	* src/groups.cc (define_wsv_group_names): Added group MCAntenna.
+
+
 2005-11-10  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-1043

@@ -350,6 +350,7 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+
 //=== Ppath =====================================================
 
 //! Reads Ppath from XML input stream
@@ -826,3 +827,21 @@ xml_write_to_stream (ostream&,
   throw runtime_error("Method not implemented!");
 }
 
+//=== MCAntenna ================================================
+
+void
+xml_read_from_stream (istream&,
+                      MCAntenna&,
+                      bifstream * /* pbifs */)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+void
+xml_write_to_stream (ostream&,
+                     const MCAntenna&,
+                     bofstream * /* pbofs */,
+                     const String& /* name */)
+{
+  throw runtime_error("Method not implemented!");
+}

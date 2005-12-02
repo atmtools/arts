@@ -139,6 +139,9 @@ template void
 xml_read_from_file<IsotopeRecord> (const String&, IsotopeRecord&);
 
 template void
+xml_read_from_file<MCAntenna> (const String&, MCAntenna&);
+
+template void
 xml_read_from_file<Ppath> (const String&, Ppath&);
 
 
@@ -173,6 +176,9 @@ xml_write_to_file<GridPos> (const String&, const GridPos&, FileType);
 template void
 xml_write_to_file<IsotopeRecord> (const String&, const IsotopeRecord&,
                                   FileType);
+
+template void
+xml_write_to_file<MCAntenna> (const String&, const MCAntenna&, FileType);
 
 template void
 xml_write_to_file<Ppath> (const String&, const Ppath&, FileType);

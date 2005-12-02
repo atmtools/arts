@@ -341,6 +341,7 @@ void pha_mat_singleExtract(
                            const Index& stokes_dim
                            );
 
+
 void Sample_los (
                    VectorView& new_rte_los,
                    Numeric& g_los_csc_theta,

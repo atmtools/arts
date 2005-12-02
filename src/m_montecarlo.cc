@@ -102,6 +102,37 @@ void mc_errorApplySensor(
   transform( mc_error, sqrt, mc_error );
 }
 
+void mc_antennaSetGaussian(
+                           MCAntenna& mc_antenna,
+                           //keyword arguments
+                           const Numeric& za_sigma,
+                           const Numeric& aa_sigma
+                           )
+{
+  mc_antenna.set_gaussian(za_sigma,aa_sigma);
+}
+
+void mc_antennaSetGaussianByFWHM(
+                           MCAntenna& mc_antenna,
+                           //keyword arguments
+                           const Numeric& za_fwhm,
+                           const Numeric& aa_fwhm
+                           )
+{
+  mc_antenna.set_gaussian_fwhm(za_fwhm,aa_fwhm);
+}
+
+
+
+void mc_antennaSetPencilBeam(
+                            MCAntenna& mc_antenna
+                            )
+{
+  mc_antenna.set_pencil_beam();
+}
+
+
+
 //! MCGeneral
 /*!
    See the the online help (arts -d FUNCTION_NAME)
@@ -115,6 +146,7 @@ void MCGeneral(
                Index&                mc_iteration_count,
                Vector&               mc_error,
                Tensor3&              mc_points,
+               MCAntenna&            mc_antenna,
                const Vector&         f_grid,
                const Matrix&         sensor_pos,
                const Matrix&         sensor_los,
@@ -135,6 +167,7 @@ void MCGeneral(
                const Tensor4&        pnd_field,
                const ArrayOfSingleScatteringData& scat_data_mono,
                const Index&          mc_seed,
+               //Keyword params
                const Numeric&        std_err,
                const Index&          max_time,
                const Index&          max_iter,
@@ -158,7 +191,7 @@ void MCGeneral(
     }
   rng.seed(mc_seed);
   bool keepgoing,inside_cloud; // flag indicating whether to stop tracing a photons path
-  Numeric g_A,g,temperature,albedo,g_los_csc_theta;
+  Numeric g,temperature,albedo,g_los_csc_theta;
   Matrix A(stokes_dim,stokes_dim),Q(stokes_dim,stokes_dim),evol_op(stokes_dim,stokes_dim),
     ext_mat_mono(stokes_dim,stokes_dim),q(stokes_dim,stokes_dim),newQ(stokes_dim,stokes_dim),
     Z(stokes_dim,stokes_dim);
@@ -188,13 +221,9 @@ void MCGeneral(
       mc_iteration_count+=1;
       keepgoing=true; //flag indicating whether to continue tracing a photon path
       //Sample a FOV direction
-      //sampleSensor(rte_los,g_A,A); Do this later.
-      id_mat(A);
-      g_A=1;
-      Q=A;
-      Q/=g_A;
+      mc_antenna.draw_los(local_rte_los,rng,sensor_los(0,joker));
+      id_mat(Q);
       local_rte_pos=sensor_pos(0,joker);
-      local_rte_los=sensor_los(0,joker);
       I_i=0.0;
       while (keepgoing)
         {

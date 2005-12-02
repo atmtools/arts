@@ -1379,6 +1379,21 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "mc_antenna" ),
+       DESCRIPTION
+       (
+        "MCAntenna object used by MCGeneral to sample the field of view."
+        "Possible antenna types include Pencil Beam, Gaussian (2D), and"
+        "Antenna pattern lookup (yet to be implemented)."
+
+        "\n"
+        "\n"
+        "Usage: Input to MCGeneral \n"
+        ), 
+       GROUP( MCAntenna_ )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "mc_error" ),
        DESCRIPTION
        (

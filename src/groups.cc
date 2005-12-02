@@ -97,6 +97,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("GriddedField3");
   wsv_group_names.push_back("ArrayOfGriddedField3");
   wsv_group_names.push_back("ArrayOfRetrievalQuantity");
+  wsv_group_names.push_back("MCAntenna");
   wsv_group_names.push_back("SLIData2");
 }
 
