@@ -139,7 +139,6 @@ Numeric invrayjean(
         const Numeric&  i,
         const Numeric&  f )
 {
-  assert( i >= 0 );
   assert( f > 0 );
 
   // Double must be used here (if not, the result can be NaN when using float)

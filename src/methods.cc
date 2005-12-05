@@ -2853,13 +2853,12 @@ md_data_raw.push_back
          "met.  If negative values are given for these parameters then it is ignored.\n"
          " Negative values of rng_seed seed the random number generator \n "
          "according to system time, positive rng_seed values are taken literally."),
-        OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_, 
-               mc_antenna_ ),
+        OUTPUT( y_, mc_iteration_count_, mc_error_, mc_points_, mc_antenna_ ),
         INPUT( f_grid_, sensor_pos_, sensor_los_, stokes_dim_, iy_space_agenda_,
                surface_prop_agenda_, opt_prop_gas_agenda_, 
                scalar_gas_absorption_agenda_, p_grid_, lat_grid_, lon_grid_, 
-               z_field_, r_geoid_, z_surface_, t_field_, 
-               vmr_field_, cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_),
+               z_field_, r_geoid_, z_surface_, t_field_, vmr_field_, 
+               cloudbox_limits_, pnd_field_, scat_data_mono_, mc_seed_, mc_unit_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( "std_err", "max_time", "max_iter", "z_field_is_1D"),

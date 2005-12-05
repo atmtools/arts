@@ -1,3 +1,29 @@
+2005-12-05  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-1045
+
+	* tests/testall.py (MCDataPrepareTest): Added 
+
+	* tests/MCDataPrepare.arts: This file does a lot of the
+	atmospheric field and scattering data preparation that was common
+	to all of the MC tests.  Now this is done once instead of 4 times.
+
+	* tests/simpleMC[WithIncomingLookup].arts: Modified to use files
+	produced by MCDataPrepare.arts
+	
+	* tests/simpleMCGeneral[Gaussian].arts: Modified to use files
+	produced by MCDataPrepare.arts
+	
+	* src/physics_funcs.cc (invrayjean): deleted assert (i >= 0).
+	What was this for? How are you supposed to deal with negative
+	higher value Stokes components?
+
+	* src/workspace.cc (define_wsv_data): Added WSV mc_unit.
+
+2005-12-04  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* tests/testall.py (MonteCarloTest4): Added.
+
 2005-12-02  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1044

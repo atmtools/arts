@@ -167,6 +167,7 @@ void MCGeneral(
                const Tensor4&        pnd_field,
                const ArrayOfSingleScatteringData& scat_data_mono,
                const Index&          mc_seed,
+               const String&         mc_unit,
                //Keyword params
                const Numeric&        std_err,
                const Index&          max_time,
@@ -209,12 +210,30 @@ void MCGeneral(
   Vector local_rte_pos(2);
   Vector local_rte_los(2);
   Vector new_rte_los(2);
-  Numeric std_err_i=f_grid[0]*f_grid[0]*2*BOLTZMAN_CONST/SPEED_OF_LIGHT/SPEED_OF_LIGHT*
-    std_err;
-  Index np;
+    Index np;
   mc_points.resize(p_grid.nelem(),lat_grid.nelem(),lon_grid.nelem());
   mc_points=0;
   Isum=0.0;Isquaredsum=0.0;
+  Numeric std_err_i;
+  bool convert_to_rjbt=false;
+  if ( mc_unit == "RJBT" )
+    { 
+      std_err_i=f_grid[0]*f_grid[0]*2*BOLTZMAN_CONST/SPEED_OF_LIGHT/SPEED_OF_LIGHT*
+        std_err;
+      convert_to_rjbt=true;
+    }
+  else if ( mc_unit == "radiance" )
+    {
+      std_err_i=std_err;
+    }
+  else
+    {
+      ostringstream os;
+      os << "invalid value for mc_units - " << mc_unit <<". Must be \"RJBT\" or \"radiance\".";
+      throw runtime_error( os.str() );
+    }
+      
+  
   //Begin Main Loop
   while (true)
     {
@@ -359,6 +378,14 @@ void MCGeneral(
       if (std_err>0 && mc_iteration_count>=100 && mc_error[0]<std_err_i){break;}
       if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time){break;}
       if (max_iter>0 && mc_iteration_count>=max_iter){break;}
+    }
+  if ( convert_to_rjbt )
+    {
+      for(Index j=0; j<stokes_dim; j++) 
+        {
+          y[j]=invrayjean(y[j],f_grid[0]);
+          mc_error[j]=invrayjean(mc_error[j],f_grid[0]);
+        }
     }
 }
 

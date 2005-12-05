@@ -1461,6 +1461,20 @@ void define_wsv_data()
        GROUP( Index_)));
 
   wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_unit" ),
+       DESCRIPTION
+       (
+        "Determines the unit used for the radiance returned by MCGeneral\n"
+        "Possible values are \"RJBT\", which returns the Rayleigh Jeans\n" 
+        "Brightness temperature in Kelvin, and \"radiance\", which returns\n"
+        "the radiance in (Watts per meter squared per steradian)\n"
+        "\n"
+        "Usage: Set by the user.\n"
+        ),
+       GROUP( String_)));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "meridian_angle_1d" ),
       DESCRIPTION
