@@ -9,5 +9,5 @@
 
 EXTRA_DIST = *.xml *.xml.bin
 
-CLEANFILES = *.generated.xml*
+CLEANFILES = *xml.generated*
 

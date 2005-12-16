@@ -1,5 +1,15 @@
 2005-12-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1047
+
+	* tests/MCDataPrepare.arts test/simpleMC*.arts test/data/Makefile.am
+	test/data/.cvsignore:
+
+	Changed .generated.xml to .xml.generated to prevent those files from
+	ending up in the distribution.
+
+2005-12-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1046
 
 	* src/parser.cc (is_whitespace):

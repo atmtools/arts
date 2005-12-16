@@ -10,7 +10,7 @@ output_file_formatSetAscii{
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 
 ReadXML( f_grid ){
-filename="data/f_grid.generated.xml"
+filename="data/f_grid.xml.generated"
 } 
 
 IndexSet(f_index){
@@ -33,15 +33,15 @@ filename="data/lon_grid.xml"
 }
 
 ReadXML( t_field ){
-filename="data/t_field.generated.xml"
+filename="data/t_field.xml.generated"
 } 
 
 ReadXML( z_field ){
-filename="data/z_field.generated.xml"
+filename="data/z_field.xml.generated"
 } 
 
 ReadXML( vmr_field ){
-filename="data/vmr_field.generated.xml"
+filename="data/vmr_field.xml.generated"
 } 
 
 r_geoidSpherical{
@@ -49,11 +49,11 @@ r=-1
 }
 
 ReadXML(z_surface){
-filename="data/z_surface.generated.xml"
+filename="data/z_surface.xml.generated"
 }
 
 ReadXML(gas_abs_lookup){
-filename="data/gas_abs_lookup_adapted.generated.xml"
+filename="data/gas_abs_lookup_adapted.xml.generated"
 }
 
 gas_speciesSet{
@@ -65,7 +65,7 @@ value=1
 }
 
 ReadXML(cloudbox_limits){
-filename="data/cloudbox_limits.generated.xml"
+filename="data/cloudbox_limits.xml.generated"
 }
 
 IndexSet(cloudbox_on){
@@ -73,11 +73,11 @@ value=1
 }
 
 ReadXML(pnd_field){
-filename="data/pnd_field.generated.xml"
+filename="data/pnd_field.xml.generated"
 }
 
 ReadXML(scat_data_mono){
-filename="data/scat_data_mono.generated.xml"
+filename="data/scat_data_mono.xml.generated"
 }
 
 #### Define Agendas #################################################
