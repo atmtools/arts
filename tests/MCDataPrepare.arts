@@ -16,8 +16,8 @@ VectorSet(f_grid){
 value=230000000000.0
 }
 
-WriteXML ( f_grid ){
-filename="data/f_grid.xml.bin"
+WriteXML( f_grid ){
+filename="data/f_grid.generated.xml"
 }
 
 IndexSet(f_index){
@@ -55,15 +55,15 @@ AtmFieldsCalcExpand1D{
 }
 
 WriteXML( t_field ){
-filename="data/t_field.xml.bin"
+filename="data/t_field.generated.xml"
 } 
 
 WriteXML( z_field ){
-filename="data/z_field.xml.bin"
+filename="data/z_field.generated.xml"
 } 
 
 WriteXML( vmr_field ){
-filename="data/vmr_field.xml.bin"
+filename="data/vmr_field.generated.xml"
 } 
 
 r_geoidSpherical{
@@ -81,7 +81,7 @@ value=500.0
 }
 
 WriteXML(z_surface){
-filename="data/z_surface.xml.bin"
+filename="data/z_surface.generated.xml"
 }
 
 AgendaSet(surface_prop_agenda){
@@ -100,7 +100,7 @@ gas_abs_lookupAdapt{
 }
 
 WriteXML(gas_abs_lookup){
-filename="data/gas_abs_lookup_adapted.xml"
+filename="data/gas_abs_lookup_adapted.generated.xml"
 }
 
 
@@ -135,7 +135,7 @@ pnd_fieldCalc{
 }
 
 WriteXML(pnd_field){
-filename="data/pnd_field.xml.bin"
+filename="data/pnd_field.generated.xml"
 }
 
 scat_data_monoCalc{
@@ -146,11 +146,11 @@ output_file_formatSetAscii{
 }
 
 WriteXML(scat_data_mono){
-filename="data/scat_data_mono.xml"
+filename="data/scat_data_mono.generated.xml"
 }
 
 WriteXML(cloudbox_limits){
-filename="data/cloudbox_limits.xml"
+filename="data/cloudbox_limits.generated.xml"
 }
 
 

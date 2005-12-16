@@ -175,10 +175,9 @@ bool is_whitespace(const char c)
     case '#':
       return true;
       break;
-    default:
-      return false;
-      break;
     }
+
+  return false;
 }
 
 /** Eats whitespace. Comments are a special case of

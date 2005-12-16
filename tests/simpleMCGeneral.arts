@@ -11,7 +11,7 @@ output_file_formatSetAscii{
 #### LOAD DATA: these files were created with MCDataPrepare.arts ######
 
 ReadXML( f_grid ){
-filename="data/f_grid.xml.bin"
+filename="data/f_grid.generated.xml"
 } 
 
 IndexSet(f_index){
@@ -34,15 +34,15 @@ filename="data/lon_grid.xml"
 }
 
 ReadXML( t_field ){
-filename="data/t_field.xml.bin"
+filename="data/t_field.generated.xml"
 } 
 
 ReadXML( z_field ){
-filename="data/z_field.xml.bin"
+filename="data/z_field.generated.xml"
 } 
 
 ReadXML( vmr_field ){
-filename="data/vmr_field.xml.bin"
+filename="data/vmr_field.generated.xml"
 } 
 
 r_geoidSpherical{
@@ -50,11 +50,11 @@ r=-1
 }
 
 ReadXML(z_surface){
-filename="data/z_surface.xml.bin"
+filename="data/z_surface.generated.xml"
 }
 
 ReadXML(gas_abs_lookup){
-filename="data/gas_abs_lookup_adapted.xml"
+filename="data/gas_abs_lookup_adapted.generated.xml"
 }
 
 IndexSet (gas_abs_lookup_is_adapted ){
@@ -62,15 +62,15 @@ value=1
 }
 
 ReadXML(cloudbox_limits){
-filename="data/cloudbox_limits.xml"
+filename="data/cloudbox_limits.generated.xml"
 }
 
 ReadXML(pnd_field){
-filename="data/pnd_field.xml.bin"
+filename="data/pnd_field.generated.xml"
 }
 
 ReadXML(scat_data_mono){
-filename="data/scat_data_mono.xml"
+filename="data/scat_data_mono.generated.xml"
 }
 
 

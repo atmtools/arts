@@ -1,3 +1,24 @@
+2005-12-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1046
+
+	* src/parser.cc (is_whitespace):
+
+	Rework the switch statement a bit to avoid a warning when compiling
+	with -O3.
+
+	* tests/MCDataPrepare.arts:
+
+	Removed .bin postfix from output files.
+	Instead added a '.generated.' prefix to the file endings to distinguish
+	them from the static data files.
+
+	* tests/simpleMC*.arts: Adapted for changed file names.
+
+	* tests/data/.cvsignore: Added *.generated.xml*
+
+	* tests/data/Makefile.am: Added *.generated.xml* to CLEANFILES.
+
 2005-12-05  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-1045

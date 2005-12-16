@@ -1,4 +1,5 @@
 *.rep
 *.swp
+*.generated.xml*
 Makefile
 Makefile.in
