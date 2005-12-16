@@ -2,7 +2,7 @@
 
 	* arts-1-1-1047
 
-	* tests/MCDataPrepare.arts test/simpleMC*.arts test/data/Makefile.am
+	* tests/MCDataPrepare.arts tests/simpleMC*.arts tests/data/Makefile.am
 	tests/data/.cvsignore:
 
 	Changed .generated.xml to .xml.generated to prevent those files from
