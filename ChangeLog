@@ -1,6 +1,8 @@
 2005-12-22  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-1-0-189
+
+	* configure.in: Updated.
 	
 	* src/m_batch.cc (ybatchFromRadiosonde): Modified the method to
 	store absbatch. This is done mainly for the ARTS-RTTOV paper.
