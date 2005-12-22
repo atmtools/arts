@@ -333,6 +333,7 @@ void ybatchCalc(
 
 void ybatchFromRadiosonde(// WS Output:
                           Matrix& ybatch,
+                          ArrayOfMatrix& absbatch,
                           // WS Input:
                           const ArrayOfMatrix& radiosonde_data,
                           const Vector& f_mono,
@@ -364,6 +365,11 @@ void ybatchFromRadiosonde(// WS Output:
 
   // this variable is keep the original za_pencil 
   Vector za_pencil_profile;
+  
+  // FIXME: This is a quick hack, modify it after the use
+  // Just for ARTS-RTTOV comparison paper. 
+  // ArrayOfMatrix absbatch;
+  absbatch.resize( radiosonde_data.nelem() );
 
   if (!za_batch)
     {
@@ -391,6 +397,7 @@ void ybatchFromRadiosonde(// WS Output:
       ybatch.resize( f_mono.nelem(), radiosonde_data.nelem() );
       ybatch = 0;
       za_pencil_profile.resize(1);
+
     }
   
   // Loop over all radiosonde profiles:
@@ -427,7 +434,11 @@ void ybatchFromRadiosonde(// WS Output:
 	      p_abs = rd(Range(joker),0);
 	      t_abs = rd(Range(joker),1);
 	      z_abs = rd(Range(joker),2);
-	      
+	    
+              // FIXME: ARTS-RTTOV paper
+              absbatch[i].resize( f_mono.nelem(), p_abs.nelem() );
+              absbatch[i] = 0;
+
 	      
 	      // Create vmrs:
 	      vmrs.resize(3, rd.nrows());
@@ -572,6 +583,9 @@ void ybatchFromRadiosonde(// WS Output:
 		  cont_description_models,
 		  cont_description_parameters);
 
+          // FIXME : ARTS-RTTOV paper
+          absbatch[i] = abs;
+
       
 	  // Calculate refractive index:
 	  Vector refr_index;
@@ -649,6 +663,7 @@ void ybatchFromRadiosonde(// WS Output:
 	  ybatch(Range(joker),i) = -1.0;
 	}
     }
+  // ArrayofMatrixWriteAscii( absbatch, "", "test.absbatch.aa" );
 }
 
 void ybatchFromRadiosondeGlobal(// WS Output:

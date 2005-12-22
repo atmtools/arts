@@ -1,6 +1,19 @@
+2005-12-22  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-1-0-189
+	
+	* src/m_batch.cc (ybatchFromRadiosonde): Modified the method to
+	store absbatch. This is done mainly for the ARTS-RTTOV paper.
+
+	* src/methods.cc, src/workspace.cc: Included absbatch.
+
+	* aii/read_datafile.pro: Included an option for reading ARTS
+	Binary (.ab) files. Ouput in this case will be a pointer
+	array. Make sure to free pointer after the use. 
+
 2005-08-26    <mathias@iup.physik.uni-bremen.de>
 
-       * arts-1-0-188
+        * arts-1-0-188
 	
 	* ami/path/delete_tmp_dir.m: Included function to delete dirs on a windows system
 

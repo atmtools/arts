@@ -680,6 +680,14 @@ void define_wsv_data()
       "The spectra are stored as columns in a matrix",
       Matrix_));
 
+  // FIXME: Change back VOJ
+  wsv_data.push_back
+    (WsvRecord
+     ("absbatch",
+      "A batch of absorption coefficients.\n"
+      "FIXME",
+      ArrayOfMatrix_));
+
   wsv_data.push_back
     (WsvRecord
      ("radiosonde_data",

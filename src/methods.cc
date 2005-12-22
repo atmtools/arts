@@ -3945,7 +3945,7 @@ md_data.push_back
          "function now assumes that first element of the za_pencil is for the first\n"
          "radiosonde profile and the second element of the za_pencil is for the second\n"
          "radiosonde profile and so on.\n"),
-	OUTPUT( ybatch_ ),
+	OUTPUT( ybatch_, absbatch_ ),
 	INPUT( // Variables needed for absCalc
                radiosonde_data_, f_mono_, lines_per_tg_, lineshape_, 
                // Additional variables for losCalc
