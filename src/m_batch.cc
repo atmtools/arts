@@ -334,6 +334,7 @@ void ybatchCalc(
 void ybatchFromRadiosonde(// WS Output:
                           Matrix& ybatch,
                           ArrayOfMatrix& absbatch,
+                          ArrayOfMatrix& jacbatch,
                           // WS Input:
                           const ArrayOfMatrix& radiosonde_data,
                           const Vector& f_mono,
@@ -356,12 +357,16 @@ void ybatchFromRadiosonde(// WS Output:
 			  //Keyword
 			  const Index& fine_abs_grid,
                           const Index& interpolation_in_rh,
-                          const Index& za_batch)
+                          const Index& za_batch,
+                          const Index& calc_abs,
+                          const Index& calc_jac)
 {
   // Check value of the keyword
   check_if_bool(fine_abs_grid, "Finegrid keyword" );
   check_if_bool(interpolation_in_rh, "Interpolation in RH keyword" );
   check_if_bool(za_batch, "za_batch keyword" );
+  check_if_bool(calc_abs, "calc_abs keyword" );
+  check_if_bool(calc_jac, "calc_jac keyword" );
 
   // this variable is keep the original za_pencil 
   Vector za_pencil_profile;
@@ -369,7 +374,27 @@ void ybatchFromRadiosonde(// WS Output:
   // FIXME: This is a quick hack, modify it after the use
   // Just for ARTS-RTTOV comparison paper. 
   // ArrayOfMatrix absbatch;
-  absbatch.resize( radiosonde_data.nelem() );
+  if (calc_abs) 
+    {
+      absbatch.resize( radiosonde_data.nelem() );
+    }
+  else
+    {
+      absbatch.resize( 1 );
+      absbatch[0].resize( 1, 1 );
+      absbatch[0] = -1.0;
+    }
+  
+  if (calc_jac) 
+    {
+      jacbatch.resize( radiosonde_data.nelem() );
+    }
+  else
+    {
+      jacbatch.resize( 1 );
+      jacbatch[0].resize( 1, 1 );
+      jacbatch[0]  =  -1.0;
+    }
 
   if (!za_batch)
     {
@@ -436,9 +461,11 @@ void ybatchFromRadiosonde(// WS Output:
 	      z_abs = rd(Range(joker),2);
 	    
               // FIXME: ARTS-RTTOV paper
-              absbatch[i].resize( f_mono.nelem(), p_abs.nelem() );
-              absbatch[i] = 0;
-
+              if (calc_abs)
+                {
+                  absbatch[i].resize( f_mono.nelem(), p_abs.nelem() );
+                  absbatch[i] = 0;
+                }
 	      
 	      // Create vmrs:
 	      vmrs.resize(3, rd.nrows());
@@ -584,8 +611,10 @@ void ybatchFromRadiosonde(// WS Output:
 		  cont_description_parameters);
 
           // FIXME : ARTS-RTTOV paper
-          absbatch[i] = abs;
-
+          if (calc_abs)
+            {
+              absbatch[i] = abs;
+            }
       
 	  // Calculate refractive index:
 	  Vector refr_index;
@@ -600,21 +629,21 @@ void ybatchFromRadiosonde(// WS Output:
           
           // Calculate the line of sight:
           Los los;
-              Vector z_tan;
-              losCalc(// Output:
-                      los,
-                      z_tan,
-                      // Input:
-                      z_plat,
-                      za_pencil_profile,
-                      l_step,
-                      p_abs,
-                      z_abs,
-                      refr,
-                      refr_lfac,
-                      refr_index,
-                      z_ground,
-                      r_geoid);
+          Vector z_tan;
+          losCalc(// Output:
+                  los,
+                  z_tan,
+                  // Input:
+                  z_plat,
+                  za_pencil_profile,
+                  l_step,
+                  p_abs,
+                  z_abs,
+                  refr,
+                  refr_lfac,
+                  refr_index,
+                  z_ground,
+                  r_geoid);
               
 	  // Calculate source:
 	  ArrayOfMatrix source;
@@ -650,11 +679,69 @@ void ybatchFromRadiosonde(// WS Output:
 		e_ground,
 		t_ground);
 	  
-	  // Convert Radiance to Planck Tb
+          // Calculation of Jacobian
+          if (calc_jac)
+            {
+              ArrayOfMatrix absloswfs;
+              absloswfsCalc(// Output:
+                            absloswfs,
+                            // Input:
+                            emission, 
+                            los, 
+                            source, 
+                            trans, 
+                            y, 
+                            y_space, 
+                            f_mono, 
+                            e_ground, 
+                            t_ground);
+              
+              Vector k_grid = p_abs;
+              
+              TagGroups wfs_tgs( 1 );
+              wfs_tgs = tgs[0];
+                                          
+              abs_per_tgReduce(// Output:
+                               abs_per_tg,
+                               // Input:
+                               tgs, 
+                               wfs_tgs);
+              
+              Matrix k;
+              ArrayOfString k_names;
+              Matrix k_aux;
+              kSpecies(// Output:
+                       k, 
+                       k_names, 
+                       k_aux,
+                       // Input:
+                       los, 
+                       absloswfs, 
+                       p_abs, 
+                       t_abs, 
+                       wfs_tgs, 
+                       abs_per_tg, 
+                       vmrs, 
+                       k_grid,
+                       // Keywords:
+                       "frac");
+              
+              // Convert to RJ brightness temperatures
+              for ( Index ik=0; ik<k.ncols(); ik++ )
+                {
+                  invrayjean( k(Range(joker),ik), f_mono, za_pencil );
+                }
+
+              jacbatch[i] = k;
+            }
+          
+          // Convert Radiance to Planck Tb
           yTB(y, f_mono, za_pencil_profile);
           
-	  // Assign y to this column of ybatch:
+          // Assign y to this column of ybatch:
 	  ybatch(Range(joker),i) = y;
+
+
 	}
       // The launch did not reach upto or above 100 hPa
       else
@@ -663,7 +750,6 @@ void ybatchFromRadiosonde(// WS Output:
 	  ybatch(Range(joker),i) = -1.0;
 	}
     }
-  // ArrayofMatrixWriteAscii( absbatch, "", "test.absbatch.aa" );
 }
 
 void ybatchFromRadiosondeGlobal(// WS Output:

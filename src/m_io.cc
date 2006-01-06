@@ -1318,6 +1318,48 @@ void MatrixMatrixMultiply(// WS Generic Output:
   Y = dummy;
 }
 
+void ArrayOfMatrixMatrixMultiply(// WS Generic Output:
+                                 ArrayOfMatrix& Y,
+                                 // WS Generic Output Names:
+                                 const String& /* Y_name */,
+                                 // WS Generic Input:
+                                 const Matrix& M,
+                                 const ArrayOfMatrix& X,
+                                 // WS Generic Input Names:
+                                 const String& M_name,
+                                 const String& X_name)
+{
+  // Check that dimensions are right, M.ncols() must match X.nrows():
+  // check_ncol_nrow( M, M_name, X, X_name );
+
+  // Temporary for the result:
+  ArrayOfMatrix dummy( X.nelem() );
+  
+  // Loop over the Matrices
+  for ( Index i=0; i<X.nelem(); i++ )
+    {
+      // Check that dimensions are right, M.ncols() must match X.nrows():
+      check_ncol_nrow( M, M_name, X[i], X_name );
+      
+      // Temporary for the result:
+      Matrix dummymat( M.nrows(), X[i].ncols() );
+      
+      mult( dummymat, M, X[i] );
+      
+      // Copy result to Y:
+      
+      dummy[i].resize( dummymat.nrows(), dummymat.ncols() );
+      
+      dummy[i] = dummymat;
+    }
+  
+  Y.resize( dummy.nelem() );
+  for (Index i = 0; i < dummy.nelem(); i++)
+    {
+      Y[i].resize( dummy[i].nrows(), dummy[i].ncols() );
+      Y[i] = dummy[i];
+    }
+}
 
 
 /**

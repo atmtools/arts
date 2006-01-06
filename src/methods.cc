@@ -1026,6 +1026,32 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("ArrayOfMatrixMatrixMultiply"),
+	DESCRIPTION
+        (
+	 "Multiply an array of Matrix with a Matrix and store the result in the result\n"
+	 "ArrayOfMatrix.\n"
+	 "\n"
+	 "This just computes the normal Matrix-Matrix product, Y[i]=M*X[i]. It is ok\n"
+	 "if Y and X are the same Array of Matrix. This function is handy for\n"
+	 "multiplying the H Matrix to weighting functions.\n"
+	 "\n"
+	 "Generic output:\n"
+	 "   ArrayOfMatrix : The result of the multiplication (dimension mxc).\n"
+	 "\n"
+	 "Generic input:\n"
+	 "   Matrix        : The Matrix to multiply (dimension mxn).\n"
+	 "   ArrayOfMatrix : The original Matrix (dimension nxc).\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ArrayOfMatrix_ ),
+	GINPUT( Matrix_, ArrayOfMatrix_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("MatrixMatrixAdd"),
 	DESCRIPTION
         (
@@ -3934,7 +3960,7 @@ md_data.push_back
          "\n"
          "  interp_rh : Flag for interpolation of H2O profile in RH\n"
          "  0 = Normal ARTS interpolation in VMRs\n"
-         "  1 = Interpolation in RH."
+         "  1 = Interpolation in RH.\n"
          "\n"
          "  za_per_profile : Flag for giving separate za_pencils for each profile\n"
          "\n"
@@ -3944,8 +3970,12 @@ md_data.push_back
          "in the za_pencil and the number of radiosonde profiles are the same. The\n"
          "function now assumes that first element of the za_pencil is for the first\n"
          "radiosonde profile and the second element of the za_pencil is for the second\n"
-         "radiosonde profile and so on.\n"),
-	OUTPUT( ybatch_, absbatch_ ),
+         "radiosonde profile and so on.\n"
+         "\n"
+         "calc_abs: Flag for storing the absorption coefficients.\n"
+         "\n"
+         "calc_abs: Flag for calculating Jacobian(only for H2O).\n"),
+	OUTPUT( ybatch_, absbatch_, jacbatch_ ),
 	INPUT( // Variables needed for absCalc
                radiosonde_data_, f_mono_, lines_per_tg_, lineshape_, 
                // Additional variables for losCalc
@@ -3960,8 +3990,8 @@ md_data.push_back
                cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "finegrid" ,  "interp_rh",  "za_per_profile"),
-	TYPES(  Index_t, Index_t, Index_t  )));
+	KEYWORDS("finegrid", "interp_rh", "za_per_profile", "calc_abs", "calc_jac"),
+	TYPES(  Index_t, Index_t, Index_t, Index_t, Index_t )));
 
 md_data.push_back
     ( MdRecord
