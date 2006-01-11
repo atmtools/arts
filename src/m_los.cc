@@ -1675,12 +1675,10 @@ void MatrixTRJ (// WS Generic Output:
   if ( kout.nrows()!=kin.nrows() || kout.ncols()!=kin.ncols() )
     kout.resize(kin.nrows(),kin.ncols());
   
-  Vector y(kin.nrows());
   for ( Index i=0; i<kin.ncols(); i++ )
   {
-    y = kin(Range(joker),i);        // Copy ith column of kin to y.
-    invrayjean( y, f_mono, za_pencil );
-    kout(Range(joker),i) = y;       // Copy to ith column of kout.
+    kout(Range(joker),i) = kin(Range(joker),i); // Copy to ith column of kout.
+    invrayjean( kout(Range(joker),i), f_mono, za_pencil );
   }
 }
 

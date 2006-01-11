@@ -729,7 +729,7 @@ void ybatchFromRadiosonde(// WS Output:
               // Convert to RJ brightness temperatures
               for ( Index ik=0; ik<k.ncols(); ik++ )
                 {
-                  invrayjean( k(Range(joker),ik), f_mono, za_pencil );
+                  invrayjean( k(Range(joker),ik), f_mono, za_pencil_profile );
                 }
 
               jacbatch[i] = k;

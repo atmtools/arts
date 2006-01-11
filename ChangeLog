@@ -1,3 +1,13 @@
+2006-01-11  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-1-0-191
+
+	* configure.in: Updated.
+
+	* src/m_batch.cc (ybatchFromRadiosonde): Updated.
+
+	* src/m_los.cc (MatrixTRJ): Minor modification as suggested by Oliver.
+
 2006-01-06  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-1-0-190
