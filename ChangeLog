@@ -1,6 +1,8 @@
 2006-01-18  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-1-0-192
+
+	* configure.in: Updated.
 	
 	* src/m_batch.cc (ybatchFromRadiosonde): Included a keyword called
 	*e_ground_per_profile* which allows one to specify a particular
