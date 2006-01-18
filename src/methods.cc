@@ -3972,6 +3972,10 @@ md_data.push_back
          "radiosonde profile and the second element of the za_pencil is for the second\n"
          "radiosonde profile and so on.\n"
          "\n"
+         "  e_ground_per_profile : Flag for giving separate e_ground for each profile\n"
+         "\n"
+         "This assumes that same emissivity is used for all the given frequencies.\n"
+         "\n"
          "calc_abs: Flag for storing the absorption coefficients.\n"
          "\n"
          "calc_abs: Flag for calculating Jacobian(only for H2O).\n"),
@@ -3990,8 +3994,8 @@ md_data.push_back
                cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS("finegrid", "interp_rh", "za_per_profile", "calc_abs", "calc_jac"),
-	TYPES(  Index_t, Index_t, Index_t, Index_t, Index_t )));
+	KEYWORDS("finegrid", "interp_rh", "za_per_profile", "e_ground_per_profile", "calc_abs", "calc_jac"),
+	TYPES(  Index_t, Index_t, Index_t, Index_t, Index_t, Index_t )));
 
 md_data.push_back
     ( MdRecord

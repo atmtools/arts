@@ -358,6 +358,7 @@ void ybatchFromRadiosonde(// WS Output:
 			  const Index& fine_abs_grid,
                           const Index& interpolation_in_rh,
                           const Index& za_batch,
+                          const Index& e_ground_batch,
                           const Index& calc_abs,
                           const Index& calc_jac)
 {
@@ -365,15 +366,14 @@ void ybatchFromRadiosonde(// WS Output:
   check_if_bool(fine_abs_grid, "Finegrid keyword" );
   check_if_bool(interpolation_in_rh, "Interpolation in RH keyword" );
   check_if_bool(za_batch, "za_batch keyword" );
+  check_if_bool(e_ground_batch, "e_ground_batch keyword" );
   check_if_bool(calc_abs, "calc_abs keyword" );
   check_if_bool(calc_jac, "calc_jac keyword" );
 
   // this variable is keep the original za_pencil 
   Vector za_pencil_profile;
-  
-  // FIXME: This is a quick hack, modify it after the use
-  // Just for ARTS-RTTOV comparison paper. 
-  // ArrayOfMatrix absbatch;
+  Vector e_ground_profile;
+
   if (calc_abs) 
     {
       absbatch.resize( radiosonde_data.nelem() );
@@ -424,6 +424,23 @@ void ybatchFromRadiosonde(// WS Output:
       za_pencil_profile.resize(1);
 
     }
+
+  if (e_ground_batch)
+    {
+      if ( radiosonde_data.nelem() != e_ground.nelem() )
+        {
+          ostringstream os;
+          os << "The number of Radiosonde profiles is " << radiosonde_data.nelem() << "\n" 
+             << "The number of emissivities given is  " << e_ground.nelem() << "\n"
+             << "But these two are expected to be the same, when e_ground_per_profile = 1 .\n";
+          throw runtime_error(os.str());
+        }
+    }
+  else
+    {
+      e_ground_profile.resize( f_mono.nelem() );
+      e_ground_profile  =  e_ground;
+    }
   
   // Loop over all radiosonde profiles:
   for ( Index i=0; i<radiosonde_data.nelem(); ++i )
@@ -436,6 +453,14 @@ void ybatchFromRadiosonde(// WS Output:
         {
           za_pencil_profile[0] = za_pencil[i];
         } 
+    
+      // When e_ground_batch is set, it should be extracted from 
+      // the e_gound for each profile
+      if (e_ground_batch)
+        {
+          e_ground_profile.resize( f_mono.nelem() );
+          e_ground_profile  =  e_ground[i];
+        }
       
       // Check whether the launch has reached upto 100 hpa
       Numeric min_p = rd(rd.nrows() - 1, 0);
@@ -676,7 +701,7 @@ void ybatchFromRadiosonde(// WS Output:
 		y_space,
 		source,
 		trans,
-		e_ground,
+		e_ground_profile,
 		t_ground);
 	  
           // Calculation of Jacobian
@@ -693,7 +718,7 @@ void ybatchFromRadiosonde(// WS Output:
                             y, 
                             y_space, 
                             f_mono, 
-                            e_ground, 
+                            e_ground_profile, 
                             t_ground);
               
               Vector k_grid = p_abs;

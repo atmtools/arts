@@ -1,3 +1,13 @@
+2006-01-18  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-1-0-192
+	
+	* src/m_batch.cc (ybatchFromRadiosonde): Included a keyword called
+	*e_ground_per_profile* which allows one to specify a particular
+	surface emissivity for each profile in the input.
+
+	* src/methods.cc: Updated for the same. 
+
 2006-01-11  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-1-0-191
