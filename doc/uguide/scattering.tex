@@ -316,7 +316,7 @@ single scattering. The maximum optical depth due to ice particles is
   \tau_{max} = \EnsAvr{\ExtMat^p} \cdot \Delta s,
 \end{equation}
 where $\Delta s$ is the length of a propagation  path step. In all
-simulations presented in this thesis $\tau_{max} \ll$ 0.01 is
+simulations presented in \citet{emde05:_phdthesis}, $\tau_{max} \ll$ 0.01 is
 assumed. This threshold value is also used in \citet{czekala99:_microw}.
 The radiative transfer calculation
 is done along the propagation path through one grid cell.  All
@@ -716,7 +716,7 @@ For down-looking geometries it is sufficient to define the keywords:
 \begin{tabular}{ll}
   \artsstyle{N\_za\_grid}& Number of grid points in zenith angle grid,
   recommended value: 19\\
-  \artsstyle{N\_aa\_grid}& Number of grid points in zenith angle grid,
+  \artsstyle{N\_aa\_grid}& Number of grid points in azimuth angle grid,
   recommended value: 37\\ 
 \end{tabular}
 From these numbers equally spaced grids are created and stored in the
@@ -760,7 +760,7 @@ AgendaSet(doit_mono_agenda){
    DoitScatteringDataPrepare{}
  # Alternative method (needs less memory):
  # scat_data_monoCalc{}
- # Set first guress field:		
+ # Set first guess field:		
    doit_i_fieldSetClearsky{}
  # Perform iterations: 1. scattering integral. 2. RT calculations with 
  #   fixed scattering integral field, 3. convergence test 

@@ -910,10 +910,10 @@ doit_i_fieldUpdateSeq1D(// WS Input and Output:
       if ( scat_za_grid[scat_za_index_local] <= 90.) 
         {
           // Loop over all positions inside the cloud box defined by the 
-          // cloudbox_limits exculding the upper boundary. For uplooking
+          // cloudbox_limits excluding the upper boundary. For uplooking
           // directions, we start from cloudbox_limits[1]-1 and go down
           // to cloudbox_limits[0] to do a sequential update of the
-          // aradiation field
+          // radiation field
           for(Index p_index = cloudbox_limits[1]-1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
@@ -1399,8 +1399,8 @@ doit_i_fieldUpdateSeq1DPP(// WS Output:
                 )
 {
 
-  out2 << "doit_i_fieldUpdatePlaneparallel: Radiative transfer calculatiuon in cloudbox.\n";
-  out2 << "------------------------------------------------------------- \n";
+  out2 << "doit_i_fieldUpdateSeq1DPP: Radiative transfer calculation in cloudbox.\n";
+  out2 << "--------------------------------------------------------------------- \n";
   
   const Index stokes_dim = doit_scat_field.ncols();
   //  const Index atmosphere_dim = 1;

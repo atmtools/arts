@@ -1605,7 +1605,7 @@ md_data_raw.push_back
         (
          "Prepare single scattering data for a DOIT scattering calculation.\n"
          "\n"
-         "This function can be used for scattering calcualtions using the \n" 
+         "This function can be used for scattering calculations using the \n" 
          "DOIT method. \n"
          "\n"
          "First the scattering data is interpolated on the frequency using\n"

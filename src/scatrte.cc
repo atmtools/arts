@@ -1921,7 +1921,7 @@ void cloud_ppath_update1D_planeparallel(
           //iy_surface_agenda.execute();
 
       throw runtime_error( 
-                     "Surface reflections inside cloud bix not yet handled." );
+                     "Surface reflections inside cloud box not yet handled." );
       /*
         See comment in function above
           // Check returned variables

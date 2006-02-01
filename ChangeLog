@@ -1,3 +1,27 @@
+2006-01-31  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-1048 (Just some cosmetic changes)
+
+	* doc/uguide/scattering.tex (subsection{DOIT frame}): Fixed typo.
+	(subsection{Single scattering approximation}): Removed mention of
+	PhD thesis by citation.
+
+	* src/scatrte.cc (cloud_ppath_update1D_planeparallel): Fixed typo
+	in error message.
+
+	* src/m_scatrte.cc (doit_i_fieldUpdateSeq1DPP): Fixed typo in
+	documentary output.
+
+	* tests/simpleDOIT.arts: Fixed wrong method names in comments.
+
+	* src/methods.cc (define_md_data_raw): Fixed typo in
+	DoitScatteringDataPrepare. 
+
+	* doc/uguide/main.tex: Extended copyright to 2005 and 2006.
+
+	* doc/uguide/clouds.tex (subsection{Work space methods and
+	variables}): Fixed typo.
+
 2005-12-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1047
