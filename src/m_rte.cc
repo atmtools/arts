@@ -555,9 +555,6 @@ void RteStd(
              Matrix&                  iy,
              Vector&                  emission,
              Matrix&                  abs_scalar_gas,
-             Numeric&                 rte_pressure,
-             Numeric&                 rte_temperature,
-             Vector&                  rte_vmr_list,
              Index&                   f_index,
              ArrayOfTensor4&          diy_dvmr,
              ArrayOfTensor4&          diy_dt,
@@ -574,8 +571,7 @@ void RteStd(
 {
   Tensor4 dummy(0,0,0,0);
 
-  rte_std( iy, emission, abs_scalar_gas, rte_pressure, 
-           rte_temperature, rte_vmr_list, f_index, 
+  rte_std( iy, emission, abs_scalar_gas, f_index, 
            dummy, diy_dvmr, diy_dt,
            ppath, ppath_array, ppath_array_index, f_grid, stokes_dim, 
            emission_agenda, scalar_gas_absorption_agenda,
@@ -596,9 +592,6 @@ void RteStdWithTransmissions(
              Matrix&                  iy,
              Vector&                  emission,
              Matrix&                  abs_scalar_gas,
-             Numeric&                 rte_pressure,
-             Numeric&                 rte_temperature,
-             Vector&                  rte_vmr_list,
              Index&                   f_index,
              Tensor4&                 ppath_transmissions,
              ArrayOfTensor4&          diy_dvmr,
@@ -614,8 +607,7 @@ void RteStdWithTransmissions(
        const ArrayOfIndex&            rte_do_gas_jacs,
        const Index&                   rte_do_t_jacs )
 {
-  rte_std( iy, emission, abs_scalar_gas, rte_pressure, 
-           rte_temperature, rte_vmr_list, f_index, 
+  rte_std( iy, emission, abs_scalar_gas, f_index, 
            ppath_transmissions, diy_dvmr, diy_dt,
            ppath, ppath_array, ppath_array_index, f_grid, stokes_dim, 
            emission_agenda, scalar_gas_absorption_agenda,

@@ -214,7 +214,7 @@ void define_agenda_data()
         "obtained spectrum will be the transmission through the atmosphere."
         ),
        OUTPUT( emission_ ),
-       INPUT( )));
+       INPUT( rte_temperature_ )));
  
   agenda_data.push_back
     (AgRecord
@@ -573,7 +573,7 @@ void define_agenda_data()
         "along the propagation path and returns the result in *iy*."
         ),
        OUTPUT( iy_ ),
-       INPUT(  ppath_, stokes_dim_, f_grid_, scalar_gas_absorption_agenda_ )));
+       INPUT(  ppath_, stokes_dim_, f_grid_ )));
 
   agenda_data.push_back
     (AgRecord

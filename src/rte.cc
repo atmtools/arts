@@ -486,7 +486,9 @@ void iy_calc(
   // If the number of propagation path points is 0 or 1, we are already ready,
   // the observed spectrum equals then the radiative background.
   if( np > 1 )
-    { rte_agenda.execute( agenda_verb ); }
+    {
+      rte_agendaExecute( iy, ppath, stokes_dim, f_grid, rte_agenda, agenda_verb );
+    }
 }
 
 
@@ -811,9 +813,6 @@ void rte_std(
              Matrix&                  iy,
              Vector&                  emission,
              Matrix&                  abs_scalar_gas,
-             Numeric&                 rte_pressure,
-             Numeric&                 rte_temperature,
-             Vector&                  rte_vmr_list,
              Index&                   f_index,
              Tensor4&                 ppath_transmissions,
              ArrayOfTensor4&          diy_dvmr,
@@ -836,9 +835,7 @@ void rte_std(
   const Index   np = ppath.np;
   const Index   ns = ppath.vmr.nrows();        // Number of species
   const Index   ng = rte_do_vmr_jacs.nelem();  // Number of jacobian species
-
-  // Init output variables
-  rte_vmr_list.resize(ns);
+  Vector rte_vmr_list (ns);
 
   // Log of pressure
   Vector   logp_ppath(np);
@@ -867,14 +864,19 @@ void rte_std(
   for( Index ip=np-1; ip>0; ip-- )
     {
       // Calculate mean of atmospheric parameters
-      rte_pressure    = exp( 0.5 * ( logp_ppath[ip] + logp_ppath[ip-1] ) );
-      rte_temperature = 0.5 * ( ppath.t[ip] + ppath.t[ip-1] );
+      Numeric rte_pressure = exp( 0.5 * ( logp_ppath[ip] + logp_ppath[ip-1] ) );
+      Numeric rte_temperature = 0.5 * ( ppath.t[ip] + ppath.t[ip-1] );
       for( Index is=0; is<ns; is++ )
         { rte_vmr_list[is] = 0.5 * ( ppath.vmr(is,ip) + ppath.vmr(is, ip-1) );}
       
       // Call agendas for RT properties
-      emission_agenda.execute( ip );
-      scalar_gas_absorption_agenda.execute( ip );
+      emission_agendaExecute (emission, rte_temperature, emission_agenda,
+                              (ip != 0));
+      scalar_gas_absorption_agendaExecute (abs_scalar_gas, f_index,
+                                           rte_pressure, rte_temperature,
+                                           rte_vmr_list,
+                                           scalar_gas_absorption_agenda,
+                                           (ip != 0));
 
       // Polarised absorption?
       // What check to do here?

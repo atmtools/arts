@@ -1,5 +1,29 @@
 2006-02-02  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1050
+
+	* src/rte.{cc,h}:
+
+	(iy_calc): Use new agenda scheme to execute rte_agenda.
+
+	(rte_std): Use new agenda scheme to execute emission_agenda and
+	scalar_gas_absorption_agenda.
+
+	Make rte_pressure, rte_temperature, rte_vmr_list local variables.
+
+	* src/methods.cc, src/m_rte.cc:
+
+	Removed agenda communications variables rte_pressure, rte_temperature,
+	rte_vmr_list from RteStd and RteStdWithTransmissions output list.
+
+	* src/agendas.cc:
+
+	Removed scalar_gas_absorption_agenda from input list for rte_agenda.
+
+	Added rte_temperature to input list of emission_agenda.
+
+2006-02-02  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1049
 
 	* src/m_cloudbox.cc (CloudboxGetIncoming):

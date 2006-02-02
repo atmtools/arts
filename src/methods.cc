@@ -3670,8 +3670,7 @@ md_data_raw.push_back
          "See further the user guide."
         ),
         OUTPUT( iy_, emission_, abs_scalar_gas_, 
-                rte_pressure_, rte_temperature_, rte_vmr_list_, f_index_, 
-                diy_dvmr_, diy_dt_ ),
+                f_index_, diy_dvmr_, diy_dt_ ),
         INPUT( iy_, ppath_, ppath_array_, ppath_array_index_, f_grid_, 
                stokes_dim_, emission_agenda_, scalar_gas_absorption_agenda_, 
                rte_do_vmr_jacs_, rte_do_t_jacs_ ),
@@ -3690,8 +3689,7 @@ md_data_raw.push_back
          "The transmission to each point of the propagation path is returned\n"
          "in *ppath_transmissions*."
         ),
-        OUTPUT( iy_, emission_, abs_scalar_gas_,
-                rte_pressure_, rte_temperature_, rte_vmr_list_, f_index_, 
+        OUTPUT( iy_, emission_, abs_scalar_gas_, f_index_, 
                 ppath_transmissions_, diy_dvmr_, diy_dt_ ),
         INPUT( iy_, ppath_, ppath_array_, ppath_array_index_, f_grid_, 
                stokes_dim_, emission_agenda_, scalar_gas_absorption_agenda_, 
