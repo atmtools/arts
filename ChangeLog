@@ -1,6 +1,19 @@
+2006-02-02  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1049
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming):
+
+	Shorten some duplicated code by putting it into for loops.
+
+	* ChangeLog: Never put anything else into the line with the
+	version number. Thank you!
+
 2006-01-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
-	* arts-1-1-1048 (Just some cosmetic changes)
+	* arts-1-1-1048
+	
+	* Just some cosmetic changes
 
 	* doc/uguide/scattering.tex (subsection{DOIT frame}): Fixed typo.
 	(subsection{Single scattering approximation}): Removed mention of

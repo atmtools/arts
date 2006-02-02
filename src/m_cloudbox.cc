@@ -1609,42 +1609,29 @@ void CloudboxGetIncoming(
       //Define the variables for position and direction.
       Vector   los(1), pos(1);
 
-      //--- Get scat_i_p at lower boundary
-      pos[0] = r_geoid(0,0) + z_field( cloudbox_limits[0], 0, 0 );
-
-      for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
+      //--- Get scat_i_p at lower and upper boundary
+      //    (boundary=0: lower, boundary=1: upper)
+      for (Index boundary = 0; boundary <= 1; boundary++)
         {
-          los[0] =  scat_za_grid[scat_za_index];
+          pos[0] = r_geoid(0,0) + z_field( cloudbox_limits[boundary], 0, 0 );
 
-          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
-                               rte_gp_lat,
-			       rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
-			       iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-			       atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,
-			       t_field, vmr_field,
-			       r_geoid, z_surface, cloudbox_on,  cloudbox_limits, 
-			       pos, los, f_grid, stokes_dim, agenda_verb );
+          for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
+            {
+              los[0] =  scat_za_grid[scat_za_index];
 
-          scat_i_p( joker, 0, 0, 0, scat_za_index, 0, joker ) = iy;
-        }
+              iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                                   rte_gp_lat, rte_gp_lon, rte_los,
+                                   ppath_step_agenda, rte_agenda, 
+                                   iy_space_agenda, iy_surface_agenda,
+                                   iy_cloudbox_agenda, atmosphere_dim,
+                                   p_grid, lat_grid, lon_grid, z_field,
+                                   t_field, vmr_field,
+                                   r_geoid, z_surface, cloudbox_on,
+                                   cloudbox_limits, pos, los, f_grid,
+                                   stokes_dim, agenda_verb );
 
-      //--- Get scat_i_p at upper boundary
-      pos[0] = r_geoid(0,0) + z_field( cloudbox_limits[1], 0, 0 );
-
-      for (Index scat_za_index = 0; scat_za_index < Nza;  scat_za_index ++)
-        {
-          los[0] =  scat_za_grid[scat_za_index];
-
-          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
-                               rte_gp_lat,
-                   rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
-                   iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
-                   t_field, vmr_field,
-                   r_geoid, z_surface, cloudbox_on,  cloudbox_limits, 
-                   pos, los, f_grid, stokes_dim, agenda_verb );
-
-          scat_i_p( joker, 1, 0, 0, scat_za_index, 0, joker ) = iy;
+              scat_i_p( joker, boundary, 0, 0, scat_za_index, 0, joker ) = iy;
+            }
         }
     }
   
@@ -1677,286 +1664,170 @@ void CloudboxGetIncoming(
       Vector   los(2), pos(3);
 
       
-      //--- Get scat_i_p at lower boundary
-      for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
-        {
-          for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
-            {
-              pos[0] = r_geoid(lat_index + cloudbox_limits[2],
-                               lon_index + cloudbox_limits[4]) 
-                     + z_field(cloudbox_limits[0],
-                               lat_index + cloudbox_limits[2],
-                               lon_index + cloudbox_limits[4]);
-              pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
-              pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
-
-              for (Index scat_za_index = 0; scat_za_index < Nza;
-                   scat_za_index ++)
-                {
-                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
-                       scat_aa_index ++)
-                    {
-                      los[0] = scat_za_grid[scat_za_index];
-                      los[1] = aa_grid[scat_aa_index];
-                      
-                      // For end points of scat_za_index, we need only to
-                      // perform calculations for first scat_aa
-                      if( !( ( scat_za_index == 0  ||  
-                               scat_za_index == (Nza-1) )  &&  
-                             scat_aa_index == 0 ) )
-                        {
-                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
-                                               rte_gp_p, 
-                          rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
-                          rte_agenda, iy_space_agenda, iy_surface_agenda, 
-                          iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, t_field, vmr_field,
-                          r_geoid, z_surface, 
-                          cloudbox_on,  cloudbox_limits, 
-                          pos, los, f_grid, stokes_dim, agenda_verb );
-                        }
-
-                      scat_i_p( joker, 0, lat_index, lon_index, 
-                                scat_za_index, scat_aa_index, joker) = iy;
-                    }
-                }
-            }
-        }
-      
-
-      //--- Get scat_i_p at upper boundary
-      for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
-        {
-          for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
-            {
-              pos[0] = r_geoid(lat_index + cloudbox_limits[2],
-                               lon_index + cloudbox_limits[4]) 
-                     + z_field(cloudbox_limits[1],
-                               lat_index + cloudbox_limits[2],
-                               lon_index + cloudbox_limits[4]);
-              pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
-              pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
-
-              for (Index scat_za_index = 0; scat_za_index < Nza;
-                   scat_za_index ++)
-                {
-                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
-                       scat_aa_index ++)
-                    {
-                      los[0] = scat_za_grid[scat_za_index];
-                      los[1] = aa_grid[scat_aa_index];
-                      
-                      // For end points of scat_za_index, we need only to
-                      // perform calculations for first scat_aa
-                      if( !( ( scat_za_index == 0  ||  
-                               scat_za_index == (Nza-1) )  &&  
-                             scat_aa_index == 0 ) )
-                        {
-                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
-                                               rte_gp_p, 
-                          rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
-                          rte_agenda, iy_space_agenda, iy_surface_agenda, 
-                          iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, t_field, vmr_field,
-                          r_geoid, z_surface, 
-                          cloudbox_on,  cloudbox_limits, 
-                          pos, los, f_grid, stokes_dim, agenda_verb );
-                        }
-
-                      scat_i_p( joker, 1, lat_index, lon_index, 
-                                scat_za_index, scat_aa_index, joker) = iy;
-                    }
-                }
-            }
-        }
-              
-       
-      //--- Get scat_i_lat (1st boundary):
-      for (Index p_index = 0; p_index < Np_cloud; p_index++ )
-        {
-          for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
-            {
-              pos[0] = r_geoid(cloudbox_limits[2],
-                               lon_index + cloudbox_limits[4]) 
-                     + z_field(p_index + cloudbox_limits[0],
-                               cloudbox_limits[2], 
-                               lon_index + cloudbox_limits[4]);
-              pos[1] = lat_grid[cloudbox_limits[2]];
-              pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
-
-              for (Index scat_za_index = 0; scat_za_index < Nza;
-                   scat_za_index ++)
-                {
-                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
-                       scat_aa_index ++)
-                    {
-                      los[0] = scat_za_grid[scat_za_index];
-                      los[1] = aa_grid[scat_aa_index];
-                      
-                      // For end points of scat_za_index, we need only to
-                      // perform calculations for first scat_aa
-                      if( !( ( scat_za_index == 0  ||  
-                               scat_za_index == (Nza-1) )  &&  
-                             scat_aa_index == 0 ) )
-                        {
-                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
-                                               rte_gp_p, 
-                          rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
-                          rte_agenda, iy_space_agenda, iy_surface_agenda, 
-                          iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, t_field, vmr_field,
-                          r_geoid, z_surface, 
-                          cloudbox_on,  cloudbox_limits, 
-                          pos, los, f_grid, stokes_dim, agenda_verb );
-                        }
-
-                      scat_i_lat( joker, p_index, 0, lon_index,
-                                  scat_za_index, scat_aa_index, joker) = iy;
-                    }
-                }
-            }
-        }
-
-      
-      //--- Get scat_i_lat (2nd boundary)
-      for (Index p_index = 0; p_index < Np_cloud; p_index++ )
-        {
-          for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
-            {
-              pos[0] = r_geoid(cloudbox_limits[3],
-                               lon_index + cloudbox_limits[4])
-                     + z_field(p_index + cloudbox_limits[0],
-                               cloudbox_limits[3],
-                               lon_index + cloudbox_limits[4]);
-              pos[1] = lat_grid[cloudbox_limits[3]];
-              pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
-               
-              for (Index scat_za_index = 0; scat_za_index < Nza;
-                    scat_za_index ++)
-                {
-                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
-                       scat_aa_index ++)
-                    {
-                      los[0] = scat_za_grid[scat_za_index];
-                      los[1] = aa_grid[scat_aa_index];
-                      
-                      // For end points of scat_za_index, we need only to
-                      // perform calculations for first scat_aa
-                      if( !( ( scat_za_index == 0  ||  
-                               scat_za_index == (Nza-1) )  &&  
-                             scat_aa_index == 0 ) )
-                        {
-                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
-                                               rte_gp_p, 
-                          rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
-                          rte_agenda, iy_space_agenda, iy_surface_agenda, 
-                          iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, t_field, vmr_field,
-                          r_geoid, z_surface, 
-                          cloudbox_on,  cloudbox_limits, 
-                          pos, los, f_grid, stokes_dim, agenda_verb );
-                        }
-
-                      scat_i_lat( joker, p_index, 1, lon_index, 
-                                  scat_za_index, scat_aa_index, joker) = iy;
-                    }
-                }
-            }
-        }    
-
-
-      //--- Get scat_i_lon (1st boundary):
-      for (Index p_index = 0; p_index < Np_cloud; p_index++ )
+      //--- Get scat_i_p at lower and upper boundary
+      //    (boundary=0: lower, boundary=1: upper)
+      for (Index boundary = 0; boundary <= 1; boundary++)
         {
           for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
             {
-              pos[0] = r_geoid(lat_index + cloudbox_limits[2],
-                               cloudbox_limits[4]) 
-                     + z_field(p_index + cloudbox_limits[0],
-                               lat_index + cloudbox_limits[2],
-                               cloudbox_limits[4]);
-              pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
-              pos[2] = lon_grid[cloudbox_limits[4]];
-
-              for (Index scat_za_index = 0; scat_za_index < Nza;
-                   scat_za_index ++)
+              for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
                 {
-                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
-                       scat_aa_index ++)
-                    {
-                      los[0] = scat_za_grid[scat_za_index];
-                      los[1] = aa_grid[scat_aa_index];
-                      
-                      // For end points of scat_za_index, we need only to
-                      // perform calculations for first scat_aa
-                      if( !( ( scat_za_index == 0  ||  
-                               scat_za_index == (Nza-1) )  &&  
-                             scat_aa_index == 0 ) )
-                        {
-                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
-                                               rte_gp_p, 
-                          rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
-                          rte_agenda, iy_space_agenda, iy_surface_agenda, 
-                          iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, t_field, vmr_field,
-                          r_geoid, z_surface, 
-                          cloudbox_on,  cloudbox_limits, 
-                          pos, los, f_grid, stokes_dim, agenda_verb );
-                        }
+                  pos[0] = r_geoid(lat_index + cloudbox_limits[2],
+                                   lon_index + cloudbox_limits[4]) 
+                    + z_field(cloudbox_limits[boundary],
+                              lat_index + cloudbox_limits[2],
+                              lon_index + cloudbox_limits[4]);
+                  pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
+                  pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
 
-                      scat_i_lon( joker, p_index, lat_index, 0, 
-                                  scat_za_index, scat_aa_index, joker) = iy;
+                  for (Index scat_za_index = 0; scat_za_index < Nza;
+                       scat_za_index ++)
+                    {
+                      for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                           scat_aa_index ++)
+                        {
+                          los[0] = scat_za_grid[scat_za_index];
+                          los[1] = aa_grid[scat_aa_index];
+
+                          // For end points of scat_za_index, we need only to
+                          // perform calculations for first scat_aa
+                          if( !( ( scat_za_index == 0  ||  
+                                   scat_za_index == (Nza-1) )  &&  
+                                 scat_aa_index == 0 ) )
+                            {
+                              iy_calc_no_jacobian( iy, ppath, ppath_step,
+                                                   rte_pos, rte_gp_p, 
+                                                   rte_gp_lat, rte_gp_lon,
+                                                   rte_los, ppath_step_agenda, 
+                                                   rte_agenda, iy_space_agenda,
+                                                   iy_surface_agenda, 
+                                                   iy_cloudbox_agenda,
+                                                   atmosphere_dim, p_grid, 
+                                                   lat_grid, lon_grid, z_field,
+                                                   t_field, vmr_field,
+                                                   r_geoid, z_surface, 
+                                                   cloudbox_on,
+                                                   cloudbox_limits, 
+                                                   pos, los, f_grid,
+                                                   stokes_dim, agenda_verb );
+                            }
+
+                          scat_i_p( joker, boundary, lat_index, lon_index, 
+                                    scat_za_index, scat_aa_index, joker) = iy;
+                        }
                     }
                 }
             }
         }
-
       
-      //--- Get scat_i_lon (2nd boundary)
-      for (Index p_index = 0; p_index < Np_cloud; p_index++ )
+      //--- Get scat_i_lat (2nd and 3rd boundary)
+      for (Index boundary = 0; boundary <= 1; boundary++)
         {
-          for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
+          for (Index p_index = 0; p_index < Np_cloud; p_index++ )
             {
-              pos[0] = r_geoid(lat_index + cloudbox_limits[2],
-                               cloudbox_limits[5]) 
-                     + z_field(p_index + cloudbox_limits[0],
-                               lat_index + cloudbox_limits[2],
-                               cloudbox_limits[5]);
-              pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
-              pos[2] = lon_grid[cloudbox_limits[5]];
-              
-              for (Index scat_za_index = 0; scat_za_index < Nza;
-                   scat_za_index ++)
+              for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
                 {
-                  for (Index scat_aa_index = 0; scat_aa_index < Naa; 
-                       scat_aa_index ++)
-                    {
-                      los[0] = scat_za_grid[scat_za_index];
-                      los[1] = aa_grid[scat_aa_index];
-                      
-                      // For end points of scat_za_index, we need only to
-                      // perform calculations for first scat_aa
-                      if( !( ( scat_za_index == 0  ||  
-                               scat_za_index == (Nza-1) )  &&  
-                             scat_aa_index == 0 ) )
-                        {
-                          iy_calc_no_jacobian( iy, ppath, ppath_step, rte_pos,
-                                               rte_gp_p, 
-                          rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
-                          rte_agenda, iy_space_agenda, iy_surface_agenda, 
-                          iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
-                          lat_grid, lon_grid, z_field, t_field, vmr_field,
-                          r_geoid, z_surface, 
-                          cloudbox_on,  cloudbox_limits, 
-                          pos, los, f_grid, stokes_dim, agenda_verb );
-                        }
+                  pos[0] = r_geoid(cloudbox_limits[boundary+2],
+                                   lon_index + cloudbox_limits[4])
+                    + z_field(p_index + cloudbox_limits[0],
+                              cloudbox_limits[boundary+2],
+                              lon_index + cloudbox_limits[4]);
+                  pos[1] = lat_grid[cloudbox_limits[boundary+2]];
+                  pos[2] = lon_grid[lon_index + cloudbox_limits[4]];
 
-                      scat_i_lon( joker, p_index, lat_index, 1, 
-                                  scat_za_index, scat_aa_index, joker) = iy;
+                  for (Index scat_za_index = 0; scat_za_index < Nza;
+                       scat_za_index ++)
+                    {
+                      for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                           scat_aa_index ++)
+                        {
+                          los[0] = scat_za_grid[scat_za_index];
+                          los[1] = aa_grid[scat_aa_index];
+
+                          // For end points of scat_za_index, we need only to
+                          // perform calculations for first scat_aa
+                          if( !( ( scat_za_index == 0  ||  
+                                   scat_za_index == (Nza-1) )  &&  
+                                 scat_aa_index == 0 ) )
+                            {
+                              iy_calc_no_jacobian( iy, ppath, ppath_step,
+                                                   rte_pos, rte_gp_p, 
+                                                   rte_gp_lat, rte_gp_lon,
+                                                   rte_los, ppath_step_agenda, 
+                                                   rte_agenda, iy_space_agenda,
+                                                   iy_surface_agenda, 
+                                                   iy_cloudbox_agenda,
+                                                   atmosphere_dim, p_grid, 
+                                                   lat_grid, lon_grid, z_field,
+                                                   t_field, vmr_field,
+                                                   r_geoid, z_surface, 
+                                                   cloudbox_on,
+                                                   cloudbox_limits, pos, los,
+                                                   f_grid, stokes_dim,
+                                                   agenda_verb );
+                            }
+
+                          scat_i_lat( joker, p_index, boundary, lon_index, 
+                                      scat_za_index, scat_aa_index, joker) = iy;
+                        }
+                    }
+                }
+            }    
+        }
+
+      //--- Get scat_i_lon (1st and 2nd boundary):
+      for (Index boundary = 0; boundary <= 1; boundary++)
+        {
+          for (Index p_index = 0; p_index < Np_cloud; p_index++ )
+            {
+              for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
+                {
+                  pos[0] = r_geoid(lat_index + cloudbox_limits[2],
+                                   cloudbox_limits[boundary+4]) 
+                    + z_field(p_index + cloudbox_limits[0],
+                              lat_index + cloudbox_limits[2],
+                              cloudbox_limits[boundary+4]);
+                  pos[1] = lat_grid[lat_index + cloudbox_limits[2]];
+                  pos[2] = lon_grid[cloudbox_limits[boundary+4]];
+
+                  for (Index scat_za_index = 0; scat_za_index < Nza;
+                       scat_za_index ++)
+                    {
+                      for (Index scat_aa_index = 0; scat_aa_index < Naa; 
+                           scat_aa_index ++)
+                        {
+                          los[0] = scat_za_grid[scat_za_index];
+                          los[1] = aa_grid[scat_aa_index];
+
+                          // For end points of scat_za_index, we need only to
+                          // perform calculations for first scat_aa
+                          if( !( ( scat_za_index == 0  ||  
+                                   scat_za_index == (Nza-1) )  &&  
+                                 scat_aa_index == 0 ) )
+                            {
+                              iy_calc_no_jacobian( iy, ppath, ppath_step,
+                                                   rte_pos, rte_gp_p, 
+                                                   rte_gp_lat, rte_gp_lon,
+                                                   rte_los, ppath_step_agenda, 
+                                                   rte_agenda, iy_space_agenda,
+                                                   iy_surface_agenda, 
+                                                   iy_cloudbox_agenda,
+                                                   atmosphere_dim, p_grid, 
+                                                   lat_grid, lon_grid, z_field,
+                                                   t_field, vmr_field, r_geoid,
+                                                   z_surface, cloudbox_on,
+                                                   cloudbox_limits, 
+                                                   pos, los, f_grid,
+                                                   stokes_dim, agenda_verb );
+                            }
+
+                          scat_i_lon( joker, p_index, lat_index, boundary, 
+                                      scat_za_index, scat_aa_index, joker) = iy;
+                        }
                     }
                 }
             }
-        }
+        } 
     }// End atmosphere_dim = 3.
   cloudbox_on = 1;
 }
