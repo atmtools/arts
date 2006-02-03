@@ -250,7 +250,7 @@ void define_agenda_data()
         "\n"
         "The calculations inside the agenda differ depending on scattering\n"
         "solution method. If DOIT is used, an interpolate of the intensity\n"
-        "field shall be performed. ANother optio is to start backward Monte\n"
+        "field shall be performed. Another option is to start backward Monte\n"
         "Carlos calculations from this point.\n"
         "\n"
         "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"

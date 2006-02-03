@@ -318,19 +318,6 @@ void ybatchCalc(
 */
 void ybatchMetProfiles(//Output
                Matrix& ybatch,
-               //Agenda communication variables
-               //Output of met_profile_calc_agenda
-               Vector& y,
-               //Input to met_profile_calc_agenda
-               GriddedField3& t_field_raw,
-               GriddedField3& z_field_raw,
-               ArrayOfGriddedField3& vmr_field_raw,
-               ArrayOfGriddedField3& pnd_field_raw,
-               Vector& p_grid,
-               Matrix& sensor_los,
-               Index& cloudbox_on,
-               ArrayOfIndex& cloudbox_limits,
-               Matrix& z_surface,
                //Input
                const ArrayOfArrayOfSpeciesTag& gas_species,
                const Agenda& met_profile_calc_agenda,
@@ -347,6 +334,16 @@ void ybatchMetProfiles(//Output
                const String& met_profile_path,
                const String& met_profile_pnd_path)
 {
+  GriddedField3        t_field_raw;
+  GriddedField3        z_field_raw;
+  ArrayOfGriddedField3 vmr_field_raw;
+  ArrayOfGriddedField3 pnd_field_raw;
+  Vector               p_grid;
+  Matrix               sensor_los;
+  Index                cloudbox_on;
+  ArrayOfIndex         cloudbox_limits;
+  Matrix               z_surface;
+  Vector               y;
   Index no_profiles = met_amsu_data.nrows();
   
   //  *vmr_field_raw* is an ArrayOfArrayOfTensor3 where the first array
@@ -536,7 +533,11 @@ void ybatchMetProfiles(//Output
     z_field_raw, vmr_field_raw, pnd_field_raw, p_grid,
     sensor_los, cloudbox_on, cloudbox_limits, z_surface, */
         
-      met_profile_calc_agenda.execute();
+      met_profile_calc_agendaExecute (y, t_field_raw, vmr_field_raw,
+                                      z_field_raw, pnd_field_raw, p_grid,
+                                      sensor_los, cloudbox_on,
+                                      cloudbox_limits, z_surface,
+                                      met_profile_calc_agenda, false);
       
       //putting in the spectra *y* for each profile, thus assigning y
       //to the ith row of ybatch
@@ -584,13 +585,6 @@ void ybatchMetProfiles(//Output
 */
 void ybatchMetProfilesClear(//Output
                 Matrix& ybatch,
-                GriddedField3& t_field_raw,
-                GriddedField3& z_field_raw,
-                ArrayOfGriddedField3& vmr_field_raw,
-                Vector& y,
-                Vector& p_grid,
-                Matrix& sensor_los,
-                Matrix& z_surface,
                 //Input
                 const ArrayOfArrayOfSpeciesTag& gas_species,
                 const Agenda& met_profile_calc_agenda,
@@ -602,6 +596,16 @@ void ybatchMetProfilesClear(//Output
                 const Index& nelem_p_grid,
                 const String& met_profile_path)
 {
+  GriddedField3        t_field_raw;
+  GriddedField3        z_field_raw;
+  ArrayOfGriddedField3 vmr_field_raw;
+  ArrayOfGriddedField3 pnd_field_raw;
+  Vector               p_grid;
+  Matrix               sensor_los;
+  Index                cloudbox_on = 0;
+  ArrayOfIndex         cloudbox_limits;
+  Matrix               z_surface;
+  Vector               y;
   Index no_profiles = met_amsu_data.nrows();
   //Index no_profiles = met_profile_basenames.nelem();
   // The humidity data is stored as  an ArrayOfTensor3 whereas
@@ -733,7 +737,11 @@ void ybatchMetProfilesClear(//Output
       xml_write_to_file("p_grid.xml", p_grid);
 
       // executing the met_profile_calc_agenda
-      met_profile_calc_agenda.execute();
+      met_profile_calc_agendaExecute (y, t_field_raw, vmr_field_raw,
+                                      z_field_raw, pnd_field_raw, p_grid,
+                                      sensor_los, cloudbox_on,
+                                      cloudbox_limits, z_surface,
+                                      met_profile_calc_agenda, false);
       
       //putting in the spectra *y* for each profile
       ybatch(i, Range(joker)) = y;

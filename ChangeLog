@@ -1,5 +1,33 @@
 2006-02-03  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1054
+
+	* src/m_batch.cc:
+
+	(ybatchMetProfiles): Use new agenda scheme for met_profile_calc_agenda.
+
+	Make t_field_raw, z_field_raw, vmr_field_raw, pnd_field_raw,
+	p_grid, sensor_los, cloudbox_on, cloudbox_limits, z_surface, y
+	local variables.
+
+	(ybatchMetProfilesClear):
+
+	Same as for ybatchMetProfiles. Additionally, a local variable
+	cloudbox_on was introduced which is set to zero and an empty
+	cloudbox_limits variable. This is needed because the
+	met_profile_calc_agenda expects cloudbox_on and cloudbox_limits as
+	input.
+
+	* src/methods.cc:
+
+	Removed t_field_raw, z_field_raw, vmr_field_raw, pnd_field_raw,
+	p_grid, sensor_los, cloudbox_on, cloudbox_limits, z_surface, y
+	from ybatchMetProfiles and ybatchMetProfilesClear input/output list.
+
+	* src/agendas.cc: Fix typo.
+
+2006-02-03  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1053
 
 	* src/m_jacobian.cc:

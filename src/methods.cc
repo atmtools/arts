@@ -5199,9 +5199,7 @@ md_data_raw.push_back
          "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
          "from the profiles inside the function\n"
          ),
-        OUTPUT( ybatch_, y_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
-                pnd_field_raw_,  p_grid_, sensor_los_,cloudbox_on_, 
-                cloudbox_limits_, z_surface_),
+        OUTPUT( ybatch_ ),
         INPUT(gas_species_, met_profile_calc_agenda_, f_grid_, met_amsu_data_,
               sensor_pos_, r_geoid_, lat_grid_, lon_grid_, atmosphere_dim_,
               scat_data_raw_),
@@ -5238,8 +5236,7 @@ md_data_raw.push_back
          "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
          "from the profiles inside the function\n"
          ),
-        OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
-                 y_, p_grid_, sensor_los_, z_surface_),
+        OUTPUT( ybatch_ ),
         INPUT(gas_species_, met_profile_calc_agenda_, 
               f_grid_, met_amsu_data_, sensor_pos_, r_geoid_),
         GOUTPUT(),
