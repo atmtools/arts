@@ -625,7 +625,7 @@ void jacobianCalc(// WS Output:
   out2 << "  Calculating *jacobian*.\n";
   
   // Run jacobian_agenda
-  jacobian_agenda.execute();
+  jacobian_agendaExecute (jacobian, jacobian_agenda, false);
 }
 
 
@@ -1069,7 +1069,7 @@ void jacobianCalcParticle(
                       // reference field and recalculate the scattered field
                       pnd_pert  *= base_pert;
                       pnd_field += pnd_pert;
-                      jacobian_particle_update_agenda.execute();
+                      jacobian_particle_update_agendaExecute (jacobian_particle_update_agenda, false);
             
                       // Calculate the perturbed spectrum  
                       RteCalcNoJacobian( y, ppath, ppath_step, iy, rte_pos, 

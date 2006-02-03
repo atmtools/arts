@@ -315,7 +315,7 @@ void define_agenda_data()
         "Usage:   Called from *jacobianCalc*."
        ),
        OUTPUT( jacobian_ ),
-       INPUT( jacobian_quantities_ ))),
+       INPUT())),
        
   agenda_data.push_back
     (AgRecord
