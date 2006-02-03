@@ -1,5 +1,23 @@
 2006-02-03  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1052
+
+	* src/m_batch.cc (ybatchCalc):
+
+	Use new agenda scheme for batch_update_agenda, batch_calc_agenda and
+	batch_post_agenda.
+
+	ybatch_index and y are now local variables.
+
+	* src/methods.cc:
+
+	Removed ybatch_index, ybatch_n and y from output list of ybatchCalc.
+
+	Make ybatch_n input instead of output because it is not modified by
+	ybatchCalc.
+
+2006-02-03  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1051
 
 	* src/m_scatrte (doit_scat_fieldCalc1D):

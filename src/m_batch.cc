@@ -245,18 +245,18 @@ void BatchUpdateVector(
 void ybatchCalc(
         // WS Output:
               Matrix&         ybatch,
-              Index&          ybatch_index,
-              Index&          ybatch_n,
-              Vector&         y,
         // WS Input:
+        const Index&          ybatch_n,
         const Agenda&         batch_update_agenda,
         const Agenda&         batch_calc_agenda,
         const Agenda&         batch_post_agenda )
 {
-  for( ybatch_index=0; ybatch_index<ybatch_n; ybatch_index++ )
+  Vector y;
+
+  for( Index ybatch_index=0; ybatch_index<ybatch_n; ybatch_index++ )
     {
-      batch_update_agenda.execute( 0 );
-      batch_calc_agenda.execute( 0 );
+      batch_update_agendaExecute( ybatch_index, batch_update_agenda, false );
+      batch_calc_agendaExecute( y, batch_calc_agenda, false );
       
       if( ybatch_index == 0 )
         { ybatch.resize( y.nelem(), ybatch_n); }
@@ -264,7 +264,7 @@ void ybatchCalc(
       ybatch( joker, ybatch_index ) = y;
     }
 
-  batch_post_agenda.execute( 0 );
+  batch_post_agendaExecute( ybatch, batch_post_agenda, false );
 }
 
 

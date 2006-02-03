@@ -5158,14 +5158,15 @@ md_data_raw.push_back
          "\n"
          "See the user guide for practical examples.\n"
          "\n"
-         "Note that *y* and other variables modified by the involved agendas\n"
+         "Note that variables modified by the involved agendas\n"
          "(e.g. *vmr_field*) are not restored by the method. If original\n"
          "values must be preserved, a copy must be made before calling this"
          "method, and a reversed copy must be made in *batch_post_agenda*\n"
          "or after executing *ybatchCalc*."
          ),
-        OUTPUT( ybatch_, ybatch_index_, ybatch_n_, y_  ),
-        INPUT( batch_update_agenda_, batch_calc_agenda_, batch_post_agenda_ ), 
+        OUTPUT( ybatch_ ),
+        INPUT( ybatch_n_,
+               batch_update_agenda_, batch_calc_agenda_, batch_post_agenda_ ), 
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
