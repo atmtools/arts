@@ -1,3 +1,16 @@
+2006-02-03  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1051
+
+	* src/m_scatrte (doit_scat_fieldCalc1D):
+
+	Removed for now. See discussion on arts-dev mailing list
+	http://www.sat.uni-bremen.de/pipermail/arts-dev/2006-February/000986.html
+	Beside the physical problems, there were also some issues on the
+	implementation side.
+
+	* src/methods.cc: Removed doit_scat_fieldCalc1D.
+
 2006-02-02  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1050
