@@ -1,3 +1,33 @@
+2006-02-06  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1055
+
+	* src/refraction.h:
+
+	Added refr_index as output to get_refr_index_[123]d.
+
+	* src/refraction.cc:
+
+	Include auto_md.h.
+
+	Use new agenda scheme for refr_index_agenda in get_refr_index_[123]d.
+	
+	Added refr_index as output to get_refr_index_[123]d.
+
+	Added refr_index as parameter to calls of get_refr_index_[123]d in
+	refr_gradients_[123]d.
+
+	Fixed documentation for a_pressure, a_temperature and a_vmr_list in
+	get_refr_index_[123]d and refr_gradients_[123]d.
+
+	* src/m_ppath.cc (VectorZtanToZaRefr):
+
+	Added refr_index to call of get_refr_index_1d.
+
+	* src/ppath.cc (raytrace_1d_linear_euler, ppath_step_refr_1d):
+
+	Added refr_index to call of get_refr_index_1d.
+
 2006-02-03  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1054

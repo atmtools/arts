@@ -4081,9 +4081,9 @@ void raytrace_1d_linear_euler(
       // Calculate LOS zenith angle at found point.
       //
       // Refractive index at *r*
-      get_refr_index_1d( rte_pressure, rte_temperature, rte_vmr_list, 
-                         refr_index_agenda, agenda_verb, p_grid, r_geoid, 
-                         z_field, t_field, vmr_field, r );
+      get_refr_index_1d( refr_index, rte_pressure, rte_temperature,
+                         rte_vmr_list, refr_index_agenda, agenda_verb,
+                         p_grid, r_geoid, z_field, t_field, vmr_field, r );
 
       agenda_verb = 1;
 
@@ -4670,7 +4670,7 @@ void ppath_step_refr_1d(
   double ppc;
   if( ppath.constant < 0 )
     { 
-      get_refr_index_1d( rte_pressure, rte_temperature, rte_vmr_list, 
+      get_refr_index_1d( refr_index, rte_pressure, rte_temperature, rte_vmr_list, 
                          refr_index_agenda, 1, p_grid, r_geoid, z_field, 
                          t_field, vmr_field, r_start );
       ppc = refraction_ppc( r_start, za_start, refr_index ); 

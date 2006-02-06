@@ -508,7 +508,7 @@ void VectorZtanToZaRefr(// WS Output:
 
   //Calculate refractive index for the tangential altitudes
   for( Index i=0; i<ztan_vector.nelem(); i++ ) {
-    get_refr_index_1d( rte_pressure, rte_temperature, rte_vmr_list, 
+    get_refr_index_1d( refr_index, rte_pressure, rte_temperature, rte_vmr_list, 
       refr_index_agenda, agenda_verb, p_grid, r_geoid(0,0), 
       z_field(joker,0,0), t_field(joker,0,0), vmr_field(joker,joker,0,0),
       ztan_vector[i]+r_geoid(0,0) );

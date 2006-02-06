@@ -44,6 +44,7 @@
 
 
 void get_refr_index_1d(
+              Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
@@ -57,6 +58,7 @@ void get_refr_index_1d(
         const Numeric&    r );
 
 void get_refr_index_2d(
+              Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
@@ -72,6 +74,7 @@ void get_refr_index_2d(
         const Numeric&    lat );
 
 void get_refr_index_3d(
+              Numeric&    refr_index,
               Numeric&    a_pressure,
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
