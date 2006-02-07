@@ -487,7 +487,7 @@ void iy_calc(
   // the observed spectrum equals then the radiative background.
   if( np > 1 )
     {
-      rte_agendaExecute( iy, ppath, stokes_dim, f_grid, rte_agenda, agenda_verb );
+      rte_agendaExecute( iy, diy_dvmr, diy_dt, ppath, stokes_dim, f_grid, rte_agenda, agenda_verb );
     }
 }
 

@@ -1,3 +1,11 @@
+2006-02-07  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1056
+
+	* src/agendas.cc, src/rte.cc (rte_std):
+
+	Added diy_dvmr and diy_dt to rte_agenda output.
+
 2006-02-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1055

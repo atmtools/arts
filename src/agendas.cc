@@ -572,7 +572,7 @@ void define_agenda_data()
         "by *ppath*. The agenda then solves the radiative transfer equation\n"
         "along the propagation path and returns the result in *iy*."
         ),
-       OUTPUT( iy_ ),
+       OUTPUT( iy_, diy_dvmr_, diy_dt_ ),
        INPUT(  ppath_, stokes_dim_, f_grid_ )));
 
   agenda_data.push_back
