@@ -573,7 +573,7 @@ void define_agenda_data()
         "along the propagation path and returns the result in *iy*."
         ),
        OUTPUT( iy_, diy_dvmr_, diy_dt_ ),
-       INPUT(  ppath_, stokes_dim_, f_grid_ )));
+       INPUT( diy_dvmr_, diy_dt_, ppath_, stokes_dim_, f_grid_ )));
 
   agenda_data.push_back
     (AgRecord

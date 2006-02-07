@@ -79,9 +79,7 @@ void RteCalc(
          Vector&                     rte_los,
          Sparse&                     jacobian,
          ArrayOfIndex&               rte_do_vmr_jacs,
-         ArrayOfTensor4&             diy_dvmr,
          Index&                      rte_do_t_jacs,
-         ArrayOfTensor4&             diy_dt,
          Index&                      ppath_array_do,
          ArrayOfPpath&               ppath_array,
          Index&                      ppath_array_index,
@@ -114,6 +112,9 @@ void RteCalc(
    const ArrayOfArrayOfIndex&        jacobian_indices )
 
 {
+  ArrayOfTensor4 diy_dvmr;
+  ArrayOfTensor4 diy_dt;
+
   // Some sizes
   const Index nf      = f_grid.nelem();
   const Index nmblock = sensor_pos.nrows();
@@ -515,9 +516,7 @@ void RteCalcNoJacobian(
   ArrayOfRetrievalQuantity   jacobian_quantities;
   ArrayOfArrayOfIndex        jacobian_indices;
   ArrayOfIndex               rte_do_vmr_jacs;
-  ArrayOfTensor4             diy_dvmr;
   Index                      rte_do_t_jacs;
-  ArrayOfTensor4             diy_dt;
   ArrayOfArrayOfSpeciesTag   gas_species(0);
   Index                      ppath_array_do;
   ArrayOfPpath               ppath_array;
@@ -530,7 +529,7 @@ void RteCalcNoJacobian(
 
   RteCalc( y, ppath, ppath_step, iy, rte_pos, 
            rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los, jacobian, 
-           rte_do_vmr_jacs, diy_dvmr, rte_do_t_jacs, diy_dt, 
+           rte_do_vmr_jacs, rte_do_t_jacs,
            ppath_array_do, ppath_array, ppath_array_index,
            ppath_step_agenda, rte_agenda, iy_space_agenda, iy_surface_agenda,
            iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, lon_grid, 
