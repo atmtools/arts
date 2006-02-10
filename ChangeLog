@@ -1,3 +1,32 @@
+2006-02-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-1058
+	
+        * src/m_disort.cc (ScatteringDisort): Added this file/WSM.
+        Using this method it will be possible to call DISORT as additional
+        scattering module.
+
+        The method is not yet working, because arts variables like Vector and
+        Matrix can not be converted easily to C-arrays.
+		
+	* src/methods.cc: Included method above.
+	
+        * src/disort.{cc,h}: Included this file. Needed to convert
+        arts variables to the input varibles required for disort.
+        (pmomCalc) Function to calculate Legendre polynomials of phase
+        functions.
+
+        * src/DISORT.{c,h}: Original DISORT code available at
+         ftp://climate.gsfc.nasa.gov/pub/wiscombe/Multiple_Scatt/
+        Transformed to c code by f2c.
+
+        * src/f2c.h: Slightly modified, because of compiler errors.
+
+        * src/Makefile.am: Included disort.cc, disort.h, m_disort.cc
+
+	* configure.in: Commented -Werror, otherwise DISORT.c does not
+	compile. To be fixed later.  
+	
 2006-02-07  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1057

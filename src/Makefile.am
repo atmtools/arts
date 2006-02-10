@@ -41,6 +41,8 @@ arts_SOURCES = \
 	complex.h \
 	complex.cc \
 	constants.cc \
+	disort.cc \
+	disort.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -67,6 +69,7 @@ arts_SOURCES = \
 	m_basic_types.cc \
 	m_basic_types.h \
 	m_cloudbox.cc \
+	m_disort.cc \
 	m_general.cc \
 	m_general.h \
 	m_optproperties.cc \
@@ -241,6 +244,8 @@ test_binaryio_SOURCES = \
 	complex.h \
 	complex.cc \
 	constants.cc \
+	disort.cc \
+	disort.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -267,6 +272,7 @@ test_binaryio_SOURCES = \
 	m_basic_types.cc \
 	m_basic_types.h \
 	m_cloudbox.cc \
+	m_disort.cc \
 	m_general.cc \
 	m_general.h \
 	m_optproperties.cc \
@@ -556,6 +562,8 @@ test_interpolation_SOURCES = \
 	complex.h \
 	complex.cc \
 	constants.cc \
+	disort.cc \
+	disort.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -582,6 +590,7 @@ test_interpolation_SOURCES = \
 	m_basic_types.cc \
 	m_basic_types.h \
 	m_cloudbox.cc \
+	m_disort.cc \
 	m_general.cc \
 	m_general.h \
 	m_optproperties.cc \
@@ -842,6 +851,8 @@ test_sparse_SOURCES = \
 	complex.h \
 	complex.cc \
 	constants.cc \
+	disort.cc \
+	disort.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -868,6 +879,7 @@ test_sparse_SOURCES = \
 	m_basic_types.cc \
 	m_basic_types.h \
 	m_cloudbox.cc \
+	m_disort.cc \
 	m_general.cc \
 	m_general.h \
 	m_optproperties.cc \
@@ -1003,6 +1015,8 @@ test_xml_SOURCES = \
 	complex.h \
 	complex.cc \
 	constants.cc \
+	disort.cc \
+	disort.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -1029,6 +1043,7 @@ test_xml_SOURCES = \
 	m_basic_types.cc \
 	m_basic_types.h \
 	m_cloudbox.cc \
+	m_disort.cc \
 	m_general.cc \
 	m_general.h \
 	m_optproperties.cc \
@@ -1190,6 +1205,8 @@ test_sensor_SOURCES = \
 	complex.h \
 	complex.cc \
 	constants.cc \
+	disort.cc \
+	disort.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -1216,6 +1233,7 @@ test_sensor_SOURCES = \
 	m_basic_types.cc \
 	m_basic_types.h \
 	m_cloudbox.cc \
+	m_disort.cc \
 	m_general.cc \
 	m_general.h \
 	m_optproperties.cc \

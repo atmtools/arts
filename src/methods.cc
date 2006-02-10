@@ -1087,6 +1087,27 @@ void define_md_data_raw()
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ScatteringDisort"),
+        DESCRIPTION
+        (
+         "Calls DISORT RT solver from ARTS. \n"
+         "Detailed documentation to be added\n."
+         "\n"
+         ),
+         OUTPUT( ),
+         INPUT(cloudbox_limits_, stokes_dim_, opt_prop_part_agenda_, 
+               scalar_gas_absorption_agenda_, spt_calc_agenda_, 
+               pnd_field_, t_field_, 
+               z_field_, p_grid_, vmr_field_, scat_data_mono_, f_grid_, 
+               f_index_, scat_za_grid_, surface_emissivity_field_ ),
+         GOUTPUT(),
+         GINPUT(),
+         KEYWORDS(),
+         TYPES( )));
+
+
    md_data_raw.push_back
     ( MdRecord
       ( NAME("DoitAngularGridsSet"),
@@ -1804,8 +1825,7 @@ md_data_raw.push_back
          "*ext_mat_spt* (part_types, stokes_dim, stokes_dim) and the local \n"
          "particle number densities for all particle types namely the \n"
          "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given \n"
-         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
-         "are specified in the control file.  \n"
+         "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"         "are specified in the control file.  \n"
          ),
         OUTPUT( ext_mat_  ),
         INPUT( ext_mat_, ext_mat_spt_, pnd_field_, atmosphere_dim_, 
