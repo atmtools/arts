@@ -1,5 +1,15 @@
 2006-02-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1061
+	
+	* src/disort.cc: Removed MAIN__ which is now in disort_FAKEMAIN.c.
+
+	* ChangeLog:
+
+	Forgot to comment some changes made to m_disort.cc in last commit.
+
+2006-02-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1060
 	
 	* configure.in:
@@ -14,6 +24,13 @@
 	Added test_disort created from disort_DISOTEST.c.
 
 	Both are enabled conditionally.
+
+	* src/m_disort.cc:
+
+	Don't include physics_funcs.h. The real type defined in <complex>
+	clashes with the one defined in <f2c.h>.
+
+	Added a runtime_error if DISORT was not enabled at compile time.
 
 	* src/DISORT.c: Renamed.
 
