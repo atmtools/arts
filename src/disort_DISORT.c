@@ -1,8 +1,18 @@
-/* DISORT.f -- translated by f2c (version 20000121).
-   You must link the resulting object file with the libraries:
-	-lf2c -lm   (in that order)
+/* DISORT.f -- translated by f2c (version 20050501).
+   You must link the resulting object file with libf2c:
+	on Microsoft Windows system, link with libf2c.lib;
+	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+	or, if you install libf2c.a in a standard place, with -lf2c -lm
+	-- in that order, at the end of the command line, as in
+		cc *.o -lf2c -lm
+	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+
+		http://www.netlib.org/f2c/libf2c.zip
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "f2c.h"
 
 /* Table of constant values */
@@ -38,34 +48,17 @@ static integer c__100 = 100;
 /* ~~~~~~~~~~~~ */
 /* VERSION 1.2 */
 /* ~~~~~~~~~~~~ */
-/* Subroutine */ int disort_(nlyr, dtauc, ssalb, pmom, temper, wvnmlo, wvnmhi,
-	 usrtau, ntau, utau, nstr, usrang, numu, umu, nphi, phi, ibcnd, fbeam,
-	 umu0, phi0, fisot, lamber, albedo, hl, btemp, ttemp, temis, deltam, 
-	plank, onlyfl, accur, prnt, header, maxcly, maxulv, maxumu, maxcmu, 
-	maxphi, rfldir, rfldn, flup, dfdt, uavg, uu, u0u, albmed, trnmed, 
-	header_len)
-integer *nlyr;
-real *dtauc, *ssalb, *pmom, *temper, *wvnmlo, *wvnmhi;
-logical *usrtau;
-integer *ntau;
-real *utau;
-integer *nstr;
-logical *usrang;
-integer *numu;
-real *umu;
-integer *nphi;
-real *phi;
-integer *ibcnd;
-real *fbeam, *umu0, *phi0, *fisot;
-logical *lamber;
-real *albedo, *hl, *btemp, *ttemp, *temis;
-logical *deltam, *plank, *onlyfl;
-real *accur;
-logical *prnt;
-char *header;
-integer *maxcly, *maxulv, *maxumu, *maxcmu, *maxphi;
-real *rfldir, *rfldn, *flup, *dfdt, *uavg, *uu, *u0u, *albmed, *trnmed;
-ftnlen header_len;
+/* Subroutine */ int disort_(integer *nlyr, real *dtauc, real *ssalb, real *
+	pmom, real *temper, real *wvnmlo, real *wvnmhi, logical *usrtau, 
+	integer *ntau, real *utau, integer *nstr, logical *usrang, integer *
+	numu, real *umu, integer *nphi, real *phi, integer *ibcnd, real *
+	fbeam, real *umu0, real *phi0, real *fisot, logical *lamber, real *
+	albedo, real *hl, real *btemp, real *ttemp, real *temis, logical *
+	deltam, logical *plank, logical *onlyfl, real *accur, logical *prnt, 
+	char *header, integer *maxcly, integer *maxulv, integer *maxumu, 
+	integer *maxcmu, integer *maxphi, real *rfldir, real *rfldn, real *
+	flup, real *dfdt, real *uavg, real *uu, real *u0u, real *albmed, real 
+	*trnmed, ftnlen header_len)
 {
     /* Initialized data */
 
@@ -79,71 +72,26 @@ ftnlen header_len;
     char ch__1[136];
 
     /* Builtin functions */
-    double asin(), sqrt();
-    integer i_len(), s_wsfe();
-    /* Subroutine */ int s_cat();
-    integer do_fio(), e_wsfe();
-    double cos();
+    double asin(doublereal), sqrt(doublereal);
+    integer i_len(char *, ftnlen), s_wsfe(cilist *);
+    /* Subroutine */ int s_cat(char *, char **, integer *, integer *, ftnlen);
+    integer do_fio(integer *, char *, ftnlen), e_wsfe();
+    double cos(doublereal);
 
     /* Local variables */
-    static real pkag[7], fldn[5], eval[24];
-    static integer ncol;
-    static real tauc[7];
-    static integer ncos;
-    static real ylmc[2352]	/* was [49][48] */, hlpr[49];
-    static integer ncut;
-    static real flyr[6];
-    static integer ipvt[288];
-    static real ylmu[490]	/* was [49][10] */, delm0, zplk0[288]	/* 
-	    was [48][6] */, zplk1[288]	/* was [48][6] */, b[288], cband[
-	    61632]	/* was [214][288] */;
+    static real b[288];
     static integer j, l;
-    static real evecc[2304]	/* was [48][48] */, z__[288];
-    static doublereal evald[24];
-    static real zbeam[60]	/* was [10][6] */, fldir[5];
-    static integer mazim;
-    static real array[2304]	/* was [48][48] */;
-    extern doublereal ratio_();
-    static integer kconv;
-    static real azerr, oprim[6];
-    static integer layru[5];
-    static real z0[48], z1[48];
-    extern doublereal r1mach_();
-    static real cc[2304]	/* was [48][48] */;
-    extern /* Subroutine */ int solve0_();
-    static real gc[13824]	/* was [48][48][6] */;
+    static real z__[288], z0[48], z1[48], cc[2304]	/* was [48][48] */, 
+	    gc[13824]	/* was [48][48][6] */;
     static integer lc;
-    static real gl[294]	/* was [49][6] */, pi;
-    static integer iq;
-    static real kk[288]	/* was [48][6] */;
-    static integer nn;
+    static real gl[294]	/* was [49][6] */, kk[288]	/* was [48][6] */, ll[
+	    288]	/* was [48][6] */, pi;
+    static integer iq, nn;
     static real gu[2880]	/* was [10][48][6] */;
-    static integer iu;
-    static real ll[288]	/* was [48][6] */;
-    static doublereal eveccd[576]	/* was [24][24] */;
-    static integer lu, ns;
-    static real expbea[7], wk[48], bplank, phirad[3], zj[48], angcos;
-    extern /* Subroutine */ int chekin_(), upbeam_();
-    static real dither, dtaucp[6];
-    static logical compar;
-    extern /* Subroutine */ int albtrn_();
-    static real zz[288]	/* was [48][6] */, cosphi;
-    extern doublereal plkavg_();
-    extern /* Subroutine */ int soleig_();
-    static real tplank, taucpr[7];
-    extern /* Subroutine */ int cmpint_(), pravin_();
-    static real azterm;
-    extern /* Subroutine */ int lepoly_(), fluxes_(), setdis_();
-    static real u0c[240]	/* was [48][5] */;
-    extern /* Subroutine */ int surfac_(), prtinp_(), slftst_();
-    static real utaupr[5];
-    extern /* Subroutine */ int prtint_();
-    static logical lyrcut;
-    extern /* Subroutine */ int setmtx_(), terpev_(), terpso_(), upisot_(), 
-	    usrint_();
-    static real xr0[6], xr1[6];
-    extern /* Subroutine */ int zeroal_(), zeroit_();
-    static real z0u[60]	/* was [10][6] */, z1u[60]	/* was [10][6] */;
+    static integer iu, lu, ns;
+    static real wk[48], zj[48], zz[288]	/* was [48][6] */, u0c[240]	/* 
+	    was [48][5] */, xr0[6], xr1[6], z0u[60]	/* was [10][6] */, 
+	    z1u[60]	/* was [10][6] */;
     static doublereal aad[576]	/* was [24][24] */;
     static real amb[576]	/* was [24][24] */, apb[576]	/* was [24][
 	    24] */, bem[24], bdr[600]	/* was [24][25] */, cmu[48], dum;
@@ -153,7 +101,125 @@ ftnlen header_len;
     static real sgn, emu[10], psi[48];
     static doublereal wkd[48];
     static real cwt[48], rmu[250]	/* was [10][25] */, uum[50]	/* 
-	    was [10][5] */, sqt[1000], ylm0[49];
+	    was [10][5] */, sqt[1000], ylm0[49], pkag[7], fldn[5], eval[24];
+    static integer ncol;
+    static real tauc[7];
+    static integer ncos;
+    static real ylmc[2352]	/* was [49][48] */, hlpr[49];
+    static integer ncut;
+    static real flyr[6];
+    static integer ipvt[288];
+    static real ylmu[490]	/* was [49][10] */, delm0, zplk0[288]	/* 
+	    was [48][6] */, zplk1[288]	/* was [48][6] */, cband[61632]	/* 
+	    was [214][288] */, evecc[2304]	/* was [48][48] */;
+    static doublereal evald[24];
+    static real zbeam[60]	/* was [10][6] */, fldir[5];
+    static integer mazim;
+    static real array[2304]	/* was [48][48] */;
+    extern doublereal ratio_(real *, real *);
+    static integer kconv;
+    static real azerr, oprim[6];
+    static integer layru[5];
+    extern doublereal r1mach_(integer *);
+    extern /* Subroutine */ int solve0_(real *, real *, real *, real *, real *
+	    , real *, real *, real *, real *, real *, integer *, logical *, 
+	    real *, logical *, integer *, integer *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, real *, 
+	    real *, real *, real *, real *, real *, real *, real *);
+    static doublereal eveccd[576]	/* was [24][24] */;
+    extern /* Subroutine */ int chekin_(integer *, real *, real *, real *, 
+	    real *, real *, real *, logical *, integer *, real *, integer *, 
+	    logical *, integer *, real *, integer *, real *, integer *, real *
+	    , real *, real *, real *, logical *, real *, real *, real *, real 
+	    *, real *, logical *, logical *, real *, real *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *);
+    static real expbea[7], bplank, phirad[3];
+    extern /* Subroutine */ int upbeam_(real *, real *, real *, real *, real *
+	    , real *, integer *, integer *, integer *, integer *, integer *, 
+	    real *, real *, real *, real *, real *, real *, real *);
+    static real angcos, dither, dtaucp[6];
+    static logical compar;
+    extern /* Subroutine */ int albtrn_(real *, real *, real *, real *, real *
+	    , real *, real *, real *, real *, real *, real *, real *, real *, 
+	    real *, real *, real *, integer *, real *, real *, integer *, 
+	    integer *, integer *, integer *, logical *, real *, real *, real *
+	    , real *, real *, real *, real *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, integer *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, real *, real *, real *
+	    );
+    extern doublereal plkavg_(real *, real *, real *);
+    static real cosphi;
+    extern /* Subroutine */ int soleig_(real *, real *, real *, real *, real *
+	    , real *, integer *, integer *, integer *, integer *, integer *, 
+	    real *, real *, real *, real *, real *, real *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *), surfac_(real *, real *,
+	     real *, real *, logical *, integer *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, logical *, real *, 
+	    logical *, real *, real *, real *, real *, real *, real *, real *,
+	     real *);
+    static real tplank, taucpr[7];
+    extern /* Subroutine */ int cmpint_(real *, real *, real *, integer *, 
+	    real *, logical *, integer *, integer *, integer *, integer *, 
+	    integer *, integer *, integer *, logical *, integer *, real *, 
+	    real *, real *, real *, real *, real *, real *), pravin_(real *, 
+	    integer *, integer *, real *, integer *, real *);
+    static real azterm;
+    extern /* Subroutine */ int lepoly_(integer *, integer *, integer *, 
+	    integer *, real *, real *, real *), fluxes_(real *, real *, real *
+	    , real *, real *, integer *, real *, logical *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *, 
+	    real *, logical *, real *, real *, real *, real *, real *, real *,
+	     real *, real *, real *, real *, real *, real *, real *, real *, 
+	    real *, real *, real *, real *), setdis_(real *, real *, logical *
+	    , real *, real *, real *, real *, real *, real *, real *, real *, 
+	    integer *, logical *, integer *, logical *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *, 
+	    logical *, integer *, logical *, real *, real *, real *, real *, 
+	    real *, real *, real *, real *, real *, logical *, logical *), 
+	    terpev_(real *, real *, real *, real *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, real *, real *, real *
+	    ), zeroal_(integer *, real *, real *, real *, real *, real *, 
+	    real *, integer *, real *, real *, real *, real *, real *, real *,
+	     real *, integer *, real *, real *, integer *, real *, real *, 
+	    real *, integer *, real *, integer *, real *, integer *, real *, 
+	    integer *, real *, real *, real *, real *, real *, integer *, 
+	    real *, integer *, integer *, real *, integer *, real *, integer *
+	    , real *, real *, real *, integer *, real *, integer *, real *, 
+	    real *, integer *, integer *, real *, integer *, real *, real *, 
+	    real *, real *, real *, integer *, real *, real *, integer *, 
+	    real *, integer *, real *), prtinp_(integer *, real *, real *, 
+	    real *, real *, real *, real *, real *, integer *, real *, 
+	    integer *, integer *, real *, integer *, real *, integer *, real *
+	    , real *, real *, real *, logical *, real *, real *, real *, real 
+	    *, real *, logical *, logical *, logical *, real *, real *, 
+	    logical *, real *, real *, real *, integer *, logical *), slftst_(
+	    real *, real *, real *, logical *, real *, real *, real *, 
+	    integer *, logical *, integer *, logical *, integer *, integer *, 
+	    integer *, integer *, logical *, real *, real *, real *, logical *
+	    , real *, real *, real *, real *, real *, logical *, logical *, 
+	    real *, real *, real *, real *, logical *, real *, real *, real *,
+	     real *);
+    static real utaupr[5];
+    extern /* Subroutine */ int prtint_(real *, real *, integer *, real *, 
+	    integer *, real *, integer *, integer *, integer *);
+    static logical lyrcut;
+    extern /* Subroutine */ int setmtx_(real *, real *, real *, real *, real *
+	    , real *, real *, real *, logical *, logical *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *, 
+	    integer *, real *, real *), terpso_(real *, real *, real *, real *
+	    , integer *, integer *, logical *, integer *, integer *, real *, 
+	    real *, real *, real *, real *, real *, real *, real *, real *, 
+	    real *, real *, real *, real *), upisot_(real *, real *, real *, 
+	    integer *, integer *, integer *, integer *, real *, real *, real *
+	    , real *, real *, real *, real *, real *), usrint_(real *, real *,
+	     real *, real *, real *, real *, real *, real *, real *, real *, 
+	    real *, real *, logical *, integer *, real *, logical *, integer *
+	    , integer *, integer *, integer *, integer *, integer *, integer *
+	    , integer *, logical *, integer *, integer *, real *, real *, 
+	    real *, real *, real *, real *, real *, real *, real *, real *, 
+	    real *, real *, real *, real *, real *), zeroit_(real *, integer *
+	    );
 
     /* Fortran I/O blocks */
     static cilist io___9 = { 0, 6, 0, "(//,1X,100('*'),/,A,/,1X,100('*'))", 0 
@@ -467,15 +533,15 @@ ftnlen header_len;
     --trnmed;
     --albmed;
     u0u_dim1 = *maxumu;
-    u0u_offset = 1 + u0u_dim1 * 1;
+    u0u_offset = 1 + u0u_dim1;
     u0u -= u0u_offset;
     --umu;
     pmom_dim1 = *maxcmu - 0 + 1;
-    pmom_offset = 0 + pmom_dim1 * 1;
+    pmom_offset = 0 + pmom_dim1;
     pmom -= pmom_offset;
     uu_dim1 = *maxumu;
     uu_dim2 = *maxulv;
-    uu_offset = 1 + uu_dim1 * (1 + uu_dim2 * 1);
+    uu_offset = 1 + uu_dim1 * (1 + uu_dim2);
     uu -= uu_offset;
     --phi;
 
@@ -825,11 +891,9 @@ L170:
     return 0;
 } /* disort_ */
 
-/* Subroutine */ int asymtx_(aa, evec, eval, m, ia, ievec, ier, wkd, aad, 
-	evecd, evald)
-real *aa, *evec, *eval;
-integer *m, *ia, *ievec, *ier;
-doublereal *wkd, *aad, *evecd, *evald;
+/* Subroutine */ int asymtx_(real *aa, real *evec, real *eval, integer *m, 
+	integer *ia, integer *ievec, integer *ier, doublereal *wkd, 
+	doublereal *aad, doublereal *evecd, doublereal *evald)
 {
     /* Initialized data */
 
@@ -849,20 +913,20 @@ doublereal *wkd, *aad, *evecd, *evald;
     doublereal d__1, d__2;
 
     /* Builtin functions */
-    double sqrt(), d_sign();
+    double sqrt(doublereal), d_sign(doublereal *, doublereal *);
 
     /* Local variables */
-    static doublereal repl, f, g, h__;
+    static doublereal f, g, h__;
     static integer i__, j, k, l, n;
-    static doublereal p, q, r__, s, t, scale, w, x, y, z__, rnorm;
-    extern doublereal d1mach_();
+    static doublereal p, q, r__, s, t, w, x, y, z__;
     static integer n1, n2, ka, lb, ii, in;
-    static doublereal uu, vv, discri;
-    extern /* Subroutine */ int errmsg_();
-    static logical notlas, noconv;
-    static doublereal col;
+    static doublereal uu, vv, col;
     static integer kkk, lll;
-    static doublereal sgn, tol, row;
+    static doublereal sgn, tol, row, repl, scale, rnorm;
+    extern doublereal d1mach_(integer *);
+    static doublereal discri;
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
+    static logical notlas, noconv;
 
 /*    =======  D O U B L E    P R E C I S I O N    V E R S I O N  ====== */
 /*       Solves eigenfunction problem for real asymmetric matrix */
@@ -935,16 +999,16 @@ doublereal *wkd, *aad, *evecd, *evald;
     --evald;
     --eval;
     evecd_dim1 = *ia;
-    evecd_offset = 1 + evecd_dim1 * 1;
+    evecd_offset = 1 + evecd_dim1;
     evecd -= evecd_offset;
     aad_dim1 = *ia;
-    aad_offset = 1 + aad_dim1 * 1;
+    aad_offset = 1 + aad_dim1;
     aad -= aad_offset;
     aa_dim1 = *ia;
-    aa_offset = 1 + aa_dim1 * 1;
+    aa_offset = 1 + aa_dim1;
     aa -= aa_offset;
     evec_dim1 = *ievec;
-    evec_offset = 1 + evec_dim1 * 1;
+    evec_offset = 1 + evec_dim1;
     evec -= evec_offset;
     --wkd;
 
@@ -1601,17 +1665,11 @@ L700:
     return 0;
 } /* asymtx_ */
 
-/* Subroutine */ int cmpint_(fbeam, gc, kk, layru, ll, lyrcut, mazim, mxcmu, 
-	mxulv, mxumu, ncut, nn, nstr, plank, ntau, taucpr, umu0, utaupr, zz, 
-	zplk0, zplk1, uum)
-real *fbeam, *gc, *kk;
-integer *layru;
-real *ll;
-logical *lyrcut;
-integer *mazim, *mxcmu, *mxulv, *mxumu, *ncut, *nn, *nstr;
-logical *plank;
-integer *ntau;
-real *taucpr, *umu0, *utaupr, *zz, *zplk0, *zplk1, *uum;
+/* Subroutine */ int cmpint_(real *fbeam, real *gc, real *kk, integer *layru, 
+	real *ll, logical *lyrcut, integer *mazim, integer *mxcmu, integer *
+	mxulv, integer *mxumu, integer *ncut, integer *nn, integer *nstr, 
+	logical *plank, integer *ntau, real *taucpr, real *umu0, real *utaupr,
+	 real *zz, real *zplk0, real *zplk1, real *uum)
 {
     /* System generated locals */
     integer gc_dim1, gc_dim2, gc_offset, kk_dim1, kk_offset, ll_dim1, 
@@ -1619,11 +1677,11 @@ real *taucpr, *umu0, *utaupr, *zz, *zplk0, *zplk1, *uum;
 	    zplk1_dim1, zplk1_offset, zz_dim1, zz_offset, i__1, i__2, i__3;
 
     /* Builtin functions */
-    double exp();
+    double exp(doublereal);
 
     /* Local variables */
-    static real zint;
     static integer iq, jq, lu, lyu;
+    static real zint;
 
 /*          Calculates the Fourier intensity components at the quadrature */
 /*          angles for azimuthal expansion terms (MAZIM) in Eq. SD(2) */
@@ -1687,27 +1745,27 @@ real *taucpr, *umu0, *utaupr, *zz, *zplk0, *zplk1, *uum;
     /* Parameter adjustments */
     --layru;
     zplk1_dim1 = *mxcmu;
-    zplk1_offset = 1 + zplk1_dim1 * 1;
+    zplk1_offset = 1 + zplk1_dim1;
     zplk1 -= zplk1_offset;
     zplk0_dim1 = *mxcmu;
-    zplk0_offset = 1 + zplk0_dim1 * 1;
+    zplk0_offset = 1 + zplk0_dim1;
     zplk0 -= zplk0_offset;
     zz_dim1 = *mxcmu;
-    zz_offset = 1 + zz_dim1 * 1;
+    zz_offset = 1 + zz_dim1;
     zz -= zz_offset;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1 * 1;
+    ll_offset = 1 + ll_dim1;
     ll -= ll_offset;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1 * 1;
+    kk_offset = 1 + kk_dim1;
     kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
     gc -= gc_offset;
     --utaupr;
     uum_dim1 = *mxumu;
-    uum_offset = 1 + uum_dim1 * 1;
+    uum_offset = 1 + uum_dim1;
     uum -= uum_offset;
 
     /* Function Body */
@@ -1752,19 +1810,13 @@ L40:
     return 0;
 } /* cmpint_ */
 
-/* Subroutine */ int fluxes_(cmu, cwt, fbeam, gc, kk, layru, ll, lyrcut, 
-	maxulv, mxcmu, mxulv, ncut, nn, nstr, ntau, pi, prnt, ssalb, taucpr, 
-	umu0, utau, utaupr, xr0, xr1, zz, zplk0, zplk1, dfdt, flup, fldn, 
-	fldir, rfldir, rfldn, uavg, u0c)
-real *cmu, *cwt, *fbeam, *gc, *kk;
-integer *layru;
-real *ll;
-logical *lyrcut;
-integer *maxulv, *mxcmu, *mxulv, *ncut, *nn, *nstr, *ntau;
-real *pi;
-logical *prnt;
-real *ssalb, *taucpr, *umu0, *utau, *utaupr, *xr0, *xr1, *zz, *zplk0, *zplk1, 
-	*dfdt, *flup, *fldn, *fldir, *rfldir, *rfldn, *uavg, *u0c;
+/* Subroutine */ int fluxes_(real *cmu, real *cwt, real *fbeam, real *gc, 
+	real *kk, integer *layru, real *ll, logical *lyrcut, integer *maxulv, 
+	integer *mxcmu, integer *mxulv, integer *ncut, integer *nn, integer *
+	nstr, integer *ntau, real *pi, logical *prnt, real *ssalb, real *
+	taucpr, real *umu0, real *utau, real *utaupr, real *xr0, real *xr1, 
+	real *zz, real *zplk0, real *zplk1, real *dfdt, real *flup, real *
+	fldn, real *fldir, real *rfldir, real *rfldn, real *uavg, real *u0c)
 {
     /* System generated locals */
     integer gc_dim1, gc_dim2, gc_offset, kk_dim1, kk_offset, ll_dim1, 
@@ -1772,16 +1824,13 @@ real *ssalb, *taucpr, *umu0, *utau, *utaupr, *xr0, *xr1, *zz, *zplk0, *zplk1,
 	    zplk1_dim1, zplk1_offset, zz_dim1, zz_offset, i__1, i__2, i__3;
 
     /* Builtin functions */
-    integer s_wsfe(), do_fio(), e_wsfe();
-    double exp(), acos();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
+    double exp(doublereal), acos(doublereal);
 
     /* Local variables */
-    static real fact, fnet, zint;
-    static integer iq, jq, lu;
-    static real dirint, fdntot, plsorc;
-    extern /* Subroutine */ int zeroit_();
-    static integer lyu;
-    static real ang1, ang2;
+    static integer iq, jq, lu, lyu;
+    static real ang1, ang2, fact, fnet, zint, dirint, fdntot, plsorc;
+    extern /* Subroutine */ int zeroit_(real *, integer *);
 
     /* Fortran I/O blocks */
     static cilist io___139 = { 0, 6, 0, "(//,21X,A,/,2A,/,2A,/)", 0 };
@@ -1877,28 +1926,28 @@ real *ssalb, *taucpr, *umu0, *utau, *utaupr, *xr0, *xr1, *zz, *zplk0, *zplk1,
     --dfdt;
     --utau;
     zplk1_dim1 = *mxcmu;
-    zplk1_offset = 1 + zplk1_dim1 * 1;
+    zplk1_offset = 1 + zplk1_dim1;
     zplk1 -= zplk1_offset;
     zplk0_dim1 = *mxcmu;
-    zplk0_offset = 1 + zplk0_dim1 * 1;
+    zplk0_offset = 1 + zplk0_dim1;
     zplk0 -= zplk0_offset;
     zz_dim1 = *mxcmu;
-    zz_offset = 1 + zz_dim1 * 1;
+    zz_offset = 1 + zz_dim1;
     zz -= zz_offset;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1 * 1;
+    ll_offset = 1 + ll_dim1;
     ll -= ll_offset;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1 * 1;
+    kk_offset = 1 + kk_dim1;
     kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
     gc -= gc_offset;
     --cwt;
     --cmu;
     u0c_dim1 = *mxcmu;
-    u0c_offset = 1 + u0c_dim1 * 1;
+    u0c_offset = 1 + u0c_dim1;
     u0c -= u0c_offset;
     --fldir;
     --fldn;
@@ -2076,23 +2125,14 @@ L70:
     return 0;
 } /* fluxes_ */
 
-/* Subroutine */ int setdis_(cmu, cwt, deltam, dtauc, dtaucp, expbea, fbeam, 
-	flyr, gl, hl, hlpr, ibcnd, lamber, layru, lyrcut, maxumu, maxcmu, 
-	mxcmu, ncut, nlyr, ntau, nn, nstr, plank, numu, onlyfl, oprim, pmom, 
-	ssalb, tauc, taucpr, utau, utaupr, umu, umu0, usrtau, usrang)
-real *cmu, *cwt;
-logical *deltam;
-real *dtauc, *dtaucp, *expbea, *fbeam, *flyr, *gl, *hl, *hlpr;
-integer *ibcnd;
-logical *lamber;
-integer *layru;
-logical *lyrcut;
-integer *maxumu, *maxcmu, *mxcmu, *ncut, *nlyr, *ntau, *nn, *nstr;
-logical *plank;
-integer *numu;
-logical *onlyfl;
-real *oprim, *pmom, *ssalb, *tauc, *taucpr, *utau, *utaupr, *umu, *umu0;
-logical *usrtau, *usrang;
+/* Subroutine */ int setdis_(real *cmu, real *cwt, logical *deltam, real *
+	dtauc, real *dtaucp, real *expbea, real *fbeam, real *flyr, real *gl, 
+	real *hl, real *hlpr, integer *ibcnd, logical *lamber, integer *layru,
+	 logical *lyrcut, integer *maxumu, integer *maxcmu, integer *mxcmu, 
+	integer *ncut, integer *nlyr, integer *ntau, integer *nn, integer *
+	nstr, logical *plank, integer *numu, logical *onlyfl, real *oprim, 
+	real *pmom, real *ssalb, real *tauc, real *taucpr, real *utau, real *
+	utaupr, real *umu, real *umu0, logical *usrtau, logical *usrang)
 {
     /* Initialized data */
 
@@ -2103,13 +2143,14 @@ logical *usrtau, *usrang;
     real r__1;
 
     /* Builtin functions */
-    double exp();
+    double exp(doublereal);
 
     /* Local variables */
     static real f;
     static integer k, lc, iq, iu, lu;
     static real abstau;
-    extern /* Subroutine */ int errmsg_(), qgausn_();
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen), qgausn_(
+	    integer *, real *, real *);
 
 /*          Perform miscellaneous setting-up operations */
 
@@ -2170,10 +2211,10 @@ logical *usrtau, *usrang;
     --layru;
     --umu;
     pmom_dim1 = *maxcmu - 0 + 1;
-    pmom_offset = 0 + pmom_dim1 * 1;
+    pmom_offset = 0 + pmom_dim1;
     pmom -= pmom_offset;
     gl_dim1 = *mxcmu - 0 + 1;
-    gl_offset = 0 + gl_dim1 * 1;
+    gl_offset = 0 + gl_dim1;
     gl -= gl_offset;
     --cwt;
     --cmu;
@@ -2335,28 +2376,26 @@ L60:
     return 0;
 } /* setdis_ */
 
-/* Subroutine */ int setmtx_(bdr, cband, cmu, cwt, delm0, dtaucp, gc, kk, 
-	lamber, lyrcut, mi, mi9m2, mxcmu, ncol, ncut, nnlyri, nn, nstr, 
-	taucpr, wk)
-real *bdr, *cband, *cmu, *cwt, *delm0, *dtaucp, *gc, *kk;
-logical *lamber, *lyrcut;
-integer *mi, *mi9m2, *mxcmu, *ncol, *ncut, *nnlyri, *nn, *nstr;
-real *taucpr, *wk;
+/* Subroutine */ int setmtx_(real *bdr, real *cband, real *cmu, real *cwt, 
+	real *delm0, real *dtaucp, real *gc, real *kk, logical *lamber, 
+	logical *lyrcut, integer *mi, integer *mi9m2, integer *mxcmu, integer 
+	*ncol, integer *ncut, integer *nnlyri, integer *nn, integer *nstr, 
+	real *taucpr, real *wk)
 {
     /* System generated locals */
     integer bdr_dim1, bdr_offset, cband_dim1, cband_offset, gc_dim1, gc_dim2, 
 	    gc_offset, kk_dim1, kk_offset, i__1, i__2, i__3;
 
     /* Builtin functions */
-    double exp();
+    double exp(doublereal);
 
     /* Local variables */
+    static integer k, lc, iq, jq, lda, ncd;
+    static real sum;
     static integer jcol;
     static real expa;
-    static integer irow, k, nncol, lc, iq, jq, nshift;
-    extern /* Subroutine */ int zeroit_();
-    static integer lda, ncd;
-    static real sum;
+    static integer irow, nncol, nshift;
+    extern /* Subroutine */ int zeroit_(real *, integer *);
 
 /*        Calculate coefficient matrix for the set of equations */
 /*        obtained from the boundary conditions and the continuity- */
@@ -2474,16 +2513,16 @@ real *taucpr, *wk;
     bdr -= bdr_offset;
     --wk;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1 * 1;
+    kk_offset = 1 + kk_dim1;
     kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
     gc -= gc_offset;
     --cwt;
     --cmu;
     cband_dim1 = *mi9m2;
-    cband_offset = 1 + cband_dim1 * 1;
+    cband_offset = 1 + cband_dim1;
     cband -= cband_offset;
 
     /* Function Body */
@@ -2632,12 +2671,11 @@ real *taucpr, *wk;
     return 0;
 } /* setmtx_ */
 
-/* Subroutine */ int soleig_(amb, apb, array, cmu, cwt, gl, mi, mazim, mxcmu, 
-	nn, nstr, ylmc, cc, evecc, eval, kk, gc, aad, eveccd, evald, wkd)
-real *amb, *apb, *array, *cmu, *cwt, *gl;
-integer *mi, *mazim, *mxcmu, *nn, *nstr;
-real *ylmc, *cc, *evecc, *eval, *kk, *gc;
-doublereal *aad, *eveccd, *evald, *wkd;
+/* Subroutine */ int soleig_(real *amb, real *apb, real *array, real *cmu, 
+	real *cwt, real *gl, integer *mi, integer *mazim, integer *mxcmu, 
+	integer *nn, integer *nstr, real *ylmc, real *cc, real *evecc, real *
+	eval, real *kk, real *gc, doublereal *aad, doublereal *eveccd, 
+	doublereal *evald, doublereal *wkd)
 {
     /* System generated locals */
     integer amb_dim1, amb_offset, apb_dim1, apb_offset, array_dim1, 
@@ -2647,18 +2685,15 @@ doublereal *aad, *eveccd, *evald, *wkd;
     real r__1;
 
     /* Builtin functions */
-    integer s_wsfe(), do_fio(), e_wsfe();
-    double sqrt();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
+    double sqrt(doublereal);
 
     /* Local variables */
-    static real beta;
-    static integer l;
-    static real alpha;
-    static integer iq, jq, kq;
-    static real gpmigm, gpplgm;
-    extern /* Subroutine */ int errmsg_(), asymtx_();
-    static integer ier;
-    static real sum;
+    static integer l, iq, jq, kq, ier;
+    static real sum, beta, alpha, gpmigm, gpplgm;
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen), asymtx_(
+	    real *, real *, real *, integer *, integer *, integer *, integer *
+	    , doublereal *, doublereal *, doublereal *, doublereal *);
 
     /* Fortran I/O blocks */
     static cilist io___184 = { 0, 6, 0, "(//,A,I4,A)", 0 };
@@ -2739,34 +2774,34 @@ doublereal *aad, *eveccd, *evald, *wkd;
     /* Parameter adjustments */
     --evald;
     eveccd_dim1 = *mi;
-    eveccd_offset = 1 + eveccd_dim1 * 1;
+    eveccd_offset = 1 + eveccd_dim1;
     eveccd -= eveccd_offset;
     aad_dim1 = *mi;
-    aad_offset = 1 + aad_dim1 * 1;
+    aad_offset = 1 + aad_dim1;
     aad -= aad_offset;
     --eval;
     array_dim1 = *mi;
-    array_offset = 1 + array_dim1 * 1;
+    array_offset = 1 + array_dim1;
     array -= array_offset;
     apb_dim1 = *mi;
-    apb_offset = 1 + apb_dim1 * 1;
+    apb_offset = 1 + apb_dim1;
     apb -= apb_offset;
     amb_dim1 = *mi;
-    amb_offset = 1 + amb_dim1 * 1;
+    amb_offset = 1 + amb_dim1;
     amb -= amb_offset;
     --wkd;
     gc_dim1 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * 1;
+    gc_offset = 1 + gc_dim1;
     gc -= gc_offset;
     --kk;
     evecc_dim1 = *mxcmu;
-    evecc_offset = 1 + evecc_dim1 * 1;
+    evecc_offset = 1 + evecc_dim1;
     evecc -= evecc_offset;
     cc_dim1 = *mxcmu;
-    cc_offset = 1 + cc_dim1 * 1;
+    cc_offset = 1 + cc_dim1;
     cc -= cc_offset;
     ylmc_dim1 = *mxcmu - 0 + 1;
-    ylmc_offset = 0 + ylmc_dim1 * 1;
+    ylmc_offset = 0 + ylmc_dim1;
     ylmc -= ylmc_offset;
     --cwt;
     --cmu;
@@ -2895,17 +2930,13 @@ doublereal *aad, *eveccd, *evald, *wkd;
     return 0;
 } /* soleig_ */
 
-/* Subroutine */ int solve0_(b, bdr, bem, bplank, cband, cmu, cwt, expbea, 
-	fbeam, fisot, ipvt, lamber, ll, lyrcut, mazim, mi, mi9m2, mxcmu, ncol,
-	 ncut, nn, nstr, nnlyri, pi, tplank, taucpr, umu0, z__, zz, zplk0, 
-	zplk1)
-real *b, *bdr, *bem, *bplank, *cband, *cmu, *cwt, *expbea, *fbeam, *fisot;
-integer *ipvt;
-logical *lamber;
-real *ll;
-logical *lyrcut;
-integer *mazim, *mi, *mi9m2, *mxcmu, *ncol, *ncut, *nn, *nstr, *nnlyri;
-real *pi, *tplank, *taucpr, *umu0, *z__, *zz, *zplk0, *zplk1;
+/* Subroutine */ int solve0_(real *b, real *bdr, real *bem, real *bplank, 
+	real *cband, real *cmu, real *cwt, real *expbea, real *fbeam, real *
+	fisot, integer *ipvt, logical *lamber, real *ll, logical *lyrcut, 
+	integer *mazim, integer *mi, integer *mi9m2, integer *mxcmu, integer *
+	ncol, integer *ncut, integer *nn, integer *nstr, integer *nnlyri, 
+	real *pi, real *tplank, real *taucpr, real *umu0, real *z__, real *zz,
+	 real *zplk0, real *zplk1)
 {
     /* System generated locals */
     integer bdr_dim1, bdr_offset, cband_dim1, cband_offset, ll_dim1, 
@@ -2913,14 +2944,15 @@ real *pi, *tplank, *taucpr, *umu0, *z__, *zz, *zplk0, *zplk1;
 	    zz_dim1, zz_offset, i__1, i__2;
 
     /* Local variables */
-    static integer ipnt;
-    extern /* Subroutine */ int sgbco_();
-    static real rcond;
-    extern /* Subroutine */ int sgbsl_();
-    static integer lc, iq, jq, it;
-    extern /* Subroutine */ int errmsg_(), zeroit_();
-    static integer ncd;
+    static integer lc, iq, jq, it, ncd;
     static real sum;
+    static integer ipnt;
+    extern /* Subroutine */ int sgbco_(real *, integer *, integer *, integer *
+	    , integer *, integer *, real *, real *);
+    static real rcond;
+    extern /* Subroutine */ int sgbsl_(real *, integer *, integer *, integer *
+	    , integer *, integer *, real *, integer *), errmsg_(char *, 
+	    logical *, ftnlen), zeroit_(real *, integer *);
 
 /*        Construct right-hand side vector B for general boundary */
 /*        conditions STWJ(17) and solve system of equations obtained */
@@ -3004,22 +3036,22 @@ real *pi, *tplank, *taucpr, *umu0, *z__, *zz, *zplk0, *zplk1;
     bdr_offset = 1 + bdr_dim1 * 0;
     bdr -= bdr_offset;
     zplk1_dim1 = *mxcmu;
-    zplk1_offset = 1 + zplk1_dim1 * 1;
+    zplk1_offset = 1 + zplk1_dim1;
     zplk1 -= zplk1_offset;
     zplk0_dim1 = *mxcmu;
-    zplk0_offset = 1 + zplk0_dim1 * 1;
+    zplk0_offset = 1 + zplk0_dim1;
     zplk0 -= zplk0_offset;
     zz_dim1 = *mxcmu;
-    zz_offset = 1 + zz_dim1 * 1;
+    zz_offset = 1 + zz_dim1;
     zz -= zz_offset;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1 * 1;
+    ll_offset = 1 + ll_dim1;
     ll -= ll_offset;
     --cwt;
     --cmu;
     --z__;
     cband_dim1 = *mi9m2;
-    cband_offset = 1 + cband_dim1 * 1;
+    cband_offset = 1 + cband_dim1;
     cband -= cband_offset;
     --b;
 
@@ -3220,16 +3252,11 @@ real *pi, *tplank, *taucpr, *umu0, *z__, *zz, *zplk0, *zplk1;
     return 0;
 } /* solve0_ */
 
-/* Subroutine */ int surfac_(albedo, delm0, fbeam, hlpr, lamber, mi, mazim, 
-	mxcmu, mxumu, nn, numu, nstr, onlyfl, umu, usrang, ylm0, ylmc, ylmu, 
-	bdr, emu, bem, rmu, sqt)
-real *albedo, *delm0, *fbeam, *hlpr;
-logical *lamber;
-integer *mi, *mazim, *mxcmu, *mxumu, *nn, *numu, *nstr;
-logical *onlyfl;
-real *umu;
-logical *usrang;
-real *ylm0, *ylmc, *ylmu, *bdr, *emu, *bem, *rmu, *sqt;
+/* Subroutine */ int surfac_(real *albedo, real *delm0, real *fbeam, real *
+	hlpr, logical *lamber, integer *mi, integer *mazim, integer *mxcmu, 
+	integer *mxumu, integer *nn, integer *numu, integer *nstr, logical *
+	onlyfl, real *umu, logical *usrang, real *ylm0, real *ylmc, real *
+	ylmu, real *bdr, real *emu, real *bem, real *rmu, real *sqt)
 {
     /* Initialized data */
 
@@ -3240,10 +3267,12 @@ real *ylm0, *ylmc, *ylmu, *bdr, *emu, *bem, *rmu, *sqt;
 	    ylmc_offset, ylmu_dim1, ylmu_offset, i__1, i__2, i__3;
 
     /* Local variables */
-    static real dref, ylmg[1010]	/* was [101][10] */;
     static integer k, jg, iq, jq, iu;
-    extern /* Subroutine */ int qgausn_(), errmsg_(), lepoly_(), zeroit_();
-    static real sgn, gmu[10], gwt[10], sum;
+    static real sgn, gmu[10], gwt[10], sum, dref, ylmg[1010]	/* was [101][
+	    10] */;
+    extern /* Subroutine */ int qgausn_(integer *, real *, real *), errmsg_(
+	    char *, logical *, ftnlen), lepoly_(integer *, integer *, integer 
+	    *, integer *, real *, real *, real *), zeroit_(real *, integer *);
 
 /*       Specifies user's surface bidirectional properties, STWJ(21) */
 
@@ -3327,14 +3356,14 @@ real *ylm0, *ylmc, *ylmu, *bdr, *emu, *bem, *rmu, *sqt;
     bdr_offset = 1 + bdr_dim1 * 0;
     bdr -= bdr_offset;
     ylmc_dim1 = *mxcmu - 0 + 1;
-    ylmc_offset = 0 + ylmc_dim1 * 1;
+    ylmc_offset = 0 + ylmc_dim1;
     ylmc -= ylmc_offset;
     rmu_dim1 = *mxumu;
     rmu_offset = 1 + rmu_dim1 * 0;
     rmu -= rmu_offset;
     --emu;
     ylmu_dim1 = *mxcmu - 0 + 1;
-    ylmu_offset = 0 + ylmu_dim1 * 1;
+    ylmu_offset = 0 + ylmu_dim1;
     ylmu -= ylmu_offset;
     --umu;
     --sqt;
@@ -3494,11 +3523,9 @@ real *ylm0, *ylmc, *ylmu, *bdr, *emu, *bem, *rmu, *sqt;
     return 0;
 } /* surfac_ */
 
-/* Subroutine */ int terpev_(cwt, evecc, gl, gu, mazim, mxcmu, mxumu, nn, 
-	nstr, numu, wk, ylmc, ylmu)
-real *cwt, *evecc, *gl, *gu;
-integer *mazim, *mxcmu, *mxumu, *nn, *nstr, *numu;
-real *wk, *ylmc, *ylmu;
+/* Subroutine */ int terpev_(real *cwt, real *evecc, real *gl, real *gu, 
+	integer *mazim, integer *mxcmu, integer *mxumu, integer *nn, integer *
+	nstr, integer *numu, real *wk, real *ylmc, real *ylmu)
 {
     /* System generated locals */
     integer evecc_dim1, evecc_offset, gu_dim1, gu_offset, ylmc_dim1, 
@@ -3519,18 +3546,18 @@ real *wk, *ylmc, *ylmu;
 /*     .. */
     /* Parameter adjustments */
     ylmc_dim1 = *mxcmu - 0 + 1;
-    ylmc_offset = 0 + ylmc_dim1 * 1;
+    ylmc_offset = 0 + ylmc_dim1;
     ylmc -= ylmc_offset;
     --wk;
     evecc_dim1 = *mxcmu;
-    evecc_offset = 1 + evecc_dim1 * 1;
+    evecc_offset = 1 + evecc_dim1;
     evecc -= evecc_offset;
     --cwt;
     ylmu_dim1 = *mxcmu - 0 + 1;
-    ylmu_offset = 0 + ylmu_dim1 * 1;
+    ylmu_offset = 0 + ylmu_dim1;
     ylmu -= ylmu_offset;
     gu_dim1 = *mxumu;
-    gu_offset = 1 + gu_dim1 * 1;
+    gu_offset = 1 + gu_dim1;
     gu -= gu_offset;
 
     /* Function Body */
@@ -3573,23 +3600,18 @@ real *wk, *ylmc, *ylmu;
     return 0;
 } /* terpev_ */
 
-/* Subroutine */ int terpso_(cwt, delm0, fbeam, gl, mazim, mxcmu, plank, numu,
-	 nstr, oprim, pi, ylm0, ylmc, ylmu, psi, xr0, xr1, z0, zj, zbeam, z0u,
-	 z1u)
-real *cwt, *delm0, *fbeam, *gl;
-integer *mazim, *mxcmu;
-logical *plank;
-integer *numu, *nstr;
-real *oprim, *pi, *ylm0, *ylmc, *ylmu, *psi, *xr0, *xr1, *z0, *zj, *zbeam, *
-	z0u, *z1u;
+/* Subroutine */ int terpso_(real *cwt, real *delm0, real *fbeam, real *gl, 
+	integer *mazim, integer *mxcmu, logical *plank, integer *numu, 
+	integer *nstr, real *oprim, real *pi, real *ylm0, real *ylmc, real *
+	ylmu, real *psi, real *xr0, real *xr1, real *z0, real *zj, real *
+	zbeam, real *z0u, real *z1u)
 {
     /* System generated locals */
     integer ylmc_dim1, ylmc_offset, ylmu_dim1, ylmu_offset, i__1, i__2;
 
     /* Local variables */
-    static real fact, psum;
     static integer iq, jq, iu;
-    static real sum;
+    static real sum, fact, psum;
 
 /*         Interpolates source functions to user angles */
 
@@ -3652,10 +3674,10 @@ real *oprim, *pi, *ylm0, *ylmc, *ylmu, *psi, *xr0, *xr1, *z0, *zj, *zbeam, *
     --z0;
     --psi;
     ylmu_dim1 = *mxcmu - 0 + 1;
-    ylmu_offset = 0 + ylmu_dim1 * 1;
+    ylmu_offset = 0 + ylmu_dim1;
     ylmu -= ylmu_offset;
     ylmc_dim1 = *mxcmu - 0 + 1;
-    ylmc_offset = 0 + ylmc_dim1 * 1;
+    ylmc_offset = 0 + ylmc_dim1;
     ylmc -= ylmc_offset;
     --cwt;
     --zbeam;
@@ -3719,25 +3741,23 @@ real *oprim, *pi, *ylm0, *ylmc, *ylmu, *psi, *xr0, *xr1, *z0, *zj, *zbeam, *
     return 0;
 } /* terpso_ */
 
-/* Subroutine */ int upbeam_(array, cc, cmu, delm0, fbeam, gl, ipvt, mazim, 
-	mxcmu, nn, nstr, pi, umu0, wk, ylm0, ylmc, zj, zz)
-real *array, *cc, *cmu, *delm0, *fbeam, *gl;
-integer *ipvt, *mazim, *mxcmu, *nn, *nstr;
-real *pi, *umu0, *wk, *ylm0, *ylmc, *zj, *zz;
+/* Subroutine */ int upbeam_(real *array, real *cc, real *cmu, real *delm0, 
+	real *fbeam, real *gl, integer *ipvt, integer *mazim, integer *mxcmu, 
+	integer *nn, integer *nstr, real *pi, real *umu0, real *wk, real *
+	ylm0, real *ylmc, real *zj, real *zz)
 {
     /* System generated locals */
     integer array_dim1, array_offset, cc_dim1, cc_offset, ylmc_dim1, 
 	    ylmc_offset, i__1, i__2;
 
     /* Local variables */
-    static integer k;
-    extern /* Subroutine */ int sgeco_();
-    static real rcond;
-    extern /* Subroutine */ int sgesl_();
-    static integer iq, jq;
-    extern /* Subroutine */ int errmsg_();
-    static integer job;
+    static integer k, iq, jq, job;
     static real sum;
+    extern /* Subroutine */ int sgeco_(real *, integer *, integer *, integer *
+	    , real *, real *);
+    static real rcond;
+    extern /* Subroutine */ int sgesl_(real *, integer *, integer *, integer *
+	    , real *, integer *), errmsg_(char *, logical *, ftnlen);
 
 /*         Finds the incident-beam particular solution of SS(18) */
 
@@ -3794,15 +3814,15 @@ real *pi, *umu0, *wk, *ylm0, *ylmc, *zj, *zz;
     --zz;
     --zj;
     ylmc_dim1 = *mxcmu - 0 + 1;
-    ylmc_offset = 0 + ylmc_dim1 * 1;
+    ylmc_offset = 0 + ylmc_dim1;
     ylmc -= ylmc_offset;
     --wk;
     --cmu;
     cc_dim1 = *mxcmu;
-    cc_offset = 1 + cc_dim1 * 1;
+    cc_offset = 1 + cc_dim1;
     cc -= cc_offset;
     array_dim1 = *mxcmu;
-    array_offset = 1 + array_dim1 * 1;
+    array_offset = 1 + array_dim1;
     array -= array_offset;
 
     /* Function Body */
@@ -3847,21 +3867,20 @@ real *pi, *umu0, *wk, *ylm0, *ylmc, *zj, *zz;
     return 0;
 } /* upbeam_ */
 
-/* Subroutine */ int upisot_(array, cc, cmu, ipvt, mxcmu, nn, nstr, oprim, wk,
-	 xr0, xr1, z0, z1, zplk0, zplk1)
-real *array, *cc, *cmu;
-integer *ipvt, *mxcmu, *nn, *nstr;
-real *oprim, *wk, *xr0, *xr1, *z0, *z1, *zplk0, *zplk1;
+/* Subroutine */ int upisot_(real *array, real *cc, real *cmu, integer *ipvt, 
+	integer *mxcmu, integer *nn, integer *nstr, real *oprim, real *wk, 
+	real *xr0, real *xr1, real *z0, real *z1, real *zplk0, real *zplk1)
 {
     /* System generated locals */
     integer array_dim1, array_offset, cc_dim1, cc_offset, i__1, i__2;
 
     /* Local variables */
-    extern /* Subroutine */ int sgeco_();
-    static real rcond;
-    extern /* Subroutine */ int sgesl_();
     static integer iq, jq;
-    extern /* Subroutine */ int errmsg_();
+    extern /* Subroutine */ int sgeco_(real *, integer *, integer *, integer *
+	    , real *, real *);
+    static real rcond;
+    extern /* Subroutine */ int sgesl_(real *, integer *, integer *, integer *
+	    , real *, integer *), errmsg_(char *, logical *, ftnlen);
 
 /*       Finds the particular solution of thermal radiation of SS(15) */
 
@@ -3917,10 +3936,10 @@ real *oprim, *wk, *xr0, *xr1, *z0, *z1, *zplk0, *zplk1;
     --wk;
     --cmu;
     cc_dim1 = *mxcmu;
-    cc_offset = 1 + cc_dim1 * 1;
+    cc_offset = 1 + cc_dim1;
     cc -= cc_offset;
     array_dim1 = *mxcmu;
-    array_offset = 1 + array_dim1 * 1;
+    array_offset = 1 + array_dim1;
     array -= array_offset;
 
     /* Function Body */
@@ -3956,22 +3975,15 @@ real *oprim, *wk, *xr0, *xr1, *z0, *z1, *zplk0, *zplk1;
     return 0;
 } /* upisot_ */
 
-/* Subroutine */ int usrint_(bplank, cmu, cwt, delm0, dtaucp, emu, expbea, 
-	fbeam, fisot, gc, gu, kk, lamber, layru, ll, lyrcut, mazim, mxcmu, 
-	mxulv, mxumu, ncut, nlyr, nn, nstr, plank, numu, ntau, pi, rmu, 
-	taucpr, tplank, umu, umu0, utaupr, wk, zbeam, z0u, z1u, zz, zplk0, 
-	zplk1, uum)
-real *bplank, *cmu, *cwt, *delm0, *dtaucp, *emu, *expbea, *fbeam, *fisot, *gc,
-	 *gu, *kk;
-logical *lamber;
-integer *layru;
-real *ll;
-logical *lyrcut;
-integer *mazim, *mxcmu, *mxulv, *mxumu, *ncut, *nlyr, *nn, *nstr;
-logical *plank;
-integer *numu, *ntau;
-real *pi, *rmu, *taucpr, *tplank, *umu, *umu0, *utaupr, *wk, *zbeam, *z0u, *
-	z1u, *zz, *zplk0, *zplk1, *uum;
+/* Subroutine */ int usrint_(real *bplank, real *cmu, real *cwt, real *delm0, 
+	real *dtaucp, real *emu, real *expbea, real *fbeam, real *fisot, real 
+	*gc, real *gu, real *kk, logical *lamber, integer *layru, real *ll, 
+	logical *lyrcut, integer *mazim, integer *mxcmu, integer *mxulv, 
+	integer *mxumu, integer *ncut, integer *nlyr, integer *nn, integer *
+	nstr, logical *plank, integer *numu, integer *ntau, real *pi, real *
+	rmu, real *taucpr, real *tplank, real *umu, real *umu0, real *utaupr, 
+	real *wk, real *zbeam, real *z0u, real *z1u, real *zz, real *zplk0, 
+	real *zplk1, real *uum)
 {
     /* System generated locals */
     integer gc_dim1, gc_dim2, gc_offset, gu_dim1, gu_dim2, gu_offset, kk_dim1,
@@ -3981,19 +3993,18 @@ real *pi, *rmu, *taucpr, *tplank, *umu, *umu0, *utaupr, *wk, *zbeam, *z0u, *
 	    zplk1_offset, zz_dim1, zz_offset, i__1, i__2, i__3, i__4;
 
     /* Builtin functions */
-    double exp();
+    double exp(doublereal);
 
     /* Local variables */
-    static real fact, dtau, expn, dtau1, dtau2, denom;
     static integer lc, iq, jq, iu, lu;
-    static real bnddfu, bnddir, bndint, palint, dfuint;
+    static real sgn;
+    static integer lyu;
+    static real exp0, exp1, exp2, fact, dtau, expn, dtau1, dtau2, denom, 
+	    bnddfu, bnddir, bndint, palint, dfuint;
     static integer lyrend;
     static logical negumu;
     static real plkint;
     static integer lyrstr;
-    static real sgn;
-    static integer lyu;
-    static real exp0, exp1, exp2;
 
 /*       Computes intensity components at user output angles */
 /*       for azimuthal expansion terms in Eq. SD(2) */
@@ -4100,46 +4111,46 @@ real *pi, *rmu, *taucpr, *tplank, *umu, *umu0, *utaupr, *wk, *zbeam, *z0u, *
     --dtaucp;
     --layru;
     zplk1_dim1 = *mxcmu;
-    zplk1_offset = 1 + zplk1_dim1 * 1;
+    zplk1_offset = 1 + zplk1_dim1;
     zplk1 -= zplk1_offset;
     zplk0_dim1 = *mxcmu;
-    zplk0_offset = 1 + zplk0_dim1 * 1;
+    zplk0_offset = 1 + zplk0_dim1;
     zplk0 -= zplk0_offset;
     zz_dim1 = *mxcmu;
-    zz_offset = 1 + zz_dim1 * 1;
+    zz_offset = 1 + zz_dim1;
     zz -= zz_offset;
     --wk;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1 * 1;
+    ll_offset = 1 + ll_dim1;
     ll -= ll_offset;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1 * 1;
+    kk_offset = 1 + kk_dim1;
     kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
     gc -= gc_offset;
     --cwt;
     --cmu;
     --utaupr;
     uum_dim1 = *mxumu;
-    uum_offset = 1 + uum_dim1 * 1;
+    uum_offset = 1 + uum_dim1;
     uum -= uum_offset;
     z1u_dim1 = *mxumu;
-    z1u_offset = 1 + z1u_dim1 * 1;
+    z1u_offset = 1 + z1u_dim1;
     z1u -= z1u_offset;
     z0u_dim1 = *mxumu;
-    z0u_offset = 1 + z0u_dim1 * 1;
+    z0u_offset = 1 + z0u_dim1;
     z0u -= z0u_offset;
     zbeam_dim1 = *mxumu;
-    zbeam_offset = 1 + zbeam_dim1 * 1;
+    zbeam_offset = 1 + zbeam_dim1;
     zbeam -= zbeam_offset;
     rmu_dim1 = *mxumu;
     rmu_offset = 1 + rmu_dim1 * 0;
     rmu -= rmu_offset;
     gu_dim1 = *mxumu;
     gu_dim2 = *mxcmu;
-    gu_offset = 1 + gu_dim1 * (1 + gu_dim2 * 1);
+    gu_offset = 1 + gu_dim1 * (1 + gu_dim2);
     gu -= gu_offset;
     --emu;
     --umu;
@@ -4374,45 +4385,32 @@ L150:
 /* ****************************************************************** */
 /* ********** DISORT service routines ******************************* */
 /* ****************************************************************** */
-/* Subroutine */ int chekin_(nlyr, dtauc, ssalb, pmom, temper, wvnmlo, wvnmhi,
-	 usrtau, ntau, utau, nstr, usrang, numu, umu, nphi, phi, ibcnd, fbeam,
-	 umu0, phi0, fisot, lamber, albedo, hl, btemp, ttemp, temis, plank, 
-	onlyfl, accur, tauc, maxcly, maxulv, maxumu, maxcmu, maxphi, mxcly, 
-	mxulv, mxumu, mxcmu, mxphi, mxsqt)
-integer *nlyr;
-real *dtauc, *ssalb, *pmom, *temper, *wvnmlo, *wvnmhi;
-logical *usrtau;
-integer *ntau;
-real *utau;
-integer *nstr;
-logical *usrang;
-integer *numu;
-real *umu;
-integer *nphi;
-real *phi;
-integer *ibcnd;
-real *fbeam, *umu0, *phi0, *fisot;
-logical *lamber;
-real *albedo, *hl, *btemp, *ttemp, *temis;
-logical *plank, *onlyfl;
-real *accur, *tauc;
-integer *maxcly, *maxulv, *maxumu, *maxcmu, *maxphi, *mxcly, *mxulv, *mxumu, *
-	mxcmu, *mxphi, *mxsqt;
+/* Subroutine */ int chekin_(integer *nlyr, real *dtauc, real *ssalb, real *
+	pmom, real *temper, real *wvnmlo, real *wvnmhi, logical *usrtau, 
+	integer *ntau, real *utau, integer *nstr, logical *usrang, integer *
+	numu, real *umu, integer *nphi, real *phi, integer *ibcnd, real *
+	fbeam, real *umu0, real *phi0, real *fisot, logical *lamber, real *
+	albedo, real *hl, real *btemp, real *ttemp, real *temis, logical *
+	plank, logical *onlyfl, real *accur, real *tauc, integer *maxcly, 
+	integer *maxulv, integer *maxumu, integer *maxcmu, integer *maxphi, 
+	integer *mxcly, integer *mxulv, integer *mxumu, integer *mxcmu, 
+	integer *mxphi, integer *mxsqt)
 {
     /* System generated locals */
     integer pmom_dim1, pmom_offset, i__1, i__2;
     real r__1;
 
     /* Local variables */
-    extern doublereal dref_();
-    static integer irmu, j, k, lc, iu, lu;
-    static real flxalb;
-    extern logical wrtbad_();
-    static logical inperr;
-    extern /* Subroutine */ int errmsg_();
-    extern logical wrtdim_();
-    static integer numsqt;
+    static integer j, k, lc, iu, lu;
     static real rmu;
+    extern doublereal dref_(real *, real *, integer *);
+    static integer irmu;
+    static real flxalb;
+    extern logical wrtbad_(char *, ftnlen);
+    static logical inperr;
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
+    extern logical wrtdim_(char *, integer *, ftnlen);
+    static integer numsqt;
 
 /*           Checks the input dimensions and variables */
 /*   Calls- WRTBAD, WRTDIM, DREF, ERRMSG */
@@ -4436,7 +4434,7 @@ integer *maxcly, *maxulv, *maxumu, *maxcmu, *maxphi, *mxcly, *mxulv, *mxumu, *
     --utau;
     --umu;
     pmom_dim1 = *maxcmu - 0 + 1;
-    pmom_offset = 0 + pmom_dim1 * 1;
+    pmom_offset = 0 + pmom_dim1;
     pmom -= pmom_offset;
     --phi;
 
@@ -4667,9 +4665,7 @@ for good accuracy", &c_false, (ftnlen)68);
     return 0;
 } /* chekin_ */
 
-doublereal dref_(mu, hl, nstr)
-real *mu, *hl;
-integer *nstr;
+doublereal dref_(real *mu, real *hl, integer *nstr)
 {
     /* Initialized data */
 
@@ -4682,9 +4678,8 @@ integer *nstr;
     /* Local variables */
     static real c__[100];
     static integer l;
-    static real cl, pl;
-    extern /* Subroutine */ int errmsg_();
-    static real plm1, plm2;
+    static real cl, pl, plm1, plm2;
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
 
 /*        Exact flux albedo for given angle of incidence, given */
 /*        a bidirectional reflectivity characterized by its */
@@ -4763,16 +4758,15 @@ integer *nstr;
     return ret_val;
 } /* dref_ */
 
-/* Subroutine */ int lepoly_(nmu, m, maxmu, twonm1, mu, sqt, ylm)
-integer *nmu, *m, *maxmu, *twonm1;
-real *mu, *sqt, *ylm;
+/* Subroutine */ int lepoly_(integer *nmu, integer *m, integer *maxmu, 
+	integer *twonm1, real *mu, real *sqt, real *ylm)
 {
     /* System generated locals */
     integer ylm_dim1, ylm_offset, i__1, i__2;
     real r__1;
 
     /* Builtin functions */
-    double sqrt();
+    double sqrt(doublereal);
 
     /* Local variables */
     static integer i__, l;
@@ -4836,7 +4830,7 @@ real *mu, *sqt, *ylm;
 /*     .. */
     /* Parameter adjustments */
     ylm_dim1 = *maxmu - 0 + 1;
-    ylm_offset = 0 + ylm_dim1 * 1;
+    ylm_offset = 0 + ylm_dim1;
     ylm -= ylm_offset;
     --mu;
     --sqt;
@@ -4896,8 +4890,7 @@ real *mu, *sqt, *ylm;
     return 0;
 } /* lepoly_ */
 
-doublereal plkavg_(wnumlo, wnumhi, t)
-real *wnumlo, *wnumhi, *t;
+doublereal plkavg_(real *wnumlo, real *wnumhi, real *t)
 {
     /* Initialized data */
 
@@ -4913,19 +4906,18 @@ real *wnumlo, *wnumhi, *t;
     real ret_val, r__1, r__2;
 
     /* Builtin functions */
-    double asin(), log(), exp();
+    double asin(doublereal), log(doublereal), exp(doublereal);
 
     /* Local variables */
-    static real conc;
-    static integer mmax;
-    static real vmax, d__[2];
+    static real d__[2];
     static integer i__, k, m, n;
-    static real p[2], v[2], epsil;
-    extern doublereal r1mach_();
-    static real hh, ex, mv, sigdpi, oldval;
+    static real p[2], v[2], hh, ex, mv, del, val, exm, vsq, val0, conc;
+    static integer mmax;
+    static real vmax, epsil;
+    extern doublereal r1mach_(integer *);
+    static real sigdpi, oldval;
     static integer smallv;
-    extern /* Subroutine */ int errmsg_();
-    static real del, val, exm, vsq, val0;
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
 
 /*        Computes Planck function integrated between two wavenumbers */
 
@@ -5138,21 +5130,17 @@ L40:
     return ret_val;
 } /* plkavg_ */
 
-/* Subroutine */ int pravin_(umu, numu, maxumu, utau, ntau, u0u)
-real *umu;
-integer *numu, *maxumu;
-real *utau;
-integer *ntau;
-real *u0u;
+/* Subroutine */ int pravin_(real *umu, integer *numu, integer *maxumu, real *
+	utau, integer *ntau, real *u0u)
 {
     /* System generated locals */
     integer u0u_dim1, u0u_offset, i__1, i__2, i__3;
 
     /* Builtin functions */
-    integer s_wsfe(), do_fio(), e_wsfe();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
 
     /* Local variables */
-    static integer iumin, iumax, npass, iu, np, lu, lenfmt;
+    static integer iu, np, lu, iumin, iumax, npass, lenfmt;
 
     /* Fortran I/O blocks */
     static cilist io___300 = { 0, 6, 0, "(//,A)", 0 };
@@ -5177,7 +5165,7 @@ real *u0u;
     /* Parameter adjustments */
     --umu;
     u0u_dim1 = *maxumu;
-    u0u_offset = 1 + u0u_dim1 * 1;
+    u0u_offset = 1 + u0u_dim1;
     u0u -= u0u_offset;
     --utau;
 
@@ -5224,34 +5212,20 @@ real *u0u;
     return 0;
 } /* pravin_ */
 
-/* Subroutine */ int prtinp_(nlyr, dtauc, dtaucp, ssalb, pmom, temper, wvnmlo,
-	 wvnmhi, ntau, utau, nstr, numu, umu, nphi, phi, ibcnd, fbeam, umu0, 
-	phi0, fisot, lamber, albedo, hl, btemp, ttemp, temis, deltam, plank, 
-	onlyfl, accur, flyr, lyrcut, oprim, tauc, taucpr, maxcmu, prtmom)
-integer *nlyr;
-real *dtauc, *dtaucp, *ssalb, *pmom, *temper, *wvnmlo, *wvnmhi;
-integer *ntau;
-real *utau;
-integer *nstr, *numu;
-real *umu;
-integer *nphi;
-real *phi;
-integer *ibcnd;
-real *fbeam, *umu0, *phi0, *fisot;
-logical *lamber;
-real *albedo, *hl, *btemp, *ttemp, *temis;
-logical *deltam, *plank, *onlyfl;
-real *accur, *flyr;
-logical *lyrcut;
-real *oprim, *tauc, *taucpr;
-integer *maxcmu;
-logical *prtmom;
+/* Subroutine */ int prtinp_(integer *nlyr, real *dtauc, real *dtaucp, real *
+	ssalb, real *pmom, real *temper, real *wvnmlo, real *wvnmhi, integer *
+	ntau, real *utau, integer *nstr, integer *numu, real *umu, integer *
+	nphi, real *phi, integer *ibcnd, real *fbeam, real *umu0, real *phi0, 
+	real *fisot, logical *lamber, real *albedo, real *hl, real *btemp, 
+	real *ttemp, real *temis, logical *deltam, logical *plank, logical *
+	onlyfl, real *accur, real *flyr, logical *lyrcut, real *oprim, real *
+	tauc, real *taucpr, integer *maxcmu, logical *prtmom)
 {
     /* System generated locals */
     integer pmom_dim1, pmom_offset, i__1, i__2;
 
     /* Builtin functions */
-    integer s_wsfe(), do_fio(), e_wsfe();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
 
     /* Local variables */
     static integer j, k, lc, iu, lu;
@@ -5309,7 +5283,7 @@ logical *prtmom;
     --flyr;
     --oprim;
     pmom_dim1 = *maxcmu - 0 + 1;
-    pmom_offset = 0 + pmom_dim1 * 1;
+    pmom_offset = 0 + pmom_dim1;
     pmom -= pmom_offset;
 
     /* Function Body */
@@ -5541,23 +5515,18 @@ cident beam angle", (ftnlen)70);
     return 0;
 } /* prtinp_ */
 
-/* Subroutine */ int prtint_(uu, utau, ntau, umu, numu, phi, nphi, maxulv, 
+/* Subroutine */ int prtint_(real *uu, real *utau, integer *ntau, real *umu, 
+	integer *numu, real *phi, integer *nphi, integer *maxulv, integer *
 	maxumu)
-real *uu, *utau;
-integer *ntau;
-real *umu;
-integer *numu;
-real *phi;
-integer *nphi, *maxulv, *maxumu;
 {
     /* System generated locals */
     integer uu_dim1, uu_dim2, uu_offset, i__1, i__2, i__3, i__4;
 
     /* Builtin functions */
-    integer s_wsfe(), do_fio(), e_wsfe();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
 
     /* Local variables */
-    static integer jmin, jmax, j, npass, iu, np, lu, lenfmt;
+    static integer j, iu, np, lu, jmin, jmax, npass, lenfmt;
 
     /* Fortran I/O blocks */
     static cilist io___343 = { 0, 6, 0, "(//,A)", 0 };
@@ -5588,7 +5557,7 @@ integer *nphi, *maxulv, *maxumu;
     --phi;
     uu_dim1 = *maxumu;
     uu_dim2 = *maxulv;
-    uu_offset = 1 + uu_dim1 * (1 + uu_dim2 * 1);
+    uu_offset = 1 + uu_dim1 * (1 + uu_dim2);
     uu -= uu_offset;
 
     /* Function Body */
@@ -5660,9 +5629,7 @@ integer *nphi, *maxulv, *maxumu;
     return 0;
 } /* prtint_ */
 
-/* Subroutine */ int qgausn_(m, gmu, gwt)
-integer *m;
-real *gmu, *gwt;
+/* Subroutine */ int qgausn_(integer *m, real *gmu, real *gwt)
 {
     /* Initialized data */
 
@@ -5676,26 +5643,24 @@ real *gmu, *gwt;
     doublereal d__1;
 
     /* Builtin functions */
-    double asin(), tan(), cos();
+    double asin(doublereal), tan(doublereal), cos(doublereal);
 
     /* Local variables */
-    static real cona;
-    static integer iter;
-    static doublereal prod, p2pri;
     static integer k;
     static doublereal p;
     static real t;
-    static doublereal x;
-    extern doublereal d1mach_();
-    static doublereal en;
+    static doublereal x, en;
     static integer nn;
-    static doublereal xi;
-    extern /* Subroutine */ int errmsg_();
-    static doublereal pm1;
+    static doublereal xi, pm1;
     static integer np1;
     static doublereal pm2;
     static integer lim;
     static doublereal tol, tmp, ppr, nnp1;
+    static real cona;
+    static integer iter;
+    static doublereal prod, p2pri;
+    extern doublereal d1mach_(integer *);
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
 
 /*       Compute weights and abscissae for ordinary Gaussian quadrature */
 /*       on the interval (0,1);  that is, such that */
@@ -5835,8 +5800,7 @@ L10:
     return 0;
 } /* qgausn_ */
 
-doublereal ratio_(a, b)
-real *a, *b;
+doublereal ratio_(real *a, real *b)
 {
     /* Initialized data */
 
@@ -5846,11 +5810,11 @@ real *a, *b;
     real ret_val;
 
     /* Builtin functions */
-    double r_lg10(), r_sign();
+    double r_lg10(real *), r_sign(real *, real *);
 
     /* Local variables */
     static real absa, absb, huge__, powa, powb, tiny;
-    extern doublereal r1mach_();
+    extern doublereal r1mach_(integer *);
     static real powmin, powmax;
 
 /*        Calculate ratio  A/B  with over- and under-flow protection */
@@ -5910,50 +5874,36 @@ real *a, *b;
     return ret_val;
 } /* ratio_ */
 
-/* Subroutine */ int slftst_(accur, albedo, btemp, deltam, dtauc, fbeam, 
-	fisot, ibcnd, lamber, nlyr, plank, nphi, numu, nstr, ntau, onlyfl, 
-	phi, phi0, pmom, prnt, ssalb, temis, temper, ttemp, umu, usrang, 
-	usrtau, utau, umu0, wvnmhi, wvnmlo, compar, flup, rfldir, rfldn, uu)
-real *accur, *albedo, *btemp;
-logical *deltam;
-real *dtauc, *fbeam, *fisot;
-integer *ibcnd;
-logical *lamber;
-integer *nlyr;
-logical *plank;
-integer *nphi, *numu, *nstr, *ntau;
-logical *onlyfl;
-real *phi, *phi0, *pmom;
-logical *prnt;
-real *ssalb, *temis, *temper, *ttemp, *umu;
-logical *usrang, *usrtau;
-real *utau, *umu0, *wvnmhi, *wvnmlo;
-logical *compar;
-real *flup, *rfldir, *rfldn, *uu;
+/* Subroutine */ int slftst_(real *accur, real *albedo, real *btemp, logical *
+	deltam, real *dtauc, real *fbeam, real *fisot, integer *ibcnd, 
+	logical *lamber, integer *nlyr, logical *plank, integer *nphi, 
+	integer *numu, integer *nstr, integer *ntau, logical *onlyfl, real *
+	phi, real *phi0, real *pmom, logical *prnt, real *ssalb, real *temis, 
+	real *temper, real *ttemp, real *umu, logical *usrang, logical *
+	usrtau, real *utau, real *umu0, real *wvnmhi, real *wvnmlo, logical *
+	compar, real *flup, real *rfldir, real *rfldn, real *uu)
 {
     /* Initialized data */
 
     static real acc = (float)1e-4;
 
-    static real phis, umus, phi0s;
-    static integer i__;
-    static real umu0s;
-    static integer n, nphis, ntaus;
+    static integer i__, n;
+    static logical ok;
+    static real phis, umus, phi0s, umu0s;
+    static integer nphis, ntaus;
     static real pmoms[5], utaus;
     static logical prnts[7];
     static integer nlyrs, numus, nstrs;
-    static real error1, error2, error3, error4;
-    static logical ok;
-    static real albeds, fbeams;
+    static real error1, error2, error3, error4, albeds, fbeams;
     static logical lambes;
     static integer ibcnds;
     static logical deltas;
     static real accurs, dtaucs;
-    extern logical tstbad_();
+    extern logical tstbad_(char *, real *, ftnlen);
     static real ssalbs;
     static logical planks;
     static real btemps, tempes[2];
-    extern /* Subroutine */ int errmsg_();
+    extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
     static real temiss, fisots;
     static logical onlyfs, usrans;
     static real ttemps;
@@ -6146,50 +6096,19 @@ real *flup, *rfldir, *rfldn, *uu;
     return 0;
 } /* slftst_ */
 
-/* Subroutine */ int zeroal_(nd1, expbea, flyr, oprim, taucpr, xr0, xr1, nd2, 
-	cmu, cwt, psi, wk, z0, z1, zj, nd3, hlpr, ylm0, nd4, array, cc, evecc,
-	 nd5, gl, nd6, ylmc, nd7, ylmu, nd8, kk, ll, zz, zplk0, zplk1, nd9, 
-	gc, nd10, layru, utaupr, nd11, gu, nd12, z0u, z1u, zbeam, nd13, eval, 
-	nd14, amb, apb, nd15, ipvt, z__, nd16, rfldir, rfldn, flup, uavg, 
-	dfdt, nd17, albmed, trnmed, nd18, u0u, nd19, uu)
-integer *nd1;
-real *expbea, *flyr, *oprim, *taucpr, *xr0, *xr1;
-integer *nd2;
-real *cmu, *cwt, *psi, *wk, *z0, *z1, *zj;
-integer *nd3;
-real *hlpr, *ylm0;
-integer *nd4;
-real *array, *cc, *evecc;
-integer *nd5;
-real *gl;
-integer *nd6;
-real *ylmc;
-integer *nd7;
-real *ylmu;
-integer *nd8;
-real *kk, *ll, *zz, *zplk0, *zplk1;
-integer *nd9;
-real *gc;
-integer *nd10, *layru;
-real *utaupr;
-integer *nd11;
-real *gu;
-integer *nd12;
-real *z0u, *z1u, *zbeam;
-integer *nd13;
-real *eval;
-integer *nd14;
-real *amb, *apb;
-integer *nd15, *ipvt;
-real *z__;
-integer *nd16;
-real *rfldir, *rfldn, *flup, *uavg, *dfdt;
-integer *nd17;
-real *albmed, *trnmed;
-integer *nd18;
-real *u0u;
-integer *nd19;
-real *uu;
+/* Subroutine */ int zeroal_(integer *nd1, real *expbea, real *flyr, real *
+	oprim, real *taucpr, real *xr0, real *xr1, integer *nd2, real *cmu, 
+	real *cwt, real *psi, real *wk, real *z0, real *z1, real *zj, integer 
+	*nd3, real *hlpr, real *ylm0, integer *nd4, real *array, real *cc, 
+	real *evecc, integer *nd5, real *gl, integer *nd6, real *ylmc, 
+	integer *nd7, real *ylmu, integer *nd8, real *kk, real *ll, real *zz, 
+	real *zplk0, real *zplk1, integer *nd9, real *gc, integer *nd10, 
+	integer *layru, real *utaupr, integer *nd11, real *gu, integer *nd12, 
+	real *z0u, real *z1u, real *zbeam, integer *nd13, real *eval, integer 
+	*nd14, real *amb, real *apb, integer *nd15, integer *ipvt, real *z__, 
+	integer *nd16, real *rfldir, real *rfldn, real *flup, real *uavg, 
+	real *dfdt, integer *nd17, real *albmed, real *trnmed, integer *nd18, 
+	real *u0u, integer *nd19, real *uu)
 {
     /* System generated locals */
     integer i__1;
@@ -6383,9 +6302,7 @@ real *uu;
     return 0;
 } /* zeroal_ */
 
-/* Subroutine */ int zeroit_(a, length)
-real *a;
-integer *length;
+/* Subroutine */ int zeroit_(real *a, integer *length)
 {
     /* System generated locals */
     integer i__1;
@@ -6419,21 +6336,16 @@ integer *length;
 /* ****************************************************************** */
 /* ********** IBCND=1 special case routines ************************* */
 /* ****************************************************************** */
-/* Subroutine */ int albtrn_(albedo, amb, apb, array, b, bdr, cband, cc, cmu, 
-	cwt, dtaucp, eval, evecc, gl, gc, gu, ipvt, kk, ll, nlyr, nn, nstr, 
-	numu, prnt, taucpr, umu, u0u, wk, ylmc, ylmu, z__, aad, evald, eveccd,
-	 wkd, mi, mi9m2, maxulv, maxumu, mxcmu, mxumu, nnlyri, sqt, albmed, 
+/* Subroutine */ int albtrn_(real *albedo, real *amb, real *apb, real *array, 
+	real *b, real *bdr, real *cband, real *cc, real *cmu, real *cwt, real 
+	*dtaucp, real *eval, real *evecc, real *gl, real *gc, real *gu, 
+	integer *ipvt, real *kk, real *ll, integer *nlyr, integer *nn, 
+	integer *nstr, integer *numu, logical *prnt, real *taucpr, real *umu, 
+	real *u0u, real *wk, real *ylmc, real *ylmu, real *z__, doublereal *
+	aad, doublereal *evald, doublereal *eveccd, doublereal *wkd, integer *
+	mi, integer *mi9m2, integer *maxulv, integer *maxumu, integer *mxcmu, 
+	integer *mxumu, integer *nnlyri, real *sqt, real *albmed, real *
 	trnmed)
-real *albedo, *amb, *apb, *array, *b, *bdr, *cband, *cc, *cmu, *cwt, *dtaucp, 
-	*eval, *evecc, *gl, *gc, *gu;
-integer *ipvt;
-real *kk, *ll;
-integer *nlyr, *nn, *nstr, *numu;
-logical *prnt;
-real *taucpr, *umu, *u0u, *wk, *ylmc, *ylmu, *z__;
-doublereal *aad, *evald, *eveccd, *wkd;
-integer *mi, *mi9m2, *maxulv, *maxumu, *mxcmu, *mxumu, *nnlyri;
-real *sqt, *albmed, *trnmed;
 {
     /* System generated locals */
     integer amb_dim1, amb_offset, apb_dim1, apb_offset, array_dim1, 
@@ -6445,28 +6357,43 @@ real *sqt, *albmed, *trnmed;
 	    aad_offset, eveccd_dim1, eveccd_offset, i__1, i__2;
 
     /* Builtin functions */
-    double exp();
+    double exp(doublereal);
 
     /* Local variables */
+    static integer l, lc, iq, iu, ncd;
+    static real sgn;
     static integer ncol, ncut;
     static real delm0;
-    static integer l;
-    extern /* Subroutine */ int sgbco_();
+    extern /* Subroutine */ int sgbco_(real *, integer *, integer *, integer *
+	    , integer *, integer *, real *, real *);
     static real rcond;
     static integer mazim;
     static real fisot;
-    extern /* Subroutine */ int solve1_();
-    static integer lc, iq, iu;
+    extern /* Subroutine */ int solve1_(real *, real *, real *, integer *, 
+	    integer *, real *, integer *, integer *, integer *, integer *, 
+	    integer *, integer *, integer *);
     static logical lamber;
     static real sphalb;
-    extern /* Subroutine */ int soleig_(), altrin_(), errmsg_(), lepoly_(), 
-	    praltr_(), spaltr_(), terpev_();
+    extern /* Subroutine */ int soleig_(real *, real *, real *, real *, real *
+	    , real *, integer *, integer *, integer *, integer *, integer *, 
+	    real *, real *, real *, real *, real *, real *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *), altrin_(real *, real *,
+	     real *, integer *, integer *, integer *, integer *, integer *, 
+	    integer *, integer *, real *, real *, real *, real *), errmsg_(
+	    char *, logical *, ftnlen), lepoly_(integer *, integer *, integer 
+	    *, integer *, real *, real *, real *), praltr_(real *, integer *, 
+	    real *, real *), spaltr_(real *, real *, real *, real *, real *, 
+	    integer *, integer *, integer *, integer *, real *, real *, real *
+	    ), terpev_(real *, real *, real *, real *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, real *, real *, real *
+	    );
     static real sphtrn;
-    extern /* Subroutine */ int zeroit_();
+    extern /* Subroutine */ int zeroit_(real *, integer *);
     static logical lyrcut;
-    extern /* Subroutine */ int setmtx_();
-    static integer ncd;
-    static real sgn;
+    extern /* Subroutine */ int setmtx_(real *, real *, real *, real *, real *
+	    , real *, real *, real *, logical *, logical *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *, 
+	    integer *, real *, real *);
 
 /*    DISORT special case to get only albedo and transmissivity */
 /*    of entire medium as a function of incident beam angle */
@@ -6532,67 +6459,67 @@ real *sqt, *albmed, *trnmed;
     --ipvt;
     --prnt;
     eveccd_dim1 = *mi;
-    eveccd_offset = 1 + eveccd_dim1 * 1;
+    eveccd_offset = 1 + eveccd_dim1;
     eveccd -= eveccd_offset;
     --evald;
     aad_dim1 = *mi;
-    aad_offset = 1 + aad_dim1 * 1;
+    aad_offset = 1 + aad_dim1;
     aad -= aad_offset;
     --eval;
     bdr_dim1 = *mi;
     bdr_offset = 1 + bdr_dim1 * 0;
     bdr -= bdr_offset;
     apb_dim1 = *mi;
-    apb_offset = 1 + apb_dim1 * 1;
+    apb_offset = 1 + apb_dim1;
     apb -= apb_offset;
     amb_dim1 = *mi;
-    amb_offset = 1 + amb_dim1 * 1;
+    amb_offset = 1 + amb_dim1;
     amb -= amb_offset;
     --trnmed;
     --albmed;
     u0u_dim1 = *maxumu;
-    u0u_offset = 1 + u0u_dim1 * 1;
+    u0u_offset = 1 + u0u_dim1;
     u0u -= u0u_offset;
     --umu;
     --wkd;
     ylmu_dim1 = *mxcmu - 0 + 1;
-    ylmu_offset = 0 + ylmu_dim1 * 1;
+    ylmu_offset = 0 + ylmu_dim1;
     ylmu -= ylmu_offset;
     ylmc_dim1 = *mxcmu - 0 + 1;
-    ylmc_offset = 0 + ylmc_dim1 * 1;
+    ylmc_offset = 0 + ylmc_dim1;
     ylmc -= ylmc_offset;
     --wk;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1 * 1;
+    ll_offset = 1 + ll_dim1;
     ll -= ll_offset;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1 * 1;
+    kk_offset = 1 + kk_dim1;
     kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
     gc -= gc_offset;
     gl_dim1 = *mxcmu - 0 + 1;
-    gl_offset = 0 + gl_dim1 * 1;
+    gl_offset = 0 + gl_dim1;
     gl -= gl_offset;
     evecc_dim1 = *mxcmu;
-    evecc_offset = 1 + evecc_dim1 * 1;
+    evecc_offset = 1 + evecc_dim1;
     evecc -= evecc_offset;
     --cwt;
     --cmu;
     cc_dim1 = *mxcmu;
-    cc_offset = 1 + cc_dim1 * 1;
+    cc_offset = 1 + cc_dim1;
     cc -= cc_offset;
     array_dim1 = *mxcmu;
-    array_offset = 1 + array_dim1 * 1;
+    array_offset = 1 + array_dim1;
     array -= array_offset;
     gu_dim1 = *mxumu;
     gu_dim2 = *mxcmu;
-    gu_offset = 1 + gu_dim1 * (1 + gu_dim2 * 1);
+    gu_offset = 1 + gu_dim1 * (1 + gu_dim2);
     gu -= gu_offset;
     --z__;
     cband_dim1 = *mi9m2;
-    cband_offset = 1 + cband_dim1 * 1;
+    cband_offset = 1 + cband_dim1;
     cband -= cband_offset;
     --b;
     --sqt;
@@ -6751,23 +6678,22 @@ real *sqt, *albmed, *trnmed;
     return 0;
 } /* albtrn_ */
 
-/* Subroutine */ int altrin_(gu, kk, ll, mxcmu, mxumu, maxumu, nlyr, nn, nstr,
-	 numu, taucpr, umu, u0u, wk)
-real *gu, *kk, *ll;
-integer *mxcmu, *mxumu, *maxumu, *nlyr, *nn, *nstr, *numu;
-real *taucpr, *umu, *u0u, *wk;
+/* Subroutine */ int altrin_(real *gu, real *kk, real *ll, integer *mxcmu, 
+	integer *mxumu, integer *maxumu, integer *nlyr, integer *nn, integer *
+	nstr, integer *numu, real *taucpr, real *umu, real *u0u, real *wk)
 {
     /* System generated locals */
     integer gu_dim1, gu_dim2, gu_offset, kk_dim1, kk_offset, ll_dim1, 
 	    ll_offset, u0u_dim1, u0u_offset, i__1, i__2, i__3;
 
     /* Builtin functions */
-    double exp();
+    double exp(doublereal);
 
     /* Local variables */
-    static real dtau, expn, denom;
-    static integer iumin, iumax, lc, iq, iu, lu;
-    static real mu, palint, utaupr[2], sgn, exp1, exp2;
+    static integer lc, iq, iu, lu;
+    static real mu, sgn, exp1, exp2, dtau, expn, denom;
+    static integer iumin, iumax;
+    static real palint, utaupr[2];
 
 /*       Computes azimuthally-averaged intensity at top and bottom */
 /*       of medium (related to albedo and transmission of medium by */
@@ -6834,17 +6760,17 @@ real *taucpr, *umu, *u0u, *wk;
     /* Parameter adjustments */
     --wk;
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1 * 1;
+    ll_offset = 1 + ll_dim1;
     ll -= ll_offset;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1 * 1;
+    kk_offset = 1 + kk_dim1;
     kk -= kk_offset;
     gu_dim1 = *mxumu;
     gu_dim2 = *mxcmu;
-    gu_offset = 1 + gu_dim1 * (1 + gu_dim2 * 1);
+    gu_offset = 1 + gu_dim1 * (1 + gu_dim2);
     gu -= gu_offset;
     u0u_dim1 = *maxumu;
-    u0u_offset = 1 + u0u_dim1 * 1;
+    u0u_offset = 1 + u0u_dim1;
     u0u -= u0u_offset;
     --umu;
 
@@ -6915,18 +6841,16 @@ real *taucpr, *umu, *u0u, *wk;
     return 0;
 } /* altrin_ */
 
-/* Subroutine */ int praltr_(umu, numu, albmed, trnmed)
-real *umu;
-integer *numu;
-real *albmed, *trnmed;
+/* Subroutine */ int praltr_(real *umu, integer *numu, real *albmed, real *
+	trnmed)
 {
     /* System generated locals */
     integer i__1;
     real r__1;
 
     /* Builtin functions */
-    integer s_wsfe(), do_fio(), e_wsfe();
-    double acos();
+    integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
+    double acos(doublereal);
 
     /* Local variables */
     static integer iu;
@@ -6977,22 +6901,18 @@ ivity", (ftnlen)62);
     return 0;
 } /* praltr_ */
 
-/* Subroutine */ int solve1_(b, cband, fisot, ihom, ipvt, ll, mi9m2, mxcmu, 
-	ncol, ncut, nn, nnlyri, nstr)
-real *b, *cband, *fisot;
-integer *ihom, *ipvt;
-real *ll;
-integer *mi9m2, *mxcmu, *ncol, *ncut, *nn, *nnlyri, *nstr;
+/* Subroutine */ int solve1_(real *b, real *cband, real *fisot, integer *ihom,
+	 integer *ipvt, real *ll, integer *mi9m2, integer *mxcmu, integer *
+	ncol, integer *ncut, integer *nn, integer *nnlyri, integer *nstr)
 {
     /* System generated locals */
     integer cband_dim1, cband_offset, ll_dim1, ll_offset, i__1, i__2;
 
     /* Local variables */
-    static integer ipnt, i__;
-    extern /* Subroutine */ int sgbsl_();
-    static integer lc, iq;
-    extern /* Subroutine */ int zeroit_();
-    static integer ncd;
+    static integer i__, lc, iq, ncd, ipnt;
+    extern /* Subroutine */ int sgbsl_(real *, integer *, integer *, integer *
+	    , integer *, integer *, real *, integer *), zeroit_(real *, 
+	    integer *);
 
 /*        Construct right-hand side vector B for isotropic incidence */
 /*        (only) on either top or bottom boundary and solve system */
@@ -7042,11 +6962,11 @@ integer *mi9m2, *mxcmu, *ncol, *ncut, *nn, *nnlyri, *nstr;
 /*     .. */
     /* Parameter adjustments */
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1 * 1;
+    ll_offset = 1 + ll_dim1;
     ll -= ll_offset;
     --ipvt;
     cband_dim1 = *mi9m2;
-    cband_offset = 1 + cband_dim1 * 1;
+    cband_offset = 1 + cband_dim1;
     cband -= cband_offset;
     --b;
 
@@ -7086,22 +7006,20 @@ integer *mi9m2, *mxcmu, *ncol, *ncut, *nn, *nnlyri, *nstr;
     return 0;
 } /* solve1_ */
 
-/* Subroutine */ int spaltr_(cmu, cwt, gc, kk, ll, mxcmu, nlyr, nn, nstr, 
-	taucpr, sflup, sfldn)
-real *cmu, *cwt, *gc, *kk, *ll;
-integer *mxcmu, *nlyr, *nn, *nstr;
-real *taucpr, *sflup, *sfldn;
+/* Subroutine */ int spaltr_(real *cmu, real *cwt, real *gc, real *kk, real *
+	ll, integer *mxcmu, integer *nlyr, integer *nn, integer *nstr, real *
+	taucpr, real *sflup, real *sfldn)
 {
     /* System generated locals */
     integer gc_dim1, gc_dim2, gc_offset, kk_dim1, kk_offset, ll_dim1, 
 	    ll_offset, i__1, i__2;
 
     /* Builtin functions */
-    double exp();
+    double exp(doublereal);
 
     /* Local variables */
-    static real zint;
     static integer iq, jq;
+    static real zint;
 
 /*       Calculates spherical albedo and transmissivity for the entire */
 /*       medium from the m=0 intensity components */
@@ -7152,14 +7070,14 @@ real *taucpr, *sflup, *sfldn;
 /*     .. */
     /* Parameter adjustments */
     ll_dim1 = *mxcmu;
-    ll_offset = 1 + ll_dim1 * 1;
+    ll_offset = 1 + ll_dim1;
     ll -= ll_offset;
     kk_dim1 = *mxcmu;
-    kk_offset = 1 + kk_dim1 * 1;
+    kk_offset = 1 + kk_dim1;
     kk -= kk_offset;
     gc_dim1 = *mxcmu;
     gc_dim2 = *mxcmu;
-    gc_offset = 1 + gc_dim1 * (1 + gc_dim2 * 1);
+    gc_offset = 1 + gc_dim1 * (1 + gc_dim2);
     gc -= gc_offset;
     --cwt;
     --cmu;
@@ -7208,3 +7126,6 @@ real *taucpr, *sflup, *sfldn;
     return 0;
 } /* spaltr_ */
 
+#ifdef __cplusplus
+	}
+#endif

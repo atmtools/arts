@@ -174,6 +174,19 @@ arts_SOURCES = \
 	lin_alg.cc \
 	supergeneric.h
 
+if DISORT
+noinst_LIBRARIES = libdisort.a
+LDADD = -lf2c libdisort.a
+
+libdisort_a_SOURCES = \
+	disort_D1MACH.c \
+	disort_DISORT.c \
+	disort_ErrPack.c \
+	disort_FAKEMAIN.c \
+	disort_LINPAK.c \
+	disort_R1MACH.c
+endif
+
 methods.o: arts.h arts_mpi.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h methods.cc
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c methods.cc
@@ -1157,6 +1170,18 @@ test_complex_SOURCES = \
 	complex.h \
 	complex.cc \
 	test_complex.cc
+
+if DISORT
+noinst_PROGRAMS += test_disort
+
+test_disort_SOURCES = \
+	disort_DISOTEST.c \
+	disort_D1MACH.c \
+	disort_DISORT.c \
+	disort_ErrPack.c \
+	disort_LINPAK.c \
+	disort_R1MACH.c
+endif
 
 test_mpi_SOURCES = \
 	arts.cc \

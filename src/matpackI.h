@@ -413,7 +413,7 @@ public:
   // Conversion to 1 column matrix:
   operator MatrixView();
   // Conversion to a plain C-array
-  Numeric * const get_c_array();
+  Numeric *get_c_array();
 
   // Friends:
   friend class ConstIterator2D;
@@ -710,7 +710,7 @@ public:
   MatrixView& operator-=(const ConstVectorView& x);
 
   // Conversion to a plain C-array
-  Numeric * const get_c_array();
+  Numeric *get_c_array();
 
   // Friends:
   friend class VectorView;

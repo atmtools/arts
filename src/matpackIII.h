@@ -277,7 +277,7 @@ public:
     }
 
   // Conversion to a plain C-array
-  Numeric * const get_c_array();
+  Numeric *get_c_array();
 
   // Functions returning const iterators:
   ConstIterator3D begin() const;

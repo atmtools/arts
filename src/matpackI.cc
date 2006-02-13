@@ -516,7 +516,7 @@ VectorView::operator MatrixView()
   VectorView is not pointing to the beginning of a Vector or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Numeric * const VectorView::get_c_array()
+Numeric * VectorView::get_c_array()
 {
   if (mrange.mstart != 0 || mrange.mstride != 1)
     throw runtime_error("A VectorView can only be converted to a plain C-array if mrange.mstart == 0 and mrange.mstride == 1");
@@ -1149,7 +1149,7 @@ MatrixView& MatrixView::operator-=(Numeric x)
   MatrixView is not pointing to the beginning of a Matrix or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Numeric * const MatrixView::get_c_array()
+Numeric *MatrixView::get_c_array()
 {
   if (mrr.mstart != 0 || mrr.mstride != mcr.mextent
       || mcr.mstart != 0 || mcr.mstride != 1)

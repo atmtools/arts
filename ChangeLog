@@ -1,3 +1,42 @@
+2006-02-14  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1060
+	
+	* configure.in:
+
+	Enable DISORT support if f2c library is found. Can be disabled by
+	passing --disable-disort to autogen.sh/configure.
+
+	* src/Makefile.am:
+
+	Added static DISORT library.
+
+	Added test_disort created from disort_DISOTEST.c.
+
+	Both are enabled conditionally.
+
+	* src/DISORT.c: Renamed.
+
+	* src/disort_D1MACH.c, src/disort_DISORTsp.c, disort_ErrPack.c,
+	disort_LINPAK.c, disort_DISORT.c, disort_DISOTEST.c,
+	disort_FAKEMAIN.c, disort_R1MACH.c:
+
+	Added. Created with 'f2c -C++' from the fortran code.
+	
+	* src/disort_FAKEMAIN.c:
+
+	Contains an empty MAIN__ function which is required by the f2c
+	library.
+
+	* src/f2c.h: Removed. Changes broke DISORT results.
+
+	* src/matpackI.{cc,h}, src/matpackIII.{cc,h}:
+
+	Return a non-const pointer. The f2c code decrements the array pointers
+	by one to get one-based indexing. *shudder*
+
+	* src/.cvsignore: Added test_disort.
+
 2006-02-13  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1059

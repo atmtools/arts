@@ -46,7 +46,7 @@
 #include "m_general.h"
 #include "wsv_aux.h"
 #include "disort.h"
-#include "physics_funcs.h"
+//#include "physics_funcs.h"
 #include "DISORT.h"
 
 extern const Numeric PI;
@@ -213,12 +213,16 @@ void ScatteringDisort(// WS Output:
   
   Index header_len;
 
+#ifdef DISORT
   disort_((integer*)nlyr, (float*) dtauc, ssalb, pmom, t_field(joker,0,0), wvnmlo, wvnmhi,
          usrtau, ntau, utau, nstr, usrang, numu, umu, nphi, phi, ibcnd, fbeam,
           umu0, phi0, fisot, lamber, albedo, hl, btemp, ttemp, temis, deltam, 
           plank, onlyfl, accur, prnt, header, maxcly, maxulv, maxumu, maxcmu, 
           maxphi, rfldir, rfldn, flup, dfdt, uavg, uu, u0u, albmed, trnmed, 
           header_len);
+#else
+  throw runtime_error ("This version of ARTS was compiled without DISORT support.");
+#endif
   */
 }
 

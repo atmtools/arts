@@ -433,7 +433,7 @@ VectorView Tensor3View::operator()(const Range& p,
   Tensor3View is not pointing to the beginning of a Tensor3 or the stride
   is not 1 because the caller expects to get a C array with continuous data.
 */
-Numeric * const Tensor3View::get_c_array()
+Numeric *Tensor3View::get_c_array()
 {
   if (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
       || mrr.mstart != 0 || mrr.mstride != mcr.mextent

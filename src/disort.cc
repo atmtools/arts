@@ -316,3 +316,7 @@ void pmomCalc(//Output
       }
     }
 }
+
+/* libf2c wants a MAIN__ function, so we'll give it one */
+int MAIN__() { return 0; }
+
