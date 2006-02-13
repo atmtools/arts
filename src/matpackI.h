@@ -412,6 +412,8 @@ public:
 
   // Conversion to 1 column matrix:
   operator MatrixView();
+  // Conversion to a plain C-array
+  Numeric * const get_c_array();
 
   // Friends:
   friend class ConstIterator2D;
@@ -425,6 +427,7 @@ public:
 
   // A special constructor, that allows to make a VectorView of a scalar.
   VectorView(Numeric& a);
+
 
 protected:
   // Constructors:
@@ -705,6 +708,9 @@ public:
   MatrixView& operator/=(const ConstVectorView& x);
   MatrixView& operator+=(const ConstVectorView& x);
   MatrixView& operator-=(const ConstVectorView& x);
+
+  // Conversion to a plain C-array
+  Numeric * const get_c_array();
 
   // Friends:
   friend class VectorView;

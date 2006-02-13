@@ -23,6 +23,7 @@
 */
 
 #include "matpackIII.h"
+#include "exceptions.h"
 
 // Functions for ConstTensor3View:
 // ------------------------------
@@ -424,6 +425,22 @@ VectorView Tensor3View::operator()(const Range& p,
                     mrr.mstart + r*mrr.mstride +
                     mcr.mstart + c*mcr.mstride,
                     mpr, p);
+}
+
+/** Conversion to plain C-array.
+
+  This function returns a pointer to the raw data. It fails if the
+  Tensor3View is not pointing to the beginning of a Tensor3 or the stride
+  is not 1 because the caller expects to get a C array with continuous data.
+*/
+Numeric * const Tensor3View::get_c_array()
+{
+  if (mpr.mstart != 0 || mpr.mstride != mrr.mextent * mcr.mextent
+      || mrr.mstart != 0 || mrr.mstride != mcr.mextent
+      || mcr.mstart != 0 || mcr.mstride != 1)
+    throw runtime_error("A Tensor3View can only be converted to a plain C-array if mpr.mstart == 0 and mpr.mstride == mrr.extent*mcr.extent and mrr.mstart == 0 and mrr.mstride == mcr.extent and mcr.mstart == 0 and mcr.mstride == 1");
+
+  return mdata;
 }
 
 /** Return const iterator to first row. Has to be redefined here, since it is

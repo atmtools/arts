@@ -1,3 +1,14 @@
+2006-02-13  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1059
+	
+	* src/matpackI.{cc,h}, src/matpackIII.{cc,h}:
+
+	Added get_c_array function to VectorView, MatrixView and Tensor3View.
+	This function returns a pointer to the raw data.
+
+	* src/test_matpack.cc: Added test38 to check get_c_array functions.
+
 2006-02-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1058

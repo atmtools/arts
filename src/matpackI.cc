@@ -510,6 +510,20 @@ VectorView::operator MatrixView()
   return MatrixView(mdata,mrange,Range(mrange.mstart,1));
 }
 
+/** Conversion to plain C-array.
+
+  This function returns a pointer to the raw data. It fails if the
+  VectorView is not pointing to the beginning of a Vector or the stride
+  is not 1 because the caller expects to get a C array with continuous data.
+*/
+Numeric * const VectorView::get_c_array()
+{
+  if (mrange.mstart != 0 || mrange.mstride != 1)
+    throw runtime_error("A VectorView can only be converted to a plain C-array if mrange.mstart == 0 and mrange.mstride == 1");
+
+  return mdata;
+}
+
 /** A special constructor, which allows to make a VectorView from
     a scalar.
 */
@@ -1127,6 +1141,21 @@ MatrixView& MatrixView::operator-=(Numeric x)
         *c -= x;
     }
   return *this;
+}
+
+/** Conversion to plain C-array.
+
+  This function returns a pointer to the raw data. It fails if the
+  MatrixView is not pointing to the beginning of a Matrix or the stride
+  is not 1 because the caller expects to get a C array with continuous data.
+*/
+Numeric * const MatrixView::get_c_array()
+{
+  if (mrr.mstart != 0 || mrr.mstride != mcr.mextent
+      || mcr.mstart != 0 || mcr.mstride != 1)
+    throw runtime_error("A MatrixView can only be converted to a plain C-array if mrr.mstart == 0 and mrr.mstride == mcr.extent and mcr.mstart == 0 and mcr.mstride == 1");
+
+  return mdata;
 }
 
 /** Element-vise multiplication by another Matrix. */

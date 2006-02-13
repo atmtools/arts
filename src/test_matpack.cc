@@ -726,6 +726,33 @@ cout << v1 << endl;
   cout << v2 << endl;
 }
 
+void test38 ()
+{
+  Vector v (5, 0.);
+  Numeric * const a = v.get_c_array();
+
+  a[4] = 5.;
+
+  cout << v << endl;
+  cout << endl << "========================" << endl << endl;
+
+  Matrix m (5, 5, 0.);
+  Numeric * const b = m.get_c_array();
+
+  b[4] = 5.;
+
+  cout << m << endl;
+  cout << endl << "========================" << endl << endl;
+
+  Tensor3 t3 (5, 6, 7, 0.);
+  Numeric * const c = t3.get_c_array();
+
+  c[6] = 5.;
+
+  cout << t3 << endl;
+
+}
+
 int main()
 {
 //   test1();
@@ -764,8 +791,9 @@ int main()
 //   test34();
 //   test35();
 //   test36();
-  Index i = 10000000;
-  test37(i);
+//  Index i = 10000000;
+//  test37(i);
+  test38();
 
   return 0;
 }

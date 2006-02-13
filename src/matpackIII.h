@@ -276,6 +276,9 @@ public:
                 mcr.mstart + c*mcr.mstride );
     }
 
+  // Conversion to a plain C-array
+  Numeric * const get_c_array();
+
   // Functions returning const iterators:
   ConstIterator3D begin() const;
   ConstIterator3D end() const;
