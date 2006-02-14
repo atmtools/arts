@@ -1183,7 +1183,7 @@ test_disort_SOURCES = \
 	disort_R1MACH.c
 else
 
-test_disort:
+test_disort$(EXEEXT):
 
 endif
 
