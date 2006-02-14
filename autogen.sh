@@ -7,7 +7,7 @@ ACLOCAL_FLAGS="$ACLOCAL_FLAGS -I m4"
 
 # default version requirements ...
 REQUIRED_AUTOCONF_VERSION=${REQUIRED_AUTOCONF_VERSION:-2.13}
-REQUIRED_AUTOMAKE_VERSION=${REQUIRED_AUTOMAKE_VERSION:-1.4}
+REQUIRED_AUTOMAKE_VERSION=${REQUIRED_AUTOMAKE_VERSION:-1.6}
 
 # Not all echo versions allow -n, so we check what is possible. This test is
 # based on the one in autoconf.

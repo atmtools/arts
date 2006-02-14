@@ -212,6 +212,7 @@ noinst_PROGRAMS = \
 	make_auto_wsv_groups_h \
 	make_auto_wsv_h \
 	test_binaryio \
+	test_disort \
 	test_matpack \
 	test_sparse \
 	test_poly \
@@ -1172,7 +1173,6 @@ test_complex_SOURCES = \
 	test_complex.cc
 
 if DISORT
-noinst_PROGRAMS += test_disort
 
 test_disort_SOURCES = \
 	disort_DISOTEST.c \
@@ -1181,6 +1181,10 @@ test_disort_SOURCES = \
 	disort_ErrPack.c \
 	disort_LINPAK.c \
 	disort_R1MACH.c
+else
+
+test_disort:
+
 endif
 
 test_mpi_SOURCES = \

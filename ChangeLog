@@ -1,5 +1,19 @@
 2006-02-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1062
+	
+	* autogen.sh:
+
+	Require automake >= 1.6. automake-1.4 is ancient and its dependency
+	tracking is broken. (e.g. tries to compile the auto_ sources on 'make
+	clean')
+
+	* src/Makefile.am:
+
+	Move test_disort out of the conditional to make automake-1.6 happy.
+
+2006-02-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1061
 	
 	* src/disort.cc: Removed MAIN__ which is now in disort_FAKEMAIN.c.
