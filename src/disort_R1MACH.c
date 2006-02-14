@@ -21,12 +21,12 @@ static logical c_true = TRUE_;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* RCS version control information: */
-/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_R1MACH.c,v 1.1 2006/02/13 23:27:19 olemke Exp $ */
+/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_R1MACH.c,v 1.2 2006/02/14 15:41:17 olemke Exp $ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 doublereal r1mach_(integer *i__)
 {
     /* System generated locals */
-    real ret_val;
+    doublereal ret_val;
 
     /* Local variables */
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
@@ -70,13 +70,13 @@ doublereal r1mach_(integer *i__)
 /*      http://www.netlib.org/ */
 /* ==================================================================== */
     if (*i__ == 1) {
-	ret_val = (float)1.2e-38;
+	ret_val = 1.2e-38;
 /*        R1MACH = TINY(1.0) */
     } else if (*i__ == 2) {
-	ret_val = (float)3.4e38;
+	ret_val = 3.4e38;
 /*        R1MACH = HUGE(1.0) */
     } else if (*i__ == 4) {
-	ret_val = (float)1.2e-7;
+	ret_val = 1.2e-7;
 /*        R1MACH = EPSILON(1.0) */
     } else {
 	errmsg_("R1MACH--argument incorrect", &c_true, (ftnlen)26);

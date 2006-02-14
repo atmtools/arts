@@ -22,7 +22,7 @@ static logical c_true = TRUE_;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* RCS version control information: */
-/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_ErrPack.c,v 1.1 2006/02/13 23:27:19 olemke Exp $ */
+/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_ErrPack.c,v 1.2 2006/02/14 15:41:17 olemke Exp $ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* Subroutine */ int errmsg_(char *messag, logical *fatal, ftnlen messag_len)
 {
@@ -135,10 +135,10 @@ logical wrtdim_(char *dimnam, integer *minval, ftnlen dimnam_len)
     return ret_val;
 } /* wrtdim_ */
 
-logical tstbad_(char *varnam, real *relerr, ftnlen varnam_len)
+logical tstbad_(char *varnam, doublereal *relerr, ftnlen varnam_len)
 {
     /* System generated locals */
-    real r__1;
+    doublereal d__1;
     logical ret_val;
 
     /* Builtin functions */
@@ -155,8 +155,8 @@ logical tstbad_(char *varnam, real *relerr, ftnlen varnam_len)
     do_fio(&c__1, " Output variable ", (ftnlen)17);
     do_fio(&c__1, varnam, varnam_len);
     do_fio(&c__1, " differed by ", (ftnlen)13);
-    r__1 = *relerr * (float)100.;
-    do_fio(&c__1, (char *)&r__1, (ftnlen)sizeof(real));
+    d__1 = *relerr * 100.;
+    do_fio(&c__1, (char *)&d__1, (ftnlen)sizeof(doublereal));
     do_fio(&c__1, " per cent from correct value.  Self-test failed.", (ftnlen)
 	    48);
     e_wsfe();

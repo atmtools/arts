@@ -48,17 +48,19 @@ static integer c__100 = 100;
 /* ~~~~~~~~~~~~ */
 /* VERSION 1.2 */
 /* ~~~~~~~~~~~~ */
-/* Subroutine */ int disort_(integer *nlyr, real *dtauc, real *ssalb, real *
-	pmom, real *temper, real *wvnmlo, real *wvnmhi, logical *usrtau, 
-	integer *ntau, real *utau, integer *nstr, logical *usrang, integer *
-	numu, real *umu, integer *nphi, real *phi, integer *ibcnd, real *
-	fbeam, real *umu0, real *phi0, real *fisot, logical *lamber, real *
-	albedo, real *hl, real *btemp, real *ttemp, real *temis, logical *
-	deltam, logical *plank, logical *onlyfl, real *accur, logical *prnt, 
-	char *header, integer *maxcly, integer *maxulv, integer *maxumu, 
-	integer *maxcmu, integer *maxphi, real *rfldir, real *rfldn, real *
-	flup, real *dfdt, real *uavg, real *uu, real *u0u, real *albmed, real 
-	*trnmed, ftnlen header_len)
+/* Subroutine */ int disort_(integer *nlyr, doublereal *dtauc, doublereal *
+	ssalb, doublereal *pmom, doublereal *temper, doublereal *wvnmlo, 
+	doublereal *wvnmhi, logical *usrtau, integer *ntau, doublereal *utau, 
+	integer *nstr, logical *usrang, integer *numu, doublereal *umu, 
+	integer *nphi, doublereal *phi, integer *ibcnd, doublereal *fbeam, 
+	doublereal *umu0, doublereal *phi0, doublereal *fisot, logical *
+	lamber, doublereal *albedo, doublereal *hl, doublereal *btemp, 
+	doublereal *ttemp, doublereal *temis, logical *deltam, logical *plank,
+	 logical *onlyfl, doublereal *accur, logical *prnt, char *header, 
+	integer *maxcly, integer *maxulv, integer *maxumu, integer *maxcmu, 
+	integer *maxphi, doublereal *rfldir, doublereal *rfldn, doublereal *
+	flup, doublereal *dfdt, doublereal *uavg, doublereal *uu, doublereal *
+	u0u, doublereal *albmed, doublereal *trnmed, ftnlen header_len)
 {
     /* Initialized data */
 
@@ -68,7 +70,7 @@ static integer c__100 = 100;
     address a__1[2];
     integer pmom_dim1, pmom_offset, u0u_dim1, u0u_offset, uu_dim1, uu_dim2, 
 	    uu_offset, i__1[2], i__2, i__3, i__4, i__5;
-    real r__1, r__2, r__3, r__4, r__5;
+    doublereal d__1, d__2, d__3, d__4, d__5;
     char ch__1[136];
 
     /* Builtin functions */
@@ -79,147 +81,179 @@ static integer c__100 = 100;
     double cos(doublereal);
 
     /* Local variables */
-    static real b[288];
+    static doublereal b[288];
     static integer j, l;
-    static real z__[288], z0[48], z1[48], cc[2304]	/* was [48][48] */, 
-	    gc[13824]	/* was [48][48][6] */;
+    static doublereal z__[288], z0[48], z1[48], cc[2304]	/* was [48][
+	    48] */, gc[13824]	/* was [48][48][6] */;
     static integer lc;
-    static real gl[294]	/* was [49][6] */, kk[288]	/* was [48][6] */, ll[
-	    288]	/* was [48][6] */, pi;
+    static doublereal gl[294]	/* was [49][6] */, kk[288]	/* was [48][6]
+	     */, ll[288]	/* was [48][6] */, pi;
     static integer iq, nn;
-    static real gu[2880]	/* was [10][48][6] */;
+    static doublereal gu[2880]	/* was [10][48][6] */;
     static integer iu, lu, ns;
-    static real wk[48], zj[48], zz[288]	/* was [48][6] */, u0c[240]	/* 
-	    was [48][5] */, xr0[6], xr1[6], z0u[60]	/* was [10][6] */, 
-	    z1u[60]	/* was [10][6] */;
-    static doublereal aad[576]	/* was [24][24] */;
-    static real amb[576]	/* was [24][24] */, apb[576]	/* was [24][
-	    24] */, bem[24], bdr[600]	/* was [24][25] */, cmu[48], dum;
+    static doublereal wk[48], zj[48], zz[288]	/* was [48][6] */, u0c[240]	
+	    /* was [48][5] */, xr0[6], xr1[6], z0u[60]	/* was [10][6] */, 
+	    z1u[60]	/* was [10][6] */, aad[576]	/* was [24][24] */, 
+	    amb[576]	/* was [24][24] */, apb[576]	/* was [24][24] */, 
+	    bem[24], bdr[600]	/* was [24][25] */, cmu[48], dum;
     static integer lev;
-    static real rpd;
+    static doublereal rpd;
     static integer naz;
-    static real sgn, emu[10], psi[48];
-    static doublereal wkd[48];
-    static real cwt[48], rmu[250]	/* was [10][25] */, uum[50]	/* 
-	    was [10][5] */, sqt[1000], ylm0[49], pkag[7], fldn[5], eval[24];
+    static doublereal sgn, emu[10], psi[48], wkd[48], cwt[48], rmu[250]	/* 
+	    was [10][25] */, uum[50]	/* was [10][5] */, sqt[1000], ylm0[49]
+	    , pkag[7], fldn[5], eval[24];
     static integer ncol;
-    static real tauc[7];
+    static doublereal tauc[7];
     static integer ncos;
-    static real ylmc[2352]	/* was [49][48] */, hlpr[49];
+    static doublereal ylmc[2352]	/* was [49][48] */, hlpr[49];
     static integer ncut;
-    static real flyr[6];
+    static doublereal flyr[6];
     static integer ipvt[288];
-    static real ylmu[490]	/* was [49][10] */, delm0, zplk0[288]	/* 
+    static doublereal ylmu[490]	/* was [49][10] */, delm0, zplk0[288]	/* 
 	    was [48][6] */, zplk1[288]	/* was [48][6] */, cband[61632]	/* 
-	    was [214][288] */, evecc[2304]	/* was [48][48] */;
-    static doublereal evald[24];
-    static real zbeam[60]	/* was [10][6] */, fldir[5];
+	    was [214][288] */, evecc[2304]	/* was [48][48] */, evald[24],
+	     zbeam[60]	/* was [10][6] */, fldir[5];
     static integer mazim;
-    static real array[2304]	/* was [48][48] */;
-    extern doublereal ratio_(real *, real *);
+    static doublereal array[2304]	/* was [48][48] */;
+    extern doublereal ratio_(doublereal *, doublereal *);
     static integer kconv;
-    static real azerr, oprim[6];
+    static doublereal azerr, oprim[6];
     static integer layru[5];
     extern doublereal r1mach_(integer *);
-    extern /* Subroutine */ int solve0_(real *, real *, real *, real *, real *
-	    , real *, real *, real *, real *, real *, integer *, logical *, 
-	    real *, logical *, integer *, integer *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, integer *, real *, 
-	    real *, real *, real *, real *, real *, real *, real *);
+    extern /* Subroutine */ int solve0_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
+	     logical *, doublereal *, logical *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *, 
+	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, doublereal *);
     static doublereal eveccd[576]	/* was [24][24] */;
-    extern /* Subroutine */ int chekin_(integer *, real *, real *, real *, 
-	    real *, real *, real *, logical *, integer *, real *, integer *, 
-	    logical *, integer *, real *, integer *, real *, integer *, real *
-	    , real *, real *, real *, logical *, real *, real *, real *, real 
-	    *, real *, logical *, logical *, real *, real *, integer *, 
+    extern /* Subroutine */ int chekin_(integer *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, doublereal *, logical *
+	    , integer *, doublereal *, integer *, logical *, integer *, 
+	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, logical *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, doublereal *, logical *
+	    , logical *, doublereal *, doublereal *, integer *, integer *, 
 	    integer *, integer *, integer *, integer *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *);
-    static real expbea[7], bplank, phirad[3];
-    extern /* Subroutine */ int upbeam_(real *, real *, real *, real *, real *
-	    , real *, integer *, integer *, integer *, integer *, integer *, 
-	    real *, real *, real *, real *, real *, real *, real *);
-    static real angcos, dither, dtaucp[6];
+	    integer *, integer *, integer *);
+    static doublereal expbea[7], bplank, phirad[3];
+    extern /* Subroutine */ int upbeam_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
+	     integer *, integer *, integer *, integer *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *);
+    static doublereal angcos, dither, dtaucp[6];
     static logical compar;
-    extern /* Subroutine */ int albtrn_(real *, real *, real *, real *, real *
-	    , real *, real *, real *, real *, real *, real *, real *, real *, 
-	    real *, real *, real *, integer *, real *, real *, integer *, 
-	    integer *, integer *, integer *, logical *, real *, real *, real *
-	    , real *, real *, real *, real *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, integer *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, real *, real *, real *
-	    );
-    extern doublereal plkavg_(real *, real *, real *);
-    static real cosphi;
-    extern /* Subroutine */ int soleig_(real *, real *, real *, real *, real *
-	    , real *, integer *, integer *, integer *, integer *, integer *, 
-	    real *, real *, real *, real *, real *, real *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *), surfac_(real *, real *,
-	     real *, real *, logical *, integer *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, logical *, real *, 
-	    logical *, real *, real *, real *, real *, real *, real *, real *,
-	     real *);
-    static real tplank, taucpr[7];
-    extern /* Subroutine */ int cmpint_(real *, real *, real *, integer *, 
-	    real *, logical *, integer *, integer *, integer *, integer *, 
-	    integer *, integer *, integer *, logical *, integer *, real *, 
-	    real *, real *, real *, real *, real *, real *), pravin_(real *, 
-	    integer *, integer *, real *, integer *, real *);
-    static real azterm;
+    extern /* Subroutine */ int albtrn_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, integer *, doublereal *, doublereal *,
+	     integer *, integer *, integer *, integer *, logical *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, doublereal 
+	    *, doublereal *, doublereal *);
+    extern doublereal plkavg_(doublereal *, doublereal *, doublereal *);
+    static doublereal cosphi;
+    extern /* Subroutine */ int soleig_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
+	     integer *, integer *, integer *, integer *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *), surfac_(doublereal *, doublereal *, doublereal *, 
+	    doublereal *, logical *, integer *, integer *, integer *, integer 
+	    *, integer *, integer *, integer *, logical *, doublereal *, 
+	    logical *, doublereal *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, doublereal *);
+    static doublereal tplank, taucpr[7];
+    extern /* Subroutine */ int cmpint_(doublereal *, doublereal *, 
+	    doublereal *, integer *, doublereal *, logical *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *, 
+	    logical *, integer *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *), pravin_(
+	    doublereal *, integer *, integer *, doublereal *, integer *, 
+	    doublereal *);
+    static doublereal azterm;
     extern /* Subroutine */ int lepoly_(integer *, integer *, integer *, 
-	    integer *, real *, real *, real *), fluxes_(real *, real *, real *
-	    , real *, real *, integer *, real *, logical *, integer *, 
+	    integer *, doublereal *, doublereal *, doublereal *), fluxes_(
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, integer *, doublereal *, logical *, integer *, 
 	    integer *, integer *, integer *, integer *, integer *, integer *, 
-	    real *, logical *, real *, real *, real *, real *, real *, real *,
-	     real *, real *, real *, real *, real *, real *, real *, real *, 
-	    real *, real *, real *, real *), setdis_(real *, real *, logical *
-	    , real *, real *, real *, real *, real *, real *, real *, real *, 
-	    integer *, logical *, integer *, logical *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, integer *, integer *, 
-	    logical *, integer *, logical *, real *, real *, real *, real *, 
-	    real *, real *, real *, real *, real *, logical *, logical *), 
-	    terpev_(real *, real *, real *, real *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, real *, real *, real *
-	    ), zeroal_(integer *, real *, real *, real *, real *, real *, 
-	    real *, integer *, real *, real *, real *, real *, real *, real *,
-	     real *, integer *, real *, real *, integer *, real *, real *, 
-	    real *, integer *, real *, integer *, real *, integer *, real *, 
-	    integer *, real *, real *, real *, real *, real *, integer *, 
-	    real *, integer *, integer *, real *, integer *, real *, integer *
-	    , real *, real *, real *, integer *, real *, integer *, real *, 
-	    real *, integer *, integer *, real *, integer *, real *, real *, 
-	    real *, real *, real *, integer *, real *, real *, integer *, 
-	    real *, integer *, real *), prtinp_(integer *, real *, real *, 
-	    real *, real *, real *, real *, real *, integer *, real *, 
-	    integer *, integer *, real *, integer *, real *, integer *, real *
-	    , real *, real *, real *, logical *, real *, real *, real *, real 
-	    *, real *, logical *, logical *, logical *, real *, real *, 
-	    logical *, real *, real *, real *, integer *, logical *), slftst_(
-	    real *, real *, real *, logical *, real *, real *, real *, 
-	    integer *, logical *, integer *, logical *, integer *, integer *, 
-	    integer *, integer *, logical *, real *, real *, real *, logical *
-	    , real *, real *, real *, real *, real *, logical *, logical *, 
-	    real *, real *, real *, real *, logical *, real *, real *, real *,
-	     real *);
-    static real utaupr[5];
-    extern /* Subroutine */ int prtint_(real *, real *, integer *, real *, 
-	    integer *, real *, integer *, integer *, integer *);
+	    doublereal *, logical *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *), setdis_(doublereal *, 
+	    doublereal *, logical *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, integer *, logical *, integer *, logical *, integer 
+	    *, integer *, integer *, integer *, integer *, integer *, integer 
+	    *, integer *, logical *, integer *, logical *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, logical *,
+	     logical *), terpev_(doublereal *, doublereal *, doublereal *, 
+	    doublereal *, integer *, integer *, integer *, integer *, integer 
+	    *, integer *, doublereal *, doublereal *, doublereal *), zeroal_(
+	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, integer *, doublereal *, doublereal *
+	    , doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, integer *, doublereal *, doublereal *, integer *, 
+	    doublereal *, doublereal *, doublereal *, integer *, doublereal *,
+	     integer *, doublereal *, integer *, doublereal *, integer *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, integer *, doublereal *, integer *, integer *, 
+	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
+	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
+	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
+	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, integer *, doublereal *, doublereal *, integer *, 
+	    doublereal *, integer *, doublereal *), prtinp_(integer *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, integer *, doublereal *,
+	     integer *, integer *, doublereal *, integer *, doublereal *, 
+	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
+	     logical *, doublereal *, doublereal *, doublereal *, doublereal *
+	    , doublereal *, logical *, logical *, logical *, doublereal *, 
+	    doublereal *, logical *, doublereal *, doublereal *, doublereal *,
+	     integer *, logical *), slftst_(doublereal *, doublereal *, 
+	    doublereal *, logical *, doublereal *, doublereal *, doublereal *,
+	     integer *, logical *, integer *, logical *, integer *, integer *,
+	     integer *, integer *, logical *, doublereal *, doublereal *, 
+	    doublereal *, logical *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, logical *, logical *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, logical *, doublereal *,
+	     doublereal *, doublereal *, doublereal *);
+    static doublereal utaupr[5];
+    extern /* Subroutine */ int prtint_(doublereal *, doublereal *, integer *,
+	     doublereal *, integer *, doublereal *, integer *, integer *, 
+	    integer *);
     static logical lyrcut;
-    extern /* Subroutine */ int setmtx_(real *, real *, real *, real *, real *
-	    , real *, real *, real *, logical *, logical *, integer *, 
+    extern /* Subroutine */ int setmtx_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, logical *, logical *, integer *, 
 	    integer *, integer *, integer *, integer *, integer *, integer *, 
-	    integer *, real *, real *), terpso_(real *, real *, real *, real *
-	    , integer *, integer *, logical *, integer *, integer *, real *, 
-	    real *, real *, real *, real *, real *, real *, real *, real *, 
-	    real *, real *, real *, real *), upisot_(real *, real *, real *, 
-	    integer *, integer *, integer *, integer *, real *, real *, real *
-	    , real *, real *, real *, real *, real *), usrint_(real *, real *,
-	     real *, real *, real *, real *, real *, real *, real *, real *, 
-	    real *, real *, logical *, integer *, real *, logical *, integer *
-	    , integer *, integer *, integer *, integer *, integer *, integer *
-	    , integer *, logical *, integer *, integer *, real *, real *, 
-	    real *, real *, real *, real *, real *, real *, real *, real *, 
-	    real *, real *, real *, real *, real *), zeroit_(real *, integer *
-	    );
+	    integer *, doublereal *, doublereal *), terpso_(doublereal *, 
+	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
+	    logical *, integer *, integer *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *), upisot_(doublereal *, 
+	    doublereal *, doublereal *, integer *, integer *, integer *, 
+	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
+	     doublereal *, doublereal *, doublereal *, doublereal *), usrint_(
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, logical *,
+	     integer *, doublereal *, logical *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *, 
+	    logical *, integer *, integer *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *), zeroit_(doublereal *, integer *);
 
     /* Fortran I/O blocks */
     static cilist io___9 = { 0, 6, 0, "(//,1X,100('*'),/,A,/,1X,100('*'))", 0 
@@ -547,15 +581,15 @@ static integer c__100 = 100;
 
     /* Function Body */
     if (pass1) {
-	pi = asin((float)1.) * (float)2.;
-	dither = r1mach_(&c__4) * (float)10.;
+	pi = asin(1.) * 2.;
+	dither = r1mach_(&c__4) * 10.;
 /*                            ** Must dither more on Cray (14-digit prec) */
-	if (dither < (float)1e-10) {
-	    dither *= (float)10.;
+	if (dither < 1e-10) {
+	    dither *= 10.;
 	}
-	rpd = pi / (float)180.;
+	rpd = pi / 180.;
 	for (ns = 1; ns <= 1000; ++ns) {
-	    sqt[ns - 1] = sqrt((real) ns);
+	    sqt[ns - 1] = sqrt((doublereal) ns);
 /* L5: */
 	}
 /*                            ** Set input values for self-test. */
@@ -584,8 +618,8 @@ L10:
     zeroit_(tauc, &c__7);
     i__2 = *nlyr;
     for (lc = 1; lc <= i__2; ++lc) {
-	if (ssalb[lc] == (float)1.) {
-	    ssalb[lc] = (float)1. - dither;
+	if (ssalb[lc] == 1.) {
+	    ssalb[lc] = 1. - dither;
 	}
 	tauc[lc] = tauc[lc - 1] + dtauc[lc];
 /* L20: */
@@ -635,8 +669,8 @@ L10:
     }
 /*                                   ** Calculate Planck functions */
     if (! (*plank)) {
-	bplank = (float)0.;
-	tplank = (float)0.;
+	bplank = 0.;
+	tplank = 0.;
 	zeroit_(pkag, &c__7);
     } else {
 	tplank = *temis * plkavg_(wvnmlo, wvnmhi, ttemp);
@@ -652,28 +686,27 @@ L10:
     kconv = 0;
     naz = *nstr - 1;
 /*                                    ** Azimuth-independent case */
-    if (*fbeam == (float)0. || (r__1 = (float)1. - *umu0, dabs(r__1)) < (
-	    float)1e-5 || *onlyfl || *numu == 1 && (r__2 = (float)1. - umu[1],
-	     dabs(r__2)) < (float)1e-5 || *numu == 1 && (r__3 = umu[1] + (
-	    float)1., dabs(r__3)) < (float)1e-5 || *numu == 2 && (r__4 = umu[
-	    1] + (float)1., dabs(r__4)) < (float)1e-5 && (r__5 = (float)1. - 
-	    umu[2], dabs(r__5)) < (float)1e-5) {
+    if (*fbeam == 0. || (d__1 = 1. - *umu0, abs(d__1)) < 1e-5 || *onlyfl || *
+	    numu == 1 && (d__2 = 1. - umu[1], abs(d__2)) < 1e-5 || *numu == 1 
+	    && (d__3 = umu[1] + 1., abs(d__3)) < 1e-5 || *numu == 2 && (d__4 =
+	     umu[1] + 1., abs(d__4)) < 1e-5 && (d__5 = 1. - umu[2], abs(d__5))
+	     < 1e-5) {
 	naz = 0;
     }
     i__2 = naz;
     for (mazim = 0; mazim <= i__2; ++mazim) {
 	if (mazim == 0) {
-	    delm0 = (float)1.;
+	    delm0 = 1.;
 	}
 	if (mazim > 0) {
-	    delm0 = (float)0.;
+	    delm0 = 0.;
 	}
 /*                             ** Get normalized associated Legendre */
 /*                             ** polynomials for */
 /*                             ** (a) incident beam angle cosine */
 /*                             ** (b) computational and user polar angle */
 /*                             **     cosines */
-	if (*fbeam > (float)0.) {
+	if (*fbeam > 0.) {
 	    ncos = 1;
 	    angcos = -(*umu0);
 	    i__3 = *nstr - 1;
@@ -688,7 +721,7 @@ L10:
 /*                       ** Get normalized associated Legendre polys. */
 /*                       ** with negative arguments from those with */
 /*                       ** positive arguments; Dave/Armstrong Eq. (15) */
-	sgn = (float)-1.;
+	sgn = -1.;
 	i__3 = *nstr - 1;
 	for (l = mazim; l <= i__3; ++l) {
 	    sgn = -sgn;
@@ -717,7 +750,7 @@ L10:
 		    evald, wkd);
 /*                                  ** Calculate particular solutions of */
 /*                                  ** Eq.SS(18) for incident beam source */
-	    if (*fbeam > (float)0.) {
+	    if (*fbeam > 0.) {
 		upbeam_(array, cc, cmu, &delm0, fbeam, &gl[lc * 49 - 49], 
 			ipvt, &mazim, &c__48, &nn, nstr, &pi, umu0, wk, ylm0, 
 			ylmc, zj, &zz[lc * 48 - 48]);
@@ -725,8 +758,8 @@ L10:
 /*                              ** Calculate particular solutions of */
 /*                              ** Eq. SS(15) for thermal emission source */
 	    if (*plank && mazim == 0) {
-		xr1[lc - 1] = (float)0.;
-		if (dtaucp[lc - 1] > (float)0.) {
+		xr1[lc - 1] = 0.;
+		if (dtaucp[lc - 1] > 0.) {
 		    xr1[lc - 1] = (pkag[lc] - pkag[lc - 1]) / dtaucp[lc - 1];
 		}
 		xr0[lc - 1] = pkag[lc - 1] - xr1[lc - 1] * taucpr[lc - 1];
@@ -837,7 +870,7 @@ L10:
 /*                                ** Increment intensity by current */
 /*                                ** azimuthal component (Fourier */
 /*                                ** cosine series);  Eq SD(2) */
-	    azerr = (float)0.;
+	    azerr = 0.;
 	    i__3 = *nphi;
 	    for (j = 1; j <= i__3; ++j) {
 		cosphi = cos(mazim * phirad[j - 1]);
@@ -848,11 +881,11 @@ L10:
 			azterm = uum[iu + lu * 10 - 11] * cosphi;
 			uu[iu + (lu + j * uu_dim2) * uu_dim1] += azterm;
 /* Computing MAX */
-			r__4 = dabs(azterm);
-			r__5 = (r__1 = uu[iu + (lu + j * uu_dim2) * uu_dim1], 
-				dabs(r__1));
-			r__2 = azerr, r__3 = ratio_(&r__4, &r__5);
-			azerr = dmax(r__2,r__3);
+			d__4 = abs(azterm);
+			d__5 = (d__1 = uu[iu + (lu + j * uu_dim2) * uu_dim1], 
+				abs(d__1));
+			d__2 = azerr, d__3 = ratio_(&d__4, &d__5);
+			azerr = max(d__2,d__3);
 /* L130: */
 		    }
 /* L140: */
@@ -891,9 +924,10 @@ L170:
     return 0;
 } /* disort_ */
 
-/* Subroutine */ int asymtx_(real *aa, real *evec, real *eval, integer *m, 
-	integer *ia, integer *ievec, integer *ier, doublereal *wkd, 
-	doublereal *aad, doublereal *evecd, doublereal *evald)
+/* Subroutine */ int asymtx_(doublereal *aa, doublereal *evec, doublereal *
+	eval, integer *m, integer *ia, integer *ievec, integer *ier, 
+	doublereal *wkd, doublereal *aad, doublereal *evecd, doublereal *
+	evald)
 {
     /* Initialized data */
 
@@ -909,8 +943,7 @@ L170:
     /* System generated locals */
     integer aa_dim1, aa_offset, evec_dim1, evec_offset, aad_dim1, aad_offset, 
 	    evecd_dim1, evecd_offset, i__1, i__2, i__3, i__4;
-    real r__1, r__2, r__3, r__4;
-    doublereal d__1, d__2;
+    doublereal d__1, d__2, d__3, d__4;
 
     /* Builtin functions */
     double sqrt(doublereal), d_sign(doublereal *, doublereal *);
@@ -1021,14 +1054,13 @@ L170:
 /*                           ** Handle 1x1 and 2x2 special cases */
     if (*m == 1) {
 	eval[1] = aa[aa_dim1 + 1];
-	evec[evec_dim1 + 1] = (float)1.;
+	evec[evec_dim1 + 1] = 1.;
 	return 0;
     } else if (*m == 2) {
 /* Computing 2nd power */
-	r__1 = aa[aa_dim1 + 1] - aa[(aa_dim1 << 1) + 2];
-	discri = r__1 * r__1 + aa[(aa_dim1 << 1) + 1] * (float)4. * aa[
-		aa_dim1 + 2];
-	if (discri < (float)0.) {
+	d__1 = aa[aa_dim1 + 1] - aa[(aa_dim1 << 1) + 2];
+	discri = d__1 * d__1 + aa[(aa_dim1 << 1) + 1] * 4. * aa[aa_dim1 + 2];
+	if (discri < 0.) {
 	    errmsg_("ASYMTX--complex evals in 2x2 case", &c_true, (ftnlen)33);
 	}
 	sgn = one;
@@ -1036,17 +1068,16 @@ L170:
 	    sgn = -one;
 	}
 	eval[1] = (aa[aa_dim1 + 1] + aa[(aa_dim1 << 1) + 2] + sgn * sqrt(
-		discri)) * (float).5;
+		discri)) * .5;
 	eval[2] = (aa[aa_dim1 + 1] + aa[(aa_dim1 << 1) + 2] - sgn * sqrt(
-		discri)) * (float).5;
-	evec[evec_dim1 + 1] = (float)1.;
-	evec[(evec_dim1 << 1) + 2] = (float)1.;
-	if (aa[aa_dim1 + 1] == aa[(aa_dim1 << 1) + 2] && (aa[aa_dim1 + 2] == (
-		float)0. || aa[(aa_dim1 << 1) + 1] == (float)0.)) {
-	    rnorm = (r__1 = aa[aa_dim1 + 1], dabs(r__1)) + (r__2 = aa[(
-		    aa_dim1 << 1) + 1], dabs(r__2)) + (r__3 = aa[aa_dim1 + 2],
-		     dabs(r__3)) + (r__4 = aa[(aa_dim1 << 1) + 2], dabs(r__4))
-		    ;
+		discri)) * .5;
+	evec[evec_dim1 + 1] = 1.;
+	evec[(evec_dim1 << 1) + 2] = 1.;
+	if (aa[aa_dim1 + 1] == aa[(aa_dim1 << 1) + 2] && (aa[aa_dim1 + 2] == 
+		0. || aa[(aa_dim1 << 1) + 1] == 0.)) {
+	    rnorm = (d__1 = aa[aa_dim1 + 1], abs(d__1)) + (d__2 = aa[(aa_dim1 
+		    << 1) + 1], abs(d__2)) + (d__3 = aa[aa_dim1 + 2], abs(
+		    d__3)) + (d__4 = aa[(aa_dim1 << 1) + 2], abs(d__4));
 	    w = tol * rnorm;
 	    evec[evec_dim1 + 2] = aa[aa_dim1 + 2] / w;
 	    evec[(evec_dim1 << 1) + 1] = -aa[(aa_dim1 << 1) + 1] / w;
@@ -1665,11 +1696,12 @@ L700:
     return 0;
 } /* asymtx_ */
 
-/* Subroutine */ int cmpint_(real *fbeam, real *gc, real *kk, integer *layru, 
-	real *ll, logical *lyrcut, integer *mazim, integer *mxcmu, integer *
-	mxulv, integer *mxumu, integer *ncut, integer *nn, integer *nstr, 
-	logical *plank, integer *ntau, real *taucpr, real *umu0, real *utaupr,
-	 real *zz, real *zplk0, real *zplk1, real *uum)
+/* Subroutine */ int cmpint_(doublereal *fbeam, doublereal *gc, doublereal *
+	kk, integer *layru, doublereal *ll, logical *lyrcut, integer *mazim, 
+	integer *mxcmu, integer *mxulv, integer *mxumu, integer *ncut, 
+	integer *nn, integer *nstr, logical *plank, integer *ntau, doublereal 
+	*taucpr, doublereal *umu0, doublereal *utaupr, doublereal *zz, 
+	doublereal *zplk0, doublereal *zplk1, doublereal *uum)
 {
     /* System generated locals */
     integer gc_dim1, gc_dim2, gc_offset, kk_dim1, kk_offset, ll_dim1, 
@@ -1681,7 +1713,7 @@ L700:
 
     /* Local variables */
     static integer iq, jq, lu, lyu;
-    static real zint;
+    static doublereal zint;
 
 /*          Calculates the Fourier intensity components at the quadrature */
 /*          angles for azimuthal expansion terms (MAZIM) in Eq. SD(2) */
@@ -1777,7 +1809,7 @@ L700:
 	}
 	i__2 = *nstr;
 	for (iq = 1; iq <= i__2; ++iq) {
-	    zint = (float)0.;
+	    zint = 0.;
 	    i__3 = *nn;
 	    for (jq = 1; jq <= i__3; ++jq) {
 		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1] * ll[jq + lyu 
@@ -1793,7 +1825,7 @@ L700:
 /* L20: */
 	    }
 	    uum[iq + lu * uum_dim1] = zint;
-	    if (*fbeam > (float)0.) {
+	    if (*fbeam > 0.) {
 		uum[iq + lu * uum_dim1] = zint + zz[iq + lyu * zz_dim1] * exp(
 			-utaupr[lu] / *umu0);
 	    }
@@ -1810,13 +1842,16 @@ L40:
     return 0;
 } /* cmpint_ */
 
-/* Subroutine */ int fluxes_(real *cmu, real *cwt, real *fbeam, real *gc, 
-	real *kk, integer *layru, real *ll, logical *lyrcut, integer *maxulv, 
-	integer *mxcmu, integer *mxulv, integer *ncut, integer *nn, integer *
-	nstr, integer *ntau, real *pi, logical *prnt, real *ssalb, real *
-	taucpr, real *umu0, real *utau, real *utaupr, real *xr0, real *xr1, 
-	real *zz, real *zplk0, real *zplk1, real *dfdt, real *flup, real *
-	fldn, real *fldir, real *rfldir, real *rfldn, real *uavg, real *u0c)
+/* Subroutine */ int fluxes_(doublereal *cmu, doublereal *cwt, doublereal *
+	fbeam, doublereal *gc, doublereal *kk, integer *layru, doublereal *ll,
+	 logical *lyrcut, integer *maxulv, integer *mxcmu, integer *mxulv, 
+	integer *ncut, integer *nn, integer *nstr, integer *ntau, doublereal *
+	pi, logical *prnt, doublereal *ssalb, doublereal *taucpr, doublereal *
+	umu0, doublereal *utau, doublereal *utaupr, doublereal *xr0, 
+	doublereal *xr1, doublereal *zz, doublereal *zplk0, doublereal *zplk1,
+	 doublereal *dfdt, doublereal *flup, doublereal *fldn, doublereal *
+	fldir, doublereal *rfldir, doublereal *rfldn, doublereal *uavg, 
+	doublereal *u0c)
 {
     /* System generated locals */
     integer gc_dim1, gc_dim2, gc_offset, kk_dim1, kk_offset, ll_dim1, 
@@ -1829,8 +1864,8 @@ L40:
 
     /* Local variables */
     static integer iq, jq, lu, lyu;
-    static real ang1, ang2, fact, fnet, zint, dirint, fdntot, plsorc;
-    extern /* Subroutine */ int zeroit_(real *, integer *);
+    static doublereal ang1, ang2, fact, fnet, zint, dirint, fdntot, plsorc;
+    extern /* Subroutine */ int zeroit_(doublereal *, integer *);
 
     /* Fortran I/O blocks */
     static cilist io___139 = { 0, 6, 0, "(//,21X,A,/,2A,/,2A,/)", 0 };
@@ -1985,24 +2020,24 @@ Dep)", (ftnlen)57);
 	if (*lyrcut && lyu > *ncut) {
 /*                                                ** No radiation reaches */
 /*                                                ** this level */
-	    fdntot = (float)0.;
-	    fnet = (float)0.;
-	    plsorc = (float)0.;
+	    fdntot = 0.;
+	    fnet = 0.;
+	    plsorc = 0.;
 	    goto L70;
 	}
-	if (*fbeam > (float)0.) {
+	if (*fbeam > 0.) {
 	    fact = exp(-utaupr[lu] / *umu0);
 	    dirint = *fbeam * fact;
 	    fldir[lu] = *umu0 * (*fbeam * fact);
 	    rfldir[lu] = *umu0 * *fbeam * exp(-utau[lu] / *umu0);
 	} else {
-	    dirint = (float)0.;
-	    fldir[lu] = (float)0.;
-	    rfldir[lu] = (float)0.;
+	    dirint = 0.;
+	    fldir[lu] = 0.;
+	    rfldir[lu] = 0.;
 	}
 	i__2 = *nn;
 	for (iq = 1; iq <= i__2; ++iq) {
-	    zint = (float)0.;
+	    zint = 0.;
 	    i__3 = *nn;
 	    for (jq = 1; jq <= i__3; ++jq) {
 		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1] * ll[jq + lyu 
@@ -2018,7 +2053,7 @@ Dep)", (ftnlen)57);
 /* L20: */
 	    }
 	    u0c[iq + lu * u0c_dim1] = zint;
-	    if (*fbeam > (float)0.) {
+	    if (*fbeam > 0.) {
 		u0c[iq + lu * u0c_dim1] = zint + zz[iq + lyu * zz_dim1] * 
 			fact;
 	    }
@@ -2032,7 +2067,7 @@ Dep)", (ftnlen)57);
 	}
 	i__2 = *nstr;
 	for (iq = *nn + 1; iq <= i__2; ++iq) {
-	    zint = (float)0.;
+	    zint = 0.;
 	    i__3 = *nn;
 	    for (jq = 1; jq <= i__3; ++jq) {
 		zint += gc[iq + (jq + lyu * gc_dim2) * gc_dim1] * ll[jq + lyu 
@@ -2048,7 +2083,7 @@ Dep)", (ftnlen)57);
 /* L50: */
 	    }
 	    u0c[iq + lu * u0c_dim1] = zint;
-	    if (*fbeam > (float)0.) {
+	    if (*fbeam > 0.) {
 		u0c[iq + lu * u0c_dim1] = zint + zz[iq + lyu * zz_dim1] * 
 			fact;
 	    }
@@ -2060,28 +2095,27 @@ Dep)", (ftnlen)57);
 		    u0c_dim1];
 /* L60: */
 	}
-	flup[lu] = *pi * (float)2. * flup[lu];
-	fldn[lu] = *pi * (float)2. * fldn[lu];
+	flup[lu] = *pi * 2. * flup[lu];
+	fldn[lu] = *pi * 2. * fldn[lu];
 	fdntot = fldn[lu] + fldir[lu];
 	fnet = fdntot - flup[lu];
 	rfldn[lu] = fdntot - rfldir[lu];
-	uavg[lu] = (*pi * (float)2. * uavg[lu] + dirint) / (*pi * (float)4.);
+	uavg[lu] = (*pi * 2. * uavg[lu] + dirint) / (*pi * 4.);
 	plsorc = xr0[lyu] + xr1[lyu] * utaupr[lu];
-	dfdt[lu] = ((float)1. - ssalb[lyu]) * (float)4. * *pi * (uavg[lu] - 
-		plsorc);
+	dfdt[lu] = (1. - ssalb[lyu]) * 4. * *pi * (uavg[lu] - plsorc);
 L70:
 	if (prnt[2]) {
 	    s_wsfe(&io___150);
-	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&lyu, (ftnlen)sizeof(integer));
-	    do_fio(&c__1, (char *)&rfldir[lu], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&rfldn[lu], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&fdntot, (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&flup[lu], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&fnet, (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&uavg[lu], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&plsorc, (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&dfdt[lu], (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&rfldir[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&rfldn[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&fdntot, (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&flup[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&fnet, (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&uavg[lu], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&plsorc, (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&dfdt[lu], (ftnlen)sizeof(doublereal));
 	    e_wsfe();
 	}
 /* L80: */
@@ -2096,7 +2130,7 @@ L70:
 	for (lu = 1; lu <= i__1; ++lu) {
 	    s_wsfe(&io___152);
 	    do_fio(&c__1, " Optical depth =", (ftnlen)16);
-	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, "     Angle (deg)   cos(Angle)     Intensity", (
 		    ftnlen)43);
 	    do_fio(&c__1, "     Angle (deg)   cos(Angle)     Intensity", (
@@ -2104,18 +2138,18 @@ L70:
 	    e_wsfe();
 	    i__2 = *nn;
 	    for (iq = 1; iq <= i__2; ++iq) {
-		ang1 = (float)180. / *pi * acos(cmu[(*nn << 1) - iq + 1]);
-		ang2 = (float)180. / *pi * acos(cmu[iq]);
+		ang1 = 180. / *pi * acos(cmu[(*nn << 1) - iq + 1]);
+		ang2 = 180. / *pi * acos(cmu[iq]);
 		s_wsfe(&io___155);
-		do_fio(&c__1, (char *)&ang1, (ftnlen)sizeof(real));
+		do_fio(&c__1, (char *)&ang1, (ftnlen)sizeof(doublereal));
 		do_fio(&c__1, (char *)&cmu[(*nn << 1) - iq + 1], (ftnlen)
-			sizeof(real));
+			sizeof(doublereal));
 		do_fio(&c__1, (char *)&u0c[iq + lu * u0c_dim1], (ftnlen)
-			sizeof(real));
-		do_fio(&c__1, (char *)&ang2, (ftnlen)sizeof(real));
-		do_fio(&c__1, (char *)&cmu[iq], (ftnlen)sizeof(real));
+			sizeof(doublereal));
+		do_fio(&c__1, (char *)&ang2, (ftnlen)sizeof(doublereal));
+		do_fio(&c__1, (char *)&cmu[iq], (ftnlen)sizeof(doublereal));
 		do_fio(&c__1, (char *)&u0c[iq + *nn + lu * u0c_dim1], (ftnlen)
-			sizeof(real));
+			sizeof(doublereal));
 		e_wsfe();
 /* L90: */
 	    }
@@ -2125,32 +2159,34 @@ L70:
     return 0;
 } /* fluxes_ */
 
-/* Subroutine */ int setdis_(real *cmu, real *cwt, logical *deltam, real *
-	dtauc, real *dtaucp, real *expbea, real *fbeam, real *flyr, real *gl, 
-	real *hl, real *hlpr, integer *ibcnd, logical *lamber, integer *layru,
-	 logical *lyrcut, integer *maxumu, integer *maxcmu, integer *mxcmu, 
+/* Subroutine */ int setdis_(doublereal *cmu, doublereal *cwt, logical *
+	deltam, doublereal *dtauc, doublereal *dtaucp, doublereal *expbea, 
+	doublereal *fbeam, doublereal *flyr, doublereal *gl, doublereal *hl, 
+	doublereal *hlpr, integer *ibcnd, logical *lamber, integer *layru, 
+	logical *lyrcut, integer *maxumu, integer *maxcmu, integer *mxcmu, 
 	integer *ncut, integer *nlyr, integer *ntau, integer *nn, integer *
-	nstr, logical *plank, integer *numu, logical *onlyfl, real *oprim, 
-	real *pmom, real *ssalb, real *tauc, real *taucpr, real *utau, real *
-	utaupr, real *umu, real *umu0, logical *usrtau, logical *usrang)
+	nstr, logical *plank, integer *numu, logical *onlyfl, doublereal *
+	oprim, doublereal *pmom, doublereal *ssalb, doublereal *tauc, 
+	doublereal *taucpr, doublereal *utau, doublereal *utaupr, doublereal *
+	umu, doublereal *umu0, logical *usrtau, logical *usrang)
 {
     /* Initialized data */
 
-    static real abscut = (float)10.;
+    static doublereal abscut = 10.;
 
     /* System generated locals */
     integer gl_dim1, gl_offset, pmom_dim1, pmom_offset, i__1, i__2;
-    real r__1;
+    doublereal d__1;
 
     /* Builtin functions */
     double exp(doublereal);
 
     /* Local variables */
-    static real f;
+    static doublereal f;
     static integer k, lc, iq, iu, lu;
-    static real abstau;
+    static doublereal abstau;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen), qgausn_(
-	    integer *, real *, real *);
+	    integer *, doublereal *, doublereal *);
 
 /*          Perform miscellaneous setting-up operations */
 
@@ -2236,16 +2272,16 @@ L70:
     }
 /*                        ** Apply delta-M scaling and move description */
 /*                        ** of computational layers to local variables */
-    expbea[0] = (float)1.;
-    taucpr[0] = (float)0.;
-    abstau = (float)0.;
+    expbea[0] = 1.;
+    taucpr[0] = 0.;
+    abstau = 0.;
     i__1 = *nlyr;
     for (lc = 1; lc <= i__1; ++lc) {
-	pmom[lc * pmom_dim1] = (float)1.;
+	pmom[lc * pmom_dim1] = 1.;
 	if (abstau < abscut) {
 	    *ncut = lc;
 	}
-	abstau += ((float)1. - ssalb[lc]) * dtauc[lc];
+	abstau += (1. - ssalb[lc]) * dtauc[lc];
 	if (! (*deltam)) {
 	    oprim[lc] = ssalb[lc];
 	    dtaucp[lc] = dtauc[lc];
@@ -2256,24 +2292,23 @@ L70:
 			lc * pmom_dim1];
 /* L20: */
 	    }
-	    f = (float)0.;
+	    f = 0.;
 	} else {
 /*                                    ** Do delta-M transformation */
 	    f = pmom[*nstr + lc * pmom_dim1];
-	    oprim[lc] = ssalb[lc] * ((float)1. - f) / ((float)1. - f * ssalb[
-		    lc]);
-	    dtaucp[lc] = ((float)1. - f * ssalb[lc]) * dtauc[lc];
+	    oprim[lc] = ssalb[lc] * (1. - f) / (1. - f * ssalb[lc]);
+	    dtaucp[lc] = (1. - f * ssalb[lc]) * dtauc[lc];
 	    taucpr[lc] = taucpr[lc - 1] + dtaucp[lc];
 	    i__2 = *nstr - 1;
 	    for (k = 0; k <= i__2; ++k) {
 		gl[k + lc * gl_dim1] = ((k << 1) + 1) * oprim[lc] * (pmom[k + 
-			lc * pmom_dim1] - f) / ((float)1. - f);
+			lc * pmom_dim1] - f) / (1. - f);
 /* L30: */
 	    }
 	}
 	flyr[lc] = f;
-	expbea[lc] = (float)0.;
-	if (*fbeam > (float)0.) {
+	expbea[lc] = 0.;
+	if (*fbeam > 0.) {
 	    expbea[lc] = exp(-taucpr[lc] / *umu0);
 	}
 /* L40: */
@@ -2306,8 +2341,8 @@ L70:
 L60:
 	utaupr[lu] = utau[lu];
 	if (*deltam) {
-	    utaupr[lu] = taucpr[lc - 1] + ((float)1. - ssalb[lc] * flyr[lc]) *
-		     (utau[lu] - tauc[lc - 1]);
+	    utaupr[lu] = taucpr[lc - 1] + (1. - ssalb[lc] * flyr[lc]) * (utau[
+		    lu] - tauc[lc - 1]);
 	}
 	layru[lu] = lc;
 /* L70: */
@@ -2324,11 +2359,11 @@ L60:
 	cwt[iq + *nn] = cwt[iq];
 /* L80: */
     }
-    if (*fbeam > (float)0.) {
+    if (*fbeam > 0.) {
 /*                               ** Compare beam angle to comput. angles */
 	i__1 = *nn;
 	for (iq = 1; iq <= i__1; ++iq) {
-	    if ((r__1 = *umu0 - cmu[iq], dabs(r__1)) / *umu0 < (float)1e-4) {
+	    if ((d__1 = *umu0 - cmu[iq], abs(d__1)) / *umu0 < 1e-4) {
 		errmsg_("SETDIS--beam angle=computational angle; change NSTR",
 			 &c_true, (ftnlen)51);
 	    }
@@ -2376,11 +2411,12 @@ L60:
     return 0;
 } /* setdis_ */
 
-/* Subroutine */ int setmtx_(real *bdr, real *cband, real *cmu, real *cwt, 
-	real *delm0, real *dtaucp, real *gc, real *kk, logical *lamber, 
-	logical *lyrcut, integer *mi, integer *mi9m2, integer *mxcmu, integer 
-	*ncol, integer *ncut, integer *nnlyri, integer *nn, integer *nstr, 
-	real *taucpr, real *wk)
+/* Subroutine */ int setmtx_(doublereal *bdr, doublereal *cband, doublereal *
+	cmu, doublereal *cwt, doublereal *delm0, doublereal *dtaucp, 
+	doublereal *gc, doublereal *kk, logical *lamber, logical *lyrcut, 
+	integer *mi, integer *mi9m2, integer *mxcmu, integer *ncol, integer *
+	ncut, integer *nnlyri, integer *nn, integer *nstr, doublereal *taucpr,
+	 doublereal *wk)
 {
     /* System generated locals */
     integer bdr_dim1, bdr_offset, cband_dim1, cband_offset, gc_dim1, gc_dim2, 
@@ -2391,11 +2427,11 @@ L60:
 
     /* Local variables */
     static integer k, lc, iq, jq, lda, ncd;
-    static real sum;
+    static doublereal sum;
     static integer jcol;
-    static real expa;
+    static doublereal expa;
     static integer irow, nncol, nshift;
-    extern /* Subroutine */ int zeroit_(real *, integer *);
+    extern /* Subroutine */ int zeroit_(doublereal *, integer *);
 
 /*        Calculate coefficient matrix for the set of equations */
 /*        obtained from the boundary conditions and the continuity- */
@@ -2615,14 +2651,14 @@ L60:
 	irow = nshift - jcol + *nstr;
 	i__2 = *nstr;
 	for (jq = *nn + 1; jq <= i__2; ++jq) {
-	    if (*lyrcut || *lamber && *delm0 == (float)0.) {
+	    if (*lyrcut || *lamber && *delm0 == 0.) {
 /*                          ** No azimuthal-dependent intensity if Lam- */
 /*                          ** bert surface; no intensity component if */
 /*                          ** truncated bottom layer */
 		cband[irow + nncol * cband_dim1] = gc[jq + (iq + *ncut * 
 			gc_dim2) * gc_dim1];
 	    } else {
-		sum = (float)0.;
+		sum = 0.;
 		i__3 = *nn;
 		for (k = 1; k <= i__3; ++k) {
 		    sum += cwt[k] * cmu[k] * bdr[jq - *nn + k * bdr_dim1] * 
@@ -2631,7 +2667,7 @@ L60:
 /* L110: */
 		}
 		cband[irow + nncol * cband_dim1] = gc[jq + (iq + *ncut * 
-			gc_dim2) * gc_dim1] - (*delm0 + (float)1.) * sum;
+			gc_dim2) * gc_dim1] - (*delm0 + 1.) * sum;
 	    }
 	    ++irow;
 /* L120: */
@@ -2646,11 +2682,11 @@ L60:
 	expa = wk[*nstr + 1 - iq];
 	i__2 = *nstr;
 	for (jq = *nn + 1; jq <= i__2; ++jq) {
-	    if (*lyrcut || *lamber && *delm0 == (float)0.) {
+	    if (*lyrcut || *lamber && *delm0 == 0.) {
 		cband[irow + nncol * cband_dim1] = gc[jq + (iq + *ncut * 
 			gc_dim2) * gc_dim1] * expa;
 	    } else {
-		sum = (float)0.;
+		sum = 0.;
 		i__3 = *nn;
 		for (k = 1; k <= i__3; ++k) {
 		    sum += cwt[k] * cmu[k] * bdr[jq - *nn + k * bdr_dim1] * 
@@ -2659,8 +2695,7 @@ L60:
 /* L140: */
 		}
 		cband[irow + nncol * cband_dim1] = (gc[jq + (iq + *ncut * 
-			gc_dim2) * gc_dim1] - (*delm0 + (float)1.) * sum) * 
-			expa;
+			gc_dim2) * gc_dim1] - (*delm0 + 1.) * sum) * expa;
 	    }
 	    ++irow;
 /* L150: */
@@ -2671,10 +2706,11 @@ L60:
     return 0;
 } /* setmtx_ */
 
-/* Subroutine */ int soleig_(real *amb, real *apb, real *array, real *cmu, 
-	real *cwt, real *gl, integer *mi, integer *mazim, integer *mxcmu, 
-	integer *nn, integer *nstr, real *ylmc, real *cc, real *evecc, real *
-	eval, real *kk, real *gc, doublereal *aad, doublereal *eveccd, 
+/* Subroutine */ int soleig_(doublereal *amb, doublereal *apb, doublereal *
+	array, doublereal *cmu, doublereal *cwt, doublereal *gl, integer *mi, 
+	integer *mazim, integer *mxcmu, integer *nn, integer *nstr, 
+	doublereal *ylmc, doublereal *cc, doublereal *evecc, doublereal *eval,
+	 doublereal *kk, doublereal *gc, doublereal *aad, doublereal *eveccd, 
 	doublereal *evald, doublereal *wkd)
 {
     /* System generated locals */
@@ -2682,7 +2718,7 @@ L60:
 	    array_offset, cc_dim1, cc_offset, evecc_dim1, evecc_offset, 
 	    gc_dim1, gc_offset, ylmc_dim1, ylmc_offset, aad_dim1, aad_offset, 
 	    eveccd_dim1, eveccd_offset, i__1, i__2, i__3;
-    real r__1;
+    doublereal d__1;
 
     /* Builtin functions */
     integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
@@ -2690,10 +2726,11 @@ L60:
 
     /* Local variables */
     static integer l, iq, jq, kq, ier;
-    static real sum, beta, alpha, gpmigm, gpplgm;
+    static doublereal sum, beta, alpha, gpmigm, gpplgm;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen), asymtx_(
-	    real *, real *, real *, integer *, integer *, integer *, integer *
-	    , doublereal *, doublereal *, doublereal *, doublereal *);
+	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
+	    integer *, integer *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *);
 
     /* Fortran I/O blocks */
     static cilist io___184 = { 0, 6, 0, "(//,A,I4,A)", 0 };
@@ -2811,14 +2848,14 @@ L60:
     for (iq = 1; iq <= i__1; ++iq) {
 	i__2 = *nstr;
 	for (jq = 1; jq <= i__2; ++jq) {
-	    sum = (float)0.;
+	    sum = 0.;
 	    i__3 = *nstr - 1;
 	    for (l = *mazim; l <= i__3; ++l) {
 		sum += gl[l] * ylmc[l + iq * ylmc_dim1] * ylmc[l + jq * 
 			ylmc_dim1];
 /* L10: */
 	    }
-	    cc[iq + jq * cc_dim1] = sum * (float).5 * cwt[jq];
+	    cc[iq + jq * cc_dim1] = sum * .5 * cwt[jq];
 /* L20: */
 	}
 	i__2 = *nn;
@@ -2836,8 +2873,8 @@ L60:
 	    apb[iq + jq * apb_dim1] = alpha + beta;
 /* L30: */
 	}
-	amb[iq + iq * amb_dim1] -= (float)1. / cmu[iq];
-	apb[iq + iq * apb_dim1] -= (float)1. / cmu[iq];
+	amb[iq + iq * amb_dim1] -= 1. / cmu[iq];
+	apb[iq + iq * apb_dim1] -= 1. / cmu[iq];
 /* L40: */
     }
 /*                      ** Finish calculation of coefficient matrix of */
@@ -2847,7 +2884,7 @@ L60:
     for (iq = 1; iq <= i__1; ++iq) {
 	i__2 = *nn;
 	for (jq = 1; jq <= i__2; ++jq) {
-	    sum = (float)0.;
+	    sum = 0.;
 	    i__3 = *nn;
 	    for (kq = 1; kq <= i__3; ++kq) {
 		sum += apb[iq + kq * apb_dim1] * amb[kq + jq * amb_dim1];
@@ -2873,7 +2910,7 @@ L60:
     }
     i__1 = *nn;
     for (iq = 1; iq <= i__1; ++iq) {
-	eval[iq] = sqrt((r__1 = eval[iq], dabs(r__1)));
+	eval[iq] = sqrt((d__1 = eval[iq], abs(d__1)));
 	kk[iq + *nn] = eval[iq];
 /*                                      ** Add negative eigenvalue */
 	kk[*nn + 1 - iq] = -eval[iq];
@@ -2885,7 +2922,7 @@ L60:
     for (jq = 1; jq <= i__1; ++jq) {
 	i__2 = *nn;
 	for (iq = 1; iq <= i__2; ++iq) {
-	    sum = (float)0.;
+	    sum = 0.;
 	    i__3 = *nn;
 	    for (kq = 1; kq <= i__3; ++kq) {
 		sum += amb[iq + kq * amb_dim1] * evecc[kq + jq * evecc_dim1];
@@ -2906,16 +2943,15 @@ L60:
 /*                                ** their sum and difference; stack them */
 /*                                ** to get eigenvectors of full system */
 /*                                ** SS(7) (JQ = eigenvector number) */
-	    evecc[iq + jq * evecc_dim1] = (gpplgm + gpmigm) * (float).5;
-	    evecc[iq + *nn + jq * evecc_dim1] = (gpplgm - gpmigm) * (float).5;
+	    evecc[iq + jq * evecc_dim1] = (gpplgm + gpmigm) * .5;
+	    evecc[iq + *nn + jq * evecc_dim1] = (gpplgm - gpmigm) * .5;
 /*                                ** Eigenvectors corresponding to */
 /*                                ** negative eigenvalues (corresp. to */
 /*                                ** reversing sign of 'k' in SS(10) ) */
 	    gpplgm = -gpplgm;
-	    evecc[iq + (jq + *nn) * evecc_dim1] = (gpplgm + gpmigm) * (float)
+	    evecc[iq + (jq + *nn) * evecc_dim1] = (gpplgm + gpmigm) * .5;
+	    evecc[iq + *nn + (jq + *nn) * evecc_dim1] = (gpplgm - gpmigm) * 
 		    .5;
-	    evecc[iq + *nn + (jq + *nn) * evecc_dim1] = (gpplgm - gpmigm) * (
-		    float).5;
 	    gc[iq + *nn + (jq + *nn) * gc_dim1] = evecc[iq + jq * evecc_dim1];
 	    gc[*nn + 1 - iq + (jq + *nn) * gc_dim1] = evecc[iq + *nn + jq * 
 		    evecc_dim1];
@@ -2930,13 +2966,15 @@ L60:
     return 0;
 } /* soleig_ */
 
-/* Subroutine */ int solve0_(real *b, real *bdr, real *bem, real *bplank, 
-	real *cband, real *cmu, real *cwt, real *expbea, real *fbeam, real *
-	fisot, integer *ipvt, logical *lamber, real *ll, logical *lyrcut, 
+/* Subroutine */ int solve0_(doublereal *b, doublereal *bdr, doublereal *bem, 
+	doublereal *bplank, doublereal *cband, doublereal *cmu, doublereal *
+	cwt, doublereal *expbea, doublereal *fbeam, doublereal *fisot, 
+	integer *ipvt, logical *lamber, doublereal *ll, logical *lyrcut, 
 	integer *mazim, integer *mi, integer *mi9m2, integer *mxcmu, integer *
 	ncol, integer *ncut, integer *nn, integer *nstr, integer *nnlyri, 
-	real *pi, real *tplank, real *taucpr, real *umu0, real *z__, real *zz,
-	 real *zplk0, real *zplk1)
+	doublereal *pi, doublereal *tplank, doublereal *taucpr, doublereal *
+	umu0, doublereal *z__, doublereal *zz, doublereal *zplk0, doublereal *
+	zplk1)
 {
     /* System generated locals */
     integer bdr_dim1, bdr_offset, cband_dim1, cband_offset, ll_dim1, 
@@ -2945,14 +2983,15 @@ L60:
 
     /* Local variables */
     static integer lc, iq, jq, it, ncd;
-    static real sum;
+    static doublereal sum;
     static integer ipnt;
-    extern /* Subroutine */ int sgbco_(real *, integer *, integer *, integer *
-	    , integer *, integer *, real *, real *);
-    static real rcond;
-    extern /* Subroutine */ int sgbsl_(real *, integer *, integer *, integer *
-	    , integer *, integer *, real *, integer *), errmsg_(char *, 
-	    logical *, ftnlen), zeroit_(real *, integer *);
+    extern /* Subroutine */ int sgbco_(doublereal *, integer *, integer *, 
+	    integer *, integer *, integer *, doublereal *, doublereal *);
+    static doublereal rcond;
+    extern /* Subroutine */ int sgbsl_(doublereal *, integer *, integer *, 
+	    integer *, integer *, integer *, doublereal *, integer *), 
+	    errmsg_(char *, logical *, ftnlen), zeroit_(doublereal *, integer 
+	    *);
 
 /*        Construct right-hand side vector B for general boundary */
 /*        conditions STWJ(17) and solve system of equations obtained */
@@ -3060,7 +3099,7 @@ L60:
 /*                              ** Construct B,  STWJ(20a,c) for */
 /*                              ** parallel beam + bottom reflection + */
 /*                              ** thermal emission at top and/or bottom */
-    if (*mazim > 0 && *fbeam > (float)0.) {
+    if (*mazim > 0 && *fbeam > 0.) {
 /*                                         ** Azimuth-dependent case */
 /*                                         ** (never called if FBEAM = 0) */
 	if (*lyrcut || *lamber) {
@@ -3079,7 +3118,7 @@ L60:
 	    i__1 = *nn;
 	    for (iq = 1; iq <= i__1; ++iq) {
 		b[iq] = -zz[*nn + 1 - iq + zz_dim1];
-		sum = (float)0.;
+		sum = 0.;
 		i__2 = *nn;
 		for (jq = 1; jq <= i__2; ++jq) {
 		    sum += cwt[jq] * cmu[jq] * bdr[iq + jq * bdr_dim1] * zz[*
@@ -3087,7 +3126,7 @@ L60:
 /* L20: */
 		}
 		b[*ncol - *nn + iq] = sum;
-		if (*fbeam > (float)0.) {
+		if (*fbeam > 0.) {
 		    b[*ncol - *nn + iq] = sum + (bdr[iq] * *umu0 * *fbeam / *
 			    pi - zz[iq + *nn + *ncut * zz_dim1]) * expbea[*
 			    ncut];
@@ -3111,7 +3150,7 @@ L60:
 	}
     } else {
 /*                                   ** Azimuth-independent case */
-	if (*fbeam == (float)0.) {
+	if (*fbeam == 0.) {
 	    i__1 = *nn;
 	    for (iq = 1; iq <= i__1; ++iq) {
 /*                                      ** Top boundary */
@@ -3132,7 +3171,7 @@ L60:
 	    } else {
 		i__1 = *nn;
 		for (iq = 1; iq <= i__1; ++iq) {
-		    sum = (float)0.;
+		    sum = 0.;
 		    i__2 = *nn;
 		    for (jq = 1; jq <= i__2; ++jq) {
 			sum += cwt[jq] * cmu[jq] * bdr[iq + jq * bdr_dim1] * (
@@ -3141,9 +3180,9 @@ L60:
 				taucpr[*ncut]);
 /* L80: */
 		    }
-		    b[*ncol - *nn + iq] = sum * (float)2. + bem[iq] * *bplank 
-			    - zplk0[iq + *nn + *ncut * zplk0_dim1] - zplk1[iq 
-			    + *nn + *ncut * zplk1_dim1] * taucpr[*ncut];
+		    b[*ncol - *nn + iq] = sum * 2. + bem[iq] * *bplank - 
+			    zplk0[iq + *nn + *ncut * zplk0_dim1] - zplk1[iq + 
+			    *nn + *ncut * zplk1_dim1] * taucpr[*ncut];
 /* L90: */
 		}
 	    }
@@ -3181,7 +3220,7 @@ L60:
 	    } else {
 		i__1 = *nn;
 		for (iq = 1; iq <= i__1; ++iq) {
-		    sum = (float)0.;
+		    sum = 0.;
 		    i__2 = *nn;
 		    for (jq = 1; jq <= i__2; ++jq) {
 			sum += cwt[jq] * cmu[jq] * bdr[iq + jq * bdr_dim1] * (
@@ -3191,8 +3230,8 @@ L60:
 				zplk1_dim1] * taucpr[*ncut]);
 /* L140: */
 		    }
-		    b[*ncol - *nn + iq] = sum * (float)2. + (bdr[iq] * *umu0 *
-			     *fbeam / *pi - zz[iq + *nn + *ncut * zz_dim1]) * 
+		    b[*ncol - *nn + iq] = sum * 2. + (bdr[iq] * *umu0 * *
+			    fbeam / *pi - zz[iq + *nn + *ncut * zz_dim1]) * 
 			    expbea[*ncut] + bem[iq] * *bplank - zplk0[iq + *
 			    nn + *ncut * zplk0_dim1] - zplk1[iq + *nn + *ncut 
 			    * zplk1_dim1] * taucpr[*ncut];
@@ -3220,11 +3259,11 @@ L60:
 /*                     ** of band matrix CBAND and test if it is nearly */
 /*                     ** singular (note: CBAND is destroyed) */
 /*                     ** (CBAND is in LINPACK packed format) */
-    rcond = (float)0.;
+    rcond = 0.;
     ncd = *nn * 3 - 1;
     sgbco_(&cband[cband_offset], mi9m2, ncol, &ncd, &ncd, &ipvt[1], &rcond, &
 	    z__[1]);
-    if (rcond + (float)1. == (float)1.) {
+    if (rcond + 1. == 1.) {
 	errmsg_("SOLVE0--SGBCO says matrix near singular", &c_false, (ftnlen)
 		39);
     }
@@ -3252,11 +3291,13 @@ L60:
     return 0;
 } /* solve0_ */
 
-/* Subroutine */ int surfac_(real *albedo, real *delm0, real *fbeam, real *
-	hlpr, logical *lamber, integer *mi, integer *mazim, integer *mxcmu, 
-	integer *mxumu, integer *nn, integer *numu, integer *nstr, logical *
-	onlyfl, real *umu, logical *usrang, real *ylm0, real *ylmc, real *
-	ylmu, real *bdr, real *emu, real *bem, real *rmu, real *sqt)
+/* Subroutine */ int surfac_(doublereal *albedo, doublereal *delm0, 
+	doublereal *fbeam, doublereal *hlpr, logical *lamber, integer *mi, 
+	integer *mazim, integer *mxcmu, integer *mxumu, integer *nn, integer *
+	numu, integer *nstr, logical *onlyfl, doublereal *umu, logical *
+	usrang, doublereal *ylm0, doublereal *ylmc, doublereal *ylmu, 
+	doublereal *bdr, doublereal *emu, doublereal *bem, doublereal *rmu, 
+	doublereal *sqt)
 {
     /* Initialized data */
 
@@ -3268,11 +3309,12 @@ L60:
 
     /* Local variables */
     static integer k, jg, iq, jq, iu;
-    static real sgn, gmu[10], gwt[10], sum, dref, ylmg[1010]	/* was [101][
-	    10] */;
-    extern /* Subroutine */ int qgausn_(integer *, real *, real *), errmsg_(
-	    char *, logical *, ftnlen), lepoly_(integer *, integer *, integer 
-	    *, integer *, real *, real *, real *), zeroit_(real *, integer *);
+    static doublereal sgn, gmu[10], gwt[10], sum, dref, ylmg[1010]	/* 
+	    was [101][10] */;
+    extern /* Subroutine */ int qgausn_(integer *, doublereal *, doublereal *)
+	    , errmsg_(char *, logical *, ftnlen), lepoly_(integer *, integer *
+	    , integer *, integer *, doublereal *, doublereal *, doublereal *),
+	     zeroit_(doublereal *, integer *);
 
 /*       Specifies user's surface bidirectional properties, STWJ(21) */
 
@@ -3374,7 +3416,7 @@ L60:
 	qgausn_(&c__10, gmu, gwt);
 	lepoly_(&c__10, &c__0, &c__100, &c__100, gmu, &sqt[1], ylmg);
 /*                       ** Convert Legendre polys. to negative GMU */
-	sgn = (float)-1.;
+	sgn = -1.;
 	for (k = 0; k <= 100; ++k) {
 	    sgn = -sgn;
 	    for (jg = 1; jg <= 10; ++jg) {
@@ -3390,7 +3432,7 @@ L60:
     if (*lamber && *mazim == 0) {
 	i__1 = *nn;
 	for (iq = 1; iq <= i__1; ++iq) {
-	    bem[iq] = (float)1. - *albedo;
+	    bem[iq] = 1. - *albedo;
 	    i__2 = *nn;
 	    for (jq = 0; jq <= i__2; ++jq) {
 		bdr[iq + jq * bdr_dim1] = *albedo;
@@ -3405,24 +3447,24 @@ L60:
 	for (iq = 1; iq <= i__1; ++iq) {
 	    i__2 = *nn;
 	    for (jq = 1; jq <= i__2; ++jq) {
-		sum = (float)0.;
+		sum = 0.;
 		i__3 = *nstr - 1;
 		for (k = *mazim; k <= i__3; ++k) {
 		    sum += hlpr[k] * ylmc[k + iq * ylmc_dim1] * ylmc[k + (jq 
 			    + *nn) * ylmc_dim1];
 /* L50: */
 		}
-		bdr[iq + jq * bdr_dim1] = ((float)2. - *delm0) * sum;
+		bdr[iq + jq * bdr_dim1] = (2. - *delm0) * sum;
 /* L60: */
 	    }
-	    if (*fbeam > (float)0.) {
-		sum = (float)0.;
+	    if (*fbeam > 0.) {
+		sum = 0.;
 		i__2 = *nstr - 1;
 		for (k = *mazim; k <= i__2; ++k) {
 		    sum += hlpr[k] * ylmc[k + iq * ylmc_dim1] * ylm0[k];
 /* L70: */
 		}
-		bdr[iq] = ((float)2. - *delm0) * sum;
+		bdr[iq] = (2. - *delm0) * sum;
 	    }
 /* L80: */
 	}
@@ -3438,19 +3480,19 @@ L60:
 /*                              ** computational angles CMU. */
 	    i__1 = *nn;
 	    for (iq = 1; iq <= i__1; ++iq) {
-		dref = (float)0.;
+		dref = 0.;
 		for (jg = 1; jg <= 10; ++jg) {
-		    sum = (float)0.;
+		    sum = 0.;
 		    i__2 = *nstr - 1;
 		    for (k = 0; k <= i__2; ++k) {
 			sum += hlpr[k] * ylmc[k + iq * ylmc_dim1] * ylmg[k + 
 				jg * 101 - 101];
 /* L90: */
 		    }
-		    dref += gwt[jg - 1] * (float)2. * gmu[jg - 1] * sum;
+		    dref += gwt[jg - 1] * 2. * gmu[jg - 1] * sum;
 /* L100: */
 		}
-		bem[iq] = (float)1. - dref;
+		bem[iq] = 1. - dref;
 /* L110: */
 	    }
 	}
@@ -3463,36 +3505,36 @@ L60:
 	zeroit_(&rmu[rmu_offset], &i__1);
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    if (umu[iu] > (float)0.) {
+	    if (umu[iu] > 0.) {
 		if (*lamber && *mazim == 0) {
 		    i__2 = *nn;
 		    for (iq = 0; iq <= i__2; ++iq) {
 			rmu[iu + iq * rmu_dim1] = *albedo;
 /* L120: */
 		    }
-		    emu[iu] = (float)1. - *albedo;
+		    emu[iu] = 1. - *albedo;
 		} else if (! (*lamber)) {
 		    i__2 = *nn;
 		    for (iq = 1; iq <= i__2; ++iq) {
-			sum = (float)0.;
+			sum = 0.;
 			i__3 = *nstr - 1;
 			for (k = *mazim; k <= i__3; ++k) {
 			    sum += hlpr[k] * ylmu[k + iu * ylmu_dim1] * ylmc[
 				    k + (iq + *nn) * ylmc_dim1];
 /* L130: */
 			}
-			rmu[iu + iq * rmu_dim1] = ((float)2. - *delm0) * sum;
+			rmu[iu + iq * rmu_dim1] = (2. - *delm0) * sum;
 /* L140: */
 		    }
-		    if (*fbeam > (float)0.) {
-			sum = (float)0.;
+		    if (*fbeam > 0.) {
+			sum = 0.;
 			i__2 = *nstr - 1;
 			for (k = *mazim; k <= i__2; ++k) {
 			    sum += hlpr[k] * ylmu[k + iu * ylmu_dim1] * ylm0[
 				    k];
 /* L150: */
 			}
-			rmu[iu] = ((float)2. - *delm0) * sum;
+			rmu[iu] = (2. - *delm0) * sum;
 		    }
 		    if (*mazim == 0) {
 /*                               ** Integrate bidirectional reflectivity */
@@ -3500,20 +3542,19 @@ L60:
 /*                               ** incident angles GMU to get */
 /*                               ** directional emissivity at */
 /*                               ** user angles UMU. */
-			dref = (float)0.;
+			dref = 0.;
 			for (jg = 1; jg <= 10; ++jg) {
-			    sum = (float)0.;
+			    sum = 0.;
 			    i__2 = *nstr - 1;
 			    for (k = 0; k <= i__2; ++k) {
 				sum += hlpr[k] * ylmu[k + iu * ylmu_dim1] * 
 					ylmg[k + jg * 101 - 101];
 /* L160: */
 			    }
-			    dref += gwt[jg - 1] * (float)2. * gmu[jg - 1] * 
-				    sum;
+			    dref += gwt[jg - 1] * 2. * gmu[jg - 1] * sum;
 /* L170: */
 			}
-			emu[iu] = (float)1. - dref;
+			emu[iu] = 1. - dref;
 		    }
 		}
 	    }
@@ -3523,9 +3564,10 @@ L60:
     return 0;
 } /* surfac_ */
 
-/* Subroutine */ int terpev_(real *cwt, real *evecc, real *gl, real *gu, 
-	integer *mazim, integer *mxcmu, integer *mxumu, integer *nn, integer *
-	nstr, integer *numu, real *wk, real *ylmc, real *ylmu)
+/* Subroutine */ int terpev_(doublereal *cwt, doublereal *evecc, doublereal *
+	gl, doublereal *gu, integer *mazim, integer *mxcmu, integer *mxumu, 
+	integer *nn, integer *nstr, integer *numu, doublereal *wk, doublereal 
+	*ylmc, doublereal *ylmu)
 {
     /* System generated locals */
     integer evecc_dim1, evecc_offset, gu_dim1, gu_offset, ylmc_dim1, 
@@ -3533,7 +3575,7 @@ L60:
 
     /* Local variables */
     static integer l, iq, jq, iu;
-    static real sum;
+    static doublereal sum;
 
 /*         Interpolate eigenvectors to user angles; Eq SD(8) */
 /*   Called by- DISORT, ALBTRN */
@@ -3567,21 +3609,21 @@ L60:
 	for (l = *mazim; l <= i__2; ++l) {
 /*                                   ** Inner sum in SD(8) times all */
 /*                                   ** factors in outer sum but PLM(mu) */
-	    sum = (float)0.;
+	    sum = 0.;
 	    i__3 = *nstr;
 	    for (jq = 1; jq <= i__3; ++jq) {
 		sum += cwt[jq] * ylmc[l + jq * ylmc_dim1] * evecc[jq + iq * 
 			evecc_dim1];
 /* L10: */
 	    }
-	    wk[l + 1] = gl[l] * (float).5 * sum;
+	    wk[l + 1] = gl[l] * .5 * sum;
 /* L20: */
 	}
 /*                                    ** Finish outer sum in SD(8) */
 /*                                    ** and store eigenvectors */
 	i__2 = *numu;
 	for (iu = 1; iu <= i__2; ++iu) {
-	    sum = (float)0.;
+	    sum = 0.;
 	    i__3 = *nstr - 1;
 	    for (l = *mazim; l <= i__3; ++l) {
 		sum += wk[l + 1] * ylmu[l + iu * ylmu_dim1];
@@ -3600,18 +3642,19 @@ L60:
     return 0;
 } /* terpev_ */
 
-/* Subroutine */ int terpso_(real *cwt, real *delm0, real *fbeam, real *gl, 
-	integer *mazim, integer *mxcmu, logical *plank, integer *numu, 
-	integer *nstr, real *oprim, real *pi, real *ylm0, real *ylmc, real *
-	ylmu, real *psi, real *xr0, real *xr1, real *z0, real *zj, real *
-	zbeam, real *z0u, real *z1u)
+/* Subroutine */ int terpso_(doublereal *cwt, doublereal *delm0, doublereal *
+	fbeam, doublereal *gl, integer *mazim, integer *mxcmu, logical *plank,
+	 integer *numu, integer *nstr, doublereal *oprim, doublereal *pi, 
+	doublereal *ylm0, doublereal *ylmc, doublereal *ylmu, doublereal *psi,
+	 doublereal *xr0, doublereal *xr1, doublereal *z0, doublereal *zj, 
+	doublereal *zbeam, doublereal *z0u, doublereal *z1u)
 {
     /* System generated locals */
     integer ylmc_dim1, ylmc_offset, ylmu_dim1, ylmu_offset, i__1, i__2;
 
     /* Local variables */
     static integer iq, jq, iu;
-    static real sum, fact, psum;
+    static doublereal sum, fact, psum;
 
 /*         Interpolates source functions to user angles */
 
@@ -3685,23 +3728,23 @@ L60:
     --z1u;
 
     /* Function Body */
-    if (*fbeam > (float)0.) {
+    if (*fbeam > 0.) {
 /*                                  ** Beam source terms; Eq. SD(9) */
 	i__1 = *nstr - 1;
 	for (iq = *mazim; iq <= i__1; ++iq) {
-	    psum = (float)0.;
+	    psum = 0.;
 	    i__2 = *nstr;
 	    for (jq = 1; jq <= i__2; ++jq) {
 		psum += cwt[jq] * ylmc[iq + jq * ylmc_dim1] * zj[jq];
 /* L10: */
 	    }
-	    psi[iq + 1] = gl[iq] * (float).5 * psum;
+	    psi[iq + 1] = gl[iq] * .5 * psum;
 /* L20: */
 	}
-	fact = ((float)2. - *delm0) * *fbeam / (*pi * (float)4.);
+	fact = (2. - *delm0) * *fbeam / (*pi * 4.);
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    sum = (float)0.;
+	    sum = 0.;
 	    i__2 = *nstr - 1;
 	    for (iq = *mazim; iq <= i__2; ++iq) {
 		sum += ylmu[iq + iu * ylmu_dim1] * (psi[iq + 1] + fact * gl[
@@ -3716,24 +3759,24 @@ L60:
 /*                                   ** Thermal source terms, STWJ(27c) */
 	i__1 = *nstr - 1;
 	for (iq = *mazim; iq <= i__1; ++iq) {
-	    psum = (float)0.;
+	    psum = 0.;
 	    i__2 = *nstr;
 	    for (jq = 1; jq <= i__2; ++jq) {
 		psum += cwt[jq] * ylmc[iq + jq * ylmc_dim1] * z0[jq];
 /* L50: */
 	    }
-	    psi[iq + 1] = gl[iq] * (float).5 * psum;
+	    psi[iq + 1] = gl[iq] * .5 * psum;
 /* L60: */
 	}
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    sum = (float)0.;
+	    sum = 0.;
 	    i__2 = *nstr - 1;
 	    for (iq = *mazim; iq <= i__2; ++iq) {
 		sum += ylmu[iq + iu * ylmu_dim1] * psi[iq + 1];
 /* L70: */
 	    }
-	    z0u[iu] = sum + ((float)1. - *oprim) * *xr0;
+	    z0u[iu] = sum + (1. - *oprim) * *xr0;
 	    z1u[iu] = *xr1;
 /* L80: */
 	}
@@ -3741,10 +3784,11 @@ L60:
     return 0;
 } /* terpso_ */
 
-/* Subroutine */ int upbeam_(real *array, real *cc, real *cmu, real *delm0, 
-	real *fbeam, real *gl, integer *ipvt, integer *mazim, integer *mxcmu, 
-	integer *nn, integer *nstr, real *pi, real *umu0, real *wk, real *
-	ylm0, real *ylmc, real *zj, real *zz)
+/* Subroutine */ int upbeam_(doublereal *array, doublereal *cc, doublereal *
+	cmu, doublereal *delm0, doublereal *fbeam, doublereal *gl, integer *
+	ipvt, integer *mazim, integer *mxcmu, integer *nn, integer *nstr, 
+	doublereal *pi, doublereal *umu0, doublereal *wk, doublereal *ylm0, 
+	doublereal *ylmc, doublereal *zj, doublereal *zz)
 {
     /* System generated locals */
     integer array_dim1, array_offset, cc_dim1, cc_offset, ylmc_dim1, 
@@ -3752,12 +3796,13 @@ L60:
 
     /* Local variables */
     static integer k, iq, jq, job;
-    static real sum;
-    extern /* Subroutine */ int sgeco_(real *, integer *, integer *, integer *
-	    , real *, real *);
-    static real rcond;
-    extern /* Subroutine */ int sgesl_(real *, integer *, integer *, integer *
-	    , real *, integer *), errmsg_(char *, logical *, ftnlen);
+    static doublereal sum;
+    extern /* Subroutine */ int sgeco_(doublereal *, integer *, integer *, 
+	    integer *, doublereal *, doublereal *);
+    static doublereal rcond;
+    extern /* Subroutine */ int sgesl_(doublereal *, integer *, integer *, 
+	    integer *, doublereal *, integer *), errmsg_(char *, logical *, 
+	    ftnlen);
 
 /*         Finds the incident-beam particular solution of SS(18) */
 
@@ -3833,23 +3878,23 @@ L60:
 	    array[iq + jq * array_dim1] = -cc[iq + jq * cc_dim1];
 /* L10: */
 	}
-	array[iq + iq * array_dim1] = cmu[iq] / *umu0 + (float)1. + array[iq 
-		+ iq * array_dim1];
-	sum = (float)0.;
+	array[iq + iq * array_dim1] = cmu[iq] / *umu0 + 1. + array[iq + iq * 
+		array_dim1];
+	sum = 0.;
 	i__2 = *nstr - 1;
 	for (k = *mazim; k <= i__2; ++k) {
 	    sum += gl[k] * ylmc[k + iq * ylmc_dim1] * ylm0[k];
 /* L20: */
 	}
-	zj[iq] = ((float)2. - *delm0) * *fbeam * sum / (*pi * (float)4.);
+	zj[iq] = (2. - *delm0) * *fbeam * sum / (*pi * 4.);
 /* L30: */
     }
 /*                  ** Find L-U (lower/upper triangular) decomposition */
 /*                  ** of ARRAY and see if it is nearly singular */
 /*                  ** (NOTE:  ARRAY is altered) */
-    rcond = (float)0.;
+    rcond = 0.;
     sgeco_(&array[array_offset], mxcmu, nstr, &ipvt[1], &rcond, &wk[1]);
-    if (rcond + (float)1. == (float)1.) {
+    if (rcond + 1. == 1.) {
 	errmsg_("UPBEAM--SGECO says matrix near singular", &c_false, (ftnlen)
 		39);
     }
@@ -3867,20 +3912,22 @@ L60:
     return 0;
 } /* upbeam_ */
 
-/* Subroutine */ int upisot_(real *array, real *cc, real *cmu, integer *ipvt, 
-	integer *mxcmu, integer *nn, integer *nstr, real *oprim, real *wk, 
-	real *xr0, real *xr1, real *z0, real *z1, real *zplk0, real *zplk1)
+/* Subroutine */ int upisot_(doublereal *array, doublereal *cc, doublereal *
+	cmu, integer *ipvt, integer *mxcmu, integer *nn, integer *nstr, 
+	doublereal *oprim, doublereal *wk, doublereal *xr0, doublereal *xr1, 
+	doublereal *z0, doublereal *z1, doublereal *zplk0, doublereal *zplk1)
 {
     /* System generated locals */
     integer array_dim1, array_offset, cc_dim1, cc_offset, i__1, i__2;
 
     /* Local variables */
     static integer iq, jq;
-    extern /* Subroutine */ int sgeco_(real *, integer *, integer *, integer *
-	    , real *, real *);
-    static real rcond;
-    extern /* Subroutine */ int sgesl_(real *, integer *, integer *, integer *
-	    , real *, integer *), errmsg_(char *, logical *, ftnlen);
+    extern /* Subroutine */ int sgeco_(doublereal *, integer *, integer *, 
+	    integer *, doublereal *, doublereal *);
+    static doublereal rcond;
+    extern /* Subroutine */ int sgesl_(doublereal *, integer *, integer *, 
+	    integer *, doublereal *, integer *), errmsg_(char *, logical *, 
+	    ftnlen);
 
 /*       Finds the particular solution of thermal radiation of SS(15) */
 
@@ -3950,16 +3997,16 @@ L60:
 	    array[iq + jq * array_dim1] = -cc[iq + jq * cc_dim1];
 /* L10: */
 	}
-	array[iq + iq * array_dim1] += (float)1.;
+	array[iq + iq * array_dim1] += 1.;
 	z1[iq] = *xr1;
-	z0[iq] = ((float)1. - *oprim) * *xr0 + cmu[iq] * z1[iq];
+	z0[iq] = (1. - *oprim) * *xr0 + cmu[iq] * z1[iq];
 /* L20: */
     }
 /*                       ** Solve linear equations: same as in UPBEAM, */
 /*                       ** except ZJ replaced by Z0 */
-    rcond = (float)0.;
+    rcond = 0.;
     sgeco_(&array[array_offset], mxcmu, nstr, &ipvt[1], &rcond, &wk[1]);
-    if (rcond + (float)1. == (float)1.) {
+    if (rcond + 1. == 1.) {
 	errmsg_("UPISOT--SGECO says matrix near singular", &c_false, (ftnlen)
 		39);
     }
@@ -3975,15 +4022,17 @@ L60:
     return 0;
 } /* upisot_ */
 
-/* Subroutine */ int usrint_(real *bplank, real *cmu, real *cwt, real *delm0, 
-	real *dtaucp, real *emu, real *expbea, real *fbeam, real *fisot, real 
-	*gc, real *gu, real *kk, logical *lamber, integer *layru, real *ll, 
-	logical *lyrcut, integer *mazim, integer *mxcmu, integer *mxulv, 
-	integer *mxumu, integer *ncut, integer *nlyr, integer *nn, integer *
-	nstr, logical *plank, integer *numu, integer *ntau, real *pi, real *
-	rmu, real *taucpr, real *tplank, real *umu, real *umu0, real *utaupr, 
-	real *wk, real *zbeam, real *z0u, real *z1u, real *zz, real *zplk0, 
-	real *zplk1, real *uum)
+/* Subroutine */ int usrint_(doublereal *bplank, doublereal *cmu, doublereal *
+	cwt, doublereal *delm0, doublereal *dtaucp, doublereal *emu, 
+	doublereal *expbea, doublereal *fbeam, doublereal *fisot, doublereal *
+	gc, doublereal *gu, doublereal *kk, logical *lamber, integer *layru, 
+	doublereal *ll, logical *lyrcut, integer *mazim, integer *mxcmu, 
+	integer *mxulv, integer *mxumu, integer *ncut, integer *nlyr, integer 
+	*nn, integer *nstr, logical *plank, integer *numu, integer *ntau, 
+	doublereal *pi, doublereal *rmu, doublereal *taucpr, doublereal *
+	tplank, doublereal *umu, doublereal *umu0, doublereal *utaupr, 
+	doublereal *wk, doublereal *zbeam, doublereal *z0u, doublereal *z1u, 
+	doublereal *zz, doublereal *zplk0, doublereal *zplk1, doublereal *uum)
 {
     /* System generated locals */
     integer gc_dim1, gc_dim2, gc_offset, gu_dim1, gu_dim2, gu_offset, kk_dim1,
@@ -3997,13 +4046,13 @@ L60:
 
     /* Local variables */
     static integer lc, iq, jq, iu, lu;
-    static real sgn;
+    static doublereal sgn;
     static integer lyu;
-    static real exp0, exp1, exp2, fact, dtau, expn, dtau1, dtau2, denom, 
-	    bnddfu, bnddir, bndint, palint, dfuint;
+    static doublereal exp0, exp1, exp2, fact, dtau, expn, dtau1, dtau2, denom,
+	     bnddfu, bnddir, bndint, palint, dfuint;
     static integer lyrend;
     static logical negumu;
-    static real plkint;
+    static doublereal plkint;
     static integer lyrstr;
 
 /*       Computes intensity components at user output angles */
@@ -4174,7 +4223,7 @@ L60:
 /*                           ** are desired ('user output levels') */
     i__1 = *ntau;
     for (lu = 1; lu <= i__1; ++lu) {
-	if (*fbeam > (float)0.) {
+	if (*fbeam > 0.) {
 	    exp0 = exp(-utaupr[lu] / *umu0);
 	}
 	lyu = layru[lu];
@@ -4185,21 +4234,21 @@ L60:
 	    if (*lyrcut && lyu > *ncut) {
 		goto L150;
 	    }
-	    negumu = umu[iu] < (float)0.;
+	    negumu = umu[iu] < 0.;
 	    if (negumu) {
 		lyrstr = 1;
 		lyrend = lyu - 1;
-		sgn = (float)-1.;
+		sgn = -1.;
 	    } else {
 		lyrstr = lyu + 1;
 		lyrend = *ncut;
-		sgn = (float)1.;
+		sgn = 1.;
 	    }
 /*                          ** For downward intensity, integrate from top */
 /*                          ** to LYU-1 in Eq. S1(8); for upward, */
 /*                          ** integrate from bottom to LYU+1 in S1(9) */
-	    palint = (float)0.;
-	    plkint = (float)0.;
+	    palint = 0.;
+	    plkint = 0.;
 	    i__3 = lyrend;
 	    for (lc = lyrstr; lc <= i__3; ++lc) {
 		dtau = dtaucp[lc];
@@ -4210,9 +4259,9 @@ L60:
 			    + z1u[iu + lc * z1u_dim1] * ((taucpr[lc - 1] + 
 			    umu[iu]) * exp1 - (taucpr[lc] + umu[iu]) * exp2));
 		}
-		if (*fbeam > (float)0.) {
-		    denom = umu[iu] / *umu0 + (float)1.;
-		    if (dabs(denom) < (float)1e-4) {
+		if (*fbeam > 0.) {
+		    denom = umu[iu] / *umu0 + 1.;
+		    if (abs(denom) < 1e-4) {
 /*                                                   ** L'Hospital limit */
 			expn = dtau / *umu0 * exp0;
 		    } else {
@@ -4225,8 +4274,8 @@ L60:
 		i__4 = *nn;
 		for (iq = 1; iq <= i__4; ++iq) {
 		    wk[iq] = exp(kk[iq + lc * kk_dim1] * dtau);
-		    denom = umu[iu] * kk[iq + lc * kk_dim1] + (float)1.;
-		    if (dabs(denom) < (float)1e-4) {
+		    denom = umu[iu] * kk[iq + lc * kk_dim1] + 1.;
+		    if (abs(denom) < 1e-4) {
 /*                                                   ** L'Hospital limit */
 			expn = dtau / umu[iu] * exp2;
 		    } else {
@@ -4238,8 +4287,8 @@ L60:
 /*                                                   ** KK is positive */
 		i__4 = *nstr;
 		for (iq = *nn + 1; iq <= i__4; ++iq) {
-		    denom = umu[iu] * kk[iq + lc * kk_dim1] + (float)1.;
-		    if (dabs(denom) < (float)1e-4) {
+		    denom = umu[iu] * kk[iq + lc * kk_dim1] + 1.;
+		    if (abs(denom) < 1e-4) {
 /*                                                   ** L'Hospital limit */
 			expn = -dtau / umu[iu] * exp1;
 		    } else {
@@ -4255,10 +4304,10 @@ L60:
 /*                           ** output level to next computational level */
 	    dtau1 = utaupr[lu] - taucpr[lyu - 1];
 	    dtau2 = utaupr[lu] - taucpr[lyu];
-	    if (dabs(dtau1) < (float)1e-6 && negumu) {
+	    if (abs(dtau1) < 1e-6 && negumu) {
 		goto L90;
 	    }
-	    if (dabs(dtau2) < (float)1e-6 && ! negumu) {
+	    if (abs(dtau2) < 1e-6 && ! negumu) {
 		goto L90;
 	    }
 	    if (negumu) {
@@ -4267,9 +4316,9 @@ L60:
 	    if (! negumu) {
 		exp2 = exp(dtau2 / umu[iu]);
 	    }
-	    if (*fbeam > (float)0.) {
-		denom = umu[iu] / *umu0 + (float)1.;
-		if (dabs(denom) < (float)1e-4) {
+	    if (*fbeam > 0.) {
+		denom = umu[iu] / *umu0 + 1.;
+		if (abs(denom) < 1e-4) {
 		    expn = dtau1 / *umu0 * exp0;
 		} else if (negumu) {
 		    expn = (exp0 - expbea[lyu - 1] * exp1) / denom;
@@ -4282,8 +4331,8 @@ L60:
 	    dtau = dtaucp[lyu];
 	    i__3 = *nn;
 	    for (iq = 1; iq <= i__3; ++iq) {
-		denom = umu[iu] * kk[iq + lyu * kk_dim1] + (float)1.;
-		if (dabs(denom) < (float)1e-4) {
+		denom = umu[iu] * kk[iq + lyu * kk_dim1] + 1.;
+		if (abs(denom) < 1e-4) {
 		    expn = -dtau2 / umu[iu] * exp2;
 		} else if (negumu) {
 		    expn = (exp(-kk[iq + lyu * kk_dim1] * dtau2) - exp(kk[iq 
@@ -4298,8 +4347,8 @@ L60:
 /*                                                   ** KK is positive */
 	    i__3 = *nstr;
 	    for (iq = *nn + 1; iq <= i__3; ++iq) {
-		denom = umu[iu] * kk[iq + lyu * kk_dim1] + (float)1.;
-		if (dabs(denom) < (float)1e-4) {
+		denom = umu[iu] * kk[iq + lyu * kk_dim1] + 1.;
+		if (abs(denom) < 1e-4) {
 		    expn = -dtau1 / umu[iu] * exp1;
 		} else if (negumu) {
 		    expn = (exp(-kk[iq + lyu * kk_dim1] * dtau1) - exp1) / 
@@ -4319,16 +4368,16 @@ L60:
 		    expn = exp2;
 		    fact = taucpr[lyu] + umu[iu];
 		}
-		plkint = plkint + z0u[iu + lyu * z0u_dim1] * ((float)1. - 
-			expn) + z1u[iu + lyu * z1u_dim1] * (utaupr[lu] + umu[
-			iu] - fact * expn);
+		plkint = plkint + z0u[iu + lyu * z0u_dim1] * (1. - expn) + 
+			z1u[iu + lyu * z1u_dim1] * (utaupr[lu] + umu[iu] - 
+			fact * expn);
 	    }
 /*                            ** Calculate intensity components */
 /*                            ** attenuated at both boundaries. */
 /*                            ** NOTE: no azimuthal intensity */
 /*                            ** component for isotropic surface */
 L90:
-	    bndint = (float)0.;
+	    bndint = 0.;
 	    if (negumu && *mazim == 0) {
 		bndint = (*fisot + *tplank) * exp(utaupr[lu] / umu[iu]);
 	    } else if (! negumu) {
@@ -4340,9 +4389,9 @@ L90:
 		    wk[jq] = exp(-kk[jq + *nlyr * kk_dim1] * dtaucp[*nlyr]);
 /* L100: */
 		}
-		bnddfu = (float)0.;
+		bnddfu = 0.;
 		for (iq = *nn; iq >= 1; --iq) {
-		    dfuint = (float)0.;
+		    dfuint = 0.;
 		    i__3 = *nn;
 		    for (jq = 1; jq <= i__3; ++jq) {
 			dfuint += gc[iq + (jq + *nlyr * gc_dim2) * gc_dim1] * 
@@ -4355,18 +4404,18 @@ L90:
 				ll[jq + *nlyr * ll_dim1] * wk[jq];
 /* L120: */
 		    }
-		    if (*fbeam > (float)0.) {
+		    if (*fbeam > 0.) {
 			dfuint += zz[iq + *nlyr * zz_dim1] * expbea[*nlyr];
 		    }
 		    dfuint += *delm0 * (zplk0[iq + *nlyr * zplk0_dim1] + 
 			    zplk1[iq + *nlyr * zplk1_dim1] * taucpr[*nlyr]);
-		    bnddfu += (*delm0 + (float)1.) * rmu[iu + (*nn + 1 - iq) *
-			     rmu_dim1] * cmu[*nn + 1 - iq] * cwt[*nn + 1 - iq]
-			     * dfuint;
+		    bnddfu += (*delm0 + 1.) * rmu[iu + (*nn + 1 - iq) * 
+			    rmu_dim1] * cmu[*nn + 1 - iq] * cwt[*nn + 1 - iq] 
+			    * dfuint;
 /* L130: */
 		}
-		bnddir = (float)0.;
-		if (*fbeam > (float)0.) {
+		bnddir = 0.;
+		if (*fbeam > 0.) {
 		    bnddir = *umu0 * *fbeam / *pi * rmu[iu] * expbea[*nlyr];
 		}
 		bndint = (bnddfu + bnddir + *delm0 * emu[iu] * *bplank) * exp(
@@ -4385,27 +4434,29 @@ L150:
 /* ****************************************************************** */
 /* ********** DISORT service routines ******************************* */
 /* ****************************************************************** */
-/* Subroutine */ int chekin_(integer *nlyr, real *dtauc, real *ssalb, real *
-	pmom, real *temper, real *wvnmlo, real *wvnmhi, logical *usrtau, 
-	integer *ntau, real *utau, integer *nstr, logical *usrang, integer *
-	numu, real *umu, integer *nphi, real *phi, integer *ibcnd, real *
-	fbeam, real *umu0, real *phi0, real *fisot, logical *lamber, real *
-	albedo, real *hl, real *btemp, real *ttemp, real *temis, logical *
-	plank, logical *onlyfl, real *accur, real *tauc, integer *maxcly, 
-	integer *maxulv, integer *maxumu, integer *maxcmu, integer *maxphi, 
-	integer *mxcly, integer *mxulv, integer *mxumu, integer *mxcmu, 
-	integer *mxphi, integer *mxsqt)
+/* Subroutine */ int chekin_(integer *nlyr, doublereal *dtauc, doublereal *
+	ssalb, doublereal *pmom, doublereal *temper, doublereal *wvnmlo, 
+	doublereal *wvnmhi, logical *usrtau, integer *ntau, doublereal *utau, 
+	integer *nstr, logical *usrang, integer *numu, doublereal *umu, 
+	integer *nphi, doublereal *phi, integer *ibcnd, doublereal *fbeam, 
+	doublereal *umu0, doublereal *phi0, doublereal *fisot, logical *
+	lamber, doublereal *albedo, doublereal *hl, doublereal *btemp, 
+	doublereal *ttemp, doublereal *temis, logical *plank, logical *onlyfl,
+	 doublereal *accur, doublereal *tauc, integer *maxcly, integer *
+	maxulv, integer *maxumu, integer *maxcmu, integer *maxphi, integer *
+	mxcly, integer *mxulv, integer *mxumu, integer *mxcmu, integer *mxphi,
+	 integer *mxsqt)
 {
     /* System generated locals */
     integer pmom_dim1, pmom_offset, i__1, i__2;
-    real r__1;
+    doublereal d__1;
 
     /* Local variables */
     static integer j, k, lc, iu, lu;
-    static real rmu;
-    extern doublereal dref_(real *, real *, integer *);
+    static doublereal rmu;
+    extern doublereal dref_(doublereal *, doublereal *, integer *);
     static integer irmu;
-    static real flxalb;
+    static doublereal flxalb;
     extern logical wrtbad_(char *, ftnlen);
     static logical inperr;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
@@ -4448,24 +4499,24 @@ L150:
     }
     i__1 = *nlyr;
     for (lc = 1; lc <= i__1; ++lc) {
-	if (dtauc[lc] < (float)0.) {
+	if (dtauc[lc] < 0.) {
 	    inperr = wrtbad_("DTAUC", (ftnlen)5);
 	}
-	if (ssalb[lc] < (float)0. || ssalb[lc] > (float)1.) {
+	if (ssalb[lc] < 0. || ssalb[lc] > 1.) {
 	    inperr = wrtbad_("SSALB", (ftnlen)5);
 	}
 	if (*plank && *ibcnd != 1) {
-	    if (lc == 1 && temper[0] < (float)0.) {
+	    if (lc == 1 && temper[0] < 0.) {
 		inperr = wrtbad_("TEMPER", (ftnlen)6);
 	    }
-	    if (temper[lc] < (float)0.) {
+	    if (temper[lc] < 0.) {
 		inperr = wrtbad_("TEMPER", (ftnlen)6);
 	    }
 	}
 	i__2 = *nstr;
 	for (k = 0; k <= i__2; ++k) {
-	    if (pmom[k + lc * pmom_dim1] < (float)-1. || pmom[k + lc * 
-		    pmom_dim1] > (float)1.) {
+	    if (pmom[k + lc * pmom_dim1] < -1. || pmom[k + lc * pmom_dim1] > 
+		    1.) {
 		inperr = wrtbad_("PMOM", (ftnlen)4);
 	    }
 /* L10: */
@@ -4485,10 +4536,10 @@ L150:
 	}
 	i__1 = *ntau;
 	for (lu = 1; lu <= i__1; ++lu) {
-	    if ((r__1 = utau[lu] - tauc[*nlyr], dabs(r__1)) <= (float)1e-4) {
+	    if ((d__1 = utau[lu] - tauc[*nlyr], abs(d__1)) <= 1e-4) {
 		utau[lu] = tauc[*nlyr];
 	    }
-	    if (utau[lu] < (float)0. || utau[lu] > tauc[*nlyr]) {
+	    if (utau[lu] < 0. || utau[lu] > tauc[*nlyr]) {
 		inperr = wrtbad_("UTAU", (ftnlen)4);
 	    }
 /* L30: */
@@ -4523,11 +4574,10 @@ L150:
 	}
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    if (umu[iu] < (float)-1. || umu[iu] > (float)1. || umu[iu] == (
-		    float)0.) {
+	    if (umu[iu] < -1. || umu[iu] > 1. || umu[iu] == 0.) {
 		inperr = wrtbad_("UMU", (ftnlen)3);
 	    }
-	    if (*ibcnd == 1 && umu[iu] < (float)0.) {
+	    if (*ibcnd == 1 && umu[iu] < 0.) {
 		inperr = wrtbad_("UMU", (ftnlen)3);
 	    }
 	    if (iu > 1) {
@@ -4551,7 +4601,7 @@ L150:
 	}
 	i__1 = *nphi;
 	for (j = 1; j <= i__1; ++j) {
-	    if (phi[j] < (float)0. || phi[j] > (float)360.) {
+	    if (phi[j] < 0. || phi[j] > 360.) {
 		inperr = wrtbad_("PHI", (ftnlen)3);
 	    }
 /* L50: */
@@ -4561,55 +4611,54 @@ L150:
 	inperr = wrtbad_("IBCND", (ftnlen)5);
     }
     if (*ibcnd == 0) {
-	if (*fbeam < (float)0.) {
+	if (*fbeam < 0.) {
 	    inperr = wrtbad_("FBEAM", (ftnlen)5);
 	}
-	if (*fbeam > (float)0. && (*umu0 <= (float)0. || *umu0 > (float)1.)) {
+	if (*fbeam > 0. && (*umu0 <= 0. || *umu0 > 1.)) {
 	    inperr = wrtbad_("UMU0", (ftnlen)4);
 	}
-	if (*fbeam > (float)0. && (*phi0 < (float)0. || *phi0 > (float)360.)) 
-		{
+	if (*fbeam > 0. && (*phi0 < 0. || *phi0 > 360.)) {
 	    inperr = wrtbad_("PHI0", (ftnlen)4);
 	}
-	if (*fisot < (float)0.) {
+	if (*fisot < 0.) {
 	    inperr = wrtbad_("FISOT", (ftnlen)5);
 	}
 	if (*lamber) {
-	    if (*albedo < (float)0. || *albedo > (float)1.) {
+	    if (*albedo < 0. || *albedo > 1.) {
 		inperr = wrtbad_("ALBEDO", (ftnlen)6);
 	    }
 	} else {
 /*                    ** Make sure flux albedo at dense mesh of incident */
 /*                    ** angles does not assume unphysical values */
 	    for (irmu = 0; irmu <= 100; ++irmu) {
-		rmu = irmu * (float).01;
+		rmu = irmu * .01;
 		flxalb = dref_(&rmu, hl, nstr);
-		if (flxalb < (float)0. || flxalb > (float)1.) {
+		if (flxalb < 0. || flxalb > 1.) {
 		    inperr = wrtbad_("HL", (ftnlen)2);
 		}
 /* L60: */
 	    }
 	}
     } else if (*ibcnd == 1) {
-	if (*albedo < (float)0. || *albedo > (float)1.) {
+	if (*albedo < 0. || *albedo > 1.) {
 	    inperr = wrtbad_("ALBEDO", (ftnlen)6);
 	}
     }
     if (*plank && *ibcnd != 1) {
-	if (*wvnmlo < (float)0. || *wvnmhi <= *wvnmlo) {
+	if (*wvnmlo < 0. || *wvnmhi <= *wvnmlo) {
 	    inperr = wrtbad_("WVNMLO,HI", (ftnlen)9);
 	}
-	if (*temis < (float)0. || *temis > (float)1.) {
+	if (*temis < 0. || *temis > 1.) {
 	    inperr = wrtbad_("TEMIS", (ftnlen)5);
 	}
-	if (*btemp < (float)0.) {
+	if (*btemp < 0.) {
 	    inperr = wrtbad_("BTEMP", (ftnlen)5);
 	}
-	if (*ttemp < (float)0.) {
+	if (*ttemp < 0.) {
 	    inperr = wrtbad_("TTEMP", (ftnlen)5);
 	}
     }
-    if (*accur < (float)0. || *accur > (float).01) {
+    if (*accur < 0. || *accur > .01) {
 	inperr = wrtbad_("ACCUR", (ftnlen)5);
     }
     if (*mxcly < *nlyr) {
@@ -4654,8 +4703,7 @@ L150:
     if (*plank) {
 	i__1 = *nlyr;
 	for (lc = 1; lc <= i__1; ++lc) {
-	    if ((r__1 = temper[lc] - temper[lc - 1], dabs(r__1)) > (float)20.)
-		     {
+	    if ((d__1 = temper[lc] - temper[lc - 1], abs(d__1)) > 20.) {
 		errmsg_("CHEKIN--vertical temperature step may be too large \
 for good accuracy", &c_false, (ftnlen)68);
 	    }
@@ -4665,7 +4713,7 @@ for good accuracy", &c_false, (ftnlen)68);
     return 0;
 } /* chekin_ */
 
-doublereal dref_(real *mu, real *hl, integer *nstr)
+doublereal dref_(doublereal *mu, doublereal *hl, integer *nstr)
 {
     /* Initialized data */
 
@@ -4673,12 +4721,12 @@ doublereal dref_(real *mu, real *hl, integer *nstr)
 
     /* System generated locals */
     integer i__1;
-    real ret_val;
+    doublereal ret_val;
 
     /* Local variables */
-    static real c__[100];
+    static doublereal c__[100];
     static integer l;
-    static real cl, pl, plm1, plm2;
+    static doublereal cl, pl, plm1, plm2;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
 
 /*        Exact flux albedo for given angle of incidence, given */
@@ -4724,22 +4772,22 @@ doublereal dref_(real *mu, real *hl, integer *nstr)
 /*     .. */
     if (pass1) {
 	pass1 = FALSE_;
-	cl = (float).125;
-	c__[1] = cl * (float)10.;
+	cl = .125;
+	c__[1] = cl * 10.;
 	for (l = 4; l <= 100; l += 2) {
 	    cl = -cl * (l - 3) / (l + 2);
-	    c__[l - 1] = ((l << 1) + 1) * (float)2. * cl;
+	    c__[l - 1] = ((l << 1) + 1) * 2. * cl;
 /* L10: */
 	}
     }
-    if (*nstr < 2 || dabs(*mu) > (float)1.) {
+    if (*nstr < 2 || abs(*mu) > 1.) {
 	errmsg_("DREF--input argument error(s)", &c_true, (ftnlen)29);
     }
     if (*nstr > 100) {
 	errmsg_("DREF--parameter MAXTRM too small", &c_true, (ftnlen)32);
     }
-    ret_val = hl[0] - hl[1] * (float)2. * *mu;
-    plm2 = (float)1.;
+    ret_val = hl[0] - hl[1] * 2. * *mu;
+    plm2 = 1.;
     plm1 = -(*mu);
     i__1 = *nstr - 1;
     for (l = 2; l <= i__1; ++l) {
@@ -4752,25 +4800,25 @@ doublereal dref_(real *mu, real *hl, integer *nstr)
 	plm1 = pl;
 /* L20: */
     }
-    if (ret_val < (float)0. || ret_val > (float)1.) {
+    if (ret_val < 0. || ret_val > 1.) {
 	errmsg_("DREF--albedo value not in (0,1)", &c_false, (ftnlen)31);
     }
     return ret_val;
 } /* dref_ */
 
 /* Subroutine */ int lepoly_(integer *nmu, integer *m, integer *maxmu, 
-	integer *twonm1, real *mu, real *sqt, real *ylm)
+	integer *twonm1, doublereal *mu, doublereal *sqt, doublereal *ylm)
 {
     /* System generated locals */
     integer ylm_dim1, ylm_offset, i__1, i__2;
-    real r__1;
+    doublereal d__1;
 
     /* Builtin functions */
     double sqrt(doublereal);
 
     /* Local variables */
     static integer i__, l;
-    static real tmp1, tmp2;
+    static doublereal tmp1, tmp2;
 
 /*       Computes the normalized associated Legendre polynomial, */
 /*       defined in terms of the associated Legendre polynomial */
@@ -4841,7 +4889,7 @@ doublereal dref_(real *mu, real *hl, integer *nstr)
 /*                             ** Legendre polynomials */
 	i__1 = *nmu;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    ylm[i__ * ylm_dim1] = (float)1.;
+	    ylm[i__ * ylm_dim1] = 1.;
 	    ylm[i__ * ylm_dim1 + 1] = mu[i__];
 /* L20: */
 	}
@@ -4862,10 +4910,9 @@ doublereal dref_(real *mu, real *hl, integer *nstr)
 /*                               ** Y-sub-m-super-m; derived from */
 /*                               ** D/A Eqs. (11,12) */
 /* Computing 2nd power */
-	    r__1 = mu[i__];
+	    d__1 = mu[i__];
 	    ylm[*m + i__ * ylm_dim1] = -sqt[(*m << 1) - 1] / sqt[*m * 2] * 
-		    sqrt((float)1. - r__1 * r__1) * ylm[*m - 1 + i__ * 
-		    ylm_dim1];
+		    sqrt(1. - d__1 * d__1) * ylm[*m - 1 + i__ * ylm_dim1];
 /*                              ** Y-sub-(m+1)-super-m; derived from */
 /*                              ** D/A Eqs.(13,14) using Eqs.(11,12) */
 	    ylm[*m + 1 + i__ * ylm_dim1] = sqt[(*m << 1) + 1] * mu[i__] * ylm[
@@ -4890,32 +4937,31 @@ doublereal dref_(real *mu, real *hl, integer *nstr)
     return 0;
 } /* lepoly_ */
 
-doublereal plkavg_(real *wnumlo, real *wnumhi, real *t)
+doublereal plkavg_(doublereal *wnumlo, doublereal *wnumhi, doublereal *t)
 {
     /* Initialized data */
 
-    static real c2 = (float)1.438786;
-    static real sigma = (float)5.67032e-8;
-    static real vcut = (float)1.5;
-    static real vcp[7] = { (float)10.25,(float)5.7,(float)3.9,(float)2.9,(
-	    float)2.3,(float)1.9,(float)0. };
-    static real pi = (float)0.;
+    static doublereal c2 = 1.438786;
+    static doublereal sigma = 5.67032e-8;
+    static doublereal vcut = 1.5;
+    static doublereal vcp[7] = { 10.25,5.7,3.9,2.9,2.3,1.9,0. };
+    static doublereal pi = 0.;
 
     /* System generated locals */
     integer i__1, i__2;
-    real ret_val, r__1, r__2;
+    doublereal ret_val, d__1, d__2;
 
     /* Builtin functions */
     double asin(doublereal), log(doublereal), exp(doublereal);
 
     /* Local variables */
-    static real d__[2];
+    static doublereal d__[2];
     static integer i__, k, m, n;
-    static real p[2], v[2], hh, ex, mv, del, val, exm, vsq, val0, conc;
+    static doublereal p[2], v[2], hh, ex, mv, del, val, exm, vsq, val0, conc;
     static integer mmax;
-    static real vmax, epsil;
+    static doublereal vmax, epsil;
     extern doublereal r1mach_(integer *);
-    static real sigdpi, oldval;
+    static doublereal sigdpi, oldval;
     static integer smallv;
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
 
@@ -5012,51 +5058,50 @@ doublereal plkavg_(real *wnumlo, real *wnumhi, real *t)
 /*     .. */
 /*     .. Statement Function definitions .. */
 /*     .. */
-    if (pi == (float)0.) {
-	pi = asin((float)1.) * (float)2.;
+    if (pi == 0.) {
+	pi = asin(1.) * 2.;
 	vmax = log(r1mach_(&c__2));
 	epsil = r1mach_(&c__4);
 	sigdpi = sigma / pi;
 /* Computing 4th power */
-	r__1 = pi, r__1 *= r__1;
-	conc = (float)15. / (r__1 * r__1);
+	d__1 = pi, d__1 *= d__1;
+	conc = 15. / (d__1 * d__1);
     }
-    if (*t < (float)0. || *wnumhi <= *wnumlo || *wnumlo < (float)0.) {
+    if (*t < 0. || *wnumhi <= *wnumlo || *wnumlo < 0.) {
 	errmsg_("PLKAVG--temperature or wavenums. wrong", &c_true, (ftnlen)38)
 		;
     }
-    if (*t < (float)1e-4) {
-	ret_val = (float)0.;
+    if (*t < 1e-4) {
+	ret_val = 0.;
 	return ret_val;
     }
     v[0] = c2 * *wnumlo / *t;
     v[1] = c2 * *wnumhi / *t;
-    if (v[0] > epsil && v[1] < vmax && (*wnumhi - *wnumlo) / *wnumhi < (float)
-	    .01) {
+    if (v[0] > epsil && v[1] < vmax && (*wnumhi - *wnumlo) / *wnumhi < .01) {
 /*                          ** Wavenumbers are very close.  Get integral */
 /*                          ** by iterating Simpson rule to convergence. */
 	hh = v[1] - v[0];
-	oldval = (float)0.;
+	oldval = 0.;
 /* Computing 3rd power */
-	r__1 = v[0];
+	d__1 = v[0];
 /* Computing 3rd power */
-	r__2 = v[1];
-	val0 = r__1 * (r__1 * r__1) / (exp(v[0]) - 1) + r__2 * (r__2 * r__2) /
+	d__2 = v[1];
+	val0 = d__1 * (d__1 * d__1) / (exp(v[0]) - 1) + d__2 * (d__2 * d__2) /
 		 (exp(v[1]) - 1);
 	for (n = 1; n <= 10; ++n) {
 	    del = hh / (n << 1);
 	    val = val0;
 	    i__1 = (n << 1) - 1;
 	    for (k = 1; k <= i__1; ++k) {
-		r__1 = v[0] + k * del;
+		d__1 = v[0] + k * del;
 /* Computing 3rd power */
-		r__2 = r__1;
-		val += (k % 2 + 1 << 1) * (r__2 * (r__2 * r__2) / (exp(r__1) 
+		d__2 = d__1;
+		val += (k % 2 + 1 << 1) * (d__2 * (d__2 * d__2) / (exp(d__1) 
 			- 1));
 /* L10: */
 	    }
-	    val = del / (float)3. * val;
-	    if ((r__1 = (val - oldval) / val, dabs(r__1)) <= (float)1e-6) {
+	    val = del / 3. * val;
+	    if ((d__1 = (val - oldval) / val, abs(d__1)) <= 1e-6) {
 		goto L30;
 	    }
 	    oldval = val;
@@ -5065,8 +5110,8 @@ doublereal plkavg_(real *wnumlo, real *wnumhi, real *t)
 	errmsg_("PLKAVG--Simpson rule didnt converge", &c_false, (ftnlen)35);
 L30:
 /* Computing 4th power */
-	r__1 = *t, r__1 *= r__1;
-	ret_val = sigdpi * (r__1 * r__1) * conc * val;
+	d__1 = *t, d__1 *= d__1;
+	ret_val = sigdpi * (d__1 * d__1) * conc * val;
 	return ret_val;
     }
 /*                          *** General case *** */
@@ -5076,13 +5121,12 @@ L30:
 /*                                   ** Use power series */
 	    ++smallv;
 /* Computing 2nd power */
-	    r__1 = v[i__ - 1];
-	    vsq = r__1 * r__1;
+	    d__1 = v[i__ - 1];
+	    vsq = d__1 * d__1;
 	    p[i__ - 1] = conc * vsq * v[i__ - 1] * (v[i__ - 1] * (v[i__ - 1] *
-		     (vsq * (vsq * (vsq * (float)-7.5156325156325161e-8 + (
-		    float)3.6743092298647855e-6) - (float)
-		    1.9841269841269841e-4) + (float).016666666666666666) - (
-		    float).125) + (float).33333333333333331);
+		     (vsq * (vsq * (vsq * -7.5156325156325161e-8 + 
+		    3.6743092298647855e-6) - 1.9841269841269841e-4) + 
+		    .016666666666666666) - .125) + .33333333333333331);
 	} else {
 /*                      ** Use exponential series */
 	    mmax = 0;
@@ -5093,16 +5137,16 @@ L40:
 		goto L40;
 	    }
 	    ex = exp(-v[i__ - 1]);
-	    exm = (float)1.;
-	    d__[i__ - 1] = (float)0.;
+	    exm = 1.;
+	    d__[i__ - 1] = 0.;
 	    i__1 = mmax;
 	    for (m = 1; m <= i__1; ++m) {
 		mv = m * v[i__ - 1];
 		exm = ex * exm;
 /* Computing 4th power */
 		i__2 = m, i__2 *= i__2;
-		d__[i__ - 1] += exm * (mv * (mv * (mv + (float)3.) + (float)
-			6.) + (float)6.) / (i__2 * i__2);
+		d__[i__ - 1] += exm * (mv * (mv * (mv + 3.) + 6.) + 6.) / (
+			i__2 * i__2);
 /* L50: */
 	    }
 	    d__[i__ - 1] = conc * d__[i__ - 1];
@@ -5115,23 +5159,23 @@ L40:
 	ret_val = p[1] - p[0];
     } else if (smallv == 1) {
 /*                                    ** WNUMLO small, WNUMHI large */
-	ret_val = (float)1. - p[0] - d__[1];
+	ret_val = 1. - p[0] - d__[1];
     } else {
 /*                                    ** WNUMLO and WNUMHI both large */
 	ret_val = d__[0] - d__[1];
     }
 /* Computing 4th power */
-    r__1 = *t, r__1 *= r__1;
-    ret_val = sigdpi * (r__1 * r__1) * ret_val;
-    if (ret_val == (float)0.) {
+    d__1 = *t, d__1 *= d__1;
+    ret_val = sigdpi * (d__1 * d__1) * ret_val;
+    if (ret_val == 0.) {
 	errmsg_("PLKAVG--returns zero; possible underflow", &c_false, (ftnlen)
 		40);
     }
     return ret_val;
 } /* plkavg_ */
 
-/* Subroutine */ int pravin_(real *umu, integer *numu, integer *maxumu, real *
-	utau, integer *ntau, real *u0u)
+/* Subroutine */ int pravin_(doublereal *umu, integer *numu, integer *maxumu, 
+	doublereal *utau, integer *ntau, doublereal *u0u)
 {
     /* System generated locals */
     integer u0u_dim1, u0u_offset, i__1, i__2, i__3;
@@ -5192,17 +5236,17 @@ L40:
 	s_wsfe(&io___307);
 	i__2 = iumax;
 	for (iu = iumin; iu <= i__2; ++iu) {
-	    do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
 	i__2 = *ntau;
 	for (lu = 1; lu <= i__2; ++lu) {
 	    s_wsfe(&io___310);
-	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
 	    i__3 = iumax;
 	    for (iu = iumin; iu <= i__3; ++iu) {
 		do_fio(&c__1, (char *)&u0u[iu + lu * u0u_dim1], (ftnlen)
-			sizeof(real));
+			sizeof(doublereal));
 	    }
 	    e_wsfe();
 /* L10: */
@@ -5212,14 +5256,17 @@ L40:
     return 0;
 } /* pravin_ */
 
-/* Subroutine */ int prtinp_(integer *nlyr, real *dtauc, real *dtaucp, real *
-	ssalb, real *pmom, real *temper, real *wvnmlo, real *wvnmhi, integer *
-	ntau, real *utau, integer *nstr, integer *numu, real *umu, integer *
-	nphi, real *phi, integer *ibcnd, real *fbeam, real *umu0, real *phi0, 
-	real *fisot, logical *lamber, real *albedo, real *hl, real *btemp, 
-	real *ttemp, real *temis, logical *deltam, logical *plank, logical *
-	onlyfl, real *accur, real *flyr, logical *lyrcut, real *oprim, real *
-	tauc, real *taucpr, integer *maxcmu, logical *prtmom)
+/* Subroutine */ int prtinp_(integer *nlyr, doublereal *dtauc, doublereal *
+	dtaucp, doublereal *ssalb, doublereal *pmom, doublereal *temper, 
+	doublereal *wvnmlo, doublereal *wvnmhi, integer *ntau, doublereal *
+	utau, integer *nstr, integer *numu, doublereal *umu, integer *nphi, 
+	doublereal *phi, integer *ibcnd, doublereal *fbeam, doublereal *umu0, 
+	doublereal *phi0, doublereal *fisot, logical *lamber, doublereal *
+	albedo, doublereal *hl, doublereal *btemp, doublereal *ttemp, 
+	doublereal *temis, logical *deltam, logical *plank, logical *onlyfl, 
+	doublereal *accur, doublereal *flyr, logical *lyrcut, doublereal *
+	oprim, doublereal *tauc, doublereal *taucpr, integer *maxcmu, logical 
+	*prtmom)
 {
     /* System generated locals */
     integer pmom_dim1, pmom_offset, i__1, i__2;
@@ -5229,7 +5276,7 @@ L40:
 
     /* Local variables */
     static integer j, k, lc, iu, lu;
-    static real yessct;
+    static doublereal yessct;
 
     /* Fortran I/O blocks */
     static cilist io___311 = { 0, 6, 0, "(/,A,I4,A,I4)", 0 };
@@ -5299,7 +5346,7 @@ L40:
 	do_fio(&c__1, " User optical depths :", (ftnlen)22);
 	i__1 = *ntau;
 	for (lu = 1; lu <= i__1; ++lu) {
-	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
     }
@@ -5309,7 +5356,7 @@ L40:
 	do_fio(&c__1, " User polar angle cosines :", (ftnlen)27);
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
     }
@@ -5319,7 +5366,7 @@ L40:
 	do_fio(&c__1, " User azimuthal angles :", (ftnlen)24);
 	i__1 = *nphi;
 	for (j = 1; j <= i__1; ++j) {
-	    do_fio(&c__1, (char *)&phi[j], (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&phi[j], (ftnlen)sizeof(doublereal));
 	}
 	e_wsfe();
     }
@@ -5335,18 +5382,18 @@ L40:
     if (*ibcnd == 0) {
 	s_wsfe(&io___320);
 	do_fio(&c__1, "    Incident beam with intensity =", (ftnlen)34);
-	do_fio(&c__1, (char *)&(*fbeam), (ftnlen)sizeof(real));
+	do_fio(&c__1, (char *)&(*fbeam), (ftnlen)sizeof(doublereal));
 	do_fio(&c__1, " and polar angle cosine = ", (ftnlen)26);
-	do_fio(&c__1, (char *)&(*umu0), (ftnlen)sizeof(real));
+	do_fio(&c__1, (char *)&(*umu0), (ftnlen)sizeof(doublereal));
 	do_fio(&c__1, "  and azimuth angle =", (ftnlen)21);
-	do_fio(&c__1, (char *)&(*phi0), (ftnlen)sizeof(real));
+	do_fio(&c__1, (char *)&(*phi0), (ftnlen)sizeof(doublereal));
 	do_fio(&c__1, "    plus isotropic incident intensity =", (ftnlen)39);
-	do_fio(&c__1, (char *)&(*fisot), (ftnlen)sizeof(real));
+	do_fio(&c__1, (char *)&(*fisot), (ftnlen)sizeof(doublereal));
 	e_wsfe();
 	if (*lamber) {
 	    s_wsfe(&io___321);
 	    do_fio(&c__1, "    Bottom albedo (Lambertian) =", (ftnlen)32);
-	    do_fio(&c__1, (char *)&(*albedo), (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&(*albedo), (ftnlen)sizeof(doublereal));
 	    e_wsfe();
 	}
 	if (! (*lamber)) {
@@ -5355,7 +5402,7 @@ L40:
 ctivity :", (ftnlen)58);
 	    i__1 = *nstr;
 	    for (k = 0; k <= i__1; ++k) {
-		do_fio(&c__1, (char *)&hl[k], (ftnlen)sizeof(real));
+		do_fio(&c__1, (char *)&hl[k], (ftnlen)sizeof(doublereal));
 	    }
 	    e_wsfe();
 	}
@@ -5363,14 +5410,14 @@ ctivity :", (ftnlen)58);
 	    s_wsfe(&io___324);
 	    do_fio(&c__1, "    Thermal emission in wavenumber interval :", (
 		    ftnlen)45);
-	    do_fio(&c__1, (char *)&(*wvnmlo), (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&(*wvnmhi), (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&(*wvnmlo), (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&(*wvnmhi), (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, "    Bottom temperature =", (ftnlen)24);
-	    do_fio(&c__1, (char *)&(*btemp), (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&(*btemp), (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, "    Top temperature =", (ftnlen)21);
-	    do_fio(&c__1, (char *)&(*ttemp), (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&(*ttemp), (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, "    Top emissivity =", (ftnlen)20);
-	    do_fio(&c__1, (char *)&(*temis), (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&(*temis), (ftnlen)sizeof(doublereal));
 	    e_wsfe();
 	}
     } else if (*ibcnd == 1) {
@@ -5380,7 +5427,7 @@ ctivity :", (ftnlen)58);
 	e_wsfe();
 	s_wsfe(&io___326);
 	do_fio(&c__1, "    Bottom albedo (Lambertian) =", (ftnlen)32);
-	do_fio(&c__1, (char *)&(*albedo), (ftnlen)sizeof(real));
+	do_fio(&c__1, (char *)&(*albedo), (ftnlen)sizeof(doublereal));
 	e_wsfe();
     }
     if (*deltam) {
@@ -5411,7 +5458,7 @@ cident beam angle", (ftnlen)70);
     s_wsfe(&io___332);
     do_fio(&c__1, " Relative convergence criterion for azimuth series =", (
 	    ftnlen)52);
-    do_fio(&c__1, (char *)&(*accur), (ftnlen)sizeof(real));
+    do_fio(&c__1, (char *)&(*accur), (ftnlen)sizeof(doublereal));
     e_wsfe();
     if (*lyrcut) {
 	s_wsfe(&io___333);
@@ -5450,7 +5497,7 @@ cident beam angle", (ftnlen)70);
 	do_fio(&c__1, "Depth     Depth    Albedo   Factor", (ftnlen)34);
 	e_wsfe();
     }
-    yessct = (float)0.;
+    yessct = 0.;
     i__1 = *nlyr;
     for (lc = 1; lc <= i__1; ++lc) {
 	yessct += ssalb[lc];
@@ -5460,52 +5507,53 @@ cident beam angle", (ftnlen)70);
 	if (*plank) {
 	    s_wsfe(&io___338);
 	    do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
-	    do_fio(&c__1, (char *)&dtauc[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&tauc[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&ssalb[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&flyr[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&dtaucp[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&taucpr[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&oprim[lc], (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&dtauc[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&tauc[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&ssalb[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&flyr[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&dtaucp[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&taucpr[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&oprim[lc], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&pmom[lc * pmom_dim1 + 1], (ftnlen)sizeof(
-		    real));
-	    do_fio(&c__1, (char *)&temper[lc - 1], (ftnlen)sizeof(real));
+		    doublereal));
+	    do_fio(&c__1, (char *)&temper[lc - 1], (ftnlen)sizeof(doublereal))
+		    ;
 	    e_wsfe();
 	}
 	if (! (*plank)) {
 	    s_wsfe(&io___339);
 	    do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
-	    do_fio(&c__1, (char *)&dtauc[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&tauc[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&ssalb[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&flyr[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&dtaucp[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&taucpr[lc], (ftnlen)sizeof(real));
-	    do_fio(&c__1, (char *)&oprim[lc], (ftnlen)sizeof(real));
+	    do_fio(&c__1, (char *)&dtauc[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&tauc[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&ssalb[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&flyr[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&dtaucp[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&taucpr[lc], (ftnlen)sizeof(doublereal));
+	    do_fio(&c__1, (char *)&oprim[lc], (ftnlen)sizeof(doublereal));
 	    do_fio(&c__1, (char *)&pmom[lc * pmom_dim1 + 1], (ftnlen)sizeof(
-		    real));
+		    doublereal));
 	    e_wsfe();
 	}
 /* L10: */
     }
     if (*plank) {
 	s_wsfe(&io___340);
-	do_fio(&c__1, (char *)&temper[*nlyr], (ftnlen)sizeof(real));
+	do_fio(&c__1, (char *)&temper[*nlyr], (ftnlen)sizeof(doublereal));
 	e_wsfe();
     }
-    if (*prtmom && yessct > (float)0.) {
+    if (*prtmom && yessct > 0.) {
 	s_wsfe(&io___341);
 	do_fio(&c__1, " Layer   Phase Function Moments", (ftnlen)31);
 	e_wsfe();
 	i__1 = *nlyr;
 	for (lc = 1; lc <= i__1; ++lc) {
-	    if (ssalb[lc] > (float)0.) {
+	    if (ssalb[lc] > 0.) {
 		s_wsfe(&io___342);
 		do_fio(&c__1, (char *)&lc, (ftnlen)sizeof(integer));
 		i__2 = *nstr;
 		for (k = 0; k <= i__2; ++k) {
 		    do_fio(&c__1, (char *)&pmom[k + lc * pmom_dim1], (ftnlen)
-			    sizeof(real));
+			    sizeof(doublereal));
 		}
 		e_wsfe();
 	    }
@@ -5515,9 +5563,9 @@ cident beam angle", (ftnlen)70);
     return 0;
 } /* prtinp_ */
 
-/* Subroutine */ int prtint_(real *uu, real *utau, integer *ntau, real *umu, 
-	integer *numu, real *phi, integer *nphi, integer *maxulv, integer *
-	maxumu)
+/* Subroutine */ int prtint_(doublereal *uu, doublereal *utau, integer *ntau, 
+	doublereal *umu, integer *numu, doublereal *phi, integer *nphi, 
+	integer *maxulv, integer *maxumu)
 {
     /* System generated locals */
     integer uu_dim1, uu_dim2, uu_offset, i__1, i__2, i__3, i__4;
@@ -5586,38 +5634,38 @@ cident beam angle", (ftnlen)70);
 	    s_wsfe(&io___351);
 	    i__3 = jmax;
 	    for (j = jmin; j <= i__3; ++j) {
-		do_fio(&c__1, (char *)&phi[j], (ftnlen)sizeof(real));
+		do_fio(&c__1, (char *)&phi[j], (ftnlen)sizeof(doublereal));
 	    }
 	    e_wsfe();
 	    if (np == 1) {
 		s_wsfe(&io___353);
-		do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(real));
-		do_fio(&c__1, (char *)&umu[1], (ftnlen)sizeof(real));
+		do_fio(&c__1, (char *)&utau[lu], (ftnlen)sizeof(doublereal));
+		do_fio(&c__1, (char *)&umu[1], (ftnlen)sizeof(doublereal));
 		i__3 = jmax;
 		for (j = jmin; j <= i__3; ++j) {
 		    do_fio(&c__1, (char *)&uu[(lu + j * uu_dim2) * uu_dim1 + 
-			    1], (ftnlen)sizeof(real));
+			    1], (ftnlen)sizeof(doublereal));
 		}
 		e_wsfe();
 	    }
 	    if (np > 1) {
 		s_wsfe(&io___354);
-		do_fio(&c__1, (char *)&umu[1], (ftnlen)sizeof(real));
+		do_fio(&c__1, (char *)&umu[1], (ftnlen)sizeof(doublereal));
 		i__3 = jmax;
 		for (j = jmin; j <= i__3; ++j) {
 		    do_fio(&c__1, (char *)&uu[(lu + j * uu_dim2) * uu_dim1 + 
-			    1], (ftnlen)sizeof(real));
+			    1], (ftnlen)sizeof(doublereal));
 		}
 		e_wsfe();
 	    }
 	    i__3 = *numu;
 	    for (iu = 2; iu <= i__3; ++iu) {
 		s_wsfe(&io___356);
-		do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(real));
+		do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal));
 		i__4 = jmax;
 		for (j = jmin; j <= i__4; ++j) {
 		    do_fio(&c__1, (char *)&uu[iu + (lu + j * uu_dim2) * 
-			    uu_dim1], (ftnlen)sizeof(real));
+			    uu_dim1], (ftnlen)sizeof(doublereal));
 		}
 		e_wsfe();
 /* L10: */
@@ -5629,11 +5677,11 @@ cident beam angle", (ftnlen)70);
     return 0;
 } /* prtint_ */
 
-/* Subroutine */ int qgausn_(integer *m, real *gmu, real *gwt)
+/* Subroutine */ int qgausn_(integer *m, doublereal *gmu, doublereal *gwt)
 {
     /* Initialized data */
 
-    static real pi = (float)0.;
+    static doublereal pi = 0.;
     static integer maxit = 1000;
     static doublereal one = 1.;
     static doublereal two = 2.;
@@ -5647,16 +5695,13 @@ cident beam angle", (ftnlen)70);
 
     /* Local variables */
     static integer k;
-    static doublereal p;
-    static real t;
-    static doublereal x, en;
+    static doublereal p, t, x, en;
     static integer nn;
     static doublereal xi, pm1;
     static integer np1;
     static doublereal pm2;
     static integer lim;
-    static doublereal tol, tmp, ppr, nnp1;
-    static real cona;
+    static doublereal tol, tmp, ppr, nnp1, cona;
     static integer iter;
     static doublereal prod, p2pri;
     extern doublereal d1mach_(integer *);
@@ -5711,16 +5756,16 @@ cident beam angle", (ftnlen)70);
     --gmu;
 
     /* Function Body */
-    if (pi == (float)0.) {
-	pi = asin((float)1.) * (float)2.;
-	tol = d1mach_(&c__4) * (float)10.;
+    if (pi == 0.) {
+	pi = asin(1.) * 2.;
+	tol = d1mach_(&c__4) * 10.;
     }
     if (*m < 1) {
 	errmsg_("QGAUSN--Bad value of M", &c_true, (ftnlen)22);
     }
     if (*m == 1) {
-	gmu[1] = (float).5;
-	gwt[1] = (float)1.;
+	gmu[1] = .5;
+	gwt[1] = 1.;
 	return 0;
     }
     en = (doublereal) (*m);
@@ -5728,7 +5773,7 @@ cident beam angle", (ftnlen)70);
     nnp1 = (doublereal) (*m * np1);
 /* Computing 3rd power */
     i__1 = *m;
-    cona = (real) (*m - 1) / (i__1 * (i__1 * i__1) << 3);
+    cona = (doublereal) (*m - 1) / (i__1 * (i__1 * i__1) << 3);
     lim = *m / 2;
     i__1 = lim;
     for (k = 1; k <= i__1; ++k) {
@@ -5779,7 +5824,7 @@ L10:
 /*                                    ** Set middle abscissa and weight */
 /*                                    ** for rules of odd order */
     if (*m % 2 != 0) {
-	gmu[lim + 1] = (float)0.;
+	gmu[lim + 1] = 0.;
 	prod = one;
 	i__1 = *m;
 	for (k = 3; k <= i__1; k += 2) {
@@ -5793,29 +5838,29 @@ L10:
 /*                                        ** Convert from (-1,1) to (0,1) */
     i__1 = *m;
     for (k = 1; k <= i__1; ++k) {
-	gmu[k] = gmu[k] * (float).5 + (float).5;
-	gwt[k] *= (float).5;
+	gmu[k] = gmu[k] * .5 + .5;
+	gwt[k] *= .5;
 /* L50: */
     }
     return 0;
 } /* qgausn_ */
 
-doublereal ratio_(real *a, real *b)
+doublereal ratio_(doublereal *a, doublereal *b)
 {
     /* Initialized data */
 
     static logical pass1 = TRUE_;
 
     /* System generated locals */
-    real ret_val;
+    doublereal ret_val;
 
     /* Builtin functions */
-    double r_lg10(real *), r_sign(real *, real *);
+    double d_lg10(doublereal *), d_sign(doublereal *, doublereal *);
 
     /* Local variables */
-    static real absa, absb, huge__, powa, powb, tiny;
+    static doublereal absa, absb, huge__, powa, powb, tiny;
     extern doublereal r1mach_(integer *);
-    static real powmin, powmax;
+    static doublereal powmin, powmax;
 
 /*        Calculate ratio  A/B  with over- and under-flow protection */
 /*        (thanks to Prof. Jeff Dozier for some suggestions here). */
@@ -5838,25 +5883,25 @@ doublereal ratio_(real *a, real *b)
     if (pass1) {
 	tiny = r1mach_(&c__1);
 	huge__ = r1mach_(&c__2);
-	powmax = r_lg10(&huge__);
-	powmin = r_lg10(&tiny);
+	powmax = d_lg10(&huge__);
+	powmin = d_lg10(&tiny);
 	pass1 = FALSE_;
     }
-    if (*a == (float)0.) {
-	if (*b == (float)0.) {
-	    ret_val = (float)1.;
+    if (*a == 0.) {
+	if (*b == 0.) {
+	    ret_val = 1.;
 	} else {
-	    ret_val = (float)0.;
+	    ret_val = 0.;
 	}
-    } else if (*b == (float)0.) {
-	ret_val = r_sign(&huge__, a);
+    } else if (*b == 0.) {
+	ret_val = d_sign(&huge__, a);
     } else {
-	absa = dabs(*a);
-	absb = dabs(*b);
-	powa = r_lg10(&absa);
-	powb = r_lg10(&absb);
+	absa = abs(*a);
+	absb = abs(*b);
+	powa = d_lg10(&absa);
+	powb = d_lg10(&absb);
 	if (absa < tiny && absb < tiny) {
-	    ret_val = (float)1.;
+	    ret_val = 1.;
 	} else if (powa - powb >= powmax) {
 	    ret_val = huge__;
 	} else if (powa - powb <= powmin) {
@@ -5866,49 +5911,50 @@ doublereal ratio_(real *a, real *b)
 	}
 /*                      ** DONT use old trick of determining sign */
 /*                      ** from A*B because A*B may (over/under)flow */
-	if (*a > (float)0. && *b < (float)0. || *a < (float)0. && *b > (float)
-		0.) {
+	if (*a > 0. && *b < 0. || *a < 0. && *b > 0.) {
 	    ret_val = -ret_val;
 	}
     }
     return ret_val;
 } /* ratio_ */
 
-/* Subroutine */ int slftst_(real *accur, real *albedo, real *btemp, logical *
-	deltam, real *dtauc, real *fbeam, real *fisot, integer *ibcnd, 
-	logical *lamber, integer *nlyr, logical *plank, integer *nphi, 
-	integer *numu, integer *nstr, integer *ntau, logical *onlyfl, real *
-	phi, real *phi0, real *pmom, logical *prnt, real *ssalb, real *temis, 
-	real *temper, real *ttemp, real *umu, logical *usrang, logical *
-	usrtau, real *utau, real *umu0, real *wvnmhi, real *wvnmlo, logical *
-	compar, real *flup, real *rfldir, real *rfldn, real *uu)
+/* Subroutine */ int slftst_(doublereal *accur, doublereal *albedo, 
+	doublereal *btemp, logical *deltam, doublereal *dtauc, doublereal *
+	fbeam, doublereal *fisot, integer *ibcnd, logical *lamber, integer *
+	nlyr, logical *plank, integer *nphi, integer *numu, integer *nstr, 
+	integer *ntau, logical *onlyfl, doublereal *phi, doublereal *phi0, 
+	doublereal *pmom, logical *prnt, doublereal *ssalb, doublereal *temis,
+	 doublereal *temper, doublereal *ttemp, doublereal *umu, logical *
+	usrang, logical *usrtau, doublereal *utau, doublereal *umu0, 
+	doublereal *wvnmhi, doublereal *wvnmlo, logical *compar, doublereal *
+	flup, doublereal *rfldir, doublereal *rfldn, doublereal *uu)
 {
     /* Initialized data */
 
-    static real acc = (float)1e-4;
+    static doublereal acc = 1e-4;
 
     static integer i__, n;
     static logical ok;
-    static real phis, umus, phi0s, umu0s;
+    static doublereal phis, umus, phi0s, umu0s;
     static integer nphis, ntaus;
-    static real pmoms[5], utaus;
+    static doublereal pmoms[5], utaus;
     static logical prnts[7];
     static integer nlyrs, numus, nstrs;
-    static real error1, error2, error3, error4, albeds, fbeams;
+    static doublereal error1, error2, error3, error4, albeds, fbeams;
     static logical lambes;
     static integer ibcnds;
     static logical deltas;
-    static real accurs, dtaucs;
-    extern logical tstbad_(char *, real *, ftnlen);
-    static real ssalbs;
+    static doublereal accurs, dtaucs;
+    extern logical tstbad_(char *, doublereal *, ftnlen);
+    static doublereal ssalbs;
     static logical planks;
-    static real btemps, tempes[2];
+    static doublereal btemps, tempes[2];
     extern /* Subroutine */ int errmsg_(char *, logical *, ftnlen);
-    static real temiss, fisots;
+    static doublereal temiss, fisots;
     static logical onlyfs, usrans;
-    static real ttemps;
+    static doublereal ttemps;
     static logical usrtas;
-    static real wvnmhs, wvnmls;
+    static doublereal wvnmhs, wvnmls;
 
 /*       If  COMPAR = FALSE, save user input values that would otherwise */
 /*       be destroyed and replace them with input values for self-test. */
@@ -5992,40 +6038,40 @@ doublereal ratio_(real *a, real *b)
 /*                                     ** Set input values for self-test */
 	*nstr = 4;
 	*nlyr = 1;
-	*dtauc = (float)1.;
-	*ssalb = (float).9;
+	*dtauc = 1.;
+	*ssalb = .9;
 /*                          ** Haze L moments */
-	pmom[0] = (float)1.;
-	pmom[1] = (float).8042;
-	pmom[2] = (float).646094;
-	pmom[3] = (float).481851;
-	pmom[4] = (float).359056;
+	pmom[0] = 1.;
+	pmom[1] = .8042;
+	pmom[2] = .646094;
+	pmom[3] = .481851;
+	pmom[4] = .359056;
 	*usrang = TRUE_;
 	*numu = 1;
-	*umu = (float).5;
+	*umu = .5;
 	*usrtau = TRUE_;
 	*ntau = 1;
-	*utau = (float).5;
+	*utau = .5;
 	*nphi = 1;
-	*phi = (float)90.;
+	*phi = 90.;
 	*ibcnd = 0;
-	*fbeam = (float)3.14159265;
-	*umu0 = (float).866;
-	*phi0 = (float)0.;
-	*fisot = (float)1.;
+	*fbeam = 3.14159265;
+	*umu0 = .866;
+	*phi0 = 0.;
+	*fisot = 1.;
 	*lamber = TRUE_;
-	*albedo = (float).7;
+	*albedo = .7;
 	*deltam = TRUE_;
 	*onlyfl = FALSE_;
-	*accur = (float)1e-4;
+	*accur = 1e-4;
 	*plank = TRUE_;
-	*wvnmlo = (float)0.;
-	*wvnmhi = (float)5e4;
-	*btemp = (float)300.;
-	*ttemp = (float)100.;
-	*temis = (float).8;
-	temper[0] = (float)210.;
-	temper[1] = (float)200.;
+	*wvnmlo = 0.;
+	*wvnmhi = 5e4;
+	*btemp = 300.;
+	*ttemp = 100.;
+	*temis = .8;
+	temper[0] = 210.;
+	temper[1] = 200.;
 	for (i__ = 1; i__ <= 7; ++i__) {
 	    prnt[i__] = FALSE_;
 /* L30: */
@@ -6034,20 +6080,20 @@ doublereal ratio_(real *a, real *b)
 /*                                    ** Compare test case results with */
 /*                                    ** correct answers and abort if bad */
 	ok = TRUE_;
-	error1 = (*uu - (float)47.86005) / (float)47.86005;
-	error2 = (*rfldir - (float)1.527286) / (float)1.527286;
-	error3 = (*rfldn - (float)28.37223) / (float)28.37223;
-	error4 = (*flup - (float)152.5853) / (float)152.5853;
-	if (dabs(error1) > acc) {
+	error1 = (*uu - 47.86005) / 47.86005;
+	error2 = (*rfldir - 1.527286) / 1.527286;
+	error3 = (*rfldn - 28.37223) / 28.37223;
+	error4 = (*flup - 152.5853) / 152.5853;
+	if (abs(error1) > acc) {
 	    ok = tstbad_("UU", &error1, (ftnlen)2);
 	}
-	if (dabs(error2) > acc) {
+	if (abs(error2) > acc) {
 	    ok = tstbad_("RFLDIR", &error2, (ftnlen)6);
 	}
-	if (dabs(error3) > acc) {
+	if (abs(error3) > acc) {
 	    ok = tstbad_("RFLDN", &error3, (ftnlen)5);
 	}
-	if (dabs(error4) > acc) {
+	if (abs(error4) > acc) {
 	    ok = tstbad_("FLUP", &error4, (ftnlen)4);
 	}
 	if (! ok) {
@@ -6096,19 +6142,23 @@ doublereal ratio_(real *a, real *b)
     return 0;
 } /* slftst_ */
 
-/* Subroutine */ int zeroal_(integer *nd1, real *expbea, real *flyr, real *
-	oprim, real *taucpr, real *xr0, real *xr1, integer *nd2, real *cmu, 
-	real *cwt, real *psi, real *wk, real *z0, real *z1, real *zj, integer 
-	*nd3, real *hlpr, real *ylm0, integer *nd4, real *array, real *cc, 
-	real *evecc, integer *nd5, real *gl, integer *nd6, real *ylmc, 
-	integer *nd7, real *ylmu, integer *nd8, real *kk, real *ll, real *zz, 
-	real *zplk0, real *zplk1, integer *nd9, real *gc, integer *nd10, 
-	integer *layru, real *utaupr, integer *nd11, real *gu, integer *nd12, 
-	real *z0u, real *z1u, real *zbeam, integer *nd13, real *eval, integer 
-	*nd14, real *amb, real *apb, integer *nd15, integer *ipvt, real *z__, 
-	integer *nd16, real *rfldir, real *rfldn, real *flup, real *uavg, 
-	real *dfdt, integer *nd17, real *albmed, real *trnmed, integer *nd18, 
-	real *u0u, integer *nd19, real *uu)
+/* Subroutine */ int zeroal_(integer *nd1, doublereal *expbea, doublereal *
+	flyr, doublereal *oprim, doublereal *taucpr, doublereal *xr0, 
+	doublereal *xr1, integer *nd2, doublereal *cmu, doublereal *cwt, 
+	doublereal *psi, doublereal *wk, doublereal *z0, doublereal *z1, 
+	doublereal *zj, integer *nd3, doublereal *hlpr, doublereal *ylm0, 
+	integer *nd4, doublereal *array, doublereal *cc, doublereal *evecc, 
+	integer *nd5, doublereal *gl, integer *nd6, doublereal *ylmc, integer 
+	*nd7, doublereal *ylmu, integer *nd8, doublereal *kk, doublereal *ll, 
+	doublereal *zz, doublereal *zplk0, doublereal *zplk1, integer *nd9, 
+	doublereal *gc, integer *nd10, integer *layru, doublereal *utaupr, 
+	integer *nd11, doublereal *gu, integer *nd12, doublereal *z0u, 
+	doublereal *z1u, doublereal *zbeam, integer *nd13, doublereal *eval, 
+	integer *nd14, doublereal *amb, doublereal *apb, integer *nd15, 
+	integer *ipvt, doublereal *z__, integer *nd16, doublereal *rfldir, 
+	doublereal *rfldn, doublereal *flup, doublereal *uavg, doublereal *
+	dfdt, integer *nd17, doublereal *albmed, doublereal *trnmed, integer *
+	nd18, doublereal *u0u, integer *nd19, doublereal *uu)
 {
     /* System generated locals */
     integer i__1;
@@ -6178,131 +6228,131 @@ doublereal ratio_(real *a, real *b)
     /* Function Body */
     i__1 = *nd1;
     for (n = 1; n <= i__1; ++n) {
-	expbea[n] = (float)0.;
-	flyr[n] = (float)0.;
-	oprim[n] = (float)0.;
-	taucpr[n] = (float)0.;
-	xr0[n] = (float)0.;
-	xr1[n] = (float)0.;
+	expbea[n] = 0.;
+	flyr[n] = 0.;
+	oprim[n] = 0.;
+	taucpr[n] = 0.;
+	xr0[n] = 0.;
+	xr1[n] = 0.;
 /* L10: */
     }
     i__1 = *nd2;
     for (n = 1; n <= i__1; ++n) {
-	cmu[n] = (float)0.;
-	cwt[n] = (float)0.;
-	psi[n] = (float)0.;
-	wk[n] = (float)0.;
-	z0[n] = (float)0.;
-	z1[n] = (float)0.;
-	zj[n] = (float)0.;
+	cmu[n] = 0.;
+	cwt[n] = 0.;
+	psi[n] = 0.;
+	wk[n] = 0.;
+	z0[n] = 0.;
+	z1[n] = 0.;
+	zj[n] = 0.;
 /* L20: */
     }
     i__1 = *nd3;
     for (n = 1; n <= i__1; ++n) {
-	hlpr[n] = (float)0.;
-	ylm0[n] = (float)0.;
+	hlpr[n] = 0.;
+	ylm0[n] = 0.;
 /* L30: */
     }
     i__1 = *nd4;
     for (n = 1; n <= i__1; ++n) {
-	array[n] = (float)0.;
-	cc[n] = (float)0.;
-	evecc[n] = (float)0.;
+	array[n] = 0.;
+	cc[n] = 0.;
+	evecc[n] = 0.;
 /* L40: */
     }
     i__1 = *nd5;
     for (n = 1; n <= i__1; ++n) {
-	gl[n] = (float)0.;
+	gl[n] = 0.;
 /* L50: */
     }
     i__1 = *nd6;
     for (n = 1; n <= i__1; ++n) {
-	ylmc[n] = (float)0.;
+	ylmc[n] = 0.;
 /* L60: */
     }
     i__1 = *nd7;
     for (n = 1; n <= i__1; ++n) {
-	ylmu[n] = (float)0.;
+	ylmu[n] = 0.;
 /* L70: */
     }
     i__1 = *nd8;
     for (n = 1; n <= i__1; ++n) {
-	kk[n] = (float)0.;
-	ll[n] = (float)0.;
-	zz[n] = (float)0.;
-	zplk0[n] = (float)0.;
-	zplk1[n] = (float)0.;
+	kk[n] = 0.;
+	ll[n] = 0.;
+	zz[n] = 0.;
+	zplk0[n] = 0.;
+	zplk1[n] = 0.;
 /* L80: */
     }
     i__1 = *nd9;
     for (n = 1; n <= i__1; ++n) {
-	gc[n] = (float)0.;
+	gc[n] = 0.;
 /* L90: */
     }
     i__1 = *nd10;
     for (n = 1; n <= i__1; ++n) {
 	layru[n] = 0;
-	utaupr[n] = (float)0.;
+	utaupr[n] = 0.;
 /* L100: */
     }
     i__1 = *nd11;
     for (n = 1; n <= i__1; ++n) {
-	gu[n] = (float)0.;
+	gu[n] = 0.;
 /* L110: */
     }
     i__1 = *nd12;
     for (n = 1; n <= i__1; ++n) {
-	z0u[n] = (float)0.;
-	z1u[n] = (float)0.;
-	zbeam[n] = (float)0.;
+	z0u[n] = 0.;
+	z1u[n] = 0.;
+	zbeam[n] = 0.;
 /* L120: */
     }
     i__1 = *nd13;
     for (n = 1; n <= i__1; ++n) {
-	eval[n] = (float)0.;
+	eval[n] = 0.;
 /* L130: */
     }
     i__1 = *nd14;
     for (n = 1; n <= i__1; ++n) {
-	amb[n] = (float)0.;
-	apb[n] = (float)0.;
+	amb[n] = 0.;
+	apb[n] = 0.;
 /* L140: */
     }
     i__1 = *nd15;
     for (n = 1; n <= i__1; ++n) {
 	ipvt[n] = 0;
-	z__[n] = (float)0.;
+	z__[n] = 0.;
 /* L150: */
     }
     i__1 = *nd16;
     for (n = 1; n <= i__1; ++n) {
-	rfldir[n] = (float)0.;
-	rfldn[n] = (float)0.;
-	flup[n] = (float)0.;
-	uavg[n] = (float)0.;
-	dfdt[n] = (float)0.;
+	rfldir[n] = 0.;
+	rfldn[n] = 0.;
+	flup[n] = 0.;
+	uavg[n] = 0.;
+	dfdt[n] = 0.;
 /* L160: */
     }
     i__1 = *nd17;
     for (n = 1; n <= i__1; ++n) {
-	albmed[n] = (float)0.;
-	trnmed[n] = (float)0.;
+	albmed[n] = 0.;
+	trnmed[n] = 0.;
 /* L170: */
     }
     i__1 = *nd18;
     for (n = 1; n <= i__1; ++n) {
-	u0u[n] = (float)0.;
+	u0u[n] = 0.;
 /* L180: */
     }
     i__1 = *nd19;
     for (n = 1; n <= i__1; ++n) {
-	uu[n] = (float)0.;
+	uu[n] = 0.;
 /* L190: */
     }
     return 0;
 } /* zeroal_ */
 
-/* Subroutine */ int zeroit_(real *a, integer *length)
+/* Subroutine */ int zeroit_(doublereal *a, integer *length)
 {
     /* System generated locals */
     integer i__1;
@@ -6324,7 +6374,7 @@ doublereal ratio_(real *a, real *b)
     /* Function Body */
     i__1 = *length;
     for (l = 1; l <= i__1; ++l) {
-	a[l] = (float)0.;
+	a[l] = 0.;
 /* L10: */
     }
     return 0;
@@ -6336,16 +6386,18 @@ doublereal ratio_(real *a, real *b)
 /* ****************************************************************** */
 /* ********** IBCND=1 special case routines ************************* */
 /* ****************************************************************** */
-/* Subroutine */ int albtrn_(real *albedo, real *amb, real *apb, real *array, 
-	real *b, real *bdr, real *cband, real *cc, real *cmu, real *cwt, real 
-	*dtaucp, real *eval, real *evecc, real *gl, real *gc, real *gu, 
-	integer *ipvt, real *kk, real *ll, integer *nlyr, integer *nn, 
-	integer *nstr, integer *numu, logical *prnt, real *taucpr, real *umu, 
-	real *u0u, real *wk, real *ylmc, real *ylmu, real *z__, doublereal *
-	aad, doublereal *evald, doublereal *eveccd, doublereal *wkd, integer *
-	mi, integer *mi9m2, integer *maxulv, integer *maxumu, integer *mxcmu, 
-	integer *mxumu, integer *nnlyri, real *sqt, real *albmed, real *
-	trnmed)
+/* Subroutine */ int albtrn_(doublereal *albedo, doublereal *amb, doublereal *
+	apb, doublereal *array, doublereal *b, doublereal *bdr, doublereal *
+	cband, doublereal *cc, doublereal *cmu, doublereal *cwt, doublereal *
+	dtaucp, doublereal *eval, doublereal *evecc, doublereal *gl, 
+	doublereal *gc, doublereal *gu, integer *ipvt, doublereal *kk, 
+	doublereal *ll, integer *nlyr, integer *nn, integer *nstr, integer *
+	numu, logical *prnt, doublereal *taucpr, doublereal *umu, doublereal *
+	u0u, doublereal *wk, doublereal *ylmc, doublereal *ylmu, doublereal *
+	z__, doublereal *aad, doublereal *evald, doublereal *eveccd, 
+	doublereal *wkd, integer *mi, integer *mi9m2, integer *maxulv, 
+	integer *maxumu, integer *mxcmu, integer *mxumu, integer *nnlyri, 
+	doublereal *sqt, doublereal *albmed, doublereal *trnmed)
 {
     /* System generated locals */
     integer amb_dim1, amb_offset, apb_dim1, apb_offset, array_dim1, 
@@ -6361,39 +6413,44 @@ doublereal ratio_(real *a, real *b)
 
     /* Local variables */
     static integer l, lc, iq, iu, ncd;
-    static real sgn;
+    static doublereal sgn;
     static integer ncol, ncut;
-    static real delm0;
-    extern /* Subroutine */ int sgbco_(real *, integer *, integer *, integer *
-	    , integer *, integer *, real *, real *);
-    static real rcond;
+    static doublereal delm0;
+    extern /* Subroutine */ int sgbco_(doublereal *, integer *, integer *, 
+	    integer *, integer *, integer *, doublereal *, doublereal *);
+    static doublereal rcond;
     static integer mazim;
-    static real fisot;
-    extern /* Subroutine */ int solve1_(real *, real *, real *, integer *, 
-	    integer *, real *, integer *, integer *, integer *, integer *, 
-	    integer *, integer *, integer *);
+    static doublereal fisot;
+    extern /* Subroutine */ int solve1_(doublereal *, doublereal *, 
+	    doublereal *, integer *, integer *, doublereal *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *);
     static logical lamber;
-    static real sphalb;
-    extern /* Subroutine */ int soleig_(real *, real *, real *, real *, real *
-	    , real *, integer *, integer *, integer *, integer *, integer *, 
-	    real *, real *, real *, real *, real *, real *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *), altrin_(real *, real *,
-	     real *, integer *, integer *, integer *, integer *, integer *, 
-	    integer *, integer *, real *, real *, real *, real *), errmsg_(
-	    char *, logical *, ftnlen), lepoly_(integer *, integer *, integer 
-	    *, integer *, real *, real *, real *), praltr_(real *, integer *, 
-	    real *, real *), spaltr_(real *, real *, real *, real *, real *, 
-	    integer *, integer *, integer *, integer *, real *, real *, real *
-	    ), terpev_(real *, real *, real *, real *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, real *, real *, real *
-	    );
-    static real sphtrn;
-    extern /* Subroutine */ int zeroit_(real *, integer *);
-    static logical lyrcut;
-    extern /* Subroutine */ int setmtx_(real *, real *, real *, real *, real *
-	    , real *, real *, real *, logical *, logical *, integer *, 
+    static doublereal sphalb;
+    extern /* Subroutine */ int soleig_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
+	     integer *, integer *, integer *, integer *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *), altrin_(doublereal *, doublereal *, doublereal *, 
 	    integer *, integer *, integer *, integer *, integer *, integer *, 
-	    integer *, real *, real *);
+	    integer *, doublereal *, doublereal *, doublereal *, doublereal *)
+	    , errmsg_(char *, logical *, ftnlen), lepoly_(integer *, integer *
+	    , integer *, integer *, doublereal *, doublereal *, doublereal *),
+	     praltr_(doublereal *, integer *, doublereal *, doublereal *), 
+	    spaltr_(doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, integer *, integer *, integer *, integer *, 
+	    doublereal *, doublereal *, doublereal *), terpev_(doublereal *, 
+	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *, doublereal *, 
+	    doublereal *, doublereal *);
+    static doublereal sphtrn;
+    extern /* Subroutine */ int zeroit_(doublereal *, integer *);
+    static logical lyrcut;
+    extern /* Subroutine */ int setmtx_(doublereal *, doublereal *, 
+	    doublereal *, doublereal *, doublereal *, doublereal *, 
+	    doublereal *, doublereal *, logical *, logical *, integer *, 
+	    integer *, integer *, integer *, integer *, integer *, integer *, 
+	    integer *, doublereal *, doublereal *);
 
 /*    DISORT special case to get only albedo and transmissivity */
 /*    of entire medium as a function of incident beam angle */
@@ -6526,13 +6583,13 @@ doublereal ratio_(real *a, real *b)
 
     /* Function Body */
     mazim = 0;
-    delm0 = (float)1.;
+    delm0 = 1.;
 /*                    ** Set DISORT variables that are ignored in this */
 /*                    ** special case but are needed below in argument */
 /*                    ** lists of subroutines shared with general case */
     ncut = *nlyr;
     lyrcut = FALSE_;
-    fisot = (float)1.;
+    fisot = 1.;
     lamber = TRUE_;
 /*                          ** Get Legendre polynomials for computational */
 /*                          ** and user polar angle cosines */
@@ -6543,7 +6600,7 @@ doublereal ratio_(real *a, real *b)
 /*                       ** Evaluate Legendre polynomials with negative */
 /*                       ** arguments from those with positive arguments; */
 /*                       ** Dave/Armstrong Eq. (15) */
-    sgn = (float)-1.;
+    sgn = -1.;
     i__1 = *nstr - 1;
     for (l = mazim; l <= i__1; ++l) {
 	sgn = -sgn;
@@ -6588,7 +6645,7 @@ doublereal ratio_(real *a, real *b)
     ncd = *nn * 3 - 1;
     sgbco_(&cband[cband_offset], mi9m2, &ncol, &ncd, &ncd, &ipvt[1], &rcond, &
 	    z__[1]);
-    if (rcond + (float)1. == (float)1.) {
+    if (rcond + 1. == 1.) {
 	errmsg_("ALBTRN--SGBCO says matrix near singular", &c_false, (ftnlen)
 		39);
     }
@@ -6641,7 +6698,7 @@ doublereal ratio_(real *a, real *b)
 /* L60: */
 	}
     }
-    if (*albedo > (float)0.) {
+    if (*albedo > 0.) {
 /*                             ** Get spherical albedo and transmissivity */
 	if (*nlyr == 1) {
 	    spaltr_(&cmu[1], &cwt[1], &gc[gc_offset], &kk[kk_offset], &ll[
@@ -6657,10 +6714,10 @@ doublereal ratio_(real *a, real *b)
 /*                                ** like that of adding-doubling eqs.) */
 	i__1 = *numu;
 	for (iu = 1; iu <= i__1; ++iu) {
-	    albmed[iu] += *albedo / ((float)1. - *albedo * sphalb) * sphtrn * 
-		    trnmed[iu];
-	    trnmed[iu] += *albedo / ((float)1. - *albedo * sphalb) * sphalb * 
-		    trnmed[iu];
+	    albmed[iu] += *albedo / (1. - *albedo * sphalb) * sphtrn * trnmed[
+		    iu];
+	    trnmed[iu] += *albedo / (1. - *albedo * sphalb) * sphalb * trnmed[
+		    iu];
 /* L70: */
 	}
     }
@@ -6678,9 +6735,10 @@ doublereal ratio_(real *a, real *b)
     return 0;
 } /* albtrn_ */
 
-/* Subroutine */ int altrin_(real *gu, real *kk, real *ll, integer *mxcmu, 
-	integer *mxumu, integer *maxumu, integer *nlyr, integer *nn, integer *
-	nstr, integer *numu, real *taucpr, real *umu, real *u0u, real *wk)
+/* Subroutine */ int altrin_(doublereal *gu, doublereal *kk, doublereal *ll, 
+	integer *mxcmu, integer *mxumu, integer *maxumu, integer *nlyr, 
+	integer *nn, integer *nstr, integer *numu, doublereal *taucpr, 
+	doublereal *umu, doublereal *u0u, doublereal *wk)
 {
     /* System generated locals */
     integer gu_dim1, gu_dim2, gu_offset, kk_dim1, kk_offset, ll_dim1, 
@@ -6691,9 +6749,9 @@ doublereal ratio_(real *a, real *b)
 
     /* Local variables */
     static integer lc, iq, iu, lu;
-    static real mu, sgn, exp1, exp2, dtau, expn, denom;
+    static doublereal mu, sgn, exp1, exp2, dtau, expn, denom;
     static integer iumin, iumax;
-    static real palint, utaupr[2];
+    static doublereal palint, utaupr[2];
 
 /*       Computes azimuthally-averaged intensity at top and bottom */
 /*       of medium (related to albedo and transmission of medium by */
@@ -6775,17 +6833,17 @@ doublereal ratio_(real *a, real *b)
     --umu;
 
     /* Function Body */
-    utaupr[0] = (float)0.;
+    utaupr[0] = 0.;
     utaupr[1] = taucpr[*nlyr];
     for (lu = 1; lu <= 2; ++lu) {
 	if (lu == 1) {
 	    iumin = *numu / 2 + 1;
 	    iumax = *numu;
-	    sgn = (float)1.;
+	    sgn = 1.;
 	} else {
 	    iumin = 1;
 	    iumax = *numu / 2;
-	    sgn = (float)-1.;
+	    sgn = -1.;
 	}
 /*                                   ** Loop over polar angles at which */
 /*                                   ** albedos/transmissivities desired */
@@ -6796,7 +6854,7 @@ doublereal ratio_(real *a, real *b)
 	    mu = umu[iu];
 /*                                     ** Integrate from top to bottom */
 /*                                     ** computational layer */
-	    palint = (float)0.;
+	    palint = 0.;
 	    i__2 = *nlyr;
 	    for (lc = 1; lc <= i__2; ++lc) {
 		dtau = taucpr[lc] - taucpr[lc - 1];
@@ -6806,8 +6864,8 @@ doublereal ratio_(real *a, real *b)
 		i__3 = *nn;
 		for (iq = 1; iq <= i__3; ++iq) {
 		    wk[iq] = exp(kk[iq + lc * kk_dim1] * dtau);
-		    denom = mu * kk[iq + lc * kk_dim1] + (float)1.;
-		    if (dabs(denom) < (float)1e-4) {
+		    denom = mu * kk[iq + lc * kk_dim1] + 1.;
+		    if (abs(denom) < 1e-4) {
 /*                                                   ** L'Hospital limit */
 			expn = dtau / mu * exp2;
 		    } else {
@@ -6820,8 +6878,8 @@ doublereal ratio_(real *a, real *b)
 /*                                        ** KK is positive */
 		i__3 = *nstr;
 		for (iq = *nn + 1; iq <= i__3; ++iq) {
-		    denom = mu * kk[iq + lc * kk_dim1] + (float)1.;
-		    if (dabs(denom) < (float)1e-4) {
+		    denom = mu * kk[iq + lc * kk_dim1] + 1.;
+		    if (abs(denom) < 1e-4) {
 			expn = -dtau / mu * exp1;
 		    } else {
 			expn = (exp1 - exp2 * wk[*nstr + 1 - iq]) * sgn / 
@@ -6841,12 +6899,12 @@ doublereal ratio_(real *a, real *b)
     return 0;
 } /* altrin_ */
 
-/* Subroutine */ int praltr_(real *umu, integer *numu, real *albmed, real *
-	trnmed)
+/* Subroutine */ int praltr_(doublereal *umu, integer *numu, doublereal *
+	albmed, doublereal *trnmed)
 {
     /* System generated locals */
     integer i__1;
-    real r__1;
+    doublereal d__1;
 
     /* Builtin functions */
     integer s_wsfe(cilist *), do_fio(integer *, char *, ftnlen), e_wsfe();
@@ -6890,29 +6948,30 @@ ivity", (ftnlen)62);
     i__1 = *numu;
     for (iu = 1; iu <= i__1; ++iu) {
 	s_wsfe(&io___463);
-	r__1 = acos(umu[iu]) * (float)57.295779578552292;
-	do_fio(&c__1, (char *)&r__1, (ftnlen)sizeof(real));
-	do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(real));
-	do_fio(&c__1, (char *)&albmed[iu], (ftnlen)sizeof(real));
-	do_fio(&c__1, (char *)&trnmed[iu], (ftnlen)sizeof(real));
+	d__1 = acos(umu[iu]) * 57.295779578552292;
+	do_fio(&c__1, (char *)&d__1, (ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&umu[iu], (ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&albmed[iu], (ftnlen)sizeof(doublereal));
+	do_fio(&c__1, (char *)&trnmed[iu], (ftnlen)sizeof(doublereal));
 	e_wsfe();
 /* L10: */
     }
     return 0;
 } /* praltr_ */
 
-/* Subroutine */ int solve1_(real *b, real *cband, real *fisot, integer *ihom,
-	 integer *ipvt, real *ll, integer *mi9m2, integer *mxcmu, integer *
-	ncol, integer *ncut, integer *nn, integer *nnlyri, integer *nstr)
+/* Subroutine */ int solve1_(doublereal *b, doublereal *cband, doublereal *
+	fisot, integer *ihom, integer *ipvt, doublereal *ll, integer *mi9m2, 
+	integer *mxcmu, integer *ncol, integer *ncut, integer *nn, integer *
+	nnlyri, integer *nstr)
 {
     /* System generated locals */
     integer cband_dim1, cband_offset, ll_dim1, ll_offset, i__1, i__2;
 
     /* Local variables */
     static integer i__, lc, iq, ncd, ipnt;
-    extern /* Subroutine */ int sgbsl_(real *, integer *, integer *, integer *
-	    , integer *, integer *, real *, integer *), zeroit_(real *, 
-	    integer *);
+    extern /* Subroutine */ int sgbsl_(doublereal *, integer *, integer *, 
+	    integer *, integer *, integer *, doublereal *, integer *), 
+	    zeroit_(doublereal *, integer *);
 
 /*        Construct right-hand side vector B for isotropic incidence */
 /*        (only) on either top or bottom boundary and solve system */
@@ -6978,13 +7037,13 @@ ivity", (ftnlen)62);
 	i__1 = *nn;
 	for (i__ = 1; i__ <= i__1; ++i__) {
 	    b[i__] = *fisot;
-	    b[*ncol - *nn + i__] = (float)0.;
+	    b[*ncol - *nn + i__] = 0.;
 /* L10: */
 	}
     } else if (*ihom == 2) {
 	i__1 = *nn;
 	for (i__ = 1; i__ <= i__1; ++i__) {
-	    b[i__] = (float)0.;
+	    b[i__] = 0.;
 	    b[*ncol - *nn + i__] = *fisot;
 /* L20: */
 	}
@@ -7006,9 +7065,10 @@ ivity", (ftnlen)62);
     return 0;
 } /* solve1_ */
 
-/* Subroutine */ int spaltr_(real *cmu, real *cwt, real *gc, real *kk, real *
-	ll, integer *mxcmu, integer *nlyr, integer *nn, integer *nstr, real *
-	taucpr, real *sflup, real *sfldn)
+/* Subroutine */ int spaltr_(doublereal *cmu, doublereal *cwt, doublereal *gc,
+	 doublereal *kk, doublereal *ll, integer *mxcmu, integer *nlyr, 
+	integer *nn, integer *nstr, doublereal *taucpr, doublereal *sflup, 
+	doublereal *sfldn)
 {
     /* System generated locals */
     integer gc_dim1, gc_dim2, gc_offset, kk_dim1, kk_offset, ll_dim1, 
@@ -7019,7 +7079,7 @@ ivity", (ftnlen)62);
 
     /* Local variables */
     static integer iq, jq;
-    static real zint;
+    static doublereal zint;
 
 /*       Calculates spherical albedo and transmissivity for the entire */
 /*       medium from the m=0 intensity components */
@@ -7083,10 +7143,10 @@ ivity", (ftnlen)62);
     --cmu;
 
     /* Function Body */
-    *sflup = (float)0.;
+    *sflup = 0.;
     i__1 = *nstr;
     for (iq = *nn + 1; iq <= i__1; ++iq) {
-	zint = (float)0.;
+	zint = 0.;
 	i__2 = *nn;
 	for (jq = 1; jq <= i__2; ++jq) {
 	    zint += gc[iq + (jq + gc_dim2) * gc_dim1] * ll[jq + ll_dim1] * 
@@ -7101,10 +7161,10 @@ ivity", (ftnlen)62);
 	*sflup += cwt[iq - *nn] * cmu[iq - *nn] * zint;
 /* L30: */
     }
-    *sfldn = (float)0.;
+    *sfldn = 0.;
     i__1 = *nn;
     for (iq = 1; iq <= i__1; ++iq) {
-	zint = (float)0.;
+	zint = 0.;
 	i__2 = *nn;
 	for (jq = 1; jq <= i__2; ++jq) {
 	    zint += gc[iq + (jq + *nlyr * gc_dim2) * gc_dim1] * ll[jq + *nlyr 
@@ -7121,8 +7181,8 @@ ivity", (ftnlen)62);
 	*sfldn += cwt[*nn + 1 - iq] * cmu[*nn + 1 - iq] * zint;
 /* L60: */
     }
-    *sflup *= (float)2.;
-    *sfldn *= (float)2.;
+    *sflup *= 2.;
+    *sfldn *= 2.;
     return 0;
 } /* spaltr_ */
 

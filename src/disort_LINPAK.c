@@ -21,7 +21,7 @@ static integer c__1 = 1;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* RCS version control information: */
-/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_LINPAK.c,v 1.1 2006/02/13 23:27:19 olemke Exp $ */
+/* $Header: /srv/svn/cvs/cvsroot/arts/src/disort_LINPAK.c,v 1.2 2006/02/14 15:41:17 olemke Exp $ */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* Call tree: */
 
@@ -51,35 +51,37 @@ static integer c__1 = 1;
 /*       SAXPY */
 /*   SSWAP */
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* Subroutine */ int sgbco_(real *abd, integer *lda, integer *n, integer *ml, 
-	integer *mu, integer *ipvt, real *rcond, real *z__)
+/* Subroutine */ int sgbco_(doublereal *abd, integer *lda, integer *n, 
+	integer *ml, integer *mu, integer *ipvt, doublereal *rcond, 
+	doublereal *z__)
 {
     /* System generated locals */
     integer abd_dim1, abd_offset, i__1, i__2, i__3, i__4;
-    real r__1, r__2;
+    doublereal d__1, d__2;
 
     /* Builtin functions */
-    double r_sign(real *, real *);
+    double d_sign(doublereal *, doublereal *);
 
     /* Local variables */
     static integer j, k, l, m;
-    static real s, t;
+    static doublereal s, t;
     static integer kb, la;
-    static real ek;
+    static doublereal ek;
     static integer lm, mm, is, ju;
-    static real sm, wk;
+    static doublereal sm, wk;
     static integer lz, kp1;
-    static real wkm;
+    static doublereal wkm;
     static integer info;
-    extern doublereal sdot_(integer *, real *, integer *, real *, integer *);
-    extern /* Subroutine */ int sgbfa_(real *, integer *, integer *, integer *
-	    , integer *, integer *, integer *), sscal_(integer *, real *, 
-	    real *, integer *);
-    static real anorm;
-    extern doublereal sasum_(integer *, real *, integer *);
-    static real ynorm;
-    extern /* Subroutine */ int saxpy_(integer *, real *, real *, integer *, 
-	    real *, integer *);
+    extern doublereal sdot_(integer *, doublereal *, integer *, doublereal *, 
+	    integer *);
+    extern /* Subroutine */ int sgbfa_(doublereal *, integer *, integer *, 
+	    integer *, integer *, integer *, integer *), sscal_(integer *, 
+	    doublereal *, doublereal *, integer *);
+    static doublereal anorm;
+    extern doublereal sasum_(integer *, doublereal *, integer *);
+    static doublereal ynorm;
+    extern /* Subroutine */ int saxpy_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *, integer *);
 
 /*         Factors a real band matrix by Gaussian elimination */
 /*         and estimates the condition of the matrix. */
@@ -185,14 +187,14 @@ static integer c__1 = 1;
     --z__;
 
     /* Function Body */
-    anorm = (float)0.;
+    anorm = 0.;
     l = *ml + 1;
     is = l + *mu;
     i__1 = *n;
     for (j = 1; j <= i__1; ++j) {
 /* Computing MAX */
-	r__1 = anorm, r__2 = sasum_(&l, &abd[is + j * abd_dim1], &c__1);
-	anorm = dmax(r__1,r__2);
+	d__1 = anorm, d__2 = sasum_(&l, &abd[is + j * abd_dim1], &c__1);
+	anorm = max(d__1,d__2);
 	if (is > *ml + 1) {
 	    --is;
 	}
@@ -213,37 +215,37 @@ static integer c__1 = 1;
 /*     trans(U)*W = E.  The vectors are frequently rescaled to avoid */
 /*     overflow. */
 /*                     ** solve trans(U)*W = E */
-    ek = (float)1.;
+    ek = 1.;
     i__1 = *n;
     for (j = 1; j <= i__1; ++j) {
-	z__[j] = (float)0.;
+	z__[j] = 0.;
 /* L20: */
     }
     m = *ml + *mu + 1;
     ju = 0;
     i__1 = *n;
     for (k = 1; k <= i__1; ++k) {
-	if (z__[k] != (float)0.) {
-	    r__1 = -z__[k];
-	    ek = r_sign(&ek, &r__1);
+	if (z__[k] != 0.) {
+	    d__1 = -z__[k];
+	    ek = d_sign(&ek, &d__1);
 	}
-	if ((r__1 = ek - z__[k], dabs(r__1)) > (r__2 = abd[m + k * abd_dim1], 
-		dabs(r__2))) {
-	    s = (r__1 = abd[m + k * abd_dim1], dabs(r__1)) / (r__2 = ek - z__[
-		    k], dabs(r__2));
+	if ((d__1 = ek - z__[k], abs(d__1)) > (d__2 = abd[m + k * abd_dim1], 
+		abs(d__2))) {
+	    s = (d__1 = abd[m + k * abd_dim1], abs(d__1)) / (d__2 = ek - z__[
+		    k], abs(d__2));
 	    sscal_(n, &s, &z__[1], &c__1);
 	    ek = s * ek;
 	}
 	wk = ek - z__[k];
 	wkm = -ek - z__[k];
-	s = dabs(wk);
-	sm = dabs(wkm);
-	if (abd[m + k * abd_dim1] != (float)0.) {
+	s = abs(wk);
+	sm = abs(wkm);
+	if (abd[m + k * abd_dim1] != 0.) {
 	    wk /= abd[m + k * abd_dim1];
 	    wkm /= abd[m + k * abd_dim1];
 	} else {
-	    wk = (float)1.;
-	    wkm = (float)1.;
+	    wk = 1.;
+	    wkm = 1.;
 	}
 	kp1 = k + 1;
 /* Computing MIN */
@@ -256,10 +258,10 @@ static integer c__1 = 1;
 	    i__2 = ju;
 	    for (j = kp1; j <= i__2; ++j) {
 		--mm;
-		sm += (r__1 = z__[j] + wkm * abd[mm + j * abd_dim1], dabs(
-			r__1));
+		sm += (d__1 = z__[j] + wkm * abd[mm + j * abd_dim1], abs(d__1)
+			);
 		z__[j] += wk * abd[mm + j * abd_dim1];
-		s += (r__1 = z__[j], dabs(r__1));
+		s += (d__1 = z__[j], abs(d__1));
 /* L30: */
 	    }
 	    if (s < sm) {
@@ -277,7 +279,7 @@ static integer c__1 = 1;
 	z__[k] = wk;
 /* L50: */
     }
-    s = (float)1. / sasum_(n, &z__[1], &c__1);
+    s = 1. / sasum_(n, &z__[1], &c__1);
     sscal_(n, &s, &z__[1], &c__1);
 /*                         ** solve trans(L)*Y = W */
     i__1 = *n;
@@ -290,8 +292,8 @@ static integer c__1 = 1;
 	    z__[k] += sdot_(&lm, &abd[m + 1 + k * abd_dim1], &c__1, &z__[k + 
 		    1], &c__1);
 	}
-	if ((r__1 = z__[k], dabs(r__1)) > (float)1.) {
-	    s = (float)1. / (r__1 = z__[k], dabs(r__1));
+	if ((d__1 = z__[k], abs(d__1)) > 1.) {
+	    s = 1. / (d__1 = z__[k], abs(d__1));
 	    sscal_(n, &s, &z__[1], &c__1);
 	}
 	l = ipvt[k];
@@ -300,9 +302,9 @@ static integer c__1 = 1;
 	z__[k] = t;
 /* L60: */
     }
-    s = (float)1. / sasum_(n, &z__[1], &c__1);
+    s = 1. / sasum_(n, &z__[1], &c__1);
     sscal_(n, &s, &z__[1], &c__1);
-    ynorm = (float)1.;
+    ynorm = 1.;
 /*                         ** solve L*V = Y */
     i__1 = *n;
     for (k = 1; k <= i__1; ++k) {
@@ -317,32 +319,32 @@ static integer c__1 = 1;
 	    saxpy_(&lm, &t, &abd[m + 1 + k * abd_dim1], &c__1, &z__[k + 1], &
 		    c__1);
 	}
-	if ((r__1 = z__[k], dabs(r__1)) > (float)1.) {
-	    s = (float)1. / (r__1 = z__[k], dabs(r__1));
+	if ((d__1 = z__[k], abs(d__1)) > 1.) {
+	    s = 1. / (d__1 = z__[k], abs(d__1));
 	    sscal_(n, &s, &z__[1], &c__1);
 	    ynorm = s * ynorm;
 	}
 /* L70: */
     }
-    s = (float)1. / sasum_(n, &z__[1], &c__1);
+    s = 1. / sasum_(n, &z__[1], &c__1);
     sscal_(n, &s, &z__[1], &c__1);
     ynorm = s * ynorm;
 /*                           ** solve  U*Z = W */
     i__1 = *n;
     for (kb = 1; kb <= i__1; ++kb) {
 	k = *n + 1 - kb;
-	if ((r__1 = z__[k], dabs(r__1)) > (r__2 = abd[m + k * abd_dim1], dabs(
-		r__2))) {
-	    s = (r__1 = abd[m + k * abd_dim1], dabs(r__1)) / (r__2 = z__[k], 
-		    dabs(r__2));
+	if ((d__1 = z__[k], abs(d__1)) > (d__2 = abd[m + k * abd_dim1], abs(
+		d__2))) {
+	    s = (d__1 = abd[m + k * abd_dim1], abs(d__1)) / (d__2 = z__[k], 
+		    abs(d__2));
 	    sscal_(n, &s, &z__[1], &c__1);
 	    ynorm = s * ynorm;
 	}
-	if (abd[m + k * abd_dim1] != (float)0.) {
+	if (abd[m + k * abd_dim1] != 0.) {
 	    z__[k] /= abd[m + k * abd_dim1];
 	}
-	if (abd[m + k * abd_dim1] == (float)0.) {
-	    z__[k] = (float)1.;
+	if (abd[m + k * abd_dim1] == 0.) {
+	    z__[k] = 1.;
 	}
 	lm = min(k,m) - 1;
 	la = m - lm;
@@ -352,31 +354,32 @@ static integer c__1 = 1;
 /* L80: */
     }
 /*                              ** make znorm = 1.0 */
-    s = (float)1. / sasum_(n, &z__[1], &c__1);
+    s = 1. / sasum_(n, &z__[1], &c__1);
     sscal_(n, &s, &z__[1], &c__1);
     ynorm = s * ynorm;
-    if (anorm != (float)0.) {
+    if (anorm != 0.) {
 	*rcond = ynorm / anorm;
     }
-    if (anorm == (float)0.) {
-	*rcond = (float)0.;
+    if (anorm == 0.) {
+	*rcond = 0.;
     }
     return 0;
 } /* sgbco_ */
 
-/* Subroutine */ int sgbfa_(real *abd, integer *lda, integer *n, integer *ml, 
-	integer *mu, integer *ipvt, integer *info)
+/* Subroutine */ int sgbfa_(doublereal *abd, integer *lda, integer *n, 
+	integer *ml, integer *mu, integer *ipvt, integer *info)
 {
     /* System generated locals */
     integer abd_dim1, abd_offset, i__1, i__2, i__3, i__4;
 
     /* Local variables */
     static integer i__, j, k, l, m;
-    static real t;
+    static doublereal t;
     static integer i0, j0, j1, lm, mm, ju, jz, kp1, nm1;
-    extern /* Subroutine */ int sscal_(integer *, real *, real *, integer *), 
-	    saxpy_(integer *, real *, real *, integer *, real *, integer *);
-    extern integer isamax_(integer *, real *, integer *);
+    extern /* Subroutine */ int sscal_(integer *, doublereal *, doublereal *, 
+	    integer *), saxpy_(integer *, doublereal *, doublereal *, integer 
+	    *, doublereal *, integer *);
+    extern integer isamax_(integer *, doublereal *, integer *);
 
 /*         Factors a real band matrix by elimination. */
 /*         Revision date:  8/1/82 */
@@ -424,7 +427,7 @@ static integer c__1 = 1;
 	i0 = m + 1 - jz;
 	i__2 = *ml;
 	for (i__ = i0; i__ <= i__2; ++i__) {
-	    abd[i__ + jz * abd_dim1] = (float)0.;
+	    abd[i__ + jz * abd_dim1] = 0.;
 /* L10: */
 	}
 /* L20: */
@@ -441,7 +444,7 @@ static integer c__1 = 1;
 	if (jz <= *n) {
 	    i__2 = *ml;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
-		abd[i__ + jz * abd_dim1] = (float)0.;
+		abd[i__ + jz * abd_dim1] = 0.;
 /* L30: */
 	    }
 	}
@@ -452,7 +455,7 @@ static integer c__1 = 1;
 	i__2 = lm + 1;
 	l = isamax_(&i__2, &abd[m + k * abd_dim1], &c__1) + m - 1;
 	ipvt[k] = l + k - m;
-	if (abd[l + k * abd_dim1] == (float)0.) {
+	if (abd[l + k * abd_dim1] == 0.) {
 /*                                      ** zero pivot implies this column */
 /*                                      ** already triangularized */
 	    *info = k;
@@ -464,7 +467,7 @@ static integer c__1 = 1;
 		abd[m + k * abd_dim1] = t;
 	    }
 /*                                      ** compute multipliers */
-	    t = (float)-1. / abd[m + k * abd_dim1];
+	    t = -1. / abd[m + k * abd_dim1];
 	    sscal_(&lm, &t, &abd[m + 1 + k * abd_dim1], &c__1);
 /*                               ** row elimination with column indexing */
 /* Computing MIN */
@@ -490,25 +493,26 @@ static integer c__1 = 1;
 /* L50: */
     }
     ipvt[*n] = *n;
-    if (abd[m + *n * abd_dim1] == (float)0.) {
+    if (abd[m + *n * abd_dim1] == 0.) {
 	*info = *n;
     }
     return 0;
 } /* sgbfa_ */
 
-/* Subroutine */ int sgbsl_(real *abd, integer *lda, integer *n, integer *ml, 
-	integer *mu, integer *ipvt, real *b, integer *job)
+/* Subroutine */ int sgbsl_(doublereal *abd, integer *lda, integer *n, 
+	integer *ml, integer *mu, integer *ipvt, doublereal *b, integer *job)
 {
     /* System generated locals */
     integer abd_dim1, abd_offset, i__1, i__2, i__3;
 
     /* Local variables */
     static integer k, l, m;
-    static real t;
+    static doublereal t;
     static integer kb, la, lb, lm, nm1;
-    extern doublereal sdot_(integer *, real *, integer *, real *, integer *);
-    extern /* Subroutine */ int saxpy_(integer *, real *, real *, integer *, 
-	    real *, integer *);
+    extern doublereal sdot_(integer *, doublereal *, integer *, doublereal *, 
+	    integer *);
+    extern /* Subroutine */ int saxpy_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *, integer *);
 
 /*         Solves the real band system */
 /*            A * X = B  or  transpose(A) * X = B */
@@ -639,32 +643,34 @@ static integer c__1 = 1;
     return 0;
 } /* sgbsl_ */
 
-/* Subroutine */ int sgeco_(real *a, integer *lda, integer *n, integer *ipvt, 
-	real *rcond, real *z__)
+/* Subroutine */ int sgeco_(doublereal *a, integer *lda, integer *n, integer *
+	ipvt, doublereal *rcond, doublereal *z__)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2;
-    real r__1, r__2;
+    doublereal d__1, d__2;
 
     /* Builtin functions */
-    double r_sign(real *, real *);
+    double d_sign(doublereal *, doublereal *);
 
     /* Local variables */
     static integer j, k, l;
-    static real s, t;
+    static doublereal s, t;
     static integer kb;
-    static real ek, sm, wk;
+    static doublereal ek, sm, wk;
     static integer kp1;
-    static real wkm;
+    static doublereal wkm;
     static integer info;
-    extern doublereal sdot_(integer *, real *, integer *, real *, integer *);
-    extern /* Subroutine */ int sgefa_(real *, integer *, integer *, integer *
-	    , integer *), sscal_(integer *, real *, real *, integer *);
-    static real anorm;
-    extern doublereal sasum_(integer *, real *, integer *);
-    static real ynorm;
-    extern /* Subroutine */ int saxpy_(integer *, real *, real *, integer *, 
-	    real *, integer *);
+    extern doublereal sdot_(integer *, doublereal *, integer *, doublereal *, 
+	    integer *);
+    extern /* Subroutine */ int sgefa_(doublereal *, integer *, integer *, 
+	    integer *, integer *), sscal_(integer *, doublereal *, doublereal 
+	    *, integer *);
+    static doublereal anorm;
+    extern doublereal sasum_(integer *, doublereal *, integer *);
+    static doublereal ynorm;
+    extern /* Subroutine */ int saxpy_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *, integer *);
 
 /*         Factors a real matrix by Gaussian elimination */
 /*         and estimates the condition of the matrix. */
@@ -725,12 +731,12 @@ static integer c__1 = 1;
     --z__;
 
     /* Function Body */
-    anorm = (float)0.;
+    anorm = 0.;
     i__1 = *n;
     for (j = 1; j <= i__1; ++j) {
 /* Computing MAX */
-	r__1 = anorm, r__2 = sasum_(n, &a[j * a_dim1 + 1], &c__1);
-	anorm = dmax(r__1,r__2);
+	d__1 = anorm, d__2 = sasum_(n, &a[j * a_dim1 + 1], &c__1);
+	anorm = max(d__1,d__2);
 /* L10: */
     }
 /*                                      ** factor */
@@ -742,43 +748,43 @@ static integer c__1 = 1;
 /*     trans(U)*W = E.  The vectors are frequently rescaled to avoid */
 /*     overflow. */
 /*                        ** solve trans(U)*W = E */
-    ek = (float)1.;
+    ek = 1.;
     i__1 = *n;
     for (j = 1; j <= i__1; ++j) {
-	z__[j] = (float)0.;
+	z__[j] = 0.;
 /* L20: */
     }
     i__1 = *n;
     for (k = 1; k <= i__1; ++k) {
-	if (z__[k] != (float)0.) {
-	    r__1 = -z__[k];
-	    ek = r_sign(&ek, &r__1);
+	if (z__[k] != 0.) {
+	    d__1 = -z__[k];
+	    ek = d_sign(&ek, &d__1);
 	}
-	if ((r__1 = ek - z__[k], dabs(r__1)) > (r__2 = a[k + k * a_dim1], 
-		dabs(r__2))) {
-	    s = (r__1 = a[k + k * a_dim1], dabs(r__1)) / (r__2 = ek - z__[k], 
-		    dabs(r__2));
+	if ((d__1 = ek - z__[k], abs(d__1)) > (d__2 = a[k + k * a_dim1], abs(
+		d__2))) {
+	    s = (d__1 = a[k + k * a_dim1], abs(d__1)) / (d__2 = ek - z__[k], 
+		    abs(d__2));
 	    sscal_(n, &s, &z__[1], &c__1);
 	    ek = s * ek;
 	}
 	wk = ek - z__[k];
 	wkm = -ek - z__[k];
-	s = dabs(wk);
-	sm = dabs(wkm);
-	if (a[k + k * a_dim1] != (float)0.) {
+	s = abs(wk);
+	sm = abs(wkm);
+	if (a[k + k * a_dim1] != 0.) {
 	    wk /= a[k + k * a_dim1];
 	    wkm /= a[k + k * a_dim1];
 	} else {
-	    wk = (float)1.;
-	    wkm = (float)1.;
+	    wk = 1.;
+	    wkm = 1.;
 	}
 	kp1 = k + 1;
 	if (kp1 <= *n) {
 	    i__2 = *n;
 	    for (j = kp1; j <= i__2; ++j) {
-		sm += (r__1 = z__[j] + wkm * a[k + j * a_dim1], dabs(r__1));
+		sm += (d__1 = z__[j] + wkm * a[k + j * a_dim1], abs(d__1));
 		z__[j] += wk * a[k + j * a_dim1];
-		s += (r__1 = z__[j], dabs(r__1));
+		s += (d__1 = z__[j], abs(d__1));
 /* L30: */
 	    }
 	    if (s < sm) {
@@ -794,7 +800,7 @@ static integer c__1 = 1;
 	z__[k] = wk;
 /* L50: */
     }
-    s = (float)1. / sasum_(n, &z__[1], &c__1);
+    s = 1. / sasum_(n, &z__[1], &c__1);
     sscal_(n, &s, &z__[1], &c__1);
 /*                                ** solve trans(L)*Y = W */
     i__1 = *n;
@@ -805,8 +811,8 @@ static integer c__1 = 1;
 	    z__[k] += sdot_(&i__2, &a[k + 1 + k * a_dim1], &c__1, &z__[k + 1],
 		     &c__1);
 	}
-	if ((r__1 = z__[k], dabs(r__1)) > (float)1.) {
-	    s = (float)1. / (r__1 = z__[k], dabs(r__1));
+	if ((d__1 = z__[k], abs(d__1)) > 1.) {
+	    s = 1. / (d__1 = z__[k], abs(d__1));
 	    sscal_(n, &s, &z__[1], &c__1);
 	}
 	l = ipvt[k];
@@ -815,10 +821,10 @@ static integer c__1 = 1;
 	z__[k] = t;
 /* L60: */
     }
-    s = (float)1. / sasum_(n, &z__[1], &c__1);
+    s = 1. / sasum_(n, &z__[1], &c__1);
     sscal_(n, &s, &z__[1], &c__1);
 /*                                 ** solve L*V = Y */
-    ynorm = (float)1.;
+    ynorm = 1.;
     i__1 = *n;
     for (k = 1; k <= i__1; ++k) {
 	l = ipvt[k];
@@ -830,32 +836,32 @@ static integer c__1 = 1;
 	    saxpy_(&i__2, &t, &a[k + 1 + k * a_dim1], &c__1, &z__[k + 1], &
 		    c__1);
 	}
-	if ((r__1 = z__[k], dabs(r__1)) > (float)1.) {
-	    s = (float)1. / (r__1 = z__[k], dabs(r__1));
+	if ((d__1 = z__[k], abs(d__1)) > 1.) {
+	    s = 1. / (d__1 = z__[k], abs(d__1));
 	    sscal_(n, &s, &z__[1], &c__1);
 	    ynorm = s * ynorm;
 	}
 /* L70: */
     }
-    s = (float)1. / sasum_(n, &z__[1], &c__1);
+    s = 1. / sasum_(n, &z__[1], &c__1);
     sscal_(n, &s, &z__[1], &c__1);
 /*                                  ** solve  U*Z = V */
     ynorm = s * ynorm;
     i__1 = *n;
     for (kb = 1; kb <= i__1; ++kb) {
 	k = *n + 1 - kb;
-	if ((r__1 = z__[k], dabs(r__1)) > (r__2 = a[k + k * a_dim1], dabs(
-		r__2))) {
-	    s = (r__1 = a[k + k * a_dim1], dabs(r__1)) / (r__2 = z__[k], dabs(
-		    r__2));
+	if ((d__1 = z__[k], abs(d__1)) > (d__2 = a[k + k * a_dim1], abs(d__2))
+		) {
+	    s = (d__1 = a[k + k * a_dim1], abs(d__1)) / (d__2 = z__[k], abs(
+		    d__2));
 	    sscal_(n, &s, &z__[1], &c__1);
 	    ynorm = s * ynorm;
 	}
-	if (a[k + k * a_dim1] != (float)0.) {
+	if (a[k + k * a_dim1] != 0.) {
 	    z__[k] /= a[k + k * a_dim1];
 	}
-	if (a[k + k * a_dim1] == (float)0.) {
-	    z__[k] = (float)1.;
+	if (a[k + k * a_dim1] == 0.) {
+	    z__[k] = 1.;
 	}
 	t = -z__[k];
 	i__2 = k - 1;
@@ -863,31 +869,32 @@ static integer c__1 = 1;
 /* L80: */
     }
 /*                                   ** make znorm = 1.0 */
-    s = (float)1. / sasum_(n, &z__[1], &c__1);
+    s = 1. / sasum_(n, &z__[1], &c__1);
     sscal_(n, &s, &z__[1], &c__1);
     ynorm = s * ynorm;
-    if (anorm != (float)0.) {
+    if (anorm != 0.) {
 	*rcond = ynorm / anorm;
     }
-    if (anorm == (float)0.) {
-	*rcond = (float)0.;
+    if (anorm == 0.) {
+	*rcond = 0.;
     }
     return 0;
 } /* sgeco_ */
 
-/* Subroutine */ int sgefa_(real *a, integer *lda, integer *n, integer *ipvt, 
-	integer *info)
+/* Subroutine */ int sgefa_(doublereal *a, integer *lda, integer *n, integer *
+	ipvt, integer *info)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2, i__3;
 
     /* Local variables */
     static integer j, k, l;
-    static real t;
+    static doublereal t;
     static integer kp1, nm1;
-    extern /* Subroutine */ int sscal_(integer *, real *, real *, integer *), 
-	    saxpy_(integer *, real *, real *, integer *, real *, integer *);
-    extern integer isamax_(integer *, real *, integer *);
+    extern /* Subroutine */ int sscal_(integer *, doublereal *, doublereal *, 
+	    integer *), saxpy_(integer *, doublereal *, doublereal *, integer 
+	    *, doublereal *, integer *);
+    extern integer isamax_(integer *, doublereal *, integer *);
 
 /*         Factors a real matrix by Gaussian elimination. */
 /*         Revision date:  8/1/82 */
@@ -933,7 +940,7 @@ static integer c__1 = 1;
 	i__2 = *n - k + 1;
 	l = isamax_(&i__2, &a[k + k * a_dim1], &c__1) + k - 1;
 	ipvt[k] = l;
-	if (a[l + k * a_dim1] == (float)0.) {
+	if (a[l + k * a_dim1] == 0.) {
 /*                                     ** zero pivot implies this column */
 /*                                     ** already triangularized */
 	    *info = k;
@@ -945,7 +952,7 @@ static integer c__1 = 1;
 		a[k + k * a_dim1] = t;
 	    }
 /*                                     ** compute multipliers */
-	    t = (float)-1. / a[k + k * a_dim1];
+	    t = -1. / a[k + k * a_dim1];
 	    i__2 = *n - k;
 	    sscal_(&i__2, &t, &a[k + 1 + k * a_dim1], &c__1);
 /*                              ** row elimination with column indexing */
@@ -965,25 +972,26 @@ static integer c__1 = 1;
 /* L20: */
     }
     ipvt[*n] = *n;
-    if (a[*n + *n * a_dim1] == (float)0.) {
+    if (a[*n + *n * a_dim1] == 0.) {
 	*info = *n;
     }
     return 0;
 } /* sgefa_ */
 
-/* Subroutine */ int sgesl_(real *a, integer *lda, integer *n, integer *ipvt, 
-	real *b, integer *job)
+/* Subroutine */ int sgesl_(doublereal *a, integer *lda, integer *n, integer *
+	ipvt, doublereal *b, integer *job)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2;
 
     /* Local variables */
     static integer k, l;
-    static real t;
+    static doublereal t;
     static integer kb, nm1;
-    extern doublereal sdot_(integer *, real *, integer *, real *, integer *);
-    extern /* Subroutine */ int saxpy_(integer *, real *, real *, integer *, 
-	    real *, integer *);
+    extern doublereal sdot_(integer *, doublereal *, integer *, doublereal *, 
+	    integer *);
+    extern /* Subroutine */ int saxpy_(integer *, doublereal *, doublereal *, 
+	    integer *, doublereal *, integer *);
 
 /*         Solves the real system */
 /*            A * X = B  or  transpose(A) * X = B */
@@ -1095,11 +1103,11 @@ static integer c__1 = 1;
     return 0;
 } /* sgesl_ */
 
-doublereal sasum_(integer *n, real *sx, integer *incx)
+doublereal sasum_(integer *n, doublereal *sx, integer *incx)
 {
     /* System generated locals */
     integer i__1, i__2;
-    real ret_val, r__1, r__2, r__3, r__4, r__5, r__6;
+    doublereal ret_val, d__1, d__2, d__3, d__4, d__5, d__6;
 
     /* Local variables */
     static integer i__, m;
@@ -1121,7 +1129,7 @@ doublereal sasum_(integer *n, real *sx, integer *incx)
     --sx;
 
     /* Function Body */
-    ret_val = (float)0.;
+    ret_val = 0.;
     if (*n <= 0) {
 	return ret_val;
     }
@@ -1130,7 +1138,7 @@ doublereal sasum_(integer *n, real *sx, integer *incx)
 	i__1 = (*n - 1) * *incx + 1;
 	i__2 = *incx;
 	for (i__ = 1; i__2 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__2) {
-	    ret_val += (r__1 = sx[i__], dabs(r__1));
+	    ret_val += (d__1 = sx[i__], abs(d__1));
 /* L10: */
 	}
     } else {
@@ -1141,25 +1149,25 @@ doublereal sasum_(integer *n, real *sx, integer *incx)
 /*                             ** length is a multiple of 6. */
 	    i__2 = m;
 	    for (i__ = 1; i__ <= i__2; ++i__) {
-		ret_val += (r__1 = sx[i__], dabs(r__1));
+		ret_val += (d__1 = sx[i__], abs(d__1));
 /* L20: */
 	    }
 	}
 /*                              ** unroll loop for speed */
 	i__2 = *n;
 	for (i__ = m + 1; i__ <= i__2; i__ += 6) {
-	    ret_val = ret_val + (r__1 = sx[i__], dabs(r__1)) + (r__2 = sx[i__ 
-		    + 1], dabs(r__2)) + (r__3 = sx[i__ + 2], dabs(r__3)) + (
-		    r__4 = sx[i__ + 3], dabs(r__4)) + (r__5 = sx[i__ + 4], 
-		    dabs(r__5)) + (r__6 = sx[i__ + 5], dabs(r__6));
+	    ret_val = ret_val + (d__1 = sx[i__], abs(d__1)) + (d__2 = sx[i__ 
+		    + 1], abs(d__2)) + (d__3 = sx[i__ + 2], abs(d__3)) + (
+		    d__4 = sx[i__ + 3], abs(d__4)) + (d__5 = sx[i__ + 4], abs(
+		    d__5)) + (d__6 = sx[i__ + 5], abs(d__6));
 /* L30: */
 	}
     }
     return ret_val;
 } /* sasum_ */
 
-/* Subroutine */ int saxpy_(integer *n, real *sa, real *sx, integer *incx, 
-	real *sy, integer *incy)
+/* Subroutine */ int saxpy_(integer *n, doublereal *sa, doublereal *sx, 
+	integer *incx, doublereal *sy, integer *incy)
 {
     /* System generated locals */
     integer i__1, i__2;
@@ -1195,7 +1203,7 @@ doublereal sasum_(integer *n, real *sx, integer *incx)
     --sx;
 
     /* Function Body */
-    if (*n <= 0 || *sa == (float)0.) {
+    if (*n <= 0 || *sa == 0.) {
 	return 0;
     }
     if (*incx == *incy && *incx > 1) {
@@ -1247,11 +1255,12 @@ doublereal sasum_(integer *n, real *sx, integer *incx)
     return 0;
 } /* saxpy_ */
 
-doublereal sdot_(integer *n, real *sx, integer *incx, real *sy, integer *incy)
+doublereal sdot_(integer *n, doublereal *sx, integer *incx, doublereal *sy, 
+	integer *incy)
 {
     /* System generated locals */
     integer i__1, i__2;
-    real ret_val;
+    doublereal ret_val;
 
     /* Local variables */
     static integer i__, m, ix, iy;
@@ -1282,7 +1291,7 @@ doublereal sdot_(integer *n, real *sx, integer *incx, real *sy, integer *incy)
     --sx;
 
     /* Function Body */
-    ret_val = (float)0.;
+    ret_val = 0.;
     if (*n <= 0) {
 	return ret_val;
     }
@@ -1334,7 +1343,8 @@ doublereal sdot_(integer *n, real *sx, integer *incx, real *sy, integer *incy)
     return ret_val;
 } /* sdot_ */
 
-/* Subroutine */ int sscal_(integer *n, real *sa, real *sx, integer *incx)
+/* Subroutine */ int sscal_(integer *n, doublereal *sa, doublereal *sx, 
+	integer *incx)
 {
     /* System generated locals */
     integer i__1, i__2;
@@ -1397,15 +1407,15 @@ doublereal sdot_(integer *n, real *sx, integer *incx, real *sy, integer *incy)
     return 0;
 } /* sscal_ */
 
-/* Subroutine */ int sswap_(integer *n, real *sx, integer *incx, real *sy, 
-	integer *incy)
+/* Subroutine */ int sswap_(integer *n, doublereal *sx, integer *incx, 
+	doublereal *sy, integer *incy)
 {
     /* System generated locals */
     integer i__1, i__2;
 
     /* Local variables */
     static integer i__, m, ix, iy;
-    static real stemp1, stemp2, stemp3;
+    static doublereal stemp1, stemp2, stemp3;
 
 /*          Interchange s.p vectors  X  and  Y, as follows: */
 /*     For I = 0 to N-1, interchange  SX(LX+I*INCX) and SY(LY+I*INCY), */
@@ -1498,15 +1508,15 @@ doublereal sdot_(integer *n, real *sx, integer *incx, real *sy, integer *incy)
     return 0;
 } /* sswap_ */
 
-integer isamax_(integer *n, real *sx, integer *incx)
+integer isamax_(integer *n, doublereal *sx, integer *incx)
 {
     /* System generated locals */
     integer ret_val, i__1, i__2;
-    real r__1;
+    doublereal d__1;
 
     /* Local variables */
     static integer i__, ii;
-    static real xmag, smax;
+    static doublereal xmag, smax;
 
 /* INPUT--  N     Number of elements in vector of interest */
 /*          SX    Sing-prec array, length 1+(N-1)*INCX, containing vector */
@@ -1531,12 +1541,12 @@ integer isamax_(integer *n, real *sx, integer *incx)
     } else if (*n == 1) {
 	ret_val = 1;
     } else {
-	smax = (float)0.;
+	smax = 0.;
 	ii = 1;
 	i__1 = (*n - 1) * *incx + 1;
 	i__2 = *incx;
 	for (i__ = 1; i__2 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__2) {
-	    xmag = (r__1 = sx[i__], dabs(r__1));
+	    xmag = (d__1 = sx[i__], abs(d__1));
 	    if (smax < xmag) {
 		smax = xmag;
 		ret_val = ii;

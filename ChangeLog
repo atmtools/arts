@@ -1,5 +1,13 @@
 2006-02-14  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1064
+	
+	* src/disort_*.c:
+
+	Regenerate with 'f2c -C++ -r8' for double precision.
+
+2006-02-14  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1063
 	
 	* src/Makefile.am: Added $(EXEEXT) to test_disort target.
