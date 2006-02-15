@@ -25,7 +25,8 @@
  * 
  */
 
-
+#ifndef disort_h
+#define disort_h
 
 void dtauc_ssalbCalc(
                     VectorView dtauc,
@@ -59,3 +60,6 @@ void pmomCalc(//Output
 Numeric planck2( 
                 const Numeric&   f, 
                 const Numeric&   t );
+
+#endif /* disort_h */
+

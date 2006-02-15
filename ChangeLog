@@ -1,3 +1,21 @@
+2006-02-15  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1066
+	
+	* src/m_disort:
+
+	Make all parameters to disort_ non-const.
+
+	Removed type conversions from disort_ call.
+
+	* src/DISORT.h: Renamed to disort_DISORT.h.
+
+	* src/disort_DISORT.h: Added missing ifdefs.
+
+	* src/disort.h: Added missing ifdefs.
+
+	* src/Makefile.am: Added disort_DISORT.h to SOURCES lists.
+
 2006-02-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-1065

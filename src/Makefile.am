@@ -43,6 +43,7 @@ arts_SOURCES = \
 	constants.cc \
 	disort.cc \
 	disort.h \
+	disort_DISORT.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -260,6 +261,7 @@ test_binaryio_SOURCES = \
 	constants.cc \
 	disort.cc \
 	disort.h \
+	disort_DISORT.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -578,6 +580,7 @@ test_interpolation_SOURCES = \
 	constants.cc \
 	disort.cc \
 	disort.h \
+	disort_DISORT.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -867,6 +870,7 @@ test_sparse_SOURCES = \
 	constants.cc \
 	disort.cc \
 	disort.h \
+	disort_DISORT.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -1031,6 +1035,7 @@ test_xml_SOURCES = \
 	constants.cc \
 	disort.cc \
 	disort.h \
+	disort_DISORT.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \
@@ -1236,6 +1241,7 @@ test_sensor_SOURCES = \
 	constants.cc \
 	disort.cc \
 	disort.h \
+	disort_DISORT.h \
 	exceptions.h \
 	fastem.cc \
 	fastem.h \

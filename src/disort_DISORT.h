@@ -1,3 +1,9 @@
+#ifndef disort_DISORT_h
+#define disort_DISORT_h
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "f2c.h"
 
@@ -17,4 +23,11 @@ int disort_(integer *nlyr, doublereal *dtauc, doublereal *
 	integer *maxcly, integer *maxulv, integer *maxumu, integer *maxcmu, 
 	integer *maxphi, doublereal *rfldir, doublereal *rfldn, doublereal *
 	flup, doublereal *dfdt, doublereal *uavg, doublereal *uu, doublereal *
-            u0u, doublereal *albmed, doublereal *trnmed, ftnlen header_len);
+  u0u, doublereal *albmed, doublereal *trnmed, ftnlen header_len);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* disort_DISORT_h */
+
