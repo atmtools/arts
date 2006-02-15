@@ -75,10 +75,10 @@ void ScatteringDisort(// WS Output:
                       const Vector& p_grid, 
                       const Tensor4& vmr_field,
                       const ArrayOfSingleScatteringData& scat_data_mono,
-                      const Vector& /*f_grid*/,
-                      const Index& /*f_index*/, 
-                      const Vector& /*scat_za_grid*/,
-                      const Matrix& /*surface_emissivity_field*/)
+                      const Vector& f_grid,
+                      const Index& f_index, 
+                      const Vector& scat_za_grid,
+                      const Matrix& surface_emissivity_field)
 {
   if(cloudbox_limits.nelem() != 2) 
     throw runtime_error(
@@ -122,16 +122,13 @@ void ScatteringDisort(// WS Output:
 
   // Definition of other input variables for disort calculation
 
-  /* Commented because at the moment it is not possible to convert 
-     from arts Vector, Matrix to C floats, real
-
   const Numeric wvnmlo = f_grid[f_index]/(100*SPEED_OF_LIGHT);
   const Numeric wvnmhi = wvnmlo;
   // calculate radiant quantities at boundary of computational layers. 
   const Index usrtau = false; 
   //dummies
   const Index ntau = 0; 
-  const Vector utau(1,0.);
+  Vector utau(1,0.);
   
   // Number of streams, I think in microwave 8 is more that sufficient
   const Index nstr=n_legendre;
@@ -146,7 +143,7 @@ void ScatteringDisort(// WS Output:
   
   // Since we have no solar source there is no angular dependance
   const Index nphi = 1; 
-  const Vector phi(nphi, 0.);
+  Vector phi(nphi, 0.);
   
   const Index ibcnd=0;
   
@@ -156,13 +153,13 @@ void ScatteringDisort(// WS Output:
   const Numeric phi0=0.; 
   
   // Cosmic background
-  const Numeric fisot = planck( f_grid[f_index], COSMIC_BG_TEMP );
+  const Numeric fisot = planck2( f_grid[f_index], COSMIC_BG_TEMP );
   
   // surface, Lambertian if set to 0
   const Index lamber = true;
   const Numeric albedo = surface_emissivity_field(0,0);
   // only needed for bidirectional reflecting surface
-  const Vector hl(1,0.); 
+ Vector hl(1,0.); 
 
   //temperature of surface and cloudbox top
   const Numeric btemp = t_field(0,0,0); 
@@ -185,14 +182,15 @@ void ScatteringDisort(// WS Output:
   const Numeric accur = 0.005;
   
   // Specify what to be printed
-  ArrayOfIndex prnt(5); 
+  Index *prnt = new Index[5]; 
   prnt[0]=1;
   prnt[1]=1;
   prnt[2]=1;
   prnt[3]=1;
   prnt[4]=1;
   
-  const String header;
+  char *header= "";
+  const Index header_len = 0;
    
   const Index maxcly = 200; // Maximum number of layers
   const Index maxulv = 200; // Maximum number of user defined tau
@@ -208,22 +206,41 @@ void ScatteringDisort(// WS Output:
   Vector uavg; 
   Tensor3 uu(scat_za_grid.nelem(), nlyr,1); // Intensity 
   Matrix u0u(scat_za_grid.nelem(), nlyr); // Azimuthally averaged intensity 
-  Vector albmed(scat_za_grid.nelem()); // Albodo of cloudbox
+  Vector albmed(scat_za_grid.nelem()); // Albedo of cloudbox
   Vector trnmed(scat_za_grid.nelem()); // Transmissivity 
   
-  Index header_len;
+  Vector t = t_field(joker,0,0);
 
 #ifdef DISORT
-  disort_((integer*)nlyr, (float*) dtauc, ssalb, pmom, t_field(joker,0,0), wvnmlo, wvnmhi,
-         usrtau, ntau, utau, nstr, usrang, numu, umu, nphi, phi, ibcnd, fbeam,
-          umu0, phi0, fisot, lamber, albedo, hl, btemp, ttemp, temis, deltam, 
-          plank, onlyfl, accur, prnt, header, maxcly, maxulv, maxumu, maxcmu, 
-          maxphi, rfldir, rfldn, flup, dfdt, uavg, uu, u0u, albmed, trnmed, 
-          header_len);
+  disort_((integer *)nlyr, (double *)dtauc.get_c_array(),
+          (double *)ssalb.get_c_array(), (double *)pmom.get_c_array(), 
+          (double *)t.get_c_array(), (double *)&wvnmlo, (double *)&wvnmhi,
+          (integer *)usrtau, (integer *)ntau, (double *)utau.get_c_array(), 
+          (integer *)nstr, (integer *)usrang, (integer *)numu, 
+          (double *)umu.get_c_array(), (integer *)nphi,
+          (double *)phi.get_c_array(), 
+          (integer *)ibcnd, (double *)&fbeam,
+          (double *)&umu0, (double *)&phi0, (double *)&fisot, 
+          (integer *)lamber, 
+          (double *)&albedo, (double *)hl.get_c_array(),
+          (double *)&btemp, (double *)&ttemp, (double *)&temis, 
+          (integer *)deltam, 
+          (integer *)plank, (integer *)onlyfl, (double *)&accur,
+          (integer *)prnt, (char *)header, 
+          (integer *)maxcly, (integer *)maxulv,
+          (integer *)maxumu, (integer *)maxcmu, 
+          (integer *)maxphi, (double *)rfldir.get_c_array(), 
+          (double *)rfldn.get_c_array(),
+          (double *)flup.get_c_array(), (double *)dfdt.get_c_array(), 
+          (double *)uavg.get_c_array(),
+          (double *)uu.get_c_array(), (double *)u0u.get_c_array(), 
+          (double *)albmed.get_c_array(),
+          (double *)trnmed.get_c_array(), 
+          (integer)header_len);
 #else
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");
 #endif
-  */
+
 }
 
 

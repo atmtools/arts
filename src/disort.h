@@ -55,3 +55,7 @@ void pmomCalc(//Output
               ConstVectorView scat_angle_grid,
               const Index n_legendre
               );
+
+Numeric planck2( 
+                const Numeric&   f, 
+                const Numeric&   t );

@@ -39,6 +39,9 @@
 #include "interpolation.h"
 
 extern const Numeric PI;
+extern const Numeric PLANCK_CONST;
+extern const Numeric SPEED_OF_LIGHT;
+extern const Numeric BOLTZMAN_CONST;
 
 //! dtauc_ssalbCalc
 /*!
@@ -315,5 +318,37 @@ void pmomCalc(//Output
         
       }
     }
+}
+
+//! planck
+/*! 
+  Calculates the Planck function for a single temperature.
+  
+  Comment by CE: 
+  Copied here from physics_funcs.cc, because I cannot include physics.h 
+  in m_disort.cc. The problem is that the definition of complex is not 
+  compatible with f2c.h
+ 
+  Note that this expression gives the intensity for both polarisations.
+  
+  \return     blackbody radiation
+  \param  f   frequency
+  \param  t   temperature
+  
+  \author Patrick Eriksson 
+  \date   2000-04-08 
+*/
+Numeric planck2( 
+        const Numeric&   f, 
+        const Numeric&   t )
+{
+  assert( f > 0 );
+  assert( t >= 0 );
+
+  // Double must be used here (if not, a becomes 0 when using float)
+  static const double a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const double b = PLANCK_CONST / BOLTZMAN_CONST;
+  
+  return   a * f*f*f / ( exp( b*f/t ) - 1 );
 }
 
