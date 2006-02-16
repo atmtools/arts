@@ -1,5 +1,14 @@
 2006-02-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-1068
+	
+	* src/Makefile.am:
+
+	Removed disort sources from test_disort_SOURCES. Instead, link against
+	libdisort.a.
+
+2006-02-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-1067
 	
 	* src/Makefile.am:

@@ -193,6 +193,14 @@ libdisort_a_SOURCES = \
 	disort_FAKEMAIN.c \
 	disort_LINPAK.c \
 	disort_R1MACH.c
+
+test_disort_SOURCES = \
+	disort_DISOTEST.c
+
+else
+
+test_disort$(EXEEXT):
+
 endif
 
 methods.o: arts.h arts_mpi.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h methods.cc
@@ -1183,21 +1191,6 @@ test_complex_SOURCES = \
 	complex.h \
 	complex.cc \
 	test_complex.cc
-
-if DISORT
-
-test_disort_SOURCES = \
-	disort_DISOTEST.c \
-	disort_D1MACH.c \
-	disort_DISORT.c \
-	disort_ErrPack.c \
-	disort_LINPAK.c \
-	disort_R1MACH.c
-else
-
-test_disort$(EXEEXT):
-
-endif
 
 test_mpi_SOURCES = \
 	arts.cc \
