@@ -1,3 +1,12 @@
+2006-02-16  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-1067
+	
+	* src/Makefile.am:
+
+	Only link those programs against libdisort.a which really need it.
+	Avoids unnecessary recompilations if disort source changes.
+
 2006-02-15  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-1066
