@@ -288,8 +288,7 @@ void pmomCalc(//Output
             p0_1=1.;
             p0_2=1.;
             
-            pmom(0,i_l)+=0.5*0.5*(phase_int(i_l, i)+
-                                  phase_int(i_l, i+1))*abs(u[i+1]-u[i]); 
+            pmom(0,i_l)=1.; 
             
             p1_1=u[i];
             p1_2=u[i+1];
