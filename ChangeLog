@@ -1,5 +1,15 @@
 2006-02-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
+	* arts-1-1-1070
+
+	* src/disort.cc (pmomCalc): Set first Legendre polynomial to 1 istead 
+	of calculating it. 
+
+	* src/m_disort.cc: Corrected values of some input variables for 
+	disort_
+	
+2006-02-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
 	* arts-1-1-1069
 
 	* tests/simpleDISORT.arts: Added this file to test DISORT in arts. Not
