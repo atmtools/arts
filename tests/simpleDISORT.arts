@@ -1,0 +1,283 @@
+
+#DEFINITIONS:  -*-sh-*-
+#
+# filename: simpleDOIT.arts
+#
+# Demonstration of a DOIT scattering calculation
+#
+# Author: Claudia Emde
+# 
+# A big part of the control file consists of definitions for the 
+# radiative transfer calculations. Parts, where a calculation is 
+# performed are marked with ===start=== and ===stop===.
+#
+
+Main {
+
+# Output file format
+# ------------------  
+output_file_formatSetAscii{}
+
+# Frequency grid 
+# --------------
+# This example is only monochromatic. Note: The frequency must be contained
+# in the gas absorption lookup table.  
+IndexSet(nelem){ 1 }
+VectorSet(f_grid){
+        value = 230e9
+}
+ 
+
+# Number of Stokes components to be computed
+#-------------------------------------------
+IndexSet( stokes_dim ){
+  value = 1
+}
+
+# Definition of the atmosphere
+# ----------------------------
+# Atmospheric dimension
+AtmosphereSet1D{}
+
+# Pressure grid
+ReadXML( p_grid ){
+  "./data/p_grid.xml"
+}
+
+# Definition of species
+gas_speciesSet{
+  species = [ "H2O", "N2", "O2"]
+}
+
+# Atmospheric profiles
+AtmRawRead{
+ basename = "data/tropical"
+}
+
+# Gas absorption from lookup table 
+# ---------------------------------
+gas_abs_lookupInit{}
+
+# Lookup tables can be computed using the MATLAB (please contact Stefan)
+ReadXML( gas_abs_lookup ){
+   "data/gas_abs_lookup.xml"
+}
+   	
+gas_abs_lookupAdapt{}
+
+AgendaSet( scalar_gas_absorption_agenda ){
+   abs_scalar_gasExtractFromLookup{}
+}
+
+AtmFieldsCalc{}
+
+AgendaSet( emission_agenda ){
+   emissionPlanck{}
+}
+
+AgendaSet( opt_prop_gas_agenda ){
+   ext_matInit{}
+   abs_vecInit{}
+   ext_matAddGas{}
+   abs_vecAddGas{}
+}
+
+
+# Definition of Earth surface
+# ----------------------------
+# spherical geoid 
+#r_geoidWGS84{}
+
+r_geoidSpherical{
+    r = -1
+}
+
+# Ground altitude (measured from geoid)
+nrowsGet(r_geoid){}
+ncolsGet(r_geoid){}
+MatrixSet( z_surface){
+    value = 500
+}
+
+MatrixSet( surface_emissivity_field){
+    value = 1
+}
+
+# Properties of surface
+
+AgendaSet(surface_prop_agenda){
+           Ignore (rte_gp_p) {}
+           Ignore (rte_gp_lat) {}
+           Ignore (rte_gp_lon) {}
+           InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
+           surfaceBlackbody{}
+        }
+
+AgendaSet(iy_surface_agenda){
+           AgendaExecute(surface_prop_agenda){}
+           surfaceCalc{}
+        } 
+
+
+# Definition of sensor position and LOS
+#--------------------------------------
+# This file holds the viewing angles of the sensor:
+IndexSet(nelem){ 1 }
+VectorSet(vector_1){
+        value = 99.7841941981
+}
+
+#VectorNLinSpace(vector_1){
+#	start = 0
+#	stop = 180
+#	n = 19
+#}
+
+# Sensor altitude from earth surface
+nelemGet(vector_1){}
+VectorSet( vector_2 ) {
+   value =  95000.1
+}
+
+# Add Earth Radius
+VectorAddScalar(vector_2, vector_2){
+    value = 6.378e6
+    }
+
+Matrix1ColFromVector( sensor_pos, vector_2 ) {}
+Matrix1ColFromVector( sensor_los, vector_1 ) {}
+
+# SensorOff means that the result of the calculation are the radiances,
+# which are not modified by sensor properties
+sensorOff{}		
+
+# No jacobian calaculations here
+jacobianOff{}		
+
+# Agendas for the calculation of propagation paths
+AgendaSet( refr_index_agenda ) {
+  refr_indexThayer{}
+}
+
+# This should be sufficiently small to assume single scattering in 
+# one propagation path step
+AgendaSet( ppath_step_agenda ) {
+  ppath_stepGeometric{
+      lmax      = -1
+  }
+}
+
+# Agendas for clearsky radiative transfer calculation
+# ----------------------------------------------------
+AgendaSet( iy_space_agenda ){
+   Ignore( rte_pos ){}
+   Ignore( rte_los ){}
+   MatrixCBR( iy, f_grid ){}
+}
+
+AgendaSet( rte_agenda ){
+   RteStd{}
+}
+
+# Set the cloudbox limits (pressure units)
+# Alternative: cloudboxSetManuallyAltitude (specification in [km])
+# ----------------------------------------------------------------
+cloudboxSetManuallyAltitude{
+z1=0
+z2=15e3
+lat1=0
+lat2=0
+lon1=0
+lon2=0
+}
+
+# Specification of cloud
+# -----------------------
+ParticleTypeInit{}
+
+# Only one particle type is added in this example 
+ParticleTypeAdd{
+filename_scat_data="data/scat_data_disort.xml"
+filename_pnd_field="data/pnd_field_1D.xml"
+}
+
+pnd_fieldCalc{}
+
+scat_data_rawCheck{}
+
+# Select interpolation method ('linear' or 'polynomial'):
+# ----------------------------------------------------
+
+# For limb calculations is is very important to have a fine resolution     
+# about 90°.
+# If "polynomial" is selected one has to use an optimized grid. Please     
+# use *doit_za_grid_optCalc* to optimize the grid.
+doit_za_interpSet{interp_method = "linear" }
+
+DoitAngularGridsSet{
+	N_za_grid = 19
+	N_aa_grid = 10
+	za_grid_opt_file = ""
+	}
+
+# Definitions for methods used in *i_fieldIterate*:
+#----------------------------------------------------
+
+# 1. Scattering integral
+# --------------------------
+
+# Calculation of the phase matrix
+AgendaSet(pha_mat_spt_agenda){
+ # Optimized option:
+   pha_mat_sptFromDataDOITOpt{}
+ # Alternative option:
+ #  pha_mat_sptFromMonoData{}
+}
+
+AgendaSet(doit_scat_field_agenda){
+ doit_scat_fieldCalcLimb{}
+ # Alternative: use the same za grids in RT part and scattering integral part
+ # doit_scat_fieldCalc{} 
+}
+
+    
+# Calculate opticle properties of particles and add particle absorption
+# and extiction to the gaseous properties to get total extinction and
+# absorption:
+
+AgendaSet(spt_calc_agenda){
+   opt_prop_sptFromMonoData{}
+}
+
+AgendaSet( opt_prop_part_agenda ){
+   ext_matInit{}
+   abs_vecInit{}
+   ext_matAddPart{}
+   abs_vecAddPart{}
+}
+	
+    
+AgendaSet(iy_cloudbox_agenda){
+    iyInterpCloudboxField{}
+    }
+
+#==================start==========================
+
+# Perform scattering calculation 
+# CloudboxGetIncoming{}
+IndexSet(f_index){0}
+scat_data_monoCalc{}
+ScatteringDisort{}
+Exit{}
+# Calculate RT from cloudbox boundary to the sensor
+RteCalc{}
+VectorToTbByRJ( y, y ) {}
+
+Print(y){
+level=1
+}
+
+#==================stop==========================
+
+} # End of Main
+ 
