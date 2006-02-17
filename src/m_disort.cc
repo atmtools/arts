@@ -114,11 +114,12 @@ void ScatteringDisort(// WS Output:
   
   cout << "phase function" << phase_function(15,joker) << "\n";  
   
-  const Index n_legendre=8;
+  const Index n_legendre=scat_za_grid.nelem(); //8;
   Matrix pmom(n_legendre, nlyr, 0.); 
   pmomCalc(pmom, phase_function, scat_angle_grid, n_legendre);
 
-  cout << "pmom " << pmom(joker, 15) << "\n";
+  for (Index i=0; i<nlyr; i++)
+      cout << "pmom " << pmom(joker, i) << "\n";
 
   // Definition of other input variables for disort calculation
 
@@ -129,7 +130,7 @@ void ScatteringDisort(// WS Output:
   //dummies
   Index ntau = 0; 
   Vector utau(1,0.);
-  
+ 
   // Number of streams, I think in microwave 8 is more that sufficient
   Index nstr=n_legendre;
   
@@ -139,7 +140,9 @@ void ScatteringDisort(// WS Output:
   Vector umu(numu); 
   // Transform to mu, starting with negative values
   for (Index i = 0; i<numu; i++)
-    umu[i]=cos(scat_za_grid[numu-i]*PI/180);
+    umu[i]=cos(scat_za_grid[numu-i-1]*PI/180);
+
+  cout << "test " << endl;
   
   // Since we have no solar source there is no angular dependance
   Index nphi = 1; 
@@ -192,24 +195,26 @@ void ScatteringDisort(// WS Output:
   char *header= "";
   Index header_len = 0;
    
-  Index maxcly = 200; // Maximum number of layers
-  Index maxulv = 200; // Maximum number of user defined tau
-  Index maxumu = 200; // maximum number of zenith angles
-  Index maxcmu = 100; // maximum number of Legendre polynomials 
+  Index maxcly = nlyr; // Maximum number of layers
+  Index maxulv = nlyr; // Maximum number of user defined tau
+  Index maxumu = scat_za_grid.nelem(); // maximum number of zenith angles
+  Index maxcmu = n_legendre; // maximum number of Legendre polynomials 
   Index maxphi = 1;  //no azimuthal dependance
 
   // Declaration of Output variables
-  Vector rfldir; 
-  Vector rfldn;
-  Vector flup;
-  Vector dfdt;
-  Vector uavg;
+  Vector rfldir(nlyr); 
+  Vector rfldn(nlyr);
+  Vector flup(nlyr);
+  Vector dfdt(nlyr);
+  Vector uavg(nlyr);
   Tensor3 uu(scat_za_grid.nelem(), nlyr,1); // Intensity 
   Matrix u0u(scat_za_grid.nelem(), nlyr); // Azimuthally averaged intensity 
   Vector albmed(scat_za_grid.nelem()); // Albedo of cloudbox
   Vector trnmed(scat_za_grid.nelem()); // Transmissivity 
   
   Vector t = t_field(joker,0,0);
+  cout << "nlyr " << nlyr << endl;
+  cout << "(scat_za_grid.nelem() " <<scat_za_grid.nelem()<< endl;
 
 #ifdef DISORT
   disort_(&nlyr, dtauc.get_c_array(),
@@ -241,7 +246,9 @@ void ScatteringDisort(// WS Output:
   throw runtime_error ("This version of ARTS was compiled without DISORT support.");
 #endif
 
+  cout << " intensity " << endl; 
+
 }
 
 
-
+ 
